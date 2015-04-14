@@ -1,0 +1,51 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProfUISDLL", "ProfUISDLL_710.vcproj", "{EC7B4A6D-4B06-4640-A265-D2147A214761}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		ANSI Debug = ANSI Debug
+		ANSI Debug RDE = ANSI Debug RDE
+		ANSI Release = ANSI Release
+		ANSI Release RDE = ANSI Release RDE
+		MBCS Debug = MBCS Debug
+		MBCS Debug RDE = MBCS Debug RDE
+		MBCS Release = MBCS Release
+		MBCS Release RDE = MBCS Release RDE
+		Unicode Debug = Unicode Debug
+		Unicode Debug RDE = Unicode Debug RDE
+		Unicode Release = Unicode Release
+		Unicode Release RDE = Unicode Release RDE
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{EC7B4A6D-4B06-4640-A265-D2147A214761}.ANSI Debug.ActiveCfg = ANSI Debug|Win32
+		{EC7B4A6D-4B06-4640-A265-D2147A214761}.ANSI Debug.Build.0 = ANSI Debug|Win32
+		{EC7B4A6D-4B06-4640-A265-D2147A214761}.ANSI Debug RDE.ActiveCfg = ANSI Debug RDE|Win32
+		{EC7B4A6D-4B06-4640-A265-D2147A214761}.ANSI Debug RDE.Build.0 = ANSI Debug RDE|Win32
+		{EC7B4A6D-4B06-4640-A265-D2147A214761}.ANSI Release.ActiveCfg = ANSI Release|Win32
+		{EC7B4A6D-4B06-4640-A265-D2147A214761}.ANSI Release.Build.0 = ANSI Release|Win32
+		{EC7B4A6D-4B06-4640-A265-D2147A214761}.ANSI Release RDE.ActiveCfg = ANSI Release RDE|Win32
+		{EC7B4A6D-4B06-4640-A265-D2147A214761}.ANSI Release RDE.Build.0 = ANSI Release RDE|Win32
+		{EC7B4A6D-4B06-4640-A265-D2147A214761}.MBCS Debug.ActiveCfg = MBCS Debug|Win32
+		{EC7B4A6D-4B06-4640-A265-D2147A214761}.MBCS Debug.Build.0 = MBCS Debug|Win32
+		{EC7B4A6D-4B06-4640-A265-D2147A214761}.MBCS Debug RDE.ActiveCfg = MBCS Debug RDE|Win32
+		{EC7B4A6D-4B06-4640-A265-D2147A214761}.MBCS Debug RDE.Build.0 = MBCS Debug RDE|Win32
+		{EC7B4A6D-4B06-4640-A265-D2147A214761}.MBCS Release.ActiveCfg = MBCS Release|Win32
+		{EC7B4A6D-4B06-4640-A265-D2147A214761}.MBCS Release.Build.0 = MBCS Release|Win32
+		{EC7B4A6D-4B06-4640-A265-D2147A214761}.MBCS Release RDE.ActiveCfg = MBCS Release RDE|Win32
+		{EC7B4A6D-4B06-4640-A265-D2147A214761}.MBCS Release RDE.Build.0 = MBCS Release RDE|Win32
+		{EC7B4A6D-4B06-4640-A265-D2147A214761}.Unicode Debug.ActiveCfg = Unicode Debug|Win32
+		{EC7B4A6D-4B06-4640-A265-D2147A214761}.Unicode Debug.Build.0 = Unicode Debug|Win32
+		{EC7B4A6D-4B06-4640-A265-D2147A214761}.Unicode Debug RDE.ActiveCfg = Unicode Debug RDE|Win32
+		{EC7B4A6D-4B06-4640-A265-D2147A214761}.Unicode Debug RDE.Build.0 = Unicode Debug RDE|Win32
+		{EC7B4A6D-4B06-4640-A265-D2147A214761}.Unicode Release.ActiveCfg = Unicode Release|Win32
+		{EC7B4A6D-4B06-4640-A265-D2147A214761}.Unicode Release.Build.0 = Unicode Release|Win32
+		{EC7B4A6D-4B06-4640-A265-D2147A214761}.Unicode Release RDE.ActiveCfg = Unicode Release RDE|Win32
+		{EC7B4A6D-4B06-4640-A265-D2147A214761}.Unicode Release RDE.Build.0 = Unicode Release RDE|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

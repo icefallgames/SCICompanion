@@ -1,0 +1,18 @@
+
+#if (!defined __PROF_UIS_RES_GEO_H)
+	#include "ResGeoControls.h"
+#endif
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+IDB_EXT_BMP_LL_HTTZ_HR                                       BITMAP  MOVEABLE PURE     "Resources\\ResGeoControls\\IDB_EXT_BMP_LL_HTTZ_HR.bmp"
+IDB_EXT_BMP_LL_HTTZ_LR                                       BITMAP  MOVEABLE PURE     "Resources\\ResGeoControls\\IDB_EXT_BMP_LL_HTTZ_LR.bmp"
+IDB_EXT_BMP_LL_MAP_HR                                        BITMAP  MOVEABLE PURE     "Resources\\ResGeoControls\\IDB_EXT_BMP_LL_MAP_HR.bmp"
+IDB_EXT_BMP_LL_MAP_LR                                        BITMAP  MOVEABLE PURE     "Resources\\ResGeoControls\\IDB_EXT_BMP_LL_MAP_LR.bmp"
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////

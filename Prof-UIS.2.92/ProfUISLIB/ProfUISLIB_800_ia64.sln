@@ -1,0 +1,86 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProfUISLIB", "ProfUISLIB_800_ia64.vcproj", "{89CFFC49-D858-481E-99C5-E312F7C1EA95}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Static ANSI Debug RDE with MFC DLL|Itanium = Static ANSI Debug RDE with MFC DLL|Itanium
+		Static ANSI Debug RDE|Itanium = Static ANSI Debug RDE|Itanium
+		Static ANSI Debug with MFC DLL|Itanium = Static ANSI Debug with MFC DLL|Itanium
+		Static ANSI Debug|Itanium = Static ANSI Debug|Itanium
+		Static ANSI Release RDE with MFC DLL|Itanium = Static ANSI Release RDE with MFC DLL|Itanium
+		Static ANSI Release RDE|Itanium = Static ANSI Release RDE|Itanium
+		Static ANSI Release with MFC DLL|Itanium = Static ANSI Release with MFC DLL|Itanium
+		Static ANSI Release|Itanium = Static ANSI Release|Itanium
+		Static MBCS Debug RDE with MFC DLL|Itanium = Static MBCS Debug RDE with MFC DLL|Itanium
+		Static MBCS Debug RDE|Itanium = Static MBCS Debug RDE|Itanium
+		Static MBCS Debug with MFC DLL|Itanium = Static MBCS Debug with MFC DLL|Itanium
+		Static MBCS Debug|Itanium = Static MBCS Debug|Itanium
+		Static MBCS Release RDE with MFC DLL|Itanium = Static MBCS Release RDE with MFC DLL|Itanium
+		Static MBCS Release RDE|Itanium = Static MBCS Release RDE|Itanium
+		Static MBCS Release with MFC DLL|Itanium = Static MBCS Release with MFC DLL|Itanium
+		Static MBCS Release|Itanium = Static MBCS Release|Itanium
+		Static Unicode Debug RDE with MFC DLL|Itanium = Static Unicode Debug RDE with MFC DLL|Itanium
+		Static Unicode Debug RDE|Itanium = Static Unicode Debug RDE|Itanium
+		Static Unicode Debug with MFC DLL|Itanium = Static Unicode Debug with MFC DLL|Itanium
+		Static Unicode Debug|Itanium = Static Unicode Debug|Itanium
+		Static Unicode Release RDE with MFC DLL|Itanium = Static Unicode Release RDE with MFC DLL|Itanium
+		Static Unicode Release RDE|Itanium = Static Unicode Release RDE|Itanium
+		Static Unicode Release with MFC DLL|Itanium = Static Unicode Release with MFC DLL|Itanium
+		Static Unicode Release|Itanium = Static Unicode Release|Itanium
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static ANSI Debug RDE with MFC DLL|Itanium.ActiveCfg = Static ANSI Debug RDE with MFC DLL|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static ANSI Debug RDE with MFC DLL|Itanium.Build.0 = Static ANSI Debug RDE with MFC DLL|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static ANSI Debug RDE|Itanium.ActiveCfg = Static ANSI Debug RDE|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static ANSI Debug RDE|Itanium.Build.0 = Static ANSI Debug RDE|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static ANSI Debug with MFC DLL|Itanium.ActiveCfg = Static ANSI Debug with MFC DLL|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static ANSI Debug with MFC DLL|Itanium.Build.0 = Static ANSI Debug with MFC DLL|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static ANSI Debug|Itanium.ActiveCfg = Static ANSI Debug|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static ANSI Debug|Itanium.Build.0 = Static ANSI Debug|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static ANSI Release RDE with MFC DLL|Itanium.ActiveCfg = Static ANSI Release RDE with MFC DLL|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static ANSI Release RDE with MFC DLL|Itanium.Build.0 = Static ANSI Release RDE with MFC DLL|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static ANSI Release RDE|Itanium.ActiveCfg = Static ANSI Release RDE|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static ANSI Release RDE|Itanium.Build.0 = Static ANSI Release RDE|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static ANSI Release with MFC DLL|Itanium.ActiveCfg = Static ANSI Release with MFC DLL|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static ANSI Release with MFC DLL|Itanium.Build.0 = Static ANSI Release with MFC DLL|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static ANSI Release|Itanium.ActiveCfg = Static ANSI Release|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static ANSI Release|Itanium.Build.0 = Static ANSI Release|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static MBCS Debug RDE with MFC DLL|Itanium.ActiveCfg = Static MBCS Debug RDE with MFC DLL|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static MBCS Debug RDE with MFC DLL|Itanium.Build.0 = Static MBCS Debug RDE with MFC DLL|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static MBCS Debug RDE|Itanium.ActiveCfg = Static MBCS Debug RDE|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static MBCS Debug RDE|Itanium.Build.0 = Static MBCS Debug RDE|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static MBCS Debug with MFC DLL|Itanium.ActiveCfg = Static MBCS Debug with MFC DLL|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static MBCS Debug with MFC DLL|Itanium.Build.0 = Static MBCS Debug with MFC DLL|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static MBCS Debug|Itanium.ActiveCfg = Static MBCS Debug|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static MBCS Debug|Itanium.Build.0 = Static MBCS Debug|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static MBCS Release RDE with MFC DLL|Itanium.ActiveCfg = Static MBCS Release RDE with MFC DLL|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static MBCS Release RDE with MFC DLL|Itanium.Build.0 = Static MBCS Release RDE with MFC DLL|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static MBCS Release RDE|Itanium.ActiveCfg = Static MBCS Release RDE|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static MBCS Release RDE|Itanium.Build.0 = Static MBCS Release RDE|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static MBCS Release with MFC DLL|Itanium.ActiveCfg = Static MBCS Release with MFC DLL|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static MBCS Release with MFC DLL|Itanium.Build.0 = Static MBCS Release with MFC DLL|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static MBCS Release|Itanium.ActiveCfg = Static MBCS Release|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static MBCS Release|Itanium.Build.0 = Static MBCS Release|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static Unicode Debug RDE with MFC DLL|Itanium.ActiveCfg = Static Unicode Debug RDE with MFC DLL|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static Unicode Debug RDE with MFC DLL|Itanium.Build.0 = Static Unicode Debug RDE with MFC DLL|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static Unicode Debug RDE|Itanium.ActiveCfg = Static Unicode Debug RDE|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static Unicode Debug RDE|Itanium.Build.0 = Static Unicode Debug RDE|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static Unicode Debug with MFC DLL|Itanium.ActiveCfg = Static Unicode Debug with MFC DLL|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static Unicode Debug with MFC DLL|Itanium.Build.0 = Static Unicode Debug with MFC DLL|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static Unicode Debug|Itanium.ActiveCfg = Static Unicode Debug|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static Unicode Debug|Itanium.Build.0 = Static Unicode Debug|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static Unicode Release RDE with MFC DLL|Itanium.ActiveCfg = Static Unicode Release RDE with MFC DLL|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static Unicode Release RDE with MFC DLL|Itanium.Build.0 = Static Unicode Release RDE with MFC DLL|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static Unicode Release RDE|Itanium.ActiveCfg = Static Unicode Release RDE|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static Unicode Release RDE|Itanium.Build.0 = Static Unicode Release RDE|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static Unicode Release with MFC DLL|Itanium.ActiveCfg = Static Unicode Release with MFC DLL|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static Unicode Release with MFC DLL|Itanium.Build.0 = Static Unicode Release with MFC DLL|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static Unicode Release|Itanium.ActiveCfg = Static Unicode Release|Itanium
+		{89CFFC49-D858-481E-99C5-E312F7C1EA95}.Static Unicode Release|Itanium.Build.0 = Static Unicode Release|Itanium
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

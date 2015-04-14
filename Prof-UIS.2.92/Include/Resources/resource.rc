@@ -1,0 +1,723 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+
+
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// CSS
+//
+
+IDR_EXT_DEFAULT_CSS     CSS     DISCARDABLE     "Resources\\CSS\\IDR_EXT_DEFAULT_CSS.css"
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+//#define __EXT_MFC_NO_RESOURCES_ARABIC_SAUDI_ARABIA
+//#define __EXT_MFC_NO_RESOURCES_BELARUSIAN
+//#define __EXT_MFC_NO_RESOURCES_BULGARIAN_DEFAULT
+//#define __EXT_MFC_NO_RESOURCES_CHINESE_SIMPLIFIED
+//#define __EXT_MFC_NO_RESOURCES_CHINESE_TRADITIONAL
+//#define __EXT_MFC_NO_RESOURCES_CROATIAN_DEFAULT
+//#define __EXT_MFC_NO_RESOURCES_CZECH_DEFAULT
+//#define __EXT_MFC_NO_RESOURCES_DANISH_DEFAULT
+//#define __EXT_MFC_NO_RESOURCES_DUTCH_NETHERLANDS
+//#define __EXT_MFC_NO_RESOURCES_ESTONIAN
+//#define __EXT_MFC_NO_RESOURCES_GERMAN
+//#define __EXT_MFC_NO_RESOURCES_GREEK
+//#define __EXT_MFC_NO_RESOURCES_HUNGARIAN_DEFAULT
+//#define __EXT_MFC_NO_RESOURCES_FRENCH
+//#define __EXT_MFC_NO_RESOURCES_FRENCH_CANADIAN
+//#define __EXT_MFC_NO_RESOURCES_INDONESIAN
+//#define __EXT_MFC_NO_RESOURCES_ITALIAN
+//#define __EXT_MFC_NO_RESOURCES_JAPANESE_DEFAULT
+//#define __EXT_MFC_NO_RESOURCES_KOREAN_DEFAULT
+//#define __EXT_MFC_NO_RESOURCES_LATVIAN_DEFAULT
+//#define __EXT_MFC_NO_RESOURCES_LITHUANIAN
+//#define __EXT_MFC_NO_RESOURCES_NORWEGIAN_BOKMAL
+//#define __EXT_MFC_NO_RESOURCES_POLISH_DEFAULT
+//#define __EXT_MFC_NO_RESOURCES_PORTUGUESE_BRAZILIAN
+//#define __EXT_MFC_NO_RESOURCES_ROMANIAN_DEFAULT
+//#define __EXT_MFC_NO_RESOURCES_RUSSIAN_DEFAULT
+//#define __EXT_MFC_NO_RESOURCES_SERBIAN_LATIN
+//#define __EXT_MFC_NO_RESOURCES_SLOVAK_DEFAULT
+//#define __EXT_MFC_NO_RESOURCES_SLOVENIAN_DEFAULT
+//#define __EXT_MFC_NO_RESOURCES_SPANISH_MODERN
+//#define __EXT_MFC_NO_RESOURCES_SWEDISH_DEFAULT
+//#define __EXT_MFC_NO_RESOURCES_TURKISH_DEFAULT
+//#define __EXT_MFC_NO_RESOURCES_UKRAINIAN_DEFAULT
+
+/////////////////////////////////////////////////////////////////////////////
+// Resources for geo controls
+
+#include "ResGeoControls\\ResGeoControls.rc"
+
+/////////////////////////////////////////////////////////////////////////////
+// Resources for common and shell controls
+
+#include "ResCommonControls\\ResCommonControls.rc"
+
+/////////////////////////////////////////////////////////////////////////////
+// Resources for Office 2007 paint managers
+
+#include "Res2007\\Res2007.rc"
+
+/////////////////////////////////////////////////////////////////////////////
+// Resources for Office 2010 paint manager
+
+#include "Res2010office\\Res2010office.rc"
+
+/////////////////////////////////////////////////////////////////////////////
+// Resources for paint manager switching controls
+
+#include "ResPM\\ResPM.rc"
+
+
+#if ( !(defined _AFXDLL && !defined __STATPROFUIS_WITH_DLLMFC__) )
+	#include "AfxPrint.rc"
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+#include "Resource_enu.rc"
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Japanese resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_JAPANESE_DEFAULT
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
+#ifdef _WIN32
+LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
+#pragma code_page(932)
+#endif //_WIN32
+#include "Resource_jpn.rc"
+#endif    // Japanese resources
+
+#endif // __EXT_MFC_NO_RESOURCES_JAPANESE_DEFAULT
+
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Chinese (P.R.C.) resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_CHINESE_SIMPLIFIED
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHS)
+#ifdef _WIN32
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
+#pragma code_page(936)
+#endif //_WIN32
+#include "Resource_chs.rc"
+#endif    // Chinese (P.R.C.) resources
+
+#endif // __EXT_MFC_NO_RESOURCES_CHINESE_SIMPLIFIED
+
+/////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////
+// Chinese (Taiwan) resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_CHINESE_TRADITIONAL
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CHT)
+#ifdef _WIN32
+LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_TRADITIONAL
+#pragma code_page(950)
+#endif //_WIN32
+#include "Resource_cht.rc"
+#endif    // Chinese (Taiwan) resources
+
+#endif // __EXT_MFC_NO_RESOURCES_CHINESE_TRADITIONAL
+
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Korean resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_KOREAN_DEFAULT
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_KOR)
+#ifdef _WIN32
+LANGUAGE LANG_KOREAN, SUBLANG_DEFAULT
+#pragma code_page(949)
+#endif //_WIN32
+#include "Resource_kor.rc"
+#endif    // Korean resources
+
+#endif // __EXT_MFC_NO_RESOURCES_KOREAN_DEFAULT
+
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Czech resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_CZECH_DEFAULT
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_CSY)
+#ifdef _WIN32
+LANGUAGE LANG_CZECH, SUBLANG_DEFAULT
+#pragma code_page(1250)
+#endif //_WIN32
+#include "Resource_csy.rc"
+#endif    // Czech resources
+
+#endif // __EXT_MFC_NO_RESOURCES_CZECH_DEFAULT
+
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Polish resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_POLISH_DEFAULT
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_PLK)
+#ifdef _WIN32
+LANGUAGE LANG_POLISH, SUBLANG_DEFAULT
+#pragma code_page(1250)
+#endif //_WIN32
+#include "Resource_plk.rc"
+#endif    // Polish resources
+
+#endif // __EXT_MFC_NO_RESOURCES_POLISH_DEFAULT
+
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Romanian resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_ROMANIAN_DEFAULT
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ROM)
+#ifdef _WIN32
+LANGUAGE LANG_ROMANIAN, SUBLANG_DEFAULT
+#pragma code_page(1250)
+#endif //_WIN32
+#include "Resource_rom.rc"
+#endif    // Romanian resources
+
+#endif // __EXT_MFC_NO_RESOURCES_ROMANIAN_DEFAULT
+
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Croatian resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_CROATIAN_DEFAULT
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_HRV)
+#ifdef _WIN32
+LANGUAGE LANG_CROATIAN, SUBLANG_DEFAULT
+#pragma code_page(1250)
+#endif //_WIN32
+#include "Resource_hrv.rc"
+#endif    // Croatian resources
+
+#endif // __EXT_MFC_NO_RESOURCES_CROATIAN_DEFAULT
+
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Croatian (unknown sub-lang: 0x2) resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_SERBIAN_LATIN
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_SRL)
+#ifdef _WIN32
+LANGUAGE LANG_CROATIAN, 0x2
+#pragma code_page(1250)
+#endif //_WIN32
+#include "Resource_srl.rc"
+#endif    // Croatian (unknown sub-lang: 0x2) resources
+
+#endif // __EXT_MFC_NO_RESOURCES_SERBIAN_LATIN
+
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Slovenian resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_SLOVENIAN_DEFAULT
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_SLV)
+#ifdef _WIN32
+LANGUAGE LANG_SLOVENIAN, SUBLANG_DEFAULT
+#pragma code_page(1250)
+#endif //_WIN32
+#include "Resource_slv.rc"
+#endif    // Slovenian resources
+
+#endif // __EXT_MFC_NO_RESOURCES_SLOVENIAN_DEFAULT
+
+/////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////
+// Slovak resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_SLOVAK_DEFAULT
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_SKY)
+#ifdef _WIN32
+LANGUAGE LANG_SLOVAK, SUBLANG_DEFAULT
+#pragma code_page(1250)
+#endif //_WIN32
+#include "resource_slo.rc"
+#endif    // Slovak resources
+
+#endif // __EXT_MFC_NO_RESOURCES_SLOVENIAN_DEFAULT
+
+/////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////
+// Bulgarian resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_BULGARIAN_DEFAULT
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_BGR)
+#ifdef _WIN32
+LANGUAGE LANG_BULGARIAN, SUBLANG_DEFAULT
+#pragma code_page(1251)
+#endif //_WIN32
+#include "Resource_bgr.rc"
+#endif    // Bulgarian resources
+
+#endif // __EXT_MFC_NO_RESOURCES_BULGARIAN_DEFAULT
+
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Russian resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_RUSSIAN_DEFAULT
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_RUS)
+#ifdef _WIN32
+LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
+#pragma code_page(1251)
+#endif //_WIN32
+#include "Resource_rus.rc"
+#endif    // Russian resources
+
+#endif // __EXT_MFC_NO_RESOURCES_RUSSIAN_DEFAULT
+
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Unknown language: 0x22, 0x1 resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_UKRAINIAN_DEFAULT
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_UKR)
+#ifdef _WIN32
+LANGUAGE 0x22, 0x1
+#pragma code_page(1251)
+#endif //_WIN32
+#include "Resource_ukr.rc"
+#endif    // Unknown language: 0x22, 0x1 resources
+
+#endif // __EXT_MFC_NO_RESOURCES_UKRAINIAN_DEFAULT
+
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Danish resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_DANISH_DEFAULT
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DAN)
+#ifdef _WIN32
+LANGUAGE LANG_DANISH, SUBLANG_DEFAULT
+#pragma code_page(1252)
+#endif //_WIN32
+#include "Resource_dan.rc"
+#endif    // Danish resources
+
+#endif // __EXT_MFC_NO_RESOURCES_DANISH_DEFAULT
+
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// German (Germany) resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_GERMAN
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_DEU)
+#ifdef _WIN32
+LANGUAGE LANG_GERMAN, SUBLANG_GERMAN
+#pragma code_page(1252)
+#endif //_WIN32
+#include "Resource_deu.rc"
+#endif    // German (Germany) resources
+
+#endif // __EXT_MFC_NO_RESOURCES_GERMAN
+
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// French (France) resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_FRENCH
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_FRA)
+#ifdef _WIN32
+LANGUAGE LANG_FRENCH, SUBLANG_FRENCH
+#pragma code_page(1252)
+#endif //_WIN32
+#include "Resource_fra.rc"
+#endif    // French (France) resources
+
+#endif // __EXT_MFC_NO_RESOURCES_FRENCH
+
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// French (Canada) resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_FRENCH_CANADIAN
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_FRC)
+#ifdef _WIN32
+LANGUAGE LANG_FRENCH, SUBLANG_FRENCH_CANADIAN
+#pragma code_page(1252)
+#endif //_WIN32
+#include "Resource_frc.rc"
+#endif    // French (Canada) resources
+
+#endif // __EXT_MFC_NO_RESOURCES_FRENCH_CANADIAN
+
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Italian (Italy) resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_ITALIAN
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ITA)
+#ifdef _WIN32
+LANGUAGE LANG_ITALIAN, SUBLANG_ITALIAN
+#pragma code_page(1252)
+#endif //_WIN32
+#include "Resource_ita.rc"
+#endif    // Italian (Italy) resources
+
+#endif // __EXT_MFC_NO_RESOURCES_ITALIAN
+
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Dutch (Netherlands) resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_DUTCH_NETHERLANDS
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NLD)
+#ifdef _WIN32
+LANGUAGE LANG_DUTCH, SUBLANG_DUTCH
+#pragma code_page(1252)
+#endif //_WIN32
+#include "Resource_nld.rc"
+#endif    // Dutch (Netherlands) resources
+
+#endif // __EXT_MFC_NO_RESOURCES_DUTCH_NETHERLANDS
+
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Norwegian (Bokmal) resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_NORWEGIAN_BOKMAL
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_NOR)
+#ifdef _WIN32
+LANGUAGE LANG_NORWEGIAN, SUBLANG_NORWEGIAN_BOKMAL
+#pragma code_page(1252)
+#endif //_WIN32
+#include "Resource_nor.rc"
+#endif    // Norwegian (Bokmal) resources
+
+#endif // __EXT_MFC_NO_RESOURCES_NORWEGIAN_BOKMAL
+
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Portuguese (Brazil) resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_PORTUGUESE_BRAZILIAN
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_PTB)
+#ifdef _WIN32
+LANGUAGE LANG_PORTUGUESE, SUBLANG_PORTUGUESE_BRAZILIAN
+#pragma code_page(1252)
+#endif //_WIN32
+#include "Resource_ptb.rc"
+#endif    // Portuguese (Brazil) resources
+
+#endif // __EXT_MFC_NO_RESOURCES_PORTUGUESE_BRAZILIAN
+
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Swedish resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_SWEDISH_DEFAULT
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_SVE)
+#ifdef _WIN32
+LANGUAGE LANG_SWEDISH, SUBLANG_DEFAULT
+#pragma code_page(1252)
+#endif //_WIN32
+#include "Resource_sve.rc"
+#endif    // Swedish resources
+
+#endif // __EXT_MFC_NO_RESOURCES_SWEDISH_DEFAULT
+
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Unknown language: 0x21, 0x1 resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_INDONESIAN
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_IND)
+#ifdef _WIN32
+LANGUAGE 0x21, 0x1
+#pragma code_page(1252)
+#endif //_WIN32
+#include "Resource_ind.rc"
+#endif    // Unknown language: 0x21, 0x1 resources
+
+#endif // __EXT_MFC_NO_RESOURCES_INDONESIAN
+
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Spanish (Modern) resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_SPANISH_MODERN
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ESN)
+#ifdef _WIN32
+LANGUAGE LANG_SPANISH, SUBLANG_SPANISH_MODERN
+#pragma code_page(1252)
+#endif //_WIN32
+#include "Resource_esn.rc"
+#endif    // Spanish (Modern) resources
+
+#endif // __EXT_MFC_NO_RESOURCES_SPANISH_MODERN
+
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Greek resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_GREEK
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ELL)
+#ifdef _WIN32
+LANGUAGE LANG_GREEK, SUBLANG_DEFAULT
+#pragma code_page(1253)
+#endif //_WIN32
+#include "Resource_ell.rc"
+#endif    // Greek resources
+
+#endif // __EXT_MFC_NO_RESOURCES_GREEK
+
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Turkish resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_TURKISH_DEFAULT
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_TRK)
+#ifdef _WIN32
+LANGUAGE LANG_TURKISH, SUBLANG_DEFAULT
+#pragma code_page(1254)
+#endif //_WIN32
+#include "Resource_trk.rc"
+#endif    // Turkish resources
+
+#endif // __EXT_MFC_NO_RESOURCES_TURKISH_DEFAULT
+
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Unknown language: 0x1, 0x1 resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_ARABIC_SAUDI_ARABIA
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ARA)
+#ifdef _WIN32
+LANGUAGE 0x1, 0x1
+#pragma code_page(1256)
+#endif //_WIN32
+#include "Resource_ara.rc"
+#endif    // Unknown language: 0x1, 0x1 resources
+
+#endif // __EXT_MFC_NO_RESOURCES_ARABIC_SAUDI_ARABIA
+
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Unknown language: 0x26, 0x1 resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_LATVIAN_DEFAULT
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_LVI)
+#ifdef _WIN32
+LANGUAGE 0x26, 0x1
+#pragma code_page(1257)
+#endif //_WIN32
+#include "Resource_lvi.rc"
+#endif    // Unknown language: 0x26, 0x1 resources
+
+#endif // __EXT_MFC_NO_RESOURCES_LATVIAN_DEFAULT
+
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Unknown language: 0x27, 0x1 resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_LITHUANIAN
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_LTH)
+#ifdef _WIN32
+LANGUAGE 0x27, 0x1
+#pragma code_page(1257)
+#endif //_WIN32
+#include "Resource_lth.rc"
+#endif    // Unknown language: 0x27, 0x1 resources
+
+#endif // __EXT_MFC_NO_RESOURCES_LITHUANIAN
+
+/////////////////////////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////////////
+// Unknown language: 0x23, 0x1 resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_BELARUSIAN
+
+	#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_BEL)
+		#ifdef _WIN32
+			LANGUAGE 0x23, 0x1
+			#pragma code_page(1251)
+		#endif //_WIN32
+		#include "Resource_bel.rc"
+	#endif    // Unknown language: 0x23, 0x1 resources
+
+#endif // __EXT_MFC_NO_RESOURCES_BELARUSIAN
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Hungarian resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_HUNGARIAN_DEFAULT
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_HUN)
+#ifdef _WIN32
+LANGUAGE LANG_HUNGARIAN, SUBLANG_DEFAULT
+#pragma code_page(1250)
+#endif //_WIN32
+#include "Resource_hun.rc"
+#endif    // Hungarian resources
+
+#endif // __EXT_MFC_NO_RESOURCES_HUNGARIAN_DEFAULT
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Estonian resources
+
+#ifndef __EXT_MFC_NO_RESOURCES_ESTONIAN
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ETI)
+#ifdef _WIN32
+LANGUAGE 0x25, 0x1
+#pragma code_page(1257)
+#endif //_WIN32
+#include "Resource_est.rc"
+#endif    // Estonian resources
+
+#endif // __EXT_MFC_NO_RESOURCES_ESTONIAN
+
+/////////////////////////////////////////////////////////////////////////////
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE 9, 1
+#pragma code_page(1252)
+#endif //_WIN32
+#include "afxres.rc"         // Standard components
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

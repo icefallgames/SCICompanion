@@ -1,0 +1,56 @@
+
+   END-USER LICENSE AGREEMENT FOR PROF-UIS FREEWARE
+
+
+1. This End-User License Agreement ("EULA") is a legal agreement between you 
+   (either an individual or a single entity) and FOSS Software, Inc. ("FOSS") 
+   and describes your rights and obligations regarding the use of the 
+   Prof-UIS Freeware software ("SOFTWARE").
+
+2. If you do not agree to all of the terms of this agreement, you shall remove 
+   all the files related to the SOFTWARE from your storage media and cease any 
+   further use of the SOFTWARE. Any violation of these terms  will subject you 
+   to legal liability.
+
+3. The SOFTWARE is the intellectual property of and is owned by FOSS.
+
+4. The SOFTWARE is protected by copyright laws and international copyright 
+   treaties, as well as other intellectual property laws and treaties. The 
+   SOFTWARE is licensed, not sold.
+
+
+5. FOSS grants you the non-exclusive license to use the SOFTWARE for free. 
+   Such use is granted for personal, educational, and any other non-commercial 
+   purposes.
+
+6. FOSS grants you the non-exclusive and royalty-free license to distribute 
+   any part of the SOFTWARE and any binary files compiled from the SOFTWARE.
+
+7. You may:
+     
+   a) install and use the SOFTWARE on as many computers as you wish
+     
+   b) modify or alter the SOFTWARE at your own risk, provided that such 
+   modifications are extensively commented
+
+8. You may not:
+
+   a) sell, rent, lease, or sublicense the SOFTWARE
+     
+   b) remove any proprietary notices or labels on the SOFTWARE
+
+   c) use the SOFTWARE as a basis for creating products that 
+   provide the same, or substantially the same, functionality as the SOFTWARE. 
+
+9. This EULA has no termination date. The FOSS may terminate this license 
+   agreement if you fail to comply with the terms and conditions of this EULA. 
+   In such an event, you shall remove all the files related to the SOFTWARE 
+   from your storage media and cease any further use of the SOFTWARE.
+
+10. This SOFTWARE is provided "AS IS" without warranty of any kind including, but 
+    not limited to, warranties of merchantability, fitness for a particular 
+    purpose and non-infringement. In no event will the FOSS be liable for any 
+    direct, indirect, incidental, special, exemplary or consequential damages, 
+    including damages for loss of profits, loss or inaccuracy of data, incurred 
+    by any person from such person's usage of this SOFTWARE even if advised of 
+    the possibility of such damages.

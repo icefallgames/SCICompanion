@@ -1,0 +1,53 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN"> 
+<html> 
+<head> 
+<title>Automatic text resources</title> 
+<link rel="stylesheet" type="text/css" href="sci.css">
+</head> 
+
+<body>
+
+<h1><strike>Automatic text resources</strike></h1> 
+<b>This option is currently disabled in SCI Companion.  The hope is to bring it back
+when scripting with the C++ syntax is supported.</b>
+<hr>
+<p>The compiler in <b>SCI Companion</b> can optionally generate text resources for all
+the strings in a script.  Thus, the strings can be removed from the script
+itself, and this can greatly reduce the size of the compiled
+version.</p>
+<h4>The benefit</h4>
+<p>This saves space, but makes it so your text strings can be embedded right in the scripts just
+like they are if your don't use text resources.</p>
+<h4>The down side</h4>
+<p>Doing so requires a syntax change, which means modifying many files in your game.
+I have not yet created a template game with these modifications.  The modifications are
+the following:</p>
+<ul>
+<li>All quoted strings that are parameters to function, are converted (in the generated
+script resource) to a pair of numbers (&ltscript number&gt &lttext number&gt).
+  The only function that handles this by default is the <b>Print</b> function.
+<li>All internal strings need to be denoted with curly braces <b>{}</b> instead of quotes.
+  That is, if you don't want a string converted to two numbers, it needs to be
+	enclosed in curly braces.  e.g. <i>Print("Hello there" #title <b>{</b>Bob says<b>}</b>)</i>.
+<li>Text strings that are listed in <b>property</b> statements should remain quoted, as are
+strings in <b>include</b> statements.
+</ul>
+It is fairly tedious to find them all in the template game.
+<h4>Turning the feature on</h4>
+<p>The feature is available in the <b>Game properties</b> dialog.  This information is
+stored in the game.ini, so it is remembered each time you load your game into
+<b>SCI Companion</b>.</p>
+
+<h4>Note</h4>
+<p>When this feature is on, each time a script is compiled, a text resource of the same
+number will be generated.  If you <b>Rebuild resources</b>, then any text resource
+you had of the same number, will now be gone.  So basically, it overwrites any
+text resource you might have created manually.  You can still manage manually-created 
+text resources, as long as you don't have a script of the same number.</p>
+
+<h4>Known issues</h4>
+<p>You may not have an internal string in your script that has the same name
+as an object.</p>
+
+</body> 
+</html>

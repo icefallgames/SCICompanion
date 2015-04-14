@@ -1,0 +1,50 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 10
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProfUISDLL", "ProfUISDLL_1000_x64.vcxproj", "{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		ANSI Debug RDE|x64 = ANSI Debug RDE|x64
+		ANSI Debug|x64 = ANSI Debug|x64
+		ANSI Release RDE|x64 = ANSI Release RDE|x64
+		ANSI Release|x64 = ANSI Release|x64
+		MBCS Debug RDE|x64 = MBCS Debug RDE|x64
+		MBCS Debug|x64 = MBCS Debug|x64
+		MBCS Release RDE|x64 = MBCS Release RDE|x64
+		MBCS Release|x64 = MBCS Release|x64
+		Unicode Debug RDE|x64 = Unicode Debug RDE|x64
+		Unicode Debug|x64 = Unicode Debug|x64
+		Unicode Release RDE|x64 = Unicode Release RDE|x64
+		Unicode Release|x64 = Unicode Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.ANSI Debug RDE|x64.ActiveCfg = ANSI Debug RDE|X64
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.ANSI Debug RDE|x64.Build.0 = ANSI Debug RDE|X64
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.ANSI Debug|x64.ActiveCfg = ANSI Debug|X64
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.ANSI Debug|x64.Build.0 = ANSI Debug|X64
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.ANSI Release RDE|x64.ActiveCfg = ANSI Release RDE|X64
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.ANSI Release RDE|x64.Build.0 = ANSI Release RDE|X64
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.ANSI Release|x64.ActiveCfg = ANSI Release|X64
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.ANSI Release|x64.Build.0 = ANSI Release|X64
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.MBCS Debug RDE|x64.ActiveCfg = MBCS Debug RDE|X64
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.MBCS Debug RDE|x64.Build.0 = MBCS Debug RDE|X64
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.MBCS Debug|x64.ActiveCfg = MBCS Debug|X64
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.MBCS Debug|x64.Build.0 = MBCS Debug|X64
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.MBCS Release RDE|x64.ActiveCfg = MBCS Release RDE|X64
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.MBCS Release RDE|x64.Build.0 = MBCS Release RDE|X64
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.MBCS Release|x64.ActiveCfg = MBCS Release|X64
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.MBCS Release|x64.Build.0 = MBCS Release|X64
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.Unicode Debug RDE|x64.ActiveCfg = Unicode Debug RDE|X64
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.Unicode Debug RDE|x64.Build.0 = Unicode Debug RDE|X64
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.Unicode Debug|x64.ActiveCfg = Unicode Debug|X64
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.Unicode Debug|x64.Build.0 = Unicode Debug|X64
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.Unicode Release RDE|x64.ActiveCfg = Unicode Release RDE|X64
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.Unicode Release RDE|x64.Build.0 = Unicode Release RDE|X64
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.Unicode Release|x64.ActiveCfg = Unicode Release|X64
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.Unicode Release|x64.Build.0 = Unicode Release|X64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

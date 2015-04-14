@@ -1,0 +1,47 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN"> 
+<html> 
+<head> 
+<title>Convert a bitmap to pic</title> 
+<link rel="stylesheet" type="text/css" href="sci.css">
+</head> 
+
+<body>
+
+<h1>Converting a bitmap to a pic</h1> 
+<p>The convert bitmap to pic dialog will allow you to take a bitmap (or jpg, etc...) from
+a file or the clipboard, and convert into vector commands to be added to your pic resource.</p>
+
+<p><img src="images/ConvertBitmap.jpg"></p>
+
+<h4>The conversion process</h4>
+<ol> 
+
+<li>Choose <b>Import bitmap to pic</b> from the <b>Pic</b> menu.
+ This will open a dialog.  If an image is on the clipboard, it will appear on the left.  Otherwise,
+open an image using the Browse button.
+
+<li>Adjust the picture using the <b>Brightness</b>, <b>Contrast</b> and <b>Saturation</b> controls. 
+
+<li>Click the <b>Convert</b> button.  A progress bar will animate as the conversion takes place,
+and the resulting image will appear on the right.
+
+<li>Check the image size - is it small enough to be a SCI0 pic resource?
+
+<li>The options on the right control the conversion process - which colours are allowed, and
+how many to use.  Selecting different options can have a big effect on picture size.
+
+<li>Once you are satisfied with the result, click <b>Accept</b>.  The vector commands that make up
+the image will be added to your pic
+
+</li> 
+</ol> 
+
+<h3>Note:</h3>
+
+<ul> 
+<li> this feature is only supported if GDI+ is installed.
+</li> 
+</ul> 
+
+</body> 
+</html>

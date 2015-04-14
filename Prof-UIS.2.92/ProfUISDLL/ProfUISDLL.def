@@ -1,0 +1,7 @@
+; ProfUISDLL.def : Declares the module parameters for the DLL.
+
+;LIBRARY      "prof-uis"
+;DESCRIPTION  'Professional User Interface Windows Dynamic Link Library'
+
+;EXPORTS
+    ; Explicit exports can go here

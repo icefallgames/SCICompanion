@@ -1,0 +1,1 @@
+H2Reg.exe -r -q "cmdfile=profuis.ini"

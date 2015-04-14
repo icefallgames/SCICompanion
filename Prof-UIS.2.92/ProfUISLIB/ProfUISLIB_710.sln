@@ -1,0 +1,87 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProfUISLIB", "ProfUISLIB_710.vcproj", "{3D1326F9-D4D4-4684-9680-5B8D7840AC97}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Static ANSI Debug = Static ANSI Debug
+		Static ANSI Debug RDE = Static ANSI Debug RDE
+		Static ANSI Debug RDE with MFC DLL = Static ANSI Debug RDE with MFC DLL
+		Static ANSI Debug with MFC DLL = Static ANSI Debug with MFC DLL
+		Static ANSI Release = Static ANSI Release
+		Static ANSI Release RDE = Static ANSI Release RDE
+		Static ANSI Release RDE with MFC DLL = Static ANSI Release RDE with MFC DLL
+		Static ANSI Release with MFC DLL = Static ANSI Release with MFC DLL
+		Static MBCS Debug = Static MBCS Debug
+		Static MBCS Debug RDE = Static MBCS Debug RDE
+		Static MBCS Debug RDE with MFC DLL = Static MBCS Debug RDE with MFC DLL
+		Static MBCS Debug with MFC DLL = Static MBCS Debug with MFC DLL
+		Static MBCS Release = Static MBCS Release
+		Static MBCS Release RDE = Static MBCS Release RDE
+		Static MBCS Release RDE with MFC DLL = Static MBCS Release RDE with MFC DLL
+		Static MBCS Release with MFC DLL = Static MBCS Release with MFC DLL
+		Static Unicode Debug = Static Unicode Debug
+		Static Unicode Debug RDE = Static Unicode Debug RDE
+		Static Unicode Debug RDE with MFC DLL = Static Unicode Debug RDE with MFC DLL
+		Static Unicode Debug with MFC DLL = Static Unicode Debug with MFC DLL
+		Static Unicode Release = Static Unicode Release
+		Static Unicode Release RDE = Static Unicode Release RDE
+		Static Unicode Release RDE with MFC DLL = Static Unicode Release RDE with MFC DLL
+		Static Unicode Release with MFC DLL = Static Unicode Release with MFC DLL
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static ANSI Debug.ActiveCfg = Static ANSI Debug|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static ANSI Debug.Build.0 = Static ANSI Debug|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static ANSI Debug RDE.ActiveCfg = Static ANSI Debug RDE|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static ANSI Debug RDE.Build.0 = Static ANSI Debug RDE|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static ANSI Debug RDE with MFC DLL.ActiveCfg = Static ANSI Debug RDE with MFC DLL|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static ANSI Debug RDE with MFC DLL.Build.0 = Static ANSI Debug RDE with MFC DLL|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static ANSI Debug with MFC DLL.ActiveCfg = Static ANSI Debug with MFC DLL|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static ANSI Debug with MFC DLL.Build.0 = Static ANSI Debug with MFC DLL|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static ANSI Release.ActiveCfg = Static ANSI Release|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static ANSI Release.Build.0 = Static ANSI Release|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static ANSI Release RDE.ActiveCfg = Static ANSI Release RDE|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static ANSI Release RDE.Build.0 = Static ANSI Release RDE|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static ANSI Release RDE with MFC DLL.ActiveCfg = Static ANSI Release RDE with MFC DLL|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static ANSI Release RDE with MFC DLL.Build.0 = Static ANSI Release RDE with MFC DLL|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static ANSI Release with MFC DLL.ActiveCfg = Static ANSI Release with MFC DLL|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static ANSI Release with MFC DLL.Build.0 = Static ANSI Release with MFC DLL|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static MBCS Debug.ActiveCfg = Static MBCS Debug|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static MBCS Debug.Build.0 = Static MBCS Debug|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static MBCS Debug RDE.ActiveCfg = Static MBCS Debug RDE|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static MBCS Debug RDE.Build.0 = Static MBCS Debug RDE|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static MBCS Debug RDE with MFC DLL.ActiveCfg = Static MBCS Debug RDE with MFC DLL|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static MBCS Debug RDE with MFC DLL.Build.0 = Static MBCS Debug RDE with MFC DLL|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static MBCS Debug with MFC DLL.ActiveCfg = Static MBCS Debug with MFC DLL|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static MBCS Debug with MFC DLL.Build.0 = Static MBCS Debug with MFC DLL|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static MBCS Release.ActiveCfg = Static MBCS Release|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static MBCS Release.Build.0 = Static MBCS Release|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static MBCS Release RDE.ActiveCfg = Static MBCS Release RDE|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static MBCS Release RDE.Build.0 = Static MBCS Release RDE|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static MBCS Release RDE with MFC DLL.ActiveCfg = Static MBCS Release RDE with MFC DLL|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static MBCS Release RDE with MFC DLL.Build.0 = Static MBCS Release RDE with MFC DLL|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static MBCS Release with MFC DLL.ActiveCfg = Static MBCS Release with MFC DLL|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static MBCS Release with MFC DLL.Build.0 = Static MBCS Release with MFC DLL|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static Unicode Debug.ActiveCfg = Static Unicode Debug|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static Unicode Debug.Build.0 = Static Unicode Debug|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static Unicode Debug RDE.ActiveCfg = Static Unicode Debug RDE|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static Unicode Debug RDE.Build.0 = Static Unicode Debug RDE|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static Unicode Debug RDE with MFC DLL.ActiveCfg = Static Unicode Debug RDE with MFC DLL|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static Unicode Debug RDE with MFC DLL.Build.0 = Static Unicode Debug RDE with MFC DLL|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static Unicode Debug with MFC DLL.ActiveCfg = Static Unicode Debug with MFC DLL|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static Unicode Debug with MFC DLL.Build.0 = Static Unicode Debug with MFC DLL|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static Unicode Release.ActiveCfg = Static Unicode Release|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static Unicode Release.Build.0 = Static Unicode Release|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static Unicode Release RDE.ActiveCfg = Static Unicode Release RDE|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static Unicode Release RDE.Build.0 = Static Unicode Release RDE|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static Unicode Release RDE with MFC DLL.ActiveCfg = Static Unicode Release RDE with MFC DLL|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static Unicode Release RDE with MFC DLL.Build.0 = Static Unicode Release RDE with MFC DLL|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static Unicode Release with MFC DLL.ActiveCfg = Static Unicode Release with MFC DLL|Win32
+		{3D1326F9-D4D4-4684-9680-5B8D7840AC97}.Static Unicode Release with MFC DLL.Build.0 = Static Unicode Release with MFC DLL|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

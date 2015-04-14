@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<!DOCTYPE HelpAttributes>
+<HelpAttributes DTDVersion="1.0" LangId = "">
+<AttName Id="1" Name="DocSet" Display="Yes" UIString="DocSet" AttType="Enum">
+        <AttVal Id="1_1" Name="Prof-UIS" Display="Yes" UIString="Prof-UIS" />
+</AttName>
+
+</HelpAttributes>

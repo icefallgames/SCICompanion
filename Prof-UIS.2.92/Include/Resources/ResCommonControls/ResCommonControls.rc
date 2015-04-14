@@ -1,0 +1,33 @@
+
+#if (!defined __PROF_UIS_RES_CC_SC_H)
+	#include "ResCommonControls.h"
+#endif
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+IDB_EXT_BITMAP_TREE_BOX_COLLAPSED_XP                         BITMAP  MOVEABLE PURE     "Resources\\ResCommonControls\\IDB_EXT_BITMAP_TREE_BOX_COLLAPSED_XP.bmp"
+IDB_EXT_BITMAP_TREE_BOX_COLLAPSED_HOVER_XP                   BITMAP  MOVEABLE PURE     "Resources\\ResCommonControls\\IDB_EXT_BITMAP_TREE_BOX_COLLAPSED_HOVER_XP.bmp"
+IDB_EXT_BITMAP_TREE_BOX_EXPANDED_XP                          BITMAP  MOVEABLE PURE     "Resources\\ResCommonControls\\IDB_EXT_BITMAP_TREE_BOX_EXPANDED_XP.bmp"
+IDB_EXT_BITMAP_TREE_BOX_EXPANDED_HOVER_XP                    BITMAP  MOVEABLE PURE     "Resources\\ResCommonControls\\IDB_EXT_BITMAP_TREE_BOX_EXPANDED_HOVER_XP.bmp"
+
+IDB_EXT_BITMAP_TREE_BOX_COLLAPSED_VISTA                      BITMAP  MOVEABLE PURE     "Resources\\ResCommonControls\\IDB_EXT_BITMAP_TREE_BOX_COLLAPSED_VISTA.bmp"
+IDB_EXT_BITMAP_TREE_BOX_COLLAPSED_HOVER_VISTA                BITMAP  MOVEABLE PURE     "Resources\\ResCommonControls\\IDB_EXT_BITMAP_TREE_BOX_COLLAPSED_HOVER_VISTA.bmp"
+IDB_EXT_BITMAP_TREE_BOX_EXPANDED_VISTA                       BITMAP  MOVEABLE PURE     "Resources\\ResCommonControls\\IDB_EXT_BITMAP_TREE_BOX_EXPANDED_VISTA.bmp"
+IDB_EXT_BITMAP_TREE_BOX_EXPANDED_HOVER_VISTA                 BITMAP  MOVEABLE PURE     "Resources\\ResCommonControls\\IDB_EXT_BITMAP_TREE_BOX_EXPANDED_HOVER_VISTA.bmp"
+
+IDC_EXT_SFD_BUTTON_UP_ONE_LEVEL                              BITMAP  MOVEABLE PURE     "Resources\\ResCommonControls\\IDC_EXT_SFD_BUTTON_UP_ONE_LEVEL.bmp"
+IDC_EXT_SFD_BUTTON_BACK                                      BITMAP  MOVEABLE PURE     "Resources\\ResCommonControls\\IDC_EXT_SFD_BUTTON_BACK.bmp"
+IDC_EXT_SFD_BUTTON_CREATE_NEW_FOLDER                         BITMAP  MOVEABLE PURE     "Resources\\ResCommonControls\\IDC_EXT_SFD_BUTTON_CREATE_NEW_FOLDER.bmp"
+IDC_EXT_SFD_BUTTON_FORWARD                                   BITMAP  MOVEABLE PURE     "Resources\\ResCommonControls\\IDC_EXT_SFD_BUTTON_FORWARD.bmp"
+IDC_EXT_SFD_BUTTON_LIST_VIEW_TYPE                            BITMAP  MOVEABLE PURE     "Resources\\ResCommonControls\\IDC_EXT_SFD_BUTTON_LIST_VIEW_TYPE.bmp"
+IDC_EXT_SFD_BUTTON_DELETE                                    BITMAP  MOVEABLE PURE     "Resources\\ResCommonControls\\IDC_EXT_SFD_BUTTON_DELETE.bmp"
+IDC_EXT_SFD_BUTTON_REFRESH                                   BITMAP  MOVEABLE PURE     "Resources\\ResCommonControls\\IDC_EXT_SFD_BUTTON_REFRESH.bmp"
+IDC_EXT_SFD_BUTTON_COLLAPSE                                  BITMAP  MOVEABLE PURE     "Resources\\ResCommonControls\\IDC_EXT_SFD_BUTTON_COLLAPSE.bmp"
+IDC_EXT_SFD_BUTTON_EXPAND                                    BITMAP  MOVEABLE PURE     "Resources\\ResCommonControls\\IDC_EXT_SFD_BUTTON_EXPAND.bmp"
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////

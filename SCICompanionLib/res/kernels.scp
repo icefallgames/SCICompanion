@@ -1,0 +1,6 @@
+int Abs(int value)
+{}
+
+void AddAfter(sci_list pList, sci_node pNodeAfter, sci_node pNode)
+{
+}

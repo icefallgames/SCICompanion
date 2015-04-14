@@ -1,0 +1,39 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio Codename Orcas
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProfUISDLL", "ProfUISDLL_900_ia64.vcproj", "{E31FC03F-EA09-43D9-A195-D6CBE4BE7D27}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		ANSI Debug RDE|Itanium = ANSI Debug RDE|Itanium
+		ANSI Debug|Itanium = ANSI Debug|Itanium
+		ANSI Release RDE|Itanium = ANSI Release RDE|Itanium
+		ANSI Release|Itanium = ANSI Release|Itanium
+		MBCS Debug RDE|Itanium = MBCS Debug RDE|Itanium
+		MBCS Debug|Itanium = MBCS Debug|Itanium
+		MBCS Release RDE|Itanium = MBCS Release RDE|Itanium
+		MBCS Release|Itanium = MBCS Release|Itanium
+		Unicode Debug RDE|Itanium = Unicode Debug RDE|Itanium
+		Unicode Debug|Itanium = Unicode Debug|Itanium
+		Unicode Release RDE|Itanium = Unicode Release RDE|Itanium
+		Unicode Release|Itanium = Unicode Release|Itanium
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E31FC03F-EA09-43D9-A195-D6CBE4BE7D27}.ANSI Debug RDE|Itanium.ActiveCfg = ANSI Debug RDE|Itanium
+		{E31FC03F-EA09-43D9-A195-D6CBE4BE7D27}.ANSI Debug RDE|Itanium.Build.0 = ANSI Debug RDE|Itanium
+		{E31FC03F-EA09-43D9-A195-D6CBE4BE7D27}.ANSI Debug|Itanium.ActiveCfg = ANSI Debug|Itanium
+		{E31FC03F-EA09-43D9-A195-D6CBE4BE7D27}.ANSI Release RDE|Itanium.ActiveCfg = ANSI Release RDE|Itanium
+		{E31FC03F-EA09-43D9-A195-D6CBE4BE7D27}.ANSI Release|Itanium.ActiveCfg = ANSI Release|Itanium
+		{E31FC03F-EA09-43D9-A195-D6CBE4BE7D27}.MBCS Debug RDE|Itanium.ActiveCfg = MBCS Debug RDE|Itanium
+		{E31FC03F-EA09-43D9-A195-D6CBE4BE7D27}.MBCS Debug|Itanium.ActiveCfg = MBCS Debug|Itanium
+		{E31FC03F-EA09-43D9-A195-D6CBE4BE7D27}.MBCS Release RDE|Itanium.ActiveCfg = MBCS Release RDE|Itanium
+		{E31FC03F-EA09-43D9-A195-D6CBE4BE7D27}.MBCS Release|Itanium.ActiveCfg = MBCS Release|Itanium
+		{E31FC03F-EA09-43D9-A195-D6CBE4BE7D27}.Unicode Debug RDE|Itanium.ActiveCfg = Unicode Debug RDE|Itanium
+		{E31FC03F-EA09-43D9-A195-D6CBE4BE7D27}.Unicode Debug|Itanium.ActiveCfg = Unicode Debug|Itanium
+		{E31FC03F-EA09-43D9-A195-D6CBE4BE7D27}.Unicode Release RDE|Itanium.ActiveCfg = Unicode Release RDE|Itanium
+		{E31FC03F-EA09-43D9-A195-D6CBE4BE7D27}.Unicode Release|Itanium.ActiveCfg = Unicode Release|Itanium
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

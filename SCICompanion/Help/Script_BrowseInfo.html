@@ -1,0 +1,83 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN"> 
+<html> 
+<head> 
+<title>Script browsing information</title> 
+<link rel="stylesheet" type="text/css" href="sci.css">
+</head> 
+
+<body>
+
+<h1>Script browsing information</h1> 
+<p>Script browsing information can be turned on or off (along with its related settings) 
+in the <a href="GeneralOverview_Preferences.html">Preferences dialog.</a>.  It is off by default.
+<p>Script browsing is a powerful feature that analyzes the scripts and header files in your project, and will be able to provide
+auto code completion, and contextual information about objects in your script.  This only works with home-made games, as it requires
+the source code (*.sc) to work.  The browse information is compiled when you open the game.  The progress
+can be seen in the status bar.  It will show you any errors.  Until these errors are corrected, browse information
+may be incomplete and features which depend on it may not work.  To force SCICompanion to recompile the
+browse information for a particular script after you fix erros, just save the script again.
+<p>Script browsing may be taxing on your computer's CPU.  If typing is sluggish, turn it off (or just disable auto code completion).
+
+
+
+<h4><strike>Auto code completion</strike> - currently disabled in this version</h4>
+<p>As you type, SCI Companion will suggest words (methods, objects names, variable names, etc...) for completion. Hit
+<b>Enter</b> to accept the suggestion, or the up and down arrow keys to choose another suggestion.</p>
+<img src="images/ScriptCodeCompletion.png"> 
+<p>When you begin a method or procedure call, an infotip will appear with that method's signature.  The current parameter
+will appear in bold.<p>
+<img src="images/ScriptTooltip2.png"> 
+<p>
+
+
+<h4>Going directly to the definition of an item</h4>
+<p>If you right-click on an object, method call, variable, or defined value, the context menu will provide
+an option to take you to the spot where this item is defined or declared (which may be in another script file, or header file).</p>
+
+<img src="images/ScriptGotoDefn.png"> 
+<p>
+
+<h4><strike>Infotips</strike> - currently disabled in this version</h4>
+When you hover over an item, a infotip will appear giving you more information.  For example, if you hover the cursor over
+a method call, a infotip will appear with the method signature and the object on which it is defined.
+<p>
+<img src="images/ScriptTooltip1.png"> 
+<p>
+
+<h4>Jump to a function</h4>
+<p>At the top of the script editor is a combobox that lists all the functions and objects in the current
+script file.  It displays the name of the function or object where the cursor is currently located.  You can
+use this list to quickly jump to another function in the script.</p>
+
+<img src="images/JumpToFunction.png"> 
+<p>
+
+<h4>Quick links to views and pics</h4>
+<p>At the top of the script toolbox are links to resources relevant to the current script.  Here you will
+find the link to the pic resource (if this is a room), the views used in any Prop or Act instances, and links
+to the scripts of any rooms to the north/east/south/west.  If the resource is already being edited, it will
+switch you to that resource.  Otherwise, it will open the appropriate editor for that resource.</p>
+
+<img src="images/Script_ViewPicLinks.png"> 
+<p>
+
+<h4>When does browse information not work?</h4>
+<p>
+<b>Note: due to change in the architecture, infotips and auto code completion are no longer available.  The plan is to re-enable these features for the c++ syntax only in the future.</b>
+<p>
+You may notice auto code completion not working for newly created functions.  SCI Companion only updates its database
+of objects and functions when the script
+file when it is saved.  If you just added a procedure or object instance (e.g. a new Prop) to a script, you need to save
+the script before it will appear in the code completion dropdown.
+<p>
+SCI Companion regenerates its browse database each time you load a game.  The first time you invoke the script editor
+ for a game project, you may notice a short delay before things like code completion will work.  This is because SCI Companion is
+scanning all the script and header files in your project, and building the database.  This should only take a few seconds (you
+may notice your CPU in use).
+<p>
+SCI Companion may not recognize certain styles of code in the same manner as the script compiler does.  So it is possible
+that code that compiles successfully will confuse SCI Companion.  If you think browse information is not working properly but should,
+submit a bug report and include the offending SCI script (see the Help menu in SCI Companion).
+<p>
+</body> 
+</html>

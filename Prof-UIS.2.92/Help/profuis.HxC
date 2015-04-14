@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<!DOCTYPE HelpCollection>
+<HelpCollection
+  DTDVersion="1.0"
+  Id=""
+  FileVersion="0.0.0.0"
+  LangId=""
+  Font=""
+  FontSize=""
+  Charset=""
+  Title="Prof-UIS"
+  Copyright="FOSS Software, Inc.">
+
+  <AttributeDef File="profuis.HxA"/>
+
+  <TOCDef File="profuis.HxT"/>
+
+  <KeywordIndexDef File="profuis_K.HxK"/>
+  <KeywordIndexDef File="profuis_F.HxK"/>
+  <KeywordIndexDef File="profuis_NamedUrlIndex.HxK"/>
+
+  <ItemMoniker Name="!DefaultFullTextSearch" ProgId="HxDs.HxFullTextSearch" InitData="FTS"/>
+  <ItemMoniker Name="!DefaultKeywordIndex" ProgId="HxDs.HxIndex" InitData="K"/>
+  <ItemMoniker Name="!DefaultContextWindowIndex" ProgId="HxDs.HxIndex" InitData="F"/>
+  <ItemMoniker Name="!DefaultNamedUrlIndex" ProgId="HxDs.HxIndex" InitData="NamedUrlIndex"/>
+  <ItemMoniker Name="!DefaultTOC" ProgId="HxDs.HxHierarchy" InitData="profuis"/>
+
+  <ToolData Name="MSVHWLogLevel" Value="3"/>
+  <ToolData Name="MSVHWLogFile" Value="profuis.log"/>
+  <ToolData Name="MSVHWNamespace" Value="profuis"/>
+</HelpCollection>

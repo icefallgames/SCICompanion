@@ -1,0 +1,50 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio Codename Orcas
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProfUISDLL", "ProfUISDLL_900.vcproj", "{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		ANSI Debug RDE|Win32 = ANSI Debug RDE|Win32
+		ANSI Debug|Win32 = ANSI Debug|Win32
+		ANSI Release RDE|Win32 = ANSI Release RDE|Win32
+		ANSI Release|Win32 = ANSI Release|Win32
+		MBCS Debug RDE|Win32 = MBCS Debug RDE|Win32
+		MBCS Debug|Win32 = MBCS Debug|Win32
+		MBCS Release RDE|Win32 = MBCS Release RDE|Win32
+		MBCS Release|Win32 = MBCS Release|Win32
+		Unicode Debug RDE|Win32 = Unicode Debug RDE|Win32
+		Unicode Debug|Win32 = Unicode Debug|Win32
+		Unicode Release RDE|Win32 = Unicode Release RDE|Win32
+		Unicode Release|Win32 = Unicode Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.ANSI Debug RDE|Win32.ActiveCfg = ANSI Debug RDE|Win32
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.ANSI Debug RDE|Win32.Build.0 = ANSI Debug RDE|Win32
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.ANSI Debug|Win32.ActiveCfg = ANSI Debug|Win32
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.ANSI Debug|Win32.Build.0 = ANSI Debug|Win32
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.ANSI Release RDE|Win32.ActiveCfg = ANSI Release RDE|Win32
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.ANSI Release RDE|Win32.Build.0 = ANSI Release RDE|Win32
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.ANSI Release|Win32.ActiveCfg = ANSI Release|Win32
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.ANSI Release|Win32.Build.0 = ANSI Release|Win32
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.MBCS Debug RDE|Win32.ActiveCfg = MBCS Debug RDE|Win32
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.MBCS Debug RDE|Win32.Build.0 = MBCS Debug RDE|Win32
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.MBCS Debug|Win32.ActiveCfg = MBCS Debug|Win32
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.MBCS Debug|Win32.Build.0 = MBCS Debug|Win32
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.MBCS Release RDE|Win32.ActiveCfg = MBCS Release RDE|Win32
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.MBCS Release RDE|Win32.Build.0 = MBCS Release RDE|Win32
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.MBCS Release|Win32.ActiveCfg = MBCS Release|Win32
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.MBCS Release|Win32.Build.0 = MBCS Release|Win32
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.Unicode Debug RDE|Win32.ActiveCfg = Unicode Debug RDE|Win32
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.Unicode Debug RDE|Win32.Build.0 = Unicode Debug RDE|Win32
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.Unicode Debug|Win32.ActiveCfg = Unicode Debug|Win32
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.Unicode Debug|Win32.Build.0 = Unicode Debug|Win32
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.Unicode Release RDE|Win32.ActiveCfg = Unicode Release RDE|Win32
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.Unicode Release RDE|Win32.Build.0 = Unicode Release RDE|Win32
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.Unicode Release|Win32.ActiveCfg = Unicode Release|Win32
+		{7D5F7B72-8CC0-444A-9A2D-BCD0F8D296A0}.Unicode Release|Win32.Build.0 = Unicode Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
