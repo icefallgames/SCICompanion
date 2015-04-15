@@ -2715,113 +2715,221 @@ CodeResult Asm::OutputByteCode(CompileContext &context) const
     }
     else
     {
-        vector<string> saidRefs;
-        vector<string> stringRefs;
-        vector<string> isntanceRefs;
-        uint16_t args[3] = {};
-        for (size_t i = 0; i < 3; i++)
+        // Special case some opcodes
+        switch (opcode)
         {
-            OperandType ot = OpArgTypes[(int)opcode][i];
-            if (ot != otEMPTY)
+            case Opcode::JMP:
+            case Opcode::BT:
+            case Opcode::BNT:
             {
-                if (_segments.size() >= (i + 1))
+                // These should have a single argument, which is a string token.
+                ComplexPropertyValue *pValue = nullptr;
+                if (_segments.size() == 1)
                 {
-                    // Special cases: jmp, bnt, bt. lofsa, call*
-                    ComplexPropertyValue *pValue = _segments[i]->CastSyntaxNode<ComplexPropertyValue>();
-                    if (pValue)
+                    pValue = _segments[0]->CastSyntaxNode<ComplexPropertyValue>();
+                }
+
+                if (pValue)
+                {
+                    std::string label;
+                    if (pValue->GetType() == ValueType::Token)
                     {
-                        switch (pValue->GetType())
+                        if (context.DoesLabelExist(pValue->GetStringValue()))
                         {
-                            case ValueType::Number:
-                                args[i] = pValue->GetNumberValue();
-                                break;
-
-                            case ValueType::String:
-                                args[i] = context.GetStringTempOffset(pValue->GetStringValue());
-                                stringRefs.push_back(pValue->GetStringValue());
-                                break;
-
-                            case ValueType::Said:
-                                args[i] = context.GetSaidTempOffset(pValue->GetStringValue());
-                                saidRefs.push_back(pValue->GetStringValue());
-                                break;
-
-                            case ValueType::Selector:
-                            {
-                                uint16_t selectorNum;
-                                if (context.LookupSelector(pValue->GetStringValue(), selectorNum))
-                                {
-                                    args[i] = selectorNum;
-                                }
-                                else
-                                {
-                                    context.ReportError(this, "Unknown property or method: '%s'.", pValue->GetStringValue().c_str());
-                                }
-                            }
-                                break;
-
-                            case ValueType::Pointer:
-                                assert(false && "not implemented");
-                                break;
-
-                            case ValueType::Token:
-                            {
-                                // REVIEW: We have additional restrictions here. We'll need special code to handle some cases.
-                                // For instance, lofsa only makes sense with a class/instance. A load/store for a global var only
-                                // makes sense with a global var. calle only makes sense with a public proc name. And in that case, two of
-                                // the operands are involved.
-                                uint16_t wInstanceScript;
-                                uint16_t number;
-                                SpeciesIndex wType;
-                                ResolvedToken tokenType = context.LookupToken(pValue, pValue->GetStringValue(), number, wType, &wInstanceScript);
-                                switch (tokenType)
-                                {
-                                    case ResolvedToken::Instance:
-                                    case ResolvedToken::Class:
-                                        args[i] = number;
-                                        isntanceRefs.push_back(pValue->GetStringValue());
-                                        break;
-
-                                    default:
-                                        context.ReportError(this, "Unimplemented token type: '%d'.", tokenType);
-                                }
-                            }
-                                break;
+                            label = pValue->GetStringValue();
                         }
+                    }
+                    if (!label.empty())
+                    {
+                        context.code().inst(opcode, context.code().get_undetermined());
+                        context.TrackAsmLabelReference(pValue->GetStringValue());
                     }
                     else
                     {
-                        context.ReportError(this, "Unable to process argument %d for '%s'", i, _innerName.c_str());
+                        context.ReportError(this, "Unknown label '%s'", pValue->GetStringValue().c_str());
                     }
                 }
                 else
                 {
-                    context.ReportError(this, "'%s' requires %d arguments.", _innerName.c_str(), (i + 1));
+                    context.ReportError(this, "Expected a single label value.");
                 }
             }
-            else
-            {
-                if (_segments.size() > i)
-                {
-                    context.ReportError(this, "Too many arguments for '%s'.", _innerName.c_str());
-                }
-            }
-        }
+                break;
 
-        context.code().inst(opcode, args[0], args[1], args[2]);
-        for (string saidRef : saidRefs)
-        {
-            context.TrackSaidReference(saidRef);
-        }
-        for (string stringRef : stringRefs)
-        {
-            context.TrackSaidReference(stringRef);
-        }
-        for (string instanceRef : isntanceRefs)
-        {
-            context.TrackInstanceReference(instanceRef);
+            case Opcode::CALL:
+            case Opcode::CALLB:
+            case Opcode::CALLE:
+            case Opcode::CALLK:
+                // We have a choice here: Do we use symbols or the actual numeric values?
+                // Let's assume symbols for now.
+                if (_segments.size() == 2)
+                {
+                    ComplexPropertyValue *pNumParams = _segments[1]->CastSyntaxNode<ComplexPropertyValue>();
+                    if (pNumParams->GetType() == ValueType::Number)
+                    {
+                        // The first argument should be a name
+                        ComplexPropertyValue *pValue = _segments[0]->CastSyntaxNode<ComplexPropertyValue>();
+                        if (pValue->GetType() == ValueType::Token)
+                        {
+                            uint16_t wScript, wIndex;
+                            std::string classOwner;
+                            std::vector<CSCOFunctionSignature> signatures;
+                            ProcedureType procType = context.LookupProc(pValue->GetStringValue(), wScript, wIndex, classOwner, &signatures);
+                            if ((procType == ProcedureKernel) && (opcode == Opcode::CALLK))
+                            {
+                                context.code().inst(opcode, wIndex, pNumParams->GetNumberValue());
+                            }
+                            else if ((procType == ProcedureMain) && (opcode == Opcode::CALLB))
+                            {
+                                context.code().inst(opcode, wIndex, pNumParams->GetNumberValue());
+                            }
+                            else if ((procType == ProcedureLocal) && (opcode == Opcode::CALL))
+                            {
+                                context.code().inst(opcode, wIndex, pNumParams->GetNumberValue());
+                            }
+                            else if ((procType == ProcedureExternal) && (opcode == Opcode::CALLE))
+                            {
+                                context.code().inst(opcode, wScript, wIndex, pNumParams->GetNumberValue());
+                            }
+                            else
+                            {
+                                context.ReportError(this, "Procedure type does not match call type.");
+                            }
+                        }
+                        else
+                        {
+                            context.ReportError(this, "Expected procedure name: '%s'", pValue->GetStringValue().c_str());
+                        }
+                    }
+                    else
+                    {
+                        context.ReportError(this, "Expected a number for the second argument.");
+                    }
+
+                }
+                else
+                {
+                    context.ReportError(this, "Expected 2 arguments.");
+                }
+                break;
+
+            default:
+            {
+                vector<string> saidRefs;
+                vector<string> stringRefs;
+                vector<string> isntanceRefs;
+                uint16_t args[3] = {};
+                for (size_t i = 0; i < 3; i++)
+                {
+                    OperandType ot = OpArgTypes[(int)opcode][i];
+                    if (ot != otEMPTY)
+                    {
+                        if (_segments.size() >= (i + 1))
+                        {
+                            // Special cases: jmp, bnt, bt. lofsa, call*
+                            ComplexPropertyValue *pValue = _segments[i]->CastSyntaxNode<ComplexPropertyValue>();
+                            if (pValue)
+                            {
+                                switch (pValue->GetType())
+                                {
+                                    case ValueType::Number:
+                                        args[i] = pValue->GetNumberValue();
+                                        break;
+
+                                    case ValueType::String:
+                                        args[i] = context.GetStringTempOffset(pValue->GetStringValue());
+                                        stringRefs.push_back(pValue->GetStringValue());
+                                        break;
+
+                                    case ValueType::Said:
+                                        args[i] = context.GetSaidTempOffset(pValue->GetStringValue());
+                                        saidRefs.push_back(pValue->GetStringValue());
+                                        break;
+
+                                    case ValueType::Selector:
+                                    {
+                                        uint16_t selectorNum;
+                                        if (context.LookupSelector(pValue->GetStringValue(), selectorNum))
+                                        {
+                                            args[i] = selectorNum;
+                                        }
+                                        else
+                                        {
+                                            context.ReportError(this, "Unknown property or method: '%s'.", pValue->GetStringValue().c_str());
+                                        }
+                                    }
+                                    break;
+
+                                    case ValueType::Pointer:
+                                        assert(false && "not implemented");
+                                        break;
+
+                                    case ValueType::Token:
+                                    {
+                                        // REVIEW: We have additional restrictions here. We'll need special code to handle some cases.
+                                        // For instance, lofsa only makes sense with a class/instance. A load/store for a global var only
+                                        // makes sense with a global var. calle only makes sense with a public proc name. And in that case, two of
+                                        // the operands are involved.
+                                        uint16_t wInstanceScript;
+                                        uint16_t number;
+                                        SpeciesIndex wType;
+                                        ResolvedToken tokenType = context.LookupToken(pValue, pValue->GetStringValue(), number, wType, &wInstanceScript);
+                                        switch (tokenType)
+                                        {
+                                            case ResolvedToken::Instance:
+                                            case ResolvedToken::Class:
+                                                args[i] = number;
+                                                isntanceRefs.push_back(pValue->GetStringValue());
+                                                break;
+
+                                            default:
+                                                context.ReportError(this, "Unimplemented token type: '%d'.", tokenType);
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                context.ReportError(this, "Unable to process argument %d for '%s'", i, _innerName.c_str());
+                            }
+                        }
+                        else
+                        {
+                            context.ReportError(this, "'%s' requires %d arguments.", _innerName.c_str(), (i + 1));
+                        }
+                    }
+                    else
+                    {
+                        if (_segments.size() > i)
+                        {
+                            context.ReportError(this, "Too many arguments for '%s'.", _innerName.c_str());
+                        }
+                    }
+                }
+                context.code().inst(opcode, args[0], args[1], args[2]);
+
+                for (string saidRef : saidRefs)
+                {
+                    context.TrackSaidReference(saidRef);
+                }
+                for (string stringRef : stringRefs)
+                {
+                    context.TrackSaidReference(stringRef);
+                }
+                for (string instanceRef : isntanceRefs)
+                {
+                    context.TrackInstanceReference(instanceRef);
+                }
+            }
         }
     }
+
+    if (!_label.empty())
+    {
+        context.TrackAsmLabelLocation(_label);
+    }
+
     return CodeResult(0, DataTypeAny);
 }
 
@@ -3156,7 +3264,10 @@ void AsmBlock::PreScan(CompileContext &context)
 }
 void Asm::PreScan(CompileContext &context)
 {
-    // TODO: Assign labels?
+    if (!_label.empty())
+    {
+        context.ReportLabelName(this, _label);
+    }
     ForwardPreScan2(_segments, context);
 }
 

@@ -1924,7 +1924,6 @@ private:
 };
 
 
-
 // pEnd can be teh end of script data. I have added autodetection support.
 void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBegin, const BYTE *pEnd, WORD wBaseOffset)
 {

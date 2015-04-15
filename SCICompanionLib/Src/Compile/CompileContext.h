@@ -150,6 +150,10 @@ public:
     void TrackStringReference(const std::string &name);
     void TrackStringTokenReference(const std::string &tokenName, WORD wIndex);
     void TrackSaidReference(const std::string &name);
+    void TrackAsmLabelReference(const std::string &label);
+    void TrackAsmLabelLocation(const std::string &label);
+    void ReportLabelName(ISourceCodePosition *position, const std::string &labelName);
+    bool DoesLabelExist(const std::string &label);
     const ref_and_index_multimap &GetInstanceReferences();
     const ref_and_index_multimap &GetStringReferences();
     const ref_and_index_multimap &GetStringTokenReferences();
@@ -160,6 +164,7 @@ public:
     code_pos GetLocalProcPos(const std::string &name);
     void TrackRelocation(WORD wOffset);
     void FixupLocalCalls();
+    void FixupAsmLabelBranches();
     void TrackCallOffsetInstruction(WORD wProcIndex);
     void PreScanSaid(const std::string &theSaid, const ISourceCodePosition *pPos);
     WORD GetSaidTempOffset(const std::string &theSaid);
@@ -238,6 +243,9 @@ private:
     ref_and_index_multimap _stringReferences;
     ref_and_index_multimap _stringTokenReferences;
     ref_and_index_multimap _saidReferences;
+    ref_multimap _labelReferences;
+    std::map<std::string, code_pos> _labelLocations;
+    std::set<std::string> _labelNames;  // Pre-scan
 
     const uint16_t ImaginaryStringOffset = 0x8000;
 

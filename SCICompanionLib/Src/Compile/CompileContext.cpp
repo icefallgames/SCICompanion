@@ -1016,6 +1016,38 @@ void CompileContext::TrackSaidReference(const string &name)
 {
     _saidReferences.insert(ref_and_index_multimap::value_type(name, call_pair(code().get_cur_pos(), 0)));
 }
+void CompileContext::FixupAsmLabelBranches()
+{
+    // Tell the branch instructions where they are going.
+    for (auto labelRef : _labelReferences)
+    {
+        code_pos labelLocation = _labelLocations[labelRef.first];
+        _code.set_call_target(labelRef.second, labelLocation);
+    }
+}
+void CompileContext::TrackAsmLabelLocation(const std::string &label)
+{
+    _labelLocations[label] = code().get_cur_pos();
+}
+void CompileContext::TrackAsmLabelReference(const std::string &label)
+{
+    _labelReferences.insert(ref_multimap::value_type(label, code().get_cur_pos()));
+}
+void CompileContext::ReportLabelName(ISourceCodePosition *position, const std::string &labelName)
+{
+    if (_labelNames.find(labelName) == _labelNames.end())
+    {
+        _labelNames.insert(labelName);
+    }
+    else
+    {
+        this->ReportError(position, "Duplicate label '%s'", labelName.c_str());
+    }
+}
+bool CompileContext::DoesLabelExist(const std::string &label)
+{
+    return _labelNames.find(label) != _labelNames.end();
+}
 const ref_and_index_multimap &CompileContext::GetInstanceReferences() { return _instanceReferences; }
 const ref_and_index_multimap &CompileContext::GetStringReferences() { return _stringReferences; }
 const ref_and_index_multimap &CompileContext::GetStringTokenReferences() { return _stringTokenReferences; }
@@ -2028,6 +2060,7 @@ void _Section2_Code(Script &script, CompileContext &context, vector<BYTE> &outpu
     // Now some dirty work...
     context.code().fixup_offsets(context.GetOffsetFixups());
     context.FixupLocalCalls();
+    context.FixupAsmLabelBranches();
     push_word(output, 2);
     WORD wCodeSize = context.code().calc_size() + 4;
     bool fRoundUp = make_even(wCodeSize);
