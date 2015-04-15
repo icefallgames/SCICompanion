@@ -24,7 +24,7 @@ extern KernelInfo KrnlInfo[TOTAL_KERNELS];
 
 extern BYTE OpArgs[TOTAL_OPCODES*2];
 
-extern char *OpcodeNames[];
+extern char *OpcodeNames[128];
 
 enum OperandType
 {

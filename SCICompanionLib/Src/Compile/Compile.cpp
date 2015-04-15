@@ -702,8 +702,6 @@ void ValidateVariableDeclaration(CompileContext &context, const ISourceCodePosit
     }
 }
 
-
-
 //
 // Required for if's and else's to compile properly
 //
@@ -2690,6 +2688,144 @@ CodeResult BreakStatement::OutputByteCode(CompileContext &context) const
     return 0; // void
 }
 
+CodeResult AsmBlock::OutputByteCode(CompileContext &context) const
+{
+    for (auto &statement : _segments)
+    {
+        statement->OutputByteCode(context);
+    }
+    return CodeResult(0, DataTypeAny);
+}
+
+CodeResult Asm::OutputByteCode(CompileContext &context) const
+{
+    // TODO: Prescan needs to track label
+    // Look up the instruction.
+    Opcode opcode = Opcode::INDETERMINATE;
+    for (int i = 0; i < ARRAYSIZE(OpcodeNames); i++)
+    {
+        if (OpcodeNames[i] == _innerName)
+        {
+            opcode = (Opcode)i;
+        }
+    }
+    if (opcode == Opcode::INDETERMINATE)
+    {
+        context.ReportError(this, "Unknown instruction '%s'", _innerName.c_str());
+    }
+    else
+    {
+        vector<string> saidRefs;
+        vector<string> stringRefs;
+        vector<string> isntanceRefs;
+        uint16_t args[3] = {};
+        for (size_t i = 0; i < 3; i++)
+        {
+            OperandType ot = OpArgTypes[(int)opcode][i];
+            if (ot != otEMPTY)
+            {
+                if (_segments.size() >= (i + 1))
+                {
+                    // Special cases: jmp, bnt, bt. lofsa, call*
+                    ComplexPropertyValue *pValue = _segments[i]->CastSyntaxNode<ComplexPropertyValue>();
+                    if (pValue)
+                    {
+                        switch (pValue->GetType())
+                        {
+                            case ValueType::Number:
+                                args[i] = pValue->GetNumberValue();
+                                break;
+
+                            case ValueType::String:
+                                args[i] = context.GetStringTempOffset(pValue->GetStringValue());
+                                stringRefs.push_back(pValue->GetStringValue());
+                                break;
+
+                            case ValueType::Said:
+                                args[i] = context.GetSaidTempOffset(pValue->GetStringValue());
+                                saidRefs.push_back(pValue->GetStringValue());
+                                break;
+
+                            case ValueType::Selector:
+                            {
+                                uint16_t selectorNum;
+                                if (context.LookupSelector(pValue->GetStringValue(), selectorNum))
+                                {
+                                    args[i] = selectorNum;
+                                }
+                                else
+                                {
+                                    context.ReportError(this, "Unknown property or method: '%s'.", pValue->GetStringValue().c_str());
+                                }
+                            }
+                                break;
+
+                            case ValueType::Pointer:
+                                assert(false && "not implemented");
+                                break;
+
+                            case ValueType::Token:
+                            {
+                                // REVIEW: We have additional restrictions here. We'll need special code to handle some cases.
+                                // For instance, lofsa only makes sense with a class/instance. A load/store for a global var only
+                                // makes sense with a global var. calle only makes sense with a public proc name. And in that case, two of
+                                // the operands are involved.
+                                uint16_t wInstanceScript;
+                                uint16_t number;
+                                SpeciesIndex wType;
+                                ResolvedToken tokenType = context.LookupToken(pValue, pValue->GetStringValue(), number, wType, &wInstanceScript);
+                                switch (tokenType)
+                                {
+                                    case ResolvedToken::Instance:
+                                    case ResolvedToken::Class:
+                                        args[i] = number;
+                                        isntanceRefs.push_back(pValue->GetStringValue());
+                                        break;
+
+                                    default:
+                                        context.ReportError(this, "Unimplemented token type: '%d'.", tokenType);
+                                }
+                            }
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        context.ReportError(this, "Unable to process argument %d for '%s'", i, _innerName.c_str());
+                    }
+                }
+                else
+                {
+                    context.ReportError(this, "'%s' requires %d arguments.", _innerName.c_str(), (i + 1));
+                }
+            }
+            else
+            {
+                if (_segments.size() > i)
+                {
+                    context.ReportError(this, "Too many arguments for '%s'.", _innerName.c_str());
+                }
+            }
+        }
+
+        context.code().inst(opcode, args[0], args[1], args[2]);
+        for (string saidRef : saidRefs)
+        {
+            context.TrackSaidReference(saidRef);
+        }
+        for (string stringRef : stringRefs)
+        {
+            context.TrackSaidReference(stringRef);
+        }
+        for (string instanceRef : isntanceRefs)
+        {
+            context.TrackInstanceReference(instanceRef);
+        }
+    }
+    return CodeResult(0, DataTypeAny);
+}
+
+
 CodeResult RestStatement::OutputByteCode(CompileContext &context) const
 {
     declare_conditional isCondition(context, false);
@@ -3012,6 +3148,16 @@ void Assignment::PreScan(CompileContext &context)
 {
 	_variable->PreScan(context);
 	_statement1->PreScan(context);
+}
+
+void AsmBlock::PreScan(CompileContext &context)
+{
+    ForwardPreScan2(_segments, context);
+}
+void Asm::PreScan(CompileContext &context)
+{
+    // TODO: Assign labels?
+    ForwardPreScan2(_segments, context);
 }
 
 // Converts a flat list of statements and andOrs into a tree of binary operations.

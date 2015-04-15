@@ -1,5 +1,374 @@
-﻿Build started 4/13/2015 11:29:31 PM.
+﻿Build started 4/14/2015 4:53:04 PM.
+     1>Project "E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\SCICompanionLib.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         F:\VisualStudio\VC\bin\CL.exe /c /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\\" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Util" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Resources" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCViews" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCFrames" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCDocuments" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\FrameComponents" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Dialogs" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CrystalEdit" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CRC32" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CppFormat" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Compile" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Include" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Src" /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _WINDOWS /D NO_WARN_MBCS_MFC_DEPRECATION /D _DEBUG /D _USRDLL /D _MBCS /Gm /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"Debug\SCICompanionLib.pch" /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt /Qpar Src\Compile\Compile.cpp
+         Compile.cpp
+       Lib:
+         F:\VisualStudio\VC\bin\Lib.exe /OUT:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Debug\SCICompanionLib.lib" /NOLOGO /VERBOSE Debug\CFGNode.obj
+         Debug\ControlFlowGraphViz.obj
+         Debug\DecompileScript.obj
+         Debug\DisassembleHelper.obj
+         Debug\Disassembler.obj
+         Debug\ControlFlowGraph.obj
+         Debug\OutputCodeHelper.obj
+         Debug\OutputCppSourceCode.obj
+         Debug\OutputSCISourceCode.obj
+         Debug\OutputSCIStudioSourceCode.obj
+         Debug\SummarizeScript.obj
+         Debug\TarjanAlgorithm.obj
+         Debug\BitmapToVGADialog.obj
+         Debug\ChooseColorDialogVGA.obj
+         Debug\ExtractAllDialog.obj
+         Debug\PaletteEditorDialog.obj
+         Debug\PrepareBitmapBase.obj
+         Debug\PicHelperPane.obj
+         Debug\ZoomCelStatic.obj
+         Debug\PaletteDoc.obj
+         Debug\PaletteChildFrame.obj
+         Debug\PaletteView.obj
+         Debug\Font.obj
+         Debug\Pic.obj
+         Debug\ResourceMapOperations.obj
+         Debug\ResourceSources.obj
+         Debug\Message.obj
+         Debug\GameVersionDialog.obj
+         Debug\PaletteOperations.obj
+         Debug\SoundOperations.obj
+         Debug\VersionDetectionHelper.obj
+         Debug\View.obj
+         Debug\AudioPlayback.obj
+         Debug\CodecAlt.obj
+         Debug\Sound.obj
+         Debug\SCICompanionLib.obj
+         Debug\PicOperations.obj
+         "Debug\CodecDCL-freesci.obj"
+         Debug\CodecDCL.obj
+         Debug\ColorQuantization.obj
+         Debug\ExtractAll.obj
+         Debug\ImageUtil.obj
+         Debug\MidiPlayer.obj
+         Debug\SoundUtil.obj
+         Debug\Compile.obj
+         Debug\CompileContext.obj
+         Debug\CompiledScript.obj
+         Debug\CPPSyntaxParser.obj
+         Debug\CPPTokenizer.obj
+         Debug\DecompilerCore.obj
+         Debug\Kernels.obj
+         Debug\ParserCommon.obj
+         Debug\PMachine.obj
+         Debug\scii.obj
+         Debug\SCIStudioSyntaxParser.obj
+         Debug\SCO.obj
+         Debug\ScriptDebug.obj
+         Debug\ScriptOM.obj
+         Debug\ScriptOMTraverse.obj
+         Debug\SyntaxParser.obj
+         Debug\Types.obj
+         Debug\format.obj
+         Debug\crc.obj
+         Debug\CCrystalEditView.obj
+         Debug\CCrystalTextBuffer.obj
+         Debug\CCrystalTextView.obj
+         Debug\CCrystalTextView2.obj
+         Debug\CEditReplaceDlg.obj
+         Debug\CFindTextDlg.obj
+         Debug\AnimateDialog.obj
+         Debug\BarContainerDialog.obj
+         Debug\BaseColorDialog.obj
+         Debug\BitmapToPicDialog.obj
+         Debug\ChooseColorAdvancedDialog.obj
+         Debug\ChooseColorDialog.obj
+         Debug\ChoosePenStyleDialog.obj
+         Debug\ChoosePriConDialog.obj
+         Debug\ClassBrowserDialog.obj
+         Debug\DontShowAgainDialog.obj
+         Debug\FindAllDialog.obj
+         Debug\FindWordDialog.obj
+         Debug\GamePropertiesDialog.obj
+         Debug\GotoDialog.obj
+         Debug\InsertObject.obj
+         Debug\NewCompileDialog.obj
+         Debug\NewGameDialog.obj
+         Debug\NewRoomDialog.obj
+         Debug\NewScriptDialog.obj
+         Debug\PaletteDefinitionDialog.obj
+         Debug\PreferencesDialog.obj
+         Debug\RemoveScriptDialog.obj
+         Debug\SamplesDialogBar.obj
+         Debug\SaveResourceDialog.obj
+         Debug\SCIFontDialog.obj
+         Debug\SCIPropertyCtrl.obj
+         Debug\SCIPropertyInfo.obj
+         Debug\SCIProps.obj
+         Debug\VisualScriptDialog.obj
+         Debug\VocabAutoCompleteDialog.obj
+         Debug\ChooseColorStatic.obj
+         Debug\CodeToolTips.obj
+         Debug\ColorButton.obj
+         Debug\ColoredToolTip.obj
+         Debug\ExtControlBarNoX.obj
+         Debug\ExtDialogFwdCmd.obj
+         Debug\IntellisenseListBox.obj
+         Debug\MDITabsDialogBar.obj
+         Debug\NoFlickerStatic.obj
+         Debug\OutputPane.obj
+         Debug\PicCommandSidePane.obj
+         Debug\QuickScripts.obj
+         Debug\RasterSidePane.obj
+         Debug\ResourceListView.obj
+         Debug\ResourcePicListView.obj
+         Debug\ResourcePreviewer.obj
+         Debug\ScriptComboBox.obj
+         Debug\SliderDialogBar.obj
+         Debug\SoundToolboxSidePane.obj
+         Debug\ViewCelChooser.obj
+         Debug\VPCDialogBar.obj
+         Debug\NewRasterResourceDocument.obj
+         Debug\NonViewHostDocument.obj
+         Debug\PicDoc.obj
+         Debug\ResourceDocument.obj
+         Debug\ResourceListDoc.obj
+         Debug\RoomExplorerDoc.obj
+         Debug\ScriptDocument.obj
+         Debug\SoundDoc.obj
+         Debug\TextDoc.obj
+         Debug\VocabDoc.obj
+         Debug\CursorChildFrame.obj
+         Debug\FontChildFrame.obj
+         Debug\MainFrm.obj
+         Debug\MDITabChildWnd.obj
+         Debug\PicChildFrame.obj
+         Debug\GameExplorerFrame.obj
+         Debug\RoomExplorerFrame.obj
+         Debug\ScriptFrame.obj
+         Debug\SoundChildFrame.obj
+         Debug\TextChildFrame.obj
+         Debug\ViewChildFrame.obj
+         Debug\VocabChildFrame.obj
+         Debug\FontPreviewView.obj
+         Debug\PicView.obj
+         Debug\RasterResourceListView.obj
+         Debug\RasterView.obj
+         Debug\GameExplorerView.obj
+         Debug\RoomExplorerView.obj
+         Debug\ScriptView.obj
+         Debug\SoundView.obj
+         Debug\TextView.obj
+         Debug\VocabView.obj
+         Debug\Components.obj
+         Debug\Cursor.obj
+         Debug\FontOperations.obj
+         Debug\PicCommands.obj
+         Debug\PicDrawManager.obj
+         Debug\RasterOperations.obj
+         Debug\ResourceUtil.obj
+         Debug\ResourceContainer.obj
+         Debug\ResourceBlob.obj
+         Debug\ResourceEntity.obj
+         Debug\ResourceMap.obj
+         Debug\ResourceRecency.obj
+         Debug\ResourceTypeList.obj
+         Debug\Vocab000.obj
+         Debug\Vocab99x.obj
+         Debug\AppState.obj
+         Debug\ClassBrowser.obj
+         Debug\ClassBrowserInfo.obj
+         Debug\CodeAutoComplete.obj
+         Debug\Codec.obj
+         Debug\CrystalScriptStream.obj
+         Debug\DrawHelper.obj
+         Debug\SCIDocs.obj
+         Debug\Stream.obj
+         Debug\util.obj
+         Debug\Version.obj
+         Debug\WordEnumString.obj
+         Debug\stdafx.obj
+         Debug\Text.obj
+         Appending Debug\Text.obj
+         Appending Debug\stdafx.obj
+         Appending Debug\WordEnumString.obj
+         Appending Debug\Version.obj
+         Appending Debug\util.obj
+         Appending Debug\Stream.obj
+         Appending Debug\SCIDocs.obj
+         Appending Debug\DrawHelper.obj
+         Appending Debug\CrystalScriptStream.obj
+         Appending Debug\Codec.obj
+         Appending Debug\CodeAutoComplete.obj
+         Appending Debug\ClassBrowserInfo.obj
+         Appending Debug\ClassBrowser.obj
+         Appending Debug\AppState.obj
+         Appending Debug\Vocab99x.obj
+         Appending Debug\Vocab000.obj
+         Appending Debug\ResourceTypeList.obj
+         Appending Debug\ResourceRecency.obj
+         Appending Debug\ResourceMap.obj
+         Appending Debug\ResourceEntity.obj
+         Appending Debug\ResourceBlob.obj
+         Appending Debug\ResourceContainer.obj
+         Appending Debug\ResourceUtil.obj
+         Appending Debug\RasterOperations.obj
+         Appending Debug\PicDrawManager.obj
+         Appending Debug\PicCommands.obj
+         Appending Debug\FontOperations.obj
+         Appending Debug\Cursor.obj
+         Appending Debug\Components.obj
+         Appending Debug\VocabView.obj
+         Appending Debug\TextView.obj
+         Appending Debug\SoundView.obj
+         Appending Debug\ScriptView.obj
+         Appending Debug\RoomExplorerView.obj
+         Appending Debug\GameExplorerView.obj
+         Appending Debug\RasterView.obj
+         Appending Debug\RasterResourceListView.obj
+         Appending Debug\PicView.obj
+         Appending Debug\FontPreviewView.obj
+         Appending Debug\VocabChildFrame.obj
+         Appending Debug\ViewChildFrame.obj
+         Appending Debug\TextChildFrame.obj
+         Appending Debug\SoundChildFrame.obj
+         Appending Debug\ScriptFrame.obj
+         Appending Debug\RoomExplorerFrame.obj
+         Appending Debug\GameExplorerFrame.obj
+         Appending Debug\PicChildFrame.obj
+         Appending Debug\MDITabChildWnd.obj
+         Appending Debug\MainFrm.obj
+         Appending Debug\FontChildFrame.obj
+         Appending Debug\CursorChildFrame.obj
+         Appending Debug\VocabDoc.obj
+         Appending Debug\TextDoc.obj
+         Appending Debug\SoundDoc.obj
+         Appending Debug\ScriptDocument.obj
+         Appending Debug\RoomExplorerDoc.obj
+         Appending Debug\ResourceListDoc.obj
+         Appending Debug\ResourceDocument.obj
+         Appending Debug\PicDoc.obj
+         Appending Debug\NonViewHostDocument.obj
+         Appending Debug\NewRasterResourceDocument.obj
+         Appending Debug\VPCDialogBar.obj
+         Appending Debug\ViewCelChooser.obj
+         Appending Debug\SoundToolboxSidePane.obj
+         Appending Debug\SliderDialogBar.obj
+         Appending Debug\ScriptComboBox.obj
+         Appending Debug\ResourcePreviewer.obj
+         Appending Debug\ResourcePicListView.obj
+         Appending Debug\ResourceListView.obj
+         Appending Debug\RasterSidePane.obj
+         Appending Debug\QuickScripts.obj
+         Appending Debug\PicCommandSidePane.obj
+         Appending Debug\OutputPane.obj
+         Appending Debug\NoFlickerStatic.obj
+         Appending Debug\MDITabsDialogBar.obj
+         Appending Debug\IntellisenseListBox.obj
+         Appending Debug\ExtDialogFwdCmd.obj
+         Appending Debug\ExtControlBarNoX.obj
+         Appending Debug\ColoredToolTip.obj
+         Appending Debug\ColorButton.obj
+         Appending Debug\CodeToolTips.obj
+         Appending Debug\ChooseColorStatic.obj
+         Appending Debug\VocabAutoCompleteDialog.obj
+         Appending Debug\VisualScriptDialog.obj
+         Appending Debug\SCIProps.obj
+         Appending Debug\SCIPropertyInfo.obj
+         Appending Debug\SCIPropertyCtrl.obj
+         Appending Debug\SCIFontDialog.obj
+         Appending Debug\SaveResourceDialog.obj
+         Appending Debug\SamplesDialogBar.obj
+         Appending Debug\RemoveScriptDialog.obj
+         Appending Debug\PreferencesDialog.obj
+         Appending Debug\PaletteDefinitionDialog.obj
+         Appending Debug\NewScriptDialog.obj
+         Appending Debug\NewRoomDialog.obj
+         Appending Debug\NewGameDialog.obj
+         Appending Debug\NewCompileDialog.obj
+         Appending Debug\InsertObject.obj
+         Appending Debug\GotoDialog.obj
+         Appending Debug\GamePropertiesDialog.obj
+         Appending Debug\FindWordDialog.obj
+         Appending Debug\FindAllDialog.obj
+         Appending Debug\DontShowAgainDialog.obj
+         Appending Debug\ClassBrowserDialog.obj
+         Appending Debug\ChoosePriConDialog.obj
+         Appending Debug\ChoosePenStyleDialog.obj
+         Appending Debug\ChooseColorDialog.obj
+         Appending Debug\ChooseColorAdvancedDialog.obj
+         Appending Debug\BitmapToPicDialog.obj
+         Appending Debug\BaseColorDialog.obj
+         Appending Debug\BarContainerDialog.obj
+         Appending Debug\AnimateDialog.obj
+         Appending Debug\CFindTextDlg.obj
+         Appending Debug\CEditReplaceDlg.obj
+         Appending Debug\CCrystalTextView2.obj
+         Appending Debug\CCrystalTextView.obj
+         Appending Debug\CCrystalTextBuffer.obj
+         Appending Debug\CCrystalEditView.obj
+         Appending Debug\crc.obj
+         Appending Debug\format.obj
+         Appending Debug\Types.obj
+         Appending Debug\SyntaxParser.obj
+         Appending Debug\ScriptOMTraverse.obj
+         Appending Debug\ScriptOM.obj
+         Appending Debug\ScriptDebug.obj
+         Appending Debug\SCO.obj
+         Appending Debug\SCIStudioSyntaxParser.obj
+         Appending Debug\scii.obj
+         Appending Debug\PMachine.obj
+         Appending Debug\ParserCommon.obj
+         Appending Debug\Kernels.obj
+         Appending Debug\DecompilerCore.obj
+         Appending Debug\CPPTokenizer.obj
+         Appending Debug\CPPSyntaxParser.obj
+         Appending Debug\CompiledScript.obj
+         Appending Debug\CompileContext.obj
+         Appending Debug\Compile.obj
+         Appending Debug\SoundUtil.obj
+         Appending Debug\MidiPlayer.obj
+         Appending Debug\ImageUtil.obj
+         Appending Debug\ExtractAll.obj
+         Appending Debug\ColorQuantization.obj
+         Appending Debug\CodecDCL.obj
+         Appending Debug\CodecDCL-freesci.obj
+         Appending Debug\PicOperations.obj
+         Appending Debug\SCICompanionLib.obj
+         Appending Debug\Sound.obj
+         Appending Debug\CodecAlt.obj
+         Appending Debug\AudioPlayback.obj
+         Appending Debug\View.obj
+         Appending Debug\VersionDetectionHelper.obj
+         Appending Debug\SoundOperations.obj
+         Appending Debug\PaletteOperations.obj
+         Appending Debug\GameVersionDialog.obj
+         Appending Debug\Message.obj
+         Appending Debug\ResourceSources.obj
+         Appending Debug\ResourceMapOperations.obj
+         Appending Debug\Pic.obj
+         Appending Debug\Font.obj
+         Appending Debug\PaletteView.obj
+         Appending Debug\PaletteChildFrame.obj
+         Appending Debug\PaletteDoc.obj
+         Appending Debug\ZoomCelStatic.obj
+         Appending Debug\PicHelperPane.obj
+         Appending Debug\PrepareBitmapBase.obj
+         Appending Debug\PaletteEditorDialog.obj
+         Appending Debug\ExtractAllDialog.obj
+         Appending Debug\ChooseColorDialogVGA.obj
+         Appending Debug\BitmapToVGADialog.obj
+         Appending Debug\TarjanAlgorithm.obj
+         Appending Debug\SummarizeScript.obj
+         Appending Debug\OutputSCIStudioSourceCode.obj
+         Appending Debug\OutputSCISourceCode.obj
+         Appending Debug\OutputCppSourceCode.obj
+         Appending Debug\OutputCodeHelper.obj
+         Appending Debug\ControlFlowGraph.obj
+         Appending Debug\Disassembler.obj
+         Appending Debug\DisassembleHelper.obj
+         Appending Debug\DecompileScript.obj
+         Appending Debug\ControlFlowGraphViz.obj
+         Appending Debug\CFGNode.obj
+         SCICompanionLib.vcxproj -> E:\Documents\Visual Studio 2013\Projects\SCICompanion\Debug\SCICompanionLib.lib
+     1>Done Building Project "E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\SCICompanionLib.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:00.07
+Time Elapsed 00:00:02.83

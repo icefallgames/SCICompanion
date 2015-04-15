@@ -118,6 +118,7 @@ namespace sci
     class UnaryOp;
     class CppIfStatement;
     class Asm;
+    class AsmBlock;
 
     class ISyntaxNodeVisitor
     {
@@ -156,6 +157,7 @@ namespace sci
         virtual void Visit(const UnaryOp &unaryOp) = 0;
         virtual void Visit(const CppIfStatement &ifStatement) = 0;
         virtual void Visit(const Asm &asmSection) = 0;
+        virtual void Visit(const AsmBlock &asmBlock) = 0;
     };
 
     class ScriptSite
@@ -198,6 +200,7 @@ namespace sci
         NodeTypeCase,
         NodeTypeSwitch,
         NodeTypeAsm,
+        NodeTypeAsmBlock,
         NodeTypeReturn,
         NodeTypeBinaryOperation,
         NodeTypeUnaryOperation,

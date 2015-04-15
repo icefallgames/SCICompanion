@@ -1,5 +1,15 @@
-﻿Build started 4/13/2015 11:29:31 PM.
+﻿Build started 4/14/2015 4:53:11 PM.
+     1>Project "E:\Documents\Visual Studio 2013\Projects\SCICompanion\UnitTests\UnitTests.vcxproj" on node 2 (Build target(s)).
+     1>Link:
+         F:\VisualStudio\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Debug\UnitTests.dll" /INCREMENTAL /NOLOGO /LIBPATH:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Bin_1000\\" /LIBPATH:F:\VisualStudio\VC\UnitTest\lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /manifestinput:F:\VisualStudio\VC\Include\Manifest\dpiaware.manifest /DEBUG /PDB:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Debug\UnitTests.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Debug\UnitTests.lib" /MACHINE:X86 /DLL Debug\stdafx.obj
+         Debug\TestCompile.obj
+         Debug\TestResource.obj
+         "E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Bin_1000\ProfUIS292smd.lib"
+         "E:\Documents\Visual Studio 2013\Projects\SCICompanion\Debug\SCICompanionLib.lib"
+            Creating library E:\Documents\Visual Studio 2013\Projects\SCICompanion\Debug\UnitTests.lib and object E:\Documents\Visual Studio 2013\Projects\SCICompanion\Debug\UnitTests.exp
+         UnitTests.vcxproj -> E:\Documents\Visual Studio 2013\Projects\SCICompanion\Debug\UnitTests.dll
+     1>Done Building Project "E:\Documents\Visual Studio 2013\Projects\SCICompanion\UnitTests\UnitTests.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:00.03
+Time Elapsed 00:00:04.09

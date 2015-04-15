@@ -656,8 +656,14 @@ public:
     void Visit(const Asm &asmSection) override
     {
         DebugLine line(out);
-        out.out << asmSection.GetInstructionName() << " " << asmSection._arguments;
+//        out.out << asmSection.GetInstructionName() << " " << asmSection._arguments;
     }
+
+    void Visit(const AsmBlock &asmSection) override
+    {
+
+    }
+
 };
 
 void OutputSourceCode_SCIStudio(const sci::Script &script, sci::SourceCodeWriter &out)

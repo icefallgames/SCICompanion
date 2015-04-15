@@ -275,7 +275,7 @@ bool AlphanumP(const ParserBase<_TContext, _It> *pParser, _TContext *pContext, _
     return fRet;
 }
 
-extern const char *g_keywords[3];
+extern const char *g_keywords[22];
 
 // TODO: Refactor with above
 template<typename _It, typename _TContext>
@@ -288,6 +288,13 @@ bool AlphanumPNoKeyword(const ParserBase<_TContext, _It> *pParser, _TContext *pC
         for (int i = 0; fRet && (i < ARRAYSIZE(g_keywords)); i++)
         {
             fRet = (str != g_keywords[i]);
+        }
+        if (pContext->ExtraKeywords)
+        {
+            for (int i = 0; fRet && (i < pContext->ExtraKeywordsCount); i++)
+            {
+                fRet = (str != pContext->ExtraKeywords[i]);
+            }
         }
     }
     return fRet;
@@ -685,7 +692,7 @@ typedef CCrystalScriptStream::const_iterator streamIt;
 class SyntaxContext
 {
 public:
-    SyntaxContext(streamIt beginning, sci::Script &script) : _beginning(beginning), _script(script) {}
+    SyntaxContext(streamIt beginning, sci::Script &script) : _beginning(beginning), _script(script), ExtraKeywords(nullptr), ExtraKeywordsCount(0) {}
 
 	~SyntaxContext()
     {
@@ -850,6 +857,10 @@ public:
 	bool PropertyValueWasSet = false;
     std::unique_ptr<sci::VariableDecl> VariableDecl;
 
+    // Hack for certain situations where we want to check for more keywords
+    const char * const *ExtraKeywords;
+    int ExtraKeywordsCount;
+
 private:
     std::string _error;
     streamIt _beginning;
@@ -912,6 +923,10 @@ private:
     Parser do_loop;
     Parser while_loop;
     Parser if_statement;
+    Parser asm_statement;
+    Parser asm_block;
+    Parser asm_label;
+    Parser asm_arg;
     Parser ternary_expression;
     Parser for_loop;
     Parser case_statement;

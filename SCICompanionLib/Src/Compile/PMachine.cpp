@@ -407,7 +407,7 @@ OperandType OpArgTypes[TOTAL_OPCODES][3] = {
 };
 
 
-char *OpcodeNames[]={
+char *OpcodeNames[128]={
 	"bnot",
 	"add",
 	"sub",

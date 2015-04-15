@@ -429,27 +429,51 @@ namespace sci
 		CppIfStatement& operator=(const CppIfStatement& src) = delete;
     };
 
-    // Not supported yet
-    class Asm : public SyntaxNode, public NamedNode
+    //
+    // Series of code segments, surrounded by ()
+    //
+    class AsmBlock : public SyntaxNode, public StatementsNode
+    {
+        DECLARE_NODE_TYPE(NodeTypeAsmBlock)
+    public:
+        AsmBlock() {}
+        AsmBlock(const CodeBlock &src) = delete;
+        AsmBlock& operator=(const CodeBlock& src) = delete;
+
+        const SingleStatementVector &GetList() const { return _segments; }
+
+        // IOutputByteCode
+        CodeResult OutputByteCode(CompileContext &context) const;
+        void PreScan(CompileContext &context);
+        void Traverse(IExploreNodeContext *pContext, IExploreNode &en) {}
+
+        void Accept(ISyntaxNodeVisitor &visitor) const override;
+    };
+
+    // Label: optional label
+    // Name: instruction
+    // Statements: arguments
+    class Asm : public SyntaxNode, public NamedNode, public StatementsNode
     {
         DECLARE_NODE_TYPE(NodeTypeAsm)
     public:
-        Asm() : NamedNode() {}
+        Asm() : NamedNode(), StatementsNode() {}
 
         // IOutputByteCode
-        CodeResult OutputByteCode(CompileContext &context) const { return 0; }
-        void PreScan(CompileContext &context) {}
+        CodeResult OutputByteCode(CompileContext &context) const;
+        void PreScan(CompileContext &context);
         void Traverse(IExploreNodeContext *pContext, IExploreNode &en) {}
-        
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 
-        void SetArguments(const std::string &arguments) { _arguments = arguments; }
-		const std::string &GetInstructionName() const { return _innerName; }
+        std::string GetLabel() { return _label; }
+        void SetLabel(const std::string &label) {
+            _label = label;
+        }
         
-        std::string _arguments;
-
     private:
+        std::string _label;
+
 		Asm(const Asm &src) = delete;
 		Asm& operator=(const Asm &src) = delete;
 

@@ -680,9 +680,14 @@ public:
 
     void Visit(const Asm &asmSection) override
     {
-        out.out << asmSection.GetInstructionName() << " " << asmSection._arguments;
+//        out.out << asmSection.GetInstructionName() << " " << asmSection._arguments;
         NewLine(out);
         EndStatement(out);
+    }
+
+    void Visit(const AsmBlock &asmSection) override
+    {
+
     }
 };
 

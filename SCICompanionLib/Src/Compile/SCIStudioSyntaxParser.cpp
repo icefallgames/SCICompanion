@@ -5,15 +5,35 @@
 #include "stdafx.h"
 #include "ScriptOMAll.h"
 #include "SCIStudioSyntaxParser.h"
+#include "PMachine.h"
 
 using namespace sci;
 using namespace std;
 
-const char *g_keywords[3] =
+const char *g_keywords[22] =
 {
-    "if",
-    "while",
-    "do",
+    _T("asm"),
+    _T("break"),
+    _T("send"),
+    _T("case"),
+    _T("switch"),
+    _T("properties"),
+    _T("method"),
+    _T("for"),
+    _T("if"),
+    _T("return"),
+    _T("default"),
+    _T("do"),
+    _T("while"),
+    _T("else"),
+    _T("rest"),
+    _T("super"),
+    _T("or"),
+    _T("and"),
+    _T("not"),
+    _T("neg"),
+    _T("of"),
+    _T("scriptNumber"), 
 };
 
 Parser char_p(const char *psz) { return Parser(CharP, psz); }
@@ -154,6 +174,15 @@ void AddSingleSendParamA(MatchResult &match, const Parser *pParser, SyntaxContex
         pContext->GetSyntaxNode<SendCall>()->AddSendParam(std::move(pParam));
     }
 }
+
+void SetLabelA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->GetSyntaxNode<Asm>()->SetLabel(pContext->ScratchString());
+    }
+}
+
 void SendParamIsMethod(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
     if (match.Result())
@@ -764,6 +793,18 @@ void FinishStatementA(MatchResult &match, const Parser *pParser, SyntaxContext *
     }
 }
 
+// asm
+void SetOpcodesExtraKeywordsA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    pContext->ExtraKeywords = OpcodeNames;
+    pContext->ExtraKeywordsCount = ARRAYSIZE(OpcodeNames);
+}
+void RemoveExtraKeywordsA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    pContext->ExtraKeywords = nullptr;
+    pContext->ExtraKeywordsCount = 0;
+}
+
 // Complex properties
 void ComplexValueIntA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
@@ -1123,6 +1164,28 @@ void SCISyntaxParser::Load()
             unary_operator[SetStatementNameA<UnaryOp>]
         >>  statement[StatementBindTo1stA<UnaryOp, errArgument>];
 
+    asm_arg =
+        alwaysmatch_p[StartStatementA]
+        >> value[FinishStatementA];
+
+    asm_label =
+        alphanum_p
+        >> colon[SetLabelA];
+
+    asm_statement =
+        alwaysmatch_p[StartStatementA]
+        >> (alwaysmatch_p[SetStatementA<Asm>]
+        >> -asm_label                                               // Optional label
+        >> alphanum_p[SetNameA<Asm>]                                // Instruction name
+        >> -(asm_arg[AddStatementA<Asm>] % comma[GeneralE]))[FinishStatementA];         // command separated values
+
+    asm_block = oppar
+        >> keyword_p("asm")[SetStatementA<AsmBlock>]
+        >> alwaysmatch_p[SetOpcodesExtraKeywordsA]
+        >> *asm_statement[AddStatementA<AsmBlock>]
+        >> alwaysmatch_p[RemoveExtraKeywordsA]
+        >> clpar[GeneralE];
+
     // All possible statements.
     statement = alwaysmatch_p[StartStatementA] >>
         (do_loop
@@ -1141,6 +1204,7 @@ void SCISyntaxParser::Load()
                             // ...but must come after unary_operation, since some unary operations are alphanum (e.g. not)
         | assignment
         | binary_operation
+        | asm_block
         //| ternary_expression
         | code_block)[FinishStatementA];
 

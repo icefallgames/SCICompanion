@@ -190,6 +190,10 @@ BOOL _GetOppositeCommandType(PicCommand *pCommand, PicCommand::CommandType *pTyp
 
 void InsertCommands(PicComponent &pic, ptrdiff_t iStart, size_t cCount, PicCommand *pCommands)
 {
+    if (iStart == -1)
+    {
+        iStart = pic.commands.size();
+    }
     // Special case:
     // If we are inserting a toggle visual/priority/control, then if the previous command
     // is the opposite, just delete it.
