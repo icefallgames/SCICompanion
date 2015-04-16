@@ -54,7 +54,7 @@ public:
     virtual void Visit(const CompoundConditionNode &conditionNode) = 0;
     virtual void Visit(const InvertNode &invert) = 0;
     virtual void Visit(const IfNode &ifNode) = 0;
-    virtual void Visit(const MainNode &ifNode) = 0;
+    virtual void Visit(const MainNode &mainNode) = 0;
     virtual void Visit(const CFGNode &node) = 0;
 };
 
@@ -98,7 +98,7 @@ struct CFGNode
     CFGNode(const CFGNode &node) = delete;
     CFGNode &operator=(const CFGNode &node) = delete;
 
-    bool ContainsTag(SemanticTags tag) { return Tags.find(tag) != Tags.end(); }
+    bool ContainsTag(SemanticTags tag) const { return Tags.find(tag) != Tags.end(); }
     std::set<SemanticTags> Tags;
 
     // Only valid for structured nodes, but so common that we'll just keep

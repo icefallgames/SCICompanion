@@ -6,6 +6,7 @@
 #include "scii.h"
 #include "DisassembleHelper.h"
 #include "ControlFlowGraph.h"
+#include "DecompilerNew.h"
 #include <iterator>
 
 #define DEBUG_DECOMPILER 1
@@ -40,26 +41,6 @@ ValueType _ScriptObjectTypeToPropertyValueType(ICompiledScriptSpecificLookups::O
     return ValueType::Token;
 }
 
-//
-// Represents whether an instruction consumes or generates stack or accumulator
-// In general, values will be 0 or 1, except for cStackConsume which could be
-// much larger (e.g. for send or call instruction)
-//
-struct Consumption
-{
-    Consumption() 
-    {
-        cAccConsume = 0;
-        cStackConsume = 0;
-        cAccGenerate = 0;
-        cStackGenerate = 0;
-    }
-
-    int cAccConsume;
-    int cStackConsume;
-    int cAccGenerate;
-    int cStackGenerate;
-};
 
 bool _IsVOIndexed(Opcode bOpcode)
 {
@@ -627,7 +608,7 @@ Consumption _GetInstructionConsumption(scii &inst)
         break;
 
     case Opcode::LEA:
-        fEatsAcc = !!(static_cast<BYTE>(bOpcode) & LEA_ACC_AS_INDEX_MOD);
+        fEatsAcc = !!(static_cast<BYTE>(inst.get_first_operand() >> 1) & LEA_ACC_AS_INDEX_MOD);
         fChangesAcc = true;
         break;
 
@@ -1941,6 +1922,9 @@ void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBe
 
     const NodeSet &controlStructures = cfg.ControlStructures();
     MainNode *mainNode = cfg.GetMain();
+
+    // temp test
+    OutputNewStructure(func.GetName(), *mainNode);
 
     // Create a CodeNode for each RawCodeNode structure
     vector<unique_ptr<CodeNode>> codeNodes;

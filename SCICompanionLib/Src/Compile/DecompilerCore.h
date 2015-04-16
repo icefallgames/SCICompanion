@@ -13,6 +13,30 @@ namespace sci
     class RestStatement;
 }
 
+
+//
+// Represents whether an instruction consumes or generates stack or accumulator
+// In general, values will be 0 or 1, except for cStackConsume which could be
+// much larger (e.g. for send or call instruction)
+//
+struct Consumption
+{
+    Consumption()
+    {
+        cAccConsume = 0;
+        cStackConsume = 0;
+        cAccGenerate = 0;
+        cStackGenerate = 0;
+    }
+
+    int cAccConsume;
+    int cStackConsume;
+    int cAccGenerate;
+    int cStackGenerate;
+};
+
+Consumption _GetInstructionConsumption(scii &inst);
+
 std::string GetBinaryOperatorForInstruction(Opcode b, LangSyntax lang);
 std::string GetUnaryOperatorForInstruction(Opcode b, LangSyntax lang);
 

@@ -10,8 +10,14 @@
 using namespace sci;
 using namespace std;
 
-const char *g_keywords[22] =
+const char *g_keywords[3] =
 {
+    "if",
+    "while",
+    "do",
+    // The below causes not and neg not to be resolved (scratch string is empty for unary ops) INVESTIGATE
+    // Because I think we may have broken asm
+    /*
     _T("asm"),
     _T("break"),
     _T("send"),
@@ -33,7 +39,7 @@ const char *g_keywords[22] =
     _T("not"),
     _T("neg"),
     _T("of"),
-    _T("scriptNumber"), 
+    _T("scriptNumber"), */
 };
 
 Parser char_p(const char *psz) { return Parser(CharP, psz); }

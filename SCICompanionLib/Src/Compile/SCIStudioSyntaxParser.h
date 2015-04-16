@@ -275,7 +275,7 @@ bool AlphanumP(const ParserBase<_TContext, _It> *pParser, _TContext *pContext, _
     return fRet;
 }
 
-extern const char *g_keywords[22];
+extern const char *g_keywords[3];
 
 // TODO: Refactor with above
 template<typename _It, typename _TContext>
