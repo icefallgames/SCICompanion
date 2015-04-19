@@ -1,3 +1,3 @@
 #pragma once
 
-void OutputNewStructure(const std::string &name, MainNode &main);
+void OutputNewStructure(sci::FunctionBase &func, MainNode &main, DecompileLookups &lookups);

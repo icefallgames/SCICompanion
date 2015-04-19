@@ -920,22 +920,6 @@ void _GenerateInstructionTree(CodeNode &root, code_pos begin, code_pos &end)
     }
 }
 
-class PreferLValue
-{
-public:
-	PreferLValue(DecompileLookups &lookups, bool prefer) : _lookups(lookups)
-	{
-		_preferLValueOld = lookups.PreferLValue;
-		lookups.PreferLValue = true;
-	}
-	~PreferLValue()
-	{
-		_lookups.PreferLValue = _preferLValueOld;
-	}
-private:
-	bool _preferLValueOld;
-	DecompileLookups &_lookups;
-};
 
 class BreakExit
 {
@@ -1924,7 +1908,7 @@ void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBe
     MainNode *mainNode = cfg.GetMain();
 
     // temp test
-    OutputNewStructure(func.GetName(), *mainNode);
+    OutputNewStructure(func, *mainNode, lookups);
 
     // Create a CodeNode for each RawCodeNode structure
     vector<unique_ptr<CodeNode>> codeNodes;
@@ -1964,16 +1948,9 @@ void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBe
 
     // Now visit the main structure. Is there a way that this needs to be done?
     // I don't think we can use the visit thing.
-
     /*
-    // Make a function and add statements!
-    for (auto &codeShape : codeShapes)
-    {
-        unique_ptr<SingleStatement> pStatement(codeShape->DoIt(lookups));
-        func.AddStatement(std::move(pStatement));
-    }*/
     FillInFunction fillInFunction(func, graphNodeToCodeNode, lookups);
-    fillInFunction.Visit(*mainNode);
+    fillInFunction.Visit(*mainNode);*/
 
     _FigureOutTempVariables(lookups, func, VarScope::Temp, code);
 
@@ -2336,7 +2313,7 @@ void _ApplySyntaxNodeToCodeNode2(CodeNode &node, TwoStatementNode &statementsNod
 }
 
 // Both for variable opcodes, and Opcode::LEA
-std::string _GetVariableNameFromCodePos(code_pos pos, DecompileLookups &lookups, VarScope *pVarType = nullptr, WORD *pwIndexOut = nullptr)
+std::string _GetVariableNameFromCodePos(code_pos pos, DecompileLookups &lookups, VarScope *pVarType, WORD *pwIndexOut)
 {
     std::string name;
     BYTE bThing;

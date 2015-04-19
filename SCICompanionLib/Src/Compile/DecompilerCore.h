@@ -127,3 +127,33 @@ void AddLocalVariablesToScript(sci::Script &script, DecompileLookups &lookups, c
 std::string _GetProcNameFromScriptOffset(WORD wOffset);
 sci::ValueType _ScriptObjectTypeToPropertyValueType(ICompiledScriptSpecificLookups::ObjectType type);
 bool _ObtainInstructionSequence(code_pos branchInstruction, code_pos beginning, code_pos &beginningOfBranchInstructionSequence);
+
+
+
+class PreferLValue
+{
+public:
+    PreferLValue(DecompileLookups &lookups, bool prefer) : _lookups(lookups)
+    {
+        _preferLValueOld = lookups.PreferLValue;
+        lookups.PreferLValue = true;
+    }
+    ~PreferLValue()
+    {
+        _lookups.PreferLValue = _preferLValueOld;
+    }
+private:
+    bool _preferLValueOld;
+    DecompileLookups &_lookups;
+};
+
+std::string _GetPublicProcedureName(WORD wScript, WORD wIndex);
+void _MassageProcedureCall(sci::ProcedureCall &proc, DecompileLookups &lookups, code_pos pos);
+std::string _GetVariableNameFromCodePos(code_pos pos, DecompileLookups &lookups, VarScope *pVarType = nullptr, WORD *pwIndexOut = nullptr);
+bool _IsVOIncremented(Opcode bOpcode);
+bool _IsVODecremented(Opcode bOpcode);
+bool _MaybeAProperty(const std::string &selector);
+bool _IsVOStack(Opcode bOpcode);
+bool _IsVOPureStack(Opcode bOpcode);
+bool _IsVOIndexed(Opcode bOpcode);
+bool _IsVOStoreOperation(Opcode bOpcode);

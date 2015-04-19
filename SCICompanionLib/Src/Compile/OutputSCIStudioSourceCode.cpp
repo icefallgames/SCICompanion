@@ -250,7 +250,20 @@ public:
     void Visit(const ProcedureDefinition &function) override
     {
         out.SyncComments(function);
+        NewLine(out);
+        out.out << "(procedure ";
+        if (function.IsPublic())
+        {
+            out.out << "public ";
+        }
+
         _VisitFunctionBase(function);
+
+        const ClassDefinition *classDef = function.GetOwnerClass();
+        if (classDef)
+        {
+            string ownerClass = classDef->GetName();
+        }
     }
 
     void Visit(const Synonym &syn) override {}
@@ -290,8 +303,11 @@ public:
 
     void Visit(const Comment &comment) override
     {
-        DebugLine line(out);
-        out.out << comment.GetName();
+        if (!comment.GetName().empty())
+        {
+            DebugLine line(out);
+            out.out << comment.GetName();
+        }
     }
 
     void Visit(const SendParam &sendParam) override
