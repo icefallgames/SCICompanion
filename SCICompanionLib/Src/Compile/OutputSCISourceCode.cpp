@@ -141,16 +141,9 @@ public:
             break;
         case ValueType::Token:
             // Surround in braces if there are spaces in the string.
+            out.out << CleanToken(prop.GetStringValue());
             // REVIEW: When this is C++ syntax, we should strip them out... and if it's -info-, use the replacement!
             // (objectSpecies)
-            if (prop.GetStringValue().find(' ') != std::string::npos)
-            {
-                out.out << '{' << prop.GetStringValue() << '}';
-            }
-            else
-            {
-                out.out << prop.GetStringValue();
-            }
             break;
         case ValueType::Selector:
             out.out << "#" << prop.GetStringValue();
@@ -192,7 +185,7 @@ public:
     {
         out.SyncComments(classProp);
         DebugLine line(out);
-        out.out << classProp.GetName() << " ";
+        out.out << CleanToken(classProp.GetName()) << " ";
         Inline inln(out, true);
         classProp.GetValue().Accept(*this);
     }
@@ -321,7 +314,7 @@ public:
     {
         out.SyncComments(sendParam);
         DebugLine debugLine(out);
-        out.out << sendParam.GetSelectorName() << ": ";
+        out.out << CleanToken(sendParam.GetSelectorName()) << ": ";
         if (!sendParam.GetSelectorParams().empty())
         {
             // Space-separated values

@@ -371,6 +371,16 @@ bool CompiledScript::_LoadSCI0_SCI1(sci::istream &byteStream)
                 }
             }
         }
+
+        // Let's mark instances as public if they're in the exports list
+        assert(_objectsOffsetTO.size() == _objects.size());
+        for (size_t i = 0; i < _objectsOffsetTO.size(); i++)
+        {
+            uint16_t addToOffset = (this->_version.SeparateHeapResources ? 0 : 8);
+            _objects[i]->IsPublic =
+                (find(_exportsTO.begin(), _exportsTO.end(), _objectsOffsetTO[i] + addToOffset) != _exportsTO.end());
+        }
+
     }
     return fRet;
 }

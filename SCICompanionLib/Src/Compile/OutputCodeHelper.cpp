@@ -110,3 +110,31 @@ void EndStatement(sci::SourceCodeWriter &out)
         out.out << ";";
     }
 }
+
+// Wrap the string in braces if it doesn't start with A-Za-z_ and stuff...
+std::string CleanToken(const std::string &src)
+{
+    bool ok = true;
+    for (size_t i = 0; ok && (i < src.length()); i++)
+    {
+        if ((i == 0) && !isalpha(src[i]) && (src[i] != '_'))
+        {
+            ok = false;
+        }
+        else if ((i > 0) && !isalnum(src[i]) && (src[i] != '_'))
+        {
+            ok = false;
+        }
+    }
+    if (!ok)
+    {
+        std::string braceString = "{";
+        braceString += src;
+        braceString += "}";
+        return braceString;
+    }
+    else
+    {
+        return src;
+    }
+}

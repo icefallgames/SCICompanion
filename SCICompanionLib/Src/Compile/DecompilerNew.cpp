@@ -41,6 +41,7 @@ enum class ChunkType
     CaseBody,
     SwitchValue,
     Break,
+    NeedsAccumulator,
 };
 
 const char *chunkTypeNames[] =
@@ -65,6 +66,8 @@ const char *chunkTypeNames[] =
     "CaseCondition",
     "CaseBody",
     "SwitchValue",
+    "Break",
+    "NeedsAccumulator"
 };
 
 struct CodeChunk
@@ -74,6 +77,19 @@ struct CodeChunk
     bool _hasPos;
     code_pos pos;
     ChunkType _chunkType;
+
+    unique_ptr<CodeChunk> Clone()
+    {
+        unique_ptr<CodeChunk> clone = make_unique<CodeChunk>();
+        clone->_hasPos = _hasPos;
+        clone->pos = pos;
+        clone->_chunkType = _chunkType;
+        for (auto &child : children)
+        {
+            clone->children.push_back(move(child->Clone()));
+        }
+        return clone;
+    }
 
     code_pos GetCode()
     {
@@ -130,6 +146,11 @@ struct CodeChunk
     }
 
     const std::vector<std::unique_ptr<CodeChunk>> &Children() { return children; }
+
+    void ReplaceChild(size_t index, unique_ptr<CodeChunk> replacement)
+    {
+        children[index] = move(replacement);
+    }
 
     std::unique_ptr<CodeChunk> StealChild(size_t index)
     {
@@ -190,6 +211,15 @@ public:
     {
         Current = Frame().Parent->PrependChild();
         Current->SetType(type);
+    }
+
+    void MaybeAddNeedsAcc()
+    {
+        assert(Frame().cStackConsume == 0);         // Since we're not dealing with this
+        if (Frame().cAccConsume > 0)
+        {
+            AddStructured(ChunkType::NeedsAccumulator);
+        }
     }
 
     void PushStructured(ChunkType type, const CFGNode *ownerNode)
@@ -302,13 +332,28 @@ private:
         StructuredFrame(CodeChunkEnumContext &context, ChunkType type, const CFGNode &node) : _context(context)
         {
             _context.PushStructured(type, &node);
+            _level = _context.GetLevelCount();
         }
         ~StructuredFrame()
         {
+            if (_context.GetLevelCount() > _level)
+            {
+                // We need to force pop some things
+                while (_context.GetLevelCount() > _level)
+                {
+                    _context.MaybeAddNeedsAcc();
+                    _context.PopFrame();
+                }
+            }
+            else 
+            {
+                assert(_context.GetLevelCount() == _level);
+            }
             _context.PopFrame();
         }
     private:
         CodeChunkEnumContext &_context;
+        size_t _level;
     };
 
 public:
@@ -357,8 +402,14 @@ public:
                     else
                     {
                         // Something put something on the stack and we didn't need it.
-                        // We can't do anything useful here.
-                        assert(false); // INVESTIGATE
+                        // We can't do anything useful here. 
+                        // So don't process this instruction, and back up a frame. If we are in need
+                        // of an accumulator value, take note of that here.
+                        assert(_context.Frame().cAccConsume > 0);
+                        _context.AddStructured(ChunkType::NeedsAccumulator);
+                        assert(_context.CanPopBeyond());
+                        _context.PopFrame();
+                        continue;
                     }
                 }
 
@@ -421,9 +472,6 @@ public:
 
     void Visit(const SwitchNode &switchNode) override
     {
-        // TODO: Need to sort out pre-amble and tail and such, because right now the switch is just one big blob.
-        // This presents an issue with accumulator consumption.
-        // Or perhaps we can just process the tail without entering a new context.
         CFGNode *switchTail = switchNode[SemId::Tail];
         switchTail->Accept(*this);
         // After processing the tail, we MUST have a toss that we just processed.
@@ -479,16 +527,18 @@ public:
         {
             assert(!caseNode.ContainsTag(SemanticTags::DefaultCase));
             assert(caseHead->Type == CFGNodeType::RawCode);
-            
-            _context.PushStructured(ChunkType::CaseCondition, &caseNode);
-            caseHead->Accept(*this);
-            _context.PopFrame();
+
+            {
+                StructuredFrame structuredFrame(_context, ChunkType::CaseCondition, caseNode);
+                caseHead->Accept(*this);
+            }
             caseBody = GetFirstSuccOrNull(caseHead);
         }
 
-        _context.PushStructured(ChunkType::CaseBody, &caseNode);
-        _FollowForwardChain(caseBody);
-        _context.PopFrame();
+        {
+            StructuredFrame structuredFrame(_context, ChunkType::CaseBody, caseNode);
+            _FollowForwardChain(caseBody);
+        }
 
         _context.PopFrame();
         assert(levelCount == _context.GetLevelCount());
@@ -507,15 +557,17 @@ public:
 
         CFGNode *first = conditionNode[SemId::First];
         // X
-        _context.PushStructured(isFirstTermNegated ? ChunkType::FirstNegated : ChunkType::First, &conditionNode);
-        first->Accept(*this);
-        _context.PopFrame();
+        {
+            StructuredFrame structuredFrame(_context, isFirstTermNegated ? ChunkType::FirstNegated : ChunkType::First, conditionNode);
+            first->Accept(*this);
+        }
 
         CFGNode *second = conditionNode[SemId::Second];
         // Y
-        _context.PushStructured(ChunkType::Second, &conditionNode);
-        second->Accept(*this);
-        _context.PopFrame();
+        {
+            StructuredFrame structuredFrame(_context, ChunkType::Second, conditionNode);
+            second->Accept(*this);
+        }
 
         _context.PopFrame();
         assert(levelCount == _context.GetLevelCount());
@@ -527,9 +579,11 @@ public:
         size_t levelCount = _context.GetLevelCount();
         _context.ConsumeAccForStructuredNode();
 
-        _context.PushStructured(ChunkType::Invert, &invert);
-        invert[SemId::Head]->Accept(*this);
-        _context.PopFrame();
+        {
+            StructuredFrame structuredFrame(_context, ChunkType::Invert, invert);
+            invert[SemId::Head]->Accept(*this);
+        }
+
         assert(levelCount == _context.GetLevelCount());
         _context.PopBackUpMax();
     }
@@ -581,25 +635,27 @@ public:
         CFGNode *thenNode, *elseNode;
         GetThenAndElseBranches(ifCondition, &thenNode, &elseNode);
 
-        // Condition
-        _context.PushStructured(ChunkType::Condition, &ifNode);
-        ifCondition->Accept(*this);
-        _context.PopFrame();
-
         // then... this is a bit more complicated since we follow a chain
-        _context.PushStructured(ChunkType::Then, &ifNode);
-        _FollowForwardChain(thenNode);
-        _context.PopFrame();
+        {
+            StructuredFrame structuredFrame(_context, ChunkType::Then, ifNode);
+            _FollowForwardChain(thenNode);
+        }
 
         if (elseNode && (elseNode->Type != CFGNodeType::Exit))
         {
-            _context.PushStructured(ChunkType::Else, &ifNode);
+            StructuredFrame structuredFrame(_context, ChunkType::Else, ifNode);
             _FollowForwardChain(elseNode);
-            _context.PopFrame();
+        }
+
+        // Condition
+        {
+            StructuredFrame structuredFrame(_context, ChunkType::Condition, ifNode);
+            ifCondition->Accept(*this);
         }
 
         _context.PopFrame();
         assert(levelCount == _context.GetLevelCount());
+
         _context.PopBackUpMax();
     }
 
@@ -693,18 +749,22 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode2(CodeChunk &node, DecompileLoo
             unique_ptr<BinaryOp> binaryOp = make_unique<BinaryOp>();
             if (node.GetChild(ChunkType::FirstNegated))
             {
+                assert(node.GetChild(ChunkType::FirstNegated)->GetChildCount() == 1);
                 unique_ptr<SingleStatement> negated = make_unique<SingleStatement>();
                 unique_ptr<UnaryOp> unaryOp = make_unique<UnaryOp>();
-                unaryOp->SetName("!");
-                _ApplySyntaxNodeToCodeNode1(*node.GetChild(ChunkType::FirstNegated), *unaryOp, lookups);
+                unaryOp->SetName("not");
+                _ApplySyntaxNodeToCodeNode1(*node.GetChild(ChunkType::FirstNegated)->Child(0), *unaryOp, lookups);
                 negated->SetSyntaxNode(move(unaryOp));
                 binaryOp->SetStatement1(move(negated));
             }
             else
             {
-                _ApplySyntaxNodeToCodeNode1(*node.GetChild(ChunkType::First), *binaryOp, lookups);
+                assert(node.GetChild(ChunkType::First)->GetChildCount() == 1);
+                _ApplySyntaxNodeToCodeNode1(*node.GetChild(ChunkType::First)->Child(0), *binaryOp, lookups);
             }
-            _ApplySyntaxNodeToCodeNode2(*node.GetChild(ChunkType::Second), *binaryOp, lookups);
+            assert(node.GetChild(ChunkType::Second)->GetChildCount() == 1);
+            _ApplySyntaxNodeToCodeNode2(*node.GetChild(ChunkType::Second)->Child(0), *binaryOp, lookups);
+            binaryOp->SetName((node._chunkType == ChunkType::And) ? "and" : "or");
             return unique_ptr<SyntaxNode>(move(binaryOp));
         }
         
@@ -736,7 +796,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode2(CodeChunk &node, DecompileLoo
         case ChunkType::Invert:
         {
             unique_ptr<UnaryOp> unaryOp = make_unique<UnaryOp>();
-            unaryOp->SetName("!");
+            unaryOp->SetName("not");
             assert(node.GetChildCount() == 1);
             _ApplySyntaxNodeToCodeNode1(*node.Child(0), *unaryOp, lookups);
             return unique_ptr<SyntaxNode>(move(unaryOp));
@@ -775,11 +835,18 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode2(CodeChunk &node, DecompileLoo
 
             return unique_ptr<SyntaxNode>(move(switchStatement));
         }
+
+        case ChunkType::NeedsAccumulator:
+        {
+            unique_ptr<PropertyValue> valueTemp = make_unique<PropertyValue>();
+            valueTemp->SetValue("ERROR_NEED_ACC", ValueType::Token);
+            return unique_ptr<SyntaxNode>(move(valueTemp));
+        }
     }
 
-
+    assert(false);
     std::unique_ptr<Comment> comment = std::make_unique<Comment>();
-    comment->SetName("CONTROL STRUCTURE");
+    comment->SetName("UNIMPLEMENTED CONTROL STRUCTURE");
     return unique_ptr<SyntaxNode>(comment.release());
 }
 
@@ -1028,7 +1095,13 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(CodeChunk &node, DecompileLook
             }
             else if (bOpcode == Opcode::SUPER)
             {
-                // TODO - actually you can send to any super class... the first operand says which
+                // Actually you can send to any super class... the first operand says which. Does anyone use this?
+                // Let's assert that they don't
+                const sci::ClassDefinition *classDefinition = lookups.GetClassContext();
+                uint16_t species = pos->get_first_operand();
+                std::string superClassContext = classDefinition->GetSuperClass();
+                std::string superClassStated = lookups.LookupClassName(species);
+                assert(superClassContext == superClassStated);
                 sendCall->SetName("super");
             }
             Consumption cons = _GetInstructionConsumption(*pos);
@@ -1512,32 +1585,22 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(CodeChunk &node, DecompileLook
     return unique_ptr<SyntaxNode>(move(pComment));
 }
 
-void _FixupSwitches(CodeChunk *chunk)
+/*
+void _FixupIfs(CodeChunk *chunk)
 {
-    for (size_t i = 0; i < chunk->GetChildCount(); )
+    for (size_t i = 0; i < chunk->GetChildCount();)
     {
         CodeChunk *child = chunk->Child(i);
-        if (child->GetType() == ChunkType::Switch)
+        if (child->GetType() == ChunkType::If)
         {
             assert(i > 0);
-            if (i < (chunk->GetChildCount() - 1))
-            {
-                // Look for a toss instruction and get rid of it.
-                CodeChunk *next = chunk->Child(i + 1);
-                assert((next->_hasPos) && (next->GetCode()->get_opcode() == Opcode::TOSS));
-                unique_ptr<CodeChunk> deleteMe = chunk->StealChild(i + 1);
-            }
-
             if (i > 0)
             {
-                // Steal the previous guy and add it to switch's children
-                // as the switch value.
+                // Steal the previous guy and make it the if's condition
                 unique_ptr<CodeChunk> prev = chunk->StealChild(i - 1);
-                Consumption testConsumption = _GetInstructionConsumption(*prev);
-                assert((testConsumption.cAccGenerate == 0) && (testConsumption.cStackGenerate == 1));
-                CodeChunk *switchValue = child->PrependChild(); // Add a new node that will be the switch value.
-                switchValue->SetType(ChunkType::SwitchValue);
-                switchValue->PrependChild(move(prev));
+                CodeChunk *ifCondition = child->PrependChild(); // Add a new node that will be the switch value.
+                ifCondition->SetType(ChunkType::Condition);
+                ifCondition->PrependChild(move(prev));
                 continue;
             }
         }
@@ -1545,7 +1608,166 @@ void _FixupSwitches(CodeChunk *chunk)
     }
     for (auto &child : chunk->Children())
     {
-        _FixupSwitches(child.get());
+        _FixupIfs(child.get());
+    }
+}*/
+
+CodeChunk *_FindChunk(CodeChunk *chunk, code_pos code)
+{
+    CodeChunk *found = nullptr;
+    if (chunk->_hasPos && chunk->GetCode() == code)
+    {
+        found = chunk;
+    }
+    if (!found)
+    {
+        for (auto &child : chunk->Children())
+        {
+            found = _FindChunk(child.get(), code);
+            if (found)
+            {
+                break;
+            }
+        }
+    }
+    return found;
+}
+
+void _ResolveNeededAcc(CodeChunk *root, CodeChunk *chunk)
+{
+    for (size_t i = 0; i < chunk->GetChildCount(); i++)
+    {
+        CodeChunk *child = chunk->Child(i);
+        if (child->GetType() == ChunkType::NeedsAccumulator)
+        {
+            // We want to replace this node with a "clone" of the last one that needed an accumulator.
+            // How do we find out what "last" is? We have two options:
+            //  - follow the chain of raw instructions backwards, find one that generates an accumulator, and then find the node
+            //      in our chunk tree that has that guy at the root. We may need to go to the raw CFGNode tree for this though.
+            //      Further more, this will miss the case (if it exists) when a control structure is the thing that generates the
+            //      accumulator value (e.g. "ternary" if)
+            //  - follow our structured chunk tree backwards. This requires knowledge, for instance, that the [Condition] node
+            //      of an [If] comes before [Then] and [Else]
+            //
+            // The first option is simpler, so let's go with that. In fact, we'll go with an even simpler version for now, since
+            // we don't have the raw CFGNode tree anymore (it was transformed into the structured CFG node tree)
+            // Let's just go back along the instructions... if we hit a JMP or RET we can assert and see if that ever happens.
+            code_pos current = chunk->GetCode();
+            --current;
+            while (current->get_opcode() != Opcode::INDETERMINATE)
+            {
+                Consumption consumption = _GetInstructionConsumption(*current);
+                if (consumption.cAccGenerate)
+                {
+                    // Found it. 
+                    CodeChunk *toClone = _FindChunk(root, current);
+                    assert(toClone);
+                    if (toClone)
+                    {
+                        unique_ptr<CodeChunk> theClone = toClone->Clone();
+                        chunk->ReplaceChild(i, move(theClone));
+                        // TODO: Insert a comment here.
+                    }
+                    break;
+                }
+                --current;
+            }
+        }
+    }
+
+    for (auto &child : chunk->Children())
+    {
+        _ResolveNeededAcc(root, child.get());
+    }
+}
+
+unique_ptr<CodeChunk> _FindAndStealSwitchValue(vector<pair<CodeChunk*, size_t>> &frames)
+{
+    // Climb the stack and look for previous guy.
+    ptrdiff_t frameIndex = frames.size() - 1;
+    while (frameIndex >= 0)
+    {
+        // Start with the previous one at each frame.
+        ptrdiff_t index = (ptrdiff_t)frames[frameIndex].second - 1;
+        CodeChunk *parent = frames[frameIndex].first;
+        while (index >= 0)
+        {
+            Consumption consumption = _GetInstructionConsumption(*parent->Child(index));
+            assert(consumption.cAccGenerate == 0 && (consumption.cStackGenerate == 1));
+            // If not ^^^ then maybe we need to go back more?
+            return parent->StealChild(index);
+        }
+        frameIndex--;
+    }
+    assert(false && "Couldn't find switch value");
+    return nullptr;
+}
+
+void _FixupSwitches(CodeChunk *root)
+{
+    // Iteratively fixup switches.
+    bool changes = true;
+    while (changes)
+    {
+        changes = false;
+        vector<pair<CodeChunk*, size_t>> frames;
+        frames.push_back(pair<CodeChunk*, size_t>(root, 0));
+        while (!frames.empty())
+        {
+            size_t index = frames.back().second;
+            CodeChunk *current = frames.back().first;
+            if (index < current->GetChildCount())
+            {
+                CodeChunk *child = current->Child(index);
+                if (child->GetType() == ChunkType::Switch)
+                {
+                    if (!child->GetChild(ChunkType::SwitchValue))
+                    {
+                        // No switch value. Let's find it. All we need to do is to go up
+                        // the parent chain and find a previous sibling of our parent that generates
+                        // an accumulator value.
+                        unique_ptr<CodeChunk> stolen = _FindAndStealSwitchValue(frames);
+                        CodeChunk *switchValue = child->PrependChild(); // Add a new node that will be the switch value.
+                        switchValue->SetType(ChunkType::SwitchValue);
+                        switchValue->PrependChild(move(stolen));
+                        changes = true;
+                        break;
+                    }
+                }
+                frames.push_back(pair<CodeChunk*, size_t>(child, 0));
+            }
+            else
+            {
+                frames.pop_back();
+                if (!frames.empty())
+                {
+                    frames.back().second++;
+                }
+            }
+        }
+    }
+}
+
+void _RemoveTOSS(CodeChunk *chunk)
+{
+    for (size_t i = 0; i < chunk->GetChildCount(); )
+    {
+        CodeChunk *child = chunk->Child(i);
+        if (child->GetType() == ChunkType::Switch)
+        {
+            if (i < (chunk->GetChildCount() - 1))
+            {
+                // Look for a toss instruction and get rid of it.
+                CodeChunk *next = chunk->Child(i + 1);
+                assert((next->_hasPos) && (next->GetCode()->get_opcode() == Opcode::TOSS));
+                unique_ptr<CodeChunk> deleteMe = chunk->StealChild(i + 1);
+            }
+        }
+        i++;
+    }
+    for (auto &child : chunk->Children())
+    {
+        _RemoveTOSS(child.get());
     }
 }
 
@@ -1583,13 +1805,22 @@ void _RestructureCaseHeaders(CodeChunk *chunk)
 
 void OutputNewStructure(sci::FunctionBase &func, MainNode &main, DecompileLookups &lookups)
 {
+    if (func.GetName() == "add")
+    {
+        int x = 0;
+    }
+
     CodeChunkEnumContext context;
     unique_ptr<CodeChunk> mainChunk = make_unique<CodeChunk>();
     context.Current = mainChunk.get();
     EnumerateCodeChunks enumCodeChunks(context);
     enumCodeChunks.Visit(main);
 
+    _RemoveTOSS(mainChunk.get());
     _FixupSwitches(mainChunk.get());
+    _ResolveNeededAcc(mainChunk.get(), mainChunk.get());
+
+    //_FixupIfs(mainChunk.get());
     _RestructureCaseHeaders(mainChunk.get());
     //_FixupOtherThing(mainChunk.get());
 

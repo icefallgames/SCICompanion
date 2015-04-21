@@ -1823,7 +1823,7 @@ public:
         {
             unique_ptr<SingleStatement> negated = make_unique<SingleStatement>();
             unique_ptr<UnaryOp> unary = make_unique<UnaryOp>();
-            unary->SetName("!");
+            unary->SetName("not");
             unary->SetStatement1(move(x));
             negated->SetSyntaxNode(move(unary));
             binaryOp->SetStatement1(move(negated));
@@ -1907,9 +1907,6 @@ void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBe
     const NodeSet &controlStructures = cfg.ControlStructures();
     MainNode *mainNode = cfg.GetMain();
 
-    // temp test
-    OutputNewStructure(func, *mainNode, lookups);
-
     // Create a CodeNode for each RawCodeNode structure
     vector<unique_ptr<CodeNode>> codeNodes;
     map<const RawCodeNode*, CodeNode*> graphNodeToCodeNode;
@@ -1951,6 +1948,9 @@ void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBe
     /*
     FillInFunction fillInFunction(func, graphNodeToCodeNode, lookups);
     fillInFunction.Visit(*mainNode);*/
+
+    // temp test
+    OutputNewStructure(func, *mainNode, lookups);
 
     _FigureOutTempVariables(lookups, func, VarScope::Temp, code);
 
@@ -3775,6 +3775,16 @@ void DecompileLookups::EndowWithFunction(sci::FunctionBase *pFunc)
         _functionTrackingName.clear();
         _restStatementTrack.clear();
     }
+}
+
+const ClassDefinition *DecompileLookups::GetClassContext() const
+{
+    const MethodDefinition *method = SafeSyntaxNode<MethodDefinition>(_pFunc);
+    if (method)
+    {
+        return method->GetOwnerClass();
+    }
+    return nullptr;
 }
 
 void DecompileLookups::TrackVariableUsage(VarScope varScope, WORD wIndex, bool isIndexed)

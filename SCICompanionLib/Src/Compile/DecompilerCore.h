@@ -91,6 +91,8 @@ public:
     void TrackRestStatement(sci::RestStatement *rest, uint16_t paramIndex);
     void ResolveRestStatements();
 
+    const sci::ClassDefinition *DecompileLookups::GetClassContext() const;
+
 	bool PreferLValue;
     std::vector<std::unique_ptr<CodeNode>>::iterator BreakExit;
 private:

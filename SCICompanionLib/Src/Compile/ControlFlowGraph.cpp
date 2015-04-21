@@ -7,6 +7,8 @@
 #include "ControlFlowGraphViz.h"
 #include "StlUtil.h"
 
+#define VISUALIZE_FLOW 1
+
 using namespace sci;
 using namespace std;
 
@@ -1181,9 +1183,8 @@ CFGNode *ControlFlowGraph::_PartitionCode(code_pos start, code_pos end)
 
             // Next, we'll split at the boundary between the instructinos leading up to the
             // branch and those before.
-            // REVIEW: I don't think it's necessary to do this for flow control
-            // REVIEW: Well this does make identification of switches easier, but of course I'm
-            //  sure we'll run into the issue of needing to back up through branch instructions.
+            // REVIEW: Without doing this, two nested if statements with instructions in between would be mis-identified
+            // as a compound condition.
             if (cur->is_conditional_branch_instruction())
             {
                 code_pos beginningOfBranchInstructionSequence;
@@ -1339,7 +1340,9 @@ CFGNode *ControlFlowGraph::Generate(const std::string &name, code_pos start, cod
 
     DominatorMap dominators = GenerateDominators(main->children, (*main)[SemId::Head]);
 
-    //CFGVisualize(name + "_raw", discoveredControlStructures);
+#ifdef VISUALIZE_FLOW
+    CFGVisualize(name + "_raw", discoveredControlStructures);
+#endif
 
     // Yeah, we're calculating dominators a second time here, but that's ok.
     // The above case is only for visualization.
@@ -1351,7 +1354,9 @@ CFGNode *ControlFlowGraph::Generate(const std::string &name, code_pos start, cod
     _ResolveBreaks();
     _FindAllIfStatements();
 
+#ifdef VISUALIZE_FLOW
     CFGVisualize(name + "_loop", discoveredControlStructures);
+#endif
 
     return main;
 }
