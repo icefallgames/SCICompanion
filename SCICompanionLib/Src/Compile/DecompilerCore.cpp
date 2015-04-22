@@ -20,6 +20,8 @@ using namespace std;
 static char THIS_FILE[] = __FILE__;
 #endif
 
+bool GetBinaryOpFromAssignment(std::string &strOp);
+
 const char InvalidLookupError[] = "LOOKUP_ERROR";
 const char RestParamName[] = "params";
 const char SelfToken[] = "self";
@@ -287,8 +289,8 @@ bool _IsVariableUse(code_pos pos, VarScope varScope, WORD &wIndex)
     else if (bOpcode == Opcode::LEA)
     {
         // The "load effective address" instruction
-        WORD wType = pos->get_first_operand();
-        fRet = (static_cast<VarScope>(static_cast<BYTE>(bOpcode) & 0x03) == varScope);
+        uint16_t wType = pos->get_first_operand();
+        fRet = (static_cast<VarScope>(static_cast<BYTE>((wType >> 1))& 0x03) == varScope);
         if (fRet)
         {
             wIndex = pos->get_second_operand();
@@ -469,7 +471,7 @@ private:
 
 typedef std::vector<std::unique_ptr<CodeNode>>::iterator codenode_it;
 
-Consumption _GetInstructionConsumption(scii &inst)
+Consumption _GetInstructionConsumption(scii &inst, DecompileLookups *lookups)
 {
     Opcode bOpcode = inst.get_opcode();
     ASSERT(bOpcode <= Opcode::LastOne);
@@ -533,6 +535,10 @@ Consumption _GetInstructionConsumption(scii &inst)
         break;
 
     case Opcode::RET:
+        if (lookups && lookups->FunctionDecompileHints.ReturnsValue)
+        {
+            fEatsAcc = true;
+        }
         // Wreaks havoc
         // fEatsAcc = true; // But not always intentional...
         // Because we don't know the intent of the code, we can't really do anything here.
@@ -1571,7 +1577,7 @@ void _ApplyBranchLabels(char &label, codenode_it begin, codenode_it end)
     _ApplyBranchLabelsWorker(label, begin, end, begin, end);
 }
 
-CFGNode *GetFirstSuccessorOrNull(CFGNode *node)
+ControlFlowNode *GetFirstSuccessorOrNull(ControlFlowNode *node)
 {
     assert(node->Successors().size() <= 1);
     return node->Successors().empty() ? nullptr : *node->Successors().begin();
@@ -1617,7 +1623,7 @@ public:
         _statementsContext.top()->AddStatement(move(pStatement));
     }
 
-    void FollowChainOfCodeNodesAddToContext(CFGNode *node, CFGNode *toInclusive = nullptr)
+    void FollowChainOfCodeNodesAddToContext(ControlFlowNode *node, ControlFlowNode *toInclusive = nullptr)
     {
         while (node)
         {
@@ -1636,7 +1642,7 @@ public:
         }
     }
 
-    unique_ptr<SingleStatement> FollowChainOfCodeNodes(CFGNode *node, bool singleNodeOnly)
+    unique_ptr<SingleStatement> FollowChainOfCodeNodes(ControlFlowNode *node, bool singleNodeOnly)
     {
         // Start with a code block. If there is only a single statement by the end, then just
         // return that statement
@@ -1664,7 +1670,7 @@ public:
         AddStatementsFromTopLevelCodeNode(codeNode);
     }
 
-    void ApplyCondition(ConditionNode &conditionStatement, CFGNode *node)
+    void ApplyCondition(ConditionNode &conditionStatement, ControlFlowNode *node)
     {
         unique_ptr<ConditionalExpression> condExp = make_unique<ConditionalExpression>();
         _statementsContext.push(condExp.get());
@@ -1676,8 +1682,8 @@ public:
     void Visit(const LoopNode &loopNode)
     {
         // Let's detect the loop type
-        CFGNode *latch = loopNode[SemId::Latch];
-        CFGNode *head = loopNode[SemId::Head];
+        ControlFlowNode *latch = loopNode[SemId::Latch];
+        ControlFlowNode *head = loopNode[SemId::Head];
         if ((latch->Successors().size() == 2) && (head->Successors().size() == 1))
         {
             // It's a do loop. The condition is the latch.
@@ -1687,7 +1693,7 @@ public:
             // Then the rest of the stuff is statements
             _statementsContext.push(doLoop.get());
             assert(latch->Predecessors().size() == 1);
-            CFGNode *end = *latch->Predecessors().begin();
+            ControlFlowNode *end = *latch->Predecessors().begin();
             FollowChainOfCodeNodesAddToContext(head, end);
             _statementsContext.pop();
 
@@ -1699,7 +1705,7 @@ public:
             unique_ptr<WhileLoop> whileLoop = make_unique<WhileLoop>();
             ApplyCondition(*whileLoop, head);
 
-            CFGNode *thenNode, *elseNode;
+            ControlFlowNode *thenNode, *elseNode;
             GetThenAndElseBranches(head, &thenNode, &elseNode);
             // Then the rest of the stuff is statements
             _statementsContext.push(whileLoop.get());
@@ -1727,11 +1733,11 @@ public:
         return pStatement;
     }
 
-    void _ProcessCase(SwitchStatement &switchStatement, CFGNode &caseNode)
+    void _ProcessCase(SwitchStatement &switchStatement, ControlFlowNode &caseNode)
     {
         unique_ptr<CaseStatement> caseStatement = make_unique<CaseStatement>();
         _statementsContext.push(caseStatement.get());
-        CFGNode *caseHead = caseNode[SemId::Head];
+        ControlFlowNode *caseHead = caseNode[SemId::Head];
         // The children of the caseNode should form a chain, except the first one is the case value (possibly)
         if (caseHead->ContainsTag(SemanticTags::CaseCondition))
         {
@@ -1764,8 +1770,8 @@ public:
         // We need to be aware that there is some code in the leadup and tail
         // that isn't specifically related to the switch.
         // So we want to output all but the last codenode
-        CFGNode *switchHead = switchNode[SemId::Head];
-        CFGNode *switchTail = switchNode[SemId::Tail];
+        ControlFlowNode *switchHead = switchNode[SemId::Head];
+        ControlFlowNode *switchTail = switchNode[SemId::Tail];
         // Currently we're making assumptions here. Theoretically you could imagine a conditional expression
         // in a switch header, but SCISTudio-compiled code will never have that (not allowed)
         assert((switchHead->Type == CFGNodeType::RawCode) && (switchTail->Type == CFGNodeType::RawCode));
@@ -1781,10 +1787,10 @@ public:
             switchStatement->SetStatement1(move(StatementFromCodeNode(switchValue)));
 
             // Now the cases, which are the immediate successors of the head
-            vector<CFGNode*> sortedCases;
+            vector<ControlFlowNode*> sortedCases;
             copy(switchHead->Successors().begin(), switchHead->Successors().end(), back_inserter(sortedCases));
             sort(sortedCases.begin(), sortedCases.end(), CompareCFGNodesByAddress());
-            for (CFGNode *caseNode : sortedCases)
+            for (ControlFlowNode *caseNode : sortedCases)
             {
                 _ProcessCase(*switchStatement, *caseNode);
             }
@@ -1847,8 +1853,8 @@ public:
     {
         // Make an if statement
         unique_ptr<CppIfStatement> ifStatement = make_unique<CppIfStatement>();
-        CFGNode *ifHead = ifNode[SemId::Head];
-        CFGNode *thenNode, *elseNode;
+        ControlFlowNode *ifHead = ifNode[SemId::Head];
+        ControlFlowNode *thenNode, *elseNode;
         GetThenAndElseBranches(ifHead, &thenNode, &elseNode);
 
         // First the condition
@@ -1870,7 +1876,7 @@ public:
     void Visit(const MainNode &ifNode)
     {
         // Just a sequence of nodes from end to end. Should be a straight line.
-        CFGNode *currentNode = ifNode[SemId::Head];
+        ControlFlowNode *currentNode = ifNode[SemId::Head];
         while (currentNode)
         {
             currentNode->Accept(*this);
@@ -1878,7 +1884,7 @@ public:
         }
     }
 
-    void Visit(const CFGNode &node) {}
+    void Visit(const ControlFlowNode &node) {}
 
 private:
     const map<const RawCodeNode*, CodeNode*> &_graphNodeToCodeNode;
@@ -1888,6 +1894,149 @@ private:
     stack<StatementsNode*> _statementsContext;
 };
 
+
+class DetermineHexValues : public IExploreNode, public IExploreNodeContext
+{
+public:
+    DetermineHexValues(FunctionBase &func)
+    {
+        useHex.push(true);
+        func.Traverse(this, *this);
+    }
+
+    void ExploreNode(IExploreNodeContext *pContext, SyntaxNode &node, ExploreNodeState state) override
+    {
+        // Set property values to hex if we should:
+        if (state == ExploreNodeState::Pre)
+        {
+            PropertyValue *propValue = SafeSyntaxNode<PropertyValue>(&node);
+            if (propValue && useHex.top())
+            {
+                propValue->_fHex = true;
+            }
+        }
+
+        // Push a "hex context" if we are in a bitwise operation.
+        string operation;
+        BinaryOp *binaryOp = SafeSyntaxNode<BinaryOp>(&node);
+        if (binaryOp)
+        {
+            operation = binaryOp->GetName();
+        }
+        UnaryOp *unaryOp = SafeSyntaxNode<UnaryOp>(&node);
+        if (unaryOp)
+        {
+            operation = unaryOp->GetName();
+        }
+        Assignment *assignment = SafeSyntaxNode<Assignment>(&node);
+        if (assignment)
+        {
+            operation = assignment->GetName();
+            GetBinaryOpFromAssignment(operation);
+        }
+
+        if (operation == "|" || operation == "&" || operation == "^" || operation == "bnot")
+        {
+            if (state == ExploreNodeState::Pre)
+            {
+                useHex.push(true);
+            }
+            else if (state == ExploreNodeState::Post)
+            {
+                useHex.pop();
+            }
+        }
+        else
+        {
+            // Ignore certain "insignificant" syntax nodes
+            if (node.GetNodeType() != NodeTypeStatement)
+            {
+                if (state == ExploreNodeState::Pre)
+                {
+                    useHex.push(false);
+                }
+                else if (state == ExploreNodeState::Post)
+                {
+                    useHex.pop();
+                }
+            }
+        }
+    }
+
+private:
+    stack<bool> useHex;
+};
+
+void _DetermineIfFunctionReturnsValue(std::list<scii> code, DecompileLookups &lookups)
+{
+    // Look for return statements and see if they have any statements without side effects before them.
+    code_pos cur = code.end();
+    --cur;
+    while (!lookups.FunctionDecompileHints.ReturnsValue && (cur != code.begin()))
+    {
+        if (cur->get_opcode() == Opcode::RET)
+        {
+            --cur;
+            Opcode opcode = cur->get_opcode();
+            switch (opcode)
+            {
+                // These instructions don't really have any effect other than
+                // to put something in the accumulator. If they came right before a ret,
+                // then it's safe to assume this function returns a value.
+                // To be more complete, we could follow branches, as this is a common pattern that
+                // won't be caught by us:
+                // (if (blah)
+                //     5
+                // (else 4)
+                // return
+
+                case Opcode::LDI:
+                case Opcode::SELFID:
+                case Opcode::BNOT:
+                case Opcode::NOT:
+                case Opcode::NEG:
+                case Opcode::SUB:
+                case Opcode::MUL:
+                case Opcode::DIV:
+                case Opcode::MOD:
+                case Opcode::SHR:
+                case Opcode::SHL:
+                case Opcode::XOR:
+                case Opcode::AND:
+                case Opcode::OR:
+                case Opcode::ADD:
+                case Opcode::EQ:
+                case Opcode::GT:
+                case Opcode::LT:
+                case Opcode::LE:
+                case Opcode::NE:
+                case Opcode::GE:
+                case Opcode::UGT:
+                case Opcode::UGE:
+                case Opcode::ULT:
+                case Opcode::ULE:
+                case Opcode::PTOA:
+                case Opcode::LOFSA:
+                    lookups.FunctionDecompileHints.ReturnsValue = true;
+                    break;
+
+                default:
+                    if ((opcode >= Opcode::LAG) && (opcode <= Opcode::LastOne))
+                    {
+                        if (!_IsVOStoreOperation(opcode) && !_IsVOPureStack(opcode))
+                        {
+                            lookups.FunctionDecompileHints.ReturnsValue = true;
+                        }
+                    }
+                    // TODO: We could also check for zero parameter sends for known property selectors.
+            }
+        }
+        else
+        {
+            --cur;
+        }
+    }
+}
 
 // pEnd can be teh end of script data. I have added autodetection support.
 void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBegin, const BYTE *pEnd, WORD wBaseOffset)
@@ -1901,6 +2050,9 @@ void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBe
     // Insert a no-op at the beginning of code (so we can get an iterator to point to a spot before code)
     code.insert(code.begin(), scii(Opcode::INDETERMINATE));
 
+    // Do some early things
+    _DetermineIfFunctionReturnsValue(code, lookups);
+
     ControlFlowGraph cfg;
     cfg.Generate(func.GetName(), code.begin(), code.end());
 
@@ -1910,9 +2062,9 @@ void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBe
     // Create a CodeNode for each RawCodeNode structure
     vector<unique_ptr<CodeNode>> codeNodes;
     map<const RawCodeNode*, CodeNode*> graphNodeToCodeNode;
-    for (CFGNode *structure : controlStructures)
+    for (ControlFlowNode *structure : controlStructures)
     {
-        for (CFGNode *child : structure->children)
+        for (ControlFlowNode *child : structure->children)
         {
             if (child->Type == CFGNodeType::RawCode)
             {
@@ -1951,6 +2103,8 @@ void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBe
 
     // temp test
     OutputNewStructure(func, *mainNode, lookups);
+
+    DetermineHexValues determineHexValues(func);
 
     _FigureOutTempVariables(lookups, func, VarScope::Temp, code);
 
@@ -2545,7 +2699,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode2(code_pos &pos, code_pos end, 
             {
                 // TODO - actually you can send to any super class... the first operand says which
                 sendCall->SetName("super");
-            }
+            
             Consumption cons = _GetInstructionConsumption(*pos);
             WORD cStackPushesLeft = cons.cStackConsume;
             WORD cAccLeft = (bOpcode == Opcode::SEND) ? 1 : 0;
@@ -3766,6 +3920,7 @@ void DecompileLookups::SetPosition(sci::SyntaxNode *pNode)
 void DecompileLookups::EndowWithFunction(sci::FunctionBase *pFunc)
 {
     _pFunc = pFunc;
+    FunctionDecompileHints.Reset();
     if (_pFunc)
     {
         _functionTrackingName = GetMethodTrackingName(_pFunc->GetOwnerClass(), *_pFunc);
@@ -3885,6 +4040,7 @@ void CalculateVariableRanges(const std::map<WORD, bool> &usage, WORD variableCou
         }
         else
         {
+            // This var index when never directly used.
             if (hasVariableInProcess)
             {
                 // This is a new one, unless we're indexed
@@ -3905,7 +4061,11 @@ void CalculateVariableRanges(const std::map<WORD, bool> &usage, WORD variableCou
             else
             {
                 // Just make a single one
-                varRanges.push_back(VariableRange() = { i, 1 });
+                // Actually, let's make an indexed one.
+                isCurrentIndexed = true;
+                currentVarRange.index = i;
+                hasVariableInProcess = true;
+                //varRanges.push_back(VariableRange() = { i, 1 });
             }
         }
     }

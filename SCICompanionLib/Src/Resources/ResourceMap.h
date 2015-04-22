@@ -10,6 +10,7 @@ class SCIClassBrowser;
 class ResourceBlob;
 class ResourceRecency;
 class ResourceEntity;
+class GlobalCompiledScriptLookups;
 
 std::string GetIniString(const std::string &iniFileName, std::string &sectionName, const std::string &keyName, PCSTR pszDefault);
 HRESULT RebuildResources(BOOL fShowUI);
@@ -88,6 +89,7 @@ public:
     SCIVersion &GetSCIVersion();
     const Vocab000 *GetVocab000();
     const PaletteComponent *GetPalette999();
+    GlobalCompiledScriptLookups *GetCompiledScriptLookups();
     std::vector<int> GetPaletteList();
     std::unique_ptr<PaletteComponent> GetPalette(int fallbackPalette);
     std::unique_ptr<PaletteComponent> GetMergedPalette(const ResourceEntity &resource, int fallbackPalette);
@@ -133,6 +135,8 @@ private:
     PaletteComponent _emptyPalette;
     std::vector<int> _paletteList;
     bool _paletteListNeedsUpdate;
+
+    std::unique_ptr<GlobalCompiledScriptLookups> _globalCompiledScriptLookups;
 
     // Defer appending resources when you are appending a lot (E.g. during compiling).
     BOOL _cDeferAppend;

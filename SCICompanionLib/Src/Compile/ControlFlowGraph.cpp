@@ -2,17 +2,17 @@
 #include "scii.h"
 #include "ControlFlowGraph.h"
 #include "DecompilerCore.h"
-#include "CFGNode.h"
+#include "ControlFlowNode.h"
 #include "TarjanAlgorithm.h"
 #include "ControlFlowGraphViz.h"
 #include "StlUtil.h"
 
-#define VISUALIZE_FLOW 1
+//#define VISUALIZE_FLOW 1
 
 using namespace sci;
 using namespace std;
 
-bool EndsWithConditionalBranch(CFGNode *node)
+bool EndsWithConditionalBranch(ControlFlowNode *node)
 {
     return node->Type == CFGNodeType::CompoundCondition ||
         node->endsWith(Opcode::BNT) ||
@@ -25,22 +25,22 @@ bool contains(const T& container, const typename T::reference value)
     return container.find(value) != container.end();
 }
 
-NodeSet _CollectNodesBetween(CFGNode *head, CFGNode *tail)
+NodeSet _CollectNodesBetween(ControlFlowNode *head, ControlFlowNode *tail)
 {
     NodeSet collection;
     collection.insert(head);
 
-    stack<CFGNode*> leStack;
+    stack<ControlFlowNode*> leStack;
     leStack.push(tail);
     while (!leStack.empty())
     {
         // I hate that it's two lines of code to pop from a std::stack
-        CFGNode *d = pop_ptr(leStack);
+        ControlFlowNode *d = pop_ptr(leStack);
         if (collection.find(d) == collection.end())
         {
             collection.insert(d);
             // Add all predecessors of b, as long as they are not head.
-            for (CFGNode *pred : d->Predecessors())
+            for (ControlFlowNode *pred : d->Predecessors())
             {
                 if (pred != head)
                 {
@@ -53,14 +53,14 @@ NodeSet _CollectNodesBetween(CFGNode *head, CFGNode *tail)
 }
 
 // A back edge is smaller if it is contained within another.
-NodeBlock::NodeBlock(CFGNode *head, CFGNode *followNode, bool includeFollow, CFGNode *extraData) : head(head), latch(followNode), extraData(extraData)
+NodeBlock::NodeBlock(ControlFlowNode *head, ControlFlowNode *followNode, bool includeFollow, ControlFlowNode *extraData) : head(head), latch(followNode), extraData(extraData)
 {
     body = _CollectNodesBetween(head, followNode);
     if (extraData)
     {
         // This is such a hack.
         NodeSet extraNodes = _CollectNodesBetween(head, extraData);
-        for (CFGNode *extra : extraNodes)
+        for (ControlFlowNode *extra : extraNodes)
         {
             body.insert(extra);
         }
@@ -122,6 +122,7 @@ int NodeBlock::Compare(const NodeBlock &A, const NodeBlock &B)
         // http://www.cs.cmu.edu/afs/cs/academic/class/15745-s01/www/lectures/lect0124.txt
         // Inner Loops and Loops with the same header: http://nptel.ac.in/courses/106108052/module9/control-flow-ana-2.pdf
         // We basically insert a dummy node and combine them.
+        // Hmm, this happens with do-whiles with compound conditions. But not the way SCIStudio or SCICompanion compiles them.
         assert(B.latch == A.latch);
         return 0;
     }
@@ -131,17 +132,17 @@ int NodeBlock::Compare(const NodeBlock &A, const NodeBlock &B)
 
 void RemoveSetFromSet(NodeSet &superSet, NodeSet &subset)
 {
-    for (CFGNode *node : subset)
+    for (ControlFlowNode *node : subset)
     {
         superSet.erase(node);
     }
 }
 
-CFGNode *ControlFlowGraph::_EnsureExitNode(NodeSet &existingExitNodes, CFGNode *exitNodePredecessor, CFGNode *exitNodeSuccessor)
+ControlFlowNode *ControlFlowGraph::_EnsureExitNode(NodeSet &existingExitNodes, ControlFlowNode *exitNodePredecessor, ControlFlowNode *exitNodeSuccessor)
 {
     uint16_t exitAddress = exitNodeSuccessor->GetStartingAddress();
-    CFGNode *reuseExitNode = nullptr;
-    for (CFGNode *existingExitNode : existingExitNodes)
+    ControlFlowNode *reuseExitNode = nullptr;
+    for (ControlFlowNode *existingExitNode : existingExitNodes)
     {
         if (static_cast<ExitNode*>(existingExitNode)->startingAddressForExit == exitAddress)
         {
@@ -162,7 +163,7 @@ CFGNode *ControlFlowGraph::_EnsureExitNode(NodeSet &existingExitNodes, CFGNode *
 }
 
     // This is different from _ReplaceNodeInWorkingSet mainly in that the if node has two exits.
-CFGNode *ControlFlowGraph::_ReplaceIfStatementInWorkingSet(CFGNode *structure, CFGNode *ifHeader, CFGNode *ifFollowNode)
+ControlFlowNode *ControlFlowGraph::_ReplaceIfStatementInWorkingSet(ControlFlowNode *structure, ControlFlowNode *ifHeader, ControlFlowNode *ifFollowNode)
 {
     // The if statement is defined by header and followNode
     // Follow node is not included in the if statement (since it may be used by many if statements)
@@ -173,20 +174,20 @@ CFGNode *ControlFlowGraph::_ReplaceIfStatementInWorkingSet(CFGNode *structure, C
     // At this point, we can probably assert that each node we encounter (other than the header) only has a
     // single successor. There shouldn't be any more branching at this point, other than the if statements
     // that we are collected. And we go from the most nested to the least.
-    CFGNode *ifNode = MakeStructuredNode<IfNode>();
+    ControlFlowNode *ifNode = MakeStructuredNode<IfNode>();
     ExitNode *exitPoint = MakeNode<ExitNode>();
     exitPoint->startingAddressForExit = ifFollowNode->GetStartingAddress();
     (*ifNode)[SemId::Head] = ifHeader;
     // No tail for if node
-    stack<CFGNode*> toProcess;
+    stack<ControlFlowNode*> toProcess;
     toProcess.push(ifHeader);
     NodeSet exitPredecessors;
     while (!toProcess.empty())
     {
-        CFGNode *node = pop_ptr(toProcess);
+        ControlFlowNode *node = pop_ptr(toProcess);
         assert(ifNode->children.find(node) == ifNode->children.end());  // Should only encounter things ONCE in the 1 or two if paths
         ifNode->children.insert(node);
-        for (CFGNode *succ : node->Successors())
+        for (ControlFlowNode *succ : node->Successors())
         {
             if (succ == ifFollowNode)
             {
@@ -205,7 +206,7 @@ CFGNode *ControlFlowGraph::_ReplaceIfStatementInWorkingSet(CFGNode *structure, C
     assert(exitPoint->Predecessors().size() == 2);
 
     // Now remove the children from the parent structure
-    for (CFGNode *ifChild : ifNode->children)
+    for (ControlFlowNode *ifChild : ifNode->children)
     {
         assert(structure->MaybeGet(SemId::Follow) != ifChild); // This should NEVER happen, since we don't include the follow node in the if node.
         structure->children.erase(ifChild);
@@ -219,7 +220,7 @@ CFGNode *ControlFlowGraph::_ReplaceIfStatementInWorkingSet(CFGNode *structure, C
 
     // The follow node should have the ifNode as its predecessor, and not any of the if node's children
     NodeSet followNodePreds = ifFollowNode->Predecessors();
-    for (CFGNode *followPred : followNodePreds)
+    for (ControlFlowNode *followPred : followNodePreds)
     {
         if (ifNode->children.find(followPred) != ifNode->children.end())
         {
@@ -232,7 +233,7 @@ CFGNode *ControlFlowGraph::_ReplaceIfStatementInWorkingSet(CFGNode *structure, C
 
     // We can determine information about if it's just an if, or and if-else, simply by
     // seeing if one of the header node's 2 Successors() is the exit point.
-    CFGNode *thenNode, *elseNode;
+    ControlFlowNode *thenNode, *elseNode;
     GetThenAndElseBranches(ifHeader, &thenNode, &elseNode);
     (*ifNode)[SemId::Then] = thenNode;
     (*ifNode)[SemId::Else] = elseNode;
@@ -243,15 +244,15 @@ CFGNode *ControlFlowGraph::_ReplaceIfStatementInWorkingSet(CFGNode *structure, C
 // If someone had a follow node that is inside newNode's children, the follow node should now be
 // set to newNode - as long as that someone isn't a child of newNode.
 // I haven't hit this scenario yet, but it seems plausible.
-void ControlFlowGraph::_ReplaceNodeInFollowNodes(CFGNode *newNode)
+void ControlFlowGraph::_ReplaceNodeInFollowNodes(ControlFlowNode *newNode)
 {
-    for (CFGNode *structure : discoveredControlStructures)
+    for (ControlFlowNode *structure : discoveredControlStructures)
     {
         if (newNode->children.find(structure) == newNode->children.end())
         {
             // structure is NOT a child of new node. That's important, because otherwise the follow node of
             // structure would essentially be set to struture's parent.
-            CFGNode *oldFollowNode = structure->MaybeGet(SemId::Follow);
+            ControlFlowNode *oldFollowNode = structure->MaybeGet(SemId::Follow);
             if (oldFollowNode && (newNode->children.find(oldFollowNode) != newNode->children.end()))
             {
                 (*structure)[SemId::Follow] = newNode;
@@ -265,9 +266,9 @@ void ControlFlowGraph::_ReplaceNodeInFollowNodes(CFGNode *newNode)
 // newNode must have its head and tail set, and containedNodes must be the new children of newNode (including head and tail)
 // newNode will be assigned the chidren in containedNodes
 // dominators will be assigned to the new dominators for the workingSetNodes.
-void ControlFlowGraph::_ReplaceNodeInWorkingSet(CFGNode *parent, CFGNode *newNode)
+void ControlFlowGraph::_ReplaceNodeInWorkingSet(ControlFlowNode *parent, ControlFlowNode *newNode)
 {
-    CFGNode *existingSingleExit = newNode->MaybeGet(SemId::Tail);
+    ControlFlowNode *existingSingleExit = newNode->MaybeGet(SemId::Tail);
 
     // Given a new node, make it "contain" the containedNodes.
     // Remove the contained nodes from the nodesWorkingSet
@@ -285,7 +286,7 @@ void ControlFlowGraph::_ReplaceNodeInWorkingSet(CFGNode *parent, CFGNode *newNod
     // That way, we just need to update the predecessors
     // For any node in the working set, if they have as one of their predecessors a node in conatinedNodes,
     // then remove that node and replace it with newNode.
-    for (CFGNode *workingSetNode : parent->children)
+    for (ControlFlowNode *workingSetNode : parent->children)
     {
         NodeSet nodesToBeRemoved;
         set_intersection(workingSetNode->Predecessors().begin(), workingSetNode->Predecessors().end(),
@@ -293,7 +294,7 @@ void ControlFlowGraph::_ReplaceNodeInWorkingSet(CFGNode *parent, CFGNode *newNod
             inserter(nodesToBeRemoved, nodesToBeRemoved.begin()));
         if (!nodesToBeRemoved.empty())
         {
-            for (CFGNode* eraseMe : nodesToBeRemoved)
+            for (ControlFlowNode* eraseMe : nodesToBeRemoved)
             {
                 // an outside node had a newNode child as its predecssor... 
                 workingSetNode->ErasePredecessor(eraseMe);
@@ -313,7 +314,7 @@ void ControlFlowGraph::_ReplaceNodeInWorkingSet(CFGNode *parent, CFGNode *newNod
 
     // This new nodes predecessors should be the same as the predecessors of its head that are
     // outside our control structure
-    for (CFGNode *predNode : (*newNode)[SemId::Head]->Predecessors())
+    for (ControlFlowNode *predNode : (*newNode)[SemId::Head]->Predecessors())
     {
         if (newNode->children.find(predNode) == newNode->children.end())
         {
@@ -328,7 +329,7 @@ void ControlFlowGraph::_ReplaceNodeInWorkingSet(CFGNode *parent, CFGNode *newNod
     // outside world. They loopnode itself is the one that is now attached to the outside work.
     // Then we'll also add a token entry node.
     NodeSet predecessorsCopy = (*newNode)[SemId::Head]->Predecessors();
-    for (CFGNode *pred : predecessorsCopy)
+    for (ControlFlowNode *pred : predecessorsCopy)
     {
         if (newNode->children.find(pred) == newNode->children.end())
         {
@@ -343,8 +344,8 @@ void ControlFlowGraph::_ReplaceNodeInWorkingSet(CFGNode *parent, CFGNode *newNod
         // Nope, even if we have one
         // If we DO have one though (e.g. in switch), we should ensure the exit point
         // has a single predeceesor which is the current tail
-        CFGNode *singleExit = *exitPoints.begin();
-        CFGNode *currentTail = newNode->MaybeGet(SemId::Tail);
+        ControlFlowNode *singleExit = *exitPoints.begin();
+        ControlFlowNode *currentTail = newNode->MaybeGet(SemId::Tail);
         if (currentTail)
         {
             assert((singleExit->Predecessors().size() == 1) && ((*singleExit->Predecessors().begin()) == currentTail));
@@ -360,29 +361,29 @@ bool IsNotAllowedAsPredecessor(code_pos pos)
 
 int debugIndex = 1;
 
-CFGNode *_GetFirstPredecessorOrNull(CFGNode *node)
+ControlFlowNode *_GetFirstPredecessorOrNull(ControlFlowNode *node)
 {
     return node->Predecessors().empty() ? nullptr : *node->Predecessors().begin();
 }
 
-void ControlFlowGraph::_IdentifySwitchCases(CFGNode *switchNodeIn)
+void ControlFlowGraph::_IdentifySwitchCases(ControlFlowNode *switchNodeIn)
 {
-    CFGNode *switchNode = static_cast<SwitchNode*>(switchNodeIn);
-    CFGNode *toss = (*switchNode)[SemId::Tail];
+    ControlFlowNode *switchNode = static_cast<SwitchNode*>(switchNodeIn);
+    ControlFlowNode *toss = (*switchNode)[SemId::Tail];
     // Find the first case. It should be right after the head's only successor
-    CFGNode *switchHead = (*switchNode)[SemId::Head];
+    ControlFlowNode *switchHead = (*switchNode)[SemId::Head];
     assert(switchHead->Successors().size() == 1);
-    CFGNode *firstCase = *switchHead->Successors().begin();
+    ControlFlowNode *firstCase = *switchHead->Successors().begin();
     assert(firstCase->startsWith(Opcode::DUP) && firstCase->endsWith(Opcode::BNT));
     // Discover all the cases.
     NodeSet caseHeads;
-    CFGNode *currentCase = firstCase;
+    ControlFlowNode *currentCase = firstCase;
     while (currentCase->startsWith(Opcode::DUP) && currentCase->endsWith(Opcode::BNT))
     {
         caseHeads.insert(currentCase);
         currentCase->Tags.insert(SemanticTags::CaseCondition);
         // Find where this guy branches
-        CFGNode *thenNode, *elseNode;
+        ControlFlowNode *thenNode, *elseNode;
         GetThenAndElseBranches(currentCase, &thenNode, &elseNode);
         // Assuming it's a BNT, the else node will be the next cast
         currentCase = elseNode;
@@ -400,15 +401,15 @@ void ControlFlowGraph::_IdentifySwitchCases(CFGNode *switchNodeIn)
     // Nope, that is actually not sufficient. The first case node dominate ALL toss preds.
     DominatorMap dominators = GenerateDominators(switchNodeIn->children, switchHead);
     NodeSet caseNodes;
-    for (CFGNode *caseHead : caseHeads)
+    for (ControlFlowNode *caseHead : caseHeads)
     {
-        CFGNode *newCaseNode = MakeStructuredNode<CaseNode>();
+        ControlFlowNode *newCaseNode = MakeStructuredNode<CaseNode>();
         (*newCaseNode)[SemId::Head] = caseHead;
 
         newCaseNode->children.insert(caseHead);
         // Find a statement that will dominate all others in the case. For the default,
         // this is the case head. For other cases, it's the first statement after the case head
-        CFGNode *firstStatementInCase, *elseNode;
+        ControlFlowNode *firstStatementInCase, *elseNode;
         if (!caseHead->ContainsTag(SemanticTags::CaseCondition))
         {
             newCaseNode->Tags.insert(SemanticTags::DefaultCase); // Mark the actual case...
@@ -420,7 +421,7 @@ void ControlFlowGraph::_IdentifySwitchCases(CFGNode *switchNodeIn)
         }
 
         NodeSet exitPoints;
-        for (CFGNode *tossPred : toss->Predecessors())
+        for (ControlFlowNode *tossPred : toss->Predecessors())
         {
             if (dominators.IsADominatedByB(tossPred, firstStatementInCase))
             {
@@ -440,7 +441,7 @@ void ControlFlowGraph::_IdentifySwitchCases(CFGNode *switchNodeIn)
             // add an exit point node
             ExitNode *singleExitNode = MakeNode<ExitNode>();
             singleExitNode->startingAddressForExit = toss->GetStartingAddress();
-            for (CFGNode *exitPoint : exitPoints)
+            for (ControlFlowNode *exitPoint : exitPoints)
             {
                 singleExitNode->InsertPredecessor(exitPoint);
             }
@@ -454,7 +455,7 @@ void ControlFlowGraph::_IdentifySwitchCases(CFGNode *switchNodeIn)
     // Don't use _ReplaceNodeInWorkingSet, because we'll be very deliberate about how the cases connect to the switch
     toss->ClearPredecessors();
     assert(switchHead->Successors().size() == 1);   // It won't after this though:
-    for (CFGNode *newCaseNode : caseNodes)
+    for (ControlFlowNode *newCaseNode : caseNodes)
     {
         (*newCaseNode)[SemId::Head]->ClearPredecessors();
         toss->InsertPredecessor(newCaseNode);
@@ -465,9 +466,9 @@ void ControlFlowGraph::_IdentifySwitchCases(CFGNode *switchNodeIn)
     }
 }
 
-bool HasPrecedessorInSet(CFGNode *node, NodeSet &theSet)
+bool HasPrecedessorInSet(ControlFlowNode *node, NodeSet &theSet)
 {
-    for (CFGNode *pred : node->Predecessors())
+    for (ControlFlowNode *pred : node->Predecessors())
     {
         if (theSet.find(pred) != theSet.end())
         {
@@ -477,21 +478,21 @@ bool HasPrecedessorInSet(CFGNode *node, NodeSet &theSet)
     return false;
 }
 
-CFGNode *ControlFlowGraph::_FindFollowNodeForStructure(CFGNode *structure)
+ControlFlowNode *ControlFlowGraph::_FindFollowNodeForStructure(ControlFlowNode *structure)
 {
-    CFGNode *follow = nullptr;
+    ControlFlowNode *follow = nullptr;
     // Find the follow node. This isn't trivial. We can't just ask for the post dominator of the
     // header - that won't work in the case of compound conditions (which are still unresolved at this point)
     // We can leverage a tautology of SCI compilers - code always proceeds forward in address. So we can
     // find the furthest branch of any of our children, then try to find the node that matches it.
 
-    stack<CFGNode*> toProcess;
+    stack<ControlFlowNode*> toProcess;
     toProcess.push(structure);
     uint16_t maxAddress = 0;
     //uint16_t maxAddressDebug = 0;
     while (!toProcess.empty())
     {
-        CFGNode *node = pop_ptr(toProcess);
+        ControlFlowNode *node = pop_ptr(toProcess);
         if (node->Type == CFGNodeType::RawCode)
         {
             scii lastInstruction = node->getLastInstruction();
@@ -512,7 +513,7 @@ CFGNode *ControlFlowGraph::_FindFollowNodeForStructure(CFGNode *structure)
         }
         else
         {
-            for (CFGNode *child : node->children)
+            for (ControlFlowNode *child : node->children)
             {
                 toProcess.push(child);
             }
@@ -529,7 +530,7 @@ CFGNode *ControlFlowGraph::_FindFollowNodeForStructure(CFGNode *structure)
     toProcess.push(mainStructure);
     while (!toProcess.empty())
     {
-        CFGNode *node = pop_ptr(toProcess);
+        ControlFlowNode *node = pop_ptr(toProcess);
         if (node->GetStartingAddress() == maxAddress)
         {
             if (HasPrecedessorInSet(node, structure->children))
@@ -538,7 +539,7 @@ CFGNode *ControlFlowGraph::_FindFollowNodeForStructure(CFGNode *structure)
                 break;
             }
         }
-        for (CFGNode *child : node->children)
+        for (ControlFlowNode *child : node->children)
         {
             toProcess.push(child);
         }
@@ -548,16 +549,16 @@ CFGNode *ControlFlowGraph::_FindFollowNodeForStructure(CFGNode *structure)
     return follow;
 }
 
-void CollectMoreChildren(CFGNode *structure, const DominatorMap &dominators)
+void CollectMoreChildren(ControlFlowNode *structure, const DominatorMap &dominators)
 {
-    CFGNode *followNode = (*structure)[SemId::Follow];
-    CFGNode *head = (*structure)[SemId::Head];
-    stack<CFGNode*> toProcess;
+    ControlFlowNode *followNode = (*structure)[SemId::Follow];
+    ControlFlowNode *head = (*structure)[SemId::Head];
+    stack<ControlFlowNode*> toProcess;
     toProcess.push(followNode);
     while (!toProcess.empty())
     {
-        CFGNode *node = pop_ptr(toProcess);
-        for (CFGNode *pred : node->Predecessors())
+        ControlFlowNode *node = pop_ptr(toProcess);
+        for (ControlFlowNode *pred : node->Predecessors())
         {
             const NodeSet &predDoms = dominators.at(pred);
             if ((pred != head) && (predDoms.find(head) != predDoms.end()))
@@ -576,14 +577,14 @@ void CollectMoreChildren(CFGNode *structure, const DominatorMap &dominators)
 }
 
 // Returns the loop node, already replaced in the parent's chidlren
-CFGNode *ControlFlowGraph::_ProcessNaturalLoop(ControlFlowGraph &loopDetection, CFGNode *parent, const NodeBlock &backEdge)
+ControlFlowNode *ControlFlowGraph::_ProcessNaturalLoop(ControlFlowGraph &loopDetection, ControlFlowNode *parent, const NodeBlock &backEdge)
 {
     LoopNode *loopNode = loopDetection.MakeStructuredNode<LoopNode>();
     loopNode->children = backEdge.body;
     (*loopNode)[SemId::Head] = backEdge.head;           // This is the start, or the branch
     (*loopNode)[SemId::Latch] = backEdge.latch;         // This is the latch node... could be multiple ones though.
 
-    CFGNode *followNode = loopDetection._FindFollowNodeForStructure(loopNode);
+    ControlFlowNode *followNode = loopDetection._FindFollowNodeForStructure(loopNode);
     (*loopNode)[SemId::Follow] = followNode;
     // Now let's collect more children. Any predecessors of the child who are dominated by our header node should be included.
     // This will collect things like breaks, etc... that were not collected when we went from the latch node to the header to
@@ -596,13 +597,13 @@ CFGNode *ControlFlowGraph::_ProcessNaturalLoop(ControlFlowGraph &loopDetection, 
 
     // Also assert that we have a tail that is an exit point. If not, it might mean we think we have >1 exits.
     // This could be indicative of a goto (or mid-identified break)
-    CFGNode *tail = loopNode->MaybeGet(SemId::Tail);
+    ControlFlowNode *tail = loopNode->MaybeGet(SemId::Tail);
     assert(tail && (tail->Type == CFGNodeType::Exit));
 
     return loopNode;
 }
 
-CFGNode *ControlFlowGraph::_ProcessSwitch(ControlFlowGraph &loopDetection, CFGNode *parent, NodeBlock &switchBlock)
+ControlFlowNode *ControlFlowGraph::_ProcessSwitch(ControlFlowGraph &loopDetection, ControlFlowNode *parent, NodeBlock &switchBlock)
 {
     // Reconstruct the nodes in switchBlock into a switch statement, and replace it in the parent's children.
     SwitchNode *switchNode = loopDetection.MakeStructuredNode<SwitchNode>();
@@ -620,19 +621,19 @@ CFGNode *ControlFlowGraph::_ProcessSwitch(ControlFlowGraph &loopDetection, CFGNo
     return switchNode;
 }
 
-vector<NodeBlock> ControlFlowGraph::_FindSwitchBlocks(DominatorMap &dominators, DominatorMap &postDominators, CFGNode *structure)
+vector<NodeBlock> ControlFlowGraph::_FindSwitchBlocks(DominatorMap &dominators, DominatorMap &postDominators, ControlFlowNode *structure)
 {
-    CFGNode *header = (*structure)[SemId::Head];
+    ControlFlowNode *header = (*structure)[SemId::Head];
     NodeSet &allNodes = structure->children;
     vector<NodeBlock> switchBlocks;
-    for (CFGNode *maybeToss : allNodes)
+    for (ControlFlowNode *maybeToss : allNodes)
     {
         // Switches don't necessarily have a "pure" shape in a control flow graph like loops do.
         // In SCI, switches finish with a TOSS instruction, so let's specifically look for that.
         if (maybeToss->startsWith(Opcode::TOSS))
         {
             auto &tossDominators = dominators.at(maybeToss);
-            CFGNode *pred = _GetFirstPredecessorOrNull(maybeToss);
+            ControlFlowNode *pred = _GetFirstPredecessorOrNull(maybeToss);
             while (pred)
             {
                 if (tossDominators.find(pred) != tossDominators.end())
@@ -646,7 +647,7 @@ vector<NodeBlock> ControlFlowGraph::_FindSwitchBlocks(DominatorMap &dominators, 
                     // is important for the switch statement. Maybe that's ok though. As long as we're
                     // aware that it's not *just* the value that's being switched on.
                     assert(pred->Predecessors().size() == 1); // Otherwise I don't know what we'd do. Ternary?
-                    CFGNode *switchHead = _GetFirstPredecessorOrNull(pred);
+                    ControlFlowNode *switchHead = _GetFirstPredecessorOrNull(pred);
                     switchBlocks.emplace_back(switchHead, maybeToss, true, nullptr);
                     break;
                 }
@@ -665,7 +666,7 @@ void ControlFlowGraph::_FindAllCompoundConditions()
     // The first time we call _FindAllStructuresOf, we'll just have a single discovered structure(the main one)
     // After that we'll also have whatever structures were discovered in the previous call.
     // We discover structures from the most inner to the most outer (in this particular call of the function)
-    for (CFGNode *structure : controlStructuresCopy)
+    for (ControlFlowNode *structure : controlStructuresCopy)
     {
         _FindCompoundConditions(structure);
     }
@@ -677,7 +678,7 @@ void ControlFlowGraph::_FindAllCompoundConditions()
     // memory (that is a sibling of the current structure)
 void ControlFlowGraph::_ResolveBreaks()
 {
-    for (CFGNode *structure : discoveredControlStructures)
+    for (ControlFlowNode *structure : discoveredControlStructures)
     {
         if (structure->Type == CFGNodeType::Loop)
         {
@@ -686,10 +687,10 @@ void ControlFlowGraph::_ResolveBreaks()
     }
 }
 
-void ControlFlowGraph::_ResolveBreak(uint16_t loopFollowAddress, CFGNode *structure)
+void ControlFlowGraph::_ResolveBreak(uint16_t loopFollowAddress, ControlFlowNode *structure)
 {
     // We're looking for nodes that end in an unconditional jump to the loop follow address
-    for (CFGNode *node : structure->children)
+    for (ControlFlowNode *node : structure->children)
     {
         if ((node->Type == CFGNodeType::RawCode) && node->endsWith(Opcode::JMP))
         {
@@ -705,7 +706,7 @@ void ControlFlowGraph::_ResolveBreak(uint16_t loopFollowAddress, CFGNode *struct
     }
 
     // Now recurse, as long as its not another loop
-    for (CFGNode *child : structure->children)
+    for (ControlFlowNode *child : structure->children)
     {
         if (child->Type != CFGNodeType::Loop)
         {
@@ -714,15 +715,15 @@ void ControlFlowGraph::_ResolveBreak(uint16_t loopFollowAddress, CFGNode *struct
     }
 }
 
-void ControlFlowGraph::_ReconnectBreakNodeToSubsequentCode(CFGNode *structure, CFGNode *breakNode, uint16_t subsequentInstructionAddress)
+void ControlFlowGraph::_ReconnectBreakNodeToSubsequentCode(ControlFlowNode *structure, ControlFlowNode *breakNode, uint16_t subsequentInstructionAddress)
 {
     assert(breakNode->Successors().size() == 1);
-    CFGNode *currentSuccessor = *breakNode->Successors().begin();
+    ControlFlowNode *currentSuccessor = *breakNode->Successors().begin();
     currentSuccessor->ErasePredecessor(breakNode);
     // Now find the node in structure that has the right starting address
     // We should find it in the this control structure. It may be an exit node. If we don't find
     // it, then we probably need to add an exit node.
-    for (CFGNode *child : structure->children)
+    for (ControlFlowNode *child : structure->children)
     {
         if (child->GetStartingAddress() == subsequentInstructionAddress)
         {
@@ -735,7 +736,7 @@ void ControlFlowGraph::_ReconnectBreakNodeToSubsequentCode(CFGNode *structure, C
 
 void ControlFlowGraph::_DoLoopTransforms()
 {
-    for (CFGNode *structure : discoveredControlStructures)
+    for (ControlFlowNode *structure : discoveredControlStructures)
     {
         if (structure->Type == CFGNodeType::Loop)
         {
@@ -744,7 +745,7 @@ void ControlFlowGraph::_DoLoopTransforms()
     }
 }
 
-void ControlFlowGraph::_DoLoopTransform(CFGNode *loop)
+void ControlFlowGraph::_DoLoopTransform(ControlFlowNode *loop)
 {
     // While loop: 2-way header node, and 1-way latch node
     // Do loop: 2-way latch node and non-conditional header node
@@ -761,53 +762,58 @@ void ControlFlowGraph::_DoLoopTransform(CFGNode *loop)
     //     is equivalent to:
     //      bt to loop beginning
     //  We need to be careful not to mis-identify while loops (we are only concered with dos)
-    CFGNode *latch = (*loop)[SemId::Latch];
+    ControlFlowNode *latch = (*loop)[SemId::Latch];
     if ((latch->Type == CFGNodeType::RawCode) && latch->startsWith(Opcode::JMP))
     {
         if (latch->Predecessors().size() == 1)
         {
-            CFGNode *branchNode = *latch->Predecessors().begin();
-            CFGNode *otherBranchDestination = GetOtherBranch(branchNode, latch);
-            if (otherBranchDestination) // A while might not have one
+            ControlFlowNode *branchNode = *latch->Predecessors().begin();
+            // It could be an empty while loop too... check against this by seeing if our supposed branch
+            // node is the header.
+            if (branchNode != (*loop)[SemId::Head])
             {
-                // And if it did, it wouldn't be an exit node
-                if (otherBranchDestination->Type == CFGNodeType::Exit)
+                ControlFlowNode *otherBranchDestination = GetOtherBranch(branchNode, latch);
+                if (otherBranchDestination) // A while might not have one
                 {
-                    uint16_t address1 = otherBranchDestination->GetStartingAddress();
-                    uint16_t address2 = (*loop)[SemId::Follow]->GetStartingAddress();
-                    assert(address1 == address2);
-                    CFGNode *invert = MakeStructuredNode<InvertNode>();
-                    invert->children.insert(latch);
-                    invert->children.insert(branchNode);
-                    (*invert)[SemId::Head] = branchNode;    // We just need to invert this
-                    _ReplaceNodeInWorkingSet(loop, invert);
-                    _ReplaceNodeInFollowNodes(invert);
+                    // And if it did, it wouldn't be an exit node
+                    if (otherBranchDestination->Type == CFGNodeType::Exit)
+                    {
+                        uint16_t address1 = otherBranchDestination->GetStartingAddress();
+                        uint16_t address2 = (*loop)[SemId::Follow]->GetStartingAddress();
+                        assert(address1 == address2);
+                        ControlFlowNode *invert = MakeStructuredNode<InvertNode>();
+                        invert->children.insert(latch);
+                        invert->children.insert(branchNode);
+                        (*invert)[SemId::Head] = branchNode;    // We just need to invert this
+                        _ReplaceNodeInWorkingSet(loop, invert);
+                        _ReplaceNodeInFollowNodes(invert);
 
-                    // And the exit should have the new invert as a predecessor
-                    assert(contains(otherBranchDestination->Predecessors(), invert));
+                        // And the exit should have the new invert as a predecessor
+                        assert(contains(otherBranchDestination->Predecessors(), invert));
+                    }
                 }
             }
         }
     }
 }
 
-void ControlFlowGraph::_FindCompoundConditions(CFGNode *structure)
+void ControlFlowGraph::_FindCompoundConditions(ControlFlowNode *structure)
 {
     bool changesMade = true;
     while (changesMade)
     {
         changesMade = false;
-        stack<CFGNode*> toVisit;
+        stack<ControlFlowNode*> toVisit;
         NodeSet visited;
         toVisit.push((*structure)[SemId::Head]);
         visited.insert((*structure)[SemId::Head]);
         while (!toVisit.empty())
         {
-            CFGNode *possibleStart = pop_ptr(toVisit);
+            ControlFlowNode *possibleStart = pop_ptr(toVisit);
             // This shouldn't result in an infinite loop, since this should be an acyclic graph at this point.
             // Hmm nope, because I do this inside of while loops... although perhaps I should have removed the loop
             // cyckes?
-            for (CFGNode *successor : possibleStart->Successors())
+            for (ControlFlowNode *successor : possibleStart->Successors())
             {
                 if ((successor->Type != CFGNodeType::Exit) && (visited.find(successor) == visited.end()))
                 {
@@ -822,12 +828,12 @@ void ControlFlowGraph::_FindCompoundConditions(CFGNode *structure)
                 auto it = possibleStart->Successors().begin();
                 auto itNext = it;
                 itNext++;
-                CFGNode *branchNode = nullptr;
-                CFGNode *other = nullptr;
+                ControlFlowNode *branchNode = nullptr;
+                ControlFlowNode *other = nullptr;
                 if (EndsWithConditionalBranch(*it))
                 {
                     // Does the branch node only have a single successor that is the start node?
-                    CFGNode *possibleBranch = *it;
+                    ControlFlowNode *possibleBranch = *it;
                     if ((possibleBranch->Predecessors().size() == 1) && (*possibleBranch->Predecessors().begin() == possibleStart))
                     {
                         branchNode = possibleBranch;
@@ -838,7 +844,7 @@ void ControlFlowGraph::_FindCompoundConditions(CFGNode *structure)
                 if (!branchNode && EndsWithConditionalBranch(*itNext))
                 {
                     // Does the branch node only have a single successor that is the start node?
-                    CFGNode *possibleBranch = *itNext;
+                    ControlFlowNode *possibleBranch = *itNext;
                     if ((possibleBranch->Predecessors().size() == 1) && (*possibleBranch->Predecessors().begin() == possibleStart))
                     {
                         branchNode = possibleBranch;
@@ -864,7 +870,7 @@ void ControlFlowGraph::_FindCompoundConditions(CFGNode *structure)
                         // From http://www.labri.fr/perso/fleury/download/papers/binary_analysis/cifuentes96structuring.pdf
                         // First case: A || B
                         // Shall we express everything in terms of BT?
-                        CFGNode *firstThenNode, *firstElseNode, *secondThenNode, *secondElseNode;
+                        ControlFlowNode *firstThenNode, *firstElseNode, *secondThenNode, *secondElseNode;
                         GetThenAndElseBranches(possibleStart, &firstThenNode, &firstElseNode);
                         GetThenAndElseBranches(branchNode, &secondThenNode, &secondElseNode);
                         CompoundConditionNode *newConditionNode = nullptr;
@@ -920,16 +926,16 @@ void ControlFlowGraph::_FindCompoundConditions(CFGNode *structure)
     }
 }
 
-vector<NodeBlock> _FindBackEdges(DominatorMap &dominators, DominatorMap &postDominators, CFGNode *structure)
+vector<NodeBlock> _FindBackEdges(DominatorMap &dominators, DominatorMap &postDominators, ControlFlowNode *structure)
 {
-    map<CFGNode*, CFGNode*> immediatePostDominators = CalculateImmediatePostDominators(postDominators);
+    map<ControlFlowNode*, ControlFlowNode*> immediatePostDominators = CalculateImmediatePostDominators(postDominators);
 
-    CFGNode *header = (*structure)[SemId::Head];
+    ControlFlowNode *header = (*structure)[SemId::Head];
     NodeSet &allNodes = structure->children;
     vector<NodeBlock> backEdges;
-    for (CFGNode *node : allNodes)
+    for (ControlFlowNode *node : allNodes)
     {
-        for (CFGNode *pred : node->Predecessors())
+        for (ControlFlowNode *pred : node->Predecessors())
         {
             auto &predsDoms = dominators.at(pred);
             // Does node dominate its predecessor? If so, pred -> node is a back edge
@@ -942,12 +948,84 @@ vector<NodeBlock> _FindBackEdges(DominatorMap &dominators, DominatorMap &postDom
     return backEdges;
 }
 
-void _GetPostOrder(NodeSet &visited, CFGNode *node, vector<CFGNode*> &ordered)
+// Return true if we made no changes
+bool _CheckForSameHeader(ControlFlowGraph &cfg, ControlFlowNode &parent, vector<NodeBlock> &blocks)
+{
+    bool noChanges = true;
+    // Look for any blocks with the same header but different latches. If we find them, introduce a new
+    // common latch node.
+    // We hit this scenario, for instance, in do-while loops with compound conditions.
+
+    // Just some kind of order.
+    sort(blocks.begin(), blocks.end(),
+        [](const NodeBlock &A, const NodeBlock &B)
+    {
+        // Return true if one is less than two
+        uint16_t aStart = A.head->GetStartingAddress();
+        uint16_t aEnd = A.latch->GetStartingAddress();
+        uint16_t bStart = B.head->GetStartingAddress();
+        uint16_t bEnd = B.latch->GetStartingAddress();
+        if (aStart < bStart)
+        {
+            return true;
+        }
+        if (bStart < aStart)
+        {
+            return false;
+        }
+        if (aEnd < bEnd)
+        {
+            return true;
+        }
+        return false;
+    }
+    );
+
+    // Now ones with the same head should be adjacent in the vector, making it easier
+    // to process.
+    for (size_t i = 0; i < blocks.size(); )
+    {
+        vector<NodeBlock*> blocksWithSameHeader;
+        blocksWithSameHeader.push_back(&blocks[i]);
+        i++;
+        for (; i < blocks.size(); i++)
+        {
+            if (blocks[i].head == blocksWithSameHeader[0]->head)
+            {
+                blocksWithSameHeader.push_back(&blocks[i]);
+            }
+            else
+            {
+                break;
+            }
+        }
+        if (blocksWithSameHeader.size() > 1)
+        {
+            noChanges = false;
+            // Create a common latch node. It will have our latch nodes as predecessors
+            CommonLatchNode *common = cfg.MakeNode<CommonLatchNode>();
+            parent.children.insert(common);
+            for (NodeBlock *block : blocksWithSameHeader)
+            {
+                // The "starting address" of the common latch will be the max starting address of the original latches.
+                // This doesn't really make sense, but we need something.
+                common->tokenStartingAddress = max(common->tokenStartingAddress, block->latch->GetStartingAddress());
+                common->InsertPredecessor(block->latch);
+                block->head->ErasePredecessor(block->latch);
+            }
+            blocksWithSameHeader[0]->head->InsertPredecessor(common);
+            break; // Only do one set of these at a time.
+        }
+    }
+    return noChanges;
+}
+
+void _GetPostOrder(NodeSet &visited, ControlFlowNode *node, vector<ControlFlowNode*> &ordered)
 {
     // Mark ourselves as visited
     visited.insert(node);
     // Visit children who are not visited
-    for (CFGNode *succ : node->Successors())
+    for (ControlFlowNode *succ : node->Successors())
     {
         if (visited.find(succ) == visited.end())
         {
@@ -958,23 +1036,23 @@ void _GetPostOrder(NodeSet &visited, CFGNode *node, vector<CFGNode*> &ordered)
     ordered.push_back(node);
 }
 
-vector<CFGNode*> _GetPostOrder(CFGNode *structure)
+vector<ControlFlowNode*> _GetPostOrder(ControlFlowNode *structure)
 {
-    vector<CFGNode*> ordered;
+    vector<ControlFlowNode*> ordered;
     NodeSet visited;
     _GetPostOrder(visited, (*structure)[SemId::Head], ordered);
     assert(ordered.size() == structure->children.size());
     return ordered;
 }
 
-CFGNode *_FindMaxNodeDominatedByMWithTwoOrMoreInEdges(DominatorMap &dominators, const map<CFGNode*, CFGNode*> &immediateDominators, vector<CFGNode*> &postOrdered, CFGNode *m, CFGNode *dontGoBeyondThis)
+ControlFlowNode *_FindMaxNodeDominatedByMWithTwoOrMoreInEdges(DominatorMap &dominators, const map<ControlFlowNode*, ControlFlowNode*> &immediateDominators, vector<ControlFlowNode*> &postOrdered, ControlFlowNode *m, ControlFlowNode *dontGoBeyondThis)
 {
     auto endIt = find(postOrdered.begin(), postOrdered.end(), dontGoBeyondThis);
     auto it = postOrdered.begin();
     while (it != endIt)
     {
         // Work the graph from the "bottom up" until dontGoBeyondThis
-        CFGNode *possibleFollow = *it;
+        ControlFlowNode *possibleFollow = *it;
         if (possibleFollow->Predecessors().size() >= 2)
         {
             NodeSet &dominatorsForNode = dominators.at(possibleFollow);
@@ -999,14 +1077,14 @@ void ControlFlowGraph::_FindAllIfStatements()
     // The first time we call _FindAllStructuresOf, we'll just have a single discovered structure(the main one)
     // After that we'll also have whatever structures were discovered in the previous call.
     // We discover structures from the most inner to the most outer (in this particular call of the function)
-    for (CFGNode *structure : controlStructuresCopy)
+    for (ControlFlowNode *structure : controlStructuresCopy)
     {
         DominatorMap dominators = GenerateDominators(structure->children, (*structure)[SemId::Head]);
         _FindIfStatements(dominators, structure);
     }
 }
 
-void ControlFlowGraph::_FindIfStatements(DominatorMap &dominators, CFGNode *structure)
+void ControlFlowGraph::_FindIfStatements(DominatorMap &dominators, ControlFlowNode *structure)
 {
     if ((structure->Type == CFGNodeType::CompoundCondition) || (structure->Type == CFGNodeType::Switch) || (structure->Type == CFGNodeType::Invert))
     {
@@ -1014,22 +1092,22 @@ void ControlFlowGraph::_FindIfStatements(DominatorMap &dominators, CFGNode *stru
         return;
     }
 
-    CFGNode *loopHeader = nullptr;
-    CFGNode *loopLatch = nullptr;
+    ControlFlowNode *loopHeader = nullptr;
+    ControlFlowNode *loopLatch = nullptr;
     if (structure->Type == CFGNodeType::Loop)
     {
         loopHeader = (*structure)[SemId::Head];
         loopLatch = (*structure)[SemId::Latch];
     }
 
-    vector<CFGNode*> postOrdered = _GetPostOrder(structure);
+    vector<ControlFlowNode*> postOrdered = _GetPostOrder(structure);
     vector<NodeBlock> ifBlocks;
     NodeSet unresolvedNodes;      // Not sure what the purpose of this is. Perhaps just to track situations where we can't resolve?
-    map<CFGNode*, CFGNode*> followerOf; // header -> follower map
+    map<ControlFlowNode*, ControlFlowNode*> followerOf; // header -> follower map
 
-    map<CFGNode*, CFGNode*> immediateDominators = CalculateImmediateDominators(dominators);
+    map<ControlFlowNode*, ControlFlowNode*> immediateDominators = CalculateImmediateDominators(dominators);
 
-    for (CFGNode *node : postOrdered)
+    for (ControlFlowNode *node : postOrdered)
     {
         // Note: We need to be careful not to identify case conditions as if statements. However, our CaseNodes are structured
         // so that the branch node only has a single branch. So they wont'be detected here:
@@ -1038,18 +1116,18 @@ void ControlFlowGraph::_FindIfStatements(DominatorMap &dominators, CFGNode *stru
             assert(!node->ContainsTag(SemanticTags::CaseCondition));
             // Look for furthest node whose immediate dominator is m and who has 2 or more in edges.
             // i.e. the "follow" node of the if.
-            CFGNode *n = _FindMaxNodeDominatedByMWithTwoOrMoreInEdges(dominators, immediateDominators, postOrdered, node, node);
+            ControlFlowNode *n = _FindMaxNodeDominatedByMWithTwoOrMoreInEdges(dominators, immediateDominators, postOrdered, node, node);
             if (n)
             {
                 followerOf[node] = n;
                 NodeSet nowResolved;
-                for (CFGNode *unresolved : unresolvedNodes)
+                for (ControlFlowNode *unresolved : unresolvedNodes)
                 {
                     // Note that the algorithm here just automatically resolves all unresolved guys, and
                     // assigns them a follower of n:
                     // http://www.labri.fr/perso/fleury/download/papers/binary_analysis/cifuentes96structuring.pdf
                     // This doesn't work at all. Instead, I think we need to repeat the test... so we'll do that.
-                    CFGNode *nRepeat = _FindMaxNodeDominatedByMWithTwoOrMoreInEdges(dominators, immediateDominators, postOrdered, node, unresolved);
+                    ControlFlowNode *nRepeat = _FindMaxNodeDominatedByMWithTwoOrMoreInEdges(dominators, immediateDominators, postOrdered, node, unresolved);
                     if (nRepeat)
                     {
                         assert(nRepeat == n);   // Otherwise we still have bugs...
@@ -1057,7 +1135,7 @@ void ControlFlowGraph::_FindIfStatements(DominatorMap &dominators, CFGNode *stru
                         followerOf[unresolved] = nRepeat;
                     }
                 }
-                for (CFGNode *resolved : nowResolved)
+                for (ControlFlowNode *resolved : nowResolved)
                 {
                     unresolvedNodes.erase(resolved);
                 }
@@ -1074,14 +1152,14 @@ void ControlFlowGraph::_FindIfStatements(DominatorMap &dominators, CFGNode *stru
     // So now we have a list of branch nodes and their follower. We want to replace this with a
     // new if node (excluding the follower, however). We need to do this from the most nested to the least
     // nester. We can do this by using the post-order we have already calculated.
-    for (CFGNode *possibleHead : postOrdered)
+    for (ControlFlowNode *possibleHead : postOrdered)
     {
         auto itPair = followerOf.find(possibleHead);
         if (itPair != followerOf.end())
         {
-            CFGNode *headThatWillTurnIntoIf = itPair->first;
-            CFGNode *ifFollowNode = itPair->second;
-            CFGNode *newIfNode = _ReplaceIfStatementInWorkingSet(structure, headThatWillTurnIntoIf, ifFollowNode);
+            ControlFlowNode *headThatWillTurnIntoIf = itPair->first;
+            ControlFlowNode *ifFollowNode = itPair->second;
+            ControlFlowNode *newIfNode = _ReplaceIfStatementInWorkingSet(structure, headThatWillTurnIntoIf, ifFollowNode);
             // We need to do one special thing here. This is an artifact of us storing child references elsewhere :-(
             // If any of the follow nodes was equal to the header node of the if we just created, we need to repoint
             // them to the new if.
@@ -1126,7 +1204,7 @@ void _RepairBranches(code_pos start, code_pos end)
     }
 }
 
-CFGNode *ControlFlowGraph::_PartitionCode(code_pos start, code_pos end)
+ControlFlowNode *ControlFlowGraph::_PartitionCode(code_pos start, code_pos end)
 {
     // I feel this would be so much faster if code_pos were just an index into a vector of instructions
     // But apparently I made code_pos a list iterator because we insert instructions not always at the end.
@@ -1254,9 +1332,9 @@ CFGNode *ControlFlowGraph::_PartitionCode(code_pos start, code_pos end)
     {
         for (code_pos predecessorPos : predecessors[pair.first])
         {
-            // We are given the predecessor code_pos. We need to find CFGNode that contains it.
+            // We are given the predecessor code_pos. We need to find ControlFlowNode that contains it.
             // Probably not the most efficient, but we can walk backward until we find a mapping from
-            // this code_pos to a CFGNode. We know that at least the start will have one, so we'll
+            // this code_pos to a ControlFlowNode. We know that at least the start will have one, so we'll
             // find one eventually.
             code_pos cur = predecessorPos;
             auto curIt = posToNode.find(cur);
@@ -1270,7 +1348,7 @@ CFGNode *ControlFlowGraph::_PartitionCode(code_pos start, code_pos end)
     }
 
     // Now we should be able to generate a set of nodes based on posToNode.
-    CFGNode *headerNode = posToNode[start];
+    ControlFlowNode *headerNode = posToNode[start];
     NodeSet finalNodes;
     for (auto &pair : posToNode)
     {
@@ -1282,7 +1360,7 @@ CFGNode *ControlFlowGraph::_PartitionCode(code_pos start, code_pos end)
     mainStructure->children = finalNodes;
     (*mainStructure)[SemId::Head] = headerNode;
     // Find the tail node...
-    for (CFGNode *possibleTailNode : finalNodes)
+    for (ControlFlowNode *possibleTailNode : finalNodes)
     {
         if (possibleTailNode->Successors().empty())
         {
@@ -1298,22 +1376,22 @@ CFGNode *ControlFlowGraph::_PartitionCode(code_pos start, code_pos end)
     return mainStructure;
 }
 
-void _PruneDegenerateNodes(CFGNode *structure)
+void _PruneDegenerateNodes(ControlFlowNode *structure)
 {
     // This can happen with some kinds of code generate, where, for example,
     // we have two jmp instructions in a row (e.g. a break directly in a while loop)
     // This causes multiple entry points to our tree, and messes us up. Remove them.
-    CFGNode *head = (*structure)[SemId::Head];
+    ControlFlowNode *head = (*structure)[SemId::Head];
     bool changes = true;
     while (changes)
     {
         changes = false;
-        for (CFGNode *child : structure->children)
+        for (ControlFlowNode *child : structure->children)
         {
             if ((child != head) && (child->Predecessors().size() == 0))
             {
-                set<CFGNode*> degenSuccessorsCopy = child->Successors();
-                for (CFGNode *degenSuccessor : degenSuccessorsCopy)
+                set<ControlFlowNode*> degenSuccessorsCopy = child->Successors();
+                for (ControlFlowNode *degenSuccessor : degenSuccessorsCopy)
                 {
                     degenSuccessor->ErasePredecessor(child);
                 }
@@ -1327,11 +1405,16 @@ void _PruneDegenerateNodes(CFGNode *structure)
     }
 }
 
-CFGNode *ControlFlowGraph::Generate(const std::string &name, code_pos start, code_pos end)
+bool _DoNothing(ControlFlowGraph &cfg, ControlFlowNode &parent, vector<NodeBlock> &blocks)
+{
+    return true;
+}
+
+ControlFlowNode *ControlFlowGraph::Generate(const std::string &name, code_pos start, code_pos end)
 {
     _RepairBranches(start, end);
 
-    CFGNode *main = _PartitionCode(start, end);
+    ControlFlowNode *main = _PartitionCode(start, end);
 
     // I had removed this because it prevented loop break detection. But I think I need it
     // back (e.g LB, script 255). I forget what problems it caused unfortunately (I changed the way I identify loop breaks,
@@ -1347,8 +1430,10 @@ CFGNode *ControlFlowGraph::Generate(const std::string &name, code_pos start, cod
     // Yeah, we're calculating dominators a second time here, but that's ok.
     // The above case is only for visualization.
     
-    _FindAllStructuresOf(_FindBackEdges, _ProcessNaturalLoop);
-    _FindAllStructuresOf(_FindSwitchBlocks, _ProcessSwitch);
+    _FindAllStructuresOf(_FindBackEdges, _CheckForSameHeader, _ProcessNaturalLoop);
+    _FindAllStructuresOf(_FindSwitchBlocks, _DoNothing, _ProcessSwitch);
+    
+    
     _FindAllCompoundConditions();
     _DoLoopTransforms();
     _ResolveBreaks();

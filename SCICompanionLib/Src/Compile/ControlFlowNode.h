@@ -12,6 +12,7 @@ enum CFGNodeType
     CompoundCondition,
     If,
     Invert,
+    CommonLatch,
 };
 
 // Ways to classify certain nodes
@@ -34,7 +35,7 @@ enum class SemanticTags
     CaseCondition,
 };
 
-struct CFGNode;
+struct ControlFlowNode;
 struct RawCodeNode;
 struct LoopNode;
 struct SwitchNode;
@@ -55,19 +56,19 @@ public:
     virtual void Visit(const InvertNode &invert) = 0;
     virtual void Visit(const IfNode &ifNode) = 0;
     virtual void Visit(const MainNode &mainNode) = 0;
-    virtual void Visit(const CFGNode &node) = 0;
+    virtual void Visit(const ControlFlowNode &node) = 0;
 };
 
 struct CompareCFGNodesByAddress {
-    bool operator() (const CFGNode* lhs, const CFGNode* rhs) const;
+    bool operator() (const ControlFlowNode* lhs, const ControlFlowNode* rhs) const;
 };
 
-struct CFGNode;
-typedef std::set<CFGNode*> NodeSet;
+struct ControlFlowNode;
+typedef std::set<ControlFlowNode*> NodeSet;
 
-struct CFGNode
+struct ControlFlowNode
 {
-    CFGNode(CFGNodeType type, std::initializer_list<SemId> semanticChildrenIds) : Type(type), ArbitraryDebugIndex(0)
+    ControlFlowNode(CFGNodeType type, std::initializer_list<SemId> semanticChildrenIds) : Type(type), ArbitraryDebugIndex(0)
     {
         // Everyone has a head (for now)
         semanticChildren[SemId::Head] = nullptr;
@@ -78,11 +79,11 @@ struct CFGNode
         }
     }
 
-    virtual ~CFGNode() {}
+    virtual ~ControlFlowNode() {}
 
     uint16_t GetStartingAddress() const;
 
-    bool contains(CFGNode *potentialChild)
+    bool contains(ControlFlowNode *potentialChild)
     {
         return children.find(potentialChild) != children.end();
     }
@@ -95,8 +96,8 @@ struct CFGNode
     int ArbitraryDebugIndex;
     std::string DebugId;
 
-    CFGNode(const CFGNode &node) = delete;
-    CFGNode &operator=(const CFGNode &node) = delete;
+    ControlFlowNode(const ControlFlowNode &node) = delete;
+    ControlFlowNode &operator=(const ControlFlowNode &node) = delete;
 
     bool ContainsTag(SemanticTags tag) const { return Tags.find(tag) != Tags.end(); }
     std::set<SemanticTags> Tags;
@@ -104,22 +105,22 @@ struct CFGNode
     // Only valid for structured nodes, but so common that we'll just keep
     // it in the base class for now.
     NodeSet children;
-    std::map<SemId, CFGNode*> semanticChildren;
+    std::map<SemId, ControlFlowNode*> semanticChildren;
 
-    CFGNode *&operator[](SemId semId)
+    ControlFlowNode *&operator[](SemId semId)
     {
         assert(semanticChildren.find(semId) != semanticChildren.end());
         return semanticChildren[semId];
     }
 
-    CFGNode *operator[](SemId semId) const
+    ControlFlowNode *operator[](SemId semId) const
     {
         return semanticChildren.at(semId);
     }
 
-    CFGNode *MaybeGet(SemId semId) const
+    ControlFlowNode *MaybeGet(SemId semId) const
     {
-        CFGNode *child = nullptr;
+        ControlFlowNode *child = nullptr;
         if (semanticChildren.find(semId) != semanticChildren.end())
         {
             child = semanticChildren.at(semId);
@@ -127,7 +128,7 @@ struct CFGNode
         return child;
     }
 
-    void NotifyChildrenReplacedBy(CFGNode *newNode)
+    void NotifyChildrenReplacedBy(ControlFlowNode *newNode)
     {
         for (auto &pair : semanticChildren)
         {
@@ -150,7 +151,7 @@ struct CFGNode
     const NodeSet &Predecessors() { return predecessors; }
     const NodeSet &Successors() { return successors; }
 
-    void InsertPredecessor(CFGNode *node)
+    void InsertPredecessor(ControlFlowNode *node)
     {
         if (predecessors.insert(node).second)
         {
@@ -161,12 +162,12 @@ struct CFGNode
     void ClearPredecessors()
     {
         NodeSet copy = predecessors;
-        for (CFGNode *node : copy)
+        for (ControlFlowNode *node : copy)
         {
             ErasePredecessor(node);
         }
     }
-    void ErasePredecessor(CFGNode *node)
+    void ErasePredecessor(ControlFlowNode *node)
     {
         predecessors.erase(node);
         node->successors.erase(this);
@@ -174,7 +175,7 @@ struct CFGNode
     void AssignPredecessors(const NodeSet &newPredecessors)
     {
         ClearPredecessors();
-        for (CFGNode *node : newPredecessors)
+        for (ControlFlowNode *node : newPredecessors)
         {
             InsertPredecessor(node);
         }
@@ -190,17 +191,17 @@ private:
 };
 
 
-struct ExitNode : public CFGNode
+struct ExitNode : public ControlFlowNode
 {
-    ExitNode() : CFGNode(CFGNodeType::Exit, {}), startingAddressForExit(0xffff) {}
+    ExitNode() : ControlFlowNode(CFGNodeType::Exit, {}), startingAddressForExit(0xffff) {}
     void Accept(ICFGNodeVisitor &visitor) const { visitor.Visit(*this); }
 
     uint16_t startingAddressForExit;
 };
 
-struct StructuredNode : public CFGNode
+struct StructuredNode : public ControlFlowNode
 {
-    StructuredNode(CFGNodeType type, std::initializer_list<SemId> semanticChildren) : CFGNode(type, semanticChildren) {}
+    StructuredNode(CFGNodeType type, std::initializer_list<SemId> semanticChildren) : ControlFlowNode(type, semanticChildren) {}
     // has children...
 };
 
@@ -222,6 +223,14 @@ struct InvertNode : public StructuredNode
 {
     InvertNode() : StructuredNode(CFGNodeType::Invert, { SemId::Tail }) {}
     void Accept(ICFGNodeVisitor &visitor) const { visitor.Visit(*this); }
+};
+
+struct CommonLatchNode : public ControlFlowNode
+{
+    CommonLatchNode() : ControlFlowNode(CFGNodeType::CommonLatch, {}), tokenStartingAddress(0) {}
+    void Accept(ICFGNodeVisitor &visitor) const { visitor.Visit(*this); }
+
+    uint16_t tokenStartingAddress;  // Don't use this for anything real?
 };
 
 struct IfNode : public StructuredNode
@@ -249,7 +258,7 @@ struct MainNode : public StructuredNode
     MainNode() : StructuredNode(CFGNodeType::Main, { SemId::Tail, SemId::Follow }) {}
     void Accept(ICFGNodeVisitor &visitor) const { visitor.Visit(*this); }
 };
-struct RawCodeNode : public CFGNode
+struct RawCodeNode : public ControlFlowNode
 {
     RawCodeNode(code_pos start);
     void Accept(ICFGNodeVisitor &visitor) const { visitor.Visit(*this); }
@@ -282,13 +291,13 @@ struct RawCodeNode : public CFGNode
     code_pos end;
 };
 
-void GetThenAndElseBranches(CFGNode *node, CFGNode **thenNode, CFGNode **elseNode);
-CFGNode *GetOtherBranch(CFGNode *branchNode, CFGNode *branch1);
+void GetThenAndElseBranches(ControlFlowNode *node, ControlFlowNode **thenNode, ControlFlowNode **elseNode);
+ControlFlowNode *GetOtherBranch(ControlFlowNode *branchNode, ControlFlowNode *branch1);
 
-class DominatorMap : public std::map < CFGNode*, NodeSet >
+class DominatorMap : public std::map < ControlFlowNode*, NodeSet >
 {
 public:
-    bool IsADominatedByB(CFGNode *a, CFGNode *b) const
+    bool IsADominatedByB(ControlFlowNode *a, ControlFlowNode *b) const
     {
         return at(a).find(b) != at(a).end();
     }

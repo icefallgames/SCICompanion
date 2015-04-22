@@ -963,6 +963,16 @@ std::vector<int> CResourceMap::GetPaletteList()
     return _paletteList;
 }
 
+GlobalCompiledScriptLookups *CResourceMap::GetCompiledScriptLookups()
+{
+    if (!_globalCompiledScriptLookups)
+    {
+        _globalCompiledScriptLookups = make_unique<GlobalCompiledScriptLookups>();
+        _globalCompiledScriptLookups->Load(this->GetSCIVersion());
+    }
+    return _globalCompiledScriptLookups.get();
+}
+
 ResourceEntity *CResourceMap::GetVocabResourceToEdit()
 {
     if (!_pVocab000)
@@ -1134,7 +1144,8 @@ void CResourceMap::SetGameFolder(const string &gameFolder)
 {
     _gameFolder = gameFolder;
     ClearVocab000();
-    _pPalette999.reset(nullptr);    // REVIEW: also do this if global palette is edited.
+    _pPalette999.reset(nullptr);                    // REVIEW: also do this if global palette is edited.
+    _globalCompiledScriptLookups.reset(nullptr);    // TODO: Also do this if scripts were compiled.
     _language = LangSyntaxUnknown;
     if (!gameFolder.empty())
     {

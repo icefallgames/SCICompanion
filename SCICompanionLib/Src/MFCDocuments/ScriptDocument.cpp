@@ -294,9 +294,9 @@ void DecompileScript(WORD wScript)
     CompiledScript compiledScript(0);
     if (compiledScript.Load(appState->GetVersion(), wScript, false))
     {
-        GlobalCompiledScriptLookups scriptLookups;
+        GlobalCompiledScriptLookups *scriptLookups = appState->GetResourceMap().GetCompiledScriptLookups();
         ObjectFileScriptLookups objectFileLookups;
-        if (scriptLookups.Load(appState->GetVersion()))
+        if (scriptLookups)
         {
             // Ok if pText fails (and is NULL)
             unique_ptr<ResourceEntity> textResource = appState->GetResourceMap().CreateResourceFromNumber(ResourceType::Text, wScript);
@@ -306,7 +306,7 @@ void DecompileScript(WORD wScript)
                 pText = textResource->TryGetComponent<TextComponent>();
             }
 
-            DecompileLookups decompileLookups(wScript, &scriptLookups, &objectFileLookups, &compiledScript, pText, &compiledScript);
+            DecompileLookups decompileLookups(wScript, scriptLookups, &objectFileLookups, &compiledScript, pText, &compiledScript);
             unique_ptr<sci::Script> pScript(Decompile(compiledScript, decompileLookups, appState->GetResourceMap().GetVocab000()));
 			ScriptId scriptId;
 			scriptId.SetResourceNumber(wScript);

@@ -35,7 +35,7 @@ struct Consumption
     int cStackGenerate;
 };
 
-Consumption _GetInstructionConsumption(scii &inst);
+Consumption _GetInstructionConsumption(scii &inst, DecompileLookups *lookups = nullptr);
 
 std::string GetBinaryOperatorForInstruction(Opcode b, LangSyntax lang);
 std::string GetUnaryOperatorForInstruction(Opcode b, LangSyntax lang);
@@ -49,6 +49,18 @@ enum class VarScope : std::uint8_t
 };
 
 class CodeNode;
+
+struct FunctionDecompileHints
+{
+    FunctionDecompileHints() { Reset(); }
+
+    void Reset()
+    {
+        ReturnsValue = false;
+    }
+
+    bool ReturnsValue;
+};
 
 class DecompileLookups : public ICompiledScriptLookups
 {
@@ -90,6 +102,8 @@ public:
 	const std::map<WORD, bool> &GetTempUsage(const std::string &functionMatchName) { return _tempVarUsage[functionMatchName]; }
     void TrackRestStatement(sci::RestStatement *rest, uint16_t paramIndex);
     void ResolveRestStatements();
+
+    FunctionDecompileHints FunctionDecompileHints;
 
     const sci::ClassDefinition *DecompileLookups::GetClassContext() const;
 

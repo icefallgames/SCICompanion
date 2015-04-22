@@ -374,6 +374,20 @@ namespace sci
         }
     }
 
+    template <typename _T>
+    _T *SafeSyntaxNode(SyntaxNode *pNode)
+    {
+        if (pNode->GetNodeType() == _T::MyNodeType)
+        {
+            return static_cast<_T *>(pNode);
+        }
+        else
+        {
+            return nullptr;
+        }
+    }
+
+
     //
     // Composition class used for script objects that have names.
     //

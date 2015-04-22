@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "CFGNode.h"
+#include "ControlFlowNode.h"
 #include "ControlFlowGraphViz.h"
 #include "format.h"
 
@@ -17,7 +17,7 @@ const char *colors[] =
 
 class GraphVisualizer
 {
-    string _CreateGraphNodeId(const CFGNode *node, int index, const CFGNode *head = nullptr)
+    string _CreateGraphNodeId(const ControlFlowNode *node, int index, const ControlFlowNode *head = nullptr)
     {
         string name;
         switch (node->Type)
@@ -59,6 +59,10 @@ class GraphVisualizer
                 name = fmt::format("if_{}", node->ArbitraryDebugIndex);
                 break;
 
+            case CFGNodeType::CommonLatch:
+                name = fmt::format("commonlatch_{}", node->ArbitraryDebugIndex);
+                break;
+
             default:
                 assert(false);
                 break;
@@ -67,7 +71,7 @@ class GraphVisualizer
         return name;
     }
 
-    void _CreateHumanReadableLabel(stringstream &ss, const CFGNode *node)
+    void _CreateHumanReadableLabel(stringstream &ss, const ControlFlowNode *node)
     {
         ss << " [label =\"";
 
@@ -112,6 +116,12 @@ class GraphVisualizer
             }
             break;
 
+            case CFGNodeType::CommonLatch:
+            {
+                ss << "CommonLatch " << node->ArbitraryDebugIndex;
+            }
+            break;
+
             case CFGNodeType::Exit:
             {
                 ss << "Exit:" << fmt::format("{:04x}", static_cast<const ExitNode*>(node)->startingAddressForExit);
@@ -148,7 +158,7 @@ class GraphVisualizer
     }
 
     // For reading purposes
-    void _CreateLabel(stringstream &ss, const CFGNode *node, int index, int colorIndex, const CFGNode *head = nullptr)
+    void _CreateLabel(stringstream &ss, const ControlFlowNode *node, int index, int colorIndex, const ControlFlowNode *head = nullptr)
     {
         colorIndex %= ARRAYSIZE(colors);
 
@@ -167,7 +177,7 @@ public:
         ss << "digraph code {\n";
 
         int graphIndex = 0;
-        for (CFGNode *currentParent : discoveredControlStructures)
+        for (ControlFlowNode *currentParent : discoveredControlStructures)
         {
             int colorIndex = currentParent->ArbitraryDebugIndex;
             for (auto node : currentParent->children)

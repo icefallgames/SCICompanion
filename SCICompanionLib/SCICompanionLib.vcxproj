@@ -184,7 +184,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Src\Compile\CFGNode.cpp" />
+    <ClCompile Include="Src\Compile\ControlFlowNode.cpp" />
     <ClCompile Include="Src\Compile\ControlFlowGraphViz.cpp" />
     <ClCompile Include="Src\Compile\DecompilerNew.cpp" />
     <ClCompile Include="Src\Compile\DecompileScript.cpp" />
@@ -383,7 +383,7 @@
     <ClCompile Include="Src\Resources\Text.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Src\Compile\CFGNode.h" />
+    <ClInclude Include="Src\Compile\ControlFlowNode.h" />
     <ClInclude Include="Src\Compile\ControlFlowGraphViz.h" />
     <ClInclude Include="Src\Compile\DecompileScript.h" />
     <ClInclude Include="Src\Compile\DisassembleHelper.h" />

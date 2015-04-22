@@ -1,17 +1,17 @@
 #include "stdafx.h"
-#include "CFGNode.h"
+#include "ControlFlowNode.h"
 #include "format.h"
 #include "StlUtil.h"
 
 using namespace std;
 
 // Safe to call on anything. If it doesn't apply, it returns null.
-CFGNode *GetOtherBranch(CFGNode *branchNode, CFGNode *branch1)
+ControlFlowNode *GetOtherBranch(ControlFlowNode *branchNode, ControlFlowNode *branch1)
 {
-    CFGNode *other = nullptr;
+    ControlFlowNode *other = nullptr;
     if (branchNode->Successors().size() == 2)
     {
-        CFGNode *thenNode, *elseNode;
+        ControlFlowNode *thenNode, *elseNode;
         GetThenAndElseBranches(branchNode, &thenNode, &elseNode);
         if (thenNode == branch1)
         {
@@ -29,7 +29,7 @@ CFGNode *GetOtherBranch(CFGNode *branchNode, CFGNode *branch1)
     return other;
 }
 
-uint16_t CFGNode::GetStartingAddress() const
+uint16_t ControlFlowNode::GetStartingAddress() const
 {
     uint16_t address = 0xffff;
     if (Type == CFGNodeType::RawCode)
@@ -39,6 +39,10 @@ uint16_t CFGNode::GetStartingAddress() const
     else if (Type == CFGNodeType::Exit)
     {
         address = (static_cast<const ExitNode*>(this))->startingAddressForExit;
+    }
+    else if (Type == CFGNodeType::CommonLatch)
+    {
+        address = (static_cast<const CommonLatchNode*>(this))->tokenStartingAddress;
     }
     else
     {
@@ -50,14 +54,14 @@ uint16_t CFGNode::GetStartingAddress() const
 
 // Given a node that represents a raw code branch or a compound condition, returns
 // which of its two successor nodes is the "then"  branch, and which is the "else" 
-void GetThenAndElseBranches(CFGNode *node, CFGNode **thenNode, CFGNode **elseNode)
+void GetThenAndElseBranches(ControlFlowNode *node, ControlFlowNode **thenNode, ControlFlowNode **elseNode)
 {
     *thenNode = nullptr;
     *elseNode = nullptr;
     assert((node->Successors().size() == 2) && "Asking for Then/Else branches on a node without two Successors()");
     auto it = node->Successors().begin();
-    CFGNode *one = *it;
-    CFGNode *two = *(++it);
+    ControlFlowNode *one = *it;
+    ControlFlowNode *two = *(++it);
 
     if (node->Type == CFGNodeType::CompoundCondition)
     {
@@ -111,12 +115,12 @@ void GetThenAndElseBranches(CFGNode *node, CFGNode **thenNode, CFGNode **elseNod
     }
 }
 
-RawCodeNode::RawCodeNode(code_pos start) : CFGNode(CFGNodeType::RawCode, {}), start(start)
+RawCodeNode::RawCodeNode(code_pos start) : ControlFlowNode(CFGNodeType::RawCode, {}), start(start)
 {
     DebugId = fmt::format("{:04x}:{}", start->get_final_offset_dontcare(), OpcodeNames[static_cast<BYTE>(start->get_opcode())]);
 }
 
-bool CompareCFGNodesByAddress::operator() (const CFGNode* lhs, const CFGNode* rhs) const
+bool CompareCFGNodesByAddress::operator() (const ControlFlowNode* lhs, const ControlFlowNode* rhs) const
 {
     uint16_t lAddress = lhs->GetStartingAddress();
     uint16_t rAddress = rhs->GetStartingAddress();
