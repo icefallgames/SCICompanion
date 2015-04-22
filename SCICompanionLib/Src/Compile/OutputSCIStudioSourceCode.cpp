@@ -185,7 +185,7 @@ public:
         _OutputVariableAndSize(out, varDecl.GetDataType(), varDecl.GetName(), varDecl.GetSize(), varDecl.GetSimpleValues());
     }
 
-    void _VisitFunctionBase(const FunctionBase &function)
+    void _VisitFunctionBase(const FunctionBase &function, const std::string &procedureClass)
     {
         out.SyncComments(function);
 
@@ -207,7 +207,12 @@ public:
                 }
                 out.out << functionParam->GetName();
             }
-            out.out << ")" << out.NewLineString();
+            out.out << ")";
+            if (!procedureClass.empty())
+            {
+                out.out << " of " << procedureClass;
+            }
+            out.out << out.NewLineString();
 
             // Body of function
             {
@@ -237,7 +242,7 @@ public:
         out.SyncComments(function);
         NewLine(out);
         out.out << "(method ";
-        _VisitFunctionBase(function);
+        _VisitFunctionBase(function, "");
     }
 
     void Visit(const ProcedureDefinition &function) override
@@ -250,13 +255,7 @@ public:
             out.out << "public ";
         }
 
-        _VisitFunctionBase(function);
-
-        const ClassDefinition *classDef = function.GetOwnerClass();
-        if (classDef)
-        {
-            string ownerClass = classDef->GetName();
-        }
+        _VisitFunctionBase(function, function.GetClass());
     }
 
     void Visit(const Synonym &syn) override {}

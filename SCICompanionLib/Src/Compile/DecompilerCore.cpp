@@ -3875,6 +3875,7 @@ std::string DecompileLookups::LookupPropertyName(WORD wPropertyIndex)
 {
     if (_pPropertyNames)
     {
+        _requestedProperty = true;
         return _pPropertyNames->LookupPropertyName(this, wPropertyIndex);
     }
     else
@@ -3915,6 +3916,16 @@ void DecompileLookups::SetPosition(sci::SyntaxNode *pNode)
 {
     pNode->SetPosition(_fakePosition);
     _fakePosition = LineCol(_fakePosition.Line() + 1, 0);
+}
+
+const ILookupPropertyName *DecompileLookups::GetPossiblePropertiesForProc(uint16_t localProcOffset)
+{
+    auto it = _localProcToPropLookups.find(localProcOffset);
+    if (it != _localProcToPropLookups.end())
+    {
+        return it->second;
+    }
+    return nullptr;
 }
 
 void DecompileLookups::EndowWithFunction(sci::FunctionBase *pFunc)
@@ -4006,6 +4017,24 @@ void DecompileLookups::ResolveRestStatements()
             // But I'd like to leave it in for now until I know the code is correct
             assert(iRealIndex == signature.GetParams().size());
             signature.AddParam(RestParamName);
+        }
+    }
+}
+
+void DecompileLookups::TrackProcedureCall(uint16_t offset)
+{
+    auto it = _localProcToPropLookups.find(offset);
+    if (it == _localProcToPropLookups.end())
+    {
+        _localProcToPropLookups[offset] = _pPropertyNames;
+    }
+    else
+    {
+        // This procedure is called from multiple contexts (e.g. multiple
+        // objects or other procedures) so we can't say it belongs to one object.
+        if (it->second != _pPropertyNames)
+        {
+            _localProcToPropLookups[offset] = nullptr;
         }
     }
 }

@@ -439,11 +439,21 @@ public:
         {
             StructuredFrame structuredFrame(_context, ChunkType::Do, loopNode);
             // It's a do loop. The condition is the latch.
-
-            // Condition
+            // We use do-whiles. So if the condition is true, then we should go back
+            // to the header. If the "then" branch of the latch isn't the header,
+            // then we should invert the condition.
+            if (IsThenBranch(latch, head))
             {
                 StructuredFrame structuredFrame(_context, ChunkType::Condition, loopNode);
                 latch->Accept(*this);
+            }
+            else
+            {
+                StructuredFrame structuredFrame(_context, ChunkType::Condition, loopNode);
+                {
+                    StructuredFrame structuredFrame(_context, ChunkType::Invert, loopNode);
+                    latch->Accept(*this);
+                }
             }
 
             // then... this is a bit more complicated since we follow a chain
@@ -457,6 +467,7 @@ public:
         {
             StructuredFrame structuredFrame(_context, ChunkType::While, loopNode);
             // It's a while. The condition is the head.
+            // REVIEW: Do we need to do the same kind of thing we do in the do loop above, wrt inverting?
 
             // Condition
             {
@@ -1052,6 +1063,8 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
                     break;
                 case Opcode::CALL:
                     ss << _GetProcNameFromScriptOffset(pos->get_final_postop_offset() + pos->get_first_operand());
+                    // Track this call so that we can say whether or not a local proc "belongs" to a class.
+                    lookups.TrackProcedureCall(pos->get_final_postop_offset() + pos->get_first_operand());
                     break;
             }
             unique_ptr<ProcedureCall> pProcCall = std::make_unique<ProcedureCall>();
@@ -1754,6 +1767,26 @@ void _FixupSwitches(ConsumptionNode *root, DecompileLookups &lookups)
     }
 }
 
+void _RemoveDoubleInverts(ConsumptionNode *chunk)
+{
+    for (size_t i = 0; i < chunk->GetChildCount(); i++)
+    {
+        if (chunk->Child(i)->GetType() == ChunkType::Invert)
+        {
+            if (chunk->Child(i)->Child(0)->GetType() == ChunkType::Invert)
+            {
+                unique_ptr<ConsumptionNode> newChild = chunk->Child(i)->Child(0)->StealChild(0);
+                chunk->ReplaceChild(i, move(newChild));
+            }
+        }
+    }
+
+    for (auto &child : chunk->Children())
+    {
+        _RemoveDoubleInverts(child.get());
+    }
+}
+
 void _RemoveTOSS(ConsumptionNode *chunk)
 {
     for (size_t i = 0; i < chunk->GetChildCount(); )
@@ -1822,6 +1855,7 @@ void OutputNewStructure(sci::FunctionBase &func, MainNode &main, DecompileLookup
     EnumerateCodeChunks enumCodeChunks(context, lookups);
     enumCodeChunks.Visit(main);
 
+    _RemoveDoubleInverts(mainChunk.get());
     _RemoveTOSS(mainChunk.get());
     _FixupSwitches(mainChunk.get(), lookups);
     _ResolveNeededAcc(mainChunk.get(), mainChunk.get(), lookups);

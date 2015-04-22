@@ -7,7 +7,7 @@
 #include "ControlFlowGraphViz.h"
 #include "StlUtil.h"
 
-//#define VISUALIZE_FLOW 1
+#define VISUALIZE_FLOW 1
 
 using namespace sci;
 using namespace std;
@@ -796,6 +796,62 @@ void ControlFlowGraph::_DoLoopTransform(ControlFlowNode *loop)
         }
     }
 }
+
+/*
+void ControlFlowGraph::_DoLoopTransform(ControlFlowNode *loop)
+{
+    // While loop: 2-way header node, and 1-way latch node
+    // Do loop: 2-way latch node and non-conditional header node
+    //
+    // However, they don't have that shape yet.
+    //
+    // Some problems we have:
+    //  - the latch node for do-whiles is just a jmp instruction. We need to merge this with its
+    //      predecessor, which should be a 2-way node that is that actual condition.
+    //      bnt A
+    //  B: jmp to loop beginning
+    //  A: outside of loop
+    //
+    //     is equivalent to:
+    //      bt to loop beginning
+    //  We need to be careful not to mis-identify while loops (we are only concered with dos)
+    ControlFlowNode *latch = (*loop)[SemId::Latch];
+    if ((latch->Type == CFGNodeType::RawCode) && latch->startsWith(Opcode::JMP))
+    {
+        if (latch->Predecessors().size() == 1)
+        {
+            ControlFlowNode *branchNode = *latch->Predecessors().begin();
+            // It could be an empty while loop too... check against this by seeing if our supposed branch
+            // node is the header.
+            if (branchNode != (*loop)[SemId::Head])
+            {
+                ControlFlowNode *otherBranchDestination = GetOtherBranch(branchNode, latch);
+                if (otherBranchDestination) // A while might not have one
+                {
+                    // And if it did, it wouldn't be an exit node
+                    if (otherBranchDestination->Type == CFGNodeType::Exit)
+                    {
+                        uint16_t address1 = otherBranchDestination->GetStartingAddress();
+                        uint16_t address2 = (*loop)[SemId::Follow]->GetStartingAddress();
+                        assert(address1 == address2);
+
+                        // Instead of making a new node, let's get rid of the JMP and switch the branch
+                        // node.
+                        (*loop)[SemId::Head]->ErasePredecessor(latch);
+                        latch->ErasePredecessor(branchNode);
+                        // Now the latch is detached from the tree completely.
+                        assert(latch->Predecessors().size() == 0 && latch->Successors().size() == 0);
+                        // branchNode is the new latch
+                        (*loop)[SemId::Latch] = branchNode;
+                        (*loop)[SemId::Head]->InsertPredecessor(branchNode);
+                        // Flip the "sign" of the branch node
+                        branchNode->getLastInstruction();
+                    }
+                }
+            }
+        }
+    }
+}*/
 
 void ControlFlowGraph::_FindCompoundConditions(ControlFlowNode *structure)
 {

@@ -29,6 +29,13 @@ ControlFlowNode *GetOtherBranch(ControlFlowNode *branchNode, ControlFlowNode *br
     return other;
 }
 
+bool IsThenBranch(ControlFlowNode *branchNode, ControlFlowNode *target)
+{
+    ControlFlowNode *thenNode, *elseNode;
+    GetThenAndElseBranches(branchNode, &thenNode, &elseNode);
+    return (target->GetStartingAddress() == thenNode->GetStartingAddress());
+}
+
 uint16_t ControlFlowNode::GetStartingAddress() const
 {
     uint16_t address = 0xffff;
@@ -50,6 +57,15 @@ uint16_t ControlFlowNode::GetStartingAddress() const
         address = (*this)[SemId::Head]->GetStartingAddress();
     }
     return address;
+}
+
+ControlFlowNode *AdvanceToExit(ControlFlowNode *node)
+{
+    while (node && node->Type != CFGNodeType::Exit)
+    {
+        node = GetFirstSuccessorOrNull(node);
+    }
+    return node;
 }
 
 // Given a node that represents a raw code branch or a compound condition, returns
@@ -111,6 +127,28 @@ void GetThenAndElseBranches(ControlFlowNode *node, ControlFlowNode **thenNode, C
                 *elseNode = one;
                 *thenNode = two;
             }
+        }
+    }
+    else if (node->Type == CFGNodeType::Invert)
+    {
+        ControlFlowNode *invThen, *invElse;
+        GetThenAndElseBranches((*node)[SemId::Head], &invThen, &invElse);
+        // Find the exit nodes
+        invThen = AdvanceToExit(invThen);
+        invElse = AdvanceToExit(invElse);
+
+        if (invThen->GetStartingAddress() == one->GetStartingAddress())
+        {
+            assert(invElse->GetStartingAddress() == two->GetStartingAddress());
+            *thenNode = two;
+            *elseNode = one;
+        }
+        else
+        {
+            assert(invElse->GetStartingAddress() == one->GetStartingAddress());
+            assert(invThen->GetStartingAddress() == two->GetStartingAddress());
+            *thenNode = one;
+            *elseNode = two;
         }
     }
 }

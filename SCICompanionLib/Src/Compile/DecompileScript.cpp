@@ -100,13 +100,21 @@ void DecompileObject(const CompiledObjectBase &object, sci::Script &script,
     lookups.EndowWithProperties(nullptr);
 }
 
-void DecompileFunction(const CompiledScript &compiledScript, FunctionBase &func, DecompileLookups &lookups, uint16_t wCodeOffsetTO, set<uint16_t> &sortedCodePointersTO)
+void DecompileFunction(const CompiledScript &compiledScript, ProcedureDefinition &func, DecompileLookups &lookups, uint16_t wCodeOffsetTO, set<uint16_t> &sortedCodePointersTO)
 {
+    lookups.EndowWithProperties(lookups.GetPossiblePropertiesForProc(wCodeOffsetTO));
     set<uint16_t>::const_iterator codeStartIt = sortedCodePointersTO.find(wCodeOffsetTO);
     ASSERT(codeStartIt != sortedCodePointersTO.end());
     const BYTE *pBegin = &compiledScript.GetRawBytes()[*codeStartIt];
     const BYTE *pEnd = compiledScript.GetEndOfRawBytes();
     DecompileRaw(func, lookups, pBegin, pEnd, wCodeOffsetTO);
+    if (lookups.WasPropertyRequested() && lookups.GetPossiblePropertiesForProc(wCodeOffsetTO))
+    {
+        const CompiledObjectBase *object = static_cast<const CompiledObjectBase *>(lookups.GetPossiblePropertiesForProc(wCodeOffsetTO));
+        // This procedure is "of" this object
+        func.SetClass(object->GetName());
+    }
+    lookups.EndowWithProperties(nullptr);
 }
 
 Script *Decompile(const CompiledScript &compiledScript, DecompileLookups &lookups, const ILookupNames *pWords)

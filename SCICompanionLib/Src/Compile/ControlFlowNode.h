@@ -293,6 +293,7 @@ struct RawCodeNode : public ControlFlowNode
 
 void GetThenAndElseBranches(ControlFlowNode *node, ControlFlowNode **thenNode, ControlFlowNode **elseNode);
 ControlFlowNode *GetOtherBranch(ControlFlowNode *branchNode, ControlFlowNode *branch1);
+bool IsThenBranch(ControlFlowNode *branchNode, ControlFlowNode *target);
 
 class DominatorMap : public std::map < ControlFlowNode*, NodeSet >
 {
@@ -302,3 +303,5 @@ public:
         return at(a).find(b) != at(a).end();
     }
 };
+
+ControlFlowNode *GetFirstSuccessorOrNull(ControlFlowNode *node);

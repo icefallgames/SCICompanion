@@ -93,7 +93,7 @@ public:
 
     void SetPosition(sci::SyntaxNode *pNode);
 
-    void EndowWithProperties(const ILookupPropertyName *pPropertyNames) { _pPropertyNames = pPropertyNames; }
+    void EndowWithProperties(const ILookupPropertyName *pPropertyNames) { _pPropertyNames = pPropertyNames; _requestedProperty = false; }
 	void EndowWithFunction(sci::FunctionBase *pFunc);
 
 	// Tracking variable usage
@@ -102,6 +102,11 @@ public:
 	const std::map<WORD, bool> &GetTempUsage(const std::string &functionMatchName) { return _tempVarUsage[functionMatchName]; }
     void TrackRestStatement(sci::RestStatement *rest, uint16_t paramIndex);
     void ResolveRestStatements();
+
+    // Track local proc calls so we know if they're part of an object
+    void TrackProcedureCall(uint16_t offset);
+    const ILookupPropertyName *GetPossiblePropertiesForProc(uint16_t localProcOffset);
+    bool WasPropertyRequested() { return _requestedProperty; }
 
     FunctionDecompileHints FunctionDecompileHints;
 
@@ -128,6 +133,9 @@ private:
 	std::unordered_map<std::string, std::map<WORD, bool>> _tempVarUsage;
     // Rest statements --- these need to be RestStaetment/index pairs. index 1 means first, index 2 means second.
     std::vector<std::pair<sci::RestStatement*, uint16_t>> _restStatementTrack;
+
+    std::map<uint16_t, const ILookupPropertyName*> _localProcToPropLookups;
+    bool _requestedProperty;
 };
 
 void DecompileRaw(sci::FunctionBase &func, DecompileLookups &lookups, const BYTE *pBegin, const BYTE *pEnd, WORD wBaseOffset);
