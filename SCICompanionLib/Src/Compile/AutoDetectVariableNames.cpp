@@ -237,7 +237,7 @@ public:
     void Visit(const SendCall &sendCall) override
     {
         // Make a suggestion if we have just one send selector with zero params.
-        if ((sendCall.GetParams().size() == 1) && !_IsUndetermined(sendCall.GetObject()))
+        if ((sendCall.GetParams().size() == 1) && !sendCall.GetObject().empty() && !_IsUndetermined(sendCall.GetObject()))
         {
             auto &param = sendCall.GetParams()[0];
             if (param->GetSelectorParams().size() == 0)

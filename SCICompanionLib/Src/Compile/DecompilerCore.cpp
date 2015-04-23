@@ -3929,6 +3929,30 @@ std::string DecompileLookups::LookupTextResource(WORD wIndex) const
     return ret;
 }
 
+void DecompileLookups::_CategorizeSelectors()
+{
+    for (auto &script : _pLookups->GetGlobalClassTable().GetAllScripts())
+    {
+        for (auto &object : script->GetObjects())
+        {
+            for (uint16_t propSelector : object->GetProperties())
+            {
+                _propertySelectors.insert(propSelector);
+            }
+            for (uint16_t methodSelector : object->GetMethods())
+            {
+                _methodSelectors.insert(methodSelector);
+            }
+        }
+    }
+}
+
+bool DecompileLookups::IsPropertySelectorOnly(uint16_t selector) const
+{
+    return (_propertySelectors.find(selector) != _propertySelectors.end()) &&
+        (_methodSelectors.find(selector) == _methodSelectors.end());
+}
+
 void DecompileLookups::SetPosition(sci::SyntaxNode *pNode)
 {
     pNode->SetPosition(_fakePosition);

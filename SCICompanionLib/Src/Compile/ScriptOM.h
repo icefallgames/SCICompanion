@@ -256,7 +256,7 @@ namespace sci
     struct SourceCodeWriter
     {
         SourceCodeWriter(std::stringstream &ss, LangSyntax syntax, Script *pScript = nullptr) : out(ss), lang(syntax),
-            iIndent(0), fInline(false), fLast(false), fUseBrackets(false), pszNewLine("\n")
+            iIndent(0), fInline(false), fLast(false), fUseBrackets(false), pszNewLine("\n"), lastNewLineLength(0)
         { 
 			if (pScript)
 			{
@@ -279,8 +279,21 @@ namespace sci
         }
         const char *NewLineString() const
         {
-            return pszNewLine;
+            return fInline ? "" : pszNewLine;
         }
+        void EnsureNewLine()
+        {
+            if (!fInline)
+            {
+                if (out.tellp() > lastNewLineLength)
+                {
+                    out << pszNewLine;
+                    lastNewLineLength = out.tellp();
+                }
+                // Otherwise we had just added a line.
+            }
+        }
+        std::stringstream::pos_type lastNewLineLength;
         LangSyntax lang;
         std::stringstream &out;
         int iIndent;

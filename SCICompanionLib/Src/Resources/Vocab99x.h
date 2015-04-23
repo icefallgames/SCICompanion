@@ -80,6 +80,8 @@ public:
     std::string Lookup(uint16_t wIndex) const;
     bool GetSpeciesPropertySelector(uint16_t wSpeciesIndex, std::vector<uint16_t> &props, std::vector<uint16_t> &values);
 
+    std::vector<CompiledScript*> GetAllScripts();
+
 private:
     bool _Create(sci::istream &byteStream);
 

@@ -212,7 +212,7 @@ public:
             {
                 out.out << " of " << procedureClass;
             }
-            out.out << out.NewLineString();
+            out.EnsureNewLine();
 
             // Body of function
             {
@@ -224,11 +224,12 @@ public:
                         Indent(out);
                         out.out << "(";
                         Forward(function.GetVariables(), ", ");
-                        out.out << ")" << out.NewLineString();
+                        out.out << ")";
                     }
                     // TODO: spit out the values here too.  _tempVarValues
                     // And somehow coalesce variables types? Or Maybe not...
                 }
+                out.EnsureNewLine();
                 Forward(function.GetCodeSegments());
             }
 
@@ -311,6 +312,7 @@ public:
         {
             out.out << "(";
             Inline inln(out, true);
+            DebugIndent indent(out);    // In case we end up not being inline.
             Forward(sendParam.GetSelectorParams(), " ");
             out.out << ")";
         }
@@ -319,6 +321,7 @@ public:
     void Visit(const LValue &lValue) override
     {
         out.SyncComments(lValue);
+        DebugLine debugLine(out);
         out.out << lValue.GetName();
         if (lValue.HasIndexer())
         {
@@ -378,7 +381,7 @@ public:
             Inline goInline(out, false);
             {
                 DebugIndent indent(out);
-                out.out << out.NewLineString();	// newline to start it out
+                out.EnsureNewLine(); // newline to start it out
                 Forward(sendCall.GetParams());
                 if (sendCall._rest)
                 {
@@ -403,6 +406,7 @@ public:
         DebugLine line(out);
         out.out << procCall.GetName() << "(";
         Inline inln(out, true);
+        DebugIndent indent(out);    // In case we end up not being inline.
         Forward(procCall.GetStatements(), " ");
         out.out << ")";
     }
@@ -413,6 +417,7 @@ public:
         DebugLine line(out);
         out.out << "return ";
         Inline inln(out, true);
+        DebugIndent indent(out);    // In case we have inline false in here:
         if (ret.GetStatement1() && (ret.GetStatement1()->GetType() != NodeTypeUnknown))
         {
             ret.GetStatement1()->Accept(*this);
@@ -525,6 +530,8 @@ public:
 
     void Visit(const SwitchStatement &switchStatement) override
     {
+        Inline inln(out, false);
+        out.EnsureNewLine();
         out.SyncComments(switchStatement);
         {
             DebugLine line(out);
@@ -551,6 +558,7 @@ public:
             DebugLine line(out);
             BracketScope bracketScope(out, true);
             Inline inln(out, true);
+            DebugIndent indent(out);
             out.out << assignment.GetAssignmentOp() << " ";
             assignment._variable->Accept(*this);
             out.out << " ";
@@ -622,6 +630,7 @@ public:
         {
             Inline inln(out, false);	// Line by line now, overall
             {
+                out.EnsureNewLine();
                 {
                     DebugLine ifLine(out);
                     out.out << "(if (";

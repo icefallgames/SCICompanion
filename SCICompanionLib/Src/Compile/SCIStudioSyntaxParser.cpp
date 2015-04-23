@@ -288,6 +288,7 @@ void SetStatementA(MatchResult &match, const Parser *pParser, SyntaxContext *pCo
     }
 }
 
+/*
 void StartTernary(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
     if (match.Result())
@@ -295,7 +296,7 @@ void StartTernary(MatchResult &match, const Parser *pParser, SyntaxContext *pCon
         SetStatementA<CppIfStatement>(match, pParser, pContext, stream);
         pContext->GetSyntaxNode<CppIfStatement>()->MakeTernary();
     }
-}
+}*/
 
 // Set the name of a SyntaxNode
 template<typename _T>
@@ -1157,6 +1158,7 @@ void SCISyntaxParser::Load()
         >>  statement[StatementBindTo2ndA<BinaryOp, errBinaryOp>];
 
     // ? (exp) a b
+    /*
     ternary_expression = 
             question[StartTernary]
             >> oppar[GeneralE]
@@ -1164,6 +1166,7 @@ void SCISyntaxParser::Load()
             >> clpar[GeneralE]
             >> statement[StatementBindTo1stA<CppIfStatement, errArgument>]
             >> statement[StatementBindTo2ndA<CppIfStatement, errBinaryOp>];
+            */
 
     // bnot done
     unary_operation =

@@ -373,6 +373,16 @@ std::string GlobalClassTable::Lookup(uint16_t wIndex) const
     return name;
 }
 
+std::vector<CompiledScript*> GlobalClassTable::GetAllScripts()
+{
+    std::vector<CompiledScript*> scripts;
+    for (auto &script : _scripts)
+    {
+        scripts.push_back(script.get());
+    }
+    return scripts;
+}
+
 bool GlobalClassTable::GetSpeciesPropertySelector(uint16_t wSpeciesIndex, std::vector<uint16_t> &props, std::vector<uint16_t> &values)
 {
     auto it = _speciesToCompiledObjectWeak.find(wSpeciesIndex);

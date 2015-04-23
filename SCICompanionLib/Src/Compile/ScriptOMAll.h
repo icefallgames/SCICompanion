@@ -120,7 +120,7 @@ namespace sci
 		SendCall& operator=(const SendCall& src) = delete;
 
         //const LValue &GetObject() const { return _object; }
-		std::string GetObject() const { return _innerName.empty() ? _object3->GetName() : _innerName; }
+		std::string GetObject() const { return _innerName.empty() ? (_object3 ?  _object3->GetName() : "") : _innerName; }
 
 		// Need to see how this is used.
 		const std::vector<std::unique_ptr<SendParam>> &GetParams() const { return _params; }

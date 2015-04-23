@@ -42,6 +42,7 @@ enum class ChunkType
     SwitchValue,
     Break,
     NeedsAccumulator,
+    ZeroNode,
 };
 
 // For debugging purposes
@@ -68,7 +69,8 @@ const char *chunkTypeNames[] =
     "CaseBody",
     "SwitchValue",
     "Break",
-    "NeedsAccumulator"
+    "NeedsAccumulator",
+    "ZeroNode",
 };
 
 struct ConsumptionNode
@@ -323,7 +325,7 @@ ControlFlowNode *GetFirstSuccOrNull(ControlFlowNode *node)
 
 // This assembles our ControlFlowNode tree into a tree of nodes that consume the accumulator and stack,
 // with children that produce the acc/stack values that they consume.
-// We can do this consume tree just inside the RawCodeNodes, because sometimes control
+// We can't do this consume tree just inside the RawCodeNodes, because sometimes control
 // structures take part in the tree. For instance, an if statement or switch statement
 // can be embedded in and expression, since they "return" values in the accumulator.
 class EnumerateCodeChunks : public ICFGNodeVisitor
@@ -853,6 +855,14 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode2(ConsumptionNode &node, Decomp
             return unique_ptr<SyntaxNode>(move(switchStatement));
         }
 
+        case ChunkType::ZeroNode:
+        {
+            // This could mean FALSE, or NULL, we don't know which. So just use 0.
+            unique_ptr<PropertyValue> valueTemp = make_unique<PropertyValue>();
+            valueTemp->SetValue(0, IntegerFlags::IFNone);
+            return unique_ptr<SyntaxNode>(move(valueTemp));
+        }
+
         case ChunkType::NeedsAccumulator:
         {
             unique_ptr<PropertyValue> valueTemp = make_unique<PropertyValue>();
@@ -1186,7 +1196,8 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
                             else
                             {
                                 sendParam->SetName(lookups.LookupSelectorName(wValue));
-                                sendParam->SetIsMethod(!_MaybeAProperty(sendParam->GetName()));
+                                sendParam->SetIsMethod(!lookups.IsPropertySelectorOnly(wValue));
+                                //sendParam->SetIsMethod(!_MaybeAProperty(sendParam->GetName()));
                             }
                         }
                         else if (cParamsLeft)
@@ -1681,6 +1692,28 @@ void _ResolvePPrevs(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLook
     }
 }
 
+unique_ptr<ConsumptionNode> _LookBackwardsAndFindAndCloneAccGenerator(ConsumptionNode *root, code_pos inclusiveStart, DecompileLookups &lookups)
+{
+    code_pos current = inclusiveStart;
+    while (current->get_opcode() != Opcode::INDETERMINATE)
+    {
+        Consumption consumption = _GetInstructionConsumption(*current, &lookups);
+        if (consumption.cAccGenerate)
+        {
+            // Found it. 
+            ConsumptionNode *toClone = _FindChunk(root, current);
+            assert(toClone);
+            if (toClone)
+            {
+                return toClone->Clone();
+            }
+            break;
+        }
+        --current;
+    }
+    return nullptr;
+}
+
 void _ResolveNeededAcc(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookups &lookups)
 {
     for (size_t i = 0; i < chunk->GetChildCount(); i++)
@@ -1700,25 +1733,13 @@ void _ResolveNeededAcc(ConsumptionNode *root, ConsumptionNode *chunk, DecompileL
             // The first option is simpler, so let's go with that. In fact, we'll go with an even simpler version for now, since
             // we don't have the raw ControlFlowNode tree anymore (it was transformed into the structured CFG node tree)
             // Let's just go back along the instructions... if we hit a JMP or RET we can assert and see if that ever happens.
-            code_pos current = chunk->GetCode();    // chunk, not child. Since a ChunkType::NeedsAccumulator node has no code, just a parent that needs it.
-            --current;
-            while (current->get_opcode() != Opcode::INDETERMINATE)
+            code_pos start = chunk->GetCode();    // chunk, not child. Since a ChunkType::NeedsAccumulator node has no code, just a parent that needs it.
+            --start;
+            unique_ptr<ConsumptionNode> theClone = _LookBackwardsAndFindAndCloneAccGenerator(root, start, lookups);
+            assert(theClone && "Couldn't find acc generator");
+            if (theClone)
             {
-                Consumption consumption = _GetInstructionConsumption(*current, &lookups);
-                if (consumption.cAccGenerate)
-                {
-                    // Found it. 
-                    ConsumptionNode *toClone = _FindChunk(root, current);
-                    assert(toClone);
-                    if (toClone)
-                    {
-                        unique_ptr<ConsumptionNode> theClone = toClone->Clone();
-                        chunk->ReplaceChild(i, move(theClone));
-                        // TODO: Insert a comment here.
-                    }
-                    break;
-                }
-                --current;
+                chunk->ReplaceChild(i, move(theClone));
             }
         }
     }
@@ -1749,6 +1770,41 @@ unique_ptr<ConsumptionNode> _FindAndStealSwitchValue(vector<pair<ConsumptionNode
     }
     assert(false && "Couldn't find switch value");
     return nullptr;
+}
+
+void _FixupIfs(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookups &lookups)
+{
+    // If an if is used for consumption (e.g. an only child of an instruction that consumes acc)
+    // then we need to ensure it has an else branch. e.g. SQ5, script 951.
+    for (size_t i = 0; i < chunk->GetChildCount(); i++)
+    {
+        if (chunk->Child(i)->GetType() == ChunkType::If)
+        {
+            Consumption consumptionParent = _GetInstructionConsumption(*chunk, lookups);
+            if (consumptionParent.cAccConsume)
+            {
+                // Ensure the if has an else
+                ConsumptionNode *ifNode = chunk->Child(i);
+                ConsumptionNode *elseNode = ifNode->GetChild(ChunkType::Else);
+                if (elseNode == nullptr)
+                {
+                    // We actually don't need to scan backwards. We know that we came here as the result of
+                    // a failed bnt operation. Therefore all we want is a FALSE in the accumulator.
+                    unique_ptr<ConsumptionNode> newElse = make_unique<ConsumptionNode>();
+                    newElse->SetType(ChunkType::Else);
+                    unique_ptr<ConsumptionNode> zeroNode = make_unique<ConsumptionNode>();
+                    zeroNode->SetType(ChunkType::ZeroNode);
+                    newElse->PrependChild(move(zeroNode));
+                    ifNode->PrependChild(move(newElse));
+                }
+            }
+        }
+    }
+
+    for (auto &child : chunk->Children())
+    {
+        _FixupIfs(root, child.get(), lookups);
+    }
 }
 
 void _FixupSwitches(ConsumptionNode *root, DecompileLookups &lookups)
@@ -1887,6 +1943,7 @@ void OutputNewStructure(sci::FunctionBase &func, MainNode &main, DecompileLookup
     _RemoveDoubleInverts(mainChunk.get());
     _RemoveTOSS(mainChunk.get());
     _FixupSwitches(mainChunk.get(), lookups);
+    _FixupIfs(mainChunk.get(), mainChunk.get(), lookups);
     _ResolveNeededAcc(mainChunk.get(), mainChunk.get(), lookups);
     _ResolvePPrevs(mainChunk.get(), mainChunk.get(), lookups);
 

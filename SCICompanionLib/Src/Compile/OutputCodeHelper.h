@@ -151,7 +151,7 @@ public:
     {
         if (!_out.fInline)
         {
-            _out.out << _out.NewLineString();
+            _out.EnsureNewLine();
         }
     }
 private:

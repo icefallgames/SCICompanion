@@ -4,6 +4,7 @@
 #include "scii.h"
 #include "ScriptOM.h"
 #include <cstdint>
+#include <unordered_set>
 
 // fwd decl
 namespace sci
@@ -69,9 +70,10 @@ struct FunctionDecompileHints
 class DecompileLookups : public ICompiledScriptLookups
 {
 public:
-    DecompileLookups(WORD wScript, ICompiledScriptLookups *pLookups, IObjectFileScriptLookups *pOFLookups, ICompiledScriptSpecificLookups *pScriptThings, ILookupNames *pTextResource, IPrivateSpeciesLookups *pPrivateSpecies) :
+    DecompileLookups(WORD wScript, GlobalCompiledScriptLookups *pLookups, IObjectFileScriptLookups *pOFLookups, ICompiledScriptSpecificLookups *pScriptThings, ILookupNames *pTextResource, IPrivateSpeciesLookups *pPrivateSpecies) :
 		_wScript(wScript), _pLookups(pLookups), _pOFLookups(pOFLookups), _pScriptThings(pScriptThings), _pTextResource(pTextResource), _pPrivateSpecies(pPrivateSpecies), PreferLValue(false)
     {
+        _CategorizeSelectors();
     }
 
     // ICompiledScriptLookups
@@ -118,9 +120,14 @@ public:
 
 	bool PreferLValue;
     std::vector<std::unique_ptr<CodeNode>>::iterator BreakExit;
+
+    bool IsPropertySelectorOnly(uint16_t selector) const;
+
 private:
+    void _CategorizeSelectors();
+
     WORD _wScript;
-    ICompiledScriptLookups *_pLookups;
+    GlobalCompiledScriptLookups *_pLookups;
     IObjectFileScriptLookups *_pOFLookups;
     ICompiledScriptSpecificLookups *_pScriptThings;
     ILookupNames *_pTextResource;
@@ -140,6 +147,10 @@ private:
 
     std::map<uint16_t, const ILookupPropertyName*> _localProcToPropLookups;
     bool _requestedProperty;
+
+    // Heuristics for which selectors are properties and which are methods.
+    std::unordered_set<uint16_t> _methodSelectors;
+    std::unordered_set<uint16_t> _propertySelectors;
 };
 
 void DecompileRaw(sci::FunctionBase &func, DecompileLookups &lookups, const BYTE *pBegin, const BYTE *pEnd, WORD wBaseOffset);
