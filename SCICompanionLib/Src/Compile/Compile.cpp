@@ -2818,6 +2818,7 @@ CodeResult Asm::OutputByteCode(CompileContext &context) const
                 vector<string> saidRefs;
                 vector<string> stringRefs;
                 vector<string> isntanceRefs;
+                vector<pair<string, uint16_t>> stringTokenRefs;
                 uint16_t args[3] = {};
                 for (size_t i = 0; i < 3; i++)
                 {
@@ -2867,7 +2868,7 @@ CodeResult Asm::OutputByteCode(CompileContext &context) const
                                     case ValueType::Token:
                                     {
                                         // REVIEW: We have additional restrictions here. We'll need special code to handle some cases.
-                                        // For instance, lofsa only makes sense with a class/instance. A load/store for a global var only
+                                        // For instance, lofsa only makes sense with a class/instance/string. A load/store for a global var only
                                         // makes sense with a global var. calle only makes sense with a public proc name. And in that case, two of
                                         // the operands are involved.
                                         uint16_t wInstanceScript;
@@ -2881,6 +2882,21 @@ CodeResult Asm::OutputByteCode(CompileContext &context) const
                                                 args[i] = number;
                                                 isntanceRefs.push_back(pValue->GetStringValue());
                                                 break;
+
+                                            case ResolvedToken::ScriptString:
+                                            {
+                                                args[i] = context.GetStringTokenTempOffset(pValue->GetStringValue());
+                                                WORD wImmediateIndex = 0;
+                                                if (pValue->GetIndexer())
+                                                {
+                                                    if (!CanDoIndexOptimization(pValue->GetIndexer(), wImmediateIndex))
+                                                    {
+                                                        context.ReportError(pValue->GetIndexer(), "Expected an integer for the index.");
+                                                    }
+                                                }
+                                                stringTokenRefs.emplace_back(pValue->GetStringValue(), wImmediateIndex);
+                                            }
+                                            break;
 
                                             default:
                                                 context.ReportError(this, "Unimplemented token type: '%d'.", tokenType);
@@ -2915,11 +2931,15 @@ CodeResult Asm::OutputByteCode(CompileContext &context) const
                 }
                 for (string stringRef : stringRefs)
                 {
-                    context.TrackSaidReference(stringRef);
+                    context.TrackStringReference(stringRef);
                 }
                 for (string instanceRef : isntanceRefs)
                 {
                     context.TrackInstanceReference(instanceRef);
+                }
+                for (pair<string, uint16_t> stringTokenRef : stringTokenRefs)
+                {
+                    context.TrackStringTokenReference(stringTokenRef.first, stringTokenRef.second);
                 }
             }
         }

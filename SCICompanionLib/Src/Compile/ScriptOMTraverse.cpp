@@ -67,10 +67,21 @@ void ForwardTraverse3(T &container, IExploreNodeContext *pContext, IExploreNode 
 void FunctionBase::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
 {
 	ExploreNodeBlock enb(en, pContext, *this);
+    ForwardTraverse2(_signatures, pContext, en);
     ForwardTraverse2(_tempVars, pContext, en);
 	ForwardTraverse2(_segments, pContext, en);
 }
 
+void FunctionSignature::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+{
+    ExploreNodeBlock enb(en, pContext, *this);
+    ForwardTraverse2(_params, pContext, en);
+}
+
+void FunctionParameter::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+{
+    ExploreNodeBlock enb(en, pContext, *this);
+}
 
 void CodeBlock::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
 {
@@ -138,6 +149,10 @@ void Script::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
     ForwardTraverse2(_scriptStringDeclarations, pContext, en);
 }
 
+void VariableDecl::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+{
+    ExploreNodeBlock enb(en, pContext, *this);
+}
 
 void DoLoop::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
 {

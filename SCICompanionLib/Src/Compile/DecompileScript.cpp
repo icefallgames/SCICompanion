@@ -3,6 +3,7 @@
 #include "CompiledScript.h"
 #include "DecompilerCore.h"
 #include "ScriptOMAll.h"
+#include "AutoDetectVariableNames.h"
 
 using namespace sci;
 using namespace std;
@@ -210,6 +211,8 @@ Script *Decompile(const CompiledScript &compiledScript, DecompileLookups &lookup
     }
 
     AddLocalVariablesToScript(*pScript, lookups, compiledScript._localVars);
+
+    AutoDetectVariableNames(*pScript);
 
     return pScript.release();
 }

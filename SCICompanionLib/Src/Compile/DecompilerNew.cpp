@@ -1456,6 +1456,17 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
             }
 
             return unique_ptr<SyntaxNode>(new Comment());*/
+            break;
+
+        case Opcode::PPREV:
+            // This is a special one. In our pre-processing, we should have found the "previous" accumulator
+            // value that PPREV needs and inserted it as a child.
+            assert(node.GetChildCount() == 1);
+            if (node.GetChildCount() > 0)
+            {
+                return _CodeNodeToSyntaxNode(*node.Child(0), lookups);
+            }
+            break;
 
         case Opcode::LINK:
             return unique_ptr<SyntaxNode>(new Comment());
@@ -1604,33 +1615,6 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
     return unique_ptr<SyntaxNode>(move(pComment));
 }
 
-/*
-void _FixupIfs(ConsumptionNode *chunk)
-{
-    for (size_t i = 0; i < chunk->GetChildCount();)
-    {
-        ConsumptionNode *child = chunk->Child(i);
-        if (child->GetType() == ChunkType::If)
-        {
-            assert(i > 0);
-            if (i > 0)
-            {
-                // Steal the previous guy and make it the if's condition
-                unique_ptr<ConsumptionNode> prev = chunk->StealChild(i - 1);
-                ConsumptionNode *ifCondition = child->PrependChild(); // Add a new node that will be the switch value.
-                ifCondition->SetType(ChunkType::Condition);
-                ifCondition->PrependChild(move(prev));
-                continue;
-            }
-        }
-        i++;
-    }
-    for (auto &child : chunk->Children())
-    {
-        _FixupIfs(child.get());
-    }
-}*/
-
 ConsumptionNode *_FindChunk(ConsumptionNode *chunk, code_pos code)
 {
     ConsumptionNode *found = nullptr;
@@ -1652,6 +1636,51 @@ ConsumptionNode *_FindChunk(ConsumptionNode *chunk, code_pos code)
     return found;
 }
 
+void _ResolvePPrevs(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookups &lookups)
+{
+    for (size_t i = 0; i < chunk->GetChildCount(); i++)
+    {
+        ConsumptionNode *child = chunk->Child(i);
+        Consumption consumption = _GetInstructionConsumption(*child, lookups);
+        if (consumption.cPrevConsume)
+        {
+            // Work backward to find a prev generator, then an acc generator.
+            code_pos current = child->GetCode();
+            --current;
+            bool lookingForPrev = true;
+            while (current->get_opcode() != Opcode::INDETERMINATE)
+            {
+                Consumption consumption = _GetInstructionConsumption(*current, &lookups);
+                if (lookingForPrev && consumption.cPrevGenerate)
+                {
+                    lookingForPrev = false;
+                }
+                else if (!lookingForPrev && consumption.cAccGenerate)
+                {
+                    // Found the thing from the accumulator what we want to push.
+                    ConsumptionNode *toClone = _FindChunk(root, current);
+                    assert(toClone);
+                    if (toClone)
+                    {
+                        unique_ptr<ConsumptionNode> theClone = toClone->Clone();
+                        // Now we want to replace the prev with a push, and then put the cloned thing
+                        // as the child of the push. Actually, let's not replace it. Let's just add
+                        // the clone as a child of it.
+                        assert(child->GetChildCount() == 0);
+                        child->PrependChild(move(theClone));
+                    }
+                    break;
+                }
+                --current;
+            }
+        }
+    }
+    for (auto &child : chunk->Children())
+    {
+        _ResolvePPrevs(root, child.get(), lookups);
+    }
+}
+
 void _ResolveNeededAcc(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookups &lookups)
 {
     for (size_t i = 0; i < chunk->GetChildCount(); i++)
@@ -1671,7 +1700,7 @@ void _ResolveNeededAcc(ConsumptionNode *root, ConsumptionNode *chunk, DecompileL
             // The first option is simpler, so let's go with that. In fact, we'll go with an even simpler version for now, since
             // we don't have the raw ControlFlowNode tree anymore (it was transformed into the structured CFG node tree)
             // Let's just go back along the instructions... if we hit a JMP or RET we can assert and see if that ever happens.
-            code_pos current = chunk->GetCode();
+            code_pos current = chunk->GetCode();    // chunk, not child. Since a ChunkType::NeedsAccumulator node has no code, just a parent that needs it.
             --current;
             while (current->get_opcode() != Opcode::INDETERMINATE)
             {
@@ -1859,10 +1888,9 @@ void OutputNewStructure(sci::FunctionBase &func, MainNode &main, DecompileLookup
     _RemoveTOSS(mainChunk.get());
     _FixupSwitches(mainChunk.get(), lookups);
     _ResolveNeededAcc(mainChunk.get(), mainChunk.get(), lookups);
+    _ResolvePPrevs(mainChunk.get(), mainChunk.get(), lookups);
 
-    //_FixupIfs(mainChunk.get());
     _RestructureCaseHeaders(mainChunk.get(), lookups);
-    //_FixupOtherThing(mainChunk.get());
 
     std::stringstream ss;
     mainChunk->Print(ss, 0);

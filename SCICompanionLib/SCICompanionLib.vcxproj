@@ -184,6 +184,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\Compile\AutoDetectVariableNames.cpp" />
     <ClCompile Include="Src\Compile\ControlFlowNode.cpp" />
     <ClCompile Include="Src\Compile\ControlFlowGraphViz.cpp" />
     <ClCompile Include="Src\Compile\DecompilerNew.cpp" />
@@ -218,6 +219,7 @@
     <ClCompile Include="Src\Resources\VersionDetectionHelper.cpp" />
     <ClCompile Include="Src\Resources\View.cpp" />
     <ClCompile Include="Src\Util\AudioPlayback.cpp" />
+    <ClInclude Include="Src\Compile\AutoDetectVariableNames.h" />
     <ClInclude Include="Src\Compile\DecompilerNew.h" />
     <ClInclude Include="Src\Dialogs\PaletteEditorCommon.h" />
     <ClInclude Include="Src\Dialogs\PaletteEditorDialog.h" />

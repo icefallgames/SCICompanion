@@ -27,12 +27,16 @@ struct Consumption
         cStackConsume = 0;
         cAccGenerate = 0;
         cStackGenerate = 0;
+        cPrevConsume = 0;
+        cPrevGenerate = 0;
     }
 
     int cAccConsume;
     int cStackConsume;
     int cAccGenerate;
     int cStackGenerate;
+    int cPrevConsume;
+    int cPrevGenerate;
 };
 
 Consumption _GetInstructionConsumption(scii &inst, DecompileLookups *lookups = nullptr);

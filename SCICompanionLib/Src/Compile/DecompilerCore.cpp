@@ -479,6 +479,8 @@ Consumption _GetInstructionConsumption(scii &inst, DecompileLookups *lookups)
     bool fChangesAcc = false;
     bool fEatsAcc = false;
     bool fPutsOnStack = false;
+    bool fEatsPrev = false;
+    bool fChangesPrev = false;
     switch (bOpcode)
     {
     case Opcode::SELF:
@@ -514,6 +516,11 @@ Consumption _GetInstructionConsumption(scii &inst, DecompileLookups *lookups)
     case Opcode::AND:
     case Opcode::OR:
     case Opcode::ADD:
+        fChangesAcc = true;
+        fEatsAcc = true;
+        cEatStack = 1;
+        break;
+
     case Opcode::EQ:
     case Opcode::GT:
     case Opcode::LT:
@@ -524,6 +531,7 @@ Consumption _GetInstructionConsumption(scii &inst, DecompileLookups *lookups)
     case Opcode::UGE:
     case Opcode::ULT:
     case Opcode::ULE:
+        fChangesPrev = true;
         fChangesAcc = true;
         fEatsAcc = true;
         cEatStack = 1;
@@ -607,6 +615,7 @@ Consumption _GetInstructionConsumption(scii &inst, DecompileLookups *lookups)
 
     case Opcode::PPREV:
         fPutsOnStack = true;
+        fEatsPrev = true;
         break;
 
     case Opcode::REST:
@@ -705,6 +714,14 @@ Consumption _GetInstructionConsumption(scii &inst, DecompileLookups *lookups)
     if (fPutsOnStack)
     {
         cons.cStackGenerate++;
+    }
+    if (fEatsPrev)
+    {
+        cons.cPrevConsume++;
+    }
+    if (fChangesPrev)
+    {
+        cons.cPrevGenerate++;
     }
 
     return cons;

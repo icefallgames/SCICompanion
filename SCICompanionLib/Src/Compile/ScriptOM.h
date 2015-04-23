@@ -185,7 +185,6 @@ namespace sci
         NodeTypeAssignment,
         NodeTypeVariableDeclaration,
         NodeTypeDefine,
-        NodeTypeScriptVariable,
         NodeTypeClassProperty,
         NodeTypeStatement,
         NodeTypeFunction,
@@ -697,9 +696,9 @@ namespace sci
         void SetIsUnspecifiedSize(bool unspecified) { _unspecifiedSize = unspecified; }
         bool IsUnspecifiedSize() { return _unspecifiedSize; }
         // IOutputByteCode
-        CodeResult OutputByteCode(CompileContext &context) const;
-        void PreScan(CompileContext &context);
-
+        CodeResult OutputByteCode(CompileContext &context) const override;
+        void PreScan(CompileContext &context) override;
+        void Traverse(IExploreNodeContext *pContext, IExploreNode &en) override;
         
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
@@ -726,6 +725,9 @@ namespace sci
         FunctionParameter& operator=(FunctionParameter& src) = delete;
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
+
+        // IOutputByteCode
+        void Traverse(IExploreNodeContext *pContext, IExploreNode &en) override;
     };
     typedef FunctionParameter* FunctionParameterPtr;
     typedef std::vector<std::unique_ptr<FunctionParameter>> FunctionParameterVector;
@@ -747,8 +749,9 @@ namespace sci
         size_t GetRequiredParameterCount() const { return (_iOptional == NoOptional) ? _params.size() : _iOptional; }
 
         // IOutputByteCode
-        CodeResult OutputByteCode(CompileContext &context) const { ASSERT(FALSE); return CodeResult(); }
-        void PreScan(CompileContext &context);
+        CodeResult OutputByteCode(CompileContext &context) const  override { assert(false); return CodeResult(); }
+        void PreScan(CompileContext &context) override;
+        void Traverse(IExploreNodeContext *pContext, IExploreNode &en) override;
 
         // IVariableLookupContext
         ResolvedToken LookupVariableName(CompileContext &context, const std::string &str, WORD &wIndex, SpeciesIndex &dataType) const;
