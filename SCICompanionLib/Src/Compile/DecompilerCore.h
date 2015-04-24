@@ -191,7 +191,6 @@ void _MassageProcedureCall(sci::ProcedureCall &proc, DecompileLookups &lookups, 
 std::string _GetVariableNameFromCodePos(code_pos pos, DecompileLookups &lookups, VarScope *pVarType = nullptr, WORD *pwIndexOut = nullptr);
 bool _IsVOIncremented(Opcode bOpcode);
 bool _IsVODecremented(Opcode bOpcode);
-bool _MaybeAProperty(const std::string &selector);
 bool _IsVOStack(Opcode bOpcode);
 bool _IsVOPureStack(Opcode bOpcode);
 bool _IsVOIndexed(Opcode bOpcode);

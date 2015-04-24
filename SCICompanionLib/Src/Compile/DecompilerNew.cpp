@@ -1201,7 +1201,6 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
                             {
                                 sendParam->SetName(lookups.LookupSelectorName(wValue));
                                 sendParam->SetIsMethod(!lookups.IsPropertySelectorOnly(wValue));
-                                //sendParam->SetIsMethod(!_MaybeAProperty(sendParam->GetName()));
                             }
                         }
                         else if (cParamsLeft)

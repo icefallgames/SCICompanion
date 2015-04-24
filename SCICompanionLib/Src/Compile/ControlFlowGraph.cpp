@@ -7,7 +7,7 @@
 #include "ControlFlowGraphViz.h"
 #include "StlUtil.h"
 
-//#define VISUALIZE_FLOW 1
+#define VISUALIZE_FLOW 1
 
 using namespace sci;
 using namespace std;
