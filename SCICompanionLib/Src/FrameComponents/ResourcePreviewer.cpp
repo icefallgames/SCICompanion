@@ -17,7 +17,10 @@
 #include "AudioPlayback.h"
 #include "ResourceEntity.h"
 #include "SummarizeScript.h"
+#include "Audio.h"
 #include <vfw.h>
+
+#define SOUND_IMPLEMENTED 1
 
 BOOL ResourcePreviewer::OnInitDialog()
 {
@@ -515,7 +518,11 @@ SoundPreviewer::SoundPreviewer()
 void SoundPreviewer::SetResource(const ResourceBlob &blob)
 {
     _sound = CreateResourceFromResourceData(blob);
-    g_midiPlayer.SetSound(_sound->GetComponent<SoundComponent>(), SoundComponent::StandardTempo); // We don't have a tempo control
+    SoundComponent *soundComp = _sound->TryGetComponent<SoundComponent>();
+    if (soundComp)
+    {
+        g_midiPlayer.SetSound(*soundComp, SoundComponent::StandardTempo); // We don't have a tempo control
+    }
     OnSynthChoiceChange();
     if (m_wndAutoPreview.GetCheck() == BST_CHECKED)
     {
@@ -621,14 +628,17 @@ void SoundPreviewer::OnSynthChoiceChange()
     _device = GetDeviceFromComboHelper(m_wndSynths);
     if (_sound)
     {
-        std::string channelText;
-        _wChannelMask = _sound->GetComponent<SoundComponent>().GetChannelMask(_device);
-        for (int i = 0; i < 16; i++)
+        SoundComponent *soundComp = _sound->TryGetComponent<SoundComponent>();
+        if (soundComp)
         {
-            channelText += ((_wChannelMask >> i) & 0x1)? "1" : "0";
+            std::string channelText;
+            _wChannelMask = soundComp->GetChannelMask(_device);
+            for (int i = 0; i < 16; i++)
+            {
+                channelText += ((_wChannelMask >> i) & 0x1) ? "1" : "0";
+            }
+            m_wndChannels.SetWindowText(channelText.c_str());
         }
-        m_wndChannels.SetWindowText(channelText.c_str());
-       
     }
 }
 
@@ -652,9 +662,10 @@ void SoundPreviewer::_UpdatePlayState()
 void SoundPreviewer::OnPlay()
 {
 #if SOUND_IMPLEMENTED
-    if (_sound->GetComponent<SoundComponent>().Frequency != 0)
+    AudioComponent *audio = _sound->TryGetComponent<AudioComponent>();
+    if (audio && audio->Frequency != 0)
     {
-        g_audioPlayback.Play(_sound->GetComponent<SoundComponent>());
+        g_audioPlayback.Play(*audio);
     }
     else
 #endif
@@ -678,6 +689,9 @@ void SoundPreviewer::OnTimer(UINT_PTR nIDEvent)
         if (_fPlaying)
         {
             m_wndSlider.SetPos(g_midiPlayer.QueryPosition(100));
+#if SOUND_IMPLEMENTED
+            g_audioPlayback.IdleUpdate();
+#endif
         }
     }
     else

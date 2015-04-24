@@ -39,6 +39,9 @@ public:
     bool Load(SCIVersion version);
     void Save();
 
+protected:
+    std::string _GetMissingName(uint16_t wName) const override;
+
 private:
     SCIVersion _version;
 };

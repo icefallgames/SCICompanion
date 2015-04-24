@@ -125,7 +125,14 @@ void AppendUpper(string &value, const string &append)
     else
     {
         value += toupper(append[0]);
-        value += append.substr(1, string::npos);
+        if (!append.empty())
+        {
+            value += append.substr(1, string::npos);
+        }
+        else
+        {
+            value += "ERROR_VAR_SUGGESTION";
+        }
     }
 }
 

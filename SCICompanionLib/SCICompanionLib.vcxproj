@@ -208,6 +208,7 @@
     <ClCompile Include="Src\MFCDocuments\PaletteDoc.cpp" />
     <ClCompile Include="Src\MFCFrames\PaletteChildFrame.cpp" />
     <ClCompile Include="Src\MFCViews\PaletteView.cpp" />
+    <ClCompile Include="Src\Resources\Audio.cpp" />
     <ClCompile Include="Src\Resources\Font.cpp" />
     <ClCompile Include="Src\Resources\Pic.cpp" />
     <ClCompile Include="Src\Resources\ResourceMapOperations.cpp" />
@@ -226,6 +227,7 @@
     <ClInclude Include="Src\MFCDocuments\PaletteDoc.h" />
     <ClInclude Include="Src\MFCFrames\PaletteChildFrame.h" />
     <ClInclude Include="Src\MFCViews\PaletteView.h" />
+    <ClInclude Include="Src\Resources\Audio.h" />
     <ClInclude Include="Src\Resources\Pic.h" />
     <ClInclude Include="Src\Resources\View.h" />
     <ClInclude Include="Src\Util\BufferPool.h">

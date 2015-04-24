@@ -2,16 +2,19 @@
 
 #include <mmsystem.h>
 
-struct SoundComponent;
+struct AudioComponent;
 
 class AudioPlayback
 {
 public:
     AudioPlayback();
     ~AudioPlayback();
-    void Play(const SoundComponent &sound);
+    void Play(const AudioComponent &sound);
+    void IdleUpdate();
 
 private:
+    void Cleanup();
+
     HWAVEOUT hWaveOut;
     WAVEHDR waveHeader;
 };

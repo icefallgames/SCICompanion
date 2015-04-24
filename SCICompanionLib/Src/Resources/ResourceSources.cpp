@@ -2,6 +2,7 @@
 #include "ResourceSources.h"
 #include "AppState.h"
 #include "format.h"
+#include "Audio.h"  // For the audio source
 
 SourceTraits resourceMapSourceTraits =
 {
@@ -189,6 +190,14 @@ bool AudioResourceSource::ReadNextEntry(ResourceTypeFlags typeFlags, IteratorSta
         // w nEntry
         // tb offset (cumulative)
 
+        // For LSL6, which uses resource.sfx, there is no 65535.map file. It's in the resource map, in a map resource.
+        // So we'll need to do some funky thing where we "recursively" call for that resource. Or, perhaps a better thing,
+        // it so have a GetAudioMap65535 thingy, just like we have GetPalette999. And it either grabs it from the patch resource
+        // or from the actual resource map. How about that, easy. Then we'll either look for resource.aud or resource.aux to know how
+        // we should read it.
+        // LB_Dagger has it as 0.map in the resource map
+        // QF3 has a 65535.map in resource.map, but I don't see the actual audio files anywhere.
+
         readStream >> entry.Number;
         if (entry.Number == 0xffff)
         {
@@ -203,18 +212,6 @@ bool AudioResourceSource::ReadNextEntry(ResourceTypeFlags typeFlags, IteratorSta
     }
     return false;
 }
-
-#include <pshpack1.h>
-struct TestAudioHeader
-{
-    uint8_t resourceType;
-    uint8_t unknown;
-    uint32_t audioType; // SOL
-    uint16_t sampleRate;
-    uint8_t unknown2;
-    uint32_t sizeExcludingHeader;
-};
-#include <poppack.h>
 
 sci::istream AudioResourceSource::GetHeaderAndPositionedStream(const ResourceMapEntryAgnostic &mapEntry, ResourceHeaderAgnostic &headerEntry)
 {
@@ -237,7 +234,7 @@ sci::istream AudioResourceSource::GetHeaderAndPositionedStream(const ResourceMap
         headerEntry.Version = _version;
         headerEntry.Type = ResourceType::Audio;
         headerEntry.cbDecompressed = 0;
-        TestAudioHeader audioHeader;
+        AudioHeader audioHeader;
         reader >> audioHeader;
         reader.seekg(-(int)sizeof(audioHeader), std::ios_base::cur);
         headerEntry.cbDecompressed = sizeof(audioHeader) + audioHeader.sizeExcludingHeader;

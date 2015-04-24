@@ -16,6 +16,7 @@
 #include "Vocab000.h"
 #include "PaletteOperations.h"
 #include "Message.h"
+#include "Audio.h"
 #include "ResourceEntity.h"
 #include "ResourceSources.h"
 #include "CompiledScript.h"
@@ -973,7 +974,10 @@ GlobalCompiledScriptLookups *CResourceMap::GetCompiledScriptLookups()
     if (!_globalCompiledScriptLookups)
     {
         _globalCompiledScriptLookups = make_unique<GlobalCompiledScriptLookups>();
-        _globalCompiledScriptLookups->Load(this->GetSCIVersion());
+        if (!_globalCompiledScriptLookups->Load(this->GetSCIVersion()))
+        {
+            // Warning... (happens in LB Dagger)
+        }
     }
     return _globalCompiledScriptLookups.get();
 }
@@ -1223,6 +1227,7 @@ std::unique_ptr<ResourceEntity> CreateResourceFromResourceData(const ResourceBlo
         DECLARE_CREATE_RESOURCE_WITH_CREATE_FUNCTION(ResourceType::Pic, CreatePicResource, CreateDefaultPicResource, DoNothing)
         DECLARE_CREATE_RESOURCE_WITH_CREATE_FUNCTION(ResourceType::Palette, CreatePaletteResource, CreatePaletteResource, DoNothing)
         DECLARE_CREATE_RESOURCE_WITH_CREATE_FUNCTION(ResourceType::Message, CreateMessageResource, CreateDefaultMessageResource, DoNothing)
+        DECLARE_CREATE_RESOURCE_WITH_CREATE_FUNCTION(ResourceType::Audio, CreateAudioResource, CreateDefaultAudioResource, DoNothing)
     default:
         assert(false);
         break;

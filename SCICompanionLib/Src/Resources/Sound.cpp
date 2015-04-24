@@ -2,6 +2,7 @@
 #include "Sound.h"
 #include "AppState.h"
 #include "ResourceEntity.h"
+#include "Audio.h"
 
 #pragma comment( lib, "winmm.lib" )
 
@@ -928,8 +929,11 @@ void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream)
 }
 
 
-void ScanAndReadDigitalSample(SoundComponent &sound, sci::istream stream)
+void ScanAndReadDigitalSample(ResourceEntity &resource, sci::istream stream)
 {
+    resource.AddComponent(move(make_unique<AudioComponent>()));
+    AudioComponent &audio = resource.GetComponent<AudioComponent>();
+
     stream.seekg(0);
     uint32_t offset = 0;
     while (!offset && (stream.getBytesRemaining() > 0))
@@ -950,13 +954,13 @@ void ScanAndReadDigitalSample(SoundComponent &sound, sci::istream stream)
     if (offset)
     {
         stream.skip(14);
-        stream >> sound.Frequency;
+        stream >> audio.Frequency;
         stream.skip(16);
-        stream >> sound.Length;
+        stream >> audio.Length;
         stream.skip(10);
         // Now comes the wave data.
-        sound.DigitalSamplePCM.assign(stream.getBytesRemaining(), 0);
-        stream.read_data(&sound.DigitalSamplePCM[0], sound.DigitalSamplePCM.size());
+        audio.DigitalSamplePCM.assign(stream.getBytesRemaining(), 0);
+        stream.read_data(&audio.DigitalSamplePCM[0], audio.DigitalSamplePCM.size());
     }
 }
 
@@ -985,7 +989,7 @@ void SoundReadFrom_SCI0(ResourceEntity &resource, sci::istream &stream)
     {
         if (b == 0x2)
         {
-            ScanAndReadDigitalSample(sound, stream);
+            ScanAndReadDigitalSample(resource, stream);
         }
     }
 }

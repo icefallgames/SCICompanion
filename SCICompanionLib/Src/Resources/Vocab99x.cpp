@@ -3,6 +3,7 @@
 #include "Vocab99x.h"
 #include "ResourceMap.h"
 #include "CompiledScript.h"
+#include "format.h"
 
 const static int VocabClassTable = 996;
 const static int VocabSelectorNames = 997;
@@ -206,6 +207,11 @@ uint16_t CVocabWithNames::Add(const string &str)
     _names.push_back(str);
     _fDirty = true;
     return static_cast<uint16_t>(_names.size() - 1);
+}
+
+std::string SelectorTable::_GetMissingName(uint16_t wName) const
+{
+    return fmt::format("sel_{0}", wName);
 }
 
 bool SelectorTable::Load(SCIVersion version)

@@ -895,7 +895,10 @@ bool CompiledScript::LookupSpeciesPropertyListAndValues(uint16_t wIndex, std::ve
 //
 bool GlobalCompiledScriptLookups::Load(SCIVersion version)
 {
-    return _selectors.Load(version) && _kernels.Load() && _classes.Load();
+    bool selOk = _selectors.Load(version);
+    bool kernelOk = _kernels.Load();
+    bool classesOk = _classes.Load();
+    return selOk && kernelOk && classesOk;
 }
 std::string GlobalCompiledScriptLookups::LookupSelectorName(uint16_t wIndex)
 {

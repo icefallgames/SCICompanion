@@ -125,7 +125,7 @@ public:
     friend void SoundReadFrom_SCI0(ResourceEntity &resource, sci::istream &stream);
     friend SoundChangeHint InitializeFromMidi(SoundComponent &sound, const std::string &filename);
     friend void ReadChannel(sci::istream &stream, std::vector<SoundEvent> &events, DWORD &totalTicks, SoundComponent &sound);
-    friend void ScanAndReadDigitalSample(SoundComponent &sound, sci::istream stream);
+    friend void ScanAndReadDigitalSample(ResourceEntity &resource, sci::istream stream);
 
     // For SetChannelMask
     static const uint16_t AllChannelsMask = 0x7FFF;
@@ -156,11 +156,6 @@ public:
     const std::vector<CuePoint> &GetCuePoints() const { return Cues; }
     DWORD GetLoopPoint() const { return LoopPoint; }
     DWORD GetTotalTicks() const { return max(1, TotalTicks); }   // 0 causes div by zero errors }
-
-    // Playback of digital audio is not supported yet.
-    std::vector<uint8_t> DigitalSamplePCM;
-    uint16_t Frequency;
-    uint16_t Length;
 
 private:
     uint16_t _channels[15];
