@@ -176,6 +176,22 @@ void g_OpenPalette(const ResourceBlob *pData)
     }
 }
 
+void g_OpenAudio(const ResourceBlob *pData)
+{
+    /*
+    CMultiDocTemplate *pTemplate = appState->GetViewTemplate();
+    if (pTemplate)
+    {
+        CNewRasterResourceDocument *pDocument = static_cast<CNewRasterResourceDocument*>(pTemplate->OpenDocumentFile(nullptr, TRUE));
+        if (pDocument)
+        {
+            unique_ptr<ResourceEntity> resource = CreateResourceFromResourceData(*pData);
+            pDocument->SetResource(move(resource), pData->GetChecksum());
+        }
+    }*/
+}
+
+
 //
 // These are used by the individual views, as well as by
 // the OpenResource function.
@@ -196,7 +212,7 @@ PFNRESOURCEOPEN g_openFunctions[] =
     nullptr,    // bitmap
     g_OpenPalette,
     nullptr,
-    nullptr,
+    g_OpenAudio,
     nullptr,
     g_OpenMessage,
     nullptr,

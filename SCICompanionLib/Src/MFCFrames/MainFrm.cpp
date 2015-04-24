@@ -335,6 +335,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_COMMAND_EX(ID_SHOW_PALETTES, OnShowResource)
     ON_COMMAND_EX(ID_SHOW_MESSAGES, OnShowResource)
     ON_COMMAND_EX(ID_SHOW_HEAPS, OnShowResource)
+    ON_COMMAND_EX(ID_SHOW_AUDIO, OnShowResource)
     ON_UPDATE_COMMAND_UI(ID_FILE_NEWPIC, OnUpdateNewPic)
     ON_UPDATE_COMMAND_UI(ID_FILE_NEWPIC, OnUpdateNewPic)
     ON_UPDATE_COMMAND_UI(ID_PREFERENCES, OnUpdateAlwaysEnabled)
@@ -430,6 +431,7 @@ c_ShowResourceCommands[] =
     { ID_SHOW_PALETTES, ResourceType::Palette, "Palettes", "Show palettes", "Show palette resources", IDI_PALETTEVGA },
     { ID_SHOW_MESSAGES, ResourceType::Message, "Messages", "Show messages", "Show message resources", IDI_TEXT },
     { ID_SHOW_HEAPS, ResourceType::Heap, "Heaps", "Show heaps", "Show heap resources", IDI_SCRIPT },
+    { ID_SHOW_AUDIO, ResourceType::Audio, "Audio", "Show audio", "Show audio resources", IDI_SOUND },
 };
 
 void _AssignIcons(const key_value_pair<UINT, int> *rg, size_t count)
@@ -676,6 +678,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     m_wndExplorerTools.InsertButton(-1, ID_SHOW_PALETTES);
     m_wndExplorerTools.InsertButton(-1, ID_SHOW_MESSAGES);
     m_wndExplorerTools.InsertButton(-1, ID_SHOW_HEAPS);
+    m_wndExplorerTools.InsertButton(-1, ID_SHOW_AUDIO);
     m_wndExplorerTools.InitContentExpandButton(); // Overflow...
 
     // Pics

@@ -470,3 +470,36 @@ private:
     std::unordered_map<int, std::string> _indexToFilename;
     std::unordered_map<int, std::unique_ptr<sci::streamOwner>> _streamHolder;
 };
+
+
+// ResourceSource for SCI1.1 audio resources
+class AudioResourceSource : public ResourceSource
+{
+public:
+    AudioResourceSource(SCIVersion version, const std::string &gameFolder) :
+        _gameFolder(gameFolder),
+        _version(version)
+    {}
+
+    bool ReadNextEntry(ResourceTypeFlags typeFlags, IteratorState &state, ResourceMapEntryAgnostic &entry, std::vector<uint8_t> *optionalRawData = nullptr) override;
+    sci::istream GetHeaderAndPositionedStream(const ResourceMapEntryAgnostic &mapEntry, ResourceHeaderAgnostic &headerEntry) override;
+
+    sci::istream GetPositionedStreamAndResourceSizeIncludingHeader(const ResourceMapEntryAgnostic &mapEntry, uint32_t &size) override
+    {
+        assert(false && "Not implemented");
+        return sci::istream(nullptr, 0);
+    }
+
+    // All not implemented
+    void RemoveEntry(const ResourceMapEntryAgnostic &mapEntry) override {}
+    void AppendResources(const std::vector<ResourceBlob> &entries) override {}
+    void RebuildResources() override {}
+
+private:
+    std::string _gameFolder;
+    SCIVersion _version;
+    std::unique_ptr<sci::streamOwner> _mapStreamOwner;
+    std::unique_ptr<sci::streamOwner> _volumeStreamOwner;
+};
+
+

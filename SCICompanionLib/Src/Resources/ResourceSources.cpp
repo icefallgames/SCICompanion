@@ -160,3 +160,91 @@ bool IsResourceCompatible(const ResourceBlob &blob)
 {
     return appState->GetResourceMap().IsResourceCompatible(blob);
 }
+
+bool AudioResourceSource::ReadNextEntry(ResourceTypeFlags typeFlags, IteratorState &state, ResourceMapEntryAgnostic &entry, std::vector<uint8_t> *optionalRawData)
+{
+    if (!_mapStreamOwner && state.mapStreamOffset == 0)
+    {
+        // Load the file
+        std::string fullPath = _gameFolder + "\\" + "65535.map";
+        ScopedFile scoped(fullPath, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
+        _mapStreamOwner = std::make_unique<sci::streamOwner>(scoped.hFile);
+        state.mapStreamOffset = 2;  // Skip opening marker
+    }
+
+    if (_mapStreamOwner)
+    {
+        sci::istream readStream = _mapStreamOwner->getReader();
+        readStream.seekg(state.mapStreamOffset);
+        // Read 6 byte entry (for resource.aud. For resource.sfx it would be 5 bytes)
+        // Early SCI1.1 65535.MAP structure (uses RESOURCE.AUD):
+        // =========
+        // 6-byte entries:
+        // w nEntry
+        // dw offset
+
+        // Late SCI1.1 65535.MAP structure (uses RESOURCE.SFX):
+        // =========
+        // 5-byte entries:
+        // w nEntry
+        // tb offset (cumulative)
+
+        readStream >> entry.Number;
+        if (entry.Number == 0xffff)
+        {
+            return false;
+        }
+        readStream >> entry.Offset;
+        entry.ExtraData = 0;
+        entry.PackageNumber = 0;
+        entry.Type = ResourceType::Audio;
+        state.mapStreamOffset = readStream.tellg();
+        return true;
+    }
+    return false;
+}
+
+#include <pshpack1.h>
+struct TestAudioHeader
+{
+    uint8_t resourceType;
+    uint8_t unknown;
+    uint32_t audioType; // SOL
+    uint16_t sampleRate;
+    uint8_t unknown2;
+    uint32_t sizeExcludingHeader;
+};
+#include <poppack.h>
+
+sci::istream AudioResourceSource::GetHeaderAndPositionedStream(const ResourceMapEntryAgnostic &mapEntry, ResourceHeaderAgnostic &headerEntry)
+{
+    if (!_volumeStreamOwner)
+    {
+        // Load the file
+        std::string fullPath = _gameFolder + "\\" + "resource.aud"; // But later, resource.sfx
+        ScopedFile scoped(fullPath, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
+        _volumeStreamOwner = std::make_unique<sci::streamOwner>(scoped.hFile);
+    }
+
+    if (_volumeStreamOwner)
+    {
+        sci::istream reader = _volumeStreamOwner->getReader();
+        reader.seekg(mapEntry.Offset);
+        headerEntry.Number = mapEntry.Number;
+        headerEntry.PackageHint = mapEntry.PackageNumber;
+        headerEntry.CompressionMethod = 0;
+        headerEntry.SourceFlags = ResourceSourceFlags::AudioSource;
+        headerEntry.Version = _version;
+        headerEntry.Type = ResourceType::Audio;
+        headerEntry.cbDecompressed = 0;
+        TestAudioHeader audioHeader;
+        reader >> audioHeader;
+        reader.seekg(-(int)sizeof(audioHeader), std::ios_base::cur);
+        headerEntry.cbDecompressed = sizeof(audioHeader) + audioHeader.sizeExcludingHeader;
+        headerEntry.cbCompressed = headerEntry.cbDecompressed;
+
+        return reader;
+    }
+    return sci::istream(nullptr, 0);
+}
+

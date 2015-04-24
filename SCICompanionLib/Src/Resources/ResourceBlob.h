@@ -28,6 +28,7 @@ enum class ResourceSourceFlags
     ResourceMap = 0,
     MessageMap = 0x0001,
     PatchFile = 0x0002,
+    AudioSource = 0x0004,
 };
 
 DEFINE_ENUM_FLAGS(ResourceSourceFlags, uint16_t)

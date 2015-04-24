@@ -707,7 +707,11 @@ void CResourceListCtrl::_InsertItem(ResourceBlob *pData)
             }
             else if (IsFlagSet(sourceFlags, ResourceSourceFlags::MessageMap))
             {
-                item.pszText = "Message.map";
+                item.pszText = "message.map";
+            }
+            else if (IsFlagSet(sourceFlags, ResourceSourceFlags::AudioSource))
+            {
+                item.pszText = "resource.aud";
             }
             else
             {

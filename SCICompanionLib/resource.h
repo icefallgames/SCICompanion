@@ -751,6 +751,7 @@
 #define ID_VIEW_EDITPALETTE             33175
 #define ID_MAIN_DELETEPOIN              33176
 #define ID_PIC_DELETEPOINT              33177
+#define ID_SHOW_AUDIO                   33178
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -759,7 +760,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        365
-#define _APS_NEXT_COMMAND_VALUE         33178
+#define _APS_NEXT_COMMAND_VALUE         33179
 #define _APS_NEXT_CONTROL_VALUE         1239
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

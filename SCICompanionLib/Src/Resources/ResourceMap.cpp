@@ -494,6 +494,11 @@ std::unique_ptr<ResourceContainer> CResourceMap::Resources(ResourceTypeFlags typ
         }
     }
 
+    if (IsFlagSet(types, ResourceTypeFlags::Audio))
+    {
+        mapAndVolumes->push_back(move(make_unique<AudioResourceSource>(_version, _gameFolder)));
+    }
+
     // Now the standard resource maps
     mapAndVolumes->push_back(move(CreateResourceSource(_gameFolder, _version, ResourceSourceFlags::ResourceMap)));
 
