@@ -24,7 +24,7 @@ void _GetVarType(std::ostream &out, Opcode bOpcode, uint16_t wIndex, IObjectFile
         }
         else
         {
-            out << "global" << setw(4) << setfill('0') << wIndex;
+            out << _GetGlobalVariableName(wIndex);
         }
         break;
     case 1:
@@ -477,7 +477,7 @@ void DisassembleScript(const CompiledScript &script, std::ostream &out, ICompile
         uint16_t wCodeOffset = script._exportsTO[i];
         // Export offsets could point to objects too - we're only interested in code pointers, so
         // check that it's within bounds.
-        if (script.IsInCodeSection(wCodeOffset))
+        if (script.IsExportAProcedure(wCodeOffset))
         {
             codePointersTO.insert(wCodeOffset);
         }
@@ -514,7 +514,7 @@ void DisassembleScript(const CompiledScript &script, std::ostream &out, ICompile
         // _exportsTO, in addition to containing code pointers for public procedures, also
         // contain the Rm class.  Filter these out by ignoring code pointers which point outside
         // the codesegment.
-        if (script.IsInCodeSection(script._exportsTO[i]))
+        if (script.IsExportAProcedure(script._exportsTO[i]))
         {
             std::string strProcName = "";
             if (pOFLookups)

@@ -7,7 +7,7 @@
 #include "ControlFlowGraphViz.h"
 #include "StlUtil.h"
 
-#define VISUALIZE_FLOW 1
+//#define VISUALIZE_FLOW 1
 
 using namespace sci;
 using namespace std;
@@ -1342,6 +1342,20 @@ ControlFlowNode *ControlFlowGraph::_PartitionCode(code_pos start, code_pos end)
             // TODO. This may not be necessary, as someone will always jump to right after the RET.
             // So we could write a loop to assert this afterwards.
         }
+        else if (cur->get_opcode() == Opcode::TOSS)
+        {
+            // Our switch detection relies on breaking after a TOSS in one case: When one switch
+            // immediately follows another. If we didn't break after the TOSS, then the tail of the
+            // first would overlap with the header of the second.
+            // So let's break after here.
+            // The next instruction will also signify a new node.
+            code_pos afterTOSS = cur;
+            ++afterTOSS;
+            if (posToNode.find(afterTOSS) == posToNode.end())
+            {
+                posToNode[afterTOSS] = MakeNode<RawCodeNode>(afterTOSS);
+            }
+        }
         prev = cur;
         ++cur;
     }
@@ -1488,7 +1502,6 @@ ControlFlowNode *ControlFlowGraph::Generate(const std::string &name, code_pos st
     
     _FindAllStructuresOf(_FindBackEdges, _CheckForSameHeader, _ProcessNaturalLoop);
     _FindAllStructuresOf(_FindSwitchBlocks, _DoNothing, _ProcessSwitch);
-    
     
     _FindAllCompoundConditions();
     _DoLoopTransforms();

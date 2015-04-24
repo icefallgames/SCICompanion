@@ -21,6 +21,10 @@ string _GetLocalVariableName(int index)
     //return _GetVariableName("local_%04d", index);
     return _GetVariableName("local%d", index);
 }
+string _GetGlobalVariableName(int index)
+{
+    return _GetVariableName("global%d", index);
+}
 string _GetParamVariableName(int index)
 {
     return _GetVariableName("param%d", index);

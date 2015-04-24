@@ -232,7 +232,6 @@ public:
     {
         Current = Frame().Parent->PrependChild();
         Current->SetType(type);
-        assert(Frame().cStackConsume == 0);
         assert(Frame().cAccConsume == 0);
         // Generally structured nodes don't consume anything
         // (though we might change that to support re-using previous acc values?)
@@ -1127,10 +1126,15 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
                 // Actually you can send to any super class... the first operand says which. Does anyone use this?
                 // Let's assert that they don't
                 const sci::ClassDefinition *classDefinition = lookups.GetClassContext();
-                uint16_t species = pos->get_first_operand();
-                std::string superClassContext = classDefinition->GetSuperClass();
-                std::string superClassStated = lookups.LookupClassName(species);
-                assert(superClassContext == superClassStated);
+                assert(classDefinition);
+                if (classDefinition)
+                {
+                    uint16_t species = pos->get_first_operand();
+                    std::string superClassContext = classDefinition->GetSuperClass();
+                    std::string superClassStated = lookups.LookupClassName(species);
+                    assert(superClassContext == superClassStated);
+                } // If we're in a proc without ownership, we can't assert anything. TODO insert comment warning about this.
+                
                 sendCall->SetName("super");
             }
             Consumption cons = _GetInstructionConsumption(*pos, &lookups);
@@ -1620,7 +1624,6 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
             break;
     }
 
-    // Up next: Opcode::TOSS
     unique_ptr<Comment> pComment = std::make_unique<Comment>();
     pComment->SetName("ERROR_UNIMPLEMENTED_OPCODE");
     return unique_ptr<SyntaxNode>(move(pComment));
@@ -1645,6 +1648,39 @@ ConsumptionNode *_FindChunk(ConsumptionNode *chunk, code_pos code)
         }
     }
     return found;
+}
+
+// In later SCI, DUP is commonly as a one byte optimization when passing parameters, if two
+// parameters in a row have the same value. DUPs can't be handled with our standard instruction consumption
+// model, so handle them now by duplicating the previous stack-generating node.
+void _ResolveDUPs(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookups &lookups)
+{
+    for (int i = 0; i < (int)chunk->GetChildCount(); i++)
+    {
+        ConsumptionNode *child = chunk->Child(i);
+        if (child->_hasPos && (child->GetCode()->get_opcode() == Opcode::DUP))
+        {
+            bool found = false;
+            // Look backward for a stack generator. Use ints because signed.
+            for (int j = i - 1; !found && (j >= 0); j--)
+            {
+                Consumption consumption = _GetInstructionConsumption(*chunk->Child(j), lookups);
+                found = (consumption.cStackGenerate == 1);
+                if (found)
+                {
+                    // Found it. Replace our dup with this:
+                    unique_ptr<ConsumptionNode> clone = chunk->Child(j)->Clone();
+                    chunk->ReplaceChild(i, move(clone));
+                }
+            }
+            assert(found && "Couldn't find DUP source");
+        }
+    }
+
+    for (auto &child : chunk->Children())
+    {
+        _ResolveDUPs(root, child.get(), lookups);
+    }
 }
 
 void _ResolvePPrevs(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookups &lookups)
@@ -1946,8 +1982,8 @@ void OutputNewStructure(sci::FunctionBase &func, MainNode &main, DecompileLookup
     _FixupIfs(mainChunk.get(), mainChunk.get(), lookups);
     _ResolveNeededAcc(mainChunk.get(), mainChunk.get(), lookups);
     _ResolvePPrevs(mainChunk.get(), mainChunk.get(), lookups);
-
     _RestructureCaseHeaders(mainChunk.get(), lookups);
+    _ResolveDUPs(mainChunk.get(), mainChunk.get(), lookups);    // Must follow case restructure
 
     std::stringstream ss;
     mainChunk->Print(ss, 0);

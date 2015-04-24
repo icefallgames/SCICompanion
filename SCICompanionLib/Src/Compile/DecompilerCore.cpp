@@ -1911,7 +1911,6 @@ private:
     stack<StatementsNode*> _statementsContext;
 };
 
-
 class DetermineHexValues : public IExploreNode, public IExploreNodeContext
 {
 public:
@@ -1952,7 +1951,7 @@ public:
             GetBinaryOpFromAssignment(operation);
         }
 
-        if (operation == "|" || operation == "&" || operation == "^" || operation == "bnot")
+        if (operation == "|" || operation == "&" || operation == "^" || operation == "bnot" || operation == ">>" || operation == "<<")
         {
             if (state == ExploreNodeState::Pre)
             {
@@ -2510,7 +2509,7 @@ std::string _GetVariableNameFromCodePos(code_pos pos, DecompileLookups &lookups,
             name = lookups.ReverseLookupGlobalVariableName(wIndex);
             if (name.empty())
             {
-                ss << "global" << setw(4) << setfill('0') << wIndex;
+                ss << _GetGlobalVariableName(wIndex);
                 name = ss.str();
             }
         }
@@ -3870,11 +3869,13 @@ std::string DecompileLookups::ReverseLookupGlobalVariableName(WORD wIndex)
     std::string result = _pOFLookups->ReverseLookupGlobalVariableName(wIndex);
     if (result.empty())
     {
+        // Disable this and come up with a better solution that does this automatically
+        /*
         // Supply some defaults.  These may be different for different games.
         if (wIndex < ARRAYSIZE(s_defaults))
         {
             result = s_defaults[wIndex];
-        }
+        }*/
     }
     return result;
 }
@@ -3997,7 +3998,7 @@ const ClassDefinition *DecompileLookups::GetClassContext() const
 void DecompileLookups::TrackVariableUsage(VarScope varScope, WORD wIndex, bool isIndexed)
 {
     map<WORD, bool> *pFunctionVarUsage = nullptr;
-    if (varScope == VarScope::Local)
+    if ((varScope == VarScope::Local) || ((GetScriptNumber() == 0) && (varScope == VarScope::Global)))
     {
         pFunctionVarUsage = &_localVarUsage;
     }
@@ -4161,7 +4162,7 @@ void AddLocalVariablesToScript(sci::Script &script, DecompileLookups &lookups, c
     {
         unique_ptr<VariableDecl> localVar = std::make_unique<VariableDecl>();
         localVar->SetDataType("var"); // For now...
-        localVar->SetName(_GetLocalVariableName(varRange.index));
+        localVar->SetName((script.GetScriptNumber() == 0) ? _GetGlobalVariableName(varRange.index) : _GetLocalVariableName(varRange.index));
         localVar->SetSize(varRange.arraySize);
 
         int wStart = varRange.index;

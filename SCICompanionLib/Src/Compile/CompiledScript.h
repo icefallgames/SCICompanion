@@ -180,7 +180,8 @@ public:
 
     const std::vector<uint8_t> &GetRawBytes() const { return _scriptResource; }
     const uint8_t *GetEndOfRawBytes() const { return &_scriptResource[0] + _scriptResource.size(); }
-    bool IsInCodeSection(uint16_t wOffset) const;
+    bool IsExportAnObject(uint16_t wOffset) const;
+    bool IsExportAProcedure(uint16_t wOffset) const;
     std::set<uint16_t> FindInternalCallsTO() const;
 
     void PopulateSaidStrings(const ILookupNames *pWords) const;
@@ -199,6 +200,7 @@ public:
     std::vector<uint16_t> _saidsOffset;
     std::unordered_map<uint16_t, uint16_t> _synonyms;
     std::vector<CodeSection> _codeSections;
+    std::vector<uint16_t> _exportedObjectInstances;
 
     SCIVersion GetVersion() const { return _version; }
 

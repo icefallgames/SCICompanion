@@ -44,16 +44,13 @@ bool CompiledScript::Load(SCIVersion version, int iScriptNumber, bool quick)
     return false;
 }
 
-bool CompiledScript::IsInCodeSection(uint16_t wOffset) const
+bool CompiledScript::IsExportAnObject(uint16_t wOffset) const
 {
-    for (size_t i = 0; i < _codeSections.size(); i++)
-    {
-        if ((wOffset >= _codeSections[i].begin) && (wOffset < _codeSections[i].end))
-        {
-            return true;
-        }
-    }
-    return false;
+    return find(_exportedObjectInstances.begin(), _exportedObjectInstances.end(), wOffset) != _exportedObjectInstances.end();
+}
+bool CompiledScript::IsExportAProcedure(uint16_t wOffset) const
+{
+    return !IsExportAnObject(wOffset) && (wOffset != 0);
 }
 
 bool CompiledScript::Load(SCIVersion version, int number, sci::istream &byteStream)
@@ -107,13 +104,12 @@ bool CompiledScript::_LoadSCI1_1(int iScriptNumber, sci::istream &scriptStream)
         scriptStream >> someOffset;
         scriptStream.skip(4);
         isSuccess = _ReadExports(scriptStream);
-        std::vector<uint16_t> publicInstanceExports;
         // Keep track of the earliest code, and also any public object exports
         for (uint16_t codePointer : _exportsTO)
         {
             if (_DoesExportPointToObjectInstance(codePointer, heapStream))
             {
-                publicInstanceExports.push_back(codePointer);
+                _exportedObjectInstances.push_back(codePointer);
             }
             // REVIEW: Many scripts (e.g. SQ5, 165) have lots of exports that point to zero. What's the purpose of this?
             else if (codePointer != 0)
@@ -142,7 +138,7 @@ bool CompiledScript::_LoadSCI1_1(int iScriptNumber, sci::istream &scriptStream)
             {
                 unique_ptr<CompiledObjectBase> pObject = make_unique<CompiledObjectBase>();
                 // Is the current position of the heapstream (which points to an object) in the list of public instance exports?
-                pObject->IsPublic = (find(publicInstanceExports.begin(), publicInstanceExports.end(), (uint16_t)heapStream.tellg()) != publicInstanceExports.end());
+                pObject->IsPublic = (find(_exportedObjectInstances.begin(), _exportedObjectInstances.end(), (uint16_t)heapStream.tellg()) != _exportedObjectInstances.end());
                 uint16_t wInstanceOffsetTO;
                 isSuccess = pObject->Create_SCI1_1(_version, scriptStream, heapStream, &wInstanceOffsetTO);
                 if (isSuccess)
@@ -379,6 +375,10 @@ bool CompiledScript::_LoadSCI0_SCI1(sci::istream &byteStream)
             uint16_t addToOffset = (this->_version.SeparateHeapResources ? 0 : 8);
             _objects[i]->IsPublic =
                 (find(_exportsTO.begin(), _exportsTO.end(), _objectsOffsetTO[i] + addToOffset) != _exportsTO.end());
+            if (_objects[i]->IsPublic)
+            {
+                _exportedObjectInstances.push_back(addToOffset);
+            }
         }
 
     }

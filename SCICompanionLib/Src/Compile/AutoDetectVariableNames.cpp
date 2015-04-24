@@ -12,9 +12,14 @@ bool _IsUndeterminedFunctionScope(const std::string &suggestion)
     return (0 == suggestion.compare(0, 4, "temp")) || ((0 == suggestion.compare(0, 5, "param")) && (suggestion != "paramTotal"));
 }
 
+bool _IsUndeterminedGlobalScope(const std::string &suggestion)
+{
+    return (0 == suggestion.compare(0, 6, "global"));
+}
+
 bool _IsUndetermined(const std::string &suggestion)
 {
-    return (0 == suggestion.compare(0, 6, "global")) ||
+    return _IsUndeterminedGlobalScope(suggestion) ||
         (0 == suggestion.compare(0, 5, "local")) ||
         _IsUndeterminedFunctionScope(suggestion);
 }
@@ -23,6 +28,21 @@ struct TwoWayMap
 {
     unordered_map<string, string> originalToRename;
     unordered_map<string, string> renameToOriginal;
+};
+
+struct Suggestion
+{
+    Suggestion(const Suggestion &suggestion) = default;
+    Suggestion &operator=(const Suggestion &suggestion) = default;
+    Suggestion() {}
+    Suggestion(const string &one) : PartOne(one) {}
+    Suggestion(const string &one, const string &two) : PartOne(one), PartTwo(two) {}
+
+    void clear() { PartOne.clear(); PartTwo.clear(); }
+    bool empty() { return PartOne.empty() && PartTwo.empty(); }
+
+    string PartOne;
+    string PartTwo;
 };
 
 class RenameContext
@@ -96,10 +116,60 @@ private:
     unordered_map<FunctionBase*, TwoWayMap> functionMaps;
 };
 
+void AppendUpper(string &value, const string &append)
+{
+    if (value.empty())
+    {
+        value += append;
+    }
+    else
+    {
+        value += toupper(append[0]);
+        value += append.substr(1, string::npos);
+    }
+}
+
+string ResolveSuggestion(const Suggestion &suggestion, const string &original, const ClassDefinition *classDef)
+{
+    // TODO: do different things for global vs local. And if "self"  then classdef comes into play?
+    string baseValue;
+    bool isGlobal = _IsUndeterminedGlobalScope(original);
+    if (isGlobal)
+    {
+        AppendUpper(baseValue, "g");
+    }
+
+    string partOne = suggestion.PartOne;
+    if (partOne == "self" && classDef)
+    {
+        partOne = classDef->GetSpecies();
+    }
+
+    if (suggestion.PartTwo.empty())
+    {
+        if (!isGlobal)
+        {
+            AppendUpper(baseValue, "the");
+        }
+        AppendUpper(baseValue, partOne);
+    }
+    else
+    {
+        AppendUpper(baseValue, partOne);
+        AppendUpper(baseValue, suggestion.PartTwo);
+    }
+    return baseValue;
+}
+
 class TrackVariablesNames : public ISyntaxNodeVisitor
 {
 public:
     TrackVariablesNames(RenameContext &renameContext) : _renameContext(renameContext) {}
+
+    string ResolveSuggestion(const Suggestion &suggestion, const string &original)
+    {
+        return ::ResolveSuggestion(suggestion, original, _classDef);
+    }
 
     void Visit(const Script &script) override {}
     void Visit(const ClassDefinition &classDef) override {}
@@ -109,14 +179,14 @@ public:
     {
         if ((prop.GetType() == ValueType::Token) && _IsUndetermined(prop.GetStringValue()))
         {
-            _renameContext.SetRenamed(_function, prop.GetStringValue(), _suggestion);
+            _renameContext.SetRenamed(_function, prop.GetStringValue(), ResolveSuggestion(_suggestion, prop.GetStringValue()));
         }
     }
     void Visit(const ComplexPropertyValue &prop) override
     {
         if ((prop.GetType() == ValueType::Token) && _IsUndetermined(prop.GetStringValue()))
         {
-            _renameContext.SetRenamed(_function, prop.GetStringValue(), _suggestion);
+            _renameContext.SetRenamed(_function, prop.GetStringValue(), ResolveSuggestion(_suggestion, prop.GetStringValue()));
         }
     }
     void Visit(const Define &define) override {}
@@ -137,7 +207,7 @@ public:
     {
         if (_IsUndetermined(lValue.GetName()))
         {
-            _renameContext.SetRenamed(_function, lValue.GetName(), _suggestion);
+            _renameContext.SetRenamed(_function, lValue.GetName(), ResolveSuggestion(_suggestion, lValue.GetName()));
         }
     }
     void Visit(const RestStatement &rest) override {}
@@ -161,7 +231,7 @@ public:
     void Visit(const Asm &asmSection) override {}
     void Visit(const AsmBlock &asmBlock) override {}
 
-    void SetSuggestion(const string &suggestion)
+    void SetSuggestion(const Suggestion &suggestion)
     {
         _suggestion = suggestion;
     }
@@ -169,29 +239,20 @@ public:
     {
         _function = function;
     }
+    void SetClassContext(ClassDefinition *classDef)
+    {
+        _classDef = classDef;
+    }
 
 private:
     FunctionBase *_function;
-    string _suggestion;
+    ClassDefinition *_classDef;
+    Suggestion _suggestion;
     RenameContext &_renameContext;
 };
 
 class SuggestVariableNames : public ISyntaxNodeVisitor
 {
-private:
-    string _PrependThe(const string &original)
-    {
-        return _Combine("the", original);
-    }
-
-    string _Combine(const string &first, const string &second)
-    {
-        string value = first;
-        value += toupper(second[0]);
-        value += second.substr(1, string::npos);
-        return value;
-    }
-
 public:
     void Visit(const Script &script) override {}
     void Visit(const ClassDefinition &classDef) override {}
@@ -201,14 +262,14 @@ public:
     {
         if ((prop.GetType() == ValueType::Token) && !_IsUndetermined(prop.GetStringValue()))
         {
-            ReturnSuggestion(_PrependThe(prop.GetStringValue()));
+            ReturnSuggestion(Suggestion(prop.GetStringValue()));
         }
     }
     void Visit(const ComplexPropertyValue &prop) override
     {
         if ((prop.GetType() == ValueType::Token) && !_IsUndetermined(prop.GetStringValue()))
         {
-            ReturnSuggestion(_PrependThe(prop.GetStringValue()));
+            ReturnSuggestion(Suggestion(prop.GetStringValue()));
         }
     }
     void Visit(const Define &define) override {}
@@ -229,7 +290,7 @@ public:
     {
         if (!_IsUndetermined(lValue.GetName()))
         {
-            ReturnSuggestion(_PrependThe(lValue.GetName()));
+            ReturnSuggestion(Suggestion(lValue.GetName()));
         }
     }
     void Visit(const RestStatement &rest) override {}
@@ -242,7 +303,15 @@ public:
             auto &param = sendCall.GetParams()[0];
             if (param->GetSelectorParams().size() == 0)
             {
-                ReturnSuggestion(_Combine(sendCall.GetObject(), param->GetSelectorName()));
+                if (param->GetSelectorName() != "new")
+                {
+                    ReturnSuggestion(Suggestion(sendCall.GetObject(), param->GetSelectorName()));
+                }
+                else
+                {
+                    // We'd rather have "newEvent" than "EventNew"
+                    ReturnSuggestion(Suggestion(param->GetSelectorName(), sendCall.GetObject()));
+                }
             }
         }
     }
@@ -261,13 +330,13 @@ public:
     void Visit(const Asm &asmSection) override {}
     void Visit(const AsmBlock &asmBlock) override {}
 
-    void Clear() { Suggestion.clear(); }
-    string Suggestion;
+    void Clear() { CurrentSuggestion.clear(); }
+    Suggestion CurrentSuggestion;
 
 private:
-    void ReturnSuggestion(const std::string &suggestion)
+    void ReturnSuggestion(const Suggestion &suggestion)
     {
-        Suggestion = suggestion;
+        CurrentSuggestion = suggestion;
     }
 };
 
@@ -290,6 +359,12 @@ public:
                 }
                     break;
 
+                case NodeTypeClassDefinition:
+                {
+                    trackVarNames.SetClassContext(static_cast<ClassDefinition*>(&node));
+                }
+                break;
+
                 case NodeTypeAssignment:
                 {
                     // Let's start simple. An assignment is something that can transfer var names.
@@ -300,9 +375,9 @@ public:
                     assignment->_variable->Accept(suggestVarNames);
 
                     // Now let's push down
-                    if (!suggestVarNames.Suggestion.empty())
+                    if (!suggestVarNames.CurrentSuggestion.empty())
                     {
-                        trackVarNames.SetSuggestion(suggestVarNames.Suggestion);
+                        trackVarNames.SetSuggestion(suggestVarNames.CurrentSuggestion);
                         assignment->GetStatement1()->Accept(trackVarNames);
                         assignment->_variable->Accept(trackVarNames);
                     }
@@ -319,6 +394,13 @@ public:
                     trackVarNames.SetFunctionContext(nullptr);
                 }
                 break;
+
+                case NodeTypeClassDefinition:
+                {
+                    trackVarNames.SetClassContext(nullptr);
+                }
+                break;
+
             }
         }
     }

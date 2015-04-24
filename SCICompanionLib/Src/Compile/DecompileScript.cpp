@@ -12,7 +12,7 @@ void DecompileObject(const CompiledObjectBase &object, sci::Script &script,
     DecompileLookups &lookups,
     const std::vector<BYTE> &scriptResource,
     const std::vector<CodeSection> &codeSections,
-    std::set<uint16_t> &codePointersTO)
+    const std::set<uint16_t> &codePointersTO)
 {
     lookups.EndowWithProperties(&object);
 
@@ -101,7 +101,7 @@ void DecompileObject(const CompiledObjectBase &object, sci::Script &script,
     lookups.EndowWithProperties(nullptr);
 }
 
-void DecompileFunction(const CompiledScript &compiledScript, ProcedureDefinition &func, DecompileLookups &lookups, uint16_t wCodeOffsetTO, set<uint16_t> &sortedCodePointersTO)
+void DecompileFunction(const CompiledScript &compiledScript, ProcedureDefinition &func, DecompileLookups &lookups, uint16_t wCodeOffsetTO, const set<uint16_t> &sortedCodePointersTO)
 {
     lookups.EndowWithProperties(lookups.GetPossiblePropertiesForProc(wCodeOffsetTO));
     set<uint16_t>::const_iterator codeStartIt = sortedCodePointersTO.find(wCodeOffsetTO);
@@ -121,6 +121,9 @@ void DecompileFunction(const CompiledScript &compiledScript, ProcedureDefinition
 Script *Decompile(const CompiledScript &compiledScript, DecompileLookups &lookups, const ILookupNames *pWords)
 {
     unique_ptr<Script> pScript = std::make_unique<Script>();
+    ScriptId scriptId;
+    scriptId.SetResourceNumber(compiledScript.GetScriptNumber());
+    pScript->SetScriptId(scriptId);
 
     compiledScript.PopulateSaidStrings(pWords);
 
@@ -146,13 +149,13 @@ Script *Decompile(const CompiledScript &compiledScript, DecompileLookups &lookup
         codePointersTO.insert(methodPointersTO.begin(), methodPointersTO.end());
     }
 
-    // and the exports
+    // and the exported procedures
     for (size_t i = 0; i < compiledScript._exportsTO.size(); i++)
     {
         uint16_t wCodeOffset = compiledScript._exportsTO[i];
         // Export offsets could point to objects too - we're only interested in code pointers, so
-        // check that it's within bounds.
-        if (compiledScript.IsInCodeSection(wCodeOffset))
+        // check that it's not an object
+        if (compiledScript.IsExportAProcedure(wCodeOffset))
         {
             codePointersTO.insert(wCodeOffset);
         }
@@ -160,7 +163,7 @@ Script *Decompile(const CompiledScript &compiledScript, DecompileLookups &lookup
 
     // and finally, the most difficult of all, we'll need to scan though for any call calls...
     // those would be our internal procs
-    set<uint16_t> internalProcOffsetsTO = compiledScript.FindInternalCallsTO();//_rgRawCode, _wCodePosTO, _wCodeLength);
+    set<uint16_t> internalProcOffsetsTO = compiledScript.FindInternalCallsTO();
     // Before adding these though, remove any exports from the internalProcOffsets.
     for (const auto &exporty : compiledScript._exportsTO)
     {
@@ -188,7 +191,7 @@ Script *Decompile(const CompiledScript &compiledScript, DecompileLookups &lookup
         // _exportsTO, in addition to containing code pointers for public procedures, also
         // contain the Rm class.  Filter these out by ignoring code pointers which point outside
         // the codesegment.
-        if (compiledScript.IsInCodeSection(compiledScript._exportsTO[i]))
+        if (compiledScript.IsExportAProcedure(compiledScript._exportsTO[i]))
         {
             std::unique_ptr<ProcedureDefinition> pProc = std::make_unique<ProcedureDefinition>();
             pProc->SetScript(pScript.get());

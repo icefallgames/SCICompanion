@@ -308,9 +308,6 @@ void DecompileScript(WORD wScript)
 
             DecompileLookups decompileLookups(wScript, scriptLookups, &objectFileLookups, &compiledScript, pText, &compiledScript);
             unique_ptr<sci::Script> pScript(Decompile(compiledScript, decompileLookups, appState->GetResourceMap().GetVocab000()));
-			ScriptId scriptId;
-			scriptId.SetResourceNumber(wScript);
-			pScript->SetScriptId(scriptId);
 
             std::stringstream ss;
 

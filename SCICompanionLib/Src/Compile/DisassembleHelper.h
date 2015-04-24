@@ -4,6 +4,7 @@ class ILookupNames;
 
 std::string _GetTempVariableName(int index);
 std::string _GetLocalVariableName(int index);
+std::string _GetGlobalVariableName(int index);
 std::string _GetParamVariableName(int index);
 
 struct CodeSection
