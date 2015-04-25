@@ -208,29 +208,18 @@ bool AudioResourceSource::ReadNextEntry(ResourceTypeFlags typeFlags, IteratorSta
 
 std::string AudioResourceSource::_GetAudioVolumePath(bool bak, ResourceSourceFlags *sourceFlags)
 {
-    ResourceSourceFlags sourceFlagsTemp;
-    std::string final;
-    std::string fullPathAud = _gameFolder + "\\" + "resource.aud";
-    std::string fullPathSFX = _gameFolder + "\\" + "resource.sfx";
-    if (PathFileExists(fullPathAud.c_str()))
-    {
-        sourceFlagsTemp = ResourceSourceFlags::Aud;
-        final = fullPathAud;
-    }
-    else
-    {
-        sourceFlagsTemp = ResourceSourceFlags::Sfx;
-        final = fullPathSFX;
-    }
+    ResourceSourceFlags sourceFlagsTemp = (_version.AudioVolumeName == AudioVolumeName::Aud) ? ResourceSourceFlags::Aud : ResourceSourceFlags::Sfx;
+    std::string fullPath = _gameFolder + "\\" + ((_version.AudioVolumeName == AudioVolumeName::Aud) ? "resource.aud" : "resource.sfx");
     if (bak)
     {
-        final += ".bak";
+        fullPath += ".bak";
     }
+    
     if (sourceFlags)
     {
         *sourceFlags = sourceFlagsTemp;
     }
-    return final;
+    return fullPath;
 }
 void AudioResourceSource::_EnsureAudioVolume()
 {
@@ -338,6 +327,7 @@ void AudioResourceSource::AppendResources(const std::vector<ResourceBlob> &entri
             appState->GetResourceMap().SaveAudioMap65535(*newAudioMap);
 
             // If that caused no problems, then finally do the swap of the file, and hopefully that worked.
+            deletefile(_GetAudioVolumePath(false));
             movefile(bakPath, _GetAudioVolumePath(false));
         }
     }

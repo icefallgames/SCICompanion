@@ -5,6 +5,7 @@
 #include "ResourceEntityDocument.h"
 #include "PaletteOperations.h"
 #include "AppState.h"
+#include "format.h"
 
 template<class T>
 class PaletteEditorCommon : public T, public IColorDialogCallback
@@ -48,6 +49,7 @@ public:
 
         _mainSelectedIndex = bIndex;
         _SyncUI();
+        _SyncSelection();
 
         bool multipleSelection[256];
         m_wndStatic.GetMultipleSelection(multipleSelection);
@@ -126,6 +128,8 @@ public:
         __super::DoDataExchange(pDX);
         DDX_Control(pDX, IDC_STATIC1, m_wndStatic);
 
+        DDX_Control(pDX, IDC_EDITRANGE, m_wndEditRange);
+
         _SyncPalette();
         bool initialSelection[256] = {};
         m_wndStatic.SetShowHover(false);
@@ -165,6 +169,42 @@ public:
     }
 
 protected:
+    void _SyncSelection()
+    {
+        bool multipleSelection[256];
+        m_wndStatic.GetMultipleSelection(multipleSelection);
+        std::string rangeText;
+        // Calculate the ranges
+        bool on = false;
+        int startRange = 0;
+        for (int i = 0; i < 256; i++)
+        {
+            if (multipleSelection[i] && !on)
+            {
+                startRange = i;
+                on = true;
+            }
+            if (!multipleSelection[i] && on)
+            {
+                if (!rangeText.empty())
+                {
+                    rangeText += ",\r\n";
+                }
+                int endRange = i - 1;
+                if (endRange == startRange)
+                {
+                    rangeText += fmt::format("{0}", startRange);
+                }
+                else
+                {
+                    rangeText += fmt::format("{0}-{1}", startRange, (i - 1));
+                }
+                on = false;
+            }
+        }
+        m_wndEditRange.SetWindowTextA(rangeText.c_str());
+    }
+
     void _UpdateDocument()
     {
         if (_pDoc)
@@ -196,6 +236,7 @@ protected:
     DECLARE_MESSAGE_MAP()
 
     CChooseColorStatic m_wndStatic;
+    CExtEdit m_wndEditRange;
     CExtCheckBox m_wndUsedCheck;
     CExtCheckBox m_wndFixedCheck;
     CExtButton m_wndButtonChooseColor;
@@ -313,6 +354,7 @@ void PaletteEditorCommon<T>::OnBnClickedButtoneditcolor()
         uint8_t usedValue = _palette->Colors[_mainSelectedIndex].rgbReserved;
         COLORREF color = RGB_TO_COLORREF(_palette->Colors[_mainSelectedIndex]);
         CExtColorDlg colorDialog(color, color);
+        colorDialog.m_strCaption = fmt::format("Edit color {0}", _mainSelectedIndex).c_str();
         if (IDOK == colorDialog.DoModal())
         {
             _palette->Colors[_mainSelectedIndex] = RGBQUADFromCOLORREF(colorDialog.m_clrNew);

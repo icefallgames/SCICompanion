@@ -319,6 +319,19 @@ void CResourceMap::_SniffSCIVersion()
     // Just as a start...
     _version = sciVersion0;
 
+    // Audio volume name is easy
+    std::string fullPathAud = _gameFolder + "\\" + "resource.aud";
+    std::string fullPathSFX = _gameFolder + "\\" + "resource.sfx";
+    _version.AudioVolumeName = AudioVolumeName::None;
+    if (PathFileExists(fullPathAud.c_str()))
+    {
+        _version.AudioVolumeName = AudioVolumeName::Aud;
+    }
+    else if (PathFileExists(fullPathSFX.c_str()))
+    {
+        _version.AudioVolumeName = AudioVolumeName::Sfx;
+    }
+
     _version.MapFormat = _DetectMapFormat();
 
     _version.PackageFormat = _DetectPackageFormat();

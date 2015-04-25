@@ -504,6 +504,7 @@
 #define IDC_CHECK_FOLLOWVIEW2           1233
 #define IDC_EDIT2                       1233
 #define IDC_EDITTRANSPARENTCOLOR        1233
+#define IDC_EDITRANGE                   1233
 #define IDC_STATICTRANSLABEL            1234
 #define IDC_CHECKDONTUSEINPALETTE       1235
 #define IDC_BUTTONREVERT                1236

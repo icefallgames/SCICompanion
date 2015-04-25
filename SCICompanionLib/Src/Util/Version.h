@@ -42,6 +42,13 @@ enum class PicFormat : uint8_t
     VGA1_1 = 2,
 };
 
+enum class AudioVolumeName : uint8_t
+{
+    None = 0,
+    Aud = 1,
+    Sfx = 2,
+};
+
 struct SCIVersion
 {
     ResourceMapFormat MapFormat;
@@ -58,6 +65,7 @@ struct SCIVersion
     int DefaultVolumeFile;          // 0 or 1
     bool HasOldSCI0ScriptHeader;
     bool sci11Palettes;
+    AudioVolumeName AudioVolumeName;
 
     bool operator==(const SCIVersion &src);
     bool operator!=(const SCIVersion &src);
