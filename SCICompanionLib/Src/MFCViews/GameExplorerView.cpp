@@ -23,6 +23,8 @@
 #include "CObjectWrap.h"
 #include "PaletteDoc.h"
 #include "PaletteView.h"
+#include "SoundUtil.h"
+#include "Audio.h"
 #include <regex>
 
 #ifdef _DEBUG
@@ -580,6 +582,10 @@ bool _IsBitmapFile(PCSTR pszFileName)
 {
     return (0 == _strcmpi(PathFindExtension(pszFileName), ".bmp"));
 }
+bool _IsWaveFile(PCSTR pszFileName)
+{
+    return (0 == _strcmpi(PathFindExtension(pszFileName), ".wav"));
+}
 
 //
 // Drops the files in pDropFiles into the game.
@@ -610,6 +616,24 @@ void DropResourceFiles(CArray<CString, CString&> *pDropFiles)
             else
             {
                 AfxMessageBox("There doesn't appear to be an SCI resource encoded in this .bmp file.", MB_ERRORFLAGS);
+            }
+        }
+        else if (_IsWaveFile(pDropFiles->GetAt(i)) && (appState->GetVersion().SoundFormat == SoundFormat::SCI1))
+        {
+            // We can add wave files to SCI1+ games
+            try
+            {
+                std::unique_ptr<ResourceEntity> resource(CreateDefaultAudioResource(appState->GetVersion()));
+                ScopedFile scopedFile((PCSTR)pDropFiles->GetAt(i), GENERIC_READ, FILE_SHARE_WRITE, OPEN_EXISTING);
+                sci::streamOwner owner(scopedFile.hFile);
+                AudioComponentFromWaveFile(owner.getReader(), resource->GetComponent<AudioComponent>());
+                // REVIEW: We should know ahead of time if the game uses Aud or Sfx.
+                resource->SourceFlags = ResourceSourceFlags::Aud;
+                appState->GetResourceMap().AppendResourceAskForNumber(*resource);
+            }
+            catch (std::exception &e)
+            {
+                AfxMessageBox(e.what(), MB_OK | MB_ICONWARNING);
             }
         }
         else if (IsResourceFileName(PathFindFileName(pDropFiles->GetAt(i)), &iNumber))
@@ -650,7 +674,7 @@ BOOL GetDropFiles(COleDataObject *pDataObject, CArray<CString, CString&> *pFileL
                     WideCharToMultiByte(CP_ACP, 0, pwsz, -1, psz, lstrlenW(pwsz) + 1, nullptr, nullptr);
                     PTSTR pszFileName = PathFindFileName(strFile);
                     int iNumber;
-                    if (IsResourceFileName(pszFileName, &iNumber) || _IsBitmapFile(pszFileName))
+                    if (IsResourceFileName(pszFileName, &iNumber) || _IsBitmapFile(pszFileName) || _IsWaveFile(pszFileName))
                     {
                         pFileList->Add(strFile);
                         fRet = TRUE;
@@ -728,13 +752,14 @@ BOOL CGameExplorerView::OnDrop(COleDataObject *pDataObject, DROPEFFECT dropEffec
             if (pDropFiles )
             {
                 GetDropFiles(pDataObject, &_dropFiles);
-                if (!_dropFiles.IsEmpty())
-                {
-                    // Do the drop.
-                    DropResourceFiles(&_dropFiles);
-                }
                 GlobalUnlock(hg);
             }
+        }
+
+        if (!_dropFiles.IsEmpty())
+        {
+            // Do the drop.
+            DropResourceFiles(&_dropFiles);
         }
     }
     return fRet;

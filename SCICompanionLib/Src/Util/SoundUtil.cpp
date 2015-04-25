@@ -1,5 +1,8 @@
 #include "stdafx.h"
 #include "SoundUtil.h"
+#include "Audio.h"
+
+using namespace std;
 
 const struct
 {
@@ -41,4 +44,68 @@ void SelectDeviceInComboHelper(CComboBox &combo, DeviceType type)
             return;
         }
     }
+}
+
+const char riffMarker[] = "RIFF";
+const char waveMarker[] = "WAVE";
+const char fmtMarker[] = "fmt ";
+const char dataMarker[] = "data";
+
+#include <pshpack1.h>
+struct WaveHeader
+{
+    uint16_t formatTag;
+    uint16_t channelCount;
+    uint32_t sampleRate;
+    uint32_t bytesPerSecond;
+    uint16_t blockAlign;
+    uint16_t bitsPerSample;
+};
+#include <poppack.h>
+
+void AudioComponentFromWaveFile(sci::istream &stream, AudioComponent &audio)
+{
+    uint32_t riff, wave, fileSize, fmt, chunkSize, data, dataSize;
+    stream >> riff;
+    stream >> fileSize;
+    stream >> wave;
+    stream >> fmt;
+    stream >> chunkSize;
+    WaveHeader header;
+    stream >> header;
+    stream >> data;
+    stream >> dataSize;
+
+    if ((riff != (*(uint32_t*)riffMarker)) ||
+        (wave != (*(uint32_t*)waveMarker)) ||
+        (fmt != (*(uint32_t*)fmtMarker)) ||
+        (data != (*(uint32_t*)dataMarker)) ||
+        (chunkSize != 16))
+    {
+        throw std::exception("Not a recognized wave file");
+    }
+
+    // Now validate the format
+    if (header.formatTag != 1)
+    {
+        throw std::exception("Only uncompressed wave files are supported");
+    }
+    if (header.channelCount != 1)
+    {
+        throw std::exception("Only mono wave files are supported");
+    }
+    // REVIEW: Check sample rate;
+    if ((header.bitsPerSample != 8) && (header.bitsPerSample != 16))
+    {
+        throw std::exception("Only 8 or 16 bit sound supported");
+    }
+
+    // Set up the AudioComponent and read the data.
+    audio.Frequency = header.sampleRate;
+    if (header.bitsPerSample == 16)
+    {
+        audio.Flags |= AudioFlags::SixteenBit;
+    }
+    audio.DigitalSamplePCM.assign(dataSize, 0);
+    stream.read_data(&audio.DigitalSamplePCM[0], audio.DigitalSamplePCM.size());
 }

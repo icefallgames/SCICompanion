@@ -709,9 +709,13 @@ void CResourceListCtrl::_InsertItem(ResourceBlob *pData)
             {
                 item.pszText = "message.map";
             }
-            else if (IsFlagSet(sourceFlags, ResourceSourceFlags::AudioSource))
+            else if (IsFlagSet(sourceFlags, ResourceSourceFlags::Aud))
             {
                 item.pszText = "resource.aud";
+            }
+            else if (IsFlagSet(sourceFlags, ResourceSourceFlags::Sfx))
+            {
+                item.pszText = "resource.sfx";
             }
             else
             {
@@ -761,6 +765,12 @@ void CResourceListCtrl::GetStatusString(ResourceBlob &data, TCHAR *pszBuffer, si
     if (IsFlagSet(data.GetStatusFlags(), ResourceLoadStatusFlags::ResourceCreationFailed))
     {
         StringCchCat(pszBuffer, cchBuffer, (needsSeparator ? ", Resource load failed" : "Resource load failed"));
+        needsSeparator = true;
+    }
+
+    if (IsFlagSet(data.GetStatusFlags(), ResourceLoadStatusFlags::Corrupted))
+    {
+        StringCchCat(pszBuffer, cchBuffer, (needsSeparator ? ", Corrupt" : "Corrupt"));
         needsSeparator = true;
     }
 }

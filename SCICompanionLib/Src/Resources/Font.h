@@ -8,7 +8,7 @@ struct FontComponent : ResourceComponent
 {
     FontComponent() { LineHeight = 8; } // Just something, so it's not garbage.
     FontComponent(const FontComponent &src) = default;
-    ResourceComponent *Clone() override
+    ResourceComponent *Clone() const override
     {
         return new FontComponent(*this);
     }

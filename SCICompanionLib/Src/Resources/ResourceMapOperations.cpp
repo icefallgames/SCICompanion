@@ -39,7 +39,10 @@ std::unique_ptr<ResourceSource> CreateResourceSource(const std::string &gameFold
     {
         return std::make_unique<PatchFilesResourceSource>(version, gameFolder);
     }
-    // Patch files not supported here...
+    else if ((source == ResourceSourceFlags::Aud) || (source == ResourceSourceFlags::Sfx))
+    {
+        return std::make_unique<AudioResourceSource>(version, gameFolder);
+    }
     return std::unique_ptr<ResourceSource>(nullptr);
 }
 

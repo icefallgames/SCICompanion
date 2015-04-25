@@ -113,7 +113,7 @@ private:
 struct SoundComponent : public ResourceComponent
 {
 public:
-    SoundComponent *Clone() override
+    SoundComponent *Clone() const override
     {
         return new SoundComponent(*this);
     }

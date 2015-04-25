@@ -18,9 +18,8 @@
 #include "ResourceEntity.h"
 #include "SummarizeScript.h"
 #include "Audio.h"
+#include "format.h"
 #include <vfw.h>
-
-#define SOUND_IMPLEMENTED 1
 
 BOOL ResourcePreviewer::OnInitDialog()
 {
@@ -511,9 +510,7 @@ END_MESSAGE_MAP()
 
 SoundPreviewer::SoundPreviewer()
 {
-    _fPlaying = false;
 }
-
 
 void SoundPreviewer::SetResource(const ResourceBlob &blob)
 {
@@ -521,7 +518,24 @@ void SoundPreviewer::SetResource(const ResourceBlob &blob)
     SoundComponent *soundComp = _sound->TryGetComponent<SoundComponent>();
     if (soundComp)
     {
+        m_wndSynths.EnableWindow(TRUE);
         g_midiPlayer.SetSound(*soundComp, SoundComponent::StandardTempo); // We don't have a tempo control
+    }
+    else
+    {
+        m_wndSynths.EnableWindow(FALSE);
+    }
+    AudioComponent *audioComp = _sound->TryGetComponent<AudioComponent>();
+    if (audioComp)
+    {
+        g_audioPlayback.SetAudio(audioComp);
+        // Put some information in the channels window
+        std::string info = fmt::format("{0}Hz, {1} bytes. {2} {3}",
+            audioComp->Frequency,
+            audioComp->GetLength(),
+            IsFlagSet(audioComp->Flags, AudioFlags::SixteenBit) ? "16-bit" : "8-bit",
+            IsFlagSet(audioComp->Flags, AudioFlags::DPCM) ? "DPCM" : "");
+        m_wndChannels.SetWindowTextA(info.c_str());
     }
     OnSynthChoiceChange();
     if (m_wndAutoPreview.GetCheck() == BST_CHECKED)
@@ -549,8 +563,6 @@ void SoundPreviewer::DoDataExchange(CDataExchange* pDX)
     AddAnchor(IDC_COMBO_DEVICE, CPoint(0, 0), CPoint(100, 0));
     AddAnchor(IDC_SLIDER, CPoint(0, 0), CPoint(100, 0));
 }
-
-
 
 BOOL SoundPreviewer::OnInitDialog()
 {
@@ -646,9 +658,15 @@ void SoundPreviewer::OnMIDIDeviceChange()
 {
     // TODO
 }
+
+bool SoundPreviewer::_IsPlaying()
+{
+    return g_midiPlayer.IsPlaying() || g_audioPlayback.IsPlaying();
+}
+
 void SoundPreviewer::_UpdatePlayState()
 {
-    if (_fPlaying)
+    if (_IsPlaying())
     {
         SetTimer(SOUND_TIMER, 100, NULL);
     }
@@ -656,42 +674,46 @@ void SoundPreviewer::_UpdatePlayState()
     {
         KillTimer(SOUND_TIMER);
     }
-    m_wndPlay.EnableWindow(_sound.get() && !_fPlaying);
-    m_wndStop.EnableWindow(_sound.get() && _fPlaying);
+    m_wndPlay.EnableWindow(_sound.get() && !_IsPlaying());
+    m_wndStop.EnableWindow(_sound.get() && _IsPlaying());
 }
 void SoundPreviewer::OnPlay()
 {
-#if SOUND_IMPLEMENTED
     AudioComponent *audio = _sound->TryGetComponent<AudioComponent>();
     if (audio && audio->Frequency != 0)
     {
-        g_audioPlayback.Play(*audio);
+        g_audioPlayback.Stop();
+        g_audioPlayback.Play();
+        _UpdatePlayState();
     }
     else
-#endif
     {
-
         g_midiPlayer.Play();
-        _fPlaying = true;
         _UpdatePlayState();
     }
 }
 void SoundPreviewer::OnStop()
 {
     g_midiPlayer.Stop();
-    _fPlaying = false;
+    g_audioPlayback.Stop();
     _UpdatePlayState();
 }
 void SoundPreviewer::OnTimer(UINT_PTR nIDEvent)
 {
     if (nIDEvent == SOUND_TIMER)
     {
-        if (_fPlaying)
+        if (g_midiPlayer.IsPlaying())
         {
             m_wndSlider.SetPos(g_midiPlayer.QueryPosition(100));
-#if SOUND_IMPLEMENTED
+        }
+        else if (g_audioPlayback.IsPlaying())
+        {
+            m_wndSlider.SetPos(g_audioPlayback.QueryPosition(100));
             g_audioPlayback.IdleUpdate();
-#endif
+        }
+        if (!_IsPlaying())
+        {
+            _UpdatePlayState();
         }
     }
     else

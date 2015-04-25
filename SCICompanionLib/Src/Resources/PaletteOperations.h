@@ -14,7 +14,7 @@ struct PaletteComponent : public ResourceComponent
     PaletteComponent();
     PaletteComponent(const PaletteComponent &src) = default;
     PaletteComponent& operator=(const PaletteComponent &src) = default;
-    ResourceComponent *Clone() override
+    ResourceComponent *Clone() const override
     {
         return new PaletteComponent(*this);
     }

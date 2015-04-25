@@ -40,7 +40,7 @@ struct TextComponent : public ResourceComponent, public ILookupNames
 {
     TextComponent() { }
     TextComponent(const TextComponent &src) = default;
-    ResourceComponent *Clone() override
+    ResourceComponent *Clone() const override
     {
         return new TextComponent(*this);
     }

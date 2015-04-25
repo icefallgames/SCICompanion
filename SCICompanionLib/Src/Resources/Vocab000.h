@@ -52,7 +52,7 @@ public:
 
     Vocab000();
     Vocab000(const Vocab000 &src) = default;
-    ResourceComponent *Clone() override
+    ResourceComponent *Clone() const override
     {
         return new Vocab000(*this);
     }

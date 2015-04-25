@@ -20,6 +20,7 @@ public:
     void SetDevice(DeviceType device) { _device = device; }
     void CueTickPosition(DWORD dwTicks);
     void CuePosition(DWORD dwTicks, DWORD scope);
+    bool IsPlaying() { return _fPlaying; }
 
 private:
     bool _Init();

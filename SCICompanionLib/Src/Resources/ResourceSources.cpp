@@ -3,6 +3,9 @@
 #include "AppState.h"
 #include "format.h"
 #include "Audio.h"  // For the audio source
+#include "AudioMap.h"  // For the audio source
+
+using namespace std;
 
 SourceTraits resourceMapSourceTraits =
 {
@@ -138,7 +141,7 @@ void PatchFilesResourceSource::AppendResources(const std::vector<ResourceBlob> &
         std::string filename = GetFileNameFor(blob.GetType(), blob.GetNumber(), blob.GetVersion());
         std::string fullPath = _gameFolder + "\\" + filename;
         std::string bakPath = _gameFolder + "\\" + filename + ".bak";
-        // Write to the back file
+        // Write to the bak file
         {
             ScopedFile file(bakPath, GENERIC_WRITE, 0, CREATE_ALWAYS);
             blob.SaveToHandle(file.hFile, TRUE);
@@ -164,19 +167,9 @@ bool IsResourceCompatible(const ResourceBlob &blob)
 
 bool AudioResourceSource::ReadNextEntry(ResourceTypeFlags typeFlags, IteratorState &state, ResourceMapEntryAgnostic &entry, std::vector<uint8_t> *optionalRawData)
 {
-    if (!_mapStreamOwner && state.mapStreamOffset == 0)
+    const AudioMapComponent *audioMap = appState->GetResourceMap().GetAudioMap65535();
+    if (audioMap)
     {
-        // Load the file
-        std::string fullPath = _gameFolder + "\\" + "65535.map";
-        ScopedFile scoped(fullPath, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
-        _mapStreamOwner = std::make_unique<sci::streamOwner>(scoped.hFile);
-        state.mapStreamOffset = 2;  // Skip opening marker
-    }
-
-    if (_mapStreamOwner)
-    {
-        sci::istream readStream = _mapStreamOwner->getReader();
-        readStream.seekg(state.mapStreamOffset);
         // Read 6 byte entry (for resource.aud. For resource.sfx it would be 5 bytes)
         // Early SCI1.1 65535.MAP structure (uses RESOURCE.AUD):
         // =========
@@ -198,30 +191,59 @@ bool AudioResourceSource::ReadNextEntry(ResourceTypeFlags typeFlags, IteratorSta
         // LB_Dagger has it as 0.map in the resource map
         // QF3 has a 65535.map in resource.map, but I don't see the actual audio files anywhere.
 
-        readStream >> entry.Number;
-        if (entry.Number == 0xffff)
+        if (state.mapStreamOffset < audioMap->Entries.size())
         {
-            return false;
+            AudioMapEntry mapEntry = audioMap->Entries[state.mapStreamOffset];
+            state.mapStreamOffset++;
+            entry.Number = mapEntry.Number;
+            entry.Offset = mapEntry.Offset;
+            entry.ExtraData = 0;
+            entry.PackageNumber = 0;
+            entry.Type = ResourceType::Audio;
+            return true;
         }
-        readStream >> entry.Offset;
-        entry.ExtraData = 0;
-        entry.PackageNumber = 0;
-        entry.Type = ResourceType::Audio;
-        state.mapStreamOffset = readStream.tellg();
-        return true;
     }
     return false;
 }
 
-sci::istream AudioResourceSource::GetHeaderAndPositionedStream(const ResourceMapEntryAgnostic &mapEntry, ResourceHeaderAgnostic &headerEntry)
+std::string AudioResourceSource::_GetAudioVolumePath(bool bak, ResourceSourceFlags *sourceFlags)
+{
+    ResourceSourceFlags sourceFlagsTemp;
+    std::string final;
+    std::string fullPathAud = _gameFolder + "\\" + "resource.aud";
+    std::string fullPathSFX = _gameFolder + "\\" + "resource.sfx";
+    if (PathFileExists(fullPathAud.c_str()))
+    {
+        sourceFlagsTemp = ResourceSourceFlags::Aud;
+        final = fullPathAud;
+    }
+    else
+    {
+        sourceFlagsTemp = ResourceSourceFlags::Sfx;
+        final = fullPathSFX;
+    }
+    if (bak)
+    {
+        final += ".bak";
+    }
+    if (sourceFlags)
+    {
+        *sourceFlags = sourceFlagsTemp;
+    }
+    return final;
+}
+void AudioResourceSource::_EnsureAudioVolume()
 {
     if (!_volumeStreamOwner)
     {
-        // Load the file
-        std::string fullPath = _gameFolder + "\\" + "resource.aud"; // But later, resource.sfx
-        ScopedFile scoped(fullPath, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
+        ScopedFile scoped(_GetAudioVolumePath(false, &_sourceFlags), GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
         _volumeStreamOwner = std::make_unique<sci::streamOwner>(scoped.hFile);
     }
+}
+
+sci::istream AudioResourceSource::GetHeaderAndPositionedStream(const ResourceMapEntryAgnostic &mapEntry, ResourceHeaderAgnostic &headerEntry)
+{
+    _EnsureAudioVolume();
 
     if (_volumeStreamOwner)
     {
@@ -230,14 +252,14 @@ sci::istream AudioResourceSource::GetHeaderAndPositionedStream(const ResourceMap
         headerEntry.Number = mapEntry.Number;
         headerEntry.PackageHint = mapEntry.PackageNumber;
         headerEntry.CompressionMethod = 0;
-        headerEntry.SourceFlags = ResourceSourceFlags::AudioSource;
+        headerEntry.SourceFlags = _sourceFlags;
         headerEntry.Version = _version;
         headerEntry.Type = ResourceType::Audio;
         headerEntry.cbDecompressed = 0;
         AudioHeader audioHeader;
         reader >> audioHeader;
         reader.seekg(-(int)sizeof(audioHeader), std::ios_base::cur);
-        headerEntry.cbDecompressed = sizeof(audioHeader) + audioHeader.sizeExcludingHeader;
+        headerEntry.cbDecompressed = audioHeader.headerSize + 2 + audioHeader.sizeExcludingHeader;
         headerEntry.cbCompressed = headerEntry.cbDecompressed;
 
         return reader;
@@ -245,3 +267,78 @@ sci::istream AudioResourceSource::GetHeaderAndPositionedStream(const ResourceMap
     return sci::istream(nullptr, 0);
 }
 
+void AudioResourceSource::RemoveEntry(const ResourceMapEntryAgnostic &mapEntry) 
+{
+    throw std::exception("Not implemented");
+}
+
+void AudioResourceSource::AppendResources(const std::vector<ResourceBlob> &entries)
+{
+    _EnsureAudioVolume();
+    for (const ResourceBlob &blob : entries)
+    {
+        const AudioMapComponent *audioMap = appState->GetResourceMap().GetAudioMap65535();
+        if (audioMap)
+        {
+            sci::istream oldReader = _volumeStreamOwner->getReader();
+            unique_ptr<AudioMapComponent> newAudioMap = make_unique<AudioMapComponent>(*audioMap);
+            newAudioMap->Entries.clear();
+
+            sci::ostream newVolumeStream;
+            newVolumeStream.EnsureCapacity(_volumeStreamOwner->getReader().GetDataSize());  // Avoid some re-allocs
+
+            uint32_t offset = 0;
+            for (size_t i = 0; i < audioMap->Entries.size(); i++)
+            {
+                const AudioMapEntry &oldEntry = audioMap->Entries[i];
+                AudioMapEntry copiedEntry = oldEntry;
+                if (copiedEntry.Number != blob.GetNumber())
+                {
+                    // Copy over. But how do we know the size? Look at the next offset, or the file size
+                    uint32_t size;
+                    if (i == (audioMap->Entries.size() - 1))
+                    {
+                        size = oldReader.GetDataSize() - oldEntry.Offset;
+                    }
+                    else
+                    {
+                        size = audioMap->Entries[i + 1].Offset - oldEntry.Offset;
+                    }
+                    copiedEntry.Offset = newVolumeStream.tellp();
+                    oldReader.seekg(oldEntry.Offset);
+                    transfer(oldReader, newVolumeStream, size);
+                    newAudioMap->Entries.push_back(copiedEntry);
+                }
+                else
+                {
+                    // Skip copying this one over right here. We'll add it to the end.
+                }
+            }
+
+            // Append our new resource
+            AudioMapEntry newEntry;
+            newEntry.Number = blob.GetNumber();
+            newEntry.Offset = newVolumeStream.tellp();
+            newAudioMap->Entries.push_back(newEntry);
+            transfer(blob.GetReadStream(), newVolumeStream, blob.GetCompressedLength());
+
+            // TODO: Save to bak. Then write resource map thingy. Then swap to real
+            // Now let's save the stream to the bak file
+            string bakPath = _GetAudioVolumePath(true);
+            {
+                ScopedFile bakFile(bakPath, GENERIC_WRITE, 0, CREATE_ALWAYS);
+                bakFile.Write(newVolumeStream.GetInternalPointer(), newVolumeStream.GetDataSize());
+            }
+
+            // This is risky since these operations are not atomic. To minimize issues, we should try to open the
+            // file for write first (e.g. test write). And only then saveAudioMap65535
+            testopenforwrite(_GetAudioVolumePath(false));
+
+            // Then we'll save our new map.
+            appState->GetResourceMap().SaveAudioMap65535(*newAudioMap);
+
+            // If that caused no problems, then finally do the swap of the file, and hopefully that worked.
+            movefile(bakPath, _GetAudioVolumePath(false));
+        }
+    }
+}

@@ -62,7 +62,7 @@ point16 CPointToPointClamp(CPoint pt);
 
 struct ResourceComponent
 {
-    virtual ResourceComponent* Clone() = 0;
+    virtual ResourceComponent* Clone() const = 0;
 
     // This is necessary, or else lists of ResourceComponents won't be properly destroyed.
     virtual ~ResourceComponent() {}

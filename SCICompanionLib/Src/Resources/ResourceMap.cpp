@@ -17,6 +17,7 @@
 #include "PaletteOperations.h"
 #include "Message.h"
 #include "Audio.h"
+#include "AudioMap.h"
 #include "ResourceEntity.h"
 #include "ResourceSources.h"
 #include "CompiledScript.h"
@@ -340,6 +341,20 @@ bool CResourceMap::IsResourceCompatible(const ResourceBlob &resource)
     }
 
     return true; // I guess?
+}
+
+void CResourceMap::AppendResourceAskForNumber(ResourceEntity &resource)
+{
+    // Invoke dialog to suggest/ask for a resource number
+    SaveResourceDialog srd;
+    srd.Init(-1, SuggestResourceNumber(resource.GetType()));
+    if (IDOK == srd.DoModal())
+    {
+        // Assign it.
+        resource.ResourceNumber = srd.GetResourceNumber();
+        resource.PackageNumber = srd.GetPackageNumber();
+        AppendResource(resource);
+    }
 }
 
 //
@@ -922,6 +937,28 @@ std::unique_ptr<PaletteComponent> CResourceMap::GetMergedPalette(const ResourceE
     return paletteReturn;
 }
 
+const AudioMapComponent *CResourceMap::GetAudioMap65535()
+{
+    if (!_pAudioMap65535)
+    {
+        // In some games this is a "patch file", in others it's embedded in resource.map
+        _pAudioMap65535 = CreateResourceFromNumber(ResourceType::Map, 65535);
+    }
+
+    return _pAudioMap65535 ? _pAudioMap65535->TryGetComponent<AudioMapComponent>() : nullptr;
+}
+
+void CResourceMap::SaveAudioMap65535(const AudioMapComponent &newAudioMap)
+{
+    GetAudioMap65535(); // Just ensure we have one
+    // Assign the new component to it.
+    _pAudioMap65535->GetComponent<AudioMapComponent>() = newAudioMap;
+    assert(_pAudioMap65535->SourceFlags == ResourceSourceFlags::PatchFile && "Need to support embedded audio maps");
+    AppendResource(*_pAudioMap65535);
+
+    _pAudioMap65535.reset(nullptr);
+}
+
 const PaletteComponent *CResourceMap::GetPalette999()
 {
     PaletteComponent *globalPalette = nullptr;
@@ -1155,6 +1192,7 @@ void CResourceMap::SetGameFolder(const string &gameFolder)
     ClearVocab000();
     _pPalette999.reset(nullptr);                    // REVIEW: also do this if global palette is edited.
     _globalCompiledScriptLookups.reset(nullptr);    // TODO: Also do this if scripts were compiled.
+    _pAudioMap65535.reset(nullptr);
     _language = LangSyntaxUnknown;
     if (!gameFolder.empty())
     {
@@ -1228,6 +1266,7 @@ std::unique_ptr<ResourceEntity> CreateResourceFromResourceData(const ResourceBlo
         DECLARE_CREATE_RESOURCE_WITH_CREATE_FUNCTION(ResourceType::Palette, CreatePaletteResource, CreatePaletteResource, DoNothing)
         DECLARE_CREATE_RESOURCE_WITH_CREATE_FUNCTION(ResourceType::Message, CreateMessageResource, CreateDefaultMessageResource, DoNothing)
         DECLARE_CREATE_RESOURCE_WITH_CREATE_FUNCTION(ResourceType::Audio, CreateAudioResource, CreateDefaultAudioResource, DoNothing)
+        DECLARE_CREATE_RESOURCE_WITH_CREATE_FUNCTION(ResourceType::Map, CreateMapResource, CreateMapResource, DoNothing)
     default:
         assert(false);
         break;

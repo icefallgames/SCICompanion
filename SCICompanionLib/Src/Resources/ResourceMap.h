@@ -4,6 +4,7 @@
 #include "PaletteOperations.h"
 
 struct Vocab000;
+struct AudioMapComponent;
 class SCIClassBrowser;
 
 // FWD declaration
@@ -46,6 +47,7 @@ public:
     // ResourceEntity: a runtime version of a resource that we can edit.
     HRESULT AppendResource(const ResourceBlob &resource);
     HRESULT AppendResourceAskForNumber(ResourceBlob &resource);
+    void AppendResourceAskForNumber(ResourceEntity &resource);
     bool AppendResource(const ResourceEntity &resource, int *pChecksum = nullptr);
     bool AppendResource(const ResourceEntity &resource, int packageNumber, int resourceNumber, int *pChecksum = nullptr);
 
@@ -89,6 +91,8 @@ public:
     SCIVersion &GetSCIVersion();
     const Vocab000 *GetVocab000();
     const PaletteComponent *GetPalette999();
+    const AudioMapComponent *GetAudioMap65535();
+    void SaveAudioMap65535(const AudioMapComponent &newAudioMap);
     GlobalCompiledScriptLookups *GetCompiledScriptLookups();
     std::vector<int> GetPaletteList();
     std::unique_ptr<PaletteComponent> GetPalette(int fallbackPalette);
@@ -132,6 +136,7 @@ private:
     // Useful resources to cache
     std::unique_ptr<ResourceEntity> _pVocab000;
     std::unique_ptr<ResourceEntity> _pPalette999;
+    std::unique_ptr<ResourceEntity> _pAudioMap65535;
     PaletteComponent _emptyPalette;
     std::vector<int> _paletteList;
     bool _paletteListNeedsUpdate;

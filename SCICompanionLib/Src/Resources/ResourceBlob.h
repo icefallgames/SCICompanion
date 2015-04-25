@@ -28,7 +28,8 @@ enum class ResourceSourceFlags
     ResourceMap = 0,
     MessageMap = 0x0001,
     PatchFile = 0x0002,
-    AudioSource = 0x0004,
+    Aud = 0x0004,
+    Sfx = 0x0008,
 };
 
 DEFINE_ENUM_FLAGS(ResourceSourceFlags, uint16_t)
@@ -245,6 +246,7 @@ enum class ResourceLoadStatusFlags : uint8_t
     None = 0x00,
     DecompressionFailed = 0x01,
     ResourceCreationFailed = 0x02,
+    Corrupted = 0x04,
 };
 
 DEFINE_ENUM_FLAGS(ResourceLoadStatusFlags, uint8_t)

@@ -205,6 +205,7 @@ private:
     virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
     BOOL OnInitDialog();
 	DECLARE_MESSAGE_MAP()
+    bool _IsPlaying();
 
     CExtComboBox m_wndSynths;
     CExtEdit m_wndChannels;
@@ -217,7 +218,6 @@ private:
     DeviceType _device;
     WORD _wChannelMask;
     std::unique_ptr<ResourceEntity> _sound;
-    bool _fPlaying;
 
     CFont _marlettFont;
 };

@@ -707,6 +707,11 @@ void ScopedFile::Write(const uint8_t *data, uint32_t length)
     }
 }
 
+void testopenforwrite(const std::string &filename)
+{
+    ScopedFile file(filename, GENERIC_WRITE, 0, OPEN_ALWAYS);
+}
+
 void movefile(const std::string &from, const std::string &to)
 {
     if (!MoveFile(from.c_str(), to.c_str()))

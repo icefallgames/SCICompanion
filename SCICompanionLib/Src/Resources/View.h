@@ -142,7 +142,7 @@ struct RasterComponent : ResourceComponent
     RasterComponent();
     RasterComponent(const RasterComponent &src) = default;
     RasterComponent(const RasterTraits &traits, RasterSettings &settings) : Traits(traits), Settings(settings) {}
-    ResourceComponent *Clone() override
+    ResourceComponent *Clone() const override
     {
         return new RasterComponent(*this);
     }

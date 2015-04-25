@@ -471,6 +471,7 @@ private:
     std::unordered_map<int, std::unique_ptr<sci::streamOwner>> _streamHolder;
 };
 
+struct AudioMapComponent;
 
 // ResourceSource for SCI1.1 audio resources
 class AudioResourceSource : public ResourceSource
@@ -490,15 +491,17 @@ public:
         return sci::istream(nullptr, 0);
     }
 
-    // All not implemented
-    void RemoveEntry(const ResourceMapEntryAgnostic &mapEntry) override {}
-    void AppendResources(const std::vector<ResourceBlob> &entries) override {}
+    void RemoveEntry(const ResourceMapEntryAgnostic &mapEntry) override;
+    void AppendResources(const std::vector<ResourceBlob> &entries) override;
     void RebuildResources() override {}
 
 private:
+    std::string _GetAudioVolumePath(bool bak, ResourceSourceFlags *sourceFlags = nullptr);
+    void _EnsureAudioVolume();
+
     std::string _gameFolder;
     SCIVersion _version;
-    std::unique_ptr<sci::streamOwner> _mapStreamOwner;
+    ResourceSourceFlags _sourceFlags;
     std::unique_ptr<sci::streamOwner> _volumeStreamOwner;
 };
 

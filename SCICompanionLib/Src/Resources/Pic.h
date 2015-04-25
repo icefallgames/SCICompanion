@@ -19,7 +19,7 @@ struct PicComponent : ResourceComponent
     PicComponent();
     PicComponent(const PicComponent &src) = default;
     PicComponent(const PicTraits &traits) : Traits(traits) {}
-    ResourceComponent *Clone() override
+    ResourceComponent *Clone() const override
     {
         return new PicComponent(*this);
     }

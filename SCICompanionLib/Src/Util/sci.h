@@ -556,6 +556,7 @@ BOOL OpenResource(const ResourceBlob *pData);
 int ResourceNumberFromFileName(PCTSTR pszFileName);
 void deletefile(const std::string &filename);
 void movefile(const std::string &from, const std::string &to);
+void testopenforwrite(const std::string &filename);
 uint32_t GetResourceOffsetInFile(uint8_t secondHeaderByte);
 extern const TCHAR g_szResourceSpec[];
 std::string GetMessageFromLastError(const std::string &details);

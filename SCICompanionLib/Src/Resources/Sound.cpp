@@ -956,9 +956,11 @@ void ScanAndReadDigitalSample(ResourceEntity &resource, sci::istream stream)
         stream.skip(14);
         stream >> audio.Frequency;
         stream.skip(16);
-        stream >> audio.Length;
+        uint16_t length;
+        stream >> length;
         stream.skip(10);
         // Now comes the wave data.
+        assert(stream.getBytesRemaining() == length);
         audio.DigitalSamplePCM.assign(stream.getBytesRemaining(), 0);
         stream.read_data(&audio.DigitalSamplePCM[0], audio.DigitalSamplePCM.size());
     }
