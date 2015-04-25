@@ -42,6 +42,8 @@ enum class ChunkType
     SwitchValue,
     Break,
     NeedsAccumulator,
+    FailedToGetAccumulator,
+    NeedsStack,
     ZeroNode,
 };
 
@@ -70,16 +72,46 @@ const char *chunkTypeNames[] =
     "SwitchValue",
     "Break",
     "NeedsAccumulator",
+    "FailedToGetAccumulator",
+    "NeedsStack",
     "ZeroNode",
 };
 
+bool ContainsOrderedInstructionSequence(ChunkType type)
+{
+    switch (type)
+    {
+        case ChunkType::None:
+        case ChunkType::Else:
+        case ChunkType::Then:
+        case ChunkType::CaseBody:
+        case ChunkType::LoopBody:
+            return true;
+    }
+    return false;
+}
+
+bool IsStructuredNode(ChunkType type)
+{
+    switch (type)
+    {
+        case ChunkType::If:
+        case ChunkType::Do:
+        case ChunkType::While:
+        case ChunkType::Switch:
+            return true;
+    }
+    return false;
+}
+
 struct ConsumptionNode
 {
-    ConsumptionNode() : _hasPos(false), _chunkType(ChunkType::None) {}
+    ConsumptionNode() : _hasPos(false), _chunkType(ChunkType::None), _parentWeak(nullptr) {}
 
     bool _hasPos;
     code_pos pos;
     ChunkType _chunkType;
+    ConsumptionNode *_parentWeak;
 
     unique_ptr<ConsumptionNode> Clone()
     {
@@ -104,6 +136,24 @@ struct ConsumptionNode
         return _chunkType;
     }
 
+    int GetMyIndex()
+    {
+        return _parentWeak->GetIndexOf(this);
+    }
+
+    int GetIndexOf(ConsumptionNode *child)
+    {
+        for (size_t i = 0; i < children.size(); i++)
+        {
+            if (children[i].get() == child)
+            {
+                return (int)i;
+            }
+        }
+        assert(false && "Corrupt hierarchy");
+        return 0;
+    }
+
     ConsumptionNode *GetChild(ChunkType type)
     {
         for (auto &child : children)
@@ -121,11 +171,14 @@ struct ConsumptionNode
 
     ConsumptionNode *PrependChild()
     {
-        children.insert(children.begin(), move(make_unique<ConsumptionNode>()));
-        return (*children.begin()).get();
+        std::unique_ptr<ConsumptionNode> newNode = make_unique<ConsumptionNode>();
+        ConsumptionNode *returnValue = newNode.get();
+        PrependChild(move(newNode));
+        return returnValue;
     }
     void PrependChild(std::unique_ptr<ConsumptionNode> chunk)
     {
+        chunk->_parentWeak = this;
         children.insert(children.begin(), move(chunk));
     }
 
@@ -153,12 +206,14 @@ struct ConsumptionNode
     void ReplaceChild(size_t index, unique_ptr<ConsumptionNode> replacement)
     {
         children[index] = move(replacement);
+        children[index]->_parentWeak = this;
     }
 
     std::unique_ptr<ConsumptionNode> StealChild(size_t index)
     {
         std::unique_ptr<ConsumptionNode> stolen = move(children[index]);
         children.erase(children.begin() + index);
+        stolen->_parentWeak = nullptr;
         return stolen;
     }
     size_t GetChildCount() { return children.size(); }
@@ -221,10 +276,15 @@ public:
 
     void MaybeAddNeedsAcc()
     {
-        assert(Frame().cStackConsume == 0);         // Since we're not dealing with this
         if (Frame().cAccConsume > 0)
         {
             AddStructured(ChunkType::NeedsAccumulator);
+        }
+        if (Frame().cStackConsume > 0)
+        {
+            // SQ5, script 999, proc 999_4.
+            AddStructured(ChunkType::NeedsStack);
+            assert(Frame().cStackConsume == 1); // Otherwise we'll need to take note. I suppose this could happen in a send.
         }
     }
 
@@ -1749,40 +1809,150 @@ unique_ptr<ConsumptionNode> _LookBackwardsAndFindAndCloneAccGenerator(Consumptio
     return nullptr;
 }
 
-void _ResolveNeededAcc(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookups &lookups)
+void ReplaceNodeWithNode(ConsumptionNode *nodeToBeReplaced, ConsumptionNode *nodeToSteal)
 {
-    for (size_t i = 0; i < chunk->GetChildCount(); i++)
+    unique_ptr<ConsumptionNode> stolen = nodeToSteal->_parentWeak->StealChild(nodeToSteal->GetMyIndex());
+    nodeToBeReplaced->_parentWeak->ReplaceChild(nodeToBeReplaced->GetMyIndex(), move(stolen));
+}
+
+bool GeneratesStack(const Consumption &consumption) { return consumption.cStackGenerate == 1; }
+bool GeneratesAcc(const Consumption &consumption) { return consumption.cAccGenerate == 1; }
+
+template<typename _Func>
+bool TryToStealSomething(ConsumptionNode *originalChild, DecompileLookups &lookups, _Func satisfiesNeeds)
+{
+    bool success = false;
+    bool done = false;
+    // Go up the parent chain and move back.
+    // If we hit a structured node, we might need to stop, depending what it is.
+    ConsumptionNode *child = originalChild->_parentWeak;
+    ConsumptionNode *parent = child->_parentWeak;
+    while (!done && parent)
+    {
+        int index = parent->GetIndexOf(child); // Start with previous peer of parent
+        for (int i = index - 1; i >= 0; i--)
+        {
+            Consumption consumption = _GetInstructionConsumption(*parent->Child(i), lookups);
+            if (satisfiesNeeds(consumption))
+            {
+                // This is it.
+                ReplaceNodeWithNode(originalChild, parent->Child(i));
+                success = true;
+                done = true;
+                break;
+            }
+        }
+
+        if (!done)
+        {
+            // REVIEW: This may need to be in a loop when we make this more general.
+            // Go up another level.
+            child = parent;
+            parent = child->_parentWeak;
+            // Our logic is complicated here, so let's deal with it on a case-by-base basis.
+            // One place this happens here is in a condition in an if. So let's target that.
+            // Here, we'll either keep going up, or we'll bail completely.
+            if (parent->GetType() == ChunkType::None)
+            {
+                // We're good, procede.
+            }
+            else if (parent->GetType() == ChunkType::Condition)
+            {
+                // Jump out to an if, then to the if's parent.
+                child = parent;
+                parent = child->_parentWeak;
+                if (parent->GetType() == ChunkType::If)
+                {
+                    child = parent;
+                    parent = child->_parentWeak;
+                }
+                else
+                {
+                    done = true;
+                }
+            }
+            else
+            {
+                // Bail completely, we can't continue.
+                done = true;
+            }
+        }
+    }
+    return success;
+}
+
+// Returns true if changes were made
+bool _ResolveNeededAccWorker(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookups &lookups)
+{
+    bool changes = false;
+    for (size_t i = 0; !changes && (i < chunk->GetChildCount()); i++)
     {
         ConsumptionNode *child = chunk->Child(i);
         if (child->GetType() == ChunkType::NeedsAccumulator)
         {
-            // We want to replace this node with a "clone" of the last one that needed an accumulator.
-            // How do we find out what "last" is? We have two options:
-            //  - follow the chain of raw instructions backwards, find one that generates an accumulator, and then find the node
-            //      in our chunk tree that has that guy at the root. We may need to go to the raw ControlFlowNode tree for this though.
-            //      Further more, this will miss the case (if it exists) when a control structure is the thing that generates the
-            //      accumulator value (e.g. "ternary" if)
-            //  - follow our structured chunk tree backwards. This requires knowledge, for instance, that the [Condition] node
-            //      of an [If] comes before [Then] and [Else]
-            //
-            // The first option is simpler, so let's go with that. In fact, we'll go with an even simpler version for now, since
-            // we don't have the raw ControlFlowNode tree anymore (it was transformed into the structured CFG node tree)
-            // Let's just go back along the instructions... if we hit a JMP or RET we can assert and see if that ever happens.
-            code_pos start = chunk->GetCode();    // chunk, not child. Since a ChunkType::NeedsAccumulator node has no code, just a parent that needs it.
-            --start;
-            unique_ptr<ConsumptionNode> theClone = _LookBackwardsAndFindAndCloneAccGenerator(root, start, lookups);
-            assert(theClone && "Couldn't find acc generator");
-            if (theClone)
+            // We have two choices where we need an accumulator value. We can clone or steal.
+            // We can only steal if we are in a place that is guarateed to execute from where we
+            // currently are. For instance, if we're in an if Condition (without a compound condition)
+            // we can steal from any code before the [If] structure that are peers of the if.
+            // Let's start with a simple targeted case first.
+            if (TryToStealSomething(child, lookups, GeneratesAcc))
             {
-                chunk->ReplaceChild(i, move(theClone));
+                changes = true;
+            }
+            else
+            {
+                // Go back and find one to clone.
+                code_pos start = chunk->GetCode();    // chunk, not child. Since a ChunkType::NeedsAccumulator node has no code, just a parent that needs it.
+                --start;
+                unique_ptr<ConsumptionNode> theClone = _LookBackwardsAndFindAndCloneAccGenerator(root, start, lookups);
+                assert(theClone && "Couldn't find acc generator");
+                if (theClone)
+                {
+                    chunk->ReplaceChild(i, move(theClone));
+                }
+                else
+                {
+                    assert(false && "Needed acc, but couldn't find it");
+                    child->SetType(ChunkType::FailedToGetAccumulator);
+                }
+                // Cloning doesn't count as changing the tree, so just keep going.
+            }
+        }
+        else if (child->GetType() == ChunkType::NeedsStack)
+        {
+            // We can only steal stack, never clone
+            if (TryToStealSomething(child, lookups, GeneratesStack))
+            {
+                changes = true;
+            }
+            else
+            {
+                assert(false && "Needed stack, but couldn't find it");
             }
         }
     }
 
-    for (auto &child : chunk->Children())
+    if (!changes)
     {
-        _ResolveNeededAcc(root, child.get(), lookups);
+        for (auto &child : chunk->Children())
+        {
+            changes = _ResolveNeededAccWorker(root, child.get(), lookups);
+            if (changes)
+            {
+                break;
+            }
+        }
     }
+    return changes;
+}
+
+void _ResolveNeededAcc(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookups &lookups)
+{
+    bool changes = false;
+    do
+    {
+        changes = _ResolveNeededAccWorker(root, chunk, lookups);
+    } while (changes);
 }
 
 unique_ptr<ConsumptionNode> _FindAndStealSwitchValue(vector<pair<ConsumptionNode*, size_t>> &frames, DecompileLookups &lookups)

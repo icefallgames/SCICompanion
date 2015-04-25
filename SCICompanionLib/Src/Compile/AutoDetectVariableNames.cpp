@@ -149,7 +149,7 @@ string ResolveSuggestion(const Suggestion &suggestion, const string &original, c
     string partOne = suggestion.PartOne;
     if (partOne == "self" && classDef)
     {
-        partOne = classDef->GetSpecies();
+        partOne = classDef->IsInstance() ? classDef->GetSpecies() : classDef->GetName();
     }
 
     if (suggestion.PartTwo.empty())
@@ -164,6 +164,14 @@ string ResolveSuggestion(const Suggestion &suggestion, const string &original, c
     {
         AppendUpper(baseValue, partOne);
         AppendUpper(baseValue, suggestion.PartTwo);
+    }
+    // We can't randomly have vars with '-' in them. So replace with '_'
+    for (size_t i = 0; i < baseValue.size(); i++)
+    {
+        if (baseValue[i] == '-')
+        {
+            baseValue[i] = '_';
+        }
     }
     return baseValue;
 }

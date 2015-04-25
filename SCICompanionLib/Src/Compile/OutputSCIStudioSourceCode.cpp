@@ -322,7 +322,7 @@ public:
     {
         out.SyncComments(lValue);
         DebugLine debugLine(out);
-        out.out << lValue.GetName();
+        out.out << CleanToken(lValue.GetName());
         if (lValue.HasIndexer())
         {
             out.out << "[";
