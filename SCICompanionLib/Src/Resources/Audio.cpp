@@ -143,7 +143,7 @@ void AudioReadFrom(ResourceEntity &resource, sci::istream &stream)
 
 ResourceTraits audioTraits =
 {
-    ResourceType::Sound,
+    ResourceType::Audio,
     &AudioReadFrom,
     &AudioWriteTo,
     &NoValidationFunc

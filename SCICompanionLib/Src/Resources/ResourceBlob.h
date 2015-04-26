@@ -5,10 +5,11 @@
 
 bool IsValidResourceName(PCTSTR pszName);
 void DisplayInvalidResourceNameMessage(PCTSTR pszName);
-bool ValidateResourceSize(DWORD cb);
+bool ValidateResourceSize(DWORD cb, ResourceType type);
 bool IsValidPackageNumber(int iPackageNumber);
 
 static const DWORD MaxResourceSize = 0xffef; // (0xfff0 - 1)
+static const DWORD MaxResourceSizeAud = 0xffffef; // I just made this up to test things
 static const DWORD SCIResourceBitmapMarker = (('S' << 24) + ('C' << 16) + ('I' << 8) + 'R');
 
 // Common way to talk about resource map entries that is SCI version agnostic.

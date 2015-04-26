@@ -377,7 +377,7 @@ bool CompiledScript::_LoadSCI0_SCI1(sci::istream &byteStream)
                 (find(_exportsTO.begin(), _exportsTO.end(), _objectsOffsetTO[i] + addToOffset) != _exportsTO.end());
             if (_objects[i]->IsPublic)
             {
-                _exportedObjectInstances.push_back(addToOffset);
+                _exportedObjectInstances.push_back(_objectsOffsetTO[i] + addToOffset);
             }
         }
 

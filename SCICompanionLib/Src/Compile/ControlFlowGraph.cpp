@@ -7,7 +7,7 @@
 #include "ControlFlowGraphViz.h"
 #include "StlUtil.h"
 
-#define VISUALIZE_FLOW 1
+//#define VISUALIZE_FLOW 1
 
 using namespace sci;
 using namespace std;
@@ -17,12 +17,6 @@ bool EndsWithConditionalBranch(ControlFlowNode *node)
     return node->Type == CFGNodeType::CompoundCondition ||
         node->endsWith(Opcode::BNT) ||
         node->endsWith(Opcode::BT);
-}
-
-template<class T> inline
-bool contains(const T& container, const typename T::reference value)
-{
-    return container.find(value) != container.end();
 }
 
 NodeSet _CollectNodesBetween(ControlFlowNode *head, ControlFlowNode *tail)
@@ -496,7 +490,6 @@ ControlFlowNode *ControlFlowGraph::_FindFollowNodeForStructure(ControlFlowNode *
         if (node->Type == CFGNodeType::RawCode)
         {
             scii lastInstruction = node->getLastInstruction();
-            //if (lastInstruction.is_branch_op())
             // We used to have this ^^^ code and it worked. But it always returns false
             // and the case was never hit. Fixing it, and asserting it makes no diff
             if (lastInstruction._is_branch_instruction())

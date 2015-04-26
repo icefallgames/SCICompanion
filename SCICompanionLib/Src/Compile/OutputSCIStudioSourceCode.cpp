@@ -120,10 +120,10 @@ public:
             // (objectSpecies)
             break;
         case ValueType::Selector:
-            out.out << "#" << prop.GetStringValue();
+            out.out << "#" << CleanToken(prop.GetStringValue());
             break;
         case ValueType::Pointer:
-            out.out << "@" << prop.GetStringValue();
+            out.out << "@" << CleanToken(prop.GetStringValue());
             break;
         }
     }
@@ -670,15 +670,51 @@ public:
         }
     }
 
-    void Visit(const Asm &asmSection) override
+    void Visit(const Asm &asmStatement) override
     {
-        DebugLine line(out);
-//        out.out << asmSection.GetInstructionName() << " " << asmSection._arguments;
+        // Let's use a more custom text formatting.
+        out.EnsureNewLine();
+
+        Inline inlineAsm(out, true);
+
+        int labelSize = 0;
+        if (!asmStatement.GetLabel().empty())
+        {
+            out.out << asmStatement.GetLabel() << ":";
+            labelSize = (int)asmStatement.GetLabel().size() + 1;
+        }
+
+        // Move forward to the current indent level.
+        std::string spaces;
+        spaces.append(max(0, out.iIndent - labelSize), ' ');
+        out.out << spaces;
+
+        // output the instruction
+        out.out << asmStatement.GetName();
+
+        // Move forward to a common column
+        spaces.clear();
+        spaces.append(max(0, 8 - asmStatement.GetName().size()), ' ');
+        out.out << spaces;
+
+        Forward(asmStatement.GetStatements(), ", ");
     }
 
     void Visit(const AsmBlock &asmSection) override
     {
-
+        {
+            DebugLine asmLine(out);
+            out.out << "(asm";
+            {
+                DebugIndent indent(out);
+                Forward(asmSection.GetStatements());
+            }
+        }
+        {
+            out.EnsureNewLine();
+            DebugLine asmLine(out);
+            out.out << ")";
+        }
     }
 
 };

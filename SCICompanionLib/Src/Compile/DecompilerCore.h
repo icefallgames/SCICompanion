@@ -187,6 +187,7 @@ private:
 };
 
 std::string _GetPublicProcedureName(WORD wScript, WORD wIndex);
+std::string _GetBaseProcedureName(WORD wIndex);
 void _MassageProcedureCall(sci::ProcedureCall &proc, DecompileLookups &lookups, code_pos pos);
 std::string _GetVariableNameFromCodePos(code_pos pos, DecompileLookups &lookups, VarScope *pVarType = nullptr, WORD *pwIndexOut = nullptr);
 bool _IsVOIncremented(Opcode bOpcode);

@@ -34,10 +34,10 @@ void DisplayInvalidResourceNameMessage(PCTSTR pszName)
     AfxMessageBox(szBuffer, MB_ERRORFLAGS);
 }
 
-bool ValidateResourceSize(DWORD cb)
+bool ValidateResourceSize(DWORD cb, ResourceType type)
 {
     bool fRet = true;
-    if (cb > MaxResourceSize)
+    if (cb > ((type == ResourceType::Audio) ? MaxResourceSizeAud : MaxResourceSize))
     {
         TCHAR szBuffer[MAX_PATH];
         StringCchPrintf(szBuffer, ARRAYSIZE(szBuffer), TEXT("Resources can't be bigger than %d bytes.  This resource is %d bytes."), MaxResourceSize, cb);

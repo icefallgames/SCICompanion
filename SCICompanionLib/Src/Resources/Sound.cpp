@@ -77,7 +77,6 @@ void CuePoint::SetType(Type type)
     }
 }
 
-
 uint16_t SoundComponent::GetChannelMask(DeviceType device) const
 {
     uint16_t wMask = 0;
@@ -913,7 +912,7 @@ void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream)
                         uint8_t polyAndPriority;
                         channelStream >> polyAndPriority;
                         DWORD totalTicks = 0;
-                        ReadChannel(channelStream, channels[channelNumber], totalTicks, sound);
+                       // ReadChannel(channelStream, channels[channelNumber], totalTicks, sound);
                         sound.TotalTicks = max(sound.TotalTicks, totalTicks);
                     }
                 }

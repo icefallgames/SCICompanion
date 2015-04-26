@@ -135,8 +135,6 @@ public:
     int is_stackpop_op();
     bool is_stackpush_op();
     bool is_acc_op();
-    bool is_cmp_op();
-    bool is_branch_op();
     void mark() { }
     bool is_marked() { return false; }
 

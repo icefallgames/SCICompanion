@@ -312,3 +312,9 @@ _T* pop_ptr(std::stack<_T*> &leStack)
     leStack.pop();
     return ptr;
 }
+
+template<class T> inline
+bool contains(const T& container, const typename T::reference value)
+{
+    return container.find(value) != container.end();
+}

@@ -7,6 +7,7 @@
 #include "DisassembleHelper.h"
 #include "ControlFlowGraph.h"
 #include "DecompilerNew.h"
+#include "DecompilerFallback.h"
 #include <iterator>
 
 #define DEBUG_DECOMPILER 1
@@ -76,6 +77,13 @@ std::string _GetPublicProcedureName(WORD wScript, WORD wIndex)
 {
     std::stringstream ss;
     ss << "proc" << wScript << "_" << wIndex;
+    return ss.str();
+}
+
+std::string _GetBaseProcedureName(WORD wIndex)
+{
+    std::stringstream ss;
+    ss << "proc000_" << wIndex;
     return ss.str();
 }
 
@@ -183,7 +191,6 @@ void _ConvertToInstructions(std::list<scii> &code, const BYTE *pBegin, const BYT
                 break;
             }
         }
-
 
         wReferencePosition += wSize;
     }
@@ -802,19 +809,20 @@ void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBe
     // Do some early things
     _DetermineIfFunctionReturnsValue(code, lookups);
 
-    ControlFlowGraph cfg;
-    cfg.Generate(func.GetName(), code.begin(), code.end());
-
-    const NodeSet &controlStructures = cfg.ControlStructures();
-    MainNode *mainNode = cfg.GetMain();
-
     // Construct the function -> for now use procedure, but really should be method or proc
     unique_ptr<FunctionSignature> pSignature = std::make_unique<FunctionSignature>();
     _FigureOutParameters(func, *pSignature, code);
     func.AddSignature(std::move(pSignature));
 
     // temp test
-    OutputNewStructure(func, *mainNode, lookups);
+    /*
+    ControlFlowGraph cfg;
+    cfg.Generate(func.GetName(), code.begin(), code.end());
+
+    const NodeSet &controlStructures = cfg.ControlStructures();
+    MainNode *mainNode = cfg.GetMain();
+     OutputNewStructure(func, *mainNode, lookups); */
+    DisassembleFallback(func, code.begin(), code.end(), lookups);
 
     DetermineHexValues determineHexValues(func);
 

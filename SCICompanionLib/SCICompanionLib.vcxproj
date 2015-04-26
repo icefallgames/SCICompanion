@@ -187,6 +187,7 @@
     <ClCompile Include="Src\Compile\AutoDetectVariableNames.cpp" />
     <ClCompile Include="Src\Compile\ControlFlowNode.cpp" />
     <ClCompile Include="Src\Compile\ControlFlowGraphViz.cpp" />
+    <ClCompile Include="Src\Compile\DecompilerFallback.cpp" />
     <ClCompile Include="Src\Compile\DecompilerNew.cpp" />
     <ClCompile Include="Src\Compile\DecompileScript.cpp" />
     <ClCompile Include="Src\Compile\DisassembleHelper.cpp" />
@@ -222,6 +223,7 @@
     <ClCompile Include="Src\Resources\View.cpp" />
     <ClCompile Include="Src\Util\AudioPlayback.cpp" />
     <ClInclude Include="Src\Compile\AutoDetectVariableNames.h" />
+    <ClInclude Include="Src\Compile\DecompilerFallback.h" />
     <ClInclude Include="Src\Compile\DecompilerNew.h" />
     <ClInclude Include="Src\Dialogs\PaletteEditorCommon.h" />
     <ClInclude Include="Src\Dialogs\PaletteEditorDialog.h" />

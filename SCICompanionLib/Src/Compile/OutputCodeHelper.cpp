@@ -115,15 +115,20 @@ void EndStatement(sci::SourceCodeWriter &out)
 std::string CleanToken(const std::string &src)
 {
     bool ok = true;
-    for (size_t i = 0; ok && (i < src.length()); i++)
+    // Special hack: sometimes said strings come through here
+    bool isSaid = (!src.empty() && src[0] == '\'' && src.back() == '\'');
+    if (!isSaid)
     {
-        if ((i == 0) && !isalpha(src[i]) && (src[i] != '_'))
+        for (size_t i = 0; ok && (i < src.length()); i++)
         {
-            ok = false;
-        }
-        else if ((i > 0) && !isalnum(src[i]) && (src[i] != '_'))
-        {
-            ok = false;
+            if ((i == 0) && !isalpha(src[i]) && (src[i] != '_'))
+            {
+                ok = false;
+            }
+            else if ((i > 0) && !isalnum(src[i]) && (src[i] != '_'))
+            {
+                ok = false;
+            }
         }
     }
     if (!ok)

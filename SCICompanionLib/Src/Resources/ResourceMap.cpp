@@ -460,7 +460,7 @@ bool CResourceMap::AppendResource(const ResourceEntity &resource, int packageNum
     {
         sci::ostream serial;
         resource.WriteTo(serial);
-        if (ValidateResourceSize(serial.tellp()))
+        if (ValidateResourceSize(serial.tellp(), resource.GetType()))
         {
             ResourceBlob data;
             sci::istream readStream = istream_from_ostream(serial);

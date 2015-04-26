@@ -205,7 +205,7 @@ Script *Decompile(const CompiledScript &compiledScript, DecompileLookups &lookup
     // Now the internal procedures (REVIEW - possibly overlap with exported ones)
     for (uint16_t offset : internalProcOffsetsTO)
     {
-        std::unique_ptr<ProcedureDefinition> pProc(new ProcedureDefinition);
+        std::unique_ptr<ProcedureDefinition> pProc = make_unique<ProcedureDefinition>();
         pProc->SetScript(pScript.get());
         pProc->SetName(_GetProcNameFromScriptOffset(offset));
         pProc->SetPublic(false);

@@ -475,7 +475,17 @@ namespace sci
     class PropertyValue : public PropertyValueBase
     {
         DECLARE_NODE_TYPE(NodeTypeValue)
-	public:
+    public:
+        PropertyValue() : PropertyValueBase() {}
+        PropertyValue(const std::string &label, ValueType type) : PropertyValueBase()
+        {
+            SetValue(label, type);
+        }
+        PropertyValue(uint16_t number) : PropertyValueBase()
+        {
+            SetValue(number);
+        }
+
 		void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 	};

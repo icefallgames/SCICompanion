@@ -1125,7 +1125,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
                     ss << lookups.LookupKernelName(pos->get_first_operand());
                     break;
                 case Opcode::CALLB:
-                    ss << "proc000_" << pos->get_first_operand();
+                    ss << _GetBaseProcedureName(pos->get_first_operand());
                     break;
                 case Opcode::CALLE:
                     ss << _GetPublicProcedureName(pos->get_first_operand(), pos->get_second_operand());
@@ -2134,11 +2134,6 @@ void _RestructureCaseHeaders(ConsumptionNode *chunk, DecompileLookups &lookups)
 
 void OutputNewStructure(sci::FunctionBase &func, MainNode &main, DecompileLookups &lookups)
 {
-    if (func.GetName() == "add")
-    {
-        int x = 0;
-    }
-
     CodeChunkEnumContext context(lookups);
     unique_ptr<ConsumptionNode> mainChunk = make_unique<ConsumptionNode>();
     context.Current = mainChunk.get();

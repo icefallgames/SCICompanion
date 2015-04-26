@@ -466,7 +466,7 @@ namespace sci
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 
-        std::string GetLabel() { return _label; }
+        const std::string &GetLabel() const { return _label; }
         void SetLabel(const std::string &label) {
             _label = label;
         }

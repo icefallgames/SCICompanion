@@ -130,34 +130,6 @@ bool scii::is_acc_op()
 }
 
 
-bool scii::is_cmp_op()
-{
-    return false;
-/*#define Opcode::NOT							12
-#define Opcode::EQ							13
-#define Opcode::NE							14
-#define Opcode::GT							15
-#define Opcode::GE							16
-#define Opcode::LT							17
-#define Opcode::LE							18
-#define Opcode::UGT							19
-#define Opcode::UGE							20
-#define Opcode::ULT							21
-#define Opcode::ULE							22
-*/
-
-}
-
-bool scii::is_branch_op()
-{
-    return false;
-/*#define Opcode::BT							23      // branch on true
-#define Opcode::BNT							24      // branch on not true
-#define Opcode::JMP							25      // jump
-*/
-}
-
-
 WORD scii::_get_instruction_size(Opcode bOpcode, OPSIZE opSize)
 {
     ASSERT(opSize != Undefined);
