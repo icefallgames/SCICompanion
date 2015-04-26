@@ -1,8 +1,6 @@
 #pragma once
 #include "Types.h"
 
-bool _IsSCOPFile(const std::string &scoFileName);
-
 //
 // Object model for .sco object files.
 //
@@ -11,9 +9,9 @@ class CSCOFunctionSignature
 {
 public:
     CSCOFunctionSignature() : _wReturnType(DataTypeAny), _wRequiredParameters(0), _fAdditionalParameters(true) {}
-    void Save(bool fIncludesTypeInfo, std::vector<BYTE> &output) const;
+    void Save(std::vector<BYTE> &output) const;
     bool operator==(const CSCOFunctionSignature& value) const;
-    bool Create(bool fIncludesTypeInfo, sci::istream &stream);
+    bool Create(sci::istream &stream);
 
     SpeciesIndex GetReturnType() const { return _wReturnType; }
     void SetReturnType(SpeciesIndex w) { _wReturnType = w; }
@@ -40,8 +38,8 @@ class CSCOPublicExport
 public:
     CSCOPublicExport() : _wProcIndex(0) {}
     CSCOPublicExport(const std::string &name, WORD wIndex) : _wProcIndex(wIndex), _strName(name) {}
-    void Save(bool fIncludesTypeInfo, std::vector<BYTE> &output) const;
-    bool Create(bool fIncludesTypeInfo, sci::istream &stream);
+    void Save(std::vector<BYTE> &output) const;
+    bool Create(sci::istream &stream);
     const std::string &GetName() const { return _strName; }
     WORD GetIndex() const { return _wProcIndex; }
     bool operator==(const CSCOPublicExport& value) const;
@@ -76,10 +74,10 @@ public:
     CSCOObjectProperty(WORD wSelector, WORD wValue, WORD wType, bool fTrackRelocation = false) : _wNameIndex(wSelector), _wValue(wValue), _wType(wType), _fNeedsReloc(fTrackRelocation) {}
     bool operator==(const CSCOObjectProperty& value) const;
     bool operator!=(const CSCOObjectProperty& value) const;
-    void Save(bool fIncludesTypeInfo, std::vector<BYTE> &output) const;
+    void Save(std::vector<BYTE> &output) const;
     void DebugOut(std::ostream &out) const;
 
-    bool Create(bool fIncludesTypeInfo, sci::istream &stream);
+    bool Create(sci::istream &stream);
     WORD GetSelector() const { return _wNameIndex; }
     WORD GetValue() const { return _wValue; }
     WORD GetType() const { return _wType; }
@@ -97,9 +95,9 @@ class CSCOMethod
 public:
     bool operator==(const CSCOMethod& value) const;
     bool operator!=(const CSCOMethod& value) const;
-    void Save(bool fIncludesTypeInfo, std::vector<BYTE> &output) const;
+    void Save(std::vector<BYTE> &output) const;
     void DebugOut(std::ostream &out) const;
-    bool Create(bool fIncludesTypeInfo, sci::istream &stream);
+    bool Create(sci::istream &stream);
 
     void SetSelector(WORD wSelector) { _wSelector = wSelector; }
     WORD GetSelector() const { return _wSelector; }
@@ -124,11 +122,11 @@ public:
     }
     bool operator==(const CSCOObjectClass& value) const;
     bool operator!=(const CSCOObjectClass& value) const;
-    void Save(bool fIncludesTypeInfo, std::vector<BYTE> &output) const;
+    void Save(std::vector<BYTE> &output) const;
     void DebugOut(std::ostream &out) const;
 
     const std::string &GetName() const { return _strName; }
-    bool Create(bool fIncludesTypeInfo, sci::istream &stream);
+    bool Create(sci::istream &stream);
     const std::vector<CSCOMethod> &GetMethods() const { return _methods; }
 
     // The properties include the default four properties (redundant, a bit)
@@ -165,11 +163,11 @@ public:
     CSCOLocalVariable(const std::string &name, WORD wType) : _strName(name), _wType(wType) {}
     bool operator==(const CSCOLocalVariable& value) const;
     bool operator!=(const CSCOLocalVariable& value) const;
-    void Save(bool fIncludesTypeInfo, std::vector<BYTE> &output) const;
+    void Save(std::vector<BYTE> &output) const;
     void DebugOut(std::ostream &out) const;
     const std::string &GetName() const { return _strName; }
     const WORD GetType() const { return _wType; }
-    bool Create(bool fIncludesTypeInfo, sci::istream &stream);
+    bool Create(sci::istream &stream);
 
 private:
     std::string _strName;
@@ -197,9 +195,9 @@ public:
     bool operator==(const CSCOFile& value) const;
     bool operator!=(const CSCOFile& value) const;
     void DebugOut(std::ostream &out) const;
-    void Save(bool fIncludesTypeInfo, std::vector<BYTE> &output) const;
+    void Save(std::vector<BYTE> &output) const;
 
-    bool Create(bool fIncludesTypeInfo, sci::istream &stream);
+    bool Create(sci::istream &stream);
     std::string GetVariableName(WORD wIndex)  const;
     std::string GetExportName(WORD wIndex)  const;
     std::string GetClassName(WORD wIndex) const;
@@ -233,7 +231,6 @@ private:
     BYTE _bAlignment; // ARCHITECTURE: SCIStudio doesn't check the alignment - we could use this as a clue
                       // that there is extra info (e.g. data type)
 
-    bool _fIncludesTypeInfo;
     WORD _wScriptNumber;
 
     // Publics index is contained with the CSCOPublicExport.

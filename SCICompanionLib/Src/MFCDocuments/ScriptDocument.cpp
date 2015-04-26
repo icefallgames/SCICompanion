@@ -231,25 +231,12 @@ bool NewCompileScript(CompileLog &log, CompileTables &tables, PrecompiledHeaders
                 {
                     vector<BYTE> scoOutput;
                     // First save the .sco file
-                    sco.Save(false, scoOutput);
+                    sco.Save(scoOutput);
                     // Copy these bytes to a stream...
                     std::string scoFileName = appState->GetResourceMap().GetScriptObjectFileName(script.GetTitle(), LangSyntaxSCIStudio);
                     ofstream scoFile(scoFileName.c_str(), ios::out | ios::binary);
                     // REVIEW: yucky
                     scoFile.write((const char *)&scoOutput[0], (std::streamsize)scoOutput.size());
-                    scoFile.close();
-                }
-
-                {
-                    // Then .scop
-                    vector<BYTE> scopOutput;
-                    // First save the .sco file
-                    sco.Save(true, scopOutput);
-                    // Copy these bytes to a stream...
-                    std::string scoFileName = appState->GetResourceMap().GetScriptObjectFileName(script.GetTitle(), LangSyntaxCpp);
-                    ofstream scoFile(scoFileName.c_str(), ios::out | ios::binary);
-                    // REVIEW: yucky
-                    scoFile.write((const char *)&scopOutput[0], (std::streamsize)scopOutput.size());
                     scoFile.close();
                 }
 
@@ -342,7 +329,7 @@ void CScriptDocument::OnViewObjectFile()
             {
                 sci::streamOwner streamOwner(hFile);
                 CSCOFile scoFile;
-                if (scoFile.Create(false, streamOwner.getReader()))
+                if (scoFile.Create(streamOwner.getReader()))
                 {
                     stringstream out;
                     scoFile.DebugOut(out);

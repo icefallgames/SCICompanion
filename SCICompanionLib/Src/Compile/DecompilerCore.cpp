@@ -1055,7 +1055,7 @@ std::string DecompileLookups::ReverseLookupPublicExportName(WORD wScript, WORD w
     std::string ret = _pOFLookups->ReverseLookupPublicExportName(wScript, wIndex);
     if (ret.empty())
     {
-        // This will be true if there are no .sco/.scop files.
+        // This will be true if there are no .sco files.
         ret = _GetPublicProcedureName(wScript, wIndex);
     }
     return ret;

@@ -681,14 +681,7 @@ std::string CResourceMap::GetScriptObjectFileName(const std::string &title, Lang
     {
         filename += "\\src\\";
         filename += title;
-        if (lang == LangSyntaxCpp)
-        {
-            filename += ".scop";
-        }
-        else
-        {
-            filename += ".sco";
-        }
+        filename += ".sco";
     }
     return filename;
 }

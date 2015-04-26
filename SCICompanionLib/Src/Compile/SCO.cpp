@@ -3,11 +3,6 @@
 
 using namespace std;
 
-bool _IsSCOPFile(const std::string &scoFileName)
-{
-    return (scoFileName.find(".scop") != std::string::npos);
-}
-
 
 //
 // SCO format header:
@@ -51,14 +46,13 @@ template<typename _T>
 struct FwdSave : unary_function<_T, void>
 {
 public:
-    FwdSave(bool fIncludesTypeInfo, vector<BYTE> &output) : _output(output), _fIncludesTypeInfo(fIncludesTypeInfo) {}
+    FwdSave(vector<BYTE> &output) : _output(output) {}
     void operator()(const _T &thing)
     {
-        thing.Save(_fIncludesTypeInfo, _output);
+        thing.Save(_output);
     }
 private:
     vector<BYTE> &_output;
-    bool _fIncludesTypeInfo;
 };
 
 struct PushWord : unary_function<WORD, void>
@@ -74,7 +68,7 @@ private:
 };
 
 
-bool CSCOFile::Create(bool fIncludesTypeInfo, sci::istream &stream)
+bool CSCOFile::Create(sci::istream &stream)
 {
     stream.seekg(stream.tellg() + 3);
     stream >> _bMajorVersion;
@@ -101,7 +95,7 @@ bool CSCOFile::Create(bool fIncludesTypeInfo, sci::istream &stream)
                 for (WORD i = 0; stream.good() && i < wTotalPublics; i++)
                 {
                     CSCOPublicExport procedure;
-                    if (procedure.Create(fIncludesTypeInfo, stream))
+                    if (procedure.Create(stream))
                     {
                         _publics.push_back(procedure);
                     }
@@ -129,7 +123,7 @@ bool CSCOFile::Create(bool fIncludesTypeInfo, sci::istream &stream)
                         for (WORD i = 0; fRet && i < wTotalClasses; i++)
                         {
                             CSCOObjectClass objectClass;
-                            fRet = objectClass.Create(fIncludesTypeInfo, stream);
+                            fRet = objectClass.Create(stream);
                             if (fRet)
                             {
                                 _classes.push_back(objectClass);
@@ -160,7 +154,7 @@ bool CSCOFile::Create(bool fIncludesTypeInfo, sci::istream &stream)
                         for (WORD i = 0; fRet && i < wTotalVars; i++)
                         {
                             CSCOLocalVariable var;
-                            fRet = var.Create(fIncludesTypeInfo, stream);
+                            fRet = var.Create(stream);
                             if (fRet)
                             {
                                 _vars.push_back(var);
@@ -174,7 +168,7 @@ bool CSCOFile::Create(bool fIncludesTypeInfo, sci::istream &stream)
     return stream.good();
 }
 
-void CSCOFile::Save(bool fIncludesTypeInfo, vector<BYTE> &output) const
+void CSCOFile::Save(vector<BYTE> &output) const
 {
     // Header
     string scoToken = "SCO";
@@ -201,19 +195,19 @@ void CSCOFile::Save(bool fIncludesTypeInfo, vector<BYTE> &output) const
     if (!_publics.empty())
     {
         write_word(output, wOffsetPublics, (WORD)output.size());
-        for_each(_publics.begin(), _publics.end(), FwdSave<CSCOPublicExport>(fIncludesTypeInfo, output));
+        for_each(_publics.begin(), _publics.end(), FwdSave<CSCOPublicExport>(output));
     }
 
     if (!_classes.empty())
     {
         write_word(output, wOffsetClasses, (WORD)output.size());
-        for_each(_classes.begin(), _classes.end(), FwdSave<CSCOObjectClass>(fIncludesTypeInfo, output));
+        for_each(_classes.begin(), _classes.end(), FwdSave<CSCOObjectClass>(output));
     }
 
     if (!_vars.empty())
     {
         write_word(output, wOffsetVars, (WORD)output.size());
-        for_each(_vars.begin(), _vars.end(), FwdSave<CSCOLocalVariable>(fIncludesTypeInfo, output));
+        for_each(_vars.begin(), _vars.end(), FwdSave<CSCOLocalVariable>(output));
     }
 }
 
@@ -385,19 +379,12 @@ void CSCOPublicExport::DebugOut(std::ostream &out) const
 {
     out << _strName << " at " << _wProcIndex << endl;
 }
-void CSCOPublicExport::Save(bool fIncludesTypeInfo, std::vector<BYTE> &output) const
+void CSCOPublicExport::Save(std::vector<BYTE> &output) const
 {
     // 1) index in this script
     // 2) name
     push_word(output, _wProcIndex);
     push_string(output, _strName);
-    if (fIncludesTypeInfo)
-    {
-        // 3) number of signatures
-        // 4) n signatures...
-        push_word(output, static_cast<WORD>(_signatures.size()));
-        for_each(_signatures.begin(), _signatures.end(), FwdSave<CSCOFunctionSignature>(fIncludesTypeInfo, output));
-    }
 }
 
 
@@ -429,21 +416,10 @@ void CSCOFile::DebugOut(std::ostream &out) const
     }
 }
 
-bool CSCOPublicExport::Create(bool fIncludesTypeInfo, sci::istream &stream)
+bool CSCOPublicExport::Create(sci::istream &stream)
 {
     stream >> _wProcIndex;
     stream.getRLE(_strName);
-    if (fIncludesTypeInfo)
-    {
-        WORD cSigs;
-        stream >> cSigs;
-        for (WORD i = 0; i < cSigs; ++i)
-        {
-            CSCOFunctionSignature sig;
-            sig.Create(fIncludesTypeInfo, stream);
-            _signatures.push_back(sig);
-        }
-    }
     return stream.good();
 }
 
@@ -477,13 +453,9 @@ bool CSCOPublicExport::operator!=(const CSCOPublicExport& value) const
 
 
 
-bool CSCOLocalVariable::Create(bool fIncludesTypeInfo, sci::istream &stream)
+bool CSCOLocalVariable::Create(sci::istream &stream)
 {
     stream.getRLE(_strName);
-    if (fIncludesTypeInfo)
-    {
-        stream >> _wType;
-    }
     return stream.good();
 }
 bool CSCOLocalVariable::operator==(const CSCOLocalVariable& value) const
@@ -498,23 +470,15 @@ void CSCOLocalVariable::DebugOut(std::ostream &out) const
 {
     out << _strName << "\n";
 }
-void CSCOLocalVariable::Save(bool fIncludesTypeInfo, std::vector<BYTE> &output) const
+void CSCOLocalVariable::Save(std::vector<BYTE> &output) const
 {
     push_string(output, _strName);
-    if (fIncludesTypeInfo)
-    {
-        push_word(output, _wType);
-    }
 }
 
-bool CSCOObjectProperty::Create(bool fIncludesTypeInfo, sci::istream &stream)
+bool CSCOObjectProperty::Create(sci::istream &stream)
 {
     stream >> _wNameIndex;
     stream >> _wValue;
-    if (fIncludesTypeInfo)
-    {
-        stream >> _wType;
-    }
     return stream.good();
 }
 
@@ -531,18 +495,14 @@ void CSCOObjectProperty::DebugOut(std::ostream &out) const
 {
     out << _wNameIndex << " = " << _wValue << endl;
 }
-void CSCOObjectProperty::Save(bool fIncludesTypeInfo, std::vector<BYTE> &output) const
+void CSCOObjectProperty::Save(std::vector<BYTE> &output) const
 {
     push_word(output, _wNameIndex);
     push_word(output, _wValue);
-    if (fIncludesTypeInfo)
-    {
-        push_word(output, _wType);
-    }
 }
 
 
-bool CSCOObjectClass::Create(bool fIncludesTypeInfo, sci::istream &stream)
+bool CSCOObjectClass::Create(sci::istream &stream)
 {
     stream.getRLE(_strName);
 
@@ -564,7 +524,7 @@ bool CSCOObjectClass::Create(bool fIncludesTypeInfo, sci::istream &stream)
         for (WORD i = 0; fRet && i < wNumProps; i++)
         {
             CSCOObjectProperty property;
-            fRet = property.Create(fIncludesTypeInfo, stream);
+            fRet = property.Create(stream);
             if (fRet)
             {
                 _properties.push_back(property);
@@ -576,7 +536,7 @@ bool CSCOObjectClass::Create(bool fIncludesTypeInfo, sci::istream &stream)
         for (WORD i = 0; stream.good() && i < wNumMethods; i++)
         {
             CSCOMethod method;
-            fRet = method.Create(fIncludesTypeInfo, stream);
+            fRet = method.Create(stream);
             if (fRet)
             {
                 _methods.push_back(method);
@@ -619,7 +579,7 @@ void CSCOObjectClass::DebugOut(std::ostream &out) const
     out << endl;
 }
 #define NUM_DEFAULT_PROPS 4
-void CSCOObjectClass::Save(bool fIncludesTypeInfo, std::vector<BYTE> &output) const
+void CSCOObjectClass::Save(std::vector<BYTE> &output) const
 {
     push_string(output, _strName);
 
@@ -630,9 +590,9 @@ void CSCOObjectClass::Save(bool fIncludesTypeInfo, std::vector<BYTE> &output) co
     push_word(output, _wSuperClass);
 
     // Skip the 4 default properties in _properties, and write the rest.
-    for_each(_properties.begin() + NUM_DEFAULT_PROPS, _properties.end(), FwdSave<CSCOObjectProperty>(fIncludesTypeInfo, output));
+    for_each(_properties.begin() + NUM_DEFAULT_PROPS, _properties.end(), FwdSave<CSCOObjectProperty>(output));
     // Write the method selectors.
-    for_each(_methods.begin(), _methods.end(), FwdSave<CSCOMethod>(fIncludesTypeInfo, output));
+    for_each(_methods.begin(), _methods.end(), FwdSave<CSCOMethod>(output));
 }
 
 
@@ -645,37 +605,18 @@ bool CSCOMethod::operator!=(const CSCOMethod& value) const
 {
     return !((*this) == value);
 }
-void CSCOMethod::Save(bool fIncludesTypeInfo, std::vector<BYTE> &output) const
+void CSCOMethod::Save(std::vector<BYTE> &output) const
 {
     push_word(output, _wSelector);
-    if (fIncludesTypeInfo)
-    {
-        push_word(output, static_cast<WORD>(_signatures.size()));
-        for_each(_signatures.begin(), _signatures.end(), FwdSave<CSCOFunctionSignature>(fIncludesTypeInfo, output));
-    }
 }
 void CSCOMethod::DebugOut(std::ostream &out) const
 {
     out << _wSelector << endl;
 }
-bool CSCOMethod::Create(bool fIncludesTypeInfo, sci::istream &stream)
+bool CSCOMethod::Create(sci::istream &stream)
 {
     // 1) selector
     stream >> _wSelector;
-
-    if (fIncludesTypeInfo)
-    {
-        // 2) # of method signatures
-        // 3) n method signatures
-        WORD cSignatures;
-        stream >> cSignatures;
-        for (WORD i = 0; i < cSignatures; ++i)
-        {
-            CSCOFunctionSignature sig;
-            sig.Create(fIncludesTypeInfo, stream);
-            _signatures.push_back(sig);
-        }
-    }
     return stream.good();
 }
 
@@ -684,44 +625,11 @@ bool CSCOFunctionSignature::operator==(const CSCOFunctionSignature& value) const
     return ((_wReturnType == value._wReturnType) &&
             (_parameters == value._parameters));
 }
-void CSCOFunctionSignature::Save(bool fIncludesTypeInfo, std::vector<BYTE> &output) const
+void CSCOFunctionSignature::Save(std::vector<BYTE> &output) const
 {
-    if (fIncludesTypeInfo)
-    {
-        // 1) Return type
-        // 2) Number of parameters
-        // 3) Parameter types (c 2)
-        // 4) The number of required parameters
-        // 5) Are additional parameters ok (0 or !0, WORD)
-        push_word(output, _wReturnType);
-        push_word(output, static_cast<WORD>(_parameters.size()));
-        for(WORD wParameter : _parameters)
-        {
-            push_word(output, wParameter);
-        }
-        push_word(output, _wRequiredParameters);
-        push_word(output, _fAdditionalParameters ? 0xffff : 0);
-    }
 }
-bool CSCOFunctionSignature::Create(bool fIncludesTypeInfo, sci::istream &stream)
+bool CSCOFunctionSignature::Create(sci::istream &stream)
 {
-    if (fIncludesTypeInfo)
-    {
-        stream >> _wReturnType;
-        WORD cParameters;
-        stream >> cParameters;
-        for (WORD i = 0; i < cParameters; ++i)
-        {
-            WORD w;
-            stream >> w;
-            _parameters.push_back(w);
-        }
-        stream >> _wRequiredParameters;
-        WORD wAdditionalOk;
-        stream >> wAdditionalOk;
-        _fAdditionalParameters = (wAdditionalOk != 0);
-        ASSERT((wAdditionalOk == 0) || (wAdditionalOk == 0xffff));
-    }
-    return stream.good();
+    return true;
 }
 

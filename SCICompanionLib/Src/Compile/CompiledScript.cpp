@@ -992,7 +992,7 @@ bool ObjectFileScriptLookups::_LoadSCOFile(WORD wScript)
             {
                 sci::streamOwner streamOwner(hFile);
                 CSCOFile scoFile;
-                if (scoFile.Create(false, streamOwner.getReader()))
+                if (scoFile.Create(streamOwner.getReader()))
                 {
                     _mapScriptToObject[wScript] = scoFile;
                     fRet = true;

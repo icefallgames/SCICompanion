@@ -283,7 +283,7 @@ void CompileContext::_LoadSCO(const std::string &name, LangSyntax langPref, bool
     {
         sci::streamOwner streamOwner(hFile);
         CSCOFile scoFile;
-        if (scoFile.Create(_IsSCOPFile(scoFileName), streamOwner.getReader()))
+        if (scoFile.Create(streamOwner.getReader()))
         {
             _scos[scoFile.GetScriptNumber()] = scoFile;
         }
