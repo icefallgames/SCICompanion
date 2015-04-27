@@ -21,6 +21,7 @@ void DecompileDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDOK, m_wndOK);
     DDX_Control(pDX, IDC_DECOMPILE, m_wndDecompile);
     DDX_Control(pDX, IDC_CLEARSCO, m_wndClearSCO);
+    DDX_Control(pDX, IDC_ASSIGNFILENAMES, m_wndSetFilenames);
 
     DDX_Control(pDX, IDC_TREESCO, m_wndTreeSCO);
 
@@ -39,7 +40,6 @@ void DecompileDialog::DoDataExchange(CDataExchange* pDX)
 
         _InitScriptList();
         _PopulateScripts();
-        _SyncSelection();
         initialized = true;
     }
 }
@@ -81,16 +81,14 @@ char c_Empty[] = "";
 
 void DecompileDialog::_UpdateScripts(set<uint16_t> updatedScripts)
 {
-    auto scriptResources = appState->GetResourceMap().Resources(ResourceTypeFlags::Script, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::NameLookups);
-    int itemNumber = 0;
-    for (auto &blob : *scriptResources)
+    for (int i = 0; i < m_wndListScripts.GetItemCount(); i++)
     {
-        uint16_t number = (uint16_t)blob->GetNumber();
-        if (contains(updatedScripts, number))
+        uint16_t scriptNum = (uint16_t)m_wndListScripts.GetItemData(i);
+        if (contains(updatedScripts, scriptNum))
         {
-            string name = blob->GetName();
+            string name = appState->GetResourceMap().FigureOutName(ResourceType::Script, scriptNum);
             LVITEM item = {};
-            item.iItem = itemNumber;
+            item.iItem = i;
 
             item.mask = LVIF_TEXT;
             item.iSubItem = SCOColumn;
@@ -104,12 +102,18 @@ void DecompileDialog::_UpdateScripts(set<uint16_t> updatedScripts)
             item.pszText = PathFileExists(scriptFilename.c_str()) ? c_Yes : c_Empty;
             m_wndListScripts.SetItem(&item);
         }
-        itemNumber++;
     }
+    _SyncSelection();
+}
+
+int CALLBACK _SortListByNumber(LPARAM lpOne, LPARAM lpTwo, LPARAM lpArg)
+{
+    return ((int)lpOne - (int)lpTwo);
 }
 
 void DecompileDialog::_PopulateScripts()
 {
+    SetRedraw(FALSE);
     m_wndListScripts.DeleteAllItems();
 
     auto scriptResources = appState->GetResourceMap().Resources(ResourceTypeFlags::Script, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::NameLookups);
@@ -139,6 +143,8 @@ void DecompileDialog::_PopulateScripts()
 
         itemNumber++;
     }
+    m_wndListScripts.SortItems(_SortListByNumber, 0);
+    SetRedraw(TRUE);
 }
 
 LPARAM _IndexToParam(bool isVariable, int index)
@@ -238,8 +244,9 @@ void DecompileDialog::_SyncSelection()
 
             // Load the .sco file
             _sco.reset(nullptr);
+            _scoPublicProcIndices.clear();
             string objectFilename = appState->GetResourceMap().GetScriptObjectFileName((uint16_t)param);
-            if (!objectFilename.empty())
+            if (!objectFilename.empty() && PathFileExists(objectFilename.c_str()))
             {
                 ScopedFile scoped(objectFilename, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
                 sci::streamOwner streamOwner(scoped.hFile);
@@ -279,6 +286,7 @@ void DecompileDialog::_SyncSelection()
         m_wndScript.SetWindowTextA("");
         m_wndTreeSCO.DeleteAllItems();
         _sco.reset(nullptr);
+        _scoPublicProcIndices.clear();
     }
 
     // TODO Sync single selection...
@@ -291,6 +299,7 @@ BEGIN_MESSAGE_MAP(DecompileDialog, CExtResizableDialog)
     ON_NOTIFY(LVN_BEGINLABELEDIT, IDC_LISTSCRIPTS, &DecompileDialog::OnLvnBeginlabeleditListscripts)
     ON_NOTIFY(LVN_ENDLABELEDIT, IDC_LISTSCRIPTS, &DecompileDialog::OnLvnEndlabeleditListscripts)
     ON_BN_CLICKED(IDC_DECOMPILE, &DecompileDialog::OnBnClickedDecompile)
+    ON_BN_CLICKED(IDC_ASSIGNFILENAMES, &DecompileDialog::OnBnClickedAssignfilenames)
 END_MESSAGE_MAP()
 
 // All this to handle the user pressing enter on a listview item.
@@ -405,7 +414,60 @@ void DecompileDialog::OnBnClickedDecompile()
         if (compiledScript.Load(appState->GetVersion(), scriptNum, false))
         {
             unique_ptr<sci::Script> pScript = DecompileScript(scriptNum, compiledScript);
+            // Dump it to the .sc file
+            // TODO: If it already exists, we might want to ask for confirmation.
+            std::stringstream ss;
+            sci::SourceCodeWriter out(ss, appState->GetResourceMap().GetGameLanguage(), pScript.get());
+            pScript->OutputSourceCode(out);
+            MakeTextFile(ss.str().c_str(), appState->GetResourceMap().GetScriptFileName(scriptNum));
         }
     }
     _UpdateScripts(scriptNumbers);
+    _SyncSelection();
+}
+
+
+void DecompileDialog::OnBnClickedAssignfilenames()
+{
+    GlobalCompiledScriptLookups *lookups = appState->GetResourceMap().GetCompiledScriptLookups();
+    if (lookups)
+    {
+        for (CompiledScript *script : lookups->GetGlobalClassTable().GetAllScripts())
+        {
+            string suggestedName;
+            if (script->GetScriptNumber() == 0)
+            {
+                suggestedName = "Main";
+            }
+            else
+            {
+                // Look for the first class in the file. If none found, then the first public instance.
+                for (const auto &object : script->GetObjects())
+                {
+                    if (!object->IsInstance())
+                    {
+                        suggestedName = object->GetName();
+                        break;
+                    }
+                }
+                if (suggestedName.empty())
+                {
+                    for (const auto &object : script->GetObjects())
+                    {
+                        if (object->IsInstance() && object->IsPublic)
+                        {
+                            suggestedName = object->GetName();
+                            break;
+                        }
+                    }
+                }
+            }
+            if (!suggestedName.empty())
+            {
+                appState->GetResourceMap().AssignName(ResourceType::Script, script->GetScriptNumber(), suggestedName.c_str());
+            }
+        }
+
+        _PopulateScripts();
+    }
 }

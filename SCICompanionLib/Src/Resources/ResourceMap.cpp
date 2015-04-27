@@ -653,7 +653,7 @@ void CResourceMap::SetIniString(const std::string &sectionName, const std::strin
 std::string CResourceMap::GetScriptFileName(WORD wScript, LangSyntax lang)
 {
     std::string filename;
-    std::string scriptTitle = GetIniString("Script", default_reskey(wScript));
+    std::string scriptTitle = GetIniString("Script", default_reskey(wScript), default_reskey(wScript).c_str());
     if (!scriptTitle.empty())
     {
         filename = GetScriptFileName(scriptTitle, lang);

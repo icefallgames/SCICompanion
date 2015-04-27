@@ -25,6 +25,7 @@ private:
     CExtButton m_wndOK;
     CExtButton m_wndDecompile;
     CExtButton m_wndClearSCO;
+    CExtButton m_wndSetFilenames;
 
     CTreeCtrl m_wndTreeSCO;
     std::unique_ptr<CSCOFile> _sco;
@@ -47,4 +48,5 @@ public:
     afx_msg void OnLvnBeginlabeleditListscripts(NMHDR *pNMHDR, LRESULT *pResult);
     afx_msg void OnLvnEndlabeleditListscripts(NMHDR *pNMHDR, LRESULT *pResult);
     afx_msg void OnBnClickedDecompile();
+    afx_msg void OnBnClickedAssignfilenames();
 };

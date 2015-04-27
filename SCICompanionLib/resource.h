@@ -4,6 +4,7 @@
 //
 #define IDC_DECOMPILE                   2
 #define IDC_CLEARSCO                    4
+#define IDC_ASSIGNFILENAMES             5
 #define IDD_ABOUTBOX                    100
 #define IDP_OLE_INIT_FAILED             100
 #define IDR_MAINFRAME                   128

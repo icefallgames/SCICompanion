@@ -223,7 +223,9 @@ public:
                     {
                         Indent(out);
                         out.out << "(";
+
                         Forward(function.GetVariables(), ", ");
+
                         out.out << ")";
                     }
                     // TODO: spit out the values here too.  _tempVarValues
