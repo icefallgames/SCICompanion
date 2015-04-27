@@ -4,7 +4,7 @@
 
 void _OutputVariableAndSize(sci::SourceCodeWriter &out, const std::string &type, const std::string &name, WORD wSize, std::vector<WORD> initValues)
 {
-    out.out << (type.empty() ? "var" : type) << " " << name;
+    out.out << name;
     if (wSize > 1)
     {
         out.out << "[" << wSize << "]"; // array

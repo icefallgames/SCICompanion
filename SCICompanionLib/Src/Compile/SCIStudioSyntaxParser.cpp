@@ -47,6 +47,7 @@ Parser keyword_p(const char *psz) { return Parser(KeywordP, psz); }
 Parser operator_p(const char *psz) { return Parser(OperatorP, psz); }
 
 Parser alphanum_p(AlphanumP);
+Parser asmInstruction_p(AsmInstructionP);
 Parser alphanum_p2(AlphanumPNoKeyword);
 Parser alwaysmatch_p(AlwaysMatchP);
 Parser alphanumopen_p(AlphanumOpenP);
@@ -1185,7 +1186,7 @@ void SCISyntaxParser::Load()
         alwaysmatch_p[StartStatementA]
         >> (alwaysmatch_p[SetStatementA<Asm>]
         >> -asm_label                                               // Optional label
-        >> alphanum_p[SetNameA<Asm>]                                // Instruction name
+        >> asmInstruction_p[SetNameA<Asm>]                                // Instruction name
         >> -(asm_arg[AddStatementA<Asm>] % comma[GeneralE]))[FinishStatementA];         // command separated values
 
     asm_block = oppar

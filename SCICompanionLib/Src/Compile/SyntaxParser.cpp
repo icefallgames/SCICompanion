@@ -16,16 +16,16 @@ bool SyntaxParser::Parse(sci::Script &script, CCrystalScriptStream &stream, ICom
         }
         else
         {
-			if (pLog)
-			{
-				// Someone either wants error logs:
-				fRet = _sci.Parse(script, stream.begin(), pLog);
-			}
-			else
-			{
-				// Or they are doing a partial compile (e.g. tooltips) and supply their own context.
-				fRet = _sci.Parse(script, stream.begin(), *pContext);
-			}
+            if (pLog)
+            {
+	            // Someone either wants error logs:
+	            fRet = _sci.Parse(script, stream.begin(), pLog);
+            }
+            else
+            {
+	            // Or they are doing a partial compile (e.g. tooltips) and supply their own context.
+	            fRet = _sci.Parse(script, stream.begin(), *pContext);
+            }
         }
     }
     else if (script.Language() == LangSyntaxCpp)

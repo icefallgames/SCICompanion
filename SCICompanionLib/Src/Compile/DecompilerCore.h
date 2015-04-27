@@ -94,6 +94,8 @@ public:
 
     std::string LookupParameterName(WORD wIndex); // 1-based
 
+    bool GetSpeciesScriptNumber(uint16_t species, uint16_t &scriptNumber);
+
     WORD GetScriptNumber() const { return _wScript; }
     std::string LookupTextResource(WORD wIndex) const;
 
@@ -113,6 +115,9 @@ public:
     void TrackProcedureCall(uint16_t offset);
     const ILookupPropertyName *GetPossiblePropertiesForProc(uint16_t localProcOffset);
     bool WasPropertyRequested() { return _requestedProperty; }
+
+    void TrackUsingScript(uint16_t scriptNumber) { _usings.insert(scriptNumber); }
+    const std::set<uint16_t> &GetUsings() { return _usings; }
 
     FunctionDecompileHints FunctionDecompileHints;
 
@@ -151,6 +156,8 @@ private:
     // Heuristics for which selectors are properties and which are methods.
     std::unordered_set<uint16_t> _methodSelectors;
     std::unordered_set<uint16_t> _propertySelectors;
+
+    std::set<uint16_t> _usings;
 };
 
 void DecompileRaw(sci::FunctionBase &func, DecompileLookups &lookups, const BYTE *pBegin, const BYTE *pEnd, WORD wBaseOffset);

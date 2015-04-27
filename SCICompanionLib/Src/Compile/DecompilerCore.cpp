@@ -794,6 +794,64 @@ void _DetermineIfFunctionReturnsValue(std::list<scii> code, DecompileLookups &lo
     }
 }
 
+void _TrackExternalScriptUsage(std::list<scii> code, DecompileLookups &lookups)
+{
+    code_pos cur = code.end();
+    --cur;
+    while (cur != code.begin())
+    {
+        Opcode opcode = cur->get_opcode();
+        switch (opcode)
+        {
+            case Opcode::CALLB:
+                lookups.TrackUsingScript(0);
+                break;
+
+            case Opcode::CALLE:
+                lookups.TrackUsingScript(cur->get_first_operand());
+                break;
+
+            case Opcode::CLASS:
+            {
+                uint16_t classIndex = cur->get_first_operand();
+                uint16_t scriptNumber;
+                if (lookups.GetSpeciesScriptNumber(classIndex, scriptNumber))
+                {
+                    lookups.TrackUsingScript(scriptNumber);
+                }
+                break;
+            }
+
+            case Opcode::LEA:
+            {
+                VarScope scope;
+                _GetVariableNameFromCodePos(cur, lookups, &scope);
+                if (scope == VarScope::Global)
+                {
+                    lookups.TrackUsingScript(0);
+                }
+                break;
+            }
+
+            default:
+            {
+                if ((opcode >= Opcode::LAG) && (opcode <= Opcode::LastOne))
+                {
+                    VarScope scope;
+                    _GetVariableNameFromCodePos(cur, lookups, &scope);
+                    if (scope == VarScope::Global)
+                    {
+                        lookups.TrackUsingScript(0);
+                    }
+                }
+            }
+                break;
+        }
+
+        --cur;
+    }
+}
+
 // pEnd can be teh end of script data. I have added autodetection support.
 void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBegin, const BYTE *pEnd, WORD wBaseOffset)
 {
@@ -813,6 +871,8 @@ void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBe
     unique_ptr<FunctionSignature> pSignature = std::make_unique<FunctionSignature>();
     _FigureOutParameters(func, *pSignature, code);
     func.AddSignature(std::move(pSignature));
+
+    _TrackExternalScriptUsage(code, lookups);
 
     // temp test
     /*
@@ -1076,6 +1136,12 @@ std::string DecompileLookups::LookupScriptThing(WORD wName, ICompiledScriptSpeci
 {
     return _pScriptThings->LookupObjectName(wName, type);
 }
+
+bool DecompileLookups::GetSpeciesScriptNumber(uint16_t species, uint16_t &scriptNumber)
+{
+    return _pLookups->GetGlobalClassTable().GetSpeciesScriptNumber(species, scriptNumber);
+}
+
 std::string DecompileLookups::LookupParameterName(WORD wIndex)
 {
     if (wIndex)

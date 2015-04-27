@@ -85,6 +85,8 @@ public:
 
     std::vector<CompiledScript*> GetAllScripts();
 
+    bool GetSpeciesScriptNumber(uint16_t species, uint16_t &scriptNumber);
+
 private:
     bool _Create(sci::istream &byteStream);
 

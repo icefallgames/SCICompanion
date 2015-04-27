@@ -4,6 +4,7 @@
 #include "DecompilerCore.h"
 #include "ScriptOMAll.h"
 #include "AutoDetectVariableNames.h"
+#include "AppState.h"
 #include "SCO.h"
 
 using namespace sci;
@@ -16,6 +17,12 @@ void DecompileObject(const CompiledObjectBase &object, sci::Script &script,
     const std::set<uint16_t> &codePointersTO)
 {
     lookups.EndowWithProperties(&object);
+
+    uint16_t superClassScriptNum;
+    if (lookups.GetSpeciesScriptNumber(object.GetSuperClass(), superClassScriptNum))
+    {
+        lookups.TrackUsingScript(superClassScriptNum);
+    }
 
     unique_ptr<ClassDefinition> pClass = std::make_unique<ClassDefinition>();
     pClass->SetScript(&script);
@@ -119,6 +126,20 @@ void DecompileFunction(const CompiledScript &compiledScript, ProcedureDefinition
     lookups.EndowWithProperties(nullptr);
 }
 
+void InsertHeaders(Script &script)
+{
+    // For decompiling, we don't need game.sh yet (since we're not creating it is still TBD)
+    script.AddInclude("sci.sh");
+}
+
+void DetermineAndInsertUsings(Script &script, DecompileLookups &lookups)
+{
+    for (uint16_t usingScript : lookups.GetUsings())
+    {
+        script.AddUse(appState->GetResourceMap().FigureOutName(ResourceType::Script, usingScript));
+    }
+}
+
 Script *Decompile(const CompiledScript &compiledScript, DecompileLookups &lookups, const ILookupNames *pWords)
 {
     unique_ptr<Script> pScript = std::make_unique<Script>();
@@ -217,6 +238,10 @@ Script *Decompile(const CompiledScript &compiledScript, DecompileLookups &lookup
     AddLocalVariablesToScript(*pScript, lookups, compiledScript._localVars);
 
     AutoDetectVariableNames(*pScript);
+
+    InsertHeaders(*pScript);
+    
+    DetermineAndInsertUsings(*pScript, lookups);
 
     // Decompiling always generates an SCO
     std::unique_ptr<CSCOFile> scoFile = SCOFromScriptAndCompiledScript(*pScript, compiledScript);

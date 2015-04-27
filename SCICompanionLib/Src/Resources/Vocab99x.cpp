@@ -389,6 +389,18 @@ std::vector<CompiledScript*> GlobalClassTable::GetAllScripts()
     return scripts;
 }
 
+bool GlobalClassTable::GetSpeciesScriptNumber(uint16_t species, uint16_t &scriptNumber)
+{
+    scriptNumber = 0;
+    auto it = _speciesToScriptNumber.find(species);
+    if (it != _speciesToScriptNumber.end())
+    {
+        scriptNumber = it->second;
+        return true;
+    }
+    return false;
+}
+
 bool GlobalClassTable::GetSpeciesPropertySelector(uint16_t wSpeciesIndex, std::vector<uint16_t> &props, std::vector<uint16_t> &values)
 {
     auto it = _speciesToCompiledObjectWeak.find(wSpeciesIndex);

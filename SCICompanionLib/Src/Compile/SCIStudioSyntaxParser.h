@@ -275,6 +275,31 @@ bool AlphanumP(const ParserBase<_TContext, _It> *pParser, _TContext *pContext, _
     return fRet;
 }
 
+// Asm instructions can include '?' in the name too
+template<typename _It, typename _TContext>
+bool AsmInstructionP(const ParserBase<_TContext, _It> *pParser, _TContext *pContext, _It &stream)
+{
+    bool fRet = false;
+    std::string &str = pContext->ScratchString();
+    str.clear();
+    char ch = *stream;
+    if (isalpha(ch) || (ch == '_'))     // First character must be a letter or _
+    {
+        fRet = true;
+        str += ch;
+        ch = *(++stream);
+        while (isalnum(ch) || (ch == '_') || (ch == '?'))  // Then any alphanumeric character is fine, or ?
+        {
+            fRet = true;
+            str += ch;
+            ch = *(++stream);
+        }
+    }
+    return fRet;
+}
+
+
+
 extern const char *g_keywords[3];
 
 // TODO: Refactor with above

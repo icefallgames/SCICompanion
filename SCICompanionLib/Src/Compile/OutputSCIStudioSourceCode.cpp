@@ -222,7 +222,7 @@ public:
                     if (!function.GetVariables().empty())
                     {
                         Indent(out);
-                        out.out << "(";
+                        out.out << "(var ";
 
                         Forward(function.GetVariables(), ", ");
 
