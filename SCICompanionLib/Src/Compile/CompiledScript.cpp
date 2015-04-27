@@ -2,6 +2,7 @@
 #include "AppState.h"
 #include "CompiledScript.h"
 #include "ScriptOM.h" // Just for SourceCodeWriter...
+#include "format.h"
 
 using namespace std;
 using namespace sci;
@@ -100,7 +101,7 @@ bool CompiledScript::_LoadSCI1_1(int iScriptNumber, sci::istream &scriptStream)
         uint16_t earliestCodeOffset = 0xffff;
 
         // Now we have both a heap and a script stream.
-        uint16_t someOffset;    // Don't know what this is yet, but it seems to point to after the end of the code, which is useful.
+        uint16_t someOffset;    // Don't know what this is yet, but it seems to point to after the end of the code, which is useful. Or rather after end of strings?
         scriptStream >> someOffset;
         scriptStream.skip(4);
         isSuccess = _ReadExports(scriptStream);
@@ -122,7 +123,8 @@ bool CompiledScript::_LoadSCI1_1(int iScriptNumber, sci::istream &scriptStream)
         if (isSuccess)
         {
             // Local variables
-            heapStream.skip(2); // Not sure what this word is.
+            uint16_t afterStrings;
+            heapStream >> afterStrings;
             uint16_t localsCount;
             heapStream >> localsCount;
             for (int i = 0; i < localsCount; i++)
@@ -134,13 +136,14 @@ bool CompiledScript::_LoadSCI1_1(int iScriptNumber, sci::istream &scriptStream)
 
             // Now we're into the objects.
             uint16_t magic;
+            int classIndex = 0;
             while (isSuccess && heapStream.peek(magic) && (magic == 0x1234))
             {
                 unique_ptr<CompiledObjectBase> pObject = make_unique<CompiledObjectBase>();
                 // Is the current position of the heapstream (which points to an object) in the list of public instance exports?
                 pObject->IsPublic = (find(_exportedObjectInstances.begin(), _exportedObjectInstances.end(), (uint16_t)heapStream.tellg()) != _exportedObjectInstances.end());
                 uint16_t wInstanceOffsetTO;
-                isSuccess = pObject->Create_SCI1_1(_version, scriptStream, heapStream, &wInstanceOffsetTO);
+                isSuccess = pObject->Create_SCI1_1(this->_wScript, _version, scriptStream, heapStream, &wInstanceOffsetTO, classIndex);
                 if (isSuccess)
                 {
                     // Keep track of the earliest code
@@ -152,6 +155,7 @@ bool CompiledScript::_LoadSCI1_1(int iScriptNumber, sci::istream &scriptStream)
                     _objectsOffsetTO.push_back(wInstanceOffsetTO);
                     _objects.push_back(move(pObject));
                 }
+                classIndex++;
             }
 
             uint16_t terminator;
@@ -162,12 +166,14 @@ bool CompiledScript::_LoadSCI1_1(int iScriptNumber, sci::istream &scriptStream)
             {
                 uint16_t offset = (uint16_t)heapStream.tellg();
                 heapStream >> aString;
-                if (!aString.empty())
+                // We DO add empty strings to the offsets. However, we may have a bogus empty
+                // one at the end, since afterStrings is WORD-aligned.
+                if (!aString.empty() || (heapStream.tellg() < afterStrings))
                 {
                     _stringsOffset.push_back(offset);
                     _strings.push_back(aString);
                 }
-            } while (!aString.empty());
+            } while (heapStream.tellg() < afterStrings);
 
         }
 
@@ -206,6 +212,7 @@ bool CompiledScript::_LoadSCI0_SCI1(sci::istream &byteStream)
             _localVars.assign(localVarsCount, 0);
         }
 
+        int classIndex = 0;
         while (fRet)
         {
             DWORD dwSavePos = byteStream.tellg();
@@ -229,12 +236,13 @@ bool CompiledScript::_LoadSCI0_SCI1(sci::istream &byteStream)
                         // instance
                         unique_ptr<CompiledObjectBase> pObject = make_unique<CompiledObjectBase>();
                         uint16_t wInstanceOffsetTO;
-                        fRet = pObject->Create(_version, byteStream, FALSE, &wInstanceOffsetTO);
+                        fRet = pObject->Create(this->_wScript, _version, byteStream, FALSE, &wInstanceOffsetTO, classIndex);
                         if (fRet)
                         {
                             _objectsOffsetTO.push_back(wInstanceOffsetTO);
                             _objects.push_back(move(pObject));
                         }
+                        classIndex++;
                     }
                     break;
 
@@ -285,12 +293,13 @@ bool CompiledScript::_LoadSCI0_SCI1(sci::istream &byteStream)
                         // class
                         unique_ptr<CompiledObjectBase> pObject = make_unique<CompiledObjectBase>();
                         uint16_t wClassOffset;
-                        fRet = pObject->Create(_version, byteStream, TRUE, &wClassOffset);
+                        fRet = pObject->Create(this->_wScript, _version, byteStream, TRUE, &wClassOffset, classIndex);
                         if (fRet)
                         {
                             _objectsOffsetTO.push_back(wClassOffset);
                             _objects.push_back(move(pObject));
                         }
+                        classIndex++;
                     }
                     break;
 
@@ -391,8 +400,13 @@ uint16_t _GetTestStreamPosition(sci::istream *pStream)
     return (uint16_t)(pStream->tellg()) + TEST_OFFSET;
 }
 
+std::string _GenerateClassName(uint16_t scriptNumber, int &index)
+{
+    return fmt::format("Class_{0}_{1}", scriptNumber, index++);
+}
+
 // Very important: scriptStream is passed by value. Heapstream is not.
-bool CompiledObjectBase::Create_SCI1_1(SCIVersion version, sci::istream scriptStream, sci::istream &heapStream, uint16_t *pwOffset)
+bool CompiledObjectBase::Create_SCI1_1(uint16_t scriptNum, SCIVersion version, sci::istream scriptStream, sci::istream &heapStream, uint16_t *pwOffset, int classIndex)
 {
     *pwOffset = heapStream.tellg();
     _version = version;
@@ -473,12 +487,17 @@ bool CompiledObjectBase::Create_SCI1_1(SCIVersion version, sci::istream scriptSt
         temp.seekg(wName);
         temp >> _strName;
     }
+    else
+    {
+        // Create a name for unnamed classes (e.g. Control)
+        _strName = _GenerateClassName(scriptNum, classIndex);
+    }
 
     assert((_propertySelectors.size() == _propertyValues.size()) || (_fInstance && _propertySelectors.empty()));
     return true;
 }
 
-bool CompiledObjectBase::Create(SCIVersion version, sci::istream &stream, BOOL fClass, uint16_t *pwOffset)
+bool CompiledObjectBase::Create(uint16_t scriptNum, SCIVersion version, sci::istream &stream, BOOL fClass, uint16_t *pwOffset, int classIndex)
 {
     _version = version;
     *pwOffset = static_cast<uint16_t>(stream.tellg());
@@ -596,6 +615,11 @@ bool CompiledObjectBase::Create(SCIVersion version, sci::istream &stream, BOOL f
             stream >> _strName;
             // Restore
             stream.seekg(dwSavePos);
+        }
+        else
+        {
+            // Create a name for unnamed classes (e.g. Control)
+            _strName = _GenerateClassName(scriptNum, classIndex);
         }
 
         // The rest of the stuff we don't care about!

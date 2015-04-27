@@ -331,6 +331,7 @@ bool GlobalClassTable::_Create(sci::istream &byteStream)
     auto scriptContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Script, ResourceEnumFlags::MostRecentOnly);
     for (auto &scriptResource : *scriptContainer)
     {
+        int emptyNameClassIndex = 0;
         _scriptNums.push_back((uint16_t)scriptResource->GetNumber());
         // Load the script.
         uint16_t currentScriptNumber = (uint16_t)scriptResource->GetNumber();

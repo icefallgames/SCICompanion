@@ -100,8 +100,8 @@ class CompiledObjectBase : public ILookupPropertyName
 public:
     CompiledObjectBase() { _fInstance = false; IsPublic = false; }
     bool IsInstance() const { return _fInstance; }
-    bool Create(SCIVersion version, sci::istream &stream, BOOL fClass, uint16_t *pwOffset);
-    bool Create_SCI1_1(SCIVersion version, sci::istream scriptStream, sci::istream &heapStream, uint16_t *pwOffset);
+    bool Create(uint16_t scriptNumber, SCIVersion version, sci::istream &stream, BOOL fClass, uint16_t *pwOffset, int classIndex);
+    bool Create_SCI1_1(uint16_t scriptNumber, SCIVersion version, sci::istream scriptStream, sci::istream &heapStream, uint16_t *pwOffset, int classIndex);
     std::string GetName() const { return _strName; }
     void SetName(PCTSTR pszName) { _strName = pszName; }
     uint16_t GetSuperClass() const { return _wSuperClass; }

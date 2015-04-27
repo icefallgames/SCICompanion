@@ -875,14 +875,16 @@ void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBe
     _TrackExternalScriptUsage(code, lookups);
 
     // temp test
-    /*
+#ifdef FALLBAK
+    DisassembleFallback(func, code.begin(), code.end(), lookups);
+#else
     ControlFlowGraph cfg;
     cfg.Generate(func.GetName(), code.begin(), code.end());
 
     const NodeSet &controlStructures = cfg.ControlStructures();
     MainNode *mainNode = cfg.GetMain();
-     OutputNewStructure(func, *mainNode, lookups); */
-    DisassembleFallback(func, code.begin(), code.end(), lookups);
+    OutputNewStructure(func, *mainNode, lookups);
+#endif
 
     DetermineHexValues determineHexValues(func);
 
