@@ -80,6 +80,7 @@ public:
     std::string GetSamplesFolder();
     bool IsGameLoaded() { return !_gameFolder.empty(); }
     std::string GetScriptFileName(const std::string &name, LangSyntax lang = LangSyntaxUnknown);
+    std::string GetScriptFileName(WORD wScript, LangSyntax lang = LangSyntaxUnknown);
     std::string GetScriptObjectFileName(const std::string &title, LangSyntax lang = LangSyntaxUnknown);
     std::string GetScriptObjectFileName(WORD wScript, LangSyntax lang = LangSyntaxUnknown);
     HRESULT GetGameIni(PTSTR pszBuf, size_t cchBuf);

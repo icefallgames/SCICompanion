@@ -196,3 +196,5 @@ bool _IsVOStack(Opcode bOpcode);
 bool _IsVOPureStack(Opcode bOpcode);
 bool _IsVOIndexed(Opcode bOpcode);
 bool _IsVOStoreOperation(Opcode bOpcode);
+std::unique_ptr<sci::Script> DecompileScript(WORD wScript, CompiledScript &compiledScript);
+

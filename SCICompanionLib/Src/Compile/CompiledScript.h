@@ -168,6 +168,7 @@ public:
     bool Load(SCIVersion version, int iScriptNumber, bool quick);
     bool Load(SCIVersion version, int iScriptNumber, sci::istream &byteStream);
     std::vector<std::unique_ptr<CompiledObjectBase>> &GetObjects() { return _objects; }
+    const std::vector<std::unique_ptr<CompiledObjectBase>> &GetObjects() const { return _objects; }
     uint16_t GetScriptNumber() const { return _wScript; }
 
     // ICompiledScriptSpecificLookups

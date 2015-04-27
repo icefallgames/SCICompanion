@@ -1,7 +1,11 @@
 #include "stdafx.h"
 #include "SCO.h"
+#include "AppState.h"
+#include "ScriptOM.h"
+#include "CompiledScript.h"
 
 using namespace std;
+using namespace sci;
 
 
 //
@@ -633,3 +637,125 @@ bool CSCOFunctionSignature::Create(sci::istream &stream)
     return true;
 }
 
+void SaveSCOFile(const CSCOFile &sco)
+{
+    // Ask the question
+    CResourceMap &rm = appState->GetResourceMap();
+    std::string keyName = default_reskey(sco.GetScriptNumber());
+    std::string scriptTitle = rm.GetIniString("Script", keyName, keyName.c_str());
+    ScriptId script = rm.GetScriptId(scriptTitle);
+    SaveSCOFile(sco, script);
+}
+
+void SaveSCOFile(const CSCOFile &sco, ScriptId script)
+{
+    vector<BYTE> scoOutput;
+    // First save the .sco file
+    sco.Save(scoOutput);
+    // Copy these bytes to a stream...
+    std::string scoFileName = appState->GetResourceMap().GetScriptObjectFileName(script.GetTitle(), LangSyntaxSCIStudio);
+    ofstream scoFile(scoFileName.c_str(), ios::out | ios::binary);
+    // REVIEW: yucky
+    scoFile.write((const char *)&scoOutput[0], (std::streamsize)scoOutput.size());
+    scoFile.close();
+}
+
+unique_ptr<CSCOFile> SCOFromScriptAndCompiledScript(const Script &script, const CompiledScript &compiledScript)
+{
+    unique_ptr<CSCOFile> sco = make_unique<CSCOFile>();
+
+    sco->SetScriptNumber(script.GetScriptNumber());
+
+    // Local vars are easy
+    std::vector<CSCOLocalVariable> &localVars = sco->GetVariables();
+    for (auto &localVar : script.GetScriptVariables())
+    {
+        CSCOLocalVariable scoLocalVar;
+        scoLocalVar.SetName(localVar->GetName());
+        localVars.push_back(scoLocalVar);
+    }
+
+    // Classes
+    std::vector<CSCOObjectClass> &scoObjects = sco->GetObjects();
+    const vector<unique_ptr<CompiledObjectBase>> &compiledObjects = compiledScript.GetObjects();
+    unordered_map<string, CompiledObjectBase*> nameToCompiledObject;
+    for (const auto &compiledObject : compiledObjects)
+    {
+        nameToCompiledObject[compiledObject->GetName()] = compiledObject.get();
+    }
+    for (auto &object : script.GetClasses())
+    {
+        // We only care about classes
+        if (!object->IsInstance())
+        {
+            CSCOObjectClass newSCOObject;
+            CompiledObjectBase *compiledObject = nameToCompiledObject[object->GetName()];
+            // With object and compiledObject, we should have everything we need?
+            newSCOObject.SetPublic(compiledObject->IsPublic);   // REVIEW: When is a class not public?
+            newSCOObject.SetSpecies(compiledObject->GetSpecies());
+            newSCOObject.SetSuperClass(compiledObject->GetSuperClass());
+
+            // Now the methods. All we care about are the selectors for the methods defined here.
+            vector<CSCOMethod> &methods = newSCOObject.GetMethods();
+            for (uint16_t methodSelector : compiledObject->GetMethods())
+            {
+                methods.emplace_back(methodSelector);
+            }
+
+            // And finally properties.
+            vector<CSCOObjectProperty> &properties = newSCOObject.GetPropertiesNonConst();
+            for (size_t i = 0; i < compiledObject->GetProperties().size(); i++)
+            {
+                properties.emplace_back(compiledObject->GetProperties()[i], compiledObject->GetPropertyValues()[i]);
+            }
+
+            // Our object is complete.
+            scoObjects.push_back(newSCOObject);
+        }
+    }
+
+    // Now public procedures and instances. Get their names from the script first.
+    // We assume the ordering in the script corresponds to the ordering in the compiled script.
+    uint16_t exportIndex = 0;
+    vector<string> publicInstanceNames;
+    for (const auto &classDef : script.GetClasses())
+    {
+        //if (classDef->IsInstance() && classDef->IsPublic())
+        if (classDef->IsPublic())   // SCI1.1 seems to have public classes too. Like the main game class.
+        {
+            publicInstanceNames.push_back(classDef->GetName());
+        }
+    }
+    vector<string> publicProcNames;
+    for (const auto &procDef : script.GetProcedures())
+    {
+        if (procDef->IsPublic())
+        {
+            publicProcNames.push_back(procDef->GetName());
+        }
+    }
+    size_t instanceIndex = 0;
+    size_t procIndex = 0;
+    for (uint16_t exportOffset : compiledScript._exportsTO)
+    {
+        string exportName;
+        if (compiledScript.IsExportAnObject(exportOffset))
+        {
+            exportName = publicInstanceNames[instanceIndex++];
+        }
+        else if (compiledScript.IsExportAProcedure(exportOffset))
+        {
+            exportName = publicProcNames[procIndex++];
+        }
+        else
+        {
+            // It's a zero export. Not sure why there are so many in SCI1.1 games
+            exportName = "";
+        }
+        sco->GetExports().emplace_back(exportName, exportIndex);
+        exportIndex++;
+    }
+
+    return sco;
+
+}

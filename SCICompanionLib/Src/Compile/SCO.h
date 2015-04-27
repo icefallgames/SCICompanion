@@ -1,6 +1,11 @@
 #pragma once
 #include "Types.h"
 
+namespace sci
+{
+    class Script;
+}
+
 //
 // Object model for .sco object files.
 //
@@ -41,6 +46,7 @@ public:
     void Save(std::vector<BYTE> &output) const;
     bool Create(sci::istream &stream);
     const std::string &GetName() const { return _strName; }
+    void SetName(const std::string &name) { _strName = name; }
     WORD GetIndex() const { return _wProcIndex; }
     bool operator==(const CSCOPublicExport& value) const;
     bool operator!=(const CSCOPublicExport& value) const;
@@ -93,6 +99,8 @@ private:
 class CSCOMethod
 {
 public:
+    CSCOMethod() {}
+    CSCOMethod(uint16_t selector) : _wSelector(selector) {}
     bool operator==(const CSCOMethod& value) const;
     bool operator!=(const CSCOMethod& value) const;
     void Save(std::vector<BYTE> &output) const;
@@ -128,6 +136,7 @@ public:
     const std::string &GetName() const { return _strName; }
     bool Create(sci::istream &stream);
     const std::vector<CSCOMethod> &GetMethods() const { return _methods; }
+    std::vector<CSCOMethod> &GetMethods() { return _methods; }
 
     // The properties include the default four properties (redundant, a bit)
     const std::vector<CSCOObjectProperty> &GetProperties() const { return _properties; }
@@ -168,6 +177,7 @@ public:
     const std::string &GetName() const { return _strName; }
     const WORD GetType() const { return _wType; }
     bool Create(sci::istream &stream);
+    void SetName(const std::string &name) { _strName = name; }
 
 private:
     std::string _strName;
@@ -213,6 +223,9 @@ public:
     CSCOObjectClass GetObjectBySpecies(WORD species) const;
     bool IsEmpty() const { return _wScriptNumber == InvalidResourceNumber; }
     const std::vector<CSCOPublicExport> &GetExports() const { return _publics; }
+    std::vector<CSCOPublicExport> &GetExports() { return _publics; }
+    const std::vector<CSCOLocalVariable> &GetVariables() const { return _vars; }
+    std::vector<CSCOLocalVariable> &GetVariables() { return _vars; }
 
     // Modifiers
     void AddObject(const CSCOObjectClass &object) { _classes.push_back(object); }
@@ -228,8 +241,7 @@ private:
     BYTE _bMinorVersion;
     BYTE _bBuild;
     BYTE _bSCIVersion;
-    BYTE _bAlignment; // ARCHITECTURE: SCIStudio doesn't check the alignment - we could use this as a clue
-                      // that there is extra info (e.g. data type)
+    BYTE _bAlignment;
 
     WORD _wScriptNumber;
 
@@ -245,3 +257,8 @@ private:
     WORD _wOffsetVars;
 };
 
+void SaveSCOFile(const CSCOFile &sco, ScriptId script);
+void SaveSCOFile(const CSCOFile &sco);
+
+class CompiledScript;
+std::unique_ptr<CSCOFile> SCOFromScriptAndCompiledScript(const sci::Script &script, const CompiledScript &compiledScript);

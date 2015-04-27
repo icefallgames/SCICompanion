@@ -3,7 +3,6 @@
 // Used by SCICompanionLib.rc
 //
 #define IDC_DECOMPILE                   2
-#define IDC_DECOMPILE2                  3
 #define IDC_CLEARSCO                    4
 #define IDD_ABOUTBOX                    100
 #define IDP_OLE_INIT_FAILED             100
@@ -434,6 +433,7 @@
 #define IDC_EDITSCRIPT                  1171
 #define IDC_GROUPCONTROL                1172
 #define IDC_TREELOOPS                   1172
+#define IDC_DECOMPILATIONRESULTS        1172
 #define IDC_GOTOPIC                     1173
 #define IDC_GOTOSCRIPT                  1174
 #define IDC_NORTH                       1175
@@ -515,6 +515,7 @@
 #define IDC_BUTTONEDITCOLOR             1237
 #define IDC_BUTTON_SAVE                 1238
 #define IDC_BUTTON_LOAD                 1239
+#define IDC_TREESCO                     1239
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -757,6 +758,7 @@
 #define ID_MAIN_DELETEPOIN              33176
 #define ID_PIC_DELETEPOINT              33177
 #define ID_SHOW_AUDIO                   33178
+#define ID_SCRIPT_MANAGEDECOMPILATION   33179
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -765,8 +767,8 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        366
-#define _APS_NEXT_COMMAND_VALUE         33179
-#define _APS_NEXT_CONTROL_VALUE         1239
+#define _APS_NEXT_COMMAND_VALUE         33180
+#define _APS_NEXT_CONTROL_VALUE         1240
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

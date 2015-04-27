@@ -1,6 +1,8 @@
-﻿Build started 4/26/2015 8:39:22 AM.
+﻿Build started 4/26/2015 10:22:07 PM.
      1>Project "E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\SCICompanion.vcxproj" on node 2 (Build target(s)).
-     1>Link:
+     1>ResourceCompile:
+         C:\Program Files (x86)\Windows Kits\8.1\bin\x86\rc.exe /D _DEBUG /l"0x0409" /IDebug\ /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Include" /nologo /fo"Debug\SCICompanion.res" SCICompanion.rc 
+       Link:
          F:\VisualStudio\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Debug\SCICompanion.exe" /INCREMENTAL /NOLOGO /LIBPATH:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Bin_1000\\" /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /manifestinput:res\SCICompanion.manifest /manifestinput:F:\VisualStudio\VC\Include\Manifest\dpiaware.manifest /DEBUG /PDB:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Debug\SCICompanion.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Debug\SCICompanion.lib" /MACHINE:X86 Debug\SCICompanion.res
          Debug\SCICompanion.obj
          Debug\stdafx.obj
@@ -25,4 +27,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:05.05
+Time Elapsed 00:00:06.33

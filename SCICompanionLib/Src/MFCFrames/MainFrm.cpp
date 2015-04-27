@@ -36,6 +36,7 @@
 #include "CObjectWrap.h"
 #include "format.h"
 #include "ExtractAllDialog.h"
+#include "DecompileDialog.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -344,6 +345,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_COMMAND(ID_BACK, OnGoBack)
     ON_COMMAND(ID_FORWARD, OnGoForward)
     ON_COMMAND(ID_CLASSBROWSER, OnClassBrowser)
+    ON_COMMAND(ID_SCRIPT_MANAGEDECOMPILATION, OnManageDecompilation)
     ON_UPDATE_COMMAND_UI(ID_CLASSBROWSER, OnUpdateClassBrowser)
     ON_UPDATE_COMMAND_UI(ID_BACK, OnUpdateBackForward)
     ON_UPDATE_COMMAND_UI(ID_FORWARD, OnUpdateBackForward)
@@ -1863,9 +1865,14 @@ void CMainFrame::OnDeactivateTab(CFrameWnd *pWnd)
 
 void CMainFrame::OnClassBrowser()
 {
-
     CClassBrowserDialog dialog(appState->GetResourceMap().GetClassBrowser());
     dialog.DoModal();
+}
+
+void CMainFrame::OnManageDecompilation()
+{
+    DecompileDialog decompileDialog;
+    decompileDialog.DoModal();
 }
 
 void CMainFrame::OnUpdateClassBrowser(CCmdUI *pCmdUI)

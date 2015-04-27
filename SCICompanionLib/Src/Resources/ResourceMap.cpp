@@ -650,6 +650,17 @@ void CResourceMap::SetIniString(const std::string &sectionName, const std::strin
     WritePrivateProfileString(sectionName.c_str(), keyName.c_str(), value.c_str(), GetGameIniFileName().c_str());
 }
 
+std::string CResourceMap::GetScriptFileName(WORD wScript, LangSyntax lang)
+{
+    std::string filename;
+    std::string scriptTitle = GetIniString("Script", default_reskey(wScript));
+    if (!scriptTitle.empty())
+    {
+        filename = GetScriptFileName(scriptTitle, lang);
+    }
+    return filename;
+}
+
 //
 // Given something like "main", returns "c:\foobar\mygame\src\main.sc"
 //
@@ -1078,7 +1089,7 @@ HRESULT GetResourceMapType(HANDLE hFile, DWORD *pdwType)
 std::string CResourceMap::GetScriptObjectFileName(WORD wScript, LangSyntax lang)
 {
     std::string filename;
-    std::string scriptTitle = GetIniString("Script", default_reskey(wScript));
+    std::string scriptTitle = GetIniString("Script", default_reskey(wScript), default_reskey(wScript).c_str());
     if (!scriptTitle.empty())
     {
         filename = GetScriptObjectFileName(scriptTitle, lang);

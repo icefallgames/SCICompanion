@@ -1637,8 +1637,6 @@ void _CreateSCOFunctionSignature(CompileContext &context, std::vector<CSCOFuncti
     }
 }
 
-
-
 //
 // Adds the script's public instances and procedures to the sco file being compiled by the context
 //

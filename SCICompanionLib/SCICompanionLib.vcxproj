@@ -201,6 +201,7 @@
     <ClCompile Include="Src\Compile\TarjanAlgorithm.cpp" />
     <ClCompile Include="Src\Dialogs\BitmapToVGADialog.cpp" />
     <ClCompile Include="Src\Dialogs\ChooseColorDialogVGA.cpp" />
+    <ClCompile Include="Src\Dialogs\DecompileDialog.cpp" />
     <ClCompile Include="Src\Dialogs\ExtractAllDialog.cpp" />
     <ClCompile Include="Src\Dialogs\PaletteEditorDialog.cpp" />
     <ClCompile Include="Src\Dialogs\PrepareBitmapBase.cpp" />
@@ -225,6 +226,7 @@
     <ClInclude Include="Src\Compile\AutoDetectVariableNames.h" />
     <ClInclude Include="Src\Compile\DecompilerFallback.h" />
     <ClInclude Include="Src\Compile\DecompilerNew.h" />
+    <ClInclude Include="Src\Dialogs\DecompileDialog.h" />
     <ClInclude Include="Src\Dialogs\PaletteEditorCommon.h" />
     <ClInclude Include="Src\Dialogs\PaletteEditorDialog.h" />
     <ClInclude Include="Src\MFCDocuments\PaletteDoc.h" />

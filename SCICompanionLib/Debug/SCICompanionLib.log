@@ -1,8 +1,10 @@
-﻿Build started 4/26/2015 8:39:20 AM.
+﻿Build started 4/26/2015 10:22:03 PM.
      1>Project "E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\SCICompanionLib.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
-         F:\VisualStudio\VC\bin\CL.exe /c /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\\" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Util" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Resources" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCViews" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCFrames" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCDocuments" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\FrameComponents" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Dialogs" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CrystalEdit" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CRC32" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CppFormat" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Compile" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Include" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Src" /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _WINDOWS /D NO_WARN_MBCS_MFC_DEPRECATION /D _DEBUG /D _USRDLL /D _MBCS /Gm /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"Debug\SCICompanionLib.pch" /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt /Qpar Src\Compile\SCO.cpp
-         SCO.cpp
+         F:\VisualStudio\VC\bin\CL.exe /c /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\\" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Util" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Resources" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCViews" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCFrames" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCDocuments" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\FrameComponents" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Dialogs" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CrystalEdit" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CRC32" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CppFormat" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Compile" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Include" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Src" /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _WINDOWS /D NO_WARN_MBCS_MFC_DEPRECATION /D _DEBUG /D _USRDLL /D _MBCS /Gm /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"Debug\SCICompanionLib.pch" /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt /Qpar Src\Dialogs\DecompileDialog.cpp
+         DecompileDialog.cpp
+       ResourceCompile:
+         C:\Program Files (x86)\Windows Kits\8.1\bin\x86\rc.exe /D _DEBUG /l"0x0409" /IDebug\ /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Include" /nologo SCICompanionLib.rc 
        Lib:
          F:\VisualStudio\VC\bin\Lib.exe /OUT:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Debug\SCICompanionLib.lib" /NOLOGO /VERBOSE Debug\AutoDetectVariableNames.obj
          Debug\ControlFlowNode.obj
@@ -21,6 +23,7 @@
          Debug\TarjanAlgorithm.obj
          Debug\BitmapToVGADialog.obj
          Debug\ChooseColorDialogVGA.obj
+         Debug\DecompileDialog.obj
          Debug\ExtractAllDialog.obj
          Debug\PaletteEditorDialog.obj
          Debug\PrepareBitmapBase.obj
@@ -359,6 +362,7 @@
          Appending Debug\PrepareBitmapBase.obj
          Appending Debug\PaletteEditorDialog.obj
          Appending Debug\ExtractAllDialog.obj
+         Appending Debug\DecompileDialog.obj
          Appending Debug\ChooseColorDialogVGA.obj
          Appending Debug\BitmapToVGADialog.obj
          Appending Debug\TarjanAlgorithm.obj
@@ -381,4 +385,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:01.33
+Time Elapsed 00:00:03.45

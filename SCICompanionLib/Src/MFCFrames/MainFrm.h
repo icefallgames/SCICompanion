@@ -182,6 +182,7 @@ private:
     afx_msg void OnGoForward();
     afx_msg void OnGoBack();
     afx_msg void OnClassBrowser();
+    afx_msg void OnManageDecompilation();
     afx_msg void OnUpdateClassBrowser(CCmdUI *pCmdUI);
     afx_msg void OnTimer(UINT_PTR nIDEvent);
     afx_msg void OnSelfTest();

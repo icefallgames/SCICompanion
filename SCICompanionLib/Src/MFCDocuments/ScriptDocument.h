@@ -97,4 +97,3 @@ private:
 
 void DisassembleScript(WORD wScript);
 void DecompileScript(WORD wScript);
-

@@ -229,15 +229,7 @@ bool NewCompileScript(CompileLog &log, CompileTables &tables, PrecompiledHeaders
                 CSCOFile &sco = results.GetSCO();
 
                 {
-                    vector<BYTE> scoOutput;
-                    // First save the .sco file
-                    sco.Save(scoOutput);
-                    // Copy these bytes to a stream...
-                    std::string scoFileName = appState->GetResourceMap().GetScriptObjectFileName(script.GetTitle(), LangSyntaxSCIStudio);
-                    ofstream scoFile(scoFileName.c_str(), ios::out | ios::binary);
-                    // REVIEW: yucky
-                    scoFile.write((const char *)&scoOutput[0], (std::streamsize)scoOutput.size());
-                    scoFile.close();
+                    SaveSCOFile(sco, script);
                 }
 
                 fRet = true;
@@ -281,29 +273,33 @@ void DecompileScript(WORD wScript)
     CompiledScript compiledScript(0);
     if (compiledScript.Load(appState->GetVersion(), wScript, false))
     {
-        GlobalCompiledScriptLookups *scriptLookups = appState->GetResourceMap().GetCompiledScriptLookups();
-        ObjectFileScriptLookups objectFileLookups;
-        if (scriptLookups)
-        {
-            // Ok if pText fails (and is NULL)
-            unique_ptr<ResourceEntity> textResource = appState->GetResourceMap().CreateResourceFromNumber(ResourceType::Text, wScript);
-            TextComponent *pText = nullptr;
-            if (textResource)
-            {
-                pText = textResource->TryGetComponent<TextComponent>();
-            }
-
-            DecompileLookups decompileLookups(wScript, scriptLookups, &objectFileLookups, &compiledScript, pText, &compiledScript);
-            unique_ptr<sci::Script> pScript(Decompile(compiledScript, decompileLookups, appState->GetResourceMap().GetVocab000()));
-
-            std::stringstream ss;
-
-			sci::SourceCodeWriter out(ss, appState->GetResourceMap().GetGameLanguage(), pScript.get());
-
-            pScript->OutputSourceCode(out);
-            ShowTextFile(ss.str().c_str(), "script.scp.txt");
-        }
+        unique_ptr<sci::Script> pScript = DecompileScript(wScript, compiledScript);
+        std::stringstream ss;
+		sci::SourceCodeWriter out(ss, appState->GetResourceMap().GetGameLanguage(), pScript.get());
+        pScript->OutputSourceCode(out);
+        ShowTextFile(ss.str().c_str(), "script.scp.txt");
     }
+}
+
+std::unique_ptr<sci::Script> DecompileScript(WORD wScript, CompiledScript &compiledScript)
+{
+    unique_ptr<sci::Script> pScript;
+    GlobalCompiledScriptLookups *scriptLookups = appState->GetResourceMap().GetCompiledScriptLookups();
+    ObjectFileScriptLookups objectFileLookups;
+    if (scriptLookups)
+    {
+        // Ok if pText fails (and is NULL)
+        unique_ptr<ResourceEntity> textResource = appState->GetResourceMap().CreateResourceFromNumber(ResourceType::Text, wScript);
+        TextComponent *pText = nullptr;
+        if (textResource)
+        {
+            pText = textResource->TryGetComponent<TextComponent>();
+        }
+
+        DecompileLookups decompileLookups(wScript, scriptLookups, &objectFileLookups, &compiledScript, pText, &compiledScript);
+        pScript.reset(Decompile(compiledScript, decompileLookups, appState->GetResourceMap().GetVocab000()));
+    }
+    return pScript;
 }
 
 void CScriptDocument::OnDecompile()

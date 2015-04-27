@@ -1464,12 +1464,12 @@ CodeResult SendParam::OutputByteCode(CompileContext &context) const
         {
             if (fMethod)
             {
-				returnType = MatchParameters(GetSelectorName(), context, this, signatures, parameterTypes, _segments);
+                returnType = MatchParameters(GetSelectorName(), context, this, signatures, parameterTypes, _segments);
 
                 if (!_fIsMethodCall &&
-					(context.GetLanguage() == LangSyntaxCpp))
+	                (context.GetLanguage() == LangSyntaxCpp))
                 {
-					context.ReportError(this, "%s is a method.  Did you mean %s()?", GetSelectorName().c_str(), GetSelectorName().c_str());
+	                context.ReportError(this, "%s is a method.  Did you mean %s()?", GetSelectorName().c_str(), GetSelectorName().c_str());
                 }
             }
             else
