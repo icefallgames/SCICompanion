@@ -388,6 +388,11 @@ void LoadScriptFromCompiled(sci::Script *pScript, CompiledScript *pCompiledScrip
 // 
 void SCIClassBrowser::ReLoadFromCompiled()
 {
+    if (!IsBrowseInfoEnabled())
+    {
+        return;
+    }
+
     CGuard guard(&_csClassBrowser); 
     Reset();
 

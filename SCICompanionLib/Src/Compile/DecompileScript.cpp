@@ -140,13 +140,15 @@ void DetermineAndInsertUsings(Script &script, DecompileLookups &lookups)
     }
 }
 
-bool _IsUndeterminedPublicProc(const std::string &procName, uint16_t &script, uint16_t &index)
+// e.g. of the form "proc255_3", or "localproc_0b2a", where localproc_0b2a is actually an exported procedure.
+// If true, returns the script number and export index so we can look up the real name.
+bool _IsUndeterminedPublicProc(const CompiledScript &compiledScript, const std::string &procName, uint16_t &script, uint16_t &index)
 {
     script = 0;
     index = 0;
     if (0 == procName.compare(0, 4, "proc"))
     {
-        string rest = procName.substr(lstrlenA("proc"), string::npos);
+        string rest = procName.substr(4, string::npos);
         // This needs to be of the form [number]_[number]
         size_t position = 0;
         int scriptNumber = stoi(rest, &position);
@@ -162,13 +164,30 @@ bool _IsUndeterminedPublicProc(const std::string &procName, uint16_t &script, ui
             }
         }
     }
+    else if (0 == procName.compare(0, 10, "localproc_"))
+    {
+        string rest = procName.substr(10, string::npos);
+        size_t position = 0;
+        int offset = stoi(rest, &position, 16);
+        if (position == rest.size())    // Consumed whole thing
+        {
+            // Find the offset of this proc. If it's also a public export, count it as so.
+            int indexNumber;
+            if (compiledScript.IsExportAProcedure((uint16_t)offset, &indexNumber))
+            {
+                script = compiledScript.GetScriptNumber();
+                index = (uint16_t)indexNumber;
+                return true;
+            }
+        }
+    }
     return false;
 }
 
 class ResolveProcedureCalls : public IExploreNodeContext, public IExploreNode
 {
 public:
-    ResolveProcedureCalls(unordered_map<int, unique_ptr<CSCOFile>> &scoMap) : _scoMap(scoMap) {}
+    ResolveProcedureCalls(const CompiledScript &compiledScript, unordered_map<int, unique_ptr<CSCOFile>> &scoMap) : _scoMap(scoMap), _compiledScript(compiledScript) {}
 
     void ExploreNode(IExploreNodeContext *pContext, SyntaxNode &node, ExploreNodeState state) override
     {
@@ -178,16 +197,43 @@ public:
             if (procCall)
             {
                 uint16_t scriptNumber, index;
-                if (_IsUndeterminedPublicProc(procCall->GetName(), scriptNumber, index))
+                if (_IsUndeterminedPublicProc(_compiledScript, procCall->GetName(), scriptNumber, index))
                 {
                     CSCOFile *sco = _EnsureSCO(scriptNumber);
                     if (sco)
                     {
                         string newProcName = sco->GetExportName(index);
                         assert(!newProcName.empty());
-                        if (newProcName.empty())
+                        if (!newProcName.empty())
                         {
                             procCall->SetName(newProcName);
+                        }
+                    }
+                }
+            }
+
+            // We need to handle this for ASM too
+            Asm *asmStatement = SafeSyntaxNode<Asm>(&node);
+            if (asmStatement)
+            {
+                string instruction = asmStatement->GetName();
+                if (instruction == "call" || instruction == "callb" || instruction == "calle")
+                {
+                    SyntaxNode *procNameNode = asmStatement->GetStatements()[0]->GetSyntaxNode();
+                    PropertyValue *value = SafeSyntaxNode<PropertyValue>(procNameNode);
+                    uint16_t scriptNumber, index;
+                    assert(value->GetType() == ValueType::Token);
+                    if (_IsUndeterminedPublicProc(_compiledScript, value->GetStringValue(), scriptNumber, index))
+                    {
+                        CSCOFile *sco = _EnsureSCO(scriptNumber);
+                        if (sco)
+                        {
+                            string newProcName = sco->GetExportName(index);
+                            assert(!newProcName.empty());
+                            if (!newProcName.empty())
+                            {
+                                value->SetValue(newProcName, ValueType::Token);
+                            }
                         }
                     }
                 }
@@ -206,10 +252,11 @@ private:
     }
         
     unordered_map<int, unique_ptr<CSCOFile>> &_scoMap;
+    const CompiledScript &_compiledScript;
 };
 
 // This pulls in the required .sco files to find the public procedure names
-void ResolvePublicProcedureCalls(Script &script)
+void ResolvePublicProcedureCalls(Script &script, const CompiledScript &compiledScript)
 {
     unordered_map<int, unique_ptr<CSCOFile>> scoMap;
     scoMap[script.GetScriptNumber()] = move(GetExistingSCOFromScriptNumber(script.GetScriptNumber()));
@@ -221,7 +268,7 @@ void ResolvePublicProcedureCalls(Script &script)
         for (auto &proc : script.GetProceduresNC())
         {
             uint16_t scriptNumber, index;
-            if (proc->IsPublic() && _IsUndeterminedPublicProc(proc->GetName(), scriptNumber, index))
+            if (proc->IsPublic() && _IsUndeterminedPublicProc(compiledScript, proc->GetName(), scriptNumber, index))
             {
                 assert(scriptNumber == script.GetScriptNumber());
                 string newProcName = thisSCO->GetExportName(index);
@@ -235,7 +282,7 @@ void ResolvePublicProcedureCalls(Script &script)
     }
 
     // Now the actual calls, which could be to any script
-    ResolveProcedureCalls resolveProcCalls(scoMap);
+    ResolveProcedureCalls resolveProcCalls(compiledScript, scoMap);
     script.Traverse(&resolveProcCalls, resolveProcCalls);
 }
 
@@ -347,7 +394,7 @@ Script *Decompile(const CompiledScript &compiledScript, DecompileLookups &lookup
     bool mainDirty = false;
     AutoDetectVariableNames(*pScript, mainSCO.get(), oldScriptSCO.get(), mainDirty);
 
-    ResolvePublicProcedureCalls(*pScript);
+    ResolvePublicProcedureCalls(*pScript, compiledScript);
 
     InsertHeaders(*pScript);
     

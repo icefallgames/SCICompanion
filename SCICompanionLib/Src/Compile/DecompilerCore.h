@@ -70,34 +70,34 @@ struct FunctionDecompileHints
 class DecompileLookups : public ICompiledScriptLookups
 {
 public:
-    DecompileLookups(WORD wScript, GlobalCompiledScriptLookups *pLookups, IObjectFileScriptLookups *pOFLookups, ICompiledScriptSpecificLookups *pScriptThings, ILookupNames *pTextResource, IPrivateSpeciesLookups *pPrivateSpecies) :
+    DecompileLookups(uint16_t wScript, GlobalCompiledScriptLookups *pLookups, IObjectFileScriptLookups *pOFLookups, ICompiledScriptSpecificLookups *pScriptThings, ILookupNames *pTextResource, IPrivateSpeciesLookups *pPrivateSpecies) :
 		_wScript(wScript), _pLookups(pLookups), _pOFLookups(pOFLookups), _pScriptThings(pScriptThings), _pTextResource(pTextResource), _pPrivateSpecies(pPrivateSpecies), PreferLValue(false)
     {
         _CategorizeSelectors();
     }
 
     // ICompiledScriptLookups
-    std::string LookupSelectorName(WORD wIndex);
-    std::string LookupKernelName(WORD wIndex);
-    std::string LookupClassName(WORD wIndex);
-    bool LookupSpeciesPropertyList(WORD wIndex, std::vector<WORD> &props);
-    bool LookupSpeciesPropertyListAndValues(WORD wIndex, std::vector<WORD> &props, std::vector<WORD> &values);
+    std::string LookupSelectorName(uint16_t wIndex);
+    std::string LookupKernelName(uint16_t wIndex);
+    std::string LookupClassName(uint16_t wIndex);
+    bool LookupSpeciesPropertyList(uint16_t wIndex, std::vector<uint16_t> &props);
+    bool LookupSpeciesPropertyListAndValues(uint16_t wIndex, std::vector<uint16_t> &props, std::vector<uint16_t> &values);
 
     // IObjectFileScriptLookups
-    std::string ReverseLookupGlobalVariableName(WORD wIndex);
-    std::string ReverseLookupPublicExportName(WORD wScript, WORD wIndex);
+    std::string ReverseLookupGlobalVariableName(uint16_t wIndex);
+    std::string ReverseLookupPublicExportName(uint16_t wScript, uint16_t wIndex);
 
     // ILookupPropertyName
-    std::string LookupPropertyName(WORD wPropertyIndex);
+    std::string LookupPropertyName(uint16_t wPropertyIndex);
 
-    std::string LookupScriptThing(WORD wName, ICompiledScriptSpecificLookups::ObjectType &type) const;
+    std::string LookupScriptThing(uint16_t wName, ICompiledScriptSpecificLookups::ObjectType &type) const;
 
-    std::string LookupParameterName(WORD wIndex); // 1-based
+    std::string LookupParameterName(uint16_t wIndex); // 1-based
 
     bool GetSpeciesScriptNumber(uint16_t species, uint16_t &scriptNumber);
 
-    WORD GetScriptNumber() const { return _wScript; }
-    std::string LookupTextResource(WORD wIndex) const;
+    uint16_t GetScriptNumber() const { return _wScript; }
+    std::string LookupTextResource(uint16_t wIndex) const;
 
     void SetPosition(sci::SyntaxNode *pNode);
 
@@ -105,9 +105,9 @@ public:
 	void EndowWithFunction(sci::FunctionBase *pFunc);
 
 	// Tracking variable usage
-	void TrackVariableUsage(VarScope varScope, WORD wIndex, bool isIndexed);
-	const std::map<WORD, bool> &GetLocalUsage() { return _localVarUsage; }
-	const std::map<WORD, bool> &GetTempUsage(const std::string &functionMatchName) { return _tempVarUsage[functionMatchName]; }
+	void TrackVariableUsage(VarScope varScope, uint16_t wIndex, bool isIndexed);
+	const std::map<uint16_t, bool> &GetLocalUsage() { return _localVarUsage; }
+	const std::map<uint16_t, bool> &GetTempUsage(const std::string &functionMatchName) { return _tempVarUsage[functionMatchName]; }
     void TrackRestStatement(sci::RestStatement *rest, uint16_t paramIndex);
     void ResolveRestStatements();
 
@@ -131,7 +131,7 @@ public:
 private:
     void _CategorizeSelectors();
 
-    WORD _wScript;
+    uint16_t _wScript;
     GlobalCompiledScriptLookups *_pLookups;
     IObjectFileScriptLookups *_pOFLookups;
     ICompiledScriptSpecificLookups *_pScriptThings;
@@ -144,9 +144,9 @@ private:
 
 	// Variable usage
 	// Need to use map here, because they have to be in order.
-	std::map<WORD, bool> _localVarUsage;
+	std::map<uint16_t, bool> _localVarUsage;
 	// Then per function
-	std::unordered_map<std::string, std::map<WORD, bool>> _tempVarUsage;
+	std::unordered_map<std::string, std::map<uint16_t, bool>> _tempVarUsage;
     // Rest statements --- these need to be RestStaetment/index pairs. index 1 means first, index 2 means second.
     std::vector<std::pair<sci::RestStatement*, uint16_t>> _restStatementTrack;
 
@@ -160,17 +160,17 @@ private:
     std::set<uint16_t> _usings;
 };
 
-void DecompileRaw(sci::FunctionBase &func, DecompileLookups &lookups, const BYTE *pBegin, const BYTE *pEnd, WORD wBaseOffset);
+void DecompileRaw(sci::FunctionBase &func, DecompileLookups &lookups, const BYTE *pBegin, const BYTE *pEnd, uint16_t wBaseOffset);
 
 struct VariableRange
 {
-	WORD index;
-	WORD arraySize;
+	uint16_t index;
+	uint16_t arraySize;
 };
-void CalculateVariableRanges(const std::map<WORD, bool> &usage, WORD variableCount, std::vector<VariableRange> &varRanges);
-void AddLocalVariablesToScript(sci::Script &script, DecompileLookups &lookups, const std::vector<WORD> &localVars);
+void CalculateVariableRanges(const std::map<uint16_t, bool> &usage, uint16_t variableCount, std::vector<VariableRange> &varRanges);
+void AddLocalVariablesToScript(sci::Script &script, DecompileLookups &lookups, const std::vector<uint16_t> &localVars);
 
-std::string _GetProcNameFromScriptOffset(WORD wOffset);
+std::string _GetProcNameFromScriptOffset(uint16_t wOffset);
 sci::ValueType _ScriptObjectTypeToPropertyValueType(ICompiledScriptSpecificLookups::ObjectType type);
 bool _ObtainInstructionSequence(code_pos branchInstruction, code_pos beginning, code_pos &beginningOfBranchInstructionSequence);
 
@@ -193,15 +193,15 @@ private:
     DecompileLookups &_lookups;
 };
 
-std::string _GetPublicProcedureName(WORD wScript, WORD wIndex);
-std::string _GetBaseProcedureName(WORD wIndex);
+std::string _GetPublicProcedureName(uint16_t wScript, uint16_t wIndex);
+std::string _GetBaseProcedureName(uint16_t wIndex);
 void _MassageProcedureCall(sci::ProcedureCall &proc, DecompileLookups &lookups, code_pos pos);
-std::string _GetVariableNameFromCodePos(code_pos pos, DecompileLookups &lookups, VarScope *pVarType = nullptr, WORD *pwIndexOut = nullptr);
+std::string _GetVariableNameFromCodePos(code_pos pos, DecompileLookups &lookups, VarScope *pVarType = nullptr, uint16_t *pwIndexOut = nullptr);
 bool _IsVOIncremented(Opcode bOpcode);
 bool _IsVODecremented(Opcode bOpcode);
 bool _IsVOStack(Opcode bOpcode);
 bool _IsVOPureStack(Opcode bOpcode);
 bool _IsVOIndexed(Opcode bOpcode);
 bool _IsVOStoreOperation(Opcode bOpcode);
-std::unique_ptr<sci::Script> DecompileScript(WORD wScript, CompiledScript &compiledScript);
+std::unique_ptr<sci::Script> DecompileScript(uint16_t wScript, CompiledScript &compiledScript);
 

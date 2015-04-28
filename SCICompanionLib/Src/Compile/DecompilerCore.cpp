@@ -12,6 +12,8 @@
 
 #define DEBUG_DECOMPILER 1
 
+#define FORCE_FALLBACK 1
+
 using namespace sci;
 using namespace std;
 
@@ -721,6 +723,76 @@ private:
     stack<bool> useHex;
 };
 
+class DetermineNegativeValues : public IExploreNode, public IExploreNodeContext
+{
+public:
+    DetermineNegativeValues(FunctionBase &func)
+    {
+        useNeg.push(true);
+        func.Traverse(this, *this);
+    }
+
+    void ExploreNode(IExploreNodeContext *pContext, SyntaxNode &node, ExploreNodeState state) override
+    {
+        // Set property values to hex if we should:
+        if (state == ExploreNodeState::Pre)
+        {
+            PropertyValue *propValue = SafeSyntaxNode<PropertyValue>(&node);
+            if (propValue && useNeg.top())
+            {
+                if ((propValue->GetType() == ValueType::Number) && (propValue->GetNumberValue() > 32768))
+                {
+                    propValue->_fNegate = true;
+                }
+            }
+        }
+
+        // Push a "neg context" if we are in a signed comparison
+        string operation;
+        BinaryOp *binaryOp = SafeSyntaxNode<BinaryOp>(&node);
+        if (binaryOp)
+        {
+            operation = binaryOp->GetName();
+        }
+        Assignment *assignment = SafeSyntaxNode<Assignment>(&node);
+        if (assignment)
+        {
+            operation = assignment->GetName();
+            GetBinaryOpFromAssignment(operation);
+        }
+
+        if (operation == "+" || operation == "-" || operation == "<" || operation == ">" || operation == "<=" || operation == ">=")
+        {
+            if (state == ExploreNodeState::Pre)
+            {
+                useNeg.push(true);
+            }
+            else if (state == ExploreNodeState::Post)
+            {
+                useNeg.pop();
+            }
+        }
+        else
+        {
+            // Ignore certain "insignificant" syntax nodes
+            if (node.GetNodeType() != NodeTypeStatement)
+            {
+                if (state == ExploreNodeState::Pre)
+                {
+                    useNeg.push(false);
+                }
+                else if (state == ExploreNodeState::Post)
+                {
+                    useNeg.pop();
+                }
+            }
+        }
+    }
+
+private:
+    stack<bool> useNeg;
+};
+
 void _DetermineIfFunctionReturnsValue(std::list<scii> code, DecompileLookups &lookups)
 {
     // Look for return statements and see if they have any statements without side effects before them.
@@ -873,7 +945,7 @@ void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBe
     _TrackExternalScriptUsage(code, lookups);
 
     // temp test
-#ifdef FALLBAK
+#ifdef FORCE_FALLBACK
     DisassembleFallback(func, code.begin(), code.end(), lookups);
 #else
     ControlFlowGraph cfg;
@@ -885,6 +957,7 @@ void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBe
 #endif
 
     DetermineHexValues determineHexValues(func);
+    DetermineNegativeValues determinedNegValues(func);
 
     _FigureOutTempVariables(lookups, func, VarScope::Temp, code);
 

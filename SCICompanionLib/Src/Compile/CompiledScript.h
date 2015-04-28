@@ -182,7 +182,7 @@ public:
     const std::vector<uint8_t> &GetRawBytes() const { return _scriptResource; }
     const uint8_t *GetEndOfRawBytes() const { return &_scriptResource[0] + _scriptResource.size(); }
     bool IsExportAnObject(uint16_t wOffset) const;
-    bool IsExportAProcedure(uint16_t wOffset) const;
+    bool IsExportAProcedure(uint16_t wOffset, int *exportIndex = nullptr) const;
     std::set<uint16_t> FindInternalCallsTO() const;
 
     void PopulateSaidStrings(const ILookupNames *pWords) const;

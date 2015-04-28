@@ -25,9 +25,7 @@ const uint16_t InfoCloneFlag = 0x0001;  // probably never used in the editor
 
 std::string _GetProcNameFromScriptOffset(uint16_t wOffset)
 {
-    std::stringstream ss;
-    ss << "localproc_" << wOffset;
-    return ss.str();
+    return fmt::format("localproc_{:04x}", wOffset);
 }
 
 bool CompiledScript::Load(SCIVersion version, int iScriptNumber, bool quick)
@@ -49,9 +47,14 @@ bool CompiledScript::IsExportAnObject(uint16_t wOffset) const
 {
     return find(_exportedObjectInstances.begin(), _exportedObjectInstances.end(), wOffset) != _exportedObjectInstances.end();
 }
-bool CompiledScript::IsExportAProcedure(uint16_t wOffset) const
+bool CompiledScript::IsExportAProcedure(uint16_t wOffset, int *exportIndex) const
 {
-    return !IsExportAnObject(wOffset) && (wOffset != 0);
+    bool result = !IsExportAnObject(wOffset) && (wOffset != 0);
+    if (result && exportIndex)
+    {
+        *exportIndex = find(_exportsTO.begin(), _exportsTO.end(), wOffset) - _exportsTO.begin();
+    }
+    return result;
 }
 
 bool CompiledScript::Load(SCIVersion version, int number, sci::istream &byteStream)

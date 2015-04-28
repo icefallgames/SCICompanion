@@ -445,7 +445,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;
         void PreScan(CompileContext &context);
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en) {}
+        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
     };
@@ -462,7 +462,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;
         void PreScan(CompileContext &context);
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en) {}
+        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 
