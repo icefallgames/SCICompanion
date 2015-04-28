@@ -40,7 +40,7 @@ private:
     void _UpdateScripts(std::set<uint16_t> updatedScripts);
     void _PopulateSCOTree();
     void _InitScriptList();
-    void _SyncSelection();
+    void _SyncSelection(bool force = false);
 public:
     afx_msg void OnLvnItemchangedListscripts(NMHDR *pNMHDR, LRESULT *pResult);
     afx_msg void OnTvnBeginlabeleditTreesco(NMHDR *pNMHDR, LRESULT *pResult);

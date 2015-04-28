@@ -759,3 +759,17 @@ unique_ptr<CSCOFile> SCOFromScriptAndCompiledScript(const Script &script, const 
     return sco;
 
 }
+
+unique_ptr<CSCOFile> GetExistingSCOFromScriptNumber(uint16_t number)
+{
+    unique_ptr<CSCOFile> sco;
+    string objectFilename = appState->GetResourceMap().GetScriptObjectFileName(number);
+    if (!objectFilename.empty() && PathFileExists(objectFilename.c_str()))
+    {
+        ScopedFile scoped(objectFilename, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
+        sci::streamOwner streamOwner(scoped.hFile);
+        sco = make_unique<CSCOFile>();
+        sco->Create(streamOwner.getReader());
+    }
+    return sco;
+}

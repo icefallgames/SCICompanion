@@ -422,7 +422,8 @@ UINT LoadClassBrowserThreadWorker(void *pParam)
 {
     SCIClassBrowser *pBrowser = (SCIClassBrowser *)pParam;
     pBrowser->Lock();
-    if (!pBrowser->ReLoadFromSources())
+    //if (!pBrowser->ReLoadFromSources())
+    // Never load from sources now (although that ruins browse info :-()
     {
         // Might not be a fan-made game... try loading from the resources themselves so
         // that we are able to provide a class hierarchy at least.

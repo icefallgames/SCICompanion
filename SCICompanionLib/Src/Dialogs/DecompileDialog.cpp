@@ -210,7 +210,7 @@ void DecompileDialog::_PopulateSCOTree()
     }
 }
 
-void DecompileDialog::_SyncSelection()
+void DecompileDialog::_SyncSelection(bool force)
 {
     UINT selectedCount = m_wndListScripts.GetSelectedCount();
     bool selected = (selectedCount > 0);
@@ -221,7 +221,7 @@ void DecompileDialog::_SyncSelection()
     {
         POSITION pos = m_wndListScripts.GetFirstSelectedItemPosition();
         int selectedItem = m_wndListScripts.GetNextSelectedItem(pos);
-        if (selectedItem != previousSelection)
+        if (force || (selectedItem != previousSelection))
         {
             LPARAM param = m_wndListScripts.GetItemData(selectedItem);
             string sourceFileName = appState->GetResourceMap().GetScriptFileName((uint16_t)param);
@@ -245,14 +245,9 @@ void DecompileDialog::_SyncSelection()
             // Load the .sco file
             _sco.reset(nullptr);
             _scoPublicProcIndices.clear();
-            string objectFilename = appState->GetResourceMap().GetScriptObjectFileName((uint16_t)param);
-            if (!objectFilename.empty() && PathFileExists(objectFilename.c_str()))
+            _sco = GetExistingSCOFromScriptNumber((uint16_t)param);
+            if (_sco)
             {
-                ScopedFile scoped(objectFilename, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
-                sci::streamOwner streamOwner(scoped.hFile);
-                _sco = make_unique<CSCOFile>();
-                _sco->Create(streamOwner.getReader());
-
                 // Detect which exports are not procedures by seeing if its name
                 // matches a public instance in the compiled script (which should be sync'd with the SCO)
                 CompiledScript compiledScript((uint16_t)param);
@@ -423,7 +418,7 @@ void DecompileDialog::OnBnClickedDecompile()
         }
     }
     _UpdateScripts(scriptNumbers);
-    _SyncSelection();
+    _SyncSelection(true);
 }
 
 

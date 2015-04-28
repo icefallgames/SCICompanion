@@ -140,6 +140,105 @@ void DetermineAndInsertUsings(Script &script, DecompileLookups &lookups)
     }
 }
 
+bool _IsUndeterminedPublicProc(const std::string &procName, uint16_t &script, uint16_t &index)
+{
+    script = 0;
+    index = 0;
+    if (0 == procName.compare(0, 4, "proc"))
+    {
+        string rest = procName.substr(lstrlenA("proc"), string::npos);
+        // This needs to be of the form [number]_[number]
+        size_t position = 0;
+        int scriptNumber = stoi(rest, &position);
+        if ((position > 0) && (position < rest.size()))
+        {
+            if (rest[position] == '_')
+            {
+                rest = rest.substr(position + 1, string::npos);
+                int indexNumber = stoi(rest, &position);
+                script = (uint16_t)scriptNumber;
+                index = (uint16_t)indexNumber;
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+class ResolveProcedureCalls : public IExploreNodeContext, public IExploreNode
+{
+public:
+    ResolveProcedureCalls(unordered_map<int, unique_ptr<CSCOFile>> &scoMap) : _scoMap(scoMap) {}
+
+    void ExploreNode(IExploreNodeContext *pContext, SyntaxNode &node, ExploreNodeState state) override
+    {
+        if (state == ExploreNodeState::Pre)
+        {
+            ProcedureCall *procCall = SafeSyntaxNode<ProcedureCall>(&node);
+            if (procCall)
+            {
+                uint16_t scriptNumber, index;
+                if (_IsUndeterminedPublicProc(procCall->GetName(), scriptNumber, index))
+                {
+                    CSCOFile *sco = _EnsureSCO(scriptNumber);
+                    if (sco)
+                    {
+                        string newProcName = sco->GetExportName(index);
+                        assert(!newProcName.empty());
+                        if (newProcName.empty())
+                        {
+                            procCall->SetName(newProcName);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+private:
+    CSCOFile *_EnsureSCO(uint16_t script)
+    {
+        if (_scoMap.find(script) == _scoMap.end())
+        {
+            _scoMap[script] = move(GetExistingSCOFromScriptNumber(script));
+        }
+        return _scoMap.at(script).get();
+    }
+        
+    unordered_map<int, unique_ptr<CSCOFile>> &_scoMap;
+};
+
+// This pulls in the required .sco files to find the public procedure names
+void ResolvePublicProcedureCalls(Script &script)
+{
+    unordered_map<int, unique_ptr<CSCOFile>> scoMap;
+    scoMap[script.GetScriptNumber()] = move(GetExistingSCOFromScriptNumber(script.GetScriptNumber()));
+
+    // First let's resolve the exports
+    CSCOFile *thisSCO = scoMap.at(script.GetScriptNumber()).get();
+    if (thisSCO)
+    {
+        for (auto &proc : script.GetProceduresNC())
+        {
+            uint16_t scriptNumber, index;
+            if (proc->IsPublic() && _IsUndeterminedPublicProc(proc->GetName(), scriptNumber, index))
+            {
+                assert(scriptNumber == script.GetScriptNumber());
+                string newProcName = thisSCO->GetExportName(index);
+                assert(!newProcName.empty());
+                if (newProcName.empty())
+                {
+                    proc->SetName(newProcName);
+                }
+            }
+        }
+    }
+
+    // Now the actual calls, which could be to any script
+    ResolveProcedureCalls resolveProcCalls(scoMap);
+    script.Traverse(&resolveProcCalls, resolveProcCalls);
+}
+
 Script *Decompile(const CompiledScript &compiledScript, DecompileLookups &lookups, const ILookupNames *pWords)
 {
     unique_ptr<Script> pScript = std::make_unique<Script>();
@@ -237,15 +336,33 @@ Script *Decompile(const CompiledScript &compiledScript, DecompileLookups &lookup
 
     AddLocalVariablesToScript(*pScript, lookups, compiledScript._localVars);
 
-    AutoDetectVariableNames(*pScript);
+    // Load this script's SCO, and main's SCO (assuming this isn't main)
+    unique_ptr<CSCOFile> mainSCO;
+    if (compiledScript.GetScriptNumber() != 0)
+    {
+        mainSCO = GetExistingSCOFromScriptNumber(0);
+    }
+    unique_ptr<CSCOFile> oldScriptSCO = GetExistingSCOFromScriptNumber(compiledScript.GetScriptNumber());
+
+    bool mainDirty = false;
+    AutoDetectVariableNames(*pScript, mainSCO.get(), oldScriptSCO.get(), mainDirty);
+
+    ResolvePublicProcedureCalls(*pScript);
 
     InsertHeaders(*pScript);
     
     DetermineAndInsertUsings(*pScript, lookups);
 
-    // Decompiling always generates an SCO
+    // Decompiling always generates an SCO. Any pertinent info from the old SCO should be transfered
+    // to the new one based extracting info from the script.
     std::unique_ptr<CSCOFile> scoFile = SCOFromScriptAndCompiledScript(*pScript, compiledScript);
     SaveSCOFile(*scoFile);
+
+    // We may have added some global info to main's SCO. Save that now.
+    if (mainDirty)
+    {
+        SaveSCOFile(*mainSCO);
+    }
 
     return pScript.release();
 }

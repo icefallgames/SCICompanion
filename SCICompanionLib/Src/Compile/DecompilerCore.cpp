@@ -82,9 +82,7 @@ std::string _GetPublicProcedureName(WORD wScript, WORD wIndex)
 
 std::string _GetBaseProcedureName(WORD wIndex)
 {
-    std::stringstream ss;
-    ss << "proc000_" << wIndex;
-    return ss.str();
+    return _GetPublicProcedureName(0, wIndex);
 }
 
 typedef std::list<scii>::reverse_iterator rcode_pos;
@@ -1323,6 +1321,8 @@ void DecompileLookups::TrackProcedureCall(uint16_t offset)
 void CalculateVariableRanges(const std::map<WORD, bool> &usage, WORD variableCount, vector<VariableRange> &varRanges)
 {
     // (1) This first part of the code attempts to figure out which variables are arrays and which are not.
+    // For the global script, we assume none of the variables are arrays. We can't determine their usage from just
+    // main itself, because all scripts use them.
     VariableRange currentVarRange = { 0, 0 };
     bool hasVariableInProcess = false;
     bool isCurrentIndexed = false;
@@ -1393,7 +1393,18 @@ void AddLocalVariablesToScript(sci::Script &script, DecompileLookups &lookups, c
     // Based on what we find in lookups, we should be able to deduce what is an array and what is not.
     // And we should be able to initialize things too. Default values are zero.
     vector<VariableRange> varRanges;
-    CalculateVariableRanges(lookups.GetLocalUsage(), static_cast<WORD>(localVarValues.size()), varRanges);
+    if (script.GetScriptNumber() == 0)
+    {
+        for (size_t i = 0; i < localVarValues.size(); i++)
+        {
+            varRanges.push_back({ (uint16_t)i, 1 });
+        }
+
+    }
+    else
+    {
+        CalculateVariableRanges(lookups.GetLocalUsage(), static_cast<WORD>(localVarValues.size()), varRanges);
+    }
 
     // The next step is to supply values and initializers
     // Script local variables are zero-initialized by default. So we don't need to assign anything to them if the value is zero.

@@ -2151,7 +2151,7 @@ void OutputNewStructure(sci::FunctionBase &func, MainNode &main, DecompileLookup
 
     std::stringstream ss;
     mainChunk->Print(ss, 0);
-    ShowTextFile(ss.str().c_str(), func.GetName() + "_chunks.txt");
+    //ShowTextFile(ss.str().c_str(), func.GetName() + "_chunks.txt");
 
     // Now fill it in
     for (auto &child : mainChunk->Children())

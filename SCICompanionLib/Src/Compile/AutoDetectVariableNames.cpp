@@ -2,6 +2,7 @@
 #include "AutoDetectVariableNames.h"
 #include "ScriptOMAll.h"
 #include "format.h"
+#include "DisassembleHelper.h"
 
 using namespace sci;
 using namespace std;
@@ -48,9 +49,48 @@ struct Suggestion
 class RenameContext
 {
 public:
-    RenameContext() : _dirty(false) {}
+    RenameContext(CSCOFile *mainSCO, CSCOFile *scriptSCO) : _dirty(false), _mainDirty(false), _mainSCO(mainSCO)
+    {
+        // Populate things from these SCOs. And store the main SCO in case we make mods
+        CSCOFile *globalVarSCO = (mainSCO != nullptr) ? mainSCO : ((scriptSCO && scriptSCO->GetScriptNumber() == 0) ? scriptSCO : nullptr);
+        if (globalVarSCO)
+        {
+            // Pluck out the global variables. They are ordered by index
+            int index = 0;
+            for (CSCOLocalVariable &globalVar : globalVarSCO->GetVariables())
+            {
+                string stdGlobalName = _GetGlobalVariableName(index);
+                if (globalVar.GetName() != stdGlobalName)
+                {
+                    // It must have been given a name, so use it.
+                    SetRenamed(nullptr, stdGlobalName, globalVar.GetName(), false);
+                }
+                index++;
+            }
+        }
 
-    void SetRenamed(FunctionBase *functionContext, const string &original, const string &suggestion)
+        if (scriptSCO && (scriptSCO != globalVarSCO))
+        {
+            // Use these as locals
+            int index = 0;
+            for (CSCOLocalVariable &localVar : scriptSCO->GetVariables())
+            {
+                string stdLocallName = _GetLocalVariableName(index);
+                if (localVar.GetName() != stdLocallName)
+                {
+                    // It must have been given a name, so use it.
+                    SetRenamed(nullptr, stdLocallName, localVar.GetName(), false);
+                }
+                index++;
+            }
+        }
+
+        _mainDirty = false;
+    }
+
+    bool IsMainDirty() { return _mainDirty; }
+
+    void SetRenamed(FunctionBase *functionContext, const string &original, const string &suggestion, bool pushToMain = true)
     {
         TwoWayMap &twoWayMap = GetMap(functionContext, original);
         // If this guy has already been renamed, use what we have already
@@ -80,6 +120,11 @@ public:
             _dirty = true;
             twoWayMap.originalToRename[original] = finalSuggestion;
             twoWayMap.renameToOriginal[finalSuggestion] = original;
+
+            if (pushToMain && _IsUndeterminedGlobalScope(original))
+            {
+                _PushToMain(original, suggestion);
+            }
         }
     }
 
@@ -111,8 +156,25 @@ private:
         }
     }
 
+    void _PushToMain(const string &original, const string &suggestion)
+    {
+        if (_mainSCO)
+        {
+            string numberString = original.substr(lstrlenA("global"), string::npos);
+            int number = stoi(numberString);
+            assert(number < (int)_mainSCO->GetVariables().size());
+            if (number < (int)_mainSCO->GetVariables().size())
+            {
+                _mainSCO->GetVariables()[number].SetName(suggestion);
+            }
+            _mainDirty = true;
+        }
+    }
+
     bool _dirty;
+    bool _mainDirty;
     TwoWayMap localMap;
+    CSCOFile *_mainSCO;
     unordered_map<FunctionBase*, TwoWayMap> functionMaps;
 };
 
@@ -495,9 +557,9 @@ private:
 };
 
 
-void AutoDetectVariableNames(Script &script)
+void AutoDetectVariableNames(Script &script, CSCOFile *mainSCO, CSCOFile *scriptSCO, bool &mainDirty)
 {
-    RenameContext renameContext;
+    RenameContext renameContext(mainSCO, scriptSCO);
 
     // Iteratively figure out variable names. Each cycle can propagate
     // variable names one more step.
@@ -518,4 +580,6 @@ void AutoDetectVariableNames(Script &script)
         ApplyVariableNames applyVarNames(renameContext);
         script.Traverse(&applyVarNames, applyVarNames);
     } while (renameContext.IsDirty());
+
+    mainDirty = renameContext.IsMainDirty();
 }

@@ -262,3 +262,4 @@ void SaveSCOFile(const CSCOFile &sco);
 
 class CompiledScript;
 std::unique_ptr<CSCOFile> SCOFromScriptAndCompiledScript(const sci::Script &script, const CompiledScript &compiledScript);
+std::unique_ptr<CSCOFile> GetExistingSCOFromScriptNumber(uint16_t number);
