@@ -4,6 +4,7 @@
 #include "PMachine.h"
 #include "SCO.h"
 #include "DisassembleHelper.h"
+#include "CompileCommon.h"
 
 namespace sci
 {
@@ -22,7 +23,7 @@ public:
     virtual std::string LookupKernelName(uint16_t wIndex) = 0;
     virtual std::string LookupClassName(uint16_t wIndex) = 0;
     virtual bool LookupSpeciesPropertyList(uint16_t wIndex, std::vector<uint16_t> &props) = 0;
-    virtual bool LookupSpeciesPropertyListAndValues(uint16_t wIndex, std::vector<uint16_t> &props, std::vector<uint16_t> &values) = 0;
+    virtual bool LookupSpeciesPropertyListAndValues(uint16_t wIndex, std::vector<uint16_t> &props, std::vector<CompiledVarValue> &values) = 0;
 };
 
 class ICompiledScriptSpecificLookups
@@ -42,7 +43,7 @@ class IPrivateSpeciesLookups
 public:
     virtual std::string LookupClassName(uint16_t wIndex) = 0;
     virtual bool LookupSpeciesPropertyList(uint16_t wIndex, std::vector<uint16_t> &props) = 0;
-    virtual bool LookupSpeciesPropertyListAndValues(uint16_t wIndex, std::vector<uint16_t> &props, std::vector<uint16_t> &values) = 0;
+    virtual bool LookupSpeciesPropertyListAndValues(uint16_t wIndex, std::vector<uint16_t> &props, std::vector<CompiledVarValue> &values) = 0;
 };
 
 
@@ -66,7 +67,7 @@ public:
     std::string LookupKernelName(uint16_t wIndex);
     std::string LookupClassName(uint16_t wIndex);
     bool LookupSpeciesPropertyList(uint16_t wIndex, std::vector<uint16_t> &props);
-    bool LookupSpeciesPropertyListAndValues(uint16_t wIndex, std::vector<uint16_t> &props, std::vector<uint16_t> &values);
+    bool LookupSpeciesPropertyListAndValues(uint16_t wIndex, std::vector<uint16_t> &props, std::vector<CompiledVarValue> &values);
 
     SelectorTable &GetSelectorTable() { return _selectors; }
     GlobalClassTable &GetGlobalClassTable() { return _classes; }
@@ -100,7 +101,7 @@ class CompiledObjectBase : public ILookupPropertyName
 public:
     CompiledObjectBase() { _fInstance = false; IsPublic = false; }
     bool IsInstance() const { return _fInstance; }
-    bool Create(uint16_t scriptNumber, SCIVersion version, sci::istream &stream, BOOL fClass, uint16_t *pwOffset, int classIndex);
+    bool Create_SCI0(uint16_t scriptNumber, SCIVersion version, sci::istream &stream, BOOL fClass, uint16_t *pwOffset, int classIndex);
     bool Create_SCI1_1(uint16_t scriptNumber, SCIVersion version, sci::istream scriptStream, sci::istream &heapStream, uint16_t *pwOffset, int classIndex);
     std::string GetName() const { return _strName; }
     void SetName(PCTSTR pszName) { _strName = pszName; }
@@ -118,7 +119,7 @@ public:
     void AdjustName(PCTSTR pszNewName) { ASSERT(!_fInstance); _strName = pszNewName; }
     const std::vector<uint16_t> &GetProperties() const { return _propertySelectors; }
     const std::vector<uint16_t> &GetMethods() const { return _functionSelectors; }
-    const std::vector<uint16_t> &GetPropertyValues() const{ return _propertyValues; }
+    const std::vector<CompiledVarValue> &GetPropertyValues() const{ return _propertyValues; }
     const std::vector<uint16_t> &GetMethodCodePointersTO() const { return _functionOffsetsTO; }
 
     // ILookupPropertyName
@@ -140,7 +141,7 @@ protected:
     uint16_t _wInfo;
     // These start from the 4th position (e.g. leave out species, superclass, --info-- and name)
     std::vector<uint16_t> _propertySelectors;
-    std::vector<uint16_t> _propertyValues;
+    std::vector<CompiledVarValue> _propertyValues;
     std::vector<uint16_t> _functionSelectors;      // selectors for the methods
     std::vector<uint16_t> _functionOffsetsTO;
     bool _fInstance;
@@ -177,7 +178,7 @@ public:
     // IPrivateSpeciesLookups
     std::string LookupClassName(uint16_t wIndex);
     bool LookupSpeciesPropertyList(uint16_t wIndex, std::vector<uint16_t> &props);
-    bool LookupSpeciesPropertyListAndValues(uint16_t wIndex, std::vector<uint16_t> &props, std::vector<uint16_t> &values);
+    bool LookupSpeciesPropertyListAndValues(uint16_t wIndex, std::vector<uint16_t> &props, std::vector<CompiledVarValue> &values);
 
     const std::vector<uint8_t> &GetRawBytes() const { return _scriptResource; }
     const uint8_t *GetEndOfRawBytes() const { return &_scriptResource[0] + _scriptResource.size(); }
@@ -188,7 +189,7 @@ public:
     void PopulateSaidStrings(const ILookupNames *pWords) const;
 
     // TODO: Make these have public names
-    std::vector<uint16_t> _localVars;
+    std::vector<CompiledVarValue> _localVars;
     std::vector<std::unique_ptr<CompiledObjectBase>> _objects;
     std::vector<uint16_t> _objectsOffsetTO;
     // When loading, we'll also just provide the raw data for stuff. Size, etc...

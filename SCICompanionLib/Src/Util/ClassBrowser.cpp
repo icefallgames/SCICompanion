@@ -334,7 +334,7 @@ void LoadClassFromCompiled(sci::ClassDefinition *pClass, CompiledObjectBase *pOb
     // Or maybe just > the number of class names means no class.  Seems so in SQ3.
 
     const std::vector<WORD> &properties = pObject->GetProperties();
-    const std::vector<WORD> &propertyValues = pObject->GetPropertyValues();
+    const std::vector<CompiledVarValue> &propertyValues = pObject->GetPropertyValues();
     // Instances will have values, but no selector IDs - so that's ok that properties is smaller
     // than propertyValues.
     ASSERT(properties.size() <= propertyValues.size());
@@ -343,14 +343,14 @@ void LoadClassFromCompiled(sci::ClassDefinition *pClass, CompiledObjectBase *pOb
         // Add the values anyway.... we'll resolve property selectors later.
         for (size_t i = 0; i < propertyValues.size(); i++)
         {
-            pClass->AddProperty(sci::ClassProperty(TEXT("Unknown"), propertyValues[i]));
+            pClass->AddProperty(sci::ClassProperty(TEXT("Unknown"), propertyValues[i].value));
         }
     }
     else
     {
         for (size_t i = 0; i < properties.size(); i++)
         {
-            pClass->AddProperty(sci::ClassProperty(pNames->Lookup(properties[i]), propertyValues[i]));
+            pClass->AddProperty(sci::ClassProperty(pNames->Lookup(properties[i]), propertyValues[i].value));
         }
     }
 

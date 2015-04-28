@@ -443,30 +443,30 @@ void CRoomExplorerNode::Init(const CRoomExplorerView::CRoomExplorerGrid *pGrid, 
     assert(_pWorkItem.get() == nullptr);
     _pWorkItem = make_unique<CRoomExplorerWorkItem>(compiledScript.GetScriptNumber());
     ScriptNum = compiledScript.GetScriptNumber();
-    const vector<uint16_t> &propValues = classDefinition.GetPropertyValues();
+    const vector<CompiledVarValue> &propValues = classDefinition.GetPropertyValues();
     vector<uint16_t> props = classDefinition.GetProperties();
     globalLookups.LookupSpeciesPropertyList(classDefinition.GetSuperClass(), props);
     for (size_t i = 0; i < props.size(); i++)
     {
         if (props[i] == importantSelectors.North)
         {
-            North = propValues[i];
+            North = propValues[i].value;
         }
         else if (props[i] == importantSelectors.East)
         {
-            East = propValues[i];
+            East = propValues[i].value;
         }
         else if (props[i] == importantSelectors.South)
         {
-            South = propValues[i];
+            South = propValues[i].value;
         }
         else if (props[i] == importantSelectors.West)
         {
-            West = propValues[i];
+            West = propValues[i].value;
         }
         else if (props[i] == importantSelectors.Picture)
         {
-            Picture = propValues[i];
+            Picture = propValues[i].value;
             // Get the ResourceBlob for it.
             auto it = _pGrid->GetPics().find(Picture);
             if (it != _pGrid->GetPics().end())
@@ -492,7 +492,7 @@ void CRoomExplorerNode::_AddView(CompiledObjectBase &classDefinition, GlobalComp
     unique_ptr<CRoomView> pView = make_unique<CRoomView>();
 
     // I'm often getting an additional thing here.
-    const vector<uint16_t> &propValues = classDefinition.GetPropertyValues();
+    const vector<CompiledVarValue> &propValues = classDefinition.GetPropertyValues();
     vector<uint16_t> props;
     globalLookups.LookupSpeciesPropertyList(classDefinition.GetSpecies(), props);
     // Some instances have more property values than their species does. Curious.
@@ -502,23 +502,23 @@ void CRoomExplorerNode::_AddView(CompiledObjectBase &classDefinition, GlobalComp
     {
         if (props[i] == importantSelectors.View)
         {
-            pView->wView = propValues[i];
+            pView->wView = propValues[i].value;
         }
         else if (props[i] == importantSelectors.X)
         {
-            pView->wx = propValues[i];
+            pView->wx = propValues[i].value;
         }
         else if (props[i] == importantSelectors.Y)
         {
-            pView->wy= propValues[i];
+            pView->wy = propValues[i].value;
         }
         else if (props[i] == importantSelectors.Loop)
         {
-            pView->wLoop= propValues[i];
+            pView->wLoop = propValues[i].value;
         }
         else if (props[i] == importantSelectors.Cel)
         {
-            pView->wCel = propValues[i];
+            pView->wCel = propValues[i].value;
         }
     }
 

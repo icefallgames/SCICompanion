@@ -12,7 +12,7 @@
 
 #define DEBUG_DECOMPILER 1
 
-#define FORCE_FALLBACK 1
+//#define FORCE_FALLBACK 1
 
 using namespace sci;
 using namespace std;
@@ -1135,7 +1135,7 @@ bool DecompileLookups::LookupSpeciesPropertyList(WORD wIndex, std::vector<WORD> 
     }
     return fRet;
 }
-bool DecompileLookups::LookupSpeciesPropertyListAndValues(WORD wIndex, std::vector<WORD> &props, std::vector<WORD> &values)
+bool DecompileLookups::LookupSpeciesPropertyListAndValues(WORD wIndex, std::vector<WORD> &props, std::vector<CompiledVarValue> &values)
 {
     bool fRet = _pLookups->LookupSpeciesPropertyListAndValues(wIndex, props, values);
     if (!fRet)
@@ -1461,7 +1461,7 @@ void CalculateVariableRanges(const std::map<WORD, bool> &usage, WORD variableCou
     }
 }
 
-void AddLocalVariablesToScript(sci::Script &script, DecompileLookups &lookups, const std::vector<WORD> &localVarValues)
+void AddLocalVariablesToScript(sci::Script &script, DecompileLookups &lookups, const std::vector<CompiledVarValue> &localVarValues)
 {
     // Based on what we find in lookups, we should be able to deduce what is an array and what is not.
     // And we should be able to initialize things too. Default values are zero.
@@ -1495,7 +1495,7 @@ void AddLocalVariablesToScript(sci::Script &script, DecompileLookups &lookups, c
         WORD firstAllZeroesFromHereIndex = wStart;
         for (int i = wEnd - 1; i >= wStart; i--)
         {
-            if (localVarValues[i] != 0)
+            if (localVarValues[i].value != 0)
             {
                 firstAllZeroesFromHereIndex = static_cast<WORD>(i + 1);
                 break;
@@ -1506,7 +1506,7 @@ void AddLocalVariablesToScript(sci::Script &script, DecompileLookups &lookups, c
         for (WORD w = varRange.index; w < firstAllZeroesFromHereIndex; w++)
         {
             PropertyValue value;
-            value.SetValue(localVarValues[w]);
+            value.SetValue(localVarValues[w].value);
             localVar->AddSimpleInitializer(value);
         }
 

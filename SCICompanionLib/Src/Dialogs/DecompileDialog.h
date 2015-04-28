@@ -22,7 +22,7 @@ private:
     CListCtrl m_wndListScripts;
 
     // Visuals
-    CExtButton m_wndOK;
+    CExtButton m_wndCancel;
     CExtButton m_wndDecompile;
     CExtButton m_wndClearSCO;
     CExtButton m_wndSetFilenames;

@@ -706,7 +706,7 @@ unique_ptr<CSCOFile> SCOFromScriptAndCompiledScript(const Script &script, const 
             vector<CSCOObjectProperty> &properties = newSCOObject.GetPropertiesNonConst();
             for (size_t i = 0; i < compiledObject->GetProperties().size(); i++)
             {
-                properties.emplace_back(compiledObject->GetProperties()[i], compiledObject->GetPropertyValues()[i]);
+                properties.emplace_back(compiledObject->GetProperties()[i], compiledObject->GetPropertyValues()[i].value);
             }
 
             // Our object is complete.

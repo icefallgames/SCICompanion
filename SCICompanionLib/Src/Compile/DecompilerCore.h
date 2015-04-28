@@ -5,6 +5,7 @@
 #include "ScriptOM.h"
 #include <cstdint>
 #include <unordered_set>
+#include "CompileCommon.h"
 
 // fwd decl
 namespace sci
@@ -81,7 +82,7 @@ public:
     std::string LookupKernelName(uint16_t wIndex);
     std::string LookupClassName(uint16_t wIndex);
     bool LookupSpeciesPropertyList(uint16_t wIndex, std::vector<uint16_t> &props);
-    bool LookupSpeciesPropertyListAndValues(uint16_t wIndex, std::vector<uint16_t> &props, std::vector<uint16_t> &values);
+    bool LookupSpeciesPropertyListAndValues(uint16_t wIndex, std::vector<uint16_t> &props, std::vector<CompiledVarValue> &values);
 
     // IObjectFileScriptLookups
     std::string ReverseLookupGlobalVariableName(uint16_t wIndex);
@@ -168,7 +169,7 @@ struct VariableRange
 	uint16_t arraySize;
 };
 void CalculateVariableRanges(const std::map<uint16_t, bool> &usage, uint16_t variableCount, std::vector<VariableRange> &varRanges);
-void AddLocalVariablesToScript(sci::Script &script, DecompileLookups &lookups, const std::vector<uint16_t> &localVars);
+void AddLocalVariablesToScript(sci::Script &script, DecompileLookups &lookups, const std::vector<CompiledVarValue> &localVars);
 
 std::string _GetProcNameFromScriptOffset(uint16_t wOffset);
 sci::ValueType _ScriptObjectTypeToPropertyValueType(ICompiledScriptSpecificLookups::ObjectType type);

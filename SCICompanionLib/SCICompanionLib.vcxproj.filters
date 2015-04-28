@@ -1205,6 +1205,9 @@
     <ClInclude Include="Src\Dialogs\DecompileDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Compile\CompileCommon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="SCICompanionLib.def">

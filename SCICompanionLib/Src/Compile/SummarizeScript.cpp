@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "SummarizeScript.h"
+#include "CompileCommon.h"
 
 using namespace std;
 
@@ -19,7 +20,7 @@ void DebugOut(const CompiledObjectBase &object, std::ostream &out, bool fRN)
     out << (object.IsInstance() ? "instance" : "class") << "@$" << object.GetPosInResource() << el(fRN);
 
     const vector<uint16_t> &propertySelectors = object.GetProperties();
-    const vector<uint16_t> &propertyValues = object.GetPropertyValues();
+    const vector<CompiledVarValue> &propertyValues = object.GetPropertyValues();
 
     out << "properties:" << el(fRN);
     out << "    species: " << object.GetSpeciesIfClass() << el(fRN);
@@ -28,10 +29,10 @@ void DebugOut(const CompiledObjectBase &object, std::ostream &out, bool fRN)
     out << "    -info-: " << object.GetInfo() << el(fRN);
 
     vector<uint16_t>::const_iterator selIt = propertySelectors.begin();
-    vector<uint16_t>::const_iterator valueIt = propertyValues.begin();
+    vector<CompiledVarValue>::const_iterator valueIt = propertyValues.begin();
     for (; selIt != propertySelectors.end() && valueIt != propertyValues.end(); ++selIt, ++valueIt)
     {
-        out << "    " << *selIt << " : " << *valueIt << el(fRN);
+        out << "    " << *selIt << " : " << valueIt->value << el(fRN);
     }
 
     const vector<uint16_t> &functionSelectors = object.GetMethods();

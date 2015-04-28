@@ -306,6 +306,8 @@ bool SortScriptsIntelligently(ScriptId &s1, ScriptId &s2)
 
 void QuickScriptsSidePane::_UpdateEntries()
 {
+    m_wndList.SetRedraw(FALSE);
+
     // Clear out old items.
     m_wndList.DeleteAllItems();
     if (_bFirstTime)
@@ -330,6 +332,8 @@ void QuickScriptsSidePane::_UpdateEntries()
     {
         m_wndList.InsertItem(iItem++, scripts[i].GetTitle().c_str());
     }
+
+    m_wndList.SetRedraw(TRUE);
 }
 
 void _EnableDirection(std::string direction, CWnd &wnd, WORD wNumber)

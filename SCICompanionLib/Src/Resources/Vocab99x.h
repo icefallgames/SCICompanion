@@ -1,6 +1,7 @@
 #pragma once
 
 #include "interfaces.h"
+#include "CompileCommon.h"
 
 class SpeciesIndex;
 class CompiledObjectBase;
@@ -81,7 +82,7 @@ public:
 
     // ILookupNames
     std::string Lookup(uint16_t wIndex) const;
-    bool GetSpeciesPropertySelector(uint16_t wSpeciesIndex, std::vector<uint16_t> &props, std::vector<uint16_t> &values);
+    bool GetSpeciesPropertySelector(uint16_t wSpeciesIndex, std::vector<uint16_t> &props, std::vector<CompiledVarValue> &values);
 
     std::vector<CompiledScript*> GetAllScripts();
 

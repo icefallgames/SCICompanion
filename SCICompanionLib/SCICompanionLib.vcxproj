@@ -224,6 +224,7 @@
     <ClCompile Include="Src\Resources\View.cpp" />
     <ClCompile Include="Src\Util\AudioPlayback.cpp" />
     <ClInclude Include="Src\Compile\AutoDetectVariableNames.h" />
+    <ClInclude Include="Src\Compile\CompileCommon.h" />
     <ClInclude Include="Src\Compile\DecompilerFallback.h" />
     <ClInclude Include="Src\Compile\DecompilerNew.h" />
     <ClInclude Include="Src\Dialogs\DecompileDialog.h" />

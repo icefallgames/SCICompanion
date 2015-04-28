@@ -18,7 +18,7 @@ void DecompileDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_EDITSCRIPT, m_wndScript);
     DDX_Control(pDX, IDC_DECOMPILATIONRESULTS, m_wndResults);
     DDX_Control(pDX, IDC_LISTSCRIPTS, m_wndListScripts);
-    DDX_Control(pDX, IDOK, m_wndOK);
+    DDX_Control(pDX, IDCANCEL, m_wndCancel);
     DDX_Control(pDX, IDC_DECOMPILE, m_wndDecompile);
     DDX_Control(pDX, IDC_CLEARSCO, m_wndClearSCO);
     DDX_Control(pDX, IDC_ASSIGNFILENAMES, m_wndSetFilenames);

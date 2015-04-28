@@ -31,7 +31,7 @@ void DecompileObject(const CompiledObjectBase &object, sci::Script &script,
     pClass->SetSuperClass(lookups.LookupClassName(object.GetSuperClass()));
     pClass->SetPublic(object.IsPublic);
     vector<uint16_t> propertySelectorList;
-    vector<uint16_t> speciesPropertyValueList;
+    vector<CompiledVarValue> speciesPropertyValueList;
     bool fSuccess = lookups.LookupSpeciesPropertyListAndValues(object.GetSpecies(), propertySelectorList, speciesPropertyValueList);
     if (!fSuccess && !object.IsInstance())
     {
@@ -51,17 +51,17 @@ void DecompileObject(const CompiledObjectBase &object, sci::Script &script,
             {
                 // If this is an instance, look up the species values, and only
                 // include those that are different.
-                if (!object.IsInstance() || (object.GetPropertyValues()[i] != speciesPropertyValueList[i]))
+                if (!object.IsInstance() || (object.GetPropertyValues()[i].value != speciesPropertyValueList[i].value))
                 {
                     ClassProperty prop;
                     prop.SetName(lookups.LookupSelectorName(propertySelectorList[i]));
                     PropertyValue value;
                     ICompiledScriptSpecificLookups::ObjectType type;
-                    std::string saidOrString = lookups.LookupScriptThing(object.GetPropertyValues()[i], type);
+                    std::string saidOrString = lookups.LookupScriptThing(object.GetPropertyValues()[i].value, type);
                     if (saidOrString.empty())
                     {
                         // Just give it a number
-                        uint16_t number = object.GetPropertyValues()[i];
+                        uint16_t number = object.GetPropertyValues()[i].value;
                         value.SetValue(number);
                         if (number == 65535)
                         {

@@ -402,7 +402,7 @@ bool GlobalClassTable::GetSpeciesScriptNumber(uint16_t species, uint16_t &script
     return false;
 }
 
-bool GlobalClassTable::GetSpeciesPropertySelector(uint16_t wSpeciesIndex, std::vector<uint16_t> &props, std::vector<uint16_t> &values)
+bool GlobalClassTable::GetSpeciesPropertySelector(uint16_t wSpeciesIndex, std::vector<uint16_t> &props, std::vector<CompiledVarValue> &values)
 {
     auto it = _speciesToCompiledObjectWeak.find(wSpeciesIndex);
     bool success = (it != _speciesToCompiledObjectWeak.end());

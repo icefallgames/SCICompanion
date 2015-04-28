@@ -134,7 +134,7 @@ bool CompiledScript::_LoadSCI1_1(int iScriptNumber, sci::istream &scriptStream)
             {
                 uint16_t w;
                 heapStream >> w;
-                _localVars.push_back(w);
+                _localVars.push_back({ w, false });
             }
 
             // Now we're into the objects.
@@ -212,7 +212,7 @@ bool CompiledScript::_LoadSCI0_SCI1(sci::istream &byteStream)
             // WORD of the script file says how many there are.
             uint16_t localVarsCount;
             byteStream >> localVarsCount;
-            _localVars.assign(localVarsCount, 0);
+            _localVars.assign(localVarsCount, { 0, false });
         }
 
         int classIndex = 0;
@@ -239,7 +239,7 @@ bool CompiledScript::_LoadSCI0_SCI1(sci::istream &byteStream)
                         // instance
                         unique_ptr<CompiledObjectBase> pObject = make_unique<CompiledObjectBase>();
                         uint16_t wInstanceOffsetTO;
-                        fRet = pObject->Create(this->_wScript, _version, byteStream, FALSE, &wInstanceOffsetTO, classIndex);
+                        fRet = pObject->Create_SCI0(this->_wScript, _version, byteStream, FALSE, &wInstanceOffsetTO, classIndex);
                         if (fRet)
                         {
                             _objectsOffsetTO.push_back(wInstanceOffsetTO);
@@ -296,7 +296,7 @@ bool CompiledScript::_LoadSCI0_SCI1(sci::istream &byteStream)
                         // class
                         unique_ptr<CompiledObjectBase> pObject = make_unique<CompiledObjectBase>();
                         uint16_t wClassOffset;
-                        fRet = pObject->Create(this->_wScript, _version, byteStream, TRUE, &wClassOffset, classIndex);
+                        fRet = pObject->Create_SCI0(this->_wScript, _version, byteStream, TRUE, &wClassOffset, classIndex);
                         if (fRet)
                         {
                             _objectsOffsetTO.push_back(wClassOffset);
@@ -355,7 +355,7 @@ bool CompiledScript::_LoadSCI0_SCI1(sci::istream &byteStream)
                             uint16_t w;
                             byteStream >> w;
                             fRet = byteStream.good();
-                            _localVars.push_back(w);
+                            _localVars.push_back({ w, false });
                         }
                     }
                     break;
@@ -430,28 +430,28 @@ bool CompiledObjectBase::Create_SCI1_1(uint16_t scriptNum, SCIVersion version, s
         if (i >= 5)
         {
             heapStream >> propertyValue;
-            _propertyValues.push_back(propertyValue);
+            _propertyValues.push_back({ propertyValue, false });
         }
         else
         {
             // These are the 5 initial selectors, which are not represented in the values.
-            _propertyValues.push_back(0);
+            _propertyValues.push_back({ 0, false });
         }
 
         switch (i)
         {
         case 5:
-            _wSpeciesIfClass = _propertyValues[i];
+            _wSpeciesIfClass = _propertyValues[i].value;
             break;
         case 6:
-            _wSuperClass = _propertyValues[i];
+            _wSuperClass = _propertyValues[i].value;
             break;
         case 7:
-            _wInfo = _propertyValues[i];
+            _wInfo = _propertyValues[i].value;
             _fInstance = ((_wInfo & InfoClassFlag) == 0);
             break;
         case 8:
-            wName = _propertyValues[i];
+            wName = _propertyValues[i].value;
             break;
         }
     }
@@ -500,7 +500,7 @@ bool CompiledObjectBase::Create_SCI1_1(uint16_t scriptNum, SCIVersion version, s
     return true;
 }
 
-bool CompiledObjectBase::Create(uint16_t scriptNum, SCIVersion version, sci::istream &stream, BOOL fClass, uint16_t *pwOffset, int classIndex)
+bool CompiledObjectBase::Create_SCI0(uint16_t scriptNum, SCIVersion version, sci::istream &stream, BOOL fClass, uint16_t *pwOffset, int classIndex)
 {
     _version = version;
     *pwOffset = static_cast<uint16_t>(stream.tellg());
@@ -530,7 +530,7 @@ bool CompiledObjectBase::Create(uint16_t scriptNum, SCIVersion version, sci::ist
                 stream >> wValue;
                 if (stream.good())
                 {
-                    _propertyValues.push_back(wValue);
+                    _propertyValues.push_back({ wValue, false });
                 }
                 wNumVarValuesLeft--;
             }
@@ -538,12 +538,12 @@ bool CompiledObjectBase::Create(uint16_t scriptNum, SCIVersion version, sci::ist
         uint16_t wName = 0;
         if (wNumVarSelectors >= 3)
         {
-            _wSpeciesIfClass = _propertyValues[0];
-            _wSuperClass = _propertyValues[1];
-            _wInfo = _propertyValues[2];
+            _wSpeciesIfClass = _propertyValues[0].value;
+            _wSuperClass = _propertyValues[1].value;
+            _wInfo = _propertyValues[2].value;
             if (wNumVarSelectors >= 4)
             {
-                wName = _propertyValues[3];
+                wName = _propertyValues[3].value;
             }
         }
 
@@ -904,7 +904,7 @@ bool CompiledScript::LookupSpeciesPropertyList(uint16_t wIndex, std::vector<uint
     return fRet;
 }
 
-bool CompiledScript::LookupSpeciesPropertyListAndValues(uint16_t wIndex, std::vector<uint16_t> &props, std::vector<uint16_t> &values)
+bool CompiledScript::LookupSpeciesPropertyListAndValues(uint16_t wIndex, std::vector<uint16_t> &props, std::vector<CompiledVarValue> &values)
 {
     bool fRet = false;
     CompiledObjectBase *pObject = _FindObjectWithSpecies(wIndex);
@@ -950,10 +950,10 @@ std::string GlobalCompiledScriptLookups::LookupClassName(uint16_t wIndex)
 }
 bool GlobalCompiledScriptLookups::LookupSpeciesPropertyList(uint16_t wIndex, std::vector<uint16_t> &props)
 {
-    std::vector<uint16_t> values; // Throw away
+    std::vector<CompiledVarValue> values; // Throw away
     return _classes.GetSpeciesPropertySelector(wIndex, props, values);
 }
-bool GlobalCompiledScriptLookups::LookupSpeciesPropertyListAndValues(uint16_t wIndex, std::vector<uint16_t> &props, std::vector<uint16_t> &values)
+bool GlobalCompiledScriptLookups::LookupSpeciesPropertyListAndValues(uint16_t wIndex, std::vector<uint16_t> &props, std::vector<CompiledVarValue> &values)
 {
     return _classes.GetSpeciesPropertySelector(wIndex, props, values);
 }

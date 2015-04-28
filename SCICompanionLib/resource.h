@@ -2,9 +2,6 @@
 // Microsoft Visual C++ generated include file.
 // Used by SCICompanionLib.rc
 //
-#define IDC_DECOMPILE                   2
-#define IDC_CLEARSCO                    4
-#define IDC_ASSIGNFILENAMES             5
 #define IDD_ABOUTBOX                    100
 #define IDP_OLE_INIT_FAILED             100
 #define IDR_MAINFRAME                   128
@@ -517,6 +514,9 @@
 #define IDC_BUTTON_SAVE                 1238
 #define IDC_BUTTON_LOAD                 1239
 #define IDC_TREESCO                     1239
+#define IDC_DECOMPILE                   1240
+#define IDC_CLEARSCO                    1241
+#define IDC_ASSIGNFILENAMES             1242
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -769,7 +769,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        366
 #define _APS_NEXT_COMMAND_VALUE         33180
-#define _APS_NEXT_CONTROL_VALUE         1240
+#define _APS_NEXT_CONTROL_VALUE         1243
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

@@ -338,7 +338,7 @@ void DisassembleObject(const CompiledObjectBase &object,
     vector<uint16_t> propertySelectorList;
     if (pLookups->LookupSpeciesPropertyList(object.GetSpecies(), propertySelectorList))
     {
-        const vector<uint16_t> &propertyValues = object.GetPropertyValues();
+        const vector<CompiledVarValue> &propertyValues = object.GetPropertyValues();
         size_t selectorCount = propertySelectorList.size();
         size_t valueCount = propertyValues.size();
         if (valueCount != selectorCount)
@@ -347,7 +347,7 @@ void DisassembleObject(const CompiledObjectBase &object,
         }
         for (size_t i = object.GetNumberOfDefaultSelectors(); i < min(selectorCount, valueCount); i++)
         {
-            out << "        " << pLookups->LookupSelectorName(propertySelectorList[i]) << " $" << propertyValues[i] << endl;
+            out << "        " << pLookups->LookupSelectorName(propertySelectorList[i]) << " $" << propertyValues[i].value << endl;
         }
         out << "    )" << endl;
     }
@@ -457,7 +457,7 @@ void DisassembleScript(const CompiledScript &script, std::ostream &out, ICompile
     out << "(local" << endl;
     for (size_t i = 0; i < script._localVars.size(); i++)
     {
-        out << c_indent << _GetLocalVariableName((int)i) << " = $" << setw(4) << setfill('0') << script._localVars[i] << endl;
+        out << c_indent << _GetLocalVariableName((int)i) << " = $" << setw(4) << setfill('0') << script._localVars[i].value << endl;
     }
     out << ")" << endl << endl;
 
