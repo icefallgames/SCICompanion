@@ -329,15 +329,40 @@ bool GlobalClassTable::Load(const GameFolderHelper &helper)
 
 bool GlobalClassTable::_Create(sci::istream &byteStream)
 {
-    auto scriptContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Script, ResourceEnumFlags::MostRecentOnly);
+    // Collect the heap/script pairs first, since fetching the heap individually for each script is a performance issue.
+    unordered_map<uint16_t, pair<unique_ptr<ResourceBlob>, unique_ptr<ResourceBlob>>> heapScriptPairs;
+    // I currently exclude patch files because the heap/script might get out-of-sync
+    // REVIEW: Instead, the resource enumerator should handle this. Currently though, dupe resources are only tracked within ResourceContainer, not above it.
+    auto scriptContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Script | ResourceTypeFlags::Heap, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
     for (auto &scriptResource : *scriptContainer)
     {
+        uint16_t scriptNumber = (uint16_t)scriptResource->GetNumber();
+        pair<unique_ptr<ResourceBlob>, unique_ptr<ResourceBlob>> &scriptAndHeap = heapScriptPairs[scriptNumber];
+        if (scriptResource->GetType() == ResourceType::Script)
+        {
+            scriptAndHeap.first = move(scriptResource);
+        }
+        else
+        {
+            scriptAndHeap.second = move(scriptResource); // Heap
+        }
+    }
+
+    for (auto &numberToPair : heapScriptPairs)
+    {
         int emptyNameClassIndex = 0;
-        _scriptNums.push_back((uint16_t)scriptResource->GetNumber());
+        uint16_t scriptNumber = numberToPair.first;
+        _scriptNums.push_back(scriptNumber);
+        pair<unique_ptr<ResourceBlob>, unique_ptr<ResourceBlob>> &scriptAndHeap = numberToPair.second;
+        unique_ptr<CompiledScript> compiledScript = make_unique<CompiledScript>(scriptNumber);
+        std::unique_ptr<sci::istream> heapStream;
+        if (scriptAndHeap.second)
+        {
+            // Only SCI1.1+ games have separate heap resources.
+            heapStream.reset(new sci::istream(scriptAndHeap.second->GetData(), scriptAndHeap.second->GetLength()));
+        }
         // Load the script.
-        uint16_t currentScriptNumber = (uint16_t)scriptResource->GetNumber();
-        unique_ptr<CompiledScript> compiledScript = make_unique<CompiledScript>(currentScriptNumber);
-        if (compiledScript->Load(appState->GetResourceMap().Helper(), appState->GetVersion(), currentScriptNumber, scriptResource->GetReadStream()))
+        if (compiledScript->Load(appState->GetResourceMap().Helper(), appState->GetVersion(), scriptNumber, scriptAndHeap.first->GetReadStream(), heapStream.get()))
         {
             CompiledScript *pCompiledScriptWeak = compiledScript.get();
             _scripts.push_back(move(compiledScript));
@@ -349,7 +374,7 @@ bool GlobalClassTable::_Create(sci::istream &byteStream)
                 {
                     uint16_t species = compiledObject->GetSpecies();
                     _nameToSpecies[compiledObject->GetName()] = species;
-                    _speciesToScriptNumber[species] = currentScriptNumber;
+                    _speciesToScriptNumber[species] = scriptNumber;
                     _speciesToCompiledObjectWeak[species] = compiledObject.get(); // Owned by _scripts
                 }
             }

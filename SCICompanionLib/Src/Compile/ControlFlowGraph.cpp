@@ -542,7 +542,11 @@ ControlFlowNode *ControlFlowGraph::_FindFollowNodeForStructure(ControlFlowNode *
         }
     }
 
-    assert(follow);
+    if (!follow)
+    {
+        throw ControlFlowException(structure, "Can't find follow node for structure");
+    }
+    
     return follow;
 }
 
@@ -1220,7 +1224,10 @@ void ControlFlowGraph::_FindIfStatements(DominatorMap &dominators, ControlFlowNo
         }
     }
 
-    assert(unresolvedNodes.empty());    // Otherwise, it's a branch we can't detect?
+    if (!unresolvedNodes.empty())
+    {
+        throw ControlFlowException(*unresolvedNodes.begin(), "Unable to resolve if branches");
+    }
 
     // So now we have a list of branch nodes and their follower. We want to replace this with a
     // new if node (excluding the follower, however). We need to do this from the most nested to the least
@@ -1513,7 +1520,7 @@ bool ControlFlowGraph::Generate(code_pos start, code_pos end)
         DominatorMap dominators = GenerateDominators(main->children, (*main)[SemId::Head]);
 
 #ifdef VISUALIZE_FLOW
-        CFGVisualize(name + "_raw", discoveredControlStructures);
+        CFGVisualize(_contextName + "_raw", discoveredControlStructures);
 #endif
 
         // Yeah, we're calculating dominators a second time here, but that's ok.
@@ -1545,7 +1552,7 @@ bool ControlFlowGraph::Generate(code_pos start, code_pos end)
         }
 
 #ifdef VISUALIZE_FLOW
-        CFGVisualize(name + "_loop", discoveredControlStructures);
+        CFGVisualize(_contextName + "_loop", discoveredControlStructures);
 #endif
     }
     catch (ControlFlowException &e)

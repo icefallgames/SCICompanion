@@ -45,6 +45,7 @@ enum class ChunkType
     Break,
     NeedsAccumulator,
     FailedToGetAccumulator,
+    FailedToGetStack,
     NeedsStack,
     ZeroNode,
 };
@@ -75,6 +76,7 @@ const char *chunkTypeNames[] =
     "Break",
     "NeedsAccumulator",
     "FailedToGetAccumulator",
+    "FailedToGetStack",
     "NeedsStack",
     "ZeroNode",
 };
@@ -128,22 +130,22 @@ struct ConsumptionNode
         return clone;
     }
 
-    code_pos GetCode()
+    code_pos GetCode() const
     {
         assert(_hasPos);
         return pos;
     }
-    ChunkType GetType()
+    ChunkType GetType() const
     {
         return _chunkType;
     }
 
-    int GetMyIndex()
+    int GetMyIndex() const
     {
         return _parentWeak->GetIndexOf(this);
     }
 
-    int GetIndexOf(ConsumptionNode *child)
+    int GetIndexOf(const ConsumptionNode *child) const
     {
         for (size_t i = 0; i < children.size(); i++)
         {
@@ -156,7 +158,7 @@ struct ConsumptionNode
         return 0;
     }
 
-    ConsumptionNode *GetChild(ChunkType type)
+    ConsumptionNode *GetChild(ChunkType type) const
     {
         for (auto &child : children)
         {
@@ -186,10 +188,11 @@ struct ConsumptionNode
 
     void Print(std::ostream &os, int iIndent) const
     {
+        os << hex;
         os << _indent2(iIndent);
         if (_hasPos)
         {
-            os << OpcodeNames[static_cast<BYTE>(pos->get_opcode())];
+            os << OpcodeNames[static_cast<BYTE>(pos->get_opcode())] << "  [" << setw(4) << setfill('0') << pos->get_final_offset_dontcare() << "]";
         }
         else
         {
@@ -229,9 +232,9 @@ private:
 class ConsumptionNodeException : public std::exception
 {
 public:
-    ConsumptionNodeException(ConsumptionNode *node, const std::string &message) : message(message), node(node) {}
+    ConsumptionNodeException(const ConsumptionNode *node, const std::string &message) : message(message), node(node) {}
 
-    ConsumptionNode *node;
+    const ConsumptionNode *node;
     std::string message;
 };
 
@@ -293,9 +296,18 @@ public:
         }
         if (Frame().cStackConsume > 0)
         {
-            // SQ5, script 999, proc 999_4.
-            AddStructured(ChunkType::NeedsStack);
-            assert(Frame().cStackConsume == 1); // Otherwise we'll need to take note. I suppose this could happen in a send.
+            // SQ5, script 999, proc 999_4. SQ5, script 995, InvI::showSelf
+            // Let's just see what happens if we put multiple "NeedsStack" here
+            while (Frame().cStackConsume > 0)
+            {
+                AddStructured(ChunkType::NeedsStack);
+                Frame().cStackConsume--;
+            }
+            //if (Frame().cStackConsume > 1)
+            //{
+                //throw ConsumptionNodeException(Frame().Parent, "Needs more than 1 stack instruction");
+            //}
+            //assert(Frame().cStackConsume == 1); // Otherwise we'll need to take note. I suppose this could happen in a send.
         }
     }
 
@@ -1723,6 +1735,89 @@ ConsumptionNode *_FindChunk(ConsumptionNode *chunk, code_pos code)
     return found;
 }
 
+
+unique_ptr<ConsumptionNode> StealNode(ConsumptionNode *nodeToSteal)
+{
+    return nodeToSteal->_parentWeak->StealChild(nodeToSteal->GetMyIndex());
+}
+unique_ptr<ConsumptionNode> CloneNode(ConsumptionNode *nodeToSteal)
+{
+    return nodeToSteal->Clone();
+}
+
+template<typename _FuncCreate>
+void ReplaceNodeWithNode(ConsumptionNode *nodeToBeReplaced, ConsumptionNode *nodeToStealOrClone, _FuncCreate funcCreate)
+{
+    unique_ptr<ConsumptionNode> stolen = funcCreate(nodeToStealOrClone);
+    nodeToBeReplaced->_parentWeak->ReplaceChild(nodeToBeReplaced->GetMyIndex(), move(stolen));
+}
+
+bool GeneratesStack(const Consumption &consumption) { return consumption.cStackGenerate == 1; }
+bool GeneratesAcc(const Consumption &consumption) { return consumption.cAccGenerate == 1; }
+
+template<typename _Func, typename _FuncCreate>
+bool TryToStealOrCloneSomething(ConsumptionNode *originalChild, DecompileLookups &lookups, _Func satisfiesNeeds, _FuncCreate funcCreate)
+{
+    bool success = false;
+    bool done = false;
+    // Go up the parent chain and move back.
+    // If we hit a structured node, we might need to stop, depending what it is.
+    ConsumptionNode *child = originalChild->_parentWeak;
+    ConsumptionNode *parent = child->_parentWeak;
+    while (!done && parent)
+    {
+        int index = parent->GetIndexOf(child); // Start with previous peer of parent
+        for (int i = index - 1; i >= 0; i--)
+        {
+            Consumption consumption = _GetInstructionConsumption(*parent->Child(i), lookups);
+            if (satisfiesNeeds(consumption))
+            {
+                // This is it.
+                ReplaceNodeWithNode(originalChild, parent->Child(i), funcCreate);
+                success = true;
+                done = true;
+                break;
+            }
+        }
+
+        if (!done)
+        {
+            // REVIEW: This may need to be in a loop when we make this more general.
+            // Go up another level.
+            child = parent;
+            parent = child->_parentWeak;
+            // Our logic is complicated here, so let's deal with it on a case-by-base basis.
+            // One place this happens here is in a condition in an if. So let's target that.
+            // Here, we'll either keep going up, or we'll bail completely.
+            if (parent->GetType() == ChunkType::None)
+            {
+                // We're good, procede.
+            }
+            else if (parent->GetType() == ChunkType::Condition)
+            {
+                // Jump out to an if, then to the if's parent.
+                child = parent;
+                parent = child->_parentWeak;
+                if (parent->GetType() == ChunkType::If)
+                {
+                    child = parent;
+                    parent = child->_parentWeak;
+                }
+                else
+                {
+                    done = true;
+                }
+            }
+            else
+            {
+                // Bail completely, we can't continue.
+                done = true;
+            }
+        }
+    }
+    return success;
+}
+
 // In later SCI, DUP is commonly as a one byte optimization when passing parameters, if two
 // parameters in a row have the same value. DUPs can't be handled with our standard instruction consumption
 // model, so handle them now by duplicating the previous stack-generating node.
@@ -1746,8 +1841,14 @@ void _ResolveDUPs(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookup
                     chunk->ReplaceChild(i, move(clone));
                 }
             }
-
-            throw ConsumptionNodeException(chunk, "Couldn't find DUP source");
+            if (!found)
+            {
+                found = TryToStealOrCloneSomething(child, lookups, GeneratesStack, CloneNode);
+            }
+            if (!found)
+            {
+                throw ConsumptionNodeException(chunk, "Couldn't find DUP source");
+            }
         }
     }
 
@@ -1824,83 +1925,13 @@ unique_ptr<ConsumptionNode> _LookBackwardsAndFindAndCloneAccGenerator(Consumptio
     return nullptr;
 }
 
-void ReplaceNodeWithNode(ConsumptionNode *nodeToBeReplaced, ConsumptionNode *nodeToSteal)
-{
-    unique_ptr<ConsumptionNode> stolen = nodeToSteal->_parentWeak->StealChild(nodeToSteal->GetMyIndex());
-    nodeToBeReplaced->_parentWeak->ReplaceChild(nodeToBeReplaced->GetMyIndex(), move(stolen));
-}
-
-bool GeneratesStack(const Consumption &consumption) { return consumption.cStackGenerate == 1; }
-bool GeneratesAcc(const Consumption &consumption) { return consumption.cAccGenerate == 1; }
-
-template<typename _Func>
-bool TryToStealSomething(ConsumptionNode *originalChild, DecompileLookups &lookups, _Func satisfiesNeeds)
-{
-    bool success = false;
-    bool done = false;
-    // Go up the parent chain and move back.
-    // If we hit a structured node, we might need to stop, depending what it is.
-    ConsumptionNode *child = originalChild->_parentWeak;
-    ConsumptionNode *parent = child->_parentWeak;
-    while (!done && parent)
-    {
-        int index = parent->GetIndexOf(child); // Start with previous peer of parent
-        for (int i = index - 1; i >= 0; i--)
-        {
-            Consumption consumption = _GetInstructionConsumption(*parent->Child(i), lookups);
-            if (satisfiesNeeds(consumption))
-            {
-                // This is it.
-                ReplaceNodeWithNode(originalChild, parent->Child(i));
-                success = true;
-                done = true;
-                break;
-            }
-        }
-
-        if (!done)
-        {
-            // REVIEW: This may need to be in a loop when we make this more general.
-            // Go up another level.
-            child = parent;
-            parent = child->_parentWeak;
-            // Our logic is complicated here, so let's deal with it on a case-by-base basis.
-            // One place this happens here is in a condition in an if. So let's target that.
-            // Here, we'll either keep going up, or we'll bail completely.
-            if (parent->GetType() == ChunkType::None)
-            {
-                // We're good, procede.
-            }
-            else if (parent->GetType() == ChunkType::Condition)
-            {
-                // Jump out to an if, then to the if's parent.
-                child = parent;
-                parent = child->_parentWeak;
-                if (parent->GetType() == ChunkType::If)
-                {
-                    child = parent;
-                    parent = child->_parentWeak;
-                }
-                else
-                {
-                    done = true;
-                }
-            }
-            else
-            {
-                // Bail completely, we can't continue.
-                done = true;
-            }
-        }
-    }
-    return success;
-}
-
 // Returns true if changes were made
 bool _ResolveNeededAccWorker(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookups &lookups)
 {
     bool changes = false;
-    for (size_t i = 0; !changes && (i < chunk->GetChildCount()); i++)
+    // Go through the children in reverse order, because we might have multiple NeedsStack, and these need
+    // to be processed backwards so the final ordering is correct.
+    for (int i = (int)chunk->GetChildCount() - 1; !changes && (i >= 0); i--)
     {
         ConsumptionNode *child = chunk->Child(i);
         if (child->GetType() == ChunkType::NeedsAccumulator)
@@ -1910,7 +1941,7 @@ bool _ResolveNeededAccWorker(ConsumptionNode *root, ConsumptionNode *chunk, Deco
             // currently are. For instance, if we're in an if Condition (without a compound condition)
             // we can steal from any code before the [If] structure that are peers of the if.
             // Let's start with a simple targeted case first.
-            if (TryToStealSomething(child, lookups, GeneratesAcc))
+            if (TryToStealOrCloneSomething(child, lookups, GeneratesAcc, StealNode))
             {
                 changes = true;
             }
@@ -1936,13 +1967,14 @@ bool _ResolveNeededAccWorker(ConsumptionNode *root, ConsumptionNode *chunk, Deco
         else if (child->GetType() == ChunkType::NeedsStack)
         {
             // We can only steal stack, never clone
-            if (TryToStealSomething(child, lookups, GeneratesStack))
+            if (TryToStealOrCloneSomething(child, lookups, GeneratesStack, StealNode))
             {
                 changes = true;
             }
             else
             {
                 assert(false && "Needed stack, but couldn't find it");
+                child->SetType(ChunkType::FailedToGetStack);
             }
         }
     }
@@ -2165,11 +2197,6 @@ bool OutputNewStructure(const std::string &messagePrefix, sci::FunctionBase &fun
         _ResolvePPrevs(mainChunk.get(), mainChunk.get(), lookups);
         _RestructureCaseHeaders(mainChunk.get(), lookups);
 
-        std::stringstream ss;
-        mainChunk->Print(ss, 0);
-        ShowTextFile(ss.str().c_str(), func.GetName() + "_chunks.txt");
-
-
         _ResolveDUPs(mainChunk.get(), mainChunk.get(), lookups);    // Must follow case restructure
 
         // Now fill it in
@@ -2177,9 +2204,23 @@ bool OutputNewStructure(const std::string &messagePrefix, sci::FunctionBase &fun
         {
             _ApplySyntaxNodeToCodeNode(*child, func, lookups);
         }
+
+        if (lookups.DebugInstructionConsumption)
+        {
+            std::stringstream ss;
+            mainChunk->Print(ss, 0);
+            ShowTextFile(ss.str().c_str(), func.GetName() + "_chunks.txt");
+        }
     }
     catch (ConsumptionNodeException &e)
     {
+        if (lookups.DebugInstructionConsumption)
+        {
+            std::stringstream ss;
+            mainChunk->Print(ss, 0);
+            ShowTextFile(ss.str().c_str(), func.GetName() + "_chunks.txt");
+        }
+
         string message;
         if (e.node->_hasPos)
         {

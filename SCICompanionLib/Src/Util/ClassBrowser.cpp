@@ -10,6 +10,7 @@
 #include "CompileContext.h"
 
 using namespace sci;
+using namespace std;
 using namespace stdext;
 
 #ifdef _DEBUG
@@ -437,9 +438,21 @@ void SCIClassBrowser::ReLoadFromCompiled()
         _pEvents->NotifyClassBrowserStatus(IClassBrowserEvents::InProgress, 0);
     }
 
-    auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Script, ResourceEnumFlags::MostRecentOnly);
+    unordered_map<int, pair<unique_ptr<ResourceBlob>, unique_ptr<ResourceBlob>>> heapScriptPairs;
+    // I exclude patch files because the heap/script might get out-of-sync
+    auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Script | ResourceTypeFlags::Heap, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
     for (auto &scriptBlob : *resourceContainer)
     {
+        pair<unique_ptr<ResourceBlob>, unique_ptr<ResourceBlob>> &entry = heapScriptPairs[scriptBlob->GetNumber()];
+        if (scriptBlob->GetType() == ResourceType::Script)
+        {
+            entry.first = move(scriptBlob);
+        }
+        else
+        {
+            entry.second = move(scriptBlob);
+        }
+        /*
         // Ensure we don't have the same script twice!
         if (compiledScriptsMap.find(scriptBlob->GetNumber()) == compiledScriptsMap.end())
         {
@@ -449,6 +462,25 @@ void SCIClassBrowser::ReLoadFromCompiled()
             {
                 compiledScriptsMap[scriptBlob->GetNumber()] = move(pCompiledScript);
             }
+        }*/
+    }
+
+    // Now load them
+    for (auto &heapScriptPair : heapScriptPairs)
+    {
+        int scriptNumber = heapScriptPair.first;
+        pair<unique_ptr<ResourceBlob>, unique_ptr<ResourceBlob>> &entry = heapScriptPair.second;
+        std::unique_ptr<sci::istream> scriptStream(new sci::istream(entry.first->GetData(), entry.first->GetLength()));
+        std::unique_ptr<sci::istream> heapStream;
+        if (entry.second)
+        {
+            // Only SCI1.1+ games have separate heap resources.
+            heapStream.reset(new sci::istream(entry.second->GetData(), entry.second->GetLength()));
+        }
+        std::unique_ptr<CompiledScript> pCompiledScript = std::make_unique<CompiledScript>(scriptNumber);
+        if (pCompiledScript->Load(appState->GetResourceMap().Helper(), appState->GetVersion(), scriptNumber, *scriptStream, heapStream.get()))
+        {
+            compiledScriptsMap[scriptNumber] = move(pCompiledScript);
         }
     }
 

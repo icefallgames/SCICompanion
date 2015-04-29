@@ -172,7 +172,7 @@ public:
     CompiledScript(const CompiledScript &src) = delete;
     CompiledScript(uint16_t wScript) { _wScript = wScript; }
     bool Load(const GameFolderHelper &helper, SCIVersion version, int iScriptNumber, bool quick);
-    bool Load(const GameFolderHelper &helper, SCIVersion version, int iScriptNumber, sci::istream &byteStream);
+    bool Load(const GameFolderHelper &helper, SCIVersion version, int iScriptNumber, sci::istream &byteStream, sci::istream *heapStream = nullptr);
     std::vector<std::unique_ptr<CompiledObjectBase>> &GetObjects() { return _objects; }
     const std::vector<std::unique_ptr<CompiledObjectBase>> &GetObjects() const { return _objects; }
     uint16_t GetScriptNumber() const { return _wScript; }
@@ -215,7 +215,7 @@ public:
 
 private:
     bool _LoadSCI0_SCI1(sci::istream &byteStream);
-    bool _LoadSCI1_1(const GameFolderHelper &helper, int iScriptNumber, sci::istream &byteStream);
+    bool _LoadSCI1_1(const GameFolderHelper &helper, int iScriptNumber, sci::istream &byteStream, sci::istream *heapStream);
     void _LoadStringOffsetsSCI1_1(uint16_t offset, sci::istream heapStream);
     bool _ReadExports(sci::istream &stream);
     bool _ReadStrings(sci::istream &stream, uint16_t wDataSize);

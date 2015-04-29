@@ -35,7 +35,7 @@ protected:
     DECLARE_MESSAGE_MAP()
 private:
     CExtEdit m_wndScript;
-    CListBox m_wndResults;
+    CExtEdit m_wndResults;
     CExtEdit m_wndStatus;
     CListCtrl m_wndListScripts;
 
@@ -45,6 +45,9 @@ private:
     CExtButton m_wndDecomileCancel;
     CExtButton m_wndClearSCO;
     CExtButton m_wndSetFilenames;
+
+    CExtCheckBox m_wndDebugControlFlow;
+    CExtCheckBox m_wndDebugInstConsumption;
 
     // Our own copy of this
     GameFolderHelper _helper;
@@ -72,6 +75,8 @@ private:
     std::unique_ptr<CWinThread> _pThread;
     std::set<uint16_t> _scriptNumbers;
     HANDLE _hThread;
+    bool _debugControlFlow;
+    bool _debugInstConsumption;
     std::unique_ptr<GlobalCompiledScriptLookups> _lookups;
 public:
     afx_msg void OnLvnItemchangedListscripts(NMHDR *pNMHDR, LRESULT *pResult);

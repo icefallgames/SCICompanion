@@ -403,7 +403,11 @@ MethodDefinition::MethodDefinition() { _fPrivate = false; }
 
 ProcedureDefinition::ProcedureDefinition() { _public = false; }
 
-ClassDefinition::ClassDefinition() { _fPublic = false; }
+ClassDefinition::ClassDefinition() : _fPublic(false)
+{
+    _properties.reserve(24); // performance
+
+}
 
 ScriptSite::ScriptSite()
 {

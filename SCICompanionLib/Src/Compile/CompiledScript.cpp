@@ -57,12 +57,12 @@ bool CompiledScript::IsExportAProcedure(uint16_t wOffset, int *exportIndex) cons
     return result;
 }
 
-bool CompiledScript::Load(const GameFolderHelper &helper, SCIVersion version, int number, sci::istream &byteStream)
+bool CompiledScript::Load(const GameFolderHelper &helper, SCIVersion version, int number, sci::istream &byteStream, sci::istream *heapStream)
 {
     _version = version;
     if (version.SeparateHeapResources)
     {
-        return _LoadSCI1_1(helper, number, byteStream);
+        return _LoadSCI1_1(helper, number, byteStream, heapStream);
     }
     else
     {
@@ -114,21 +114,29 @@ std::string CompiledScript::GetStringFromOffset(uint16_t value) const
     return stringValue;
 }
 
-bool CompiledScript::_LoadSCI1_1(const GameFolderHelper &helper, int iScriptNumber, sci::istream &scriptStream)
+bool CompiledScript::_LoadSCI1_1(const GameFolderHelper &helper, int iScriptNumber, sci::istream &scriptStream, sci::istream *heapStream)
 {
     bool isSuccess = false;
     // First thing to do is to load the heap resource
-    std::unique_ptr<ResourceBlob> heapBlob = helper.MostRecentResource(ResourceType::Heap, iScriptNumber, false);
-    if (heapBlob)
+    unique_ptr<ResourceBlob> heapBlob;
+    unique_ptr<sci::istream> heapStreamScope;
+    if (heapStream == nullptr)
+    {
+        heapBlob = helper.MostRecentResource(ResourceType::Heap, iScriptNumber, false);
+        if (heapBlob)
+        {
+            heapStreamScope = make_unique<sci::istream>(heapBlob->GetReadStream());
+            heapStream = heapStreamScope.get();
+        }
+    }
+
+    if (heapStream)
     {
         // Make a copy of everything
         _scriptResource.resize(scriptStream.GetDataSize());
         scriptStream.read_data(&_scriptResource[0], scriptStream.GetDataSize());
         // Then go back to the beginning
         scriptStream.seekg(0);
-
-
-        sci::istream heapStream = heapBlob->GetReadStream();
 
         uint16_t earliestCodeOffset = 0xffff;
 
@@ -140,7 +148,7 @@ bool CompiledScript::_LoadSCI1_1(const GameFolderHelper &helper, int iScriptNumb
         // Keep track of the earliest code, and also any public object exports
         for (uint16_t codePointer : _exportsTO)
         {
-            if (_DoesExportPointToObjectInstance(codePointer, heapStream))
+            if (_DoesExportPointToObjectInstance(codePointer, *heapStream))
             {
                 _exportedObjectInstances.push_back(codePointer);
             }
@@ -156,28 +164,28 @@ bool CompiledScript::_LoadSCI1_1(const GameFolderHelper &helper, int iScriptNumb
         {
             // Local variables
             uint16_t stringPointerOffsetsOffset;
-            heapStream >> stringPointerOffsetsOffset;
-            _LoadStringOffsetsSCI1_1(stringPointerOffsetsOffset, heapStream);
+            (*heapStream) >> stringPointerOffsetsOffset;
+            _LoadStringOffsetsSCI1_1(stringPointerOffsetsOffset, *heapStream);
             uint16_t localsCount;
-            heapStream >> localsCount;
+            (*heapStream) >> localsCount;
             for (int i = 0; i < localsCount; i++)
             {
-                bool isString = IsStringPointerSCI1_1((uint16_t)heapStream.tellg());
+                bool isString = IsStringPointerSCI1_1((uint16_t)heapStream->tellg());
                 uint16_t w;
-                heapStream >> w;
+                (*heapStream) >> w;
                 _localVars.push_back({ w, isString });
             }
 
             // Now we're into the objects.
             uint16_t magic;
             int classIndex = 0;
-            while (isSuccess && heapStream.peek(magic) && (magic == 0x1234))
+            while (isSuccess && heapStream->peek(magic) && (magic == 0x1234))
             {
                 unique_ptr<CompiledObjectBase> pObject = make_unique<CompiledObjectBase>();
                 // Is the current position of the heapstream (which points to an object) in the list of public instance exports?
-                pObject->IsPublic = (find(_exportedObjectInstances.begin(), _exportedObjectInstances.end(), (uint16_t)heapStream.tellg()) != _exportedObjectInstances.end());
+                pObject->IsPublic = (find(_exportedObjectInstances.begin(), _exportedObjectInstances.end(), (uint16_t)heapStream->tellg()) != _exportedObjectInstances.end());
                 uint16_t wInstanceOffsetTO;
-                isSuccess = pObject->Create_SCI1_1(*this, _version, scriptStream, heapStream, &wInstanceOffsetTO, classIndex);
+                isSuccess = pObject->Create_SCI1_1(*this, _version, scriptStream, *heapStream, &wInstanceOffsetTO, classIndex);
                 if (isSuccess)
                 {
                     // Keep track of the earliest code
@@ -193,21 +201,21 @@ bool CompiledScript::_LoadSCI1_1(const GameFolderHelper &helper, int iScriptNumb
             }
 
             uint16_t terminator;
-            heapStream >> terminator;
+            (*heapStream) >> terminator;
             assert(terminator == 0x0000); // Just guessing.
             std::string aString;
             do
             {
-                uint16_t offset = (uint16_t)heapStream.tellg();
-                heapStream >> aString;
+                uint16_t offset = (uint16_t)heapStream->tellg();
+                (*heapStream) >> aString;
                 // We DO add empty strings to the offsets. However, we may have a bogus empty
                 // one at the end, since afterStrings is WORD-aligned.
-                if (!aString.empty() || (heapStream.tellg() < stringPointerOffsetsOffset))
+                if (!aString.empty() || (heapStream->tellg() < stringPointerOffsetsOffset))
                 {
                     _stringsOffset.push_back(offset);
                     _strings.push_back(aString);
                 }
-            } while (heapStream.tellg() < stringPointerOffsetsOffset);
+            } while (heapStream->tellg() < stringPointerOffsetsOffset);
 
         }
 
@@ -846,7 +854,7 @@ std::string CompiledObjectBase::LookupPropertyName(ICompiledScriptLookups *pLook
         propertySelectorList = _propertySelectors;
     }
     ASSERT((wPropertyIndex %2) == 0);
-    // REVIEW: Leisure Suit Larry 3, room 22, hits this ASSERT.
+    // REVIEW: Leisure Suit Larry 3, room 22, hits this ASSERT. As does SQ5 script 201.
     wPropertyIndex /= 2;
     if (wPropertyIndex < propertySelectorList.size())
     {

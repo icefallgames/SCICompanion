@@ -74,7 +74,7 @@ class DecompileLookups : public ICompiledScriptLookups
 {
 public:
     DecompileLookups(const GameFolderHelper &helper, uint16_t wScript, GlobalCompiledScriptLookups *pLookups, IObjectFileScriptLookups *pOFLookups, ICompiledScriptSpecificLookups *pScriptThings, ILookupNames *pTextResource, IPrivateSpeciesLookups *pPrivateSpecies, IDecompilerResults &results) :
-        _wScript(wScript), _pLookups(pLookups), _pOFLookups(pOFLookups), _pScriptThings(pScriptThings), _pTextResource(pTextResource), _pPrivateSpecies(pPrivateSpecies), PreferLValue(false), _results(results), Helper(helper)
+        _wScript(wScript), _pLookups(pLookups), _pOFLookups(pOFLookups), _pScriptThings(pScriptThings), _pTextResource(pTextResource), _pPrivateSpecies(pPrivateSpecies), PreferLValue(false), _results(results), Helper(helper), DebugControlFlow(false), DebugInstructionConsumption(false)
     {
         _CategorizeSelectors();
     }
@@ -134,6 +134,9 @@ public:
     IDecompilerResults &DecompileResults() { return _results; }
 
     const GameFolderHelper &Helper;
+
+    bool DebugControlFlow;
+    bool DebugInstructionConsumption;
 
 private:
     void _CategorizeSelectors();
@@ -214,5 +217,5 @@ bool _IsVOStoreOperation(Opcode bOpcode);
 class IDecompilerResults;
 class GameFolderHelper;
 class GlobalCompiledScriptLookups;
-std::unique_ptr<sci::Script> DecompileScript(GlobalCompiledScriptLookups &scriptLookups, const GameFolderHelper &helper, uint16_t wScript, CompiledScript &compiledScript, IDecompilerResults &results);
+std::unique_ptr<sci::Script> DecompileScript(GlobalCompiledScriptLookups &scriptLookups, const GameFolderHelper &helper, uint16_t wScript, CompiledScript &compiledScript, IDecompilerResults &results, bool debugControlFlow = false, bool debugInstConsumption = false);
 

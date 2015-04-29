@@ -42,6 +42,8 @@ void DecompileDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_ASSIGNFILENAMES, m_wndSetFilenames);
     DDX_Control(pDX, IDC_DECOMPILECANCEL, m_wndDecomileCancel);
     DDX_Control(pDX, IDC_DECOMPILESTATUS, m_wndStatus);
+    DDX_Control(pDX, IDC_CHECKCONTROLFLOW, m_wndDebugControlFlow);
+    DDX_Control(pDX, IDC_CHECKINSTRUCTIONCONSUMPTION, m_wndDebugInstConsumption);
 
     DDX_Control(pDX, IDC_TREESCO, m_wndTreeSCO);
 
@@ -448,7 +450,10 @@ void DecompileDialog::OnTimer(UINT_PTR nIDEvent)
 
 void DecompileDialog::OnBnClickedDecompile()
 {
-    m_wndResults.ResetContent();
+    m_wndResults.SetWindowTextA("");
+
+    _debugControlFlow = m_wndDebugControlFlow.GetCheck() != 0;
+    _debugInstConsumption = m_wndDebugInstConsumption.GetCheck() != 0;
 
     // Get a list of scripts to decompile
     _scriptNumbers.clear();
@@ -570,7 +575,7 @@ UINT DecompileDialog::s_ThreadWorker(void *pParam)
                     }
                     else
                     {
-                        unique_ptr<sci::Script> pScript = DecompileScript(*pThis->_lookups, helper, scriptNum, compiledScript, *pThis->_decompileResults);
+                        unique_ptr<sci::Script> pScript = DecompileScript(*pThis->_lookups, helper, scriptNum, compiledScript, *pThis->_decompileResults, pThis->_debugControlFlow, pThis->_debugInstConsumption);
                         // Dump it to the .sc file
                         // TODO: If it already exists, we might want to ask for confirmation.
                         std::stringstream ss;
@@ -623,7 +628,14 @@ LRESULT DecompileDialog::UpdateStatus(WPARAM wParam, LPARAM lParam)
     }
     else
     {
-        m_wndResults.AddString(display.c_str());
+        CString str;
+        m_wndResults.GetWindowTextA(str);
+        if (!str.IsEmpty())
+        {
+            str.Append("\r\n");
+        }
+        str.Append(display.c_str());
+        m_wndResults.SetWindowTextA(str);
     }
     delete stringPtr;
     return 0;

@@ -126,7 +126,6 @@ e:\documents\visual studio 2013\projects\scicompanion\scicompanionlib\debug\extr
 e:\documents\visual studio 2013\projects\scicompanion\scicompanionlib\debug\imageutil.obj
 e:\documents\visual studio 2013\projects\scicompanion\scicompanionlib\debug\midiplayer.obj
 e:\documents\visual studio 2013\projects\scicompanion\scicompanionlib\debug\soundutil.obj
-e:\documents\visual studio 2013\projects\scicompanion\scicompanionlib\debug\compile.obj
 e:\documents\visual studio 2013\projects\scicompanion\scicompanionlib\debug\compilecontext.obj
 e:\documents\visual studio 2013\projects\scicompanion\scicompanionlib\debug\compiledscript.obj
 e:\documents\visual studio 2013\projects\scicompanion\scicompanionlib\debug\cppsyntaxparser.obj
@@ -182,6 +181,15 @@ e:\documents\visual studio 2013\projects\scicompanion\scicompanionlib\debug\prep
 e:\documents\visual studio 2013\projects\scicompanion\scicompanionlib\debug\pichelperpane.obj
 e:\documents\visual studio 2013\projects\scicompanion\scicompanionlib\debug\zoomcelstatic.obj
 e:\documents\visual studio 2013\projects\scicompanion\scicompanionlib\debug\palettedoc.obj
+e:\documents\visual studio 2013\projects\scicompanion\scicompanionlib\debug\compile.obj
+e:\documents\visual studio 2013\projects\scicompanion\scicompanionlib\debug\decompilernew.obj
+e:\documents\visual studio 2013\projects\scicompanion\scicompanionlib\debug\controlflownode.obj
+e:\documents\visual studio 2013\projects\scicompanion\scicompanionlib\debug\autodetectvariablenames.obj
+e:\documents\visual studio 2013\projects\scicompanion\scicompanionlib\debug\audio.obj
+e:\documents\visual studio 2013\projects\scicompanion\scicompanionlib\debug\audiomap.obj
+e:\documents\visual studio 2013\projects\scicompanion\scicompanionlib\debug\decompilerfallback.obj
+e:\documents\visual studio 2013\projects\scicompanion\scicompanionlib\debug\decompiledialog.obj
+e:\documents\visual studio 2013\projects\scicompanion\scicompanionlib\debug\gamefolderhelper.obj
 e:\documents\visual studio 2013\projects\scicompanion\debug\scicompanionlib.lib
 e:\documents\visual studio 2013\projects\scicompanion\scicompanionlib\scicompanionlib.res
 e:\documents\visual studio 2013\projects\scicompanion\scicompanionlib\debug\scicompanionlib.tlog\cl.command.1.tlog
