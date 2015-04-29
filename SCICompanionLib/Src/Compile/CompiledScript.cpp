@@ -1,8 +1,8 @@
 #include "stdafx.h"
-#include "AppState.h"
 #include "CompiledScript.h"
 #include "ScriptOM.h" // Just for SourceCodeWriter...
 #include "format.h"
+#include "GameFolderHelper.h"
 
 using namespace std;
 using namespace sci;
@@ -28,18 +28,17 @@ std::string _GetProcNameFromScriptOffset(uint16_t wOffset)
     return fmt::format("localproc_{:04x}", wOffset);
 }
 
-bool CompiledScript::Load(SCIVersion version, int iScriptNumber, bool quick)
+bool CompiledScript::Load(const GameFolderHelper &helper, SCIVersion version, int iScriptNumber, bool quick)
 {
     _version = version;
     _wScript = (uint16_t)iScriptNumber;
 
-    std::unique_ptr<ResourceBlob> scriptResource = appState->GetResourceMap().MostRecentResource(ResourceType::Script, iScriptNumber, false);
+    std::unique_ptr<ResourceBlob> scriptResource = helper.MostRecentResource(ResourceType::Script, iScriptNumber, false);
     if (scriptResource)
     {
-        Load(version, iScriptNumber, scriptResource->GetReadStream());
+        Load(helper, version, iScriptNumber, scriptResource->GetReadStream());
         return true;
     }
-    appState->LogInfo("Unable to find script %d.", iScriptNumber);
     return false;
 }
 
@@ -53,16 +52,17 @@ bool CompiledScript::IsExportAProcedure(uint16_t wOffset, int *exportIndex) cons
     if (result && exportIndex)
     {
         *exportIndex = find(_exportsTO.begin(), _exportsTO.end(), wOffset) - _exportsTO.begin();
+        result = (*exportIndex) < (int)_exportsTO.size();
     }
     return result;
 }
 
-bool CompiledScript::Load(SCIVersion version, int number, sci::istream &byteStream)
+bool CompiledScript::Load(const GameFolderHelper &helper, SCIVersion version, int number, sci::istream &byteStream)
 {
     _version = version;
     if (version.SeparateHeapResources)
     {
-        return _LoadSCI1_1(number, byteStream);
+        return _LoadSCI1_1(helper, number, byteStream);
     }
     else
     {
@@ -85,11 +85,40 @@ bool _DoesExportPointToObjectInstance(uint16_t exportOffset, sci::istream heapSt
     return false;
 }
 
-bool CompiledScript::_LoadSCI1_1(int iScriptNumber, sci::istream &scriptStream)
+void CompiledScript::_LoadStringOffsetsSCI1_1(uint16_t offset, sci::istream heapStream)
+{
+    heapStream.seekg(offset);
+    uint16_t count;
+    heapStream >> count;
+    for (uint16_t i = 0; i < count; i++)
+    {
+        uint16_t stringOffset;
+        heapStream >> stringOffset;
+        _stringPointerOffsetsSCI1_1.push_back(stringOffset);
+    }
+}
+
+bool CompiledScript::IsStringPointerSCI1_1(uint16_t value) const
+{
+    return find(_stringPointerOffsetsSCI1_1.begin(), _stringPointerOffsetsSCI1_1.end(), value) != _stringPointerOffsetsSCI1_1.end();
+}
+
+std::string CompiledScript::GetStringFromOffset(uint16_t value) const
+{
+    string stringValue;
+    size_t index = find(_stringsOffset.begin(), _stringsOffset.end(), value) - _stringsOffset.begin();
+    if (index < _strings.size())
+    {
+        stringValue = _strings[index];
+    }
+    return stringValue;
+}
+
+bool CompiledScript::_LoadSCI1_1(const GameFolderHelper &helper, int iScriptNumber, sci::istream &scriptStream)
 {
     bool isSuccess = false;
     // First thing to do is to load the heap resource
-    std::unique_ptr<ResourceBlob> heapBlob = appState->GetResourceMap().MostRecentResource(ResourceType::Heap, iScriptNumber, false);
+    std::unique_ptr<ResourceBlob> heapBlob = helper.MostRecentResource(ResourceType::Heap, iScriptNumber, false);
     if (heapBlob)
     {
         // Make a copy of everything
@@ -126,15 +155,17 @@ bool CompiledScript::_LoadSCI1_1(int iScriptNumber, sci::istream &scriptStream)
         if (isSuccess)
         {
             // Local variables
-            uint16_t afterStrings;
-            heapStream >> afterStrings;
+            uint16_t stringPointerOffsetsOffset;
+            heapStream >> stringPointerOffsetsOffset;
+            _LoadStringOffsetsSCI1_1(stringPointerOffsetsOffset, heapStream);
             uint16_t localsCount;
             heapStream >> localsCount;
             for (int i = 0; i < localsCount; i++)
             {
+                bool isString = IsStringPointerSCI1_1((uint16_t)heapStream.tellg());
                 uint16_t w;
                 heapStream >> w;
-                _localVars.push_back({ w, false });
+                _localVars.push_back({ w, isString });
             }
 
             // Now we're into the objects.
@@ -146,7 +177,7 @@ bool CompiledScript::_LoadSCI1_1(int iScriptNumber, sci::istream &scriptStream)
                 // Is the current position of the heapstream (which points to an object) in the list of public instance exports?
                 pObject->IsPublic = (find(_exportedObjectInstances.begin(), _exportedObjectInstances.end(), (uint16_t)heapStream.tellg()) != _exportedObjectInstances.end());
                 uint16_t wInstanceOffsetTO;
-                isSuccess = pObject->Create_SCI1_1(this->_wScript, _version, scriptStream, heapStream, &wInstanceOffsetTO, classIndex);
+                isSuccess = pObject->Create_SCI1_1(*this, _version, scriptStream, heapStream, &wInstanceOffsetTO, classIndex);
                 if (isSuccess)
                 {
                     // Keep track of the earliest code
@@ -171,12 +202,12 @@ bool CompiledScript::_LoadSCI1_1(int iScriptNumber, sci::istream &scriptStream)
                 heapStream >> aString;
                 // We DO add empty strings to the offsets. However, we may have a bogus empty
                 // one at the end, since afterStrings is WORD-aligned.
-                if (!aString.empty() || (heapStream.tellg() < afterStrings))
+                if (!aString.empty() || (heapStream.tellg() < stringPointerOffsetsOffset))
                 {
                     _stringsOffset.push_back(offset);
                     _strings.push_back(aString);
                 }
-            } while (heapStream.tellg() < afterStrings);
+            } while (heapStream.tellg() < stringPointerOffsetsOffset);
 
         }
 
@@ -409,8 +440,9 @@ std::string _GenerateClassName(uint16_t scriptNumber, int &index)
 }
 
 // Very important: scriptStream is passed by value. Heapstream is not.
-bool CompiledObjectBase::Create_SCI1_1(uint16_t scriptNum, SCIVersion version, sci::istream scriptStream, sci::istream &heapStream, uint16_t *pwOffset, int classIndex)
+bool CompiledObjectBase::Create_SCI1_1(const CompiledScript &compiledScript, SCIVersion version, sci::istream scriptStream, sci::istream &heapStream, uint16_t *pwOffset, int classIndex)
 {
+    uint16_t scriptNum = compiledScript.GetScriptNumber();
     *pwOffset = heapStream.tellg();
     _version = version;
     uint16_t wMagic, numVars, varOffset, methodsOffset;
@@ -429,8 +461,9 @@ bool CompiledObjectBase::Create_SCI1_1(uint16_t scriptNum, SCIVersion version, s
         uint16_t propertyValue;
         if (i >= 5)
         {
+            bool isString = compiledScript.IsStringPointerSCI1_1((uint16_t)heapStream.tellg());
             heapStream >> propertyValue;
-            _propertyValues.push_back({ propertyValue, false });
+            _propertyValues.push_back({ propertyValue, isString });
         }
         else
         {
@@ -792,7 +825,6 @@ set<uint16_t> CompiledScript::FindInternalCallsTO() const
                 {
                     // This is one. The first operand is a word or byte
                     wRelOffset = (bByte ? ((uint16_t)*pCur) : (uint16_t)*pCur + (((uint16_t)*(pCur + 1)) << 8));
-                    //wOffsets.push_back(CalcOffset(wCurrentOffset, wRelOffset, bByte, bRawOpcode));
                     wOffsets.insert(wOffsets.end(), CalcOffset(wCurrentOffsetTO, wRelOffset, bByte, bRawOpcode));
                 }
                 // Skip past to the next instruction
@@ -920,11 +952,11 @@ bool CompiledScript::LookupSpeciesPropertyListAndValues(uint16_t wIndex, std::ve
 //
 // GlobalCompiledScriptLookups
 //
-bool GlobalCompiledScriptLookups::Load(SCIVersion version)
+bool GlobalCompiledScriptLookups::Load(const GameFolderHelper &helper)
 {
-    bool selOk = _selectors.Load(version);
-    bool kernelOk = _kernels.Load();
-    bool classesOk = _classes.Load();
+    bool selOk = _selectors.Load(helper);
+    bool kernelOk = _kernels.Load(helper);
+    bool classesOk = _classes.Load(helper);
     return selOk && kernelOk && classesOk;
 }
 std::string GlobalCompiledScriptLookups::LookupSelectorName(uint16_t wIndex)
@@ -1009,7 +1041,7 @@ bool ObjectFileScriptLookups::_LoadSCOFile(WORD wScript)
 {
     bool fRet = false;
     // Need the script name.
-    std::string filename = appState->GetResourceMap().GetScriptObjectFileName(wScript);
+    std::string filename = _helper.GetScriptObjectFileName(wScript);
     if (!filename.empty())
     {
         HANDLE hFile = CreateFile(filename.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);

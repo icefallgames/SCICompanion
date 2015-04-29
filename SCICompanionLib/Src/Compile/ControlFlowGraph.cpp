@@ -6,6 +6,7 @@
 #include "TarjanAlgorithm.h"
 #include "ControlFlowGraphViz.h"
 #include "StlUtil.h"
+#include "format.h"
 
 //#define VISUALIZE_FLOW 1
 
@@ -251,8 +252,11 @@ void ControlFlowGraph::_ReplaceNodeInFollowNodes(ControlFlowNode *newNode)
             {
                 (*structure)[SemId::Follow] = newNode;
                 // Let's also assert that the followNode was the head of newNode
-                assert(oldFollowNode == (*newNode)[SemId::Head]);
-            }
+                if (oldFollowNode != (*newNode)[SemId::Head])
+                {
+                    throw ControlFlowException(newNode, "Unable to replace node in follow nodes");
+                }
+           }
         }
     }
 }
@@ -572,6 +576,8 @@ void CollectMoreChildren(ControlFlowNode *structure, const DominatorMap &dominat
 // Returns the loop node, already replaced in the parent's chidlren
 ControlFlowNode *ControlFlowGraph::_ProcessNaturalLoop(ControlFlowGraph &loopDetection, ControlFlowNode *parent, const NodeBlock &backEdge)
 {
+    loopDetection._decompilerResults.AddResult(DecompilerResultType::Update, fmt::format("{0} Loop:{1:04x}", loopDetection._statusMessagePrefix, backEdge.head->GetStartingAddress()));
+
     LoopNode *loopNode = loopDetection.MakeStructuredNode<LoopNode>();
     loopNode->children = backEdge.body;
     (*loopNode)[SemId::Head] = backEdge.head;           // This is the start, or the branch
@@ -598,6 +604,8 @@ ControlFlowNode *ControlFlowGraph::_ProcessNaturalLoop(ControlFlowGraph &loopDet
 
 ControlFlowNode *ControlFlowGraph::_ProcessSwitch(ControlFlowGraph &loopDetection, ControlFlowNode *parent, NodeBlock &switchBlock)
 {
+    loopDetection._decompilerResults.AddResult(DecompilerResultType::Update, fmt::format("{0} Switch:{1:04x}", loopDetection._statusMessagePrefix, switchBlock.head->GetStartingAddress()));
+
     // Reconstruct the nodes in switchBlock into a switch statement, and replace it in the parent's children.
     SwitchNode *switchNode = loopDetection.MakeStructuredNode<SwitchNode>();
     (*switchNode)[SemId::Tail] = switchBlock.latch;    // Note: This is the tail, not actually a latch node.
@@ -662,6 +670,10 @@ void ControlFlowGraph::_FindAllCompoundConditions()
     for (ControlFlowNode *structure : controlStructuresCopy)
     {
         _FindCompoundConditions(structure);
+        if (_decompilerResults.IsAborted())
+        {
+            break;
+        }
     }
 }
 
@@ -724,7 +736,8 @@ void ControlFlowGraph::_ReconnectBreakNodeToSubsequentCode(ControlFlowNode *stru
             return;
         }
     }
-    assert(false && "Unable to re-connect break statement. Need to add exit node to control structure?");
+
+    throw ControlFlowException(structure, "Unable to re-connect break statement. Need to add exit node to control structure?");
 }
 
 void ControlFlowGraph::_DoLoopTransforms()
@@ -734,6 +747,10 @@ void ControlFlowGraph::_DoLoopTransforms()
         if (structure->Type == CFGNodeType::Loop)
         {
             _DoLoopTransform(structure);
+        }
+        if (_decompilerResults.IsAborted())
+        {
+            break;
         }
     }
 }
@@ -1130,6 +1147,10 @@ void ControlFlowGraph::_FindAllIfStatements()
     {
         DominatorMap dominators = GenerateDominators(structure->children, (*structure)[SemId::Head]);
         _FindIfStatements(dominators, structure);
+        if (_decompilerResults.IsAborted())
+        {
+            break;
+        }
     }
 }
 
@@ -1473,37 +1494,71 @@ bool _DoNothing(ControlFlowGraph &cfg, ControlFlowNode &parent, vector<NodeBlock
     return true;
 }
 
-ControlFlowNode *ControlFlowGraph::Generate(const std::string &name, code_pos start, code_pos end)
+bool ControlFlowGraph::Generate(code_pos start, code_pos end)
 {
-    _RepairBranches(start, end);
+    try
+    {
+        _RepairBranches(start, end);
 
-    ControlFlowNode *main = _PartitionCode(start, end);
+        ControlFlowNode *main = _PartitionCode(start, end);
 
-    // I had removed this because it prevented loop break detection. But I think I need it
-    // back (e.g LB, script 255). I forget what problems it caused unfortunately (I changed the way I identify loop breaks,
-    // so maybe it causes no problems). The nodes being pruned really have no chance of affecting code.
-    _PruneDegenerateNodes(main);
+        // I had removed this because it prevented loop break detection. But I think I need it
+        // back (e.g LB, script 255). I forget what problems it caused unfortunately (I changed the way I identify loop breaks,
+        // so maybe it causes no problems). The nodes being pruned really have no chance of affecting code.
+        _PruneDegenerateNodes(main);
 
-    DominatorMap dominators = GenerateDominators(main->children, (*main)[SemId::Head]);
-
-#ifdef VISUALIZE_FLOW
-    CFGVisualize(name + "_raw", discoveredControlStructures);
-#endif
-
-    // Yeah, we're calculating dominators a second time here, but that's ok.
-    // The above case is only for visualization.
-    
-    _FindAllStructuresOf(_FindBackEdges, _CheckForSameHeader, _ProcessNaturalLoop);
-    _FindAllStructuresOf(_FindSwitchBlocks, _DoNothing, _ProcessSwitch);
-    
-    _FindAllCompoundConditions();
-    _DoLoopTransforms();
-    _ResolveBreaks();
-    _FindAllIfStatements();
+        DominatorMap dominators = GenerateDominators(main->children, (*main)[SemId::Head]);
 
 #ifdef VISUALIZE_FLOW
-    CFGVisualize(name + "_loop", discoveredControlStructures);
+        CFGVisualize(name + "_raw", discoveredControlStructures);
 #endif
 
-    return main;
+        // Yeah, we're calculating dominators a second time here, but that's ok.
+        // The above case is only for visualization.
+
+        if (!_decompilerResults.IsAborted())
+        {
+            _FindAllStructuresOf(_FindBackEdges, _CheckForSameHeader, _ProcessNaturalLoop);
+        }
+        if (!_decompilerResults.IsAborted())
+        {
+            _FindAllStructuresOf(_FindSwitchBlocks, _DoNothing, _ProcessSwitch);
+        }
+        if (!_decompilerResults.IsAborted())
+        {
+            _FindAllCompoundConditions();
+        }
+        if (!_decompilerResults.IsAborted())
+        {
+            _DoLoopTransforms();
+        }
+        if (!_decompilerResults.IsAborted())
+        {
+            _ResolveBreaks();
+        }
+        if (!_decompilerResults.IsAborted())
+        {
+            _FindAllIfStatements();
+        }
+
+#ifdef VISUALIZE_FLOW
+        CFGVisualize(name + "_loop", discoveredControlStructures);
+#endif
+    }
+    catch (ControlFlowException &e)
+    {
+        // For now we'll consider these warnings?
+        if (e.node)
+        {
+            uint16_t address = e.node->GetStartingAddress();
+            string message = fmt::format("{0}: {1} at {2:04x}", e.message, e.node->Type, address);
+            _decompilerResults.AddResult(DecompilerResultType::Warning, message);
+        }
+        else
+        {
+            _decompilerResults.AddResult(DecompilerResultType::Warning, e.message);
+        }
+        return false;
+    }
+    return true;
 }

@@ -5,6 +5,7 @@
 
 class SpeciesIndex;
 class CompiledObjectBase;
+class GameFolderHelper;
 
 //
 // This can represent any vocab resource with names
@@ -37,7 +38,7 @@ class SelectorTable : public CVocabWithNames
 public:
     std::string Lookup(uint16_t wName) const override;
 
-    bool Load(SCIVersion version);
+    bool Load(const GameFolderHelper &helpern);
     void Save();
 
 protected:
@@ -53,7 +54,7 @@ private:
 class KernelTable : public CVocabWithNames
 {
 public:
-    bool Load();
+    bool Load(const GameFolderHelper &helper);
     virtual std::string Lookup(uint16_t wName) const;
     virtual bool ReverseLookup(std::string name, uint16_t &wIndex) const;
 
@@ -74,7 +75,7 @@ class CompiledScript;
 class GlobalClassTable : public ILookupNames
 {
 public:
-    bool Load();
+    bool Load(const GameFolderHelper &helper);
     const std::vector<uint16_t> &GetScriptNums() { return _scriptNums; } // REVIEW: remove this
 
     bool LookupSpecies(const std::string &className, uint16_t &species);
@@ -105,7 +106,7 @@ class SpeciesTable
 {
 public:
     SpeciesTable() { _wNewSpeciesIndex = 0; _fDirty = false; }
-    bool Load();
+    bool Load(const GameFolderHelper &helper);
     void Save();
     bool GetSpeciesIndex(uint16_t wScript, uint16_t wClassIndexInScript, SpeciesIndex &wSpeciesIndex) const;
     bool GetSpeciesLocation(SpeciesIndex wSpeciesIndex, uint16_t &wScript, uint16_t &wClassIndexInScript) const;

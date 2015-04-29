@@ -6,7 +6,9 @@
 typedef void(*AnalyzeInstructionPtr)(Opcode opcode, const uint16_t *operands, uint16_t currentPCOffset);
 
 
-void DisassembleObject(const CompiledObjectBase &object, std::ostream &out,
+void DisassembleObject(const CompiledScript &script, 
+    const CompiledObjectBase &object,
+    std::ostream &out,
     ICompiledScriptLookups *pLookups,
     IObjectFileScriptLookups *pOFLookups,
     const ICompiledScriptSpecificLookups *pScriptThings,

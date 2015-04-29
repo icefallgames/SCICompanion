@@ -4,6 +4,7 @@
 #include "ResourceMap.h"
 #include "CompiledScript.h"
 #include "format.h"
+#include "GameFolderHelper.h"
 
 const static int VocabClassTable = 996;
 const static int VocabSelectorNames = 997;
@@ -11,9 +12,9 @@ const static int VocabKernelNames = 999;
 
 using namespace std;
 
-ResourceBlob *_GetVocabData(int iVocab)
+ResourceBlob *_GetVocabData(const GameFolderHelper &helper, int iVocab)
 {
-    return appState->GetResourceMap().MostRecentResource(ResourceType::Vocab, iVocab, false).release();
+    return helper.MostRecentResource(ResourceType::Vocab, iVocab, false).release();
 }
 
 // Default kernal name table, taken from ScummVM source.
@@ -214,11 +215,11 @@ std::string SelectorTable::_GetMissingName(uint16_t wName) const
     return fmt::format("sel_{0}", wName);
 }
 
-bool SelectorTable::Load(SCIVersion version)
+bool SelectorTable::Load(const GameFolderHelper &helper)
 {
-    _version = version;
+    _version = helper.Version;
     bool fRet = false;
-    unique_ptr<ResourceBlob> blob(_GetVocabData(VocabSelectorNames));
+    unique_ptr<ResourceBlob> blob(_GetVocabData(helper, VocabSelectorNames));
     if (blob)
     {
         fRet = _Create(blob->GetReadStream());
@@ -273,10 +274,10 @@ string SelectorTable::Lookup(uint16_t wName) const
     return __super::Lookup(wName);
 }
 
-bool KernelTable::Load()
+bool KernelTable::Load(const GameFolderHelper &helper)
 {
     bool fRet = false;
-    unique_ptr<ResourceBlob> blob(_GetVocabData(VocabKernelNames));
+    unique_ptr<ResourceBlob> blob(_GetVocabData(helper, VocabKernelNames));
     if (blob)
     {
         fRet = _Create(blob->GetReadStream());
@@ -311,10 +312,10 @@ bool KernelTable::Load()
     return fRet;
 }
 
-bool GlobalClassTable::Load()
+bool GlobalClassTable::Load(const GameFolderHelper &helper)
 {
     bool fRet = false;
-    unique_ptr<ResourceBlob> blob(_GetVocabData(VocabClassTable));
+    unique_ptr<ResourceBlob> blob(_GetVocabData(helper, VocabClassTable));
     if (blob)
     {
         fRet = _Create(blob->GetReadStream());
@@ -336,7 +337,7 @@ bool GlobalClassTable::_Create(sci::istream &byteStream)
         // Load the script.
         uint16_t currentScriptNumber = (uint16_t)scriptResource->GetNumber();
         unique_ptr<CompiledScript> compiledScript = make_unique<CompiledScript>(currentScriptNumber);
-        if (compiledScript->Load(appState->GetVersion(), currentScriptNumber, scriptResource->GetReadStream()))
+        if (compiledScript->Load(appState->GetResourceMap().Helper(), appState->GetVersion(), currentScriptNumber, scriptResource->GetReadStream()))
         {
             CompiledScript *pCompiledScriptWeak = compiledScript.get();
             _scripts.push_back(move(compiledScript));
@@ -440,10 +441,10 @@ std::vector<uint16_t> GlobalClassTable::GetSubclassesOf(uint16_t baseClass)
     return subclasses;
 }
 
-bool SpeciesTable::Load()
+bool SpeciesTable::Load(const GameFolderHelper &helper)
 {
     bool fRet = false;
-    unique_ptr<ResourceBlob> blob(_GetVocabData(VocabClassTable));
+    unique_ptr<ResourceBlob> blob(_GetVocabData(helper, VocabClassTable));
     if (blob)
     {
         fRet = _Create(blob->GetReadStream());

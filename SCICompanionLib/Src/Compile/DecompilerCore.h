@@ -68,11 +68,13 @@ struct FunctionDecompileHints
     bool ReturnsValue;
 };
 
+class IDecompilerResults;
+
 class DecompileLookups : public ICompiledScriptLookups
 {
 public:
-    DecompileLookups(uint16_t wScript, GlobalCompiledScriptLookups *pLookups, IObjectFileScriptLookups *pOFLookups, ICompiledScriptSpecificLookups *pScriptThings, ILookupNames *pTextResource, IPrivateSpeciesLookups *pPrivateSpecies) :
-		_wScript(wScript), _pLookups(pLookups), _pOFLookups(pOFLookups), _pScriptThings(pScriptThings), _pTextResource(pTextResource), _pPrivateSpecies(pPrivateSpecies), PreferLValue(false)
+    DecompileLookups(const GameFolderHelper &helper, uint16_t wScript, GlobalCompiledScriptLookups *pLookups, IObjectFileScriptLookups *pOFLookups, ICompiledScriptSpecificLookups *pScriptThings, ILookupNames *pTextResource, IPrivateSpeciesLookups *pPrivateSpecies, IDecompilerResults &results) :
+        _wScript(wScript), _pLookups(pLookups), _pOFLookups(pOFLookups), _pScriptThings(pScriptThings), _pTextResource(pTextResource), _pPrivateSpecies(pPrivateSpecies), PreferLValue(false), _results(results), Helper(helper)
     {
         _CategorizeSelectors();
     }
@@ -129,6 +131,10 @@ public:
 
     bool IsPropertySelectorOnly(uint16_t selector) const;
 
+    IDecompilerResults &DecompileResults() { return _results; }
+
+    const GameFolderHelper &Helper;
+
 private:
     void _CategorizeSelectors();
 
@@ -142,6 +148,7 @@ private:
     sci::FunctionBase *_pFunc;
 	std::string _functionTrackingName;
     LineCol _fakePosition;
+    IDecompilerResults &_results;
 
 	// Variable usage
 	// Need to use map here, because they have to be in order.
@@ -169,7 +176,7 @@ struct VariableRange
 	uint16_t arraySize;
 };
 void CalculateVariableRanges(const std::map<uint16_t, bool> &usage, uint16_t variableCount, std::vector<VariableRange> &varRanges);
-void AddLocalVariablesToScript(sci::Script &script, DecompileLookups &lookups, const std::vector<CompiledVarValue> &localVars);
+void AddLocalVariablesToScript(sci::Script &script, const CompiledScript &compiledScript, DecompileLookups &lookups, const std::vector<CompiledVarValue> &localVars);
 
 std::string _GetProcNameFromScriptOffset(uint16_t wOffset);
 sci::ValueType _ScriptObjectTypeToPropertyValueType(ICompiledScriptSpecificLookups::ObjectType type);
@@ -204,5 +211,8 @@ bool _IsVOStack(Opcode bOpcode);
 bool _IsVOPureStack(Opcode bOpcode);
 bool _IsVOIndexed(Opcode bOpcode);
 bool _IsVOStoreOperation(Opcode bOpcode);
-std::unique_ptr<sci::Script> DecompileScript(uint16_t wScript, CompiledScript &compiledScript);
+class IDecompilerResults;
+class GameFolderHelper;
+class GlobalCompiledScriptLookups;
+std::unique_ptr<sci::Script> DecompileScript(GlobalCompiledScriptLookups &scriptLookups, const GameFolderHelper &helper, uint16_t wScript, CompiledScript &compiledScript, IDecompilerResults &results);
 

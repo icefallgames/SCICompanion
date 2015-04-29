@@ -96,4 +96,6 @@ private:
 };
 
 void DisassembleScript(WORD wScript);
-void DecompileScript(WORD wScript);
+class IDecompilerResults;
+class GameFolderHelper;
+void DecompileScript(const GameFolderHelper &helper, WORD wScript, IDecompilerResults &results);

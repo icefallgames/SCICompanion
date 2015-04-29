@@ -12,6 +12,7 @@ namespace sci
 	class FunctionBase;
 }
 class DecompileLookups;
+class GameFolderHelper;
 
 //
 // Information gleaned from the actual script resources.
@@ -57,12 +58,14 @@ public:
     virtual std::string ReverseLookupPublicExportName(uint16_t wScript, uint16_t wIndex) = 0;
 };
 
-
-
 class GlobalCompiledScriptLookups : public ICompiledScriptLookups
 {
 public:
-    bool Load(SCIVersion version);
+    GlobalCompiledScriptLookups() {}
+    GlobalCompiledScriptLookups(const GlobalCompiledScriptLookups &other) = delete;
+    GlobalCompiledScriptLookups &operator=(const GlobalCompiledScriptLookups &other) = delete;
+
+    bool Load(const GameFolderHelper &helper);
     std::string LookupSelectorName(uint16_t wIndex);
     std::string LookupKernelName(uint16_t wIndex);
     std::string LookupClassName(uint16_t wIndex);
@@ -81,6 +84,7 @@ private:
 class ObjectFileScriptLookups : public IObjectFileScriptLookups
 {
 public:
+    ObjectFileScriptLookups(const GameFolderHelper &helper) : _helper(helper){}
     std::string ReverseLookupGlobalVariableName(uint16_t wIndex);
     std::string ReverseLookupPublicExportName(uint16_t wScript, uint16_t wIndex);
 
@@ -88,6 +92,8 @@ private:
     bool _GetSCOFile(uint16_t wScript, CSCOFile &scoFile);
     bool _LoadSCOFile(uint16_t wScript);
 	std::unordered_map<uint16_t, CSCOFile> _mapScriptToObject;
+
+    const GameFolderHelper &_helper;
 };
 
 class ILookupPropertyName
@@ -96,13 +102,15 @@ public:
     virtual std::string LookupPropertyName(ICompiledScriptLookups *pLookup, uint16_t wPropertyIndex) const = 0;
 };
 
+class CompiledScript;
+
 class CompiledObjectBase : public ILookupPropertyName
 {
 public:
     CompiledObjectBase() { _fInstance = false; IsPublic = false; }
     bool IsInstance() const { return _fInstance; }
     bool Create_SCI0(uint16_t scriptNumber, SCIVersion version, sci::istream &stream, BOOL fClass, uint16_t *pwOffset, int classIndex);
-    bool Create_SCI1_1(uint16_t scriptNumber, SCIVersion version, sci::istream scriptStream, sci::istream &heapStream, uint16_t *pwOffset, int classIndex);
+    bool Create_SCI1_1(const CompiledScript &compiledScript, SCIVersion version, sci::istream scriptStream, sci::istream &heapStream, uint16_t *pwOffset, int classIndex);
     std::string GetName() const { return _strName; }
     void SetName(PCTSTR pszName) { _strName = pszName; }
     uint16_t GetSuperClass() const { return _wSuperClass; }
@@ -134,7 +142,6 @@ public:
     bool IsPublic;
 
 protected:
-
     uint16_t _wSpeciesIfClass;
     uint16_t _wSuperClass;
     std::string _strName;
@@ -146,8 +153,6 @@ protected:
     std::vector<uint16_t> _functionOffsetsTO;
     bool _fInstance;
     uint16_t _wPosInResource;
-    // If anything else is added, make sure to add it to the = operator.
-
     SCIVersion _version;
 };
 
@@ -166,8 +171,8 @@ class CompiledScript : /*public ILookupNames, */ public IPrivateSpeciesLookups, 
 public:
     CompiledScript(const CompiledScript &src) = delete;
     CompiledScript(uint16_t wScript) { _wScript = wScript; }
-    bool Load(SCIVersion version, int iScriptNumber, bool quick);
-    bool Load(SCIVersion version, int iScriptNumber, sci::istream &byteStream);
+    bool Load(const GameFolderHelper &helper, SCIVersion version, int iScriptNumber, bool quick);
+    bool Load(const GameFolderHelper &helper, SCIVersion version, int iScriptNumber, sci::istream &byteStream);
     std::vector<std::unique_ptr<CompiledObjectBase>> &GetObjects() { return _objects; }
     const std::vector<std::unique_ptr<CompiledObjectBase>> &GetObjects() const { return _objects; }
     uint16_t GetScriptNumber() const { return _wScript; }
@@ -188,6 +193,9 @@ public:
 
     void PopulateSaidStrings(const ILookupNames *pWords) const;
 
+    bool IsStringPointerSCI1_1(uint16_t) const;
+    std::string GetStringFromOffset(uint16_t) const;
+
     // TODO: Make these have public names
     std::vector<CompiledVarValue> _localVars;
     std::vector<std::unique_ptr<CompiledObjectBase>> _objects;
@@ -203,13 +211,12 @@ public:
     std::unordered_map<uint16_t, uint16_t> _synonyms;
     std::vector<CodeSection> _codeSections;
     std::vector<uint16_t> _exportedObjectInstances;
-
     SCIVersion GetVersion() const { return _version; }
 
 private:
     bool _LoadSCI0_SCI1(sci::istream &byteStream);
-    bool _LoadSCI1_1(int iScriptNumber, sci::istream &byteStream);
-
+    bool _LoadSCI1_1(const GameFolderHelper &helper, int iScriptNumber, sci::istream &byteStream);
+    void _LoadStringOffsetsSCI1_1(uint16_t offset, sci::istream heapStream);
     bool _ReadExports(sci::istream &stream);
     bool _ReadStrings(sci::istream &stream, uint16_t wDataSize);
     bool _ReadSaids(sci::istream &stream, uint16_t wDataSize);
@@ -217,9 +224,8 @@ private:
 
     uint16_t _wScript;
     BOOL _fPreloadText;
-
     std::vector<BYTE> _scriptResource;
-
+    std::vector<uint16_t> _stringPointerOffsetsSCI1_1;
     SCIVersion _version;
 };
 

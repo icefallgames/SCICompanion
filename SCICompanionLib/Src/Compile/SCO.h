@@ -257,9 +257,10 @@ private:
     WORD _wOffsetVars;
 };
 
-void SaveSCOFile(const CSCOFile &sco, ScriptId script);
-void SaveSCOFile(const CSCOFile &sco);
+class GameFolderHelper;
+void SaveSCOFile(const GameFolderHelper &helper, const CSCOFile &sco, ScriptId script);
+void SaveSCOFile(const GameFolderHelper &helper, const CSCOFile &sco);
 
 class CompiledScript;
 std::unique_ptr<CSCOFile> SCOFromScriptAndCompiledScript(const sci::Script &script, const CompiledScript &compiledScript);
-std::unique_ptr<CSCOFile> GetExistingSCOFromScriptNumber(uint16_t number);
+std::unique_ptr<CSCOFile> GetExistingSCOFromScriptNumber(const GameFolderHelper &helper, uint16_t number);

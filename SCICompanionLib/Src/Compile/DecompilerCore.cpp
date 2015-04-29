@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include "AppState.h"
 #include "DecompilerCore.h"
 #include "PMachine.h"
 #include "ScriptOMAll.h"
@@ -8,6 +7,7 @@
 #include "ControlFlowGraph.h"
 #include "DecompilerNew.h"
 #include "DecompilerFallback.h"
+#include "format.h"
 #include <iterator>
 
 #define DEBUG_DECOMPILER 1
@@ -944,28 +944,42 @@ void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBe
 
     _TrackExternalScriptUsage(code, lookups);
 
-    // temp test
-#ifdef FORCE_FALLBACK
-    DisassembleFallback(func, code.begin(), code.end(), lookups);
-#else
-    ControlFlowGraph cfg;
-    cfg.Generate(func.GetName(), code.begin(), code.end());
+    string className = func.GetOwnerClass() ? func.GetOwnerClass()->GetName() : "";
+    string messageDescription = fmt::format("{0} {1}::{2}: Analyzing control flow", func.GetOwnerScript()->GetName(), className, func.GetName());
+    lookups.DecompileResults().AddResult(DecompilerResultType::Update, messageDescription);
 
-    const NodeSet &controlStructures = cfg.ControlStructures();
-    MainNode *mainNode = cfg.GetMain();
-    OutputNewStructure(func, *mainNode, lookups);
-#endif
+    ControlFlowGraph cfg(messageDescription, lookups.DecompileResults(), func.GetName());
+    bool success = cfg.Generate(code.begin(), code.end());
+    if (success && !lookups.DecompileResults().IsAborted())
+    {
+        const NodeSet &controlStructures = cfg.ControlStructures();
+        MainNode *mainNode = cfg.GetMain();
+        lookups.DecompileResults().AddResult(DecompilerResultType::Update, fmt::format("{0} {1}::{2}: Generating code", func.GetOwnerScript()->GetName(), className, func.GetName()));
+        success = OutputNewStructure(func, *mainNode, lookups);
+    }
+    
+    if (!success && !lookups.DecompileResults().IsAborted())
+    {
+        // Disassemble the function instead.
+        // First though, we need to remove all code:
+        func.GetStatements().clear();
+        lookups.DecompileResults().AddResult(DecompilerResultType::Important, fmt::format("Falling back to disassembly for {0}", func.GetName()));
+        DisassembleFallback(func, code.begin(), code.end(), lookups);
+    }
 
-    DetermineHexValues determineHexValues(func);
-    DetermineNegativeValues determinedNegValues(func);
+    if (!lookups.DecompileResults().IsAborted())
+    {
+        DetermineHexValues determineHexValues(func);
+        DetermineNegativeValues determinedNegValues(func);
 
-    _FigureOutTempVariables(lookups, func, VarScope::Temp, code);
+        _FigureOutTempVariables(lookups, func, VarScope::Temp, code);
 
-    lookups.ResolveRestStatements();
+        lookups.ResolveRestStatements();
 
-    lookups.EndowWithFunction(nullptr);
+        lookups.EndowWithFunction(nullptr);
 
-    func.PruneExtraneousReturn();
+        func.PruneExtraneousReturn();
+    }
 }
 bool _IsPrintProcedure(WORD wScript, WORD wIndex)
 {
@@ -1461,7 +1475,7 @@ void CalculateVariableRanges(const std::map<WORD, bool> &usage, WORD variableCou
     }
 }
 
-void AddLocalVariablesToScript(sci::Script &script, DecompileLookups &lookups, const std::vector<CompiledVarValue> &localVarValues)
+void AddLocalVariablesToScript(sci::Script &script, const CompiledScript &compiledScript, DecompileLookups &lookups, const std::vector<CompiledVarValue> &localVarValues)
 {
     // Based on what we find in lookups, we should be able to deduce what is an array and what is not.
     // And we should be able to initialize things too. Default values are zero.
@@ -1506,7 +1520,15 @@ void AddLocalVariablesToScript(sci::Script &script, DecompileLookups &lookups, c
         for (WORD w = varRange.index; w < firstAllZeroesFromHereIndex; w++)
         {
             PropertyValue value;
-            value.SetValue(localVarValues[w].value);
+            uint16_t propValue = localVarValues[w].value;
+            if (localVarValues[w].isString)
+            {
+                value.SetValue(compiledScript.GetStringFromOffset(propValue), ValueType::String);
+            }
+            else
+            {
+                value.SetValue(propValue);
+            }
             localVar->AddSimpleInitializer(value);
         }
 

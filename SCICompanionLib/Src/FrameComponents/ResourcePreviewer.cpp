@@ -225,7 +225,7 @@ ScriptPreviewer::~ScriptPreviewer() {}
 void ScriptPreviewer::SetResource(const ResourceBlob &blob)
 {
     // Try to find a source file.
-    std::string scriptFileName = appState->GetResourceMap().GetScriptFileName(blob.GetName());
+    std::string scriptFileName = appState->GetResourceMap().Helper().GetScriptFileName(blob.GetName());
 
     std::ifstream scriptFile(scriptFileName.c_str());
     if (scriptFile.is_open())
@@ -256,7 +256,7 @@ void ScriptPreviewer::SetResource(const ResourceBlob &blob)
 
         // If that wasn't possible, spew info from the compiled script resource:
         CompiledScript compiledScript(0);
-        if (compiledScript.Load(appState->GetVersion(), blob.GetNumber(), blob.GetReadStream()))
+        if (compiledScript.Load(appState->GetResourceMap().Helper(), appState->GetVersion(), blob.GetNumber(), blob.GetReadStream()))
         {
             // Write some crap.
             std::stringstream out;
@@ -404,7 +404,7 @@ void VocabPreviewer::SetResource(const ResourceBlob &blob)
         case 996: // species table
         {
             SpeciesTable species;
-            if (species.Load())
+            if (species.Load(appState->GetResourceMap().Helper()))
             {
                 _Populate(species.GetNames());
                 fSuccess = true;
@@ -414,7 +414,7 @@ void VocabPreviewer::SetResource(const ResourceBlob &blob)
         case 997: // selector table
         {
             SelectorTable selectors;
-            if (selectors.Load(blob.GetVersion()))
+            if (selectors.Load(appState->GetResourceMap().Helper()))
             {
                 _Populate(selectors.GetNames(), true);
                 fSuccess = true;
@@ -424,7 +424,7 @@ void VocabPreviewer::SetResource(const ResourceBlob &blob)
         case 999: // kernel functions
         {
             KernelTable kernels;
-            if (kernels.Load())
+            if (kernels.Load(appState->GetResourceMap().Helper()))
             {
                 _Populate(kernels.GetNames(), true);
                 fSuccess = true;

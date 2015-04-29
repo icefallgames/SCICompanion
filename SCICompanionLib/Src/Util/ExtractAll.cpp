@@ -19,11 +19,11 @@ void ExtractAllResources(SCIVersion version, const std::string &destinationFolde
         destinationFolder += "\\";
     }
 
-    ObjectFileScriptLookups objectFileLookups;
+    ObjectFileScriptLookups objectFileLookups(appState->GetResourceMap().Helper());
     GlobalCompiledScriptLookups scriptLookups;
     if (disassembleScripts)
     {
-        if (!scriptLookups.Load(version))
+        if (!scriptLookups.Load(appState->GetResourceMap().Helper()))
         {
             disassembleScripts = false;
         }
@@ -118,7 +118,7 @@ void ExtractAllResources(SCIVersion version, const std::string &destinationFolde
                     }
 
                     CompiledScript compiledScript(blob->GetNumber());
-                    compiledScript.Load(appState->GetVersion(), blob->GetNumber(), blob->GetReadStream());
+                    compiledScript.Load(appState->GetResourceMap().Helper(), appState->GetVersion(), blob->GetNumber(), blob->GetReadStream());
                     std::stringstream out;
                     DisassembleScript(compiledScript, out, &scriptLookups, &objectFileLookups, appState->GetResourceMap().GetVocab000());
                     std::string scriptPath = fullPath + ".txt";

@@ -1359,7 +1359,7 @@ void CMainFrame::_AddFindResults(ICompileLog &log, PCTSTR pszFullPath, PCTSTR ps
 
 void CMainFrame::_FindInFilesOfType(ICompileLog &log, PCTSTR pszWildcard, PCTSTR pszWhat, BOOL fMatchCase, BOOL fWholeWord)
 {
-    std::string srcFolder = appState->GetResourceMap().GetSrcFolder();
+    std::string srcFolder = appState->GetResourceMap().Helper().GetSrcFolder();
     std::string wildcard = (srcFolder + pszWildcard);
     WIN32_FIND_DATA findData = { 0 };
     HANDLE hFFF = FindFirstFile(wildcard.c_str(), &findData);

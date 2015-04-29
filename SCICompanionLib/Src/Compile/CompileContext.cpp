@@ -243,7 +243,8 @@ bool CompileTables::Load(SCIVersion version)
 {
     // REVIEW: this could be deleted while we're compiling.
     _pVocab = appState->GetResourceMap().GetVocab000();
-    return _kernels.Load() && _species.Load() && _selectors.Load(version);
+    const GameFolderHelper &helper = appState->GetResourceMap().Helper();
+    return _kernels.Load(helper) && _species.Load(helper) && _selectors.Load(helper);
 }
 
 void CompileTables::Save()
@@ -263,7 +264,7 @@ TextComponent &CompileResults::GetTextComponent()
 void CompileContext::_LoadSCO(const std::string &name, LangSyntax langPref, bool fErrorIfNotFound)
 {
     assert(!name.empty());
-    string scoFileName = appState->GetResourceMap().GetScriptObjectFileName(name, langPref);
+    string scoFileName = appState->GetResourceMap().Helper().GetScriptObjectFileName(name, langPref);
     HANDLE hFile = CreateFile(scoFileName.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
     if (hFile == INVALID_HANDLE_VALUE)
     {
@@ -276,7 +277,7 @@ void CompileContext::_LoadSCO(const std::string &name, LangSyntax langPref, bool
         {
             langPref = LangSyntaxCpp;
         }
-        scoFileName = appState->GetResourceMap().GetScriptObjectFileName(name, langPref);
+        scoFileName = appState->GetResourceMap().Helper().GetScriptObjectFileName(name, langPref);
         hFile = CreateFile(scoFileName.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
     }
     if (hFile != INVALID_HANDLE_VALUE)

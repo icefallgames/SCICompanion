@@ -1,8 +1,8 @@
 #include "stdafx.h"
 #include "SCO.h"
-#include "AppState.h"
 #include "ScriptOM.h"
 #include "CompiledScript.h"
+#include "GameFolderHelper.h"
 
 using namespace std;
 using namespace sci;
@@ -637,23 +637,22 @@ bool CSCOFunctionSignature::Create(sci::istream &stream)
     return true;
 }
 
-void SaveSCOFile(const CSCOFile &sco)
+void SaveSCOFile(const GameFolderHelper &helper, const CSCOFile &sco)
 {
     // Ask the question
-    CResourceMap &rm = appState->GetResourceMap();
     std::string keyName = default_reskey(sco.GetScriptNumber());
-    std::string scriptTitle = rm.GetIniString("Script", keyName, keyName.c_str());
-    ScriptId script = rm.GetScriptId(scriptTitle);
-    SaveSCOFile(sco, script);
+    std::string scriptTitle = helper.GetIniString("Script", keyName, keyName.c_str());
+    ScriptId script = helper.GetScriptId(scriptTitle);
+    SaveSCOFile(helper, sco, script);
 }
 
-void SaveSCOFile(const CSCOFile &sco, ScriptId script)
+void SaveSCOFile(const GameFolderHelper &helper, const CSCOFile &sco, ScriptId script)
 {
     vector<BYTE> scoOutput;
     // First save the .sco file
     sco.Save(scoOutput);
     // Copy these bytes to a stream...
-    std::string scoFileName = appState->GetResourceMap().GetScriptObjectFileName(script.GetTitle(), LangSyntaxSCIStudio);
+    std::string scoFileName = helper.GetScriptObjectFileName(script.GetTitle(), LangSyntaxSCIStudio);
     ofstream scoFile(scoFileName.c_str(), ios::out | ios::binary);
     // REVIEW: yucky
     scoFile.write((const char *)&scoOutput[0], (std::streamsize)scoOutput.size());
@@ -760,10 +759,10 @@ unique_ptr<CSCOFile> SCOFromScriptAndCompiledScript(const Script &script, const 
 
 }
 
-unique_ptr<CSCOFile> GetExistingSCOFromScriptNumber(uint16_t number)
+unique_ptr<CSCOFile> GetExistingSCOFromScriptNumber(const GameFolderHelper &helper, uint16_t number)
 {
     unique_ptr<CSCOFile> sco;
-    string objectFilename = appState->GetResourceMap().GetScriptObjectFileName(number);
+    string objectFilename = helper.GetScriptObjectFileName(number);
     if (!objectFilename.empty() && PathFileExists(objectFilename.c_str()))
     {
         ScopedFile scoped(objectFilename, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);

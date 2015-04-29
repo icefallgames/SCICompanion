@@ -169,7 +169,7 @@ BYTE OpArgs[256] = {
 	/*self*/     0,0,
 	/*super*/    3,2,
 	/*rest*/    2,1,
-	/*lea*/      2,1,
+	/*lea*/      4,2,
 	/*selfID*/   0,0,
 	/**/         0,0,
 	/*pprev*/    0,0,

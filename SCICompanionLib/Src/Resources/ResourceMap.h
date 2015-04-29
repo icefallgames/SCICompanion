@@ -2,6 +2,8 @@
 #pragma once
 #include "ResourceContainer.h"
 #include "PaletteOperations.h"
+#include "GameFolderHelper.h"
+#include "CompiledScript.h"
 
 struct Vocab000;
 struct AudioMapComponent;
@@ -70,7 +72,6 @@ public:
     void SetGameFolder(const std::string &gameFolder);
 
     std::string GetGameFolder() const;
-    std::string GetSrcFolder();
     std::string GetIncludeFolder();
     std::string GetIncludePath(const std::string &includeFileName);
 #ifdef DOCSUPPORT
@@ -78,18 +79,11 @@ public:
 #endif
     std::string GetTemplateFolder();
     std::string GetSamplesFolder();
-    bool IsGameLoaded() { return !_gameFolder.empty(); }
-    std::string GetScriptFileName(const std::string &name, LangSyntax lang = LangSyntaxUnknown);
-    std::string GetScriptFileName(WORD wScript, LangSyntax lang = LangSyntaxUnknown);
-    std::string GetScriptObjectFileName(const std::string &title, LangSyntax lang = LangSyntaxUnknown);
-    std::string GetScriptObjectFileName(WORD wScript, LangSyntax lang = LangSyntaxUnknown);
+    bool IsGameLoaded() { return !_gameFolderHelper.GameFolder.empty(); }
     HRESULT GetGameIni(PTSTR pszBuf, size_t cchBuf);
-    std::string GetGameIniFileName();
-    std::string GetIniString(const std::string &sectionName, const std::string &keyName, PCSTR pszDefault = "");
-    void SetIniString(const std::string &sectionName, const std::string &keyName, const std::string &value);
-    std::string FigureOutName(ResourceType type, int iResourceNum);
     HRESULT GetScriptNumber(ScriptId script, WORD &wScript);
     SCIVersion &GetSCIVersion();
+    const GameFolderHelper &Helper() { return _gameFolderHelper; }
     const Vocab000 *GetVocab000();
     const PaletteComponent *GetPalette999();
     const AudioMapComponent *GetAudioMap65535();
@@ -104,7 +98,6 @@ public:
     std::unique_ptr<ResourceEntity> CreateResourceFromNumber(ResourceType type, WORD wNumber);
     void GetAllScripts(std::vector<ScriptId> &scripts);
 	void GetNumberToNameMap(std::unordered_map<WORD, std::string> &scos);
-    ScriptId GetScriptId(const std::string &name);
     void SetScriptLanguage(ScriptId script, LangSyntax language);
     LangSyntax GetGameLanguage();
     void SetGameLanguage(LangSyntax language);
@@ -130,8 +123,6 @@ private:
 
     // Member variables
 
-    std::string _gameFolder;
-
     std::vector<ISyncResourceMap*> _syncs;
 
     // Useful resources to cache
@@ -150,9 +141,8 @@ private:
 
     std::unique_ptr<SCIClassBrowser> _classBrowser;
 
-    LangSyntax _language;
+    GameFolderHelper _gameFolderHelper;
 
-    SCIVersion _version;                            // The version we think the current game is.
     bool _skipVersionSniffOnce;                     // Skip version sniffing when loading a game the next time.
 
     std::string _includeFolderOverride;             // For unit-testing
@@ -214,6 +204,3 @@ private:
     CResourceMap &_map;
     bool _fDoIt;
 };
-
-// Returns "n004" for 4.
-std::string default_reskey(int iNumber);

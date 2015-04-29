@@ -213,6 +213,7 @@
     <ClCompile Include="Src\Resources\Audio.cpp" />
     <ClCompile Include="Src\Resources\Font.cpp" />
     <ClCompile Include="Src\Resources\AudioMap.cpp" />
+    <ClCompile Include="Src\Resources\GameFolderHelper.cpp" />
     <ClCompile Include="Src\Resources\Pic.cpp" />
     <ClCompile Include="Src\Resources\ResourceMapOperations.cpp" />
     <ClCompile Include="Src\Resources\ResourceSources.cpp" />
@@ -227,6 +228,7 @@
     <ClInclude Include="Src\Compile\CompileCommon.h" />
     <ClInclude Include="Src\Compile\DecompilerFallback.h" />
     <ClInclude Include="Src\Compile\DecompilerNew.h" />
+    <ClInclude Include="Src\Compile\DecompilerResults.h" />
     <ClInclude Include="Src\Dialogs\DecompileDialog.h" />
     <ClInclude Include="Src\Dialogs\PaletteEditorCommon.h" />
     <ClInclude Include="Src\Dialogs\PaletteEditorDialog.h" />
@@ -235,6 +237,7 @@
     <ClInclude Include="Src\MFCViews\PaletteView.h" />
     <ClInclude Include="Src\Resources\Audio.h" />
     <ClInclude Include="Src\Resources\AudioMap.h" />
+    <ClInclude Include="Src\Resources\GameFolderHelper.h" />
     <ClInclude Include="Src\Resources\Pic.h" />
     <ClInclude Include="Src\Resources\View.h" />
     <ClInclude Include="Src\Util\BufferPool.h">

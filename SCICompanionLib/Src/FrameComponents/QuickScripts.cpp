@@ -134,7 +134,7 @@ void QuickScriptsSidePane::_PrepareViewCommands(int iIndex, const ResourceEntity
         CExtBitmap extBitmap;
         extBitmap.FromBitmap((HBITMAP)bitmap);
         g_CmdManager->CmdSetIcon(appState->_pszCommandProfile, nID, extBitmap, RGB(255, 255, 255), CRect(0, 0, 24, 24));
-        std::string name = appState->GetResourceMap().FigureOutName(ResourceType::View, view.ResourceNumber);
+        std::string name = appState->GetResourceMap().Helper().FigureOutName(ResourceType::View, view.ResourceNumber);
         pCmdItem->m_sMenuText = name.c_str();
         pCmdItem->m_sTipTool = pCmdItem->m_sMenuText;
     }
@@ -255,7 +255,7 @@ void QuickScriptsSidePane::_InitColumns()
 void QuickScriptsSidePane::_AddFilesOfType(int &iItem, PCTSTR pszWildcard)
 {
     // REVIEW: Could we just ask for the list of scripts instead?
-    std::string srcFolder = appState->GetResourceMap().GetSrcFolder();
+    std::string srcFolder = appState->GetResourceMap().Helper().GetSrcFolder();
     srcFolder += pszWildcard;
     WIN32_FIND_DATA findData = { 0 };
     HANDLE hFFF = FindFirstFile(srcFolder.c_str(), &findData);
@@ -340,7 +340,7 @@ void _EnableDirection(std::string direction, CWnd &wnd, WORD wNumber)
 {
     if (wNumber)
     {
-        direction += appState->GetResourceMap().FigureOutName(ResourceType::Script, wNumber);
+        direction += appState->GetResourceMap().Helper().FigureOutName(ResourceType::Script, wNumber);
         wnd.SetWindowText(direction.c_str());
         wnd.EnableWindow(TRUE);
     }
@@ -508,7 +508,7 @@ void QuickScriptsSidePane::SetDocument(CDocument *pDoc)
         _ResetUI();
 
         // See if we should update the script list.
-        std::string newSrcFolder = appState->GetResourceMap().GetSrcFolder();
+        std::string newSrcFolder = appState->GetResourceMap().Helper().GetSrcFolder();
         if (0 != _srcFolder.compare(newSrcFolder))
         {
             // The game has been reloaded.

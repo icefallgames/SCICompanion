@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ControlFlowNode.h"
+#include "DecompilerResults.h"
 
 struct NodeBlock
 {
@@ -16,11 +17,11 @@ struct NodeBlock
 class ControlFlowGraph
 {
 public:
-    ControlFlowGraph() {}
+    ControlFlowGraph(const std::string &statusMessagePrefix, IDecompilerResults &decompilerResults, const std::string &contextName) : _decompilerResults(decompilerResults), _contextName(contextName), _statusMessagePrefix(statusMessagePrefix) {}
     ControlFlowGraph(const ControlFlowGraph &src) = delete;
     ControlFlowGraph& operator=(const ControlFlowGraph &src) = delete;
 
-    ControlFlowNode *Generate(const std::string &name, code_pos start, code_pos end);
+    bool Generate(code_pos start, code_pos end);
 
     const NodeSet &ControlStructures() const { return discoveredControlStructures; }
     MainNode *GetMain() const { return static_cast<MainNode*>(mainStructure); };
@@ -48,6 +49,7 @@ public:
 
 
 private:
+    void _ThrowIfAborted();
     ControlFlowNode *_EnsureExitNode(NodeSet &existingExitNodes, ControlFlowNode *exitNodePredecessor, ControlFlowNode *exitNodeSuccessor);
     ControlFlowNode *_ReplaceIfStatementInWorkingSet(ControlFlowNode *structure, ControlFlowNode *ifHeader, ControlFlowNode *ifFollowNode);
     void _ReplaceNodeInFollowNodes(ControlFlowNode *newNode);
@@ -128,7 +130,7 @@ private:
                     }
                 }
                 // 4) Repeat until no new switches found
-            } while (!blocks.empty());
+            } while (!blocks.empty() && !_decompilerResults.IsAborted());
         }
     }
 
@@ -138,5 +140,7 @@ private:
     NodeSet discoveredControlStructures;
     ControlFlowNode *mainStructure;
 
-
+    std::string _contextName;
+    IDecompilerResults &_decompilerResults;
+    std::string _statusMessagePrefix;
 };

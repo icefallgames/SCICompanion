@@ -32,14 +32,6 @@ using namespace std;
 static char THIS_FILE[] = __FILE__;
 #endif
 
-// Returns "n004" for input of 4
-std::string default_reskey(int iNumber)
-{
-    stringstream ss;
-    ss << "n" << setfill('0') << setw(3) << iNumber;
-    return ss.str();
-}
-
 HRESULT copyfile(const string &destination, const string &source)
 {
     return CopyFile(destination.c_str(), source.c_str(), FALSE) ? S_OK : ResultFromLastError();
@@ -173,8 +165,8 @@ CResourceMap::CResourceMap()
     _skipVersionSniffOnce = false;
     _pVocab000 = nullptr;
     _cDeferAppend = 0;
-    _language = LangSyntaxUnknown;
-    _version = sciVersion0;    // By default
+    _gameFolderHelper.Language = LangSyntaxUnknown;
+    _gameFolderHelper.Version = sciVersion0;    // By default
 	// This is a pointer because we don't want a dependency on it in the header file.
 	_classBrowser = std::make_unique<SCIClassBrowser>();
 
@@ -198,7 +190,7 @@ void CResourceMap::AssignName(const ResourceBlob &resource)
     std::string name = resource.GetName();
     if (!name.empty() && (0 != lstrcmpi(keyName.c_str(), name.c_str())))
     {
-        SetIniString(g_resourceInfo[(int)resource.GetType()].pszTitleDefault, keyName, name);
+        Helper().SetIniString(g_resourceInfo[(int)resource.GetType()].pszTitleDefault, keyName, name);
     }
 }
 
@@ -208,7 +200,7 @@ void CResourceMap::AssignName(ResourceType type, int iResourceNumber, PCTSTR psz
     std::string keyName = default_reskey(iResourceNumber);
     if (pszName && *pszName && (0 != lstrcmpi(keyName.c_str(), pszName)))
     {
-        SetIniString(g_resourceInfo[(int)type].pszTitleDefault, keyName, pszName);
+        Helper().SetIniString(g_resourceInfo[(int)type].pszTitleDefault, keyName, pszName);
     }
 }
 
@@ -246,7 +238,7 @@ HRESULT CResourceMap::EndDeferAppend()
 
                 ResourceSourceFlags sourceFlags = _deferredResources[0].GetSourceFlags();
                 // Enumerate resources and write the ones we have not already encountered.
-                std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(_gameFolder, _version, sourceFlags);
+                std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(_gameFolderHelper.GameFolder, _gameFolderHelper.Version, sourceFlags);
 
                 try
                 {
@@ -400,7 +392,7 @@ HRESULT CResourceMap::AppendResource(const ResourceBlob &resource)
     else
     {
         // Enumerate resources and write the ones we have not already encountered.
-        std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(_gameFolder, _version, resource.GetSourceFlags());
+        std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(_gameFolderHelper.GameFolder, _gameFolderHelper.Version, resource.GetSourceFlags());
         std::vector<ResourceBlob> blobs;
         blobs.push_back(resource);
 
@@ -419,6 +411,12 @@ HRESULT CResourceMap::AppendResource(const ResourceBlob &resource)
 
         if (SUCCEEDED(hr))
         {
+            if (resource.GetType() == ResourceType::Script)
+            {
+                // We'll need to re-gen this:
+                _globalCompiledScriptLookups.reset(nullptr);
+            }
+
             // pResource is only valid for the length of this call.  Nonetheless, call our syncs
 			for_each(_syncs.begin(), _syncs.end(), bind2nd(mem_fun(&ISyncResourceMap::OnResourceAdded), &resource));
             if (resource.GetType() == ResourceType::Palette)
@@ -464,7 +462,7 @@ bool CResourceMap::AppendResource(const ResourceEntity &resource, int packageNum
         {
             ResourceBlob data;
             sci::istream readStream = istream_from_ostream(serial);
-            data.CreateFromBits(nullptr, resource.GetType(), &readStream, packageNumber, resourceNumber, _version, resource.SourceFlags);
+            data.CreateFromBits(nullptr, resource.GetType(), &readStream, packageNumber, resourceNumber, _gameFolderHelper.Version, resource.SourceFlags);
             success = SUCCEEDED(AppendResource(data));
             if (pChecksum)
             {
@@ -491,68 +489,17 @@ std::unique_ptr<ResourceContainer> CResourceMap::Resources(ResourceTypeFlags typ
         }
     }
 
-    // Resources can come from various sources.
-    std::unique_ptr<ResourceSourceArray> mapAndVolumes = std::make_unique<ResourceSourceArray>();
-
-    // First, any stray files...
-    if (!IsFlagSet(enumFlags, ResourceEnumFlags::ExcludePatchFiles))
-    {
-        mapAndVolumes->push_back(move(std::make_unique<PatchFilesResourceSource>(_version, _gameFolder)));
-    }
-
-    // Add readers for message map files, if requrested
-    if (IsFlagSet(types, ResourceTypeFlags::Message))
-    {
-        FileDescriptorMessageMap messageMap(_gameFolder);
-        if (messageMap.DoesMapExist())
-        {
-            mapAndVolumes->push_back(move(CreateResourceSource(_gameFolder, _version, ResourceSourceFlags::MessageMap)));
-        }
-    }
-
-    if (IsFlagSet(types, ResourceTypeFlags::Audio))
-    {
-        mapAndVolumes->push_back(move(make_unique<AudioResourceSource>(_version, _gameFolder)));
-    }
-
-    // Now the standard resource maps
-    mapAndVolumes->push_back(move(CreateResourceSource(_gameFolder, _version, ResourceSourceFlags::ResourceMap)));
-
-    std::unique_ptr<ResourceContainer> resourceContainer(
-        new ResourceContainer(
-        _gameFolder,
-        move(mapAndVolumes),
-        types,
-        enumFlags,
-        pRecency)
-        );
-
-    return resourceContainer;
+    return Helper().Resources(types, enumFlags, pRecency);
 }
 
 std::unique_ptr<ResourceBlob> CResourceMap::MostRecentResource(ResourceType type, int number, bool getName)
 {
-    std::unique_ptr<ResourceBlob> returnBlob;
-    ResourceEnumFlags enumFlags = ResourceEnumFlags::MostRecentOnly;
-    if (getName)
-    {
-        enumFlags |= ResourceEnumFlags::NameLookups;
-    }
-    auto &resourceContainer = Resources(ResourceTypeToFlag(type), enumFlags);
-    for (auto &blobIt = resourceContainer->begin(); blobIt != resourceContainer->end(); ++blobIt)
-    {
-        if (blobIt.GetResourceNumber() == number)
-        {
-            returnBlob = move(*blobIt);
-            break;
-        }
-    }
-    return returnBlob;
+    return Helper().MostRecentResource(type, number, getName);
 }
 
 void CResourceMap::PurgeUnnecessaryResources()
 {
-    HRESULT hr = RebuildResources<RESOURCEMAPENTRY_SCI0, RESOURCEHEADER_SCI0>(_version, TRUE);
+    HRESULT hr = RebuildResources<RESOURCEMAPENTRY_SCI0, RESOURCEHEADER_SCI0>(_gameFolderHelper.Version, TRUE);
     if (SUCCEEDED(hr))
     {
         // Refresh everything.
@@ -566,6 +513,12 @@ void CResourceMap::NotifyToResourceResourceType(ResourceType iType)
     if (iType == ResourceType::Palette)
     {
         _paletteListNeedsUpdate = true;
+    }
+
+    if (iType == ResourceType::Script)
+    {
+        // We'll need to re-gen this:
+        _globalCompiledScriptLookups.reset(nullptr);
     }
 }
 
@@ -602,6 +555,12 @@ void CResourceMap::DeleteResource(const ResourceBlob *pData)
     }
 
     // Call our syncs, so they update.
+    if (pData->GetType() == ResourceType::Script)
+    {
+        // We'll need to re-gen this:
+        _globalCompiledScriptLookups.reset(nullptr);
+    }
+
     for_each(_syncs.begin(), _syncs.end(), bind2nd(mem_fun(&ISyncResourceMap::OnResourceDeleted), pData));
     if (pData->GetType() == ResourceType::Palette)
     {
@@ -627,93 +586,25 @@ std::string GetIniString(const std::string &iniFileName, PCTSTR pszSectionName, 
     return strRet;
 }
 
-//
-// Returns an empty string (or pszDefault) if there is no key
-//
-std::string CResourceMap::GetIniString(const std::string &sectionName, const std::string &keyName, PCSTR pszDefault)
-{
-    std::string strRet;
-    char sz[200];
-    if (GetPrivateProfileString(sectionName.c_str(), keyName.c_str(), nullptr, sz, (DWORD)ARRAYSIZE(sz), GetGameIniFileName().c_str()))
-    {
-        strRet = sz;
-    }
-    else
-    {
-        strRet = pszDefault;
-    }
-    return strRet;
-}
-
-void CResourceMap::SetIniString(const std::string &sectionName, const std::string &keyName, const std::string &value)
-{
-    WritePrivateProfileString(sectionName.c_str(), keyName.c_str(), value.c_str(), GetGameIniFileName().c_str());
-}
-
-std::string CResourceMap::GetScriptFileName(WORD wScript, LangSyntax lang)
-{
-    std::string filename;
-    std::string scriptTitle = GetIniString("Script", default_reskey(wScript), default_reskey(wScript).c_str());
-    if (!scriptTitle.empty())
-    {
-        filename = GetScriptFileName(scriptTitle, lang);
-    }
-    return filename;
-}
-
-//
-// Given something like "main", returns "c:\foobar\mygame\src\main.sc"
-//
-std::string CResourceMap::GetScriptFileName(const std::string &name, LangSyntax lang)
-{
-    string filename = _gameFolder;
-    filename += "\\src\\";
-    filename += name;
-    if (lang == LangSyntaxUnknown)
-    {
-        lang = (GetIniString("Language", name, "sc") == "scp") ? LangSyntaxCpp : LangSyntaxSCIStudio;
-    }
-    // Figure out what language the script is in (default is .sc), and append the default extension
-    if (lang == LangSyntaxCpp)
-    {
-        filename += ".scp";
-    }
-    else
-    {
-        filename += ".sc";
-    }
-    return filename;
-}
-
-std::string CResourceMap::GetScriptObjectFileName(const std::string &title, LangSyntax lang)
-{
-    std::string filename = _gameFolder;
-    if (!filename.empty())
-    {
-        filename += "\\src\\";
-        filename += title;
-        filename += ".sco";
-    }
-    return filename;
-}
-
-
 std::string CResourceMap::GetGameFolder() const
 {
-    return _gameFolder;
+    return _gameFolderHelper.GameFolder;
 }
 
-//
-// Gets the src folder
-//
-std::string CResourceMap::GetSrcFolder()
+LangSyntax CResourceMap::GetGameLanguage()
 {
-    std::string srcFolder = _gameFolder;
-    if (!srcFolder.empty())
+    if (_gameFolderHelper.Language == LangSyntaxUnknown)
     {
-        srcFolder += "\\src";
+        if (_gameFolderHelper.GetIniString("Game", "Language", "sc") == "scp")
+        {
+            _gameFolderHelper.Language = LangSyntaxCpp;
+        }
+        else
+        {
+            _gameFolderHelper.Language = LangSyntaxSCIStudio;
+        }
     }
-    return srcFolder;
+    return _gameFolderHelper.Language;
 }
 
 //
@@ -765,7 +656,7 @@ std::string CResourceMap::GetIncludePath(const std::string &includeFileName)
             return includeFolder;
         }
     }
-    includeFolder = GetSrcFolder();
+    includeFolder = Helper().GetSrcFolder();
     includeFolder += "\\";
     includeFolder += includeFileName;
     if (PathFileExists(includeFolder.c_str()))
@@ -792,26 +683,19 @@ std::string CResourceMap::GetDocPath(const std::string &fileName)
 }
 #endif
 
-std::string CResourceMap::GetGameIniFileName()
-{
-    string filename = _gameFolder;
-    filename += "\\game.ini";
-    return filename;
-}
-
 HRESULT CResourceMap::GetGameIni(PTSTR pszBuf, size_t cchBuf)
 {
     HRESULT hr = E_FAIL;
-    if (!_gameFolder.empty())
+    if (!_gameFolderHelper.GameFolder.empty())
     {
-        hr = StringCchPrintf(pszBuf, cchBuf, TEXT("%s\\%s"), _gameFolder.c_str(), TEXT("game.ini"));
+        hr = StringCchPrintf(pszBuf, cchBuf, TEXT("%s\\%s"), _gameFolderHelper.GameFolder.c_str(), TEXT("game.ini"));
     }
     return hr;
 }
 
 SCIVersion &CResourceMap::GetSCIVersion()
 {
-    return _version;
+    return _gameFolderHelper.Version;
 }
 
 //
@@ -824,20 +708,6 @@ std::string FigureOutResourceName(const std::string &iniFileName, ResourceType t
     {
         std::string keyName = default_reskey(iNumber);
         name = GetIniString(iniFileName, GetResourceInfo(type).pszTitleDefault, keyName, keyName.c_str());
-    }
-    return name;
-}
-
-//
-// Perf: we're opening and closing the file each time.  We could do this once.
-//
-std::string CResourceMap::FigureOutName(ResourceType type, int iNumber)
-{
-    std::string name;
-    if ((size_t)type < ARRAYSIZE(g_resourceInfo))
-    {
-        std::string keyName = default_reskey(iNumber);
-        name = GetIniString(GetResourceInfo(type).pszTitleDefault, keyName, keyName.c_str());
     }
     return name;
 }
@@ -916,7 +786,7 @@ std::unique_ptr<PaletteComponent> CResourceMap::GetPalette(int fallbackPaletteNu
 
 std::unique_ptr<PaletteComponent> CResourceMap::GetMergedPalette(const ResourceEntity &resource, int fallbackPaletteNumber)
 {
-    assert((_version.ViewFormat != ViewFormat::EGA) || (_version.PicFormat != PicFormat::EGA));
+    assert((_gameFolderHelper.Version.ViewFormat != ViewFormat::EGA) || (_gameFolderHelper.Version.PicFormat != PicFormat::EGA));
     std::unique_ptr<PaletteComponent> paletteReturn;
     PaletteComponent *paletteEmbedded = resource.TryGetComponent<PaletteComponent>();
     if (!paletteEmbedded)
@@ -966,7 +836,7 @@ void CResourceMap::SaveAudioMap65535(const AudioMapComponent &newAudioMap)
 const PaletteComponent *CResourceMap::GetPalette999()
 {
     PaletteComponent *globalPalette = nullptr;
-    if (_version.HasPalette)
+    if (_gameFolderHelper.Version.HasPalette)
     {
         if (!_pPalette999)
         {
@@ -1015,7 +885,7 @@ GlobalCompiledScriptLookups *CResourceMap::GetCompiledScriptLookups()
     if (!_globalCompiledScriptLookups)
     {
         _globalCompiledScriptLookups = make_unique<GlobalCompiledScriptLookups>();
-        if (!_globalCompiledScriptLookups->Load(this->GetSCIVersion()))
+        if (!_globalCompiledScriptLookups->Load(Helper()))
         {
             // Warning... (happens in LB Dagger)
         }
@@ -1027,7 +897,7 @@ ResourceEntity *CResourceMap::GetVocabResourceToEdit()
 {
     if (!_pVocab000)
     {
-        _pVocab000 = CreateResourceFromNumber(ResourceType::Vocab, _version.MainVocabResource);
+        _pVocab000 = CreateResourceFromNumber(ResourceType::Vocab, _gameFolderHelper.Version.MainVocabResource);
     }
     return _pVocab000.get();
 }
@@ -1086,28 +956,9 @@ HRESULT GetResourceMapType(HANDLE hFile, DWORD *pdwType)
     return hr;
 }
 
-std::string CResourceMap::GetScriptObjectFileName(WORD wScript, LangSyntax lang)
-{
-    std::string filename;
-    std::string scriptTitle = GetIniString("Script", default_reskey(wScript), default_reskey(wScript).c_str());
-    if (!scriptTitle.empty())
-    {
-        filename = GetScriptObjectFileName(scriptTitle, lang);
-    }
-    return filename;
-}
-
-//
-// Returns the script identifier for something "main", or "rm001".
-//
-ScriptId CResourceMap::GetScriptId(const std::string &name)
-{
-    return ScriptId(GetScriptFileName(name).c_str());
-}
-
 void CResourceMap::SetScriptLanguage(ScriptId script, LangSyntax language)
 {
-    SetIniString("Language", script.GetTitle(), (language == LangSyntaxCpp) ? "scp" : "sc");
+    Helper().SetIniString("Language", script.GetTitle(), (language == LangSyntaxCpp) ? "scp" : "sc");
 }
 
 void CResourceMap::GetAllScripts(std::vector<ScriptId> &scripts)
@@ -1133,7 +984,7 @@ void CResourceMap::GetAllScripts(std::vector<ScriptId> &scripts)
                     if (pszEq)
                     {
                         // Add this script...
-                        ScriptId scriptId(appState->GetResourceMap().GetScriptFileName(pszEq + 1));
+                        ScriptId scriptId(_gameFolderHelper.GetScriptFileName(pszEq + 1));
                         // Isolate the number.
                         *pszEq = 0;     // n123
                         pszNumber++;    // 123
@@ -1192,12 +1043,12 @@ bool CResourceMap::CanSaveResourcesToMap()
 //
 void CResourceMap::SetGameFolder(const string &gameFolder)
 {
-    _gameFolder = gameFolder;
+    _gameFolderHelper.GameFolder = gameFolder;
     ClearVocab000();
     _pPalette999.reset(nullptr);                    // REVIEW: also do this if global palette is edited.
-    _globalCompiledScriptLookups.reset(nullptr);    // TODO: Also do this if scripts were compiled.
+    _globalCompiledScriptLookups.reset(nullptr);
     _pAudioMap65535.reset(nullptr);
-    _language = LangSyntaxUnknown;
+    _gameFolderHelper.Language = LangSyntaxUnknown;
     if (!gameFolder.empty())
     {
         // We get here when we close documents.
@@ -1278,23 +1129,8 @@ std::unique_ptr<ResourceEntity> CreateResourceFromResourceData(const ResourceBlo
     return pResourceReturn;
 }
 
-LangSyntax CResourceMap::GetGameLanguage()
-{
-    if (_language == LangSyntaxUnknown)
-    {
-        if (GetIniString("Game", "Language", "sc") == "scp")
-        {
-            _language = LangSyntaxCpp;
-        }
-        else
-        {
-            _language = LangSyntaxSCIStudio;
-        }
-    }
-    return _language;
-}
 void CResourceMap::SetGameLanguage(LangSyntax lang)
 {
-    SetIniString("Game", "Language", (lang == LangSyntaxCpp) ? "scp" : "sc");
-    _language = GetGameLanguage();
+    Helper().SetIniString("Game", "Language", (lang == LangSyntaxCpp) ? "scp" : "sc");
+    _gameFolderHelper.Language = GetGameLanguage();
 }

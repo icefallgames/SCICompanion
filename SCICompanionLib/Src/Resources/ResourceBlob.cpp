@@ -77,7 +77,7 @@ ResourceBlob::ResourceBlob(PCTSTR pszName, ResourceType iType, const std::vector
     header.PackageHint = iPackageHint;
     if (!pszName || (*pszName == 0))
     {
-        _strName = appState->GetResourceMap().FigureOutName(iType, iNumber);
+        _strName = appState->GetResourceMap().Helper().FigureOutName(iType, iNumber);
     }
     else
     {
@@ -115,7 +115,7 @@ HRESULT ResourceBlob::CreateFromBits(PCTSTR pszName, ResourceType iType, sci::is
 
         if (!pszName || (*pszName == 0))
         {
-            _strName = appState->GetResourceMap().FigureOutName(iType, iNumber);
+            _strName = appState->GetResourceMap().Helper().FigureOutName(iType, iNumber);
         }
         else
         {

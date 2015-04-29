@@ -48,6 +48,8 @@ std::unique_ptr<ResourceSource> CreateResourceSource(const std::string &gameFold
 
 void DeleteResource(CResourceMap &resourceMap, const ResourceBlob &data)
 {
+    const GameFolderHelper &helper = resourceMap.Helper();
+
     ResourceTypeFlags typeFlags = ResourceTypeToFlag(data.GetType());
     IteratorState iteratorState;
 
@@ -134,12 +136,12 @@ void DeleteResource(CResourceMap &resourceMap, const ResourceBlob &data)
             {
                 // Remove it from the ini
                 std::string iniKey = default_reskey(data.GetNumber());
-                std::string scriptTitle = resourceMap.GetIniString("Script", iniKey);
-                ScriptId scriptId = resourceMap.GetScriptId(scriptTitle);
+                std::string scriptTitle = helper.GetIniString("Script", iniKey);
+                ScriptId scriptId = resourceMap.Helper().GetScriptId(scriptTitle);
                 // First, remove from the [Script] section
-                WritePrivateProfileString("Script", iniKey.c_str(), nullptr, resourceMap.GetGameIniFileName().c_str());
+                WritePrivateProfileString("Script", iniKey.c_str(), nullptr, helper.GetGameIniFileName().c_str());
                 // Second, remove from the [Language] section
-                WritePrivateProfileString("Language", scriptTitle.c_str(), nullptr, resourceMap.GetGameIniFileName().c_str());
+                WritePrivateProfileString("Language", scriptTitle.c_str(), nullptr, helper.GetGameIniFileName().c_str());
 
                 if (dialog.AlsoDelete())
                 {

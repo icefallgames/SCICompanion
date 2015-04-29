@@ -22,6 +22,8 @@
 #include "Disassembler.h"
 #include "SummarizeScript.h"
 #include "DecompileScript.h"
+#include "DecompilerResults.h"
+#include "GameFolderHelper.h"
 
 using namespace std;
 
@@ -229,7 +231,7 @@ bool NewCompileScript(CompileLog &log, CompileTables &tables, PrecompiledHeaders
                 CSCOFile &sco = results.GetSCO();
 
                 {
-                    SaveSCOFile(sco, script);
+                    SaveSCOFile(appState->GetResourceMap().Helper(), sco, script);
                 }
 
                 fRet = true;
@@ -244,12 +246,12 @@ bool NewCompileScript(CompileLog &log, CompileTables &tables, PrecompiledHeaders
 void DisassembleScript(WORD wScript)
 {
     CompiledScript compiledScript(0);
-    if (compiledScript.Load(appState->GetVersion(), wScript, false))
+    if (compiledScript.Load(appState->GetResourceMap().Helper(), appState->GetVersion(), wScript, false))
     {
         // Write some crap.
         GlobalCompiledScriptLookups scriptLookups;
-        ObjectFileScriptLookups objectFileLookups;
-        if (scriptLookups.Load(appState->GetVersion()))
+        ObjectFileScriptLookups objectFileLookups(appState->GetResourceMap().Helper());
+        if (scriptLookups.Load(appState->GetResourceMap().Helper()))
         {
             std::stringstream out;
             ::DisassembleScript(compiledScript, out, &scriptLookups, &objectFileLookups, appState->GetResourceMap().GetVocab000());
@@ -268,37 +270,33 @@ void CScriptDocument::OnDisassemble()
     }
 }
 
-void DecompileScript(WORD wScript)
+void DecompileScript(const GameFolderHelper &helper, WORD wScript, IDecompilerResults &results)
 {
     CompiledScript compiledScript(0);
-    if (compiledScript.Load(appState->GetVersion(), wScript, false))
+    if (compiledScript.Load(helper, appState->GetVersion(), wScript, false))
     {
-        unique_ptr<sci::Script> pScript = DecompileScript(wScript, compiledScript);
+        unique_ptr<sci::Script> pScript = DecompileScript(*appState->GetResourceMap().GetCompiledScriptLookups(), helper, wScript, compiledScript, results);
         std::stringstream ss;
-		sci::SourceCodeWriter out(ss, appState->GetResourceMap().GetGameLanguage(), pScript.get());
+        sci::SourceCodeWriter out(ss, helper.GetGameLanguage(), pScript.get());
         pScript->OutputSourceCode(out);
         ShowTextFile(ss.str().c_str(), "script.scp.txt");
     }
 }
 
-std::unique_ptr<sci::Script> DecompileScript(WORD wScript, CompiledScript &compiledScript)
+std::unique_ptr<sci::Script> DecompileScript(GlobalCompiledScriptLookups &scriptLookups, const GameFolderHelper &helper, WORD wScript, CompiledScript &compiledScript, IDecompilerResults &results)
 {
     unique_ptr<sci::Script> pScript;
-    GlobalCompiledScriptLookups *scriptLookups = appState->GetResourceMap().GetCompiledScriptLookups();
-    ObjectFileScriptLookups objectFileLookups;
-    if (scriptLookups)
+    ObjectFileScriptLookups objectFileLookups(helper);
+    // Ok if pText fails (and is NULL)
+    unique_ptr<ResourceEntity> textResource = appState->GetResourceMap().CreateResourceFromNumber(ResourceType::Text, wScript);
+    TextComponent *pText = nullptr;
+    if (textResource)
     {
-        // Ok if pText fails (and is NULL)
-        unique_ptr<ResourceEntity> textResource = appState->GetResourceMap().CreateResourceFromNumber(ResourceType::Text, wScript);
-        TextComponent *pText = nullptr;
-        if (textResource)
-        {
-            pText = textResource->TryGetComponent<TextComponent>();
-        }
-
-        DecompileLookups decompileLookups(wScript, scriptLookups, &objectFileLookups, &compiledScript, pText, &compiledScript);
-        pScript.reset(Decompile(compiledScript, decompileLookups, appState->GetResourceMap().GetVocab000()));
+        pText = textResource->TryGetComponent<TextComponent>();
     }
+
+    DecompileLookups decompileLookups(helper, wScript, &scriptLookups, &objectFileLookups, &compiledScript, pText, &compiledScript, results);
+    pScript.reset(Decompile(helper, compiledScript, decompileLookups, appState->GetResourceMap().GetVocab000()));
     return pScript;
 }
 
@@ -308,7 +306,8 @@ void CScriptDocument::OnDecompile()
     // Make the compiled script...
     if (SUCCEEDED(appState->GetResourceMap().GetScriptNumber(_scriptId, wScript)))
     {
-        DecompileScript(wScript);
+        // Let's get rid of this command, and only go through the dialog
+        //DecompileScript(wScript);
     }
 }
 
@@ -317,7 +316,7 @@ void CScriptDocument::OnViewObjectFile()
     if (!_scriptId.IsHeader())
     {
         // Need the script name.
-        string objectFileName = appState->GetResourceMap().GetScriptObjectFileName(_scriptId.GetTitle());
+        string objectFileName = appState->GetResourceMap().Helper().GetScriptObjectFileName(_scriptId.GetTitle());
         if (!objectFileName.empty())
         {
             HANDLE hFile = CreateFile(objectFileName.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
@@ -347,7 +346,7 @@ void CScriptDocument::OnViewScriptResource()
         if (SUCCEEDED(appState->GetResourceMap().GetScriptNumber(_scriptId, wScript)))
         {
             CompiledScript compiledScript(0);
-            if (compiledScript.Load(appState->GetVersion(), wScript, false))
+            if (compiledScript.Load(appState->GetResourceMap().Helper(), appState->GetVersion(), wScript, false))
             {
                 // Write some crap.
                 std::stringstream out;

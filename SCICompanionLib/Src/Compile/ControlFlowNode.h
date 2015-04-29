@@ -190,6 +190,14 @@ private:
     NodeSet predecessors;
 };
 
+class ControlFlowException : public std::exception
+{
+public:
+    ControlFlowException(ControlFlowNode *node, const std::string &message) : message(message), node(node) {}
+
+    ControlFlowNode *node;
+    std::string message;
+};
 
 struct ExitNode : public ControlFlowNode
 {

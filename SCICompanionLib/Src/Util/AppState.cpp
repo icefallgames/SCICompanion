@@ -236,7 +236,7 @@ void AppState::OpenScript(std::string strName, const ResourceBlob *pData, WORD w
 {
     if (_pScriptTemplate && _pApp)
     {
-        ScriptId scriptId = _resourceMap.GetScriptId(strName);
+        ScriptId scriptId = _resourceMap.Helper().GetScriptId(strName);
         if (!scriptId.IsNone())
         {
             if (wScriptNum == InvalidResourceNumber)
@@ -285,14 +285,7 @@ void AppState::OpenScript(std::string strName, const ResourceBlob *pData, WORD w
                         if (IDYES == AfxMessageBox(message.c_str(), MB_YESNO | MB_APPLMODAL))
                         {
                             // Show the disassembly.
-                            if (GetAsyncKeyState(VK_SHIFT) & 0x8000)
-                            {
-                                DecompileScript((WORD)pData->GetNumber());
-                            }
-                            else
-                            {
-                                DisassembleScript((WORD)pData->GetNumber());
-                            }
+                            DisassembleScript((WORD)pData->GetNumber());
                         }
                     }
                     else

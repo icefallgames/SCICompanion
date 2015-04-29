@@ -517,6 +517,8 @@
 #define IDC_DECOMPILE                   1240
 #define IDC_CLEARSCO                    1241
 #define IDC_ASSIGNFILENAMES             1242
+#define IDC_DECOMPILECANCEL             1243
+#define IDC_DECOMPILESTATUS             1244
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -769,7 +771,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        366
 #define _APS_NEXT_COMMAND_VALUE         33180
-#define _APS_NEXT_CONTROL_VALUE         1243
+#define _APS_NEXT_CONTROL_VALUE         1245
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

@@ -312,7 +312,8 @@ void DisassembleCode(SCIVersion version, std::ostream &out, ICompiledScriptLooku
     }
 }
 
-void DisassembleObject(const CompiledObjectBase &object,
+void DisassembleObject(const CompiledScript &script, 
+    const CompiledObjectBase &object,
     std::ostream &out,
     ICompiledScriptLookups *pLookups,
     IObjectFileScriptLookups *pOFLookups,
@@ -347,7 +348,16 @@ void DisassembleObject(const CompiledObjectBase &object,
         }
         for (size_t i = object.GetNumberOfDefaultSelectors(); i < min(selectorCount, valueCount); i++)
         {
-            out << "        " << pLookups->LookupSelectorName(propertySelectorList[i]) << " $" << propertyValues[i].value << endl;
+            out << "        " << pLookups->LookupSelectorName(propertySelectorList[i]);
+            if (propertyValues[i].isString)
+            {
+                out << script.GetStringFromOffset(propertyValues[i].value);
+            }
+            else
+            {
+                out << " $" << propertyValues[i].value;
+            }
+            out << endl;
         }
         out << "    )" << endl;
     }
@@ -503,7 +513,7 @@ void DisassembleScript(const CompiledScript &script, std::ostream &out, ICompile
     // Spit out code segments - first, the objects (instances, classes)
     for (auto &object : script._objects)
     {
-        DisassembleObject(*object, out, pLookups, pOFLookups, &script, script.GetRawBytes(), script._codeSections, codePointersTO, analyzeInstruction);
+        DisassembleObject(script, *object, out, pLookups, pOFLookups, &script, script.GetRawBytes(), script._codeSections, codePointersTO, analyzeInstruction);
         out << endl;
     }
     out << endl;

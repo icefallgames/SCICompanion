@@ -4,12 +4,30 @@
 #include "CompiledScript.h"
 #include "DecompilerCore.h"
 #include "SCO.h"
+#include "DecompilerResults.h"
+#include "GameFolderHelper.h"
+#include "format.h"
 
 using namespace std;
 
+#define UWM_UPDATESTATUS (WM_APP + 1)
+#define CHEKCDONE_TIMER 3456
+
 DecompileDialog::DecompileDialog(CWnd* pParent /*=NULL*/)
-    : CExtResizableDialog(DecompileDialog::IDD, pParent), previousSelection(-1), _inScriptListLabelEdit(false), _inSCOLabelEdit(false), initialized(false)
+    : CExtResizableDialog(DecompileDialog::IDD, pParent), previousSelection(-1), _inScriptListLabelEdit(false), _inSCOLabelEdit(false), initialized(false), _helper(appState->GetResourceMap().Helper()), _hThread(nullptr)
 {
+    if (_helper.GetGameLanguage() == LangSyntaxUnknown)
+    {
+        _helper.Language = LangSyntaxSCIStudio;
+    }
+}
+
+BOOL DecompileDialog::OnInitDialog()
+{
+    BOOL fRet = __super::OnInitDialog();
+    //ShowSizeGrip(FALSE);
+    SetTimer(CHEKCDONE_TIMER, 100, nullptr);
+    return fRet;
 }
 
 void DecompileDialog::DoDataExchange(CDataExchange* pDX)
@@ -22,13 +40,15 @@ void DecompileDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_DECOMPILE, m_wndDecompile);
     DDX_Control(pDX, IDC_CLEARSCO, m_wndClearSCO);
     DDX_Control(pDX, IDC_ASSIGNFILENAMES, m_wndSetFilenames);
+    DDX_Control(pDX, IDC_DECOMPILECANCEL, m_wndDecomileCancel);
+    DDX_Control(pDX, IDC_DECOMPILESTATUS, m_wndStatus);
 
     DDX_Control(pDX, IDC_TREESCO, m_wndTreeSCO);
 
     if (!initialized)
     {
         // Ensure we have a src directory
-        string sourceFolder = appState->GetResourceMap().GetSrcFolder();
+        string sourceFolder = _helper.GetSrcFolder();
         if (!PathFileExists(sourceFolder.c_str()))
         {
             if (!CreateDirectory(sourceFolder.c_str(), nullptr))
@@ -45,8 +65,9 @@ void DecompileDialog::DoDataExchange(CDataExchange* pDX)
 }
 
 const int NameColumn = 0;
-const int SCOColumn = 1;
-const int SourceColumn = 2;
+const int NumberColumn = 1;
+const int SCOColumn = 2;
+const int SourceColumn = 3;
 
 struct
 {
@@ -57,8 +78,9 @@ struct
 c_DecompileColumns[] =
 {
     { "Name", 70, NameColumn },
-    { "SCO", 40, SCOColumn },
-    { "Src", 40, SourceColumn },
+    { "Number", 55, NumberColumn },
+    { "SCO", 30, SCOColumn },
+    { "Src", 30, SourceColumn },
 };
 
 void DecompileDialog::_InitScriptList()
@@ -86,19 +108,19 @@ void DecompileDialog::_UpdateScripts(set<uint16_t> updatedScripts)
         uint16_t scriptNum = (uint16_t)m_wndListScripts.GetItemData(i);
         if (contains(updatedScripts, scriptNum))
         {
-            string name = appState->GetResourceMap().FigureOutName(ResourceType::Script, scriptNum);
+            string name = _helper.FigureOutName(ResourceType::Script, scriptNum);
             LVITEM item = {};
             item.iItem = i;
 
             item.mask = LVIF_TEXT;
             item.iSubItem = SCOColumn;
-            string scoFilename = appState->GetResourceMap().GetScriptObjectFileName(name);
+            string scoFilename = _helper.GetScriptObjectFileName(name);
             item.pszText = PathFileExists(scoFilename.c_str()) ? c_Yes : c_Empty;
             m_wndListScripts.SetItem(&item);
 
             item.mask = LVIF_TEXT;
             item.iSubItem = SourceColumn;
-            string scriptFilename = appState->GetResourceMap().GetScriptFileName(name);
+            string scriptFilename = _helper.GetScriptFileName(name);
             item.pszText = PathFileExists(scriptFilename.c_str()) ? c_Yes : c_Empty;
             m_wndListScripts.SetItem(&item);
         }
@@ -116,7 +138,7 @@ void DecompileDialog::_PopulateScripts()
     SetRedraw(FALSE);
     m_wndListScripts.DeleteAllItems();
 
-    auto scriptResources = appState->GetResourceMap().Resources(ResourceTypeFlags::Script, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::NameLookups);
+    auto scriptResources = _helper.Resources(ResourceTypeFlags::Script, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::NameLookups);
     int itemNumber = 0;
     for (auto &blob : *scriptResources)
     {
@@ -130,14 +152,20 @@ void DecompileDialog::_PopulateScripts()
         m_wndListScripts.InsertItem(&item);
 
         item.mask = LVIF_TEXT;
+        item.iSubItem = NumberColumn;
+        string scriptNumString = fmt::format("{0}", blob->GetNumber());
+        item.pszText = const_cast<LPSTR>(scriptNumString.c_str());
+        m_wndListScripts.SetItem(&item);
+
+        item.mask = LVIF_TEXT;
         item.iSubItem = SCOColumn;
-        string scoFilename = appState->GetResourceMap().GetScriptObjectFileName(name);
+        string scoFilename = _helper.GetScriptObjectFileName(name);
         item.pszText = PathFileExists(scoFilename.c_str()) ? c_Yes : c_Empty;
         m_wndListScripts.SetItem(&item);
 
         item.mask = LVIF_TEXT;
         item.iSubItem = SourceColumn;
-        string scriptFilename = appState->GetResourceMap().GetScriptFileName(name);
+        string scriptFilename = _helper.GetScriptFileName(name);
         item.pszText = PathFileExists(scriptFilename.c_str()) ? c_Yes : c_Empty;
         m_wndListScripts.SetItem(&item);
 
@@ -214,8 +242,8 @@ void DecompileDialog::_SyncSelection(bool force)
 {
     UINT selectedCount = m_wndListScripts.GetSelectedCount();
     bool selected = (selectedCount > 0);
-    m_wndDecompile.EnableWindow(selected);
-    m_wndClearSCO.EnableWindow(selected);
+
+    _SyncButtonState();
 
     if (selected)
     {
@@ -224,7 +252,7 @@ void DecompileDialog::_SyncSelection(bool force)
         if (force || (selectedItem != previousSelection))
         {
             LPARAM param = m_wndListScripts.GetItemData(selectedItem);
-            string sourceFileName = appState->GetResourceMap().GetScriptFileName((uint16_t)param);
+            string sourceFileName = _helper.GetScriptFileName((uint16_t)param);
             std::ifstream scriptFile(sourceFileName.c_str());
             if (scriptFile.is_open())
             {
@@ -245,13 +273,13 @@ void DecompileDialog::_SyncSelection(bool force)
             // Load the .sco file
             _sco.reset(nullptr);
             _scoPublicProcIndices.clear();
-            _sco = GetExistingSCOFromScriptNumber((uint16_t)param);
+            _sco = GetExistingSCOFromScriptNumber(_helper, (uint16_t)param);
             if (_sco)
             {
                 // Detect which exports are not procedures by seeing if its name
                 // matches a public instance in the compiled script (which should be sync'd with the SCO)
                 CompiledScript compiledScript((uint16_t)param);
-                compiledScript.Load(appState->GetVersion(), param, true);
+                compiledScript.Load(_helper, _helper.Version, param, true);
                 int exportIndex = 0;
                 for (auto &publicExport : _sco->GetExports())
                 {
@@ -295,6 +323,9 @@ BEGIN_MESSAGE_MAP(DecompileDialog, CExtResizableDialog)
     ON_NOTIFY(LVN_ENDLABELEDIT, IDC_LISTSCRIPTS, &DecompileDialog::OnLvnEndlabeleditListscripts)
     ON_BN_CLICKED(IDC_DECOMPILE, &DecompileDialog::OnBnClickedDecompile)
     ON_BN_CLICKED(IDC_ASSIGNFILENAMES, &DecompileDialog::OnBnClickedAssignfilenames)
+    ON_BN_CLICKED(IDC_DECOMPILECANCEL, &DecompileDialog::OnBnClickedDecompilecancel)
+    ON_WM_TIMER()
+    ON_MESSAGE(UWM_UPDATESTATUS, UpdateStatus)
 END_MESSAGE_MAP()
 
 // All this to handle the user pressing enter on a listview item.
@@ -364,7 +395,7 @@ void DecompileDialog::OnTvnEndlabeleditTreesco(NMHDR *pNMHDR, LRESULT *pResult)
             _sco->GetExports()[_scoPublicProcIndices[index]].SetName(pTVDispInfo->item.pszText);
         }
         *pResult = 1;
-        SaveSCOFile(*_sco);
+        SaveSCOFile(_helper, *_sco);
         // TODO: a message indicating we saved.
     }
     else
@@ -390,37 +421,71 @@ void DecompileDialog::OnLvnEndlabeleditListscripts(NMHDR *pNMHDR, LRESULT *pResu
     *pResult = 0;
 }
 
+void DecompileDialog::OnTimer(UINT_PTR nIDEvent)
+{
+    if (nIDEvent == CHEKCDONE_TIMER)
+    {
+        if (_hThread && (_hThread != INVALID_HANDLE_VALUE))
+        {
+            DWORD result = WaitForSingleObject(_hThread, 0);
+            if (result == WAIT_OBJECT_0)
+            {
+                _hThread = INVALID_HANDLE_VALUE;
+                _decompileResults.reset(nullptr);
+                _pThread.reset(nullptr);
+                _SyncButtonState();
+                m_wndStatus.SetWindowTextA("");
+                _UpdateScripts(_scriptNumbers);
+                _SyncSelection(true);
+            }
+        }
+    }
+    else
+    {
+        __super::OnTimer(nIDEvent);
+    }
+}
 
 void DecompileDialog::OnBnClickedDecompile()
 {
+    m_wndResults.ResetContent();
+
     // Get a list of scripts to decompile
-    set<uint16_t> scriptNumbers;
+    _scriptNumbers.clear();
     POSITION pos = m_wndListScripts.GetFirstSelectedItemPosition();
     while (pos != nullptr)
     {
         int selectedItem = m_wndListScripts.GetNextSelectedItem(pos);
         uint16_t scriptNumber = (uint16_t)m_wndListScripts.GetItemData(selectedItem);
-        scriptNumbers.insert(scriptNumber);
+        _scriptNumbers.insert(scriptNumber);
     }
 
-    for (uint16_t scriptNum : scriptNumbers)
+    if (!_scriptNumbers.empty())
     {
-        CompiledScript compiledScript(0);
-        if (compiledScript.Load(appState->GetVersion(), scriptNum, false))
+        _pThread.reset(AfxBeginThread(s_ThreadWorker, this, 0, 0, CREATE_SUSPENDED, nullptr));
+        if (_pThread)
         {
-            unique_ptr<sci::Script> pScript = DecompileScript(scriptNum, compiledScript);
-            // Dump it to the .sc file
-            // TODO: If it already exists, we might want to ask for confirmation.
-            std::stringstream ss;
-            sci::SourceCodeWriter out(ss, appState->GetResourceMap().GetGameLanguage(), pScript.get());
-            pScript->OutputSourceCode(out);
-            MakeTextFile(ss.str().c_str(), appState->GetResourceMap().GetScriptFileName(scriptNum));
+            _decompileResults = make_unique<DecompilerDialogResults>(this->GetSafeHwnd());
+            _SyncButtonState();
+            _pThread->m_bAutoDelete = FALSE;
+            _hThread = _pThread->m_hThread;
+            _pThread->ResumeThread();
         }
     }
-    _UpdateScripts(scriptNumbers);
-    _SyncSelection(true);
 }
 
+void DecompileDialog::_SyncButtonState()
+{
+    UINT selectedCount = m_wndListScripts.GetSelectedCount();
+    bool selected = (selectedCount > 0);
+    bool decompiling = (_decompileResults != nullptr);
+
+    m_wndCancel.EnableWindow(!decompiling);
+    m_wndDecompile.EnableWindow(!decompiling && selected);
+    m_wndClearSCO.EnableWindow(!decompiling && selected);
+    m_wndSetFilenames.EnableWindow(!decompiling);
+    m_wndDecomileCancel.EnableWindow(decompiling);
+}
 
 void DecompileDialog::OnBnClickedAssignfilenames()
 {
@@ -465,4 +530,101 @@ void DecompileDialog::OnBnClickedAssignfilenames()
 
         _PopulateScripts();
     }
+}
+
+void DecompileDialog::OnBnClickedDecompilecancel()
+{
+    if (_decompileResults)
+    {
+        _decompileResults->SetAborted();
+    }
+}
+
+UINT DecompileDialog::s_ThreadWorker(void *pParam)
+{
+    DecompileDialog *pThis = reinterpret_cast<DecompileDialog*>(pParam);
+
+    try
+    {
+        set<uint16_t> scriptNumbers = pThis->_scriptNumbers;
+        GameFolderHelper helper = pThis->_helper;
+
+        if (!pThis->_lookups)
+        {
+            pThis->_decompileResults->AddResult(DecompilerResultType::Update, "Creating script lookups...");
+            pThis->_lookups = make_unique<GlobalCompiledScriptLookups>();
+            pThis->_lookups->Load(helper);
+        }
+
+        if (pThis->_lookups)
+        {
+            for (uint16_t scriptNum : scriptNumbers)
+            {
+                pThis->_decompileResults->AddResult(DecompilerResultType::Important, fmt::format("Decompiling script {0}", scriptNum));
+                CompiledScript compiledScript(0);
+                if (compiledScript.Load(helper, helper.Version, scriptNum, false))
+                {
+                    if (pThis->_decompileResults->IsAborted())
+                    {
+                        pThis->_decompileResults->AddResult(DecompilerResultType::Warning, "Operation aborted");
+                    }
+                    else
+                    {
+                        unique_ptr<sci::Script> pScript = DecompileScript(*pThis->_lookups, helper, scriptNum, compiledScript, *pThis->_decompileResults);
+                        // Dump it to the .sc file
+                        // TODO: If it already exists, we might want to ask for confirmation.
+                        std::stringstream ss;
+                        sci::SourceCodeWriter out(ss, helper.GetGameLanguage(), pScript.get());
+                        pScript->OutputSourceCode(out);
+                        string sourceFilename = helper.GetScriptFileName(scriptNum);
+                        MakeTextFile(ss.str().c_str(), sourceFilename);
+                        pThis->_decompileResults->AddResult(DecompilerResultType::Important, fmt::format("Generated {0}", sourceFilename));
+                    }
+                }
+            }
+        }
+    }
+    catch (...)
+    {
+        int x = 0;
+    }
+
+    return 0;
+}
+
+void DecompilerDialogResults::AddResult(DecompilerResultType type, const std::string &message)
+{
+    std::string *ptrToString = new std::string(message);
+    ::PostMessage(_hwnd, UWM_UPDATESTATUS, static_cast<WPARAM>(type), reinterpret_cast<LPARAM>(ptrToString));
+}
+
+LRESULT DecompileDialog::UpdateStatus(WPARAM wParam, LPARAM lParam)
+{
+    DecompilerResultType type = static_cast<DecompilerResultType>(wParam);
+    std::string *stringPtr = reinterpret_cast<std::string*>(lParam);
+
+    std::string preamble;
+    if (type == DecompilerResultType::Warning)
+    {
+        preamble = "WARNING: ";
+    }
+    else if (type == DecompilerResultType::Error)
+    {
+        preamble = "ERROR: ";
+    }
+    std::string display = fmt::format("{0}{1}",
+        preamble,
+        *stringPtr
+        );
+
+    if (type == DecompilerResultType::Update)
+    {
+        m_wndStatus.SetWindowTextA(display.c_str());
+    }
+    else
+    {
+        m_wndResults.AddString(display.c_str());
+    }
+    delete stringPtr;
+    return 0;
 }

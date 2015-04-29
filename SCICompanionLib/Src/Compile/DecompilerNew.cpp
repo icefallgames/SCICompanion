@@ -3,7 +3,7 @@
 #include "DecompilerCore.h"
 #include "DecompilerNew.h"
 #include "ScriptOMAll.h"
-#include "AppState.h"
+#include "GameFolderHelper.h"
 
 using namespace std;
 using namespace sci;
@@ -1422,7 +1422,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
             // In SCI0 is this a relative offset from the post operation program counter.
             // In SCI1 it appears to be an absolute offset.
             ICompiledScriptSpecificLookups::ObjectType type;
-            SCIVersion version = appState->GetVersion();
+            SCIVersion version = lookups.Helper.Version;
             uint16_t wName = version.lofsaOpcodeIsAbsolute ?
                 pos->get_first_operand() :
                 (pos->get_first_operand() + pos->get_final_postop_offset());
@@ -1430,7 +1430,6 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
             if (name.empty())
             {
                 name = InvalidLookupError;
-                appState->LogInfo("Unable to find symbol for %d.", wName);
             }
             unique_ptr<PropertyValue> value = std::make_unique<PropertyValue>();
             value->SetValue(name, _ScriptObjectTypeToPropertyValueType(type));
@@ -2132,30 +2131,39 @@ void _RestructureCaseHeaders(ConsumptionNode *chunk, DecompileLookups &lookups)
 }
 
 
-void OutputNewStructure(sci::FunctionBase &func, MainNode &main, DecompileLookups &lookups)
+bool OutputNewStructure(sci::FunctionBase &func, MainNode &main, DecompileLookups &lookups)
 {
-    CodeChunkEnumContext context(lookups);
-    unique_ptr<ConsumptionNode> mainChunk = make_unique<ConsumptionNode>();
-    context.Current = mainChunk.get();
-    EnumerateCodeChunks enumCodeChunks(context, lookups);
-    enumCodeChunks.Visit(main);
-
-    _RemoveDoubleInverts(mainChunk.get());
-    _RemoveTOSS(mainChunk.get());
-    _FixupSwitches(mainChunk.get(), lookups);
-    _FixupIfs(mainChunk.get(), mainChunk.get(), lookups);
-    _ResolveNeededAcc(mainChunk.get(), mainChunk.get(), lookups);
-    _ResolvePPrevs(mainChunk.get(), mainChunk.get(), lookups);
-    _RestructureCaseHeaders(mainChunk.get(), lookups);
-    _ResolveDUPs(mainChunk.get(), mainChunk.get(), lookups);    // Must follow case restructure
-
-    std::stringstream ss;
-    mainChunk->Print(ss, 0);
-    //ShowTextFile(ss.str().c_str(), func.GetName() + "_chunks.txt");
-
-    // Now fill it in
-    for (auto &child : mainChunk->Children())
+    try
     {
-        _ApplySyntaxNodeToCodeNode(*child, func, lookups);
+        CodeChunkEnumContext context(lookups);
+        unique_ptr<ConsumptionNode> mainChunk = make_unique<ConsumptionNode>();
+        context.Current = mainChunk.get();
+        EnumerateCodeChunks enumCodeChunks(context, lookups);
+        enumCodeChunks.Visit(main);
+
+        _RemoveDoubleInverts(mainChunk.get());
+        _RemoveTOSS(mainChunk.get());
+        _FixupSwitches(mainChunk.get(), lookups);
+        _FixupIfs(mainChunk.get(), mainChunk.get(), lookups);
+        _ResolveNeededAcc(mainChunk.get(), mainChunk.get(), lookups);
+        _ResolvePPrevs(mainChunk.get(), mainChunk.get(), lookups);
+        _RestructureCaseHeaders(mainChunk.get(), lookups);
+        _ResolveDUPs(mainChunk.get(), mainChunk.get(), lookups);    // Must follow case restructure
+
+        std::stringstream ss;
+        mainChunk->Print(ss, 0);
+        ShowTextFile(ss.str().c_str(), func.GetName() + "_chunks.txt");
+
+        // Now fill it in
+        for (auto &child : mainChunk->Children())
+        {
+            _ApplySyntaxNodeToCodeNode(*child, func, lookups);
+        }
     }
+    catch (std::exception &e)
+    {
+        // Let's see what kind of problems we have before figure out a specific exception class here.
+        return false;
+    }
+    return true;
 }

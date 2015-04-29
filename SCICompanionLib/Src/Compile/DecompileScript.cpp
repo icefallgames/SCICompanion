@@ -4,13 +4,15 @@
 #include "DecompilerCore.h"
 #include "ScriptOMAll.h"
 #include "AutoDetectVariableNames.h"
-#include "AppState.h"
 #include "SCO.h"
+#include "GameFolderHelper.h"
+#include "DecompilerResults.h"
 
 using namespace sci;
 using namespace std;
 
-void DecompileObject(const CompiledObjectBase &object, sci::Script &script,
+void DecompileObject(const CompiledObjectBase &object,
+    sci::Script &script,
     DecompileLookups &lookups,
     const std::vector<BYTE> &scriptResource,
     const std::vector<CodeSection> &codeSections,
@@ -87,7 +89,7 @@ void DecompileObject(const CompiledObjectBase &object, sci::Script &script,
     const vector<uint16_t> &functionSelectors = object.GetMethods();
     const vector<uint16_t> &functionOffsetsTO = object.GetMethodCodePointersTO();
     assert(functionSelectors.size() == functionOffsetsTO.size());
-    for (size_t i = 0; i < functionSelectors.size(); i++)
+    for (size_t i = 0; i < functionSelectors.size() && !lookups.DecompileResults().IsAborted(); i++)
     {
         // Now the code.
         set<uint16_t>::const_iterator functionIndex = find(codePointersTO.begin(), codePointersTO.end(), functionOffsetsTO[i]);
@@ -132,11 +134,11 @@ void InsertHeaders(Script &script)
     script.AddInclude("sci.sh");
 }
 
-void DetermineAndInsertUsings(Script &script, DecompileLookups &lookups)
+void DetermineAndInsertUsings(const GameFolderHelper &helper, Script &script, DecompileLookups &lookups)
 {
     for (uint16_t usingScript : lookups.GetUsings())
     {
-        script.AddUse(appState->GetResourceMap().FigureOutName(ResourceType::Script, usingScript));
+        script.AddUse(helper.FigureOutName(ResourceType::Script, usingScript));
     }
 }
 
@@ -187,7 +189,7 @@ bool _IsUndeterminedPublicProc(const CompiledScript &compiledScript, const std::
 class ResolveProcedureCalls : public IExploreNodeContext, public IExploreNode
 {
 public:
-    ResolveProcedureCalls(const CompiledScript &compiledScript, unordered_map<int, unique_ptr<CSCOFile>> &scoMap) : _scoMap(scoMap), _compiledScript(compiledScript) {}
+    ResolveProcedureCalls(const GameFolderHelper &helper, const CompiledScript &compiledScript, unordered_map<int, unique_ptr<CSCOFile>> &scoMap) : _scoMap(scoMap), _compiledScript(compiledScript), _helper(helper) {}
 
     void ExploreNode(IExploreNodeContext *pContext, SyntaxNode &node, ExploreNodeState state) override
     {
@@ -246,20 +248,21 @@ private:
     {
         if (_scoMap.find(script) == _scoMap.end())
         {
-            _scoMap[script] = move(GetExistingSCOFromScriptNumber(script));
+            _scoMap[script] = move(GetExistingSCOFromScriptNumber(_helper, script));
         }
         return _scoMap.at(script).get();
     }
         
+    const GameFolderHelper &_helper;
     unordered_map<int, unique_ptr<CSCOFile>> &_scoMap;
     const CompiledScript &_compiledScript;
 };
 
 // This pulls in the required .sco files to find the public procedure names
-void ResolvePublicProcedureCalls(Script &script, const CompiledScript &compiledScript)
+void ResolvePublicProcedureCalls(const GameFolderHelper &helper, Script &script, const CompiledScript &compiledScript)
 {
     unordered_map<int, unique_ptr<CSCOFile>> scoMap;
-    scoMap[script.GetScriptNumber()] = move(GetExistingSCOFromScriptNumber(script.GetScriptNumber()));
+    scoMap[script.GetScriptNumber()] = move(GetExistingSCOFromScriptNumber(helper, script.GetScriptNumber()));
 
     // First let's resolve the exports
     CSCOFile *thisSCO = scoMap.at(script.GetScriptNumber()).get();
@@ -282,11 +285,11 @@ void ResolvePublicProcedureCalls(Script &script, const CompiledScript &compiledS
     }
 
     // Now the actual calls, which could be to any script
-    ResolveProcedureCalls resolveProcCalls(compiledScript, scoMap);
+    ResolveProcedureCalls resolveProcCalls(helper, compiledScript, scoMap);
     script.Traverse(&resolveProcCalls, resolveProcCalls);
 }
 
-Script *Decompile(const CompiledScript &compiledScript, DecompileLookups &lookups, const ILookupNames *pWords)
+Script *Decompile(const GameFolderHelper &helper, const CompiledScript &compiledScript, DecompileLookups &lookups, const ILookupNames *pWords)
 {
     unique_ptr<Script> pScript = std::make_unique<Script>();
     ScriptId scriptId;
@@ -351,10 +354,14 @@ Script *Decompile(const CompiledScript &compiledScript, DecompileLookups &lookup
     for (auto &object : compiledScript._objects)
     {
         DecompileObject(*object, *pScript, lookups, compiledScript.GetRawBytes(), compiledScript._codeSections, codePointersTO);
+        if (lookups.DecompileResults().IsAborted())
+        {
+            break;
+        }
     }
 
     // Now the exported procedures.
-    for (size_t i = 0; i < compiledScript._exportsTO.size(); i++)
+    for (size_t i = 0; i < compiledScript._exportsTO.size() && !lookups.DecompileResults().IsAborted(); i++)
     {
         // _exportsTO, in addition to containing code pointers for public procedures, also
         // contain the Rm class.  Filter these out by ignoring code pointers which point outside
@@ -373,6 +380,10 @@ Script *Decompile(const CompiledScript &compiledScript, DecompileLookups &lookup
     // Now the internal procedures (REVIEW - possibly overlap with exported ones)
     for (uint16_t offset : internalProcOffsetsTO)
     {
+        if (lookups.DecompileResults().IsAborted())
+        {
+            break;
+        }
         std::unique_ptr<ProcedureDefinition> pProc = make_unique<ProcedureDefinition>();
         pProc->SetScript(pScript.get());
         pProc->SetName(_GetProcNameFromScriptOffset(offset));
@@ -381,35 +392,37 @@ Script *Decompile(const CompiledScript &compiledScript, DecompileLookups &lookup
         pScript->AddProcedure(std::move(pProc));
     }
 
-    AddLocalVariablesToScript(*pScript, lookups, compiledScript._localVars);
-
-    // Load this script's SCO, and main's SCO (assuming this isn't main)
-    unique_ptr<CSCOFile> mainSCO;
-    if (compiledScript.GetScriptNumber() != 0)
+    if (!lookups.DecompileResults().IsAborted())
     {
-        mainSCO = GetExistingSCOFromScriptNumber(0);
+        AddLocalVariablesToScript(*pScript, compiledScript, lookups, compiledScript._localVars);
+
+        // Load this script's SCO, and main's SCO (assuming this isn't main)
+        unique_ptr<CSCOFile> mainSCO;
+        if (compiledScript.GetScriptNumber() != 0)
+        {
+            mainSCO = GetExistingSCOFromScriptNumber(helper, 0);
+        }
+        unique_ptr<CSCOFile> oldScriptSCO = GetExistingSCOFromScriptNumber(helper, compiledScript.GetScriptNumber());
+
+        bool mainDirty = false;
+        AutoDetectVariableNames(*pScript, mainSCO.get(), oldScriptSCO.get(), mainDirty);
+
+        ResolvePublicProcedureCalls(helper, *pScript, compiledScript);
+
+        InsertHeaders(*pScript);
+
+        DetermineAndInsertUsings(helper, *pScript, lookups);
+
+        // Decompiling always generates an SCO. Any pertinent info from the old SCO should be transfered
+        // to the new one based extracting info from the script.
+        std::unique_ptr<CSCOFile> scoFile = SCOFromScriptAndCompiledScript(*pScript, compiledScript);
+        SaveSCOFile(helper, *scoFile);
+
+        // We may have added some global info to main's SCO. Save that now.
+        if (mainDirty)
+        {
+            SaveSCOFile(helper, *mainSCO);
+        }
     }
-    unique_ptr<CSCOFile> oldScriptSCO = GetExistingSCOFromScriptNumber(compiledScript.GetScriptNumber());
-
-    bool mainDirty = false;
-    AutoDetectVariableNames(*pScript, mainSCO.get(), oldScriptSCO.get(), mainDirty);
-
-    ResolvePublicProcedureCalls(*pScript, compiledScript);
-
-    InsertHeaders(*pScript);
-    
-    DetermineAndInsertUsings(*pScript, lookups);
-
-    // Decompiling always generates an SCO. Any pertinent info from the old SCO should be transfered
-    // to the new one based extracting info from the script.
-    std::unique_ptr<CSCOFile> scoFile = SCOFromScriptAndCompiledScript(*pScript, compiledScript);
-    SaveSCOFile(*scoFile);
-
-    // We may have added some global info to main's SCO. Save that now.
-    if (mainDirty)
-    {
-        SaveSCOFile(*mainSCO);
-    }
-
     return pScript.release();
 }

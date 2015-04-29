@@ -302,8 +302,8 @@ bool SCIClassBrowser::ReLoadFromSources()
     {
         Reset();
         // Load the kernel and selector names
-        _kernelNamesResource.Load();
-        _selectorNames.Load(_version);
+        _kernelNamesResource.Load(appState->GetResourceMap().Helper());
+        _selectorNames.Load(appState->GetResourceMap().Helper());
 
         // Add headers first, since they have defines that are needed by the other scripts.
         _AddHeaders();
@@ -316,7 +316,7 @@ bool SCIClassBrowser::ReLoadFromSources()
     }
 }
 
-void LoadClassFromCompiled(sci::ClassDefinition *pClass, CompiledObjectBase *pObject, SelectorTable *pNames, const std::unordered_map<uint16_t, std::string> &speciesToName)
+void LoadClassFromCompiled(sci::ClassDefinition *pClass, const CompiledScript &compiledScript, CompiledObjectBase *pObject, SelectorTable *pNames, const std::unordered_map<uint16_t, std::string> &speciesToName)
 {
     pClass->SetInstance(pObject->IsInstance());
     pClass->SetName(pObject->GetName());
@@ -343,14 +343,28 @@ void LoadClassFromCompiled(sci::ClassDefinition *pClass, CompiledObjectBase *pOb
         // Add the values anyway.... we'll resolve property selectors later.
         for (size_t i = 0; i < propertyValues.size(); i++)
         {
-            pClass->AddProperty(sci::ClassProperty(TEXT("Unknown"), propertyValues[i].value));
+            if (propertyValues[i].isString)
+            {
+                pClass->AddProperty(sci::ClassProperty(TEXT("Unknown"), compiledScript.GetStringFromOffset(propertyValues[i].value)));
+            }
+            else
+            {
+                pClass->AddProperty(sci::ClassProperty(TEXT("Unknown"), propertyValues[i].value));
+            }
         }
     }
     else
     {
         for (size_t i = 0; i < properties.size(); i++)
         {
-            pClass->AddProperty(sci::ClassProperty(pNames->Lookup(properties[i]), propertyValues[i].value));
+            if (propertyValues[i].isString)
+            {
+                pClass->AddProperty(sci::ClassProperty(pNames->Lookup(properties[i]), compiledScript.GetStringFromOffset(propertyValues[i].value)));
+            }
+            else
+            {
+                pClass->AddProperty(sci::ClassProperty(pNames->Lookup(properties[i]), propertyValues[i].value));
+            }
         }
     }
 
@@ -376,7 +390,7 @@ void LoadScriptFromCompiled(sci::Script *pScript, CompiledScript *pCompiledScrip
     {
         std::unique_ptr<sci::ClassDefinition> pClass = std::make_unique<ClassDefinition>();
         pClass->SetScript(pScript);
-        LoadClassFromCompiled(pClass.get(), object.get(), pNames, speciesToName);
+        LoadClassFromCompiled(pClass.get(), *pCompiledScript, object.get(), pNames, speciesToName);
         pScript->AddClass(std::move(pClass));
     }
 }
@@ -399,11 +413,11 @@ void SCIClassBrowser::ReLoadFromCompiled()
 #ifdef REENABLE_COMPILEDSCRIPTS
 
     // Load the kernel and selector names
-    _kernelNamesResource.Load();
-    _selectorNames.Load(_version);
+    _kernelNamesResource.Load(appState->GetResourceMap().Helper());
+    _selectorNames.Load(appState->GetResourceMap().Helper());
 
     GlobalClassTable classTable;
-    if (!classTable.Load())
+    if (!classTable.Load(appState->GetResourceMap().Helper()))
     {
         return;
     }
@@ -431,7 +445,7 @@ void SCIClassBrowser::ReLoadFromCompiled()
         {
             std::unique_ptr<sci::istream> pStream(new sci::istream(scriptBlob->GetData(), scriptBlob->GetLength()));
             std::unique_ptr<CompiledScript> pCompiledScript = std::make_unique<CompiledScript>(scriptBlob->GetNumber());
-            if (pCompiledScript->Load(appState->GetVersion(), scriptBlob->GetNumber(), *pStream))
+            if (pCompiledScript->Load(appState->GetResourceMap().Helper(), appState->GetVersion(), scriptBlob->GetNumber(), *pStream))
             {
                 compiledScriptsMap[scriptBlob->GetNumber()] = move(pCompiledScript);
             }
@@ -810,7 +824,7 @@ void SCIClassBrowser::_AddHeaders()
 
     // game.sh
     TCHAR szHeaderPath[MAX_PATH];
-    if (SUCCEEDED(StringCchPrintf(szHeaderPath, ARRAYSIZE(szHeaderPath), TEXT("%s\\game.sh"), appState->GetResourceMap().GetSrcFolder().c_str())))
+    if (SUCCEEDED(StringCchPrintf(szHeaderPath, ARRAYSIZE(szHeaderPath), TEXT("%s\\game.sh"), appState->GetResourceMap().Helper().GetSrcFolder().c_str())))
     {
         _AddHeader(szHeaderPath);
     }

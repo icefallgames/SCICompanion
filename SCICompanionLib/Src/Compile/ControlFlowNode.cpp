@@ -108,7 +108,10 @@ void GetThenAndElseBranches(ControlFlowNode *node, ControlFlowNode **thenNode, C
             }
             else
             {
-                assert(target == two->GetStartingAddress());
+                if (target == two->GetStartingAddress())
+                {
+                    throw ControlFlowException(node, "Inconsistent then/else branches. Possible \"continue\" statement?");
+                }
                 *elseNode = two;
                 *thenNode = one;
             }

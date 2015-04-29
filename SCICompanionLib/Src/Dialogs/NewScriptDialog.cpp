@@ -48,7 +48,7 @@ void CNewScriptDialog::_PrepareDialog()
     TCHAR *pszNameValues = new TCHAR[nSize];
     if (pszNameValues)
     {
-        std::string iniFileName = appState->GetResourceMap().GetGameIniFileName();
+        std::string iniFileName = appState->GetResourceMap().Helper().GetGameIniFileName();
         if (!iniFileName.empty())
         {
             DWORD nLength =  GetPrivateProfileSection(TEXT("Script"), pszNameValues, nSize, iniFileName.c_str());
@@ -171,7 +171,7 @@ void CNewScriptDialog::OnOK()
         if (!strName.IsEmpty())
         {
             StringCchCopy(_szScriptName, ARRAYSIZE(_szScriptName), (PCTSTR)strName);
-            _scriptId.SetFullPath(appState->GetResourceMap().GetScriptFileName(_szScriptName, appState->GetResourceMap().GetGameLanguage()));
+            _scriptId.SetFullPath(appState->GetResourceMap().Helper().GetScriptFileName(_szScriptName, appState->GetResourceMap().GetGameLanguage()));
         }
         else
         {

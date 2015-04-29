@@ -7,5 +7,5 @@ namespace sci
 class CompiledScript;
 class DecompileLookups;
 class ILookupNames;
-
-sci::Script *Decompile(const CompiledScript &compiledScript, DecompileLookups &lookups, const ILookupNames *pWords);
+class GameFolderHelper;
+sci::Script *Decompile(const GameFolderHelper &helper, const CompiledScript &compiledScript, DecompileLookups &lookups, const ILookupNames *pWords);

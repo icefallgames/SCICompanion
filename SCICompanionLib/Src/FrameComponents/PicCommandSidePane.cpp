@@ -485,7 +485,7 @@ void PicCommandSidePane::SetDocument(CDocument *pDoc)
         std::string text = "script: ";
         if (_pDoc->GetNumber() != -1)
         {
-            text += appState->GetResourceMap().FigureOutName(ResourceType::Script, _pDoc->GetNumber());
+            text += appState->GetResourceMap().Helper().FigureOutName(ResourceType::Script, _pDoc->GetNumber());
             m_wndGotoScript.SetWindowText(text.c_str());
             m_wndGotoScript.EnableWindow(TRUE);
         }
