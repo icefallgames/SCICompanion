@@ -4,6 +4,8 @@
 #include "DecompilerNew.h"
 #include "ScriptOMAll.h"
 #include "GameFolderHelper.h"
+#include "format.h"
+#include "DecompilerResults.h"
 
 using namespace std;
 using namespace sci;
@@ -222,6 +224,15 @@ struct ConsumptionNode
 private:
     // Children might be stored backward for now, we'll see
     std::vector<std::unique_ptr<ConsumptionNode>> children;
+};
+
+class ConsumptionNodeException : public std::exception
+{
+public:
+    ConsumptionNodeException(ConsumptionNode *node, const std::string &message) : message(message), node(node) {}
+
+    ConsumptionNode *node;
+    std::string message;
 };
 
 struct ContextFrame
@@ -1011,6 +1022,10 @@ bool _MaybeConsumeRestInstruction(SendParam *pSendParam, int index, ConsumptionN
     {
         return false;
     }
+    if (!node.Child(index)->_hasPos)
+    {
+        return false;
+    }
 
     code_pos restInstruction = node.Child(index)->GetCode();
     bool foundRest = (restInstruction->get_opcode() == Opcode::REST);
@@ -1731,7 +1746,8 @@ void _ResolveDUPs(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookup
                     chunk->ReplaceChild(i, move(clone));
                 }
             }
-            assert(found && "Couldn't find DUP source");
+
+            throw ConsumptionNodeException(chunk, "Couldn't find DUP source");
         }
     }
 
@@ -2131,13 +2147,13 @@ void _RestructureCaseHeaders(ConsumptionNode *chunk, DecompileLookups &lookups)
 }
 
 
-bool OutputNewStructure(sci::FunctionBase &func, MainNode &main, DecompileLookups &lookups)
+bool OutputNewStructure(const std::string &messagePrefix, sci::FunctionBase &func, MainNode &main, DecompileLookups &lookups)
 {
+    CodeChunkEnumContext context(lookups);
+    unique_ptr<ConsumptionNode> mainChunk = make_unique<ConsumptionNode>();
+    context.Current = mainChunk.get();
     try
     {
-        CodeChunkEnumContext context(lookups);
-        unique_ptr<ConsumptionNode> mainChunk = make_unique<ConsumptionNode>();
-        context.Current = mainChunk.get();
         EnumerateCodeChunks enumCodeChunks(context, lookups);
         enumCodeChunks.Visit(main);
 
@@ -2148,11 +2164,13 @@ bool OutputNewStructure(sci::FunctionBase &func, MainNode &main, DecompileLookup
         _ResolveNeededAcc(mainChunk.get(), mainChunk.get(), lookups);
         _ResolvePPrevs(mainChunk.get(), mainChunk.get(), lookups);
         _RestructureCaseHeaders(mainChunk.get(), lookups);
-        _ResolveDUPs(mainChunk.get(), mainChunk.get(), lookups);    // Must follow case restructure
 
         std::stringstream ss;
         mainChunk->Print(ss, 0);
         ShowTextFile(ss.str().c_str(), func.GetName() + "_chunks.txt");
+
+
+        _ResolveDUPs(mainChunk.get(), mainChunk.get(), lookups);    // Must follow case restructure
 
         // Now fill it in
         for (auto &child : mainChunk->Children())
@@ -2160,9 +2178,18 @@ bool OutputNewStructure(sci::FunctionBase &func, MainNode &main, DecompileLookup
             _ApplySyntaxNodeToCodeNode(*child, func, lookups);
         }
     }
-    catch (std::exception &e)
+    catch (ConsumptionNodeException &e)
     {
-        // Let's see what kind of problems we have before figure out a specific exception class here.
+        string message;
+        if (e.node->_hasPos)
+        {
+            message = fmt::format("{0}: {1}: {2} at {3:04x}", messagePrefix, e.message, (int)e.node->GetType(), e.node->GetCode()->get_final_offset_dontcare());
+        }
+        else
+        {
+            message = fmt::format("{0}: {1}: {2}", messagePrefix, e.message, (int)e.node->GetType());
+        }
+        lookups.DecompileResults().AddResult(DecompilerResultType::Warning, message);
         return false;
     }
     return true;

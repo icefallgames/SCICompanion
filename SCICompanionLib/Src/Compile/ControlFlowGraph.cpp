@@ -597,7 +597,10 @@ ControlFlowNode *ControlFlowGraph::_ProcessNaturalLoop(ControlFlowGraph &loopDet
     // Also assert that we have a tail that is an exit point. If not, it might mean we think we have >1 exits.
     // This could be indicative of a goto (or mid-identified break)
     ControlFlowNode *tail = loopNode->MaybeGet(SemId::Tail);
-    assert(tail && (tail->Type == CFGNodeType::Exit));
+    if (!tail || (tail->Type != CFGNodeType::Exit))
+    {
+        throw ControlFlowException(loopNode, "No loop tail, or not an exit. Multiple loop exits?");
+    }
 
     return loopNode;
 }
@@ -1551,7 +1554,7 @@ bool ControlFlowGraph::Generate(code_pos start, code_pos end)
         if (e.node)
         {
             uint16_t address = e.node->GetStartingAddress();
-            string message = fmt::format("{0}: {1} at {2:04x}", e.message, e.node->Type, address);
+            string message = fmt::format("{0}: {1}: {2} at {3:04x}", _statusMessagePrefix, e.message, e.node->Type, address);
             _decompilerResults.AddResult(DecompilerResultType::Warning, message);
         }
         else

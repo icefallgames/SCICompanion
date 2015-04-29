@@ -955,7 +955,7 @@ void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBe
         const NodeSet &controlStructures = cfg.ControlStructures();
         MainNode *mainNode = cfg.GetMain();
         lookups.DecompileResults().AddResult(DecompilerResultType::Update, fmt::format("{0} {1}::{2}: Generating code", func.GetOwnerScript()->GetName(), className, func.GetName()));
-        success = OutputNewStructure(func, *mainNode, lookups);
+        success = OutputNewStructure(messageDescription, func, *mainNode, lookups);
     }
     
     if (!success && !lookups.DecompileResults().IsAborted())

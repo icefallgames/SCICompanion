@@ -62,10 +62,10 @@ public:
         {
             out.out << "(class ";
         }
-        out.out << classDef.GetName();
+        out.out << CleanToken(classDef.GetName());
         if (!classDef.GetSuperClass().empty())
         {
-            out.out << " of " << classDef.GetSuperClass();
+            out.out << " of " << CleanToken(classDef.GetSuperClass());
         }
         out.out << out.NewLineString();
 

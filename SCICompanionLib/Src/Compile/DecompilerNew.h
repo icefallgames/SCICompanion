@@ -1,6 +1,6 @@
 #pragma once
 
-bool OutputNewStructure(sci::FunctionBase &func, MainNode &main, DecompileLookups &lookups);
+bool OutputNewStructure(const std::string &messagePrefix, sci::FunctionBase &func, MainNode &main, DecompileLookups &lookups);
 
 /*
     Decompilation summary
