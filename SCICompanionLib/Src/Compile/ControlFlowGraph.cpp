@@ -198,7 +198,10 @@ ControlFlowNode *ControlFlowGraph::_ReplaceIfStatementInWorkingSet(ControlFlowNo
     }
 
     exitPoint->AssignPredecessors(exitPredecessors);
-    assert(exitPoint->Predecessors().size() == 2);
+    if (exitPoint->Predecessors().size() != 2)
+    {
+        throw ControlFlowException(ifHeader, "Unable to insert if node. Exit needs to predecessors.");
+    }
 
     // Now remove the children from the parent structure
     for (ControlFlowNode *ifChild : ifNode->children)
@@ -372,7 +375,12 @@ void ControlFlowGraph::_IdentifySwitchCases(ControlFlowNode *switchNodeIn)
     ControlFlowNode *switchHead = (*switchNode)[SemId::Head];
     assert(switchHead->Successors().size() == 1);
     ControlFlowNode *firstCase = *switchHead->Successors().begin();
-    assert(firstCase->startsWith(Opcode::DUP) && firstCase->endsWith(Opcode::BNT));
+
+    if (!firstCase->startsWith(Opcode::DUP) || !firstCase->endsWith(Opcode::BNT))
+    {
+        throw ControlFlowException(firstCase, "Unexpected structure for first case in switch");
+    }
+
     // Discover all the cases.
     NodeSet caseHeads;
     ControlFlowNode *currentCase = firstCase;
@@ -947,9 +955,10 @@ void ControlFlowGraph::_FindCompoundConditions(ControlFlowNode *structure)
                         GetThenAndElseBranches(possibleStart, &firstThenNode, &firstElseNode);
                         GetThenAndElseBranches(branchNode, &secondThenNode, &secondElseNode);
                         CompoundConditionNode *newConditionNode = nullptr;
+                        bool throwException = false;
                         if (firstElseNode == secondElseNode)
                         {
-                            assert(firstThenNode == branchNode);
+                            throwException = (firstThenNode != branchNode);
                             // This is (X and Y)
                             newConditionNode = MakeStructuredNode<CompoundConditionNode>(ConditionType::And);
                             newConditionNode->isFirstTermNegated = false;
@@ -957,7 +966,7 @@ void ControlFlowGraph::_FindCompoundConditions(ControlFlowNode *structure)
                         }
                         else if (firstThenNode == secondThenNode)
                         {
-                            assert(firstElseNode == branchNode);
+                            throwException = (firstElseNode != branchNode);
                             // This is (X or Y)
                             newConditionNode = MakeStructuredNode<CompoundConditionNode>(ConditionType::Or);
                             newConditionNode->isFirstTermNegated = false;
@@ -965,7 +974,7 @@ void ControlFlowGraph::_FindCompoundConditions(ControlFlowNode *structure)
                         }
                         else if (firstElseNode == secondThenNode)
                         {
-                            assert(firstThenNode == branchNode);
+                            throwException = (firstThenNode != branchNode);
                             // This is (!X or Y);
                             newConditionNode = MakeStructuredNode<CompoundConditionNode>(ConditionType::Or);
                             newConditionNode->isFirstTermNegated = true;
@@ -973,11 +982,16 @@ void ControlFlowGraph::_FindCompoundConditions(ControlFlowNode *structure)
                         }
                         else if (firstThenNode == secondElseNode)
                         {
-                            assert(firstElseNode == branchNode);
+                            throwException = (firstElseNode != branchNode);
                             // This is (!X and Y)
                             newConditionNode = MakeStructuredNode<CompoundConditionNode>(ConditionType::And);
                             newConditionNode->isFirstTermNegated = true;
                             newConditionNode->thenBranch = secondThenNode->GetStartingAddress();
+                        }
+
+                        if (throwException)
+                        {
+                            throw ControlFlowException(possibleStart, "Unable to resolve compound condition");
                         }
 
                         (*newConditionNode)[SemId::Head] = possibleStart;

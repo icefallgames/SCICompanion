@@ -43,6 +43,7 @@ enum OperandType
     otINT16 =     12,
     otOFFS =      13,
     otUINT =      14,
+    otUINT8 =     15,
 };
 extern OperandType OpArgTypes[TOTAL_OPCODES][3];
 

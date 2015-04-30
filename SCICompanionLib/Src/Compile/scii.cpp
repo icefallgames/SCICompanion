@@ -162,6 +162,7 @@ WORD scii::_get_instruction_size(Opcode bOpcode, OPSIZE opSize)
             wSize += 2;
             break;
         case otINT8:
+        case otUINT8:
             wSize++;
             break;
         }
@@ -321,6 +322,7 @@ WORD scii::calc_size(code_pos self, int *pfNeedToRedo)
                     opSizeCalculated = Word;
                     break;
                 case otINT8:
+                case otUINT8:
                     break;
                 }
             }
@@ -403,6 +405,7 @@ void scii::output_code(std::vector<BYTE> &output)
             bByte = false;
             break;
         case otINT8:
+        case otUINT8:
             bByte = true;
             break;
         }

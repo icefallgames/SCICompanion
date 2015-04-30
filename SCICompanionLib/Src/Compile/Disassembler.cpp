@@ -73,7 +73,11 @@ int GetOperandSize(BYTE bOpcode, OperandType operandType)
         cIncr = 2;
         break;
     case otINT8:
+    case otUINT8:
         cIncr = 1;
+        break;
+    default:
+        assert(false && "Unknown operand type");
         break;
     }
     return cIncr;
@@ -170,6 +174,7 @@ void DisassembleCode(SCIVersion version, std::ostream &out, ICompiledScriptLooku
                         case otUINT:
                         case otINT16:
                         case otINT8:
+                        case otUINT8:
                             out << wOperands[i];
                             break;
                         case otKERNEL:
@@ -228,6 +233,7 @@ void DisassembleCode(SCIVersion version, std::ostream &out, ICompiledScriptLooku
                             break;
 
                         default:
+                            assert(false, "Unknown operand type");
                             out << "$" << setw(4) << setfill('0') << wOperands[i];
                             break;
                         }

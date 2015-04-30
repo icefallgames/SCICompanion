@@ -45,6 +45,8 @@ private:
     CExtButton m_wndDecomileCancel;
     CExtButton m_wndClearSCO;
     CExtButton m_wndSetFilenames;
+    //CExtProgressWnd m_wndProgress;
+    CProgressCtrl m_wndProgress;
 
     CExtCheckBox m_wndDebugControlFlow;
     CExtCheckBox m_wndDebugInstConsumption;
@@ -87,4 +89,5 @@ public:
     afx_msg void OnBnClickedDecompile();
     afx_msg void OnBnClickedAssignfilenames();
     afx_msg void OnBnClickedDecompilecancel();
+    afx_msg void OnBnClickedClearsco();
 };

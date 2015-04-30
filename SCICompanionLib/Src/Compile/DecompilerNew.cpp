@@ -388,7 +388,9 @@ private:
         ContextFrame frame;
         frame.node = node;
         frame.cAccConsume = cAccConsume;
+        assert(frame.cAccConsume <= 1);
         frame.cStackConsume = cStackConsume;
+        assert(frame.cStackConsume <= 255);  // Any higher probably indicates a corrupt script.
         frame.Parent = Current;
         frames.push(frame);
     }
@@ -841,7 +843,10 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode2(ConsumptionNode &node, Decomp
         }
 
         case ChunkType::Condition:
-            assert(node.GetChildCount() == 1);
+            if (node.GetChildCount() != 1)
+            {
+                throw ConsumptionNodeException(&node, "Condition has too many children. Could be due to bad partition before if.");
+            }
             return _CodeNodeToSyntaxNode(*node.Child(0), lookups);
 
         case ChunkType::And:
@@ -860,10 +865,17 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode2(ConsumptionNode &node, Decomp
             }
             else
             {
-                assert(node.GetChild(ChunkType::First)->GetChildCount() == 1);
+                if (node.GetChild(ChunkType::First)->GetChildCount() != 1)
+                {
+                    throw ConsumptionNodeException(node.GetChild(ChunkType::First), "Too many children for condition node.");
+                }
                 _ApplySyntaxNodeToCodeNode1(*node.GetChild(ChunkType::First)->Child(0), *binaryOp, lookups);
             }
-            assert(node.GetChild(ChunkType::Second)->GetChildCount() == 1);
+
+            if (node.GetChild(ChunkType::Second)->GetChildCount() != 1)
+            {
+                throw ConsumptionNodeException(node.GetChild(ChunkType::Second), "Too many children for condition node.");
+            }
             _ApplySyntaxNodeToCodeNode2(*node.GetChild(ChunkType::Second)->Child(0), *binaryOp, lookups);
             binaryOp->SetName((node._chunkType == ChunkType::And) ? "&&" : "||");
             return unique_ptr<SyntaxNode>(move(binaryOp));
@@ -898,7 +910,10 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode2(ConsumptionNode &node, Decomp
         {
             unique_ptr<UnaryOp> unaryOp = make_unique<UnaryOp>();
             unaryOp->SetName("not");
-            assert(node.GetChildCount() == 1);
+            if (node.GetChildCount() != 1)
+            {
+                throw ConsumptionNodeException(&node, "Too many children for Invert node.");
+            }
             _ApplySyntaxNodeToCodeNode1(*node.Child(0), *unaryOp, lookups);
             return unique_ptr<SyntaxNode>(move(unaryOp));
         }
@@ -1755,6 +1770,50 @@ void ReplaceNodeWithNode(ConsumptionNode *nodeToBeReplaced, ConsumptionNode *nod
 bool GeneratesStack(const Consumption &consumption) { return consumption.cStackGenerate == 1; }
 bool GeneratesAcc(const Consumption &consumption) { return consumption.cAccGenerate == 1; }
 
+bool IsNodeStructureWithInstructionSequence(ConsumptionNode *node)
+{
+    switch (node->GetType())
+    {
+        case ChunkType::None:
+        case ChunkType::Then:
+        case ChunkType::Else:
+        case ChunkType::LoopBody:
+        case ChunkType::CaseBody:
+            return true;
+    }
+    return false;
+}
+
+// When looking for an accumulator value or stack value to steal, we can generally only proceed up through
+// nodes that have instruction sequences.
+// However, we can proceed up through other structured nodes if we can guarantee that
+// the node we're in will always be executed after the parent node. For instance, a [condition] node in an
+// [if] statement will always be executed once the code before the if is reached. The same is true for
+// the [first] condition in a compound condition (but not the second).
+bool SkipStructuredLevels(ConsumptionNode *&child, ConsumptionNode *&parent)
+{
+    while (parent && !IsNodeStructureWithInstructionSequence(parent))
+    {
+        if ((parent->GetType() == ChunkType::Condition) && (parent->_parentWeak->GetType() == ChunkType::If))
+        {
+            parent = parent->_parentWeak->_parentWeak;
+            child = child->_parentWeak->_parentWeak;
+        }
+        else if ((parent->GetType() == ChunkType::First) &&
+            ((parent->_parentWeak->GetType() == ChunkType::And) || (parent->_parentWeak->GetType() == ChunkType::Or)))
+        {
+            parent = parent->_parentWeak->_parentWeak;
+            child = child->_parentWeak->_parentWeak;
+        }
+        else
+        {
+            // We can't proceed up anymore
+            return false;
+        }
+    }
+    return true;
+}
+
 template<typename _Func, typename _FuncCreate>
 bool TryToStealOrCloneSomething(ConsumptionNode *originalChild, DecompileLookups &lookups, _Func satisfiesNeeds, _FuncCreate funcCreate)
 {
@@ -1786,33 +1845,7 @@ bool TryToStealOrCloneSomething(ConsumptionNode *originalChild, DecompileLookups
             // Go up another level.
             child = parent;
             parent = child->_parentWeak;
-            // Our logic is complicated here, so let's deal with it on a case-by-base basis.
-            // One place this happens here is in a condition in an if. So let's target that.
-            // Here, we'll either keep going up, or we'll bail completely.
-            if (parent->GetType() == ChunkType::None)
-            {
-                // We're good, procede.
-            }
-            else if (parent->GetType() == ChunkType::Condition)
-            {
-                // Jump out to an if, then to the if's parent.
-                child = parent;
-                parent = child->_parentWeak;
-                if (parent->GetType() == ChunkType::If)
-                {
-                    child = parent;
-                    parent = child->_parentWeak;
-                }
-                else
-                {
-                    done = true;
-                }
-            }
-            else
-            {
-                // Bail completely, we can't continue.
-                done = true;
-            }
+            done = !SkipStructuredLevels(child, parent);
         }
     }
     return success;

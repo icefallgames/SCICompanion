@@ -30,7 +30,7 @@ public:
     ScriptId GetScriptId(const std::string &name) const;
     std::string FigureOutName(ResourceType type, int iResourceNum) const;
     std::unique_ptr<ResourceContainer> Resources(ResourceTypeFlags types, ResourceEnumFlags enumFlags, ResourceRecency *pRecency = nullptr) const;
-    std::unique_ptr<ResourceBlob> GameFolderHelper::MostRecentResource(ResourceType type, int number, bool getName) const;
+    std::unique_ptr<ResourceBlob> GameFolderHelper::MostRecentResource(ResourceType type, int number, ResourceEnumFlags flags) const;
 
     // Members
     SCIVersion Version;

@@ -275,6 +275,12 @@ void _FigureOutParameters(FunctionBase &function, FunctionSignature &signature, 
         {
             wBiggest = max(wIndex, wBiggest);
         }
+        else if (pos->get_opcode() == Opcode::REST)
+        {
+            // REST usage also indicates params.
+            uint16_t restIndex = pos->get_first_operand();
+            wBiggest = max(restIndex, wBiggest);
+        }
     }
     if (wBiggest) // Parameters start at index 1, so 0 means no parameters
     {
@@ -592,6 +598,18 @@ Consumption _GetInstructionConsumption(scii &inst, DecompileLookups *lookups)
 
 // Works backward from branchInstruction to beginning (inclusive) until the sequence of instructions leading up to the branch
 // has been satisfied. If it fails, it returns false.
+//
+// This fails in situations where it shouldn't need to. For instance, in SQ5, script 801, offset 0x34a
+// sat	temp[$4]                // This is the acc we needed
+// pushi	$b4; 180, check     // this was for a compare operation after callk
+// pushi	$4; cel             // first stack push for callk
+// lst	temp[$5]
+// lst	temp[$6]
+// lst	temp[$3]                // Oh... no acc, it's another stack... don't need a stack, so I bail
+// push                         // Here's a stack, but this needs acc
+// callk	kernel_63, $8       // I need 5 stacks
+//
+// We'd need to implement some kind of instruction borrowing system to get this to work.
 bool _ObtainInstructionSequence(code_pos endingInstruction, code_pos beginning, code_pos &beginningOfBranchInstructionSequence)
 {
     bool success = true;

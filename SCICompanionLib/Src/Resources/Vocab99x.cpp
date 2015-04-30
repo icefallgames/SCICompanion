@@ -14,7 +14,7 @@ using namespace std;
 
 ResourceBlob *_GetVocabData(const GameFolderHelper &helper, int iVocab)
 {
-    return helper.MostRecentResource(ResourceType::Vocab, iVocab, false).release();
+    return helper.MostRecentResource(ResourceType::Vocab, iVocab, ResourceEnumFlags::None).release();
 }
 
 // Default kernal name table, taken from ScummVM source.

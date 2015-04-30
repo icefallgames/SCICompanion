@@ -174,14 +174,10 @@ std::unique_ptr<ResourceContainer> GameFolderHelper::Resources(ResourceTypeFlags
     return resourceContainer;
 }
 
-std::unique_ptr<ResourceBlob> GameFolderHelper::MostRecentResource(ResourceType type, int number, bool getName) const
+std::unique_ptr<ResourceBlob> GameFolderHelper::MostRecentResource(ResourceType type, int number, ResourceEnumFlags flags) const
 {
     std::unique_ptr<ResourceBlob> returnBlob;
-    ResourceEnumFlags enumFlags = ResourceEnumFlags::MostRecentOnly;
-    if (getName)
-    {
-        enumFlags |= ResourceEnumFlags::NameLookups;
-    }
+    ResourceEnumFlags enumFlags = flags | ResourceEnumFlags::MostRecentOnly;
     auto &resourceContainer = Resources(ResourceTypeToFlag(type), enumFlags);
     for (auto &blobIt = resourceContainer->begin(); blobIt != resourceContainer->end(); ++blobIt)
     {

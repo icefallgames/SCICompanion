@@ -494,7 +494,12 @@ std::unique_ptr<ResourceContainer> CResourceMap::Resources(ResourceTypeFlags typ
 
 std::unique_ptr<ResourceBlob> CResourceMap::MostRecentResource(ResourceType type, int number, bool getName)
 {
-    return Helper().MostRecentResource(type, number, getName);
+    ResourceEnumFlags flags = ResourceEnumFlags::None;
+    if (getName)
+    {
+        flags |= ResourceEnumFlags::NameLookups;
+    }
+    return Helper().MostRecentResource(type, number, flags);
 }
 
 void CResourceMap::PurgeUnnecessaryResources()

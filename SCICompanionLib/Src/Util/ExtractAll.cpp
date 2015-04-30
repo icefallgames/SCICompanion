@@ -112,16 +112,24 @@ void ExtractAllResources(SCIVersion version, const std::string &destinationFolde
                 if (disassembleScripts && (blob->GetType() == ResourceType::Script))
                 {
                     count++;
+                    std::string scriptPath = fullPath + ".txt";
                     if (progress)
                     {
-                        keepGoing = progress->SetProgress(possibleImagePath, count, totalCount);
+                        keepGoing = progress->SetProgress(scriptPath, count, totalCount);
+                    }
+
+                    // Supply the heap stream here, since we want it match patch vs vs not.
+                    std::unique_ptr<sci::istream> heapStream;
+                    std::unique_ptr<ResourceBlob> heapBlob = appState->GetResourceMap().Helper().MostRecentResource(ResourceType::Heap, blob->GetNumber(), ResourceEnumFlags::ExcludePatchFiles);
+                    if (heapBlob)
+                    {
+                        heapStream = std::make_unique<sci::istream>(heapBlob->GetReadStream());
                     }
 
                     CompiledScript compiledScript(blob->GetNumber());
-                    compiledScript.Load(appState->GetResourceMap().Helper(), appState->GetVersion(), blob->GetNumber(), blob->GetReadStream());
+                    compiledScript.Load(appState->GetResourceMap().Helper(), appState->GetVersion(), blob->GetNumber(), blob->GetReadStream(), heapStream.get());
                     std::stringstream out;
                     DisassembleScript(compiledScript, out, &scriptLookups, &objectFileLookups, appState->GetResourceMap().GetVocab000());
-                    std::string scriptPath = fullPath + ".txt";
                     std::string actualPath = MakeTextFile(out.str().c_str(), scriptPath.c_str());
                 }
             }

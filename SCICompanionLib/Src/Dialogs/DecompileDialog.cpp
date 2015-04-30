@@ -44,6 +44,10 @@ void DecompileDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_DECOMPILESTATUS, m_wndStatus);
     DDX_Control(pDX, IDC_CHECKCONTROLFLOW, m_wndDebugControlFlow);
     DDX_Control(pDX, IDC_CHECKINSTRUCTIONCONSUMPTION, m_wndDebugInstConsumption);
+    DDX_Control(pDX, IDC_PROGRESS1, m_wndProgress);
+    // For some reason this seems necessary, even though I'm using a marquee progress bar:
+    m_wndProgress.SetRange(0, 100);
+    m_wndProgress.SetPos(1);
 
     DDX_Control(pDX, IDC_TREESCO, m_wndTreeSCO);
 
@@ -79,9 +83,9 @@ struct
 }
 c_DecompileColumns[] =
 {
-    { "Name", 70, NameColumn },
-    { "Number", 55, NumberColumn },
-    { "SCO", 30, SCOColumn },
+    { "Name", 90, NameColumn },
+    { "Num", 45, NumberColumn },
+    { "SCO", 35, SCOColumn },
     { "Src", 30, SourceColumn },
 };
 
@@ -328,6 +332,7 @@ BEGIN_MESSAGE_MAP(DecompileDialog, CExtResizableDialog)
     ON_BN_CLICKED(IDC_DECOMPILECANCEL, &DecompileDialog::OnBnClickedDecompilecancel)
     ON_WM_TIMER()
     ON_MESSAGE(UWM_UPDATESTATUS, UpdateStatus)
+    ON_BN_CLICKED(IDC_CLEARSCO, &DecompileDialog::OnBnClickedClearsco)
 END_MESSAGE_MAP()
 
 // All this to handle the user pressing enter on a listview item.
@@ -479,6 +484,8 @@ void DecompileDialog::OnBnClickedDecompile()
     }
 }
 
+const int MarqueeMilliseconds = 30;
+
 void DecompileDialog::_SyncButtonState()
 {
     UINT selectedCount = m_wndListScripts.GetSelectedCount();
@@ -490,6 +497,8 @@ void DecompileDialog::_SyncButtonState()
     m_wndClearSCO.EnableWindow(!decompiling && selected);
     m_wndSetFilenames.EnableWindow(!decompiling);
     m_wndDecomileCancel.EnableWindow(decompiling);
+    m_wndProgress.ShowWindow(decompiling ? SW_SHOW : SW_HIDE);
+    m_wndProgress.SendMessage(PBM_SETMARQUEE, decompiling, MarqueeMilliseconds);
 }
 
 void DecompileDialog::OnBnClickedAssignfilenames()
@@ -639,4 +648,43 @@ LRESULT DecompileDialog::UpdateStatus(WPARAM wParam, LPARAM lParam)
     }
     delete stringPtr;
     return 0;
+}
+
+
+void DecompileDialog::OnBnClickedClearsco()
+{
+    // Get a list of scripts to clear SCOs
+    vector<string> scosDeleted;
+    set<uint16_t> scriptsToUpdate;
+    POSITION pos = m_wndListScripts.GetFirstSelectedItemPosition();
+    while (pos != nullptr)
+    {
+        int selectedItem = m_wndListScripts.GetNextSelectedItem(pos);
+        uint16_t scriptNumber = (uint16_t)m_wndListScripts.GetItemData(selectedItem);
+        string scoFilename = _helper.GetScriptObjectFileName(scriptNumber);
+        try
+        {
+            deletefile(scoFilename);
+            scosDeleted.push_back(scoFilename);
+            scriptsToUpdate.insert(scriptNumber);
+        }
+        catch (std::exception &e)
+        {
+            AfxMessageBox(e.what(), MB_OK | MB_ICONWARNING);
+            break;
+        }
+    }
+
+    if (scosDeleted.empty())
+    {
+        if (scosDeleted.size() == 1)
+        {
+            m_wndResults.SetWindowTextA(fmt::format("Deleted {0}", scosDeleted[0]).c_str());
+        }
+        else
+        {
+            m_wndResults.SetWindowTextA(fmt::format("Deleted {0} .sco files", scosDeleted.size()).c_str());
+        }
+    }
+    _UpdateScripts(scriptsToUpdate);
 }

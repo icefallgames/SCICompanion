@@ -33,7 +33,7 @@ bool CompiledScript::Load(const GameFolderHelper &helper, SCIVersion version, in
     _version = version;
     _wScript = (uint16_t)iScriptNumber;
 
-    std::unique_ptr<ResourceBlob> scriptResource = helper.MostRecentResource(ResourceType::Script, iScriptNumber, false);
+    std::unique_ptr<ResourceBlob> scriptResource = helper.MostRecentResource(ResourceType::Script, iScriptNumber, ResourceEnumFlags::None);
     if (scriptResource)
     {
         Load(helper, version, iScriptNumber, scriptResource->GetReadStream());
@@ -122,7 +122,7 @@ bool CompiledScript::_LoadSCI1_1(const GameFolderHelper &helper, int iScriptNumb
     unique_ptr<sci::istream> heapStreamScope;
     if (heapStream == nullptr)
     {
-        heapBlob = helper.MostRecentResource(ResourceType::Heap, iScriptNumber, false);
+        heapBlob = helper.MostRecentResource(ResourceType::Heap, iScriptNumber, ResourceEnumFlags::None);
         if (heapBlob)
         {
             heapStreamScope = make_unique<sci::istream>(heapBlob->GetReadStream());
@@ -853,7 +853,7 @@ std::string CompiledObjectBase::LookupPropertyName(ICompiledScriptLookups *pLook
         // We might be a "private" class.  So use our own list... (REVIEW: can't we always do this?)
         propertySelectorList = _propertySelectors;
     }
-    ASSERT((wPropertyIndex %2) == 0);
+    //ASSERT((wPropertyIndex %2) == 0);
     // REVIEW: Leisure Suit Larry 3, room 22, hits this ASSERT. As does SQ5 script 201.
     wPropertyIndex /= 2;
     if (wPropertyIndex < propertySelectorList.size())

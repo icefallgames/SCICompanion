@@ -740,7 +740,16 @@ unique_ptr<CSCOFile> SCOFromScriptAndCompiledScript(const Script &script, const 
         string exportName;
         if (compiledScript.IsExportAnObject(exportOffset))
         {
-            exportName = publicInstanceNames[instanceIndex++];
+            if (instanceIndex < publicInstanceNames.size())
+            {
+                exportName = publicInstanceNames[instanceIndex++];
+            }
+            else
+            {
+                // SQ5, script 209 hits this. The same public instance appears multiple near
+                // the end of the export table.
+                exportName = publicInstanceNames.back();
+            }
         }
         else if (compiledScript.IsExportAProcedure(exportOffset))
         {

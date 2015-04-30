@@ -7,6 +7,7 @@
 #include "SCO.h"
 #include "GameFolderHelper.h"
 #include "DecompilerResults.h"
+#include "format.h"
 
 using namespace sci;
 using namespace std;
@@ -111,19 +112,31 @@ void DecompileObject(const CompiledObjectBase &object,
     lookups.EndowWithProperties(nullptr);
 }
 
+const uint16_t BogusSQ5Export = 0x3af;
+
 void DecompileFunction(const CompiledScript &compiledScript, ProcedureDefinition &func, DecompileLookups &lookups, uint16_t wCodeOffsetTO, const set<uint16_t> &sortedCodePointersTO)
 {
     lookups.EndowWithProperties(lookups.GetPossiblePropertiesForProc(wCodeOffsetTO));
     set<uint16_t>::const_iterator codeStartIt = sortedCodePointersTO.find(wCodeOffsetTO);
-    ASSERT(codeStartIt != sortedCodePointersTO.end());
-    const BYTE *pBegin = &compiledScript.GetRawBytes()[*codeStartIt];
-    const BYTE *pEnd = compiledScript.GetEndOfRawBytes();
-    DecompileRaw(func, lookups, pBegin, pEnd, wCodeOffsetTO);
-    if (lookups.WasPropertyRequested() && lookups.GetPossiblePropertiesForProc(wCodeOffsetTO))
+    assert(codeStartIt != sortedCodePointersTO.end());
+    bool isValidFunctionPointer = (*codeStartIt < compiledScript.GetRawBytes().size()) && (*codeStartIt != BogusSQ5Export);
+    if (isValidFunctionPointer)
     {
-        const CompiledObjectBase *object = static_cast<const CompiledObjectBase *>(lookups.GetPossiblePropertiesForProc(wCodeOffsetTO));
-        // This procedure is "of" this object
-        func.SetClass(object->GetName());
+        const BYTE *pBegin = &compiledScript.GetRawBytes()[*codeStartIt];
+        const BYTE *pEnd = compiledScript.GetEndOfRawBytes();
+        DecompileRaw(func, lookups, pBegin, pEnd, wCodeOffsetTO);
+        if (lookups.WasPropertyRequested() && lookups.GetPossiblePropertiesForProc(wCodeOffsetTO))
+        {
+            const CompiledObjectBase *object = static_cast<const CompiledObjectBase *>(lookups.GetPossiblePropertiesForProc(wCodeOffsetTO));
+            // This procedure is "of" this object
+            func.SetClass(object->GetName());
+        }
+    }
+    else
+    {
+        // Make a function stub
+        func.AddSignature(make_unique<FunctionSignature>());
+        lookups.DecompileResults().AddResult(DecompilerResultType::Warning, fmt::format("Invalid function offset: {0:04x}", *codeStartIt));
     }
     lookups.EndowWithProperties(nullptr);
 }
@@ -421,6 +434,7 @@ Script *Decompile(const GameFolderHelper &helper, const CompiledScript &compiled
         // We may have added some global info to main's SCO. Save that now.
         if (mainDirty)
         {
+            lookups.DecompileResults().AddResult(DecompilerResultType::Important, "Updating global variables in script 0");
             SaveSCOFile(helper, *mainSCO);
         }
     }
