@@ -684,12 +684,21 @@ bool CompiledScript::_ReadExports(sci::istream &stream)
     {
         for (uint16_t i = 0; stream.good() && i < wNumExports; i++)
         {
-            uint16_t wOffset;
-
-            stream >> wOffset;
+            uint16_t offset;
+            if (_version.IsExportWide())
+            {
+                uint32_t offsetWide;
+                stream >> offsetWide;
+                assert((offsetWide & 0xffff0000) == 0);
+                offset = (uint16_t)offsetWide;
+            }
+            else
+            {
+                stream >> offset;
+            }
             if (stream.good())
             {
-                _exportsTO.push_back(wOffset + TEST_OFFSET);
+                _exportsTO.push_back(offset + TEST_OFFSET);
             }
         }
     }
@@ -871,14 +880,15 @@ std::string CompiledObjectBase::LookupPropertyName(ICompiledScriptLookups *pLook
 //
 // Provide things like saids or internal strings.
 //
-std::string CompiledScript::LookupObjectName(uint16_t wOffset, ObjectType &type) const
+bool CompiledScript::LookupObjectName(uint16_t wOffset, ObjectType &type, std::string &name) const
 {
     // See if it's an internal string:
     vector<uint16_t>::const_iterator offsetIndex = find(_stringsOffset.begin(), _stringsOffset.end(), wOffset);
     if (offsetIndex != _stringsOffset.end())
     {
         type = ObjectTypeString;
-        return _strings[distance(_stringsOffset.begin(), offsetIndex)];
+        name = _strings[distance(_stringsOffset.begin(), offsetIndex)];
+        return true;
     }
     else
     {
@@ -887,7 +897,8 @@ std::string CompiledScript::LookupObjectName(uint16_t wOffset, ObjectType &type)
         if (offsetIndex != _saidsOffset.end())
         {
             type = ObjectTypeSaid;
-            return _saidStrings[distance(_saidsOffset.begin(), offsetIndex)];
+            name = _saidStrings[distance(_saidsOffset.begin(), offsetIndex)];
+            return true;
         }
         else
         {
@@ -900,12 +911,13 @@ std::string CompiledScript::LookupObjectName(uint16_t wOffset, ObjectType &type)
             if (offsetIndex != _objectsOffsetTO.end())
             {
                 type = ObjectTypeClass;
-                return _objects[distance(_objectsOffsetTO.begin(), offsetIndex)]->GetName();
+                name = _objects[distance(_objectsOffsetTO.begin(), offsetIndex)]->GetName();
+                return true;
             }
         }
     }
 
-    return "";
+    return false;
 }
 
 CompiledObjectBase *CompiledScript::_FindObjectWithSpecies(uint16_t wIndex)

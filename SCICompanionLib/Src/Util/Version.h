@@ -69,6 +69,12 @@ struct SCIVersion
 
     bool operator==(const SCIVersion &src);
     bool operator!=(const SCIVersion &src);
+
+    bool IsExportWide()
+    {
+        // SCI1 games had 32bit exports instead of 16bit.
+        return lofsaOpcodeIsAbsolute && !SeparateHeapResources;
+    }
 };
 
 // Detection possibilities:

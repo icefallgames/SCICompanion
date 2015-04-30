@@ -216,7 +216,11 @@ map<ControlFlowNode*, ControlFlowNode*> CalculateImmediateDominators(const Domin
         }
     }
 
-    assert((immediateDominators.size() == (dominatorMap.size() - 1)) && "Every node must have an immediate dominator except the header");
+    if (immediateDominators.size() != (dominatorMap.size() - 1))
+    {
+        // Every node must have an immediate dominator except the header
+        throw ControlFlowException(dominatorMap.begin()->first,  "Problem with calculating dominators");
+    }
     return immediateDominators;
 }
 

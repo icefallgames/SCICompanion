@@ -8,11 +8,18 @@ class CSCOFile;
 class DecompilerDialogResults : public IDecompilerResults
 {
 public:
-    DecompilerDialogResults(HWND hwnd) : _aborted(false), _hwnd(hwnd) {}
+    DecompilerDialogResults(HWND hwnd) : _aborted(false), _hwnd(hwnd), _successCount(0), _fallbackCount(0), _successBytes(0), _fallbackBytes(0) {}
     void AddResult(DecompilerResultType type, const std::string &message) override;
-
+    void InformStats(bool functionSuccessful, int byteCount) override;
     bool IsAborted() override { return _aborted; }
+
     void SetAborted() { _aborted = true; }
+
+    // Stats
+    int _successCount;
+    int _fallbackCount;
+    int _successBytes;
+    int _fallbackBytes;
 
 private:
     bool _aborted;
@@ -50,6 +57,7 @@ private:
 
     CExtCheckBox m_wndDebugControlFlow;
     CExtCheckBox m_wndDebugInstConsumption;
+    CExtEdit m_wndDebugFunctionMatch;
 
     // Our own copy of this
     GameFolderHelper _helper;
@@ -79,6 +87,7 @@ private:
     HANDLE _hThread;
     bool _debugControlFlow;
     bool _debugInstConsumption;
+    CString _debugFunctionMatch;
     std::unique_ptr<GlobalCompiledScriptLookups> _lookups;
 public:
     afx_msg void OnLvnItemchangedListscripts(NMHDR *pNMHDR, LRESULT *pResult);

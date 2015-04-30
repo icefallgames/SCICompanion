@@ -93,7 +93,7 @@ public:
     // ILookupPropertyName
     std::string LookupPropertyName(uint16_t wPropertyIndex);
 
-    std::string LookupScriptThing(uint16_t wName, ICompiledScriptSpecificLookups::ObjectType &type) const;
+    bool LookupScriptThing(uint16_t wName, ICompiledScriptSpecificLookups::ObjectType &type, std::string &name) const;
 
     std::string LookupParameterName(uint16_t wIndex); // 1-based
 
@@ -119,7 +119,7 @@ public:
     const ILookupPropertyName *GetPossiblePropertiesForProc(uint16_t localProcOffset);
     bool WasPropertyRequested() { return _requestedProperty; }
 
-    void TrackUsingScript(uint16_t scriptNumber) { _usings.insert(scriptNumber); }
+    void TrackUsingScript(uint16_t scriptNumber) { if (_wScript != scriptNumber) _usings.insert(scriptNumber); }
     const std::set<uint16_t> &GetUsings() { return _usings; }
 
     FunctionDecompileHints FunctionDecompileHints;
@@ -137,6 +137,9 @@ public:
 
     bool DebugControlFlow;
     bool DebugInstructionConsumption;
+    PCSTR pszDebugFilter;
+
+    void ResetOnFailure();
 
 private:
     void _CategorizeSelectors();
@@ -217,5 +220,5 @@ bool _IsVOStoreOperation(Opcode bOpcode);
 class IDecompilerResults;
 class GameFolderHelper;
 class GlobalCompiledScriptLookups;
-std::unique_ptr<sci::Script> DecompileScript(GlobalCompiledScriptLookups &scriptLookups, const GameFolderHelper &helper, uint16_t wScript, CompiledScript &compiledScript, IDecompilerResults &results, bool debugControlFlow = false, bool debugInstConsumption = false);
+std::unique_ptr<sci::Script> DecompileScript(GlobalCompiledScriptLookups &scriptLookups, const GameFolderHelper &helper, uint16_t wScript, CompiledScript &compiledScript, IDecompilerResults &results, bool debugControlFlow = false, bool debugInstConsumption = false, PCSTR pszDebugFilter = nullptr);
 

@@ -1,5 +1,267 @@
-﻿Build started 3/24/2015 10:13:19 AM.
+﻿Build started 4/29/2015 10:39:16 PM.
+     1>Project "E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\SCICompanion.vcxproj" on node 2 (Build target(s)).
+     1>Link:
+         F:\VisualStudio\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Release\SCICompanion.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Bin_1000\\" /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /manifestinput:res\SCICompanion.manifest /manifestinput:F:\VisualStudio\VC\Include\Manifest\dpiaware.manifest /DEBUG /PDB:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Release\SCICompanion.pdb" /SUBSYSTEM:WINDOWS /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Release\SCICompanion.lib" /MACHINE:X86 /PROFILE /SAFESEH Release\SCICompanion.res
+         Release\SCICompanion.obj
+         Release\stdafx.obj
+         "E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Bin_1000\ProfUIS292sm.lib"
+         "E:\Documents\Visual Studio 2013\Projects\SCICompanion\Release\SCICompanionLib.lib"
+            Creating library E:\Documents\Visual Studio 2013\Projects\SCICompanion\Release\SCICompanion.lib and object E:\Documents\Visual Studio 2013\Projects\SCICompanion\Release\SCICompanion.exp
+         Generating code
+         Finished generating code
+         SCICompanion.vcxproj -> E:\Documents\Visual Studio 2013\Projects\SCICompanion\Release\SCICompanion.exe
+       PostBuildEvent:
+         xcopy /S /Y /I /D "E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame" "E:\Documents\Visual Studio 2013\Projects\SCICompanion\Release\TemplateGame"
+         
+         xcopy /S /Y /I /D "E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\CompileInclude" "E:\Documents\Visual Studio 2013\Projects\SCICompanion\Release\include"
+         xcopy /S /Y /I /D "E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help" "E:\Documents\Visual Studio 2013\Projects\SCICompanion\Release\Help"
+         
+         xcopy /S /Y /I /D "E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples" "E:\Documents\Visual Studio 2013\Projects\SCICompanion\Release\Samples"
+         
+         :VCEnd
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\ADL.DRV
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\EGA320.DRV
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\game.bmp
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\game.ini
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\game.txt
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\gm.drv
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\IBMKBD.DRV
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\JOYSTICK.DRV
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\resource.001
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\resource.cfg
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\resource.map
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\SCIV.EXE
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\STD.DRV
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\autodoor.sc
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\autodoor.sco
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\Avoid.sc
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\Controls.sc
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\controls.sco
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\Cycle.sc
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\cycle.sco
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\DCIcon.sc
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\dcicon.sco
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\DisposeLoad.sc
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\disposeload.sco
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\door.sc
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\door.sco
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\dpath.sc
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\dpath.sco
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\dying.sc
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\dying.sco
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\extra.sc
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\extra.sco
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\Feature.sc
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\feature.sco
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\fileio.sc
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\fileio.sco
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\follow.sc
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\follow.sco
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\Game.sc
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\game.sco
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\game.sh
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\gauge.sc
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\gauge.sco
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\initrooms.sc
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\initrooms.sco
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\inv.sc
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\inv.sco
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\jump.sc
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\jump.sco
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\Main.sc
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\main.sco
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\menubar.sc
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\menubar.sco
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\obj.sc
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\obj.sco
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\rev.sc
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\rev.sco
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\rm001.sc
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\rm001.sco
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\sound.sc
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\sound.sco
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\syswindow.sc
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\syswindow.sco
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\timer.sc
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\timer.sco
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\TitleScreen.sc
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\titlescreen.sco
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\User.sc
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\user.sco
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\wander.sc
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\wander.sco
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\window.sc
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame\src\window.sco
+         73 File(s) copied
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\CompileInclude\kernels.scp
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\CompileInclude\keys.sh
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\CompileInclude\keys.shp
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\CompileInclude\sci.sh
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\CompileInclude\sci.shp
+         5 File(s) copied
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\Appendix.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\Appendix_HotKeys.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\CompilerOverview.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\Compiler_Size.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\Compiler_Text.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\GeneralOverview.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\GeneralOverview_AddResource.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\GeneralOverview_Browse.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\GeneralOverview_NewResource.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\GeneralOverview_Preferences.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\GeneralOverview_Properties.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\Introduction.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\PicOverview.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\Pic_CommandList.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\Pic_Convert.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\Pic_FakeEgo.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\Pic_LightUp.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\Pic_MovingAround.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\Pic_Palettes.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\Pic_PriorityLines.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\Pic_Tips.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\Pic_Tools.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\Pic_Tracing.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\sci.css
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\ScriptOverview.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\Script_Adding.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\Script_BrowseInfo.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\Script_Compiling.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\Script_Finding.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\Script_Tabbing.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\Script_Vocab.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\Script_Wizard.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\TextOverview.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\ViewFontCursorOverview.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\ViewFontCursor_CommonOverview.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\ViewFontCursor_Common_Drawing.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\ViewFontCursor_Common_EditingMultiple.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\ViewFontCursor_Common_Resizing.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\ViewFontCursor_Common_Selection.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\ViewFontCursor_Common_Undo.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\ViewFontCursor_CursorOverview.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\ViewFontCursor_Cursor_HotSpot.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\ViewFontCursor_FontOverview.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\ViewFontCursor_Font_ChoosingCharacter.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\ViewFontCursor_Font_FontPreview.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\ViewFontCursor_Font_WindowsFont.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\ViewFontCursor_ViewOverview.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\ViewFontCursor_View_AddingCel.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\ViewFontCursor_View_Animate.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\ViewFontCursor_View_ChoosingCel.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\ViewFontCursor_View_Import.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\ViewFontCursor_View_Mirror.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\ViewFontCursor_View_Origin.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\ViewFontCursor_View_Transparency.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\VocabOverview.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\Vocab_Adding.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\Vocab_Editing.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\Vocab_Finding.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\Vocab_WordType.html
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\AffectAll_Example.PNG
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\Animate.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\AutoComp_Example.PNG
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\CommandList_Example.PNG
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\CommandList_GreenLine.PNG
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\CommandPaste_Example.PNG
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\Compile.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\CompileAll.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\ConvertBitmap.JPG
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\Dither.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\Explorer_PicExample.PNG
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\FakeEgo.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\FakeEgo_Example.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\Fill.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\Find.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\FindInFiles.PNG
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\FlipHorz.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\FlipVert.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\Greyscale.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\GridLines_Example.PNG
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\History.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\ImportSequence.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\InsertObject.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\Invert.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\JumpToFunction.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\JumpToFunction.tga
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\LightUpCoords.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\LightUpCoords_Example.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\Line.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\LoadTracingImage.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\NewEditors.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\NewEmptyScript.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\NewRoom.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\NewWord.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\Opacity.PNG
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\Palette.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\PaletteChooser.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\Pen.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\PicEditor.PNG
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\Placement.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\PriorityLines.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\Properties.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\Rebuild.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\Replace.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\Resize_Example.PNG
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\RunGame.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\Said_Example.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\ScriptCodeCompletion.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\ScriptGotoDefn.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\ScriptTooltip1.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\ScriptTooltip2.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\Script_ViewPicLinks.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\Selection.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\Selection_Example.PNG
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\Shape.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\Shapes.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\ShowTracingImage.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\SliderBar.PNG
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\TracingImage.JPG
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\Transparency.PNG
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\Unused_Example.PNG
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\Vocab_Example.PNG
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\Vocab_TypeExample.PNG
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\VPC.PNG
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\WindowsFont.png
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help\images\Zoom.png
+         125 File(s) copied
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\cursors\Arrow 1.bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\cursors\Arrow Small.bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\cursors\Arrow Up.bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\cursors\Cross 1.bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\cursors\Cross 2.bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\cursors\Diagonal Arrow 1.bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\cursors\Diagonal Arrow 2.bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\cursors\Error Cursor.bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\cursors\Hand Point.bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\cursors\Help Arrow.bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\cursors\Hourglass 1.bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\cursors\Hourglass 2.bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\cursors\Hourglass Arrow.bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\cursors\Left-Right Arrow.bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\cursors\Move Arrow.bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\cursors\Scumm Style 1.bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\cursors\Scumm Style 2.bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\cursors\Text Cursor 1.bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\cursors\Text Cursor 2.bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\cursors\Up-Down Arrow.bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\fonts\BriPro.bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\pics\Black Screen.bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\pics\Bliss.bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\pics\Criss Cross.bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\pics\Room 1.bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\pics\Room 2.bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\pics\Simple.bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\views\Brian.bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\views\Dead Icon.bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\views\Door (Big).bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\views\Door.bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\views\Ego.bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\views\Inv - Key.bin
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples\views\Key.bin
+         34 File(s) copied
+     1>Done Building Project "E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\SCICompanion.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:00.02
+Time Elapsed 00:02:33.67

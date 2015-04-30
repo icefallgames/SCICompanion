@@ -20,6 +20,13 @@ void CPaletteView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
     UpdateCommon(pHint);
 }
 
+void CPaletteView::OnInitialUpdate()
+{
+    SetDocument(GetDocument());
+    __super::OnInitialUpdate();
+}
+
+
 // CPaletteView diagnostics
 
 #ifdef _DEBUG
@@ -31,12 +38,6 @@ void CPaletteView::AssertValid() const
 void CPaletteView::Dump(CDumpContext& dc) const
 {
     CFormView::Dump(dc);
-}
-
-void CPaletteView::OnInitialUpdate()
-{
-    SetDocument(GetDocument());
-    __super::OnInitialUpdate();
 }
 
 CPaletteDoc* CPaletteView::GetDocument() const // non-debug version is inline

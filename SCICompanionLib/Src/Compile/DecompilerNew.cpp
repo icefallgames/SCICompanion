@@ -81,6 +81,9 @@ const char *chunkTypeNames[] =
     "ZeroNode",
 };
 
+struct ConsumptionNode;
+Consumption _GetInstructionConsumption(ConsumptionNode &node, DecompileLookups &lookups);
+
 bool ContainsOrderedInstructionSequence(ChunkType type)
 {
     switch (type)
@@ -126,7 +129,10 @@ struct ConsumptionNode
         for (auto &child : children)
         {
             clone->children.push_back(move(child->Clone()));
+            assert(clone->children.back()->_parentWeak == nullptr);
+            clone->children.back()->_parentWeak = clone.get();
         }
+        assert(_parentWeak); // Don't want to be cloning top-levl eguy
         return clone;
     }
 
@@ -214,11 +220,30 @@ struct ConsumptionNode
         children[index]->_parentWeak = this;
     }
 
-    std::unique_ptr<ConsumptionNode> StealChild(size_t index)
+    // If lookups is provided, then we will replace stolen nodes with NeedsStack, if necessary.
+    // This is a recent change, so I've scoped it only to where I encountered this bug (switch statements, SQ4, script 376)
+    std::unique_ptr<ConsumptionNode> StealChild(size_t index, DecompileLookups *lookups = nullptr)
     {
         std::unique_ptr<ConsumptionNode> stolen = move(children[index]);
         children.erase(children.begin() + index);
         stolen->_parentWeak = nullptr;
+
+        // What if we needed this?
+        bool replace = false;
+        if (lookups)
+        {
+            if (_GetInstructionConsumption(*stolen, *lookups).cStackGenerate)
+            {
+                if (_GetInstructionConsumption(*this, *lookups).cStackConsume)
+                {
+                    // We just lost a stack that we were relying on, so we'll need a replacement.
+                    // We'll insert it at the beginning. So like, stuff "shifts down".
+                    ConsumptionNode *replacementChild = PrependChild();
+                    replacementChild->SetType(ChunkType::NeedsStack);
+                }
+            }
+        }
+
         return stolen;
     }
     size_t GetChildCount() { return children.size(); }
@@ -1296,7 +1321,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
                                 }
                                 else
                                 {
-                                    assert(false);
+                                    throw ConsumptionNodeException(node.Child(i), "Expected selector.");
                                 }
                             }
                             else
@@ -1468,11 +1493,9 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
             uint16_t wName = version.lofsaOpcodeIsAbsolute ?
                 pos->get_first_operand() :
                 (pos->get_first_operand() + pos->get_final_postop_offset());
-            std::string name = lookups.LookupScriptThing(wName, type);
-            if (name.empty())
-            {
-                name = InvalidLookupError;
-            }
+            std::string name = InvalidLookupError;
+            // SQ4, main, there is a lofsa that points into the middle of a string.
+            lookups.LookupScriptThing(wName, type, name);
             unique_ptr<PropertyValue> value = std::make_unique<PropertyValue>();
             value->SetValue(name, _ScriptObjectTypeToPropertyValueType(type));
             return unique_ptr<SyntaxNode>(move(value));
@@ -1724,9 +1747,9 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
             break;
     }
 
-    unique_ptr<Comment> pComment = std::make_unique<Comment>();
-    pComment->SetName("ERROR_UNIMPLEMENTED_OPCODE");
-    return unique_ptr<SyntaxNode>(move(pComment));
+    // This happens when a toss is used in weird circumstances, for instance.
+    // e.g. SQ5, rightDome::doVerb.
+    throw ConsumptionNodeException(&node, "Unexpected opcode.");
 }
 
 ConsumptionNode *_FindChunk(ConsumptionNode *chunk, code_pos code)
@@ -1751,19 +1774,19 @@ ConsumptionNode *_FindChunk(ConsumptionNode *chunk, code_pos code)
 }
 
 
-unique_ptr<ConsumptionNode> StealNode(ConsumptionNode *nodeToSteal)
+unique_ptr<ConsumptionNode> StealNode(ConsumptionNode *nodeToSteal, DecompileLookups &lookups)
 {
-    return nodeToSteal->_parentWeak->StealChild(nodeToSteal->GetMyIndex());
+    return nodeToSteal->_parentWeak->StealChild(nodeToSteal->GetMyIndex(), &lookups);
 }
-unique_ptr<ConsumptionNode> CloneNode(ConsumptionNode *nodeToSteal)
+unique_ptr<ConsumptionNode> CloneNode(ConsumptionNode *nodeToSteal, DecompileLookups &lookups)
 {
     return nodeToSteal->Clone();
 }
 
 template<typename _FuncCreate>
-void ReplaceNodeWithNode(ConsumptionNode *nodeToBeReplaced, ConsumptionNode *nodeToStealOrClone, _FuncCreate funcCreate)
+void ReplaceNodeWithNode(ConsumptionNode *nodeToBeReplaced, ConsumptionNode *nodeToStealOrClone, _FuncCreate funcCreate, DecompileLookups &lookups)
 {
-    unique_ptr<ConsumptionNode> stolen = funcCreate(nodeToStealOrClone);
+    unique_ptr<ConsumptionNode> stolen = funcCreate(nodeToStealOrClone, lookups);
     nodeToBeReplaced->_parentWeak->ReplaceChild(nodeToBeReplaced->GetMyIndex(), move(stolen));
 }
 
@@ -1832,7 +1855,7 @@ bool TryToStealOrCloneSomething(ConsumptionNode *originalChild, DecompileLookups
             if (satisfiesNeeds(consumption))
             {
                 // This is it.
-                ReplaceNodeWithNode(originalChild, parent->Child(i), funcCreate);
+                ReplaceNodeWithNode(originalChild, parent->Child(i), funcCreate, lookups);
                 success = true;
                 done = true;
                 break;
@@ -2049,7 +2072,7 @@ unique_ptr<ConsumptionNode> _FindAndStealSwitchValue(vector<pair<ConsumptionNode
             Consumption consumption = _GetInstructionConsumption(*parent->Child(index), lookups);
             assert(consumption.cAccGenerate == 0 && (consumption.cStackGenerate == 1));
             // If not ^^^ then maybe we need to go back more?
-            return parent->StealChild(index);
+            return parent->StealChild(index, &lookups);
         }
         frameIndex--;
     }
@@ -2217,10 +2240,21 @@ bool OutputNewStructure(const std::string &messagePrefix, sci::FunctionBase &fun
     CodeChunkEnumContext context(lookups);
     unique_ptr<ConsumptionNode> mainChunk = make_unique<ConsumptionNode>();
     context.Current = mainChunk.get();
+
+    string debugTrackName = GetMethodTrackingName(func.GetOwnerClass(), func, true);
+    bool showFile = lookups.DebugInstructionConsumption && (!lookups.pszDebugFilter || (PathMatchSpec(debugTrackName.c_str(), lookups.pszDebugFilter)));
+
     try
     {
         EnumerateCodeChunks enumCodeChunks(context, lookups);
         enumCodeChunks.Visit(main);
+
+        if (showFile)
+        {
+            std::stringstream ss;
+            mainChunk->Print(ss, 0);
+            ShowTextFile(ss.str().c_str(), debugTrackName + "_chunks_raw.txt");
+        }
 
         _RemoveDoubleInverts(mainChunk.get());
         _RemoveTOSS(mainChunk.get());
@@ -2238,20 +2272,20 @@ bool OutputNewStructure(const std::string &messagePrefix, sci::FunctionBase &fun
             _ApplySyntaxNodeToCodeNode(*child, func, lookups);
         }
 
-        if (lookups.DebugInstructionConsumption)
+        if (showFile)
         {
             std::stringstream ss;
             mainChunk->Print(ss, 0);
-            ShowTextFile(ss.str().c_str(), func.GetName() + "_chunks.txt");
+            ShowTextFile(ss.str().c_str(), debugTrackName + "_chunks_final.txt");
         }
     }
     catch (ConsumptionNodeException &e)
     {
-        if (lookups.DebugInstructionConsumption)
+        if (showFile)
         {
             std::stringstream ss;
             mainChunk->Print(ss, 0);
-            ShowTextFile(ss.str().c_str(), func.GetName() + "_chunks.txt");
+            ShowTextFile(ss.str().c_str(), debugTrackName + "_chunks.txt");
         }
 
         string message;

@@ -2192,11 +2192,12 @@ void _Section7_Exports_Part1(Script &script, CompileContext &context, vector<BYT
     const ProcedureVector &procs = script.GetProcedures();
     numExports += count_if(procs.begin(), procs.end(), IsPublicProcedure);      // public procedures
     push_word(output, 7); // 7 = exports
-    push_word(output, (WORD)(numExports * 2) + 4 + 2); // exports + header + exportCount.
+    uint16_t exportWidth = context.GetVersion().IsExportWide() ? 4 : 2;
+    push_word(output, (WORD)(numExports * exportWidth) + 4 + 2); // exports + header + exportCount.
     push_word(output, (WORD)numExports); // the number of exports
     indexOfExports = output.size(); // Store where the ptrs will go.
     // Fill with zeroes for now:
-    output.insert(output.end(), numExports * 2, 0);
+    output.insert(output.end(), numExports * exportWidth, 0);
 }
 
 void _Section7_Exports_Part2(CompileContext &context, vector<BYTE> &output, WORD wStartOfCode, size_t numExports, size_t indexOfExports)
@@ -2211,20 +2212,22 @@ void _Section7_Exports_Part2(CompileContext &context, vector<BYTE> &output, WORD
     // In here, we write the offset from the begining of the resource to the beginning of the code.
     vector<code_pos> &exports = context.GetExports();
     vector<WORD> &instanceOffsets = context.GetPublicInstanceOffsets();
+    uint16_t exportWidth = context.GetVersion().IsExportWide() ? 4 : 2;
+    // We already filled the thing with zeroes, so we can just write a uint16_t, and increment by 4.
     if (numExports == (exports.size() + instanceOffsets.size())) // Otherwise we generate a corrupt resource!
     {
         // Public instances first.
         for (WORD instanceOffset : instanceOffsets)
         {
             write_word(output, indexOfExports, instanceOffset);
-            indexOfExports += 2;
+            indexOfExports += exportWidth;
         }
         // Then procedures.
         for (code_pos procEntry : exports)
         {
             WORD wCodeOffset = context.code().offset_of(procEntry);
             write_word(output, indexOfExports, wStartOfCode + wCodeOffset);
-            indexOfExports += 2;
+            indexOfExports += exportWidth;
         }
     }
     else

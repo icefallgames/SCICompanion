@@ -8,8 +8,6 @@
 #include "StlUtil.h"
 #include "format.h"
 
-//#define VISUALIZE_FLOW 1
-
 using namespace sci;
 using namespace std;
 
@@ -662,7 +660,11 @@ vector<NodeBlock> ControlFlowGraph::_FindSwitchBlocks(DominatorMap &dominators, 
                     // might actually contain a whole sequence of instructions, only the last of which
                     // is important for the switch statement. Maybe that's ok though. As long as we're
                     // aware that it's not *just* the value that's being switched on.
-                    assert(pred->Predecessors().size() == 1); // Otherwise I don't know what we'd do. Ternary?
+                    if (pred->Predecessors().size() != 1)
+                    {
+                        throw ControlFlowException(pred, "Switch value with embedded branch not yet supported.");
+
+                    }
                     ControlFlowNode *switchHead = _GetFirstPredecessorOrNull(pred);
                     switchBlocks.emplace_back(switchHead, maybeToss, true, nullptr);
                     break;
@@ -1533,9 +1535,12 @@ bool ControlFlowGraph::Generate(code_pos start, code_pos end)
 
         DominatorMap dominators = GenerateDominators(main->children, (*main)[SemId::Head]);
 
-#ifdef VISUALIZE_FLOW
-        CFGVisualize(_contextName + "_raw", discoveredControlStructures);
-#endif
+        bool showFile = _debug && (!_pszDebugFilter || PathMatchSpec(_contextName.c_str(), _pszDebugFilter));
+
+        if (showFile)
+        {
+            CFGVisualize(_contextName + "_raw", discoveredControlStructures);
+        }
 
         // Yeah, we're calculating dominators a second time here, but that's ok.
         // The above case is only for visualization.
@@ -1565,9 +1570,10 @@ bool ControlFlowGraph::Generate(code_pos start, code_pos end)
             _FindAllIfStatements();
         }
 
-#ifdef VISUALIZE_FLOW
-        CFGVisualize(_contextName + "_loop", discoveredControlStructures);
-#endif
+        if (showFile)
+        {
+            CFGVisualize(_contextName + "_loop", discoveredControlStructures);
+        }
     }
     catch (ControlFlowException &e)
     {

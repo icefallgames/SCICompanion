@@ -74,7 +74,11 @@ void GetThenAndElseBranches(ControlFlowNode *node, ControlFlowNode **thenNode, C
 {
     *thenNode = nullptr;
     *elseNode = nullptr;
-    assert((node->Successors().size() == 2) && "Asking for Then/Else branches on a node without two Successors()");
+    if (node->Successors().size() != 2)
+    {
+        throw ControlFlowException(node, "Expected node with two successors (then/else)");
+    }
+    
     auto it = node->Successors().begin();
     ControlFlowNode *one = *it;
     ControlFlowNode *two = *(++it);

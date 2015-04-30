@@ -36,7 +36,7 @@ public:
         ObjectTypeString,
         ObjectTypeClass,
     };
-    virtual std::string LookupObjectName(uint16_t wOffset, ObjectType &type) const = 0;
+    virtual bool LookupObjectName(uint16_t wOffset, ObjectType &type, std::string &name) const = 0;
 };
 
 class IPrivateSpeciesLookups
@@ -178,7 +178,7 @@ public:
     uint16_t GetScriptNumber() const { return _wScript; }
 
     // ICompiledScriptSpecificLookups
-    std::string LookupObjectName(uint16_t wOffset, ObjectType &type) const;
+    bool LookupObjectName(uint16_t wOffset, ObjectType &type, std::string &name) const;
 
     // IPrivateSpeciesLookups
     std::string LookupClassName(uint16_t wIndex);

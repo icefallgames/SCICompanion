@@ -2579,11 +2579,18 @@ code_pos FunctionOutputByteCodeHelper(const FunctionBase &function, CompileConte
 //
 // Generate a unique name for a method on an object in this file
 //
-std::string GetMethodTrackingName(const ClassDefinition *pClass, const FunctionBase &method)
+std::string GetMethodTrackingName(const ClassDefinition *pClass, const FunctionBase &method, bool makeValidFilename)
 {
     if (pClass)
     {
-		return (pClass->GetName() + "::" + method.GetName());
+        if (makeValidFilename)
+        {
+            return (pClass->GetName() + "_" + method.GetName());
+        }
+        else
+        {
+            return (pClass->GetName() + "::" + method.GetName());
+        }
     }
     else
     {

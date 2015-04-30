@@ -283,7 +283,7 @@ void DecompileScript(const GameFolderHelper &helper, WORD wScript, IDecompilerRe
     }
 }
 
-std::unique_ptr<sci::Script> DecompileScript(GlobalCompiledScriptLookups &scriptLookups, const GameFolderHelper &helper, WORD wScript, CompiledScript &compiledScript, IDecompilerResults &results, bool debugControlFlow, bool debugInstConsumption)
+std::unique_ptr<sci::Script> DecompileScript(GlobalCompiledScriptLookups &scriptLookups, const GameFolderHelper &helper, WORD wScript, CompiledScript &compiledScript, IDecompilerResults &results, bool debugControlFlow, bool debugInstConsumption, PCSTR pszDebugFilter)
 {
     unique_ptr<sci::Script> pScript;
     ObjectFileScriptLookups objectFileLookups(helper);
@@ -298,6 +298,7 @@ std::unique_ptr<sci::Script> DecompileScript(GlobalCompiledScriptLookups &script
     DecompileLookups decompileLookups(helper, wScript, &scriptLookups, &objectFileLookups, &compiledScript, pText, &compiledScript, results);
     decompileLookups.DebugControlFlow = debugControlFlow;
     decompileLookups.DebugInstructionConsumption = debugInstConsumption;
+    decompileLookups.pszDebugFilter = pszDebugFilter;
     pScript.reset(Decompile(helper, compiledScript, decompileLookups, appState->GetResourceMap().GetVocab000()));
     return pScript;
 }

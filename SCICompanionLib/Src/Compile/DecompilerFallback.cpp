@@ -342,7 +342,8 @@ void DisassembleFallback(FunctionBase &func, code_pos start, code_pos end, Decom
                     uint16_t wName = version.lofsaOpcodeIsAbsolute ?
                         cur->get_first_operand() :
                         (cur->get_first_operand() + cur->get_final_postop_offset());
-                    std::string name = lookups.LookupScriptThing(wName, type);
+                    std::string name = InvalidLookupError;
+                    lookups.LookupScriptThing(wName, type, name);
                     if (name.empty())
                     {
                         name = InvalidLookupError;

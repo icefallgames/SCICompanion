@@ -1162,7 +1162,7 @@ namespace sci
 //
 // Generate a unique name for a method on an object
 //
-std::string GetMethodTrackingName(const sci::ClassDefinition *pClass, const sci::FunctionBase &method);
+std::string GetMethodTrackingName(const sci::ClassDefinition *pClass, const sci::FunctionBase &method, bool makeValidFilename = false);
 
 SpeciesIndex MatchParameters(const std::string &name,
                              CompileContext &context,

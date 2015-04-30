@@ -12,8 +12,6 @@
 
 #define DEBUG_DECOMPILER 1
 
-//#define FORCE_FALLBACK 1
-
 using namespace sci;
 using namespace std;
 
@@ -108,7 +106,8 @@ code_pos get_cur_pos(std::list<scii> &code)
 // wBaseOffset - byte offset in script file where pBegin is (used to calculate absolute code offsets)
 // code        - (out) list of sci instructions.
 //
-void _ConvertToInstructions(std::list<scii> &code, const BYTE *pBegin, const BYTE *pEnd, WORD wBaseOffset)
+// Returns the end.
+const BYTE *_ConvertToInstructions(std::list<scii> &code, const BYTE *pBegin, const BYTE *pEnd, WORD wBaseOffset)
 {
     std::unordered_map<WORD, code_pos> referenceToCodePos;
     std::vector<Fixup> branchTargetsToFixup;
@@ -225,6 +224,8 @@ void _ConvertToInstructions(std::list<scii> &code, const BYTE *pBegin, const BYT
             code.erase(theEnd);
         }
     }
+
+    return pCur;
 }
 
 bool _IsVariableUse(code_pos pos, VarScope varScope, WORD &wIndex)
@@ -947,7 +948,7 @@ void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBe
 
     // Take the raw data, and turn it into a list of scii instructions, and make sure the branch targets point to code_pos's
     std::list<scii> code;
-    _ConvertToInstructions(code, pBegin, pEnd, wBaseOffset);
+    const BYTE *discoveredEnd = _ConvertToInstructions(code, pBegin, pEnd, wBaseOffset);
 
     // Insert a no-op at the beginning of code (so we can get an iterator to point to a spot before code)
     code.insert(code.begin(), scii(Opcode::INDETERMINATE));
@@ -966,7 +967,7 @@ void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBe
     string messageDescription = fmt::format("{0} {1}::{2}: Analyzing control flow", func.GetOwnerScript()->GetName(), className, func.GetName());
     lookups.DecompileResults().AddResult(DecompilerResultType::Update, messageDescription);
 
-    ControlFlowGraph cfg(messageDescription, lookups.DecompileResults(), func.GetName());
+    ControlFlowGraph cfg(messageDescription, lookups.DecompileResults(), GetMethodTrackingName(func.GetOwnerClass(), func, true), lookups.DebugControlFlow, lookups.pszDebugFilter);
     bool success = cfg.Generate(code.begin(), code.end());
     if (success && !lookups.DecompileResults().IsAborted())
     {
@@ -982,9 +983,14 @@ void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBe
         // Disassemble the function instead.
         // First though, we need to remove all code:
         func.GetStatements().clear();
+        lookups.ResetOnFailure();
+
         lookups.DecompileResults().AddResult(DecompilerResultType::Important, fmt::format("Falling back to disassembly for {0}", func.GetName()));
         DisassembleFallback(func, code.begin(), code.end(), lookups);
     }
+
+    // Give some statistics.
+    lookups.DecompileResults().InformStats(success, discoveredEnd - pBegin);
 
     if (!lookups.DecompileResults().IsAborted())
     {
@@ -1238,9 +1244,9 @@ std::string DecompileLookups::LookupPropertyName(WORD wPropertyIndex)
         return "PROPERTY-ACCESS-IN-NON-METHOD";
     }
 }
-std::string DecompileLookups::LookupScriptThing(WORD wName, ICompiledScriptSpecificLookups::ObjectType &type) const
+bool DecompileLookups::LookupScriptThing(WORD wName, ICompiledScriptSpecificLookups::ObjectType &type, std::string &name) const
 {
-    return _pScriptThings->LookupObjectName(wName, type);
+    return _pScriptThings->LookupObjectName(wName, type, name);
 }
 
 bool DecompileLookups::GetSpeciesScriptNumber(uint16_t species, uint16_t &scriptNumber)
@@ -1373,6 +1379,14 @@ void DecompileLookups::TrackVariableUsage(VarScope varScope, WORD wIndex, bool i
             (*pFunctionVarUsage)[wIndex] = isIndexed;
         }
     }
+}
+
+// REVIEW: Stuff that is tracked while decompiling should really be put elsewhere
+// (i.e. not in DEcompileLookups, which should be read-only)
+void DecompileLookups::ResetOnFailure()
+{
+    // This holds weak pointers to objects in the script, so clear those out.
+    _restStatementTrack.clear();
 }
 
 void DecompileLookups::TrackRestStatement(sci::RestStatement *rest, uint16_t index)

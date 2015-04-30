@@ -12,6 +12,8 @@
 using namespace sci;
 using namespace std;
 
+const char InvalidLookupError[] = "LOOKUP_ERROR";
+
 void DecompileObject(const CompiledObjectBase &object,
     sci::Script &script,
     DecompileLookups &lookups,
@@ -60,8 +62,8 @@ void DecompileObject(const CompiledObjectBase &object,
                     prop.SetName(lookups.LookupSelectorName(propertySelectorList[i]));
                     PropertyValue value;
                     ICompiledScriptSpecificLookups::ObjectType type;
-                    std::string saidOrString = lookups.LookupScriptThing(object.GetPropertyValues()[i].value, type);
-                    if (saidOrString.empty())
+                    std::string saidOrString;
+                    if (!lookups.LookupScriptThing(object.GetPropertyValues()[i].value, type, saidOrString))
                     {
                         // Just give it a number
                         uint16_t number = object.GetPropertyValues()[i].value;
@@ -318,8 +320,10 @@ Script *Decompile(const GameFolderHelper &helper, const CompiledScript &compiled
         {
             unique_ptr<Synonym> pSynonym = std::make_unique<Synonym>();
             ICompiledScriptSpecificLookups::ObjectType type;
-            pSynonym->MainWord = lookups.LookupScriptThing(syn.first, type);
-            pSynonym->Replacement = lookups.LookupScriptThing(syn.second, type);
+            pSynonym->MainWord = InvalidLookupError;
+            lookups.LookupScriptThing(syn.first, type, pSynonym->MainWord);
+            pSynonym->Replacement = InvalidLookupError;
+            lookups.LookupScriptThing(syn.second, type, pSynonym->Replacement);
             pScript->AddSynonym(std::move(pSynonym));
         }
     }

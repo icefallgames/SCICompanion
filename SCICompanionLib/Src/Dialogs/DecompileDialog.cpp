@@ -44,6 +44,9 @@ void DecompileDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_DECOMPILESTATUS, m_wndStatus);
     DDX_Control(pDX, IDC_CHECKCONTROLFLOW, m_wndDebugControlFlow);
     DDX_Control(pDX, IDC_CHECKINSTRUCTIONCONSUMPTION, m_wndDebugInstConsumption);
+    DDX_Control(pDX, IDC_EDITDEBUGMATCH, m_wndDebugFunctionMatch);
+    m_wndDebugFunctionMatch.SetWindowTextA("*");
+    
     DDX_Control(pDX, IDC_PROGRESS1, m_wndProgress);
     // For some reason this seems necessary, even though I'm using a marquee progress bar:
     m_wndProgress.SetRange(0, 100);
@@ -459,6 +462,7 @@ void DecompileDialog::OnBnClickedDecompile()
 
     _debugControlFlow = m_wndDebugControlFlow.GetCheck() != 0;
     _debugInstConsumption = m_wndDebugInstConsumption.GetCheck() != 0;
+    m_wndDebugFunctionMatch.GetWindowTextA(_debugFunctionMatch);
 
     // Get a list of scripts to decompile
     _scriptNumbers.clear();
@@ -584,7 +588,7 @@ UINT DecompileDialog::s_ThreadWorker(void *pParam)
                     }
                     else
                     {
-                        unique_ptr<sci::Script> pScript = DecompileScript(*pThis->_lookups, helper, scriptNum, compiledScript, *pThis->_decompileResults, pThis->_debugControlFlow, pThis->_debugInstConsumption);
+                        unique_ptr<sci::Script> pScript = DecompileScript(*pThis->_lookups, helper, scriptNum, compiledScript, *pThis->_decompileResults, pThis->_debugControlFlow, pThis->_debugInstConsumption, (PCSTR)pThis->_debugFunctionMatch);
                         // Dump it to the .sc file
                         // TODO: If it already exists, we might want to ask for confirmation.
                         std::stringstream ss;
@@ -603,6 +607,22 @@ UINT DecompileDialog::s_ThreadWorker(void *pParam)
         int x = 0;
     }
 
+    // Stats reporting
+    int successPercentage = pThis->_decompileResults->_successCount * 100 / (pThis->_decompileResults->_successCount + pThis->_decompileResults->_fallbackCount);
+    int successBytesPercentage = pThis->_decompileResults->_successBytes * 100 / (pThis->_decompileResults->_successBytes + pThis->_decompileResults->_fallbackBytes);
+    pThis->_decompileResults->AddResult(DecompilerResultType::Important,
+        fmt::format("Decompiled {0} of {1} functions successfully ({2}%).", pThis->_decompileResults->_successCount, (pThis->_decompileResults->_successCount + pThis->_decompileResults->_fallbackCount), successPercentage)
+        );
+
+    pThis->_decompileResults->AddResult(DecompilerResultType::Important,
+        fmt::format("Overall bytecount success rate: {0}%.", successBytesPercentage)
+        );
+
+    if (pThis->_decompileResults->_fallbackCount)
+    {
+        pThis->_decompileResults->AddResult(DecompilerResultType::Important, "Fell back to assembly for the remaining functions.");
+    }
+
     return 0;
 }
 
@@ -610,6 +630,20 @@ void DecompilerDialogResults::AddResult(DecompilerResultType type, const std::st
 {
     std::string *ptrToString = new std::string(message);
     ::PostMessage(_hwnd, UWM_UPDATESTATUS, static_cast<WPARAM>(type), reinterpret_cast<LPARAM>(ptrToString));
+}
+
+void DecompilerDialogResults::InformStats(bool functionSuccessful, int byteCount)
+{
+    if (functionSuccessful)
+    {
+        _successCount++;
+        _successBytes += byteCount;
+    }
+    else
+    {
+        _fallbackCount++;
+        _fallbackBytes += byteCount;
+    }
 }
 
 LRESULT DecompileDialog::UpdateStatus(WPARAM wParam, LPARAM lParam)

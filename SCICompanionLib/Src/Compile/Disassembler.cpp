@@ -9,6 +9,7 @@ using namespace std;
 #define STATE_CALCBRANCHES 0
 #define STATE_OUTPUT 1
 
+const char InvalidLookupError[] = "LOOKUP_ERROR";
 
 void _GetVarType(std::ostream &out, Opcode bOpcode, uint16_t wIndex, IObjectFileScriptLookups *pOFLookups)
 {
@@ -175,6 +176,7 @@ void DisassembleCode(SCIVersion version, std::ostream &out, ICompiledScriptLooku
                         case otINT16:
                         case otINT8:
                         case otUINT8:
+                        case otPVAR:
                             out << wOperands[i];
                             break;
                         case otKERNEL:
@@ -233,7 +235,7 @@ void DisassembleCode(SCIVersion version, std::ostream &out, ICompiledScriptLooku
                             break;
 
                         default:
-                            assert(false, "Unknown operand type");
+                            assert(false && "Unknown operand type");
                             out << "$" << setw(4) << setfill('0') << wOperands[i];
                             break;
                         }
@@ -260,9 +262,13 @@ void DisassembleCode(SCIVersion version, std::ostream &out, ICompiledScriptLooku
 
                     case Opcode::LOFSS:
                     case Opcode::LOFSA:
+                    {
                         // This is an offset... it could be an interesting one, like a string or said.
                         ICompiledScriptSpecificLookups::ObjectType type;
-                        out << "// " << pScriptThings->LookupObjectName(wOperands[0], type);
+                        std::string name = InvalidLookupError;
+                        pScriptThings->LookupObjectName(wOperands[0], type, name);
+                        out << "// " << name;
+                    }
                         break;
 
                     case Opcode::PUSHI:

@@ -17,7 +17,7 @@ struct NodeBlock
 class ControlFlowGraph
 {
 public:
-    ControlFlowGraph(const std::string &statusMessagePrefix, IDecompilerResults &decompilerResults, const std::string &contextName) : _decompilerResults(decompilerResults), _contextName(contextName), _statusMessagePrefix(statusMessagePrefix) {}
+    ControlFlowGraph(const std::string &statusMessagePrefix, IDecompilerResults &decompilerResults, const std::string &contextName, bool debug, PCSTR pszDebugFilter) : _decompilerResults(decompilerResults), _contextName(contextName), _statusMessagePrefix(statusMessagePrefix), _debug(debug), _pszDebugFilter(pszDebugFilter) {}
     ControlFlowGraph(const ControlFlowGraph &src) = delete;
     ControlFlowGraph& operator=(const ControlFlowGraph &src) = delete;
 
@@ -143,4 +143,7 @@ private:
     std::string _contextName;
     IDecompilerResults &_decompilerResults;
     std::string _statusMessagePrefix;
+
+    bool _debug;
+    PCSTR _pszDebugFilter;
 };
