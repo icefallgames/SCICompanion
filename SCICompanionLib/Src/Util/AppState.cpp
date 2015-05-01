@@ -357,6 +357,16 @@ void AppState::OpenMostRecentResource(ResourceType type, uint16_t wNum)
     }
 }
 
+void AppState::ReopenScriptDocument(uint16_t wNum)
+{
+    CMainFrame *pMainWnd = static_cast<CMainFrame*>(_pApp->m_pMainWnd);
+    CScriptDocument *pDocAlready = pMainWnd->Tabs().GetOpenScriptDocument(wNum);
+    if (pDocAlready)
+    {
+        pDocAlready->OnOpenDocument(GetResourceMap().Helper().GetScriptFileName(wNum).c_str());
+    }
+}
+
 void AppState::OpenMostRecentResourceAt(ResourceType type, uint16_t number, int index)
 {
     OpenMostRecentResource(type, number);

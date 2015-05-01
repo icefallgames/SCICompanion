@@ -58,6 +58,7 @@ private:
     CExtCheckBox m_wndDebugControlFlow;
     CExtCheckBox m_wndDebugInstConsumption;
     CExtEdit m_wndDebugFunctionMatch;
+    CExtLabel m_wndSCOLabel;
 
     // Our own copy of this
     GameFolderHelper _helper;

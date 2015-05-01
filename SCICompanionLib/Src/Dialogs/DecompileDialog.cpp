@@ -46,6 +46,18 @@ void DecompileDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_CHECKINSTRUCTIONCONSUMPTION, m_wndDebugInstConsumption);
     DDX_Control(pDX, IDC_EDITDEBUGMATCH, m_wndDebugFunctionMatch);
     m_wndDebugFunctionMatch.SetWindowTextA("*");
+    DDX_Control(pDX, IDC_INSTRUCTIONS, m_wndSCOLabel);
+
+    m_wndScript.SetWindowText(
+        "Start with \"Set filenames\" to give scripts meaningful names based upon their contents.\r\n"
+        "\r\n"
+        "Select a script on the left to decompile it. You may rename scripts as you wish.\r\n"
+        "\r\n"
+        "Decompiling a script will also generate a .sco file. The .sco file tracks procedure and variable names which are not present in the compiled script. By default they are given names such as \"local4\"\r\n"
+        "You may edit the names to make them more meaningful, and they will be picked up the next time you decompile the script.\r\n"
+        "\r\n"
+        "You may delete the .sco file if you wish to clear out the names you have given."
+        );
     
     DDX_Control(pDX, IDC_PROGRESS1, m_wndProgress);
     // For some reason this seems necessary, even though I'm using a marquee progress bar:
@@ -355,9 +367,9 @@ BOOL DecompileDialog::PreTranslateMessage(MSG* pMsg)
                 if (TranslateMessage(pMsg))
                 {
                     DispatchMessage(pMsg);
-                    return TRUE;
                 }
             }
+            return TRUE;
         }
     }
     else
@@ -503,6 +515,11 @@ void DecompileDialog::OnTimer(UINT_PTR nIDEvent)
                 m_wndStatus.SetWindowTextA("");
                 _UpdateScripts(_scriptNumbers);
                 _SyncSelection(true);
+
+                for (uint16_t scriptNumber : _scriptNumbers)
+                {
+                    appState->ReopenScriptDocument(scriptNumber);
+                }
             }
         }
     }
@@ -774,7 +791,7 @@ void DecompileDialog::OnBnClickedClearsco()
         }
     }
 
-    if (scosDeleted.empty())
+    if (!scosDeleted.empty())
     {
         if (scosDeleted.size() == 1)
         {
@@ -784,6 +801,7 @@ void DecompileDialog::OnBnClickedClearsco()
         {
             m_wndResults.SetWindowTextA(fmt::format("Deleted {0} .sco files", scosDeleted.size()).c_str());
         }
+        _SyncSelection(true);
     }
     _UpdateScripts(scriptsToUpdate);
 }

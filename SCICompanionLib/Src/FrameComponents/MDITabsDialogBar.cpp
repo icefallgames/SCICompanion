@@ -187,6 +187,21 @@ CDocument *CMDITabsDialogBar::_GetIfKindOf(int i, const CRuntimeClass* pClass, C
     return pDoc;
 }
 
+CScriptDocument *CMDITabsDialogBar::GetOpenScriptDocument(WORD wNum)
+{
+    // Find a script that matches this, if any
+    for (int i = 0; i < GetItemCount(); i++)
+    {
+        CMDITabChildWnd *pActive;
+        CScriptDocument *pRD = static_cast<CScriptDocument*>(_GetIfKindOf(i, RUNTIME_CLASS(CScriptDocument), &pActive));
+        if (pRD && (pRD->GetScriptId().GetResourceNumber() == wNum))
+        {
+            return pRD;
+        }
+    }
+    return nullptr;
+}
+
 CResourceDocument *CMDITabsDialogBar::ActivateResourceDocument(ResourceType type, WORD wNum)
 {
     CResourceDocument *pRDRet = NULL;

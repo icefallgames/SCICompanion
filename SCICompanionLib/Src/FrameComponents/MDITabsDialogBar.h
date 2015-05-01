@@ -22,6 +22,7 @@ public:
     void RemoveTab(CFrameWnd *pFrame);
     CScriptDocument *ActivateScript(ScriptId script);
     CResourceDocument *ActivateResourceDocument(ResourceType type, WORD wNum);
+    CScriptDocument *GetOpenScriptDocument(WORD wNum);
     void OnActivateTab(CFrameWnd *pFrame);
     bool CanGoBack();
     bool CanGoForward();

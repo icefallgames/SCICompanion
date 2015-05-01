@@ -71,7 +71,6 @@ BEGIN_MESSAGE_MAP(CScriptDocument, CDocument)
     ON_COMMAND(ID_COMPILEDOCS, OnCompileDocs)
 #endif
     ON_COMMAND(ID_SCRIPT_DISASSEMBLE, OnDisassemble)
-    ON_COMMAND(ID_SCRIPT_DECOMPILE, OnDecompile)
     ON_COMMAND(ID_SCRIPT_VIEWOBJECTFILE, OnViewObjectFile)
     ON_COMMAND(ID_SCRIPT_VIEWSCRIPTRESOURCE, OnViewScriptResource)
     ON_COMMAND(ID_SCRIPT_VIEWSYNTAXTREE, OnViewSyntaxTree)
@@ -301,17 +300,6 @@ std::unique_ptr<sci::Script> DecompileScript(GlobalCompiledScriptLookups &script
     decompileLookups.pszDebugFilter = pszDebugFilter;
     pScript.reset(Decompile(helper, compiledScript, decompileLookups, appState->GetResourceMap().GetVocab000()));
     return pScript;
-}
-
-void CScriptDocument::OnDecompile()
-{
-    WORD wScript;
-    // Make the compiled script...
-    if (SUCCEEDED(appState->GetResourceMap().GetScriptNumber(_scriptId, wScript)))
-    {
-        // Let's get rid of this command, and only go through the dialog
-        //DecompileScript(wScript);
-    }
 }
 
 void CScriptDocument::OnViewObjectFile()
@@ -565,6 +553,7 @@ BOOL CScriptDocument::OnOpenDocument(LPCTSTR lpszPathName)
 	if (!__super::OnOpenDocument(lpszPathName))
 		return FALSE;
 	_scriptId = ScriptId(lpszPathName);
+    _buffer.FreeAll();
 	return _buffer.LoadFromFile(lpszPathName);
 }
 BOOL CScriptDocument::OnSaveDocument(LPCTSTR lpszPathName) 

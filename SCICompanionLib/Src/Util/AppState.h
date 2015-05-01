@@ -57,6 +57,7 @@ public:
     void OpenScriptHeader(std::string strName);
     void OpenScriptAtLine(ScriptId script, int iLine);
     void OpenMostRecentResource(ResourceType type, uint16_t wNum);
+    void ReopenScriptDocument(uint16_t wNum);
     void OpenMostRecentResourceAt(ResourceType type, uint16_t number, int index);
     void SetScriptFrame(CFrameWnd *pScriptFrame) { _pScriptFrame = pScriptFrame; }
     DWORD CreateUniqueRuntimeID();

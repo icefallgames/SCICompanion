@@ -49,7 +49,7 @@ struct Suggestion
 class RenameContext
 {
 public:
-    RenameContext(CSCOFile *mainSCO, CSCOFile *scriptSCO) : _dirty(false), _mainDirty(false), _mainSCO(mainSCO)
+    RenameContext(Script &script, CSCOFile *mainSCO, CSCOFile *scriptSCO) : _dirty(false), _mainDirty(false), _mainSCO(mainSCO)
     {
         // Populate things from these SCOs. And store the main SCO in case we make mods
         CSCOFile *globalVarSCO = (mainSCO != nullptr) ? mainSCO : ((scriptSCO && scriptSCO->GetScriptNumber() == 0) ? scriptSCO : nullptr);
@@ -71,17 +71,23 @@ public:
 
         if (scriptSCO && (scriptSCO != globalVarSCO))
         {
-            // Use these as locals
+            auto &decompiledScriptVarIt = script.GetScriptVariables().begin();
+            // Use these as locals. The freshly decompiled script will still have things like local1 and local26.
+            // We assume that the number and order of variables in the SCO is the same as in the decompiled script.
             int index = 0;
             for (CSCOLocalVariable &localVar : scriptSCO->GetVariables())
             {
-                string stdLocallName = _GetLocalVariableName(index);
-                if (localVar.GetName() != stdLocallName)
+                if (decompiledScriptVarIt != script.GetScriptVariables().end())
                 {
-                    // It must have been given a name, so use it.
-                    SetRenamed(nullptr, stdLocallName, localVar.GetName(), false);
+                    string stdDecompiledName = (*decompiledScriptVarIt)->GetName();
+                    if (localVar.GetName() != stdDecompiledName)
+                    {
+                        // It must have been given a name, so use it.
+                        SetRenamed(nullptr, stdDecompiledName, localVar.GetName(), false);
+                    }
+                    index += (*decompiledScriptVarIt)->GetSize();
+                    ++decompiledScriptVarIt;
                 }
-                index++;
             }
         }
 
@@ -559,7 +565,7 @@ private:
 
 void AutoDetectVariableNames(Script &script, CSCOFile *mainSCO, CSCOFile *scriptSCO, bool &mainDirty)
 {
-    RenameContext renameContext(mainSCO, scriptSCO);
+    RenameContext renameContext(script, mainSCO, scriptSCO);
 
     // Iteratively figure out variable names. Each cycle can propagate
     // variable names one more step.
