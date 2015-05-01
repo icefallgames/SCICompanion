@@ -348,12 +348,16 @@ void _Section1And6_ClassesAndInstances(vector<BYTE> &output, CompileContext *pCo
     }
 }
 
-void _Section10_LocalVariables(Script &script, vector<BYTE> &output)
+void _Section10_LocalVariables(Script &script, vector<BYTE> &output, bool separateHeapResource)
 {
     const VariableDeclVector &scriptVars = script.GetScriptVariables();
     if (!scriptVars.empty())
     {
-        push_word(output, 10);
+        if (!separateHeapResource)
+        {
+            // Section 10 for SCI0
+            push_word(output, 10);
+        }
         size_t localVarSizeIndex = output.size();
         push_word(output, 0); // Temporary value.
 
@@ -1037,15 +1041,9 @@ void GenerateSCOObjects(CompileContext &context, const Script &script)
     }
 }
 
-bool GenerateScriptResource_SCI0(Script &script, PrecompiledHeaders &headers, CompileTables &tables, CompileResults &results)
+
+void CommonScriptPrep(Script &script, CompileContext &context, CompileResults &results)
 {
-    vector<BYTE> &output = results.GetScriptResource();
-
-    // Create our "CompileContext", which holds state during the compilation.
-    CompileContext context(appState->GetVersion(), script, headers, tables, results.GetLog());
-
-    _Section3_Synonyms(script, context, output);
-
     // Load the include files
     context.LoadIncludes();
     // Set the script number now (might have relied on defines)
@@ -1060,6 +1058,18 @@ bool GenerateScriptResource_SCI0(Script &script, PrecompiledHeaders &headers, Co
         FixCaseStatements hack(context);
         script.Traverse(nullptr, hack);
     }
+}
+
+bool GenerateScriptResource_SCI0(Script &script, PrecompiledHeaders &headers, CompileTables &tables, CompileResults &results)
+{
+    vector<BYTE> &output = results.GetScriptResource();
+
+    // Create our "CompileContext", which holds state during the compilation.
+    CompileContext context(appState->GetVersion(), script, headers, tables, results.GetLog());
+
+    _Section3_Synonyms(script, context, output);
+
+    CommonScriptPrep(script, context, results);
 
     // To figure out how many exports we have, let's look at the public procedures and public instances
     size_t numExports = 0;
@@ -1087,7 +1097,7 @@ bool GenerateScriptResource_SCI0(Script &script, PrecompiledHeaders &headers, Co
 
     _Section7_Exports_Part2(context, output, wStartOfCode, numExports, indexOfExports);
 
-    _Section10_LocalVariables(script, output);
+    _Section10_LocalVariables(script, output, false);
 
     _Section8_RelocationTable(context, output);
 
@@ -1109,6 +1119,7 @@ bool GenerateScriptResource_SCI0(Script &script, PrecompiledHeaders &headers, Co
     return !context.HasErrors();
 }
 
+
 bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, CompileTables &tables, CompileResults &results)
 {
     vector<BYTE> &outputScr = results.GetScriptResource();
@@ -1117,20 +1128,7 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
     // Create our "CompileContext", which holds state during the compilation.
     CompileContext context(appState->GetVersion(), script, headers, tables, results.GetLog());
 
-    // Load the include files
-    context.LoadIncludes();
-    // Set the script number now (might have relied on defines)
-    context.SetScriptNumber();
-    results.SetScriptNumber(context.GetScriptNumber());
-    // Do some prescans (script number must already be set!)
-    script.PreScan(context);
-    // Ok, now we should have been told about all the saids and strings.
-    if (script.Language() == LangSyntaxSCIStudio)
-    {
-        // Fix up case statements we may have mis-interpreted.
-        FixCaseStatements hack(context);
-        script.Traverse(nullptr, hack);
-    }
+    CommonScriptPrep(script, context, results);
 
     push_word(outputScr, 0);    // This is where "after end of code" goes.
     push_word(outputScr, 0);    // Always zero
@@ -1150,10 +1148,36 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
     GenerateSCOPublics(context, script);
     GenerateSCOVariables(context, script);
 
-    // It would be nice to put the code right after the saids and strings,
-    // in the hope that we can use some 8bit opcodes instead of 16bit ones.  However, it
-    // turns out it's easier to put them after, with the instances.  It makes it easier to fix up
-    // the references to saids, strings and instances that are in the code.
+    // Let's start writing to the hep file now.
+    push_word(outputHeap, 0);   // This will point to "after strings" 
+    // Next come the local var values
+    _Section10_LocalVariables(script, outputHeap, true);
+
+    // Next, we write out the objects. They consist of parts in both .hep and .scr
+    // In .scr come the property and method selectors for the objects
+    // Instances have method selectors only.
+    // Classes have both.
+    // In .hep we have some more basic info about the object. Instances and classes are all smushed together.
+    CSCOFile &sco = context.GetScriptSCO();
+    for (const CSCOObjectClass &oClass : sco.GetObjects())
+    {
+        bool isInstance = false; // REVIEW: how do we know this? Does the CSCOObjectClass already reflect this?
+
+        push_word(outputHeap, 0x1234); // object marker
+        uint16_t numVars = (uint16_t)oClass.GetProperties().size();
+        push_word(outputHeap, numVars);
+        uint16_t varOffsetInScr = (uint16_t)outputScr.size();
+        push_word(outputHeap, varOffsetInScr);
+        uint16_t methodOffsetInScr = varOffsetInScr + (isInstance ? 0 : (numVars * 2));
+        push_word(outputHeap, methodOffsetInScr);
+        push_word(outputHeap, 0);   // REVIEW: Always zero??
+
+        // TODO: Now write other things... like var values and such.
+        // TODO: Write the selectors to varOffsetInScr and methodOffsetInScr
+    }
+    // TODO: is there an end marker?
+    
+
     WORD wStartOfCode = 0;
     _Section2_Code(script, context, outputScr, wStartOfCode);
 
@@ -1164,7 +1188,8 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
     // Now we write pointers to all the strings.
 
 
-    // TODO: Write exports.
+    // TODO: Write export values
+    // TODO: write "after code" and "after strings" 
 
     return false;
 }

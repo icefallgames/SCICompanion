@@ -463,7 +463,13 @@ bool CompiledObjectBase::Create_SCI1_1(const CompiledScript &compiledScript, SCI
     // First get the property values (since these are present for both instances
     // and classes)
     uint16_t wName = 0;
-    heapStream.skip(2); // just made this up?
+
+    //heapStream.skip(2); // just made this up?
+    // Let's verify:
+    uint16_t mysteryValue;
+    heapStream >> mysteryValue;
+    assert(mysteryValue == 0);
+
     for (uint16_t i = 0; i < numVars; i++)
     {
         uint16_t propertyValue;
