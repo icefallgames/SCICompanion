@@ -193,6 +193,7 @@
     <ClCompile Include="Src\Compile\DisassembleHelper.cpp" />
     <ClCompile Include="Src\Compile\Disassembler.cpp" />
     <ClCompile Include="Src\Compile\ControlFlowGraph.cpp" />
+    <ClCompile Include="Src\Compile\GenerateScriptResource.cpp" />
     <ClCompile Include="Src\Compile\OutputCodeHelper.cpp" />
     <ClCompile Include="Src\Compile\OutputCppSourceCode.cpp" />
     <ClCompile Include="Src\Compile\OutputSCISourceCode.cpp" />

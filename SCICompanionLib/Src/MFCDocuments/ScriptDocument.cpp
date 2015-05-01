@@ -204,7 +204,7 @@ bool NewCompileScript(CompileLog &log, CompileTables &tables, PrecompiledHeaders
             // Compile and save script resource.
             // Compile our own script!
             CompileResults results(log);
-            if (GenerateScriptResource(*pScript, headers, tables, results))
+            if (GenerateScriptResource_SCI0(*pScript, headers, tables, results))
             {
                 WORD wNum = results.GetScriptNumber();
 

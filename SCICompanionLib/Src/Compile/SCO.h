@@ -150,7 +150,7 @@ public:
     void SetMethods(const std::vector<CSCOMethod> &methods) { _methods = methods; }
     void SetProperties(std::vector<CSCOObjectProperty> &properties) { _properties = properties; }
     void SetPublic(bool fPublic) { _fPublic = fPublic; }
-    bool IsPublic() { return _fPublic; }
+    bool IsPublic() const { return _fPublic; }
  
 private:
     // Real data

@@ -40,6 +40,7 @@ class CompileTables;
 class PrecompiledHeaders;
 class ICompileLog;
 class SCIClassBrowser;
+class ISourceCodePosition;
 
 typedef std::unordered_map<std::string, sci::Define*> defines_map;
 typedef std::multimap<std::string, code_pos> ref_multimap;
@@ -393,7 +394,8 @@ class CompileResults
 {
 public:
     CompileResults(ICompileLog &log);
-    std::vector<BYTE> &GetScriptResource() { return _output; }
+    std::vector<BYTE> &GetScriptResource() { return _outputScr; }
+    std::vector<BYTE> &GetHeapResource() { return _outputHep; }
     CSCOFile &GetSCO() { return _sco; }
     WORD GetScriptNumber() const { return _wScriptNumber; }
     void SetScriptNumber(WORD wNum) { _wScriptNumber = wNum; }
@@ -402,7 +404,8 @@ public:
     TextComponent &GetTextComponent();
     
 private:
-    std::vector<BYTE> _output;
+    std::vector<BYTE> _outputScr;
+    std::vector<BYTE> _outputHep;
     WORD _wScriptNumber;
     CSCOFile _sco;
     ICompileLog &_log;
@@ -467,7 +470,7 @@ private:
 // The be-all end-all function for compiling a script.
 // Returns true if there were no errors.
 //
-bool GenerateScriptResource(sci::Script &script, PrecompiledHeaders &headers, CompileTables &tables, CompileResults &results);
+bool GenerateScriptResource_SCI0(sci::Script &script, PrecompiledHeaders &headers, CompileTables &tables, CompileResults &results);
 
 void ErrorHelper(CompileContext &context, const ISourceCodePosition *pPos, const std::string &text, const std::string &identifier);
 

@@ -65,7 +65,7 @@ CSCOPublicExport GetKernelSCO(SCIVersion version, CompileContext &context, const
             CompileLog log;
             CompileResults results(log);
             PrecompiledHeaders headers(appState->GetResourceMap());
-            if (GenerateScriptResource(script, headers, tables, results))
+            if (GenerateScriptResource_SCI0(script, headers, tables, results))
             {
                 for(const CSCOPublicExport &theExport : results.GetSCO().GetExports())
                 {

@@ -654,7 +654,10 @@ vector<NodeBlock> ControlFlowGraph::_FindSwitchBlocks(DominatorMap &dominators, 
                 {
                     // We found it. This pred node dominates the toss. Assert that there's DUP instruction in here.
                     // If we find that in some cases there isn't, we'll need to adjust our algorithm.
-                    assert(pred->contains(Opcode::DUP));
+                    if (!pred->contains(Opcode::DUP))
+                    {
+                        throw ControlFlowException(pred, "Encountered toss instruction but no switch.");
+                    }
 
                     // Now, the thing we're duping comes from the previous node. But the previous node
                     // might actually contain a whole sequence of instructions, only the last of which

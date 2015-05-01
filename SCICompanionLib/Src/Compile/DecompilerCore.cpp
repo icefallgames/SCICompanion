@@ -1008,10 +1008,12 @@ void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBe
 }
 bool _IsPrintProcedure(WORD wScript, WORD wIndex)
 {
+#if 0
     if (wScript == 255 && wIndex == 0)
     {
         return true; // True for space quest
     }
+#endif
     return false;
 }
 

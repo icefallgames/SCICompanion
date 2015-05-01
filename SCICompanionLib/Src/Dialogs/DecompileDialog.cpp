@@ -352,9 +352,37 @@ BOOL DecompileDialog::PreTranslateMessage(MSG* pMsg)
             }
             else
             {
-                m_wndListScripts.SendMessage(TVM_ENDEDITLABELNOW, (VK_ESCAPE == pMsg->wParam));
+                if (TranslateMessage(pMsg))
+                {
+                    DispatchMessage(pMsg);
+                    return TRUE;
+                }
             }
-            return TRUE;
+        }
+    }
+    else
+    {
+        if (WM_KEYDOWN == pMsg->message &&
+            (VK_F2 == pMsg->wParam))
+        {
+            if (GetFocus()->GetSafeHwnd() == m_wndListScripts.GetSafeHwnd())
+            {
+                int selectedItem = m_wndListScripts.GetSelectionMark();
+                if (selectedItem != -1)
+                {
+                    m_wndListScripts.EditLabel(selectedItem);
+                }
+                return TRUE;
+            }
+            else if (GetFocus()->GetSafeHwnd() == m_wndTreeSCO.GetSafeHwnd())
+            {
+                HTREEITEM hTreeItem = m_wndTreeSCO.GetSelectedItem();
+                if (hTreeItem != nullptr)
+                {
+                    m_wndTreeSCO.EditLabel(hTreeItem);
+                }
+                return TRUE;
+            }
         }
     }
     return __super::PreTranslateMessage(pMsg);
@@ -406,7 +434,9 @@ void DecompileDialog::OnTvnEndlabeleditTreesco(NMHDR *pNMHDR, LRESULT *pResult)
         }
         *pResult = 1;
         SaveSCOFile(_helper, *_sco);
-        // TODO: a message indicating we saved.
+        m_wndStatus.SetWindowTextA(fmt::format("Saved changes to {0}",
+            PathFindFileName(_helper.GetScriptObjectFileName(_sco->GetScriptNumber()).c_str())).c_str()
+            );
     }
     else
     {
@@ -419,7 +449,7 @@ void DecompileDialog::OnTvnEndlabeleditTreesco(NMHDR *pNMHDR, LRESULT *pResult)
 void DecompileDialog::OnLvnBeginlabeleditListscripts(NMHDR *pNMHDR, LRESULT *pResult)
 {
     NMLVDISPINFO *pDispInfo = reinterpret_cast<NMLVDISPINFO*>(pNMHDR);
-    // TODO: Add your control notification handler code here
+    _inScriptListLabelEdit = true;
     *pResult = 0;
 }
 
@@ -427,8 +457,34 @@ void DecompileDialog::OnLvnBeginlabeleditListscripts(NMHDR *pNMHDR, LRESULT *pRe
 void DecompileDialog::OnLvnEndlabeleditListscripts(NMHDR *pNMHDR, LRESULT *pResult)
 {
     NMLVDISPINFO *pDispInfo = reinterpret_cast<NMLVDISPINFO*>(pNMHDR);
-    // TODO: Add your control notification handler code here
-    *pResult = 0;
+
+    if (pDispInfo->item.pszText)
+    {
+        uint16_t scriptNumber = (uint16_t)pDispInfo->item.lParam;
+        // Rename the .sco and .sc files
+        string scOld = _helper.GetScriptFileName(scriptNumber);
+        string scoOld = _helper.GetScriptObjectFileName(scriptNumber);
+        appState->GetResourceMap().AssignName(ResourceType::Script, scriptNumber, pDispInfo->item.pszText);
+        
+        // And move them.
+        try
+        {
+            movefile(scOld, _helper.GetScriptFileName(scriptNumber));
+            movefile(scoOld, _helper.GetScriptObjectFileName(scriptNumber));
+        }
+        catch (std::exception &e)
+        {
+            AfxMessageBox(e.what(), MB_ICONWARNING | MB_OK);
+        }
+
+        *pResult = 1;
+    }
+    else
+    {
+        *pResult = 0;
+    }
+
+    _inScriptListLabelEdit = false;
 }
 
 void DecompileDialog::OnTimer(UINT_PTR nIDEvent)
@@ -507,6 +563,10 @@ void DecompileDialog::_SyncButtonState()
 
 void DecompileDialog::OnBnClickedAssignfilenames()
 {
+    unordered_set<string> importantClasses = { "Game" }; // e.g. needed for KQ6, 994
+
+    unordered_set<string> usedNames;
+
     GlobalCompiledScriptLookups *lookups = appState->GetResourceMap().GetCompiledScriptLookups();
     if (lookups)
     {
@@ -520,33 +580,37 @@ void DecompileDialog::OnBnClickedAssignfilenames()
             else
             {
                 // Look for the first class in the file. If none found, then the first public instance.
+                string firstPublicInstance;
+                string firstClass;
                 for (const auto &object : script->GetObjects())
                 {
-                    if (!object->IsInstance())
+                    if (!object->IsInstance() && (firstClass.empty() || importantClasses.find(object->GetName()) != importantClasses.end()))
                     {
-                        suggestedName = object->GetName();
-                        break;
+                        firstClass = object->GetName();
+                    }
+                    else if (object->IsInstance() && object->IsPublic && firstPublicInstance.empty())
+                    {
+                        firstPublicInstance = object->GetName();
                     }
                 }
-                if (suggestedName.empty())
-                {
-                    for (const auto &object : script->GetObjects())
-                    {
-                        if (object->IsInstance() && object->IsPublic)
-                        {
-                            suggestedName = object->GetName();
-                            break;
-                        }
-                    }
-                }
+                suggestedName = firstClass.empty() ? firstPublicInstance : firstClass;
             }
             if (!suggestedName.empty())
             {
+                // Make it unique if we already named something this (this happens in LSL6)
+                if (usedNames.find(suggestedName) != usedNames.end())
+                {
+                    suggestedName += fmt::format("_{0}", script->GetScriptNumber());
+                }
+                usedNames.insert(suggestedName);
+
                 appState->GetResourceMap().AssignName(ResourceType::Script, script->GetScriptNumber(), suggestedName.c_str());
             }
         }
 
         _PopulateScripts();
+        // For some reason assigning names doesn't cause it to repaint, so invalidate:
+        m_wndListScripts.Invalidate(FALSE);
     }
 }
 
@@ -679,6 +743,7 @@ LRESULT DecompileDialog::UpdateStatus(WPARAM wParam, LPARAM lParam)
         }
         str.Append(display.c_str());
         m_wndResults.SetWindowTextA(str);
+        m_wndResults.LineScroll(m_wndResults.GetLineCount());
     }
     delete stringPtr;
     return 0;

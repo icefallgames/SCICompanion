@@ -218,6 +218,11 @@ void CTextView::OnInitialUpdate()
     GetListCtrl().SendMessage(LVM_SETEXTENDEDLISTVIEWSTYLE, 0, LPARAM(dwExStyle));
 }
 
+#define VK_C        67
+#define VK_V        86
+#define VK_X        88
+#define VK_Z        90
+
 BOOL CTextView::PreTranslateMessage(MSG *pMsg)
 {
 	if (_bInLabelEdit && (pMsg->message >= WM_KEYFIRST) && (pMsg->message <= WM_KEYLAST))
@@ -233,6 +238,39 @@ BOOL CTextView::PreTranslateMessage(MSG *pMsg)
             }
         }
     }
+
+    if (_bInLabelEdit && (pMsg->message == WM_KEYDOWN))
+    {
+        CListCtrl& oListctrl = GetListCtrl();
+        CEdit* edit = oListctrl.GetEditControl();
+        if (edit)
+        {
+            if (GetKeyState(VK_CONTROL))
+            {
+                if (pMsg->wParam == VK_C)
+                {
+                    edit->Copy();
+                    return TRUE;
+                }
+                if (pMsg->wParam == VK_V)
+                {
+                    edit->Paste();
+                    return TRUE;
+                }
+                if (pMsg->wParam == VK_X)
+                {
+                    edit->Cut();
+                    return TRUE;
+                }
+                if (pMsg->wParam == VK_Z)
+                {
+                    edit->Undo();
+                    return TRUE;
+                }
+            }
+        }
+    }
+
     return __super::PreTranslateMessage(pMsg);
 }
 

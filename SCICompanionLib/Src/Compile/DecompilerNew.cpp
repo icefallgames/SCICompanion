@@ -2029,8 +2029,8 @@ bool _ResolveNeededAccWorker(ConsumptionNode *root, ConsumptionNode *chunk, Deco
             }
             else
             {
-                assert(false && "Needed stack, but couldn't find it");
                 child->SetType(ChunkType::FailedToGetStack);
+                throw ConsumptionNodeException(chunk, "Needed stack value, but couldn't find it");
             }
         }
     }
