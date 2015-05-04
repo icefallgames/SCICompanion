@@ -129,6 +129,11 @@ bool scii::is_acc_op()
     }
 }
 
+uint16_t scii::GetInstructionSize(uint8_t rawOpcode)
+{
+    Opcode opcode = (Opcode)(rawOpcode >> 1);
+    return _get_instruction_size(opcode, (rawOpcode & 1) ? Byte : Word);
+}
 
 WORD scii::_get_instruction_size(Opcode bOpcode, OPSIZE opSize)
 {

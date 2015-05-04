@@ -149,6 +149,8 @@ public:
         return (_bOpcode == Opcode::BNT) || (_bOpcode == Opcode::BT);
     }
 
+    static uint16_t GetInstructionSize(uint8_t rawOpcode);
+
 private:
     bool _is_label_instruction()
     {

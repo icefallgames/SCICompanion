@@ -3,6 +3,7 @@
 #include "ScriptOM.h" // Just for SourceCodeWriter...
 #include "format.h"
 #include "GameFolderHelper.h"
+#include "scii.h"
 
 using namespace std;
 using namespace sci;
@@ -787,6 +788,8 @@ bool CompiledScript::_ReadStrings(sci::istream &stream, uint16_t wDataSize)
     return stream.good();
 }
 
+uint8_t g_OpArgs[256];
+bool g_OpArgsInitialized = false;
 
 //
 // Calculate the offset wRelOffset from wHere, where wHere is the current location
@@ -796,7 +799,7 @@ bool CompiledScript::_ReadStrings(sci::istream &stream, uint16_t wDataSize)
 uint16_t CalcOffset(uint16_t wOperandStart, uint16_t wRelOffset, bool bByte, BYTE bRawOpcode)
 {
     // Move to the pc post instruction.
-    uint16_t wResult = wOperandStart + OpArgs[bRawOpcode];
+    uint16_t wResult = wOperandStart + g_OpArgs[bRawOpcode];
     if (bByte)
     {
         if (wRelOffset >= 0x0080)
@@ -824,11 +827,24 @@ void CompiledScript::PopulateSaidStrings(const ILookupNames *pWords) const
     assert(_saidStrings.size() == _saidsOffset.size());
 }
 
+
+
 //
 // Scan all the code in the script, looking for call instructions
 //
 set<uint16_t> CompiledScript::FindInternalCallsTO() const
 {
+    if (!g_OpArgsInitialized)
+    {
+        for (int i = 0; i < 256; i++)
+        {
+            int argumentByteCount = scii::GetInstructionSize((uint8_t)i) - 1;
+            g_OpArgs[i] = (uint8_t)argumentByteCount;
+        }
+        g_OpArgsInitialized = true;
+    }
+
+
     set<uint16_t> wOffsets;
     for (size_t i = 0; i < _codeSections.size(); i++)
     {
@@ -851,8 +867,8 @@ set<uint16_t> CompiledScript::FindInternalCallsTO() const
                     wOffsets.insert(wOffsets.end(), CalcOffset(wCurrentOffsetTO, wRelOffset, bByte, bRawOpcode));
                 }
                 // Skip past to the next instruction
-                pCur += OpArgs[bRawOpcode];
-                wCurrentOffsetTO += OpArgs[bRawOpcode];
+                pCur += g_OpArgs[bRawOpcode];
+                wCurrentOffsetTO += g_OpArgs[bRawOpcode];
             }
         }
     }

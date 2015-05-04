@@ -1,8 +1,159 @@
-﻿Build started 5/3/2015 11:58:31 PM.
+﻿Build started 5/4/2015 9:56:56 AM.
      1>Project "E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\SCICompanionLib.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
-         F:\VisualStudio\VC\bin\CL.exe /c /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\\" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Util" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Resources" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCViews" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCFrames" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCDocuments" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\FrameComponents" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Dialogs" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CrystalEdit" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CRC32" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CppFormat" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Compile" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Include" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Src" /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _WINDOWS /D NO_WARN_MBCS_MFC_DEPRECATION /D _DEBUG /D _USRDLL /D _MBCS /Gm /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"Debug\SCICompanionLib.pch" /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt /Qpar Src\Compile\DecompilerNew.cpp
+         F:\VisualStudio\VC\bin\CL.exe /c /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\\" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Util" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Resources" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCViews" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCFrames" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCDocuments" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\FrameComponents" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Dialogs" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CrystalEdit" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CRC32" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CppFormat" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Compile" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Include" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Src" /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _WINDOWS /D NO_WARN_MBCS_MFC_DEPRECATION /D _DEBUG /D _USRDLL /D _MBCS /Gm /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"Debug\SCICompanionLib.pch" /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt /Qpar Src\Compile\Compile.cpp Src\Compile\CompileContext.cpp Src\Compile\CompiledScript.cpp Src\Compile\ControlFlowGraph.cpp Src\Compile\ControlFlowGraphViz.cpp Src\Compile\ControlFlowNode.cpp Src\Compile\DecompileScript.cpp Src\Compile\DecompilerCore.cpp Src\Compile\DecompilerFallback.cpp Src\Compile\DecompilerNew.cpp Src\Compile\DisassembleHelper.cpp Src\Compile\Disassembler.cpp Src\Compile\GenerateScriptResource.cpp Src\Compile\Kernels.cpp Src\Compile\PMachine.cpp Src\Compile\SCIStudioSyntaxParser.cpp Src\Compile\SCO.cpp Src\Compile\ScriptDebug.cpp Src\Compile\ScriptOM.cpp Src\Compile\SummarizeScript.cpp Src\Compile\TarjanAlgorithm.cpp Src\Compile\Types.cpp Src\Compile\scii.cpp Src\Dialogs\AnimateDialog.cpp Src\Dialogs\BarContainerDialog.cpp Src\Dialogs\BaseColorDialog.cpp Src\Dialogs\BitmapToPicDialog.cpp Src\Dialogs\BitmapToVGADialog.cpp Src\Dialogs\ChooseColorAdvancedDialog.cpp Src\Dialogs\ChooseColorDialog.cpp Src\Dialogs\ChooseColorDialogVGA.cpp Src\Dialogs\ChoosePenStyleDialog.cpp Src\Dialogs\ChoosePriConDialog.cpp Src\Dialogs\ClassBrowserDialog.cpp Src\Dialogs\DecompileDialog.cpp Src\Dialogs\DontShowAgainDialog.cpp Src\Dialogs\ExtractAllDialog.cpp Src\Dialogs\FindAllDialog.cpp Src\Dialogs\FindWordDialog.cpp Src\Dialogs\GamePropertiesDialog.cpp Src\Dialogs\GameVersionDialog.cpp Src\Dialogs\GotoDialog.cpp Src\Dialogs\InsertObject.cpp Src\Dialogs\NewCompileDialog.cpp Src\Dialogs\NewGameDialog.cpp Src\Dialogs\NewRoomDialog.cpp Src\Dialogs\NewScriptDialog.cpp Src\Dialogs\PaletteDefinitionDialog.cpp Src\Dialogs\PaletteEditorDialog.cpp Src\Dialogs\PreferencesDialog.cpp Src\Dialogs\RemoveScriptDialog.cpp Src\Dialogs\SCIFontDialog.cpp Src\Dialogs\SCIPropertyCtrl.cpp Src\Dialogs\SCIPropertyInfo.cpp Src\Dialogs\SCIProps.cpp Src\Dialogs\SamplesDialogBar.cpp Src\Dialogs\SaveResourceDialog.cpp Src\Dialogs\VocabAutoCompleteDialog.cpp Src\FrameComponents\ChooseColorStatic.cpp Src\FrameComponents\CodeToolTips.cpp Src\FrameComponents\ColorButton.cpp Src\FrameComponents\ColoredToolTip.cpp Src\FrameComponents\IntellisenseListBox.cpp Src\FrameComponents\MDITabsDialogBar.cpp Src\FrameComponents\OutputPane.cpp Src\FrameComponents\PicCommandSidePane.cpp Src\FrameComponents\QuickScripts.cpp Src\FrameComponents\RasterSidePane.cpp Src\FrameComponents\ResourceListView.cpp Src\FrameComponents\ResourcePicListView.cpp Src\FrameComponents\ResourcePreviewer.cpp Src\FrameComponents\ScriptComboBox.cpp Src\FrameComponents\SliderDialogBar.cpp Src\FrameComponents\SoundToolboxSidePane.cpp Src\FrameComponents\VPCDialogBar.cpp Src\FrameComponents\ViewCelChooser.cpp Src\MFCDocuments\NewRasterResourceDocument.cpp Src\MFCDocuments\NonViewHostDocument.cpp Src\MFCDocuments\PaletteDoc.cpp Src\MFCDocuments\PicDoc.cpp Src\MFCDocuments\ResourceDocument.cpp Src\MFCDocuments\ResourceListDoc.cpp Src\MFCDocuments\ScriptDocument.cpp Src\MFCDocuments\SoundDoc.cpp Src\MFCDocuments\TextDoc.cpp Src\MFCDocuments\VocabDoc.cpp Src\MFCFrames\CursorChildFrame.cpp Src\MFCFrames\FontChildFrame.cpp Src\MFCFrames\GameExplorerFrame.cpp Src\MFCFrames\MDITabChildWnd.cpp Src\MFCFrames\MainFrm.cpp Src\MFCFrames\PaletteChildFrame.cpp Src\MFCFrames\PicChildFrame.cpp Src\MFCFrames\RoomExplorerFrame.cpp Src\MFCFrames\ScriptFrame.cpp Src\MFCFrames\SoundChildFrame.cpp Src\MFCFrames\TextChildFrame.cpp Src\MFCFrames\ViewChildFrame.cpp Src\MFCFrames\VocabChildFrame.cpp Src\MFCViews\FontPreviewView.cpp Src\MFCViews\GameExplorerView.cpp Src\MFCViews\PaletteView.cpp Src\MFCViews\PicView.cpp Src\MFCViews\RasterResourceListView.cpp Src\MFCViews\RasterView.cpp Src\MFCViews\RoomExplorerView.cpp Src\MFCViews\ScriptView.cpp Src\MFCViews\SoundView.cpp Src\MFCViews\TextView.cpp Src\MFCViews\VocabView.cpp Src\Resources\Audio.cpp Src\Resources\PaletteOperations.cpp Src\Resources\Pic.cpp Src\Resources\PicDrawManager.cpp Src\Resources\PicOperations.cpp Src\Resources\ResourceBlob.cpp Src\Resources\ResourceContainer.cpp Src\Resources\ResourceEntity.cpp Src\Resources\ResourceMap.cpp Src\Resources\ResourceMapOperations.cpp Src\Resources\ResourceSources.cpp Src\Resources\ResourceTypeList.cpp Src\Resources\Sound.cpp Src\Resources\VersionDetectionHelper.cpp Src\Resources\View.cpp Src\Resources\Vocab000.cpp Src\Resources\Vocab99x.cpp Src\Util\AppState.cpp Src\Util\ClassBrowser.cpp Src\Util\ClassBrowserInfo.cpp Src\Util\CodeAutoComplete.cpp Src\Util\Codec.cpp Src\Util\CodecAlt.cpp Src\Util\CodecDCL.cpp Src\Util\ExtractAll.cpp Src\Util\SCIDocs.cpp Src\Util\WordEnumString.cpp
+         PMachine.cpp
+         CompiledScript.cpp
+         Generating Code...
+         Compiling...
+         WordEnumString.cpp
+         SCIDocs.cpp
+         ExtractAll.cpp
+         CodecDCL.cpp
+         CodecAlt.cpp
+         Codec.cpp
+         CodeAutoComplete.cpp
+         ClassBrowserInfo.cpp
+         ClassBrowser.cpp
+         AppState.cpp
+         Vocab99x.cpp
+         Vocab000.cpp
+         View.cpp
+         VersionDetectionHelper.cpp
+         Sound.cpp
+         ResourceTypeList.cpp
+         ResourceSources.cpp
+         ResourceMapOperations.cpp
+         ResourceMap.cpp
+         ResourceEntity.cpp
+         Generating Code...
+         Compiling...
+         ResourceContainer.cpp
+         ResourceBlob.cpp
+         PicOperations.cpp
+         PicDrawManager.cpp
+         Pic.cpp
+         PaletteOperations.cpp
+         Audio.cpp
+         VocabView.cpp
+         TextView.cpp
+         SoundView.cpp
+         ScriptView.cpp
+         RoomExplorerView.cpp
+         RasterView.cpp
+         RasterResourceListView.cpp
+         PicView.cpp
+         PaletteView.cpp
+         GameExplorerView.cpp
+         FontPreviewView.cpp
+         VocabChildFrame.cpp
+         ViewChildFrame.cpp
+         Generating Code...
+         Compiling...
+         TextChildFrame.cpp
+         SoundChildFrame.cpp
+         ScriptFrame.cpp
+         RoomExplorerFrame.cpp
+         PicChildFrame.cpp
+         PaletteChildFrame.cpp
+         MainFrm.cpp
+         MDITabChildWnd.cpp
+         GameExplorerFrame.cpp
+         FontChildFrame.cpp
+         CursorChildFrame.cpp
+         VocabDoc.cpp
+         TextDoc.cpp
+         SoundDoc.cpp
+         ScriptDocument.cpp
+         ResourceListDoc.cpp
+         ResourceDocument.cpp
+         PicDoc.cpp
+         PaletteDoc.cpp
+         NonViewHostDocument.cpp
+         Generating Code...
+         Compiling...
+         NewRasterResourceDocument.cpp
+         ViewCelChooser.cpp
+         VPCDialogBar.cpp
+         SoundToolboxSidePane.cpp
+         SliderDialogBar.cpp
+         ScriptComboBox.cpp
+         ResourcePreviewer.cpp
+         ResourcePicListView.cpp
+         ResourceListView.cpp
+         RasterSidePane.cpp
+         QuickScripts.cpp
+         PicCommandSidePane.cpp
+         OutputPane.cpp
+         MDITabsDialogBar.cpp
+         IntellisenseListBox.cpp
+         ColoredToolTip.cpp
+         ColorButton.cpp
+         CodeToolTips.cpp
+         ChooseColorStatic.cpp
+         VocabAutoCompleteDialog.cpp
+         Generating Code...
+         Compiling...
+         SaveResourceDialog.cpp
+         SamplesDialogBar.cpp
+         SCIProps.cpp
+         SCIPropertyInfo.cpp
+         SCIPropertyCtrl.cpp
+         SCIFontDialog.cpp
+         RemoveScriptDialog.cpp
+         PreferencesDialog.cpp
+         PaletteEditorDialog.cpp
+         PaletteDefinitionDialog.cpp
+         NewScriptDialog.cpp
+         NewRoomDialog.cpp
+         NewGameDialog.cpp
+         NewCompileDialog.cpp
+         InsertObject.cpp
+         GotoDialog.cpp
+         GameVersionDialog.cpp
+         GamePropertiesDialog.cpp
+         FindWordDialog.cpp
+         FindAllDialog.cpp
+         Generating Code...
+         Compiling...
+         ExtractAllDialog.cpp
+         DontShowAgainDialog.cpp
+         DecompileDialog.cpp
+         ClassBrowserDialog.cpp
+         ChoosePriConDialog.cpp
+         ChoosePenStyleDialog.cpp
+         ChooseColorDialogVGA.cpp
+         ChooseColorDialog.cpp
+         ChooseColorAdvancedDialog.cpp
+         BitmapToVGADialog.cpp
+         BitmapToPicDialog.cpp
+         BaseColorDialog.cpp
+         BarContainerDialog.cpp
+         AnimateDialog.cpp
+         scii.cpp
+         Types.cpp
+         TarjanAlgorithm.cpp
+         SummarizeScript.cpp
+         ScriptOM.cpp
+         ScriptDebug.cpp
+         Generating Code...
+         Compiling...
+         SCO.cpp
+         SCIStudioSyntaxParser.cpp
+         Kernels.cpp
+         GenerateScriptResource.cpp
+         Disassembler.cpp
+         DisassembleHelper.cpp
          DecompilerNew.cpp
+         DecompilerFallback.cpp
+         DecompilerCore.cpp
+         DecompileScript.cpp
+         ControlFlowNode.cpp
+         ControlFlowGraphViz.cpp
+         ControlFlowGraph.cpp
+         CompileContext.cpp
+         Compile.cpp
+         Generating Code...
        Lib:
          F:\VisualStudio\VC\bin\Lib.exe /OUT:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Debug\SCICompanionLib.lib" /NOLOGO /VERBOSE Debug\AutoDetectVariableNames.obj
          Debug\ControlFlowNode.obj
@@ -387,4 +538,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:03.56
+Time Elapsed 00:02:23.68
