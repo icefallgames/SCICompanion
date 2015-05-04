@@ -788,7 +788,7 @@ bool CompiledScript::_ReadStrings(sci::istream &stream, uint16_t wDataSize)
     return stream.good();
 }
 
-uint8_t g_OpArgs[256];
+uint8_t g_OpcodeArgByteCount[256];
 bool g_OpArgsInitialized = false;
 
 //
@@ -799,7 +799,7 @@ bool g_OpArgsInitialized = false;
 uint16_t CalcOffset(uint16_t wOperandStart, uint16_t wRelOffset, bool bByte, BYTE bRawOpcode)
 {
     // Move to the pc post instruction.
-    uint16_t wResult = wOperandStart + g_OpArgs[bRawOpcode];
+    uint16_t wResult = wOperandStart + g_OpcodeArgByteCount[bRawOpcode];
     if (bByte)
     {
         if (wRelOffset >= 0x0080)
@@ -839,7 +839,7 @@ set<uint16_t> CompiledScript::FindInternalCallsTO() const
         for (int i = 0; i < 256; i++)
         {
             int argumentByteCount = scii::GetInstructionSize((uint8_t)i) - 1;
-            g_OpArgs[i] = (uint8_t)argumentByteCount;
+            g_OpcodeArgByteCount[i] = (uint8_t)argumentByteCount;
         }
         g_OpArgsInitialized = true;
     }
@@ -867,8 +867,8 @@ set<uint16_t> CompiledScript::FindInternalCallsTO() const
                     wOffsets.insert(wOffsets.end(), CalcOffset(wCurrentOffsetTO, wRelOffset, bByte, bRawOpcode));
                 }
                 // Skip past to the next instruction
-                pCur += g_OpArgs[bRawOpcode];
-                wCurrentOffsetTO += g_OpArgs[bRawOpcode];
+                pCur += g_OpcodeArgByteCount[bRawOpcode];
+                wCurrentOffsetTO += g_OpcodeArgByteCount[bRawOpcode];
             }
         }
     }

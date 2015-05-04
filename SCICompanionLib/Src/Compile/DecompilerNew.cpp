@@ -50,6 +50,7 @@ enum class ChunkType
     ZeroNode,
     TrueNode,
     ShortCircuitInstruction,
+    FunctionBody,
 };
 
 // For debugging purposes
@@ -83,6 +84,7 @@ const char *chunkTypeNames[] =
     "ZeroNode",
     "TrueNode",
     "ShortCircuitInstruction",
+    "FunctionBody",
 };
 
 struct ConsumptionNode;
@@ -191,10 +193,13 @@ struct ConsumptionNode
 
     const std::vector<std::unique_ptr<ConsumptionNode>> &Children() { return children; }
 
-    void ReplaceChild(size_t index, unique_ptr<ConsumptionNode> replacement)
+    std::unique_ptr<ConsumptionNode> ReplaceChild(size_t index, unique_ptr<ConsumptionNode> replacement)
     {
+        std::unique_ptr<ConsumptionNode> returnValue = move(children[index]);
         children[index] = move(replacement);
         children[index]->_parentWeak = this;
+        returnValue->_parentWeak = nullptr;
+        return returnValue;
     }
 
     void InsertChild(size_t index, unique_ptr<ConsumptionNode> replacement)
@@ -1869,9 +1874,46 @@ bool IsNodeStructureWithInstructionSequence(ConsumptionNode *node)
         case ChunkType::Else:
         case ChunkType::LoopBody:
         case ChunkType::CaseBody:
+        case ChunkType::FunctionBody:
             return true;
     }
     return false;
+}
+
+// The above one includes None, which I don't want in all cases?
+bool IsNodeStructureWithInstructionSequence2(ConsumptionNode *node)
+{
+    switch (node->GetType())
+    {
+        case ChunkType::FunctionBody:
+        case ChunkType::Then:
+        case ChunkType::Else:
+        case ChunkType::LoopBody:
+        case ChunkType::CaseBody:
+            return true;
+    }
+    return false;
+}
+
+bool SkipGuaranteedExecutions(ConsumptionNode *&child, ConsumptionNode *&parent)
+{
+    if ((parent->GetType() == ChunkType::Condition) && (parent->_parentWeak->GetType() == ChunkType::If))
+    {
+        parent = parent->_parentWeak->_parentWeak;
+        child = child->_parentWeak->_parentWeak;
+        return true;
+    }
+    else if ((parent->GetType() == ChunkType::First) &&
+        ((parent->_parentWeak->GetType() == ChunkType::And) || (parent->_parentWeak->GetType() == ChunkType::Or)))
+    {
+        parent = parent->_parentWeak->_parentWeak;
+        child = child->_parentWeak->_parentWeak;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 // When looking for an accumulator value or stack value to steal, we can generally only proceed up through
@@ -1882,20 +1924,9 @@ bool IsNodeStructureWithInstructionSequence(ConsumptionNode *node)
 // the [first] condition in a compound condition (but not the second).
 bool SkipStructuredLevels(ConsumptionNode *&child, ConsumptionNode *&parent)
 {
-    while (parent && !IsNodeStructureWithInstructionSequence(parent))
+    while (parent && !IsNodeStructureWithInstructionSequence2(parent))
     {
-        if ((parent->GetType() == ChunkType::Condition) && (parent->_parentWeak->GetType() == ChunkType::If))
-        {
-            parent = parent->_parentWeak->_parentWeak;
-            child = child->_parentWeak->_parentWeak;
-        }
-        else if ((parent->GetType() == ChunkType::First) &&
-            ((parent->_parentWeak->GetType() == ChunkType::And) || (parent->_parentWeak->GetType() == ChunkType::Or)))
-        {
-            parent = parent->_parentWeak->_parentWeak;
-            child = child->_parentWeak->_parentWeak;
-        }
-        else
+        if (!SkipGuaranteedExecutions(child, parent))
         {
             // We can't proceed up anymore
             return false;
@@ -1981,13 +2012,6 @@ void _ResolveDUPs(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookup
     }
 }
 
-// We can end up with multiple children of Conditions or First/Second nodes in a And/Or. Ideally we only
-// want one. When we did our control flow analysis, we didn't always partition the same that we do now when
-// construction the consumption node tree.
-// (= temp0 5)
-// (if (== ACC 4)
-//    // code
-// )
 bool _LiftOutFromConditionsWorker(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookups &lookups)
 {
     bool changes = false;
@@ -2028,6 +2052,13 @@ bool _LiftOutFromConditionsWorker(ConsumptionNode *root, ConsumptionNode *chunk,
     return changes;
 }
 
+// We can end up with multiple children of Conditions or First/Second nodes in a And/Or. Ideally we only
+// want one. When we did our control flow analysis, we didn't always partition the same that we do now when
+// construction the consumption node tree.
+// (= temp0 5)
+// (if (== ACC 4)
+//    // code
+// )
 void _LiftOutFromConditions(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookups &lookups)
 {
     bool changes = false;
@@ -2036,6 +2067,104 @@ void _LiftOutFromConditions(ConsumptionNode *root, ConsumptionNode *chunk, Decom
         changes = _LiftOutFromConditionsWorker(root, chunk, lookups);
     } while (changes);
 }
+
+bool NoPreviousChildrenProduceAcc(ConsumptionNode *parent, ConsumptionNode *child, DecompileLookups &lookups)
+{
+    bool success = true;
+    for (int i = (int)child->GetMyIndex() - 1; success && (i >= 0); i--)
+    {
+        success = (_GetInstructionConsumption(*parent->Child(i), lookups).cAccGenerate == 0);
+    }
+    return success;
+}
+
+bool CanLiftOut(ConsumptionNode *&child, ConsumptionNode *&parent, DecompileLookups &lookups)
+{
+    bool canLifeOut = false;
+    bool done = false;
+    // We can lift something out if:
+    // - this assignment is a guaranteed execution (e.g. in a And/Or->First or an If->Condition)
+    // - or the first in a "None" node
+    // - we can satisfy the above while going up to an ordered instruction sequence.
+    while (parent && !done)
+    {
+        if (parent->GetType() == ChunkType::None)
+        {
+            // We can't lift it out here, but we can keep going up as long as all the children before child
+            // don't produce accumulators.
+            if (NoPreviousChildrenProduceAcc(parent, child, lookups))
+            {
+                parent = parent->_parentWeak;
+                child = child->_parentWeak;
+            }
+            else
+            {
+                done = true;
+            }
+        }
+        else if (!SkipGuaranteedExecutions(child, parent))
+        {
+            // We'd better be at an instruction sequence node, otherwise we're done
+            if (IsNodeStructureWithInstructionSequence2(parent))
+            {
+                // We can lift it out here.
+                canLifeOut = true;
+            }
+            done = true;
+        }
+    }
+    return canLifeOut;
+}
+
+bool _LiftOutAssignmentsWorker(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookups &lookups)
+{
+    bool changes = false;
+
+    if (chunk->_hasPos &&
+        IsOpcodeWeCanShortCircuit(chunk->GetCode()->get_opcode()) &&
+        chunk->_parentWeak)
+    {
+        // See if we can pull this assignment out into an ordered instruction sequence.
+        ConsumptionNode *parent = chunk->_parentWeak;
+        ConsumptionNode *child = chunk;
+        if (!IsNodeStructureWithInstructionSequence2(parent) && CanLiftOut(child, parent, lookups))
+        {
+            assert(child->_parentWeak == parent);
+            assert(parent != chunk->_parentWeak);   // We should have gone up at least one level.
+
+            // Now parent/child should point to the structure where we can lift this out.
+            unique_ptr<ConsumptionNode> needsAccStub = make_unique<ConsumptionNode>();
+            needsAccStub->SetType(ChunkType::NeedsAccumulator);
+            unique_ptr<ConsumptionNode> nodeToLiftOut = chunk->_parentWeak->ReplaceChild(chunk->GetMyIndex(), move(needsAccStub));
+            // Move it out:
+            parent->InsertChild(child->GetMyIndex(), move(nodeToLiftOut));
+            changes = true;
+        }
+    }
+
+    if (!changes)
+    {
+        for (auto &child : chunk->Children())
+        {
+            changes = _LiftOutAssignmentsWorker(root, child.get(), lookups);
+            if (changes)
+            {
+                break;
+            }
+        }
+    }
+    return changes;
+}
+
+void _LiftOutAssignments(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookups &lookups)
+{
+    bool changes = false;
+    do
+    {
+        changes = _LiftOutAssignmentsWorker(root, chunk, lookups);
+    } while (changes);
+}
+
 
 void _ResolvePPrevs(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookups &lookups)
 {
@@ -2357,11 +2486,11 @@ void _RestructureCaseHeaders(ConsumptionNode *chunk, DecompileLookups &lookups)
     }
 }
 
-
 bool OutputNewStructure(const std::string &messagePrefix, sci::FunctionBase &func, MainNode &main, DecompileLookups &lookups)
 {
     CodeChunkEnumContext context(lookups);
     unique_ptr<ConsumptionNode> mainChunk = make_unique<ConsumptionNode>();
+    mainChunk->SetType(ChunkType::FunctionBody);
     context.Current = mainChunk.get();
 
     string debugTrackName = GetMethodTrackingName(func.GetOwnerClass(), func, true);
@@ -2384,16 +2513,13 @@ bool OutputNewStructure(const std::string &messagePrefix, sci::FunctionBase &fun
         _FixupSwitches(mainChunk.get(), lookups);
         _FixupIfs(mainChunk.get(), mainChunk.get(), lookups);
         _LiftOutFromConditions(mainChunk.get(), mainChunk.get(), lookups);
+
+        _LiftOutAssignments(mainChunk.get(), mainChunk.get(), lookups);
+
         _ResolveNeededAcc(mainChunk.get(), mainChunk.get(), lookups);
         _ResolvePPrevs(mainChunk.get(), mainChunk.get(), lookups);
         _RestructureCaseHeaders(mainChunk.get(), lookups);
         _ResolveDUPs(mainChunk.get(), mainChunk.get(), lookups);    // Must follow case restructure
-
-        // Now fill it in
-        for (auto &child : mainChunk->Children())
-        {
-            _ApplySyntaxNodeToCodeNode(*child, func, lookups);
-        }
 
         if (showFile)
         {
@@ -2401,6 +2527,13 @@ bool OutputNewStructure(const std::string &messagePrefix, sci::FunctionBase &fun
             mainChunk->Print(ss, 0);
             ShowTextFile(ss.str().c_str(), debugTrackName + "_chunks_final.txt");
         }
+
+        // Now fill it in
+        for (auto &child : mainChunk->Children())
+        {
+            _ApplySyntaxNodeToCodeNode(*child, func, lookups);
+        }
+
     }
     catch (ConsumptionNodeException &e)
     {
