@@ -97,16 +97,16 @@ public:
     {
         _wOperands[1] = wValue;
     }
-    WORD get_operand(int i) { ASSERT(OpArgTypes[static_cast<BYTE>(_bOpcode)][i] != otEMPTY); return _wOperands[i]; }
-    WORD get_first_operand()
+    WORD get_operand(int i)  const { ASSERT(OpArgTypes[static_cast<BYTE>(_bOpcode)][i] != otEMPTY); return _wOperands[i]; }
+    WORD get_first_operand() const
     {
         return _wOperands[0];
     }
-    WORD get_second_operand()
+    WORD get_second_operand() const
     {
         return _wOperands[1];
     }
-    WORD get_third_operand()
+    WORD get_third_operand() const
     {
         return _wOperands[2];
     }
@@ -114,12 +114,13 @@ public:
     void output_code(std::vector<BYTE>&);
 
     Opcode get_opcode() const { return _bOpcode; }
+    Opcode set_opcode(Opcode opcode) { return _bOpcode = opcode; }
 
     // Get the final offset at which the instruction was written.
-    WORD get_final_offset() { assert(_wFinalOffset != 0xffff); return _wFinalOffset; }
-    WORD get_final_postop_offset() { return get_final_offset() + _wSize; }
+    WORD get_final_offset() const  { assert(_wFinalOffset != 0xffff); return _wFinalOffset; }
+    WORD get_final_postop_offset() const { return get_final_offset() + _wSize; }
 
-    WORD get_final_offset_dontcare() { return _wFinalOffset; }
+    WORD get_final_offset_dontcare() const  { return _wFinalOffset; }
 
     // Used for decompilation
     void set_offset_and_size(WORD wOffset, WORD wSize) { _wFinalOffset = wOffset; _wSize = wSize; }

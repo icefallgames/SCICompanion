@@ -914,7 +914,7 @@ void _TrackExternalScriptUsage(std::list<scii> code, DecompileLookups &lookups)
             case Opcode::LEA:
             {
                 VarScope scope;
-                _GetVariableNameFromCodePos(cur, lookups, &scope);
+                _GetVariableNameFromCodePos(*cur, lookups, &scope);
                 if (scope == VarScope::Global)
                 {
                     lookups.TrackUsingScript(0);
@@ -927,7 +927,7 @@ void _TrackExternalScriptUsage(std::list<scii> code, DecompileLookups &lookups)
                 if ((opcode >= Opcode::LAG) && (opcode <= Opcode::LastOne))
                 {
                     VarScope scope;
-                    _GetVariableNameFromCodePos(cur, lookups, &scope);
+                    _GetVariableNameFromCodePos(*cur, lookups, &scope);
                     if (scope == VarScope::Global)
                     {
                         lookups.TrackUsingScript(0);
@@ -1032,11 +1032,11 @@ bool IsStatementImmediateValue(const SingleStatement &statement, WORD &wValue)
 // Try to massage the parameters so that it makes more sense to the user.
 // TODO: Replace with a more generic mechanism
 //
-void _MassageProcedureCall(ProcedureCall &proc, DecompileLookups &lookups, code_pos pos)
+void _MassageProcedureCall(ProcedureCall &proc, DecompileLookups &lookups, const scii &inst)
 {
-    if (pos->get_opcode() == Opcode::CALLE)
+    if (inst.get_opcode() == Opcode::CALLE)
     {
-        if (_IsPrintProcedure(pos->get_first_operand(), pos->get_second_operand()))
+        if (_IsPrintProcedure(inst.get_first_operand(), inst.get_second_operand()))
         {
             proc.SetName("Print");
 
@@ -1066,7 +1066,7 @@ void _MassageProcedureCall(ProcedureCall &proc, DecompileLookups &lookups, code_
             }
         }
     }
-    else if (pos->get_opcode() == Opcode::CALLK)
+    else if (inst.get_opcode() == Opcode::CALLK)
     {
         if (proc.GetName() == "Load")
         {
@@ -1091,21 +1091,21 @@ void _MassageProcedureCall(ProcedureCall &proc, DecompileLookups &lookups, code_
 }
 
 // Both for variable opcodes, and Opcode::LEA
-std::string _GetVariableNameFromCodePos(code_pos pos, DecompileLookups &lookups, VarScope *pVarType, WORD *pwIndexOut)
+std::string _GetVariableNameFromCodePos(const scii &inst, DecompileLookups &lookups, VarScope *pVarType, WORD *pwIndexOut)
 {
     std::string name;
     BYTE bThing;
     WORD wIndex;
-    if (pos->get_opcode() == Opcode::LEA)
+    if (inst.get_opcode() == Opcode::LEA)
     {
-        bThing = (BYTE)pos->get_first_operand();
+        bThing = (BYTE)inst.get_first_operand();
         bThing >>= 1;
-        wIndex = pos->get_second_operand();
+        wIndex = inst.get_second_operand();
     }
     else
     {
-        bThing = (BYTE)pos->get_opcode();
-        wIndex = pos->get_first_operand();
+        bThing = (BYTE)inst.get_opcode();
+        wIndex = inst.get_first_operand();
         assert(bThing >= 64);
     }
     std::stringstream ss;

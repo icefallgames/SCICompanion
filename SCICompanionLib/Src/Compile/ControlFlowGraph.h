@@ -5,12 +5,11 @@
 
 struct NodeBlock
 {
-    NodeBlock(ControlFlowNode *head, ControlFlowNode *followNode, bool includeFollow, ControlFlowNode *extraData);
+    NodeBlock(ControlFlowNode *head, ControlFlowNode *followNode, bool includeFollow, ControlFlowNode *parentToGatherMore);
     static int Compare(const NodeBlock &A, const NodeBlock &B);
 
     ControlFlowNode *head;
     ControlFlowNode *latch;
-    ControlFlowNode *extraData;
     NodeSet body;
 };
 
@@ -58,7 +57,7 @@ private:
     void _FindAllCompoundConditions();
     void _ResolveBreaks();
     void _ResolveBreak(uint16_t loopFollowAddress, ControlFlowNode *structure);
-    void _ReconnectBreakNodeToSubsequentCode(ControlFlowNode *structure, ControlFlowNode *breakNode, uint16_t subsequentInstructionAddress);
+    void _ReconnectBreakNodeToSubsequentCode(ControlFlowNode *structure, ControlFlowNode *breakNode, code_pos subsequentcode);
     void _DoLoopTransforms();
     void _DoLoopTransform(ControlFlowNode *loop);
     void _FindCompoundConditions(ControlFlowNode *structure);

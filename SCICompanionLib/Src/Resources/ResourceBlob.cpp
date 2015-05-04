@@ -444,7 +444,8 @@ HRESULT ResourceBlob::SaveToHandle(HANDLE hFile, BOOL fNoHeader, DWORD *pcbWritt
     DWORD cbWrittenHeader;
     BOOL fWrote = FALSE;
     bool fWriteCompressedIfPossible;
-    if ((header.cbCompressed > MaxResourceSize) || (header.cbDecompressed > MaxResourceSize))
+    DWORD checkSize = max(header.cbCompressed, header.cbDecompressed);
+    if (checkSize > ((header.Type == ResourceType::Audio) ? MaxResourceSizeAud : MaxResourceSize))
     {
         SetLastError(ERROR_OUTOFMEMORY);  // Not the best, but it will do.
     }

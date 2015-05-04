@@ -48,6 +48,8 @@ enum class ChunkType
     FailedToGetStack,
     NeedsStack,
     ZeroNode,
+    TrueNode,
+    ShortCircuitInstruction,
 };
 
 // For debugging purposes
@@ -79,37 +81,12 @@ const char *chunkTypeNames[] =
     "FailedToGetStack",
     "NeedsStack",
     "ZeroNode",
+    "TrueNode",
+    "ShortCircuitInstruction",
 };
 
 struct ConsumptionNode;
 Consumption _GetInstructionConsumption(ConsumptionNode &node, DecompileLookups &lookups);
-
-bool ContainsOrderedInstructionSequence(ChunkType type)
-{
-    switch (type)
-    {
-        case ChunkType::None:
-        case ChunkType::Else:
-        case ChunkType::Then:
-        case ChunkType::CaseBody:
-        case ChunkType::LoopBody:
-            return true;
-    }
-    return false;
-}
-
-bool IsStructuredNode(ChunkType type)
-{
-    switch (type)
-    {
-        case ChunkType::If:
-        case ChunkType::Do:
-        case ChunkType::While:
-        case ChunkType::Switch:
-            return true;
-    }
-    return false;
-}
 
 struct ConsumptionNode
 {
@@ -217,6 +194,12 @@ struct ConsumptionNode
     void ReplaceChild(size_t index, unique_ptr<ConsumptionNode> replacement)
     {
         children[index] = move(replacement);
+        children[index]->_parentWeak = this;
+    }
+
+    void InsertChild(size_t index, unique_ptr<ConsumptionNode> replacement)
+    {
+        children.insert(children.begin() + index, move(replacement));
         children[index]->_parentWeak = this;
     }
 
@@ -593,6 +576,22 @@ public:
                 _FollowForwardChain(thenNode, latch);
             }
         }
+        else
+        {
+            // It must be an infinite loop. We'll use a while(TRUE) for this.
+            StructuredFrame structuredFrame(_context, ChunkType::While, loopNode);
+
+            // Condition
+            {
+                StructuredFrame structuredFrame(_context, ChunkType::Condition, loopNode);
+                _context.AddStructured(ChunkType::TrueNode);
+            }
+
+            {
+                StructuredFrame structuredFrame(_context, ChunkType::LoopBody, loopNode);
+                _FollowForwardChain(head, latch);
+            }
+        }
 
         assert(levelCount == _context.GetLevelCount());
         _context.PopBackUpMax();
@@ -737,7 +736,6 @@ public:
             {
                 // We've already identified break statements during control flow, so we can
                 // be confident this is one without looking at its destination.
-                //AddStatement(move(make_unique<BreakStatement>()));
                 _context.AddStructured(ChunkType::Break);
             }
             else
@@ -985,6 +983,14 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode2(ConsumptionNode &node, Decomp
             return unique_ptr<SyntaxNode>(move(valueTemp));
         }
 
+        case ChunkType::TrueNode:
+        {
+            // This could mean FALSE, or NULL, we don't know which. So just use 0.
+            unique_ptr<PropertyValue> valueTemp = make_unique<PropertyValue>();
+            valueTemp->SetValue("TRUE", ValueType::Token);
+            return unique_ptr<SyntaxNode>(move(valueTemp));
+        }
+
         case ChunkType::NeedsAccumulator:
         {
             unique_ptr<PropertyValue> valueTemp = make_unique<PropertyValue>();
@@ -1101,11 +1107,11 @@ bool _MaybeConsumeRestInstruction(SendParam *pSendParam, int index, ConsumptionN
     return foundRest;
 }
 
-void _ProcessLEA(PropertyValueBase &value, code_pos pos, DecompileLookups &lookups)
+void _ProcessLEA(PropertyValueBase &value, const scii &inst, DecompileLookups &lookups)
 {
     VarScope varScope;
     WORD wVarIndex;
-    value.SetValue(_GetVariableNameFromCodePos(pos, lookups, &varScope, &wVarIndex), ValueType::Pointer);
+    value.SetValue(_GetVariableNameFromCodePos(inst, lookups, &varScope, &wVarIndex), ValueType::Pointer);
     lookups.TrackVariableUsage(varScope, wVarIndex, true);  // Let's consider this indexed.
 }
 
@@ -1124,6 +1130,25 @@ Consumption _GetInstructionConsumption(ConsumptionNode &node, DecompileLookups &
     }
 }
 
+void MorphInstructionIntoShortCircuit(scii &inst)
+{
+    switch (inst.get_opcode())
+    {
+        case Opcode::SAG:
+            inst.set_opcode(Opcode::LAG);
+            break;
+        case Opcode::SAP:
+            inst.set_opcode(Opcode::LAP);
+            break;
+        case Opcode::SAT:
+            inst.set_opcode(Opcode::LAT);
+            break;
+        case Opcode::SAL:
+            inst.set_opcode(Opcode::LAL);
+            break;
+    }
+}
+
 std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, DecompileLookups &lookups)
 {
     bool preferLValue = lookups.PreferLValue;
@@ -1133,8 +1158,14 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
     {
         return _CodeNodeToSyntaxNode2(node, lookups);
     }
-    code_pos pos = node.pos;
-    Opcode bOpcode = pos->get_opcode();
+
+    scii inst = *node.pos;
+    if (node.GetType() == ChunkType::ShortCircuitInstruction)
+    {
+        MorphInstructionIntoShortCircuit(inst);
+    }
+
+    Opcode bOpcode = inst.get_opcode();
     switch (bOpcode)
     {
         case Opcode::LDI:
@@ -1156,7 +1187,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
                     value->SetValue(2);
                     break;
                 default: // LDI and PUSHI
-                    uint16_t theValue = pos->get_first_operand();
+                    uint16_t theValue = inst.get_first_operand();
                     value->SetValue(theValue);
                     if (theValue == 65535)
                     {
@@ -1182,25 +1213,25 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
         case Opcode::CALLE:   // script, index, # of params
         case Opcode::CALL:    // offset, # of params
         {
-            WORD cParams = (bOpcode == Opcode::CALLE) ? pos->get_third_operand() : pos->get_second_operand();
+            WORD cParams = (bOpcode == Opcode::CALLE) ? inst.get_third_operand() : inst.get_second_operand();
             cParams /= 2; // bytes -> params
             cParams += 1; // +1 because there is a parameter count first.
             std::stringstream ss;
             switch (bOpcode)
             {
                 case Opcode::CALLK:
-                    ss << lookups.LookupKernelName(pos->get_first_operand());
+                    ss << lookups.LookupKernelName(inst.get_first_operand());
                     break;
                 case Opcode::CALLB:
-                    ss << _GetBaseProcedureName(pos->get_first_operand());
+                    ss << _GetBaseProcedureName(inst.get_first_operand());
                     break;
                 case Opcode::CALLE:
-                    ss << _GetPublicProcedureName(pos->get_first_operand(), pos->get_second_operand());
+                    ss << _GetPublicProcedureName(inst.get_first_operand(), inst.get_second_operand());
                     break;
                 case Opcode::CALL:
-                    ss << _GetProcNameFromScriptOffset(pos->get_final_postop_offset() + pos->get_first_operand());
+                    ss << _GetProcNameFromScriptOffset(inst.get_final_postop_offset() + inst.get_first_operand());
                     // Track this call so that we can say whether or not a local proc "belongs" to a class.
-                    lookups.TrackProcedureCall(pos->get_final_postop_offset() + pos->get_first_operand());
+                    lookups.TrackProcedureCall(inst.get_final_postop_offset() + inst.get_first_operand());
                     break;
             }
             unique_ptr<ProcedureCall> pProcCall = std::make_unique<ProcedureCall>();
@@ -1234,7 +1265,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
                 }
             }
 
-            _MassageProcedureCall(*pProcCall, lookups, pos);
+            _MassageProcedureCall(*pProcCall, lookups, inst);
             return unique_ptr<SyntaxNode>(move(pProcCall));
         }
         break;
@@ -1256,7 +1287,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
                 assert(classDefinition);
                 if (classDefinition)
                 {
-                    uint16_t species = pos->get_first_operand();
+                    uint16_t species = inst.get_first_operand();
                     std::string superClassContext = classDefinition->GetSuperClass();
                     std::string superClassStated = lookups.LookupClassName(species);
                     assert(superClassContext == superClassStated);
@@ -1264,7 +1295,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
                 
                 sendCall->SetName("super");
             }
-            Consumption cons = _GetInstructionConsumption(*pos, &lookups);
+            Consumption cons = _GetInstructionConsumption(inst, &lookups);
             WORD cStackPushesLeft = cons.cStackConsume;
             WORD cAccLeft = (bOpcode == Opcode::SEND) ? 1 : 0;
             size_t i = 0;
@@ -1445,7 +1476,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
 
         case Opcode::LEA:
         {
-            WORD wType = pos->get_first_operand();
+            WORD wType = inst.get_first_operand();
             bool hasIndexer = ((wType >> 1) & LEA_ACC_AS_INDEX_MOD) == LEA_ACC_AS_INDEX_MOD;
             if (hasIndexer)
             {
@@ -1457,13 +1488,13 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
                 temp->SetSyntaxNode(move(pIndexerNode));
                 pValue->SetIndexer(move(temp));
 
-                _ProcessLEA(*pValue, pos, lookups);
+                _ProcessLEA(*pValue, inst, lookups);
                 return unique_ptr<SyntaxNode>(move(pValue));
             }
             else
             {
                 unique_ptr<PropertyValue> pValue = std::make_unique<PropertyValue>();
-                _ProcessLEA(*pValue, pos, lookups);
+                _ProcessLEA(*pValue, inst, lookups);
                 return unique_ptr<SyntaxNode>(move(pValue));
             }
         }
@@ -1472,7 +1503,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
         case Opcode::CLASS:
         case Opcode::PUSHSELF:
         {
-            std::string className = (bOpcode == Opcode::CLASS) ? lookups.LookupClassName(pos->get_first_operand()) : SelfToken;
+            std::string className = (bOpcode == Opcode::CLASS) ? lookups.LookupClassName(inst.get_first_operand()) : SelfToken;
             if (!className.empty())
             {
                 unique_ptr<PropertyValue> value = std::make_unique<PropertyValue>();
@@ -1491,8 +1522,8 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
             ICompiledScriptSpecificLookups::ObjectType type;
             SCIVersion version = lookups.Helper.Version;
             uint16_t wName = version.lofsaOpcodeIsAbsolute ?
-                pos->get_first_operand() :
-                (pos->get_first_operand() + pos->get_final_postop_offset());
+                inst.get_first_operand() :
+                (inst.get_first_operand() + inst.get_final_postop_offset());
             std::string name = InvalidLookupError;
             // SQ4, main, there is a lofsa that points into the middle of a string.
             lookups.LookupScriptThing(wName, type, name);
@@ -1648,7 +1679,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
                     unique_ptr<LValue> lValue = make_unique<LValue>();
                     WORD wVarIndex;
                     VarScope varScope;
-                    lValue->SetName(_GetVariableNameFromCodePos(pos, lookups, &varScope, &wVarIndex));
+                    lValue->SetName(_GetVariableNameFromCodePos(inst, lookups, &varScope, &wVarIndex));
                     bool isIndexed = _IsVOIndexed(bOpcode);
                     lookups.TrackVariableUsage(varScope, wVarIndex, isIndexed);
                     if (isIndexed) // The accumulator is used as an indexer.
@@ -1709,7 +1740,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
 
                     VarScope varScope;
                     WORD wIndex;
-                    pValue->SetValue(_GetVariableNameFromCodePos(pos, lookups, &varScope, &wIndex), ValueType::Token);
+                    pValue->SetValue(_GetVariableNameFromCodePos(inst, lookups, &varScope, &wIndex), ValueType::Token);
                     lookups.TrackVariableUsage(varScope, wIndex, isIndexed);
 
                     // If it has an incrementer or decrementer, wrap it in a unary operator first.
@@ -1778,6 +1809,39 @@ unique_ptr<ConsumptionNode> StealNode(ConsumptionNode *nodeToSteal, DecompileLoo
 {
     return nodeToSteal->_parentWeak->StealChild(nodeToSteal->GetMyIndex(), &lookups);
 }
+
+bool IsOpcodeWeCanShortCircuit(Opcode opcode)
+{
+    switch (opcode)
+    {
+        case Opcode::SAT:
+        case Opcode::SAL:
+        case Opcode::SAG:
+        case Opcode::SAP:
+            return true;
+    }
+    return true;
+}
+
+unique_ptr<ConsumptionNode> StealNodeOrReuseAcc(ConsumptionNode *nodeToSteal, DecompileLookups &lookups)
+{
+    // If the node we want to steal is a sa* operation (e.g. the accumulator is written to a variable, and acc retains the value)
+    // then we can - instead of stealing - replace it with a la* operation (load var to acc)
+    // If we reach here, We should be guaranteed that the acc is unchanged.
+    if (nodeToSteal->_hasPos && IsOpcodeWeCanShortCircuit(nodeToSteal->GetCode()->get_opcode()))
+    {
+        unique_ptr<ConsumptionNode> newNode = make_unique<ConsumptionNode>();
+        newNode->SetType(ChunkType::ShortCircuitInstruction);
+        newNode->SetPos(nodeToSteal->GetCode());
+        return newNode;
+    }
+    else
+    {
+        // Just steal
+        return nodeToSteal->_parentWeak->StealChild(nodeToSteal->GetMyIndex(), &lookups);
+    }
+}
+
 unique_ptr<ConsumptionNode> CloneNode(ConsumptionNode *nodeToSteal, DecompileLookups &lookups)
 {
     return nodeToSteal->Clone();
@@ -1914,6 +1978,62 @@ void _ResolveDUPs(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookup
     }
 }
 
+// We can end up with multiple children of Conditions or First/Second nodes in a And/Or. Ideally we only
+// want one. When we did our control flow analysis, we didn't always partition the same that we do now when
+// construction the consumption node tree.
+// (= temp0 5)
+// (if (== ACC 4)
+//    // code
+// )
+bool _LiftOutFromConditionsWorker(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookups &lookups)
+{
+    bool changes = false;
+
+    switch (chunk->GetType())
+    {
+        case ChunkType::Condition:
+        case ChunkType::First:
+        case ChunkType::Second:
+        case ChunkType::FirstNegated:
+            if (chunk->GetChildCount() > 1)
+            {
+                ConsumptionNode *child = chunk->Child(0);
+                ConsumptionNode *parent = chunk;
+                // Let's see if we can lift the first child out.
+                if (SkipStructuredLevels(child, parent) && child)
+                {
+                    // We can move chunk->Child(0) to before child in parent.
+                    unique_ptr<ConsumptionNode> stolen = chunk->StealChild(0);
+                    parent->InsertChild(parent->GetIndexOf(child), move(stolen));
+                    changes = true;
+                }
+            }
+            break;
+    }
+
+    if (!changes)
+    {
+        for (auto &child : chunk->Children())
+        {
+            changes = _LiftOutFromConditionsWorker(root, child.get(), lookups);
+            if (changes)
+            {
+                break;
+            }
+        }
+    }
+    return changes;
+}
+
+void _LiftOutFromConditions(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookups &lookups)
+{
+    bool changes = false;
+    do
+    {
+        changes = _LiftOutFromConditionsWorker(root, chunk, lookups);
+    } while (changes);
+}
+
 void _ResolvePPrevs(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookups &lookups)
 {
     for (size_t i = 0; i < chunk->GetChildCount(); i++)
@@ -1997,7 +2117,7 @@ bool _ResolveNeededAccWorker(ConsumptionNode *root, ConsumptionNode *chunk, Deco
             // currently are. For instance, if we're in an if Condition (without a compound condition)
             // we can steal from any code before the [If] structure that are peers of the if.
             // Let's start with a simple targeted case first.
-            if (TryToStealOrCloneSomething(child, lookups, GeneratesAcc, StealNode))
+            if (TryToStealOrCloneSomething(child, lookups, GeneratesAcc, StealNodeOrReuseAcc))
             {
                 changes = true;
             }
@@ -2260,10 +2380,10 @@ bool OutputNewStructure(const std::string &messagePrefix, sci::FunctionBase &fun
         _RemoveTOSS(mainChunk.get());
         _FixupSwitches(mainChunk.get(), lookups);
         _FixupIfs(mainChunk.get(), mainChunk.get(), lookups);
+        _LiftOutFromConditions(mainChunk.get(), mainChunk.get(), lookups);
         _ResolveNeededAcc(mainChunk.get(), mainChunk.get(), lookups);
         _ResolvePPrevs(mainChunk.get(), mainChunk.get(), lookups);
         _RestructureCaseHeaders(mainChunk.get(), lookups);
-
         _ResolveDUPs(mainChunk.get(), mainChunk.get(), lookups);    // Must follow case restructure
 
         // Now fill it in

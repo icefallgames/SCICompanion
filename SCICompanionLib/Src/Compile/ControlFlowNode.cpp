@@ -68,6 +68,18 @@ ControlFlowNode *AdvanceToExit(ControlFlowNode *node)
     return node;
 }
 
+bool MaybeGetThenAndElseBranches(ControlFlowNode *node, ControlFlowNode **thenNode, ControlFlowNode **elseNode)
+{
+    *thenNode = nullptr;
+    *elseNode = nullptr;
+    if (node->Successors().size() == 2)
+    {
+        GetThenAndElseBranches(node, thenNode, elseNode);
+        return (thenNode && elseNode);
+    }
+    return false;
+}
+
 // Given a node that represents a raw code branch or a compound condition, returns
 // which of its two successor nodes is the "then"  branch, and which is the "else" 
 void GetThenAndElseBranches(ControlFlowNode *node, ControlFlowNode **thenNode, ControlFlowNode **elseNode)

@@ -311,7 +311,7 @@ void DisassembleFallback(FunctionBase &func, code_pos start, code_pos end, Decom
                     VarScope varScope;
                     uint16_t varIndex;
                     _AddString(*asmStatement,
-                        _GetVariableNameFromCodePos(cur, lookups, &varScope, &varIndex),
+                        _GetVariableNameFromCodePos(*cur, lookups, &varScope, &varIndex),
                         ValueType::Pointer
                         );
                     lookups.TrackVariableUsage(varScope, varIndex, true); // Let's consider this indexed.
@@ -360,7 +360,7 @@ void DisassembleFallback(FunctionBase &func, code_pos start, code_pos end, Decom
                         VarScope varScope;
                         uint16_t varIndex;
                         _AddToken(*asmStatement,
-                            _GetVariableNameFromCodePos(cur, lookups, &varScope, &varIndex));
+                            _GetVariableNameFromCodePos(*cur, lookups, &varScope, &varIndex));
                         bool isIndexed = _IsVOIndexed(opcode);
                         lookups.TrackVariableUsage(varScope, varIndex, isIndexed);
                     }

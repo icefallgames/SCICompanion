@@ -300,6 +300,7 @@ struct RawCodeNode : public ControlFlowNode
 };
 
 void GetThenAndElseBranches(ControlFlowNode *node, ControlFlowNode **thenNode, ControlFlowNode **elseNode);
+bool MaybeGetThenAndElseBranches(ControlFlowNode *node, ControlFlowNode **thenNode, ControlFlowNode **elseNode);
 ControlFlowNode *GetOtherBranch(ControlFlowNode *branchNode, ControlFlowNode *branch1);
 bool IsThenBranch(ControlFlowNode *branchNode, ControlFlowNode *target);
 

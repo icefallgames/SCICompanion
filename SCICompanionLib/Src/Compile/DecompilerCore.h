@@ -209,8 +209,8 @@ private:
 
 std::string _GetPublicProcedureName(uint16_t wScript, uint16_t wIndex);
 std::string _GetBaseProcedureName(uint16_t wIndex);
-void _MassageProcedureCall(sci::ProcedureCall &proc, DecompileLookups &lookups, code_pos pos);
-std::string _GetVariableNameFromCodePos(code_pos pos, DecompileLookups &lookups, VarScope *pVarType = nullptr, uint16_t *pwIndexOut = nullptr);
+void _MassageProcedureCall(sci::ProcedureCall &proc, DecompileLookups &lookups, const scii &inst);
+std::string _GetVariableNameFromCodePos(const scii &inst, DecompileLookups &lookups, VarScope *pVarType = nullptr, uint16_t *pwIndexOut = nullptr);
 bool _IsVOIncremented(Opcode bOpcode);
 bool _IsVODecremented(Opcode bOpcode);
 bool _IsVOStack(Opcode bOpcode);

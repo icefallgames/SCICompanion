@@ -45,18 +45,32 @@ NodeSet _CollectNodesBetween(ControlFlowNode *head, ControlFlowNode *tail)
     return collection;
 }
 
+void _CollectMoreNodesByAddress(NodeSet &nodeSet, ControlFlowNode *head, ControlFlowNode *tail, ControlFlowNode *parentToGatherMore)
+{
+    // If we have an infinite loop with a break exit, it won't be detected by following the tail to the head.
+    // Let's take advantage of the fact that SCI code is sequential, and find other nodes between tail and head address
+    uint16_t tailAddress = tail->GetStartingAddress();
+    uint16_t headAddress = head->GetStartingAddress();
+    for (ControlFlowNode *child : parentToGatherMore->children)
+    {
+        if (nodeSet.find(child) == nodeSet.end())
+        {
+            uint16_t childStartingAddress = child->GetStartingAddress();
+            if ((childStartingAddress > headAddress) && (childStartingAddress < tailAddress))
+            {
+                nodeSet.insert(child);
+            }
+        }
+    }
+}
+
 // A back edge is smaller if it is contained within another.
-NodeBlock::NodeBlock(ControlFlowNode *head, ControlFlowNode *followNode, bool includeFollow, ControlFlowNode *extraData) : head(head), latch(followNode), extraData(extraData)
+NodeBlock::NodeBlock(ControlFlowNode *head, ControlFlowNode *followNode, bool includeFollow, ControlFlowNode *parentToGatherMore) : head(head), latch(followNode)
 {
     body = _CollectNodesBetween(head, followNode);
-    if (extraData)
+    if (parentToGatherMore)
     {
-        // This is such a hack.
-        NodeSet extraNodes = _CollectNodesBetween(head, extraData);
-        for (ControlFlowNode *extra : extraNodes)
-        {
-            body.insert(extra);
-        }
+        _CollectMoreNodesByAddress(body, head, followNode, parentToGatherMore);
     }
     if (!includeFollow)
     {
@@ -591,7 +605,7 @@ ControlFlowNode *ControlFlowGraph::_ProcessNaturalLoop(ControlFlowGraph &loopDet
     LoopNode *loopNode = loopDetection.MakeStructuredNode<LoopNode>();
     loopNode->children = backEdge.body;
     (*loopNode)[SemId::Head] = backEdge.head;           // This is the start, or the branch
-    (*loopNode)[SemId::Latch] = backEdge.latch;         // This is the latch node... could be multiple ones though.
+    (*loopNode)[SemId::Latch] = backEdge.latch;         // This is the latch node... could be multiple ones though. REVIEW: I think we fixed that with CommonLatchNode
 
     ControlFlowNode *followNode = loopDetection._FindFollowNodeForStructure(loopNode);
     (*loopNode)[SemId::Follow] = followNode;
@@ -725,7 +739,7 @@ void ControlFlowGraph::_ResolveBreak(uint16_t loopFollowAddress, ControlFlowNode
             if (inst.get_branch_target()->get_final_offset() == loopFollowAddress)
             {
                 node->Tags.insert(SemanticTags::LoopBreak);
-                _ReconnectBreakNodeToSubsequentCode(structure, node, end->get_final_offset());
+                _ReconnectBreakNodeToSubsequentCode(structure, node, end);
             }
         }
     }
@@ -740,11 +754,23 @@ void ControlFlowGraph::_ResolveBreak(uint16_t loopFollowAddress, ControlFlowNode
     }
 }
 
-void ControlFlowGraph::_ReconnectBreakNodeToSubsequentCode(ControlFlowNode *structure, ControlFlowNode *breakNode, uint16_t subsequentInstructionAddress)
+void ControlFlowGraph::_ReconnectBreakNodeToSubsequentCode(ControlFlowNode *structure, ControlFlowNode *breakNode, code_pos subsequentcode)
 {
+    uint16_t subsequentInstructionAddress = subsequentcode->get_final_offset();
+
     assert(breakNode->Successors().size() == 1);
     ControlFlowNode *currentSuccessor = *breakNode->Successors().begin();
     currentSuccessor->ErasePredecessor(breakNode);
+
+    if (currentSuccessor->Predecessors().size() == 0)
+    {
+        assert(currentSuccessor->Type == CFGNodeType::Exit);
+        // If we don't remove this guy from children, our dominator and postorder code will
+        // be confused
+        structure->children.erase(currentSuccessor);
+        // But we still need to know about the exit node.
+    }
+
     // Now find the node in structure that has the right starting address
     // We should find it in the this control structure. It may be an exit node. If we don't find
     // it, then we probably need to add an exit node.
@@ -754,6 +780,23 @@ void ControlFlowGraph::_ReconnectBreakNodeToSubsequentCode(ControlFlowNode *stru
         {
             child->InsertPredecessor(breakNode);
             return;
+        }
+    }
+
+    // We could get here in the case where we have two subsequent jmp instructions (with no one branching to the second one), and
+    // we would have pruned out the degenerate second branch node. In that case, subsequentcode should be a jmp, and we can
+    // increment it and try once more.
+    if (subsequentcode->get_opcode() == Opcode::JMP)
+    {
+        ++subsequentcode;
+        subsequentInstructionAddress = subsequentcode->get_final_offset();
+        for (ControlFlowNode *child : structure->children)
+        {
+            if (child->GetStartingAddress() == subsequentInstructionAddress)
+            {
+                child->InsertPredecessor(breakNode);
+                return;
+            }
         }
     }
 
@@ -826,62 +869,6 @@ void ControlFlowGraph::_DoLoopTransform(ControlFlowNode *loop)
         }
     }
 }
-
-/*
-void ControlFlowGraph::_DoLoopTransform(ControlFlowNode *loop)
-{
-    // While loop: 2-way header node, and 1-way latch node
-    // Do loop: 2-way latch node and non-conditional header node
-    //
-    // However, they don't have that shape yet.
-    //
-    // Some problems we have:
-    //  - the latch node for do-whiles is just a jmp instruction. We need to merge this with its
-    //      predecessor, which should be a 2-way node that is that actual condition.
-    //      bnt A
-    //  B: jmp to loop beginning
-    //  A: outside of loop
-    //
-    //     is equivalent to:
-    //      bt to loop beginning
-    //  We need to be careful not to mis-identify while loops (we are only concered with dos)
-    ControlFlowNode *latch = (*loop)[SemId::Latch];
-    if ((latch->Type == CFGNodeType::RawCode) && latch->startsWith(Opcode::JMP))
-    {
-        if (latch->Predecessors().size() == 1)
-        {
-            ControlFlowNode *branchNode = *latch->Predecessors().begin();
-            // It could be an empty while loop too... check against this by seeing if our supposed branch
-            // node is the header.
-            if (branchNode != (*loop)[SemId::Head])
-            {
-                ControlFlowNode *otherBranchDestination = GetOtherBranch(branchNode, latch);
-                if (otherBranchDestination) // A while might not have one
-                {
-                    // And if it did, it wouldn't be an exit node
-                    if (otherBranchDestination->Type == CFGNodeType::Exit)
-                    {
-                        uint16_t address1 = otherBranchDestination->GetStartingAddress();
-                        uint16_t address2 = (*loop)[SemId::Follow]->GetStartingAddress();
-                        assert(address1 == address2);
-
-                        // Instead of making a new node, let's get rid of the JMP and switch the branch
-                        // node.
-                        (*loop)[SemId::Head]->ErasePredecessor(latch);
-                        latch->ErasePredecessor(branchNode);
-                        // Now the latch is detached from the tree completely.
-                        assert(latch->Predecessors().size() == 0 && latch->Successors().size() == 0);
-                        // branchNode is the new latch
-                        (*loop)[SemId::Latch] = branchNode;
-                        (*loop)[SemId::Head]->InsertPredecessor(branchNode);
-                        // Flip the "sign" of the branch node
-                        branchNode->getLastInstruction();
-                    }
-                }
-            }
-        }
-    }
-}*/
 
 void ControlFlowGraph::_FindCompoundConditions(ControlFlowNode *structure)
 {
@@ -1033,7 +1020,7 @@ vector<NodeBlock> _FindBackEdges(DominatorMap &dominators, DominatorMap &postDom
             // Does node dominate its predecessor? If so, pred -> node is a back edge
             if (predsDoms.find(node) != predsDoms.end())
             {
-                backEdges.emplace_back(node, pred, true, nullptr);
+                backEdges.emplace_back(node, pred, true, structure);
             }
         }
     }
@@ -1097,16 +1084,16 @@ bool _CheckForSameHeader(ControlFlowGraph &cfg, ControlFlowNode &parent, vector<
             // Create a common latch node. It will have our latch nodes as predecessors
             CommonLatchNode *common = cfg.MakeNode<CommonLatchNode>();
             parent.children.insert(common);
-            for (NodeBlock *block : blocksWithSameHeader)
-            {
-                // The "starting address" of the common latch will be the max starting address of the original latches.
-                // This doesn't really make sense, but we need something.
-                common->tokenStartingAddress = max(common->tokenStartingAddress, block->latch->GetStartingAddress());
-                common->InsertPredecessor(block->latch);
-                block->head->ErasePredecessor(block->latch);
-            }
-            blocksWithSameHeader[0]->head->InsertPredecessor(common);
-            break; // Only do one set of these at a time.
+for (NodeBlock *block : blocksWithSameHeader)
+{
+    // The "starting address" of the common latch will be the max starting address of the original latches.
+    // This doesn't really make sense, but we need something.
+    common->tokenStartingAddress = max(common->tokenStartingAddress, block->latch->GetStartingAddress());
+    common->InsertPredecessor(block->latch);
+    block->head->ErasePredecessor(block->latch);
+}
+blocksWithSameHeader[0]->head->InsertPredecessor(common);
+break; // Only do one set of these at a time.
         }
     }
     return noChanges;
@@ -1180,6 +1167,33 @@ void ControlFlowGraph::_FindAllIfStatements()
     }
 }
 
+// A loop either has a condition in the head or latch. We'll return which ever that is.
+ControlFlowNode *_GetTrueLoopLatchOrHead(ControlFlowNode *loop)
+{
+    ControlFlowNode *thenNode, *elseNode;
+    ControlFlowNode *result = nullptr;
+    if (MaybeGetThenAndElseBranches((*loop)[SemId::Head], &thenNode, &elseNode))
+    {
+        result = (*loop)[SemId::Head];
+    }
+    else if (MaybeGetThenAndElseBranches((*loop)[SemId::Latch], &thenNode, &elseNode))
+    {
+        result = (*loop)[SemId::Latch];
+    }
+
+    if (result)
+    {
+        if ((thenNode != (*loop)[SemId::Tail]) && (elseNode != (*loop)[SemId::Tail]))
+        {
+            // It was a branch, but not a loop latch or loop head, because neither of the
+            // branches pointed to the loop tail
+            result = nullptr;
+        }
+    }
+
+    return result;
+}
+
 void ControlFlowGraph::_FindIfStatements(DominatorMap &dominators, ControlFlowNode *structure)
 {
     if ((structure->Type == CFGNodeType::CompoundCondition) || (structure->Type == CFGNodeType::Switch) || (structure->Type == CFGNodeType::Invert))
@@ -1188,12 +1202,10 @@ void ControlFlowGraph::_FindIfStatements(DominatorMap &dominators, ControlFlowNo
         return;
     }
 
-    ControlFlowNode *loopHeader = nullptr;
-    ControlFlowNode *loopLatch = nullptr;
+    ControlFlowNode *loopLatchOrHead = nullptr;
     if (structure->Type == CFGNodeType::Loop)
     {
-        loopHeader = (*structure)[SemId::Head];
-        loopLatch = (*structure)[SemId::Latch];
+        loopLatchOrHead = _GetTrueLoopLatchOrHead(structure);
     }
 
     vector<ControlFlowNode*> postOrdered = _GetPostOrder(structure);
@@ -1207,7 +1219,7 @@ void ControlFlowGraph::_FindIfStatements(DominatorMap &dominators, ControlFlowNo
     {
         // Note: We need to be careful not to identify case conditions as if statements. However, our CaseNodes are structured
         // so that the branch node only has a single branch. So they wont'be detected here:
-        if ((node->Successors().size() == 2) && (node != loopHeader) && (node != loopLatch))
+        if ((node->Successors().size() == 2) && (node != loopLatchOrHead))
         {
             assert(!node->ContainsTag(SemanticTags::CaseCondition));
             // Look for furthest node whose immediate dominator is m and who has 2 or more in edges.

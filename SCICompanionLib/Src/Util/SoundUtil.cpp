@@ -104,7 +104,7 @@ void AudioComponentFromWaveFile(sci::istream &stream, AudioComponent &audio)
     audio.Frequency = header.sampleRate;
     if (header.bitsPerSample == 16)
     {
-        audio.Flags |= AudioFlags::SixteenBit;
+        audio.Flags |= AudioFlags::SixteenBit | AudioFlags::Signed;
     }
     audio.DigitalSamplePCM.assign(dataSize, 0);
     stream.read_data(&audio.DigitalSamplePCM[0], audio.DigitalSamplePCM.size());
