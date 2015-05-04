@@ -1146,6 +1146,8 @@ void MorphInstructionIntoShortCircuit(scii &inst)
         case Opcode::SAL:
             inst.set_opcode(Opcode::LAL);
             break;
+        default:
+            assert(false && "Unexpected short circuit");
     }
 }
 
@@ -1397,6 +1399,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
                 // TODO: warn if we didn't do anything in this loop?  Unused instruction???
             }
 
+            assert((!sendCall->GetObjectA().empty() || sendCall->GetStatement1()) && "Send call with no object");
             sendCall->SimplifySendObject();
             return unique_ptr<SyntaxNode>(move(sendCall));
         }
@@ -1820,7 +1823,7 @@ bool IsOpcodeWeCanShortCircuit(Opcode opcode)
         case Opcode::SAP:
             return true;
     }
-    return true;
+    return false;
 }
 
 unique_ptr<ConsumptionNode> StealNodeOrReuseAcc(ConsumptionNode *nodeToSteal, DecompileLookups &lookups)
