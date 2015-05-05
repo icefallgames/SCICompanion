@@ -1272,7 +1272,6 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
                 }
             }
 
-            _MassageProcedureCall(*pProcCall, lookups, inst);
             return unique_ptr<SyntaxNode>(move(pProcCall));
         }
         break;

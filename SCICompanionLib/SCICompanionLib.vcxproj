@@ -189,6 +189,7 @@
     <ClCompile Include="Src\Compile\ControlFlowGraphViz.cpp" />
     <ClCompile Include="Src\Compile\DecompilerFallback.cpp" />
     <ClCompile Include="Src\Compile\DecompilerNew.cpp" />
+    <ClCompile Include="Src\Compile\DecompilerSpecialCases.cpp" />
     <ClCompile Include="Src\Compile\DecompileScript.cpp" />
     <ClCompile Include="Src\Compile\DisassembleHelper.cpp" />
     <ClCompile Include="Src\Compile\Disassembler.cpp" />

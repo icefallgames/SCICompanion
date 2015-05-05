@@ -426,6 +426,8 @@ Script *Decompile(const GameFolderHelper &helper, const CompiledScript &compiled
 
         ResolvePublicProcedureCalls(helper, *pScript, compiledScript);
 
+        MassageProcedureCalls(lookups, *pScript);
+
         InsertHeaders(*pScript);
 
         DetermineAndInsertUsings(helper, *pScript, lookups);
