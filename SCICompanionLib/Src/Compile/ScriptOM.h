@@ -256,7 +256,7 @@ namespace sci
     struct SourceCodeWriter
     {
         SourceCodeWriter(std::stringstream &ss, LangSyntax syntax, Script *pScript = nullptr) : out(ss), lang(syntax),
-            iIndent(0), fInline(false), fLast(false), fUseBrackets(false), pszNewLine("\n"), lastNewLineLength(0)
+            iIndent(0), fInline(false), fLast(false), fUseBrackets(false), fExpandCodeBlock(false), pszNewLine("\n"), lastNewLineLength(0)
         { 
 			if (pScript)
 			{

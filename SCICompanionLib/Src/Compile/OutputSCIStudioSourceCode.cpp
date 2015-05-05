@@ -521,6 +521,7 @@ public:
         }
         // Now the code, indented.
         {
+            ExpandNextCodeBlock expandNextBlock(out, true);     // For some reason CaseStatement just has one CodeBlock instead of statements.
             DebugIndent indent(out);
             Forward(caseStatement.GetCodeSegments());
         }
