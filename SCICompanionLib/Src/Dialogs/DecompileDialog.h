@@ -79,7 +79,7 @@ private:
     void _SyncSelection(bool force = false);
     void _SyncButtonState();
 
-    static UINT s_ThreadWorker(void *pParam);
+    static UINT s_DecompileThreadWorker(void *pParam);
     void OnTimer(UINT_PTR nIDEvent);
     LRESULT UpdateStatus(WPARAM wParam, LPARAM lParam);
     std::unique_ptr<DecompilerDialogResults> _decompileResults;

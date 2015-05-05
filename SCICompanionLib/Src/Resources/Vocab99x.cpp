@@ -330,10 +330,9 @@ bool GlobalClassTable::Load(const GameFolderHelper &helper)
 bool GlobalClassTable::_Create(sci::istream &byteStream)
 {
     // Collect the heap/script pairs first, since fetching the heap individually for each script is a performance issue.
+    // Patch files win out.
     unordered_map<uint16_t, pair<unique_ptr<ResourceBlob>, unique_ptr<ResourceBlob>>> heapScriptPairs;
-    // I currently exclude patch files because the heap/script might get out-of-sync
-    // REVIEW: Instead, the resource enumerator should handle this. Currently though, dupe resources are only tracked within ResourceContainer, not above it.
-    auto scriptContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Script | ResourceTypeFlags::Heap, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
+    auto scriptContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Script | ResourceTypeFlags::Heap, ResourceEnumFlags::MostRecentOnly);
     for (auto &scriptResource : *scriptContainer)
     {
         uint16_t scriptNumber = (uint16_t)scriptResource->GetNumber();
@@ -354,10 +353,14 @@ bool GlobalClassTable::_Create(sci::istream &byteStream)
         uint16_t scriptNumber = numberToPair.first;
         _scriptNums.push_back(scriptNumber);
         pair<unique_ptr<ResourceBlob>, unique_ptr<ResourceBlob>> &scriptAndHeap = numberToPair.second;
+
         unique_ptr<CompiledScript> compiledScript = make_unique<CompiledScript>(scriptNumber);
         std::unique_ptr<sci::istream> heapStream;
         if (scriptAndHeap.second)
         {
+            // Hmm, this can happen if a patch is just for .hep or just for .scr (e.g. SQ5, 10.hep)
+            //assert((scriptAndHeap.first->GetSourceFlags() == scriptAndHeap.second->GetSourceFlags()) && "Heap and script files being mixed and matched (patch vs package)");
+
             // Only SCI1.1+ games have separate heap resources.
             heapStream.reset(new sci::istream(scriptAndHeap.second->GetData(), scriptAndHeap.second->GetLength()));
         }

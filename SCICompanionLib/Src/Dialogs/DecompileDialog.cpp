@@ -549,7 +549,7 @@ void DecompileDialog::OnBnClickedDecompile()
 
     if (!_scriptNumbers.empty())
     {
-        _pThread.reset(AfxBeginThread(s_ThreadWorker, this, 0, 0, CREATE_SUSPENDED, nullptr));
+        _pThread.reset(AfxBeginThread(s_DecompileThreadWorker, this, 0, 0, CREATE_SUSPENDED, nullptr));
         if (_pThread)
         {
             _decompileResults = make_unique<DecompilerDialogResults>(this->GetSafeHwnd());
@@ -639,7 +639,7 @@ void DecompileDialog::OnBnClickedDecompilecancel()
     }
 }
 
-UINT DecompileDialog::s_ThreadWorker(void *pParam)
+UINT DecompileDialog::s_DecompileThreadWorker(void *pParam)
 {
     DecompileDialog *pThis = reinterpret_cast<DecompileDialog*>(pParam);
 

@@ -439,8 +439,7 @@ void SCIClassBrowser::ReLoadFromCompiled()
     }
 
     unordered_map<int, pair<unique_ptr<ResourceBlob>, unique_ptr<ResourceBlob>>> heapScriptPairs;
-    // I exclude patch files because the heap/script might get out-of-sync
-    auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Script | ResourceTypeFlags::Heap, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
+    auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Script | ResourceTypeFlags::Heap, ResourceEnumFlags::MostRecentOnly);
     for (auto &scriptBlob : *resourceContainer)
     {
         pair<unique_ptr<ResourceBlob>, unique_ptr<ResourceBlob>> &entry = heapScriptPairs[scriptBlob->GetNumber()];
@@ -452,17 +451,6 @@ void SCIClassBrowser::ReLoadFromCompiled()
         {
             entry.second = move(scriptBlob);
         }
-        /*
-        // Ensure we don't have the same script twice!
-        if (compiledScriptsMap.find(scriptBlob->GetNumber()) == compiledScriptsMap.end())
-        {
-            std::unique_ptr<sci::istream> pStream(new sci::istream(scriptBlob->GetData(), scriptBlob->GetLength()));
-            std::unique_ptr<CompiledScript> pCompiledScript = std::make_unique<CompiledScript>(scriptBlob->GetNumber());
-            if (pCompiledScript->Load(appState->GetResourceMap().Helper(), appState->GetVersion(), scriptBlob->GetNumber(), *pStream))
-            {
-                compiledScriptsMap[scriptBlob->GetNumber()] = move(pCompiledScript);
-            }
-        }*/
     }
 
     // Now load them
