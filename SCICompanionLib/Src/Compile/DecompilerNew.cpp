@@ -1965,7 +1965,14 @@ bool TryToStealOrCloneSomething(ConsumptionNode *originalChild, DecompileLookups
             // Go up another level.
             child = parent;
             parent = child->_parentWeak;
-            done = !SkipStructuredLevels(child, parent);
+            if (parent->GetType() == ChunkType::None)
+            {
+                // We're good, keep going.
+            }
+            else
+            {
+                done = !SkipStructuredLevels(child, parent);
+            }
         }
     }
     return success;
