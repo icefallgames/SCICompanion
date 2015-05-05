@@ -126,6 +126,10 @@ void _MassagePrint(ProcedureCall &proc, DecompileLookups &lookups)
             }
             maybeSelector->SetValue(selectorName, ValueType::Selector);
         }
+        else
+        {
+            break;
+        }
     }
 }
 

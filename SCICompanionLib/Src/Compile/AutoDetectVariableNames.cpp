@@ -233,6 +233,10 @@ string ResolveSuggestion(const Suggestion &suggestion, const string &original, c
         AppendUpper(baseValue, partOne);
         AppendUpper(baseValue, suggestion.PartTwo);
     }
+
+    // We should always start vars with lower case
+    baseValue[0] = tolower(baseValue[0]);
+
     // We can't randomly have vars with '-' in them. So replace with '_'
     for (size_t i = 0; i < baseValue.size(); i++)
     {

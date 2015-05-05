@@ -439,8 +439,12 @@ namespace sci
             _numberValue = wValue; _type = sci::ValueType::Number; _fHex = fHexIn; _fNegate = false; _stringValue.clear();
         } // Used for compiled scripts
         void SetValue(int iValue, IntegerFlags flags);
-        void SetStringValue(const std::string &value) { _stringValue = value; _type = sci::ValueType::String;  _fNegate = false; }
-        void SetValue(const std::string &value, ValueType type) { _stringValue = value; _type = type; _fNegate = false; }
+        void SetStringValue(const std::string &value) { assert(value != "rest"); _stringValue = value; _type = sci::ValueType::String;  _fNegate = false; }
+        void SetValue(const std::string &value, ValueType type)
+        {
+            assert(value != "rest");
+            _stringValue = value; _type = type; _fNegate = false;
+        }
         WORD GetNumberValue() const { return _numberValue; }
         std::string GetStringValue() const { return _stringValue; }
         bool IsEmpty() { return (_type == sci::ValueType::None); }

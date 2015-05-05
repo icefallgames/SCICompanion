@@ -1310,7 +1310,7 @@ void DecompileLookups::ResetOnFailure()
 
 void DecompileLookups::TrackRestStatement(sci::RestStatement *rest, uint16_t index)
 {
-    _restStatementTrack.emplace_back(rest, index);//.push_back(std::pair < RestStatement)
+    _restStatementTrack.emplace_back(rest, index);
 }
 
 void DecompileLookups::ResolveRestStatements()

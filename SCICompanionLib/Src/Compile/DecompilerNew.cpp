@@ -1475,9 +1475,14 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
 
         case Opcode::REST:
         {
-            unique_ptr<PropertyValue> pValue = std::make_unique<PropertyValue>();
-            pValue->SetValue("rest", ValueType::Token);
-            return unique_ptr<SyntaxNode>(move(pValue));
+            std::unique_ptr<RestStatement> rest = std::make_unique<RestStatement>();
+            // We need to tell the function that
+            // someone used a rest instruction with this index:
+            uint16_t parameterIndex = inst.get_first_operand();
+            assert(parameterIndex > 0); // otherwise, I don't know what I'm doing.
+            // The rest statement will take on its name if so. Otherwise we'll use "params"
+            lookups.TrackRestStatement(rest.get(), parameterIndex);
+            return unique_ptr<SyntaxNode>(move(rest));
         }
         break;
 
