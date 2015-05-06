@@ -24,6 +24,7 @@
 #include "DecompileScript.h"
 #include "DecompilerResults.h"
 #include "GameFolderHelper.h"
+#include "DecompilerConfig.h"
 
 using namespace std;
 
@@ -274,7 +275,7 @@ void DecompileScript(const GameFolderHelper &helper, WORD wScript, IDecompilerRe
     CompiledScript compiledScript(0);
     if (compiledScript.Load(helper, appState->GetVersion(), wScript, false))
     {
-        unique_ptr<sci::Script> pScript = DecompileScript(*appState->GetResourceMap().GetCompiledScriptLookups(), helper, wScript, compiledScript, results);
+        unique_ptr<sci::Script> pScript = DecompileScript(nullptr, *appState->GetResourceMap().GetCompiledScriptLookups(), helper, wScript, compiledScript, results);
         std::stringstream ss;
         sci::SourceCodeWriter out(ss, helper.GetGameLanguage(), pScript.get());
         pScript->OutputSourceCode(out);
@@ -282,7 +283,7 @@ void DecompileScript(const GameFolderHelper &helper, WORD wScript, IDecompilerRe
     }
 }
 
-std::unique_ptr<sci::Script> DecompileScript(GlobalCompiledScriptLookups &scriptLookups, const GameFolderHelper &helper, WORD wScript, CompiledScript &compiledScript, IDecompilerResults &results, bool debugControlFlow, bool debugInstConsumption, PCSTR pszDebugFilter)
+std::unique_ptr<sci::Script> DecompileScript(const IDecompilerConfig *config, GlobalCompiledScriptLookups &scriptLookups, const GameFolderHelper &helper, WORD wScript, CompiledScript &compiledScript, IDecompilerResults &results, bool debugControlFlow, bool debugInstConsumption, PCSTR pszDebugFilter)
 {
     unique_ptr<sci::Script> pScript;
     ObjectFileScriptLookups objectFileLookups(helper);
@@ -294,7 +295,7 @@ std::unique_ptr<sci::Script> DecompileScript(GlobalCompiledScriptLookups &script
         pText = textResource->TryGetComponent<TextComponent>();
     }
 
-    DecompileLookups decompileLookups(helper, wScript, &scriptLookups, &objectFileLookups, &compiledScript, pText, &compiledScript, results);
+    DecompileLookups decompileLookups(config, helper, wScript, &scriptLookups, &objectFileLookups, &compiledScript, pText, &compiledScript, results);
     decompileLookups.DebugControlFlow = debugControlFlow;
     decompileLookups.DebugInstructionConsumption = debugInstConsumption;
     decompileLookups.pszDebugFilter = pszDebugFilter;

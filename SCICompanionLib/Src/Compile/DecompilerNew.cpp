@@ -1970,7 +1970,7 @@ bool TryToStealOrCloneSomething(ConsumptionNode *originalChild, DecompileLookups
             // Go up another level.
             child = parent;
             parent = child->_parentWeak;
-            if (parent->GetType() == ChunkType::None)
+            if (parent && (parent->GetType() == ChunkType::None))
             {
                 // We're good, keep going.
             }

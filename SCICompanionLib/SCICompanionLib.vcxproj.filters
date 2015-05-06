@@ -588,6 +588,9 @@
     <ClCompile Include="Src\Compile\DecompilerSpecialCases.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Compile\DecompilerConfig.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCICompanionLib.h">
@@ -1223,6 +1226,12 @@
     <ClInclude Include="Src\Resources\GameFolderHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Src\cpptoml\cpptoml.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Compile\DecompilerConfig.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="SCICompanionLib.def">
@@ -1312,6 +1321,7 @@
     <None Include="res\eyedropper.cur">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="Src\cpptoml\LICENSE" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="SCICompanionLib.rc">

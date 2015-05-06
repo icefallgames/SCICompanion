@@ -422,7 +422,7 @@ Script *Decompile(const GameFolderHelper &helper, const CompiledScript &compiled
         unique_ptr<CSCOFile> oldScriptSCO = GetExistingSCOFromScriptNumber(helper, compiledScript.GetScriptNumber());
 
         bool mainDirty = false;
-        AutoDetectVariableNames(*pScript, mainSCO.get(), oldScriptSCO.get(), mainDirty);
+        AutoDetectVariableNames(*pScript, lookups.GetDecompilerConfig(), mainSCO.get(), oldScriptSCO.get(), mainDirty);
 
         ResolvePublicProcedureCalls(helper, *pScript, compiledScript);
 

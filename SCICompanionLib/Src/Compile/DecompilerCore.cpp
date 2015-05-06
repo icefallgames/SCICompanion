@@ -253,6 +253,7 @@ bool _IsVariableUse(code_pos pos, VarScope varScope, WORD &wIndex)
 
 std::string _GetSuitableParameterName(FunctionBase &function, WORD iIndex)
 {
+    /*
     if ((function.GetName() == "changeState") && (iIndex == 1))
     {
         return "newState";
@@ -261,6 +262,10 @@ std::string _GetSuitableParameterName(FunctionBase &function, WORD iIndex)
     {
         return "pEvent";
     }
+    if ((function.GetName() == "doVerb") && (iIndex == 1))
+    {
+        return "theVerb";
+    }*/
     std::stringstream ss;
     ss << _GetParamVariableName(iIndex);
     return ss.str();

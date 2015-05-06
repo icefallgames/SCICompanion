@@ -530,6 +530,22 @@ BYTE TokenTypeToVOType(ResolvedToken tokenType)
     }
 }
 
+PCSTR VOTypeToString(uint8_t type)
+{
+    switch (type)
+    {
+        case VO_GLOBAL:
+            return "global";
+        case VO_LOCAL:
+            return "local";
+        case VO_PARAM:
+            return "param";
+        case VO_TEMP:
+            return "temp";
+    }
+    return "";
+}
+
 BYTE GetVarOpcodeModifier(VariableModifier modifier)
 {
     switch (modifier)
@@ -2704,6 +2720,12 @@ CodeResult AsmBlock::OutputByteCode(CompileContext &context) const
     return CodeResult(0, DataTypeAny);
 }
 
+bool IsPropertyOpcode(Opcode opcode)
+{
+    uint8_t bOpcode = (uint8_t)opcode;
+    return ((bOpcode >= 49) && (bOpcode <= 56));
+}
+
 CodeResult Asm::OutputByteCode(CompileContext &context) const
 {
     // TODO: Prescan needs to track label
@@ -2902,6 +2924,40 @@ CodeResult Asm::OutputByteCode(CompileContext &context) const
                                                     }
                                                 }
                                                 stringTokenRefs.emplace_back(pValue->GetStringValue(), wImmediateIndex);
+                                            }
+                                            break;
+
+                                            case ResolvedToken::ClassProperty:
+                                            {
+                                                if (IsPropertyOpcode(opcode))
+                                                {
+                                                    args[0] = number;
+                                                }
+                                                else
+                                                {
+                                                    context.ReportError(pValue, "Invalid opcode to use with property '%s'.", pValue->GetStringValue().c_str());
+                                                }
+                                            }
+                                            break;
+
+                                            case ResolvedToken::Parameter:
+                                            case ResolvedToken::GlobalVariable:
+                                            case ResolvedToken::TempVariable:
+                                            case ResolvedToken::ScriptVariable:
+                                            {
+                                                uint8_t variableOpType = TokenTypeToVOType(tokenType);
+                                                uint8_t bOpcode = (uint8_t)opcode;
+                                                if ((bOpcode & VO_TYPEMASK) != variableOpType)
+                                                {
+                                                    context.ReportError(pValue, "Opcode is '%s', but variable is '%s'.", VOTypeToString(bOpcode & VO_TYPEMASK), VOTypeToString(variableOpType));
+                                                }
+                                                args[0] = number;
+                                            }
+                                                break;
+
+                                            case ResolvedToken::Unknown:
+                                            {
+                                                context.ReportError(pValue, "Unknown token '%s'.", pValue->GetStringValue().c_str());
                                             }
                                             break;
 

@@ -1873,8 +1873,8 @@ void CMainFrame::OnClassBrowser()
 
 void CMainFrame::OnManageDecompilation()
 {
-    DecompileDialog decompileDialog;
-    decompileDialog.DoModal();
+    unique_ptr<DecompileDialog> decompileDialog = make_unique<DecompileDialog>();
+    decompileDialog->DoModal();
 }
 
 void CMainFrame::OnUpdateClassBrowser(CCmdUI *pCmdUI)

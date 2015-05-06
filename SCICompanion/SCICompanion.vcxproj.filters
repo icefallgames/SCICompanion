@@ -16,6 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
+    <Text Include="Files\TemplateGame\game.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCICompanion.h">
@@ -54,11 +55,194 @@
     <Image Include="res\SCICompanion.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Files\TemplateGame\game.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\SCICompanion.rc2">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="Files\CompileInclude\kernels.scp" />
+    <None Include="Files\CompileInclude\keys.sh" />
+    <None Include="Files\CompileInclude\keys.shp" />
+    <None Include="Files\CompileInclude\sci.sh" />
+    <None Include="Files\CompileInclude\sci.shp" />
+    <None Include="Files\Licenses\cppformat_README.rst" />
+    <None Include="Files\Samples\cursors\Arrow 1.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\cursors\Arrow Small.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\cursors\Arrow Up.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\cursors\Cross 1.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\cursors\Cross 2.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\cursors\Diagonal Arrow 1.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\cursors\Diagonal Arrow 2.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\cursors\Error Cursor.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\cursors\Hand Point.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\cursors\Help Arrow.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\cursors\Hourglass 1.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\cursors\Hourglass 2.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\cursors\Hourglass Arrow.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\cursors\Left-Right Arrow.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\cursors\Move Arrow.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\cursors\Scumm Style 1.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\cursors\Scumm Style 2.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\cursors\Text Cursor 1.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\cursors\Text Cursor 2.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\cursors\Up-Down Arrow.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\fonts\BriPro.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\pics\Black Screen.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\pics\Bliss.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\pics\Criss Cross.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\pics\Room 1.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\pics\Room 2.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\pics\Simple.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\views\Brian.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\views\Dead Icon.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\views\Door (Big).bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\views\Door.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\views\Ego.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\views\Inv - Key.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\views\Key.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\TemplateGame\ADL.DRV" />
+    <None Include="Files\TemplateGame\EGA320.DRV" />
+    <None Include="Files\TemplateGame\game.ini" />
+    <None Include="Files\TemplateGame\gm.drv" />
+    <None Include="Files\TemplateGame\IBMKBD.DRV" />
+    <None Include="Files\TemplateGame\JOYSTICK.DRV" />
+    <None Include="Files\TemplateGame\resource.001" />
+    <None Include="Files\TemplateGame\resource.cfg" />
+    <None Include="Files\TemplateGame\resource.map" />
+    <None Include="Files\TemplateGame\SCIV.EXE" />
+    <None Include="Files\TemplateGame\STD.DRV" />
+    <None Include="Files\TemplateGame\src\autodoor.sc" />
+    <None Include="Files\TemplateGame\src\autodoor.sco" />
+    <None Include="Files\TemplateGame\src\Avoid.sc" />
+    <None Include="Files\TemplateGame\src\Controls.sc" />
+    <None Include="Files\TemplateGame\src\controls.sco" />
+    <None Include="Files\TemplateGame\src\Cycle.sc" />
+    <None Include="Files\TemplateGame\src\cycle.sco" />
+    <None Include="Files\TemplateGame\src\DCIcon.sc" />
+    <None Include="Files\TemplateGame\src\dcicon.sco" />
+    <None Include="Files\TemplateGame\src\DisposeLoad.sc" />
+    <None Include="Files\TemplateGame\src\disposeload.sco" />
+    <None Include="Files\TemplateGame\src\door.sc" />
+    <None Include="Files\TemplateGame\src\door.sco" />
+    <None Include="Files\TemplateGame\src\dpath.sc" />
+    <None Include="Files\TemplateGame\src\dpath.sco" />
+    <None Include="Files\TemplateGame\src\dying.sc" />
+    <None Include="Files\TemplateGame\src\dying.sco" />
+    <None Include="Files\TemplateGame\src\extra.sc" />
+    <None Include="Files\TemplateGame\src\extra.sco" />
+    <None Include="Files\TemplateGame\src\Feature.sc" />
+    <None Include="Files\TemplateGame\src\feature.sco" />
+    <None Include="Files\TemplateGame\src\fileio.sc" />
+    <None Include="Files\TemplateGame\src\fileio.sco" />
+    <None Include="Files\TemplateGame\src\follow.sc" />
+    <None Include="Files\TemplateGame\src\follow.sco" />
+    <None Include="Files\TemplateGame\src\Game.sc" />
+    <None Include="Files\TemplateGame\src\game.sco" />
+    <None Include="Files\TemplateGame\src\game.sh" />
+    <None Include="Files\TemplateGame\src\gauge.sc" />
+    <None Include="Files\TemplateGame\src\gauge.sco" />
+    <None Include="Files\TemplateGame\src\initrooms.sc" />
+    <None Include="Files\TemplateGame\src\initrooms.sco" />
+    <None Include="Files\TemplateGame\src\inv.sc" />
+    <None Include="Files\TemplateGame\src\inv.sco" />
+    <None Include="Files\TemplateGame\src\jump.sc" />
+    <None Include="Files\TemplateGame\src\jump.sco" />
+    <None Include="Files\TemplateGame\src\Main.sc" />
+    <None Include="Files\TemplateGame\src\main.sco" />
+    <None Include="Files\TemplateGame\src\menubar.sc" />
+    <None Include="Files\TemplateGame\src\menubar.sco" />
+    <None Include="Files\TemplateGame\src\obj.sc" />
+    <None Include="Files\TemplateGame\src\obj.sco" />
+    <None Include="Files\TemplateGame\src\rev.sc" />
+    <None Include="Files\TemplateGame\src\rev.sco" />
+    <None Include="Files\TemplateGame\src\rm001.sc" />
+    <None Include="Files\TemplateGame\src\rm001.sco" />
+    <None Include="Files\TemplateGame\src\sound.sc" />
+    <None Include="Files\TemplateGame\src\sound.sco" />
+    <None Include="Files\TemplateGame\src\syswindow.sc" />
+    <None Include="Files\TemplateGame\src\syswindow.sco" />
+    <None Include="Files\TemplateGame\src\timer.sc" />
+    <None Include="Files\TemplateGame\src\timer.sco" />
+    <None Include="Files\TemplateGame\src\TitleScreen.sc" />
+    <None Include="Files\TemplateGame\src\titlescreen.sco" />
+    <None Include="Files\TemplateGame\src\User.sc" />
+    <None Include="Files\TemplateGame\src\user.sco" />
+    <None Include="Files\TemplateGame\src\wander.sc" />
+    <None Include="Files\TemplateGame\src\wander.sco" />
+    <None Include="Files\TemplateGame\src\window.sc" />
+    <None Include="Files\TemplateGame\src\window.sco" />
+    <None Include="Files\Decompiler\Decompiler.ini" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />

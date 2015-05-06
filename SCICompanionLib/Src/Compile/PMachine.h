@@ -184,6 +184,7 @@ enum class Opcode : BYTE
 #define VO_LOCAL            0x01
 #define VO_TEMP             0x02
 #define VO_PARAM            0x03
+#define VO_TYPEMASK         0x03
 // bit 2
 #define VO_STACK            0x04
 #define VO_ACC              0x00

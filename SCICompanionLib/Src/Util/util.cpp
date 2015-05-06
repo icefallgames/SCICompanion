@@ -749,3 +749,24 @@ std::string GetExeSubFolder(const char *subFolder)
     }
     return templateFolder;
 }
+
+bool CopyFilesOver(HWND hwnd, const std::string &from, const std::string &to)
+{
+    char sz[MAX_PATH];
+    StringCchCopy(sz, ARRAYSIZE(sz), from.c_str());
+    size_t iDblNullTerm = strlen(sz) + 1;
+    bool success = iDblNullTerm < ARRAYSIZE(sz);
+    if (success)
+    {
+        sz[iDblNullTerm] = 0; // pFrom needs to have double null terminate...
+        // 2) copy the files over.
+        SHFILEOPSTRUCT fileOp = { 0 };
+        fileOp.hwnd = hwnd;
+        fileOp.wFunc = FO_COPY;
+        fileOp.pFrom = sz;
+        fileOp.pTo = to.c_str();
+        fileOp.fFlags = FOF_NOCONFIRMMKDIR | FOF_NOCOPYSECURITYATTRIBS;
+        success = (SHFileOperation(&fileOp) == 0);
+    }
+    return success;
+}

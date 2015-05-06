@@ -6,6 +6,7 @@
 #include "SCO.h"
 #include "DecompilerResults.h"
 #include "GameFolderHelper.h"
+#include "DecompilerConfig.h"
 #include "format.h"
 
 using namespace std;
@@ -27,6 +28,7 @@ BOOL DecompileDialog::OnInitDialog()
     BOOL fRet = __super::OnInitDialog();
     //ShowSizeGrip(FALSE);
     SetTimer(CHEKCDONE_TIMER, 100, nullptr);
+
     return fRet;
 }
 
@@ -77,6 +79,15 @@ void DecompileDialog::DoDataExchange(CDataExchange* pDX)
                 std::string error = GetMessageFromLastError(sourceFolder);
                 AfxMessageBox(error.c_str(), MB_OK | MB_APPLMODAL);
             }
+        }
+
+        // Ensure we have a decompiler.ini
+        string decompilerIniFile = sourceFolder + "\\Decompiler.ini";
+        if (!PathFileExists(decompilerIniFile.c_str()))
+        {
+            string decompilerFolderContents = appState->GetResourceMap().GetDecompilerFolder();
+            decompilerFolderContents += "\\*.*";
+            CopyFilesOver(GetSafeHwnd(), decompilerFolderContents, sourceFolder);
         }
 
         _InitScriptList();
@@ -653,6 +664,16 @@ UINT DecompileDialog::s_DecompileThreadWorker(void *pParam)
             pThis->_decompileResults->AddResult(DecompilerResultType::Update, "Creating script lookups...");
             pThis->_lookups = make_unique<GlobalCompiledScriptLookups>();
             pThis->_lookups->Load(helper);
+            pThis->_decompileResults->AddResult(DecompilerResultType::Update, "Loading decompiler.ini...");
+        }
+
+        // Redo this one each time
+        pThis->_decompilerConfig = CreateDecompilerConfig(helper);
+        if (!pThis->_decompilerConfig->error.empty())
+        {
+            string errorMessage = "Decompiler.ini: ";
+            errorMessage += pThis->_decompilerConfig->error;
+            pThis->_decompileResults->AddResult(DecompilerResultType::Warning, errorMessage);
         }
 
         if (pThis->_lookups)
@@ -669,7 +690,7 @@ UINT DecompileDialog::s_DecompileThreadWorker(void *pParam)
                     }
                     else
                     {
-                        unique_ptr<sci::Script> pScript = DecompileScript(*pThis->_lookups, helper, scriptNum, compiledScript, *pThis->_decompileResults, pThis->_debugControlFlow, pThis->_debugInstConsumption, (PCSTR)pThis->_debugFunctionMatch);
+                        unique_ptr<sci::Script> pScript = DecompileScript(pThis->_decompilerConfig.get(), *pThis->_lookups, helper, scriptNum, compiledScript, *pThis->_decompileResults, pThis->_debugControlFlow, pThis->_debugInstConsumption, (PCSTR)pThis->_debugFunctionMatch);
                         // Dump it to the .sc file
                         // TODO: If it already exists, we might want to ask for confirmation.
                         std::stringstream ss;

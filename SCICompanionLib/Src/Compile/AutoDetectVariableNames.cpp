@@ -3,6 +3,7 @@
 #include "ScriptOMAll.h"
 #include "format.h"
 #include "DisassembleHelper.h"
+#include "DecompilerConfig.h"
 
 using namespace sci;
 using namespace std;
@@ -49,7 +50,7 @@ struct Suggestion
 class RenameContext
 {
 public:
-    RenameContext(Script &script, CSCOFile *mainSCO, CSCOFile *scriptSCO) : _dirty(false), _mainDirty(false), _mainSCO(mainSCO)
+    RenameContext(Script &script, const IDecompilerConfig *config, CSCOFile *mainSCO, CSCOFile *scriptSCO) : _dirty(false), _mainDirty(false), _mainSCO(mainSCO)
     {
         // Populate things from these SCOs. And store the main SCO in case we make mods
         CSCOFile *globalVarSCO = (mainSCO != nullptr) ? mainSCO : ((scriptSCO && scriptSCO->GetScriptNumber() == 0) ? scriptSCO : nullptr);
@@ -87,6 +88,23 @@ public:
                     }
                     index += (*decompiledScriptVarIt)->GetSize();
                     ++decompiledScriptVarIt;
+                }
+            }
+        }
+
+        // Next, pull method parameter names from Decompiler.ini
+        if (config)
+        {
+            for (const auto &classDef : script.GetClasses())
+            {
+                for (const auto &method : classDef->GetMethods())
+                {
+                    int index = 1;  // Params start at 1
+                    for (string &name : config->GetParametersFor(classDef.get(), method->GetName()))
+                    {
+                        SetRenamed(method.get(), _GetParamVariableName(index), name, false);
+                        index++;
+                    }
                 }
             }
         }
@@ -567,9 +585,9 @@ private:
 };
 
 
-void AutoDetectVariableNames(Script &script, CSCOFile *mainSCO, CSCOFile *scriptSCO, bool &mainDirty)
+void AutoDetectVariableNames(Script &script, const IDecompilerConfig *config, CSCOFile *mainSCO, CSCOFile *scriptSCO, bool &mainDirty)
 {
-    RenameContext renameContext(script, mainSCO, scriptSCO);
+    RenameContext renameContext(script, config, mainSCO, scriptSCO);
 
     // Iteratively figure out variable names. Each cycle can propagate
     // variable names one more step.

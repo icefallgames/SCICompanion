@@ -79,6 +79,7 @@ public:
 #endif
     std::string GetTemplateFolder();
     std::string GetSamplesFolder();
+    std::string GetDecompilerFolder();
     bool IsGameLoaded() { return !_gameFolderHelper.GameFolder.empty(); }
     HRESULT GetGameIni(PTSTR pszBuf, size_t cchBuf);
     HRESULT GetScriptNumber(ScriptId script, WORD &wScript);

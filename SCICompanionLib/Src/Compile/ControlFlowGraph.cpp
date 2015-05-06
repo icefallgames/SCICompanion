@@ -782,6 +782,16 @@ void ControlFlowGraph::_ReconnectBreakNodeToSubsequentCode(ControlFlowNode *stru
             return;
         }
     }
+    // Oh, but we may have removed the exit node from the children because it had no more preds
+    // (and that would have confused dominator calcs).
+    // So check for an exit node.
+    ControlFlowNode *previouslyRemovedExit = (*structure)[SemId::Tail];
+    if (previouslyRemovedExit && (previouslyRemovedExit->GetStartingAddress() == subsequentInstructionAddress))
+    {
+        previouslyRemovedExit->InsertPredecessor(breakNode);
+        structure->children.insert(previouslyRemovedExit);
+        return;
+    }
 
     // We could get here in the case where we have two subsequent jmp instructions (with no one branching to the second one), and
     // we would have pruned out the degenerate second branch node. In that case, subsequentcode should be a jmp, and we can
@@ -798,6 +808,14 @@ void ControlFlowGraph::_ReconnectBreakNodeToSubsequentCode(ControlFlowNode *stru
                 return;
             }
         }
+    }
+
+    // TODO: Clean this up, we're repeating code from above.
+    if (previouslyRemovedExit && (previouslyRemovedExit->GetStartingAddress() == subsequentInstructionAddress))
+    {
+        previouslyRemovedExit->InsertPredecessor(breakNode);
+        structure->children.insert(previouslyRemovedExit);
+        return;
     }
 
     throw ControlFlowException(structure, "Unable to re-connect break statement. Need to add exit node to control structure?");
@@ -1170,28 +1188,26 @@ void ControlFlowGraph::_FindAllIfStatements()
 // A loop either has a condition in the head or latch. We'll return which ever that is.
 ControlFlowNode *_GetTrueLoopLatchOrHead(ControlFlowNode *loop)
 {
+    // Check the then/else nodes. Whichever (head or latch) has one branch that points
+    // to the loop tail (exit) is the one that is the condition.
     ControlFlowNode *thenNode, *elseNode;
-    ControlFlowNode *result = nullptr;
     if (MaybeGetThenAndElseBranches((*loop)[SemId::Head], &thenNode, &elseNode))
     {
-        result = (*loop)[SemId::Head];
-    }
-    else if (MaybeGetThenAndElseBranches((*loop)[SemId::Latch], &thenNode, &elseNode))
-    {
-        result = (*loop)[SemId::Latch];
-    }
-
-    if (result)
-    {
-        if ((thenNode != (*loop)[SemId::Tail]) && (elseNode != (*loop)[SemId::Tail]))
+        if ((thenNode == (*loop)[SemId::Tail]) || (elseNode == (*loop)[SemId::Tail]))
         {
-            // It was a branch, but not a loop latch or loop head, because neither of the
-            // branches pointed to the loop tail
-            result = nullptr;
+            return (*loop)[SemId::Head];
         }
     }
 
-    return result;
+    if (MaybeGetThenAndElseBranches((*loop)[SemId::Latch], &thenNode, &elseNode))
+    {
+        if ((thenNode == (*loop)[SemId::Tail]) || (elseNode == (*loop)[SemId::Tail]))
+        {
+            return (*loop)[SemId::Latch];
+        }
+    }
+
+    return nullptr;
 }
 
 void ControlFlowGraph::_FindIfStatements(DominatorMap &dominators, ControlFlowNode *structure)
@@ -1310,6 +1326,54 @@ void _RepairBranches(code_pos start, code_pos end)
                 ++target;
                 cur->set_branch_target(target, cur->is_forward_branch());
             }
+        }
+        ++cur;
+    }
+}
+
+// A pattern we see (e.g. ScriptSync in SQ4) is the following:
+//  bnt LoopHead
+//  jmp LoopExit
+//  Jmp LoopHead
+// This confuses us, and as long as no one jumps to the 2nd instruction, we can restructure it like:
+//  bnt A
+//  jmp LoopExit
+//A:jmp LoopHead
+// Which will cause us to identify this as a loop with no tail condition, which ends in an (if (foo) break)
+void _FixupConfusingBranches(code_pos start, code_pos end, const std::string &statusPrefix, IDecompilerResults &results)
+{
+    // First, track all branch targets
+    vector<uint16_t> branchTargets;
+    code_pos cur = start;
+    while (cur != end)
+    {
+        if (cur->_is_branch_instruction())
+        {
+            branchTargets.push_back(cur->get_branch_target()->get_final_offset_dontcare());
+        }
+        ++cur;
+    }
+
+    cur = start;
+    while (cur != end)
+    {
+        if (cur->is_conditional_branch_instruction() && cur->get_branch_target()->get_final_offset_dontcare() < cur->get_final_offset_dontcare())
+        {
+            uint16_t loopHead = cur->get_branch_target()->get_final_offset_dontcare();
+            // We have a bt or bnt that branches backwards.
+            code_pos theBranch = cur;
+            ++cur;
+            if (cur->get_opcode() == Opcode::JMP)
+            {
+                ++cur;
+                if ((cur->get_opcode() == Opcode::JMP) && (cur->get_branch_target()->get_final_offset_dontcare() == loopHead))
+                {
+                    // This jump goes to the same place as the bnt. So turn the bnt into a forward branch.
+                    theBranch->set_branch_target(cur, true);
+                    results.AddResult(DecompilerResultType::Important, fmt::format("Restructured branches in {0}", statusPrefix));
+                }
+            }
+
         }
         ++cur;
     }
@@ -1540,6 +1604,7 @@ bool ControlFlowGraph::Generate(code_pos start, code_pos end)
     try
     {
         _RepairBranches(start, end);
+        _FixupConfusingBranches(start, end, _contextName, _decompilerResults);
 
         ControlFlowNode *main = _PartitionCode(start, end);
 
@@ -1580,14 +1645,18 @@ bool ControlFlowGraph::Generate(code_pos start, code_pos end)
         {
             _ResolveBreaks();
         }
-        if (!_decompilerResults.IsAborted())
-        {
-            _FindAllIfStatements();
-        }
 
+
+        // TODO: Move back to after if
         if (showFile)
         {
             CFGVisualize(_contextName + "_loop", discoveredControlStructures);
+        }
+
+
+        if (!_decompilerResults.IsAborted())
+        {
+            _FindAllIfStatements();
         }
     }
     catch (ControlFlowException &e)

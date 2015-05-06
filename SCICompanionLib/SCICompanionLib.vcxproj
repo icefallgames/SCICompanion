@@ -76,7 +76,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NO_WARN_MBCS_MFC_DEPRECATION;_DEBUG;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)SCICompanionLib\;$(SolutionDir)SCICompanionLib\Src\Util;$(SolutionDir)SCICompanionLib\Src\Resources;$(SolutionDir)SCICompanionLib\Src\MFCViews;$(SolutionDir)SCICompanionLib\Src\MFCFrames;$(SolutionDir)SCICompanionLib\Src\MFCDocuments;$(SolutionDir)SCICompanionLib\Src\FrameComponents;$(SolutionDir)SCICompanionLib\Src\Dialogs;$(SolutionDir)SCICompanionLib\Src\CrystalEdit;$(SolutionDir)SCICompanionLib\Src\CRC32;$(SolutionDir)SCICompanionLib\Src\CppFormat;$(SolutionDir)SCICompanionLib\Src\Compile;$(SolutionDir)Prof-UIS.2.92\Include;$(SolutionDir)Prof-UIS.2.92\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)SCICompanionLib\;$(SolutionDir)SCICompanionLib\Src\Util;$(SolutionDir)SCICompanionLib\Src\Resources;$(SolutionDir)SCICompanionLib\Src\MFCViews;$(SolutionDir)SCICompanionLib\Src\MFCFrames;$(SolutionDir)SCICompanionLib\Src\MFCDocuments;$(SolutionDir)SCICompanionLib\Src\FrameComponents;$(SolutionDir)SCICompanionLib\Src\Dialogs;$(SolutionDir)SCICompanionLib\Src\CrystalEdit;$(SolutionDir)SCICompanionLib\Src\CRC32;$(SolutionDir)SCICompanionLib\Src\CppFormat;$(SolutionDir)SCICompanionLib\Src\Compile;$(SolutionDir)Prof-UIS.2.92\Include;$(SolutionDir)Prof-UIS.2.92\Src;$(SolutionDir)SCICompanionLib\Src\cpptoml;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/Qpar %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -111,7 +111,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NO_WARN_MBCS_MFC_DEPRECATION;_DEBUG;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)SCICompanionLib\;$(SolutionDir)SCICompanionLib\Src\Util;$(SolutionDir)SCICompanionLib\Src\Resources;$(SolutionDir)SCICompanionLib\Src\MFCViews;$(SolutionDir)SCICompanionLib\Src\MFCFrames;$(SolutionDir)SCICompanionLib\Src\MFCDocuments;$(SolutionDir)SCICompanionLib\Src\FrameComponents;$(SolutionDir)SCICompanionLib\Src\Dialogs;$(SolutionDir)SCICompanionLib\Src\CrystalEdit;$(SolutionDir)SCICompanionLib\Src\CRC32;$(SolutionDir)SCICompanionLib\Src\CppFormat;$(SolutionDir)SCICompanionLib\Src\Compile;$(SolutionDir)Prof-UIS.2.92\Include;$(SolutionDir)Prof-UIS.2.92\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)SCICompanionLib\;$(SolutionDir)SCICompanionLib\Src\Util;$(SolutionDir)SCICompanionLib\Src\Resources;$(SolutionDir)SCICompanionLib\Src\MFCViews;$(SolutionDir)SCICompanionLib\Src\MFCFrames;$(SolutionDir)SCICompanionLib\Src\MFCDocuments;$(SolutionDir)SCICompanionLib\Src\FrameComponents;$(SolutionDir)SCICompanionLib\Src\Dialogs;$(SolutionDir)SCICompanionLib\Src\CrystalEdit;$(SolutionDir)SCICompanionLib\Src\CRC32;$(SolutionDir)SCICompanionLib\Src\CppFormat;$(SolutionDir)SCICompanionLib\Src\Compile;$(SolutionDir)Prof-UIS.2.92\Include;$(SolutionDir)Prof-UIS.2.92\Src;$(SolutionDir)SCICompanionLib\Src\cpptoml;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnablePREfast>true</EnablePREfast>
       <AdditionalOptions>/Qpar %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -150,7 +150,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NO_WARN_MBCS_MFC_DEPRECATION;NDEBUG;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)SCICompanionLib\;$(SolutionDir)SCICompanionLib\Src\Util;$(SolutionDir)SCICompanionLib\Src\Resources;$(SolutionDir)SCICompanionLib\Src\MFCViews;$(SolutionDir)SCICompanionLib\Src\MFCFrames;$(SolutionDir)SCICompanionLib\Src\MFCDocuments;$(SolutionDir)SCICompanionLib\Src\FrameComponents;$(SolutionDir)SCICompanionLib\Src\Dialogs;$(SolutionDir)SCICompanionLib\Src\CrystalEdit;$(SolutionDir)SCICompanionLib\Src\CRC32;$(SolutionDir)SCICompanionLib\Src\CppFormat;$(SolutionDir)SCICompanionLib\Src\Compile;$(SolutionDir)Prof-UIS.2.92\Include;$(SolutionDir)Prof-UIS.2.92\Src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)SCICompanionLib\;$(SolutionDir)SCICompanionLib\Src\Util;$(SolutionDir)SCICompanionLib\Src\Resources;$(SolutionDir)SCICompanionLib\Src\MFCViews;$(SolutionDir)SCICompanionLib\Src\MFCFrames;$(SolutionDir)SCICompanionLib\Src\MFCDocuments;$(SolutionDir)SCICompanionLib\Src\FrameComponents;$(SolutionDir)SCICompanionLib\Src\Dialogs;$(SolutionDir)SCICompanionLib\Src\CrystalEdit;$(SolutionDir)SCICompanionLib\Src\CRC32;$(SolutionDir)SCICompanionLib\Src\CppFormat;$(SolutionDir)SCICompanionLib\Src\Compile;$(SolutionDir)Prof-UIS.2.92\Include;$(SolutionDir)Prof-UIS.2.92\Src;$(SolutionDir)SCICompanionLib\Src\cpptoml;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/Qpar %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -195,6 +195,7 @@
     <ClCompile Include="Src\Compile\Disassembler.cpp" />
     <ClCompile Include="Src\Compile\ControlFlowGraph.cpp" />
     <ClCompile Include="Src\Compile\GenerateScriptResource.cpp" />
+    <ClCompile Include="Src\Compile\DecompilerConfig.cpp" />
     <ClCompile Include="Src\Compile\OutputCodeHelper.cpp" />
     <ClCompile Include="Src\Compile\OutputCppSourceCode.cpp" />
     <ClCompile Include="Src\Compile\OutputSCISourceCode.cpp" />
@@ -228,9 +229,11 @@
     <ClCompile Include="Src\Util\AudioPlayback.cpp" />
     <ClInclude Include="Src\Compile\AutoDetectVariableNames.h" />
     <ClInclude Include="Src\Compile\CompileCommon.h" />
+    <ClInclude Include="Src\Compile\DecompilerConfig.h" />
     <ClInclude Include="Src\Compile\DecompilerFallback.h" />
     <ClInclude Include="Src\Compile\DecompilerNew.h" />
     <ClInclude Include="Src\Compile\DecompilerResults.h" />
+    <ClInclude Include="Src\cpptoml\cpptoml.h" />
     <ClInclude Include="Src\Dialogs\DecompileDialog.h" />
     <ClInclude Include="Src\Dialogs\PaletteEditorCommon.h" />
     <ClInclude Include="Src\Dialogs\PaletteEditorDialog.h" />
@@ -623,6 +626,7 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="SCICompanionLib.def" />
+    <None Include="Src\cpptoml\LICENSE" />
     <None Include="Src\CrystalEdit\CCrystalEditView.inl" />
     <None Include="Src\CrystalEdit\CCrystalTextBuffer.inl" />
     <None Include="Src\CrystalEdit\CCrystalTextView.inl" />

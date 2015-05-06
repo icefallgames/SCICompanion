@@ -649,6 +649,11 @@ std::string CResourceMap::GetSamplesFolder()
     return GetExeSubFolder("Samples");
 }
 
+std::string CResourceMap::GetDecompilerFolder()
+{
+    return GetExeSubFolder("Decompiler");
+}
+
 std::string CResourceMap::GetIncludePath(const std::string &includeFileName)
 {
     std::string includeFolder = GetIncludeFolder();

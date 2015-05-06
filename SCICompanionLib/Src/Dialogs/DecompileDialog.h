@@ -4,6 +4,7 @@
 #include "DecompilerResults.h"
 
 class CSCOFile;
+class IDecompilerConfig;
 
 class DecompilerDialogResults : public IDecompilerResults
 {
@@ -90,6 +91,7 @@ private:
     bool _debugInstConsumption;
     CString _debugFunctionMatch;
     std::unique_ptr<GlobalCompiledScriptLookups> _lookups;
+    std::unique_ptr<IDecompilerConfig> _decompilerConfig;
 public:
     afx_msg void OnLvnItemchangedListscripts(NMHDR *pNMHDR, LRESULT *pResult);
     afx_msg void OnTvnBeginlabeleditTreesco(NMHDR *pNMHDR, LRESULT *pResult);

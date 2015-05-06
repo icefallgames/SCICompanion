@@ -587,3 +587,4 @@ enum class PicScreenFlags
 DEFINE_ENUM_FLAGS(PicScreenFlags, uint32_t)
 
 std::string GetExeSubFolder(const char *subFolder);
+bool CopyFilesOver(HWND hwnd, const std::string &from, const std::string &to);

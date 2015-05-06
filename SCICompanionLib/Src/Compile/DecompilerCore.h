@@ -69,12 +69,13 @@ struct FunctionDecompileHints
 };
 
 class IDecompilerResults;
+class IDecompilerConfig;
 
 class DecompileLookups : public ICompiledScriptLookups
 {
 public:
-    DecompileLookups(const GameFolderHelper &helper, uint16_t wScript, GlobalCompiledScriptLookups *pLookups, IObjectFileScriptLookups *pOFLookups, ICompiledScriptSpecificLookups *pScriptThings, ILookupNames *pTextResource, IPrivateSpeciesLookups *pPrivateSpecies, IDecompilerResults &results) :
-        _wScript(wScript), _pLookups(pLookups), _pOFLookups(pOFLookups), _pScriptThings(pScriptThings), _pTextResource(pTextResource), _pPrivateSpecies(pPrivateSpecies), PreferLValue(false), _results(results), Helper(helper), DebugControlFlow(false), DebugInstructionConsumption(false)
+    DecompileLookups(const IDecompilerConfig *config, const GameFolderHelper &helper, uint16_t wScript, GlobalCompiledScriptLookups *pLookups, IObjectFileScriptLookups *pOFLookups, ICompiledScriptSpecificLookups *pScriptThings, ILookupNames *pTextResource, IPrivateSpeciesLookups *pPrivateSpecies, IDecompilerResults &results) :
+        _wScript(wScript), _pLookups(pLookups), _pOFLookups(pOFLookups), _pScriptThings(pScriptThings), _pTextResource(pTextResource), _pPrivateSpecies(pPrivateSpecies), PreferLValue(false), _results(results), Helper(helper), DebugControlFlow(false), DebugInstructionConsumption(false), _config(config)
     {
         _CategorizeSelectors();
     }
@@ -133,6 +134,8 @@ public:
 
     IDecompilerResults &DecompileResults() { return _results; }
 
+    const IDecompilerConfig *GetDecompilerConfig() { return _config; }
+
     const GameFolderHelper &Helper;
 
     bool DebugControlFlow;
@@ -145,6 +148,7 @@ private:
     void _CategorizeSelectors();
 
     uint16_t _wScript;
+    const IDecompilerConfig *_config;
     GlobalCompiledScriptLookups *_pLookups;
     IObjectFileScriptLookups *_pOFLookups;
     ICompiledScriptSpecificLookups *_pScriptThings;
@@ -220,5 +224,4 @@ bool _IsVOStoreOperation(Opcode bOpcode);
 class IDecompilerResults;
 class GameFolderHelper;
 class GlobalCompiledScriptLookups;
-std::unique_ptr<sci::Script> DecompileScript(GlobalCompiledScriptLookups &scriptLookups, const GameFolderHelper &helper, uint16_t wScript, CompiledScript &compiledScript, IDecompilerResults &results, bool debugControlFlow = false, bool debugInstConsumption = false, PCSTR pszDebugFilter = nullptr);
-
+std::unique_ptr<sci::Script> DecompileScript(const IDecompilerConfig *config, GlobalCompiledScriptLookups &scriptLookups, const GameFolderHelper &helper, uint16_t wScript, CompiledScript &compiledScript, IDecompilerResults &results, bool debugControlFlow = false, bool debugInstConsumption = false, PCSTR pszDebugFilter = nullptr);

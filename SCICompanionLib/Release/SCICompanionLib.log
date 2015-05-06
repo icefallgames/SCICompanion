@@ -1,19 +1,21 @@
-﻿Build started 5/4/2015 12:14:46 PM.
+﻿Build started 5/5/2015 4:00:13 PM.
      1>Project "E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\SCICompanionLib.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
-         F:\VisualStudio\VC\bin\CL.exe /c /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\\" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Util" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Resources" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCViews" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCFrames" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCDocuments" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\FrameComponents" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Dialogs" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CrystalEdit" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CRC32" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CppFormat" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Compile" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Include" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Src" /Zi /nologo /W3 /WX- /sdl /O2 /Oi /Oy- /GL /D WIN32 /D _WINDOWS /D NO_WARN_MBCS_MFC_DEPRECATION /D NDEBUG /D _USRDLL /D _MBCS /Gm- /EHsc /MT /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"Release\SCICompanionLib.pch" /Fo"Release\\" /Fd"Release\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt /Qpar Src\Compile\DecompilerNew.cpp
-         DecompilerNew.cpp
+         F:\VisualStudio\VC\bin\CL.exe /c /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\\" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Util" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Resources" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCViews" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCFrames" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCDocuments" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\FrameComponents" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Dialogs" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CrystalEdit" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CRC32" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CppFormat" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Compile" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Include" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Src" /Zi /nologo /W3 /WX- /sdl /O2 /Oi /Oy- /GL /D WIN32 /D _WINDOWS /D NO_WARN_MBCS_MFC_DEPRECATION /D NDEBUG /D _USRDLL /D _MBCS /Gm- /EHsc /MT /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"Release\SCICompanionLib.pch" /Fo"Release\\" /Fd"Release\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt /Qpar Src\Compile\KernelSignatures.cpp
+         KernelSignatures.cpp
        Lib:
          F:\VisualStudio\VC\bin\Lib.exe /OUT:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Release\SCICompanionLib.lib" /NOLOGO /LTCG /VERBOSE Release\AutoDetectVariableNames.obj
          Release\ControlFlowNode.obj
          Release\ControlFlowGraphViz.obj
          Release\DecompilerFallback.obj
          Release\DecompilerNew.obj
+         Release\DecompilerSpecialCases.obj
          Release\DecompileScript.obj
          Release\DisassembleHelper.obj
          Release\Disassembler.obj
          Release\ControlFlowGraph.obj
          Release\GenerateScriptResource.obj
+         Release\KernelSignatures.obj
          Release\OutputCodeHelper.obj
          Release\OutputCppSourceCode.obj
          Release\OutputSCISourceCode.obj
@@ -193,198 +195,9 @@
          Release\WordEnumString.obj
          Release\stdafx.obj
          Release\Text.obj
-         Appending Release\Text.obj
-         Appending Release\stdafx.obj
-         Appending Release\WordEnumString.obj
-         Appending Release\Version.obj
-         Appending Release\util.obj
-         Appending Release\Stream.obj
-         Appending Release\SCIDocs.obj
-         Appending Release\DrawHelper.obj
-         Appending Release\CrystalScriptStream.obj
-         Appending Release\Codec.obj
-         Appending Release\CodeAutoComplete.obj
-         Appending Release\ClassBrowserInfo.obj
-         Appending Release\ClassBrowser.obj
-         Appending Release\AppState.obj
-         Appending Release\Vocab99x.obj
-         Appending Release\Vocab000.obj
-         Appending Release\ResourceTypeList.obj
-         Appending Release\ResourceRecency.obj
-         Appending Release\ResourceMap.obj
-         Appending Release\ResourceEntity.obj
-         Appending Release\ResourceBlob.obj
-         Appending Release\ResourceContainer.obj
-         Appending Release\ResourceUtil.obj
-         Appending Release\RasterOperations.obj
-         Appending Release\PicDrawManager.obj
-         Appending Release\PicCommands.obj
-         Appending Release\FontOperations.obj
-         Appending Release\Cursor.obj
-         Appending Release\Components.obj
-         Appending Release\VocabView.obj
-         Appending Release\TextView.obj
-         Appending Release\SoundView.obj
-         Appending Release\ScriptView.obj
-         Appending Release\RoomExplorerView.obj
-         Appending Release\GameExplorerView.obj
-         Appending Release\RasterView.obj
-         Appending Release\RasterResourceListView.obj
-         Appending Release\PicView.obj
-         Appending Release\FontPreviewView.obj
-         Appending Release\VocabChildFrame.obj
-         Appending Release\ViewChildFrame.obj
-         Appending Release\TextChildFrame.obj
-         Appending Release\SoundChildFrame.obj
-         Appending Release\ScriptFrame.obj
-         Appending Release\RoomExplorerFrame.obj
-         Appending Release\GameExplorerFrame.obj
-         Appending Release\PicChildFrame.obj
-         Appending Release\MDITabChildWnd.obj
-         Appending Release\MainFrm.obj
-         Appending Release\FontChildFrame.obj
-         Appending Release\CursorChildFrame.obj
-         Appending Release\VocabDoc.obj
-         Appending Release\TextDoc.obj
-         Appending Release\SoundDoc.obj
-         Appending Release\ScriptDocument.obj
-         Appending Release\RoomExplorerDoc.obj
-         Appending Release\ResourceListDoc.obj
-         Appending Release\ResourceDocument.obj
-         Appending Release\PicDoc.obj
-         Appending Release\NonViewHostDocument.obj
-         Appending Release\NewRasterResourceDocument.obj
-         Appending Release\VPCDialogBar.obj
-         Appending Release\ViewCelChooser.obj
-         Appending Release\SoundToolboxSidePane.obj
-         Appending Release\SliderDialogBar.obj
-         Appending Release\ScriptComboBox.obj
-         Appending Release\ResourcePreviewer.obj
-         Appending Release\ResourcePicListView.obj
-         Appending Release\ResourceListView.obj
-         Appending Release\RasterSidePane.obj
-         Appending Release\QuickScripts.obj
-         Appending Release\PicCommandSidePane.obj
-         Appending Release\OutputPane.obj
-         Appending Release\NoFlickerStatic.obj
-         Appending Release\MDITabsDialogBar.obj
-         Appending Release\IntellisenseListBox.obj
-         Appending Release\ExtDialogFwdCmd.obj
-         Appending Release\ExtControlBarNoX.obj
-         Appending Release\ColoredToolTip.obj
-         Appending Release\ColorButton.obj
-         Appending Release\CodeToolTips.obj
-         Appending Release\ChooseColorStatic.obj
-         Appending Release\VocabAutoCompleteDialog.obj
-         Appending Release\VisualScriptDialog.obj
-         Appending Release\SCIProps.obj
-         Appending Release\SCIPropertyInfo.obj
-         Appending Release\SCIPropertyCtrl.obj
-         Appending Release\SCIFontDialog.obj
-         Appending Release\SaveResourceDialog.obj
-         Appending Release\SamplesDialogBar.obj
-         Appending Release\RemoveScriptDialog.obj
-         Appending Release\PreferencesDialog.obj
-         Appending Release\PaletteDefinitionDialog.obj
-         Appending Release\NewScriptDialog.obj
-         Appending Release\NewRoomDialog.obj
-         Appending Release\NewGameDialog.obj
-         Appending Release\NewCompileDialog.obj
-         Appending Release\InsertObject.obj
-         Appending Release\GotoDialog.obj
-         Appending Release\GamePropertiesDialog.obj
-         Appending Release\FindWordDialog.obj
-         Appending Release\FindAllDialog.obj
-         Appending Release\DontShowAgainDialog.obj
-         Appending Release\ClassBrowserDialog.obj
-         Appending Release\ChoosePriConDialog.obj
-         Appending Release\ChoosePenStyleDialog.obj
-         Appending Release\ChooseColorDialog.obj
-         Appending Release\ChooseColorAdvancedDialog.obj
-         Appending Release\BitmapToPicDialog.obj
-         Appending Release\BaseColorDialog.obj
-         Appending Release\BarContainerDialog.obj
-         Appending Release\AnimateDialog.obj
-         Appending Release\CFindTextDlg.obj
-         Appending Release\CEditReplaceDlg.obj
-         Appending Release\CCrystalTextView2.obj
-         Appending Release\CCrystalTextView.obj
-         Appending Release\CCrystalTextBuffer.obj
-         Appending Release\CCrystalEditView.obj
-         Appending Release\crc.obj
-         Appending Release\format.obj
-         Appending Release\Types.obj
-         Appending Release\SyntaxParser.obj
-         Appending Release\ScriptOMTraverse.obj
-         Appending Release\ScriptOM.obj
-         Appending Release\ScriptDebug.obj
-         Appending Release\SCO.obj
-         Appending Release\SCIStudioSyntaxParser.obj
-         Appending Release\scii.obj
-         Appending Release\PMachine.obj
-         Appending Release\ParserCommon.obj
-         Appending Release\Kernels.obj
-         Appending Release\DecompilerCore.obj
-         Appending Release\CPPTokenizer.obj
-         Appending Release\CPPSyntaxParser.obj
-         Appending Release\CompiledScript.obj
-         Appending Release\CompileContext.obj
-         Appending Release\Compile.obj
-         Appending Release\SoundUtil.obj
-         Appending Release\MidiPlayer.obj
-         Appending Release\ImageUtil.obj
-         Appending Release\ExtractAll.obj
-         Appending Release\ColorQuantization.obj
-         Appending Release\CodecDCL.obj
-         Appending Release\CodecDCL-freesci.obj
-         Appending Release\PicOperations.obj
-         Appending Release\SCICompanionLib.obj
-         Appending Release\Sound.obj
-         Appending Release\CodecAlt.obj
-         Appending Release\AudioPlayback.obj
-         Appending Release\View.obj
-         Appending Release\VersionDetectionHelper.obj
-         Appending Release\SoundOperations.obj
-         Appending Release\PaletteOperations.obj
-         Appending Release\GameVersionDialog.obj
-         Appending Release\Message.obj
-         Appending Release\ResourceSources.obj
-         Appending Release\ResourceMapOperations.obj
-         Appending Release\Pic.obj
-         Appending Release\GameFolderHelper.obj
-         Appending Release\AudioMap.obj
-         Appending Release\Font.obj
-         Appending Release\Audio.obj
-         Appending Release\PaletteView.obj
-         Appending Release\PaletteChildFrame.obj
-         Appending Release\PaletteDoc.obj
-         Appending Release\ZoomCelStatic.obj
-         Appending Release\PicHelperPane.obj
-         Appending Release\PrepareBitmapBase.obj
-         Appending Release\PaletteEditorDialog.obj
-         Appending Release\ExtractAllDialog.obj
-         Appending Release\DecompileDialog.obj
-         Appending Release\ChooseColorDialogVGA.obj
-         Appending Release\BitmapToVGADialog.obj
-         Appending Release\TarjanAlgorithm.obj
-         Appending Release\SummarizeScript.obj
-         Appending Release\OutputSCIStudioSourceCode.obj
-         Appending Release\OutputSCISourceCode.obj
-         Appending Release\OutputCppSourceCode.obj
-         Appending Release\OutputCodeHelper.obj
-         Appending Release\GenerateScriptResource.obj
-         Appending Release\ControlFlowGraph.obj
-         Appending Release\Disassembler.obj
-         Appending Release\DisassembleHelper.obj
-         Appending Release\DecompileScript.obj
-         Appending Release\DecompilerNew.obj
-         Appending Release\DecompilerFallback.obj
-         Appending Release\ControlFlowGraphViz.obj
-         Appending Release\ControlFlowNode.obj
-         Appending Release\AutoDetectVariableNames.obj
-         SCICompanionLib.vcxproj -> E:\Documents\Visual Studio 2013\Projects\SCICompanion\Release\SCICompanionLib.lib
-     1>Done Building Project "E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\SCICompanionLib.vcxproj" (Build target(s)).
+     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V120\Microsoft.CppCommon.targets(1000,5): error MSB6006: "Lib.exe" exited with code -1073741510.
+     1>Done Building Project "E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\SCICompanionLib.vcxproj" (Build target(s)) -- FAILED.
 
-Build succeeded.
+Build FAILED.
 
-Time Elapsed 00:00:28.85
+Time Elapsed 00:00:02.68

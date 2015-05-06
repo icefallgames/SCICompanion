@@ -92,6 +92,9 @@ void NewGameDialog::OnBnClickedOk()
         {
             fContinue = false;
             templateFolder += "\\*";
+            fContinue = CopyFilesOver(GetSafeHwnd(), templateFolder, szPath);
+
+            /*
             char sz[MAX_PATH];
             StringCchCopy(sz, ARRAYSIZE(sz), templateFolder.c_str());
             size_t iDblNullTerm = strlen(sz) + 1;
@@ -106,7 +109,7 @@ void NewGameDialog::OnBnClickedOk()
                 fileOp.pTo = szPath;
                 fileOp.fFlags = FOF_NOCONFIRMMKDIR | FOF_NOCOPYSECURITYATTRIBS;
                 fContinue = (SHFileOperation(&fileOp) == 0);
-            }
+            }*/
         }
     }
 

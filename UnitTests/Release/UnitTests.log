@@ -1,6 +1,10 @@
-﻿Build started 5/4/2015 12:15:59 PM.
+﻿Build started 5/5/2015 2:14:57 PM.
      1>Project "E:\Documents\Visual Studio 2013\Projects\SCICompanion\UnitTests\UnitTests.vcxproj" on node 2 (Build target(s)).
-     1>Link:
+     1>ClCompile:
+         F:\VisualStudio\VC\bin\CL.exe /c /IF:\VisualStudio\VC\UnitTest\include /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Include" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Util" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Resources" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCViews" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCFrames" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCDocuments" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\FrameComponents" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Dialogs" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CrystalEdit" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CRC32" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CppFormat" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Compile" /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D WIN32 /D NDEBUG /D _WINDLL /D _MBCS /Gm- /EHsc /MT /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"Release\UnitTests.pch" /Fo"Release\\" /Fd"Release\vc120.pdb" /Gd /TP /analyze- /FC /errorReport:prompt TestCompile.cpp TestResource.cpp
+         TestCompile.cpp
+         TestResource.cpp
+       Link:
          F:\VisualStudio\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Release\UnitTests.dll" /INCREMENTAL /NOLOGO /LIBPATH:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Bin_1000\\" /LIBPATH:F:\VisualStudio\VC\UnitTest\lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /manifestinput:F:\VisualStudio\VC\Include\Manifest\dpiaware.manifest /DEBUG /PDB:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Release\UnitTests.pdb" /SUBSYSTEM:WINDOWS /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Release\UnitTests.lib" /MACHINE:X86 /PROFILE /SAFESEH /DLL Release\stdafx.obj
          Release\TestCompile.obj
          Release\TestResource.obj
@@ -9,9 +13,10 @@
      1>LINK : warning LNK4075: ignoring '/INCREMENTAL' due to '/LTCG' specification
             Creating library E:\Documents\Visual Studio 2013\Projects\SCICompanion\Release\UnitTests.lib and object E:\Documents\Visual Studio 2013\Projects\SCICompanion\Release\UnitTests.exp
          Generating code
-         Compiler terminating.  Please wait........... Abort complete.
-     1>Done Building Project "E:\Documents\Visual Studio 2013\Projects\SCICompanion\UnitTests\UnitTests.vcxproj" (Build target(s)) -- FAILED.
+         Finished generating code
+         UnitTests.vcxproj -> E:\Documents\Visual Studio 2013\Projects\SCICompanion\Release\UnitTests.dll
+     1>Done Building Project "E:\Documents\Visual Studio 2013\Projects\SCICompanion\UnitTests\UnitTests.vcxproj" (Build target(s)).
 
-Build FAILED.
+Build succeeded.
 
-Time Elapsed 00:00:11.53
+Time Elapsed 00:00:52.80
