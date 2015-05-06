@@ -35,6 +35,11 @@ void push_word(vector<BYTE> &output, WORD w)
     output.push_back(w >> 8);
 }
 
+uint16_t read_word(const vector<uint8_t> &output, size_t index)
+{
+    return (output[index + 1] << 8) | output[index];
+}
+
 //
 // Push a temporary WORD value (0), and return the offset.
 //
@@ -334,7 +339,6 @@ void ParseSaidString(CompileContext *pContext, const stringcode_map::value_type 
 //
 void _Section1And6_ClassesAndInstances(vector<BYTE> &output, CompileContext *pContext)
 {
-
     CSCOFile &sco = pContext->GetScriptSCO();
     for (CSCOObjectClass &oClass : sco.GetObjects())
     {
@@ -452,7 +456,7 @@ void _Section4_Saids(CompileContext &context, vector<BYTE> &output)
     }
 }
 
-void _Section5_Strings(CompileContext &context, vector<BYTE> &output)
+void _Section5_Strings(CompileContext &context, vector<BYTE> &output, bool writeSCI0SectionHeader)
 {
     // In code strings:
     stringcode_map &inCodestrings = context.GetInCodeStrings();
@@ -461,7 +465,6 @@ void _Section5_Strings(CompileContext &context, vector<BYTE> &output)
     const ref_and_index_multimap &declaredTokenToCodePos = context.GetStringTokenReferences();
     if (!inCodestrings.empty() || !declaredTokenToString.empty())
     {
-        push_word(output, 5);
         // Compute the length of all the strings.
         WORD wStringSectionSize = accumulate(inCodestrings.begin(), inCodestrings.end(), 0, ComputeStringLengthFirst);
         // For declaredStrings, it's the second of the pair that we're concerned with.
@@ -470,8 +473,12 @@ void _Section5_Strings(CompileContext &context, vector<BYTE> &output)
         // Round it up to a WORD boundary:
         bool fRoundUp = make_even(wStringSectionSize);
 
-        // Indicate the section size:
-        push_word(output, wStringSectionSize + 4);
+        if (writeSCI0SectionHeader)
+        {
+            push_word(output, 5);
+            // Indicate the section size:
+            push_word(output, wStringSectionSize + 4);
+        }
 
         // Now actually write the strings, and update the parts of the code with the absolute positions
         // of each string (not yet relative pos's).
@@ -528,6 +535,7 @@ void _Section7_Exports_Part1(Script &script, CompileContext &context, vector<BYT
     output.insert(output.end(), numExports * exportWidth, 0);
 }
 
+const uint16_t ExportTempMarker = 0x5845;   // "EX" backwards
 
 void _Exports_SCI11(Script &script, CompileContext &context, vector<BYTE> &output, size_t &numExports, size_t &indexOfExports)
 {
@@ -539,10 +547,12 @@ void _Exports_SCI11(Script &script, CompileContext &context, vector<BYTE> &outpu
     assert(!context.GetVersion().IsExportWide());
     push_word(output, (WORD)numExports); // the number of exports
     indexOfExports = output.size(); // Store where the ptrs will go.
-    // Fill with zeroes for now:
-    output.insert(output.end(), numExports * 2, 0);
+    // Fill with dumb markers for now:
+    for (size_t i = 0; i < numExports; i++)
+    {
+        push_word(output, ExportTempMarker);
+    }
 }
-
 
 void _Section7_Exports_Part2(CompileContext &context, vector<BYTE> &output, WORD wStartOfCode, size_t numExports, size_t indexOfExports)
 {
@@ -1089,7 +1099,7 @@ bool GenerateScriptResource_SCI0(Script &script, PrecompiledHeaders &headers, Co
     WORD wStartOfCode = 0;
     _Section2_Code(script, context, output, wStartOfCode);
 
-    _Section5_Strings(context, output);
+    _Section5_Strings(context, output, true);
 
     _Section4_Saids(context, output);
 
@@ -1119,11 +1129,95 @@ bool GenerateScriptResource_SCI0(Script &script, PrecompiledHeaders &headers, Co
     return !context.HasErrors();
 }
 
+const uint16_t MethodCodeOffsetMarker = 0x454d; // "ME" backwards
+const uint16_t OffsetToAfterCodePointer = 0x0;
+
+void WriteMethodSelectors(const CSCOObjectClass &oClass, vector<uint8_t> &outputScr, vector<uint16_t> &trackMethodCodePointerOffsets)
+{
+    // Then the method selectors
+    push_word(outputScr, (uint16_t)oClass.GetMethods().size());
+    for (auto &method : oClass.GetMethods())
+    {
+        push_word(outputScr, method.GetSelector());
+        trackMethodCodePointerOffsets.push_back((uint16_t)outputScr.size());
+        push_word(outputScr, MethodCodeOffsetMarker);   // Something temporary for now
+    }
+}
+
+void WriteMethodCodePointers(const CSCOObjectClass &oClass, vector<uint8_t> &outputScr, CompileContext &context, const vector<uint16_t> &trackMethodCodePointerOffsets, int &index)
+{
+    for (auto &method : oClass.GetMethods())
+    {
+        string methodName = context.LookupSelectorName(method.GetSelector());
+        assert(!methodName.empty()); // Means we have a bug.
+        code_pos methodPos = context.GetLocalProcPos(oClass.GetName() + "::" + methodName);
+        // Then from the code_pos, we get the offset at which it was written.
+        uint16_t offsetOfMethodPointer = trackMethodCodePointerOffsets[index];
+        write_word(outputScr, offsetOfMethodPointer, methodPos->get_final_offset());
+        index++;
+    }
+}
+
+void WriteClassToHeap(const CSCOObjectClass &oClass, bool isInstance, vector<uint8_t> &outputHeap, vector<uint8_t> &outputScr, CompileContext &context, vector<uint16_t> &trackHeapStringOffsets, uint16_t &objectSelectorOffsetInScr)
+{
+    // This is where code that has offsets to this instance should point to
+    if (isInstance)
+    {
+        WORD wObjectPointer = (WORD)outputHeap.size();
+        // So tell that code to point here.
+        _FixupReferencesHelper(context.GetVersion(), outputScr, context.GetInstanceReferences(), oClass.GetName(), wObjectPointer);
+        if (oClass.IsPublic())
+        {
+            // If it's public, we need to put this in the export table.
+            context.TrackPublicInstance(wObjectPointer);
+        }
+    }
+
+    // Now write out the object
+    push_word(outputHeap, 0x1234); // object marker
+
+    // ***** NOTE: This includes all the 9 default props. VERIFY THIS
+    uint16_t numProps = (uint16_t)oClass.GetProperties().size();
+    push_word(outputHeap, numProps);
+
+    push_word(outputHeap, objectSelectorOffsetInScr);
+
+    objectSelectorOffsetInScr += (isInstance ? 0 : (numProps * 2));
+    push_word(outputHeap, objectSelectorOffsetInScr);
+
+    // Increment our offset in the scr file
+    // num Methods, plus 4 for each method (see WriteMethodSelectors)
+    objectSelectorOffsetInScr += (uint16_t)(2 + 4 * oClass.GetMethods().size());
+
+    push_word(outputHeap, 0);   // REVIEW: Always zero??
+
+    // Now write the prop values. These should start with: species/super/-info-/name. VERIFY THIS - DIFFERENT THAN BELOW so we'll need to do something
+    for (auto &prop : oClass.GetProperties())
+    {
+        WORD value = prop.GetValue();
+        if (prop.NeedsReloc())
+        {
+            context.TrackRelocation((uint16_t)outputHeap.size());
+            // We haven't written out strings yet, so we don't know the final value.
+            // value = context.LookupFinalStringOrSaidOffset(value);
+            // But add this to the string offsets we're tracking.
+            trackHeapStringOffsets.push_back((uint16_t)outputHeap.size());
+            // Afterwards, we will look at these places, suck out the value, and then replace with the final offset.
+        }
+        push_word(outputHeap, value);
+    }
+}
 
 bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, CompileTables &tables, CompileResults &results)
 {
     vector<BYTE> &outputScr = results.GetScriptResource();
     vector<BYTE> &outputHeap = results.GetHeapResource();
+
+    // These contain the offsets in hep at which there are string pointers.
+    vector<uint16_t> trackHeapStringOffsets;
+
+    // These track the offsets that store pointers to method code.
+    vector<uint16_t> trackMethodCodePointerOffsets;
 
     // Create our "CompileContext", which holds state during the compilation.
     CompileContext context(appState->GetVersion(), script, headers, tables, results.GetLog());
@@ -1137,7 +1231,7 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
 
     // Now the exports
     // To figure out how many exports we have, let's look at the public procedures and public instances
-    // TODO: Retain gaps from old SCO file?
+    // TODO: Retain gaps from old SCO file? If we don't all other files will need to recompile.
     size_t numExports = 0;
     size_t indexOfExports = 0;
     _Exports_SCI11(script, context, outputScr, numExports, indexOfExports);
@@ -1148,48 +1242,113 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
     GenerateSCOPublics(context, script);
     GenerateSCOVariables(context, script);
 
-    // Let's start writing to the hep file now.
-    push_word(outputHeap, 0);   // This will point to "after strings" 
-    // Next come the local var values
-    _Section10_LocalVariables(script, outputHeap, true);
-
     // Next, we write out the objects. They consist of parts in both .hep and .scr
     // In .scr come the property and method selectors for the objects
     // Instances have method selectors only.
     // Classes have both.
     // In .hep we have some more basic info about the object. Instances and classes are all smushed together.
     CSCOFile &sco = context.GetScriptSCO();
+
+    // We're write the objects' property and method selectors to the scr file first,
+    // since the code will follow it, and we need to write the code early.
+    uint16_t objectSelectorOffsetInScr = (uint16_t)outputScr.size();
     for (const CSCOObjectClass &oClass : sco.GetObjects())
     {
-        bool isInstance = false; // REVIEW: how do we know this? Does the CSCOObjectClass already reflect this?
-
-        push_word(outputHeap, 0x1234); // object marker
-        uint16_t numVars = (uint16_t)oClass.GetProperties().size();
-        push_word(outputHeap, numVars);
-        uint16_t varOffsetInScr = (uint16_t)outputScr.size();
-        push_word(outputHeap, varOffsetInScr);
-        uint16_t methodOffsetInScr = varOffsetInScr + (isInstance ? 0 : (numVars * 2));
-        push_word(outputHeap, methodOffsetInScr);
-        push_word(outputHeap, 0);   // REVIEW: Always zero??
-
-        // TODO: Now write other things... like var values and such.
-        // TODO: Write the selectors to varOffsetInScr and methodOffsetInScr
+        // Classes have all their prop selectors written out (instances do not)
+        for (auto &prop : oClass.GetProperties()) // VERIFY THIS - this DOES include all 9 basic selectors (must match number we wrote to heap)
+        {
+            push_word(outputScr, prop.GetSelector());
+        }
+        WriteMethodSelectors(oClass, outputScr, trackMethodCodePointerOffsets);
     }
-    // TODO: is there an end marker?
-    
+    // Now instances
+    for (const CSCOObjectClass &oClass : context.GetInstanceSCOs())
+    {
+        WriteMethodSelectors(oClass, outputScr, trackMethodCodePointerOffsets);
+    }
 
+    // Now comes the code:
     WORD wStartOfCode = 0;
     _Section2_Code(script, context, outputScr, wStartOfCode);
-
     // Now we know how much code was written, so let's write the offset to that.
     assert(outputScr.size() < 0xffff);
-    write_word(outputScr, 0, (uint16_t)outputScr.size());
+    write_word(outputScr, OffsetToAfterCodePointer, (uint16_t)outputScr.size());
 
-    // Now we write pointers to all the strings.
+    // Now we know where the method code is, so go back and write in those pointers
+    int index = 0;
+    for (const CSCOObjectClass &oClass : sco.GetObjects())
+    {
+        WriteMethodCodePointers(oClass, outputScr, context, trackMethodCodePointerOffsets, index);
+    }
+    for (const CSCOObjectClass &oClass : context.GetInstanceSCOs())
+    {
+        WriteMethodCodePointers(oClass, outputScr, context, trackMethodCodePointerOffsets, index);
+    }
 
 
+
+    // Now let's start writing the hep file
+    push_word(outputHeap, 0);   // This will point to "after strings" 
+    // Next come the local var values
+    _Section10_LocalVariables(script, outputHeap, true);
+
+    for (const CSCOObjectClass &oClass : sco.GetObjects())
+    {
+        WriteClassToHeap(oClass, false, outputHeap, outputScr, context, trackHeapStringOffsets, objectSelectorOffsetInScr);
+    }
+    for (const CSCOObjectClass &oClass : context.GetInstanceSCOs())
+    {
+        WriteClassToHeap(oClass, true, outputHeap, outputScr, context, trackHeapStringOffsets, objectSelectorOffsetInScr);
+    }
+
+    
+    // Now it appears there is a zero marker in the heap, after the objects
+    push_word(outputHeap, 0);
+    // At the beginning of the file, write the offset to the string table:
+    write_word(outputHeap, 0, (uint16_t)outputHeap.size());
+
+    // TODO: What about the isntance and class names? Are they tracked?
+    _Section5_Strings(context, outputScr, false);
+
+    // Now write the string relocation table
+    // TODO: How do we know about in-code strings? Do we care?
+    push_word(outputHeap, (uint16_t)trackHeapStringOffsets.size());
+    for (uint16_t stringPointerOffset : trackHeapStringOffsets)
+    {
+        push_word(outputHeap, stringPointerOffset);
+        // We also need to fill in the values (which are temporaries) with actual pointers to the strings.
+        write_word(outputHeap, stringPointerOffset, context.LookupFinalStringOrSaidOffset(read_word(outputHeap, stringPointerOffset)));
+    }
+    // The .hep file is done
+
+    // Now back to the scr:
+    // Now let's write the "after code" stuff. 
+    // TODO: Not yet sure what this is. But this is how it starts:
+    uint16_t numberOfWords = 0;
+    push_word(outputScr, numberOfWords);
+    // Then an entry... and it's just before the property selector offsets (in scr, from hep). I believe this are poitners to lofsa
+    //      but the first few don't point to the code section. Oh, they point to export table. so basically it's exports, followed by lofsas
+    // Oooppp... no, it's things that point into the heap. So the exports are 
+
+    // TODO: Write our prop relocs
+    // TODO: keep exports in sync with previous SCO file iteration
     // TODO: Write export values
-    // TODO: write "after code" and "after strings" 
+    _Section7_Exports_Part2(context, outputScr, wStartOfCode, numExports, indexOfExports);
+
+    // TODO GenerateSCOObjects ... this is where CSCOpropertys are marked as needing relocation. name is hard-coded, we'll need others too.
 
     return false;
+}
+
+
+bool GenerateScriptResource(SCIVersion version, sci::Script &script, PrecompiledHeaders &headers, CompileTables &tables, CompileResults &results)
+{
+    if (version.SeparateHeapResources)
+    {
+        return GenerateScriptResource_SCI11(script, headers, tables, results);
+    }
+    else
+    {
+        return GenerateScriptResource_SCI0(script, headers, tables, results);
+    }
 }

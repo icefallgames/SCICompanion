@@ -361,7 +361,7 @@ void DisassembleObject(const CompiledScript &script,
         for (size_t i = object.GetNumberOfDefaultSelectors(); i < min(selectorCount, valueCount); i++)
         {
             out << "        " << pLookups->LookupSelectorName(propertySelectorList[i]);
-            if (propertyValues[i].isString)
+            if (propertyValues[i].isObjectOrString)
             {
                 out << script.GetStringFromOffset(propertyValues[i].value);
             }

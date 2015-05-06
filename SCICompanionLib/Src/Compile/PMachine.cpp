@@ -115,7 +115,36 @@ KernelInfo KrnlInfo[TOTAL_KERNELS] = {
 	{"void","TextSize","@rect sizeRect, string text, number font[, number maxWidth]"},
 	{"void","UnLoad","number type, number resNum"},
 	{"bool","ValidPath","string aDirectory"},
-	{"number","Wait","number ticks"}
+	{"number","Wait","number ticks"},
+
+    // These are just stubs so far for SCI1+ stuff
+    {"void", "ShiftScreen", ""},
+    { "void", "Palette", "" },
+    { "void", "MemorySegment", "" },
+    { "void", "Intersections", "" },
+    { "void", "Memory", "" },
+    { "void", "ListOps", "" },
+    { "void", "FileIO", "" },
+    { "void", "DoAudio", "" },
+    { "void", "DoSync", "" },
+    { "void", "AvoidPath", "" },
+    { "void", "Sort", "" },
+    { "void", "ATan", "" },
+    { "void", "Lock", "" },
+    { "void", "StrSplit", "" },
+    { "void", "GetMessage", "" },
+    { "void", "IsItSkip", "" },
+    { "void", "MergePoly", "" },
+    { "void", "ResCheck", "" },
+    { "void", "AssertPalette", "" },
+    { "void", "TextColors", "" },
+    { "void", "TextFonts", "" },
+    { "void", "Record", "" },
+    { "void", "PlayBack", "" },
+    { "void", "ShowMovie", "" },
+    { "void", "SetVideoMode", "" },
+    { "void", "SetQuitStr", "" },
+    { "void", "DbugStr", "" },
 };
 
 

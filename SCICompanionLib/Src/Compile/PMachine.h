@@ -1,6 +1,7 @@
 #pragma once
 
-#define TOTAL_KERNELS 				    114 // SCI0 only
+//#define TOTAL_KERNELS 				    114 // SCI0 only
+#define TOTAL_KERNELS 				    (114 + 27) // SCI1+ only
 
 #define TOTAL_OPCODES 				    128
 

@@ -251,26 +251,6 @@ bool _IsVariableUse(code_pos pos, VarScope varScope, WORD &wIndex)
     return fRet;
 }
 
-std::string _GetSuitableParameterName(FunctionBase &function, WORD iIndex)
-{
-    /*
-    if ((function.GetName() == "changeState") && (iIndex == 1))
-    {
-        return "newState";
-    }
-    if ((function.GetName() == "handleEvent") && (iIndex == 1))
-    {
-        return "pEvent";
-    }
-    if ((function.GetName() == "doVerb") && (iIndex == 1))
-    {
-        return "theVerb";
-    }*/
-    std::stringstream ss;
-    ss << _GetParamVariableName(iIndex);
-    return ss.str();
-}
-
 void _FigureOutParameters(FunctionBase &function, FunctionSignature &signature, std::list<scii> &code)
 {
     WORD wBiggest = 0;
@@ -293,7 +273,7 @@ void _FigureOutParameters(FunctionBase &function, FunctionSignature &signature, 
         for (WORD i = 1; i <= wBiggest; i++)
         {
             std::unique_ptr<FunctionParameter> pParam = std::make_unique<FunctionParameter>();
-            pParam->SetName(_GetSuitableParameterName(function, i));
+            pParam->SetName(_GetParamVariableName(i));
             pParam->SetDataType("var"); // Generic for now... we could try to detect things in the future.
             signature.AddParam(std::move(pParam), false);   // false -> hard to detect if optional or not... serious code analysis req'd
         }
@@ -1478,7 +1458,7 @@ void AddLocalVariablesToScript(sci::Script &script, const CompiledScript &compil
         {
             PropertyValue value;
             uint16_t propValue = localVarValues[w].value;
-            if (localVarValues[w].isString)
+            if (localVarValues[w].isObjectOrString)
             {
                 value.SetValue(compiledScript.GetStringFromOffset(propValue), ValueType::String);
             }

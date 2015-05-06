@@ -1054,5 +1054,33 @@ public int Wait(int ticks)
 {
 }
 
+// SCI1+ kernel stubs
+public int ShiftScreen() {}
+public int Palette() {}
+public int MemorySegment() {}
+public int Intersections() {}
+public int Memory() {}
+public int ListOps() {}
+public int FileIO() {}
+public int DoAudio() {}
+public int DoSync() {}
+public int AvoidPath() {}
+public int Sort() {}
+public int ATan() {}
+public int Lock() {}
+public int StrSplit() {}
+public int GetMessage() {}
+public int IsItSkip() {}
+public int MergePoly() {}
+public int ResCheck() {}
+public int AssertPalette() {}
+public int TextColors() {}
+public int TextFonts() {}
+public int Record() {}
+public int PlayBack() {}
+public int ShowMovie() {}
+public int SetVideoMode() {}
+public int SetQuitStr() {}
+public int DbugStr() {}
 
 

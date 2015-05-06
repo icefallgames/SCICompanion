@@ -171,10 +171,10 @@ bool CompiledScript::_LoadSCI1_1(const GameFolderHelper &helper, int iScriptNumb
             (*heapStream) >> localsCount;
             for (int i = 0; i < localsCount; i++)
             {
-                bool isString = IsStringPointerSCI1_1((uint16_t)heapStream->tellg());
+                bool isObjectOrString = IsStringPointerSCI1_1((uint16_t)heapStream->tellg());
                 uint16_t w;
                 (*heapStream) >> w;
-                _localVars.push_back({ w, isString });
+                _localVars.push_back({ w, isObjectOrString });
             }
 
             // Now we're into the objects.

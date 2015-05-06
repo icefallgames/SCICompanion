@@ -54,19 +54,22 @@ void DecompileObject(const CompiledObjectBase &object,
         {
             for (size_t i = object.GetNumberOfDefaultSelectors(); i < object.GetPropertyValues().size(); i++)
             {
+                const CompiledVarValue &propValue = object.GetPropertyValues()[i];
                 // If this is an instance, look up the species values, and only
                 // include those that are different.
-                if (!object.IsInstance() || (object.GetPropertyValues()[i].value != speciesPropertyValueList[i].value))
+                if (!object.IsInstance() || (propValue.value != speciesPropertyValueList[i].value))
                 {
                     ClassProperty prop;
                     prop.SetName(lookups.LookupSelectorName(propertySelectorList[i]));
                     PropertyValue value;
                     ICompiledScriptSpecificLookups::ObjectType type;
                     std::string saidOrString;
-                    if (!lookups.LookupScriptThing(object.GetPropertyValues()[i].value, type, saidOrString))
+                    if (!propValue.isObjectOrString || !lookups.LookupScriptThing(propValue.value, type, saidOrString))
                     {
+                        assert(!propValue.isObjectOrString && "We should have resolved some token for this property value");
+
                         // Just give it a number
-                        uint16_t number = object.GetPropertyValues()[i].value;
+                        uint16_t number = propValue.value;
                         value.SetValue(number);
                         if (number == 65535)
                         {

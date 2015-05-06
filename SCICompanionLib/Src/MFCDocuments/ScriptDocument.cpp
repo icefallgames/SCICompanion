@@ -204,7 +204,7 @@ bool NewCompileScript(CompileLog &log, CompileTables &tables, PrecompiledHeaders
             // Compile and save script resource.
             // Compile our own script!
             CompileResults results(log);
-            if (GenerateScriptResource_SCI0(*pScript, headers, tables, results))
+            if (GenerateScriptResource(appState->GetVersion(), *pScript, headers, tables, results))
             {
                 WORD wNum = results.GetScriptNumber();
 
@@ -223,17 +223,30 @@ bool NewCompileScript(CompileLog &log, CompileTables &tables, PrecompiledHeaders
 #endif
                 }
 
-                // Save the script resource
-                std::vector<BYTE> &output = results.GetScriptResource();
-                appState->GetResourceMap().AppendResource(ResourceBlob(nullptr, ResourceType::Script, output, 1, wNum, appState->GetVersion(), ResourceSourceFlags::ResourceMap));
-
-                // Save the corresponding sco file.
-                CSCOFile &sco = results.GetSCO();
-
+                if (appState->GetVersion().SeparateHeapResources)
                 {
-                    SaveSCOFile(appState->GetResourceMap().Helper(), sco, script);
-                }
+                    // Temporary
+                    std::vector<BYTE> &outputScr = results.GetScriptResource();
+                    std::string text = GetBinaryDataVisualization(&outputScr[0], outputScr.size());
+                    ShowTextFile(text.c_str(), "scr.txt");
 
+                    std::vector<BYTE> &outputHeap = results.GetHeapResource();
+                    text = GetBinaryDataVisualization(&outputHeap[0], outputHeap.size());
+                    ShowTextFile(text.c_str(), "hep.txt");
+                }
+                else
+                {
+                    // Save the script resource
+                    std::vector<BYTE> &output = results.GetScriptResource();
+                    appState->GetResourceMap().AppendResource(ResourceBlob(nullptr, ResourceType::Script, output, 1, wNum, appState->GetVersion(), ResourceSourceFlags::ResourceMap));
+
+                    // Save the corresponding sco file.
+                    CSCOFile &sco = results.GetSCO();
+
+                    {
+                        SaveSCOFile(appState->GetResourceMap().Helper(), sco, script);
+                    }
+                }
                 fRet = true;
             }
         }

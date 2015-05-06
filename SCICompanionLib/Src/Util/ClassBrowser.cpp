@@ -344,7 +344,7 @@ void LoadClassFromCompiled(sci::ClassDefinition *pClass, const CompiledScript &c
         // Add the values anyway.... we'll resolve property selectors later.
         for (size_t i = 0; i < propertyValues.size(); i++)
         {
-            if (propertyValues[i].isString)
+            if (propertyValues[i].isObjectOrString)
             {
                 pClass->AddProperty(sci::ClassProperty(TEXT("Unknown"), compiledScript.GetStringFromOffset(propertyValues[i].value)));
             }
@@ -358,7 +358,7 @@ void LoadClassFromCompiled(sci::ClassDefinition *pClass, const CompiledScript &c
     {
         for (size_t i = 0; i < properties.size(); i++)
         {
-            if (propertyValues[i].isString)
+            if (propertyValues[i].isObjectOrString)
             {
                 pClass->AddProperty(sci::ClassProperty(pNames->Lookup(properties[i]), compiledScript.GetStringFromOffset(propertyValues[i].value)));
             }

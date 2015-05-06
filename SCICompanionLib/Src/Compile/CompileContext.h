@@ -470,7 +470,7 @@ private:
 // The be-all end-all function for compiling a script.
 // Returns true if there were no errors.
 //
-bool GenerateScriptResource_SCI0(sci::Script &script, PrecompiledHeaders &headers, CompileTables &tables, CompileResults &results);
+bool GenerateScriptResource(SCIVersion version, sci::Script &script, PrecompiledHeaders &headers, CompileTables &tables, CompileResults &results);
 
 void ErrorHelper(CompileContext &context, const ISourceCodePosition *pPos, const std::string &text, const std::string &identifier);
 

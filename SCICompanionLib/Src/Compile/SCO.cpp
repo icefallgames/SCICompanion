@@ -690,6 +690,7 @@ unique_ptr<CSCOFile> SCOFromScriptAndCompiledScript(const Script &script, const 
             CSCOObjectClass newSCOObject;
             CompiledObjectBase *compiledObject = nameToCompiledObject[object->GetName()];
             // With object and compiledObject, we should have everything we need?
+            newSCOObject.SetName(object->GetName());
             newSCOObject.SetPublic(compiledObject->IsPublic);   // REVIEW: When is a class not public?
             newSCOObject.SetSpecies(compiledObject->GetSpecies());
             newSCOObject.SetSuperClass(compiledObject->GetSuperClass());
