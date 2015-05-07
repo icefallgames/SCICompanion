@@ -6,6 +6,13 @@ namespace sci
     class Script;
 }
 
+
+enum SCOVersion : uint8_t
+{
+    SCI0 = 0,
+    SeparateHeap = 1,
+};
+
 //
 // Object model for .sco object files.
 //
@@ -130,11 +137,11 @@ public:
     }
     bool operator==(const CSCOObjectClass& value) const;
     bool operator!=(const CSCOObjectClass& value) const;
-    void Save(std::vector<BYTE> &output) const;
+    void Save(std::vector<BYTE> &output, SCOVersion version) const;
     void DebugOut(std::ostream &out) const;
 
     const std::string &GetName() const { return _strName; }
-    bool Create(sci::istream &stream);
+    bool Load(sci::istream &stream, SCOVersion version);
     const std::vector<CSCOMethod> &GetMethods() const { return _methods; }
     std::vector<CSCOMethod> &GetMethods() { return _methods; }
 
@@ -184,6 +191,7 @@ private:
     WORD _wType;    // Cpp only
 };
 
+
 //
 // This represents all the information in an .sco file
 // 
@@ -195,7 +203,7 @@ public:
         _bMajorVersion = 1;
         _bMinorVersion = 0;
         _bBuild = 0;
-        _bSCIVersion = 0;
+        _bSCIVersion = SCOVersion::SCI0;
         _wScriptNumber = InvalidResourceNumber;
         _wOffsetPublics = 0;
         _wOffsetClasses = 0;
@@ -207,7 +215,8 @@ public:
     void DebugOut(std::ostream &out) const;
     void Save(std::vector<BYTE> &output) const;
 
-    bool Create(sci::istream &stream);
+    bool Load(sci::istream &stream);
+    void SetVersion(SCOVersion version) { _bSCIVersion = version; }
     std::string GetVariableName(WORD wIndex)  const;
     std::string GetExportName(WORD wIndex)  const;
     std::string GetClassName(WORD wIndex) const;
@@ -240,7 +249,7 @@ private:
     BYTE _bMajorVersion;
     BYTE _bMinorVersion;
     BYTE _bBuild;
-    BYTE _bSCIVersion;
+    SCOVersion _bSCIVersion;
     BYTE _bAlignment;
 
     WORD _wScriptNumber;

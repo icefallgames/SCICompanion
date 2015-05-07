@@ -72,7 +72,7 @@ private:
 };
 
 
-bool CSCOFile::Create(sci::istream &stream)
+bool CSCOFile::Load(sci::istream &stream)
 {
     stream.seekg(stream.tellg() + 3);
     stream >> _bMajorVersion;
@@ -127,7 +127,7 @@ bool CSCOFile::Create(sci::istream &stream)
                         for (WORD i = 0; fRet && i < wTotalClasses; i++)
                         {
                             CSCOObjectClass objectClass;
-                            fRet = objectClass.Create(stream);
+                            fRet = objectClass.Load(stream, _bSCIVersion);
                             if (fRet)
                             {
                                 _classes.push_back(objectClass);
@@ -205,7 +205,10 @@ void CSCOFile::Save(vector<BYTE> &output) const
     if (!_classes.empty())
     {
         write_word(output, wOffsetClasses, (WORD)output.size());
-        for_each(_classes.begin(), _classes.end(), FwdSave<CSCOObjectClass>(output));
+        for (auto &theClass : _classes)
+        {
+            theClass.Save(output, _bSCIVersion);
+        }
     }
 
     if (!_vars.empty())
@@ -506,26 +509,42 @@ void CSCOObjectProperty::Save(std::vector<BYTE> &output) const
 }
 
 
-bool CSCOObjectClass::Create(sci::istream &stream)
+bool CSCOObjectClass::Load(sci::istream &stream, SCOVersion version)
 {
     stream.getRLE(_strName);
 
-    WORD wNumProps;
+    WORD wNumPropsExcludingCore;
     WORD wNumMethods;
-    stream >> wNumProps;
+    stream >> wNumPropsExcludingCore;
     stream >> wNumMethods;
     stream >> _wSpecies;
     stream >> _wSuperClass;
     bool fRet = stream.good();
     if (fRet)
     {
-        // Put in the default 4 properties.
-        _properties.push_back(CSCOObjectProperty(0, _wSpecies));        // 0) species
-        _properties.push_back(CSCOObjectProperty(1, _wSuperClass));     // 1) superclass
-        _properties.push_back(CSCOObjectProperty(2, 0x8000));           // 2) -info- always 0x8000 for classes
-        _properties.push_back(CSCOObjectProperty(23, 0));               // 3) Name - meaningless here
-        // TODO: look up the name selector?
-        for (WORD i = 0; fRet && i < wNumProps; i++)
+        if (version == SCOVersion::SCI0)
+        {
+            // Put in the default 4 properties.
+            _properties.push_back(CSCOObjectProperty(0, _wSpecies));        // 0) species
+            _properties.push_back(CSCOObjectProperty(1, _wSuperClass));     // 1) superclass
+            _properties.push_back(CSCOObjectProperty(2, 0x8000));           // 2) -info- always 0x8000 for classes
+            _properties.push_back(CSCOObjectProperty(23, 0));               // 3) Name - meaningless here
+            // TODO: look up the name selector?
+        }
+        else
+        {
+            // Put in the default 9 properties.
+            _properties.push_back(CSCOObjectProperty(4096, 0));             // -objID-
+            _properties.push_back(CSCOObjectProperty(4097, 0));             // -size-
+            _properties.push_back(CSCOObjectProperty(4098, 0));             // -propDict-
+            _properties.push_back(CSCOObjectProperty(4099, 0));             // -methDict-
+            _properties.push_back(CSCOObjectProperty(4100, 0));             // -classScript-
+            _properties.push_back(CSCOObjectProperty(4101, _wSpecies));     // -script- (but seems to be species)
+            _properties.push_back(CSCOObjectProperty(4102, _wSuperClass));  // -super-
+            _properties.push_back(CSCOObjectProperty(4103, 0x8000));        // -info-
+            _properties.push_back(CSCOObjectProperty(20, 0));               // Name
+        }
+        for (WORD i = 0; fRet && i < wNumPropsExcludingCore; i++)
         {
             CSCOObjectProperty property;
             fRet = property.Create(stream);
@@ -582,19 +601,21 @@ void CSCOObjectClass::DebugOut(std::ostream &out) const
    
     out << endl;
 }
-#define NUM_DEFAULT_PROPS 4
-void CSCOObjectClass::Save(std::vector<BYTE> &output) const
+
+void CSCOObjectClass::Save(std::vector<BYTE> &output, SCOVersion version) const
 {
     push_string(output, _strName);
 
-    ASSERT(_properties.size() >= NUM_DEFAULT_PROPS);
-    push_word(output, (WORD)(_properties.size() - NUM_DEFAULT_PROPS));
+    size_t numDefaultProps = (version == SCOVersion::SCI0) ? 4 : 9;
+
+    assert(_properties.size() >= numDefaultProps);
+    push_word(output, (WORD)(_properties.size() - numDefaultProps));
     push_word(output, (WORD)_methods.size());
     push_word(output, _wSpecies);
     push_word(output, _wSuperClass);
 
     // Skip the 4 default properties in _properties, and write the rest.
-    for_each(_properties.begin() + NUM_DEFAULT_PROPS, _properties.end(), FwdSave<CSCOObjectProperty>(output));
+    for_each(_properties.begin() + numDefaultProps, _properties.end(), FwdSave<CSCOObjectProperty>(output));
     // Write the method selectors.
     for_each(_methods.begin(), _methods.end(), FwdSave<CSCOMethod>(output));
 }
@@ -662,6 +683,7 @@ void SaveSCOFile(const GameFolderHelper &helper, const CSCOFile &sco, ScriptId s
 unique_ptr<CSCOFile> SCOFromScriptAndCompiledScript(const Script &script, const CompiledScript &compiledScript)
 {
     unique_ptr<CSCOFile> sco = make_unique<CSCOFile>();
+    sco->SetVersion(compiledScript.GetVersion().SeparateHeapResources ? SCOVersion::SeparateHeap : SCOVersion::SCI0);
 
     sco->SetScriptNumber(script.GetScriptNumber());
 
@@ -778,7 +800,7 @@ unique_ptr<CSCOFile> GetExistingSCOFromScriptNumber(const GameFolderHelper &help
         ScopedFile scoped(objectFilename, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
         sci::streamOwner streamOwner(scoped.hFile);
         sco = make_unique<CSCOFile>();
-        sco->Create(streamOwner.getReader());
+        sco->Load(streamOwner.getReader());
     }
     return sco;
 }

@@ -378,9 +378,18 @@ void _Section10_LocalVariables(Script &script, vector<BYTE> &output, bool separa
 
         write_word(output, localVarSizeIndex, (WORD)(output.size() - localVarSizeIndex + 2));
     }
+    else
+    {
+        // For SCI0, we aren't writing the section at all. But for SCI1.1+ it's always there.
+        // So we need to write a var count.
+        if (separateHeapResource)
+        {
+            push_word(output, 0);
+        }
+    }
 }
 
-void _Section2_Code(Script &script, CompileContext &context, vector<BYTE> &output, WORD &wStartOfCode)
+void _Section2_Code(Script &script, CompileContext &context, vector<BYTE> &output, WORD &wStartOfCode, bool separateHeapResources)
 {
     context.PushVariableLookupContext(&script); // Don't really need to pop this, ever.
     const ProcedureVector &procs = script.GetProcedures();
@@ -392,10 +401,16 @@ void _Section2_Code(Script &script, CompileContext &context, vector<BYTE> &outpu
     context.code().fixup_offsets(context.GetOffsetFixups());
     context.FixupLocalCalls();
     context.FixupAsmLabelBranches();
-    push_word(output, 2);
+
     WORD wCodeSize = context.code().calc_size() + 4;
     bool fRoundUp = make_even(wCodeSize);
-    push_word(output, wCodeSize);
+    if (!separateHeapResources)
+    {
+        // Write the section header and size.
+        push_word(output, 2);
+        push_word(output, wCodeSize);
+    }
+
     wStartOfCode = (WORD)output.size(); // Store where the code begins
     context.code().write_code(output);
     zero_pad(output, fRoundUp);
@@ -663,22 +678,28 @@ void _CreateSCOFunctionSignature(CompileContext &context, std::vector<CSCOFuncti
     {
         // Return type
         CSCOFunctionSignature scoSig;
+        SpeciesIndex wReturnType = DataTypeAny;
+#if ENABLE_TYPED
         SpeciesIndex wReturnType = 0;
         if (!context.LookupTypeSpeciesIndex(signature->GetDataType(), wReturnType))
         {
             context.ReportError(signature.get(), "Unknown return type: %s.", signature->GetDataType().c_str());
         }
+#endif
         scoSig.SetReturnType(wReturnType.Type());
 
         auto &params = signature->GetParams();
         for_each(params.begin(), params.end(),
             [&context, &scoSig, &signature](const unique_ptr<FunctionParameter> &param)
         {
+            SpeciesIndex wParamType = DataTypeAny;
+#if ENABLE_TYPED
             SpeciesIndex wParamType;
             if (!context.LookupTypeSpeciesIndex(param->GetDataType(), wParamType))
             {
                 context.ReportError(signature.get(), "Unknown type for parameter %s: %s.", param->GetName().c_str(), param->GetDataType().c_str());
             }
+#endif
             scoSig.AddParameterType(wParamType.Type());
         }
         );
@@ -935,12 +956,30 @@ void GenerateSCOObjects(CompileContext &context, const Script &script)
         // And get the properties that we declared
         property_vector newProps = GetOverriddenProperties(context, classDef.get());
 
+        int nameIndex;
         // But first, provide some of our own overrides.
-        assert(speciesProps.size() >= 4);
-        speciesProps[0].wValue = sco.GetSpecies();
-        speciesProps[1].wValue = wSuperClass; // superclass index
-        speciesProps[2].wValue = classDef->IsInstance() ? 0x0000 : 0x8000; // --info--
-        speciesProps[3].wValue = context.GetStringTempOffset(classDef->GetName()); // name (can be overridden explicitly too)
+        if (context.GetVersion().SeparateHeapResources)
+        {
+            assert(speciesProps.size() >= 9);
+            for (int i = 0; i < 5; i++)
+            {
+                speciesProps[i].wValue = 0;
+            }
+            speciesProps[5].wValue = sco.GetSpecies();
+            speciesProps[6].wValue = wSuperClass; // superclass index
+            speciesProps[7].wValue = classDef->IsInstance() ? 0x0000 : 0x8000; // --info--
+            speciesProps[8].wValue = context.GetStringTempOffset(classDef->GetName()); // name (can be overridden explicitly too)
+            nameIndex = 8;
+        }
+        else
+        {
+            assert(speciesProps.size() >= 4);
+            speciesProps[0].wValue = sco.GetSpecies();
+            speciesProps[1].wValue = wSuperClass; // superclass index
+            speciesProps[2].wValue = classDef->IsInstance() ? 0x0000 : 0x8000; // --info--
+            speciesProps[3].wValue = context.GetStringTempOffset(classDef->GetName()); // name (can be overridden explicitly too)
+            nameIndex = 3;
+        }
 
         // Replace the species default values, with any that the user specified.
         int iIndex = 0;
@@ -949,7 +988,7 @@ void GenerateSCOObjects(CompileContext &context, const Script &script)
             WORD wValue = speciesProp.wValue;
             // name is tracked by default (since we populate with a string by default)
             // Other species props are not tracked by default.
-            bool fTrackRelocation = (iIndex == 3);
+            bool fTrackRelocation = (iIndex == nameIndex);
             property_vector::const_iterator overriddenIt = find_if(newProps.begin(), newProps.end(), bind2nd(MatchSelector(), speciesProp.wSelector));
             if (overriddenIt != newProps.end())
             {
@@ -1097,7 +1136,7 @@ bool GenerateScriptResource_SCI0(Script &script, PrecompiledHeaders &headers, Co
     // turns out it's easier to put them after, with the instances.  It makes it easier to fix up
     // the references to saids, strings and instances that are in the code.
     WORD wStartOfCode = 0;
-    _Section2_Code(script, context, output, wStartOfCode);
+    _Section2_Code(script, context, output, wStartOfCode, false);
 
     _Section5_Strings(context, output, true);
 
@@ -1176,7 +1215,7 @@ void WriteClassToHeap(const CSCOObjectClass &oClass, bool isInstance, vector<uin
     // Now write out the object
     push_word(outputHeap, 0x1234); // object marker
 
-    // ***** NOTE: This includes all the 9 default props. VERIFY THIS
+    // This number includes all the props (include the 9 standard ones)
     uint16_t numProps = (uint16_t)oClass.GetProperties().size();
     push_word(outputHeap, numProps);
 
@@ -1191,9 +1230,11 @@ void WriteClassToHeap(const CSCOObjectClass &oClass, bool isInstance, vector<uin
 
     push_word(outputHeap, 0);   // REVIEW: Always zero??
 
-    // Now write the prop values. These should start with: species/super/-info-/name. VERIFY THIS - DIFFERENT THAN BELOW so we'll need to do something
-    for (auto &prop : oClass.GetProperties())
+    // Now write the prop values. These should start with: species/super/-info-/name, so
+    // we'll start writing from property index 5.
+    for (uint16_t i = 5; i < numProps; i++)
     {
+        auto &prop = oClass.GetProperties()[i];
         WORD value = prop.GetValue();
         if (prop.NeedsReloc())
         {
@@ -1248,6 +1289,7 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
     // Classes have both.
     // In .hep we have some more basic info about the object. Instances and classes are all smushed together.
     CSCOFile &sco = context.GetScriptSCO();
+    sco.SetVersion(SCOVersion::SeparateHeap);
 
     // We're write the objects' property and method selectors to the scr file first,
     // since the code will follow it, and we need to write the code early.
@@ -1269,7 +1311,7 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
 
     // Now comes the code:
     WORD wStartOfCode = 0;
-    _Section2_Code(script, context, outputScr, wStartOfCode);
+    _Section2_Code(script, context, outputScr, wStartOfCode, true);
     // Now we know how much code was written, so let's write the offset to that.
     assert(outputScr.size() < 0xffff);
     write_word(outputScr, OffsetToAfterCodePointer, (uint16_t)outputScr.size());
@@ -1304,11 +1346,12 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
     
     // Now it appears there is a zero marker in the heap, after the objects
     push_word(outputHeap, 0);
-    // At the beginning of the file, write the offset to the string table:
-    write_word(outputHeap, 0, (uint16_t)outputHeap.size());
 
     // TODO: What about the isntance and class names? Are they tracked?
-    _Section5_Strings(context, outputScr, false);
+    _Section5_Strings(context, outputHeap, false);
+
+    // At the beginning of the file, write the offset to after string table:
+    write_word(outputHeap, 0, (uint16_t)outputHeap.size());
 
     // Now write the string relocation table
     // TODO: How do we know about in-code strings? Do we care?
@@ -1328,7 +1371,7 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
     push_word(outputScr, numberOfWords);
     // Then an entry... and it's just before the property selector offsets (in scr, from hep). I believe this are poitners to lofsa
     //      but the first few don't point to the code section. Oh, they point to export table. so basically it's exports, followed by lofsas
-    // Oooppp... no, it's things that point into the heap. So the exports are 
+    // Oooppp... no, it's things that point into the heap. So only the exports that are instances. Plus any lofsas.
 
     // TODO: Write our prop relocs
     // TODO: keep exports in sync with previous SCO file iteration
@@ -1337,7 +1380,19 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
 
     // TODO GenerateSCOObjects ... this is where CSCOpropertys are marked as needing relocation. name is hard-coded, we'll need others too.
 
-    return false;
+    // Get the .sco file produced.
+    results.GetSCO() = context.GetScriptSCO();
+
+    // Fill the text resource.
+    const vector<string> &resourceStrings = context.GetResourceStrings();
+    for (auto &text : resourceStrings)
+    {
+        TextEntry entry = { 0 };
+        entry.Text = text;
+        results.GetTextComponent().Texts.push_back(entry);
+    }
+
+    return !context.HasErrors();
 }
 
 

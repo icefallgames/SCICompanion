@@ -23,10 +23,14 @@ void DebugOut(const CompiledObjectBase &object, std::ostream &out, bool fRN)
     const vector<CompiledVarValue> &propertyValues = object.GetPropertyValues();
 
     out << "properties:" << el(fRN);
+
+    // Let's not confuse things for now by showing duplicate properties.
+    /*
     out << "    species: " << object.GetSpeciesIfClass() << el(fRN);
     out << "    super: " << object.GetSuperClass() << el(fRN);
     out << "    name: " << object.GetName() << el(fRN);
     out << "    -info-: " << object.GetInfo() << el(fRN);
+    */
 
     vector<uint16_t>::const_iterator selIt = propertySelectors.begin();
     vector<CompiledVarValue>::const_iterator valueIt = propertyValues.begin();

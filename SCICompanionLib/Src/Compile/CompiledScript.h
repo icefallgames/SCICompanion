@@ -104,6 +104,7 @@ public:
 
 class CompiledScript;
 
+// CompiledObjectBase includes all properties, including the 4 (SCI0-1) or 9 (SCI1.1) reserved ones.
 class CompiledObjectBase : public ILookupPropertyName
 {
 public:

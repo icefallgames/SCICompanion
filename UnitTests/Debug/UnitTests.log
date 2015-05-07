@@ -1,4 +1,4 @@
-﻿Build started 5/6/2015 4:43:45 PM.
+﻿Build started 5/7/2015 12:39:10 AM.
      1>Project "E:\Documents\Visual Studio 2013\Projects\SCICompanion\UnitTests\UnitTests.vcxproj" on node 2 (Build target(s)).
      1>Link:
          F:\VisualStudio\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Debug\UnitTests.dll" /INCREMENTAL /NOLOGO /LIBPATH:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Bin_1000\\" /LIBPATH:F:\VisualStudio\VC\UnitTest\lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /manifestinput:F:\VisualStudio\VC\Include\Manifest\dpiaware.manifest /DEBUG /PDB:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Debug\UnitTests.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Debug\UnitTests.lib" /MACHINE:X86 /DLL Debug\stdafx.obj
@@ -12,4 +12,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:04.78
+Time Elapsed 00:00:05.50

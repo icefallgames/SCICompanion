@@ -170,6 +170,7 @@ bool CVocabWithNames::_Create(sci::istream &byteStream, bool fTruncationOk)
     _names.clear();
     uint16_t wMaxIndex;
     byteStream >> wMaxIndex;
+
     // if the uint16_t read 400, it means there are 401 entries.
     // REVIEW - really? Someone is asking for kernel 113 (Joystick), but they get a garbage character because of this
     // I'm changing this back to <
@@ -180,6 +181,10 @@ bool CVocabWithNames::_Create(sci::istream &byteStream, bool fTruncationOk)
     {
         wMaxIndex++;
     }
+
+    // Perf: reserve this capacity so we don't need to resize.
+    _names.reserve(wMaxIndex);
+
     for (uint16_t i = 0; byteStream.good() && i < wMaxIndex; i++)
     {
         uint16_t wOffset;

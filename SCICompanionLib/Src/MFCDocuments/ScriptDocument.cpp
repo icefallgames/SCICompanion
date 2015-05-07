@@ -329,7 +329,7 @@ void CScriptDocument::OnViewObjectFile()
             {
                 sci::streamOwner streamOwner(hFile);
                 CSCOFile scoFile;
-                if (scoFile.Create(streamOwner.getReader()))
+                if (scoFile.Load(streamOwner.getReader()))
                 {
                     stringstream out;
                     scoFile.DebugOut(out);

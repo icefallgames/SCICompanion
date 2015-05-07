@@ -763,6 +763,13 @@ HRESULT CResourceMap::GetScriptNumber(ScriptId script, WORD &wScript)
             }
         }
     }
+
+    if (FAILED(hr) && script.GetResourceNumber() != InvalidResourceNumber)
+    {
+        wScript = script.GetResourceNumber();
+        hr = S_OK;
+    }
+
     return hr;
 }
 
