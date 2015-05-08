@@ -115,9 +115,22 @@ std::string CompiledScript::GetStringFromOffset(uint16_t value) const
     return stringValue;
 }
 
+void _ReadHeapPointerOffsets(sci::istream scriptStream, uint16_t heapPointerListOffset, unordered_set<uint16_t> &heapPointerList)
+{
+    scriptStream.seekg(heapPointerListOffset);
+    uint16_t count;
+    scriptStream >> count;
+    for (int i = 0; i < count; i++)
+    {
+        uint16_t heapPointer;
+        scriptStream >> heapPointer;
+        heapPointerList.insert(heapPointer);
+    }
+}
+
 bool CompiledScript::_LoadSCI1_1(const GameFolderHelper &helper, int iScriptNumber, sci::istream &scriptStream, sci::istream *heapStream)
 {
-    bool isSuccess = false;
+    bool isSuccess = true;
     // First thing to do is to load the heap resource
     unique_ptr<ResourceBlob> heapBlob;
     unique_ptr<sci::istream> heapStreamScope;
@@ -142,22 +155,34 @@ bool CompiledScript::_LoadSCI1_1(const GameFolderHelper &helper, int iScriptNumb
         uint16_t earliestCodeOffset = 0xffff;
 
         // Now we have both a heap and a script stream.
-        uint16_t someOffset;    // Don't know what this is yet, but it seems to point to after the end of the code, which is useful. Or rather after end of strings?
-        scriptStream >> someOffset;
-        scriptStream.skip(4);
-        isSuccess = _ReadExports(scriptStream);
-        // Keep track of the earliest code, and also any public object exports
-        for (uint16_t codePointer : _exportsTO)
+
+        // Figure out which things in the script stream actually point to the heap.
+        uint16_t heapPointerListOffset;
+        scriptStream >> heapPointerListOffset;
+        unordered_set<uint16_t> heapPointerList;
+        _ReadHeapPointerOffsets(scriptStream, heapPointerListOffset, heapPointerList);
+
+        scriptStream.skip(4);   // This might have a preload flag, not sure.
+
+        // Now read the exports
+        uint16_t wNumExports;
+        scriptStream >> wNumExports;
+        for (uint16_t i = 0; i < wNumExports; i++)
         {
-            if (_DoesExportPointToObjectInstance(codePointer, *heapStream))
+            bool isHeapPointer = heapPointerList.find((uint16_t)scriptStream.tellg()) != heapPointerList.end();
+            uint16_t exportOffset;
+            scriptStream >> exportOffset;
+            _exportsTO.push_back(exportOffset);
+            if (isHeapPointer)
             {
-                _exportedObjectInstances.push_back(codePointer);
+                _exportedObjectInstances.push_back(exportOffset);
+                assert(_DoesExportPointToObjectInstance(exportOffset, *heapStream));
             }
             // REVIEW: Many scripts (e.g. SQ5, 165) have lots of exports that point to zero. What's the purpose of this?
-            else if (codePointer != 0)
+            else if (exportOffset != 0)
             {
                 // Just raw code (procedure)
-                earliestCodeOffset = min(codePointer, earliestCodeOffset);
+                earliestCodeOffset = min(exportOffset, earliestCodeOffset);
             }
         }
 
@@ -221,11 +246,11 @@ bool CompiledScript::_LoadSCI1_1(const GameFolderHelper &helper, int iScriptNumb
         }
 
         // So far, I'm assuming everything is in one code section in the script resource:
-        if (earliestCodeOffset < someOffset)
+        if (earliestCodeOffset < heapPointerListOffset)
         {
             CodeSection all;
             all.begin = earliestCodeOffset;
-            all.end = someOffset;
+            all.end = heapPointerListOffset;
             _codeSections.push_back(all);
         }
     }
