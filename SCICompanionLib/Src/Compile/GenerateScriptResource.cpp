@@ -568,7 +568,8 @@ void _Exports_SCI11(Script &script, CompileContext &context, vector<BYTE> &outpu
     numExports = 0;
     for (const auto &theClass : script.GetClasses())
     {
-        if (theClass->IsPublic() && theClass->IsInstance())
+        bool isGameClass = ((script.GetScriptNumber() == 0) && (theClass->GetSuperClass() == "Game"));
+        if (isGameClass || (theClass->IsPublic() && theClass->IsInstance()))
         {
             // Track his heap pointer:
             context.AddHeapPointerOffset(2 + (numExports * 2) + (uint16_t)output.size());
@@ -1218,19 +1219,20 @@ void WriteMethodCodePointers(const CSCOObjectClass &oClass, vector<uint8_t> &out
 
 const uint16_t SpeciesSelector_SCI1 = 0x1005;
 
-void WriteClassToHeap(const CSCOObjectClass &oClass, bool isInstance, vector<uint8_t> &outputHeap, vector<uint8_t> &outputScr, CompileContext &context, vector<uint16_t> &trackHeapStringOffsets, uint16_t &objectSelectorOffsetInScr)
+void WriteClassToHeap(const CSCOObjectClass &oClass, bool isInstance, bool isGameClass, vector<uint8_t> &outputHeap, vector<uint8_t> &outputScr, CompileContext &context, vector<uint16_t> &trackHeapStringOffsets, uint16_t &objectSelectorOffsetInScr)
 {
     // This is where code that has offsets to this instance should point to
+    WORD wObjectPointer = (WORD)outputHeap.size();
     if (isInstance)
     {
-        WORD wObjectPointer = (WORD)outputHeap.size();
         // So tell that code to point here.
         _FixupReferencesHelper(context.GetVersion(), context, outputScr, context.GetInstanceReferences(), oClass.GetName(), wObjectPointer);
-        if (oClass.IsPublic())
-        {
-            // If it's public, we need to put this in the export table.
-            context.TrackPublicInstance(wObjectPointer);
-        }
+    }
+
+    if ((isInstance && oClass.IsPublic()) || isGameClass)
+    {
+        // If it's public, we need to put this in the export table.
+        context.TrackPublicInstance(wObjectPointer);
     }
 
     // Now write out the object
@@ -1285,6 +1287,18 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
 {
     vector<BYTE> &outputScr = results.GetScriptResource();
     vector<BYTE> &outputHeap = results.GetHeapResource();
+
+    string gameClassName;
+    if (script.GetScriptNumber() == 0)
+    {
+        for (const auto &classDef : script.GetClasses())
+        {
+            if (classDef->GetSuperClass() == "Game")
+            {
+                gameClassName = classDef->GetName();
+            }
+        }
+    }
 
     // These contain the offsets in hep at which there are string pointers.
     vector<uint16_t> trackHeapStringOffsets;
@@ -1368,11 +1382,13 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
 
     for (const CSCOObjectClass &oClass : sco.GetObjects())
     {
-        WriteClassToHeap(oClass, false, outputHeap, outputScr, context, trackHeapStringOffsets, objectSelectorOffsetInScr);
+        // The class that inherits from Game is special, it goes in the export table too.
+        bool isGameClass = !gameClassName.empty() && (oClass.GetName() == gameClassName);
+        WriteClassToHeap(oClass, false, isGameClass, outputHeap, outputScr, context, trackHeapStringOffsets, objectSelectorOffsetInScr);
     }
     for (const CSCOObjectClass &oClass : context.GetInstanceSCOs())
     {
-        WriteClassToHeap(oClass, true, outputHeap, outputScr, context, trackHeapStringOffsets, objectSelectorOffsetInScr);
+        WriteClassToHeap(oClass, true, false, outputHeap, outputScr, context, trackHeapStringOffsets, objectSelectorOffsetInScr);
     }
 
     

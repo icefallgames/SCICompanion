@@ -129,12 +129,6 @@ const BYTE *_ConvertToInstructions(std::list<scii> &code, const BYTE *pBegin, co
         ZeroMemory(wOperands, sizeof(wOperands));
         int cIncr = 0;
 
-
-        if ((wReferencePosition + wBaseOffset) == 0x70c)
-        {
-            int x = 0;
-        }
-
         for (int i = 0; i < 3; i++)
         {
             OperandType opType = OpArgTypes[static_cast<BYTE>(bOpcode)][i];
