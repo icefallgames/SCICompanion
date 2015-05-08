@@ -128,6 +128,13 @@ const BYTE *_ConvertToInstructions(std::list<scii> &code, const BYTE *pBegin, co
         WORD wOperands[3];
         ZeroMemory(wOperands, sizeof(wOperands));
         int cIncr = 0;
+
+
+        if ((wReferencePosition + wBaseOffset) == 0x70c)
+        {
+            int x = 0;
+        }
+
         for (int i = 0; i < 3; i++)
         {
             OperandType opType = OpArgTypes[static_cast<BYTE>(bOpcode)][i];
@@ -136,7 +143,7 @@ const BYTE *_ConvertToInstructions(std::list<scii> &code, const BYTE *pBegin, co
             {
             case 1:
                 // We may need to sign-extend this.
-                if ((opType == otINT) || (opType == otINT8))
+                if ((opType == otINT) || (opType == otINT8) || (opType == otLABEL))
                 {
                     wOperands[i] = (uint16_t)(int16_t)(int8_t)*pCur;
                 }
