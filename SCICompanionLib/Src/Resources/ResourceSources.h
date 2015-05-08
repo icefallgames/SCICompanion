@@ -268,7 +268,7 @@ public:
                 {
                     entryExisting.Offset -= sizeofSectionRemoved; // 2
                 }
-                WriteEntry(entryExisting, mapStreamWrite1, mapStreamWrite2);
+                WriteEntry(entryExisting, mapStreamWrite1, mapStreamWrite2, false);
             }
         }
 
@@ -325,7 +325,7 @@ public:
                     // Then write this entry to the map, after modifying our map header's offset accordingly 
                     entryExisting.Offset = newResourceOffset;
                     entryExisting.PackageNumber = rebuildPackageNumber;
-                    WriteEntry(entryExisting, mapStreamWrite1, mapStreamWrite2);
+                    WriteEntry(entryExisting, mapStreamWrite1, mapStreamWrite2, false);
                 }
             }
         }
@@ -372,13 +372,13 @@ public:
             newMapEntry.Type = header.Type;
             newMapEntry.PackageNumber = (uint8_t)header.PackageHint;
             newMapEntry.Offset = resourceOffset;
-            WriteEntry(newMapEntry, mapStreamWriteMain, mapStreamWriteSecondary);
+            WriteEntry(newMapEntry, mapStreamWriteMain, mapStreamWriteSecondary, true);
 
-            // Write the header
+            // Write the header to the volume
             header.CompressionMethod = 0; // We never write with compression, currently
             (*_headerReadWrite.writer)(volumeWriteStreams[header.PackageHint], blob.GetHeader());
             
-            // Follow the header with the data
+            // Follow the volume header with the actual resource data
             transfer(blob.GetReadStream(), volumeWriteStreams[header.PackageHint], blob.GetDecompressedLength());
         }
 
@@ -388,7 +388,7 @@ public:
         IteratorState iteratorState;
         while (ReadNextEntry(ResourceTypeFlags::All, iteratorState, existingMapEntry, nullptr))
         {
-            WriteEntry(existingMapEntry, mapStreamWriteMain, mapStreamWriteSecondary);
+            WriteEntry(existingMapEntry, mapStreamWriteMain, mapStreamWriteSecondary, false);
         }
 
         // Combine the two write streams. Or rather, append stream 2 to the end of stream 1.

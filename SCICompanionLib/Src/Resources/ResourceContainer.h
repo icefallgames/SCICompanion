@@ -149,18 +149,42 @@ public:
         return mapStream.good();
     }
 
-    void WriteEntry(const ResourceMapEntryAgnostic &entryIn, sci::ostream &mapStreamWriteMain, sci::ostream &mapStreamWriteSecondary)
+    void WriteEntry(const ResourceMapEntryAgnostic &entryIn, sci::ostream &mapStreamWriteMain, sci::ostream &mapStreamWriteSecondary, bool isNewEntry)
     {
         // We have: RESOURCEMAPPREENTRY_SCI1
         // And either RESOURCEMAPENTRY_SCI1 / RESOURCEMAPENTRY_SCI1_1
         // The situation is a lot more complicated than SCI0, since we have a lookuptable of RESOURCEMAPPREENTRY_SCI1
         // We don't control the order in which the WriteEntry requests come in, so for now, we'll just write the ResourceMapEntryAgnostic
         // to the secondary stream, and do the bulk of the work in FinalizeMapStream
-        mapStreamWriteSecondary << entryIn;
+
+        // Hold on though. In SCI1, you can't reliably have multiple resources of a type/number in a game.
+        // So when appending resources, we need to delete the old ones. To delete them, we just won't copy them over.
+        // The resource data will still be appeneded to the volume file, but that can be pruned by rebuilding resources.
+        bool writeEntry;
+        if (isNewEntry)
+        {
+            appendedResources[(int)entryIn.Type].insert(entryIn.Number);
+            writeEntry = true;
+        }
+        else
+        {
+            // Only write it if it's not already been written
+            writeEntry = (appendedResources[(int)entryIn.Type].find(entryIn.Number) == appendedResources[(int)entryIn.Type].end());
+        }
+
+        if (writeEntry)
+        {
+            mapStreamWriteSecondary << entryIn;
+        }
     }
 
     void FinalizeMapStreams(sci::ostream &mapStreamWriteMain, sci::ostream &mapStreamWriteSecondary)
     {
+        for (int i = 0; i < ARRAYSIZE(appendedResources); i++)
+        {
+            appendedResources[i].clear();
+        }
+
         sci::ostream subStreams[NumResourceTypes];
         std::vector<ResourceMapEntryAgnostic> sortedMapEntries[NumResourceTypes];
         sci::istream readStream = istream_from_ostream(mapStreamWriteSecondary);
@@ -269,6 +293,9 @@ private:
         }
     }
 
+    // Resource tracking for append
+    std::unordered_set<int> appendedResources[NumResourceTypes];
+
     std::vector<RESOURCEMAPPREENTRY_SCI1> lookupPointers;
 };
 
@@ -276,7 +303,7 @@ class SCI0MapNavigator
 {
 public:
     bool NavAndReadNextEntry(ResourceTypeFlags typeFlags, sci::istream &mapStream, IteratorState &state, ResourceMapEntryAgnostic &entryOut, std::vector<uint8_t> *optionalRawData = nullptr);
-    void WriteEntry(const ResourceMapEntryAgnostic &entryIn, sci::ostream &mapStreamWriteMain, sci::ostream &mapStreamWriteSecondary);
+    void WriteEntry(const ResourceMapEntryAgnostic &entryIn, sci::ostream &mapStreamWriteMain, sci::ostream &mapStreamWriteSecondary, bool isNewEntry);
     void FinalizeMapStreams(sci::ostream &mapStreamWriteMain, sci::ostream &mapStreamWriteSecondary);
     static void EnsureResourceAlignment(sci::ostream &volumeStream) {}
     static void EnsureResourceAlignment(uint32_t &offset) {}

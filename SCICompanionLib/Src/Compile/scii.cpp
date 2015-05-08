@@ -257,12 +257,7 @@ WORD scii::calc_size(code_pos self, int *pfNeedToRedo)
         }
         if (opSizeCalculated == Byte) // Only makes sense to do the expensive calculation if we don't know for sure that we're a Word
         {
-            // For guys with no operands, use the word-sized versions.
-            // This is an attempt to make SCI1 work. The byte-sized pushSelf seems bogus.
-            if (argTypes[0] == otEMPTY)
-            {
-                opSizeCalculated = Word;
-            }
+            bool encounteredVariableSizeOperand = false;
 
             for (int i = 0; !fDone && i < 3; i++)
             {
@@ -282,6 +277,7 @@ WORD scii::calc_size(code_pos self, int *pfNeedToRedo)
                 case otPUBPROC:
                 case otINT:
                 case otUINT:
+                    encounteredVariableSizeOperand = true;
                     // These are variable length parameters.  If we have a big one, we'll need to be a word.
                     if (_wOperands[i] > 127)
                     {
@@ -303,7 +299,8 @@ WORD scii::calc_size(code_pos self, int *pfNeedToRedo)
 
                 case otLABEL:
                     {
-                        ASSERT(_is_label_instruction());
+                        encounteredVariableSizeOperand = true;
+                        assert(_is_label_instruction());
                         WORD wCodeDistance = 0;
                         if (_fForwardBranch)
                         {
@@ -340,6 +337,13 @@ WORD scii::calc_size(code_pos self, int *pfNeedToRedo)
                 case otUINT8:
                     break;
                 }
+            }
+
+            // For guys with no variable size operands, use the word-sized versions.
+            // This is an attempt to make SCI1 work. The byte-sized pushSelf seems bogus.
+            if (!encounteredVariableSizeOperand)
+            {
+                opSizeCalculated = Word;
             }
         }
 

@@ -74,7 +74,6 @@ public:
     void SetPaletteChoice(int choice);
 
 private:
-    // REVIEW TODO: Need to have this be dyanmic?
     virtual ResourceType _GetType() const
     {
         const ResourceEntity *pResource = static_cast<const ResourceEntity*>(GetResource());

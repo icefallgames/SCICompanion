@@ -216,7 +216,7 @@ bool SCI0MapNavigator::NavAndReadNextEntry(ResourceTypeFlags typeFlags, sci::ist
     return mapStream.good();
 }
 
-void SCI0MapNavigator::WriteEntry(const ResourceMapEntryAgnostic &entryIn, sci::ostream &mapStreamWriteMain, sci::ostream &mapStreamWriteSecondary)
+void SCI0MapNavigator::WriteEntry(const ResourceMapEntryAgnostic &entryIn, sci::ostream &mapStreamWriteMain, sci::ostream &mapStreamWriteSecondary, bool isNewEntry)
 {
     RESOURCEMAPENTRY_SCI0 entry;
     entry.FromAgnostic(entryIn);

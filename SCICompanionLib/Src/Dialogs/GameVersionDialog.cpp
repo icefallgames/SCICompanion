@@ -30,6 +30,7 @@ void CGameVersionDialog::_Sync()
     _resourcePackVersion = (int)_version.PackageFormat;
     _compressionVersion = (int)_version.CompressionFormat;
     _soundVersion = (int)_version.SoundFormat;
+    _fSeparateHeapResources = (int)_version.SeparateHeapResources;
 }
 
 SCIVersion CGameVersionDialog::_ReverseSync()

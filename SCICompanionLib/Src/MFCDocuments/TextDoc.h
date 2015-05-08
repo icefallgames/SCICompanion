@@ -25,7 +25,12 @@ public:
 
 protected:
 
-    virtual ResourceType _GetType() const { return ResourceType::Text; }
+    virtual ResourceType _GetType() const
+    {
+        const ResourceEntity *pResource = static_cast<const ResourceEntity*>(GetResource());
+        return pResource->GetType();
+    }
+
 
 	DECLARE_MESSAGE_MAP()
 };
