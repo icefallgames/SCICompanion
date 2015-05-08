@@ -223,7 +223,8 @@ bool NewCompileScript(CompileLog &log, CompileTables &tables, PrecompiledHeaders
 #endif
                 }
 
-                if (appState->GetVersion().SeparateHeapResources)
+                //if (appState->GetVersion().SeparateHeapResources)
+                if (false)
                 {
                     // Temporary
                     std::vector<BYTE> &outputScr = results.GetScriptResource();
@@ -238,11 +239,14 @@ bool NewCompileScript(CompileLog &log, CompileTables &tables, PrecompiledHeaders
                 {
                     // Save the script resource
                     std::vector<BYTE> &output = results.GetScriptResource();
-                    appState->GetResourceMap().AppendResource(ResourceBlob(nullptr, ResourceType::Script, output, 1, wNum, appState->GetVersion(), ResourceSourceFlags::ResourceMap));
+                    appState->GetResourceMap().AppendResource(ResourceBlob(nullptr, ResourceType::Script, output, appState->GetVersion().DefaultVolumeFile, wNum, appState->GetVersion(), ResourceSourceFlags::ResourceMap));
+
+                    // TODO: begin/end defer around these two
+                    std::vector<BYTE> &outputHep = results.GetHeapResource();
+                    appState->GetResourceMap().AppendResource(ResourceBlob(nullptr, ResourceType::Heap, outputHep, appState->GetVersion().DefaultVolumeFile, wNum, appState->GetVersion(), ResourceSourceFlags::ResourceMap));
 
                     // Save the corresponding sco file.
                     CSCOFile &sco = results.GetSCO();
-
                     {
                         SaveSCOFile(appState->GetResourceMap().Helper(), sco, script);
                     }

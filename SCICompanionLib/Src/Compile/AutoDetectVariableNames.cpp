@@ -526,6 +526,13 @@ public:
         {
             switch (node.GetNodeType())
             {
+                case NodeTypeRest:
+                {
+                    RestStatement &rest = static_cast<RestStatement&>(node);
+                    rest.SetName(_renameContext.GetRenamed(_functionContext, rest.GetName()));
+                }
+                break;
+
                 case NodeTypeFunction:
                 {
                     _functionContext = static_cast<FunctionBase*>(&node);

@@ -210,10 +210,17 @@ public:
     std::string LookupSelectorName(WORD wIndex) const;
     const std::vector<WORD> &GetRelocations();
 
+    // SCI1 (separate heap resources)
+    void AddHeapPointerOffset(uint16_t heapPtrOffset) { _heapPointerOffsets.push_back(heapPtrOffset); }
+    const std::vector<uint16_t> &GetHeapPointerOffsets() { return _heapPointerOffsets; }
+
 private:
 
     // Our code
     scicode _code;
+
+    // For SCI1
+    std::vector<uint16_t> _heapPointerOffsets;
 
     // The current output context
     std::stack<OutputContext> _oc;

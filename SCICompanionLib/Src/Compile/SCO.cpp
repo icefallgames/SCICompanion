@@ -544,13 +544,16 @@ bool CSCOObjectClass::Load(sci::istream &stream, SCOVersion version)
             _properties.push_back(CSCOObjectProperty(4103, 0x8000));        // -info-
             _properties.push_back(CSCOObjectProperty(20, 0));               // Name
         }
-        for (WORD i = 0; fRet && i < wNumPropsExcludingCore; i++)
+        if (wNumPropsExcludingCore != 0xffff)   // In case there are less props than the core. Some SCI1 are missing name.
         {
-            CSCOObjectProperty property;
-            fRet = property.Create(stream);
-            if (fRet)
+            for (WORD i = 0; fRet && i < wNumPropsExcludingCore; i++)
             {
-                _properties.push_back(property);
+                CSCOObjectProperty property;
+                fRet = property.Create(stream);
+                if (fRet)
+                {
+                    _properties.push_back(property);
+                }
             }
         }
     }
@@ -608,14 +611,34 @@ void CSCOObjectClass::Save(std::vector<BYTE> &output, SCOVersion version) const
 
     size_t numDefaultProps = (version == SCOVersion::SCI0) ? 4 : 9;
 
-    assert(_properties.size() >= numDefaultProps);
-    push_word(output, (WORD)(_properties.size() - numDefaultProps));
+    // assert(_properties.size() >= numDefaultProps);
+    // Sometimes the name property is left off (e.g. two classes in SQ5, script 948).
+    // So instead, just trim:
+    // numDefaultProps = min(numDefaultProps, _properties.size());
+    // Oh wait, we can't, because we write the number of non-default props as the first thing
+    // in the object section. So that would be negative.
+    // Ok, well let's allow for -ve number there.
+    assert(_properties.size() >= (numDefaultProps - 1));
+    size_t numNonDefaultProps;
+    if (_properties.size() < numDefaultProps)
+    {
+        numNonDefaultProps = 0xffff;    // -1
+    }
+    else
+    {
+        numNonDefaultProps = _properties.size() - numDefaultProps;
+    }
+
+    push_word(output, (WORD)numNonDefaultProps);
     push_word(output, (WORD)_methods.size());
     push_word(output, _wSpecies);
     push_word(output, _wSuperClass);
 
     // Skip the 4 default properties in _properties, and write the rest.
-    for_each(_properties.begin() + numDefaultProps, _properties.end(), FwdSave<CSCOObjectProperty>(output));
+    if (numNonDefaultProps != 0xffff)
+    {
+        for_each(_properties.begin() + numDefaultProps, _properties.end(), FwdSave<CSCOObjectProperty>(output));
+    }
     // Write the method selectors.
     for_each(_methods.begin(), _methods.end(), FwdSave<CSCOMethod>(output));
 }

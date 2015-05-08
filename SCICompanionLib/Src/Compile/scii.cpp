@@ -257,6 +257,13 @@ WORD scii::calc_size(code_pos self, int *pfNeedToRedo)
         }
         if (opSizeCalculated == Byte) // Only makes sense to do the expensive calculation if we don't know for sure that we're a Word
         {
+            // For guys with no operands, use the word-sized versions.
+            // This is an attempt to make SCI1 work. The byte-sized pushSelf seems bogus.
+            if (argTypes[0] == otEMPTY)
+            {
+                opSizeCalculated = Word;
+            }
+
             for (int i = 0; !fDone && i < 3; i++)
             {
                 // Treat everything as signed...
@@ -287,6 +294,9 @@ WORD scii::calc_size(code_pos self, int *pfNeedToRedo)
                 case otOFFS:
                     // itOffset
                     // Offsets are likely to need to be WORDs
+                    // In SCI1.1 this is mandatory. The offsets are pointers
+                    // into the heap resources, and we have a relocation table that assumes
+                    // these pointers are all words.
                     opSizeCalculated = Word;
                     fDone = true;
                     break;
@@ -369,10 +379,11 @@ void push_wordIt(std::vector<BYTE> &output, WORD w)
 
 //
 // LOFSA and LOFSS instructions:
-//  Initially, the otOFFS is an index that will point to an absolute offset in the script resource.
+//  SCI0: Initially, the otOFFS is an index that will point to an absolute offset in the script resource.
 //  Once the absolute index is resolved, we do a replace
 //  When it comes time to output the code, we'll turn that absolute offset into a relative offset.
-//
+// Note: SCI01+ games use a relative offset instead.
+// See SCIVersion::lofsaOpcodeIsAbsolute
 
 void scii::output_code(std::vector<BYTE> &output)
 {
@@ -419,7 +430,7 @@ void scii::output_code(std::vector<BYTE> &output)
         if (argTypes[i] == otOFFS)
         {
             // Turn the absolute offset into a relative offset.
-            ASSERT(_opSize == Word); // For now...
+            assert(_opSize == Word); // For now...
             // This will be an absolute index.  We need to turn it into a relative one.
             WORD wTo = _wOperands[i];
             WORD wFrom = _wFinalOffset + _wSize; // post instruction PC

@@ -151,7 +151,7 @@ private:
 //
 // Final fixups for saids, strings and instance references.
 //
-void _FixupReferencesHelper(SCIVersion version, vector<BYTE> &output, const ref_and_index_multimap &references, const string &name, WORD wPosInResource)
+void _FixupReferencesHelper(SCIVersion version, CompileContext &context, vector<BYTE> &output, const ref_and_index_multimap &references, const string &name, WORD wPosInResource)
 {
     // For all "name"s in references, ask the code_pos where its final position was, and get its post instruction
     // position.  Calc the diff of the wPosInResource with that post instruction position, and, then change the value in output.
@@ -164,6 +164,8 @@ void _FixupReferencesHelper(SCIVersion version, vector<BYTE> &output, const ref_
             const code_pos &instruction = refIt->second.first;
             WORD wIndex = refIt->second.second;
             assert((instruction->get_opcode() == Opcode::LOFSA) || (instruction->get_opcode() == Opcode::LOFSS));
+            context.AddHeapPointerOffset(instruction->get_final_offset() + 1);  // +1 to skip the opcode
+
             WORD wValue;
             if (version.lofsaOpcodeIsAbsolute)
             {
@@ -210,7 +212,7 @@ void _WriteClassOrInstance(const CSCOObjectClass &object, bool fInstance, vector
     if (fInstance)
     {
         // So tell that code to point here.
-        _FixupReferencesHelper(pContext->GetVersion(), output, pContext->GetInstanceReferences(), object.GetName(), wObjectPointer);
+        _FixupReferencesHelper(pContext->GetVersion(), *pContext, output, pContext->GetInstanceReferences(), object.GetName(), wObjectPointer);
         if (object.IsPublic())
         {
             // If it's public, we need to put this in the export table.
@@ -376,7 +378,16 @@ void _Section10_LocalVariables(Script &script, vector<BYTE> &output, bool separa
         }
         );
 
-        write_word(output, localVarSizeIndex, (WORD)(output.size() - localVarSizeIndex + 2));
+        if (separateHeapResource)
+        {
+            // word count: i.e. number of local vars.
+            write_word(output, localVarSizeIndex, (WORD)((output.size() - (localVarSizeIndex + 2)) / 2));
+        }
+        else
+        {
+            // But here it's a section size byte count. i.e. 4 bytes plus byte count of local vars
+            write_word(output, localVarSizeIndex, (WORD)(output.size() - localVarSizeIndex + 2));
+        }
     }
     else
     {
@@ -456,7 +467,7 @@ void _Section4_Saids(CompileContext &context, vector<BYTE> &output)
             // a) Get the index to which we'll write the said stream.
             WORD wAbsolute = (WORD)output.size();
             context.SpecifyFinalSaidOffset(saidIt->first, wAbsolute);
-            _FixupReferencesHelper(context.GetVersion(), output, context.GetSaidReferences(), saidIt->first, wAbsolute);
+            _FixupReferencesHelper(context.GetVersion(), context, output, context.GetSaidReferences(), saidIt->first, wAbsolute);
             // b) Parse the said stream
             ParseSaidString(&context, *saidIt, output);
             // c) update the offset...
@@ -471,7 +482,7 @@ void _Section4_Saids(CompileContext &context, vector<BYTE> &output)
     }
 }
 
-void _Section5_Strings(CompileContext &context, vector<BYTE> &output, bool writeSCI0SectionHeader)
+void _Section5_Strings(CompileContext &context, vector<BYTE> &outputScr, vector<BYTE> &outputHeap, bool writeSCI0SectionHeader)
 {
     // In code strings:
     stringcode_map &inCodestrings = context.GetInCodeStrings();
@@ -490,9 +501,9 @@ void _Section5_Strings(CompileContext &context, vector<BYTE> &output, bool write
 
         if (writeSCI0SectionHeader)
         {
-            push_word(output, 5);
+            push_word(outputHeap, 5);
             // Indicate the section size:
-            push_word(output, wStringSectionSize + 4);
+            push_word(outputHeap, wStringSectionSize + 4);
         }
 
         // Now actually write the strings, and update the parts of the code with the absolute positions
@@ -506,11 +517,11 @@ void _Section5_Strings(CompileContext &context, vector<BYTE> &output, bool write
             while (stringIt != inCodestrings.end())
             {
                 // Get the index to which we'll write the string.
-                WORD wAbsolute = (WORD)output.size();
+                WORD wAbsolute = (WORD)outputHeap.size();
                 context.SpecifyFinalStringOffset(stringIt->first, wAbsolute);
-                _FixupReferencesHelper(context.GetVersion(), output, context.GetStringReferences(), stringIt->first, wAbsolute);
-                output.insert(output.end(), stringIt->first.begin(), stringIt->first.end());
-                output.push_back(0);
+                _FixupReferencesHelper(context.GetVersion(), context, outputScr, context.GetStringReferences(), stringIt->first, wAbsolute);
+                outputHeap.insert(outputHeap.end(), stringIt->first.begin(), stringIt->first.end());
+                outputHeap.push_back(0);
                 stringIt++;
             }
         }
@@ -521,16 +532,16 @@ void _Section5_Strings(CompileContext &context, vector<BYTE> &output, bool write
             while (stringIt != declaredTokenToString.end())
             {
                 // Get the index to which we'll write the string.
-                WORD wAbsolute = (WORD)output.size();
+                WORD wAbsolute = (WORD)outputHeap.size();
                 context.SpecifyFinalStringTokenOffset(stringIt->first, wAbsolute);
-                _FixupReferencesHelper(context.GetVersion(), output, declaredTokenToCodePos, stringIt->first, wAbsolute);
-                output.insert(output.end(), stringIt->second.begin(), stringIt->second.end());
-                output.push_back(0);
+                _FixupReferencesHelper(context.GetVersion(), context, outputScr, declaredTokenToCodePos, stringIt->first, wAbsolute);
+                outputHeap.insert(outputHeap.end(), stringIt->second.begin(), stringIt->second.end());
+                outputHeap.push_back(0);
                 stringIt++;
             }
         }
 
-        zero_pad(output, fRoundUp);
+        zero_pad(outputHeap, fRoundUp);
     }
 }
 
@@ -555,8 +566,16 @@ const uint16_t ExportTempMarker = 0x5845;   // "EX" backwards
 void _Exports_SCI11(Script &script, CompileContext &context, vector<BYTE> &output, size_t &numExports, size_t &indexOfExports)
 {
     numExports = 0;
-    const ClassVector &classes = script.GetClasses();
-    numExports += count_if(classes.begin(), classes.end(), IsPublicInstance);   // public instances
+    for (const auto &theClass : script.GetClasses())
+    {
+        if (theClass->IsPublic() && theClass->IsInstance())
+        {
+            // Track his heap pointer:
+            context.AddHeapPointerOffset(2 + (numExports * 2) + (uint16_t)output.size());
+            numExports++;
+        }
+    }
+
     const ProcedureVector &procs = script.GetProcedures();
     numExports += count_if(procs.begin(), procs.end(), IsPublicProcedure);      // public procedures
     assert(!context.GetVersion().IsExportWide());
@@ -1138,7 +1157,7 @@ bool GenerateScriptResource_SCI0(Script &script, PrecompiledHeaders &headers, Co
     WORD wStartOfCode = 0;
     _Section2_Code(script, context, output, wStartOfCode, false);
 
-    _Section5_Strings(context, output, true);
+    _Section5_Strings(context, output, output, true);
 
     _Section4_Saids(context, output);
 
@@ -1197,6 +1216,8 @@ void WriteMethodCodePointers(const CSCOObjectClass &oClass, vector<uint8_t> &out
     }
 }
 
+const uint16_t SpeciesSelector_SCI1 = 0x1005;
+
 void WriteClassToHeap(const CSCOObjectClass &oClass, bool isInstance, vector<uint8_t> &outputHeap, vector<uint8_t> &outputScr, CompileContext &context, vector<uint16_t> &trackHeapStringOffsets, uint16_t &objectSelectorOffsetInScr)
 {
     // This is where code that has offsets to this instance should point to
@@ -1204,7 +1225,7 @@ void WriteClassToHeap(const CSCOObjectClass &oClass, bool isInstance, vector<uin
     {
         WORD wObjectPointer = (WORD)outputHeap.size();
         // So tell that code to point here.
-        _FixupReferencesHelper(context.GetVersion(), outputScr, context.GetInstanceReferences(), oClass.GetName(), wObjectPointer);
+        _FixupReferencesHelper(context.GetVersion(), context, outputScr, context.GetInstanceReferences(), oClass.GetName(), wObjectPointer);
         if (oClass.IsPublic())
         {
             // If it's public, we need to put this in the export table.
@@ -1236,6 +1257,17 @@ void WriteClassToHeap(const CSCOObjectClass &oClass, bool isInstance, vector<uin
     {
         auto &prop = oClass.GetProperties()[i];
         WORD value = prop.GetValue();
+
+        // In SCI1, instances always have the species (-script- selector) as 0xffff
+        if (prop.GetSelector() == SpeciesSelector_SCI1)
+        {
+            assert(i == 5);
+            if (isInstance)
+            {
+                value = 0xffff;
+            }
+        }
+
         if (prop.NeedsReloc())
         {
             context.TrackRelocation((uint16_t)outputHeap.size());
@@ -1348,7 +1380,7 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
     push_word(outputHeap, 0);
 
     // TODO: What about the isntance and class names? Are they tracked?
-    _Section5_Strings(context, outputHeap, false);
+    _Section5_Strings(context, outputScr, outputHeap, false);
 
     // At the beginning of the file, write the offset to after string table:
     write_word(outputHeap, 0, (uint16_t)outputHeap.size());
@@ -1366,19 +1398,20 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
 
     // Now back to the scr:
     // Now let's write the "after code" stuff. 
-    // TODO: Not yet sure what this is. But this is how it starts:
-    uint16_t numberOfWords = 0;
-    push_word(outputScr, numberOfWords);
-    // Then an entry... and it's just before the property selector offsets (in scr, from hep). I believe this are poitners to lofsa
-    //      but the first few don't point to the code section. Oh, they point to export table. so basically it's exports, followed by lofsas
-    // Oooppp... no, it's things that point into the heap. So only the exports that are instances. Plus any lofsas.
+    // This is a list of offsets (in .scr) that pointer to offsets in .hep.
+    // It will consist first of any exports that are classes/instances, then any lofsa/lofss offsets in the code
+    const vector<uint16_t> &heapPointerOffsets = context.GetHeapPointerOffsets();
+    push_word(outputScr, (uint16_t)heapPointerOffsets.size());
+    for (uint16_t heapPointerOffset : heapPointerOffsets)
+    {
+        push_word(outputScr, heapPointerOffset);
+    }
+    // We're now done with .scr
 
     // TODO: Write our prop relocs
+    // TODO GenerateSCOObjects ... this is where CSCOpropertys are marked as needing relocation. name is hard-coded, we'll need others too. Like "up" and "down" in Gauge.sc
     // TODO: keep exports in sync with previous SCO file iteration
-    // TODO: Write export values
     _Section7_Exports_Part2(context, outputScr, wStartOfCode, numExports, indexOfExports);
-
-    // TODO GenerateSCOObjects ... this is where CSCOpropertys are marked as needing relocation. name is hard-coded, we'll need others too.
 
     // Get the .sco file produced.
     results.GetSCO() = context.GetScriptSCO();
