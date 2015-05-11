@@ -354,7 +354,25 @@ void _Section1And6_ClassesAndInstances(vector<BYTE> &output, CompileContext *pCo
     }
 }
 
-void _Section10_LocalVariables(Script &script, vector<BYTE> &output, bool separateHeapResource)
+void _ResolveLocalVariables(Script &script, CompileContext &context)
+{
+    for (auto &scriptVar : script.GetScriptVariables())
+    {
+        for (auto &segment : scriptVar->GetStatements())
+        {
+            PropertyValue *pValue = SafeSyntaxNode<PropertyValue>(segment->GetSyntaxNode());
+            if (pValue && pValue->GetType() == ValueType::String)
+            {
+                uint16_t temp = context.GetStringTempOffset(pValue->GetStringValue());
+                uint16_t value = context.LookupFinalStringOrSaidOffset(temp);
+                pValue->SetValue(value);
+                context.ScriptVariableValueNeedsReloc.insert(pValue);
+            }
+        }
+    }
+}
+
+void _Section10_LocalVariables(Script &script, CompileContext &context, vector<BYTE> &output, bool separateHeapResource, vector<uint16_t> *trackHeapStringOffsets = nullptr)
 {
     const VariableDeclVector &scriptVars = script.GetScriptVariables();
     if (!scriptVars.empty())
@@ -367,16 +385,29 @@ void _Section10_LocalVariables(Script &script, vector<BYTE> &output, bool separa
         size_t localVarSizeIndex = output.size();
         push_word(output, 0); // Temporary value.
 
-        for_each(scriptVars.begin(), scriptVars.end(),
-            [&output](const unique_ptr<VariableDecl> &var)
+        for (const auto &var : scriptVars)
         {
-            vector<WORD> values = var->GetSimpleValues();
-            for_each(values.begin(), values.end(), WordToByteThingy(output));
+            int size = 0;
+            for (auto &value : var->GetStatements())
+            {
+                const PropertyValue *pValue = SafeSyntaxNode<PropertyValue>(value->GetSyntaxNode());
+                assert(pValue); // Must be a property value.
+                if (context.ScriptVariableValueNeedsReloc.find(pValue) != context.ScriptVariableValueNeedsReloc.end())
+                {
+                    context.TrackRelocation((uint16_t)output.size());
+                    if (trackHeapStringOffsets)
+                    {
+                        // SCI1 uses a different mechanism to track these (need to differentiate heap vs scr relocations)
+                        trackHeapStringOffsets->push_back((uint16_t)output.size());
+                    }
+                }
+                push_word(output, pValue->GetNumberValue());
+                size++;
+            }
             // Fill any remaining spots with 0
-            WORD wZeroFill = (var->GetSize() - (WORD)values.size());
+            WORD wZeroFill = (var->GetSize() - (WORD)size);
             output.insert(output.end(), wZeroFill * 2, 0); // WORD = BYTE * 2
         }
-        );
 
         if (separateHeapResource)
         {
@@ -1166,7 +1197,8 @@ bool GenerateScriptResource_SCI0(Script &script, PrecompiledHeaders &headers, Co
 
     _Section7_Exports_Part2(context, output, wStartOfCode, numExports, indexOfExports);
 
-    _Section10_LocalVariables(script, output, false);
+    _ResolveLocalVariables(script, context);
+    _Section10_LocalVariables(script, context, output, false);
 
     _Section8_RelocationTable(context, output);
 
@@ -1373,12 +1405,11 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
         WriteMethodCodePointers(oClass, outputScr, context, trackMethodCodePointerOffsets, index);
     }
 
-
-
     // Now let's start writing the hep file
     push_word(outputHeap, 0);   // This will point to "after strings" 
     // Next come the local var values
-    _Section10_LocalVariables(script, outputHeap, true);
+    _ResolveLocalVariables(script, context);
+    _Section10_LocalVariables(script, context, outputHeap, true, &trackHeapStringOffsets);
 
     for (const CSCOObjectClass &oClass : sco.GetObjects())
     {

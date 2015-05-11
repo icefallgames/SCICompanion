@@ -3116,9 +3116,9 @@ ResolvedToken ClassDefinition::LookupVariableName(CompileContext &context, const
 //
 // This doesn't output byte code
 //
-vector<WORD> VariableDecl::GetSimpleValues() const
+vector<uint16_t> VariableDecl::GetSimpleValues() const
 {
-    vector<WORD> result;
+    vector<uint16_t> result;
 	for (auto &value : _segments)
 	{
 		const PropertyValue *pValue = SafeSyntaxNode<PropertyValue>(value->GetSyntaxNode());

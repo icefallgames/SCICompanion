@@ -243,6 +243,7 @@
     <None Include="Files\TemplateGame\src\window.sc" />
     <None Include="Files\TemplateGame\src\window.sco" />
     <None Include="Files\Decompiler\Decompiler.ini" />
+    <None Include="Files\Decompiler\game.sh" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />

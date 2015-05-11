@@ -182,7 +182,7 @@ public:
         out.SyncComments(varDecl);
         DebugLine line(out);
         // TODO: in caller, put a local block around things if these are script variables.
-        _OutputVariableAndSize(out, varDecl.GetDataType(), varDecl.GetName(), varDecl.GetSize(), varDecl.GetSimpleValues());
+        _OutputVariableAndSize(*this, out, varDecl.GetDataType(), varDecl.GetName(), varDecl.GetSize(), varDecl.GetStatements());
     }
 
     void _VisitFunctionBase(const FunctionBase &function, const std::string &procedureClass)

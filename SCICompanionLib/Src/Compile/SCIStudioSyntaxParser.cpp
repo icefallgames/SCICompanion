@@ -448,7 +448,7 @@ void ScriptVarInitA(MatchResult &match, const Parser *pParser, SyntaxContext *pC
     }
     else
     {
-        pContext->ReportError("Script variables can only be initialized with integers.", stream);
+        pContext->ReportError("Script variables cannot be initialized with this type of value.", stream);
     }
 }
 void FinishScriptVarA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
@@ -963,6 +963,7 @@ void SCISyntaxParser::Load()
     immediateValue = integer_p[PropValueIntA] | alphanum_p[PropValueStringA<ValueType::Token>] | bracestring_p[PropValueStringA<ValueType::Token>];
 
     string_immediateValue = integer_p[PropValueIntA] | alphanum_p[PropValueStringA<ValueType::Token>] | quotedstring_p[PropValueStringA<ValueType::String>];
+    string_immediateValue2 = integer_p[PropValueIntA] | alphanum_p[PropValueStringA<ValueType::Token>] | quotedstring_p[PropValueStringA<ValueType::String>] | bracestring_p[PropValueStringA<ValueType::Token>];
 
     general_token = alphanum_p2 | bracestring_p;
 
@@ -1000,7 +1001,7 @@ void SCISyntaxParser::Load()
     properties_decl = oppar >> keyword_p("properties") >> *property_decl >> clpar;
 
     // An array initializer
-    array_init = oppar >> *(immediateValue[ScriptVarInitA]) >> clpar;  // (0 0 $4c VIEW_EGO)
+    array_init = oppar >> *(string_immediateValue2[ScriptVarInitA]) >> clpar;  // (0 0 $4c VIEW_EGO)
 
     // Array initializer for script strings
     string_array_init = oppar >> *(string_immediateValue[ScriptStringInitA]) >> clpar;  // (0 0 "Hello" $20 FALSE)
@@ -1280,7 +1281,7 @@ void SCISyntaxParser::Load()
     synonyms = keyword_p("synonyms") >> *(squotedstring_p[CreateSynonymA] >> equalSign[GeneralE] >> squotedstring_p[FinishSynonymA]);
 
     script_var = keyword_p("local")
-        >> *((var_decl[CreateScriptVarA] >> -(equalSign[GeneralE] >> (immediateValue[ScriptVarInitA] | array_init)))[FinishScriptVarA]);
+        >> *((var_decl[CreateScriptVarA] >> -(equalSign[GeneralE] >> (string_immediateValue2[ScriptVarInitA] | array_init)))[FinishScriptVarA]);
 
     script_string = keyword_p("string") >> *((var_decl[CreateScriptVarA] >> -(equalSign[GeneralE] >> (string_immediateValue[ScriptStringInitA] | string_array_init)))[FinishScriptStringA]);
   

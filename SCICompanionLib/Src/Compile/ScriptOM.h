@@ -712,14 +712,14 @@ namespace sci
 		VariableDecl& operator=(const VariableDecl& src) = delete;
 
         const std::string &GetName() const { return _name; }
-        WORD GetSize() const { return _wSize; }
+        uint16_t GetSize() const { return _wSize; }
         const SingleStatementVector &GetInitializers() const { return _segments; }
 
         void AddSimpleInitializer(const PropertyValue &value);
-        std::vector<WORD> GetSimpleValues() const;
+        std::vector<uint16_t> GetSimpleValues() const;
 
         void SetName(const std::string &name) { _name = name; }
-        void SetSize(WORD wSize) { _wSize = wSize; _unspecifiedSize = false; }
+        void SetSize(uint16_t wSize) { _wSize = wSize; _unspecifiedSize = false; }
         void SetIsUnspecifiedSize(bool unspecified) { _unspecifiedSize = unspecified; }
         bool IsUnspecifiedSize() { return _unspecifiedSize; }
         // IOutputByteCode
@@ -732,7 +732,7 @@ namespace sci
 
     private:
         std::string _name;
-        WORD _wSize;
+        uint16_t _wSize;
         bool _unspecifiedSize;  // For script string declarations
     };
 

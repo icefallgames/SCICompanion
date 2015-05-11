@@ -241,9 +241,11 @@ bool NewCompileScript(CompileLog &log, CompileTables &tables, PrecompiledHeaders
                     std::vector<BYTE> &output = results.GetScriptResource();
                     appState->GetResourceMap().AppendResource(ResourceBlob(nullptr, ResourceType::Script, output, appState->GetVersion().DefaultVolumeFile, wNum, appState->GetVersion(), ResourceSourceFlags::ResourceMap));
 
-                    // TODO: begin/end defer around these two
                     std::vector<BYTE> &outputHep = results.GetHeapResource();
-                    appState->GetResourceMap().AppendResource(ResourceBlob(nullptr, ResourceType::Heap, outputHep, appState->GetVersion().DefaultVolumeFile, wNum, appState->GetVersion(), ResourceSourceFlags::ResourceMap));
+                    if (!outputHep.empty())
+                    {
+                        appState->GetResourceMap().AppendResource(ResourceBlob(nullptr, ResourceType::Heap, outputHep, appState->GetVersion().DefaultVolumeFile, wNum, appState->GetVersion(), ResourceSourceFlags::ResourceMap));
+                    }
 
                     // Save the corresponding sco file.
                     CSCOFile &sco = results.GetSCO();

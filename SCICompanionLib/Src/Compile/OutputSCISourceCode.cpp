@@ -6,32 +6,6 @@
 using namespace sci;
 using namespace std;
 
-void _OutputVariableAndSizeSquare(sci::SourceCodeWriter &out, const std::string &type, const std::string &name, WORD wSize, std::vector<WORD> initValues)
-{
-    out.out << (type.empty() ? "var" : type) << " " << name;
-    if (wSize > 1)
-    {
-        out.out << "[" << wSize << "]"; // array
-    }
-
-    if (!initValues.empty())
-    {
-        if (wSize > 1)
-        {
-            out.out << " = [";
-            for (WORD &initValue : initValues)
-            {
-                out.out << initValue << " ";
-            }
-            out.out << "]";
-        }
-        else
-        {
-            out.out << " = " << initValues[0];
-        }
-    }
-}
-
 class OutputSCISourceCode : public OutputSourceCodeBase
 {
 public:
@@ -208,7 +182,7 @@ public:
         out.SyncComments(varDecl);
         DebugLine line(out);
         // TODO: in caller, put a local block around things if these are script variables.
-        _OutputVariableAndSize(out, varDecl.GetDataType(), varDecl.GetName(), varDecl.GetSize(), varDecl.GetSimpleValues());
+        _OutputVariableAndSize(*this, out, varDecl.GetDataType(), varDecl.GetName(), varDecl.GetSize(), varDecl.GetStatements());
     }
 
     void _VisitFunctionBase(const FunctionBase &function)

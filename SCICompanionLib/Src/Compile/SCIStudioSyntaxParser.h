@@ -923,6 +923,7 @@ private:
     Parser statement;
     Parser immediateValue;
     Parser string_immediateValue;
+    Parser string_immediateValue2;
     Parser general_token;
     Parser pointer;
     Parser selector;

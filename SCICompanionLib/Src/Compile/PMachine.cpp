@@ -199,7 +199,7 @@ OperandType OpArgTypes[TOTAL_OPCODES][3] = {
     /*self*/     {otUINT8, otEMPTY, otEMPTY },
     /*super*/    {otCLASS, otUINT8, otEMPTY },
 	/*rest*/     {otPVAR,otEMPTY,otEMPTY},
-	/*lea*/      {otINT,otINT,otEMPTY}, // REVIEW: is this correct?
+	/*lea*/      {otUINT,otUINT,otEMPTY},
 	/*selfID*/   {otEMPTY,otEMPTY,otEMPTY},
 	/**/         {otEMPTY,otEMPTY,otEMPTY},
 	/*pprev*/    {otEMPTY,otEMPTY,otEMPTY},

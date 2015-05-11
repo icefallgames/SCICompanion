@@ -1,4 +1,4 @@
-﻿Build started 5/8/2015 6:43:07 AM.
+﻿Build started 5/10/2015 11:11:26 PM.
      1>Project "E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\SCICompanionLib.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          F:\VisualStudio\VC\bin\CL.exe /c /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\\" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Util" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Resources" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCViews" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCFrames" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCDocuments" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\FrameComponents" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Dialogs" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CrystalEdit" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CRC32" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CppFormat" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Compile" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Include" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Src" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\cpptoml" /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _WINDOWS /D NO_WARN_MBCS_MFC_DEPRECATION /D _DEBUG /D _USRDLL /D _MBCS /Gm /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"Debug\SCICompanionLib.pch" /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt /Qpar Src\Compile\GenerateScriptResource.cpp
@@ -391,4 +391,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:03.34
+Time Elapsed 00:00:03.45

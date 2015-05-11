@@ -2,7 +2,7 @@
 #include "ScriptOM.h"
 #include "OutputCodeHelper.h"
 
-void _OutputVariableAndSize(sci::SourceCodeWriter &out, const std::string &type, const std::string &name, WORD wSize, std::vector<WORD> initValues)
+void _OutputVariableAndSize(sci::ISyntaxNodeVisitor &visitor, sci::SourceCodeWriter &out, const std::string &type, const std::string &name, WORD wSize, const sci::SingleStatementVector &initValues)
 {
     out.out << name;
     if (wSize > 1)
@@ -15,15 +15,19 @@ void _OutputVariableAndSize(sci::SourceCodeWriter &out, const std::string &type,
         if (wSize > 1)
         {
             out.out << " = (";
-            for (WORD &initValue : initValues)
+            for (auto &initValue : initValues)
             {
-                out.out << initValue << " ";
+                Inline inln(out, true);
+                initValue->Accept(visitor);
+                out.out << " ";
             }
             out.out << ")";
         }
         else
         {
-            out.out << " = " << initValues[0];
+            out.out << " = ";
+            initValues[0]->Accept(visitor);
+
         }
     }
 }

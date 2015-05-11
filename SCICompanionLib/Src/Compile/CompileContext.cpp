@@ -486,6 +486,15 @@ SpeciesIndex CompileContext::GetSpeciesSuperClass(SpeciesIndex wSpeciesIndex)
     }
     return ret;
 }
+
+
+const char* c_rgCommonPropsSCI0[] = { "species", "superClass", "-info-", "name" };
+const WORD c_rgCommonPropsTypesSCI0[] = { DataTypeAny, DataTypeAny, DataTypeUInt, DataTypeString };
+
+const char* c_rgCommonPropsSCI1[] = { "-objID-", "-size-","-propDict-","-methoDict-","-classScript-", "-script-", "-super-", "-info-", "name" };
+const WORD c_rgCommonPropsTypesSCI1[] = { DataTypeAny, DataTypeAny, DataTypeAny, DataTypeAny, DataTypeAny, DataTypeAny, DataTypeAny, DataTypeUInt, DataTypeString };
+
+
 // The properties returned here, include the 4 default ones.  Even if we can't find the
 // species, we'll return the 4 default ones.
 vector<species_property> CompileContext::GetSpeciesProperties(const string &speciesNames)
@@ -513,16 +522,17 @@ vector<species_property> CompileContext::GetSpeciesProperties(const string &spec
     }
     if (propertiesRet.empty())
     {
+        const char** commonProps = this->_version.SeparateHeapResources ? c_rgCommonPropsSCI1 : c_rgCommonPropsSCI0;
+        const uint16_t* commonPropsTypes = this->_version.SeparateHeapResources ? c_rgCommonPropsTypesSCI1 : c_rgCommonPropsTypesSCI0;
+        int commonPropsCount = this->_version.SeparateHeapResources ? ARRAYSIZE(c_rgCommonPropsSCI1) : ARRAYSIZE(c_rgCommonPropsSCI0);
         // Either we have inherited from nothing (which is fine), or we couldn't find the species.
         // In any case, return the default four properties.
-        const char* c_rgCommonProps[] = { "species", "superClass", "-info-", "name" };
-        const WORD c_rgCommonPropsTypes[] = { DataTypeAny, DataTypeAny, DataTypeUInt, DataTypeString };
         // REVIEW: can we better describe species and superClass?  They are sort of Obj's
-        for (int i = 0; i < ARRAYSIZE(c_rgCommonProps); i++)
+        for (int i = 0; i < commonPropsCount; i++)
         {
             WORD wSelector = 0;
-            _tables.Selectors().ReverseLookup(c_rgCommonProps[i], wSelector);
-            species_property commonProp = { wSelector, 0, c_rgCommonPropsTypes[i], false };
+            _tables.Selectors().ReverseLookup(commonProps[i], wSelector);
+            species_property commonProp = { wSelector, 0, commonPropsTypes[i], false };
             propertiesRet.push_back(commonProp);
         }
     }

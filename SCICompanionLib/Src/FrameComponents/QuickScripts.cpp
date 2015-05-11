@@ -265,7 +265,9 @@ void QuickScriptsSidePane::_AddFilesOfType(int &iItem, PCTSTR pszWildcard)
         while(fOk)
         {
             PTSTR pszFileName = PathFindFileName(findData.cFileName);
-            *PathFindExtension(findData.cFileName) = 0; // Chop off file extension
+            //*PathFindExtension(findData.cFileName) = 0; // Chop off file extension
+            // Actually don't, makes it hard to distinguish game.sc vs game.sh
+
             m_wndList.InsertItem(iItem++, pszFileName);
             fOk = FindNextFile(hFFF, &findData);
         }

@@ -211,6 +211,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Decompiler" "$(OutDir)Decompiler"
     <None Include="Files\CompileInclude\sci.sh" />
     <None Include="Files\CompileInclude\sci.shp" />
     <None Include="Files\Decompiler\Decompiler.ini" />
+    <None Include="Files\Decompiler\game.sh" />
     <None Include="Files\Licenses\cppformat_README.rst" />
     <None Include="Files\Samples\cursors\Arrow 1.bin" />
     <None Include="Files\Samples\cursors\Arrow Small.bin" />

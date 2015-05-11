@@ -515,9 +515,6 @@ Consumption _GetInstructionConsumption(scii &inst, DecompileLookups *lookups)
         break;
 
     default:
-
-//sali -> store acc in local, indexed by acc
-//ac is local4
         assert((bOpcode >= Opcode::LAG) && (bOpcode <= Opcode::LastOne));
         // TODO: use our defines/consts
         if (_IsVOStoreOperation(bOpcode))
@@ -1381,7 +1378,7 @@ void CalculateVariableRanges(const std::map<WORD, bool> &usage, WORD variableCou
                 // This is a new one, unless we're indexed
                 if (!isCurrentIndexed)
                 {
-                    currentVarRange.arraySize = 0;
+                    currentVarRange.arraySize = 1;
                     varRanges.push_back(currentVarRange);
 
                     // But start a new one. isCurrentIndexed stays false.

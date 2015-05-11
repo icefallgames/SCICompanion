@@ -33,6 +33,7 @@ namespace sci
 	class Define;
 	class ClassDefinition;
 	class Script;
+    class PropertyValue;
 }
 class CResourceMap;
 class IOutputByteCode;
@@ -214,8 +215,9 @@ public:
     void AddHeapPointerOffset(uint16_t heapPtrOffset) { _heapPointerOffsets.push_back(heapPtrOffset); }
     const std::vector<uint16_t> &GetHeapPointerOffsets() { return _heapPointerOffsets; }
 
-private:
+    std::set<const sci::PropertyValue*> ScriptVariableValueNeedsReloc;
 
+private:
     // Our code
     scicode _code;
 
@@ -259,8 +261,8 @@ private:
 
     // These are a set of all the saids/strings in the resource.  We use the index of a particular
     // said/string as a temporary value to write in code (not needed)
-    stringcode_map _allSaids;      // Indicies start from 0
-    stringcode_map _allInCodeStrings;    // Indicies start from ImaginaryStringOffset
+    stringcode_map _allSaids;           // Indices start from 0
+    stringcode_map _allInCodeStrings;   // Indices start from ImaginaryStringOffset
     // This must be an ordered map. Order matters.
     std::map<std::string, std::string> _allScriptStringDecls;
 
