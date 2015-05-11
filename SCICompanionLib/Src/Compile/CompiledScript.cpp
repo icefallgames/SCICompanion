@@ -152,7 +152,7 @@ bool CompiledScript::_LoadSCI1_1(const GameFolderHelper &helper, int iScriptNumb
         // Then go back to the beginning
         scriptStream.seekg(0);
 
-        uint16_t earliestCodeOffset = 0xffff;
+        uint16_t earliestMethodCodeOffset = 0xffff;
 
         // Now we have both a heap and a script stream.
 
@@ -182,10 +182,11 @@ bool CompiledScript::_LoadSCI1_1(const GameFolderHelper &helper, int iScriptNumb
             else if (exportOffset != 0)
             {
                 // Just raw code (procedure)
-                earliestCodeOffset = min(exportOffset, earliestCodeOffset);
+                earliestMethodCodeOffset = min(exportOffset, earliestMethodCodeOffset);
             }
         }
 
+        uint16_t addressAfterLastObject = (uint16_t)scriptStream.tellg();
         if (isSuccess)
         {
             // Local variables
@@ -210,14 +211,16 @@ bool CompiledScript::_LoadSCI1_1(const GameFolderHelper &helper, int iScriptNumb
                 unique_ptr<CompiledObjectBase> pObject = make_unique<CompiledObjectBase>();
                 // Is the current position of the heapstream (which points to an object) in the list of public instance exports?
                 pObject->IsPublic = (find(_exportedObjectInstances.begin(), _exportedObjectInstances.end(), (uint16_t)heapStream->tellg()) != _exportedObjectInstances.end());
-                uint16_t wInstanceOffsetTO;
-                isSuccess = pObject->Create_SCI1_1(*this, _version, scriptStream, *heapStream, &wInstanceOffsetTO, classIndex);
+                uint16_t wInstanceOffsetTO, endOfObjectInScript;
+                isSuccess = pObject->Create_SCI1_1(*this, _version, scriptStream, *heapStream, &wInstanceOffsetTO, classIndex, &endOfObjectInScript);
                 if (isSuccess)
                 {
+                    addressAfterLastObject = max(endOfObjectInScript, addressAfterLastObject);
+
                     // Keep track of the earliest code
                     for (uint16_t codePointer : pObject->GetMethodCodePointersTO())
                     {
-                        earliestCodeOffset = min(codePointer, earliestCodeOffset);
+                        earliestMethodCodeOffset = min(codePointer, earliestMethodCodeOffset);
                     }
 
                     _objectsOffsetTO.push_back(wInstanceOffsetTO);
@@ -245,11 +248,14 @@ bool CompiledScript::_LoadSCI1_1(const GameFolderHelper &helper, int iScriptNumb
 
         }
 
-        // So far, I'm assuming everything is in one code section in the script resource:
-        if (earliestCodeOffset < heapPointerListOffset)
+        // So far, I'm assuming everything is in one code section in the script resource.
+        // We have two hints to where the code begins: The object methods and export (which have explicit
+        // pointers to look at), and the end of the last object in the script resource.
+        assert(addressAfterLastObject <= earliestMethodCodeOffset);
+        if (addressAfterLastObject < heapPointerListOffset)
         {
             CodeSection all;
-            all.begin = earliestCodeOffset;
+            all.begin = addressAfterLastObject;
             all.end = heapPointerListOffset;
             _codeSections.push_back(all);
         }
@@ -474,7 +480,7 @@ std::string _GenerateClassName(uint16_t scriptNumber, int &index)
 }
 
 // Very important: scriptStream is passed by value. Heapstream is not.
-bool CompiledObjectBase::Create_SCI1_1(const CompiledScript &compiledScript, SCIVersion version, sci::istream scriptStream, sci::istream &heapStream, uint16_t *pwOffset, int classIndex)
+bool CompiledObjectBase::Create_SCI1_1(const CompiledScript &compiledScript, SCIVersion version, sci::istream scriptStream, sci::istream &heapStream, uint16_t *pwOffset, int classIndex, uint16_t *endOfObjectInScript)
 {
     uint16_t scriptNum = compiledScript.GetScriptNumber();
     *pwOffset = heapStream.tellg();
@@ -568,6 +574,8 @@ bool CompiledObjectBase::Create_SCI1_1(const CompiledScript &compiledScript, SCI
         // Create a name for unnamed classes (e.g. Control)
         _strName = _GenerateClassName(scriptNum, classIndex);
     }
+
+    *endOfObjectInScript = (uint16_t)scriptStream.tellg();
 
     assert((_propertySelectors.size() == _propertyValues.size()) || (_fInstance && _propertySelectors.empty()));
     return true;

@@ -71,9 +71,9 @@ void DecompileObject(const CompiledObjectBase &object,
                         // Just give it a number
                         uint16_t number = propValue.value;
                         value.SetValue(number);
-                        if (number == 65535)
+                        if (number >= 32768)
                         {
-                            // A good bet that it's -1
+                            // A good bet that it's negative
                             value.Negate();
                         }
                     }

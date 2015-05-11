@@ -1463,6 +1463,11 @@ void AddLocalVariablesToScript(sci::Script &script, const CompiledScript &compil
             else
             {
                 value.SetValue(propValue);
+                if (propValue >= 32768)
+                {
+                    // Probably intended to be negative.
+                    value.Negate();
+                }
             }
             localVar->AddSimpleInitializer(value);
         }

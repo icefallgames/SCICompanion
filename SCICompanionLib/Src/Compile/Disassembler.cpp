@@ -3,6 +3,7 @@
 #include "DisassembleHelper.h"
 #include "scii.h"
 #include "AppState.h"
+#include "OutputCodeHelper.h"
 
 using namespace std;
 
@@ -448,7 +449,7 @@ void DisassembleScript(const CompiledScript &script, std::ostream &out, ICompile
     assert(script._strings.size() == script._stringsOffset.size());
     for (size_t i = 0; i < script._strings.size(); i++)
     {
-        out << c_indent << "string_" << setw(4) << setfill('0') << script._stringsOffset[i] << " \"" << script._strings[i] << "\"" << endl;
+        out << c_indent << "string_" << setw(4) << setfill('0') << script._stringsOffset[i] << " \"" << UnescapeString(script._strings[i]) << "\"" << endl;
     }
     out << ")" << endl << endl;
 

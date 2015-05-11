@@ -1196,9 +1196,9 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
                 default: // LDI and PUSHI
                     uint16_t theValue = inst.get_first_operand();
                     value->SetValue(theValue);
-                    if (theValue == 65535)
+                    if (theValue >= 32768)
                     {
-                        // This was probably intended to be -1
+                        // This was probably intended to be negative
                         value->Negate();
                     }
                     break;
