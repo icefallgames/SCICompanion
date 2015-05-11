@@ -792,7 +792,7 @@ void FinishStatementA(MatchResult &match, const Parser *pParser, SyntaxContext *
     if (match.Result())
     {
         pContext->FinishStatement(true);
-        ASSERT(pContext->StatementPtrReturn); // This is our "return value"
+        assert(pContext->StatementPtrReturn); // This is our "return value"
         pContext->StatementPtrReturn->SetPosition(stream.GetPosition()); // Not the most accurate position, but good enough.
     }
     else
@@ -1177,7 +1177,8 @@ void SCISyntaxParser::Load()
 
     asm_arg =
         alwaysmatch_p[StartStatementA]
-        >> value[FinishStatementA];
+        >> value[FinishStatementA]
+        >> !colon;    // If colon, then it's the next line's label?
 
     asm_label =
         alphanum_p
