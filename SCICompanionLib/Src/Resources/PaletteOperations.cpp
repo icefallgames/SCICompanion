@@ -291,12 +291,6 @@ void ReadPalette(PaletteComponent &palette, sci::istream &byteStream)
         }
         else
         {
-            // REVIEW temp
-
-            std::string text = GetBinaryDataVisualization(byteStream.GetInternalPointer() + byteStream.tellg() - 37, 37);
-            text += "\n";
-            OutputDebugString(text.c_str());
-
             //assert(header.always1 == 1);
             //assert(header.always0 == 0);
             //assert(header.always0_B == 0);

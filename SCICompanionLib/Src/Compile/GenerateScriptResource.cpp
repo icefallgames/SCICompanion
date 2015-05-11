@@ -354,7 +354,7 @@ void _Section1And6_ClassesAndInstances(vector<BYTE> &output, CompileContext *pCo
     }
 }
 
-void _ResolveLocalVariables(Script &script, CompileContext &context)
+void _ResolveLocalVariables(Script &script, CompileContext &context, bool resolveNow)
 {
     for (auto &scriptVar : script.GetScriptVariables())
     {
@@ -364,8 +364,15 @@ void _ResolveLocalVariables(Script &script, CompileContext &context)
             if (pValue && pValue->GetType() == ValueType::String)
             {
                 uint16_t temp = context.GetStringTempOffset(pValue->GetStringValue());
-                uint16_t value = context.LookupFinalStringOrSaidOffset(temp);
-                pValue->SetValue(value);
+                if (resolveNow)
+                {
+                    uint16_t value = context.LookupFinalStringOrSaidOffset(temp);
+                    pValue->SetValue(value);
+                }
+                else
+                {
+                    pValue->SetValue(temp);
+                }
                 context.ScriptVariableValueNeedsReloc.insert(pValue);
             }
         }
@@ -1197,7 +1204,7 @@ bool GenerateScriptResource_SCI0(Script &script, PrecompiledHeaders &headers, Co
 
     _Section7_Exports_Part2(context, output, wStartOfCode, numExports, indexOfExports);
 
-    _ResolveLocalVariables(script, context);
+    _ResolveLocalVariables(script, context, true);
     _Section10_LocalVariables(script, context, output, false);
 
     _Section8_RelocationTable(context, output);
@@ -1408,7 +1415,7 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
     // Now let's start writing the hep file
     push_word(outputHeap, 0);   // This will point to "after strings" 
     // Next come the local var values
-    _ResolveLocalVariables(script, context);
+    _ResolveLocalVariables(script, context, false);
     _Section10_LocalVariables(script, context, outputHeap, true, &trackHeapStringOffsets);
 
     for (const CSCOObjectClass &oClass : sco.GetObjects())
