@@ -227,14 +227,14 @@ bool SingleStatement::_ContainsStatement(NodeType type) const
     return false;
 }
 
-Script::Script(PCTSTR pszFilePath, PCTSTR pszFileName)
+Script::Script(PCTSTR pszFilePath, PCTSTR pszFileName) : SyntaxVersion(1)
 {
     _scriptId = ScriptId(pszFileName, pszFilePath);
 }
-Script::Script(ScriptId script) : _scriptId(script)
+Script::Script(ScriptId script) : _scriptId(script), SyntaxVersion(1)
 {
 }
-Script::Script()
+Script::Script() : SyntaxVersion(1)
 {
 }
 

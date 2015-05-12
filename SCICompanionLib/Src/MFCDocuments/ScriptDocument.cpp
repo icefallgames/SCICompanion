@@ -369,6 +369,7 @@ void CScriptDocument::OnViewScriptResource()
 }
 void CScriptDocument::OnViewSyntaxTree()
 {
+#if DONT_KNOW_WHAT_THIS_DID
     CScriptStreamLimiter limiter(&_buffer);
     CCrystalScriptStream stream(&limiter);
 	SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser();
@@ -382,6 +383,7 @@ void CScriptDocument::OnViewSyntaxTree()
         script.OutputSourceCode(debugOut);
         ShowTextFile(out.str().c_str(), "syntaxtree.txt");
     }
+#endif
 }
 
 void CScriptDocument::OnConvertScript()

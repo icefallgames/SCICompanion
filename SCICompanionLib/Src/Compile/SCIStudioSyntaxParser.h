@@ -11,14 +11,16 @@
 class MatchResult
 {
 public:
-    MatchResult() { assert(FALSE); }
+    MatchResult() = delete;
     MatchResult(bool fResult) : _fResult(fResult) {}
     MatchResult(const MatchResult &src) = default;
     MatchResult& operator=(const MatchResult& src) = default;
 
     ~MatchResult() { }
+    void ChangeResult(bool result) {
+        _fResult = result;
+    }
     bool Result() { return _fResult; }
-    void SetResult(bool fResult) { _fResult = fResult; }
 private:
     bool _fResult;
 };
@@ -944,8 +946,11 @@ private:
 
     // General code pieces
     Parser variable;
-    Parser base_conditional;
+    Parser base_conditional_v1;
+    Parser base_conditional_v2;
     Parser conditional;
+    Parser conditional_v1;
+    Parser conditional_v2;
     Parser do_loop;
     Parser while_loop;
     Parser if_statement;
@@ -987,6 +992,7 @@ private:
     // Main script section.
     Parser include;
     Parser use;
+    Parser version;
     Parser define;
     Parser scriptNum;
     Parser instance_decl;

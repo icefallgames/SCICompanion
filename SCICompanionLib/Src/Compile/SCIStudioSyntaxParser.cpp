@@ -266,6 +266,19 @@ void AddIncludeA(MatchResult &match, const Parser *pParser, SyntaxContext *pCont
     }
 }
 
+void SetVersionA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        if ((pContext->Integer != 1) && (pContext->Integer != 2))
+        {
+            match.ChangeResult(false);
+            pContext->ReportError("The only acceptable version values are 1 and 2.", stream);
+        }
+        pContext->Script().SyntaxVersion = pContext->Integer;
+    }
+}
+
 // Statements
 void StatementA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
@@ -288,16 +301,6 @@ void SetStatementA(MatchResult &match, const Parser *pParser, SyntaxContext *pCo
         pContext->GetSyntaxNode<_T>()->SetPosition(stream.GetPosition());
     }
 }
-
-/*
-void StartTernary(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        SetStatementA<CppIfStatement>(match, pParser, pContext, stream);
-        pContext->GetSyntaxNode<CppIfStatement>()->MakeTernary();
-    }
-}*/
 
 // Set the name of a SyntaxNode
 template<typename _T>
@@ -633,6 +636,16 @@ void PropValueStringA(MatchResult &match, const Parser *pParser, SyntaxContext *
     }
 }
 
+template<int _Version>
+void EnableScriptVersionA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        // If we matched, only match if version number is correct
+        match.ChangeResult(_Version == pContext->Script().SyntaxVersion);
+    }
+}
+
 // Classes
 template<bool fInstance>
 void CreateClassA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
@@ -893,6 +906,27 @@ void FinishConditionA(MatchResult &match, const Parser *pParser, SyntaxContext *
     }
 }
 
+
+template<typename _T>
+void FinishCondition2A(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        std::unique_ptr<ConditionalExpressionSCIStudio> temp = move(pContext->StealSyntaxNode<ConditionalExpressionSCIStudio>());
+        // Turn this into a tree and make a real ConditionalExpression
+        // A bit of a hack: the parser will end up adding an andOr even if the follow term doesn't succeed.
+        // In that case, we need to trim.
+        vector<bool> andOrs = temp->GetAndOrs();
+        if (andOrs.size() == temp->GetItems().size())
+        {
+            andOrs.pop_back();
+        }
+        ConvertAndOrSequenceIntoTree(temp->GetItems(), andOrs);
+        pContext->GetPrevSyntaxNode<_T>()->AddStatement(move(temp->GetItems()[0]));
+    }
+}
+
+
 //
 // CodeBlock
 //
@@ -1032,14 +1066,24 @@ void SCISyntaxParser::Load()
 
     // Only used by "conditional".  This mimics the syntax used by SCI Studio, even though it's questionable.
     // Basically, (1 and (2 or 3)) turns into (1 and 2 or 3).  Within a conditional, parentheses are ignored essentially.
-    base_conditional =
-        ((oppar >> base_conditional >> clpar) | statement[AddStatementA<ConditionalExpressionSCIStudio>])
+    base_conditional_v1 =
+        ((oppar >> base_conditional_v1 >> clpar) | statement[AddStatementA<ConditionalExpressionSCIStudio>])
          % (keyword_p("and")[ConditionOperatorA<true>] | keyword_p("or")[ConditionOperatorA<false>]);
 
     // Requires a stack frame to be pushed for it!
-    conditional =
+    conditional_v1 =
         alwaysmatch_p[SetStatementA<ConditionalExpressionSCIStudio>]
-        >>  base_conditional;
+        >> base_conditional_v1;
+
+    base_conditional_v2 =
+        ((oppar >> syntaxnode_d[conditional[FinishCondition2A<ConditionalExpressionSCIStudio>]] >> clpar) | statement[AddStatementA<ConditionalExpressionSCIStudio>])
+        % (keyword_p("and")[ConditionOperatorA<true>] | keyword_p("or")[ConditionOperatorA<false>]);
+
+    conditional_v2 =
+        alwaysmatch_p[SetStatementA<ConditionalExpressionSCIStudio>]
+        >> base_conditional_v2;
+
+    conditional = (alwaysmatch_p[EnableScriptVersionA<1>] >> conditional_v1) | (alwaysmatch_p[EnableScriptVersionA<2>] >> conditional_v2);
         
     do_loop = oppar
         >> keyword_p("do")[SetStatementA<DoLoop>]
@@ -1268,6 +1312,7 @@ void SCISyntaxParser::Load()
     include = keyword_p("include") >> quotedstring_p[AddIncludeA];
 
     use = keyword_p("use") >> quotedstring_p[AddUseA];
+    version = keyword_p("version") >> integer_p[SetVersionA];
 
     define = keyword_p("define")[CreateDefineA] >> alphanum_p[DefineLabelA] >> integer_p[DefineValueA];
 
@@ -1289,7 +1334,8 @@ void SCISyntaxParser::Load()
     // The actual script grammer - rules that contain multiple entities (e.g. local, synonyms),
     // have their finishing actions defined on those entities themselves, rather than here.
     entire_script = *(oppar[GeneralE]
-        >> (include
+        >> (version
+            | include
             | use
             | define[FinishDefineA]
             | instance_decl[FinishClassA]

@@ -635,9 +635,9 @@ bool _ObtainInstructionSequence(code_pos endingInstruction, code_pos beginning, 
         {
             // This instruction we just got consumes stuff. We need to recurse here and
             // have it eat up its stuff.
-            // Afterwards, if success is true, cur will point to the beginning of its thing
-            // and we can keep going (if necessary)
-            success = _ObtainInstructionSequence(cur, beginning, cur);
+// Afterwards, if success is true, cur will point to the beginning of its thing
+// and we can keep going (if necessary)
+success = _ObtainInstructionSequence(cur, beginning, cur);
         }
 
         beginningOfBranchInstructionSequence = cur;
@@ -724,6 +724,82 @@ public:
 
 private:
     stack<bool> useHex;
+};
+
+class CollapseNots : public IExploreNode, public IExploreNodeContext
+{
+public:
+    CollapseNots(FunctionBase &func)
+    {
+        func.Traverse(this, *this);
+    }
+
+    void ExploreNode(IExploreNodeContext *pContext, SyntaxNode &node, ExploreNodeState state) override
+    {
+        if (state == ExploreNodeState::Pre)
+        {
+            ConditionalExpression *condExp = SafeSyntaxNode<ConditionalExpression>(&node);
+            if (condExp)
+            {
+                _Process(condExp->GetStatements()[0]);
+            }
+        }
+    }
+
+private:
+    unique_ptr<SingleStatement> _PutInNot(unique_ptr<SingleStatement> other)
+    {
+        unique_ptr<SingleStatement> notStatement = make_unique<SingleStatement>();
+        unique_ptr<UnaryOp> unaryOp = make_unique<UnaryOp>();
+        unaryOp->SetName("not");
+        unaryOp->SetStatement1(move(other));
+        notStatement->SetSyntaxNode(move(unaryOp));
+        return notStatement;
+    }
+
+    void _Process(unique_ptr<SingleStatement> &statement)
+    {
+        // If this is a binary op of and or or, then procede onward with each one
+        // See if we have a binary operation underneath us for an and/or
+        BinaryOp *binOp = SafeSyntaxNode<BinaryOp>(statement->GetSyntaxNode());
+        if (binOp && ((binOp->GetName() == "&&") || (binOp->GetName() == "||")))
+        {
+            _Process(binOp->GetStatement1Internal());
+            _Process(binOp->GetStatement2Internal());
+        }
+        else
+        {
+            // If this is a not
+            UnaryOp *unary = SafeSyntaxNode<UnaryOp>(statement->GetSyntaxNode());
+            if (unary && (unary->GetName() == "not"))
+            {
+                // Then let's see if it contains a binary op, in which case, we'll apply DeMorgan's theorem.
+                BinaryOp *child = SafeSyntaxNode<BinaryOp>(unary->GetStatement1()->GetSyntaxNode());
+                if (child && ((child->GetName() == "&&") || (child->GetName() == "||")))
+                {
+                    // Ok. We need to replace the unary op with its child.
+                    unique_ptr<SingleStatement> binaryOpStatement = move(unary->GetStatement1Internal());
+                    statement = move(binaryOpStatement);
+                    // That should do it.
+                    // Now we need to switch the operator
+                    if (child->GetName() == "&&")
+                    {
+                        child->SetName("||");
+                    }
+                    else
+                    {
+                        child->SetName("&&");
+                    }
+                    
+                    // Then we need to go insert unary nots in front of both statements of the binary operator.
+                    unique_ptr<SingleStatement> binOpStatement1 = move(child->GetStatement1Internal());
+                    child->SetStatement1(_PutInNot(move(binOpStatement1)));
+                    unique_ptr<SingleStatement> binOpStatement2 = move(child->GetStatement2Internal());
+                    child->SetStatement2(_PutInNot(move(binOpStatement2)));
+                }
+            }
+        }
+    }
 };
 
 class DetermineNegativeValues : public IExploreNode, public IExploreNodeContext
@@ -978,6 +1054,7 @@ void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBe
 
     if (!lookups.DecompileResults().IsAborted())
     {
+        CollapseNots collapseNots(func);
         DetermineHexValues determineHexValues(func);
         DetermineNegativeValues determinedNegValues(func);
 

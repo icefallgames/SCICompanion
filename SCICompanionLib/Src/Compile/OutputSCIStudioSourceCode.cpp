@@ -13,6 +13,10 @@ public:
 
     void Visit(const Script &script) override
     {
+        if (script.SyntaxVersion != 1)
+        {
+            out.out << "(version " << script.SyntaxVersion <<  ")" << out.NewLineString();
+        }
         for (const auto &include : script.GetIncludes())
         {
             out.out << "(include \"" << include << "\")" << out.NewLineString();

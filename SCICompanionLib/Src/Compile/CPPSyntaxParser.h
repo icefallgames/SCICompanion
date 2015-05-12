@@ -459,7 +459,6 @@ public:
         MatchResult& operator=(MatchResult& src) = default;
         ~MatchResult() { }
         bool Result() { return _fResult; }
-        void SetResult(bool fResult) { _fResult = fResult; }
     private:
         bool _fResult;
     };

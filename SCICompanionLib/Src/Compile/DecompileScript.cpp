@@ -310,6 +310,7 @@ void ResolvePublicProcedureCalls(const GameFolderHelper &helper, Script &script,
 Script *Decompile(const GameFolderHelper &helper, const CompiledScript &compiledScript, DecompileLookups &lookups, const ILookupNames *pWords)
 {
     unique_ptr<Script> pScript = std::make_unique<Script>();
+    pScript->SyntaxVersion = 2;
     ScriptId scriptId;
     scriptId.SetResourceNumber(compiledScript.GetScriptNumber());
     pScript->SetScriptId(scriptId);

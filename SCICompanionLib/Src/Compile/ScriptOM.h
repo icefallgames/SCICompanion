@@ -680,6 +680,9 @@ namespace sci
 
 		void SetStatement1(std::unique_ptr<SingleStatement> statement) { _statement1 = std::move(statement); }
         const SingleStatement* GetStatement1() const { return _statement1.get(); }
+        SingleStatement* GetStatement1() { return _statement1.get(); }
+
+        std::unique_ptr<SingleStatement> &GetStatement1Internal() { return _statement1; }
     protected:
         std::unique_ptr<SingleStatement> _statement1;
     };
@@ -696,6 +699,8 @@ namespace sci
 
 		void SetStatement2(std::unique_ptr<SingleStatement> statement) { _statement2 = std::move(statement); }
         const SingleStatement* GetStatement2() const { return _statement2.get(); }
+
+        std::unique_ptr<SingleStatement> &GetStatement2Internal() { return _statement2; }
     protected:
         std::unique_ptr<SingleStatement> _statement2;
     };
@@ -1120,6 +1125,8 @@ namespace sci
         void AddStringDeclaration(std::unique_ptr<VariableDecl> pVar) { _scriptStringDeclarations.push_back(std::move(pVar)); }
         void AddProcedure(std::unique_ptr<ProcedureDefinition> pProc) { _procedures.push_back(std::move(pProc)); }
 		void AddComment(std::unique_ptr<Comment> pComment) { _comments.push_back(std::move(pComment)); }
+
+        int SyntaxVersion;
 
         void SetScriptId(ScriptId scriptId) { _scriptId = scriptId; }
         LangSyntax Language() const { return _scriptId.Language(); }

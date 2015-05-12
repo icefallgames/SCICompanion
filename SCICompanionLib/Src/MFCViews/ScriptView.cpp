@@ -263,6 +263,7 @@ LPTSTR s_apszTopLevelKeywordListSCI[] =
     _T("var"),
     _T("string"),
     _T("synonyms"),
+    _T("version"),
 	nullptr
 };
 std::vector<std::string> g_TopLevelKeywordsSCI;
