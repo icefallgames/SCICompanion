@@ -671,6 +671,7 @@ public:
             if (propValue && useHex.top())
             {
                 propValue->_fHex = true;
+                propValue->_fNegate = false;
             }
         }
 

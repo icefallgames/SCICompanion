@@ -228,12 +228,28 @@ bool SelectorTable::Load(const GameFolderHelper &helper)
     if (blob)
     {
         fRet = _Create(blob->GetReadStream());
+
+        // Cache the default selector values
+        unordered_set<string> defaultSelectorNames = GetDefaultSelectorNames(_version);
+        for (size_t i = 0; i < _names.size(); i++)
+        {
+            const string &name = _names[i];
+            if (defaultSelectorNames.find(name) != defaultSelectorNames.end())
+            {
+                _defaultSelectors.insert((uint16_t)i);
+            }
+        }
     }
     if (!fRet)
     {
         appState->LogInfo("Failed to load selector names from vocab resource");
     }
     return fRet;
+}
+
+bool SelectorTable::IsDefaultSelector(uint16_t value)
+{
+    return _defaultSelectors.find(value) != _defaultSelectors.end();
 }
 
 void SelectorTable::Save()

@@ -797,14 +797,10 @@ unique_ptr<CSCOFile> SCOFromScriptAndCompiledScript(const Script &script, const 
                 exportName = publicInstanceNames.back();
             }
         }
-        else if (compiledScript.IsExportAProcedure(exportOffset))
+        else if (compiledScript.IsExportAProcedure(exportOffset) || (exportOffset == 0))
         {
+            // SCI1.1 have many "zero" exports. We replace them with dummy procedures, so we're good to go here.
             exportName = publicProcNames[procIndex++];
-        }
-        else
-        {
-            // It's a zero export. Not sure why there are so many in SCI1.1 games
-            exportName = "";
         }
         sco->GetExports().emplace_back(exportName, exportIndex);
         exportIndex++;

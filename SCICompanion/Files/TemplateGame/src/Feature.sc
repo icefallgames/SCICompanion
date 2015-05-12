@@ -510,7 +510,9 @@
 			)(else
 				= avoider theAvoider
 			)
-		)
+		)(else
+            = avoider NULL
+        )
 		(if(avoider)
 			(send avoider:
 				init(self rest sendParams)

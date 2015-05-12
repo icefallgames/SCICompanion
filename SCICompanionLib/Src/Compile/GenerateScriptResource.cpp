@@ -1089,10 +1089,10 @@ void GenerateSCOObjects(CompileContext &context, const Script &script)
             {
                 // Must be - we didn't find it in the species props.
                 // Make sure it's not a default property either
-                if (newProp.wSelector < 3)
+                if (context.IsDefaultSelector(newProp.wSelector))
                 {
                     // Someone tried to override a default property
-                    context.ReportError(classDef.get(), "species, superclass, and -info- may not be overridden.");
+                    context.ReportError(classDef.get(), "Can't override default selectors.");
                 }
                 else
                 {

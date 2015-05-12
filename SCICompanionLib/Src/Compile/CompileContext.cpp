@@ -434,6 +434,10 @@ bool CompileContext::LookupSpeciesIndex(const string &str, SpeciesIndex &wSpecie
     }
     return false;
 }
+bool CompileContext::IsDefaultSelector(uint16_t value)
+{
+    return _tables.Selectors().IsDefaultSelector(value);
+}
 bool CompileContext::LookupTypeSpeciesIndex(const string &str, SpeciesIndex &wSpeciesIndex)
 {
     // This is just like LookupSpeciesIndex, except that we also map standard types.
@@ -494,6 +498,17 @@ const WORD c_rgCommonPropsTypesSCI0[] = { DataTypeAny, DataTypeAny, DataTypeUInt
 const char* c_rgCommonPropsSCI1[] = { "-objID-", "-size-","-propDict-","-methoDict-","-classScript-", "-script-", "-super-", "-info-", "name" };
 const WORD c_rgCommonPropsTypesSCI1[] = { DataTypeAny, DataTypeAny, DataTypeAny, DataTypeAny, DataTypeAny, DataTypeAny, DataTypeAny, DataTypeUInt, DataTypeString };
 
+unordered_set<string> GetDefaultSelectorNames(SCIVersion version)
+{
+    if (version.SeparateHeapResources)
+    {
+        return unordered_set<string>(c_rgCommonPropsSCI1, c_rgCommonPropsSCI1 + ARRAYSIZE(c_rgCommonPropsSCI1));
+    }
+    else
+    {
+        return unordered_set<string>(c_rgCommonPropsSCI0, c_rgCommonPropsSCI0 + ARRAYSIZE(c_rgCommonPropsSCI0));
+    }
+}
 
 // The properties returned here, include the 4 default ones.  Even if we can't find the
 // species, we'll return the 4 default ones.

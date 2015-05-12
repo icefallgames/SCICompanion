@@ -448,7 +448,7 @@ namespace sci
         WORD GetNumberValue() const { return _numberValue; }
         std::string GetStringValue() const { return _stringValue; }
         bool IsEmpty() { return (_type == sci::ValueType::None); }
-        void Negate() { _fNegate = true; }
+        void Negate() { _fNegate = true; _fHex = false; }
         ValueType GetType() const { return _type; }
         void SetType(ValueType type) { assert(_type == sci::ValueType::None); _type = type; }
         void Zero() { _type = sci::ValueType::Number; _numberValue = 0; _fHex = false; _fNegate = false; _stringValue.clear(); }

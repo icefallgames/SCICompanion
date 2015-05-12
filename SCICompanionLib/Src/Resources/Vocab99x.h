@@ -2,6 +2,7 @@
 
 #include "interfaces.h"
 #include "CompileCommon.h"
+#include <unordered_set>
 
 class SpeciesIndex;
 class CompiledObjectBase;
@@ -30,6 +31,8 @@ private:
     bool _fDirty;
 };
 
+std::unordered_set<std::string> GetDefaultSelectorNames(SCIVersion version);
+
 //
 // Selector names
 //
@@ -40,12 +43,14 @@ public:
 
     bool Load(const GameFolderHelper &helpern);
     void Save();
+    bool IsDefaultSelector(uint16_t value);
 
 protected:
     std::string _GetMissingName(uint16_t wName) const override;
 
 private:
     SCIVersion _version;
+    std::unordered_set<uint16_t> _defaultSelectors;
 };
 
 //

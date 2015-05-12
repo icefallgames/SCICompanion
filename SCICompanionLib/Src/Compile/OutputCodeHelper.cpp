@@ -77,7 +77,6 @@ void NewLine(sci::SourceCodeWriter &out)
     }
 }
 
-
 void _OutputNumber(sci::SourceCodeWriter &out, WORD wNum, bool fHex, bool fNegate)
 {
     if (fNegate)

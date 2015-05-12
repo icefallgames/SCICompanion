@@ -1,4 +1,4 @@
-﻿Build started 5/8/2015 12:08:58 AM.
+﻿Build started 5/11/2015 3:10:09 PM.
      1>Project "E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\SCICompanion.vcxproj" on node 2 (Build target(s)).
      1>Link:
          F:\VisualStudio\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Release\SCICompanion.exe" /INCREMENTAL:NO /NOLOGO /LIBPATH:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Bin_1000\\" /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /manifestinput:res\SCICompanion.manifest /manifestinput:F:\VisualStudio\VC\Include\Manifest\dpiaware.manifest /DEBUG /PDB:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Release\SCICompanion.pdb" /SUBSYSTEM:WINDOWS /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Release\SCICompanion.lib" /MACHINE:X86 /PROFILE /SAFESEH Release\SCICompanion.res
@@ -6,8 +6,27 @@
          Release\stdafx.obj
          "E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Bin_1000\ProfUIS292sm.lib"
          "E:\Documents\Visual Studio 2013\Projects\SCICompanion\Release\SCICompanionLib.lib"
-     1>Done Building Project "E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\SCICompanion.vcxproj" (Build target(s)) -- FAILED.
+            Creating library E:\Documents\Visual Studio 2013\Projects\SCICompanion\Release\SCICompanion.lib and object E:\Documents\Visual Studio 2013\Projects\SCICompanion\Release\SCICompanion.exp
+         Generating code
+         Finished generating code
+         SCICompanion.vcxproj -> E:\Documents\Visual Studio 2013\Projects\SCICompanion\Release\SCICompanion.exe
+       PostBuildEvent:
+         xcopy /S /Y /I /D "E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\TemplateGame" "E:\Documents\Visual Studio 2013\Projects\SCICompanion\Release\TemplateGame"
+         
+         xcopy /S /Y /I /D "E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\CompileInclude" "E:\Documents\Visual Studio 2013\Projects\SCICompanion\Release\include"
+         xcopy /S /Y /I /D "E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Help" "E:\Documents\Visual Studio 2013\Projects\SCICompanion\Release\Help"
+         
+         xcopy /S /Y /I /D "E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Samples" "E:\Documents\Visual Studio 2013\Projects\SCICompanion\Release\Samples"
+         xcopy /S /Y /I /D "E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Decompiler" "E:\Documents\Visual Studio 2013\Projects\SCICompanion\Release\Decompiler"
+         
+         :VCEnd
+         0 File(s) copied
+         0 File(s) copied
+         0 File(s) copied
+         0 File(s) copied
+         0 File(s) copied
+     1>Done Building Project "E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\SCICompanion.vcxproj" (Build target(s)).
 
-Build FAILED.
+Build succeeded.
 
-Time Elapsed 00:00:06.45
+Time Elapsed 00:03:04.24

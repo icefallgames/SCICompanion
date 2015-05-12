@@ -253,6 +253,7 @@ void RestStatement::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
 void Asm::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
 {
     ExploreNodeBlock enb(en, pContext, *this);
+    ForwardTraverse2(_segments, pContext, en);
 }
 void AsmBlock::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
 {

@@ -386,13 +386,23 @@ Script *Decompile(const GameFolderHelper &helper, const CompiledScript &compiled
         // _exportsTO, in addition to containing code pointers for public procedures, also
         // contain the Rm class.  Filter these out by ignoring code pointers which point outside
         // the codesegment.
-        if (compiledScript.IsExportAProcedure(compiledScript._exportsTO[i]))
+        uint16_t exportPointer = compiledScript._exportsTO[i];
+        if (compiledScript.IsExportAProcedure(exportPointer) || (exportPointer == 0))
         {
             std::unique_ptr<ProcedureDefinition> pProc = std::make_unique<ProcedureDefinition>();
             pProc->SetScript(pScript.get());
             pProc->SetName(lookups.ReverseLookupPublicExportName(compiledScript.GetScriptNumber(), (uint16_t)i));
             pProc->SetPublic(true);
-            DecompileFunction(compiledScript, *pProc, lookups, compiledScript._exportsTO[i], codePointersTO);
+            if (exportPointer != 0)
+            {
+                DecompileFunction(compiledScript, *pProc, lookups, exportPointer, codePointersTO);
+            }
+            else
+            {
+                // Add a dummy function to take the place of this export.
+                pProc->AddSignature(make_unique<FunctionSignature>());
+                lookups.DecompileResults().AddResult(DecompilerResultType::Update, fmt::format("Replacing empty export with dummy proc: {0}", pProc->GetName()));
+            }
             pScript->AddProcedure(std::move(pProc));
         }
     }

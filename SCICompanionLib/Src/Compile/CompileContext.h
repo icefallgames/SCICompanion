@@ -97,6 +97,7 @@ public:
     //
     ResolvedToken LookupToken(const sci::SyntaxNode *pNode, const std::string &str, WORD &wIndex, SpeciesIndex &dataType, WORD *pwScript = nullptr);
     bool LookupSpeciesIndex(const std::string &str, SpeciesIndex &wSpeciesIndex);
+    bool IsDefaultSelector(uint16_t value);
     SpeciesIndex LookupTypeSpeciesIndex(const std::string &str, const ISourceCodePosition *pPos);
     bool LookupTypeSpeciesIndex(const std::string &str, SpeciesIndex &wSpeciesIndex);
     std::string SpeciesIndexToDataTypeString(SpeciesIndex wSpeciesIndex);
