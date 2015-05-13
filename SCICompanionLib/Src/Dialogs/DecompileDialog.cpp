@@ -668,7 +668,7 @@ UINT DecompileDialog::s_DecompileThreadWorker(void *pParam)
         }
 
         // Redo this one each time
-        pThis->_decompilerConfig = CreateDecompilerConfig(helper);
+        pThis->_decompilerConfig = CreateDecompilerConfig(helper, pThis->_lookups->GetSelectorTable());
         if (!pThis->_decompilerConfig->error.empty())
         {
             string errorMessage = "Decompiler.ini: ";

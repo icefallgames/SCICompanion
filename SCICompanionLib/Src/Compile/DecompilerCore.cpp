@@ -8,6 +8,7 @@
 #include "DecompilerNew.h"
 #include "DecompilerFallback.h"
 #include "format.h"
+#include "DecompilerConfig.h"
 #include <iterator>
 
 #define DEBUG_DECOMPILER 1
@@ -802,6 +803,35 @@ private:
     }
 };
 
+class ResolveCallSiteParameters : public IExploreNode, public IExploreNodeContext
+{
+public:
+    ResolveCallSiteParameters(DecompileLookups &decompileLookups, FunctionBase &func) : _lookups(decompileLookups)
+    {
+        func.Traverse(this, *this);
+    }
+
+    void ExploreNode(IExploreNodeContext *pContext, SyntaxNode &node, ExploreNodeState state) override
+    {
+        if (state == ExploreNodeState::Pre)
+        {
+            SendParam *send = SafeSyntaxNode<SendParam>(&node);
+            if (send)
+            {
+                _lookups.GetDecompilerConfig()->ResolveMethodCallParameterTypes(*send);
+            }
+            ProcedureCall *procCall = SafeSyntaxNode<ProcedureCall>(&node);
+            if (procCall)
+            {
+                _lookups.GetDecompilerConfig()->ResolveProcedureCallParameterTypes(*procCall);
+            }
+        }
+    }
+
+private:
+    DecompileLookups &_lookups;
+};
+
 class DetermineNegativeValues : public IExploreNode, public IExploreNodeContext
 {
 public:
@@ -1055,6 +1085,7 @@ void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBe
     if (!lookups.DecompileResults().IsAborted())
     {
         CollapseNots collapseNots(func);
+        ResolveCallSiteParameters resolveCallSiteParameters(lookups, func);
         DetermineHexValues determineHexValues(func);
         DetermineNegativeValues determinedNegValues(func);
 

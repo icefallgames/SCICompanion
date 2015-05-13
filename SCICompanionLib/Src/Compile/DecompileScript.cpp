@@ -8,6 +8,7 @@
 #include "GameFolderHelper.h"
 #include "DecompilerResults.h"
 #include "format.h"
+#include "DecompilerConfig.h"
 
 using namespace sci;
 using namespace std;
@@ -71,7 +72,11 @@ void DecompileObject(const CompiledObjectBase &object,
                         // Just give it a number
                         uint16_t number = propValue.value;
                         value.SetValue(number);
-                        if (number >= 32768)
+                        if (lookups.GetDecompilerConfig()->IsBitfieldProperty(prop.GetName()))
+                        {
+                            value._fHex = true;
+                        }
+                        else if (number >= 32768)
                         {
                             // A good bet that it's negative
                             value.Negate();

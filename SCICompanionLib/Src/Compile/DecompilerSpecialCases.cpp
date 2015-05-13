@@ -133,27 +133,6 @@ void _MassagePrint(ProcedureCall &proc, DecompileLookups &lookups)
     }
 }
 
-// REVIEW: Make this a generic mechanism
-void _MassageLoad(ProcedureCall &proc, DecompileLookups &lookups)
-{
-    SingleStatement *pOne = proc.GetParameter(0);
-    if (pOne)
-    {
-        PropertyValue *pValue = pOne->CastSyntaxNode<PropertyValue>();
-        if (pValue && (pValue->GetType() == ValueType::Number))
-        {
-            static const std::string rgResourceTypes[] =
-            {
-                "rsVIEW", "rsPIC", "rsSCRIPT", "rsTEXT", "rsSOUND", "rsMEMORY", "rsVOCAB", "rsFONT", "rsCURSOR", "rsPATCH"
-            };
-            if ((pValue->GetNumberValue() >= 0x0080) && pValue->GetNumberValue() < (0x0080 + ARRAYSIZE(rgResourceTypes)))
-            {
-                pValue->SetValue(rgResourceTypes[pValue->GetNumberValue() - 0x0080], ValueType::Token);
-            }
-        }
-    }
-}
-
 //
 // Try to massage the parameters so that it makes more sense to the user.
 //
@@ -162,10 +141,6 @@ void _MassageProcedureCall(ProcedureCall &proc, DecompileLookups &lookups)
     if (proc.GetName() == "Print")
     {
         _MassagePrint(proc, lookups);
-    }
-    else if (proc.GetName() == "Load")
-    {
-        _MassageLoad(proc, lookups);
     }
 }
 

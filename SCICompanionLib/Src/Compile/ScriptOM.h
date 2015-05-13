@@ -524,13 +524,13 @@ namespace sci
     public:
         const std::string &GetLabel() const { return _label; }
         const std::string &GetName() const { return _label; }
-        WORD GetValue() const { ASSERT(_strValue.empty()); return _wValue; }
+        uint16_t GetValue() const { ASSERT(_strValue.empty()); return _wValue; }
         bool Match(const std::string &label) { return label == _label; }
 
         IntegerFlags GetFlags() const { return _flags; }
         void SetLabel(const std::string &label) { _label = label; }
-        void SetValue(WORD w) { _wValue = w; }
-        void SetValue(int iNumber, IntegerFlags flags) { ASSERT(iNumber <= 0xFFFF); _wValue = static_cast<WORD>(iNumber); _flags = flags; }
+        void SetValue(uint16_t w) { _wValue = w; }
+        void SetValue(int iNumber, IntegerFlags flags) { ASSERT(iNumber <= 0xFFFF); _wValue = static_cast<uint16_t>(iNumber); _flags = flags; }
         void SetValue(const std::string &value) { _strValue = value; };
         
 
@@ -542,7 +542,7 @@ namespace sci
         std::string _label;
 
         // Either _strValue is non-empty, or _wValue is valid.
-        WORD _wValue;
+        uint16_t _wValue;
         IntegerFlags _flags;
         std::string _strValue;
     };

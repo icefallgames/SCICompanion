@@ -620,14 +620,7 @@ std::string CResourceMap::GetIncludeFolder()
     std::string includeFolder = _includeFolderOverride;
     if (includeFolder.empty())
     {
-        // The normal case...
-        TCHAR szPath[MAX_PATH];
-        if (GetModuleFileName(nullptr, szPath, ARRAYSIZE(szPath)))
-        {
-            PSTR pszFileName = PathFindFileName(szPath);
-            *pszFileName = 0; // null it
-            includeFolder += szPath;
-        }
+        return _gameFolderHelper.GetIncludeFolder();
     }
     includeFolder += "include";
     return includeFolder;

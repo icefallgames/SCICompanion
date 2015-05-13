@@ -25,6 +25,7 @@ public:
     std::string GameFolderHelper::GetSrcFolder() const;
     std::string GetGameIniFileName() const;
     std::string GetIniString(const std::string &sectionName, const std::string &keyName, PCSTR pszDefault = "") const;
+    std::string GetIncludeFolder() const;
     void SetIniString(const std::string &sectionName, const std::string &keyName, const std::string &value) const;
     LangSyntax GetGameLanguage() const { return Language; }
     ScriptId GetScriptId(const std::string &name) const;
