@@ -1,4 +1,4 @@
-﻿Build started 5/12/2015 9:46:11 PM.
+﻿Build started 5/12/2015 11:29:03 PM.
      1>Project "E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\SCICompanion.vcxproj" on node 2 (Build target(s)).
      1>Link:
          F:\VisualStudio\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Debug\SCICompanion.exe" /INCREMENTAL /NOLOGO /LIBPATH:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Bin_1000\\" /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /manifestinput:res\SCICompanion.manifest /manifestinput:F:\VisualStudio\VC\Include\Manifest\dpiaware.manifest /DEBUG /PDB:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Debug\SCICompanion.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Debug\SCICompanion.lib" /MACHINE:X86 Debug\SCICompanion.res
@@ -19,12 +19,14 @@
          
          :VCEnd
          0 File(s) copied
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\CompileInclude\sci.sh
+         1 File(s) copied
          0 File(s) copied
          0 File(s) copied
-         0 File(s) copied
-         0 File(s) copied
+         E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\Files\Decompiler\Decompiler.ini
+         1 File(s) copied
      1>Done Building Project "E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanion\SCICompanion.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:05.55
+Time Elapsed 00:00:05.41

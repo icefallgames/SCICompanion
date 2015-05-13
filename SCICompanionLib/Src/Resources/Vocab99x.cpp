@@ -138,7 +138,8 @@ static const char *const s_defaultKernelNames[] = {
     /*0x6e*/ "ShiftScreen",     // never called?
     /*0x6f*/ "Palette",
     /*0x70*/ "MemorySegment",
-    /*0x71*/ "Intersections",	// MoveCursor (SCI1 late), PalVary (SCI1.1)
+    ///*0x71*/ "Intersections",	// MoveCursor (SCI1 late), PalVary (SCI1.1)
+    /*0x71*/ "PalVary",	        // MoveCursor (SCI1 late), PalVary (SCI1.1)
     /*0x72*/ "Memory",
     /*0x73*/ "ListOps",         // never called?
     /*0x74*/ "FileIO",
@@ -676,14 +677,12 @@ const char szMissingKernel[] = "Joystick";
 uint16_t wMissingKernel = 113;
 std::string KernelTable::Lookup(uint16_t wName) const
 {
-    if (wName == wMissingKernel)
+    std::string result = __super::Lookup(wName);
+    if (result.empty() && (wName == wMissingKernel))
     {
-        return szMissingKernel;
+        result = szMissingKernel;
     }
-    else
-    {
-        return __super::Lookup(wName);
-    }
+    return result;
 }
 bool KernelTable::ReverseLookup(std::string name, uint16_t &wIndex) const
 {
