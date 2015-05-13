@@ -990,7 +990,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode2(ConsumptionNode &node, Decomp
 
         case ChunkType::TrueNode:
         {
-            // This could mean FALSE, or NULL, we don't know which. So just use 0.
+            // This could mean TRUE
             unique_ptr<PropertyValue> valueTemp = make_unique<PropertyValue>();
             valueTemp->SetValue("TRUE", ValueType::Token);
             return unique_ptr<SyntaxNode>(move(valueTemp));

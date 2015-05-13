@@ -1,56 +1,8 @@
-﻿Build started 5/12/2015 1:39:52 PM.
+﻿Build started 5/12/2015 5:03:19 PM.
      1>Project "E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\SCICompanionLib.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
-         F:\VisualStudio\VC\bin\CL.exe /c /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\\" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Util" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Resources" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCViews" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCFrames" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCDocuments" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\FrameComponents" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Dialogs" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CrystalEdit" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CRC32" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CppFormat" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Compile" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Include" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Src" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\cpptoml" /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _WINDOWS /D NO_WARN_MBCS_MFC_DEPRECATION /D _DEBUG /D _USRDLL /D _MBCS /Gm /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"Debug\SCICompanionLib.pch" /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt /Qpar Src\Compile\AutoDetectVariableNames.cpp Src\Compile\CPPSyntaxParser.cpp Src\Compile\CPPTokenizer.cpp Src\Compile\Compile.cpp Src\Compile\CompileContext.cpp Src\Compile\CompiledScript.cpp Src\Compile\ControlFlowGraph.cpp Src\Compile\DecompileScript.cpp Src\Compile\DecompilerConfig.cpp Src\Compile\DecompilerCore.cpp Src\Compile\DecompilerFallback.cpp Src\Compile\DecompilerNew.cpp Src\Compile\DecompilerSpecialCases.cpp Src\Compile\Disassembler.cpp Src\Compile\GenerateScriptResource.cpp Src\Compile\Kernels.cpp Src\Compile\OutputCodeHelper.cpp Src\Compile\OutputCppSourceCode.cpp Src\Compile\OutputSCISourceCode.cpp Src\Compile\OutputSCIStudioSourceCode.cpp Src\Compile\SCIStudioSyntaxParser.cpp Src\Compile\SCO.cpp Src\Compile\ScriptDebug.cpp Src\Compile\ScriptOM.cpp Src\Compile\ScriptOMTraverse.cpp Src\Compile\SyntaxParser.cpp Src\Compile\Types.cpp Src\Dialogs\ClassBrowserDialog.cpp Src\Dialogs\DecompileDialog.cpp Src\Dialogs\InsertObject.cpp Src\Dialogs\NewRoomDialog.cpp Src\Dialogs\SCIPropertyCtrl.cpp Src\Dialogs\SCIPropertyInfo.cpp Src\Dialogs\SCIProps.cpp Src\FrameComponents\CodeToolTips.cpp Src\FrameComponents\QuickScripts.cpp Src\FrameComponents\ScriptComboBox.cpp Src\MFCDocuments\ScriptDocument.cpp Src\MFCFrames\MainFrm.cpp Src\MFCViews\RoomExplorerView.cpp Src\MFCViews\ScriptView.cpp Src\Util\ClassBrowser.cpp Src\Util\ClassBrowserInfo.cpp Src\Util\CodeAutoComplete.cpp Src\Util\SCIDocs.cpp
-         DecompilerCore.cpp
-         Generating Code...
-         Compiling...
-         Compile.cpp
-         Generating Code...
-         Skipping... (no relevant changes detected)
-         SCIDocs.cpp
-         CodeAutoComplete.cpp
-         ClassBrowserInfo.cpp
-         ClassBrowser.cpp
-         ScriptView.cpp
-         RoomExplorerView.cpp
-         MainFrm.cpp
-         ScriptDocument.cpp
-         ScriptComboBox.cpp
-         QuickScripts.cpp
-         CodeToolTips.cpp
-         SCIProps.cpp
-         SCIPropertyInfo.cpp
-         SCIPropertyCtrl.cpp
-         NewRoomDialog.cpp
-         InsertObject.cpp
-         DecompileDialog.cpp
-         ClassBrowserDialog.cpp
-         Types.cpp
-         SyntaxParser.cpp
-         ScriptOMTraverse.cpp
-         ScriptOM.cpp
-         ScriptDebug.cpp
-         SCO.cpp
-         SCIStudioSyntaxParser.cpp
-         OutputSCIStudioSourceCode.cpp
-         OutputSCISourceCode.cpp
-         OutputCppSourceCode.cpp
-         OutputCodeHelper.cpp
-         Kernels.cpp
-         GenerateScriptResource.cpp
-         Disassembler.cpp
-         DecompilerSpecialCases.cpp
-         DecompilerNew.cpp
-         DecompilerFallback.cpp
-         DecompilerConfig.cpp
-         DecompileScript.cpp
-         ControlFlowGraph.cpp
-         CompiledScript.cpp
-         CompileContext.cpp
-         CPPTokenizer.cpp
-         CPPSyntaxParser.cpp
-         AutoDetectVariableNames.cpp
+         F:\VisualStudio\VC\bin\CL.exe /c /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\\" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Util" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Resources" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCViews" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCFrames" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\MFCDocuments" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\FrameComponents" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Dialogs" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CrystalEdit" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CRC32" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\CppFormat" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\Compile" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Include" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Prof-UIS.2.92\Src" /I"E:\Documents\Visual Studio 2013\Projects\SCICompanion\SCICompanionLib\Src\cpptoml" /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _WINDOWS /D NO_WARN_MBCS_MFC_DEPRECATION /D _DEBUG /D _USRDLL /D _MBCS /Gm /EHsc /RTC1 /MTd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Yu"stdafx.h" /Fp"Debug\SCICompanionLib.pch" /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt /Qpar Src\Compile\PMachine.cpp
+         PMachine.cpp
        Lib:
          F:\VisualStudio\VC\bin\Lib.exe /OUT:"E:\Documents\Visual Studio 2013\Projects\SCICompanion\Debug\SCICompanionLib.lib" /NOLOGO /VERBOSE Debug\AutoDetectVariableNames.obj
          Debug\ControlFlowNode.obj
@@ -439,4 +391,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:07.29
+Time Elapsed 00:00:01.37

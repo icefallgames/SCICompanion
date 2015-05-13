@@ -184,7 +184,7 @@ OperandType OpArgTypes[TOTAL_OPCODES][3] = {
 	/*toss*/     {otEMPTY,otEMPTY,otEMPTY},
 /*30*/
 	/*dup*/      {otEMPTY,otEMPTY,otEMPTY},
-	/*link*/     {otINT,otEMPTY,otEMPTY},
+	/*link*/     {otUINT,otEMPTY,otEMPTY},
     /*call*/     {otLABEL,otUINT8,otEMPTY},
 	/*callk*/    {otKERNEL,otUINT8,otEMPTY},
 	/*callb*/    {otPUBPROC,otUINT8,otEMPTY},
