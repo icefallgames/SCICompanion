@@ -18,7 +18,7 @@ public:
     virtual std::string Lookup(uint16_t wName) const;
     virtual bool ReverseLookup(std::string name, uint16_t &wIndex) const;
     const std::vector<std::string> &GetNames() const { return _names; }
-    uint16_t Add(const std::string &str);
+    virtual uint16_t Add(const std::string &str);
     bool Create(sci::istream *pStream, bool fTruncationOk = false) { return _Create(*pStream, fTruncationOk); }
 
 protected:
@@ -26,8 +26,6 @@ protected:
     bool _IsDirty() { return _fDirty; }
     virtual std::string _GetMissingName(uint16_t wName) const { return ""; }
     std::vector<std::string> _names;
-
-private:
     bool _fDirty;
 };
 
@@ -36,19 +34,29 @@ std::unordered_set<std::string> GetDefaultSelectorNames(SCIVersion version);
 //
 // Selector names
 //
-class SelectorTable : public CVocabWithNames
+class SelectorTable : public ILookupNames
 {
 public:
+    SelectorTable() : _firstInvalidSelector(0), _fDirty(false) {}
     std::string Lookup(uint16_t wName) const override;
+    std::vector<std::string> GetNamesForDisplay() const;
+    bool ReverseLookup(std::string name, uint16_t &wIndex);
 
     bool Load(const GameFolderHelper &helpern);
+    uint16_t Add(const std::string &str);
     void Save();
     bool IsDefaultSelector(uint16_t value);
 
 protected:
-    std::string _GetMissingName(uint16_t wName) const override;
+    bool _Create(sci::istream &byteStream);
+    std::string _GetMissingName(uint16_t wName) const;
 
 private:
+    std::vector<int> _indices;          // Selector value indices into _names.
+    std::vector<std::string> _names;
+    std::unordered_map<std::string, uint16_t> _nameToValueCache;
+    bool _fDirty;
+    size_t _firstInvalidSelector;
     SCIVersion _version;
     std::unordered_set<uint16_t> _defaultSelectors;
 };

@@ -216,9 +216,115 @@ uint16_t CVocabWithNames::Add(const string &str)
     return static_cast<uint16_t>(_names.size() - 1);
 }
 
+const char c_szBadSelector[] = "BAD SELECTOR";
+
+bool SelectorTable::_Create(sci::istream &byteStream)
+{
+    _names.clear();
+    uint16_t wMaxIndex;
+    byteStream >> wMaxIndex;
+
+    uint16_t totalCount = wMaxIndex + 1;
+
+    unordered_set<string> defaultSelectorNames = GetDefaultSelectorNames(_version);
+
+    // Perf: reserve this capacity so we don't need to resize.
+    _indices.reserve(totalCount);
+    _names.reserve(800);    // Just some fairly large number.
+    _firstInvalidSelector = 0xffff;
+    uint16_t firstBadOffset = 0;
+    for (uint16_t i = 0; byteStream.good() && i < totalCount; i++)
+    {
+        uint16_t wOffset;
+        byteStream >> wOffset;
+        if (wOffset == firstBadOffset)
+        {
+            _indices.push_back(-1);
+        }
+        else
+        {
+            uint32_t dwSavePos = byteStream.tellg();
+            byteStream.seekg(wOffset);
+            if (byteStream.good())
+            {
+                std::string str;
+                // Vocab files strings are run-length encoded.
+                byteStream.getRLE(str);
+                if (byteStream.good())
+                {
+                    if (str == c_szBadSelector)
+                    {
+                        _firstInvalidSelector = _indices.size();
+                        _indices.push_back(-1);
+                        firstBadOffset = wOffset;
+                    }
+                    else
+                    {
+                        _indices.push_back(_names.size());
+                        _names.push_back(str);
+                    }
+
+                    // Cache the default selector values... possibly expensive
+                    if (defaultSelectorNames.find(str) != defaultSelectorNames.end())
+                    {
+                        _defaultSelectors.insert((uint16_t)_indices.back());
+                    }
+                }
+            }
+            byteStream.seekg(dwSavePos); // Go back
+        }
+    }
+
+    if (_firstInvalidSelector == 0xffff)
+    {
+        _firstInvalidSelector = _indices.size();
+    }
+
+    return byteStream.good();
+}
+
+std::vector<std::string> SelectorTable::GetNamesForDisplay() const
+{
+    std::vector<std::string> displayNames;
+    displayNames.reserve(_names.size());
+    int selIndex = 0;
+    for (size_t i : _indices)
+    {
+        if (i != -1)
+        {
+            displayNames.push_back(fmt::format("{0} (0x{0:x}): {1}", selIndex, _names[i]));
+        }
+        selIndex++;
+    }
+    return displayNames;
+}
+
 std::string SelectorTable::_GetMissingName(uint16_t wName) const
 {
     return fmt::format("sel_{0}", wName);
+}
+
+bool SelectorTable::ReverseLookup(std::string name, uint16_t &wIndex)
+{
+    if (_nameToValueCache.empty())
+    {
+        for (size_t i = 0; i < _indices.size(); i++)
+        {
+            if (_indices[i] != -1)
+            {
+                const string &name = _names[_indices[i]];
+                _nameToValueCache[name] = (uint16_t)i;
+            }
+        }
+    }
+
+    auto it = _nameToValueCache.find(name);
+    if (it != _nameToValueCache.end())
+    {
+        wIndex = it->second;
+        return true;
+    }
+    return false;
 }
 
 bool SelectorTable::Load(const GameFolderHelper &helper)
@@ -229,23 +335,39 @@ bool SelectorTable::Load(const GameFolderHelper &helper)
     if (blob)
     {
         fRet = _Create(blob->GetReadStream());
-
-        // Cache the default selector values
-        unordered_set<string> defaultSelectorNames = GetDefaultSelectorNames(_version);
-        for (size_t i = 0; i < _names.size(); i++)
-        {
-            const string &name = _names[i];
-            if (defaultSelectorNames.find(name) != defaultSelectorNames.end())
-            {
-                _defaultSelectors.insert((uint16_t)i);
-            }
-        }
     }
     if (!fRet)
     {
         appState->LogInfo("Failed to load selector names from vocab resource");
     }
     return fRet;
+}
+
+uint16_t SelectorTable::Add(const std::string &str)
+{
+    assert(find(_names.begin(), _names.end(), str) == _names.end());
+    uint16_t selValue = (uint16_t)_firstInvalidSelector;
+    int stringIndex = (int)_names.size();
+    _names.push_back(str);
+    // Add at the insert point.
+    if (_firstInvalidSelector < _indices.size())
+    {
+        assert(_indices[_firstInvalidSelector] == -1);
+        _indices[_firstInvalidSelector] = stringIndex;
+        _firstInvalidSelector++;
+        while ((_firstInvalidSelector < _indices.size()) && (_indices[_firstInvalidSelector] != -1))
+        {
+            _firstInvalidSelector++;
+        }
+    }
+    else
+    {
+        _firstInvalidSelector++;
+        _indices.push_back(stringIndex);
+    }
+    _fDirty = true;
+    _nameToValueCache[str] = selValue;
+    return selValue;
 }
 
 bool SelectorTable::IsDefaultSelector(uint16_t value)
@@ -255,35 +377,46 @@ bool SelectorTable::IsDefaultSelector(uint16_t value)
 
 void SelectorTable::Save()
 {
-    if (_IsDirty())
+    if (_fDirty)
     {
         // Save ourselves
-        const vector<string> &names = GetNames();
-        uint16_t cNames = (uint16_t)names.size();
-        if (cNames > 0)
+        uint16_t cItems = (uint16_t)_indices.size();
+        vector<BYTE> output;
+        push_word(output, cItems - 1);  // This is total size minus one (max index)
+        // Then come the offsets - we can run through the strings to calculate these.
+        uint16_t wOffset = (uint16_t)output.size() + cItems * 2; // the strings will start after the offsets.
+        uint16_t badSelOffset = 0xffff;
+        bool needBAD_SELECTOR = _firstInvalidSelector < _indices.size();
+        if (needBAD_SELECTOR)
         {
-            vector<BYTE> output;
-            // The max index: (size - 1)
-            push_word(output, cNames - 1);
-            // Then come the offsets - we can run through the strings to calculate these.
-            uint16_t wOffset = (uint16_t)output.size() + cNames * 2; // the strings will start after the offsets.
-            vector<string>::const_iterator nameIt = names.begin();
-            while (nameIt != names.end())
+            badSelOffset = wOffset;
+            wOffset += lstrlen(c_szBadSelector) + 2;
+        }
+        for (int index : _indices)
+        {
+            if (index != -1)
             {
                 push_word(output, wOffset);
-                wOffset += (uint16_t)(nameIt->length() + 2); // Increase by size of rle string.
-                ++nameIt;
+                wOffset += (uint16_t)(_names[index].length() + 2); // Increase by size of rle string.
             }
-            // Now write the strings
-            nameIt = names.begin();
-            while (nameIt != names.end())
+            else
             {
-                push_string_rle(output, *nameIt);
-                ++nameIt;
+                assert(needBAD_SELECTOR);
+                push_word(output, badSelOffset);
             }
-            // Now create a resource data for it and save it.
-            appState->GetResourceMap().AppendResource(ResourceBlob(nullptr, ResourceType::Vocab, output, _version.DefaultVolumeFile, VocabSelectorNames, appState->GetVersion(), ResourceSourceFlags::ResourceMap));
         }
+
+        // Now write the strings
+        if (needBAD_SELECTOR)
+        {
+            push_string_rle(output, c_szBadSelector);
+        }
+        for (string &name : _names)
+        {
+            push_string_rle(output, name);
+        }
+        // Now create a resource data for it and save it.
+        appState->GetResourceMap().AppendResource(ResourceBlob(nullptr, ResourceType::Vocab, output, _version.DefaultVolumeFile, VocabSelectorNames, appState->GetVersion(), ResourceSourceFlags::ResourceMap));
     }
 }
 
@@ -293,7 +426,23 @@ string SelectorTable::Lookup(uint16_t wName) const
     {
         wName >>= 1;
     }
-    return __super::Lookup(wName);
+    std::string strRet;
+    if ((size_t)wName < _indices.size())
+    {
+        if (_indices[wName] == -1)
+        {
+            strRet = c_szBadSelector;
+        }
+        else
+        {
+            strRet = _names[_indices[wName]];
+        }
+    }
+    else
+    {
+        strRet = _GetMissingName(wName);
+    }
+    return strRet;
 }
 
 bool KernelTable::Load(const GameFolderHelper &helper)

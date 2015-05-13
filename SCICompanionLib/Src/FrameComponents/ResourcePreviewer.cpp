@@ -327,7 +327,7 @@ END_MESSAGE_MAP()
 VocabPreviewer::~VocabPreviewer() {}
 
 
-void VocabPreviewer::_Populate(const std::vector<std::string> &names, bool prependNumber)
+void VocabPreviewer::_Populate(const std::vector<std::string> &names, const bool prependNumber)
 {
     std::vector<std::string>::const_iterator it = names.begin();
     
@@ -416,7 +416,7 @@ void VocabPreviewer::SetResource(const ResourceBlob &blob)
             SelectorTable selectors;
             if (selectors.Load(appState->GetResourceMap().Helper()))
             {
-                _Populate(selectors.GetNames(), true);
+                _Populate(selectors.GetNamesForDisplay(), false);
                 fSuccess = true;
             }
         }
