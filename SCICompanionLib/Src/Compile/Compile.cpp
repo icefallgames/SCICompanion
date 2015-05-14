@@ -2177,9 +2177,11 @@ CodeResult UnaryOp::OutputByteCode(CompileContext &context) const
     else
     {
         // bnot, not, neg
-        COutputContext accContext(context, OC_Accumulator);
-		result = _statement1->OutputByteCode(context);
-		WriteSimple(context, GetInstructionForUnaryOperator(GetOpName()));
+        {
+            COutputContext accContext(context, OC_Accumulator);
+            result = _statement1->OutputByteCode(context);
+            WriteSimple(context, GetInstructionForUnaryOperator(GetOpName()));
+        }
         // Push the acc onto the stack if necessary.
         result = CodeResult(PushToStackIfAppropriate(context), result.GetType()); // Repackage the result with the # of bytes written to the stack
     }
