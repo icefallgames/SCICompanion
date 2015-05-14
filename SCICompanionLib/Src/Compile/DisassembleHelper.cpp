@@ -16,10 +16,11 @@ string _GetTempVariableName(int index)
 {
     return _GetVariableName("temp%d", index);
 }
-string _GetLocalVariableName(int index)
+string _GetLocalVariableName(int index, uint16_t scriptNum)
 {
-    //return _GetVariableName("local_%04d", index);
-    return _GetVariableName("local%d", index);
+    return (scriptNum == 0) ?
+        _GetGlobalVariableName(index) :
+    _GetVariableName("local%d", index);
 }
 string _GetGlobalVariableName(int index)
 {

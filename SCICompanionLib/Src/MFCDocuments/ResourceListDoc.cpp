@@ -136,7 +136,6 @@ void CResourceListDoc::Serialize(CArchive& ar)
     if (ar.IsStoring())
     {
         // There is nothing to save.
-        int x = 0;
     }
     else
     {

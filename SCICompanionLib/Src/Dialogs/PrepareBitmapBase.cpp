@@ -339,11 +339,6 @@ BOOL PrepareBitmapBase::_Init(std::unique_ptr<Gdiplus::Bitmap> pImageIn, CWnd *p
 
 void PrepareBitmapBase::_OnPasteFromClipboard(CWnd *pwnd)
 {
-    if (IsClipboardFormatAvailable(CF_PALETTE))
-    {
-        int x = 0;
-    }
-
     if (IsClipboardFormatAvailable(CF_BITMAP))
     {
         OpenClipboardGuard guard(pwnd);

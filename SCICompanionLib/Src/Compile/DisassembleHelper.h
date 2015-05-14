@@ -3,7 +3,7 @@
 class ILookupNames;
 
 std::string _GetTempVariableName(int index);
-std::string _GetLocalVariableName(int index);
+std::string _GetLocalVariableName(int index, uint16_t scriptNum);
 std::string _GetGlobalVariableName(int index);
 std::string _GetParamVariableName(int index);
 

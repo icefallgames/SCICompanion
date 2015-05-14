@@ -1939,8 +1939,61 @@ bool SkipStructuredLevels(ConsumptionNode *&child, ConsumptionNode *&parent)
     return true;
 }
 
+
 template<typename _Func, typename _FuncCreate>
 bool TryToStealOrCloneSomething(ConsumptionNode *originalChild, DecompileLookups &lookups, _Func satisfiesNeeds, _FuncCreate funcCreate)
+{
+    ConsumptionNode *child = originalChild;
+    ConsumptionNode *parent = child->_parentWeak;
+    bool success = false;
+    bool done = false;
+    while (!done && parent)
+    {
+        if (IsNodeStructureWithInstructionSequence(parent))
+        {
+            int index = parent->GetIndexOf(child); // Start with previous peer of parent
+            for (int i = index - 1; i >= 0; i--)
+            {
+                Consumption consumption = _GetInstructionConsumption(*parent->Child(i), lookups);
+                if (satisfiesNeeds(consumption))
+                {
+                    // This is it.
+                    ReplaceNodeWithNode(originalChild, parent->Child(i), funcCreate, lookups);
+                    success = true;
+                    done = true;
+                    break;
+                }
+            }
+        }
+        
+        if (!done)
+        {
+            switch (parent->GetType())
+            {
+                case ChunkType::First:  // But not second
+                case ChunkType::And:
+                case ChunkType::Or:
+                case ChunkType::None:
+                case ChunkType::Invert:
+                case ChunkType::FunctionBody:
+                case ChunkType::Condition:      // We won't proceed further if we bump up to a while or something...
+                case ChunkType::If:
+                    // Go up a level
+                    child = parent;
+                    parent = child->_parentWeak;
+                    break;
+
+                default:
+                    done = true;
+                    break;
+            }
+        }
+    }
+    return success;
+}
+
+template<typename _Func, typename _FuncCreate>
+bool TryToStealOrCloneSomethingOLD(ConsumptionNode *originalChild, DecompileLookups &lookups, _Func satisfiesNeeds, _FuncCreate funcCreate)
 {
     bool success = false;
     bool done = false;
@@ -1950,6 +2003,7 @@ bool TryToStealOrCloneSomething(ConsumptionNode *originalChild, DecompileLookups
     ConsumptionNode *parent = child->_parentWeak;
     while (!done && parent)
     {
+        assert(IsNodeStructureWithInstructionSequence(parent));
         int index = parent->GetIndexOf(child); // Start with previous peer of parent
         for (int i = index - 1; i >= 0; i--)
         {
@@ -1972,10 +2026,11 @@ bool TryToStealOrCloneSomething(ConsumptionNode *originalChild, DecompileLookups
             parent = child->_parentWeak;
             if (parent && (parent->GetType() == ChunkType::None))
             {
-                // We're good, keep going.
+                // Keep going...
             }
             else
             {
+                ConsumptionNode *oldChild = child;
                 done = !SkipStructuredLevels(child, parent);
             }
         }

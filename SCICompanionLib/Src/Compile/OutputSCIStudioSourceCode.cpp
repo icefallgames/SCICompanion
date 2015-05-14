@@ -57,15 +57,16 @@ public:
         if (classDef.IsInstance())
         {
             out.out << "(instance ";
-            if (classDef.IsPublic())
-            {
-                out.out << "public ";
-            }
         }
         else
         {
             out.out << "(class ";
         }
+        if (classDef.IsPublic()) // In SCI1.1, classes can be public
+        {
+            out.out << "public ";
+        }
+
         out.out << CleanToken(classDef.GetName());
         if (!classDef.GetSuperClass().empty())
         {

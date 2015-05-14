@@ -30,7 +30,7 @@ void _GetVarType(std::ostream &out, Opcode bOpcode, uint16_t wIndex, IObjectFile
         }
         break;
     case 1:
-        out << _GetLocalVariableName(wIndex);
+        out << _GetLocalVariableName(wIndex, 0xffff);
         break;
     case 2:
         out << _GetTempVariableName(wIndex);
@@ -480,7 +480,7 @@ void DisassembleScript(const CompiledScript &script, std::ostream &out, ICompile
     out << "(local" << endl;
     for (size_t i = 0; i < script._localVars.size(); i++)
     {
-        out << c_indent << _GetLocalVariableName((int)i) << " = $" << setw(4) << setfill('0') << script._localVars[i].value << endl;
+        out << c_indent << _GetLocalVariableName((int)i, 0xffff) << " = $" << setw(4) << setfill('0') << script._localVars[i].value << endl;
     }
     out << ")" << endl << endl;
 

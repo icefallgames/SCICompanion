@@ -898,7 +898,6 @@ void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream)
                 if (channelNumber == 0xFE)
                 {
                     // Digital content: TODO
-                    int x = 0;
                 }
                 else
                 {

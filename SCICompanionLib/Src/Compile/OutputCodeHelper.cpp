@@ -94,6 +94,8 @@ void _OutputNumber(sci::SourceCodeWriter &out, WORD wNum, bool fHex, bool fNegat
     {
         out.out << wNum;
     }
+    // Don't contaminate stream state:
+    out.out << std::dec;
 }
 
 std::string _DeduceReturnType(sci::FunctionBase &function)

@@ -778,7 +778,9 @@ void GenerateSCOPublics(CompileContext &context, const Script &script)
     const ClassVector &classes = script.GetClasses();
     for (auto &classDef : script.GetClasses())
     {
-        if (classDef->IsPublic() && classDef->IsInstance())
+        // SCI1.1 supports public classes too.
+        bool allowPublicClasses = context.GetVersion().SeparateHeapResources;
+        if (classDef->IsPublic() && (classDef->IsInstance() || allowPublicClasses))
         {
             CSCOPublicExport pe(classDef->GetName(), wIndex);
             SpeciesIndex si = DataTypeAny;;
@@ -789,6 +791,11 @@ void GenerateSCOPublics(CompileContext &context, const Script &script)
             pe.SetInstanceSpecies(si);
             context.AddSCOPublics(pe);
             ++wIndex;
+        }
+
+        if (classDef->IsPublic() && !classDef->IsInstance() && !allowPublicClasses)
+        {
+            context.ReportWarning(classDef.get(), "Ignoring public class for export: %s.", classDef->GetName().c_str());
         }
     }
     const ProcedureVector &procs = script.GetProcedures();

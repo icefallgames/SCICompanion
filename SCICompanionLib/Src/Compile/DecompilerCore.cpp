@@ -1133,7 +1133,7 @@ std::string _GetVariableNameFromCodePos(const scii &inst, DecompileLookups &look
         break;
     case VO_LOCAL:
         // local
-        ss << _GetLocalVariableName(wIndex);
+        ss << _GetLocalVariableName(wIndex, lookups.GetScriptNumber());
         name = ss.str();
         break;
     case VO_TEMP:
@@ -1543,7 +1543,7 @@ void AddLocalVariablesToScript(sci::Script &script, const CompiledScript &compil
     {
         unique_ptr<VariableDecl> localVar = std::make_unique<VariableDecl>();
         localVar->SetDataType("var"); // For now...
-        localVar->SetName((script.GetScriptNumber() == 0) ? _GetGlobalVariableName(varRange.index) : _GetLocalVariableName(varRange.index));
+        localVar->SetName(_GetLocalVariableName(varRange.index, script.GetScriptNumber()));
         localVar->SetSize(varRange.arraySize);
 
         int wStart = varRange.index;
