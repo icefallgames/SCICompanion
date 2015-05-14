@@ -718,10 +718,17 @@ void GeneralE(MatchResult &match, const ParserBase<_TContext, _It> *pParser, _TC
 // The kind of iterator we use.
 typedef CCrystalScriptStream::const_iterator streamIt;
 
+enum class IfDefDefineState
+{
+    None,
+    False,  // In a clause that is false
+    True,   // In a clause that is true
+};
+
 class SyntaxContext
 {
 public:
-    SyntaxContext(streamIt beginning, sci::Script &script) : _beginning(beginning), _script(script), extraKeywords(nullptr) {}
+    SyntaxContext(streamIt beginning, sci::Script &script, std::unordered_set<std::string> preProcessorDefines) : _beginning(beginning), _script(script), extraKeywords(nullptr), ifDefDefineState(IfDefDefineState::None), _preProcessorDefines(preProcessorDefines) {}
 
 	~SyntaxContext()
     {
@@ -876,6 +883,31 @@ public:
         _statements.pop();
     }
 
+    void EvaluateIfDefScratch(const streamIt &stream, const std::string &value)
+    {
+        if (ifDefDefineState != IfDefDefineState::None)
+        {
+            ReportError("Already in an #ifdef.", stream);
+        }
+
+        if (_preProcessorDefines.find(value) != _preProcessorDefines.end())
+        {
+            ifDefDefineState = IfDefDefineState::True;
+        }
+        else
+        {
+            ifDefDefineState = IfDefDefineState::False;
+        }
+    }
+    void EndIf(const streamIt &stream)
+    {
+        if (ifDefDefineState == IfDefDefineState::None)
+        {
+            ReportError("Not in an #ifdef.", stream);
+        }
+        ifDefDefineState = IfDefDefineState::None;
+    }
+
     void CreateScriptVariable() { VariableDeclPtr = std::make_unique<sci::VariableDecl>(); }
     std::unique_ptr<sci::VariableDecl> VariableDeclPtr;
 
@@ -888,8 +920,12 @@ public:
 
     // Hack for certain situations where we want to check for more keywords
     std::unordered_set<std::string> *extraKeywords;
+    // Hacky/quick way of supported ifdefs for header defines.
+    IfDefDefineState ifDefDefineState;
 
 private:
+    std::unordered_set<std::string> _preProcessorDefines;
+
     std::string _error;
     streamIt _beginning;
 
@@ -913,9 +949,9 @@ public:
 class SCISyntaxParser
 {
 public:
-    bool Parse(sci::Script &script, CCrystalScriptStream::const_iterator &stream, ICompileLog *pError);
-    bool Parse(sci::Script &script, CCrystalScriptStream::const_iterator &stream, SyntaxContext &context);
-    bool ParseHeader(sci::Script &script, CCrystalScriptStream::const_iterator &stream, ICompileLog *pError);
+    bool Parse(sci::Script &script, CCrystalScriptStream::const_iterator &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pError);
+    bool Parse(sci::Script &script, CCrystalScriptStream::const_iterator &stream, std::unordered_set<std::string> preProcessorDefines, SyntaxContext &context);
+    bool ParseHeader(sci::Script &script, CCrystalScriptStream::const_iterator &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pError);
     void Load();
 
 private:
@@ -1047,3 +1083,4 @@ private:
     Parser statement_list;
 };
 
+std::unordered_set<std::string> PreProcessorDefinesFromSCIVersion(SCIVersion version);

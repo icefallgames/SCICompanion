@@ -1118,7 +1118,7 @@ ToolTipResult CScriptView::_DoToolTipParse(CPoint pt)
         CScriptStreamLimiter limiter(LocateTextBuffer());
         CCrystalScriptStream stream(&limiter);
         sci::Script script;
-        SyntaxContext context(stream.begin(), script);
+        SyntaxContext context(stream.begin(), script, PreProcessorDefinesFromSCIVersion(appState->GetVersion()));
         limiter.Limit(LineCol(pt.y, pt.x));
         CCrystalScriptStream::const_iterator it = stream.begin();
         
@@ -1141,7 +1141,7 @@ ToolTipResult CScriptView::_DoToolTipParse(CPoint pt)
 
         CPrecisionTimer timer;
         timer.Start();
-        g_Parser.Parse(script, stream, nullptr, false, &context); // REVIEW: pass in context?
+        g_Parser.Parse(script, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), nullptr, false, &context); // REVIEW: pass in context?
         char sz[100];
         StringCchPrintf(sz, ARRAYSIZE(sz), "Time was %d\n", (int)(timer.Stop() * 1000));
         OutputDebugString(sz);

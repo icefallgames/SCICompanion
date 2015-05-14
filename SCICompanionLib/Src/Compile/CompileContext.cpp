@@ -1153,8 +1153,7 @@ const vector<WORD> &CompileContext::GetRelocations()
     return _relocations;
 }
 
-
-PrecompiledHeaders::PrecompiledHeaders(CResourceMap &resourceMap) : _resourceMap(resourceMap), _fValid(false) {}
+PrecompiledHeaders::PrecompiledHeaders(CResourceMap &resourceMap) : _resourceMap(resourceMap), _fValid(false), _versionCompiled(resourceMap.Helper().Version) {}
 
 PrecompiledHeaders::~PrecompiledHeaders()
 {
@@ -1185,6 +1184,8 @@ std::vector<std::string> &GetDefaultHeaders(Script &script)
 
 void PrecompiledHeaders::Update(CompileContext &context, Script &script)
 {
+    assert(context.GetVersion() == _versionCompiled);
+
     // Here, we look at the headers included by this script, and add them to a scanlist
     // We look to see if they've already been parsed.
     //          If so, look in the parsed version, and add all its includes to the scanlist
@@ -1215,7 +1216,7 @@ void PrecompiledHeaders::Update(CompileContext &context, Script &script)
                     CCrystalScriptStream stream(&limiter);
 
                     unique_ptr<Script> pNewHeader = std::make_unique<Script>(scriptId);
-                    if (g_Parser.Parse(*pNewHeader, stream, &context))
+                    if (g_Parser.Parse(*pNewHeader, stream, PreProcessorDefinesFromSCIVersion(context.GetVersion()),  &context))
                     {
                         // Look for any includes in here, and add them to our set.
                         newHeaders.insert(pNewHeader->GetIncludes().begin(), pNewHeader->GetIncludes().end());
@@ -1291,6 +1292,7 @@ void PrecompiledHeaders::Update(CompileContext &context, Script &script)
         }
     }
     _fValid = true;
+    _versionCompiled = context.GetVersion();
 }
 
 bool PrecompiledHeaders::LookupDefine(const std::string &str, WORD &wValue)

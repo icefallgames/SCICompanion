@@ -107,7 +107,7 @@ void CScriptDocument::OnCompileDocs()
         CCrystalScriptStream stream(&limiter);
 		std::unique_ptr<sci::Script> pScript(new sci::Script(_scriptId));
         CompileLog log;
-        if (g_Parser.Parse(*pScript, stream, &log, true))
+        if (g_Parser.Parse(*pScript, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log, true))
         {
             CompileDocs(*pScript);
         }
@@ -199,7 +199,7 @@ bool NewCompileScript(CompileLog &log, CompileTables &tables, PrecompiledHeaders
 
 		std::unique_ptr<sci::Script> pScript = std::make_unique<sci::Script>(script);
 
-        if (g_Parser.Parse(*pScript, stream, &log))
+        if (g_Parser.Parse(*pScript, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log))
         {
             // Compile and save script resource.
             // Compile our own script!
@@ -404,7 +404,7 @@ void CScriptDocument::OnConvertScript()
             // 1)
             sci::Script script(_scriptId);
             CompileLog log;
-            bool fCompile = g_Parser.Parse(script, stream, &log);;
+            bool fCompile = g_Parser.Parse(script, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log);;
             if (fCompile)
             {
                 // 1.5 Make some substitutions for properties that have minus signs in them.

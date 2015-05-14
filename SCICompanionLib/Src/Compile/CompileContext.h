@@ -474,6 +474,7 @@ private:
     // Whether or not the _defines table is valid
     bool _fValid;
     CResourceMap &_resourceMap;
+    SCIVersion _versionCompiled;
 };  
 
 //

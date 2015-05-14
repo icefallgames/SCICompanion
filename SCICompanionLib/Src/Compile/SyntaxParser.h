@@ -6,7 +6,7 @@
 class SyntaxParser
 {
 public:
-	bool Parse(sci::Script &script, CCrystalScriptStream &stream, ICompileLog *pLog = nullptr, bool fParseComments = false, SyntaxContext *pContext = nullptr);
+	bool Parse(sci::Script &script, CCrystalScriptStream &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pLog = nullptr, bool fParseComments = false, SyntaxContext *pContext = nullptr);
 
 private:
     SCISyntaxParser _sci;

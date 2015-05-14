@@ -4,7 +4,7 @@
 // Our parser global variable
 SyntaxParser g_Parser;
 
-bool SyntaxParser::Parse(sci::Script &script, CCrystalScriptStream &stream, ICompileLog *pLog, bool fParseComments, SyntaxContext *pContext)
+bool SyntaxParser::Parse(sci::Script &script, CCrystalScriptStream &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pLog, bool fParseComments, SyntaxContext *pContext)
 {
     bool fRet = false;
     if (script.Language() == LangSyntaxSCIStudio)
@@ -12,19 +12,19 @@ bool SyntaxParser::Parse(sci::Script &script, CCrystalScriptStream &stream, ICom
         _sci.Load();
         if (script.IsHeader())
         {
-            fRet = _sci.ParseHeader(script, stream.begin(), pLog);
+            fRet = _sci.ParseHeader(script, stream.begin(), preProcessorDefines, pLog);
         }
         else
         {
             if (pLog)
             {
 	            // Someone either wants error logs:
-	            fRet = _sci.Parse(script, stream.begin(), pLog);
+	            fRet = _sci.Parse(script, stream.begin(), preProcessorDefines, pLog);
             }
             else
             {
 	            // Or they are doing a partial compile (e.g. tooltips) and supply their own context.
-	            fRet = _sci.Parse(script, stream.begin(), *pContext);
+	            fRet = _sci.Parse(script, stream.begin(), preProcessorDefines, *pContext);
             }
         }
     }

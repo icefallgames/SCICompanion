@@ -421,7 +421,25 @@ void FinishDefineA(MatchResult &match, const Parser *pParser, SyntaxContext *pCo
 {
     if (match.Result())
     {
-        pContext->Script().AddDefine(move(pContext->DefinePtr));
+        if (pContext->ifDefDefineState != IfDefDefineState::False)
+        {
+            pContext->Script().AddDefine(move(pContext->DefinePtr));
+        }
+    }
+}
+
+void EvaluateIfDefA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->EvaluateIfDefScratch(stream, pContext->ScratchString());
+    }
+}
+void EvaluateEndIfA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->EndIf(stream);
     }
 }
 
@@ -1361,8 +1379,13 @@ void SCISyntaxParser::Load()
             | script_string)[IdentifierE]
         >> clpar[GeneralE]);
 
-    // And for headers, only defines and includes are allowed.
-    entire_header = *(oppar[GeneralE] >> (include | define[FinishDefineA])[IdentifierE] >> clpar[GeneralE]);
+    // And for headers, only defines and includes are allowed. And also #ifdef!
+    entire_header = *
+        (
+        (keyword_p("#ifdef") >> alphanum_p[EvaluateIfDefA])
+        | keyword_p("#endif")[EvaluateEndIfA]
+        | (oppar[GeneralE] >> (include | define[FinishDefineA])[IdentifierE] >> clpar[GeneralE])
+        );
 }
 
 void SyntaxContext::ReportError(std::string error, streamIt pos)
@@ -1383,9 +1406,9 @@ void SyntaxContext::ReportError(std::string error, streamIt pos)
 //
 // This does the parsing.
 //
-bool SCISyntaxParser::Parse(Script &script, streamIt &stream, ICompileLog *pError)
+bool SCISyntaxParser::Parse(Script &script, streamIt &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pError)
 {
-    SyntaxContext context(stream, script);
+    SyntaxContext context(stream, script, preProcessorDefines);
     bool fRet = false;
     if (entire_script.Match(&context, stream).Result() && (*stream == 0)) // Needs a full match
     {
@@ -1408,7 +1431,7 @@ bool SCISyntaxParser::Parse(Script &script, streamIt &stream, ICompileLog *pErro
     return fRet;
 }
 
-bool SCISyntaxParser::Parse(Script &script, streamIt &stream, SyntaxContext &context)
+bool SCISyntaxParser::Parse(Script &script, streamIt &stream, std::unordered_set<std::string> preProcessorDefines, SyntaxContext &context)
 {
     bool fRet = false;
 	if (entire_script.Match(&context, stream).Result() && (*stream == 0)) // Needs a full match
@@ -1418,9 +1441,9 @@ bool SCISyntaxParser::Parse(Script &script, streamIt &stream, SyntaxContext &con
     return fRet;
 }
 
-bool SCISyntaxParser::ParseHeader(Script &script, streamIt &stream, ICompileLog *pError)
+bool SCISyntaxParser::ParseHeader(Script &script, streamIt &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pError)
 {
-    SyntaxContext context(stream, script);
+    SyntaxContext context(stream, script, preProcessorDefines);
 	bool fRet = entire_header.Match(&context, stream).Result() && (*stream == 0);
     if (!fRet)
     {
@@ -1435,3 +1458,17 @@ bool SCISyntaxParser::ParseHeader(Script &script, streamIt &stream, ICompileLog 
     return fRet;
 }
 
+unordered_set<string> PreProcessorDefinesFromSCIVersion(SCIVersion version)
+{
+    unordered_set<string> defines;
+    // Only two versions supported for now.
+    if (version.SeparateHeapResources)
+    {
+        defines.insert("SCI_1_1");
+    }
+    else
+    {
+        defines.insert("SCI_0");
+    }
+    return defines;
+}

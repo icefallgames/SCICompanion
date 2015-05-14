@@ -68,7 +68,7 @@ Script *ParseScript(ScriptId script, CCrystalTextBuffer *pBuffer)
     CCrystalScriptStream stream(&limiter);
     std::unique_ptr<Script> pScript(new Script(script));
     DummyCompileLog log;
-    if (g_Parser.Parse(*pScript, stream, &log))
+    if (g_Parser.Parse(*pScript, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log))
     //if (SCISyntaxParser::Instance(pScript->Language(), appState->_fAllowBraceSyntax).Parse(*pScript, stream.begin(), NULL))
     {
         pRet = pScript.release();
@@ -700,7 +700,7 @@ bool SCIClassBrowser::_AddFileName(PCTSTR pszFullPath, PCTSTR pszFileName, BOOL 
         CScriptStreamLimiter limiter(&buffer);
         CCrystalScriptStream stream(&limiter);
         std::unique_ptr<Script> pScript = std::make_unique<Script>(pszFullPath);
-        if (g_Parser.Parse(*pScript, stream, this))
+        if (g_Parser.Parse(*pScript, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), this))
         {
 #ifdef DOCSUPPORT
             // CompileDocs(*pScript);
@@ -813,7 +813,7 @@ sci::Script *SCIClassBrowser::_LoadScript(PCTSTR pszPath)
         CScriptStreamLimiter limiter(&buffer);
         CCrystalScriptStream stream(&limiter);
         std::unique_ptr<Script> pScriptT = std::make_unique<Script>(pszPath);
-        if (g_Parser.Parse(*pScriptT, stream, this))
+        if (g_Parser.Parse(*pScriptT, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), this))
         {
             pScript = pScriptT.get();
             pScriptT.release();

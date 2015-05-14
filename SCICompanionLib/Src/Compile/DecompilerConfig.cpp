@@ -30,7 +30,7 @@ unique_ptr<Script> GetDefinesScript(const GameFolderHelper &helper)
     {
         CScriptStreamLimiter limiter(&buffer);
         CCrystalScriptStream stream(&limiter);
-        if (!g_Parser.Parse(*script, stream, &log))
+        if (!g_Parser.Parse(*script, stream, PreProcessorDefinesFromSCIVersion(helper.Version), &log))
         {
             assert(false);
         }

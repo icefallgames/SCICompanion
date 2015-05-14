@@ -29,7 +29,7 @@ sci::Script &GetKernelSignaturesScript(ICompileLog &log)
         {
             CScriptStreamLimiter limiter(&buffer);
             CCrystalScriptStream stream(&limiter);
-            if (g_Parser.Parse(g_kernelScript, stream, &log))
+            if (g_Parser.Parse(g_kernelScript, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log))
             {
                 g_kernelScript.SetScriptNumber(KernelScriptNumber);
             }
