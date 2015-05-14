@@ -10,7 +10,6 @@
 #include "CompiledScript.h"
 #include "Pic.h"
 #include "PaletteOperations.h"
-#include <unordered_set>
 
 using namespace sci;
 using namespace std;

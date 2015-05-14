@@ -4,7 +4,6 @@
 #include "ScriptOM.h"
 #include "CrystalScriptStream.h"
 #include "ParserCommon.h"
-
 #include <stack>
 #include <deque>
 
@@ -285,7 +284,7 @@ bool AsmInstructionP(const ParserBase<_TContext, _It> *pParser, _TContext *pCont
     std::string &str = pContext->ScratchString();
     str.clear();
     char ch = *stream;
-    if (isalpha(ch) || (ch == '_'))     // First character must be a letter or _
+    if (isalpha(ch) || (ch == '_') || (ch == '&'))     // First character must be a letter or _ or & (for the rest instruction)
     {
         fRet = true;
         str += ch;
@@ -297,6 +296,12 @@ bool AsmInstructionP(const ParserBase<_TContext, _It> *pParser, _TContext *pCont
             ch = *(++stream);
         }
     }
+
+    if (fRet)
+    {
+        fRet = IsOpcode(str);
+    }
+
     return fRet;
 }
 
@@ -316,12 +321,9 @@ bool AlphanumPNoKeyword(const ParserBase<_TContext, _It> *pParser, _TContext *pC
         {
             fRet = (str != g_keywords[i]);
         }
-        if (pContext->ExtraKeywords)
+        if (fRet && pContext->extraKeywords)
         {
-            for (int i = 0; fRet && (i < pContext->ExtraKeywordsCount); i++)
-            {
-                fRet = (str != pContext->ExtraKeywords[i]);
-            }
+            fRet = pContext->extraKeywords->find(str) == pContext->extraKeywords->end();
         }
     }
     return fRet;
@@ -719,7 +721,7 @@ typedef CCrystalScriptStream::const_iterator streamIt;
 class SyntaxContext
 {
 public:
-    SyntaxContext(streamIt beginning, sci::Script &script) : _beginning(beginning), _script(script), ExtraKeywords(nullptr), ExtraKeywordsCount(0) {}
+    SyntaxContext(streamIt beginning, sci::Script &script) : _beginning(beginning), _script(script), extraKeywords(nullptr) {}
 
 	~SyntaxContext()
     {
@@ -885,8 +887,7 @@ public:
     std::unique_ptr<sci::VariableDecl> VariableDecl;
 
     // Hack for certain situations where we want to check for more keywords
-    const char * const *ExtraKeywords;
-    int ExtraKeywordsCount;
+    std::unordered_set<std::string> *extraKeywords;
 
 private:
     std::string _error;

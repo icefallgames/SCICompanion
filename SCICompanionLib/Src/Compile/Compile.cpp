@@ -2947,7 +2947,12 @@ CodeResult Asm::OutputByteCode(CompileContext &context) const
                                             {
                                                 uint8_t variableOpType = TokenTypeToVOType(tokenType);
                                                 uint8_t bOpcode = (uint8_t)opcode;
-                                                if ((bOpcode & VO_TYPEMASK) != variableOpType)
+                                                uint8_t opcodeOpType = (bOpcode & VO_TYPEMASK);
+                                                if (opcode == Opcode::REST)
+                                                {
+                                                    opcodeOpType = VO_PARAM;
+                                                }
+                                                if (opcodeOpType != variableOpType)
                                                 {
                                                     context.ReportError(pValue, "Opcode is '%s', but variable is '%s'.", VOTypeToString(bOpcode & VO_TYPEMASK), VOTypeToString(variableOpType));
                                                 }

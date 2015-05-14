@@ -4,7 +4,6 @@
 #include "scii.h"
 #include "ScriptOM.h"
 #include <cstdint>
-#include <unordered_set>
 #include "CompileCommon.h"
 
 // fwd decl

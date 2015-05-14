@@ -13,6 +13,9 @@ struct SaidToken
     BYTE Code;
 };
 
+bool IsOpcode(const std::string &theString);
+std::unordered_set<std::string> &GetOpcodeSet();
+
 extern SaidToken SaidArgs[TOTAL_SAID_ARGS];
 
 struct KernelInfo

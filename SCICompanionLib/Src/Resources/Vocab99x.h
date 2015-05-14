@@ -2,7 +2,6 @@
 
 #include "interfaces.h"
 #include "CompileCommon.h"
-#include <unordered_set>
 
 class SpeciesIndex;
 class CompiledObjectBase;

@@ -5,7 +5,6 @@
 #include "ResourceMapOperations.h"
 #include "resource.h"
 #include "RemoveScriptDialog.h"
-#include <unordered_set>
 
 template<typename _TFileDescriptor>
 std::unique_ptr<ResourceSource> _CreateResourceSource(const std::string &gameFolder, SCIVersion version, ResourceSourceFlags source)

@@ -25,7 +25,7 @@ bool IsNonAlphaOperator(const std::string &op);
 void _OutputVariableAndSize(sci::ISyntaxNodeVisitor &visitor, sci::SourceCodeWriter &out, const std::string &type, const std::string &name, WORD wSize, const sci::SingleStatementVector &initValues);
 std::string UnescapeString(std::string src);
 
-std::string CleanToken(const std::string &src);
+std::string CleanToken(const std::string &src, std::unordered_set<std::string> *disallowedList = nullptr);
 
 class BracketScope
 {

@@ -256,7 +256,7 @@ namespace sci
     struct SourceCodeWriter
     {
         SourceCodeWriter(std::stringstream &ss, LangSyntax syntax, Script *pScript = nullptr) : out(ss), lang(syntax),
-            iIndent(0), fInline(false), fLast(false), fUseBrackets(false), fExpandCodeBlock(false), pszNewLine("\n"), lastNewLineLength(0)
+            iIndent(0), fInline(false), fLast(false), fUseBrackets(false), fExpandCodeBlock(false), pszNewLine("\n"), lastNewLineLength(0), disallowedTokens(nullptr)
         { 
 			if (pScript)
 			{
@@ -302,6 +302,7 @@ namespace sci
         bool fUseBrackets;
 		bool fExpandCodeBlock;	// Don't treat codeblock as an inline thing surrounded by (). Instead expand it multi-line
         std::unique_ptr<CommentTracker> pComments;
+        std::unordered_set<std::string> *disallowedTokens;
 
         const char *pszNewLine;
     };

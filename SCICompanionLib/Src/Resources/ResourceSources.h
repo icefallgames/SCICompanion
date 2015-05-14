@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ResourceBlob.h"
-#include <unordered_set>
 
 // This file describes various resource sources:
 // (1) resource.map/resource.xxx

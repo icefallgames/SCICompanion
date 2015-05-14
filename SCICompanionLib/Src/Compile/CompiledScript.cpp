@@ -575,6 +575,17 @@ bool CompiledObjectBase::Create_SCI1_1(const CompiledScript &compiledScript, SCI
         _strName = _GenerateClassName(scriptNum, classIndex);
     }
 
+
+    // temp
+    if (_wInfo == 0x8004)
+    {
+        OutputDebugString("class 8004: ");
+        OutputDebugString(_strName.c_str());
+        OutputDebugString("\n");
+    }
+
+
+
     *endOfObjectInScript = (uint16_t)scriptStream.tellg();
 
     assert((_propertySelectors.size() == _propertyValues.size()) || (_fInstance && _propertySelectors.empty()));

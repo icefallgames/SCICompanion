@@ -117,7 +117,7 @@ void EndStatement(sci::SourceCodeWriter &out)
 }
 
 // Wrap the string in braces if it doesn't start with A-Za-z_ and stuff...
-std::string CleanToken(const std::string &src)
+std::string CleanToken(const std::string &src, std::unordered_set<std::string> *disallowedList)
 {
     bool ok = true;
     // Special hack: sometimes said strings come through here
@@ -136,6 +136,13 @@ std::string CleanToken(const std::string &src)
             }
         }
     }
+
+    if (ok && disallowedList)
+    {
+        // Ok if not present in disallowed list.
+        ok = (disallowedList->find(src) == disallowedList->end());
+    }
+
     if (!ok)
     {
         std::string braceString = "{";

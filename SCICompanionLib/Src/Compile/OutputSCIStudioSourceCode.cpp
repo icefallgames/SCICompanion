@@ -2,6 +2,7 @@
 #include "ScriptOMAll.h"
 #include "OutputCodeHelper.h"
 #include "OutputSourceCodeBase.h"
+#include "PMachine.h"
 
 using namespace sci;
 using namespace std;
@@ -120,7 +121,7 @@ public:
             break;
         case ValueType::Token:
             // Surround in braces if there are spaces in the string.
-            out.out << CleanToken(prop.GetStringValue());
+            out.out << CleanToken(prop.GetStringValue(), out.disallowedTokens);
             // REVIEW: When this is C++ syntax, we should strip them out... and if it's -info-, use the replacement!
             // (objectSpecies)
             break;
@@ -710,6 +711,8 @@ public:
 
     void Visit(const AsmBlock &asmSection) override
     {
+        out.disallowedTokens = &GetOpcodeSet();
+
         {
             DebugLine asmLine(out);
             out.out << "(asm";
@@ -723,6 +726,9 @@ public:
             DebugLine asmLine(out);
             out.out << ")";
         }
+
+        // Can't have asmblock inside another, so it's ok to not have a stack here, and just force values.
+        out.disallowedTokens = nullptr;
     }
 
 };

@@ -10,6 +10,22 @@
 using namespace sci;
 using namespace std;
 
+unordered_set<string> opcodeSet;
+unordered_set<string> &GetOpcodeSet()
+{
+    if (opcodeSet.empty())
+    {
+        opcodeSet.insert(OpcodeNames, OpcodeNames + ARRAYSIZE(OpcodeNames));
+    }
+    return opcodeSet;
+}
+
+bool IsOpcode(const std::string &theString)
+{
+    GetOpcodeSet();
+    return opcodeSet.find(theString) != opcodeSet.end();
+}
+
 const char *g_keywords[3] =
 {
     "if",
@@ -817,13 +833,11 @@ void FinishStatementA(MatchResult &match, const Parser *pParser, SyntaxContext *
 // asm
 void SetOpcodesExtraKeywordsA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
-    pContext->ExtraKeywords = OpcodeNames;
-    pContext->ExtraKeywordsCount = ARRAYSIZE(OpcodeNames);
+    pContext->extraKeywords = &GetOpcodeSet();
 }
 void RemoveExtraKeywordsA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
-    pContext->ExtraKeywords = nullptr;
-    pContext->ExtraKeywordsCount = 0;
+    pContext->extraKeywords = nullptr;
 }
 
 // Complex properties
@@ -1222,7 +1236,7 @@ void SCISyntaxParser::Load()
     asm_arg =
         alwaysmatch_p[StartStatementA]
         >> value[FinishStatementA]
-        >> !colon;    // If colon, then it's the next line's label?
+        >> !(colon | question);    // If colon, then it's the next line's label, if question it's actaully an opcode (e.g. le? ne?)
 
     asm_label =
         alphanum_p

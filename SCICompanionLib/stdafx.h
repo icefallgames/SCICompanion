@@ -82,6 +82,7 @@ using namespace Gdiplus;
 #include <fstream>
 #include <iomanip>
 #include <unordered_map>
+#include <unordered_set>
 #include <memory>
 #include <stack>
 #include <cassert>
