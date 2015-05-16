@@ -74,7 +74,7 @@ bool CompiledScript::Load(const GameFolderHelper &helper, SCIVersion version, in
 // Exports are just a list of offsets. We'll peek into the heapstream to see if
 // it points to an object marker, and return true if so. Otherwise, we return
 // false and should assume the export just points to public procedure code.
-bool _DoesExportPointToObjectInstance(uint16_t exportOffset, sci::istream heapStream)
+bool _DoesExportPointToObjectInstanceSCI1_1(uint16_t exportOffset, sci::istream heapStream)
 {
     if ((uint16_t)heapStream.GetDataSize() >= (exportOffset + 2))
     {
@@ -176,7 +176,7 @@ bool CompiledScript::_LoadSCI1_1(const GameFolderHelper &helper, int iScriptNumb
             if (isHeapPointer)
             {
                 _exportedObjectInstances.push_back(exportOffset);
-                assert(_DoesExportPointToObjectInstance(exportOffset, *heapStream));
+                assert(_DoesExportPointToObjectInstanceSCI1_1(exportOffset, *heapStream));
             }
             // REVIEW: Many scripts (e.g. SQ5, 165) have lots of exports that point to zero. What's the purpose of this?
             else if (exportOffset != 0)
@@ -575,17 +575,6 @@ bool CompiledObjectBase::Create_SCI1_1(const CompiledScript &compiledScript, SCI
         _strName = _GenerateClassName(scriptNum, classIndex);
     }
 
-
-    // temp
-    if (_wInfo == 0x8004)
-    {
-        OutputDebugString("class 8004: ");
-        OutputDebugString(_strName.c_str());
-        OutputDebugString("\n");
-    }
-
-
-
     *endOfObjectInScript = (uint16_t)scriptStream.tellg();
 
     assert((_propertySelectors.size() == _propertyValues.size()) || (_fInstance && _propertySelectors.empty()));
@@ -728,7 +717,6 @@ bool CompiledObjectBase::Create_SCI0(uint16_t scriptNum, SCIVersion version, sci
 
 bool CompiledScript::_ReadExports(sci::istream &stream)
 {
-    // These aren't really interesting actually.
     uint16_t wNumExports;
     stream >> wNumExports;
     if (stream.good())

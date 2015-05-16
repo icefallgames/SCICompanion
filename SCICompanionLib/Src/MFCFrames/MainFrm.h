@@ -41,6 +41,7 @@ private:
 	void OnDrawLabelText(CDC &dc, const RECT &rcText, __EXT_MFC_SAFE_LPCTSTR strText, DWORD dwDrawTextFlags, bool bEnabled);
     LRESULT _OnStatusReady(WPARAM wParam, LPARAM lParam);
     BrowseInfoStatus _status;
+    int _lastPercent;
 
     // Text to post back to the UI thread.
     std::string _textToPost;

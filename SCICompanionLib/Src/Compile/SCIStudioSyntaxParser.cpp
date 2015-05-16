@@ -295,6 +295,18 @@ void SetVersionA(MatchResult &match, const Parser *pParser, SyntaxContext *pCont
     }
 }
 
+void AddExportA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        unique_ptr<ExportEntry> entry = make_unique<ExportEntry>();
+        entry->SetPosition(stream.GetPosition());
+        entry->Slot = pContext->Integer;
+        entry->Name = pContext->ScratchString();
+        pContext->Script().GetExports().push_back(move(entry));
+    }
+}
+
 // Statements
 void StatementA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
@@ -1346,6 +1358,9 @@ void SCISyntaxParser::Load()
     use = keyword_p("use") >> quotedstring_p[AddUseA];
     version = keyword_p("version") >> integer_p[SetVersionA];
 
+    export_entry = integer_p >> alphanum_p[AddExportA];
+    exports = keyword_p("exports") >> *export_entry;
+
     define = keyword_p("define")[CreateDefineA] >> alphanum_p[DefineLabelA] >> integer_p[DefineValueA];
 
     scriptNum = keyword_p("script") >> immediateValue[ScriptNumberA];
@@ -1369,6 +1384,7 @@ void SCISyntaxParser::Load()
         >> (version
             | include
             | use
+            | (alwaysmatch_p[EnableScriptVersionA<2>] >> exports)
             | define[FinishDefineA]
             | instance_decl[FinishClassA]
             | class_decl[FinishClassA]

@@ -1965,9 +1965,15 @@ END_MESSAGE_MAP()
 
 LRESULT CBrowseInfoStatusPane::_OnStatusReady(WPARAM wParam, LPARAM lParam)
 {
-    CGuard guard(&_csTextPosting);
-    SetWindowText(_textToPost.c_str());
-    if (_status == Errors)
+    string textToPost;
+    BrowseInfoStatus status;
+    {
+        CGuard guard(&_csTextPosting);
+        textToPost = _textToPost;
+        status = _status;
+    }
+    SetWindowText(textToPost.c_str());
+    if (status == Errors)
     {
         // TODO: set background to yellow
         SetBkColor(RGB(255, 255, 0));
@@ -1998,9 +2004,11 @@ void CBrowseInfoStatusPane::OnLButtonDblClk(UINT nFlags, CPoint point)
 // as to what gets done here... generally just Invalidate()
 void CBrowseInfoStatusPane::NotifyClassBrowserStatus(BrowseInfoStatus status, int iPercent)
 {
-    CGuard guard(&_csTextPosting);
-    if ((_status != status) || (status == InProgress))
+    // We may end up calling NotifyClassBrowserStatus thousands of times. Don't bother doing that (and taking critsec)
+    // unless necessary.
+    if ((_status != status) || ((status == InProgress) && (iPercent != _lastPercent)))
     {
+        CGuard guard(&_csTextPosting);
         _status = status;
         if (status == Ok)
         {
@@ -2016,11 +2024,12 @@ void CBrowseInfoStatusPane::NotifyClassBrowserStatus(BrowseInfoStatus status, in
             ss << "Browse info " << iPercent << "% complete";
             _textToPost = ss.str();
         }
+        _lastPercent = iPercent;
+        PostMessage(UWM_STATUSREADY, 0, 0);
     }
-    PostMessage(UWM_STATUSREADY, 0, 0);
 }
 
-CBrowseInfoStatusPane::CBrowseInfoStatusPane()
+CBrowseInfoStatusPane::CBrowseInfoStatusPane() : _lastPercent(-1)
 {
     InitializeCriticalSection(&_csTextPosting);
 }

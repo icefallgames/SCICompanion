@@ -617,6 +617,7 @@ public:
 
     }
 
+    void Visit(const ExportEntry &exportEntry) override {}
 };
 
 void OutputSourceCode_SCI(const sci::Script &script, sci::SourceCodeWriter &out)

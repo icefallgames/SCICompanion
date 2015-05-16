@@ -710,8 +710,9 @@ UINT DecompileDialog::s_DecompileThreadWorker(void *pParam)
     }
 
     // Stats reporting
-    int successPercentage = pThis->_decompileResults->_successCount * 100 / (pThis->_decompileResults->_successCount + pThis->_decompileResults->_fallbackCount);
-    int successBytesPercentage = pThis->_decompileResults->_successBytes * 100 / (pThis->_decompileResults->_successBytes + pThis->_decompileResults->_fallbackBytes);
+    int divisor = max(1, (pThis->_decompileResults->_successCount + pThis->_decompileResults->_fallbackCount));     // avoid / by zero
+    int successPercentage = pThis->_decompileResults->_successCount * 100 / divisor;
+    int successBytesPercentage = pThis->_decompileResults->_successBytes * 100 / divisor;
     pThis->_decompileResults->AddResult(DecompilerResultType::Important,
         fmt::format("Decompiled {0} of {1} functions successfully ({2}%).", pThis->_decompileResults->_successCount, (pThis->_decompileResults->_successCount + pThis->_decompileResults->_fallbackCount), successPercentage)
         );

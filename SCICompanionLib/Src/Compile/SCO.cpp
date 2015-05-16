@@ -238,14 +238,16 @@ std::string CSCOFile::GetVariableName(WORD wIndex) const
 
 std::string CSCOFile::GetExportName(WORD wIndex) const
 {
-    if (wIndex < _publics.size())
+    // The index in the _publics array doesn't necessarily correspond
+    // to the actual export index.
+    for (const auto &publicExport : _publics)
     {
-        return _publics[wIndex].GetName();
+        if (publicExport.GetIndex() == wIndex)
+        {
+            return publicExport.GetName();
+        }
     }
-    else
-    {
-        return "";
-    }
+    return "";
 }
 
 std::string CSCOFile::GetClassName(WORD wIndex) const
@@ -779,6 +781,7 @@ unique_ptr<CSCOFile> SCOFromScriptAndCompiledScript(const Script &script, const 
             publicProcNames.push_back(procDef->GetName());
         }
     }
+
     size_t instanceIndex = 0;
     size_t procIndex = 0;
     for (uint16_t exportOffset : compiledScript._exportsTO)
@@ -789,20 +792,21 @@ unique_ptr<CSCOFile> SCOFromScriptAndCompiledScript(const Script &script, const 
             if (instanceIndex < publicInstanceNames.size())
             {
                 exportName = publicInstanceNames[instanceIndex++];
+                sco->GetExports().emplace_back(exportName, exportIndex);
             }
             else
             {
                 // SQ5, script 209 hits this. The same public instance appears multiple near
-                // the end of the export table.
-                exportName = publicInstanceNames.back();
+                // the end of the export table. No sense in writing it to the SCO multiple times.
+                //exportName = publicInstanceNames.back();
             }
         }
-        else if (compiledScript.IsExportAProcedure(exportOffset) || (exportOffset == 0))
+        else if (compiledScript.IsExportAProcedure(exportOffset))
         {
-            // SCI1.1 have many "zero" exports. We replace them with dummy procedures, so we're good to go here.
             exportName = publicProcNames[procIndex++];
+            sco->GetExports().emplace_back(exportName, exportIndex);
         }
-        sco->GetExports().emplace_back(exportName, exportIndex);
+        // Exports may be zero too. We won't write those to the SCO though.
         exportIndex++;
     }
 

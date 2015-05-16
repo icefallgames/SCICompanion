@@ -689,6 +689,12 @@ public:
     {
 
     }
+
+    void Visit(const ExportEntry &exportEntry) override
+    {
+
+    }
+
 };
 
 void OutputSourceCode_CPP(const sci::Script &script, sci::SourceCodeWriter &out)

@@ -466,3 +466,4 @@ void UnaryOp::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); 
 void CppIfStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
 void Asm::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
 void AsmBlock::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
+void ExportEntry::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }

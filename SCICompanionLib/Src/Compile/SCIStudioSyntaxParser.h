@@ -1031,6 +1031,8 @@ private:
     Parser use;
     Parser version;
     Parser define;
+    Parser exports;
+    Parser export_entry;
     Parser scriptNum;
     Parser instance_decl;
     Parser class_decl;

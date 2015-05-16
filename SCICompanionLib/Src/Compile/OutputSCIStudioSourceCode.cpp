@@ -22,6 +22,15 @@ public:
         {
             out.out << "(include \"" << include << "\")" << out.NewLineString();
         }
+        if (!script.GetExports().empty() && (script.SyntaxVersion > 1))
+        {
+            out.out << "(exports" << out.NewLineString();
+            {
+                DebugIndent indent(out);
+                Forward(script.GetExports());
+            }
+            out.out << ")" << out.NewLineString();
+        }
         for (const auto &uses : script.GetUses())
         {
             out.out << "(use \"" << uses << "\")" << out.NewLineString();
@@ -729,6 +738,12 @@ public:
 
         // Can't have asmblock inside another, so it's ok to not have a stack here, and just force values.
         out.disallowedTokens = nullptr;
+    }
+
+    void Visit(const ExportEntry &exportEntry) override
+    {
+        DebugLine exportLine(out);
+        out.out << exportEntry.Slot << " " << exportEntry.Name;
     }
 
 };

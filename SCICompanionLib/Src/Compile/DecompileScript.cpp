@@ -234,6 +234,16 @@ public:
                             procCall->SetName(newProcName);
                         }
                     }
+                    else
+                    {
+                        // In the case when we don't have an .sco file yet (first compile), if this
+                        // was actually a local call instruction (but is an exported public proc, as we now know),
+                        // use the public proc name for it temporarily
+                        if (procCall->GetName() != _GetPublicProcedureName(scriptNumber, index))
+                        {
+                            procCall->SetName(_GetPublicProcedureName(scriptNumber, index));
+                        }
+                    }
                 }
             }
 
@@ -386,6 +396,8 @@ Script *Decompile(const GameFolderHelper &helper, const CompiledScript &compiled
         }
     }
 
+    map<int, string> exportSlotToName;
+
     // Now the exported procedures.
     for (size_t i = 0; i < compiledScript._exportsTO.size() && !lookups.DecompileResults().IsAborted(); i++)
     {
@@ -393,23 +405,33 @@ Script *Decompile(const GameFolderHelper &helper, const CompiledScript &compiled
         // contain the Rm class.  Filter these out by ignoring code pointers which point outside
         // the codesegment.
         uint16_t exportPointer = compiledScript._exportsTO[i];
-        if (compiledScript.IsExportAProcedure(exportPointer) || (exportPointer == 0))
+        if (compiledScript.IsExportAProcedure(exportPointer))
         {
             std::unique_ptr<ProcedureDefinition> pProc = std::make_unique<ProcedureDefinition>();
             pProc->SetScript(pScript.get());
             pProc->SetName(lookups.ReverseLookupPublicExportName(compiledScript.GetScriptNumber(), (uint16_t)i));
+            exportSlotToName[i] = pProc->GetName();
             pProc->SetPublic(true);
-            if (exportPointer != 0)
-            {
-                DecompileFunction(compiledScript, *pProc, lookups, exportPointer, codePointersTO);
-            }
-            else
-            {
-                // Add a dummy function to take the place of this export.
-                pProc->AddSignature(make_unique<FunctionSignature>());
-                lookups.DecompileResults().AddResult(DecompilerResultType::Update, fmt::format("Replacing empty export with dummy proc: {0}", pProc->GetName()));
-            }
+            DecompileFunction(compiledScript, *pProc, lookups, exportPointer, codePointersTO);
             pScript->AddProcedure(std::move(pProc));
+        }
+        else if (exportPointer == 0)
+        {
+            // Valid.
+        }
+        else 
+        {
+            // It should be an object
+            bool found = false;
+            for (size_t objPosition = 0; !found && (objPosition < compiledScript._objects.size()); objPosition++)
+            {
+                if (compiledScript._objectsOffsetTO[objPosition] == exportPointer)
+                {
+                    exportSlotToName[i] = compiledScript._objects[objPosition]->GetName();
+                    found = true;
+                }
+            }
+            assert(found);
         }
     }
 
@@ -450,6 +472,12 @@ Script *Decompile(const GameFolderHelper &helper, const CompiledScript &compiled
         InsertHeaders(*pScript);
 
         DetermineAndInsertUsings(helper, *pScript, lookups);
+
+        for (auto &pair : exportSlotToName)
+        {
+            unique_ptr<ExportEntry> entry = make_unique<ExportEntry>(pair.first, pair.second);
+            pScript->GetExports().push_back(move(entry));
+        }
 
         // Decompiling always generates an SCO. Any pertinent info from the old SCO should be transfered
         // to the new one based extracting info from the script.

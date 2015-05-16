@@ -3245,6 +3245,9 @@ void WhileLoop::PreScan(CompileContext &context)
 	_innerCondition->PreScan(context);
 	ForwardPreScan2(_segments, context);
 }
+
+void ExportEntry::PreScan(CompileContext &context) {}
+
 void Script::PreScan(CompileContext &context)
 {
     DefineVector::const_iterator defineIt = _defines.begin();
@@ -3261,6 +3264,54 @@ void Script::PreScan(CompileContext &context)
         }
     }
     ForwardPreScan2(_defines, context);
+
+
+    std::set<int> slots;
+    for (auto &theExport : _exports)
+    {
+        if (slots.find(theExport->Slot) != slots.end())
+        {
+            context.ReportError(theExport.get(), "Export slot %d has already been used.", theExport->Slot);
+        }
+        else
+        {
+            slots.insert(theExport->Slot);
+        }
+
+        // Ensure this matches a public object or procedure
+        const ClassDefinition *classDef = context.LookupClassDefinition(theExport->Name);
+        const ISourceCodePosition *notPublicError = nullptr;
+        if (classDef)
+        {
+            notPublicError = classDef->IsPublic() ? nullptr : classDef;
+        }
+        else
+        {
+            const ProcedureDefinition *procFound = nullptr;
+            for (const auto &proc : _procedures)
+            {
+                if (proc->GetName() == theExport->Name)
+                {
+                    procFound = proc.get();
+                    break;
+                }
+            }
+            if (procFound == nullptr)
+            {
+                context.ReportError(theExport.get(), "Unknown export %s in slot %d.", theExport->Name.c_str(), theExport->Slot);
+            }
+            else
+            {
+                notPublicError = procFound->IsPublic() ? nullptr : procFound;
+            }
+        }
+
+        if (notPublicError)
+        {
+            context.ReportError(notPublicError, "%s needs to be marked public in ordered to be exported.", theExport->Name.c_str());
+        }
+    }
+
     ForwardPreScan2(_procedures, context);
     ForwardPreScan2(_classes, context);
     ForwardPreScan2(_scriptVariables, context);

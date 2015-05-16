@@ -185,6 +185,109 @@ void _FixupReferencesHelper(SCIVersion version, CompileContext &context, vector<
     }
 }
 
+// Procedure/class (true/false), index
+enum class ExportType
+{
+    Empty,
+    Procedure,
+    Object,
+};
+
+struct ExportTableInfo
+{
+    ExportTableInfo() : Type(ExportType::Empty), ReferenceIndex(-1), SyntaxNodeWeak(nullptr) {}
+    ExportTableInfo(ExportType type, int refIndex, SyntaxNode *syntaxNode) : Type(type), ReferenceIndex(refIndex), SyntaxNodeWeak(syntaxNode) {}
+    ExportType Type;
+    int ReferenceIndex;
+    SyntaxNode *SyntaxNodeWeak;
+};
+
+void _AddToTable(vector<ExportTableInfo> &table, const ExportTableInfo &entry, const string &name, map<string, set<int>> nameToSlots, set<int> &freeSlots)
+{
+    bool inserted = false;
+    for (int slot : nameToSlots[name])
+    {
+        inserted = true;
+        table[slot] = entry;
+    }
+    if (!inserted)
+    {
+        if (freeSlots.empty())
+        {
+            table.push_back(entry);
+        }
+        else
+        {
+            table[*freeSlots.begin()] = entry;
+            freeSlots.erase(*freeSlots.begin());
+        }
+    }
+}
+
+vector<ExportTableInfo> GetExportTableOrder(CompileContext *contextOptional, const Script &script, bool allowPublicClasses)
+{
+    // There are two types of exports:
+    // 1) public procedures (common)
+    // 2) public instances or objects
+    // For < SCI1.1, public instances need to come first - as the interpreter looks for the first export, and may assume its
+    // a room/locale/rgn, or in the case of script 0, the Game instance.
+    // For SCI1.1, things can be in any order (with the exception of main perhaps?), and export slots can be empty too.
+
+    // We'll put public objects first, followed by public procedures. But this may be overriden using the "exports" keywords
+    // in script (version 2). Some Sierra games have the same export in multiple slots, even. So we need to handle that.
+    map<string, set<int>> nameToSlots;
+    set<int> explicitSlots;
+    int maxSlot = -1;
+    for (const auto &exportEntry : script.GetExports())
+    {
+        maxSlot = max(maxSlot, exportEntry->Slot);
+        explicitSlots.insert(exportEntry->Slot);
+        nameToSlots[exportEntry->Name].insert(exportEntry->Slot);
+    }
+    // Make a list of empty slots to use for exports that don't have an explicit slot.
+    set<int> freeSlots;
+    for (int i = 0; i < maxSlot; i++)
+    {
+        if (explicitSlots.find(i) == explicitSlots.end())
+        {
+            freeSlots.insert(i);
+        }
+    }
+
+    // Make the table big enough
+    vector<ExportTableInfo> table;
+    table.assign(maxSlot + 1, ExportTableInfo());
+
+    int classRefIndex = 0;
+    for (const auto &theClass : script.GetClasses())
+    {
+        if (theClass->IsPublic() && (allowPublicClasses || theClass->IsInstance()))
+        {
+            ExportTableInfo entry(ExportType::Object, classRefIndex, theClass.get());
+            _AddToTable(table, entry, theClass->GetName(), nameToSlots, freeSlots);
+            classRefIndex++;
+        }
+
+        if (contextOptional && theClass->IsPublic() && !theClass->IsInstance() && !allowPublicClasses)
+        {
+            contextOptional->ReportWarning(theClass.get(), "Ignoring public class for export: %s.", theClass->GetName().c_str());
+        }
+    }
+
+    int procRefIndex = 0;
+    for (const auto &theProc : script.GetProcedures())
+    {
+        if (theProc->IsPublic())
+        {
+            ExportTableInfo entry(ExportType::Procedure, procRefIndex, theProc.get());
+            _AddToTable(table, entry, theProc->GetName(), nameToSlots, freeSlots);
+            procRefIndex++;
+        }
+    }
+
+    return table;
+}
+
 //
 // Writes the class or instance described by object, into the script resource output stream.
 //
@@ -583,84 +686,72 @@ void _Section5_Strings(CompileContext &context, vector<BYTE> &outputScr, vector<
     }
 }
 
-void _Section7_Exports_Part1(Script &script, CompileContext &context, vector<BYTE> &output, size_t &numExports, size_t &indexOfExports)
+void _Section7_Exports_Part1(Script &script, CompileContext &context, vector<BYTE> &output, const vector<ExportTableInfo> &exportTableOrder, size_t &offsetOfExports)
 {
-    numExports = 0;
-    const ClassVector &classes = script.GetClasses();
-    numExports += count_if(classes.begin(), classes.end(), IsPublicInstance);   // public instances
-    const ProcedureVector &procs = script.GetProcedures();
-    numExports += count_if(procs.begin(), procs.end(), IsPublicProcedure);      // public procedures
     push_word(output, 7); // 7 = exports
     uint16_t exportWidth = context.GetVersion().IsExportWide() ? 4 : 2;
-    push_word(output, (WORD)(numExports * exportWidth) + 4 + 2); // exports + header + exportCount.
-    push_word(output, (WORD)numExports); // the number of exports
-    indexOfExports = output.size(); // Store where the ptrs will go.
+    push_word(output, (uint16_t)(exportTableOrder.size() * exportWidth) + 4 + 2); // exports + header + exportCount.
+    push_word(output, (uint16_t)exportTableOrder.size()); // the number of exports
+    offsetOfExports = output.size(); // Store where the ptrs will go.
     // Fill with zeroes for now:
-    output.insert(output.end(), numExports * exportWidth, 0);
+    output.insert(output.end(), exportTableOrder.size() * exportWidth, 0);
 }
 
 const uint16_t ExportTempMarker = 0x5845;   // "EX" backwards
 
-void _Exports_SCI11(Script &script, CompileContext &context, vector<BYTE> &output, size_t &numExports, size_t &indexOfExports)
+void _Exports_SCI11(Script &script, CompileContext &context, vector<BYTE> &output, const vector<ExportTableInfo> &exportTableOrder, size_t &offsetOfExports)
 {
-    numExports = 0;
-    for (const auto &theClass : script.GetClasses())
+    // Track heap pointers for the objects
+    int exportIndex = 0;
+    for (const auto &exportTableInfo : exportTableOrder)
     {
-        bool isGameClass = ((script.GetScriptNumber() == 0) && (theClass->GetSuperClass() == "Game"));
-        if (isGameClass || (theClass->IsPublic() && theClass->IsInstance()))
+        if (exportTableInfo.Type == ExportType::Object)
         {
             // Track his heap pointer:
-            context.AddHeapPointerOffset(2 + (numExports * 2) + (uint16_t)output.size());
-            numExports++;
+            context.AddHeapPointerOffset(2 + (exportIndex * 2) + (uint16_t)output.size());
         }
+        exportIndex++;
     }
 
-    const ProcedureVector &procs = script.GetProcedures();
-    numExports += count_if(procs.begin(), procs.end(), IsPublicProcedure);      // public procedures
     assert(!context.GetVersion().IsExportWide());
-    push_word(output, (WORD)numExports); // the number of exports
-    indexOfExports = output.size(); // Store where the ptrs will go.
+
+    push_word(output, (WORD)exportTableOrder.size()); // the number of exports
+    offsetOfExports = output.size(); // Store where the ptrs will go.
     // Fill with dumb markers for now:
-    for (size_t i = 0; i < numExports; i++)
+    for (size_t i = 0; i < exportTableOrder.size(); i++)
     {
         push_word(output, ExportTempMarker);
     }
 }
 
-void _Section7_Exports_Part2(CompileContext &context, vector<BYTE> &output, WORD wStartOfCode, size_t numExports, size_t indexOfExports)
+void _Section7_Exports_Part2(CompileContext &context, vector<BYTE> &output, WORD wStartOfCode, const vector<ExportTableInfo> &exportTableOrder, size_t offsetOfExports)
 {
     // Now code  and classes have been written to the stream.  It's time to set up the exports table, which starts back at
-    // indexOfExports.  We need to take one additional step for the main script.
-    // There are two types of exports:
-    // 1) public procedures (common)
-    // 2) public instances (generally 1 per script).
-    // public instances need to come first - as the interpreter looks for the first export, and may assume its
-    // a room/locale/rgn, or in the case of script 0, the Game instance.
-    // In here, we write the offset from the begining of the resource to the beginning of the code.
-    vector<code_pos> &exports = context.GetExports();
+    // indexOfExports.
+    // In here, we write the offset from the begining of the resource to the beginning of the code or object.
+    vector<code_pos> &procExports = context.GetExports();
     vector<WORD> &instanceOffsets = context.GetPublicInstanceOffsets();
     uint16_t exportWidth = context.GetVersion().IsExportWide() ? 4 : 2;
+
     // We already filled the thing with zeroes, so we can just write a uint16_t, and increment by 4.
-    if (numExports == (exports.size() + instanceOffsets.size())) // Otherwise we generate a corrupt resource!
+    for (const auto &exportOrderEnty : exportTableOrder)
     {
-        // Public instances first.
-        for (WORD instanceOffset : instanceOffsets)
+        switch (exportOrderEnty.Type)
         {
-            write_word(output, indexOfExports, instanceOffset);
-            indexOfExports += exportWidth;
+            case ExportType::Empty:
+                write_word(output, offsetOfExports, 0);
+                break;
+            case ExportType::Procedure:
+            {
+                WORD wCodeOffset = context.code().offset_of(procExports[exportOrderEnty.ReferenceIndex]);
+                write_word(output, offsetOfExports, wStartOfCode + wCodeOffset);
+            }
+                break;
+            case ExportType::Object:
+                write_word(output, offsetOfExports, instanceOffsets[exportOrderEnty.ReferenceIndex]);
+                break;
         }
-        // Then procedures.
-        for (code_pos procEntry : exports)
-        {
-            WORD wCodeOffset = context.code().offset_of(procEntry);
-            write_word(output, indexOfExports, wStartOfCode + wCodeOffset);
-            indexOfExports += exportWidth;
-        }
-    }
-    else
-    {
-        // We're not putting the exports in, so it's an incomplete scritp resource - we'd better have some errors.
-        assert(context.HasErrors());
+        offsetOfExports += exportWidth;
     }
 }
 
@@ -772,47 +863,58 @@ void _CreateSCOFunctionSignature(CompileContext &context, std::vector<CSCOFuncti
 //
 // Adds the script's public instances and procedures to the sco file being compiled by the context
 //
-void GenerateSCOPublics(CompileContext &context, const Script &script)
+void GenerateSCOPublics(CompileContext &context, const Script &script, bool allowPublicClasses)
 {
-    WORD wIndex = 0;
+    vector<ExportTableInfo> exportTableOrder = GetExportTableOrder(&context, script, allowPublicClasses);
     const ClassVector &classes = script.GetClasses();
-    for (auto &classDef : script.GetClasses())
+    const ProcedureVector &procs = script.GetProcedures();
+
+    uint16_t wIndex = 0;
+    for (auto &exportTableInfo : exportTableOrder)
     {
-        // SCI1.1 supports public classes too.
-        bool allowPublicClasses = context.GetVersion().SeparateHeapResources;
-        if (classDef->IsPublic() && (classDef->IsInstance() || allowPublicClasses))
+        switch (exportTableInfo.Type)
         {
-            CSCOPublicExport pe(classDef->GetName(), wIndex);
-            SpeciesIndex si = DataTypeAny;;
-            if (!context.LookupTypeSpeciesIndex(classDef->GetSuperClass(), si))
+            case ExportType::Procedure:
             {
-                context.ReportError(classDef.get(), "Unknown superclass: %s.", classDef->GetSuperClass().c_str());
+                auto pProc = static_cast<sci::ProcedureDefinition*>(exportTableInfo.SyntaxNodeWeak);
+                CSCOPublicExport procExport(pProc->GetName(), wIndex);
+                // Store the function signature(s).
+                std::vector<CSCOFunctionSignature> signatures;
+                _CreateSCOFunctionSignature(context, signatures, pProc->GetSignatures());
+                procExport.SetSignatures(signatures);
+                context.AddSCOPublics(procExport);
             }
-            pe.SetInstanceSpecies(si);
-            context.AddSCOPublics(pe);
-            ++wIndex;
+                break;
+
+            case ExportType::Object:
+            {
+                auto classDef = static_cast<sci::ClassDefinition*>(exportTableInfo.SyntaxNodeWeak);
+                CSCOPublicExport pe(classDef->GetName(), wIndex);
+                SpeciesIndex si = DataTypeAny;;
+                if (!context.LookupTypeSpeciesIndex(classDef->GetSuperClass(), si))
+                {
+                    context.ReportError(classDef, "Unknown superclass: %s.", classDef->GetSuperClass().c_str());
+                }
+                pe.SetInstanceSpecies(si);
+                context.AddSCOPublics(pe);
+            }
+                break;
         }
 
-        if (classDef->IsPublic() && !classDef->IsInstance() && !allowPublicClasses)
-        {
-            context.ReportWarning(classDef.get(), "Ignoring public class for export: %s.", classDef->GetName().c_str());
-        }
+        wIndex++;
     }
-    const ProcedureVector &procs = script.GetProcedures();
-    for (auto &pProc : procs)
+
+    // Also add a fake ones for non-public procs - we'll use this for function signature matching.
+    // These don't get saved.
+    uint16_t procIndex = 0;
+    for (const auto &pProc : procs)
     {
-        CSCOPublicExport procExport(pProc->GetName(), wIndex);
-        // Store the function signature(s).
+        CSCOPublicExport procExport(pProc->GetName(), procIndex);
         std::vector<CSCOFunctionSignature> signatures;
         _CreateSCOFunctionSignature(context, signatures, pProc->GetSignatures());
         procExport.SetSignatures(signatures);
-        if (pProc->IsPublic())
-        {
-            context.AddSCOPublics(procExport);
-            ++wIndex;
-        }
-        // Also add a fake one, even if it's not public - we'll use this for function signature matching.
         context.AddFakeSCOPublic(procExport);
+        procIndex++;
     }
 }
 
@@ -1186,14 +1288,14 @@ bool GenerateScriptResource_SCI0(Script &script, PrecompiledHeaders &headers, Co
     CommonScriptPrep(script, context, results);
 
     // To figure out how many exports we have, let's look at the public procedures and public instances
-    size_t numExports = 0;
-    size_t indexOfExports = 0;
-    _Section7_Exports_Part1(script, context, output, numExports, indexOfExports);
+    size_t offsetOfExports = 0;
+    vector<ExportTableInfo> exportTableOrder = GetExportTableOrder(nullptr, script, false);
+    _Section7_Exports_Part1(script, context, output, exportTableOrder, offsetOfExports);
 
     // Generate SCO objects for the classes and instances in the script.  We want to do this before generating any code,
     // since some code relies on it.
     GenerateSCOObjects(context, script);
-    GenerateSCOPublics(context, script);
+    GenerateSCOPublics(context, script, false);
     GenerateSCOVariables(context, script);
 
     // It would be nice to put the code right after the saids and strings,
@@ -1209,7 +1311,7 @@ bool GenerateScriptResource_SCI0(Script &script, PrecompiledHeaders &headers, Co
 
     _Section1And6_ClassesAndInstances(output, &context);
 
-    _Section7_Exports_Part2(context, output, wStartOfCode, numExports, indexOfExports);
+    _Section7_Exports_Part2(context, output, wStartOfCode, exportTableOrder, offsetOfExports);
 
     _ResolveLocalVariables(script, context, true);
     _Section10_LocalVariables(script, context, output, false);
@@ -1265,7 +1367,7 @@ void WriteMethodCodePointers(const CSCOObjectClass &oClass, vector<uint8_t> &out
 
 const uint16_t SpeciesSelector_SCI1 = 0x1005;
 
-void WriteClassToHeap(const CSCOObjectClass &oClass, bool isInstance, bool isGameClass, vector<uint8_t> &outputHeap, vector<uint8_t> &outputScr, CompileContext &context, vector<uint16_t> &trackHeapStringOffsets, uint16_t &objectSelectorOffsetInScr)
+void WriteClassToHeap(const CSCOObjectClass &oClass, bool isInstance, vector<uint8_t> &outputHeap, vector<uint8_t> &outputScr, CompileContext &context, vector<uint16_t> &trackHeapStringOffsets, uint16_t &objectSelectorOffsetInScr)
 {
     // This is where code that has offsets to this instance should point to
     WORD wObjectPointer = (WORD)outputHeap.size();
@@ -1275,7 +1377,7 @@ void WriteClassToHeap(const CSCOObjectClass &oClass, bool isInstance, bool isGam
         _FixupReferencesHelper(context.GetVersion(), context, outputScr, context.GetInstanceReferences(), oClass.GetName(), wObjectPointer);
     }
 
-    if ((isInstance && oClass.IsPublic()) || isGameClass)
+    if (oClass.IsPublic())
     {
         // If it's public, we need to put this in the export table.
         context.TrackPublicInstance(wObjectPointer);
@@ -1366,13 +1468,14 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
     // To figure out how many exports we have, let's look at the public procedures and public instances
     // TODO: Retain gaps from old SCO file? If we don't all other files will need to recompile.
     size_t numExports = 0;
-    size_t indexOfExports = 0;
-    _Exports_SCI11(script, context, outputScr, numExports, indexOfExports);
+    size_t offsetOfExports = 0;
+    vector<ExportTableInfo> exportTableOrder = GetExportTableOrder(nullptr, script, true);
+    _Exports_SCI11(script, context, outputScr, exportTableOrder, offsetOfExports);
 
     // Generate SCO objects for the classes and instances in the script.  We want to do this before generating any code,
     // since some code relies on it.
     GenerateSCOObjects(context, script);
-    GenerateSCOPublics(context, script);
+    GenerateSCOPublics(context, script, true);
     GenerateSCOVariables(context, script);
 
     // Next, we write out the objects. They consist of parts in both .hep and .scr
@@ -1428,12 +1531,11 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
     for (const CSCOObjectClass &oClass : sco.GetObjects())
     {
         // The class that inherits from Game is special, it goes in the export table too.
-        bool isGameClass = !gameClassName.empty() && (oClass.GetName() == gameClassName);
-        WriteClassToHeap(oClass, false, isGameClass, outputHeap, outputScr, context, trackHeapStringOffsets, objectSelectorOffsetInScr);
+        WriteClassToHeap(oClass, false, outputHeap, outputScr, context, trackHeapStringOffsets, objectSelectorOffsetInScr);
     }
     for (const CSCOObjectClass &oClass : context.GetInstanceSCOs())
     {
-        WriteClassToHeap(oClass, true, false, outputHeap, outputScr, context, trackHeapStringOffsets, objectSelectorOffsetInScr);
+        WriteClassToHeap(oClass, true, outputHeap, outputScr, context, trackHeapStringOffsets, objectSelectorOffsetInScr);
     }
 
     
@@ -1472,7 +1574,7 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
     // TODO: Write our prop relocs
     // TODO GenerateSCOObjects ... this is where CSCOpropertys are marked as needing relocation. name is hard-coded, we'll need others too. Like "up" and "down" in Gauge.sc
     // TODO: keep exports in sync with previous SCO file iteration
-    _Section7_Exports_Part2(context, outputScr, wStartOfCode, numExports, indexOfExports);
+    _Section7_Exports_Part2(context, outputScr, wStartOfCode, exportTableOrder, offsetOfExports);
 
     // Get the .sco file produced.
     results.GetSCO() = context.GetScriptSCO();

@@ -22,8 +22,8 @@ class DummyLog : public ICompileLog
 unique_ptr<Script> GetDefinesScript(const GameFolderHelper &helper)
 {
     DummyLog log;
-    unique_ptr<Script> script = make_unique<Script>();
     ScriptId scriptId(helper.GetIncludeFolder() + "\\sci.sh");
+    unique_ptr<Script> script = make_unique<Script>(scriptId);
     assert(scriptId.Language() == LangSyntaxSCIStudio);
     CCrystalTextBuffer buffer;
     if (buffer.LoadFromFile(scriptId.GetFullPath().c_str()))

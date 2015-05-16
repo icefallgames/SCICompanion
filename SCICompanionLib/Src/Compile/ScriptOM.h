@@ -119,6 +119,7 @@ namespace sci
     class CppIfStatement;
     class Asm;
     class AsmBlock;
+    class ExportEntry;
 
     class ISyntaxNodeVisitor
     {
@@ -158,6 +159,7 @@ namespace sci
         virtual void Visit(const CppIfStatement &ifStatement) = 0;
         virtual void Visit(const Asm &asmSection) = 0;
         virtual void Visit(const AsmBlock &asmBlock) = 0;
+        virtual void Visit(const ExportEntry &exportEntry) = 0;
     };
 
     class ScriptSite
@@ -215,6 +217,7 @@ namespace sci
         NodeTypeCppIf,
         NodeTypeCast,
         NodeTypeConditionalExpressionSCIStudio,
+        NodeTypeExport,
     };
 
     class Comment;
@@ -1080,6 +1083,27 @@ namespace sci
     typedef std::vector<std::unique_ptr<Comment>> CommentVector;
 	typedef std::vector<CommentPtr> RawCommentVector;
 
+    class ExportEntry : public SyntaxNode
+    {
+        DECLARE_NODE_TYPE(NodeTypeExport)
+    public:
+        ExportEntry() {}
+        ExportEntry(int slot, const std::string &name) : Slot(slot), Name(name) {}
+        ExportEntry(const ExportEntry &src) = delete;
+        ExportEntry& operator=(const ExportEntry& src) = delete;
+
+        // IOutputByteCode
+        CodeResult OutputByteCode(CompileContext &context) const { return CodeResult(); }
+        void PreScan(CompileContext &context);
+        void Traverse(IExploreNodeContext *pContext, IExploreNode &en) {}
+        void Accept(ISyntaxNodeVisitor &visitor) const override;
+
+        std::string Name;
+        int Slot;
+    };
+
+    typedef std::vector<std::unique_ptr<ExportEntry>> ExportEntryVector;
+    
     //
     // This represents an entire script
     //
@@ -1106,6 +1130,8 @@ namespace sci
         const VariableDeclVector &GetScriptVariables() const { return _scriptVariables; }
         const VariableDeclVector &GetScriptStringsDeclarations() const { return _scriptStringDeclarations; }
         const DefineVector &GetDefines() const { return _defines; }
+        const ExportEntryVector &GetExports() const { return _exports; }
+        ExportEntryVector &GetExports() { return _exports; }
         const SynonymVector &GetSynonyms() const { return _synonyms; }
         const CommentVector &GetComments() const { return _comments; }
         const std::vector<std::string> &GetUses() const { return _uses; }
@@ -1157,6 +1183,7 @@ namespace sci
         ProcedureVector _procedures;
         SynonymVector _synonyms;
         DefineVector _defines;
+        ExportEntryVector _exports;
 
         // Since comments can be anywhere in the script, including the middle of statements,
         // we don't generally store comments as distinct nodes (though it is supported).
