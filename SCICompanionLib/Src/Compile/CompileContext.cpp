@@ -813,7 +813,11 @@ string CompileContext::ScanForIdentifiersScriptName(const std::string &identifie
         {
             strRet = pContainerScript->GetName();
             // Trim the ".sc" off.
-            strRet.erase(strRet.find('.'));
+            auto it = strRet.find('.');
+            if (it != string::npos)
+            {
+                strRet.erase(it);
+            }
         }
     }
     return strRet;

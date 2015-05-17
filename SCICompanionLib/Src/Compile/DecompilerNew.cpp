@@ -1128,9 +1128,17 @@ Consumption _GetInstructionConsumption(ConsumptionNode &node, DecompileLookups &
     }
     else
     {
-        // A control structure
         Consumption consumption = {};
-        consumption.cAccGenerate = 1;
+        // A control structure. Only certain types of control
+        // structures should "generate acc".
+        switch (node.GetType())
+        {
+            case ChunkType::If:
+            case ChunkType::Switch:
+                // REVIEW: Add loops?
+                consumption.cAccGenerate = 1;
+                break;
+        }
         return consumption;
     }
 }
@@ -2613,7 +2621,7 @@ bool OutputNewStructure(const std::string &messagePrefix, sci::FunctionBase &fun
         string message;
         if (e.node->_hasPos)
         {
-            message = fmt::format("{0}: {1}: {2} at {3:04x}", messagePrefix, e.message, (int)e.node->GetType(), e.node->GetCode()->get_final_offset_dontcare());
+            message = fmt::format("{0}: {1}: {2} at {3:04x}", messagePrefix, e.message, (int)e.node->GetCode()->get_opcode(), e.node->GetCode()->get_final_offset_dontcare());
         }
         else
         {

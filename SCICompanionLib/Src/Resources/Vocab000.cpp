@@ -95,7 +95,7 @@ Vocab000::Vocab000()
     memset(_rgbGroups, 0x00, sizeof(_rgbGroups));
 }
 
-void Vocab000::_ReadWord(sci::istream &byteStream, char *pszBuffer, size_t cchBuffer)
+void Vocab000::_ReadWord(sci::istream &byteStream, char *pszBuffer, size_t cchBuffer, bool is900)
 {
     uint8_t bCopyCount;
     byteStream >> bCopyCount;
@@ -109,10 +109,10 @@ void Vocab000::_ReadWord(sci::istream &byteStream, char *pszBuffer, size_t cchBu
         uint8_t bChar;
         while ((cchBuffer > 0) && (byteStream >> bChar).good())
         {
-            *pszStartHere = (0x7f & bChar);
+            *pszStartHere = is900 ? bChar : (0x7f & bChar);
             pszStartHere++;
             cchBuffer--;
-            if (bChar & 0x80)
+            if (!is900 && (bChar & 0x80))
             {
                 // This was the last char.
                 if (cchBuffer > 0)
@@ -124,6 +124,11 @@ void Vocab000::_ReadWord(sci::istream &byteStream, char *pszBuffer, size_t cchBu
                     // Ran over our buffer length.
                     // TODO: throw exception?
                 }
+                break;
+            }
+            else if (is900 && !bChar)
+            {
+                // This was the last char
                 break;
             }
         }
@@ -587,7 +592,7 @@ void VocabReadFrom(ResourceEntity &resource, sci::istream &byteStream, bool is90
     char sz[MAX_PATH];
     while (byteStream.has_more_data())
     {
-        vocab._ReadWord(byteStream, sz, ARRAYSIZE(sz));
+        vocab._ReadWord(byteStream, sz, ARRAYSIZE(sz), is900);
     }
 }
 

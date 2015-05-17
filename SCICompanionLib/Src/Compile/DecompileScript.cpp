@@ -422,16 +422,12 @@ Script *Decompile(const GameFolderHelper &helper, const CompiledScript &compiled
         else 
         {
             // It should be an object
-            bool found = false;
-            for (size_t objPosition = 0; !found && (objPosition < compiledScript._objects.size()); objPosition++)
+            CompiledObjectBase *object = compiledScript.GetObjectForExport(exportPointer);
+            if (object)
             {
-                if (compiledScript._objectsOffsetTO[objPosition] == exportPointer)
-                {
-                    exportSlotToName[i] = compiledScript._objects[objPosition]->GetName();
-                    found = true;
-                }
+                exportSlotToName[i] = object->GetName();
             }
-            assert(found);
+            assert(object);
         }
     }
 

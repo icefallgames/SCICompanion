@@ -58,6 +58,23 @@ bool CompiledScript::IsExportAProcedure(uint16_t wOffset, int *exportIndex) cons
     return result;
 }
 
+CompiledObjectBase *CompiledScript::GetObjectForExport(uint16_t exportPointer) const
+{
+    if (!_version.SeparateHeapResources)
+    {
+        exportPointer -= 8;
+    }
+
+    for (size_t objPosition = 0; objPosition < _objects.size(); objPosition++)
+    {
+        if (_objectsOffsetTO[objPosition] == exportPointer)
+        {
+            return _objects[objPosition].get();
+        }
+    }
+    return nullptr;
+}
+
 bool CompiledScript::Load(const GameFolderHelper &helper, SCIVersion version, int number, sci::istream &byteStream, sci::istream *heapStream)
 {
     _version = version;
