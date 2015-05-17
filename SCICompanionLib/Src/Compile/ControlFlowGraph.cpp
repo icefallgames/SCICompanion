@@ -744,7 +744,15 @@ bool ControlFlowGraph::_ResolveBreak(uint16_t loopFollowAddress, ControlFlowNode
     // We're looking for nodes that end in an unconditional jump to the loop follow address
     for (ControlFlowNode *node : structure->children)
     {
+        /*
+        bool maybeJumpsToExit = false;
+        if (node->Type == CFGNodeType::RawCode)
+        {
+            maybeJumpsToExit = (node->endsWith(Opcode::JMP) ||
+                (((*structure)[SemId::Head] != node) && node->endsWith(Opcode::BT)));
+        }*/
         if ((node->Type == CFGNodeType::RawCode) && node->endsWith(Opcode::JMP))
+        //if (maybeJumpsToExit)
         {
             if (!node->ContainsTag(SemanticTags::LoopBreak)) // Not already identified
             {
@@ -1133,16 +1141,18 @@ bool _CheckForSameHeader(ControlFlowGraph &cfg, ControlFlowNode &parent, vector<
             // Create a common latch node. It will have our latch nodes as predecessors
             CommonLatchNode *common = cfg.MakeNode<CommonLatchNode>();
             parent.children.insert(common);
-for (NodeBlock *block : blocksWithSameHeader)
-{
-    // The "starting address" of the common latch will be the max starting address of the original latches.
-    // This doesn't really make sense, but we need something.
-    common->tokenStartingAddress = max(common->tokenStartingAddress, block->latch->GetStartingAddress());
-    common->InsertPredecessor(block->latch);
-    block->head->ErasePredecessor(block->latch);
-}
-blocksWithSameHeader[0]->head->InsertPredecessor(common);
-break; // Only do one set of these at a time.
+            for (NodeBlock *block : blocksWithSameHeader)
+            {
+                // The "starting address" of the common latch will be the max starting address of the original latches.
+                // This doesn't really make sense, but we need something.
+                // REVIEW: This causes problems (SQ5, 26, ScrollableInventory::retreat). It confuses if statement resolution
+                // because the 2 successors of branch may point to the same "starting address".
+                common->tokenStartingAddress = max(common->tokenStartingAddress, block->latch->GetStartingAddress());
+                common->InsertPredecessor(block->latch);
+                block->head->ErasePredecessor(block->latch);
+            }
+            blocksWithSameHeader[0]->head->InsertPredecessor(common);
+            break; // Only do one set of these at a time.
         }
     }
     return noChanges;
