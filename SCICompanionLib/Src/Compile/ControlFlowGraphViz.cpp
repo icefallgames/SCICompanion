@@ -182,7 +182,7 @@ public:
             int colorIndex = currentParent->ArbitraryDebugIndex;
             for (auto node : currentParent->children)
             {
-                if (discoveredControlStructures.find(node) != discoveredControlStructures.end())
+                if (discoveredControlStructures.contains(node))
                 {
                     // This is a "parent", so color it like its children.
                     _CreateLabel(ss, node, graphIndex, node->ArbitraryDebugIndex);

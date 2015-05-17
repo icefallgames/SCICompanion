@@ -137,7 +137,7 @@ bool IsReachable(ControlFlowNode *head, ControlFlowNode *tail)
                 return true;
             }
 
-            if (visited.find(pred) == visited.end())
+            if (!visited.contains(pred))
             {
                 visited.insert(pred);
                 toProcess.push(pred);
@@ -165,9 +165,9 @@ NodeSet CollectNodesBetween(ControlFlowNode *head, ControlFlowNode *tail, NodeSe
         {
             for (ControlFlowNode *pred : node->Predecessors())
             {
-                if (collection.find(pred) == collection.end()) // Haven't already visited it
+                if (!collection.contains(pred)) // Haven't already visited it
                 {
-                    assert(possible.find(pred) != possible.end());// We could just filter these, but let's assert for now to catch bad callers.
+                    assert(possible.contains(pred));// We could just filter these, but let's assert for now to catch bad callers.
                     toProcess.push(pred);
                 }
             }
@@ -198,7 +198,7 @@ map<ControlFlowNode*, ControlFlowNode*> CalculateImmediateDominators(const Domin
                 {
                     if ((test != potentialImmDom) && (test != dominatee))
                     {
-                        if (dominatorMap.at(test).find(potentialImmDom) != dominatorMap.at(test).end())
+                        if (dominatorMap.at(test).contains(potentialImmDom))
                         {
                             // Our potential immediate dominator dominates other nodes of the dominatees dominators.
                             // So it can't be the immediate dominator

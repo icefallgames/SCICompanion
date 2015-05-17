@@ -440,6 +440,7 @@
     <ClInclude Include="Src\Util\ExtractAll.h" />
     <ClInclude Include="Src\Util\ImageUtil.h" />
     <ClInclude Include="Src\Util\MidiPlayer.h" />
+    <ClInclude Include="Src\Util\SortedVector.h" />
     <ClInclude Include="Src\Util\SoundUtil.h" />
     <ClInclude Include="Src\Compile\CompileContext.h" />
     <ClInclude Include="Src\Compile\CompiledScript.h" />

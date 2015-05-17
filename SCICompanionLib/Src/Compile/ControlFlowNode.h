@@ -1,5 +1,6 @@
 #pragma once
 #include "scii.h"
+#include "SortedVector.h"
 
 enum CFGNodeType
 {
@@ -64,7 +65,30 @@ struct CompareCFGNodesByAddress {
 };
 
 struct ControlFlowNode;
-typedef std::set<ControlFlowNode*> NodeSet;
+
+// Using a sorted vector (instead of a set) provides about a 10x speed up in our scenario.
+// It comes with a few disadvantages, like iterators are invalidated when items are added/removed
+// (which may be a good thing). It's possible we still have bugs regarding this.
+#define USE_VECTOR_NODESET 1
+
+#ifdef USE_VECTOR_NODESET
+struct NodeSet : public sorted_vector<ControlFlowNode*>
+{
+    bool contains(ControlFlowNode* node) const
+    {
+        return find(node) != end();
+    }
+};
+#else
+struct NodeSet : public std::set < ControlFlowNode* >
+{
+    bool contains(ControlFlowNode* node) const
+    {
+        return find(node) != end();
+    }
+};
+#endif
+
 
 struct ControlFlowNode
 {
@@ -85,7 +109,7 @@ struct ControlFlowNode
 
     bool contains(ControlFlowNode *potentialChild)
     {
-        return children.find(potentialChild) != children.end();
+        return children.contains(potentialChild);
     }
 
     virtual bool contains(Opcode opcode) { return false; }
@@ -135,11 +159,11 @@ struct ControlFlowNode
             if (pair.first == SemId::Follow)
             {
                 // Assert it is never part of our children.
-                assert(newNode->children.find(pair.second) == newNode->children.end());
-                assert(children.find(pair.second) == children.end());
+                assert(!newNode->children.contains(pair.second));
+                assert(!children.contains(pair.second));
             }
 
-            if (pair.second && (newNode->children.find(pair.second) != newNode->children.end()))
+            if (pair.second && (newNode->children.contains(pair.second)))
             {
                 pair.second = newNode;
             }
@@ -309,7 +333,7 @@ class DominatorMap : public std::map < ControlFlowNode*, NodeSet >
 public:
     bool IsADominatedByB(ControlFlowNode *a, ControlFlowNode *b) const
     {
-        return at(a).find(b) != at(a).end();
+        return at(a).contains(b);
     }
 };
 

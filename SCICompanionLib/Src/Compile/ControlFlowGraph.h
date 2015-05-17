@@ -56,7 +56,7 @@ private:
     void _IdentifySwitchCases(ControlFlowNode *switchNodeIn);
     void _FindAllCompoundConditions();
     void _ResolveBreaks();
-    void _ResolveBreak(uint16_t loopFollowAddress, ControlFlowNode *structure);
+    bool _ResolveBreak(uint16_t loopFollowAddress, ControlFlowNode *structure);
     void _ReconnectBreakNodeToSubsequentCode(ControlFlowNode *structure, ControlFlowNode *breakNode, code_pos subsequentcode);
     void _DoLoopTransforms();
     void _DoLoopTransform(ControlFlowNode *loop);
