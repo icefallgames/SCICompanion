@@ -366,7 +366,7 @@ public:
         // This sucks because of all the different forms we have.
         if (!sendCall.GetTargetName().empty())
         {
-            out.out << sendCall.GetTargetName();
+            out.out << CleanToken(sendCall.GetTargetName());
         }
         else if (sendCall.GetStatement1() && (sendCall.GetStatement1()->GetType() != NodeTypeUnknown))
         {

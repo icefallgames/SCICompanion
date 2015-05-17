@@ -284,7 +284,7 @@ bool AsmInstructionP(const ParserBase<_TContext, _It> *pParser, _TContext *pCont
     std::string &str = pContext->ScratchString();
     str.clear();
     char ch = *stream;
-    if (isalpha(ch) || (ch == '_') || (ch == '&'))     // First character must be a letter or _ or & (for the rest instruction)
+    if (isalpha(ch) || (ch == '_') || (ch == '&') || (ch == '-') || (ch == '+'))     // First character must be a letter or _ or & or + or - (for the rest instruction, or inc/dec)
     {
         fRet = true;
         str += ch;

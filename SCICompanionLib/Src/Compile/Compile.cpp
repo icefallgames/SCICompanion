@@ -2817,6 +2817,7 @@ CodeResult Asm::OutputByteCode(CompileContext &context) const
                             else if ((procType == ProcedureLocal) && (opcode == Opcode::CALL))
                             {
                                 context.code().inst(opcode, wIndex, pNumParams->GetNumberValue());
+                                context.TrackLocalProcCall(pValue->GetStringValue());
                             }
                             else if ((procType == ProcedureExternal) && (opcode == Opcode::CALLE))
                             {
@@ -2953,6 +2954,18 @@ CodeResult Asm::OutputByteCode(CompileContext &context) const
                                                 if (opcode == Opcode::REST)
                                                 {
                                                     opcodeOpType = VO_PARAM;
+                                                }
+                                                if (context.GetScriptNumber() == 0)
+                                                {
+                                                    // Ok if local/global used interchangeably in main.
+                                                    if (opcodeOpType == VO_GLOBAL)
+                                                    {
+                                                        opcodeOpType = VO_LOCAL;
+                                                    }
+                                                    if (variableOpType == VO_GLOBAL)
+                                                    {
+                                                        variableOpType = VO_LOCAL;
+                                                    }
                                                 }
                                                 if (opcodeOpType != variableOpType)
                                                 {
