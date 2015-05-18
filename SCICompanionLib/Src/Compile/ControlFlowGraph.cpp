@@ -811,7 +811,7 @@ bool ControlFlowGraph::_RestructureBreak(uint16_t loopFollowAddress, ControlFlow
                 exitNode->ErasePredecessor(node);
                 newJmp->InsertPredecessor(node);
                 subsequentCodeNode->InsertPredecessor(newJmp);
-                assert(subsequentCodeNode->Predecessors().size() == 2);
+                assert(subsequentCodeNode->Predecessors().size() >= 2);
 
                 //assert(exitNode->Predecessors().size() > 0); // Otherwise we need to remove it from children. Look in _Reconnect* to figure this out.
                 if (exitNode->Predecessors().empty())
@@ -829,7 +829,7 @@ bool ControlFlowGraph::_RestructureBreak(uint16_t loopFollowAddress, ControlFlow
         // Now recurse, as long as its not another loop
         for (ControlFlowNode *child : structure->Children())
         {
-            if (child->Type != CFGNodeType::Loop)
+            if ((child != ignore) && (child->Type != CFGNodeType::Loop))
             {
                 changes = _RestructureBreak(loopFollowAddress, nullptr, child);
                 if (changes)

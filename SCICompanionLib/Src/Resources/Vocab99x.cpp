@@ -150,7 +150,7 @@ static const char *const s_defaultKernelNames[] = {
     /*0x79*/ "ATan",            // never called?
     /*0x7a*/ "Lock",
     /*0x7b*/ "StrSplit",
-    /*0x7c*/ "GetMessage",      // Message (SCI1.1)
+    /*0x7c*/ "Message",         // GetMessage (before SCI1.1)
     /*0x7d*/ "IsItSkip",
     /*0x7e*/ "MergePoly",
     /*0x7f*/ "ResCheck",

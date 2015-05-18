@@ -237,6 +237,16 @@
 (define pvCHANGE_TARGET 4)
 (define pvCHANGE_TICKS 5)
 (define pvPAUSE_RESUME 6)
+
+(define msgGET 0)
+(define msgNEXT 1)
+(define msgSIZE 2)
+(define msgREF_NOUN 3)
+(define msgREF_VERB 4)
+(define msgREF_COND 5)
+(define msgPUSH 6)
+(define msgPOP 7)
+(define msgLAST_MESSAGE 8)
 #endif  // SCI_1_1
 
 // Sound statuses
