@@ -51,6 +51,7 @@ enum class ChunkType
     TrueNode,
     ShortCircuitInstruction,
     FunctionBody,
+    CaseDeleted,
 };
 
 // For debugging purposes
@@ -85,6 +86,7 @@ const char *chunkTypeNames[] =
     "TrueNode",
     "ShortCircuitInstruction",
     "FunctionBody",
+    "CaseDeleted",
 };
 
 struct ConsumptionNode;
@@ -975,6 +977,10 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode2(ConsumptionNode &node, Decomp
                     assert(child->GetChildCount() == 1);
                     _ApplySyntaxNodeToCodeNode1(*child->Child(0), *switchStatement, lookups);
                 }
+                else
+                {
+                    assert((child->GetType() == ChunkType::CaseDeleted) && "Unexpected child of switch chunk.");
+                }
             }
 
             return unique_ptr<SyntaxNode>(move(switchStatement));
@@ -1685,6 +1691,47 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
         }
         break;
 
+        case Opcode::TOSS:
+        {
+            // Switch statement should be identified by now.
+            // If we encounter a lone TOSS at this point, it suggests we have mis-identified a switch statement.
+            // This can happen for "degenerate switches", for instance SQ5, 200, rightDome::doVerb has this:
+            //
+            // lsp	param[$1]
+            // pushi	$11d; 285, doVerb
+            // push1
+            // lsp	param[$1]
+            // &rest	$2
+            // super	Feature, $6
+            // toss
+            // ret
+            //
+            // This looks like a switch statement with only a default case
+            // Let's construct that now. If our first child generates stack, that child will be the condition.
+            // The rest of the children will form the default case.
+            if (node.GetChildCount())
+            {
+                Consumption consumption = _GetInstructionConsumption(*node.Child(0), lookups);
+                if (consumption.cStackGenerate)
+                {
+                    // Ok, with this, we can at least make a passable switch statement
+                    unique_ptr<SwitchStatement> switchStatement = make_unique<SwitchStatement>();
+                    _ApplySyntaxNodeToCodeNode1(*node.Child(0), *switchStatement, lookups);
+                    
+                    unique_ptr<CaseStatement> defaultCase = make_unique<CaseStatement>();
+                    defaultCase->SetDefault(true);
+                    for (size_t i = 1; i < node.GetChildCount(); i++)
+                    {
+                        _ApplySyntaxNodeToCodeNode(*node.Child(i), *defaultCase, lookups);
+                    }
+                    switchStatement->AddCase(move(defaultCase));
+
+                    return unique_ptr<SyntaxNode>(move(switchStatement));
+                }
+            }
+        }
+        break;
+
         default:
             if ((bOpcode >= Opcode::LAG) && (bOpcode <= Opcode::LastOne))
             {
@@ -2046,6 +2093,41 @@ bool TryToStealOrCloneSomethingOLD(ConsumptionNode *originalChild, DecompileLook
     return success;
 }
 
+// In some cases of degenerate case statements, Sierra's compiler produced a case value without
+// a branch instruction. These appear to only be on a final case statement that had no code in it.
+bool _IdentifyDegenerateCase(ConsumptionNode *node, DecompileLookups &lookups)
+{
+    // I'm not sure exactly how to turn these into anything useful, so let's remove them.
+    // They follow a specific pattern. So let's follow it up.
+    // [Case]
+    //   [CaseBody]
+    //     eq ? [02c4]
+    //       dup[02c1]
+    //       ldi[02c2]
+    bool identified = false;
+    node = node->_parentWeak;
+    if (node && node->_hasPos && (node->GetCode()->get_opcode() == Opcode::EQ))
+    {
+        node = node->_parentWeak;
+        if (node->GetType() == ChunkType::CaseBody)
+        {
+            node = node->_parentWeak;
+            if (node->GetType() == ChunkType::Case)
+            {
+                if (node->GetChild(ChunkType::CaseCondition) == nullptr)
+                {
+                    // Identify this case as degenerate. Removing it from the tree could be
+                    // risky, so let's just change its type:
+                    node->SetType(ChunkType::CaseDeleted);
+                    lookups.DecompileResults().AddResult(DecompilerResultType::Warning, "Removed degenerate case statement.");
+                    identified = true;
+                }
+            }
+        }
+    }
+    return identified;
+}
+
 // In later SCI, DUP is commonly as a one byte optimization when passing parameters, if two
 // parameters in a row have the same value. DUPs can't be handled with our standard instruction consumption
 // model, so handle them now by duplicating the previous stack-generating node.
@@ -2075,7 +2157,10 @@ void _ResolveDUPs(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookup
             }
             if (!found)
             {
-                throw ConsumptionNodeException(chunk, "Couldn't find DUP source");
+                if (!_IdentifyDegenerateCase(child, lookups))
+                {
+                    throw ConsumptionNodeException(chunk, "Couldn't find DUP source");
+                }
             }
         }
     }

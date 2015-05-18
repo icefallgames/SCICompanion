@@ -331,7 +331,7 @@ std::string _indent(int iIndent)
 Consumption _GetInstructionConsumption(scii &inst, DecompileLookups *lookups)
 {
     Opcode bOpcode = inst.get_opcode();
-    ASSERT(bOpcode <= Opcode::LastOne);
+    assert(bOpcode <= Opcode::LastOne);
     int cEatStack = 0;
     bool fChangesAcc = false;
     bool fEatsAcc = false;
