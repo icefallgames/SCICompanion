@@ -738,29 +738,123 @@ void ControlFlowGraph::_ResolveBreaks()
     }
 }
 
+void ControlFlowGraph::_RestructureBreaks()
+{
+    bool changes = true;
+    while (changes)
+    {
+        changes = false;
+        for (ControlFlowNode *structure : discoveredControlStructures)
+        {
+            if (structure->Type == CFGNodeType::Loop)
+            {
+                // Ignore the loop condition, whether it's head or latch
+                ControlFlowNode *ignore = nullptr;
+                if ((*structure)[SemId::Head]->Successors().size() > 1)
+                {
+                    ignore = (*structure)[SemId::Head];
+                }
+                else if ((*structure)[SemId::Latch]->Successors().size() > 1)
+                {
+                    ignore = (*structure)[SemId::Latch];
+                }
+                changes = _RestructureBreak((*structure)[SemId::Follow]->GetStartingAddress(), ignore, structure);
+                if (changes)
+                {
+                    break;
+                }
+            }
+        }
+    }
+}
+
+bool ControlFlowGraph::_RestructureBreak(uint16_t loopFollowAddress, ControlFlowNode *ignore, ControlFlowNode *structure)
+{
+    bool changes = false;
+    // In order to detect our if statements, we want breaks to be in the form of
+    // if (something)   // bnt
+    //      break;      // jmp, which we mark as a break, and reconnect to "more code"
+    // more code
+    //
+    // But a common pattern is to have:
+    // if (something)   // bt to exit
+    // more code
+    // 
+    // So let's see if we can restructure to the first case
+    // We want to ignore the loop condition though, as that could have bt's to exit.
+    for (ControlFlowNode *node : structure->children)
+    {
+        if ((node != ignore) && (node->Type == CFGNodeType::RawCode) && (node->endsWith(Opcode::BT)))
+        {
+            code_pos followingCode = (static_cast<RawCodeNode*>(node))->end;
+            code_pos end = followingCode;
+            --end;
+            if (end->get_branch_target()->get_final_offset() == loopFollowAddress)
+            {
+                changes = true;
+
+                ControlFlowNode *exitNode, *subsequentCodeNode;
+                GetThenAndElseBranches(node, &exitNode, &subsequentCodeNode);
+
+                // Ok, this is a true branch to exit. Now we're going to do some crazy stuff
+                end->set_opcode(Opcode::BNT);                   // Yup, switch to a BNT
+                end->set_branch_target(followingCode, true);    // And it now branches to the following code instead of exit
+
+                // Make a new node that will be the break
+                FakeBreakNode *newJmp = MakeNode<FakeBreakNode>();
+                newJmp->Tags.insert(SemanticTags::LoopBreak);
+                structure->children.insert(newJmp);
+
+                exitNode->ErasePredecessor(node);
+                newJmp->InsertPredecessor(node);
+                subsequentCodeNode->InsertPredecessor(newJmp);
+                assert(subsequentCodeNode->Predecessors().size() == 2);
+
+                //assert(exitNode->Predecessors().size() > 0); // Otherwise we need to remove it from children. Look in _Reconnect* to figure this out.
+                if (exitNode->Predecessors().empty())
+                {
+                    structure->children.erase(exitNode);
+                }
+                
+                break;
+            }
+        }
+    }
+
+    if (!changes)
+    {
+        // Now recurse, as long as its not another loop
+        for (ControlFlowNode *child : structure->children)
+        {
+            if (child->Type != CFGNodeType::Loop)
+            {
+                changes = _RestructureBreak(loopFollowAddress, nullptr, child);
+                if (changes)
+                {
+                    break;
+                }
+            }
+        }
+    }
+    return changes;
+}
+
 bool ControlFlowGraph::_ResolveBreak(uint16_t loopFollowAddress, ControlFlowNode *structure)
 {
     bool changes = false;
     // We're looking for nodes that end in an unconditional jump to the loop follow address
     for (ControlFlowNode *node : structure->children)
     {
-        /*
-        bool maybeJumpsToExit = false;
         if (node->Type == CFGNodeType::RawCode)
         {
-            maybeJumpsToExit = (node->endsWith(Opcode::JMP) ||
-                (((*structure)[SemId::Head] != node) && node->endsWith(Opcode::BT)));
-        }*/
-        if ((node->Type == CFGNodeType::RawCode) && node->endsWith(Opcode::JMP))
-        //if (maybeJumpsToExit)
-        {
-            if (!node->ContainsTag(SemanticTags::LoopBreak)) // Not already identified
+            if (node->endsWith(Opcode::JMP) && !node->ContainsTag(SemanticTags::LoopBreak)) // Not already identified
             {
                 scii inst = node->getLastInstruction();
                 // Conveniently, end provides us with the address of the next instructino.
                 code_pos end = static_cast<RawCodeNode*>(node)->end;
                 if (inst.get_branch_target()->get_final_offset() == loopFollowAddress)
                 {
+                    // This jump goes to the loop follow address
                     node->Tags.insert(SemanticTags::LoopBreak);
                     _ReconnectBreakNodeToSubsequentCode(structure, node, end);
                     changes = true;
@@ -1682,13 +1776,6 @@ bool ControlFlowGraph::Generate(code_pos start, code_pos end)
             _FindAllStructuresOf(_FindSwitchBlocks, _DoNothing, _ProcessSwitch);
         }
 
-
-        // TODO: Move back to after if
-        if (showFile)
-        {
-            CFGVisualize(_contextName + "_loop", discoveredControlStructures);
-        }
-
         if (!_decompilerResults.IsAborted())
         {
             _FindAllCompoundConditions();
@@ -1699,8 +1786,19 @@ bool ControlFlowGraph::Generate(code_pos start, code_pos end)
         }
         if (!_decompilerResults.IsAborted())
         {
+            _RestructureBreaks();
+        }
+        if (!_decompilerResults.IsAborted())
+        {
             _ResolveBreaks();
         }
+
+        // TODO: Move back to after if
+        if (showFile)
+        {
+            CFGVisualize(_contextName + "_loop", discoveredControlStructures);
+        }
+
 
         if (!_decompilerResults.IsAborted())
         {

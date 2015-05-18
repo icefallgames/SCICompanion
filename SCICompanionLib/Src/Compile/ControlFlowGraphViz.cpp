@@ -63,6 +63,10 @@ class GraphVisualizer
                 name = fmt::format("commonlatch_{}", node->ArbitraryDebugIndex);
                 break;
 
+            case CFGNodeType::FakeBreak:
+                name = fmt::format("fakebreak_{}", node->ArbitraryDebugIndex);
+                break;
+
             default:
                 assert(false);
                 break;
@@ -119,6 +123,12 @@ class GraphVisualizer
             case CFGNodeType::CommonLatch:
             {
                 ss << "CommonLatch " << node->ArbitraryDebugIndex;
+            }
+            break;
+
+            case CFGNodeType::FakeBreak:
+            {
+                ss << "FakeBreak " << node->ArbitraryDebugIndex;
             }
             break;
 

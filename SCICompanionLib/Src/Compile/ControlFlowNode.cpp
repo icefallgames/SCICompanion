@@ -51,6 +51,10 @@ uint16_t ControlFlowNode::GetStartingAddress() const
     {
         address = (static_cast<const CommonLatchNode*>(this))->tokenStartingAddress;
     }
+    else if (Type == CFGNodeType::FakeBreak)
+    {
+        address = 0;
+    }
     else
     {
         assert((*this)[SemId::Head]);

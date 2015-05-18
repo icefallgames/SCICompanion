@@ -610,10 +610,10 @@ void LoadEffectiveAddress(CompileContext &context, WORD wIndex, BYTE bVarType, c
 // (= someVar gEgo)
 //
 //
-void LookupTokenAndPlacePtrInAccumulator(PCTSTR pszObjectName, CompileContext &context, const SingleStatement *pIndexer, const SyntaxNode *pNode, SpeciesIndex &si)
+void LookupTokenAndPlacePtrInAccumulator(const std::string &objectName, CompileContext &context, const SingleStatement *pIndexer, const SyntaxNode *pNode, SpeciesIndex &si)
 {
     WORD wIndex;
-    ResolvedToken tokenType = context.LookupToken(pNode, pszObjectName, wIndex, si);
+    ResolvedToken tokenType = context.LookupToken(pNode, objectName, wIndex, si);
     switch (tokenType)
     {
     case ResolvedToken::GlobalVariable:
@@ -633,7 +633,7 @@ void LookupTokenAndPlacePtrInAccumulator(PCTSTR pszObjectName, CompileContext &c
         LoadEffectiveAddress(context, wIndex, LEA_TEMP, pIndexer);
         break;
     default:
-        context.ReportError(pNode, "Expected something to which we could get a pointer: %s", pszObjectName);
+        context.ReportError(pNode, "Expected something to which we could get a pointer: %s", objectName.c_str());
         break;
     }
 }
@@ -995,7 +995,7 @@ CodeResult PropertyValueBase::OutputByteCode(CompileContext &context) const
     case ValueType::Pointer:
         {
             // We can only apply the pointer operator to variables.
-            LookupTokenAndPlacePtrInAccumulator(_stringValue.c_str(), context, GetIndexer(), this, wType);
+            LookupTokenAndPlacePtrInAccumulator(_stringValue, context, GetIndexer(), this, wType);
             PushToStackIfAppropriate(context);
             // ...and only of certain types.
             if (IsPointerType(wType))
@@ -2845,6 +2845,20 @@ CodeResult Asm::OutputByteCode(CompileContext &context) const
                 }
                 break;
 
+
+            case Opcode::LEA:
+                if (!_segments.empty())
+                {
+                    ComplexPropertyValue *pValue = _segments[0]->CastSyntaxNode<ComplexPropertyValue>();
+                    SpeciesIndex wType;
+                    LookupTokenAndPlacePtrInAccumulator(pValue->GetStringValue(), context, pValue->GetIndexer(), pValue, wType);
+                }
+                else
+                {
+                    context.ReportError(this, "Not enough arguments for this opcode.");
+                }
+                break;
+
             default:
             {
                 vector<string> saidRefs;
@@ -2894,7 +2908,9 @@ CodeResult Asm::OutputByteCode(CompileContext &context) const
                                     break;
 
                                     case ValueType::Pointer:
-                                        assert(false && "not implemented");
+                                    {
+                                        context.ReportError(this, "Pointer syntax is not valid for this opcode.");
+                                    }
                                         break;
 
                                     case ValueType::Token:

@@ -14,6 +14,7 @@ enum CFGNodeType
     If,
     Invert,
     CommonLatch,
+    FakeBreak,
 };
 
 // Ways to classify certain nodes
@@ -263,6 +264,12 @@ struct CommonLatchNode : public ControlFlowNode
     void Accept(ICFGNodeVisitor &visitor) const { visitor.Visit(*this); }
 
     uint16_t tokenStartingAddress;  // Don't use this for anything real?
+};
+
+struct FakeBreakNode : public ControlFlowNode
+{
+    FakeBreakNode() : ControlFlowNode(CFGNodeType::FakeBreak, {}) {}
+    void Accept(ICFGNodeVisitor &visitor) const { visitor.Visit(*this); }
 };
 
 struct IfNode : public StructuredNode

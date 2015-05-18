@@ -57,6 +57,8 @@ private:
     void _FindAllCompoundConditions();
     void _ResolveBreaks();
     bool _ResolveBreak(uint16_t loopFollowAddress, ControlFlowNode *structure);
+    void _RestructureBreaks();
+    bool _RestructureBreak(uint16_t loopFollowAddress, ControlFlowNode *ignore, ControlFlowNode *structure);
     void _ReconnectBreakNodeToSubsequentCode(ControlFlowNode *structure, ControlFlowNode *breakNode, code_pos subsequentcode);
     void _DoLoopTransforms();
     void _DoLoopTransform(ControlFlowNode *loop);
