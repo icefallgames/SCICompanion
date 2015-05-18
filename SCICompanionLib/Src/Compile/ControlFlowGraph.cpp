@@ -952,7 +952,9 @@ void ControlFlowGraph::_FindCompoundConditions(ControlFlowNode *structure)
                 }
             }
 
-            if (possibleStart->Successors().size() == 2)
+            // Sometimes possibleStart's successors contain itself (e.g. SQ5, script 850), and we would misidentify
+            // this as a compound condition (it would instead be a loop)
+            if ((possibleStart->Successors().size() == 2) && !possibleStart->Successors().contains(possibleStart))
             {
                 // Two way node. Check to see if one of these ends in a branch
                 auto it = possibleStart->Successors().begin();
@@ -1647,6 +1649,13 @@ bool ControlFlowGraph::Generate(code_pos start, code_pos end)
         _RepairBranches(start, end);
         _FixupConfusingBranches(start, end, _contextName, _decompilerResults);
 
+        bool showFile = _debug && (!_pszDebugFilter || PathMatchSpec(_contextName.c_str(), _pszDebugFilter));
+
+        if (showFile)
+        {
+            int x = 0;
+        }
+
         ControlFlowNode *main = _PartitionCode(start, end);
 
         // I had removed this because it prevented loop break detection. But I think I need it
@@ -1655,8 +1664,6 @@ bool ControlFlowGraph::Generate(code_pos start, code_pos end)
         _PruneDegenerateNodes(main);
 
         DominatorMap dominators = GenerateDominators(main->children, (*main)[SemId::Head]);
-
-        bool showFile = _debug && (!_pszDebugFilter || PathMatchSpec(_contextName.c_str(), _pszDebugFilter));
 
         if (showFile)
         {
@@ -1674,6 +1681,14 @@ bool ControlFlowGraph::Generate(code_pos start, code_pos end)
         {
             _FindAllStructuresOf(_FindSwitchBlocks, _DoNothing, _ProcessSwitch);
         }
+
+
+        // TODO: Move back to after if
+        if (showFile)
+        {
+            CFGVisualize(_contextName + "_loop", discoveredControlStructures);
+        }
+
         if (!_decompilerResults.IsAborted())
         {
             _FindAllCompoundConditions();
@@ -1686,14 +1701,6 @@ bool ControlFlowGraph::Generate(code_pos start, code_pos end)
         {
             _ResolveBreaks();
         }
-
-
-        // TODO: Move back to after if
-        if (showFile)
-        {
-            CFGVisualize(_contextName + "_loop", discoveredControlStructures);
-        }
-
 
         if (!_decompilerResults.IsAborted())
         {

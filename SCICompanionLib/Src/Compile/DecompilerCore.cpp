@@ -636,9 +636,16 @@ bool _ObtainInstructionSequence(code_pos endingInstruction, code_pos beginning, 
         {
             // This instruction we just got consumes stuff. We need to recurse here and
             // have it eat up its stuff.
-// Afterwards, if success is true, cur will point to the beginning of its thing
-// and we can keep going (if necessary)
-success = _ObtainInstructionSequence(cur, beginning, cur);
+            // Afterwards, if success is true, cur will point to the beginning of its thing
+            // and we can keep going (if necessary)
+            code_pos save = cur;
+            success = _ObtainInstructionSequence(cur, beginning, cur);
+            if (!success && !consTemp.cStackConsume)
+            {
+                // It's a "needs acc". Try to muddle through anyway... SQ5, localproc_0beb needs this.
+                success = true;
+                cur = save;
+            }
         }
 
         beginningOfBranchInstructionSequence = cur;
