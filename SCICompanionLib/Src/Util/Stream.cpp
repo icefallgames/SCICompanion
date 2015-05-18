@@ -60,6 +60,17 @@ namespace sci
         _cbSizeValid = max(_cbSizeValid, _iIndex);
     }
 
+    void ostream::FillByte(uint8_t value, int cCount)
+    {
+        if ((_iIndex + cCount) >= _cbReserved)
+        {
+            _Grow((uint32_t)cCount);
+        }
+        memset(&_pData[_iIndex], value, (size_t)cCount);
+        _iIndex += (uint32_t)cCount;
+        _cbSizeValid = max(_cbSizeValid, _iIndex);
+    }
+
     void ostream::seekp(uint32_t newPosition)
     {
         if (newPosition >= _cbSizeValid)

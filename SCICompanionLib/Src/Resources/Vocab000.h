@@ -42,7 +42,7 @@ struct Vocab000 : public ResourceComponent, public ILookupNames
 {
 public:
     friend void VocabReadFrom(ResourceEntity &resource, sci::istream &byteStream, bool is900);
-    friend void VocabWriteTo(const ResourceEntity &resource, sci::ostream &byteStream);
+    friend void VocabWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, bool is900);
 
     typedef DWORD WordGroup;
 

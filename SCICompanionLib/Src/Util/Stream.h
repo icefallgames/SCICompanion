@@ -14,6 +14,7 @@ namespace sci
         void WriteWord(uint16_t w);
         void WriteByte(uint8_t b);
         void WriteBytes(const uint8_t *pData, int cCount);
+        void FillByte(uint8_t value, int cCount);
 
         uint32_t tellp() { return _cbSizeValid; }
 

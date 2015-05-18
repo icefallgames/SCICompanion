@@ -140,8 +140,6 @@ void Vocab000::_ReadWord(sci::istream &byteStream, char *pszBuffer, size_t cchBu
 
     if (byteStream.has_more_data())
     {
-        _words.push_back(pszBuffer);
-
         // Ok, we have a word in our buffer.  Time to read the group and class
         DWORD dwInfo = 0;
         uint8_t b;
@@ -154,25 +152,36 @@ void Vocab000::_ReadWord(sci::istream &byteStream, char *pszBuffer, size_t cchBu
         {
             dwInfo |= b;
 
-            // Keep track of which groups have been used.
-            Vocab000::WordGroup dwGroup = GetWordGroup(dwInfo);
-            assert(dwGroup < ARRAYSIZE(_rgbGroups));
-            _rgbGroups[dwGroup] = 0xff;
-
-            // Now we have our class.
-            _mapWordToGroup[pszBuffer] = dwGroup;
-            _mapGroupToClass[dwGroup] = GetWordClass(dwInfo);
-
-            group2words_map::iterator group2wordIt = _mapGroupToString.find(dwGroup);
-            if (group2wordIt != _mapGroupToString.end())
+            // Some vocabs have duplicate words (KQ1SCI). Our Vocab resource format doesn't handle this properly, so ignore
+            // this word if that's the case.
+            if (_mapWordToGroup.find(pszBuffer) == _mapWordToGroup.end())
             {
-                // Already exists.. tack it on
-                _mapGroupToString[dwGroup] = (group2wordIt->second + " | " + pszBuffer);
+                _words.push_back(pszBuffer);
+
+                // Keep track of which groups have been used.
+                Vocab000::WordGroup dwGroup = GetWordGroup(dwInfo);
+                assert(dwGroup < ARRAYSIZE(_rgbGroups));
+                _rgbGroups[dwGroup] = 0xff;
+
+                // Now we have our class.
+                _mapWordToGroup[pszBuffer] = dwGroup;
+                _mapGroupToClass[dwGroup] = GetWordClass(dwInfo);
+
+                group2words_map::iterator group2wordIt = _mapGroupToString.find(dwGroup);
+                if (group2wordIt != _mapGroupToString.end())
+                {
+                    // Already exists.. tack it on
+                    _mapGroupToString[dwGroup] = (group2wordIt->second + " | " + pszBuffer);
+                }
+                else
+                {
+                    // New one...
+                    _mapGroupToString[dwGroup] = pszBuffer;
+                }
             }
             else
             {
-                // New one...
-                _mapGroupToString[dwGroup] = pszBuffer;
+                // TODO: Possibly warn the user?
             }
         }
     }
@@ -505,16 +514,14 @@ VocabChangeHint Vocab000::RemoveWord(PCTSTR pszWord)
     return hint;
 }
 
-void VocabWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
+void VocabWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, bool is900)
 {
     Vocab000 &vocab = resource.GetComponent<Vocab000>();
 
     // _words should already be sorted.
 
-    // Prepare the offset table
-    uint16_t wOffsets[26];
-    ZeroMemory(wOffsets, sizeof(wOffsets));
-    byteStream.WriteBytes((uint8_t*)wOffsets, sizeof(wOffsets));
+    // Skip past the offset table
+    byteStream.FillByte(0, is900 ? Vocab000::AlphaIndexLength_900 : Vocab000::AlphaIndexLength);
 
     PCTSTR pszPreviousWord = TEXT("");
     size_t cWords = vocab._words.size();
@@ -526,15 +533,29 @@ void VocabWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
         WordClass dwClass = vocab._mapGroupToClass.find(dwGroup)->second; // Must exist.
         DWORD dwInfo = InfoFromClassAndGroup(dwClass, dwGroup);
 
-        if ((pszWord[0] >= TEXT('a')) && (pszWord[0] <= TEXT('z')))
+        if (pszWord[0] != pszPreviousWord[0])
         {
-            if (pszWord[0] != pszPreviousWord[0])
+            if (is900)
             {
-                // We're at the beginning of a new set of letters.  Take note of the offset.
-                uint16_t *rgwOffsets = (uint16_t*)byteStream.GetInternalPointer();
-                assert(rgwOffsets[pszWord[0] - TEXT('a')] == 0);
-                assert(byteStream.tellp() < 0xffff);
-                rgwOffsets[pszWord[0] - TEXT('a')] = (uint16_t)byteStream.tellp();
+                if (pszWord[0] < 255) // For some reason, 255 is not allowed
+                {
+                    // We're at the beginning of a new set of letters.  Take note of the offset.
+                    uint16_t *rgwOffsets = (uint16_t*)byteStream.GetInternalPointer();
+                    assert(rgwOffsets[pszWord[0]] == 0);
+                    assert(byteStream.tellp() < 0xffff);
+                    rgwOffsets[pszWord[0]] = (uint16_t)byteStream.tellp();
+                }
+            }
+            else
+            {
+                if ((pszWord[0] >= TEXT('a')) && (pszWord[0] <= TEXT('z')))
+                {
+                    // We're at the beginning of a new set of letters.  Take note of the offset.
+                    uint16_t *rgwOffsets = (uint16_t*)byteStream.GetInternalPointer();
+                    assert(rgwOffsets[pszWord[0] - TEXT('a')] == 0);
+                    assert(byteStream.tellp() < 0xffff);
+                    rgwOffsets[pszWord[0] - TEXT('a')] = (uint16_t)byteStream.tellp();
+                }
             }
         }
 
@@ -543,7 +564,7 @@ void VocabWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
         uint8_t cSame = 0;
         PCTSTR pszPrevPtr = pszPreviousWord;
         PCTSTR pszCurrPtr = pszWord;
-        while (pszPrevPtr[cSame] == pszCurrPtr[cSame])
+        while (pszPrevPtr[cSame] && (pszPrevPtr[cSame] == pszCurrPtr[cSame]))
         {
             cSame++;
         }
@@ -563,13 +584,28 @@ void VocabWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
         else if (cRemaining == 0)
         {
             // This means that, for example, "foo" came after "foobar", which should not be allowed.
-            assert(false);
+            assert(is900);  // Actually, this is allow for is900
+            if (is900)
+            {
+                byteStream.WriteByte(0); // null term
+            }
         }
 
-        // Write the last character, and signify it as such:
-        uint8_t bLastCharacter = pszWord[cRemaining - 1];
-        bLastCharacter |= 0x80;
-        byteStream.WriteByte(bLastCharacter);
+        if (cRemaining)
+        {
+            // Write the last character, and signify it as such:
+            uint8_t bLastCharacter = pszWord[cRemaining - 1];
+            if (is900)
+            {
+                byteStream.WriteByte(bLastCharacter);
+                byteStream.WriteByte(0); // numm term
+            }
+            else
+            {
+                bLastCharacter |= 0x80;
+                byteStream.WriteByte(bLastCharacter);
+            }
+        }
 
         // Now write the class and group information.
         byteStream.WriteByte((uint8_t)(0xff & (dwInfo >> 16)));
@@ -605,11 +641,21 @@ void VocabReadFrom_900(ResourceEntity &resource, sci::istream &byteStream)
     VocabReadFrom(resource, byteStream, true);
 }
 
+void VocabWriteTo_000(const ResourceEntity &resource, sci::ostream &byteStream)
+{
+    VocabWriteTo(resource, byteStream, false);
+}
+
+void VocabWriteTo_900(const ResourceEntity &resource, sci::ostream &byteStream)
+{
+    VocabWriteTo(resource, byteStream, true);
+}
+
 ResourceTraits vocabTraits_000 =
 {
     ResourceType::Vocab,
     &VocabReadFrom_000,
-    &VocabWriteTo,
+    &VocabWriteTo_000,
     &NoValidationFunc
 };
 
@@ -617,7 +663,7 @@ ResourceTraits vocabTraits_900 =
 {
     ResourceType::Vocab,
     &VocabReadFrom_900,
-    nullptr, // &VocabWriteTo,
+    &VocabWriteTo_900,
     &NoValidationFunc
 };
 
