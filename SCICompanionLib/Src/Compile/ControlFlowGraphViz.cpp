@@ -190,7 +190,7 @@ public:
         for (ControlFlowNode *currentParent : discoveredControlStructures)
         {
             int colorIndex = currentParent->ArbitraryDebugIndex;
-            for (auto node : currentParent->children)
+            for (auto node : currentParent->Children())
             {
                 if (discoveredControlStructures.contains(node))
                 {

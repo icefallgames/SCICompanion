@@ -86,9 +86,9 @@ private:
             do
             {
                 // 1) calculate dominators
-                DominatorMap dominators = GenerateDominators(structure->children, (*structure)[SemId::Head]);
+                DominatorMap dominators = GenerateDominators(structure, (*structure)[SemId::Head]);
                 assert(structure->MaybeGet(SemId::Tail));
-                DominatorMap postDominators = GeneratePostDominators(structure->children, (*structure)[SemId::Tail]);
+                DominatorMap postDominators = GeneratePostDominators(structure, (*structure)[SemId::Tail]);
 
                 // 2) Find the toss nodes, and follow them back to a dominator, bounding the switch statement.
                 blocks = findBlocks(dominators, postDominators, structure);

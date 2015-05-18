@@ -47,6 +47,8 @@ struct CompoundConditionNode;
 struct InvertNode;
 struct MainNode;
 
+class DominatorMap;
+
 class ICFGNodeVisitor
 {
 public:
@@ -93,7 +95,7 @@ struct NodeSet : public std::set < ControlFlowNode* >
 
 struct ControlFlowNode
 {
-    ControlFlowNode(CFGNodeType type, std::initializer_list<SemId> semanticChildrenIds) : Type(type), ArbitraryDebugIndex(0)
+    ControlFlowNode(CFGNodeType type, std::initializer_list<SemId> semanticChildrenIds) : Type(type), ArbitraryDebugIndex(0), dirty(true), postDirty(true)
     {
         // Everyone has a head (for now)
         semanticChildren[SemId::Head] = nullptr;
@@ -127,9 +129,6 @@ struct ControlFlowNode
     bool ContainsTag(SemanticTags tag) const { return Tags.find(tag) != Tags.end(); }
     std::set<SemanticTags> Tags;
 
-    // Only valid for structured nodes, but so common that we'll just keep
-    // it in the base class for now.
-    NodeSet children;
     std::map<SemId, ControlFlowNode*> semanticChildren;
 
     ControlFlowNode *&operator[](SemId semId)
@@ -178,6 +177,8 @@ struct ControlFlowNode
 
     void InsertPredecessor(ControlFlowNode *node)
     {
+        dirty = true;
+        postDirty = true;
         if (predecessors.insert(node).second)
         {
             // If true, it was added anew
@@ -186,6 +187,8 @@ struct ControlFlowNode
     }
     void ClearPredecessors()
     {
+        dirty = true;
+        postDirty = true;
         NodeSet copy = predecessors;
         for (ControlFlowNode *node : copy)
         {
@@ -194,11 +197,15 @@ struct ControlFlowNode
     }
     void ErasePredecessor(ControlFlowNode *node)
     {
+        dirty = true;
+        postDirty = true;
         predecessors.erase(node);
         node->successors.erase(this);
     }
     void AssignPredecessors(const NodeSet &newPredecessors)
     {
+        dirty = true;
+        postDirty = true;
         ClearPredecessors();
         for (ControlFlowNode *node : newPredecessors)
         {
@@ -209,8 +216,40 @@ struct ControlFlowNode
     // Visitor pattern for double-dispatch
     virtual void Accept(ICFGNodeVisitor &visitor) const = 0;
 
+    void InsertChild(ControlFlowNode *node)
+    {
+        dirty = true;
+        postDirty = true;
+        children.insert(node);
+    }
+    void EraseChild(ControlFlowNode *node)
+    {
+        dirty = true;
+        postDirty = true;
+        children.erase(node);
+    }
+    const NodeSet &Children() const
+    {
+        return children;
+    }
+    void SetChildren(const NodeSet &newChildren)
+    {
+        dirty = true;
+        postDirty = true;
+        children = newChildren;
+    }
+
+    std::unique_ptr<DominatorMap> dominators;
+    std::unique_ptr<DominatorMap> postDominators;
+    bool dirty;
+    bool postDirty;
 
 private:
+
+    // Only valid for structured nodes, but so common that we'll just keep
+    // it in the base class for now.
+    NodeSet children;
+
     NodeSet successors;
     NodeSet predecessors;
 };

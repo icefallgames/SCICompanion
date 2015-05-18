@@ -102,15 +102,25 @@ NodeSet NoJmpPreds(ControlFlowNode *node)
     return filtered;
 }
 
-DominatorMap GenerateDominators(NodeSet N, ControlFlowNode *n0)
+DominatorMap GenerateDominators(ControlFlowNode *parent, ControlFlowNode *n0)
 {
-    return GenerateDominators(N, n0, [](ControlFlowNode *node) { return NoJmpPreds(node); });
+    if (parent->dirty)
+    {
+        parent->dominators = make_unique<DominatorMap>(GenerateDominators(parent->Children(), n0, [](ControlFlowNode *node) { return NoJmpPreds(node); }));
+        parent->dirty = false;
+    }
+    return *parent->dominators;
 }
 
 
-DominatorMap GeneratePostDominators(NodeSet N, ControlFlowNode *n0)
+DominatorMap GeneratePostDominators(ControlFlowNode *parent, ControlFlowNode *n0)
 {
-    return GenerateDominators(N, n0, [](ControlFlowNode *node) { return node->Successors(); });
+    if (parent->postDirty)
+    {
+        parent->postDominators = make_unique<DominatorMap>(GenerateDominators(parent->Children(), n0, [](ControlFlowNode *node) { return node->Successors(); }));
+        parent->postDirty = false;
+    }
+    return *parent->postDominators;
 }
 
 bool IsReachable(ControlFlowNode *head, ControlFlowNode *tail)
