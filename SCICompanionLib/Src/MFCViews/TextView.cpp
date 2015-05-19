@@ -417,7 +417,6 @@ void CTextView::OnBeginLabelEdit(NMHDR* pNMHDR, LRESULT* pResult)
     // Overcome listview's 260 character limit
     pEdit->LimitText(2048); // better than 260!
     CString str = GetListCtrl().GetItemText(plvdi->item.iItem, 0);
-    pEdit->SetWindowText(str);
     
     // Did the user click on the "new word" entry?
     _bEditingNewItem = (plvdi->item.iItem == _iNewString);

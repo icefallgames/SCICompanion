@@ -990,33 +990,37 @@ void ControlFlowGraph::_DoLoopTransform(ControlFlowNode *loop)
     //      bt to loop beginning
     //  We need to be careful not to mis-identify while loops (we are only concered with dos)
     ControlFlowNode *latch = (*loop)[SemId::Latch];
-    if ((latch->Type == CFGNodeType::RawCode) && latch->startsWith(Opcode::JMP))
+    ControlFlowNode *head = (*loop)[SemId::Head];
+    if (head->Successors().size() <= 1) // Weed out the while loops.
     {
-        if (latch->Predecessors().size() == 1)
+        if ((latch->Type == CFGNodeType::RawCode) && latch->startsWith(Opcode::JMP))
         {
-            ControlFlowNode *branchNode = *latch->Predecessors().begin();
-            // It could be an empty while loop too... check against this by seeing if our supposed branch
-            // node is the header.
-            if (branchNode != (*loop)[SemId::Head])
+            if (latch->Predecessors().size() == 1)
             {
-                ControlFlowNode *otherBranchDestination = GetOtherBranch(branchNode, latch);
-                if (otherBranchDestination) // A while might not have one
+                ControlFlowNode *branchNode = *latch->Predecessors().begin();
+                // It could be an empty while loop too... check against this by seeing if our supposed branch
+                // node is the header.
+                if (branchNode != (*loop)[SemId::Head])
                 {
-                    // And if it did, it wouldn't be an exit node
-                    if (otherBranchDestination->Type == CFGNodeType::Exit)
+                    ControlFlowNode *otherBranchDestination = GetOtherBranch(branchNode, latch);
+                    if (otherBranchDestination) // A while might not have one
                     {
-                        uint16_t address1 = otherBranchDestination->GetStartingAddress();
-                        uint16_t address2 = (*loop)[SemId::Follow]->GetStartingAddress();
-                        assert(address1 == address2);
-                        ControlFlowNode *invert = MakeStructuredNode<InvertNode>();
-                        invert->InsertChild(latch);
-                        invert->InsertChild(branchNode);
-                        (*invert)[SemId::Head] = branchNode;    // We just need to invert this
-                        _ReplaceNodeInWorkingSet(loop, invert);
-                        _ReplaceNodeInFollowNodes(invert);
+                        // And if it did, it wouldn't be an exit node
+                        if (otherBranchDestination->Type == CFGNodeType::Exit)
+                        {
+                            uint16_t address1 = otherBranchDestination->GetStartingAddress();
+                            uint16_t address2 = (*loop)[SemId::Follow]->GetStartingAddress();
+                            assert(address1 == address2);
+                            ControlFlowNode *invert = MakeStructuredNode<InvertNode>();
+                            invert->InsertChild(latch);
+                            invert->InsertChild(branchNode);
+                            (*invert)[SemId::Head] = branchNode;    // We just need to invert this
+                            _ReplaceNodeInWorkingSet(loop, invert);
+                            _ReplaceNodeInFollowNodes(invert);
 
-                        // And the exit should have the new invert as a predecessor
-                        assert(otherBranchDestination->Predecessors().contains(invert));
+                            // And the exit should have the new invert as a predecessor
+                            assert(otherBranchDestination->Predecessors().contains(invert));
+                        }
                     }
                 }
             }
@@ -1681,22 +1685,49 @@ ControlFlowNode *ControlFlowGraph::_PartitionCode(code_pos start, code_pos end)
     NodeSet finalNodes;
     for (auto &pair : posToNode)
     {
-        finalNodes.insert(pair.second);
+        // Some nodes represent inaccessible code (e.g. final ret in proc990_0 in SQ5). Don't add them.
+        if ((pair.second->Successors().size() != 0) || (pair.second->Predecessors().size() != 0))
+        {
+            finalNodes.insert(pair.second);
+        }
     }
 
     // Make a node to encompass everything:
     mainStructure = MakeStructuredNode<MainNode>();
     mainStructure->SetChildren(finalNodes);
     (*mainStructure)[SemId::Head] = headerNode;
+#if SQ5_990_ISSUE
+    ControlFlowNode *nodeWithLastCodePos = nullptr;
+#endif
     // Find the tail node...
     for (ControlFlowNode *possibleTailNode : finalNodes)
     {
+#if SQ5_990_ISSUE
+        if (possibleTailNode->GetStartingAddress() != 0xffff)
+        {
+            if (!nodeWithLastCodePos || (possibleTailNode->GetStartingAddress() > nodeWithLastCodePos->GetStartingAddress()))
+            {
+                nodeWithLastCodePos = possibleTailNode;
+            }
+        }
+#endif
         if (possibleTailNode->Successors().empty())
         {
             (*mainStructure)[SemId::Tail] = possibleTailNode;
             break;
         }
     }
+
+#if SQ5_990_ISSUE
+    // The function might end in a loop (see proc990_0 in SQ5), so if there is no tail, then use the one with the
+    // highest starting address
+    // REVIEW: There is still a problem here. We are essentially broken when the only exit from a loop is a ret instruction.
+    // Our whole follow logic doesn't work in that case. Addressing the issue this way just causes a cascade of errors.
+    if (!(*mainStructure)[SemId::Tail])
+    {
+        (*mainStructure)[SemId::Tail] = nodeWithLastCodePos;
+    }
+#endif
     assert((*mainStructure)[SemId::Tail]);
     ExitNode *exitNode = MakeNode<ExitNode>();
     exitNode->InsertPredecessor(mainStructure);  // NOT main's tail
