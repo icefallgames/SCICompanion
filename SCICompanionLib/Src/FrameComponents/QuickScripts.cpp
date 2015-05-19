@@ -332,7 +332,7 @@ void QuickScriptsSidePane::_UpdateEntries()
     sort(scripts.begin(), scripts.end(), SortScriptsIntelligently);
     for (size_t i = 0; i < scripts.size(); ++i)
     {
-        m_wndList.InsertItem(iItem++, scripts[i].GetTitle().c_str());
+        m_wndList.InsertItem(iItem++, scripts[i].GetFileNameOrig().c_str());
     }
 
     m_wndList.SetRedraw(TRUE);

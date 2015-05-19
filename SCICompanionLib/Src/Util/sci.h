@@ -443,6 +443,7 @@ public:
     BOOL IsNone() const { return _strFileName.empty(); }
     const std::string &GetFileName() const { return _strFileName; }
     const std::string &GetFolder() const { return _strFolder; } 
+    const std::string &GetFileNameOrig() const { return _strFileNameOrig; }
 
     // e.g. for Main.sc, it returns Main.  For keys.sh, it returns keys
     std::string GetTitle() const;
@@ -478,11 +479,13 @@ private:
             int iIndexBS = str.ReverseFind('\\');
             _strFolder = str.Left(iIndexBS);
             _strFileName = str.Right(str.GetLength() - iIndexBS - 1);
+            _strFileNameOrig = _strFileName;
             _MakeLower();
         }
     }
     std::string _strFolder;
     std::string _strFileName;
+    std::string _strFileNameOrig;   // Not lower-cased
     WORD _wScriptNum;
 };
 

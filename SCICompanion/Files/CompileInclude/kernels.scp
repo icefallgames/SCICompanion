@@ -1065,6 +1065,7 @@ public int ATan() {}
 public int Lock() {}
 public int StrSplit() {}
 public int GetMessage() {}
+public int Message() {}
 public int IsItSkip() {}
 public int MergePoly() {}
 public int ResCheck() {}
@@ -1077,5 +1078,6 @@ public int ShowMovie() {}
 public int SetVideoMode() {}
 public int SetQuitStr() {}
 public int DbugStr() {}
+public int PalVary() {}
 
 
