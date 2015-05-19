@@ -1399,6 +1399,7 @@ void CMainFrame::_FindInTexts(ICompileLog &log, PCTSTR pszWhat, BOOL fMatchCase,
             int pos = FindStringHelper(text.c_str(), pszWhat, fWholeWord);
             if (pos != -1)
             {
+                text = textComponent.Texts[i].Text; // since we ToUpper'd it.
                 int rangeStart = max(0, pos - TextRangeOutsideResultToShow);
                 int rangeEnd = min(pos + TextRangeOutsideResultToShow + lstrlen(pszWhat), (int)text.size());
                 fmt::MemoryWriter writer;
@@ -1875,6 +1876,7 @@ void CMainFrame::OnManageDecompilation()
 {
     unique_ptr<DecompileDialog> decompileDialog = make_unique<DecompileDialog>();
     decompileDialog->DoModal();
+    appState->GetResourceMap().NotifyToResourceResourceType(ResourceType::Script);
 }
 
 void CMainFrame::OnUpdateClassBrowser(CCmdUI *pCmdUI)
