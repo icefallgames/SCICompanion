@@ -154,6 +154,15 @@
 // Event messages
 //   These are the  set bits, you must and the  
 //   message with these masks to check them.
+(define emRIGHT_SHIFT					1)
+(define emLEFT_SHIFT					2)
+(define emSHIFT							3)
+(define emCTRL							4)
+(define emALT							8)
+(define emSCR_LOCK						16)
+(define emNUM_LOCK						32)
+(define emCAPS_LOCK						64)
+(define emINSERT						128)
 (define emLEFT_BUTTON					1)
 (define emRIGHT_BUTTON					3)
 /*************************************************************************

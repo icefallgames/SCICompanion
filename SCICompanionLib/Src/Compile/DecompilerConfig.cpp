@@ -9,6 +9,7 @@
 #include "SyntaxParser.h"
 #include "CompileInterfaces.h"
 #include <regex>
+#include <format.h>
 
 using namespace std;
 using namespace sci;
@@ -19,10 +20,10 @@ class DummyLog : public ICompileLog
     void ReportResult(const CompileResult &result) override {} 
 };
 
-unique_ptr<Script> GetDefinesScript(const GameFolderHelper &helper)
+unique_ptr<Script> GetDefinesScript(const GameFolderHelper &helper, const std::string &name)
 {
     DummyLog log;
-    ScriptId scriptId(helper.GetIncludeFolder() + "\\sci.sh");
+    ScriptId scriptId(helper.GetIncludeFolder() + "\\" + name);
     unique_ptr<Script> script = make_unique<Script>(scriptId);
     assert(scriptId.Language() == LangSyntaxSCIStudio);
     CCrystalTextBuffer buffer;
@@ -44,7 +45,8 @@ class DecompilerConfig : public IDecompilerConfig
 public:
     DecompilerConfig(const GameFolderHelper &helper, const SelectorTable &selectorTable) : _selectorTable(selectorTable)
     {
-        unique_ptr<Script> definesScript = GetDefinesScript(helper);
+        unique_ptr<Script> definesScript = GetDefinesScript(helper, "sci.sh");
+        unique_ptr<Script> keysScript = GetDefinesScript(helper, "keys.sh");
 
         string decompilerIniPath = helper.GetSrcFolder() + "\\Decompiler.ini";
         try
@@ -55,9 +57,10 @@ public:
                 _methodParameterNames = _table->get_table("methodParameterNames");
             }
             _CacheBitfieldProps();
-            _CacheEnums(*definesScript);
+            _CacheEnums({ definesScript.get(), keysScript.get() });
             _CacheMethodCallParamTypes();
             _CacheKernelCallParamTypes();
+            _CacheSwitchValueTypes();
         }
         catch (parse_exception &e)
         {
@@ -118,7 +121,73 @@ public:
         return _bitfieldProperties.find(propertyName) != _bitfieldProperties.end();
     }
 
+    void ResolveSwitchStatementValues(sci::SwitchStatement &switchStatement) const
+    {
+        vector<SingleStatement*> destinations;
+        for (auto &caseStatement : switchStatement._cases)
+        {
+            if (!caseStatement->IsDefault())
+            {
+                destinations.push_back(caseStatement->GetStatement1());
+            }
+        }
+        _ResolveValuesHelper(switchStatement.GetStatement1(), destinations);
+    }
+
+    void ResolveBinaryOpValues(sci::BinaryOp &binaryOp) const
+    {
+        _ResolveValuesHelper(binaryOp.GetStatement1(), { binaryOp.GetStatement2() });
+        _ResolveValuesHelper(binaryOp.GetStatement2(), { binaryOp.GetStatement1() });
+    }
+
 private:
+
+    void _ResolveValuesHelper(SingleStatement *source, const vector<SingleStatement*> &destinations) const
+    {
+        if (source)
+        {
+            auto itType = _switchValueTypes.end();
+            PropertyValue *pv = SafeSyntaxNode<PropertyValue>(source->GetSyntaxNode());
+            if ((pv != nullptr) && (pv->GetType() == ValueType::Token))
+            {
+                itType = _switchValueTypes.find(pv->GetStringValue());
+            }
+            LValue *lValue = SafeSyntaxNode<LValue>(source->GetSyntaxNode());
+            if (lValue)
+            {
+                itType = _switchValueTypes.find(lValue->GetName());
+            }
+            SendCall *sendCall = SafeSyntaxNode<SendCall>(source->GetSyntaxNode());
+            if (sendCall && (sendCall->GetParams().size() == 1) && !sendCall->GetObjectA().empty())
+            {
+                auto &sendParam = sendCall->GetParams()[0];
+                if (sendParam->GetSelectorParams().size() == 0) // It may be a property access
+                {
+                    string lookupValue = fmt::format("{0}.{1}", sendCall->GetObjectA(), sendParam->GetSelectorName());
+                    itType = _switchValueTypes.find(lookupValue);
+                }
+            }
+
+            if (itType != _switchValueTypes.end())
+            {
+                const enumList_t &enumList = _enumLists.at(itType->second); // Guaranteed to exist.
+
+                // Now go through the case statements, and see if we can resolve values
+                for (auto &destination : destinations)
+                {
+                    PropertyValue *pvCase = SafeSyntaxNode<PropertyValue>(destination->GetSyntaxNode());
+                    if ((pvCase != nullptr) && (pvCase->GetType() == ValueType::Number))
+                    {
+                        auto itValue = enumList.find(pvCase->GetNumberValue());
+                        if (itValue != enumList.end())
+                        {
+                            pvCase->SetValue(itValue->second, ValueType::Token);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     void _ResolveParamStatement(sci::StatementsNode &statementNode, const vector<string> &types) const
     {
@@ -168,12 +237,15 @@ private:
         }
     }
 
-    void _CacheEnums(Script &script)
+    void _CacheEnums(vector<Script*> scripts)
     {
         map<string, uint16_t> defines;
-        for (auto &define : script.GetDefines())
+        for (auto &script : scripts)
         {
-            defines[define->GetName()] = define->GetValue();
+            for (auto &define : script->GetDefines())
+            {
+                defines[define->GetName()] = define->GetValue();
+            }
         }
 
         if (_table->contains_qualified("enums"))
@@ -239,12 +311,31 @@ private:
         _CacheCallParamTypes("kernelParameterTypes", _kernelCallParamTypes);
     }
 
-    
+    void _CacheSwitchValueTypes()
+    {
+        if (_table->contains_qualified("commonSwitchValueTypes"))
+        {
+            for (auto keyValuePairs : *_table->get("commonSwitchValueTypes")->as_table())
+            {
+                vector<string> types;
+                auto theValue = keyValuePairs.second->as<string>();
+                if (_enumLists.find(theValue->get()) != _enumLists.end())
+                {
+                    _switchValueTypes[keyValuePairs.first] = theValue->get();
+                }
+                else
+                {
+                    // TODO: Warn about invalid enum value?
+                }
+            }
+        }
+    }
 
     typedef std::unordered_map<uint16_t, string> enumList_t;
     std::unordered_map<string, enumList_t> _enumLists;
     std::unordered_map<string, vector<string>> _methodCallParamTypes;
     std::unordered_map<string, vector<string>> _kernelCallParamTypes;
+    std::unordered_map<string, string> _switchValueTypes;
 
     std::unordered_set<string> _bitfieldProperties;
 

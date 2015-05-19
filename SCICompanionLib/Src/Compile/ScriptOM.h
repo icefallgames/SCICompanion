@@ -703,6 +703,7 @@ namespace sci
 
 		void SetStatement2(std::unique_ptr<SingleStatement> statement) { _statement2 = std::move(statement); }
         const SingleStatement* GetStatement2() const { return _statement2.get(); }
+        SingleStatement* GetStatement2() { return _statement2.get(); }
 
         std::unique_ptr<SingleStatement> &GetStatement2Internal() { return _statement2; }
     protected:

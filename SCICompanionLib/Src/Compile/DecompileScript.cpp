@@ -322,6 +322,32 @@ void ResolvePublicProcedureCalls(const GameFolderHelper &helper, Script &script,
     script.Traverse(&resolveProcCalls, resolveProcCalls);
 }
 
+class ResolveVariableValues : public IExploreNodeContext, public IExploreNode
+{
+public:
+    ResolveVariableValues(const IDecompilerConfig &config) : _config(config) {}
+
+    void ExploreNode(IExploreNodeContext *pContext, SyntaxNode &node, ExploreNodeState state) override
+    {
+        if (state == ExploreNodeState::Pre)
+        {
+            SwitchStatement *switchStatement = SafeSyntaxNode<SwitchStatement>(&node);
+            if (switchStatement)
+            {
+                _config.ResolveSwitchStatementValues(*switchStatement);
+            }
+            BinaryOp *binaryOp = SafeSyntaxNode<BinaryOp>(&node);
+            if (binaryOp)
+            {
+                _config.ResolveBinaryOpValues(*binaryOp);
+            }
+        }
+    }
+
+private:
+    const IDecompilerConfig &_config;
+};
+
 Script *Decompile(const GameFolderHelper &helper, const CompiledScript &compiledScript, DecompileLookups &lookups, const ILookupNames *pWords)
 {
     unique_ptr<Script> pScript = std::make_unique<Script>();
@@ -464,6 +490,12 @@ Script *Decompile(const GameFolderHelper &helper, const CompiledScript &compiled
         ResolvePublicProcedureCalls(helper, *pScript, compiledScript);
 
         MassageProcedureCalls(lookups, *pScript);
+
+        if (lookups.GetDecompilerConfig())
+        {
+            ResolveVariableValues resolveVariableValues(*lookups.GetDecompilerConfig());
+            pScript->Traverse(&resolveVariableValues, resolveVariableValues);
+        }
 
         InsertHeaders(*pScript);
 

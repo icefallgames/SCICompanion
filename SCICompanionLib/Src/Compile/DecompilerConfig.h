@@ -19,6 +19,8 @@ public:
     virtual std::vector<std::string> GetParameterNamesFor(sci::ClassDefinition *classDef, const std::string &methodName) const = 0;
     virtual void ResolveMethodCallParameterTypes(sci::SendParam &sendParam) const = 0;
     virtual void ResolveProcedureCallParameterTypes(sci::ProcedureCall &procCall) const = 0;
+    virtual void ResolveSwitchStatementValues(sci::SwitchStatement &switchStatement) const = 0;
+    virtual void ResolveBinaryOpValues(sci::BinaryOp &binaryOp) const = 0;
     virtual bool IsBitfieldProperty(const std::string &propertyName) const = 0;
     virtual ~IDecompilerConfig() {}
 
