@@ -377,4 +377,14 @@
 (define SET_CURSOR_VISIBLE          1)
 /*************************************************************************/
 
+/*************************************************************************
+ * signal property
+ *************************************************************************/
+ (define notUpd                     $0001)
+ (define fixPriOn                   $0010)
+ (define isExtra                    $0200)
+ (define noTurn                     $0800)
+ (define noCycler                   $1000)
+ (define ignoreHorizon              $2000)
+ (define ignAct                     $4000)
 

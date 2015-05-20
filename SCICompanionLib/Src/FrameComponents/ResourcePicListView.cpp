@@ -142,7 +142,8 @@ void CResourcePicListCtrl::_OnInitListView(int cItems)
 
     // Note: this color depth must match that which we get back from the pic resource 
     // Also: ILC_MASK must be specified, because of the overlay
-    _himlPics = ImageList_Create(sPIC_WIDTH / 2, sPIC_HEIGHT / 2, ILC_COLOR8 | ILC_MASK, cItems, 30);
+   // _himlPics = ImageList_Create(sPIC_WIDTH / 2, sPIC_HEIGHT / 2, ILC_COLOR8 | ILC_MASK, cItems, 30);
+    _himlPics = ImageList_Create(sPIC_WIDTH / 2, sPIC_HEIGHT / 2, ILC_COLOR24 | ILC_MASK, cItems, 30);
     
     if (_himlPics)
     {

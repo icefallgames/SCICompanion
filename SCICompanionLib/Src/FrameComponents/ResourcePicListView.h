@@ -72,6 +72,5 @@ private:
 
     int _iTokenImageIndex;
     QueueItems<PICWORKITEM, PICWORKRESULT> *_pQueue;
-    //CExtBitmap _bitmapHighlight;
 };
 

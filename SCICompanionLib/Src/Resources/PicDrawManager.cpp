@@ -437,6 +437,53 @@ void PicDrawManager::_MoveToNextStep(PicPositionFlags requestedFlags, PicPositio
     }
 }
 
+
+HBITMAP _ScaleByHalf(uint8_t *pData, int cx, int cy, const RGBQUAD *palette, int paletteCount)
+{
+    HBITMAP hbm = nullptr;
+
+    SCIBitmapInfo bmiSCI(sPIC_WIDTH, sPIC_HEIGHT, palette, paletteCount);
+    RGBQUAD *newData = nullptr;
+    HDC hDC = GetDC(nullptr);
+    BITMAPINFO bmi;
+    memset(&bmi, 0, sizeof(BITMAPINFO));
+    bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+    bmi.bmiHeader.biWidth = cx;
+    bmi.bmiHeader.biHeight = -cy; // top-down
+    bmi.bmiHeader.biPlanes = 1;
+    bmi.bmiHeader.biBitCount = 32;
+    bmi.bmiHeader.biCompression = BI_RGB;
+    hbm = CreateDIBSection(hDC, &bmi, DIB_RGB_COLORS, (void**)&newData, nullptr, 0);
+
+    ReleaseDC(nullptr, hDC);
+
+    for (int y = 0; y < cy; y++)
+    {
+        uint8_t *source = pData + (y * 2 * sPIC_WIDTH);
+        uint8_t *sourceNext = pData + ((y * 2 + 1) * sPIC_WIDTH);
+        RGBQUAD *dest = newData + ((cy - (y + 1)) * cx);
+        for (int x = 0; x < cx; x++)
+        {
+            RGBQUAD a = bmiSCI.bmiColors[*source];
+            RGBQUAD b = bmiSCI.bmiColors[*(source + 1)];
+            RGBQUAD c = bmiSCI.bmiColors[*(sourceNext)];
+            RGBQUAD d = bmiSCI.bmiColors[*(sourceNext + 1)];
+            int blue = (a.rgbBlue + b.rgbBlue + c.rgbBlue + d.rgbBlue) >> 2;
+            int red = (a.rgbRed + b.rgbRed + c.rgbRed + d.rgbRed) >> 2;
+            int green = (a.rgbGreen + b.rgbGreen + c.rgbGreen + d.rgbGreen) >> 2;
+            RGBQUAD final = {
+                (BYTE)blue, (BYTE)green, (BYTE)red, 0
+            };
+            *dest = final;
+            dest++;
+            source += 2;
+            sourceNext += 2;
+        }
+    }
+
+    return hbm;
+}
+
 HBITMAP PicDrawManager::_GetBitmapGDIP(uint8_t *pData, int cx, int cy, const RGBQUAD *palette, int paletteCount) const
 {
     HBITMAP hbm = nullptr;
@@ -451,12 +498,22 @@ HBITMAP PicDrawManager::_GetBitmapGDIP(uint8_t *pData, int cx, int cy, const RGB
         }
         else
         {
-            // Make a different sized version
-            // Note: this cast to (Bitmap*) is undocumented.
-            std::unique_ptr<Bitmap> pimage((Bitmap*)pimgVisual->GetThumbnailImage(cx, cy, nullptr, nullptr));
-            if (pimage)
+            if ((cx == sPIC_WIDTH / 2) && (cy == sPIC_HEIGHT / 2))
             {
-                pimage->GetHBITMAP(Color::Black, &hbm);
+                hbm =  _ScaleByHalf(pData, cx, cy, palette, paletteCount);
+            }
+            else
+            {
+                std::unique_ptr<Bitmap> newBitmap = std::make_unique<Bitmap>(cx, cy, PixelFormat24bppRGB);
+                Graphics graphics(newBitmap.get());
+
+                graphics.SetCompositingMode(CompositingModeSourceCopy);
+                graphics.SetPixelOffsetMode(PixelOffsetModeHighSpeed);
+                graphics.SetSmoothingMode(SmoothingModeHighSpeed);
+                graphics.SetInterpolationMode(InterpolationModeHighQualityBilinear);
+
+                graphics.DrawImage(pimgVisual.get(), 0, 0, cx, cy);
+                newBitmap->GetHBITMAP(Color::Black, &hbm);
             }
         }
     }
