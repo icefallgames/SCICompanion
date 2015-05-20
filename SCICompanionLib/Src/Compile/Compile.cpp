@@ -787,7 +787,7 @@ CodeResult _OutputCodeForIfStatement(CompileContext &context, const SyntaxNode &
         blockFalse.leave();
         pFailure->OutputByteCode(context);
     }
-    return 0;
+    return CodeResult(0, DataTypeAny);
 }
 
 // Returns true if wValue is filled in.
@@ -2079,7 +2079,7 @@ CodeResult BinaryOp::OutputByteCode(CompileContext &context) const
                 COutputContext accContext(context, OC_Accumulator);
 				wTypeRight = _statement2->OutputByteCode(context).GetType();
             }
-
+            
             // Then spit out the correct instruction
             // The result will go into the accumulator, and we may need to push it to the stack.
 			std::string actualOperator = _MaybeChangeToUnsigned(context, wTypeLeft, GetOpName());
@@ -2323,7 +2323,7 @@ CodeResult CppIfStatement::OutputByteCode(CompileContext &context) const
     // Put result in accumulator.
     {
         COutputContext accContext(context, OC_Accumulator);
-		CodeResult result = _OutputCodeForIfStatement(context, *_innerCondition.get(), *_statement1, (_statement2) ? _statement2->GetSyntaxNode() : nullptr, true);
+		result = _OutputCodeForIfStatement(context, *_innerCondition.get(), *_statement1, (_statement2) ? _statement2->GetSyntaxNode() : nullptr, true);
     }
     WORD wBytes = PushToStackIfAppropriate(context);
     return CodeResult(wBytes, result.GetType());

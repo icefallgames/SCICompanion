@@ -495,7 +495,7 @@ SpeciesIndex CompileContext::GetSpeciesSuperClass(SpeciesIndex wSpeciesIndex)
 const char* c_rgCommonPropsSCI0[] = { "species", "superClass", "-info-", "name" };
 const WORD c_rgCommonPropsTypesSCI0[] = { DataTypeAny, DataTypeAny, DataTypeUInt, DataTypeString };
 
-const char* c_rgCommonPropsSCI1[] = { "-objID-", "-size-","-propDict-","-methoDict-","-classScript-", "-script-", "-super-", "-info-", "name" };
+const char* c_rgCommonPropsSCI1[] = { "-objID-", "-size-","-propDict-","-methDict-","-classScript-", "-script-", "-super-", "-info-", "name" };
 const WORD c_rgCommonPropsTypesSCI1[] = { DataTypeAny, DataTypeAny, DataTypeAny, DataTypeAny, DataTypeAny, DataTypeAny, DataTypeAny, DataTypeUInt, DataTypeString };
 
 unordered_set<string> GetDefaultSelectorNames(SCIVersion version)

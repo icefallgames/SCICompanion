@@ -61,6 +61,8 @@ private:
     CExtEdit m_wndDebugFunctionMatch;
     CExtLabel m_wndSCOLabel;
 
+    CExtCheckBox m_wndAsm;
+
     // Our own copy of this
     GameFolderHelper _helper;
 
@@ -89,6 +91,7 @@ private:
     HANDLE _hThread;
     bool _debugControlFlow;
     bool _debugInstConsumption;
+    bool _debugAsm;
     CString _debugFunctionMatch;
     std::unique_ptr<GlobalCompiledScriptLookups> _lookups;
     std::unique_ptr<IDecompilerConfig> _decompilerConfig;

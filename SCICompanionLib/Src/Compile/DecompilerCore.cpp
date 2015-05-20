@@ -1060,19 +1060,23 @@ void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBe
 
     _TrackExternalScriptUsage(code, lookups);
 
-    string className = func.GetOwnerClass() ? func.GetOwnerClass()->GetName() : "";
-    string messageDescription = fmt::format("{0} {1}::{2}: Analyzing control flow", func.GetOwnerScript()->GetName(), className, func.GetName());
-    lookups.DecompileResults().AddResult(DecompilerResultType::Update, messageDescription);
-
-    ControlFlowGraph cfg(messageDescription, lookups.DecompileResults(), GetMethodTrackingName(func.GetOwnerClass(), func, true), lookups.DebugControlFlow, lookups.pszDebugFilter);
-    bool success = cfg.Generate(code.begin(), code.end());
-    if (success && !lookups.DecompileResults().IsAborted())
+    bool success = false;
+    if (!lookups.DecompileAsm)
     {
-        const NodeSet &controlStructures = cfg.ControlStructures();
-        MainNode *mainNode = cfg.GetMain();
-        lookups.DecompileResults().AddResult(DecompilerResultType::Update, fmt::format("{0} {1}::{2}: Generating code", func.GetOwnerScript()->GetName(), className, func.GetName()));
-        messageDescription = fmt::format("{0} {1}::{2}: Instruction consumption", func.GetOwnerScript()->GetName(), className, func.GetName());
-        success = OutputNewStructure(messageDescription, func, *mainNode, lookups);
+        string className = func.GetOwnerClass() ? func.GetOwnerClass()->GetName() : "";
+        string messageDescription = fmt::format("{0} {1}::{2}: Analyzing control flow", func.GetOwnerScript()->GetName(), className, func.GetName());
+        lookups.DecompileResults().AddResult(DecompilerResultType::Update, messageDescription);
+
+        ControlFlowGraph cfg(messageDescription, lookups.DecompileResults(), GetMethodTrackingName(func.GetOwnerClass(), func, true), lookups.DebugControlFlow, lookups.pszDebugFilter);
+        success = cfg.Generate(code.begin(), code.end());
+        if (success && !lookups.DecompileResults().IsAborted())
+        {
+            const NodeSet &controlStructures = cfg.ControlStructures();
+            MainNode *mainNode = cfg.GetMain();
+            lookups.DecompileResults().AddResult(DecompilerResultType::Update, fmt::format("{0} {1}::{2}: Generating code", func.GetOwnerScript()->GetName(), className, func.GetName()));
+            messageDescription = fmt::format("{0} {1}::{2}: Instruction consumption", func.GetOwnerScript()->GetName(), className, func.GetName());
+            success = OutputNewStructure(messageDescription, func, *mainNode, lookups);
+        }
     }
     
     if (!success && !lookups.DecompileResults().IsAborted())

@@ -435,6 +435,7 @@ public:
 	{
         _strFolder = src.GetFolder();
         _strFileName = src.GetFileName();
+        _strFileNameOrig = src._strFileNameOrig;
         _MakeLower();
         _wScriptNum = src.GetResourceNumber();
 		return( *this );

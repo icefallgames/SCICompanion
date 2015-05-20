@@ -139,6 +139,7 @@ public:
 
     bool DebugControlFlow;
     bool DebugInstructionConsumption;
+    bool DecompileAsm;
     PCSTR pszDebugFilter;
 
     void ResetOnFailure();
@@ -223,4 +224,4 @@ bool _IsVOStoreOperation(Opcode bOpcode);
 class IDecompilerResults;
 class GameFolderHelper;
 class GlobalCompiledScriptLookups;
-std::unique_ptr<sci::Script> DecompileScript(const IDecompilerConfig *config, GlobalCompiledScriptLookups &scriptLookups, const GameFolderHelper &helper, uint16_t wScript, CompiledScript &compiledScript, IDecompilerResults &results, bool debugControlFlow = false, bool debugInstConsumption = false, PCSTR pszDebugFilter = nullptr);
+std::unique_ptr<sci::Script> DecompileScript(const IDecompilerConfig *config, GlobalCompiledScriptLookups &scriptLookups, const GameFolderHelper &helper, uint16_t wScript, CompiledScript &compiledScript, IDecompilerResults &results, bool debugControlFlow = false, bool debugInstConsumption = false, PCSTR pszDebugFilter = nullptr, bool decompileAsm = false);

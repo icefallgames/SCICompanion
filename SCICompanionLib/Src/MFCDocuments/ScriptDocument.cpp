@@ -161,7 +161,7 @@ void CScriptDocument::OnCompile()
         log.ReportResult(CompileResult(sz));
 
         stringstream str;
-        str << "Compiling " << _scriptId.GetTitle();
+        str << "Compiling " << _scriptId.GetFileName();
         str << (fSuccess ? " succeeded." : " failed.");
         log.ReportResult(CompileResult(c_szLine));
         log.ReportResult(CompileResult(str.str()));
@@ -302,7 +302,7 @@ void DecompileScript(const GameFolderHelper &helper, WORD wScript, IDecompilerRe
     }
 }
 
-std::unique_ptr<sci::Script> DecompileScript(const IDecompilerConfig *config, GlobalCompiledScriptLookups &scriptLookups, const GameFolderHelper &helper, WORD wScript, CompiledScript &compiledScript, IDecompilerResults &results, bool debugControlFlow, bool debugInstConsumption, PCSTR pszDebugFilter)
+std::unique_ptr<sci::Script> DecompileScript(const IDecompilerConfig *config, GlobalCompiledScriptLookups &scriptLookups, const GameFolderHelper &helper, WORD wScript, CompiledScript &compiledScript, IDecompilerResults &results, bool debugControlFlow, bool debugInstConsumption, PCSTR pszDebugFilter, bool decompileAsm)
 {
     unique_ptr<sci::Script> pScript;
     ObjectFileScriptLookups objectFileLookups(helper);
@@ -318,6 +318,7 @@ std::unique_ptr<sci::Script> DecompileScript(const IDecompilerConfig *config, Gl
     decompileLookups.DebugControlFlow = debugControlFlow;
     decompileLookups.DebugInstructionConsumption = debugInstConsumption;
     decompileLookups.pszDebugFilter = pszDebugFilter;
+    decompileLookups.DecompileAsm = decompileAsm;
     pScript.reset(Decompile(helper, compiledScript, decompileLookups, appState->GetResourceMap().GetVocab000()));
     return pScript;
 }

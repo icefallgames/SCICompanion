@@ -850,6 +850,7 @@ void _ApplyChildren(ConsumptionNode &node, StatementsNode &statementsNode, Decom
     }
 }
 
+int g_negated = 0;
 
 std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode2(ConsumptionNode &node, DecompileLookups &lookups)
 {
@@ -885,6 +886,9 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode2(ConsumptionNode &node, Decomp
             unique_ptr<BinaryOp> binaryOp = make_unique<BinaryOp>();
             if (node.GetChild(ChunkType::FirstNegated))
             {
+                g_negated++;
+
+
                 assert(node.GetChild(ChunkType::FirstNegated)->GetChildCount() == 1);
                 unique_ptr<SingleStatement> negated = make_unique<SingleStatement>();
                 unique_ptr<UnaryOp> unaryOp = make_unique<UnaryOp>();

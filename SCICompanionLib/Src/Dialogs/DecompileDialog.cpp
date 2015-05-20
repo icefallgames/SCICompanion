@@ -46,6 +46,7 @@ void DecompileDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_DECOMPILESTATUS, m_wndStatus);
     DDX_Control(pDX, IDC_CHECKCONTROLFLOW, m_wndDebugControlFlow);
     DDX_Control(pDX, IDC_CHECKINSTRUCTIONCONSUMPTION, m_wndDebugInstConsumption);
+    DDX_Control(pDX, IDC_CHECKASM, m_wndAsm);
     DDX_Control(pDX, IDC_EDITDEBUGMATCH, m_wndDebugFunctionMatch);
     m_wndDebugFunctionMatch.SetWindowTextA("*");
     DDX_Control(pDX, IDC_INSTRUCTIONS, m_wndSCOLabel);
@@ -546,6 +547,7 @@ void DecompileDialog::OnBnClickedDecompile()
 
     _debugControlFlow = m_wndDebugControlFlow.GetCheck() != 0;
     _debugInstConsumption = m_wndDebugInstConsumption.GetCheck() != 0;
+    _debugAsm = m_wndAsm.GetCheck() != 0;
     m_wndDebugFunctionMatch.GetWindowTextA(_debugFunctionMatch);
 
     // Get a list of scripts to decompile
@@ -690,7 +692,7 @@ UINT DecompileDialog::s_DecompileThreadWorker(void *pParam)
                     }
                     else
                     {
-                        unique_ptr<sci::Script> pScript = DecompileScript(pThis->_decompilerConfig.get(), *pThis->_lookups, helper, scriptNum, compiledScript, *pThis->_decompileResults, pThis->_debugControlFlow, pThis->_debugInstConsumption, (PCSTR)pThis->_debugFunctionMatch);
+                        unique_ptr<sci::Script> pScript = DecompileScript(pThis->_decompilerConfig.get(), *pThis->_lookups, helper, scriptNum, compiledScript, *pThis->_decompileResults, pThis->_debugControlFlow, pThis->_debugInstConsumption, (PCSTR)pThis->_debugFunctionMatch, pThis->_debugAsm);
                         // Dump it to the .sc file
                         // TODO: If it already exists, we might want to ask for confirmation.
                         std::stringstream ss;

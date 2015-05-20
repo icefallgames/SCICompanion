@@ -214,6 +214,7 @@ void QuickScriptsSidePane::_OpenItem(int iItem)
             }
             else
             {
+                *PathFindExtension(szName) = 0; // Chop off extension
                 appState->OpenScript(szName);
             }
         }
