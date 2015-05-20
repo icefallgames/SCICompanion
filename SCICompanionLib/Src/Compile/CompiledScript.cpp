@@ -505,7 +505,7 @@ bool CompiledObjectBase::Create_SCI1_1(const CompiledScript &compiledScript, SCI
     uint16_t wMagic, numVars, varOffset, methodsOffset;
     heapStream >> wMagic;
     assert(wMagic == 0x1234);
-    heapStream >> numVars;  // This seems too high
+    heapStream >> numVars;
     heapStream >> varOffset;
     heapStream >> methodsOffset;
 
@@ -519,6 +519,19 @@ bool CompiledObjectBase::Create_SCI1_1(const CompiledScript &compiledScript, SCI
     heapStream >> mysteryValue;
     assert(mysteryValue == 0);
 
+    // Get the property selectors, which are only present for classes.
+    if (!_fInstance)
+    {
+        scriptStream.seekg(varOffset);
+        for (uint16_t i = 0; i < numVars; i++)
+        {
+            uint16_t propertySelector;
+            scriptStream >> propertySelector;
+            _propertySelectors.push_back(propertySelector);
+        }
+    }
+
+    // Now get the property values
     for (uint16_t i = 0; i < numVars; i++)
     {
         uint16_t propertyValue;
@@ -547,20 +560,10 @@ bool CompiledObjectBase::Create_SCI1_1(const CompiledScript &compiledScript, SCI
             _fInstance = ((_wInfo & InfoClassFlag) == 0);
             break;
         case 8:
+            // TODO: Known issue with SQ5, script 943 (and others). Class without a name, and we're assuming position #8 is the name property,
+            // when it's actually x. We can't technically determine if this is name without knowing the super classes.
             wName = _propertyValues[i].value;
             break;
-        }
-    }
-
-    // Next get the property selectors, which are only present for classes.
-    if (!_fInstance)
-    {
-        scriptStream.seekg(varOffset);
-        for (uint16_t i = 0; i < numVars; i++)
-        {
-            uint16_t propertySelector;
-            scriptStream >> propertySelector;
-            _propertySelectors.push_back(propertySelector);
         }
     }
 

@@ -44,6 +44,7 @@ enum class ChunkType
     SwitchValue,
     Break,
     NeedsAccumulator,
+    NeedsAccumulatorSpecial,
     FailedToGetAccumulator,
     FailedToGetStack,
     NeedsStack,
@@ -79,6 +80,7 @@ const char *chunkTypeNames[] =
     "SwitchValue",
     "Break",
     "NeedsAccumulator",
+    "NeedsAccumulatorSpecial",
     "FailedToGetAccumulator",
     "FailedToGetStack",
     "NeedsStack",
@@ -267,11 +269,11 @@ public:
     CodeChunkEnumContext(DecompileLookups &lookups) : _lookups(lookups) {}
     DecompileLookups &_lookups;
 
-    stack<ContextFrame> frames;
+    vector<ContextFrame> frames;
     ConsumptionNode *Current;
 
     ContextFrame &Frame() {
-        return frames.top();
+        return frames.back();
     }
 
     bool CanPopBeyond()
@@ -293,8 +295,8 @@ public:
 
     void PopFrame()
     {
-        frames.pop();
-        Current = (frames.size() > 1) ? frames.top().Parent : nullptr;
+        frames.pop_back();
+        Current = (frames.size() > 1) ? frames.back().Parent : nullptr;
     }
 
     void AddStructured(ChunkType type)
@@ -323,6 +325,24 @@ public:
                 //throw ConsumptionNodeException(Frame().Parent, "Needs more than 1 stack instruction");
             //}
             //assert(Frame().cStackConsume == 1); // Otherwise we'll need to take note. I suppose this could happen in a send.
+        }
+    }
+
+    void NotifyAnyoneAboveThatWeEncounteredAccGenerator()
+    {
+        // For now, we'll just note this
+        for (int i = ((int)(frames.size())) - 2; i >= 0; i--)
+        {
+            if (frames[i].cAccConsume)
+            {
+                // Let this guy know
+                frames[i].cAccConsume--;
+                frames[i].Parent->PrependChild()->SetType(ChunkType::NeedsAccumulatorSpecial);
+            }
+            if (frames[i].node)
+            {
+                break; // We reached a structure node, bail.
+            }
         }
     }
 
@@ -407,7 +427,7 @@ private:
         frame.cStackConsume = cStackConsume;
         assert(frame.cStackConsume <= 255);  // Any higher probably indicates a corrupt script.
         frame.Parent = Current;
-        frames.push(frame);
+        frames.push_back(frame);
     }
 };
 
@@ -499,12 +519,25 @@ public:
                     {
                         _context.Frame().cAccConsume -= consTemp.cAccGenerate;
                     }
+
+                    // Reach up above to see if anyone else needed an acc.
+                    // An example is SQ5, script 32, setSize.
+                    _context.NotifyAnyoneAboveThatWeEncounteredAccGenerator();
+
                 }
                 if (consTemp.cStackGenerate)
                 {
                     if (_context.Frame().cStackConsume)
                     {
                         _context.Frame().cStackConsume -= consTemp.cStackGenerate;
+                        if (_context.Frame().cAccConsume)
+                        {
+                            // We need to be careful here. We still need an acc. If the stack generating guy
+                            // used up an acc, we need that acc too.
+                            // It's almost like we need both an acc and a stack pointer.
+                            // Well, what we could do is whenever we encounter an acc, reach up above (until hit structured)
+                            // and make note of it.
+                        }
                     }
                     else
                     {
@@ -1007,6 +1040,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode2(ConsumptionNode &node, Decomp
         }
 
         case ChunkType::NeedsAccumulator:
+        case ChunkType::NeedsAccumulatorSpecial:
         {
             unique_ptr<PropertyValue> valueTemp = make_unique<PropertyValue>();
             valueTemp->SetValue("ERROR_NEED_ACC", ValueType::Token);
@@ -2405,14 +2439,16 @@ bool _ResolveNeededAccWorker(ConsumptionNode *root, ConsumptionNode *chunk, Deco
     for (int i = (int)chunk->GetChildCount() - 1; !changes && (i >= 0); i--)
     {
         ConsumptionNode *child = chunk->Child(i);
-        if (child->GetType() == ChunkType::NeedsAccumulator)
+        // REVIEW: NeedsAccumulatorSpecial only goes back directly in the instructions (as opposed to TryToStealOrCloneSomething)
+        // In fact, we might want to always try _LookBackwardsAndFindAndCloneAccGenerator first? Not sure.
+        if ((child->GetType() == ChunkType::NeedsAccumulator) || (child->GetType() == ChunkType::NeedsAccumulatorSpecial))
         {
             // We have two choices where we need an accumulator value. We can clone or steal.
             // We can only steal if we are in a place that is guarateed to execute from where we
             // currently are. For instance, if we're in an if Condition (without a compound condition)
             // we can steal from any code before the [If] structure that are peers of the if.
             // Let's start with a simple targeted case first.
-            if (TryToStealOrCloneSomething(child, lookups, GeneratesAcc, StealNodeOrReuseAcc))
+            if ((child->GetType() == ChunkType::NeedsAccumulator) && TryToStealOrCloneSomething(child, lookups, GeneratesAcc, StealNodeOrReuseAcc))
             {
                 changes = true;
             }

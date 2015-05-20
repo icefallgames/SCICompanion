@@ -1756,7 +1756,6 @@ void _PruneDegenerateNodes(ControlFlowNode *structure)
                     degenSuccessor->ErasePredecessor(child);
                 }
                 assert(child->Successors().size() == 0);
-                OutputDebugString("Pruned node\n");
                 structure->EraseChild(child);
                 changes = true;
                 break;
