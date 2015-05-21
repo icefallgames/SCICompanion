@@ -39,7 +39,7 @@ void LoadPALFile(const std::string &filename, PaletteComponent &palette)
     }
 }
 
-PaletteComponent::PaletteComponent()
+PaletteComponent::PaletteComponent() : Compression(PaletteCompression::Unknown), EntryType(PaletteEntryType::Unknown)
 {
     // 1-to-1 mapping by default
     for (int i = 0; i < ARRAYSIZE(Mapping); i++)
@@ -258,6 +258,9 @@ void WritePaletteShortForm(sci::ostream &byteStream, const PaletteComponent &pal
     header.always1 = 1;
     header.globalPaletteMarker = 0x00393939;    // This isn't always true, but...
     header.offsetToEndOfPaletteData = ((header.palFormat == SCI_PAL_FORMAT_VARIABLE) ? 4 : 3) * header.palColorCount + 22;
+
+    header.unknown7 = 0x3; // Needed for SQ5 views to work????
+
     byteStream << header;
 
     for (uint16_t i = header.palColorStart; i < header.palColorCount; i++)
@@ -288,9 +291,11 @@ void ReadPalette(PaletteComponent &palette, sci::istream &byteStream)
             palOffset = 260;
             header.palColorStart = 0;
             header.palColorCount = 256;
+            palette.Compression = PaletteCompression::None;
         }
         else
         {
+            palette.Compression = PaletteCompression::Header;
             //assert(header.always1 == 1);
             //assert(header.always0 == 0);
             //assert(header.always0_B == 0);
@@ -306,6 +311,7 @@ void ReadPalette(PaletteComponent &palette, sci::istream &byteStream)
         {
             if (header.palFormat == SCI_PAL_FORMAT_CONSTANT)
             {
+                palette.EntryType = PaletteEntryType::ThreeByte;
                 for (int entry = 0; entry < header.palColorStart; entry++)
                 {
                     palette.Colors[entry] = black;
@@ -320,6 +326,7 @@ void ReadPalette(PaletteComponent &palette, sci::istream &byteStream)
             }
             else if (header.palFormat == SCI_PAL_FORMAT_VARIABLE)
             {
+                palette.EntryType = PaletteEntryType::FourByte;
                 for (int entry = 0; entry < header.palColorStart; entry++)
                 {
                     palette.Colors[entry] = black;

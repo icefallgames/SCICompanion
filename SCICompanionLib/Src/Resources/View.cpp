@@ -712,7 +712,8 @@ void ViewWriteToVGA11(const ResourceEntity &resource, sci::ostream &byteStream)
     const PaletteComponent *palette = resource.TryGetComponent<PaletteComponent>();
     if (palette)
     {
-        WritePalette(paletteStream, *palette);
+        //WritePalette(paletteStream, *palette);
+        WritePaletteShortForm(paletteStream, *palette);
     }
     uint32_t paletteSize = paletteStream.GetDataSize();
 

@@ -62,22 +62,6 @@ void CNewRoomDialog::_DiscoveredScriptName(PCTSTR pszName)
     }
 }
 
-int CNewRoomDialog::_GetSuggestedScriptNumber()
-{
-    int iRet = 0;
-    // Now find an "empty" slot, starting from 0
-    for (int i = 0; i < ARRAYSIZE(_rgUsed); i++)
-    {
-        if (0x00 == _rgUsed[i])
-        {
-            iRet = i;
-            break;
-        }
-    }
-    return iRet;
-}
-
-
 void CNewRoomDialog::_PrepareDialog()
 {
     __super::_PrepareDialog();

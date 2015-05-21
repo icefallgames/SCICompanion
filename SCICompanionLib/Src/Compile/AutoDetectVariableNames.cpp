@@ -282,14 +282,14 @@ public:
     void Visit(const FunctionSignature &sig) override {}
     void Visit(const PropertyValue &prop) override
     {
-        if ((prop.GetType() == ValueType::Token) && _IsUndetermined(prop.GetStringValue()))
+        if (((prop.GetType() == ValueType::Token) || (prop.GetType() == ValueType::Pointer)) && _IsUndetermined(prop.GetStringValue()))
         {
             _renameContext.SetRenamed(_function, prop.GetStringValue(), ResolveSuggestion(_suggestion, prop.GetStringValue()));
         }
     }
     void Visit(const ComplexPropertyValue &prop) override
     {
-        if ((prop.GetType() == ValueType::Token) && _IsUndetermined(prop.GetStringValue()))
+        if (((prop.GetType() == ValueType::Token) || (prop.GetType() == ValueType::Pointer)) && _IsUndetermined(prop.GetStringValue()))
         {
             _renameContext.SetRenamed(_function, prop.GetStringValue(), ResolveSuggestion(_suggestion, prop.GetStringValue()));
         }
@@ -545,9 +545,9 @@ public:
                 case NodeTypeComplexValue:
                 {
                     PropertyValueBase &propValue = static_cast<PropertyValueBase&>(node);
-                    if (propValue.GetType() == ValueType::Token)
+                    if ((propValue.GetType() == ValueType::Token) || (propValue.GetType() == ValueType::Pointer))
                     {
-                        propValue.SetValue(_renameContext.GetRenamed(_functionContext, propValue.GetStringValue()), ValueType::Token);
+                        propValue.SetValue(_renameContext.GetRenamed(_functionContext, propValue.GetStringValue()), propValue.GetType());
                     }
                 }
                 break;

@@ -8,8 +8,10 @@
 #include "GameFolderHelper.h"
 #include "DecompilerConfig.h"
 #include "format.h"
+#include <ppl.h>
 
 using namespace std;
+using namespace concurrency;
 
 #define UWM_UPDATESTATUS (WM_APP + 1)
 #define CHEKCDONE_TIMER 3456

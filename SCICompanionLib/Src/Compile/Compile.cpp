@@ -1492,7 +1492,8 @@ CodeResult SendParam::OutputByteCode(CompileContext &context) const
             {
                 if (parameterTypes.size() > 1)
                 {
-					context.ReportError(this, "% is a property.  Only one parameter may be supplied.", GetSelectorName().c_str());
+                    string selName = GetSelectorName();
+                    context.ReportError(this, "%s is a property.  Only one parameter may be supplied.", selName.c_str());
                 }
                 if (parameterTypes.empty())
                 {

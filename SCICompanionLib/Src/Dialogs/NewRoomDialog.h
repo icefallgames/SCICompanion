@@ -30,7 +30,6 @@ protected:
     virtual void _PrepareBuffer();
     void _PrepareBufferOld();
     virtual void _AttachControls(CDataExchange *pDX);
-    virtual int _GetSuggestedScriptNumber();
 	DECLARE_MESSAGE_MAP()
     afx_msg void OnRadioSameAsRoom();
     afx_msg void OnRadioOther();

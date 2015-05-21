@@ -9,6 +9,21 @@ enum class PaletteChangeHint
 };
 DEFINE_ENUM_FLAGS(PaletteChangeHint, uint32_t)
 
+enum class PaletteCompression
+{
+    Unknown,
+    None,
+    Header,
+};
+
+enum class PaletteEntryType
+{
+    Unknown,
+    ThreeByte,
+    FourByte,
+};
+
+
 struct PaletteComponent : public ResourceComponent
 {
     PaletteComponent();
@@ -32,6 +47,8 @@ struct PaletteComponent : public ResourceComponent
     // they do use.
     RGBQUAD Colors[256];
 
+    PaletteCompression Compression;
+    PaletteEntryType EntryType;
     void MergeFromOther(const PaletteComponent *globalPalette);
 };
 

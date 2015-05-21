@@ -27,14 +27,16 @@ void CNewScriptDialog::_DiscoveredScriptName(PCTSTR pszName)
 int CNewScriptDialog::_GetSuggestedScriptNumber()
 {
     int iRet = 0;
-    // Now find an "empty" slot, starting from the top down
-    for (int i = ARRAYSIZE(_rgUsed) - 1; i >= 0; i--)
+    // Now find an "empty" slot. 
+    // REVIEW: Need a better algorithm here.
+    int lastUsed = 0;
+    for (int used : _usedScriptNumbers)
     {
-        if (0x00 == _rgUsed[i])
+        if (used > (lastUsed + 1))
         {
-            iRet = i;
-            break;
+            return lastUsed + 1;
         }
+        lastUsed = used;
     }
     return iRet;
 }
@@ -55,7 +57,7 @@ void CNewScriptDialog::_PrepareDialog()
             if (nLength > 0 && ((nSize - 2) != nLength)) // returns (nSize - 2) in case of insufficient buffer 
             {
                 // Keep track of which script numbers have been used.
-                ZeroMemory(_rgUsed, sizeof(_rgUsed));
+                _usedScriptNumbers.clear();
 
                 TCHAR *psz = pszNameValues;
                 while(*psz)
@@ -71,9 +73,9 @@ void CNewScriptDialog::_PrepareDialog()
 
                     // Take note of the script number.
                     int iScript = StrToInt(psz + 1);
-                    if ((iScript >= 0) && (iScript < ARRAYSIZE(_rgUsed)))
+                    if (iScript >= 0)
                     {
-                        _rgUsed[iScript] = 0xff;
+                        _usedScriptNumbers.insert(iScript);
                     }
 
                     // Advance to next string.
@@ -143,7 +145,8 @@ BOOL CNewScriptDialog::_ValidateScriptNumber()
     CString strNumber;
     m_wndEditScriptNumber.GetWindowText(strNumber);
     _scriptId.SetResourceNumber(StrToInt(strNumber));
-    if (_rgUsed[_scriptId.GetResourceNumber()])
+    int value = _scriptId.GetResourceNumber();
+    if (contains(_usedScriptNumbers, value))
     {
         TCHAR szMessage[MAX_PATH];
         StringCchPrintf(szMessage, ARRAYSIZE(szMessage), TEXT("Script %03d already exists.  Please use another number."), _scriptId.GetResourceNumber());

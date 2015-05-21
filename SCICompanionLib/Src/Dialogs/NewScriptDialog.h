@@ -43,7 +43,7 @@ protected:
     CExtEdit m_wndEditScriptName;
     CExtEdit m_wndEditScriptNumber;
 
-    BYTE _rgUsed[1000];
+    std::set<int> _usedScriptNumbers;
     std::vector<std::string> _usedNames;
 
     // Visuals

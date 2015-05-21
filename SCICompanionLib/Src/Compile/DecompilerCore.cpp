@@ -108,7 +108,7 @@ code_pos get_cur_pos(std::list<scii> &code)
 // code        - (out) list of sci instructions.
 //
 // Returns the end.
-const BYTE *_ConvertToInstructions(std::list<scii> &code, const BYTE *pBegin, const BYTE *pEnd, WORD wBaseOffset)
+const BYTE *_ConvertToInstructions(DecompileLookups &lookups, std::list<scii> &code, const BYTE *pBegin, const BYTE *pEnd, WORD wBaseOffset)
 {
     std::unordered_map<WORD, code_pos> referenceToCodePos;
     std::vector<Fixup> branchTargetsToFixup;
@@ -207,7 +207,8 @@ const BYTE *_ConvertToInstructions(std::list<scii> &code, const BYTE *pBegin, co
         }
         else
         {
-            assert(false && "Branch to an invalid spot.");
+            lookups.DecompileResults().AddResult(DecompilerResultType::Error, "Invalid branch target.");
+            return nullptr;
         }
     }
 
@@ -1045,41 +1046,45 @@ void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBe
 
     // Take the raw data, and turn it into a list of scii instructions, and make sure the branch targets point to code_pos's
     std::list<scii> code;
-    const BYTE *discoveredEnd = _ConvertToInstructions(code, pBegin, pEnd, wBaseOffset);
+    const BYTE *discoveredEnd = _ConvertToInstructions(lookups, code, pBegin, pEnd, wBaseOffset);
 
-    // Insert a no-op at the beginning of code (so we can get an iterator to point to a spot before code)
-    code.insert(code.begin(), scii(Opcode::INDETERMINATE));
-
-    // Do some early things
-    _DetermineIfFunctionReturnsValue(code, lookups);
-
-    // Construct the function -> for now use procedure, but really should be method or proc
-    unique_ptr<FunctionSignature> pSignature = std::make_unique<FunctionSignature>();
-    _FigureOutParameters(func, *pSignature, code);
-    func.AddSignature(std::move(pSignature));
-
-    _TrackExternalScriptUsage(code, lookups);
-
-    bool success = false;
-    if (!lookups.DecompileAsm)
+    bool success = (discoveredEnd != nullptr);
+    if (success)
     {
-        string className = func.GetOwnerClass() ? func.GetOwnerClass()->GetName() : "";
-        string messageDescription = fmt::format("{0} {1}::{2}: Analyzing control flow", func.GetOwnerScript()->GetName(), className, func.GetName());
-        lookups.DecompileResults().AddResult(DecompilerResultType::Update, messageDescription);
+        success = false;
+        // Insert a no-op at the beginning of code (so we can get an iterator to point to a spot before code)
+        code.insert(code.begin(), scii(Opcode::INDETERMINATE));
 
-        ControlFlowGraph cfg(messageDescription, lookups.DecompileResults(), GetMethodTrackingName(func.GetOwnerClass(), func, true), lookups.DebugControlFlow, lookups.pszDebugFilter);
-        success = cfg.Generate(code.begin(), code.end());
-        if (success && !lookups.DecompileResults().IsAborted())
+        // Do some early things
+        _DetermineIfFunctionReturnsValue(code, lookups);
+
+        // Construct the function -> for now use procedure, but really should be method or proc
+        unique_ptr<FunctionSignature> pSignature = std::make_unique<FunctionSignature>();
+        _FigureOutParameters(func, *pSignature, code);
+        func.AddSignature(std::move(pSignature));
+
+        _TrackExternalScriptUsage(code, lookups);
+
+        if (!lookups.DecompileAsm)
         {
-            const NodeSet &controlStructures = cfg.ControlStructures();
-            MainNode *mainNode = cfg.GetMain();
-            lookups.DecompileResults().AddResult(DecompilerResultType::Update, fmt::format("{0} {1}::{2}: Generating code", func.GetOwnerScript()->GetName(), className, func.GetName()));
-            messageDescription = fmt::format("{0} {1}::{2}: Instruction consumption", func.GetOwnerScript()->GetName(), className, func.GetName());
-            success = OutputNewStructure(messageDescription, func, *mainNode, lookups);
+            string className = func.GetOwnerClass() ? func.GetOwnerClass()->GetName() : "";
+            string messageDescription = fmt::format("{0} {1}::{2}: Analyzing control flow", func.GetOwnerScript()->GetName(), className, func.GetName());
+            lookups.DecompileResults().AddResult(DecompilerResultType::Update, messageDescription);
+
+            ControlFlowGraph cfg(messageDescription, lookups.DecompileResults(), GetMethodTrackingName(func.GetOwnerClass(), func, true), lookups.DebugControlFlow, lookups.pszDebugFilter);
+            success = cfg.Generate(code.begin(), code.end());
+            if (success && !lookups.DecompileResults().IsAborted())
+            {
+                const NodeSet &controlStructures = cfg.ControlStructures();
+                MainNode *mainNode = cfg.GetMain();
+                lookups.DecompileResults().AddResult(DecompilerResultType::Update, fmt::format("{0} {1}::{2}: Generating code", func.GetOwnerScript()->GetName(), className, func.GetName()));
+                messageDescription = fmt::format("{0} {1}::{2}: Instruction consumption", func.GetOwnerScript()->GetName(), className, func.GetName());
+                success = OutputNewStructure(messageDescription, func, *mainNode, lookups);
+            }
         }
     }
     
-    if (!success && !lookups.DecompileResults().IsAborted())
+    if (!success && !lookups.DecompileResults().IsAborted() && discoveredEnd)
     {
         // Disassemble the function instead.
         // First though, we need to remove all code:
@@ -1091,7 +1096,10 @@ void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBe
     }
 
     // Give some statistics.
-    lookups.DecompileResults().InformStats(success, discoveredEnd - pBegin);
+    if (discoveredEnd)
+    {
+        lookups.DecompileResults().InformStats(success, discoveredEnd - pBegin);
+    }
 
     if (!lookups.DecompileResults().IsAborted())
     {
