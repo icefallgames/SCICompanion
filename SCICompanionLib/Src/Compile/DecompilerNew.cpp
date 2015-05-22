@@ -1952,11 +1952,15 @@ unique_ptr<ConsumptionNode> CloneNode(ConsumptionNode *nodeToSteal, DecompileLoo
     return nodeToSteal->Clone();
 }
 
-template<typename _FuncCreate>
-void ReplaceNodeWithNode(ConsumptionNode *nodeToBeReplaced, ConsumptionNode *nodeToStealOrClone, _FuncCreate funcCreate, DecompileLookups &lookups)
+void ReplaceNodeWithNode(ConsumptionNode *nodeToBeReplaced, unique_ptr<ConsumptionNode> stolen, DecompileLookups &lookups)
 {
-    unique_ptr<ConsumptionNode> stolen = funcCreate(nodeToStealOrClone, lookups);
     nodeToBeReplaced->_parentWeak->ReplaceChild(nodeToBeReplaced->GetMyIndex(), move(stolen));
+}
+
+void AddAsOnlyChild(ConsumptionNode *nodeToAddTo, unique_ptr<ConsumptionNode> stolen, DecompileLookups &lookups)
+{
+    assert(nodeToAddTo->GetChildCount() == 0);
+    nodeToAddTo->PrependChild(move(stolen));
 }
 
 bool GeneratesStack(const Consumption &consumption) { return consumption.cStackGenerate == 1; }
@@ -2033,8 +2037,8 @@ bool SkipStructuredLevels(ConsumptionNode *&child, ConsumptionNode *&parent)
 }
 
 
-template<typename _Func, typename _FuncCreate>
-bool TryToStealOrCloneSomething(ConsumptionNode *originalChild, ConsumptionNode *startSearchFrom, DecompileLookups &lookups, _Func satisfiesNeeds, _FuncCreate funcCreate)
+template<typename _Func, typename _FuncCreate, typename _FuncReplace>
+bool TryToStealOrCloneSomething(ConsumptionNode *originalChild, ConsumptionNode *startSearchFrom, DecompileLookups &lookups, _Func satisfiesNeeds, _FuncCreate funcCreate, _FuncReplace funcReplace)
 {
     ConsumptionNode *child = startSearchFrom;
     ConsumptionNode *parent = child->_parentWeak;
@@ -2051,7 +2055,8 @@ bool TryToStealOrCloneSomething(ConsumptionNode *originalChild, ConsumptionNode 
                 if (satisfiesNeeds(consumption))
                 {
                     // This is it.
-                    ReplaceNodeWithNode(originalChild, parent->Child(i), funcCreate, lookups);
+                    unique_ptr<ConsumptionNode> stolen = funcCreate(parent->Child(i), lookups);
+                    funcReplace(originalChild, move(stolen), lookups);
                     success = true;
                     done = true;
                     break;
@@ -2191,7 +2196,7 @@ void _ResolveDUPs(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookup
             }
             if (!found)
             {
-                found = TryToStealOrCloneSomething(child, child, lookups, GeneratesStack, CloneNode);
+                found = TryToStealOrCloneSomething(child, child, lookups, GeneratesStack, CloneNode, ReplaceNodeWithNode);
             }
             if (!found)
             {
@@ -2410,7 +2415,7 @@ void _ResolvePPrevs(const string &debugName, ConsumptionNode *root, ConsumptionN
                     // Find the node that contains this code.
                     ConsumptionNode *theNode = _FindChunk(root, current);
                     assert(theNode);
-                    found = TryToStealOrCloneSomething(child, theNode, lookups, GeneratesAcc, CloneNode);
+                    found = TryToStealOrCloneSomething(child, theNode, lookups, GeneratesAcc, CloneNode, AddAsOnlyChild);
                     if (!found)
                     {
                         // Just go back along code
@@ -2460,7 +2465,7 @@ bool _ResolveNeededAccWorker(ConsumptionNode *root, ConsumptionNode *chunk, Deco
             // currently are. For instance, if we're in an if Condition (without a compound condition)
             // we can steal from any code before the [If] structure that are peers of the if.
             // Let's start with a simple targeted case first.
-            if ((child->GetType() == ChunkType::NeedsAccumulator) && TryToStealOrCloneSomething(child, child, lookups, GeneratesAcc, StealNodeOrReuseAcc))
+            if ((child->GetType() == ChunkType::NeedsAccumulator) && TryToStealOrCloneSomething(child, child, lookups, GeneratesAcc, StealNodeOrReuseAcc, ReplaceNodeWithNode))
             {
                 changes = true;
             }
@@ -2486,7 +2491,7 @@ bool _ResolveNeededAccWorker(ConsumptionNode *root, ConsumptionNode *chunk, Deco
         else if (child->GetType() == ChunkType::NeedsStack)
         {
             // We can only steal stack, never clone
-            if (TryToStealOrCloneSomething(child, child, lookups, GeneratesStack, StealNode))
+            if (TryToStealOrCloneSomething(child, child, lookups, GeneratesStack, StealNode, ReplaceNodeWithNode))
             {
                 changes = true;
             }
