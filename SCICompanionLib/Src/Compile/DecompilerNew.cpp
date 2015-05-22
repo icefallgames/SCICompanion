@@ -2034,9 +2034,9 @@ bool SkipStructuredLevels(ConsumptionNode *&child, ConsumptionNode *&parent)
 
 
 template<typename _Func, typename _FuncCreate>
-bool TryToStealOrCloneSomething(ConsumptionNode *originalChild, DecompileLookups &lookups, _Func satisfiesNeeds, _FuncCreate funcCreate)
+bool TryToStealOrCloneSomething(ConsumptionNode *originalChild, ConsumptionNode *startSearchFrom, DecompileLookups &lookups, _Func satisfiesNeeds, _FuncCreate funcCreate)
 {
-    ConsumptionNode *child = originalChild;
+    ConsumptionNode *child = startSearchFrom;
     ConsumptionNode *parent = child->_parentWeak;
     bool success = false;
     bool done = false;
@@ -2191,7 +2191,7 @@ void _ResolveDUPs(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookup
             }
             if (!found)
             {
-                found = TryToStealOrCloneSomething(child, lookups, GeneratesStack, CloneNode);
+                found = TryToStealOrCloneSomething(child, child, lookups, GeneratesStack, CloneNode);
             }
             if (!found)
             {
@@ -2363,51 +2363,6 @@ void _LiftOutAssignments(ConsumptionNode *root, ConsumptionNode *chunk, Decompil
 }
 
 
-void _ResolvePPrevs(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookups &lookups)
-{
-    for (size_t i = 0; i < chunk->GetChildCount(); i++)
-    {
-        ConsumptionNode *child = chunk->Child(i);
-        Consumption consumption = _GetInstructionConsumption(*child, lookups);
-        if (consumption.cPrevConsume)
-        {
-            // Work backward to find a prev generator, then an acc generator.
-            code_pos current = child->GetCode();
-            --current;
-            bool lookingForPrev = true;
-            while (current->get_opcode() != Opcode::INDETERMINATE)
-            {
-                Consumption consumption = _GetInstructionConsumption(*current, &lookups);
-                if (lookingForPrev && consumption.cPrevGenerate)
-                {
-                    lookingForPrev = false;
-                }
-                else if (!lookingForPrev && consumption.cAccGenerate)
-                {
-                    // Found the thing from the accumulator what we want to push.
-                    ConsumptionNode *toClone = _FindChunk(root, current);
-                    assert(toClone);
-                    if (toClone)
-                    {
-                        unique_ptr<ConsumptionNode> theClone = toClone->Clone();
-                        // Now we want to replace the prev with a push, and then put the cloned thing
-                        // as the child of the push. Actually, let's not replace it. Let's just add
-                        // the clone as a child of it.
-                        assert(child->GetChildCount() == 0);
-                        child->PrependChild(move(theClone));
-                    }
-                    break;
-                }
-                --current;
-            }
-        }
-    }
-    for (auto &child : chunk->Children())
-    {
-        _ResolvePPrevs(root, child.get(), lookups);
-    }
-}
-
 unique_ptr<ConsumptionNode> _LookBackwardsAndFindAndCloneAccGenerator(ConsumptionNode *root, code_pos inclusiveStart, DecompileLookups &lookups)
 {
     code_pos current = inclusiveStart;
@@ -2430,6 +2385,63 @@ unique_ptr<ConsumptionNode> _LookBackwardsAndFindAndCloneAccGenerator(Consumptio
     return nullptr;
 }
 
+void _ResolvePPrevs(const string &debugName, ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookups &lookups)
+{
+    for (size_t i = 0; i < chunk->GetChildCount(); i++)
+    {
+        ConsumptionNode *child = chunk->Child(i);
+        Consumption consumption = _GetInstructionConsumption(*child, lookups);
+        if (consumption.cPrevConsume)
+        {
+            assert(child->GetChildCount() == 0);
+            // Work backward to find a prev generator, then an acc generator.
+            code_pos current = child->GetCode();
+            --current;
+            bool lookingForPrev = true;
+
+            bool found = false;
+            while (current->get_opcode() != Opcode::INDETERMINATE)
+            {
+                Consumption consumption = _GetInstructionConsumption(*current, &lookups);
+                if (lookingForPrev && consumption.cPrevGenerate)
+                {
+                    lookingForPrev = false;
+
+                    // Find the node that contains this code.
+                    ConsumptionNode *theNode = _FindChunk(root, current);
+                    assert(theNode);
+                    found = TryToStealOrCloneSomething(child, theNode, lookups, GeneratesAcc, CloneNode);
+                    if (!found)
+                    {
+                        // Just go back along code
+                        code_pos start = current;
+                        --start;
+                        unique_ptr<ConsumptionNode> theClone = _LookBackwardsAndFindAndCloneAccGenerator(root, start, lookups);
+                        if (theClone)
+                        {
+                            // Now we want to replace the prev with a push, and then put the cloned thing
+                            // as the child of the push. Actually, let's not replace it. Let's just add
+                            // the clone as a child of it.
+                            assert(child->GetChildCount() == 0);
+                            child->PrependChild(move(theClone));
+                            found = true;
+                        }
+                    }
+                }
+                --current;
+            }
+            if (!lookingForPrev && !found)
+            {
+                throw ConsumptionNodeException(chunk, "Unable to find pprev source");
+            }
+        }
+    }
+    for (auto &child : chunk->Children())
+    {
+        _ResolvePPrevs(debugName, root, child.get(), lookups);
+    }
+}
+
 // Returns true if changes were made
 bool _ResolveNeededAccWorker(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookups &lookups)
 {
@@ -2448,7 +2460,7 @@ bool _ResolveNeededAccWorker(ConsumptionNode *root, ConsumptionNode *chunk, Deco
             // currently are. For instance, if we're in an if Condition (without a compound condition)
             // we can steal from any code before the [If] structure that are peers of the if.
             // Let's start with a simple targeted case first.
-            if ((child->GetType() == ChunkType::NeedsAccumulator) && TryToStealOrCloneSomething(child, lookups, GeneratesAcc, StealNodeOrReuseAcc))
+            if ((child->GetType() == ChunkType::NeedsAccumulator) && TryToStealOrCloneSomething(child, child, lookups, GeneratesAcc, StealNodeOrReuseAcc))
             {
                 changes = true;
             }
@@ -2474,7 +2486,7 @@ bool _ResolveNeededAccWorker(ConsumptionNode *root, ConsumptionNode *chunk, Deco
         else if (child->GetType() == ChunkType::NeedsStack)
         {
             // We can only steal stack, never clone
-            if (TryToStealOrCloneSomething(child, lookups, GeneratesStack, StealNode))
+            if (TryToStealOrCloneSomething(child, child, lookups, GeneratesStack, StealNode))
             {
                 changes = true;
             }
@@ -2715,8 +2727,8 @@ bool OutputNewStructure(const std::string &messagePrefix, sci::FunctionBase &fun
 
         _LiftOutAssignments(mainChunk.get(), mainChunk.get(), lookups);
 
+        _ResolvePPrevs(debugTrackName, mainChunk.get(), mainChunk.get(), lookups);
         _ResolveNeededAcc(mainChunk.get(), mainChunk.get(), lookups);
-        _ResolvePPrevs(mainChunk.get(), mainChunk.get(), lookups);
         _RestructureCaseHeaders(mainChunk.get(), lookups);
         _ResolveDUPs(mainChunk.get(), mainChunk.get(), lookups);    // Must follow case restructure
 
