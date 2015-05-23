@@ -42,7 +42,7 @@ void SaveResourceDialog::DoDataExchange(CDataExchange* pDX)
     m_wndEditResource.LimitText(5);
     StringCchPrintf(sz, ARRAYSIZE(sz), TEXT("%d"), _GetValidResource(_iResourceNumber));
     m_wndEditResource.SetWindowText(sz);
-
+    
     // Visuals
     DDX_Control(pDX, IDOK, m_wndOk);
     DDX_Control(pDX, IDCANCEL, m_wndCancel);

@@ -256,6 +256,13 @@
 (define msgPUSH 6)
 (define msgPOP 7)
 (define msgLAST_MESSAGE 8)
+
+(define memALLOC_CRIT 1)
+(define memALLOC_NONCRIT 2)
+(define memFREE 3)
+(define memCOPY 4)
+(define memPEEK 5)
+(define memPOKE 6)
 #endif  // SCI_1_1
 
 // Sound statuses
