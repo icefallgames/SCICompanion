@@ -18,7 +18,7 @@ SaveResourceDialog::~SaveResourceDialog()
 
 int _GetValidResource(int iResource)
 {
-    return max(min(iResource, 999), 0);
+    return max(min(iResource, appState->GetVersion().GetMaximumResourceNumber()), 0);
 }
 
 int _GetValidPackage(int iPackage)
@@ -34,12 +34,12 @@ void SaveResourceDialog::DoDataExchange(CDataExchange* pDX)
 
     DDX_Control(pDX, IDC_EDITPACKAGE, m_wndEditPackage);
     m_wndEditPackage.LimitText(2);
-    TCHAR sz[4];
+    TCHAR sz[10];
     StringCchPrintf(sz, ARRAYSIZE(sz), TEXT("%d"), _GetValidPackage(_iPackageNumber));
     m_wndEditPackage.SetWindowText(sz);
 
     DDX_Control(pDX, IDC_EDITRESOURCE, m_wndEditResource);
-    m_wndEditResource.LimitText(3);
+    m_wndEditResource.LimitText(5);
     StringCchPrintf(sz, ARRAYSIZE(sz), TEXT("%d"), _GetValidResource(_iResourceNumber));
     m_wndEditResource.SetWindowText(sz);
 

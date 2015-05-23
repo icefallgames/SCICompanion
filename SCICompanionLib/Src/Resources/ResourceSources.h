@@ -495,6 +495,8 @@ public:
     void RebuildResources() override {}
 
 private:
+    void _Finalize(AudioMapComponent &newAudioMap, sci::ostream &newVolumeStream);
+    void _CopyWithoutThese(const AudioMapComponent &audioMap, AudioMapComponent &newAudioMap, sci::istream &oldReader, sci::ostream &newVolumeStream, const std::set<uint16_t> &removeThese);
     std::string _GetAudioVolumePath(bool bak, ResourceSourceFlags *sourceFlags = nullptr);
     void _EnsureAudioVolume();
 

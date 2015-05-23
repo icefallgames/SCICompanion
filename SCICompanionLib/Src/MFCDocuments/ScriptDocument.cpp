@@ -368,6 +368,27 @@ void CScriptDocument::OnViewScriptResource()
         }
     }
 }
+
+unique_ptr<sci::Script> _ParseScript(ScriptId id)
+{
+    CCrystalTextBuffer buffer;
+    if (buffer.LoadFromFile(id.GetFullPath().c_str()))
+    {
+        CScriptStreamLimiter limiter(&buffer);
+        CCrystalScriptStream stream(&limiter);
+
+        std::unique_ptr<sci::Script> pScript = std::make_unique<sci::Script>(id);
+        CompileLog log;
+        bool result = g_Parser.Parse(*pScript, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log);
+        buffer.FreeAll();
+        if (result)
+        {
+            return pScript;
+        }
+    }
+    return nullptr;
+}
+
 void CScriptDocument::OnViewSyntaxTree()
 {
 #if DONT_KNOW_WHAT_THIS_DID
@@ -385,6 +406,33 @@ void CScriptDocument::OnViewSyntaxTree()
         ShowTextFile(out.str().c_str(), "syntaxtree.txt");
     }
 #endif
+
+    // Repurposing it for something else: calculating the dependency tree
+    set<string> complete;
+    stack<ScriptId> toProcess;
+    toProcess.push(_scriptId);
+    while (!toProcess.empty())
+    {
+        ScriptId id = toProcess.top();
+        toProcess.pop();
+        string title = id.GetTitle();
+        ToUpper(title);
+        complete.insert(title);
+        unique_ptr<sci::Script> parsedScript = _ParseScript(id);
+        if (parsedScript)
+        {
+            for (auto use : parsedScript->GetUses())
+            {
+                string USE = use;
+                ToUpper(USE);
+                if (complete.find(USE) == complete.end())
+                {
+                    toProcess.push(appState->GetResourceMap().Helper().GetScriptId(use));
+                }
+            }
+        }
+    }
+
 }
 
 void CScriptDocument::OnConvertScript()

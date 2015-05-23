@@ -131,7 +131,9 @@ sci::istream PatchFilesResourceSource::GetHeaderAndPositionedStream(const Resour
 
 void PatchFilesResourceSource::RemoveEntry(const ResourceMapEntryAgnostic &mapEntry) 
 {
-    // Delete the file. Perhaps make a backup?
+    std::string filename = GetFileNameFor(mapEntry.Type, mapEntry.Number, _version);
+    std::string fullPath = _gameFolder + "\\" + filename;
+    deletefile(fullPath);
 }
 
 void PatchFilesResourceSource::AppendResources(const std::vector<ResourceBlob> &blobs)
@@ -258,7 +260,77 @@ sci::istream AudioResourceSource::GetHeaderAndPositionedStream(const ResourceMap
 
 void AudioResourceSource::RemoveEntry(const ResourceMapEntryAgnostic &mapEntry) 
 {
-    throw std::exception("Not implemented");
+    _EnsureAudioVolume();
+    const AudioMapComponent *audioMap = appState->GetResourceMap().GetAudioMap65535();
+    if (audioMap)
+    {
+        sci::istream oldReader = _volumeStreamOwner->getReader();
+        unique_ptr<AudioMapComponent> newAudioMap = make_unique<AudioMapComponent>(*audioMap);
+        newAudioMap->Entries.clear();
+
+        sci::ostream newVolumeStream;
+        newVolumeStream.EnsureCapacity(_volumeStreamOwner->getReader().GetDataSize());  // Avoid some re-allocs
+
+        // Copy over the old entries, minus the new one
+        set<uint16_t> removeThese;
+        removeThese.insert(mapEntry.Number);
+        _CopyWithoutThese(*audioMap, *newAudioMap, oldReader, newVolumeStream, removeThese);
+
+        _Finalize(*newAudioMap, newVolumeStream);
+    }
+}
+
+void AudioResourceSource::_CopyWithoutThese(const AudioMapComponent &audioMap, AudioMapComponent &newAudioMap, sci::istream &oldReader, sci::ostream &newVolumeStream, const set<uint16_t> &removeThese)
+{
+    uint32_t offset = 0;
+    for (size_t i = 0; i < audioMap.Entries.size(); i++)
+    {
+        const AudioMapEntry &oldEntry = audioMap.Entries[i];
+        AudioMapEntry copiedEntry = oldEntry;
+        if (removeThese.find(copiedEntry.Number) == removeThese.end())
+        {
+            // Copy over. But how do we know the size? Look at the next offset, or the file size
+            uint32_t size;
+            if (i == (audioMap.Entries.size() - 1))
+            {
+                size = oldReader.GetDataSize() - oldEntry.Offset;
+            }
+            else
+            {
+                size = audioMap.Entries[i + 1].Offset - oldEntry.Offset;
+            }
+            copiedEntry.Offset = newVolumeStream.tellp();
+            oldReader.seekg(oldEntry.Offset);
+            transfer(oldReader, newVolumeStream, size);
+            newAudioMap.Entries.push_back(copiedEntry);
+        }
+        else
+        {
+            // Skip copying this one over right here.
+        }
+    }
+}
+
+void AudioResourceSource::_Finalize(AudioMapComponent &newAudioMap, sci::ostream &newVolumeStream)
+{
+    // TODO: Save to bak. Then write resource map thingy. Then swap to real
+    // Now let's save the stream to the bak file
+    string bakPath = _GetAudioVolumePath(true);
+    {
+        ScopedFile bakFile(bakPath, GENERIC_WRITE, 0, CREATE_ALWAYS);
+        bakFile.Write(newVolumeStream.GetInternalPointer(), newVolumeStream.GetDataSize());
+    }
+
+    // This is risky since these operations are not atomic. To minimize issues, we should try to open the
+    // file for write first (e.g. test write). And only then saveAudioMap65535
+    testopenforwrite(_GetAudioVolumePath(false));
+
+    // Then we'll save our new map.
+    appState->GetResourceMap().SaveAudioMap65535(newAudioMap);
+
+    // If that caused no problems, then finally do the swap of the file, and hopefully that worked.
+    deletefile(_GetAudioVolumePath(false));
+    movefile(bakPath, _GetAudioVolumePath(false));
 }
 
 void AudioResourceSource::AppendResources(const std::vector<ResourceBlob> &entries)
@@ -276,33 +348,10 @@ void AudioResourceSource::AppendResources(const std::vector<ResourceBlob> &entri
             sci::ostream newVolumeStream;
             newVolumeStream.EnsureCapacity(_volumeStreamOwner->getReader().GetDataSize());  // Avoid some re-allocs
 
-            uint32_t offset = 0;
-            for (size_t i = 0; i < audioMap->Entries.size(); i++)
-            {
-                const AudioMapEntry &oldEntry = audioMap->Entries[i];
-                AudioMapEntry copiedEntry = oldEntry;
-                if (copiedEntry.Number != blob.GetNumber())
-                {
-                    // Copy over. But how do we know the size? Look at the next offset, or the file size
-                    uint32_t size;
-                    if (i == (audioMap->Entries.size() - 1))
-                    {
-                        size = oldReader.GetDataSize() - oldEntry.Offset;
-                    }
-                    else
-                    {
-                        size = audioMap->Entries[i + 1].Offset - oldEntry.Offset;
-                    }
-                    copiedEntry.Offset = newVolumeStream.tellp();
-                    oldReader.seekg(oldEntry.Offset);
-                    transfer(oldReader, newVolumeStream, size);
-                    newAudioMap->Entries.push_back(copiedEntry);
-                }
-                else
-                {
-                    // Skip copying this one over right here. We'll add it to the end.
-                }
-            }
+            // Copy over the old entries, minus the new one
+            set<uint16_t> removeThese;
+            removeThese.insert(blob.GetNumber());
+            _CopyWithoutThese(*audioMap, *newAudioMap, oldReader, newVolumeStream, removeThese);
 
             // Append our new resource
             AudioMapEntry newEntry;
@@ -311,24 +360,7 @@ void AudioResourceSource::AppendResources(const std::vector<ResourceBlob> &entri
             newAudioMap->Entries.push_back(newEntry);
             transfer(blob.GetReadStream(), newVolumeStream, blob.GetCompressedLength());
 
-            // TODO: Save to bak. Then write resource map thingy. Then swap to real
-            // Now let's save the stream to the bak file
-            string bakPath = _GetAudioVolumePath(true);
-            {
-                ScopedFile bakFile(bakPath, GENERIC_WRITE, 0, CREATE_ALWAYS);
-                bakFile.Write(newVolumeStream.GetInternalPointer(), newVolumeStream.GetDataSize());
-            }
-
-            // This is risky since these operations are not atomic. To minimize issues, we should try to open the
-            // file for write first (e.g. test write). And only then saveAudioMap65535
-            testopenforwrite(_GetAudioVolumePath(false));
-
-            // Then we'll save our new map.
-            appState->GetResourceMap().SaveAudioMap65535(*newAudioMap);
-
-            // If that caused no problems, then finally do the swap of the file, and hopefully that worked.
-            deletefile(_GetAudioVolumePath(false));
-            movefile(bakPath, _GetAudioVolumePath(false));
+            _Finalize(*newAudioMap, newVolumeStream);
         }
     }
 }
