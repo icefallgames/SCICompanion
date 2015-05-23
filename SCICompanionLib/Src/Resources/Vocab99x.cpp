@@ -267,7 +267,7 @@ bool SelectorTable::_Create(sci::istream &byteStream)
                     // Cache the default selector values... possibly expensive
                     if (defaultSelectorNames.find(str) != defaultSelectorNames.end())
                     {
-                        _defaultSelectors.insert((uint16_t)_indices.back());
+                        _defaultSelectors.insert((uint16_t)(_indices.size() - 1));
                     }
                 }
             }
@@ -411,9 +411,12 @@ void SelectorTable::Save()
         {
             push_string_rle(output, c_szBadSelector);
         }
-        for (string &name : _names)
+        for (int index : _indices)
         {
-            push_string_rle(output, name);
+            if (index != -1)
+            {
+                push_string_rle(output, _names[index]);
+            }
         }
         // Now create a resource data for it and save it.
         appState->GetResourceMap().AppendResource(ResourceBlob(nullptr, ResourceType::Vocab, output, _version.DefaultVolumeFile, VocabSelectorNames, appState->GetVersion(), ResourceSourceFlags::ResourceMap));

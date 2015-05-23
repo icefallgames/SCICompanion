@@ -37,6 +37,7 @@
 #include "format.h"
 #include "ExtractAllDialog.h"
 #include "DecompileDialog.h"
+#include <regex>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -369,7 +370,7 @@ END_MESSAGE_MAP()
 
 // CMainFrame construction/destruction
 
-CMainFrame::CMainFrame() : m_dlgForPanelDialogPic(false), m_dlgForPanelDialogPicVGA(true)
+CMainFrame::CMainFrame() : m_dlgForPanelDialogPic(false), m_dlgForPanelDialogPicVGA(true), _fFindInAll(1), _fMatchWholeWord(0), _fMatchCase(0)
 {
     _pActiveFrame = nullptr;
     _fDidntGetDocYet = false;
@@ -1170,7 +1171,7 @@ void CMainFrame::OnFileAddResource()
 		CString strFileName = fileDialog.GetPathName();
         // Get a resource number and package
         SaveResourceDialog srd;
-        srd.Init(1, ResourceNumberFromFileName(strFileName));
+        srd.Init(appState->GetVersion().DefaultVolumeFile, ResourceNumberFromFileName(strFileName));
         if (IDOK == srd.DoModal())
         {
             int iResourceNumber = srd.GetResourceNumber();
@@ -1316,9 +1317,31 @@ void CMainFrame::OnCompileAll()
     appState->OutputFinishAdd();
 }
 
+// TODO: Attempt at making Find in Files faster. regex was way too slow. Just need to mimic line endings of crystal text buffer.
+/*
+void CMainFrame::_AddFindResults(vector<char> &buffer, ICompileLog &log, PCTSTR pszFullPath, PCTSTR pszFileName, PCTSTR pszWhat, BOOL fMatchCase, BOOL fWholeWord)
+{
+    // Start easy at first
+    string searchString = fmt::format("({0})", pszWhat);
+    ifstream is;
+    is.open(pszFullPath, ios_base::in);
+    if (is.is_open())
+    {
+        is.read(&buffer[0], buffer.size());
+        PCSTR pszHere = &buffer[0];
+        int nPos;
+        while (-1 != (nPos = FindStringHelper(pszHere, pszWhat, fWholeWord)))
+        {
+            int x = 0;
+            pszHere += (nPos + 1);
+        }
+
+    }
+}
+*/
 
 
-void CMainFrame::_AddFindResults(ICompileLog &log, PCTSTR pszFullPath, PCTSTR pszFileName, PCTSTR pszWhat, BOOL fMatchCase, BOOL fWholeWord)
+void CMainFrame::_AddFindResults(vector<char> &dummyBuffer, ICompileLog &log, PCTSTR pszFullPath, PCTSTR pszFileName, PCTSTR pszWhat, BOOL fMatchCase, BOOL fWholeWord)
 {
     CCrystalTextBuffer buffer;
     if (buffer.LoadFromFile(pszFullPath))
@@ -1361,6 +1384,8 @@ void CMainFrame::_AddFindResults(ICompileLog &log, PCTSTR pszFullPath, PCTSTR ps
 
 void CMainFrame::_FindInFilesOfType(ICompileLog &log, PCTSTR pszWildcard, PCTSTR pszWhat, BOOL fMatchCase, BOOL fWholeWord)
 {
+    vector<char> worker(5000);
+
     std::string srcFolder = appState->GetResourceMap().Helper().GetSrcFolder();
     std::string wildcard = (srcFolder + pszWildcard);
     WIN32_FIND_DATA findData = { 0 };
@@ -1373,7 +1398,11 @@ void CMainFrame::_FindInFilesOfType(ICompileLog &log, PCTSTR pszWildcard, PCTSTR
             std::string strFullPath = srcFolder;
             strFullPath += "\\";
             strFullPath += (PCTSTR)findData.cFileName;
-            _AddFindResults(log, strFullPath.c_str(), findData.cFileName, pszWhat, fMatchCase, fWholeWord);
+            if (worker.size() < findData.nFileSizeLow)
+            {
+                worker.resize(findData.nFileSizeLow);
+            }
+            _AddFindResults(worker, log, strFullPath.c_str(), findData.cFileName, pszWhat, fMatchCase, fWholeWord);
             fOk = FindNextFile(hFFF, &findData);
         }
         FindClose(hFFF);

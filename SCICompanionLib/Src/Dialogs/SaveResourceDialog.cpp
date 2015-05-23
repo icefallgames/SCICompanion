@@ -23,7 +23,7 @@ int _GetValidResource(int iResource)
 
 int _GetValidPackage(int iPackage)
 {
-    return max(min(iPackage, 63), 1);
+    return max(min(iPackage, 63), 0);
 }
 
 
@@ -61,13 +61,13 @@ END_MESSAGE_MAP()
 BOOL SaveResourceDialog::_ValidateData()
 {
     BOOL fRet = TRUE;
-    if ((_iResourceNumber < 0) || (_iResourceNumber > 999))
+    if ((_iResourceNumber < 0) || (_iResourceNumber > appState->GetVersion().GetMaximumResourceNumber()))
     {
         AfxMessageBox(TEXT("Please specify a resource number between 0 and 999"),
                       MB_OK | MB_APPLMODAL | MB_ICONSTOP);
         fRet = FALSE;    
     }
-    else if ((_iPackageNumber < 1) || (_iPackageNumber > 63))
+    else if ((_iPackageNumber < appState->GetVersion().DefaultVolumeFile) || (_iPackageNumber > 63))
     {
         AfxMessageBox(TEXT("Please specify a package number between 1 and 63.  Unless this is being distributed on floppy disks, use 1."),
                       MB_OK | MB_APPLMODAL | MB_ICONSTOP);
