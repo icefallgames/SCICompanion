@@ -523,36 +523,40 @@ bool GlobalClassTable::_Create(sci::istream &byteStream)
 
     for (auto &numberToPair : heapScriptPairs)
     {
-        int emptyNameClassIndex = 0;
-        uint16_t scriptNumber = numberToPair.first;
-        _scriptNums.push_back(scriptNumber);
         pair<unique_ptr<ResourceBlob>, unique_ptr<ResourceBlob>> &scriptAndHeap = numberToPair.second;
-
-        unique_ptr<CompiledScript> compiledScript = make_unique<CompiledScript>(scriptNumber);
-        std::unique_ptr<sci::istream> heapStream;
-        if (scriptAndHeap.second)
+        if (!appState->GetVersion().SeparateHeapResources ||
+            (scriptAndHeap.first && scriptAndHeap.second))      // Must have both script and heap if SCI1.1
         {
-            // Hmm, this can happen if a patch is just for .hep or just for .scr (e.g. SQ5, 10.hep)
-            //assert((scriptAndHeap.first->GetSourceFlags() == scriptAndHeap.second->GetSourceFlags()) && "Heap and script files being mixed and matched (patch vs package)");
+            int emptyNameClassIndex = 0;
+            uint16_t scriptNumber = numberToPair.first;
+            _scriptNums.push_back(scriptNumber);
 
-            // Only SCI1.1+ games have separate heap resources.
-            heapStream.reset(new sci::istream(scriptAndHeap.second->GetData(), scriptAndHeap.second->GetLength()));
-        }
-        // Load the script.
-        if (compiledScript->Load(appState->GetResourceMap().Helper(), appState->GetVersion(), scriptNumber, scriptAndHeap.first->GetReadStream(), heapStream.get()))
-        {
-            CompiledScript *pCompiledScriptWeak = compiledScript.get();
-            _scripts.push_back(move(compiledScript));
-
-            // Add the species in here
-            for (auto &compiledObject : pCompiledScriptWeak->GetObjects())
+            unique_ptr<CompiledScript> compiledScript = make_unique<CompiledScript>(scriptNumber);
+            std::unique_ptr<sci::istream> heapStream;
+            if (scriptAndHeap.second)
             {
-                if (!compiledObject->IsInstance())
+                // Hmm, this can happen if a patch is just for .hep or just for .scr (e.g. SQ5, 10.hep)
+                //assert((scriptAndHeap.first->GetSourceFlags() == scriptAndHeap.second->GetSourceFlags()) && "Heap and script files being mixed and matched (patch vs package)");
+
+                // Only SCI1.1+ games have separate heap resources.
+                heapStream.reset(new sci::istream(scriptAndHeap.second->GetData(), scriptAndHeap.second->GetLength()));
+            }
+            // Load the script.
+            if (compiledScript->Load(appState->GetResourceMap().Helper(), appState->GetVersion(), scriptNumber, scriptAndHeap.first->GetReadStream(), heapStream.get()))
+            {
+                CompiledScript *pCompiledScriptWeak = compiledScript.get();
+                _scripts.push_back(move(compiledScript));
+
+                // Add the species in here
+                for (auto &compiledObject : pCompiledScriptWeak->GetObjects())
                 {
-                    uint16_t species = compiledObject->GetSpecies();
-                    _nameToSpecies[compiledObject->GetName()] = species;
-                    _speciesToScriptNumber[species] = scriptNumber;
-                    _speciesToCompiledObjectWeak[species] = compiledObject.get(); // Owned by _scripts
+                    if (!compiledObject->IsInstance())
+                    {
+                        uint16_t species = compiledObject->GetSpecies();
+                        _nameToSpecies[compiledObject->GetName()] = species;
+                        _speciesToScriptNumber[species] = scriptNumber;
+                        _speciesToCompiledObjectWeak[species] = compiledObject.get(); // Owned by _scripts
+                    }
                 }
             }
         }

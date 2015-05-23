@@ -292,11 +292,12 @@ bool CSCOFile::GetVariableIndex(const std::string &variableName, WORD &wIndex, W
 
 bool CSCOFile::GetExportIndex(const std::string &exportName, WORD &wIndex) const
 {
-    bool fRet = GetItemIndex(_publics, exportName, wIndex);
-    /*if (fRet)
+    uint16_t indexTemp;
+    bool fRet = GetItemIndex(_publics, exportName, indexTemp);
+    if (fRet)
     {
-        ASSERT(wIndex == _publics[wIndex].GetIndex()); // Does index in _publics ever != the index in the object itself?
-    }*/
+        wIndex = _publics[indexTemp].GetIndex();
+    }
     return fRet;
 }
 
@@ -313,8 +314,15 @@ bool CSCOFile::GetPublicExportByName(const std::string &exportName, CSCOPublicEx
 
 std::vector<CSCOFunctionSignature> CSCOFile::GetExportSignatures(WORD wIndex) const
 {
-    ASSERT(wIndex < _publics.size());
-    return _publics[wIndex].GetSignatures();
+    for (auto &theExport : _publics)
+    {
+        if (theExport.GetIndex() == wIndex)
+        {
+            return theExport.GetSignatures();
+        }
+    }
+    assert(false);
+    return std::vector<CSCOFunctionSignature>();
 }
 
 bool CSCOFile::GetClassIndex(std::string className, WORD &wIndex) const
