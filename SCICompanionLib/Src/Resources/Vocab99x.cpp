@@ -679,6 +679,55 @@ void SpeciesTable::Save()
     }
 }
 
+void SpeciesTable::PurgeOldClasses(const GameFolderHelper &helper)
+{
+    vector<uint16_t> newTable;
+    GlobalClassTable globalClassTable;
+    if (globalClassTable.Load(helper))
+    {
+        unordered_map<int, CompiledScript*> scriptMap;
+        std::vector<CompiledScript*> allScripts = globalClassTable.GetAllScripts();
+        for (CompiledScript *script : allScripts)
+        {
+            scriptMap[script->GetScriptNumber()] = script;
+        }
+        int lastScript = -1;
+        int currentIndexInScript = 0;
+        for (int scriptNum : _direct)
+        {
+            if (scriptNum != lastScript)
+            {
+                currentIndexInScript = 0;
+            }
+            // Does this script still exist?
+            auto it = scriptMap.find(scriptNum);
+            if (it != scriptMap.end())
+            {
+                // Are there that many classes in it?
+                int classCount = count_if(it->second->GetObjects().begin(), it->second->GetObjects().end(),
+                    [](unique_ptr<CompiledObjectBase> &object) { return !object->IsInstance(); });
+                if (currentIndexInScript < classCount)
+                {
+                    newTable.push_back(scriptNum);
+                }
+            }
+
+            currentIndexInScript++;
+        }
+
+        // Save it!
+        _fDirty = true;
+        _direct = newTable;
+        this->Save();
+        // Then reload.
+        _map.clear();
+        _direct.clear();
+        _wNewSpeciesIndex = 0;
+        _fDirty = false;
+        this->Load(helper);
+    }
+}
+
 bool SpeciesTable::_Create(sci::istream &byteStream)
 {
     _wNewSpeciesIndex = 0;

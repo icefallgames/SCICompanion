@@ -321,6 +321,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_COMMAND(ID_PREFERENCES, OnShowPreferences)
     ON_COMMAND(ID_TOOLS_EXTRACTALLRESOURCES, OnExtractAllResources)
     ON_COMMAND(ID_TOOLS_REBUILDRESOURCES, OnRebuildResources)
+    ON_COMMAND(ID_TOOLS_REBUILDCLASSTABLE, OnRebuildClassTable)
     ON_COMMAND(ID_NEWROOM, OnNewRoom)
     ON_COMMAND(ID_NEWSCRIPT, OnNewScript)
     ON_COMMAND(ID_COMPILEALL, OnCompileAll)
@@ -342,7 +343,8 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_UPDATE_COMMAND_UI(ID_FILE_NEWPIC, OnUpdateNewPic)
     ON_UPDATE_COMMAND_UI(ID_PREFERENCES, OnUpdateAlwaysEnabled)
     ON_UPDATE_COMMAND_UI(ID_TOOLS_EXTRACTALLRESOURCES, OnUpdateShowIfGameLoaded)
-    ON_UPDATE_COMMAND_UI(ID_TOOLS_REBUILDRESOURCES, OnUpdateAlwaysEnabled)
+    ON_UPDATE_COMMAND_UI(ID_TOOLS_REBUILDRESOURCES, OnUpdateShowIfGameLoaded)
+    ON_UPDATE_COMMAND_UI(ID_TOOLS_REBUILDCLASSTABLE, OnUpdateShowIfGameLoaded)
     ON_COMMAND(ID_BACK, OnGoBack)
     ON_COMMAND(ID_FORWARD, OnGoForward)
     ON_COMMAND(ID_CLASSBROWSER, OnClassBrowser)
@@ -1245,6 +1247,15 @@ void CMainFrame::OnShowPreferences()
 void CMainFrame::OnRebuildResources()
 {
     appState->GetResourceMap().PurgeUnnecessaryResources();
+}
+
+void CMainFrame::OnRebuildClassTable()
+{
+    SpeciesTable speciesTable;
+    if (speciesTable.Load(appState->GetResourceMap().Helper()))
+    {
+        speciesTable.PurgeOldClasses(appState->GetResourceMap().Helper());
+    }
 }
 
 void CMainFrame::OnExtractAllResources()

@@ -411,6 +411,7 @@ BEGIN
     POPUP "&Tools"
     BEGIN
         MENUITEM "&Rebuild resources",          ID_TOOLS_REBUILDRESOURCES
+        MENUITEM "Rebuild &class table",        ID_TOOLS_REBUILDCLASSTABLE
         POPUP "UI theme"
         BEGIN
             MENUITEM "<<prof uis theme>>",          29999

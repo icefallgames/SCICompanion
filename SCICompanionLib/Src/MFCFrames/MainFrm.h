@@ -170,6 +170,7 @@ private:
     afx_msg void OnUpdateShowIfGameLoaded(CCmdUI *pCmdUI);
     afx_msg void OnShowPreferences();
     afx_msg void OnRebuildResources();
+    afx_msg void OnRebuildClassTable();
     afx_msg void OnExtractAllResources();
     afx_msg BOOL OnShowResource(UINT nId);
     afx_msg void OnIdleUpdateCmdUI();

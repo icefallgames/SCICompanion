@@ -125,6 +125,8 @@ public:
     SpeciesIndex MaybeAddSpeciesIndex(uint16_t wScript, uint16_t wClassIndexInScript);
     std::vector<std::string> GetNames() const;
 
+    void PurgeOldClasses(const GameFolderHelper &helper);
+
 private:
     bool _Create(sci::istream &byteStream);
 
