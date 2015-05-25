@@ -9,6 +9,7 @@
 #include "ResourceEntity.h"
 #include "ResourceContainer.h"
 #include "CObjectWrap.h"
+#include "Text.h"
 
 using namespace std;
 
@@ -38,6 +39,8 @@ c_ColumnInfo [] =
 };
 
 IMPLEMENT_DYNCREATE(CResourceListCtrl, CListCtrl)
+
+void GetStatusString(ResourceBlob &data, TCHAR *pszBuffer, size_t cchBuffer, bool mostRecent);
 
 CResourceListCtrl::CResourceListCtrl()
 {
@@ -116,6 +119,7 @@ void CResourceListCtrl::OnItemClick(NMHDR* pNMHDR, LRESULT* pResult)
     }
 }
 
+template<int Multiplier>
 int CALLBACK ColumnSort(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 {
     int iColumn = static_cast<int>(lParamSort);
@@ -142,8 +146,15 @@ int CALLBACK ColumnSort(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
     case ColumnSource:
         iRet = (int)p1->GetSourceFlags() - (int)p2->GetSourceFlags();
         break;
+    case ColumnStatus:
+        char sz1[100];
+        char sz2[100];
+        GetStatusString(*p1, sz1, ARRAYSIZE(sz1), false);
+        GetStatusString(*p2, sz2, ARRAYSIZE(sz2), false);
+        iRet = lstrcmp(sz1, sz2);
+        break;
     }
-    return iRet;
+    return iRet * Multiplier;
 }
 
 void CResourceListCtrl::OnColumnClicked(NMHDR* pNMHDR, LRESULT* pResult)
@@ -151,7 +162,21 @@ void CResourceListCtrl::OnColumnClicked(NMHDR* pNMHDR, LRESULT* pResult)
     NMLISTVIEW *plv = reinterpret_cast<NMLISTVIEW*>(pNMHDR);
     ASSERT(plv->iItem == -1);
     _iSortColumn = plv->iSubItem;
-    SortItems(ColumnSort, _iSortColumn);
+    _SortItemsHelper(_iSortColumn, true);
+}
+
+void CResourceListCtrl::_SortItemsHelper(int sortColumn, bool toggle)
+{
+    auto it = _sortOrder.find(sortColumn);
+    if (it == _sortOrder.end())
+    {
+        _sortOrder[sortColumn] = true;
+    }
+    else if (toggle)
+    {
+        _sortOrder[sortColumn] = !it->second;
+    }
+    SortItems(_sortOrder[sortColumn] ? ColumnSort<1> : ColumnSort<-1>, sortColumn);
 }
 
 void CResourceListCtrl::OnEndLabelEdit(NMHDR* pNMHDR, LRESULT* pResult)
@@ -747,7 +772,7 @@ void CResourceListCtrl::_UpdateStatusIfFlagsChanged(ResourceBlob &data, Resource
     }
 }
 
-void CResourceListCtrl::GetStatusString(ResourceBlob &data, TCHAR *pszBuffer, size_t cchBuffer, bool mostRecent)
+void GetStatusString(ResourceBlob &data, TCHAR *pszBuffer, size_t cchBuffer, bool mostRecent)
 {
     bool needsSeparator = false;
     if (!mostRecent)
@@ -773,6 +798,15 @@ void CResourceListCtrl::GetStatusString(ResourceBlob &data, TCHAR *pszBuffer, si
         StringCchCat(pszBuffer, cchBuffer, (needsSeparator ? ", Corrupt" : "Corrupt"));
         needsSeparator = true;
     }
+
+    // temporary code to investigate message resources.
+    /*
+    if (data.GetType() == ResourceType::Message)
+    {
+        unique_ptr<ResourceEntity> resource = CreateResourceFromResourceData(data);
+        //StringCchPrintf(pszBuffer, cchBuffer, "v: %d", resource->GetComponent<TextComponent>().MysteryNumber);
+        StringCchPrintf(pszBuffer, cchBuffer, "v: %d", resource->GetComponent<TextComponent>().msgVersion);
+    }*/
 }
 
 void CResourceListCtrl::UpdateView()
@@ -799,7 +833,7 @@ void CResourceListCtrl::OnUpdate(LPARAM lHint, CObject *pHint)
         _InsertItem(pDataClone);
         _ReevaluateRecency(pDataClone);
         // Sort
-        SortItems(ColumnSort, _iSortColumn);
+        _SortItemsHelper(_iSortColumn, false);
     }
     else if (IsFlagSet(hint, ResourceMapChangeHint::Deleted))
     {
@@ -847,7 +881,7 @@ HRESULT CResourceListCtrl::_UpdateEntries()
 
             // Sort
             _iSortColumn = ColumnNumber;
-            SortItems(ColumnSort, _iSortColumn);
+            _SortItemsHelper(_iSortColumn, false);
             SetRedraw(TRUE);
             hr = S_OK;
         }

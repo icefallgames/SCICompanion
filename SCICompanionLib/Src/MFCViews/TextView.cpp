@@ -194,6 +194,8 @@ void CTextView::_InsertItem(int iItem, PCTSTR pszString, const TextComponent *te
                 break;
             case COL_TALKER:
                 StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%d"), text->Texts[iItem].Talker);
+                // Temporary code for message investigation
+                // StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%x"), text->Texts[iItem].Style);
                 break;
             }
         }

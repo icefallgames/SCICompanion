@@ -257,6 +257,7 @@ int CMDITabsDialogBar::OnCreate(LPCREATESTRUCT lpCreateStruct)
         -0.6,   // sound
         0.0,    // room explorer
         0.6,    // palette
+        0.3,    // message
     };
 
     const double c_rgSatAdjust[] =
@@ -273,6 +274,7 @@ int CMDITabsDialogBar::OnCreate(LPCREATESTRUCT lpCreateStruct)
         0.0,   // sound
         0.0,    // room explorer
         0.0,    // palette
+        0.0,    // message
     };
 
     const double c_rgLumAdjust[] =
@@ -289,6 +291,7 @@ int CMDITabsDialogBar::OnCreate(LPCREATESTRUCT lpCreateStruct)
         0.0,   // sound
         0.0,    // room explorer
         0.5,    // palette
+        0.0,    // message
     };
 
     ASSERT(ARRAYSIZE(c_rgHueAdjust) == ARRAYSIZE(_tabBitmap));

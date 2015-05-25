@@ -650,6 +650,13 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	    TRACE0("Failed to create m_dlgForPanelDialogSound\n");
 	    return -1;		// fail to create
     }
+    if (!m_dlgForPanelDialogMessage.Create(IDD_MESSAGETOOLBOX, &m_dlgEmpty))
+    {
+        TRACE0("Failed to create m_dlgForPanelDialogMessage\n");
+        return -1;		// fail to create
+    }
+
+    
 
     // The output area at the bottom (which only appears when necessary)
     if (!m_wndResizableBarOutput.Create("Output", this, ID_BAR_OUTPUT))
@@ -1251,10 +1258,13 @@ void CMainFrame::OnRebuildResources()
 
 void CMainFrame::OnRebuildClassTable()
 {
-    SpeciesTable speciesTable;
-    if (speciesTable.Load(appState->GetResourceMap().Helper()))
+    if (IDYES == AfxMessageBox("Rebuilding the class table will purge old deleted classes from the class table.\nAfterwards, you will need to compile all. Go ahead?", MB_APPLMODAL | MB_ICONQUESTION | MB_YESNO))
     {
-        speciesTable.PurgeOldClasses(appState->GetResourceMap().Helper());
+        SpeciesTable speciesTable;
+        if (speciesTable.Load(appState->GetResourceMap().Helper()))
+        {
+            speciesTable.PurgeOldClasses(appState->GetResourceMap().Helper());
+        }
     }
 }
 
@@ -1643,6 +1653,7 @@ void CMainFrame::_RefreshToolboxPanelOnDeactivate(CFrameWnd *pWnd)
             m_wndScriptToolComboBoxClass.SetDocument(nullptr);
             m_dlgForPanelDialogGame.SetDocument(nullptr);
             m_dlgForPanelDialogSound.SetDocument(nullptr);
+            m_dlgForPanelDialogMessage.SetDocument(nullptr);
         }
     }
 }
@@ -1844,6 +1855,11 @@ void CMainFrame::_RefreshToolboxPanel(CFrameWnd *pWnd)
             case TAB_SOUND:
                 pWndToShow = &m_dlgForPanelDialogSound;
                 m_dlgForPanelDialogSound.SetDocument(pDoc);
+                break;
+
+            case TAB_MESSAGE:
+                pWndToShow = &m_dlgForPanelDialogMessage;
+                m_dlgForPanelDialogMessage.SetDocument(pDoc);
                 break;
             }
             m_dlgEmpty.SelectChild(pWndToShow, _pActiveFrame->GetTabType());

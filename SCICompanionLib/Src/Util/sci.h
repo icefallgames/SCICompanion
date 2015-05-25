@@ -47,7 +47,8 @@ enum MDITabType
     TAB_TEXT           =  0x00000080,   // Shared with message
     TAB_SOUND          =  0x00000100,
     TAB_ROOMEXPLORER   =  0x00000200,
-    TAB_PALETTE        =  0x00000400
+    TAB_PALETTE        =  0x00000400,
+    TAB_MESSAGE        =  0x00000800
 };
 
 #define DEFINE_ENUM_FLAGS(_enumName_ , _enumType_) \

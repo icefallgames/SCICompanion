@@ -255,6 +255,7 @@
 #define IDD_PALETTE_EDITOR_EMBEDDED     364
 #define IDR_MENUDELETEPOINT             364
 #define IDD_DECOMPILER                  365
+#define IDD_MESSAGETOOLBOX              366
 #define IDC_CHOOSECOLORSTATIC           1001
 #define IDC_BUTTON1                     1003
 #define IDC_BUTTONDOWN                  1003
@@ -422,6 +423,7 @@
 #define IDC_LIST1                       1165
 #define IDC_LISTSCRIPTS                 1165
 #define IDC_LISTBOX_NOTES               1165
+#define IDC_LISTNOUNS                   1165
 #define IDC_STATICVISUAL                1166
 #define IDC_STATICCONTROL               1167
 #define IDC_STATICPRIORITY              1168
@@ -525,6 +527,10 @@
 #define IDC_EDITDEBUGMATCH              1248
 #define IDC_INSTRUCTIONS                1250
 #define IDC_CHECKASM                    1251
+#define IDC_LIST2                       1252
+#define IDC_LISTCONDITIONS              1252
+#define IDC_GOTOVERBS                   1253
+#define IDC_GOTOTALKERS                 1254
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -778,7 +784,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        366
 #define _APS_NEXT_COMMAND_VALUE         33181
-#define _APS_NEXT_CONTROL_VALUE         1252
+#define _APS_NEXT_CONTROL_VALUE         1254
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

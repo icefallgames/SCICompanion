@@ -1,12 +1,6 @@
-// VocabChildFrame.cpp : implementation file
-//
-
 #include "stdafx.h"
 #include "AppState.h"
 #include "TextChildFrame.h"
-
-
-// CVocabChildFrame
 
 IMPLEMENT_DYNCREATE(CTextChildFrame, CMDITabChildWnd)
 
@@ -28,6 +22,3 @@ int CTextChildFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
         return -1;
     return 0;
 }
-
-
-// CTextChildFrame message handlers

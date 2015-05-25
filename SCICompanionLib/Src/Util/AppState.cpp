@@ -23,6 +23,7 @@
 #include "RasterView.h"
 
 #include "TextChildFrame.h"
+#include "MessageChildFrame.h"
 #include "TextDoc.h"
 #include "TextView.h"
 

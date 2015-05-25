@@ -60,7 +60,8 @@ void MessageReadFrom_4000(TextComponent &messageComponent, sci::istream &byteStr
     uint16_t messageCount;
     byteStream >> messageCount;
 
-    // "someNumber" is a number that is roughly the number of messages, but sometimes a little more. Occasionally a lot more.
+    // "MysteryNumber" is a number that is roughly the number of messages, but sometimes a little more. Occasionally a lot more.
+    // Sometimes its zero (KQ6, 95 and 916)
     //string String = static_cast<ostringstream*>(&(ostringstream() << (someNumber - messageCount)))->str();
     //String += "\n";
     //OutputDebugString(String.c_str());
@@ -78,6 +79,7 @@ void MessageReadFrom_4000(TextComponent &messageComponent, sci::istream &byteStr
         byteStream >> message.Style;
         // "unknown" seems to be either 0x00000000 or 0x01000000
         // 0x00000000 seems to indicate some markup.
+        // It's 4 bytes, not 3 like on http://wiki.scummvm.org/index.php/SCI/Specifications/SCI_in_action/The_message_subsystem
         // An empty string can be x01000108
         // Hmm, not necessarily. Markup can appear whereever. It seems like fonts are included.
         // At any rate, presumably it's useful.
@@ -129,12 +131,12 @@ void MessageReadFrom(ResourceEntity &resource, sci::istream &byteStream)
 
     byteStream >> message.msgVersion;
     byteStream.skip(2);
-    if (message.msgVersion <= 0x835)
+    if (message.msgVersion <= 0x835)        // 2101
     {
         message.Flags = MessagePropertyFlags::Noun | MessagePropertyFlags::Verb;
         MessageReadFrom_2102(message, byteStream);
     }
-    else if (message.msgVersion <= 0xd53)
+    else if (message.msgVersion <= 0xd53)   // 3411
     {
         message.Flags = MessagePropertyFlags::Noun | MessagePropertyFlags::Verb | MessagePropertyFlags::Condition | MessagePropertyFlags::Sequence | MessagePropertyFlags::Talker;
         MessageReadFrom_3411(message, byteStream);
@@ -172,7 +174,7 @@ ResourceTraits messageTraits =
     ResourceType::Message,
     &MessageReadFrom,
     &MessageWriteTo,
-    &NoValidationFunc
+    &NoValidationFunc       // REVIEW: Some validation: make sure no out of sequence stuff, though maybe we could sort by seq
 };
 
 ResourceEntity *CreateMessageResource(SCIVersion version)

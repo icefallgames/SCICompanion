@@ -61,7 +61,7 @@ protected:
     void OnContextMenu(CWnd *pWnd, CPoint point);
 	DECLARE_MESSAGE_MAP()
 
-    void GetStatusString(ResourceBlob &data, TCHAR *pszBuffer, size_t cchBuffer, bool mostRecent);
+    void _SortItemsHelper(int sortColumn, bool toggle);
     void _UpdateStatusIfFlagsChanged(ResourceBlob &data, ResourceLoadStatusFlags originalFlags, int item);
     void _InitColumns();
     void _InsertItem(ResourceBlob *pData);
@@ -84,6 +84,7 @@ protected:
     ResourceType _dwType;
     PFNRESOURCEOPEN _pfnOpen;
 
+    std::unordered_map<int, bool> _sortOrder;
     int _iSortColumn;
 };
 

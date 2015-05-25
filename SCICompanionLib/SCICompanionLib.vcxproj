@@ -214,9 +214,11 @@
     <ClCompile Include="Src\Dialogs\ExtractAllDialog.cpp" />
     <ClCompile Include="Src\Dialogs\PaletteEditorDialog.cpp" />
     <ClCompile Include="Src\Dialogs\PrepareBitmapBase.cpp" />
+    <ClCompile Include="Src\FrameComponents\MessageSidePane.cpp" />
     <ClCompile Include="Src\FrameComponents\PicHelperPane.cpp" />
     <ClCompile Include="Src\FrameComponents\ZoomCelStatic.cpp" />
     <ClCompile Include="Src\MFCDocuments\PaletteDoc.cpp" />
+    <ClCompile Include="Src\MFCFrames\MessageChildFrame.cpp" />
     <ClCompile Include="Src\MFCFrames\PaletteChildFrame.cpp" />
     <ClCompile Include="Src\MFCViews\PaletteView.cpp" />
     <ClCompile Include="Src\Resources\Audio.cpp" />
@@ -243,7 +245,9 @@
     <ClInclude Include="Src\Dialogs\DecompileDialog.h" />
     <ClInclude Include="Src\Dialogs\PaletteEditorCommon.h" />
     <ClInclude Include="Src\Dialogs\PaletteEditorDialog.h" />
+    <ClInclude Include="Src\FrameComponents\MessageSidePane.h" />
     <ClInclude Include="Src\MFCDocuments\PaletteDoc.h" />
+    <ClInclude Include="Src\MFCFrames\MessageChildFrame.h" />
     <ClInclude Include="Src\MFCFrames\PaletteChildFrame.h" />
     <ClInclude Include="Src\MFCViews\PaletteView.h" />
     <ClInclude Include="Src\Resources\Audio.h" />

@@ -591,6 +591,12 @@
     <ClCompile Include="Src\Compile\DecompilerConfig.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\FrameComponents\MessageSidePane.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\MFCFrames\MessageChildFrame.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCICompanionLib.h">
@@ -1233,6 +1239,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\Util\SortedVector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\FrameComponents\MessageSidePane.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\MFCFrames\MessageChildFrame.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

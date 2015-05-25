@@ -56,8 +56,8 @@ private:
     CFont m_font;
     CImageList m_imagelist;
 
-    CExtBitmap _tabBitmap[12];
-    CExtBitmap _tabBitmapNS[12];
+    CExtBitmap _tabBitmap[13];
+    CExtBitmap _tabBitmapNS[13];
 
     typedef std::list<CFrameWnd*> travellog_list;
     travellog_list _travelLog;

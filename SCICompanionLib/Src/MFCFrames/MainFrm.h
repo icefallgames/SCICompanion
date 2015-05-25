@@ -15,6 +15,7 @@
 #include "ScriptComboBox.h"
 #include "SamplesDialogBar.h"
 #include "SoundToolboxSidePane.h"
+#include "MessageSidePane.h"
 
 class CNewScriptDialog;
 
@@ -121,6 +122,7 @@ private:  // control bar embedded members
     SoundToolboxSidePane m_dlgForPanelDialogSound;
     QuickScriptsSidePane m_dlgForPanelDialogScript;
     CSamplesDialogBar m_dlgForPanelDialogGame;
+    MessageSidePane m_dlgForPanelDialogMessage;
 
     // The output window at the bottom (find and compile results)
     CExtControlBar m_wndResizableBarOutput;

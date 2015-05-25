@@ -35,6 +35,7 @@
 #include "RasterView.h"
 
 #include "TextChildFrame.h"
+#include "MessageChildFrame.h"
 #include "TextDoc.h"
 #include "TextView.h"
 
@@ -341,7 +342,7 @@ BOOL SCICompanionApp::InitInstance()
 
     appState->_pMessageTemplate = new CMultiDocTemplate(IDR_TEXTFRAME,
         RUNTIME_CLASS(CTextDoc),
-        RUNTIME_CLASS(CTextChildFrame),
+        RUNTIME_CLASS(CMessageChildFrame),
         RUNTIME_CLASS(CTextView));
     if (!appState->_pMessageTemplate)
     {
