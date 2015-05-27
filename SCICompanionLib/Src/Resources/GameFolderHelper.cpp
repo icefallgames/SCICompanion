@@ -125,6 +125,16 @@ std::string GameFolderHelper::GetSrcFolder() const
     return srcFolder;
 }
 
+std::string GameFolderHelper::GetMsgFolder() const
+{
+    std::string srcFolder = this->GameFolder;
+    if (!srcFolder.empty())
+    {
+        srcFolder += "\\msg";
+    }
+    return srcFolder;
+}
+
 //
 // Returns the script identifier for something "main", or "rm001".
 //

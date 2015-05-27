@@ -165,6 +165,7 @@ private:
     afx_msg void OnFileNewFont();
     afx_msg void OnFileNewCursor();
     afx_msg void OnFileNewText();
+    afx_msg void OnFileNewMessage();
     afx_msg void OnFileNewSound();
     afx_msg void OnFileOpenResource();
     afx_msg void OnFileAddResource();

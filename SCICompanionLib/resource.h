@@ -256,6 +256,8 @@
 #define IDR_MENUDELETEPOINT             364
 #define IDD_DECOMPILER                  365
 #define IDD_MESSAGETOOLBOX              366
+#define IDD_MESSAGEHELPER               367
+#define IDD_MESSAGEEDIT                 368
 #define IDC_CHOOSECOLORSTATIC           1001
 #define IDC_BUTTON1                     1003
 #define IDC_BUTTONDOWN                  1003
@@ -462,9 +464,12 @@
 #define IDC_COMBO2                      1195
 #define IDC_BUTTON_STOP                 1196
 #define IDC_BUTTON_PLAY                 1197
+#define IDC_COMBOCONDITION              1197
 #define IDC_CHECK_ALLCHANNELS           1198
+#define IDC_COMBOVERB                   1198
 #define IDC_LIST_CUES                   1199
 #define IDC_EDIT_VALUE                  1200
+#define IDC_COMBOTALKER                 1200
 #define IDC_BUTTON_ADDCUE               1201
 #define IDC_BUTTON_DELETECUE            1202
 #define IDC_EDIT_TIME                   1203
@@ -509,6 +514,7 @@
 #define IDC_EDIT2                       1233
 #define IDC_EDITTRANSPARENTCOLOR        1233
 #define IDC_EDITRANGE                   1233
+#define IDC_EDITSEQ                     1233
 #define IDC_STATICTRANSLABEL            1234
 #define IDC_CHECKDONTUSEINPALETTE       1235
 #define IDC_BUTTONREVERT                1236
@@ -527,10 +533,21 @@
 #define IDC_EDITDEBUGMATCH              1248
 #define IDC_INSTRUCTIONS                1250
 #define IDC_CHECKASM                    1251
-#define IDC_LIST2                       1252
 #define IDC_LISTCONDITIONS              1252
-#define IDC_GOTOVERBS                   1253
-#define IDC_GOTOTALKERS                 1254
+#define IDC_BUTTONADDNOUN               1255
+#define IDC_BUTTONADDCONDITION          1256
+#define IDC_LISTVERBS                   1257
+#define IDC_BUTTONADDVERB               1258
+#define IDC_BUTTONADDTALKER             1259
+#define IDC_LISTTALKERS                 1260
+#define IDC_EDITMESSAGE                 1261
+#define IDC_COMBONOUN                   1262
+#define IDC_SPINSEQ                     1263
+#define IDC_STATIC8                     1264
+#define IDC_STATIC9                     1265
+#define IDC_BUTTONADDSEQ                1266
+#define IDC_BUTTONADDSEQ2               1267
+#define IDC_BUTTONCLONE                 1267
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -775,6 +792,7 @@
 #define ID_SHOW_AUDIO                   33178
 #define ID_SCRIPT_MANAGEDECOMPILATION   33179
 #define ID_TOOLS_REBUILDCLASSTABLE      33180
+#define ID_BAR_MESSAGEEDIT              33181
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -783,8 +801,8 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        366
-#define _APS_NEXT_COMMAND_VALUE         33181
-#define _APS_NEXT_CONTROL_VALUE         1254
+#define _APS_NEXT_COMMAND_VALUE         33182
+#define _APS_NEXT_CONTROL_VALUE         1267
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

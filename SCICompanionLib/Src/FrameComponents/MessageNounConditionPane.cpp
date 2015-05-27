@@ -1,13 +1,13 @@
 #include "stdafx.h"
 #include "AppState.h"
-#include "MessageSidePane.h"
+#include "MessageNounConditionPane.h"
 #include "MessageDoc.h"
 #include "Text.h"
 #include "Message.h"
 #include "CObjectWrap.h"
 
 
-MessageSidePane::MessageSidePane(CWnd* pParent /*=NULL*/)
+MessageNounConditionPane::MessageNounConditionPane(CWnd* pParent /*=NULL*/)
     : CExtDialogFwdCmd(IDD, pParent), _hAccel(nullptr)
 {
     // Load our accelerators
@@ -15,38 +15,38 @@ MessageSidePane::MessageSidePane(CWnd* pParent /*=NULL*/)
     // _hAccel = ::LoadAccelerators(hInst, MAKEINTRESOURCE(IDR_ACCELERATORPICCOMMANDS));
 }
 
-MessageSidePane::~MessageSidePane()
+MessageNounConditionPane::~MessageNounConditionPane()
 {
 }
 
-void MessageSidePane::DoDataExchange(CDataExchange* pDX)
+void MessageNounConditionPane::DoDataExchange(CDataExchange* pDX)
 {
     __super::DoDataExchange(pDX);
 
-    DDX_Control(pDX, IDC_LISTTALKERS, m_wndTalkers);
-    DDX_Control(pDX, IDC_LISTVERBS, m_wndVerbs);
+    DDX_Control(pDX, IDC_LISTCONDITIONS, m_wndConditions);
+    DDX_Control(pDX, IDC_LISTNOUNS, m_wndNouns);
     DDX_Control(pDX, IDC_STATIC1, m_wndLabel1);
     DDX_Control(pDX, IDC_STATIC2, m_wndLabel2);
-    DDX_Control(pDX, IDC_BUTTONADDVERB, m_wndButton1);
-    DDX_Control(pDX, IDC_BUTTONADDTALKER, m_wndButton2);
+    DDX_Control(pDX, IDC_BUTTONADDNOUN, m_wndButton1);
+    DDX_Control(pDX, IDC_BUTTONADDCONDITION, m_wndButton2);
 }
 
 
-BEGIN_MESSAGE_MAP(MessageSidePane, CExtDialogFwdCmd)
+BEGIN_MESSAGE_MAP(MessageNounConditionPane, CExtDialogFwdCmd)
     ON_WM_DRAWITEM()
     ON_WM_CREATE()
     ON_WM_ERASEBKGND()
-    ON_BN_CLICKED(IDC_BUTTONADDVERB, &MessageSidePane::OnBnClickedButtonaddverb)
-    ON_BN_CLICKED(IDC_BUTTONADDTALKER, &MessageSidePane::OnBnClickedButtonaddtalker)
+    ON_BN_CLICKED(IDC_BUTTONADDNOUN, &MessageNounConditionPane::OnBnClickedButtonaddnoun)
+    ON_BN_CLICKED(IDC_BUTTONADDCONDITION, &MessageNounConditionPane::OnBnClickedButtonaddcondition)
 END_MESSAGE_MAP()
 
-BOOL MessageSidePane::OnEraseBkgnd(CDC *pDC)
+BOOL MessageNounConditionPane::OnEraseBkgnd(CDC *pDC)
 {
     return __super::OnEraseBkgnd(pDC);
 }
 
 
-// MessageSidePane message handlers
+// MessageNounConditionPane message handlers
 
 //
 // To properly handle commands we do two things here:
@@ -58,7 +58,7 @@ BOOL MessageSidePane::OnEraseBkgnd(CDC *pDC)
 //      - they don't bubble up naturally in dialogs in control bars.
 //      - we do this by inheriting from CExtDialogFwdCmd
 //
-BOOL MessageSidePane::PreTranslateMessage(MSG* pMsg)
+BOOL MessageNounConditionPane::PreTranslateMessage(MSG* pMsg)
 {
     BOOL fRet = FALSE;
     if (_hAccel && (pMsg->message >= WM_KEYFIRST && pMsg->message <= WM_KEYLAST))
@@ -72,23 +72,23 @@ BOOL MessageSidePane::PreTranslateMessage(MSG* pMsg)
     return fRet;
 }
 
-BOOL MessageSidePane::OnInitDialog()
+BOOL MessageNounConditionPane::OnInitDialog()
 {
     BOOL fRet = __super::OnInitDialog();
 
     // Set up anchoring for resize
-    AddAnchor(IDC_LISTVERBS, CPoint(0, 0), CPoint(100, 50));
-    AddAnchor(IDC_LISTTALKERS, CPoint(0, 50), CPoint(100, 100));
+    AddAnchor(IDC_LISTNOUNS, CPoint(0, 0), CPoint(100, 50));
+    AddAnchor(IDC_LISTCONDITIONS, CPoint(0, 50), CPoint(100, 100));
     AddAnchor(IDC_STATIC2, CPoint(0, 50), CPoint(100, 50));
-    AddAnchor(IDC_BUTTONADDTALKER, CPoint(100, 50), CPoint(100, 50));
-    AddAnchor(IDC_BUTTONADDVERB, CPoint(100, 0), CPoint(100, 0));
+    AddAnchor(IDC_BUTTONADDCONDITION, CPoint(100, 50), CPoint(100, 50));
+    AddAnchor(IDC_BUTTONADDNOUN, CPoint(100, 0), CPoint(100, 0));
     // Hide the sizing grip
     ShowSizeGrip(FALSE);
 
     return fRet;
 }
 
-void MessageSidePane::UpdateNonView(CObject *pObject)
+void MessageNounConditionPane::UpdateNonView(CObject *pObject)
 {
     // TODO: Provide more specific update mechanism
     MessageChangeHint hint = GetHint<MessageChangeHint>(pObject);
@@ -98,17 +98,16 @@ void MessageSidePane::UpdateNonView(CObject *pObject)
     }
 }
 
-void MessageSidePane::_Update()
+void MessageNounConditionPane::_Update()
 {
     if (_pDoc)
     {
-        // Needs to be a global thing
-        //m_wndVerbs.SetSource(_pDoc->GetNounMessageSource());
-        //m_wndTalkers.SetSource(_pDoc->GetConditionMessageSource());
+        m_wndNouns.SetSource(_pDoc->GetNounMessageSource());
+        m_wndConditions.SetSource(_pDoc->GetConditionMessageSource());
     }
 }
 
-void MessageSidePane::SetDocument(CDocument *pDoc)
+void MessageNounConditionPane::SetDocument(CDocument *pDoc)
 {
     _pDoc = static_cast<CMessageDoc*>(pDoc);
     if (_pDoc)
@@ -118,20 +117,27 @@ void MessageSidePane::SetDocument(CDocument *pDoc)
     }
 }
 
-void MessageSidePane::OnGotoVerbs()
+void MessageNounConditionPane::OnBnClickedButtonaddnoun()
 {
-    //appState->OpenScript(_pDoc->GetNumber());
-}
-void MessageSidePane::OnGotoTalkers()
-{
-    //appState->OpenScript(_pDoc->GetNumber());
+    if (_pDoc)
+    {
+        MessageSource *source = _pDoc->GetNounMessageSource();
+        if (source)
+        {
+            // TODO: doc needs to send out a notification? Except it's not undoes.
+        }
+    }
 }
 
-void MessageSidePane::OnBnClickedButtonaddverb()
+void MessageNounConditionPane::OnBnClickedButtonaddcondition()
 {
-}
+    if (_pDoc)
+    {
+        MessageSource *source = _pDoc->GetConditionMessageSource();
+        if (source)
+        {
 
+        }
+    }
 
-void MessageSidePane::OnBnClickedButtonaddtalker()
-{
 }

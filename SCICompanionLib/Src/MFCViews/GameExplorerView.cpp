@@ -16,6 +16,7 @@
 #include "PicOperations.h"
 #include "Pic.h"
 #include "TextDoc.h"
+#include "MessageDoc.h"
 #include "Sound.h"
 #include "SoundDoc.h"
 #include "NewRasterResourceDocument.h"
@@ -154,11 +155,11 @@ void g_OpenMessage(const ResourceBlob *pData)
     CMultiDocTemplate *pTemplate = appState->GetMessageTemplate();
     if (pTemplate)
     {
-        CTextDoc *pDocument = (CTextDoc*)pTemplate->OpenDocumentFile(nullptr, TRUE);
+        CMessageDoc *pDocument = (CMessageDoc*)pTemplate->OpenDocumentFile(nullptr, TRUE);
         if (pDocument)
         {
             unique_ptr<ResourceEntity> resource = CreateResourceFromResourceData(*pData);
-            pDocument->SetTextResource(move(resource), pData->GetChecksum());
+            pDocument->SetMessageResource(move(resource), pData->GetChecksum());
         }
     }
 }

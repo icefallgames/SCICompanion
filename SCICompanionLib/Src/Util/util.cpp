@@ -591,7 +591,8 @@ std::string ScriptId::GetFullPath() const
 bool ScriptId::IsHeader() const
 {
     return (strcmp(TEXT(".sh"), PathFindExtension(_strFileName.c_str())) == 0) ||
-           (strcmp(TEXT(".shp"), PathFindExtension(_strFileName.c_str())) == 0);
+        (strcmp(TEXT(".shp"), PathFindExtension(_strFileName.c_str())) == 0) ||
+        (strcmp(TEXT(".shm"), PathFindExtension(_strFileName.c_str())) == 0);
 }
 LangSyntax ScriptId::Language() const
 {

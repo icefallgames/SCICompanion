@@ -30,6 +30,8 @@
 #include "Cursor.h"
 #include "FontOperations.h"
 #include "Text.h"
+#include "Message.h"
+#include "MessageDoc.h"
 #include "Sound.h"
 #include "NewRasterResourceDocument.h"
 #include "AppState.h"
@@ -1081,6 +1083,11 @@ void CMainFrame::OnFileNewCursor()
 void CMainFrame::OnFileNewText()
 {
     DECLARE_NEWRESOURCE_AP2(GetTextTemplate, CTextDoc, ResourceEntity, CreateDefaultTextResource, SetTextResource)
+}
+
+void CMainFrame::OnFileNewMessage()
+{
+    DECLARE_NEWRESOURCE_AP2(GetMessageTemplate, CMessageDoc, ResourceEntity, CreateDefaultMessageResource, SetMessageResource)
 }
 
 void CMainFrame::OnFileNewSound()

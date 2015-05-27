@@ -39,6 +39,9 @@
 #include "TextDoc.h"
 #include "TextView.h"
 
+#include "MessageDoc.h"
+#include "MessageView.h"
+
 #include "SoundChildFrame.h"
 #include "SoundDoc.h"
 #include "SoundView.h"
@@ -340,10 +343,10 @@ BOOL SCICompanionApp::InitInstance()
     }
     AddDocTemplate(appState->_pScriptTemplate);
 
-    appState->_pMessageTemplate = new CMultiDocTemplate(IDR_TEXTFRAME,
-        RUNTIME_CLASS(CTextDoc),
+    appState->_pMessageTemplate = new CMultiDocTemplateWithNonViews(IDR_TEXTFRAME,
+        RUNTIME_CLASS(CMessageDoc),
         RUNTIME_CLASS(CMessageChildFrame),
-        RUNTIME_CLASS(CTextView));
+        RUNTIME_CLASS(CMessageView));
     if (!appState->_pMessageTemplate)
     {
         return FALSE;

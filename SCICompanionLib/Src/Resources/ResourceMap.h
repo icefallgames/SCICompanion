@@ -8,6 +8,8 @@
 struct Vocab000;
 struct AudioMapComponent;
 class SCIClassBrowser;
+class MessageSource;
+class MessageHeaderFile;
 
 // FWD declaration
 class ResourceBlob;
@@ -107,6 +109,9 @@ public:
     bool CanSaveResourcesToMap();
     void SkipNextVersionSniff() { _skipVersionSniffOnce = true; }
 
+    MessageSource *GetVerbsMessageSource(bool reload = false);
+    MessageSource *GetTalkersMessageSource(bool reload = false);
+
     bool IsResourceCompatible(const ResourceBlob &resource);
 
 private:
@@ -133,6 +138,10 @@ private:
     PaletteComponent _emptyPalette;
     std::vector<int> _paletteList;
     bool _paletteListNeedsUpdate;
+
+    std::unique_ptr<MessageHeaderFile> _verbsHeaderFile;
+    std::unique_ptr<MessageHeaderFile> _talkersHeaderFile;
+
 
     std::unique_ptr<GlobalCompiledScriptLookups> _globalCompiledScriptLookups;
 

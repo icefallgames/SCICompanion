@@ -8,16 +8,16 @@
 class CMessageDoc;
 struct TextComponent;
 
-class MessageSidePane : public CExtDialogFwdCmd, public INonViewClient
+class MessageNounConditionPane : public CExtDialogFwdCmd, public INonViewClient
 {
 public:
-    MessageSidePane(CWnd* pParent = NULL);   // standard constructor
-    virtual ~MessageSidePane();
+    MessageNounConditionPane(CWnd* pParent = NULL);   // standard constructor
+    virtual ~MessageNounConditionPane();
 
     // Dialog Data
     enum
     {
-        IDD = IDD_MESSAGETOOLBOX,
+        IDD = IDD_MESSAGEHELPER,
     };
 
     void SetDocument(CDocument *pDoc);
@@ -44,8 +44,8 @@ private:
 
     CMessageDoc *_pDoc;
 
-    MessageEditorListCtrl m_wndVerbs;
-    MessageEditorListCtrl m_wndTalkers;
+    MessageEditorListCtrl m_wndNouns;
+    MessageEditorListCtrl m_wndConditions;
 
     // Visual
     CExtLabel m_wndLabel1;
@@ -55,6 +55,6 @@ private:
 
     HACCEL _hAccel;
 public:
-    afx_msg void OnBnClickedButtonaddverb();
-    afx_msg void OnBnClickedButtonaddtalker();
+    afx_msg void OnBnClickedButtonaddnoun();
+    afx_msg void OnBnClickedButtonaddcondition();
 };

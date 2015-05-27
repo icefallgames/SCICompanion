@@ -23,6 +23,9 @@
 #include "CompiledScript.h"
 #include "Disassembler.h"
 #include "ResourceMapOperations.h"
+#include "MessageHeaderFile.h"
+#include "MessageSource.h"
+#include "format.h"
 
 using namespace std;
 
@@ -647,26 +650,42 @@ std::string CResourceMap::GetDecompilerFolder()
     return GetExeSubFolder("Decompiler");
 }
 
+bool hasEnding(std::string const &fullString, std::string const &ending) {
+    if (fullString.length() >= ending.length()) {
+        return (0 == fullString.compare(fullString.length() - ending.length(), ending.length(), ending));
+    }
+    else {
+        return false;
+    }
+}
+
 std::string CResourceMap::GetIncludePath(const std::string &includeFileName)
 {
-    std::string includeFolder = GetIncludeFolder();
-    if (!includeFolder.empty())
+    if (hasEnding(includeFileName, ".shm"))
     {
+        return Helper().GetMsgFolder() + "\\" + includeFileName;
+    }
+    else
+    {
+        std::string includeFolder = GetIncludeFolder();
+        if (!includeFolder.empty())
+        {
+            includeFolder += "\\";
+            includeFolder += includeFileName;
+            if (PathFileExists(includeFolder.c_str()))
+            {
+                return includeFolder;
+            }
+        }
+        includeFolder = Helper().GetSrcFolder();
         includeFolder += "\\";
         includeFolder += includeFileName;
         if (PathFileExists(includeFolder.c_str()))
         {
             return includeFolder;
         }
+        return "";
     }
-    includeFolder = Helper().GetSrcFolder();
-    includeFolder += "\\";
-    includeFolder += includeFileName;
-    if (PathFileExists(includeFolder.c_str()))
-    {
-        return includeFolder;
-    }
-    return "";
 }
 
 #ifdef DOCSUPPORT
@@ -1046,6 +1065,28 @@ bool CResourceMap::CanSaveResourcesToMap()
 {
     //return (GetSCIVersion().MapFormat == ResourceMapFormat::SCI0);
     return true;    // Now supported for all.
+}
+
+MessageSource *CResourceMap::GetVerbsMessageSource(bool reload)
+{
+    if (!_verbsHeaderFile || reload)
+    {
+        string messageFilename = "Verbs.sh";
+        string messageFilePath = fmt::format("{0}\\{1}", appState->GetResourceMap().Helper().GetSrcFolder(), messageFilename);
+        _verbsHeaderFile = make_unique<MessageHeaderFile>(messageFilePath, messageFilename, initializer_list<string>({}));
+    }
+    return _verbsHeaderFile->GetMessageSource();
+}
+
+MessageSource *CResourceMap::GetTalkersMessageSource(bool reload)
+{
+    if (!_talkersHeaderFile || reload)
+    {
+        string messageFilename = "Talkers.sh";
+        string messageFilePath = fmt::format("{0}\\{1}", appState->GetResourceMap().Helper().GetSrcFolder(), messageFilename);
+        _talkersHeaderFile = make_unique<MessageHeaderFile>(messageFilePath, messageFilename, initializer_list<string>({}));
+    }
+    return _talkersHeaderFile->GetMessageSource();
 }
 
 //
