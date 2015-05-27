@@ -119,25 +119,10 @@ void MessageNounConditionPane::SetDocument(CDocument *pDoc)
 
 void MessageNounConditionPane::OnBnClickedButtonaddnoun()
 {
-    if (_pDoc)
-    {
-        MessageSource *source = _pDoc->GetNounMessageSource();
-        if (source)
-        {
-            // TODO: doc needs to send out a notification? Except it's not undoes.
-        }
-    }
+    m_wndNouns.AddNewItem();
 }
 
 void MessageNounConditionPane::OnBnClickedButtonaddcondition()
 {
-    if (_pDoc)
-    {
-        MessageSource *source = _pDoc->GetConditionMessageSource();
-        if (source)
-        {
-
-        }
-    }
-
+    m_wndConditions.AddNewItem();
 }

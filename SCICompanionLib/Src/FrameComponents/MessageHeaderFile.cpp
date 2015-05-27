@@ -65,15 +65,16 @@ void MessageHeaderFile::_Load(const std::vector<std::string> &sourcesOptional)
                     _sources[currentSource->Name] = move(currentSource);
                 }
                 // And start a new one
-                currentSource = make_unique<MessageSource>();
+                currentSource = make_unique<MessageSource>(this);
                 currentSource->Name = token;
+                currentSource->MandatoryPrefix = token.substr(0, 1) + "_";
             }
         }
         else if (line.compare(0, ARRAYSIZE(c_szDefine) - 1, c_szDefine) == 0)
         {
             if (currentSource == nullptr)
             {
-                currentSource = make_unique<MessageSource>();
+                currentSource = make_unique<MessageSource>(this);
             }
 
             size_t offset = ARRAYSIZE(c_szDefine);
@@ -100,12 +101,56 @@ void MessageHeaderFile::_Load(const std::vector<std::string> &sourcesOptional)
 
 MessageSource *MessageHeaderFile::GetMessageSource(const std::string &name)
 {
-    // Note: this will create an empty one if none exists.
+    if (_sources.find(name) == _sources.end())
+    {
+        _sources[name] = make_unique<MessageSource>(this);
+    }
     return _sources[name].get();
 }
 
 MessageSource *MessageHeaderFile::GetMessageSource()
 {
-    assert(_sources.size() == 1);
+    if (_sources.size() == 0)
+    {
+        _sources[""] = make_unique<MessageSource>(this);
+    }
     return _sources.begin()->second.get();
+}
+
+void MessageHeaderFile::Commit()
+{
+    ofstream file;
+    string bakFile = _filePath + ".bak";
+    file.open(bakFile, ios_base::out | ios_base::trunc);
+    if (file.is_open())
+    {
+        file << c_szComment << " " << _title << " -- Produced by SCI Companion\n";
+        file << c_szComment << " This file should only be edited with the SCI Companion message editor\n";
+        file << "\n";
+        for (auto &source : _sources)
+        {
+            file << c_szComment << " " << source.first << "\n";
+            file << "\n";
+            for (auto &define : source.second->GetDefines())
+            {
+                file << "(define " << define.first << " " << define.second << ")\n";
+            }
+            file << "\n";
+        }
+
+        file.close();
+        try
+        {
+            deletefile(_filePath);
+            movefile(bakFile, _filePath);
+        }
+        catch (std::exception &e)
+        {
+            AfxMessageBox(e.what(), MB_ICONWARNING | MB_OK);
+        }
+    }
+    else
+    {
+        AfxMessageBox("Unable to open file for writing.", MB_ICONWARNING | MB_OK);
+    }
 }

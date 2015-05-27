@@ -1073,7 +1073,7 @@ MessageSource *CResourceMap::GetVerbsMessageSource(bool reload)
     {
         string messageFilename = "Verbs.sh";
         string messageFilePath = fmt::format("{0}\\{1}", appState->GetResourceMap().Helper().GetSrcFolder(), messageFilename);
-        _verbsHeaderFile = make_unique<MessageHeaderFile>(messageFilePath, messageFilename, initializer_list<string>({}));
+        _verbsHeaderFile = make_unique<MessageHeaderFile>(messageFilePath, messageFilename, initializer_list<string>({ "VERBS" }));
     }
     return _verbsHeaderFile->GetMessageSource();
 }

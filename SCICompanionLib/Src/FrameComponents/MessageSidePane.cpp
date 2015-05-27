@@ -119,20 +119,13 @@ void MessageSidePane::SetDocument(CDocument *pDoc)
     }
 }
 
-void MessageSidePane::OnGotoVerbs()
-{
-    //appState->OpenScript(_pDoc->GetNumber());
-}
-void MessageSidePane::OnGotoTalkers()
-{
-    //appState->OpenScript(_pDoc->GetNumber());
-}
 
 void MessageSidePane::OnBnClickedButtonaddverb()
 {
+    m_wndVerbs.AddNewItem();
 }
-
 
 void MessageSidePane::OnBnClickedButtonaddtalker()
 {
+    m_wndTalkers.AddNewItem();
 }

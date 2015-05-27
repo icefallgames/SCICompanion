@@ -1,9 +1,10 @@
 #include "stdafx.h"
 #include "MessageSource.h"
+#include "MessageHeaderFile.h"
 
 using namespace std;
 
-MessageSource::MessageSource() : _dirty(false)
+MessageSource::MessageSource(MessageHeaderFile *file) : _dirty(false), _file(file)
 {
 
 }
@@ -27,7 +28,7 @@ int MessageSource::IndexOf(const std::string &name) const
     auto it = find_if(_defines.begin(), _defines.end(),
         [&name](const MessageDefine &define) { return name == define.first; });
     int index = it - _defines.begin();
-    if (index > (int) _defines.size())
+    if (index >= (int) _defines.size())
     {
         index = -1;
     }
@@ -39,7 +40,7 @@ int MessageSource::IndexOf(uint16_t value) const
     auto it = find_if(_defines.begin(), _defines.end(),
         [value](const MessageDefine &define) { return value == define.second; });
     int index = it - _defines.begin();
-    if (index > (int)_defines.size())
+    if (index >= (int)_defines.size())
     {
         index = -1;
     }
@@ -68,9 +69,19 @@ uint16_t MessageSource::NameToValue(const std::string &name) const
     return 0;
 }
 
+void MessageSource::DeleteDefine(size_t index)
+{
+    if (index < _defines.size())
+    {
+        _defines.erase(_defines.begin() + index);
+        _dirty = true;
+    }
+}
+
 size_t MessageSource::AddDefine(const std::string &newName, uint16_t newValue)
 {
     _defines.emplace_back(newName, newValue);
+    _dirty = true;
     return _defines.size() - 1;
 }
 
@@ -78,6 +89,7 @@ void MessageSource::Commit()
 {
     if (_dirty)
     {
+        _file->Commit();
         _dirty = false;
     }
 }

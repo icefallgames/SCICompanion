@@ -8,6 +8,7 @@ public:
     MessageHeaderFile(const std::string &filepath, const std::string &title, const std::vector<std::string> &sourcesOptional);
     MessageSource *GetMessageSource(const std::string &name);
     MessageSource *GetMessageSource();
+    void Commit();
 
 private:
     void _Load(const std::vector<std::string> &sourcesOptional);
