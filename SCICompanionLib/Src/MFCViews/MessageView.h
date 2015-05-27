@@ -34,11 +34,10 @@ protected:
     DECLARE_MESSAGE_MAP()
 
     void _InitColumns();
-    void _InsertItem(int iItem, PCTSTR pszString, const TextComponent *text);
+    void _SetItem(int iItem, PCTSTR pszString, const TextComponent *text, bool insert);
     void _ChangeView();
     int _GetSelectedItem();
-    void _SwapStrings(int iIndex1, int iIndex2);
-    void _UpdateSelection();
+    void _UpdateSelection(int *topIndex = nullptr);
 
 private:
     int _iView;

@@ -2,6 +2,7 @@
 #include "AppState.h"
 #include "MessageView.h"
 #include "MessageDoc.h"
+#include "MessageSource.h"
 #include "Text.h"
 #include "Message.h"
 
@@ -57,11 +58,11 @@ const struct
 }
 c_MessageColumnInfo[] =
 {
-    { TEXT("Noun"), 60, MessagePropertyFlags::Noun, COL_NOUN },
-    { TEXT("Verb"), 60, MessagePropertyFlags::Verb, COL_VERB },
-    { TEXT("Cond."), 60, MessagePropertyFlags::Condition, COL_CONDITION },
-    { TEXT("Seq."), 60, MessagePropertyFlags::Sequence, COL_SEQUENCE },
-    { TEXT("Talker"), 60, MessagePropertyFlags::Talker, COL_TALKER },
+    { TEXT("Noun"), 110, MessagePropertyFlags::Noun, COL_NOUN },
+    { TEXT("Verb"), 100, MessagePropertyFlags::Verb, COL_VERB },
+    { TEXT("Cond."), 100, MessagePropertyFlags::Condition, COL_CONDITION },
+    { TEXT("Seq."), 50, MessagePropertyFlags::Sequence, COL_SEQUENCE },
+    { TEXT("Talker"), 110, MessagePropertyFlags::Talker, COL_TALKER },
 };
 
 void CMessageView::_InitColumns()
@@ -115,15 +116,38 @@ void CMessageView::_ChangeView()
     SetWindowLongPtr(listCtl.m_hWnd, GWL_STYLE, (LONG)dwStyle);
 }
 
-void CMessageView::_SwapStrings(int iIndex1, int iIndex2)
+void _GetDefineFromValue(char *psz, size_t cchBuf, MessageSource *source, uint16_t value, bool skipPrefix)
 {
-    CListCtrl& listCtl = GetListCtrl();
-    CString strTemp = listCtl.GetItemText(iIndex1, 0);
-    listCtl.SetItemText(iIndex1, 0, listCtl.GetItemText(iIndex2, 0));
-    listCtl.SetItemText(iIndex2, 0, strTemp);
+    bool found = false;
+    if (source)
+    {
+        for (const auto &define : source->GetDefines())
+        {
+            if (define.second == value)
+            {
+                const char *pszName = define.first.c_str();
+                if (skipPrefix && (define.first.size() > 2))
+                {
+                    pszName += 2;
+                }
+                found = true;
+                StringCchCopy(psz, cchBuf, pszName);
+            }
+        }
+        if (!found && value)
+        {
+            found = true;
+            StringCchPrintf(psz, cchBuf, "%d", value);
+        }
+    }
+
+    if (!found)
+    {
+        StringCchCopy(psz, cchBuf, "none");
+    }
 }
 
-void CMessageView::_InsertItem(int iItem, PCTSTR pszString, const TextComponent *text)
+void CMessageView::_SetItem(int iItem, PCTSTR pszString, const TextComponent *text, bool insert)
 {
     CListCtrl& listCtl = GetListCtrl();
 
@@ -132,7 +156,14 @@ void CMessageView::_InsertItem(int iItem, PCTSTR pszString, const TextComponent 
     item.iItem = iItem;
     item.iSubItem = 0;
     item.pszText = const_cast<PTSTR>(pszString);
-    listCtl.InsertItem(&item);
+    if (insert)
+    {
+        listCtl.InsertItem(&item);
+    }
+    else
+    {
+        listCtl.SetItem(&item);
+    }
 
     // Now the columns
     for (int iSub = 1; iSub < (int)_columns.size(); iSub++)
@@ -150,19 +181,19 @@ void CMessageView::_InsertItem(int iItem, PCTSTR pszString, const TextComponent 
             switch (iSubItem)
             {
             case COL_NOUN:
-                StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%d"), text->Texts[iItem].Noun);
+                _GetDefineFromValue(szBuf, ARRAYSIZE(szBuf), GetDocument()->GetNounMessageSource(), text->Texts[iItem].Noun, true);
                 break;
             case COL_VERB:
-                StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%d"), text->Texts[iItem].Verb);
+                _GetDefineFromValue(szBuf, ARRAYSIZE(szBuf), appState->GetResourceMap().GetVerbsMessageSource(), text->Texts[iItem].Verb, true);
                 break;
             case COL_CONDITION:
-                StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%d"), text->Texts[iItem].Condition);
+                _GetDefineFromValue(szBuf, ARRAYSIZE(szBuf), GetDocument()->GetConditionMessageSource(), text->Texts[iItem].Condition, true);
                 break;
             case COL_SEQUENCE:
                 StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%d"), text->Texts[iItem].Sequence);
                 break;
             case COL_TALKER:
-                StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%d"), text->Texts[iItem].Talker);
+                _GetDefineFromValue(szBuf, ARRAYSIZE(szBuf), appState->GetResourceMap().GetTalkersMessageSource(), text->Texts[iItem].Talker, false);
                 // Temporary code for message investigation
                 // StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%x"), text->Texts[iItem].Style);
                 break;
@@ -270,7 +301,7 @@ void CMessageView::OnDelete()
     }
 }
 
-void CMessageView::_UpdateSelection()
+void CMessageView::_UpdateSelection(int *topIndex)
 {
     CMessageDoc *pDoc = GetDocument();
     if (pDoc)
@@ -278,6 +309,21 @@ void CMessageView::_UpdateSelection()
         int index = pDoc->GetSelectedIndex();
         this->GetListCtrl().SetItemState(index, LVIS_SELECTED, LVIS_SELECTED);
         this->GetListCtrl().SetSelectionMark(index);
+        if (topIndex)
+        {
+            this->GetListCtrl().EnsureVisible(*topIndex, FALSE);
+            this->GetListCtrl().EnsureVisible(*topIndex + this->GetListCtrl().GetCountPerPage(), TRUE);
+            /*
+            CRect rc;
+            this->GetListCtrl().GetItemRect(0, &rc, LVIR_LABEL);
+            CSize size = { 0, rc.Height() };
+            int newTopIndex = this->GetListCtrl().GetTopIndex();
+            size.cy *= (*topIndex - newTopIndex);
+            if (*topIndex != this->GetListCtrl().GetTopIndex())
+            {
+                this->GetListCtrl().Scroll(size);
+            }*/
+        }
     }
 }
 
@@ -307,6 +353,9 @@ void CMessageView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
             const TextComponent *pText = pDoc->GetResource()->TryGetComponent<TextComponent>();
             if (pText)
             {
+                // Try to maintain the position
+                int topIndex = GetListCtrl().GetTopIndex();
+
                 GetListCtrl().SetRedraw(FALSE);
                 GetListCtrl().DeleteAllItems();
                 
@@ -315,12 +364,32 @@ void CMessageView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
                 {
                     CString strText = individualString.Text.c_str();
                     _EscapeString(strText);
-                    _InsertItem(i, (PCSTR)strText, pText);
+                    _SetItem(i, (PCSTR)strText, pText, true);
                     ++i;
                 }
 
-                _UpdateSelection();
+                _UpdateSelection(&topIndex);
                 GetListCtrl().SetRedraw(TRUE);
+            }
+        }
+    }
+    else if (IsFlagSet(hint, MessageChangeHint::ItemChanged))
+    {
+        CMessageDoc *pDoc = GetDocument();
+        if (pDoc)
+        {
+            int index = pDoc->GetSelectedIndex();
+            const TextComponent *pText = pDoc->GetResource()->TryGetComponent<TextComponent>();
+            if (pText)
+            {
+                if ((index >= 0) && (index < (int)pText->Texts.size()))
+                {
+                    auto &entry = pText->Texts[index];
+                    // Just update this row
+                    CString strText = entry.Text.c_str();
+                    _EscapeString(strText);
+                    _SetItem(index, (PCSTR)strText, pText, false);
+                }
             }
         }
     }

@@ -9,7 +9,7 @@
 #include "MessageSource.h"
 
 MessageEditPane::MessageEditPane(CWnd* pParent /*=NULL*/)
-    : CExtDialogFwdCmd(IDD, pParent), _hAccel(nullptr)
+    : CExtDialogFwdCmd(IDD, pParent), _hAccel(nullptr), _initialized(false)
 {
     // Load our accelerators
     // HINSTANCE hInst = AfxFindResourceHandle(MAKEINTRESOURCE(IDR_ACCELERATORPICCOMMANDS), RT_ACCELERATOR);
@@ -24,24 +24,32 @@ void MessageEditPane::DoDataExchange(CDataExchange* pDX)
 {
     __super::DoDataExchange(pDX);
 
-    DDX_Control(pDX, IDC_COMBONOUN, m_wndComboNoun);
-    DDX_Control(pDX, IDC_COMBOVERB, m_wndComboVerb);
-    DDX_Control(pDX, IDC_COMBOTALKER, m_wndComboTalker);
-    DDX_Control(pDX, IDC_COMBOCONDITION, m_wndComboCondition);
+    if (!_initialized)
+    {
+        _initialized = true;
+        DDX_Control(pDX, IDC_COMBONOUN, m_wndComboNoun);
+        DDX_Control(pDX, IDC_COMBOVERB, m_wndComboVerb);
+        DDX_Control(pDX, IDC_COMBOTALKER, m_wndComboTalker);
+        DDX_Control(pDX, IDC_COMBOCONDITION, m_wndComboCondition);
 
-    DDX_Control(pDX, IDC_EDITMESSAGE, m_wndEditMessage);
-    DDX_Control(pDX, IDC_EDITSEQ, m_wndEditSequence);
+        DDX_Control(pDX, IDC_EDITMESSAGE, m_wndEditMessage);
+        DDX_Control(pDX, IDC_EDITSEQ, m_wndEditSequence);
 
-    DDX_Control(pDX, IDC_STATIC3, m_wndLabel1);
-    DDX_Control(pDX, IDC_STATIC6, m_wndLabel2);
-    DDX_Control(pDX, IDC_STATIC7, m_wndLabel3);
-    DDX_Control(pDX, IDC_STATIC8, m_wndLabel4);
-    DDX_Control(pDX, IDC_STATIC9, m_wndLabel5);
+        DDX_Control(pDX, IDC_STATIC3, m_wndLabel1);
+        DDX_Control(pDX, IDC_STATIC6, m_wndLabel2);
+        DDX_Control(pDX, IDC_STATIC7, m_wndLabel3);
+        DDX_Control(pDX, IDC_STATIC8, m_wndLabel4);
+        DDX_Control(pDX, IDC_STATIC9, m_wndLabel5);
 
-    DDX_Control(pDX, IDC_BUTTONADDSEQ, m_wndButton1);
-    DDX_Control(pDX, IDC_BUTTONCLONE, m_wndButton2);
-    DDX_Control(pDX, IDC_SPINSEQ, m_wndSpinner);
-    
+        DDX_Control(pDX, IDC_BUTTONADDSEQ, m_wndButton1);
+        DDX_Control(pDX, IDC_BUTTONCLONE, m_wndButton2);
+        DDX_Control(pDX, IDC_BUTTONADDNEW, m_wndButton3);
+        
+        DDX_Control(pDX, IDC_BUTTONCOMMIT, m_wndButtonFakeCommit);
+
+        DDX_Control(pDX, IDC_SPINSEQ, m_wndSpinner);
+    }
+    DDX_Text(pDX, IDC_EDITSEQ, _spinnerValue);
 }
 
 BEGIN_MESSAGE_MAP(MessageEditPane, CExtDialogFwdCmd)
@@ -50,6 +58,14 @@ BEGIN_MESSAGE_MAP(MessageEditPane, CExtDialogFwdCmd)
     ON_WM_ERASEBKGND()
     ON_BN_CLICKED(IDC_BUTTONADDSEQ, &MessageEditPane::OnBnClickedButtonaddseq)
     ON_BN_CLICKED(IDC_BUTTONCLONE, &MessageEditPane::OnBnClickedButtonclone)
+    ON_EN_CHANGE(IDC_EDITMESSAGE, &MessageEditPane::OnEnChangeEditmessage)
+    ON_CBN_SELCHANGE(IDC_COMBONOUN, &MessageEditPane::OnCbnSelchangeCombonoun)
+    ON_CBN_SELCHANGE(IDC_COMBOVERB, &MessageEditPane::OnCbnSelchangeComboverb)
+    ON_EN_CHANGE(IDC_EDITSEQ, &MessageEditPane::OnEnChangeEditseq)
+    ON_EN_KILLFOCUS(IDC_EDITMESSAGE, &MessageEditPane::OnEnKillfocusEditmessage)
+    ON_CBN_SELCHANGE(IDC_COMBOCONDITION, &MessageEditPane::OnCbnSelchangeCombocondition)
+    ON_CBN_SELCHANGE(IDC_COMBOTALKER, &MessageEditPane::OnCbnSelchangeCombotalker)
+    ON_BN_CLICKED(IDC_BUTTONADDNEW, &MessageEditPane::OnBnClickedButtonaddnew)
 END_MESSAGE_MAP()
 
 BOOL MessageEditPane::OnEraseBkgnd(CDC *pDC)
@@ -57,7 +73,7 @@ BOOL MessageEditPane::OnEraseBkgnd(CDC *pDC)
     return __super::OnEraseBkgnd(pDC);
 }
 
-void _PopulateComboFromMessageSource(CExtComboBox &wndCombo, MessageSource *source)
+void _PopulateComboFromMessageSource(CExtComboBox &wndCombo, MessageSource *source, bool skipPrefix)
 {
     wndCombo.SetRedraw(FALSE);
     CString beforeText;
@@ -72,7 +88,12 @@ void _PopulateComboFromMessageSource(CExtComboBox &wndCombo, MessageSource *sour
         wndCombo.InsertString(-1, "none");
         for (auto &define : source->GetDefines())
         {
-            wndCombo.InsertString(-1, define.first.c_str());
+            PCSTR psz = define.first.c_str();
+            if (skipPrefix && (define.first.size() > 2))
+            {
+                psz += 2;
+            }
+            wndCombo.InsertString(-1, psz);
         }
     }
     wndCombo.SetRedraw(TRUE);
@@ -90,6 +111,11 @@ void _PopulateComboFromMessageSource(CExtComboBox &wndCombo, MessageSource *sour
 //      - they don't bubble up naturally in dialogs in control bars.
 //      - we do this by inheriting from CExtDialogFwdCmd
 //
+#define VK_C        67
+#define VK_V        86
+#define VK_X        88
+#define VK_Z        90
+
 BOOL MessageEditPane::PreTranslateMessage(MSG* pMsg)
 {
     BOOL fRet = FALSE;
@@ -97,15 +123,47 @@ BOOL MessageEditPane::PreTranslateMessage(MSG* pMsg)
     {
         fRet = ::TranslateAccelerator(GetSafeHwnd(), _hAccel, pMsg);
     }
-    if (!fRet)
+    if (GetFocus() == static_cast<CWnd*>(&m_wndEditMessage))
     {
-        if ((pMsg->message >= WM_KEYFIRST) && (pMsg->message <= WM_KEYLAST))
+        if (!fRet)
         {
-            // Fwd the delete key to the edit control
-            if ((pMsg->message != WM_CHAR) && (pMsg->wParam == VK_DELETE))
+            if ((pMsg->message >= WM_KEYFIRST) && (pMsg->message <= WM_KEYLAST))
             {
-                ::SendMessage(m_wndEditMessage.GetSafeHwnd(), pMsg->message, pMsg->wParam, pMsg->lParam);
-                fRet = 1; // Don't dispatch message, we handled it.
+                // Fwd the delete key to the edit control
+                if ((pMsg->message != WM_CHAR) && (pMsg->wParam == VK_DELETE))
+                {
+                    ::SendMessage(m_wndEditMessage.GetSafeHwnd(), pMsg->message, pMsg->wParam, pMsg->lParam);
+                    fRet = 1; // Don't dispatch message, we handled it.
+                }
+            }
+        }
+        if (!fRet)
+        {
+            if (pMsg->message == WM_KEYDOWN)
+            {
+                if (GetKeyState(VK_CONTROL))
+                {
+                    if (pMsg->wParam == VK_C)
+                    {
+                        m_wndEditMessage.Copy();
+                        fRet = TRUE;
+                    }
+                    if (pMsg->wParam == VK_V)
+                    {
+                        m_wndEditMessage.Paste();
+                        fRet = TRUE;
+                    }
+                    if (pMsg->wParam == VK_X)
+                    {
+                        m_wndEditMessage.Cut();
+                        fRet = TRUE;
+                    }
+                    if (pMsg->wParam == VK_Z)
+                    {
+                        m_wndEditMessage.Undo();
+                        fRet = TRUE;
+                    }
+                }
             }
         }
     }
@@ -133,19 +191,19 @@ void MessageEditPane::_UpdateCombos(MessageChangeHint hint)
     {
         if (IsFlagSet(hint, MessageChangeHint::NounsChanged))
         {
-            _PopulateComboFromMessageSource(m_wndComboNoun, _pDoc->GetNounMessageSource());
+            _PopulateComboFromMessageSource(m_wndComboNoun, _pDoc->GetNounMessageSource(), true);
         }
         if (IsFlagSet(hint, MessageChangeHint::VerbsChanged))
         {
-            _PopulateComboFromMessageSource(m_wndComboVerb, appState->GetResourceMap().GetVerbsMessageSource());
+            _PopulateComboFromMessageSource(m_wndComboVerb, appState->GetResourceMap().GetVerbsMessageSource(), true);
         }
         if (IsFlagSet(hint, MessageChangeHint::TalkersChanged))
         {
-            _PopulateComboFromMessageSource(m_wndComboTalker, appState->GetResourceMap().GetTalkersMessageSource());
+            _PopulateComboFromMessageSource(m_wndComboTalker, appState->GetResourceMap().GetTalkersMessageSource(), false);
         }
         if (IsFlagSet(hint, MessageChangeHint::ConditionsChanged))
         {
-            _PopulateComboFromMessageSource(m_wndComboCondition, _pDoc->GetConditionMessageSource());
+            _PopulateComboFromMessageSource(m_wndComboCondition, _pDoc->GetConditionMessageSource(), true);
         }
     }
 }
@@ -175,6 +233,17 @@ const TextComponent *MessageEditPane::_GetResource()
     return text;
 }
 
+TextEntry *MessageEditPane::_GetEntry(TextComponent &text)
+{
+    TextEntry *entry = nullptr;
+    int index = _GetSelectedIndex();
+    if ((index != -1) && (index < (int)text.Texts.size()))
+    {
+        entry = &text.Texts[index];
+    }
+    return entry;
+}
+
 const TextEntry *MessageEditPane::_GetEntry()
 {
     const TextEntry *entry = nullptr;
@@ -199,6 +268,32 @@ int MessageEditPane::_GetSelectedIndex()
     return -1;
 }
 
+void _UpdateComboFromValue(CExtComboBox &wndCombo, int value, MessageSource *source)
+{
+    if (source)
+    {
+        if (value == 0)
+        {
+            wndCombo.SetCurSel(0);
+        }
+        else
+        {
+            int index = source->IndexOf((uint16_t)value) + 1;
+            wndCombo.SetCurSel(index);
+        }
+    }
+    else
+    {
+        wndCombo.SetCurSel(0);
+    }
+}
+
+void MessageEditPane::_UpdateSequence(int sequence)
+{
+    _spinnerValue = sequence;
+    UpdateData(false);
+}
+
 void MessageEditPane::_Update()
 {
     if (_pDoc)
@@ -213,8 +308,12 @@ void MessageEditPane::_Update()
         if (entry)
         {
             m_wndEditMessage.SetWindowTextA(entry->Text.c_str());
-            m_wndEditSequence.SetWindowTextA(fmt::format("{0}", entry->Sequence).c_str());
-            // TODO: more stuff
+            _UpdateSequence(entry->Sequence);
+            
+            _UpdateComboFromValue(m_wndComboVerb, entry->Verb, appState->GetResourceMap().GetVerbsMessageSource());
+            _UpdateComboFromValue(m_wndComboTalker, entry->Talker, appState->GetResourceMap().GetVerbsMessageSource());
+            _UpdateComboFromValue(m_wndComboNoun, entry->Noun, _pDoc->GetNounMessageSource());
+            _UpdateComboFromValue(m_wndComboCondition, entry->Condition, _pDoc->GetNounMessageSource());
         }
         else
         {
@@ -230,20 +329,208 @@ void MessageEditPane::SetDocument(CDocument *pDoc)
     if (_pDoc)
     {
         _pDoc->AddNonViewClient(this);
-        _Update();
         _UpdateCombos(MessageChangeHint::ConditionsChanged | MessageChangeHint::TalkersChanged | MessageChangeHint::VerbsChanged | MessageChangeHint::NounsChanged);
+        _Update();
+    }
+}
+
+void MessageEditPane::_AddEntryAtCurrentPosition(const TextEntry &entry)
+{
+    if (_pDoc)
+    {
+        int index = _pDoc->GetSelectedIndex();
+        index++;
+        _pDoc->ApplyChanges<TextComponent>(
+            [index, &entry](TextComponent &text)
+        {
+            text.Texts.insert(text.Texts.begin() + index, entry);
+            return WrapHint(MessageChangeHint::Changed);
+        }
+        );
+
+        // Now select it
+        _pDoc->SetSelectedIndex(index);
+    }
+}
+
+void MessageEditPane::OnBnClickedButtonaddseq()
+{
+    const TextEntry *text = _GetEntry();
+    if (text)
+    {
+        TextEntry newEntry = *text;
+        newEntry.Sequence++;
+        _AddEntryAtCurrentPosition(newEntry);
+    }
+}
+
+void MessageEditPane::OnBnClickedButtonclone()
+{
+    const TextEntry *text = _GetEntry();
+    if (text)
+    {
+        _AddEntryAtCurrentPosition(*text);
+    }
+}
+
+void MessageEditPane::OnBnClickedButtonaddnew()
+{
+    TextEntry newEntry({ 0, 0, 0, 0, 0, 0, "" });
+    _AddEntryAtCurrentPosition(newEntry);
+}
+
+void MessageEditPane::OnEnChangeEditmessage()
+{
+    // Validation happens on focus lost, so nothing to do here.
+}
+
+void MessageEditPane::OnCbnSelchangeCombonoun()
+{
+    if (_pDoc)
+    {
+        MessageSource *nounSource = _pDoc->GetNounMessageSource();
+        if (nounSource)
+        {
+            int index = m_wndComboVerb.GetCurSel();
+            index--;
+
+            _pDoc->ApplyChanges<TextComponent>(
+                [this, index, nounSource](TextComponent &text)
+            {
+                TextEntry *entry = this->_GetEntry(text);
+                if ((index >= 0) && (index < (int)nounSource->GetDefines().size()))
+                {
+                    entry->Noun = (uint8_t)nounSource->GetDefines()[index].second;
+                }
+                else
+                {
+                    entry->Noun = 0;
+                }
+                return WrapHint(MessageChangeHint::ItemChanged);
+            }
+            );
+        }
     }
 }
 
 
-
-void MessageEditPane::OnBnClickedButtonaddseq()
+void MessageEditPane::OnCbnSelchangeComboverb()
 {
-    // TODO: Add another with with same everything, but different sequence
+    if (_pDoc)
+    {
+        MessageSource *verbSource = appState->GetResourceMap().GetVerbsMessageSource();
+        if (verbSource)
+        {
+            int index = m_wndComboVerb.GetCurSel();
+            index--;
+
+            _pDoc->ApplyChanges<TextComponent>(
+                [this, index, verbSource](TextComponent &text)
+            {
+                TextEntry *entry = this->_GetEntry(text);
+                if ((index >= 0) && (index < (int)verbSource->GetDefines().size()))
+                {
+                    entry->Verb = (uint8_t)verbSource->GetDefines()[index].second;
+                }
+                else
+                {
+                    entry->Verb = 0;
+                }
+                return WrapHint(MessageChangeHint::ItemChanged);
+            }
+            );
+        }
+    }
+}
+
+void MessageEditPane::OnEnChangeEditseq()
+{
+    if (_pDoc)
+    {
+        UpdateData(true);
+        _pDoc->ApplyChanges<TextComponent>(
+            [this](TextComponent &text)
+        {
+            TextEntry *entry = this->_GetEntry(text);
+            entry->Sequence = this->_spinnerValue;
+            return WrapHint(MessageChangeHint::ItemChanged);
+        }
+        );
+    }
+}
+
+void MessageEditPane::OnEnKillfocusEditmessage()
+{
+    if (_pDoc)
+    {
+        _pDoc->ApplyChanges<TextComponent>(
+            [this](TextComponent &text)
+        {
+            TextEntry *entry = this->_GetEntry(text);
+            CString strText;
+            this->m_wndEditMessage.GetWindowTextA(strText);
+            entry->Text = (PCSTR)strText;
+            return WrapHint(MessageChangeHint::ItemChanged);
+        }
+            );
+    }
+}
+
+void MessageEditPane::OnCbnSelchangeCombocondition()
+{
+    if (_pDoc)
+    {
+        MessageSource *condSource = _pDoc->GetConditionMessageSource();
+        if (condSource)
+        {
+            int index = m_wndComboVerb.GetCurSel();
+            index--;
+
+            _pDoc->ApplyChanges<TextComponent>(
+                [this, index, condSource](TextComponent &text)
+            {
+                TextEntry *entry = this->_GetEntry(text);
+                if ((index >= 0) && (index < (int)condSource->GetDefines().size()))
+                {
+                    entry->Condition = (uint8_t)condSource->GetDefines()[index].second;
+                }
+                else
+                {
+                    entry->Condition = 0;
+                }
+                return WrapHint(MessageChangeHint::ItemChanged);
+            }
+            );
+        }
+    }
 }
 
 
-void MessageEditPane::OnBnClickedButtonclone()
+void MessageEditPane::OnCbnSelchangeCombotalker()
 {
-    // TODO: Clone the current one
+    if (_pDoc)
+    {
+        MessageSource *talkersSource = appState->GetResourceMap().GetTalkersMessageSource();
+        if (talkersSource)
+        {
+            int index = m_wndComboVerb.GetCurSel();
+            index--;
+
+            _pDoc->ApplyChanges<TextComponent>(
+                [this, index, talkersSource](TextComponent &text)
+            {
+                TextEntry *entry = this->_GetEntry(text);
+                if ((index >= 0) && (index < (int)talkersSource->GetDefines().size()))
+                {
+                    entry->Talker = (uint8_t)talkersSource->GetDefines()[index].second;
+                }
+                else
+                {
+                    entry->Talker = 0;
+                }
+                return WrapHint(MessageChangeHint::ItemChanged);
+            }
+            );
+        }
+    }
 }

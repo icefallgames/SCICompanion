@@ -102,9 +102,6 @@ void MessageSidePane::_Update()
 {
     if (_pDoc)
     {
-        // Needs to be a global thing
-        //m_wndVerbs.SetSource(_pDoc->GetNounMessageSource());
-        //m_wndTalkers.SetSource(_pDoc->GetConditionMessageSource());
     }
 }
 
@@ -113,6 +110,10 @@ void MessageSidePane::SetDocument(CDocument *pDoc)
     _pDoc = static_cast<CMessageDoc*>(pDoc);
     if (_pDoc)
     {
+        // This is as good time as any to trigger a reload.
+        m_wndVerbs.SetSource(appState->GetResourceMap().GetVerbsMessageSource(true));
+        m_wndTalkers.SetSource(appState->GetResourceMap().GetTalkersMessageSource(true));
+
         _pDoc->AddNonViewClient(this);
         _Update();
     }

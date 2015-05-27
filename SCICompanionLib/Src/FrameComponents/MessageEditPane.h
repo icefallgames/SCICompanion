@@ -33,13 +33,14 @@ public:
 protected:
     const TextComponent *_GetResource();
     const TextEntry *_GetEntry();
+    TextEntry *_GetEntry(TextComponent &text);
     int _GetSelectedIndex();
+    void _AddEntryAtCurrentPosition(const TextEntry &entry);
 
     virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
     virtual BOOL OnInitDialog();
     afx_msg void OnGotoTalkers();
     afx_msg void OnGotoVerbs();
-       
 
     DECLARE_MESSAGE_MAP()
 
@@ -47,6 +48,7 @@ protected:
 
 private:
     void _Update();
+    void _UpdateSequence(int sequence);
     void _UpdateCombos(MessageChangeHint hint);
 
     CMessageDoc *_pDoc;
@@ -66,12 +68,24 @@ private:
     CExtLabel m_wndLabel5;
     CExtButton m_wndButton1;
     CExtButton m_wndButton2;
+    CExtButton m_wndButton3;
+    CExtButton m_wndButtonFakeCommit;
     CExtSpinWnd m_wndSpinner;
+    int _spinnerValue;
 
     HACCEL _hAccel;
+    bool _initialized;
 public:
     afx_msg void OnBnClickedButtonaddnoun();
     afx_msg void OnBnClickedButtonaddcondition();
     afx_msg void OnBnClickedButtonaddseq();
     afx_msg void OnBnClickedButtonclone();
+    afx_msg void OnEnChangeEditmessage();
+    afx_msg void OnCbnSelchangeCombonoun();
+    afx_msg void OnCbnSelchangeComboverb();
+    afx_msg void OnEnChangeEditseq();
+    afx_msg void OnEnKillfocusEditmessage();
+    afx_msg void OnCbnSelchangeCombocondition();
+    afx_msg void OnCbnSelchangeCombotalker();
+    afx_msg void OnBnClickedButtonaddnew();
 };

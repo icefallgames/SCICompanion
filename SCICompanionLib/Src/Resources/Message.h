@@ -7,8 +7,9 @@
 enum class MessageChangeHint
 {
     None = 0,
-    Selection = 0x00000080,
-    Changed = 0x00000100,
+    ItemChanged = 0x00000040,           // Something about a particular item changed
+    Selection = 0x00000080,         // Current selection changed
+    Changed = 0x00000100,           // The resource overall changed (e.g. items added or removed)
     NounsChanged = 0x00000200,
     ConditionsChanged = 0x00000400,
     VerbsChanged = 0x00000800,
