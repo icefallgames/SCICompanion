@@ -317,6 +317,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_COMMAND(ID_FILE_NEWCURSOR, OnFileNewCursor)
     ON_COMMAND(ID_FILE_NEWTEXT, OnFileNewText)
     ON_COMMAND(ID_FILE_NEWSOUND, OnFileNewSound)
+    ON_COMMAND(ID_NEW_MESSAGE, OnFileNewMessage)
     ON_COMMAND(ID_FILE_OPENRESOURCE, OnFileOpenResource)
     ON_COMMAND(ID_FILE_ADDRESOURCE, OnFileAddResource)
     ON_COMMAND(ID_EDIT_FINDINFILES, OnFindInFiles)
@@ -342,8 +343,8 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_COMMAND_EX(ID_SHOW_HEAPS, OnShowResource)
     ON_COMMAND_EX(ID_SHOW_AUDIO, OnShowResource)
     ON_UPDATE_COMMAND_UI(ID_FILE_NEWPIC, OnUpdateNewPic)
-    ON_UPDATE_COMMAND_UI(ID_FILE_NEWPIC, OnUpdateNewPic)
     ON_UPDATE_COMMAND_UI(ID_PREFERENCES, OnUpdateAlwaysEnabled)
+    ON_UPDATE_COMMAND_UI(ID_NEW_MESSAGE, OnUpdateNewMessage)
     ON_UPDATE_COMMAND_UI(ID_TOOLS_EXTRACTALLRESOURCES, OnUpdateShowIfGameLoaded)
     ON_UPDATE_COMMAND_UI(ID_TOOLS_REBUILDRESOURCES, OnUpdateShowIfGameLoaded)
     ON_UPDATE_COMMAND_UI(ID_TOOLS_REBUILDCLASSTABLE, OnUpdateShowIfGameLoaded)
@@ -1054,11 +1055,11 @@ void CMainFrame::OnFileNewGame()
         if (pDocument) \
                 { \
             std::unique_ptr<__resourceClass> pEVR(__resourceCreate(appState->GetVersion())); \
-            if (SUCCEEDED(hr)) \
+            if (SUCCEEDED(hr) && pEVR) \
                         { \
                 pDocument->__resourceSetter(std::move(pEVR)); \
                         } \
-            if (FAILED(hr)) \
+                        else \
                         { \
                 delete pDocument; \
                         } \
@@ -1087,7 +1088,47 @@ void CMainFrame::OnFileNewText()
 
 void CMainFrame::OnFileNewMessage()
 {
-    DECLARE_NEWRESOURCE_AP2(GetMessageTemplate, CMessageDoc, ResourceEntity, CreateDefaultMessageResource, SetMessageResource)
+    // Grok the current messages to figure out a message version.
+    auto messageContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Message, ResourceEnumFlags::ExcludePatchFiles);
+    uint16_t maxMessageVersion = 0;
+    vector<int> existingResources;
+    for (auto &messageBlob : *messageContainer)
+    {
+        existingResources.push_back(messageBlob->GetNumber());
+        sci::istream byteStream = messageBlob->GetReadStream();
+        uint16_t msgVersion = CheckMessageVersion(byteStream);
+        maxMessageVersion = max(maxMessageVersion, msgVersion);
+    }
+
+    // Ask the user for resource number. We need this so we can support adding nouns and such.
+    SaveResourceDialog saveResourceDialog;
+    if (IDOK == saveResourceDialog.DoModal())
+    {
+        bool goAhead = true;
+        if (find(existingResources.begin(), existingResources.end(), saveResourceDialog.GetResourceNumber()) != existingResources.end())
+        {
+            goAhead = (IDYES == AfxMessageBox("A message resource already exists for this number. Continue anyway?", MB_OK | MB_YESNO));
+        }
+
+        if (goAhead)
+        {
+            std::unique_ptr<ResourceEntity> resource(CreateNewMessageResource(appState->GetVersion(), maxMessageVersion));
+            if (resource)
+            {
+                resource->ResourceNumber = saveResourceDialog.GetResourceNumber();
+                resource->PackageNumber = saveResourceDialog.GetPackageNumber();
+                CDocTemplate *pDocTemplate = appState->GetMessageTemplate();
+                if (pDocTemplate)
+                {
+                    CMessageDoc *pDocument = (CMessageDoc*)pDocTemplate->OpenDocumentFile(nullptr, TRUE);
+                    if (pDocument)
+                    {
+                        pDocument->SetMessageResource(std::move(resource));
+                    }
+                }
+            }
+        }
+    }
 }
 
 void CMainFrame::OnFileNewSound()
@@ -1211,6 +1252,11 @@ void CMainFrame::OnUpdateNewPic(CCmdUI *pCmdUI)
 {
     // Always available.
     pCmdUI->Enable(TRUE);
+}
+
+void CMainFrame::OnUpdateNewMessage(CCmdUI *pCmdUI)
+{
+    pCmdUI->Enable(appState->GetResourceMap().IsGameLoaded() && appState->GetVersion().UsesMessages);
 }
 
 void CMainFrame::OnUpdateShowIfGameLoaded(CCmdUI *pCmdUI)

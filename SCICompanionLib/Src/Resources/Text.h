@@ -27,6 +27,7 @@ DEFINE_ENUM_FLAGS(MessagePropertyFlags, uint16_t)
 // These are used for both message and text resources.
 struct TextEntry
 {
+    // Do not change the order of these items.
     uint8_t Noun;
     uint8_t Verb;
     uint8_t Condition;

@@ -148,13 +148,17 @@ HRESULT RebuildResources(SCIVersion version, BOOL fShowUI)
     try
     {
         resourceSource->RebuildResources();
+        if (version.UsesMessages)
+        {
+            std::unique_ptr<ResourceSource> messageSource = CreateResourceSource(appState->GetResourceMap().GetGameFolder(), appState->GetVersion(), ResourceSourceFlags::MessageMap);
+            messageSource->RebuildResources();
+        }
     }
     catch (std::exception &e)
     {
         AfxMessageBox(e.what(), MB_OK | MB_ICONWARNING);
     }
 
-    // TODO: Also support rebuilding message map, it is simple. But how do we know if we have them?
     return S_OK;
 }
 

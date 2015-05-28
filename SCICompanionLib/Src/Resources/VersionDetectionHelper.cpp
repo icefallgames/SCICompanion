@@ -332,6 +332,9 @@ void CResourceMap::_SniffSCIVersion()
         _gameFolderHelper.Version.AudioVolumeName = AudioVolumeName::Sfx;
     }
 
+    std::string fullPathMessageMap = _gameFolderHelper.GameFolder + "\\" + "message.map";
+    _gameFolderHelper.Version.UsesMessages = !!PathFileExists(fullPathMessageMap.c_str());
+
     _gameFolderHelper.Version.MapFormat = _DetectMapFormat();
 
     _gameFolderHelper.Version.PackageFormat = _DetectPackageFormat();

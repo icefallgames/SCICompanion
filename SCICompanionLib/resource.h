@@ -548,7 +548,6 @@
 #define IDC_BUTTONADDSEQ                1266
 #define IDC_BUTTONCLONE                 1267
 #define IDC_BUTTONCOMMIT                1268
-#define IDC_BUTTONCLONE2                1269
 #define IDC_BUTTONADDNEW                1269
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
@@ -795,6 +794,7 @@
 #define ID_SCRIPT_MANAGEDECOMPILATION   33179
 #define ID_TOOLS_REBUILDCLASSTABLE      33180
 #define ID_BAR_MESSAGEEDIT              33181
+#define ID_NEW_MESSAGE                  33182
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -803,7 +803,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        366
-#define _APS_NEXT_COMMAND_VALUE         33182
+#define _APS_NEXT_COMMAND_VALUE         33183
 #define _APS_NEXT_CONTROL_VALUE         1269
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

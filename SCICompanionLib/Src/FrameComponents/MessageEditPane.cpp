@@ -377,7 +377,8 @@ void MessageEditPane::OnBnClickedButtonclone()
 
 void MessageEditPane::OnBnClickedButtonaddnew()
 {
-    TextEntry newEntry({ 0, 0, 0, 0, 0, 0, "" });
+    // Default to the NARRATOR talker (usually 99), and sequence 1.
+    TextEntry newEntry({ 0, 0, 0, 1, 99, 0, "" });
     _AddEntryAtCurrentPosition(newEntry);
 }
 
@@ -393,7 +394,7 @@ void MessageEditPane::OnCbnSelchangeCombonoun()
         MessageSource *nounSource = _pDoc->GetNounMessageSource();
         if (nounSource)
         {
-            int index = m_wndComboVerb.GetCurSel();
+            int index = m_wndComboNoun.GetCurSel();
             index--;
 
             _pDoc->ApplyChanges<TextComponent>(
@@ -471,8 +472,13 @@ void MessageEditPane::OnEnKillfocusEditmessage()
             TextEntry *entry = this->_GetEntry(text);
             CString strText;
             this->m_wndEditMessage.GetWindowTextA(strText);
-            entry->Text = (PCSTR)strText;
-            return WrapHint(MessageChangeHint::ItemChanged);
+            MessageChangeHint hint = MessageChangeHint::None;
+            if (entry->Text != (PCSTR)strText)
+            {
+                entry->Text = (PCSTR)strText;
+                hint |= MessageChangeHint::ItemChanged;
+            }
+            return WrapHint(hint);
         }
             );
     }
@@ -485,7 +491,7 @@ void MessageEditPane::OnCbnSelchangeCombocondition()
         MessageSource *condSource = _pDoc->GetConditionMessageSource();
         if (condSource)
         {
-            int index = m_wndComboVerb.GetCurSel();
+            int index = m_wndComboCondition.GetCurSel();
             index--;
 
             _pDoc->ApplyChanges<TextComponent>(
@@ -515,7 +521,7 @@ void MessageEditPane::OnCbnSelchangeCombotalker()
         MessageSource *talkersSource = appState->GetResourceMap().GetTalkersMessageSource();
         if (talkersSource)
         {
-            int index = m_wndComboVerb.GetCurSel();
+            int index = m_wndComboTalker.GetCurSel();
             index--;
 
             _pDoc->ApplyChanges<TextComponent>(

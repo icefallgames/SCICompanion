@@ -21,3 +21,5 @@ DEFINE_ENUM_FLAGS(MessageChangeHint, uint32_t)
 
 ResourceEntity *CreateMessageResource(SCIVersion version);
 ResourceEntity *CreateDefaultMessageResource(SCIVersion version);
+ResourceEntity *CreateNewMessageResource(SCIVersion version, uint16_t msgVersion);
+uint16_t CheckMessageVersion(sci::istream &byteStream);

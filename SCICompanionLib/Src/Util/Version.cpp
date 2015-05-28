@@ -17,7 +17,8 @@ SCIVersion sciVersion0 =
     1,
     false,
     false,
-    AudioVolumeName::None
+    AudioVolumeName::None,
+    false
 };
 
 SCIVersion sciVersion1_Late =
@@ -36,7 +37,8 @@ SCIVersion sciVersion1_Late =
     0,
     false,
     false,
-    AudioVolumeName::None
+    AudioVolumeName::None,
+    false
 };
 
 SCIVersion sciVersion1_1 =
@@ -55,7 +57,8 @@ SCIVersion sciVersion1_1 =
     0,
     false,
     true,
-    AudioVolumeName::Aud
+    AudioVolumeName::Aud,
+    true
 };
 
 bool SCIVersion::operator == (const SCIVersion &src)

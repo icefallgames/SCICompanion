@@ -125,6 +125,13 @@ void MessageWriteTo_4000(const TextComponent &messageComponent, sci::ostream &by
     // NOTE: This may need to be padded to WORD boundary
 }
 
+uint16_t CheckMessageVersion(sci::istream &byteStream)
+{
+    uint16_t msgVersion;
+    byteStream >> msgVersion;
+    return msgVersion;
+}
+
 void MessageReadFrom(ResourceEntity &resource, sci::istream &byteStream)
 {
     TextComponent &message = resource.GetComponent<TextComponent>();
@@ -181,6 +188,7 @@ ResourceEntity *CreateMessageResource(SCIVersion version)
 {
     std::unique_ptr<ResourceEntity> pResource = std::make_unique<ResourceEntity>(messageTraits);
     pResource->AddComponent(move(make_unique<TextComponent>()));
+    pResource->SourceFlags = ResourceSourceFlags::MessageMap;
     return pResource.release();
 }
 
@@ -190,3 +198,15 @@ ResourceEntity *CreateDefaultMessageResource(SCIVersion version)
     return CreateMessageResource(version);
 }
 
+ResourceEntity *CreateNewMessageResource(SCIVersion version, uint16_t msgVersion)
+{
+    ResourceEntity *resource = CreateMessageResource(version);
+    TextComponent &text = resource->GetComponent<TextComponent>();
+    text.msgVersion = msgVersion;
+    text.Flags = MessagePropertyFlags::Noun | MessagePropertyFlags::Verb;
+    if (msgVersion > 0x835)
+    {
+        text.Flags |= MessagePropertyFlags::Condition | MessagePropertyFlags::Sequence | MessagePropertyFlags::Talker;
+    }
+    return resource;
+}

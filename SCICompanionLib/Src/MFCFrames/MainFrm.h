@@ -170,6 +170,7 @@ private:
     afx_msg void OnFileOpenResource();
     afx_msg void OnFileAddResource();
     afx_msg void OnUpdateNewPic(CCmdUI *pCmdUI);
+    afx_msg void OnUpdateNewMessage(CCmdUI *pCmdUI);
     afx_msg void OnUpdateShowIfGameLoaded(CCmdUI *pCmdUI);
     afx_msg void OnShowPreferences();
     afx_msg void OnRebuildResources();

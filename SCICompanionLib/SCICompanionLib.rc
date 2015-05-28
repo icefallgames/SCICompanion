@@ -373,6 +373,7 @@ BEGIN
             MENUITEM "&Text",                       ID_FILE_NEWTEXT
             MENUITEM "&Empty script",               ID_NEWSCRIPT
             MENUITEM "&Sound",                      ID_FILE_NEWSOUND
+            MENUITEM "&Message",                    ID_NEW_MESSAGE
         END
         MENUITEM "Create new &game",            ID_FILE_NEWGAME
         MENUITEM "&Open game\tCtrl+O",          ID_FILE_OPEN
@@ -2420,6 +2421,11 @@ END
 STRINGTABLE
 BEGIN
     ID_CIRCLE               "Draw an ellipse\nEllipse"
+END
+
+STRINGTABLE
+BEGIN
+    ID_NEW_MESSAGE          "Create a new message resource\nNew message resource"
 END
 
 #endif    // English (United States) resources
