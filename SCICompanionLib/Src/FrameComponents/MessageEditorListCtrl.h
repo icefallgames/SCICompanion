@@ -1,6 +1,8 @@
 #pragma once
 
 class MessageSource;
+class CMessageDoc;
+enum class MessageSourceType;
 
 class CLVEdit : public CEdit
 {
@@ -22,7 +24,10 @@ public:
     MessageEditorListCtrl();
     virtual ~MessageEditorListCtrl();
 
-    void SetSource(MessageSource *source);
+    // Instead of setting the MessageSource directly, we'll set the type.
+    // This is because we retrieve MessageSource as a weak ptr that may be reloaded
+    // at any time. So we always need to fetch it from the source.
+    void SetSource(CMessageDoc *pDoc, MessageSourceType sourceType);
     void AddNewItem();
 
 protected:
@@ -31,11 +36,15 @@ protected:
     void OnBeginLabelEdit(NMHDR* pNMHDR, LRESULT* pResult);
 
 private:
+    MessageSource *_GetSource(bool reload = false);
     void _InitColumns();
     void _Populate();
+    void _Commit();
+
+    MessageSourceType _sourceType;
+    CMessageDoc *_pDoc;
 
     bool _initialized;
-    MessageSource *_source;
     bool _inLabelEdit;
     bool _inValueEdit;
     bool _removeIfFailEdit;

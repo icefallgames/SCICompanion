@@ -2,6 +2,7 @@
 #include "AppState.h"
 #include "MessageNounConditionPane.h"
 #include "MessageDoc.h"
+#include "MessageSource.h"
 #include "Text.h"
 #include "Message.h"
 #include "CObjectWrap.h"
@@ -102,8 +103,8 @@ void MessageNounConditionPane::_Update()
 {
     if (_pDoc)
     {
-        m_wndNouns.SetSource(_pDoc->GetNounMessageSource());
-        m_wndConditions.SetSource(_pDoc->GetConditionMessageSource());
+        m_wndNouns.SetSource(_pDoc, MessageSourceType::Nouns);
+        m_wndConditions.SetSource(_pDoc, MessageSourceType::Conditions);
     }
 }
 

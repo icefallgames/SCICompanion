@@ -3,6 +3,14 @@
 class MessageHeaderFile;
 typedef std::pair<std::string, uint16_t> MessageDefine;
 
+enum class MessageSourceType
+{
+    Talkers,
+    Verbs,
+    Nouns,
+    Conditions,
+};
+
 class MessageSource
 {
 public:

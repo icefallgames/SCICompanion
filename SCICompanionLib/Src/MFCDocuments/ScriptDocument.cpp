@@ -619,13 +619,23 @@ void CScriptDocument::Serialize(CArchive& ar)
 	}
 }
 
+// We don't want the user editing these files. They should use the message editor instead.
+bool IsReadOnly(LPCTSTR pathName)
+{
+    return (0 == lstrcmp(PathFindExtension(pathName), ".shm")) ||
+        (0 == lstrcmpi(PathFindFileName(pathName), "Verbs.sh")) ||
+        (0 == lstrcmpi(PathFindFileName(pathName), "Talkers.sh"));
+}
+
 BOOL CScriptDocument::OnOpenDocument(LPCTSTR lpszPathName) 
 {
 	if (!__super::OnOpenDocument(lpszPathName))
 		return FALSE;
 	_scriptId = ScriptId(lpszPathName);
     _buffer.FreeAll();
-	return _buffer.LoadFromFile(lpszPathName);
+	BOOL result = _buffer.LoadFromFile(lpszPathName);
+    _buffer.SetReadOnly(IsReadOnly(lpszPathName));
+    return result;
 }
 BOOL CScriptDocument::OnSaveDocument(LPCTSTR lpszPathName) 
 {

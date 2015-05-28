@@ -2,6 +2,7 @@
 #include "AppState.h"
 #include "MessageSidePane.h"
 #include "MessageDoc.h"
+#include "MessageSource.h"
 #include "Text.h"
 #include "Message.h"
 #include "CObjectWrap.h"
@@ -111,8 +112,8 @@ void MessageSidePane::SetDocument(CDocument *pDoc)
     if (_pDoc)
     {
         // This is as good time as any to trigger a reload.
-        m_wndVerbs.SetSource(appState->GetResourceMap().GetVerbsMessageSource(true));
-        m_wndTalkers.SetSource(appState->GetResourceMap().GetTalkersMessageSource(true));
+        m_wndVerbs.SetSource(_pDoc, MessageSourceType::Verbs);
+        m_wndTalkers.SetSource(_pDoc, MessageSourceType::Talkers);
 
         _pDoc->AddNonViewClient(this);
         _Update();

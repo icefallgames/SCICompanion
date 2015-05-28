@@ -40,6 +40,7 @@ void MessageEditPane::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_STATIC7, m_wndLabel3);
         DDX_Control(pDX, IDC_STATIC8, m_wndLabel4);
         DDX_Control(pDX, IDC_STATIC9, m_wndLabel5);
+        DDX_Control(pDX, IDC_STATIC2, m_wndLabel6);
 
         DDX_Control(pDX, IDC_BUTTONADDSEQ, m_wndButton1);
         DDX_Control(pDX, IDC_BUTTONCLONE, m_wndButton2);
@@ -212,11 +213,12 @@ void MessageEditPane::UpdateNonView(CObject *pObject)
 {
     // TODO: Provide more specific update mechanism
     MessageChangeHint hint = GetHint<MessageChangeHint>(pObject);
-    if (IsFlagSet(hint, MessageChangeHint::Selection))
+    _UpdateCombos(hint);
+
+    if (IsFlagSet(hint, MessageChangeHint::Selection | MessageChangeHint::AllMessageFiles | MessageChangeHint::ItemChanged | MessageChangeHint::Changed))
     {
         _Update();
     }
-    _UpdateCombos(hint);
 }
 
 const TextComponent *MessageEditPane::_GetResource()

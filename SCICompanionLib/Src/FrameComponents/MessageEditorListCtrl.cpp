@@ -3,6 +3,8 @@
 #include "MessageSource.h"
 #include "format.h"
 #include "SCIStudioSyntaxParser.h"
+#include "AppState.h"
+#include "MessageDoc.h"
 
 using namespace std;
 
@@ -10,7 +12,7 @@ BEGIN_MESSAGE_MAP(CLVEdit, CEdit)
     ON_WM_WINDOWPOSCHANGING()
 END_MESSAGE_MAP()
 
-void CLVEdit::OnWindowPosChanging(WINDOWPOS FAR* lpwndpos)
+void CLVEdit::OnWindowPosChanging(WINDOWPOS *lpwndpos)
 {
     lpwndpos->x = Rect.left;
     lpwndpos->y = Rect.top;
@@ -20,7 +22,7 @@ void CLVEdit::OnWindowPosChanging(WINDOWPOS FAR* lpwndpos)
 }
 
 IMPLEMENT_DYNAMIC(MessageEditorListCtrl, CListCtrl)
-MessageEditorListCtrl::MessageEditorListCtrl() : _initialized(false), _source(nullptr), _inLabelEdit(false), _inValueEdit(false), _removeIfFailEdit(false)
+MessageEditorListCtrl::MessageEditorListCtrl() : _initialized(false), _pDoc(nullptr), _inLabelEdit(false), _inValueEdit(false), _removeIfFailEdit(false)
 {
 }
 
@@ -58,6 +60,8 @@ bool _IsValidToken(const string &value)
 
 void MessageEditorListCtrl::OnEndLabelEdit(NMHDR* pNMHDR, LRESULT* pResult)
 {
+    MessageSource *source = _GetSource();
+
     *pResult = FALSE;
     NMLVDISPINFO *plvdi = (NMLVDISPINFO *)pNMHDR;
     if (plvdi->item.pszText && _inLabelEdit)
@@ -70,7 +74,7 @@ void MessageEditorListCtrl::OnEndLabelEdit(NMHDR* pNMHDR, LRESULT* pResult)
             _lvEdit.UnsubclassWindow();
 
             int value = stoi(result);
-            int existingIndex = _source->IndexOf((uint16_t)value);
+            int existingIndex = source->IndexOf((uint16_t)value);
             if ((existingIndex != -1) && (existingIndex != plvdi->item.iItem))
             {
                 AfxMessageBox("A define already exists with this value.", MB_ICONWARNING | MB_OK);
@@ -82,8 +86,8 @@ void MessageEditorListCtrl::OnEndLabelEdit(NMHDR* pNMHDR, LRESULT* pResult)
             else
             {
                 SetItemText(plvdi->item.iItem, COL_VALUE, strResult);
-                _source->SetValue(plvdi->item.iItem, (uint16_t)value);
-                _source->Commit();
+                source->SetValue(plvdi->item.iItem, (uint16_t)value);
+                _Commit();
                 *pResult = TRUE;
             }
 
@@ -92,11 +96,11 @@ void MessageEditorListCtrl::OnEndLabelEdit(NMHDR* pNMHDR, LRESULT* pResult)
         else
         {
             // Validate and commit the name.
-            if (result.compare(0, _source->MandatoryPrefix.size(), _source->MandatoryPrefix) != 0)
+            if (result.compare(0, source->MandatoryPrefix.size(), source->MandatoryPrefix) != 0)
             {
-                result = _source->MandatoryPrefix + result;
+                result = source->MandatoryPrefix + result;
             }
-            int existingIndex = _source->IndexOf(result);
+            int existingIndex = source->IndexOf(result);
             if ((existingIndex != -1) && (existingIndex != plvdi->item.iItem))
             {
                 AfxMessageBox("A define already exists with this name.", MB_ICONWARNING | MB_OK);
@@ -108,8 +112,8 @@ void MessageEditorListCtrl::OnEndLabelEdit(NMHDR* pNMHDR, LRESULT* pResult)
             else
             {
                 SetItemText(plvdi->item.iItem, COL_NAME, result.c_str());
-                _source->SetName(plvdi->item.iItem, result);
-                _source->Commit();
+                source->SetName(plvdi->item.iItem, result);
+                _Commit();
                 *pResult = TRUE;
             }
         }
@@ -119,12 +123,12 @@ void MessageEditorListCtrl::OnEndLabelEdit(NMHDR* pNMHDR, LRESULT* pResult)
     {
         if (!*pResult)
         {
-            _source->DeleteDefine(plvdi->item.iItem);
+            source->DeleteDefine(plvdi->item.iItem);
             DeleteItem(plvdi->item.iItem);
         }
         _removeIfFailEdit = false;
     }
-
+    _inValueEdit = false;
     _inLabelEdit = false;
 }
 
@@ -202,10 +206,11 @@ void MessageEditorListCtrl::_Populate()
     this->SetRedraw(FALSE);
     DeleteAllItems();
 
-    if (_source)
+    MessageSource *source = _GetSource();
+    if (source)
     {
         int index = 0;
-        for (auto &define : _source->GetDefines())
+        for (auto &define : source->GetDefines())
         {
             InsertItem(index, define.first.c_str());
             string value = fmt::format("{0}", define.second);
@@ -216,20 +221,11 @@ void MessageEditorListCtrl::_Populate()
     this->SetRedraw(TRUE);
 }
 
-void MessageEditorListCtrl::SetSource(MessageSource *source)
-{
-    if (_source != source)
-    {
-        _source = source;
-        _Populate();
-    }
-}
-
 void MessageEditorListCtrl::AddNewItem()
 {
     // Add a new entry and begin label edit. Use the first free index.
     bool used[256] = { };
-    for (auto &define : _source->GetDefines())
+    for (auto &define : _GetSource()->GetDefines())
     {
         if (define.second < ARRAYSIZE(used))
         {
@@ -248,10 +244,49 @@ void MessageEditorListCtrl::AddNewItem()
 
     if (newValue < ARRAYSIZE(used))
     {
-        size_t newIndex = _source->AddDefine(_source->MandatoryPrefix + "NEWITEM", (uint16_t)newValue);
+        size_t newIndex = _GetSource()->AddDefine(_GetSource()->MandatoryPrefix + "NEWITEM", (uint16_t)newValue);
         _Populate();
         SetFocus();
         EditLabel((int)newIndex);
         _removeIfFailEdit = true;
+    }
+}
+
+void MessageEditorListCtrl::SetSource(CMessageDoc *pDoc, MessageSourceType sourceType)
+{
+    _pDoc = pDoc;
+    _sourceType = sourceType;
+    _GetSource(true);
+    _Populate();
+}
+
+MessageSource *MessageEditorListCtrl::_GetSource(bool reload)
+{
+    switch (_sourceType)
+    {
+        case MessageSourceType::Conditions:
+            return _pDoc->GetConditionMessageSource();
+        case MessageSourceType::Verbs:
+            return appState->GetResourceMap().GetVerbsMessageSource(reload);
+        case MessageSourceType::Talkers:
+            return appState->GetResourceMap().GetTalkersMessageSource(reload);
+        case MessageSourceType::Nouns:
+            return _pDoc->GetNounMessageSource();
+    }
+    return nullptr;
+}
+
+void MessageEditorListCtrl::_Commit()
+{
+    MessageSource *source = _GetSource();
+    if (source)
+    {
+        source->Commit();
+        if (_pDoc)
+        {
+            // Send out notification. Be lazy and just say "all message files".
+            auto hint = WrapHint(MessageChangeHint::AllMessageFiles);
+            _pDoc->UpdateAllViewsAndNonViews(nullptr, 0, &hint);
+        }
     }
 }

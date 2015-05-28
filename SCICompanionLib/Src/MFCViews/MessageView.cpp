@@ -372,6 +372,8 @@ void CMessageView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
                 GetListCtrl().SetRedraw(TRUE);
             }
         }
+
+        ClearFlag(hint, MessageChangeHint::AllMessageFiles); // Since we already re-popualted
     }
     else if (IsFlagSet(hint, MessageChangeHint::ItemChanged))
     {
@@ -390,6 +392,22 @@ void CMessageView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
                     _EscapeString(strText);
                     _SetItem(index, (PCSTR)strText, pText, false);
                 }
+            }
+        }
+    }
+
+    if (IsFlagSet(hint, MessageChangeHint::AllMessageFiles))
+    {
+        const TextComponent *pText = GetTextComponent();
+        if (pText)
+        {
+            for (size_t i = 0; i < pText->Texts.size(); i++)
+            {
+                auto &entry = pText->Texts[i];
+                // Just update this row
+                CString strText = entry.Text.c_str();
+                _EscapeString(strText);
+                _SetItem(i, (PCSTR)strText, pText, false);
             }
         }
     }
