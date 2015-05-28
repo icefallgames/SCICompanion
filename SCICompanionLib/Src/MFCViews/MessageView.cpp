@@ -268,8 +268,6 @@ void CMessageView::OnItemChanged(NMHDR* pNMHDR, LRESULT* pResult)
 void CMessageView::OnDelete()
 {
     int nItem = _GetSelectedItem();
-    // delete, as long as we're not in a label edit, and we have a selected item, and that selected
-    // item is not the "new string" item.
     if (nItem != -1)
     {
         CListCtrl &listCtl = GetListCtrl();
@@ -287,16 +285,8 @@ void CMessageView::OnDelete()
                 return WrapHint(text.DeleteString(nItem));
             }
             );
-
-
-            // Delete the item from view.
-            listCtl.DeleteItem(nItem);
-
-            // Select the next item in the view.
-            if (!listCtl.SetItemState(nItem, LVIS_SELECTED, LVIS_SELECTED) && (nItem > 0))
-            {
-                listCtl.SetItemState(nItem - 1, LVIS_SELECTED, LVIS_SELECTED);
-            }
+            int newSelectedIndex = max(0, min(nItem, (int)(GetTextComponent()->Texts.size() - 1)));
+            pDoc->SetSelectedIndex(newSelectedIndex, true);
         }
     }
 }
@@ -307,12 +297,12 @@ void CMessageView::_UpdateSelection(int *topIndex)
     if (pDoc)
     {
         int index = pDoc->GetSelectedIndex();
-        this->GetListCtrl().SetItemState(index, LVIS_SELECTED, LVIS_SELECTED);
-        this->GetListCtrl().SetSelectionMark(index);
+        this->GetListCtrl().SetItemState(index, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+        //this->GetListCtrl().SetSelectionMark(index);
         if (topIndex)
         {
             this->GetListCtrl().EnsureVisible(*topIndex, FALSE);
-            this->GetListCtrl().EnsureVisible(*topIndex + this->GetListCtrl().GetCountPerPage(), TRUE);
+            this->GetListCtrl().EnsureVisible(*topIndex + this->GetListCtrl().GetCountPerPage() - 1, TRUE);
             /*
             CRect rc;
             this->GetListCtrl().GetItemRect(0, &rc, LVIR_LABEL);

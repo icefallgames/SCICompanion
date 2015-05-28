@@ -28,7 +28,7 @@ public:
     MessageSource *GetNounMessageSource();
     MessageSource *GetConditionMessageSource();
 
-    void SetSelectedIndex(int index);
+    void SetSelectedIndex(int index, bool force = false);
     int GetSelectedIndex() const { return _selectedIndex; }
 
 protected:

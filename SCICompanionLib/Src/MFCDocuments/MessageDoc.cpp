@@ -20,9 +20,9 @@ CMessageDoc::CMessageDoc() : _selectedIndex(-1)
 {
 }
 
-void CMessageDoc::SetSelectedIndex(int index)
+void CMessageDoc::SetSelectedIndex(int index, bool force)
 {
-    if (index != _selectedIndex)
+    if (force || (index != _selectedIndex))
     {
         _selectedIndex = index;
         UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(MessageChangeHint::Selection));
