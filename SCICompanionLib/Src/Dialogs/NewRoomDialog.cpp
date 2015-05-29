@@ -11,6 +11,7 @@
 #include "Message.h"
 #include "MessageHeaderFile.h"
 #include "ResourceEntity.h"
+#include "InsertObject.h"
 #include <format.h>
 
 using namespace sci;
@@ -93,9 +94,9 @@ void CNewRoomDialog::_AttachControls(CDataExchange* pDX)
         m_wndCheckMessage.SetCheck(BST_CHECKED);
     }
 
-    // Values from 0 to 999
-    m_wndEditScriptNumber.SetLimitText(3);
-    m_wndEditPicNumber.SetLimitText(3);
+    // Values from 0 to 999 or 16384
+    m_wndEditScriptNumber.SetLimitText(5);
+    m_wndEditPicNumber.SetLimitText(5);
 
     // Visuals
     DDX_Control(pDX, IDC_STATICROOMNUM, m_wndRoomNumberLabel);
@@ -117,7 +118,7 @@ void _AddPrevRoomNumSwitch(MethodDefinition &method)
 
     // Now set the ego's position
 	unique_ptr<SendCall> pSend = std::make_unique<SendCall>();
-    pSend->SetName("gEgo");
+    _SetSendVariableTarget(*pSend, "gEgo");
 
     {
 		unique_ptr<SendParam> pParam = std::make_unique<SendParam>();
@@ -176,6 +177,12 @@ void _CreateMessageFile(int scriptNumber)
     }
 }
 
+int CNewRoomDialog::_GetMinSuggestedScriptNumber()
+{
+    // Rooms start from 100 in SCI1.1 (convention)
+    return appState->GetVersion().SeparateHeapResources ? 100 : 0;
+}
+
 void CNewRoomDialog::_PrepareBuffer()
 {
     //if (_scriptId.Language() == LangSyntaxSCIStudio)
@@ -215,8 +222,17 @@ void CNewRoomDialog::_PrepareBuffer()
             std::stringstream ss;
             ss << format("rm{0:0>3}", _scriptId.GetResourceNumber());
             pClass->SetName(ss.str());
-
+            pClass->SetPublic(true);
             pClass->SetSuperClass("Rm");
+
+            // Export it, if we're using syntax version 2
+            if (script.SyntaxVersion >= 2)
+            {
+                std::unique_ptr<ExportEntry> roomExport = make_unique<ExportEntry>();
+                roomExport->Slot = 0;
+                roomExport->Name = ss.str();
+                script.GetExports().push_back(move(roomExport));
+            }
 
             if (_scriptId.GetResourceNumber() == _nPicScript)
             {
@@ -252,7 +268,7 @@ void CNewRoomDialog::_PrepareBuffer()
                     _AddStatement(*pInit, std::move(pSetUpEgo));
                 }
 
-                _AddSendCall(*pInit, "gEgo", "init", "");
+                _AddSendCall(*pInit, "gEgo", "init", "", true);
 
 				pClass->AddMethod(std::move(pInit));
             }
@@ -317,7 +333,7 @@ void CNewRoomDialog::_PrepareBuffer()
                 }
                 
                 _AddAssignment(*pCS, "state", "newState");
-                _AddBasicSwitch(*pCS, "0", "// Handle state changes");
+                _AddBasicSwitch(*pCS, "state", "// Handle state changes");
 
 				pClass->AddMethod(std::move(pCS));
             }
@@ -456,8 +472,8 @@ void CNewRoomDialog::OnOK()
         _nPicScript = StrToInt(strNumber);
     }
 
-    ASSERT(_scriptId.GetResourceNumber() < 1000);
-    ASSERT((_nPicScript >= 0) && (_nPicScript < 1000));
+    ASSERT(_scriptId.GetResourceNumber() <= appState->GetVersion().GetMaximumResourceNumber());
+    ASSERT((_nPicScript >= 0) && (_nPicScript <= appState->GetVersion().GetMaximumResourceNumber()));
 
     if (fClose)
     {

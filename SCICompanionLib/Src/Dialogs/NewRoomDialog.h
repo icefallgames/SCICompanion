@@ -28,6 +28,7 @@ protected:
     virtual void _PrepareDialog();
     virtual void _DiscoveredScriptName(PCTSTR pszName);
     virtual void _PrepareBuffer();
+    int _GetMinSuggestedScriptNumber() override;
     void _PrepareBufferOld();
     virtual void _AttachControls(CDataExchange *pDX);
 	DECLARE_MESSAGE_MAP()

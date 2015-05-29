@@ -33,6 +33,7 @@ protected:
     virtual void _PrepareBuffer();
     virtual void _AttachControls(CDataExchange *pDX);
     virtual int _GetSuggestedScriptNumber();
+    virtual int _GetMinSuggestedScriptNumber() { return 0; }
     BOOL _ValidateScriptNumber();
 	DECLARE_MESSAGE_MAP()
 

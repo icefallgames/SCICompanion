@@ -95,6 +95,8 @@
 (define dpOPEN_EDGECENTER 			6)   // open from edges to center 
 (define dpOPEN_CENTEREDGE 			7)   // open from center to edges 
 (define dpOPEN_CHECKBOARD			8)   // open random checkboard 
+
+ #ifdef SCI_0
 (define dpCLOSEREOPEN_HCENTER		9)   // horizontally close to center, reopen from center 
 (define dpCLOSEREOPEN_VCENTER		10)  // vertically close to center, reopen from center 
 (define dpCLOSEREOPEN_RIGHT			11)  // close to right, reopen from right 
@@ -104,6 +106,19 @@
 (define dpCLOSEREOPEN_EDGECENTER	15)  // close from center to edges, reopen from edges to center 
 (define dpCLOSEREOPEN_CENTEREDGE	16)  // close from edges to center, reopen from center to edges 
 (define dpCLOSEREOPEN_CHECKBOARD	17)  // close random checkboard, reopen 
+#endif
+
+#ifdef SCI_1_1
+(define dpOPEN_PIXELATION   		9)   // pixelized
+(define dpOPEN_FADEPALETTE   		10)
+(define dpOPEN_SCROLL_RIGHT  		11)
+(define dpOPEN_SCROLL_LEFT   		12)
+(define dpOPEN_SCROLL_UP      		13)
+(define dpOPEN_SCROLL_DOWN   		14)
+(define dpOPEN_NO_TRANSITION   		100)
+
+(define dpANIMATION_BLACKOUT   		$8000)
+#endif
 
 (define dpCLEAR						1)   // Clear the screen before drawing
 (define dpNO_CLEAR					0)   // Don't clear the screen before drawing

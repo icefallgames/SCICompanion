@@ -22,4 +22,6 @@ void _AddComment(_T &method, const std::string &comment)
 
 void _AddBasicSwitch(sci::MethodDefinition &method, const std::string &switchValue, const std::string &case0Comments);
 
-void _AddSendCall(sci::MethodDefinition &method, const std::string &objectName, const std::string &methodName, const std::string &parameter);
+void _AddSendCall(sci::MethodDefinition &method, const std::string &objectName, const std::string &methodName, const std::string &parameter, bool isVariable = false);
+
+void _SetSendVariableTarget(sci::SendCall &send, const std::string &target);

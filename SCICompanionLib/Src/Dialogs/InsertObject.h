@@ -1,6 +1,5 @@
 #pragma once
 
-
 // CInsertObject dialog
 
 class CInsertObject : public CExtResizableDialog

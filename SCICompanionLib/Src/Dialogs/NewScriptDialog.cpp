@@ -32,7 +32,7 @@ int CNewScriptDialog::_GetSuggestedScriptNumber()
     int lastUsed = 0;
     for (int used : _usedScriptNumbers)
     {
-        if (used > (lastUsed + 1))
+        if ((used > (lastUsed + 1)) && (lastUsed > _GetMinSuggestedScriptNumber()))
         {
             return lastUsed + 1;
         }
@@ -75,7 +75,12 @@ void CNewScriptDialog::_PrepareDialog()
                     int iScript = StrToInt(psz + 1);
                     if (iScript >= 0)
                     {
-                        _usedScriptNumbers.insert(iScript);
+                        // We can end up with turd entries lying around in game.ini, so check that the file actually exists:
+                        std::string filename = appState->GetResourceMap().Helper().GetScriptFileName((uint16_t)iScript);
+                        if (PathFileExists(filename.c_str()))
+                        {
+                            _usedScriptNumbers.insert(iScript);
+                        }
                     }
 
                     // Advance to next string.
@@ -144,6 +149,7 @@ BOOL CNewScriptDialog::_ValidateScriptNumber()
     // Validate the script number
     CString strNumber;
     m_wndEditScriptNumber.GetWindowText(strNumber);
+    _scriptId = ScriptId(); // Reset, or else it asserts if we already set a number on it.
     _scriptId.SetResourceNumber(StrToInt(strNumber));
     int value = _scriptId.GetResourceNumber();
     if (contains(_usedScriptNumbers, value))

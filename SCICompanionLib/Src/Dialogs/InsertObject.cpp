@@ -30,6 +30,13 @@ enum Species
     SpeciesScript = 5,
 };
 
+void _SetSendVariableTarget(SendCall &send, const std::string &target)
+{
+    unique_ptr<LValue> lValue = make_unique<LValue>();
+    lValue->SetName(target);
+    send.SetLValue(move(lValue));
+}
+
 void _AddProperties(ClassDefinition &instance, Species species, WORD wx, WORD wy, WORD wView)
 {
     switch(species)
@@ -127,10 +134,17 @@ void _AddBasicSwitch(MethodDefinition &method, const string &switchValue, const 
 
 
 // parameter may be empty.
-void _AddSendCall(MethodDefinition &method, const string &objectName, const string &methodName, const string &parameter)
+void _AddSendCall(MethodDefinition &method, const string &objectName, const string &methodName, const string &parameter, bool isVariable)
 {
 	unique_ptr<SendCall> pSend = std::make_unique<SendCall>();
-    pSend->SetName(objectName);
+    if (isVariable)
+    {
+        _SetSendVariableTarget(*pSend, objectName);
+    }
+    else
+    {
+        pSend->SetName(objectName);
+    }
 
     // Create the send param to add to the send call
 	unique_ptr<SendParam> pParam = std::make_unique<SendParam>();
@@ -288,4 +302,4 @@ BEGIN_MESSAGE_MAP(CInsertObject, CExtResizableDialog)
 END_MESSAGE_MAP()
 
 
-// CInsertObject message handlers
+

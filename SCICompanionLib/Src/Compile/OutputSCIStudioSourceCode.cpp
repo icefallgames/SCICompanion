@@ -46,17 +46,17 @@ public:
         }
 
         Forward(script.GetSynonyms());
-        out.out << endl;
+        out.EnsureNewLine();
 
         Forward(script.GetDefines());
-        out.out << endl;
+        out.EnsureNewLine();
 
         ForwardOptionalSection("local", script.GetScriptVariables());
 
         ForwardOptionalSection("string", script.GetScriptStringsDeclarations());
 
         Forward(script.GetProcedures());
-        out.out << endl;
+        out.EnsureNewLine();
         Forward(script.GetClasses());
     }
 
