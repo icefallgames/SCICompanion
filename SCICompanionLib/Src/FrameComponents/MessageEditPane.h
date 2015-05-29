@@ -30,10 +30,12 @@ public:
 
     virtual BOOL PreTranslateMessage(MSG* pMsg);
 
+    TextEntry *_GetEntry(TextComponent &text);
+    void _Update();
+
 protected:
     const TextComponent *_GetResource();
     const TextEntry *_GetEntry();
-    TextEntry *_GetEntry(TextComponent &text);
     int _GetSelectedIndex();
     void _AddEntryAtCurrentPosition(const TextEntry &entry);
 
@@ -47,17 +49,22 @@ protected:
     BOOL OnEraseBkgnd(CDC *pDC);
 
 private:
-    void _Update();
     void _UpdateSequence(int sequence);
     void _UpdateCombos(MessageChangeHint hint);
 
     CMessageDoc *_pDoc;
 
     CExtEdit m_wndEditMessage;
+
     CExtComboBox m_wndComboNoun;
+    bool _nounEdited;
     CExtComboBox m_wndComboVerb;
+    bool _verbEdited;
     CExtComboBox m_wndComboTalker;
+    bool _talkerEdited;
     CExtComboBox m_wndComboCondition;
+    bool _conditionEdited;
+
     CExtEdit m_wndEditSequence;
 
     // Visual
@@ -89,4 +96,17 @@ public:
     afx_msg void OnCbnSelchangeCombocondition();
     afx_msg void OnCbnSelchangeCombotalker();
     afx_msg void OnBnClickedButtonaddnew();
+    afx_msg void OnCbnEditchangeComboverb();
+    afx_msg void OnCbnEditupdateComboverb();
+    afx_msg void OnCbnKillfocusComboverb();
+    afx_msg void OnCbnSetfocusComboverb();
+    afx_msg void OnCbnSetfocusCombonoun();
+    afx_msg void OnCbnKillfocusCombonoun();
+    afx_msg void OnCbnEditchangeCombonoun();
+    afx_msg void OnCbnSetfocusCombocondition();
+    afx_msg void OnCbnKillfocusCombocondition();
+    afx_msg void OnCbnEditchangeCombocondition();
+    afx_msg void OnCbnSetfocusCombotalker();
+    afx_msg void OnCbnKillfocusCombotalker();
+    afx_msg void OnCbnEditchangeCombotalker();
 };

@@ -30,6 +30,8 @@ public:
     void SetSource(CMessageDoc *pDoc, MessageSourceType sourceType);
     void AddNewItem();
 
+    BOOL PreTranslateMessage(MSG* pMsg) override;
+
 protected:
     DECLARE_MESSAGE_MAP()
     void OnEndLabelEdit(NMHDR* pNMHDR, LRESULT* pResult);

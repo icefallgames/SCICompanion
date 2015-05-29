@@ -1113,6 +1113,8 @@ void CResourceMap::SetGameFolder(const string &gameFolder)
 
         _paletteListNeedsUpdate = true;
     }
+
+    appState->OnGameFolderUpdate();
 }
 
 // Returns null if it doesn't exist.

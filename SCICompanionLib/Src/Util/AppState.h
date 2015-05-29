@@ -101,6 +101,8 @@ public:
     std::string GetGameExecutableParameters();
     void SetGameExecutableParameters(PCTSTR pszName);
 
+    void OnGameFolderUpdate();
+
     void LogInfo(const TCHAR *pszFormat, ...);
 
     // Global settings:

@@ -532,6 +532,12 @@ std::string AppState::GetGameExecutableParameters()
 
 }
 
+void AppState::OnGameFolderUpdate()
+{
+    CMainFrame *pMainWnd = static_cast<CMainFrame*>(_pApp->m_pMainWnd);
+    pMainWnd->RefreshExplorerTools();
+}
+
 void AppState::SetGameExecutableParameters(PCTSTR pszExe)
 {
     _SetGameStringProperty(c_szExeParametersString, pszExe);

@@ -8,7 +8,7 @@
 // SaveResourceDialog dialog
 
 SaveResourceDialog::SaveResourceDialog(CWnd* pParent /*=NULL*/)
-	: CExtResizableDialog(SaveResourceDialog::IDD, pParent)
+    : CExtResizableDialog(SaveResourceDialog::IDD, pParent), _iPackageNumber(0), _iResourceNumber(0)
 {
 }
 
@@ -32,11 +32,14 @@ void SaveResourceDialog::DoDataExchange(CDataExchange* pDX)
 	CDialog::DoDataExchange(pDX);
     ShowSizeGrip(FALSE);
 
+    TCHAR sz[10];
+    _iPackageNumber = _GetValidPackage(_iPackageNumber);
+    /*
     DDX_Control(pDX, IDC_EDITPACKAGE, m_wndEditPackage);
     m_wndEditPackage.LimitText(2);
-    TCHAR sz[10];
     StringCchPrintf(sz, ARRAYSIZE(sz), TEXT("%d"), _GetValidPackage(_iPackageNumber));
     m_wndEditPackage.SetWindowText(sz);
+    */
 
     DDX_Control(pDX, IDC_EDITRESOURCE, m_wndEditResource);
     m_wndEditResource.LimitText(5);
@@ -46,7 +49,7 @@ void SaveResourceDialog::DoDataExchange(CDataExchange* pDX)
     // Visuals
     DDX_Control(pDX, IDOK, m_wndOk);
     DDX_Control(pDX, IDCANCEL, m_wndCancel);
-    DDX_Control(pDX, IDC_STATIC1, m_wndLabel1);
+    //DDX_Control(pDX, IDC_STATIC1, m_wndLabel1);
     DDX_Control(pDX, IDC_STATIC2, m_wndLabel2);
 }
 
@@ -79,8 +82,8 @@ BOOL SaveResourceDialog::_ValidateData()
 void SaveResourceDialog::OnOK()
 {
     CString str;
-    m_wndEditPackage.GetWindowText(str);
-    _iPackageNumber = StrToInt(str);
+    //m_wndEditPackage.GetWindowText(str);
+    //_iPackageNumber = StrToInt(str);
 
     m_wndEditResource.GetWindowText(str);
     _iResourceNumber = StrToInt(str);

@@ -33,6 +33,8 @@
 #include "Message.h"
 #include "MessageDoc.h"
 #include "Sound.h"
+#include "PaletteDoc.h"
+#include "PaletteOperations.h"
 #include "NewRasterResourceDocument.h"
 #include "AppState.h"
 #include "CObjectWrap.h"
@@ -318,6 +320,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_COMMAND(ID_FILE_NEWTEXT, OnFileNewText)
     ON_COMMAND(ID_FILE_NEWSOUND, OnFileNewSound)
     ON_COMMAND(ID_NEW_MESSAGE, OnFileNewMessage)
+    ON_COMMAND(ID_NEW_PALETTE, OnFileNewPalette)
     ON_COMMAND(ID_FILE_OPENRESOURCE, OnFileOpenResource)
     ON_COMMAND(ID_FILE_ADDRESOURCE, OnFileAddResource)
     ON_COMMAND(ID_EDIT_FINDINFILES, OnFindInFiles)
@@ -345,6 +348,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_UPDATE_COMMAND_UI(ID_FILE_NEWPIC, OnUpdateNewPic)
     ON_UPDATE_COMMAND_UI(ID_PREFERENCES, OnUpdateAlwaysEnabled)
     ON_UPDATE_COMMAND_UI(ID_NEW_MESSAGE, OnUpdateNewMessage)
+    ON_UPDATE_COMMAND_UI(ID_NEW_PALETTE, OnUpdateNewPalette)
     ON_UPDATE_COMMAND_UI(ID_TOOLS_EXTRACTALLRESOURCES, OnUpdateShowIfGameLoaded)
     ON_UPDATE_COMMAND_UI(ID_TOOLS_REBUILDRESOURCES, OnUpdateShowIfGameLoaded)
     ON_UPDATE_COMMAND_UI(ID_TOOLS_REBUILDCLASSTABLE, OnUpdateShowIfGameLoaded)
@@ -439,7 +443,7 @@ c_ShowResourceCommands[] =
     { ID_SHOW_CURSORS, ResourceType::Cursor, "Cursors", "Show cursors", "Show cursor resources", IDI_CURSOR },
     { ID_SHOW_PATCHES, ResourceType::Patch, "Patches", "Show patches", "Show patch resources", IDI_PATCH },
     { ID_SHOW_PALETTES, ResourceType::Palette, "Palettes", "Show palettes", "Show palette resources", IDI_PALETTEVGA },
-    { ID_SHOW_MESSAGES, ResourceType::Message, "Messages", "Show messages", "Show message resources", IDI_TEXT },
+    { ID_SHOW_MESSAGES, ResourceType::Message, "Messages", "Show messages", "Show message resources", IDI_MESSAGE },
     { ID_SHOW_HEAPS, ResourceType::Heap, "Heaps", "Show heaps", "Show heap resources", IDI_SCRIPT },
     { ID_SHOW_AUDIO, ResourceType::Audio, "Audio", "Show audio", "Show audio resources", IDI_SOUND },
 };
@@ -522,6 +526,52 @@ void CMainFrame::OnDestroy()
     __super::OnDestroy();
 }
 
+void CMainFrame::RefreshExplorerTools()
+{
+    // Is there a more reliable way to do this? I want to remove all the buttons I added.
+    // But there seems to be one default button (an overflow button?) that I shouldn't remove.
+    // So I remove buttons while there is more than one button in the toolbar.
+    while (m_wndExplorerTools.GetButtonsCount() > 1)
+    {
+        m_wndExplorerTools.RemoveButton(0);
+    }
+
+    if (!appState->GetResourceMap().GetGameFolder().empty())
+    {
+        SCIVersion version = appState->GetVersion();
+        m_wndExplorerTools.InsertButton(-1, ID_SHOW_VIEWS);
+        m_wndExplorerTools.InsertButton(-1, ID_SHOW_PICS);
+        m_wndExplorerTools.InsertButton(-1, ID_SHOW_SCRIPTS);
+        if (version.UsesMessages)
+        {
+            m_wndExplorerTools.InsertButton(-1, ID_SHOW_MESSAGES);
+        }
+        m_wndExplorerTools.InsertButton(-1, ID_SHOW_TEXTS);
+        m_wndExplorerTools.InsertButton(-1, ID_SHOW_SOUNDS);
+        m_wndExplorerTools.InsertButton(-1, ID_SHOW_VOCABS);
+        m_wndExplorerTools.InsertButton(-1, ID_SHOW_FONTS);
+        if (!version.SeparateHeapResources)
+        {
+            m_wndExplorerTools.InsertButton(-1, ID_SHOW_CURSORS);
+        }
+        m_wndExplorerTools.InsertButton(-1, ID_SHOW_PATCHES);
+        if (version.HasPalette)
+        {
+            m_wndExplorerTools.InsertButton(-1, ID_SHOW_PALETTES);
+        }
+        if (version.AudioVolumeName != AudioVolumeName::None)
+        {
+            m_wndExplorerTools.InsertButton(-1, ID_SHOW_AUDIO);
+        }
+        if (version.SeparateHeapResources)
+        {
+            m_wndExplorerTools.InsertButton(-1, ID_SHOW_HEAPS);
+        }
+
+        m_wndExplorerTools.InitContentExpandButton(); // Overflow...
+    }
+}
+
 int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
     
@@ -548,7 +598,6 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
         TRACE0( "Failed to create toolbar" );
         return -1;
     }
-   
 
     // We don't actually show this, but we use its m_nMenuMarkerID member variable.
     if (!m_ThemeSwitcher.Create("theme swtich toolbar", this, AFX_IDW_TOOLBAR))
@@ -682,21 +731,8 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
         return -1;
     }
     _PrepareExplorerCommands();
-    m_wndExplorerTools.InsertButton();
-    m_wndExplorerTools.InsertButton(-1, ID_SHOW_VIEWS);
-    m_wndExplorerTools.InsertButton(-1, ID_SHOW_PICS);
-    m_wndExplorerTools.InsertButton(-1, ID_SHOW_SCRIPTS);
-    m_wndExplorerTools.InsertButton(-1, ID_SHOW_TEXTS);
-    m_wndExplorerTools.InsertButton(-1, ID_SHOW_SOUNDS);
-    m_wndExplorerTools.InsertButton(-1, ID_SHOW_VOCABS);
-    m_wndExplorerTools.InsertButton(-1, ID_SHOW_FONTS);
-    m_wndExplorerTools.InsertButton(-1, ID_SHOW_CURSORS);
-    m_wndExplorerTools.InsertButton(-1, ID_SHOW_PATCHES);
-    m_wndExplorerTools.InsertButton(-1, ID_SHOW_PALETTES);
-    m_wndExplorerTools.InsertButton(-1, ID_SHOW_MESSAGES);
-    m_wndExplorerTools.InsertButton(-1, ID_SHOW_HEAPS);
-    m_wndExplorerTools.InsertButton(-1, ID_SHOW_AUDIO);
-    m_wndExplorerTools.InitContentExpandButton(); // Overflow...
+
+    RefreshExplorerTools();
 
     // Pics
     if( !m_wndPicTools.Create("pic", this, ID_BAR_TOOLPIC) ||
@@ -973,6 +1009,8 @@ void CMainFrame::_PrepareMainCommands()
         { ID_NEWSCRIPT, IDI_NEWSCRIPT },
         { ID_FILE_NEWCURSOR, IDI_NEWCURSOR },
         { ID_PREFERENCES, IDI_PREFERENCES },
+        { ID_NEW_MESSAGE, IDI_NEWMESSAGE },
+        { ID_NEW_PALETTE, IDI_NEWPALETTE }
     };
     _AssignIcons(c_mainIcons, ARRAYSIZE(c_mainIcons));
 }
@@ -1084,6 +1122,17 @@ void CMainFrame::OnFileNewCursor()
 void CMainFrame::OnFileNewText()
 {
     DECLARE_NEWRESOURCE_AP2(GetTextTemplate, CTextDoc, ResourceEntity, CreateDefaultTextResource, SetTextResource)
+}
+
+void CMainFrame::OnFileNewPalette()
+{
+    // A little bit different. We need interesting data to populate the default palette, so use a sample.
+    std::string palettePath = appState->GetResourceMap().GetSamplesFolder() + "\\palettes\\DefaultPalette.bin";
+    ResourceBlob blob;
+    if (SUCCEEDED(blob.CreateFromFile(nullptr, palettePath.c_str(), appState->GetVersion(), -1, -1)))
+    {
+        OpenResource(&blob);
+    }
 }
 
 void CMainFrame::OnFileNewMessage()
@@ -1257,6 +1306,11 @@ void CMainFrame::OnUpdateNewPic(CCmdUI *pCmdUI)
 void CMainFrame::OnUpdateNewMessage(CCmdUI *pCmdUI)
 {
     pCmdUI->Enable(appState->GetResourceMap().IsGameLoaded() && appState->GetVersion().UsesMessages);
+}
+
+void CMainFrame::OnUpdateNewPalette(CCmdUI *pCmdUI)
+{
+    pCmdUI->Enable(appState->GetResourceMap().IsGameLoaded() && appState->GetVersion().HasPalette);
 }
 
 void CMainFrame::OnUpdateShowIfGameLoaded(CCmdUI *pCmdUI)

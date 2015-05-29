@@ -27,12 +27,12 @@ private:
 
     int _iResourceNumber;
     int _iPackageNumber;
-    CExtEdit m_wndEditPackage;
+    //CExtEdit m_wndEditPackage;
     CExtEdit m_wndEditResource;
 
     // Visuals
     CExtButton m_wndOk;
     CExtButton m_wndCancel;
-    CExtLabel m_wndLabel1;
+    //CExtLabel m_wndLabel1;
     CExtLabel m_wndLabel2;
 };

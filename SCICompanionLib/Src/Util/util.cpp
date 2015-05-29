@@ -2,6 +2,7 @@
 #include "stdafx.h"
 #include <math.h>
 #include "format.h"
+#include "WindowsUtil.h"
 
 using namespace fmt;
 
@@ -770,4 +771,56 @@ bool CopyFilesOver(HWND hwnd, const std::string &from, const std::string &to)
         success = (SHFileOperation(&fileOp) == 0);
     }
     return success;
+}
+
+#define VK_C        67
+#define VK_V        86
+#define VK_X        88
+#define VK_Z        90
+
+BOOL HandleEditBoxCommands(MSG* pMsg, CEdit &wndEdit)
+{
+    BOOL fRet = FALSE;
+    if (!fRet)
+    {
+        if ((pMsg->message >= WM_KEYFIRST) && (pMsg->message <= WM_KEYLAST))
+        {
+            // Fwd the delete key to the edit control
+            if ((pMsg->message != WM_CHAR) && (pMsg->wParam == VK_DELETE))
+            {
+                ::SendMessage(wndEdit.GetSafeHwnd(), pMsg->message, pMsg->wParam, pMsg->lParam);
+                fRet = TRUE; // Don't dispatch message, we handled it.
+            }
+        }
+    }
+    if (!fRet)
+    {
+        if (pMsg->message == WM_KEYDOWN)
+        {
+            if (GetKeyState(VK_CONTROL))
+            {
+                if (pMsg->wParam == VK_C)
+                {
+                    wndEdit.Copy();
+                    fRet = TRUE;
+                }
+                if (pMsg->wParam == VK_V)
+                {
+                    wndEdit.Paste();
+                    fRet = TRUE;
+                }
+                if (pMsg->wParam == VK_X)
+                {
+                    wndEdit.Cut();
+                    fRet = TRUE;
+                }
+                if (pMsg->wParam == VK_Z)
+                {
+                    wndEdit.Undo();
+                    fRet = TRUE;
+                }
+            }
+        }
+    }
+    return fRet;
 }

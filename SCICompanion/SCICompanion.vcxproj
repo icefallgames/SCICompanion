@@ -234,6 +234,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Decompiler" "$(OutDir)Decompiler"
     <None Include="Files\Samples\cursors\Text Cursor 2.bin" />
     <None Include="Files\Samples\cursors\Up-Down Arrow.bin" />
     <None Include="Files\Samples\fonts\BriPro.bin" />
+    <None Include="Files\Samples\palettes\DefaultPalette.bin" />
     <None Include="Files\Samples\pics\Black Screen.bin" />
     <None Include="Files\Samples\pics\Bliss.bin" />
     <None Include="Files\Samples\pics\Criss Cross.bin" />

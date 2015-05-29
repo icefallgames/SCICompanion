@@ -5,6 +5,7 @@
 #include "SCIStudioSyntaxParser.h"
 #include "AppState.h"
 #include "MessageDoc.h"
+#include "WindowsUtil.h"
 
 using namespace std;
 
@@ -62,6 +63,7 @@ void MessageEditorListCtrl::OnEndLabelEdit(NMHDR* pNMHDR, LRESULT* pResult)
 {
     MessageSource *source = _GetSource();
 
+    bool success = false;
     *pResult = FALSE;
     NMLVDISPINFO *plvdi = (NMLVDISPINFO *)pNMHDR;
     if (plvdi->item.pszText && _inLabelEdit)
@@ -89,6 +91,7 @@ void MessageEditorListCtrl::OnEndLabelEdit(NMHDR* pNMHDR, LRESULT* pResult)
                 source->SetValue(plvdi->item.iItem, (uint16_t)value);
                 _Commit();
                 *pResult = TRUE;
+                success = true;
             }
 
             _inValueEdit = false;
@@ -114,14 +117,16 @@ void MessageEditorListCtrl::OnEndLabelEdit(NMHDR* pNMHDR, LRESULT* pResult)
                 SetItemText(plvdi->item.iItem, COL_NAME, result.c_str());
                 source->SetName(plvdi->item.iItem, result);
                 _Commit();
-                *pResult = TRUE;
+                // Set this to FALSE, so since we already set the name (and we may have had to prefix it)
+                *pResult = FALSE;
+                success = true;
             }
         }
     }
 
     if (_removeIfFailEdit)
     {
-        if (!*pResult)
+        if (!success)
         {
             source->DeleteDefine(plvdi->item.iItem);
             DeleteItem(plvdi->item.iItem);
@@ -197,6 +202,20 @@ void MessageEditorListCtrl::_InitColumns()
 
         _initialized = true;
     }
+}
+
+BOOL MessageEditorListCtrl::PreTranslateMessage(MSG* pMsg)
+{
+    BOOL fRet = FALSE;
+    if (_inLabelEdit)
+    {
+        fRet = HandleEditBoxCommands(pMsg, *GetEditControl());
+    }
+    if (!fRet)
+    {
+        fRet = __super::PreTranslateMessage(pMsg);
+    }
+    return fRet;
 }
 
 void MessageEditorListCtrl::_Populate()

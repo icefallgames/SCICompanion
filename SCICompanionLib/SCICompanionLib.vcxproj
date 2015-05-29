@@ -403,7 +403,6 @@
     <ClCompile Include="Src\Resources\ResourceEntity.cpp" />
     <ClCompile Include="Src\Resources\ResourceMap.cpp" />
     <ClCompile Include="Src\Resources\ResourceRecency.cpp" />
-    <ClCompile Include="Src\Resources\ResourceTypeList.cpp" />
     <ClCompile Include="Src\Resources\Vocab000.cpp" />
     <ClCompile Include="Src\Resources\Vocab99x.cpp" />
     <ClCompile Include="Src\Util\AppState.cpp" />
@@ -596,7 +595,6 @@
     <ClInclude Include="Src\Resources\ResourceEntity.h" />
     <ClInclude Include="Src\Resources\ResourceMap.h" />
     <ClInclude Include="Src\Resources\ResourceRecency.h" />
-    <ClInclude Include="Src\Resources\ResourceTypeList.h" />
     <ClInclude Include="Src\Resources\Vocab000.h" />
     <ClInclude Include="Src\Resources\Vocab99x.h" />
     <ClInclude Include="Src\Util\AppState.h" />
@@ -617,6 +615,7 @@
     <ClInclude Include="Src\Util\Stream.h" />
     <ClInclude Include="Src\Util\ToolTipResult.h" />
     <ClInclude Include="Src\Util\Version.h" />
+    <ClInclude Include="Src\Util\WindowsUtil.h" />
     <ClInclude Include="Src\Util\WordEnumString.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
@@ -732,10 +731,13 @@
     <Image Include="res\main_properties.ico" />
     <Image Include="res\main_rebuild.ico" />
     <Image Include="res\main_run.ico" />
+    <Image Include="res\message.ico" />
     <Image Include="res\movedown.ico" />
     <Image Include="res\moveup.ico" />
     <Image Include="res\newcursor.ico" />
     <Image Include="res\newfont.ico" />
+    <Image Include="res\newmessage.ico" />
+    <Image Include="res\newpalette.ico" />
     <Image Include="res\newpic.ico" />
     <Image Include="res\newroom.ico" />
     <Image Include="res\newscript.ico" />

@@ -244,6 +244,9 @@
     <None Include="Files\TemplateGame\src\window.sco" />
     <None Include="Files\Decompiler\Decompiler.ini" />
     <None Include="Files\Decompiler\game.sh" />
+    <None Include="Files\Samples\palettes\DefaultPalette.bin">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ResourceEntityDocument.h"
+#include "MessageSource.h"
 #include "Message.h"
 
 class MessageSource;
@@ -44,3 +45,5 @@ protected:
 
     DECLARE_MESSAGE_MAP()
 };
+
+MessageSource *GetMessageSourceFromType(CMessageDoc *pDoc, MessageSourceType sourceType, bool reload);

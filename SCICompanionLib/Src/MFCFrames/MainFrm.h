@@ -6,7 +6,6 @@
 #include "MDITabsDialogBar.h"
 #include "RasterSidePane.h"
 #include "MDITabChildWnd.h"
-#include "ResourceTypeList.h"
 #include "PicCommandSidePane.h"
 #include "QuickScripts.h"
 #include "ExtControlBarNoX.h"
@@ -76,6 +75,8 @@ public:
     OutputPane& GetOutputPane() { return m_wndOutput; }
     void ShowOutputPane();
     BOOL DestroyWindow();
+
+    void RefreshExplorerTools();
 
 // Implementation
 public:
@@ -166,6 +167,7 @@ private:
     afx_msg void OnFileNewCursor();
     afx_msg void OnFileNewText();
     afx_msg void OnFileNewMessage();
+    afx_msg void OnFileNewPalette();
     afx_msg void OnFileNewSound();
     afx_msg void OnFileOpenResource();
     afx_msg void OnFileAddResource();
@@ -181,6 +183,7 @@ private:
     afx_msg void OnNewRoom();
     afx_msg void OnNewScript();
     afx_msg void OnCompileAll();
+    afx_msg void OnUpdateNewPalette(CCmdUI *pCmdUI);
     afx_msg void OnUpdateAlwaysEnabled(CCmdUI *pCmdUI) { pCmdUI->Enable(); }
     afx_msg void OnFindInFiles();
     afx_msg void OnUpdateBackForward(CCmdUI *pCmdUI);

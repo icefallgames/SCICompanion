@@ -2,6 +2,8 @@
 
 #include "Components.h"
 
+class GameFolderHelper;
+
 enum class PaletteChangeHint
 {
     None = 0,

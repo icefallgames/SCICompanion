@@ -97,7 +97,10 @@ IDI_SCRIPT              ICON                    "res\\script.ico"
 IDI_VIEW                ICON                    "res\\view.ico"
 IDI_VOCAB               ICON                    "res\\Vocab.ico"
 IDI_NEWTEXT             ICON                    "res\\newtext.ico"
+IDI_NEWMESSAGE          ICON                    "res\\newmessage.ico"
+IDI_NEWPALETTE          ICON                    "res\\newpalette.ico"
 IDI_TEXT                ICON                    "res\\text.ico"
+IDI_MESSAGE             ICON                    "res\\message.ico"
 IDI_PREFERENCES         ICON                    "res\\preferences.ico"
 IDI_NEWCURSOR           ICON                    "res\\newcursor.ico"
 IDI_CURSOR              ICON                    "res\\cursor.ico"
@@ -214,6 +217,8 @@ BEGIN
     BUTTON      ID_FILE_NEWTEXT
     BUTTON      ID_FILE_NEWSOUND
     BUTTON      ID_NEWSCRIPT
+    BUTTON      ID_NEW_MESSAGE
+    BUTTON      ID_NEW_PALETTE
     SEPARATOR
     BUTTON      ID_FILE_OPEN
     BUTTON      ID_FILE_SAVE
@@ -374,6 +379,7 @@ BEGIN
             MENUITEM "&Empty script",               ID_NEWSCRIPT
             MENUITEM "&Sound",                      ID_FILE_NEWSOUND
             MENUITEM "&Message",                    ID_NEW_MESSAGE
+            MENUITEM "P&alette",                    ID_NEW_PALETTE
         END
         MENUITEM "Create new &game",            ID_FILE_NEWGAME
         MENUITEM "&Open game\tCtrl+O",          ID_FILE_OPEN
@@ -732,17 +738,15 @@ BEGIN
     CONTROL         "Use random patterns",IDC_USERANDOMPATTERNS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,79,84,10
 END
 
-IDD_RESOURCENUM DIALOGEX 0, 0, 157, 90
+IDD_RESOURCENUM DIALOGEX 0, 0, 131, 55
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Save"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    CONTROL         "Resource number:",IDC_STATIC2,"Static",SS_SIMPLE | SS_CENTERIMAGE | WS_GROUP,21,36,61,10,WS_EX_RIGHT
-    EDITTEXT        IDC_EDITRESOURCE,88,33,36,14,ES_AUTOHSCROLL | ES_NUMBER
-    DEFPUSHBUTTON   "OK",IDOK,41,69,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,100,69,50,14
-    LTEXT           "Package number:",IDC_STATIC1,27,7,56,15,SS_CENTERIMAGE,WS_EX_RIGHT
-    EDITTEXT        IDC_EDITPACKAGE,88,7,36,14,ES_AUTOHSCROLL | ES_READONLY | ES_NUMBER
+    CONTROL         "Resource number:",IDC_STATIC2,"Static",SS_SIMPLE | SS_CENTERIMAGE | WS_GROUP,9,10,61,10,WS_EX_RIGHT
+    EDITTEXT        IDC_EDITRESOURCE,74,7,50,14,ES_AUTOHSCROLL | ES_NUMBER
+    DEFPUSHBUTTON   "OK",IDOK,7,34,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,74,34,50,14
 END
 
 IDD_PREFERENCES DIALOGEX 0, 0, 354, 142
@@ -1512,16 +1516,16 @@ BEGIN
     PUSHBUTTON      "Clone",IDC_BUTTONCLONE,58,7,42,14
     PUSHBUTTON      "Add sequence",IDC_BUTTONADDSEQ,104,7,59,14
     RTEXT           "Noun:",IDC_STATIC3,7,28,42,8
-    COMBOBOX        IDC_COMBONOUN,58,25,105,30,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBONOUN,58,25,105,30,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
     RTEXT           "Verb:",IDC_STATIC7,7,44,42,8
-    COMBOBOX        IDC_COMBOVERB,58,41,105,30,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBOVERB,58,41,105,30,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
     RTEXT           "Condition:",IDC_STATIC6,7,60,42,8
-    COMBOBOX        IDC_COMBOCONDITION,58,57,105,30,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBOCONDITION,58,57,105,30,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
     RTEXT           "Sequence:",IDC_STATIC8,7,78,42,8
     EDITTEXT        IDC_EDITSEQ,58,74,85,14,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "",IDC_SPINSEQ,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS,148,74,15,14
     RTEXT           "Talker:",IDC_STATIC9,7,94,42,8
-    COMBOBOX        IDC_COMBOTALKER,58,91,105,30,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBOTALKER,58,91,105,30,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Message text:",IDC_STATIC2,172,9,47,8
     PUSHBUTTON      "Commit",IDC_BUTTONCOMMIT,232,7,50,14
     PUSHBUTTON      "Add new",IDC_BUTTONADDNEW,7,7,42,14
@@ -1611,9 +1615,10 @@ BEGIN
     IDD_RESOURCENUM, DIALOG
     BEGIN
         LEFTMARGIN, 7
-        RIGHTMARGIN, 150
+        RIGHTMARGIN, 124
+        VERTGUIDE, 74
         TOPMARGIN, 7
-        BOTTOMMARGIN, 83
+        BOTTOMMARGIN, 48
     END
 
     IDD_PREFERENCES, DIALOG
@@ -2426,6 +2431,7 @@ END
 STRINGTABLE
 BEGIN
     ID_NEW_MESSAGE          "Create a new message resource\nNew message resource"
+    ID_NEW_PALETTE          "Create a new palette resource\nNew palette resource"
 END
 
 #endif    // English (United States) resources

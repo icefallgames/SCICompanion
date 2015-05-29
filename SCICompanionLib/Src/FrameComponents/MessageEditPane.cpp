@@ -7,9 +7,12 @@
 #include "CObjectWrap.h"
 #include "format.h"
 #include "MessageSource.h"
+#include "WindowsUtil.h"
+
+using namespace std;
 
 MessageEditPane::MessageEditPane(CWnd* pParent /*=NULL*/)
-    : CExtDialogFwdCmd(IDD, pParent), _hAccel(nullptr), _initialized(false)
+    : CExtDialogFwdCmd(IDD, pParent), _hAccel(nullptr), _initialized(false), _verbEdited(false), _nounEdited(false), _conditionEdited(false), _talkerEdited(false)
 {
     // Load our accelerators
     // HINSTANCE hInst = AfxFindResourceHandle(MAKEINTRESOURCE(IDR_ACCELERATORPICCOMMANDS), RT_ACCELERATOR);
@@ -67,6 +70,18 @@ BEGIN_MESSAGE_MAP(MessageEditPane, CExtDialogFwdCmd)
     ON_CBN_SELCHANGE(IDC_COMBOCONDITION, &MessageEditPane::OnCbnSelchangeCombocondition)
     ON_CBN_SELCHANGE(IDC_COMBOTALKER, &MessageEditPane::OnCbnSelchangeCombotalker)
     ON_BN_CLICKED(IDC_BUTTONADDNEW, &MessageEditPane::OnBnClickedButtonaddnew)
+    ON_CBN_EDITCHANGE(IDC_COMBOVERB, &MessageEditPane::OnCbnEditchangeComboverb)
+    ON_CBN_KILLFOCUS(IDC_COMBOVERB, &MessageEditPane::OnCbnKillfocusComboverb)
+    ON_CBN_SETFOCUS(IDC_COMBOVERB, &MessageEditPane::OnCbnSetfocusComboverb)
+    ON_CBN_SETFOCUS(IDC_COMBONOUN, &MessageEditPane::OnCbnSetfocusCombonoun)
+    ON_CBN_KILLFOCUS(IDC_COMBONOUN, &MessageEditPane::OnCbnKillfocusCombonoun)
+    ON_CBN_EDITCHANGE(IDC_COMBONOUN, &MessageEditPane::OnCbnEditchangeCombonoun)
+    ON_CBN_SETFOCUS(IDC_COMBOCONDITION, &MessageEditPane::OnCbnSetfocusCombocondition)
+    ON_CBN_KILLFOCUS(IDC_COMBOCONDITION, &MessageEditPane::OnCbnKillfocusCombocondition)
+    ON_CBN_EDITCHANGE(IDC_COMBOCONDITION, &MessageEditPane::OnCbnEditchangeCombocondition)
+    ON_CBN_SETFOCUS(IDC_COMBOTALKER, &MessageEditPane::OnCbnSetfocusCombotalker)
+    ON_CBN_KILLFOCUS(IDC_COMBOTALKER, &MessageEditPane::OnCbnKillfocusCombotalker)
+    ON_CBN_EDITCHANGE(IDC_COMBOTALKER, &MessageEditPane::OnCbnEditchangeCombotalker)
 END_MESSAGE_MAP()
 
 BOOL MessageEditPane::OnEraseBkgnd(CDC *pDC)
@@ -86,7 +101,6 @@ void _PopulateComboFromMessageSource(CExtComboBox &wndCombo, MessageSource *sour
     wndCombo.ResetContent();
     if (source)
     {
-        wndCombo.InsertString(-1, "none");
         for (auto &define : source->GetDefines())
         {
             PCSTR psz = define.first.c_str();
@@ -112,11 +126,6 @@ void _PopulateComboFromMessageSource(CExtComboBox &wndCombo, MessageSource *sour
 //      - they don't bubble up naturally in dialogs in control bars.
 //      - we do this by inheriting from CExtDialogFwdCmd
 //
-#define VK_C        67
-#define VK_V        86
-#define VK_X        88
-#define VK_Z        90
-
 BOOL MessageEditPane::PreTranslateMessage(MSG* pMsg)
 {
     BOOL fRet = FALSE;
@@ -128,44 +137,7 @@ BOOL MessageEditPane::PreTranslateMessage(MSG* pMsg)
     {
         if (!fRet)
         {
-            if ((pMsg->message >= WM_KEYFIRST) && (pMsg->message <= WM_KEYLAST))
-            {
-                // Fwd the delete key to the edit control
-                if ((pMsg->message != WM_CHAR) && (pMsg->wParam == VK_DELETE))
-                {
-                    ::SendMessage(m_wndEditMessage.GetSafeHwnd(), pMsg->message, pMsg->wParam, pMsg->lParam);
-                    fRet = 1; // Don't dispatch message, we handled it.
-                }
-            }
-        }
-        if (!fRet)
-        {
-            if (pMsg->message == WM_KEYDOWN)
-            {
-                if (GetKeyState(VK_CONTROL))
-                {
-                    if (pMsg->wParam == VK_C)
-                    {
-                        m_wndEditMessage.Copy();
-                        fRet = TRUE;
-                    }
-                    if (pMsg->wParam == VK_V)
-                    {
-                        m_wndEditMessage.Paste();
-                        fRet = TRUE;
-                    }
-                    if (pMsg->wParam == VK_X)
-                    {
-                        m_wndEditMessage.Cut();
-                        fRet = TRUE;
-                    }
-                    if (pMsg->wParam == VK_Z)
-                    {
-                        m_wndEditMessage.Undo();
-                        fRet = TRUE;
-                    }
-                }
-            }
+            fRet = HandleEditBoxCommands(pMsg, m_wndEditMessage);
         }
     }
     if (!fRet)
@@ -276,17 +248,27 @@ void _UpdateComboFromValue(CExtComboBox &wndCombo, int value, MessageSource *sou
     {
         if (value == 0)
         {
-            wndCombo.SetCurSel(0);
+            wndCombo.SetCurSel(-1);
+            wndCombo.SetWindowTextA("0");
         }
         else
         {
-            int index = source->IndexOf((uint16_t)value) + 1;
-            wndCombo.SetCurSel(index);
+            int index = source->IndexOf((uint16_t)value);
+            if (index == -1)
+            {
+                string valueText = fmt::format("{0}", value);
+                wndCombo.SetWindowTextA(valueText.c_str());
+            }
+            else
+            {
+                wndCombo.SetCurSel(index);
+            }
         }
     }
     else
     {
-        wndCombo.SetCurSel(0);
+        wndCombo.SetCurSel(-1);
+        wndCombo.SetWindowTextA("0");
     }
 }
 
@@ -313,7 +295,7 @@ void MessageEditPane::_Update()
             _UpdateSequence(entry->Sequence);
             
             _UpdateComboFromValue(m_wndComboVerb, entry->Verb, appState->GetResourceMap().GetVerbsMessageSource());
-            _UpdateComboFromValue(m_wndComboTalker, entry->Talker, appState->GetResourceMap().GetVerbsMessageSource());
+            _UpdateComboFromValue(m_wndComboTalker, entry->Talker, appState->GetResourceMap().GetTalkersMessageSource());
             _UpdateComboFromValue(m_wndComboNoun, entry->Noun, _pDoc->GetNounMessageSource());
             _UpdateComboFromValue(m_wndComboCondition, entry->Condition, _pDoc->GetNounMessageSource());
         }
@@ -387,61 +369,85 @@ void MessageEditPane::OnEnChangeEditmessage()
     // Validation happens on focus lost, so nothing to do here.
 }
 
-void MessageEditPane::OnCbnSelchangeCombonoun()
+bool _GetValueFromText(CComboBox &wndCombo, bool isSelChange, MessageSource *source, uint8_t &finalValue)
 {
-    if (_pDoc)
+    bool success = false;
+    if (source)
     {
-        MessageSource *nounSource = _pDoc->GetNounMessageSource();
-        if (nounSource)
+        CString temp;
+        if (isSelChange && (wndCombo.GetCurSel() != -1))
         {
-            int index = m_wndComboNoun.GetCurSel();
-            index--;
-
-            _pDoc->ApplyChanges<TextComponent>(
-                [this, index, nounSource](TextComponent &text)
+            wndCombo.GetLBText(wndCombo.GetCurSel(), temp);
+        }
+        else
+        {
+            wndCombo.GetWindowText(temp);
+        }
+        string rawResult = (PCSTR)temp;
+        string result = rawResult;
+        if (result.compare(0, source->MandatoryPrefix.size(), source->MandatoryPrefix) != 0)
+        {
+            result = source->MandatoryPrefix + result;
+        }
+        int index = source->IndexOf(result);
+        if (index == -1)
+        {
+            // Doesn't match anything. Is it a number?
+            try
             {
-                TextEntry *entry = this->_GetEntry(text);
-                if ((index >= 0) && (index < (int)nounSource->GetDefines().size()))
+                size_t end;
+                int valueFromString = stoi(rawResult, &end);
+                if ((end == rawResult.length()) && (valueFromString >= 0) && (valueFromString < 256))
                 {
-                    entry->Noun = (uint8_t)nounSource->GetDefines()[index].second;
+                    // Accept this as a number.
+                    success = true;
+                    finalValue = (uint8_t)valueFromString;
+                }
+            }
+            catch (std::invalid_argument)
+            {
+
+            }
+        }
+        else
+        {
+            success = true;
+            finalValue = (uint8_t)source->GetDefines()[index].second;
+        }
+    }
+    return success;
+}
+
+template<typename _FGetProperty>
+void _RespondToComboChange(MessageEditPane *mep, CComboBox &wndCombo, MessageSourceType sourceType, _FGetProperty getProperty, bool isSelChange)
+{
+    CMessageDoc *pDoc = mep->GetDocument();
+    if (pDoc)
+    {
+        MessageSource *source = GetMessageSourceFromType(pDoc, sourceType, false);
+        uint8_t value;
+        if (_GetValueFromText(wndCombo, isSelChange, source, value))
+        {
+            pDoc->ApplyChanges<TextComponent>(
+                [mep, value, getProperty](TextComponent &text)
+            {
+                TextEntry *entry = mep->_GetEntry(text);
+                uint8_t &property = getProperty(*entry);
+                if (property != value)
+                {
+                    property = value;
+                    return WrapHint(MessageChangeHint::ItemChanged);
                 }
                 else
                 {
-                    entry->Noun = 0;
+                    return WrapHint(MessageChangeHint::None);
                 }
-                return WrapHint(MessageChangeHint::ItemChanged);
             }
             );
         }
-    }
-}
-
-
-void MessageEditPane::OnCbnSelchangeComboverb()
-{
-    if (_pDoc)
-    {
-        MessageSource *verbSource = appState->GetResourceMap().GetVerbsMessageSource();
-        if (verbSource)
+        else
         {
-            int index = m_wndComboVerb.GetCurSel();
-            index--;
-
-            _pDoc->ApplyChanges<TextComponent>(
-                [this, index, verbSource](TextComponent &text)
-            {
-                TextEntry *entry = this->_GetEntry(text);
-                if ((index >= 0) && (index < (int)verbSource->GetDefines().size()))
-                {
-                    entry->Verb = (uint8_t)verbSource->GetDefines()[index].second;
-                }
-                else
-                {
-                    entry->Verb = 0;
-                }
-                return WrapHint(MessageChangeHint::ItemChanged);
-            }
-            );
+            mep->_Update();
         }
     }
 }
@@ -484,61 +490,96 @@ void MessageEditPane::OnEnKillfocusEditmessage()
     }
 }
 
-void MessageEditPane::OnCbnSelchangeCombocondition()
-{
-    if (_pDoc)
-    {
-        MessageSource *condSource = _pDoc->GetConditionMessageSource();
-        if (condSource)
-        {
-            int index = m_wndComboCondition.GetCurSel();
-            index--;
+uint8_t &GetNounProperty(TextEntry &entry) { return entry.Noun; }
 
-            _pDoc->ApplyChanges<TextComponent>(
-                [this, index, condSource](TextComponent &text)
-            {
-                TextEntry *entry = this->_GetEntry(text);
-                if ((index >= 0) && (index < (int)condSource->GetDefines().size()))
-                {
-                    entry->Condition = (uint8_t)condSource->GetDefines()[index].second;
-                }
-                else
-                {
-                    entry->Condition = 0;
-                }
-                return WrapHint(MessageChangeHint::ItemChanged);
-            }
-            );
-        }
-    }
+void MessageEditPane::OnCbnSelchangeCombonoun()
+{
+    _RespondToComboChange(this, m_wndComboNoun, MessageSourceType::Nouns, GetNounProperty, true);
 }
 
+uint8_t &GetVerbProperty(TextEntry &entry) { return entry.Verb; }
+
+void MessageEditPane::OnCbnSelchangeComboverb()
+{
+    _RespondToComboChange(this, m_wndComboVerb, MessageSourceType::Verbs, GetVerbProperty, true);
+}
+
+uint8_t &GetConditionProperty(TextEntry &entry) { return entry.Condition; }
+
+void MessageEditPane::OnCbnSelchangeCombocondition()
+{
+    _RespondToComboChange(this, m_wndComboCondition, MessageSourceType::Conditions, GetConditionProperty, true);
+}
+
+uint8_t &GetTalkerProperty(TextEntry &entry) { return entry.Talker; }
 
 void MessageEditPane::OnCbnSelchangeCombotalker()
 {
-    if (_pDoc)
-    {
-        MessageSource *talkersSource = appState->GetResourceMap().GetTalkersMessageSource();
-        if (talkersSource)
-        {
-            int index = m_wndComboTalker.GetCurSel();
-            index--;
+    _RespondToComboChange(this, m_wndComboTalker, MessageSourceType::Talkers, GetTalkerProperty, true);
+}
 
-            _pDoc->ApplyChanges<TextComponent>(
-                [this, index, talkersSource](TextComponent &text)
-            {
-                TextEntry *entry = this->_GetEntry(text);
-                if ((index >= 0) && (index < (int)talkersSource->GetDefines().size()))
-                {
-                    entry->Talker = (uint8_t)talkersSource->GetDefines()[index].second;
-                }
-                else
-                {
-                    entry->Talker = 0;
-                }
-                return WrapHint(MessageChangeHint::ItemChanged);
-            }
-            );
-        }
+void MessageEditPane::OnCbnSetfocusComboverb()
+{
+    _verbEdited = false;
+}
+void MessageEditPane::OnCbnKillfocusComboverb()
+{
+    if (_verbEdited)
+    {
+        _RespondToComboChange(this, m_wndComboVerb, MessageSourceType::Verbs, GetVerbProperty, false);
     }
+}
+void MessageEditPane::OnCbnEditchangeComboverb()
+{
+    _verbEdited = true;
+}
+
+void MessageEditPane::OnCbnSetfocusCombonoun()
+{
+    _nounEdited = false;
+}
+void MessageEditPane::OnCbnKillfocusCombonoun()
+{
+    if (_nounEdited)
+    {
+        _RespondToComboChange(this, m_wndComboNoun, MessageSourceType::Nouns, GetNounProperty, false);
+    }
+}
+void MessageEditPane::OnCbnEditchangeCombonoun()
+{
+    _nounEdited = true;
+}
+
+
+void MessageEditPane::OnCbnSetfocusCombocondition()
+{
+    _conditionEdited = false;
+}
+void MessageEditPane::OnCbnKillfocusCombocondition()
+{
+    if (_conditionEdited)
+    {
+        _RespondToComboChange(this, m_wndComboCondition, MessageSourceType::Conditions, GetConditionProperty, false);
+    }
+}
+void MessageEditPane::OnCbnEditchangeCombocondition()
+{
+    _conditionEdited = true;
+}
+
+
+void MessageEditPane::OnCbnSetfocusCombotalker()
+{
+    _talkerEdited = false;
+}
+void MessageEditPane::OnCbnKillfocusCombotalker()
+{
+    if (_talkerEdited)
+    {
+        _RespondToComboChange(this, m_wndComboTalker, MessageSourceType::Talkers, GetTalkerProperty, false);
+    }
+}
+void MessageEditPane::OnCbnEditchangeCombotalker()
+{
+    _talkerEdited = true;
 }

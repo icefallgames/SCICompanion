@@ -258,6 +258,9 @@
 #define IDD_MESSAGETOOLBOX              366
 #define IDD_MESSAGEHELPER               367
 #define IDD_MESSAGEEDIT                 368
+#define IDI_MESSAGE                     369
+#define IDI_NEWMESSAGE                  370
+#define IDI_NEWPALETTE                  371
 #define IDC_CHOOSECOLORSTATIC           1001
 #define IDC_BUTTON1                     1003
 #define IDC_BUTTONDOWN                  1003
@@ -795,6 +798,7 @@
 #define ID_TOOLS_REBUILDCLASSTABLE      33180
 #define ID_BAR_MESSAGEEDIT              33181
 #define ID_NEW_MESSAGE                  33182
+#define ID_NEW_PALETTE                  33183
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -802,8 +806,8 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        366
-#define _APS_NEXT_COMMAND_VALUE         33183
+#define _APS_NEXT_RESOURCE_VALUE        372
+#define _APS_NEXT_COMMAND_VALUE         33184
 #define _APS_NEXT_CONTROL_VALUE         1269
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

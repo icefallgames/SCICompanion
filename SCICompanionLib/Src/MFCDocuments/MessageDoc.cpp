@@ -58,6 +58,25 @@ void CMessageDoc::v_OnUndoRedo()
     UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(MessageChangeHint::Changed));
 }
 
+MessageSource *GetMessageSourceFromType(CMessageDoc *pDoc, MessageSourceType sourceType, bool reload)
+{
+    if (pDoc)
+    {
+        switch (sourceType)
+        {
+            case MessageSourceType::Conditions:
+                return pDoc->GetConditionMessageSource();
+            case MessageSourceType::Verbs:
+                return appState->GetResourceMap().GetVerbsMessageSource(reload);
+            case MessageSourceType::Talkers:
+                return appState->GetResourceMap().GetTalkersMessageSource(reload);
+            case MessageSourceType::Nouns:
+                return pDoc->GetNounMessageSource();
+        }
+    }
+    return nullptr;
+}
+
 MessageSource *CMessageDoc::GetNounMessageSource()
 {
     if (_messageHeaderFile)

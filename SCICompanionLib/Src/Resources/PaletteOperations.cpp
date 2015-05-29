@@ -3,6 +3,7 @@
 #include "ResourceEntity.h"
 #include "AppState.h"
 #include "ImageUtil.h"
+#include "GameFolderHelper.h"
 
 using namespace std;
 
