@@ -9,7 +9,7 @@
 // CRemoveScriptDialog dialog
 
 CRemoveScriptDialog::CRemoveScriptDialog(WORD wScript, CWnd* pParent /*=NULL*/)
-	: CExtResizableDialog(CRemoveScriptDialog::IDD, pParent), _wScript(wScript), _fAlsoDelete(false)
+	: CExtResizableDialog(CRemoveScriptDialog::IDD, pParent), _wScript(wScript), _fAlsoDelete(true)
 {
 }
 

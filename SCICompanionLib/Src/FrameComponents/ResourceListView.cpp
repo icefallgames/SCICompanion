@@ -535,6 +535,15 @@ void CResourceListCtrl::OnExtractResources()
 
 void CResourceListCtrl::OnDelete()
 {
+    // Bail out for heap...
+    if (this->GetType() == ResourceType::Heap)
+    {
+        if (IDNO == AfxMessageBox("Heap resources are closely tied to script resources - one cannot exist without the other.\nYou can delete both via the script pane.\nContinue deleting just the heap resource anyway?", MB_ICONWARNING | MB_YESNO))
+        {
+            return;
+        }
+    }
+
     UINT cCount = GetSelectedCount();
     if (cCount > 1)
     {
