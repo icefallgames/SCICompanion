@@ -445,7 +445,7 @@ c_ShowResourceCommands[] =
     { ID_SHOW_PALETTES, ResourceType::Palette, "Palettes", "Show palettes", "Show palette resources", IDI_PALETTEVGA },
     { ID_SHOW_MESSAGES, ResourceType::Message, "Messages", "Show messages", "Show message resources", IDI_MESSAGE },
     { ID_SHOW_HEAPS, ResourceType::Heap, "Heaps", "Show heaps", "Show heap resources", IDI_SCRIPT },
-    { ID_SHOW_AUDIO, ResourceType::Audio, "Audio", "Show audio", "Show audio resources", IDI_SOUND },
+    { ID_SHOW_AUDIO, ResourceType::Audio, "Audio", "Show audio", "Show audio resources", IDI_AUDIO },
 };
 
 void _AssignIcons(const key_value_pair<UINT, int> *rg, size_t count)

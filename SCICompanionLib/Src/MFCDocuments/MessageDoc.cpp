@@ -37,10 +37,7 @@ void CMessageDoc::SetMessageResource(std::unique_ptr<ResourceEntity> pMessage, i
 
     if (GetResource())
     {
-        string messageFolder = appState->GetResourceMap().Helper().GetMsgFolder();
-        string messageFilename = fmt::format("{0}.shm", GetResource()->ResourceNumber);
-        string messageFilePath = fmt::format("{0}\\{1}", messageFolder, messageFilename);
-        _messageHeaderFile = make_unique<MessageHeaderFile>(messageFilePath, messageFilename, initializer_list<string>({ "NOUNS", "CASES" }));
+        _messageHeaderFile = GetMessageFile(appState->GetResourceMap().Helper().GetMsgFolder(), GetResource()->ResourceNumber);
     }
     else
     {

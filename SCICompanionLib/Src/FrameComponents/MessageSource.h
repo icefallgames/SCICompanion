@@ -35,3 +35,5 @@ private:
     MessageHeaderFile *_file;
     bool _dirty;
 };
+
+std::unique_ptr<MessageHeaderFile> GetMessageFile(const std::string &messageFolder, int scriptNumber);

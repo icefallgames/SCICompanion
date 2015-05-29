@@ -40,6 +40,7 @@ protected:
     CExtRadioButton m_wndRadioUseOther;
     CListBox m_wndListBox;
     CExtEdit m_wndEditPicNumber;
+    CExtCheckBox m_wndCheckMessage;
 
     // Visuals
     CExtEdit m_wndRoomNumber;

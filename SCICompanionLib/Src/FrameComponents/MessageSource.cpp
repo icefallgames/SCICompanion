@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "MessageSource.h"
 #include "MessageHeaderFile.h"
+#include "format.h"
 
 using namespace std;
 
@@ -92,4 +93,11 @@ void MessageSource::Commit()
         _file->Commit();
         _dirty = false;
     }
+}
+
+std::unique_ptr<MessageHeaderFile> GetMessageFile(const std::string &messageFolder, int scriptNumber)
+{
+    string messageFilename = fmt::format("{0}.shm", scriptNumber);
+    string messageFilePath = fmt::format("{0}\\{1}", messageFolder, messageFilename);
+    return make_unique<MessageHeaderFile>(messageFilePath, messageFilename, initializer_list<string>({ "NOUNS", "CASES" }));
 }

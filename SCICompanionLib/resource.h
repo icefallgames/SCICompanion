@@ -261,6 +261,7 @@
 #define IDI_MESSAGE                     369
 #define IDI_NEWMESSAGE                  370
 #define IDI_NEWPALETTE                  371
+#define IDI_AUDIO                       372
 #define IDC_CHOOSECOLORSTATIC           1001
 #define IDC_BUTTON1                     1003
 #define IDC_BUTTONDOWN                  1003
@@ -552,6 +553,7 @@
 #define IDC_BUTTONCLONE                 1267
 #define IDC_BUTTONCOMMIT                1268
 #define IDC_BUTTONADDNEW                1269
+#define IDC_CHECKMESSAGE                1269
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -806,9 +808,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        372
+#define _APS_NEXT_RESOURCE_VALUE        373
 #define _APS_NEXT_COMMAND_VALUE         33184
-#define _APS_NEXT_CONTROL_VALUE         1269
+#define _APS_NEXT_CONTROL_VALUE         1270
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

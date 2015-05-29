@@ -7,6 +7,10 @@
 #include "resource.h"
 #include "ScriptOMAll.h"
 #include "ScriptMakerHelper.h"
+#include "MessageSource.h"
+#include "Message.h"
+#include "MessageHeaderFile.h"
+#include "ResourceEntity.h"
 #include <format.h>
 
 using namespace sci;
@@ -79,6 +83,15 @@ void CNewRoomDialog::_AttachControls(CDataExchange* pDX)
     DDX_Control(pDX, IDC_EDITPICNUMBER, m_wndEditPicNumber);
     DDX_Control(pDX, IDC_EDITROOMNUMBER, m_wndEditScriptNumber);
     DDX_Control(pDX, IDC_LISTUSES, m_wndListBox);
+    DDX_Control(pDX, IDC_CHECKMESSAGE, m_wndCheckMessage);
+    if (!appState->GetVersion().UsesMessages)
+    {
+        m_wndCheckMessage.ShowWindow(SW_HIDE);
+    }
+    else
+    {
+        m_wndCheckMessage.SetCheck(BST_CHECKED);
+    }
 
     // Values from 0 to 999
     m_wndEditScriptNumber.SetLimitText(3);
@@ -141,15 +154,52 @@ void _AddPrevRoomNumSwitch(MethodDefinition &method)
     _AddStatement(method, std::move(pSwitch));
 }
 
+void _CreateMessageFile(int scriptNumber)
+{
+    // Create the message file. If it already exists, that's fine.
+    std::unique_ptr<MessageHeaderFile> messageHeaderFile = GetMessageFile(appState->GetResourceMap().Helper().GetMsgFolder(), scriptNumber);
+    messageHeaderFile->Commit();
+
+    // And a message resource.
+    std::unique_ptr<ResourceBlob> messageResource = appState->GetResourceMap().MostRecentResource(ResourceType::Message, scriptNumber, false);
+    if (!messageResource)
+    {
+        // Look at 0.msg to see the version we should use
+        std::unique_ptr<ResourceBlob> mainMessageResource = appState->GetResourceMap().MostRecentResource(ResourceType::Message, 0, false);
+        if (mainMessageResource)
+        {
+            sci::istream byteStream = mainMessageResource->GetReadStream();
+            uint16_t msgVersion = CheckMessageVersion(byteStream);
+            std::unique_ptr<ResourceEntity> newMessageResource(CreateNewMessageResource(appState->GetVersion(), msgVersion));
+            appState->GetResourceMap().AppendResource(*newMessageResource, appState->GetVersion().DefaultVolumeFile, scriptNumber);
+        }
+    }
+}
+
 void CNewRoomDialog::_PrepareBuffer()
 {
-    if (_scriptId.Language() == LangSyntaxSCIStudio)
+    //if (_scriptId.Language() == LangSyntaxSCIStudio)
+    if (false)
     {
         _PrepareBufferOld();
     }
     else
     {
         sci::Script script(_scriptId);
+
+        script.AddInclude("sci.sh");
+        script.AddInclude("game.sh");
+        if (appState->GetVersion().UsesMessages && (m_wndCheckMessage.GetCheck() == BST_CHECKED))
+        {
+            string messagefileInclude = fmt::format("{0}.shm", _scriptId.GetResourceNumber());
+            script.AddInclude(messagefileInclude);
+        }
+
+        if (appState->GetVersion().SeparateHeapResources)
+        {
+            // e.g. for SCI0, keep SCIStudio compatible. Otherwise, use version 2
+            script.SyntaxVersion = 2;
+        }
 
         // Now the uses.
         for (size_t i = 0; i < _usedNames.size(); ++i)
@@ -441,6 +491,10 @@ void CNewRoomDialog::OnOK()
     if (fClose)
     {
         _PrepareBuffer();
+        if (appState->GetVersion().UsesMessages && (m_wndCheckMessage.GetCheck() == BST_CHECKED))
+        {
+            _CreateMessageFile(_scriptId.GetResourceNumber());
+        }
         CDialog::OnOK(); // Not CScriptDialogOk!!
     }
 }

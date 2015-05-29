@@ -1779,5 +1779,8 @@
     <Image Include="res\newpalette.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="res\audio.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>
