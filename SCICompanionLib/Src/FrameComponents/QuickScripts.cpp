@@ -154,6 +154,13 @@ void QuickScriptsSidePane::DoDataExchange(CDataExchange* pDX)
     m_wndGotoPic.EnableWindow(FALSE);
     DDX_Control(pDX, IDC_STATICPIC, m_wndPic);
 
+    DDX_Control(pDX, IDC_GOTOMESSAGE, m_wndGotoMessage);
+    if (!appState->GetVersion().SupportsMessages)
+    {
+        m_wndGotoMessage.ShowWindow(SW_HIDE);
+    }
+    m_wndGotoMessage.m_bUseStdCommandNotification = true;
+
     DDX_Control(pDX, IDC_NORTH, m_wndNorth);
     m_wndNorth.m_bUseStdCommandNotification = true;
     m_wndNorth.EnableWindow(FALSE);
@@ -185,6 +192,7 @@ BEGIN_MESSAGE_MAP(QuickScriptsSidePane, CExtResizableDialog)
     ON_NOTIFY(NM_DBLCLK, IDC_LISTSCRIPTS, OnItemDoubleClick)
     ON_NOTIFY(LVN_KEYDOWN, IDC_LISTSCRIPTS, OnItemEnter)
     ON_COMMAND(IDC_GOTOPIC, OnGotoPic)
+    ON_COMMAND(IDC_GOTOMESSAGE, OnGotoMessage)
     ON_COMMAND_EX(IDC_NORTH, OnGotoRoom)
     ON_COMMAND_EX(IDC_EAST, OnGotoRoom)
     ON_COMMAND_EX(IDC_SOUTH, OnGotoRoom)
@@ -374,6 +382,14 @@ void QuickScriptsSidePane::_ResetUI()
     }
     m_wndScriptNum.SetWindowText(ss.str().c_str());
 
+    bool msgEnabled = (appState->GetVersion().SupportsMessages && appState->GetResourceMap().DoesResourceExist(ResourceType::Message, wNum));
+    m_wndGotoMessage.ShowWindow(msgEnabled ? SW_SHOW : SW_HIDE);
+    if (msgEnabled)
+    {
+        m_wndGotoMessage.SetWindowTextA("Messages");
+    }
+
+
     // Update the bitmap.
     // Get the script object for this script.
 	SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser();
@@ -529,5 +545,15 @@ void QuickScriptsSidePane::UpdateNonView(CObject *pObject)
     {
         // Go update ourselves again (might not be our script, but oh well)
         _ResetUI();
+    }
+}
+
+
+void QuickScriptsSidePane::OnGotoMessage()
+{
+    if (_pDoc)
+    {
+        uint16_t number = _pDoc->GetScriptId().GetResourceNumber();
+        appState->OpenMostRecentResource(ResourceType::Message, number);
     }
 }

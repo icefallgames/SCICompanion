@@ -30,10 +30,15 @@ void MessageSidePane::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_STATIC2, m_wndLabel2);
     DDX_Control(pDX, IDC_BUTTONADDVERB, m_wndButton1);
     DDX_Control(pDX, IDC_BUTTONADDTALKER, m_wndButton2);
+
+    DDX_Control(pDX, IDC_GOTOSCRIPT, m_wndGotoScript);
+    m_wndGotoScript.m_bUseStdCommandNotification = true;
+    
 }
 
 
 BEGIN_MESSAGE_MAP(MessageSidePane, CExtDialogFwdCmd)
+    ON_COMMAND(IDC_GOTOSCRIPT, OnGotoScript)
     ON_WM_DRAWITEM()
     ON_WM_CREATE()
     ON_WM_ERASEBKGND()
@@ -129,4 +134,17 @@ void MessageSidePane::OnBnClickedButtonaddverb()
 void MessageSidePane::OnBnClickedButtonaddtalker()
 {
     m_wndTalkers.AddNewItem();
+}
+
+void MessageSidePane::OnGotoScript()
+{
+    if (_pDoc)
+    {
+        const ResourceEntity *resource = _pDoc->GetResource();
+        if (resource)
+        {
+            appState->OpenMostRecentResource(ResourceType::Script, (uint16_t)resource->ResourceNumber);
+        }
+    }
+
 }

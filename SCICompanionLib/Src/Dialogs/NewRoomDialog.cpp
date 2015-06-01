@@ -85,7 +85,7 @@ void CNewRoomDialog::_AttachControls(CDataExchange* pDX)
     DDX_Control(pDX, IDC_EDITROOMNUMBER, m_wndEditScriptNumber);
     DDX_Control(pDX, IDC_LISTUSES, m_wndListBox);
     DDX_Control(pDX, IDC_CHECKMESSAGE, m_wndCheckMessage);
-    if (!appState->GetVersion().UsesMessages)
+    if (!appState->GetVersion().SupportsMessages)
     {
         m_wndCheckMessage.ShowWindow(SW_HIDE);
     }
@@ -196,7 +196,7 @@ void CNewRoomDialog::_PrepareBuffer()
 
         script.AddInclude("sci.sh");
         script.AddInclude("game.sh");
-        if (appState->GetVersion().UsesMessages && (m_wndCheckMessage.GetCheck() == BST_CHECKED))
+        if (appState->GetVersion().SupportsMessages && (m_wndCheckMessage.GetCheck() == BST_CHECKED))
         {
             string messagefileInclude = fmt::format("{0}.shm", _scriptId.GetResourceNumber());
             script.AddInclude(messagefileInclude);
@@ -507,7 +507,7 @@ void CNewRoomDialog::OnOK()
     if (fClose)
     {
         _PrepareBuffer();
-        if (appState->GetVersion().UsesMessages && (m_wndCheckMessage.GetCheck() == BST_CHECKED))
+        if (appState->GetVersion().SupportsMessages && (m_wndCheckMessage.GetCheck() == BST_CHECKED))
         {
             _CreateMessageFile(_scriptId.GetResourceNumber());
         }

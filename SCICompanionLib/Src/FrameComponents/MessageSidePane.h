@@ -50,8 +50,11 @@ private:
     CExtButton m_wndButton1;
     CExtButton m_wndButton2;
 
+    CExtHyperLinkButton m_wndGotoScript;
+
     HACCEL _hAccel;
 public:
+    afx_msg void OnGotoScript();
     afx_msg void OnBnClickedButtonaddverb();
     afx_msg void OnBnClickedButtonaddtalker();
 };

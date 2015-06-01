@@ -188,7 +188,7 @@ ResourceEntity *CreateMessageResource(SCIVersion version)
 {
     std::unique_ptr<ResourceEntity> pResource = std::make_unique<ResourceEntity>(messageTraits);
     pResource->AddComponent(move(make_unique<TextComponent>()));
-    pResource->SourceFlags = ResourceSourceFlags::MessageMap;
+    pResource->SourceFlags = version.SeparateMessageMap ? ResourceSourceFlags::MessageMap : ResourceSourceFlags::ResourceMap;
     return pResource.release();
 }
 

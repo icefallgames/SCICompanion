@@ -442,6 +442,8 @@
 #define IDC_DECOMPILATIONRESULTS        1172
 #define IDC_GOTOPIC                     1173
 #define IDC_GOTOSCRIPT                  1174
+#define IDC_GOTOPIC2                    1174
+#define IDC_GOTOMESSAGE                 1174
 #define IDC_NORTH                       1175
 #define IDC_EAST                        1176
 #define IDC_SOUTH                       1177

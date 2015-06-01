@@ -2,6 +2,8 @@
 #include "ResourceRecency.h"
 #include "ResourceSources.h"
 
+#define LSL6_FIX 1
+
 enum class ResourceEnumFlags : uint16_t
 {
     None            = 0x0000,
@@ -95,6 +97,13 @@ private:
 };
 
 std::unique_ptr<ResourceContainer> CreateResourceContainerSCI0(SCIVersion version, const std::string &gameFolder, std::unique_ptr<ResourceSourceArray> mapAndVolumes, ResourceTypeFlags types, ResourceEnumFlags enumFlags, ResourceRecency *pRecency);
+
+#ifdef LSL6_FIX
+#define EXTRA_SPACE 4
+#else
+#define EXTRA_SPACE 0
+#endif
+
 
 template<typename _TReaderMapHeader>
 class SCI1MapNavigator
@@ -232,7 +241,7 @@ public:
         }
 
         // Then write the lookup table
-        uint32_t baseOffset = preEntryCount * sizeof(RESOURCEMAPPREENTRY_SCI1);
+        uint32_t baseOffset = preEntryCount * sizeof(RESOURCEMAPPREENTRY_SCI1) + EXTRA_SPACE;
         uint32_t curOffset = baseOffset;
         for (int i = 0; i < ARRAYSIZE(subStreams); i++)
         {
@@ -249,6 +258,11 @@ public:
         terminator.bType = 0xff;
         terminator.wOffset = curOffset;
         mapStreamWriteMain << terminator;
+
+#ifdef LSL6_FIX
+        uint32_t versionStamp = 0x139c;
+        mapStreamWriteMain << versionStamp;
+#endif
 
         assert(mapStreamWriteMain.GetDataSize() == baseOffset);
 

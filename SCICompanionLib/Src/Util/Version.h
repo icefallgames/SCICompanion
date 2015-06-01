@@ -66,7 +66,8 @@ struct SCIVersion
     bool HasOldSCI0ScriptHeader;
     bool sci11Palettes;
     AudioVolumeName AudioVolumeName;
-    bool UsesMessages;
+    bool SupportsMessages;
+    bool SeparateMessageMap;
 
     bool operator==(const SCIVersion &src);
     bool operator!=(const SCIVersion &src);

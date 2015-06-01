@@ -170,7 +170,7 @@ std::unique_ptr<ResourceContainer> GameFolderHelper::Resources(ResourceTypeFlags
     }
 
     // Add readers for message map files, if requrested
-    if (IsFlagSet(types, ResourceTypeFlags::Message))
+    if (IsFlagSet(types, ResourceTypeFlags::Message) && Version.SeparateMessageMap)
     {
         FileDescriptorMessageMap messageMap(GameFolder);
         if (messageMap.DoesMapExist())

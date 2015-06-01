@@ -210,6 +210,12 @@
 #endif
 
 #ifdef SCI_1_1
+// These are values used in script, not returned in GetEvent:
+(define evVERB      $4000)
+(define evMOVE      $1000)
+(define evHELP      $2000)
+(define evHELPVERB  $6000)
+
 (define sndMASTER_VOLUME 0)
 (define sndMUTE 1)
 (define sndRESTORE 2)

@@ -458,17 +458,20 @@ void SCIClassBrowser::ReLoadFromCompiled()
     {
         int scriptNumber = heapScriptPair.first;
         pair<unique_ptr<ResourceBlob>, unique_ptr<ResourceBlob>> &entry = heapScriptPair.second;
-        std::unique_ptr<sci::istream> scriptStream(new sci::istream(entry.first->GetData(), entry.first->GetLength()));
-        std::unique_ptr<sci::istream> heapStream;
-        if (entry.second)
+        if (entry.first)    // It's possible we only find a heap, in error conditions.
         {
-            // Only SCI1.1+ games have separate heap resources.
-            heapStream.reset(new sci::istream(entry.second->GetData(), entry.second->GetLength()));
-        }
-        std::unique_ptr<CompiledScript> pCompiledScript = std::make_unique<CompiledScript>(scriptNumber);
-        if (pCompiledScript->Load(appState->GetResourceMap().Helper(), appState->GetVersion(), scriptNumber, *scriptStream, heapStream.get()))
-        {
-            compiledScriptsMap[scriptNumber] = move(pCompiledScript);
+            std::unique_ptr<sci::istream> scriptStream(new sci::istream(entry.first->GetData(), entry.first->GetLength()));
+            std::unique_ptr<sci::istream> heapStream;
+            if (entry.second)
+            {
+                // Only SCI1.1+ games have separate heap resources.
+                heapStream.reset(new sci::istream(entry.second->GetData(), entry.second->GetLength()));
+            }
+            std::unique_ptr<CompiledScript> pCompiledScript = std::make_unique<CompiledScript>(scriptNumber);
+            if (pCompiledScript->Load(appState->GetResourceMap().Helper(), appState->GetVersion(), scriptNumber, *scriptStream, heapStream.get()))
+            {
+                compiledScriptsMap[scriptNumber] = move(pCompiledScript);
+            }
         }
     }
 

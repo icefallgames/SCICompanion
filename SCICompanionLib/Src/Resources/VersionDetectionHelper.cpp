@@ -332,8 +332,9 @@ void CResourceMap::_SniffSCIVersion()
         _gameFolderHelper.Version.AudioVolumeName = AudioVolumeName::Sfx;
     }
 
+    // Is there a message file?
     std::string fullPathMessageMap = _gameFolderHelper.GameFolder + "\\" + "message.map";
-    _gameFolderHelper.Version.UsesMessages = !!PathFileExists(fullPathMessageMap.c_str());
+    _gameFolderHelper.Version.SeparateMessageMap = !!PathFileExists(fullPathMessageMap.c_str());
 
     _gameFolderHelper.Version.MapFormat = _DetectMapFormat();
 
@@ -355,6 +356,24 @@ void CResourceMap::_SniffSCIVersion()
             break;
         }
     }
+
+    // More about messages...
+    _gameFolderHelper.Version.SupportsMessages = _gameFolderHelper.Version.SeparateMessageMap || _gameFolderHelper.Version.SeparateHeapResources;
+    if (!_gameFolderHelper.Version.SeparateMessageMap)
+    {
+        // Still might support messages... PQ1VGA... well actually, that has a separate message.map file. But... still possible.
+        if (_gameFolderHelper.Version.MapFormat >= ResourceMapFormat::SCI1)
+        {
+            auto msgContainer = Resources(ResourceTypeFlags::Message, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
+            for (auto &blobIt = msgContainer->begin(); blobIt != msgContainer->end(); ++blobIt)
+            {
+                _gameFolderHelper.Version.SupportsMessages = true;
+                break;
+            }
+        }
+    }
+
+
 
     // Now that we've determined a resource map format, we can iterate through them.
     // Now see if we can load a palette. If so, then we'll assume we have VGA pics and views

@@ -148,7 +148,7 @@ HRESULT RebuildResources(SCIVersion version, BOOL fShowUI)
     try
     {
         resourceSource->RebuildResources();
-        if (version.UsesMessages)
+        if (version.SeparateMessageMap)
         {
             std::unique_ptr<ResourceSource> messageSource = CreateResourceSource(appState->GetResourceMap().GetGameFolder(), appState->GetVersion(), ResourceSourceFlags::MessageMap);
             messageSource->RebuildResources();
@@ -497,6 +497,21 @@ std::unique_ptr<ResourceContainer> CResourceMap::Resources(ResourceTypeFlags typ
     }
 
     return Helper().Resources(types, enumFlags, pRecency);
+}
+
+bool CResourceMap::DoesResourceExist(ResourceType type, int number)
+{
+    // NOTE: We exclude path files right now. We could push this functionality into the ResourceSources to optimize.
+    ResourceEnumFlags enumFlags = ResourceEnumFlags::ExcludePatchFiles;
+    auto &resourceContainer = Resources(ResourceTypeToFlag(type), enumFlags);
+    for (auto &blobIt = resourceContainer->begin(); blobIt != resourceContainer->end(); ++blobIt)
+    {
+        if (blobIt.GetResourceNumber() == number)
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 std::unique_ptr<ResourceBlob> CResourceMap::MostRecentResource(ResourceType type, int number, bool getName)

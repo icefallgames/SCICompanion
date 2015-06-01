@@ -61,7 +61,8 @@ public:
 
     // The main functions for enumerating resources.
     std::unique_ptr<ResourceContainer> Resources(ResourceTypeFlags types, ResourceEnumFlags flags);
-    std::unique_ptr<ResourceBlob> CResourceMap::MostRecentResource(ResourceType type, int number, bool getName);
+    std::unique_ptr<ResourceBlob> MostRecentResource(ResourceType type, int number, bool getName);
+    bool DoesResourceExist(ResourceType type, int number);
 
     void PurgeUnnecessaryResources();
 

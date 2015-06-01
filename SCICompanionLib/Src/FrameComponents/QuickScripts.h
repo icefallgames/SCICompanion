@@ -34,6 +34,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
 private:
     afx_msg void OnGotoPic();
+    afx_msg void OnGotoMessage();
     afx_msg BOOL OnGotoRoom(UINT nID);
     afx_msg void OnGotoView(UINT nID);
     afx_msg void OnUpdateAlwaysOn(CCmdUI *pCmdUI) { pCmdUI->Enable(TRUE); }
@@ -60,6 +61,7 @@ private:
     CExtHyperLinkButton m_wndSouth;
     WORD _wWest;
     CExtHyperLinkButton m_wndWest;
+    CExtHyperLinkButton m_wndGotoMessage;
 
     CExtButton m_wndButtonViews;
     std::vector<WORD> _viewNumbers;

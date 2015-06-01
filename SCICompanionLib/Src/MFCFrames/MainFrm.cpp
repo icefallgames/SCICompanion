@@ -542,7 +542,7 @@ void CMainFrame::RefreshExplorerTools()
         m_wndExplorerTools.InsertButton(-1, ID_SHOW_VIEWS);
         m_wndExplorerTools.InsertButton(-1, ID_SHOW_PICS);
         m_wndExplorerTools.InsertButton(-1, ID_SHOW_SCRIPTS);
-        if (version.UsesMessages)
+        if (version.SupportsMessages)
         {
             m_wndExplorerTools.InsertButton(-1, ID_SHOW_MESSAGES);
         }
@@ -1305,7 +1305,7 @@ void CMainFrame::OnUpdateNewPic(CCmdUI *pCmdUI)
 
 void CMainFrame::OnUpdateNewMessage(CCmdUI *pCmdUI)
 {
-    pCmdUI->Enable(appState->GetResourceMap().IsGameLoaded() && appState->GetVersion().UsesMessages);
+    pCmdUI->Enable(appState->GetResourceMap().IsGameLoaded() && appState->GetVersion().SupportsMessages);
 }
 
 void CMainFrame::OnUpdateNewPalette(CCmdUI *pCmdUI)

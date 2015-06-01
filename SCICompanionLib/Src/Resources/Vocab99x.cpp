@@ -221,6 +221,7 @@ const char c_szBadSelector[] = "BAD SELECTOR";
 bool SelectorTable::_Create(sci::istream &byteStream)
 {
     _names.clear();
+    _indices.clear();
     uint16_t wMaxIndex;
     byteStream >> wMaxIndex;
 
