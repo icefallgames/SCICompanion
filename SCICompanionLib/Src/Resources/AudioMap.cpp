@@ -15,9 +15,8 @@ void AudioMapWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
         {
             byteStream << entry.Number;
             uint32_t cumOffset = entry.Offset - prevOffset;
+            byteStream.WriteWord((uint16_t)cumOffset);
             byteStream.WriteByte((uint8_t)(cumOffset >> 16));
-            byteStream.WriteByte((uint8_t)(cumOffset >> 8));
-            byteStream.WriteByte((uint8_t)(cumOffset >> 0));
             prevOffset = entry.Offset;
         }
         byteStream.WriteBytes(ff, 5);

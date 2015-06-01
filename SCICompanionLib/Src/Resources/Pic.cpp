@@ -698,7 +698,7 @@ void PicWriteToVGA11(const ResourceEntity &resource, sci::ostream &byteStream)
             sci::ostream celRLEData;
             sci::ostream celRawData;
             PicCelHeader_VGA11 picCelHeader = {};
-            WriteImageData(celRLEData, cel, true, celRawData, true);
+            WriteImageData(celRLEData, cel, true, celRawData, false);
             // We go: [celheader][RLE][literal]
             picCelHeader.celHeader.always_0xa = 0xa;
             picCelHeader.celHeader.rleCelDataSize = celRLEData.GetDataSize();
@@ -793,7 +793,7 @@ void PicReadFromVGA11(ResourceEntity &resource, sci::istream &byteStream)
     PicReadFromSCI0_SCI1(resource, byteStream, true);
 }
 
-bool PicValidate(const ResourceEntity &resource)
+bool PicValidateEGA(const ResourceEntity &resource)
 {
     PicComponent &pic = resource.GetComponent<PicComponent>();
 
@@ -813,6 +813,29 @@ bool PicValidate(const ResourceEntity &resource)
         {
             // Warn the user
             CDontShowAgainDialog dialog(TEXT("This pic is missing a Set Palette command for one or more of the four palettes.\nThis may lead to unpredictable results when the game draws the pic."),
+                appState->_fDontCheckPic);
+            dialog.DoModal();
+        }
+    }
+    return true; // Always save anyway...
+}
+
+bool PicValidateVGA(const ResourceEntity &resource)
+{
+    PicComponent &pic = resource.GetComponent<PicComponent>();
+
+    // Perform a little validation.
+    if (!appState->_fDontCheckPic)
+    {
+        bool found = false;
+        for (size_t i = 0; !found && (i < pic.commands.size()); i++)
+        {
+            found = (pic.commands[i].type == PicCommand::SetPriorityBars);
+        }
+        if (!found)
+        {
+            // Warn the user
+            CDontShowAgainDialog dialog(TEXT("This pic is missing a Set Priority Bars command\nThis may lead to unpredictable results when the game draws the pic."),
                 appState->_fDontCheckPic);
             dialog.DoModal();
         }
@@ -847,7 +870,7 @@ ResourceTraits picResourceTraitsEGA =
     ResourceType::Pic,
     &PicReadFromEGA,
     &PicWriteTo,
-    &PicValidate
+    &PicValidateEGA
 };
 
 ResourceTraits picResourceTraitsVGA =
@@ -855,7 +878,7 @@ ResourceTraits picResourceTraitsVGA =
     ResourceType::Pic,
     &PicReadFromVGA,
     &PicWriteTo,
-    &PicValidate
+    &PicValidateVGA
 };
 
 ResourceTraits picResourceTraitsVGA11 =
@@ -863,7 +886,7 @@ ResourceTraits picResourceTraitsVGA11 =
     ResourceType::Pic,
     &PicReadFromVGA11,
     PicWriteToVGA11,
-    &PicValidate
+    &PicValidateVGA
 };
 
 PicComponent::PicComponent() : Traits(picTraitsEGA) {}
@@ -897,17 +920,30 @@ ResourceEntity *CreateDefaultPicResource(SCIVersion version)
     // Reserve space for about 166 commands.
     pic.commands.reserve(500 / 2);
 
-    // Now Prepopulate the pic with palettes, pen styles/sizes and screen on/offs.
-    // Otherwise, the SCI interpreter may use values from the previous picture.
-
-    // First the palettes:
-    for (uint8_t b = 0; b < 4; b++)
+    if (version.PicFormat == PicFormat::EGA)
     {
-        pic.commands.push_back(PicCommand::CreateSetPalette(b, g_defaultPalette));
-    }
+        // Now Prepopulate the pic with palettes, pen styles/sizes and screen on/offs.
+        // Otherwise, the SCI interpreter may use values from the previous picture.
 
-    // We actually don't need to set the pen style - it will be set with
-    // the first pen command.
+        // First the palettes:
+        for (uint8_t b = 0; b < 4; b++)
+        {
+            pic.commands.push_back(PicCommand::CreateSetPalette(b, g_defaultPalette));
+        }
+        // We actually don't need to set the pen style - it will be set with
+        // the first pen command.
+    }
+    else if (version.PicFormat == PicFormat::VGA1)
+    {
+        // I don't think we need anything else
+    }
+    else if (version.PicFormat == PicFormat::VGA1_1)
+    {
+        // We need to have a set priority bars command
+        PicCommand setPriBarsCommand;
+        setPriBarsCommand.CreateSetPriorityBars(g_defaultPriBands16Bit, pic.Traits.SixteenBitPri, pic.Traits.IsVGA);
+        pic.commands.insert(pic.commands.begin(), setPriBarsCommand);
+    }
 
     // Finally, turn off the screens.
     pic.commands.push_back(PicCommand::CreateDisableVisual());

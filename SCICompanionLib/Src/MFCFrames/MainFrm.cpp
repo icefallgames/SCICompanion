@@ -1059,6 +1059,8 @@ BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
     return TRUE;
 }
 
+const char c_szDefaultPaletteSample[] = "\\palettes\\DefaultPalette.bin";
+
 void CMainFrame::OnFileNewPic()
 {
     // Get the document template, so we can create a new CPicDoc.
@@ -1071,6 +1073,22 @@ void CMainFrame::OnFileNewPic()
         if (pDocument)
         {
             unique_ptr<ResourceEntity> pEditPic(CreateDefaultPicResource(appState->GetVersion()));
+            if (appState->GetVersion().PicFormat == PicFormat::VGA1_1)
+            {
+                // Let's add a palette.
+                std::string palettePath = appState->GetResourceMap().GetSamplesFolder() + c_szDefaultPaletteSample;
+                ResourceBlob blob;
+                if (SUCCEEDED(blob.CreateFromFile(nullptr, palettePath.c_str(), appState->GetVersion(), -1, -1)))
+                {
+                    unique_ptr<ResourceEntity> paletteEntity = CreateResourceFromResourceData(blob);
+                    if (paletteEntity)
+                    {
+                        unique_ptr<PaletteComponent> palette(static_cast<PaletteComponent*>((paletteEntity->GetComponent<PaletteComponent>().Clone())));
+                        pEditPic->AddComponent<PaletteComponent>(move(palette));
+                    }
+                }
+            }
+
             pDocument->SetEditPic(move(pEditPic));
         }
     }
@@ -1127,7 +1145,7 @@ void CMainFrame::OnFileNewText()
 void CMainFrame::OnFileNewPalette()
 {
     // A little bit different. We need interesting data to populate the default palette, so use a sample.
-    std::string palettePath = appState->GetResourceMap().GetSamplesFolder() + "\\palettes\\DefaultPalette.bin";
+    std::string palettePath = appState->GetResourceMap().GetSamplesFolder() + c_szDefaultPaletteSample;
     ResourceBlob blob;
     if (SUCCEEDED(blob.CreateFromFile(nullptr, palettePath.c_str(), appState->GetVersion(), -1, -1)))
     {

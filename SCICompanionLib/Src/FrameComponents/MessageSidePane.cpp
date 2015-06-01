@@ -33,7 +33,6 @@ void MessageSidePane::DoDataExchange(CDataExchange* pDX)
 
     DDX_Control(pDX, IDC_GOTOSCRIPT, m_wndGotoScript);
     m_wndGotoScript.m_bUseStdCommandNotification = true;
-    
 }
 
 

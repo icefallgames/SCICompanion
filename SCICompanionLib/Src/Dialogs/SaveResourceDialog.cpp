@@ -64,7 +64,8 @@ END_MESSAGE_MAP()
 BOOL SaveResourceDialog::_ValidateData()
 {
     BOOL fRet = TRUE;
-    if ((_iResourceNumber < 0) || (_iResourceNumber > appState->GetVersion().GetMaximumResourceNumber()))
+    // The audio map is resource 65535, so allow that through.
+    if ((_iResourceNumber < 0) || (_iResourceNumber > appState->GetVersion().GetMaximumResourceNumber() && _iResourceNumber != 0xFFFF))
     {
         AfxMessageBox(TEXT("Please specify a resource number between 0 and 999"),
                       MB_OK | MB_APPLMODAL | MB_ICONSTOP);

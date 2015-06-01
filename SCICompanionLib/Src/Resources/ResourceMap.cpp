@@ -875,9 +875,7 @@ void CResourceMap::SaveAudioMap65535(const AudioMapComponent &newAudioMap)
     GetAudioMap65535(); // Just ensure we have one
     // Assign the new component to it.
     _pAudioMap65535->GetComponent<AudioMapComponent>() = newAudioMap;
-    assert(_pAudioMap65535->SourceFlags == ResourceSourceFlags::PatchFile && "Need to support embedded audio maps");
     AppendResource(*_pAudioMap65535);
-
     _pAudioMap65535.reset(nullptr);
 }
 
