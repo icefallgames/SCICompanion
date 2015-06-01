@@ -15,6 +15,7 @@ enum class ResourceMapChangeHint
     Change      = 0x00000040,
     // A particular resource was added.  The Object parameter is a ResourceBlob
     Added = 0x00000100,
+    Replaced = 0x00000800,
     // A particular resource was deleted.  The Object parameter is a ResourceBlob
     Deleted = 0x00000200,
     // A particular resource type was changed (outside our control), tell that type to reload. The Object is a ResourceType
@@ -39,7 +40,7 @@ public:
 	virtual void Serialize(CArchive& ar);   // overridden for document i/o
 
     // ISyncResourceMap
-    void OnResourceAdded(const ResourceBlob *pData);
+    void OnResourceAdded(const ResourceBlob *pData, AppendBehavior appendBehavior);
     void OnResourceDeleted(const ResourceBlob *pData);
     void OnResourceMapReloaded(bool isInitialLoad);
     void OnResourceTypeReloaded(ResourceType iType);

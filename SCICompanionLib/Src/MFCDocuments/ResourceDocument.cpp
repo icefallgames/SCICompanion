@@ -203,7 +203,6 @@ BOOL CResourceDocument::DoPreResourceSave(BOOL fSaveAs)
 
 BOOL CResourceDocument::_DoResourceSave(int iPackageNumber, int iResourceNumber)
 {
-    BOOL fSaved = FALSE;
     // Ignore path name.
     const ResourceEntity *pResource = static_cast<const ResourceEntity *>(GetResource());
     bool saved = false;
@@ -220,7 +219,7 @@ BOOL CResourceDocument::_DoResourceSave(int iPackageNumber, int iResourceNumber)
         _UpdateTitle();
     }
     SetModifiedFlag(!saved);
-    return fSaved;
+    return saved;
 }
 
 void CResourceDocument::OnExportAsBitmap()

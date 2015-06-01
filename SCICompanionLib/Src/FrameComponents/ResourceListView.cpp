@@ -662,6 +662,20 @@ void CResourceListCtrl::_OnInitListView(int cItems)
     // subclasses can override.
 }
 
+void CResourceListCtrl::_DeleteMatchingItems(int resourceNumber, int packageNumber, ResourceSourceFlags sourceFlags)
+{
+    int cItems = GetItemCount();
+    // Go backwards so that 
+    for (int i = cItems - 1; (i >= 0); i--)
+    {
+        const ResourceBlob *pData = _GetResourceForItem(i);
+        if ((pData->GetNumber() == resourceNumber) && (pData->GetPackageHint() == packageNumber) && (pData->GetSourceFlags() == sourceFlags))
+        {
+            DeleteItem(i);
+        }
+    }
+}
+
 void CResourceListCtrl::_DeleteItem(const ResourceBlob *pData)
 {
     int iIndex = _GetItemForResource(pData);
@@ -834,9 +848,15 @@ void CResourceListCtrl::OnUpdate(LPARAM lHint, CObject *pHint)
     {
         _UpdateEntries();
     }
-    else if (IsFlagSet(hint, ResourceMapChangeHint::Added))
+    else if (IsFlagSet(hint, ResourceMapChangeHint::Added | ResourceMapChangeHint::Replaced))
     {
         ResourceBlob *pData = UnwrapObject<ResourceBlob*>(pHint);
+
+        if (IsFlagSet(hint, ResourceMapChangeHint::Replaced))
+        {
+            _DeleteMatchingItems(pData->GetNumber(), pData->GetPackageHint(), pData->GetSourceFlags());
+        }
+
         // Make our own copy, since we're storing this away.
         ResourceBlob *pDataClone = new ResourceBlob(*pData);
         _InsertItem(pDataClone);
@@ -905,13 +925,13 @@ HRESULT CResourceListCtrl::_UpdateEntries()
 int CResourceListCtrl::_GetItemForResource(const ResourceBlob *pData)
 {
     int cItems = GetItemCount();
-    BOOL fFound = FALSE;
+    bool fFound = false;
     int i = 0;
     for (; !fFound && (i < cItems); i++)
     {
         fFound = (_GetResourceForItem(i) == pData);
     }
-    ASSERT(fFound); // Otherwise someone called us with a bad resource data.
+    assert(fFound); // Otherwise someone called us with a bad resource data.
     return i - 1;
 }
 

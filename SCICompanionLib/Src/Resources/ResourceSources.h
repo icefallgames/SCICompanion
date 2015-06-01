@@ -7,6 +7,12 @@
 // (2) message.map/resource.msg
 // (3) solitary files (e.g. 017.p56)
 
+enum class AppendBehavior
+{
+    Append,
+    Replace,
+};
+
 typedef ResourceHeaderAgnostic(*ReadResourceHeaderFunc)(sci::istream &byteStream, SCIVersion version, ResourceSourceFlags sourceFlags, uint16_t packageHint);
 typedef void(*WriteResourceHeaderFunc)(sci::ostream &byteStream, const ResourceHeaderAgnostic &header);
 
@@ -73,7 +79,7 @@ public:
 
     virtual void RemoveEntry(const ResourceMapEntryAgnostic &mapEntry) = 0;
     virtual void RebuildResources() = 0;
-    virtual void AppendResources(const std::vector<ResourceBlob> &entries) = 0;
+    virtual AppendBehavior AppendResources(const std::vector<ResourceBlob> &entries) = 0;
 };
 
 typedef std::vector<std::unique_ptr<ResourceSource>> ResourceSourceArray;
@@ -337,7 +343,7 @@ public:
         this->WriteAndReplaceMapAndVolumes(mapStreamWrite1, volumeWriteStreams);
     }
 
-    virtual void AppendResources(const std::vector<ResourceBlob> &blobs)
+    virtual ::AppendBehavior AppendResources(const std::vector<ResourceBlob> &blobs)
     {
         // For this, we append the resource data to the end of the volume file.
         // We could have any number of volumes being saved to, so we'll use a map.
@@ -396,6 +402,8 @@ public:
         // Now we have mapStreamWrite1 and volumeStreamWrite that have the needed data.
         // Let's ask the _FileDescriptor to replace things.
         this->WriteAndReplaceMapAndVolumes(mapStreamWriteMain, volumeWriteStreams);
+
+        return _TNavigator::AppendBehavior;
     }
 
 protected:
@@ -453,7 +461,7 @@ public:
     }
 
     void RemoveEntry(const ResourceMapEntryAgnostic &mapEntry) override;
-    void AppendResources(const std::vector<ResourceBlob> &entries) override;
+    AppendBehavior AppendResources(const std::vector<ResourceBlob> &entries) override;
     void RebuildResources() override {} // Nothing to do here.
 
 private:
@@ -491,7 +499,7 @@ public:
     }
 
     void RemoveEntry(const ResourceMapEntryAgnostic &mapEntry) override;
-    void AppendResources(const std::vector<ResourceBlob> &entries) override;
+    AppendBehavior AppendResources(const std::vector<ResourceBlob> &entries) override;
     void RebuildResources() override {}
 
 private:

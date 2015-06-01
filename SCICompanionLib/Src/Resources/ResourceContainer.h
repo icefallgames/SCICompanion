@@ -104,11 +104,11 @@ std::unique_ptr<ResourceContainer> CreateResourceContainerSCI0(SCIVersion versio
 #define EXTRA_SPACE 0
 #endif
 
-
 template<typename _TReaderMapHeader>
 class SCI1MapNavigator
 {
 public:
+    const AppendBehavior AppendBehavior = AppendBehavior::Replace;
     const size_t ReasonableLimit = 20;
 
     bool NavAndReadNextEntry(ResourceTypeFlags typeFlags, sci::istream &mapStream, IteratorState &state, ResourceMapEntryAgnostic &entryOut, std::vector<uint8_t> *optionalRawData = nullptr)
@@ -316,6 +316,7 @@ private:
 class SCI0MapNavigator
 {
 public:
+    const AppendBehavior AppendBehavior = AppendBehavior::Append;
     bool NavAndReadNextEntry(ResourceTypeFlags typeFlags, sci::istream &mapStream, IteratorState &state, ResourceMapEntryAgnostic &entryOut, std::vector<uint8_t> *optionalRawData = nullptr);
     void WriteEntry(const ResourceMapEntryAgnostic &entryIn, sci::ostream &mapStreamWriteMain, sci::ostream &mapStreamWriteSecondary, bool isNewEntry);
     void FinalizeMapStreams(sci::ostream &mapStreamWriteMain, sci::ostream &mapStreamWriteSecondary);

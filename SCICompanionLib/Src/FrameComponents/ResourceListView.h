@@ -73,6 +73,7 @@ protected:
     HRESULT _UpdateEntries();
     ResourceBlob *_GetResourceForItem(int nItem) { return (ResourceBlob*)GetItemData(nItem); }
     int _GetItemForResource(const ResourceBlob *pData);
+    void _DeleteMatchingItems(int resourceNumber, int packageNumber, ResourceSourceFlags sourceFlags);
 
     int _iView;
     BOOL _bFirstTime;

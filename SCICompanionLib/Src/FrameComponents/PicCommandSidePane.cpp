@@ -49,6 +49,8 @@ void PicCommandSidePane::DoDataExchange(CDataExchange* pDX)
     if (_showPalette)
     {
         DDX_Control(pDX, IDC_STATIC2, m_wndPalette);
+        DDX_Control(pDX, ID_PIC_EDITPALETTE, m_wndEditPaletteButton);
+        m_wndEditPaletteButton.SetIcon(IDI_EDITPALETTE, 0, 0, 0, 24, 24);
     }
 }
 
@@ -150,6 +152,7 @@ BOOL PicCommandSidePane::OnInitDialog()
     if (_showPalette)
     {
         AddAnchor(IDC_STATIC2, CPoint(0, 100), CPoint(100, 100));
+        AddAnchor(ID_PIC_EDITPALETTE, CPoint(0, 100), CPoint(0, 100));
     }
 
     return fRet;
@@ -434,6 +437,12 @@ void PicCommandSidePane::UpdateNonView(CObject *pObject)
         // Redraw ourselves.
         // But first - we need to figure out how commands there are.
         _UpdateItemCount();
+        _UpdatePalette();
+        Invalidate(FALSE);
+    }
+
+    if (IsFlagSet(hint, PicChangeHint::Palette))
+    {
         _UpdatePalette();
         Invalidate(FALSE);
     }

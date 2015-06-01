@@ -69,13 +69,11 @@ void CResourceListDoc::OnDisableCommand(CCmdUI *pCmdUI)
     pCmdUI->Enable(FALSE);
 }
 
-void CResourceListDoc::OnResourceAdded(const ResourceBlob *pData)
+void CResourceListDoc::OnResourceAdded(const ResourceBlob *pData, AppendBehavior appendBehavior)
 {
     // Add this as the most recent resource of this type/number/package
     appState->_resourceRecency.AddResourceToRecency(pData);
-
-    // Heinous re-interpret cast.
-    UpdateAllViews(nullptr, 0, &WrapObject(ResourceMapChangeHint::Added, pData));
+    UpdateAllViews(nullptr, 0, &WrapObject((appendBehavior == AppendBehavior::Replace) ? ResourceMapChangeHint::Replaced : ResourceMapChangeHint::Added, pData));
 }
 
 void CResourceListDoc::OnResourceDeleted(const ResourceBlob *pDataDeleted)

@@ -513,6 +513,18 @@ void CPicView::EditVGAPalette()
         PaletteComponent paletteCopy = *palette; // Since we'll be changing it, and this is const
         PaletteEditorDialog paletteEditor(paletteCopy, cels);
         paletteEditor.DoModal();
+        PaletteComponent paletteResult = paletteEditor.GetPalette();
+        if (paletteResult != *palette)
+        {
+            GetDocument()->ApplyChanges<PicComponent, PaletteComponent>(
+                [&paletteResult](PicComponent &pic, PaletteComponent &palette)
+            {
+                // Replace the palette with the new one.
+                palette = paletteResult;
+                return WrapHint(PicChangeHint::Palette);
+            }
+            );
+        }
     }
 }
 

@@ -6,6 +6,7 @@
 #include "PaletteOperations.h"
 #include "AppState.h"
 #include "format.h"
+#include "GradientDialog.h"
 
 template<class T>
 class PaletteEditorCommon : public T, public IColorDialogCallback
@@ -123,6 +124,8 @@ public:
         }
     }
 
+    PaletteComponent GetPalette() { return *_palette; }
+
     void DoDataExchange(CDataExchange* pDX) override
     {
         __super::DoDataExchange(pDX);
@@ -150,6 +153,9 @@ public:
         DDX_Control(pDX, IDC_BUTTONEDITCOLOR, m_wndButtonChooseColor);
         m_wndButtonChooseColor.EnableWindow(FALSE);
 
+        DDX_Control(pDX, IDC_BUTTONRANGEGRADIENT, m_wndButtonGradients);
+        m_wndButtonGradients.EnableWindow(FALSE);
+
         // Visuals
         if (GetDlgItem(IDCANCEL))
         {
@@ -169,11 +175,24 @@ public:
     }
 
 protected:
-    void _SyncSelection()
+
+    bool _CanDoGradient(const std::vector<std::pair<uint8_t, uint8_t>> &ranges)
     {
+        if (ranges.size() == 1)
+        {
+            int start = ranges[0].first;
+            int end = ranges[0].second;
+            return (end > (start + 1)); // At least 3
+        }
+        return false;
+    }
+
+    std::vector<std::pair<uint8_t, uint8_t>> GetSelectedRanges()
+    {
+        std::vector<std::pair<uint8_t, uint8_t>> ranges;
+
         bool multipleSelection[256];
         m_wndStatic.GetMultipleSelection(multipleSelection);
-        std::string rangeText;
         // Calculate the ranges
         bool on = false;
         int startRange = 0;
@@ -186,23 +205,40 @@ protected:
             }
             if (!multipleSelection[i] && on)
             {
-                if (!rangeText.empty())
-                {
-                    rangeText += ",\r\n";
-                }
-                int endRange = i - 1;
-                if (endRange == startRange)
-                {
-                    rangeText += fmt::format("{0}", startRange);
-                }
-                else
-                {
-                    rangeText += fmt::format("{0}-{1}", startRange, (i - 1));
-                }
+                ranges.emplace_back((uint8_t)startRange, (uint8_t)(i - 1));
                 on = false;
             }
         }
+        if (on)
+        {
+            ranges.emplace_back((uint8_t)startRange, 255);
+        }
+        return ranges;
+    }
+
+    void _SyncSelection()
+    {
+        std::vector<std::pair<uint8_t, uint8_t>> ranges = GetSelectedRanges();
+        std::string rangeText;
+        for (auto &range : ranges)
+        {
+            if (!rangeText.empty())
+            {
+                rangeText += ",\r\n";
+            }
+            if (range.first == range.second)
+            {
+                rangeText += fmt::format("{0}", (int)range.first);
+            }
+            else
+            {
+                rangeText += fmt::format("{0}-{1}", (int)range.first, (int)range.second);
+            }
+        }
         m_wndEditRange.SetWindowTextA(rangeText.c_str());
+
+        // The range button only works with a single range3.
+        m_wndButtonGradients.EnableWindow(_CanDoGradient(ranges));
     }
 
     void _UpdateDocument()
@@ -240,6 +276,7 @@ protected:
     CExtCheckBox m_wndUsedCheck;
     CExtCheckBox m_wndFixedCheck;
     CExtButton m_wndButtonChooseColor;
+    CExtButton m_wndButtonGradients;
 
     PaletteComponent *_palette;
     std::unique_ptr<PaletteComponent> _paletteOwned;   // For the _pDoc scenario where we need a copy of the paletter to work on.
@@ -263,6 +300,7 @@ public:
     afx_msg void OnBnClickedCheck1();
     afx_msg void OnBnClickedCheck2();
     afx_msg void OnBnClickedButtoneditcolor();
+    afx_msg void OnBnClickedButtonGradient();
     afx_msg void OnEnChangeEdit1();
     afx_msg void OnImportPalette();
     afx_msg void OnExportPalette();
@@ -273,6 +311,7 @@ BEGIN_TEMPLATE_MESSAGE_MAP(PaletteEditorCommon, T, T)
     ON_BN_CLICKED(IDC_CHECK1, OnBnClickedCheck1)
     ON_BN_CLICKED(IDC_CHECK2, OnBnClickedCheck2)
     ON_BN_CLICKED(IDC_BUTTONEDITCOLOR, OnBnClickedButtoneditcolor)
+    ON_BN_CLICKED(IDC_BUTTONRANGEGRADIENT, OnBnClickedButtonGradient)
     ON_BN_CLICKED(IDC_BUTTON_LOAD, OnImportPalette)
     ON_BN_CLICKED(IDC_BUTTON_SAVE, OnExportPalette)
 END_MESSAGE_MAP()
@@ -280,7 +319,7 @@ END_MESSAGE_MAP()
 template<class T>
 void PaletteEditorCommon<T>::OnBnClickedButtonrevert()
 {
-    memcpy(_palette->Colors, _originalColors, ARRAYSIZE(_originalColors));
+    memcpy(_palette->Colors, _originalColors, ARRAYSIZE(_originalColors) * sizeof(_originalColors[0]));
     _SyncPalette();
     m_wndStatic.Invalidate(FALSE);
 }
@@ -359,6 +398,23 @@ void PaletteEditorCommon<T>::OnBnClickedButtoneditcolor()
         {
             _palette->Colors[_mainSelectedIndex] = RGBQUADFromCOLORREF(colorDialog.m_clrNew);
             _palette->Colors[_mainSelectedIndex].rgbReserved = usedValue;
+            _UpdateDocument();
+            _SyncPalette();
+        }
+    }
+}
+
+template<class T>
+void PaletteEditorCommon<T>::OnBnClickedButtonGradient()
+{
+    std::vector<std::pair<uint8_t, uint8_t>> ranges = GetSelectedRanges();
+    if (_CanDoGradient(ranges))
+    {
+        PaletteComponent paletteCopy = *_palette;
+        GradientDialog dialog(paletteCopy, ranges[0].first, ranges[0].second);
+        if (IDOK == dialog.DoModal())
+        {
+            *_palette = paletteCopy;
             _UpdateDocument();
             _SyncPalette();
         }

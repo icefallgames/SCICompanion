@@ -109,6 +109,7 @@ IDI_SHOWTRACEIMAGE      ICON                    "res\\showtrace.ico"
 IDI_LOADTRACEIMAGE      ICON                    "res\\loadtrace.ico"
 IDI_DELETE              ICON                    "res\\delete.ico"
 IDI_EDIT_FIND           ICON                    "res\\find.ico"
+IDI_EDITPALETTE         ICON                    "res\\editpalette.ico"
 IDI_ANIMATE             ICON                    "res\\animate.ico"
 IDI_PALETTE             ICON                    "res\\palette.ico"
 IDI_IMAGESEQUENCE       ICON                    "res\\image_sequence.ico"
@@ -384,7 +385,7 @@ BEGIN
         END
         MENUITEM "Create new &game",            ID_FILE_NEWGAME
         MENUITEM "&Open game\tCtrl+O",          ID_FILE_OPEN
-        MENUITEM "Add resource",                ID_FILE_ADDRESOURCE
+        MENUITEM "&Import resource",            ID_FILE_ADDRESOURCE
         MENUITEM "Open &resource",              ID_FILE_OPENRESOURCE
         MENUITEM "&Save\tCtrl+S",               ID_FILE_SAVE
         MENUITEM "Save &as",                    ID_FILE_SAVE_AS
@@ -568,7 +569,7 @@ BEGIN
             MENUITEM "&Thumbnail",                  ID_VIEWTHUMBNAILS
             MENUITEM "&Details",                    ID_VIEWDETAILS
         END
-        MENUITEM "&Add Resource",               ID_FILE_ADDRESOURCE
+        MENUITEM "&Import resource",            ID_FILE_ADDRESOURCE
         MENUITEM SEPARATOR
         MENUITEM "&Rebuild resources",          ID_TOOLS_REBUILDRESOURCES
     END
@@ -1154,7 +1155,7 @@ BEGIN
     GROUPBOX        "Loop",IDC_STATIC_LOOPGROUP,3,169,96,59
     CONTROL         "Affect all cels in loop",IDC_CHECKAPPLYTOALL,"Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,3,232,96,11
     CONTROL         "",IDC_TREELOOPS,"SysTreeView32",TVS_SHOWSELALWAYS | WS_BORDER | WS_HSCROLL | WS_TABSTOP,3,248,96,75
-    LTEXT           "Palette:",IDC_STATIC7,3,52,36,10
+    LTEXT           "Palette:",IDC_STATIC7,3,52,33,10
     COMBOBOX        IDC_COMBO_PALETTE,3,61,33,200,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
 END
 
@@ -1176,9 +1177,10 @@ BEGIN
     DEFPUSHBUTTON   "Delete",ID_EDIT_DELETE,7,25,34,14
     PUSHBUTTON      "Crop",ID_CROPCOMMANDS,44,25,30,14
     LISTBOX         IDC_LISTCOMMANDS,7,44,103,115,LBS_OWNERDRAWFIXED | LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | LBS_NODATA | WS_VSCROLL | WS_TABSTOP
-    CONTROL         "",IDC_STATIC2,"Static",SS_OWNERDRAW | SS_NOTIFY | WS_GROUP,7,162,103,103
+    CONTROL         "",IDC_STATIC2,"Static",SS_OWNERDRAW | SS_NOTIFY | WS_GROUP,7,178,103,87
     PUSHBUTTON      "Copy",ID_EDIT_COPY,78,25,32,14
     PUSHBUTTON      "Goto script",IDC_GOTOSCRIPT,7,7,103,14
+    PUSHBUTTON      "Edit",ID_PIC_EDITPALETTE,7,162,19,14,BS_ICON | BS_FLAT
 END
 
 IDD_DIALOGEMPTY DIALOGEX 0, 0, 129, 221
@@ -1447,7 +1449,8 @@ BEGIN
     PUSHBUTTON      "E&xport",IDC_BUTTON_SAVE,236,177,50,14
     PUSHBUTTON      "&Import",IDC_BUTTON_LOAD,236,160,50,14
     CONTROL         "Fixed",IDC_CHECK2,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,232,23,33,10
-    EDITTEXT        IDC_EDITRANGE,232,61,54,67,ES_MULTILINE | ES_AUTOHSCROLL | ES_READONLY
+    EDITTEXT        IDC_EDITRANGE,232,73,54,67,ES_MULTILINE | ES_AUTOHSCROLL | ES_READONLY
+    PUSHBUTTON      "&Gradient",IDC_BUTTONRANGEGRADIENT,236,56,50,14
 END
 
 IDD_PALETTE_EDITOR_EMBEDDED DIALOGEX 0, 0, 293, 236
@@ -1461,7 +1464,8 @@ BEGIN
     PUSHBUTTON      "E&xport",IDC_BUTTON_SAVE,236,215,50,14
     PUSHBUTTON      "&Import",IDC_BUTTON_LOAD,236,198,50,14
     CONTROL         "Fixed",IDC_CHECK2,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,232,23,33,10
-    EDITTEXT        IDC_EDITRANGE,232,61,54,67,ES_MULTILINE | ES_AUTOHSCROLL | ES_READONLY
+    EDITTEXT        IDC_EDITRANGE,232,77,54,67,ES_MULTILINE | ES_AUTOHSCROLL | ES_READONLY
+    PUSHBUTTON      "&Gradient",IDC_BUTTONRANGEGRADIENT,236,56,50,14
 END
 
 IDD_DECOMPILER DIALOGEX 0, 0, 607, 303
@@ -1534,6 +1538,18 @@ BEGIN
     LTEXT           "Message text:",IDC_STATIC2,172,9,47,8
     PUSHBUTTON      "Commit",IDC_BUTTONCOMMIT,232,7,50,14
     PUSHBUTTON      "Add new",IDC_BUTTONADDNEW,7,7,42,14
+END
+
+IDD_DIALOGGRADIENTS DIALOGEX 0, 0, 309, 177
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Gradients"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,198,156,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,252,156,50,14
+    CONTROL         "",IDC_CHOOSECOLORSTATIC,"Static",SS_OWNERDRAW | SS_NOTIFY,7,7,187,163
+    PUSHBUTTON      "Edges",IDC_BUTTONEDGES,252,7,50,14
+    PUSHBUTTON      "Center",IDC_BUTTONCENTER,199,7,50,14
 END
 
 
@@ -2089,6 +2105,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 111
     END
+
+    IDD_DIALOGGRADIENTS, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 302
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 170
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -2393,7 +2417,7 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_FILE_ADDRESOURCE     "Adds a resource to the game.\nAdd resource"
+    ID_FILE_ADDRESOURCE     "Imports a resource into to the game.\nImport resource"
     ID_LIGHTUPCOORDS        "Moving existing line, pen or fill points.\nTransform coords"
 END
 

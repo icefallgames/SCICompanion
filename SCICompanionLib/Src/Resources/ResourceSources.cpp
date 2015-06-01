@@ -136,7 +136,7 @@ void PatchFilesResourceSource::RemoveEntry(const ResourceMapEntryAgnostic &mapEn
     deletefile(fullPath);
 }
 
-void PatchFilesResourceSource::AppendResources(const std::vector<ResourceBlob> &blobs)
+AppendBehavior PatchFilesResourceSource::AppendResources(const std::vector<ResourceBlob> &blobs)
 {
     for (const ResourceBlob &blob : blobs)
     {
@@ -152,6 +152,7 @@ void PatchFilesResourceSource::AppendResources(const std::vector<ResourceBlob> &
         deletefile(fullPath);
         movefile(bakPath, fullPath);
     }
+    return AppendBehavior::Replace;
 }
 
 PatchFilesResourceSource::~PatchFilesResourceSource()
@@ -333,7 +334,7 @@ void AudioResourceSource::_Finalize(AudioMapComponent &newAudioMap, sci::ostream
     movefile(bakPath, _GetAudioVolumePath(false));
 }
 
-void AudioResourceSource::AppendResources(const std::vector<ResourceBlob> &entries)
+AppendBehavior AudioResourceSource::AppendResources(const std::vector<ResourceBlob> &entries)
 {
     _EnsureAudioVolume();
     for (const ResourceBlob &blob : entries)
@@ -363,4 +364,5 @@ void AudioResourceSource::AppendResources(const std::vector<ResourceBlob> &entri
             _Finalize(*newAudioMap, newVolumeStream);
         }
     }
+    return AppendBehavior::Replace;
 }

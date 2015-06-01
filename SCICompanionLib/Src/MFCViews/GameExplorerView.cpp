@@ -528,7 +528,7 @@ void CGameExplorerView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
 {
     ResourceMapChangeHint hint = GetHint<ResourceMapChangeHint>(pHint);
 
-    if (IsFlagSet(hint, ResourceMapChangeHint::Added | ResourceMapChangeHint::Deleted))
+    if (IsFlagSet(hint, ResourceMapChangeHint::Added | ResourceMapChangeHint::Replaced | ResourceMapChangeHint::Deleted))
     {
         // Go tell each of our listviews that a resource was added (or deleted)
         ResourceBlob *pData = UnwrapObject<ResourceBlob*>(pHint);

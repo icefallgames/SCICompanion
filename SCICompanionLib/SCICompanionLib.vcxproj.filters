@@ -615,6 +615,9 @@
     <ClCompile Include="Src\FrameComponents\MessageEditPane.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Dialogs\GradientDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCICompanionLib.h">
@@ -1286,6 +1289,9 @@
     <ClInclude Include="Src\Util\WindowsUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Dialogs\GradientDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="SCICompanionLib.def">
@@ -1780,6 +1786,9 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\audio.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\editpalette.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

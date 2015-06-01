@@ -249,6 +249,8 @@ HRESULT CResourceMap::EndDeferAppend()
 
                 try
                 {
+                    // We're going to tell the relevant folks to reload completely, so we
+                    // don't care about the return value here (replace or append)
                     resourceSource->AppendResources(_deferredResources);
                 }
                 catch (std::exception &e)
@@ -403,9 +405,10 @@ HRESULT CResourceMap::AppendResource(const ResourceBlob &resource)
         std::vector<ResourceBlob> blobs;
         blobs.push_back(resource);
 
+        AppendBehavior appendBehavior = AppendBehavior::Append;
         try
         {
-            resourceSource->AppendResources(blobs);
+            appendBehavior = resourceSource->AppendResources(blobs);
         }
         catch (std::exception &e)
         {
@@ -425,7 +428,10 @@ HRESULT CResourceMap::AppendResource(const ResourceBlob &resource)
             }
 
             // pResource is only valid for the length of this call.  Nonetheless, call our syncs
-			for_each(_syncs.begin(), _syncs.end(), bind2nd(mem_fun(&ISyncResourceMap::OnResourceAdded), &resource));
+            for (auto &sync : _syncs)
+            {
+                sync->OnResourceAdded(&resource, appendBehavior);
+            }
             if (resource.GetType() == ResourceType::Palette)
             {
                 _paletteListNeedsUpdate = true;

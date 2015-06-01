@@ -75,6 +75,7 @@ private:
     CExtHyperLinkButton m_wndGotoScript;
 
     // Visual
+    CExtButton m_wndEditPaletteButton;
     CExtButton m_wndDelete;
     CExtButton m_wndCopy;
     CExtButton m_wndCrop;

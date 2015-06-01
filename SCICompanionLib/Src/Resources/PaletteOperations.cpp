@@ -363,6 +363,15 @@ void PaletteReadFrom(ResourceEntity &resource, sci::istream &byteStream)
     ReadPalette(resource.GetComponent<PaletteComponent>(), byteStream);
 }
 
+bool PaletteComponent::operator == (const PaletteComponent &src)
+{
+    return 0 == memcmp(this, &src, sizeof(*this));
+}
+bool PaletteComponent::operator != (const PaletteComponent &src)
+{
+    return 0 != memcmp(this, &src, sizeof(*this));
+}
+
 ResourceTraits paletteTraits_SCI10 =
 {
     ResourceType::Palette,

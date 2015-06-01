@@ -27,7 +27,7 @@ HRESULT RebuildResources(BOOL fShowUI);
 __interface ISyncResourceMap
 {
 public:
-    void OnResourceAdded(const ResourceBlob *pData);
+    void OnResourceAdded(const ResourceBlob *pData, AppendBehavior appendBehavior);
     void OnResourceDeleted(const ResourceBlob *pData);
     void OnResourceMapReloaded(bool isInitialLoad);
     void OnResourceTypeReloaded(ResourceType iType);
