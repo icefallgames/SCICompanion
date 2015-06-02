@@ -2,6 +2,7 @@
 #include "NoFlickerStatic.h"
 #include "PrepareBitmapBase.h"
 #include "PaletteOperations.h"
+#include "ImageUtil.h"
 
 using namespace std;
 
@@ -242,46 +243,7 @@ BOOL PrepareBitmapBase::_Init(std::unique_ptr<Gdiplus::Bitmap> pImageIn, CWnd *p
     // Note that if we're using the original palette, we can't scale or adjust the thingies.
     _originalPalette.reset(nullptr);
     _numberOfPaletteEntries = 0;
-    PixelFormat pixelFormat = _pbmpOrig->GetPixelFormat();
-
-#if TESTING_ANIMATED_GIF_IMPORT
-    UINT dimensionsCount = _pbmpOrig->GetFrameDimensionsCount();
-    if (dimensionsCount > 0)
-    {
-        std::unique_ptr<GUID[]> dimensionIds = make_unique<GUID[]>(dimensionsCount);
-        _pbmpOrig->GetFrameDimensionsList(dimensionIds.get(), dimensionsCount);
-        UINT frameCount = _pbmpOrig->GetFrameCount(&dimensionIds[0]);
-        int x = frameCount;
-    }
-#endif
-
-    if ((pixelFormat & PixelFormat8bppIndexed) == PixelFormat8bppIndexed)
-    {
-        INT paletteSize = _pbmpOrig->GetPaletteSize();
-        ColorPalette* cp = (ColorPalette*)malloc(paletteSize);
-        Status status = _pbmpOrig->GetPalette(cp, paletteSize);
-        if (status == Ok)
-        {
-            _numberOfPaletteEntries = (int)cp->Count;
-            _originalPalette = make_unique<PaletteComponent>();
-            for (int i = 0; i < _numberOfPaletteEntries; i++)
-            {
-                ARGB sourcePaletteEntry = cp->Entries[i];
-                RGBQUAD rgb;
-                rgb.rgbRed = 0xff & (sourcePaletteEntry >> RED_SHIFT);
-                rgb.rgbGreen = 0xff & (sourcePaletteEntry >> GREEN_SHIFT);
-                rgb.rgbBlue = 0xff & (sourcePaletteEntry >> BLUE_SHIFT);
-                rgb.rgbReserved = 0x1; // Or 0x3??? REVIEW
-                _originalPalette->Colors[i] = rgb;
-            }
-            RGBQUAD unused = { 0 };
-            for (int i = _numberOfPaletteEntries; i < 256; i++)
-            {
-                _originalPalette->Colors[i] = unused;
-            }
-        }
-        free(cp);
-    }
+    _originalPalette = GetPaletteFromImage(_pbmpOrig.get(), &_numberOfPaletteEntries);
 
     CSize size(min(sPIC_WIDTH, _pbmpOrig->GetWidth()), min(sPIC_HEIGHT, _pbmpOrig->GetHeight()));
     BOOL fRet = FALSE;

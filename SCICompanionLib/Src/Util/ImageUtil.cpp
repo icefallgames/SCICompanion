@@ -180,3 +180,41 @@ int CountActualUsedColors(const std::vector<const Cel*> &cels, bool *used)
     }
     return std::count(used, used + 256, true);
 }
+
+std::unique_ptr<PaletteComponent> GetPaletteFromImage(Gdiplus::Bitmap *bitmap, int *numberOfUsedEntriesOut)
+{
+    std::unique_ptr<PaletteComponent> originalPalette;
+    PixelFormat pixelFormat = bitmap->GetPixelFormat();
+    if ((pixelFormat & PixelFormat8bppIndexed) == PixelFormat8bppIndexed)
+    {
+        INT paletteSize = bitmap->GetPaletteSize();
+        ColorPalette* cp = (ColorPalette*)malloc(paletteSize);
+        Status status = bitmap->GetPalette(cp, paletteSize);
+        if (status == Ok)
+        {
+            int numberOfPaletteEntries = (int)cp->Count;
+            if (numberOfUsedEntriesOut)
+            {
+                *numberOfUsedEntriesOut = numberOfPaletteEntries;
+            }
+            originalPalette = std::make_unique<PaletteComponent>();
+            for (int i = 0; i < numberOfPaletteEntries; i++)
+            {
+                ARGB sourcePaletteEntry = cp->Entries[i];
+                RGBQUAD rgb;
+                rgb.rgbRed = 0xff & (sourcePaletteEntry >> RED_SHIFT);
+                rgb.rgbGreen = 0xff & (sourcePaletteEntry >> GREEN_SHIFT);
+                rgb.rgbBlue = 0xff & (sourcePaletteEntry >> BLUE_SHIFT);
+                rgb.rgbReserved = 0x1; // Or 0x3??? REVIEW
+                originalPalette->Colors[i] = rgb;
+            }
+            RGBQUAD unused = { 0 };
+            for (int i = numberOfPaletteEntries; i < 256; i++)
+            {
+                originalPalette->Colors[i] = unused;
+            }
+        }
+        free(cp);
+    }
+    return originalPalette;
+}

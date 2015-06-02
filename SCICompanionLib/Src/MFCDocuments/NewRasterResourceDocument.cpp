@@ -322,6 +322,13 @@ void GetSCIBitsFromFileName(PCTSTR pszFileName, BOOL bTransparent, uint16_t &wid
         height = min(190, height);
         height = max(1, height);
 
+        std::unique_ptr<PaletteComponent> palette = GetPaletteFromImage(pgdiplusBitmap);
+        // There are a number of possibilities here:
+        // 1) EGA, no problem, we ignore palettes
+        // 1) VGA with palette that corresponds to current pic palette, no problem
+        // 2) VGA with palette that conflicts with current pic palette, no problem
+        // 3) VGA with no palette.... ugh, so many possibilities.
+
         UINT count = pgdiplusBitmap->GetFrameDimensionsCount();
         std::unique_ptr<GUID[]> dimensionIds = std::make_unique<GUID[]>(count);
         pgdiplusBitmap->GetFrameDimensionsList(dimensionIds.get(), count);
@@ -330,6 +337,8 @@ void GetSCIBitsFromFileName(PCTSTR pszFileName, BOOL bTransparent, uint16_t &wid
         {
             GUID guid = FrameDimensionTime;
             pgdiplusBitmap->SelectActiveFrame(&guid, frame);
+
+            PixelFormat temp = pgdiplusBitmap->GetPixelFormat();
 
             // Allocate our SCI bitmap data.
             std::unique_ptr<uint8_t[]> bits = make_unique<uint8_t[]>(CX_ACTUAL(width)* height);
