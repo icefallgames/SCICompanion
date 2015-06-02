@@ -8,6 +8,7 @@
 #include "FontOperations.h"
 #include "PaletteOperations.h"
 #include "format.h"
+#include "ImageUtil.h"
 
 volatile BOOL g_fDitherImages2 = FALSE;
 
@@ -297,9 +298,8 @@ void CNewRasterResourceDocument::SetDefaultZoom(int iZoom) const
     GetComponent<RasterComponent>().Settings.DefaultZoom = iZoom;
 }
 
-BYTE *GetSCIBitsFromFileName(PCTSTR pszFileName, BOOL bTransparent, uint16_t &width, uint16_t &height)
+void GetSCIBitsFromFileName(PCTSTR pszFileName, BOOL bTransparent, uint16_t &width, uint16_t &height, std::vector<std::unique_ptr<BYTE[]>> &celsBits)
 {
-    BYTE *pBits = NULL;
 #ifdef UNICODE
     Bitmap *pgdiplusBitmap = Bitmap::FromFile(pszFileName);
 #else
@@ -322,13 +322,20 @@ BYTE *GetSCIBitsFromFileName(PCTSTR pszFileName, BOOL bTransparent, uint16_t &wi
         height = min(190, height);
         height = max(1, height);
 
-        // Allocate our SCI bitmap data.
-        pBits = new BYTE[CX_ACTUAL(width)* height];
-        if (pBits)
+        UINT count = pgdiplusBitmap->GetFrameDimensionsCount();
+        std::unique_ptr<GUID[]> dimensionIds = std::make_unique<GUID[]>(count);
+        pgdiplusBitmap->GetFrameDimensionsList(dimensionIds.get(), count);
+        UINT frameCount = pgdiplusBitmap->GetFrameCount(&dimensionIds.get()[0]);
+        for (UINT frame = 0; frame < frameCount; frame++)
         {
+            GUID guid = FrameDimensionTime;
+            pgdiplusBitmap->SelectActiveFrame(&guid, frame);
+
+            // Allocate our SCI bitmap data.
+            std::unique_ptr<uint8_t[]> bits = make_unique<uint8_t[]>(CX_ACTUAL(width)* height);
             for (int y = 0; y < height; y++)
             {
-                BYTE *pBitsRow = pBits + ((height - y - 1) * CX_ACTUAL(width));
+                BYTE *pBitsRow = bits.get() + ((height - y - 1) * CX_ACTUAL(width));
                 for (int x = 0; x < width; x++)
                 {
                     Color color;
@@ -340,10 +347,10 @@ BYTE *GetSCIBitsFromFileName(PCTSTR pszFileName, BOOL bTransparent, uint16_t &wi
                     }
                 }
             }
+            celsBits.push_back(move(bits));
         }
         delete pgdiplusBitmap;
     }
-    return pBits;
 }
 
 void CNewRasterResourceDocument::_InsertFiles(const vector<string> &files)
@@ -368,11 +375,12 @@ void CNewRasterResourceDocument::_InsertFiles(const vector<string> &files)
 
             for (const string &file : files)
             {
-                CelIndex celIndex(nLoop, nCel);
                 uint16_t width, height;
-                std::unique_ptr<BYTE[]> pBits(GetSCIBitsFromFileName(file.c_str(), transparentColor, width, height));
-                if (pBits) // Could fail for other reasons
+                std::vector<std::unique_ptr<BYTE[]>> celsBits;
+                GetSCIBitsFromFileName(file.c_str(), transparentColor, width, height, celsBits);
+                for (auto &celBits : celsBits)
                 {
+                    CelIndex celIndex(nLoop, nCel);
                     if (nCel > 0)
                     {
                         // Loop already has one cel.  Use it - but for subsequent cels,
@@ -380,7 +388,7 @@ void CNewRasterResourceDocument::_InsertFiles(const vector<string> &files)
                         ::InsertCel(raster, CelIndex(nLoop, nCel - 1), false, false);
                     }
                     ::SetSize(raster, celIndex, size16(width, height), RasterResizeFlags::Normal);
-                    ::SetBitmapData(raster, celIndex, pBits.get());
+                    ::SetBitmapData(raster, celIndex, celBits.get());
                     nCel++;
                 }
             }

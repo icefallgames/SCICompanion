@@ -490,11 +490,6 @@ RasterChange InsertCel(RasterComponent &raster, CelIndex celIndex, bool before, 
         else
         {
             int nCelTemplate = celIndex.cel;
-            if (!before)
-            {
-                throw std::exception(); // Why are we incrementing an unused var? What are we doing?
-                celIndex.cel++;
-            }
 
             // Before doing anything, prepare a new cel, based on the attributes of the template cel
             const Cel &celTemplate = loop.Cels[nCelTemplate];
@@ -506,7 +501,12 @@ RasterChange InsertCel(RasterComponent &raster, CelIndex celIndex, bool before, 
                 ReallocBits(newCel, celTemplate.size, false, true, true, celTemplate.TransparentColor, RasterResizeFlags::Normal);
             }
 
-            loop.Cels.insert(loop.Cels.begin() + nCelTemplate, newCel);
+            int nCelInsert = nCelTemplate;
+            if (!before)
+            {
+                nCelInsert++;
+            }
+            loop.Cels.insert(loop.Cels.begin() + nCelInsert, newCel);
             UpdateMirrors(raster, celIndex.loop);
         }
     }

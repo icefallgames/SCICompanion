@@ -456,7 +456,6 @@ void PaletteEditorCommon<T>::OnImportPalette()
     }
 }
 
-
 template<class T>
 void PaletteEditorCommon<T>::OnExportPalette()
 {
