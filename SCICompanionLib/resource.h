@@ -298,6 +298,7 @@
 #define IDC_EDITPACKAGE                 1012
 #define IDC_EDITRESOURCE                1013
 #define IDC_FAKEEGOX                    1014
+#define IDC_EDITRESOURCE2               1014
 #define IDC_FAKEEGOY                    1015
 #define IDC_GLOBALPALETTES              1016
 #define IDC_DRAWGRIDLINES               1017
@@ -533,7 +534,6 @@
 #define IDC_DECOMPILE                   1240
 #define IDC_BUTTONRANGEGRADIENT         1240
 #define IDC_CLEARSCO                    1241
-#define IDC_BUTTON_LOAD2                1241
 #define IDC_ASSIGNFILENAMES             1242
 #define IDC_BUTTON_SAVERANGE            1242
 #define IDC_DECOMPILECANCEL             1243

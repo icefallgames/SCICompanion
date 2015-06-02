@@ -528,13 +528,8 @@ void CMainFrame::OnDestroy()
 
 void CMainFrame::RefreshExplorerTools()
 {
-    // Is there a more reliable way to do this? I want to remove all the buttons I added.
-    // But there seems to be one default button (an overflow button?) that I shouldn't remove.
-    // So I remove buttons while there is more than one button in the toolbar.
-    while (m_wndExplorerTools.GetButtonsCount() > 1)
-    {
-        m_wndExplorerTools.RemoveButton(0);
-    }
+    // Reload the toolbar from scratch, since we need to refresh all the buttons.
+    m_wndExplorerTools.LoadToolBar(IDR_TOOLBARVIEWS);
 
     if (!appState->GetResourceMap().GetGameFolder().empty())
     {
