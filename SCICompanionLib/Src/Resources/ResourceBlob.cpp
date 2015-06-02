@@ -316,6 +316,38 @@ uint32_t GetResourceOffsetInFile(uint8_t secondHeaderByte)
     return secondHeaderByte;
 }
 
+void _AssignDefaultResourceSourceFlags(ResourceBlob &blob)
+{
+    switch (blob.GetType())
+    {
+        case ResourceType::Audio:
+            if (appState->GetVersion().AudioVolumeName == AudioVolumeName::Sfx)
+            {
+                blob.GetHeader().SourceFlags = ResourceSourceFlags::Sfx;
+            }
+            else
+            {
+                blob.GetHeader().SourceFlags = ResourceSourceFlags::Aud;
+            }
+            break;
+
+        case ResourceType::Message:
+            if (appState->GetVersion().SeparateMessageMap)
+            {
+                blob.GetHeader().SourceFlags = ResourceSourceFlags::MessageMap;
+            }
+            else
+            {
+                blob.GetHeader().SourceFlags = ResourceSourceFlags::ResourceMap;
+            }
+            break;
+
+        default:
+            blob.GetHeader().SourceFlags = ResourceSourceFlags::ResourceMap;
+            break;
+    }
+}
+
 //
 // hFile is assumed to be offset to the beginning of a resource header.
 //
@@ -384,6 +416,7 @@ HRESULT ResourceBlob::CreateFromHandle(PCTSTR pszName, HANDLE hFile, int iPackag
         // We're already at the end of the header, so just start reading.
         sci::streamOwner streamOwner(hFile, header.cbCompressed);
         _DecompressFromBits(streamOwner.getReader());
+        _AssignDefaultResourceSourceFlags(*this);
     }    
     return hr;
 }

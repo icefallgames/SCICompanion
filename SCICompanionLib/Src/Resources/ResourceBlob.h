@@ -348,6 +348,7 @@ public:
     DWORD GetDecompressedLength() const { return header.cbDecompressed; }
 
     const ResourceHeaderAgnostic &GetHeader() const { return header; }
+    ResourceHeaderAgnostic &GetHeader() { return header; }
 
 private:
     void _Init(int iPackageNumber, int iResourceNumber) { header.PackageHint = iPackageNumber; header.Number = iResourceNumber; }

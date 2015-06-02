@@ -1882,7 +1882,7 @@ void CRasterView::_OnCopyBitsToClipboard(const BYTE *pBitsSelection, CSize size)
         CBitmap bitmap;
         // Make a temporary buffer, since our selection buffer is "upside down", plus it doesn't include
         // the padding bits at the end (32-bit scanline alignment)
-		std::unique_ptr<BYTE[]> pBitsTemp = std::make_unique<BYTE[]>(CX_ACTUAL(size.cx) * size.cy);
+        std::unique_ptr<BYTE[]> pBitsTemp = std::make_unique<BYTE[]>(CX_ACTUAL(size.cx) * size.cy);
         // Copy it over, flipping it.
         for (int y = 0; y < size.cy; y++)
         {
@@ -1898,7 +1898,7 @@ void CRasterView::_OnCopyBitsToClipboard(const BYTE *pBitsSelection, CSize size)
             HGDIOBJ hOldBitmap = dcMem.SelectObject(&bitmap);
 
             // Now copy our DIB into it.
-            SCIBitmapInfo bmi(size.cx, size.cy);
+            SCIBitmapInfo bmi(size.cx, size.cy, _palette, _paletteCount);
             StretchDIBits((HDC)dcMem, 0, 0, size.cx, size.cy, 0, 0, size.cx, size.cy, pBitsTemp.get(), &bmi, DIB_RGB_COLORS, SRCCOPY);
 
             // And now to the clipboard:

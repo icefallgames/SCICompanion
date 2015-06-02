@@ -1,0 +1,352 @@
+\\prgName
+Sierra On-Line Game Install/Setup Program
+\\getDestDrive
+Please type the letter of the hard disk to which you want to install this game, or press ESC to cancel installation.
+\\getAnyDrive
+Please type the letter of the disk drive to which you want to install this game, or press ESC to cancel installation.
+\\reading
+Reading files...
+\\complete
+Exiting Install...
+\\noSupport
+Your system does not appear to support this choice:
+
+%s
+
+Do you wish to install it anyway?
+\\ynPrompt
+ (Y/N) 
+\\yn
+yn
+\\pressKeyToExit
+ Press any key to exit... 
+\\enterEsc
+ Press ENTER to continue or ESC to cancel... 
+\\redirErr
+Can't open redirection file for echo command
+\\pressKeyToContinue
+ Press any key to continue... 
+\\pauseMsg
+Press any key to continue...
+\\inputErr
+Can't find input file: %s
+\\outputErr
+Can't create output file: %s
+\\noMemCopy
+Not enough memory for copy
+\\copyingTo
+Copying %s to %s...
+\\copying
+Copying %s...
+\\dirFound
+Directory %s found with existing files!
+
+
+In order to ensure a proper install, please remove all the Sierra files from this directory
+
+Do you wish to continue with install?
+\\noHelp
+No help available for this item.
+\\enterConfirm
+ ENTER to confirm, ESC to re-select 
+\\confirmExit
+Do you wish to exit Install?
+\\copyright
+Copyright 1991-93 
+Sierra On-Line, Inc. 
+All rights reserved.
+\\intro
+This program will let you specify what type of hardware is installed in your machine.
+
+You must run it once before playing your Sierra game.  You may want to run it again if you add new hardware to your system or if you are having problems with your first selections.
+\\acceptBegin
+    Accept these choices and begin installation    
+\\acceptSave
+    Accept these choices and save configuration    
+\\restore
+    Restore Sierra default choices    
+\\cancelInstall
+    Cancel installation and return to DOS    
+\\installTitle
+  Installation Choices  
+\\topPrompt
+
+If you want to change any of these choices, use %c and %c to highlight the selection, then press ENTER.
+\\botTitle
+  Use %c and %c to highlight your choice, then press ENTER to select  
+\\saveConfig
+Saving configuration...
+\\configErr
+Error creating configuration file
+\\driveLetter
+ Press a drive letter %c through %c, or press ESC to cancel 
+\\invalidDrive
+'%c' is not a valid drive letter.
+\\inpfld
+ ENTER to accept.  Ctrl-C to clear.  ESC to go back.  F1 for help. 
+\\joystickPrompt
+Select the type of joystick you have
+\\printerPrompt
+Select the type of printer you have
+\\videoPrompt
+Select a graphics adapter from the choices below
+\\soundPrompt
+Select a music card from the choices below
+\\audioPrompt
+Select a speech/sound effects card from the choices below.
+NOTE:  Not all games support speech.
+\\keyboardPrompt
+Select which style of keyboard you have
+\\mousePrompt
+
+\\memoryPrompt
+Do you want to use expanded, extended and/or XMS memory?
+\\video
+Graphics
+\\sound
+Music
+\\audio
+Audio
+\\joystick
+Joystick
+\\printer
+Printer
+\\keyboard
+Keyboard
+\\mouse
+Mouse
+\\memory
+Memory
+\\getMenuPrompt
+  Use %c, %c and ENTER to select.  ESC to go back.  F1 for help.  
+\\supported
+%c = supported by your system
+\\no
+No
+\\yes
+Yes
+\\useMouse
+Use Microsoft compatible mouse
+\\noUseMouse
+
+\\noUseJoystick
+Don't use a joystick
+\\useMemory
+Use your machine's extra memory
+\\noUseMemory
+Don't use extra memory
+\\memoryHelp
+Sierra games can use your machine's extra memory to speed up play.  
+\\memoryAppear
+Your system appears to have:
+
+
+\\expandedFree
+    %4uK Expanded memory free
+
+\\extendedFree
+    %4uK Extended memory free
+
+\\XMSFree
+    %4uK XMS memory free
+
+\\noExtraMemory
+Your system does not appear to have any extra memory.
+\\writeErr
+Write protect error
+\\mscErr
+Error
+\\notReadyErr
+Not ready error
+\\abortRetryMsg
+ Press R to retry, or A to abort 
+\\abortRetryKeys
+ra
+\\unknownErr
+Unknown critical error
+\\pressAbort
+ Press a key to abort 
+\\readMePrompt
+ Use cursor keys to scroll.  Press Esc or Enter to exit 
+\\viewReadMe
+    View documentation update in README file    
+\\docoUpdate
+ Documentation Update 
+\\warrantyInfo
+If you have not sent in your Sierra Warranty Registration card, \
+please take a moment now to fill it out and mail it.
+
+If you live in the continental USA or Canada you will receive a \
+free 3 issue subscription to InterAction, the quarterly Sierra \
+news magazine which contains valuable coupons, contests, great \
+articles, upgrade information, hints on playing Sierra games, \
+handy techniques for using our products and much more!
+
+Please be sure to keep all of the documentation included in your \
+game package.  These documents contain information about \
+installing and running the program, instructions for obtaining \
+technical assistance, and clues, hints, maps or other potentially \
+significant information.  Remember:  we wouldn't have put it all \
+in the box if we didn't think it was important!
+\\makeBootDisk
+    Make bootable floppy disk
+\\keyOrEsc
+ Press a key to continue or ESC to cancel  
+\\errorOpening
+Error opening %s
+\\errorWriting
+Error writing to %s
+\\errorClosing
+Error closing %s
+\\bootIntro
+This procedure creates a floppy disk you can use to boot your computer to \
+ensure that enough conventional memory is available to run this game.
+
+This procedure will read your current configuration, which may involve \
+searching your hard disk to find needed files.  Then it will format a floppy \
+disk in drive A:, and create appropriate AUTOEXEC.BAT and CONFIG.SYS files on \
+the floppy disk.
+
+Not all systems support this procedure, but trying it can do no harm.
+\\bootSuccess
+The boot disk was created successfully.
+
+Please label the disk in drive %c: "Sierra Boot Disk".
+
+To use the disk to make sure you have enough memory to run the game, make sure \
+the disk is in floppy drive %c:, close the door to the floppy drive, then \
+press the Control, Alt and Del keys simultaneously to reboot your computer.
+\\bootShare
+Because you are using SHARE, you should reboot without using the boot disk \
+after playing the game
+\\bootFail
+Boot disk was not created
+\\bootReading
+
+Reading your current configuration--please wait
+
+
+\\bootNeedMem
+This game requires %dK of extended memory and your machine does not have enough.
+\\bootNoCOMMAND
+Can't make boot disk since you're not using COMMAND.COM
+\\bootSearch
+
+Searching hard disk for boot disk files--please wait
+
+
+\\bootCantFind
+Can't find %s--unable to make boot disk
+\\bootGetDisk
+Please put a blank disk in drive %c:
+\\bootCheckDisk
+
+Checking floppy disk--please wait
+
+
+\\bootCloseDoor
+Please close door to drive %c:
+\\bootNotFloppy
+Drive does not appear to be a floppy drive
+\\bootReplaceInstallDisk
+Please replace Install disk in drive %c: with an empty disk
+\\bootReadingDisk
+
+Reading floppy disk--please wait
+
+
+\\bootErrorReadingFloppy
+Error reading floppy drive
+\\bootShowFilesHeader
+ WARNING!  These files were found on the disk in drive %c: 
+\\bootShowFilesPrompt
+ Use cursor keys to view list.  Is it OK to erase these files? (Y/N) 
+\\bootPreFormat
+The DOS FORMAT program will now be used to format the disk in drive %c:.  \
+Please follow the directions on the next screen.
+\\bootFormat
+When DOS asks you to insert new diskette for drive %c:, just leave the current
+     disk in the drive and press ENTER.  Do not remove the disk.
+When DOS asks you for a volume label, just press ENTER.
+When DOS asks you if you want to format another disk, type 'n' and press ENTER.
+
+
+\\bootCheckFormat
+
+Checking results of format--please wait
+
+
+\\bootFormatFail
+Format was apparently unsuccessful
+\\bootWriteFiles
+
+Writing boot disk files--please wait
+
+
+\\bootLowDOS
+This game requires DOS version %d.%02d or higher
+\\bootNo386
+This game requires a %s processor or better
+\\concatenatingTo
+Adding %s to %s...
+\\bootDOSPrompt
+Sierra Boot Disk
+\\bootPutBackInstallDisk
+Please replace disk in drive %c with the Install disk
+\\bootCopyFiles
+
+Copying files to boot disk--please wait
+
+
+\\destDir
+thedestDir
+\\enterNewDir
+Directory
+\\gameDestDir
+Enter directory where game will be installed
+\\directory
+directory
+\\confirmdirectory
+Directory
+\\badPath
+Invalid Path Name.
+\\bootQueryDensity
+Is the disk in drive %c: high density?
+\\bootBadDensity
+You can't format a high density disk in a low density drive
+\\bootBadDOSHighToLow
+You must have DOS 3.2 or greater to format a low density \
+disk in a high density drive
+\\redirOpenErr
+Error opening redirection file for '%s'
+\\redirCloseErr
+Error closing redirection file for '%s'
+\\execErr
+Error executing '%s'
+\\noSpace
+Drive %c: does not have enough space to install this game
+\\compressedMaybeNoSpace
+Drive %c: appears to have been compressed using a utility like Stacker or \
+SuperStor.  Because our games are already compressed, you may not actually \
+have enough disk space to install this game.
+
+Do you want to try to install to this compressed drive?
+\\readingDrives
+ Reading disk drives--please wait 
+\\errorReadingDrives
+Error reading drives
+\\spaceReq
+
+This game requires %s megabytes disk space.
+\\driveSelTitle
+ Destination Drive Selection 
+\\driveSelPrompt
+
+Choose a drive to install to from the drives shown below.%s
+\\free
+free
+\\compressed
+Compressed
+\\network
+Network
+

@@ -103,7 +103,9 @@ MessageSource *MessageHeaderFile::GetMessageSource(const std::string &name)
 {
     if (_sources.find(name) == _sources.end())
     {
+        // We hit this when we don't have a file to begin with.
         _sources[name] = make_unique<MessageSource>(this);
+        _sources[name]->MandatoryPrefix = name.substr(0, 1) + "_";
     }
     return _sources[name].get();
 }

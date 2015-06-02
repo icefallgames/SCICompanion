@@ -18,22 +18,57 @@ NewGameDialog::~NewGameDialog()
 {
 }
 
+void NewGameDialog::_PopulateTemplates()
+{
+    std::string templateFolder = appState->GetResourceMap().GetTemplateFolder();
+    std::string findFirstString = templateFolder + "\\" + "SCI*";
+    // Find top-level folders that start with SCI
+    WIN32_FIND_DATA findData = { 0 };
+    HANDLE hFolder = FindFirstFile(findFirstString.c_str(), &findData);
+    if (hFolder != INVALID_HANDLE_VALUE)
+    {
+        BOOL ok = TRUE;
+        while (ok)
+        {
+            if ((findData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) &&
+                (0 == strncmp(findData.cFileName, "SCI", 3)))
+            {
+                // Include this
+                m_wndComboTemplate.AddString(findData.cFileName);
+            }
+
+            ok = FindNextFile(hFolder, &findData);
+        }
+        FindClose(hFolder);
+    }
+
+    if (m_wndComboTemplate.GetCount() > 0)
+    {
+        m_wndComboTemplate.SetCurSel(0);
+    }
+}
+
 void NewGameDialog::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 
     DDX_Control(pDX, IDC_EDITPATH, m_wndPath);
     DDX_Control(pDX, IDC_EDITNAME, m_wndName);
+    DDX_Control(pDX, IDC_BUTTONBROWSE, m_wndBrowse);
 
     // Visuals
     DDX_Control(pDX, IDC_STATIC1, m_wndStatic1);
     DDX_Control(pDX, IDC_STATIC2, m_wndStatic2);
+    DDX_Control(pDX, IDC_STATIC3, m_wndStatic3);
     DDX_Control(pDX, IDOK, m_wndOK);
     DDX_Control(pDX, IDCANCEL, m_wndCancel);
     DDX_Control(pDX, IDC_GROUP1, m_wndGroup1);
     DDX_Control(pDX, IDC_SYNTAX_SCI, m_wndSyntaxSCI);
     m_wndSyntaxSCI.SetCheck(true); // REVIEW: temporary until CPP is enabled
     DDX_Control(pDX, IDC_SYNTAX_CPP, m_wndSyntaxCPP);
+
+    DDX_Control(pDX, IDC_COMBOTEMPLATE, m_wndComboTemplate);
+    _PopulateTemplates();
 }
 
 BOOL NewGameDialog::OnInitDialog()
@@ -86,8 +121,12 @@ void NewGameDialog::OnBnClickedOk()
     if (fContinue)
     {
         // 2) Copy the files over
-        std::string templateFolder = appState->GetResourceMap().GetTemplateFolder();
-        fContinue = !templateFolder.empty();
+        std::string templateCoreFolder = appState->GetResourceMap().GetTemplateFolder();
+        CString strText;
+        m_wndComboTemplate.GetWindowTextA(strText);
+        std::string templateSubFolder = (PCSTR)strText;
+        std::string templateFolder = templateCoreFolder + "\\" + templateSubFolder;
+        fContinue = !templateCoreFolder.empty() && !templateSubFolder.empty();
         if (fContinue)
         {
             fContinue = false;
@@ -136,7 +175,15 @@ void NewGameDialog::OnBnClickedOk()
     {
         // Open the new game, and then open the script editor to rm001 of the template game
         appState->OpenDocumentFile(szPath);
-        appState->OpenScript("rm001");
+        if (appState->GetResourceMap().DoesResourceExist(ResourceType::Script, 1))
+        {
+            appState->OpenScript("rm001");
+        }
+        else if (appState->GetResourceMap().DoesResourceExist(ResourceType::Script, 100))
+        {
+            // REVIEW: Temp hack. We might want a config file that says which resources to open by default.
+            appState->OpenScript("rm100");
+        }
         OnOK();
     }
 }

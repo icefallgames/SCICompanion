@@ -13,6 +13,8 @@
 #include "ResourceEntity.h"
 #include "InsertObject.h"
 #include <format.h>
+#include "Text.h"
+#include "Message.h"
 
 using namespace sci;
 using namespace std;
@@ -159,6 +161,9 @@ void _CreateMessageFile(int scriptNumber)
 {
     // Create the message file. If it already exists, that's fine.
     std::unique_ptr<MessageHeaderFile> messageHeaderFile = GetMessageFile(appState->GetResourceMap().Helper().GetMsgFolder(), scriptNumber);
+    // By default, add a "room" noun
+    MessageSource *nounSource = messageHeaderFile->GetMessageSource("NOUNS");
+    nounSource->AddDefine("N_ROOM", 1);
     messageHeaderFile->Commit();
 
     // And a message resource.
@@ -172,6 +177,15 @@ void _CreateMessageFile(int scriptNumber)
             sci::istream byteStream = mainMessageResource->GetReadStream();
             uint16_t msgVersion = CheckMessageVersion(byteStream);
             std::unique_ptr<ResourceEntity> newMessageResource(CreateNewMessageResource(appState->GetVersion(), msgVersion));
+            // Add a description for the room background
+            TextComponent &text = newMessageResource->GetComponent<TextComponent>();
+            TextEntry entry = { 0 };
+            entry.Noun = 1; // N_NOUN, we just added this
+            entry.Verb = 1; // V_LOOK in our template game
+            entry.Talker = 99; // NARRATOR in our template game
+            entry.Sequence = 1; 
+            entry.Text = "This is the room description";
+            text.Texts.push_back(entry);
             appState->GetResourceMap().AppendResource(*newMessageResource, appState->GetVersion().DefaultVolumeFile, scriptNumber);
         }
     }
@@ -247,6 +261,11 @@ void CNewRoomDialog::_PrepareBuffer()
             pClass->AddProperty(ClassProperty("south", 0));
             pClass->AddProperty(ClassProperty("west", 0));
 
+            if (appState->GetVersion().SupportsMessages)
+            {
+                pClass->AddProperty(ClassProperty("noun", "N_ROOM"));
+            }
+            
             // The init method
             {
                 unique_ptr<MethodDefinition> pInit = make_unique<MethodDefinition>();

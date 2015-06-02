@@ -629,7 +629,7 @@ void DropResourceFiles(CArray<CString, CString&> *pDropFiles)
                 sci::streamOwner owner(scopedFile.hFile);
                 AudioComponentFromWaveFile(owner.getReader(), resource->GetComponent<AudioComponent>());
                 // REVIEW: We should know ahead of time if the game uses Aud or Sfx.
-                resource->SourceFlags = ResourceSourceFlags::Aud;
+                resource->SourceFlags = (appState->GetVersion().AudioVolumeName == AudioVolumeName::Sfx) ? ResourceSourceFlags::Sfx : ResourceSourceFlags::Aud;
                 appState->GetResourceMap().AppendResourceAskForNumber(*resource);
             }
             catch (std::exception &e)

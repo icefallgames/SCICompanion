@@ -29,6 +29,12 @@ protected:
     CExtButton m_wndCenter;
     CExtButton m_wndEdges;
 
+    CExtGroupBox m_wndGroupGradientType;
+    CExtRadioButton m_wndRadioGradientLinear;
+    CExtRadioButton m_wndRadioGradientCenter;
+
+    bool _initialized;
+    int _gradientType;
     PaletteComponent &_palette;
     uint8_t _start;
     uint8_t _endInclusive;
@@ -37,4 +43,6 @@ protected:
 public:
     afx_msg void OnBnClickedButtoncenter();
     afx_msg void OnBnClickedButtonedges();
+    afx_msg void OnBnClickedRadiolinear();
+    afx_msg void OnBnClickedRadiocenter();
 };
