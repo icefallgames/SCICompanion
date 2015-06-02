@@ -533,7 +533,9 @@
 #define IDC_DECOMPILE                   1240
 #define IDC_BUTTONRANGEGRADIENT         1240
 #define IDC_CLEARSCO                    1241
+#define IDC_BUTTON_LOAD2                1241
 #define IDC_ASSIGNFILENAMES             1242
+#define IDC_BUTTON_SAVERANGE            1242
 #define IDC_DECOMPILECANCEL             1243
 #define IDC_DECOMPILESTATUS             1244
 #define IDC_CHECKINSTRUCTIONCONSUMPTION 1245
@@ -564,6 +566,7 @@
 #define IDC_RADIOLINEAR                 1272
 #define IDC_RADIOCENTER                 1273
 #define IDC_COMBOTEMPLATE               1274
+#define IDC_BUTTON_LOADAT               1275
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -818,9 +821,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        375
+#define _APS_NEXT_RESOURCE_VALUE        376
 #define _APS_NEXT_COMMAND_VALUE         33184
-#define _APS_NEXT_CONTROL_VALUE         1275
+#define _APS_NEXT_CONTROL_VALUE         1276
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

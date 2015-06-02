@@ -64,4 +64,5 @@ void WritePaletteShortForm(sci::ostream &byteStream, const PaletteComponent &pal
 HBITMAP CreateBitmapFromPaletteResource(const ResourceEntity *prb, SCIBitmapInfo *pbmi, uint8_t **ppBitsDest, COLORREF *transparentColor = nullptr, const std::vector<const Cel*> *imageCels = nullptr);
 ResourceEntity *CreatePaletteResource(SCIVersion version);
 
-void LoadPALFile(const std::string &filename, PaletteComponent &palette);
+void LoadPALFile(const std::string &filename, PaletteComponent &palette, int startIndex);
+void SavePALFile(const std::string &filename, PaletteComponent &palette, int startIndex, int count);

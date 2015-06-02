@@ -19,4 +19,6 @@ public:
 
     // INonViewClient
     void UpdateNonView(CObject *pObject) override;
+    DECLARE_MESSAGE_MAP()
+    afx_msg void OnBnClickedButtonSaverange();
 };

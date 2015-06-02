@@ -20,3 +20,6 @@ void PaletteEditorDialog::UpdateNonView(CObject *pObject)
 {
     UpdateCommon(pObject);
 }
+BEGIN_MESSAGE_MAP(PaletteEditorDialog, PaletteEditorCommon)
+END_MESSAGE_MAP()
+

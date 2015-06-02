@@ -7,7 +7,49 @@
 
 using namespace std;
 
-void LoadPALFile(const std::string &filename, PaletteComponent &palette)
+const char riffMarker[] = "RIFF";
+const char dataMarker[] = "data";
+const char palMarker[] = "PAL ";
+const uint16_t palVersion = 0x0300;
+
+uint32_t ToUint32(const char *marker)
+{
+    return *static_cast<const uint32_t *>(static_cast<const void *>(marker));
+}
+
+void SavePALFile(const std::string &filename, PaletteComponent &palette, int startIndex, int count)
+{
+    // TODO: http://worms2d.info/Palette_file#File_format
+    ScopedFile file(filename, GENERIC_WRITE, 0, CREATE_ALWAYS);
+    sci::ostream byteStream;
+
+    uint16_t colorEntryCount = (uint16_t)count;
+    uint32_t dataSize = colorEntryCount * 4 + sizeof(palVersion) + sizeof(colorEntryCount);
+
+    uint32_t fileSize = dataSize + sizeof(palMarker) + sizeof(dataMarker) + sizeof(dataSize);
+    // Riff header:
+    byteStream << ToUint32(riffMarker);
+    byteStream << fileSize;
+    byteStream << ToUint32(palMarker);
+
+    // Data header:
+    byteStream << ToUint32(dataMarker);
+    byteStream << dataSize; // Looking at pal files, it seems this includes the following 4 bytes too:
+    byteStream << palVersion;
+    byteStream << colorEntryCount;
+
+    for (int i = 0; i < count; i++)
+    {
+        byteStream << palette.Colors[i + startIndex].rgbRed;
+        byteStream << palette.Colors[i + startIndex].rgbGreen;
+        byteStream << palette.Colors[i + startIndex].rgbBlue;
+        byteStream << palette.Colors[i + startIndex].rgbReserved;    // Or should we write 0?
+    }
+
+    file.Write(byteStream.GetInternalPointer(), byteStream.GetDataSize());
+}
+
+void LoadPALFile(const std::string &filename, PaletteComponent &palette, int startIndex)
 {
     ScopedFile file(filename, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
     sci::streamOwner owner(file.hFile);
@@ -24,19 +66,14 @@ void LoadPALFile(const std::string &filename, PaletteComponent &palette)
 
     for (uint16_t i = 0; i < palEntries; i++)
     {
-        byteStream >> palette.Colors[i].rgbRed;
-        byteStream >> palette.Colors[i].rgbGreen;
-        byteStream >> palette.Colors[i].rgbBlue;
-        byteStream >> palette.Colors[i].rgbReserved;
-        palette.Colors[i].rgbReserved = 0x1; // Actually, set this to used.
-    }
-    // Finish off with empties
-    for (uint16_t i = palEntries; i < 256; i++)
-    {
-        palette.Colors[i].rgbRed = 0;
-        palette.Colors[i].rgbGreen = 0;
-        palette.Colors[i].rgbBlue = 0;
-        palette.Colors[i].rgbReserved = 0;
+        if ((i + startIndex) < ARRAYSIZE(palette.Colors))
+        {
+            byteStream >> palette.Colors[i + startIndex].rgbRed;
+            byteStream >> palette.Colors[i + startIndex].rgbGreen;
+            byteStream >> palette.Colors[i + startIndex].rgbBlue;
+            byteStream >> palette.Colors[i + startIndex].rgbReserved;
+            palette.Colors[i + startIndex].rgbReserved = 0x1; // Actually, set this to used.
+        }
     }
 }
 

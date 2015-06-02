@@ -41,7 +41,7 @@ public:
         }
         _mainSelectedIndex = -1;
         _palette = &palette;
-        memcpy(_originalColors, palette.Colors, ARRAYSIZE(_originalColors));
+        memcpy(_originalColors, palette.Colors, sizeof(_originalColors));
     }
 
     // IColorDialogCallback
@@ -168,6 +168,10 @@ public:
         DDX_Control(pDX, IDC_EDIT1, m_wndEditDescription);
         DDX_Control(pDX, IDC_BUTTON_SAVE, m_wndSave);
         DDX_Control(pDX, IDC_BUTTON_LOAD, m_wndLoad);
+        DDX_Control(pDX, IDC_BUTTON_SAVERANGE, m_wndSaveRange);
+        m_wndSaveRange.EnableWindow(FALSE);
+        DDX_Control(pDX, IDC_BUTTON_LOADAT, m_wndLoadAt);
+        m_wndLoadAt.EnableWindow(FALSE);
 
         m_wndEditDescription.SetWindowTextA(
             "Shift-click selects a range of colors. Ctrl-click toggles selection. Right-click opens the color chooser."
@@ -176,7 +180,7 @@ public:
 
 protected:
 
-    bool _CanDoGradient(const std::vector<std::pair<uint8_t, uint8_t>> &ranges)
+    bool _IsSingleRangeSelected(const std::vector<std::pair<uint8_t, uint8_t>> &ranges)
     {
         if (ranges.size() == 1)
         {
@@ -187,6 +191,7 @@ protected:
         return false;
     }
 
+    // Returns inclusive start/end pairs
     std::vector<std::pair<uint8_t, uint8_t>> GetSelectedRanges()
     {
         std::vector<std::pair<uint8_t, uint8_t>> ranges;
@@ -238,7 +243,9 @@ protected:
         m_wndEditRange.SetWindowTextA(rangeText.c_str());
 
         // The range button only works with a single range3.
-        m_wndButtonGradients.EnableWindow(_CanDoGradient(ranges));
+        bool isSingleRangeSelected = _IsSingleRangeSelected(ranges);
+        m_wndButtonGradients.EnableWindow(isSingleRangeSelected);
+        m_wndSaveRange.EnableWindow(isSingleRangeSelected);
     }
 
     void _UpdateDocument()
@@ -267,6 +274,7 @@ protected:
     void _SyncUI()
     {
         m_wndButtonChooseColor.EnableWindow(_mainSelectedIndex != -1);
+        m_wndLoadAt.EnableWindow(_mainSelectedIndex != -1);
     }
 
     DECLARE_MESSAGE_MAP()
@@ -290,7 +298,9 @@ protected:
     CExtButton m_wndCancel;
     CExtButton m_wndRevert;
     CExtButton m_wndSave;
+    CExtButton m_wndSaveRange;
     CExtButton m_wndLoad;
+    CExtButton m_wndLoadAt;
     CExtEdit m_wndEditDescription;
 
     ResourceEntityDocument *_pDoc;
@@ -304,6 +314,8 @@ public:
     afx_msg void OnEnChangeEdit1();
     afx_msg void OnImportPalette();
     afx_msg void OnExportPalette();
+    afx_msg void OnImportPaletteAt();
+    afx_msg void OnExportPaletteRange();
 };
 
 BEGIN_TEMPLATE_MESSAGE_MAP(PaletteEditorCommon, T, T)
@@ -314,12 +326,14 @@ BEGIN_TEMPLATE_MESSAGE_MAP(PaletteEditorCommon, T, T)
     ON_BN_CLICKED(IDC_BUTTONRANGEGRADIENT, OnBnClickedButtonGradient)
     ON_BN_CLICKED(IDC_BUTTON_LOAD, OnImportPalette)
     ON_BN_CLICKED(IDC_BUTTON_SAVE, OnExportPalette)
-END_MESSAGE_MAP()
+    ON_BN_CLICKED(IDC_BUTTON_LOADAT, OnImportPaletteAt)
+    ON_BN_CLICKED(IDC_BUTTON_SAVERANGE, OnExportPaletteRange)
+    END_MESSAGE_MAP()
 
 template<class T>
 void PaletteEditorCommon<T>::OnBnClickedButtonrevert()
 {
-    memcpy(_palette->Colors, _originalColors, ARRAYSIZE(_originalColors) * sizeof(_originalColors[0]));
+    memcpy(_palette->Colors, _originalColors, sizeof(_originalColors));
     _SyncPalette();
     m_wndStatic.Invalidate(FALSE);
 }
@@ -408,7 +422,7 @@ template<class T>
 void PaletteEditorCommon<T>::OnBnClickedButtonGradient()
 {
     std::vector<std::pair<uint8_t, uint8_t>> ranges = GetSelectedRanges();
-    if (_CanDoGradient(ranges))
+    if (_IsSingleRangeSelected(ranges))
     {
         PaletteComponent paletteCopy = *_palette;
         GradientDialog dialog(paletteCopy, ranges[0].first, ranges[0].second);
@@ -421,16 +435,18 @@ void PaletteEditorCommon<T>::OnBnClickedButtonGradient()
     }
 }
 
+bool _GetPaletteFilename(bool open, const std::string &dialogTitle, std::string &filename);
+
 template<class T>
 void PaletteEditorCommon<T>::OnImportPalette()
 {
-    CFileDialog fileDialog(TRUE, nullptr, nullptr, 0, "PAL files (*.pal)|*.pal|All Files|*.*|" );
-    if (IDOK == fileDialog.DoModal())
+    std::string filename;
+    if (_GetPaletteFilename(true, "Import palette", filename))
     {
-        CString strFileName = fileDialog.GetPathName();
         try
         {
-            LoadPALFile((PCSTR)strFileName, *_palette);
+            LoadPALFile(filename, *_palette, 0);
+            _SyncPalette();
             _UpdateDocument();
         }
         catch (std::exception &e)
@@ -444,5 +460,61 @@ void PaletteEditorCommon<T>::OnImportPalette()
 template<class T>
 void PaletteEditorCommon<T>::OnExportPalette()
 {
-    // TODO: http://worms2d.info/Palette_file#File_format
+    std::string filename;
+    if (_GetPaletteFilename(false, "Export palette", filename))
+    {
+        try
+        {
+            SavePALFile(filename, *_palette, 0, 256);
+        }
+        catch (std::exception &e)
+        {
+            AfxMessageBox(e.what(), MB_OK | MB_ICONWARNING);
+        }
+    }
+}
+
+
+template<class T>
+void PaletteEditorCommon<T>::OnImportPaletteAt()
+{
+    if (_mainSelectedIndex != -1)
+    {
+        std::string filename;
+        if (_GetPaletteFilename(true, fmt::format("Import palette at index {0}", _mainSelectedIndex), filename))
+        {
+            try
+            {
+                LoadPALFile(filename, *_palette, _mainSelectedIndex);
+                _SyncPalette();
+                _UpdateDocument();
+            }
+            catch (std::exception &e)
+            {
+                AfxMessageBox(e.what(), MB_OK | MB_ICONWARNING);
+            }
+        }
+    }
+}
+
+
+template<class T>
+void PaletteEditorCommon<T>::OnExportPaletteRange()
+{
+    std::vector<std::pair<uint8_t, uint8_t>> ranges = GetSelectedRanges();
+    if (_IsSingleRangeSelected(ranges))
+    {
+        std::string filename;
+        if (_GetPaletteFilename(false, fmt::format("Export palette range {0}-{1}", (int)ranges[0].first, (int)ranges[0].second), filename))
+        {
+            try
+            {
+                SavePALFile(filename, *_palette, ranges[0].first, ranges[0].second - ranges[0].first + 1);
+            }
+            catch (std::exception &e)
+            {
+                AfxMessageBox(e.what(), MB_OK | MB_ICONWARNING);
+            }
+        }
+    }
 }
