@@ -61,25 +61,30 @@ void CNewRasterResourceDocument::_SetInitialPalette()
     RasterComponent &raster = GetComponent<RasterComponent>();
     if (raster.Traits.PaletteType == PaletteType::VGA_256)
     {
-        _currentPaletteIndex = -1;
-        SetPaletteChoice(0);
+        SetPaletteChoice(0, true);
     }
+}
+
+void CNewRasterResourceDocument::RefreshPaletteOptions()
+{
+    _paletteChoices = appState->GetResourceMap().GetPaletteList();
+    const ResourceEntity *pResource = GetResource();
+    if (pResource && pResource->TryGetComponent<PaletteComponent>())
+    {
+        _paletteChoices.insert(_paletteChoices.begin(), EmbeddedPaletteId);
+        _paletteChoices.push_back(EmbeddedPaletteOnlyId);
+    }
+    _SetInitialPalette();
+    _UpdateHelper(RasterChange(RasterChangeHint::NewView));
 }
 
 void CNewRasterResourceDocument::SetResource(std::unique_ptr<ResourceEntity> pResource, int id)
 {
     _checksum = id;
 
-    _paletteChoices = appState->GetResourceMap().GetPaletteList();
-    if (pResource && pResource->TryGetComponent<PaletteComponent>())
-    {
-        _paletteChoices.insert(_paletteChoices.begin(), EmbeddedPaletteId);
-        _paletteChoices.push_back(EmbeddedPaletteOnlyId);
-    }
-
     AddFirstResource(move(pResource));
+    RefreshPaletteOptions();
     _ValidateCelIndex();
-    _SetInitialPalette();
     _UpdateHelper(RasterChange(RasterChangeHint::NewView));
     _UpdateTitle();
 }
@@ -105,9 +110,9 @@ std::string CNewRasterResourceDocument::GetPaletteChoiceName(int index)
     return name;
 }
 
-void CNewRasterResourceDocument::SetPaletteChoice(int index)
+void CNewRasterResourceDocument::SetPaletteChoice(int index, bool force)
 {
-    if ((index != _currentPaletteIndex) && (index >= 0) && (index < (int)_paletteChoices.size()))
+    if ((force || (index != _currentPaletteIndex)) && (index >= 0) && (index < (int)_paletteChoices.size()))
     {
         _currentPaletteIndex = index;
         int choice = _paletteChoices[index];
@@ -137,7 +142,7 @@ void CNewRasterResourceDocument::SetPaletteChoice(int index)
             memcpy(_currentPaletteVGA, _currentPaletteComponent->Colors, sizeof(_currentPaletteVGA));
         }
 
-        _UpdateHelper(RasterChange(RasterChangeHint::Palette));
+        _UpdateHelper(RasterChange(RasterChangeHint::PaletteChoice));
     }
 }
 

@@ -2832,23 +2832,50 @@ void CRasterView::EditVGAPalette()
                 }
 
                 const PaletteComponent *palette = pResource->TryGetComponent<PaletteComponent>();
+                bool addedPalette = false;
                 if (palette == nullptr)
                 {
-                    if (IDYES == AfxMessageBox("There is no palette embedded in this view. Would you like to add one?", MB_YESNO))
+                    const PaletteComponent *globalPalette = appState->GetResourceMap().GetPalette999();
+                    if (globalPalette)
                     {
-                        // TODO: Add one
+                        if (IDYES == AfxMessageBox("There is no palette embedded in this view. Would you like to add one?", MB_YESNO))
+                        {
+                            // const_cast! Ugly, but we know what we're doing, and ApplyChanges doesn't allow for adding components.
+                            ResourceEntity *resource = const_cast<ResourceEntity *>(GetDoc()->GetResource());
+                            if (resource)
+                            {
+                                addedPalette = true;
+                                std::unique_ptr<PaletteComponent> newPalette = std::make_unique<PaletteComponent>(*globalPalette);
+                                resource->AddComponent(move(newPalette));
+                                palette = pResource->TryGetComponent<PaletteComponent>();
+                                GetDoc()->RefreshPaletteOptions();
+                            }
+                        }
                     }
                 }
 
                 if (palette)
                 {
                     // TODO: Switch view to embedded palette first, so they know they're editing the right thing. Can we do that directly on document?
-                    // TODO: support adding a palette if one doesn't exist. Base it off global palette to start with
                     // TODO: support removing one too
 
                     PaletteComponent paletteCopy = *palette; // Since we'll be changing it, and this is const
                     PaletteEditorDialog paletteEditor(paletteCopy, cels);
                     paletteEditor.DoModal();
+                    PaletteComponent paletteResult = paletteEditor.GetPalette();
+                    if (addedPalette || (paletteResult != *palette))
+                    {
+                        GetDoc()->ApplyChanges<PaletteComponent>(
+                            [&paletteResult, addedPalette](PaletteComponent &palette)
+                        {
+                            // Replace the palette with the new one.
+                            palette = paletteResult;
+                            return WrapHint(RasterChangeHint::NewView | RasterChangeHint::PaletteChoice);
+                        }
+                        );
+
+                        GetDoc()->SetPaletteChoice(GetDoc()->GetPaletteChoice(), true);
+                    }
                 }
             }
        }

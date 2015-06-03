@@ -51,6 +51,8 @@ public:
     void SetSelectedCel(int nCel);
     void GetLabelString(PTSTR  pszLabel, size_t cch, int nCel) const { StringCchPrintf(pszLabel, cch, TEXT("%d"), nCel); }
 
+    void RefreshPaletteOptions();
+
     void SetPreviewLetters(std::string &previewLetters)
     {
         _previewLetters = previewLetters;
@@ -71,7 +73,7 @@ public:
     std::vector<int> &GetPaletteChoices() { return _paletteChoices; }
     std::string GetPaletteChoiceName(int index);
     int GetPaletteChoice() { return _currentPaletteIndex; }
-    void SetPaletteChoice(int choice);
+    void SetPaletteChoice(int choice, bool force);
 
 private:
     virtual ResourceType _GetType() const

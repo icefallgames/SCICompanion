@@ -177,11 +177,11 @@ void CChooseColorStatic::_DrawItem(CDC *pDC, int cx, int cy)
 
         _DrawUnused(pDC);
 
-        _DrawMultiSelection(pDC);
-
         _DrawActualUsedColors(pDC);
 
         _Draw0x3Colors(pDC);
+
+        _DrawMultiSelection(pDC);
 
         _DrawHover(pDC);
 
@@ -339,9 +339,11 @@ void CChooseColorStatic::_DrawMultiSelection(CDC *pDC)
 {
     if (_fShowSelection && _allowMultipleSelection)
     {
-        std::vector<CPoint> points;
+        std::vector<CPoint> outerPoints;
+        std::vector<CPoint> innerPoints;
         std::vector<DWORD> pointCounts;
-        points.reserve(200);
+        outerPoints.reserve(200);
+        innerPoints.reserve(200);
         pointCounts.reserve(100);
         for (int y = 0; y < _cRows; y++)
         {
@@ -359,37 +361,48 @@ void CChooseColorStatic::_DrawMultiSelection(CDC *pDC)
                     InflateRect(&rect, 1, 1);
                     if (!aboveSelected)
                     {
-                        points.emplace_back(rect.left, rect.top);
-                        points.emplace_back(rect.right - 1, rect.top);
+                        outerPoints.emplace_back(rect.left, rect.top);
+                        outerPoints.emplace_back(rect.right, rect.top);
+                        innerPoints.emplace_back(rect.left + 1, rect.top + 1);
+                        innerPoints.emplace_back(rect.right - 1, rect.top + 1);
                         pointCounts.push_back(2);
                     }
                     if (!belowSelected)
                     {
-                        points.emplace_back(rect.left, rect.bottom - 1);
-                        points.emplace_back(rect.right, rect.bottom - 1);
+                        outerPoints.emplace_back(rect.left, rect.bottom - 1);
+                        outerPoints.emplace_back(rect.right, rect.bottom - 1);
+                        innerPoints.emplace_back(rect.left + 1, rect.bottom - 2);
+                        innerPoints.emplace_back(rect.right - 1, rect.bottom - 2);
                         pointCounts.push_back(2);
                     }
                     if (!leftSelected)
                     {
-                        points.emplace_back(rect.left, rect.top);
-                        points.emplace_back(rect.left, rect.bottom - 1);
+                        outerPoints.emplace_back(rect.left, rect.top);
+                        outerPoints.emplace_back(rect.left, rect.bottom);
+                        innerPoints.emplace_back(rect.left + 1, rect.top + 1);
+                        innerPoints.emplace_back(rect.left + 1, rect.bottom - 1);
                         pointCounts.push_back(2);
                     }
                     if (!rightSelected)
                     {
-                        points.emplace_back(rect.right - 1, rect.top);
-                        points.emplace_back(rect.right - 1, rect.bottom);
+                        outerPoints.emplace_back(rect.right - 1, rect.top);
+                        outerPoints.emplace_back(rect.right - 1, rect.bottom);
+                        innerPoints.emplace_back(rect.right - 2, rect.top + 1);
+                        innerPoints.emplace_back(rect.right - 2, rect.bottom - 1);
                         pointCounts.push_back(2);
                     }
                 }
             }
         }
 
-        if (!points.empty())
+        if (!outerPoints.empty())
         {
-            CPen pen(PS_SOLID, 1, RGB(0, 0, 0));
-            HGDIOBJ hOld = pDC->SelectObject(pen);
-            pDC->PolyPolyline(&points[0], &pointCounts[0], (int)pointCounts.size());
+            CPen penBlack(PS_SOLID, 1, RGB(0, 0, 0));
+            CPen penWhite(PS_SOLID, 1, RGB(255, 255, 255));
+            HGDIOBJ hOld = pDC->SelectObject(penBlack);
+            pDC->PolyPolyline(&outerPoints[0], &pointCounts[0], (int)pointCounts.size());
+            pDC->SelectObject(penWhite);
+            pDC->PolyPolyline(&innerPoints[0], &pointCounts[0], (int)pointCounts.size());
             pDC->SelectObject(hOld);
         }
     }

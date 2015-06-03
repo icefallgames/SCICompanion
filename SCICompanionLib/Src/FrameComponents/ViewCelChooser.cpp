@@ -422,9 +422,9 @@ void CEditViewCelChooser::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
 
         int nCel = _GetDoc()->GetSelectedCel();
 
-        if (IsFlagSet(hint, RasterChangeHint::LoopSelection | RasterChangeHint::NewView | RasterChangeHint::Palette))
+        if (IsFlagSet(hint, RasterChangeHint::LoopSelection | RasterChangeHint::NewView | RasterChangeHint::PaletteChoice))
         {
-            _RefreshView(IsFlagSet(hint, RasterChangeHint::Palette));
+            _RefreshView(IsFlagSet(hint, RasterChangeHint::PaletteChoice));
             Invalidate(FALSE);
 
             // If this is a new one, then add in RasterChangeHint::CelSelection

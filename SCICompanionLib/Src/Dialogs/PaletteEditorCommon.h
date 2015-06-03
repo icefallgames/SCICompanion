@@ -404,14 +404,22 @@ void PaletteEditorCommon<T>::OnBnClickedButtoneditcolor()
 {
     if (_mainSelectedIndex != -1)
     {
-        uint8_t usedValue = _palette->Colors[_mainSelectedIndex].rgbReserved;
         COLORREF color = RGB_TO_COLORREF(_palette->Colors[_mainSelectedIndex]);
         CExtColorDlg colorDialog(color, color);
         colorDialog.m_strCaption = fmt::format("Edit color {0}", _mainSelectedIndex).c_str();
         if (IDOK == colorDialog.DoModal())
         {
-            _palette->Colors[_mainSelectedIndex] = RGBQUADFromCOLORREF(colorDialog.m_clrNew);
-            _palette->Colors[_mainSelectedIndex].rgbReserved = usedValue;
+            bool multipleSelection[256];
+            m_wndStatic.GetMultipleSelection(multipleSelection);
+            for (int i = 0; i < ARRAYSIZE(multipleSelection); i++)
+            {
+                if (multipleSelection[i])
+                {
+                    uint8_t usedValue = _palette->Colors[i].rgbReserved;
+                    _palette->Colors[i] = RGBQUADFromCOLORREF(colorDialog.m_clrNew);
+                    _palette->Colors[i].rgbReserved = usedValue;
+                }
+            }
             _UpdateDocument();
             _SyncPalette();
         }

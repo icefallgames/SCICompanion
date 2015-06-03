@@ -278,7 +278,7 @@ void RasterSidePane::OnPaletteSelection()
         int curSel = m_wndPaletteChoice.GetCurSel();
         if (curSel != CB_ERR)
         {
-            _pDoc->SetPaletteChoice(curSel);
+            _pDoc->SetPaletteChoice(curSel, false);
         }
     }
 }
@@ -509,10 +509,10 @@ void RasterSidePane::UpdateNonView(CObject *pObject)
         ClearFlag(hint, RasterChangeHint::Color);
     }
 
-    if (IsFlagSet(hint, RasterChangeHint::Palette))
+    if (IsFlagSet(hint, RasterChangeHint::PaletteChoice))
     {
         _SyncPalette();
-        ClearFlag(hint, RasterChangeHint::Palette);
+        ClearFlag(hint, RasterChangeHint::PaletteChoice);
     }
 
     if (IsFlagSet(hint, RasterChangeHint::PenWidth))
@@ -532,6 +532,8 @@ void RasterSidePane::UpdateNonView(CObject *pObject)
         _RebuildLoopTree();
         // Don't remove RasterChangeHint::NewView, because we still want
         // to do other things if its present, below.
+        // Yeah, this too:
+        _UpdatePaletteChoices();
     }
 
     if (hint != RasterChangeHint::None)
