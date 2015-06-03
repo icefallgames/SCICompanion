@@ -76,6 +76,7 @@ protected:
 private:
     void _RecalculateChannelData(const SoundComponent *pSound);
     void _RecalculateTrackBitmaps();
+    void _RecalculateTrackBitmapsOLD();
     bool _PrepTrackBitmaps(int width, int height);
     void _SetCursorPos();
     int _HitTestChannelHeader(CPoint pt);

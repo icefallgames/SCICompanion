@@ -3,6 +3,7 @@
 #include "AppState.h"
 #include "ResourceEntity.h"
 #include "Audio.h"
+#include "format.h"
 
 #pragma comment( lib, "winmm.lib" )
 
@@ -304,7 +305,8 @@ uint16_t SoundComponent::_ReadMidiFileTrack(size_t nTrack, std::istream &midiFil
     return wChannelMask;
 }
 
-void SoundComponent::_CombineTracks(const std::vector<std::vector<SoundEvent> > &tracks)
+// Returns the total ticks
+DWORD CombineSoundEvents(const std::vector<std::vector<SoundEvent> > &tracks, std::vector<SoundEvent> &results)
 {
     // We'll need to store a position for each track.  Let's initialize them to zero.
     std::vector<size_t> _trackPos;
@@ -350,7 +352,7 @@ void SoundComponent::_CombineTracks(const std::vector<std::vector<SoundEvent> > 
 
             // Fixup the event time before adding it.
             event.wTimeDelta = dwTimeDelta - dwLastTimeDelta;
-            Events.push_back(event);
+            results.push_back(event);
             dwLastTimeDelta = dwTimeDelta;
         }
         else
@@ -358,7 +360,15 @@ void SoundComponent::_CombineTracks(const std::vector<std::vector<SoundEvent> > 
             break; // No more events left.
         }
     }
-    TotalTicks = dwLastTimeDelta;
+    return dwLastTimeDelta;
+}
+
+void SoundComponent::_CombineTracks(const std::vector<std::vector<SoundEvent> > &tracks)
+{
+    TotalTicks = CombineSoundEvents(tracks, Events);
+
+    // REVIEW: How will this work?
+    ConvertSCI0ToNewFormat(*this);
 }
 
 //
@@ -380,34 +390,6 @@ void SoundComponent::_NormalizeToSCITempo()
     _wDivision = SCI_PPQN;
     _wTempoIfChanged = StandardTempo;
     TotalTicks = dwLastTimeNew;
-}
-
-// Adjust the timing of each event so that the whole resource ends up being a certain amount of ticks
-SoundChangeHint SoundComponent::NormalizeToTicks(DWORD dwTicks)
-{
-    DWORD dwLastTimeOrig = 0;
-    DWORD dwLastTimeNew = 0;
-    size_t i = 0;
-
-    DWORD totalticksTest = 0;
-    for (; i < Events.size(); i++)
-    {
-        SoundEvent &event = Events[i];
-
-        totalticksTest += event.wTimeDelta;
-
-        DWORD dwTimeTotalOrig = dwLastTimeOrig + event.wTimeDelta;
-        //ASSERT((DWORD)TotalTicks > dwLastTimeNew);
-        ASSERT(event.wTimeDelta < 65000); // Just some sanity check for overflows.
-        DWORD dwTimeTotalNew = MulDiv(dwTimeTotalOrig, dwTicks, TotalTicks);
-        event.wTimeDelta = dwTimeTotalNew - dwLastTimeNew;
-
-        dwLastTimeNew = dwTimeTotalNew;
-        dwLastTimeOrig = dwTimeTotalOrig;
-    }
-    assert(totalticksTest == TotalTicks);
-    TotalTicks = dwLastTimeNew;
-    return SoundChangeHint::Changed;
 }
 
 void SoundComponent::_RemoveTempoChanges(const std::vector<TempoEntry> &tempoChanges)
@@ -748,7 +730,7 @@ void SoundWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
 }
 
 
-void ReadChannel(sci::istream &stream, std::vector<SoundEvent> &events, DWORD &totalTicks, SoundComponent &sound)
+void ReadChannel(sci::istream &stream, std::vector<SoundEvent> &events, DWORD &totalTicks, SoundComponent &sound, int *mustBeChannel)
 {
     // Get delta time.
     bool fDone = false;
@@ -850,15 +832,132 @@ void ReadChannel(sci::istream &stream, std::vector<SoundEvent> &events, DWORD &t
                 }
                 break;
             }
+
+            if (mustBeChannel)
+            {
+                assert((event.GetChannel() == *mustBeChannel) || (event.GetChannel() == 0x0F));
+            }
+
             events.push_back(event);
         }
+    }
+}
+
+void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream)
+{
+    SoundComponent &sound = resource.GetComponent<SoundComponent>();
+    int trackCount = 0;
+    sci::istream trackCountStream = stream;
+    uint8_t marker;
+    trackCountStream >> marker;
+    while (trackCountStream.good() && (marker != 0xff))
+    {
+        trackCount++;
+        uint8_t channelMarker;
+        trackCountStream >> channelMarker;
+        while (channelMarker != 0xff)
+        {
+            trackCountStream.skip(5);
+            trackCountStream >> channelMarker;
+        }
+        trackCountStream >> marker;
+    }
+
+    map<uint16_t, int> dataOffsetToChannelId;
+    map<uint16_t, uint16_t> dataOffsetToSize;   // Temporary, to verify one offset always has same size
+
+    for (int trackNumber = 0; trackNumber < trackCount; trackNumber++)
+    {
+        sound._tracks.emplace_back();
+        TrackInfo &track = sound._tracks.back();
+
+        stream >> track.Type;
+        
+        int channelCount = 0;
+        sci::istream channelCountStream = stream;
+        channelCountStream >> marker;
+        while (channelCountStream.good() && (marker != 0xff))
+        {
+            channelCount++;
+            channelCountStream.skip(5);
+            channelCountStream >> marker;
+        }
+
+        if (track.Type != 0xf0) // Digital track, not supported
+        {
+            int channelNumber = 0;
+            while (channelCount)
+            {
+                uint16_t unknown, dataOffset, dataSize; 
+                stream >> unknown;
+                stream >> dataOffset;
+                stream >> dataSize;
+
+                auto it = dataOffsetToChannelId.find(dataOffset);
+                if (it != dataOffsetToChannelId.end())
+                {
+                    // We already processed this channel, just add the id to the track
+                    assert(dataOffsetToSize[dataOffset] == dataSize);
+                    track.ChannelIds.push_back(it->second);
+                }
+                else
+                {
+                    sound._allChannels.emplace_back();
+                    ChannelInfo &channelInfo = sound._allChannels.back();
+                    channelInfo.Id = (int)(sound._allChannels.size() - 1);
+                    sci::istream channelStream = stream;
+                    channelStream.seekg(dataOffset);
+                    channelStream >> channelInfo.Number;
+                    uint8_t polyAndPrio;
+                    channelStream >> polyAndPrio;
+                    channelInfo.Poly = ((polyAndPrio & 0xf) != 0);
+                    channelInfo.Priority = polyAndPrio >> 4;
+                    dataOffset += 2;
+                    dataSize -= 2;
+
+                    if (channelInfo.Number == 0xfe)
+                    {
+                        channelInfo.Flags = 0;
+                        // Digital chanenl 
+                        int x = 0;
+                    }
+                    else
+                    {
+                        channelInfo.Flags = channelInfo.Number >> 4;
+                        channelInfo.Number = channelInfo.Number & 0xf;
+
+                        if (channelInfo.Number == 9)
+                        {
+                            channelInfo.Flags |= 2;
+                        }
+                    }
+
+                    // Now we're ready to read the channel data?
+                    int chanNum = channelInfo.Number;
+                    ReadChannel(channelStream, channelInfo.Events, sound.TotalTicks, sound, &chanNum);
+
+                    dataOffsetToChannelId[dataOffset] = channelInfo.Id;
+                    dataOffsetToSize[dataOffset] = dataSize;
+                    track.ChannelIds.push_back(channelInfo.Id);
+                }
+                channelCount--;
+            }
+        }
+        else
+        {
+            // The first byte of the 0xF0 track's channel list is priority
+            // TODO: What is this? Is this cues?
+
+            stream.skip(6);
+        }
+        stream.skip(1); // Skip ff that closes channels list.
     }
 }
 
 
 // Not yet implemented.
 // https://github.com/scummvm/scummvm/blob/master/engines/sci/resource_audio.cpp
-void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream)
+void SoundReadFrom_SCI1OLD(ResourceEntity &resource, sci::istream &stream)
 {
     SoundComponent &sound = resource.GetComponent<SoundComponent>();
     sound.TotalTicks = 0;
@@ -903,17 +1002,17 @@ void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream)
                 {
                     channelNumber &= 0xf;
                     sound._channels[channelNumber] |= (0x1 << trackType);
-                    assert(channels[channelNumber].empty() ||
-                        (channelOffsetTrack[channelNumber] == channelOffset)); // Otherwise we have different channel data for the same channel number
-                    if (channels[channelNumber].empty())
-                    {
-                        channelOffsetTrack[channelNumber] = channelOffset;
-                        uint8_t polyAndPriority;
-                        channelStream >> polyAndPriority;
-                        DWORD totalTicks = 0;
-                       // ReadChannel(channelStream, channels[channelNumber], totalTicks, sound);
-                        sound.TotalTicks = max(sound.TotalTicks, totalTicks);
-                    }
+assert(channels[channelNumber].empty() ||
+    (channelOffsetTrack[channelNumber] == channelOffset)); // Otherwise we have different channel data for the same channel number
+if (channels[channelNumber].empty())
+{
+    channelOffsetTrack[channelNumber] = channelOffset;
+    uint8_t polyAndPriority;
+    channelStream >> polyAndPriority;
+    DWORD totalTicks = 0;
+    // ReadChannel(channelStream, channels[channelNumber], totalTicks, sound);
+    sound.TotalTicks = max(sound.TotalTicks, totalTicks);
+}
                 }
 
                 stream.peek(peek);
@@ -964,6 +1063,93 @@ void ScanAndReadDigitalSample(ResourceEntity &resource, sci::istream stream)
     }
 }
 
+void ConvertSCI0ToNewFormat(SoundComponent &sound)
+{
+    // Given these:
+    //  uint16_t _channels[15];
+    //  std::vector<SoundEvent> Events;
+    //
+    // Turn them into these:
+    //  std::vector<ChannelInfo> _allChannels;
+    //  std::vector<TrackInfo> _tracks;
+
+    map<uint8_t, set<int>> tracksToUsedChannelNumbers;
+    set<int> usedChannelNumbers;
+    for (int channelNumber = 0; channelNumber < ARRAYSIZE(sound._channels); channelNumber++)
+    {
+        uint16_t mask = sound._channels[channelNumber];
+        mask >>= 8; // We're only interested in the upper 8 bits
+        for (uint8_t trackOrder = 0; trackOrder < 8; trackOrder++)
+        {
+            if (mask & 0x1)
+            {
+                tracksToUsedChannelNumbers[0x1 << trackOrder].insert(channelNumber);
+                usedChannelNumbers.insert(channelNumber);
+            }
+            mask >>= 1;
+        }
+    }
+
+    // Roland always has channel 9
+    tracksToUsedChannelNumbers[(uint8_t)DeviceType::RolandMT32].insert(9);
+
+    // Construct the channels and put the separated sound events into them
+    map<int, int> channelNumberToId;
+    for (int channelNumber : usedChannelNumbers)
+    {
+        sound._allChannels.emplace_back();
+        ChannelInfo &channel = sound._allChannels.back();
+        channel.Id = (int)(sound._allChannels.size() - 1);
+        channel.Number = channelNumber;
+        channelNumberToId[channel.Number] = channel.Id;
+        // channel.Flags ???  Maybe 2 for SCI0
+        //channel.Poly
+        //channel.Priority;
+
+        DWORD ticksSoFar = 0;
+        DWORD prevTicks = 0;
+        for (SoundEvent &event : sound.Events)
+        {
+            ticksSoFar += event.wTimeDelta;
+            if ((event.GetChannel() == channelNumber) || (event.GetChannel() == 15))
+            {
+                SoundEvent newEvent = event;
+                newEvent.wTimeDelta = ticksSoFar - prevTicks;
+                prevTicks = ticksSoFar;
+                channel.Events.push_back(newEvent);
+            }
+        }
+    }
+
+    // Now build the tracks and associated channels with them
+    for (auto &trackAndChannelNumbers : tracksToUsedChannelNumbers)
+    {
+        sound._tracks.emplace_back();
+        TrackInfo &track = sound._tracks.back();
+        track.Type = trackAndChannelNumbers.first;
+        for (int channelNumber : trackAndChannelNumbers.second)
+        {
+            int channelId = -1;
+            for (auto &channelInfo : sound.GetChannelInfos())
+            {
+                if (channelInfo.Number == channelNumber)
+                {
+                    channelId = channelInfo.Id;
+                    break;
+                }
+            }
+            if (channelId != -1)
+            {
+                track.ChannelIds.push_back(channelId);
+            }
+            else
+            {
+                assert(channelNumber == 9); // So it's because of the Roland thing.
+            }
+        }
+    }
+}
+
 void SoundReadFrom_SCI0(ResourceEntity &resource, sci::istream &stream)
 {
     SoundComponent &sound = resource.GetComponent<SoundComponent>();
@@ -992,6 +1178,8 @@ void SoundReadFrom_SCI0(ResourceEntity &resource, sci::istream &stream)
             ScanAndReadDigitalSample(resource, stream);
         }
     }
+
+    ConvertSCI0ToNewFormat(sound);
 }
 
 ResourceTraits soundTraits =

@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "MidiPlayer.h"
 
+using namespace std;
+
 //
 // Midi helper
 //
@@ -125,6 +127,70 @@ DWORD MidiPlayer::QueryPosition()
 #define MAX_STREAM_EVENTS (65532 / (3 * sizeof(DWORD)))
 
 DWORD MidiPlayer::SetSound(const SoundComponent &sound, uint16_t wInitialTempo)
+{
+    _ClearHeaders();
+    _wTimeDivision = sound.GetTimeDivision();
+    _dwLoopPoint = sound.GetLoopPoint();
+
+    // Combine events into one.
+    // First, get the channels that apply to this device.
+    vector<vector<SoundEvent>> eventChannels;
+    for (const auto &trackInfo : sound.GetTrackInfos())
+    {
+        if (trackInfo.Type == (uint8_t)_device)
+        {
+            for (int channelId : trackInfo.ChannelIds)
+            {
+                for (const auto &channelInfo : sound.GetChannelInfos())
+                {
+                    if (channelInfo.Id == channelId)
+                    {
+                        // A bit expensive, since we're copying all events, but it should be fine.
+                        eventChannels.push_back(channelInfo.Events);
+                        break;
+                    }
+                }
+            }
+            break;
+        }
+    }
+
+    vector<SoundEvent> finalEvents;
+    DWORD totalTicks = CombineSoundEvents(eventChannels, finalEvents);
+
+    if (!finalEvents.empty() && _Init())
+    {
+        // Set up the stream.
+        // Put new data in.
+        // Accumulated ticks will need to be at most this big:
+        _accumulatedStreamTicks.resize(finalEvents.size());
+        DWORD cbSize = (DWORD)(finalEvents.size() * 3) * sizeof(DWORD);
+        unsigned long *stuff = new unsigned long[cbSize / sizeof(DWORD)];
+        _pRealData = stuff;
+
+        DWORD cbEventsUsed = 0;
+        _wTotalTime = 0;
+        DWORD dwAccumulatedTicks = 0;
+        for (size_t i = 0; i < finalEvents.size(); ++i)
+        {
+            DWORD dwThisTimeDelta = finalEvents[i].wTimeDelta;
+            *stuff++ = dwThisTimeDelta;
+            dwAccumulatedTicks += dwThisTimeDelta;
+            _accumulatedStreamTicks[cbEventsUsed] = dwAccumulatedTicks;
+            *stuff++ = 0;
+            *stuff++ = (MEVT_SHORTMSG << 24) | finalEvents[i].GetRawStatus() | (((DWORD)finalEvents[i].bParam1) << 8) | (((DWORD)finalEvents[i].bParam2) << 16);
+            _wTotalTime += finalEvents[i].wTimeDelta; // Not quite right - there could be empty space at the end.
+            cbEventsUsed++;
+        }
+
+        SetTempo(wInitialTempo);
+        _cTotalStreamEvents = cbEventsUsed;
+        _CuePosition(0);
+    }
+    return ++_dwCookie;
+}
+
+DWORD MidiPlayer::SetSoundOLD(const SoundComponent &sound, uint16_t wInitialTempo)
 {
     _ClearHeaders();
     _wTimeDivision = sound.GetTimeDivision();

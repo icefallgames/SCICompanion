@@ -110,6 +110,22 @@ private:
     Type _cumulative;
 };
 
+struct ChannelInfo
+{
+    int Id; // Simply the index in its containing vector
+    bool Poly;
+    uint8_t Priority;
+    uint8_t Number;
+    uint8_t Flags;
+    std::vector<SoundEvent> Events;
+};
+
+struct TrackInfo
+{
+    uint8_t Type;
+    std::vector<int> ChannelIds;
+};
+
 struct SoundComponent : public ResourceComponent
 {
 public:
@@ -122,10 +138,12 @@ public:
     friend void SoundWriteToWorker(const SoundComponent &sound, sci::ostream &byteStream);
     friend void SoundReadFrom(ResourceEntity &resource, sci::istream &byteStream);
     friend void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream);
+    friend void SoundReadFrom_SCI1OLD(ResourceEntity &resource, sci::istream &stream);
     friend void SoundReadFrom_SCI0(ResourceEntity &resource, sci::istream &stream);
     friend SoundChangeHint InitializeFromMidi(SoundComponent &sound, const std::string &filename);
-    friend void ReadChannel(sci::istream &stream, std::vector<SoundEvent> &events, DWORD &totalTicks, SoundComponent &sound);
+    friend void ReadChannel(sci::istream &stream, std::vector<SoundEvent> &events, DWORD &totalTicks, SoundComponent &sound, int *mustBeChannel = nullptr);
     friend void ScanAndReadDigitalSample(ResourceEntity &resource, sci::istream stream);
+    friend void ConvertSCI0ToNewFormat(SoundComponent &sound);
 
     // For SetChannelMask
     static const uint16_t AllChannelsMask = 0x7FFF;
@@ -146,16 +164,23 @@ public:
     uint16_t GetChannelMask(DeviceType device) const;
     SoundChangeHint SetChannelMask(DeviceType device, uint16_t wChannels);
     uint16_t GetTimeDivision() const { return _wDivision; }
-    SoundChangeHint NormalizeToTicks(DWORD dwTicks);
     bool CanChangeTempo() const { return _fCanSetTempo; }
 
     SoundChangeHint SetTempo(uint16_t wTempo) { _wTempoIfChanged = wTempo; return SoundChangeHint::CueChanged; }
     uint16_t GetTempo() const { return _wTempoIfChanged; }
 
     const std::vector<SoundEvent> &GetEvents() const { return Events; }
+    std::vector<SoundEvent> &GetEvents() { return Events; }
     const std::vector<CuePoint> &GetCuePoints() const { return Cues; }
     DWORD GetLoopPoint() const { return LoopPoint; }
     DWORD GetTotalTicks() const { return max(1, TotalTicks); }   // 0 causes div by zero errors }
+
+
+    // New sound model
+    std::vector<ChannelInfo> &GetChannelInfos() { return _allChannels; }
+    std::vector<TrackInfo> &GetTrackInfos() { return _tracks; }
+    const std::vector<ChannelInfo> &GetChannelInfos() const  { return _allChannels; }
+    const std::vector<TrackInfo> &GetTrackInfos() const  { return _tracks; }
 
 private:
     uint16_t _channels[15];
@@ -190,7 +215,14 @@ private:
     uint16_t _wTempoIfChanged;      // The user can change the tempo at which imported midi files
     // are played.  Since the SCI interpreter always plays at 120bpm,
     // we need to adjust the actual events when we save.
+
+
+    // Work on a different sound model.
+    std::vector<ChannelInfo> _allChannels;
+    std::vector<TrackInfo> _tracks;
 };
+
+DWORD CombineSoundEvents(const std::vector<std::vector<SoundEvent> > &tracks, std::vector<SoundEvent> &results);
 
 DWORD _ReadBEDWORD(std::istream &stream);
 uint16_t _ReadBEWORD(std::istream &stream);
