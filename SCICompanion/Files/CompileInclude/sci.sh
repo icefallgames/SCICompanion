@@ -284,6 +284,13 @@
 (define memCOPY 4)
 (define memPEEK 5)
 (define memPOKE 6)
+
+// Polygon types
+(define PTotalAccess 0)
+(define PNearestAccess 1)
+(define PBarredAccess 2)
+(define PContainedAccess 3)
+
 #endif  // SCI_1_1
 
 // Sound statuses

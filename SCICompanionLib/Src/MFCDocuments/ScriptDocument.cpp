@@ -25,6 +25,7 @@
 #include "DecompilerResults.h"
 #include "GameFolderHelper.h"
 #include "DecompilerConfig.h"
+#include "format.h"
 
 using namespace std;
 
@@ -201,6 +202,13 @@ bool NewCompileScript(CompileLog &log, CompileTables &tables, PrecompiledHeaders
 
         if (g_Parser.Parse(*pScript, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log))
         {
+            if (script.GetResourceNumber() != pScript->GetScriptNumber())
+            {
+                log.ReportResult(
+                    CompileResult(fmt::format("Script {0} ({1}) declared itself as resource {2}", script.GetResourceNumber(), script.GetTitle(), pScript->GetScriptNumber()),
+                    CompileResult::CompileResultType::CRT_Warning));
+            }
+
             // Compile and save script resource.
             // Compile our own script!
             CompileResults results(log);
@@ -223,35 +231,20 @@ bool NewCompileScript(CompileLog &log, CompileTables &tables, PrecompiledHeaders
 #endif
                 }
 
-                //if (appState->GetVersion().SeparateHeapResources)
-                if (false)
-                {
-                    // Temporary
-                    std::vector<BYTE> &outputScr = results.GetScriptResource();
-                    std::string text = GetBinaryDataVisualization(&outputScr[0], outputScr.size());
-                    ShowTextFile(text.c_str(), "scr.txt");
+                // Save the script resource
+                std::vector<BYTE> &output = results.GetScriptResource();
+                appState->GetResourceMap().AppendResource(ResourceBlob(nullptr, ResourceType::Script, output, appState->GetVersion().DefaultVolumeFile, wNum, appState->GetVersion(), ResourceSourceFlags::ResourceMap));
 
-                    std::vector<BYTE> &outputHeap = results.GetHeapResource();
-                    text = GetBinaryDataVisualization(&outputHeap[0], outputHeap.size());
-                    ShowTextFile(text.c_str(), "hep.txt");
+                std::vector<BYTE> &outputHep = results.GetHeapResource();
+                if (!outputHep.empty())
+                {
+                    appState->GetResourceMap().AppendResource(ResourceBlob(nullptr, ResourceType::Heap, outputHep, appState->GetVersion().DefaultVolumeFile, wNum, appState->GetVersion(), ResourceSourceFlags::ResourceMap));
                 }
-                else
+
+                // Save the corresponding sco file.
+                CSCOFile &sco = results.GetSCO();
                 {
-                    // Save the script resource
-                    std::vector<BYTE> &output = results.GetScriptResource();
-                    appState->GetResourceMap().AppendResource(ResourceBlob(nullptr, ResourceType::Script, output, appState->GetVersion().DefaultVolumeFile, wNum, appState->GetVersion(), ResourceSourceFlags::ResourceMap));
-
-                    std::vector<BYTE> &outputHep = results.GetHeapResource();
-                    if (!outputHep.empty())
-                    {
-                        appState->GetResourceMap().AppendResource(ResourceBlob(nullptr, ResourceType::Heap, outputHep, appState->GetVersion().DefaultVolumeFile, wNum, appState->GetVersion(), ResourceSourceFlags::ResourceMap));
-                    }
-
-                    // Save the corresponding sco file.
-                    CSCOFile &sco = results.GetSCO();
-                    {
-                        SaveSCOFile(appState->GetResourceMap().Helper(), sco, script);
-                    }
+                    SaveSCOFile(appState->GetResourceMap().Helper(), sco, script);
                 }
                 fRet = true;
             }

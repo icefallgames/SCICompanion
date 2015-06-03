@@ -107,8 +107,7 @@ void CNewScriptDialog::_AttachControls(CDataExchange* pDX)
     DDX_Control(pDX, IDC_STATICSCRIPTNUMBER, m_wndScriptName);
     DDX_Control(pDX, IDC_STATICSCRIPTNAME, m_wndScriptNumber);
 
-    // Values from 0 to 999
-    m_wndEditScriptNumber.SetLimitText(3);
+    m_wndEditScriptNumber.SetLimitText(5);
 }
 
 void CNewScriptDialog::DoDataExchange(CDataExchange* pDX)
