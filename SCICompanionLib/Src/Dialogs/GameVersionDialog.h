@@ -33,9 +33,12 @@ private:
     int _fVocab900;
     int _fEarlySCI0Script;
     int _fSCI11Palettes;
+    int _fSupportsMessages;
+    int _fSeparateMessageMap;
 
     int _viewFormat;
     int _picFormat;
+    int _audioVolume;
     int _resourceMapVersion;
     int _resourcePackVersion;
     int _compressionVersion;
@@ -66,9 +69,11 @@ private:
 
     CExtComboBox m_wndViewCombo;
     CExtComboBox m_wndPicCombo;
+    CExtComboBox m_wndAudioCombo;
 
     CExtNoFlickerStatic m_wndLabel4;
     CExtNoFlickerStatic m_wndLabel5;
+    CExtNoFlickerStatic m_wndLabel7;
 
     CExtCheckBox m_wndHasPalette;
     CExtCheckBox m_wndGrayscaleCursors;
@@ -77,4 +82,6 @@ private:
     CExtCheckBox m_wndParserVocab900;
     CExtCheckBox m_wndEarlySCI0Script;
     CExtCheckBox m_wndSCI11Palettes;
+    CExtCheckBox m_wndSupportsMessages;
+    CExtCheckBox m_wndSeparateMessageMap;
 };

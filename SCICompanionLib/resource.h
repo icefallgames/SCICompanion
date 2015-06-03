@@ -298,7 +298,6 @@
 #define IDC_EDITPACKAGE                 1012
 #define IDC_EDITRESOURCE                1013
 #define IDC_FAKEEGOX                    1014
-#define IDC_EDITRESOURCE2               1014
 #define IDC_FAKEEGOY                    1015
 #define IDC_GLOBALPALETTES              1016
 #define IDC_DRAWGRIDLINES               1017
@@ -472,6 +471,7 @@
 #define IDC_STATIC_DEVICES              1195
 #define IDC_COMBO2                      1195
 #define IDC_BUTTON_STOP                 1196
+#define IDC_COMBO3                      1196
 #define IDC_BUTTON_PLAY                 1197
 #define IDC_COMBOCONDITION              1197
 #define IDC_CHECK_ALLCHANNELS           1198
@@ -567,6 +567,8 @@
 #define IDC_RADIOCENTER                 1273
 #define IDC_COMBOTEMPLATE               1274
 #define IDC_BUTTON_LOADAT               1275
+#define IDC_CHECK10                     1276
+#define IDC_CHECK11                     1277
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -823,7 +825,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        376
 #define _APS_NEXT_COMMAND_VALUE         33184
-#define _APS_NEXT_CONTROL_VALUE         1276
+#define _APS_NEXT_CONTROL_VALUE         1278
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

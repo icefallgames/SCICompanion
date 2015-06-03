@@ -20,11 +20,14 @@ void CGameVersionDialog::_Sync()
     _fHasPalette = _version.HasPalette ? 1 : 0;
     _viewFormat =  (int)_version.ViewFormat;
     _picFormat = (int)_version.PicFormat;
+    _audioVolume = (int)_version.AudioVolumeName;
     _fGrayscaleCursors = _version.GrayScaleCursors ? 1 : 0;
     _fCodeSCI1 = _version.lofsaOpcodeIsAbsolute ? 1 : 0;
     _fVocab900 = (_version.MainVocabResource == 900);
     _fEarlySCI0Script = _version.HasOldSCI0ScriptHeader ? 1 : 0;
     _fSCI11Palettes = _version.sci11Palettes ? 1 : 0;
+    _fSupportsMessages = _version.SupportsMessages ? 1 : 0;
+    _fSeparateMessageMap = _version.SeparateMessageMap ? 1 : 0;
 
     _resourceMapVersion = (int)_version.MapFormat;
     _resourcePackVersion = (int)_version.PackageFormat;
@@ -39,11 +42,14 @@ SCIVersion CGameVersionDialog::_ReverseSync()
     version.HasPalette = (_fHasPalette != 0);
     version.ViewFormat = (ViewFormat)_viewFormat;
     version.PicFormat = (PicFormat)_picFormat;
+    version.AudioVolumeName = (AudioVolumeName)_audioVolume;
     version.GrayScaleCursors = (_fGrayscaleCursors != 0);
     version.lofsaOpcodeIsAbsolute = (_fCodeSCI1 != 0);
     version.MainVocabResource = _fVocab900 ? 900 : 0;
     version.HasOldSCI0ScriptHeader = (_fEarlySCI0Script != 0);
     version.sci11Palettes = (_fSCI11Palettes != 0);
+    version.SupportsMessages = (_fSupportsMessages != 0);
+    version.SeparateMessageMap = (_fSeparateMessageMap != 0);
 
     version.MapFormat = (ResourceMapFormat)_resourceMapVersion;
     version.PackageFormat = (ResourcePackageFormat)_resourcePackVersion;
@@ -71,6 +77,8 @@ void CGameVersionDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_CHECK7, m_wndParserVocab900);
     DDX_Control(pDX, IDC_CHECK8, m_wndEarlySCI0Script);
     DDX_Control(pDX, IDC_CHECK9, m_wndSCI11Palettes);
+    DDX_Control(pDX, IDC_CHECK10, m_wndSeparateMessageMap);
+    DDX_Control(pDX, IDC_CHECK11, m_wndSupportsMessages);
     
 
     DDX_Check(pDX, IDC_CHECK1, _fHasPalette);
@@ -80,6 +88,8 @@ void CGameVersionDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Check(pDX, IDC_CHECK7, _fVocab900);
     DDX_Check(pDX, IDC_CHECK8, _fEarlySCI0Script);
     DDX_Check(pDX, IDC_CHECK9, _fSCI11Palettes);
+    DDX_Check(pDX, IDC_CHECK10, _fSeparateMessageMap);
+    DDX_Check(pDX, IDC_CHECK11, _fSupportsMessages);
     
     DDX_Control(pDX, IDC_STATIC1, m_wndGroupResourceMap);
     DDX_Control(pDX, IDC_STATIC2, m_wndGroupSound);
@@ -87,6 +97,7 @@ void CGameVersionDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_STATIC4, m_wndLabel4);
     DDX_Control(pDX, IDC_STATIC5, m_wndLabel5);
     DDX_Control(pDX, IDC_STATIC6, m_wndGroupResourcePack);
+    DDX_Control(pDX, IDC_STATIC7, m_wndLabel7);
 
     DDX_Control(pDX, IDC_RADIOSCI0, m_wndRadioResourceMapSCI0);
     DDX_Control(pDX, IDC_RADIOSCI1, m_wndRadioResourceMapSCI1);
@@ -109,6 +120,9 @@ void CGameVersionDialog::DoDataExchange(CDataExchange* pDX)
 
     DDX_Control(pDX, IDC_COMBO2, m_wndPicCombo);
     DDX_CBIndex(pDX, IDC_COMBO2, _picFormat);
+
+    DDX_Control(pDX, IDC_COMBO3, m_wndAudioCombo);
+    DDX_CBIndex(pDX, IDC_COMBO3, _audioVolume);
 
     DDX_Control(pDX, IDOK, m_wndOk);
     DDX_Control(pDX, IDCANCEL, m_wndCancel);
