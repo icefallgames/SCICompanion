@@ -184,7 +184,8 @@ RasterTraits fontRasterTraits =
     fontPaletteMapping,
     g_egaColors,
     65,         // Preview cel
-    &GetCharacterLabel
+    &GetCharacterLabel,
+    false
 };
 
 RasterSettings fontRasterSettings =

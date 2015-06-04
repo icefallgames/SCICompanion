@@ -105,6 +105,7 @@ struct RasterTraits
     const RGBQUAD *Palette;
     int PreviewCel;
     GetItemLabelFuncPtr GetItemLabelFunc;
+    bool SupportsScaling;
 };
 
 struct RasterSettings
@@ -145,7 +146,7 @@ struct RasterComponent : ResourceComponent
 {
     RasterComponent();
     RasterComponent(const RasterComponent &src) = default;
-    RasterComponent(const RasterTraits &traits, RasterSettings &settings) : Traits(traits), Settings(settings) {}
+    RasterComponent(const RasterTraits &traits, RasterSettings &settings) : Traits(traits), Settings(settings), UnknownData(0), ScaleFlags(0) {}
     ResourceComponent *Clone() const override
     {
         return new RasterComponent(*this);
@@ -163,7 +164,7 @@ struct RasterComponent : ResourceComponent
     RasterSettings &Settings;
     std::vector<Loop> Loops;
     uint32_t UnknownData;
-    uint8_t ScaleFlags;             // Scaling flags for VGA 1.1 views.
+    uint8_t ScaleFlags;             // Scaling flags for VGA 1.1 views (0x0 is scalable, 0x1 is not)
 };
 
 #include <pshpack1.h>

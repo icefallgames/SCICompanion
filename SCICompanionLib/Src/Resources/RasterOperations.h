@@ -74,6 +74,8 @@ RasterChange MoveLoopFromTo(RasterComponent &raster, int nLoop, int celFrom, int
 HBITMAP CreateBitmapFromResource(const ResourceEntity &resource, const PaletteComponent *palette, SCIBitmapInfo *pbmi, uint8_t **ppBitsDest);
 RasterChange InsertLoop(RasterComponent &raster, int nLoop, bool before);
 RasterChange RemoveLoop(RasterComponent &raster, int nLoop);
+RasterChange SetScalable(RasterComponent &raster, bool scalable);
+bool IsScalable(const RasterComponent &raster);
 RasterChange InsertCel(RasterComponent &raster, CelIndex celIndex, bool before, bool dupeNewCels);
 RasterChange InsertCel(RasterComponent &raster, CelIndex celIndex, const Cel &cel);   // Let's us insert to a cel-less loop
 RasterChange RemoveCel(RasterComponent &raster, CelIndex celIndex);

@@ -766,6 +766,16 @@ int MakeNewLoopNumber(int nLoop, int nDeletedLoop)
     return (nLoop < nDeletedLoop) ? nLoop : nLoop - 1;
 }
 
+RasterChange SetScalable(RasterComponent &raster, bool scalable)
+{
+    raster.ScaleFlags = scalable ? 0x0 : 0x1;
+    return RasterChangeHint::NewView;
+}
+bool IsScalable(const RasterComponent &raster)
+{
+    return raster.Traits.SupportsScaling && raster.ScaleFlags != 0x1;
+}
+
 RasterChange RemoveLoop(RasterComponent &raster, int nLoopRemoved)
 {
     // Can only delete a loop if there is more than one.

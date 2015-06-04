@@ -59,6 +59,7 @@ private:
     void OnLeft();
     void OnMakeFont();
     void OnApplyToAll();
+    void OnIsScalable();
 
     void _UpdatePaletteChoices();
     void _UpdatePaletteResources();
@@ -141,6 +142,7 @@ private:
     CExtLabel m_wndStatic7;
     CExtGroupBox m_wndGroup1;
     CExtGroupBox m_wndGroup2;
+    CExtCheckBox m_wndIsScalable;
 
     int _cRows;
     int _cColumns;

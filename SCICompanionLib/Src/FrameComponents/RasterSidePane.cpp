@@ -69,6 +69,7 @@ BEGIN_MESSAGE_MAP(RasterSidePane, CExtDialogFwdCmd)
     ON_COMMAND(IDC_BUTTON_ADDLOOPAFTER, OnAddLoopAfter)
     ON_COMMAND(IDC_BUTTON_DELETELOOP, OnDeleteLoop)
     ON_COMMAND(IDC_CHECKAPPLYTOALL, OnApplyToAll)
+    ON_COMMAND(IDC_CHECKISSCALEABLE, OnIsScalable)
     ON_WM_DRAWITEM()
     ON_COMMAND(IDC_BUTTONUP, OnUp)
     ON_COMMAND(IDC_BUTTONDOWN, OnDown)
@@ -110,6 +111,13 @@ void RasterSidePane::_OnUpdateCommandUIs()
     if (m_wndApplyToAll.GetSafeHwnd() && _pDoc)
     {
         m_wndApplyToAll.SetCheck(_pDoc->GetApplyToAllCels());
+    }
+
+    if (m_wndIsScalable.GetSafeHwnd() && _pDoc)
+    {
+        RasterComponent &raster = _pDoc->GetResource()->GetComponent<RasterComponent>();
+        m_wndIsScalable.EnableWindow(raster.Traits.SupportsScaling);
+        m_wndIsScalable.SetCheck(IsScalable(raster));
     }
 
     if (_pDoc)
@@ -713,8 +721,18 @@ void RasterSidePane::OnApplyToAll()
     }
 }
 
-
-
+void RasterSidePane::OnIsScalable()
+{
+    if (_pDoc)
+    {
+        _pDoc->ApplyChanges<RasterComponent>(
+            [&](RasterComponent &raster)
+        {
+            return WrapRasterChange(SetScalable(raster, m_wndIsScalable.GetCheck() != 0));
+        }
+        );
+    }
+}
 
 void RasterSidePane::OnTreeSelectionChanged(NMHDR *pNMHDR, LRESULT *pResult)
 {
@@ -867,6 +885,11 @@ void RasterSidePane::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_CHECKAPPLYTOALL, m_wndApplyToAll);
         AddAnchor(IDC_CHECKAPPLYTOALL, CPoint(0, 0), CPoint(100, 0));
         _fSupportsApplyAll = true;
+    }
+    if (GetDlgItem(IDC_CHECKISSCALABLE))
+    {
+        DDX_Control(pDX, IDC_CHECKISSCALABLE, m_wndIsScalable);
+        AddAnchor(IDC_CHECKISSCALABLE, CPoint(0, 0), CPoint(100, 0));
     }
 
     // Prepare the palette - a 4x4 grid of colours - we'll set this up later

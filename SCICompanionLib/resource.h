@@ -390,6 +390,8 @@
 #define IDC_EDITEXECUTABLE              1115
 #define IDC_CHECKAPPLYTOALL             1116
 #define IDC_TREE_CLASS                  1117
+#define IDC_CHECKISSCALEABLE            1117
+#define IDC_CHECKISSCALABLE             1117
 #define IDC_PROPERTIES                  1118
 #define IDC_STATIC_CLASSNAME            1122
 #define IDC_METHODS                     1124
