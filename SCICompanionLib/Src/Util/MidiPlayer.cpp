@@ -185,62 +185,11 @@ DWORD MidiPlayer::SetSound(const SoundComponent &sound, uint16_t wInitialTempo)
 
         SetTempo(wInitialTempo);
         _cTotalStreamEvents = cbEventsUsed;
-        _CuePosition(0);
+        _CuePosition(0, 0);
     }
     return ++_dwCookie;
 }
 
-/*
-DWORD MidiPlayer::SetSoundOLD(const SoundComponent &sound, uint16_t wInitialTempo)
-{
-    _ClearHeaders();
-    _wTimeDivision = sound.GetTimeDivision();
-    _dwLoopPoint = sound.GetLoopPoint();
-    if (!sound.GetEvents().empty() && _Init())
-    {
-        // Set up the stream.
-        // Put new data in.
-        const std::vector<SoundEvent> &events = sound.GetEvents();
-        // Accumulated ticks will need to be at most this big:
-        _accumulatedStreamTicks.resize(events.size());
-        DWORD cbSize = (DWORD)(events.size() * 3) * sizeof(DWORD);
-        unsigned long *stuff = new unsigned long[cbSize / sizeof(DWORD)];
-        _pRealData = stuff;
-
-        DWORD cbEventsUsed = 0;
-        DWORD wExtraTime = 0;
-        _wTotalTime = 0;
-        uint16_t wChannelMask = sound.GetChannelMask(_device);
-        DWORD dwAccumulatedTicks = 0;
-        for (size_t i = 0; i < events.size(); ++i)
-        {
-            // Only add the event if it is for a channel we're using.
-            if ((0x1 << events[i].GetChannel()) & wChannelMask)
-            {
-                cbEventsUsed++;
-                DWORD dwThisTimeDelta = events[i].wTimeDelta + wExtraTime;
-                *stuff++ = dwThisTimeDelta;
-                dwAccumulatedTicks += dwThisTimeDelta;
-                _accumulatedStreamTicks[cbEventsUsed] = dwAccumulatedTicks;
-                *stuff++ = 0;
-                *stuff++ = (MEVT_SHORTMSG << 24) | events[i].GetRawStatus() | (((DWORD)events[i].bParam1) << 8) | (((DWORD)events[i].bParam2) << 16);
-                wExtraTime = 0;
-            }
-            else
-            {
-                // But take into account the time delta:
-                wExtraTime += events[i].wTimeDelta;
-            }
-            _wTotalTime += events[i].wTimeDelta; // Not quite right - there could be empty space at the end.
-        }
-
-        SetTempo(wInitialTempo);
-        _cTotalStreamEvents = cbEventsUsed;
-        _CuePosition(0);
-    }
-    return ++_dwCookie;
-}
-*/
 void MidiPlayer::Play()
 {
     if (!_accumulatedStreamTicks.empty())
@@ -274,7 +223,7 @@ void MidiPlayer::Stop()
 {
     Pause();
     // Return to the beginning.
-    _CuePosition(0);
+    _CuePosition(0, 0);
 }
 
 bool MidiPlayer::CanPlay()
@@ -336,7 +285,7 @@ void MidiPlayer::CuePosition(DWORD dwTicks, DWORD scope)
     {
         i = 0;
     }
-    _CuePosition((DWORD)i);
+    _CuePosition((DWORD)i, dwTicks);
 }
 void MidiPlayer::CueTickPosition(DWORD dwTicks)
 {
@@ -353,13 +302,13 @@ void MidiPlayer::CueTickPosition(DWORD dwTicks)
     {
         i = 0;
     }
-    _CuePosition((DWORD)i);
+    _CuePosition((DWORD)i, dwTicks);
 }
 
 //
 // Queues the player to a particular index in the events.
 //
-void MidiPlayer::_CuePosition(DWORD dwEventIndex)
+void MidiPlayer::_CuePosition(DWORD dwEventIndex, DWORD ticks)
 {
     if (_pRealData)
     {
@@ -393,7 +342,7 @@ void MidiPlayer::_CuePosition(DWORD dwEventIndex)
         {
             _dwCurrentChunkTickStart = _accumulatedStreamTicks[dwEventIndex];
         }
-        _dwCurrentTickPos = _dwCurrentChunkTickStart;
+        _dwCurrentTickPos = (ticks == 0xffffffff) ? _dwCurrentChunkTickStart : ticks;
         _midiHdr.dwBufferLength = _midiHdr.dwBytesRecorded = (cEvents * 3 * sizeof(DWORD));
         _midiHdr.dwFlags = 0;
         unsigned long err = midiOutPrepareHeader((HMIDIOUT)_handle, &_midiHdr, sizeof(MIDIHDR));
@@ -443,6 +392,10 @@ void MidiPlayer::_OnStreamDone()
             {
                 // Cue the loop point.
                 CueTickPosition(_dwLoopPoint);
+            }
+            else
+            {
+                Stop();
             }
         }
     }

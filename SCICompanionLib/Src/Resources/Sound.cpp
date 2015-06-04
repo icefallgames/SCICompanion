@@ -105,6 +105,22 @@ const ChannelInfo *SoundComponent::GetChannelInfo(DeviceType device, int channel
     return nullptr;
 }
 
+bool SoundComponent::DoesDeviceHaveTracks(DeviceType device) const
+{
+    const TrackInfo *trackInfo = GetTrackInfo(device);
+    if (trackInfo)
+    {
+        for (int channelId : trackInfo->ChannelIds)
+        {
+            if (_allChannels[channelId].Number != 15)
+            {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 uint16_t SoundComponent::CalculateChannelMask(DeviceType device) const
 {
     uint16_t wMask = 0;

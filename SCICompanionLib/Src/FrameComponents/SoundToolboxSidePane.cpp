@@ -658,8 +658,17 @@ void SoundToolboxSidePane::SetDocument(CDocument *pDoc)
     UpdateNonView(&WrapHint(SoundChangeHint::Changed | SoundChangeHint::DeviceChanged));
     if (_pDoc)
     {
+        int prevSel = m_wndDevices.GetCurSel();
         m_wndDevices.ResetContent();
         PopulateComboWithDevicesHelper(appState->GetVersion(), m_wndDevices);
+        if ((prevSel >= 0) && (prevSel < m_wndDevices.GetCount()))
+        {
+            m_wndDevices.SetCurSel(prevSel);
+        }
+        else
+        {
+            m_wndDevices.SetCurSel(0);
+        }
 
         _pDoc->AddNonViewClient(this);
     }

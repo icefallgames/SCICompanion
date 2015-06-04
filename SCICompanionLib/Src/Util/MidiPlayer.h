@@ -28,7 +28,7 @@ private:
     void _ClearHeaders();
     void static CALLBACK s_MidiOutProc(HMIDIOUT hmo, UINT wMsg, DWORD_PTR dwInstance, DWORD_PTR dwParam1, DWORD_PTR dwParam2);
     void _OnStreamDone();
-    void _CuePosition(DWORD dwEventIndex);
+    void _CuePosition(DWORD dwEventIndex, DWORD ticks = 0xffffffff);
 
     HMIDISTRM _handle;
     MIDIHDR _midiHdr;

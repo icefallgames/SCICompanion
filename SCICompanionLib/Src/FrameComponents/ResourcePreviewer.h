@@ -219,6 +219,7 @@ private:
     WORD _wChannelMask;
     std::unique_ptr<ResourceEntity> _sound;
 
+    SCIVersion _lastVersion;
     CFont _marlettFont;
 };
 

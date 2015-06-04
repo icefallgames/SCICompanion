@@ -508,16 +508,31 @@ END_MESSAGE_MAP()
 
 #define SOUND_TIMER 5003
 
-SoundPreviewer::SoundPreviewer()
+SoundPreviewer::SoundPreviewer() : _lastVersion({ })
 {
 }
 
 void SoundPreviewer::SetResource(const ResourceBlob &blob)
 {
+    // Add the items to the combobox.
+    if (blob.GetVersion() != _lastVersion)
+    {
+        _lastVersion = blob.GetVersion();
+
+        m_wndSynths.ResetContent();
+        PopulateComboWithDevicesHelper(blob.GetVersion(), m_wndSynths);
+        m_wndSynths.SetCurSel(0);
+        OnSynthChoiceChange();
+    }
+
     _sound = CreateResourceFromResourceData(blob);
+
     SoundComponent *soundComp = _sound->TryGetComponent<SoundComponent>();
     if (soundComp)
     {
+        SelectFirstDeviceWithChannels(blob.GetVersion(), m_wndSynths, *soundComp);
+        OnSynthChoiceChange();
+
         m_wndSynths.EnableWindow(TRUE);
         g_midiPlayer.SetSound(*soundComp, StandardTempo); // We don't have a tempo control
     }
@@ -569,7 +584,7 @@ BOOL SoundPreviewer::OnInitDialog()
     BOOL fRet = __super::OnInitDialog();
     CRect rc;
     GetClientRect(&rc);
-   
+
     CDC *pDC = GetDC();
     {
         LOGFONT logFont = { 0 };
@@ -586,11 +601,6 @@ BOOL SoundPreviewer::OnInitDialog()
         m_wndPlay.SetFont(&_marlettFont);
         m_wndStop.SetFont(&_marlettFont);
     }
-
-    // Add the items to the combobox.
-    PopulateComboWithDevicesHelper(appState->GetVersion(), m_wndSynths);
-    m_wndSynths.SetCurSel(0);
-    OnSynthChoiceChange();
 
     m_wndSlider.SetRange(0, 100);
 

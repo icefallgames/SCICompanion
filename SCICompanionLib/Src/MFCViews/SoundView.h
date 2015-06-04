@@ -77,9 +77,8 @@ protected:
     DECLARE_MESSAGE_MAP()
 private:
     void _RecalculateChannelData(const SoundComponent *pSound);
-    void _RecalculateTrackBitmaps();
-    //void _RecalculateTrackBitmapsOLD();
-    bool _PrepTrackBitmaps(int width, int height);
+    void _RecalculateChannelBitmaps();
+    bool _PrepChannelBitmaps(int width, int height);
     void _SetCursorPos();
     int _HitTestChannelHeader(CPoint pt);
     void _InvalidateChannelHeaders();
@@ -123,6 +122,7 @@ private:
     int _currentDragIndex;
 
     const static COLORREF ColorActiveTrack = RGB(64, 64, 255);
+    const static COLORREF ColorTrackEvent = RGB(128, 128, 255);
     const static COLORREF ColorSilentTrack = RGB(196, 196, 196);
     const static COLORREF ColorTrackBackground = RGB(220, 220, 220);
     const static COLORREF ColorCursor = RGB(255, 0, 0);

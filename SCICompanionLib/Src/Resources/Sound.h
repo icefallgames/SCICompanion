@@ -215,7 +215,7 @@ public:
     const std::vector<TrackInfo> &GetTrackInfos() const  { return _tracks; }
     const TrackInfo *GetTrackInfo(DeviceType device) const;
     const ChannelInfo *GetChannelInfo(DeviceType device, int channelNumber) const;
-
+    bool DoesDeviceHaveTracks(DeviceType device) const;
     const SoundTraits &Traits;
 
 private:

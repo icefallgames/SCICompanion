@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "SoundUtil.h"
 #include "Audio.h"
+#include "Sound.h"
 
 using namespace std;
 
@@ -49,6 +50,29 @@ void PopulateComboWithDevicesHelper(SCIVersion version, CComboBox &combo)
     for (size_t i = 0; i < size; i++)
     {
         combo.InsertString(-1, deviceNames[i].pszName);
+    }
+}
+
+void SelectFirstDeviceWithChannels(SCIVersion version, CComboBox &combo, const SoundComponent &sound)
+{
+    if (combo.GetCurSel() != -1)
+    {
+        DeviceType device = GetDeviceFromComboHelper(version, combo);
+        if (sound.DoesDeviceHaveTracks(device))
+        {
+            return; // We're good, current selection has channels
+        }
+    }
+    size_t size;
+    const DeviceAndName *deviceNames;
+    GetDeviceNames(version, deviceNames, size);
+    for (size_t i = 0; i < size; i++)
+    {
+        if (sound.DoesDeviceHaveTracks(deviceNames[i].type))
+        {
+            combo.SetCurSel((int)i);
+            return;
+        }
     }
 }
 

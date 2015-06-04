@@ -330,7 +330,7 @@ void CSoundView::OnMouseMove(UINT nFlags, CPoint point)
     __super::OnMouseMove(nFlags, point);
 }
 
-bool CSoundView::_PrepTrackBitmaps(int width, int height)
+bool CSoundView::_PrepChannelBitmaps(int width, int height)
 {
     bool fRet = true;
     CDC *pDC = GetDC();
@@ -420,17 +420,8 @@ void _NormalizeToTicks(DWORD dwTicks, vector<SoundEvent> &events, DWORD &dwTotal
     dwTotalTicks = dwLastTimeNew;
 }
 
-void CSoundView::_RecalculateTrackBitmaps()
+void CSoundView::_RecalculateChannelBitmaps()
 {
-    /*
-    // Tempoarary
-    BOOL bShift = GetKeyState(VK_SHIFT) & 0x8000;
-    if (bShift)
-    {
-        _RecalculateTrackBitmapsOLD();
-        return;
-    }*/
-
     const SoundComponent *pSound = GetSoundComponent();
     if (pSound)
     {
@@ -454,7 +445,7 @@ void CSoundView::_RecalculateTrackBitmaps()
         DWORD dwTotalTicks = sound.GetTotalTicks();
 
         int height = (rect.Height() * 2 / 3) / 15;
-        if (_PrepTrackBitmaps(width, height))
+        if (_PrepChannelBitmaps(width, height))
         {
             std::vector<BYTE> channelValues[15];  // the data we'll eventually put in the bitmaps
             for (size_t i = 0; i < ARRAYSIZE(channelValues); i++)
@@ -523,9 +514,17 @@ void CSoundView::_RecalculateTrackBitmaps()
                 }
             }
 
+            CPen penEvent(PS_SOLID, 1, ColorTrackEvent);
+
             // Now we create the bitmaps!
             for (int channel = 0; channel < ARRAYSIZE(_channelBitmaps); channel++)
             {
+                std::vector<CPoint> eventPoints;
+                std::vector<DWORD> pointCounts;
+                eventPoints.reserve(200);
+                pointCounts.reserve(100);
+
+
                 CDC *pDC = GetDC();
                 CDC dcMem;
                 if (dcMem.CreateCompatibleDC(pDC))
@@ -552,7 +551,17 @@ void CSoundView::_RecalculateTrackBitmaps()
                         int cy = max(1, height * loudness / 128);
                         COLORREF cr = (channelNumbersUsed.find(channel) != channelNumbersUsed.end()) ? ColorActiveTrack : ColorSilentTrack;
                         dcMem.FillSolidRect((int)posStart, height - cy, (int)(posEnd - posStart), cy, cr);
+                        eventPoints.emplace_back(posStart, height - cy);
+                        eventPoints.emplace_back(posStart, height);
+                        pointCounts.push_back(2);
                         posStart = posEnd;
+                    }
+
+                    if (!pointCounts.empty())
+                    {
+                        HGDIOBJ hOld = dcMem.SelectObject(penEvent);
+                        dcMem.PolyPolyline(&eventPoints[0], &pointCounts[0], (int)pointCounts.size());
+                        dcMem.SelectObject(hOld);
                     }
 
                     dcMem.SelectObject(hOld);
@@ -562,124 +571,6 @@ void CSoundView::_RecalculateTrackBitmaps()
         }
     }
 }
-
-/*
-void CSoundView::_RecalculateTrackBitmapsOLD()
-{
-    const SoundComponent *pSound = GetSoundComponent();
-    if (pSound)
-    {
-        // Make a complete copy of the resource, since we're going to modify it while generating our bitmaps.
-        SoundComponent sound = *pSound;
-
-        WORD wChannelMask = sound.GetChannelMask(GetDocument()->GetDevice());
-
-        // Make it so it has as many ticks as we have pixels.
-        CRect rect = _GetTrackArea();
-        DWORD width = max(1, rect.Width() - 1);
-        DWORD dwTotalTicks = sound.GetTotalTicks();
-        _NormalizeToTicks(width, sound.GetEvents(), dwTotalTicks);
-        assert(width >= dwTotalTicks);
-
-        int height = (rect.Height() * 2 / 3) / 15;
-        if (_PrepTrackBitmaps(width, height))
-        {
-            // We need some arrays to determine which notes are on on which track.
-            BYTE vNote[15][128]; // 15 tracks, 128 possible notes on each.  This array holds the velocity value.
-            ZeroMemory(vNote, sizeof(vNote));
-            BYTE vNoteMax[15][128]; // 15 tracks, 128 possible notes on each.  This array holds the velocity value.
-            ZeroMemory(vNoteMax, sizeof(vNoteMax));
-            DWORD dwPos = 0;    // our current position
-            std::vector<BYTE> channelValues[15];  // the data we'll eventually put in the bitmaps
-            for (size_t i = 0; i < ARRAYSIZE(channelValues); i++)
-            {
-                channelValues[i].resize(width, 255); // 255 is a sentinel value indicating undefined
-            }
-
-            const std::vector<SoundEvent> &events = sound.GetEvents();
-            for (size_t i = 0; i < events.size(); i++)
-            {
-                const SoundEvent &event = events[i];
-                DWORD dwPosOld = dwPos;
-                dwPos += event.wTimeDelta;
-                if (dwPos > dwPosOld)
-                {
-                    // We moved a bit... initialize the "max" values with the current.
-                    CopyMemory(vNoteMax, vNote, sizeof(vNoteMax));
-                }
-                BYTE channel = event.GetChannel();
-                if ((channel < 15) && ((event.GetCommand() == SoundEvent::NoteOn) || (event.GetCommand() == SoundEvent::NoteOff)))
-                {
-                    BYTE note = event.bParam1;
-                    if (note < 128)
-                    {
-                        BYTE velocity = 0;
-                        if (!event.IsEffectiveNoteOff())
-                        {
-                            velocity = event.bParam2;
-                        }
-                        vNote[channel][note] = velocity;
-                        if (velocity > vNoteMax[channel][note])
-                        {
-                            vNoteMax[channel][note] = velocity;
-                        }
-                        BYTE loudest = _GetLoudest(vNoteMax[channel]);
-                        //ASSERT(loudest == 0);
-
-                        if (dwPos < channelValues[channel].size())
-                        {
-                            // We have a bug in our calcualtions here ^^. Either in GetTotalTicks or whatever.
-                            // But dwPos can be equal to GetTotalTicks, which is not good. e.g. SQ3 sound 0.
-
-                            BYTE current = channelValues[channel][dwPos];
-                            if ((current == 255) || (loudest > current))
-                            {
-                                channelValues[channel][dwPos] = loudest;
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Now we create the bitmaps!
-            for (int channel = 0; channel < ARRAYSIZE(_channelBitmaps); channel++)
-            {
-                CDC *pDC = GetDC();
-                CDC dcMem;
-                if (dcMem.CreateCompatibleDC(pDC))
-                {
-                    HGDIOBJ hOld = dcMem.SelectObject(_channelBitmaps[channel]);
-                    dcMem.FillSolidRect(0, 0, width, height, ColorTrackBackground);
-
-                    BYTE loudness = 0;
-                    for (size_t posStart = 0; posStart < channelValues[channel].size(); )
-                    {
-                        loudness = channelValues[channel][posStart];
-                        if (loudness == 255)
-                        {
-                            loudness = 0;
-                        }
-                        size_t posEnd = posStart;
-                        while (posEnd < channelValues[channel].size() &&
-                               (channelValues[channel][posEnd] == 255 ||
-                               channelValues[channel][posEnd] == loudness))
-                        {
-                            posEnd++;
-                        }
-                        // If we got here, it is time to draw.
-                        int cy = max(1, height * loudness / 128);
-                        COLORREF cr = (wChannelMask & (0x1 << channel)) ? ColorActiveTrack : ColorSilentTrack;
-                        dcMem.FillSolidRect((int)posStart, height - cy, (int)(posEnd - posStart), cy, cr);
-                        posStart = posEnd;
-                    }
-
-                    dcMem.SelectObject(hOld);
-                }
-                ReleaseDC(pDC);
-            }
-        }
-    }
-}*/
 
 void CSoundView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
 {
@@ -697,7 +588,7 @@ void CSoundView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
                 DWORD dwTicks = g_midiPlayer.QueryPosition();
                 g_midiPlayer.SetSound(*pSound, pDoc->GetTempo());
                 g_midiPlayer.CueTickPosition(dwTicks);
-                _RecalculateTrackBitmaps();
+                _RecalculateChannelBitmaps();
                 _RedoDrags();
                 ClearFlag(hint, SoundChangeHint::CueChanged); // So we don't redo drags again below.
                 _SetCursorPos();
@@ -1095,7 +986,7 @@ void CSoundView::OnSize(UINT nType, int cx, int cy)
     __super::OnSize(nType, cx, cy);
 
     // Recalc our bitmaps
-    _RecalculateTrackBitmaps();
+    _RecalculateChannelBitmaps();
     _SetCursorPos(); // size changed
 }
 
