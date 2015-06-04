@@ -222,11 +222,11 @@ DWORD ReadVarLen(std::istream &midiFile)
 // Reads a midi file into the sound resource, and returns a uint16_t that is the channel mask
 // of used channels.
 //
-uint16_t SoundComponent::_ReadMidiFileTrack(size_t nTrack, std::istream &midiFile, std::vector<SoundEvent> &events, std::vector<TempoEntry> &tempoChanges)
+uint16_t SoundComponent::_ReadMidiFileTrack(size_t nTrack, std::istream &midiFile, std::vector<SoundEvent> &events, std::vector<TempoEntry> &tempoChanges, DWORD &totalTicksOut)
 {
     uint16_t wChannelMask = 0;
     DWORD dw = _ReadBEDWORD(midiFile);
-    DWORD dwTotalTicks = 0;
+    totalTicksOut = 0;
     while (dw != 0x4D54726B && midiFile.good())
     {
         // Skip this random chunk
@@ -250,7 +250,7 @@ uint16_t SoundComponent::_ReadMidiFileTrack(size_t nTrack, std::istream &midiFil
             SoundEvent event;
             // We start with time delta
             event.wTimeDelta = ReadVarLen(midiFile);
-            dwTotalTicks += event.wTimeDelta;
+            totalTicksOut += event.wTimeDelta;
             event.wTimeDelta += dwMissingTime;
             fSkip = false;
 
@@ -308,7 +308,7 @@ uint16_t SoundComponent::_ReadMidiFileTrack(size_t nTrack, std::istream &midiFil
                             DWORD dwMSPerQN = (static_cast<DWORD>(_GetC(midiFile))) << 16;
                             dwMSPerQN |= (static_cast<DWORD>(_GetC(midiFile))) << 8;
                             dwMSPerQN |= _GetC(midiFile);
-                            TempoEntry tempoEntry = { (dwTotalTicks + event.wTimeDelta), ((60000000 / dwMSPerQN)) };
+                            TempoEntry tempoEntry = { (totalTicksOut + event.wTimeDelta), ((60000000 / dwMSPerQN)) };
                             if (tempoChanges.empty() && (tempoEntry.dwTicks != 0))
                             {
                                 // Stick a 120bpm at position 0 if this is the first entry and its not a pos 0
@@ -322,6 +322,7 @@ uint16_t SoundComponent::_ReadMidiFileTrack(size_t nTrack, std::istream &midiFil
                     else
                     {
                         midiFile.seekg(cbBytes, std::ios_base::cur);
+                        fSkip = true; // I guess?
                     }
                 }
                 else

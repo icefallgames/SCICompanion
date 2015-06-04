@@ -224,7 +224,7 @@ private:
     DWORD TotalTicks;    // Total length in ticks
     std::vector<CuePoint> Cues;
 
-    uint16_t _ReadMidiFileTrack(size_t nTrack, std::istream &midiFile, std::vector<SoundEvent> &events, std::vector<TempoEntry> &tempoChanges);
+    uint16_t _ReadMidiFileTrack(size_t nTrack, std::istream &midiFile, std::vector<SoundEvent> &events, std::vector<TempoEntry> &tempoChanges, DWORD &totalTicksOut);
     void _RationalizeCuesAndLoops();
     void _NormalizeToSCITempo();
 

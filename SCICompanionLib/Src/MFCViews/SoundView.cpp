@@ -448,9 +448,12 @@ void CSoundView::_RecalculateChannelBitmaps()
         if (_PrepChannelBitmaps(width, height))
         {
             std::vector<BYTE> channelValues[15];  // the data we'll eventually put in the bitmaps
+            std::vector<bool> isEventAtPosition[15];
+
             for (size_t i = 0; i < ARRAYSIZE(channelValues); i++)
             {
                 channelValues[i].resize(width, 255); // 255 is a sentinel value indicating undefined
+                isEventAtPosition[i].resize(width, false);
             }
 
             set<int> channelNumbersUsed;
@@ -460,7 +463,7 @@ void CSoundView::_RecalculateChannelBitmaps()
                 uint8_t vNote[128]; // 128 possible notes on each.  This array holds the velocity value.
                 memset(vNote, 0, sizeof(vNote));
                 BYTE vNoteMax[128]; // 128 possible notes on each.  This array holds the velocity value.
-                memset(vNote, 0, sizeof(vNote));
+                memset(vNoteMax, 0, sizeof(vNoteMax));
 
                 ChannelInfo &channelInfo = sound.GetChannelInfos()[channelId];
                 uint8_t channel = channelInfo.Number;
@@ -499,14 +502,18 @@ void CSoundView::_RecalculateChannelBitmaps()
                             }
                             uint8_t loudest = _GetLoudest(vNoteMax);
 
-                            if (dwPos < channelValues[channel].size())
+                            //size_t channelValuePos = dwPos * width / dwTotalTicks;
+                            size_t channelValuePos = dwPos;
+                            if (channelValuePos < channelValues[channel].size())
                             {
+                                isEventAtPosition[channel][channelValuePos] = true;
+
                                 // We have a bug in our calcualtions here ^^. Either in GetTotalTicks or whatever.
                                 // But dwPos can be equal to GetTotalTicks, which is not good. e.g. SQ3 sound 0.
-                                BYTE current = channelValues[channel][dwPos];
+                                BYTE current = channelValues[channel][channelValuePos];
                                 if ((current == 255) || (loudest > current))
                                 {
-                                    channelValues[channel][dwPos] = loudest;
+                                    channelValues[channel][channelValuePos] = loudest;
                                 }
                             }
                         }
@@ -517,6 +524,7 @@ void CSoundView::_RecalculateChannelBitmaps()
             CPen penEvent(PS_SOLID, 1, ColorTrackEvent);
 
             // Now we create the bitmaps!
+            size_t eventPositionIndex = 0;
             for (int channel = 0; channel < ARRAYSIZE(_channelBitmaps); channel++)
             {
                 std::vector<CPoint> eventPoints;
@@ -540,20 +548,25 @@ void CSoundView::_RecalculateChannelBitmaps()
                         {
                             loudness = 0;
                         }
+                        int cy = max(1, height * loudness / 128);
                         size_t posEnd = posStart;
                         while (posEnd < channelValues[channel].size() &&
                             (channelValues[channel][posEnd] == 255 ||
                             channelValues[channel][posEnd] == loudness))
                         {
+                            if (isEventAtPosition[channel][posEnd])
+                            {
+                                eventPoints.emplace_back(posEnd, height - cy);
+                                eventPoints.emplace_back(posEnd, height);
+                                pointCounts.push_back(2);
+                            }
+
                             posEnd++;
                         }
                         // If we got here, it is time to draw.
-                        int cy = max(1, height * loudness / 128);
                         COLORREF cr = (channelNumbersUsed.find(channel) != channelNumbersUsed.end()) ? ColorActiveTrack : ColorSilentTrack;
                         dcMem.FillSolidRect((int)posStart, height - cy, (int)(posEnd - posStart), cy, cr);
-                        eventPoints.emplace_back(posStart, height - cy);
-                        eventPoints.emplace_back(posStart, height);
-                        pointCounts.push_back(2);
+
                         posStart = posEnd;
                     }
 
