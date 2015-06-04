@@ -4,12 +4,13 @@
 
 using namespace std;
 
-const struct
+struct DeviceAndName
 {
     DeviceType type;
     const char *pszName;
-}
-c_rgDeviceNames[] =
+};
+
+const DeviceAndName c_rgDeviceNamesSCI0[] =
 {
     { DeviceType::RolandMT32, "Roland MT32 ($01)" },
     { DeviceType::YamahaFB01, "Yamaha FB-01 ($02)" },
@@ -21,24 +22,52 @@ c_rgDeviceNames[] =
     { DeviceType::NewGM, "GM ($80)" },
 };
 
-void PopulateComboWithDevicesHelper(CComboBox &combo)
+const DeviceAndName c_rgDeviceNamesSCI1[] =
 {
-    for (int i = 0; i < ARRAYSIZE(c_rgDeviceNames); i++)
+    { DeviceType::SCI1_Adlib, "Adlib, Sound Blaster ($00)" },
+    { DeviceType::SCI1_GM, "General Midi ($07)" },
+    { DeviceType::SCI1_GameBlaster, "Game Blaster ($09)" },
+    { DeviceType::SCI1_RolandGM, "Roland MT-32, GM ($0c)" },
+    { DeviceType::SCI1_PCSpeaker, "PC Speaker ($12)" },
+    { DeviceType::SCI1_Tandy, "Tandy 3v / IBM PS1 ($13)" },
+    { DeviceType::SCI1_Unknown06, "Unknown ($06)" },
+    { DeviceType::SCI1_Unknown08, "Unknown ($08)" },
+    { DeviceType::SCI1_Unkonwn0b, "Unknown ($0b)" },
+};
+
+void GetDeviceNames(SCIVersion version, const DeviceAndName* &deviceNames, size_t &size)
+{
+    deviceNames = (version.SoundFormat == SoundFormat::SCI1) ? c_rgDeviceNamesSCI1 : c_rgDeviceNamesSCI0;
+    size = (version.SoundFormat == SoundFormat::SCI1) ? ARRAYSIZE(c_rgDeviceNamesSCI1) : ARRAYSIZE(c_rgDeviceNamesSCI0);
+}
+
+void PopulateComboWithDevicesHelper(SCIVersion version, CComboBox &combo)
+{
+    size_t size;
+    const DeviceAndName *deviceNames;
+    GetDeviceNames(version, deviceNames, size);
+    for (size_t i = 0; i < size; i++)
     {
-        combo.InsertString(-1, c_rgDeviceNames[i].pszName);
+        combo.InsertString(-1, deviceNames[i].pszName);
     }
 }
 
-DeviceType GetDeviceFromComboHelper(CComboBox &combo)
+DeviceType GetDeviceFromComboHelper(SCIVersion version, CComboBox &combo)
 {
-    return c_rgDeviceNames[combo.GetCurSel()].type;
+    size_t size;
+    const DeviceAndName *deviceNames;
+    GetDeviceNames(version, deviceNames, size);
+    return deviceNames[combo.GetCurSel()].type;
 }
 
-void SelectDeviceInComboHelper(CComboBox &combo, DeviceType type)
+void SelectDeviceInComboHelper(SCIVersion version, CComboBox &combo, DeviceType type)
 {
-    for (int i = 0; i < ARRAYSIZE(c_rgDeviceNames); i++)
+    size_t size;
+    const DeviceAndName *deviceNames;
+    GetDeviceNames(version, deviceNames, size);
+    for (size_t i = 0; i < size; i++)
     {
-        if (c_rgDeviceNames[i].type == type)
+        if (deviceNames[i].type == type)
         {
             combo.SetCurSel(i);
             return;

@@ -131,7 +131,11 @@ union CelIndex
         index = indexIn;
     }
 
-    struct { uint16_t loop; uint16_t cel; };
+    struct
+    {
+        uint16_t loop;
+        uint16_t cel;
+    };
     DWORD index;
 };
 

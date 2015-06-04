@@ -519,7 +519,7 @@ void SoundPreviewer::SetResource(const ResourceBlob &blob)
     if (soundComp)
     {
         m_wndSynths.EnableWindow(TRUE);
-        g_midiPlayer.SetSound(*soundComp, SoundComponent::StandardTempo); // We don't have a tempo control
+        g_midiPlayer.SetSound(*soundComp, StandardTempo); // We don't have a tempo control
     }
     else
     {
@@ -588,7 +588,7 @@ BOOL SoundPreviewer::OnInitDialog()
     }
 
     // Add the items to the combobox.
-    PopulateComboWithDevicesHelper(m_wndSynths);
+    PopulateComboWithDevicesHelper(appState->GetVersion(), m_wndSynths);
     m_wndSynths.SetCurSel(0);
     OnSynthChoiceChange();
 
@@ -637,14 +637,14 @@ std::string SoundPreviewer::_FillChannelString(BYTE bChannel, bool fHeader)
 void SoundPreviewer::OnSynthChoiceChange()
 {
     // Recalculate the mask.
-    _device = GetDeviceFromComboHelper(m_wndSynths);
+    _device = GetDeviceFromComboHelper(appState->GetVersion(), m_wndSynths);
     if (_sound)
     {
         SoundComponent *soundComp = _sound->TryGetComponent<SoundComponent>();
         if (soundComp)
         {
             std::string channelText;
-            _wChannelMask = soundComp->GetChannelMask(_device);
+            _wChannelMask = soundComp->CalculateChannelMask(_device);
             for (int i = 0; i < 16; i++)
             {
                 channelText += ((_wChannelMask >> i) & 0x1) ? "1" : "0";

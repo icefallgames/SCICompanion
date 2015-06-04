@@ -190,6 +190,7 @@ DWORD MidiPlayer::SetSound(const SoundComponent &sound, uint16_t wInitialTempo)
     return ++_dwCookie;
 }
 
+/*
 DWORD MidiPlayer::SetSoundOLD(const SoundComponent &sound, uint16_t wInitialTempo)
 {
     _ClearHeaders();
@@ -239,7 +240,7 @@ DWORD MidiPlayer::SetSoundOLD(const SoundComponent &sound, uint16_t wInitialTemp
     }
     return ++_dwCookie;
 }
-
+*/
 void MidiPlayer::Play()
 {
     if (!_accumulatedStreamTicks.empty())

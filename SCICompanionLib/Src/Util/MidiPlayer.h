@@ -8,7 +8,6 @@ public:
     MidiPlayer();
     ~MidiPlayer();
     DWORD SetSound(const SoundComponent &sound, uint16_t wTempo);
-    DWORD SetSoundOLD(const SoundComponent &sound, uint16_t wTempo);
     void Play();
     void Pause();
     void Stop();

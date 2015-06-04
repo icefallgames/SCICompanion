@@ -62,6 +62,7 @@ private:
     void _UpdateCues();
     void _UpdateOnSelectedCue();
     void _InvalidateCurrentCaretPos();
+    const std::vector<SoundEvent> &_GetCurrentChannelEvents();
     
     CSoundDoc *_pDoc;
     int _iUserSelectedPos;

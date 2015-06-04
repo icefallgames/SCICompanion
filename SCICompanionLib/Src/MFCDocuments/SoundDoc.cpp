@@ -18,7 +18,7 @@ IMPLEMENT_DYNCREATE(CSoundDoc, CResourceDocument)
 CSoundDoc::CSoundDoc()
 {
     _cueIndex = -1;
-    _wTempo = SoundComponent::StandardTempo;
+    _wTempo = StandardTempo;
     _device = s_defaultDevice;
 }
 

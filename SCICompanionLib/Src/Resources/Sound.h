@@ -15,6 +15,7 @@ namespace sci
 
 enum class DeviceType
 {
+    // SCI0
     RolandMT32 = 0x01,
     YamahaFB01 = 0x02,
     Adlib = 0x04,
@@ -23,6 +24,18 @@ enum class DeviceType
     PCSpeaker = 0x20,
     DevUnknown = 0x40,
     NewGM = 0x80,
+
+    // SCI1
+    SCI1_Adlib = 0x00,
+    SCI1_GM = 0x07,
+    SCI1_GameBlaster = 0x09,
+    SCI1_RolandGM = 0x0c,
+    SCI1_PCSpeaker = 0x12,
+    SCI1_Tandy = 0x13,
+    SCI1_Unknown06 = 0x06,
+    SCI1_Unknown08 = 0x08,
+    SCI1_Unkonwn0b = 0x0b,
+
 };
 
 DEFINE_ENUM_FLAGS(DeviceType, uint8_t)
@@ -126,6 +139,27 @@ struct TrackInfo
     std::vector<int> ChannelIds;
 };
 
+
+struct SoundTraits
+{
+    bool CanEditChannelMask;
+};
+
+const uint8_t ChannelCount = 15;
+
+struct TempoEntry
+{
+    DWORD dwTicks;
+    DWORD dwTempo;
+
+    bool operator<(const TempoEntry &test) const
+    {
+        return dwTempo < test.dwTempo;
+    }
+};
+
+static const uint16_t StandardTempo = 120;
+
 struct SoundComponent : public ResourceComponent
 {
 public:
@@ -143,7 +177,7 @@ public:
     friend SoundChangeHint InitializeFromMidi(SoundComponent &sound, const std::string &filename);
     friend void ReadChannel(sci::istream &stream, std::vector<SoundEvent> &events, DWORD &totalTicks, SoundComponent &sound, int *mustBeChannel = nullptr);
     friend void ScanAndReadDigitalSample(ResourceEntity &resource, sci::istream stream);
-    friend void ConvertSCI0ToNewFormat(SoundComponent &sound);
+    friend void ConvertSCI0ToNewFormat(const std::vector<SoundEvent> &events, SoundComponent &sound, uint16_t *channels);
 
     // For SetChannelMask
     static const uint16_t AllChannelsMask = 0x7FFF;
@@ -151,9 +185,7 @@ public:
     // For loop points
     static const DWORD LoopPointNone = ((DWORD)-1);
 
-    static const uint16_t StandardTempo = 120;
-
-    SoundComponent();
+    SoundComponent(const SoundTraits &traits);
 
     static std::string GetDeviceName(DeviceType device);
 
@@ -161,7 +193,7 @@ public:
     SoundChangeHint DeleteCue(size_t index);
     SoundChangeHint SetCue(size_t index, CuePoint cue);
     SoundChangeHint SetLoopPoint(DWORD dwTicks);
-    uint16_t GetChannelMask(DeviceType device) const;
+    uint16_t CalculateChannelMask(DeviceType device) const;
     SoundChangeHint SetChannelMask(DeviceType device, uint16_t wChannels);
     uint16_t GetTimeDivision() const { return _wDivision; }
     bool CanChangeTempo() const { return _fCanSetTempo; }
@@ -169,8 +201,8 @@ public:
     SoundChangeHint SetTempo(uint16_t wTempo) { _wTempoIfChanged = wTempo; return SoundChangeHint::CueChanged; }
     uint16_t GetTempo() const { return _wTempoIfChanged; }
 
-    const std::vector<SoundEvent> &GetEvents() const { return Events; }
-    std::vector<SoundEvent> &GetEvents() { return Events; }
+    //const std::vector<SoundEvent> &GetEvents() const { return Events; }
+    //std::vector<SoundEvent> &GetEvents() { return Events; }
     const std::vector<CuePoint> &GetCuePoints() const { return Cues; }
     DWORD GetLoopPoint() const { return LoopPoint; }
     DWORD GetTotalTicks() const { return max(1, TotalTicks); }   // 0 causes div by zero errors }
@@ -181,31 +213,20 @@ public:
     std::vector<TrackInfo> &GetTrackInfos() { return _tracks; }
     const std::vector<ChannelInfo> &GetChannelInfos() const  { return _allChannels; }
     const std::vector<TrackInfo> &GetTrackInfos() const  { return _tracks; }
+    const TrackInfo *GetTrackInfo(DeviceType device) const;
+    const ChannelInfo *GetChannelInfo(DeviceType device, int channelNumber) const;
+
+    const SoundTraits &Traits;
 
 private:
-    uint16_t _channels[15];
     uint16_t _wDivision;
     DWORD LoopPoint;       // A single loop-point (tick position)
     DWORD TotalTicks;    // Total length in ticks
-    std::vector<SoundEvent> Events;
     std::vector<CuePoint> Cues;
 
-    struct TempoEntry
-    {
-        DWORD dwTicks;
-        DWORD dwTempo;
-
-        bool operator<(const TempoEntry &test) const
-        {
-            return dwTempo < test.dwTempo;
-        }
-    };
-
-    void _CombineTracks(const std::vector<std::vector<SoundEvent> > &tracks);
     uint16_t _ReadMidiFileTrack(size_t nTrack, std::istream &midiFile, std::vector<SoundEvent> &events, std::vector<TempoEntry> &tempoChanges);
     void _RationalizeCuesAndLoops();
     void _NormalizeToSCITempo();
-    void _RemoveTempoChanges(const std::vector<TempoEntry> &tempoChanges);
 
     // We don't allow setting the tempo on SCI resources (only MIDI imports)
     // The resolution isn't there.
@@ -223,6 +244,7 @@ private:
 };
 
 DWORD CombineSoundEvents(const std::vector<std::vector<SoundEvent> > &tracks, std::vector<SoundEvent> &results);
+void RemoveTempoChanges(std::vector<SoundEvent> &events, const std::vector<TempoEntry> &tempoChanges, uint16_t &tempoOut, DWORD &ticksOut);
 
 DWORD _ReadBEDWORD(std::istream &stream);
 uint16_t _ReadBEWORD(std::istream &stream);

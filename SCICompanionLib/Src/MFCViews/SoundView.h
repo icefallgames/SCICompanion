@@ -72,11 +72,13 @@ protected:
     void OnLButtonDblClk(UINT nFlags, CPoint point);
     void OnMouseMove(UINT nFlags, CPoint point);
 
+    bool _CanEditChannelMask();
+
     DECLARE_MESSAGE_MAP()
 private:
     void _RecalculateChannelData(const SoundComponent *pSound);
     void _RecalculateTrackBitmaps();
-    void _RecalculateTrackBitmapsOLD();
+    //void _RecalculateTrackBitmapsOLD();
     bool _PrepTrackBitmaps(int width, int height);
     void _SetCursorPos();
     int _HitTestChannelHeader(CPoint pt);

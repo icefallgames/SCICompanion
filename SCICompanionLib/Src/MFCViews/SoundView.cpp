@@ -218,33 +218,36 @@ void CSoundView::_OnButtonDown(CPoint point)
     }
     else
     {
-        int channel = _HitTestChannelHeader(point);
-        if (channel == -1)
+        if (_CanEditChannelMask())
         {
-            // Maybe the user is trying to set the cursor pos
-            CRect rect;
-            GetClientRect(&rect);
-            rect.left += TRACK_MARGIN;
-            point.x = max(point.x, TRACK_MARGIN);
-            g_midiPlayer.CuePosition(point.x - TRACK_MARGIN, rect.Width());
-            _SetCursorPos();
-        }
-        else
-        {
-            // Toggle this channel
-            CSoundDoc *pDoc = GetDocument();
-            const SoundComponent *pSound = GetSoundComponent();
-            WORD wMask = pSound->GetChannelMask(pDoc->GetDevice());
-            wMask ^= (0x1 << channel); // Toggle our channel
+            int channel = _HitTestChannelHeader(point);
+            if (channel == -1)
+            {
+                // Maybe the user is trying to set the cursor pos
+                CRect rect;
+                GetClientRect(&rect);
+                rect.left += TRACK_MARGIN;
+                point.x = max(point.x, TRACK_MARGIN);
+                g_midiPlayer.CuePosition(point.x - TRACK_MARGIN, rect.Width());
+                _SetCursorPos();
+            }
+            else
+            {
+                // Toggle this channel
+                CSoundDoc *pDoc = GetDocument();
+                const SoundComponent *pSound = GetSoundComponent();
+                WORD wMask = pSound->CalculateChannelMask(pDoc->GetDevice());
+                wMask ^= (0x1 << channel); // Toggle our channel
 
-            pDoc->ApplyChanges<SoundComponent>(
-                [pDoc, wMask](SoundComponent &sound)
+                pDoc->ApplyChanges<SoundComponent>(
+                    [pDoc, wMask](SoundComponent &sound)
                 {
                     return WrapHint(sound.SetChannelMask(pDoc->GetDevice(), wMask));
                 }
                 );
 
-            _InvalidateChannelHeaders();
+                _InvalidateChannelHeaders();
+            }
         }
     }
 }
@@ -290,6 +293,20 @@ void CSoundView::_InvalidateCurrentDragCursor()
     GetClientRect(&rectClient);
     CRect rect(ptCenter.x, rectClient.top, ptCenter.x + 1, rectDrag.top);
     InvalidateRect(&rect);
+}
+
+bool CSoundView::_CanEditChannelMask()
+{
+    CSoundDoc *pDoc = GetDocument();
+    if (pDoc)
+    {
+        const ResourceEntity *resource = pDoc->GetResource();
+        if (resource)
+        {
+            return resource->GetComponent<SoundComponent>().Traits.CanEditChannelMask;
+        }
+    }
+    return false;
 }
 
 void CSoundView::OnMouseMove(UINT nFlags, CPoint point)
@@ -399,19 +416,20 @@ void _NormalizeToTicks(DWORD dwTicks, vector<SoundEvent> &events, DWORD &dwTotal
         dwLastTimeNew = dwTimeTotalNew;
         dwLastTimeOrig = dwTimeTotalOrig;
     }
-    assert(totalticksTest == dwTotalTicks);
+    assert(totalticksTest <= dwTotalTicks);
     dwTotalTicks = dwLastTimeNew;
 }
 
 void CSoundView::_RecalculateTrackBitmaps()
 {
+    /*
     // Tempoarary
     BOOL bShift = GetKeyState(VK_SHIFT) & 0x8000;
     if (bShift)
     {
         _RecalculateTrackBitmapsOLD();
         return;
-    }
+    }*/
 
     const SoundComponent *pSound = GetSoundComponent();
     if (pSound)
@@ -545,6 +563,7 @@ void CSoundView::_RecalculateTrackBitmaps()
     }
 }
 
+/*
 void CSoundView::_RecalculateTrackBitmapsOLD()
 {
     const SoundComponent *pSound = GetSoundComponent();
@@ -660,7 +679,7 @@ void CSoundView::_RecalculateTrackBitmapsOLD()
             }
         }
     }
-}
+}*/
 
 void CSoundView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
 {
@@ -746,6 +765,8 @@ void CSoundView::_OnDrawTrackHeader(CDC *pDC, int channel, bool fChannelOn)
     rect.top = _GetTrackY(channel);
     rect.bottom = rect.top + _GetTrackHeight(channel);
 
+    bool canEditChannelMask = _CanEditChannelMask();
+
     char sz[10];
     StringCchPrintf(sz, ARRAYSIZE(sz), "%d", channel + 1);
 
@@ -758,7 +779,7 @@ void CSoundView::_OnDrawTrackHeader(CDC *pDC, int channel, bool fChannelOn)
 		sz,
 		(channel == _channelHover),
 		false,
-		true,
+        canEditChannelMask,
 		false,
 		CExtPaintManager::__ALIGN_HORIZ_LEFT | CExtPaintManager::__ALIGN_VERT_CENTER);
     g_PaintManager->PaintCheckButton(*pDC, _pmid);
@@ -770,8 +791,7 @@ void CSoundView::OnDraw(CDC *pDC)
     CSoundDoc *pDoc = GetDocument();
     if (pDoc)
     {
-        
-        wMask = pDoc->GetSoundComponent()->GetChannelMask(pDoc->GetDevice());
+        wMask = pDoc->GetSoundComponent()->CalculateChannelMask(pDoc->GetDevice());
     }
 
     CRect rectClient;

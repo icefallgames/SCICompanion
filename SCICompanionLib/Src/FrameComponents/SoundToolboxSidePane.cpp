@@ -7,7 +7,8 @@
 #include "SoundDoc.h"
 #include "SoundUtil.h"
 
-// SoundToolboxSidePane dialog
+std::vector<SoundEvent> g_emptyEvents;
+const int g_tempChannelNumber = 0;
 
 SoundToolboxSidePane::SoundToolboxSidePane(CWnd* pParent /*=NULL*/)
     : CExtDialogFwdCmd(SoundToolboxSidePane::IDD, pParent), m_wndList(_accumulatedTicksPerEvent)
@@ -119,8 +120,6 @@ BOOL SoundToolboxSidePane::OnInitDialog()
 {
     BOOL fRet = __super::OnInitDialog();
 
-    PopulateComboWithDevicesHelper(m_wndDevices);
-
     // Set up anchoring for resize
     AddAnchor(IDC_LISTCOMMANDS, CPoint(0, 0), CPoint(100, 100));
     // Hide the sizing grip
@@ -133,7 +132,7 @@ void SoundToolboxSidePane::OnSelChange()
     CSoundDoc *pDoc = GetDocument();
     if (pDoc)
     {
-        pDoc->SetDevice(GetDeviceFromComboHelper(m_wndDevices));
+        pDoc->SetDevice(GetDeviceFromComboHelper(appState->GetVersion(), m_wndDevices));
     }
     // Whoa, hit a crash here once, when loading up a game. REVIEW
     // pDoc was non null, but invalid.
@@ -441,7 +440,14 @@ void MidiCommandListBox::DrawItem(DRAWITEMSTRUCT *pDrawItemStruct)
         const SoundComponent *pSound = pDoc->GetResource()->TryGetComponent<SoundComponent>();
         if (pSound)
         {
-            ASSERT(pDrawItemStruct->CtlType == ODT_LISTBOX);
+            const std::vector<SoundEvent> *events = &g_emptyEvents;
+            const ChannelInfo *channelInfo = pSound->GetChannelInfo(pDoc->GetDevice(), g_tempChannelNumber);
+            if (channelInfo)
+            {
+                events = &channelInfo->Events;
+            }
+
+            assert(pDrawItemStruct->CtlType == ODT_LISTBOX);
             CDC dc;
             dc.Attach(pDrawItemStruct->hDC);
 
@@ -466,7 +472,7 @@ void MidiCommandListBox::DrawItem(DRAWITEMSTRUCT *pDrawItemStruct)
 
             if (pDrawItemStruct->itemID != -1)
             {
-                const SoundEvent &event = pSound->GetEvents()[pDrawItemStruct->itemID];
+                const SoundEvent &event = (*events)[pDrawItemStruct->itemID];
                 std::string foo = _GetEventString(event, _accumulatedTicksPerEvent[pDrawItemStruct->itemID]);
 
                 dc.SetTextColor(RGB(0, 0, 0));
@@ -490,15 +496,30 @@ void MidiCommandListBox::DrawItem(DRAWITEMSTRUCT *pDrawItemStruct)
     }
 }
 
-void _CalculateAccumulatedTicks(const SoundComponent &sound, std::vector<DWORD> &accumulatedTicks)
+void _CalculateAccumulatedTicks(const std::vector<SoundEvent> &events, std::vector<DWORD> &accumulatedTicks)
 {
-    accumulatedTicks.resize(sound.GetEvents().size(), 0);
+    accumulatedTicks.resize(events.size(), 0);
     DWORD accumulatedTime = 0;
     for (size_t i = 0; i < accumulatedTicks.size(); i++)
     {
-        accumulatedTime += sound.GetEvents()[i].wTimeDelta;
+        accumulatedTime += events[i].wTimeDelta;
         accumulatedTicks[i] = accumulatedTime;
     }
+}
+
+const std::vector<SoundEvent> &SoundToolboxSidePane::_GetCurrentChannelEvents()
+{
+    // For now, just use channel zero. But we'll need a notion of currently selected channel.
+    const SoundComponent *pSound = GetSound();
+    if (pSound)
+    {
+        const ChannelInfo *channelInfo = pSound->GetChannelInfo(GetDocument()->GetDevice(), g_tempChannelNumber);
+        if (channelInfo)
+        {
+            return channelInfo->Events;
+        }
+    }
+    return g_emptyEvents;
 }
 
 void SoundToolboxSidePane::_UpdateItemCount()
@@ -506,12 +527,12 @@ void SoundToolboxSidePane::_UpdateItemCount()
     const SoundComponent *pSound = GetSound();
     if (pSound)
     {
-        _CalculateAccumulatedTicks(*pSound, _accumulatedTicksPerEvent);
+        _CalculateAccumulatedTicks(_GetCurrentChannelEvents(), _accumulatedTicksPerEvent);
 
         // Store off the top index
         m_wndList.SetRedraw(FALSE);
         int iTopIndex = (int)m_wndList.SendMessage(LB_GETTOPINDEX, 0, 0);
-        m_wndList.SendMessage(LB_SETCOUNT, (WPARAM)pSound->GetEvents().size(), 0);
+        m_wndList.SendMessage(LB_SETCOUNT, (WPARAM)_GetCurrentChannelEvents().size(), 0);
         // Restore the top index.
         m_wndList.SendMessage(LB_SETTOPINDEX, iTopIndex, 0);
         m_wndList.SetRedraw(TRUE);
@@ -586,7 +607,7 @@ void SoundToolboxSidePane::UpdateNonView(CObject *pObject)
         SoundComponent *pSound = GetSound();
         if (pSound)
         {
-            WORD wChannelMask = pSound->GetChannelMask(GetDocument()->GetDevice());
+            WORD wChannelMask = pSound->CalculateChannelMask(GetDocument()->GetDevice());
             if (wChannelMask == SoundComponent::AllChannelsMask)
             {
                 m_wndCheckAllChannels.SetCheck(BST_CHECKED);
@@ -616,7 +637,7 @@ void SoundToolboxSidePane::UpdateNonView(CObject *pObject)
         CSoundDoc *pDoc = GetDocument();
         if (pDoc)
         {
-            SelectDeviceInComboHelper(m_wndDevices, pDoc->GetDevice());
+            SelectDeviceInComboHelper(appState->GetVersion(), m_wndDevices, pDoc->GetDevice());
         }
     }
 
@@ -637,6 +658,9 @@ void SoundToolboxSidePane::SetDocument(CDocument *pDoc)
     UpdateNonView(&WrapHint(SoundChangeHint::Changed | SoundChangeHint::DeviceChanged));
     if (_pDoc)
     {
+        m_wndDevices.ResetContent();
+        PopulateComboWithDevicesHelper(appState->GetVersion(), m_wndDevices);
+
         _pDoc->AddNonViewClient(this);
     }
 }

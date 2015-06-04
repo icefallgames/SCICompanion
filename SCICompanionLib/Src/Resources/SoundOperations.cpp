@@ -3,6 +3,9 @@
 
 SoundChangeHint InitializeFromMidi(SoundComponent &sound, const std::string &filename)
 {
+    uint16_t channels[ChannelCount];
+    FillMemory(channels, sizeof(channels), 0);
+
     std::ifstream midiFile(filename.c_str(), std::ios::in | std::ios::binary);
     if (midiFile.is_open())
     {
@@ -25,19 +28,24 @@ SoundChangeHint InitializeFromMidi(SoundComponent &sound, const std::string &fil
                     std::vector<SoundEvent> emptyTrack;
                     tracks.insert(tracks.begin(), wNumTracks, emptyTrack);
                     // Read each track
-                    std::vector<SoundComponent::TempoEntry> tempoChanges;
+                    std::vector<TempoEntry> tempoChanges;
                     uint16_t wChannelMask = 0;
                     for (uint16_t i = 0; i < wNumTracks && midiFile.good(); i++)
                     {
                         wChannelMask |= sound._ReadMidiFileTrack(i, midiFile, tracks[i], tempoChanges);
                     }
 
-                    sound._CombineTracks(tracks);
-                    sound._RemoveTempoChanges(tempoChanges);
+                    std::vector<SoundEvent> combined;
+                    CombineSoundEvents(tracks, combined);               // Combine
+                    uint16_t tempo;
+                    DWORD totalTicks;
+                    RemoveTempoChanges(combined, tempoChanges, tempo, totalTicks);
+                    sound._wTempoIfChanged = tempo;
+                    sound.TotalTicks = totalTicks;
+                    ConvertSCI0ToNewFormat(combined, sound, nullptr);   // Uncombine
 
                     // By default, turn off all channels for all synths except GM
                     // GM is the "new standard" for fan-made games
-                    FillMemory(sound._channels, sizeof(sound._channels), 0);
                     sound.SetChannelMask(DeviceType::NewGM, wChannelMask);
                 }
                 else
@@ -55,6 +63,8 @@ SoundChangeHint InitializeFromMidi(SoundComponent &sound, const std::string &fil
             AfxMessageBox("Not a midi file", MB_ERRORFLAGS);
         }
     }
+
     sound._fCanSetTempo = true;
+
     return SoundChangeHint::Changed;
 }
