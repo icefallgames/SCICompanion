@@ -218,20 +218,20 @@ void CSoundView::_OnButtonDown(CPoint point)
     }
     else
     {
-        if (_CanEditChannelMask())
+        int channel = _HitTestChannelHeader(point);
+        if (channel == -1)
         {
-            int channel = _HitTestChannelHeader(point);
-            if (channel == -1)
-            {
-                // Maybe the user is trying to set the cursor pos
-                CRect rect;
-                GetClientRect(&rect);
-                rect.left += TRACK_MARGIN;
-                point.x = max(point.x, TRACK_MARGIN);
-                g_midiPlayer.CuePosition(point.x - TRACK_MARGIN, rect.Width());
-                _SetCursorPos();
-            }
-            else
+            // Maybe the user is trying to set the cursor pos
+            CRect rect;
+            GetClientRect(&rect);
+            rect.left += TRACK_MARGIN;
+            point.x = max(point.x, TRACK_MARGIN);
+            g_midiPlayer.CuePosition(point.x - TRACK_MARGIN, rect.Width());
+            _SetCursorPos();
+        }
+        else
+        {
+            if (_CanEditChannelMask())
             {
                 // Toggle this channel
                 CSoundDoc *pDoc = GetDocument();

@@ -93,7 +93,7 @@ uint16_t _CalcRelativeX(uint16_t xOld, uint8_t bTemp)
 }
 
 // Methods for reading pic resource data
-void _ReadRelativePatterns(vector<PicCommand> &picCommands, sci::istream &stream, PatternInfo &patterns)
+void _ReadRelativePatterns(vector<PicCommand> &picCommands, sci::istream &stream, PatternInfo &patterns, bool supportsPenCommands)
 {
     if (patterns.bPatternCode &  PATTERN_FLAG_USE_PATTERN)
     {
@@ -104,12 +104,16 @@ void _ReadRelativePatterns(vector<PicCommand> &picCommands, sci::istream &stream
 
     AbsoluteCoords absCoords;
     stream >> absCoords;
-    picCommands.push_back(PicCommand::CreatePattern(absCoords.x,
-        absCoords.y,
-        patterns.bPatternSize,
-        patterns.bPatternNR,
-        (patterns.bPatternCode & PATTERN_FLAG_USE_PATTERN) != 0,
-        (patterns.bPatternCode & PATTERN_FLAG_RECTANGLE) != 0));
+
+    if (supportsPenCommands)
+    {
+        picCommands.push_back(PicCommand::CreatePattern(absCoords.x,
+            absCoords.y,
+            patterns.bPatternSize,
+            patterns.bPatternNR,
+            (patterns.bPatternCode & PATTERN_FLAG_USE_PATTERN) != 0,
+            (patterns.bPatternCode & PATTERN_FLAG_RECTANGLE) != 0));
+    }
 
     // Moved from below...
     RelativeCoords relCoords(absCoords);
@@ -127,19 +131,22 @@ void _ReadRelativePatterns(vector<PicCommand> &picCommands, sci::istream &stream
         // not the original.
         //RelativeCoords relCoords(absCoords);
         stream >> relCoords;
-        picCommands.push_back(
-            PicCommand::CreatePattern(
-            relCoords.x,
-            relCoords.y,
-            patterns.bPatternSize,
-            patterns.bPatternNR,
-            (patterns.bPatternCode & PATTERN_FLAG_USE_PATTERN) != 0,
-            (patterns.bPatternCode & PATTERN_FLAG_RECTANGLE) != 0));
+        if (supportsPenCommands)
+        {
+            picCommands.push_back(
+                PicCommand::CreatePattern(
+                relCoords.x,
+                relCoords.y,
+                patterns.bPatternSize,
+                patterns.bPatternNR,
+                (patterns.bPatternCode & PATTERN_FLAG_USE_PATTERN) != 0,
+                (patterns.bPatternCode & PATTERN_FLAG_RECTANGLE) != 0));
+        }
         relCoords.Next();
     }
 }
 
-void _ReadAbsolutePatterns(vector<PicCommand> &picCommands, sci::istream &stream, PatternInfo &patterns)
+void _ReadAbsolutePatterns(vector<PicCommand> &picCommands, sci::istream &stream, PatternInfo &patterns, bool supportsPenCommands)
 {
     uint8_t bTemp;
     while (stream.has_more_data() && stream.peek(bTemp) && (bTemp < 0xf0))
@@ -151,19 +158,23 @@ void _ReadAbsolutePatterns(vector<PicCommand> &picCommands, sci::istream &stream
         }
         AbsoluteCoords absCoords;
         stream >> absCoords;
-        picCommands.push_back(
-            PicCommand::CreatePattern(
-            absCoords.x,
-            absCoords.y,
-            patterns.bPatternSize,
-            patterns.bPatternNR,
-            (patterns.bPatternCode & PATTERN_FLAG_USE_PATTERN) != 0,
-            (patterns.bPatternCode & PATTERN_FLAG_RECTANGLE) != 0));
+
+        if (supportsPenCommands)
+        {
+            picCommands.push_back(
+                PicCommand::CreatePattern(
+                absCoords.x,
+                absCoords.y,
+                patterns.bPatternSize,
+                patterns.bPatternNR,
+                (patterns.bPatternCode & PATTERN_FLAG_USE_PATTERN) != 0,
+                (patterns.bPatternCode & PATTERN_FLAG_RECTANGLE) != 0));
+        }
     }
 
 }
 
-void _ReadRelativeMediumPatterns(vector<PicCommand> &picCommands, sci::istream &stream, PatternInfo &patterns)
+void _ReadRelativeMediumPatterns(vector<PicCommand> &picCommands, sci::istream &stream, PatternInfo &patterns, bool supportsPenCommands)
 {
     uint8_t bTemp;
     if ((patterns.bPatternCode & PATTERN_FLAG_USE_PATTERN) != 0)
@@ -173,14 +184,18 @@ void _ReadRelativeMediumPatterns(vector<PicCommand> &picCommands, sci::istream &
     }
     AbsoluteCoords absCoords;
     stream >> absCoords;
-    picCommands.push_back(
-        PicCommand::CreatePattern(
-        absCoords.x,
-        absCoords.y,
-        patterns.bPatternSize,
-        patterns.bPatternNR,
-        (patterns.bPatternCode & PATTERN_FLAG_USE_PATTERN) != 0,
-        (patterns.bPatternCode & PATTERN_FLAG_RECTANGLE) != 0));
+
+    if (supportsPenCommands)
+    {
+        picCommands.push_back(
+            PicCommand::CreatePattern(
+            absCoords.x,
+            absCoords.y,
+            patterns.bPatternSize,
+            patterns.bPatternNR,
+            (patterns.bPatternCode & PATTERN_FLAG_USE_PATTERN) != 0,
+            (patterns.bPatternCode & PATTERN_FLAG_RECTANGLE) != 0));
+    }
 
     while (stream.has_more_data() && stream.peek(bTemp) && (bTemp < 0xf0))
     {
@@ -201,14 +216,18 @@ void _ReadRelativeMediumPatterns(vector<PicCommand> &picCommands, sci::istream &
         }
         stream >> bTemp;
         x = _CalcRelativeX(absCoords.x, bTemp);
-        picCommands.push_back(
-            PicCommand::CreatePattern(
-            x,
-            y,
-            patterns.bPatternSize,
-            patterns.bPatternNR,
-            (patterns.bPatternCode & PATTERN_FLAG_USE_PATTERN) != 0,
-            (patterns.bPatternCode & PATTERN_FLAG_RECTANGLE) != 0));
+
+        if (supportsPenCommands)
+        {
+            picCommands.push_back(
+                PicCommand::CreatePattern(
+                x,
+                y,
+                patterns.bPatternSize,
+                patterns.bPatternNR,
+                (patterns.bPatternCode & PATTERN_FLAG_USE_PATTERN) != 0,
+                (patterns.bPatternCode & PATTERN_FLAG_RECTANGLE) != 0));
+        }
         // There is a bug in the SCI spec at
         // http://freesci.linuxgames.com/scihtml/x2396.html
         // Where xOld and yOld are not updated here.
@@ -491,6 +510,7 @@ void PicReadExtendedFunctionSCI0(ResourceEntity &resource, PicComponent &pic, sc
 void PicReadFromSCI0_SCI1(ResourceEntity &resource, sci::istream &byteStream, bool isVGA)
 {
     PicComponent &pic = resource.GetComponent<PicComponent>();
+    bool supportsPenCommands = pic.Traits.SupportsPenCommands;
 
     // See how many bytes long the stream is:
     int cBytes = (int)byteStream.GetDataSize();
@@ -540,7 +560,7 @@ void PicReadFromSCI0_SCI1(ResourceEntity &resource, sci::istream &byteStream, bo
                 break;
 
             case PIC_OP_RELATIVE_PATTERNS:
-                _ReadRelativePatterns(pic.commands, byteStream, patterns);
+                _ReadRelativePatterns(pic.commands, byteStream, patterns, supportsPenCommands);
                 break;
 
             case PIC_OP_RELATIVE_MEDIUM_LINES:
@@ -564,12 +584,15 @@ void PicReadFromSCI0_SCI1(ResourceEntity &resource, sci::istream &byteStream, bo
                 // There is no command of ours that is associated with this.
                 // They are encoded into each CDrawPatternPicCommand.
                 // Just make sure we keep track of these values.
-                patterns.bPatternCode &= 0x37;
-                patterns.bPatternSize = patterns.bPatternCode & 0x7;
+                if (supportsPenCommands)
+                {
+                    patterns.bPatternCode &= 0x37;
+                    patterns.bPatternSize = patterns.bPatternCode & 0x7;
+                }
                 break;
 
             case PIC_OP_ABSOLUTE_PATTERNS:
-                _ReadAbsolutePatterns(pic.commands, byteStream, patterns);
+                _ReadAbsolutePatterns(pic.commands, byteStream, patterns, supportsPenCommands);
                 break;
 
             case PIC_OP_SET_CONTROL:
@@ -582,7 +605,7 @@ void PicReadFromSCI0_SCI1(ResourceEntity &resource, sci::istream &byteStream, bo
                 break;
 
             case PIC_OP_RELATIVE_MEDIUM_PATTERNS:
-                _ReadRelativeMediumPatterns(pic.commands, byteStream, patterns);
+                _ReadRelativeMediumPatterns(pic.commands, byteStream, patterns, supportsPenCommands);
                 break;
 
             case PIC_OP_OPX:
@@ -822,7 +845,23 @@ bool PicValidateEGA(const ResourceEntity &resource)
 
 bool PicValidateVGA(const ResourceEntity &resource)
 {
+    bool ok = true;
     PicComponent &pic = resource.GetComponent<PicComponent>();
+
+    if (!pic.Traits.SupportsPenCommands)
+    {
+        bool found = false;
+        for (size_t i = 0; !found && (i < pic.commands.size()); i++)
+        {
+            PicCommand::CommandType type = pic.commands[i].type;
+            found = (type == PicCommand::Pattern);
+        }
+        if (found)
+        {
+            AfxMessageBox("This pic contains pen commands, which are not supported by this version of pic resources.", MB_ICONWARNING | MB_OK);
+        }
+    }
+
 
     // Perform a little validation.
     if (!appState->_fDontCheckPic)
@@ -840,7 +879,8 @@ bool PicValidateVGA(const ResourceEntity &resource)
             dialog.DoModal();
         }
     }
-    return true; // Always save anyway...
+
+    return ok; // Always save anyway...
 }
 
 PicTraits picTraitsEGA =
@@ -849,6 +889,7 @@ PicTraits picTraitsEGA =
     false,
     false,
     false,
+    true,
 };
 PicTraits picTraitsVGA_1_0 =
 {
@@ -856,6 +897,7 @@ PicTraits picTraitsVGA_1_0 =
     true,
     true,
     false,
+    true,
 };
 PicTraits picTraitsVGA_1_1 =
 {
@@ -863,6 +905,7 @@ PicTraits picTraitsVGA_1_1 =
     false,
     true,
     true,
+    false,
 };
 
 ResourceTraits picResourceTraitsEGA =

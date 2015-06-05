@@ -12,6 +12,7 @@ struct PicTraits
     bool AllowMultipleBitmaps;
     bool CanChangePriorityLines;
     bool SixteenBitPri;
+    bool SupportsPenCommands;
 };
 
 struct PicComponent : ResourceComponent

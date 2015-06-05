@@ -1049,6 +1049,8 @@ void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream)
     map<uint16_t, int> dataOffsetToChannelId;
     map<uint16_t, uint16_t> dataOffsetToSize;   // Temporary, to verify one offset always has same size
 
+    bool encounteredChannel15 = false;
+
     for (int trackNumber = 0; trackNumber < trackCount; trackNumber++)
     {
         sound._tracks.emplace_back();
@@ -1110,12 +1112,15 @@ void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream)
                         if (channelInfo.Number == 9)
                         {
                             channelInfo.Flags |= 2;
-                        }
+                        } 
 
                         // Flag 0x1:    Channel offset start is 0 instead of 10 (?) (haven't encountered this yet)
                         // Flag 0x2:    Prevent re-mapping (commonly set on 9)
                         // Flag 0x4:    Start muted (?)
                     }
+
+                    assert((!encounteredChannel15 || (channelInfo.Number != 15)) && "Encountered two channel 15s");
+                    encounteredChannel15 = (channelInfo.Number == 15);
 
                     // Now we're ready to read the channel data?
                     int chanNum = channelInfo.Number;
@@ -1139,12 +1144,6 @@ void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream)
         }
         stream.skip(1); // Skip ff that closes channels list.
     }
-
-
-
-    string foo = fmt::format("{0} channels\n", sound._allChannels.size());
-    OutputDebugString(foo.c_str());
-
 }
 
 void ScanAndReadDigitalSample(ResourceEntity &resource, sci::istream stream)

@@ -1567,8 +1567,12 @@ void CPicView::OnMouseMove(UINT nFlags, CPoint point)
 
 void CPicView::OnUpdateAllPicCommands(CCmdUI *pCmdUI)
 {
-    // All commands are enabled when we have focus:
-    pCmdUI->Enable(TRUE);
+    BOOL enabled = true;
+    if (pCmdUI->m_nID == ID_PENTOOL && _GetEditPic())
+    {
+        enabled = _GetEditPic()->Traits.SupportsPenCommands;
+    }
+    pCmdUI->Enable(enabled);
 
     // Which one is checked though?
     PicCommand::CommandType command = _IDToCommand(pCmdUI->m_nID);
