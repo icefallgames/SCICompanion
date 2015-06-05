@@ -406,16 +406,16 @@ HRESULT CResourceMap::AppendResource(const ResourceBlob &resource)
         blobs.push_back(resource);
 
         AppendBehavior appendBehavior = AppendBehavior::Append;
+        hr = E_FAIL;
         try
         {
             appendBehavior = resourceSource->AppendResources(blobs);
+            hr = S_OK;
         }
         catch (std::exception &e)
         {
             AfxMessageBox(e.what(), MB_OK | MB_ICONWARNING);
         }
-
-        hr = S_OK;
 
         AssignName(resource);
 
