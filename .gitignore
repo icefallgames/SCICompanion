@@ -42,6 +42,7 @@ dlldata.c
 *.pdb
 *.pgc
 *.pgd
+*.res
 *.rsp
 *.sbr
 *.tlb
@@ -50,6 +51,7 @@ dlldata.c
 *.tmp
 *.tmp_proj
 *.log
+*.tlog
 *.vspscc
 *.vssscc
 .builds
@@ -187,3 +189,5 @@ FakesAssemblies/
 GeneratedArtifacts/
 _Pvt_Extensions/
 ModelManifest.xml
+
+Bin_1000/
