@@ -47,5 +47,5 @@ private:
     static DeviceType s_defaultDevice;
 };
 
-std::unique_ptr<ResourceEntity> ImportMidi();
-
+std::unique_ptr<ResourceEntity> ImportMidi(DeviceType device);
+bool ImportMidi(DeviceType device, ResourceEntity *resourceEntity);

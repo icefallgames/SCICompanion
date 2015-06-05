@@ -708,6 +708,75 @@ SoundChangeHint SoundComponent::SetLoopPoint(DWORD dwTicks)
     return SoundChangeHint::None;
 }
 
+void WriteChannelStream(const vector<SoundEvent> &events, sci::ostream &byteStream, uint8_t channelNumber = 0xff)
+{
+    // Now the events.
+    uint8_t bLastStatus = 0;
+    DWORD dwAddToLastTimeDelta = 0;
+    // Don't allow more than about 64K
+    for (size_t i = 0; i < events.size() && (byteStream.tellp() < 0x0000fe00); i++)
+    {
+        const SoundEvent &event = events[i];
+
+        assert((channelNumber = 0xff) || (event.GetChannel() == 0x15) || (event.GetChannel() == channelNumber));
+
+        if ((event.GetCommand() == SoundEvent::Special) && (event.GetRawStatus() != 0xFC))  // 0xFC = stop bit.
+        {
+            // Ignore this event except for the time.
+            dwAddToLastTimeDelta += event.wTimeDelta;
+        }
+        else
+        {
+            DWORD dwTimeDelta = event.wTimeDelta + dwAddToLastTimeDelta;
+            // First the time delta...
+            while (dwTimeDelta >= 240)
+            {
+                byteStream.WriteByte(0xf8);
+                dwTimeDelta -= 240;
+            }
+            byteStream.WriteByte((uint8_t)dwTimeDelta);
+
+            // Then the status byte if it's different from the previous one.
+            uint8_t bCurrentStatus = event.GetRawStatus();
+            if (bLastStatus != bCurrentStatus)
+            {
+                byteStream.WriteByte(bCurrentStatus);
+                bLastStatus = bCurrentStatus;
+            }
+
+            switch (event.GetCommand())
+            {
+                case SoundEvent::NoteOff:
+                case SoundEvent::NoteOn:
+                case SoundEvent::KeyPressure:
+                case SoundEvent::Control:
+                case SoundEvent::PitchWheel:
+                    byteStream.WriteByte(event.bParam1);
+                    byteStream.WriteByte(event.bParam2);
+                    break;
+                case SoundEvent::ProgramChange:
+                case SoundEvent::Pressure:
+                    byteStream.WriteByte(event.bParam1);
+                    break;
+                case SoundEvent::Special:
+                    assert(event.GetRawStatus() == 0xFC);
+                    // no params
+                    break;
+                default:
+                    assert(false);
+                    break;
+            }
+            dwAddToLastTimeDelta = 0;
+        }
+    }
+    if (bLastStatus != 0xFC)
+    {
+        // Stick a stop status byte in if there wasn't one already.
+        byteStream.WriteByte(0); // time delta
+        byteStream.WriteByte(0xFC);
+    }
+}
+
 void SoundWriteToWorker(const SoundComponent &sound, sci::ostream &byteStream)
 {
     vector<SoundEvent> events;
@@ -754,69 +823,8 @@ void SoundWriteToWorker(const SoundComponent &sound, sci::ostream &byteStream)
             byteStream.WriteWord(channelMask);
         }
         byteStream.WriteWord(0); // Digital sample offset - we don't care about this for SCI0.
-
-        // Now the events.
-        uint8_t bLastStatus = 0;
-        DWORD dwAddToLastTimeDelta = 0;
-        // Don't allow more than about 64K
-        for (size_t i = 0; i < events.size() && (byteStream.tellp() < 0x0000fe00); i++)
-        {
-            const SoundEvent &event = events[i];
-            if ((event.GetCommand() == SoundEvent::Special) && (event.GetRawStatus() != 0xFC))  // 0xFC = stop bit.
-            {
-                // Ignore this event except for the time.
-                dwAddToLastTimeDelta += event.wTimeDelta;
-            }
-            else
-            {
-                DWORD dwTimeDelta = event.wTimeDelta + dwAddToLastTimeDelta;
-                // First the time delta...
-                while (dwTimeDelta >= 240)
-                {
-                    byteStream.WriteByte(0xf8);
-                    dwTimeDelta -= 240;
-                }
-                byteStream.WriteByte((uint8_t)dwTimeDelta);
-
-                // Then the status byte if it's different from the previous one.
-                uint8_t bCurrentStatus = event.GetRawStatus();
-                if (bLastStatus != bCurrentStatus)
-                {
-                    byteStream.WriteByte(bCurrentStatus);
-                    bLastStatus = bCurrentStatus;
-                }
-
-                switch (event.GetCommand())
-                {
-                case SoundEvent::NoteOff:
-                case SoundEvent::NoteOn:
-                case SoundEvent::KeyPressure:
-                case SoundEvent::Control:
-                case SoundEvent::PitchWheel:
-                    byteStream.WriteByte(event.bParam1);
-                    byteStream.WriteByte(event.bParam2);
-                    break;
-                case SoundEvent::ProgramChange:
-                case SoundEvent::Pressure:
-                    byteStream.WriteByte(event.bParam1);
-                    break;
-                case SoundEvent::Special:
-                    assert(event.GetRawStatus() == 0xFC);
-                    // no params
-                    break;
-                default:
-                    assert(FALSE);
-                    break;
-                }
-                dwAddToLastTimeDelta = 0;
-            }
-        }
-        if (bLastStatus != 0xFC)
-        {
-            // Stick a stop status byte in if there wasn't one already.
-            byteStream.WriteByte(0); // time delta
-            byteStream.WriteByte(0xFC);
-        }
+        
+        WriteChannelStream(events, byteStream);
     }
 }
 
@@ -826,6 +834,83 @@ void SoundWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
     SoundWriteToWorker(sound, byteStream);
 }
 
+void SoundWriteToWorker_SCI1(const SoundComponent &sound, sci::ostream &byteStream)
+{
+    // Special crazy case for sound resources.
+    if (sound._fReEvaluateLoopPoint || sound._fReEvaluateCues || ((sound._wTempoIfChanged != StandardTempo) || (sound._wDivision != SCI_PPQN)))
+    {
+        // Make a copy of ourselves.
+        SoundComponent soundCopy = sound;
+        soundCopy._RationalizeCuesAndLoops();
+        // And serialize that instead.
+        SoundWriteToWorker_SCI1(soundCopy, byteStream);
+    }
+    else
+    {
+        // Track [Type] 
+        //  Channel Channel Channel  [unknown][dataOffset][dataSize]
+        sci::ostream channelStream;
+        vector<pair<uint16_t, uint16_t>> channelOffsetAndSize;
+        for (auto &channelInfo : sound.GetChannelInfos())
+        {
+            uint16_t offset = (uint16_t)channelStream.tellp();
+            uint8_t number = channelInfo.Number & 0xf;
+            uint8_t flags = 0;
+            if (channelInfo.Number == 9)
+            {
+                // REVIEW: There are also flags 1 and 4 here, which we don't yet support.
+                flags |= 2;
+            }
+            number |= (flags << 4);
+            channelStream << number;
+            uint8_t polyAndPrio = channelInfo.Priority << 4;
+            polyAndPrio |= channelInfo.Poly ? 0x1 : 0;
+            channelStream << polyAndPrio;
+
+            // Write the event stream.
+            WriteChannelStream(channelInfo.Events, channelStream, channelInfo.Number);
+
+            // Keep track of offset and size.
+            uint16_t dataSize = (uint16_t)(channelStream.tellp() - offset);
+            channelOffsetAndSize.emplace_back(offset, dataSize);
+        }
+
+        // Do tracks. First, we need to know ahead of time how much space all the tracks will take up.
+        // It is:
+        uint16_t baseOffset = 1;    // For final track marker
+        for (auto &trackInfo : sound.GetTrackInfos())
+        {
+            baseOffset += 2;                                            // For type, and last channel marker
+            baseOffset += (uint16_t)(trackInfo.ChannelIds.size() * 6);  // 6 bytes per channel
+        }
+
+        const uint8_t endMarker = 0xff;
+        for (auto &trackInfo : sound.GetTrackInfos())
+        {
+            byteStream << trackInfo.Type;
+            for (int channelId : trackInfo.ChannelIds)
+            {
+                uint16_t unknown = 0;
+                byteStream << unknown;
+                byteStream << (uint16_t)(channelOffsetAndSize[channelId].first + baseOffset);
+                byteStream << channelOffsetAndSize[channelId].second;
+            }
+            byteStream << endMarker; // End of channels
+        }
+        byteStream << endMarker; // End of tracks
+
+        assert(byteStream.tellp() == baseOffset);
+
+        // Append the channel data.
+        sci::transfer(sci::istream_from_ostream(channelStream), byteStream, channelStream.tellp());
+    }
+}
+
+void SoundWriteTo_SCI1(const ResourceEntity &resource, sci::ostream &byteStream)
+{
+    SoundComponent &sound = resource.GetComponent<SoundComponent>();
+    SoundWriteToWorker_SCI1(sound, byteStream);
+}
 
 void ReadChannel(sci::istream &stream, std::vector<SoundEvent> &events, DWORD &totalTicks, SoundComponent &sound, int *mustBeChannel)
 {
@@ -1028,6 +1113,10 @@ void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream)
                         {
                             channelInfo.Flags |= 2;
                         }
+
+                        // Flag 0x1:    Channel offset start is 0 instead of 10 (?) (haven't encountered this yet)
+                        // Flag 0x2:    Prevent re-mapping (commonly set on 9)
+                        // Flag 0x4:    Start muted (?)
                     }
 
                     // Now we're ready to read the channel data?
@@ -1130,10 +1219,6 @@ void ConvertSCI0ToNewFormat(const vector<SoundEvent> &events, SoundComponent &so
         channel.Id = (int)(sound._allChannels.size() - 1);
         channel.Number = channelNumber;
         channelNumberToId[channel.Number] = channel.Id;
-        // channel.Flags ???  Maybe 2 for SCI0
-        //channel.Poly
-        //channel.Priority;
-
         DWORD ticksSoFar = 0;
         DWORD prevTicks = 0;
         for (const SoundEvent &event : events)
@@ -1225,7 +1310,7 @@ ResourceTraits soundResTraitsSCI1 =
 {
     ResourceType::Sound,
     &SoundReadFrom_SCI1,
-    nullptr, //&SoundWriteTo,
+    &SoundWriteTo_SCI1,
     &NoValidationFunc
 };
 

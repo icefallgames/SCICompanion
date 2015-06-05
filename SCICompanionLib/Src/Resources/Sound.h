@@ -170,11 +170,12 @@ public:
 
     friend void SoundWriteTo(const ResourceEntity &resource, sci::ostream &byteStream);
     friend void SoundWriteToWorker(const SoundComponent &sound, sci::ostream &byteStream);
+    friend void SoundWriteToWorker_SCI1(const SoundComponent &sound, sci::ostream &byteStream);
     friend void SoundReadFrom(ResourceEntity &resource, sci::istream &byteStream);
     friend void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream);
     friend void SoundReadFrom_SCI1OLD(ResourceEntity &resource, sci::istream &stream);
     friend void SoundReadFrom_SCI0(ResourceEntity &resource, sci::istream &stream);
-    friend SoundChangeHint InitializeFromMidi(SoundComponent &sound, const std::string &filename);
+    friend SoundChangeHint InitializeFromMidi(DeviceType device, SoundComponent &sound, const std::string &filename);
     friend void ReadChannel(sci::istream &stream, std::vector<SoundEvent> &events, DWORD &totalTicks, SoundComponent &sound, int *mustBeChannel = nullptr);
     friend void ScanAndReadDigitalSample(ResourceEntity &resource, sci::istream stream);
     friend void ConvertSCI0ToNewFormat(const std::vector<SoundEvent> &events, SoundComponent &sound, uint16_t *channels);

@@ -195,7 +195,14 @@ ControlFlowNode *ControlFlowGraph::_ReplaceIfStatementInWorkingSet(ControlFlowNo
     while (!toProcess.empty())
     {
         ControlFlowNode *node = pop_ptr(toProcess);
-        assert(!ifNode->Children().contains(node));  // Should only encounter things ONCE in the 1 or two if paths
+
+        if (ifNode->Children().contains(node))
+        {
+            // Castle of Dr Brain, script 325
+            throw ControlFlowException(ifHeader, "Encountered same node in two if paths.");
+            // Should only encounter things ONCE in the 1 or two if paths
+        }
+
         ifNode->InsertChild(node);
         for (ControlFlowNode *succ : node->Successors())
         {

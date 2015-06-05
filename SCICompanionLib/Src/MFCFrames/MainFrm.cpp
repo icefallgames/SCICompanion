@@ -1195,7 +1195,13 @@ void CMainFrame::OnFileNewMessage()
 
 void CMainFrame::OnFileNewSound()
 {
-    std::unique_ptr<ResourceEntity> pSound(ImportMidi());
+    DeviceType device = DeviceType::NewGM;
+    if (appState->GetVersion().SoundFormat == SoundFormat::SCI1)
+    {
+        device = DeviceType::SCI1_RolandGM;
+    }
+    
+    std::unique_ptr<ResourceEntity> pSound(ImportMidi(device));
     if (pSound)
     {
         CDocTemplate *pDocTemplate = appState->GetSoundTemplate();

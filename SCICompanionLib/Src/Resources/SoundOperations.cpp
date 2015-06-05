@@ -2,7 +2,7 @@
 #include "SoundOperations.h"
 #include "format.h"
 
-SoundChangeHint InitializeFromMidi(SoundComponent &sound, const std::string &filename)
+SoundChangeHint InitializeFromMidi(DeviceType device, SoundComponent &sound, const std::string &filename)
 {
     uint16_t channels[ChannelCount];
     FillMemory(channels, sizeof(channels), 0);
@@ -68,9 +68,7 @@ SoundChangeHint InitializeFromMidi(SoundComponent &sound, const std::string &fil
                         sound.TotalTicks = totalTicks;
                         ConvertSCI0ToNewFormat(combined, sound, channels);      // Uncombine
 
-                        // By default, turn off all channels for all synths except GM
-                        // GM is the "new standard" for fan-made games
-                        sound.SetChannelMask(DeviceType::NewGM, wChannelMask);
+                        sound.SetChannelMask(device, wChannelMask);
                     }
                     else
                     {

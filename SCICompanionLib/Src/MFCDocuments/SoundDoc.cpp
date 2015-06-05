@@ -80,13 +80,11 @@ END_MESSAGE_MAP()
 
 void CSoundDoc::_OnImportMidi()
 {
-    std::unique_ptr<ResourceEntity> pSound = ImportMidi();
-    if (pSound)
+    std::unique_ptr<ResourceEntity> pSound = GetResource()->Clone();
+    if (ImportMidi(GetDevice(), pSound.get()))
     {
         AddNewResourceToUndo(move(pSound));
         SetModifiedFlag(TRUE);
-        // Also set the device to GM, since that is what has channels enabled by default...
-        _device = DeviceType::NewGM;
         UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(SoundChangeHint::Changed | SoundChangeHint::DeviceChanged));
     }
 }
@@ -133,22 +131,32 @@ void CSoundDoc::Serialize(CArchive& ar)
 }
 
 const char c_szMidiFilter[] = "Midi Files|*.mid;*.midi|All Files|*.*|";
-std::unique_ptr<ResourceEntity> ImportMidi()
-{
-    std::unique_ptr<ResourceEntity> pResource;
 
+bool ImportMidi(DeviceType device, ResourceEntity *resourceEntity)
+{
+    bool success = false;
     // Create a file dialog.
     CFileDialog fileDialog(TRUE, NULL, NULL, OFN_ENABLESIZING | OFN_EXPLORER | OFN_HIDEREADONLY, c_szMidiFilter);
     fileDialog.m_ofn.lpstrTitle = TEXT("Import midi file");
     if (IDOK == fileDialog.DoModal())
     {
         CString fileName = fileDialog.GetPathName();
-        pResource.reset(CreateSoundResource(appState->GetVersion()));
-        SoundComponent &sound = pResource->GetComponent<SoundComponent>();
-        if (InitializeFromMidi(sound, (PCSTR)fileName) == SoundChangeHint::None)
+        SoundComponent &sound = resourceEntity->GetComponent<SoundComponent>();
+        if (InitializeFromMidi(device, sound, (PCSTR)fileName) != SoundChangeHint::None)
         {
-            pResource.reset(nullptr);
+            success = true;
         }
+    }
+    return success;
+}
+
+std::unique_ptr<ResourceEntity> ImportMidi(DeviceType device)
+{
+    std::unique_ptr<ResourceEntity> pResource(CreateSoundResource(appState->GetVersion()));
+
+    if (!ImportMidi(device, pResource.get()))
+    {
+        pResource.reset(nullptr);
     }
     return pResource;
 }
