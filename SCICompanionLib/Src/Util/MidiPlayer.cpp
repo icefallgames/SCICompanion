@@ -208,14 +208,21 @@ void MidiPlayer::Play()
 
 void MidiPlayer::Pause()
 {
-    unsigned int err = midiStreamPause(_handle);
-    if (!err)
+    if (_handle)
     {
-        _fPlaying = false;
+        unsigned int err = midiStreamPause(_handle);
+        if (!err)
+        {
+            _fPlaying = false;
+        }
+        else
+        {
+            PrintMidiOutErrorMsg(err);
+        }
     }
     else
     {
-        PrintMidiOutErrorMsg(err);
+        _fPlaying = false;
     }
 }
 

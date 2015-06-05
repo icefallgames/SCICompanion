@@ -291,6 +291,11 @@
 (define PBarredAccess 2)
 (define PContainedAccess 3)
 
+// setOnMeCheck flags
+(define omcDISABLE $6789)
+(define omcCOLORS 1)
+(define omcPOLYGON 2)
+
 #endif  // SCI_1_1
 
 // Sound statuses

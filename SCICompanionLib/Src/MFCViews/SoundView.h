@@ -57,6 +57,9 @@ public:
     virtual void OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint);
 
 protected:
+
+    void OnActivateView(BOOL bActivate, CView* pActivateView, CView* pDeactiveView) override;
+
     afx_msg void OnPlay();
     afx_msg void OnPause();
     afx_msg void OnStop();
@@ -76,6 +79,7 @@ protected:
 
     DECLARE_MESSAGE_MAP()
 private:
+    void _UpdateMidiPlayer();
     void _RecalculateChannelData(const SoundComponent *pSound);
     void _RecalculateChannelBitmaps();
     bool _PrepChannelBitmaps(int width, int height);

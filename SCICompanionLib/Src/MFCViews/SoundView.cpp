@@ -585,6 +585,30 @@ void CSoundView::_RecalculateChannelBitmaps()
     }
 }
 
+void CSoundView::OnActivateView(BOOL bActivate, CView* pActivateView, CView* pDeactiveView)
+{
+    if (bActivate)
+    {
+        _UpdateMidiPlayer();
+    }
+}
+
+void CSoundView::_UpdateMidiPlayer()
+{
+    CSoundDoc *pDoc = GetDocument();
+    if (pDoc)
+    {
+        const SoundComponent *pSound = pDoc->GetSoundComponent();
+        if (pSound)
+        {
+            g_midiPlayer.SetDevice(pDoc->GetDevice());
+            DWORD dwTicks = g_midiPlayer.QueryPosition();
+            g_midiPlayer.SetSound(*pSound, pDoc->GetTempo());
+            g_midiPlayer.CueTickPosition(dwTicks);
+        }
+    }
+}
+
 void CSoundView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
 {
     CSoundDoc *pDoc = GetDocument();
@@ -597,10 +621,7 @@ void CSoundView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
 
             if (IsFlagSet(hint, SoundChangeHint::Changed | SoundChangeHint::DeviceChanged))
             {
-                g_midiPlayer.SetDevice(pDoc->GetDevice());
-                DWORD dwTicks = g_midiPlayer.QueryPosition();
-                g_midiPlayer.SetSound(*pSound, pDoc->GetTempo());
-                g_midiPlayer.CueTickPosition(dwTicks);
+                _UpdateMidiPlayer();
                 _RecalculateChannelBitmaps();
                 _RedoDrags();
                 ClearFlag(hint, SoundChangeHint::CueChanged); // So we don't redo drags again below.

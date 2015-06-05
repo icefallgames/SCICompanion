@@ -1095,8 +1095,6 @@ void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream)
                     channelStream >> polyAndPrio;
                     channelInfo.Poly = ((polyAndPrio & 0xf) != 0);
                     channelInfo.Priority = polyAndPrio >> 4;
-                    dataOffset += 2;
-                    dataSize -= 2;
 
                     if (channelInfo.Number == 0xfe)
                     {
@@ -1141,6 +1139,12 @@ void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream)
         }
         stream.skip(1); // Skip ff that closes channels list.
     }
+
+
+
+    string foo = fmt::format("{0} channels\n", sound._allChannels.size());
+    OutputDebugString(foo.c_str());
+
 }
 
 void ScanAndReadDigitalSample(ResourceEntity &resource, sci::istream stream)
