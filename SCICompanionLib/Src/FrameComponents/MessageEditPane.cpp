@@ -457,6 +457,11 @@ void MessageEditPane::OnEnChangeEditseq()
     if (_pDoc)
     {
         UpdateData(true);
+        if (_spinnerValue < 1)
+        {
+            _spinnerValue = 1;
+            UpdateData(false);
+        }
         _pDoc->ApplyChanges<TextComponent>(
             [this](TextComponent &text)
         {

@@ -176,12 +176,40 @@ void MessageWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
     }
 }
 
+bool ValidateMessage(const ResourceEntity &resource)
+{
+    // Check for duplicate tuples
+    const TextComponent &text = resource.GetComponent<TextComponent>();
+    unordered_map<uint32_t, const TextEntry *> tuples;
+    for (const auto &entry : text.Texts)
+    {
+        uint32_t tuple = entry.Condition | (entry.Noun << 8) | (entry.Verb << 16) | (entry.Sequence << 24);
+        if (tuples.find(tuple) != tuples.end())
+        {
+            string message = fmt::format("Entries must be distinct. The following entries have the same noun/verb/condition/sequence:\n{0}\n{1}",
+                entry.Text,
+                tuples[tuple]->Text
+                );
+
+            AfxMessageBox(message.c_str(), MB_OK | MB_ICONWARNING);
+            return false;
+        }
+        else
+        {
+            tuples[tuple] = &entry;
+        }
+    }
+
+    // TODO: Warn about missing sequences?
+    return true;
+}
+
 ResourceTraits messageTraits =
 {
     ResourceType::Message,
     &MessageReadFrom,
     &MessageWriteTo,
-    &NoValidationFunc       // REVIEW: Some validation: make sure no out of sequence stuff, though maybe we could sort by seq
+    &ValidateMessage,
 };
 
 ResourceEntity *CreateMessageResource(SCIVersion version)
