@@ -47,6 +47,36 @@ uint8_t _GetChannel(uint8_t bStatus)
     return bStatus & 0x0F; // Lower nibble
 }
 
+void SoundComponent::_EnsureChannel15()
+{
+    bool found = false;
+    for (auto &channelInfo : _allChannels)
+    {
+        if (channelInfo.Number == 15)
+        {
+            found = true;
+            break;
+        }
+    }
+    if (!found)
+    {
+        // Add channel 15, and add it to all tracks.
+        ChannelInfo channel15 = {};
+        channel15.Flags = 0;
+        channel15.Poly = false;
+        channel15.Priority = 0;
+        channel15.Id = (int)_allChannels.size();
+        channel15.Number = 15;
+        _allChannels.push_back(channel15);
+
+        // Since it didn't exist before, we know we can just add it to every track
+        for (auto &track : _tracks)
+        {
+            track.ChannelIds.push_back(channel15.Id);
+        }
+    }
+}
+
 SoundComponent::SoundComponent(const SoundTraits &traits) : Traits(traits)
 {
     _wDivision = SCI_PPQN; // by default
@@ -133,7 +163,6 @@ uint16_t SoundComponent::CalculateChannelMask(DeviceType device) const
             wMask |= (0x0001 << channelNumber);
         }
     }
-
     return wMask;
 }
 
@@ -562,30 +591,29 @@ void SoundComponent::_RationalizeCuesAndLoops()
                     // Now add it back in.
                     DWORD dwTotalTicks = 0;
                     bool fInserted = false;
-                    for (size_t i = 0; i < events.size(); i++)
+                    size_t i = 0;
+                    for (; i < events.size(); i++)
                     {
                         SoundEvent &event = events[i];
                         if ((dwTotalTicks + event.wTimeDelta) >= LoopPoint)
                         {
                             // The loop point is in between this and the last event.
-                            SoundEvent loopEvent;
-                            loopEvent.SetRawStatus(SoundEvent::ProgramChange | 15);
-                            loopEvent.bParam1 = 127;
-                            // Time delta is the looppoint, minus the total ticks to the previous event.
-                            loopEvent.wTimeDelta = LoopPoint - dwTotalTicks;
-                            if (loopEvent.wTimeDelta)
-                            {
-                                // Adjust the current event's time delta
-                                event.wTimeDelta -= loopEvent.wTimeDelta;
-                            }
-                            //Events.insert(&Events[i], loopEvent);
-                            events.insert(events.begin() + i, loopEvent);
-                            fInserted = true;
-                            break; // Break instead of using a loop variable, since insert invalidated 'event'
+                            break;
                         }
                         dwTotalTicks += event.wTimeDelta; // ... and so otherwise we could crash here.
                     }
-                    ASSERT(fInserted);
+
+                    SoundEvent loopEvent;
+                    loopEvent.SetRawStatus(SoundEvent::ProgramChange | 15);
+                    loopEvent.bParam1 = 127;
+                    // Time delta is the looppoint, minus the total ticks to the previous event.
+                    loopEvent.wTimeDelta = LoopPoint - dwTotalTicks;
+                    if (loopEvent.wTimeDelta && (i < events.size()))
+                    {
+                        // Adjust the current event's time delta
+                        events[i].wTimeDelta -= loopEvent.wTimeDelta;
+                    }
+                    events.insert(events.begin() + i, loopEvent);
                 }
             }
 
@@ -618,13 +646,14 @@ void SoundComponent::_RationalizeCuesAndLoops()
 
                 DWORD dwTotalTicks = 0;
                 std::vector<CuePoint>::iterator cueIt = Cues.begin();
-                for (size_t i = 0; (cueIt != Cues.end()) && (i < events.size()); i++)
+                size_t cueIndex = 0;
+                for (; (cueIt != Cues.end()) && (cueIndex < events.size()); cueIndex++)
                 {
                     bool fDoneWithCuesHere = false;
                     while (!fDoneWithCuesHere)
                     {
                         fDoneWithCuesHere = true;
-                        SoundEvent &event = events[i];
+                        SoundEvent &event = events[cueIndex];
                         DWORD wTimeDelta = event.wTimeDelta; // stash this, because event might become invalid.
                         if ((dwTotalTicks + event.wTimeDelta) >= cueIt->GetTickPos())
                         {
@@ -636,9 +665,9 @@ void SoundComponent::_RationalizeCuesAndLoops()
                                 event.wTimeDelta -= cueEvent.wTimeDelta;
                             }
                             //Events.insert(&Events[i], cueEvent); // we may have invalidated SoundEvent &event now.
-                            events.insert(events.begin() + i, cueEvent); // we may have invalidated SoundEvent &event now.
-                            ++cueIt;    // Go to the next cue.
-                            ++i;        // We just added one to the events, so double-increment this.
+                            events.insert(events.begin() + cueIndex, cueEvent); // we may have invalidated SoundEvent &event now.
+                            ++cueIt;        // Go to the next cue.
+                            ++cueIndex;     // We just added one to the events, so double-increment this.
                             if (cueIt != Cues.end())
                             {
                                 // Perhaps there is another cue point to be inserted in this spot?
@@ -652,8 +681,19 @@ void SoundComponent::_RationalizeCuesAndLoops()
                         dwTotalTicks += wTimeDelta;
                     }
                 }
-                ASSERT(cueIt == Cues.end()); // Otherwise we missed one.  Cues can't be past the end of the ticks, so we should
-                // have used all of them.
+                // Any more at the end:
+                while (cueIt != Cues.end())
+                {
+                    SoundEvent cueEvent = _MakeCueEvent(*cueIt, dwTotalTicks);
+                    if (cueEvent.wTimeDelta && (cueIndex < events.size()))
+                    {
+                        // Adjust the current event's time delta
+                        events[cueIndex].wTimeDelta -= cueEvent.wTimeDelta;
+                    }
+                    events.insert(events.begin() + cueIndex, cueEvent);
+                    ++cueIt;
+                    ++cueIndex;
+                }
             }
         }
     }
@@ -670,6 +710,7 @@ void SoundComponent::_RationalizeCuesAndLoops()
 
 SoundChangeHint SoundComponent::AddCuePoint(CuePoint cue)
 {
+    _EnsureChannel15();
     Cues.push_back(cue);
     return SoundChangeHint::CueChanged;
 }
@@ -699,6 +740,10 @@ SoundChangeHint SoundComponent::SetCue(size_t index, CuePoint cue)
 
 SoundChangeHint SoundComponent::SetLoopPoint(DWORD dwTicks)
 {
+    if (dwTicks != LoopPointNone)
+    {
+        _EnsureChannel15();
+    }
     if (LoopPoint != dwTicks)
     {
         LoopPoint = dwTicks;
@@ -922,7 +967,6 @@ void ReadChannel(sci::istream &stream, std::vector<SoundEvent> &events, DWORD &t
         SoundEvent event;
         // Get the delta time
         _GetDeltaTime(stream, &event.wTimeDelta);
-
         uint8_t bStatus;
         if (stream.good())
         {
@@ -978,7 +1022,7 @@ void ReadChannel(sci::istream &stream, std::vector<SoundEvent> &events, DWORD &t
                         }
                         else if (event.bParam1 == 127)
                         {
-                            sound.LoopPoint = sound.TotalTicks;
+                            sound.LoopPoint = totalTicks;
                         }
                         // else nothign
                     }
@@ -1020,7 +1064,11 @@ void ReadChannel(sci::istream &stream, std::vector<SoundEvent> &events, DWORD &t
                 assert((event.GetChannel() == *mustBeChannel) || (event.GetChannel() == 0x0F));
             }
 
-            events.push_back(event);
+            if (!fDone)
+            {
+                // Don't add the last stop byte (we'll add it back in when writing)
+                events.push_back(event);
+            }
         }
     }
 }

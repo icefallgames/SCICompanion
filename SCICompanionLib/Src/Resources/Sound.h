@@ -97,6 +97,7 @@ enum class SoundChangeHint
     CueChanged = 0x00000400,
     // Chosen cue changed
     ActiveCueChanged = 0x00000800,
+    SelectedChannelChanged = 0x00001000,
 };
 
 DEFINE_ENUM_FLAGS(SoundChangeHint, uint32_t)
@@ -202,12 +203,9 @@ public:
     SoundChangeHint SetTempo(uint16_t wTempo) { _wTempoIfChanged = wTempo; return SoundChangeHint::CueChanged; }
     uint16_t GetTempo() const { return _wTempoIfChanged; }
 
-    //const std::vector<SoundEvent> &GetEvents() const { return Events; }
-    //std::vector<SoundEvent> &GetEvents() { return Events; }
     const std::vector<CuePoint> &GetCuePoints() const { return Cues; }
     DWORD GetLoopPoint() const { return LoopPoint; }
     DWORD GetTotalTicks() const { return max(1, TotalTicks); }   // 0 causes div by zero errors }
-
 
     // New sound model
     std::vector<ChannelInfo> &GetChannelInfos() { return _allChannels; }
@@ -220,6 +218,8 @@ public:
     const SoundTraits &Traits;
 
 private:
+    void _EnsureChannel15();
+
     uint16_t _wDivision;
     DWORD LoopPoint;       // A single loop-point (tick position)
     DWORD TotalTicks;    // Total length in ticks

@@ -82,11 +82,11 @@ private:
     void _UpdateMidiPlayer();
     void _RecalculateChannelData(const SoundComponent *pSound);
     void _RecalculateChannelBitmaps();
-    bool _PrepChannelBitmaps(int width, int height);
+    bool _PrepChannelBitmaps(int width, int height, size_t count);
     void _SetCursorPos();
-    int _HitTestChannelHeader(CPoint pt);
+    int _HitTestChannelHeader(CPoint pt, bool &hitHeader);
     void _InvalidateChannelHeaders();
-    void _OnDrawTrackHeader(CDC *pDC, int channel, bool fChannelOn);
+    void _OnDrawTrackHeader(CDC *pDC, int channelId, int channel, bool fChannelOn);
     void _OnButtonDown(CPoint point);
     CRect _GetBottomMargin();
     CRect _GetLeftMargin();
@@ -114,13 +114,14 @@ private:
     }
     void _InvalidateCurrentDragCursor();
 
-    CBitmap _channelBitmaps[15];
+    std::vector<std::unique_ptr<CBitmap>> _channelBitmaps;
+    std::vector<int> _channelNumbers;
     int _loopBitmapIndex;
     int _cueBitmapIndex;
     int _activeCueBitmapIndex;
     CImageList _imageList;
     int _cursorPos;
-    int _channelHover;
+    int _channelIdHover;
 
     std::vector<std::unique_ptr<DragEntry>> _drags;
     int _currentDragIndex;
@@ -129,6 +130,8 @@ private:
     const static COLORREF ColorTrackEvent = RGB(128, 128, 255);
     const static COLORREF ColorSilentTrack = RGB(196, 196, 196);
     const static COLORREF ColorTrackBackground = RGB(220, 220, 220);
+    const static COLORREF ColorSelectedTrackBackgroundMask = RGB(255, 196, 196);
+    const static COLORREF ColorSelectedTrackBackground = RGB(220, 196, 196);    // Combo of two above
     const static COLORREF ColorCursor = RGB(255, 0, 0);
 
     CColoredToolTip _toolTip;

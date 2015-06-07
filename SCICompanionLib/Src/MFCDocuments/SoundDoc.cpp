@@ -9,17 +9,18 @@
 
 using namespace std;
 
-DeviceType CSoundDoc::s_defaultDevice = DeviceType::RolandMT32;
+DeviceType CSoundDoc::s_defaultDeviceSCI0 = DeviceType::RolandMT32;
+DeviceType CSoundDoc::s_defaultDeviceSCI1 = DeviceType::SCI1_RolandGM;
 
 // CSoundDoc
 
 IMPLEMENT_DYNCREATE(CSoundDoc, CResourceDocument)
 
-CSoundDoc::CSoundDoc()
+CSoundDoc::CSoundDoc() : _selectedChannelId(-1)
 {
     _cueIndex = -1;
     _wTempo = StandardTempo;
-    _device = s_defaultDevice;
+    _device = (appState->GetVersion().SoundFormat == SoundFormat::SCI1) ?  s_defaultDeviceSCI1 : s_defaultDeviceSCI0;
 }
 
 
@@ -29,7 +30,7 @@ CSoundDoc::~CSoundDoc()
 
 void CSoundDoc::v_OnUndoRedo()
 {
-    UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(SoundChangeHint::Changed));
+    UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(SoundChangeHint::Changed | _UpdateChannelId()));
 }
 
 void CSoundDoc::SetSoundResource(std::unique_ptr<ResourceEntity> pSound, int id)
@@ -61,16 +62,44 @@ void CSoundDoc::SetActiveCue(int index)
     }
 }
 
+SoundChangeHint CSoundDoc::_UpdateChannelId()
+{
+    SoundChangeHint hint = SoundChangeHint::None;
+    SoundComponent *sound = GetSoundComponent();
+    if (sound && (_selectedChannelId >= (int)sound->GetChannelInfos().size()))
+    {
+        _selectedChannelId = -1;
+        hint |= SoundChangeHint::SelectedChannelChanged;
+    }
+    return hint;
+}
+
 void CSoundDoc::SetDevice(DeviceType device, bool fNotify)
 {
     if (_device != device)
     {
         _device = device;
-        s_defaultDevice = _device;
+        if (appState->GetVersion().SoundFormat == SoundFormat::SCI1)
+        {
+            s_defaultDeviceSCI1 = _device;
+        }
+        else
+        {
+            s_defaultDeviceSCI0 = _device;
+        }
         if (fNotify)
         {
             UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(SoundChangeHint::DeviceChanged));
         }
+    }
+}
+
+void CSoundDoc::SetChannelId(int channelId)
+{
+    if (_selectedChannelId != channelId)
+    {
+        _selectedChannelId = channelId;
+        UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(SoundChangeHint::SelectedChannelChanged));
     }
 }
 
@@ -85,7 +114,7 @@ void CSoundDoc::_OnImportMidi()
     {
         AddNewResourceToUndo(move(pSound));
         SetModifiedFlag(TRUE);
-        UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(SoundChangeHint::Changed | SoundChangeHint::DeviceChanged));
+        UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(SoundChangeHint::Changed | SoundChangeHint::DeviceChanged | _UpdateChannelId()));
     }
 }
 

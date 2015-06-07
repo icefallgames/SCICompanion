@@ -8,7 +8,6 @@
 #include "SoundUtil.h"
 
 std::vector<SoundEvent> g_emptyEvents;
-const int g_tempChannelNumber = 0;
 
 SoundToolboxSidePane::SoundToolboxSidePane(CWnd* pParent /*=NULL*/)
     : CExtDialogFwdCmd(SoundToolboxSidePane::IDD, pParent), m_wndList(_accumulatedTicksPerEvent)
@@ -441,10 +440,10 @@ void MidiCommandListBox::DrawItem(DRAWITEMSTRUCT *pDrawItemStruct)
         if (pSound)
         {
             const std::vector<SoundEvent> *events = &g_emptyEvents;
-            const ChannelInfo *channelInfo = pSound->GetChannelInfo(pDoc->GetDevice(), g_tempChannelNumber);
-            if (channelInfo)
+            int selectedChannelId = pDoc->GetChannelId();
+            if (selectedChannelId != -1)
             {
-                events = &channelInfo->Events;
+                events = &pSound->GetChannelInfos()[selectedChannelId].Events;
             }
 
             assert(pDrawItemStruct->CtlType == ODT_LISTBOX);
@@ -513,10 +512,11 @@ const std::vector<SoundEvent> &SoundToolboxSidePane::_GetCurrentChannelEvents()
     const SoundComponent *pSound = GetSound();
     if (pSound)
     {
-        const ChannelInfo *channelInfo = pSound->GetChannelInfo(GetDocument()->GetDevice(), g_tempChannelNumber);
-        if (channelInfo)
+        const std::vector<SoundEvent> *events = &g_emptyEvents;
+        int selectedChannelId = GetDocument()->GetChannelId();
+        if (selectedChannelId != -1)
         {
-            return channelInfo->Events;
+            return pSound->GetChannelInfos()[selectedChannelId].Events;
         }
     }
     return g_emptyEvents;
@@ -625,7 +625,7 @@ void SoundToolboxSidePane::UpdateNonView(CObject *pObject)
         }
     }
 
-    if (IsFlagSet(hint, SoundChangeHint::Changed | SoundChangeHint::CueChanged))
+    if (IsFlagSet(hint, SoundChangeHint::Changed | SoundChangeHint::CueChanged | SoundChangeHint::SelectedChannelChanged))
     {
         // Remove all items
         _UpdateItemCount();
@@ -655,7 +655,6 @@ void SoundToolboxSidePane::UpdateNonView(CObject *pObject)
 void SoundToolboxSidePane::SetDocument(CDocument *pDoc)
 {
     _pDoc = static_cast<CSoundDoc*>(pDoc);
-    UpdateNonView(&WrapHint(SoundChangeHint::Changed | SoundChangeHint::DeviceChanged));
     if (_pDoc)
     {
         int prevSel = m_wndDevices.GetCurSel();
@@ -672,4 +671,6 @@ void SoundToolboxSidePane::SetDocument(CDocument *pDoc)
 
         _pDoc->AddNonViewClient(this);
     }
+    UpdateNonView(&WrapHint(SoundChangeHint::Changed | SoundChangeHint::DeviceChanged));
+
 }

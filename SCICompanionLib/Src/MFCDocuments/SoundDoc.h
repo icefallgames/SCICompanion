@@ -20,6 +20,9 @@ public:
     DeviceType GetDevice() const { return _device; }
     void SetDevice(DeviceType device, bool fNotify = true);
 
+    void SetChannelId(int channelId);
+    int GetChannelId() const { return _selectedChannelId; }
+
     void SetTempo(WORD wTempo);
     WORD GetTempo() const { return _wTempo; }
 
@@ -39,12 +42,15 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
 private:
+    SoundChangeHint _UpdateChannelId();
     // Assumes ownership of this:
     WORD _wTempo;
     int _cueIndex;
     DeviceType _device;
+    int _selectedChannelId;
 
-    static DeviceType s_defaultDevice;
+    static DeviceType s_defaultDeviceSCI0;
+    static DeviceType s_defaultDeviceSCI1;
 };
 
 std::unique_ptr<ResourceEntity> ImportMidi(DeviceType device);

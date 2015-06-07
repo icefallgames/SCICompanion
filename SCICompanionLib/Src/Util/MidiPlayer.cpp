@@ -112,7 +112,14 @@ DWORD MidiPlayer::QueryPosition(DWORD scope)
         }
         else
         {
-            pos = _dwCurrentTickPos * scope / _wTotalTime;
+            if (_wTotalTime > 0)
+            {
+                pos = _dwCurrentTickPos * scope / _wTotalTime;
+            }
+            else
+            {
+                pos = 0;
+            }
         }
     }
     return pos;

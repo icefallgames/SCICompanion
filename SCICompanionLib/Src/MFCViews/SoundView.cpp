@@ -154,7 +154,7 @@ IMPLEMENT_DYNCREATE(CSoundView, CView)
 CSoundView::CSoundView()
 {
     _cursorPos = 0;
-    _channelHover = -1;
+    _channelIdHover = -1;
     _imageList.Create(16, 16, ILC_COLOR32 | ILC_MASK, 0, 5);
     CBitmap bitmapStock1;
     if (bitmapStock1.LoadBitmap(IDB_BITMAPLOOP))
@@ -218,26 +218,19 @@ void CSoundView::_OnButtonDown(CPoint point)
     }
     else
     {
-        int channel = _HitTestChannelHeader(point);
-        if (channel == -1)
-        {
-            // Maybe the user is trying to set the cursor pos
-            CRect rect;
-            GetClientRect(&rect);
-            rect.left += TRACK_MARGIN;
-            point.x = max(point.x, TRACK_MARGIN);
-            g_midiPlayer.CuePosition(point.x - TRACK_MARGIN, rect.Width());
-            _SetCursorPos();
-        }
-        else
+        bool hitHeader;
+        int channelId = _HitTestChannelHeader(point, hitHeader);
+        CSoundDoc *pDoc = GetDocument();
+        if (hitHeader)
         {
             if (_CanEditChannelMask())
             {
                 // Toggle this channel
-                CSoundDoc *pDoc = GetDocument();
                 const SoundComponent *pSound = GetSoundComponent();
                 WORD wMask = pSound->CalculateChannelMask(pDoc->GetDevice());
-                wMask ^= (0x1 << channel); // Toggle our channel
+                // phil - need 
+                int channelNumber = pSound->GetChannelInfos()[channelId].Number;
+                wMask ^= (0x1 << channelNumber); // Toggle our channel
 
                 pDoc->ApplyChanges<SoundComponent>(
                     [pDoc, wMask](SoundComponent &sound)
@@ -247,6 +240,21 @@ void CSoundView::_OnButtonDown(CPoint point)
                 );
 
                 _InvalidateChannelHeaders();
+            }
+        }
+        else
+        {
+            // Maybe the user is trying to set the cursor pos
+            CRect rect;
+            GetClientRect(&rect);
+            rect.left += TRACK_MARGIN;
+            point.x = max(point.x, TRACK_MARGIN);
+            g_midiPlayer.CuePosition(point.x - TRACK_MARGIN, rect.Width());
+            _SetCursorPos();
+
+            if (channelId != -1)
+            {
+                pDoc->SetChannelId(channelId);
             }
         }
     }
@@ -320,27 +328,35 @@ void CSoundView::OnMouseMove(UINT nFlags, CPoint point)
     }
     else
     {
-        int channel = _HitTestChannelHeader(point);
-        if (channel != _channelHover)
+        bool hitHeader;
+        int channelId = _HitTestChannelHeader(point, hitHeader);
+        if (!hitHeader)
         {
-            _channelHover = channel;
+            channelId = -1;
+        }
+        if (channelId != _channelIdHover)
+        {
+            _channelIdHover = channelId;
             _InvalidateChannelHeaders();
         }
     }
     __super::OnMouseMove(nFlags, point);
 }
 
-bool CSoundView::_PrepChannelBitmaps(int width, int height)
+bool CSoundView::_PrepChannelBitmaps(int width, int height, size_t count)
 {
     bool fRet = true;
     CDC *pDC = GetDC();
-    for (int i = 0; fRet && i < ARRAYSIZE(_channelBitmaps) ; i++)
+    _channelBitmaps.resize(count);
+    _channelNumbers.resize(count);
+    for (int i = 0; fRet && i < (int)_channelBitmaps.size() ; i++)
     {
-        if ((HBITMAP)_channelBitmaps[i])
+        _channelBitmaps[i] = std::make_unique<CBitmap>();   // This should delete the old one
+        fRet = (_channelBitmaps[i]->CreateCompatibleBitmap(pDC, width, height) == TRUE);
+        if (fRet)
         {
-            DeleteObject(_channelBitmaps[i].Detach());
+            _channelBitmaps[i]->SetBitmapDimension(width, height);
         }
-        fRet = (_channelBitmaps[i].CreateCompatibleBitmap(pDC, width, height) == TRUE);
     }
     ReleaseDC(pDC);
     return fRet;
@@ -390,7 +406,7 @@ int CSoundView::_GetTrackHeight(int track)
 int CSoundView::_GetTrackY(int track)
 {
     CRect rect = _GetTrackArea();
-    return rect.top + track * rect.Height() / ARRAYSIZE(_channelBitmaps);
+    return rect.top + track * rect.Height() / _channelBitmaps.size();
 }
 
 // Adjust the timing of each event so that the whole resource ends up being a certain amount of ticks
@@ -429,12 +445,12 @@ void CSoundView::_RecalculateChannelBitmaps()
         SoundComponent sound = *pSound;
 
         DeviceType device = GetDocument()->GetDevice();
-        TrackInfo trackInfo;
+        TrackInfo selectedTrackInfo;
         for (auto &ti : sound.GetTrackInfos())
         {
             if (ti.Type == (uint8_t)device)
             {
-                trackInfo = ti;
+                selectedTrackInfo = ti;
                 break;
             }
         }
@@ -444,30 +460,32 @@ void CSoundView::_RecalculateChannelBitmaps()
         DWORD width = max(1, rect.Width() - 1);
         DWORD dwTotalTicks = sound.GetTotalTicks();
 
-        int height = (rect.Height() * 2 / 3) / 15;
-        if (_PrepChannelBitmaps(width, height))
+        int height = (rect.Height() * 2 / 3) / max(pSound->GetChannelInfos().size(), 15);
+        if (_PrepChannelBitmaps(width, height, pSound->GetChannelInfos().size()))
         {
-            std::vector<BYTE> channelValues[15];  // the data we'll eventually put in the bitmaps
-            std::vector<bool> isEventAtPosition[15];
+            std::vector<std::vector<BYTE>> channelValues;  // the data we'll eventually put in the bitmaps
+            channelValues.resize(_channelBitmaps.size());
+            std::vector<std::vector<bool>> isEventAtPosition;
+            isEventAtPosition.resize(_channelBitmaps.size());
 
-            for (size_t i = 0; i < ARRAYSIZE(channelValues); i++)
+            for (size_t i = 0; i < channelValues.size(); i++)
             {
                 channelValues[i].resize(width, 255); // 255 is a sentinel value indicating undefined
                 isEventAtPosition[i].resize(width, false);
             }
 
             set<int> channelNumbersUsed;
-            for (int channelId : trackInfo.ChannelIds)
+            for (size_t channelId = 0; channelId < sound.GetChannelInfos().size(); channelId++)
             {
+                ChannelInfo &channelInfo = sound.GetChannelInfos()[channelId];
+
                 // We need some arrays to determine which notes are on on which track.
                 uint8_t vNote[128]; // 128 possible notes on each.  This array holds the velocity value.
                 memset(vNote, 0, sizeof(vNote));
                 BYTE vNoteMax[128]; // 128 possible notes on each.  This array holds the velocity value.
                 memset(vNoteMax, 0, sizeof(vNoteMax));
 
-                ChannelInfo &channelInfo = sound.GetChannelInfos()[channelId];
-                uint8_t channel = channelInfo.Number;
-                channelNumbersUsed.insert(channel);
+                channelNumbersUsed.insert(channelId);
                 std::vector<SoundEvent> &events = channelInfo.Events;
 
                 DWORD dwTotalTicksCopy = dwTotalTicks;
@@ -504,16 +522,16 @@ void CSoundView::_RecalculateChannelBitmaps()
 
                             //size_t channelValuePos = dwPos * width / dwTotalTicks;
                             size_t channelValuePos = dwPos;
-                            if (channelValuePos < channelValues[channel].size())
+                            if (channelValuePos < channelValues[channelId].size())
                             {
-                                isEventAtPosition[channel][channelValuePos] = true;
+                                isEventAtPosition[channelId][channelValuePos] = true;
 
                                 // We have a bug in our calcualtions here ^^. Either in GetTotalTicks or whatever.
                                 // But dwPos can be equal to GetTotalTicks, which is not good. e.g. SQ3 sound 0.
-                                BYTE current = channelValues[channel][channelValuePos];
+                                BYTE current = channelValues[channelId][channelValuePos];
                                 if ((current == 255) || (loudest > current))
                                 {
-                                    channelValues[channel][channelValuePos] = loudest;
+                                    channelValues[channelId][channelValuePos] = loudest;
                                 }
                             }
                         }
@@ -525,36 +543,37 @@ void CSoundView::_RecalculateChannelBitmaps()
 
             // Now we create the bitmaps!
             size_t eventPositionIndex = 0;
-            for (int channel = 0; channel < ARRAYSIZE(_channelBitmaps); channel++)
+            for (int channelId = 0; channelId < (int)_channelBitmaps.size(); channelId++)
             {
                 std::vector<CPoint> eventPoints;
                 std::vector<DWORD> pointCounts;
                 eventPoints.reserve(200);
                 pointCounts.reserve(100);
 
+                _channelNumbers[channelId] = sound.GetChannelInfos()[channelId].Number;
 
                 CDC *pDC = GetDC();
                 CDC dcMem;
                 if (dcMem.CreateCompatibleDC(pDC))
                 {
-                    HGDIOBJ hOld = dcMem.SelectObject(_channelBitmaps[channel]);
+                    HGDIOBJ hOld = dcMem.SelectObject(*_channelBitmaps[channelId]);
                     dcMem.FillSolidRect(0, 0, width, height, ColorTrackBackground);
 
                     BYTE loudness = 0;
-                    for (size_t posStart = 0; posStart < channelValues[channel].size();)
+                    for (size_t posStart = 0; posStart < channelValues[channelId].size();)
                     {
-                        loudness = channelValues[channel][posStart];
+                        loudness = channelValues[channelId][posStart];
                         if (loudness == 255)
                         {
                             loudness = 0;
                         }
                         int cy = max(1, height * loudness / 128);
                         size_t posEnd = posStart;
-                        while (posEnd < channelValues[channel].size() &&
-                            (channelValues[channel][posEnd] == 255 ||
-                            channelValues[channel][posEnd] == loudness))
+                        while (posEnd < channelValues[channelId].size() &&
+                            (channelValues[channelId][posEnd] == 255 ||
+                            channelValues[channelId][posEnd] == loudness))
                         {
-                            if (isEventAtPosition[channel][posEnd])
+                            if (isEventAtPosition[channelId][posEnd])
                             {
                                 eventPoints.emplace_back(posEnd, height - cy);
                                 eventPoints.emplace_back(posEnd, height);
@@ -564,7 +583,9 @@ void CSoundView::_RecalculateChannelBitmaps()
                             posEnd++;
                         }
                         // If we got here, it is time to draw.
-                        COLORREF cr = (channelNumbersUsed.find(channel) != channelNumbersUsed.end()) ? ColorActiveTrack : ColorSilentTrack;
+                        COLORREF  cr = (find(selectedTrackInfo.ChannelIds.begin(), selectedTrackInfo.ChannelIds.end(), channelId) == selectedTrackInfo.ChannelIds.end()) ?
+                                    ColorSilentTrack :
+                                    ColorActiveTrack;
                         dcMem.FillSolidRect((int)posStart, height - cy, (int)(posEnd - posStart), cy, cr);
 
                         posStart = posEnd;
@@ -636,7 +657,7 @@ void CSoundView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
                 Invalidate(FALSE);
             }
 
-            if (IsFlagSet(hint, SoundChangeHint::ActiveCueChanged))
+            if (IsFlagSet(hint, SoundChangeHint::ActiveCueChanged | SoundChangeHint::SelectedChannelChanged))
             {
                 // TODO: invalidate a smaller region.
                 Invalidate(FALSE);
@@ -683,12 +704,12 @@ WORD CSoundView::GetTempo() const
 }
 
 
-void CSoundView::_OnDrawTrackHeader(CDC *pDC, int channel, bool fChannelOn)
+void CSoundView::_OnDrawTrackHeader(CDC *pDC, int channelId, int channel, bool fChannelOn)
 {
     CRect rect = _GetLeftMargin();
     rect.left += 2;
-    rect.top = _GetTrackY(channel);
-    rect.bottom = rect.top + _GetTrackHeight(channel);
+    rect.top = _GetTrackY(channelId);
+    rect.bottom = rect.top + _GetTrackHeight(channelId);
 
     bool canEditChannelMask = _CanEditChannelMask();
 
@@ -697,12 +718,12 @@ void CSoundView::_OnDrawTrackHeader(CDC *pDC, int channel, bool fChannelOn)
 
 	CExtPaintManager::PAINTCHECKRADIOBUTTONDATA _pmid(
 		this, // Sketchy
-        (channel == _channelHover) ? (fChannelOn ? CExtPaintManager::BOX_MOUSE_HOVER_CHECKED : CExtPaintManager::BOX_MOUSE_HOVER_UNCHECKED) : (fChannelOn ? CExtPaintManager::BOX_CHECKED : CExtPaintManager::BOX_UNCHECKED),
+        (channelId == _channelIdHover) ? (fChannelOn ? CExtPaintManager::BOX_MOUSE_HOVER_CHECKED : CExtPaintManager::BOX_MOUSE_HOVER_UNCHECKED) : (fChannelOn ? CExtPaintManager::BOX_CHECKED : CExtPaintManager::BOX_UNCHECKED),
 		false,
 		false,
 		rect,
 		sz,
-		(channel == _channelHover),
+        (channelId == _channelIdHover),
 		false,
         canEditChannelMask,
 		false,
@@ -714,31 +735,49 @@ void CSoundView::OnDraw(CDC *pDC)
 {
     WORD wMask = 0;
     CSoundDoc *pDoc = GetDocument();
+    const SoundComponent *pSound = nullptr;
+    int selectedChannelId = -1;
     if (pDoc)
     {
-        wMask = pDoc->GetSoundComponent()->CalculateChannelMask(pDoc->GetDevice());
+        pSound = pDoc->GetSoundComponent();
+        wMask = pSound->CalculateChannelMask(pDoc->GetDevice());
+        selectedChannelId = pDoc->GetChannelId();
     }
 
     CRect rectClient;
     GetClientRect(&rectClient);
 
+    CBrush solidBrush(ColorSelectedTrackBackgroundMask);
+
     CRect rect = _GetTrackArea();
-    int cyTrack = rect.Height() / ARRAYSIZE(_channelBitmaps);
-    int yRemainder = cyTrack * ARRAYSIZE(_channelBitmaps);
-    for (int i = 0; i < ARRAYSIZE(_channelBitmaps); i++)
+    int cyTrack = rect.Height() / _channelBitmaps.size();
+    int yRemainder = cyTrack * _channelBitmaps.size();
+    for (int i = 0; i < (int)_channelBitmaps.size(); i++)
     {
         int yTrack = _GetTrackY(i);
         int cyTrack = _GetTrackHeight(i);
         CRect rectTrack(rect.left, yTrack, rect.right, yTrack + cyTrack);
-        pDC->FillSolidRect(rectClient.left, rectTrack.top, rectClient.Width(), rectTrack.Height(), ColorTrackBackground);
+        pDC->FillSolidRect(rectClient.left, rectTrack.top, rectClient.Width(), rectTrack.Height(), (selectedChannelId == i) ? ColorSelectedTrackBackground : ColorTrackBackground);
 
-        _OnDrawTrackHeader(pDC, i, (((0x1 << i) & wMask) != 0));
+        _OnDrawTrackHeader(pDC, i, _channelNumbers[i], (((0x1 << _channelNumbers[i]) & wMask) != 0));
 
         CDC dcMem;
         if (dcMem.CreateCompatibleDC(pDC))
         {
-            HGDIOBJ hOld = dcMem.SelectObject(_channelBitmaps[i]);
-            BOOL fSuccess = BitBlt(*pDC, rectTrack.left, rectTrack.top, rectTrack.Width(), rectTrack.Height(), dcMem, 0, 0, SRCCOPY);
+            CSize bitmapSize = _channelBitmaps[i]->GetBitmapDimension();
+
+            int yOffset = (rectTrack.Height() - bitmapSize.cy) / 2;
+            HGDIOBJ hOld = dcMem.SelectObject(*_channelBitmaps[i]);
+            if (selectedChannelId == i)
+            {
+                HGDIOBJ hOldBrush = pDC->SelectObject(solidBrush);
+                BitBlt(*pDC, rectTrack.left, rectTrack.top + yOffset, rectTrack.Width(), bitmapSize.cy, dcMem, 0, 0, MERGECOPY);
+                pDC->SelectObject(hOldBrush);
+            }
+            else
+            {
+                BitBlt(*pDC, rectTrack.left, rectTrack.top + yOffset, rectTrack.Width(), bitmapSize.cy, dcMem, 0, 0, SRCCOPY);
+            }
             dcMem.SelectObject(hOld);
         }
     }
@@ -841,18 +880,15 @@ void CSoundView::_SetCursorPos()
     }
 }
 
-int CSoundView::_HitTestChannelHeader(CPoint pt)
+int CSoundView::_HitTestChannelHeader(CPoint pt, bool &hitHeader)
 {
-    if (pt.x < (TRACK_MARGIN - 5)) // 5: provide a little "dead space" between margin and track.
-    {
-        CRect rect;
-        GetClientRect(&rect);
-        rect.bottom -= BOTTOM_MARGIN;
-        int cyTrack = rect.Height() / ARRAYSIZE(_channelBitmaps);
-        int channel = pt.y / cyTrack;
-        return (channel < ARRAYSIZE(_channelBitmaps)) ? channel : -1;
-    }
-    return -1;
+    hitHeader = pt.x < (TRACK_MARGIN - 5); // 5: provide a little "dead space" between margin and track.
+    CRect rect;
+    GetClientRect(&rect);
+    rect.bottom -= BOTTOM_MARGIN;
+    int cyTrack = rect.Height() / _channelBitmaps.size();
+    int channel = pt.y / cyTrack;
+    return (channel < (int)_channelBitmaps.size()) ? channel : -1;
 }
 
 bool CSoundView::_IsInLoopTrack(CPoint pt)
