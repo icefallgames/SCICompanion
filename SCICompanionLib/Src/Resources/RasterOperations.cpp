@@ -571,7 +571,7 @@ RasterChange SetGroupBitmapData(RasterComponent &raster, int cCels, CelIndex *rg
     {
         SetBitmapData(raster, CelIndex(rgdwIndex[i]), ppData[i]);
     }
-    return (cCels > 1) ? RasterChange(RasterChangeHint::Loop) : RasterChange(RasterChangeHint::Cel, rgdwIndex[0]);
+    return (cCels > 1) ? RasterChange(RasterChangeHint::Loop, rgdwIndex[0]) : RasterChange(RasterChangeHint::Cel, rgdwIndex[0]);
 }
 
 RasterChange SetSize(RasterComponent &raster, CelIndex celIndex, size16 newSize, RasterResizeFlags resizeFlags)
