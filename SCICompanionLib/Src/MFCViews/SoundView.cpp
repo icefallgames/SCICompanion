@@ -223,24 +223,14 @@ void CSoundView::_OnButtonDown(CPoint point)
         CSoundDoc *pDoc = GetDocument();
         if (hitHeader)
         {
-            if (_CanEditChannelMask())
+            pDoc->ApplyChanges<SoundComponent>(
+                [pDoc, channelId](SoundComponent &sound)
             {
-                // Toggle this channel
-                const SoundComponent *pSound = GetSoundComponent();
-                WORD wMask = pSound->CalculateChannelMask(pDoc->GetDevice());
-                // phil - need 
-                int channelNumber = pSound->GetChannelInfos()[channelId].Number;
-                wMask ^= (0x1 << channelNumber); // Toggle our channel
-
-                pDoc->ApplyChanges<SoundComponent>(
-                    [pDoc, wMask](SoundComponent &sound)
-                {
-                    return WrapHint(sound.SetChannelMask(pDoc->GetDevice(), wMask));
-                }
-                );
-
-                _InvalidateChannelHeaders();
+                return WrapHint(sound.ToggleChannelId(pDoc->GetDevice(), channelId));
             }
+            );
+
+            _InvalidateChannelHeaders();
         }
         else
         {
@@ -711,7 +701,8 @@ void CSoundView::_OnDrawTrackHeader(CDC *pDC, int channelId, int channel, bool f
     rect.top = _GetTrackY(channelId);
     rect.bottom = rect.top + _GetTrackHeight(channelId);
 
-    bool canEditChannelMask = _CanEditChannelMask();
+    //bool canEditChannelMask = _CanEditChannelMask();
+    bool canEditChannelMask = true;
 
     char sz[10];
     StringCchPrintf(sz, ARRAYSIZE(sz), "%d", channel + 1);
@@ -759,7 +750,8 @@ void CSoundView::OnDraw(CDC *pDC)
         CRect rectTrack(rect.left, yTrack, rect.right, yTrack + cyTrack);
         pDC->FillSolidRect(rectClient.left, rectTrack.top, rectClient.Width(), rectTrack.Height(), (selectedChannelId == i) ? ColorSelectedTrackBackground : ColorTrackBackground);
 
-        _OnDrawTrackHeader(pDC, i, _channelNumbers[i], (((0x1 << _channelNumbers[i]) & wMask) != 0));
+        bool channelOn = pSound && pSound->DoesDeviceChannelIdOn(pDoc->GetDevice(), i);
+        _OnDrawTrackHeader(pDC, i, _channelNumbers[i], channelOn);
 
         CDC dcMem;
         if (dcMem.CreateCompatibleDC(pDC))
@@ -888,7 +880,12 @@ int CSoundView::_HitTestChannelHeader(CPoint pt, bool &hitHeader)
     rect.bottom -= BOTTOM_MARGIN;
     int cyTrack = rect.Height() / _channelBitmaps.size();
     int channel = pt.y / cyTrack;
-    return (channel < (int)_channelBitmaps.size()) ? channel : -1;
+    int channelId =  (channel < (int)_channelBitmaps.size()) ? channel : -1;
+    if (channelId == -1)
+    {
+        hitHeader = false;
+    }
+    return channelId;
 }
 
 bool CSoundView::_IsInLoopTrack(CPoint pt)

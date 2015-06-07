@@ -208,6 +208,8 @@ public:
     DWORD GetTotalTicks() const { return max(1, TotalTicks); }   // 0 causes div by zero errors }
 
     // New sound model
+    SoundChangeHint SetChannelId(DeviceType type, int channelId, bool on);
+    SoundChangeHint ToggleChannelId(DeviceType type, int channelId);
     std::vector<ChannelInfo> &GetChannelInfos() { return _allChannels; }
     std::vector<TrackInfo> &GetTrackInfos() { return _tracks; }
     const std::vector<ChannelInfo> &GetChannelInfos() const  { return _allChannels; }
@@ -215,6 +217,7 @@ public:
     const TrackInfo *GetTrackInfo(DeviceType device) const;
     const ChannelInfo *GetChannelInfo(DeviceType device, int channelNumber) const;
     bool DoesDeviceHaveTracks(DeviceType device) const;
+    bool DoesDeviceChannelIdOn(DeviceType device, int channelId) const;
     const SoundTraits &Traits;
 
 private:

@@ -166,6 +166,79 @@ uint16_t SoundComponent::CalculateChannelMask(DeviceType device) const
     return wMask;
 }
 
+bool SoundComponent::DoesDeviceChannelIdOn(DeviceType device, int channelId) const
+{
+    const TrackInfo *track = GetTrackInfo(device);
+    return (track && find(track->ChannelIds.begin(), track->ChannelIds.end(), channelId) != track->ChannelIds.end());
+}
+
+SoundChangeHint SoundComponent::ToggleChannelId(DeviceType type, int channelId)
+{
+    bool on = DoesDeviceChannelIdOn(type, channelId);
+    return SetChannelId(type, channelId, !on);
+}
+
+SoundChangeHint SoundComponent::SetChannelId(DeviceType type, int channelId, bool on)
+{
+    SoundChangeHint hint = SoundChangeHint::None;
+    if (channelId < (int)_allChannels.size())
+    {
+        // Make a TrackInfo for this device, if none exists
+        TrackInfo *track = nullptr;
+        for (auto &temp : _tracks)
+        {
+            if (temp.Type == (uint8_t)type)
+            {
+                track = &temp;
+                break;
+            }
+        }
+        if (!track)
+        {
+            _tracks.emplace_back();
+            track = &_tracks.back();
+            track->Type = (uint8_t)type;
+            hint |= SoundChangeHint::Changed;
+        }
+
+        if (on)
+        {
+            // If we're adding, we should fail if it already includes another channel with
+            // the same number.
+            int channelNumber = _allChannels[channelId].Number;
+            bool canAdd = true;
+            for (int channelId : track->ChannelIds)
+            {
+                if (_allChannels[channelId].Number == channelNumber)
+                {
+                    // this channel is already on (possibly from another channelid)
+                    canAdd = false;
+                    break;
+                }
+            }
+            if (canAdd)
+            {
+                track->ChannelIds.push_back(channelId);
+                hint |= SoundChangeHint::Changed;
+            }
+        }
+        else
+        {
+            // If we're removing, this is easy, just erase
+            for (size_t i = 0; i < track->ChannelIds.size(); i++)
+            {
+                if (track->ChannelIds[i] == channelId)
+                {
+                    track->ChannelIds.erase(track->ChannelIds.begin() + i);
+                    hint |= SoundChangeHint::Changed;
+                    break;
+                }
+            }
+        }
+    }
+    return hint;
+}
+
 SoundChangeHint SoundComponent::SetChannelMask(DeviceType device, uint16_t wChannels)
 {
     TrackInfo newTrackInfo;
@@ -437,9 +510,11 @@ DWORD CombineSoundEvents(const std::vector<std::vector<SoundEvent> > &tracks, st
             _trackTimeDelta[bestTrack] += event.wTimeDelta;
             // This is now our new time delta
             dwTimeDelta = _trackTimeDelta[bestTrack];
+            assert(dwTimeDelta < 0xf0000000);
             _trackPos[bestTrack]++; // We took one event from this track.
 
             // Fixup the event time before adding it.
+            assert(dwTimeDelta >= dwLastTimeDelta);
             event.wTimeDelta = dwTimeDelta - dwLastTimeDelta;
             results.push_back(event);
             dwLastTimeDelta = dwTimeDelta;
@@ -469,7 +544,9 @@ void SoundComponent::_NormalizeToSCITempo()
         {
             SoundEvent &event = events[i];
             dwTimeOrig = dwLastTimeOrig + event.wTimeDelta;
-            event.wTimeDelta = (DWORD)MulDiv(MulDiv(dwTimeOrig, SCI_PPQN, (int)_wDivision), StandardTempo, _wTempoIfChanged) - dwLastTimeNew;
+            DWORD temp = (DWORD)MulDiv(MulDiv(dwTimeOrig, SCI_PPQN, (int)_wDivision), StandardTempo, _wTempoIfChanged);
+            assert(temp >= dwLastTimeNew);
+            event.wTimeDelta = temp - dwLastTimeNew;
             dwLastTimeNew += event.wTimeDelta;
             dwLastTimeOrig = dwTimeOrig;
         }
@@ -553,6 +630,7 @@ SoundEvent _MakeCueEvent(CuePoint cue, DWORD dwTicksPrior)
         event.bParam1 = cue.GetValue();
         ASSERT(event.bParam1 < 127);
     }
+    assert(cue.GetTickPos() >= dwTicksPrior);
     event.wTimeDelta = cue.GetTickPos() - dwTicksPrior;
     return event;
 }
@@ -611,6 +689,7 @@ void SoundComponent::_RationalizeCuesAndLoops()
                     if (loopEvent.wTimeDelta && (i < events.size()))
                     {
                         // Adjust the current event's time delta
+                        assert(events[i].wTimeDelta >= loopEvent.wTimeDelta);
                         events[i].wTimeDelta -= loopEvent.wTimeDelta;
                     }
                     events.insert(events.begin() + i, loopEvent);
@@ -662,6 +741,7 @@ void SoundComponent::_RationalizeCuesAndLoops()
                             if (cueEvent.wTimeDelta)
                             {
                                 // Adjust the current event's time delta
+                                assert(event.wTimeDelta >= cueEvent.wTimeDelta);
                                 event.wTimeDelta -= cueEvent.wTimeDelta;
                             }
                             //Events.insert(&Events[i], cueEvent); // we may have invalidated SoundEvent &event now.
@@ -688,6 +768,7 @@ void SoundComponent::_RationalizeCuesAndLoops()
                     if (cueEvent.wTimeDelta && (cueIndex < events.size()))
                     {
                         // Adjust the current event's time delta
+                        assert(events[cueIndex].wTimeDelta >= cueEvent.wTimeDelta);
                         events[cueIndex].wTimeDelta -= cueEvent.wTimeDelta;
                     }
                     events.insert(events.begin() + cueIndex, cueEvent);
@@ -1278,6 +1359,7 @@ void ConvertSCI0ToNewFormat(const vector<SoundEvent> &events, SoundComponent &so
             if ((event.GetChannel() == channelNumber) || (event.GetChannel() == 15))
             {
                 SoundEvent newEvent = event;
+                assert(ticksSoFar >= prevTicks);
                 newEvent.wTimeDelta = ticksSoFar - prevTicks;
                 prevTicks = ticksSoFar;
                 channel.Events.push_back(newEvent);

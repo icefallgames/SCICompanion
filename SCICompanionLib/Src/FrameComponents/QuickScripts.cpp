@@ -389,7 +389,6 @@ void QuickScriptsSidePane::_ResetUI()
         m_wndGotoMessage.SetWindowTextA("Messages");
     }
 
-
     // Update the bitmap.
     // Get the script object for this script.
 	SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser();
