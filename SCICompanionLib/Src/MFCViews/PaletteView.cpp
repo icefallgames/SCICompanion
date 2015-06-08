@@ -7,7 +7,7 @@
 
 IMPLEMENT_DYNCREATE(CPaletteView, CFormView)
 
-CPaletteView::CPaletteView() : PaletteEditorCommon< CExtWA < CExtWS < CExtAFV < CFormView >  > >  >(IDD_PALETTE_EDITOR_EMBEDDED, nullptr)
+CPaletteView::CPaletteView() : PaletteEditorCommon< CExtWA < CExtWS < CExtAFV < CFormView >  > >  >(nullptr, IDD_PALETTE_EDITOR_EMBEDDED, nullptr)
 {
 }
 

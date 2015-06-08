@@ -2860,7 +2860,7 @@ void CRasterView::EditVGAPalette()
                     // TODO: support removing one too
 
                     PaletteComponent paletteCopy = *palette; // Since we'll be changing it, and this is const
-                    PaletteEditorDialog paletteEditor(paletteCopy, cels);
+                    PaletteEditorDialog paletteEditor(nullptr, paletteCopy, cels);
                     paletteEditor.DoModal();
                     PaletteComponent paletteResult = paletteEditor.GetPalette();
                     if (addedPalette || (paletteResult != *palette))

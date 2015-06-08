@@ -572,6 +572,9 @@
 #define IDC_CHECK10                     1276
 #define IDC_CHECK11                     1277
 #define IDC_EDITNUMCHARS                1278
+#define IDC_BUTTONCYCLELEFT             1279
+#define IDC_CHECKPREVIEWCYCLING         1280
+#define IDC_BUTTONCYCLERIGHT            1281
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -828,7 +831,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        376
 #define _APS_NEXT_COMMAND_VALUE         33184
-#define _APS_NEXT_CONTROL_VALUE         1279
+#define _APS_NEXT_CONTROL_VALUE         1281
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

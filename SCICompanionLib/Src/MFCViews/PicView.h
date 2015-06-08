@@ -29,7 +29,7 @@ struct CommandModifier
     void Delete(PicComponent &pic);
 };
 
-class CPicView : public CScrollingThing<CView>, public IPaletteDefinitionCallback, public IBitmapEditor, public IPicDrawPlugin
+class CPicView : public CScrollingThing<CView>, public IPaletteDefinitionCallback, public IBitmapEditor, public IPicDrawPlugin, public IVGAPaletteDefinitionCallback
 {
 private: // create from serialization only
     CPicView();
@@ -80,6 +80,9 @@ public:
     // IBitmapEditor
     CPoint GetCursorPos() override;
     PicScreen GetPicScreen() override { return _mainViewScreen; }
+
+    // IVGAPaletteDefinitionCallback
+    void OnVGAPaletteChanged() override;
 
 protected:
     void InvalidateOurselves();

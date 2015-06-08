@@ -11,14 +11,41 @@ struct Cel;
 class PaletteEditorDialog : public PaletteEditorCommon<CExtResizableDialog>, public INonViewClient
 {
 public:
-    PaletteEditorDialog(PaletteComponent &palette, const std::vector<const Cel*> &cels);  // standard constructor
+    PaletteEditorDialog(IVGAPaletteDefinitionCallback *callback, PaletteComponent &palette, const std::vector<const Cel*> &cels);  // standard constructor
     PaletteEditorDialog();
 
     // Dialog Data
     enum { IDD = IDD_PALETTE_EDITOR };
 
+    void DoDataExchange(CDataExchange* pDX) override;
+
     // INonViewClient
     void UpdateNonView(CObject *pObject) override;
     DECLARE_MESSAGE_MAP()
     afx_msg void OnBnClickedButtonSaverange();
+
+    // IColorDialogCallback
+    void OnColorClick(BYTE bIndex, int nID, BOOL fLeftClick) override;
+
+protected:
+    void OnCancel() override;
+    void OnOK() override;
+
+private:
+    void OnTimer(UINT_PTR nIDEvent);
+    void _UpdateCycleUI();
+    void _SyncCheckState();
+    void _SyncSelectionCycle();
+
+    CExtCheckBox m_wndPreviewCycling;
+    CExtRadioButton m_wndCycleLeft;
+    CExtRadioButton m_wndCycleRight;
+    bool _cycleForward;
+    bool _cycling;
+    bool _initialized;
+    std::unique_ptr<PaletteComponent> _cyclePaletteCopy;
+public:
+    afx_msg void OnBnClickedCheckpreviewcycling();
+    afx_msg void OnBnClickedButtoncycleleft();
+    afx_msg void OnBnClickedButtoncycleright();
 };

@@ -45,9 +45,8 @@ enum class PicChangeHint
     ZoomLevel = 0x00000080,
     // Cursor pos
     CursorPosition = 0x00000200,
-    // Cursor pos
     ViewScreenChange = 0x00000400,
-   
+    PreviewPalette = 0x00000800,
 };
 
 
@@ -79,6 +78,8 @@ public:
     void ExplicitNotify(PicChangeHint hint);
 
     void v_OnUndoRedo();
+
+    void SetPreviewPalette(const PaletteComponent *palette);
 
 // Operations
 public:
@@ -118,6 +119,8 @@ private:
     void _NotifyNewResource(PicChangeHint hint);
     PicComponent *_GetPic() const;
     PaletteComponent *_GetPalette() const;
+
+    const PaletteComponent *_previewPalette;
 
     void PostApplyChanges() override;
 

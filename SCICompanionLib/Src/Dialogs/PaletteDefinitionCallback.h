@@ -8,4 +8,8 @@ public:
     virtual void OnPreviewOff() = 0;
 };
 
-
+class IVGAPaletteDefinitionCallback
+{
+public:
+    virtual void OnVGAPaletteChanged() = 0;
+};

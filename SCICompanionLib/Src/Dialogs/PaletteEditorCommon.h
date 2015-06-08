@@ -7,6 +7,7 @@
 #include "AppState.h"
 #include "format.h"
 #include "GradientDialog.h"
+#include "PaletteDefinitionCallback.h"
 
 template<class T>
 class PaletteEditorCommon : public T, public IColorDialogCallback
@@ -14,7 +15,7 @@ class PaletteEditorCommon : public T, public IColorDialogCallback
 public:
     // TODO: Set the used value as 0x3 or 0x1, depending.
 
-    PaletteEditorCommon<T>(UINT id, CWnd *pwnd) : T(id, pwnd) {}
+    PaletteEditorCommon<T>(IVGAPaletteDefinitionCallback *callback, UINT id, CWnd *pwnd) : T(id, pwnd), _callback(callback) {}
 
     void UpdateCommon(CObject *pObject)
     {
@@ -47,7 +48,6 @@ public:
     // IColorDialogCallback
     void OnColorClick(BYTE bIndex, int nID, BOOL fLeftClick)
     {
-
         _mainSelectedIndex = bIndex;
         _SyncUI();
         _SyncSelection();
@@ -304,6 +304,7 @@ protected:
     CExtEdit m_wndEditDescription;
 
     ResourceEntityDocument *_pDoc;
+    IVGAPaletteDefinitionCallback *_callback;
 
 public:
     afx_msg void OnBnClickedButtonrevert();
@@ -422,6 +423,11 @@ void PaletteEditorCommon<T>::OnBnClickedButtoneditcolor()
             }
             _UpdateDocument();
             _SyncPalette();
+
+            if (_callback)
+            {
+                _callback->OnVGAPaletteChanged();
+            }
         }
     }
 }
@@ -439,6 +445,10 @@ void PaletteEditorCommon<T>::OnBnClickedButtonGradient()
             *_palette = paletteCopy;
             _UpdateDocument();
             _SyncPalette();
+            if (_callback)
+            {
+                _callback->OnVGAPaletteChanged();
+            }
         }
     }
 }

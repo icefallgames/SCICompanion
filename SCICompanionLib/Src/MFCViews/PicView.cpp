@@ -511,7 +511,10 @@ void CPicView::EditVGAPalette()
         }
 
         PaletteComponent paletteCopy = *palette; // Since we'll be changing it, and this is const
-        PaletteEditorDialog paletteEditor(paletteCopy, cels);
+        PaletteEditorDialog paletteEditor(this, paletteCopy, cels);
+
+        GetDocument()->SetPreviewPalette(&paletteCopy);
+
         paletteEditor.DoModal();
         PaletteComponent paletteResult = paletteEditor.GetPalette();
         if (paletteResult != *palette)
@@ -525,6 +528,8 @@ void CPicView::EditVGAPalette()
             }
             );
         }
+
+        GetDocument()->SetPreviewPalette(nullptr);
     }
 }
 
@@ -1898,6 +1903,15 @@ CPoint CPicView::GetCursorPos()
     return _ptCurrentHover;
 }
 
+void CPicView::OnVGAPaletteChanged()
+{
+    CPicDoc *pDoc = GetDocument();
+    if (pDoc)
+    {
+        pDoc->UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::PreviewPalette));
+    }
+}
+
 bool CPicView::EnsureBitmapUpToDate(CDC *pDCMem, PicScreen screen, bool force)
 {
     _EnsureDoubleBuffer(screen);
@@ -2515,7 +2529,7 @@ void CPicView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
         }
     }
 
-    if (IsFlagSet(hint, PicChangeHint::NewPic | PicChangeHint::EditPicPos | PicChangeHint::Palette | PicChangeHint::EditPicInvalid))
+    if (IsFlagSet(hint, PicChangeHint::NewPic | PicChangeHint::EditPicPos | PicChangeHint::Palette | PicChangeHint::EditPicInvalid | PicChangeHint::PreviewPalette))
     {
         // Need to redraw the pic, yup
         InvalidateOurselvesImmediately();

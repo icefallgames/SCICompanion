@@ -30,12 +30,18 @@ END_MESSAGE_MAP()
 
 // CPicDoc construction/destruction
 
-CPicDoc::CPicDoc()
+CPicDoc::CPicDoc() : _previewPalette(nullptr)
 {
 }
 
 CPicDoc::~CPicDoc()
 {
+}
+
+void CPicDoc::SetPreviewPalette(const PaletteComponent *palette)
+{
+    _previewPalette = palette;
+    UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::PreviewPalette));
 }
 
 void CPicDoc::_CloneCurrentAndAdd()
@@ -348,7 +354,7 @@ PaletteComponent *CPicDoc::_GetPalette() const
 
 PicDrawManager &CPicDoc::GetDrawManager()
 {
-    _pdm.SetPic(_GetPic(), _GetPalette());
+    _pdm.SetPic(_GetPic(), _previewPalette ? _previewPalette : _GetPalette());
     return _pdm;
 };
 
