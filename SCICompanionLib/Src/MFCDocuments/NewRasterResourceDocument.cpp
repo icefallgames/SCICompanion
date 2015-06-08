@@ -27,10 +27,10 @@ BEGIN_MESSAGE_MAP(CNewRasterResourceDocument, TCLASS_2(CUndoResource, CResourceD
     ON_UPDATE_COMMAND_UI(ID_FILE_EXPORTASBITMAP, CResourceDocument::OnUpdateAlwaysOn) // Put this here instead of in CResourceDocument
     ON_COMMAND(ID_ANIMATE, OnAnimate)
     ON_COMMAND(ID_IMPORT_IMAGESEQUENCE, OnImportImageSequence)
+    ON_COMMAND(ID_MAKEFONT, MakeFont)
     ON_UPDATE_COMMAND_UI(ID_IMPORT_IMAGESEQUENCE, OnUpdateImportImage)
     ON_UPDATE_COMMAND_UI(ID_ANIMATE, OnUpdateAnimate)
-
-
+    ON_UPDATE_COMMAND_UI(ID_MAKEFONT, OnUpdateFont)
 END_MESSAGE_MAP()
 
 CNewRasterResourceDocument::CNewRasterResourceDocument()
@@ -495,6 +495,19 @@ void CNewRasterResourceDocument::OnUpdateImportImage(CCmdUI *pCmdUI)
 void CNewRasterResourceDocument::OnUpdateAnimate(CCmdUI *pCmdUI)
 {
     pCmdUI->Enable();
+}
+
+void CNewRasterResourceDocument::OnUpdateFont(CCmdUI *pCmdUI)
+{
+    const ResourceEntity *resource = GetResource();
+    if (resource && resource->TryGetComponent<FontComponent>())
+    {
+        pCmdUI->Enable(TRUE);
+    }
+    else
+    {
+        pCmdUI->Enable(FALSE);
+    }
 }
 
 void CNewRasterResourceDocument::OnAnimate()

@@ -144,7 +144,7 @@ void InitFontFromLOGFONT(RasterComponent &raster, FontComponent &fontComponent, 
             HGDIOBJ hFontOld = dc.SelectObject(&font);
 
             // Figure out how much space above and below the letters we can remove.
-            for (int i = 0; i < LetterCount; i++)
+            for (int i = 0; i < raster.CelCount(0); i++)
             {
                 int iAbove, iBelow;
                 RenderLetter(raster, i, &dc, (char)i, true, &maxCharHeight, &iAbove, &iBelow);
@@ -154,7 +154,7 @@ void InitFontFromLOGFONT(RasterComponent &raster, FontComponent &fontComponent, 
             maxCharHeight -= iAboveMin + iBelowMin;
             // TODO: work out a better calculation here:
             fontComponent.LineHeight = maxCharHeight;
-            for (int i = 0; i < LetterCount; i++)
+            for (int i = 0; i < raster.CelCount(0); i++)
             {
                 RenderLetter(raster, i, &dc, (char)i, false, &maxCharHeight, &iAboveMin, &iBelowMin);
             }

@@ -719,6 +719,25 @@ void SoundComponent::_RationalizeCuesAndLoops()
                         i++;
                     }
                 }
+
+
+                // phil temp test - wow, this fixes it.
+                if (events.size() == 0)
+                {
+                    SoundEvent temp;
+                    temp.wTimeDelta = 0;
+                    temp.bParam1 = 0x50;
+                    temp.bParam2 = 0x7f;
+                    temp.SetRawStatus(0xbf);
+                    events.push_back(temp);
+                    temp.wTimeDelta = 0;
+                    temp.bParam1 = 0x0a;
+                    temp.bParam2 = 0x40;
+                    temp.SetRawStatus(0xbf);
+                    events.push_back(temp);
+                }
+
+
                 // Now add cue points back in.
                 // However, first we need to sort our cue point array.
                 sort(Cues.begin(), Cues.end(), predTicks);
@@ -753,12 +772,13 @@ void SoundComponent::_RationalizeCuesAndLoops()
                                 // Perhaps there is another cue point to be inserted in this spot?
                                 fDoneWithCuesHere = false;
                             }
+                            dwTotalTicks += cueEvent.wTimeDelta;
                         }
                         else
                         {
                             fDoneWithCuesHere = true;
+                            dwTotalTicks += wTimeDelta;
                         }
-                        dwTotalTicks += wTimeDelta;
                     }
                 }
                 // Any more at the end:
@@ -772,6 +792,7 @@ void SoundComponent::_RationalizeCuesAndLoops()
                         events[cueIndex].wTimeDelta -= cueEvent.wTimeDelta;
                     }
                     events.insert(events.begin() + cueIndex, cueEvent);
+                    dwTotalTicks += cueEvent.wTimeDelta;
                     ++cueIt;
                     ++cueIndex;
                 }

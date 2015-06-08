@@ -56,6 +56,7 @@ DEFINE_ENUM_FLAGS(BitmapScaleOptions, uint8_t)
 HBITMAP GetBitmap(RasterComponent &raster, const PaletteComponent *palette, CelIndex celIndex, int cx, int cy, BitmapScaleOptions scaleOptions);
 HBITMAP GetBitmap(Cel &cel, const PaletteComponent *palette, int cx, int cy, BitmapScaleOptions scaleOptions, uint8_t bgFillColor);
 void CopyBitmapData(const RasterComponent &raster, CelIndex celIndex, uint8_t *pData, size16 size);
+void CopyBitmapData(const Cel &cel, uint8_t *pData, size16 size);
 RasterChange SetPlacement(RasterComponent &raster, CelIndex celIndex, int16_t x, int16_t y);
 RasterChange SetGroupPlacement(RasterComponent &raster, int cItems, CelIndex *rgdwIndex, int16_t x, int16_t y);
 RasterChange SetTransparentColor(RasterComponent &raster, CelIndex celIndex, uint8_t color);

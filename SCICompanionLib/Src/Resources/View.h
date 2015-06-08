@@ -157,6 +157,7 @@ struct RasterComponent : ResourceComponent
     int CelCount(int nLoop) const { return (int)Loops[nLoop].Cels.size(); }
     Cel& GetCel(CelIndex index);
     const Cel& RasterComponent::GetCel(CelIndex index) const;
+    const Cel& RasterComponent::GetCelFallback(CelIndex index) const;
 
     static RasterComponent CreateDegenerate();
 

@@ -101,6 +101,7 @@ private:
     afx_msg void OnImportImageSequence();
     afx_msg void OnUpdateImportImage(CCmdUI *pCmdUI);
     afx_msg void OnUpdateAnimate(CCmdUI *pCmdUI);
+    afx_msg void OnUpdateFont(CCmdUI *pCmdUI);
 
     bool _fLocked;
     int _nPenWidth;

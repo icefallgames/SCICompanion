@@ -114,13 +114,13 @@ void CFontPreviewView::_OnDraw(CDC *pDC, BOOL fHitTestOnly, CPoint point, int *p
         for (size_t i = 0; i < _previewLetters.length(); i++)
         {
             uint8_t bChar = (uint8_t)_previewLetters[i];
-            const Cel &cel = raster.Loops[0].Cels[bChar];
+            const Cel &cel = raster.GetCelFallback(CelIndex(0, bChar));
             size16 size = cel.size;
             assert(size.cx <= 127);
             assert(size.cy <= 127);
             if (!fHitTestOnly)
             {
-                ::CopyBitmapData(raster, CelIndex(0, bChar), pData.get(), cel.size);
+                ::CopyBitmapData(cel, pData.get(), cel.size);
             }
             if ((x + size.cx) > (_GetViewWidth() / _iZoom))
             {
@@ -250,7 +250,7 @@ void CFontPreviewView::_RecalcHeight()
         for (size_t i = 0; i < _previewLetters.length(); i++)
         {
             uint8_t bChar = (uint8_t)_previewLetters[i];
-            const Cel &cel = raster.Loops[0].Cels[bChar];
+            const Cel &cel = raster.GetCelFallback(CelIndex(0, bChar));
 
             assert(cel.size.cx <= 127);
             assert(cel.size.cy <= 127);

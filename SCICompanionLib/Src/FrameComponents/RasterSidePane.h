@@ -52,6 +52,7 @@ private:
     void OnEditCelX();
     void OnEditCelY();
     void OnEditLineHeight();
+    void OnEditNumChars();
     void OnEditSampleText();
     void OnUp();
     void OnDown();
@@ -111,6 +112,7 @@ private:
     bool _fSupportsFonts;
     CEdit m_wndLineHeight;
     CEdit m_wndSampleText;
+    CEdit m_wndNumChars;
 
     // Wingdings font for directional buttons
     CFont m_font;
@@ -140,6 +142,7 @@ private:
     CExtLabel m_wndStatic5;
     CExtLabel m_wndStatic6;
     CExtLabel m_wndStatic7;
+    CExtLabel m_wndStatic8;
     CExtGroupBox m_wndGroup1;
     CExtGroupBox m_wndGroup2;
     CExtCheckBox m_wndIsScalable;

@@ -9,6 +9,16 @@ const uint16_t MaxLineHeight = 128;
 
 Cel celTemplate(size16(0, 0), point16(0, 0), 0xf);
 
+uint16_t FontTraits::ValidateCharCount(uint16_t charCount) const
+{
+    charCount = max(1, charCount);
+    if (!SupportsExtendedCharSet)
+    {
+        charCount = SCI0LetterCount;
+    }
+    return charCount;
+}
+
 void ReadLetter(RasterComponent &raster, int nLetter, sci::istream &byteStream)
 {
     uint8_t cx;
@@ -67,7 +77,7 @@ void FontReadFrom(ResourceEntity &resource, sci::istream &byteStream)
 
     // Some validation
     // TODO: report a status error 
-    cChars = min((uint16_t)LetterCount, cChars);
+    cChars = min(256, cChars);
     // 1 - 128 seems reasonable for line height
     font.LineHeight = max(1, font.LineHeight);
     font.LineHeight = min(MaxLineHeight, font.LineHeight);
@@ -133,7 +143,7 @@ void FontWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
     byteStream.WriteWord(0);
     // The number of characters
     uint16_t cChars = (uint16_t)raster.Loops[0].Cels.size();
-    assert(cChars == 128);  // This is all that is supported in SCI0
+    assert((cChars == 128) || font.Traits.SupportsExtendedCharSet);  // This is all that is supported in SCI0
     byteStream.WriteWord(cChars);
     // The height of each line
     byteStream.WriteWord(font.LineHeight);
@@ -193,7 +203,7 @@ RasterSettings fontRasterSettings =
     6   // Zoom 
 };
 
-ResourceTraits fontTraits =
+ResourceTraits fontResTraits =
 {
     ResourceType::Font,
     &FontReadFrom,
@@ -201,11 +211,27 @@ ResourceTraits fontTraits =
     &NoValidationFunc
 };
 
+FontTraits fontTraitsSCI0 =
+{
+    false
+};
+FontTraits fontTraitsSCI1 =
+{
+    true
+};
+
 ResourceEntity *CreateFontResource(SCIVersion version)
 {
-    std::unique_ptr<ResourceEntity> pResource = std::make_unique<ResourceEntity>(fontTraits);
+    FontTraits *fontTraits = &fontTraitsSCI0;
+    // ASSUMPTION: VGA views means fonts can have extended chars. I don't know this for sure,
+    // we might need some other detection mechanism.
+    if (version.ViewFormat != ViewFormat::EGA)
+    {
+        fontTraits = &fontTraitsSCI1;
+    }
+    std::unique_ptr<ResourceEntity> pResource = std::make_unique<ResourceEntity>(fontResTraits);
     pResource->AddComponent(move(make_unique<RasterComponent>(fontRasterTraits, fontRasterSettings)));
-    pResource->AddComponent(move(make_unique<FontComponent>()));
+    pResource->AddComponent(move(make_unique<FontComponent>(*fontTraits)));
     return pResource.release();
 }
 
@@ -220,7 +246,7 @@ ResourceEntity *CreateDefaultFontResource(SCIVersion version)
     loop.Cels.push_back(cel);
     raster.Loops.push_back(loop);
     ::FillEmpty(raster, CelIndex(0, 0), size16(8, 8));
-    for (int nCel = 1; nCel < LetterCount; nCel++)
+    for (int nCel = 1; nCel < SCI0LetterCount; nCel++)
     {
         ::InsertCel(raster, CelIndex(0, nCel - 1), false, true);
     }

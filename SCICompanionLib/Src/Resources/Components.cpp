@@ -43,6 +43,12 @@ const Cel& RasterComponent::GetCel(CelIndex index) const
     return Loops[index.loop].Cels[index.cel];
 }
 
+const Cel& RasterComponent::GetCelFallback(CelIndex index) const
+{
+    uint16_t loopNumber = min(index.loop, (uint16_t)(LoopCount() - 1));
+    uint16_t celNumber = min(index.cel, (uint16_t)(Loops[loopNumber].Cels.size() - 1));
+    return Loops[loopNumber].Cels[celNumber];
+}
 
 int PaddedSize(size16 size)
 {

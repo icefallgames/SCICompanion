@@ -11,6 +11,7 @@
 #include "AppState.h"
 #include "FontOperations.h"
 #include "PaletteOperations.h"
+#include "format.h"
 
 // RasterSidePane
 
@@ -61,6 +62,7 @@ BEGIN_MESSAGE_MAP(RasterSidePane, CExtDialogFwdCmd)
     ON_EN_KILLFOCUS(IDC_EDIT_CELX, OnEditCelX)
     ON_EN_KILLFOCUS(IDC_EDIT_CELY, OnEditCelY)
     ON_EN_KILLFOCUS(IDC_EDIT_LINEHEIGHT, OnEditLineHeight)
+    ON_EN_KILLFOCUS(IDC_EDITNUMCHARS, OnEditNumChars)
     ON_EN_UPDATE(IDC_EDIT_SAMPLE, OnEditSampleText)
     ON_COMMAND(IDC_BUTTON_ADDCELBEFORE, OnAddCelBefore)
     ON_COMMAND(IDC_BUTTON_ADDCELAFTER, OnAddCelAfter)
@@ -474,6 +476,43 @@ void RasterSidePane::OnEditCelHeight() { _OnEditSize(IDC_EDIT_CELHEIGHT, &m_wndC
 void RasterSidePane::OnEditCelX() { _OnEditSize(IDC_EDIT_CELX, &m_wndCelX); }
 void RasterSidePane::OnEditCelY() { _OnEditSize(IDC_EDIT_CELY, &m_wndCelY); }
 
+void RasterSidePane::OnEditNumChars()
+{
+    if (_pDoc && _fSupportsFonts)
+    {
+        CString strNumber;
+        m_wndNumChars.GetWindowText(strNumber);
+        uint16_t wNew = (uint16_t)StrToInt(strNumber);
+
+        // Clip to between 1 and 255 (do all SCI interpreters handle extended char sets?)
+        const FontComponent &fontComponent = static_cast<CNewRasterResourceDocument*>(_pDoc)->GetResource()->GetComponent<FontComponent>();
+        wNew = fontComponent.Traits.ValidateCharCount(wNew);
+
+        _SyncCelPane(); // In case we changed wNew
+
+        _pDoc->ApplyChanges<RasterComponent>(
+            [wNew](RasterComponent &raster)
+        {
+            Loop &loop = raster.Loops[0];
+            RasterChangeHint hint = RasterChangeHint::None;
+            while (loop.Cels.size() != wNew)
+            {
+                hint = RasterChangeHint::NewView;
+                if (loop.Cels.size() > wNew)
+                {
+                    RemoveCel(raster, CelIndex(0, loop.Cels.size() - 1));
+                }
+                else
+                {
+                    InsertCel(raster, CelIndex(0, loop.Cels.size() - 1), false, false);
+                }
+            }
+            return WrapHint(hint);
+        }
+        );
+    }
+}
+
 void RasterSidePane::OnEditLineHeight()
 {
     if (_pDoc && _fSupportsFonts)
@@ -690,14 +729,13 @@ void RasterSidePane::_SyncCelPane()
             }
         }
 
-        // Font line height
+        // Font line height and number of chars
         FontComponent *fontComponent = static_cast<CNewRasterResourceDocument*>(_pDoc)->GetResource()->TryGetComponent<FontComponent>();
         if (fontComponent)
         {
             assert(_fSupportsFonts);
-            std::stringstream ss;
-            ss << (int)fontComponent->LineHeight;
-            m_wndLineHeight.SetWindowText(ss.str().c_str());
+            m_wndLineHeight.SetWindowText(fmt::format("{0}", (int)fontComponent->LineHeight).c_str());
+            m_wndNumChars.SetWindowText(fmt::format("{0}", (int)raster.Loops[0].Cels.size()).c_str());
         }
     }
 }
@@ -868,8 +906,10 @@ void RasterSidePane::DoDataExchange(CDataExchange* pDX)
     {
         DDX_Control(pDX, IDC_EDIT_LINEHEIGHT, m_wndLineHeight);
         DDX_Control(pDX, IDC_EDIT_SAMPLE, m_wndSampleText);
+        DDX_Control(pDX, IDC_EDITNUMCHARS, m_wndNumChars);
         AddAnchor(IDC_EDIT_LINEHEIGHT, CPoint(100, 0), CPoint(100, 0));
         AddAnchor(IDC_EDIT_SAMPLE, CPoint(0, 0), CPoint(100, 0));
+        AddAnchor(IDC_EDITNUMCHARS, CPoint(100, 0), CPoint(100, 0));
         _fSupportsFonts = true;
     }
     if (GetDlgItem(IDC_COMBO_MIRROR))
@@ -1001,6 +1041,11 @@ void RasterSidePane::DoDataExchange(CDataExchange* pDX)
     {
         DDX_Control(pDX, IDC_STATIC7, m_wndStatic7);
         AddAnchor(IDC_STATIC7, CPoint(100, 0), CPoint(100, 0));
+    }
+    if (GetDlgItem(IDC_STATIC8))
+    {
+        DDX_Control(pDX, IDC_STATIC8, m_wndStatic8);
+        AddAnchor(IDC_STATIC8, CPoint(0, 0), CPoint(100, 0));
     }
     if (GetDlgItem(IDC_STATIC_CELGROUP))
     {
