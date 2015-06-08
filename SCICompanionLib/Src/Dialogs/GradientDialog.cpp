@@ -75,8 +75,8 @@ void GradientDialog::_SyncPalette()
     else if (_gradientType == 0)
     {
         // Linear
-        RGBQUAD startRGB = RGBQUADFromCOLORREF(_center);
-        RGBQUAD endRGB = RGBQUADFromCOLORREF(_edge);
+        RGBQUAD startRGB = RGBQUADFromCOLORREF(_edge);
+        RGBQUAD endRGB = RGBQUADFromCOLORREF(_center);
         for (int i = _start; i <= (int)_endInclusive; i++)
         {
             int progression1000 = (_endInclusive - i) * 1000 / (_endInclusive - _start);
@@ -91,7 +91,7 @@ void GradientDialog::_SyncPalette()
 void GradientDialog::OnBnClickedButtoncenter()
 {
     CExtColorDlg colorDialog(_center, _center);
-    colorDialog.m_strCaption = "Edit center color";
+    colorDialog.m_strCaption = "Edit color A";
     if (IDOK == colorDialog.DoModal())
     {
         _center = colorDialog.m_clrNew;
@@ -102,7 +102,7 @@ void GradientDialog::OnBnClickedButtoncenter()
 void GradientDialog::OnBnClickedButtonedges()
 {
     CExtColorDlg colorDialog(_edge, _edge);
-    colorDialog.m_strCaption = "Edit center color";
+    colorDialog.m_strCaption = "Edit color B";
     if (IDOK == colorDialog.DoModal())
     {
         _edge = colorDialog.m_clrNew;
