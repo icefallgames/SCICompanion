@@ -2,7 +2,7 @@
 #include "SoundOperations.h"
 #include "format.h"
 
-SoundChangeHint InitializeFromMidi(DeviceType device, SoundComponent &sound, const std::string &filename)
+SoundChangeHint InitializeFromMidi(SCIVersion version, DeviceType device, SoundComponent &sound, const std::string &filename)
 {
     uint16_t channels[ChannelCount];
     FillMemory(channels, sizeof(channels), 0);
@@ -45,17 +45,17 @@ SoundChangeHint InitializeFromMidi(DeviceType device, SoundComponent &sound, con
 
                         sound.TotalTicks = maxTotalTicks;
 
-                        uint16_t channels[ChannelCount];
-                        for (int i = 0; i < ARRAYSIZE(channels); i++)
+                        uint16_t channelsSCI0[ChannelCount];
+                        for (int i = 0; i < ARRAYSIZE(channelsSCI0); i++)
                         {
                             // Which channels are used? Need to pass this to ConvertSCI0ToNewFormat
                             if (wChannelMask & (0x1 << i))
                             {
-                                channels[i] = 0xff00;
+                                channelsSCI0[i] = 0xff00;
                             }
                             else
                             {
-                                channels[i] = 0;
+                                channelsSCI0[i] = 0;
                             }
                         }
 
@@ -66,7 +66,15 @@ SoundChangeHint InitializeFromMidi(DeviceType device, SoundComponent &sound, con
                         RemoveTempoChanges(combined, tempoChanges, tempo, totalTicks);
                         sound._wTempoIfChanged = tempo;
                         sound.TotalTicks = totalTicks;
-                        ConvertSCI0ToNewFormat(combined, sound, channels);      // Uncombine
+                        ConvertSCI0ToNewFormat(combined, sound, (version.SoundFormat == SoundFormat::SCI0) ? channelsSCI0 : nullptr);      // Uncombine
+
+                        for (auto &channelInfo : sound.GetChannelInfos())
+                        {
+                            if (channelInfo.Number != 15)
+                            {
+                                EnsureChannelPreamble(channelInfo);
+                            }
+                        }
 
                         sound.SetChannelMask(device, wChannelMask);
                     }

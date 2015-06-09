@@ -389,14 +389,14 @@ CRect CSoundView::_GetTrackArea()
     rect.bottom -= BOTTOM_MARGIN;
     return rect;
 }
-int CSoundView::_GetTrackHeight(int track)
+int CSoundView::_GetTrackHeight()
 {
-    return _GetTrackY(track + 1) - _GetTrackY(track);
+    return _GetTrackY(1) - _GetTrackY(0);
 }
 int CSoundView::_GetTrackY(int track)
 {
     CRect rect = _GetTrackArea();
-    return rect.top + track * rect.Height() / _channelBitmaps.size();
+    return rect.top + track * rect.Height() / max(16, _channelBitmaps.size());
 }
 
 // Adjust the timing of each event so that the whole resource ends up being a certain amount of ticks
@@ -699,7 +699,7 @@ void CSoundView::_OnDrawTrackHeader(CDC *pDC, int channelId, int channel, bool f
     CRect rect = _GetLeftMargin();
     rect.left += 2;
     rect.top = _GetTrackY(channelId);
-    rect.bottom = rect.top + _GetTrackHeight(channelId);
+    rect.bottom = rect.top + _GetTrackHeight();
 
     //bool canEditChannelMask = _CanEditChannelMask();
     bool canEditChannelMask = true;
@@ -741,12 +741,11 @@ void CSoundView::OnDraw(CDC *pDC)
     CBrush solidBrush(ColorSelectedTrackBackgroundMask);
 
     CRect rect = _GetTrackArea();
-    int cyTrack = rect.Height() / _channelBitmaps.size();
-    int yRemainder = cyTrack * _channelBitmaps.size();
+    int cyTrack = _GetTrackHeight();
     for (int i = 0; i < (int)_channelBitmaps.size(); i++)
     {
         int yTrack = _GetTrackY(i);
-        int cyTrack = _GetTrackHeight(i);
+        int cyTrack = _GetTrackHeight();
         CRect rectTrack(rect.left, yTrack, rect.right, yTrack + cyTrack);
         pDC->FillSolidRect(rectClient.left, rectTrack.top, rectClient.Width(), rectTrack.Height(), (selectedChannelId == i) ? ColorSelectedTrackBackground : ColorTrackBackground);
 
@@ -878,7 +877,7 @@ int CSoundView::_HitTestChannelHeader(CPoint pt, bool &hitHeader)
     CRect rect;
     GetClientRect(&rect);
     rect.bottom -= BOTTOM_MARGIN;
-    int cyTrack = rect.Height() / _channelBitmaps.size();
+    int cyTrack = _GetTrackHeight();
     int channel = pt.y / cyTrack;
     int channelId =  (channel < (int)_channelBitmaps.size()) ? channel : -1;
     if (channelId == -1)

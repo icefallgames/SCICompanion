@@ -47,8 +47,9 @@ uint8_t _GetChannel(uint8_t bStatus)
     return bStatus & 0x0F; // Lower nibble
 }
 
-void SoundComponent::_EnsureChannel15()
+SoundChangeHint SoundComponent::_EnsureChannel15()
 {
+    SoundChangeHint hint = SoundChangeHint::None;
     bool found = false;
     for (auto &channelInfo : _allChannels)
     {
@@ -74,7 +75,9 @@ void SoundComponent::_EnsureChannel15()
         {
             track.ChannelIds.push_back(channel15.Id);
         }
+        hint |= SoundChangeHint::Changed;
     }
+    return hint;
 }
 
 SoundComponent::SoundComponent(const SoundTraits &traits) : Traits(traits)
@@ -193,19 +196,33 @@ SoundChangeHint SoundComponent::SetChannelId(DeviceType type, int channelId, boo
                 break;
             }
         }
+
+        int channelNumber = _allChannels[channelId].Number;
+
         if (!track)
         {
             _tracks.emplace_back();
             track = &_tracks.back();
             track->Type = (uint8_t)type;
             hint |= SoundChangeHint::Changed;
+            // We just added a track. If there is a channel 15, then add it to this track
+            if (on && (channelNumber != 15))    // Because then we'll add it anyway...
+            {
+                for (size_t channelIdTemp = 0; channelIdTemp < _allChannels.size(); channelIdTemp++)
+                {
+                    if (_allChannels[channelIdTemp].Number == 15)
+                    {
+                        track->ChannelIds.push_back(channelIdTemp);
+                        break;
+                    }
+                }
+            }
         }
 
         if (on)
         {
             // If we're adding, we should fail if it already includes another channel with
             // the same number.
-            int channelNumber = _allChannels[channelId].Number;
             bool canAdd = true;
             for (int channelId : track->ChannelIds)
             {
@@ -561,39 +578,42 @@ void RemoveTempoChanges(std::vector<SoundEvent> &events, const std::vector<Tempo
 {
     tempoOut = StandardTempo;
 
-    // Find the fastest tempo, and set that as our tempo.
-    TempoEntry entry = *max_element(tempoChanges.begin(), tempoChanges.end());
-    tempoOut = static_cast<uint16_t>(entry.dwTempo);
-    // Now adjust events
-    if (tempoChanges.size() > 1)
+    if (!tempoChanges.empty())
     {
-        ticksOut = 0; // We're going to recalculate this.
-
-        // Grab the first tempo
-        DWORD dwOriginalTicks = 0;
-        DWORD dwOldTempo = tempoChanges[0].dwTempo;
-        DWORD dwNewTempo = tempoOut;
-        size_t tempoIndex = 0;
-        DWORD dwTotalTicksAtOldTempo = 0;
-        DWORD dwTotalTicksAtNewTempo = 0;
-        for (size_t i = 0; i < events.size(); i++)
+        // Find the fastest tempo, and set that as our tempo.
+        TempoEntry entry = *max_element(tempoChanges.begin(), tempoChanges.end());
+        tempoOut = static_cast<uint16_t>(entry.dwTempo);
+        // Now adjust events
+        if (tempoChanges.size() > 1)
         {
-            dwOriginalTicks += events[i].wTimeDelta;
-            if ((tempoIndex < tempoChanges.size()) &&
-                (dwOriginalTicks >= tempoChanges[tempoIndex].dwTicks))
+            ticksOut = 0; // We're going to recalculate this.
+
+            // Grab the first tempo
+            DWORD dwOriginalTicks = 0;
+            DWORD dwOldTempo = tempoChanges[0].dwTempo;
+            DWORD dwNewTempo = tempoOut;
+            size_t tempoIndex = 0;
+            DWORD dwTotalTicksAtOldTempo = 0;
+            DWORD dwTotalTicksAtNewTempo = 0;
+            for (size_t i = 0; i < events.size(); i++)
             {
-                // We have a new tempo starting here.
-                dwOldTempo = tempoChanges[tempoIndex].dwTempo;
-                tempoIndex++;
-                dwTotalTicksAtOldTempo = 0;
-                dwTotalTicksAtNewTempo = 0;
+                dwOriginalTicks += events[i].wTimeDelta;
+                if ((tempoIndex < tempoChanges.size()) &&
+                    (dwOriginalTicks >= tempoChanges[tempoIndex].dwTicks))
+                {
+                    // We have a new tempo starting here.
+                    dwOldTempo = tempoChanges[tempoIndex].dwTempo;
+                    tempoIndex++;
+                    dwTotalTicksAtOldTempo = 0;
+                    dwTotalTicksAtNewTempo = 0;
+                }
+                DWORD dwTotalTicksAtNewTempoTemp = (dwTotalTicksAtOldTempo + events[i].wTimeDelta) * dwNewTempo / dwOldTempo;
+                assert(dwTotalTicksAtNewTempoTemp >= dwTotalTicksAtOldTempo);
+                events[i].wTimeDelta = dwTotalTicksAtNewTempoTemp - dwTotalTicksAtOldTempo;
+                ticksOut += events[i].wTimeDelta;
+                assert(events[i].wTimeDelta < 65000); // Just some sanity check for overflows.
+                dwTotalTicksAtNewTempo = dwTotalTicksAtNewTempoTemp;
             }
-            DWORD dwTotalTicksAtNewTempoTemp = (dwTotalTicksAtOldTempo + events[i].wTimeDelta) * dwNewTempo / dwOldTempo;
-            assert(dwTotalTicksAtNewTempoTemp >= dwTotalTicksAtOldTempo);
-            events[i].wTimeDelta = dwTotalTicksAtNewTempoTemp - dwTotalTicksAtOldTempo;
-            ticksOut += events[i].wTimeDelta;
-            assert(events[i].wTimeDelta < 65000); // Just some sanity check for overflows.
-            dwTotalTicksAtNewTempo = dwTotalTicksAtNewTempoTemp;
         }
     }
 }
@@ -611,7 +631,7 @@ void _RemoveEvent(size_t index, std::vector<SoundEvent> &events)
 
 bool predTicks(CuePoint &cue1, CuePoint &cue2)
 {
-    return (cue1.GetTickPos() <= cue2.GetTickPos());
+    return (cue1.GetTickPos() < cue2.GetTickPos());
 }
 
 SoundEvent _MakeCueEvent(CuePoint cue, DWORD dwTicksPrior)
@@ -635,6 +655,108 @@ SoundEvent _MakeCueEvent(CuePoint cue, DWORD dwTicksPrior)
     return event;
 }
 
+bool SoundEvent::operator == (const SoundEvent &other)
+{
+    return _bStatus == other._bStatus &&
+        bParam1 == other.bParam1 &&
+        bParam2 == other.bParam2 &&
+        wTimeDelta == other.wTimeDelta;
+}
+bool SoundEvent::operator!=(const SoundEvent &other)
+{
+    return !(*this == other);
+}
+
+const SoundEvent g_Channel16Mandatory0(0, 0x50, 0x7f, 0xbf);
+const SoundEvent g_Channel16Mandatory1(0, 0x0a, 0x40, 0xbf);
+
+void _EnsureCh15Presamble(vector<SoundEvent> &events)
+{
+    // If we have a loop point or cues, these events are mandatory, or else the SCI interpreter will hang when playing the sound.
+    bool need0 = true;
+    bool need1 = true;
+    DWORD ticks = 0;
+    size_t i = 0;
+    while ((ticks == 0) && (i < events.size()))
+    {
+        if (events[i] == g_Channel16Mandatory0)
+        {
+            need0 = false;
+        }
+        if (events[i] == g_Channel16Mandatory1)
+        {
+            need1 = false;
+        }
+        ticks += events[i].wTimeDelta;
+        i++;
+    }
+    if (need0)
+    {
+        events.insert(events.begin(), g_Channel16Mandatory0);
+    }
+    if (need1)
+    {
+        events.insert(events.begin() + 1, g_Channel16Mandatory1);
+    }
+}
+
+// The user can't edit midi directly, so we only need to do this when importing midi files.
+void EnsureChannelPreamble(ChannelInfo &channel)
+{
+    vector<SoundEvent> &events = channel.Events;
+    // For non-channel 15s, ensure there is a volume and pan position at delta zero.
+    int existingVolumeIndex = -1;
+    int existingPanIndex = -1;
+    DWORD ticks = 0;
+    size_t i = 0;
+    while ((ticks == 0) && (i < events.size()))
+    {
+        if (events[i].wTimeDelta == 0)
+        {
+            if (events[i].GetCommand() == SoundEvent::Command::Control)
+            {
+                if ((existingVolumeIndex == -1) && (events[i].bParam1 == 7))
+                {
+                    existingVolumeIndex = i;
+                }
+                if ((existingPanIndex == -1) && (events[i].bParam1 == 9))
+                {
+                    existingPanIndex = i;
+                }
+            }
+        }
+        ticks += events[i].wTimeDelta;
+        i++;
+    }
+
+    // Put it after program change
+    size_t insertIndex = 0;
+    if (!events.empty() && events[0].GetCommand() == SoundEvent::Command::ProgramChange)
+    {
+        insertIndex++;
+    }
+
+    if (existingPanIndex == -1)
+    {
+        // pan 64, by default
+        uint8_t status = (uint8_t)channel.Number;
+        status |= SoundEvent::Command::Control;
+        if (existingVolumeIndex != -1)
+        {
+            // Pan must follow volume, or else the first several seconds of sound won't play.
+            insertIndex = existingVolumeIndex + 1;
+        }
+        events.insert(events.begin() + insertIndex, SoundEvent(0, 10, 64, status));
+    }
+    if (existingVolumeIndex == -1)
+    {
+        // Volume 127, by default
+        uint8_t status = (uint8_t)channel.Number;
+        status |= SoundEvent::Command::Control;
+        events.insert(events.begin() + insertIndex, SoundEvent(0, 7, 127, status));
+    }
+}
+
 void SoundComponent::_RationalizeCuesAndLoops()
 {
     // REVIEW: I'm not sure all this complexity is needed anymore, now that we store things in different
@@ -644,6 +766,12 @@ void SoundComponent::_RationalizeCuesAndLoops()
         if (channel.Number == 15)
         {
             vector<SoundEvent> &events = channel.Events;
+
+            if ((LoopPoint != LoopPointNone) || !Cues.empty())
+            {
+                _EnsureCh15Presamble(events);
+            }
+
             if (_fReEvaluateLoopPoint)
             {
                 // First remove any loop points
@@ -720,32 +848,21 @@ void SoundComponent::_RationalizeCuesAndLoops()
                     }
                 }
 
-
-                // phil temp test - wow, this fixes it.
-                if (events.size() == 0)
-                {
-                    SoundEvent temp;
-                    temp.wTimeDelta = 0;
-                    temp.bParam1 = 0x50;
-                    temp.bParam2 = 0x7f;
-                    temp.SetRawStatus(0xbf);
-                    events.push_back(temp);
-                    temp.wTimeDelta = 0;
-                    temp.bParam1 = 0x0a;
-                    temp.bParam2 = 0x40;
-                    temp.SetRawStatus(0xbf);
-                    events.push_back(temp);
-                }
-
-
+                vector<CuePoint> cuesCopy = Cues;
                 // Now add cue points back in.
                 // However, first we need to sort our cue point array.
-                sort(Cues.begin(), Cues.end(), predTicks);
+                sort(cuesCopy.begin(), cuesCopy.end(), predTicks);
+                // If we have any cues, we need to place another cue at zero with value zero. Otherwise, the interpreter hangs
+                if (!cuesCopy.empty() && (cuesCopy[0].GetTickPos() != 0))
+                {
+                    // Insert a non-cumulative cue with value zero at time zero
+                    cuesCopy.insert(cuesCopy.begin(), CuePoint(CuePoint::Type::NonCumulative, 0, 0));
+                }
 
                 DWORD dwTotalTicks = 0;
-                std::vector<CuePoint>::iterator cueIt = Cues.begin();
+                std::vector<CuePoint>::iterator cueIt = cuesCopy.begin();
                 size_t cueIndex = 0;
-                for (; (cueIt != Cues.end()) && (cueIndex < events.size()); cueIndex++)
+                for (; (cueIt != cuesCopy.end()) && (cueIndex < events.size()); cueIndex++)
                 {
                     bool fDoneWithCuesHere = false;
                     while (!fDoneWithCuesHere)
@@ -767,7 +884,7 @@ void SoundComponent::_RationalizeCuesAndLoops()
                             events.insert(events.begin() + cueIndex, cueEvent); // we may have invalidated SoundEvent &event now.
                             ++cueIt;        // Go to the next cue.
                             ++cueIndex;     // We just added one to the events, so double-increment this.
-                            if (cueIt != Cues.end())
+                            if (cueIt != cuesCopy.end())
                             {
                                 // Perhaps there is another cue point to be inserted in this spot?
                                 fDoneWithCuesHere = false;
@@ -782,7 +899,7 @@ void SoundComponent::_RationalizeCuesAndLoops()
                     }
                 }
                 // Any more at the end:
-                while (cueIt != Cues.end())
+                while (cueIt != cuesCopy.end())
                 {
                     SoundEvent cueEvent = _MakeCueEvent(*cueIt, dwTotalTicks);
                     if (cueEvent.wTimeDelta && (cueIndex < events.size()))
@@ -812,9 +929,10 @@ void SoundComponent::_RationalizeCuesAndLoops()
 
 SoundChangeHint SoundComponent::AddCuePoint(CuePoint cue)
 {
-    _EnsureChannel15();
+    SoundChangeHint hint = SoundChangeHint::None;
+    hint |= _EnsureChannel15();
     Cues.push_back(cue);
-    return SoundChangeHint::CueChanged;
+    return hint | SoundChangeHint::CueChanged;
 }
 
 SoundChangeHint SoundComponent::DeleteCue(size_t index)
@@ -842,17 +960,18 @@ SoundChangeHint SoundComponent::SetCue(size_t index, CuePoint cue)
 
 SoundChangeHint SoundComponent::SetLoopPoint(DWORD dwTicks)
 {
+    SoundChangeHint hint = SoundChangeHint::None;
     if (dwTicks != LoopPointNone)
     {
-        _EnsureChannel15();
+        hint |= _EnsureChannel15();
     }
     if (LoopPoint != dwTicks)
     {
         LoopPoint = dwTicks;
         _fReEvaluateLoopPoint = true;
-        return SoundChangeHint::Changed;
+        hint |= SoundChangeHint::Changed;
     }
-    return SoundChangeHint::None;
+    return hint;
 }
 
 void WriteChannelStream(const vector<SoundEvent> &events, sci::ostream &byteStream, uint8_t channelNumber = 0xff)
@@ -1333,7 +1452,7 @@ void ScanAndReadDigitalSample(ResourceEntity &resource, sci::istream stream)
     }
 }
 
-void ConvertSCI0ToNewFormat(const vector<SoundEvent> &events, SoundComponent &sound, uint16_t *channels)
+void ConvertSCI0ToNewFormat(const vector<SoundEvent> &events, SoundComponent &sound, uint16_t *channelsSCI0)
 {
     // Given these:
     //  uint16_t _channels[15];
@@ -1345,23 +1464,38 @@ void ConvertSCI0ToNewFormat(const vector<SoundEvent> &events, SoundComponent &so
 
     map<uint8_t, set<int>> tracksToUsedChannelNumbers;
     set<int> usedChannelNumbers;
-    for (int channelNumber = 0; channelNumber < ChannelCount; channelNumber++)
+    if (channelsSCI0)
     {
-        uint16_t mask = channels[channelNumber];
-        mask >>= 8; // We're only interested in the upper 8 bits
-        for (uint8_t trackOrder = 0; trackOrder < 8; trackOrder++)
+        for (int channelNumber = 0; channelNumber < ChannelCount; channelNumber++)
         {
-            if (mask & 0x1)
+            uint16_t mask = channelsSCI0[channelNumber];
+            mask >>= 8; // We're only interested in the upper 8 bits
+            for (uint8_t trackOrder = 0; trackOrder < 8; trackOrder++)
             {
-                tracksToUsedChannelNumbers[0x1 << trackOrder].insert(channelNumber);
-                usedChannelNumbers.insert(channelNumber);
+                if (mask & 0x1)
+                {
+                    tracksToUsedChannelNumbers[0x1 << trackOrder].insert(channelNumber);
+                    usedChannelNumbers.insert(channelNumber);
+                }
+                mask >>= 1;
             }
-            mask >>= 1;
         }
     }
+    else
+    {
+        // SCI1
+        for (const SoundEvent &event : events)
+        {
+            usedChannelNumbers.insert(event.GetChannel());
+        }
+    }
+    // usedChannelNumbers.insert(15); // No, never! Not needed in base case. Causes issues if we have no cues/loops
 
     // Roland always has channel 9
-    tracksToUsedChannelNumbers[(uint8_t)DeviceType::RolandMT32].insert(9);
+    if (channelsSCI0)
+    {
+        tracksToUsedChannelNumbers[(uint8_t)DeviceType::RolandMT32].insert(9);
+    }
 
     // Construct the channels and put the separated sound events into them
     map<int, int> channelNumberToId;

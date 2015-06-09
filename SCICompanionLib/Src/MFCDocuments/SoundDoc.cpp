@@ -171,7 +171,7 @@ bool ImportMidi(DeviceType device, ResourceEntity *resourceEntity)
     {
         CString fileName = fileDialog.GetPathName();
         SoundComponent &sound = resourceEntity->GetComponent<SoundComponent>();
-        if (InitializeFromMidi(device, sound, (PCSTR)fileName) != SoundChangeHint::None)
+        if (InitializeFromMidi(appState->GetVersion(), device, sound, (PCSTR)fileName) != SoundChangeHint::None)
         {
             success = true;
         }

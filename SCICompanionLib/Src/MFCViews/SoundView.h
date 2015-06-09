@@ -91,7 +91,7 @@ private:
     CRect _GetBottomMargin();
     CRect _GetLeftMargin();
     CRect _GetTrackArea();
-    int _GetTrackHeight(int track);
+    int _GetTrackHeight();
     int _GetTrackY(int track);
     CPoint _GetLoopIconLocation();
     bool _IsInLoopTrack(CPoint pt);

@@ -15,7 +15,7 @@ namespace sci
 
 enum class DeviceType
 {
-    // SCI0
+    // SCI0 - these can be OR'd together
     RolandMT32 = 0x01,
     YamahaFB01 = 0x02,
     Adlib = 0x04,
@@ -25,7 +25,7 @@ enum class DeviceType
     DevUnknown = 0x40,
     NewGM = 0x80,
 
-    // SCI1
+    // SCI1 - these cannot.
     SCI1_Adlib = 0x00,
     SCI1_GM = 0x07,
     SCI1_GameBlaster = 0x09,
@@ -46,6 +46,10 @@ DEFINE_ENUM_FLAGS(DeviceType, uint8_t)
 class SoundEvent
 {
 public:
+    SoundEvent() : wTimeDelta(0), bParam1(0), bParam2(0), _bStatus(0){}
+    SoundEvent(DWORD timeDelta, uint8_t param1, uint8_t param2, uint8_t status) :
+        wTimeDelta(timeDelta), bParam1(param1), bParam2(param2), _bStatus(status)
+    {}
 
     enum Command
     {
@@ -77,6 +81,9 @@ public:
     {
         return ((GetCommand() == NoteOff) || ((GetCommand() == NoteOn) && (bParam2 == 0)));
     }
+
+    bool operator==(const SoundEvent &other);
+    bool operator!=(const SoundEvent &other);
 
     DWORD wTimeDelta;
     uint8_t bParam1;
@@ -176,7 +183,7 @@ public:
     friend void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream);
     friend void SoundReadFrom_SCI1OLD(ResourceEntity &resource, sci::istream &stream);
     friend void SoundReadFrom_SCI0(ResourceEntity &resource, sci::istream &stream);
-    friend SoundChangeHint InitializeFromMidi(DeviceType device, SoundComponent &sound, const std::string &filename);
+    friend SoundChangeHint InitializeFromMidi(SCIVersion version, DeviceType device, SoundComponent &sound, const std::string &filename);
     friend void ReadChannel(sci::istream &stream, std::vector<SoundEvent> &events, DWORD &totalTicks, SoundComponent &sound, int *mustBeChannel = nullptr);
     friend void ScanAndReadDigitalSample(ResourceEntity &resource, sci::istream stream);
     friend void ConvertSCI0ToNewFormat(const std::vector<SoundEvent> &events, SoundComponent &sound, uint16_t *channels);
@@ -211,7 +218,6 @@ public:
     SoundChangeHint SetChannelId(DeviceType type, int channelId, bool on);
     SoundChangeHint ToggleChannelId(DeviceType type, int channelId);
     std::vector<ChannelInfo> &GetChannelInfos() { return _allChannels; }
-    std::vector<TrackInfo> &GetTrackInfos() { return _tracks; }
     const std::vector<ChannelInfo> &GetChannelInfos() const  { return _allChannels; }
     const std::vector<TrackInfo> &GetTrackInfos() const  { return _tracks; }
     const TrackInfo *GetTrackInfo(DeviceType device) const;
@@ -221,7 +227,7 @@ public:
     const SoundTraits &Traits;
 
 private:
-    void _EnsureChannel15();
+    SoundChangeHint _EnsureChannel15();
 
     uint16_t _wDivision;
     DWORD LoopPoint;       // A single loop-point (tick position)
@@ -249,7 +255,7 @@ private:
 
 DWORD CombineSoundEvents(const std::vector<std::vector<SoundEvent> > &tracks, std::vector<SoundEvent> &results);
 void RemoveTempoChanges(std::vector<SoundEvent> &events, const std::vector<TempoEntry> &tempoChanges, uint16_t &tempoOut, DWORD &ticksOut);
-
+void EnsureChannelPreamble(ChannelInfo &channel);
 DWORD _ReadBEDWORD(std::istream &stream);
 uint16_t _ReadBEWORD(std::istream &stream);
 
