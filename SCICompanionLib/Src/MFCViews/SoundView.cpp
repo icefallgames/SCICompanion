@@ -389,11 +389,11 @@ CRect CSoundView::_GetTrackArea()
     rect.bottom -= BOTTOM_MARGIN;
     return rect;
 }
-int CSoundView::_GetTrackHeight()
+int CSoundView::_GetChannelHeight(int index)
 {
-    return _GetTrackY(1) - _GetTrackY(0);
+    return _GetChannelY(index + 1) - _GetChannelY(index);
 }
-int CSoundView::_GetTrackY(int track)
+int CSoundView::_GetChannelY(int track)
 {
     CRect rect = _GetTrackArea();
     return rect.top + track * rect.Height() / max(16, _channelBitmaps.size());
@@ -698,8 +698,8 @@ void CSoundView::_OnDrawTrackHeader(CDC *pDC, int channelId, int channel, bool f
 {
     CRect rect = _GetLeftMargin();
     rect.left += 2;
-    rect.top = _GetTrackY(channelId);
-    rect.bottom = rect.top + _GetTrackHeight();
+    rect.top = _GetChannelY(channelId);
+    rect.bottom = rect.top + _GetChannelHeight(channelId);
 
     //bool canEditChannelMask = _CanEditChannelMask();
     bool canEditChannelMask = true;
@@ -740,41 +740,52 @@ void CSoundView::OnDraw(CDC *pDC)
 
     CBrush solidBrush(ColorSelectedTrackBackgroundMask);
 
+    
+    //CRgn clipRegion;
+    //clipRegion.CreateRectRgn(rectClient.left, rectClient.top, rectClient.right, rectClient.bottom);
+
     CRect rect = _GetTrackArea();
-    int cyTrack = _GetTrackHeight();
     for (int i = 0; i < (int)_channelBitmaps.size(); i++)
     {
-        int yTrack = _GetTrackY(i);
-        int cyTrack = _GetTrackHeight();
+        int yTrack = _GetChannelY(i);
+        int cyTrack = _GetChannelHeight(i);
         CRect rectTrack(rect.left, yTrack, rect.right, yTrack + cyTrack);
-        pDC->FillSolidRect(rectClient.left, rectTrack.top, rectClient.Width(), rectTrack.Height(), (selectedChannelId == i) ? ColorSelectedTrackBackground : ColorTrackBackground);
+        COLORREF colorBG = (selectedChannelId == i) ? ColorSelectedTrackBackground : ColorTrackBackground;
 
+        CSize bitmapSize = _channelBitmaps[i]->GetBitmapDimension();
+        int yBitmapOffset = (rectTrack.Height() - bitmapSize.cy) / 2;
+
+        // Surrounding background area of channel
+        pDC->FillSolidRect(rectClient.left, rectTrack.top, TRACK_MARGIN, rectTrack.Height(), colorBG);    // Header (left)
+        pDC->FillSolidRect(rectClient.left + TRACK_MARGIN, yTrack, rectClient.Width() - TRACK_MARGIN, yBitmapOffset, colorBG);         // Top
+        int bottomTop = rectTrack.top + yBitmapOffset + bitmapSize.cy;
+        pDC->FillSolidRect(rectClient.left + TRACK_MARGIN, bottomTop, rectClient.Width() - TRACK_MARGIN, rectTrack.bottom - bottomTop, colorBG);// Bottom
+
+        // Channel header
         bool channelOn = pSound && pSound->DoesDeviceChannelIdOn(pDoc->GetDevice(), i);
         _OnDrawTrackHeader(pDC, i, _channelNumbers[i], channelOn);
 
+        // Channel bitmap
         CDC dcMem;
         if (dcMem.CreateCompatibleDC(pDC))
         {
-            CSize bitmapSize = _channelBitmaps[i]->GetBitmapDimension();
-
-            int yOffset = (rectTrack.Height() - bitmapSize.cy) / 2;
             HGDIOBJ hOld = dcMem.SelectObject(*_channelBitmaps[i]);
             if (selectedChannelId == i)
             {
                 HGDIOBJ hOldBrush = pDC->SelectObject(solidBrush);
-                BitBlt(*pDC, rectTrack.left, rectTrack.top + yOffset, rectTrack.Width(), bitmapSize.cy, dcMem, 0, 0, MERGECOPY);
+                BitBlt(*pDC, rectTrack.left, rectTrack.top + yBitmapOffset, rectTrack.Width(), bitmapSize.cy, dcMem, 0, 0, MERGECOPY);
                 pDC->SelectObject(hOldBrush);
             }
             else
             {
-                BitBlt(*pDC, rectTrack.left, rectTrack.top + yOffset, rectTrack.Width(), bitmapSize.cy, dcMem, 0, 0, SRCCOPY);
+                BitBlt(*pDC, rectTrack.left, rectTrack.top + yBitmapOffset, rectTrack.Width(), bitmapSize.cy, dcMem, 0, 0, SRCCOPY);
             }
             dcMem.SelectObject(hOld);
         }
     }
 
-    CRect rectBottom = _GetBottomMargin();
-    pDC->FillSolidRect(rectClient.left, rectBottom.top, rectClient.Width(), rectBottom.Height(), ColorTrackBackground);
+    int yTrackEnd = _GetChannelY((int)_channelBitmaps.size());
+    pDC->FillSolidRect(rectClient.left, yTrackEnd, rectClient.Width(), rectClient.bottom - yTrackEnd, ColorTrackBackground);
 
     // TODO: draw some sort of well.
 
@@ -877,9 +888,15 @@ int CSoundView::_HitTestChannelHeader(CPoint pt, bool &hitHeader)
     CRect rect;
     GetClientRect(&rect);
     rect.bottom -= BOTTOM_MARGIN;
-    int cyTrack = _GetTrackHeight();
-    int channel = pt.y / cyTrack;
-    int channelId =  (channel < (int)_channelBitmaps.size()) ? channel : -1;
+
+    int visibleChannelCount = max(16, (int)_channelBitmaps.size());
+
+    pt.y -= rect.top; // Normalize
+    int channelId = pt.y * (int)visibleChannelCount / rect.Height();
+    if (channelId >= (int)_channelBitmaps.size())
+    {
+        channelId = -1;
+    }
     if (channelId == -1)
     {
         hitHeader = false;

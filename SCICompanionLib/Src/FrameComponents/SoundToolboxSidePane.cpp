@@ -152,16 +152,24 @@ void SoundToolboxSidePane::OnAllChannels()
     CSoundDoc *pDoc = GetDocument();
     if (pDoc)
     {
-        uint16_t channelMask = 0;
+        bool turnOn = false;
         if (m_wndCheckAllChannels.GetCheck() == BST_CHECKED)
         {
-            channelMask = SoundComponent::AllChannelsMask;
+            turnOn = true;
         }
 
         pDoc->ApplyChanges<SoundComponent>(
             [&](SoundComponent &sound)
             {
-                return WrapHint(sound.SetChannelMask(pDoc->GetDevice(), channelMask));
+                // If there are duplicate channels (e.g. SCI1+), this is fine. SetChannelId
+                // will ignore any subsequent adds of the same channel.
+                SoundChangeHint hint = SoundChangeHint::None;
+                for (auto &channel : sound.GetChannelInfos())
+                {
+                    hint |= sound.SetChannelId(pDoc->GetDevice(), channel.Id, turnOn);
+
+                }
+                return WrapHint(hint);
             }
             );
     }
@@ -188,12 +196,22 @@ void SoundToolboxSidePane::OnEnableLoopPoint()
     }
 }
 
+const uint8_t CueInc = 10;
+
 void SoundToolboxSidePane::OnAddCue()
 {
     CSoundDoc *pDoc = GetDocument();
     if (pDoc)
     {
-        CuePoint cue(CuePoint::NonCumulative, 0, 0);
+        // Use a higher value than the previous cue.
+        uint8_t value = 0;
+        const SoundComponent *pSound = GetSound();
+        if (pSound && !pSound->GetCuePoints().empty())
+        {
+            value = pSound->GetCuePoints().back().GetValue() + CueInc;
+        }
+
+        CuePoint cue(CuePoint::NonCumulative, 0, value);
         pDoc->ApplyChanges<SoundComponent>(
             [cue](SoundComponent &sound)
             {

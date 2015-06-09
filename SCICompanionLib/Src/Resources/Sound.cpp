@@ -767,10 +767,8 @@ void SoundComponent::_RationalizeCuesAndLoops()
         {
             vector<SoundEvent> &events = channel.Events;
 
-            if ((LoopPoint != LoopPointNone) || !Cues.empty())
-            {
-                _EnsureCh15Presamble(events);
-            }
+            // If we're saving channel 15, always gen the preamble, even if channel 15 is empty.
+            _EnsureCh15Presamble(events);
 
             if (_fReEvaluateLoopPoint)
             {
@@ -1585,12 +1583,37 @@ void SoundReadFrom_SCI0(ResourceEntity &resource, sci::istream &stream)
     ConvertSCI0ToNewFormat(events, sound, channels);
 }
 
+bool ValidateSoundResource(const ResourceEntity &resource)
+{
+    bool save = true;
+    const SoundComponent &sound = resource.GetComponent<SoundComponent>();
+    
+    for (const auto &cuePoint : sound.GetCuePoints())
+    {
+        if ((cuePoint.GetTickPos() != 0) && (cuePoint.GetValue() == 0))
+        {
+            save = (IDYES == AfxMessageBox("Sound contains a cumulative cue with a zero value after time 0. This won't trigger anything. Save anyway?", MB_ICONWARNING | MB_YESNO));
+            break;
+        }
+    }
+
+    if (save)
+    {
+        if (sound.GetTrackInfos().empty())
+        {
+            save = (IDYES == AfxMessageBox("No channels have been enabled for any sound devices, so no music will play. Save anyway?", MB_ICONWARNING | MB_YESNO));
+        }
+    }
+
+    return save;
+}
+
 ResourceTraits soundResTraits =
 {
     ResourceType::Sound,
     &SoundReadFrom_SCI0,
     &SoundWriteTo,
-    &NoValidationFunc
+    &ValidateSoundResource
 };
 
 // REVIEW: We don't even know how to read SCI1 sounds yet.
@@ -1599,7 +1622,7 @@ ResourceTraits soundResTraitsSCI1 =
     ResourceType::Sound,
     &SoundReadFrom_SCI1,
     &SoundWriteTo_SCI1,
-    &NoValidationFunc
+    &ValidateSoundResource
 };
 
 SoundTraits soundTraitsSCI0 =
