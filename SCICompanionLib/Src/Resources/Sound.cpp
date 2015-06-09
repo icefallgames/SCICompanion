@@ -36,6 +36,22 @@ bool _IsStatusByte(uint8_t b)
     return ((b & 0x80) == 0x80); // Status byte if most significant bit is set.
 }
 
+void AssertNoDuplicateTracks(const SoundComponent &sound)
+{
+    std::unordered_set<int> types;
+    for (const auto &track : sound.GetTrackInfos())
+    {
+        if (types.find((int)track.Type) != types.end())
+        {
+            assert(false);
+        }
+        else
+        {
+            types.insert((int)track.Type);
+        }
+    }
+
+}
 
 SoundEvent::Command _GetSoundCommand(uint8_t bStatus)
 {
@@ -82,6 +98,11 @@ SoundChangeHint SoundComponent::_EnsureChannel15()
 
 SoundComponent::SoundComponent(const SoundTraits &traits) : Traits(traits)
 {
+    Reset();
+}
+
+void SoundComponent::Reset()
+{
     _wDivision = SCI_PPQN; // by default
     TotalTicks = 0;
     _fCanSetTempo = false;
@@ -89,6 +110,10 @@ SoundComponent::SoundComponent(const SoundTraits &traits) : Traits(traits)
     _fReEvaluateLoopPoint = false;
     _wTempoIfChanged = StandardTempo;
     LoopPoint = LoopPointNone;
+
+    Cues.clear();
+    _allChannels.clear();
+    _tracks.clear();
 }
 
 void CuePoint::SetValue(uint8_t value)
@@ -253,49 +278,10 @@ SoundChangeHint SoundComponent::SetChannelId(DeviceType type, int channelId, boo
             }
         }
     }
+    AssertNoDuplicateTracks(*this);
+
     return hint;
 }
-
-SoundChangeHint SoundComponent::SetChannelMask(DeviceType device, uint16_t wChannels)
-{
-    TrackInfo newTrackInfo;
-    newTrackInfo.Type = (uint8_t)device;
-    for (uint8_t i = 0; i < ChannelCount; ++i)
-    {
-        if (wChannels & (0x0001 << i))
-        {
-            // This channel is used. Find this channel info
-            for (auto &channelInfo : _allChannels)
-            {
-                if (channelInfo.Number == i)
-                {
-                    newTrackInfo.ChannelIds.push_back(channelInfo.Id);
-                    break;
-                }
-            }
-        }
-    }
-    // Now find the track info for this guy. If none, add a new one.
-    bool found = false;
-    for (TrackInfo &trackInfo : _tracks)
-    {
-        if (trackInfo.Type == newTrackInfo.Type)
-        {
-            // Replace
-            trackInfo = newTrackInfo;
-            found = true;
-            break;
-        }
-    }
-    if (!found)
-    {
-        // else add
-        _tracks.push_back(newTrackInfo);
-    }
-    
-    return SoundChangeHint::Changed;
-}
-
 
 uint8_t _GetC(std::istream &midiFile)
 {
@@ -485,14 +471,14 @@ uint16_t SoundComponent::_ReadMidiFileTrack(size_t nTrack, std::istream &midiFil
 }
 
 // Returns the total ticks
-DWORD CombineSoundEvents(const std::vector<std::vector<SoundEvent> > &tracks, std::vector<SoundEvent> &results)
+DWORD CombineSoundEvents(const std::vector<std::vector<SoundEvent> > &channels, std::vector<SoundEvent> &results)
 {
-    // We'll need to store a position for each track.  Let's initialize them to zero.
-    std::vector<size_t> _trackPos;
-    _trackPos.insert(_trackPos.begin(), tracks.size(), 0);
+    // We'll need to store a position for each channel.  Let's initialize them to zero.
+    std::vector<size_t> _channelPos;
+    _channelPos.insert(_channelPos.begin(), channels.size(), 0);
     // And keep a running count of the time delta for each track.
-    std::vector<DWORD> _trackTimeDelta;
-    _trackTimeDelta.insert(_trackTimeDelta.begin(), tracks.size(), 0);
+    std::vector<DWORD> _channelTimeDelta;
+    _channelTimeDelta.insert(_channelTimeDelta.begin(), channels.size(), 0);
 
     // And here's our overall time counter.
     DWORD dwTimeDelta = 0;
@@ -502,33 +488,33 @@ DWORD CombineSoundEvents(const std::vector<std::vector<SoundEvent> > &tracks, st
     {
         // Find the next event, time-wise
         DWORD dwClosest = (DWORD)(-1);
-        size_t bestTrack = tracks.size(); // out of bounds
-        for (size_t i = 0; i < tracks.size(); i++)
+        size_t bestChannel = channels.size(); // out of bounds
+        for (size_t i = 0; i < channels.size(); i++)
         {
-            const std::vector<SoundEvent> &track = tracks[i];
-            if (_trackPos[i] < track.size())
+            const std::vector<SoundEvent> &channelData = channels[i];
+            if (_channelPos[i] < channelData.size())
             {
                 // Still events remaining in this track, so it's under consideration.
-                ASSERT((_trackTimeDelta[i] + track[_trackPos[i]].wTimeDelta) >= dwTimeDelta);
-                DWORD dwTimeToNextEvent = (_trackTimeDelta[i] + track[_trackPos[i]].wTimeDelta) - dwTimeDelta;
+                ASSERT((_channelTimeDelta[i] + channelData[_channelPos[i]].wTimeDelta) >= dwTimeDelta);
+                DWORD dwTimeToNextEvent = (_channelTimeDelta[i] + channelData[_channelPos[i]].wTimeDelta) - dwTimeDelta;
                 if (dwTimeToNextEvent < dwClosest)
                 {
-                    bestTrack = i; // This is the best track so far.
+                    bestChannel = i; // This is the best track so far.
                     dwClosest = dwTimeToNextEvent;
                 }
             }
         }
-        if (bestTrack < tracks.size())
+        if (bestChannel < channels.size())
         {
             // Add this event.
-            size_t posInTrack = _trackPos[bestTrack];
-            SoundEvent event = tracks[bestTrack][posInTrack];
+            size_t posInChannel = _channelPos[bestChannel];
+            SoundEvent event = channels[bestChannel][posInChannel];
             // Now update things.
-            _trackTimeDelta[bestTrack] += event.wTimeDelta;
+            _channelTimeDelta[bestChannel] += event.wTimeDelta;
             // This is now our new time delta
-            dwTimeDelta = _trackTimeDelta[bestTrack];
+            dwTimeDelta = _channelTimeDelta[bestChannel];
             assert(dwTimeDelta < 0xf0000000);
-            _trackPos[bestTrack]++; // We took one event from this track.
+            _channelPos[bestChannel]++; // We took one event from this track.
 
             // Fixup the event time before adding it.
             assert(dwTimeDelta >= dwLastTimeDelta);
@@ -757,7 +743,7 @@ void EnsureChannelPreamble(ChannelInfo &channel)
     }
 }
 
-void SoundComponent::_RationalizeCuesAndLoops()
+void SoundComponent::_ProcessBeforeSaving()
 {
     // REVIEW: I'm not sure all this complexity is needed anymore, now that we store things in different
     // channels.
@@ -769,6 +755,24 @@ void SoundComponent::_RationalizeCuesAndLoops()
 
             // If we're saving channel 15, always gen the preamble, even if channel 15 is empty.
             _EnsureCh15Presamble(events);
+        }
+    }
+
+    // SCI1 will hang if we put in tracks with no channels.
+    _tracks.erase(remove_if(_tracks.begin(), _tracks.end(),
+        [](TrackInfo &track) { return track.ChannelIds.empty(); }
+    ), _tracks.end());
+}
+
+void SoundComponent::_RationalizeCuesAndLoops()
+{
+    // REVIEW: I'm not sure all this complexity is needed anymore, now that we store things in different
+    // channels.
+    for (auto &channel : _allChannels)
+    {
+        if (channel.Number == 15)
+        {
+            vector<SoundEvent> &events = channel.Events;
 
             if (_fReEvaluateLoopPoint)
             {
@@ -972,13 +976,15 @@ SoundChangeHint SoundComponent::SetLoopPoint(DWORD dwTicks)
     return hint;
 }
 
+const uint32_t SizeLimit = 0xfe00;
+
 void WriteChannelStream(const vector<SoundEvent> &events, sci::ostream &byteStream, uint8_t channelNumber = 0xff)
 {
     // Now the events.
     uint8_t bLastStatus = 0;
     DWORD dwAddToLastTimeDelta = 0;
     // Don't allow more than about 64K
-    for (size_t i = 0; i < events.size() && (byteStream.tellp() < 0x0000fe00); i++)
+    for (size_t i = 0; i < events.size() && (byteStream.tellp() < SizeLimit); i++)
     {
         const SoundEvent &event = events[i];
 
@@ -1043,53 +1049,50 @@ void WriteChannelStream(const vector<SoundEvent> &events, sci::ostream &byteStre
 
 void SoundWriteToWorker(const SoundComponent &sound, sci::ostream &byteStream)
 {
-    vector<SoundEvent> events;
+    // Make a copy of ourselves.
+    SoundComponent soundCopy = sound;
+    soundCopy._ProcessBeforeSaving();
 
+    // Special crazy case for sound resources.
+    if (sound._fReEvaluateLoopPoint || sound._fReEvaluateCues || ((sound._wTempoIfChanged != StandardTempo) || (sound._wDivision != SCI_PPQN)))
+    {
+        soundCopy._RationalizeCuesAndLoops();
+    }
+
+    vector<SoundEvent> events;
     // We should only ever have one channel of each for SCI0
     vector<vector<SoundEvent>> allEvents;
     allEvents.reserve(16);
-    for (auto &channel : sound._allChannels)
+    for (auto &channel : soundCopy._allChannels)
     {
         allEvents.push_back(channel.Events);
     }
     CombineSoundEvents(allEvents, events);
 
-    // Special crazy case for sound resources.
-    if (sound._fReEvaluateLoopPoint || sound._fReEvaluateCues || ((sound._wTempoIfChanged != StandardTempo) || (sound._wDivision != SCI_PPQN)))
-    {
-        // Make a copy of ourselves.
-        SoundComponent soundCopy = sound;
-        soundCopy._RationalizeCuesAndLoops();
-        // And serialize that instead.
-        SoundWriteToWorker(soundCopy, byteStream);
-    }
-    else
-    {
-        byteStream.WriteByte(0); // Digital sample -> no
+    byteStream.WriteByte(0); // Digital sample -> no
 
-        // Channel information:
-        for (size_t i = 0; i < ChannelCount; i++)
+    // Channel information:
+    for (size_t i = 0; i < SCI0ChannelCount; i++)
+    {
+        // Each word tells us which devices use this channel.
+        // We can leave the lower byte blank (it should be ignored), and the upper 8 bits indicate which devices.
+        uint16_t channelMask = 0;
+        for (const auto &trackInfo : soundCopy._tracks)
         {
-            // Each word tells us which devices use this channel.
-            // We can leave the lower byte blank (it should be ignored), and the upper 8 bits indicate which devices.
-            uint16_t channelMask = 0;
-            for (const auto &trackInfo : sound._tracks)
+            for (int channelId : trackInfo.ChannelIds)
             {
-                for (int channelId : trackInfo.ChannelIds)
+                if (soundCopy._allChannels[channelId].Number == i)
                 {
-                    if (sound._allChannels[channelId].Number == i)
-                    {
-                        // This channel is used for this device.
-                        channelMask |= (trackInfo.Type << 8);
-                    }
+                    // This channel is used for this device.
+                    channelMask |= (trackInfo.Type << 8);
                 }
             }
-            byteStream.WriteWord(channelMask);
         }
-        byteStream.WriteWord(0); // Digital sample offset - we don't care about this for SCI0.
-        
-        WriteChannelStream(events, byteStream);
+        byteStream.WriteWord(channelMask);
     }
+    byteStream.WriteWord(0); // Digital sample offset - we don't care about this for SCI0.
+        
+    WriteChannelStream(events, byteStream);
 }
 
 void SoundWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
@@ -1098,76 +1101,76 @@ void SoundWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
     SoundWriteToWorker(sound, byteStream);
 }
 
-void SoundWriteToWorker_SCI1(const SoundComponent &sound, sci::ostream &byteStream)
+void SoundWriteToWorker_SCI1(const SoundComponent &soundIn, sci::ostream &byteStream)
 {
+    // Make a copy of ourselves.
+    SoundComponent soundCopy = soundIn;
+    soundCopy._ProcessBeforeSaving();
+
     // Special crazy case for sound resources.
-    if (sound._fReEvaluateLoopPoint || sound._fReEvaluateCues || ((sound._wTempoIfChanged != StandardTempo) || (sound._wDivision != SCI_PPQN)))
+    if (soundIn._fReEvaluateLoopPoint || soundIn._fReEvaluateCues || ((soundIn._wTempoIfChanged != StandardTempo) || (soundIn._wDivision != SCI_PPQN)))
     {
-        // Make a copy of ourselves.
-        SoundComponent soundCopy = sound;
         soundCopy._RationalizeCuesAndLoops();
-        // And serialize that instead.
-        SoundWriteToWorker_SCI1(soundCopy, byteStream);
     }
-    else
+
+    AssertNoDuplicateTracks(soundCopy);
+
+    // Track [Type] 
+    //  Channel Channel Channel  [unknown][dataOffset][dataSize]
+    sci::ostream channelStream;
+    vector<pair<uint16_t, uint16_t>> channelOffsetAndSize;
+    for (auto &channelInfo : soundCopy.GetChannelInfos())
     {
-        // Track [Type] 
-        //  Channel Channel Channel  [unknown][dataOffset][dataSize]
-        sci::ostream channelStream;
-        vector<pair<uint16_t, uint16_t>> channelOffsetAndSize;
-        for (auto &channelInfo : sound.GetChannelInfos())
+        uint16_t offset = (uint16_t)channelStream.tellp();
+        uint8_t number = channelInfo.Number & 0xf;
+        uint8_t flags = 0;
+        if (channelInfo.Number == 9)
         {
-            uint16_t offset = (uint16_t)channelStream.tellp();
-            uint8_t number = channelInfo.Number & 0xf;
-            uint8_t flags = 0;
-            if (channelInfo.Number == 9)
-            {
-                // REVIEW: There are also flags 1 and 4 here, which we don't yet support.
-                flags |= 2;
-            }
-            number |= (flags << 4);
-            channelStream << number;
-            uint8_t polyAndPrio = channelInfo.Priority << 4;
-            polyAndPrio |= channelInfo.Poly ? 0x1 : 0;
-            channelStream << polyAndPrio;
-
-            // Write the event stream.
-            WriteChannelStream(channelInfo.Events, channelStream, channelInfo.Number);
-
-            // Keep track of offset and size.
-            uint16_t dataSize = (uint16_t)(channelStream.tellp() - offset);
-            channelOffsetAndSize.emplace_back(offset, dataSize);
+            // REVIEW: There are also flags 1 and 4 here, which we don't yet support.
+            flags |= 2;
         }
+        number |= (flags << 4);
+        channelStream << number;
+        uint8_t polyAndPrio = channelInfo.Priority << 4;
+        polyAndPrio |= channelInfo.Poly ? 0x1 : 0;
+        channelStream << polyAndPrio;
 
-        // Do tracks. First, we need to know ahead of time how much space all the tracks will take up.
-        // It is:
-        uint16_t baseOffset = 1;    // For final track marker
-        for (auto &trackInfo : sound.GetTrackInfos())
-        {
-            baseOffset += 2;                                            // For type, and last channel marker
-            baseOffset += (uint16_t)(trackInfo.ChannelIds.size() * 6);  // 6 bytes per channel
-        }
+        // Write the event stream.
+        WriteChannelStream(channelInfo.Events, channelStream, channelInfo.Number);
 
-        const uint8_t endMarker = 0xff;
-        for (auto &trackInfo : sound.GetTrackInfos())
-        {
-            byteStream << trackInfo.Type;
-            for (int channelId : trackInfo.ChannelIds)
-            {
-                uint16_t unknown = 0;
-                byteStream << unknown;
-                byteStream << (uint16_t)(channelOffsetAndSize[channelId].first + baseOffset);
-                byteStream << channelOffsetAndSize[channelId].second;
-            }
-            byteStream << endMarker; // End of channels
-        }
-        byteStream << endMarker; // End of tracks
-
-        assert(byteStream.tellp() == baseOffset);
-
-        // Append the channel data.
-        sci::transfer(sci::istream_from_ostream(channelStream), byteStream, channelStream.tellp());
+        // Keep track of offset and size.
+        uint16_t dataSize = (uint16_t)(channelStream.tellp() - offset);
+        channelOffsetAndSize.emplace_back(offset, dataSize);
     }
+
+    // Do tracks. First, we need to know ahead of time how much space all the tracks will take up.
+    // It is:
+    uint16_t baseOffset = 1;    // For final track marker
+    for (auto &trackInfo : soundCopy.GetTrackInfos())
+    {
+        baseOffset += 2;                                            // For type, and last channel marker
+        baseOffset += (uint16_t)(trackInfo.ChannelIds.size() * 6);  // 6 bytes per channel
+    }
+
+    const uint8_t endMarker = 0xff;
+    for (auto &trackInfo : soundCopy.GetTrackInfos())
+    {
+        byteStream << trackInfo.Type;
+        for (int channelId : trackInfo.ChannelIds)
+        {
+            uint16_t unknown = 0;
+            byteStream << unknown;
+            byteStream << (uint16_t)(channelOffsetAndSize[channelId].first + baseOffset);
+            byteStream << channelOffsetAndSize[channelId].second;
+        }
+        byteStream << endMarker; // End of channels
+    }
+    byteStream << endMarker; // End of tracks
+
+    assert(byteStream.tellp() == baseOffset);
+
+    // Append the channel data.
+    sci::transfer(sci::istream_from_ostream(channelStream), byteStream, channelStream.tellp());
 }
 
 void SoundWriteTo_SCI1(const ResourceEntity &resource, sci::ostream &byteStream)
@@ -1411,6 +1414,8 @@ void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream)
         }
         stream.skip(1); // Skip ff that closes channels list.
     }
+
+    AssertNoDuplicateTracks(sound);
 }
 
 void ScanAndReadDigitalSample(ResourceEntity &resource, sci::istream stream)
@@ -1464,7 +1469,7 @@ void ConvertSCI0ToNewFormat(const vector<SoundEvent> &events, SoundComponent &so
     set<int> usedChannelNumbers;
     if (channelsSCI0)
     {
-        for (int channelNumber = 0; channelNumber < ChannelCount; channelNumber++)
+        for (int channelNumber = 0; channelNumber < SCI0ChannelCount; channelNumber++)
         {
             uint16_t mask = channelsSCI0[channelNumber];
             mask >>= 8; // We're only interested in the upper 8 bits
@@ -1476,6 +1481,17 @@ void ConvertSCI0ToNewFormat(const vector<SoundEvent> &events, SoundComponent &so
                     usedChannelNumbers.insert(channelNumber);
                 }
                 mask >>= 1;
+            }
+        }
+
+        bool channel15 = false;
+        for (const auto &soundEvent : events)
+        {
+            if (soundEvent.GetChannel() == 15)
+            {
+                channel15 = true;
+                usedChannelNumbers.insert(15);
+                break;
             }
         }
     }
@@ -1509,7 +1525,7 @@ void ConvertSCI0ToNewFormat(const vector<SoundEvent> &events, SoundComponent &so
         for (const SoundEvent &event : events)
         {
             ticksSoFar += event.wTimeDelta;
-            if ((event.GetChannel() == channelNumber) || (event.GetChannel() == 15))
+            if (event.GetChannel() == channelNumber)
             {
                 SoundEvent newEvent = event;
                 assert(ticksSoFar >= prevTicks);
@@ -1547,6 +1563,8 @@ void ConvertSCI0ToNewFormat(const vector<SoundEvent> &events, SoundComponent &so
             }
         }
     }
+
+    AssertNoDuplicateTracks(sound);
 }
 
 void SoundReadFrom_SCI0(ResourceEntity &resource, sci::istream &stream)
@@ -1557,7 +1575,7 @@ void SoundReadFrom_SCI0(ResourceEntity &resource, sci::istream &stream)
     stream >> b; // Digital sample flag - we don't care about this.
     // Apprently if it's 2, we need to add a digital sample data channel.
 
-    uint16_t channels[ChannelCount];
+    uint16_t channels[SCI0ChannelCount];
     for (int i = 0; i < ARRAYSIZE(channels); ++i)
     {
         stream >> channels[i];

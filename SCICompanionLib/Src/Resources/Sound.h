@@ -153,7 +153,7 @@ struct SoundTraits
     bool CanEditChannelMask;
 };
 
-const uint8_t ChannelCount = 15;
+const uint8_t SCI0ChannelCount = 15;
 
 struct TempoEntry
 {
@@ -175,6 +175,7 @@ public:
     {
         return new SoundComponent(*this);
     }
+    void Reset();
 
     friend void SoundWriteTo(const ResourceEntity &resource, sci::ostream &byteStream);
     friend void SoundWriteToWorker(const SoundComponent &sound, sci::ostream &byteStream);
@@ -183,13 +184,10 @@ public:
     friend void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream);
     friend void SoundReadFrom_SCI1OLD(ResourceEntity &resource, sci::istream &stream);
     friend void SoundReadFrom_SCI0(ResourceEntity &resource, sci::istream &stream);
-    friend SoundChangeHint InitializeFromMidi(SCIVersion version, DeviceType device, SoundComponent &sound, const std::string &filename);
+    friend SoundChangeHint InitializeFromMidi(SCIVersion version, std::vector<DeviceType> devices, SoundComponent &sound, const std::string &filename);
     friend void ReadChannel(sci::istream &stream, std::vector<SoundEvent> &events, DWORD &totalTicks, SoundComponent &sound, int *mustBeChannel = nullptr);
     friend void ScanAndReadDigitalSample(ResourceEntity &resource, sci::istream stream);
     friend void ConvertSCI0ToNewFormat(const std::vector<SoundEvent> &events, SoundComponent &sound, uint16_t *channels);
-
-    // For SetChannelMask
-    static const uint16_t AllChannelsMask = 0x7FFF;
 
     // For loop points
     static const DWORD LoopPointNone = ((DWORD)-1);
@@ -203,7 +201,6 @@ public:
     SoundChangeHint SetCue(size_t index, CuePoint cue);
     SoundChangeHint SetLoopPoint(DWORD dwTicks);
     uint16_t CalculateChannelMask(DeviceType device) const;
-    SoundChangeHint SetChannelMask(DeviceType device, uint16_t wChannels);
     uint16_t GetTimeDivision() const { return _wDivision; }
     bool CanChangeTempo() const { return _fCanSetTempo; }
 
@@ -236,6 +233,7 @@ private:
 
     uint16_t _ReadMidiFileTrack(size_t nTrack, std::istream &midiFile, std::vector<SoundEvent> &events, std::vector<TempoEntry> &tempoChanges, DWORD &totalTicksOut);
     void _RationalizeCuesAndLoops();
+    void _ProcessBeforeSaving();
     void _NormalizeToSCITempo();
 
     // We don't allow setting the tempo on SCI resources (only MIDI imports)

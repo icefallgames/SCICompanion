@@ -626,7 +626,7 @@ void SoundToolboxSidePane::UpdateNonView(CObject *pObject)
         if (pSound)
         {
             WORD wChannelMask = pSound->CalculateChannelMask(GetDocument()->GetDevice());
-            if (wChannelMask == SoundComponent::AllChannelsMask)
+            if (wChannelMask == 0x7FFF)
             {
                 m_wndCheckAllChannels.SetCheck(BST_CHECKED);
             }

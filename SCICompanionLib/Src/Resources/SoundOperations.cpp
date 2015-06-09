@@ -2,9 +2,11 @@
 #include "SoundOperations.h"
 #include "format.h"
 
-SoundChangeHint InitializeFromMidi(SCIVersion version, DeviceType device, SoundComponent &sound, const std::string &filename)
+// TODO: Ideally we want to be able to load multiple midi files into one resource (to assign to different devices). However,
+// there needs to be more work done with the timing/tempo situation. For now, we'll just completely replace a track.
+SoundChangeHint InitializeFromMidi(SCIVersion version, std::vector<DeviceType> devices, SoundComponent &sound, const std::string &filename)
 {
-    uint16_t channels[ChannelCount];
+    uint16_t channels[SCI0ChannelCount];
     FillMemory(channels, sizeof(channels), 0);
 
     try
@@ -23,6 +25,9 @@ SoundChangeHint InitializeFromMidi(SCIVersion version, DeviceType device, SoundC
                     uint16_t wFormat = _ReadBEWORD(midiFile);
                     if ((wFormat == 0) || (wFormat == 1))
                     {
+                        // Clear EVERYTHING out
+                        sound.Reset();
+
                         uint16_t wNumTracks = _ReadBEWORD(midiFile);;
                         sound._wDivision = _ReadBEWORD(midiFile);
                         assert((sound._wDivision & 0x8000) == 0); // TODO: support SMPTE
@@ -45,7 +50,7 @@ SoundChangeHint InitializeFromMidi(SCIVersion version, DeviceType device, SoundC
 
                         sound.TotalTicks = maxTotalTicks;
 
-                        uint16_t channelsSCI0[ChannelCount];
+                        uint16_t channelsSCI0[SCI0ChannelCount];
                         for (int i = 0; i < ARRAYSIZE(channelsSCI0); i++)
                         {
                             // Which channels are used? Need to pass this to ConvertSCI0ToNewFormat
@@ -74,9 +79,11 @@ SoundChangeHint InitializeFromMidi(SCIVersion version, DeviceType device, SoundC
                             {
                                 EnsureChannelPreamble(channelInfo);
                             }
+                            for (auto &device : devices)
+                            {
+                                sound.SetChannelId(device, channelInfo.Id, true);
+                            }
                         }
-
-                        sound.SetChannelMask(device, wChannelMask);
                     }
                     else
                     {

@@ -110,7 +110,30 @@ END_MESSAGE_MAP()
 void CSoundDoc::_OnImportMidi()
 {
     std::unique_ptr<ResourceEntity> pSound = GetResource()->Clone();
-    if (ImportMidi(GetDevice(), pSound.get()))
+
+    // Import to devices (tracks) that are standard by default.
+    std::vector<DeviceType> devices;
+    if (appState->GetVersion().SoundFormat == SoundFormat::SCI1)
+    {
+        // REVIEW: Sounds appear not to play properly if these three devices don't appear in the sound resource.
+        devices.insert(devices.end(), { DeviceType::SCI1_Adlib, DeviceType::SCI1_GM, DeviceType::SCI1_RolandGM });
+    }
+    else
+    {
+        devices.insert(devices.end(), { DeviceType::Adlib, DeviceType::NewGM, DeviceType::RolandMT32 });
+    }
+
+#if SUPPORT_COMBINING_MIDI_FILES
+    // Remove any that are already present. We don't want to stomp.
+    devices.erase(remove_if(devices.begin(), devices.end(),
+        [&pSound](DeviceType leDevice) { return pSound->GetComponent<SoundComponent>().DoesDeviceHaveTracks(leDevice); }
+        ), devices.end());
+#endif
+
+    // But also always insert the current device. We DO want to stomp.
+    devices.push_back(GetDevice());
+
+    if (ImportMidi(devices, pSound.get()))
     {
         AddNewResourceToUndo(move(pSound));
         SetModifiedFlag(TRUE);
@@ -161,7 +184,7 @@ void CSoundDoc::Serialize(CArchive& ar)
 
 const char c_szMidiFilter[] = "Midi Files|*.mid;*.midi|All Files|*.*|";
 
-bool ImportMidi(DeviceType device, ResourceEntity *resourceEntity)
+bool ImportMidi(std::vector<DeviceType> devices, ResourceEntity *resourceEntity)
 {
     bool success = false;
     // Create a file dialog.
@@ -171,7 +194,7 @@ bool ImportMidi(DeviceType device, ResourceEntity *resourceEntity)
     {
         CString fileName = fileDialog.GetPathName();
         SoundComponent &sound = resourceEntity->GetComponent<SoundComponent>();
-        if (InitializeFromMidi(appState->GetVersion(), device, sound, (PCSTR)fileName) != SoundChangeHint::None)
+        if (InitializeFromMidi(appState->GetVersion(), devices, sound, (PCSTR)fileName) != SoundChangeHint::None)
         {
             success = true;
         }
@@ -179,11 +202,11 @@ bool ImportMidi(DeviceType device, ResourceEntity *resourceEntity)
     return success;
 }
 
-std::unique_ptr<ResourceEntity> ImportMidi(DeviceType device)
+std::unique_ptr<ResourceEntity> ImportMidi(std::vector<DeviceType> devices)
 {
     std::unique_ptr<ResourceEntity> pResource(CreateSoundResource(appState->GetVersion()));
 
-    if (!ImportMidi(device, pResource.get()))
+    if (!ImportMidi(devices, pResource.get()))
     {
         pResource.reset(nullptr);
     }

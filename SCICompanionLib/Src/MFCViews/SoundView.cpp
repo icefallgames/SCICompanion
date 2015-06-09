@@ -602,6 +602,10 @@ void CSoundView::OnActivateView(BOOL bActivate, CView* pActivateView, CView* pDe
     {
         _UpdateMidiPlayer();
     }
+    else
+    {
+        OnStop();
+    }
 }
 
 void CSoundView::_UpdateMidiPlayer()

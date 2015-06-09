@@ -53,5 +53,5 @@ private:
     static DeviceType s_defaultDeviceSCI1;
 };
 
-std::unique_ptr<ResourceEntity> ImportMidi(DeviceType device);
-bool ImportMidi(DeviceType device, ResourceEntity *resourceEntity);
+std::unique_ptr<ResourceEntity> ImportMidi(std::vector<DeviceType> devices);
+bool ImportMidi(std::vector<DeviceType> devices, ResourceEntity *resourceEntity);

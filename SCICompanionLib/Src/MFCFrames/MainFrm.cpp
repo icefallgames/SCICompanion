@@ -1198,7 +1198,7 @@ void CMainFrame::OnFileNewSound()
     DeviceType device = DeviceType::NewGM;
     if (appState->GetVersion().SoundFormat == SoundFormat::SCI1)
     {
-        device = DeviceType::SCI1_RolandGM;
+        device = DeviceType::SCI1_GM;
     }
     
     std::unique_ptr<ResourceEntity> pSound(CreateSoundResource(appState->GetVersion()));
@@ -1213,7 +1213,7 @@ void CMainFrame::OnFileNewSound()
             if (pDocument)
             {
                 // Also set the device to GM, since that is what has channels enabled by default...
-                pDocument->SetDevice(DeviceType::NewGM, false); // Don't notify, since we have no sound yet.
+                pDocument->SetDevice(device, false); // Don't notify, since we have no sound yet.
                 pDocument->SetSoundResource(std::move(pSound));
                 pDocument->SetModifiedFlag(TRUE);
             }
