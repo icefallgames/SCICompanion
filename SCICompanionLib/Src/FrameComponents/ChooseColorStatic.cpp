@@ -28,6 +28,7 @@ CChooseColorStatic::CChooseColorStatic()
     _showUnused = false;
     _showHover = true;
     _showActualUsedColors = false;
+    _showSelectionBoxes = false;
 }
 
 CChooseColorStatic::~CChooseColorStatic()
@@ -183,6 +184,23 @@ void CChooseColorStatic::_DrawItem(CDC *pDC, int cx, int cy)
 
         _DrawMultiSelection(pDC);
 
+        if (_showSelectionBoxes)
+        {
+            RECT rectHover;
+            _MapIndexToRect((uint8_t)_bSelectedColorIndex, &rectHover);
+            // Draw a box
+            pDC->DrawFocusRect(&rectHover);
+            // make it a little bigger.
+            InflateRect(&rectHover, 1, 1);
+            pDC->DrawFocusRect(&rectHover);
+            if (_fShowAuxSel)
+            {
+                // Draw a thinner one for the aux selection.
+                _MapIndexToRect((uint8_t)_bAuxSelectedColorIndex, &rectHover);
+                pDC->DrawFocusRect(&rectHover);
+            }
+        }
+
         _DrawHover(pDC);
 
     }
@@ -191,11 +209,10 @@ void CChooseColorStatic::_DrawItem(CDC *pDC, int cx, int cy)
 void CChooseColorStatic::_DrawHover(CDC *pDC)
 {
     // Draw the hovered box.
-    if (_showHover && (_bHoverIndex != INVALID_COLORINDEX))
+    if (_showHover && (_bHoverIndex != (uint16_t)INVALID_COLORINDEX))
     {
         RECT rectHover;
-        _MapIndexToRect(_bHoverIndex, &rectHover);
-
+        _MapIndexToRect((uint8_t)_bHoverIndex, &rectHover);
         // Draw a box
         pDC->DrawFocusRect(&rectHover);
         // make it a little bigger.
@@ -583,12 +600,12 @@ void CChooseColorStatic::OnRButtonDown(UINT nFlags, CPoint point)
 void CChooseColorStatic::OnMouseMove(UINT nFlags, CPoint point)
 {
     int bHoverIndex = _MapPointToIndex(point);
-    if ((uint8_t)bHoverIndex != _bHoverIndex)
+    if ((uint16_t)bHoverIndex != _bHoverIndex)
     {
         _bHoverIndex = bHoverIndex;
         if (_pCallback)
         {
-            _pCallback->OnColorHover(_bHoverIndex);
+            _pCallback->OnColorHover((uint8_t)_bHoverIndex);
         }
         RedrawWindow();
         //Invalidate(FALSE);

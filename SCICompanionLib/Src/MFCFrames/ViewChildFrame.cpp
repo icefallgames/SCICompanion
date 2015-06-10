@@ -44,14 +44,18 @@ BOOL CEditViewChildFrame::OnCreateClient(LPCREATESTRUCT /*lpcs*/, CCreateContext
     // This is the code for a static splitter.
     CRect cr;
     GetClientRect(&cr);
-    int widthUnit = cr.Width() / 3;
+    int widthUnit = cr.Width() / 5;
     CSize paneSize;
 
     int rc;
     m_wndSplitter.CreateStatic(this, 1, 2);
+    rc = m_wndSplitterChoosers.CreateStatic(&m_wndSplitter, 2, 1, WS_CHILD | WS_VISIBLE | WS_BORDER, m_wndSplitter.IdFromRowCol(0, 1));
+    if (rc == FALSE)
+    {
+        return rc;
+    }
 
     paneSize.SetSize(widthUnit * 2, cr.Height());
-
     rc = m_wndSplitter.CreateView(0, 0, RUNTIME_CLASS(CRasterView), paneSize, pContext);
     if (rc == FALSE)
     {
@@ -59,8 +63,17 @@ BOOL CEditViewChildFrame::OnCreateClient(LPCREATESTRUCT /*lpcs*/, CCreateContext
     }
     _pViewMainView = (CRasterView*)m_wndSplitter.GetPane(0, 0);
 
-    paneSize.SetSize(widthUnit, widthUnit);
-    rc = m_wndSplitter.CreateView(0, 1, RUNTIME_CLASS(CEditViewCelChooser), paneSize, pContext);
+    int heightUnit = cr.Height() / 3;
+    paneSize.SetSize(widthUnit * 3, heightUnit * 1);
+    rc = m_wndSplitterChoosers.CreateView(0, 0, RUNTIME_CLASS(CEditViewCelChooser), paneSize, pContext);
+    if (rc == FALSE)
+    {
+        return rc;
+    }
+
+    paneSize.SetSize(widthUnit * 3, heightUnit * 2);
+    //rc = m_wndSplitterChoosers.CreateView(1, 0, RUNTIME_CLASS(CEditViewLoopChooser), paneSize, pContext);
+    rc = m_wndSplitterChoosers.CreateView(1, 0, RUNTIME_CLASS(CEditViewCelChooser), paneSize, pContext);
 
     return rc;
 }

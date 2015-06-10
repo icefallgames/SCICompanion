@@ -78,7 +78,6 @@ BEGIN_MESSAGE_MAP(RasterSidePane, CExtDialogFwdCmd)
     ON_COMMAND(IDC_BUTTONRIGHT, OnRight)
     ON_COMMAND(IDC_BUTTONLEFT, OnLeft)
     ON_COMMAND(ID_MAKEFONT, OnMakeFont)
-    ON_NOTIFY(TVN_SELCHANGED, IDC_TREELOOPS, OnTreeSelectionChanged)
 END_MESSAGE_MAP()
 
 void RasterSidePane::_OnUpdateCommandUIs()
@@ -207,8 +206,6 @@ void RasterSidePane::SetDocument(CDocument *pDoc)
         _OnPenWidthChanged();
         _SyncCelPane();
         _SyncLoopPane();
-        _RebuildLoopTree();
-        _SyncLoopTree();
         _OnUpdateCommandUIs();
         _UpdatePaletteChoices();
     }
@@ -268,12 +265,14 @@ void RasterSidePane::_UpdatePaletteChoices()
                 }
                 m_wndPaletteChoice.SetCurSel(_pDoc->GetPaletteChoice());
                 m_wndPaletteChoice.ShowWindow(SW_SHOW);
-                m_wndStatic7.ShowWindow(SW_SHOW);
+                m_wndStatic9.ShowWindow(SW_SHOW);
+                m_wndEditPaletteButton.ShowWindow(SW_SHOW);
             }
             else
             {
                 m_wndPaletteChoice.ShowWindow(SW_HIDE);
-                m_wndStatic7.ShowWindow(SW_HIDE);
+                m_wndStatic9.ShowWindow(SW_HIDE);
+                m_wndEditPaletteButton.ShowWindow(SW_HIDE);
             }
 
             OnPaletteSelection();
@@ -553,6 +552,11 @@ void RasterSidePane::UpdateNonView(CObject *pObject)
     if (IsFlagSet(hint, RasterChangeHint::Color))
     {
         m_wndChosenColors.Invalidate(FALSE);
+        if (_pDoc)
+        {
+            m_wndPalette.SetSelection(_pDoc->GetViewColor());
+            m_wndPalette.SetAuxSelection(_pDoc->GetAlternateViewColor());
+        }
         ClearFlag(hint, RasterChangeHint::Color);
     }
 
@@ -576,7 +580,6 @@ void RasterSidePane::UpdateNonView(CObject *pObject)
 
     if (IsFlagSet(hint, RasterChangeHint::NewView | RasterChangeHint::Loop))
     {
-        _RebuildLoopTree();
         // Don't remove RasterChangeHint::NewView, because we still want
         // to do other things if its present, below.
         // Yeah, this too:
@@ -588,7 +591,6 @@ void RasterSidePane::UpdateNonView(CObject *pObject)
         _OnPenWidthChanged();
         _SyncCelPane();
         _SyncLoopPane();
-        _SyncLoopTree();
         _OnUpdateCommandUIs(); // TODO: could be more efficient..
     }
 }
@@ -772,29 +774,6 @@ void RasterSidePane::OnIsScalable()
     }
 }
 
-void RasterSidePane::OnTreeSelectionChanged(NMHDR *pNMHDR, LRESULT *pResult)
-{
-    if (!_fRebuildingTree)
-    {
-        if (_pDoc)
-        {
-            LPNMTREEVIEW pNMTreeView = reinterpret_cast<LPNMTREEVIEW>(pNMHDR);
-            CelIndex celIndex(static_cast<DWORD>(pNMTreeView->itemNew.lParam));
-            if (TVI_ROOT == m_wndTree.GetParentItem(pNMTreeView->itemNew.hItem))
-            {
-                // This was a loop.  Select that loop.
-                _pDoc->SetSelectedLoop(celIndex.loop);
-            }
-            else
-            {
-                // Must be a cel.
-                _pDoc->SetSelectedLoop(celIndex.loop);
-                _pDoc->SetSelectedCel(celIndex.cel);
-            }
-        }   
-    }
-}
-
 void RasterSidePane::OnPenWidthSelection()
 {
     if (_pDoc)
@@ -809,64 +788,6 @@ void RasterSidePane::_OnPenWidthChanged()
     {
         // Indicies 0-7 correspond to pen widths 1-8
         m_wndPenWidth.SetCurSel(_pDoc->GetPenWidth() - 1);
-    }
-}
-
-void RasterSidePane::_SyncLoopTree()
-{
-    // Update selection
-    if (m_wndTree.m_hWnd && _pDoc)
-    {
-        int nLoop = _pDoc->GetSelectedLoop();
-        int nCel = _pDoc->GetSelectedCel();
-        assert(nLoop >= 0);
-        assert(nCel >= 0);
-        HTREEITEM hLoop = m_wndTree.GetChildItem(TVI_ROOT);
-        while(hLoop && nLoop > 0)
-        {
-            hLoop = m_wndTree.GetNextSiblingItem(hLoop);
-            nLoop--;
-        }
-        HTREEITEM hCel = m_wndTree.GetChildItem(hLoop);
-        while(hCel && nCel > 0)
-        {
-            hCel = m_wndTree.GetNextSiblingItem(hCel);
-            nCel--;
-        }
-        m_wndTree.SelectItem(hCel);
-        m_wndTree.EnsureVisible(hCel);
-    }
-}
-
-
-
-void RasterSidePane::_RebuildLoopTree()
-{
-    if (m_wndTree.m_hWnd && _pDoc)
-    {
-        _fRebuildingTree = true;
-        m_wndTree.SetRedraw(FALSE);
-        m_wndTree.DeleteAllItems();
-        RasterComponent &raster = _pDoc->GetResource()->GetComponent<RasterComponent>();
-        int cLoops = raster.LoopCount();
-        for (int loop = 0; loop < cLoops; loop++)
-        {
-            std::stringstream ssLoop;
-            ssLoop << "loop " << loop;
-            HTREEITEM hParent = m_wndTree.InsertItem(ssLoop.str().c_str());
-            m_wndTree.SetItemData(hParent, CelIndex(loop, -1).index); // -1 for cel - we should never use this info anyway.
-            int cLoops = raster.CelCount(loop);
-            for (int cel = 0; cel < cLoops; cel++)
-            {
-                std::stringstream ssCel;
-                ssCel << "cel " << cel;
-                HTREEITEM hItem = m_wndTree.InsertItem(ssCel.str().c_str(), hParent);
-                m_wndTree.SetItemData(hItem, CelIndex(loop, cel).index);
-            }
-            m_wndTree.Expand(hParent, TVE_EXPAND); 
-        }
-        m_wndTree.SetRedraw(TRUE);
-        _fRebuildingTree = false;
     }
 }
 
@@ -934,11 +855,14 @@ void RasterSidePane::DoDataExchange(CDataExchange* pDX)
 
     // Prepare the palette - a 4x4 grid of colours - we'll set this up later
     DDX_Control(pDX, IDC_STATIC_PALETTE, m_wndPalette);
-    AddAnchor(IDC_STATIC_PALETTE, CPoint(100, 0), CPoint(100, 0));
+    AddAnchor(IDC_STATIC_PALETTE, CPoint(0, 0), CPoint(100, 0));
     m_wndPalette.SetPalette(0, 0, nullptr, 0, nullptr);
     m_wndPalette.SetCallback(this);
+    m_wndPalette.SetShowHover(false);
+    m_wndPalette.ShowSelectionBoxes(true);
+
     DDX_Control(pDX, IDC_STATIC_CHOSENCOLORS, m_wndChosenColors);
-    AddAnchor(IDC_STATIC_CHOSENCOLORS, CPoint(100, 0), CPoint(100, 0));
+    AddAnchor(IDC_STATIC_CHOSENCOLORS, CPoint(0, 0), CPoint(0, 0));
     DDX_Control(pDX, IDC_COMBO_PENWIDTH, m_wndPenWidth);
     AddAnchor(IDC_COMBO_PENWIDTH, CPoint(0, 0), CPoint(100, 0));
     _PreparePenWidth();
@@ -948,6 +872,10 @@ void RasterSidePane::DoDataExchange(CDataExchange* pDX)
     {
         DDX_Control(pDX, IDC_COMBO_PALETTE, m_wndPaletteChoice);
         AddAnchor(IDC_COMBO_PALETTE, CPoint(0, 0), CPoint(100, 0));
+
+        DDX_Control(pDX, ID_VIEW_EDITPALETTE, m_wndEditPaletteButton);
+        m_wndEditPaletteButton.SetIcon(IDI_EDITPALETTE, 0, 0, 0, 24, 24);
+        AddAnchor(ID_VIEW_EDITPALETTE, CPoint(100, 0), CPoint(100, 0));
     }
 
     // Prepare the left, right, up, down buttons, by applying a wingdings font.
@@ -981,12 +909,6 @@ void RasterSidePane::DoDataExchange(CDataExchange* pDX)
         m_wndRight.SetFont(&m_font);
         m_wndLeft.SetDrawFocusRect(FALSE);
         m_wndRight.SetDrawFocusRect(FALSE);
-    }
-
-    if (GetDlgItem(IDC_TREELOOPS))
-    {
-        DDX_Control(pDX, IDC_TREELOOPS, m_wndTree);
-        AddAnchor(m_wndTree.GetSafeHwnd(), CPoint(0, 0), CPoint(100, 100));
     }
 
     // Other visuals...
@@ -1046,6 +968,11 @@ void RasterSidePane::DoDataExchange(CDataExchange* pDX)
     {
         DDX_Control(pDX, IDC_STATIC8, m_wndStatic8);
         AddAnchor(IDC_STATIC8, CPoint(0, 0), CPoint(100, 0));
+    }
+    if (GetDlgItem(IDC_STATIC9))
+    {
+        DDX_Control(pDX, IDC_STATIC9, m_wndStatic9);
+        AddAnchor(IDC_STATIC9, CPoint(0, 0), CPoint(0, 0));
     }
     if (GetDlgItem(IDC_STATIC_CELGROUP))
     {

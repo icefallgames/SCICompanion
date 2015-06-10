@@ -77,8 +77,6 @@ private:
     void _OnPenWidthChanged();
     void _PreparePenWidth();
     void _OnDirectionButton(CPoint point);
-    void _SyncLoopTree();
-    void _RebuildLoopTree();
     void _SyncPalette();
 
 private:
@@ -102,6 +100,7 @@ private:
 
     // View-specific
     CExtComboBox m_wndPaletteChoice;
+    CExtButton m_wndEditPaletteButton;
 
     // Color: (supported by all)
     CChooseColorStatic m_wndPalette;
@@ -120,8 +119,6 @@ private:
     // "Apply to all" checkbox.
     bool _fSupportsApplyAll;
     CExtCheckBox m_wndApplyToAll;
-
-    CTreeCtrl m_wndTree;
 
     // This classes needed purely for visuals
     CExtButton m_wndLeft;
@@ -143,6 +140,7 @@ private:
     CExtLabel m_wndStatic6;
     CExtLabel m_wndStatic7;
     CExtLabel m_wndStatic8;
+    CExtLabel m_wndStatic9;
     CExtGroupBox m_wndGroup1;
     CExtGroupBox m_wndGroup2;
     CExtCheckBox m_wndIsScalable;

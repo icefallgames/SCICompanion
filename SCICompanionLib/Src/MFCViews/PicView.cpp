@@ -799,7 +799,7 @@ void CPicView::OnSetPalette()
 {
     if (_GetEditPic()->Traits.IsVGA)
     {
-
+        EditVGAPalette();
     }
     else
     {
@@ -1247,6 +1247,11 @@ void CPicView::OnUpdateShowScreenControl(CCmdUI *pCmdUI)
 
     // Always enabled
     pCmdUI->Enable();
+}
+
+void CPicView::OnUpdateIsEGA(CCmdUI *pCmdUI)
+{
+    pCmdUI->Enable(!_GetEditPic()->Traits.IsVGA);
 }
 
 void CPicView::OnUpdateShowPaletteControl(CCmdUI *pCmdUI)

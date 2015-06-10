@@ -22,6 +22,7 @@ public:
     void SetPrintIndex(BOOL fPrintIndex) { _fPrintIndex = fPrintIndex; }
     void ShowSelection(BOOL fShowSelection) { _fShowSelection = fShowSelection; }
     void ShowSelectionNumbers(BOOL fShow) { _fSelectionNumbers = fShow; }
+    void ShowSelectionBoxes(bool fShow) { _showSelectionBoxes = fShow; }
     void SetSelection(BYTE bIndex);
     void SetSelection(bool *multipleSelection);
     void GetMultipleSelection(bool *multipleSelection);
@@ -56,7 +57,7 @@ protected:
     void _DrawUnused(CDC *pDC);
 
 protected:
-    BYTE _bHoverIndex;
+    uint16_t _bHoverIndex;
     int _cRows;
     int _cColumns;
     BOOL _fPrintIndex;
@@ -65,6 +66,7 @@ protected:
     BYTE _bSelectedColorIndex;
     BYTE _bAuxSelectedColorIndex;
     BOOL _fSelectionNumbers;
+    bool _showSelectionBoxes;
     BOOL _fShowAuxSel;
 
     bool _showHover;

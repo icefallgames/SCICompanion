@@ -27,6 +27,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
 	CExtSplitterWnd m_wndSplitter;
+    CExtSplitterWnd m_wndSplitterChoosers;
 
     CRasterView *_pViewMainView;
 };

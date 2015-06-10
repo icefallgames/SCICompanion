@@ -227,6 +227,7 @@ protected:
     afx_msg void OnCommandUIStatus(CCmdUI *pCmdUI);
     afx_msg void OnUpdateShowScreenControl(CCmdUI *pCmdUI);
     afx_msg void OnUpdateShowPaletteControl(CCmdUI *pCmdUI);
+    afx_msg void OnUpdateIsEGA(CCmdUI *pCmdUI);
     afx_msg void OnUpdateTogglePriorityLines(CCmdUI *pCmdUI);
     afx_msg void OnUpdateToggleEgo(CCmdUI *pCmdUI);
     afx_msg void OnUpdateLightUpCoords(CCmdUI *pCmdUI);
