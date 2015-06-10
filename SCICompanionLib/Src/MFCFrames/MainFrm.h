@@ -106,6 +106,7 @@ private:  // control bar embedded members
     CExtToolControlBar m_wndVocabTools;
     CExtToolControlBar m_wndViewTools;
     CExtToolControlBar m_wndExplorerTools;
+    CExtToolControlBar m_wndMessageTools;
 
     // These combine to form a control bar that contains an empty dialog
     CExtControlBarNoX m_wndResizableBarGeneral;
@@ -152,6 +153,7 @@ private:
     void _PrepareMainCommands();
     void _PreparePicCommands();
     void _PrepareTextCommands();
+    void _PrepareMessageCommands();
     void _PrepareVocabCommands();
     void _PrepareSoundCommands();
     BOOL PreTranslateMessage(MSG* pMsg);

@@ -810,6 +810,15 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     _PrepareTextCommands();
     ShowControlBar(&m_wndTextTools, FALSE, FALSE);
 
+    if (!m_wndMessageTools.Create("text", this, ID_BAR_TOOLMESSAGE) ||
+        !m_wndMessageTools.LoadToolBar(IDR_TOOLBARMESSAGE))
+    {
+        TRACE0("Failed to create toolbar");
+        return -1;
+    }
+    _PrepareMessageCommands();
+    ShowControlBar(&m_wndMessageTools, FALSE, FALSE);
+
     // Sound resources
     if( !m_wndSoundTools.Create("sound", this, ID_BAR_TOOLSOUND) ||
         !m_wndSoundTools.LoadToolBar(IDR_TOOLBARSOUND))
@@ -957,6 +966,18 @@ void CMainFrame::_PrepareTextCommands()
         { ID_MOVEDOWN, IDI_MOVEDOWN },
     };
     _AssignIcons(c_textIcons, ARRAYSIZE(c_textIcons));
+}
+
+void CMainFrame::_PrepareMessageCommands()
+{
+    static const key_value_pair<UINT, int> c_textIcons[] =
+    {
+        { IDC_BUTTONADDNEW, IDI_NEWMESSAGEENTRY },
+        { IDC_BUTTONCLONE, IDI_CLONEMESSAGEENTRY },
+        { IDC_BUTTONADDSEQ, IDI_NEWMESSAGESEQ },
+    };
+    _AssignIcons(c_textIcons, ARRAYSIZE(c_textIcons));
+
 }
 
 void CMainFrame::_PrepareVocabCommands()
@@ -2004,6 +2025,7 @@ void CMainFrame::_RefreshToolboxPanel(CFrameWnd *pWnd)
         _HideTabIfNot(iTabType, TAB_SCRIPT, m_wndScriptTools);
         _HideTabIfNot(iTabType, TAB_VOCAB, m_wndVocabTools);
         _HideTabIfNot(iTabType, TAB_TEXT, m_wndTextTools);
+        _HideTabIfNot(iTabType, TAB_MESSAGE, m_wndMessageTools);
         _HideTabIfNot(iTabType, TAB_SOUND, m_wndSoundTools);
         switch (iTabType)
         {
@@ -2026,6 +2048,9 @@ void CMainFrame::_RefreshToolboxPanel(CFrameWnd *pWnd)
             break;
         case TAB_TEXT:
             ShowControlBar(&m_wndTextTools, TRUE, TRUE);
+            break;
+        case TAB_MESSAGE:
+            ShowControlBar(&m_wndMessageTools, TRUE, TRUE);
             break;
         case TAB_SOUND:
             ShowControlBar(&m_wndSoundTools, TRUE, TRUE);

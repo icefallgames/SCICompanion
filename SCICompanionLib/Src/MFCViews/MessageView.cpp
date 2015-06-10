@@ -22,10 +22,13 @@ CMessageView::~CMessageView()
 
 BEGIN_MESSAGE_MAP(CMessageView, CListView)
     ON_COMMAND(ID_EDIT_DELETE, OnDelete)
+    ON_COMMAND(IDC_BUTTONADDNEW, OnAddNew)
+    ON_COMMAND(IDC_BUTTONADDSEQ, OnAddSeq)
+    ON_COMMAND(IDC_BUTTONCLONE, OnCloneMessage)
     ON_NOTIFY_REFLECT(LVN_ITEMCHANGED, OnItemChanged)
     ON_UPDATE_COMMAND_UI(ID_EDIT_RENAME, OnUpdateIfSelection)
-    ON_UPDATE_COMMAND_UI(ID_MOVEDOWN, OnUpdateIfSelection)
-    ON_UPDATE_COMMAND_UI(ID_MOVEUP, OnUpdateIfSelection)
+    ON_UPDATE_COMMAND_UI(IDC_BUTTONADDSEQ, OnUpdateIfSelection)
+    ON_UPDATE_COMMAND_UI(IDC_BUTTONCLONE, OnUpdateIfSelection)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_DELETE, OnUpdateIfSelection)
 END_MESSAGE_MAP()
 
@@ -263,6 +266,68 @@ void CMessageView::OnItemChanged(NMHDR* pNMHDR, LRESULT* pResult)
             }
         }
     }
+}
+
+void CMessageView::_AddEntryAtCurrentPosition(const TextEntry &entry)
+{
+    CMessageDoc *pDoc = GetDocument();
+    if (pDoc)
+    {
+        int index = pDoc->GetSelectedIndex();
+        index++;
+        pDoc->ApplyChanges<TextComponent>(
+            [index, &entry](TextComponent &text)
+        {
+            text.Texts.insert(text.Texts.begin() + index, entry);
+            return WrapHint(MessageChangeHint::Changed);
+        }
+        );
+
+        // Now select it
+        pDoc->SetSelectedIndex(index);
+    }
+}
+
+void CMessageView::OnAddSeq()
+{
+    const TextEntry *text = _GetEntry();
+    if (text)
+    {
+        TextEntry newEntry = *text;
+        newEntry.Sequence++;
+        _AddEntryAtCurrentPosition(newEntry);
+    }
+}
+
+void CMessageView::OnCloneMessage()
+{
+    const TextEntry *text = _GetEntry();
+    if (text)
+    {
+        _AddEntryAtCurrentPosition(*text);
+    }
+}
+
+TextEntry *CMessageView::_GetEntry()
+{
+    TextEntry *entry = nullptr;
+    TextComponent* text = GetTextComponent();
+    if (text)
+    {
+        int index = _GetSelectedItem();
+        if ((index != -1) && (index < (int)text->Texts.size()))
+        {
+            entry = &text->Texts[index];
+        }
+    }
+    return entry;
+}
+
+void CMessageView::OnAddNew()
+{
+    // Default to the NARRATOR talker (usually 99), and sequence 1.
+    TextEntry newEntry({ 0, 0, 0, 1, 99, 0, "" });
+    _AddEntryAtCurrentPosition(newEntry);
 }
 
 void CMessageView::OnDelete()

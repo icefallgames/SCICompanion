@@ -86,8 +86,6 @@ private:
 public:
     afx_msg void OnBnClickedButtonaddnoun();
     afx_msg void OnBnClickedButtonaddcondition();
-    afx_msg void OnBnClickedButtonaddseq();
-    afx_msg void OnBnClickedButtonclone();
     afx_msg void OnEnChangeEditmessage();
     afx_msg void OnCbnSelchangeCombonoun();
     afx_msg void OnCbnSelchangeComboverb();
@@ -95,7 +93,6 @@ public:
     afx_msg void OnEnKillfocusEditmessage();
     afx_msg void OnCbnSelchangeCombocondition();
     afx_msg void OnCbnSelchangeCombotalker();
-    afx_msg void OnBnClickedButtonaddnew();
     afx_msg void OnCbnEditchangeComboverb();
     afx_msg void OnCbnEditupdateComboverb();
     afx_msg void OnCbnKillfocusComboverb();

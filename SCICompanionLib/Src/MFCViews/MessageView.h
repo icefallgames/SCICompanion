@@ -1,6 +1,7 @@
 #pragma once
 
 struct TextComponent;
+struct TextEntry;
 class CMessageDoc;
 
 class CMessageView : public CListView
@@ -28,6 +29,9 @@ public:
 protected:
     void OnItemChanged(NMHDR* pNMHDR, LRESULT* pResult);
     void OnDelete();
+    void OnAddNew();
+    void OnCloneMessage();
+    void OnAddSeq();
     void OnUpdateIfSelection(CCmdUI *pCmdUI);
     void OnNewString();
 
@@ -38,6 +42,8 @@ protected:
     void _ChangeView();
     int _GetSelectedItem();
     void _UpdateSelection(int *topIndex = nullptr);
+    void _AddEntryAtCurrentPosition(const TextEntry &entry);
+    TextEntry *_GetEntry();
 
 private:
     int _iView;

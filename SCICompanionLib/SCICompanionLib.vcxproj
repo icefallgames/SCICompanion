@@ -691,6 +691,8 @@
     <Image Include="res\bmp00018.bmp" />
     <Image Include="res\bmp00019.bmp" />
     <Image Include="res\bmp00020.bmp" />
+    <Image Include="res\bmp00021.bmp" />
+    <Image Include="res\clonemessageentry.ico" />
     <Image Include="res\CloseActive.bmp" />
     <Image Include="res\CloseInactive.bmp" />
     <Image Include="res\cursor.ico" />
@@ -741,6 +743,8 @@
     <Image Include="res\newcursor.ico" />
     <Image Include="res\newfont.ico" />
     <Image Include="res\newmessage.ico" />
+    <Image Include="res\newmessageentry.ico" />
+    <Image Include="res\newmessagesequence.ico" />
     <Image Include="res\newpalette.ico" />
     <Image Include="res\newpic.ico" />
     <Image Include="res\newroom.ico" />

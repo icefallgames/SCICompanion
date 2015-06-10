@@ -60,8 +60,6 @@ BEGIN_MESSAGE_MAP(MessageEditPane, CExtDialogFwdCmd)
     ON_WM_DRAWITEM()
     ON_WM_CREATE()
     ON_WM_ERASEBKGND()
-    ON_BN_CLICKED(IDC_BUTTONADDSEQ, &MessageEditPane::OnBnClickedButtonaddseq)
-    ON_BN_CLICKED(IDC_BUTTONCLONE, &MessageEditPane::OnBnClickedButtonclone)
     ON_EN_CHANGE(IDC_EDITMESSAGE, &MessageEditPane::OnEnChangeEditmessage)
     ON_CBN_SELCHANGE(IDC_COMBONOUN, &MessageEditPane::OnCbnSelchangeCombonoun)
     ON_CBN_SELCHANGE(IDC_COMBOVERB, &MessageEditPane::OnCbnSelchangeComboverb)
@@ -69,7 +67,6 @@ BEGIN_MESSAGE_MAP(MessageEditPane, CExtDialogFwdCmd)
     ON_EN_KILLFOCUS(IDC_EDITMESSAGE, &MessageEditPane::OnEnKillfocusEditmessage)
     ON_CBN_SELCHANGE(IDC_COMBOCONDITION, &MessageEditPane::OnCbnSelchangeCombocondition)
     ON_CBN_SELCHANGE(IDC_COMBOTALKER, &MessageEditPane::OnCbnSelchangeCombotalker)
-    ON_BN_CLICKED(IDC_BUTTONADDNEW, &MessageEditPane::OnBnClickedButtonaddnew)
     ON_CBN_EDITCHANGE(IDC_COMBOVERB, &MessageEditPane::OnCbnEditchangeComboverb)
     ON_CBN_KILLFOCUS(IDC_COMBOVERB, &MessageEditPane::OnCbnKillfocusComboverb)
     ON_CBN_SETFOCUS(IDC_COMBOVERB, &MessageEditPane::OnCbnSetfocusComboverb)
@@ -335,33 +332,6 @@ void MessageEditPane::_AddEntryAtCurrentPosition(const TextEntry &entry)
         // Now select it
         _pDoc->SetSelectedIndex(index);
     }
-}
-
-void MessageEditPane::OnBnClickedButtonaddseq()
-{
-    const TextEntry *text = _GetEntry();
-    if (text)
-    {
-        TextEntry newEntry = *text;
-        newEntry.Sequence++;
-        _AddEntryAtCurrentPosition(newEntry);
-    }
-}
-
-void MessageEditPane::OnBnClickedButtonclone()
-{
-    const TextEntry *text = _GetEntry();
-    if (text)
-    {
-        _AddEntryAtCurrentPosition(*text);
-    }
-}
-
-void MessageEditPane::OnBnClickedButtonaddnew()
-{
-    // Default to the NARRATOR talker (usually 99), and sequence 1.
-    TextEntry newEntry({ 0, 0, 0, 1, 99, 0, "" });
-    _AddEntryAtCurrentPosition(newEntry);
 }
 
 void MessageEditPane::OnEnChangeEditmessage()

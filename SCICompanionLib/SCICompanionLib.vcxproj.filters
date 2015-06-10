@@ -1791,5 +1791,17 @@
     <Image Include="res\editpalette.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="res\bmp00021.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\clonemessageentry.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\newmessageentry.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\newmessagesequence.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

@@ -98,6 +98,9 @@ IDI_VIEW                ICON                    "res\\view.ico"
 IDI_VOCAB               ICON                    "res\\Vocab.ico"
 IDI_NEWTEXT             ICON                    "res\\newtext.ico"
 IDI_NEWMESSAGE          ICON                    "res\\newmessage.ico"
+IDI_NEWMESSAGEENTRY     ICON                    "res\\newmessageentry.ico"
+IDI_NEWMESSAGESEQ       ICON                    "res\\newmessagesequence.ico"
+IDI_CLONEMESSAGEENTRY   ICON                    "res\\clonemessageentry.ico"
 IDI_NEWPALETTE          ICON                    "res\\newpalette.ico"
 IDI_TEXT                ICON                    "res\\text.ico"
 IDI_MESSAGE             ICON                    "res\\message.ico"
@@ -200,6 +203,7 @@ IDR_TOOLBARSCREENS      BITMAP                  "res\\bmp00020.bmp"
 IDB_PICTHUMB_HIGHLIGHT  BITMAP                  "res\\picthumb_highlight.bmp"
 IDB_CLOSE_ACTIVE        BITMAP                  "res\\CloseActive.bmp"
 IDB_CLOSE_INACTIVE      BITMAP                  "res\\CloseInactive.bmp"
+IDR_TOOLBARMESSAGE      BITMAP                  "res\\bmp00021.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -358,6 +362,14 @@ BEGIN
     BUTTON      ID_SHOWVISUALSCREEN
     BUTTON      ID_SHOWPRIORITYSCREEN
     BUTTON      ID_SHOWCONTROLSCREEN
+END
+
+IDR_TOOLBARMESSAGE TOOLBAR 24, 24
+BEGIN
+    BUTTON      IDC_BUTTONADDNEW
+    BUTTON      IDC_BUTTONCLONE
+    BUTTON      IDC_BUTTONADDSEQ
+    BUTTON      ID_EDIT_DELETE
 END
 
 
@@ -1540,7 +1552,7 @@ IDD_MESSAGEEDIT DIALOGEX 0, 0, 499, 118
 STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_SYSMENU
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    EDITTEXT        IDC_EDITMESSAGE,169,21,323,90,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN
+    EDITTEXT        IDC_EDITMESSAGE,169,24,323,87,ES_MULTILINE | ES_AUTOHSCROLL | ES_WANTRETURN
     PUSHBUTTON      "Clone",IDC_BUTTONCLONE,58,7,42,14
     PUSHBUTTON      "Add sequence",IDC_BUTTONADDSEQ,104,7,59,14
     RTEXT           "Noun:",IDC_STATIC3,7,28,42,8
@@ -1554,7 +1566,7 @@ BEGIN
     CONTROL         "",IDC_SPINSEQ,"msctls_updown32",UDS_SETBUDDYINT | UDS_AUTOBUDDY | UDS_ARROWKEYS,148,74,15,14
     RTEXT           "Talker:",IDC_STATIC9,7,94,42,8
     COMBOBOX        IDC_COMBOTALKER,58,91,105,30,CBS_DROPDOWN | CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Message text:",IDC_STATIC2,172,9,47,8
+    LTEXT           "Message text:",IDC_STATIC2,172,11,47,8
     PUSHBUTTON      "Commit",IDC_BUTTONCOMMIT,232,7,50,14
     PUSHBUTTON      "Add new",IDC_BUTTONADDNEW,7,7,42,14
 END
@@ -2495,6 +2507,13 @@ STRINGTABLE
 BEGIN
     ID_NEW_MESSAGE          "Create a new message resource\nNew message resource"
     ID_NEW_PALETTE          "Create a new palette resource\nNew palette resource"
+END
+
+STRINGTABLE
+BEGIN
+    IDC_BUTTONADDSEQ        "Add another entry in the current sequence\nAdd subsequent"
+    IDC_BUTTONCLONE         "Clone the current message entry\nClone entry"
+    IDC_BUTTONADDNEW        "Add a new empty message entry\nNew entry"
 END
 
 #endif    // English (United States) resources

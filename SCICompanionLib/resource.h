@@ -225,6 +225,7 @@
 #define IDI_PALETTE1                    342
 #define IDI_PALETTE2                    343
 #define IDR_TOOLBARSCREENS              344
+#define IDR_TOOLBARMESSAGE              345
 #define IDI_SCREENCONTROL               346
 #define IDI_SCREENVISUAL                347
 #define IDI_SCREENPRIORITY              348
@@ -264,6 +265,9 @@
 #define IDI_AUDIO                       372
 #define IDI_EDITPALETTE                 373
 #define IDD_DIALOGGRADIENTS             374
+#define IDI_NEWMESSAGEENTRY             375
+#define IDI_NEWMESSAGESEQ               376
+#define IDI_CLONEMESSAGEENTRY           377
 #define IDC_CHOOSECOLORSTATIC           1001
 #define IDC_BUTTON1                     1003
 #define IDC_BUTTONDOWN                  1003
@@ -822,6 +826,7 @@
 #define ID_BAR_MESSAGEEDIT              33181
 #define ID_NEW_MESSAGE                  33182
 #define ID_NEW_PALETTE                  33183
+#define ID_BAR_TOOLMESSAGE              33184
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -829,8 +834,8 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        376
-#define _APS_NEXT_COMMAND_VALUE         33184
+#define _APS_NEXT_RESOURCE_VALUE        378
+#define _APS_NEXT_COMMAND_VALUE         33185
 #define _APS_NEXT_CONTROL_VALUE         1281
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
