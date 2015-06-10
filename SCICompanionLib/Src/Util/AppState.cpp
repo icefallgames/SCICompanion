@@ -129,6 +129,8 @@ AppState::AppState(CWinApp *pApp)
     {
         g_vgaPaletteMapping[i] = (uint8_t)i;
     }
+
+    CelDataClipboardFormat = RegisterClipboardFormat("SCICompanionVGACelData");
 }
 
 AppState::~AppState()

@@ -9,8 +9,8 @@
 
 #define PALETTE_TIMER 6789
 
-PaletteEditorDialog::PaletteEditorDialog(IVGAPaletteDefinitionCallback *callback, PaletteComponent &palette, const std::vector<const Cel*> &cels)
-    : PaletteEditorCommon<CExtResizableDialog>(callback, PaletteEditorDialog::IDD, nullptr), _cycleForward(true), _cycling(false), _initialized(false)
+PaletteEditorDialog::PaletteEditorDialog(IVGAPaletteDefinitionCallback *callback, PaletteComponent &palette, const std::vector<const Cel*> &cels, bool enableCycling)
+    : PaletteEditorCommon<CExtResizableDialog>(callback, PaletteEditorDialog::IDD, nullptr), _cycleForward(true), _cycling(false), _initialized(false), _enableCycling(enableCycling)
 {
     Init(palette, cels);
 }
@@ -81,6 +81,14 @@ void PaletteEditorDialog::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_CHECKPREVIEWCYCLING, m_wndPreviewCycling);
         DDX_Control(pDX, IDC_BUTTONCYCLELEFT, m_wndCycleLeft);
         DDX_Control(pDX, IDC_BUTTONCYCLERIGHT, m_wndCycleRight);
+
+        if (!_enableCycling)
+        {
+            m_wndPreviewCycling.ShowWindow(SW_HIDE);
+            m_wndCycleLeft.ShowWindow(SW_HIDE);
+            m_wndCycleRight.ShowWindow(SW_HIDE);
+        }
+
         _UpdateCycleUI();
 
         //SetTimer(PALETTE_TIMER, 17, nullptr); // 16.666 (60 FPS). This seems to match the game clock.

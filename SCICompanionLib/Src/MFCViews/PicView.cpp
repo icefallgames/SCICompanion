@@ -511,7 +511,7 @@ void CPicView::EditVGAPalette()
         }
 
         PaletteComponent paletteCopy = *palette; // Since we'll be changing it, and this is const
-        PaletteEditorDialog paletteEditor(this, paletteCopy, cels);
+        PaletteEditorDialog paletteEditor(this, paletteCopy, cels, true);
 
         GetDocument()->SetPreviewPalette(&paletteCopy);
 

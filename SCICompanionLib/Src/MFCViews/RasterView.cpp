@@ -13,6 +13,7 @@
 #include "CObjectWrap.h"
 #include "PaletteOperations.h"
 #include "PaletteEditorDialog.h"
+#include "ImageUtil.h"
 
 // Thickness of the sizers around the image:
 #define SIZER_SIZE 6
@@ -178,8 +179,34 @@ void _ConvertDrawnDIBBitsToSelectionBits(const BYTE *pBits, CSize size, BYTE *pB
 {
     for (int y = 0; y < size.cy; y++)
     {
-        CopyMemory(pBitsOut + y * size.cx, pBits + (size.cy - 1 - y) * CX_ACTUAL(size.cx), size.cx);
+        memcpy(pBitsOut + y * size.cx, pBits + (size.cy - 1 - y) * CX_ACTUAL(size.cx), size.cx);
     }
+}
+
+// This does the opposite of the above
+void _ConvertSelectionBitsToCelData(const BYTE *pBits, CSize size, BYTE *pBitsOut)
+{
+    for (int y = 0; y < size.cy; y++)
+    {
+        memcpy(pBitsOut + y * CX_ACTUAL(size.cx), pBits + (size.cy - 1 - y) * size.cx, size.cx);
+    }
+}
+
+CRect CRasterView::SelectionManager::PasteCel(const Cel &celPaste, int cCels, CSize sizeMain)
+{
+    CRect rect;
+    // Get rid of any selection.
+    ClearSelection();
+    _sizeSelectionBits = CSize(min(sizeMain.cx, celPaste.size.cx), min(sizeMain.cy, celPaste.size.cy));
+    _GenerateSelectionBits(cCels, _sizeSelectionBits);
+    rect = CRect(0, 0, _sizeSelectionBits.cx, _sizeSelectionBits.cy);
+    // Apply our new selection;
+    for (int i = 0; i < cCels; i++)
+    {
+        _ConvertDrawnDIBBitsToSelectionBits(&celPaste.Data[0], _sizeSelectionBits, _selectionBits[i].get());
+    }
+    _fSelection = true;
+    return rect;
 }
 
 CRect CRasterView::SelectionManager::PasteBitmap(BITMAPINFO *pbmi, int cCels, CSize sizeMain, const RGBQUAD *palette, int paletteCount)
@@ -1886,7 +1913,7 @@ void CRasterView::_OnCopyBitsToClipboard(const BYTE *pBitsSelection, CSize size)
         // Copy it over, flipping it.
         for (int y = 0; y < size.cy; y++)
         {
-            CopyMemory(pBitsTemp.get() + (size.cy - 1 - y) * CX_ACTUAL(size.cx), pBitsSelection + (y * size.cx), size.cx);
+            memcpy(pBitsTemp.get() + (size.cy - 1 - y) * CX_ACTUAL(size.cx), pBitsSelection + (y * size.cx), size.cx);
         }
 
         // Create the bitmap we'll put in the clipboard, and select it into our DC.
@@ -1906,6 +1933,112 @@ void CRasterView::_OnCopyBitsToClipboard(const BYTE *pBitsSelection, CSize size)
             dcMem.SelectObject(hOldBitmap);
         }
     }
+
+    // Also copy to our custom format. Selection bits are in a different format though.
+    Cel cel = {};
+    cel.size = size16((uint16_t)size.cx, (uint16_t)size.cy);
+    cel.Data.allocate(cel.GetDataSize());
+    _ConvertSelectionBitsToCelData(pBitsSelection, size, &cel.Data[0]);
+    _CopyCelDataToClipboard(&cel);
+}
+
+// Copy our custom format to the clipboard so we can nicely handle copying among cels/views with the same VGA palette
+void CRasterView::_CopyCelDataToClipboard(const Cel *cel)
+{
+    if (cel)
+    {
+        // Size, data, palettecount, palette
+        sci::ostream serial;
+        SerializeCelRuntime(serial, *cel);
+        serial << _paletteCount;
+        // Now calculate used entries.
+        bool used[256];
+        CountActualUsedColors(*cel, used);
+        for (int i = 0; i < _paletteCount; i++)
+        {
+            serial << used[i];
+        }
+        for (int i = 0; i < _paletteCount; i++)
+        {
+            serial << _palette[i];
+        }
+        GlobalAllocGuard globalAlloc(GMEM_MOVEABLE, serial.tellp());
+        if (globalAlloc.Global)
+        {
+            GlobalLockGuard<uint8_t*> globalLock(globalAlloc);
+            if (globalLock.Object)
+            {
+                memcpy(globalLock.Object, serial.GetInternalPointer(), serial.tellp());
+                globalLock.Unlock();
+            }
+            else
+            {
+                // Didn't work
+                globalAlloc.Free();
+            }
+            if (SetClipboardData(appState->CelDataClipboardFormat, globalAlloc.Global))
+            {
+                // Success. Clipboard now owns the data.
+                globalAlloc.RelinquishOwnership();
+            }
+        }
+    }
+}
+
+// If the clipboard data's palette matches our current one, then this returns a Cel describing the data.
+// We can then apply it to our current selection bits.
+std::unique_ptr<Cel> CRasterView::_GetClipboardDataIfPaletteMatches()
+{
+    std::unique_ptr<Cel> celReturn;
+    if (IsClipboardFormatAvailable(appState->CelDataClipboardFormat))
+    {
+        OpenClipboardGuard clipBoard(this);
+        if (clipBoard.IsOpen())
+        {
+            HGLOBAL hMem = GetClipboardData(appState->CelDataClipboardFormat);
+            if (hMem)   // No need to free?
+            {
+                GlobalLockGuard<uint8_t*> globalLock(hMem);
+                uint8_t *data = globalLock.Object;
+                if (data)
+                {
+                    sci::istream byteStream(data, GlobalSize(hMem));
+                    std::unique_ptr<Cel> cel  = std::make_unique<Cel>();
+                    DeserializeCelRuntime(byteStream, *cel);
+                    int paletteCount;
+                    byteStream >> paletteCount;
+                    std::unique_ptr<bool[]> usedEntries = std::make_unique<bool[]>(paletteCount);
+                    // Only check against palette entries that are actually used. So if a view has the first 64
+                    // colors in common with another view, and only entries from those 64 colors are used, we
+                    // will still succeed.
+                    for (int i = 0; i < paletteCount; i++)
+                    {
+                        byteStream >> usedEntries[i];
+                    }
+                    if (paletteCount == _paletteCount)
+                    {
+                        bool match = true;
+                        for (int i = 0; match && (i < paletteCount); i++)
+                        {
+                            RGBQUAD paletteValue;
+                            byteStream >> paletteValue;
+                            if (usedEntries[i])
+                            {
+                                match = (paletteValue.rgbBlue == _palette[i].rgbBlue) &&
+                                    (paletteValue.rgbGreen == _palette[i].rgbGreen) &&
+                                    (paletteValue.rgbRed == _palette[i].rgbRed);
+                            }
+                        }
+                        if (match)
+                        {
+                            celReturn = move(cel);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return celReturn;
 }
 
 void CRasterView::OnCopyPic()
@@ -1947,6 +2080,9 @@ void CRasterView::OnCopyPic()
 
                 // Reset our double buffering, so we regenerate it on the next paint cycle.
                 _DestroyDoubleBuffer();
+
+                // Also do this
+                _CopyCelDataToClipboard(_GetSelectedCel());
             }
         }
     }
@@ -1962,12 +2098,16 @@ void CRasterView::OnPasteTransparent()
     _OnPaste(true);
 }
 
-
-
-
 void CRasterView::_OnPaste(bool fTransparent)
 {
-    if (IsClipboardFormatAvailable(CF_DIB))
+    bool success = false;
+    std::unique_ptr<Cel> cel = _GetClipboardDataIfPaletteMatches();
+    if (cel)
+    {
+        success = true;
+        _rectSelection = _selectionManager.PasteCel(*cel, _cWorkingCels, SizeToCSize(_celData[_iMainIndex].GetSize()));
+    }
+    else if (IsClipboardFormatAvailable(CF_DIB))
     {
         OpenClipboardGuard clipBoard(this);
         if (clipBoard.IsOpen())
@@ -1979,20 +2119,21 @@ void CRasterView::_OnPaste(bool fTransparent)
                 BITMAPINFO *pbmi = globalLock.Object;
                 if (pbmi && (_iMainIndex != -1))
                 {
+                    success = true;
                     _rectSelection = _selectionManager.PasteBitmap(pbmi, _cWorkingCels, SizeToCSize(_celData[_iMainIndex].GetSize()), _palette, _paletteCount);
-                    if (!_rectSelection.IsRectEmpty())
-                    {
-                        _fSelectionTransparent = fTransparent;
-                        _fSelectionLifted = true;
-                        // And finally change to the selection tool
-                        _OnChangeTool(Select);
-                        // And really finally, invalidate our canvas
-                        _InvalidateViewArea();
-                        _StartRubberBandTimer();
-                    }
                 }
             }
         }
+    }
+    if (success && !_rectSelection.IsRectEmpty())
+    {
+        _fSelectionTransparent = fTransparent;
+        _fSelectionLifted = true;
+        // And finally change to the selection tool
+        _OnChangeTool(Select);
+        // And really finally, invalidate our canvas
+        _InvalidateViewArea();
+        _StartRubberBandTimer();
     }
 }
 
@@ -2860,7 +3001,7 @@ void CRasterView::EditVGAPalette()
                     // TODO: support removing one too
 
                     PaletteComponent paletteCopy = *palette; // Since we'll be changing it, and this is const
-                    PaletteEditorDialog paletteEditor(nullptr, paletteCopy, cels);
+                    PaletteEditorDialog paletteEditor(nullptr, paletteCopy, cels, false);
                     paletteEditor.DoModal();
                     PaletteComponent paletteResult = paletteEditor.GetPalette();
                     if (addedPalette || (paletteResult != *palette))

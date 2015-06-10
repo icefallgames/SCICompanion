@@ -223,6 +223,7 @@ private:
         void DrawSelection(CRect rectSelection, int iIndex, BOOL fTransparent, CelData &celData);
         void ClearSelection() { _GenerateSelectionBits(0, CSize(0, 0)); }
         CRect PasteBitmap(BITMAPINFO *pbmi, int cCels, CSize sizeMain, const RGBQUAD *palette, int paletteCount);
+        CRect PasteCel(const Cel &celPaste, int cCels, CSize sizeMain);
 
     private:
         CRect _GetBottomOriginRect(CSize sizeCel, const RECT *prc);
@@ -331,6 +332,8 @@ private:
     const Cel *_GetCel(CelIndex dwIndex) const;
     CNewRasterResourceDocument *GetDoc() const;
     void _SyncColor(CNewRasterResourceDocument *pDoc);
+    void _CopyCelDataToClipboard(const Cel *cel);
+    std::unique_ptr<Cel> _GetClipboardDataIfPaletteMatches();
 
     // Scrolling
     virtual int _GetViewWidth() { return _cxViewZoom; }

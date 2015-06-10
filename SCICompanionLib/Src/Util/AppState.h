@@ -140,6 +140,8 @@ public:
 
     ResourceRecency _resourceRecency;
 
+    UINT CelDataClipboardFormat;
+
 public: // TODO for now
     HRESULT _GetGameStringProperty(PCTSTR pszProp, PTSTR pszValue, size_t cchValue);
     HRESULT _SetGameStringProperty(PCTSTR pszProp, PCTSTR pszValue);

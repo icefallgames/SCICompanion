@@ -11,7 +11,7 @@ struct Cel;
 class PaletteEditorDialog : public PaletteEditorCommon<CExtResizableDialog>, public INonViewClient
 {
 public:
-    PaletteEditorDialog(IVGAPaletteDefinitionCallback *callback, PaletteComponent &palette, const std::vector<const Cel*> &cels);  // standard constructor
+    PaletteEditorDialog(IVGAPaletteDefinitionCallback *callback, PaletteComponent &palette, const std::vector<const Cel*> &cels, bool enableCycling);  // standard constructor
     PaletteEditorDialog();
 
     // Dialog Data
@@ -40,6 +40,7 @@ private:
     CExtCheckBox m_wndPreviewCycling;
     CExtRadioButton m_wndCycleLeft;
     CExtRadioButton m_wndCycleRight;
+    bool _enableCycling;
     bool _cycleForward;
     bool _cycling;
     bool _initialized;
