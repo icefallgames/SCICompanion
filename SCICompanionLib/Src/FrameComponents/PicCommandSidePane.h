@@ -79,5 +79,6 @@ private:
     CExtButton m_wndDelete;
     CExtButton m_wndCopy;
     CExtButton m_wndCrop;
+    CExtButton m_wndSetBackground;
     HACCEL _hAccel;
 };

@@ -961,6 +961,31 @@ void *_GetBitsPtrFromBITMAPINFO(const BITMAPINFO *pbmi)
     return pBits;
 }
 
+void _ReplaceDrawVisual(PicComponent &pic, const Cel &cel)
+{
+    // Prep the command
+    PicCommand newCommand;
+    newCommand.CreateDrawVisualBitmap(cel, true);
+
+    // Now find where the (first) old bitmap was and stick it in there.
+    bool found = false;
+    for (auto &command : pic.commands)
+    {
+        if (command.type == PicCommand::CommandType::DrawBitmap)
+        {
+            command = newCommand;
+            found = true;
+            break;
+        }
+    }
+
+    if (!found)
+    {
+        // There was no old one. Just stick it in front then.
+        pic.commands.insert(pic.commands.begin(), newCommand);
+    }
+}
+
 void CPicView::OnPasteIntoPic()
 {
     if (_GetEditPic()->Traits.IsVGA)
@@ -987,27 +1012,7 @@ void CPicView::OnPasteIntoPic()
                     // Replace the palette with the new one.
                     palette = *paletteResult;
 
-                    // Prep the command
-                    PicCommand newCommand;
-                    newCommand.CreateDrawVisualBitmap(*result, true);
-
-                    // Now find where the (first) old bitmap was and stick it in there.
-                    bool found = false;
-                    for (auto &command : pic.commands)
-                    {
-                        if (command.type == PicCommand::CommandType::DrawBitmap)
-                        {
-                            command = newCommand;
-                            found = true;
-                            break;
-                        }
-                    }
-
-                    if (!found)
-                    {
-                        // There was no old one. Just stick it in front then.
-                        pic.commands.insert(pic.commands.begin(), newCommand);
-                    }
+                    _ReplaceDrawVisual(pic, *result);
 
                     return WrapHint(PicChangeHint::EditPicInvalid | PicChangeHint::Palette);
                 }
@@ -1063,18 +1068,23 @@ void CPicView::OnPaste()
                             {
                                 const PaletteComponent *globalPalette = appState->GetResourceMap().GetPalette999();
 
-                                PaletteComponent *picPalette = GetDocument()->GetResource()->TryGetComponent<PaletteComponent>();
-                                std::unique_ptr<uint8_t[]> sciBits = QuantizeImage(pDIBBits24, 320, 320, 190, globalPalette->Colors, picPalette->Colors, 255);
-                                // We just directly modified the palette.
-                                PicCommand command;
-                                Cel cel;
-                                cel.placement = point16(0, 0);
-                                cel.size = size16(320, 190);
-                                cel.TransparentColor = 255;
-                                cel.Data.allocate(PaddedSize(cel.size));
-                                cel.Data.assign(&sciBits.get()[0], &sciBits.get()[cel.Data.size()]);
-                                command.CreateDrawVisualBitmap(cel, true);
-                                GetDocument()->InsertCommand(&command);
+                                GetDocument()->ApplyChanges<PicComponent, PaletteComponent>(
+                                    [globalPalette, pDIBBits24](PicComponent &pic, PaletteComponent &palette)
+                                {
+                                    std::unique_ptr<uint8_t[]> sciBits = QuantizeImage(pDIBBits24, 320, 320 * 3, 190, globalPalette->Colors, palette.Colors, 255);
+                                    // We just directly modified the palette.
+                                    PicCommand command;
+                                    Cel cel;
+                                    cel.placement = point16(0, 0);
+                                    cel.size = size16(320, 190);
+                                    cel.TransparentColor = 255;
+                                    cel.Data.allocate(PaddedSize(cel.size));
+                                    cel.Data.assign(&sciBits.get()[0], &sciBits.get()[cel.Data.size()]);
+                                    command.CreateDrawVisualBitmap(cel, true);
+                                    _ReplaceDrawVisual(pic, cel);
+                                    return WrapHint(PicChangeHint::EditPicInvalid | PicChangeHint::Palette);
+                                });
+
                             }
                             else
                             {

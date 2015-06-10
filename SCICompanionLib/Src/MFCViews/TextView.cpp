@@ -247,7 +247,7 @@ BOOL CTextView::PreTranslateMessage(MSG *pMsg)
         CEdit* edit = oListctrl.GetEditControl();
         if (edit)
         {
-            if (GetKeyState(VK_CONTROL))
+            if (GetKeyState(VK_CONTROL) & 0x8000)
             {
                 if (pMsg->wParam == VK_C)
                 {

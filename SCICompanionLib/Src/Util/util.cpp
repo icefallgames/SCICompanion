@@ -797,7 +797,7 @@ BOOL HandleEditBoxCommands(MSG* pMsg, CEdit &wndEdit)
     {
         if (pMsg->message == WM_KEYDOWN)
         {
-            if (GetKeyState(VK_CONTROL))
+            if (GetKeyState(VK_CONTROL) & 0x8000)
             {
                 if (pMsg->wParam == VK_C)
                 {
