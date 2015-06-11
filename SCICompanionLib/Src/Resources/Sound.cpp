@@ -9,6 +9,28 @@
 
 using namespace std;
 
+void InsertEvent(std::vector<SoundEvent> &events, size_t index, const SoundEvent &event)
+{
+    auto itNext = events.insert(events.begin() + index, event) + 1;
+    if (itNext != events.end())
+    {
+        // Adjust this ones time delta.
+        assert(itNext->wTimeDelta >= event.wTimeDelta);
+        itNext->wTimeDelta -= event.wTimeDelta;
+    }
+}
+
+SoundEvent RemoveEvent(std::vector<SoundEvent> &events, size_t index)
+{
+    SoundEvent event = events[index];
+    events.erase(events.begin() + index);
+    if (index < events.size())
+    {
+        events[index].wTimeDelta += event.wTimeDelta;
+    }
+    return event;
+}
+
 bool _GetDeltaTime(sci::istream &stream, DWORD *pw)
 {
     *pw = 0;
@@ -689,58 +711,87 @@ void _EnsureCh15Presamble(vector<SoundEvent> &events)
 // The user can't edit midi directly, so we only need to do this when importing midi files.
 void EnsureChannelPreamble(ChannelInfo &channel)
 {
-    vector<SoundEvent> &events = channel.Events;
-    // For non-channel 15s, ensure there is a volume and pan position at delta zero.
-    int existingVolumeIndex = -1;
-    int existingPanIndex = -1;
-    DWORD ticks = 0;
-    size_t i = 0;
-    while ((ticks == 0) && (i < events.size()))
+    // Midi channels must start with the following events in this order:
+    //  Program change
+    //  Volume
+    //  Pan
+    // SCI apparently doesn't look at the actual midi codes, but just plucks out the values.
+
+    // Look for these events, up to a note event. Then stick them in front, or manufacture missing ones.
+    std::vector<SoundEvent> &events = channel.Events;
+    SoundEvent eventProgramChange;
+    SoundEvent eventVolume;
+    SoundEvent eventPan;
+    bool done = false;
+    int foundCount = 0;
+    for (size_t index = 0; !done && (foundCount < 3) && (index < events.size());)
     {
-        if (events[i].wTimeDelta == 0)
+        SoundEvent::Command command = events[index].GetCommand();
+        switch (command)
         {
-            if (events[i].GetCommand() == SoundEvent::Command::Control)
-            {
-                if ((existingVolumeIndex == -1) && (events[i].bParam1 == 7))
+            case SoundEvent::ProgramChange:
+                if (eventProgramChange.GetCommand() != SoundEvent::ProgramChange)
                 {
-                    existingVolumeIndex = i;
+                    eventProgramChange = RemoveEvent(events, index);
+                    foundCount++;
+                    continue;
                 }
-                if ((existingPanIndex == -1) && (events[i].bParam1 == 9))
+                break;
+            case SoundEvent::Control:
+            {
+                switch (events[index].bParam1)
                 {
-                    existingPanIndex = i;
+                    case 7:
+                        if (eventVolume.GetCommand() != SoundEvent::Control)
+                        {
+                            eventVolume = RemoveEvent(events, index);
+                            foundCount++;
+                            continue;
+                        }
+                        break;
+                    case 10:
+                        if (eventPan.GetCommand() != SoundEvent::Control)
+                        {
+                            eventPan = RemoveEvent(events, index);
+                            foundCount++;
+                            continue;
+                        }
+                        break;
+
                 }
             }
+            case SoundEvent::NoteOn:
+                done = true;    // Don't look past the first note
+                break;
         }
-        ticks += events[i].wTimeDelta;
-        i++;
+        index++;
     }
 
-    // Put it after program change
-    size_t insertIndex = 0;
-    if (!events.empty() && events[0].GetCommand() == SoundEvent::Command::ProgramChange)
+    // Fill in defaults for events we didn't find.
+    eventProgramChange.wTimeDelta = 0;
+    if (eventProgramChange.GetCommand() != SoundEvent::ProgramChange)
     {
-        insertIndex++;
+        eventProgramChange.SetRawStatus(SoundEvent::ProgramChange | channel.Number);
+        eventProgramChange.bParam1 = 0; // Program 0 I guess?
+    }
+    eventVolume.wTimeDelta = 0;
+    if (eventVolume.GetCommand() != SoundEvent::Control)
+    {
+        eventVolume.SetRawStatus(SoundEvent::Control | channel.Number);
+        eventVolume.bParam1 = 7;
+        eventVolume.bParam2 = 127;
+    }
+    eventPan.wTimeDelta = 0;
+    if (eventPan.GetCommand() != SoundEvent::Control)
+    {
+        eventPan.SetRawStatus(SoundEvent::Control | channel.Number);
+        eventPan.bParam1 = 10;
+        eventPan.bParam2 = 64;
     }
 
-    if (existingPanIndex == -1)
-    {
-        // pan 64, by default
-        uint8_t status = (uint8_t)channel.Number;
-        status |= SoundEvent::Command::Control;
-        if (existingVolumeIndex != -1)
-        {
-            // Pan must follow volume, or else the first several seconds of sound won't play.
-            insertIndex = existingVolumeIndex + 1;
-        }
-        events.insert(events.begin() + insertIndex, SoundEvent(0, 10, 64, status));
-    }
-    if (existingVolumeIndex == -1)
-    {
-        // Volume 127, by default
-        uint8_t status = (uint8_t)channel.Number;
-        status |= SoundEvent::Command::Control;
-        events.insert(events.begin() + insertIndex, SoundEvent(0, 7, 127, status));
-    }
+    InsertEvent(events, 0, eventProgramChange);
+    InsertEvent(events, 1, eventVolume);
+    InsertEvent(events, 2, eventPan);
 }
 
 void SoundComponent::_ProcessBeforeSaving()
