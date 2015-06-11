@@ -41,7 +41,7 @@
                 (if (>= paramTotal 4)
                     param4
                 )(else
-                    (send global2:obstacles)
+                    (send gRoom:obstacles)
                 )
             (if (>= paramTotal 1)
                 = client theClient

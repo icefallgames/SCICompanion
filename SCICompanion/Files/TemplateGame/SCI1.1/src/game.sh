@@ -6,5 +6,6 @@
 (include "Verbs.sh")
 (include "Talkers.sh")
 // e.g.
-// (define MAIN_SCRIPT			  0)
+(define MAIN_SCRIPT			  0)
+(define DEATH_SCRIPT	     20)
 // (define MENU_ABOUT			$101)

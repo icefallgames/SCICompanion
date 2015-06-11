@@ -1,7 +1,7 @@
 (version 2)
 (include "sci.sh")
 (use "Main")
-(use "Feature")
+(use "View")
 (use "Obj")
 (script 923)
 
@@ -54,8 +54,8 @@
         = oldKH gOldKH
         = oldDH gOldDH
         = oldWH gOldWH
-        = oldObstacles (send global2:obstacles)
-        (send global2:obstacles((send ((List:new())):
+        = oldObstacles (send gRoom:obstacles)
+        (send gRoom:obstacles((send ((List:new())):
                 add()
                 yourself()
             )
@@ -133,7 +133,7 @@
         (send gOldKH:dispose())
         (send gOldDH:dispose())
         (send gOldWH:dispose())
-        (send ((send global2:obstacles)):dispose())
+        (send ((send gRoom:obstacles)):dispose())
         (send owner:inset(0))
         (if (not paramTotal or param1)
             (self:refresh())
@@ -142,7 +142,7 @@
             = gOldATPs oldATPs
             (send gOldATPs:doit())
         )
-        (send global2:obstacles(oldObstacles))
+        (send gRoom:obstacles(oldObstacles))
         = gOldCast oldCast
         = gOldFeatures oldFeatures
         = gOldMH oldMH
@@ -269,16 +269,16 @@
 
     (method (refresh)
         (if (view)
-            DrawPic((send global2:picture) 100)
+            DrawPic((send gRoom:picture) 100)
         )(else
-            DrawPic((send global2:picture) style)
+            DrawPic((send gRoom:picture) style)
         )
-        (send global2:style(oldStyle))
+        (send gRoom:style(oldStyle))
         (if (<> gPicNumber -1)
             DrawPic(gPicNumber 100 dpNO_CLEAR)
         )
-        (if ((send global2:inset()))
-            (send ((send global2:inset())):restore())
+        (if ((send gRoom:inset()))
+            (send ((send gRoom:inset())):restore())
         )
     )
 

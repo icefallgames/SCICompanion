@@ -2,7 +2,7 @@
 (include "sci.sh")
 (use "Main")
 (use "Controls")
-(use "Feature")
+(use "View")
 (use "Obj")
 (script 976)
 
@@ -22,7 +22,7 @@
         nsRight 0
         sightAngle $6789
         actions 0
-        onMeCheck $6789
+        onMeCheck omcDISABLE
         state $0000
         approachX 0
         approachY 0

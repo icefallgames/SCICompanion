@@ -163,29 +163,32 @@ std::unique_ptr<ResourceContainer> GameFolderHelper::Resources(ResourceTypeFlags
     // Resources can come from various sources.
     std::unique_ptr<ResourceSourceArray> mapAndVolumes = std::make_unique<ResourceSourceArray>();
 
-    // First, any stray files...
-    if (!IsFlagSet(enumFlags, ResourceEnumFlags::ExcludePatchFiles))
+    if (!GameFolder.empty())
     {
-        mapAndVolumes->push_back(move(std::make_unique<PatchFilesResourceSource>(Version, GameFolder)));
-    }
-
-    // Add readers for message map files, if requrested
-    if (IsFlagSet(types, ResourceTypeFlags::Message) && Version.SeparateMessageMap)
-    {
-        FileDescriptorMessageMap messageMap(GameFolder);
-        if (messageMap.DoesMapExist())
+        // First, any stray files...
+        if (!IsFlagSet(enumFlags, ResourceEnumFlags::ExcludePatchFiles))
         {
-            mapAndVolumes->push_back(move(CreateResourceSource(GameFolder, Version, ResourceSourceFlags::MessageMap)));
+            mapAndVolumes->push_back(move(std::make_unique<PatchFilesResourceSource>(Version, GameFolder)));
         }
-    }
 
-    if (IsFlagSet(types, ResourceTypeFlags::Audio))
-    {
-        mapAndVolumes->push_back(move(make_unique<AudioResourceSource>(Version, GameFolder)));
-    }
+        // Add readers for message map files, if requrested
+        if (IsFlagSet(types, ResourceTypeFlags::Message) && Version.SeparateMessageMap)
+        {
+            FileDescriptorMessageMap messageMap(GameFolder);
+            if (messageMap.DoesMapExist())
+            {
+                mapAndVolumes->push_back(move(CreateResourceSource(GameFolder, Version, ResourceSourceFlags::MessageMap)));
+            }
+        }
+        
+        if (IsFlagSet(types, ResourceTypeFlags::Audio))
+        {
+            mapAndVolumes->push_back(move(make_unique<AudioResourceSource>(Version, GameFolder)));
+        }
 
-    // Now the standard resource maps
-    mapAndVolumes->push_back(move(CreateResourceSource(GameFolder, Version, ResourceSourceFlags::ResourceMap)));
+        // Now the standard resource maps
+        mapAndVolumes->push_back(move(CreateResourceSource(GameFolder, Version, ResourceSourceFlags::ResourceMap)));
+    }
 
     std::unique_ptr<ResourceContainer> resourceContainer(
         new ResourceContainer(

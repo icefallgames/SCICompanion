@@ -5,7 +5,7 @@
 (use "Polygon")
 (use "Sound")
 (use "Cycle")
-(use "Feature")
+(use "View")
 (script 954)
 
 
@@ -24,7 +24,7 @@
         nsRight 0
         sightAngle $6789
         actions 0
-        onMeCheck $6789
+        onMeCheck omcDISABLE
         state $0000
         approachX 0
         approachY 0
@@ -205,20 +205,20 @@
                 (if ((== (send gEgo:x) moveToX) and (== (send gEgo:y) moveToY))
                     (if (entranceTo)
                         (switch (entranceTo)
-                            (case (send global2:north)
+                            (case (send gRoom:north)
                                 (send gEgo:edgeHit(1))
                             )
-                            (case (send global2:south)
+                            (case (send gRoom:south)
                                 (send gEgo:edgeHit(3))
                             )
-                            (case (send global2:west)
+                            (case (send gRoom:west)
                                 (send gEgo:edgeHit(4))
                             )
-                            (case (send global2:east)
+                            (case (send gRoom:east)
                                 (send gEgo:edgeHit(2))
                             )
                         )
-                        (send global2:newRoom(entranceTo))
+                        (send gRoom:newRoom(entranceTo))
                     )(else
                         (if (forceClose)
                             (self:close())

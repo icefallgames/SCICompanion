@@ -10,7 +10,7 @@
 (use "Print")
 (use "Cycle")
 (use "Game")
-(use "Feature")
+(use "View")
 (use "Obj")
 (script 100)
 
@@ -146,7 +146,7 @@
                 
                 (switch (temp0)
                     (case 0
-                        (send global2:newRoom(110))
+                        (send gRoom:newRoom(110))
                     )
                     (case 1
                         (send gGame:restore())

@@ -512,7 +512,7 @@
                 )
 ))
         )(else
-            (send global2:addObstacle((send ((Polygon:new())):
+            (send gRoom:addObstacle((send ((Polygon:new())):
                     type(type)
                     points(temp1)
                     size(size)
@@ -902,7 +902,7 @@ code_06d6:  ret
     )
 
     (method (init)
-        DrawPic((send global2:curPic) 100 dpCLEAR)
+        DrawPic((send gRoom:curPic) 100 dpCLEAR)
         (if (<> gPicNumber -1)
             DrawPic(gPicNumber 100 dpNO_CLEAR)
         )
@@ -969,7 +969,7 @@ code_06d6:  ret
             init()
         )
 )
-            DrawPic((send global2:curPic) 100 dpCLEAR)
+            DrawPic((send gRoom:curPic) 100 dpCLEAR)
             (if (<> gPicNumber -1)
                 DrawPic(gPicNumber 100 dpNO_CLEAR)
             )
@@ -1361,8 +1361,8 @@ code_06d6:  ret
 
 
     (method (readObstacles)
-        (if ((send global2:obstacles))
-            (send ((send global2:obstacles)):eachElementDo(#perform readObstacle 0))
+        (if ((send gRoom:obstacles))
+            (send ((send gRoom:obstacles)):eachElementDo(#perform readObstacle 0))
         )
         (if (gPolygons)
             (send gPolygons:eachElementDo(#perform readObstacle 1))
@@ -1371,8 +1371,8 @@ code_06d6:  ret
 
 
     (method (writeObstacles)
-        (if ((send global2:obstacles))
-            (send ((send global2:obstacles)):
+        (if ((send gRoom:obstacles))
+            (send ((send gRoom:obstacles)):
                 eachElementDo(#dispose)
                 release()
             )
@@ -1410,7 +1410,7 @@ code_06d6:  ret
         )
         (self:eachElementDo(#check))
         (if (not local2)
-            Format(@local2 943 3 (send global2:curPic))
+            Format(@local2 943 3 (send gRoom:curPic))
         )
         = temp100 (Print:
                 addTitle("Save Polygons")
@@ -1459,7 +1459,7 @@ code_06d6:  ret
             return 0
         )
         (send newFile:writeString(Format(@temp0 943 6 "Polygon Editor 1.11")))
-        (send newFile:writeString(Format(@temp0 943 7 "Dynamic Obstacles" (send global2:curPic))))
+        (send newFile:writeString(Format(@temp0 943 7 "Dynamic Obstacles" (send gRoom:curPic))))
         (send newFile:writeString("\t\t(curRoom addObstacle:\n"))
         (self:eachElementDo(#writeFile newFile 0))
         (send newFile:writeString("\t\t)\n\n"))

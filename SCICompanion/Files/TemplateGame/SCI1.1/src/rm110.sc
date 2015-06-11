@@ -1,5 +1,7 @@
 (version 2)
 (include "sci.sh")
+(include "Verbs.sh")
+(include "game.sh")
 (include "110.shm")
 (exports
     0 rm110
@@ -10,7 +12,7 @@
 (use "Sound")
 (use "Cycle")
 (use "Game")
-(use "Feature")
+(use "View")
 (use "Obj")
 (use "Print")
 (script 110)
@@ -29,33 +31,31 @@
 
     (method (init)
         (super:init())
-		(send gEgo:view(0)) // View seems to default to -1?
-        
         // Get the first inventory item
         (send gEgo:get(0))
         
         (anObject:init())
         
-        (send gEgo:
-            init()
-            view(13)
-            cel(0)
-            x(112)
-            y(162)
-        )        
+        SetUpEgo()
+        (switch (gPreviousRoomNumber)
+        	(case south
+        		(send gEgo:
+        			posn(150 180)
+        			loop(3)
+				)
+			)
+        	(default
+        		(send gEgo:
+        			posn(150 100)
+        			loop(1)
+				)
+			)
+		)
+        (send gEgo:init())
+        
         (send gGame:handsOn())
         (brookSound:play())
     )
-    
-    (method (doit)
-    	(var buf[100])
-    	(super:doit())
-    	// Testing why sound doesn't work.
-    	// So, in SCI, frame isn't increasing.
-    	// Format(@buf "%d %d %d %d %d %d %d" (brookSound:nodePtr) (brookSound:handle) (brookSound:flags) (brookSound:loop) (brookSound:signal) (brookSound:dataInc) (brookSound:frame))
-    	// Display(@buf 100 10 10 dsFONT 4 dsCOLOR 10 dsBACKGROUND 0)
-    	
-	)
 )
 
 (instance public anObject of Prop
@@ -65,12 +65,23 @@
 		y 100
 		noun N_ANOBJECT
 	)
+	
+	(method (doVerb theVerb)
+        (switch (theVerb)
+            (case V_DO
+            	Die(1)
+            )
+            (default 
+                (super:doVerb(rest theVerb))
+            )
+        )
+	)
 )
 
 (instance brookSound of Sound
 	(properties
 		number 1
-		loop 3
+		loop -1
 		priority 0
 		flags 0
 	)

@@ -47,7 +47,7 @@
 (local
     gEgo
     gGame
-    global2
+    gRoom
     global3		// Unused
     gQuitGame = FALSE
     gOldCast
@@ -210,7 +210,7 @@
         illegalBits(0)
         ignoreActors(0)
         setSpeed(gGEgoMoveSpeed)
-        signal(| (send gEgo:signal) $1000)
+        //signal(| (send gEgo:signal) $1000)
         heading(
             (switch ((send gEgo:loop))
                 (case 0
@@ -243,9 +243,9 @@
     (send gEgo:
         setLoop(-1)
         setLoop(stopGroop)
-        setCycle(egoStopWalk -1 2 0)
         setPri(-1)
-        setMotion(0)
+        setMotion(NULL)
+        view(13)
         state(| (send gEgo:state) $0002)
     )
 )
@@ -295,7 +295,7 @@
     )(else
         = gDeathReason param1
     )
-    (send global2:newRoom(20))
+    (send gRoom:newRoom(DEATH_SCRIPT))
 )
 
 

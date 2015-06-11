@@ -5,7 +5,7 @@
 (use "Sync")
 (use "RandCycle")
 (use "Cycle")
-(use "Feature")
+(use "View")
 (use "Obj")
 (script 928)
 
@@ -77,7 +77,7 @@
         nsRight 0
         sightAngle $6789
         actions 0
-        onMeCheck $6789
+        onMeCheck omcDISABLE
         state $0000
         approachX 0
         approachY 0
@@ -334,7 +334,7 @@
         nsRight 0
         sightAngle $6789
         actions 0
-        onMeCheck $6789
+        onMeCheck omcDISABLE
         state $0000
         approachX 0
         approachY 0

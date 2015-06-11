@@ -385,7 +385,7 @@
             (if ((DialogEditor:curMenu))
                 (send ((DialogEditor:curMenu)):init())
             )
-            DrawPic((send global2:picture) 100)
+            DrawPic((send gRoom:picture) 100)
             (if (local1)
                 (DlgWindow:create())
             )(else
@@ -1120,7 +1120,7 @@
         DrawStatus(" " 0 0)
         DrawStatus(0)
         (super:dispose())
-        DrawPic((send global2:picture) 100)
+        DrawPic((send gRoom:picture) 100)
         DisposeScript(111)
     )
 

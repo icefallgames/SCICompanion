@@ -333,7 +333,7 @@ void PrepareBitmapBase::_OnBrowse(CWnd *pwnd)
         int a = lstrlenA(strFileName);
         BSTR unicodestr = SysAllocStringLen(nullptr, a);
         MultiByteToWideChar(CP_ACP, 0, strFileName, a, unicodestr, a);
-        unique_ptr<Gdiplus::Bitmap> pImage(Bitmap::FromFile(unicodestr));
+        unique_ptr<Gdiplus::Bitmap> pImage(Bitmap::FromFile(unicodestr, TRUE));
 
         // Just test various things, for investigation:
         PixelFormat format = pImage->GetPixelFormat();

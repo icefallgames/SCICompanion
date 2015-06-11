@@ -13,7 +13,7 @@
 (procedure public (proc926_0 param1)
     (var temp0)
     (if (not paramTotal)
-        = temp0 (send global2:obstacles)
+        = temp0 (send gRoom:obstacles)
     )(else
         (if ((send param1:isKindOf(Collect)))
             = temp0 param1

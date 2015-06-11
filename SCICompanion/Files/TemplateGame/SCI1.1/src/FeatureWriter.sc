@@ -4,10 +4,10 @@
 (use "Controls")
 (use "Print")
 (use "DIcon")
-(use "CueObj")
+(use "Feature")
 (use "SysWindow")
 (use "File")
-(use "Feature")
+(use "View")
 (use "Obj")
 (script 948)
 
@@ -75,7 +75,7 @@
 (procedure (localproc_03c6 param1)
     (var newEvent)
     (send param1:
-        view(GetNumber("View?" (send global2:curPic)))
+        view(GetNumber("View?" (send gRoom:curPic)))
         loop(GetNumber("Loop?" 0))
         cel(GetNumber("Cel?" 0))
         signal(16400)
@@ -188,7 +188,7 @@
         = gSq5Win wfWin
         (if (not local389)
             = temp0 0
-            Format(@temp0 "%d.fea" (send global2:curPic))
+            Format(@temp0 "%d.fea" (send gRoom:curPic))
             (if (not EditPrint(@temp0 30 "Enter path and filename"))
                 return 
             )(else
@@ -299,7 +299,7 @@
         = temp0 0
         (if ((send param1:isMemberOf(Feature)))
             Format(@temp400 " \t\tnsLeft\t\t\t%d\n\t\tnsTop\t\t\t\t%d\n\t\tnsBottom\t\t\t%d\n\t\tnsRight\t\t\t%d\n" (send param1:nsLeft) (send param1:nsTop) (send param1:nsBottom) (send param1:nsRight))
-            Format(@temp592 "..\msg\%d.shm" (send global2:curPic))
+            Format(@temp592 "..\msg\%d.shm" (send gRoom:curPic))
             (shmFile:name(@temp592))
             (if (not (shmFile:open(1)))
                 = temp604 0

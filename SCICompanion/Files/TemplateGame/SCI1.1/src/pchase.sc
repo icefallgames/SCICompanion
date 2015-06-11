@@ -42,7 +42,7 @@
                 = obstacles theObstacles
             )(else
                 (if (not IsObject(obstacles))
-                    = obstacles (send global2:obstacles)
+                    = obstacles (send gRoom:obstacles)
                 )
             )
             (if (>= paramTotal 1)

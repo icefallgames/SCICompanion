@@ -1,5 +1,6 @@
 (version 2)
 (include "sci.sh")
+(include "Verbs.sh")
 (include "0.shm")
 (use "Main")
 (use "Smopper")
@@ -24,7 +25,7 @@
         nsRight 0
         sightAngle $6789
         actions 0
-        onMeCheck $6789
+        onMeCheck omcDISABLE
         state $0002
         approachX 0
         approachY 0
@@ -90,25 +91,25 @@
 
     (method (doVerb theVerb param2)
         (switch (theVerb)
-            (case 1
+            (case V_LOOK
                 (if (Btest(22))
                     (send gTestMessager:say(30 1 0 Random(1 2) 0 0))
                 )(else
                     (send gTestMessager:say(22 1 0 Random(1 2) 0 0))
                 )
             )
-            (case 4
+            (case V_DO
                 (send gTestMessager:say(22 4 0 Random(1 2) 0 0))
             )
-            (case 2
+            (case V_TALK
                 (send gTestMessager:say(22 2 0 Random(1 2) 0 0))
             )
             (case 32
-                (if ((send global2:script))
+                (if ((send gRoom:script))
                     (super:doVerb(theVerb rest param2))
                 )(else
                     (if (IsOneOf(gModNum 730 740 760 790 620 640 400 410 420))
-                        (send global2:setScript(ScriptID(gModNum 20)))
+                        (send gRoom:setScript(ScriptID(gModNum 20)))
                     )(else
                         (super:doVerb(theVerb rest param2))
                     )
@@ -183,7 +184,7 @@
                     = curTicks -1
                     (super:doit(rest param1))
                 )(else
-                    (if ((((((== curTicks -1) and not (send global2:script)) and not (send gEgo:script)) and (send gUser:canControl())) and (== (send gEgo:view) 0)) and (== (send gEgo:loop) (- NumLoops(gEgo) 1)))
+                    (if ((((((== curTicks -1) and not (send gRoom:script)) and not (send gEgo:script)) and (send gUser:canControl())) and (== (send gEgo:view) 0)) and (== (send gEgo:loop) (- NumLoops(gEgo) 1)))
                         = curTicks ticks
                         = lCel (send gEgo:cel)
                         = oldCycSpeed (send gEgo:cycleSpeed)

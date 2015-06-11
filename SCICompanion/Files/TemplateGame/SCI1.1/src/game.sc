@@ -151,7 +151,7 @@
         (if (not & (send param1:signal) $4000)
             = temp0 (+ (send gEgo:xStep) (/ CelWide((send gEgo:view) 2 0) 2))
             = temp1 (* (send gEgo:yStep) 2)
-            (send global2:addObstacle((send ((Polygon:new())):
+            (send gRoom:addObstacle((send ((Polygon:new())):
                     init((- (send param1:brLeft) temp0) (- CoordPri(1 CoordPri((send param1:y))) temp1) (+ (send param1:brRight) temp0) (- CoordPri(1 CoordPri((send param1:y))) temp1) (+ (send param1:brRight) temp0) (+ (send param1:y) temp1) (- (send param1:brLeft) temp0) (+ (send param1:y) temp1))
                     yourself()
                 )
@@ -295,12 +295,12 @@
         (send gOldCast:eachElementDo(#perform RU))
         (send gGame:setCursor(gInvisibleCursor 1))
         = temp0 
-            (if (not IsOneOf((send global2:style) -1 11 12 13 14))
-                (send global2:style)
+            (if (not IsOneOf((send gRoom:style) -1 11 12 13 14))
+                (send gRoom:style)
             )(else
                 100
             )
-        DrawPic((send global2:curPic) temp0 dpCLEAR)
+        DrawPic((send gRoom:curPic) temp0 dpCLEAR)
         (if (<> gPicNumber -1)
             DrawPic(gPicNumber 100 dpNO_CLEAR)
         )
@@ -362,9 +362,9 @@
         (if (gDebugOnNextRoom)
             SetDebug()
         )
-        = global2 ScriptID(param1)
-        (send gRegions:addToFront(global2))
-        (send global2:init())
+        = gRoom ScriptID(param1)
+        (send gRegions:addToFront(gRoom))
+        (send gRoom:init())
     )
 
 

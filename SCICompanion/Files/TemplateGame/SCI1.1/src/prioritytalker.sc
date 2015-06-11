@@ -20,7 +20,7 @@
         nsRight 0
         sightAngle $6789
         actions 0
-        onMeCheck $6789
+        onMeCheck omcDISABLE
         state $0000
         approachX 0
         approachY 0

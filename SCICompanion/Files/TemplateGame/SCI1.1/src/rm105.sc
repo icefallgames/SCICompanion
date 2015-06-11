@@ -5,7 +5,7 @@
 (use "Controls")
 (use "Cycle")
 (use "Door")
-(use "Feature")
+(use "View")
 (use "Game")
 (use "Main")
 (use "Obj")
@@ -25,11 +25,12 @@
     (method (init)
         (super:init())
         (self:setScript(RoomScript))
+        
+        SetUpEgo()
         (switch (gPreviousRoomNumber)
             (default 
                 (send gEgo:
                     posn(150 100)
-                    loop(1)
                 )
             )
         )
