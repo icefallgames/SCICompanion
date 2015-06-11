@@ -222,6 +222,7 @@
     <ClCompile Include="Src\FrameComponents\MessageSidePane.cpp" />
     <ClCompile Include="Src\FrameComponents\MessageSource.cpp" />
     <ClCompile Include="Src\FrameComponents\PicHelperPane.cpp" />
+    <ClCompile Include="Src\FrameComponents\ViewCelListBox.cpp" />
     <ClCompile Include="Src\FrameComponents\ZoomCelStatic.cpp" />
     <ClCompile Include="Src\MFCDocuments\MessageDoc.cpp" />
     <ClCompile Include="Src\MFCDocuments\PaletteDoc.cpp" />
@@ -260,6 +261,7 @@
     <ClInclude Include="Src\FrameComponents\MessageNounConditionPane.h" />
     <ClInclude Include="Src\FrameComponents\MessageSidePane.h" />
     <ClInclude Include="Src\FrameComponents\MessageSource.h" />
+    <ClInclude Include="Src\FrameComponents\ViewCelListBox.h" />
     <ClInclude Include="Src\MFCDocuments\MessageDoc.h" />
     <ClInclude Include="Src\MFCDocuments\PaletteDoc.h" />
     <ClInclude Include="Src\MFCFrames\MessageChildFrame.h" />

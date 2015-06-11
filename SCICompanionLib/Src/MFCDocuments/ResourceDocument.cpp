@@ -117,7 +117,7 @@ void CResourceDocument::OnUpdateResSize(CCmdUI *pCmdUI)
         }
         catch (std::exception)
         {
-            StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("unknown size"), _GetTitleDefault(), serial.tellp());
+            StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("unknown size"));
         }
     }
     pCmdUI->SetText(szBuf);

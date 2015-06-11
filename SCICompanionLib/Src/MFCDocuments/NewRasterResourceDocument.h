@@ -29,7 +29,7 @@ public:
     BOOL GetApplyToAllCels() const { return _fApplyToAllCels; }
 
     // THESE ARE TODO
-    CelIndex GetSelectedIndex() { return CelIndex(_nLoop, _nCel); }
+    CelIndex GetSelectedIndex() { _ValidateCelIndex(); return CelIndex(_nLoop, _nCel); }
     int GetSelectedGroup(CelIndex *rgGroups, size_t ceGroup);
     void MoveSelectedCel(CPoint point);
 

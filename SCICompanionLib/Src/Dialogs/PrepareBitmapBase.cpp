@@ -320,7 +320,6 @@ void PrepareBitmapBase::_OnPasteFromClipboard(CWnd *pwnd)
     }
 }
 
-
 void PrepareBitmapBase::_OnBrowse(CWnd *pwnd)
 {
     CFileDialog dialog(TRUE, nullptr, nullptr, 0, g_szGdiplusFilter);

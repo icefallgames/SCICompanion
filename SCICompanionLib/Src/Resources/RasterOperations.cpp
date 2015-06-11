@@ -134,16 +134,16 @@ void ReallocBits(
 }
 
 HBITMAP GetBitmap(
-    Cel &cel,
+    const Cel &cel,
     const PaletteComponent *palette,
     int cx, int cy, BitmapScaleOptions scaleOptions, uint8_t bgFillColor)
 {
     uint16_t height = cel.size.cy;
     uint16_t width = cel.size.cx;
 
-    HBITMAP hbm = NULL;
+    HBITMAP hbm = nullptr;
     CDC dc;
-    if (dc.CreateCompatibleDC(NULL))
+    if (dc.CreateCompatibleDC(nullptr))
     {
         int iZoomIn = 1;
         int iZoomOut = 1;
@@ -265,6 +265,34 @@ void CopyBitmapData(
 {
     assert(size == cel.size);
     memcpy(pData, &cel.Data[0], PaddedSize(cel.size));
+}
+
+// Copy to a position in large thing
+void CopyBitmapData(
+    const Cel &cel,
+    uint8_t *pData,
+    int xDest,
+    int yDest,
+    int stride,
+    bool flip)
+{
+    int cy = (int)cel.size.cy;
+    if (flip)
+    {
+        for (int y = 0; y < cy; y++)
+        {
+            int destIndex = (yDest + (cy - y - 1)) * stride + xDest;
+            memcpy(pData + destIndex, &cel.Data[y * CX_ACTUAL(cel.size.cx)], cel.size.cx);
+        }
+    }
+    else
+    {
+        for (int y = 0; y < cy; y++)
+        {
+            int destIndex = (yDest + y) * stride + xDest;
+            memcpy(pData + destIndex, &cel.Data[y * CX_ACTUAL(cel.size.cx)], cel.size.cx);
+        }
+    }
 }
 
 void CopyBitmapData(
@@ -535,7 +563,7 @@ RasterChange InsertLoop(RasterComponent &raster, int nLoop, bool before)
     return RasterChange(RasterChangeHint::NewView);
 }
 
-RasterChange MoveLoopFromTo(RasterComponent &raster, int nLoop, int celFrom, int celTo)
+RasterChange MoveCelFromTo(RasterComponent &raster, int nLoop, int celFrom, int celTo)
 {
     Loop &loop = raster.Loops[nLoop];
     // Assumes the cel indices are valid
@@ -551,6 +579,54 @@ RasterChange MoveLoopFromTo(RasterComponent &raster, int nLoop, int celFrom, int
     {
         loop.Cels.erase(loop.Cels.begin() + celFrom);
     }
+    UpdateMirrors(raster, nLoop);
+    return RasterChange(RasterChangeHint::NewView);
+}
+
+RasterChange MoveLoopFromTo(RasterComponent &raster, int nLoopFrom, int nLoopTo)
+{
+    Loop theLoop = raster.Loops[nLoopFrom];
+    if (nLoopTo > nLoopFrom)
+    {
+        nLoopTo--;
+    }
+
+    raster.Loops.erase(raster.Loops.begin() + nLoopFrom);
+    // We don't need to "update mirrors", but we do need to update the index to which things point
+    // Let's do it in two stages. First, after have removed the from loop
+    for (Loop &loop : raster.Loops)
+    {
+        if (loop.IsMirror)
+        {
+            if (loop.MirrorOf == nLoopFrom)
+            {
+                loop.MirrorOf = 255; // Temporary
+            }
+            else if (loop.MirrorOf > nLoopFrom)
+            {
+                loop.MirrorOf--;    // Points to one less
+            } // else doesn't change
+        }
+    }
+
+    // Now insert in the new position
+    raster.Loops.insert(raster.Loops.begin() + nLoopTo, theLoop);
+
+    for (Loop &loop : raster.Loops)
+    {
+        if (loop.IsMirror)
+        {
+            if (loop.MirrorOf == 255)
+            {
+                loop.MirrorOf = nLoopTo;
+            }
+            else if (loop.MirrorOf >= nLoopTo)
+            {
+                loop.MirrorOf++;
+            }// else doesn't change
+        }
+    }
+
     return RasterChange(RasterChangeHint::NewView);
 }
 

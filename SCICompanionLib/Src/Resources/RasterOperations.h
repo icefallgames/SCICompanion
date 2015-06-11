@@ -54,9 +54,10 @@ enum class BitmapScaleOptions
 DEFINE_ENUM_FLAGS(BitmapScaleOptions, uint8_t)
 
 HBITMAP GetBitmap(RasterComponent &raster, const PaletteComponent *palette, CelIndex celIndex, int cx, int cy, BitmapScaleOptions scaleOptions);
-HBITMAP GetBitmap(Cel &cel, const PaletteComponent *palette, int cx, int cy, BitmapScaleOptions scaleOptions, uint8_t bgFillColor);
+HBITMAP GetBitmap(const Cel &cel, const PaletteComponent *palette, int cx, int cy, BitmapScaleOptions scaleOptions, uint8_t bgFillColor);
 void CopyBitmapData(const RasterComponent &raster, CelIndex celIndex, uint8_t *pData, size16 size);
 void CopyBitmapData(const Cel &cel, uint8_t *pData, size16 size);
+void CopyBitmapData(const Cel &cel, uint8_t *pData, int x, int y, int stride, bool flip);
 RasterChange SetPlacement(RasterComponent &raster, CelIndex celIndex, int16_t x, int16_t y);
 RasterChange SetGroupPlacement(RasterComponent &raster, int cItems, CelIndex *rgdwIndex, int16_t x, int16_t y);
 RasterChange SetTransparentColor(RasterComponent &raster, CelIndex celIndex, uint8_t color);
@@ -71,7 +72,8 @@ void UpdateMirrors(RasterComponent &raster, int nLoop);
 void UpdateMirrors(RasterComponent &raster, CelIndex celIndex);
 RasterChange SetBitmapData(RasterComponent &raster, CelIndex celIndex, const uint8_t *data);
 RasterChange SetGroupBitmapData(RasterComponent &raster, int cCels, CelIndex *rgdwIndex, const uint8_t* const* ppData);
-RasterChange MoveLoopFromTo(RasterComponent &raster, int nLoop, int celFrom, int celTo);
+RasterChange MoveCelFromTo(RasterComponent &raster, int nLoop, int celFrom, int celTo);
+RasterChange MoveLoopFromTo(RasterComponent &raster, int nLoopFrom, int loopTo);
 HBITMAP CreateBitmapFromResource(const ResourceEntity &resource, const PaletteComponent *palette, SCIBitmapInfo *pbmi, uint8_t **ppBitsDest);
 RasterChange InsertLoop(RasterComponent &raster, int nLoop, bool before);
 RasterChange RemoveLoop(RasterComponent &raster, int nLoop);

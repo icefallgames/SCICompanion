@@ -230,7 +230,7 @@ void CEditViewCelChooser::OnLButtonUp(UINT nFlags, CPoint point)
                         pDoc->ApplyChanges<RasterComponent>(
                             [&](RasterComponent &raster)
                             {
-                                return WrapRasterChange(MoveLoopFromTo(raster, nLoop, _iDragIndex, nCelTo));
+                                return WrapRasterChange(MoveCelFromTo(raster, nLoop, _iDragIndex, nCelTo));
                             }
                             );
                     }

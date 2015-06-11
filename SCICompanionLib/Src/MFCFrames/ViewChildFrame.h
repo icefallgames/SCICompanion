@@ -23,13 +23,16 @@ public:
 protected:
 	virtual BOOL OnCreateClient(LPCREATESTRUCT lpcs, CCreateContext* pContext);
     virtual int OnCreate(LPCREATESTRUCT lpCreateStruct);
+    void OnSize(UINT nType, int cx, int cy);
 
 	DECLARE_MESSAGE_MAP()
 
 	CExtSplitterWnd m_wndSplitter;
-    CExtSplitterWnd m_wndSplitterChoosers;
+    CExtSplitterWnd m_wndSplitterLeft;
 
     CRasterView *_pViewMainView;
+    bool _splitterCreated;
+    CSize _lastSize;
 };
 
 

@@ -22,7 +22,7 @@ enum class DeviceType
     Casio = 0x08,
     Tandy1000 = 0x10,
     PCSpeaker = 0x20,
-    DevUnknown = 0x40,
+    AmigaMac = 0x40,
     NewGM = 0x80,
 
     // SCI1 - these cannot.
@@ -32,7 +32,7 @@ enum class DeviceType
     SCI1_RolandGM = 0x0c,
     SCI1_PCSpeaker = 0x12,
     SCI1_Tandy = 0x13,
-    SCI1_Unknown06 = 0x06,
+    SCI1_AmigaMac = 0x06,
     SCI1_Unknown08 = 0x08,
     SCI1_Unkonwn0b = 0x0b,
 

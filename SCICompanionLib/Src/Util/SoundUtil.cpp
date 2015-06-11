@@ -19,7 +19,7 @@ const DeviceAndName c_rgDeviceNamesSCI0[] =
     { DeviceType::Casio, "Casio  ($08)" },
     { DeviceType::Tandy1000, "Tandy 1000 ($10)" },
     { DeviceType::PCSpeaker, "PC Speaker ($20)" },
-    { DeviceType::DevUnknown, "Unknown ($40)" },
+    { DeviceType::AmigaMac, "Amiga/Mac ($40)" },
     { DeviceType::NewGM, "GM ($80)" },
 };
 
@@ -31,7 +31,7 @@ const DeviceAndName c_rgDeviceNamesSCI1[] =
     { DeviceType::SCI1_RolandGM, "Roland MT-32, GM ($0c)" },
     { DeviceType::SCI1_PCSpeaker, "PC Speaker ($12)" },
     { DeviceType::SCI1_Tandy, "Tandy 3v / IBM PS1 ($13)" },
-    { DeviceType::SCI1_Unknown06, "Unknown ($06)" },
+    { DeviceType::SCI1_AmigaMac, "Amiga/Mac ($06)" },
     { DeviceType::SCI1_Unknown08, "Unknown ($08)" },
     { DeviceType::SCI1_Unkonwn0b, "Unknown ($0b)" },
 };
