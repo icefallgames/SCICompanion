@@ -315,13 +315,6 @@ void ViewCelListBox::CreateDragImage()
 
             ReleaseDC(pDC);
         }
-
-        // old
-        /*
-        const Cel &cel = raster.GetCel(selectedCelIndex);
-        _dragImage = std::make_unique<CBitmap>();
-        _dragImage->Attach(GetBitmap(cel, _GetDoc()->GetCurrentPaletteComponent(), cel.size.cx * _scale / ScaleOne, cel.size.cy * _scale / ScaleOne, BitmapScaleOptions::AllowMag, cel.TransparentColor));
-        _dragImage->SetBitmapDimension(cel.size.cx * _scale / ScaleOne, cel.size.cy * _scale / ScaleOne);*/
     }
 }
 

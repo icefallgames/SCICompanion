@@ -253,6 +253,7 @@ private:
     afx_msg void OnUpdateDither(CCmdUI *pCmdUI);
     afx_msg void OnUpdateEGAOnly(CCmdUI *pCmdUI);
     afx_msg void OnUpdateIsVGA(CCmdUI *pCmdUI);
+    afx_msg void OnUpdateHasVGAPalette(CCmdUI *pCmdUI);
     afx_msg void OnUpdateDelete(CCmdUI *pCmdUI);
     afx_msg void OnIndicatorCoords(CCmdUI *pCmdUI);
     afx_msg void OnIndicatorRasterSize(CCmdUI *pCmdUI);
@@ -262,6 +263,7 @@ private:
     afx_msg void OnInvert();
     afx_msg void OnGreyScale();
     afx_msg void EditVGAPalette();
+    afx_msg void RemoveVGAPalette();
 
     void _OnDrawCommand(ViewToolType type);
     void _OnDraw(CDC* pDC);

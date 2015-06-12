@@ -76,6 +76,9 @@ public:
     std::string GetPaletteChoiceName(int index);
     int GetPaletteChoice() { return _currentPaletteIndex; }
     void SetPaletteChoice(int choice, bool force);
+    void SwitchToEmbeddedPalette();
+
+    void PostApplyChanges(CObject *pObj) override;
 
 private:
     virtual ResourceType _GetType() const
@@ -118,7 +121,7 @@ private:
     RGBQUAD _currentPaletteVGA[256];
     // Keep around one of these too:
     std::unique_ptr<PaletteComponent> _currentPaletteComponent;
-    std::vector<int> _paletteChoices;
+    std::vector<int> _paletteChoices; 
     int _currentPaletteIndex;  // index into _paletteChoices
 
     // These should go away

@@ -35,6 +35,7 @@ END_MESSAGE_MAP()
 
 CNewRasterResourceDocument::CNewRasterResourceDocument()
 {
+    _currentPaletteIndex = 0;
     _nPenWidth = 1;
     _fLocked = false;
     _fApplyToAllCels = FALSE;
@@ -48,6 +49,7 @@ CNewRasterResourceDocument::CNewRasterResourceDocument()
 void CNewRasterResourceDocument::v_OnUndoRedo()
 {
     _ValidateCelIndex();
+    PostApplyChanges(&WrapRasterChange(RasterChangeHint::NewView));
     _UpdateHelper(RasterChange(RasterChangeHint::NewView));
 }
 
@@ -61,7 +63,7 @@ void CNewRasterResourceDocument::_SetInitialPalette()
     RasterComponent &raster = GetComponent<RasterComponent>();
     if (raster.Traits.PaletteType == PaletteType::VGA_256)
     {
-        SetPaletteChoice(0, true);
+        SetPaletteChoice(_currentPaletteIndex, true);
     }
 }
 
@@ -110,6 +112,28 @@ std::string CNewRasterResourceDocument::GetPaletteChoiceName(int index)
     return name;
 }
 
+void CNewRasterResourceDocument::SwitchToEmbeddedPalette()
+{
+    if (_currentPaletteIndex < (int) _paletteChoices.size())
+    {
+        int id = _paletteChoices[_currentPaletteIndex];
+        if ((id == EmbeddedPaletteId) || (id == EmbeddedPaletteOnlyId))
+        {
+            // We're good
+            return;
+        }
+    }
+
+    for (int i = 0; i < (int)_paletteChoices.size(); i++)
+    {
+        if (_paletteChoices[i] == EmbeddedPaletteOnlyId)
+        {
+            SetPaletteChoice(i, false);
+            break;
+        }
+    }
+}
+
 void CNewRasterResourceDocument::SetPaletteChoice(int index, bool force)
 {
     if ((force || (index != _currentPaletteIndex)) && (index >= 0) && (index < (int)_paletteChoices.size()))
@@ -143,6 +167,17 @@ void CNewRasterResourceDocument::SetPaletteChoice(int index, bool force)
         }
 
         _UpdateHelper(RasterChange(RasterChangeHint::PaletteChoice));
+    }
+}
+
+void CNewRasterResourceDocument::PostApplyChanges(CObject *pObj)
+{ 
+    // If palette choice changed or view changed, then we need to update palette choice (if it's currently an embedded palette)
+    // This has to be done before we calls views to update them, since they will ask us for the current palette to render with.
+    RasterChangeHint hint = GetHint<RasterChangeHint>(pObj);
+    if (IsFlagSet(hint, RasterChangeHint::NewView))
+    {
+        RefreshPaletteOptions();
     }
 }
 
@@ -411,7 +446,9 @@ void CNewRasterResourceDocument::_ApplyImageSequence(uint8_t transparentColor, c
         ApplyChanges<RasterComponent>(
             [nLoop, &finalCels](RasterComponent &raster)
         {
-            return WrapRasterChange(ApplyCelsToLoop(raster, nLoop, finalCels));
+            RasterChange chnage = ApplyCelsToLoop(raster, nLoop, finalCels);
+            chnage.hint |= RasterChangeHint::PaletteChoice;
+            return WrapRasterChange(chnage);
         },
 
             // Apply the new palette if needed.
@@ -421,7 +458,8 @@ void CNewRasterResourceDocument::_ApplyImageSequence(uint8_t transparentColor, c
             {
                 if (resource.TryGetComponent<PaletteComponent>())
                 {
-                    resource.GetComponent<PaletteComponent>() = *optionalNewPalette;
+                    PaletteComponent &existingPalette = resource.GetComponent<PaletteComponent>();
+                    existingPalette = *optionalNewPalette;
                 }
                 else
                 {
@@ -509,7 +547,7 @@ void CNewRasterResourceDocument::_InsertFiles(const vector<string> &files)
             //
             // For 24bit images, or when we're EGA, we'll just remap to the embedded.
             PaletteComponent *existingPalette = GetResource()->TryGetComponent<PaletteComponent>();
-            if (!existingPalette || DoPalettesMatch(*existingPalette, *onePalette))
+            if (!existingPalette || !DoPalettesMatch(*existingPalette, *onePalette))
             {
                 string message = "A palette was found in the loaded image(s) which doesn't match the current view palette. Replace view palette with it?\n(If you select no, the loaded image(s) will be remapped to view's current palette.)";
                 if (!existingPalette)

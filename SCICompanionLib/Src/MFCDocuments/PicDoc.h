@@ -122,7 +122,7 @@ private:
 
     const PaletteComponent *_previewPalette;
 
-    void PostApplyChanges() override;
+    void PostApplyChanges(CObject *pObj) override;
 
     // Pattern state.  We do not use the pattern state
     // from the current position in the pic.  Instead, we store our

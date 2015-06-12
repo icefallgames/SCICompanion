@@ -320,7 +320,7 @@ void CPicDoc::v_OnUndoRedo()
     UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::EditPicInvalid));
 }
 
-void CPicDoc::PostApplyChanges()
+void CPicDoc::PostApplyChanges(CObject *pObj)
 {
     // Invalidate our pic before we update views..
     _pdm.Invalidate();

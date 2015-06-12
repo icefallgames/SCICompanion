@@ -106,6 +106,17 @@ public:
         components[std::type_index(r2)] = std::move(pTemp);
     }
 
+    template<typename _T>
+    void RemoveComponent()
+    {
+        const std::type_info& r2 = typeid(_T);
+        auto it = components.find(std::type_index(r2));
+        if (it != components.end())
+        {
+            components.erase(it);
+        }
+    }
+
     void ReadFrom(sci::istream byteStream)
     {
         (*Traits.ReadFromFunc)(*this, byteStream);

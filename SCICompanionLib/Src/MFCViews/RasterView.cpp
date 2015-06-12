@@ -403,6 +403,7 @@ BEGIN_MESSAGE_MAP(CRasterView, CScrollingThing<CView>)
     ON_COMMAND(ID_VIEW_ZOOMIN, _OnZoomLClick)
     ON_COMMAND(ID_VIEW_ZOOMOUT, _OnZoomRClick)
     ON_COMMAND(ID_VIEW_EDITPALETTE, EditVGAPalette)
+    ON_COMMAND(ID_VIEW_REMOVEEMBEDDEDPALETTE, RemoveVGAPalette)
     ON_WM_RBUTTONDOWN()
     ON_WM_LBUTTONDOWN()
     ON_WM_LBUTTONUP()
@@ -443,6 +444,7 @@ BEGIN_MESSAGE_MAP(CRasterView, CScrollingThing<CView>)
     ON_UPDATE_COMMAND_UI(ID_INVERT, OnUpdateEGAOnly)
     ON_UPDATE_COMMAND_UI(ID_GREYSCALE, OnUpdateEGAOnly)
     ON_UPDATE_COMMAND_UI(ID_VIEW_EDITPALETTE, OnUpdateIsVGA)
+    ON_UPDATE_COMMAND_UI(ID_VIEW_REMOVEEMBEDDEDPALETTE, OnUpdateHasVGAPalette)
 END_MESSAGE_MAP()
 
 
@@ -2275,6 +2277,17 @@ void CRasterView::OnUpdateIsVGA(CCmdUI *pCmdUI)
     pCmdUI->Enable(raster && (raster->Traits.PaletteType == PaletteType::VGA_256));
 }
 
+void CRasterView::OnUpdateHasVGAPalette(CCmdUI *pCmdUI)
+{
+    BOOL enable = FALSE;
+    if (GetDoc())
+    {
+        const ResourceEntity *pResource = GetDoc()->GetResource();
+        enable = (pResource && pResource->TryGetComponent<PaletteComponent>());
+    }
+    pCmdUI->Enable(enable);
+}
+
 void CRasterView::OnUpdateDelete(CCmdUI *pCmdUI)
 {
     BOOL fCanDelete = FALSE;
@@ -2954,9 +2967,10 @@ CPoint CRasterView::_MapClientPointToPic(CPoint ptScreen)
 
 void CRasterView::EditVGAPalette()
 {
-    CResourceDocument *pDoc = static_cast<CResourceDocument*>(GetDocument());
+    CNewRasterResourceDocument *pDoc = GetDoc();
     if (pDoc)
     {
+        pDoc->SwitchToEmbeddedPalette();
         const ResourceEntity *pResource = GetDoc()->GetResource();
         if (pResource)
         {
@@ -2997,9 +3011,6 @@ void CRasterView::EditVGAPalette()
 
                 if (palette)
                 {
-                    // TODO: Switch view to embedded palette first, so they know they're editing the right thing. Can we do that directly on document?
-                    // TODO: support removing one too
-
                     PaletteComponent paletteCopy = *palette; // Since we'll be changing it, and this is const
                     PaletteEditorDialog paletteEditor(nullptr, paletteCopy, cels, false);
                     paletteEditor.DoModal();
@@ -3023,6 +3034,24 @@ void CRasterView::EditVGAPalette()
     }
 }
 
+void CRasterView::RemoveVGAPalette()
+{
+    CNewRasterResourceDocument *pDoc = GetDoc();
+    if (pDoc)
+    {
+        pDoc->ApplyChanges<RasterComponent>(
+            [](RasterComponent &raster)
+        {
+            return WrapHint(RasterChangeHint::NewView);
+        },
+            [](ResourceEntity &resource)
+        {
+            resource.RemoveComponent<PaletteComponent>();
+        }
+        );
+
+    }
+}
 
 // CRasterView diagnostics
 

@@ -228,14 +228,15 @@ bool GetCelsAndPaletteFromGIFFile(const char *filename, std::vector<Cel> &cels, 
     if (success)
     {
         // Get the palette.
-        memset(palette.Colors, 0, ARRAYSIZE(palette.Colors));
-        if (fileType->SColorMap && (fileType->SColorMap->BitsPerPixel == 8))
+        memset(palette.Colors, 0, sizeof(palette.Colors));
+        if (fileType->SColorMap)
         {
             for (int i = 0; i < fileType->SColorMap->ColorCount; i++)
             {
                 palette.Colors[i].rgbRed = fileType->SColorMap->Colors[i].Red;
                 palette.Colors[i].rgbBlue = fileType->SColorMap->Colors[i].Blue;
                 palette.Colors[i].rgbGreen = fileType->SColorMap->Colors[i].Green;
+                palette.Colors[i].rgbReserved = 0x3;
             }
         }
 
@@ -248,11 +249,12 @@ bool GetCelsAndPaletteFromGIFFile(const char *filename, std::vector<Cel> &cels, 
             cel.Data.allocate(CX_ACTUAL(cel.size.cx) * cel.size.cy);
             for (int y = 0; y < savedImage.ImageDesc.Height; y++)
             {
+                int yUpsideDown = savedImage.ImageDesc.Height - y - 1;
                 uint8_t *dest = &cel.Data[y * CX_ACTUAL(cel.size.cx)];
-                uint8_t *src = savedImage.RasterBits + y * savedImage.ImageDesc.Width;
+                uint8_t *src = savedImage.RasterBits + yUpsideDown * savedImage.ImageDesc.Width;
                 memcpy(dest, src, savedImage.ImageDesc.Width);
             }
-            cel.TransparentColor = 255; //  ???
+            cel.TransparentColor = fileType->SBackGroundColor;
         }
     }
 
@@ -396,7 +398,7 @@ void ConvertCelToNewPalette(Cel &cel, PaletteComponent &currentPalette, uint8_t 
         {
             uint8_t *valuePointer = pBitsRow + x;
             uint8_t value = *valuePointer;
-            if (value = cel.TransparentColor)
+            if (value == cel.TransparentColor)
             {
                 *valuePointer = transparentColor;
             }

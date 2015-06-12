@@ -471,6 +471,7 @@ BEGIN
         MENUITEM "&Import image sequence",      33001
         MENUITEM "&Animate",                    ID_ANIMATE
         MENUITEM "Edit &palette",               ID_VIEW_EDITPALETTE
+        MENUITEM "&Remove embedded palette",    ID_VIEW_REMOVEEMBEDDEDPALETTE
     END
     POPUP "Voca&b"
     BEGIN

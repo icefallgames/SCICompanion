@@ -827,6 +827,7 @@
 #define ID_NEW_MESSAGE                  33182
 #define ID_NEW_PALETTE                  33183
 #define ID_BAR_TOOLMESSAGE              33184
+#define ID_VIEW_REMOVEEMBEDDEDPALETTE   33185
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -835,7 +836,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        378
-#define _APS_NEXT_COMMAND_VALUE         33185
+#define _APS_NEXT_COMMAND_VALUE         33186
 #define _APS_NEXT_CONTROL_VALUE         1281
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
