@@ -244,7 +244,7 @@ BYTE PriorityFromY(WORD y, const ViewPort &picState);
 // The actual width of a cel, used in the bitmaps (multiple of 32 bits)
 #define CX_ACTUAL(cx) (((cx) + 3) / 4 * 4)
 
-BOOL CreateDCCompatiblePattern(RGBQUAD color1, RGBQUAD color2, CDC *pDC, CBitmap *pbm);
+BOOL CreateDCCompatiblePattern(RGBQUAD color1, RGBQUAD color2, int width, int height, CDC *pDC, CBitmap *pbm);
 void *_GetBitsPtrFromBITMAPINFO(const BITMAPINFO *pbmi);
 inline HRESULT ResultFromLastError() { return HRESULT_FROM_WIN32(GetLastError()); }
 

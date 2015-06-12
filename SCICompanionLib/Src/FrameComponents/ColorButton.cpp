@@ -128,27 +128,41 @@ COLORREF _GetTextColor(RGBQUAD color)
     }
 }
 
-BOOL CreateDCCompatiblePattern(RGBQUAD color1, RGBQUAD color2, CDC *pDC, CBitmap *pbm)
+BOOL CreateDCCompatiblePattern(RGBQUAD color1, RGBQUAD color2, int width, int height, CDC *pDC, CBitmap *pbm)
 {
-    RGBQUAD HatchBits[16] = { color1, color1, color2, color2, color1, color1, color2, color2, 
-                              color2, color2, color1, color1, color2, color2, color1, color1 };
+    std::unique_ptr<RGBQUAD[]> HatchBits = std::make_unique<RGBQUAD[]>(width * height);
+    int halfW = width / 2;
+    int halfH = height / 2;
+    for (int y = 0; y < height; y++)
+    {
+        bool on = (y / halfH == 0);
+        for (int x = 0; x < width; x++)
+        {
+            if (x == halfW)
+            {
+                on = !on;
+            }
+            HatchBits[y * width + x] = on ? color1 : color2;
+        }
+    }
+
     BITMAPINFO bmi = { 0 };
     bmi.bmiHeader.biSize = sizeof(BITMAPINFO);
     bmi.bmiHeader.biBitCount = 32;
     bmi.bmiHeader.biCompression = BI_RGB;
-    bmi.bmiHeader.biWidth = 4;
-    bmi.bmiHeader.biHeight = 4;
+    bmi.bmiHeader.biWidth = width;
+    bmi.bmiHeader.biHeight = height;
     bmi.bmiHeader.biPlanes = 1;
 
     CDC dcMem;
     BOOL bRet = dcMem.CreateCompatibleDC(pDC);
     if (bRet)
     {
-        bRet = pbm->CreateCompatibleBitmap(pDC, 4, 4);
+        bRet = pbm->CreateCompatibleBitmap(pDC, width, height);
         if (bRet)
         {
             HGDIOBJ hObj = dcMem.SelectObject(pbm);
-            bRet = StretchDIBits((HDC)dcMem, 0, 0, 4, 4, 0, 0, 4, 4, HatchBits, &bmi, DIB_RGB_COLORS, SRCCOPY);
+            bRet = StretchDIBits((HDC)dcMem, 0, 0, width, height, 0, 0, width, height, HatchBits.get(), &bmi, DIB_RGB_COLORS, SRCCOPY);
             dcMem.SelectObject(hObj);
         }        
     }
@@ -169,7 +183,7 @@ void CColorPickerButton::_OnDraw(HDC hdc, RECT *prc)
         }
 
         CBitmap bm;
-        if (CreateDCCompatiblePattern(color1, color2, pDC, &bm))
+        if (CreateDCCompatiblePattern(color1, color2, 4, 4, pDC, &bm))
         {
             CBrush brushPat;
             if (brushPat.CreatePatternBrush(&bm))

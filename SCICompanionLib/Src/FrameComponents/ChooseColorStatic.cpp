@@ -153,7 +153,7 @@ void CChooseColorStatic::_DrawItem(CDC *pDC, int cx, int cy)
             }
 
             CBitmap bm;
-            if (CreateDCCompatiblePattern(color1, color2, pDC, &bm))
+            if (CreateDCCompatiblePattern(color1, color2, 4, 4,  pDC, &bm))
             {
                 CBrush brushPat;
                 if (brushPat.CreatePatternBrush(&bm))

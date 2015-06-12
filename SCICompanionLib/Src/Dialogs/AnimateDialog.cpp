@@ -262,16 +262,20 @@ Cel &CAnimateDialog::GetCel()
 //
 void CAnimateDialog::_OnDraw(CDC *pDC, LPRECT prc)
 {
-    // First fill with the background color.
+    // First fill with a transparent background
+    CBitmap bm;
+    RGBQUAD a = { 204, 204, 204, 0 };
+    RGBQUAD b = { 255, 255, 255, 0 };
+    if (CreateDCCompatiblePattern(a, b, 8, 8, pDC, &bm))
+    {
+        CBrush brushPat;
+        if (brushPat.CreatePatternBrush(&bm))
+        {
+            pDC->FillRect(prc, &brushPat);
+        }
+    }
+
     Cel &cel = GetCel();
-    uint8_t bColor = cel.TransparentColor;
-    //COLORREF color = EGA_TO_COLORREF(15 - bColor);
-    COLORREF color = RGB(255, 192, 128);
-
-    CBrush brushBackground;
-    brushBackground.CreateSolidBrush(color);
-    pDC->FillRect(prc, &brushBackground);
-
     size_t cbViewData = CX_ACTUAL(cel.size.cx) * cel.size.cy;
 
     std::unique_ptr<BYTE[]> viewData = std::make_unique<BYTE[]>(cbViewData);
@@ -284,6 +288,8 @@ void CAnimateDialog::_OnDraw(CDC *pDC, LPRECT prc)
         palette = _palette->Colors;
         paletteCount = ARRAYSIZE(_palette->Colors);
     }
+    RGBQUAD transRGB = palette[cel.TransparentColor];
+    COLORREF transparentColorRef = RGB(transRGB.rgbRed, transRGB.rgbGreen, transRGB.rgbBlue);
     SCIBitmapInfo bmi(cel.size.cx, cel.size.cy, palette, paletteCount);
     int cxDest = cel.size.cx * _iZoom;
     int cyDest = cel.size.cy * _iZoom;
@@ -296,13 +302,34 @@ void CAnimateDialog::_OnDraw(CDC *pDC, LPRECT prc)
     CBrush brush;
     brush.CreateSolidBrush(RGB(255, 255, 255));
     CRect rectFoo(upperLeftBounds.x, upperLeftBounds.y, upperLeftBounds.x + _sizeWeDrawIn.cx, upperLeftBounds.y + _sizeWeDrawIn.cy);
-    ::FillRect((HDC)*pDC, &rectFoo, brush);
 
     // Now where do we draw the actual view?
     CRect celRect = GetCelRect(cel);
     upperLeftBounds += CPoint((celRect.left - _rectFullBounds.left) * _iZoom, (celRect.top - _rectFullBounds.top) * _iZoom);
 
-    StretchDIBits((HDC)*pDC, upperLeftBounds.x, upperLeftBounds.y, cxDest, cyDest, 0, 0, cel.size.cx, cel.size.cy, viewData.get(), &bmi, DIB_RGB_COLORS, SRCCOPY);
+    CDC dcMem;
+    if (dcMem.CreateCompatibleDC(pDC))
+    {
+        BITMAPV5HEADER bih = {};
+        bih.bV5Size = sizeof(bih);
+        bih.bV5Width = cel.size.cx;
+        bih.bV5Height = cel.size.cy;
+        bih.bV5Planes = 1;
+        bih.bV5BitCount = 8;
+        bih.bV5Compression = BI_RGB;
+        bih.bV5CSType = LCS_WINDOWS_COLOR_SPACE;
+        bih.bV5Intent = LCS_GM_BUSINESS;
+        HBITMAP hbmpTemp = CreateDIBitmap(*pDC, (BITMAPINFOHEADER *)&bih, CBM_INIT, viewData.get(), &bmi, DIB_RGB_COLORS);
+        if (hbmpTemp)
+        {
+            HGDIOBJ hOld = dcMem.SelectObject(hbmpTemp);
+            // Note that we really want to use a transparent palette *index*, not an rgb color. Oh well, this will work for most cases.
+            TransparentBlt((HDC)*pDC, upperLeftBounds.x, upperLeftBounds.y, cxDest, cyDest, dcMem, 0, 0, cel.size.cx, cel.size.cy, transparentColorRef);
+            dcMem.SelectObject(hOld);
+
+            DeleteObject(hbmpTemp);
+        }
+    }
 }
 
 void CAnimateDialog::OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpDrawItemStruct)

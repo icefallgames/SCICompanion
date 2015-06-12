@@ -227,6 +227,9 @@ bool GetCelsAndPaletteFromGIFFile(const char *filename, std::vector<Cel> &cels, 
     bool success = (DGifSlurp(fileType) == GIF_OK);
     if (success)
     {
+        int bottom = fileType->Image.Top + fileType->Image.Height;
+        int center = fileType->Image.Left + fileType->Image.Width / 2;  // Assume this is the center.
+
         // Get the palette.
         memset(palette.Colors, 0, sizeof(palette.Colors));
         if (fileType->SColorMap)
@@ -254,7 +257,20 @@ bool GetCelsAndPaletteFromGIFFile(const char *filename, std::vector<Cel> &cels, 
                 uint8_t *src = savedImage.RasterBits + yUpsideDown * savedImage.ImageDesc.Width;
                 memcpy(dest, src, savedImage.ImageDesc.Width);
             }
-            cel.TransparentColor = fileType->SBackGroundColor;
+
+            int centerCurrent = savedImage.ImageDesc.Left + savedImage.ImageDesc.Width / 2;
+            cel.placement.x = (int16_t)(centerCurrent - center);
+            cel.placement.y = (int16_t)(savedImage.ImageDesc.Top + savedImage.ImageDesc.Height - bottom);
+
+            GraphicsControlBlock gcb;
+            if (GIF_ERROR != DGifSavedExtensionToGCB(fileType, 0, &gcb))
+            {
+                cel.TransparentColor = gcb.TransparentColor;
+            }
+            else
+            {
+                cel.TransparentColor = fileType->SBackGroundColor;
+            }
         }
     }
 
