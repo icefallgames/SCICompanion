@@ -303,112 +303,234 @@ void CNewRasterResourceDocument::SetDefaultZoom(int iZoom) const
     GetComponent<RasterComponent>().Settings.DefaultZoom = iZoom;
 }
 
-void GetSCIBitsFromFileName(PCTSTR pszFileName, BOOL bTransparent, uint16_t &width, uint16_t &height, std::vector<std::unique_ptr<BYTE[]>> &celsBits)
+// We need collect all the info first, then make a decision.
+// We have: palette/cel combinations and gidplus images.
+
+struct ImageSequenceItem
 {
-#ifdef UNICODE
-    Bitmap *pgdiplusBitmap = Bitmap::FromFile(pszFileName);
-#else
-    // GDI+ only deals with unicode.
-    int a = lstrlenA(pszFileName);
-    BSTR unicodestr = SysAllocStringLen(NULL, a);
-    MultiByteToWideChar(CP_ACP, 0, pszFileName, a, unicodestr, a);
-    Bitmap *pgdiplusBitmap = Bitmap::FromFile(unicodestr);
-    //... when done, free the BSTR
-    SysFreeString(unicodestr);
-#endif    
-    if (pgdiplusBitmap)
+    ImageSequenceItem() {}
+    ImageSequenceItem(ImageSequenceItem&& other)
     {
-        width = (uint16_t)pgdiplusBitmap->GetWidth();
-        height = (uint16_t)pgdiplusBitmap->GetHeight();
+        Palette = other.Palette;
+        Cels = other.Cels;
+        Bitmap = move(other.Bitmap);
+    }
 
-        // Clamp size to allowed values.
-        width = min(320, width);
-        width = max(1, width);
-        height = min(190, height);
-        height = max(1, height);
-
-        std::unique_ptr<PaletteComponent> palette = GetPaletteFromImage(pgdiplusBitmap);
-        // There are a number of possibilities here:
-        // 1) EGA, no problem, we ignore palettes
-        // 1) VGA with palette that corresponds to current pic palette, no problem
-        // 2) VGA with palette that conflicts with current pic palette, no problem
-        // 3) VGA with no palette.... ugh, so many possibilities.
-
-        UINT count = pgdiplusBitmap->GetFrameDimensionsCount();
-        std::unique_ptr<GUID[]> dimensionIds = std::make_unique<GUID[]>(count);
-        pgdiplusBitmap->GetFrameDimensionsList(dimensionIds.get(), count);
-        UINT frameCount = pgdiplusBitmap->GetFrameCount(&dimensionIds.get()[0]);
-        for (UINT frame = 0; frame < frameCount; frame++)
+    ImageSequenceItem& operator=(ImageSequenceItem&& other)
+    {
+        if (this != &other)
         {
-            GUID guid = FrameDimensionTime;
-            pgdiplusBitmap->SelectActiveFrame(&guid, frame);
+            Palette = other.Palette;
+            Cels = other.Cels;
+            Bitmap = move(other.Bitmap);
+        }
+    }
 
-            PixelFormat temp = pgdiplusBitmap->GetPixelFormat();
+    // Either we have:
+    PaletteComponent Palette;
+    std::vector<Cel> Cels;
 
-            // Allocate our SCI bitmap data.
-            std::unique_ptr<uint8_t[]> bits = make_unique<uint8_t[]>(CX_ACTUAL(width)* height);
-            for (int y = 0; y < height; y++)
+    // Or we have a 24 bit bitmap in this form:
+    std::unique_ptr<Bitmap> Bitmap;
+};
+
+void CNewRasterResourceDocument::_ApplyImageSequence(uint8_t transparentColor, const PaletteComponent *optionalNewPalette, std::vector<ImageSequenceItem> &items)
+{
+    // If optionalNewPalette isn't provided, we need to obtain the palette we're converting to.
+    // That might be:
+    //  - EGA palette
+    //  - embedded palette
+    //  - global palette
+    RasterComponent &raster = GetComponent<RasterComponent>();
+    // TODO: Handle transparent colors?
+    bool isEGA16 = false;
+    const uint8_t *paletteMapping = optionalNewPalette ? optionalNewPalette->Mapping : raster.Traits.PaletteMapping;
+    int colorCount = optionalNewPalette ? 256 : 0;
+    const RGBQUAD *colors = optionalNewPalette ? optionalNewPalette->Colors : raster.Traits.Palette;
+    switch (raster.Traits.PaletteType)
+    {
+        case PaletteType::VGA_256:
+        {
+            colorCount = 256;
+            const PaletteComponent *embedded = GetResource()->TryGetComponent<PaletteComponent>();
+            if (embedded)
             {
-                BYTE *pBitsRow = bits.get() + ((height - y - 1) * CX_ACTUAL(width));
-                for (int x = 0; x < width; x++)
+                colors = embedded->Colors;
+            }
+            else
+            {
+                const PaletteComponent *global = appState->GetResourceMap().GetPalette999();
+                if (global)
                 {
-                    Color color;
-                    if (Ok == pgdiplusBitmap->GetPixel(x, y, &color))
-                    {
-                        // find closest match.
-                        EGACOLOR curColor = GetClosestEGAColor(1, g_fDitherImages2 ? 3 : 2, color.ToCOLORREF());
-                        *(pBitsRow + x) = ((x^y) & 1) ? curColor.color1 : curColor.color2;
-                    }
+                    colors = embedded->Colors;
                 }
             }
-            celsBits.push_back(move(bits));
+            break;
         }
-        delete pgdiplusBitmap;
+        case PaletteType::EGA_Four:
+            colorCount = 4;
+            break;
+        case PaletteType::EGA_Sixteen:
+            isEGA16 = true;
+            colorCount = 16;
+            break;
+        case PaletteType::EGA_Two:
+            colorCount = 2;
+            break;
+    }
+
+    if (colors)
+    {
+        // Let's turn this into a sequence of cels before applying changes. That way the we'll just need
+        // to copy the cels to the loop
+        vector<Cel> finalCels;
+        for (ImageSequenceItem &item : items)
+        {
+            if (item.Cels.empty())
+            {
+                // Convert the bitmap using the palette we have
+                ConvertBitmapToCel(*item.Bitmap, transparentColor, isEGA16, !!g_fDitherImages2, colorCount, paletteMapping, colors, item.Cels);
+            }
+            else
+            {
+                if (!optionalNewPalette)
+                {
+                    // Remap cels
+                    for (Cel &cel : item.Cels)
+                    {
+                        ConvertCelToNewPalette(cel, item.Palette, transparentColor, isEGA16, !!g_fDitherImages2, colorCount, paletteMapping, colors);
+                    }
+                }
+                // else we're good
+            }
+            finalCels.insert(finalCels.end(), item.Cels.begin(), item.Cels.end());
+        }
+
+        int nLoop = GetSelectedLoop();
+
+        ApplyChanges<RasterComponent>(
+            [nLoop, &finalCels](RasterComponent &raster)
+        {
+            return WrapRasterChange(ApplyCelsToLoop(raster, nLoop, finalCels));
+        },
+
+            // Apply the new palette if needed.
+            [optionalNewPalette](ResourceEntity &resource)
+        {
+            if (optionalNewPalette)
+            {
+                if (resource.TryGetComponent<PaletteComponent>())
+                {
+                    resource.GetComponent<PaletteComponent>() = *optionalNewPalette;
+                }
+                else
+                {
+                    resource.AddComponent<PaletteComponent>(std::make_unique<PaletteComponent>(*optionalNewPalette));
+                }
+            }
+        }
+        );
     }
 }
 
 void CNewRasterResourceDocument::_InsertFiles(const vector<string> &files)
 {
-    ApplyChanges<RasterComponent>(
-        [&](RasterComponent &raster)
+    RasterComponent &raster = GetComponent<RasterComponent>();
+    bool isVGA = (raster.Traits.PaletteType == PaletteType::VGA_256);
+
+    uint8_t transparentColor = 0;   // ????
+
+    // First, get a collection of usable images
+    std::vector<ImageSequenceItem> imageSequenceItems;
+    for (const string &file : files)
+    {
+        imageSequenceItems.emplace_back();
+        ImageSequenceItem &item = imageSequenceItems.back();
+        bool success = false;
+        if (0 == lstrcmpi(".gif", PathFindExtension(file.c_str())))
         {
-            // Use the current loop.
-            int nLoop = GetSelectedLoop();
-
-            Loop &loop = raster.Loops[nLoop];
-
-            // Delete all but cel 0.
-            int cCels = (int)loop.Cels.size();
-            for (int i = cCels - 1; i > 0; i--)
+            // Try our gif loader, which understands palettes better than gdip
+            success = GetCelsAndPaletteFromGIFFile(file.c_str(), item.Cels, item.Palette);
+        }
+        if (!success)
+        {
+            // Use gdiplus to load the image.
+#ifdef UNICODE
+            item.Bitmap.reset(Bitmap::FromFile(pszFileName));
+#else
+            // GDI+ only deals with unicode.
+            BSTR unicodestr = SysAllocStringLen(NULL, file.length());
+            MultiByteToWideChar(CP_ACP, 0, file.c_str(), file.length(), unicodestr, file.length());
+            item.Bitmap.reset(Bitmap::FromFile(unicodestr));
+            //... when done, free the BSTR
+            SysFreeString(unicodestr);
+#endif    
+            success = item.Bitmap->GetLastStatus() == Gdiplus::Ok;
+            if (success)
             {
-                ::RemoveCel(raster, CelIndex(nLoop, i));
-            }
-
-            int nCel = 0;
-            uint8_t transparentColor = loop.Cels[0].TransparentColor;
-
-            for (const string &file : files)
-            {
-                uint16_t width, height;
-                std::vector<std::unique_ptr<BYTE[]>> celsBits;
-                GetSCIBitsFromFileName(file.c_str(), transparentColor, width, height, celsBits);
-                for (auto &celBits : celsBits)
+                // See if we can convert this into a cel now.
+                if (GetCelsAndPaletteFromGdiplus(*item.Bitmap, transparentColor, item.Cels, item.Palette))
                 {
-                    CelIndex celIndex(nLoop, nCel);
-                    if (nCel > 0)
-                    {
-                        // Loop already has one cel.  Use it - but for subsequent cels,
-                        // we need to add them.
-                        ::InsertCel(raster, CelIndex(nLoop, nCel - 1), false, false);
-                    }
-                    ::SetSize(raster, celIndex, size16(width, height), RasterResizeFlags::Normal);
-                    ::SetBitmapData(raster, celIndex, celBits.get());
-                    nCel++;
+                    // Then get rid of the bitmap
+                    item.Bitmap.reset(nullptr);
                 }
             }
-            return WrapHint(RasterChangeHint::NewView);
         }
-        );
+        if (!success)
+        {
+            imageSequenceItems.pop_back();
+        }
+    }
+
+    // If we got some, then figure out what to do
+    if (!imageSequenceItems.empty())
+    {
+        // If we got a palette, then (if VGA) we need to figure out what to do. 
+        // We'll just look at the first palette.
+        unique_ptr<PaletteComponent> onePalette;
+        for (auto &item : imageSequenceItems)
+        {
+            if (!item.Cels.empty())
+            {
+                onePalette = make_unique<PaletteComponent>(item.Palette);
+                break;
+            }
+        }
+       
+        if (isVGA && onePalette)
+        {
+            // We have a few choices here. Lots of choices, but we'll only handle a few.
+            // If it's identical to our current palette, then no problem. This could be the case when the user is importing multiple image sequences for different loops.
+            // If we don't have a palette, we might want to offer the option of remapping to the global palette.
+            // If we have a palette, and it doesn't match, then we can offer the option of remapping to the embedded palette.
+            // Basically, we'll offer these choices:
+            //  - use palette from image?
+            //  - remap to embedded (or global)
+            //
+            // For 24bit images, or when we're EGA, we'll just remap to the embedded.
+            PaletteComponent *existingPalette = GetResource()->TryGetComponent<PaletteComponent>();
+            if (!existingPalette || DoPalettesMatch(*existingPalette, *onePalette))
+            {
+                string message = "A palette was found in the loaded image(s) which doesn't match the current view palette. Replace view palette with it?\n(If you select no, the loaded image(s) will be remapped to view's current palette.)";
+                if (!existingPalette)
+                {
+                    message = "A palette was found in the loaded image(s). Apply this to the view?\n(If you select no, the loaded image(s) will be remapped to the global palette.)";
+                }
+                if (IDNO == AfxMessageBox(message.c_str(), MB_YESNO | MB_ICONINFORMATION))
+                {
+                    onePalette.reset(nullptr);
+                }
+            }
+        }
+        else
+        {
+            onePalette.reset(nullptr); // Don't need this
+        }
+
+        // At this point, if onePalette is not null, we should apply it to the view and directly copy any cel data (gdiplus bitmaps will still be remapped)
+        // Otherwise, we should remap everything based on RGB.
+        _ApplyImageSequence(transparentColor, onePalette.get(), imageSequenceItems);
+    }
 
     // Reset the selection.
     _nCel = 0;

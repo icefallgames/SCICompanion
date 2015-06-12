@@ -243,7 +243,7 @@ BOOL PrepareBitmapBase::_Init(std::unique_ptr<Gdiplus::Bitmap> pImageIn, CWnd *p
     // Note that if we're using the original palette, we can't scale or adjust the thingies.
     _originalPalette.reset(nullptr);
     _numberOfPaletteEntries = 0;
-    _originalPalette = GetPaletteFromImage(_pbmpOrig.get(), &_numberOfPaletteEntries);
+    _originalPalette = GetPaletteFromImage(*_pbmpOrig, &_numberOfPaletteEntries);
 
     CSize size(min(sPIC_WIDTH, _pbmpOrig->GetWidth()), min(sPIC_HEIGHT, _pbmpOrig->GetHeight()));
     BOOL fRet = FALSE;

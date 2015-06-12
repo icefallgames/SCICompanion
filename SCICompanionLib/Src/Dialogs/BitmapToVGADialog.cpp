@@ -446,33 +446,19 @@ void CBitmapToVGADialog::_Update()
         // This should only be enabled if _originalPalette is set.
         if (_originalPalette)
         {
-
-            UINT cx = _pbmpOrig->GetWidth();
-            UINT cy = _pbmpOrig->GetHeight();
-
-            Gdiplus::Rect rect(0, 0, cx, cy);
-            Gdiplus::BitmapData bitmapData;
-            if (Ok == _pbmpOrig->LockBits(&rect, ImageLockModeRead, PixelFormat8bppIndexed, &bitmapData))
+            std::vector<Cel> tempCels;
+            PaletteComponent tempPalette;
+            if (GetCelsAndPaletteFromGdiplus(*_pbmpOrig, _transparentColor, tempCels, tempPalette))
             {
-                std::unique_ptr<Cel> temp = make_unique<Cel>();
-                std::unique_ptr<PaletteComponent> tempPalette = make_unique<PaletteComponent>();
-                temp->size = size16((uint16_t)cx, (uint16_t)cy);
-                temp->TransparentColor = _transparentColor;
-                uint8_t *pDIBBits8 = (uint8_t *)bitmapData.Scan0;
-                temp->Data.allocate(PaddedSize(temp->size));
-                temp->Data.assign(pDIBBits8, pDIBBits8 + temp->Data.size());
-
-                _finalResult = move(temp);
+                _finalResult = make_unique<Cel>(tempCels[0]);
                 if (_honorGlobalPalette && _globalPalette)
                 {
-                    _finalResultPalette = _RemapImagePalette(&_finalResult->Data[0], cx, cy, *_originalPalette, *_globalPalette);
+                    _finalResultPalette = _RemapImagePalette(&_finalResult->Data[0], tempCels[0].size.cx, tempCels[0].size.cy, *_originalPalette, *_globalPalette);
                 }
                 else
                 {
                     _finalResultPalette = make_unique<PaletteComponent>(*_originalPalette);
                 }
-
-                _pbmpOrig->UnlockBits(&bitmapData); // REVIEW: Not exception-safe
             }
         }
         break;

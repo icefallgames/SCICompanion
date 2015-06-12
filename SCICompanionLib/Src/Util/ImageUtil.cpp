@@ -2,6 +2,7 @@
 #include "ImageUtil.h"
 #include "View.h"
 #include "PaletteOperations.h"
+#include "gif_lib.h"
 
 int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
 {
@@ -181,15 +182,15 @@ int CountActualUsedColors(const std::vector<const Cel*> &cels, bool *used)
     return std::count(used, used + 256, true);
 }
 
-std::unique_ptr<PaletteComponent> GetPaletteFromImage(Gdiplus::Bitmap *bitmap, int *numberOfUsedEntriesOut)
+std::unique_ptr<PaletteComponent> GetPaletteFromImage(Gdiplus::Bitmap &bitmap, int *numberOfUsedEntriesOut)
 {
     std::unique_ptr<PaletteComponent> originalPalette;
-    PixelFormat pixelFormat = bitmap->GetPixelFormat();
+    PixelFormat pixelFormat = bitmap.GetPixelFormat();
     if ((pixelFormat & PixelFormat8bppIndexed) == PixelFormat8bppIndexed)
     {
-        INT paletteSize = bitmap->GetPaletteSize();
+        INT paletteSize = bitmap.GetPaletteSize();
         ColorPalette* cp = (ColorPalette*)malloc(paletteSize);
-        Status status = bitmap->GetPalette(cp, paletteSize);
+        Status status = bitmap.GetPalette(cp, paletteSize);
         if (status == Ok)
         {
             int numberOfPaletteEntries = (int)cp->Count;
@@ -218,3 +219,204 @@ std::unique_ptr<PaletteComponent> GetPaletteFromImage(Gdiplus::Bitmap *bitmap, i
     }
     return originalPalette;
 }
+
+bool GetCelsAndPaletteFromGIFFile(const char *filename, std::vector<Cel> &cels, PaletteComponent &palette)
+{
+    int errorCode;
+    GifFileType *fileType = DGifOpenFileName(filename, &errorCode);
+    bool success = (DGifSlurp(fileType) == GIF_OK);
+    if (success)
+    {
+        // Get the palette.
+        memset(palette.Colors, 0, ARRAYSIZE(palette.Colors));
+        if (fileType->SColorMap && (fileType->SColorMap->BitsPerPixel == 8))
+        {
+            for (int i = 0; i < fileType->SColorMap->ColorCount; i++)
+            {
+                palette.Colors[i].rgbRed = fileType->SColorMap->Colors[i].Red;
+                palette.Colors[i].rgbBlue = fileType->SColorMap->Colors[i].Blue;
+                palette.Colors[i].rgbGreen = fileType->SColorMap->Colors[i].Green;
+            }
+        }
+
+        for (int i = 0; i < fileType->ImageCount; i++)
+        {
+            SavedImage &savedImage = fileType->SavedImages[i];
+            cels.emplace_back();
+            Cel &cel = cels.back();
+            cel.size = size16((uint16_t)savedImage.ImageDesc.Width, (uint16_t)savedImage.ImageDesc.Height);
+            cel.Data.allocate(CX_ACTUAL(cel.size.cx) * cel.size.cy);
+            for (int y = 0; y < savedImage.ImageDesc.Height; y++)
+            {
+                uint8_t *dest = &cel.Data[y * CX_ACTUAL(cel.size.cx)];
+                uint8_t *src = savedImage.RasterBits + y * savedImage.ImageDesc.Width;
+                memcpy(dest, src, savedImage.ImageDesc.Width);
+            }
+            cel.TransparentColor = 255; //  ???
+        }
+    }
+
+    DGifCloseFile(fileType, &errorCode);
+    return success;
+}
+
+bool GetCelsAndPaletteFromGdiplus(Gdiplus::Bitmap &bitmap, uint8_t transparentColor, std::vector<Cel> &cels, PaletteComponent &palette)
+{
+    std::unique_ptr<PaletteComponent> tempPalette = GetPaletteFromImage(bitmap, nullptr);
+    bool success = (tempPalette != nullptr);
+    if (success)
+    {
+        success = false;
+        UINT cx = bitmap.GetWidth();
+        UINT cy = bitmap.GetHeight();
+        Gdiplus::Rect rect(0, 0, cx, cy);
+
+        Gdiplus::BitmapData bitmapData;
+        if (Ok == bitmap.LockBits(&rect, ImageLockModeRead, PixelFormat8bppIndexed, &bitmapData))
+        {
+            success = true;
+            cels.emplace_back();
+            Cel &cel = cels.back();
+            cel.size = size16((uint16_t)cx, (uint16_t)cy);
+            cel.TransparentColor = transparentColor;
+            uint8_t *pDIBBits8 = (uint8_t *)bitmapData.Scan0;
+            cel.Data.allocate(PaddedSize(cel.size));
+            cel.Data.assign(pDIBBits8, pDIBBits8 + cel.Data.size());
+
+            bitmap.UnlockBits(&bitmapData); // REVIEW: Not exception-safe
+
+            // Transfer the palette now too.
+            palette = *tempPalette;
+        }
+    }
+    return success;
+}
+
+bool DoPalettesMatch(const PaletteComponent &paletteA, const PaletteComponent &paletteB)
+{
+    bool match = true;
+    // Ignore the "used" bits
+    for (size_t i = 0; match && (i < ARRAYSIZE(paletteA.Colors)); i++)
+    {
+        match = (paletteA.Colors[i].rgbRed == paletteB.Colors[i].rgbRed) &&
+            (paletteA.Colors[i].rgbGreen == paletteB.Colors[i].rgbGreen) &&
+            (paletteA.Colors[i].rgbBlue == paletteB.Colors[i].rgbBlue);
+    }
+    return match;
+}
+
+const uint8_t AlphaThreshold = 128;
+
+uint8_t _FindBestPaletteIndexMatch(uint8_t transparentColor, RGBQUAD desiredColor, int colorCount, const uint8_t *mapping, const RGBQUAD *colors)
+{
+    int bestIndex = 1;  // Just something that's not zero, so we can determine when we failed.
+    int bestDistance = INT_MAX;
+    for (int i = 0; i < colorCount; i++)
+    {
+        RGBQUAD paletteColor = colors[mapping[i]];
+        if ((i != (int)transparentColor) && (paletteColor.rgbReserved != 0x0))
+        {
+            int distance = GetColorDistance(desiredColor, paletteColor);
+            if (distance < bestDistance)
+            {
+                bestIndex = i;
+                bestDistance = distance;
+            }
+        }
+    }
+    return (uint8_t)bestIndex;
+}
+
+void ConvertBitmapToCel(Gdiplus::Bitmap &bitmap, uint8_t transparentColor, bool isEGA16, bool egaDither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *colors, std::vector<Cel> cels)
+{
+    uint16_t width = (uint16_t)bitmap.GetWidth();
+    uint16_t height = (uint16_t)bitmap.GetHeight();
+
+    // Clamp size to allowed values.
+    width = min(320, width);
+    width = max(1, width);
+    height = min(190, height);
+    height = max(1, height);
+
+    UINT count = bitmap.GetFrameDimensionsCount();
+    std::unique_ptr<GUID[]> dimensionIds = std::make_unique<GUID[]>(count);
+    bitmap.GetFrameDimensionsList(dimensionIds.get(), count);
+    UINT frameCount = bitmap.GetFrameCount(&dimensionIds.get()[0]);
+    for (UINT frame = 0; frame < frameCount; frame++)
+    {
+        GUID guid = FrameDimensionTime;
+        bitmap.SelectActiveFrame(&guid, frame);
+
+        cels.emplace_back();
+        Cel &cel = cels.back();
+        cel.size = size16(width, height);
+        cel.TransparentColor = transparentColor;
+        cel.Data.allocate(CX_ACTUAL(width)* height);
+        for (int y = 0; y < height; y++)
+        {
+            uint8_t *pBitsRow = &cel.Data[0] + ((height - y - 1) * CX_ACTUAL(width));
+            for (int x = 0; x < width; x++)
+            {
+                Color color;
+                if (Ok == bitmap.GetPixel(x, y, &color))
+                {
+                    if (color.GetA() < AlphaThreshold)
+                    {
+                        *(pBitsRow + x) = transparentColor;
+                    }
+                    else
+                    {
+                        // find closest match.
+                        if (isEGA16)
+                        {
+                            // Special-case ega, because we can do dithering
+                            EGACOLOR curColor = GetClosestEGAColor(1, egaDither ? 3 : 2, color.ToCOLORREF());
+                            *(pBitsRow + x) = ((x^y) & 1) ? curColor.color1 : curColor.color2;
+                        }
+                        else
+                        {
+                            RGBQUAD rgb = { color.GetB(), color.GetG(), color.GetR(), 0 };
+                            *(pBitsRow + x) = _FindBestPaletteIndexMatch(transparentColor, rgb, colorCount, paletteMapping, colors);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void ConvertCelToNewPalette(Cel &cel, PaletteComponent &currentPalette, uint8_t transparentColor, bool isEGA16, bool egaDither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *colors)
+{
+    int height = cel.size.cy;
+    int width = cel.size.cx;
+    for (int y = 0; y < height; y++)
+    {
+        uint8_t *pBitsRow = &cel.Data[0] + ((height - y - 1) * CX_ACTUAL(width));
+        for (int x = 0; x < width; x++)
+        {
+            uint8_t *valuePointer = pBitsRow + x;
+            uint8_t value = *valuePointer;
+            if (value = cel.TransparentColor)
+            {
+                *valuePointer = transparentColor;
+            }
+            else
+            {
+                RGBQUAD rgbExisting = currentPalette.Colors[value];
+                // find closest match.
+                if (isEGA16)
+                {
+                    // Special-case ega, because we can do dithering
+                    EGACOLOR curColor = GetClosestEGAColor(1, egaDither ? 3 : 2, RGB(rgbExisting.rgbRed, rgbExisting.rgbGreen, rgbExisting.rgbBlue));
+                    *(pBitsRow + x) = ((x^y) & 1) ? curColor.color1 : curColor.color2;
+                }
+                else
+                {
+                    *(pBitsRow + x) = _FindBestPaletteIndexMatch(transparentColor, rgbExisting, colorCount, paletteMapping, colors);
+                }
+            }
+        }
+    }
+    cel.TransparentColor = transparentColor;
+}
+

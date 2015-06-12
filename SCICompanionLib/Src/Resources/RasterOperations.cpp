@@ -703,6 +703,14 @@ RasterChange SetGroupTransparentColor(RasterComponent &raster, int cCels, CelInd
     return (cCels > 1) ? RasterChange(RasterChangeHint::Loop) : RasterChange(RasterChangeHint::Cel, rgdwIndex[0]);
 }
 
+RasterChange ApplyCelsToLoop(RasterComponent &raster, int nLoop, const std::vector<Cel> &finalCels)
+{
+    Loop &loop = raster.Loops[nLoop];
+    loop.Cels = finalCels;
+    UpdateMirrors(raster, nLoop);
+    return RasterChange(RasterChangeHint::NewView);
+}
+
 RasterChange SetPlacement(RasterComponent &raster, CelIndex celIndex, int16_t x, int16_t y)
 {
     if (IsFlagSet(raster.Traits.Caps, RasterCaps::SCI0CursorPlacement))

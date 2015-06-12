@@ -621,6 +621,18 @@
     <ClCompile Include="Src\FrameComponents\ViewCelListBox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\GIFLIB\dgif_lib.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GIFLIB\gif_err.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GIFLIB\gif_hash.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\GIFLIB\gifalloc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCICompanionLib.h">
@@ -1296,6 +1308,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\FrameComponents\ViewCelListBox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GIFLIB\gif_hash.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GIFLIB\gif_lib.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\GIFLIB\gif_lib_private.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

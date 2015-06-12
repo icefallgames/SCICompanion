@@ -178,6 +178,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Decompiler" "$(OutDir)Decompiler"
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <Text Include="Files\Licenses\giflib-AUTHORS.txt" />
     <Text Include="Files\TemplateGame\SCI0\game.txt" />
     <Text Include="Files\TemplateGame\SCI1.1\INSTALL.TXT" />
     <Text Include="ReadMe.txt" />

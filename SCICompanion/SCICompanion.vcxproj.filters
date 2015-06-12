@@ -18,6 +18,7 @@
     <Text Include="ReadMe.txt" />
     <Text Include="Files\TemplateGame\SCI0\game.txt" />
     <Text Include="Files\TemplateGame\SCI1.1\INSTALL.TXT" />
+    <Text Include="Files\Licenses\giflib-AUTHORS.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCICompanion.h">

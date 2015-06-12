@@ -12,6 +12,8 @@
 // A sort of workaround
 CHintWithObject<CelIndex> WrapRasterChange(RasterChange change);
 
+struct ImageSequenceItem;
+
 class CNewRasterResourceDocument : public ResourceEntityDocument
 {
     DECLARE_DYNCREATE(CNewRasterResourceDocument)
@@ -88,6 +90,7 @@ private:
     void _UpdateHelper(RasterChange change);
     void _TrimUndoStack();
     void _InsertFiles(const std::vector<std::string> &files);
+    void _ApplyImageSequence(uint8_t transparentColor, const PaletteComponent *optionalNewPalette, std::vector<ImageSequenceItem> &items);
     std::list<ResourceEntity*>::iterator _GetLastUndoFrame();
 
     template<typename _T>
