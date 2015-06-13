@@ -239,7 +239,7 @@ bool GetCelsAndPaletteFromGIFFile(const char *filename, std::vector<Cel> &cels, 
                 palette.Colors[i].rgbRed = fileType->SColorMap->Colors[i].Red;
                 palette.Colors[i].rgbBlue = fileType->SColorMap->Colors[i].Blue;
                 palette.Colors[i].rgbGreen = fileType->SColorMap->Colors[i].Green;
-                palette.Colors[i].rgbReserved = 0x3;
+                palette.Colors[i].rgbReserved = 0x1;    // Or 0x3? REVIEW
             }
         }
 
@@ -345,8 +345,21 @@ uint8_t _FindBestPaletteIndexMatch(uint8_t transparentColor, RGBQUAD desiredColo
     return (uint8_t)bestIndex;
 }
 
-void ConvertBitmapToCel(Gdiplus::Bitmap &bitmap, uint8_t transparentColor, bool isEGA16, bool egaDither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *colors, std::vector<Cel> cels)
+
+int g_dummyTrack[256];
+
+void ConvertBitmapToCel(int *trackUsage, Gdiplus::Bitmap &bitmap, uint8_t transparentColor, bool isEGA16, bool egaDither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *colors, std::vector<Cel> &cels)
 {
+    bool write = (trackUsage == nullptr);
+    if (trackUsage)
+    {
+        egaDither = false;
+    }
+    else
+    {
+        trackUsage = g_dummyTrack;
+    }
+
     uint16_t width = (uint16_t)bitmap.GetWidth();
     uint16_t height = (uint16_t)bitmap.GetHeight();
 
@@ -356,6 +369,7 @@ void ConvertBitmapToCel(Gdiplus::Bitmap &bitmap, uint8_t transparentColor, bool 
     height = min(190, height);
     height = max(1, height);
 
+    Cel celDummy;
     UINT count = bitmap.GetFrameDimensionsCount();
     std::unique_ptr<GUID[]> dimensionIds = std::make_unique<GUID[]>(count);
     bitmap.GetFrameDimensionsList(dimensionIds.get(), count);
@@ -365,8 +379,11 @@ void ConvertBitmapToCel(Gdiplus::Bitmap &bitmap, uint8_t transparentColor, bool 
         GUID guid = FrameDimensionTime;
         bitmap.SelectActiveFrame(&guid, frame);
 
-        cels.emplace_back();
-        Cel &cel = cels.back();
+        if (write)
+        {
+            cels.emplace_back();
+        }
+        Cel &cel = write ? cels.back() : celDummy;
         cel.size = size16(width, height);
         cel.TransparentColor = transparentColor;
         cel.Data.allocate(CX_ACTUAL(width)* height);
@@ -375,12 +392,14 @@ void ConvertBitmapToCel(Gdiplus::Bitmap &bitmap, uint8_t transparentColor, bool 
             uint8_t *pBitsRow = &cel.Data[0] + ((height - y - 1) * CX_ACTUAL(width));
             for (int x = 0; x < width; x++)
             {
+                uint8_t dummy;
+                uint8_t *valuePointer = write ? (pBitsRow + x) : &dummy;
                 Color color;
                 if (Ok == bitmap.GetPixel(x, y, &color))
                 {
                     if (color.GetA() < AlphaThreshold)
                     {
-                        *(pBitsRow + x) = transparentColor;
+                        *valuePointer = transparentColor;
                     }
                     else
                     {
@@ -389,12 +408,15 @@ void ConvertBitmapToCel(Gdiplus::Bitmap &bitmap, uint8_t transparentColor, bool 
                         {
                             // Special-case ega, because we can do dithering
                             EGACOLOR curColor = GetClosestEGAColor(1, egaDither ? 3 : 2, color.ToCOLORREF());
-                            *(pBitsRow + x) = ((x^y) & 1) ? curColor.color1 : curColor.color2;
+                            *valuePointer = ((x^y) & 1) ? curColor.color1 : curColor.color2;
+                            trackUsage[curColor.color1]++;
                         }
                         else
                         {
                             RGBQUAD rgb = { color.GetB(), color.GetG(), color.GetR(), 0 };
-                            *(pBitsRow + x) = _FindBestPaletteIndexMatch(transparentColor, rgb, colorCount, paletteMapping, colors);
+                            uint8_t bestMatch = _FindBestPaletteIndexMatch(transparentColor, rgb, colorCount, paletteMapping, colors);
+                            trackUsage[bestMatch]++;
+                            *valuePointer = bestMatch;
                         }
                     }
                 }
@@ -403,8 +425,17 @@ void ConvertBitmapToCel(Gdiplus::Bitmap &bitmap, uint8_t transparentColor, bool 
     }
 }
 
-void ConvertCelToNewPalette(Cel &cel, PaletteComponent &currentPalette, uint8_t transparentColor, bool isEGA16, bool egaDither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *colors)
+void ConvertCelToNewPalette(int *trackUsage, Cel &cel, PaletteComponent &currentPalette, uint8_t transparentColor, bool isEGA16, bool egaDither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *colors)
 {
+    bool write = (trackUsage == nullptr);
+    if (trackUsage)
+    {
+        egaDither = false;
+    }
+    else
+    {
+        trackUsage = g_dummyTrack;
+    }
     int height = cel.size.cy;
     int width = cel.size.cx;
     for (int y = 0; y < height; y++)
@@ -412,11 +443,12 @@ void ConvertCelToNewPalette(Cel &cel, PaletteComponent &currentPalette, uint8_t 
         uint8_t *pBitsRow = &cel.Data[0] + ((height - y - 1) * CX_ACTUAL(width));
         for (int x = 0; x < width; x++)
         {
-            uint8_t *valuePointer = pBitsRow + x;
-            uint8_t value = *valuePointer;
+            uint8_t dummy;
+            uint8_t value = *(pBitsRow + x);
+            uint8_t *setValuePointer = write ? (pBitsRow + x) : &dummy;
             if (value == cel.TransparentColor)
             {
-                *valuePointer = transparentColor;
+                *setValuePointer = transparentColor;
             }
             else
             {
@@ -426,15 +458,22 @@ void ConvertCelToNewPalette(Cel &cel, PaletteComponent &currentPalette, uint8_t 
                 {
                     // Special-case ega, because we can do dithering
                     EGACOLOR curColor = GetClosestEGAColor(1, egaDither ? 3 : 2, RGB(rgbExisting.rgbRed, rgbExisting.rgbGreen, rgbExisting.rgbBlue));
-                    *(pBitsRow + x) = ((x^y) & 1) ? curColor.color1 : curColor.color2;
+                    *setValuePointer = ((x^y) & 1) ? curColor.color1 : curColor.color2;
+                    trackUsage[curColor.color1]++;
                 }
                 else
                 {
-                    *(pBitsRow + x) = _FindBestPaletteIndexMatch(transparentColor, rgbExisting, colorCount, paletteMapping, colors);
+                    uint8_t bestMatch = _FindBestPaletteIndexMatch(transparentColor, rgbExisting, colorCount, paletteMapping, colors);;
+                    *setValuePointer = bestMatch;
+                    trackUsage[bestMatch]++;
                 }
             }
         }
     }
-    cel.TransparentColor = transparentColor;
+
+    if (write)
+    {
+        cel.TransparentColor = transparentColor;
+    }
 }
 

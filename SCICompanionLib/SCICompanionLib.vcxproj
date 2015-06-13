@@ -290,6 +290,7 @@
     <ClCompile Include="Src\Util\CodecDCL-freesci.cpp" />
     <ClCompile Include="Src\Util\CodecDCL.cpp" />
     <ClCompile Include="Src\Util\ColorQuantization.cpp" />
+    <ClCompile Include="Src\Util\CustomMessageBox.cpp" />
     <ClCompile Include="Src\Util\ExtractAll.cpp" />
     <ClCompile Include="Src\Util\ImageUtil.cpp" />
     <ClCompile Include="Src\Util\MidiPlayer.cpp" />
@@ -471,6 +472,7 @@
     <ClInclude Include="Src\Resources\PicOperations.h" />
     <ClInclude Include="Src\Util\CObjectWrap.h" />
     <ClInclude Include="Src\Util\ColorQuantization.h" />
+    <ClInclude Include="Src\Util\CustomMessageBox.h" />
     <ClInclude Include="Src\Util\ExtractAll.h" />
     <ClInclude Include="Src\Util\ImageUtil.h" />
     <ClInclude Include="Src\Util\MidiPlayer.h" />

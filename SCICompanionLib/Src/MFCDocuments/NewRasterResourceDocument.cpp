@@ -9,6 +9,7 @@
 #include "PaletteOperations.h"
 #include "format.h"
 #include "ImageUtil.h"
+#include "CustomMessageBox.h"
 
 volatile BOOL g_fDitherImages2 = FALSE;
 
@@ -369,6 +370,34 @@ struct ImageSequenceItem
     std::unique_ptr<Bitmap> Bitmap;
 };
 
+void _FinalizeSequence(int *trackUsage, vector<Cel> &finalCels, bool optionalNewPalette, std::vector<ImageSequenceItem> &items, uint8_t transparentColor, bool isEGA16, bool dither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *colors)
+{
+    for (ImageSequenceItem &item : items)
+    {
+        if (item.Cels.empty())
+        {
+            // Convert the bitmap using the palette we have
+            ConvertBitmapToCel(trackUsage, *item.Bitmap, transparentColor, isEGA16, dither, colorCount, paletteMapping, colors, item.Cels);
+        }
+        else
+        {
+            if (!optionalNewPalette)
+            {
+                // Remap cels
+                for (Cel &cel : item.Cels)
+                {
+                    ConvertCelToNewPalette(trackUsage, cel, item.Palette, transparentColor, isEGA16, dither, colorCount, paletteMapping, colors);
+                }
+            }
+            // else we're good
+        }
+        if (!trackUsage)
+        {
+            finalCels.insert(finalCels.end(), item.Cels.begin(), item.Cels.end());
+        }
+    }
+}
+
 void CNewRasterResourceDocument::_ApplyImageSequence(uint8_t transparentColor, const PaletteComponent *optionalNewPalette, std::vector<ImageSequenceItem> &items)
 {
     // If optionalNewPalette isn't provided, we need to obtain the palette we're converting to.
@@ -394,10 +423,10 @@ void CNewRasterResourceDocument::_ApplyImageSequence(uint8_t transparentColor, c
             }
             else
             {
-                const PaletteComponent *global = appState->GetResourceMap().GetPalette999();
+                const PaletteComponent *global = this->GetCurrentPaletteComponent();
                 if (global)
                 {
-                    colors = embedded->Colors;
+                    colors = global->Colors;
                 }
             }
             break;
@@ -419,27 +448,13 @@ void CNewRasterResourceDocument::_ApplyImageSequence(uint8_t transparentColor, c
         // Let's turn this into a sequence of cels before applying changes. That way the we'll just need
         // to copy the cels to the loop
         vector<Cel> finalCels;
-        for (ImageSequenceItem &item : items)
-        {
-            if (item.Cels.empty())
-            {
-                // Convert the bitmap using the palette we have
-                ConvertBitmapToCel(*item.Bitmap, transparentColor, isEGA16, !!g_fDitherImages2, colorCount, paletteMapping, colors, item.Cels);
-            }
-            else
-            {
-                if (!optionalNewPalette)
-                {
-                    // Remap cels
-                    for (Cel &cel : item.Cels)
-                    {
-                        ConvertCelToNewPalette(cel, item.Palette, transparentColor, isEGA16, !!g_fDitherImages2, colorCount, paletteMapping, colors);
-                    }
-                }
-                // else we're good
-            }
-            finalCels.insert(finalCels.end(), item.Cels.begin(), item.Cels.end());
-        }
+        std::unique_ptr<int[]> trackUsage = std::make_unique<int[]>(colorCount);
+        // First, do everything, but just track how often each index would be used
+        _FinalizeSequence(trackUsage.get(), finalCels, !!optionalNewPalette, items, transparentColor, isEGA16, !!g_fDitherImages2, colorCount, paletteMapping, colors);
+        // So that we can truly find a good transparent color
+        transparentColor = (uint8_t)(std::min_element(&trackUsage[0], &trackUsage[colorCount]) - &trackUsage[0]);
+        // Now do it for real
+        _FinalizeSequence(nullptr, finalCels, !!optionalNewPalette, items, transparentColor, isEGA16, !!g_fDitherImages2, colorCount, paletteMapping, colors);
 
         int nLoop = GetSelectedLoop();
 
@@ -549,13 +564,20 @@ void CNewRasterResourceDocument::_InsertFiles(const vector<string> &files)
             PaletteComponent *existingPalette = GetResource()->TryGetComponent<PaletteComponent>();
             if (!existingPalette || !DoPalettesMatch(*existingPalette, *onePalette))
             {
-                string message = "A palette was found in the loaded image(s) which doesn't match the current view palette. Replace view palette with it?\n(If you select no, the loaded image(s) will be remapped to view's current palette.)";
+                string remapOrApply = "Re-map";
+                string message = "A palette was found in the loaded image(s) which doesn't match the current view palette.\nReplace view's palette with it, or re-map it to the view's palette?";
                 if (!existingPalette)
                 {
-                    message = "A palette was found in the loaded image(s). Apply this to the view?\n(If you select no, the loaded image(s) will be remapped to the global palette.)";
+                    message = "A palette was found in the loaded image(s).\nApply this to the view or re-map to the currently selected palette?";
+                    remapOrApply = "Apply";
                 }
+
+                MessageBoxCustomization mb(
+                { { MessageBoxCustomization::Yes, "Replace" }, { MessageBoxCustomization::No, remapOrApply } }
+                );
                 if (IDNO == AfxMessageBox(message.c_str(), MB_YESNO | MB_ICONINFORMATION))
                 {
+                    // Pretend there wasn't a palette in the loaded image, which will then force us to re-map
                     onePalette.reset(nullptr);
                 }
             }
