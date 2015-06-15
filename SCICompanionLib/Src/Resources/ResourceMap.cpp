@@ -26,6 +26,7 @@
 #include "MessageHeaderFile.h"
 #include "MessageSource.h"
 #include "format.h"
+#include "SyncResourceMap.h"
 
 using namespace std;
 
@@ -427,14 +428,19 @@ HRESULT CResourceMap::AppendResource(const ResourceBlob &resource)
                 _globalCompiledScriptLookups.reset(nullptr);
             }
 
+            if (resource.GetType() == ResourceType::Palette)
+            {
+                _paletteListNeedsUpdate = true;
+                if (resource.GetNumber() == 999)
+                {
+                    _pPalette999.reset(nullptr);
+                }
+            }
+
             // pResource is only valid for the length of this call.  Nonetheless, call our syncs
             for (auto &sync : _syncs)
             {
                 sync->OnResourceAdded(&resource, appendBehavior);
-            }
-            if (resource.GetType() == ResourceType::Palette)
-            {
-                _paletteListNeedsUpdate = true;
             }
         }
 

@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "MidiPlayer.h"
+#include "AppState.h"
 
 using namespace std;
 
@@ -20,13 +21,30 @@ MidiPlayer::MidiPlayer()
     _dwCookie = 0;
 }
 
-MidiPlayer::~MidiPlayer()
+void MidiPlayer::Reset()
+{
+    _Reset();
+    if (_soundCache)
+    {
+        unique_ptr<SoundComponent> temp = move(_soundCache);
+        SetSound(*temp, _tempoCache);
+    }
+}
+
+void MidiPlayer::_Reset()
 {
     _ClearHeaders();
     if (_handle)
     {
         midiStreamClose(_handle);
+        _handle = nullptr;
     }
+    _fPlaying = false;
+}
+
+MidiPlayer::~MidiPlayer()
+{
+    _Reset();
 }
 
 void PrintMidiOutErrorMsg(unsigned long err)
@@ -83,8 +101,8 @@ bool MidiPlayer::_Init()
 {
     if (_handle == nullptr)
     {
-        UINT streamno = 0;
-        if (midiStreamOpen(&_handle, &streamno, 1, reinterpret_cast<DWORD_PTR>(s_MidiOutProc), reinterpret_cast<DWORD_PTR>(this), CALLBACK_FUNCTION))
+        UINT deviceId = appState->GetMidiDeviceId();
+        if (midiStreamOpen(&_handle, &deviceId, 1, reinterpret_cast<DWORD_PTR>(s_MidiOutProc), reinterpret_cast<DWORD_PTR>(this), CALLBACK_FUNCTION))
         {
             OutputDebugString("Failed to open midi stream\n");
             assert(_handle == nullptr);
@@ -135,6 +153,10 @@ DWORD MidiPlayer::QueryPosition()
 
 DWORD MidiPlayer::SetSound(const SoundComponent &sound, uint16_t wInitialTempo)
 {
+    // Make a copy of these in case we need to reset it on a new system midi device.
+    _tempoCache = wInitialTempo;
+    _soundCache = make_unique<SoundComponent>(sound);
+
     _ClearHeaders();
     _wTimeDivision = sound.GetTimeDivision();
     _dwLoopPoint = sound.GetLoopPoint();
@@ -199,6 +221,11 @@ DWORD MidiPlayer::SetSound(const SoundComponent &sound, uint16_t wInitialTempo)
 
 void MidiPlayer::Play()
 {
+    if (!_handle)
+    {
+        _Init();
+    }
+
     if (!_accumulatedStreamTicks.empty())
     {
         unsigned int err = midiStreamRestart(_handle);

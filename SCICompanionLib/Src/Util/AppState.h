@@ -88,6 +88,8 @@ public:
     void OutputAddBatch(std::vector<CompileResult> &compileResults);
     void OutputFinishAdd();
 
+    UINT GetMidiDeviceId();
+
     // Game explorer
     void ShowResourceType(ResourceType iType);
     ResourceType GetShownResourceType();
@@ -122,6 +124,7 @@ public:
     BOOL _fCodeCompletion;
     BOOL _fHoverTips;
     BOOL _fPlayCompileErrorSound;
+    std::string _midiDeviceName;
 
     BOOL _fNoGdiPlus;   // GDI+ is not available
 

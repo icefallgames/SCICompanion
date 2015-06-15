@@ -4,6 +4,7 @@
 #include "stdafx.h"
 #include "AppState.h"
 #include "ColorButton.h"
+#include "format.h"
 
 CExtBitmap g_bitmapHighlight;
 CExtBitmap g_bitmapHighlightX;
@@ -135,14 +136,17 @@ BOOL CreateDCCompatiblePattern(RGBQUAD color1, RGBQUAD color2, int width, int he
     int halfH = height / 2;
     for (int y = 0; y < height; y++)
     {
-        bool on = (y / halfH == 0);
+        bool on = ((y / halfH) == 0);
         for (int x = 0; x < width; x++)
         {
             if (x == halfW)
             {
                 on = !on;
             }
-            HatchBits[y * width + x] = on ? color1 : color2;
+            // Without pulling this out into an "index" variable, the behavior is not correct in optimized builds.
+            // MSVC bug?
+            int index = y * width + x;
+            HatchBits[index] = on ? color1 : color2;
         }
     }
 

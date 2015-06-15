@@ -5,7 +5,7 @@
 #include "AppState.h"
 #include "PreferencesDialog.h"
 #include ".\preferencesdialog.h"
-
+#include "MidiPlayer.h"
 
 // CPreferencesDialog dialog
 
@@ -35,7 +35,7 @@ BOOL CPreferencesDialog::OnInitDialog()
     }
     if (cDevices)
     {
-        m_wndMIDIDevices.SetCurSel(0);
+        m_wndMIDIDevices.SetCurSel(appState->GetMidiDeviceId());
     }
     return fRet;
 }
@@ -98,6 +98,7 @@ void CPreferencesDialog::_SyncBrowseInfo()
 
 BEGIN_MESSAGE_MAP(CPreferencesDialog, CExtResizableDialog)
     ON_BN_CLICKED(IDC_BROWSEINFO, OnBnClickedBrowseinfo)
+    ON_CBN_SELCHANGE(IDC_COMBO_MIDIDEVICE, &CPreferencesDialog::OnCbnSelchangeComboMididevice)
 END_MESSAGE_MAP()
 
 
@@ -120,3 +121,16 @@ void CPreferencesDialog::OnOK()
     }
 }
 
+
+
+void CPreferencesDialog::OnCbnSelchangeComboMididevice()
+{
+    int selection = m_wndMIDIDevices.GetCurSel();
+    if (selection != CB_ERR)
+    {
+        CString string;
+        m_wndMIDIDevices.GetLBText(selection, string);
+        appState->_midiDeviceName = (PCSTR)string;
+        g_midiPlayer.Reset();
+    }
+}

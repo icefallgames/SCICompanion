@@ -721,7 +721,7 @@ CAPTION "About SCICompanion"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     ICON            IDR_MAINFRAME,IDC_STATIC4,11,17,21,20
-    LTEXT           "SCICompanion Version 3.0.0.2",IDC_STATIC1,50,7,119,8,SS_NOPREFIX
+    LTEXT           "SCICompanion Version 3.0.0.3",IDC_STATIC1,50,7,119,8,SS_NOPREFIX
     LTEXT           "Copyright (C) 2015",IDC_STATIC2,50,25,119,8
     DEFPUSHBUTTON   "OK",IDOK,208,7,50,16,BS_FLAT | WS_GROUP
     LTEXT           "By Phil Fortier (IceFall Games)\n\n\nParts of code (""Crystal Edit"" text editor) by Andrei Stcherbatchenko\n\nContains decompression routines from the ScummVM project.\n\ncppformat library  Copyright (c) 2012 - 2015, Victor Zverovich",IDC_STATIC3,50,48,189,115
@@ -1291,11 +1291,12 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     COMBOBOX        IDC_COMBO_DEVICE,57,23,89,100,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
     LTEXT           "SCI Synth:",IDC_STATIC_SYNTH,7,25,46,10,0,WS_EX_RIGHT
-    EDITTEXT        IDC_EDIT_CHANNELS,7,75,139,14,ES_AUTOHSCROLL | ES_READONLY
+    EDITTEXT        IDC_EDIT_CHANNELS,7,89,139,14,ES_AUTOHSCROLL | ES_READONLY
     PUSHBUTTON      "8",IDC_BUTTON_PLAY,7,41,19,14
     PUSHBUTTON      "g",IDC_BUTTON_STOP,27,41,19,14
     CONTROL         "",IDC_SLIDER,"msctls_trackbar32",WS_TABSTOP,52,41,94,15
     CONTROL         "Auto preview",IDC_CHECK_AUTOPREV,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,60,131,10
+    LTEXT           "Duration:",IDC_STATIC_DURATION,7,77,72,8
 END
 
 IDD_SOUNDTOOLBOX DIALOGEX 0, 0, 117, 277
@@ -1612,12 +1613,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "IceFall Games"
             VALUE "FileDescription", "SCICompanion"
-            VALUE "FileVersion", "3.0.0.2"
+            VALUE "FileVersion", "3.0.0.3"
             VALUE "InternalName", "SCICompanion.exe"
             VALUE "LegalCopyright", "(c) IceFall Games.  All rights reserved."
             VALUE "OriginalFilename", "SCICompanion.exe"
             VALUE "ProductName", "SCI Companion 3"
-            VALUE "ProductVersion", "3.0.0.2"
+            VALUE "ProductVersion", "3.0.0.3"
         END
     END
     BLOCK "VarFileInfo"

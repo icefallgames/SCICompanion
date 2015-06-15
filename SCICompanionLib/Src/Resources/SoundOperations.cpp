@@ -2,6 +2,14 @@
 #include "SoundOperations.h"
 #include "format.h"
 
+std::string GetSoundLength(const SoundComponent &sound)
+{
+    DWORD ticks = sound.GetTotalTicks();
+    uint16_t tempo = max(1, sound.GetTempo());
+    int seconds = (int)round((double)(ticks * 30) / (double)(60 * SCI_PPQN));
+    return fmt::format("{0:02}:{1:02}", seconds / 60, seconds % 60);
+}
+
 // TODO: Ideally we want to be able to load multiple midi files into one resource (to assign to different devices). However,
 // there needs to be more work done with the timing/tempo situation. For now, we'll just completely replace a track.
 SoundChangeHint InitializeFromMidi(SCIVersion version, std::vector<DeviceType> devices, SoundComponent &sound, const std::string &filename)

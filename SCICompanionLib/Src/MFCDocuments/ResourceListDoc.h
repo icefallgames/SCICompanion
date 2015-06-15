@@ -8,6 +8,7 @@ class ResourceBlob;
 
 #include "ResourceMap.h"
 #include "NonViewHostDocument.h"
+#include "SyncResourceMap.h"
 
 enum class ResourceMapChangeHint
 {

@@ -49,4 +49,5 @@ private:
 
 public:
     afx_msg void OnBnClickedBrowseinfo();
+    afx_msg void OnCbnSelchangeComboMididevice();
 };

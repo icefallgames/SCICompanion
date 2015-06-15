@@ -10,6 +10,7 @@
 #include "ResourceEntity.h"
 #include "PicOperations.h"
 #include "ResourceEntityDocument.h"
+#include "SyncResourceMap.h"
 
 using namespace std;
 
@@ -52,7 +53,7 @@ enum class PicChangeHint
 
 DEFINE_ENUM_FLAGS(PicChangeHint, uint32_t)
 
-class CPicDoc : public ResourceEntityDocument, public IDialogFactory
+class CPicDoc : public ResourceEntityDocument, public IDialogFactory, public ISyncResourceMap
 {
 protected: // create from serialization only
     CPicDoc();
@@ -81,12 +82,16 @@ public:
 
     void SetPreviewPalette(const PaletteComponent *palette);
 
-// Operations
-public:
+    // ISyncResourceMap
+    void OnResourceAdded(const ResourceBlob *pData, AppendBehavior appendBehavior);
+    void OnResourceDeleted(const ResourceBlob *pData) {}
+    void OnResourceMapReloaded(bool isInitialLoad) {}
+    void OnResourceTypeReloaded(ResourceType iType) {}
 
 // Overrides
 public:
-    virtual BOOL OnNewDocument();
+    BOOL OnNewDocument() override;
+    void OnCloseDocument() override;
 
 // Implementation
 public:

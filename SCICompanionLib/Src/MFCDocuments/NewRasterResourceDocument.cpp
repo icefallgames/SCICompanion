@@ -36,6 +36,10 @@ END_MESSAGE_MAP()
 
 CNewRasterResourceDocument::CNewRasterResourceDocument()
 {
+    // Add ourselves as a sync
+    CResourceMap &map = appState->GetResourceMap();
+    map.AddSync(this);
+
     _currentPaletteIndex = 0;
     _nPenWidth = 1;
     _fLocked = false;
@@ -720,5 +724,22 @@ void CNewRasterResourceDocument::MakeFont()
             }
             );
         }
+    }
+}
+
+void CNewRasterResourceDocument::OnCloseDocument()
+{
+    // Remove ourselves as a sync
+    CResourceMap &map = appState->GetResourceMap();
+    map.RemoveSync((ISyncResourceMap*)this);
+    __super::OnCloseDocument();
+}
+
+void CNewRasterResourceDocument::OnResourceAdded(const ResourceBlob *pData, AppendBehavior appendBehavior)
+{
+    if (pData->GetType() == ResourceType::Palette)
+    {
+        RefreshPaletteOptions();
+        UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(RasterChangeHint::NewView));
     }
 }

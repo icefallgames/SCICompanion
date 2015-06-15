@@ -6,6 +6,7 @@
 #include "ResourceEntity.h"
 #include "ResourceEntityDocument.h"
 #include "RasterOperations.h"
+#include "SyncResourceMap.h"
 
 // CNewRasterResourceDocument document
 
@@ -14,7 +15,7 @@ CHintWithObject<CelIndex> WrapRasterChange(RasterChange change);
 
 struct ImageSequenceItem;
 
-class CNewRasterResourceDocument : public ResourceEntityDocument
+class CNewRasterResourceDocument : public ResourceEntityDocument, public ISyncResourceMap
 {
     DECLARE_DYNCREATE(CNewRasterResourceDocument)
 
@@ -79,6 +80,14 @@ public:
     void SwitchToEmbeddedPalette();
 
     void PostApplyChanges(CObject *pObj) override;
+
+    // ISyncResourceMap
+    void OnResourceAdded(const ResourceBlob *pData, AppendBehavior appendBehavior);
+    void OnResourceDeleted(const ResourceBlob *pData) {}
+    void OnResourceMapReloaded(bool isInitialLoad) {}
+    void OnResourceTypeReloaded(ResourceType iType) {}
+
+    void OnCloseDocument() override;
 
 private:
     virtual ResourceType _GetType() const

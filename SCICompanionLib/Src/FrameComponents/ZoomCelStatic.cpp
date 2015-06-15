@@ -47,7 +47,10 @@ void ZoomCelStatic::_Update()
     }
     else
     {
-        _cursorPos = _be->GetCursorPos();
+        if (_be)
+        {
+            _cursorPos = _be->GetCursorPos();
+        }
     }
     RedrawWindow();
 }

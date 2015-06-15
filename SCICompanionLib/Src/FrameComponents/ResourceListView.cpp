@@ -22,6 +22,7 @@ static const int ColumnPackage = 3;
 static const int ColumnEncoding = 4;
 static const int ColumnStatus = 5;
 static const int ColumnSource = 6;
+static const int ColumnInfo = 7;
 const struct
 {
     PTSTR pszName; // Should be const, but the LVCOLUMN struct accepts only non-const
@@ -36,11 +37,17 @@ c_ColumnInfo [] =
     { "Encoding", 80 },
     { "Status", 80 },
     { "Source", 100 },
+    { "Info", 100 },
 };
 
 IMPLEMENT_DYNCREATE(CResourceListCtrl, CListCtrl)
 
 void GetStatusString(ResourceBlob &data, TCHAR *pszBuffer, size_t cchBuffer, bool mostRecent);
+void GetInfoString(ResourceBlob &data, TCHAR *pszBuffer, size_t cchBuffer)
+{
+    *pszBuffer = 0;
+}
+
 
 CResourceListCtrl::CResourceListCtrl()
 {
@@ -122,6 +129,9 @@ void CResourceListCtrl::OnItemClick(NMHDR* pNMHDR, LRESULT* pResult)
 template<int Multiplier>
 int CALLBACK ColumnSort(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 {
+    char sz1[100];
+    char sz2[100];
+
     int iColumn = static_cast<int>(lParamSort);
     ResourceBlob *p1 = reinterpret_cast<ResourceBlob*>(lParam1);
     ResourceBlob *p2 = reinterpret_cast<ResourceBlob*>(lParam2);
@@ -147,10 +157,13 @@ int CALLBACK ColumnSort(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
         iRet = (int)p1->GetSourceFlags() - (int)p2->GetSourceFlags();
         break;
     case ColumnStatus:
-        char sz1[100];
-        char sz2[100];
         GetStatusString(*p1, sz1, ARRAYSIZE(sz1), false);
         GetStatusString(*p2, sz2, ARRAYSIZE(sz2), false);
+        iRet = lstrcmp(sz1, sz2);
+        break;
+    case ColumnInfo:
+        GetInfoString(*p1, sz1, ARRAYSIZE(sz1));
+        GetInfoString(*p2, sz2, ARRAYSIZE(sz2));
         iRet = lstrcmp(sz1, sz2);
         break;
     }
@@ -771,6 +784,14 @@ void CResourceListCtrl::_InsertItem(ResourceBlob *pData)
             }
             break;
         }
+
+        case ColumnInfo:
+        {
+            szBuf[0] = 0;
+            GetInfoString(*pData, szBuf, ARRAYSIZE(szBuf));
+            break;
+        }
+
         default:
             StringCchCopy(szBuf, ARRAYSIZE(szBuf), "Test");
             break;

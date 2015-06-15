@@ -16,22 +16,10 @@ class ResourceBlob;
 class ResourceRecency;
 class ResourceEntity;
 class GlobalCompiledScriptLookups;
+class ISyncResourceMap;
 
 std::string GetIniString(const std::string &iniFileName, std::string &sectionName, const std::string &keyName, PCSTR pszDefault);
 HRESULT RebuildResources(BOOL fShowUI);
-
-//
-// Clients can implement this interface to be notified when
-// resources have been added or removed.
-//
-__interface ISyncResourceMap
-{
-public:
-    void OnResourceAdded(const ResourceBlob *pData, AppendBehavior appendBehavior);
-    void OnResourceDeleted(const ResourceBlob *pData);
-    void OnResourceMapReloaded(bool isInitialLoad);
-    void OnResourceTypeReloaded(ResourceType iType);
-};
 
 //
 // REVIEW: CResourceMap needs to be protected with a critical section

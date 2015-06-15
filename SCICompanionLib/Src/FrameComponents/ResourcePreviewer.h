@@ -214,6 +214,7 @@ private:
     CExtButton m_wndStop;
     CExtSliderWnd m_wndSlider;
     CExtCheckBox m_wndAutoPreview;
+    CExtLabel m_wndDuration;
 
     DeviceType _device;
     WORD _wChannelMask;

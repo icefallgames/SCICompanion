@@ -1129,8 +1129,8 @@ void CPicView::OnUpdateIsGDIPAvailable(CCmdUI *pCmdUI)
 
 void CPicView::InvalidateOurselves()
 {
-    Invalidate(FALSE);
     _isDrawUpToDate = PicScreenFlags::None;
+    Invalidate(FALSE);
 }
 
 void CPicView::InvalidateOurselvesImmediately()
@@ -1616,6 +1616,7 @@ void CPicView::OnInitialUpdate()
     int iZoom = min(rect.Width() / sPIC_WIDTH, rect.Height() / sPIC_HEIGHT);
     iZoom = max(iZoom, 2);
     GetDocument()->SetZoom(iZoom);
+    GetDocument()->InformBitmapEditor(PicChangeHint::CursorPosition, this);
 }
 
 int CPicView::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -2017,6 +2018,8 @@ int CPicView::_GetTransformHitTestDistance(int x, int y)
     return (dx * dx + dy * dy);
 }
 
+int g_testLeft = 0;
+
 void CPicView::OnDraw(CDC *pDC)
 {
     _AttachPicPlugin();
@@ -2085,6 +2088,19 @@ void CPicView::OnDraw(CDC *pDC)
 
         dcMem.SelectObject(hgdiObj);
     }
+
+    // TODO: There is a painting bug where sometimes switching between the view/priority screens (or control)
+    // doesn't redraw the view (until we mouse over it and redraw). Paint is called, the clip region seems fine,
+    // but nothing we draw here appears onscreen. It isn't a problem with the underlying v/p/c buffers, because
+    // not even the following DrawText will show up.
+    /*
+    g_testLeft += 10;
+    g_testLeft %= 100;
+    CRect testText = { g_testLeft, 70, 200, 30 };
+    pDC->SetTextColor(RGB(0, 0, 0));
+    int result = pDC->DrawText("TEST", -1, &testText, DT_LEFT | DT_NOCLIP | DT_SINGLELINE);
+    OutputDebugString(fmt::format("DT result:{0}\n", (int)result).c_str());
+    */
 
     int picRightEdge = _cxPic;
     if (_fShowPriorityLines)

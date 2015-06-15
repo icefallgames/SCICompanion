@@ -2,8 +2,20 @@
 #include "Audio.h"
 #include "AppState.h"
 #include "ResourceEntity.h"
+#include "format.h"
 
 using namespace std;
+
+std::string GetAudioLength(AudioComponent &audio)
+{
+    int freq = max(1, audio.Frequency);
+    if (IsFlagSet(audio.Flags, AudioFlags::SixteenBit))
+    {
+        freq *= 2;
+    }
+    int seconds = (int)round((double)audio.GetLength() / (double)freq);
+    return fmt::format("{0:02}:{1:02}", seconds / 60, seconds % 60);
+}
 
 // Decompression routines From SCUMMVM:
 

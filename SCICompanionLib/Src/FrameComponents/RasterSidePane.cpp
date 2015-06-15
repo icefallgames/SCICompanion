@@ -606,7 +606,7 @@ void RasterSidePane::_SyncLoopPane()
         RasterComponent &raster = _pDoc->GetResource()->GetComponent<RasterComponent>();
         int nLoop = _pDoc->GetSelectedLoop();
         TCHAR szMsg[MAX_PATH];
-        StringCchPrintf(szMsg, ARRAYSIZE(szMsg), TEXT("Loop %d/%d    (%d cels)"), nLoop, raster.LoopCount(), raster.CelCount(nLoop));
+        StringCchPrintf(szMsg, ARRAYSIZE(szMsg), TEXT("Loop %d/%d    (%d cels)"), nLoop, raster.LoopCount() - 1, raster.CelCount(nLoop));
         SetDlgItemText(IDC_STATIC_LOOPGROUP, szMsg);
     }
 }

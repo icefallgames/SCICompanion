@@ -32,6 +32,9 @@ END_MESSAGE_MAP()
 
 CPicDoc::CPicDoc() : _previewPalette(nullptr)
 {
+    // Add ourselves as a sync
+    CResourceMap &map = appState->GetResourceMap();
+    map.AddSync(this);
 }
 
 CPicDoc::~CPicDoc()
@@ -194,6 +197,22 @@ BOOL CPicDoc::OnNewDocument()
         return FALSE;
 
     return TRUE;
+}
+
+void CPicDoc::OnCloseDocument()
+{
+    // Remove ourselves as a sync
+    CResourceMap &map = appState->GetResourceMap();
+    map.RemoveSync((ISyncResourceMap*)this);
+    __super::OnCloseDocument();
+}
+
+void CPicDoc::OnResourceAdded(const ResourceBlob *pData, AppendBehavior appendBehavior)
+{
+    if ((pData->GetType() == ResourceType::Palette) && (pData->GetNumber() == 999))
+    {
+        UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::Palette));
+    }
 }
 
 void CPicDoc::SetEditPic(std::unique_ptr<ResourceEntity> pEditPic, int id)

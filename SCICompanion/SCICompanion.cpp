@@ -489,6 +489,7 @@ void SCICompanionApp::_LoadSettings(BOOL fReset)
     appState->_fCodeCompletion = GetProfileInt(pszRegName, TEXT("CodeCompletion"), TRUE);
     appState->_fHoverTips = GetProfileInt(pszRegName, TEXT("HoverTips"), TRUE);
     appState->_fPlayCompileErrorSound = GetProfileInt(pszRegName, TEXT("CompileErrorSound"), TRUE);
+    appState->_midiDeviceName = (PCSTR)GetProfileString(pszRegName, TEXT("DefaultMidiDevice"), "");
 }
 
 void SCICompanionApp::_SaveSettings()
@@ -509,8 +510,8 @@ void SCICompanionApp::_SaveSettings()
     WriteProfileInt(m_pszAppName, TEXT("CodeCompletion"), appState->_fCodeCompletion);
     WriteProfileInt(m_pszAppName, TEXT("HoverTips"), appState->_fHoverTips);
     WriteProfileInt(m_pszAppName, TEXT("CompileErrorSound"), appState->_fPlayCompileErrorSound);
+    WriteProfileString(m_pszAppName, TEXT("DefaultMidiDevice"), appState->_midiDeviceName.c_str());
 }
-
 
 // CAboutDlg dialog used for App About
 

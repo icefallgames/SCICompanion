@@ -20,6 +20,7 @@
 #include "Audio.h"
 #include "format.h"
 #include <vfw.h>
+#include "SoundOperations.h"
 
 BOOL ResourcePreviewer::OnInitDialog()
 {
@@ -527,6 +528,7 @@ void SoundPreviewer::SetResource(const ResourceBlob &blob)
 
     _sound = CreateResourceFromResourceData(blob);
 
+    std::string durationString = "Duration: ";
     SoundComponent *soundComp = _sound->TryGetComponent<SoundComponent>();
     if (soundComp)
     {
@@ -535,14 +537,20 @@ void SoundPreviewer::SetResource(const ResourceBlob &blob)
 
         m_wndSynths.EnableWindow(TRUE);
         g_midiPlayer.SetSound(*soundComp, StandardTempo); // We don't have a tempo control
+
+        m_wndChannels.ShowWindow(soundComp->Traits.CanEditChannelMask ? SW_SHOW : SW_HIDE);
+        m_wndDuration.SetWindowText((durationString + GetSoundLength(*soundComp)).c_str());
     }
     else
     {
         m_wndSynths.EnableWindow(FALSE);
+        m_wndChannels.ShowWindow(SW_HIDE);
     }
     AudioComponent *audioComp = _sound->TryGetComponent<AudioComponent>();
     if (audioComp)
     {
+        m_wndDuration.SetWindowText((durationString + GetAudioLength(*audioComp)).c_str());
+
         g_audioPlayback.SetAudio(audioComp);
         // Put some information in the channels window
         std::string info = fmt::format("{0}Hz, {1} bytes. {2} {3}",
@@ -574,6 +582,7 @@ void SoundPreviewer::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_BUTTON_STOP, m_wndStop);
     DDX_Control(pDX, IDC_SLIDER, m_wndSlider);
     DDX_Control(pDX, IDC_CHECK_AUTOPREV, m_wndAutoPreview);
+    DDX_Control(pDX, IDC_STATIC_DURATION, m_wndDuration);
 
     AddAnchor(IDC_COMBO_DEVICE, CPoint(0, 0), CPoint(100, 0));
     AddAnchor(IDC_SLIDER, CPoint(0, 0), CPoint(100, 0));
@@ -661,6 +670,7 @@ void SoundPreviewer::OnSynthChoiceChange()
             }
             m_wndChannels.SetWindowText(channelText.c_str());
         }
+        g_midiPlayer.SetDevice(_device);
     }
 }
 

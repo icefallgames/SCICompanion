@@ -144,23 +144,27 @@ void CChooseColorStatic::_DrawItem(CDC *pDC, int cx, int cy)
                 EGACOLOR egaColor = _pPalette[iPaletteIndex];
                 color1 = EGA_TO_RGBQUAD(egaColor.color1);
                 color2 = EGA_TO_RGBQUAD(egaColor.color2);
+
+                CBitmap bm;
+                if (CreateDCCompatiblePattern(color1, color2, 4, 4, pDC, &bm))
+                {
+                    CBrush brushPat;
+                    if (brushPat.CreatePatternBrush(&bm))
+                    {
+                        pDC->FillRect(&rectSquare, &brushPat);
+                    }
+                }
             }
             else
             {
                 uint8_t colorIndex = _pPalette[iPaletteIndex].ToByte();
                 color1 = _pPaletteColors[colorIndex];
                 color2 = _pPaletteColors[colorIndex];
+
+                CBrush brushPat(RGB(color1.rgbRed, color1.rgbGreen, color1.rgbBlue));
+                pDC->FillRect(&rectSquare, &brushPat);
             }
 
-            CBitmap bm;
-            if (CreateDCCompatiblePattern(color1, color2, 4, 4,  pDC, &bm))
-            {
-                CBrush brushPat;
-                if (brushPat.CreatePatternBrush(&bm))
-                {
-                    pDC->FillRect(&rectSquare, &brushPat);
-                }
-            }
 
             _DrawIndex(pDC, (BYTE)iPaletteIndex);
 

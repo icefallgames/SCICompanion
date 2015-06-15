@@ -21,8 +21,10 @@ public:
     void CueTickPosition(DWORD dwTicks);
     void CuePosition(DWORD dwTicks, DWORD scope);
     bool IsPlaying() { return _fPlaying; }
+    void Reset();
 
 private:
+    void _Reset();
     bool _Init();
     void _SetTempoAndDivision();
     void _ClearHeaders();
@@ -47,6 +49,9 @@ private:
     uint16_t _wTimeDivision;
     DWORD _dwLoopPoint;
     DWORD _dwCookie;
+
+    std::unique_ptr<SoundComponent> _soundCache;
+    uint16_t _tempoCache;
 };
 
 extern MidiPlayer g_midiPlayer;

@@ -207,10 +207,6 @@ void PicDrawManager::_RedrawBuffers(ViewPort *pState, PicScreenFlags screenFlags
         return;
     }
 
-    //assert(!assertIfCausedRedraw);
-
-    // OutputDebugString(fmt::format("RDB:{}\n", g_redrawDebug++).c_str());
-
     // If we need some new screens, make it so that no positions are valid. We'll just redraw from scratch. Otherwise
     // it's too complicated.
     if (!AreAllFlagsSet(_fValidScreens, screenFlags))
@@ -222,7 +218,6 @@ void PicDrawManager::_RedrawBuffers(ViewPort *pState, PicScreenFlags screenFlags
     // PicPositionFlags indicate which buffers people will be requesting. It doesn't mean we don't need
     // to draw those to get to subsequent buffers, obviously.
 
-    // TODO: Prep buffers
     // If anyone requests something earlier than we have, then we need to invalidate everything from then on.
     // For instance, if someone needs PrePlugin, and that is not valid, we need to invalidate everything
     // If someone needs PostPlugin, and we only have
@@ -258,8 +253,6 @@ void PicDrawManager::_RedrawBuffers(ViewPort *pState, PicScreenFlags screenFlags
     // when we're drawing lines and such in the editor.
     if (!IsFlagSet(_validPositions, PicPositionFlags::PrePlugin))
     {
-        // OutputDebugString("Drawing pre\n");
-
         // Our initial viewport state.
         _viewPort[0] = *pState;
 
