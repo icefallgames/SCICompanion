@@ -21,6 +21,7 @@ struct DirectionalityBase
     virtual CPoint CenteringMultiplier() = 0;
     virtual void SetIndex(CelIndex &celIndex, int index) = 0;
     virtual bool IsLoops() = 0;
+    virtual int GetLogicalScale(int scale) = 0;
     virtual ~DirectionalityBase() {}
 };
 
@@ -55,6 +56,7 @@ private:
     void _TransferToBitmap();
     void CreateDragImage();
     CNewRasterResourceDocument *_GetDoc();
+    int _ScaleY(int value) const;
 
     std::unique_ptr<DirectionalityBase> _dir;
     std::unique_ptr<CBitmap> _sciBitmap;

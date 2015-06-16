@@ -6,8 +6,8 @@
 
 PicHelperPane::PicHelperPane(CWnd* pParent /*=NULL*/)
     : CExtResizableDialog(PicHelperPane::IDD, pParent),
-    m_wndZoomCelStatic(11, true, PicPosition::PostPlugin),
-    m_wndFinal(1, false, PicPosition::Final)
+    m_wndZoomCelStatic(11, true, false, PicPosition::PostPlugin),
+    m_wndFinal(1, false, true, PicPosition::Final)
 {
     _hAccel = nullptr;
     _initialized = false;

@@ -179,7 +179,10 @@ protected:
 
     // Scrolling
     virtual int _GetViewWidth() { return _cxPic + PriorityBarWidth; }
-    virtual int _GetViewHeight() { return _cyPic; }
+    virtual int _GetViewHeight() { return GetPicScreenHeight(); }
+
+    int GetPicScreenHeight() const;
+    CPoint GetZoomOffset() const;
 
     void _SnapCoordinate(CPoint &pt);
 

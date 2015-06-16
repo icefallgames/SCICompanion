@@ -4,6 +4,7 @@
 #include "RasterOperations.h"
 #include "PaletteOperations.h"
 #include "format.h"
+#include "AppState.h"
 
 using namespace std;
 
@@ -60,6 +61,7 @@ struct LeftToRight : public DirectionalityBase
     CPoint CenteringMultiplier() override { return CPoint(1, 1); }
     void SetIndex(CelIndex &celIndex, int index) override { celIndex.cel = index; }
     bool IsLoops() override { return false; }
+    int GetLogicalScale(int scale) { return scale; }
 };
 
 struct TopToBottom : public DirectionalityBase
@@ -130,6 +132,7 @@ struct TopToBottom : public DirectionalityBase
     CPoint CenteringMultiplier() override { return CPoint(0, 1); }
     void SetIndex(CelIndex &celIndex, int index) override { celIndex.loop = index; }
     bool IsLoops() override { return true; }
+    int GetLogicalScale(int scale) { return appState->AspectRatioY(scale); }
 };
 
 ViewCelListBox::ViewCelListBox() : _dibBits(nullptr), _scale(ScaleOne), _capture(false), _inDrag(false), _dragItemIndex(-1), _insertIndex(-1)
@@ -270,6 +273,11 @@ void ViewCelListBox::OnLButtonUp(UINT nFlags, CPoint point)
     }
 }
 
+int ViewCelListBox::_ScaleY(int value) const
+{
+    return appState->AspectRatioY(value * _scale);
+}
+
 void ViewCelListBox::CreateDragImage()
 {
     assert(_dragItemIndex != -1);
@@ -285,12 +293,11 @@ void ViewCelListBox::CreateDragImage()
             if (dcMem.CreateCompatibleDC(pDC) && dcMem2.CreateCompatibleDC(pDC))
             {
                 _dragImage = std::make_unique<CBitmap>();
-                //CSize imageSize = _individualImageSize;
 
                 CSize imageSize = _dir->GetItemSize(_GetDoc()->GetSelectedIndex(), raster, _dragItemIndex);
 
                 imageSize.cx = imageSize.cx * max(_scale, ScaleOne) / ScaleOne;
-                imageSize.cy = imageSize.cy * max(_scale, ScaleOne) / ScaleOne;
+                imageSize.cy = max(_ScaleY(imageSize.cy), _ScaleY(ScaleOne)) / ScaleOne;
                 BOOL fResult = _dragImage->CreateCompatibleBitmap(pDC, imageSize.cx, imageSize.cy);
                 _dragImage->SetBitmapDimension(imageSize.cx, imageSize.cy);
                 HGDIOBJ hOld = dcMem.SelectObject(*_dragImage);
@@ -357,9 +364,10 @@ bool ViewCelListBox::_HitTest(CPoint point, bool calcInsertIndex, int &index)
         {
             // Must be near the item boundaries.
             int xLogical = (_dir->A(point) - _dir->A(_drawOffset));
-            int xIndex = xLogical / (_dir->A(_individualImageSize) * _scale / ScaleOne);
-            int xLogicalRecalc = xIndex * (_dir->A(_individualImageSize) * _scale / ScaleOne);
-            int xLogicalRecalcNext = (xIndex + 1) * (_dir->A(_individualImageSize) * _scale / ScaleOne);
+            int scale = _dir->GetLogicalScale(_scale);
+            int xIndex = xLogical / (_dir->A(_individualImageSize) * scale / ScaleOne);
+            int xLogicalRecalc = xIndex * (_dir->A(_individualImageSize) * scale / ScaleOne);
+            int xLogicalRecalcNext = (xIndex + 1) * (_dir->A(_individualImageSize) * scale / ScaleOne);
             bool close = false;
             close = (abs(xLogical - xLogicalRecalc) < InsertMargin);
             if (!close && (abs(xLogical - xLogicalRecalcNext) < InsertMargin))
@@ -377,10 +385,10 @@ bool ViewCelListBox::_HitTest(CPoint point, bool calcInsertIndex, int &index)
         {
             // Must be on the item itself.
             CSize boundMul = _dir->Bounds(itemCount);
-            CRect rect(_drawOffset.x, _drawOffset.y, _drawOffset.x + boundMul.cx * _individualImageSize.cx * _scale / ScaleOne, _drawOffset.y + boundMul.cy * _individualImageSize.cy * _scale / ScaleOne);
+            CRect rect(_drawOffset.x, _drawOffset.y, _drawOffset.x + boundMul.cx * _individualImageSize.cx * _scale / ScaleOne, _drawOffset.y + _ScaleY(boundMul.cy * _individualImageSize.cy) / ScaleOne);
             if (PtInRect(&rect, point))
             {
-                int xIndex = (_dir->A(point) - _dir->A(_drawOffset)) / (_dir->A(_individualImageSize) * _scale / ScaleOne);
+                int xIndex = (_dir->A(point) - _dir->A(_drawOffset)) / (_dir->A(_individualImageSize) * _dir->GetLogicalScale(_scale) / ScaleOne);
                 index = xIndex;
                 return true;
             }
@@ -444,9 +452,9 @@ void ViewCelListBox::OnDraw(CDC* pDC)
             for (int i = 0; i < itemCount; i++)
             {
                 CSize itemSize = _dir->GetItemSize(celIndex, raster, i);
-                CRect destRect(_drawOffset.x, _drawOffset.y, _drawOffset.x + itemSize.cx * _scale / ScaleOne, _drawOffset.y + itemSize.cy * _scale / ScaleOne);
-                destRect.OffsetRect(itemIndices.x * _individualImageSize.cx * _scale / ScaleOne, itemIndices.y * _individualImageSize.cy * _scale / ScaleOne);
-                destRect.OffsetRect(centMult.x * ((_individualImageSize.cx * _scale / ScaleOne) - (itemSize.cx * _scale / ScaleOne)) / 2, centMult.y * ((_individualImageSize.cy * _scale / ScaleOne) - (itemSize.cy * _scale / ScaleOne)) / 2);
+                CRect destRect(_drawOffset.x, _drawOffset.y, _drawOffset.x + itemSize.cx * _scale / ScaleOne, _drawOffset.y + _ScaleY(itemSize.cy) / ScaleOne);
+                destRect.OffsetRect(itemIndices.x * _individualImageSize.cx * _scale / ScaleOne, _ScaleY(itemIndices.y * _individualImageSize.cy) / ScaleOne);
+                destRect.OffsetRect(centMult.x * ((_individualImageSize.cx * _scale / ScaleOne) - (itemSize.cx * _scale / ScaleOne)) / 2, centMult.y * ((_ScaleY(_individualImageSize.cy) / ScaleOne) - (_ScaleY(itemSize.cy) / ScaleOne)) / 2);
                 StretchBlt(*pDC, destRect.left, destRect.top, destRect.Width(), destRect.Height(),
                     dcMem, srcPos.x, srcPos.y, itemSize.cx, itemSize.cy, SRCCOPY);
 
@@ -482,9 +490,9 @@ void ViewCelListBox::OnDraw(CDC* pDC)
 
             // Selection rect
             CBrush solidBrush(RGB(0, 0, 128));
-            CRect rectSelection(_drawOffset.x, _drawOffset.y, _individualImageSize.cx * _scale / ScaleOne, _individualImageSize.cy * _scale / ScaleOne);
+            CRect rectSelection(_drawOffset.x, _drawOffset.y, _individualImageSize.cx * _scale / ScaleOne, _ScaleY(_individualImageSize.cy) / ScaleOne);
             int offsetX = _individualImageSize.cx * _scale * _dir->ItemIndex(celIndex) * _dir->DimensionMultiplier().x / ScaleOne;
-            int offsetY = _individualImageSize.cy * _scale * _dir->ItemIndex(celIndex) * _dir->DimensionMultiplier().y / ScaleOne;
+            int offsetY = _ScaleY(_individualImageSize.cy) * _dir->ItemIndex(celIndex) * _dir->DimensionMultiplier().y / ScaleOne;
             rectSelection.OffsetRect(offsetX, offsetY);
             pDC->FrameRect(&rectSelection, &solidBrush);
             rectSelection.InflateRect(1, 1);
@@ -496,9 +504,9 @@ void ViewCelListBox::OnDraw(CDC* pDC)
                 CRect insertRect(_drawOffset.x, _drawOffset.y, _drawOffset.x + 1, _drawOffset.y + 1);
                 CPoint dimMul = _dir->DimensionMultiplier();
                 insertRect.right += (_individualImageSize.cx * _scale / ScaleOne) * dimMul.y;
-                insertRect.bottom += (_individualImageSize.cy * _scale / ScaleOne) * dimMul.x;
+                insertRect.bottom += (_ScaleY(_individualImageSize.cy) / ScaleOne) * dimMul.x;
 
-                insertRect.OffsetRect(dimMul.x* _insertIndex * _individualImageSize.cx * _scale / ScaleOne, dimMul.y * _insertIndex * _individualImageSize.cy * _scale / ScaleOne);
+                insertRect.OffsetRect(dimMul.x* _insertIndex * _individualImageSize.cx * _scale / ScaleOne, dimMul.y * _ScaleY(_insertIndex * _individualImageSize.cy) / ScaleOne);
 
                 HGDIOBJ hOldBrush = pDC->SelectObject(GetStockObject(BLACK_BRUSH));
                 pDC->Rectangle(insertRect);
@@ -537,7 +545,7 @@ void ViewCelListBox::_TransferToBitmap()
     GetClientRect(clientRect);
     CSize sizeBitmap = _sciBitmap->GetBitmapDimension();
     _scale = ScaleOne * clientRect.Width() / (numberOfGuys.cx * _individualImageSize.cx);
-    _scale = min(_scale, ScaleOne * clientRect.Height() / (numberOfGuys.cy * _individualImageSize.cy));
+    _scale = min(_scale, ScaleOne * clientRect.Height() / appState->AspectRatioY(numberOfGuys.cy * _individualImageSize.cy));
     _scale = max(1, _scale);
 }
 

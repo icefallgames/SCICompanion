@@ -339,7 +339,10 @@ private:
 
     // Scrolling
     virtual int _GetViewWidth() { return _cxViewZoom; }
-    virtual int _GetViewHeight() { return _cyViewZoom; }
+    virtual int _GetViewHeight() { return _GetViewScreenHeight(); }
+
+    int _GetViewScreenHeight() const;
+    int _GetDragScreenHeight() const;
 
     COLORREF _SCIColorToCOLORREF(uint8_t color);
 
@@ -383,8 +386,8 @@ private:
 
     // Sizers
     CPoint _ptStartSizerCapture;    // In view coordinates
-    size16 _sizeOrig;                // In view coordinates
-    size16 _sizeNew;                 // In view coords, updated as the user drags
+    size16 _sizeOrig;               // In view coordinates
+    size16 _sizeNew;                // In view coords, updated as the user drags
     bool _fSizerCapturing;
     OnSizerType _onSizerType;       // Contains the sizertype when resizing, or the kind you are hovered over when not resizing.
 

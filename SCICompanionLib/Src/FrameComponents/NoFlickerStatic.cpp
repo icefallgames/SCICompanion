@@ -29,6 +29,7 @@ void CExtNoFlickerStatic::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
     if (pDC)
     {
         // background
+        int saveHandle = pDC->SaveDC();
         if (!_bitmap.IsEmpty())
         {
             // keep aspect ratio.
@@ -70,5 +71,6 @@ void CExtNoFlickerStatic::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
         }
         // Call CExtLabel's background, which will paint the gradient (or whatever) background
         OnEraseBackground(*pDC, rcClient);
+        pDC->RestoreDC(saveHandle);
     }
 }

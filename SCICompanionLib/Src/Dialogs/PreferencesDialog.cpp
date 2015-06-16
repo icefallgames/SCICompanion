@@ -57,6 +57,7 @@ void CPreferencesDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Check(pDX, IDC_CODECOMPLETION, appState->_fCodeCompletion);
     DDX_Check(pDX, IDC_HOVERTIPS, appState->_fHoverTips);
     DDX_Check(pDX, IDC_COMPILEERRORSOUND, appState->_fPlayCompileErrorSound);
+    DDX_Check(pDX, IDC_CHECK_ASPECTRATIO, appState->_fUseOriginalAspectRatio);
 
     DDX_Text(pDX, IDC_FAKEEGOX, appState->_cxFakeEgo);
     DDV_MinMaxInt(pDX, appState->_cxFakeEgo, 10, 80);
@@ -79,6 +80,7 @@ void CPreferencesDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_CHECKUSEBOXEGO, m_wndCheck6);
     DDX_Control(pDX, IDC_CHECKSCI01, m_wndCheck7);
     DDX_Control(pDX, IDC_COMPILEERRORSOUND, m_wndCheck8);
+    DDX_Control(pDX, IDC_CHECK_ASPECTRATIO, m_wndCheck9);
     DDX_Control(pDX, IDOK, m_wndOk);
     DDX_Control(pDX, IDCANCEL, m_wndCancel);
     DDX_Control(pDX, IDC_STATIC1, m_wndStatic1);

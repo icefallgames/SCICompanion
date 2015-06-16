@@ -359,6 +359,26 @@ CRasterView::CRasterView()
     _InitPatternBrush();
 }
 
+int CRasterView::_GetViewScreenHeight() const
+{
+    int height = _cyViewZoom;
+    if (appState->_fUseOriginalAspectRatio)
+    {
+        height = appState->AspectRatioY(height);
+    }
+    return height;
+}
+
+int CRasterView::_GetDragScreenHeight() const
+{
+    int height = _sizeNew.cy * _iZoomFactor;
+    if (appState->_fUseOriginalAspectRatio)
+    {
+        height = appState->AspectRatioY(height);
+    }
+    return height;
+}
+
 void CRasterView::_CleanUpViewData()
 {
     _celData.clear();
@@ -566,7 +586,7 @@ void CRasterView::_CommitSourceData()
 //
 void CRasterView::_InvalidateViewArea()
 {
-    CRect rect(0, 0, _cxViewZoom + SIZER_SIZE, _cyViewZoom + SIZER_SIZE);
+    CRect rect(0, 0, _cxViewZoom + SIZER_SIZE, _GetViewScreenHeight() + SIZER_SIZE);
     InvalidateRect(&rect, FALSE);
 }
 
@@ -874,7 +894,7 @@ void CRasterView::_OnDrawSelectionRect(RECT *prc)
 
 void CRasterView::_OnDrawSizers(CDC *pDC, CPoint &ptWhatsLeft)
 {
-    CSize sizeNewZoom(_sizeNew.cx * _iZoomFactor, _sizeNew.cy * _iZoomFactor);
+    CSize sizeNewZoom(_sizeNew.cx * _iZoomFactor, _GetDragScreenHeight());
 
     CRect rectVert;
     _GetSizerRectVert(sizeNewZoom, rectVert);
@@ -903,7 +923,7 @@ void CRasterView::_OnBltResized(CDC *pDCDest, CDC *pDCSrc)
     int cxSrc = _sizeView.cx;
     int cySrc = _sizeView.cy;
     int cxDest = _cxViewZoom;
-    int cyDest = _cyViewZoom;
+    int cyDest = _GetViewScreenHeight();
     if (_sizeNew.cx < _sizeView.cx)
     {
         // It is not as wide.
@@ -914,7 +934,7 @@ void CRasterView::_OnBltResized(CDC *pDCDest, CDC *pDCSrc)
     {
         // It is not as high.
         cySrc = _sizeNew.cy;
-        cyDest = cySrc * _iZoomFactor;
+        cyDest = _GetDragScreenHeight();
     }
 
     pDCDest->StretchBlt(-_xOrigin, -_yOrigin, cxDest, cyDest, pDCSrc, 0, 0, cxSrc, cySrc, SRCCOPY);
@@ -926,13 +946,13 @@ void CRasterView::_OnBltResized(CDC *pDCDest, CDC *pDCSrc)
     COLORREF colorBKOld = pDCDest->SetBkColor(RGB(0, 0, 0));
     if (_sizeNew.cx > _sizeView.cx)
     {
-        CRect rect(_cxViewZoom, 0, _sizeNew.cx * _iZoomFactor, _sizeNew.cy * _iZoomFactor);
+        CRect rect(_cxViewZoom, 0, _sizeNew.cx * _iZoomFactor, _GetDragScreenHeight());
         rect.OffsetRect(-_xOrigin, -_yOrigin);
         pDCDest->FillRect(&rect, &brush);
     }
     if (_sizeNew.cy > _sizeView.cy)
     {
-        CRect rect(0, _cyViewZoom, _sizeNew.cx * _iZoomFactor, _sizeNew.cy * _iZoomFactor);
+        CRect rect(0, _GetViewScreenHeight(), _sizeNew.cx * _iZoomFactor, _GetDragScreenHeight());
         rect.OffsetRect(-_xOrigin, -_yOrigin);
         pDCDest->FillRect(&rect, &brush);
     }
@@ -949,7 +969,7 @@ void CRasterView::_OnBltResized2(CDC *pDCDest, HBITMAP hbmp)
     int cxSrc = _sizeView.cx;
     int cySrc = _sizeView.cy;
     int cxDest = _cxViewZoom;
-    int cyDest = _cyViewZoom;
+    int cyDest = _GetViewScreenHeight();
     if (_sizeNew.cx < _sizeView.cx)
     {
         // It is not as wide.
@@ -987,13 +1007,13 @@ void CRasterView::_OnBltResized2(CDC *pDCDest, HBITMAP hbmp)
     COLORREF colorBKOld = pDCDest->SetBkColor(RGB(0, 0, 0));
     if (_sizeNew.cx > _sizeView.cx)
     {
-        CRect rect(_cxViewZoom, 0, _sizeNew.cx * _iZoomFactor, _sizeNew.cy * _iZoomFactor);
+        CRect rect(_cxViewZoom, 0, _sizeNew.cx * _iZoomFactor, _GetDragScreenHeight());
         rect.OffsetRect(-_xOrigin, -_yOrigin);
         pDCDest->FillRect(&rect, &brush);
     }
     if (_sizeNew.cy > _sizeView.cy)
     {
-        CRect rect(0, _cyViewZoom, _sizeNew.cx * _iZoomFactor, _sizeNew.cy * _iZoomFactor);
+        CRect rect(0, _GetViewScreenHeight(), _sizeNew.cx * _iZoomFactor, _GetDragScreenHeight());
         rect.OffsetRect(-_xOrigin, -_yOrigin);
         pDCDest->FillRect(&rect, &brush);
     }
@@ -1008,7 +1028,7 @@ void CRasterView::OnDraw(CDC* pDC)
     if (dcMem.CreateCompatibleDC(pDC))
     {
         int cxVisible = min(_cxViewZoom, RECTWIDTH(rcClient));
-        int cyVisible = min(_cyViewZoom, RECTHEIGHT(rcClient));
+        int cyVisible = min(_GetViewScreenHeight(), RECTHEIGHT(rcClient));
         if (!_fDoubleBuf)
         {
             _GenerateDoubleBuffer(pDC);
@@ -2866,7 +2886,7 @@ CRasterView::OnSizerType CRasterView::_OnSizer(CPoint &ptClient)
 {
     CSize sizeNewZoom;
     sizeNewZoom.cx = _sizeNew.cx * _iZoomFactor;
-    sizeNewZoom.cy = _sizeNew.cy * _iZoomFactor;
+    sizeNewZoom.cy = _GetDragScreenHeight();
     CRect rectVert;
     _GetSizerRectVert(sizeNewZoom, rectVert);
     CRect rectHorz;
@@ -2962,7 +2982,7 @@ BOOL CRasterView::OnEraseBkgnd(CDC *pDC)
 CPoint CRasterView::_MapClientPointToPic(CPoint ptScreen)
 {
     return CPoint((ptScreen.x + _xOrigin) * _sizeView.cx / _cxViewZoom,
-                  (ptScreen.y + _yOrigin) * _sizeView.cy / _cyViewZoom);
+        (ptScreen.y + _yOrigin) * _sizeView.cy / _GetViewScreenHeight());
 }
 
 void CRasterView::EditVGAPalette()

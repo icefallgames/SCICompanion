@@ -9,7 +9,7 @@ class ZoomCelStatic : public CStatic
     DECLARE_DYNAMIC(ZoomCelStatic)
 
 public:
-    ZoomCelStatic(int zoom, bool drawCrossHairs, PicPosition picPosition);
+    ZoomCelStatic(int zoom, bool drawCrossHairs, bool ensureAllVisible, PicPosition picPosition);
     virtual ~ZoomCelStatic();
 
     void OnUpdateBitmapEditor(IBitmapEditor *be);
@@ -30,6 +30,7 @@ private:
 
     int _zoom;
     bool _drawCrossHairs;
+    bool _ensureAllVisible;
     PicPosition _picPosition;
 
     PicScreen _currentZoomScreen;

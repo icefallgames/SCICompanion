@@ -2,9 +2,10 @@
 #include "ZoomCelStatic.h"
 #include "PicDoc.h"
 #include "format.h"
+#include "AppState.h"
 
 IMPLEMENT_DYNAMIC(ZoomCelStatic, CStatic)
-ZoomCelStatic::ZoomCelStatic(int zoom, bool drawCrossHairs, PicPosition picPosition) : _zoom(zoom), _cursorPos(0, 0), _currentZoomScreen(PicScreen::Visual), _be(nullptr), _pdm(nullptr), _drawCrossHairs(drawCrossHairs), _picPosition(picPosition)
+ZoomCelStatic::ZoomCelStatic(int zoom, bool drawCrossHairs, bool ensureAllVisible, PicPosition picPosition) : _zoom(zoom), _cursorPos(0, 0), _currentZoomScreen(PicScreen::Visual), _be(nullptr), _pdm(nullptr), _drawCrossHairs(drawCrossHairs), _ensureAllVisible(ensureAllVisible), _picPosition(picPosition)
 {
 }
 
@@ -55,25 +56,46 @@ void ZoomCelStatic::_Update()
     RedrawWindow();
 }
 
+const int ZoomGranularity = 16;
+
 void ZoomCelStatic::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 {
-    RECT rcClient;
+    CRect rcClient;
     GetClientRect(&rcClient);
     CDC *pDC = CDC::FromHandle(lpDrawItemStruct->hDC);
+
     if (pDC)
     {
-        int width = rcClient.right - rcClient.left;
-        int xCenter = (rcClient.right + rcClient.left) / 2;
-        int height = rcClient.bottom - rcClient.top;
-        int yCenter = (rcClient.bottom + rcClient.top) / 2;
-        int xTopLeftPixel = xCenter - _zoom / 2;
-        int yTopLeftPixel = yCenter - _zoom / 2;
-        int xTopLeftDest = xTopLeftPixel - _cursorPos.x * _zoom;
-        int yTopLeftDest = yTopLeftPixel - _cursorPos.y * _zoom;
+        int saveHandle = pDC->SaveDC();
 
         // TODO: get actual bitmap dimensions
         int cxBitmap = 320;
         int cyBitmap = 190;
+        int cyBitmapDest = appState->AspectRatioY(cyBitmap);
+
+        // We might have to go lower than zoom = 1
+        int zoom16 = ZoomGranularity * _zoom;
+        bool restoreStretchBltMode = false;
+        int prevBltMode = BLACKONWHITE;
+        if (_ensureAllVisible)
+        {
+            zoom16 = min(zoom16, rcClient.Width() * ZoomGranularity / cxBitmap);
+            zoom16 = min(zoom16, rcClient.Height() * ZoomGranularity / cyBitmapDest);
+            if (zoom16 < ZoomGranularity)
+            {
+                restoreStretchBltMode = true;
+                prevBltMode = pDC->SetStretchBltMode(HALFTONE);
+            }
+        }
+
+        int width = rcClient.right - rcClient.left;
+        int xCenter = (rcClient.right + rcClient.left) / 2;
+        int height = rcClient.bottom - rcClient.top;
+        int yCenter = (rcClient.bottom + rcClient.top) / 2;
+        int xTopLeftPixel = xCenter - zoom16 / (2 * ZoomGranularity);
+        int yTopLeftPixel = yCenter - appState->AspectRatioY(zoom16) / (2 * ZoomGranularity);
+        int xTopLeftDest = xTopLeftPixel - _cursorPos.x * zoom16 / ZoomGranularity;
+        int yTopLeftDest = yTopLeftPixel - appState->AspectRatioY(_cursorPos.y * zoom16 / ZoomGranularity);
 
         // Draw cross hairs.
         if (_drawCrossHairs)
@@ -110,16 +132,24 @@ void ZoomCelStatic::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
             BITMAPINFO *pbmi;
             _pdm->GetBitmapInfo(_currentZoomScreen, &pbmi);
             const uint8_t *screenBits = _pdm->GetPicBits(_currentZoomScreen, _picPosition);
-            StretchDIBits(*pDC, xTopLeftDest, yTopLeftDest, cxBitmap * _zoom, cyBitmap * _zoom, 0, 0, cxBitmap, cyBitmap, screenBits, pbmi, DIB_RGB_COLORS, SRCCOPY);
+            StretchDIBits(*pDC, xTopLeftDest, yTopLeftDest, cxBitmap * zoom16 / ZoomGranularity, cyBitmapDest * zoom16 / ZoomGranularity, 0, 0, cxBitmap, cyBitmap, screenBits, pbmi, DIB_RGB_COLORS, SRCCOPY);
             delete pbmi;
 
-            pDC->ExcludeClipRect(xTopLeftDest, yTopLeftDest, xTopLeftDest + cxBitmap * _zoom, yTopLeftDest + cyBitmap * _zoom);
+            pDC->ExcludeClipRect(xTopLeftDest, yTopLeftDest, xTopLeftDest + cxBitmap * zoom16 / ZoomGranularity, yTopLeftDest + cyBitmapDest * zoom16 / ZoomGranularity);
         }
 
+        if (restoreStretchBltMode)
+        {
+            pDC->SetStretchBltMode(prevBltMode);
+        }
 
         // Fill back ground where we didn't draw anything
         CBrush solidBrush;
         solidBrush.CreateSolidBrush(RGB(128, 128, 128));
         pDC->FillRect(&rcClient, &solidBrush);
+
+        // Since we modified the clip rect
+        // REVIEW: This is still causing painitng issues elsewhere, even though we restore the DC.
+        pDC->RestoreDC(saveHandle);
     }
 }

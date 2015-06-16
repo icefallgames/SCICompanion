@@ -96,6 +96,7 @@ AppState::AppState(CWinApp *pApp)
     _fCodeCompletion = TRUE;
     _fHoverTips = TRUE;
     _fPlayCompileErrorSound = TRUE;
+    _fUseOriginalAspectRatio = false;
 
     _pVocabTemplate = NULL;
     _pPicTemplate = NULL;
@@ -131,6 +132,19 @@ AppState::AppState(CWinApp *pApp)
     }
 
     CelDataClipboardFormat = RegisterClipboardFormat("SCICompanionVGACelData");
+}
+
+int AppState::AspectRatioY(int value) const
+{
+    if (_fUseOriginalAspectRatio)
+    {
+        // Multiply by 1.2 to achieve original Sierra aspect ratio
+        return value * 12 / 10;
+    }
+    else
+    {
+        return value;
+    }
 }
 
 AppState::~AppState()

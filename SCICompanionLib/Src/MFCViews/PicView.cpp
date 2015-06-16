@@ -346,6 +346,21 @@ CPicView::CPicView()
     _iTraceAlpha = 50;
 }
 
+int CPicView::GetPicScreenHeight() const
+{
+    int height = _cyPic;
+    if (appState->_fUseOriginalAspectRatio)
+    {
+        height = appState->AspectRatioY(height);
+    } 
+    return height;
+}
+
+CPoint CPicView::GetZoomOffset() const
+{
+    return CPoint((_cyPic / sPIC_WIDTH) / 2, (GetPicScreenHeight() / sPIC_HEIGHT) / 2);
+}
+
 PicDrawManager &CPicView::_GetDrawManager()
 {
     if (_pPreview)
@@ -371,7 +386,7 @@ CPicView::~CPicView()
 CPoint CPicView::_MapScreenPointToPic(CPoint ptScreen)
 {
     return CPoint(ptScreen.x * sPIC_WIDTH / _cxPic,
-                  ptScreen.y * sPIC_HEIGHT / _cyPic);
+        ptScreen.y * sPIC_HEIGHT / GetPicScreenHeight());
 }
 
 //
@@ -380,7 +395,7 @@ CPoint CPicView::_MapScreenPointToPic(CPoint ptScreen)
 CPoint CPicView::_MapClientPointToPic(CPoint ptScreen)
 {
     return CPoint((ptScreen.x + _xOrigin) * sPIC_WIDTH / _cxPic,
-                  (ptScreen.y + _yOrigin) * sPIC_HEIGHT / _cyPic);
+        (ptScreen.y + _yOrigin) * sPIC_HEIGHT / GetPicScreenHeight());
 }
 
 //
@@ -390,15 +405,15 @@ CPoint CPicView::_MapClientPointToPic(CPoint ptScreen)
 CPoint CPicView::_MapPicPointToClient(CPoint ptPic)
 {
     return CPoint((ptPic.x * _cxPic / sPIC_WIDTH) - _xOrigin,
-                  (ptPic.y * _cyPic / sPIC_HEIGHT) - _yOrigin);
+        (ptPic.y * GetPicScreenHeight() / sPIC_HEIGHT) - _yOrigin);
 }
 
 void CPicView::_MapPicRectToScreen(RECT *prcPic, RECT *prcScreen)
 {
     int cxScreen = RECTWIDTH(*prcPic) * _cxPic / sPIC_WIDTH;
-    int cyScreen = RECTHEIGHT(*prcPic) * _cyPic / sPIC_HEIGHT;
+    int cyScreen = RECTHEIGHT(*prcPic) * GetPicScreenHeight() / sPIC_HEIGHT;
     int x = prcPic->left *  _cxPic / sPIC_WIDTH - _xOrigin;
-    int y = prcPic->top *  _cyPic / sPIC_HEIGHT - _yOrigin;
+    int y = prcPic->top *  GetPicScreenHeight() / sPIC_HEIGHT - _yOrigin;
     prcScreen->left = x;
     prcScreen->top = y;
     prcScreen->right = x + cxScreen;
@@ -2018,19 +2033,18 @@ int CPicView::_GetTransformHitTestDistance(int x, int y)
     return (dx * dx + dy * dy);
 }
 
-int g_testLeft = 0;
-
 void CPicView::OnDraw(CDC *pDC)
 {
-    _AttachPicPlugin();
-
     RECT rcClient;
     GetClientRect(&rcClient);
+
+    _AttachPicPlugin();
+
     CDC dcMem;
     if (dcMem.CreateCompatibleDC(pDC))
     {
         int cxVisible = min(_cxPic, RECTWIDTH(rcClient));
-        int cyVisible = min(_cyPic, RECTHEIGHT(rcClient));
+        int cyVisible = min(GetPicScreenHeight(), RECTHEIGHT(rcClient));
 
         // Draw the picture. All the stuff drawn in here must use the same palette as the SCI pic:
         bool needToDrawStuffOnTop = EnsureBitmapUpToDate(&dcMem, _mainViewScreen, false);
@@ -2084,23 +2098,10 @@ void CPicView::OnDraw(CDC *pDC)
 
         // Now blt back to the real DC.
         // Now we want to copy it back to the real dc.
-        pDC->StretchBlt(-_xOrigin, -_yOrigin, _cxPic, _cyPic, &dcMem, 0, 0, sPIC_WIDTH, sPIC_HEIGHT, SRCCOPY); 
+        pDC->StretchBlt(-_xOrigin, -_yOrigin, _cxPic, GetPicScreenHeight(), &dcMem, 0, 0, sPIC_WIDTH, sPIC_HEIGHT, SRCCOPY);
 
         dcMem.SelectObject(hgdiObj);
     }
-
-    // TODO: There is a painting bug where sometimes switching between the view/priority screens (or control)
-    // doesn't redraw the view (until we mouse over it and redraw). Paint is called, the clip region seems fine,
-    // but nothing we draw here appears onscreen. It isn't a problem with the underlying v/p/c buffers, because
-    // not even the following DrawText will show up.
-    /*
-    g_testLeft += 10;
-    g_testLeft %= 100;
-    CRect testText = { g_testLeft, 70, 200, 30 };
-    pDC->SetTextColor(RGB(0, 0, 0));
-    int result = pDC->DrawText("TEST", -1, &testText, DT_LEFT | DT_NOCLIP | DT_SINGLELINE);
-    OutputDebugString(fmt::format("DT result:{0}\n", (int)result).c_str());
-    */
 
     int picRightEdge = _cxPic;
     if (_fShowPriorityLines)
@@ -2111,10 +2112,10 @@ void CPicView::OnDraw(CDC *pDC)
 
     // Finish off by drawing a navy background around the pic.
     CBrush brush(RGB(0, 0, 128));
-    int cyBottom = RECTHEIGHT(rcClient) - _cyPic;
+    int cyBottom = RECTHEIGHT(rcClient) - GetPicScreenHeight();
     if (cyBottom > 0)
     {
-        CRect rect1(CPoint(0, _cyPic), CSize(RECTWIDTH(rcClient), cyBottom));
+        CRect rect1(CPoint(0, GetPicScreenHeight()), CSize(RECTWIDTH(rcClient), cyBottom));
         pDC->FillRect(&rect1, &brush);
     }
     int cxLeft = RECTWIDTH(rcClient) - picRightEdge;
@@ -2479,10 +2480,10 @@ void CPicView::_OnDraw(CDC* pDC, PicScreen screen)
 void CPicView::s_CloseCoordCallback(void *pv, CDC *pDC, int x1, int y1, int x2, int y2)
 {
     CPicView *ppev = static_cast<CPicView*>(pv);
-    int iZoomOffset = (ppev->_cyPic / sPIC_HEIGHT) / 2;
+    CPoint zoomOffset = ppev->GetZoomOffset();
 
     CPoint ptClient1 = ppev->_MapPicPointToClient(CPoint(x1, y1));
-    ptClient1.Offset(iZoomOffset, iZoomOffset);
+    ptClient1.Offset(zoomOffset);
     pDC->MoveTo(ptClient1.x - 3, ptClient1.y - 3);
     pDC->LineTo(ptClient1.x + 4, ptClient1.y - 3);
     pDC->LineTo(ptClient1.x + 4, ptClient1.y + 4);
@@ -2490,7 +2491,7 @@ void CPicView::s_CloseCoordCallback(void *pv, CDC *pDC, int x1, int y1, int x2, 
     pDC->LineTo(ptClient1.x - 3, ptClient1.y - 3);
 
     CPoint ptClient2 = ppev->_MapPicPointToClient(CPoint(x2, y2));
-    ptClient2.Offset(iZoomOffset, iZoomOffset);
+    ptClient2.Offset(zoomOffset);
     pDC->MoveTo(ptClient2.x - 3, ptClient2.y - 3);
     pDC->LineTo(ptClient2.x + 4, ptClient2.y + 4);
     pDC->MoveTo(ptClient2.x + 3, ptClient2.y - 3);
@@ -2502,9 +2503,9 @@ void CPicView::s_CloseCoordCallback(void *pv, CDC *pDC, int x1, int y1, int x2, 
 
 void CPicView::_DrawCoord(CDC *pDC, int x, int y, int additionalSize)
 {
-    int iZoomOffset = (_cyPic / sPIC_HEIGHT) / 2;
+    CPoint zoomOffset = GetZoomOffset();
     CPoint ptClient1 = _MapPicPointToClient(CPoint(x, y));
-    ptClient1.Offset(iZoomOffset, iZoomOffset);
+    ptClient1.Offset(zoomOffset);
     int bottom = ptClient1.y + 4 + additionalSize;
     int top = ptClient1.y - 3 - additionalSize;
     int right = ptClient1.x + 4 + additionalSize;

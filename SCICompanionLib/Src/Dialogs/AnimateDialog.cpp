@@ -60,6 +60,7 @@ CSize CAnimateDialog::_RecalcSizeNeeded()
     }
 
     CSize sizeMax = _rectFullBounds.Size();
+    sizeMax.cy = appState->AspectRatioY(sizeMax.cy);
 
     // Try to fit the thing intelligently in our space.
     _iZoom = min(_sizeAnimate.cx / sizeMax.cx, _sizeAnimate.cy / sizeMax.cy);
@@ -292,7 +293,7 @@ void CAnimateDialog::_OnDraw(CDC *pDC, LPRECT prc)
     COLORREF transparentColorRef = RGB(transRGB.rgbRed, transRGB.rgbGreen, transRGB.rgbBlue);
     SCIBitmapInfo bmi(cel.size.cx, cel.size.cy, palette, paletteCount);
     int cxDest = cel.size.cx * _iZoom;
-    int cyDest = cel.size.cy * _iZoom;
+    int cyDest = appState->AspectRatioY(cel.size.cy * _iZoom);
 
     // _rectFullBounds defines the entire area a sequence of cels would occupy, assuming it is
     // drawn at (0, 0). Zoom is not taken into account.
@@ -305,7 +306,7 @@ void CAnimateDialog::_OnDraw(CDC *pDC, LPRECT prc)
 
     // Now where do we draw the actual view?
     CRect celRect = GetCelRect(cel);
-    upperLeftBounds += CPoint((celRect.left - _rectFullBounds.left) * _iZoom, (celRect.top - _rectFullBounds.top) * _iZoom);
+    upperLeftBounds += CPoint((celRect.left - _rectFullBounds.left) * _iZoom, appState->AspectRatioY((celRect.top - _rectFullBounds.top) * _iZoom));
 
     CDC dcMem;
     if (dcMem.CreateCompatibleDC(pDC))

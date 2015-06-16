@@ -78,6 +78,8 @@ public:
     void ResetClassBrowser();
     void ClearResourceManagerDoc() { _pResourceDoc = NULL; }
 
+    int AspectRatioY(int value) const;
+
     void GiveMeAutoComplete(CScriptView *pSV);
 
     // Output pane
@@ -124,6 +126,7 @@ public:
     BOOL _fCodeCompletion;
     BOOL _fHoverTips;
     BOOL _fPlayCompileErrorSound;
+    BOOL _fUseOriginalAspectRatio;
     std::string _midiDeviceName;
 
     BOOL _fNoGdiPlus;   // GDI+ is not available
