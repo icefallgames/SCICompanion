@@ -538,22 +538,11 @@ void AppState::NotifyChangeAspectRatio()
     // 1. Resource list view needs to regenerate its imagelists. Tell them that they need to reload resources.
     GetResourceMap().NotifyToReloadResourceType(ResourceType::View);
     GetResourceMap().NotifyToReloadResourceType(ResourceType::Pic);
-    // 2. And then the current view needs to be invalidated.
+    // 2. And then let's just refresh all windows
     CMainFrame *pMainWnd = static_cast<CMainFrame*>(_pApp->m_pMainWnd);
     if (pMainWnd)
     {
         EnumChildWindows(AfxGetMainWnd()->GetSafeHwnd(), InvalidateChildProc, 0);
-        //pMainWnd->InvalidateRect(nullptr, TRUE);
-        /*
-        CFrameWnd *pFrame = pMainWnd->GetActiveFrame();
-        if (pFrame)
-        {
-            CView *pView = pFrame->GetActiveView();
-            if (pView)
-            {
-                pView->Invalidate(TRUE);
-            }
-        }*/
     }
 }
 

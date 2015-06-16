@@ -242,6 +242,8 @@ void RasterSidePane::_SyncPalette()
         m_wndPalette.SetPalette(_cRows, _cColumns, reinterpret_cast<const EGACOLOR *>(raster.Traits.PaletteMapping), 256, paletteColors, dithered);
         m_wndPalette.OnPaletteUpdated();
         m_wndChosenColors.Invalidate(FALSE);
+        m_wndPalette.SetSelection(_pDoc->GetViewColor());
+        m_wndPalette.SetAuxSelection(_pDoc->GetAlternateViewColor());
         _UpdatePaletteChoices();
     }
 }
