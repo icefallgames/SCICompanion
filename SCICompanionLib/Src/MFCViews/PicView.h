@@ -42,6 +42,7 @@ private: // create from serialization only
         History      = 0x00000002,
         Zoom         = 0x00000003,
         Pasting      = 0x00000004, // We're currently pasting commands
+        Polygons     = 0x00000005,
     };
     const static key_value_pair<ToolType, UINT> c_toolToID [];
     static ToolType _IDToTool(UINT nID);

@@ -998,12 +998,18 @@ void RasterSidePane::_OnAddCel(bool before)
 {
     if (_pDoc)
     {
+        CelIndex curSel = _pDoc->GetSelectedIndex();
         _pDoc->ApplyChanges<RasterComponent>(
             [&](RasterComponent &raster)
         {
             return WrapRasterChange(InsertCel(raster, _pDoc->GetSelectedIndex(), before, !!appState->_fDupeNewCels));
         }
         );
+        if (!before)
+        {
+            // Move selection to "after".
+            _pDoc->SetSelectedCel(curSel.cel + 1);
+        }
     }
 }
 
@@ -1034,12 +1040,17 @@ void RasterSidePane::_OnAddLoop(bool before)
 {
     if (_pDoc)
     {
+        CelIndex curSel = _pDoc->GetSelectedIndex();
         _pDoc->ApplyChanges<RasterComponent>(
             [&](RasterComponent &raster)
         {
             return WrapRasterChange(InsertLoop(raster, _pDoc->GetSelectedLoop(), before));
         }
         );
+        if (!before)
+        {
+            _pDoc->SetSelectedLoop(curSel.loop + 1);
+        }
     }
 }
 

@@ -299,6 +299,7 @@ END_MESSAGE_MAP()
 CPicView::CPicView()
 {
     _priBarMoveIndex = -1;
+    _originalPriValue = -1;
     memset(&_originalPriValueCommand, 0, sizeof(_originalPriValueCommand));
 
     _isDrawUpToDate = PicScreenFlags::None;
@@ -3164,6 +3165,7 @@ void CPicView::OnLButtonUp(UINT nFlags, CPoint point)
         {
             _MovePriorityBar(true, ptPic.y - _pointCapture.y);
         }
+        _originalPriValue = -1;
     }
 }
 
