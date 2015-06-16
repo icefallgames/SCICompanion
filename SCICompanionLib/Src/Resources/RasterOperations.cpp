@@ -565,69 +565,79 @@ RasterChange InsertLoop(RasterComponent &raster, int nLoop, bool before)
 
 RasterChange MoveCelFromTo(RasterComponent &raster, int nLoop, int celFrom, int celTo)
 {
-    Loop &loop = raster.Loops[nLoop];
-    // Assumes the cel indices are valid
-    // (celTo can point to one after)
-    Cel celTemp = loop.Cels[celFrom];
-    loop.Cels.insert(loop.Cels.begin() + celTo, celTemp);
-    // Now remove the from, which could be before or after
-    if (celFrom > celTo)
+    RasterChangeHint hint = RasterChangeHint::None;
+    if ((celFrom != celTo) && ((celFrom + 1) != celTo)) // Those would be no-ops
     {
-        loop.Cels.erase(loop.Cels.begin() + (celFrom + 1));
+        Loop &loop = raster.Loops[nLoop];
+        // Assumes the cel indices are valid
+        // (celTo can point to one after)
+        Cel celTemp = loop.Cels[celFrom];
+        loop.Cels.insert(loop.Cels.begin() + celTo, celTemp);
+        // Now remove the from, which could be before or after
+        if (celFrom > celTo)
+        {
+            loop.Cels.erase(loop.Cels.begin() + (celFrom + 1));
+        }
+        else
+        {
+            loop.Cels.erase(loop.Cels.begin() + celFrom);
+        }
+        UpdateMirrors(raster, nLoop);
+        hint = RasterChangeHint::NewView;
     }
-    else
-    {
-        loop.Cels.erase(loop.Cels.begin() + celFrom);
-    }
-    UpdateMirrors(raster, nLoop);
-    return RasterChange(RasterChangeHint::NewView);
+    return RasterChange(hint);
 }
 
 RasterChange MoveLoopFromTo(RasterComponent &raster, int nLoopFrom, int nLoopTo)
 {
-    Loop theLoop = raster.Loops[nLoopFrom];
-    if (nLoopTo > nLoopFrom)
+    RasterChangeHint hint = RasterChangeHint::None;
+    if ((nLoopFrom != nLoopTo) && ((nLoopFrom + 1) != nLoopTo)) // Those would be no-ops
     {
-        nLoopTo--;
-    }
-
-    raster.Loops.erase(raster.Loops.begin() + nLoopFrom);
-    // We don't need to "update mirrors", but we do need to update the index to which things point
-    // Let's do it in two stages. First, after have removed the from loop
-    for (Loop &loop : raster.Loops)
-    {
-        if (loop.IsMirror)
+        Loop theLoop = raster.Loops[nLoopFrom];
+        if (nLoopTo > nLoopFrom)
         {
-            if (loop.MirrorOf == nLoopFrom)
-            {
-                loop.MirrorOf = 255; // Temporary
-            }
-            else if (loop.MirrorOf > nLoopFrom)
-            {
-                loop.MirrorOf--;    // Points to one less
-            } // else doesn't change
+            nLoopTo--;
         }
-    }
 
-    // Now insert in the new position
-    raster.Loops.insert(raster.Loops.begin() + nLoopTo, theLoop);
-
-    for (Loop &loop : raster.Loops)
-    {
-        if (loop.IsMirror)
+        raster.Loops.erase(raster.Loops.begin() + nLoopFrom);
+        // We don't need to "update mirrors", but we do need to update the index to which things point
+        // Let's do it in two stages. First, after have removed the from loop
+        for (Loop &loop : raster.Loops)
         {
-            if (loop.MirrorOf == 255)
+            if (loop.IsMirror)
             {
-                loop.MirrorOf = nLoopTo;
+                if (loop.MirrorOf == nLoopFrom)
+                {
+                    loop.MirrorOf = 255; // Temporary
+                }
+                else if (loop.MirrorOf > nLoopFrom)
+                {
+                    loop.MirrorOf--;    // Points to one less
+                } // else doesn't change
             }
-            else if (loop.MirrorOf >= nLoopTo)
-            {
-                loop.MirrorOf++;
-            }// else doesn't change
         }
-    }
 
-    return RasterChange(RasterChangeHint::NewView);
+        // Now insert in the new position
+        raster.Loops.insert(raster.Loops.begin() + nLoopTo, theLoop);
+
+        for (Loop &loop : raster.Loops)
+        {
+            if (loop.IsMirror)
+            {
+                if (loop.MirrorOf == 255)
+                {
+                    loop.MirrorOf = nLoopTo;
+                }
+                else if (loop.MirrorOf >= nLoopTo)
+                {
+                    loop.MirrorOf++;
+                }// else doesn't change
+            }
+        }
+
+        hint = RasterChangeHint::NewView;
+    }
+    return RasterChange(hint);
 }
 
 RasterChange SetBitmapData(RasterComponent &raster, CelIndex celIndex, const uint8_t *data)
