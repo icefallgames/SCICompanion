@@ -147,6 +147,19 @@ int AppState::AspectRatioY(int value) const
     }
 }
 
+int AppState::InverseAspectRatioY(int value) const
+{
+    if (_fUseOriginalAspectRatio)
+    {
+        // Multiply by 1.2 to achieve original Sierra aspect ratio
+        return value * 10 / 12;
+    }
+    else
+    {
+        return value;
+    }
+}
+
 AppState::~AppState()
 {
     delete _pACThread;
@@ -508,6 +521,40 @@ void AppState::GenerateBrowseInfo()
 void AppState::ResetClassBrowser()
 {
     GetResourceMap().GetClassBrowser()->Reset();
+}
+
+BOOL CALLBACK InvalidateChildProc(HWND hwnd, LPARAM lParam)
+{
+    if (IsWindowVisible(hwnd))
+    {
+        InvalidateRect(hwnd, nullptr, TRUE);
+        EnumChildWindows(hwnd, InvalidateChildProc, 0);
+    }
+    return TRUE;
+}
+
+void AppState::NotifyChangeAspectRatio()
+{
+    // 1. Resource list view needs to regenerate its imagelists. Tell them that they need to reload resources.
+    GetResourceMap().NotifyToReloadResourceType(ResourceType::View);
+    GetResourceMap().NotifyToReloadResourceType(ResourceType::Pic);
+    // 2. And then the current view needs to be invalidated.
+    CMainFrame *pMainWnd = static_cast<CMainFrame*>(_pApp->m_pMainWnd);
+    if (pMainWnd)
+    {
+        EnumChildWindows(AfxGetMainWnd()->GetSafeHwnd(), InvalidateChildProc, 0);
+        //pMainWnd->InvalidateRect(nullptr, TRUE);
+        /*
+        CFrameWnd *pFrame = pMainWnd->GetActiveFrame();
+        if (pFrame)
+        {
+            CView *pView = pFrame->GetActiveView();
+            if (pView)
+            {
+                pView->Invalidate(TRUE);
+            }
+        }*/
+    }
 }
 
 int AppState::ExitInstance()

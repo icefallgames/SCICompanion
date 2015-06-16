@@ -56,7 +56,7 @@ public:
 
     void AddSync(ISyncResourceMap *pSync);
     void RemoveSync(ISyncResourceMap *pSync);
-    void NotifyToResourceResourceType(ResourceType iType);
+    void NotifyToReloadResourceType(ResourceType iType);
 
     void DeleteResource(const ResourceBlob *pResource);
 

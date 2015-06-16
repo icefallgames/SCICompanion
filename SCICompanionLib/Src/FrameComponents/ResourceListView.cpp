@@ -672,7 +672,7 @@ void CResourceListCtrl::_PrepareLVITEM(LVITEM *pItem)
 
 void CResourceListCtrl::_OnInitListView(int cItems)
 {
-    // subclasses can override.
+    // subclasses can override and  must be able to handle multiple calls to this.
 }
 
 void CResourceListCtrl::_DeleteMatchingItems(int resourceNumber, int packageNumber, ResourceSourceFlags sourceFlags)
@@ -917,8 +917,8 @@ HRESULT CResourceListCtrl::_UpdateEntries()
                 _InitColumns();
                 ChangeViewMode(GetDefaultViewMode());
                 _bFirstTime = FALSE;
-                _OnInitListView((int)resources.size());
             }
+            _OnInitListView((int)resources.size());
             _bDidInitialUpdate = TRUE;
 
             SetRedraw(FALSE);

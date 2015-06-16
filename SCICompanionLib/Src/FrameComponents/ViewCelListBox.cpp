@@ -364,10 +364,10 @@ bool ViewCelListBox::_HitTest(CPoint point, bool calcInsertIndex, int &index)
         {
             // Must be near the item boundaries.
             int xLogical = (_dir->A(point) - _dir->A(_drawOffset));
-            int scale = _dir->GetLogicalScale(_scale);
-            int xIndex = xLogical / (_dir->A(_individualImageSize) * scale / ScaleOne);
-            int xLogicalRecalc = xIndex * (_dir->A(_individualImageSize) * scale / ScaleOne);
-            int xLogicalRecalcNext = (xIndex + 1) * (_dir->A(_individualImageSize) * scale / ScaleOne);
+            int scale = _dir->GetLogicalScale(_dir->A(_individualImageSize) * _scale);
+            int xIndex = xLogical / (scale / ScaleOne);
+            int xLogicalRecalc = xIndex * (scale / ScaleOne);
+            int xLogicalRecalcNext = (xIndex + 1) * (scale / ScaleOne);
             bool close = false;
             close = (abs(xLogical - xLogicalRecalc) < InsertMargin);
             if (!close && (abs(xLogical - xLogicalRecalcNext) < InsertMargin))
@@ -388,7 +388,7 @@ bool ViewCelListBox::_HitTest(CPoint point, bool calcInsertIndex, int &index)
             CRect rect(_drawOffset.x, _drawOffset.y, _drawOffset.x + boundMul.cx * _individualImageSize.cx * _scale / ScaleOne, _drawOffset.y + _ScaleY(boundMul.cy * _individualImageSize.cy) / ScaleOne);
             if (PtInRect(&rect, point))
             {
-                int xIndex = (_dir->A(point) - _dir->A(_drawOffset)) / (_dir->A(_individualImageSize) * _dir->GetLogicalScale(_scale) / ScaleOne);
+                int xIndex = (_dir->A(point) - _dir->A(_drawOffset)) / (_dir->GetLogicalScale(_dir->A(_individualImageSize) * _scale) / ScaleOne);
                 index = xIndex;
                 return true;
             }

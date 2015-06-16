@@ -1429,7 +1429,7 @@ void CPicView::_SnapCoordinate(CPoint &pt)
         {
             int d = min(dx, dy);
             pt.x = _xOld + sgn(dx) * d;
-            pt.y = _yOld + sgn(dy) * d;
+            pt.y = _yOld + sgn(dy) * appState->InverseAspectRatioY(d);
         }
     }
 }
@@ -1923,7 +1923,7 @@ void CPicView::_DrawPriorityBar(CDC *pDC)
         int priLine = (i < priLineCount) ? priLines[i] : sPIC_HEIGHT;
         priLine--;
         CBrush brush(g_egaColorsCR[i]);
-        CRect rect(CPoint(_cxPic - _xOrigin, previousPriorityY * zoom - _yOrigin), CSize(PriorityBarWidth, zoom * (priLine - previousPriorityY + 1)));
+        CRect rect(CPoint(_cxPic - _xOrigin, appState->AspectRatioY(previousPriorityY * zoom) - _yOrigin), CSize(PriorityBarWidth, appState->AspectRatioY(zoom * (priLine - previousPriorityY + 1))));
         pDC->FillRect(&rect, &brush);
         previousPriorityY = priLine;
     }

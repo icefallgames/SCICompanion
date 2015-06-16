@@ -109,7 +109,7 @@
 #endif
 
 #ifdef SCI_1_1
-(define dpOPEN_PIXELATION   		9)   // pixelized
+(define dpOPEN_PIXELATION   		9)
 (define dpOPEN_FADEPALETTE   		10)
 (define dpOPEN_SCROLL_RIGHT  		11)
 (define dpOPEN_SCROLL_LEFT   		12)

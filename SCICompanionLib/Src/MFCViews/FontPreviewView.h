@@ -46,8 +46,8 @@ protected:
     void OnLButtonDown(UINT nFlags, CPoint point);
 
     // Scrolling
-    virtual int _GetViewWidth() { return _cxPreview; }
-    virtual int _GetViewHeight() { return _cyFont * _iZoom; }
+    int _GetViewWidth() override { return _cxPreview; }
+    int _GetViewHeight() override;
 
 // Generated message map functions
 protected:

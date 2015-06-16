@@ -61,7 +61,7 @@ void PrepareBitmapBase::_UpdateOrigBitmap(CWnd *pwnd)
             CExtNoFlickerStatic *pwndOrig = static_cast<CExtNoFlickerStatic*>(pwnd->GetDlgItem(_staticOriginalImageId));
             if (pwndOrig->GetSafeHwnd())
             {
-                pwndOrig->FromBitmap(hbmpOrig, (int)_pbmpCurrent->GetWidth(), (int)_pbmpCurrent->GetHeight());
+                pwndOrig->FromBitmap(hbmpOrig, (int)_pbmpCurrent->GetWidth(), (int)_pbmpCurrent->GetHeight(), true);
                 // Redraw right away
                 pwndOrig->RedrawWindow();
             }

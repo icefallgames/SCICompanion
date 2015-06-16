@@ -470,7 +470,7 @@ void CBitmapToVGADialog::_Update()
         _FlipImageData(*_finalResult);
         CBitmap bitmap;
         bitmap.Attach(GetBitmap(*_finalResult, _finalResultPalette.get(), _finalResult->size.cx, _finalResult->size.cy, BitmapScaleOptions::None, 0));
-        m_wndPic.FromBitmap((HBITMAP)bitmap, _finalResult->size.cx, _finalResult->size.cy);
+        m_wndPic.FromBitmap((HBITMAP)bitmap, _finalResult->size.cx, _finalResult->size.cy, true);
         m_wndPic.ShowWindow(SW_SHOW);
     }
     else

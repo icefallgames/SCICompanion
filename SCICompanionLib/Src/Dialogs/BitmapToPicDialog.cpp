@@ -580,7 +580,7 @@ LRESULT CBitmapToPicDialog::_OnConvertDone(WPARAM wParam, LPARAM lParam)
     {
         CRect rectBitmap;
         m_wndPic.GetClientRect(&rectBitmap);
-        m_wndPic.FromBitmap(pResponse->hbm, rectBitmap.Width(), rectBitmap.Height());
+        m_wndPic.FromBitmap(pResponse->hbm, rectBitmap.Width(), rectBitmap.Height(), true);
 
         ASSERT(!_pcommands);
         _pcommands = move(pResponse->pcommands);

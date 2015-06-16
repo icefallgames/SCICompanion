@@ -417,7 +417,7 @@ void QuickScriptsSidePane::_ResetUI()
                                 m_wndPic.GetClientRect(&rc);
                                 CBitmap bitmap;
                                 bitmap.Attach(GetPicBitmap(PicScreen::Visual, pic->GetComponent<PicComponent>(), pic->TryGetComponent<PaletteComponent>(), rc.Width(), rc.Height()));
-                                m_wndPic.FromBitmap((HBITMAP)bitmap, rc.Width(), rc.Height());
+                                m_wndPic.FromBitmap((HBITMAP)bitmap, rc.Width(), rc.Height(), true);
                                 if (!m_wndPic.IsWindowVisible())
                                 {
                                     m_wndPic.ShowWindow(SW_SHOW);

@@ -273,7 +273,7 @@ HRESULT CResourceMap::EndDeferAppend()
                 {
                     if (reload[iType])
                     {
-                        NotifyToResourceResourceType((ResourceType)iType);
+                        NotifyToReloadResourceType((ResourceType)iType);
                     }
                 }
             }
@@ -546,7 +546,7 @@ void CResourceMap::PurgeUnnecessaryResources()
     }
 }
 
-void CResourceMap::NotifyToResourceResourceType(ResourceType iType)
+void CResourceMap::NotifyToReloadResourceType(ResourceType iType)
 {
 	for_each(_syncs.begin(), _syncs.end(), bind2nd(mem_fun(&ISyncResourceMap::OnResourceTypeReloaded), iType));
     if (iType == ResourceType::Palette)

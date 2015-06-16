@@ -12,7 +12,7 @@ public:
     CExtNoFlickerStatic() {}
     virtual ~CExtNoFlickerStatic() {}
     // This does *not* take ownership of the HBITMAP
-    bool FromBitmap(HBITMAP hbmp, int cx, int cy);
+    bool FromBitmap(HBITMAP hbmp, int cx, int cy, bool correctForAspectRatio);
 
 protected:
 	DECLARE_MESSAGE_MAP()
@@ -20,5 +20,6 @@ protected:
     CExtBitmap _bitmap;
     int _cx;
     int _cy;
+    bool _correctForAspectRatio;
 };
 

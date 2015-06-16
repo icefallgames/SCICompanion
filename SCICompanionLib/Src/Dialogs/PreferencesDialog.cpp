@@ -13,6 +13,7 @@ CPreferencesDialog::CPreferencesDialog(CWnd* pParent /*=NULL*/)
 	: CExtResizableDialog(CPreferencesDialog::IDD, pParent)
 {
     _fBrowseInfoStart = appState->_fBrowseInfo;
+    _fAspectRatioStart = appState->_fUseOriginalAspectRatio;
 }
 
 CPreferencesDialog::~CPreferencesDialog()
@@ -121,9 +122,11 @@ void CPreferencesDialog::OnOK()
             appState->GenerateBrowseInfo();
         }
     }
+    if (_fAspectRatioStart != appState->_fUseOriginalAspectRatio)
+    {
+        appState->NotifyChangeAspectRatio();
+    }
 }
-
-
 
 void CPreferencesDialog::OnCbnSelchangeComboMididevice()
 {

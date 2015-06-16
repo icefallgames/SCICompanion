@@ -412,7 +412,7 @@ void PicCommandSidePane::_UpdatePalette()
             uint8_t *pBitsDest;
             COLORREF background = g_PaintManager->GetColor(COLOR_3DFACE);
             bitmapPalette.Attach(CreateBitmapFromPaletteResource(resource, &bmiPalette, &pBitsDest, &background, &cels));
-            m_wndPalette.FromBitmap((HBITMAP)bitmapPalette, bmiPalette.bmiHeader.biWidth, abs(bmiPalette.bmiHeader.biHeight));
+            m_wndPalette.FromBitmap((HBITMAP)bitmapPalette, bmiPalette.bmiHeader.biWidth, abs(bmiPalette.bmiHeader.biHeight), false);
         }
     }
 }

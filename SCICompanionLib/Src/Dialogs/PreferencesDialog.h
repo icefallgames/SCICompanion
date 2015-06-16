@@ -25,6 +25,7 @@ private:
     CEdit m_wndFakeEgoY;
 
     BOOL _fBrowseInfoStart;
+    BOOL _fAspectRatioStart;
 
     // Visuals
     CExtCheckBox m_wndBrowserInfo;

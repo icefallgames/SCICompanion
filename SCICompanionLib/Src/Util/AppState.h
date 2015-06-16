@@ -77,8 +77,10 @@ public:
     void GenerateBrowseInfo();
     void ResetClassBrowser();
     void ClearResourceManagerDoc() { _pResourceDoc = NULL; }
+    void NotifyChangeAspectRatio();
 
     int AspectRatioY(int value) const;
+    int InverseAspectRatioY(int value) const;
 
     void GiveMeAutoComplete(CScriptView *pSV);
 

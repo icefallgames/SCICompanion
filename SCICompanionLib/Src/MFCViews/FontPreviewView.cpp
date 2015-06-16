@@ -176,8 +176,10 @@ void CFontPreviewView::OnDraw(CDC *pDC)
             // Draw the picture.
             _OnDraw(&dcMem);
 
+            int sourceHeight = _cyFont * _iZoom;
+
             // Now blt back to the real DC.
-            pDC->StretchBlt(-_xOrigin, -_yOrigin, _GetViewWidth(), _GetViewHeight(), &dcMem, 0, 0, _GetViewWidth() / _iZoom, _GetViewHeight() / _iZoom, SRCCOPY); 
+            pDC->StretchBlt(-_xOrigin, -_yOrigin, _GetViewWidth(), _GetViewHeight(), &dcMem, 0, 0, _GetViewWidth() / _iZoom, sourceHeight / _iZoom, SRCCOPY);
 
             dcMem.SelectObject(hgdiObj);
         }
@@ -317,6 +319,10 @@ BOOL CFontPreviewView::OnEraseBkgnd(CDC *pDC)
     return TRUE;
 }
 
+int CFontPreviewView::_GetViewHeight()
+{
+    return appState->AspectRatioY(_cyFont * _iZoom);
+}
 
 // CFontPreviewView diagnostics
 

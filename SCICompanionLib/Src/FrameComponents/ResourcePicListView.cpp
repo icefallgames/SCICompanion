@@ -177,6 +177,11 @@ void CResourcePicListCtrl::_OnInitListView(int cItems)
     }
 
     // Prepare our worker thread.
+    if (_pQueue)
+    {
+        _pQueue->Abort();
+        _pQueue->Release();
+    }
     _pQueue = new QueueItems<PICWORKITEM, PICWORKRESULT>(GetSafeHwnd(), UWM_PICREADY);
     if (_pQueue)
     {

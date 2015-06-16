@@ -1479,7 +1479,7 @@ void CMainFrame::OnCompileAll()
 
     // Even if we weren't completely successful, update the script resource view, since some
     // scripts may have been successful.
-    appState->GetResourceMap().NotifyToResourceResourceType(ResourceType::Script);
+    appState->GetResourceMap().NotifyToReloadResourceType(ResourceType::Script);
 
     // Get the final success/fail message up there:
     appState->OutputAddBatch(log.Results());
@@ -2084,7 +2084,7 @@ void CMainFrame::OnManageDecompilation()
 {
     unique_ptr<DecompileDialog> decompileDialog = make_unique<DecompileDialog>();
     decompileDialog->DoModal();
-    appState->GetResourceMap().NotifyToResourceResourceType(ResourceType::Script);
+    appState->GetResourceMap().NotifyToReloadResourceType(ResourceType::Script);
 }
 
 void CMainFrame::OnUpdateClassBrowser(CCmdUI *pCmdUI)

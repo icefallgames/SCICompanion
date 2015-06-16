@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "NoFlickerStatic.h"
+#include "AppState.h"
 
 // CExtNoFlickerStatic, for images.
 
@@ -13,10 +14,11 @@ END_MESSAGE_MAP()
 
 // CNoFlickerStatic message handlers
 
-bool CExtNoFlickerStatic::FromBitmap(HBITMAP hbmp, int cx, int cy)
+bool CExtNoFlickerStatic::FromBitmap(HBITMAP hbmp, int cx, int cy, bool correctForAspectRatio)
 {
     _cx = cx;
     _cy = cy;
+    _correctForAspectRatio = correctForAspectRatio;
     Invalidate(); // New bitmap
     return _bitmap.FromBitmap(hbmp);
 }
@@ -54,6 +56,17 @@ void CExtNoFlickerStatic::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
                 ASSERT(cxDest <= rcClient.Width());
                 fNeedSmoothing = true;
             }
+
+            if (_correctForAspectRatio)
+            {
+                int cxDestNew = appState->InverseAspectRatioY(cxDest);
+                if (cxDestNew != cxDest)
+                {
+                    fNeedSmoothing = true;
+                    cxDest = cxDestNew;
+                }
+            }
+
             int x = (rcClient.Width() - cxDest) / 2;
             int y = (rcClient.Height() - cyDest) / 2;
             CRect rcDest(x, y, x + cxDest, y + cyDest);

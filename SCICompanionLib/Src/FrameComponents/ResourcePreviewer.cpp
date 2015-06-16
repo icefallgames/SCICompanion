@@ -103,12 +103,20 @@ void PicPreviewer::_ResetVisualBitmap(PicDrawManager &pdm)
     m_wndVisual.GetClientRect(&rc);
     CBitmap bitmap;
     bitmap.Attach(pdm.CreateBitmap(PicScreen::Visual, PicPosition::Final, rc.Width(), rc.Height()));
-    m_wndVisual.FromBitmap((HBITMAP)bitmap, rc.Width(), rc.Height());
+    m_wndVisual.FromBitmap((HBITMAP)bitmap, rc.Width(), rc.Height(), true);
 }
 
 void PicPreviewer::SetResource(const ResourceBlob &blob)
 {
     _pic = CreateResourceFromResourceData(blob);
+
+    int showSCI0PaletteControls = (appState->GetVersion().PicFormat == PicFormat::EGA) ? SW_SHOW : SW_HIDE;
+
+    m_wndButton1.ShowWindow(showSCI0PaletteControls);
+    m_wndButton2.ShowWindow(showSCI0PaletteControls);
+    m_wndButton3.ShowWindow(showSCI0PaletteControls);
+    m_wndButton4.ShowWindow(showSCI0PaletteControls);
+    m_wndStaticPalette.ShowWindow(showSCI0PaletteControls);
 
     PicDrawManager pdm(&_pic->GetComponent<PicComponent>(), _pic->TryGetComponent<PaletteComponent>());
     pdm.SetPalette(_paletteNumber);
@@ -120,10 +128,10 @@ void PicPreviewer::SetResource(const ResourceBlob &blob)
     m_wndVisual.GetClientRect(&rc);
     CBitmap bitmapP;
     bitmapP.Attach(pdm.CreateBitmap(PicScreen::Priority, PicPosition::Final, rc.Width(), rc.Height()));
-    m_wndPriority.FromBitmap((HBITMAP)bitmapP, rc.Width(), rc.Height());
+    m_wndPriority.FromBitmap((HBITMAP)bitmapP, rc.Width(), rc.Height(), true);
     CBitmap bitmapC;
     bitmapC.Attach(pdm.CreateBitmap(PicScreen::Control, PicPosition::Final, rc.Width(), rc.Height()));
-    m_wndControl.FromBitmap((HBITMAP)bitmapC, rc.Width(), rc.Height());
+    m_wndControl.FromBitmap((HBITMAP)bitmapC, rc.Width(), rc.Height(), true);
 }
 
 //
@@ -148,7 +156,7 @@ void ViewPreviewer::SetResource(const ResourceBlob &blob)
         optionalPalette = appState->GetResourceMap().GetMergedPalette(*_view, 999);
     }
     bitmap.Attach(CreateBitmapFromResource(*_view, optionalPalette.get(), &bmi, &pBitsDest));
-    m_wndView.FromBitmap((HBITMAP)bitmap, bmi.bmiHeader.biWidth, abs(bmi.bmiHeader.biHeight));
+    m_wndView.FromBitmap((HBITMAP)bitmap, bmi.bmiHeader.biWidth, abs(bmi.bmiHeader.biHeight), true);
 
     // Don't use the fallback here:
     if (_view->TryGetComponent<PaletteComponent>())
@@ -168,7 +176,7 @@ void ViewPreviewer::SetResource(const ResourceBlob &blob)
 
         bitmapPalette.Attach(CreateBitmapFromPaletteResource(_view.get(), &bmiPalette, &pBitsDest, &background, &cels));
         m_wndPalette.ShowWindow(SW_SHOW);
-        m_wndPalette.FromBitmap((HBITMAP)bitmapPalette, bmiPalette.bmiHeader.biWidth, abs(bmiPalette.bmiHeader.biHeight));
+        m_wndPalette.FromBitmap((HBITMAP)bitmapPalette, bmiPalette.bmiHeader.biWidth, abs(bmiPalette.bmiHeader.biHeight), false);
     }
     else
     {
@@ -203,7 +211,7 @@ void PalettePreviewer::SetResource(const ResourceBlob &blob)
     BYTE *pBitsDest;
     COLORREF background = g_PaintManager->GetColor(COLOR_3DFACE);
     bitmap.Attach(CreateBitmapFromPaletteResource(_palette.get(), &bmi, &pBitsDest, &background));
-    m_wndView.FromBitmap((HBITMAP)bitmap, bmi.bmiHeader.biWidth, abs(bmi.bmiHeader.biHeight));
+    m_wndView.FromBitmap((HBITMAP)bitmap, bmi.bmiHeader.biWidth, abs(bmi.bmiHeader.biHeight), false);
 }
 
 void PalettePreviewer::DoDataExchange(CDataExchange* pDX)

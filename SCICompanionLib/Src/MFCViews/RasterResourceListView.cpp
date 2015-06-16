@@ -58,7 +58,7 @@ void CRasterResourceListCtrl::OnItemChanged(NMHDR* pNMHDR, LRESULT* pResult)
 }
 
 // Finds the smallest cel that is at least as big in each dimension as "dimensions".
-CelIndex _FindBestPreviewCel(int dimensions,RasterComponent &raster)
+CelIndex _FindBestPreviewCel(int dimensions, RasterComponent &raster)
 {
     CelIndex bestCelIndex;
     int minGap = dimensions;
@@ -82,6 +82,32 @@ CelIndex _FindBestPreviewCel(int dimensions,RasterComponent &raster)
         }
     }
     return bestCelIndex;
+}
+
+void _StretchForAspectRatio(CWnd *pwnd, CBitmap &bitmap)
+{
+    CDC *pDC = pwnd->GetDC();
+    if (pDC)
+    {
+        CDC dcMemDest, dcMemSource;
+        if (dcMemDest.CreateCompatibleDC(pDC) && dcMemSource.CreateCompatibleDC(pDC))
+        {
+            CSize size = bitmap.GetBitmapDimension();
+            CBitmap stretchedBmp;
+            int cyNew = appState->AspectRatioY(size.cy);
+            if (stretchedBmp.CreateCompatibleBitmap(pDC, size.cx, cyNew))
+            {
+                dcMemSource.SelectObject(&bitmap);
+                dcMemDest.SelectObject(&stretchedBmp);
+                dcMemDest.SetStretchBltMode(HALFTONE);
+                dcMemDest.StretchBlt(0, 0, size.cx, cyNew, &dcMemSource, 0, 0, size.cx, size.cy, SRCCOPY);
+                bitmap.DeleteObject();
+                bitmap.Attach(stretchedBmp.Detach());
+                bitmap.SetBitmapDimension(size.cx, cyNew);
+            }
+        }
+        pwnd->ReleaseDC(pDC);
+    }
 }
 
 void CRasterResourceListCtrl::OnGetDispInfo(NMHDR* pNMHDR, LRESULT* pResult)
@@ -119,6 +145,13 @@ void CRasterResourceListCtrl::OnGetDispInfo(NMHDR* pNMHDR, LRESULT* pResult)
                 bitmap.Attach(GetBitmap(raster, palette.get(), previewCel, VIEW_IMAGE_SIZE, VIEW_IMAGE_SIZE, BitmapScaleOptions::AllowMag | BitmapScaleOptions::AllowMin));
                 if ((HBITMAP)bitmap)
                 {
+                    // Stretch the image if we're using the original aspect ratio.
+                    if (appState->_fUseOriginalAspectRatio)
+                    {
+                        bitmap.SetBitmapDimension(VIEW_IMAGE_SIZE, VIEW_IMAGE_SIZE);
+                        _StretchForAspectRatio(this, bitmap);
+                    }
+
                     int iIndex = ImageList_Add(_himlPics, (HBITMAP)bitmap, NULL);
                     if (iIndex != -1)
                     {
@@ -148,10 +181,10 @@ void CRasterResourceListCtrl::_OnInitListView(int cItems)
         _himlPics = NULL;
     }
 
-    CSize sizeImages(VIEW_IMAGE_SIZE, VIEW_IMAGE_SIZE);
+    CSize sizeImages(VIEW_IMAGE_SIZE, appState->AspectRatioY(VIEW_IMAGE_SIZE));
     // Note: this color depth must match that which we get back from the view resource
     // Also: ILC_MASK must be specified, because of the overlay
-    _himlPics = ImageList_Create(sizeImages.cx, sizeImages.cy, ILC_COLOR8 | ILC_MASK, cItems, 30);
+    _himlPics = ImageList_Create(sizeImages.cx, sizeImages.cy, ILC_COLOR24 | ILC_MASK, cItems, 30);
     
     if (_himlPics)
     {
