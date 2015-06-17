@@ -128,6 +128,9 @@ protected:
     void _OnZoomLClick(CPoint *ppt = NULL);
     void _OnZoomRClick(CPoint *ppt = NULL);
     void _OnZoomClick(CPoint *ppt, int iMultiplier);
+    void _OnPolygonLClick(CPoint point);
+    void _OnPolygonRClick(CPoint point);
+    void _OnPolyMouseMove(CPoint point);
     UINT _GetCurrentToolOrCommand();
     void _UpdateCursor();
     void _OnCommandChanged();
@@ -152,6 +155,7 @@ protected:
     bool _HitTestPriorityBar(CPoint pt, int *barIndex);
     void _MovePriorityBar(bool commit, int dy);
     void _DrawPriorityLines(CDC *pDC);
+    void _DrawPolygons(CDC *pDC);
     void _DrawShowingEgoEGA(ViewPort &viewPort, PicData &picData, PicScreenFlags flags);
     void _DrawShowingEgoVGA(CDC &dc, PicDrawManager &pdm);
     void _DrawShowingEgoWorker(const ViewPort &viewPort, uint8_t *pdataVisual, const uint8_t *pdataPriority, PicScreenFlags flags);
@@ -177,6 +181,7 @@ protected:
     bool _NearPasteCorners();
     bool _EvaluateCanBeHere(CPoint pt);
     PicDrawManager &_GetDrawManager();
+    SCIPolygon *_GetCurrentPolygon();
 
     // Scrolling
     virtual int _GetViewWidth() { return _cxPic + PriorityBarWidth; }
@@ -214,6 +219,7 @@ protected:
     afx_msg void OnShowPalette2();
     afx_msg void OnShowPalette3();
     afx_msg void OnTogglePriorityLines();
+    afx_msg void OnPolyPath();
     afx_msg void OnToggleEgo();
     afx_msg void OnLightUpCoords();
     afx_msg void OnSetPalette();
@@ -364,6 +370,11 @@ private:
     int _iTraceAlpha;
 
     bool _fDrawPasteBox; // yucj?
+
+    // SCI1 Polygons
+    int _currentPolyIndexInEdit;
+    int _currentPolyPointIndexInEdit;
+    CPoint _nextPolyPoint;
 };
 
 #ifndef _DEBUG  // debug version in PicEditorView.cpp

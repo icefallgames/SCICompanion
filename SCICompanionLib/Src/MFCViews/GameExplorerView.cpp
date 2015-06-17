@@ -164,7 +164,6 @@ void g_OpenMessage(const ResourceBlob *pData)
     }
 }
 
-
 void g_OpenPalette(const ResourceBlob *pData)
 {
     CMultiDocTemplate *pTemplate = appState->GetPaletteTemplate();

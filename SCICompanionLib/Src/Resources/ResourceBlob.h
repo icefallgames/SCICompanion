@@ -42,8 +42,8 @@ struct ResourceHeaderAgnostic
     ResourceHeaderAgnostic(const ResourceHeaderAgnostic &src) = default;
     ResourceHeaderAgnostic &operator=(const ResourceHeaderAgnostic &src) = default;
 
-    uint16_t Number;                // The number of the resource (0 to 999, or higher for SCI1+)
-    uint16_t PackageHint;
+    int16_t Number;                 // The number of the resource (0 to 999, or higher for SCI1+)
+    int16_t PackageHint;
     uint16_t CompressionMethod;     // Compression method.
     // These two values are actually persisted as WORDs.  However, we need to allow for creation of these
     // objects while editing, and we allow the user to go over the limit at that time.  We validate at

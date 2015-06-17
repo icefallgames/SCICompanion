@@ -636,6 +636,9 @@
     <ClCompile Include="Src\Util\CustomMessageBox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\FrameComponents\PolygonSource.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCICompanionLib.h">
@@ -1328,6 +1331,9 @@
     <ClInclude Include="Src\Resources\SyncResourceMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Src\FrameComponents\PolygonSource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="SCICompanionLib.def">
@@ -1837,6 +1843,9 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\newmessagesequence.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\PolyPath.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

@@ -53,6 +53,13 @@ void PicCommandSidePane::DoDataExchange(CDataExchange* pDX)
         m_wndEditPaletteButton.SetIcon(IDI_EDITPALETTE, 0, 0, 0, 24, 24);
 
         DDX_Control(pDX, ID_EDIT_PASTEINTOPIC, m_wndSetBackground);
+
+        DDX_Control(pDX, IDC_TAB1, m_wndTab);
+        if (m_wndTab)
+        {
+            m_wndTab.InsertItem(0, "Polygons");
+            m_wndTab.InsertItem(1, "Commands");
+        }
     }
 }
 

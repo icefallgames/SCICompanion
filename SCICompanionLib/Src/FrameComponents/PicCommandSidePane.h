@@ -25,7 +25,7 @@ public:
 	enum
     {
         IDD = IDD_PICCOMMANDS,
-        IDD_VGA = IDD_PICCOMMANDS_VGA,
+        IDD_VGA = IDD_PICCOMMANDS_VGA1,
     };
 
     void OnDeleteCommands();
@@ -73,6 +73,8 @@ private:
     bool _showPalette;
 
     CExtHyperLinkButton m_wndGotoScript;
+
+    CTabCtrl m_wndTab;
 
     // Visual
     CExtButton m_wndEditPaletteButton;

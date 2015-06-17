@@ -24,6 +24,7 @@ public:
     std::string GetScriptObjectFileName(WORD wScript, LangSyntax lang = LangSyntaxUnknown) const;
     std::string GameFolderHelper::GetSrcFolder() const;
     std::string GameFolderHelper::GetMsgFolder() const;
+    std::string GameFolderHelper::GetPolyFolder() const;
     std::string GetGameIniFileName() const;
     std::string GetIniString(const std::string &sectionName, const std::string &keyName, PCSTR pszDefault = "") const;
     std::string GetIncludeFolder() const;

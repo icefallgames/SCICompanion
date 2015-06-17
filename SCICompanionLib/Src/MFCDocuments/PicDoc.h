@@ -11,6 +11,7 @@
 #include "PicOperations.h"
 #include "ResourceEntityDocument.h"
 #include "SyncResourceMap.h"
+#include "PolygonSource.h"
 
 using namespace std;
 
@@ -48,6 +49,7 @@ enum class PicChangeHint
     CursorPosition = 0x00000200,
     ViewScreenChange = 0x00000400,
     PreviewPalette = 0x00000800,
+    PolygonChoice = 0x00001000,
 };
 
 
@@ -77,6 +79,10 @@ public:
     void RemoveCommand(INT_PTR iCommandIndex);
     void RemoveCommandRange(INT_PTR iStart, INT_PTR iEnd);
     void ExplicitNotify(PicChangeHint hint);
+
+    PolygonSource *GetPolygonSource();
+    void CreatePolygon();
+    int GetCurrentPolygonIndex() const { return _currentPolyIndex; }
 
     void v_OnUndoRedo();
 
@@ -110,6 +116,8 @@ public:
 
     void InformBitmapEditor(PicChangeHint hint, IBitmapEditor *pObj);
 
+
+
 protected:
     virtual ResourceType _GetType() const { return ResourceType::Pic; }
 
@@ -136,6 +144,9 @@ private:
 
     // Zoom level of pic.
     int _iZoom;
+
+    std::unique_ptr<PolygonSource> _polygonSource;
+    int _currentPolyIndex;
 };
 
 template<class _T>

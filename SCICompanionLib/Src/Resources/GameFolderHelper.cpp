@@ -135,6 +135,16 @@ std::string GameFolderHelper::GetMsgFolder() const
     return srcFolder;
 }
 
+std::string GameFolderHelper::GetPolyFolder() const
+{
+    std::string srcFolder = this->GameFolder;
+    if (!srcFolder.empty())
+    {
+        srcFolder += "\\poly";
+    }
+    return srcFolder;
+}
+
 //
 // Returns the script identifier for something "main", or "rm001".
 //

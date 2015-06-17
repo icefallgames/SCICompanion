@@ -677,7 +677,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	    TRACE0("Failed to create m_wndResizableBar_Pic\n");
 	    return -1;		// fail to create
     }
-    if (!m_dlgForPanelDialogPicVGA.Create(IDD_PICCOMMANDS_VGA, &m_dlgEmpty))
+    if (!m_dlgForPanelDialogPicVGA.Create(IDD_PICCOMMANDS_VGA1, &m_dlgEmpty))
     {
         TRACE0("Failed to create m_wndResizableBar_Pic\n");
         return -1;		// fail to create
@@ -936,6 +936,7 @@ void CMainFrame::_PreparePicCommands()
         { ID_DEFINEPALETTES, IDI_PALETTE },
         { ID_CIRCLE, IDI_ELLIPSE },
         { ID_TOGGLEEGO, IDI_FAKEEGO },
+        { ID_POLYPATH, IDI_POLYPATH },
         { ID_TOGGLEPRIORITYLINES, IDI_PRIORITYLINES },
         { ID_LIGHTUPCOORDS, IDI_LIGHTUP },
         { ID_SHOWPALETTE0, IDI_PALETTE0 },

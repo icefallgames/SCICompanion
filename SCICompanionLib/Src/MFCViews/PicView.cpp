@@ -34,6 +34,7 @@ const key_value_pair<CPicView::ToolType, UINT> CPicView::c_toolToID [] =
     { Command, ID_LINE },
     { History, ID_HISTORY },
     { Zoom, ID_ZOOM },
+    { Polygons, ID_POLYPATH },
     { None, ID_DRAWOFF },
     // Add more here...
 };
@@ -223,6 +224,7 @@ BEGIN_MESSAGE_MAP(CPicView, CScrollingThing<CView>)
     ON_COMMAND(ID_SHOWPALETTE2, CPicView::OnShowPalette2)
     ON_COMMAND(ID_SHOWPALETTE3, CPicView::OnShowPalette3)
     ON_COMMAND(ID_TOGGLEPRIORITYLINES, CPicView::OnTogglePriorityLines)
+    ON_COMMAND(ID_POLYPATH, CPicView::OnPolyPath)
     ON_COMMAND(ID_TOGGLEEGO, CPicView::OnToggleEgo)
     ON_COMMAND(ID_LIGHTUPCOORDS, CPicView::OnLightUpCoords)
     ON_COMMAND(ID_DEFINEPALETTES, CPicView::OnSetPalette)
@@ -256,6 +258,7 @@ BEGIN_MESSAGE_MAP(CPicView, CScrollingThing<CView>)
     ON_UPDATE_COMMAND_UI(ID_SHOWVISUALSCREEN, CPicView::OnUpdateShowScreenControl)
     ON_UPDATE_COMMAND_UI(ID_SHOWPRIORITYSCREEN, CPicView::OnUpdateShowScreenControl)
     ON_UPDATE_COMMAND_UI(ID_SHOWCONTROLSCREEN, CPicView::OnUpdateShowScreenControl)
+    ON_UPDATE_COMMAND_UI(ID_POLYPATH, CPicView::OnUpdateAllPicCommands)
     ON_UPDATE_COMMAND_UI(ID_TOGGLEPRIORITYLINES, CPicView::OnUpdateTogglePriorityLines)
     ON_UPDATE_COMMAND_UI(ID_SHOWPALETTE0, CPicView::OnUpdateShowPaletteControl)
     ON_UPDATE_COMMAND_UI(ID_SHOWPALETTE1, CPicView::OnUpdateShowPaletteControl)
@@ -298,6 +301,9 @@ END_MESSAGE_MAP()
 
 CPicView::CPicView()
 {
+    _currentPolyIndexInEdit = -1;
+    _currentPolyPointIndexInEdit = -1;
+
     _priBarMoveIndex = -1;
     _originalPriValue = -1;
     memset(&_originalPriValueCommand, 0, sizeof(_originalPriValueCommand));
@@ -765,6 +771,14 @@ void CPicView::OnTogglePriorityLines()
 {
     _fShowPriorityLines = !_fShowPriorityLines;
     InvalidateOurselves();
+}
+
+void CPicView::OnPolyPath()
+{
+    // When this is pressed, choose it.
+    _currentTool = Polygons;
+    _UpdateCursor();
+    _OnCommandChanged();
 }
 
 void CPicView::OnToggleEgo()
@@ -1373,6 +1387,7 @@ const key_value_pair<UINT, int> c_IDToCursor [] =
     { ID_CIRCLE, IDC_CURSORCIRCLE },
     { ID_LINE, IDC_CURSORLINE },
     { ID_ZOOM, IDC_CURSORZOOM },
+    { ID_POLYPATH, IDC_CURSORLINE },
 };
 int _IDToCursor(UINT nID)
 {
@@ -1526,6 +1541,11 @@ void CPicView::OnMouseMove(UINT nFlags, CPoint point)
     }
     else
     {
+        if (_currentTool == Polygons)
+        {
+            _OnPolyMouseMove(_ptCurrentHover);
+        }
+
         if (_fShowPriorityLines)
         {
             _HitTestPriorityBar(_ptCurrentHover, &_priBarMoveIndex);
@@ -1608,6 +1628,11 @@ void CPicView::OnUpdateAllPicCommands(CCmdUI *pCmdUI)
     {
         enabled = _GetEditPic()->Traits.SupportsPenCommands;
     }
+    if (pCmdUI->m_nID == ID_POLYPATH && _GetEditPic())
+    {
+        enabled = _GetEditPic()->Traits.IsVGA;
+    }
+        
     pCmdUI->Enable(enabled);
 
     // Which one is checked though?
@@ -1763,6 +1788,31 @@ void CPicView::_DrawEgoCoordinates(CDC *pDC)
         // Restore stuff
         pDC->SetTextColor(crOld);
         pDC->SetBkMode(iOldMode);
+    }
+}
+
+void CPicView::_DrawPolygons(CDC *pDC)
+{
+    // For now, just the current one
+    SCIPolygon *polygon = _GetCurrentPolygon();
+    if (polygon)
+    {
+        CPen penPoly(PS_SOLID, 1, RGB(255, 255, 255));
+        HGDIOBJ hOldPen = pDC->SelectObject(penPoly);
+
+        std::vector<POINT> points;
+        for (point16 point : polygon->Points)
+        {
+            points.push_back({ point.x, point.y});
+        }
+        // For currently edited polygon:
+        points.push_back({ _nextPolyPoint.x, _nextPolyPoint.y });
+
+        pDC->Polyline(&points[0], (int)points.size());
+
+        // TODO: Seal the loop for complete polygons.
+
+        pDC->SelectObject(hOldPen);
     }
 }
 
@@ -2094,6 +2144,11 @@ void CPicView::OnDraw(CDC *pDC)
             if (_fShowPriorityLines)
             {
                 _DrawPriorityLines(&dcMem);
+            }
+
+            if (_currentPolyIndexInEdit != -1)
+            {
+                _DrawPolygons(&dcMem);
             }
         }
 
@@ -2736,6 +2791,81 @@ void CPicView::_OnCircleRClick(CPoint point)
     _yOld = -1;
 }
 
+SCIPolygon *CPicView::_GetCurrentPolygon()
+{
+    SCIPolygon *polygon = nullptr;
+    if (GetDocument())
+    {
+        PolygonSource *source = GetDocument()->GetPolygonSource();
+        if (source && (_currentPolyIndexInEdit >= 0) && (_currentPolyIndexInEdit < (int)source->Polygons.size()))
+        {
+            polygon = &source->Polygons[_currentPolyIndexInEdit];
+        }
+    }
+    return polygon;
+}
+
+void CPicView::_OnPolygonLClick(CPoint point)
+{
+    if (_currentPolyIndexInEdit == -1)
+    {
+        // TODO: hit test current polygons to see if we should edit those and go into capture
+
+        // Add a new polygon
+        GetDocument()->CreatePolygon();
+        _currentPolyIndexInEdit = GetDocument()->GetCurrentPolygonIndex();
+        _nextPolyPoint = point;
+        if (_currentPolyIndexInEdit != -1)
+        {
+            //_currentPolyPointIndexInEdit = 0;
+            SCIPolygon *polygon = _GetCurrentPolygon();
+            if (polygon)
+            {
+                polygon->Points.push_back(CPointToPoint(point));
+                InvalidateOurselves();
+            }
+        }
+    }
+    else
+    {
+        // We're continuing with the current polygon
+        SCIPolygon *polygon = _GetCurrentPolygon();
+        if (polygon)
+        {
+            polygon->Points.push_back(CPointToPoint(point));
+            InvalidateOurselves();
+        }
+    }
+}
+
+void CPicView::_OnPolygonRClick(CPoint point)
+{
+    SCIPolygon *polygon = _GetCurrentPolygon();
+    if (polygon)
+    {
+        // No longer in edit:
+        _currentPolyIndexInEdit = -1;
+        if (GetDocument())
+        {
+            PolygonSource *source = GetDocument()->GetPolygonSource();
+            if (source)
+            {
+                source->Commit();
+                InvalidateOurselves();
+            }
+        }
+    }
+}
+
+void CPicView::_OnPolyMouseMove(CPoint point)
+{
+    if (_currentPolyIndexInEdit != -1)
+    {
+        _nextPolyPoint = point;
+        InvalidateOurselvesImmediately();
+    }
+}
+
 void CPicView::_OnFillLClick(CPoint point)
 {
     PicCommand command = PicCommand::CreateFill((uint16_t)point.x, (uint16_t)point.y);
@@ -3100,6 +3230,12 @@ void CPicView::OnLButtonDown(UINT nFlags, CPoint point)
                 }
                 break;
             }
+
+            case Polygons:
+            {
+                _OnPolygonLClick(ptPic);
+                break;
+            }
         }
     }
 }
@@ -3336,6 +3472,12 @@ void CPicView::OnRButtonDown(UINT nFlags, CPoint point)
             InvalidateOurselves();
             break;
         }
+
+    case Polygons:
+    {
+        _OnPolygonRClick(ptPic);
+        break;
+    }
 
     case None:
         {

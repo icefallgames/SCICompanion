@@ -219,6 +219,16 @@ void CPicDoc::SetEditPic(std::unique_ptr<ResourceEntity> pEditPic, int id)
 {
     _checksum = id;
     AddFirstResource(move(pEditPic));
+
+    if (GetResource())
+    {
+        _polygonSource = CreatePolygonSource(appState->GetResourceMap().Helper().GetPolyFolder(), GetResource()->ResourceNumber);
+    }
+    else
+    {
+        _polygonSource = nullptr;
+    }
+
     UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::NewPic));
     _UpdateTitle();
 }
@@ -331,6 +341,21 @@ void CPicDoc::RemoveCommandRange(INT_PTR iStart, INT_PTR iEnd)
 void CPicDoc::ExplicitNotify(PicChangeHint hint)
 {
     UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(hint));
+}
+
+PolygonSource *CPicDoc::GetPolygonSource()
+{
+    return _polygonSource.get();
+}
+
+void CPicDoc::CreatePolygon()
+{
+    if (_polygonSource)
+    {
+        _polygonSource->Polygons.emplace_back();
+        _currentPolyIndex = (int)(_polygonSource->Polygons.size() - 1);
+        UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::PolygonChoice));
+    }
 }
 
 void CPicDoc::v_OnUndoRedo()

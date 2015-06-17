@@ -222,6 +222,7 @@
     <ClCompile Include="Src\FrameComponents\MessageSidePane.cpp" />
     <ClCompile Include="Src\FrameComponents\MessageSource.cpp" />
     <ClCompile Include="Src\FrameComponents\PicHelperPane.cpp" />
+    <ClCompile Include="Src\FrameComponents\PolygonSource.cpp" />
     <ClCompile Include="Src\FrameComponents\ViewCelListBox.cpp" />
     <ClCompile Include="Src\FrameComponents\ZoomCelStatic.cpp" />
     <ClCompile Include="Src\GIFLIB\dgif_lib.cpp" />
@@ -265,6 +266,7 @@
     <ClInclude Include="Src\FrameComponents\MessageNounConditionPane.h" />
     <ClInclude Include="Src\FrameComponents\MessageSidePane.h" />
     <ClInclude Include="Src\FrameComponents\MessageSource.h" />
+    <ClInclude Include="Src\FrameComponents\PolygonSource.h" />
     <ClInclude Include="Src\FrameComponents\ViewCelListBox.h" />
     <ClInclude Include="Src\GIFLIB\gif_hash.h" />
     <ClInclude Include="Src\GIFLIB\gif_lib.h" />
@@ -777,6 +779,7 @@
     <Image Include="res\pic_history.ico" />
     <Image Include="res\placement.ico" />
     <Image Include="res\play.ico" />
+    <Image Include="res\PolyPath.ico" />
     <Image Include="res\preferences.ico" />
     <Image Include="res\prioritylines.ico" />
     <Image Include="res\rect.ico" />
