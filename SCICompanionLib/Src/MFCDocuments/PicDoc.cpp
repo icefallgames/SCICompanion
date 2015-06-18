@@ -326,12 +326,23 @@ void CPicDoc::RemoveCommand(INT_PTR iCommandIndex)
 }
 void CPicDoc::RemoveCommandRange(INT_PTR iStart, INT_PTR iEnd)
 {
+    if (iEnd == -1)
+    {
+        iEnd = (int)_GetPic()->commands.size() - 1;
+    }
+    int delta = (iEnd - iStart + 1);
     _CloneCurrentAndAdd();
     ::RemoveCommandRange(*_GetPic(), iStart, iEnd);
     INT_PTR iPos = _pdm.GetPos();
-    if (iStart < iPos)
+    if (iEnd < iPos)
     {
-        SeekToPos(_PrevPicPos(iPos, (iEnd - iStart)), false);
+        // Adjust selection down
+        SeekToPos(_PrevPicPos(iPos, delta), false);
+    }
+    else if (iStart < iPos)
+    {
+        // It was in the selection
+        SeekToPos(iStart, false);
     }
     _pdm.Invalidate();
     _NotifyNewResource(PicChangeHint::EditPicInvalid | PicChangeHint::EditPicPos);

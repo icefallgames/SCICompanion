@@ -90,7 +90,7 @@ BOOL PicCommandSidePane::OnEraseBkgnd(CDC *pDC)
 void PicCommandSidePane::OnCropCommands()
 {
     // Delete from the current position to the end.
-    GetDocument()->RemoveCommandRange(_iCurrentPicPos - 1, -1);
+    GetDocument()->RemoveCommandRange(_iCurrentPicPos, -1);
 }
 
 void PicCommandSidePane::OnDeleteCommands()
