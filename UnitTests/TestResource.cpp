@@ -5,8 +5,15 @@
 #include "ResourceMap.h"
 #include "AppState.h"
 #include "ResourceContainer.h"
+#include "RasterOperations.h"
+#include "format.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
+
+std::wstring ToString(const RasterChangeHint& q)
+{
+    return fmt::format(L"RasterChangeHint:{0:08x}", (int)q);
+}
 
 namespace UnitTests
 {		
@@ -15,16 +22,11 @@ namespace UnitTests
     public:
         TEST_CLASS_INITIALIZE(ClassSetup)
         {
-            appState = new AppState(nullptr);
-            std::string gameFolder = "E:\\Documents\\Visual Studio 2013\\Projects\\SCICompanion\\Debug\\TemplateGame";
-            appState->GetResourceMap().SetGameFolder(gameFolder);
         }
 
         TEST_CLASS_CLEANUP(ClassCleanup)
         {
-            delete appState;
         }
-        
 
         TEST_METHOD(TestCreateDefaultResources)
         {
@@ -32,13 +34,30 @@ namespace UnitTests
             ResourceEntity *pTest = CreateDefaultViewResource(sciVersion0);
         }
 
-        TEST_METHOD(TestLoadResources)
+        TEST_METHOD(TestViewMirror)
         {
-            for (auto &blob : *appState->GetResourceMap().Resources(ResourceTypeFlags::View, ResourceEnumFlags::MostRecentOnly))
-            {
-                ResourceEntity *pTest = CreateViewResource(sciVersion0);
-                Assert::IsTrue(SUCCEEDED(pTest->InitFromResource(blob.get())), L"Failed to load resource.");
-            }
+            RasterChange change;
+            ResourceEntity *pTest = CreateDefaultViewResource(sciVersion0);
+            Assert::IsNotNull(pTest);
+            RasterComponent *raster = pTest->TryGetComponent<RasterComponent>();
+            Assert::IsNotNull(raster);
+            // Insert second loop:
+            change = InsertLoop(*raster, 0, false);
+            Assert::AreEqual(change.hint, RasterChangeHint::NewView);
+            // Make it a mirror of the first:
+            change = MakeMirrorOf(*raster, 1, 0);
+            Assert::AreEqual(change.hint, RasterChangeHint::NewView);
+            Loop &loopOrig = raster->Loops[0];
+            Assert::IsFalse(loopOrig.IsMirror);
+            Assert::AreEqual(loopOrig.MirrorOf, (uint8_t)0xff);
+            Loop &loopMirror = raster->Loops[1];
+            Assert::IsTrue(loopMirror.IsMirror);
+            Assert::AreEqual(loopMirror.MirrorOf, (uint8_t)0);
+            // Un-mirror it
+            change = MakeMirrorOf(*raster, 1, -1);
+            Assert::AreEqual(change.hint, RasterChangeHint::NewView);
+            Assert::IsTrue(!loopMirror.IsMirror);
+            Assert::AreEqual(loopMirror.MirrorOf, (uint8_t)0xff);
         }
 
 	};

@@ -132,23 +132,6 @@ void NewGameDialog::OnBnClickedOk()
             fContinue = false;
             templateFolder += "\\*";
             fContinue = CopyFilesOver(GetSafeHwnd(), templateFolder, szPath);
-
-            /*
-            char sz[MAX_PATH];
-            StringCchCopy(sz, ARRAYSIZE(sz), templateFolder.c_str());
-            size_t iDblNullTerm = strlen(sz) + 1;
-            if (iDblNullTerm < ARRAYSIZE(sz))
-            {
-                sz[iDblNullTerm] = 0; // pFrom needs to have double null terminate...
-                // 2) copy the files over.
-                SHFILEOPSTRUCT fileOp = { 0 };
-                fileOp.hwnd = GetSafeHwnd();
-                fileOp.wFunc = FO_COPY;
-                fileOp.pFrom = sz;
-                fileOp.pTo = szPath;
-                fileOp.fFlags = FOF_NOCONFIRMMKDIR | FOF_NOCOPYSECURITYATTRIBS;
-                fContinue = (SHFileOperation(&fileOp) == 0);
-            }*/
         }
     }
 

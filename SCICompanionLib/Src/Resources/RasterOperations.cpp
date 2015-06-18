@@ -429,8 +429,8 @@ RasterChange MakeMirrorOf(RasterComponent &raster, int nLoop, int nOriginal)
         Loop &loop = raster.Loops[nLoop];
         if (nOriginal == -1)
         {
-            // This is all there is to do.
             loop.IsMirror = false;
+            loop.MirrorOf = 0xff;
         }
         else
         {

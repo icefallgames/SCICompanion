@@ -527,6 +527,21 @@ bool Save8BitBmp(const std::string &filename, const BITMAPINFO &info, BYTE *pBit
     }
     return false;
 }
+ 
+std::string GetRandomTempFolder()
+{ 
+    std::string final;
+    char szTempPath[MAX_PATH];
+    GetTempPath(ARRAYSIZE(szTempPath), szTempPath);
+    char szPath[MAX_PATH];
+    GetTempFileName(szTempPath, "SCI", 0, szPath);
+    DeleteFile(szPath);
+    if (CreateDirectory(szPath, nullptr))
+    {
+        final = szPath;
+    }
+    return final;
+}
 
 std::string GetBinaryDataVisualization(const uint8_t *data, size_t length, int columns)
 {
