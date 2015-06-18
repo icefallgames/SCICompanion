@@ -165,6 +165,7 @@
 
 (define evMOUSEKEYBOARD				$0005) // Mouse/Keyboard event
 (define evALL_EVENTS				$7FFF) // All events
+(define evPEEK						$8000)
 
 // Event messages
 //   These are the  set bits, you must and the  

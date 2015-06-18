@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "AppState.h"
+#include "ScriptOM.h"
 #include "NewCompileDialog.h"
 #include "ScriptDocument.h"
 

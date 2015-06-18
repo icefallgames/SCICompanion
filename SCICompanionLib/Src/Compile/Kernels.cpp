@@ -5,9 +5,9 @@
 #include "SyntaxParser.h"
 #include "CrystalScriptStream.h"
 #include "AppState.h"
+#include <unordered_map>
 #include "CompileContext.h"
 #include "SCO.h"
-#include <unordered_map>
 #include "ResourceEntity.h"
 
 sci::Script g_kernelScript;

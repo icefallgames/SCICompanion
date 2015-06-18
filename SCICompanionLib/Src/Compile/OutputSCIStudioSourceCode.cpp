@@ -38,7 +38,11 @@ public:
         ScriptId scriptId = script.GetScriptId();
         if (scriptId.GetResourceNumber() == InvalidResourceNumber)
         {
-            out.out << "(script " << script.GetScriptNumberDefine() << ")" << out.NewLineString();
+            if (!script.GetScriptNumberDefine().empty())
+            {
+                out.out << "(script " << script.GetScriptNumberDefine() << ")" << out.NewLineString();
+            }
+            // else, this is a legit (e.g. for outputting header files)
         }
         else
         {

@@ -1490,14 +1490,28 @@ BOOL CScriptView::GetHeaderFile(CPoint pt, CString &strHeader)
 		    iPos ++;
 	    }
 
-        int iRet = CompareString(LOCALE_USER_DEFAULT, NORM_IGNORECASE, &pszChars[iPos], 4, TEXT(".sh\""), 4);
-        if (iRet && (0 == iRet - 2))
+        if (pszChars[iPos] == '.')
         {
-            // We have a header file.
-            TCHAR szBuf[MAX_PATH];
-            StringCchCopyN(szBuf, ARRAYSIZE(szBuf), &pszChars[iPosStart], iPos - iPosStart + 3);
-            strHeader = szBuf;
-            fRet = TRUE;
+            iPos++;
+            // Go until not alnum
+            while (iPos < nLength)
+            {
+                if (!isalnum(pszChars[iPos]) && pszChars[iPos] != _T('_'))
+                {
+                    break;
+                }
+                iPos++;
+            }
+
+            std::string potentialHeaderName(&pszChars[iPosStart], iPos - iPosStart);
+            if (IsCodeFile(potentialHeaderName))
+            {
+                // We have a header file.
+                TCHAR szBuf[MAX_PATH];
+                StringCchCopyN(szBuf, ARRAYSIZE(szBuf), &pszChars[iPosStart], iPos - iPosStart);
+                strHeader = szBuf;
+                fRet = TRUE;
+            }
         }
     }
     return fRet;

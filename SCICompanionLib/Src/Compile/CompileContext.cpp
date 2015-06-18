@@ -1159,11 +1159,6 @@ const vector<WORD> &CompileContext::GetRelocations()
 
 PrecompiledHeaders::PrecompiledHeaders(CResourceMap &resourceMap) : _resourceMap(resourceMap), _fValid(false), _versionCompiled(resourceMap.Helper().Version) {}
 
-PrecompiledHeaders::~PrecompiledHeaders()
-{
-    for_each(_allHeaders.begin(), _allHeaders.end(), delete_map_value());
-}
-
 std::vector<std::string> g_defaultCPPHeaders;
 std::vector<std::string> g_defaultSCIStudioHeaders;
 std::vector<std::string> &GetDefaultHeaders(Script &script)
@@ -1185,7 +1180,6 @@ std::vector<std::string> &GetDefaultHeaders(Script &script)
     }
 }
 
-
 void PrecompiledHeaders::Update(CompileContext &context, Script &script)
 {
     assert(context.GetVersion() == _versionCompiled);
@@ -1198,6 +1192,7 @@ void PrecompiledHeaders::Update(CompileContext &context, Script &script)
     set<string> headerScanList;
     headerScanList.insert(GetDefaultHeaders(script).begin(), GetDefaultHeaders(script).end());
     headerScanList.insert(script.GetIncludes().begin(), script.GetIncludes().end());
+    set<string> nonHeadersEncountered;
     // Now also include any headers that *those* headers include.  To do so, we'll need to parse
     // the header - ideally we can use the pre-parsed versions.
     bool fDone = false;
@@ -1211,41 +1206,53 @@ void PrecompiledHeaders::Update(CompileContext &context, Script &script)
             header_map::iterator oldHeader = _allHeaders.find(*curHeaderIt);
             if (oldHeader == _allHeaders.end())
             {
-                // It's a header we have not yet encountered. Parse it.
-                ScriptId scriptId(_resourceMap.GetIncludePath(*curHeaderIt));
-                CCrystalTextBuffer buffer;
-                if (buffer.LoadFromFile(scriptId.GetFullPath().c_str()))
+                auto encounteredIt = nonHeadersEncountered.find(*curHeaderIt);
+                if (encounteredIt == nonHeadersEncountered.end())
                 {
-                    CScriptStreamLimiter limiter(&buffer);
-                    CCrystalScriptStream stream(&limiter);
-
-                    unique_ptr<Script> pNewHeader = std::make_unique<Script>(scriptId);
-                    if (g_Parser.Parse(*pNewHeader, stream, PreProcessorDefinesFromSCIVersion(context.GetVersion()),  &context))
+                    // It's a header we have not yet encountered. Parse it.
+                    ScriptId scriptId(_resourceMap.GetIncludePath(*curHeaderIt));
+                    CCrystalTextBuffer buffer;
+                    if (buffer.LoadFromFile(scriptId.GetFullPath().c_str()))
                     {
-                        // Look for any includes in here, and add them to our set.
-                        newHeaders.insert(pNewHeader->GetIncludes().begin(), pNewHeader->GetIncludes().end());
-                        // And now that we've parsed something, add it to the master list
-                        _allHeaders[*curHeaderIt] = pNewHeader.get();
-                        pNewHeader.release(); // Transfer ownership to _allHeaders
+                        CScriptStreamLimiter limiter(&buffer);
+                        CCrystalScriptStream stream(&limiter);
+
+                        unique_ptr<Script> pNewHeader = std::make_unique<Script>(scriptId);
+                        if (g_Parser.Parse(*pNewHeader, stream, PreProcessorDefinesFromSCIVersion(context.GetVersion()), &context))
+                        {
+                            if (pNewHeader->IsHeader())
+                            {
+                                // Look for any includes in here, and add them to our set.
+                                newHeaders.insert(pNewHeader->GetIncludes().begin(), pNewHeader->GetIncludes().end());
+                                // And now that we've parsed something, add it to the master list
+                                _allHeaders[*curHeaderIt] = move(pNewHeader);
+                            }
+                            else
+                            {
+                                // This is an include which is not a header. Merge it into our Script
+                                MergeScripts(script, *pNewHeader);
+                                nonHeadersEncountered.insert(*curHeaderIt);
+                            }
+                        }
+                        else
+                        {
+                            std::stringstream ss;
+                            ss << "Parsing errors while loading " << scriptId.GetFullPath() << ".";
+                            context.ReportResult(CompileResult(ss.str(), CompileResult::CRT_Error));
+                        }
+                        buffer.FreeAll();
                     }
                     else
                     {
                         std::stringstream ss;
-                        ss << "Parsing errors while loading " << scriptId.GetFullPath() << ".";
+                        ss << "Unable to load " << scriptId.GetFullPath() << ".";
                         context.ReportResult(CompileResult(ss.str(), CompileResult::CRT_Error));
                     }
-                    buffer.FreeAll();
-                }
-                else
-                {
-                    std::stringstream ss;
-                    ss << "Unable to load " << scriptId.GetFullPath() << ".";
-                    context.ReportResult(CompileResult(ss.str(), CompileResult::CRT_Error));
                 }
             }
             else
             {
-                Script *pOldHeader = oldHeader->second;
+                Script *pOldHeader = oldHeader->second.get();
                 newHeaders.insert(pOldHeader->GetIncludes().begin(), pOldHeader->GetIncludes().end());
             }
         }
@@ -1274,7 +1281,7 @@ void PrecompiledHeaders::Update(CompileContext &context, Script &script)
             header_map::iterator headerIt = _allHeaders.find(*nameIt);
             if (headerIt != _allHeaders.end())
             {
-                Script *pHeaderScript = headerIt->second;
+                Script *pHeaderScript = headerIt->second.get();
 
                 // Get the script for this.  We know it exists, so no need to check for failure
                 Script *pOldError = context.SetErrorContext(pHeaderScript);    // All errors henceforth are in this header.
@@ -1388,4 +1395,14 @@ void GenericOutputByteCode::operator()(const IOutputByteCode* proc)
 	_results.push_back(proc->OutputByteCode(_context));
 }
 
-
+// This merges scriptToBeMerged into mainScript.
+// Note: The items merged from scriptToBeMerged are removed from it.
+void MergeScripts(sci::Script &mainScript, sci::Script &scriptToBeMerged)
+{
+    // For now, just support procedures
+    auto &procs = scriptToBeMerged.GetProceduresNC();
+    for (auto &proc : procs)
+    {
+        mainScript.AddProcedure(move(proc));
+    }
+}

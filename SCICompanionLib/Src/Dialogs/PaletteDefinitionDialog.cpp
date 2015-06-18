@@ -2,7 +2,7 @@
 //
 
 #include "stdafx.h"
-#include "AppState.h"
+#include "Resource.h"
 #include "ChooseColorDialog.h"
 #include "PaletteDefinitionDialog.h"
 #include "ChooseColorAdvancedDialog.h"

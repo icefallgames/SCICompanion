@@ -352,8 +352,8 @@ void CPicDoc::CreatePolygon()
 {
     if (_polygonSource)
     {
-        _polygonSource->Polygons.emplace_back();
-        _currentPolyIndex = (int)(_polygonSource->Polygons.size() - 1);
+        _polygonSource->AppendPolygon();
+        _currentPolyIndex = (int)(_polygonSource->Polygons().size() - 1);
         UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::PolygonChoice));
     }
 }
@@ -402,5 +402,12 @@ PicDrawManager &CPicDoc::GetDrawManager()
     return _pdm;
 };
 
+void CPicDoc::PostSuccessfulSave(const ResourceEntity *pResource)
+{
+    if (_polygonSource)
+    {
+        _polygonSource->Commit();
+    }
+}
 
 // CPicDoc commands

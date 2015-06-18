@@ -18,7 +18,9 @@ namespace sci
     {
         DECLARE_NODE_TYPE(NodeTypeSendParam)
     public:
-        SendParam() : StatementsNode(), NamedNode(){ _fIsMethodCall = false; }
+        SendParam(const std::string &name, bool isMethodCall) : StatementsNode(), NamedNode(){ _fIsMethodCall = isMethodCall; _innerName = name; }
+        SendParam(const std::string &name) : SendParam(name, false) {}
+        SendParam() : SendParam("") {}
 
 		SendParam(const SendParam &src) = delete;
 		SendParam& operator=(const SendParam& src) = delete;

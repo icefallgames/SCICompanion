@@ -538,7 +538,7 @@ BEGIN
         END
         MENUITEM "Go to definition",            33021
         MENUITEM SEPARATOR
-        MENUITEM "Goto",                        32865
+        MENUITEM "Goto",                        ID_GOTOSCRIPT
     END
 END
 

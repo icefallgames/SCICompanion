@@ -566,6 +566,7 @@ uint32_t GetResourceOffsetInFile(uint8_t secondHeaderByte);
 extern const TCHAR g_szResourceSpec[];
 std::string GetMessageFromLastError(const std::string &details);
 void ToUpper(std::string &aString);
+bool IsCodeFile(const std::string &text);
 
 class ResourceEntity;
 struct Cel;

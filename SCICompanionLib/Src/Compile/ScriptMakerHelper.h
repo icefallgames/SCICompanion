@@ -25,3 +25,6 @@ void _AddBasicSwitch(sci::MethodDefinition &method, const std::string &switchVal
 void _AddSendCall(sci::MethodDefinition &method, const std::string &objectName, const std::string &methodName, const std::string &parameter, bool isVariable = false);
 
 void _SetSendVariableTarget(sci::SendCall &send, const std::string &target);
+
+std::unique_ptr<sci::SingleStatement> _MakeTokenStatement(const std::string &token);
+std::unique_ptr<sci::SingleStatement> _MakeNumberStatement(int16_t w);

@@ -15,6 +15,7 @@ static const DWORD SCIResourceBitmapMarker = (('S' << 24) + ('C' << 16) + ('I' <
 // Common way to talk about resource map entries that is SCI version agnostic.
 struct ResourceMapEntryAgnostic
 {
+    ResourceMapEntryAgnostic() : Number(0), Type(ResourceType::None), PackageNumber(0), Offset(0), ExtraData(0) {}
     uint16_t Number;            // e.g. 0-999
     ResourceType Type;          // (0 to x) e.g. PIC == 1
     uint8_t PackageNumber;      // Specifies which resource.xxx to use.

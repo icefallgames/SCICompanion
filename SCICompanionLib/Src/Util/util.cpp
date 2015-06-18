@@ -592,13 +592,33 @@ std::string ScriptId::GetFullPath() const
 bool ScriptId::IsHeader() const
 {
     return (strcmp(TEXT(".sh"), PathFindExtension(_strFileName.c_str())) == 0) ||
-        (strcmp(TEXT(".shp"), PathFindExtension(_strFileName.c_str())) == 0) ||
         (strcmp(TEXT(".shm"), PathFindExtension(_strFileName.c_str())) == 0);
 }
+
+PCSTR g_codeFileEndings[] =
+{
+    ".sh",
+    ".sc",
+    ".shm",
+    ".shp",
+};
+
+bool IsCodeFile(const std::string &text)
+{
+    for (PCSTR ending : g_codeFileEndings)
+    {
+        if (lstrcmpi(ending, PathFindExtension(text.c_str())) == 0)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 LangSyntax ScriptId::Language() const
 {
-    if ((0 == strcmp(".scp", PathFindExtension(_strFileName.c_str()))) ||
-        (0 == strcmp(".shp", PathFindExtension(_strFileName.c_str()))))
+    if ((0 == strcmp(".scp", PathFindExtension(_strFileName.c_str()))))
+       // (0 == strcmp(".shp", PathFindExtension(_strFileName.c_str()))))
     {
         return LangSyntaxCpp;
     }

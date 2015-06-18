@@ -93,10 +93,14 @@ unique_ptr<SingleStatement> _MakeTokenStatement(const string &token)
 	return temp;
 }
 
-unique_ptr<SingleStatement> _MakeNumberStatement(WORD w)
+unique_ptr<SingleStatement> _MakeNumberStatement(int16_t w)
 {
 	unique_ptr<ComplexPropertyValue> pValue = std::make_unique<ComplexPropertyValue>();
-    pValue->SetValue(w);
+    pValue->SetValue((uint16_t)w);
+    if (w < 0)
+    {
+        pValue->Negate();
+    }
 	unique_ptr<SingleStatement> temp = make_unique<SingleStatement>();
 	temp->SetSyntaxNode(move(pValue));
 	return temp;

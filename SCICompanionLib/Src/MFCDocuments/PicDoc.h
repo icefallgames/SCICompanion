@@ -116,7 +116,7 @@ public:
 
     void InformBitmapEditor(PicChangeHint hint, IBitmapEditor *pObj);
 
-
+    void PostSuccessfulSave(const ResourceEntity *pResource) override;
 
 protected:
     virtual ResourceType _GetType() const { return ResourceType::Pic; }

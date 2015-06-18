@@ -185,6 +185,25 @@ void CScriptDocument::OnCompile()
     }
 }
 
+std::unique_ptr<sci::Script> SimpleCompile(CompileLog &log, ScriptId &scriptId)
+{
+    std::unique_ptr<sci::Script> script = make_unique<sci::Script>();
+    // Make a new buffer.
+    CCrystalTextBuffer buffer;
+    if (buffer.LoadFromFile(scriptId.GetFullPath().c_str()))
+    {
+        CScriptStreamLimiter limiter(&buffer);
+        CCrystalScriptStream stream(&limiter);
+        if (g_Parser.Parse(*script, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log))
+        {
+
+        }
+    }
+    log.CalculateErrors();
+    buffer.FreeAll();
+    return script;
+}
+
 bool NewCompileScript(CompileLog &log, CompileTables &tables, PrecompiledHeaders &headers, ScriptId &script)
 {
     bool fRet = false;
@@ -616,6 +635,7 @@ void CScriptDocument::Serialize(CArchive& ar)
 bool IsReadOnly(LPCTSTR pathName)
 {
     return (0 == lstrcmp(PathFindExtension(pathName), ".shm")) ||
+        (0 == lstrcmp(PathFindExtension(pathName), ".shp")) ||
         (0 == lstrcmpi(PathFindFileName(pathName), "Verbs.sh")) ||
         (0 == lstrcmpi(PathFindFileName(pathName), "Talkers.sh"));
 }

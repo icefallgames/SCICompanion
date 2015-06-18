@@ -38,10 +38,10 @@ namespace sci
 class CResourceMap;
 class IOutputByteCode;
 class CompileTables;
-class PrecompiledHeaders;
 class ICompileLog;
 class SCIClassBrowser;
 class ISourceCodePosition;
+class CompileContext;
 
 typedef std::unordered_map<std::string, sci::Define*> defines_map;
 typedef std::multimap<std::string, code_pos> ref_multimap;
@@ -49,8 +49,52 @@ typedef std::map<std::string, const ISourceCodePosition*> stringcode_map; // Str
 typedef std::pair<code_pos, WORD> call_pair;
 typedef std::multimap<std::string, call_pair> ref_and_index_multimap;
 
+//
+// Maintains a set of pre-compiled headers across compilations
+// For each script that is comiled, call Update.  That will ensure the defines
+// returned by GetDefines() are appropriate.
+//
+class PrecompiledHeaders
+{
+public:
+    PrecompiledHeaders(CResourceMap &resourceMap);
+    PrecompiledHeaders(const PrecompiledHeaders &src) = delete;
+    PrecompiledHeaders operator=(const PrecompiledHeaders &src) = delete;
+    ~PrecompiledHeaders() = default;
+
+    // Call this each time you compile a new script
+    void Update(CompileContext &context, sci::Script &script);
+
+    bool LookupDefine(const std::string &str, WORD &wValue);
+private:
+    typedef std::unordered_map<std::string, sci::Define*> defines_map;
+    typedef std::unordered_map<std::string, std::unique_ptr<sci::Script>> header_map;
+
+    // Filename (not full path) which maps a header to its Script object.
+    header_map _allHeaders;
+
+    // A set of the names of all the last script's header includes.
+    std::set<std::string> _curHeaderList;
+
+    // The define hashtable which corresponds to the _curHeaderList
+    // Someone else has ownership of these defines.
+    defines_map _defines;
+
+    // Whether or not the _defines table is valid
+    bool _fValid;
+    CResourceMap &_resourceMap;
+    SCIVersion _versionCompiled;
+};
+
+
 class CompileContext : public ICompileLog
 {
+public:
+    CompileContext(SCIVersion version, sci::Script &script, PrecompiledHeaders &headers, CompileTables &tables, ICompileLog &results);
+    CompileContext(const CompileContext &src) = delete;
+    CompileContext operator=(const CompileContext &src) = delete;
+    ~CompileContext() = default;
+
 private:
     SCIClassBrowser &_browser;
     CResourceMap &_resourceMap;
@@ -79,7 +123,6 @@ private:
     void _LoadSCOIfNone(WORD wScript);
 
 public:
-    CompileContext(SCIVersion version, sci::Script &script, PrecompiledHeaders &headers, CompileTables &tables, ICompileLog &results);
     LangSyntax GetLanguage();
     OutputContext GetOutputContext();
     WORD GetScriptNumber();
@@ -444,45 +487,11 @@ private:
 
 
 //
-// Maintains a set of pre-compiled headers across compilations
-// For each script that is comiled, call Update.  That will ensure the defines
-// returned by GetDefines() are appropriate.
-//
-class PrecompiledHeaders
-{
-public:
-    PrecompiledHeaders(CResourceMap &resourceMap);
-    ~PrecompiledHeaders();
-    // Call this each time you compile a new script
-    void Update(CompileContext &context, sci::Script &script);
-
-    bool LookupDefine(const std::string &str, WORD &wValue);
-private:
-    typedef std::unordered_map<std::string, sci::Define*> defines_map;
-	typedef std::unordered_map<std::string, sci::Script* > header_map;
-
-    // Filename (not full path) which maps a header to its Script object.
-    header_map _allHeaders; 
-
-    // A set of the names of all the last script's header includes.
-    std::set<std::string> _curHeaderList;   
-
-    // The define hashtable which corresponds to the _curHeaderList
-    // Someone else has ownership of these defines.
-    defines_map _defines;
-
-    // Whether or not the _defines table is valid
-    bool _fValid;
-    CResourceMap &_resourceMap;
-    SCIVersion _versionCompiled;
-};  
-
-//
 // The be-all end-all function for compiling a script.
 // Returns true if there were no errors.
 //
 bool GenerateScriptResource(SCIVersion version, sci::Script &script, PrecompiledHeaders &headers, CompileTables &tables, CompileResults &results);
-
 void ErrorHelper(CompileContext &context, const ISourceCodePosition *pPos, const std::string &text, const std::string &identifier);
-
 bool NewCompileScript(CompileLog &log, CompileTables &tables, PrecompiledHeaders &headers, ScriptId &script);
+std::unique_ptr<sci::Script> SimpleCompile(CompileLog &log, ScriptId &scriptId);
+void MergeScripts(sci::Script &mainScript, sci::Script &scriptToBeMerged);

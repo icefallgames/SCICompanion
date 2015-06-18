@@ -372,7 +372,7 @@ public:
             uint32_t resourceOffset = volumeWriteStreams[header.PackageHint].tellp();
 
             // Write the map entry
-            ResourceMapEntryAgnostic newMapEntry = { 0 };
+            ResourceMapEntryAgnostic newMapEntry;
             newMapEntry.Number = (uint16_t)header.Number;
             newMapEntry.Type = header.Type;
             newMapEntry.PackageNumber = (uint8_t)header.PackageHint;

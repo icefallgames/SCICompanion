@@ -1794,14 +1794,14 @@ void CPicView::_DrawEgoCoordinates(CDC *pDC)
 void CPicView::_DrawPolygons(CDC *pDC)
 {
     // For now, just the current one
-    SCIPolygon *polygon = _GetCurrentPolygon();
+    const SCIPolygon *polygon = _GetCurrentPolygon();
     if (polygon)
     {
         CPen penPoly(PS_SOLID, 1, RGB(255, 255, 255));
         HGDIOBJ hOldPen = pDC->SelectObject(penPoly);
 
         std::vector<POINT> points;
-        for (point16 point : polygon->Points)
+        for (point16 point : polygon->Points())
         {
             points.push_back({ point.x, point.y});
         }
@@ -2797,9 +2797,9 @@ SCIPolygon *CPicView::_GetCurrentPolygon()
     if (GetDocument())
     {
         PolygonSource *source = GetDocument()->GetPolygonSource();
-        if (source && (_currentPolyIndexInEdit >= 0) && (_currentPolyIndexInEdit < (int)source->Polygons.size()))
+        if (source && (_currentPolyIndexInEdit >= 0))
         {
-            polygon = &source->Polygons[_currentPolyIndexInEdit];
+            polygon = source->GetAt(_currentPolyIndexInEdit);
         }
     }
     return polygon;
@@ -2821,7 +2821,7 @@ void CPicView::_OnPolygonLClick(CPoint point)
             SCIPolygon *polygon = _GetCurrentPolygon();
             if (polygon)
             {
-                polygon->Points.push_back(CPointToPoint(point));
+                polygon->AppendPoint(CPointToPoint(point));
                 InvalidateOurselves();
             }
         }
@@ -2832,7 +2832,7 @@ void CPicView::_OnPolygonLClick(CPoint point)
         SCIPolygon *polygon = _GetCurrentPolygon();
         if (polygon)
         {
-            polygon->Points.push_back(CPointToPoint(point));
+            polygon->AppendPoint(CPointToPoint(point));
             InvalidateOurselves();
         }
     }
@@ -2840,21 +2840,9 @@ void CPicView::_OnPolygonLClick(CPoint point)
 
 void CPicView::_OnPolygonRClick(CPoint point)
 {
-    SCIPolygon *polygon = _GetCurrentPolygon();
-    if (polygon)
-    {
-        // No longer in edit:
-        _currentPolyIndexInEdit = -1;
-        if (GetDocument())
-        {
-            PolygonSource *source = GetDocument()->GetPolygonSource();
-            if (source)
-            {
-                source->Commit();
-                InvalidateOurselves();
-            }
-        }
-    }
+    // No longer in edit:
+    _currentPolyIndexInEdit = -1;
+    InvalidateOurselves();
 }
 
 void CPicView::_OnPolyMouseMove(CPoint point)

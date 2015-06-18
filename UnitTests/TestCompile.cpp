@@ -2,6 +2,7 @@
 #include "CppUnitTest.h"
 #include "ResourceMap.h"
 #include "AppState.h"
+#include "ScriptOM.h"
 #include "CompileContext.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;

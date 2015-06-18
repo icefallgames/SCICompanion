@@ -1,6 +1,5 @@
 #pragma once
 
-#include "CompileContext.h"
 #include "ExtractAll.h"
 
 // CCompileDialog dialog

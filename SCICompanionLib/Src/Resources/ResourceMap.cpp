@@ -696,6 +696,10 @@ std::string CResourceMap::GetIncludePath(const std::string &includeFileName)
     {
         return Helper().GetMsgFolder() + "\\" + includeFileName;
     }
+    else if (hasEnding(includeFileName, ".shp"))
+    {
+        return Helper().GetPolyFolder() + "\\" + includeFileName;
+    }
     else
     {
         std::string includeFolder = GetIncludeFolder();
