@@ -443,12 +443,19 @@ void RasterSidePane::_OnEditSize(UINT nID, CWnd *pwnd)
             case IDC_EDIT_CELX:
             case IDC_EDIT_CELY:
                 if (((point.x != iNew) && (nID == IDC_EDIT_CELX)) ||
-                    ((point.y != iNew) && (nID == IDC_EDIT_CELX)))
+                    ((point.y != iNew) && (nID == IDC_EDIT_CELY)))
                 {
                     pred->ApplyChanges<RasterComponent>(
                         [&](RasterComponent &raster)
                     {
-                        return WrapRasterChange(SetGroupPlacement(raster, cCels, rgdwIndices, (int16_t)iNew, (int16_t)point.y));
+                        if (nID == IDC_EDIT_CELY)
+                        {
+                            return WrapRasterChange(SetGroupPlacement(raster, cCels, rgdwIndices, (int16_t)point.x, (int16_t)iNew));
+                        }
+                        else
+                        {
+                            return WrapRasterChange(SetGroupPlacement(raster, cCels, rgdwIndices, (int16_t)iNew, (int16_t)point.y));
+                        }
                     }
                     );
                 }
