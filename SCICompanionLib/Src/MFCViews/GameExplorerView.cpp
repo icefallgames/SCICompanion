@@ -32,13 +32,14 @@
 #define new DEBUG_NEW
 #endif
 
-typedef void(* PFNRESOURCEOPEN )(const ResourceBlob *pData);
-void g_OpenScript(const ResourceBlob *pData)
+typedef CDocument*(* PFNRESOURCEOPEN )(const ResourceBlob *pData);
+CDocument* g_OpenScript(const ResourceBlob *pData)
 {
     appState->OpenScript(pData->GetName(), pData);
+    return nullptr;
 }
 
-void g_OpenView(const ResourceBlob *pData)
+CDocument* g_OpenView(const ResourceBlob *pData)
 {
     CMultiDocTemplate *pTemplate = appState->GetViewTemplate();
     if (pTemplate)
@@ -48,11 +49,13 @@ void g_OpenView(const ResourceBlob *pData)
         {
             unique_ptr<ResourceEntity> resource = CreateResourceFromResourceData(*pData);
             pDocument->SetResource(move(resource), pData->GetChecksum());
+            return pDocument;
         }
     }
+    return nullptr;
 }
 
-void g_OpenText(const ResourceBlob *pData)
+CDocument* g_OpenText(const ResourceBlob *pData)
 {
     // Create the text
     CMultiDocTemplate *pTemplate = appState->GetTextTemplate();
@@ -63,11 +66,13 @@ void g_OpenText(const ResourceBlob *pData)
         {
             unique_ptr<ResourceEntity> resource = CreateResourceFromResourceData(*pData);
             pDocument->SetTextResource(move(resource), pData->GetChecksum());
+            return pDocument;
         }
     }
+    return nullptr;
 }
 
-void g_OpenSound(const ResourceBlob *pData)
+CDocument* g_OpenSound(const ResourceBlob *pData)
 {
     // Create the text
     CMultiDocTemplate *pTemplate = appState->GetSoundTemplate();
@@ -78,11 +83,13 @@ void g_OpenSound(const ResourceBlob *pData)
         {
             unique_ptr<ResourceEntity> resource = CreateResourceFromResourceData(*pData);
             pDocument->SetSoundResource(move(resource), pData->GetChecksum());
+            return pDocument;
         }
     }
+    return nullptr;
 }
 
-void g_OpenVocab(const ResourceBlob *pData)
+CDocument* g_OpenVocab(const ResourceBlob *pData)
 {
     if (pData->GetNumber() == pData->GetVersion().MainVocabResource)
     {
@@ -95,6 +102,7 @@ void g_OpenVocab(const ResourceBlob *pData)
             {
                 unique_ptr<ResourceEntity> resource = CreateResourceFromResourceData(*pData);
                 pDocument->SetVocabResource(move(resource), pData->GetChecksum());
+                return pDocument;
             }
         }
     }
@@ -102,10 +110,11 @@ void g_OpenVocab(const ResourceBlob *pData)
     {
         AfxMessageBox(TEXT("Only the main vocab resource (000 or 900, depending on the game) is editable."), MB_OK | MB_APPLMODAL);
     }
+    return nullptr;
 }
 
 
-void g_OpenFont(const ResourceBlob *pData)
+CDocument* g_OpenFont(const ResourceBlob *pData)
 {
     CMultiDocTemplate *pTemplate = appState->GetFontTemplate();
     if (pTemplate)
@@ -115,11 +124,13 @@ void g_OpenFont(const ResourceBlob *pData)
         {
             unique_ptr<ResourceEntity> resource = CreateResourceFromResourceData(*pData);
             pDocument->SetResource(move(resource), pData->GetChecksum());
+            return pDocument;
         }
     }
+    return nullptr;
 }
 
-void g_OpenPic(const ResourceBlob *pData)
+CDocument* g_OpenPic(const ResourceBlob *pData)
 {
     // Get the document template, so we can create a new CPicDoc.
     CDocTemplate *pDocTemplate = appState->GetPicTemplate();
@@ -131,11 +142,13 @@ void g_OpenPic(const ResourceBlob *pData)
         {
             unique_ptr<ResourceEntity> resource = CreateResourceFromResourceData(*pData);
             pDocument->SetEditPic(move(resource), pData->GetChecksum());
+            return pDocument;
         }
     }
+    return nullptr;
 }
 
-void g_OpenCursor(const ResourceBlob *pData)
+CDocument* g_OpenCursor(const ResourceBlob *pData)
 {
     CMultiDocTemplate *pTemplate = appState->GetCursorTemplate();
     if (pTemplate)
@@ -145,11 +158,13 @@ void g_OpenCursor(const ResourceBlob *pData)
         {
             unique_ptr<ResourceEntity> resource = CreateResourceFromResourceData(*pData);
             pDocument->SetResource(move(resource), pData->GetChecksum());
+            return pDocument;
         }
     }
+    return nullptr;
 }
 
-void g_OpenMessage(const ResourceBlob *pData)
+CDocument* g_OpenMessage(const ResourceBlob *pData)
 {
     // Create the text
     CMultiDocTemplate *pTemplate = appState->GetMessageTemplate();
@@ -160,11 +175,13 @@ void g_OpenMessage(const ResourceBlob *pData)
         {
             unique_ptr<ResourceEntity> resource = CreateResourceFromResourceData(*pData);
             pDocument->SetMessageResource(move(resource), pData->GetChecksum());
+            return pDocument;
         }
     }
+    return nullptr;
 }
 
-void g_OpenPalette(const ResourceBlob *pData)
+CDocument* g_OpenPalette(const ResourceBlob *pData)
 {
     CMultiDocTemplate *pTemplate = appState->GetPaletteTemplate();
     if (pTemplate)
@@ -174,11 +191,13 @@ void g_OpenPalette(const ResourceBlob *pData)
         {
             unique_ptr<ResourceEntity> resource = CreateResourceFromResourceData(*pData);
             pDocument->SetResource(move(resource), pData->GetChecksum());
+            return pDocument;
         }
     }
+    return nullptr;
 }
 
-void g_OpenAudio(const ResourceBlob *pData)
+CDocument* g_OpenAudio(const ResourceBlob *pData)
 {
     /*
     CMultiDocTemplate *pTemplate = appState->GetViewTemplate();
@@ -191,6 +210,7 @@ void g_OpenAudio(const ResourceBlob *pData)
             pDocument->SetResource(move(resource), pData->GetChecksum());
         }
     }*/
+    return nullptr;
 }
 
 
@@ -220,7 +240,7 @@ PFNRESOURCEOPEN g_openFunctions[] =
     nullptr,
 };
 
-BOOL OpenResource(const ResourceBlob *pData)
+BOOL OpenResource(const ResourceBlob *pData, bool setModified)
 {
     BOOL fRet = FALSE;
     ResourceType iType = pData->GetType();
@@ -229,7 +249,11 @@ BOOL OpenResource(const ResourceBlob *pData)
         PFNRESOURCEOPEN pfnOpen = g_openFunctions[(int)iType];
         if (pfnOpen)
         {
-            (*pfnOpen)(pData);
+            CDocument *newDoc = (*pfnOpen)(pData);
+            if (newDoc && setModified)
+            {
+                newDoc->SetModifiedFlag(TRUE);
+            }
             fRet = TRUE;
         }
         else

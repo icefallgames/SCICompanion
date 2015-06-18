@@ -1109,6 +1109,7 @@ void CMainFrame::OnFileNewPic()
             }
 
             pDocument->SetEditPic(move(pEditPic));
+            pDocument->SetModifiedFlag(TRUE);
         }
     }
 }
@@ -1124,15 +1125,16 @@ void CMainFrame::OnFileNewGame()
 #define DECLARE_NEWRESOURCE_AP2(__templateFunc, __documentClass, __resourceClass, __resourceCreate, __resourceSetter) \
     CDocTemplate *pDocTemplate = appState->__templateFunc(); \
     if (pDocTemplate) \
-        { \
+            { \
         HRESULT hr = S_OK; \
         __documentClass *pDocument = (__documentClass*)pDocTemplate->OpenDocumentFile(nullptr, TRUE); \
         if (pDocument) \
-                { \
+                        { \
             std::unique_ptr<__resourceClass> pEVR(__resourceCreate(appState->GetVersion())); \
             if (SUCCEEDED(hr) && pEVR) \
-                        { \
+                                    { \
                 pDocument->__resourceSetter(std::move(pEVR)); \
+                pDocument->SetModifiedFlag(TRUE); \
                         } \
                         else \
                         { \
@@ -1168,7 +1170,7 @@ void CMainFrame::OnFileNewPalette()
     ResourceBlob blob;
     if (SUCCEEDED(blob.CreateFromFile(nullptr, palettePath.c_str(), appState->GetVersion(), -1, -1)))
     {
-        OpenResource(&blob);
+        OpenResource(&blob, true);
     }
 }
 

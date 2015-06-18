@@ -557,7 +557,7 @@ public:
 };
 
 class ResourceBlob;
-BOOL OpenResource(const ResourceBlob *pData);
+BOOL OpenResource(const ResourceBlob *pData, bool setModifier = false);
 int ResourceNumberFromFileName(PCTSTR pszFileName);
 void deletefile(const std::string &filename);
 void movefile(const std::string &from, const std::string &to);

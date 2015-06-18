@@ -8,7 +8,7 @@
 class CResourceListDoc;
 class ResourceBlob;
 
-typedef void(* PFNRESOURCEOPEN )(const ResourceBlob *pData);
+typedef CDocument*(* PFNRESOURCEOPEN )(const ResourceBlob *pData);
 
 #define OVERLAYINDEX_UNUSED 1
 
