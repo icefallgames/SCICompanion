@@ -128,6 +128,9 @@ void CPositionSlider::UpdateNonView(CObject *pObject)
         {
             iPos = cCommands;
         }
+        // Even if the range changed, if the position doesn't change the slider won't update.
+        // So temporarily set it to zero, then to iPos.
+        SetPos(0);
         SetPos((int)iPos);
     }
 }
