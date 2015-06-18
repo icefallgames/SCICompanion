@@ -1188,6 +1188,8 @@ void CMainFrame::OnFileNewMessage()
 
     // Ask the user for resource number. We need this so we can support adding nouns and such.
     SaveResourceDialog saveResourceDialog;
+    int suggestedNumber = appState->GetResourceMap().SuggestResourceNumber(ResourceType::Message);
+    saveResourceDialog.Init(appState->GetVersion().DefaultVolumeFile, suggestedNumber);
     if (IDOK == saveResourceDialog.DoModal())
     {
         bool goAhead = true;
@@ -1210,6 +1212,7 @@ void CMainFrame::OnFileNewMessage()
                     if (pDocument)
                     {
                         pDocument->SetMessageResource(std::move(resource));
+                        appState->_resourceRecency.AddResourceToRecency(pDocument);
                     }
                 }
             }

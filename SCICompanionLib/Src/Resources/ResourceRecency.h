@@ -16,7 +16,7 @@ public:
     // We added a new resource to the view.
     // fAddToEnd: add to end (least recent).  Otherwise, it is added as the most recent.
     //
-    void AddResourceToRecency(const ResourceBlob *pData, BOOL fAddToEnd = FALSE);
+    void AddResourceToRecency(const IResourceIdentifier *pData, BOOL fAddToEnd = FALSE);
 
     //
     // Someone deleted a resource from the view.

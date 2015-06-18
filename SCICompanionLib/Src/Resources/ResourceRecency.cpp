@@ -16,7 +16,7 @@ bool contains(const _T &container, const _K &key)
     return container.find(key) != container.end();
 }
 
-void ResourceRecency::AddResourceToRecency(const ResourceBlob *pData, BOOL fAddToEnd)
+void ResourceRecency::AddResourceToRecency(const IResourceIdentifier *pData, BOOL fAddToEnd)
 {
     _idJustAdded = -1;
     int iKey = _GetLookupKey(pData);
