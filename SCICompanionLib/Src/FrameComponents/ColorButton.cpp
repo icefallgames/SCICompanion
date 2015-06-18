@@ -270,31 +270,36 @@ void CBrushButton::_OnDraw(HDC hdc, RECT *prc)
         // Ask the pattern to draw itself
         RECT rcLocal = *prc;
 
+        bool enabled = !!IsWindowEnabled();
+
         // Black border.
-        pDC->FillSolidRect(rcLocal.left, rcLocal.top, RECTWIDTH(rcLocal), RECTHEIGHT(rcLocal), RGB(0, 0, 0));
+        pDC->FillSolidRect(rcLocal.left, rcLocal.top, RECTWIDTH(rcLocal), RECTHEIGHT(rcLocal), enabled ? RGB(0, 0, 0) : RGB(196, 196, 196));
 
-        // Pen style is always black.
-        EGACOLOR color;
-        color.color1 = 0x0;
-        color.color2 = 0x0;
+        if (enabled)
+        {
+            // Pen style is always black.
+            EGACOLOR color;
+            color.color1 = 0x0;
+            color.color2 = 0x0;
 
-        InflateRect(&rcLocal, -1, -1); // Shink for the borders.
+            InflateRect(&rcLocal, -1, -1); // Shink for the borders.
 
-        int cMin = 16;
+            int cMin = 16;
 
-        SCIBitmapInfo bmi(cMin, cMin);
-        std::unique_ptr<BYTE[]> dataBrush = std::make_unique<BYTE[]>(cMin * cMin);
-        // Fill with white.
-        memset(dataBrush.get(), 0x0f, cMin * cMin);
+            SCIBitmapInfo bmi(cMin, cMin);
+            std::unique_ptr<BYTE[]> dataBrush = std::make_unique<BYTE[]>(cMin * cMin);
+            // Fill with white.
+            memset(dataBrush.get(), 0x0f, cMin * cMin);
 
-        // Fake a PicData to draw into, with a visual brush.
-        PicData data = { PicScreenFlags::Visual, dataBrush.get(), nullptr, nullptr, nullptr, false };
+            // Fake a PicData to draw into, with a visual brush.
+            PicData data = { PicScreenFlags::Visual, dataBrush.get(), nullptr, nullptr, nullptr, false };
 
-        DrawPatternInRect(cMin, cMin, &data, 8, 8, color, 0, 0, PicScreenFlags::Visual, &_penStyle);
+            DrawPatternInRect(cMin, cMin, &data, 8, 8, color, 0, 0, PicScreenFlags::Visual, &_penStyle);
 
-        int nOldMode = pDC->SetStretchBltMode(HALFTONE);
-        StretchDIBits((HDC)*pDC, rcLocal.left, rcLocal.top, RECTWIDTH(rcLocal), RECTHEIGHT(rcLocal),
-            0, 0, cMin, cMin, dataBrush.get(), &bmi, DIB_RGB_COLORS, SRCCOPY);                    
-        pDC->SetStretchBltMode(nOldMode);
+            int nOldMode = pDC->SetStretchBltMode(HALFTONE);
+            StretchDIBits((HDC)*pDC, rcLocal.left, rcLocal.top, RECTWIDTH(rcLocal), RECTHEIGHT(rcLocal),
+                0, 0, cMin, cMin, dataBrush.get(), &bmi, DIB_RGB_COLORS, SRCCOPY);
+            pDC->SetStretchBltMode(nOldMode);
+        }
     }
 }

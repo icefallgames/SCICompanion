@@ -45,6 +45,16 @@ void CVPCDialogBar::UpdateNonView(CObject *pObject)
 
         if (IsFlagSet(hint, PicChangeHint::EditPicPos | PicChangeHint::NewPic | PicChangeHint::EditPicInvalid))
         {
+            // Enable the pen chooser based on if this is a VGA pic or not.
+            const ResourceEntity *resource = _pDoc->GetResource();
+            bool penEnabled = false;
+            if (resource)
+            {
+                penEnabled = resource->GetComponent<PicComponent>().Traits.SupportsPenCommands;
+            }
+            m_wndPenSet.EnableWindow(penEnabled);
+            m_wndLabel.EnableWindow(penEnabled);
+
             // Update our buttons.
             // Get the information we need from the CPicDoc, and give it to the buttons.
 
