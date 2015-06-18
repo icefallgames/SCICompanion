@@ -1848,5 +1848,8 @@
     <Image Include="res\PolyPath.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="res\GameFolder.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

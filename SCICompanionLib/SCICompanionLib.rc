@@ -158,6 +158,7 @@ IDI_EYEDROPPER          ICON                    "res\\Eyedropper.ico"
 IDI_TRANSPARENCY        ICON                    "res\\Transparent.ico"
 IDI_AUDIO               ICON                    "res\\audio.ico"
 IDI_POLYPATH            ICON                    "res\\PolyPath.ico"
+IDI_OPENGAMEFOLDER      ICON                    "res\\GameFolder.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //

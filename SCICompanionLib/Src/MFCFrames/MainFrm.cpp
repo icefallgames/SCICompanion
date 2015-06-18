@@ -952,6 +952,7 @@ void CMainFrame::_PrepareScriptCommands()
     static const key_value_pair<UINT, int> c_scriptIcons[] =
     {
         { ID_COMPILEALL, IDI_COMPILEALL },
+        { ID_OPEN_EXPLORERWINDOW, IDI_OPENGAMEFOLDER },
         { ID_COMPILE, IDI_COMPILE },
         { ID_INSERTOBJECT, IDI_SCRIPT_INSERT_OBJECT },
         { ID_CONVERTSCRIPT, IDI_SCRIPT_CONVERT },

@@ -732,6 +732,7 @@
     <Image Include="res\flipvert.ico" />
     <Image Include="res\floodfill.ico" />
     <Image Include="res\font.ico" />
+    <Image Include="res\GameFolder.ico" />
     <Image Include="res\greyscal.ico" />
     <Image Include="res\greyscale.ico" />
     <Image Include="res\history1.ico" />
