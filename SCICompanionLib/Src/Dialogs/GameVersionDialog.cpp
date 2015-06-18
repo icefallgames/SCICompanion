@@ -5,6 +5,7 @@
 #include "AppState.h"
 #include "GameVersionDialog.h"
 #include "format.h"
+#include "ResourceContainer.h"
 using namespace fmt;
 
 // CGameVersionDialog dialog

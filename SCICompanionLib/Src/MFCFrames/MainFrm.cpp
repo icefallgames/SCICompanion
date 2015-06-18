@@ -41,6 +41,7 @@
 #include "format.h"
 #include "ExtractAllDialog.h"
 #include "DecompileDialog.h"
+#include "ResourceContainer.h"
 #include <regex>
 
 #ifdef _DEBUG

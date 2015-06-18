@@ -4,6 +4,7 @@
 #include "ResourceEntity.h"
 #include "ResourceMap.h"
 #include "AppState.h"
+#include "ResourceContainer.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 

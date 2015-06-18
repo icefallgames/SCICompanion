@@ -5,6 +5,7 @@
 #include "CompiledScript.h"
 #include "format.h"
 #include "GameFolderHelper.h"
+#include "ResourceContainer.h"
 
 const static int VocabClassTable = 996;
 const static int VocabSelectorNames = 997;

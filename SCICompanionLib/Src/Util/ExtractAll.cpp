@@ -10,6 +10,7 @@
 #include "CompiledScript.h"
 #include "Disassembler.h"
 #include "Vocab000.h"
+#include "ResourceContainer.h"
 
 void ExtractAllResources(SCIVersion version, const std::string &destinationFolderIn, bool extractPicImages, bool extractViewImages, bool disassembleScripts, IExtractProgress *progress)
 {

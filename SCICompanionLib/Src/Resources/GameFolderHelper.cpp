@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "ResourceContainer.h" 
 #include "GameFolderHelper.h"
 #include "ResourceBlob.h"
 #include "ResourceMapOperations.h"

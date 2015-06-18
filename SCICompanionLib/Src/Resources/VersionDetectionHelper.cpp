@@ -2,6 +2,7 @@
 #include "ResourceMap.h"
 #include "CompiledScript.h"
 #include "Disassembler.h"
+#include "ResourceContainer.h"
 
 using namespace std;
 

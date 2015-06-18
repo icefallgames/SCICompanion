@@ -8,6 +8,7 @@
 #include "GameFolderHelper.h"
 #include "DecompilerConfig.h"
 #include "format.h"
+#include "ResourceContainer.h"
 #include <ppl.h>
 
 using namespace std;

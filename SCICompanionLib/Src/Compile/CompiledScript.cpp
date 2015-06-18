@@ -4,6 +4,7 @@
 #include "format.h"
 #include "GameFolderHelper.h"
 #include "scii.h"
+#include "ResourceContainer.h"
 
 using namespace std;
 using namespace sci;

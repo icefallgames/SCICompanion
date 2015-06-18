@@ -10,6 +10,7 @@
 #include "CompiledScript.h"
 #include "Pic.h"
 #include "PaletteOperations.h"
+#include "ResourceContainer.h"
 
 using namespace sci;
 using namespace std;

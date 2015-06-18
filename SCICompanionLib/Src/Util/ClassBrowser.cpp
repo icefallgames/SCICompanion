@@ -8,6 +8,7 @@
 #include "CompiledScript.h"
 #include "SCIDocs.h"
 #include "CompileContext.h"
+#include "ResourceContainer.h"
 
 using namespace sci;
 using namespace std;

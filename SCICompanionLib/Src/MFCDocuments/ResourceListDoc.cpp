@@ -5,6 +5,7 @@
 #include "AppState.h"
 #include "ResourceListDoc.h"
 #include "CObjectWrap.h"
+#include "ResourceContainer.h"
 
 // ResourceListDoc
 

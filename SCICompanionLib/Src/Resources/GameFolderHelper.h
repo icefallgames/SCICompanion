@@ -1,6 +1,7 @@
 #pragma once
 
-#include "ResourceContainer.h" 
+class ResourceContainer;
+enum class ResourceEnumFlags : uint16_t;
 
 // Encapsulates operations that only depend on gamefolder and SCI version.
 // We can carry this to a background thread, for instace, and not have to

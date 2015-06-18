@@ -1,6 +1,5 @@
 
 #pragma once
-#include "ResourceContainer.h"
 #include "PaletteOperations.h"
 #include "GameFolderHelper.h"
 #include "CompiledScript.h"
@@ -12,6 +11,7 @@ class MessageSource;
 class MessageHeaderFile;
 
 // FWD declaration
+class ResourceContainer;
 class ResourceBlob;
 class ResourceRecency;
 class ResourceEntity;
