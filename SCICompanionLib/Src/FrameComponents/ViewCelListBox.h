@@ -22,6 +22,7 @@ struct DirectionalityBase
     virtual void SetIndex(CelIndex &celIndex, int index) = 0;
     virtual bool IsLoops() = 0;
     virtual int GetLogicalScale(int scale) = 0;
+    virtual std::string GetCaption(const CelIndex &index) = 0;
     virtual ~DirectionalityBase() {}
 };
 

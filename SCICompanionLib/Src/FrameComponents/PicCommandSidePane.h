@@ -74,13 +74,13 @@ private:
 
     CExtHyperLinkButton m_wndGotoScript;
 
-    CTabCtrl m_wndTab;
-
     // Visual
     CExtButton m_wndEditPaletteButton;
     CExtButton m_wndDelete;
     CExtButton m_wndCopy;
     CExtButton m_wndCrop;
     CExtButton m_wndSetBackground;
+    CExtRadioButton m_wndRadioCommands;
+    CExtRadioButton m_wndRadioPolygons;
     HACCEL _hAccel;
 };

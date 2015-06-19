@@ -30,10 +30,11 @@ END_MESSAGE_MAP()
 
 CMDITabsDialogBar::CMDITabsDialogBar()
 {
+    _hoverIndex = -1;
     _closeBitmap.LoadBMP_Resource(MAKEINTRESOURCE(IDB_CLOSE_INACTIVE));
     _closeBitmapActive.LoadBMP_Resource(MAKEINTRESOURCE(IDB_CLOSE_ACTIVE));
     _fMouseWithin = false;
-    _overCloseIcon = false;
+    _overCloseIcon = -1;
     _capturing = false;
 }
 
@@ -237,62 +238,64 @@ int _GetBitmapIndex(MDITabType tabType)
 
 // MDITabs message handlers
 
+
+const double c_rgHueAdjust[] =
+{
+    0.0,    // none
+    0.0,    // game
+    0.4,    // view
+    0.0,    // pic
+    -1.0,   // script
+    -0.8,    // vocab
+    -0.3,    // font
+    0.8,    // cursor
+    0.3,    // text
+    -0.6,   // sound
+    0.0,    // room explorer
+    0.6,    // palette
+    0.3,    // message
+};
+
+const double c_rgSatAdjust[] =
+{
+    0.0,    // none
+    -1.0,    // game
+    0.0,    // view
+    0.0,    // pic
+    0.0,   // script
+    0.0,    // vocab
+    0.0,    // font
+    0.0,    // cursor
+    0.0,    // text
+    0.0,   // sound
+    0.0,    // room explorer
+    0.0,    // palette
+    0.0,    // message
+};
+
+const double c_rgLumAdjust[] =
+{
+    0.0,    // none
+    0.0,    // game
+    0.0,    // view
+    0.0,    // pic
+    0.0,   // script
+    0.0,    // vocab
+    0.0,    // font
+    0.0,    // cursor
+    0.0,    // text
+    0.0,   // sound
+    0.0,    // room explorer
+    0.5,    // palette
+    0.0,    // message
+};
+
+
 int CMDITabsDialogBar::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	if (__super::OnCreate(lpCreateStruct) == -1)
 		return -1;
     _fNavigatingViaTravelLog = false;
-
-    const double c_rgHueAdjust[] =
-    {
-        0.0,    // none
-        0.0,    // game
-        0.4,    // view
-        0.0,    // pic
-        -1.0,   // script
-        -0.8,    // vocab
-        -0.3,    // font
-        0.8,    // cursor
-        0.3,    // text
-        -0.6,   // sound
-        0.0,    // room explorer
-        0.6,    // palette
-        0.3,    // message
-    };
-
-    const double c_rgSatAdjust[] =
-    {
-        0.0,    // none
-        -1.0,    // game
-        0.0,    // view
-        0.0,    // pic
-        0.0,   // script
-        0.0,    // vocab
-        0.0,    // font
-        0.0,    // cursor
-        0.0,    // text
-        0.0,   // sound
-        0.0,    // room explorer
-        0.0,    // palette
-        0.0,    // message
-    };
-
-    const double c_rgLumAdjust[] =
-    {
-        0.0,    // none
-        0.0,    // game
-        0.0,    // view
-        0.0,    // pic
-        0.0,   // script
-        0.0,    // vocab
-        0.0,    // font
-        0.0,    // cursor
-        0.0,    // text
-        0.0,   // sound
-        0.0,    // room explorer
-        0.5,    // palette
-        0.0,    // message
-    };
 
     ASSERT(ARRAYSIZE(c_rgHueAdjust) == ARRAYSIZE(_tabBitmap));
     for (int i = 0; i < ARRAYSIZE(c_rgHueAdjust); ++i)
@@ -435,11 +438,38 @@ void CMDITabsDialogBar::DrawItem(LPDRAWITEMSTRUCT pdis)
         int iIndex = _GetBitmapIndex(pActive->GetTabType());
         CExtBitmap &bitmapToUse = fSelected ? _tabBitmap[iIndex] : _tabBitmapNS[iIndex];
         CRect rcSrc(CPoint(0, 0), bitmapToUse.GetSize());
-        //CRect rcPadding(2, 2, 2, 2);
         CRect rcPadding(0, 0, 0, 0);
 
 
-        bitmapToUse.AlphaBlendSkinParts(pdis->hDC, rc, rcSrc, rcPadding, /*__EXT_BMP_FLAG_PREMULTIPLIED_RGB_CHANNELS |*/ CExtBitmap::__EDM_STRETCH, true, true, 0xFF);
+        // bitmapToUse.AlphaBlendSkinParts(pdis->hDC, rc, rcSrc, rcPadding, /*__EXT_BMP_FLAG_PREMULTIPLIED_RGB_CHANNELS |*/ CExtBitmap::__EDM_STRETCH, true, true, 0xFF);
+        CRect rcUsable = rc;
+        rcUsable.left += 1;
+        rcUsable.top += 1;
+        if (fSelected)
+        {
+            rcUsable.OffsetRect(-1, -1);
+            rcUsable.bottom++;
+        }
+        COLORREF basicColor = fSelected ? RGB(0, 255, 0) : RGB(0, 144, 0);
+        COLORREF accentColor = CExtBitmap::stat_HLS_Adjust(basicColor, c_rgHueAdjust[iIndex], c_rgLumAdjust[iIndex], c_rgSatAdjust[iIndex]);
+        COLORREF backgroundColor = g_PaintManager->GetColor(COLOR_3DFACE);
+        if (!fSelected)
+        {
+            backgroundColor = CExtBitmap::stat_HLS_Adjust(backgroundColor, 0.0, -0.08, 0.0);
+        }
+
+        dc.FillSolidRect(rc, backgroundColor);
+
+        CRect rcGradient = rcUsable;
+        // Blend between our main color and the background color for the top part of the gradient (so the gradient isn't so extreme)
+        COLORREF blended = CExtBitmap::stat_RGB_Blend(accentColor, backgroundColor, fSelected ? 196 : 128);
+        TRIVERTEX vertices[2] =
+        {
+            { rcGradient.left, rcGradient.top, GetRValue(blended) * 256, GetGValue(blended) * 256, GetBValue(blended) * 256, 65280 },
+            { rcGradient.right, rcGradient.bottom, GetRValue(backgroundColor) * 256, GetGValue(backgroundColor) * 256, GetBValue(backgroundColor) * 256, 65280 },
+        };
+        GRADIENT_RECT gradRects[1] = { 0, 1 };
+        dc.GradientFill(vertices, ARRAYSIZE(vertices), gradRects, ARRAYSIZE(gradRects), GRADIENT_FILL_RECT_V);
 
         // Use a different font decoration depending on if this is the most recent version of this item.
         bool fNotMostRecent = false;
@@ -449,6 +479,9 @@ void CMDITabsDialogBar::DrawItem(LPDRAWITEMSTRUCT pdis)
             CResourceDocument *pDoc = static_cast<CResourceDocument*>(pDocAny);
             fNotMostRecent = !appState->_resourceRecency.IsResourceMostRecent(pDoc);
         }
+
+        // use _overCloseIcon?
+
         if (fNotMostRecent)
         {
             // Draw a diagonal line across the thing.
@@ -457,11 +490,11 @@ void CMDITabsDialogBar::DrawItem(LPDRAWITEMSTRUCT pdis)
         }
 
         // Draw a close icon
-        if (pActive == _pActiveTab)
+        if ((pActive == _pActiveTab) || (_hoverIndex == nTabIndex))
         {
-            int top = (rc.Height() - 16) / 2;
+            int top = (rc.Height() - 16) / 2 + 1;
             RECT rcClose = { rc.right - 18, top, rc.right - 2, top + 16 };
-            if (_fMouseWithin && _overCloseIcon)
+            if (_fMouseWithin && (_overCloseIcon == nTabIndex))
             {
                 _closeBitmapActive.AlphaBlend(pdis->hDC, rcClose);
             }
@@ -471,14 +504,14 @@ void CMDITabsDialogBar::DrawItem(LPDRAWITEMSTRUCT pdis)
             }
         }
 
-        rc.OffsetRect(4, 1); // indent
+        rcUsable.OffsetRect(4, 1); // indent
 
         COLORREF crText = g_PaintManager->GetColor(COLOR_BTNTEXT);
         //COLORREF crText = RGB(0, 0, 0); // g_PaintManager->PAINTPUSHBUTTONDATA::m_clrForceTextNormal; // green in release, black in debug!
 
         int nOldText = dc.SetTextColor(crText);
         int nOldBk = dc.SetBkMode(TRANSPARENT);
-        dc.DrawText(tci.pszText, -1, &rc, DT_SINGLELINE);
+        dc.DrawText(tci.pszText, -1, &rcUsable, DT_SINGLELINE);
         dc.SetBkMode(nOldBk);
         dc.SetTextColor(nOldText);
 
@@ -512,9 +545,11 @@ void CMDITabsDialogBar::DrawItemBorder(LPDRAWITEMSTRUCT lpdis)
 
 void CMDITabsDialogBar::DrawMainBorder(LPDRAWITEMSTRUCT lpdis)
 {
+    // This ends up being a thin line under stuff
     CRect rBorder(lpdis->rcItem);
     CDC* pDC = CDC::FromHandle(lpdis->hDC); 
-    pDC->FillSolidRect(&rBorder, g_PaintManager->GetColor(COLOR_BTNFACE));
+    //pDC->FillSolidRect(&rBorder, RGB(255, 128, 50));
+    pDC->FillSolidRect(&rBorder, g_PaintManager->GetColor(COLOR_3DFACE));
 }
 
 void CMDITabsDialogBar::OnPaint()
@@ -604,7 +639,10 @@ BOOL CMDITabsDialogBar::OnEraseBkgnd(CDC *pDC)
 	// color - in some places the background color shows thru' the pages!!
 	// so we must only paint the background color where we need to, which is that
 	// portion of the tab area not excluded by the tabs themselves
-    CBrush *pBrush = &g_PaintManager->m_brushLighterDefault;
+
+    //CBrush *pBrush = &g_PaintManager->m_brushLighterDefault;
+    CBrush solid(g_PaintManager->GetColor(COLOR_3DFACE));
+    CBrush *pBrush = &solid;
 	
 	// full width of tab ctrl above top of tabs
 	rBkgnd = rClient;
@@ -627,27 +665,47 @@ BOOL CMDITabsDialogBar::OnEraseBkgnd(CDC *pDC)
 }
 
 // Returns true if the point is over the close "button" on the currently selected tab
-bool CMDITabsDialogBar::IsOverClose(CPoint point, int *pindex)
+int CMDITabsDialogBar::IsOverClose(CPoint point, int *pindex)
 {
-    bool overClose = false;
+    int overClose = -1;
     TCHITTESTINFO hitTest;
     hitTest.pt = point;
     *pindex = HitTest(&hitTest);
-    if ((*pindex != -1) && (*pindex == GetCurSel()))
+    //if ((*pindex != -1) && (*pindex == GetCurSel()))
+    if (*pindex != -1)
     {
         CRect rcItem;
         GetItemRect(*pindex, &rcItem);
         // Shrink it so it's just the last 18 pixels
         rcItem.left = rcItem.right - 18;
-        overClose = !!rcItem.PtInRect(point);
+        if (rcItem.PtInRect(point))
+        {
+            overClose = *pindex;
+        }
     }
     return overClose;
 }
 
 void CMDITabsDialogBar::OnMouseMove(UINT nFlags, CPoint point)
 {
-    int index;
-    bool overClose = IsOverClose(point, &index);
+    int hoverIndex;
+    int overClose = IsOverClose(point, &hoverIndex);
+    if (hoverIndex != _hoverIndex)
+    {
+        CRect invalidateRect;
+        if (_hoverIndex != -1)
+        {
+            GetItemRect(_hoverIndex, &invalidateRect);
+            InvalidateRect(&invalidateRect);
+        }
+        if (hoverIndex != -1)
+        {
+            GetItemRect(hoverIndex, &invalidateRect);
+            InvalidateRect(&invalidateRect);
+        }
+        _hoverIndex = hoverIndex;
+    }
+
     bool invalidate = overClose != _overCloseIcon;
     _overCloseIcon = overClose;
 
@@ -678,6 +736,7 @@ LRESULT  CMDITabsDialogBar::OnMouseLeave(WPARAM wParam, LPARAM lParam)
 {
     if (_fMouseWithin)
     {
+        _hoverIndex = -1;
         _fMouseWithin = false;
         Invalidate();
     }
@@ -687,8 +746,8 @@ LRESULT  CMDITabsDialogBar::OnMouseLeave(WPARAM wParam, LPARAM lParam)
 void CMDITabsDialogBar::OnLButtonDown(UINT nFlags, CPoint point)
 {
     int index;
-    bool overClose = IsOverClose(point, &index);
-    if (overClose)
+    int overClose = IsOverClose(point, &index);
+    if (overClose != -1)
     {
         _capturing = true;
         SetCapture();
@@ -702,8 +761,8 @@ void CMDITabsDialogBar::OnLButtonUp(UINT nFlags, CPoint point)
     if (_capturing)
     {
         int index;
-        bool overClose = IsOverClose(point, &index);
-        if (overClose)
+        int overClose = IsOverClose(point, &index);
+        if (overClose != -1)
         {
             // Close this document
             CDocument *pDoc = NULL;

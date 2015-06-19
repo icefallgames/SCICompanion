@@ -9,13 +9,14 @@
 using namespace std;
 
 const int ScaleOne = 4;
+const int CaptionHeight = 20;   // REVIEW: Really should be DPI-aware
 
 IMPLEMENT_DYNCREATE(ViewCelListBox, CView)
 
 CelIndex g_NoIndex(-1, -1);
 
 const int MinDragDelta = 3;
-const int InsertMargin = 20;
+const int InsertMargin = 20;    // Hit-testing for insert bar
 
 struct LeftToRight : public DirectionalityBase
 {
@@ -61,7 +62,11 @@ struct LeftToRight : public DirectionalityBase
     CPoint CenteringMultiplier() override { return CPoint(1, 1); }
     void SetIndex(CelIndex &celIndex, int index) override { celIndex.cel = index; }
     bool IsLoops() override { return false; }
-    int GetLogicalScale(int scale) { return scale; }
+    int GetLogicalScale(int scale) override { return scale; }
+    std::string GetCaption(const CelIndex &index) override
+    {
+        return fmt::format("Cels for loop {0}", index.loop);
+    }
 };
 
 struct TopToBottom : public DirectionalityBase
@@ -133,6 +138,10 @@ struct TopToBottom : public DirectionalityBase
     void SetIndex(CelIndex &celIndex, int index) override { celIndex.loop = index; }
     bool IsLoops() override { return true; }
     int GetLogicalScale(int scale) { return appState->AspectRatioY(scale); }
+    std::string GetCaption(const CelIndex &index) override
+    {
+        return "Loops";
+    }
 };
 
 ViewCelListBox::ViewCelListBox() : _dibBits(nullptr), _scale(ScaleOne), _capture(false), _inDrag(false), _dragItemIndex(-1), _insertIndex(-1)
@@ -151,6 +160,7 @@ void ViewCelListBox::SetHorizontal(bool horizontal)
         _useThemeBackground = true;
         _dir = make_unique<TopToBottom>();
     }
+    _drawOffset.y = CaptionHeight;
 }
 
 BEGIN_MESSAGE_MAP(ViewCelListBox, CView)
@@ -403,7 +413,7 @@ void ViewCelListBox::OnDraw(CDC* pDC)
     GetClientRect(&rect);
 
     bool drewBackground = false;
-
+    string caption;
     CNewRasterResourceDocument *pDoc = _GetDoc();
     if (pDoc)
     {
@@ -431,14 +441,32 @@ void ViewCelListBox::OnDraw(CDC* pDC)
                 rectDragClip = CRect(_currentDragPoint.x, _currentDragPoint.y, _currentDragPoint.x + dragSize.cx, _currentDragPoint.y + dragSize.cy);
                 
                 pDC->ExcludeClipRect(&rectDragClip);
-
-                //std::string foo = fmt::format("{0},{1}  {2}x{3}\n", rectDragClip.left, rectDragClip.top, rectDragClip.Width(), rectDragClip.Height());
-                //OutputDebugString(foo.c_str());
             }
 
             dcMem.SelectObject(*_sciBitmap);
 
             CelIndex celIndex = pDoc->GetSelectedIndex();
+
+            // This flickers, on drag - we'll need to double buffer.
+            caption = _dir->GetCaption(celIndex);
+            CRect rcCaption = rect;
+            rcCaption.bottom = rcCaption.top + CaptionHeight;
+            CRect rcCaptionText = rcCaption;
+            rcCaptionText.left += 5;
+            CExtPaintManager::PAINTGRIPPERDATA pgd(
+                this,
+                rcCaption,
+                rcCaptionText,
+                false,  // active
+                true,   // floating
+                false,  // horizontal
+                false,  // sidebar  ??
+                caption.c_str(),
+                false
+                );
+            g_PaintManager->PaintGripper(*pDC, pgd);
+            pDC->ExcludeClipRect(&rcCaption);
+
             const RasterComponent &raster = pDoc->GetResource()->GetComponent<RasterComponent>();
             const Loop &loop = raster.Loops[celIndex.loop];
 
@@ -489,13 +517,13 @@ void ViewCelListBox::OnDraw(CDC* pDC)
             }
 
             // Selection rect
-            CBrush solidBrush(RGB(0, 0, 128));
-            CRect rectSelection(_drawOffset.x, _drawOffset.y, _individualImageSize.cx * _scale / ScaleOne, _ScaleY(_individualImageSize.cy) / ScaleOne);
+            CBrush solidBrush(RGB(254, 170, 70));
+            CRect rectSelection(_drawOffset.x, _drawOffset.y, _drawOffset.x + _individualImageSize.cx * _scale / ScaleOne, _drawOffset.y + _ScaleY(_individualImageSize.cy) / ScaleOne);
             int offsetX = _individualImageSize.cx * _scale * _dir->ItemIndex(celIndex) * _dir->DimensionMultiplier().x / ScaleOne;
             int offsetY = _ScaleY(_individualImageSize.cy) * _dir->ItemIndex(celIndex) * _dir->DimensionMultiplier().y / ScaleOne;
             rectSelection.OffsetRect(offsetX, offsetY);
             pDC->FrameRect(&rectSelection, &solidBrush);
-            rectSelection.InflateRect(1, 1);
+            rectSelection.InflateRect(-1, -1);
             pDC->FrameRect(&rectSelection, &solidBrush);
 
             // Insert rect

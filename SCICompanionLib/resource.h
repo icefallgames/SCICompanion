@@ -584,6 +584,9 @@
 #define IDC_BUTTONCYCLERIGHT            1281
 #define IDC_STATIC_DURATION             1281
 #define IDC_CHECK_ASPECTRATIO           1282
+#define IDC_RADIOCOMMANDS               1283
+#define IDC_RADIOCOMMANDS2              1284
+#define IDC_RADIOPOLYGONS               1284
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -843,7 +846,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        381
 #define _APS_NEXT_COMMAND_VALUE         33189
-#define _APS_NEXT_CONTROL_VALUE         1283
+#define _APS_NEXT_CONTROL_VALUE         1284
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

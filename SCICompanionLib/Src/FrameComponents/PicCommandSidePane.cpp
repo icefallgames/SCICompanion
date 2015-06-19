@@ -54,12 +54,8 @@ void PicCommandSidePane::DoDataExchange(CDataExchange* pDX)
 
         DDX_Control(pDX, ID_EDIT_PASTEINTOPIC, m_wndSetBackground);
 
-        DDX_Control(pDX, IDC_TAB1, m_wndTab);
-        if (m_wndTab)
-        {
-            m_wndTab.InsertItem(0, "Polygons");
-            m_wndTab.InsertItem(1, "Commands");
-        }
+        DDX_Control(pDX, IDC_RADIOPOLYGONS, m_wndRadioPolygons);
+        DDX_Control(pDX, IDC_RADIOCOMMANDS, m_wndRadioCommands);
     }
 }
 

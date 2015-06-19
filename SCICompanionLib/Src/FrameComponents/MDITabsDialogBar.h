@@ -36,7 +36,7 @@ protected:
 private:
     CDocument *_GetIfKindOf(int i, const CRuntimeClass* pClass, CMDITabChildWnd **pActive) const;
     CFrameWnd *_GetNextPrev(bool fNext);
-    bool IsOverClose(CPoint point, int *pindex);
+    int IsOverClose(CPoint point, int *pindex);
     void _GoBackForward(bool fForward);
     LRESULT OnSizeParent(WPARAM wParam, LPARAM lParam);
     int OnCreate(LPCREATESTRUCT lpCreateStruct);
@@ -67,7 +67,8 @@ private:
     CExtBitmap _closeBitmap;
     CExtBitmap _closeBitmapActive;
     bool _fMouseWithin;
-    bool _overCloseIcon;
+    int _overCloseIcon;
     bool _capturing;
+    int _hoverIndex;
 };
 
