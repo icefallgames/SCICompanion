@@ -130,6 +130,7 @@ protected:
     void _OnZoomClick(CPoint *ppt, int iMultiplier);
     void _OnPolygonLClick(CPoint point);
     void _OnPolygonRClick(CPoint point);
+    void _EndPoly();
     void _OnPolyMouseMove(CPoint point);
     UINT _GetCurrentToolOrCommand();
     void _UpdateCursor();
@@ -155,6 +156,7 @@ protected:
     bool _HitTestPriorityBar(CPoint pt, int *barIndex);
     void _MovePriorityBar(bool commit, int dy);
     void _DrawPriorityLines(CDC *pDC);
+    int _HitTestCurrentPolyPoint(CPoint point);
     void _DrawPolygons(CDC *pDC);
     void _DrawShowingEgoEGA(ViewPort &viewPort, PicData &picData, PicScreenFlags flags);
     void _DrawShowingEgoVGA(CDC &dc, PicDrawManager &pdm);
@@ -373,8 +375,14 @@ private:
 
     // SCI1 Polygons
     int _currentPolyIndexInEdit;
+    // New ones:
     int _currentPolyPointIndexInEdit;
     CPoint _nextPolyPoint;
+    // Old ones:
+    int _currentHoverPolyPointIndex;
+    int _polyDragPointIndex;
+    point16 _originalPolyPoint;
+
 };
 
 #ifndef _DEBUG  // debug version in PicEditorView.cpp

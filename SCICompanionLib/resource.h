@@ -441,6 +441,8 @@
 #define IDC_LISTSCRIPTS                 1165
 #define IDC_LISTBOX_NOTES               1165
 #define IDC_LISTNOUNS                   1165
+#define IDC_LISTCOMMANDS2               1165
+#define IDC_LISTPOLYGONS                1165
 #define IDC_STATICVISUAL                1166
 #define IDC_STATICCONTROL               1167
 #define IDC_STATICPRIORITY              1168
@@ -585,7 +587,6 @@
 #define IDC_STATIC_DURATION             1281
 #define IDC_CHECK_ASPECTRATIO           1282
 #define IDC_RADIOCOMMANDS               1283
-#define IDC_RADIOCOMMANDS2              1284
 #define IDC_RADIOPOLYGONS               1284
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773

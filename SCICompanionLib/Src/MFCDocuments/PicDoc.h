@@ -50,6 +50,7 @@ enum class PicChangeHint
     ViewScreenChange = 0x00000400,
     PreviewPalette = 0x00000800,
     PolygonChoice = 0x00001000,
+    PolygonsChanged = 0x00002000,
 };
 
 
@@ -83,6 +84,7 @@ public:
     PolygonSource *GetPolygonSource();
     void CreatePolygon();
     int GetCurrentPolygonIndex() const { return _currentPolyIndex; }
+    void SetCurrentPolygonIndex(int index);
 
     void v_OnUndoRedo();
 

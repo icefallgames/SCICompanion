@@ -365,6 +365,17 @@ void CPicDoc::CreatePolygon()
     {
         _polygonSource->AppendPolygon();
         _currentPolyIndex = (int)(_polygonSource->Polygons().size() - 1);
+        UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::PolygonChoice | PicChangeHint::PolygonsChanged));
+    }
+}
+
+void CPicDoc::SetCurrentPolygonIndex(int index)
+{
+    if (index != _currentPolyIndex)
+    {
+        // TODO: If the user was in the process of making a polygon, we need to finalize it.
+
+        _currentPolyIndex = index;
         UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::PolygonChoice));
     }
 }
@@ -415,10 +426,7 @@ PicDrawManager &CPicDoc::GetDrawManager()
 
 void CPicDoc::PostSuccessfulSave(const ResourceEntity *pResource)
 {
-    if (_polygonSource)
-    {
-        _polygonSource->Commit();
-    }
+    // I was saving polygons here, but it makes no sense.
 }
 
 // CPicDoc commands

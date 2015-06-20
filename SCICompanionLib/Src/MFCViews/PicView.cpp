@@ -41,6 +41,8 @@ const key_value_pair<CPicView::ToolType, UINT> CPicView::c_toolToID [] =
 
 CExtAlphaSlider *g_pPicAlphaSlider = NULL;
 
+const int PolygonPointHitTestMargin = 5;
+
 void CommandModifier::Reset()
 {
     index = 0;
@@ -303,6 +305,7 @@ CPicView::CPicView()
 {
     _currentPolyIndexInEdit = -1;
     _currentPolyPointIndexInEdit = -1;
+    _currentHoverPolyPointIndex = -1;
 
     _priBarMoveIndex = -1;
     _originalPriValue = -1;
@@ -1510,6 +1513,19 @@ void CPicView::OnMouseMove(UINT nFlags, CPoint point)
             needsImmediateUpdate = true;
             _GetDrawManager().InvalidatePlugins();
         }
+        else if (_currentTool == Polygons)
+        {
+            assert(_polyDragPointIndex != -1);
+            point16 newPolyPoint = _originalPolyPoint;
+            newPolyPoint.x += dx;
+            newPolyPoint.y += dy;
+            SCIPolygon *polygon = _GetCurrentPolygon();
+            if (polygon)
+            {
+                polygon->SetPoint(_polyDragPointIndex, newPolyPoint);
+            }
+            needsImmediateUpdate = true;
+        }
         else if (_transformingCoords && (_currentTool != None))
         {
             _TransformPoint(false, _ptCurrentHover);
@@ -1805,13 +1821,31 @@ void CPicView::_DrawPolygons(CDC *pDC)
         {
             points.push_back({ point.x, point.y});
         }
-        // For currently edited polygon:
-        points.push_back({ _nextPolyPoint.x, _nextPolyPoint.y });
+
+        if (_currentPolyIndexInEdit != GetDocument()->GetCurrentPolygonIndex())
+        {
+            // Seal the loop for complete polygons.
+            points.push_back({ points[0].x, points[0].y });
+        }
+        else
+        {
+            // For currently edited polygon:
+            points.push_back({ _nextPolyPoint.x, _nextPolyPoint.y });
+        }
 
         pDC->Polyline(&points[0], (int)points.size());
 
-        // TODO: Seal the loop for complete polygons.
-
+        if ((_currentHoverPolyPointIndex != -1) && (_currentHoverPolyPointIndex < (int)polygon->Points().size()))
+        {
+            CBrush brush(RGB(255, 255, 255));
+            HGDIOBJ hOldBrush = pDC->SelectObject(brush);
+            point16 hoverPoint = polygon->Points()[_currentHoverPolyPointIndex];
+            CRect rectEllipse(hoverPoint.x, hoverPoint.y, hoverPoint.x, hoverPoint.y);
+            rectEllipse.InflateRect(3, 3);
+            pDC->Ellipse(&rectEllipse);
+            pDC->SelectObject(hOldBrush);
+        }
+        
         pDC->SelectObject(hOldPen);
     }
 }
@@ -2146,10 +2180,7 @@ void CPicView::OnDraw(CDC *pDC)
                 _DrawPriorityLines(&dcMem);
             }
 
-            if (_currentPolyIndexInEdit != -1)
-            {
-                _DrawPolygons(&dcMem);
-            }
+            _DrawPolygons(&dcMem);
         }
 
         // Now blt back to the real DC.
@@ -2623,6 +2654,11 @@ void CPicView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
         InvalidateOurselvesImmediately();
     }
 
+    if (IsFlagSet(hint, PicChangeHint::PolygonChoice))
+    {
+        InvalidateOurselves();
+    }
+
     if (IsFlagSet(hint, PicChangeHint::Preferences))
     {
         // The scale/crop for trace images might have changed, so regenrate that
@@ -2796,10 +2832,11 @@ SCIPolygon *CPicView::_GetCurrentPolygon()
     SCIPolygon *polygon = nullptr;
     if (GetDocument())
     {
+        int index = GetDocument()->GetCurrentPolygonIndex();
         PolygonSource *source = GetDocument()->GetPolygonSource();
-        if (source && (_currentPolyIndexInEdit >= 0))
+        if (source)
         {
-            polygon = source->GetAt(_currentPolyIndexInEdit);
+            polygon = source->GetAt(index);
         }
     }
     return polygon;
@@ -2809,20 +2846,32 @@ void CPicView::_OnPolygonLClick(CPoint point)
 {
     if (_currentPolyIndexInEdit == -1)
     {
-        // TODO: hit test current polygons to see if we should edit those and go into capture
-
-        // Add a new polygon
-        GetDocument()->CreatePolygon();
-        _currentPolyIndexInEdit = GetDocument()->GetCurrentPolygonIndex();
-        _nextPolyPoint = point;
-        if (_currentPolyIndexInEdit != -1)
+        int currentHover = _HitTestCurrentPolyPoint(point);
+        if (currentHover != -1)
         {
-            //_currentPolyPointIndexInEdit = 0;
+            // Start dragging the point
             SCIPolygon *polygon = _GetCurrentPolygon();
-            if (polygon)
+            _fCapturing = TRUE;
+            SetCapture();
+            _polyDragPointIndex = currentHover;
+            _originalPolyPoint = polygon->Points()[currentHover];
+            _pointCapture = point;
+        }
+        else
+        {
+            // Start new polygon
+            GetDocument()->CreatePolygon();
+            _currentPolyIndexInEdit = GetDocument()->GetCurrentPolygonIndex();
+            _nextPolyPoint = point;
+            if (_currentPolyIndexInEdit != -1)
             {
-                polygon->AppendPoint(CPointToPoint(point));
-                InvalidateOurselves();
+                //_currentPolyPointIndexInEdit = 0;
+                SCIPolygon *polygon = _GetCurrentPolygon();
+                if (polygon)
+                {
+                    polygon->AppendPoint(CPointToPoint(point));
+                    InvalidateOurselves();
+                }
             }
         }
     }
@@ -2838,11 +2887,84 @@ void CPicView::_OnPolygonLClick(CPoint point)
     }
 }
 
-void CPicView::_OnPolygonRClick(CPoint point)
+void CPicView::_EndPoly()
 {
+    // TODO: Validate the current polygon, e.g. enough points, CW/CCW etc...
+    // REVIEW: only commit if we were doing something?
+    if (GetDocument())
+    {
+        PolygonSource *source = GetDocument()->GetPolygonSource();
+        source->Commit();
+    }
     // No longer in edit:
     _currentPolyIndexInEdit = -1;
+    _polyDragPointIndex = -1;
     InvalidateOurselves();
+}
+
+void CPicView::_OnPolygonRClick(CPoint point)
+{
+    if (_currentPolyIndexInEdit != -1)
+    {
+        _EndPoly();
+    }
+    else
+    {
+        // Hit test a point and offer to delete.
+        int pointUnderMouse = _HitTestCurrentPolyPoint(point);
+        if (pointUnderMouse != -1)
+        {
+            // Offer to delete.
+            CMenu contextMenu;
+            contextMenu.LoadMenu(IDR_MENUDELETEPOINT);
+            CMenu* pTracker;
+            pTracker = contextMenu.GetSubMenu(0);
+            CPoint ptScreen = point;
+            ptScreen = _MapPicPointToClient(point);
+            ClientToScreen(&ptScreen);
+            if (pTracker)
+            {
+                DWORD selection = pTracker->TrackPopupMenu(TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_RIGHTBUTTON | TPM_RETURNCMD,
+                    ptScreen.x, ptScreen.y, AfxGetMainWnd());
+                if (selection == ID_PIC_DELETEPOINT)
+                {
+                    SCIPolygon *polygon = _GetCurrentPolygon();
+                    if (polygon)
+                    {
+                        polygon->DeletePoint(pointUnderMouse);
+                    }
+                    InvalidateOurselves();
+                }
+            }
+
+        }
+        else
+        {
+            // Offer to split a line... TODO
+        }
+    }
+}
+
+int CPicView::_HitTestCurrentPolyPoint(CPoint point)
+{
+    // See if we are interesecting an existing polygon
+    int currentHover = -1;
+    SCIPolygon *polygon = _GetCurrentPolygon();
+    if (polygon)
+    {
+        int index = 0;
+        for (const auto &polyPoint : polygon->Points())
+        {
+            int distance = max(abs(point.x - polyPoint.x), abs(point.y - polyPoint.y));
+            if (distance <= PolygonPointHitTestMargin)
+            {
+                currentHover = index;
+                break;
+            }
+            index++;
+        }
+    }
+    return currentHover;
 }
 
 void CPicView::_OnPolyMouseMove(CPoint point)
@@ -2851,6 +2973,15 @@ void CPicView::_OnPolyMouseMove(CPoint point)
     {
         _nextPolyPoint = point;
         InvalidateOurselvesImmediately();
+    }
+    else
+    {
+        int currentHover = _HitTestCurrentPolyPoint(point);
+        if (currentHover != _currentHoverPolyPointIndex)
+        {
+            _currentHoverPolyPointIndex = currentHover;
+            InvalidateOurselvesImmediately();
+        }
     }
 }
 
@@ -3274,7 +3405,7 @@ void CPicView::OnLButtonUp(UINT nFlags, CPoint point)
 {
     if (_fCapturing)
     {
-        assert((_fShowingEgo && (_currentTool == None)) || (_currentTool == Pasting) || _transformingCoords || (_originalPriValue != -1));
+        assert((_fShowingEgo && (_currentTool == None)) || (_currentTool == Pasting) || _transformingCoords || (_originalPriValue != -1) || (_polyDragPointIndex != -1));
         _fCapturing = FALSE;
         ReleaseCapture();
 
@@ -3288,6 +3419,10 @@ void CPicView::OnLButtonUp(UINT nFlags, CPoint point)
         else if (_fShowPriorityLines && (_originalPriValue != -1))
         {
             _MovePriorityBar(true, ptPic.y - _pointCapture.y);
+        }
+        else if (_polyDragPointIndex != -1)
+        {
+            _EndPoly();
         }
         _originalPriValue = -1;
     }

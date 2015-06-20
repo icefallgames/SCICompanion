@@ -84,12 +84,30 @@ public:
     PolygonSource &_polySource;
 };
 
-SCIPolygon::SCIPolygon(PolygonSource *ownerWeak) : _ownerWeak(ownerWeak) {}
+SCIPolygon::SCIPolygon(PolygonSource *ownerWeak) : _ownerWeak(ownerWeak), Type(PolygonType::BarredAccess) {}
 
 void SCIPolygon::AppendPoint(point16 point)
 {
     _points.push_back(point);
     _ownerWeak->SetDirty();
+}
+
+void SCIPolygon::DeletePoint(size_t index)
+{
+    if (index < _points.size())
+    {
+        _points.erase(_points.begin() + index);
+        _ownerWeak->SetDirty();
+    }
+}
+
+void SCIPolygon::SetPoint(size_t index, point16 point)
+{
+    if (index < _points.size())
+    {
+        _points[index] = point;
+        _ownerWeak->SetDirty();
+    }
 }
 
 PolygonSource::PolygonSource(const string &filePath) : _filePath(filePath), _dirty(false)
@@ -155,7 +173,7 @@ unique_ptr<SingleStatement> _MakeAddPolygonCode(const SCIPolygon &poly)
 void PolygonSource::Commit()
 {
     if (_dirty)
-    { 
+    {
         // Construct the script om
         Script script(ScriptId(_filePath.c_str()));
 
@@ -198,7 +216,7 @@ SCIPolygon *PolygonSource::GetAt(size_t index)
     {
         poly = &_polygons[index];
     }
-    return nullptr;
+    return poly;
 }
 
 SCIPolygon *PolygonSource::GetBack()

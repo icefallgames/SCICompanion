@@ -10,6 +10,7 @@
 #include "CObjectWrap.h"
 #include "PaletteOperations.h"
 #include "ImageUtil.h"
+#include "format.h"
 
 // PicCommandSidePane dialog
 
@@ -44,7 +45,7 @@ void PicCommandSidePane::DoDataExchange(CDataExchange* pDX)
     m_wndGotoScript.SetWindowText(STR_NOSCRIPT);
     m_wndGotoScript.EnableWindow(FALSE);
 
-    DDX_Control(pDX, IDC_LISTCOMMANDS, m_wndList);
+    DDX_Control(pDX, IDC_LISTCOMMANDS, m_wndListCommands);
 
     if (_showPalette)
     {
@@ -55,7 +56,14 @@ void PicCommandSidePane::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, ID_EDIT_PASTEINTOPIC, m_wndSetBackground);
 
         DDX_Control(pDX, IDC_RADIOPOLYGONS, m_wndRadioPolygons);
+        m_wndRadioPolygons.SetCheck(BST_CHECKED);
         DDX_Control(pDX, IDC_RADIOCOMMANDS, m_wndRadioCommands);
+        m_wndRadioCommands.SetCheck(BST_UNCHECKED);
+
+        DDX_Control(pDX, IDC_LISTPOLYGONS, m_wndListPolygons);
+
+        m_wndListCommands.ShowWindow(SW_HIDE);
+        m_wndListPolygons.ShowWindow(SW_SHOW);
     }
 }
 
@@ -63,6 +71,7 @@ void PicCommandSidePane::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(PicCommandSidePane, CExtDialogFwdCmd)
     ON_WM_DRAWITEM()
     ON_LBN_SELCHANGE(IDC_LISTCOMMANDS, OnSelChange)
+    ON_LBN_SELCHANGE(IDC_LISTPOLYGONS, OnPolySelChange)
     ON_COMMAND(ID_CROPCOMMANDS, OnCropCommands)
     // The pic document's ID_EDIT_COPY copies the pic background to the clipboard,
     // so we handle our own.
@@ -73,7 +82,20 @@ BEGIN_MESSAGE_MAP(PicCommandSidePane, CExtDialogFwdCmd)
     ON_WM_CREATE()
     ON_WM_ERASEBKGND()
     ON_COMMAND(IDC_GOTOSCRIPT, OnGotoScript)
+    ON_BN_CLICKED(IDC_RADIOPOLYGONS, OnClickPolygons)
+    ON_BN_CLICKED(IDC_RADIOCOMMANDS, OnClickCommands)
 END_MESSAGE_MAP()
+
+void PicCommandSidePane::OnClickPolygons()
+{
+    m_wndListCommands.ShowWindow(SW_HIDE);
+    m_wndListPolygons.ShowWindow(SW_SHOW);
+}
+void PicCommandSidePane::OnClickCommands()
+{
+    m_wndListCommands.ShowWindow(SW_SHOW);
+    m_wndListPolygons.ShowWindow(SW_HIDE);
+}
 
 BOOL PicCommandSidePane::OnEraseBkgnd(CDC *pDC)
 {
@@ -109,7 +131,7 @@ void PicCommandSidePane::OnCopyCommands()
 
 void PicCommandSidePane::_OnUpdateCommands()
 {
-    BOOL fItemsSelected = m_wndList.SendMessage(LB_GETSELCOUNT, 0, 0) > 0;
+    BOOL fItemsSelected = m_wndListCommands.SendMessage(LB_GETSELCOUNT, 0, 0) > 0;
     // These calls are actually really expensive (profuis)
     if (m_wndDelete.IsWindowEnabled() != fItemsSelected)
     {
@@ -151,6 +173,11 @@ BOOL PicCommandSidePane::OnInitDialog()
 
     // Set up anchoring for resize
     AddAnchor(IDC_LISTCOMMANDS, CPoint(0, 0), CPoint(100, 100));
+    if (GetDlgItem(IDC_LISTPOLYGONS))
+    {
+        AddAnchor(IDC_LISTPOLYGONS, CPoint(0, 0), CPoint(100, 100));
+        // TODO: The buttons too?
+    }
     // Hide the sizing grip
     ShowSizeGrip(FALSE);
 
@@ -170,8 +197,8 @@ void PicCommandSidePane::OnSelChange()
     const PicComponent *pepic = _GetEditPic();
     if (pepic)
     {
-        m_wndList.Invalidate(FALSE);
-        _iUserSelectedPos = (int)m_wndList.SendMessage(LB_GETCURSEL, 0, 0);
+        m_wndListCommands.Invalidate(FALSE);
+        _iUserSelectedPos = (int)m_wndListCommands.SendMessage(LB_GETCURSEL, 0, 0);
         if (_iUserSelectedPos != LB_ERR)
         {
             if ((size_t)_iUserSelectedPos > GetCommandCount(*pepic))
@@ -180,6 +207,16 @@ void PicCommandSidePane::OnSelChange()
             }
             _pDoc->SeekToPos(_iUserSelectedPos);
         }
+    }
+}
+
+void PicCommandSidePane::OnPolySelChange()
+{
+    CPicDoc *pDoc = GetDocument();
+    if (pDoc)
+    {
+        int curSel = (int)m_wndListPolygons.SendMessage(LB_GETCURSEL, 0, 0);
+        pDoc->SetCurrentPolygonIndex(curSel);
     }
 }
 
@@ -192,12 +229,12 @@ void PicCommandSidePane::_OnDelete(bool fCut, bool fCopy)
     const PicComponent *pepic = _GetEditPic();
     if (pepic)
     {
-        int cItems = (int)m_wndList.SendMessage(LB_GETCOUNT, 0, 0);
+        int cItems = (int)m_wndListCommands.SendMessage(LB_GETCOUNT, 0, 0);
 		std::vector<int> rgiSelected(cItems, 0);
-        int iCaretIndexPrev = (int)m_wndList.SendMessage(LB_GETCARETINDEX, 0, 0);
+        int iCaretIndexPrev = (int)m_wndListCommands.SendMessage(LB_GETCARETINDEX, 0, 0);
         int iCaretAdjustment = 0;
 
-        int cSelectedItems = (int)m_wndList.SendMessage(LB_GETSELITEMS, cItems, (LPARAM)&rgiSelected[0]);
+        int cSelectedItems = (int)m_wndListCommands.SendMessage(LB_GETSELITEMS, cItems, (LPARAM)&rgiSelected[0]);
         if (cSelectedItems > 0)
         {
             // Note, we can't remove the "last one" (actually the first one).
@@ -257,9 +294,81 @@ void PicCommandSidePane::_OnDelete(bool fCut, bool fCopy)
             if (iCaretIndexPrev != LB_ERR)
             {
                 // Set selection to where the caret index was.
-                m_wndList.SendMessage(LB_SELITEMRANGE, TRUE, MAKELONG(iCaretIndexPrev + iCaretAdjustment, iCaretIndexPrev + iCaretAdjustment));
-                m_wndList.SendMessage(LB_SETCARETINDEX, iCaretIndexPrev + iCaretAdjustment, 0);
+                m_wndListCommands.SendMessage(LB_SELITEMRANGE, TRUE, MAKELONG(iCaretIndexPrev + iCaretAdjustment, iCaretIndexPrev + iCaretAdjustment));
+                m_wndListCommands.SendMessage(LB_SETCARETINDEX, iCaretIndexPrev + iCaretAdjustment, 0);
             }
+        }
+    }
+}
+
+string g_PolyTypes[] =
+{
+    "Total",
+    "Nearest",
+    "Barred",
+    "Contained",
+};
+
+void PolygonListBox::DrawItem(DRAWITEMSTRUCT *pDrawItemStruct)
+{
+    PicCommandSidePane *pParent = static_cast<PicCommandSidePane*>(GetParent());
+    CPicDoc* pDoc = pParent->GetDocument();
+    if (pDoc)
+    {
+        PolygonSource *polygonSource = pDoc->GetPolygonSource();
+        if (polygonSource)
+        {
+            int currentPoly = pDoc->GetCurrentPolygonIndex();
+
+            CDC *pDC = CDC::FromHandle(pDrawItemStruct->hDC);
+
+            // REVIEW: We need to use this font when measuring too.
+            HGDIOBJ hFontOld = pDC->SelectObject(&g_PaintManager->m_FontNormalBC);
+            // Save these values to restore them when done drawing.
+            COLORREF crOldTextColor = pDC->GetTextColor();
+            COLORREF crOldBkColor = pDC->GetBkColor();
+            int iMode = pDC->GetBkMode();
+
+            // If this item is selected, set the background color 
+            // and the text color to appropriate values. Also, erase
+            // rect by filling it with the background color.
+            bool bSelected = (pDrawItemStruct->itemAction | ODA_SELECT) && (pDrawItemStruct->itemState & ODS_SELECTED);
+            if (bSelected)
+            {
+                pDC->SetTextColor(::GetSysColor(COLOR_HIGHLIGHTTEXT));
+                pDC->SetBkColor(::GetSysColor(COLOR_HIGHLIGHT));
+                pDC->FillSolidRect(&pDrawItemStruct->rcItem, ::GetSysColor(COLOR_HIGHLIGHT));
+            }
+            else
+            {
+                pDC->FillSolidRect(&pDrawItemStruct->rcItem, crOldBkColor);
+            }
+
+            if (pDrawItemStruct->itemID != -1)
+            {
+                const SCIPolygon *polygon = polygonSource->GetAt(pDrawItemStruct->itemID);
+
+                // Draw the text. The type and the first point or two.
+                string text;
+                if (polygon->Points().size() > 1)
+                {
+                    text = fmt::format("{0}: ({1},{2}), ({3},{4}) ...", g_PolyTypes[(int)polygon->Type], polygon->Points()[0].x, polygon->Points()[0].y, polygon->Points()[1].x, polygon->Points()[1].y);
+                }
+                else
+                {
+                    text = fmt::format("{0}: ({1},{2}) ...", g_PolyTypes[(int)polygon->Type], polygon->Points()[0].x, polygon->Points()[0].y);
+                }
+                pDC->DrawText(
+                    text.c_str(),
+                    -1,
+                    &pDrawItemStruct->rcItem,
+                    DT_CENTER | DT_SINGLELINE | DT_LEFT);
+            }
+
+            pDC->SelectObject(hFontOld);
+            pDC->SetTextColor(crOldTextColor);
+            pDC->SetBkColor(crOldBkColor);
+            pDC->SetBkMode(iMode);
         }
     }
 }
@@ -381,11 +490,28 @@ void PicCommandSidePane::_UpdateItemCount()
     if (ppic)
     {
         // Store off the top index
-        int iTopIndex = (int)m_wndList.SendMessage(LB_GETTOPINDEX, 0, 0);
+        int iTopIndex = (int)m_wndListCommands.SendMessage(LB_GETTOPINDEX, 0, 0);
         // Add one to the command count, so we have an item that represents "the beginning"
-        m_wndList.SendMessage(LB_SETCOUNT, (WPARAM)GetCommandCount(*ppic) + 1, 0);
+        m_wndListCommands.SendMessage(LB_SETCOUNT, (WPARAM)GetCommandCount(*ppic) + 1, 0);
         // Restore the top index.
-        m_wndList.SendMessage(LB_SETTOPINDEX, iTopIndex, 0);
+        m_wndListCommands.SendMessage(LB_SETTOPINDEX, iTopIndex, 0);
+    }
+}
+
+void PicCommandSidePane::_UpdatePolyItemCount()
+{
+    if (m_wndListPolygons.GetSafeHwnd() && _pDoc)
+    {
+        PolygonSource *polygonSource = _pDoc->GetPolygonSource();
+        if (polygonSource)
+        {
+            // Store off the top index
+            int iTopIndex = (int)m_wndListPolygons.SendMessage(LB_GETTOPINDEX, 0, 0);
+            // Add one to the command count, so we have an item that represents "the beginning"
+            m_wndListPolygons.SendMessage(LB_SETCOUNT, polygonSource->Polygons().size(), 0);
+            // Restore the top index.
+            m_wndListPolygons.SendMessage(LB_SETTOPINDEX, iTopIndex, 0);
+        }
     }
 }
 
@@ -426,10 +552,11 @@ void PicCommandSidePane::UpdateNonView(CObject *pObject)
     if (IsFlagSet(hint, PicChangeHint::NewPic))
     {
         // Remove all items
-        m_wndList.SetRedraw(FALSE);
-        m_wndList.SendMessage(LB_RESETCONTENT, 0, 0);
+        m_wndListCommands.SetRedraw(FALSE);
+        m_wndListCommands.SendMessage(LB_RESETCONTENT, 0, 0);
         _UpdateItemCount();
-        m_wndList.SetRedraw(TRUE);
+        _UpdatePolyItemCount();
+        m_wndListCommands.SetRedraw(TRUE);
         _UpdatePalette();
         // Selection changed.  Show a new pic.
 
@@ -466,12 +593,24 @@ void PicCommandSidePane::UpdateNonView(CObject *pObject)
                 iPos = cCommands;
             }
             _iCurrentPicPos = (int)iPos;
-            m_wndList.SendMessage(LB_SETCARETINDEX, iPos, 0);
+            m_wndListCommands.SendMessage(LB_SETCARETINDEX, iPos, 0);
             // We need to redraw everything... when the focus rect changes, the control
             // doesn't seem to send out a drawitem message for the item it was removed from.
-            m_wndList.Invalidate(FALSE);
+            m_wndListCommands.Invalidate(FALSE);
         }
     }
+
+    if (IsFlagSet(hint, PicChangeHint::PolygonsChanged))
+    {
+        _UpdatePolyItemCount();
+    }
+
+    if (IsFlagSet(hint, PicChangeHint::PolygonChoice))
+    {
+        int index = GetDocument()->GetCurrentPolygonIndex();
+        m_wndListPolygons.SetCurSel(index);
+    }
+
     _OnUpdateCommands();
 }
 

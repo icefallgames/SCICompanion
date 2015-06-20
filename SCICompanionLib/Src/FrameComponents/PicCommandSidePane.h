@@ -13,6 +13,12 @@ protected:
     void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct);
 };
 
+class PolygonListBox : public CListBox
+{
+protected:
+    void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct);
+};
+
 // PicCommandSidePane dialog
 
 class PicCommandSidePane : public CExtDialogFwdCmd, public INonViewClient
@@ -47,7 +53,10 @@ protected:
 
     LRESULT OnOcmDrawItem(WPARAM wParam, LPARAM lParam);
     afx_msg void OnSelChange();
+    afx_msg void OnPolySelChange();
     afx_msg void OnGotoScript();
+    afx_msg void OnClickPolygons();
+    afx_msg void OnClickCommands();
     BOOL OnEraseBkgnd(CDC *pDC);
     void OnCropCommands();
     void OnCopyCommands();
@@ -57,6 +66,7 @@ protected:
 private:
     void _OnDelete(bool fCut, bool fCopy);
     void _UpdateItemCount();
+    void _UpdatePolyItemCount();
     const PicComponent *_GetEditPic();
     void _InvalidateCurrentCaretPos();
     void _UpdatePalette();
@@ -68,7 +78,8 @@ private:
 
     CFont m_font;
 
-    PicCommandListBox m_wndList;
+    PicCommandListBox m_wndListCommands;
+    PolygonListBox m_wndListPolygons;
     CExtNoFlickerStatic m_wndPalette;
     bool _showPalette;
 
