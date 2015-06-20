@@ -38,10 +38,10 @@ protected:
 
 public:
     CSoundDoc* GetDocument() const;
-    const SoundComponent* GetSoundComponent();
+    const SoundComponent* GetSoundComponent() const;
     virtual void OnDraw(CDC *);
     virtual BOOL OnEraseBkgnd(CDC *pDC);
-    void SetTempo(WORD wTempo);
+    void SetTempo(WORD wTempo, bool setModified);
     WORD GetTempo() const;
     int XToTicks(int cx);
     int TicksToX(int ticks);
@@ -101,6 +101,7 @@ private:
     int _CuePointInViewCoordinates(const CuePoint &cue);
     void _ClearDrags();
     void _RedoDrags();
+
     DragEntry *_CurrentDrag()
     {
         if (_currentDragIndex == -1)
@@ -125,6 +126,9 @@ private:
 
     std::vector<std::unique_ptr<DragEntry>> _drags;
     int _currentDragIndex;
+
+    //
+    uint16_t _tempoToSet;
 
     const static COLORREF ColorActiveTrack = RGB(64, 64, 255);
     const static COLORREF ColorTrackEvent = RGB(128, 128, 255);
@@ -161,15 +165,28 @@ public:
     {
         _pView = NULL;
     }
+
+    void OnClick(CPoint point, bool down) override
+    {
+        if (!down)
+        {
+            int x = 0;
+        }
+        __super::OnClick(point, down);
+    }
+
     void SetView(CSoundView *pView)
     {
-        if (pView != _pView)
+        _pView = pView;
+        // Update from view
+        // Set range to 200, or 150% of current tempo, which ever is higher.
+        //ScrollTotalRangeSet(max((_pView->GetTempo() * 3 / 2), 200));
+        ScrollTotalRangeSet(400);   // Just some max value
+        ULONG oldValue = ScrollPosSet((ULONG)_pView->GetTempo());
+        if (oldValue != (ULONG)_pView->GetTempo())
         {
-            _pView = pView;
-            // Update from view
-            // Set range to 200, or 150% of current tempo, which ever is higher.
-            ScrollTotalRangeSet(max((_pView->GetTempo() * 3 / 2), 200));
-            ScrollPosSet((ULONG)_pView->GetTempo());
+            // Why does it update by itself???
+            this->RedrawButton(true);
         }
     }
     ULONG ScrollPosSet(ULONG nScrollPos)
@@ -183,7 +200,7 @@ public:
             // we are assigned a new view (since the scroll pos should only change if
             // 1) we are assigned a new view, or
             // 2) the user moves it, which means our view is still valid.
-            _pView->SetTempo((WORD)nScrollPos);
+            _pView->SetTempo((WORD)max(1, nScrollPos), false);
         }
         return nOldPos;
     }

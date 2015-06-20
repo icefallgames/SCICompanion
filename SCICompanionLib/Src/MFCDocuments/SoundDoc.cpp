@@ -19,7 +19,6 @@ IMPLEMENT_DYNCREATE(CSoundDoc, CResourceDocument)
 CSoundDoc::CSoundDoc() : _selectedChannelId(-1)
 {
     _cueIndex = -1;
-    _wTempo = StandardTempo;
     _device = (appState->GetVersion().SoundFormat == SoundFormat::SCI1) ?  s_defaultDeviceSCI1 : s_defaultDeviceSCI0;
 }
 
@@ -36,7 +35,6 @@ void CSoundDoc::v_OnUndoRedo()
 void CSoundDoc::SetSoundResource(std::unique_ptr<ResourceEntity> pSound, int id)
 {
     _checksum = id;
-    _wTempo = pSound->GetComponent<SoundComponent>().GetTempo();
     AddFirstResource(move(pSound));
     _UpdateTitle();
     UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(SoundChangeHint::Changed));
@@ -143,13 +141,16 @@ void CSoundDoc::_OnImportMidi()
 
 void CSoundDoc::SetTempo(WORD wTempo)
 {
-    if (_wTempo != wTempo)
+    SoundComponent *pSound = GetSoundComponent();
+    if (pSound)
     {
-        _wTempo = wTempo;
-        // Special case for tempo - don't make a new sound.  The tempo will change many times a second
-        // when the user is sliding the tempo slider.
-        SoundComponent *pSound = GetSoundComponent();
-        pSound->SetTempo(wTempo);
+        if (pSound->GetTempo() != wTempo)
+        {
+            // Special case for tempo - don't make a new sound.  The tempo will change many times a second
+            // when the user is sliding the tempo slider.
+            SoundComponent *pSound = GetSoundComponent();
+            pSound->SetTempo(wTempo);
+        }
     }
 }
 

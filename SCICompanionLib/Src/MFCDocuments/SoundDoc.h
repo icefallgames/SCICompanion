@@ -24,7 +24,6 @@ public:
     int GetChannelId() const { return _selectedChannelId; }
 
     void SetTempo(WORD wTempo);
-    WORD GetTempo() const { return _wTempo; }
 
     void SetActiveCue(int index);
     int GetActiveCue() const { return _cueIndex; }
@@ -43,8 +42,6 @@ protected:
 
 private:
     SoundChangeHint _UpdateChannelId();
-    // Assumes ownership of this:
-    WORD _wTempo;
     int _cueIndex;
     DeviceType _device;
     int _selectedChannelId;

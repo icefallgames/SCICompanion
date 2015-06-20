@@ -13,6 +13,8 @@ using namespace std;
 
 CExtTempoSlider *g_pSoundTempoSlider = nullptr;
 
+#define SOUND_TIMER 5003
+#define MODIFIED_TIMER 5004
 
 void DragEntry::OnDragMove(CPoint pt)
 {
@@ -153,6 +155,7 @@ IMPLEMENT_DYNCREATE(CSoundView, CView)
 
 CSoundView::CSoundView()
 {
+    _tempoToSet = 0xffff;
     _cursorPos = 0;
     _channelIdHover = -1;
     _imageList.Create(16, 16, ILC_COLOR32 | ILC_MASK, 0, 5);
@@ -618,7 +621,7 @@ void CSoundView::_UpdateMidiPlayer()
         {
             g_midiPlayer.SetDevice(pDoc->GetDevice());
             DWORD dwTicks = g_midiPlayer.QueryPosition();
-            g_midiPlayer.SetSound(*pSound, pDoc->GetTempo());
+            g_midiPlayer.SetSound(*pSound, pSound->GetTempo());
             g_midiPlayer.CueTickPosition(dwTicks);
         }
     }
@@ -668,19 +671,32 @@ BOOL CSoundView::OnEraseBkgnd(CDC *pDC)
     return TRUE;
 }
 
-void CSoundView::SetTempo(WORD wTempo)
+void CSoundView::SetTempo(WORD wTempo, bool setModified)
 {
     CSoundDoc *pDoc = GetDocument();
     if (pDoc)
     {
         if (pDoc->GetSoundComponent()->CanChangeTempo())
         {
-            pDoc->ApplyChanges<SoundComponent>(
-                [wTempo](SoundComponent &sound)
+            if (setModified)
+            {
+                pDoc->ApplyChanges<SoundComponent>(
+                    [wTempo](SoundComponent &sound)
                 {
                     return WrapHint(sound.SetTempo(wTempo));
                 }
                 );
+            }
+            else
+            {
+                if (wTempo != GetSoundComponent()->GetTempo())
+                {
+                    _tempoToSet = wTempo;
+                    KillTimer(MODIFIED_TIMER);
+                    SetTimer(MODIFIED_TIMER, 100, NULL);
+                }
+            }
+
             g_midiPlayer.SetTempo(wTempo);
         }
         // REVIEW: have some message when you can't change tempo?
@@ -688,11 +704,15 @@ void CSoundView::SetTempo(WORD wTempo)
 }
 WORD CSoundView::GetTempo() const
 {
-    WORD w = 120;
-    CSoundDoc *pDoc = GetDocument();
-    if (pDoc)
+    WORD w = StandardTempo;
+    const SoundComponent *sound = GetSoundComponent();
+    if (sound)
     {
-        w = pDoc->GetTempo();   
+        w = _tempoToSet;
+        if (_tempoToSet == 0xffff)
+        {
+            w = sound->GetTempo();
+        }
     }
     return w;
 }
@@ -821,7 +841,7 @@ void CSoundView::OnDraw(CDC *pDC)
     }
 }
 
-const SoundComponent* CSoundView::GetSoundComponent()
+const SoundComponent* CSoundView::GetSoundComponent() const
 {
     const SoundComponent *pSound = nullptr;
     CSoundDoc *pDoc = GetDocument();
@@ -835,8 +855,6 @@ const SoundComponent* CSoundView::GetSoundComponent()
     }
     return pSound;
 }
-
-#define SOUND_TIMER 5003
 
 void CSoundView::OnPlay()
 {
@@ -944,7 +962,6 @@ bool CSoundView::_LoopPointInViewCoordinates(int &x)
     }
     return fRet;
 }
-
 
 void CSoundView::_RedoDrags()
 {
@@ -1061,6 +1078,12 @@ void CSoundView::OnTimer(UINT_PTR nIDEvent)
     if (nIDEvent == SOUND_TIMER)
     {
         _SetCursorPos();
+    }
+    else if (nIDEvent == MODIFIED_TIMER)
+    {
+        SetTempo(_tempoToSet, true);
+        _tempoToSet = 0xffff;
+        KillTimer(nIDEvent);
     }
     else
     {
