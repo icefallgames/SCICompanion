@@ -131,20 +131,31 @@ PolygonSource::PolygonSource(const string &filePath) : _filePath(filePath), _dir
 }
 
 // The Polygon:new
-unique_ptr<SingleStatement> _MakeNewPolygonStatement(const SCIPolygon &poly)
+unique_ptr<SingleStatement> _MakeNewPolygon()
 {
     unique_ptr<SingleStatement> statement = make_unique<SingleStatement>();
 
-    unique_ptr<SendCall> polygonNew = make_unique<SendCall>();
-    polygonNew->SetName("Polygon");
+    unique_ptr<SendCall> polygonnew = make_unique<SendCall>();
+    polygonnew->SetName("Polygon");
+    polygonnew->AddSendParam(make_unique<SendParam>("new", true));
 
-    polygonNew->AddSendParam(make_unique<SendParam>("new", true));
+    statement->SetSyntaxNode(move(polygonnew));
+    return statement;
+}
+
+// The values set on the new polygon
+unique_ptr<SingleStatement> _MakeThePolygonStatement(const SCIPolygon &poly)
+{
+    unique_ptr<SingleStatement> statement = make_unique<SingleStatement>();
+    unique_ptr<SendCall> polygonStuff = make_unique<SendCall>();
+
+    polygonStuff->SetStatement1(move(_MakeNewPolygon()));
 
     if ((int)poly.Type < ARRAYSIZE(AccessType))
     {
         unique_ptr<SendParam> typeParam = make_unique<SendParam>(c_szTypeSelector);
         typeParam->AddStatement(_MakeTokenStatement(AccessType[(int)poly.Type]));
-        polygonNew->AddSendParam(move(typeParam));
+        polygonStuff->AddSendParam(move(typeParam));
     }
 
     unique_ptr<SendParam> initParam = make_unique<SendParam>(c_szInitSelector);
@@ -153,11 +164,11 @@ unique_ptr<SingleStatement> _MakeNewPolygonStatement(const SCIPolygon &poly)
         initParam->AddStatement(_MakeNumberStatement(point.x));
         initParam->AddStatement(_MakeNumberStatement(point.y));
     }
-    polygonNew->AddSendParam(move(initParam));
+    polygonStuff->AddSendParam(move(initParam));
 
-    polygonNew->AddSendParam(make_unique<SendParam>("yourself", true));
+    polygonStuff->AddSendParam(make_unique<SendParam>("yourself", true));
 
-    statement->SetSyntaxNode(move(polygonNew));
+    statement->SetSyntaxNode(move(polygonStuff));
     return statement;
 }
 
@@ -167,13 +178,11 @@ unique_ptr<SingleStatement> _MakeAddPolygonCode(const SCIPolygon &poly)
     unique_ptr<SingleStatement> statement = make_unique<SingleStatement>();
     unique_ptr<SendCall> roomAddObstacble = make_unique<SendCall>();
 
-    unique_ptr<LValue> roomNameLValue = make_unique<LValue>();
-    roomNameLValue->SetName(c_szRoomName);
-    roomAddObstacble->SetLValue(move(roomNameLValue));
+    roomAddObstacble->SetLValue(make_unique<LValue>(c_szRoomName));
 
     unique_ptr<SendParam> addObstacleParam = make_unique<SendParam>();
     addObstacleParam->SetName(c_szAddObstacleSelector);
-    addObstacleParam->AddStatement(_MakeNewPolygonStatement(poly));
+    addObstacleParam->AddStatement(_MakeThePolygonStatement(poly));
     roomAddObstacble->AddSendParam(move(addObstacleParam));
     statement->SetSyntaxNode(move(roomAddObstacble));
     return statement;

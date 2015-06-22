@@ -52,6 +52,7 @@ namespace sci
         DECLARE_NODE_TYPE(NodeTypeLValue)
     public:
         LValue() : NamedNode() { }
+        LValue(const std::string &name) : NamedNode(name){ }
 
 		LValue(LValue &src) = delete;
 		LValue& operator=(const LValue& src) = delete;

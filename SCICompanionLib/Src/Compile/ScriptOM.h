@@ -410,6 +410,8 @@ namespace sci
     class NamedNode
     {
     public:
+        NamedNode(const std::string &name) : _innerName(name) {}
+        NamedNode() {}
         void SetName(const std::string &name) { _innerName = name; }
         std::string GetName() const { return _innerName; }
     protected:
