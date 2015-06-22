@@ -12,7 +12,7 @@
 (use "Game")
 (use "View")
 (use "Obj")
-(script 100)
+(script TITLEROOM_SCRIPT)
 
 (instance myDialog of Dialog
     (properties)

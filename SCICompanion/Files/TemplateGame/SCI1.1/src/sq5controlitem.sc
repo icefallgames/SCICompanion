@@ -203,7 +203,7 @@
         Graph(grUPDATE_BOX 12 1 15 + 151 CelWide(995 0 1) 1)
         Message(msgGET 0 18 0 1 1 @temp1)
         Format(@temp26 "%d %s %d" gScore @temp1 gMaxScore)
-        Display(@temp26 105 gFont 100 + (+ 5 CelWide(995 1 1)) 6 + (+ 38 CelHigh(995 0 1)) 15)
+        Display(@temp26 dsFONT gFont dsCOORD (+ (+ 5 CelWide(995 1 1)) 6) (+ (+ 38 CelHigh(995 0 1)) 15))
         SetPort(0)
     )
 

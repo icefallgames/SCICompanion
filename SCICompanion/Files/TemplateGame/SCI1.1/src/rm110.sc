@@ -3,6 +3,7 @@
 (include "Verbs.sh")
 (include "game.sh")
 (include "110.shm")
+(include "110.shp")
 (exports
     0 rm110
 )
@@ -15,6 +16,9 @@
 (use "View")
 (use "Obj")
 (use "Print")
+(use "Polygon")
+(use "ClickMenu")
+
 (script 110)
 
 (instance public rm110 of Rm
@@ -25,7 +29,7 @@
         horizon 50
         vanishingX 130
         vanishingY 50
-        south 105		// This doesn't seem to work anymore
+        south 105
         noun N_ROOM
     )
 
@@ -35,7 +39,7 @@
         (send gEgo:get(0))
         
         (anObject:init())
-        
+        SetUpPolys()
         SetUpEgo()
         (switch (gPreviousRoomNumber)
         	(case south

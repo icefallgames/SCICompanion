@@ -92,7 +92,7 @@
         (if (<= temp0 distance)
             (super:moveDone())
         )(else
-            (if (== proc999_6(points value) 30583)
+            (if (== GetValueAt(points value) 30583)
                 (if (points)
                     Memory(memFREE points)
                 )

@@ -13,7 +13,7 @@
 (use "IconI")
 (use "InvI")
 (use "Obj")
-(script 15)
+(script INVENTORY_SCRIPT)
 
 
 
@@ -107,7 +107,7 @@
     (method (init param1)
         (super:init(rest param1))
         (invWin:
-            color(0)
+            color(gColorWindowForeground)
             back(3)
             topBordColor(5)
             lftBordColor(4)
@@ -120,7 +120,7 @@
             rgtBordColor2(6)
         )
         (self:
-            add(Money ) // TODO: addmore inventory items
+            add(Money ) // TODO: Add more inventory items here
             eachElementDo(#lowlightColor 2)
             add(invLook invSelect invHelp invUp invDown ok)
         )
@@ -138,7 +138,7 @@
             empty(13)
             normalHeading(15)
             eachElementDo(#highlightColor 0)
-            eachElementDo(#modNum 15)
+            eachElementDo(#modNum INVENTORY_SCRIPT)
             eachElementDo(#init)
         )
     )

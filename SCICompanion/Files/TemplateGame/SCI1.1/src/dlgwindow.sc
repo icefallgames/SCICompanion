@@ -1086,7 +1086,7 @@
         StrCpy(@local42 "DialogEditor  v1.1")
         = gSq5Win SysWindow
         (send gSq5Win:
-            color(0)
+            color(gColorWindowForeground)
             back(255)
         )
         (send gGame:setCursor(999))

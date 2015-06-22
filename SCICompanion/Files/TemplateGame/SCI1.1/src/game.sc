@@ -210,7 +210,7 @@
             = thePanelObj panelObj
             = thePanelSelector panelSelector
             = panelObj (= panelSelector 0)
-            proc999_7(thePanelObj thePanelSelector)
+            Perform(thePanelObj thePanelSelector)
         )
         = gLastTicks (+ global86 GetTime())
         (if (gNewEventHandler)
@@ -492,7 +492,7 @@
     )
 
 
-    (method (setCursor cursorNumber param2 param3 param4 param5 param6)
+    (method (setCursor cursorNumber isVisible cursorX cursorY hotspotX hotspotY)
         (var theGCursorNumber)
         = theGCursorNumber gCursorNumber
         (if (IsObject(cursorNumber))
@@ -502,11 +502,11 @@
             SetCursor(cursorNumber 0 0)
         )
         (if (> paramTotal 1)
-            SetCursor(param2)
+            SetCursor(isVisible)
             (if (> paramTotal 2)
-                SetCursor(param3 param4)
+                SetCursor(cursorX cursorY)
                 (if (> paramTotal 4)
-                    SetCursor(cursorNumber 0 0 param5 param6)
+                    SetCursor(cursorNumber 0 0 hotspotX hotspotY)
                 )
             )
         )

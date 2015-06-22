@@ -5,10 +5,10 @@
     1 Modulo
     2 Min
     3 Max
-    4 proc999_4
+    4 DoesRectContain
     5 IsOneOf
-    6 proc999_6
-    7 proc999_7
+    6 GetValueAt
+    7 Perform
 )
 (use "Main")
 (use "Print")
@@ -56,10 +56,11 @@
         )
 )
 
-// Should be named DoesRectContain(xLeft, yTop, xRight, yBottom) ... 
-(procedure public (proc999_4 param1 param2 param3 param4 param5 param6)
+// DoesRectContain(left top right bottom x y)
+// DoesRectContain(left top right bottom obj)
+(procedure public (DoesRectContain left top right bottom param5 param6)
     return 
-        (if ((<= param1 
+        (if ((<= left 
         (if (< paramTotal 6)
             (send param5:x)
         )(else
@@ -71,8 +72,8 @@
         )(else
             param5
         )
- param3))
-            (if (<= param2 
+ right))
+            (if (<= top 
             (if (< paramTotal 6)
                 (send param5:y)
             )(else
@@ -85,7 +86,7 @@
                 )(else
                     param6
                 )
- param4
+ bottom
             )
         )(else
             0
@@ -110,12 +111,12 @@
 )
 
 
-(procedure public (proc999_6 param1 param2)
-    Memory(memPEEK + param1 (* 2 param2))
+(procedure public (GetValueAt param1 param2)
+    return Memory(memPEEK (+ param1 (* 2 param2)))
 )
 
 
-(procedure public (proc999_7 param1 param2 param3)
+(procedure public (Perform param1 param2 param3)
     (send param1:param2(rest param3))
 )
 
@@ -638,7 +639,7 @@
             (if (paramTotal)
                 param1
             )(else
-                32767
+                evALL_EVENTS
             )
  newSuper)
  

@@ -85,7 +85,7 @@
 
 
     (method (moveDone)
-        (if (== proc999_6(points value) 30583)
+        (if (== GetValueAt(points value) 30583)
             (super:moveDone())
         )(else
             (self:
@@ -98,14 +98,14 @@
 
     (method (setTarget)
         (var temp0, theX, theY, temp3, temp4[30])
-        (if (<> proc999_6(points value) 30583)
-            = x proc999_6(points value)
-            = y proc999_6(points ++value)
+        (if (<> GetValueAt(points value) 30583)
+            = x GetValueAt(points value)
+            = y GetValueAt(points ++value)
             ++value
-            (if (IsObject(gPolygons) and (= temp3 (send gPolygons:size)))
-                = temp0 AvoidPath((send client:x) (send client:y) x y (send gPolygons:elements) temp3 0)
-                = theX proc999_6(temp0 2)
-                = theY proc999_6(temp0 3)
+            (if (IsObject(gAltPolyList) and (= temp3 (send gAltPolyList:size)))
+                = temp0 AvoidPath((send client:x) (send client:y) x y (send gAltPolyList:elements) temp3 0)
+                = theX GetValueAt(temp0 2)
+                = theY GetValueAt(temp0 3)
                 (if ((<> x theX) or (<> y theY))
                     = x theX
                     = y theY

@@ -253,7 +253,7 @@ code_03c6:  pushi   2
             ldi     1
             add     
             push    
-            calle   proc999_6, 4
+            calle   GetValueAt, 4
             push    
             ldi     30583
             ne?     
@@ -262,25 +262,25 @@ code_03c6:  pushi   2
             pTos    rects
             +at     temp0
             push    
-            calle   proc999_6, 4
+            calle   GetValueAt, 4
             sat     temp2
             pushi   2
             pTos    rects
             +at     temp0
             push    
-            calle   proc999_6, 4
+            calle   GetValueAt, 4
             sat     temp1
             pushi   2
             pTos    rects
             +at     temp0
             push    
-            calle   proc999_6, 4
+            calle   GetValueAt, 4
             sat     temp4
             pushi   2
             pTos    rects
             +at     temp0
             push    
-            calle   proc999_6, 4
+            calle   GetValueAt, 4
             sat     temp3
             lst     temp2
             pushi   #x

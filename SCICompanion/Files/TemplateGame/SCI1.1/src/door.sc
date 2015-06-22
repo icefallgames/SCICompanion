@@ -90,7 +90,7 @@
                 (send doubleDoor:setCel(0))
             )
         )(else
-            (send gPolygons:delete(doorPoly))
+            (send gAltPolyList:delete(doorPoly))
             = cel (- NumCels(self) 1)
             (if (doubleDoor)
                 (send doubleDoor:setCel((- NumCels(doubleDoor) 1)))
@@ -131,7 +131,7 @@
 
 
     (method (dispose)
-        (send gPolygons:delete(doorPoly))
+        (send gAltPolyList:delete(doorPoly))
         (send doorPoly:dispose())
         (super:dispose())
     )
@@ -161,7 +161,7 @@
             (case 3
                 = state 0
                 (self:stopUpd())
-                (send gPolygons:add(doorPoly))
+                (send gAltPolyList:add(doorPoly))
                 (if (caller)
                     (send caller:cue())
                 )
@@ -172,7 +172,7 @@
             (case 1
                 = state 2
                 (self:stopUpd())
-                (send gPolygons:delete(doorPoly))
+                (send gAltPolyList:delete(doorPoly))
                 (if (caller)
                     (send caller:cue())
                 )
@@ -290,7 +290,7 @@
 
     (method (createPoly param1)
         = doorPoly (send ((Polygon:new())):
-                type(2)
+                type(PBarredAccess)
                 yourself()
             )
         (if (paramTotal)
@@ -298,7 +298,7 @@
         )(else
             (send doorPoly:init((- brLeft polyAdjust) (+ brBottom polyAdjust) (- brLeft polyAdjust) (- brTop polyAdjust) (+ brRight polyAdjust) (- brTop polyAdjust) (+ brRight polyAdjust) (+ brBottom polyAdjust)))
         )
-        (send gPolygons:add(doorPoly))
+        (send gAltPolyList:add(doorPoly))
     )
 
 )

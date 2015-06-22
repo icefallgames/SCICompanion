@@ -3,32 +3,29 @@
 (use "SysWindow")
 (script 936)
 
-
-
-(procedure (localproc_0203 param1 param2 param3 param4 param5 param6 param7 param8 param9 param10 param11 param12 param13)
-    (var temp0, temp1)
-    = temp0 GetPort()
+(procedure (drawWindow top left bottom right backgroundColor topBordColor lftBordColor botBordColor rgtBordColor bevelWid shadowWidth priority screens)
+    (var oldPort, bevelWidCounter)
+    = oldPort GetPort()
     SetPort(0)
-    Graph(grFILL_BOX param1 param2 + param3 1 + param4 1 param13 param5 param12)
-    = param1 (- param1 param10)
-    = param2 (- param2 param10)
-    = param4 (+ param4 param10)
-    = param3 (+ param3 param10)
-    Graph(grFILL_BOX param1 param2 + param1 param10 param4 param13 param6 param12)
-    Graph(grFILL_BOX - param3 param10 param2 param3 param4 param13 param8 param12)
-    = temp1 0
-    (while (< temp1 param10)
-        Graph(grDRAW_LINE + param1 temp1 + param2 temp1 - param3 (+ temp1 1) + param2 temp1 param7 param12 -1)
-        Graph(grDRAW_LINE + param1 temp1 - param4 (+ temp1 1) - param3 (+ temp1 1) - param4 (+ temp1 1) param9 param12 -1)
-        ++temp1
+    Graph(grFILL_BOX top left (+ bottom 1) (+ right 1) screens backgroundColor priority)
+    = top (- top bevelWid)
+    = left (- left bevelWid)
+    = right (+ right bevelWid)
+    = bottom (+ bottom bevelWid)
+    Graph(grFILL_BOX top left (+ top bevelWid) right screens topBordColor priority)
+    Graph(grFILL_BOX (- bottom bevelWid) left bottom right screens botBordColor priority)
+    = bevelWidCounter 0    
+    (while (< bevelWidCounter bevelWid)			
+        Graph(grDRAW_LINE (+ top bevelWidCounter) (+ left bevelWidCounter) (- bottom (+ bevelWidCounter 1)) (+ left bevelWidCounter) lftBordColor priority -1)
+        Graph(grDRAW_LINE (+ top bevelWidCounter) (- right (+ bevelWidCounter 1)) (- bottom (+ bevelWidCounter 1)) (- right (+ bevelWidCounter 1)) rgtBordColor priority -1)
+        ++bevelWidCounter
     )
-    (if (param11)
-        Graph(grFILL_BOX + param1 param11 param4 + param3 param11 + param4 param11 param13 0 param12)
-        Graph(grFILL_BOX param3 + param2 param11 + param3 param11 param4 param13 0 param12)
+    (if (shadowWidth)
+        Graph(grFILL_BOX (+ top shadowWidth) right (+ bottom shadowWidth) (+ right shadowWidth) screens 0 priority)
+        Graph(grFILL_BOX bottom (+ left shadowWidth) (+ bottom shadowWidth) right screens 0 priority)
     )
-    SetPort(temp0)
+    SetPort(oldPort)
 )
-
 
 (class BorderWindow of SysWindow
     (properties
@@ -64,13 +61,12 @@
         SetPort(0)
     )
 
-
     (method (open)
-        (var temp0, temp1)
+        (var oldPort, screens)
         SetPort(0)
-        = temp1 1
+        = screens VISUAL
         (if (<> priority -1)
-            = temp1 (| temp1 $0002)
+            = screens (| screens PRIORITY)
         )
         = lsTop (- top bevelWid)
         = lsLeft (- left bevelWid)
@@ -78,14 +74,14 @@
         = lsBottom (+ (+ bottom bevelWid) shadowWid)
         = type 128
         (super:open())
-        localproc_0203(top left bottom right back topBordColor lftBordColor botBordColor rgtBordColor bevelWid shadowWid priority temp1)
-        = temp0 GetPort()
+        drawWindow(top left bottom right back topBordColor lftBordColor botBordColor rgtBordColor bevelWid shadowWid priority screens)
+        = oldPort GetPort()
         SetPort(0)
-        Graph(grUPDATE_BOX lsTop lsLeft lsBottom lsRight 1)
-        SetPort(temp0)
+        Graph(grUPDATE_BOX lsTop lsLeft lsBottom lsRight VISUAL)
+        SetPort(oldPort)
     )
-
 )
+
 (class InsetWindow of BorderWindow
     (properties
         top 0
@@ -128,11 +124,12 @@
         yOffset 0
     )
 
+
     (method (open)
-        (var temp0, temp1, theTop, theLeft, theBottom, theRight)
-        = temp0 1
+        (var screens, oldPort, theTop, theLeft, theBottom, theRight)
+        = screens VISUAL
         (if (<> priority -1)
-            = temp0 (| temp0 $0002)
+            = screens (| screens PRIORITY)
         )
         = theTop top
         = theLeft left
@@ -145,11 +142,11 @@
         = xOffset (+ bevelWid sideBordWid)
         = yOffset (+ bevelWid topBordHgt)
         (super:open())
-        localproc_0203(theTop theLeft theBottom theRight insideColor topBordColor2 lftBordColor2 botBordColor2 rgtBordColor2 bevWid shadWid priority temp0)
-        = temp1 GetPort()
+        drawWindow(theTop theLeft theBottom theRight insideColor topBordColor2 lftBordColor2 botBordColor2 rgtBordColor2 bevWid shadWid priority screens)
+        = oldPort GetPort()
         SetPort(0)
-        Graph(grUPDATE_BOX - theTop bevWid - theLeft bevWid + theBottom bevWid + theRight bevWid 1)
-        SetPort(temp1)
+        Graph(grUPDATE_BOX (- theTop bevWid) (- theLeft bevWid) (+ theBottom bevWid) (+ theRight bevWid) VISUAL)
+        SetPort(oldPort)
     )
 
 )

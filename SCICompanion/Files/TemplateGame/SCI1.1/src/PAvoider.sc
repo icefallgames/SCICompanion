@@ -12,7 +12,7 @@
     = temp3 -100
     = temp0 0
     (while (<> temp3 30583)
-        = temp3 proc999_6(param1 (* 2 temp0))
+        = temp3 GetValueAt(param1 (* 2 temp0))
         ++temp0
     )
     return --temp0
@@ -108,7 +108,7 @@
                 (case 3
                     = temp17 (send ((Polygon:new())):
                             init(temp5 (send client:y) temp5 temp6 temp7 temp6 temp7 (send client:y) 30583 0)
-                            type(2)
+                            type(PBarredAccess)
                             name("isBlockedPoly")
                             yourself()
                         )
@@ -116,7 +116,7 @@
                 (case 2
                     = temp17 (send ((Polygon:new())):
                             init(temp7 (send client:y) temp7 temp8 temp5 temp8 temp5 (send client:y) 30583 0)
-                            type(2)
+                            type(PBarredAccess)
                             name("isBlockedPoly")
                             yourself()
                         )
@@ -124,7 +124,7 @@
                 (case 0
                     = temp17 (send ((Polygon:new())):
                             init((send client:x) temp6 temp7 temp6 temp7 temp8 (send client:x) temp8 30583 0)
-                            type(2)
+                            type(PBarredAccess)
                             name("isBlockedPoly")
                             yourself()
                         )
@@ -132,7 +132,7 @@
                 (case 1
                     = temp17 (send ((Polygon:new())):
                             init((send client:x) temp8 temp5 temp8 temp5 temp6 (send client:x) temp6 30583 0)
-                            type(2)
+                            type(PBarredAccess)
                             name("isBlockedPoly")
                             yourself()
                         )
@@ -147,7 +147,7 @@
                 (send newPolygon:
                     points(newPolygon)
                     size(localproc_042b(newPolygon))
-                    type(2)
+                    type(PBarredAccess)
                     dynamic(1)
                 )
             )

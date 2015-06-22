@@ -336,7 +336,6 @@
     <None Include="Files\TemplateGame\SCI1.1\src\deathroom.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\deathroom.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\debughandler.sco" />
-    <None Include="Files\TemplateGame\SCI1.1\src\debughandler_880.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\dicon.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\dicon.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\dinvd.sc" />
@@ -538,6 +537,8 @@
     <None Include="Files\TemplateGame\SCI1.1\src\Verbs.sh" />
     <None Include="Files\TemplateGame\SCI1.1\src\Wander.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\wander.sco" />
+    <None Include="Files\TemplateGame\SCI1.1\poly\110.shp" />
+    <None Include="Files\TemplateGame\SCI1.1\src\debughandler.sc" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />

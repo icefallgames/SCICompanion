@@ -92,11 +92,7 @@
     (method (doVerb theVerb param2)
         (switch (theVerb)
             (case V_LOOK
-                (if (Btest(22))
-                    (send gTestMessager:say(30 1 0 Random(1 2) 0 0))
-                )(else
-                    (send gTestMessager:say(22 1 0 Random(1 2) 0 0))
-                )
+                (send gTestMessager:say(22 1 0 Random(1 2) 0 0))
             )
             (case V_DO
                 (send gTestMessager:say(22 4 0 Random(1 2) 0 0))

@@ -47,7 +47,7 @@
 
     (method (doit param1)
         (if (theObj)
-            proc999_7(theObj selector rest param1)
+            Perform(theObj selector rest param1)
         )
     )
 

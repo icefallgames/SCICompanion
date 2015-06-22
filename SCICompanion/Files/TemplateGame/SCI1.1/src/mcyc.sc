@@ -36,7 +36,7 @@
             )
         )
         = size 0
-        (while (<> proc999_6(points size) -32768)
+        (while (<> GetValueAt(points size) -32768)
             ++size
         )
         (if (== cycleDir 1)
@@ -58,10 +58,10 @@
 
     (method (nextCel)
         (send client:
-            loop(proc999_6(points value))
-            cel(proc999_6(points + value 1))
-            x(proc999_6(points + value 2))
-            y(proc999_6(points + value 3))
+            loop(GetValueAt(points value))
+            cel(GetValueAt(points (+ value 1)))
+            x(GetValueAt(points (+ value 2)))
+            y(GetValueAt(points (+ value 3)))
         )
         = value (+ value (* cycleDir 4))
         (if (((== cycleDir 1) and (>= value size)) or ((== cycleDir -1) and (< value 0)))

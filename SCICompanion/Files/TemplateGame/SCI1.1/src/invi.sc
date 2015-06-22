@@ -818,7 +818,7 @@ code_0d0f:  pushi   #hide
             )(else
                 gEgo
             )
-)))
+			)))
             (self:doit())
         )
     )
@@ -832,17 +832,17 @@ code_0d0f:  pushi   #hide
             )(else
                 (send selectIcon:cursor)
             )
-))
+		))
         = temp0 PicNotValid()
         PicNotValid(0)
         = state (| state $0020)
         = temp1 (self:drawInvWindow(
-                (if (paramTotal)
-                    param1
-                )(else
-                    gEgo
-                )
- (send gSq5IconBar:curIcon)))
+	                (if (paramTotal)
+	                    param1
+	                )(else
+	                    gEgo
+					)
+ 					(send gSq5IconBar:curIcon)))
         (if (not temp1)
             = state (& state $ffdf)
         )
@@ -866,10 +866,10 @@ code_0d0f:  pushi   #hide
             )
             (send gSq5IconBar:
                 curIcon((send ((send gSq5IconBar:useIconItem)):
-                        cursor((send curIcon:cursor))
-                        yourself()
-                    )
-)
+	                        cursor((send curIcon:cursor))
+	                        yourself()
+						)
+					   )
                 curInvIcon(curIcon)
             )
             = temp0 (send ((send gSq5IconBar:curIcon)):cursor)
@@ -892,12 +892,12 @@ code_0d0f:  pushi   #hide
         = temp3 (+ temp1 temp2)
         (while (TRUE)
             = temp0 (self:at(
-                    (if (<= temp3 size)
-                        temp3
-                    )(else
-                        (% temp3 (- size 1))
-                    )
-))
+	                    (if (<= temp3 size)
+	                        temp3
+	                    )(else
+	                        (% temp3 (- size 1))
+	                    )
+					))
             (if (not IsObject(temp0))
                 = temp0 NodeValue((self:first()))
             )

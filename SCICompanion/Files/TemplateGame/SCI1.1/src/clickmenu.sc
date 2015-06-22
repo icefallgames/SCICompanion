@@ -279,7 +279,7 @@
 
 
     (method (draw)
-        (self:eachLineDo(80 srcList))
+        (self:eachLineDo(#draw srcList))
     )
 
 
@@ -464,12 +464,12 @@
 
 
     (method (restore)
-        (self:eachLineDo(76))
+        (self:eachLineDo(#restore))
     )
 
 
     (method (save)
-        (self:eachLineDo(75))
+        (self:eachLineDo(#save))
     )
 
 
@@ -503,7 +503,7 @@
             = temp0 (+ temp0 4)
         )
         (if (== srcList 1)
-            (send gPolygons:add((send ((Polygon:new())):
+            (send gAltPolyList:add((send ((Polygon:new())):
                     type(type)
                     points(temp1)
                     size(size)
@@ -524,10 +524,10 @@
     )
 
 
-    (method (writeFile param1 param2)
+    (method (writeFile theFile param2)
         (var temp0, temp1, temp2, temp3, temp4[10], temp14)
         (if (== param2 srcList)
-            (send param1:writeString("\t\t\t((Polygon new:)\n" "\t\t\t\ttype:\t\t" 
+            (send theFile:writeString("\t\t\t((Polygon new:)\n" "\t\t\t\ttype:\t\t" 
                 (switch (type)
                     (case 0
                         "PTotalAccess"
@@ -543,7 +543,7 @@
                     )
                 )
  ",\n"))
-            (send param1:writeString("\t\t\t\tinit:\t\t"))
+            (send theFile:writeString("\t\t\t\tinit:\t\t"))
             = temp14 1
             = temp0 17
             = temp3 FirstNode(elements)
@@ -553,19 +553,19 @@
                 = temp1 (+ StrLen(@temp4) 1)
                 = temp0 (+ temp0 temp1)
                 (if (>= temp0 80)
-                    (send param1:writeString("\n\t\t\t\t\t\t"))
+                    (send theFile:writeString("\n\t\t\t\t\t\t"))
                     = temp14 1
                     = temp0 (+ 17 temp1)
                 )
                 (if (not temp14)
-                    (send param1:writeString(" "))
+                    (send theFile:writeString(" "))
                 )
-                (send param1:writeString(@temp4))
+                (send theFile:writeString(@temp4))
                 = temp14 0
                 = temp3 NextNode(temp3)
             )
-            (send param1:writeString(",\n"))
-            (send param1:writeString("\t\t\t\tyourself:\n" "\t\t\t)\n"))
+            (send theFile:writeString(",\n"))
+            (send theFile:writeString("\t\t\t\tyourself:\n" "\t\t\t)\n"))
         )
     )
 
@@ -1335,8 +1335,10 @@ code_06d6:  ret
 
 
     (method (saveForUndo param1)
+    	(var tempNode, thePrevNode)
         (if (= undoPoly curPolygon)
             = undoPrvPoly (self:prev((= undoPoly curPolygon)))
+            
             (if ((not paramTotal or param1) and undoPolyBuf)
                 Memory(memFREE undoPolyBuf)
             )
@@ -1364,8 +1366,8 @@ code_06d6:  ret
         (if ((send gRoom:obstacles))
             (send ((send gRoom:obstacles)):eachElementDo(#perform readObstacle 0))
         )
-        (if (gPolygons)
-            (send gPolygons:eachElementDo(#perform readObstacle 1))
+        (if (gAltPolyList)
+            (send gAltPolyList:eachElementDo(#perform readObstacle 1))
         )
     )
 
@@ -1408,7 +1410,11 @@ code_06d6:  ret
         (if (not curPolygon)
             return 1
         )
-        (self:eachElementDo(#check))
+        
+        // This uses Atan, which Scumm doesn't support.
+        // (self:eachElementDo(#check))
+        
+        
         (if (not local2)
             Format(@local2 943 3 (send gRoom:curPic))
         )

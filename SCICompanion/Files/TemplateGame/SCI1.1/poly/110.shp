@@ -1,0 +1,19 @@
+// 110.shp -- Produced by SCI Companion
+// This file should only be edited with the SCI Companion polygon editor
+
+
+(procedure (SetUpPolys)
+    (send gRoom:addObstacle((send ((Polygon:new())):
+            type(PBarredAccess)
+            init(212 68 269 68 286 85 267 101 225 101 202 89)
+            yourself()
+        )
+))
+    (send gRoom:addObstacle((send ((Polygon:new())):
+            type(PBarredAccess)
+            init(0 63 45 67 47 87 22 96 0 97)
+            yourself()
+        )
+))
+)
+

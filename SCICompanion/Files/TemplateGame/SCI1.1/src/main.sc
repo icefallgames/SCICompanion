@@ -13,9 +13,9 @@
     8 proc0_8
     9 Die
     10 AddToScore
-    11 proc0_11
+    11 HideStatus
 )
-(use "GlobalPalettes")
+(use "ColorInit")
 (use "Smopper")
 (use "SQEgo")
 (use "ScrollableInventory")
@@ -113,7 +113,7 @@
     gPrintEventHandler
     gOldWH
     gTextReadSpeed =     2
-    gPolygons
+    gAltPolyList
     gColorDepth
     gPolyphony
     gStopGroop
@@ -131,24 +131,17 @@
     gSq5Music2
     gCurrentTalkerNumber
     gGEgoMoveSpeed
-    global151		// palettes VVV
-    global152
-    global153
-    global154
-    global155
-    global156
-    global157
-    global158
-    global159		// palettes ^^^
+    gColorWindowForeground
+    gColorWindowBackground
     gLowlightColor
     gDefaultEgoView =     1
     gRegister
-    gFlags[14]		// Start of bit set
+    gFlags[14]		// Start of bit set. Room for 14x16 = 224 flags.
 )
+
 (procedure public (Btest param1)
     return & gFlags[(/ param1 16)] (>> $8000 (% param1 16))
 )
-
 
 (procedure public (Bset param1)
     (var temp0)
@@ -156,7 +149,6 @@
     = gFlags[(/ param1 16)] (| gFlags[(/ param1 16)] (>> $8000 (% param1 16)))
     return temp0
 )
-
 
 (procedure public (Bclear param1)
     (var temp0)
@@ -188,7 +180,6 @@
             0
         )
 )
-
 
 (procedure public (SetUpEgo param1 param2)
     (if ((> paramTotal 0) and (<> param1 -1))
@@ -250,7 +241,6 @@
     )
 )
 
-
 (procedure public (proc0_8 param1 param2 param3 param4)
     (var temp0, temp1, temp2, temp3, temp4)
     = temp3 0
@@ -285,7 +275,7 @@
         )(else
             0
         )
-))
+						   ))
 )
 
 
@@ -297,7 +287,6 @@
     )
     (send gRoom:newRoom(DEATH_SCRIPT))
 )
-
 
 (procedure public (AddToScore param1 param2)
     (if (not Btest(param1))
@@ -314,13 +303,12 @@
     )
 )
 
-
-(procedure public (proc0_11)
+(procedure public (HideStatus)
     (var temp0)
     = temp0 GetPort()
     SetPort(-1)
-    Graph(grFILL_BOX 0 0 10 320 1 0 -1 -1)
-    Graph(grUPDATE_BOX 0 0 10 320 1)
+    Graph(grFILL_BOX 0 0 10 320 VISUAL 0 -1 -1)
+    Graph(grUPDATE_BOX 0 0 10 320 VISUAL)
     SetPort(temp0)
 )
 
@@ -355,18 +343,18 @@
         (var temp0[50], temp50[50], temp100)
         = temp100 GetPort()
         SetPort(-1)
-        Graph(grFILL_BOX 0 0 10 320 1 5 -1 -1)
-        Graph(grUPDATE_BOX 0 0 10 320 1)
-        Message(msgGET 0 29 0 0 1 @temp0)
+        Graph(grFILL_BOX 0 0 10 320 VISUAL 5 -1 -1)
+        Graph(grUPDATE_BOX 0 0 10 320 VISUAL)
+        Message(msgGET 0 N_TITLEBAR 0 0 1 @temp0)
         Format(@temp50 "%s %d" @temp0 gScore)
-        Display(@temp50 100 4 1 105 gFont 102 6)
-        Display(@temp50 100 6 3 105 gFont 102 4)
-        Display(@temp50 100 5 2 105 gFont 102 0)
+        Display(@temp50 dsCOORD 4 1 dsFONT gFont dsCOLOR 6)
+        Display(@temp50 dsCOORD 6 3 dsFONT gFont dsCOLOR 4)
+        Display(@temp50 dsCOORD 5 2 dsFONT gFont dsCOLOR 0)
         Graph(grDRAW_LINE 0 0 0 319 7 -1 -1)
         Graph(grDRAW_LINE 0 0 9 0 6 -1 -1)
         Graph(grDRAW_LINE 9 0 9 319 4 -1 -1)
         Graph(grDRAW_LINE 0 319 9 319 3 -1 -1)
-        Graph(grUPDATE_BOX 0 0 10 319 1)
+        Graph(grUPDATE_BOX 0 0 10 319 VISUAL)
         SetPort(temp100)
     )
 
@@ -384,12 +372,10 @@
         )
     )
 
-
     (method (hide param1)
         (super:hide(rest param1))
         (send gGame:setCursor(gCursorNumber 1))
     )
-
 
     (method (noClickHelp)
         (var temp0, temp1, temp2, temp3, gSq5WinEraseOnly)
@@ -440,8 +426,8 @@
             (self:dispatchEvent(temp0))
         )
     )
-
 )
+
 (class public SQ5 of Game
     (properties
         script 0
@@ -456,7 +442,7 @@
     (method (init)
         (var temp0[7], temp7)
         
-        (send (ScriptID(15 0)):init())	// SQ5InvItem
+        (send (ScriptID(INVENTORY_SCRIPT 0)):init())
         (super:init())
         = gEgo ego
         (User:
@@ -479,15 +465,15 @@
         (if (== gColorDepth 256)
             Bset(0)
         )
-        // These font resource numbers correspond to font codes used in messages:
+        // The position of these font resource numbers correspond to font codes used in messages:
         TextFonts(1605 1605 1605 1605 1605 2106)
-        // These correspond to color codes used in messages (presumably values into global palette):
+        // These correspond to color codes used in messages (values into global palette):
         TextColors(0 15 26 31 34 52 63)
         = gVersion "x.yyy.zzz"
         = temp7 FileIO(fiOPEN "version" 1)
         FileIO(fiREAD_STRING gVersion 11 temp7)
         FileIO(fiCLOSE temp7)
-        SetGlobalPalettes()
+        ColorInit()
         DisposeScript(12)
         = gSQ5Narrator sQ5Narrator
         = gSq5Win sq5Win
@@ -495,11 +481,11 @@
         = gTestMessager testMessager
         = gNewSpeakWindow (SpeakWindow:new())
         (send gSq5Win:
-            color(0)
-            back(global159)
+            color(gColorWindowForeground)
+            back(gColorWindowBackground)
         )
         (send gGame:
-            setCursor(gCursorNumber 1 304 172)
+            setCursor(gCursorNumber TRUE 304 172)
             detailLevel(3)
         )
         = gSq5Music1 sq5Music1
@@ -541,8 +527,8 @@
 
     (method (doit param1)
         (if (GameIsRestarting())
-            (if (IsOneOf(gModNum 100 104 110 106 107))
-                proc0_11()
+            (if (IsOneOf(gModNum TITLEROOM_SCRIPT))
+                HideStatus()
             )(else
                 (sq5StatusLineCode:doit())
             )
@@ -577,8 +563,8 @@
 
     (method (startRoom param1)
         (var temp0[4])
-        (if (IsOneOf(param1 100))
-            proc0_11()
+        (if (IsOneOf(param1 TITLEROOM_SCRIPT))
+            HideStatus()
         )(else
             (sq5StatusLineCode:doit())
         )
@@ -715,12 +701,16 @@
                                 (send gEgo:setSpeed(6))
                             )
                         )
-                        (case 12032
+                        (case KEY_ALT_v
                             (Print:
                                 addText("Version number:" 0 0)
                                 addText(gVersion 0 14)
                                 init()
                             )
+                        )
+                        (case KEY_ALT_d
+                        	// Script-base debugger
+                        	(send (ScriptID(10 0)):init())
                         )
                         (default 
                             (send pEvent:claimed(0))
@@ -826,11 +816,7 @@
             canControl(1)
             canInput(1)
         )
-        (if (Btest(22))
-            (send gSq5IconBar:enable(0 1 3 7))
-        )(else
-            (send gSq5IconBar:enable(0 1 2 3 4 5 6 7))
-        )
+        (send gSq5IconBar:enable(0 1 2 3 4 5 6 7))
         (if (paramTotal and fRestore)
             RestorePreviousHandsOn()
         )
@@ -865,25 +851,7 @@
     )
 
 )
-(instance walkCursor of Cursor
-    (properties
-        view 980
-    )
 
-    (method (init param1)
-        (if (Btest(22))
-            = loop 1
-        )(else
-            (if ((== gModNum 119) and (== (send gEgo:view) 136))
-                = loop 3
-            )(else
-                = loop 0
-            )
-        )
-        (super:init(rest param1))
-    )
-
-)
 (instance icon0 of IconI
     (properties
         view 990
@@ -901,24 +869,8 @@
 
     (method (init)
         = lowlightColor gLowlightColor
-        = cursor walkCursor
         (super:init())
     )
-
-
-    (method (show param1)
-        (if (Btest(22))
-            = loop 14
-        )(else
-            (if ((== gModNum 119) and (== (send gEgo:view) 136))
-                = loop 15
-            )(else
-                = loop 0
-            )
-        )
-        (super:show(rest param1))
-    )
-
 
     (method (select param1)
         (var temp0)
@@ -1295,7 +1247,7 @@
 
     (method (init param1)
         = font gFont
-        (self:back(global159))
+        (self:back(gColorWindowBackground))
         (super:init(rest param1))
     )
 
@@ -1311,10 +1263,10 @@
                 (case NARRATOR
                     gSQ5Narrator
                 )
-                (case 8
-                	// e.g.:
-                    ScriptID(109 7)
-                )
+                // Add more cases here for different narrators
+                // (case 8
+                    //ScriptID(109 7)
+                //)
             )
             
         (if (temp0)

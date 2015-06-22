@@ -41,7 +41,7 @@
         (send gGame:handsOff())
         (super:init())
         (send gSq5Music1:
-            number(45)
+            number(46)
             play()
         )
         (send gSq5Music2:stop())
