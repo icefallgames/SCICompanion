@@ -644,6 +644,14 @@ BEGIN
     END
 END
 
+IDR_MENUSPLITEDGE MENU
+BEGIN
+    POPUP "main"
+    BEGIN
+        MENUITEM "Split edge",                  ID_PIC_SPLITEDGE
+    END
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1607,7 +1615,10 @@ BEGIN
     PUSHBUTTON      "Set background",ID_EDIT_PASTEINTOPIC,44,25,66,14
     CONTROL         "Commands",IDC_RADIOCOMMANDS,"Button",BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_FLAT,7,71,47,15
     CONTROL         "Polygons",IDC_RADIOPOLYGONS,"Button",BS_AUTORADIOBUTTON | BS_PUSHLIKE | BS_FLAT,56,71,47,15
-    LISTBOX         IDC_LISTPOLYGONS,7,93,103,66,LBS_OWNERDRAWFIXED | LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | LBS_NODATA | WS_VSCROLL | WS_TABSTOP
+    LISTBOX         IDC_LISTPOLYGONS,7,120,103,39,LBS_OWNERDRAWFIXED | LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | LBS_NODATA | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBOPOLYTYPE,44,105,66,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    RTEXT           "Type:",IDC_STATICPOLYTYPE,7,108,30,8
+    CONTROL         "Show polygons",IDC_CHECKSHOWPOLYS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,93,103,10
 END
 
 
@@ -2249,6 +2260,19 @@ BEGIN
     0
 END
 
+IDD_PICCOMMANDS_VGA1 DLGINIT
+BEGIN
+    IDC_COMBOPOLYTYPE, 0x403, 6, 0
+0x6f54, 0x6174, 0x006c, 
+    IDC_COMBOPOLYTYPE, 0x403, 8, 0
+0x654e, 0x7261, 0x7365, 0x0074, 
+    IDC_COMBOPOLYTYPE, 0x403, 7, 0
+0x6142, 0x7272, 0x6465, "\000" 
+    IDC_COMBOPOLYTYPE, 0x403, 10, 0
+0x6f43, 0x746e, 0x6961, 0x656e, 0x0064, 
+    0
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2438,8 +2462,7 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_NEW_SOUND            "Create an empty new sound\nNew Sound"
-    ID_FILE_NEWSOUND        "Import a midi file as a new sound resource\nImport sound"
+    ID_FILE_NEWSOUND        "Create an empty new sound\nNew Sound"
     ID_PLAY                 "Play Sound\nPlay"
     ID_STOP                 "Stop sound\nStop"
     ID_IMPORT_MIDI          "Import a MIDI file\nImport MIDI"

@@ -42,6 +42,9 @@ const key_value_pair<CPicView::ToolType, UINT> CPicView::c_toolToID [] =
 CExtAlphaSlider *g_pPicAlphaSlider = NULL;
 
 const int PolygonPointHitTestMargin = 5;
+const COLORREF ColorPoly = RGB(255, 255, 255);
+const COLORREF ColorPolyDisabled = RGB(128, 128, 128);
+const COLORREF ColorPolyHighlight = RGB(255, 64, 64);
 
 void CommandModifier::Reset()
 {
@@ -283,6 +286,7 @@ BEGIN_MESSAGE_MAP(CPicView, CScrollingThing<CView>)
     ON_UPDATE_COMMAND_UI(ID_PIC_EXPORT8, CPicView::OnUpdateIsVGA)
     ON_UPDATE_COMMAND_UI(ID_PIC_EDITPALETTE, CPicView::OnUpdateIsVGA)
     ON_UPDATE_COMMAND_UI(ID_PIC_DELETEPOINT, CPicView::OnCommandUIAlwaysValid)  // Since it's in a context menu we only bring up when it's available.
+    ON_UPDATE_COMMAND_UI(ID_PIC_SPLITEDGE, CPicView::OnCommandUIAlwaysValid)  // Since it's in a context menu we only bring up when it's available.
     ON_WM_ERASEBKGND()
     ON_WM_RBUTTONDOWN()
     ON_WM_LBUTTONDOWN()
@@ -306,6 +310,7 @@ CPicView::CPicView()
     _currentPolyIndexInEdit = -1;
     _currentPolyPointIndexInEdit = -1;
     _currentHoverPolyPointIndex = -1;
+    _currentHoverPolyEdgeIndex = -1;
 
     _priBarMoveIndex = -1;
     _originalPriValue = -1;
@@ -1813,7 +1818,7 @@ void CPicView::_DrawPolygons(CDC *pDC)
     const SCIPolygon *polygon = _GetCurrentPolygon();
     if (polygon)
     {
-        CPen penPoly(PS_SOLID, 1, RGB(255, 255, 255));
+        CPen penPoly(PS_SOLID, 1, (_currentTool == Polygons) ? ColorPoly : ColorPolyDisabled);
         HGDIOBJ hOldPen = pDC->SelectObject(penPoly);
 
         std::vector<POINT> points;
@@ -1834,6 +1839,19 @@ void CPicView::_DrawPolygons(CDC *pDC)
         }
 
         pDC->Polyline(&points[0], (int)points.size());
+
+        // Now the highlight point
+        points.clear();
+        if ((_currentHoverPolyPointIndex == -1) && (_currentHoverPolyEdgeIndex != -1) && (_currentHoverPolyEdgeIndex < (int)polygon->Points().size()))
+        {
+            CPen penEdge(PS_SOLID, 1, ColorPolyHighlight);
+            pDC->SelectObject(penEdge);
+            point16 a = polygon->Points()[_currentHoverPolyEdgeIndex];
+            point16 b = polygon->Points()[(_currentHoverPolyEdgeIndex + 1) % polygon->Points().size()];
+            points.push_back(PointToCPoint(a));
+            points.push_back(PointToCPoint(b));
+            pDC->Polyline(&points[0], (int)points.size());
+        }
 
         if ((_currentHoverPolyPointIndex != -1) && (_currentHoverPolyPointIndex < (int)polygon->Points().size()))
         {
@@ -2881,20 +2899,72 @@ void CPicView::_OnPolygonLClick(CPoint point)
         SCIPolygon *polygon = _GetCurrentPolygon();
         if (polygon)
         {
-            polygon->AppendPoint(CPointToPoint(point));
-            InvalidateOurselves();
+            int currentHover = _HitTestCurrentPolyPoint(point);
+            if (currentHover == 0)
+            {
+                // End the polygon, the user clicked on the first point.
+                _EndPoly();
+            }
+            else
+            {
+                // Add another point
+                polygon->AppendPoint(CPointToPoint(point));
+                InvalidateOurselves();
+            }
         }
     }
 }
 
+#define PI 3.1415926535
+
+int CalcTotalAngle(const std::vector<point16> &points)
+{
+    double totalAngle = 0;
+    double curAngle = 0;
+    double prevAngle = 0;
+    for (size_t i = 0; i < points.size(); i++)
+    {
+        point16 cur = points[i];
+        point16 next = points[(i + 1) % points.size()];
+        curAngle = atan2(cur.y - next.y, cur.x - next.x);
+        double angleDiff = (curAngle - prevAngle);
+        if (angleDiff > PI)
+        {
+            angleDiff -= (PI * 2.0);
+        }
+        else if (angleDiff < -PI)
+        {
+            angleDiff += (PI * 2.0);
+        }
+        totalAngle += angleDiff;
+
+        prevAngle = curAngle;
+    }
+    return (int)(totalAngle * 180.0 / PI);
+}
+
 void CPicView::_EndPoly()
 {
-    // TODO: Validate the current polygon, e.g. enough points, CW/CCW etc...
-    // REVIEW: only commit if we were doing something?
-    if (GetDocument())
+    if (GetDocument() && (_currentPolyIndexInEdit != -1))
     {
+        bool valid = false;
         PolygonSource *source = GetDocument()->GetPolygonSource();
-        source->Commit();
+        SCIPolygon *poly = source->GetAt(_currentPolyIndexInEdit);
+        // TODO: Remove duplicate points.
+
+        // Validate that there are at least three points.
+        valid = (poly->Points().size() >= 3);
+        if (valid)
+        {
+            // TODO: SCI validates that polygon angles add up to 360 or -360.
+            int totalAngle = CalcTotalAngle(poly->Points());
+            source->Commit();
+        }
+        
+        if (!valid)
+        {
+            GetDocument()->DeletePolygon(_currentPolyIndexInEdit);
+        }
     }
     // No longer in edit:
     _currentPolyIndexInEdit = -1;
@@ -2940,7 +3010,32 @@ void CPicView::_OnPolygonRClick(CPoint point)
         }
         else
         {
-            // Offer to split a line... TODO
+            // Offset to split a line
+            int lineIndex = _HitTestCurrentPolyEdge(point);
+            if (lineIndex != -1)
+            {
+                CMenu contextMenu;
+                contextMenu.LoadMenu(IDR_MENUSPLITEDGE);
+                CMenu* pTracker;
+                pTracker = contextMenu.GetSubMenu(0);
+                CPoint ptScreen = point;
+                ptScreen = _MapPicPointToClient(point);
+                ClientToScreen(&ptScreen);
+                if (pTracker)
+                {
+                    DWORD selection = pTracker->TrackPopupMenu(TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_RIGHTBUTTON | TPM_RETURNCMD,
+                        ptScreen.x, ptScreen.y, AfxGetMainWnd());
+                    if (selection == ID_PIC_SPLITEDGE)
+                    {
+                        SCIPolygon *polygon = _GetCurrentPolygon();
+                        if (polygon)
+                        {
+                            polygon->InsertPoint(lineIndex, CPointToPoint(point));
+                        }
+                        InvalidateOurselvesImmediately();
+                    }
+                }
+            }
         }
     }
 }
@@ -2967,12 +3062,65 @@ int CPicView::_HitTestCurrentPolyPoint(CPoint point)
     return currentHover;
 }
 
+int SegmentDistToPoint(CPoint segA, CPoint segB, CPoint p)
+{
+    CPoint p2 = segB - segA;
+    //var p2 : Point = new Point(segB.x - segA.x, segB.y - segA.y);
+    int something = p2.x * p2.x + p2.y * p2.y;
+    //var something : Number = p2.x*p2.x + p2.y*p2.y;
+    double u = (double)((p.x - segA.x) * p2.x + (p.y - segA.y) * p2.y) / (double)something;
+    //var u : Number = ((p.x - segA.x) * p2.x + (p.y - segA.y) * p2.y) / something;
+
+    if (u > 1.0)
+        u = 1.0;
+    else if (u < 0.0)
+        u = 0.0;
+
+    double x = segA.x + u * p2.x;
+    ////var x : Number = segA.x + u * p2.x;
+    double y = segA.y + u * p2.y;
+    //var y : Number = segA.y + u * p2.y;
+
+    double dx = x - p.x;
+    double dy = y - p.y;
+    //var dx : Number = x - p.x;
+    //var dy : Number = y - p.y;
+
+    double dist =  sqrt(dx*dx + dy*dy);
+
+    return (int)dist;
+}
+
+int CPicView::_HitTestCurrentPolyEdge(CPoint point)
+{
+    int currentEdge = -1;
+    SCIPolygon *polygon = _GetCurrentPolygon();
+    if (polygon)
+    {
+        for (size_t i = 0; i < polygon->Points().size(); i++)
+        {
+            int nextIndex = (i + 1) % polygon->Points().size();
+            int distance = SegmentDistToPoint(PointToCPoint(polygon->Points()[i]), PointToCPoint(polygon->Points()[nextIndex]), point);
+            if (distance <= PolygonPointHitTestMargin)
+            {
+                currentEdge = (int)i;
+                break;
+            }
+        }
+    }
+    return currentEdge;
+}
+
 void CPicView::_OnPolyMouseMove(CPoint point)
 {
+    bool invalidate = false;
     if (_currentPolyIndexInEdit != -1)
     {
         _nextPolyPoint = point;
-        InvalidateOurselvesImmediately();
+        // However, hit test the first point, so the user has a way of closing it with left click.
+        int currentHover = _HitTestCurrentPolyPoint(point);
+        _currentHoverPolyPointIndex = (currentHover == 0) ? 0 : - 1;
+        invalidate = true;
     }
     else
     {
@@ -2980,8 +3128,20 @@ void CPicView::_OnPolyMouseMove(CPoint point)
         if (currentHover != _currentHoverPolyPointIndex)
         {
             _currentHoverPolyPointIndex = currentHover;
-            InvalidateOurselvesImmediately();
+            invalidate = true;
         }
+
+        int currentEdgeHover = _HitTestCurrentPolyEdge(point);
+        if (currentEdgeHover != _currentHoverPolyEdgeIndex)
+        {
+            _currentHoverPolyEdgeIndex = currentEdgeHover;
+            invalidate = true;
+        }
+    }
+
+    if (invalidate)
+    {
+        InvalidateOurselvesImmediately();
     }
 }
 

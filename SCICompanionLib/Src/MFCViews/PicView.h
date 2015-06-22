@@ -157,6 +157,7 @@ protected:
     void _MovePriorityBar(bool commit, int dy);
     void _DrawPriorityLines(CDC *pDC);
     int _HitTestCurrentPolyPoint(CPoint point);
+    int _HitTestCurrentPolyEdge(CPoint point);
     void _DrawPolygons(CDC *pDC);
     void _DrawShowingEgoEGA(ViewPort &viewPort, PicData &picData, PicScreenFlags flags);
     void _DrawShowingEgoVGA(CDC &dc, PicDrawManager &pdm);
@@ -380,6 +381,7 @@ private:
     CPoint _nextPolyPoint;
     // Old ones:
     int _currentHoverPolyPointIndex;
+    int _currentHoverPolyEdgeIndex;
     int _polyDragPointIndex;
     point16 _originalPolyPoint;
 

@@ -5,6 +5,7 @@
 #include "NoFlickerStatic.h"
 
 class CPicDoc;
+class SCIPolygon;
 struct PicComponent;
 
 class PicCommandListBox : public CListBox
@@ -57,6 +58,7 @@ protected:
     afx_msg void OnGotoScript();
     afx_msg void OnClickPolygons();
     afx_msg void OnClickCommands();
+    afx_msg void OnCbnSelchangeComboPolyType();
     BOOL OnEraseBkgnd(CDC *pDC);
     void OnCropCommands();
     void OnCopyCommands();
@@ -70,6 +72,8 @@ private:
     const PicComponent *_GetEditPic();
     void _InvalidateCurrentCaretPos();
     void _UpdatePalette();
+    void _SyncPolyTypeCombo();
+    const SCIPolygon *_GetCurrentPolygon();
     
     CPicDoc *_pDoc;
     int _iUserSelectedPos;
@@ -79,9 +83,13 @@ private:
     CFont m_font;
 
     PicCommandListBox m_wndListCommands;
-    PolygonListBox m_wndListPolygons;
     CExtNoFlickerStatic m_wndPalette;
     bool _showPalette;
+
+    PolygonListBox m_wndListPolygons;
+    CExtLabel m_wndStaticPolyType;
+    CExtComboBox m_wndComboPolyType;
+    CExtCheckBox m_wndCheckShowPolys;
 
     CExtHyperLinkButton m_wndGotoScript;
 

@@ -380,6 +380,40 @@ void CPicDoc::SetCurrentPolygonIndex(int index)
     }
 }
 
+void CPicDoc::SetCurrentPolygonType(PolygonType type)
+{
+    if (_polygonSource && (_currentPolyIndex != -1))
+    {
+        SCIPolygon *polygon = _polygonSource->GetAt(_currentPolyIndex);
+        if (polygon)
+        {
+            polygon->Type = type;
+            UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::PolygonsChanged));
+            _polygonSource->Commit();
+        }
+    }
+}
+
+void CPicDoc::DeleteCurrentPolygon()
+{
+    if (_polygonSource && (_currentPolyIndex != -1))
+    {
+        DeletePolygon(_currentPolyIndex);
+        _currentPolyIndex = -1;
+    }
+}
+
+
+void CPicDoc::DeletePolygon(size_t index)
+{
+    if (_polygonSource)
+    {
+        _polygonSource->DeletePolygon(index);
+        UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::PolygonChoice | PicChangeHint::PolygonsChanged));
+        _polygonSource->Commit();
+    }
+}
+
 void CPicDoc::v_OnUndoRedo()
 {
     _pdm.Invalidate();

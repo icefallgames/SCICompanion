@@ -1426,7 +1426,7 @@ void ControlFlowGraph::_FindIfStatements(DominatorMap &dominators, ControlFlowNo
     {
         throw ControlFlowException(*unresolvedNodes.begin(), "Unable to resolve if branches");
     }
-
+    
     // So now we have a list of branch nodes and their follower. We want to replace this with a
     // new if node (excluding the follower, however). We need to do this from the most nested to the least
     // nester. We can do this by using the post-order we have already calculated.

@@ -110,6 +110,15 @@ void SCIPolygon::SetPoint(size_t index, point16 point)
     }
 }
 
+void SCIPolygon::InsertPoint(size_t index, point16 point)
+{
+    if (index < _points.size())
+    {
+        _points.insert(_points.begin() + (index + 1), point);
+        _ownerWeak->SetDirty();
+    }
+}
+
 PolygonSource::PolygonSource(const string &filePath) : _filePath(filePath), _dirty(false)
 {
     // Compile this like a script file, but without all the symbol lookups.
@@ -189,7 +198,8 @@ void PolygonSource::Commit()
 
         std::stringstream ss;
         SourceCodeWriter out(ss, script.Language());
-        out.pszNewLine = "\r\n";
+        //out.pszNewLine = "\r\n";
+        out.pszNewLine = "\n";
 
         PCSTR pszFilename = PathFindFileName(_filePath.c_str());
         ss << fmt::format("// {0} -- Produced by SCI Companion{1}", pszFilename, out.pszNewLine);
@@ -197,7 +207,10 @@ void PolygonSource::Commit()
 
         // Now the meat of the script
         script.OutputSourceCode(out);
-        MakeTextFile(ss.str().c_str(), _filePath);
+        string bakPath = _filePath + ".bak";
+        MakeTextFile(ss.str().c_str(), bakPath);
+        deletefile(_filePath);
+        movefile(bakPath, _filePath);
 
         _dirty = false;
     }
@@ -207,6 +220,15 @@ void PolygonSource::AppendPolygon()
 {
     _dirty = true;
     _polygons.emplace_back(this);
+}
+
+void PolygonSource::DeletePolygon(size_t index)
+{
+    if (index < _polygons.size())
+    {
+        _dirty = true;
+        _polygons.erase(_polygons.begin() + index);
+    }
 }
 
 SCIPolygon *PolygonSource::GetAt(size_t index)

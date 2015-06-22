@@ -256,6 +256,7 @@
 #define IDD_PALETTE_EDITOR_EMBEDDED     364
 #define IDR_MENUDELETEPOINT             364
 #define IDD_DECOMPILER                  365
+#define IDR_MENUSPLITEDGE               365
 #define IDD_MESSAGETOOLBOX              366
 #define IDD_MESSAGEHELPER               367
 #define IDD_MESSAGEEDIT                 368
@@ -588,6 +589,9 @@
 #define IDC_CHECK_ASPECTRATIO           1282
 #define IDC_RADIOCOMMANDS               1283
 #define IDC_RADIOPOLYGONS               1284
+#define IDC_COMBOPOLYTYPE               1285
+#define IDC_STATICPOLYTYPE              1286
+#define IDC_CHECKSHOWPOLYS              1287
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -796,7 +800,6 @@
 #define ID_SELFTEST                     33125
 #define ID_HELP_FORUMS                  33127
 #define ID_OBSERVECONTROLLINES          33131
-#define ID_NEW_SOUND                    33136
 #define ID_FILE_NEWSOUND                33137
 #define ID_PLAY                         33138
 #define ID_STOP                         33139
@@ -838,6 +841,7 @@
 #define ID_BAR_TOOLMESSAGE              33184
 #define ID_VIEW_REMOVEEMBEDDEDPALETTE   33185
 #define ID_POLYPATH                     33188
+#define ID_PIC_SPLITEDGE                33189
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -846,8 +850,8 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        381
-#define _APS_NEXT_COMMAND_VALUE         33189
-#define _APS_NEXT_CONTROL_VALUE         1284
+#define _APS_NEXT_COMMAND_VALUE         33190
+#define _APS_NEXT_CONTROL_VALUE         1288
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

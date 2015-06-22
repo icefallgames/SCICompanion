@@ -61,9 +61,15 @@ void PicCommandSidePane::DoDataExchange(CDataExchange* pDX)
         m_wndRadioCommands.SetCheck(BST_UNCHECKED);
 
         DDX_Control(pDX, IDC_LISTPOLYGONS, m_wndListPolygons);
+        DDX_Control(pDX, IDC_STATICPOLYTYPE, m_wndStaticPolyType);
+        DDX_Control(pDX, IDC_COMBOPOLYTYPE, m_wndComboPolyType);
+        DDX_Control(pDX, IDC_CHECKSHOWPOLYS, m_wndCheckShowPolys);
 
         m_wndListCommands.ShowWindow(SW_HIDE);
         m_wndListPolygons.ShowWindow(SW_SHOW);
+        m_wndStaticPolyType.ShowWindow(SW_SHOW);
+        m_wndComboPolyType.ShowWindow(SW_SHOW);
+        m_wndCheckShowPolys.ShowWindow(SW_SHOW);
     }
 }
 
@@ -84,17 +90,33 @@ BEGIN_MESSAGE_MAP(PicCommandSidePane, CExtDialogFwdCmd)
     ON_COMMAND(IDC_GOTOSCRIPT, OnGotoScript)
     ON_BN_CLICKED(IDC_RADIOPOLYGONS, OnClickPolygons)
     ON_BN_CLICKED(IDC_RADIOCOMMANDS, OnClickCommands)
+    ON_CBN_SELCHANGE(IDC_COMBOPOLYTYPE, OnCbnSelchangeComboPolyType)
 END_MESSAGE_MAP()
 
 void PicCommandSidePane::OnClickPolygons()
 {
     m_wndListCommands.ShowWindow(SW_HIDE);
     m_wndListPolygons.ShowWindow(SW_SHOW);
+    m_wndStaticPolyType.ShowWindow(SW_SHOW);
+    m_wndComboPolyType.ShowWindow(SW_SHOW);
+    m_wndCheckShowPolys.ShowWindow(SW_SHOW);
 }
 void PicCommandSidePane::OnClickCommands()
 {
     m_wndListCommands.ShowWindow(SW_SHOW);
     m_wndListPolygons.ShowWindow(SW_HIDE);
+    m_wndStaticPolyType.ShowWindow(SW_HIDE);
+    m_wndComboPolyType.ShowWindow(SW_HIDE);
+    m_wndCheckShowPolys.ShowWindow(SW_HIDE);
+}
+
+void PicCommandSidePane::OnCbnSelchangeComboPolyType()
+{
+    int selection = m_wndComboPolyType.GetCurSel();
+    if (selection != -1)
+    {
+        GetDocument()->SetCurrentPolygonType((PolygonType)selection);
+    }
 }
 
 BOOL PicCommandSidePane::OnEraseBkgnd(CDC *pDC)
@@ -113,8 +135,19 @@ void PicCommandSidePane::OnCropCommands()
 
 void PicCommandSidePane::OnDeleteCommands()
 {
-    // Cut, don't copy
-    _OnDelete(TRUE, FALSE);
+    if (m_wndListCommands.IsWindowVisible())
+    {
+        // Cut, don't copy
+        _OnDelete(TRUE, FALSE);
+    }
+    else
+    {
+        CPicDoc *pDoc = GetDocument();
+        if (pDoc)
+        {
+            pDoc->DeleteCurrentPolygon();
+        }
+    }
 }
 
 void PicCommandSidePane::OnCutCommands()
@@ -176,7 +209,9 @@ BOOL PicCommandSidePane::OnInitDialog()
     if (GetDlgItem(IDC_LISTPOLYGONS))
     {
         AddAnchor(IDC_LISTPOLYGONS, CPoint(0, 0), CPoint(100, 100));
-        // TODO: The buttons too?
+        AddAnchor(IDC_STATICPOLYTYPE, CPoint(0, 0), CPoint(0, 0));
+        AddAnchor(IDC_COMBOPOLYTYPE, CPoint(0, 0), CPoint(100, 0));
+        AddAnchor(IDC_CHECKSHOWPOLYS, CPoint(0, 0), CPoint(100, 0));
     }
     // Hide the sizing grip
     ShowSizeGrip(FALSE);
@@ -215,6 +250,8 @@ void PicCommandSidePane::OnPolySelChange()
     CPicDoc *pDoc = GetDocument();
     if (pDoc)
     {
+        // TODO: Clicking on whitespace causes last item to be selected, but not highlighted.
+        // Fix: http://stackoverflow.com/questions/21032850/losing-selecteditem-when-clicking-on-a-empty-space-in-a-listbox
         int curSel = (int)m_wndListPolygons.SendMessage(LB_GETCURSEL, 0, 0);
         pDoc->SetCurrentPolygonIndex(curSel);
     }
@@ -362,7 +399,7 @@ void PolygonListBox::DrawItem(DRAWITEMSTRUCT *pDrawItemStruct)
                     text.c_str(),
                     -1,
                     &pDrawItemStruct->rcItem,
-                    DT_CENTER | DT_SINGLELINE | DT_LEFT);
+                    DT_SINGLELINE | DT_LEFT);
             }
 
             pDC->SelectObject(hFontOld);
@@ -515,6 +552,40 @@ void PicCommandSidePane::_UpdatePolyItemCount()
     }
 }
 
+void PicCommandSidePane::_SyncPolyTypeCombo()
+{
+    const SCIPolygon *polygon = _GetCurrentPolygon();
+    if (polygon)
+    {
+        m_wndComboPolyType.EnableWindow(TRUE);
+        m_wndComboPolyType.SetCurSel((int)polygon->Type);
+    }
+    else
+    {
+        m_wndComboPolyType.SetCurSel(CB_ERR);
+        m_wndComboPolyType.EnableWindow(FALSE);
+    }
+}
+
+const SCIPolygon *PicCommandSidePane::_GetCurrentPolygon()
+{
+    const SCIPolygon *polygon = nullptr;
+    CPicDoc *pDoc = GetDocument();
+    if (pDoc)
+    {
+        int index = pDoc->GetCurrentPolygonIndex();
+        if (index != -1)
+        {
+            PolygonSource *source = pDoc->GetPolygonSource();
+            if (source)
+            {
+                polygon = source->GetAt(index);
+            }
+        }
+    }
+    return polygon;
+}
+
 void PicCommandSidePane::_UpdatePalette()
 {
     if (_showPalette && _pDoc)
@@ -609,6 +680,7 @@ void PicCommandSidePane::UpdateNonView(CObject *pObject)
     {
         int index = GetDocument()->GetCurrentPolygonIndex();
         m_wndListPolygons.SetCurSel(index);
+        _SyncPolyTypeCombo();
     }
 
     _OnUpdateCommands();

@@ -85,6 +85,9 @@ public:
     void CreatePolygon();
     int GetCurrentPolygonIndex() const { return _currentPolyIndex; }
     void SetCurrentPolygonIndex(int index);
+    void SetCurrentPolygonType(PolygonType type);
+    void DeleteCurrentPolygon();
+    void DeletePolygon(size_t index);
 
     void v_OnUndoRedo();
 

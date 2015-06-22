@@ -20,6 +20,7 @@ public:
     void AppendPoint(point16 point);
     void DeletePoint(size_t index);
     void SetPoint(size_t index, point16 point);
+    void InsertPoint(size_t index, point16 point);
     PolygonType Type;
     // std::string Name;
 
@@ -38,6 +39,7 @@ public:
     SCIPolygon *GetAt(size_t index);
     SCIPolygon *GetBack();
     void AppendPolygon();
+    void DeletePolygon(size_t index);
 
     void SetDirty() { _dirty = true;  }
 
