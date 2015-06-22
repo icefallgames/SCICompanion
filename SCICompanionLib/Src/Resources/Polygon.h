@@ -32,7 +32,7 @@ private:
 class PolygonComponent : public ResourceComponent
 {
 public:
-    PolygonComponent(const std::string &filePath);
+    PolygonComponent(const std::string &filePath, int picNumber);
     void Commit();
 
     PolygonComponent *Clone() const override
@@ -50,6 +50,8 @@ public:
 private:
     std::vector<SCIPolygon> _polygons;
     std::string _filePath;
+    int _picNumber;
 };
 
 std::unique_ptr<PolygonComponent> CreatePolygonComponent(const std::string &polyFolder, int picNumber);
+std::string GetSetUpPolyProcedureName(int picResource);

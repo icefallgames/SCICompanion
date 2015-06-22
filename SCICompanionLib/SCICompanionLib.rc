@@ -888,6 +888,8 @@ BEGIN
     PUSHBUTTON      "Cancel",IDCANCEL,132,127,50,14
     CONTROL         "Create and include message resource",IDC_CHECKMESSAGE,
                     "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,97,100,85,19
+    CONTROL         "Create matching polygon file for pic",IDC_CHECKPOLYS,
+                    "Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,97,76,85,19
 END
 
 IDD_INSERTSCIOBJECT DIALOGEX 0, 0, 128, 165

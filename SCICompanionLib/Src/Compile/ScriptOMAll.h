@@ -161,6 +161,7 @@ namespace sci
         DECLARE_NODE_TYPE(NodeTypeProcedureCall)
     public:
 		ProcedureCall() {}
+        ProcedureCall(const std::string &name) : NamedNode(name) {}
         ProcedureCall(const ProcedureCall &src) = delete;
 		ProcedureCall& operator=(const ProcedureCall& src) = delete;
 

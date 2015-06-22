@@ -22,6 +22,11 @@ const string AccessType[] =
     "PContainedAccess",
 };
 
+std::string GetSetUpPolyProcedureName(int picResource)
+{
+    return fmt::format("SetUpPolys_{0}", picResource);
+}
+
 class ExtractPolygonsFromHeader : public IExploreNode, public IExploreNodeContext
 {
 public:
@@ -115,7 +120,7 @@ void SCIPolygon::InsertPoint(size_t index, point16 point)
     }
 }
 
-PolygonComponent::PolygonComponent(const string &filePath) : _filePath(filePath)
+PolygonComponent::PolygonComponent(const string &filePath, int picNumber) : _filePath(filePath), _picNumber(picNumber)
 {
     // Compile this like a script file, but without all the symbol lookups.
     CompileLog log;
@@ -188,7 +193,7 @@ void PolygonComponent::Commit()
     Script script(ScriptId(_filePath.c_str()));
 
     unique_ptr<ProcedureDefinition> proc = make_unique<ProcedureDefinition>();
-    proc->SetName(c_szProcedureName);
+    proc->SetName(GetSetUpPolyProcedureName(_picNumber));
     proc->SetScript(&script);
     proc->AddSignature(make_unique<FunctionSignature>());
     for (auto &poly : _polygons)
@@ -249,7 +254,13 @@ SCIPolygon *PolygonComponent::GetBack()
 
 unique_ptr<PolygonComponent> CreatePolygonComponent(const string &polyFolder, int picNumber)
 {
+    // Create the directory if it doesn't exist
+    if (!PathFileExists(polyFolder.c_str()))
+    {
+        CreateDirectory(polyFolder.c_str(), nullptr);
+    }
+
     string polyFilename = fmt::format("{0}.shp", picNumber);
     string polyFilePath = fmt::format("{0}\\{1}", polyFolder, polyFilename);
-    return make_unique<PolygonComponent>(polyFilePath);
+    return make_unique<PolygonComponent>(polyFilePath, picNumber);
 }

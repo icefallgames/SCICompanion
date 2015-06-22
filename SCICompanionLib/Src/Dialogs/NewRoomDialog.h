@@ -42,6 +42,7 @@ protected:
     CListBox m_wndListBox;
     CExtEdit m_wndEditPicNumber;
     CExtCheckBox m_wndCheckMessage;
+    CExtCheckBox m_wndCheckPolys;
 
     // Visuals
     CExtEdit m_wndRoomNumber;

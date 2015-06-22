@@ -574,6 +574,8 @@
 #define IDC_BUTTONADDNEW                1269
 #define IDC_CHECKMESSAGE                1269
 #define IDC_BUTTONEDGES                 1270
+#define IDC_CHECKMESSAGE2               1270
+#define IDC_CHECKPOLYS                  1270
 #define IDC_BUTTONCENTER                1271
 #define IDC_RADIOLINEAR                 1272
 #define IDC_RADIOCENTER                 1273
@@ -849,7 +851,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        381
+#define _APS_NEXT_RESOURCE_VALUE        382
 #define _APS_NEXT_COMMAND_VALUE         33190
 #define _APS_NEXT_CONTROL_VALUE         1288
 #define _APS_NEXT_SYMED_VALUE           105

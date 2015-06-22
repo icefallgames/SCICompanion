@@ -15,6 +15,7 @@
 #include <format.h>
 #include "Text.h"
 #include "Message.h"
+#include "Polygon.h"
 
 using namespace sci;
 using namespace std;
@@ -87,6 +88,7 @@ void CNewRoomDialog::_AttachControls(CDataExchange* pDX)
     DDX_Control(pDX, IDC_EDITROOMNUMBER, m_wndEditScriptNumber);
     DDX_Control(pDX, IDC_LISTUSES, m_wndListBox);
     DDX_Control(pDX, IDC_CHECKMESSAGE, m_wndCheckMessage);
+    DDX_Control(pDX, IDC_CHECKPOLYS, m_wndCheckPolys);
     if (!appState->GetVersion().SupportsMessages)
     {
         m_wndCheckMessage.ShowWindow(SW_HIDE);
@@ -94,6 +96,16 @@ void CNewRoomDialog::_AttachControls(CDataExchange* pDX)
     else
     {
         m_wndCheckMessage.SetCheck(BST_CHECKED);
+    }
+
+    // Enable polygons for VGA
+    if (appState->GetVersion().PicFormat == PicFormat::EGA)
+    {
+        m_wndCheckPolys.ShowWindow(SW_HIDE);
+    }
+    else
+    {
+        m_wndCheckPolys.SetCheck(BST_CHECKED);
     }
 
     // Values from 0 to 999 or 16384
@@ -161,9 +173,12 @@ void _CreateMessageFile(int scriptNumber)
 {
     // Create the message file. If it already exists, that's fine.
     std::unique_ptr<MessageHeaderFile> messageHeaderFile = GetMessageFile(appState->GetResourceMap().Helper().GetMsgFolder(), scriptNumber);
-    // By default, add a "room" noun
+    // By default, add a "room" noun (assuming there isn't one already)
     MessageSource *nounSource = messageHeaderFile->GetMessageSource("NOUNS");
-    nounSource->AddDefine("N_ROOM", 1);
+    if (nounSource->GetDefines().empty())
+    {
+        nounSource->AddDefine("N_ROOM", 1);
+    }
     messageHeaderFile->Commit();
 
     // And a message resource.
@@ -199,264 +214,183 @@ int CNewRoomDialog::_GetMinSuggestedScriptNumber()
 
 void CNewRoomDialog::_PrepareBuffer()
 {
-    //if (_scriptId.Language() == LangSyntaxSCIStudio)
-    if (false)
+    sci::Script script(_scriptId);
+
+    bool includePolys = (appState->GetVersion().PicFormat != PicFormat::EGA) && (m_wndCheckPolys.GetCheck() == BST_CHECKED);
+
+    script.AddInclude("sci.sh");
+    script.AddInclude("game.sh");
+    if (appState->GetVersion().SupportsMessages && (m_wndCheckMessage.GetCheck() == BST_CHECKED))
     {
-        _PrepareBufferOld();
+        string messagefileInclude = fmt::format("{0}.shm", _scriptId.GetResourceNumber());
+        script.AddInclude(messagefileInclude);
     }
-    else
+
+    if (includePolys)
     {
-        sci::Script script(_scriptId);
+        string polyfileInclude = fmt::format("{0}.shp", _nPicScript);
+        script.AddInclude(polyfileInclude);
+    }
 
-        script.AddInclude("sci.sh");
-        script.AddInclude("game.sh");
-        if (appState->GetVersion().SupportsMessages && (m_wndCheckMessage.GetCheck() == BST_CHECKED))
-        {
-            string messagefileInclude = fmt::format("{0}.shm", _scriptId.GetResourceNumber());
-            script.AddInclude(messagefileInclude);
-        }
+    if (appState->GetVersion().SeparateHeapResources)
+    {
+        // e.g. for SCI0, keep SCIStudio compatible. Otherwise, use version 2
+        script.SyntaxVersion = 2;
+    }
 
-        if (appState->GetVersion().SeparateHeapResources)
-        {
-            // e.g. for SCI0, keep SCIStudio compatible. Otherwise, use version 2
-            script.SyntaxVersion = 2;
-        }
+    // Now the uses.
+    if (includePolys && find(_usedNames.begin(), _usedNames.end(), "Polygon") == _usedNames.end())
+    {
+        _usedNames.push_back("Polygon");
+    }
+    for (size_t i = 0; i < _usedNames.size(); ++i)
+    {
+        script.AddUse(_usedNames[i]);
+    }
 
-        // Now the uses.
-        for (size_t i = 0; i < _usedNames.size(); ++i)
-        {
-            script.AddUse(_usedNames[i]);
-        }
-
-        // Now the room.
-        {
-			std::unique_ptr<ClassDefinition> pClass = std::make_unique<ClassDefinition>();
-            pClass->SetInstance(true);
-
-            std::stringstream ss;
-            ss << format("rm{0:0>3}", _scriptId.GetResourceNumber());
-            pClass->SetName(ss.str());
-            pClass->SetPublic(true);
-            pClass->SetSuperClass("Rm");
-
-            // Export it, if we're using syntax version 2
-            if (script.SyntaxVersion >= 2)
-            {
-                std::unique_ptr<ExportEntry> roomExport = make_unique<ExportEntry>();
-                roomExport->Slot = 0;
-                roomExport->Name = ss.str();
-                script.GetExports().push_back(move(roomExport));
-            }
-
-            if (_scriptId.GetResourceNumber() == _nPicScript)
-            {
-                pClass->AddProperty(ClassProperty("picture", "scriptNumber"));
-            }
-            else
-            {
-                pClass->AddProperty(ClassProperty("picture", static_cast<WORD>(_nPicScript)));
-            }
-            pClass->AddProperty(ClassProperty("north", 0));
-            pClass->AddProperty(ClassProperty("east", 0));
-            pClass->AddProperty(ClassProperty("south", 0));
-            pClass->AddProperty(ClassProperty("west", 0));
-
-            if (appState->GetVersion().SupportsMessages)
-            {
-                pClass->AddProperty(ClassProperty("noun", "N_ROOM"));
-            }
-            
-            // The init method
-            {
-                unique_ptr<MethodDefinition> pInit = make_unique<MethodDefinition>();
-                pInit->SetName("init");
-                {
-                    unique_ptr<FunctionSignature> signature = make_unique<FunctionSignature>();
-					signature->SetDataType("void");
-					pInit->AddSignature(move(signature));
-                }
-                
-                _AddSendCall(*pInit, "super", "init", "");
-                _AddSendCall(*pInit, "self", "setScript", "RoomScript");
-
-                _AddPrevRoomNumSwitch(*pInit);
-
-                {
-					unique_ptr<ProcedureCall> pSetUpEgo = std::make_unique<ProcedureCall>();
-                    pSetUpEgo->SetName("SetUpEgo");
-                    _AddStatement(*pInit, std::move(pSetUpEgo));
-                }
-
-                _AddSendCall(*pInit, "gEgo", "init", "", true);
-
-				pClass->AddMethod(std::move(pInit));
-            }
-
-			script.AddClass(std::move(pClass));
-        }
-
-        // Now the room script
-        {
-			std::unique_ptr<ClassDefinition> pClass = std::make_unique<ClassDefinition>();
-            pClass->SetInstance(true);
-            pClass->SetName("RoomScript");
-            pClass->SetSuperClass("Script");
-
-            // The doit method
-            {
-				std::unique_ptr<MethodDefinition> pDoit = std::make_unique<MethodDefinition>();
-                pDoit->SetName("doit");
-                {
-                    unique_ptr<FunctionSignature> signature = make_unique<FunctionSignature>();
-					signature->SetDataType("void");
-					pDoit->AddSignature(move(signature));
-                }
-                
-                _AddSendCall(*pDoit, "super", "doit", "");
-                _AddComment(*pDoit, "// code executed each game cycle");
-				pClass->AddMethod(std::move(pDoit));
-            }
-
-            // The handleEvent method
-            {
-				std::unique_ptr<MethodDefinition> pHE = std::make_unique<MethodDefinition>();
-                pHE->SetName("handleEvent");
-                {
-					unique_ptr<FunctionSignature> signature = make_unique<FunctionSignature>();
-					signature->SetDataType("void");
-					unique_ptr<FunctionParameter> pParam = make_unique<FunctionParameter>();
-					pParam->SetName("pEvent");
-					pParam->SetDataType("Event");
-					signature->AddParam(move(pParam), false);
-					pHE->AddSignature(move(signature));
-                }
-                
-                _AddSendCall(*pHE, "super", "handleEvent", "pEvent");
-                _AddComment(*pHE, "// handle Said's, etc...");
-
-				pClass->AddMethod(std::move(pHE));
-            }
-
-            // The changeState method
-            {
-				std::unique_ptr<MethodDefinition> pCS = std::make_unique<MethodDefinition>();
-                pCS->SetName("changeState");
-                {
-					unique_ptr<FunctionSignature> signature = make_unique<FunctionSignature>();
-					signature->SetDataType("void");
-					unique_ptr<FunctionParameter> pParam = make_unique<FunctionParameter>();
-					pParam->SetName("newState");
-					pParam->SetDataType("int");
-					signature->AddParam(move(pParam), false);
-					pCS->AddSignature(move(signature));
-                }
-                
-                _AddAssignment(*pCS, "state", "newState");
-                _AddBasicSwitch(*pCS, "state", "// Handle state changes");
-
-				pClass->AddMethod(std::move(pCS));
-            }
-
-			script.AddClass(std::move(pClass));
-        }
+    // Now the room.
+    {
+		std::unique_ptr<ClassDefinition> pClass = std::make_unique<ClassDefinition>();
+        pClass->SetInstance(true);
 
         std::stringstream ss;
-        SourceCodeWriter out(ss, script.Language());
-        out.pszNewLine = "\r\n";
-        script.OutputSourceCode(out);
-        _strBuffer = ss.str();
+        ss << format("rm{0:0>3}", _scriptId.GetResourceNumber());
+        pClass->SetName(ss.str());
+        pClass->SetPublic(true);
+        pClass->SetSuperClass("Rm");
+
+        // Export it, if we're using syntax version 2
+        if (script.SyntaxVersion >= 2)
+        {
+            std::unique_ptr<ExportEntry> roomExport = make_unique<ExportEntry>();
+            roomExport->Slot = 0;
+            roomExport->Name = ss.str();
+            script.GetExports().push_back(move(roomExport));
+        }
+
+        if (_scriptId.GetResourceNumber() == _nPicScript)
+        {
+            pClass->AddProperty(ClassProperty("picture", "scriptNumber"));
+        }
+        else
+        {
+            pClass->AddProperty(ClassProperty("picture", static_cast<WORD>(_nPicScript)));
+        }
+        pClass->AddProperty(ClassProperty("north", 0));
+        pClass->AddProperty(ClassProperty("east", 0));
+        pClass->AddProperty(ClassProperty("south", 0));
+        pClass->AddProperty(ClassProperty("west", 0));
+
+        if (appState->GetVersion().SupportsMessages)
+        {
+            pClass->AddProperty(ClassProperty("noun", "N_ROOM"));
+        }
+            
+        // The init method
+        {
+            unique_ptr<MethodDefinition> pInit = make_unique<MethodDefinition>();
+            pInit->SetName("init");
+            {
+                unique_ptr<FunctionSignature> signature = make_unique<FunctionSignature>();
+				signature->SetDataType("void");
+				pInit->AddSignature(move(signature));
+            }
+                
+            if (includePolys)
+            {
+                _AddStatement(*pInit, make_unique<ProcedureCall>(GetSetUpPolyProcedureName(_nPicScript)));
+            }
+
+            _AddSendCall(*pInit, "super", "init", "");
+            _AddSendCall(*pInit, "self", "setScript", "RoomScript");
+
+            _AddPrevRoomNumSwitch(*pInit);
+
+            {
+				unique_ptr<ProcedureCall> pSetUpEgo = std::make_unique<ProcedureCall>();
+                pSetUpEgo->SetName("SetUpEgo");
+                _AddStatement(*pInit, std::move(pSetUpEgo));
+            }
+
+            _AddSendCall(*pInit, "gEgo", "init", "", true);
+
+			pClass->AddMethod(std::move(pInit));
+        }
+
+		script.AddClass(std::move(pClass));
     }
+
+    // Now the room script
+    {
+		std::unique_ptr<ClassDefinition> pClass = std::make_unique<ClassDefinition>();
+        pClass->SetInstance(true);
+        pClass->SetName("RoomScript");
+        pClass->SetSuperClass("Script");
+
+        // The doit method
+        {
+			std::unique_ptr<MethodDefinition> pDoit = std::make_unique<MethodDefinition>();
+            pDoit->SetName("doit");
+            {
+                unique_ptr<FunctionSignature> signature = make_unique<FunctionSignature>();
+				signature->SetDataType("void");
+				pDoit->AddSignature(move(signature));
+            }
+                
+            _AddSendCall(*pDoit, "super", "doit", "");
+            _AddComment(*pDoit, "// code executed each game cycle");
+			pClass->AddMethod(std::move(pDoit));
+        }
+
+        // The handleEvent method
+        {
+			std::unique_ptr<MethodDefinition> pHE = std::make_unique<MethodDefinition>();
+            pHE->SetName("handleEvent");
+            {
+				unique_ptr<FunctionSignature> signature = make_unique<FunctionSignature>();
+				signature->SetDataType("void");
+				unique_ptr<FunctionParameter> pParam = make_unique<FunctionParameter>();
+				pParam->SetName("pEvent");
+				pParam->SetDataType("Event");
+				signature->AddParam(move(pParam), false);
+				pHE->AddSignature(move(signature));
+            }
+                
+            _AddSendCall(*pHE, "super", "handleEvent", "pEvent");
+            _AddComment(*pHE, "// handle Said's, etc...");
+
+			pClass->AddMethod(std::move(pHE));
+        }
+
+        // The changeState method
+        {
+			std::unique_ptr<MethodDefinition> pCS = std::make_unique<MethodDefinition>();
+            pCS->SetName("changeState");
+            {
+				unique_ptr<FunctionSignature> signature = make_unique<FunctionSignature>();
+				signature->SetDataType("void");
+				unique_ptr<FunctionParameter> pParam = make_unique<FunctionParameter>();
+				pParam->SetName("newState");
+				pParam->SetDataType("int");
+				signature->AddParam(move(pParam), false);
+				pCS->AddSignature(move(signature));
+            }
+                
+            _AddAssignment(*pCS, "state", "newState");
+            _AddBasicSwitch(*pCS, "state", "// Handle state changes");
+
+			pClass->AddMethod(std::move(pCS));
+        }
+
+		script.AddClass(std::move(pClass));
+    }
+
+    std::stringstream ss;
+    SourceCodeWriter out(ss, script.Language());
+    out.pszNewLine = "\r\n";
+    script.OutputSourceCode(out);
+    _strBuffer = ss.str();
 }
-
-void CNewRoomDialog::_PrepareBufferOld() // delete this phil
-{
-    _strBuffer += 
-    TEXT("/******************************************************************************/\r\n"
-         "(include \"sci.sh\")\r\n"
-         "(include \"game.sh\")\r\n"
-         "/******************************************************************************/\r\n");
-
-    // The script number
-    TCHAR szTemp[MAX_PATH];
-    StringCchPrintf(szTemp, ARRAYSIZE(szTemp), TEXT("(script %d)\r\n"), _scriptId.GetResourceNumber());
-    _strBuffer += szTemp;
-    _strBuffer += TEXT("/******************************************************************************/\r\n");
-
-    // Now the "uses"
-    for (size_t i = 0; i < _usedNames.size(); i++)
-    {
-        StringCchPrintf(szTemp, ARRAYSIZE(szTemp), TEXT("(use \"%s\")\r\n"), _usedNames[i].c_str());
-        _strBuffer += szTemp;
-    }
-
-    _strBuffer += TEXT("/******************************************************************************/\r\n");
-
-    // Now the room
-    StringCchPrintf(szTemp, ARRAYSIZE(szTemp), TEXT("(instance public rm%03d of Rm\r\n"), _scriptId.GetResourceNumber());
-    _strBuffer += szTemp;
-
-    _strBuffer += TEXT("\t(properties\r\n");
-
-    if (_scriptId.GetResourceNumber() == _nPicScript)
-    {
-        _strBuffer += TEXT("\t\tpicture scriptNumber\r\n");
-    }
-    else
-    {
-        StringCchPrintf(szTemp, ARRAYSIZE(szTemp), TEXT("\t\tpicture %d\r\n"), _nPicScript);
-        _strBuffer += szTemp;
-    }
-
-    _strBuffer +=
-        TEXT("\t\tnorth 0\r\n"
-        "\t\teast 0\r\n"
-        "\t\tsouth 0\r\n"
-        "\t\twest 0\r\n"
-        "\t)\r\n"
-        "\t(method (init)\r\n"
-        "\t\t(super:init())\r\n"
-        "\t\t(self:setScript(RoomScript))\r\n"
-        "\t\t\r\n"
-        "\t\t(switch(gPreviousRoomNumber)\r\n"
-        "\t\t\t(default\r\n"
-        "\t\t\t\t(send gEgo:\r\n"
-        "\t\t\t\t\tposn(150 130)\r\n"
-        "\t\t\t\t\tloop(1)\r\n"
-        "\t\t\t\t)\r\n"
-        "\t\t\t)\r\n"
-        "\t\t)\r\n"
-        "\t\t\r\n"
-        "\t\tSetUpEgo()\r\n"
-        "\t\t(send gEgo:init())\r\n"
-        "\t)\r\n"
-        ")\r\n"
-        "/******************************************************************************/\r\n"
-        "(instance RoomScript of Script\r\n"
-        "\t(properties)\r\n"
-        "\r\n"
-        "\t(method (doit)\r\n"
-        "\t\t(super:doit())\r\n"
-        "\t\t// code executed each game cycle\r\n"
-        "\t)\r\n"
-        "\r\n"
-        "\t(method (handleEvent pEvent)\r\n"
-        "\t\t(super:handleEvent(pEvent))\r\n"
-        "\t\t// handle Said's, etc...\r\n"
-        "\t)\r\n"
-        "\r\n"
-		"\t(method (changeState newState)\r\n"
-        "\t\t(= state newState)\r\n"
-        "\t\t(switch (newState)\r\n"
-        "\t\t\t(case 0\r\n"
-        "\t\t\t\t// Handle state changes\r\n"
-        "\t\t\t)\r\n"
-        "\t\t)\r\n"
-        "\t)\r\n"
-        ")\r\n"
-        "/******************************************************************************/\r\n");
-
-}
-
 
 BEGIN_MESSAGE_MAP(CNewRoomDialog, CNewScriptDialog)
     ON_BN_CLICKED(IDC_RADIOSAMEASROOM, OnRadioSameAsRoom)
@@ -526,9 +460,20 @@ void CNewRoomDialog::OnOK()
     if (fClose)
     {
         _PrepareBuffer();
+        // Make message header?
         if (appState->GetVersion().SupportsMessages && (m_wndCheckMessage.GetCheck() == BST_CHECKED))
         {
             _CreateMessageFile(_scriptId.GetResourceNumber());
+        }
+        // Make poly header?
+        if ((appState->GetVersion().PicFormat != PicFormat::EGA) && (m_wndCheckPolys.GetCheck() == BST_CHECKED))
+        {
+            unique_ptr<PolygonComponent> polyComponent = CreatePolygonComponent(appState->GetResourceMap().Helper().GetPolyFolder(), _nPicScript);
+            if (polyComponent->Polygons().empty())
+            {
+                // This means it doesn't already exist (or is empty). Commit it so it exists.
+                polyComponent->Commit();
+            }
         }
         CDialog::OnOK(); // Not CScriptDialogOk!!
     }
