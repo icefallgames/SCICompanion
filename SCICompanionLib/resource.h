@@ -566,7 +566,9 @@
 #define IDC_BUTTONADDTALKER             1259
 #define IDC_LISTTALKERS                 1260
 #define IDC_EDITMESSAGE                 1261
+#define IDC_BUTTONDELETEVERB            1261
 #define IDC_COMBONOUN                   1262
+#define IDC_BUTTONDELETETALKER          1262
 #define IDC_SPINSEQ                     1263
 #define IDC_STATIC8                     1264
 #define IDC_STATIC9                     1265

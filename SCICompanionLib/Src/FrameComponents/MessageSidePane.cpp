@@ -30,6 +30,10 @@ void MessageSidePane::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_STATIC2, m_wndLabel2);
     DDX_Control(pDX, IDC_BUTTONADDVERB, m_wndButton1);
     DDX_Control(pDX, IDC_BUTTONADDTALKER, m_wndButton2);
+    DDX_Control(pDX, IDC_BUTTONDELETEVERB, m_wndButton3);
+    DDX_Control(pDX, IDC_BUTTONDELETETALKER, m_wndButton4);
+    m_wndButton3.SetIcon(IDI_DELETE, 0, 0, 0, 16, 16);
+    m_wndButton4.SetIcon(IDI_DELETE, 0, 0, 0, 16, 16);
 
     DDX_Control(pDX, IDC_GOTOSCRIPT, m_wndGotoScript);
     m_wndGotoScript.m_bUseStdCommandNotification = true;
@@ -43,6 +47,8 @@ BEGIN_MESSAGE_MAP(MessageSidePane, CExtDialogFwdCmd)
     ON_WM_ERASEBKGND()
     ON_BN_CLICKED(IDC_BUTTONADDVERB, &MessageSidePane::OnBnClickedButtonaddverb)
     ON_BN_CLICKED(IDC_BUTTONADDTALKER, &MessageSidePane::OnBnClickedButtonaddtalker)
+    ON_BN_CLICKED(IDC_BUTTONDELETEVERB, &MessageSidePane::OnBnClickedButtondeleteverb)
+    ON_BN_CLICKED(IDC_BUTTONDELETETALKER, &MessageSidePane::OnBnClickedButtondeletetalker)
 END_MESSAGE_MAP()
 
 BOOL MessageSidePane::OnEraseBkgnd(CDC *pDC)
@@ -84,9 +90,12 @@ BOOL MessageSidePane::OnInitDialog()
     // Set up anchoring for resize
     AddAnchor(IDC_LISTVERBS, CPoint(0, 0), CPoint(100, 50));
     AddAnchor(IDC_LISTTALKERS, CPoint(0, 50), CPoint(100, 100));
-    AddAnchor(IDC_STATIC2, CPoint(0, 50), CPoint(100, 50));
-    AddAnchor(IDC_BUTTONADDTALKER, CPoint(100, 50), CPoint(100, 50));
-    AddAnchor(IDC_BUTTONADDVERB, CPoint(100, 0), CPoint(100, 0));
+    AddAnchor(IDC_STATIC1, CPoint(0, 0), CPoint(0, 0));
+    AddAnchor(IDC_STATIC2, CPoint(0, 50), CPoint(0, 50));
+    AddAnchor(IDC_BUTTONADDTALKER, CPoint(0, 50), CPoint(100, 50));
+    AddAnchor(IDC_BUTTONADDVERB, CPoint(0, 0), CPoint(100, 0));
+    AddAnchor(IDC_BUTTONDELETETALKER, CPoint(100, 50), CPoint(100, 50));
+    AddAnchor(IDC_BUTTONDELETEVERB, CPoint(100, 0), CPoint(100, 0));
     // Hide the sizing grip
     ShowSizeGrip(FALSE);
 
@@ -133,6 +142,17 @@ void MessageSidePane::OnBnClickedButtonaddverb()
 void MessageSidePane::OnBnClickedButtonaddtalker()
 {
     m_wndTalkers.AddNewItem();
+}
+
+
+void MessageSidePane::OnBnClickedButtondeleteverb()
+{
+    m_wndVerbs.DeleteSelectedItem();
+}
+
+void MessageSidePane::OnBnClickedButtondeletetalker()
+{
+    m_wndTalkers.DeleteSelectedItem();
 }
 
 void MessageSidePane::OnGotoScript()

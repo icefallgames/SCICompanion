@@ -49,6 +49,8 @@ private:
     CExtLabel m_wndLabel2;
     CExtButton m_wndButton1;
     CExtButton m_wndButton2;
+    CExtButton m_wndButton3;
+    CExtButton m_wndButton4;
 
     CExtHyperLinkButton m_wndGotoScript;
 
@@ -57,4 +59,6 @@ public:
     afx_msg void OnGotoScript();
     afx_msg void OnBnClickedButtonaddverb();
     afx_msg void OnBnClickedButtonaddtalker();
+    afx_msg void OnBnClickedButtondeleteverb();
+    afx_msg void OnBnClickedButtondeletetalker();
 };
