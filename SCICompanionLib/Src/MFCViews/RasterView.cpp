@@ -175,11 +175,11 @@ void CRasterView::SelectionManager::LiftSelection(CRect rectSelection, int iMain
 // This converts a CX_ACTUAL(cx) * cy bitmap to a cx * cy selection-style bitmap,
 // and flips it vertically.
 //
-void _ConvertDrawnDIBBitsToSelectionBits(const BYTE *pBits, CSize size, BYTE *pBitsOut)
+void _ConvertDrawnDIBBitsToSelectionBits(const BYTE *pBits, int cxSource, CSize sizeDest, BYTE *pBitsOut)
 {
-    for (int y = 0; y < size.cy; y++)
+    for (int y = 0; y < sizeDest.cy; y++)
     {
-        memcpy(pBitsOut + y * size.cx, pBits + (size.cy - 1 - y) * CX_ACTUAL(size.cx), size.cx);
+        memcpy(pBitsOut + y * sizeDest.cx, pBits + (sizeDest.cy - 1 - y) * CX_ACTUAL(cxSource), sizeDest.cx);
     }
 }
 
@@ -203,7 +203,7 @@ CRect CRasterView::SelectionManager::PasteCel(const Cel &celPaste, int cCels, CS
     // Apply our new selection;
     for (int i = 0; i < cCels; i++)
     {
-        _ConvertDrawnDIBBitsToSelectionBits(&celPaste.Data[0], _sizeSelectionBits, _selectionBits[i].get());
+        _ConvertDrawnDIBBitsToSelectionBits(&celPaste.Data[0], celPaste.size.cx, _sizeSelectionBits, _selectionBits[i].get());
     }
     _fSelection = true;
     return rect;
@@ -232,7 +232,7 @@ CRect CRasterView::SelectionManager::PasteBitmap(BITMAPINFO *pbmi, int cCels, CS
         // Apply our new selection;
         for (int i = 0; i < cCels; i++)
         {
-            _ConvertDrawnDIBBitsToSelectionBits(pBitsFromDIB.get(), _sizeSelectionBits, _selectionBits[i].get());
+            _ConvertDrawnDIBBitsToSelectionBits(pBitsFromDIB.get(), _sizeSelectionBits.cx, _sizeSelectionBits, _selectionBits[i].get());
         }
         _fSelection = true;
     }
