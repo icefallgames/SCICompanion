@@ -109,7 +109,8 @@ ResourceTraits textTraits =
     ResourceType::Text,
     &TextReadFrom,
     &TextWriteTo,
-    &NoValidationFunc
+    &NoValidationFunc,
+    nullptr
 };
 
 ResourceEntity *CreateTextResource(SCIVersion version)

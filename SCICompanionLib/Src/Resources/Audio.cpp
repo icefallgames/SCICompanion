@@ -158,7 +158,8 @@ ResourceTraits audioTraits =
     ResourceType::Audio,
     &AudioReadFrom,
     &AudioWriteTo,
-    &NoValidationFunc
+    &NoValidationFunc,
+    nullptr
 };
 
 ResourceEntity *CreateAudioResource(SCIVersion version)

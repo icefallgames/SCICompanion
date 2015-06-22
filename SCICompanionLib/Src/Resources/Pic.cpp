@@ -8,6 +8,7 @@
 #include "DontShowAgainDialog.h"
 #include "PaletteOperations.h"
 #include "View.h"
+#include "Polygon.h"
 
 using namespace std;
 
@@ -883,6 +884,15 @@ bool PicValidateVGA(const ResourceEntity &resource)
     return ok; // Always save anyway...
 }
 
+void PicWritePolygons(const ResourceEntity &resource)
+{
+    PolygonComponent *polygonComponent = resource.TryGetComponent<PolygonComponent>();
+    if (polygonComponent)
+    {
+        polygonComponent->Commit();
+    }
+}
+
 PicTraits picTraitsEGA =
 {
     false,
@@ -913,7 +923,8 @@ ResourceTraits picResourceTraitsEGA =
     ResourceType::Pic,
     &PicReadFromEGA,
     &PicWriteTo,
-    &PicValidateEGA
+    &PicValidateEGA,
+    nullptr
 };
 
 ResourceTraits picResourceTraitsVGA =
@@ -921,7 +932,8 @@ ResourceTraits picResourceTraitsVGA =
     ResourceType::Pic,
     &PicReadFromVGA,
     &PicWriteTo,
-    &PicValidateVGA
+    &PicValidateVGA,
+    &PicWritePolygons,
 };
 
 ResourceTraits picResourceTraitsVGA11 =
@@ -929,7 +941,8 @@ ResourceTraits picResourceTraitsVGA11 =
     ResourceType::Pic,
     &PicReadFromVGA11,
     PicWriteToVGA11,
-    &PicValidateVGA
+    &PicValidateVGA,
+    &PicWritePolygons,
 };
 
 PicComponent::PicComponent() : Traits(picTraitsEGA) {}

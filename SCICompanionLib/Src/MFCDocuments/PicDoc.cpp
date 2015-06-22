@@ -218,16 +218,14 @@ void CPicDoc::OnResourceAdded(const ResourceBlob *pData, AppendBehavior appendBe
 void CPicDoc::SetEditPic(std::unique_ptr<ResourceEntity> pEditPic, int id)
 {
     _checksum = id;
-    AddFirstResource(move(pEditPic));
 
-    if (GetResource())
+    if (pEditPic && pEditPic->GetComponent<PicComponent>().Traits.IsVGA)
     {
-        _polygonSource = CreatePolygonSource(appState->GetResourceMap().Helper().GetPolyFolder(), GetResource()->ResourceNumber);
+        // Add a polygon component
+        pEditPic->AddComponent<PolygonComponent>(CreatePolygonComponent(appState->GetResourceMap().Helper().GetPolyFolder(), pEditPic->ResourceNumber));
     }
-    else
-    {
-        _polygonSource = nullptr;
-    }
+
+    AddFirstResource(move(pEditPic));
 
     UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::NewPic));
     _UpdateTitle();
@@ -354,19 +352,15 @@ void CPicDoc::ExplicitNotify(PicChangeHint hint)
     UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(hint));
 }
 
-PolygonSource *CPicDoc::GetPolygonSource()
+const PolygonComponent *CPicDoc::GetPolygonComponent()
 {
-    return _polygonSource.get();
-}
-
-void CPicDoc::CreatePolygon()
-{
-    if (_polygonSource)
+    const PolygonComponent *poly = nullptr;
+    const ResourceEntity *resource = GetResource();
+    if (resource)
     {
-        _polygonSource->AppendPolygon();
-        _currentPolyIndex = (int)(_polygonSource->Polygons().size() - 1);
-        UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::PolygonChoice | PicChangeHint::PolygonsChanged));
+        poly = resource->TryGetComponent<PolygonComponent>();
     }
+    return poly;
 }
 
 void CPicDoc::SetCurrentPolygonIndex(int index)
@@ -377,40 +371,6 @@ void CPicDoc::SetCurrentPolygonIndex(int index)
 
         _currentPolyIndex = index;
         UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::PolygonChoice));
-    }
-}
-
-void CPicDoc::SetCurrentPolygonType(PolygonType type)
-{
-    if (_polygonSource && (_currentPolyIndex != -1))
-    {
-        SCIPolygon *polygon = _polygonSource->GetAt(_currentPolyIndex);
-        if (polygon)
-        {
-            polygon->Type = type;
-            UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::PolygonsChanged));
-            _polygonSource->Commit();
-        }
-    }
-}
-
-void CPicDoc::DeleteCurrentPolygon()
-{
-    if (_polygonSource && (_currentPolyIndex != -1))
-    {
-        DeletePolygon(_currentPolyIndex);
-        _currentPolyIndex = -1;
-    }
-}
-
-
-void CPicDoc::DeletePolygon(size_t index)
-{
-    if (_polygonSource)
-    {
-        _polygonSource->DeletePolygon(index);
-        UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::PolygonChoice | PicChangeHint::PolygonsChanged));
-        _polygonSource->Commit();
     }
 }
 

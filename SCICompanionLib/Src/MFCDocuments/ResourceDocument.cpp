@@ -112,7 +112,7 @@ void CResourceDocument::OnUpdateResSize(CCmdUI *pCmdUI)
         sci::ostream serial;
         try
         {
-            pResource->WriteTo(serial);
+            pResource->WriteTo(serial, false);
             StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%s: %d bytes"), _GetTitleDefault(), serial.tellp());
         }
         catch (std::exception)
@@ -239,7 +239,7 @@ void ExportResourceAsBitmap(const ResourceEntity &resourceEntity)
     }
 
     sci::ostream serial;
-    resourceEntity.WriteTo(serial);
+    resourceEntity.WriteTo(serial, false);
     ResourceBlob data;
     // Bring up the file dialog
     int iNumber = resourceEntity.ResourceNumber;
@@ -293,7 +293,7 @@ void CResourceDocument::OnExportAsResource()
         {
             sci::ostream serial;
             bool fSaved = false;
-            pResource->WriteTo(serial);
+            pResource->WriteTo(serial, false);
             // Bring up the file dialog
             int iNumber = pResource->ResourceNumber;
             if (iNumber == -1)

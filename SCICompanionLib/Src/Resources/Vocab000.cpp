@@ -656,7 +656,8 @@ ResourceTraits vocabTraits_000 =
     ResourceType::Vocab,
     &VocabReadFrom_000,
     &VocabWriteTo_000,
-    &NoValidationFunc
+    &NoValidationFunc,
+    nullptr
 };
 
 ResourceTraits vocabTraits_900 =
@@ -664,7 +665,8 @@ ResourceTraits vocabTraits_900 =
     ResourceType::Vocab,
     &VocabReadFrom_900,
     &VocabWriteTo_900,
-    &NoValidationFunc
+    &NoValidationFunc,
+    nullptr
 };
 
 ResourceEntity *CreateVocabResource(SCIVersion version)

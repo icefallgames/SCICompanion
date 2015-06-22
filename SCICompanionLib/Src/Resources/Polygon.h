@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Components.h"
+
 enum class PolygonType
 {
     // These values must match those in sci.h
@@ -9,13 +11,12 @@ enum class PolygonType
     ContainedAccess = 3
 };
 
-class PolygonSource;
+class PolygonComponent;
 
 class SCIPolygon
 {
 public:
-    SCIPolygon(PolygonSource *ownerWeak);
-
+    SCIPolygon();
     const std::vector<point16> &Points() const { return _points; }
     void AppendPoint(point16 point);
     void DeletePoint(size_t index);
@@ -26,27 +27,29 @@ public:
 
 private:
     std::vector<point16> _points;
-    PolygonSource *_ownerWeak;
 };
 
-class PolygonSource
+class PolygonComponent : public ResourceComponent
 {
 public:
-    PolygonSource(const std::string &filePath);
+    PolygonComponent(const std::string &filePath);
     void Commit();
+
+    PolygonComponent *Clone() const override
+    {
+        return new PolygonComponent(*this);
+    }
 
     const std::vector<SCIPolygon> &Polygons() const { return _polygons; }
     SCIPolygon *GetAt(size_t index);
+    const SCIPolygon *GetAt(size_t index) const;
     SCIPolygon *GetBack();
-    void AppendPolygon();
+    void AppendPolygon(const SCIPolygon &polygon);
     void DeletePolygon(size_t index);
-
-    void SetDirty() { _dirty = true;  }
 
 private:
     std::vector<SCIPolygon> _polygons;
     std::string _filePath;
-    bool _dirty;
 };
 
-std::unique_ptr<PolygonSource> CreatePolygonSource(const std::string &polyFolder, int picNumber);
+std::unique_ptr<PolygonComponent> CreatePolygonComponent(const std::string &polyFolder, int picNumber);

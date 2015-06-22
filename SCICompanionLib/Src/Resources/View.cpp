@@ -1042,6 +1042,7 @@ ResourceTraits viewTraitsEGA =
     &ViewReadFromEGA,
     &ViewWriteToEGA,
     &NoValidationFunc,
+    nullptr
 };
 
 ResourceTraits viewTraitsVGA =
@@ -1050,6 +1051,7 @@ ResourceTraits viewTraitsVGA =
     &ViewReadFromVGA,
     &ViewWriteToVGA,
     &NoValidationFunc,
+    nullptr
 };
 
 ResourceTraits viewTraitsVGA11 =
@@ -1058,6 +1060,7 @@ ResourceTraits viewTraitsVGA11 =
     &ViewReadFromVGA11,
     &ViewWriteToVGA11,
     &NoValidationFunc,
+    nullptr
 };
 
 ResourceEntity *CreateViewResource(SCIVersion version)

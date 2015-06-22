@@ -9,10 +9,13 @@ class ResourceEntity;
 
 typedef void(*DeserializeFuncPtr)(ResourceEntity &resource, sci::istream &byteStream);
 typedef void(*SerializeFuncPtr)(const ResourceEntity &resource, sci::ostream &byteStream);
+typedef void(*SidecarSerializeFuncPtr)(const ResourceEntity &resource);
 typedef bool(*ValidationFuncPtr)(const ResourceEntity &resource);
 
 struct ResourceTraits
 {
+    //ResourceTraits() : Type(ResourceType::None), ReadFromFunc(nullptr), WriteToFunc(nullptr), ValidationFunc(nullptr), SidecarWriteToFunc(nullptr) {}
+
     // Instances of these should be unique global objects, and people should
     // only hold onto references to them.
     ResourceTraits(const ResourceTraits &src) = delete;
@@ -20,8 +23,9 @@ struct ResourceTraits
 
     ResourceType Type;
     DeserializeFuncPtr ReadFromFunc;
-    SerializeFuncPtr WriteToFunc;       // This is null if saving isn't supported for this resource.
+    SerializeFuncPtr WriteToFunc;               // This is null if saving isn't supported for this resource.
     ValidationFuncPtr ValidationFunc;
+    SidecarSerializeFuncPtr SidecarWriteToFunc; // Null for most resources. For resources with associated sidecar files.
 };
 
 extern ResourceTraits emptyTraits;
@@ -122,11 +126,15 @@ public:
         (*Traits.ReadFromFunc)(*this, byteStream);
     }
 
-    void WriteTo(sci::ostream &byteStream) const
+    void WriteTo(sci::ostream &byteStream, bool fullWrite) const
     {
         if (Traits.WriteToFunc)
         {
             (*Traits.WriteToFunc)(*this, byteStream);
+        }
+        if (fullWrite && Traits.SidecarWriteToFunc)
+        {
+            (*Traits.SidecarWriteToFunc)(*this);
         }
     }
 

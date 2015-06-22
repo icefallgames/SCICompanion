@@ -208,7 +208,8 @@ ResourceTraits fontResTraits =
     ResourceType::Font,
     &FontReadFrom,
     &FontWriteTo,
-    &NoValidationFunc
+    &NoValidationFunc,
+    nullptr
 };
 
 FontTraits fontTraitsSCI0 =

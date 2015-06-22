@@ -130,7 +130,8 @@ protected:
     void _OnZoomClick(CPoint *ppt, int iMultiplier);
     void _OnPolygonLClick(CPoint point);
     void _OnPolygonRClick(CPoint point);
-    void _EndPoly();
+    void _EndNewPoly();
+    void _EndPolyDrag();
     void _OnPolyMouseMove(CPoint point);
     UINT _GetCurrentToolOrCommand();
     void _UpdateCursor();
@@ -184,7 +185,7 @@ protected:
     bool _NearPasteCorners();
     bool _EvaluateCanBeHere(CPoint pt);
     PicDrawManager &_GetDrawManager();
-    SCIPolygon *_GetCurrentPolygon();
+    const SCIPolygon *_GetCurrentPolygon();
 
     // Scrolling
     virtual int _GetViewWidth() { return _cxPic + PriorityBarWidth; }
@@ -375,7 +376,7 @@ private:
     bool _fDrawPasteBox; // yucj?
 
     // SCI1 Polygons
-    int _currentPolyIndexInEdit;
+    std::unique_ptr<SCIPolygon> _currentPolyInEdit;
     // New ones:
     int _currentPolyPointIndexInEdit;
     CPoint _nextPolyPoint;
@@ -383,7 +384,8 @@ private:
     int _currentHoverPolyPointIndex;
     int _currentHoverPolyEdgeIndex;
     int _polyDragPointIndex;
-    point16 _originalPolyPoint;
+    point16 _startDragPolyPoint;
+    point16 _currentDragPolyPoint;
 
 };
 

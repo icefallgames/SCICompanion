@@ -95,7 +95,8 @@ ResourceTraits audioMapTraits =
     ResourceType::Map,
     &AudioMapReadFrom,
     &AudioMapWriteTo,
-    &NoValidationFunc
+    &NoValidationFunc,
+    nullptr
 };
 
 ResourceEntity *CreateMapResource(SCIVersion version)

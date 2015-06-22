@@ -210,6 +210,7 @@ ResourceTraits messageTraits =
     &MessageReadFrom,
     &MessageWriteTo,
     &ValidateMessage,
+    nullptr
 };
 
 ResourceEntity *CreateMessageResource(SCIVersion version)

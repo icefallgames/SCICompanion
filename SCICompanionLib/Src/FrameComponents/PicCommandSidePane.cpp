@@ -115,7 +115,15 @@ void PicCommandSidePane::OnCbnSelchangeComboPolyType()
     int selection = m_wndComboPolyType.GetCurSel();
     if (selection != -1)
     {
-        GetDocument()->SetCurrentPolygonType((PolygonType)selection);
+        int currentPolyIndex = GetDocument()->GetCurrentPolygonIndex();
+        GetDocument()->ApplyChanges<PolygonComponent>(
+            [currentPolyIndex, selection](PolygonComponent &polygonComponent)
+        {
+            SCIPolygon *polygon = polygonComponent.GetAt(currentPolyIndex);
+            polygon->Type = (PolygonType)selection;
+            return WrapHint(PicChangeHint::PolygonsChanged);
+        }
+            );
     }
 }
 
@@ -145,7 +153,14 @@ void PicCommandSidePane::OnDeleteCommands()
         CPicDoc *pDoc = GetDocument();
         if (pDoc)
         {
-            pDoc->DeleteCurrentPolygon();
+            int currentPoly = pDoc->GetCurrentPolygonIndex();
+            pDoc->ApplyChanges<PolygonComponent>(
+                [currentPoly](PolygonComponent &polygonComponent)
+            {
+                polygonComponent.DeletePolygon(currentPoly);
+                return WrapHint(PicChangeHint::PolygonsChanged);
+            }
+                );
         }
     }
 }
@@ -352,7 +367,7 @@ void PolygonListBox::DrawItem(DRAWITEMSTRUCT *pDrawItemStruct)
     CPicDoc* pDoc = pParent->GetDocument();
     if (pDoc)
     {
-        PolygonSource *polygonSource = pDoc->GetPolygonSource();
+        const PolygonComponent *polygonSource = pDoc->GetPolygonComponent();
         if (polygonSource)
         {
             int currentPoly = pDoc->GetCurrentPolygonIndex();
@@ -539,7 +554,7 @@ void PicCommandSidePane::_UpdatePolyItemCount()
 {
     if (m_wndListPolygons.GetSafeHwnd() && _pDoc)
     {
-        PolygonSource *polygonSource = _pDoc->GetPolygonSource();
+        const PolygonComponent *polygonSource = _pDoc->GetPolygonComponent();
         if (polygonSource)
         {
             // Store off the top index
@@ -576,7 +591,7 @@ const SCIPolygon *PicCommandSidePane::_GetCurrentPolygon()
         int index = pDoc->GetCurrentPolygonIndex();
         if (index != -1)
         {
-            PolygonSource *source = pDoc->GetPolygonSource();
+            const PolygonComponent *source = pDoc->GetPolygonComponent();
             if (source)
             {
                 polygon = source->GetAt(index);
@@ -626,12 +641,11 @@ void PicCommandSidePane::UpdateNonView(CObject *pObject)
         m_wndListCommands.SetRedraw(FALSE);
         m_wndListCommands.SendMessage(LB_RESETCONTENT, 0, 0);
         _UpdateItemCount();
-        _UpdatePolyItemCount();
         m_wndListCommands.SetRedraw(TRUE);
         _UpdatePalette();
         // Selection changed.  Show a new pic.
 
-        hint |= PicChangeHint::EditPicPos; // New pic, so we'll update pos changed too.
+        hint |= PicChangeHint::EditPicPos | PicChangeHint::PolygonsChanged; // New pic, so we'll update pos changed too.
     }
 
     if (IsFlagSet(hint, PicChangeHint::EditPicInvalid))
@@ -641,6 +655,7 @@ void PicCommandSidePane::UpdateNonView(CObject *pObject)
         // But first - we need to figure out how commands there are.
         _UpdateItemCount();
         _UpdatePalette();
+        hint |= PicChangeHint::PolygonsChanged;
         Invalidate(FALSE);
     }
 

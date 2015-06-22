@@ -637,7 +637,9 @@ bool IsReadOnly(LPCTSTR pathName)
     return (0 == lstrcmp(PathFindExtension(pathName), ".shm")) ||
         (0 == lstrcmp(PathFindExtension(pathName), ".shp")) ||
         (0 == lstrcmpi(PathFindFileName(pathName), "Verbs.sh")) ||
-        (0 == lstrcmpi(PathFindFileName(pathName), "Talkers.sh"));
+        (0 == lstrcmpi(PathFindFileName(pathName), "Talkers.sh")) ||
+        (0 == lstrcmpi(PathFindFileName(pathName), "keys.sh")) ||
+        (0 == lstrcmpi(PathFindFileName(pathName), "sci.sh"));
 }
 
 BOOL CScriptDocument::OnOpenDocument(LPCTSTR lpszPathName) 

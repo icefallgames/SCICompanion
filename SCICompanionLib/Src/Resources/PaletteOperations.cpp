@@ -414,7 +414,8 @@ ResourceTraits paletteTraits_SCI10 =
     ResourceType::Palette,
     &PaletteReadFrom,
     &PaletteWriteTo_SCI10,
-    &NoValidationFunc
+    &NoValidationFunc,
+    nullptr
 };
 
 ResourceTraits paletteTraits_SCI11 =
@@ -422,7 +423,8 @@ ResourceTraits paletteTraits_SCI11 =
     ResourceType::Palette,
     &PaletteReadFrom,
     PaletteWriteTo_SCI11,
-    &NoValidationFunc
+    &NoValidationFunc,
+    nullptr
 };
 
 ResourceEntity *CreatePaletteResource(SCIVersion version)

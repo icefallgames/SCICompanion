@@ -636,7 +636,7 @@
     <ClCompile Include="Src\Util\CustomMessageBox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\FrameComponents\PolygonSource.cpp">
+    <ClCompile Include="Src\Resources\Polygon.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1331,7 +1331,7 @@
     <ClInclude Include="Src\Resources\SyncResourceMap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\FrameComponents\PolygonSource.h">
+    <ClInclude Include="Src\Resources\Polygon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

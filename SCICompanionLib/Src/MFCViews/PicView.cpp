@@ -307,7 +307,6 @@ END_MESSAGE_MAP()
 
 CPicView::CPicView()
 {
-    _currentPolyIndexInEdit = -1;
     _currentPolyPointIndexInEdit = -1;
     _currentHoverPolyPointIndex = -1;
     _currentHoverPolyEdgeIndex = -1;
@@ -1521,14 +1520,9 @@ void CPicView::OnMouseMove(UINT nFlags, CPoint point)
         else if (_currentTool == Polygons)
         {
             assert(_polyDragPointIndex != -1);
-            point16 newPolyPoint = _originalPolyPoint;
-            newPolyPoint.x += dx;
-            newPolyPoint.y += dy;
-            SCIPolygon *polygon = _GetCurrentPolygon();
-            if (polygon)
-            {
-                polygon->SetPoint(_polyDragPointIndex, newPolyPoint);
-            }
+            _currentDragPolyPoint = _startDragPolyPoint;
+            _currentDragPolyPoint.x += dx;
+            _currentDragPolyPoint.y += dy;
             needsImmediateUpdate = true;
         }
         else if (_transformingCoords && (_currentTool != None))
@@ -1822,12 +1816,21 @@ void CPicView::_DrawPolygons(CDC *pDC)
         HGDIOBJ hOldPen = pDC->SelectObject(penPoly);
 
         std::vector<POINT> points;
+        int index = 0;
         for (point16 point : polygon->Points())
         {
-            points.push_back({ point.x, point.y});
+            if (_polyDragPointIndex == index)
+            {
+                points.push_back(PointToCPoint(_currentDragPolyPoint));
+            }
+            else
+            {
+                points.push_back({ point.x, point.y });
+            }
+            index++;
         }
 
-        if (_currentPolyIndexInEdit != GetDocument()->GetCurrentPolygonIndex())
+        if (!_currentPolyInEdit)
         {
             // Seal the loop for complete polygons.
             points.push_back({ points[0].x, points[0].y });
@@ -1857,7 +1860,7 @@ void CPicView::_DrawPolygons(CDC *pDC)
         {
             CBrush brush(RGB(255, 255, 255));
             HGDIOBJ hOldBrush = pDC->SelectObject(brush);
-            point16 hoverPoint = polygon->Points()[_currentHoverPolyPointIndex];
+            point16 hoverPoint = (_currentHoverPolyPointIndex == _polyDragPointIndex) ? _currentDragPolyPoint : polygon->Points()[_currentHoverPolyPointIndex];
             CRect rectEllipse(hoverPoint.x, hoverPoint.y, hoverPoint.x, hoverPoint.y);
             rectEllipse.InflateRect(3, 3);
             pDC->Ellipse(&rectEllipse);
@@ -2672,7 +2675,7 @@ void CPicView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
         InvalidateOurselvesImmediately();
     }
 
-    if (IsFlagSet(hint, PicChangeHint::PolygonChoice))
+    if (IsFlagSet(hint, PicChangeHint::PolygonChoice | PicChangeHint::PolygonsChanged))
     {
         InvalidateOurselves();
     }
@@ -2845,16 +2848,19 @@ void CPicView::_OnCircleRClick(CPoint point)
     _yOld = -1;
 }
 
-SCIPolygon *CPicView::_GetCurrentPolygon()
+const SCIPolygon *CPicView::_GetCurrentPolygon()
 {
-    SCIPolygon *polygon = nullptr;
-    if (GetDocument())
+    const SCIPolygon *polygon = _currentPolyInEdit.get();
+    if (!polygon)
     {
-        int index = GetDocument()->GetCurrentPolygonIndex();
-        PolygonSource *source = GetDocument()->GetPolygonSource();
-        if (source)
+        if (GetDocument())
         {
-            polygon = source->GetAt(index);
+            int index = GetDocument()->GetCurrentPolygonIndex();
+            const PolygonComponent *source = GetDocument()->GetPolygonComponent();
+            if (source)
+            {
+                polygon = source->GetAt(index);
+            }
         }
     }
     return polygon;
@@ -2862,55 +2868,45 @@ SCIPolygon *CPicView::_GetCurrentPolygon()
 
 void CPicView::_OnPolygonLClick(CPoint point)
 {
-    if (_currentPolyIndexInEdit == -1)
+    if (!_currentPolyInEdit)
     {
         int currentHover = _HitTestCurrentPolyPoint(point);
         if (currentHover != -1)
         {
             // Start dragging the point
-            SCIPolygon *polygon = _GetCurrentPolygon();
+            const SCIPolygon *polygon = _GetCurrentPolygon();
             _fCapturing = TRUE;
             SetCapture();
             _polyDragPointIndex = currentHover;
-            _originalPolyPoint = polygon->Points()[currentHover];
+            _startDragPolyPoint = polygon->Points()[currentHover];
+            _currentDragPolyPoint = _startDragPolyPoint;
             _pointCapture = point;
         }
         else
         {
             // Start new polygon
-            GetDocument()->CreatePolygon();
-            _currentPolyIndexInEdit = GetDocument()->GetCurrentPolygonIndex();
+            // Unselect any current one:
+            GetDocument()->SetCurrentPolygonIndex(-1);
+            _currentPolyInEdit = make_unique<SCIPolygon>();
             _nextPolyPoint = point;
-            if (_currentPolyIndexInEdit != -1)
-            {
-                //_currentPolyPointIndexInEdit = 0;
-                SCIPolygon *polygon = _GetCurrentPolygon();
-                if (polygon)
-                {
-                    polygon->AppendPoint(CPointToPoint(point));
-                    InvalidateOurselves();
-                }
-            }
+            _currentPolyInEdit->AppendPoint(CPointToPoint(point));
+            InvalidateOurselves();
         }
     }
     else
     {
         // We're continuing with the current polygon
-        SCIPolygon *polygon = _GetCurrentPolygon();
-        if (polygon)
+        int currentHover = _HitTestCurrentPolyPoint(point);
+        if (currentHover == 0)
         {
-            int currentHover = _HitTestCurrentPolyPoint(point);
-            if (currentHover == 0)
-            {
-                // End the polygon, the user clicked on the first point.
-                _EndPoly();
-            }
-            else
-            {
-                // Add another point
-                polygon->AppendPoint(CPointToPoint(point));
-                InvalidateOurselves();
-            }
+            // End the polygon, the user clicked on the first point.
+            _EndNewPoly();
+        }
+        else
+        {
+            // Add another point
+            _currentPolyInEdit->AppendPoint(CPointToPoint(point));
+            InvalidateOurselves();
         }
     }
 }
@@ -2943,40 +2939,64 @@ int CalcTotalAngle(const std::vector<point16> &points)
     return (int)(totalAngle * 180.0 / PI);
 }
 
-void CPicView::_EndPoly()
+void CPicView::_EndPolyDrag()
 {
-    if (GetDocument() && (_currentPolyIndexInEdit != -1))
+    if (GetDocument() && _polyDragPointIndex)
+    {
+        int currentPolygon = GetDocument()->GetCurrentPolygonIndex();
+        GetDocument()->ApplyChanges<PolygonComponent>(
+            [this, currentPolygon](PolygonComponent &polygonComponent)
+        {
+            SCIPolygon *polygon = polygonComponent.GetAt(currentPolygon);
+            polygon->SetPoint(_polyDragPointIndex, _currentDragPolyPoint);
+            return WrapHint(PicChangeHint::PolygonsChanged);
+        }
+            );
+
+    }
+    _polyDragPointIndex = -1;
+}
+
+void CPicView::_EndNewPoly()
+{
+    if (GetDocument() && _currentPolyInEdit)
     {
         bool valid = false;
-        PolygonSource *source = GetDocument()->GetPolygonSource();
-        SCIPolygon *poly = source->GetAt(_currentPolyIndexInEdit);
         // TODO: Remove duplicate points.
-
         // Validate that there are at least three points.
-        valid = (poly->Points().size() >= 3);
+        valid = (_currentPolyInEdit->Points().size() >= 3);
         if (valid)
         {
             // TODO: SCI validates that polygon angles add up to 360 or -360.
-            int totalAngle = CalcTotalAngle(poly->Points());
-            source->Commit();
+            // REVIEW This doesn't seem to work.
+            int totalAngle = CalcTotalAngle(_currentPolyInEdit->Points());
         }
         
-        if (!valid)
+        if (valid)
         {
-            GetDocument()->DeletePolygon(_currentPolyIndexInEdit);
+            GetDocument()->ApplyChanges<PolygonComponent>(
+                [this](PolygonComponent &polygonComponent)
+            {
+                polygonComponent.AppendPolygon(*_currentPolyInEdit);
+                return WrapHint(PicChangeHint::PolygonsChanged);
+            }
+            );
+
+            // Select the polygon we just created
+            GetDocument()->SetCurrentPolygonIndex((int)GetDocument()->GetPolygonComponent()->Polygons().size() - 1);
         }
     }
     // No longer in edit:
-    _currentPolyIndexInEdit = -1;
+    _currentPolyInEdit.reset(nullptr);
     _polyDragPointIndex = -1;
     InvalidateOurselves();
 }
 
 void CPicView::_OnPolygonRClick(CPoint point)
 {
-    if (_currentPolyIndexInEdit != -1)
+    if (_currentPolyInEdit)
     {
-        _EndPoly();
+        _EndNewPoly();
     }
     else
     {
@@ -2998,11 +3018,15 @@ void CPicView::_OnPolygonRClick(CPoint point)
                     ptScreen.x, ptScreen.y, AfxGetMainWnd());
                 if (selection == ID_PIC_DELETEPOINT)
                 {
-                    SCIPolygon *polygon = _GetCurrentPolygon();
-                    if (polygon)
+                    int currentPolyIndex = GetDocument()->GetCurrentPolygonIndex();
+                    GetDocument()->ApplyChanges<PolygonComponent>(
+                        [currentPolyIndex, pointUnderMouse](PolygonComponent &polygonComponent)
                     {
+                        SCIPolygon *polygon = polygonComponent.GetAt(currentPolyIndex);
                         polygon->DeletePoint(pointUnderMouse);
+                        return WrapHint(PicChangeHint::PolygonsChanged);
                     }
+                        );
                     InvalidateOurselves();
                 }
             }
@@ -3027,11 +3051,15 @@ void CPicView::_OnPolygonRClick(CPoint point)
                         ptScreen.x, ptScreen.y, AfxGetMainWnd());
                     if (selection == ID_PIC_SPLITEDGE)
                     {
-                        SCIPolygon *polygon = _GetCurrentPolygon();
-                        if (polygon)
+                        int currentPolyIndex = GetDocument()->GetCurrentPolygonIndex();
+                        GetDocument()->ApplyChanges<PolygonComponent>(
+                            [currentPolyIndex, lineIndex, point](PolygonComponent &polygonComponent)
                         {
+                            SCIPolygon *polygon = polygonComponent.GetAt(currentPolyIndex);
                             polygon->InsertPoint(lineIndex, CPointToPoint(point));
+                            return WrapHint(PicChangeHint::PolygonsChanged);
                         }
+                        );
                         InvalidateOurselvesImmediately();
                     }
                 }
@@ -3044,7 +3072,7 @@ int CPicView::_HitTestCurrentPolyPoint(CPoint point)
 {
     // See if we are interesecting an existing polygon
     int currentHover = -1;
-    SCIPolygon *polygon = _GetCurrentPolygon();
+    const SCIPolygon *polygon = _GetCurrentPolygon();
     if (polygon)
     {
         int index = 0;
@@ -3094,7 +3122,7 @@ int SegmentDistToPoint(CPoint segA, CPoint segB, CPoint p)
 int CPicView::_HitTestCurrentPolyEdge(CPoint point)
 {
     int currentEdge = -1;
-    SCIPolygon *polygon = _GetCurrentPolygon();
+    const SCIPolygon *polygon = _GetCurrentPolygon();
     if (polygon)
     {
         for (size_t i = 0; i < polygon->Points().size(); i++)
@@ -3114,7 +3142,7 @@ int CPicView::_HitTestCurrentPolyEdge(CPoint point)
 void CPicView::_OnPolyMouseMove(CPoint point)
 {
     bool invalidate = false;
-    if (_currentPolyIndexInEdit != -1)
+    if (_currentPolyInEdit)
     {
         _nextPolyPoint = point;
         // However, hit test the first point, so the user has a way of closing it with left click.
@@ -3582,7 +3610,8 @@ void CPicView::OnLButtonUp(UINT nFlags, CPoint point)
         }
         else if (_polyDragPointIndex != -1)
         {
-            _EndPoly();
+            // Commit this point to the polygon
+            _EndPolyDrag();
         }
         _originalPriValue = -1;
     }

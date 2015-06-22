@@ -13,6 +13,7 @@ ResourceTraits emptyTraits =
     ResourceType::None,
     nullptr,
     nullptr,
+    nullptr,
     nullptr
 };
 

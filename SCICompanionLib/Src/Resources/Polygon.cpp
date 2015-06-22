@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "PolygonSource.h"
+#include "Polygon.h"
 #include "format.h"
 #include "ScriptOMAll.h"
 #include "CompileContext.h"
@@ -25,7 +25,7 @@ const string AccessType[] =
 class ExtractPolygonsFromHeader : public IExploreNode, public IExploreNodeContext
 {
 public:
-    ExtractPolygonsFromHeader(PolygonSource &polySource) : _polySource(polySource) {}
+    ExtractPolygonsFromHeader(PolygonComponent &polySource) : _polySource(polySource) {}
 
     void ExploreNode(IExploreNodeContext *pContext, SyntaxNode &node, ExploreNodeState state) override
     {
@@ -38,7 +38,7 @@ public:
                 if (sendParam->GetName() == c_szAddObstacleSelector)
                 {
                     // New polygon
-                    _polySource.AppendPolygon();
+                    _polySource.AppendPolygon(SCIPolygon());
                 }
                 else if ((sendParam->GetName() == c_szTypeSelector) && sendParam->HasValue())
                 {
@@ -47,8 +47,8 @@ public:
                     if (value)
                     {
                         auto it = find(begin(AccessType), end(AccessType), value->GetStringValue());
-                        auto foo = end(AccessType);
-                        size_t index = foo - it;
+                        auto foo = begin(AccessType);
+                        size_t index = it - foo;
                         _polySource.GetBack()->Type = (PolygonType)index;
                     }
                 }
@@ -81,15 +81,14 @@ public:
         }
     }
 
-    PolygonSource &_polySource;
+    PolygonComponent &_polySource;
 };
 
-SCIPolygon::SCIPolygon(PolygonSource *ownerWeak) : _ownerWeak(ownerWeak), Type(PolygonType::BarredAccess) {}
+SCIPolygon::SCIPolygon() : Type(PolygonType::BarredAccess) {}
 
 void SCIPolygon::AppendPoint(point16 point)
 {
     _points.push_back(point);
-    _ownerWeak->SetDirty();
 }
 
 void SCIPolygon::DeletePoint(size_t index)
@@ -97,7 +96,6 @@ void SCIPolygon::DeletePoint(size_t index)
     if (index < _points.size())
     {
         _points.erase(_points.begin() + index);
-        _ownerWeak->SetDirty();
     }
 }
 
@@ -106,7 +104,6 @@ void SCIPolygon::SetPoint(size_t index, point16 point)
     if (index < _points.size())
     {
         _points[index] = point;
-        _ownerWeak->SetDirty();
     }
 }
 
@@ -115,19 +112,16 @@ void SCIPolygon::InsertPoint(size_t index, point16 point)
     if (index < _points.size())
     {
         _points.insert(_points.begin() + (index + 1), point);
-        _ownerWeak->SetDirty();
     }
 }
 
-PolygonSource::PolygonSource(const string &filePath) : _filePath(filePath), _dirty(false)
+PolygonComponent::PolygonComponent(const string &filePath) : _filePath(filePath)
 {
     // Compile this like a script file, but without all the symbol lookups.
     CompileLog log;
     unique_ptr<Script> script = SimpleCompile(log, ScriptId(filePath.c_str()));
     ExtractPolygonsFromHeader extractPolygons(*this);
     script->Traverse(&extractPolygons, extractPolygons);
-
-    _dirty = false; // Since we just loaded (ExtractPolygonsFromHeader will cause it to be true)
 }
 
 // The Polygon:new
@@ -188,59 +182,52 @@ unique_ptr<SingleStatement> _MakeAddPolygonCode(const SCIPolygon &poly)
     return statement;
 }
 
-void PolygonSource::Commit()
+void PolygonComponent::Commit()
 {
-    if (_dirty)
+    // Construct the script om
+    Script script(ScriptId(_filePath.c_str()));
+
+    unique_ptr<ProcedureDefinition> proc = make_unique<ProcedureDefinition>();
+    proc->SetName(c_szProcedureName);
+    proc->SetScript(&script);
+    proc->AddSignature(make_unique<FunctionSignature>());
+    for (auto &poly : _polygons)
     {
-        // Construct the script om
-        Script script(ScriptId(_filePath.c_str()));
-
-        unique_ptr<ProcedureDefinition> proc = make_unique<ProcedureDefinition>();
-        proc->SetName(c_szProcedureName);
-        proc->SetScript(&script);
-        proc->AddSignature(make_unique<FunctionSignature>());
-        for (auto &poly : _polygons)
-        {
-            proc->AddStatement(move(_MakeAddPolygonCode(poly)));
-        }
-        script.AddProcedure(move(proc));
-
-        std::stringstream ss;
-        SourceCodeWriter out(ss, script.Language());
-        //out.pszNewLine = "\r\n";
-        out.pszNewLine = "\n";
-
-        PCSTR pszFilename = PathFindFileName(_filePath.c_str());
-        ss << fmt::format("// {0} -- Produced by SCI Companion{1}", pszFilename, out.pszNewLine);
-        ss << fmt::format("// This file should only be edited with the SCI Companion polygon editor{0}", out.pszNewLine);
-
-        // Now the meat of the script
-        script.OutputSourceCode(out);
-        string bakPath = _filePath + ".bak";
-        MakeTextFile(ss.str().c_str(), bakPath);
-        deletefile(_filePath);
-        movefile(bakPath, _filePath);
-
-        _dirty = false;
+        proc->AddStatement(move(_MakeAddPolygonCode(poly)));
     }
+    script.AddProcedure(move(proc));
+
+    std::stringstream ss;
+    SourceCodeWriter out(ss, script.Language());
+    //out.pszNewLine = "\r\n";
+    out.pszNewLine = "\n";
+
+    PCSTR pszFilename = PathFindFileName(_filePath.c_str());
+    ss << fmt::format("// {0} -- Produced by SCI Companion{1}", pszFilename, out.pszNewLine);
+    ss << fmt::format("// This file should only be edited with the SCI Companion polygon editor{0}", out.pszNewLine);
+
+    // Now the meat of the script
+    script.OutputSourceCode(out);
+    string bakPath = _filePath + ".bak";
+    MakeTextFile(ss.str().c_str(), bakPath);
+    deletefile(_filePath);
+    movefile(bakPath, _filePath);
 }
 
-void PolygonSource::AppendPolygon()
+void PolygonComponent::AppendPolygon(const SCIPolygon &polygon)
 {
-    _dirty = true;
-    _polygons.emplace_back(this);
+    _polygons.push_back(polygon);
 }
 
-void PolygonSource::DeletePolygon(size_t index)
+void PolygonComponent::DeletePolygon(size_t index)
 {
     if (index < _polygons.size())
     {
-        _dirty = true;
         _polygons.erase(_polygons.begin() + index);
     }
 }
 
-SCIPolygon *PolygonSource::GetAt(size_t index)
+SCIPolygon *PolygonComponent::GetAt(size_t index)
 {
     SCIPolygon *poly = nullptr;
     if (index < _polygons.size())
@@ -250,14 +237,19 @@ SCIPolygon *PolygonSource::GetAt(size_t index)
     return poly;
 }
 
-SCIPolygon *PolygonSource::GetBack()
+const SCIPolygon *PolygonComponent::GetAt(size_t index) const
+{
+    return const_cast<PolygonComponent*>(this)->GetAt(index);
+}
+
+SCIPolygon *PolygonComponent::GetBack()
 {
     return &_polygons.back();
 }
 
-unique_ptr<PolygonSource> CreatePolygonSource(const string &polyFolder, int picNumber)
+unique_ptr<PolygonComponent> CreatePolygonComponent(const string &polyFolder, int picNumber)
 {
     string polyFilename = fmt::format("{0}.shp", picNumber);
     string polyFilePath = fmt::format("{0}\\{1}", polyFolder, polyFilename);
-    return make_unique<PolygonSource>(polyFilePath);
+    return make_unique<PolygonComponent>(polyFilePath);
 }

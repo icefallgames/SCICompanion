@@ -11,7 +11,7 @@
 #include "PicOperations.h"
 #include "ResourceEntityDocument.h"
 #include "SyncResourceMap.h"
-#include "PolygonSource.h"
+#include "Polygon.h"
 
 using namespace std;
 
@@ -81,13 +81,9 @@ public:
     void RemoveCommandRange(INT_PTR iStart, INT_PTR iEnd);
     void ExplicitNotify(PicChangeHint hint);
 
-    PolygonSource *GetPolygonSource();
-    void CreatePolygon();
+    const PolygonComponent *GetPolygonComponent();
     int GetCurrentPolygonIndex() const { return _currentPolyIndex; }
     void SetCurrentPolygonIndex(int index);
-    void SetCurrentPolygonType(PolygonType type);
-    void DeleteCurrentPolygon();
-    void DeletePolygon(size_t index);
 
     void v_OnUndoRedo();
 
@@ -150,7 +146,7 @@ private:
     // Zoom level of pic.
     int _iZoom;
 
-    std::unique_ptr<PolygonSource> _polygonSource;
+    // For resources with PolygonComponent
     int _currentPolyIndex;
 };
 

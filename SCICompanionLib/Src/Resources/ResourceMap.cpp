@@ -477,7 +477,7 @@ bool CResourceMap::AppendResource(const ResourceEntity &resource, int packageNum
     if (resource.PerformChecks())
     {
         sci::ostream serial;
-        resource.WriteTo(serial);
+        resource.WriteTo(serial, true);
         if (ValidateResourceSize(serial.tellp(), resource.GetType()))
         {
             ResourceBlob data;

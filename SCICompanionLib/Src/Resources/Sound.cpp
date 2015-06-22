@@ -1696,7 +1696,8 @@ ResourceTraits soundResTraits =
     ResourceType::Sound,
     &SoundReadFrom_SCI0,
     &SoundWriteTo,
-    &ValidateSoundResource
+    &ValidateSoundResource,
+    nullptr
 };
 
 // REVIEW: We don't even know how to read SCI1 sounds yet.
@@ -1705,7 +1706,8 @@ ResourceTraits soundResTraitsSCI1 =
     ResourceType::Sound,
     &SoundReadFrom_SCI1,
     &SoundWriteTo_SCI1,
-    &ValidateSoundResource
+    &ValidateSoundResource,
+    nullptr
 };
 
 SoundTraits soundTraitsSCI0 =

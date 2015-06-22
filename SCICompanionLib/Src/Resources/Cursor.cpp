@@ -163,7 +163,8 @@ ResourceTraits cursorTraitsEGA =
     ResourceType::Cursor,
     &CursorReadFromSCI0,
     &CursorWriteTo,
-    &NoValidationFunc
+    &NoValidationFunc,
+    nullptr
 };
 
 ResourceTraits cursorTraitsVGA =
