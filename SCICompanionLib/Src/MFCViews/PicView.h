@@ -160,6 +160,7 @@ protected:
     int _HitTestCurrentPolyPoint(CPoint point);
     int _HitTestCurrentPolyEdge(CPoint point);
     void _DrawPolygons(CDC *pDC);
+    void _DrawPolygon(CDC *pDC, const SCIPolygon *polygon, bool isActive);
     void _DrawShowingEgoEGA(ViewPort &viewPort, PicData &picData, PicScreenFlags flags);
     void _DrawShowingEgoVGA(CDC &dc, PicDrawManager &pdm);
     void _DrawShowingEgoWorker(const ViewPort &viewPort, uint8_t *pdataVisual, const uint8_t *pdataPriority, PicScreenFlags flags);

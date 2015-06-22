@@ -560,7 +560,9 @@
 #define IDC_BUTTONADDNOUN               1255
 #define IDC_BUTTONADDCONDITION          1256
 #define IDC_LISTVERBS                   1257
+#define IDC_BUTTONDELETENOUN            1257
 #define IDC_BUTTONADDVERB               1258
+#define IDC_BUTTONDELETECONDITION       1258
 #define IDC_BUTTONADDTALKER             1259
 #define IDC_LISTTALKERS                 1260
 #define IDC_EDITMESSAGE                 1261
@@ -574,7 +576,6 @@
 #define IDC_BUTTONADDNEW                1269
 #define IDC_CHECKMESSAGE                1269
 #define IDC_BUTTONEDGES                 1270
-#define IDC_CHECKMESSAGE2               1270
 #define IDC_CHECKPOLYS                  1270
 #define IDC_BUTTONCENTER                1271
 #define IDC_RADIOLINEAR                 1272

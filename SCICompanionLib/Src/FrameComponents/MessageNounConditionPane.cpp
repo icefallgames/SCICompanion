@@ -30,6 +30,10 @@ void MessageNounConditionPane::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_STATIC2, m_wndLabel2);
     DDX_Control(pDX, IDC_BUTTONADDNOUN, m_wndButton1);
     DDX_Control(pDX, IDC_BUTTONADDCONDITION, m_wndButton2);
+    DDX_Control(pDX, IDC_BUTTONDELETENOUN, m_wndButton3);
+    m_wndButton3.SetIcon(IDI_DELETE, 0, 0, 0, 16, 16);
+    DDX_Control(pDX, IDC_BUTTONDELETECONDITION, m_wndButton4);
+    m_wndButton4.SetIcon(IDI_DELETE, 0, 0, 0, 16, 16);
 }
 
 
@@ -39,6 +43,8 @@ BEGIN_MESSAGE_MAP(MessageNounConditionPane, CExtDialogFwdCmd)
     ON_WM_ERASEBKGND()
     ON_BN_CLICKED(IDC_BUTTONADDNOUN, &MessageNounConditionPane::OnBnClickedButtonaddnoun)
     ON_BN_CLICKED(IDC_BUTTONADDCONDITION, &MessageNounConditionPane::OnBnClickedButtonaddcondition)
+    ON_BN_CLICKED(IDC_BUTTONDELETENOUN, &MessageNounConditionPane::OnBnClickedButtondeletenoun)
+    ON_BN_CLICKED(IDC_BUTTONDELETECONDITION, &MessageNounConditionPane::OnBnClickedButtondeletecondition)
 END_MESSAGE_MAP()
 
 BOOL MessageNounConditionPane::OnEraseBkgnd(CDC *pDC)
@@ -80,9 +86,12 @@ BOOL MessageNounConditionPane::OnInitDialog()
     // Set up anchoring for resize
     AddAnchor(IDC_LISTNOUNS, CPoint(0, 0), CPoint(100, 50));
     AddAnchor(IDC_LISTCONDITIONS, CPoint(0, 50), CPoint(100, 100));
-    AddAnchor(IDC_STATIC2, CPoint(0, 50), CPoint(100, 50));
-    AddAnchor(IDC_BUTTONADDCONDITION, CPoint(100, 50), CPoint(100, 50));
-    AddAnchor(IDC_BUTTONADDNOUN, CPoint(100, 0), CPoint(100, 0));
+    AddAnchor(IDC_STATIC1, CPoint(0, 0), CPoint(0, 0));
+    AddAnchor(IDC_STATIC2, CPoint(0, 50), CPoint(0, 50));
+    AddAnchor(IDC_BUTTONADDCONDITION, CPoint(0, 50), CPoint(100, 50));
+    AddAnchor(IDC_BUTTONDELETECONDITION, CPoint(100, 50), CPoint(100, 50));
+    AddAnchor(IDC_BUTTONADDNOUN, CPoint(0, 0), CPoint(100, 0));
+    AddAnchor(IDC_BUTTONDELETENOUN, CPoint(100, 0), CPoint(100, 0));
     // Hide the sizing grip
     ShowSizeGrip(FALSE);
 
@@ -126,4 +135,15 @@ void MessageNounConditionPane::OnBnClickedButtonaddnoun()
 void MessageNounConditionPane::OnBnClickedButtonaddcondition()
 {
     m_wndConditions.AddNewItem();
+}
+
+void MessageNounConditionPane::OnBnClickedButtondeletenoun()
+{
+    m_wndNouns.DeleteSelectedItem();
+}
+
+
+void MessageNounConditionPane::OnBnClickedButtondeletecondition()
+{
+    m_wndConditions.DeleteSelectedItem();
 }

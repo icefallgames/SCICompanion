@@ -30,7 +30,7 @@ END_MESSAGE_MAP()
 
 // CPicDoc construction/destruction
 
-CPicDoc::CPicDoc() : _previewPalette(nullptr)
+CPicDoc::CPicDoc() : _previewPalette(nullptr), _showPolygons(false), _currentPolyIndex(-1)
 {
     // Add ourselves as a sync
     CResourceMap &map = appState->GetResourceMap();
@@ -367,9 +367,16 @@ void CPicDoc::SetCurrentPolygonIndex(int index)
 {
     if (index != _currentPolyIndex)
     {
-        // TODO: If the user was in the process of making a polygon, we need to finalize it.
-
         _currentPolyIndex = index;
+        UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::PolygonChoice));
+    }
+}
+
+void CPicDoc::SetShowPolygons(bool showPolygons)
+{
+    if (showPolygons != _showPolygons)
+    {
+        _showPolygons = showPolygons;
         UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::PolygonChoice));
     }
 }

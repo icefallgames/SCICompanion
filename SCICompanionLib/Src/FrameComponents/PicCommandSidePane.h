@@ -58,6 +58,7 @@ protected:
     afx_msg void OnGotoScript();
     afx_msg void OnClickPolygons();
     afx_msg void OnClickCommands();
+    afx_msg void OnBnClickedShowPolys();
     afx_msg void OnCbnSelchangeComboPolyType();
     BOOL OnEraseBkgnd(CDC *pDC);
     void OnCropCommands();
@@ -73,6 +74,7 @@ private:
     void _InvalidateCurrentCaretPos();
     void _UpdatePalette();
     void _SyncPolyTypeCombo();
+    void _SyncPolyChoice();
     const SCIPolygon *_GetCurrentPolygon();
     
     CPicDoc *_pDoc;

@@ -240,6 +240,21 @@ void MessageEditorListCtrl::_Populate()
     this->SetRedraw(TRUE);
 }
 
+void MessageEditorListCtrl::DeleteSelectedItem()
+{
+    POSITION pos = GetFirstSelectedItemPosition();
+    if (pos != nullptr)
+    {
+        int item = GetNextSelectedItem(pos);
+        if (item != -1)
+        {
+            _GetSource()->DeleteDefine(item);
+            _Populate();
+            _Commit();
+        }
+    }
+}
+
 void MessageEditorListCtrl::AddNewItem()
 {
     // Add a new entry and begin label edit. Use the first free index.

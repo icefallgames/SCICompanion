@@ -84,6 +84,8 @@ public:
     const PolygonComponent *GetPolygonComponent();
     int GetCurrentPolygonIndex() const { return _currentPolyIndex; }
     void SetCurrentPolygonIndex(int index);
+    bool GetShowPolygons() const { return _showPolygons; }
+    void SetShowPolygons(bool showPolygons);
 
     void v_OnUndoRedo();
 
@@ -148,6 +150,7 @@ private:
 
     // For resources with PolygonComponent
     int _currentPolyIndex;
+    bool _showPolygons;
 };
 
 template<class _T>

@@ -90,6 +90,7 @@ BEGIN_MESSAGE_MAP(PicCommandSidePane, CExtDialogFwdCmd)
     ON_COMMAND(IDC_GOTOSCRIPT, OnGotoScript)
     ON_BN_CLICKED(IDC_RADIOPOLYGONS, OnClickPolygons)
     ON_BN_CLICKED(IDC_RADIOCOMMANDS, OnClickCommands)
+    ON_BN_CLICKED(IDC_CHECKSHOWPOLYS, OnBnClickedShowPolys)
     ON_CBN_SELCHANGE(IDC_COMBOPOLYTYPE, OnCbnSelchangeComboPolyType)
 END_MESSAGE_MAP()
 
@@ -108,6 +109,14 @@ void PicCommandSidePane::OnClickCommands()
     m_wndStaticPolyType.ShowWindow(SW_HIDE);
     m_wndComboPolyType.ShowWindow(SW_HIDE);
     m_wndCheckShowPolys.ShowWindow(SW_HIDE);
+}
+
+void PicCommandSidePane::OnBnClickedShowPolys()
+{
+    if (GetDocument())
+    {
+        GetDocument()->SetShowPolygons(m_wndCheckShowPolys.GetCheck() == BST_CHECKED);
+    }
 }
 
 void PicCommandSidePane::OnCbnSelchangeComboPolyType()
@@ -693,12 +702,18 @@ void PicCommandSidePane::UpdateNonView(CObject *pObject)
 
     if (IsFlagSet(hint, PicChangeHint::PolygonChoice))
     {
-        int index = GetDocument()->GetCurrentPolygonIndex();
-        m_wndListPolygons.SetCurSel(index);
-        _SyncPolyTypeCombo();
+        _SyncPolyChoice();
     }
 
     _OnUpdateCommands();
+}
+
+void PicCommandSidePane::_SyncPolyChoice()
+{
+    int index = GetDocument()->GetCurrentPolygonIndex();
+    m_wndListPolygons.SetCurSel(index);
+    m_wndCheckShowPolys.SetCheck(GetDocument()->GetShowPolygons() ? BST_CHECKED : BST_UNCHECKED);
+    _SyncPolyTypeCombo();
 }
 
 const PicComponent *PicCommandSidePane::_GetEditPic()
@@ -720,6 +735,8 @@ void PicCommandSidePane::SetDocument(CDocument *pDoc)
     if (_pDoc)
     {
         _pDoc->AddNonViewClient(this);
+
+        _SyncPolyChoice();
 
         // Update the script link.
         std::string text = "script: ";

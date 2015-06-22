@@ -42,9 +42,15 @@ const key_value_pair<CPicView::ToolType, UINT> CPicView::c_toolToID [] =
 CExtAlphaSlider *g_pPicAlphaSlider = NULL;
 
 const int PolygonPointHitTestMargin = 5;
-const COLORREF ColorPoly = RGB(255, 255, 255);
-const COLORREF ColorPolyDisabled = RGB(128, 128, 128);
 const COLORREF ColorPolyHighlight = RGB(255, 64, 64);
+
+const COLORREF PolygonColors[] =
+{
+    RGB(196, 255, 255),
+    RGB(196, 255, 255),
+    RGB(255, 255, 255),
+    RGB(196, 255, 196)
+};
 
 void CommandModifier::Reset()
 {
@@ -786,6 +792,10 @@ void CPicView::OnPolyPath()
     _currentTool = Polygons;
     _UpdateCursor();
     _OnCommandChanged();
+    if (GetDocument())
+    {
+        GetDocument()->SetShowPolygons(true);
+    }
 }
 
 void CPicView::OnToggleEgo()
@@ -1806,43 +1816,46 @@ void CPicView::_DrawEgoCoordinates(CDC *pDC)
     }
 }
 
-void CPicView::_DrawPolygons(CDC *pDC)
+void CPicView::_DrawPolygon(CDC *pDC, const SCIPolygon *polygon, bool isActive)
 {
-    // For now, just the current one
-    const SCIPolygon *polygon = _GetCurrentPolygon();
-    if (polygon)
+    COLORREF colorPoly = PolygonColors[(int)polygon->Type];
+    if (!isActive)
     {
-        CPen penPoly(PS_SOLID, 1, (_currentTool == Polygons) ? ColorPoly : ColorPolyDisabled);
-        HGDIOBJ hOldPen = pDC->SelectObject(penPoly);
+        colorPoly = CExtBitmap::stat_HLS_Adjust(colorPoly, 0.0, -0.5, -0.8);
+    }
+    CPen penPoly(PS_SOLID, 1, colorPoly);
+    HGDIOBJ hOldPen = pDC->SelectObject(penPoly);
 
-        std::vector<POINT> points;
-        int index = 0;
-        for (point16 point : polygon->Points())
+    std::vector<POINT> points;
+    int index = 0;
+    for (point16 point : polygon->Points())
+    {
+        if (isActive && (_polyDragPointIndex == index))
         {
-            if (_polyDragPointIndex == index)
-            {
-                points.push_back(PointToCPoint(_currentDragPolyPoint));
-            }
-            else
-            {
-                points.push_back({ point.x, point.y });
-            }
-            index++;
-        }
-
-        if (!_currentPolyInEdit)
-        {
-            // Seal the loop for complete polygons.
-            points.push_back({ points[0].x, points[0].y });
+            points.push_back(PointToCPoint(_currentDragPolyPoint));
         }
         else
         {
-            // For currently edited polygon:
-            points.push_back({ _nextPolyPoint.x, _nextPolyPoint.y });
+            points.push_back({ point.x, point.y });
         }
+        index++;
+    }
 
-        pDC->Polyline(&points[0], (int)points.size());
+    if (!isActive || !_currentPolyInEdit)
+    {
+        // Seal the loop for complete polygons.
+        points.push_back({ points[0].x, points[0].y });
+    }
+    else
+    {
+        // For currently edited polygon:
+        points.push_back({ _nextPolyPoint.x, _nextPolyPoint.y });
+    }
 
+    pDC->Polyline(&points[0], (int)points.size());
+
+    if (isActive)
+    {
         // Now the highlight point
         points.clear();
         if ((_currentHoverPolyPointIndex == -1) && (_currentHoverPolyEdgeIndex != -1) && (_currentHoverPolyEdgeIndex < (int)polygon->Points().size()))
@@ -1866,8 +1879,31 @@ void CPicView::_DrawPolygons(CDC *pDC)
             pDC->Ellipse(&rectEllipse);
             pDC->SelectObject(hOldBrush);
         }
-        
-        pDC->SelectObject(hOldPen);
+    }
+    pDC->SelectObject(hOldPen);
+}
+
+void CPicView::_DrawPolygons(CDC *pDC)
+{
+    CPicDoc *pDoc = GetDocument();
+    if (pDoc)
+    {
+        if (pDoc->GetShowPolygons())
+        {
+            const PolygonComponent *polygonComponent = pDoc->GetPolygonComponent();
+            if (polygonComponent)
+            {
+                for (size_t i = 0; i < polygonComponent->Polygons().size(); i++)
+                {
+                    _DrawPolygon(pDC, &polygonComponent->Polygons()[i], ((int)i == pDoc->GetCurrentPolygonIndex()));
+                }
+            }
+        }
+
+        if (_currentPolyInEdit)
+        {
+            _DrawPolygon(pDC, _currentPolyInEdit.get(), true);
+        }
     }
 }
 

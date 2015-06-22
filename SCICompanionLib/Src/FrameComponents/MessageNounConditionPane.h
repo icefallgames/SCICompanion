@@ -52,9 +52,13 @@ private:
     CExtLabel m_wndLabel2;
     CExtButton m_wndButton1;
     CExtButton m_wndButton2;
+    CExtButton m_wndButton3;
+    CExtButton m_wndButton4;
 
     HACCEL _hAccel;
 public:
     afx_msg void OnBnClickedButtonaddnoun();
     afx_msg void OnBnClickedButtonaddcondition();
+    afx_msg void OnBnClickedButtondeletenoun();
+    afx_msg void OnBnClickedButtondeletecondition();
 };

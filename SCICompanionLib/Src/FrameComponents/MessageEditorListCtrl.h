@@ -29,6 +29,7 @@ public:
     // at any time. So we always need to fetch it from the source.
     void SetSource(CMessageDoc *pDoc, MessageSourceType sourceType);
     void AddNewItem();
+    void DeleteSelectedItem();
 
     BOOL PreTranslateMessage(MSG* pMsg) override;
 
