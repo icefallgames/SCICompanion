@@ -633,6 +633,8 @@ void SCICompanionApp::OnRunGame()
                 GetPrivateProfileString("Game", c_szExeParametersString, "", szParameters, ARRAYSIZE(szParameters), szGameIni);
                 if (SUCCEEDED(StringCchPrintf(szGameIni, ARRAYSIZE(szGameIni), "%s\\%s", gameFolder.c_str(), szGameName)))
                 {
+                    appState->GetResourceMap().StartDebuggerThread();
+
                     fShellEx = TRUE;
                     INT_PTR iResult = (INT_PTR)ShellExecute(AfxGetMainWnd()->GetSafeHwnd(), 0, szGameIni, szParameters, gameFolder.c_str(), SW_SHOWNORMAL);
                     if (iResult <= 32)
@@ -645,6 +647,8 @@ void SCICompanionApp::OnRunGame()
                         TCHAR szError[MAX_PATH];
                         StringCchPrintf(szError, ARRAYSIZE(szError), TEXT("Failed to start %s: %s"), szGameIni, szReason);
                         AfxMessageBox(szError, MB_OK | MB_APPLMODAL | MB_ICONEXCLAMATION);
+
+                        appState->GetResourceMap().AbortDebuggerThread();
                     }
                 }
             }

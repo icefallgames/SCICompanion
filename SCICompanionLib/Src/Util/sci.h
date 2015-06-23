@@ -140,12 +140,17 @@ struct sPOINT
 struct ScopedHandle
 {
     ScopedHandle() : hFile(INVALID_HANDLE_VALUE) {}
-    virtual ~ScopedHandle()
+    void Close()
     {
         if (hFile != INVALID_HANDLE_VALUE)
         {
             CloseHandle(hFile);
+            hFile = INVALID_HANDLE_VALUE;
         }
+    }
+    virtual ~ScopedHandle()
+    {
+        Close();
     }
 
     HANDLE hFile;

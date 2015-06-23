@@ -4,6 +4,7 @@
 #include "GameFolderHelper.h"
 #include "CompiledScript.h"
 
+class DebuggerThread;
 struct Vocab000;
 struct AudioMapComponent;
 class SCIClassBrowser;
@@ -103,6 +104,9 @@ public:
 
     bool IsResourceCompatible(const ResourceBlob &resource);
 
+    void StartDebuggerThread();
+    void AbortDebuggerThread();
+
 private:
     ViewFormat _DetectViewVGAVersion();
     ResourcePackageFormat _DetectPackageFormat();
@@ -145,6 +149,8 @@ private:
     bool _skipVersionSniffOnce;                     // Skip version sniffing when loading a game the next time.
 
     std::string _includeFolderOverride;             // For unit-testing
+
+    std::shared_ptr<DebuggerThread> _debuggerThread;
 };
 
 // TODO REVIEW: Remove this from header file

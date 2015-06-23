@@ -34,12 +34,12 @@
     )
 
     (method (init)
+        SetUpPolys_110()
         (super:init())
         // Get the first inventory item
         (send gEgo:get(0))
         
         (anObject:init())
-        SetUpPolys()
         SetUpEgo()
         (switch (gPreviousRoomNumber)
         	(case south

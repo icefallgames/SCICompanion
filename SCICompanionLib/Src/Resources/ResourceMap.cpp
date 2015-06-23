@@ -28,6 +28,7 @@
 #include "MessageSource.h"
 #include "format.h"
 #include "SyncResourceMap.h"
+#include "DebuggerThread.h"
 
 using namespace std;
 
@@ -344,6 +345,21 @@ bool CResourceMap::IsResourceCompatible(const ResourceBlob &resource)
     }
 
     return true; // I guess?
+}
+
+void CResourceMap::StartDebuggerThread()
+{
+    AbortDebuggerThread();
+    _debuggerThread = CreateDebuggerThread(Helper().GameFolder);
+}
+ 
+void CResourceMap::AbortDebuggerThread()
+{
+    if (_debuggerThread)
+    {
+        _debuggerThread->Abort();
+        _debuggerThread.reset();
+    }
 }
 
 void CResourceMap::AppendResourceAskForNumber(ResourceEntity &resource)
@@ -1143,6 +1159,8 @@ void CResourceMap::SetGameFolder(const string &gameFolder)
 
         _paletteListNeedsUpdate = true;
     }
+
+    AbortDebuggerThread();
 
     appState->OnGameFolderUpdate();
 }

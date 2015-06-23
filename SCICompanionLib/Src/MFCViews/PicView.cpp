@@ -316,6 +316,7 @@ CPicView::CPicView()
     _currentPolyPointIndexInEdit = -1;
     _currentHoverPolyPointIndex = -1;
     _currentHoverPolyEdgeIndex = -1;
+    _polyDragPointIndex = -1;
 
     _priBarMoveIndex = -1;
     _originalPriValue = -1;
@@ -2977,7 +2978,7 @@ int CalcTotalAngle(const std::vector<point16> &points)
 
 void CPicView::_EndPolyDrag()
 {
-    if (GetDocument() && _polyDragPointIndex)
+    if (GetDocument() && (_polyDragPointIndex != -1))
     {
         int currentPolygon = GetDocument()->GetCurrentPolygonIndex();
         GetDocument()->ApplyChanges<PolygonComponent>(

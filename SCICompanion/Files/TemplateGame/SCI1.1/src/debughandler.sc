@@ -88,13 +88,6 @@
                         	// Show polygons
                         	(= temp160 (send gRoom:obstacles))
 							(if (temp160)
-								
-								//FormatPrint("num polys %d" (send temp160:size))
-								//(send temp160:showSelf())
-								FormatPrint("poly: %x" (send temp160:at(0)))
-								FormatPrint("poly: %x" (send temp160:at(1)))
-								FormatPrint("poly: %x" (send temp160:at(2)))
-								
                         		(send temp160:eachElementDo(#perform drawPoly))
 								Graph(grUPDATE_BOX 0 0 190 320 VISUAL)
 							)
@@ -399,11 +392,9 @@
 
 )
 
-
 (instance drawPoly of Code
 	(method (doit thePoly)
 		(var i, x1, y1, x2, y2, thePoints, index, indexNext)
-		FormatPrint("Drawing poly %x" thePoly)
 		(= thePoints (send thePoly:points))
 		(for (= i 0) (< i (send thePoly:size)) (++i)
 			(= index (+ thePoints (* i 4)))
