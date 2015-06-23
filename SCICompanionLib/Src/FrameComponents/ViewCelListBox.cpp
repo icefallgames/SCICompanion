@@ -571,6 +571,8 @@ void ViewCelListBox::_TransferToBitmap()
     // Draw as large as we can while still fitting in the client bounds.
     CRect clientRect;
     GetClientRect(clientRect);
+    clientRect.top += _drawOffset.y;
+    clientRect.left += _drawOffset.x;
     CSize sizeBitmap = _sciBitmap->GetBitmapDimension();
     _scale = ScaleOne * clientRect.Width() / (numberOfGuys.cx * _individualImageSize.cx);
     _scale = min(_scale, ScaleOne * clientRect.Height() / appState->AspectRatioY(numberOfGuys.cy * _individualImageSize.cy));
