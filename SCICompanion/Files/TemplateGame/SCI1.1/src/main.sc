@@ -137,6 +137,7 @@
     gDefaultEgoView =     1
     gRegister
     gFlags[14]		// Start of bit set. Room for 14x16 = 224 flags.
+    gEdgeDistance = 10	// Margin around screen to make it easier to walk the ego to the edge
 )
 
 (procedure public (Btest param1)

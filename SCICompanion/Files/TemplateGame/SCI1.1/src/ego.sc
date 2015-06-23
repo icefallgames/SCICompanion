@@ -80,13 +80,13 @@
     (method (doit)
         (super:doit())
         = edgeHit 
-            (if (<= x 0)
+            (if (<= x gEdgeDistance)
                 4
             )(else
-                (if (>= x 319)
+                (if (>= x (- 319 gEdgeDistance))
                     2
                 )(else
-                    (if (>= y 189)
+                    (if (>= y (- 189 (/ gEdgeDistance 2)))
                         3
                     )(else
                         (if (<= y (send gRoom:horizon))
