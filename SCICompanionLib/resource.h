@@ -272,6 +272,8 @@
 #define IDI_POLYPATH                    378
 #define IDD_PICCOMMANDS_VGA1            379
 #define IDI_OPENGAMEFOLDER              380
+#define IDI_DEBUG                       381
+#define IDI_DEBUGROOM                   382
 #define IDC_CHOOSECOLORSTATIC           1001
 #define IDC_BUTTON1                     1003
 #define IDC_BUTTONDOWN                  1003
@@ -847,6 +849,8 @@
 #define ID_VIEW_REMOVEEMBEDDEDPALETTE   33185
 #define ID_POLYPATH                     33188
 #define ID_PIC_SPLITEDGE                33189
+#define ID_DEBUGGAME                    33190
+#define ID_DEBUGROOM                    33191
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -854,8 +858,8 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        382
-#define _APS_NEXT_COMMAND_VALUE         33190
+#define _APS_NEXT_RESOURCE_VALUE        383
+#define _APS_NEXT_COMMAND_VALUE         33192
 #define _APS_NEXT_CONTROL_VALUE         1288
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

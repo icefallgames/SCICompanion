@@ -75,6 +75,7 @@ private:
     afx_msg void OnCompileDocs();
 #endif
     afx_msg void OnDisassemble();
+    afx_msg void OnDebugRoom();
     afx_msg void OnViewObjectFile();
     afx_msg void OnViewScriptResource();
     afx_msg void OnViewSyntaxTree();

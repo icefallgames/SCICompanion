@@ -104,7 +104,7 @@ public:
 
     bool IsResourceCompatible(const ResourceBlob &resource);
 
-    void StartDebuggerThread();
+    void StartDebuggerThread(int optionalResourceNumber);
     void AbortDebuggerThread();
 
 private:

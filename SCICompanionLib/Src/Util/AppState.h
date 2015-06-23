@@ -107,6 +107,8 @@ public:
     std::string GetGameExecutableParameters();
     void SetGameExecutableParameters(PCTSTR pszName);
 
+    void RunGame(bool debug, int optionalResourceNumber);
+
     void OnGameFolderUpdate();
 
     void LogInfo(const TCHAR *pszFormat, ...);

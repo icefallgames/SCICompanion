@@ -77,10 +77,12 @@ BEGIN_MESSAGE_MAP(CScriptDocument, CDocument)
     ON_COMMAND(ID_SCRIPT_VIEWSCRIPTRESOURCE, OnViewScriptResource)
     ON_COMMAND(ID_SCRIPT_VIEWSYNTAXTREE, OnViewSyntaxTree)
     ON_COMMAND(ID_CONVERTSCRIPT, OnConvertScript)
+    ON_COMMAND(ID_DEBUGROOM, OnDebugRoom)
     ON_UPDATE_COMMAND_UI(ID_COMPILE, OnUpdateIsScript)
     ON_UPDATE_COMMAND_UI(ID_SCRIPT_DISASSEMBLE, OnUpdateIsScript)
     ON_UPDATE_COMMAND_UI(ID_SCRIPT_VIEWOBJECTFILE, OnUpdateIsScript)
     ON_UPDATE_COMMAND_UI(ID_SCRIPT_VIEWSCRIPTRESOURCE, OnUpdateIsScript)
+    ON_UPDATE_COMMAND_UI(ID_DEBUGROOM, OnUpdateIsScript)
     ON_UPDATE_COMMAND_UI(ID_CONVERTSCRIPT, OnUpdateConvertScript)
     ON_UPDATE_COMMAND_UI(ID_INDICATOR_LINECOUNT, OnUpdateLineCount)
 END_MESSAGE_MAP()
@@ -445,6 +447,15 @@ void CScriptDocument::OnViewSyntaxTree()
         }
     }
 
+}
+
+void CScriptDocument::OnDebugRoom()
+{
+    int resourceNumber = _scriptId.GetResourceNumber();
+    if (resourceNumber != -1)
+    {
+        appState->RunGame(true, resourceNumber);
+    }
 }
 
 void CScriptDocument::OnConvertScript()

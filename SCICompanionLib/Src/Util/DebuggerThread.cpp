@@ -1,11 +1,12 @@
 #include "stdafx.h"
 #include "DebuggerThread.h"
+#include "format.h"
 
 using namespace std;
 
-shared_ptr<DebuggerThread> CreateDebuggerThread(const std::string &gameFolder)
+shared_ptr<DebuggerThread> CreateDebuggerThread(const std::string &gameFolder, int optionalResourceNumber)
 {
-    shared_ptr<DebuggerThread> debugger = make_shared<DebuggerThread>(gameFolder);
+    shared_ptr<DebuggerThread> debugger = make_shared<DebuggerThread>(gameFolder, optionalResourceNumber);
     debugger->_Start(debugger);
     return debugger;
 }
@@ -37,7 +38,7 @@ void DebuggerThread::Abort()
     // Hmm... not sure about this. Who is responsible for cleanup?
 }
 
-DebuggerThread::DebuggerThread(const string &gameFolder) : _gameFolder(gameFolder) {}
+DebuggerThread::DebuggerThread(const string &gameFolder, int optionalResourceNumber) : _gameFolder(gameFolder), _optionalResourceNumber(optionalResourceNumber) {}
 
 void DebuggerThread::_Start(std::shared_ptr<DebuggerThread> myself)
 {
@@ -54,8 +55,20 @@ void DebuggerThread::_Start(std::shared_ptr<DebuggerThread> myself)
     // Make the startdebug.txt file
     {
         ScopedFile file(GetStartDebugFilename(_gameFolder), GENERIC_WRITE, 0, CREATE_ALWAYS);
-        uint8_t a = 'a';
-        file.Write(&a, 1);
+        if (_optionalResourceNumber == -1)
+        {
+            // Standard case
+            uint8_t a = ' ';
+            file.Write(&a, 1);
+        }
+        else
+        {
+            // Put the resource number in here.
+            sci::ostream byteStream;
+            string number = fmt::format("{0}", _optionalResourceNumber);
+            byteStream << number;
+            file.Write(byteStream.GetInternalPointer(), byteStream.GetDataSize());
+        }
     }
 
     // Now we can start our watcher thread.

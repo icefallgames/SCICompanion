@@ -604,6 +604,60 @@ std::string AppState::GetGameExecutableParameters()
 
 }
 
+void AppState::RunGame(bool debug, int optionalResourceNumber)
+{
+    if (GetResourceMap().IsGameLoaded())
+    {
+        BOOL fShellEx = FALSE;
+        std::string gameFolder = GetResourceMap().GetGameFolder();
+        TCHAR szGameIni[MAX_PATH];
+        if (SUCCEEDED(StringCchPrintf(szGameIni, ARRAYSIZE(szGameIni), TEXT("%s\\game.ini"), gameFolder.c_str())))
+        {
+            // Warning if any script patches are applied.
+            // TODO: scan game folder for script.000, pic.000, etc...
+
+            char szGameName[MAX_PATH];
+            if (GetPrivateProfileString("Game", c_szExecutableString, c_szDefaultExe, szGameName, ARRAYSIZE(szGameName), szGameIni))
+            {
+                char szParameters[MAX_PATH];
+                *szParameters = 0;
+                GetPrivateProfileString("Game", c_szExeParametersString, "", szParameters, ARRAYSIZE(szParameters), szGameIni);
+                if (SUCCEEDED(StringCchPrintf(szGameIni, ARRAYSIZE(szGameIni), "%s\\%s", gameFolder.c_str(), szGameName)))
+                {
+                    if (debug)
+                    {
+                        GetResourceMap().StartDebuggerThread(optionalResourceNumber);
+                    }
+
+                    fShellEx = TRUE;
+                    INT_PTR iResult = (INT_PTR)ShellExecute(AfxGetMainWnd()->GetSafeHwnd(), 0, szGameIni, szParameters, gameFolder.c_str(), SW_SHOWNORMAL);
+                    if (iResult <= 32)
+                    {
+                        // Prepare error.
+                        TCHAR szReason[MAX_PATH];
+                        szReason[0] = 0;
+                        FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, (DWORD)iResult, 0, szReason, ARRAYSIZE(szReason), NULL);
+
+                        TCHAR szError[MAX_PATH];
+                        StringCchPrintf(szError, ARRAYSIZE(szError), TEXT("Failed to start %s: %s"), szGameIni, szReason);
+                        AfxMessageBox(szError, MB_OK | MB_APPLMODAL | MB_ICONEXCLAMATION);
+
+                        GetResourceMap().AbortDebuggerThread();
+                    }
+                }
+            }
+        }
+        if (!fShellEx)
+        {
+            AfxMessageBox(TEXT("Failed to locate game executable."), MB_OK | MB_APPLMODAL | MB_ICONEXCLAMATION);
+        }
+    }
+    else
+    {
+        AfxMessageBox(TEXT("Please load a game first."), MB_OK | MB_APPLMODAL | MB_ICONEXCLAMATION);
+    }
+}
+
 void AppState::OnGameFolderUpdate()
 {
     if (_pApp)

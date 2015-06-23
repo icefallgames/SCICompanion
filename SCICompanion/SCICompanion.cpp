@@ -131,6 +131,7 @@ BEGIN_MESSAGE_MAP(SCICompanionApp, CWinApp)
     // Standard file based document commands
     ON_COMMAND(ID_FILE_OPEN, CWinApp::OnFileOpen)
     ON_COMMAND(ID_RUNGAME, OnRunGame)
+    ON_COMMAND(ID_DEBUGGAME, OnDebugGame)
     ON_COMMAND(ID_ROOM_EXPLORER, OnRoomExplorer)
     ON_COMMAND(ID_FILE_CLOSEGAME, OnCloseGame)
     ON_COMMAND(ID_GAME_PROPERTIES, OnGameProperties)
@@ -615,53 +616,12 @@ void SCICompanionApp::OnSCICompHelp()
 
 void SCICompanionApp::OnRunGame()
 {
-    if (appState->GetResourceMap().IsGameLoaded())
-    {
-        BOOL fShellEx = FALSE;
-        std::string gameFolder = appState->GetResourceMap().GetGameFolder();
-        TCHAR szGameIni[MAX_PATH];
-        if (SUCCEEDED(StringCchPrintf(szGameIni, ARRAYSIZE(szGameIni), TEXT("%s\\game.ini"), gameFolder.c_str())))
-        {
-            // Warning if any script patches are applied.
-            // TODO: scan game folder for script.000, pic.000, etc...
+    appState->RunGame(false, -1);
+}
 
-            char szGameName[MAX_PATH];
-            if (GetPrivateProfileString("Game", c_szExecutableString, c_szDefaultExe, szGameName, ARRAYSIZE(szGameName), szGameIni))
-            {
-                char szParameters[MAX_PATH];
-                *szParameters = 0;
-                GetPrivateProfileString("Game", c_szExeParametersString, "", szParameters, ARRAYSIZE(szParameters), szGameIni);
-                if (SUCCEEDED(StringCchPrintf(szGameIni, ARRAYSIZE(szGameIni), "%s\\%s", gameFolder.c_str(), szGameName)))
-                {
-                    appState->GetResourceMap().StartDebuggerThread();
-
-                    fShellEx = TRUE;
-                    INT_PTR iResult = (INT_PTR)ShellExecute(AfxGetMainWnd()->GetSafeHwnd(), 0, szGameIni, szParameters, gameFolder.c_str(), SW_SHOWNORMAL);
-                    if (iResult <= 32)
-                    {
-                        // Prepare error.
-                        TCHAR szReason[MAX_PATH];
-                        szReason[0] = 0;
-                        FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, (DWORD)iResult, 0, szReason, ARRAYSIZE(szReason), NULL);
-
-                        TCHAR szError[MAX_PATH];
-                        StringCchPrintf(szError, ARRAYSIZE(szError), TEXT("Failed to start %s: %s"), szGameIni, szReason);
-                        AfxMessageBox(szError, MB_OK | MB_APPLMODAL | MB_ICONEXCLAMATION);
-
-                        appState->GetResourceMap().AbortDebuggerThread();
-                    }
-                }
-            }
-        }
-        if (!fShellEx)
-        {
-            AfxMessageBox(TEXT("Failed to locate game executable."), MB_OK | MB_APPLMODAL | MB_ICONEXCLAMATION);
-        }
-    }
-    else
-    {
-        AfxMessageBox(TEXT("Please load a game first."), MB_OK | MB_APPLMODAL | MB_ICONEXCLAMATION);
-    }
+void SCICompanionApp::OnDebugGame()
+{
+    appState->RunGame(true, -1);
 }
 
 void SCICompanionApp::OnRoomExplorer()

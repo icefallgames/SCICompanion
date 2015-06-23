@@ -347,10 +347,10 @@ bool CResourceMap::IsResourceCompatible(const ResourceBlob &resource)
     return true; // I guess?
 }
 
-void CResourceMap::StartDebuggerThread()
+void CResourceMap::StartDebuggerThread(int optionalResourceNumber)
 {
     AbortDebuggerThread();
-    _debuggerThread = CreateDebuggerThread(Helper().GameFolder);
+    _debuggerThread = CreateDebuggerThread(Helper().GameFolder, optionalResourceNumber);
 }
  
 void CResourceMap::AbortDebuggerThread()

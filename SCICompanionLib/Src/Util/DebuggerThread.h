@@ -3,11 +3,11 @@
 class DebuggerThread
 {
 public:
-    DebuggerThread(const std::string &gameFolder);
+    DebuggerThread(const std::string &gameFolder, int optionalResourceNumber);
 
     void Abort();
 
-    friend std::shared_ptr<DebuggerThread> CreateDebuggerThread(const std::string &gameFolder);
+    friend std::shared_ptr<DebuggerThread> CreateDebuggerThread(const std::string &gameFolder, int optionalResourceNumber);
 
 private:
     void _Start(std::shared_ptr<DebuggerThread> myself);
@@ -17,7 +17,8 @@ private:
     CWinThread *_thread;
     std::shared_ptr<DebuggerThread> _myself;
     std::string _gameFolder;
+    int _optionalResourceNumber;
     ScopedHandle _hAbort;
 };
 
-std::shared_ptr<DebuggerThread> CreateDebuggerThread(const std::string &gameFolder);
+std::shared_ptr<DebuggerThread> CreateDebuggerThread(const std::string &gameFolder, int optionalResourceNumber);

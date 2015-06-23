@@ -159,7 +159,8 @@ IDI_TRANSPARENCY        ICON                    "res\\Transparent.ico"
 IDI_AUDIO               ICON                    "res\\audio.ico"
 IDI_POLYPATH            ICON                    "res\\PolyPath.ico"
 IDI_OPENGAMEFOLDER      ICON                    "res\\GameFolder.ico"
-
+IDI_DEBUG               ICON                    "res\\debug.ico"
+IDI_DEBUGROOM           ICON                    "res\\debug_room.ico"
 /////////////////////////////////////////////////////////////////////////////
 //
 // Bitmap
@@ -236,6 +237,7 @@ BEGIN
     BUTTON      ID_EDIT_PASTE
     SEPARATOR
     BUTTON      ID_RUNGAME
+    BUTTON      ID_DEBUGGAME
     BUTTON      ID_TOOLS_REBUILDRESOURCES
     BUTTON      ID_GAME_PROPERTIES
     SEPARATOR
@@ -287,6 +289,8 @@ BEGIN
     BUTTON      ID_COMPILE
     BUTTON      ID_COMPILEALL
     BUTTON      ID_INSERTOBJECT
+    SEPARATOR
+    BUTTON      ID_DEBUGROOM
     SEPARATOR
     BUTTON      ID_CONVERTSCRIPT
     BUTTON      ID_COMPILEDOCS
@@ -2462,6 +2466,8 @@ STRINGTABLE
 BEGIN
     ID_COMPILE              "Compile script\nCompile"
     ID_RUNGAME              "Run the game\nRun game"
+    ID_DEBUGGAME            "Debug the game\nDebug game"
+    ID_DEBUGROOM            "Debug the current room\nDebug room"
     ID_NEWROOM              "Create a new room script.\nNew room"
     ID_INSERTOBJECT         "Insert an object into a script.\nInsert object"
     ID_NEWSCRIPT            "Create a new empty script\nNew empty script"
