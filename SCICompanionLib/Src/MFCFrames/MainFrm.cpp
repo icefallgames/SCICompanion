@@ -364,6 +364,8 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_UPDATE_COMMAND_UI(ID_SCRIPT_FUNCTIONCOMBO, OnUpdateScriptCombo)
     ON_UPDATE_COMMAND_UI(ID_CLASSBROWSER, OnUpdateShowIfGameLoaded)
     ON_UPDATE_COMMAND_UI(ID_SCRIPT_MANAGEDECOMPILATION, OnUpdateShowIfGameLoaded)
+    ON_COMMAND(ID_STOPDEBUG, OnStopDebugging)
+    ON_UPDATE_COMMAND_UI(ID_STOPDEBUG, OnUpdateStopDebugging)
 
     ON_COMMAND(ID_SELFTEST, OnSelfTest)
     ON_WM_TIMER()
@@ -376,9 +378,17 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     //ON_UPDATE_COMMAND_UI(ID_BAR_TOOLBOX, OnUpdateControlBarMenu)
     ON_COMMAND_EX(ID_BAR_OUTPUT, OnBarCheck)
     ON_UPDATE_COMMAND_UI(ID_BAR_OUTPUT, OnUpdateControlBarMenu)
+    ON_MESSAGE(UWM_RESULTS, OnOutputPaneResults)
 END_MESSAGE_MAP()
 
-// CMainFrame construction/destruction
+LRESULT CMainFrame::OnOutputPaneResults(WPARAM wParam, LPARAM lParam)
+{
+    std::vector<CompileResult> *results = reinterpret_cast<std::vector<CompileResult>*>(lParam);
+    GetOutputPane().AddBatch((OutputPaneType)wParam, *results);
+    GetOutputPane().FinishAdd((OutputPaneType)wParam);
+    delete results;
+    return 0;
+}
 
 CMainFrame::CMainFrame() : m_dlgForPanelDialogPic(false), m_dlgForPanelDialogPicVGA(true), _fFindInAll(1), _fMatchWholeWord(0), _fMatchCase(0)
 {
@@ -712,8 +722,8 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	    TRACE0("Failed to create m_wndResizableBarOutput\n");
 	    return -1;		// fail to create
     }
-    m_wndOutput.Create(WS_CHILD | WS_VISIBLE | WS_VSCROLL | LBS_NOTIFY | LBS_NOINTEGRALHEIGHT, CRect(0, 0, 0, 0),
-        &m_wndResizableBarOutput, ID_CONTROL_OUTPUTPANE);
+
+    m_wndNewOutput.Create(NewOutputPane::IDD, &m_wndResizableBarOutput);
 
     //
     // Now the resource-specific toolbars, all but one of which will be hidden.
@@ -1017,6 +1027,7 @@ void CMainFrame::_PrepareMainCommands()
         { ID_TOOLS_REBUILDRESOURCES, IDI_REBUILDRESOURCES },
         { ID_RUNGAME, IDI_RUNGAME },
         { ID_DEBUGGAME, IDI_DEBUG },
+        { ID_STOPDEBUG, IDI_STOPDEBUG },
         { ID_DEBUGROOM, IDI_DEBUGROOM },
         { ID_GAME_PROPERTIES, IDI_GAMEPROPERTIES },
         { ID_BACK, IDI_BACK },
@@ -1036,12 +1047,13 @@ void CMainFrame::_PrepareMainCommands()
     _AssignIcons(c_mainIcons, ARRAYSIZE(c_mainIcons));
 }
 
-void CMainFrame::ShowOutputPane()
+void CMainFrame::ShowOutputPane(OutputPaneType type)
 {
     if (!m_wndResizableBarOutput.IsVisible())
     {
         ShowControlBar(&m_wndResizableBarOutput, TRUE, FALSE);
     }
+    m_wndNewOutput.ShowPage(type);
 }
 
 BOOL CMainFrame::PreTranslateMessage(MSG* pMsg)
@@ -1392,6 +1404,16 @@ void CMainFrame::OnIdleUpdateCmdUI()
     __super::OnIdleUpdateCmdUI();
 }
 
+void CMainFrame::OnUpdateStopDebugging(CCmdUI *pCmdUI)
+{
+    pCmdUI->Enable(appState->IsProcessBeingDebugged());
+}
+
+void CMainFrame::OnStopDebugging()
+{
+    appState->TerminateDebuggedProcess();
+}
+
 void CMainFrame::OnShowPreferences()
 {
     CPreferencesDialog dialog;
@@ -1468,8 +1490,8 @@ void CMainFrame::OnCompileAll()
     timer.Start();
 
     // Clear out results
-    appState->ShowOutputPane();
-    appState->OutputClearResults();
+    appState->ShowOutputPane(OutputPaneType::Compile);
+    appState->OutputClearResults(OutputPaneType::Compile);
     {
         DeferResourceAppend defer(appState->GetResourceMap());
         CNewCompileDialog dialog;
@@ -1492,8 +1514,8 @@ void CMainFrame::OnCompileAll()
     appState->GetResourceMap().NotifyToReloadResourceType(ResourceType::Script);
 
     // Get the final success/fail message up there:
-    appState->OutputAddBatch(log.Results());
-    appState->OutputFinishAdd();
+    appState->OutputAddBatch(OutputPaneType::Compile, log.Results());
+    appState->OutputFinishAdd(OutputPaneType::Compile);
 }
 
 // TODO: Attempt at making Find in Files faster. regex was way too slow. Just need to mimic line endings of crystal text buffer.
@@ -1707,7 +1729,7 @@ void CMainFrame::OnFindInFiles()
 
         StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("Total occurrences found: %d"), (log.Results().size() - 1));
         log.ReportResult(CompileResult(szBuf));
-        appState->OutputResults(log.Results());
+        appState->OutputResults(OutputPaneType::Find, log.Results());
     }
 }
 
@@ -2215,7 +2237,7 @@ void CBrowseInfoStatusPane::OnLButtonDblClk(UINT nFlags, CPoint point)
     if (_status == Errors)
     {
 		SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser();
-        appState->OutputResults(browser.GetErrors());
+        appState->OutputResults(OutputPaneType::Compile, browser.GetErrors());
     }
     __super::OnLButtonDblClk(nFlags, point);
 }

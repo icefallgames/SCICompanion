@@ -71,7 +71,7 @@ LRESULT CNewCompileDialog::CompileAll(WPARAM wParam, LPARAM lParam)
         NewCompileScript(_log, _tables, _headers, scriptId);
 
         // The compile is done.  Post the results.
-        appState->OutputAddBatch(_log.Results());
+        appState->OutputAddBatch(OutputPaneType::Compile, _log.Results());
     }
 
     if (!_fAbort)
@@ -133,7 +133,7 @@ void CNewCompileDialog::OnDestroy()
     std::stringstream str;
     str << _nScript << " scripts compiled.";
     _log.ReportResult(str.str());
-    appState->OutputAddBatch(_log.Results());
+    appState->OutputAddBatch(OutputPaneType::Compile, _log.Results());
 
     // Save any tables...
     _tables.Save();

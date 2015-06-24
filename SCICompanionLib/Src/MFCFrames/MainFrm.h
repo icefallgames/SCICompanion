@@ -10,13 +10,16 @@
 #include "QuickScripts.h"
 #include "ExtControlBarNoX.h"
 #include "BarContainerDialog.h"
-#include "OutputPane.h"
+#include "NewOutputPane.h"
 #include "ScriptComboBox.h"
 #include "SamplesDialogBar.h"
 #include "SoundToolboxSidePane.h"
 #include "MessageSidePane.h"
 
 class CNewScriptDialog;
+
+// wparam is the type, lparam is a vector<CompileResults> that needs to be deleted.
+#define UWM_RESULTS (WM_APP + 2)
 
 class CExtMenuControlBarHideShow : public CExtMenuControlBar
 {
@@ -72,8 +75,8 @@ public:
     CMDITabsDialogBar &Tabs() { return m_wndTab; }
     CBrowseInfoStatusPane &BrowseInfoStatus() { return m_BrowseInfoStatus; }
 
-    OutputPane& GetOutputPane() { return m_wndOutput; }
-    void ShowOutputPane();
+    NewOutputPane& GetOutputPane() { return m_wndNewOutput; }
+    void ShowOutputPane(OutputPaneType type);
     BOOL DestroyWindow();
 
     void RefreshExplorerTools();
@@ -128,7 +131,7 @@ private:  // control bar embedded members
 
     // The output window at the bottom (find and compile results)
     CExtControlBar m_wndResizableBarOutput;
-    OutputPane m_wndOutput;
+    NewOutputPane m_wndNewOutput;
 
     // Our cache of the currently active document.
     CMDITabChildWnd *_pActiveFrame;
@@ -159,6 +162,7 @@ private:
     BOOL PreTranslateMessage(MSG* pMsg);
     LRESULT OnConstructPopupMenuCB(WPARAM wParam, LPARAM lParam);
     LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam);
+    LRESULT OnOutputPaneResults(WPARAM wParam, LPARAM lParam);
 
     afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
     afx_msg void OnDestroy();
@@ -176,7 +180,9 @@ private:
     afx_msg void OnUpdateNewPic(CCmdUI *pCmdUI);
     afx_msg void OnUpdateNewMessage(CCmdUI *pCmdUI);
     afx_msg void OnUpdateShowIfGameLoaded(CCmdUI *pCmdUI);
+    afx_msg void OnUpdateStopDebugging(CCmdUI *pCmdUI);
     afx_msg void OnShowPreferences();
+    afx_msg void OnStopDebugging();
     afx_msg void OnRebuildResources();
     afx_msg void OnRebuildClassTable();
     afx_msg void OnExtractAllResources();

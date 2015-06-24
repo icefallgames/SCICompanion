@@ -207,9 +207,6 @@
     <ClCompile Include="Src\FrameComponents\NoFlickerStatic.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\FrameComponents\OutputPane.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Src\FrameComponents\QuickScripts.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -642,6 +639,12 @@
     <ClCompile Include="Src\Util\DebuggerThread.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\FrameComponents\NewOutputPane.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\FrameComponents\ExtTabControl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCICompanionLib.h">
@@ -867,9 +870,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\FrameComponents\NoFlickerStatic.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\FrameComponents\OutputPane.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\FrameComponents\QuickScripts.h">
@@ -1338,6 +1338,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\Util\DebuggerThread.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\FrameComponents\NewOutputPane.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\FrameComponents\ExtTabControl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -1855,6 +1861,15 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\GameFolder.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\debug.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\debug_room.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\stopdebug.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

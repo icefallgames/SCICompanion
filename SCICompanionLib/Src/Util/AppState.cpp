@@ -424,28 +424,28 @@ void AppState::OpenMostRecentResourceAt(ResourceType type, uint16_t number, int 
 }
 
 // Output pane stuff
-void AppState::OutputResults(std::vector<CompileResult> &compileResults)
+void AppState::OutputResults(OutputPaneType type, std::vector<CompileResult> &compileResults)
 {
-    OutputClearResults();
-    ShowOutputPane();
-    OutputAddBatch(compileResults);
-    OutputFinishAdd();
+    OutputClearResults(type);
+    ShowOutputPane(type);
+    OutputAddBatch(type, compileResults);
+    OutputFinishAdd(type);
 }
-void AppState::ShowOutputPane()
+void AppState::ShowOutputPane(OutputPaneType type)
 {
-    static_cast<CMainFrame*>(_pApp->m_pMainWnd)->ShowOutputPane();
+    static_cast<CMainFrame*>(_pApp->m_pMainWnd)->ShowOutputPane(type);
 }
-void AppState::OutputClearResults()
+void AppState::OutputClearResults(OutputPaneType type)
 {
-    static_cast<CMainFrame*>(_pApp->m_pMainWnd)->GetOutputPane().ClearResults();
+    static_cast<CMainFrame*>(_pApp->m_pMainWnd)->GetOutputPane().ClearResults(type);
 }
-void AppState::OutputAddBatch(std::vector<CompileResult> &compileResults)
+void AppState::OutputAddBatch(OutputPaneType type, std::vector<CompileResult> &compileResults)
 {
-    static_cast<CMainFrame*>(_pApp->m_pMainWnd)->GetOutputPane().AddBatch(compileResults);
+    static_cast<CMainFrame*>(_pApp->m_pMainWnd)->GetOutputPane().AddBatch(type, compileResults);
 }
-void AppState::OutputFinishAdd()
+void AppState::OutputFinishAdd(OutputPaneType type)
 {
-    static_cast<CMainFrame*>(_pApp->m_pMainWnd)->GetOutputPane().FinishAdd();
+    static_cast<CMainFrame*>(_pApp->m_pMainWnd)->GetOutputPane().FinishAdd(type);
 }
 
 UINT AppState::GetMidiDeviceId()
@@ -546,6 +546,32 @@ void AppState::NotifyChangeAspectRatio()
     }
 }
 
+void AppState::TerminateDebuggedProcess()
+{
+    if (IsProcessBeingDebugged())
+    {
+        TerminateProcessTree(_hProcessDebugged.hFile, 0);
+        _hProcessDebugged.Close();
+        GetResourceMap().AbortDebuggerThread();
+    }
+}
+
+bool AppState::IsProcessBeingDebugged()
+{
+    bool stillRunning = false;
+    if (_hProcessDebugged.hFile && (_hProcessDebugged.hFile != INVALID_HANDLE_VALUE))
+    {
+        DWORD result = WaitForSingleObject(_hProcessDebugged.hFile, 0);
+        stillRunning = (result == WAIT_TIMEOUT);
+        if (!stillRunning)
+        {
+            _hProcessDebugged.Close();
+            GetResourceMap().AbortDebuggerThread();
+        }
+    }
+    return stillRunning;
+}
+
 int AppState::ExitInstance()
 {
     _pViewResource.reset(nullptr);
@@ -630,9 +656,24 @@ void AppState::RunGame(bool debug, int optionalResourceNumber)
                     }
 
                     fShellEx = TRUE;
-                    INT_PTR iResult = (INT_PTR)ShellExecute(AfxGetMainWnd()->GetSafeHwnd(), 0, szGameIni, szParameters, gameFolder.c_str(), SW_SHOWNORMAL);
-                    if (iResult <= 32)
+
+                    SHELLEXECUTEINFO ei = {};
+                    ei.fMask = SEE_MASK_DEFAULT | SEE_MASK_NOCLOSEPROCESS;
+                    ei.cbSize = sizeof(ei);
+                    ei.hwnd = AfxGetMainWnd()->GetSafeHwnd();
+                    ei.lpFile = szGameIni;
+                    ei.lpVerb = "Open";
+                    ei.lpParameters = szParameters;
+                    ei.lpDirectory = gameFolder.c_str();
+                    ei.nShow = SW_SHOWNORMAL;
+                    // ShellExecuteEx throws an RPC exception, but I guess that's ok.
+                    if (!ShellExecuteEx(&ei))
                     {
+                        INT_PTR iResult = GetLastError();
+
+                    //INT_PTR iResult = (INT_PTR)ShellExecute(AfxGetMainWnd()->GetSafeHwnd(), 0, szGameIni, szParameters, gameFolder.c_str(), SW_SHOWNORMAL);
+                    //if (iResult <= 32)
+                    //{
                         // Prepare error.
                         TCHAR szReason[MAX_PATH];
                         szReason[0] = 0;
@@ -643,6 +684,11 @@ void AppState::RunGame(bool debug, int optionalResourceNumber)
                         AfxMessageBox(szError, MB_OK | MB_APPLMODAL | MB_ICONEXCLAMATION);
 
                         GetResourceMap().AbortDebuggerThread();
+                    }
+                    else
+                    {
+                        _hProcessDebugged.Close();
+                        _hProcessDebugged.hFile = ei.hProcess;
                     }
                 }
             }
@@ -664,6 +710,7 @@ void AppState::OnGameFolderUpdate()
     {
         CMainFrame *pMainWnd = static_cast<CMainFrame*>(_pApp->m_pMainWnd);
         pMainWnd->RefreshExplorerTools();
+        _hProcessDebugged.Close();
     }
 }
 

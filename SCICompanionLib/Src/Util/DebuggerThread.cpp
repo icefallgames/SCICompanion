@@ -1,6 +1,8 @@
 #include "stdafx.h"
 #include "DebuggerThread.h"
 #include "format.h"
+#include "AppState.h"
+#include "MainFrm.h"
 
 using namespace std;
 
@@ -38,7 +40,7 @@ void DebuggerThread::Abort()
     // Hmm... not sure about this. Who is responsible for cleanup?
 }
 
-DebuggerThread::DebuggerThread(const string &gameFolder, int optionalResourceNumber) : _gameFolder(gameFolder), _optionalResourceNumber(optionalResourceNumber) {}
+DebuggerThread::DebuggerThread(const string &gameFolder, int optionalResourceNumber) : _gameFolder(gameFolder), _optionalResourceNumber(optionalResourceNumber), _hwndUI(nullptr) {}
 
 void DebuggerThread::_Start(std::shared_ptr<DebuggerThread> myself)
 {
@@ -75,6 +77,9 @@ void DebuggerThread::_Start(std::shared_ptr<DebuggerThread> myself)
     _thread = AfxBeginThread(s_DebugThreadWorker, this, 0, 0, CREATE_SUSPENDED, nullptr);
     if (_thread)
     {
+        appState->OutputClearResults(OutputPaneType::Debug);
+        appState->ShowOutputPane(OutputPaneType::Debug);
+        _hwndUI = AfxGetMainWnd()->GetSafeHwnd();
         //_decompileResults = make_unique<DecompilerDialogResults>(this->GetSafeHwnd());
         //_SyncButtonState();
         _thread->m_bAutoDelete = TRUE;
@@ -117,6 +122,7 @@ void DebuggerThread::_Main()
         readHandle.hFile = CreateFile(debugLogFilename.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
         if (readHandle.hFile != INVALID_HANDLE_VALUE)
         {
+            size_t validTextInBuffer = 0;
             bool done = false;
             while (!done && (WAIT_TIMEOUT == WaitForSingleObject(_hAbort.hFile, 200)))
             {
@@ -129,11 +135,35 @@ void DebuggerThread::_Main()
                     // Presumably the process still has it open
                     char szBuffer[1024];
                     DWORD cbRead;
-                    while (ReadFile(readHandle.hFile, szBuffer, sizeof(szBuffer) - 1, &cbRead, nullptr) && cbRead)
+                    while (ReadFile(readHandle.hFile, szBuffer + validTextInBuffer, sizeof(szBuffer) - 1 - validTextInBuffer, &cbRead, nullptr) && cbRead)
                     {
                         szBuffer[cbRead] = 0;
-                        // For now, output to console
-                        OutputDebugString(szBuffer);
+                        validTextInBuffer += cbRead;
+
+                        unique_ptr<vector<CompileResult>> results = make_unique<vector<CompileResult>>();
+                        // Make a result for each new line.
+                        size_t start = 0;
+                        for (size_t i = 0; i < validTextInBuffer; i++)
+                        {
+                            if (szBuffer[i] == '\n')
+                            {
+                                string textLine(szBuffer + start, (i - start));
+                                results->emplace_back(textLine);
+                                start = i + 1;
+                            }
+                        }
+                        if (start < validTextInBuffer)
+                        {
+                            memmove(szBuffer, szBuffer + start, (validTextInBuffer - start));
+                        }
+                        validTextInBuffer -= start;
+                        // TODO: Also, if we're filling up, then process
+
+                        if (!results->empty() && _hwndUI)
+                        {
+                            // Send to the UI thread.
+                            SendMessage(_hwndUI, UWM_RESULTS, (WPARAM)OutputPaneType::Debug, reinterpret_cast<LPARAM>(results.release()));
+                        }
                     }
                 }
                 else

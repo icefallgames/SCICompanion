@@ -161,6 +161,8 @@ IDI_POLYPATH            ICON                    "res\\PolyPath.ico"
 IDI_OPENGAMEFOLDER      ICON                    "res\\GameFolder.ico"
 IDI_DEBUG               ICON                    "res\\debug.ico"
 IDI_DEBUGROOM           ICON                    "res\\debug_room.ico"
+IDI_STOPDEBUG           ICON                    "res\\stopdebug.ico"
+
 /////////////////////////////////////////////////////////////////////////////
 //
 // Bitmap
@@ -238,6 +240,7 @@ BEGIN
     SEPARATOR
     BUTTON      ID_RUNGAME
     BUTTON      ID_DEBUGGAME
+    BUTTON      ID_STOPDEBUG
     BUTTON      ID_TOOLS_REBUILDRESOURCES
     BUTTON      ID_GAME_PROPERTIES
     SEPARATOR
@@ -1631,6 +1634,14 @@ BEGIN
     CONTROL         "Show polygons",IDC_CHECKSHOWPOLYS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,7,93,103,10
 END
 
+IDD_OUTPUTPANE DIALOGEX 0, 0, 309, 177
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_VISIBLE | WS_CLIPCHILDREN | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "",IDC_TAB1,"SysTabControl32",TCS_BOTTOM | TCS_MULTILINE,3,161,302,15
+    LISTBOX         IDC_LIST1,3,0,302,161,LBS_OWNERDRAWFIXED | LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL | LBS_NODATA | WS_VSCROLL | WS_TABSTOP
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2211,6 +2222,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 270
     END
+
+    IDD_OUTPUTPANE, DIALOG
+    BEGIN
+        LEFTMARGIN, 3
+        RIGHTMARGIN, 305
+        TOPMARGIN, 3
+        BOTTOMMARGIN, 176
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -2466,13 +2485,19 @@ STRINGTABLE
 BEGIN
     ID_COMPILE              "Compile script\nCompile"
     ID_RUNGAME              "Run the game\nRun game"
-    ID_DEBUGGAME            "Debug the game\nDebug game"
-    ID_DEBUGROOM            "Debug the current room\nDebug room"
     ID_NEWROOM              "Create a new room script.\nNew room"
     ID_INSERTOBJECT         "Insert an object into a script.\nInsert object"
     ID_NEWSCRIPT            "Create a new empty script\nNew empty script"
     ID_COMPILEALL           "Recompile entire project.\nCompile all"
     ID_EDIT_DELETE          "Delete the selection.\nDelete"
+END
+
+STRINGTABLE
+BEGIN
+    ID_POLYPATH             "Define pathfinding polygons\nPath polygons"
+    ID_DEBUGGAME            "Debug the game\nDebug game"
+    ID_DEBUGROOM            "Debug the current room\nDebug room"
+    ID_STOPDEBUG            "Stop the game begin debugger\nStop debugging"
 END
 
 STRINGTABLE
@@ -2586,11 +2611,6 @@ BEGIN
     IDC_BUTTONADDSEQ        "Add another entry in the current sequence\nAdd subsequent"
     IDC_BUTTONCLONE         "Clone the current message entry\nClone entry"
     IDC_BUTTONADDNEW        "Add a new empty message entry\nNew entry"
-END
-
-STRINGTABLE
-BEGIN
-    ID_POLYPATH             "Define pathfinding polygons\nPath polygons"
 END
 
 #endif    // English (United States) resources

@@ -215,12 +215,14 @@
     <ClCompile Include="Src\Dialogs\GradientDialog.cpp" />
     <ClCompile Include="Src\Dialogs\PaletteEditorDialog.cpp" />
     <ClCompile Include="Src\Dialogs\PrepareBitmapBase.cpp" />
+    <ClCompile Include="Src\FrameComponents\ExtTabControl.cpp" />
     <ClCompile Include="Src\FrameComponents\MessageEditorListCtrl.cpp" />
     <ClCompile Include="Src\FrameComponents\MessageEditPane.cpp" />
     <ClCompile Include="Src\FrameComponents\MessageHeaderFile.cpp" />
     <ClCompile Include="Src\FrameComponents\MessageNounConditionPane.cpp" />
     <ClCompile Include="Src\FrameComponents\MessageSidePane.cpp" />
     <ClCompile Include="Src\FrameComponents\MessageSource.cpp" />
+    <ClCompile Include="Src\FrameComponents\NewOutputPane.cpp" />
     <ClCompile Include="Src\FrameComponents\PicHelperPane.cpp" />
     <ClCompile Include="Src\Resources\Polygon.cpp" />
     <ClCompile Include="Src\FrameComponents\ViewCelListBox.cpp" />
@@ -260,12 +262,14 @@
     <ClInclude Include="Src\Dialogs\GradientDialog.h" />
     <ClInclude Include="Src\Dialogs\PaletteEditorCommon.h" />
     <ClInclude Include="Src\Dialogs\PaletteEditorDialog.h" />
+    <ClInclude Include="Src\FrameComponents\ExtTabControl.h" />
     <ClInclude Include="Src\FrameComponents\MessageEditorListCtrl.h" />
     <ClInclude Include="Src\FrameComponents\MessageEditPane.h" />
     <ClInclude Include="Src\FrameComponents\MessageHeaderFile.h" />
     <ClInclude Include="Src\FrameComponents\MessageNounConditionPane.h" />
     <ClInclude Include="Src\FrameComponents\MessageSidePane.h" />
     <ClInclude Include="Src\FrameComponents\MessageSource.h" />
+    <ClInclude Include="Src\FrameComponents\NewOutputPane.h" />
     <ClInclude Include="Src\Resources\Polygon.h" />
     <ClInclude Include="Src\FrameComponents\ViewCelListBox.h" />
     <ClInclude Include="Src\GIFLIB\gif_hash.h" />
@@ -363,7 +367,6 @@
     <ClCompile Include="Src\FrameComponents\IntellisenseListBox.cpp" />
     <ClCompile Include="Src\FrameComponents\MDITabsDialogBar.cpp" />
     <ClCompile Include="Src\FrameComponents\NoFlickerStatic.cpp" />
-    <ClCompile Include="Src\FrameComponents\OutputPane.cpp" />
     <ClCompile Include="Src\FrameComponents\PicCommandSidePane.cpp" />
     <ClCompile Include="Src\FrameComponents\QuickScripts.cpp" />
     <ClCompile Include="Src\FrameComponents\RasterSidePane.cpp" />
@@ -554,7 +557,6 @@
     <ClInclude Include="Src\FrameComponents\IntellisenseListBox.h" />
     <ClInclude Include="Src\FrameComponents\MDITabsDialogBar.h" />
     <ClInclude Include="Src\FrameComponents\NoFlickerStatic.h" />
-    <ClInclude Include="Src\FrameComponents\OutputPane.h" />
     <ClInclude Include="Src\FrameComponents\PicCommandSidePane.h" />
     <ClInclude Include="Src\FrameComponents\QuickScripts.h" />
     <ClInclude Include="Src\FrameComponents\RasterSidePane.h" />
@@ -712,6 +714,8 @@
     <Image Include="res\CloseActive.bmp" />
     <Image Include="res\CloseInactive.bmp" />
     <Image Include="res\cursor.ico" />
+    <Image Include="res\debug.ico" />
+    <Image Include="res\debug_room.ico" />
     <Image Include="res\delete.ico" />
     <Image Include="res\dither.ico" />
     <Image Include="res\Down.bmp" />
@@ -803,6 +807,7 @@
     <Image Include="res\showtrace.ico" />
     <Image Include="res\sound.ico" />
     <Image Include="res\stop.ico" />
+    <Image Include="res\stopdebug.ico" />
     <Image Include="res\TabPic.bmp" />
     <Image Include="res\TabPicNS.bmp" />
     <Image Include="res\text.ico" />

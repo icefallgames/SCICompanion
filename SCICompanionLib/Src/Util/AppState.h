@@ -79,18 +79,21 @@ public:
     void ClearResourceManagerDoc() { _pResourceDoc = NULL; }
     void NotifyChangeAspectRatio();
 
+    void TerminateDebuggedProcess();
+    bool IsProcessBeingDebugged();
+
     int AspectRatioY(int value) const;
     int InverseAspectRatioY(int value) const;
 
     void GiveMeAutoComplete(CScriptView *pSV);
 
     // Output pane
-    void OutputResults(std::vector<CompileResult> &compileResults);
+    void OutputResults(OutputPaneType type, std::vector<CompileResult> &compileResults);
     // For finer control
-    void ShowOutputPane();
-    void OutputClearResults();
-    void OutputAddBatch(std::vector<CompileResult> &compileResults);
-    void OutputFinishAdd();
+    void ShowOutputPane(OutputPaneType type);
+    void OutputClearResults(OutputPaneType type);
+    void OutputAddBatch(OutputPaneType type, std::vector<CompileResult> &compileResults);
+    void OutputFinishAdd(OutputPaneType type);
 
     UINT GetMidiDeviceId();
 
@@ -193,6 +196,8 @@ public: // TODO for now
     CIntellisenseListBox m_wndIntel;
     CColoredToolTip m_wndToolTip;
     AutoCompleteThread *_pACThread;
+
+    ScopedHandle _hProcessDebugged;
 };
 
 extern AppState *appState;

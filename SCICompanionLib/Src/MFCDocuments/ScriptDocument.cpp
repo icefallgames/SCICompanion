@@ -118,7 +118,7 @@ void CScriptDocument::OnCompileDocs()
         {
             // An error while compiling.
             log.SummarizeAndReportErrors();
-            appState->OutputResults(log.Results());
+            appState->OutputResults(OutputPaneType::Compile, log.Results());
         }
         buffer.FreeAll();
     }
@@ -183,7 +183,7 @@ void CScriptDocument::OnCompile()
         }
         _DoErrorSummary(log);
 
-        appState->OutputResults(log.Results());
+        appState->OutputResults(OutputPaneType::Compile, log.Results());
     }
 }
 
@@ -563,7 +563,7 @@ void CScriptDocument::OnConvertScript()
                     std::stringstream ss;
                     ss << _scriptId.GetFileName() << " was successfully converted to " << newScriptId.GetFileName();
                     log.ReportResult(CompileResult(ss.str()));
-                    appState->OutputResults(log.Results());
+                    appState->OutputResults(OutputPaneType::Compile, log.Results());
 
                     // 4) Switch to the new script
                     _scriptId = newScriptId;
@@ -582,7 +582,7 @@ void CScriptDocument::OnConvertScript()
             else
             {
                 log.SummarizeAndReportErrors();
-                appState->OutputResults(log.Results());
+                appState->OutputResults(OutputPaneType::Compile, log.Results());
                 AfxMessageBox("The original script has compile errors. They must be fixed before conversion can take place.", MB_ERRORFLAGS);
             }
         }

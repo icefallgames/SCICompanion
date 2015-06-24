@@ -15,6 +15,7 @@ private:
     void _Main();
 
     CWinThread *_thread;
+    HWND _hwndUI;
     std::shared_ptr<DebuggerThread> _myself;
     std::string _gameFolder;
     int _optionalResourceNumber;

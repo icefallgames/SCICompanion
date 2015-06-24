@@ -3,6 +3,7 @@
 #include <math.h>
 #include "format.h"
 #include "WindowsUtil.h"
+#include "TlHelp32.h"
 
 using namespace fmt;
 
@@ -858,4 +859,54 @@ BOOL HandleEditBoxCommands(MSG* pMsg, CEdit &wndEdit)
         }
     }
     return fRet;
+}
+
+void TerminateProcessTree(HANDLE hProcess, DWORD retCode)
+{
+    DWORD killId = GetProcessId(hProcess);
+
+    // Error handling removed for brevity
+    HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    PROCESSENTRY32 process;
+    ZeroMemory(&process, sizeof(process));
+    process.dwSize = sizeof(process);
+    Process32First(snapshot, &process);
+    std::unordered_map<DWORD, DWORD> childToParent;
+    do
+    {
+        childToParent[process.th32ProcessID] = process.th32ParentProcessID;
+    } while (Process32Next(snapshot, &process));
+
+    std::set<DWORD> killIds;
+    killIds.insert(killId);
+    for (auto &pair : childToParent)
+    {
+        bool kill = false;
+        std::vector<DWORD> childrenToKill;
+        auto itParent = childToParent.find(pair.first);
+        while ((itParent != childToParent.end()) && itParent->first)
+        {
+            childrenToKill.push_back(itParent->first);
+            if (itParent->second == killId)
+            {
+                kill = true;
+                break;
+            }
+            itParent = childToParent.find(itParent->second);
+        }
+        if (kill)
+        {
+            killIds.insert(childrenToKill.begin(), childrenToKill.end());
+        }
+    }
+
+    for (DWORD killPid : killIds)
+    {
+        HANDLE killHandle = OpenProcess(PROCESS_TERMINATE, TRUE, killPid);
+        if (killHandle)
+        {
+            TerminateProcess(killHandle, 0);
+            CloseHandle(killHandle);
+        }
+    }
 }
