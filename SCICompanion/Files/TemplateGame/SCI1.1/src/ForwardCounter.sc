@@ -1,9 +1,8 @@
 (version 2)
 (include "sci.sh")
+(include "game.sh")
 (use "Cycle")
-(script 956)
-
-
+(script FORWARDCOUNT_SCRIPT)
 
 (class ForwardCounter of Fwd
     (properties

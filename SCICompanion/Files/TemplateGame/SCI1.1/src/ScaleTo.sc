@@ -1,10 +1,9 @@
 (version 2)
 (include "sci.sh")
+(include "game.sh")
 (use "Main")
 (use "Scaler")
-(script 975)
-
-
+(script SCALETO_SRIPT)
 
 (class ScaleTo of Scaler
     (properties

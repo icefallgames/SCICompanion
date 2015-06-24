@@ -1,14 +1,13 @@
 (version 2)
 (include "sci.sh")
+(include "game.sh")
 (use "Main")
 (use "Controls")
 (use "Print")
 (use "Blink")
 (use "RandCycle")
 (use "Obj")
-(script 30)
-
-
+(script ANIMDIALOG_SCRIPT)
 
 (class AnimDialog of Dialog
     (properties

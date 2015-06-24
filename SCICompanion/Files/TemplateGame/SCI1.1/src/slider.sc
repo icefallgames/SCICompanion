@@ -1,10 +1,9 @@
 (version 2)
 (include "sci.sh")
+(include "game.sh")
 (use "IconI")
 (use "Obj")
-(script 934)
-
-
+(script SLIDER_SCRIPT)
 
 (class Slider of IconI
     (properties

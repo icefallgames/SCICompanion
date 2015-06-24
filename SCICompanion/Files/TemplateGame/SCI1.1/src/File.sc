@@ -21,14 +21,14 @@
     )
 
 
-    (method (open param1)
+    (method (open openMode)
         = handle 
             (switch (paramTotal)
                 (case 0
-                    FileIO(fiOPEN name 0)
+                    FileIO(fiOPEN name fOPENCREATE)
                 )
                 (case 1
-                    FileIO(fiOPEN name param1)
+                    FileIO(fiOPEN name openMode)
                 )
                 (default 
                     0
@@ -51,7 +51,7 @@
             return 0
         )
         (if (not handle)
-            (self:open(1))
+            (self:open(fOPENFAIL))
         )
         return 
             (if (handle)
@@ -99,7 +99,7 @@
             return 0
         )
         (if (not handle)
-            (self:open(1))
+            (self:open(fOPENFAIL))
         )
         return 
             (if (handle)
@@ -119,7 +119,7 @@
                 0
             )
         (if (not handle)
-            (self:open(1))
+            (self:open(fOPENFAIL))
         )
         return 
             (if (handle)

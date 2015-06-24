@@ -1,24 +1,29 @@
 (version 2)
 (include "sci.sh")
+(include "game.sh")
 (exports
     0 debugHandler
 )
 (use "Main")
 (use "Controls")
 (use "Print")
-(use "ClickMenu")
+(use "PolygonEdit")
+(use "DialogEdit")
 (use "FeatureWriter")
 (use "CueObj")
 (use "SysWindow")
 (use "User")
 (use "View")
 (use "Obj")
-(script 10)
-
+(use "InvI")
+(use "dIcon")
+(script INGAME_DEBUG_SCRIPT)
 
 (local
     local0[27]
-
+    // For inventory dialog:
+    newDButton
+    local1[2]
 )
 (procedure (localproc_0052)
     (if (IsOneOf((send gRoom:style) 11 12 13 14))
@@ -28,7 +33,6 @@
         )
     )
 )
-
 
 (instance public debugHandler of Feature
     (properties)
@@ -44,7 +48,7 @@
         (send gOldMH:delete(self))
         (send gOldKH:delete(self))
         (super:dispose())
-        DisposeScript(10)
+        DisposeScript(INGAME_DEBUG_SCRIPT)
     )
 
 
@@ -133,8 +137,8 @@
                             TextPrint(@temp0)
                         )
                         (case KEY_ALT_i
-                        	// Something about inventory
-                            (send (ScriptID(16 0)):doit())
+                        	// Inventory selector
+                            (dInvD:doit())
                         )
                         (case KEY_ALT_j
                         	// Show cast
@@ -190,6 +194,11 @@
                             Graph(grUPDATE_BOX temp167 temp168 temp170 temp169 1)
                             SetPort(temp160)
                         )
+                        
+                        (case KEY_ALT_d
+                        	(DialogEditor:doit())
+						)                        
+                        
                         (case KEY_ALT_l
                         	// Set flag
                             = temp0 0
@@ -290,10 +299,14 @@
                                 canInput(1)
                                 canControl(1)
                             )
-                            (send gSq5IconBar:enable(0 1 2 3 5 6))
-                        )
-                        (case $16
-                            Show(VISUAL)
+                            (send gSq5IconBar:enable(
+				        		ICONINDEX_WALK
+				        		ICONINDEX_LOOK
+				        		ICONINDEX_DO
+				        		ICONINDEX_TALK
+				        		ICONINDEX_CURITEM
+				        		ICONINDEX_INVENTORY)                            		
+							)
                         )
                         (case KEY_ALT_w
                         	// Feature writer
@@ -304,12 +317,9 @@
                             = gQuitGame 1
                         )
                         (case KEY_ALT_v
-                        	// Show version
-                            (Print:
-                                addText("Version number:" 0 0)
-                                addText(gVersion 0 14)
-                                init()
-                            )
+                        	// Visual screen
+                            localproc_0052()
+                            Show(VISUAL)
                         )
                         (case KEY_ALT_f
                         	// Feature outlines
@@ -323,7 +333,7 @@
                             = gQuitGame 1
                         )
                         (case KEY_QUESTION
-                            TextPrint("Debug options:      (Page 1 of 5)\n\n   A - Show cast\n   B - Polygon editor\n   C - Show control map\n   D - Place an actor\n   E - Show ego info\n   F - Show feature outlines\n   G - Set global\n")
+                            TextPrint("Debug options:      (Page 1 of 5)\n\n   A - Show cast\n   B - Polygon editor\n   C - Show control map\n   D - Dialog editor\n   E - Show ego info\n   F - Show feature outlines\n   G - Set global\n")
                             TextPrint("Debug options:      (Page 2 of 5)\n\n   H - Show global\n   I - Get inventory item\n   J - Justify text on screen\n   K - Show palette\n   L - Set flag\n   M - Clear flag\n   N - Show flag\n")
                             TextPrint("Debug options:      (Page 3 of 5)\n\n   P - Show priority map\n   Q - Set Detail to 1\n   R - Show room info/free memory\n   S - Show a string or message\n   T - Teleport\n   U - Give HandsOn\n")
                             TextPrint("Debug options:      (Page 4 of 5)\n\n   V - Show visual map\n   W - Feature writer\n   Y - View obstacles\n   X,Z - Quick quit\n")
@@ -392,6 +402,7 @@
 
 )
 
+
 (instance drawPoly of Code
 	(method (doit thePoly)
 		(var i, x1, y1, x2, y2, thePoints, index, indexNext)
@@ -409,4 +420,116 @@
 		)
 		
 	)
+)
+
+
+(instance public dInvD of Dialog
+    (properties)
+
+    (method (init)
+        (var temp0, temp1, temp2, temp3, newDText, gSq5InvFirst, temp6)
+        = temp1 4
+        = temp0 temp1
+        = temp2 temp0
+        = temp3 0
+        = gSq5InvFirst (send gSq5Inv:first())
+        (while (gSq5InvFirst)
+            = temp6 NodeValue(gSq5InvFirst)
+            ++temp3
+            (if ((send temp6:isKindOf(InvI)))
+                = newDText (DText:new())
+                (self:add((send newDText:
+                        value(temp6)
+                        text((send temp6:name))
+                        nsLeft(temp0)
+                        nsTop(temp1)
+                        state(3)
+                        font(gSmallFont)
+                        setSize()
+                        yourself()
+                    )
+))
+            )
+            (if (< temp2 (- (send newDText:nsRight) (send newDText:nsLeft)))
+                = temp2 (- (send newDText:nsRight) (send newDText:nsLeft))
+            )
+            = temp1 (+ temp1 (+ (- (send newDText:nsBottom) (send newDText:nsTop)) 1))
+            (if (> temp1 140)
+                = temp1 4
+                = temp0 (+ temp0 (+ temp2 10))
+                = temp2 0
+            )
+            = gSq5InvFirst (send gSq5Inv:next(gSq5InvFirst))
+        )
+        = window gSq5Win
+        (self:setSize())
+        = newDButton (DButton:new())
+        (send newDButton:
+            text("All Done!")
+            setSize()
+            moveTo(- nsRight (+ 4 (send newDButton:nsRight)) nsBottom)
+        )
+        (send newDButton:move((- (send newDButton:nsLeft) (send newDButton:nsRight)) 0))
+        (self:
+            add(newDButton)
+            setSize()
+            center()
+        )
+        return temp3
+    )
+
+
+    (method (doit)
+        (var theNewDButton)
+        (self:init())
+        (self:open(4 15))
+        = theNewDButton newDButton
+        (while (TRUE)
+            = theNewDButton (super:doit(theNewDButton))
+            (if ((not theNewDButton or (== theNewDButton -1)) or (== theNewDButton newDButton))
+                break
+            )
+            (send gEgo:get((send gSq5Inv:indexOf((send theNewDButton:value)))))
+        )
+        (self:
+            eachElementDo(#dispose 1)
+            dispose()
+        )
+    )
+
+
+    (method (handleEvent pEvent)
+        (var pEventMessage, pEventType)
+        = pEventMessage (send pEvent:message)
+        (switch (= pEventType (send pEvent:type))
+            (case 4
+                (switch (pEventMessage)
+                    (case KEY_UP
+                        = pEventMessage 3840
+                    )
+                    (case KEY_NUMPAD2
+                        = pEventMessage 9
+                    )
+                )
+            )
+            (case 64
+                (switch (pEventMessage)
+                    (case JOY_UP
+                        = pEventMessage 3840
+                        = pEventType 4
+                    )
+                    (case JOY_DOWN
+                        = pEventMessage 9
+                        = pEventType 4
+                    )
+                )
+            )
+        )
+        (send pEvent:
+            type(pEventType)
+            message(pEventMessage)
+        )
+        (super:handleEvent(pEvent))
+    )
+
 )

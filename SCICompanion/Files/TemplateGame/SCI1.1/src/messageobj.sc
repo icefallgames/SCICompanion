@@ -1,9 +1,10 @@
 (version 2)
 (include "sci.sh")
+(include "game.sh")
 (use "Main")
 (use "Print")
 (use "Obj")
-(script 925)
+(script MESSAGEOBJ_SCRIPT)
 
 
 

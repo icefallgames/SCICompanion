@@ -8,8 +8,7 @@
 (use "Print")
 (use "DIcon")
 (use "File")
-(script 990)
-
+(script SAVERESTORE_SCRIPT)
 
 (local
     local0
@@ -315,7 +314,7 @@ code_09d1:pushi   7
             lap     param1
             bnt     code_03ec
             pushi   2
-            pushi   0
+            pushi   fiOPEN
             pushi   3
             lea     @temp385
             push    
@@ -336,7 +335,7 @@ code_09d1:pushi   7
             bnt     code_03e5
             ret     
 code_03e5:  pushi   2
-            pushi   1
+            pushi   fiCLOSE
             lst     temp0
             callk   FileIO, 4
 code_03ec:  pushi   #init
@@ -703,7 +702,7 @@ code_0687:  ldi     65535
             lsti    temp364
             callk   DeviceInfo, 8
             pushi   2
-            pushi   4
+            pushi   fiUNLINK
             lea     @temp385
             push    
             callk   FileIO, 4

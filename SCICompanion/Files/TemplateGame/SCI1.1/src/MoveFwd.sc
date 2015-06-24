@@ -1,9 +1,8 @@
 (version 2)
 (include "sci.sh")
+(include "game.sh")
 (use "PolyPath")
-(script 951)
-
-
+(script MOVEFORWARD_SCRIPT)
 
 (class MoveFwd of PolyPath
     (properties

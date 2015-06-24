@@ -1,5 +1,6 @@
 (version 2)
 (include "sci.sh")
+(include "game.sh")
 (use "Main")
 (use "Print")
 (use "Polygon")
@@ -326,6 +327,9 @@
 
     (method (newRoom newRoomNumber)
         (var temp0[5], temp5)
+        
+        DebugPrint("Switching to room %d" newRoomNumber)
+        
         (send gOldATPs:
             eachElementDo(#dispose)
             eachElementDo(#delete)
@@ -389,7 +393,7 @@
             proc990_0(gSaveDir)
         )
         Load(rsFONT gSmallFont)
-        ScriptID(990)
+        ScriptID(SAVERESTORE_SCRIPT)
         = temp21 (self:setCursor(gCursor))
         (send gSounds:pause(1))
         (if (localproc_0e32(1))
@@ -432,7 +436,7 @@
             proc990_0(gSaveDir)
         )
         Load(rsFONT gSmallFont)
-        ScriptID(990)
+        ScriptID(SAVERESTORE_SCRIPT)
         = temp21 (self:setCursor(gCursor))
         (send gSounds:pause(1))
         (if (localproc_0e32(1))

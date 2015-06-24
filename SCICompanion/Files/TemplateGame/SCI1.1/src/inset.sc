@@ -1,11 +1,10 @@
 (version 2)
 (include "sci.sh")
+(include "game.sh")
 (use "Main")
 (use "View")
 (use "Obj")
-(script 923)
-
-
+(script INSET_SCRIPT)
 
 (class Inset of Code
     (properties

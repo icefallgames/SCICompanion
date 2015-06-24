@@ -1,9 +1,8 @@
 (version 2)
 (include "sci.sh")
+(include "game.sh")
 (use "Cycle")
-(script 969)
-
-
+(script REVERSECYCLE_SCRIPT)
 
 (class Rev of Cycle
     (properties

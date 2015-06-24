@@ -1,11 +1,10 @@
 (version 2)
 (include "sci.sh")
+(include "game.sh")
 (use "Main")
 (use "Print")
 (use "IconI")
-(script 978)
-
-
+(script CONTROLSBASE_SCRIPT)
 
 (class GameControls of IconBar
     (properties

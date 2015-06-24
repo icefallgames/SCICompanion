@@ -13,7 +13,7 @@
 (use "IconI")
 (use "GameControls")
 (use "Obj")
-(script 24)
+(script GAMECONTROLS_SCRIPT)
 
 
 

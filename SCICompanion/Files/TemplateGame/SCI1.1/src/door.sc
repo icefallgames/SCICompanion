@@ -1,14 +1,13 @@
 (version 2)
 (include "sci.sh")
+(include "game.sh")
 (use "Main")
 (use "PolyPath")
 (use "Polygon")
 (use "Sound")
 (use "Cycle")
 (use "View")
-(script 954)
-
-
+(script DOOR_SCRIPT)
 
 (class Door of Prop
     (properties

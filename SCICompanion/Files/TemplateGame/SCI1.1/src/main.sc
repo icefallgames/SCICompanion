@@ -14,6 +14,7 @@
     9 Die
     10 AddToScore
     11 HideStatus
+    12 DebugPrint
 )
 (use "ColorInit")
 (use "Smopper")
@@ -43,6 +44,7 @@
 (use "File")
 (script 0)
 
+(define STARTING_ROOM 100)
 
 (local
     gEgo
@@ -138,6 +140,7 @@
     gRegister
     gFlags[14]		// Start of bit set. Room for 14x16 = 224 flags.
     gEdgeDistance = 10	// Margin around screen to make it easier to walk the ego to the edge
+    gDebugOut
 )
 
 (procedure public (Btest param1)
@@ -313,6 +316,12 @@
     SetPort(temp0)
 )
 
+(procedure public (DebugPrint params)
+	(if (gDebugOut)
+		(send gDebugOut:debugPrint(rest params))
+	)
+)
+
 (instance rm0Sound of Sound
     (properties
         priority 15
@@ -471,11 +480,11 @@
         // These correspond to color codes used in messages (values into global palette):
         TextColors(0 15 26 31 34 52 63)
         = gVersion "x.yyy.zzz"
-        = temp7 FileIO(fiOPEN "version" 1)
+        = temp7 FileIO(fiOPEN "version" fOPENFAIL)
         FileIO(fiREAD_STRING gVersion 11 temp7)
         FileIO(fiCLOSE temp7)
         ColorInit()
-        DisposeScript(12)
+        DisposeScript(COLORINIT_SCRIPT)
         = gSQ5Narrator sQ5Narrator
         = gSq5Win sq5Win
         = gSq5Win_2 sq5Win
@@ -505,6 +514,7 @@
         )
         = gSq5IconBar sq5IconBar
         (send gSq5IconBar:
+        	// These correspond to ICONINDEX_*** in game.sh
             add(icon0 icon1 icon2 icon3 icon4 icon6 icon7 icon8 icon9)
             eachElementDo(#init)
             eachElementDo(#highlightColor 0)
@@ -513,7 +523,7 @@
             useIconItem(icon6)
             helpIconItem(icon9)
             walkIconItem(icon0)
-            disable(5)
+            disable(ICONINDEX_CURITEM)
             state(3072)
             disable()
         )
@@ -522,7 +532,6 @@
         = gDoVerbCode lb2DoVerbCode
         = gFeatureInit lb2FtrInit
         = gApproachCode lb2ApproachCode
-        (self:newRoom(100))
     )
 
 
@@ -543,10 +552,9 @@
 
 
     (method (play)
-    	(var deleteMe)
+    	(var deleteMe, debugRoom, theStartRoom)
         = gGame self
         = gSaveDir GetSaveDir()
-       
         
         (if (not GameIsRestarting())
             GetCWD(gSaveDir)
@@ -555,7 +563,23 @@
             setCursor(gInvisibleCursor 1)
             init()
         )
-        (self:setCursor(996 1))
+
+		(= theStartRoom STARTING_ROOM)
+		(if (not GameIsRestarting())
+	        (if (FileIO(fiEXISTS "sdebug.txt"))
+	        	= gDebugOut ScriptID(DEBUGOUT_SCRIPT 0)
+	        	DebugPrint("Debugger enabled")
+	        	= debugRoom (send gDebugOut:init("sdebug.txt"))
+	        	(if (<> debugRoom -1)
+	        		(= theStartRoom debugRoom)
+	        		(send gGame:handsOn())
+	        		DebugPrint("Starting in room %d" theStartRoom)
+				)
+			)
+		)
+		
+        (self:newRoom(theStartRoom))
+        
         (while (not gQuitGame)
             (self:doit())
         )
@@ -572,7 +596,7 @@
         (if (gPseudoMouse)
             (send gPseudoMouse:stop())
         )
-        (send (ScriptID(11)):doit(param1))
+        (send (ScriptID(DISPOSECODE_SCRIPT)):doit(param1))
         
         (super:startRoom(param1))
     )
@@ -778,11 +802,8 @@
                 (case V_TALK
                     (send gTestMessager:say(0 V_TALK 0 Random(1 2) 0 0))
                 )
-                (case V_COMMAND
-                    (send gTestMessager:say(0 V_COMMAND 0 0 0 0))
-                )
                 (default 
-                    (if (not IsOneOf((send ((send gUser:curEvent)):message) V_COMMAND V_LOOK))
+                    (if (not IsOneOf((send ((send gUser:curEvent)):message) V_LOOK))
                         (send gTestMessager:say(0 V_COMBINE 0 Random(2 3) 0 0))
                     )
                 )
@@ -806,7 +827,16 @@
         (send gSq5IconBar:eachElementDo(#perform checkIcon))
         (send gSq5IconBar:curIcon((send gSq5IconBar:at(7))))
         (send gSq5IconBar:disable())
-        (send gSq5IconBar:disable(0 1 2 3 4 5 6 7))
+        (send gSq5IconBar:disable(
+        		ICONINDEX_WALK
+        		ICONINDEX_LOOK
+        		ICONINDEX_DO
+        		ICONINDEX_TALK
+        		ICONINDEX_CUSTOM
+        		ICONINDEX_CURITEM
+        		ICONINDEX_INVENTORY
+        		ICONINDEX_SETTINGS)
+        		)
         (send gGame:setCursor(996))
     )
 
@@ -817,12 +847,26 @@
             canControl(1)
             canInput(1)
         )
-        (send gSq5IconBar:enable(0 1 2 3 4 5 6 7))
+        (send gSq5IconBar:enable(
+        		ICONINDEX_WALK
+        		ICONINDEX_LOOK
+        		ICONINDEX_DO
+        		ICONINDEX_TALK
+        		// ICONINDEX_CUSTOM // see below
+        		ICONINDEX_CURITEM
+        		ICONINDEX_INVENTORY
+        		ICONINDEX_SETTINGS)
+        		)
+        		
+        (send gSq5IconBar:disable(
+        		// See above
+        		ICONINDEX_CUSTOM)
+		)
         (if (paramTotal and fRestore)
             RestorePreviousHandsOn()
         )
         (if (not (send gSq5IconBar:curInvIcon))
-            (send gSq5IconBar:disable(5))
+            (send gSq5IconBar:disable(ICONINDEX_CURITEM))
         )
         (if (gGSq5IconBarCurIcon)
             (send gSq5IconBar:curIcon(gGSq5IconBarCurIcon))
@@ -838,15 +882,15 @@
 
 
     (method (showAbout)
-        (send (ScriptID(13 0)):doit())
-        DisposeScript(13)
+        (send (ScriptID(ABOUT_SCRIPT 0)):doit())
+        DisposeScript(ABOUT_SCRIPT)
     )
 
 
     (method (showControls)
         (var temp0)
         = temp0 (send ((send gSq5IconBar:curIcon)):cursor)
-        (send (ScriptID(24 0)):doit())
+        (send (ScriptID(GAMECONTROLS_SCRIPT 0)):doit())
         (send gGameControls:dispose())
         (send gGame:setCursor(temp0 1))
     )
@@ -865,7 +909,7 @@
         maskView 990
         maskLoop 13
         noun N_MOVEICON
-        helpVerb 5
+        helpVerb V_HELP
     )
 
     (method (init)
@@ -896,7 +940,7 @@
         maskView 990
         maskLoop 13
         noun N_EXAMINEICON
-        helpVerb 5
+        helpVerb V_HELP
     )
 
     (method (init)
@@ -916,7 +960,7 @@
         maskView 990
         maskLoop 13
         noun N_DOICON
-        helpVerb 5
+        helpVerb V_HELP
     )
 
     (method (init)
@@ -937,7 +981,7 @@
         maskLoop 13
         maskCel 4
         noun N_TALKICON
-        helpVerb 5
+        helpVerb V_HELP
     )
 
     (method (init)
@@ -946,19 +990,21 @@
     )
 
 )
+
+// Use this icon for whatever action you want
 (instance icon4 of IconI
     (properties
         view 990
-        loop 10
-        cel 1
-        cursor 984
-        message V_COMMAND
+        loop 10			// This is currently a loop with "empty" cels
+        cel 0
+        cursor 999		// The cursor view associated with your action.
+        message 0		// The verb associated with this action.
         signal $0041
         maskView 990
         maskLoop 13
         maskCel 4
-        noun N_COMMANDICON
-        helpVerb 5
+        noun 0			// The noun for your button
+        helpVerb V_HELP
     )
 
     (method (init)
@@ -979,7 +1025,7 @@
         maskLoop 13
         maskCel 4
         noun N_INVENTORYICON
-        helpVerb 5
+        helpVerb V_HELP
     )
 
     (method (init)
@@ -1061,7 +1107,7 @@
         maskView 990
         maskLoop 13
         noun N_SELECTINVICON2
-        helpVerb 5
+        helpVerb V_HELP
     )
 
     (method (init)
@@ -1096,7 +1142,7 @@
         maskView 990
         maskLoop 13
         noun N_SETTINGSICON
-        helpVerb 5
+        helpVerb V_HELP
     )
 
     (method (init)
@@ -1170,11 +1216,8 @@
                     (case V_TALK
                         (send gTestMessager:say(0 V_TALK 0 Random(1 2) 0 0))
                     )
-                    (case V_COMMAND
-                        (send gTestMessager:say(0 V_COMMAND  0 1 0 0))
-                    )
                     (default 
-                        (if (not IsOneOf(theVerb V_COMMAND  V_LOOK))
+                        (if (not IsOneOf(theVerb V_LOOK))
                             (send gTestMessager:say(0 V_COMBINE 0 Random(2 3) 0 0))
                         )
                     )
@@ -1203,7 +1246,7 @@
     )
 )
 
-// This converts verbs into a mask
+// This converts verbs into a bit flag mask
 (instance lb2ApproachCode of Code
     (properties)
 
@@ -1223,9 +1266,6 @@
             )
             (case 31
                 16
-            )
-            (case V_COMMAND
-                32
             )
             (case 29
                 64

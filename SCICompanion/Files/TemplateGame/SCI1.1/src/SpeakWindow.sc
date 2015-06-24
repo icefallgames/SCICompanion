@@ -1,10 +1,9 @@
 (version 2)
 (include "sci.sh")
+(include "game.sh")
 (use "DisposeLoad")
 (use "SysWindow")
-(script 877)
-
-
+(script SPEAKWINDOW_SCRIPT)
 
 (class SpeakWindow of SysWindow
     (properties
@@ -44,9 +43,8 @@
 
     (method (init param1)
         (super:init(rest param1))
-        DisposeLoad(128 993)
+        DisposeLoad(rsVIEW 993)	// Speech bubble views
     )
-
 
     (method (dispose param1)
         (var temp0)
@@ -57,7 +55,6 @@
         Graph(grUPDATE_BOX tailTop tailLeft tailBottom tailRight 1)
         SetPort(temp0)
     )
-
 
     (method (open param1)
         (var temp0[2], temp2, temp3, theLeft, temp5[2], temp7, temp8, temp9)

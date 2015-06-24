@@ -25,7 +25,7 @@
         canInput(1)
     )
     (send gSq5IconBar:enable())
-    (send gSq5IconBar:enable(2))
+    (send gSq5IconBar:enable(ICONINDEX_DO))
     (send gSq5IconBar:select((send gSq5IconBar:at(2))))
     (send gGame:setCursor(999))
 )

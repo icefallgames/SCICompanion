@@ -344,6 +344,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Decompiler" "$(OutDir)Decompiler"
     <None Include="Files\TemplateGame\SCI1.1\INTERP.ERR" />
     <None Include="Files\TemplateGame\SCI1.1\LSL6.BAT" />
     <None Include="Files\TemplateGame\SCI1.1\MICROSOF.DRV" />
+    <None Include="Files\TemplateGame\SCI1.1\msg\20.shm" />
     <None Include="Files\TemplateGame\SCI1.1\MT32.DRV" />
     <None Include="Files\TemplateGame\SCI1.1\poly\110.shp" />
     <None Include="Files\TemplateGame\SCI1.1\PROAUDIO.DRV" />
@@ -378,6 +379,8 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Decompiler" "$(OutDir)Decompiler"
     <None Include="Files\TemplateGame\SCI1.1\src\clickmenu.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\clickmenu.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\cliffygoeswith.sco" />
+    <None Include="Files\TemplateGame\SCI1.1\src\colorinit.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\ColorInit.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\commandWindow.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\commandwindow.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\controls.sc" />
@@ -395,6 +398,12 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Decompiler" "$(OutDir)Decompiler"
     <None Include="Files\TemplateGame\SCI1.1\src\deathroom.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\debughandler.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\debughandler.sco" />
+    <None Include="Files\TemplateGame\SCI1.1\src\debugout.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\DebugOut.sco" />
+    <None Include="Files\TemplateGame\SCI1.1\src\debugroominit.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\debugroominit.sco" />
+    <None Include="Files\TemplateGame\SCI1.1\src\DialogEdit.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\DialogEdit.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\dicon.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\dicon.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\dinvd.sc" />
@@ -498,6 +507,8 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Decompiler" "$(OutDir)Decompiler"
     <None Include="Files\TemplateGame\SCI1.1\src\pfollow.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\polygon.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\polygon.sco" />
+    <None Include="Files\TemplateGame\SCI1.1\src\PolygonEdit.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\PolygonEdit.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\polypath.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\polypath.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\print.sc" />
@@ -594,6 +605,8 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Decompiler" "$(OutDir)Decompiler"
     <None Include="Files\TemplateGame\SCI1.1\src\velocitymover.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\velocitymover.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\Verbs.sh" />
+    <None Include="Files\TemplateGame\SCI1.1\src\view.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\View.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\Wander.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\wander.sco" />
     <None Include="Files\TemplateGame\SCI1.1\STD.DRV" />

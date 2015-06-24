@@ -539,6 +539,19 @@
     <None Include="Files\TemplateGame\SCI1.1\src\wander.sco" />
     <None Include="Files\TemplateGame\SCI1.1\poly\110.shp" />
     <None Include="Files\TemplateGame\SCI1.1\src\debughandler.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\view.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\View.sco" />
+    <None Include="Files\TemplateGame\SCI1.1\src\PolygonEdit.sco" />
+    <None Include="Files\TemplateGame\SCI1.1\src\PolygonEdit.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\debugout.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\DebugOut.sco" />
+    <None Include="Files\TemplateGame\SCI1.1\src\debugroominit.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\debugroominit.sco" />
+    <None Include="Files\TemplateGame\SCI1.1\src\DialogEdit.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\DialogEdit.sco" />
+    <None Include="Files\TemplateGame\SCI1.1\src\ColorInit.sco" />
+    <None Include="Files\TemplateGame\SCI1.1\src\colorinit.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\msg\20.shm" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />

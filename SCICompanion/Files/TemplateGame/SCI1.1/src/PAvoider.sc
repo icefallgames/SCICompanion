@@ -1,11 +1,10 @@
 (version 2)
 (include "sci.sh")
+(include "game.sh")
 (use "PolyPath")
 (use "Polygon")
 (use "Obj")
-(script 927)
-
-
+(script PATHAVOIDER_SCRIPT)
 
 (procedure (localproc_042b param1)
     (var temp0, temp1[2], temp3, temp4)

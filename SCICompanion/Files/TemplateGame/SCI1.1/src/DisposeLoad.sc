@@ -1,9 +1,10 @@
 (version 2)
 (include "sci.sh")
+(include "game.sh")
 (exports
     0 DisposeLoad
 )
-(script 958)
+(script DISPOSELOAD_SCRIPT)
 
 
 
@@ -20,7 +21,7 @@
         )
         ++temp0
     )
-    DisposeScript(958)
+    DisposeScript(DISPOSELOAD_SCRIPT)
 )
 
 

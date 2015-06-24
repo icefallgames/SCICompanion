@@ -2,16 +2,22 @@
 // This file should only be edited with the SCI Companion polygon editor
 
 
-(procedure (SetUpPolys)
+(procedure (SetUpPolys_110)
     (send gRoom:addObstacle((send ((Polygon:new())):
             type(PBarredAccess)
-            init(212 68 269 68 286 85 267 101 225 101 202 89)
+            init(197 60 269 68 286 85 267 101 225 101 202 89)
             yourself()
         )
 ))
     (send gRoom:addObstacle((send ((Polygon:new())):
             type(PBarredAccess)
             init(0 63 45 67 47 87 22 96 0 97)
+            yourself()
+        )
+))
+    (send gRoom:addObstacle((send ((Polygon:new())):
+            type(PBarredAccess)
+            init(81 152 220 155 204 168 59 166)
             yourself()
         )
 ))

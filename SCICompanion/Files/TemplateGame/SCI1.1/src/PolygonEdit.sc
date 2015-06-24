@@ -1,12 +1,13 @@
 (version 2)
 (include "sci.sh")
+(include "game.sh")
 (use "Main")
 (use "Print")
 (use "Polygon")
 (use "SysWindow")
 (use "File")
 (use "Obj")
-(script 943)
+(script POLYGONEDIT_SCRIPT)
 
 
 (local
@@ -976,9 +977,9 @@ code_06d6:  ret
             (send gOldATPs:doit())
         )
         = gSq5Win theGSq5Win
-        DisposeScript(993)
+        DisposeScript(FILE_SCRIPT)
         (super:dispose())
-        DisposeScript(943)
+        DisposeScript(POLYGONEDIT_SCRIPT)
     )
 
 
@@ -1402,7 +1403,7 @@ code_06d6:  ret
 
 
     (method (exit)
-        (var temp0[100], temp100, newFile, temp102)
+        (var temp0[100], temp100, newFile, openMode)
         (if (== state 0)
             (self:finishAdding())
         )
@@ -1447,18 +1448,18 @@ code_06d6:  ret
                 return 0
             )
         )
-        = temp102 
+        = openMode 
             (if (== temp100 1)
-                2
+                fCREATE		// Replace
             )(else
-                0
+                fOPENCREATE	// Append
             )
         = newFile (File:new())
         (if (not (send newFile:
             name(@local2)
-            open(temp102)
-        )
-)
+            open(openMode)
+				 )
+			)
             Format(@temp0 943 5 (send newFile:name))
             TextPrint(@temp0)
             (send newFile:dispose())

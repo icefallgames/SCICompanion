@@ -1,16 +1,17 @@
 (version 2)
 (include "sci.sh")
+(include "game.sh")
 (exports
-    0 proc926_0
-    1 proc926_1
+    0 FlipPolygons
+    1 FlipFeature
 )
 (use "Main")
 (use "Obj")
-(script 926)
+(script FLIPPOLY_SCRIPT)
 
-
-
-(procedure public (proc926_0 param1)
+// param1 can be a polygon or a collection of polygons.
+// If it isn't supplied, then the current room's obstacles are flipped.
+(procedure public (FlipPolygons param1)
     (var temp0)
     (if (not paramTotal)
         = temp0 (send gRoom:obstacles)
@@ -23,11 +24,11 @@
         )
     )
     (send temp0:eachElementDo(#perform flipPoly))
-    DisposeScript(926)
+    DisposeScript(FLIPPOLY_SCRIPT)
 )
 
 
-(procedure public (proc926_1 param1)
+(procedure public (FlipFeature param1)
     (var temp0)
     (if (not paramTotal)
         (send gOldFeatures:eachElementDo(#perform flipFeature))
@@ -42,7 +43,7 @@
             ++temp0
         )
     )
-    DisposeScript(926)
+    DisposeScript(FLIPPOLY_SCRIPT)
 )
 
 
@@ -75,7 +76,7 @@
     (method (doit param1)
         (var temp0)
         (if (IsObject((send param1:onMeCheck)))
-            proc926_0((send param1:onMeCheck))
+            FlipPolygons((send param1:onMeCheck))
         )(else
             = temp0 (send param1:nsLeft)
             (send param1:

@@ -1,14 +1,14 @@
 (version 2)
 (include "sci.sh")
+(include "game.sh")
 (use "Main")
 (use "Controls")
 (use "Print")
-(use "ClickMenu")
+(use "PolygonEdit")
 (use "SysWindow")
 (use "File")
 (use "Obj")
-(script 947)
-
+(script DIALOGEDIT_SCRIPT)
 
 (local
     theGSq5Win
@@ -1121,7 +1121,7 @@
         DrawStatus(0)
         (super:dispose())
         DrawPic((send gRoom:picture) 100)
-        DisposeScript(111)
+        DisposeScript(DIALOGEDIT_SCRIPT)
     )
 
 
@@ -1533,7 +1533,7 @@
 
 
     (method (exit)
-        (var temp0[100], temp100, newFile, temp102)
+        (var temp0[100], temp100, newFile, openMode)
         (if (not local1)
             (DlgWindow:create())
         )
@@ -1571,18 +1571,18 @@
                 return 0
             )
         )
-        = temp102 
+        = openMode 
             (if (== temp100 1)
-                2
+                fCREATE
             )(else
-                0
+                fOPENCREATE
             )
         = newFile (File:new())
         (if (not (send newFile:
             name(@local2)
-            open(temp102)
-        )
-)
+            open(openMode)
+				 )
+			)
             FormatPrint("Error opening '%s'" (send newFile:name))
             (send newFile:dispose())
             return 0

@@ -1,11 +1,10 @@
 (version 2)
 (include "sci.sh")
+(include "game.sh")
 (use "Main")
 (use "Cycle")
 (use "Obj")
-(script 942)
-
-
+(script MANUALCYCLE_SCRIPT)
 
 (class MCyc of Cycle
     (properties

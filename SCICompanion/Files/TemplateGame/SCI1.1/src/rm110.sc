@@ -8,7 +8,6 @@
     0 rm110
 )
 (use "Main")
-(use "starCon")
 (use "DisposeLoad")
 (use "Sound")
 (use "Cycle")
@@ -17,7 +16,6 @@
 (use "Obj")
 (use "Print")
 (use "Polygon")
-(use "ClickMenu")
 
 (script 110)
 

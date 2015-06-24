@@ -1,10 +1,9 @@
 (version 2)
 (include "sci.sh")
+(include "game.sh")
 (use "Main")
 (use "Blink")
-(script 22)
-
-
+(script PRITALKER_SCRIPT)
 
 (class PriorityTalker of Talker
     (properties

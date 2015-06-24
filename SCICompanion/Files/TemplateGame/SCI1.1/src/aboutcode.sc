@@ -1,12 +1,13 @@
 (version 2)
 (include "sci.sh")
+(include "game.sh")
 (include "13.shm")
 (exports
     0 aboutCode
 )
 (use "Main")
 (use "Obj")
-(script 13)
+(script ABOUT_SCRIPT)
 
 
 

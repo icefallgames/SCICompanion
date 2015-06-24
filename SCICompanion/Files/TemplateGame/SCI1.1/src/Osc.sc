@@ -1,9 +1,8 @@
 (version 2)
 (include "sci.sh")
+(include "game.sh")
 (use "Cycle")
-(script 939)
-
-
+(script OSCILLATE_SCRIPT)
 
 (class Osc of Cycle
     (properties

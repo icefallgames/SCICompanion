@@ -10,5 +10,4 @@
 (define V_HELP 5)
 (define V_COMBINE 7)
 (define V_PAY 17)
-(define V_COMMAND 24)
 

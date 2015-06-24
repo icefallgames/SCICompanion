@@ -1,5 +1,6 @@
 (version 2)
 (include "sci.sh")
+(include "game.sh")
 (use "Main")
 (use "Controls")
 (use "Print")
@@ -9,7 +10,7 @@
 (use "File")
 (use "View")
 (use "Obj")
-(script 948)
+(script FEATUREWRITER_SCRIPT)
 
 
 (local
@@ -301,7 +302,7 @@
             Format(@temp400 " \t\tnsLeft\t\t\t%d\n\t\tnsTop\t\t\t\t%d\n\t\tnsBottom\t\t\t%d\n\t\tnsRight\t\t\t%d\n" (send param1:nsLeft) (send param1:nsTop) (send param1:nsBottom) (send param1:nsRight))
             Format(@temp592 "..\msg\%d.shm" (send gRoom:curPic))
             (shmFile:name(@temp592))
-            (if (not (shmFile:open(1)))
+            (if (not (shmFile:open(fOPENFAIL)))
                 = temp604 0
             )(else
                 = temp605 0
@@ -397,15 +398,15 @@
             close()
             dispose()
         )
-        DisposeScript(993)
-        return DisposeScript(948)
+        DisposeScript(FILE_SCRIPT)
+        return DisposeScript(FEATUREWRITER_SCRIPT)
     )
 
 
     (method (writeList param1)
         (send param1:eachElementDo(#perform self))
         (FeatureWriter:doit())
-        DisposeScript(948)
+        DisposeScript(FEATUREWRITER_SCRIPT)
     )
 
 )

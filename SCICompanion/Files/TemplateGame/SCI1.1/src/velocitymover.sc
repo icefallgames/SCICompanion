@@ -1,9 +1,10 @@
 (version 2)
 (include "sci.sh")
+(include "game.sh")
 (use "Main")
 (use "Cycle")
 (use "Obj")
-(script 25)
+(script VELOCITYMOVER_SCRIPT)
 
 
 
