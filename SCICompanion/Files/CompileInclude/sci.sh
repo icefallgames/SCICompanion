@@ -184,10 +184,20 @@
 /*************************************************************************
  * File I/O
  *************************************************************************/
+#ifdef SCI_0
+// In the SCI_0 template game, fOPENFAIL and fOPENCREATE have the wrong numbers.
+// Let's keep that incorrect behavior here so as not to break old games.
 // open or fail: Try to open file, abort if not possible 
-(define fOPENFAIL					0)   
+(define fOPENFAIL					0)   // Should actually be 1
 // open or create: Try to open file, create it if it doesn't exist 
-(define fOPENCREATE					1)   
+(define fOPENCREATE					1)   // Should actually be 0
+#endif
+#ifdef SCI_1_1
+// open or fail: Try to open file, abort if not possible 
+(define fOPENFAIL					1)   
+// open or create: Try to open file, create it if it doesn't exist 
+(define fOPENCREATE					0)   
+#endif
 // create: Create the file, destroying any content it might have had
 (define fCREATE 					2)   
 /*************************************************************************

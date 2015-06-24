@@ -18,7 +18,7 @@
 #define new DEBUG_NEW
 #endif
 
-#define VIEW_IMAGE_SIZE 40
+#define VIEW_IMAGE_SIZE 64
 
 // CResourceListListView
 

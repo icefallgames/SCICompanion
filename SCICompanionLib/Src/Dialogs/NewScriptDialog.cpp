@@ -128,6 +128,12 @@ void CNewScriptDialog::_PrepareBuffer()
     _strBuffer += 
     TEXT("/******************************************************************************/\r\n");
 
+    if (appState->GetVersion().SeparateHeapResources)
+    {
+        // e.g. for SCI0, keep SCIStudio compatible. Otherwise, use version 2
+        _strBuffer += "(version 2)\r\n";
+    }
+
     // The script number
     TCHAR szTemp[MAX_PATH];
     StringCchPrintf(szTemp, ARRAYSIZE(szTemp), TEXT("(script %d)\r\n"), _scriptId.GetResourceNumber());

@@ -33,30 +33,56 @@ void ExtTabControl::DrawItem(LPDRAWITEMSTRUCT pdis)
         }
         COLORREF accentColor = g_PaintManager->GetColor(COLOR_3DFACE);  // TODO
         COLORREF backgroundColor = g_PaintManager->GetColor(COLOR_3DFACE);
+        CRect rcGradient = rcUsable;
+        TRIVERTEX *vertices;
+        int vertexCount;
+        GRADIENT_RECT *gradRects;
+        int gradRectCount;
         if (!fSelected)
         {
-            backgroundColor = CExtBitmap::stat_HLS_Adjust(backgroundColor, 0.0, -0.18, 0.0);
-            accentColor = backgroundColor;
+            backgroundColor = CExtBitmap::stat_HLS_Adjust(backgroundColor, 0.0, -0.14, 0.0);
+            accentColor = CExtBitmap::stat_HLS_Adjust(accentColor, 0.0, -0.22, 0.0);
+
+            int dx = rcGradient.Width() * 3 / 10;
+            int dy = rcGradient.Height() * 3 / 10;
+
+            // Blend between our main color and the background color for the top part of the gradient (so the gradient isn't so extreme)
+            TRIVERTEX selectedVertices[3] =
+            {
+                { rcGradient.left, rcGradient.top, GetRValue(accentColor) * 256, GetGValue(accentColor) * 256, GetBValue(accentColor) * 256, 65280 },
+                // -1 because using right again seems to cause some div by zero and mess up GDI
+                { rcGradient.right - 1, rcGradient.top + dy, GetRValue(backgroundColor) * 256, GetGValue(backgroundColor) * 256, GetBValue(backgroundColor) * 256, 65280 },
+                { rcGradient.right, rcGradient.bottom, GetRValue(backgroundColor) * 256, GetGValue(backgroundColor) * 256, GetBValue(backgroundColor) * 256, 65280 },
+            };
+            vertices = selectedVertices;
+            vertexCount = ARRAYSIZE(selectedVertices);
+
+            GRADIENT_RECT selectedGradRects[2] = { { 0, 1 }, { 1, 2 } };
+            gradRects = selectedGradRects;
+            gradRectCount = ARRAYSIZE(selectedGradRects);
         }
         else
         {
             backgroundColor = CExtBitmap::stat_HLS_Adjust(backgroundColor, 0.0, -0.12, 0.0);
+
+            // Blend between our main color and the background color for the top part of the gradient (so the gradient isn't so extreme)
+            TRIVERTEX selectedVertices[2] =
+            {
+                { rcGradient.left, rcGradient.top, GetRValue(accentColor) * 256, GetGValue(accentColor) * 256, GetBValue(accentColor) * 256, 65280 },
+                { rcGradient.right, rcGradient.bottom, GetRValue(backgroundColor) * 256, GetGValue(backgroundColor) * 256, GetBValue(backgroundColor) * 256, 65280 },
+            };
+            vertices = selectedVertices;
+            vertexCount = ARRAYSIZE(selectedVertices);
+
+            GRADIENT_RECT selectedGradRects[1] = { 0, 1 };
+            gradRects = selectedGradRects;
+            gradRectCount = ARRAYSIZE(selectedGradRects);
         }
 
         dc.FillSolidRect(rc, backgroundColor);
 
-        CRect rcGradient = rcUsable;
-        // Blend between our main color and the background color for the top part of the gradient (so the gradient isn't so extreme)
-        
-        TRIVERTEX vertices[2] =
-        {
-            { rcGradient.left, rcGradient.top, GetRValue(accentColor) * 256, GetGValue(accentColor) * 256, GetBValue(accentColor) * 256, 65280 },
-            { rcGradient.right, rcGradient.bottom, GetRValue(backgroundColor) * 256, GetGValue(backgroundColor) * 256, GetBValue(backgroundColor) * 256, 65280 },
-        };
-
         // TODO: Turn these upside down if upside down...
-        GRADIENT_RECT gradRects[1] = { 0, 1 };
-        dc.GradientFill(vertices, ARRAYSIZE(vertices), gradRects, ARRAYSIZE(gradRects), GRADIENT_FILL_RECT_V);
+        dc.GradientFill(vertices, vertexCount, gradRects, gradRectCount, GRADIENT_FILL_RECT_V);
 
         // Use a different font decoration depending on if this is the most recent version of this item.
         bool fNotMostRecent = false;

@@ -35,6 +35,7 @@ protected:
 
 private:
     void _SyncCombo();
+    void _SyncTabSelection();
     int _GetCurrentType();
     CListBox m_wndListBox;
     ExtTabControl m_wndTabs;

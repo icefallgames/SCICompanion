@@ -56,7 +56,14 @@ void NewOutputPane::FinishAdd(OutputPaneType type)
 void NewOutputPane::ShowPage(OutputPaneType type)
 {
     m_wndTabs.SetCurSel((int)type);
-    Invalidate();
+    _SyncTabSelection();
+}
+
+void NewOutputPane::_SyncTabSelection()
+{
+    // Clear selection when we switch tabs
+    m_wndListBox.SetSel(-1, FALSE);
+    _SyncCombo();
 }
 
 void NewOutputPane::DoDataExchange(CDataExchange* pDX)
@@ -99,9 +106,7 @@ END_MESSAGE_MAP()
 void NewOutputPane::OnTcnSelchangeTab1(NMHDR *pNMHDR, LRESULT *pResult)
 {
     *pResult = 0;
-    // Clear selection when we switch tabs
-    m_wndListBox.SetSel(-1, FALSE);
-    m_wndListBox.Invalidate();
+    _SyncTabSelection();
 }
 
 void NewOutputPane::OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpDrawItemStruct)

@@ -48,6 +48,7 @@ void DebuggerThread::_Start(std::shared_ptr<DebuggerThread> myself)
     try
     {
         deletefile(GetDebugLogFilename(_gameFolder));
+        deletefile(GetDebugOnFilename(_gameFolder));
     }
     catch (std::exception &e)
     {
@@ -101,10 +102,12 @@ void DebuggerThread::_Main()
     string debugOnFileName = GetDebugOnFilename(_gameFolder);
 
     // Wait for the game to create the ndebug.log file
+    int waitPeriod = 200;
+    int waitTime = 4000;
     DWORD waitResult;
     do
     {
-        waitResult = WaitForSingleObject(_hAbort.hFile, 500);
+        waitResult = WaitForSingleObject(_hAbort.hFile, waitPeriod);
         if (waitResult == WAIT_TIMEOUT)
         {
             // Check for file existance
@@ -114,9 +117,12 @@ void DebuggerThread::_Main()
                 break;
             }
         }
-    } while (waitResult == WAIT_TIMEOUT);
+        waitTime -= waitPeriod;
+    } while ((waitResult == WAIT_TIMEOUT) && (waitTime >= 0));
 
-    if (waitResult == WAIT_TIMEOUT)
+    string errorMessage;
+
+    if ((waitResult == WAIT_TIMEOUT) && (waitTime >= 0))
     {
         ScopedHandle readHandle;
         readHandle.hFile = CreateFile(debugLogFilename.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
@@ -175,8 +181,30 @@ void DebuggerThread::_Main()
                 }
             }
         }
+        else
+        {
+            errorMessage = GetMessageFromLastError("Debugger");
+        }
     }
-    // else failure, or we were aborted
+    else
+    {
+        // failure, or we were aborted
+        if (waitTime < 0)
+        {
+            errorMessage = "Timed out trying to start debugging functionality. This requires a compatible template game.";
+        }
+        else
+        {
+            errorMessage = GetMessageFromLastError("Debugger");
+        }
+    }
+
+    if (_hwndUI && !errorMessage.empty())
+    {
+        unique_ptr<vector<CompileResult>> results = make_unique<vector<CompileResult>>();
+        results->push_back(CompileResult(errorMessage));
+        SendMessage(_hwndUI, UWM_RESULTS, (WPARAM)OutputPaneType::Debug, reinterpret_cast<LPARAM>(results.release()));
+    }
 
     DeleteFile(debugOnFileName.c_str());
     DeleteFile(debugLogFilename.c_str());

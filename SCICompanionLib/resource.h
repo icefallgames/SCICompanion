@@ -601,6 +601,7 @@
 #define IDC_COMBOPOLYTYPE               1285
 #define IDC_STATICPOLYTYPE              1286
 #define IDC_CHECKSHOWPOLYS              1287
+#define IDC_STATICRESNUM                1288
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -854,6 +855,9 @@
 #define ID_DEBUGGAME                    33190
 #define ID_DEBUGROOM                    33191
 #define ID_STOPDEBUG                    33192
+#define ID_GAME_DEBUGGAME               33193
+#define ID_GAME_STOPDEBUGGING           33194
+#define ID_SCRIPT_DEBUGROOM             33195
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -862,8 +866,8 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        385
-#define _APS_NEXT_COMMAND_VALUE         33193
-#define _APS_NEXT_CONTROL_VALUE         1288
+#define _APS_NEXT_COMMAND_VALUE         33196
+#define _APS_NEXT_CONTROL_VALUE         1289
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

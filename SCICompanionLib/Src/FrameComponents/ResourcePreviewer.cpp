@@ -21,6 +21,7 @@
 #include "format.h"
 #include <vfw.h>
 #include "SoundOperations.h"
+#include "ResourceUtil.h"
 
 BOOL ResourcePreviewer::OnInitDialog()
 {
@@ -150,6 +151,8 @@ void ViewPreviewer::SetResource(const ResourceBlob &blob)
     SCIBitmapInfo bmi;
     BYTE *pBitsDest;
 
+    m_wndStaticResNum.SetWindowText(GetFileNameFor(blob.GetType(), blob.GetNumber(), blob.GetVersion()).c_str());
+
     std::unique_ptr<PaletteComponent> optionalPalette;
     if (_view->GetComponent<RasterComponent>().Traits.PaletteType == PaletteType::VGA_256)
     {
@@ -192,6 +195,8 @@ void ViewPreviewer::DoDataExchange(CDataExchange* pDX)
     AddAnchor(IDC_STATICVIEW, CPoint(0, 0), CPoint(100, 100));
     DDX_Control(pDX, IDC_STATIC2, m_wndPalette);
     AddAnchor(IDC_STATIC2, CPoint(50, 100), CPoint(50, 100));
+    DDX_Control(pDX, IDC_STATICRESNUM, m_wndStaticResNum);
+    AddAnchor(IDC_STATICRESNUM, CPoint(0, 0), CPoint(100, 0));
 }
 
 //
