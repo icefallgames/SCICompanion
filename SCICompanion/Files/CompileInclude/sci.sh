@@ -307,6 +307,12 @@
 (define omcCOLORS 1)
 (define omcPOLYGON 2)
 
+// icon signal
+(define icDISABLED $0004)
+(define icVISIBLE $0020)
+// Unkonwn:
+// $0040, $0010, $0002, $0080(inv icons have this)
+
 #endif  // SCI_1_1
 
 // Sound statuses
@@ -429,7 +435,7 @@
 /*************************************************************************/
 
 /*************************************************************************
- * signal property
+ * signal property on features
  *************************************************************************/
  (define notUpd                     $0001)
  (define fixPriOn                   $0010)
