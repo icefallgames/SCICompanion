@@ -399,32 +399,6 @@ void CTextView::OnDelete()
                 return WrapHint(text.DeleteString(nItem));
             }
             );
-
-
-            // Delete the item from view.
-            listCtl.DeleteItem(nItem);
-            // And adjust the "new string" item.
-            _iNewString--;
-#ifdef DEBUG
-            // Verify the integrity of the "new string" item.
-            CString strNewString = listCtl.GetItemText(_iNewString, 0);
-            ASSERT(0 == strNewString.Compare(TEXT_INVITATION));
-#endif
-
-            // Now adjust the resource number for all item after nItem;
-            int cItems = listCtl.GetItemCount();
-            for (int i = nItem; i < cItems; i++)
-            {
-                TCHAR szBuf[100];
-                StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%d"), i);
-                listCtl.SetItemText(i, COL_NUMBER, szBuf);
-            }
-
-            // Select the next item in the view.
-            if (!listCtl.SetItemState(nItem, LVIS_SELECTED, LVIS_SELECTED) && (nItem > 0))
-            {
-                listCtl.SetItemState(nItem - 1, LVIS_SELECTED, LVIS_SELECTED);
-            }
         }
     }
 }
@@ -468,7 +442,7 @@ void CTextView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
                 // Restore selection
                 if (iSelected != -1)
                 {
-                    GetListCtrl().SetItemState(iSelected, LVIS_SELECTED, LVIS_SELECTED);
+                    GetListCtrl().SetItemState(iSelected, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
                 }
                 GetListCtrl().SetRedraw(TRUE);
             }
