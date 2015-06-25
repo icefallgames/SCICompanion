@@ -32,8 +32,8 @@ private:
 class PolygonComponent : public ResourceComponent
 {
 public:
-    PolygonComponent(const std::string &filePath, int picNumber);
-    void Commit();
+    PolygonComponent(const std::string &polyFolder, int picNumber);
+    void Commit(int picNumber);
 
     PolygonComponent *Clone() const override
     {
@@ -48,8 +48,10 @@ public:
     void DeletePolygon(size_t index);
 
 private:
+    std::string _GetPolyFile();
+
     std::vector<SCIPolygon> _polygons;
-    std::string _filePath;
+    std::string _polyFolder;
     int _picNumber;
 };
 

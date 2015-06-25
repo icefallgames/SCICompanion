@@ -120,13 +120,16 @@ void SCIPolygon::InsertPoint(size_t index, point16 point)
     }
 }
 
-PolygonComponent::PolygonComponent(const string &filePath, int picNumber) : _filePath(filePath), _picNumber(picNumber)
+PolygonComponent::PolygonComponent(const string &polyFolder, int picNumber) : _polyFolder(polyFolder), _picNumber(picNumber)
 {
     // Compile this like a script file, but without all the symbol lookups.
-    CompileLog log;
-    unique_ptr<Script> script = SimpleCompile(log, ScriptId(filePath.c_str()));
-    ExtractPolygonsFromHeader extractPolygons(*this);
-    script->Traverse(&extractPolygons, extractPolygons);
+    if (picNumber != -1)
+    {
+        CompileLog log;
+        unique_ptr<Script> script = SimpleCompile(log, ScriptId(polyFolder.c_str()));
+        ExtractPolygonsFromHeader extractPolygons(*this);
+        script->Traverse(&extractPolygons, extractPolygons);
+    }
 }
 
 // The Polygon:new
@@ -187,36 +190,46 @@ unique_ptr<SingleStatement> _MakeAddPolygonCode(const SCIPolygon &poly)
     return statement;
 }
 
-void PolygonComponent::Commit()
+std::string PolygonComponent::_GetPolyFile()
 {
-    // Construct the script om
-    Script script(ScriptId(_filePath.c_str()));
+    return fmt::format("{0}\\{1}.shp", _polyFolder, _picNumber);
+}
 
-    unique_ptr<ProcedureDefinition> proc = make_unique<ProcedureDefinition>();
-    proc->SetName(GetSetUpPolyProcedureName(_picNumber));
-    proc->SetScript(&script);
-    proc->AddSignature(make_unique<FunctionSignature>());
-    for (auto &poly : _polygons)
+void PolygonComponent::Commit(int picNumber)
+{
+    _picNumber = picNumber;
+    if (_picNumber != -1)
     {
-        proc->AddStatement(move(_MakeAddPolygonCode(poly)));
+        string polyFile = _GetPolyFile();
+        // Construct the script om
+        Script script(ScriptId(polyFile.c_str()));
+
+        unique_ptr<ProcedureDefinition> proc = make_unique<ProcedureDefinition>();
+        proc->SetName(GetSetUpPolyProcedureName(_picNumber));
+        proc->SetScript(&script);
+        proc->AddSignature(make_unique<FunctionSignature>());
+        for (auto &poly : _polygons)
+        {
+            proc->AddStatement(move(_MakeAddPolygonCode(poly)));
+        }
+        script.AddProcedure(move(proc));
+
+        std::stringstream ss;
+        SourceCodeWriter out(ss, script.Language());
+        //out.pszNewLine = "\r\n";
+        out.pszNewLine = "\n";
+
+        PCSTR pszFilename = PathFindFileName(polyFile.c_str());
+        ss << fmt::format("// {0} -- Produced by SCI Companion{1}", pszFilename, out.pszNewLine);
+        ss << fmt::format("// This file should only be edited with the SCI Companion polygon editor{0}", out.pszNewLine);
+
+        // Now the meat of the script
+        script.OutputSourceCode(out);
+        string bakPath = polyFile + ".bak";
+        MakeTextFile(ss.str().c_str(), bakPath);
+        deletefile(polyFile);
+        movefile(bakPath, polyFile);
     }
-    script.AddProcedure(move(proc));
-
-    std::stringstream ss;
-    SourceCodeWriter out(ss, script.Language());
-    //out.pszNewLine = "\r\n";
-    out.pszNewLine = "\n";
-
-    PCSTR pszFilename = PathFindFileName(_filePath.c_str());
-    ss << fmt::format("// {0} -- Produced by SCI Companion{1}", pszFilename, out.pszNewLine);
-    ss << fmt::format("// This file should only be edited with the SCI Companion polygon editor{0}", out.pszNewLine);
-
-    // Now the meat of the script
-    script.OutputSourceCode(out);
-    string bakPath = _filePath + ".bak";
-    MakeTextFile(ss.str().c_str(), bakPath);
-    deletefile(_filePath);
-    movefile(bakPath, _filePath);
 }
 
 void PolygonComponent::AppendPolygon(const SCIPolygon &polygon)
@@ -259,8 +272,5 @@ unique_ptr<PolygonComponent> CreatePolygonComponent(const string &polyFolder, in
     {
         CreateDirectory(polyFolder.c_str(), nullptr);
     }
-
-    string polyFilename = fmt::format("{0}.shp", picNumber);
-    string polyFilePath = fmt::format("{0}\\{1}", polyFolder, polyFilename);
-    return make_unique<PolygonComponent>(polyFilePath, picNumber);
+    return make_unique<PolygonComponent>(polyFolder, picNumber);
 }

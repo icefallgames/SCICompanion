@@ -472,7 +472,7 @@ void CNewRoomDialog::OnOK()
             if (polyComponent->Polygons().empty())
             {
                 // This means it doesn't already exist (or is empty). Commit it so it exists.
-                polyComponent->Commit();
+                polyComponent->Commit(_nPicScript);
             }
         }
         CDialog::OnOK(); // Not CScriptDialogOk!!

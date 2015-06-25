@@ -9,7 +9,7 @@ class ResourceEntity;
 
 typedef void(*DeserializeFuncPtr)(ResourceEntity &resource, sci::istream &byteStream);
 typedef void(*SerializeFuncPtr)(const ResourceEntity &resource, sci::ostream &byteStream);
-typedef void(*SidecarSerializeFuncPtr)(const ResourceEntity &resource);
+typedef void(*SidecarSerializeFuncPtr)(const ResourceEntity &resource, int resourceNumber);
 typedef bool(*ValidationFuncPtr)(const ResourceEntity &resource);
 
 struct ResourceTraits
@@ -126,7 +126,7 @@ public:
         (*Traits.ReadFromFunc)(*this, byteStream);
     }
 
-    void WriteTo(sci::ostream &byteStream, bool fullWrite) const
+    void WriteTo(sci::ostream &byteStream, bool fullWrite, int resourceNumber) const
     {
         if (Traits.WriteToFunc)
         {
@@ -134,7 +134,7 @@ public:
         }
         if (fullWrite && Traits.SidecarWriteToFunc)
         {
-            (*Traits.SidecarWriteToFunc)(*this);
+            (*Traits.SidecarWriteToFunc)(*this, resourceNumber);
         }
     }
 

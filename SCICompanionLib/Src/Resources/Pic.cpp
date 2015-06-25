@@ -884,12 +884,14 @@ bool PicValidateVGA(const ResourceEntity &resource)
     return ok; // Always save anyway...
 }
 
-void PicWritePolygons(const ResourceEntity &resource)
+void PicWritePolygons(const ResourceEntity &resource, int resourceNumber)
 {
     PolygonComponent *polygonComponent = resource.TryGetComponent<PolygonComponent>();
     if (polygonComponent)
     {
-        polygonComponent->Commit();
+        // Use the provided resource number instead of that in the ResourceEntity, since it may
+        // be -1
+        polygonComponent->Commit(resourceNumber);
     }
 }
 
