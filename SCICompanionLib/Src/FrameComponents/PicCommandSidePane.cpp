@@ -11,6 +11,7 @@
 #include "PaletteOperations.h"
 #include "ImageUtil.h"
 #include "format.h"
+#include "WindowsUtil.h"
 
 // PicCommandSidePane dialog
 
@@ -64,12 +65,14 @@ void PicCommandSidePane::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_STATICPOLYTYPE, m_wndStaticPolyType);
         DDX_Control(pDX, IDC_COMBOPOLYTYPE, m_wndComboPolyType);
         DDX_Control(pDX, IDC_CHECKSHOWPOLYS, m_wndCheckShowPolys);
+        DDX_Control(pDX, IDC_EDIT_POLYPOINTS, m_wndEditPolyPoints);
 
         m_wndListCommands.ShowWindow(SW_HIDE);
         m_wndListPolygons.ShowWindow(SW_SHOW);
         m_wndStaticPolyType.ShowWindow(SW_SHOW);
         m_wndComboPolyType.ShowWindow(SW_SHOW);
         m_wndCheckShowPolys.ShowWindow(SW_SHOW);
+        m_wndEditPolyPoints.ShowWindow(SW_SHOW);
     }
 }
 
@@ -92,6 +95,7 @@ BEGIN_MESSAGE_MAP(PicCommandSidePane, CExtDialogFwdCmd)
     ON_BN_CLICKED(IDC_RADIOCOMMANDS, OnClickCommands)
     ON_BN_CLICKED(IDC_CHECKSHOWPOLYS, OnBnClickedShowPolys)
     ON_CBN_SELCHANGE(IDC_COMBOPOLYTYPE, OnCbnSelchangeComboPolyType)
+    ON_EN_KILLFOCUS(IDC_EDIT_POLYPOINTS, OnEditPolyKillFocus)
 END_MESSAGE_MAP()
 
 void PicCommandSidePane::OnClickPolygons()
@@ -101,6 +105,7 @@ void PicCommandSidePane::OnClickPolygons()
     m_wndStaticPolyType.ShowWindow(SW_SHOW);
     m_wndComboPolyType.ShowWindow(SW_SHOW);
     m_wndCheckShowPolys.ShowWindow(SW_SHOW);
+    m_wndEditPolyPoints.ShowWindow(SW_SHOW);
 }
 void PicCommandSidePane::OnClickCommands()
 {
@@ -109,6 +114,7 @@ void PicCommandSidePane::OnClickCommands()
     m_wndStaticPolyType.ShowWindow(SW_HIDE);
     m_wndComboPolyType.ShowWindow(SW_HIDE);
     m_wndCheckShowPolys.ShowWindow(SW_HIDE);
+    m_wndEditPolyPoints.ShowWindow(SW_HIDE);
 }
 
 void PicCommandSidePane::OnBnClickedShowPolys()
@@ -117,6 +123,55 @@ void PicCommandSidePane::OnBnClickedShowPolys()
     {
         GetDocument()->SetShowPolygons(m_wndCheckShowPolys.GetCheck() == BST_CHECKED);
     }
+}
+
+void PicCommandSidePane::_PushEditPointsToPoly()
+{
+    const SCIPolygon *polygon = _GetCurrentPolygon();
+    if (polygon)
+    {
+        // Set the points of the polygon
+        CString editText;
+        m_wndEditPolyPoints.GetWindowTextA(editText);
+
+        stringstream ss((PCSTR)editText);
+        vector<int16_t> numbers;
+        while (1)
+        {
+            int16_t n;
+            ss >> n;
+            if (!ss)
+            {
+                break;
+            }
+            numbers.push_back(n);
+        }
+
+        vector<point16> points;
+        for (size_t i = 0; (i + 1) < numbers.size(); i += 2)
+        {
+            points.emplace_back(numbers[i], numbers[i + 1]);
+        }
+
+        int polyIndex = GetDocument()->GetCurrentPolygonIndex();
+        if ((points.size() >= 3) && (polygon->Points() != points))
+        {
+            // They are different - push the points to the polygon
+            GetDocument()->ApplyChanges<PolygonComponent>(
+                [&points, polyIndex](PolygonComponent &polygonComponent)
+            {
+                SCIPolygon *thePoly = polygonComponent.GetAt(polyIndex);
+                thePoly->Points() = points;
+                return WrapHint(PicChangeHint::PolygonsChanged);
+            }
+            );
+        }
+    }
+}
+
+void PicCommandSidePane::OnEditPolyKillFocus()
+{
+    _PushEditPointsToPoly();
 }
 
 void PicCommandSidePane::OnCbnSelchangeComboPolyType()
@@ -213,7 +268,19 @@ void PicCommandSidePane::_OnUpdateCommands()
 BOOL PicCommandSidePane::PreTranslateMessage(MSG* pMsg)
 {
     BOOL fRet = FALSE;
-    if (_hAccel && (pMsg->message >= WM_KEYFIRST && pMsg->message <= WM_KEYLAST))
+    if (GetFocus() == static_cast<CWnd*>(&m_wndEditPolyPoints))
+    {
+        if (!fRet)
+        {
+            fRet = HandleEditBoxCommands(pMsg, m_wndEditPolyPoints);
+            if (fRet)
+            {
+                // Special case - if the edit box was pasted into, or got somehting deleted, then push stuff:
+                _PushEditPointsToPoly();
+            }
+        }
+    }
+    if (!fRet && _hAccel && (pMsg->message >= WM_KEYFIRST && pMsg->message <= WM_KEYLAST))
     {
         fRet = ::TranslateAccelerator(GetSafeHwnd(), _hAccel, pMsg);
     }
@@ -236,6 +303,7 @@ BOOL PicCommandSidePane::OnInitDialog()
         AddAnchor(IDC_STATICPOLYTYPE, CPoint(0, 0), CPoint(0, 0));
         AddAnchor(IDC_COMBOPOLYTYPE, CPoint(0, 0), CPoint(100, 0));
         AddAnchor(IDC_CHECKSHOWPOLYS, CPoint(0, 0), CPoint(100, 0));
+        AddAnchor(IDC_EDIT_POLYPOINTS, CPoint(0, 100), CPoint(100, 100));
     }
     // Hide the sizing grip
     ShowSizeGrip(FALSE);
@@ -713,6 +781,26 @@ void PicCommandSidePane::_SyncPolyChoice()
     int index = GetDocument()->GetCurrentPolygonIndex();
     m_wndListPolygons.SetCurSel(index);
     m_wndCheckShowPolys.SetCheck(GetDocument()->GetShowPolygons() ? BST_CHECKED : BST_UNCHECKED);
+
+    std::stringstream ss;
+    const PolygonComponent *polygonSource = GetDocument()->GetPolygonComponent();
+    if (polygonSource)
+    {
+        const SCIPolygon *polygon = polygonSource->GetAt(index);
+        if (polygon)
+        {
+            for (auto &point : polygon->Points())
+            {
+                if (ss.tellp())
+                {
+                    ss << " ";
+                }
+                ss << point.x << " " << point.y;
+            }
+        }
+    }
+    m_wndEditPolyPoints.SetWindowText(ss.str().c_str());
+
     _SyncPolyTypeCombo();
 }
 

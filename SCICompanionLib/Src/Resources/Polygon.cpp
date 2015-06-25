@@ -126,7 +126,7 @@ PolygonComponent::PolygonComponent(const string &polyFolder, int picNumber) : _p
     if (picNumber != -1)
     {
         CompileLog log;
-        unique_ptr<Script> script = SimpleCompile(log, ScriptId(polyFolder.c_str()));
+        unique_ptr<Script> script = SimpleCompile(log, ScriptId(_GetPolyFile().c_str()));
         ExtractPolygonsFromHeader extractPolygons(*this);
         script->Traverse(&extractPolygons, extractPolygons);
     }

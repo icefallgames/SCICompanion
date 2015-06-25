@@ -18,6 +18,7 @@ class SCIPolygon
 public:
     SCIPolygon();
     const std::vector<point16> &Points() const { return _points; }
+    std::vector<point16> &Points() { return _points; }
     void AppendPoint(point16 point);
     void DeletePoint(size_t index);
     void SetPoint(size_t index, point16 point);

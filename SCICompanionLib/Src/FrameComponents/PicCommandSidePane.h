@@ -60,6 +60,7 @@ protected:
     afx_msg void OnClickCommands();
     afx_msg void OnBnClickedShowPolys();
     afx_msg void OnCbnSelchangeComboPolyType();
+    afx_msg void OnEditPolyKillFocus();
     BOOL OnEraseBkgnd(CDC *pDC);
     void OnCropCommands();
     void OnCopyCommands();
@@ -67,6 +68,7 @@ protected:
     void _OnUpdateCommands();
 
 private:
+    void _PushEditPointsToPoly();
     void _OnDelete(bool fCut, bool fCopy);
     void _UpdateItemCount();
     void _UpdatePolyItemCount();
@@ -92,6 +94,7 @@ private:
     CExtLabel m_wndStaticPolyType;
     CExtComboBox m_wndComboPolyType;
     CExtCheckBox m_wndCheckShowPolys;
+    CExtEdit m_wndEditPolyPoints;
 
     CExtHyperLinkButton m_wndGotoScript;
 
