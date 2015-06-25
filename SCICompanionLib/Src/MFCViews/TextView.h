@@ -43,7 +43,7 @@ protected:
     DECLARE_MESSAGE_MAP()
 
     void _InitColumns();
-    void _InsertItem(int iItem, PCTSTR pszString, const TextComponent *text);
+    void _InsertItem(int iItem, PCTSTR pszString);
     void _OnEndEditingNewItem(PCTSTR pszString, NMLVDISPINFO *plvdi);
     void _ChangeView();
     int _GetSelectedItem();

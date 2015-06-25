@@ -384,7 +384,6 @@
 // Too lazy to decompile this (unsure about pprev instruction),
 // but it appears to calculate if something is offscreen.
 (procedure (OffScreen param1)
-	// phil, asm isn't ready yet
 	(var x, y)
 	(= x (send param1:x))
 	(if (< 0 x)

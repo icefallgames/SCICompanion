@@ -91,7 +91,7 @@ public:
         {
             DebugIndent indent(out);
             {
-                Forward2(classDef.GetProperties());
+                Forward(classDef.GetProperties());
             }
             if (!classDef.GetProperties().empty() && !classDef.GetMethods().empty())
             {
@@ -182,7 +182,7 @@ public:
         // Don't output the property type, as its only used in some cases
         // (in an object that newly defines a property)
         out.out << classProp.GetName() << " = ";
-        classProp.GetValue().Accept(*this);
+        classProp.GetStatement1()->Accept(*this);
         out.out << ";";
     }
 

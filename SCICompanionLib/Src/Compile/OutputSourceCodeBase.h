@@ -38,20 +38,6 @@ protected:
     }
 
     template<typename _T>
-    void Forward2(_T &things)
-    {
-        for (const auto &thing : things)
-        {
-            thing.Accept(*this);
-            if (out.fInline)
-            {
-                // If these are all inline, add whitespace between them.
-                out.out << " ";
-            }
-        }
-    }
-
-    template<typename _T>
     void ForwardOptionalSection(const char *sectionName, _T &things)
     {
         if (!things.empty())

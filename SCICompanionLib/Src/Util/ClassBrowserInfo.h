@@ -16,7 +16,7 @@ public:
     SCIClassBrowserNode() { _pScript = NULL; _pClass = NULL; _pSuperClass = NULL; }
     ~SCIClassBrowserNode();
     int ComputeAllMethods(sci::RawMethodVector &map) const;
-    int ComputeAllProperties(sci::ClassPropertyVector &map) const;
+    int ComputeAllProperties(sci::RawClassPropertyVector &map) const;
     void AddSubClass(SCIClassBrowserNode* pSubClass) { _subClasses.push_back(pSubClass); }
     void RemoveSubClass(SCIClassBrowserNode* pSubClass);
 

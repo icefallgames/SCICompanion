@@ -42,7 +42,7 @@ protected:
 
     // We need to keep these around, since we're
     // sticking pointers to them in the listbox.
-    sci::ClassPropertyVector _properties;
+    sci::RawClassPropertyVector _properties;
 
     CImageList _imagelist;
 

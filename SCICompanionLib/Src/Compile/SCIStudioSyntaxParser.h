@@ -786,8 +786,8 @@ public:
 	void CreateClass() { ClassPtr = std::make_unique<sci::ClassDefinition>(); }
     std::unique_ptr<sci::ClassDefinition> ClassPtr;
 
-	void CreateClassProperty() { ClassProp = sci::ClassProperty(); }
-    sci::ClassProperty ClassProp;
+	void CreateClassProperty() { ClassProp = std::make_unique<sci::ClassProperty>(); }
+    std::unique_ptr<sci::ClassProperty> ClassProp;
 
     void StartVariableDecl(const std::string &name)
     {
@@ -969,6 +969,7 @@ private:
     Parser value;
     Parser simple_value;
     Parser property_value;
+    Parser property_value_expanded;
     Parser property_decl;
     Parser properties_decl;
     Parser array_init;

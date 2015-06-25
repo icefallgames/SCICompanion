@@ -963,7 +963,7 @@ std::vector<species_property> GetOverriddenProperties(CompileContext &context, c
         WORD wValue = 0;
         SpeciesIndex wType = DataTypeNone;
         // First the selector
-        string selectorName = classProperty.GetName();
+        string selectorName = classProperty->GetName();
         if (!context.LookupSelector(selectorName, wSelectorIndex))
         {
             if (pClass->IsInstance())
@@ -971,7 +971,7 @@ std::vector<species_property> GetOverriddenProperties(CompileContext &context, c
                 // This error is not comprehensive - the user might have added a new property
                 // on an instance, and there is already a selector for this property.  Hence, the caller
                 // of this function needs to compare against the species props too.
-                context.ReportError(&classProperty, "Unknown property '%s'.  Instances can not define new properties.", selectorName.c_str());
+                context.ReportError(classProperty.get(), "Unknown property '%s'.  Instances can not define new properties.", selectorName.c_str());
             }
             else
             {
@@ -981,41 +981,55 @@ std::vector<species_property> GetOverriddenProperties(CompileContext &context, c
         }
         // Then the value - defines should already be resolved.
         bool fTrackRelocation = false;
-        PropertyValue value = classProperty.GetValue();
-        switch (value.GetType())
+        const PropertyValue *value = classProperty->TryGetValue();
+        if (value)
         {
-            case ValueType::Number:
-                wValue = value.GetNumberValue();
-                break;
-            case ValueType::String: // For now, strings are ok in property lists
-                wValue = context.GetStringTempOffset(value.GetStringValue());
-                fTrackRelocation = true;
-                break;
-            case ValueType::Said:
-                wValue = context.GetSaidTempOffset(value.GetStringValue());
-                fTrackRelocation = true;
-                break;
-            case ValueType::Selector:
-                if (!context.LookupSelector(value.GetStringValue(), wValue))
-                {
-                    context.ReportError(&value, "Unknown selector '%s'.", value.GetStringValue().c_str());
-                }
-                break;
-                // FEATURE: possibly support pointers here.
-            default:
-                context.ReportError(&value, "%s is not allowed as a property value.", value.ToString().c_str());
-                break;
+            switch (value->GetType())
+            {
+                case ValueType::Number:
+                    wValue = value->GetNumberValue();
+                    break;
+                case ValueType::String: // For now, strings are ok in property lists
+                    wValue = context.GetStringTempOffset(value->GetStringValue());
+                    fTrackRelocation = true;
+                    break;
+                case ValueType::Said:
+                    wValue = context.GetSaidTempOffset(value->GetStringValue());
+                    fTrackRelocation = true;
+                    break;
+                case ValueType::Selector:
+                    if (!context.LookupSelector(value->GetStringValue(), wValue))
+                    {
+                        context.ReportError(value, "Unknown selector '%s'.", value->GetStringValue().c_str());
+                    }
+                    break;
+                    // FEATURE: possibly support pointers here.
+                default:
+                    context.ReportError(value, "%s is not allowed as a property value.", value->ToString().c_str());
+                    break;
+            }
+        }
+        else
+        {
+            if (classProperty->GetStatement1()->Evaluate(context, wValue))
+            {
+                // We evaluated an expression
+            }
+            else
+            {
+                context.ReportError(classProperty.get(), "The value for %s is not a constant expression.", classProperty->GetName().c_str());
+            }
         }
 
         // For classes, see if the property has a type, and make sure it makes sense.
         if (!pClass->IsInstance())
         {
-            std::string type = classProperty.GetDataType();
+            std::string type = classProperty->GetDataType();
             if (!type.empty())
             {
                 if (!context.LookupTypeSpeciesIndex(type, wType))
                 {
-                    context.ReportError(&classProperty, "Unknown type '%s' for property '%s'.", type.c_str(), selectorName.c_str());
+                    context.ReportError(classProperty.get(), "Unknown type '%s' for property '%s'.", type.c_str(), selectorName.c_str());
                 }
             }
             else
@@ -1219,9 +1233,9 @@ void GenerateSCOObjects(CompileContext &context, const Script &script)
                         {
                             // Get some info for the error.
                             string propName = context.LookupSelectorName(newProp.wSelector);
-                            ClassPropertyVector::const_iterator propIt = match_name2(classDef->GetProperties().begin(), classDef->GetProperties().end(), propName);
+                            ClassPropertyVector::const_iterator propIt = match_name(classDef->GetProperties().begin(), classDef->GetProperties().end(), propName);
                             // propIt should always be valid.
-                            context.ReportError(&(*propIt), "Property '%s' is not defined on the base class.  A data type must be supplied.", propName.c_str());
+                            context.ReportError((*propIt).get(), "Property '%s' is not defined on the base class.  A data type must be supplied.", propName.c_str());
                         }
                         scoProperties.push_back(CSCOObjectProperty(newProp.wSelector, newProp.wValue, newProp.wType, newProp.fTrackRelocation));
                     }

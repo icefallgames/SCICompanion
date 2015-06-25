@@ -347,11 +347,11 @@ void LoadClassFromCompiled(sci::ClassDefinition *pClass, const CompiledScript &c
         {
             if (propertyValues[i].isObjectOrString)
             {
-                pClass->AddProperty(sci::ClassProperty(TEXT("Unknown"), compiledScript.GetStringFromOffset(propertyValues[i].value)));
+                pClass->AddProperty(make_unique<ClassProperty>(TEXT("Unknown"), compiledScript.GetStringFromOffset(propertyValues[i].value)));
             }
             else
             {
-                pClass->AddProperty(sci::ClassProperty(TEXT("Unknown"), propertyValues[i].value));
+                pClass->AddProperty(make_unique<ClassProperty>(TEXT("Unknown"), propertyValues[i].value));
             }
         }
     }
@@ -361,11 +361,11 @@ void LoadClassFromCompiled(sci::ClassDefinition *pClass, const CompiledScript &c
         {
             if (propertyValues[i].isObjectOrString)
             {
-                pClass->AddProperty(sci::ClassProperty(pNames->Lookup(properties[i]), compiledScript.GetStringFromOffset(propertyValues[i].value)));
+                pClass->AddProperty(make_unique<ClassProperty>(pNames->Lookup(properties[i]), compiledScript.GetStringFromOffset(propertyValues[i].value)));
             }
             else
             {
-                pClass->AddProperty(sci::ClassProperty(pNames->Lookup(properties[i]), propertyValues[i].value));
+                pClass->AddProperty(make_unique<ClassProperty>(pNames->Lookup(properties[i]), propertyValues[i].value));
             }
         }
     }
@@ -561,7 +561,7 @@ void SCIClassBrowser::ReLoadFromCompiled()
             {
                 if (i < classProps.size())
                 {
-                    classProps[i].SetName(superClassProps[i].GetName());
+                    classProps[i]->SetName(superClassProps[i]->GetName());
                 }
             }
         }
@@ -924,10 +924,10 @@ RawMethodVector *SCIClassBrowser::CreateMethodArray(const std::string &strObject
 // Allocates a method array, containing all the methods implemented by the
 // object strObject.
 //
-ClassPropertyVector *SCIClassBrowser::CreatePropertyArray(const std::string &strObject, Script *pScript, PCTSTR pszSuper) const
+RawClassPropertyVector *SCIClassBrowser::CreatePropertyArray(const std::string &strObject, Script *pScript, PCTSTR pszSuper) const
 {
     CGuard guard(&_csClassBrowser); 
-    ClassPropertyVector *pProperties = new ClassPropertyVector();
+    RawClassPropertyVector *pProperties = new RawClassPropertyVector();
     if (IsBrowseInfoEnabled())
     {
         // Assume first that this is a class name (since this should be quick lookup)

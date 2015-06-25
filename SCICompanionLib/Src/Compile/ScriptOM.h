@@ -77,6 +77,8 @@ public:
     virtual CodeResult OutputByteCode(CompileContext &context) const { return 0; }
     // A prescan, used generally for "preprocessor" substitutions, and adding items to the symbol table
     virtual void PreScan(CompileContext &context) {}
+    // Evaluate an expression at compile-time. Returns true if it can be evaluated.
+    virtual bool Evaluate(CompileContext &context, uint16_t &result) { result = 0; return false; }
     virtual ~IOutputByteCode() {}
 };
 
@@ -461,8 +463,9 @@ namespace sci
         bool IsZero() const { return (_type == sci::ValueType::Number) && (_numberValue == 0); }
 
         // IOutputByteCode
-        CodeResult OutputByteCode(CompileContext &context) const;
-        void PreScan(CompileContext &context);
+        CodeResult OutputByteCode(CompileContext &context) const override;
+        void PreScan(CompileContext &context) override;
+        bool Evaluate(CompileContext &context, uint16_t &result) override;
 
         bool _fHex;     // Indicates that _numberValue was expressed in hex in the script.
         bool _fNegate;  // Indicates that _numberValue was the result of a negation.  _numberValue doesn't change.
@@ -518,6 +521,8 @@ namespace sci
         virtual SingleStatement *GetIndexer() const { return _pArrayInternal.get(); }
         std::unique_ptr<SingleStatement> StealIndexer() { return move(_pArrayInternal); }
         
+        bool Evaluate(CompileContext &context, uint16_t &result) override;
+
         void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
         void Accept(ISyntaxNodeVisitor &visitor) const override;
     private:
@@ -556,33 +561,6 @@ namespace sci
     typedef Define* DefinePtr;
     typedef std::vector<std::unique_ptr<Define>> DefineVector;
 
-	// This is meant to be a value class.
-    class ClassProperty : public SyntaxNode, public NamedNode, public TypedNode
-    {
-        DECLARE_NODE_TYPE(NodeTypeClassProperty)
-    public:
-		ClassProperty(const ClassProperty &cp) = default;
-		ClassProperty& operator=(const ClassProperty& src) = default;
-
-        ClassProperty() : NamedNode(), TypedNode() {};
-        ClassProperty(const std::string &str, WORD wValue);
-        ClassProperty(const std::string &str, const std::string &value);
-        const PropertyValue &GetValue() const { return _value; }
-        void SetValue(const PropertyValue &value) { _value = value; }
-
-        // IOutputByteCode
-        void PreScan(CompileContext &context);
-        
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
-
-        void Accept(ISyntaxNodeVisitor &visitor) const override;
-
-    private:
-        PropertyValue _value;
-    };
-
-	typedef std::vector<ClassProperty> ClassPropertyVector;
-
 } // namespace sci
 
 
@@ -605,9 +583,10 @@ namespace sci
         NodeType GetType() const { return _type; }
 
         // IOutputByteCode
-        CodeResult OutputByteCode(CompileContext &context) const;
-        void PreScan(CompileContext &context);
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+        CodeResult OutputByteCode(CompileContext &context) const override;
+        void PreScan(CompileContext &context) override;
+        void Traverse(IExploreNodeContext *pContext, IExploreNode &en) override;
+        bool Evaluate(CompileContext &context, uint16_t &result) override;
 
         template<typename _statementT>
         const typename _statementT *CastSyntaxNode() const
@@ -711,6 +690,34 @@ namespace sci
     protected:
         std::unique_ptr<SingleStatement> _statement2;
     };
+
+    // A class or instance property declaration and value. The value can be complex in version 2 of the syntax.
+    class ClassProperty : public SyntaxNode, public NamedNode, public TypedNode, public OneStatementNode
+    {
+        DECLARE_NODE_TYPE(NodeTypeClassProperty)
+    public:
+        ClassProperty(const ClassProperty &cp) = default;
+        ClassProperty& operator=(const ClassProperty& src) = default;
+
+        ClassProperty() : NamedNode(), TypedNode() {};
+        ClassProperty(const std::string &str, WORD wValue);
+        ClassProperty(const std::string &str, const std::string &value);
+        ClassProperty(const std::string &str, const PropertyValue &value);
+        //const PropertyValue GetValue() const;
+        std::string GetValueUnimplemented() const { return "Unimplemented"; }
+        const PropertyValue *TryGetValue() const;
+        void SetValue(const PropertyValue &value);
+
+        // IOutputByteCode
+        void PreScan(CompileContext &context);
+
+        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+
+        void Accept(ISyntaxNodeVisitor &visitor) const override;
+    };
+
+    typedef std::vector<std::unique_ptr<ClassProperty>> ClassPropertyVector;
+    typedef std::vector<ClassProperty*> RawClassPropertyVector;
 
     //
     // Represents a variable decl that could be an array (includes name and size)
@@ -943,7 +950,8 @@ namespace sci
         void SetSuperClass(const std::string &superClass) { _superClass = superClass; }
         void SetPublic(bool fPublic) { _fPublic = fPublic; }
         void SetInstance(bool fInstance) { _fInstance = fInstance; }
-        void AddProperty(ClassProperty &classProp) { _properties.push_back(classProp); }
+        void AddProperty(std::unique_ptr<ClassProperty> classProp) { _properties.push_back(move(classProp)); }
+        void AddProperty(const std::string &name, uint16_t value);
 		void AddMethod(std::unique_ptr<MethodDefinition> method) { _methods.push_back(std::move(method)); }
 
         // IOutputByteCode
@@ -1001,9 +1009,10 @@ namespace sci
         
 
         // IOutputByteCode
-        CodeResult OutputByteCode(CompileContext &context) const;
-        void PreScan(CompileContext &context);
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+        CodeResult OutputByteCode(CompileContext &context) const override;
+        void PreScan(CompileContext &context) override;
+        void Traverse(IExploreNodeContext *pContext, IExploreNode &en) override;
+        bool Evaluate(CompileContext &context, uint16_t &result) override;
 
         template<typename _T>
         _T *ReduceBlock()

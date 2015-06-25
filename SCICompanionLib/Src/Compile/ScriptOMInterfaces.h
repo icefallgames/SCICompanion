@@ -20,7 +20,7 @@ public:
 	virtual const std::string GetBagName() = 0;
 	virtual void SetSpecies(PCTSTR pszName) = 0;
 	virtual const std::string GetSpecies() const = 0;
-	virtual const std::vector<sci::ClassProperty> &GetProperties() = 0;
+	virtual const std::vector<std::unique_ptr<sci::ClassProperty>> &GetProperties() = 0;
 };
 
 class ISCIPropertyChange

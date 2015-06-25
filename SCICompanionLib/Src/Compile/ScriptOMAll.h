@@ -367,10 +367,10 @@ namespace sci
 		const std::string &GetOpName() const { return _innerName; }
 
         // IOutputByteCode
-        CodeResult OutputByteCode(CompileContext &context) const;
-        void PreScan(CompileContext &context) { _statement1->PreScan(context); _statement2->PreScan(context); }
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
-        
+        CodeResult OutputByteCode(CompileContext &context) const override;
+        void PreScan(CompileContext &context)  override { _statement1->PreScan(context); _statement2->PreScan(context); }
+        void Traverse(IExploreNodeContext *pContext, IExploreNode &en) override;
+        bool Evaluate(CompileContext &context, uint16_t &result) override;
         virtual std::string ToString() const;
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;

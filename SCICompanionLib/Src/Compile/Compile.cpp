@@ -207,12 +207,6 @@ private:
 	CompileContext &_context;
 };
 
-template<typename T>
-void ForwardPreScan3(vector<T> &container, CompileContext &context)
-{
-	for_each(container.begin(), container.end(), PerformPreScan3<T>(context));
-}
-
 //
 // Helper class to ensure we leave a branch block that we enter.
 //
@@ -840,13 +834,9 @@ void Define::PreScan(CompileContext &context)
 
 void ClassProperty::PreScan(CompileContext &context)
 {
-    if (_value.GetType() == ValueType::String)
+    if (_statement1)
     {
-        context.PreScanStringAndUnescape(_value.GetStringValue(), &_value);
-    }
-    else
-    {
-        _value.PreScan(context);
+        _statement1->PreScan(context);
     }
 }
 
@@ -3096,7 +3086,7 @@ void ClassDefinition::PreScan(CompileContext &context)
 	context.PreScanStringAndUnescape(_innerName, this);
 
 
-    ForwardPreScan3(_properties, context);
+    ForwardPreScan2(_properties, context);
     ForwardPreScan2(_methods, context);
 }
 

@@ -44,14 +44,14 @@ void _AddProperties(ClassDefinition &instance, Species species, WORD wx, WORD wy
     case SpeciesProp:
     case SpeciesAct:
     case SpeciesDoor:
-        instance.AddProperty(ClassProperty("x", wx));
-        instance.AddProperty(ClassProperty("y", wy));
-        instance.AddProperty(ClassProperty("view", wView));
+        instance.AddProperty(make_unique<ClassProperty>("x", wx));
+        instance.AddProperty(make_unique<ClassProperty>("y", wy));
+        instance.AddProperty(make_unique<ClassProperty>("view", wView));
         if (species == SpeciesDoor)
         {
             // Add a few more
-            instance.AddProperty(ClassProperty("entranceTo", "ROOMNUM"));
-            instance.AddProperty(ClassProperty("locked", "TRUE"));
+            instance.AddProperty(make_unique<ClassProperty>("entranceTo", "ROOMNUM"));
+            instance.AddProperty(make_unique<ClassProperty>("locked", "TRUE"));
         }
         break;
     default:

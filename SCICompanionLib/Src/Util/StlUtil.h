@@ -14,19 +14,6 @@ _InIt match_name(_InIt _First, _InIt _Last, const std::string &name)
     return _First;
 }
 
-template<typename _InIt>
-_InIt match_name2(_InIt _First, _InIt _Last, const std::string &name)
-{
-	for (; _First != _Last; _First++)
-	{
-		if ((*_First).GetName() == name)
-		{
-			break;
-		}
-	}
-	return _First;
-}
-
 template < typename T >
 T* match_name(const std::vector<std::unique_ptr<T>> &container, const std::string &name)
 {
@@ -52,15 +39,6 @@ _InIt match_name_dot(_InIt _First, _InIt _Last, const std::string &name)
     }
     return _First;
 }
-
-
-template<typename _InIt>
-bool matches_name2(_InIt _First, _InIt _Last, const std::string &name)
-{
-    _First = match_name2(_First, _Last, name);
-    return _First != _Last;
-}
-
 
 template<typename _InIt>
 bool matches_name(_InIt _First, _InIt _Last, const std::string &name)

@@ -21,6 +21,7 @@ using sci::SendCall;
 using sci::MethodVector;
 using sci::DefineVector;
 using sci::ClassPropertyVector;
+using sci::RawClassPropertyVector;
 using sci::ProcedureVector;
 using sci::NodeType;
 using sci::FunctionPtr;
@@ -170,8 +171,8 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                         else
                         {
                             // Maybe it's a property
-                            unique_ptr<ClassPropertyVector> pProperties(browser.CreatePropertyArray(object, &pContext->Script()));
-                            fFound = matches_name2(pProperties->begin(), pProperties->end(), strText);
+                            unique_ptr<RawClassPropertyVector> pProperties(browser.CreatePropertyArray(object, &pContext->Script()));
+                            fFound = matches_name(pProperties->begin(), pProperties->end(), strText);
                             if (fFound)
                             {
                                 StringCchPrintf(szTip, ARRAYSIZE(szTip), TEXT("%s::%s"), object.c_str(), strText.c_str());
@@ -336,8 +337,8 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                     {
                         // Since we already know the superclass, don't pass the script in (since that relies on a
                         // successfully compiled previous script)
-                        unique_ptr<ClassPropertyVector> pProperties(browser.CreatePropertyArray(pClass->GetName(), NULL, pClass->GetSuperClass().c_str()));
-                        fFound = matches_name2(pProperties->begin(), pProperties->end(), strText);
+                        unique_ptr<RawClassPropertyVector> pProperties(browser.CreatePropertyArray(pClass->GetName(), NULL, pClass->GetSuperClass().c_str()));
+                        fFound = matches_name(pProperties->begin(), pProperties->end(), strText);
                         if (fFound)
                         {
                             StringCchPrintf(szTip, ARRAYSIZE(szTip), TEXT("%s::%s"), pClass->GetSuperClass().c_str(), strText.c_str());

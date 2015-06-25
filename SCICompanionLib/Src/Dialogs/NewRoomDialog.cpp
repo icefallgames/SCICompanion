@@ -270,20 +270,20 @@ void CNewRoomDialog::_PrepareBuffer()
 
         if (_scriptId.GetResourceNumber() == _nPicScript)
         {
-            pClass->AddProperty(ClassProperty("picture", "scriptNumber"));
+            pClass->AddProperty(make_unique<ClassProperty>("picture", "scriptNumber"));
         }
         else
         {
-            pClass->AddProperty(ClassProperty("picture", static_cast<WORD>(_nPicScript)));
+            pClass->AddProperty(make_unique<ClassProperty>("picture", static_cast<WORD>(_nPicScript)));
         }
-        pClass->AddProperty(ClassProperty("north", 0));
-        pClass->AddProperty(ClassProperty("east", 0));
-        pClass->AddProperty(ClassProperty("south", 0));
-        pClass->AddProperty(ClassProperty("west", 0));
+        pClass->AddProperty(make_unique<ClassProperty>("north", 0));
+        pClass->AddProperty(make_unique<ClassProperty>("east", 0));
+        pClass->AddProperty(make_unique<ClassProperty>("south", 0));
+        pClass->AddProperty(make_unique<ClassProperty>("west", 0));
 
         if (appState->GetVersion().SupportsMessages)
         {
-            pClass->AddProperty(ClassProperty("noun", "N_ROOM"));
+            pClass->AddProperty(make_unique<ClassProperty>("noun", "N_ROOM"));
         }
             
         // The init method

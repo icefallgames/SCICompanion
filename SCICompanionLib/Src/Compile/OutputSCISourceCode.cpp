@@ -86,7 +86,7 @@ public:
                     out.out << "(properties" << out.NewLineString();
                     {
                         DebugIndent indent2(out);
-                        Forward2(classDef.GetProperties());
+                        Forward(classDef.GetProperties());
                     }
                     Indent(out);
                     out.out << ")";
@@ -165,7 +165,7 @@ public:
         DebugLine line(out);
         out.out << CleanToken(classProp.GetName()) << " ";
         Inline inln(out, true);
-        classProp.GetValue().Accept(*this);
+        classProp.GetStatement1()->Accept(*this);
     }
 
     void Visit(const SingleStatement &statement) override

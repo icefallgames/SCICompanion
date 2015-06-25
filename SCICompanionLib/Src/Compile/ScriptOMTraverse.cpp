@@ -183,7 +183,7 @@ void ClassDefinition::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
 {
 	ExploreNodeBlock enb(en, pContext, *this);
     ForwardTraverse2(_methods, pContext, en);
-    ForwardTraverse3(_properties, pContext, en);
+    ForwardTraverse2(_properties, pContext, en);
 }
 void SendParam::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
 {

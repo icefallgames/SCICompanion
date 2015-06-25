@@ -249,7 +249,8 @@ void CClassBrowserDialog::OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT pDrawItemStruc
             // Put the prop value a little after.
             dc.SetTextColor(RGB(0, 0, 255));
             rcProp.left += rcName.Width() + 6;
-            CString strProp = pProperty->GetValue().ToString().c_str();
+            //CString strProp = pProperty->GetValue().ToString().c_str();
+            CString strProp = "Unimplemented";
             dc.DrawText(strProp, &rcProp, DT_SINGLELINE);
         }
     }
@@ -308,8 +309,9 @@ void CClassBrowserDialog::_OnClassOrInstanceSelected(const SCIClassBrowserNode *
     _iIndexPropSC = pBrowserInfo->ComputeAllProperties(_properties);
     for (auto &classProp : _properties)
     {
-        std::string strFullName = classProp.GetName();
-        strFullName += classProp.GetValue().ToString();
+        std::string strFullName = classProp->GetName();
+        //strFullName += classProp->GetValue().ToString();
+        strFullName += "Unimplemented";
         int iIndex = m_wndProperties.InsertString(-1, strFullName.c_str());
         m_wndProperties.SetItemDataPtr(iIndex, &classProp);
     }

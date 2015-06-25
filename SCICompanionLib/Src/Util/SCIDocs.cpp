@@ -1319,9 +1319,9 @@ private:
 
             _GenerateSummarySubHeader("Properties");
             fOdd = false;
-			for (auto &prop : pClass->GetProperties())
+			for (const auto &prop : pClass->GetProperties())
             {
-				_GenerateSummaryEntry(prop.GetName(), "", _ntc[&prop], "SConstant", fOdd);
+				_GenerateSummaryEntry(prop->GetName(), "", _ntc[prop.get()], "SConstant", fOdd);
                 fOdd = !fOdd;
             }
         }
@@ -1380,7 +1380,7 @@ void CompileDocs(Script &script)
         // And the properties (they can have comments too)
 		ClassPropertyVector &properties = classDef->GetPropertiesNC();
 		transform(properties.begin(), properties.end(), back_inserter(nodes),
-			[](sci::ClassProperty &prop) { return new ClassProperty(prop); }
+            [](const unique_ptr<ClassProperty> &prop) { return prop.get(); }
 			);
 
     }

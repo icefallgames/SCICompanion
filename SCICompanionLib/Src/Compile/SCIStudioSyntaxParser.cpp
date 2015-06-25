@@ -758,16 +758,24 @@ void CreateClassPropertyA(MatchResult &match, const Parser *pParser, SyntaxConte
     if (match.Result())
     {
         pContext->CreateClassProperty();
-		pContext->ClassProp.SetName(pContext->ScratchString());
-		pContext->ClassProp.SetPosition(stream.GetPosition());
+		pContext->ClassProp->SetName(pContext->ScratchString());
+        pContext->ClassProp->SetPosition(stream.GetPosition());
     }
 }
 void FinishClassPropertyA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
     if (match.Result())
     {
-        pContext->ClassProp.SetValue(pContext->PropertyValue);
-		pContext->ClassPtr->AddProperty(pContext->ClassProp);
+        pContext->ClassProp->SetValue(pContext->PropertyValue);
+		pContext->ClassPtr->AddProperty(move(pContext->ClassProp));
+    }
+}
+void FinishClassPropertyStatementA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->ClassProp->SetStatement1(move(pContext->StatementPtrReturn));
+        pContext->ClassPtr->AddProperty(move(pContext->ClassProp));
     }
 }
 
@@ -777,9 +785,6 @@ void LValueIndexerA(MatchResult &match, const Parser *pParser, SyntaxContext *pC
     if (match.Result())
     {
 		pContext->GetSyntaxNode<LValue>()->SetIndexer(move(pContext->StatementPtrReturn));
-        // SetIndexer uses copy semantics, so we need to delete the source:
-        //delete pContext->StatementPtrReturn;
-        //pContext->ClearStatementReturn();
     }
     else
     {
@@ -1056,24 +1061,31 @@ void SCISyntaxParser::Load()
         integer_p[PropValueIntA]
         | quotedstring_p[PropValueStringA<ValueType::String>]
         | squotedstring_p[PropValueStringA<ValueType::Said>];
-        //| bracestring_p[PropValueStringA<ValueTypeInternalString>];
 
     value =
         alwaysmatch_p[SetStatementA<ComplexPropertyValue>]
         >> (integer_p[ComplexValueIntA]
             | quotedstring_p[ComplexValueStringA<ValueType::String>]
             | squotedstring_p[ComplexValueStringA<ValueType::Said>]
-            //| bracestring_p[ComplexValueStringA<ValueTypeInternalString>]
-            //| (-pointer[ComplexValuePointerA] >> alphanum_p[ComplexValueStringA<ValueType::Token>] >> -(opbracket >> statement[ComplexValueIndexerA] >> clbracket))
             | (-pointer[ComplexValuePointerA] >> general_token[ComplexValueStringA<ValueType::Token>] >> -(opbracket >> statement[ComplexValueIndexerA] >> clbracket))
             | selector[ComplexValueStringA<ValueType::Selector>]);
+
+    // For now only binary ops are allowed
+    property_value_expanded =
+        alwaysmatch_p[EnableScriptVersionA<2>] >>
+        statement;
 
     property_value =
         simple_value
         | alphanum_p[PropValueStringA<ValueType::Token>];
 
     // moveSpeed 5
-    property_decl = general_token[CreateClassPropertyA] >> property_value[FinishClassPropertyA];  // Allows for {move-cnt} 6
+    // phil
+    property_decl = general_token[CreateClassPropertyA] >>
+         (property_value[FinishClassPropertyA]
+        | property_value_expanded[FinishClassPropertyStatementA] )
+        ;
+
 
     // The properties thing in a class or instance
     properties_decl = oppar >> keyword_p("properties") >> *property_decl >> clpar;

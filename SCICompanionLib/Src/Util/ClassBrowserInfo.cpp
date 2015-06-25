@@ -41,7 +41,7 @@ int SCIClassBrowserNode::ComputeAllMethods(RawMethodVector &array) const
     return iIndexSubclassBegin;
 }
 
-int SCIClassBrowserNode::ComputeAllProperties(ClassPropertyVector &array) const
+int SCIClassBrowserNode::ComputeAllProperties(RawClassPropertyVector &array) const
 {
     int iIndexSubclassBegin = 0;
     if (_pClass)
@@ -50,11 +50,11 @@ int SCIClassBrowserNode::ComputeAllProperties(ClassPropertyVector &array) const
         const ClassPropertyVector &props = _pClass->GetProperties();
         for (size_t i = 0; i < props.size(); i++)
         {
-            const ClassProperty &prop = props[i];
+            const auto &prop = props[i];
             bool fFound = false;
             for (auto &element : array)
             {
-                if (element.GetName() == prop.GetName())
+                if (element->GetName() == prop->GetName())
                 {
                     fFound = true;
                     break;
@@ -63,7 +63,7 @@ int SCIClassBrowserNode::ComputeAllProperties(ClassPropertyVector &array) const
             if (!fFound)
             {
                 // Nope.  Add it.
-                array.push_back(prop);
+                array.push_back(prop.get());
             }
             // else yes.  Subclasses win, so don't do anything here
         }

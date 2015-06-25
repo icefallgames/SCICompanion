@@ -65,18 +65,15 @@ bool ClassDefinition::SetProperty(PCTSTR pszName, PropertyValue value)
     bool fFound = false;
     for (size_t i = 0; !fFound && i < _properties.size(); i++)
     {
-        fFound = (_properties[i].GetName() == pszName);
+        fFound = (_properties[i]->GetName() == pszName);
         if (fFound)
         {
-            _properties[i].SetValue(move(value));
+            _properties[i]->SetValue(value);
         }
     }
     if (!fFound)
     {
-        ClassProperty prop;
-        prop.SetName(pszName);
-		prop.SetValue(move(value));
-        _properties.push_back(prop);
+        _properties.push_back(make_unique<ClassProperty>(pszName, value));
         fFound = true;
     }
     return fFound;
@@ -88,10 +85,15 @@ bool ClassDefinition::GetPropertyConst(PCTSTR pszName, PropertyValue &value) con
     // STLCLEANUP
     for (size_t i = 0; !fFound && i < _properties.size(); i++)
     {
-        fFound = (_properties[i].GetName() == pszName);
+        fFound = (_properties[i]->GetName() == pszName);
         if (fFound)
         {
-			value = _properties[i].GetValue();
+            const PropertyValue *valueTemp = _properties[i]->TryGetValue();
+            fFound = (valueTemp != nullptr);
+            if (fFound)
+            {
+                value = *valueTemp;
+            }
         }
     }
     if (!fFound)
@@ -345,13 +347,40 @@ void VariableDecl::AddSimpleInitializer(const PropertyValue &value)
 ClassProperty::ClassProperty(const std::string &str, WORD wValue) : NamedNode(), TypedNode()
 {
     _innerName = str;
-    _value.SetValue(wValue);
+    PropertyValue value;
+    value.SetValue(wValue);
+    SetValue(value);
 }
 
 ClassProperty::ClassProperty(const std::string &str, const std::string &value) : NamedNode(), TypedNode()
 {
 	_innerName = str;
-	_value.SetValue(value, ValueType::Token);
+    PropertyValue valueTemp;
+    valueTemp.SetValue(value, ValueType::Token);
+    SetValue(valueTemp);
+}
+
+ClassProperty::ClassProperty(const std::string &str, const PropertyValue &value) : NamedNode(), TypedNode()
+{
+    _innerName = str;
+    SetValue(value);
+}
+
+void ClassProperty::SetValue(const PropertyValue &value)
+{
+    _statement1 = make_unique<SingleStatement>();
+    unique_ptr<PropertyValue> propValue = make_unique<PropertyValue>(value);
+    _statement1->SetSyntaxNode(move(propValue));
+}
+
+const PropertyValue *ClassProperty::TryGetValue() const
+{
+    PropertyValue *value = nullptr;
+    if (_statement1)
+    {
+        value = SafeSyntaxNode<PropertyValue>(_statement1->GetSyntaxNode());
+    }
+    return value;
 }
 
 FunctionParameter::FunctionParameter() : NamedNode(), TypedNode() {}
@@ -406,7 +435,11 @@ ProcedureDefinition::ProcedureDefinition() { _public = false; }
 ClassDefinition::ClassDefinition() : _fPublic(false)
 {
     _properties.reserve(24); // performance
+}
 
+void ClassDefinition::AddProperty(const std::string &name, uint16_t value)
+{
+    _properties.push_back(make_unique<ClassProperty>(name, value));
 }
 
 ScriptSite::ScriptSite()

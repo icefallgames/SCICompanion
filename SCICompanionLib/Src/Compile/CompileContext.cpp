@@ -1085,7 +1085,7 @@ void CompileContext::SetScriptNumber()
                 ReportError(&_script, "Couldn't determine script number: '%s' is undefined.", _script.GetScriptNumberDefine().c_str());
             }
         }
-        if (_wScriptNumber >= _version.GetMaximumResourceNumber())
+        if (_wScriptNumber > _version.GetMaximumResourceNumber())
         {
             ReportError(&_script, "Script number must be less than %d: %d", _version.GetMaximumResourceNumber(), _wScriptNumber);
         }

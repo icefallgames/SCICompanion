@@ -89,7 +89,7 @@ public:
         }
     }
     const std::string GetSpecies() const { return _strSpecies; }
-    const std::vector<sci::ClassProperty> &GetProperties()
+    const std::vector<std::unique_ptr<sci::ClassProperty>> &GetProperties()
     {
         return _propertiesEnum; // TODO, empty
     }
@@ -112,7 +112,7 @@ private:
     std::string _strSpecies;
     BOOL _fSpeciesChanged;
 
-    std::vector<sci::ClassProperty> _propertiesEnum; // TODO
+    std::vector<std::unique_ptr<sci::ClassProperty>> _propertiesEnum; // TODO
 };
 
 

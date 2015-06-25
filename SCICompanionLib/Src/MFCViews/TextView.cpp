@@ -57,11 +57,6 @@ void _UnescapeString(CString &str)
 
 #define COL_STRING 0
 #define COL_NUMBER 1
-#define COL_NOUN 2
-#define COL_VERB 3
-#define COL_CONDITION 4
-#define COL_SEQUENCE 5
-#define COL_TALKER 6
 
 const struct
 {
@@ -72,22 +67,6 @@ c_TextColumnInfo [] =
 {
     { TEXT("Text"), 600 },
     { TEXT("Number"), 100 },
-};
-
-const struct
-{
-    PTSTR pszName; // Should be const, but the LVCOLUMN struct accepts only non-const
-    int cx;
-    MessagePropertyFlags Flags;
-    int ColumnNumber;
-}
-c_MessageColumnInfo[] =
-{
-    { TEXT("Noun"), 60, MessagePropertyFlags::Noun, COL_NOUN },
-    { TEXT("Verb"), 60, MessagePropertyFlags::Verb, COL_VERB },
-    { TEXT("Cond."), 60, MessagePropertyFlags::Condition, COL_CONDITION },
-    { TEXT("Seq."), 60, MessagePropertyFlags::Sequence, COL_SEQUENCE },
-    { TEXT("Talker"), 60, MessagePropertyFlags::Talker, COL_TALKER },
 };
 
 void CTextView::_InitColumns()
@@ -109,24 +88,6 @@ void CTextView::_InitColumns()
         col.fmt = LVCFMT_RIGHT;
         _columns.push_back(col);
         listCtl.InsertColumn(i, &col);
-    }
-    int index = 2;
-    for (int i = 0; i < ARRAYSIZE(c_MessageColumnInfo) ; i++)
-    {
-        if (IsFlagSet(text.Flags, c_MessageColumnInfo[i].Flags))
-        {
-            LVCOLUMN col = { 0 };
-            col.mask = LVCF_FMT | LVCF_ORDER | LVCF_SUBITEM | LVCF_TEXT | LVCF_WIDTH;
-            col.iOrder = index;
-            col.iSubItem = c_MessageColumnInfo[i].ColumnNumber;
-            col.pszText = c_MessageColumnInfo[i].pszName;
-            col.cx = c_MessageColumnInfo[i].cx;
-            col.fmt = LVCFMT_RIGHT;
-            _columns.push_back(col);
-            listCtl.InsertColumn(index, &col);
-            orderArray.push_back(index);
-            index++;
-        }
     }
 
     orderArray.push_back(COL_STRING);
@@ -150,7 +111,7 @@ void CTextView::_SwapStrings(int iIndex1, int iIndex2)
     listCtl.SetItemText(iIndex2, 0, strTemp);
 }
 
-void CTextView::_InsertItem(int iItem, PCTSTR pszString, const TextComponent *text)
+void CTextView::_InsertItem(int iItem, PCTSTR pszString)
 {
     CListCtrl& listCtl = GetListCtrl();
 
@@ -176,31 +137,13 @@ void CTextView::_InsertItem(int iItem, PCTSTR pszString, const TextComponent *te
         {
             StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%d"), iItem);
         }
-        else if (text)
-        {
-            switch (iSubItem)
-            {
-            case COL_NOUN:
-                StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%d"), text->Texts[iItem].Noun);
-                break;
-            case COL_VERB:
-                StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%d"), text->Texts[iItem].Verb);
-                break;
-            case COL_CONDITION:
-                StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%d"), text->Texts[iItem].Condition);
-                break;
-            case COL_SEQUENCE:
-                StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%d"), text->Texts[iItem].Sequence);
-                break;
-            case COL_TALKER:
-                StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%d"), text->Texts[iItem].Talker);
-                // Temporary code for message investigation
-                // StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%x"), text->Texts[iItem].Style);
-                break;
-            }
-        }
         listCtl.SetItem(&item);
     }
+
+
+    int itemCount = listCtl.GetItemCount();
+    int x = 0;
+
 }
 
 
@@ -298,13 +241,6 @@ void CTextView::_OnEndEditingNewItem(PCTSTR pszString, NMLVDISPINFO *plvdi)
         );
 
         hr = S_OK;
-    }
-
-    if (SUCCEEDED(hr))
-    {
-        // Add another "new string"
-        _iNewString = listCtl.GetItemCount();
-        _InsertItem(_iNewString, TEXT_INVITATION, nullptr);
     }
 }
 
@@ -521,13 +457,13 @@ void CTextView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
                 {
                     CString strText = individualString.Text.c_str();
                     _EscapeString(strText);
-                    _InsertItem(i, (PCSTR)strText, pText);
+                    _InsertItem(i, (PCSTR)strText);
                     ++i;
                 }
 
                 // Reserve a spot for a new word
                 _iNewString = i;
-                _InsertItem(i, TEXT_INVITATION, nullptr);
+                _InsertItem(i, TEXT_INVITATION);
 
                 // Restore selection
                 if (iSelected != -1)

@@ -60,8 +60,8 @@ void DecompileObject(const CompiledObjectBase &object,
                 // include those that are different.
                 if (!object.IsInstance() || (propValue.value != speciesPropertyValueList[i].value))
                 {
-                    ClassProperty prop;
-                    prop.SetName(lookups.LookupSelectorName(propertySelectorList[i]));
+                    unique_ptr<ClassProperty> prop = make_unique<ClassProperty>();
+                    prop->SetName(lookups.LookupSelectorName(propertySelectorList[i]));
                     PropertyValue value;
                     ICompiledScriptSpecificLookups::ObjectType type;
                     std::string saidOrString;
@@ -72,7 +72,7 @@ void DecompileObject(const CompiledObjectBase &object,
                         // Just give it a number
                         uint16_t number = propValue.value;
                         value.SetValue(number);
-                        if (lookups.GetDecompilerConfig()->IsBitfieldProperty(prop.GetName()))
+                        if (lookups.GetDecompilerConfig()->IsBitfieldProperty(prop->GetName()))
                         {
                             value._fHex = true;
                         }
@@ -88,8 +88,8 @@ void DecompileObject(const CompiledObjectBase &object,
                         // Use ValueType::Token, since the ' or " is already provided in the string.
                         value.SetValue(saidOrString, _ScriptObjectTypeToPropertyValueType(type));
                     }
-                    prop.SetValue(value);
-                    pClass->AddProperty(prop);
+                    prop->SetValue(value);
+                    pClass->AddProperty(move(prop));
                 }
             }
         }

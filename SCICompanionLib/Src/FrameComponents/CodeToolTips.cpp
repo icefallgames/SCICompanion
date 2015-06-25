@@ -48,8 +48,8 @@ void _GetClassInfoHelper(PTSTR szBuf, size_t cchBuf, const ClassDefinition *pCla
     for (size_t iProp = 0; iProp < properties.size(); iProp++)
     {
         TCHAR szProp[100];
-        const ClassProperty &prop = properties[iProp];
-		StringCchPrintf(szProp, ARRAYSIZE(szProp), TEXT("        %s = %s\n"), prop.GetName().c_str(), prop.GetValue().ToString().c_str());
+        auto &prop = properties[iProp];
+        StringCchPrintf(szProp, ARRAYSIZE(szProp), TEXT("        %s = %s\n"), prop->GetName().c_str(), prop->GetValueUnimplemented().c_str());
         StringCchCat(szBuf, cchBuf, szProp);
     }
     StringCchCat(szBuf, cchBuf, TEXT("    )\n"));

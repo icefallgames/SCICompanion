@@ -2148,14 +2148,14 @@ void _EvaluateInstance(CPPSyntaxContext &context, Script &script, ASTNode *pPare
             break;
         case ASTNode::Property:
             {
-				ClassProperty prop;
-				_SyncPosition(&prop, pNode);
+				unique_ptr<ClassProperty> prop = make_unique<ClassProperty>();
+				_SyncPosition(prop.get(), pNode);
                 if (fInstance || (pNode->Children().size() == 1)) // Classes may have 2 nodes.
                 {
                     // Straightforward
-					prop.SetName(pNode->GetText());
-                    ASSERT(pNode->Children().size() == 1);
-					prop.SetValue(_GetPropertyValue(context, pNode->Children()[0].get()));
+					prop->SetName(pNode->GetText());
+                    assert(pNode->Children().size() == 1);
+                    prop->SetValue(_GetPropertyValue(context, pNode->Children()[0].get()));
                 }
                 else
                 {
@@ -2166,17 +2166,17 @@ void _EvaluateInstance(CPPSyntaxContext &context, Script &script, ASTNode *pPare
                     // In this case we have a class, WITH
                     // datatype selector = value;  INSTEAD OF
                     // selector = value;
-                    ASSERT(pNode->Children().size() == 2);
+                    assert(pNode->Children().size() == 2);
                     // Only thing is, the type and name are switched
-					prop.SetDataType(pNode->GetText()); // See?
+					prop->SetDataType(pNode->GetText()); // See?
                     // Now the name...
                     ASTNode *pNodeType = pNode->Children()[0].get();
                     ASSERT(pNodeType->GetType() == ASTNode::TypeSpecifier);
-					prop.SetName(pNodeType->GetText());
+                    prop->SetName(pNodeType->GetText());
                     // Now the value
-                    prop.SetValue(_GetPropertyValue(context, pNode->Children()[1].get()));
+                    prop->SetValue(_GetPropertyValue(context, pNode->Children()[1].get()));
                 }
-				pClass->AddProperty(prop);
+				pClass->AddProperty(move(prop));
             }
             break;
         case ASTNode::Method:
@@ -2192,7 +2192,7 @@ void _EvaluateInstance(CPPSyntaxContext &context, Script &script, ASTNode *pPare
             break;
 
         default:
-            ASSERT(FALSE);
+            assert(false);
             break;
         }
     }
@@ -2201,7 +2201,7 @@ void _EvaluateInstance(CPPSyntaxContext &context, Script &script, ASTNode *pPare
 
 void _EvaluateScriptVariable(CPPSyntaxContext &context, Script &script, ASTNode *pParent)
 {
-ASSERT(FALSE);
+    assert(false);
 }
 
 void _EvaluateSynonym(CPPSyntaxContext &context, Script &script, ASTNode *pParent)
