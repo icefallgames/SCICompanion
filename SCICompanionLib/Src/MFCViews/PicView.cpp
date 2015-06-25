@@ -245,6 +245,7 @@ BEGIN_MESSAGE_MAP(CPicView, CScrollingThing<CView>)
     ON_COMMAND(ID_VIEW_ZOOMIN, CPicView::OnZoomIn)
     ON_COMMAND(ID_VIEW_ZOOMOUT, CPicView::OnZoomOut)
     ON_COMMAND(ID_OBSERVECONTROLLINES, CPicView::OnObserveControlLines)
+    ON_COMMAND(ID_OBSERVEPOLYGONS, CPicView::OnObservePolygons)
     ON_COMMAND(ID_PIC_EXPORT8, CPicView::OnExportPalettizedBitmap)
     ON_COMMAND(ID_PIC_EDITPALETTE, CPicView::EditVGAPalette)
     ON_COMMAND(ID_PIC_DELETEPOINT, CPicView::OnDeletePoint)
@@ -289,6 +290,7 @@ BEGIN_MESSAGE_MAP(CPicView, CScrollingThing<CView>)
     ON_UPDATE_COMMAND_UI_RANGE(ID_DEFAULTPRIORITY, ID_MAIN_PRI15, CPicView::OnCommandUIAlwaysValid)
     ON_UPDATE_COMMAND_UI(ID_ZOOMSLIDER, CPicView::OnCommandUIAlwaysValid)
     ON_UPDATE_COMMAND_UI(ID_OBSERVECONTROLLINES, CPicView::OnUpdateObserveControlLines)
+    ON_UPDATE_COMMAND_UI(ID_OBSERVEPOLYGONS, CPicView::OnUpdateObservePolygons)
     ON_UPDATE_COMMAND_UI(ID_PIC_EXPORT8, CPicView::OnUpdateIsVGA)
     ON_UPDATE_COMMAND_UI(ID_PIC_EDITPALETTE, CPicView::OnUpdateIsVGA)
     ON_UPDATE_COMMAND_UI(ID_PIC_DELETEPOINT, CPicView::OnCommandUIAlwaysValid)  // Since it's in a context menu we only bring up when it's available.
@@ -520,6 +522,11 @@ void CPicView::OnObserveControlLines()
     appState->_fObserveControlLines = !appState->_fObserveControlLines;
 }
 
+void CPicView::OnObservePolygons()
+{
+    appState->_fObservePolygons = !appState->_fObservePolygons;
+}
+
 void CPicView::OnDeletePoint()
 {
     GetDocument()->ApplyChanges<PicComponent>(
@@ -599,6 +606,12 @@ void CPicView::OnUpdateObserveControlLines(CCmdUI *pCmdUI)
 {
     pCmdUI->Enable();
     pCmdUI->SetCheck(appState->_fObserveControlLines);
+}
+
+void CPicView::OnUpdateObservePolygons(CCmdUI *pCmdUI)
+{
+    pCmdUI->Enable();
+    pCmdUI->SetCheck(appState->_fObservePolygons);
 }
 
 void CPicView::OnUpdateIsVGA(CCmdUI *pCmdUI)
@@ -3584,17 +3597,74 @@ void CPicView::OnLButtonDown(UINT nFlags, CPoint point)
     }
 }
 
+struct pointf
+{
+    float x;
+    float y;
+}; 
+
+bool pnpoly(int nvert, const vector<pointf> &points, float testx, float testy)
+{
+    bool c = false;
+    int i, j;
+    for (i = 0, j = nvert - 1; i < nvert; j = i++) {
+        if (((points[i].y > testy) != (points[j].y > testy)) &&
+            (testx < (points[j].x - points[i].x) * (testy - points[i].y) / (points[j].y - points[i].y) + points[i].x))
+            c = !c;
+    }
+    return c;
+}
+
+bool CPicView::_CanBeInPolygons(CPoint pt)
+{
+    bool canBe = true;
+    CPicDoc *pDoc = GetDocument();
+    if (pDoc && pDoc->GetShowPolygons())
+    {
+        const PolygonComponent *polygonComponent = pDoc->GetPolygonComponent();
+        if (polygonComponent)
+        {
+            float xTest = (float)pt.x;
+            float yTest = (float)pt.y;
+            for (const auto &poly : polygonComponent->Polygons())
+            {
+                // Turn them into floating point:
+                vector<pointf> points;
+                transform(poly.Points().begin(), poly.Points().end(), back_inserter(points),
+                    [](point16 pointIn) {  pointf temp = { (float)pointIn.x, (float)pointIn.y }; return temp; }
+                    );
+
+                canBe = !pnpoly((int)points.size(), points, xTest, yTest);
+                if (poly.Type == PolygonType::ContainedAccess)
+                {
+                    canBe = !canBe;
+                }
+
+                if (!canBe)
+                {
+                    break;
+                }
+            }
+        }
+    }
+    return canBe;
+}
+
 bool CPicView::_EvaluateCanBeHere(CPoint pt)
 {
     const BYTE *pdataControl = _GetDrawManager().GetPicBits(PicScreen::Control, PicPosition::PrePlugin);
+    bool canBe = true;
     if (appState->_fObserveControlLines)
     {
-        return CanBeHere(pdataControl, GetViewBoundsRect((uint16_t)pt.x, (uint16_t)pt.y, appState->GetSelectedViewResource(), _nFakeLoop, _nFakeCel));
+        canBe = CanBeHere(pdataControl, GetViewBoundsRect((uint16_t)pt.x, (uint16_t)pt.y, appState->GetSelectedViewResource(), _nFakeLoop, _nFakeCel));
     }
-    else
+
+    if (canBe && appState->_fObservePolygons)
     {
-        return true;
+        canBe = _CanBeInPolygons(pt);
     }
+
+    return canBe;
 }
 
 bool CPicView::_HitTestFakeEgo(CPoint ptPic)

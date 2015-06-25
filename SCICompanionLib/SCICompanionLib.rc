@@ -606,6 +606,7 @@ BEGIN
     POPUP "main"
     BEGIN
         MENUITEM "Observe control lines",       ID_OBSERVECONTROLLINES
+        MENUITEM "Observe polygons",            ID_OBSERVEPOLYGONS
         MENUITEM SEPARATOR
         MENUITEM "Default priority",            ID_DEFAULTPRIORITY
         MENUITEM SEPARATOR

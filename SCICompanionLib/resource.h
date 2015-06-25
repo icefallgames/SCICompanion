@@ -859,6 +859,8 @@
 #define ID_GAME_DEBUGGAME               33193
 #define ID_GAME_STOPDEBUGGING           33194
 #define ID_SCRIPT_DEBUGROOM             33195
+#define ID_Menu33196                    33196
+#define ID_OBSERVEPOLYGONS              33197
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -867,7 +869,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        385
-#define _APS_NEXT_COMMAND_VALUE         33196
+#define _APS_NEXT_COMMAND_VALUE         33198
 #define _APS_NEXT_CONTROL_VALUE         1290
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

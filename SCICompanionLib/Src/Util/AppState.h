@@ -147,6 +147,7 @@ public:
     int _iView;
     std::unique_ptr<ResourceEntity> _pViewResource;
     bool _fObserveControlLines; // Does fake ego observe control lines?
+    bool _fObservePolygons;     // Does it observe polygons?
 
     // Prof-UIS command profile
     PCSTR _pszCommandProfile;

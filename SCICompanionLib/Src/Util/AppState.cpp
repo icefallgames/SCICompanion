@@ -106,6 +106,7 @@ AppState::AppState(CWinApp *pApp)
     _ptFakeEgo = CPoint(160, 120);
     _iView = 0;
     _fObserveControlLines = false;
+    _fObservePolygons = false;
     _fDontCheckPic = FALSE;
     _pidlFolder = NULL;
     _fNoGdiPlus = FALSE;

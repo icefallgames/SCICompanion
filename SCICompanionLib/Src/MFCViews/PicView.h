@@ -185,6 +185,7 @@ protected:
     CPoint _FindCenterOfFakeEgo();
     bool _NearPasteCorners();
     bool _EvaluateCanBeHere(CPoint pt);
+    bool _CanBeInPolygons(CPoint pt);
     PicDrawManager &_GetDrawManager();
     const SCIPolygon *_GetCurrentPolygon();
 
@@ -232,6 +233,7 @@ protected:
     afx_msg void OnPaste();
     afx_msg void OnPasteIntoPic();
     afx_msg void OnObserveControlLines();
+    afx_msg void OnObservePolygons();
     afx_msg void OnExportPalettizedBitmap();
     afx_msg void EditVGAPalette();
     afx_msg void OnDeletePoint();
@@ -251,6 +253,7 @@ protected:
     afx_msg void OnCommandUpdatePastePic(CCmdUI *pCmdUI);
     afx_msg void OnUpdateIsGDIPAvailable(CCmdUI *pCmdUI);
     afx_msg void OnUpdateObserveControlLines(CCmdUI *pCmdUI);
+    afx_msg void OnUpdateObservePolygons(CCmdUI *pCmdUI);
     afx_msg void OnUpdateIsVGA(CCmdUI *pCmdUI);
     LRESULT OnMouseLeave(WPARAM wParam, LPARAM lParam);
 
