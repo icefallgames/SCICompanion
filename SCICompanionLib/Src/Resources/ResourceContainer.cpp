@@ -98,7 +98,16 @@ sci::istream ResourceContainer::ResourceIterator::_GetResourceHeaderAndPackage(R
         throw std::exception("invalid iterator!");
     }
 
-    return (*_container->_mapAndVolumes)[_state.mapIndex]->GetHeaderAndPositionedStream(_currentEntry, rh);
+    sci::istream temp = (*_container->_mapAndVolumes)[_state.mapIndex]->GetHeaderAndPositionedStream(_currentEntry, rh);
+
+    assert(rh.Number == _currentEntry.Number && "Corrupt resource map");
+    assert(rh.PackageHint == _currentEntry.PackageNumber && "Corrupt resource map");
+    // By setting these to those in the resource map (instead of the header), we can ensure that the ResourceBlob matches
+    // the resource map information. This ensures that we can delete resources in the case of a corrupt resource map/package.
+    rh.Number = _currentEntry.Number;
+    rh.PackageHint = _currentEntry.PackageNumber;
+
+    return temp;
 }
 
 ResourceHeaderAgnostic ResourceContainer::ResourceIterator::GetResourceHeader() const

@@ -21,6 +21,7 @@ struct ResourceMapEntryAgnostic
     uint8_t PackageNumber;      // Specifies which resource.xxx to use.
     DWORD Offset;               // Offset within the file resource.iPackageNumber
     uint32_t ExtraData;
+    // Adding more members? Update operator==
 };
 
 bool operator==(const ResourceMapEntryAgnostic &one, const ResourceMapEntryAgnostic &two);

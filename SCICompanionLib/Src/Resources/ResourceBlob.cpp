@@ -715,7 +715,12 @@ ResourceBlob *Load8BitBmp(const std::string &filename)
 
 bool operator==(const ResourceMapEntryAgnostic &one, const ResourceMapEntryAgnostic &two)
 {
-    return 0 == memcmp(&one, &two, sizeof(one));
+    // Don't do a memcmp, because different resource sources don't set the ExtraData values reliably.
+    // We don't care about ExtraData
+    return one.Number == two.Number &&
+        one.Offset == two.Offset &&
+        one.PackageNumber == two.PackageNumber &&
+        one.Type == two.Type;
 }
 
 
