@@ -650,7 +650,7 @@
                 (case evKEYBOARD
                     (switch ((send pEvent:message))
                         (case KEY_TAB
-                            (if (not & (send ((send gSq5IconBar:at(6))):signal) $0004)
+                            (if (not & (send ((send gSq5IconBar:at(6))):signal) icDISABLED)
                                 (if (gNewEventHandler)
                                     return gNewEventHandler
                                 )
@@ -661,13 +661,13 @@
                             )
                         )
                         (case KEY_CONTROL
-                            (if (not & (send ((send gSq5IconBar:at(7))):signal) $0004)
+                            (if (not & (send ((send gSq5IconBar:at(7))):signal) icDISABLED)
                                 (send gGame:quitGame())
                                 (send pEvent:claimed(1))
                             )
                         )
                         (case JOY_RIGHT
-                            (if (not & (send ((send gSq5IconBar:at(7))):signal) $0004)
+                            (if (not & (send ((send gSq5IconBar:at(7))):signal) icDISABLED)
                                 = theGCursorNumber (send ((send gSq5IconBar:curIcon)):cursor)
                                 (send (ScriptID(24 0)):doit())
                                 (send gGameControls:dispose())
@@ -687,7 +687,7 @@
                             (send pEvent:claimed(1))
                         )
                         (case KEY_F5
-                            (if (not & (send ((send gSq5IconBar:at(7))):signal) $0004)
+                            (if (not & (send ((send gSq5IconBar:at(7))):signal) icDISABLED)
                                 (if (gNewEventHandler)
                                     return gNewEventHandler
                                 )
@@ -698,7 +698,7 @@
                             )
                         )
                         (case KEY_F7
-                            (if (not & (send ((send gSq5IconBar:at(7))):signal) $0004)
+                            (if (not & (send ((send gSq5IconBar:at(7))):signal) icDISABLED)
                                 (if (gNewEventHandler)
                                     return gNewEventHandler
                                 )
@@ -1037,7 +1037,7 @@
     (method (select param1)
         (var newEvent, temp1, gSq5IconBarCurInvIcon, temp3, temp4)
         return 
-            (if (& signal $0004)
+            (if (& signal icDISABLED)
                 0
             )(else
                 (if ((paramTotal and param1) and (& signal notUpd))

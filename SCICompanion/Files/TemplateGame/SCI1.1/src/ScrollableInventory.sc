@@ -76,7 +76,7 @@
         = temp3 (% (+ temp1 temp2) size)
         (while (TRUE)
             = temp0 (self:at(temp3))
-            (if ((IsObject(temp0) and not (& (send temp0:signal) $0004)) and ((> (send temp0:nsLeft) -1) or not (send temp0:isKindOf(InvI))))
+            (if ((IsObject(temp0) and not (& (send temp0:signal) icDISABLED)) and ((> (send temp0:nsLeft) -1) or not (send temp0:isKindOf(InvI))))
                 break
             )
             = temp3 (% (+ temp3 1) size)
@@ -205,7 +205,7 @@ code_0162:  pushi   #highlight
                         = theTheTheCurPos theTheTheTheCurPos_2
                     )
                 )(else
-                    (send temp9:signal((| (send temp9:signal) $0004)))
+                    (send temp9:signal((| (send temp9:signal) icDISABLED)))
                 )
             )(else
                 ++theTheTheTheTheCurPos
@@ -332,14 +332,14 @@ code_0162:  pushi   #highlight
             )
         )
         (if (not curPos)
-            (send upIcon:signal((| (send upIcon:signal) $0004)))
+            (send upIcon:signal((| (send upIcon:signal) icDISABLED)))
         )(else
-            (send upIcon:signal((& (send upIcon:signal) $fffb)))
+            (send upIcon:signal((& (send upIcon:signal) (bnot icDISABLED))))
         )
         (if (>= curPos (- (send items:size) dispAmount))
-            (send downIcon:signal((| (send downIcon:signal) $0004)))
+            (send downIcon:signal((| (send downIcon:signal) icDISABLED)))
         )(else
-            (send downIcon:signal((& (send downIcon:signal) $fffb)))
+            (send downIcon:signal((& (send downIcon:signal) (bnot icDISABLED))))
         )
         (send upIcon:show())
         (send downIcon:show())

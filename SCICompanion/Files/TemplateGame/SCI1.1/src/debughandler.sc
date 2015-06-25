@@ -26,10 +26,10 @@
     local1[2]
 )
 (procedure (localproc_0052)
-    (if (IsOneOf((send gRoom:style) 11 12 13 14))
+    (if (IsOneOf((send gRoom:style) dpOPEN_SCROLL_RIGHT dpOPEN_SCROLL_LEFT dpOPEN_SCROLL_UP dpOPEN_SCROLL_DOWN))
         (send gRoom:
-            drawPic((send gRoom:picture) 100)
-            style(100)
+            drawPic((send gRoom:picture) dpOPEN_NO_TRANSITION)
+            style(dpOPEN_NO_TRANSITION)
         )
     )
 )

@@ -22,8 +22,7 @@
 (instance public rm110 of Rm
     (properties
         picture 110
-        //style $800a
-        style $0000		// 1: from center horizontal. 8 means close the old?
+        style (| dpANIMATION_BLACKOUT dpOPEN_FADEPALETTE)
         horizon 50
         vanishingX 130
         vanishingY 50

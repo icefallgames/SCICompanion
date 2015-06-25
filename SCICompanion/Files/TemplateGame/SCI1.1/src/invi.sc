@@ -96,7 +96,7 @@
     (method (onMe param1)
         return 
             (if ((super:onMe(param1)))
-                not & signal $0004
+                not & signal icDISABLED
             )(else
                 0
             )
@@ -901,7 +901,7 @@ code_0d0f:  pushi   #hide
             (if (not IsObject(temp0))
                 = temp0 NodeValue((self:first()))
             )
-            (if (not & (send temp0:signal) $0004)
+            (if (not & (send temp0:signal) icDISABLED)
                 break
             )
             ++temp3
@@ -925,7 +925,7 @@ code_0d0f:  pushi   #hide
             (if (not IsObject(temp0))
                 = temp0 NodeValue((self:last()))
             )
-            (if (not & (send temp0:signal) $0004)
+            (if (not & (send temp0:signal) icDISABLED)
                 break
             )
             --temp3
@@ -952,7 +952,7 @@ code_0d0f:  pushi   #hide
             = temp9 NodeValue(invFirst)
             (if ((send temp9:isKindOf(InvI)))
                 (if ((send temp9:ownedBy(param1)))
-                    (send temp9:signal((& (send temp9:signal) $fffb)))
+                    (send temp9:signal((& (send temp9:signal) (bnot icDISABLED))))
                     ++temp0
                     = temp6 CelWide((send temp9:view) (send temp9:loop) (send temp9:cel))
                     (if (> temp6 temp2)
@@ -963,7 +963,7 @@ code_0d0f:  pushi   #hide
                         = temp1 temp7
                     )
                 )(else
-                    (send temp9:signal((| (send temp9:signal) $0004)))
+                    (send temp9:signal((| (send temp9:signal) icDISABLED)))
                 )
             )(else
                 ++temp3
@@ -1029,7 +1029,7 @@ code_0d0f:  pushi   #hide
             = invFirst (self:first())
             (while (invFirst)
                 = temp9 NodeValue(invFirst)
-                (if (not (& (send temp9:signal) $0004) and (send temp9:isKindOf(InvI)))
+                (if (not (& (send temp9:signal) icDISABLED) and (send temp9:isKindOf(InvI)))
                     (if (not & (send temp9:signal) $0080)
                         = temp6 CelWide((send temp9:view) (send temp9:loop) (send temp9:cel))
                         = temp7 CelHigh((send temp9:view) (send temp9:loop) (send temp9:cel))
@@ -1084,7 +1084,7 @@ code_0d0f:  pushi   #hide
                 = temp17 (+ (send temp9:nsLeft) temp6)
                 = temp18 (send temp9:nsTop)
                 (send temp9:
-                    signal(& (send temp9:signal) $fffb)
+                    signal(& (send temp9:signal) (bnot icDISABLED))
                     show()
                 )
             )

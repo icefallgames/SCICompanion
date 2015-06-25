@@ -296,10 +296,10 @@
         (send gOldCast:eachElementDo(#perform RU))
         (send gGame:setCursor(gInvisibleCursor 1))
         = temp0 
-            (if (not IsOneOf((send gRoom:style) -1 11 12 13 14))
+            (if (not IsOneOf((send gRoom:style) -1 dpOPEN_SCROLL_RIGHT dpOPEN_SCROLL_LEFT dpOPEN_SCROLL_UP dpOPEN_SCROLL_DOWN))
                 (send gRoom:style)
             )(else
-                100
+                dpOPEN_NO_TRANSITION
             )
         DrawPic((send gRoom:curPic) temp0 dpCLEAR)
         (if (<> gPicNumber -1)

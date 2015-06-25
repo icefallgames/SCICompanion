@@ -35,7 +35,7 @@
 
     (method (show theNsLeft theNsTop)
         (var temp0[7])
-        = signal (| signal $0020)
+        = signal (| signal icVISIBLE)
         (if (paramTotal)
             = nsRight (+ (= nsLeft theNsLeft) CelWide(view loop cel))
             = nsBottom (+ (= nsTop theNsTop) CelHigh(view loop cel))
@@ -44,7 +44,7 @@
             = nsBottom (+ nsTop CelHigh(view loop cel))
         )
         DrawCel(view loop cel nsLeft nsTop -1)
-        (if (& signal $0004)
+        (if (& signal icDISABLED)
             (self:mask())
         )
         (if (gPseudoMouse and (send gPseudoMouse:respondsTo(#stop)))
@@ -56,7 +56,7 @@
     (method (select param1)
         (var newEvent, temp1, gGameScript)
         return 
-            (if (& signal $0004)
+            (if (& signal icDISABLED)
                 0
             )(else
                 (if ((paramTotal and param1) and (& signal notUpd))
@@ -117,7 +117,7 @@
 
     (method (highlight param1)
         (var temp0, temp1, temp2, temp3, temp4)
-        (if (not (& signal $0020) or (== highlightColor -1))
+        (if (not (& signal icVISIBLE) or (== highlightColor -1))
             return 
         )
         = temp4 
@@ -191,12 +191,12 @@
                 (send gGameScript:doit())
             )
             (if (== temp1 256)
-                = temp1 4
+                = temp1 evKEYBOARD
                 = temp2 
-                    (if (& temp3 $0003)
-                        27
+                    (if (& temp3 emSHIFT)
+                        KEY_ESCAPE
                     )(else
-                        13
+                        KEY_RETURN
                     )
                 = temp3 0
                 (send temp0:
@@ -206,9 +206,9 @@
                 )
             )
             (send temp0:localize())
-            (if ((((== temp1 1) or ((== temp1 4) and (== temp2 13))) and IsObject(helpIconItem)) and (& (send helpIconItem:signal) $0010))
+            (if ((((== temp1 evMOUSEBUTTON) or ((== temp1 evKEYBOARD) and (== temp2 KEY_RETURN))) and IsObject(helpIconItem)) and (& (send helpIconItem:signal) $0010))
                 (send temp0:
-                    type(24576)
+                    type(evHELPVERB)
                     message((send helpIconItem:message))
                 )
             )
@@ -353,7 +353,7 @@
                 = temp3 (+ (/ (- (- (send useIconItem:nsRight) (send useIconItem:nsLeft)) CelWide((send curInvIcon:view) (send curInvIcon:loop) (send curInvIcon:cel))) 2) (send useIconItem:nsLeft))
                 = theY (+ (+ y (/ (- (- (send useIconItem:nsBottom) (send useIconItem:nsTop)) CelHigh((send curInvIcon:view) (send curInvIcon:loop) (send curInvIcon:cel))) 2)) (send useIconItem:nsTop))
                 DrawCel((send curInvIcon:view) (send curInvIcon:loop) (send curInvIcon:cel) temp3 theY -1)
-                (if (& (send useIconItem:signal) $0004)
+                (if (& (send useIconItem:signal) icDISABLED)
                     (send useIconItem:mask())
                 )
             )(else
@@ -379,7 +379,7 @@
                     return 
                 )
                 = temp2 NodeValue(temp0)
-                (send temp2:signal((& (send temp2:signal) $ffdf)))
+                (send temp2:signal((& (send temp2:signal) (bnot icVISIBLE) )))
                 = temp0 temp1
             )
             (if ((not (& state $0800) and IsObject(helpIconItem)) and (& (send helpIconItem:signal) $0010))
@@ -402,7 +402,7 @@
             (if (not IsObject(temp0))
                 = temp0 NodeValue((self:first()))
             )
-            (if (not & (send temp0:signal) $0004)
+            (if (not & (send temp0:signal) icDISABLED)
                 break
             )
             = temp1 (% (+ temp1 1) size)
@@ -419,7 +419,7 @@
             (if (not IsObject(temp0))
                 = temp0 NodeValue((self:last()))
             )
-            (if (not & (send temp0:signal) $0004)
+            (if (not & (send temp0:signal) icDISABLED)
                 break
             )
             = temp1 (% (+ temp1 1) size)
@@ -447,7 +447,7 @@
 
     (method (highlight theHighlightedIcon param2)
         (var temp0)
-        (if (not & (send theHighlightedIcon:signal) $0004)
+        (if (not & (send theHighlightedIcon:signal) icDISABLED)
             (if (IsObject(highlightedIcon))
                 (send highlightedIcon:highlight(0))
             )
@@ -461,15 +461,15 @@
 
     (method (swapCurIcon)
         (var temp0)
-        (if (& state $0004)
+        (if (& state icDISABLED)
             return 
         )(else
             = temp0 NodeValue((self:first()))
-            (if ((<> curIcon temp0) and not (& (send temp0:signal) $0004))
+            (if ((<> curIcon temp0) and not (& (send temp0:signal) icDISABLED))
                 = prevIcon curIcon
                 = curIcon NodeValue((self:first()))
             )(else
-                (if (prevIcon and not (& (send prevIcon:signal) $0004))
+                (if (prevIcon and not (& (send prevIcon:signal) icDISABLED))
                     = curIcon prevIcon
                 )
             )
@@ -628,7 +628,7 @@
                     )(else
                         (self:at(param1[temp0]))
                     )
-                (send temp1:signal((| (send temp1:signal) $0004)))
+                (send temp1:signal((| (send temp1:signal) icDISABLED)))
                 (if (== temp1 curIcon)
                     (self:advanceCurIcon())
                 )(else
@@ -655,7 +655,7 @@
                     )(else
                         (self:at(param1[temp0]))
                     )
-                (send temp1:signal((& (send temp1:signal) $fffb)))
+                (send temp1:signal((& (send temp1:signal) (bnot icDISABLED))))
                 ++temp0
             )
         )(else
