@@ -809,6 +809,7 @@ bool CopyFilesOver(HWND hwnd, const std::string &from, const std::string &to)
     return success;
 }
 
+#define VK_A        65
 #define VK_C        67
 #define VK_V        86
 #define VK_X        88
@@ -853,6 +854,11 @@ BOOL HandleEditBoxCommands(MSG* pMsg, CEdit &wndEdit)
                 if (pMsg->wParam == VK_Z)
                 {
                     wndEdit.Undo();
+                    fRet = TRUE;
+                }
+                if (pMsg->wParam == VK_A)
+                {
+                    wndEdit.SetSel(0xffff0000);
                     fRet = TRUE;
                 }
             }

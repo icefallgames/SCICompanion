@@ -1875,5 +1875,8 @@
     <Image Include="res\stopdebug.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="res\Upload.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

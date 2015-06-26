@@ -1108,16 +1108,25 @@ void CMainFrame::OnFileNewPic()
             unique_ptr<ResourceEntity> pEditPic(CreateDefaultPicResource(appState->GetVersion()));
             if (appState->GetVersion().PicFormat == PicFormat::VGA1_1)
             {
-                // Let's add a palette.
-                std::string palettePath = appState->GetResourceMap().GetSamplesFolder() + c_szDefaultPaletteSample;
-                ResourceBlob blob;
-                if (SUCCEEDED(blob.CreateFromFile(nullptr, palettePath.c_str(), appState->GetVersion(), -1, -1)))
+                // Let's add a palette. 
+                const PaletteComponent *globalPalette = appState->GetResourceMap().GetPalette999();
+                if (globalPalette)
                 {
-                    unique_ptr<ResourceEntity> paletteEntity = CreateResourceFromResourceData(blob);
-                    if (paletteEntity)
+                    pEditPic->AddComponent<PaletteComponent>(make_unique<PaletteComponent>(*globalPalette));
+                }
+                else
+                {
+                    // No global palette, use the default one
+                    std::string palettePath = appState->GetResourceMap().GetSamplesFolder() + c_szDefaultPaletteSample;
+                    ResourceBlob blob;
+                    if (SUCCEEDED(blob.CreateFromFile(nullptr, palettePath.c_str(), appState->GetVersion(), -1, -1)))
                     {
-                        unique_ptr<PaletteComponent> palette(static_cast<PaletteComponent*>((paletteEntity->GetComponent<PaletteComponent>().Clone())));
-                        pEditPic->AddComponent<PaletteComponent>(move(palette));
+                        unique_ptr<ResourceEntity> paletteEntity = CreateResourceFromResourceData(blob);
+                        if (paletteEntity)
+                        {
+                            unique_ptr<PaletteComponent> palette(static_cast<PaletteComponent*>((paletteEntity->GetComponent<PaletteComponent>().Clone())));
+                            pEditPic->AddComponent<PaletteComponent>(move(palette));
+                        }
                     }
                 }
             }

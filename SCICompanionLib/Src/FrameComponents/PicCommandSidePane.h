@@ -3,6 +3,7 @@
 #include "NonViewClient.h"
 #include "ExtDialogFwdCmd.h"
 #include "NoFlickerStatic.h"
+#include "ExtTabControl.h"
 
 class CPicDoc;
 class SCIPolygon;
@@ -60,7 +61,9 @@ protected:
     afx_msg void OnClickCommands();
     afx_msg void OnBnClickedShowPolys();
     afx_msg void OnCbnSelchangeComboPolyType();
-    afx_msg void OnEditPolyKillFocus();
+    afx_msg void PushEditPointsToPoly();
+    afx_msg void PushNameToPoly();
+    afx_msg void OnTcnSelchangeTabWhichList(NMHDR *pNMHDR, LRESULT *pResult);
     BOOL OnEraseBkgnd(CDC *pDC);
     void OnCropCommands();
     void OnCopyCommands();
@@ -68,7 +71,7 @@ protected:
     void _OnUpdateCommands();
 
 private:
-    void _PushEditPointsToPoly();
+    void _ShowPolyOrCommands();
     void _OnDelete(bool fCut, bool fCopy);
     void _UpdateItemCount();
     void _UpdatePolyItemCount();
@@ -78,6 +81,7 @@ private:
     void _SyncPolyTypeCombo();
     void _SyncPolyChoice();
     const SCIPolygon *_GetCurrentPolygon();
+    bool _ShowingPolygons();
     
     CPicDoc *_pDoc;
     int _iUserSelectedPos;
@@ -92,19 +96,23 @@ private:
 
     PolygonListBox m_wndListPolygons;
     CExtLabel m_wndStaticPolyType;
+    CExtLabel m_wndStaticPolyName;
     CExtComboBox m_wndComboPolyType;
     CExtCheckBox m_wndCheckShowPolys;
     CExtEdit m_wndEditPolyPoints;
+    CExtEdit m_wndEditPolyName;
 
     CExtHyperLinkButton m_wndGotoScript;
 
+    ExtTabControl m_wndTabWhichList;
+
     // Visual
+    CExtButton m_wndUploadPointsButton;
+    CExtButton m_wndUploadNameButton;
     CExtButton m_wndEditPaletteButton;
     CExtButton m_wndDelete;
     CExtButton m_wndCopy;
     CExtButton m_wndCrop;
     CExtButton m_wndSetBackground;
-    CExtRadioButton m_wndRadioCommands;
-    CExtRadioButton m_wndRadioPolygons;
     HACCEL _hAccel;
 };

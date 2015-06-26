@@ -13,6 +13,11 @@
 #include "format.h"
 #include "WindowsUtil.h"
 
+const int CommandTabIndex = 0;
+const int PolyTabIndex = 1;
+
+char c_szPolyNamePrefix[] = "P_";
+
 // PicCommandSidePane dialog
 
 PicCommandSidePane::PicCommandSidePane(bool showPalette, CWnd* pParent /*=NULL*/)
@@ -56,23 +61,29 @@ void PicCommandSidePane::DoDataExchange(CDataExchange* pDX)
 
         DDX_Control(pDX, ID_EDIT_PASTEINTOPIC, m_wndSetBackground);
 
-        DDX_Control(pDX, IDC_RADIOPOLYGONS, m_wndRadioPolygons);
-        m_wndRadioPolygons.SetCheck(BST_CHECKED);
-        DDX_Control(pDX, IDC_RADIOCOMMANDS, m_wndRadioCommands);
-        m_wndRadioCommands.SetCheck(BST_UNCHECKED);
+        DDX_Control(pDX, IDC_TABWHICHLIST, m_wndTabWhichList);
 
         DDX_Control(pDX, IDC_LISTPOLYGONS, m_wndListPolygons);
         DDX_Control(pDX, IDC_STATICPOLYTYPE, m_wndStaticPolyType);
         DDX_Control(pDX, IDC_COMBOPOLYTYPE, m_wndComboPolyType);
         DDX_Control(pDX, IDC_CHECKSHOWPOLYS, m_wndCheckShowPolys);
         DDX_Control(pDX, IDC_EDIT_POLYPOINTS, m_wndEditPolyPoints);
+        DDX_Control(pDX, ID_UPLOAD, m_wndUploadPointsButton);
+        m_wndUploadPointsButton.SetIcon(IDI_UPLOAD, 0, 0, 0, 24, 24);
+        DDX_Control(pDX, ID_UPLOADNAME, m_wndUploadNameButton);
+        m_wndUploadNameButton.SetIcon(IDI_UPLOAD, 0, 0, 0, 24, 24);
+        DDX_Control(pDX, IDC_STATICNAME, m_wndStaticPolyName);
+        DDX_Control(pDX, IDC_EDITNAME, m_wndEditPolyName);
 
-        m_wndListCommands.ShowWindow(SW_HIDE);
-        m_wndListPolygons.ShowWindow(SW_SHOW);
-        m_wndStaticPolyType.ShowWindow(SW_SHOW);
-        m_wndComboPolyType.ShowWindow(SW_SHOW);
-        m_wndCheckShowPolys.ShowWindow(SW_SHOW);
-        m_wndEditPolyPoints.ShowWindow(SW_SHOW);
+        // Show polygons by default
+        TCITEM tcitem = {};
+        tcitem.mask = TCIF_TEXT;
+        tcitem.pszText = "Commands";
+        m_wndTabWhichList.InsertItem(CommandTabIndex, &tcitem);
+        tcitem.pszText = "Polygons";
+        m_wndTabWhichList.InsertItem(PolyTabIndex, &tcitem);
+        m_wndTabWhichList.SetCurSel(PolyTabIndex);
+        _ShowPolyOrCommands();
     }
 }
 
@@ -91,30 +102,40 @@ BEGIN_MESSAGE_MAP(PicCommandSidePane, CExtDialogFwdCmd)
     ON_WM_CREATE()
     ON_WM_ERASEBKGND()
     ON_COMMAND(IDC_GOTOSCRIPT, OnGotoScript)
-    ON_BN_CLICKED(IDC_RADIOPOLYGONS, OnClickPolygons)
-    ON_BN_CLICKED(IDC_RADIOCOMMANDS, OnClickCommands)
     ON_BN_CLICKED(IDC_CHECKSHOWPOLYS, OnBnClickedShowPolys)
+    ON_BN_CLICKED(ID_UPLOAD, PushEditPointsToPoly)
+    ON_BN_CLICKED(ID_UPLOADNAME, PushNameToPoly)
     ON_CBN_SELCHANGE(IDC_COMBOPOLYTYPE, OnCbnSelchangeComboPolyType)
-    ON_EN_KILLFOCUS(IDC_EDIT_POLYPOINTS, OnEditPolyKillFocus)
+    ON_NOTIFY(TCN_SELCHANGE, IDC_TABWHICHLIST, OnTcnSelchangeTabWhichList)
 END_MESSAGE_MAP()
 
-void PicCommandSidePane::OnClickPolygons()
+void PicCommandSidePane::_ShowPolyOrCommands()
 {
-    m_wndListCommands.ShowWindow(SW_HIDE);
-    m_wndListPolygons.ShowWindow(SW_SHOW);
-    m_wndStaticPolyType.ShowWindow(SW_SHOW);
-    m_wndComboPolyType.ShowWindow(SW_SHOW);
-    m_wndCheckShowPolys.ShowWindow(SW_SHOW);
-    m_wndEditPolyPoints.ShowWindow(SW_SHOW);
+    if (m_wndListPolygons.GetSafeHwnd())
+    {
+        bool showPolys = (m_wndTabWhichList.GetCurSel() == 1);
+        int cmdCommand = showPolys ? SW_HIDE : SW_SHOW;
+        int cmdPoly = showPolys ? SW_SHOW : SW_HIDE;
+        m_wndListCommands.ShowWindow(cmdCommand);
+        m_wndCopy.ShowWindow(cmdCommand);
+        m_wndCrop.ShowWindow(cmdCommand);
+        m_wndListPolygons.ShowWindow(cmdPoly);
+        m_wndStaticPolyType.ShowWindow(cmdPoly);
+        m_wndComboPolyType.ShowWindow(cmdPoly);
+        m_wndCheckShowPolys.ShowWindow(cmdPoly);
+        m_wndEditPolyPoints.ShowWindow(cmdPoly);
+        m_wndUploadPointsButton.ShowWindow(cmdPoly);
+        m_wndStaticPolyName.ShowWindow(cmdPoly);
+        m_wndEditPolyName.ShowWindow(cmdPoly);
+        m_wndUploadNameButton.ShowWindow(cmdPoly);
+    }
 }
-void PicCommandSidePane::OnClickCommands()
+
+void PicCommandSidePane::OnTcnSelchangeTabWhichList(NMHDR *pNMHDR, LRESULT *pResult)
 {
-    m_wndListCommands.ShowWindow(SW_SHOW);
-    m_wndListPolygons.ShowWindow(SW_HIDE);
-    m_wndStaticPolyType.ShowWindow(SW_HIDE);
-    m_wndComboPolyType.ShowWindow(SW_HIDE);
-    m_wndCheckShowPolys.ShowWindow(SW_HIDE);
-    m_wndEditPolyPoints.ShowWindow(SW_HIDE);
+    *pResult = 0;
+    _ShowPolyOrCommands();
+    _OnUpdateCommands();
 }
 
 void PicCommandSidePane::OnBnClickedShowPolys()
@@ -125,7 +146,32 @@ void PicCommandSidePane::OnBnClickedShowPolys()
     }
 }
 
-void PicCommandSidePane::_PushEditPointsToPoly()
+void PicCommandSidePane::PushNameToPoly()
+{
+    const SCIPolygon *polygon = _GetCurrentPolygon();
+    int polyIndex = GetDocument()->GetCurrentPolygonIndex();
+    if (polygon)
+    {
+        CString nameTemp;
+        m_wndEditPolyName.GetWindowText(nameTemp);
+        string name = c_szPolyNamePrefix;
+        name += (PCSTR)nameTemp;
+        if (name != polygon->Name)
+        {
+            // They are different - push the points to the polygon
+            GetDocument()->ApplyChanges<PolygonComponent>(
+                [&name, polyIndex](PolygonComponent &polygonComponent)
+            {
+                SCIPolygon *thePoly = polygonComponent.GetAt(polyIndex);
+                thePoly->Name = name;
+                return WrapHint(PicChangeHint::PolygonsChanged);
+            }
+            );
+        }
+    }
+}
+
+void PicCommandSidePane::PushEditPointsToPoly()
 {
     const SCIPolygon *polygon = _GetCurrentPolygon();
     if (polygon)
@@ -167,11 +213,6 @@ void PicCommandSidePane::_PushEditPointsToPoly()
             );
         }
     }
-}
-
-void PicCommandSidePane::OnEditPolyKillFocus()
-{
-    _PushEditPointsToPoly();
 }
 
 void PicCommandSidePane::OnCbnSelchangeComboPolyType()
@@ -241,17 +282,32 @@ void PicCommandSidePane::OnCopyCommands()
     _OnDelete(FALSE, TRUE);
 }
 
+bool PicCommandSidePane::_ShowingPolygons()
+{
+    if (m_wndTabWhichList.GetSafeHwnd())
+    {
+        return m_wndTabWhichList.GetCurSel() == PolyTabIndex;
+    }
+    else
+    {
+        return false;
+    }
+}
+
 void PicCommandSidePane::_OnUpdateCommands()
 {
-    BOOL fItemsSelected = m_wndListCommands.SendMessage(LB_GETSELCOUNT, 0, 0) > 0;
-    // These calls are actually really expensive (profuis)
-    if (m_wndDelete.IsWindowEnabled() != fItemsSelected)
+    bool showingPolys = _ShowingPolygons();
+    BOOL areCommandsSelected = !showingPolys && (m_wndListCommands.SendMessage(LB_GETSELCOUNT, 0, 0) > 0);
+    BOOL arePolysSelected = showingPolys && (m_wndListPolygons.GetCurSel() != -1);
+    BOOL enableDelete = areCommandsSelected || arePolysSelected;
+    if (m_wndCopy.IsWindowEnabled() != areCommandsSelected)
     {
-        m_wndDelete.EnableWindow(fItemsSelected);
+        m_wndCopy.EnableWindow(areCommandsSelected);
     }
-    if (m_wndCopy.IsWindowEnabled() != fItemsSelected)
+    // These calls are actually really expensive (profuis), so only do it when changed
+    if (m_wndDelete.IsWindowEnabled() != enableDelete)
     {
-        m_wndCopy.EnableWindow(fItemsSelected);
+        m_wndDelete.EnableWindow(enableDelete);
     }
 }
 
@@ -273,11 +329,6 @@ BOOL PicCommandSidePane::PreTranslateMessage(MSG* pMsg)
         if (!fRet)
         {
             fRet = HandleEditBoxCommands(pMsg, m_wndEditPolyPoints);
-            if (fRet)
-            {
-                // Special case - if the edit box was pasted into, or got somehting deleted, then push stuff:
-                _PushEditPointsToPoly();
-            }
         }
     }
     if (!fRet && _hAccel && (pMsg->message >= WM_KEYFIRST && pMsg->message <= WM_KEYLAST))
@@ -302,8 +353,11 @@ BOOL PicCommandSidePane::OnInitDialog()
         AddAnchor(IDC_LISTPOLYGONS, CPoint(0, 0), CPoint(100, 100));
         AddAnchor(IDC_STATICPOLYTYPE, CPoint(0, 0), CPoint(0, 0));
         AddAnchor(IDC_COMBOPOLYTYPE, CPoint(0, 0), CPoint(100, 0));
+        AddAnchor(IDC_EDITNAME, CPoint(0, 0), CPoint(100, 0));
         AddAnchor(IDC_CHECKSHOWPOLYS, CPoint(0, 0), CPoint(100, 0));
         AddAnchor(IDC_EDIT_POLYPOINTS, CPoint(0, 100), CPoint(100, 100));
+        AddAnchor(ID_UPLOAD, CPoint(100, 100), CPoint(100, 100));
+        AddAnchor(ID_UPLOADNAME, CPoint(100, 0), CPoint(100, 0));
     }
     // Hide the sizing grip
     ShowSizeGrip(FALSE);
@@ -477,16 +531,7 @@ void PolygonListBox::DrawItem(DRAWITEMSTRUCT *pDrawItemStruct)
             {
                 const SCIPolygon *polygon = polygonSource->GetAt(pDrawItemStruct->itemID);
 
-                // Draw the text. The type and the first point or two.
-                string text;
-                if (polygon->Points().size() > 1)
-                {
-                    text = fmt::format("{0}: ({1},{2}), ({3},{4}) ...", g_PolyTypes[(int)polygon->Type], polygon->Points()[0].x, polygon->Points()[0].y, polygon->Points()[1].x, polygon->Points()[1].y);
-                }
-                else
-                {
-                    text = fmt::format("{0}: ({1},{2}) ...", g_PolyTypes[(int)polygon->Type], polygon->Points()[0].x, polygon->Points()[0].y);
-                }
+                string text = fmt::format("{0}: {1}", (polygon->Name.empty() ? "Default" : polygon->Name), g_PolyTypes[(int)polygon->Type]);
                 pDC->DrawText(
                     text.c_str(),
                     -1,
@@ -651,11 +696,16 @@ void PicCommandSidePane::_SyncPolyTypeCombo()
     {
         m_wndComboPolyType.EnableWindow(TRUE);
         m_wndComboPolyType.SetCurSel((int)polygon->Type);
+        if (polygon->Name.length() > 2)
+        {
+            m_wndEditPolyName.SetWindowText(polygon->Name.substr(2, polygon->Name.length() - 2).c_str());
+        }
     }
     else
     {
         m_wndComboPolyType.SetCurSel(CB_ERR);
         m_wndComboPolyType.EnableWindow(FALSE);
+        m_wndEditPolyName.SetWindowText("");
     }
 }
 
@@ -782,6 +832,7 @@ void PicCommandSidePane::_SyncPolyChoice()
     m_wndListPolygons.SetCurSel(index);
     m_wndCheckShowPolys.SetCheck(GetDocument()->GetShowPolygons() ? BST_CHECKED : BST_UNCHECKED);
 
+    std::string name;
     std::stringstream ss;
     const PolygonComponent *polygonSource = GetDocument()->GetPolygonComponent();
     if (polygonSource)
@@ -797,10 +848,14 @@ void PicCommandSidePane::_SyncPolyChoice()
                 }
                 ss << point.x << " " << point.y;
             }
+            name = polygon->Name;
         }
     }
     m_wndEditPolyPoints.SetWindowText(ss.str().c_str());
-
+    m_wndEditPolyName.SetWindowText(name.c_str());
+    m_wndEditPolyName.EnableWindow(index != -1);
+    m_wndUploadNameButton.EnableWindow(index != -1);
+    m_wndUploadPointsButton.EnableWindow(index != -1);
     _SyncPolyTypeCombo();
 }
 

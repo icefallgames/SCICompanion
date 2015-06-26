@@ -114,6 +114,7 @@ public:
     virtual void OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint);
 
 protected:
+    CPoint _GetGutterOffset();
     const PicComponent *_GetEditPic();
     const PaletteComponent *_GetPalette();
     void _OnHistoryLClick(CPoint point);
@@ -145,15 +146,13 @@ protected:
     template<typename _Function>
     void _EnsurateCoordinates(PicCommand::CommandType commandType, _Function func);
 
-    CPoint _MapScreenPointToPic(CPoint ptScreenAdjusted);
     CPoint _MapClientPointToPic(CPoint ptScreen);
     CPoint _MapPicPointToClient(CPoint ptPic);
-    void _MapPicRectToScreen(RECT *prcPic, RECT *prcScreen);
     void _EnsureDoubleBuffer(PicScreen screen);
     PicCommand _EnsurePriorityBarCommand();
     void _GenerateTraceImage(CDC *pDC);
     void _OnDraw(CDC* pDC, PicScreen screen);
-    void _DrawPriorityBar(CDC *pDC);
+    void _DrawPriorityBar(CDC *pDC, CPoint offset);
     bool _HitTestPriorityBar(CPoint pt, int *barIndex);
     void _MovePriorityBar(bool commit, int dy);
     void _DrawPriorityLines(CDC *pDC);
@@ -190,8 +189,8 @@ protected:
     const SCIPolygon *_GetCurrentPolygon();
 
     // Scrolling
-    virtual int _GetViewWidth() { return _cxPic + PriorityBarWidth; }
-    virtual int _GetViewHeight() { return GetPicScreenHeight(); }
+    int _GetViewWidth() override;
+    int _GetViewHeight() override;
 
     int GetPicScreenHeight() const;
     CPoint GetZoomOffset() const;

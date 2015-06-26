@@ -8,6 +8,8 @@ END_MESSAGE_MAP()
 
 void ExtTabControl::DrawItem(LPDRAWITEMSTRUCT pdis)
 {
+    bool isBottom = (TCS_BOTTOM & GetStyle()) != 0;
+
     CRect rc = pdis->rcItem;
     int nTabIndex = pdis->itemID;
     bool fSelected = (nTabIndex == GetCurSel());
@@ -65,11 +67,17 @@ void ExtTabControl::DrawItem(LPDRAWITEMSTRUCT pdis)
         {
             backgroundColor = CExtBitmap::stat_HLS_Adjust(backgroundColor, 0.0, -0.12, 0.0);
 
+            CPoint topLeft = rcGradient.TopLeft();
+            CPoint bottomRight = rcGradient.BottomRight();
+            if (!isBottom)
+            {
+                std::swap(topLeft, bottomRight);
+            }
             // Blend between our main color and the background color for the top part of the gradient (so the gradient isn't so extreme)
             TRIVERTEX selectedVertices[2] =
             {
-                { rcGradient.left, rcGradient.top, GetRValue(accentColor) * 256, GetGValue(accentColor) * 256, GetBValue(accentColor) * 256, 65280 },
-                { rcGradient.right, rcGradient.bottom, GetRValue(backgroundColor) * 256, GetGValue(backgroundColor) * 256, GetBValue(backgroundColor) * 256, 65280 },
+                { topLeft.x, topLeft.y, GetRValue(accentColor) * 256, GetGValue(accentColor) * 256, GetBValue(accentColor) * 256, 65280 },
+                { bottomRight.x, bottomRight.y, GetRValue(backgroundColor) * 256, GetGValue(backgroundColor) * 256, GetBValue(backgroundColor) * 256, 65280 },
             };
             vertices = selectedVertices;
             vertexCount = ARRAYSIZE(selectedVertices);

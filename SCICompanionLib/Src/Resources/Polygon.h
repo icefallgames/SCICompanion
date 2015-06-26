@@ -24,7 +24,7 @@ public:
     void SetPoint(size_t index, point16 point);
     void InsertPoint(size_t index, point16 point);
     PolygonType Type;
-    // std::string Name;
+    std::string Name;
 
 private:
     std::vector<point16> _points;

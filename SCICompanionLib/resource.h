@@ -604,6 +604,9 @@
 #define IDC_STATICRESNUM                1288
 #define IDC_EDIT_POLYPOINTS             1289
 #define IDC_STATICVERSION               1290
+#define IDI_UPLOAD                      1291
+#define IDC_STATICNAME                  1292
+#define IDC_TABWHICHLIST                1293
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -840,7 +843,10 @@
 #define ID_TOOLS_EXTRACTALLRESOURCES    33171
 #define ID_PIC_EDITPALETTE              33172
 #define ID_EDITPALETTE                  33173
+#define ID_UPLOAD                       33173
 #define ID_MAIN_EDITPALETTE             33174
+#define ID_UPLOAD2                      33174
+#define ID_UPLOADNAME                   33174
 #define ID_VIEW_EDITPALETTE             33175
 #define ID_MAIN_DELETEPOIN              33176
 #define ID_PIC_DELETEPOINT              33177
@@ -871,7 +877,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        385
 #define _APS_NEXT_COMMAND_VALUE         33198
-#define _APS_NEXT_CONTROL_VALUE         1291
+#define _APS_NEXT_CONTROL_VALUE         1294
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

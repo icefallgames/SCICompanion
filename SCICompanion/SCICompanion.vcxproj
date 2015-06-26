@@ -381,13 +381,9 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Decompiler" "$(OutDir)Decompiler"
     <None Include="Files\TemplateGame\SCI1.1\src\cliffygoeswith.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\colorinit.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\ColorInit.sco" />
-    <None Include="Files\TemplateGame\SCI1.1\src\commandWindow.sc" />
-    <None Include="Files\TemplateGame\SCI1.1\src\commandwindow.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\controls.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\Controls.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\crestpiece.sco" />
-    <None Include="Files\TemplateGame\SCI1.1\src\cueobj.sc" />
-    <None Include="Files\TemplateGame\SCI1.1\src\cueobj.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\cycle.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\cycle.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\DCIcon.sc" />

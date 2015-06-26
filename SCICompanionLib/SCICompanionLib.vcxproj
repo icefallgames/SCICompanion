@@ -817,6 +817,7 @@
     <Image Include="res\toolbart.bmp" />
     <Image Include="res\Transparent.ico" />
     <Image Include="res\Up.bmp" />
+    <Image Include="res\Upload.ico" />
     <Image Include="res\view.ico" />
     <Image Include="res\view_details.ico" />
     <Image Include="res\view_icons.ico" />

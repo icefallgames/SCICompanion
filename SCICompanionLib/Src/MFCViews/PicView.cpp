@@ -22,6 +22,8 @@
 #include "View.h"
 #include "PaletteEditorDialog.h"
 
+const int PicGutter = 5;
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -369,6 +371,19 @@ CPicView::CPicView()
     _iTraceAlpha = 50;
 }
 
+// Scrolling
+int CPicView::_GetViewWidth()
+{
+    int zoom = _cxPic / sPIC_WIDTH;
+    return _cxPic + PriorityBarWidth + 2 * zoom * PicGutter;
+}
+int CPicView::_GetViewHeight()
+{
+    int zoom = _cyPic / sPIC_HEIGHT;
+    ;
+    return GetPicScreenHeight() + 2 * zoom * PicGutter;
+}
+
 int CPicView::GetPicScreenHeight() const
 {
     int height = _cyPic;
@@ -402,23 +417,12 @@ CPicView::~CPicView()
 }
 
 //
-// Given a screen coordinate, returns the coordinate in the pic.
-// It assumes origins have been taken into account, so ptScreen
-// is not the physical viewport point, but the point within the whole thing.
-//
-CPoint CPicView::_MapScreenPointToPic(CPoint ptScreen)
-{
-    return CPoint(ptScreen.x * sPIC_WIDTH / _cxPic,
-        ptScreen.y * sPIC_HEIGHT / GetPicScreenHeight());
-}
-
-//
 // This one takes into account origins
 //
 CPoint CPicView::_MapClientPointToPic(CPoint ptScreen)
 {
-    return CPoint((ptScreen.x + _xOrigin) * sPIC_WIDTH / _cxPic,
-        (ptScreen.y + _yOrigin) * sPIC_HEIGHT / GetPicScreenHeight());
+    return CPoint((ptScreen.x + _xOrigin) * sPIC_WIDTH / _cxPic - PicGutter,
+        (ptScreen.y + _yOrigin) * sPIC_HEIGHT / GetPicScreenHeight() - PicGutter);
 }
 
 //
@@ -427,23 +431,9 @@ CPoint CPicView::_MapClientPointToPic(CPoint ptScreen)
 //
 CPoint CPicView::_MapPicPointToClient(CPoint ptPic)
 {
-    return CPoint((ptPic.x * _cxPic / sPIC_WIDTH) - _xOrigin,
-        (ptPic.y * GetPicScreenHeight() / sPIC_HEIGHT) - _yOrigin);
+    return CPoint(((ptPic.x + PicGutter) * _cxPic / sPIC_WIDTH) - _xOrigin,
+        ((ptPic.y + PicGutter) * GetPicScreenHeight() / sPIC_HEIGHT) - _yOrigin);
 }
-
-void CPicView::_MapPicRectToScreen(RECT *prcPic, RECT *prcScreen)
-{
-    int cxScreen = RECTWIDTH(*prcPic) * _cxPic / sPIC_WIDTH;
-    int cyScreen = RECTHEIGHT(*prcPic) * GetPicScreenHeight() / sPIC_HEIGHT;
-    int x = prcPic->left *  _cxPic / sPIC_WIDTH - _xOrigin;
-    int y = prcPic->top *  GetPicScreenHeight() / sPIC_HEIGHT - _yOrigin;
-    prcScreen->left = x;
-    prcScreen->top = y;
-    prcScreen->right = x + cxScreen;
-    prcScreen->bottom = y + cyScreen;
-}
-
-
 
 void CPicView::OnPenCommand()
 {
@@ -2063,11 +2053,8 @@ bool CPicView::_HitTestPriorityBar(CPoint pt, int *barIndex)
     return hit;
 }
 
-void CPicView::_DrawPriorityBar(CDC *pDC)
+void CPicView::_DrawPriorityBar(CDC *pDC, CPoint offset)
 {
-    RECT rcClient;
-    GetClientRect(&rcClient);
-
     const uint16_t *priLines = _GetDrawManager().GetViewPort(PicPosition::PostPlugin)->bPriorityLines;
     size_t priLineCount = ARRAYSIZE(_GetDrawManager().GetViewPort(PicPosition::PostPlugin)->bPriorityLines);
     int zoom = _cxPic / sPIC_WIDTH;
@@ -2079,7 +2066,7 @@ void CPicView::_DrawPriorityBar(CDC *pDC)
         int priLine = (i < priLineCount) ? priLines[i] : sPIC_HEIGHT;
         priLine--;
         CBrush brush(g_egaColorsCR[i]);
-        CRect rect(CPoint(_cxPic - _xOrigin, appState->AspectRatioY(previousPriorityY * zoom) - _yOrigin), CSize(PriorityBarWidth, appState->AspectRatioY(zoom * (priLine - previousPriorityY + 1))));
+        CRect rect(CPoint(_cxPic - _xOrigin + offset.x, appState->AspectRatioY(previousPriorityY * zoom) - _yOrigin + offset.y), CSize(PriorityBarWidth, appState->AspectRatioY(zoom * (priLine - previousPriorityY + 1))));
         pDC->FillRect(&rect, &brush);
         previousPriorityY = priLine;
     }
@@ -2189,6 +2176,12 @@ int CPicView::_GetTransformHitTestDistance(int x, int y)
     return (dx * dx + dy * dy);
 }
 
+CPoint CPicView::_GetGutterOffset()
+{
+    int zoom = _cxPic / sPIC_WIDTH;
+    return CPoint(zoom * PicGutter, zoom * PicGutter);
+}
+
 void CPicView::OnDraw(CDC *pDC)
 {
     RECT rcClient;
@@ -2196,12 +2189,11 @@ void CPicView::OnDraw(CDC *pDC)
 
     _AttachPicPlugin();
 
+    CPoint gutter = _GetGutterOffset();
+
     CDC dcMem;
     if (dcMem.CreateCompatibleDC(pDC))
     {
-        int cxVisible = min(_cxPic, RECTWIDTH(rcClient));
-        int cyVisible = min(GetPicScreenHeight(), RECTHEIGHT(rcClient));
-
         // Draw the picture. All the stuff drawn in here must use the same palette as the SCI pic:
         bool needToDrawStuffOnTop = EnsureBitmapUpToDate(&dcMem, _mainViewScreen, false);
         HGDIOBJ hgdiObj = dcMem.SelectObject(_bitmapDoubleBuf);
@@ -2256,32 +2248,42 @@ void CPicView::OnDraw(CDC *pDC)
 
         // Now blt back to the real DC.
         // Now we want to copy it back to the real dc.
-        pDC->StretchBlt(-_xOrigin, -_yOrigin, _cxPic, GetPicScreenHeight(), &dcMem, 0, 0, sPIC_WIDTH, sPIC_HEIGHT, SRCCOPY);
+        pDC->StretchBlt(-_xOrigin + gutter.x, -_yOrigin + gutter.y, _cxPic, GetPicScreenHeight(), &dcMem, 0, 0, sPIC_WIDTH, sPIC_HEIGHT, SRCCOPY);
+
 
         dcMem.SelectObject(hgdiObj);
     }
 
-    int picRightEdge = _cxPic;
+    int picRightEdge = _cxPic + gutter.x;
     if (_fShowPriorityLines)
     {
-        _DrawPriorityBar(pDC);
+        _DrawPriorityBar(pDC, gutter);
         picRightEdge += PriorityBarWidth;
     }
 
     // Finish off by drawing a navy background around the pic.
     CBrush brush(RGB(0, 0, 128));
-    int cyBottom = RECTHEIGHT(rcClient) - GetPicScreenHeight();
+    int cyBottom = RECTHEIGHT(rcClient) - GetPicScreenHeight() - gutter.y;
     if (cyBottom > 0)
     {
-        CRect rect1(CPoint(0, GetPicScreenHeight()), CSize(RECTWIDTH(rcClient), cyBottom));
+        // All along the bottom
+        CRect rect1(CPoint(0, GetPicScreenHeight() + gutter.x), CSize(RECTWIDTH(rcClient), cyBottom));
         pDC->FillRect(&rect1, &brush);
     }
+    // Along the top
+    CRect rect1(CPoint(0, 0), CSize(RECTWIDTH(rcClient), gutter.y));
+    pDC->FillRect(&rect1, &brush);
+
     int cxLeft = RECTWIDTH(rcClient) - picRightEdge;
     if (cxLeft > 0)
     {
         CRect rect2(CPoint(picRightEdge, 0), CSize(cxLeft, RECTHEIGHT(rcClient)));
         pDC->FillRect(&rect2, &brush);
     }
+    // left:
+    CRect rect2(CPoint(0, 0), CSize(gutter.x, RECTHEIGHT(rcClient)));
+    pDC->FillRect(&rect2, &brush);
+
 
     // This will flicker here, but oh well.
     if (_transformingCoords)
@@ -3705,7 +3707,12 @@ void CPicView::OnLButtonUp(UINT nFlags, CPoint point)
         ReleaseCapture();
 
         CPoint ptPic = _MapClientPointToPic(point);
-        if (_transformingCoords && (_currentTool != None))
+        if (_polyDragPointIndex != -1)
+        {
+            // Commit this point to the polygon
+            _EndPolyDrag();
+        }
+        else if (_transformingCoords && (_currentTool != None))
         {
             // Commit the change
             _TransformPoint(true, ptPic);
@@ -3714,11 +3721,6 @@ void CPicView::OnLButtonUp(UINT nFlags, CPoint point)
         else if (_fShowPriorityLines && (_originalPriValue != -1))
         {
             _MovePriorityBar(true, ptPic.y - _pointCapture.y);
-        }
-        else if (_polyDragPointIndex != -1)
-        {
-            // Commit this point to the polygon
-            _EndPolyDrag();
         }
         _originalPriValue = -1;
     }
