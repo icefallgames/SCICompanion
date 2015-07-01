@@ -11,6 +11,11 @@ enum class PolygonType
     ContainedAccess = 3
 };
 
+namespace sci
+{
+    class ProcedureCall;
+}
+
 class PolygonComponent;
 
 class SCIPolygon
@@ -57,4 +62,4 @@ private:
 };
 
 std::unique_ptr<PolygonComponent> CreatePolygonComponent(const std::string &polyFolder, int picNumber);
-std::string GetSetUpPolyProcedureName(int picResource);
+std::unique_ptr<sci::ProcedureCall> GetSetUpPolyProcedureCall(int picResource);

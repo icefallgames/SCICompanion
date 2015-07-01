@@ -13,7 +13,6 @@ using namespace sci;
 const char c_szAddObstacleSelector[] = "addObstacle";
 const char c_szTypeSelector[] = "type";
 const char c_szInitSelector[] = "init";
-const char c_szProcedureName[] = "SetUpPolys";
 const char c_szRoomName[] = "gRoom";
 const char c_szDefaultPolyName[] = "P_Default";
 const string AccessType[] =
@@ -24,9 +23,11 @@ const string AccessType[] =
     "PContainedAccess",
 };
 
-std::string GetSetUpPolyProcedureName(int picResource)
+unique_ptr<ProcedureCall> GetSetUpPolyProcedureCall(int picResource)
 {
-    return fmt::format("SetUpPolys_{0}", picResource);
+    unique_ptr<ProcedureCall> procCall = make_unique<ProcedureCall>("AddPolygonsToRoom");
+    _AddStatement(*procCall, make_unique<PropertyValue>(fmt::format("{0}{1}", c_szDefaultPolyName, picResource), ValueType::Pointer));
+    return procCall;
 }
 
 void _ExtractPolygonsFromStatements(const string &name, PolygonComponent &polySource, const SingleStatementVector &statements)

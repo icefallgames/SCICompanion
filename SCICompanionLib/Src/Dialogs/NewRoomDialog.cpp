@@ -298,7 +298,7 @@ void CNewRoomDialog::_PrepareBuffer()
                 
             if (includePolys)
             {
-                _AddStatement(*pInit, make_unique<ProcedureCall>(GetSetUpPolyProcedureName(_nPicScript)));
+                _AddStatement(*pInit, GetSetUpPolyProcedureCall(_nPicScript));
             }
 
             _AddSendCall(*pInit, "super", "init", "");
