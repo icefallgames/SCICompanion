@@ -118,6 +118,10 @@ void CScrollingThing<T>::_ScrollTo(int iType, HWND hwnd, int pos)
                     SW_ERASE | SW_INVALIDATE);
     }
 
+    // Just invalidate everything, since the ScrollWindowEx blt doesn't appear to put things at the correct
+    // position (or the DC contains not-up-to-date data when blt'd)
+    ::InvalidateRect(hwnd, nullptr, FALSE);
+
     /*
      *  Now that the window has scrolled, a new item is at the top.
      */

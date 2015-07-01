@@ -388,7 +388,6 @@ int CPicView::_GetViewWidth()
 int CPicView::_GetViewHeight()
 {
     int zoom = _cyPic / sPIC_HEIGHT;
-    ;
     return GetPicScreenHeight() + 2 * zoom * PicGutter;
 }
 
@@ -2196,14 +2195,6 @@ void CPicView::OnDraw(CDC *pDC)
     RECT rcClient;
     GetClientRect(&rcClient);
 
-    CRect rcClip;
-    if (pDC->GetClipBox(&rcClip))
-    {
-        OutputDebugString(
-            fmt::format("{0},{1} {2}x{3}\n", rcClip.left, rcClip.top, rcClip.Width(), rcClip.Height()).c_str()
-            );
-    }
-
     _AttachPicPlugin();
 
     CPoint gutter = _GetGutterOffset();
@@ -2267,7 +2258,6 @@ void CPicView::OnDraw(CDC *pDC)
         // Now we want to copy it back to the real dc.
         pDC->StretchBlt(-_xOrigin + gutter.x, -_yOrigin + gutter.y, _cxPic, GetPicScreenHeight(), &dcMem, 0, 0, sPIC_WIDTH, sPIC_HEIGHT, SRCCOPY);
 
-
         dcMem.SelectObject(hgdiObj);
     }
 
@@ -2280,16 +2270,16 @@ void CPicView::OnDraw(CDC *pDC)
 
     // Finish off by drawing a navy background around the pic.
     CBrush brush(RGB(0, 0, 128));
-    int cyBottom = RECTHEIGHT(rcClient) - GetPicScreenHeight() - gutter.y;
-    if (cyBottom > 0)
+    // All along the bottom - extend to window edges
+    int yBottom = _GetViewHeight() - gutter.y - _yOrigin;
+    if (rcClient.bottom > yBottom)
     {
-        // All along the bottom
-        CRect rect1(CPoint(0, GetPicScreenHeight() + gutter.x), CSize(RECTWIDTH(rcClient), cyBottom));
-        pDC->FillRect(&rect1, &brush);
+        CRect rectBottom(CPoint(0, yBottom), CSize(RECTWIDTH(rcClient), rcClient.bottom - yBottom));
+        pDC->FillRect(&rectBottom, &brush);
     }
     // Along the top
-    CRect rect1(CPoint(0, 0), CSize(RECTWIDTH(rcClient), gutter.y));
-    pDC->FillRect(&rect1, &brush);
+    CRect rectTop(CPoint(0, -_yOrigin), CSize(RECTWIDTH(rcClient), gutter.y));
+    pDC->FillRect(&rectTop, &brush);
 
     int cxLeft = RECTWIDTH(rcClient) - picRightEdge;
     if (cxLeft > 0)
@@ -2298,7 +2288,7 @@ void CPicView::OnDraw(CDC *pDC)
         pDC->FillRect(&rect2, &brush);
     }
     // left:
-    CRect rect2(CPoint(0, 0), CSize(gutter.x, RECTHEIGHT(rcClient)));
+    CRect rect2(CPoint(-_xOrigin, 0), CSize(gutter.x, RECTHEIGHT(rcClient)));
     pDC->FillRect(&rect2, &brush);
 
 
