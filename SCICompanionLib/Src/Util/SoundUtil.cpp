@@ -126,17 +126,25 @@ void AudioComponentFromWaveFile(sci::istream &stream, AudioComponent &audio)
     stream >> chunkSize;
     WaveHeader header;
     stream >> header;
-    stream >> data;
-    stream >> dataSize;
+    static_assert(sizeof(WaveHeader) == 16, "bad wave header size");
 
     if ((riff != (*(uint32_t*)riffMarker)) ||
         (wave != (*(uint32_t*)waveMarker)) ||
         (fmt != (*(uint32_t*)fmtMarker)) ||
-        (data != (*(uint32_t*)dataMarker)) ||
-        (chunkSize != 16))
+        (chunkSize < sizeof(WaveHeader)))
     {
-        throw std::exception("Not a recognized wave file");
+        throw std::exception("Wave file: invalidate header.");
     }
+
+    // There might be some extra bytes in the header
+    stream.skip(chunkSize - sizeof(WaveHeader));
+    stream >> data;
+    if (data != (*(uint32_t*)dataMarker))
+    {
+        throw std::exception("Wave file: invalid data marker.");
+    }
+
+    stream >> dataSize;
 
     // Now validate the format
     if (header.formatTag != 1)
@@ -151,6 +159,15 @@ void AudioComponentFromWaveFile(sci::istream &stream, AudioComponent &audio)
     if ((header.bitsPerSample != 8) && (header.bitsPerSample != 16))
     {
         throw std::exception("Only 8 or 16 bit sound supported");
+    }
+
+    if (header.sampleRate > 22050)
+    {
+        AfxMessageBox("Warning: sounds with over 22050Hz may not play correctly in Sierra's interpreter.", MB_OK | MB_ICONWARNING);
+    }
+    if (header.formatTag != WAVE_FORMAT_PCM)
+    {
+        AfxMessageBox("Warning: Imported .wav is not PCM.", MB_OK | MB_ICONWARNING);
     }
 
     // Set up the AudioComponent and read the data.

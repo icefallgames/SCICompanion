@@ -88,7 +88,7 @@ public:
     ResourceEntity *GetVocabResourceToEdit();
     void ClearVocab000();
     SCIClassBrowser *GetClassBrowser() { return _classBrowser.get(); }
-    std::unique_ptr<ResourceEntity> CreateResourceFromNumber(ResourceType type, WORD wNumber);
+    std::unique_ptr<ResourceEntity> CreateResourceFromNumber(ResourceType type, int wNumber);
     void GetAllScripts(std::vector<ScriptId> &scripts);
 	void GetNumberToNameMap(std::unordered_map<WORD, std::string> &scos);
     void SetScriptLanguage(ScriptId script, LangSyntax language);

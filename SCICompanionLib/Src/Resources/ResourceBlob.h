@@ -326,7 +326,18 @@ public:
 
     // IResourceIdentifier
     int GetPackageHint() const override { return header.PackageHint; }
-    int GetNumber() const override { return header.Number; }
+    int GetNumber() const override
+    {
+        if (_hasNumber)
+        {
+            // 0xffff -> 65535
+            return (int)(uint16_t)header.Number;
+        }
+        else
+        {
+            return header.Number;
+        }
+    }
     ResourceType GetType() const override { return header.Type; }
     int GetChecksum() const override;
 
@@ -340,7 +351,7 @@ public:
     void SetName(PCTSTR pszName) { _SetName(pszName); }
     void SetNumber(int iNumber) { header.Number = iNumber; }
     void SetPackage(int iPackage) { header.PackageHint = (uint16_t)iPackage; }
-    BOOL HasNumber() const { return (header.Number != (uint16_t)-1); }  // Does this resource have a number (if you open it from a file, it won't)
+    BOOL HasNumber() const { return _hasNumber || (header.Number != (uint16_t)-1); }  // Does this resource have a number (if you open it from a file, it won't)
     SCIVersion GetVersion() const { return header.Version; }
     ResourceLoadStatusFlags GetStatusFlags() const { return _resourceLoadStatus; }
     void AddStatusFlags(ResourceLoadStatusFlags flags) const { _resourceLoadStatus |= flags;  }
@@ -353,7 +364,12 @@ public:
     ResourceHeaderAgnostic &GetHeader() { return header; }
 
 private:
-    void _Init(int iPackageNumber, int iResourceNumber) { header.PackageHint = iPackageNumber; header.Number = iResourceNumber; }
+    void _Init(int iPackageNumber, int iResourceNumber)
+    {
+        header.PackageHint = iPackageNumber;
+        header.Number = iResourceNumber;
+        _hasNumber = (iResourceNumber != -1);
+    }
     void _DecompressFromBits(sci::istream &byteStream);
     HRESULT _ReadBits(HANDLE hFile);
     void _SetName(PCTSTR pszName);
@@ -375,7 +391,8 @@ private:
     std::string _strName;
 
     mutable ResourceLoadStatusFlags _resourceLoadStatus;
-
+    // To distinguish 0x65535 from -1, we can use _hasNumber
+    bool _hasNumber;
     mutable bool _fComputedChecksum;
     mutable int _iChecksum;
 };

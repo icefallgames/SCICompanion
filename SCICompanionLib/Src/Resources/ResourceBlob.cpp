@@ -57,6 +57,7 @@ ResourceBlob::ResourceBlob()
     header.PackageHint = 1;
     _fComputedChecksum = false;
     _resourceLoadStatus = ResourceLoadStatusFlags::None;
+    _hasNumber = false;
 }
 
 ResourceBlob::ResourceBlob(PCTSTR pszName, ResourceType iType, const std::vector<BYTE> &data, int iPackageHint, int iNumber, SCIVersion version, ResourceSourceFlags sourceFlags)
@@ -68,6 +69,7 @@ ResourceBlob::ResourceBlob(PCTSTR pszName, ResourceType iType, const std::vector
     header.SourceFlags = sourceFlags;
     header.Type = iType;
     header.Number = (WORD)iNumber;
+    _hasNumber = (iNumber != -1);
     header.CompressionMethod = 0;
     header.cbDecompressed = (DWORD)data.size();
     header.cbCompressed = header.cbDecompressed;
@@ -106,6 +108,7 @@ HRESULT ResourceBlob::CreateFromBits(PCTSTR pszName, ResourceType iType, sci::is
         // REVIEW: do some validation
         header.Type = iType;
         header.Number = (WORD)iNumber;
+        _hasNumber = (iNumber != -1);
         header.CompressionMethod = 0;
         header.cbDecompressed = pStream->GetDataSize();
         header.cbCompressed = header.cbDecompressed;
@@ -290,6 +293,7 @@ void ResourceBlob::_DecompressFromBits(sci::istream &byteStream)
 void ResourceBlob::CreateFromPackageBits(const std::string &name, const ResourceHeaderAgnostic &prh, sci::istream &byteStream)
 {
     header = prh;
+    _hasNumber = true;
     _strName = name;
 
     _DecompressFromBits(byteStream);

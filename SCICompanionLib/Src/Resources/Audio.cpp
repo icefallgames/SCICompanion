@@ -108,47 +108,40 @@ void AudioReadFrom(ResourceEntity &resource, sci::istream &stream)
     audio.Frequency = header.sampleRate;
     audio.Flags = header.flags;
 
-    if (IsFlagSet(audio.Flags, AudioFlags::SixteenBit))
+    if (header.sizeExcludingHeader > 0)
     {
-        assert(IsFlagSet(audio.Flags, AudioFlags::Signed));
-        if (IsFlagSet(audio.Flags, AudioFlags::DPCM))
+        if (IsFlagSet(audio.Flags, AudioFlags::SixteenBit))
         {
-            uint32_t newSize = header.sizeExcludingHeader * 2;
-            audio.DigitalSamplePCM.assign(newSize, 0);
-            deDPCM16(&audio.DigitalSamplePCM[0], stream, header.sizeExcludingHeader);
-        }
-        else
-        {
-            // LSL6?
-            audio.DigitalSamplePCM.assign(header.sizeExcludingHeader, 0);
-            stream.read_data(&audio.DigitalSamplePCM[0], audio.DigitalSamplePCM.size());
-            /*
-            assert(audio.DigitalSamplePCM.size() % 2 == 0);
-            size_t samples = audio.DigitalSamplePCM.size() / 2;
-            int16_t *p = (int16_t *)&audio.DigitalSamplePCM[0];
-            uint16_t *pu = (uint16_t *)&audio.DigitalSamplePCM[0];
-            for (size_t i = 0; i < samples; i++)
+            assert(IsFlagSet(audio.Flags, AudioFlags::Signed));
+            if (IsFlagSet(audio.Flags, AudioFlags::DPCM))
             {
-                // Convert to unsigned?
-                *(pu + i) = (uint16_t)(*(p + i)) + 0x8000;
-            }*/
-        }
-    }
-    else
-    {
-        assert(!IsFlagSet(audio.Flags, AudioFlags::Signed));
-        if (IsFlagSet(audio.Flags, AudioFlags::DPCM))
-        {
-            // Decompress it - KQ6, ....
-            uint32_t newSize = header.sizeExcludingHeader * 2;
-            audio.DigitalSamplePCM.assign(newSize, 0);
-            deDPCM8(&audio.DigitalSamplePCM[0], stream, header.sizeExcludingHeader);
+                uint32_t newSize = header.sizeExcludingHeader * 2;
+                audio.DigitalSamplePCM.assign(newSize, 0);
+                deDPCM16(&audio.DigitalSamplePCM[0], stream, header.sizeExcludingHeader);
+            }
+            else
+            {
+                // LSL6?
+                audio.DigitalSamplePCM.assign(header.sizeExcludingHeader, 0);
+                stream.read_data(&audio.DigitalSamplePCM[0], audio.DigitalSamplePCM.size());
+            }
         }
         else
         {
-            // Copy it directly over, uncompressed. SQ5, ....
-            audio.DigitalSamplePCM.assign(header.sizeExcludingHeader, 0);
-            stream.read_data(&audio.DigitalSamplePCM[0], audio.DigitalSamplePCM.size());
+            assert(!IsFlagSet(audio.Flags, AudioFlags::Signed));
+            if (IsFlagSet(audio.Flags, AudioFlags::DPCM))
+            {
+                // Decompress it - KQ6, ....
+                uint32_t newSize = header.sizeExcludingHeader * 2;
+                audio.DigitalSamplePCM.assign(newSize, 0);
+                deDPCM8(&audio.DigitalSamplePCM[0], stream, header.sizeExcludingHeader);
+            }
+            else
+            {
+                // Copy it directly over, uncompressed. SQ5, ....
+                audio.DigitalSamplePCM.assign(header.sizeExcludingHeader, 0);
+                stream.read_data(&audio.DigitalSamplePCM[0], audio.DigitalSamplePCM.size());
+            }
         }
     }
 }

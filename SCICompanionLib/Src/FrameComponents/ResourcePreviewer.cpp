@@ -559,20 +559,6 @@ void SoundPreviewer::SetResource(const ResourceBlob &blob)
         m_wndSynths.EnableWindow(FALSE);
         m_wndChannels.ShowWindow(SW_HIDE);
     }
-    AudioComponent *audioComp = _sound->TryGetComponent<AudioComponent>();
-    if (audioComp)
-    {
-        m_wndDuration.SetWindowText((durationString + GetAudioLength(*audioComp)).c_str());
-
-        g_audioPlayback.SetAudio(audioComp);
-        // Put some information in the channels window
-        std::string info = fmt::format("{0}Hz, {1} bytes. {2} {3}",
-            audioComp->Frequency,
-            audioComp->GetLength(),
-            IsFlagSet(audioComp->Flags, AudioFlags::SixteenBit) ? "16-bit" : "8-bit",
-            IsFlagSet(audioComp->Flags, AudioFlags::DPCM) ? "DPCM" : "");
-        m_wndChannels.SetWindowTextA(info.c_str());
-    }
     OnSynthChoiceChange();
     if (m_wndAutoPreview.GetCheck() == BST_CHECKED)
     {
@@ -694,7 +680,7 @@ void SoundPreviewer::OnMIDIDeviceChange()
 
 bool SoundPreviewer::_IsPlaying()
 {
-    return g_midiPlayer.IsPlaying() || g_audioPlayback.IsPlaying();
+    return g_midiPlayer.IsPlaying();
 }
 
 void SoundPreviewer::_UpdatePlayState()
@@ -712,23 +698,12 @@ void SoundPreviewer::_UpdatePlayState()
 }
 void SoundPreviewer::OnPlay()
 {
-    AudioComponent *audio = _sound->TryGetComponent<AudioComponent>();
-    if (audio && audio->Frequency != 0)
-    {
-        g_audioPlayback.Stop();
-        g_audioPlayback.Play();
-        _UpdatePlayState();
-    }
-    else
-    {
-        g_midiPlayer.Play();
-        _UpdatePlayState();
-    }
+    g_midiPlayer.Play();
+    _UpdatePlayState();
 }
 void SoundPreviewer::OnStop()
 {
     g_midiPlayer.Stop();
-    g_audioPlayback.Stop();
     _UpdatePlayState();
 }
 void SoundPreviewer::OnTimer(UINT_PTR nIDEvent)
@@ -739,7 +714,154 @@ void SoundPreviewer::OnTimer(UINT_PTR nIDEvent)
         {
             m_wndSlider.SetPos(g_midiPlayer.QueryPosition(100));
         }
-        else if (g_audioPlayback.IsPlaying())
+        if (!_IsPlaying())
+        {
+            _UpdatePlayState();
+        }
+    }
+    else
+    {
+        __super::OnTimer(nIDEvent);
+    }
+}
+
+
+//
+// Audio previewer
+//
+BEGIN_MESSAGE_MAP(AudioPreviewer, ResourcePreviewer)
+    ON_BN_CLICKED(IDC_BUTTON_PLAY, OnPlay)
+    ON_BN_CLICKED(IDC_BUTTON_STOP, OnStop)
+    ON_WM_TIMER()
+END_MESSAGE_MAP()
+
+#define AUDIO_TIMER 5004
+
+AudioPreviewer::AudioPreviewer() : _lastVersion({})
+{
+}
+
+void AudioPreviewer::SetResource(const ResourceBlob &blob)
+{
+    // Add the items to the combobox.
+    if (blob.GetVersion() != _lastVersion)
+    {
+        _lastVersion = blob.GetVersion();
+    }
+
+    _audio = CreateResourceFromResourceData(blob);
+
+    std::string durationString = "Duration: ";
+    AudioComponent *audioComp = _audio->TryGetComponent<AudioComponent>();
+    if (audioComp)
+    {
+        m_wndDuration.SetWindowText((durationString + GetAudioLength(*audioComp)).c_str());
+        g_audioPlayback.SetAudio(audioComp);
+        // Put some information in the channels window
+        std::string info = fmt::format("{0}Hz, {1} bytes. {2} {3}",
+            audioComp->Frequency,
+            audioComp->GetLength(),
+            IsFlagSet(audioComp->Flags, AudioFlags::SixteenBit) ? "16-bit" : "8-bit",
+            IsFlagSet(audioComp->Flags, AudioFlags::DPCM) ? "DPCM" : "");
+        m_wndInfo.SetWindowTextA(info.c_str());
+    }
+    if (m_wndAutoPreview.GetCheck() == BST_CHECKED)
+    {
+        OnPlay();
+    }
+    else
+    {
+        OnStop();
+    }
+}
+
+void AudioPreviewer::DoDataExchange(CDataExchange* pDX)
+{
+    __super::DoDataExchange(pDX);
+
+    DDX_Control(pDX, IDC_EDIT_SAMPLEBIT, m_wndInfo);
+    DDX_Control(pDX, IDC_BUTTON_PLAY, m_wndPlay);
+    DDX_Control(pDX, IDC_BUTTON_STOP, m_wndStop);
+    DDX_Control(pDX, IDC_SLIDER, m_wndSlider);
+    DDX_Control(pDX, IDC_CHECK_AUTOPREV, m_wndAutoPreview);
+    DDX_Control(pDX, IDC_STATIC_DURATION, m_wndDuration);
+    DDX_Control(pDX, IDC_EDIT_DESCRIPTION, m_wndDescription);
+    m_wndDescription.SetWindowText("To add audio resources to the game, drag .wav files into the view. Files should be uncompressed 8 or 16 bit audio, 22050Hz or less.");
+
+    AddAnchor(IDC_SLIDER, CPoint(0, 0), CPoint(100, 0));
+    AddAnchor(IDC_EDIT_SAMPLEBIT, CPoint(0, 0), CPoint(100, 0));
+    AddAnchor(IDC_EDIT_DESCRIPTION, CPoint(0, 0), CPoint(100, 0));
+}
+
+BOOL AudioPreviewer::OnInitDialog()
+{
+    BOOL fRet = __super::OnInitDialog();
+    CRect rc;
+    GetClientRect(&rc);
+
+    CDC *pDC = GetDC();
+    {
+        LOGFONT logFont = { 0 };
+        StringCchCopy(logFont.lfFaceName, ARRAYSIZE(logFont.lfFaceName), "Marlett");
+        logFont.lfHeight = -MulDiv(10, GetDeviceCaps((HDC)*pDC, LOGPIXELSY), 72);
+        logFont.lfWeight = FW_NORMAL;
+        logFont.lfItalic = FALSE;
+        logFont.lfCharSet = DEFAULT_CHARSET;
+        logFont.lfOutPrecision = OUT_DEFAULT_PRECIS;
+        logFont.lfClipPrecision = CLIP_DEFAULT_PRECIS;
+        logFont.lfQuality = DEFAULT_QUALITY;
+        logFont.lfPitchAndFamily = FIXED_PITCH;
+        _marlettFont.CreateFontIndirect(&logFont);
+        m_wndPlay.SetFont(&_marlettFont);
+        m_wndStop.SetFont(&_marlettFont);
+    }
+
+    m_wndSlider.SetRange(0, 100);
+
+    _UpdatePlayState();
+
+    ReleaseDC(pDC);
+    return fRet;
+}
+
+bool AudioPreviewer::_IsPlaying()
+{
+    return g_audioPlayback.IsPlaying();
+}
+
+void AudioPreviewer::_UpdatePlayState()
+{
+    if (_IsPlaying())
+    {
+        SetTimer(AUDIO_TIMER, 100, NULL);
+    }
+    else
+    {
+        KillTimer(SOUND_TIMER);
+    }
+    m_wndPlay.EnableWindow(_audio.get() && !_IsPlaying());
+    m_wndStop.EnableWindow(_audio.get() && _IsPlaying());
+}
+void AudioPreviewer::OnPlay()
+{
+    AudioComponent *audio = _audio->TryGetComponent<AudioComponent>();
+    if (audio && (audio->Frequency != 0))
+    {
+        g_audioPlayback.Stop();
+        g_audioPlayback.Play();
+        _UpdatePlayState();
+    }
+}
+void AudioPreviewer::OnStop()
+{
+    g_audioPlayback.Stop();
+    _UpdatePlayState();
+}
+void AudioPreviewer::OnTimer(UINT_PTR nIDEvent)
+{
+    if (nIDEvent == AUDIO_TIMER)
+    {
+        if (g_audioPlayback.IsPlaying())
         {
             m_wndSlider.SetPos(g_audioPlayback.QueryPosition(100));
             g_audioPlayback.IdleUpdate();
@@ -754,6 +876,17 @@ void SoundPreviewer::OnTimer(UINT_PTR nIDEvent)
         __super::OnTimer(nIDEvent);
     }
 }
+
+
+
+
+
+
+
+
+
+
+
 
 //
 // Blank previewer

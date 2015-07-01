@@ -1166,7 +1166,7 @@ void CResourceMap::SetGameFolder(const string &gameFolder)
 }
 
 // Returns null if it doesn't exist.
-std::unique_ptr<ResourceEntity> CResourceMap::CreateResourceFromNumber(ResourceType type, WORD number)
+std::unique_ptr<ResourceEntity> CResourceMap::CreateResourceFromNumber(ResourceType type, int number)
 {
     std::unique_ptr<ResourceEntity> pResource;
     unique_ptr<ResourceBlob> data = MostRecentResource(type, number, true);

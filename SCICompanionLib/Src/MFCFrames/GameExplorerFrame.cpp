@@ -63,8 +63,10 @@ ResourcePreviewer *CGameExplorerFrame::_GetPreviewer(ResourceType iType)
                 pPreviewer = new FontPreviewer;
                 break;
             case ResourceType::Sound:
-            case ResourceType::Audio:
                 pPreviewer = new SoundPreviewer;
+                break;
+            case ResourceType::Audio:
+                pPreviewer = new AudioPreviewer;
                 break;
             case ResourceType::Patch:
             case ResourceType::Cursor:

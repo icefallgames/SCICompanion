@@ -226,3 +226,35 @@ private:
 };
 
 
+class AudioPreviewer : public ResourcePreviewer
+{
+public:
+    AudioPreviewer();
+    UINT GetIDD() { return IDD_PREVIEWAUDIO; }
+    void SetResource(const ResourceBlob &blob);
+
+private:
+    afx_msg void OnPlay();
+    afx_msg void OnStop();
+    afx_msg void OnTimer(UINT_PTR nIDEvent);
+    void _UpdatePlayState();
+    virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+    BOOL OnInitDialog();
+    DECLARE_MESSAGE_MAP()
+    bool _IsPlaying();
+
+    CExtEdit m_wndInfo;
+    CExtButton m_wndPlay;
+    CExtButton m_wndStop;
+    CExtSliderWnd m_wndSlider;
+    CExtCheckBox m_wndAutoPreview;
+    CExtLabel m_wndDuration;
+    CExtEdit m_wndDescription;
+
+    std::unique_ptr<ResourceEntity> _audio;
+
+    SCIVersion _lastVersion;
+    CFont _marlettFont;
+};
+
+
