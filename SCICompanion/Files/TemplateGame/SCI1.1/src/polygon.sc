@@ -10,7 +10,7 @@
         size 0
         points 0
         type $0001
-        dynamic 0
+        dynamic FALSE
     )
 
     (method (init param1)
@@ -18,9 +18,8 @@
         = size (/ paramTotal 2)
         = points Memory(memALLOC_CRIT (* 2 paramTotal))
         StrCpy(points @param1 neg * paramTotal 2)
-        = dynamic 1
+        = dynamic TRUE
     )
-
 
     (method (dispose)
         (if (dynamic and points)

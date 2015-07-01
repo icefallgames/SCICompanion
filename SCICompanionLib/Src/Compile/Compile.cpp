@@ -3285,7 +3285,6 @@ void Script::PreScan(CompileContext &context)
     }
     ForwardPreScan2(_defines, context);
 
-
     std::set<int> slots;
     for (auto &theExport : _exports)
     {

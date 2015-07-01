@@ -5,7 +5,7 @@
 (use "Obj")
 (script 945)
 
-
+// A MotionClass that follows a path around polygon obstacles.
 
 (class PolyPath of Motion
     (properties
@@ -31,7 +31,7 @@
         obstacles 0
     )
 
-    (method (init theClient theFinalX theFinalY theCaller param5 theObstacles)
+    (method (init theClient theFinalX theFinalY theCaller optimizationLevel theObstacles)
         (var temp0[30])
         (if (paramTotal)
             = client theClient
@@ -60,11 +60,11 @@
                         )
  
                         (if (>= paramTotal 5)
-                            param5
+                            optimizationLevel
                         )(else
                             1
                         )
-)
+								  )
                 (if (> paramTotal 3)
                     = caller theCaller
                 )
@@ -85,7 +85,7 @@
 
 
     (method (moveDone)
-        (if (== GetValueAt(points value) 30583)
+        (if (== GetValueAt(points value) $7777)
             (super:moveDone())
         )(else
             (self:
@@ -97,21 +97,21 @@
 
 
     (method (setTarget)
-        (var temp0, theX, theY, temp3, temp4[30])
-        (if (<> GetValueAt(points value) 30583)
+        (var pathResult, theX, theY, polyCount, temp4[30])
+        (if (<> GetValueAt(points value) $7777)
             = x GetValueAt(points value)
             = y GetValueAt(points ++value)
             ++value
-            (if (IsObject(gAltPolyList) and (= temp3 (send gAltPolyList:size)))
-                = temp0 AvoidPath((send client:x) (send client:y) x y (send gAltPolyList:elements) temp3 0)
-                = theX GetValueAt(temp0 2)
-                = theY GetValueAt(temp0 3)
+            (if (IsObject(gAltPolyList) and (= polyCount (send gAltPolyList:size)))
+                = pathResult AvoidPath((send client:x) (send client:y) x y (send gAltPolyList:elements) polyCount 0)
+                = theX GetValueAt(pathResult 2)
+                = theY GetValueAt(pathResult 3)
                 (if ((<> x theX) or (<> y theY))
                     = x theX
                     = y theY
-                    Memory(memPOKE (+ (+ points value) 2) 30583)
+                    Memory(memPOKE (+ (+ points value) 2) $7777)
                 )
-                Memory(memFREE temp0)
+                Memory(memFREE pathResult)
             )
         )
     )

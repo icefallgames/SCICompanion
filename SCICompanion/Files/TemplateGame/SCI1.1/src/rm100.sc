@@ -43,18 +43,6 @@
         )
         (send gUser:canInput(TRUE))
         (self:setScript(rmScript))
-        
- /*       
-        FormatPrint(
-    "Free Heap: %u Bytes\nLargest ptr: %u Bytes\nFreeHunk: %u KBytes\nLargest hunk: %u Bytes"
-    MemoryInfo(miFREEHEAP)
-    MemoryInfo(miLARGESTPTR)
-    (>> MemoryInfo(miFREEHUNK) 6)
-    MemoryInfo(miLARGESTHUNK)
-				   )
-	*/			   
-				   
-				   
     )
 
     (method (dispose param1)

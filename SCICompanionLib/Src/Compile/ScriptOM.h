@@ -1132,6 +1132,7 @@ namespace sci
         const ProcedureVector &GetProcedures() const { return _procedures; }
         ClassVector &GetClassesNC() { return _classes; }
         ProcedureVector &GetProceduresNC() { return _procedures; }
+        VariableDeclVector &GetScriptVariables() { return _scriptVariables; }
         WORD GetScriptNumber() const { return _scriptId.GetResourceNumber(); }
         void SetScriptNumber(WORD wNumber);
         void SetScriptNumberDefine(const std::string &define) { _scriptDefine = define; }

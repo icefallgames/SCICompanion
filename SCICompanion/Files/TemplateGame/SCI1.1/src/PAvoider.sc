@@ -10,7 +10,7 @@
     (var temp0, temp1[2], temp3, temp4)
     = temp3 -100
     = temp0 0
-    (while (<> temp3 30583)
+    (while (<> temp3 $7777)
         = temp3 GetValueAt(param1 (* 2 temp0))
         ++temp0
     )
@@ -106,7 +106,7 @@
             (switch (temp14)
                 (case 3
                     = temp17 (send ((Polygon:new())):
-                            init(temp5 (send client:y) temp5 temp6 temp7 temp6 temp7 (send client:y) 30583 0)
+                            init(temp5 (send client:y) temp5 temp6 temp7 temp6 temp7 (send client:y) $7777 0)
                             type(PBarredAccess)
                             name("isBlockedPoly")
                             yourself()
@@ -114,7 +114,7 @@
                 )
                 (case 2
                     = temp17 (send ((Polygon:new())):
-                            init(temp7 (send client:y) temp7 temp8 temp5 temp8 temp5 (send client:y) 30583 0)
+                            init(temp7 (send client:y) temp7 temp8 temp5 temp8 temp5 (send client:y) $7777 0)
                             type(PBarredAccess)
                             name("isBlockedPoly")
                             yourself()
@@ -122,7 +122,7 @@
                 )
                 (case 0
                     = temp17 (send ((Polygon:new())):
-                            init((send client:x) temp6 temp7 temp6 temp7 temp8 (send client:x) temp8 30583 0)
+                            init((send client:x) temp6 temp7 temp6 temp7 temp8 (send client:x) temp8 $7777 0)
                             type(PBarredAccess)
                             name("isBlockedPoly")
                             yourself()
@@ -130,7 +130,7 @@
                 )
                 (case 1
                     = temp17 (send ((Polygon:new())):
-                            init((send client:x) temp8 temp5 temp8 temp5 temp6 (send client:x) temp6 30583 0)
+                            init((send client:x) temp8 temp5 temp8 temp5 temp6 (send client:x) temp6 $7777 0)
                             type(PBarredAccess)
                             name("isBlockedPoly")
                             yourself()

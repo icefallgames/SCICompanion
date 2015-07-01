@@ -92,7 +92,7 @@
         (if (<= temp0 distance)
             (super:moveDone())
         )(else
-            (if (== GetValueAt(points value) 30583)
+            (if (== GetValueAt(points value) $7777)
                 (if (points)
                     Memory(memFREE points)
                 )

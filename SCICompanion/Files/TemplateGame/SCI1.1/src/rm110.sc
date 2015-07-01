@@ -31,7 +31,7 @@
     )
 
     (method (init)
-        SetUpPolys_110()
+        AddPolygonsToRoom(@P_Default110)
         (super:init())
         // Get the first inventory item
         (send gEgo:get(0))

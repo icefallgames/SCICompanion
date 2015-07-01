@@ -54,6 +54,14 @@ const COLORREF PolygonColors[] =
     RGB(196, 255, 196)
 };
 
+void _ClampPoint(CPoint &point)
+{
+    point.x = max(0, point.x);
+    point.y = max(0, point.y);
+    point.x = min(sPIC_WIDTH - 1, point.x);
+    point.y = min(sPIC_HEIGHT - 1, point.y);
+}
+
 void CommandModifier::Reset()
 {
     index = 0;
@@ -1476,6 +1484,7 @@ void CPicView::OnMouseMove(UINT nFlags, CPoint point)
     // Adjust to pic coords.
     _ptCurrentHover = _MapClientPointToPic(point);
     _SnapCoordinate(_ptCurrentHover);
+    _ClampPoint(_ptCurrentHover);
 
     bool needsImmediateUpdate = false;
 
@@ -2186,6 +2195,14 @@ void CPicView::OnDraw(CDC *pDC)
 {
     RECT rcClient;
     GetClientRect(&rcClient);
+
+    CRect rcClip;
+    if (pDC->GetClipBox(&rcClip))
+    {
+        OutputDebugString(
+            fmt::format("{0},{1} {2}x{3}\n", rcClip.left, rcClip.top, rcClip.Width(), rcClip.Height()).c_str()
+            );
+    }
 
     _AttachPicPlugin();
 

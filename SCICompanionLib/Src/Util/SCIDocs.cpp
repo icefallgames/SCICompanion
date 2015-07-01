@@ -856,7 +856,7 @@ public:
                     {
                         // variables sub-header
                         _GenerateSummarySubHeader("Global variables");
-                        for(auto &pVar : script.GetScriptVariables())
+                        for (auto &pVar : script.GetScriptVariables())
                         {
                             // Make the test be an anchor
                             std::string varTypeName = _GetVariableTypeAndName(pVar.get());

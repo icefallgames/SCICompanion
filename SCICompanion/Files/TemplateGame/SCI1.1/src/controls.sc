@@ -255,7 +255,7 @@ code_03c6:  pushi   2
             push    
             calle   GetValueAt, 4
             push    
-            ldi     30583
+            ldi     $7777
             ne?     
             bnt     code_0455
             pushi   2

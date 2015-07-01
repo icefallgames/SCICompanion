@@ -10,7 +10,7 @@
 (use "PolygonEdit")
 (use "DialogEdit")
 (use "FeatureWriter")
-(use "CueObj")
+(use "Feature")
 (use "SysWindow")
 (use "User")
 (use "View")

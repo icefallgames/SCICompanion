@@ -34,6 +34,7 @@ namespace sci
 	class ClassDefinition;
 	class Script;
     class PropertyValue;
+    class VariableDecl;
 }
 class CResourceMap;
 class IOutputByteCode;

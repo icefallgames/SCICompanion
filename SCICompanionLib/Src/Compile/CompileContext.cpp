@@ -269,6 +269,7 @@ void CompileContext::AddDefine(Define *pDefine)
     }
     _localDefines[defineLabel] = pDefine;
 }
+
 //
 // wIndex - index of the item.  Valid for all.
 // pwScript - script of the item.  Only valid for ResolvedToken::ExportInstance (wIndex and wScript)
@@ -1297,6 +1298,7 @@ void PrecompiledHeaders::Update(CompileContext &context, Script &script)
                     }
                     _defines[defineLabel] = (*defineIt).get(); // This is risky... I hope the container lifetime outlasts _defines.
                 }
+
                 context.SetErrorContext(pOldError);   // Now they're in the main script again.
             }
             ++nameIt;
@@ -1399,10 +1401,15 @@ void GenericOutputByteCode::operator()(const IOutputByteCode* proc)
 // Note: The items merged from scriptToBeMerged are removed from it.
 void MergeScripts(sci::Script &mainScript, sci::Script &scriptToBeMerged)
 {
-    // For now, just support procedures
+    // For now, just support procedures and local variables
     auto &procs = scriptToBeMerged.GetProceduresNC();
     for (auto &proc : procs)
     {
         mainScript.AddProcedure(move(proc));
+    }
+    auto &localVars = scriptToBeMerged.GetScriptVariables();
+    for (auto &localVar : localVars)
+    {
+        mainScript.AddVariable(move(localVar));
     }
 }

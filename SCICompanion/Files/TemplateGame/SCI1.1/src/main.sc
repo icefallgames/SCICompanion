@@ -15,6 +15,8 @@
     10 AddToScore
     11 HideStatus
     12 DebugPrint
+    13 AddPolygonsToRoom
+    14 CreateNewPolygon
 )
 (use "ColorInit")
 (use "Smopper")
@@ -319,6 +321,46 @@
 (procedure public (DebugPrint params)
 	(if (gDebugOut)
 		(send gDebugOut:debugPrint(rest params))
+	)
+)
+
+(procedure public (AddPolygonsToRoom polyBuffer)
+	(var polyCount)
+	(if (< polyBuffer 100)
+		TextPrint("polyBuffer is not a pointer. Polygon ignored.")
+	)(else
+		(= polyCount Memory(memPEEK polyBuffer))
+		(+= polyBuffer 2)
+		(while (polyCount)
+			(send gRoom:addObstacle(CreateNewPolygon(polyBuffer @polyBuffer)))
+			--polyCount
+		)
+	 )
+)
+
+// polyBuffer contains Type, point count, points
+(procedure public (CreateNewPolygon polyBuffer nextPoly)
+	(var newPoly, pointCount)
+	(if (< polyBuffer 100)
+		TextPrint("polyBuffer is not a pointer. Polygon ignored.")
+		return NULL
+	)(else
+		(= newPoly (Polygon:new()))
+		(= pointCount (Memory(memPEEK (+ polyBuffer 2))))
+		(send newPoly:
+			dynamic(TRUE)
+			type(Memory(memPEEK polyBuffer))
+			size(pointCount)
+			points(Memory(memALLOC_CRIT (* 4 pointCount)))
+		)
+		// Copy the points into the new buffer. -ve length means don't check for null (since this isn't a string)
+		StrCpy((send newPoly:points) (+ polyBuffer 4)  (neg (* 4 pointCount)))	
+		
+		// Tell the caller the position of the next poly, if they care:
+		(if (> paramTotal 1)
+			Memory(memPOKE nextPoly (+ polyBuffer (+ 4 (* 4 pointCount))))
+		)
+		return newPoly
 	)
 )
 
