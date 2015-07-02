@@ -745,7 +745,7 @@ CAPTION "About SCICompanion"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     ICON            IDR_MAINFRAME,IDC_STATIC4,11,17,20,20
-    LTEXT           "SCICompanion version 3.0.0.7",IDC_STATIC1,50,7,101,8,SS_NOPREFIX
+    LTEXT           "SCICompanion version 3.0.0.8",IDC_STATIC1,50,7,101,8,SS_NOPREFIX
     LTEXT           "Copyright (C) 2015",IDC_STATIC2,50,25,119,8
     DEFPUSHBUTTON   "OK",IDOK,208,7,50,16,BS_FLAT | WS_GROUP
     LTEXT           "By Phil Fortier (IceFall Games)\n\n\nParts of code (""Crystal Edit"" text editor) by Andrei Stcherbatchenko\n\nContains decompression routines from the ScummVM project.\n\ncppformat library  Copyright (c) 2012 - 2015, Victor Zverovich",IDC_STATIC3,50,48,189,115
@@ -1704,12 +1704,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "IceFall Games"
             VALUE "FileDescription", "SCICompanion"
-            VALUE "FileVersion", "3.0.0.7"
+            VALUE "FileVersion", "3.0.0.8"
             VALUE "InternalName", "SCICompanion.exe"
             VALUE "LegalCopyright", "(c) IceFall Games.  All rights reserved."
             VALUE "OriginalFilename", "SCICompanion.exe"
             VALUE "ProductName", "SCI Companion 3"
-            VALUE "ProductVersion", "3.0.0.7"
+            VALUE "ProductVersion", "3.0.0.8"
         END
     END
     BLOCK "VarFileInfo"
