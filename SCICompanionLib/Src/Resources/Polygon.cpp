@@ -5,16 +5,12 @@
 #include "CompileContext.h"
 #include "ScriptMakerHelper.h"
 
-#define OLD_STUFF 1
-
 using namespace std;
 using namespace sci;
 
-const char c_szAddObstacleSelector[] = "addObstacle";
-const char c_szTypeSelector[] = "type";
-const char c_szInitSelector[] = "init";
-const char c_szRoomName[] = "gRoom";
-const char c_szDefaultPolyName[] = "P_Default";
+const char c_szDefaultPolyName[] = "P_Default";                 // P_Default[nnn] where [nnn] is the pic number.
+const char c_szAddPolysToRoomFunction[] = "AddPolygonsToRoom";  // The export in main for SCI1.1 template game.
+
 const string AccessType[] =
 {
     "PTotalAccess",
@@ -25,7 +21,7 @@ const string AccessType[] =
 
 unique_ptr<ProcedureCall> GetSetUpPolyProcedureCall(int picResource)
 {
-    unique_ptr<ProcedureCall> procCall = make_unique<ProcedureCall>("AddPolygonsToRoom");
+    unique_ptr<ProcedureCall> procCall = make_unique<ProcedureCall>(c_szAddPolysToRoomFunction);
     _AddStatement(*procCall, make_unique<PropertyValue>(fmt::format("{0}{1}", c_szDefaultPolyName, picResource), ValueType::Pointer));
     return procCall;
 }
@@ -103,7 +99,6 @@ public:
 
     void ExploreNode(IExploreNodeContext *pContext, SyntaxNode &node, ExploreNodeState state) override
     {
-        // REVIEW: We could do more validation here (procedure name, etc...), but for now we can just look for things we're interested in.
         if (state == ExploreNodeState::Pre)
         {
             VariableDecl *varDecl = SafeSyntaxNode<VariableDecl>(&node);
@@ -120,55 +115,6 @@ public:
                     _ExtractPolygonsFromStatements(varDecl->GetName(), _polySource, varDecl->GetStatements());
                 }
             }
-
-#ifdef OLD_STUFF
-            SendParam *sendParam = SafeSyntaxNode<SendParam>(&node);
-            if (sendParam)
-            {
-                if (sendParam->GetName() == c_szAddObstacleSelector)
-                {
-                    // New polygon
-                    _polySource.AppendPolygon(SCIPolygon());
-                }
-                else if ((sendParam->GetName() == c_szTypeSelector) && sendParam->HasValue())
-                {
-                    // The polygon type
-                    const ComplexPropertyValue *value = SafeSyntaxNode<ComplexPropertyValue>(sendParam->GetStatements()[0]->GetSyntaxNode());
-                    if (value)
-                    {
-                        auto it = find(begin(AccessType), end(AccessType), value->GetStringValue());
-                        auto foo = begin(AccessType);
-                        size_t index = it - foo;
-                        _polySource.GetBack()->Type = (PolygonType)index;
-                    }
-                }
-                else if (sendParam->GetName() == c_szInitSelector)
-                {
-                    SCIPolygon *polygon = _polySource.GetBack();
-                    point16 newPoint;
-                    bool startNewPoint = true;
-                    // The polygon points
-                    for (auto &statement : sendParam->GetStatements())
-                    {
-                        const ComplexPropertyValue *value = SafeSyntaxNode<ComplexPropertyValue>(statement->GetSyntaxNode());
-                        if (value)
-                        {
-                            int16_t numberValue = (int16_t)value->GetNumberValue();
-                            if (startNewPoint)
-                            {
-                                newPoint.x = numberValue;
-                            }
-                            else
-                            {
-                                newPoint.y = numberValue;
-                                polygon->AppendPoint(newPoint);
-                            }
-                            startNewPoint = !startNewPoint;
-                        }
-                    }
-                }
-            }
-#endif
         }
     }
 
