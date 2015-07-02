@@ -277,6 +277,7 @@
 #define IDD_OUTPUTPANE                  383
 #define IDI_STOPDEBUG                   384
 #define IDD_PREVIEWAUDIO                384
+#define IDD_CONVERTTOPALETTE            385
 #define IDC_CHOOSECOLORSTATIC           1001
 #define IDC_BUTTON1                     1003
 #define IDC_BUTTONDOWN                  1003
@@ -609,8 +610,9 @@
 #define IDC_STATICNAME                  1292
 #define IDC_TABWHICHLIST                1293
 #define IDC_EDIT_SAMPLEBIT              1294
-#define IDC_EDIT_SAMPLEBIT2             1295
 #define IDC_EDIT_DESCRIPTION            1295
+#define IDC_COMBOFROM                   1295
+#define IDC_COMBOTO                     1296
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -871,6 +873,7 @@
 #define ID_SCRIPT_DEBUGROOM             33195
 #define ID_Menu33196                    33196
 #define ID_OBSERVEPOLYGONS              33197
+#define ID_VIEW_REMAPPALETTE            33198
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -878,9 +881,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        385
-#define _APS_NEXT_COMMAND_VALUE         33198
-#define _APS_NEXT_CONTROL_VALUE         1295
+#define _APS_NEXT_RESOURCE_VALUE        386
+#define _APS_NEXT_COMMAND_VALUE         33199
+#define _APS_NEXT_CONTROL_VALUE         1297
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

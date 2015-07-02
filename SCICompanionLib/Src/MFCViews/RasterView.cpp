@@ -14,6 +14,7 @@
 #include "PaletteOperations.h"
 #include "PaletteEditorDialog.h"
 #include "ImageUtil.h"
+#include "ConvertFromToPaletteDialog.h"
 
 // Thickness of the sizers around the image:
 #define SIZER_SIZE 6
@@ -424,6 +425,7 @@ BEGIN_MESSAGE_MAP(CRasterView, CScrollingThing<CView>)
     ON_COMMAND(ID_VIEW_ZOOMOUT, _OnZoomRClick)
     ON_COMMAND(ID_VIEW_EDITPALETTE, EditVGAPalette)
     ON_COMMAND(ID_VIEW_REMOVEEMBEDDEDPALETTE, RemoveVGAPalette)
+    ON_COMMAND(ID_VIEW_REMAPPALETTE, RemapPalette)
     ON_WM_RBUTTONDOWN()
     ON_WM_LBUTTONDOWN()
     ON_WM_LBUTTONUP()
@@ -465,6 +467,7 @@ BEGIN_MESSAGE_MAP(CRasterView, CScrollingThing<CView>)
     ON_UPDATE_COMMAND_UI(ID_GREYSCALE, OnUpdateEGAOnly)
     ON_UPDATE_COMMAND_UI(ID_VIEW_EDITPALETTE, OnUpdateIsVGA)
     ON_UPDATE_COMMAND_UI(ID_VIEW_REMOVEEMBEDDEDPALETTE, OnUpdateHasVGAPalette)
+    ON_UPDATE_COMMAND_UI(ID_VIEW_REMAPPALETTE, OnUpdateIsVGA)
 END_MESSAGE_MAP()
 
 
@@ -3051,6 +3054,44 @@ void CRasterView::EditVGAPalette()
                 }
             }
        }
+    }
+}
+
+void _RemapPaletteWorker(RasterComponent &raster, const PaletteComponent &from, const PaletteComponent &to)
+{
+    for (Loop &loop : raster.Loops)
+    {
+        if (!loop.IsMirror)
+        {
+            for (Cel &cel : loop.Cels)
+            {
+                ConvertCelToNewPalette(nullptr, cel, from, cel.TransparentColor, false, false, 256, to.Mapping, to.Colors);
+            }
+        }
+    }
+}
+
+void CRasterView::RemapPalette()
+{
+    CNewRasterResourceDocument *pDoc = GetDoc();
+    if (pDoc)
+    {
+        pDoc->ApplyChanges<RasterComponent>(
+            [](RasterComponent &raster)
+        {
+            RasterChangeHint hint = RasterChangeHint::None;
+            ConvertFromToPaletteDialog remapPaletteDialog;
+            if (IDOK == remapPaletteDialog.DoModal())
+            {
+                std::unique_ptr<ResourceEntity> fromPalette = appState->GetResourceMap().CreateResourceFromNumber(ResourceType::Palette, remapPaletteDialog.From);
+                std::unique_ptr<ResourceEntity> toPalette = appState->GetResourceMap().CreateResourceFromNumber(ResourceType::Palette, remapPaletteDialog.To);
+                _RemapPaletteWorker(raster, fromPalette->GetComponent<PaletteComponent>(), toPalette->GetComponent<PaletteComponent>());
+                hint |= RasterChangeHint::NewView;
+            }
+            return WrapHint(hint);
+        });
+        
+        // TODO: switch to new palette in document.
     }
 }
 

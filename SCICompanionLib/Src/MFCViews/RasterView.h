@@ -264,6 +264,7 @@ private:
     afx_msg void OnGreyScale();
     afx_msg void EditVGAPalette();
     afx_msg void RemoveVGAPalette();
+    afx_msg void RemapPalette();
 
     void _OnDrawCommand(ViewToolType type);
     void _OnDraw(CDC* pDC);

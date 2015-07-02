@@ -485,6 +485,7 @@ BEGIN
         MENUITEM "&Animate",                    ID_ANIMATE
         MENUITEM "Edit &palette",               ID_VIEW_EDITPALETTE
         MENUITEM "&Remove embedded palette",    ID_VIEW_REMOVEEMBEDDEDPALETTE
+        MENUITEM "Re&map palette",              ID_VIEW_REMAPPALETTE
     END
     POPUP "Voca&b"
     BEGIN
@@ -1665,6 +1666,19 @@ BEGIN
     EDITTEXT        IDC_EDIT_DESCRIPTION,7,71,139,56,ES_MULTILINE | ES_READONLY
 END
 
+IDD_CONVERTTOPALETTE DIALOGEX 0, 0, 151, 69
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Convert to new palette"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,39,48,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,95,48,50,14
+    RTEXT           "From:",IDC_STATIC1,7,7,31,8
+    COMBOBOX        IDC_COMBOFROM,51,4,93,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    RTEXT           "To:",IDC_STATIC2,7,23,31,8
+    COMBOBOX        IDC_COMBOTO,51,21,93,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2260,6 +2274,15 @@ BEGIN
         RIGHTMARGIN, 146
         TOPMARGIN, 7
         BOTTOMMARGIN, 223
+    END
+
+    IDD_CONVERTTOPALETTE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 144
+        VERTGUIDE, 39
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 62
     END
 END
 #endif    // APSTUDIO_INVOKED

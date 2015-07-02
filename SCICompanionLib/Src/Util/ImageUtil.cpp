@@ -425,7 +425,7 @@ void ConvertBitmapToCel(int *trackUsage, Gdiplus::Bitmap &bitmap, uint8_t transp
     }
 }
 
-void ConvertCelToNewPalette(int *trackUsage, Cel &cel, PaletteComponent &currentPalette, uint8_t transparentColor, bool isEGA16, bool egaDither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *colors)
+void ConvertCelToNewPalette(int *trackUsage, Cel &cel, const PaletteComponent &currentPalette, uint8_t transparentColor, bool isEGA16, bool egaDither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *colors)
 {
     bool write = (trackUsage == nullptr);
     if (trackUsage)

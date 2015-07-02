@@ -211,6 +211,7 @@
     <ClCompile Include="Src\Compile\TarjanAlgorithm.cpp" />
     <ClCompile Include="Src\Dialogs\BitmapToVGADialog.cpp" />
     <ClCompile Include="Src\Dialogs\ChooseColorDialogVGA.cpp" />
+    <ClCompile Include="Src\Dialogs\ConvertFromToPaletteDialog.cpp" />
     <ClCompile Include="Src\Dialogs\DecompileDialog.cpp" />
     <ClCompile Include="Src\Dialogs\ExtractAllDialog.cpp" />
     <ClCompile Include="Src\Dialogs\GradientDialog.cpp" />
@@ -259,6 +260,7 @@
     <ClInclude Include="Src\Compile\DecompilerNew.h" />
     <ClInclude Include="Src\Compile\DecompilerResults.h" />
     <ClInclude Include="Src\cpptoml\cpptoml.h" />
+    <ClInclude Include="Src\Dialogs\ConvertFromToPaletteDialog.h" />
     <ClInclude Include="Src\Dialogs\DecompileDialog.h" />
     <ClInclude Include="Src\Dialogs\GradientDialog.h" />
     <ClInclude Include="Src\Dialogs\PaletteEditorCommon.h" />
