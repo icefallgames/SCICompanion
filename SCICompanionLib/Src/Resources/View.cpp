@@ -266,6 +266,9 @@ int GetNextIdenticalPixelCount(const uint8_t *pData, int x, int y, int cx, uint8
     return count;
 }
 
+// Sierra actually handles 127 (63 + 64) here, but SV.exe barfs on it, so limit ourselves to 63.
+const int MaxDifferentPixelCount = 63;
+
 // The way this works is:
 //  - sequences of 2 are allowed in these sequences (since it would end up
 //      costing the same just to keep going), unless they are immediately
@@ -280,7 +283,7 @@ int GetNextDifferentPixelCount(const uint8_t *pData, int x, int y, int cx, uint8
         uint8_t nextColor;
         int identicalColorCount = 1;
         int previousIdenticalColorCountSequence = 0;
-        while ((count < (127)) && (GetNextPixel(pData, x, y, cx, &nextColor) == GNPResult::Ok))
+        while ((count < MaxDifferentPixelCount) && (GetNextPixel(pData, x, y, cx, &nextColor) == GNPResult::Ok))
         {
             count++;
             if (nextColor == previousColor)
