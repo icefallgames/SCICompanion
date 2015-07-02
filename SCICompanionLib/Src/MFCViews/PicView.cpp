@@ -2288,10 +2288,10 @@ void CPicView::OnDraw(CDC *pDC)
     CRect rectTop(CPoint(0, -_yOrigin), CSize(RECTWIDTH(rcClient), gutter.y));
     pDC->FillRect(&rectTop, &brush);
 
-    int cxLeft = RECTWIDTH(rcClient) - picRightEdge;
-    if (cxLeft > 0)
+    int yRight = picRightEdge - _xOrigin;
+    if (rcClient.right > yRight)
     {
-        CRect rect2(CPoint(picRightEdge, 0), CSize(cxLeft, RECTHEIGHT(rcClient)));
+        CRect rect2(CPoint(yRight, 0), CSize(rcClient.right - yRight, RECTHEIGHT(rcClient)));
         pDC->FillRect(&rect2, &brush);
     }
     // left:
