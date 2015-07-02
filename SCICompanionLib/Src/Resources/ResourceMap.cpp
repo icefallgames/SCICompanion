@@ -1152,12 +1152,21 @@ void CResourceMap::SetGameFolder(const string &gameFolder)
     _gameFolderHelper.Language = LangSyntaxUnknown;
     if (!gameFolder.empty())
     {
-        // We get here when we close documents.
-        _SniffSCIVersion();
-        // Send initial load notification
-        for_each(_syncs.begin(), _syncs.end(), bind2nd(mem_fun(&ISyncResourceMap::OnResourceMapReloaded), true));
+        try
+        {
+            // We get here when we close documents.
+            _SniffSCIVersion();
+            // Send initial load notification
+            for_each(_syncs.begin(), _syncs.end(), bind2nd(mem_fun(&ISyncResourceMap::OnResourceMapReloaded), true));
 
-        _paletteListNeedsUpdate = true;
+            _paletteListNeedsUpdate = true;
+        }
+        catch (std::exception &e)
+        {
+            AfxMessageBox(fmt::format("Unable to open resource map: {0}", e.what()).c_str(), MB_OK | MB_ICONWARNING);
+            _gameFolderHelper.GameFolder = "";
+            AfxThrowUserException();
+        }
     }
 
     AbortDebuggerThread();

@@ -27,7 +27,12 @@ ResourceHeaderAgnostic ReadResourceHeader(sci::istream &byteStream, SCIVersion v
         // Or make an empty resource.
         throw std::exception("corrupted resource!");
     }
-    return rh.ToAgnostic(version, sourceFlags, packageHint);
+    ResourceHeaderAgnostic rhAgnostic = rh.ToAgnostic(version, sourceFlags, packageHint);
+    if ((rhAgnostic.cbCompressed == 0) || (rhAgnostic.cbDecompressed == 0))
+    {
+        throw std::exception("corrupted resource!");
+    }
+    return rhAgnostic;
 }
 
 template<typename _VersionHeader>
