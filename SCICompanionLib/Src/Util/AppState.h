@@ -127,7 +127,7 @@ public:
     bool _fAllowBraceSyntax;
     BOOL _fAutoLoadGame;
     BOOL _fDupeNewCels;
-    BOOL _fSCI01;
+    BOOL _fShowPolyDotted;
     BOOL _fBrowseInfo;
     BOOL _fParamInfo;
     BOOL _fCodeCompletion;

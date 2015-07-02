@@ -51,7 +51,7 @@ void CPreferencesDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Check(pDX, IDC_CHECKAUTOLOADGAME, appState->_fAutoLoadGame);
     DDX_Check(pDX, IDC_CHECKDUPENEWCELS, appState->_fDupeNewCels);
     DDX_Check(pDX, IDC_CHECKUSEBOXEGO, appState->_fUseBoxEgo);
-    DDX_Check(pDX, IDC_CHECKSCI01, appState->_fSCI01);
+    DDX_Check(pDX, IDC_CHECKSCI01, appState->_fShowPolyDotted);
 
     DDX_Check(pDX, IDC_BROWSEINFO, appState->_fBrowseInfo);
     DDX_Check(pDX, IDC_PARAMINFO, appState->_fParamInfo);

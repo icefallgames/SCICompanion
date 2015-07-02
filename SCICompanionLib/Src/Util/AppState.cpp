@@ -90,7 +90,7 @@ AppState::AppState(CWinApp *pApp)
     _fAutoLoadGame = TRUE;
     _fDupeNewCels = TRUE;
     _fUseBoxEgo = FALSE;
-    _fSCI01 = FALSE;
+    _fShowPolyDotted = FALSE;
     _fBrowseInfo = FALSE;
     _fParamInfo = TRUE;
     _fCodeCompletion = TRUE;

@@ -484,7 +484,7 @@ void SCICompanionApp::_LoadSettings(BOOL fReset)
     appState->_fAllowBraceSyntax = GetProfileInt(pszRegName, TEXT("AllowBraceSyntax"), FALSE) != 0;
     appState->_fAutoLoadGame = GetProfileInt(pszRegName, TEXT("AutoLoadGame"), FALSE);
     appState->_fDupeNewCels = GetProfileInt(pszRegName, TEXT("DupeNewCels"), TRUE);
-    appState->_fSCI01 = GetProfileInt(pszRegName, TEXT("SCI01Compat"), FALSE);
+    appState->_fShowPolyDotted = GetProfileInt(pszRegName, TEXT("ShowPolyDotted"), FALSE);
     appState->_fBrowseInfo = GetProfileInt(pszRegName, TEXT("BrowseInfo"), FALSE);
     appState->_fParamInfo = GetProfileInt(pszRegName, TEXT("ParamInfo"), TRUE);
     appState->_fCodeCompletion = GetProfileInt(pszRegName, TEXT("CodeCompletion"), TRUE);
@@ -506,7 +506,7 @@ void SCICompanionApp::_SaveSettings()
     WriteProfileInt(m_pszAppName, TEXT("AllowBraceSyntax"), appState->_fAllowBraceSyntax);
     WriteProfileInt(m_pszAppName, TEXT("AutoLoadGame"), appState->_fAutoLoadGame);
     WriteProfileInt(m_pszAppName, TEXT("DupeNewCels"), appState->_fDupeNewCels);
-    WriteProfileInt(m_pszAppName, TEXT("SCI01Compat"), appState->_fSCI01);
+    WriteProfileInt(m_pszAppName, TEXT("ShowPolyDotted"), appState->_fShowPolyDotted);
     WriteProfileInt(m_pszAppName, TEXT("BrowseInfo"), appState->_fBrowseInfo);
     WriteProfileInt(m_pszAppName, TEXT("ParamInfo"), appState->_fParamInfo);
     WriteProfileInt(m_pszAppName, TEXT("CodeCompletion"), appState->_fCodeCompletion);
@@ -589,7 +589,7 @@ void SCICompanionApp::OnForums()
 
 void SCICompanionApp::OnTutorials()
 {
-    ShellExecute(NULL, "open", "http://sciwiki.sierrahelp.com//index.php?title=SCI_Tutorials", "", "", SW_SHOWNORMAL);
+    ShellExecute(NULL, "open", "http://sciprogramming.com/tutorial.php?entry=6693", "", "", SW_SHOWNORMAL);
 }
 
 void SCICompanionApp::OnDocumentation()
