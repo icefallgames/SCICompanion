@@ -1262,7 +1262,7 @@ void CPicView::OnCommandUIStatus(CCmdUI *pCmdUI)
         StringCchPrintf(szText, ARRAYSIZE(szText), "Pri bar: %2d", PriorityFromY((uint16_t)y, *pstate));
         pCmdUI->SetText(szText);
     }
-    else if ((_ptCurrentHover.x < sPIC_WIDTH) && (_ptCurrentHover.y < sPIC_HEIGHT))
+    else if ((_ptCurrentHover.x >= 0) && (_ptCurrentHover.y >= 0) && (_ptCurrentHover.x < sPIC_WIDTH) && (_ptCurrentHover.y < sPIC_HEIGHT))
     {
         const uint8_t *picBits = _GetDrawManager().GetPicBits(_mainViewScreen, PicPosition::PrePlugin);
         uint8_t bColor = *(picBits + BUFFEROFFSET(_ptCurrentHover.x, _ptCurrentHover.y));
