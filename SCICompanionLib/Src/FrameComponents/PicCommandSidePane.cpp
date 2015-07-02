@@ -679,12 +679,11 @@ void PicCommandSidePane::_UpdatePolyItemCount()
         const PolygonComponent *polygonSource = _pDoc->GetPolygonComponent();
         if (polygonSource)
         {
-            // Store off the top index
-            int iTopIndex = (int)m_wndListPolygons.SendMessage(LB_GETTOPINDEX, 0, 0);
-            // Add one to the command count, so we have an item that represents "the beginning"
+            // Store off the selection
+            int selection = (int)m_wndListPolygons.GetCurSel();
             m_wndListPolygons.SendMessage(LB_SETCOUNT, polygonSource->Polygons().size(), 0);
-            // Restore the top index.
-            m_wndListPolygons.SendMessage(LB_SETTOPINDEX, iTopIndex, 0);
+            // Restore selection
+            m_wndListPolygons.SetCurSel(selection);
         }
     }
 }
@@ -816,6 +815,7 @@ void PicCommandSidePane::UpdateNonView(CObject *pObject)
     if (IsFlagSet(hint, PicChangeHint::PolygonsChanged))
     {
         _UpdatePolyItemCount();
+        hint |= PicChangeHint::PolygonChoice;
     }
 
     if (IsFlagSet(hint, PicChangeHint::PolygonChoice))

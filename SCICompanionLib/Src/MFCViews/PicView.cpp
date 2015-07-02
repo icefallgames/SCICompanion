@@ -61,6 +61,13 @@ void _ClampPoint(CPoint &point)
     point.x = min(sPIC_WIDTH - 1, point.x);
     point.y = min(sPIC_HEIGHT - 1, point.y);
 }
+void _ClampPoint(point16 &point)
+{
+    point.x = max(0, point.x);
+    point.y = max(0, point.y);
+    point.x = min(sPIC_WIDTH - 1, point.x);
+    point.y = min(sPIC_HEIGHT - 1, point.y);
+}
 
 void CommandModifier::Reset()
 {
@@ -1483,7 +1490,6 @@ void CPicView::OnMouseMove(UINT nFlags, CPoint point)
     // Adjust to pic coords.
     _ptCurrentHover = _MapClientPointToPic(point);
     _SnapCoordinate(_ptCurrentHover);
-    _ClampPoint(_ptCurrentHover);
 
     bool needsImmediateUpdate = false;
 
@@ -1545,6 +1551,7 @@ void CPicView::OnMouseMove(UINT nFlags, CPoint point)
             _currentDragPolyPoint = _startDragPolyPoint;
             _currentDragPolyPoint.x += dx;
             _currentDragPolyPoint.y += dy;
+            _ClampPoint(_currentDragPolyPoint);
             needsImmediateUpdate = true;
         }
         else if (_transformingCoords && (_currentTool != None))
@@ -3473,6 +3480,12 @@ void CPicView::OnLButtonDown(UINT nFlags, CPoint point)
 {
     // Don't do anything if this is off the picture.
     CPoint ptPic = _MapClientPointToPic(point);
+
+    if (_currentTool == Polygons)
+    {
+        // Make it easy to put polygons up to the image boundaries:
+        _ClampPoint(ptPic);
+    }
 
     // The out of bounds check doesn't apply to fake ego.
     if ((_currentTool == None) && _fShowingEgo && _HitTestFakeEgo(ptPic))
