@@ -2,7 +2,7 @@
 // This file should only be edited with the SCI Companion polygon editor
 
 (local
-    P_Default110[27] = (2 PBarredAccess 6 197 60 269 68 286 85 267 101 225 101 202 89 PBarredAccess 5 0 63 45 67 47 87 22 96 0 97 )
-    P_Bottom[10] = (PBarredAccess 4 79 146 220 155 204 168 59 166 )
+    P_Default110[27] = (2 PBarredAccess 6 208 68 269 68 286 85 267 101 225 101 202 89 PBarredAccess 5 0 63 45 68 47 87 22 96 0 97 )
+    P_Bottom[11] = (1 PBarredAccess 4 79 146 234 155 230 171 59 166 )
 
 )

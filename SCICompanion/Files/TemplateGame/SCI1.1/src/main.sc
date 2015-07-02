@@ -324,6 +324,25 @@
 	)
 )
 
+(procedure (CreateNewPolygonHelper polyBuffer nextPoly)
+	(var newPoly, pointCount)
+	(= newPoly (Polygon:new()))
+	(= pointCount (Memory(memPEEK (+ polyBuffer 2))))
+	(send newPoly:
+		dynamic(FALSE)
+		type(Memory(memPEEK polyBuffer))
+		size(pointCount)
+		// Use the points directly from the buffer:
+		points(+ polyBuffer 4)
+	)
+	
+	// Tell the caller the position of the next poly, if they care:
+	(if (> paramTotal 1)
+		Memory(memPOKE nextPoly (+ polyBuffer (+ 4 (* 4 pointCount))))
+	)
+	return newPoly
+)
+
 (procedure public (AddPolygonsToRoom polyBuffer)
 	(var polyCount)
 	(if (< polyBuffer 100)
@@ -332,36 +351,22 @@
 		(= polyCount Memory(memPEEK polyBuffer))
 		(+= polyBuffer 2)
 		(while (polyCount)
-			(send gRoom:addObstacle(CreateNewPolygon(polyBuffer @polyBuffer)))
+			(send gRoom:addObstacle(CreateNewPolygonHelper(polyBuffer @polyBuffer)))
 			--polyCount
 		)
 	 )
 )
 
-// polyBuffer contains Type, point count, points
-(procedure public (CreateNewPolygon polyBuffer nextPoly)
-	(var newPoly, pointCount)
+(procedure public (CreateNewPolygon polyBuffer nextPolyOptional)
+	(var polyCount)
 	(if (< polyBuffer 100)
 		TextPrint("polyBuffer is not a pointer. Polygon ignored.")
 		return NULL
 	)(else
-		(= newPoly (Polygon:new()))
-		(= pointCount (Memory(memPEEK (+ polyBuffer 2))))
-		(send newPoly:
-			dynamic(TRUE)
-			type(Memory(memPEEK polyBuffer))
-			size(pointCount)
-			points(Memory(memALLOC_CRIT (* 4 pointCount)))
-		)
-		// Copy the points into the new buffer. -ve length means don't check for null (since this isn't a string)
-		StrCpy((send newPoly:points) (+ polyBuffer 4)  (neg (* 4 pointCount)))	
-		
-		// Tell the caller the position of the next poly, if they care:
-		(if (> paramTotal 1)
-			Memory(memPOKE nextPoly (+ polyBuffer (+ 4 (* 4 pointCount))))
-		)
-		return newPoly
-	)
+		(= polyCount Memory(memPEEK polyBuffer))
+		(+= polyBuffer 2)
+		return CreateNewPolygonHelper(polyBuffer nextPolyOptional)
+	 )
 )
 
 (instance rm0Sound of Sound

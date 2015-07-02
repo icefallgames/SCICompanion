@@ -42,11 +42,6 @@ void _ExtractPolygonsFromStatements(const string &name, PolygonComponent &polySo
             ++it;
             polyCount = pValue->GetNumberValue();
         }
-        else if (pValue->GetType() == ValueType::Token)
-        {
-            // This is just a single polygon. We encountered the type.
-            polyCount = 1;
-        }
         for (int i = 0; (it != statements.end()) && (i < polyCount); i++)
         {
             pValue = SafeSyntaxNode<PropertyValue>((*it)->GetSyntaxNode());
@@ -275,13 +270,14 @@ void _ApplyPolygonsToScript(int picNumber, Script &script, const vector<SCIPolyg
     defaultPolyVarDecl->SetSize((uint16_t)defaultPolyVarDecl->GetStatements().size());
     script.AddVariable(move(defaultPolyVarDecl));
 
-    // Now the named one
+    // Now the named ones
     for (const SCIPolygon &poly : polygons)
     {
         if (!poly.Name.empty())
         {
             unique_ptr<VariableDecl> namedPolyVarDecl = make_unique<VariableDecl>();
             namedPolyVarDecl->SetName(poly.Name);
+            namedPolyVarDecl->AddSimpleInitializer(PropertyValue(1));   // 1: single polygon
             _ApplyPolygonToVarDecl(*namedPolyVarDecl, poly);
             namedPolyVarDecl->SetSize((uint16_t)namedPolyVarDecl->GetStatements().size());
             script.AddVariable(move(namedPolyVarDecl));
