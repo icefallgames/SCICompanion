@@ -1842,8 +1842,13 @@ void CPicView::_DrawPolygon(CDC *pDC, const SCIPolygon *polygon, bool isActive)
     {
         colorPoly = CExtBitmap::stat_HLS_Adjust(colorPoly, 0.0, -0.5, -0.8);
     }
-    CPen penPoly(PS_SOLID, 1, colorPoly);
+
+    int penStyle = appState->_fShowPolyDotted ? PS_DOT : PS_SOLID;
+
+    CPen penPoly(penStyle, 1, colorPoly);
     HGDIOBJ hOldPen = pDC->SelectObject(penPoly);
+    int oldBkMode = pDC->SetBkMode(OPAQUE);
+    COLORREF oldBkColor = pDC->SetBkColor(RGB(0, 0, 0));
 
     std::vector<POINT> points;
     int index = 0;
@@ -1879,7 +1884,7 @@ void CPicView::_DrawPolygon(CDC *pDC, const SCIPolygon *polygon, bool isActive)
         points.clear();
         if ((_currentHoverPolyPointIndex == -1) && (_currentHoverPolyEdgeIndex != -1) && (_currentHoverPolyEdgeIndex < (int)polygon->Points().size()))
         {
-            CPen penEdge(PS_SOLID, 1, ColorPolyHighlight);
+            CPen penEdge(penStyle, 1, ColorPolyHighlight);
             pDC->SelectObject(penEdge);
             point16 a = polygon->Points()[_currentHoverPolyEdgeIndex];
             point16 b = polygon->Points()[(_currentHoverPolyEdgeIndex + 1) % polygon->Points().size()];
@@ -1900,6 +1905,8 @@ void CPicView::_DrawPolygon(CDC *pDC, const SCIPolygon *polygon, bool isActive)
         }
     }
     pDC->SelectObject(hOldPen);
+    pDC->SetBkMode(oldBkMode);
+    pDC->SetBkColor(oldBkColor);
 }
 
 void CPicView::_DrawPolygons(CDC *pDC)
