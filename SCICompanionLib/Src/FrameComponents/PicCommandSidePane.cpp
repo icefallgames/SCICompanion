@@ -208,6 +208,7 @@ void PicCommandSidePane::PushEditPointsToPoly()
             {
                 SCIPolygon *thePoly = polygonComponent.GetAt(polyIndex);
                 thePoly->Points() = points;
+                FixupPolygon(*thePoly);
                 return WrapHint(PicChangeHint::PolygonsChanged);
             }
             );
@@ -226,6 +227,7 @@ void PicCommandSidePane::OnCbnSelchangeComboPolyType()
         {
             SCIPolygon *polygon = polygonComponent.GetAt(currentPolyIndex);
             polygon->Type = (PolygonType)selection;
+            FixupPolygon(*polygon);
             return WrapHint(PicChangeHint::PolygonsChanged);
         }
             );

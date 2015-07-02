@@ -63,3 +63,4 @@ private:
 
 std::unique_ptr<PolygonComponent> CreatePolygonComponent(const std::string &polyFolder, int picNumber);
 std::unique_ptr<sci::ProcedureCall> GetSetUpPolyProcedureCall(int picResource);
+void FixupPolygon(SCIPolygon &polygon);

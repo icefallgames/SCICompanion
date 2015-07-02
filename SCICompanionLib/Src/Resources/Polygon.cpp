@@ -8,6 +8,40 @@
 using namespace std;
 using namespace sci;
 
+enum class WindingOrder
+{
+    CW,
+    CCW
+};
+
+WindingOrder DetermineWindingOrder(const std::vector<point16> &points)
+{
+    long totalProduct = 0;
+    for (size_t i = 0; i < points.size(); i++)
+    {
+        point16 cur = points[i];
+        point16 next = points[(i + 1) % points.size()];
+        int product = (next.x - cur.x) * (next.y + cur.y);
+        totalProduct += product;
+    }
+    return (totalProduct < 0) ? WindingOrder::CW : WindingOrder::CCW;
+}
+
+void FixupPolygon(SCIPolygon &polygon)
+{
+    WindingOrder desiredWindingOrder = WindingOrder::CW;
+    if (polygon.Type == PolygonType::ContainedAccess)
+    {
+        desiredWindingOrder = WindingOrder::CCW;
+    }
+    WindingOrder actualWindingOrder = DetermineWindingOrder(polygon.Points());
+    if (actualWindingOrder != desiredWindingOrder)
+    {
+        // Flip the points
+        reverse(polygon.Points().begin(), polygon.Points().end());
+    }
+}
+
 const char c_szDefaultPolyName[] = "P_Default";                 // P_Default[nnn] where [nnn] is the pic number.
 const char c_szAddPolysToRoomFunction[] = "AddPolygonsToRoom";  // The export in main for SCI1.1 template game.
 

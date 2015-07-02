@@ -3022,6 +3022,7 @@ void CPicView::_EndPolyDrag()
         {
             SCIPolygon *polygon = polygonComponent.GetAt(currentPolygon);
             polygon->SetPoint(_polyDragPointIndex, _currentDragPolyPoint);
+            FixupPolygon(*polygon);
             return WrapHint(PicChangeHint::PolygonsChanged);
         }
             );
@@ -3050,6 +3051,7 @@ void CPicView::_EndNewPoly()
             GetDocument()->ApplyChanges<PolygonComponent>(
                 [this](PolygonComponent &polygonComponent)
             {
+                FixupPolygon(*_currentPolyInEdit);
                 polygonComponent.AppendPolygon(*_currentPolyInEdit);
                 return WrapHint(PicChangeHint::PolygonsChanged);
             }
@@ -3097,6 +3099,7 @@ void CPicView::_OnPolygonRClick(CPoint point)
                     {
                         SCIPolygon *polygon = polygonComponent.GetAt(currentPolyIndex);
                         polygon->DeletePoint(pointUnderMouse);
+                        FixupPolygon(*polygon);
                         return WrapHint(PicChangeHint::PolygonsChanged);
                     }
                         );
@@ -3130,6 +3133,7 @@ void CPicView::_OnPolygonRClick(CPoint point)
                         {
                             SCIPolygon *polygon = polygonComponent.GetAt(currentPolyIndex);
                             polygon->InsertPoint(lineIndex, CPointToPoint(point));
+                            FixupPolygon(*polygon);
                             return WrapHint(PicChangeHint::PolygonsChanged);
                         }
                         );
