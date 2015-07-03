@@ -814,15 +814,18 @@ void PicCommandSidePane::UpdateNonView(CObject *pObject)
         }
     }
 
-    if (IsFlagSet(hint, PicChangeHint::PolygonsChanged))
+    if (_showPalette)
     {
-        _UpdatePolyItemCount();
-        hint |= PicChangeHint::PolygonChoice;
-    }
+        if (IsFlagSet(hint, PicChangeHint::PolygonsChanged))
+        {
+            _UpdatePolyItemCount();
+            hint |= PicChangeHint::PolygonChoice;
+        }
 
-    if (IsFlagSet(hint, PicChangeHint::PolygonChoice))
-    {
-        _SyncPolyChoice();
+        if (IsFlagSet(hint, PicChangeHint::PolygonChoice))
+        {
+            _SyncPolyChoice();
+        }
     }
 
     _OnUpdateCommands();
@@ -830,35 +833,38 @@ void PicCommandSidePane::UpdateNonView(CObject *pObject)
 
 void PicCommandSidePane::_SyncPolyChoice()
 {
-    int index = GetDocument()->GetCurrentPolygonIndex();
-    m_wndListPolygons.SetCurSel(index);
-    m_wndCheckShowPolys.SetCheck(GetDocument()->GetShowPolygons() ? BST_CHECKED : BST_UNCHECKED);
-
-    std::string name;
-    std::stringstream ss;
-    const PolygonComponent *polygonSource = GetDocument()->GetPolygonComponent();
-    if (polygonSource)
+    if (_showPalette && GetDocument())
     {
-        const SCIPolygon *polygon = polygonSource->GetAt(index);
-        if (polygon)
+        int index = GetDocument()->GetCurrentPolygonIndex();
+        m_wndListPolygons.SetCurSel(index);
+        m_wndCheckShowPolys.SetCheck(GetDocument()->GetShowPolygons() ? BST_CHECKED : BST_UNCHECKED);
+
+        std::string name;
+        std::stringstream ss;
+        const PolygonComponent *polygonSource = GetDocument()->GetPolygonComponent();
+        if (polygonSource)
         {
-            for (auto &point : polygon->Points())
+            const SCIPolygon *polygon = polygonSource->GetAt(index);
+            if (polygon)
             {
-                if (ss.tellp())
+                for (auto &point : polygon->Points())
                 {
-                    ss << " ";
+                    if (ss.tellp())
+                    {
+                        ss << " ";
+                    }
+                    ss << point.x << " " << point.y;
                 }
-                ss << point.x << " " << point.y;
+                name = polygon->Name;
             }
-            name = polygon->Name;
         }
+        m_wndEditPolyPoints.SetWindowText(ss.str().c_str());
+        m_wndEditPolyName.SetWindowText(name.c_str());
+        m_wndEditPolyName.EnableWindow(index != -1);
+        m_wndUploadNameButton.EnableWindow(index != -1);
+        m_wndUploadPointsButton.EnableWindow(index != -1);
+        _SyncPolyTypeCombo();
     }
-    m_wndEditPolyPoints.SetWindowText(ss.str().c_str());
-    m_wndEditPolyName.SetWindowText(name.c_str());
-    m_wndEditPolyName.EnableWindow(index != -1);
-    m_wndUploadNameButton.EnableWindow(index != -1);
-    m_wndUploadPointsButton.EnableWindow(index != -1);
-    _SyncPolyTypeCombo();
 }
 
 const PicComponent *PicCommandSidePane::_GetEditPic()
