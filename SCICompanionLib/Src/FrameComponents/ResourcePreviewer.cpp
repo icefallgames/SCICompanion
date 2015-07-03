@@ -22,6 +22,7 @@
 #include <vfw.h>
 #include "SoundOperations.h"
 #include "ResourceUtil.h"
+#include "Font.h"
 
 BOOL ResourcePreviewer::OnInitDialog()
 {
@@ -478,6 +479,14 @@ FontPreviewer::~FontPreviewer() {}
 void FontPreviewer::SetResource(const ResourceBlob &blob)
 {
     _pFont = CreateResourceFromResourceData(blob);
+    // Show a preview of entire font.
+    std::stringstream ss;
+    RasterComponent &rasterComponent = _pFont->GetComponent<RasterComponent>();
+    for (size_t i = 0; i < rasterComponent.Loops[0].Cels.size(); i++)
+    {
+        ss << (char)i;
+    }
+    _pWndFontView->OverridePreviewLetters(ss.str());
     _pWndFontView->SetFontResource(_pFont.get());
 }
 

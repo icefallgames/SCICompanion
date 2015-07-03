@@ -35,6 +35,7 @@ public:
     virtual void OnInitialUpdate();
     virtual void OnSize(UINT nType, int cx, int cy);
     virtual BOOL OnSetCursor(CWnd *pWnd, UINT nHitTest, UINT message);
+    void OverridePreviewLetters(const std::string &letters);
 
 protected:
     void _GenerateDoubleBuffer(CDC *pDC);

@@ -45,6 +45,11 @@ CFontPreviewView::CFontPreviewView()
     _previewLetters = "!@#$%^&*()_+0123456789-=~`ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz{}|[]\\:\";'<>?,./";
 }
 
+void CFontPreviewView::OverridePreviewLetters(const std::string &letters)
+{
+    _previewLetters = letters;
+}
+
 CFontPreviewView::~CFontPreviewView()
 {
     _CleanDoubleBuffer();
