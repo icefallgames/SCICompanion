@@ -33,6 +33,10 @@ void SaveResourceDialog::DoDataExchange(CDataExchange* pDX)
     ShowSizeGrip(FALSE);
 
     TCHAR sz[10];
+    if (_iPackageNumber == -1)
+    {
+        _iPackageNumber = appState->GetVersion().DefaultVolumeFile;
+    }
     _iPackageNumber = _GetValidPackage(_iPackageNumber);
     
     DDX_Control(pDX, IDC_EDITPACKAGE, m_wndEditPackage);
