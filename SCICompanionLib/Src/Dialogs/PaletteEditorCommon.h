@@ -7,10 +7,11 @@
 #include "AppState.h"
 #include "format.h"
 #include "GradientDialog.h"
+#include "ColorAdjustDialog.h"
 #include "PaletteDefinitionCallback.h"
 
 template<class T>
-class PaletteEditorCommon : public T, public IColorDialogCallback
+class PaletteEditorCommon : public T, public IColorDialogCallback, public IVGAPaletteDefinitionCallback
 {
 public:
     // TODO: Set the used value as 0x3 or 0x1, depending.
@@ -43,6 +44,12 @@ public:
         _mainSelectedIndex = -1;
         _palette = &palette;
         memcpy(_originalColors, palette.Colors, sizeof(_originalColors));
+    }
+
+    // IVGAPaletteDefinitionCallback
+    void OnVGAPaletteChanged() override
+    {
+        _SyncPalette();
     }
 
     // IColorDialogCallback
@@ -155,6 +162,9 @@ public:
 
         DDX_Control(pDX, IDC_BUTTONRANGEGRADIENT, m_wndButtonGradients);
         m_wndButtonGradients.EnableWindow(FALSE);
+
+        DDX_Control(pDX, IDC_BUTTONADJUSTMENTS, m_wndButtonAdjust);
+        m_wndButtonAdjust.EnableWindow(FALSE);
 
         // Visuals
         if (GetDlgItem(IDCANCEL))
@@ -269,12 +279,17 @@ protected:
             m_wndStatic.SetPalette(16, 16, reinterpret_cast<const EGACOLOR *>(_palette->Mapping), 256, _palette->Colors, false);
             m_wndStatic.Invalidate(FALSE);
         }
+        if (_callback)
+        {
+            _callback->OnVGAPaletteChanged();
+        }
     }
 
     void _SyncUI()
     {
         m_wndButtonChooseColor.EnableWindow(_mainSelectedIndex != -1);
         m_wndLoadAt.EnableWindow(_mainSelectedIndex != -1);
+        m_wndButtonAdjust.EnableWindow(_mainSelectedIndex != -1);
     }
 
     DECLARE_MESSAGE_MAP()
@@ -285,6 +300,7 @@ protected:
     CExtCheckBox m_wndFixedCheck;
     CExtButton m_wndButtonChooseColor;
     CExtButton m_wndButtonGradients;
+    CExtButton m_wndButtonAdjust;
 
     PaletteComponent *_palette;
     std::unique_ptr<PaletteComponent> _paletteOwned;   // For the _pDoc scenario where we need a copy of the paletter to work on.
@@ -312,6 +328,7 @@ public:
     afx_msg void OnBnClickedCheck2();
     afx_msg void OnBnClickedButtoneditcolor();
     afx_msg void OnBnClickedButtonGradient();
+    afx_msg void OnBnClickedButtonAdjust();
     afx_msg void OnEnChangeEdit1();
     afx_msg void OnImportPalette();
     afx_msg void OnExportPalette();
@@ -325,6 +342,7 @@ BEGIN_TEMPLATE_MESSAGE_MAP(PaletteEditorCommon, T, T)
     ON_BN_CLICKED(IDC_CHECK2, OnBnClickedCheck2)
     ON_BN_CLICKED(IDC_BUTTONEDITCOLOR, OnBnClickedButtoneditcolor)
     ON_BN_CLICKED(IDC_BUTTONRANGEGRADIENT, OnBnClickedButtonGradient)
+    ON_BN_CLICKED(IDC_BUTTONADJUSTMENTS, OnBnClickedButtonAdjust)
     ON_BN_CLICKED(IDC_BUTTON_LOAD, OnImportPalette)
     ON_BN_CLICKED(IDC_BUTTON_SAVE, OnExportPalette)
     ON_BN_CLICKED(IDC_BUTTON_LOADAT, OnImportPaletteAt)
@@ -423,11 +441,6 @@ void PaletteEditorCommon<T>::OnBnClickedButtoneditcolor()
             }
             _UpdateDocument();
             _SyncPalette();
-
-            if (_callback)
-            {
-                _callback->OnVGAPaletteChanged();
-            }
         }
     }
 }
@@ -438,18 +451,37 @@ void PaletteEditorCommon<T>::OnBnClickedButtonGradient()
     std::vector<std::pair<uint8_t, uint8_t>> ranges = GetSelectedRanges();
     if (_IsSingleRangeSelected(ranges))
     {
-        PaletteComponent paletteCopy = *_palette;
-        GradientDialog dialog(paletteCopy, ranges[0].first, ranges[0].second);
+        PaletteComponent paletteBackup = *_palette;
+        GradientDialog dialog(*_palette, this, ranges[0].first, ranges[0].second);
         if (IDOK == dialog.DoModal())
         {
-            *_palette = paletteCopy;
             _UpdateDocument();
             _SyncPalette();
-            if (_callback)
-            {
-                _callback->OnVGAPaletteChanged();
-            }
         }
+        else
+        {
+            *_palette = paletteBackup;
+            _SyncPalette();
+        }
+    }
+}
+
+template<class T>
+void PaletteEditorCommon<T>::OnBnClickedButtonAdjust()
+{
+    bool multipleSelection[256];
+    m_wndStatic.GetMultipleSelection(multipleSelection);
+    PaletteComponent paletteBackup = *_palette;
+    ColorAdjustDialog dialog(*_palette, this, multipleSelection);
+    if (IDOK == dialog.DoModal())
+    {
+        _UpdateDocument();
+        _SyncPalette();
+    }
+    else
+    {
+        *_palette = paletteBackup;
+        _SyncPalette();
     }
 }
 

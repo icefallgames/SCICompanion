@@ -2,15 +2,10 @@
 #include "GradientDialog.h"
 #include "PaletteOperations.h"
 
-GradientDialog::GradientDialog(PaletteComponent &palette, uint8_t start, uint8_t end, CWnd* pParent)
-    : CExtResizableDialog(GradientDialog::IDD, pParent), _palette(palette), _start(start), _endInclusive(end), _gradientType(0), _initialized(false)
+GradientDialog::GradientDialog(PaletteComponent &palette, IVGAPaletteDefinitionCallback *callback, uint8_t start, uint8_t end, CWnd* pParent)
+    : CExtResizableDialog(GradientDialog::IDD, pParent), _palette(palette), _callback(callback), _start(start), _endInclusive(end), _gradientType(0), _initialized(false)
 {
     // 256 things here.
-    m_wndStatic.SetPalette(16, 16, reinterpret_cast<const EGACOLOR*>(palette.Mapping), ARRAYSIZE(palette.Mapping), palette.Colors, false);
-    m_wndStatic.ShowSelection(FALSE);
-
-
-
     memset(&_edge, 0, sizeof(_edge));
     memset(&_center, 255, sizeof(_center));
 }
@@ -21,8 +16,6 @@ void GradientDialog::DoDataExchange(CDataExchange* pDX)
 
     if (!_initialized)
     {
-        DDX_Control(pDX, IDC_CHOOSECOLORSTATIC, m_wndStatic);
-
         DDX_Control(pDX, IDC_STATIC2, m_wndGroupGradientType);
         DDX_Control(pDX, IDC_RADIOLINEAR, m_wndRadioGradientLinear);
         DDX_Control(pDX, IDC_RADIOCENTER, m_wndRadioGradientCenter);
@@ -84,8 +77,10 @@ void GradientDialog::_SyncPalette()
         }
     }
 
-    m_wndStatic.SetPalette(16, 16, reinterpret_cast<const EGACOLOR*>(_palette.Mapping), ARRAYSIZE(_palette.Mapping), _palette.Colors, false);
-    m_wndStatic.Invalidate(FALSE);
+    if (_callback)
+    {
+        _callback->OnVGAPaletteChanged();
+    }
 }
 
 void GradientDialog::OnBnClickedButtoncenter()

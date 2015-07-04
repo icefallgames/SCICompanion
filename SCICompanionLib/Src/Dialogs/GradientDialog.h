@@ -3,6 +3,7 @@
 #include "BaseColorDialog.h"
 #include "ChooseColorStatic.h"
 #include "ColorDialogCallback.h"
+#include "PaletteDefinitionCallback.h"
 #include "resource.h"
 
 struct PaletteComponent;
@@ -10,7 +11,7 @@ struct PaletteComponent;
 class GradientDialog : public CExtResizableDialog
 {
 public:
-    GradientDialog(PaletteComponent &palette, uint8_t start, uint8_t end, CWnd* pParent = NULL);  // standard constructor
+    GradientDialog(PaletteComponent &palette, IVGAPaletteDefinitionCallback *callback, uint8_t start, uint8_t end, CWnd* pParent = NULL);  // standard constructor
 
     // Dialog Data
     enum { IDD = IDD_DIALOGGRADIENTS };
@@ -20,8 +21,6 @@ protected:
     void _SyncPalette();
 
     DECLARE_MESSAGE_MAP()
-
-    CChooseColorStatic m_wndStatic;
 
     // Visuals
     CExtButton m_wndOk;
@@ -40,6 +39,7 @@ protected:
     uint8_t _endInclusive;
     COLORREF _edge;
     COLORREF _center;
+    IVGAPaletteDefinitionCallback *_callback;
 public:
     afx_msg void OnBnClickedButtoncenter();
     afx_msg void OnBnClickedButtonedges();

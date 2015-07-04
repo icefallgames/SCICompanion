@@ -651,6 +651,9 @@
     <ClCompile Include="Src\Dialogs\ConvertFromToPaletteDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Dialogs\ColorAdjustDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCICompanionLib.h">
@@ -1353,6 +1356,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\Dialogs\ConvertFromToPaletteDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Dialogs\ColorAdjustDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
