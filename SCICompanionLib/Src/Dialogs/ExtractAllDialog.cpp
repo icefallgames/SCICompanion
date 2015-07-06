@@ -59,6 +59,8 @@ void ExtractAllDialog::DoDataExchange(CDataExchange* pDX)
     m_wndExtractViewImage.SetCheck(BST_CHECKED);
     DDX_Control(pDX, IDC_CHECK4, m_wndDisassembleScripts);
     m_wndDisassembleScripts.SetCheck(BST_CHECKED);
+    DDX_Control(pDX, IDC_CHECK5, m_wndExportMessages);
+    m_wndExportMessages.SetCheck(BST_CHECKED);
 }
 
 BOOL ExtractAllDialog::OnInitDialog()
@@ -206,6 +208,7 @@ void ExtractAllDialog::OnBnClickedExtract()
         _extractPicImages = m_wndExtractPicImage.GetCheck() != 0;
         _extractViewImages = m_wndExtractViewImage.GetCheck() != 0;
         _disassembleScripts = m_wndDisassembleScripts.GetCheck() != 0;
+        _exportMessages = m_wndExportMessages.GetCheck() != 0;
 
         _pThread.reset(AfxBeginThread(s_ThreadWorker, this, 0, 0, CREATE_SUSPENDED, nullptr));
         if (_pThread)
@@ -221,7 +224,7 @@ void ExtractAllDialog::OnBnClickedExtract()
 UINT ExtractAllDialog::s_ThreadWorker(void *pParam)
 {
     ExtractAllDialog *pThis = reinterpret_cast<ExtractAllDialog*>(pParam);
-    ExtractAllResources(pThis->_version, (PCSTR)pThis->_location, pThis->_extractPicImages, pThis->_extractViewImages, pThis->_disassembleScripts, pThis);
+    ExtractAllResources(pThis->_version, (PCSTR)pThis->_location, pThis->_extractPicImages, pThis->_extractViewImages, pThis->_disassembleScripts, pThis->_exportMessages, pThis);
     return 0;
 }
 

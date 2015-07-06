@@ -44,6 +44,7 @@ protected:
     CExtCheckBox m_wndExtractPicImage;
     CExtCheckBox m_wndExtractViewImage;
     CExtCheckBox m_wndDisassembleScripts;
+    CExtCheckBox m_wndExportMessages;
 
     std::unique_ptr<CWinThread> _pThread;
     CString _location;
@@ -51,6 +52,7 @@ protected:
     bool _extractPicImages;
     bool _extractViewImages;
     bool _disassembleScripts;
+    bool _exportMessages;
     HANDLE _hThread;
 
     void OnTimer(UINT_PTR nIDEvent);

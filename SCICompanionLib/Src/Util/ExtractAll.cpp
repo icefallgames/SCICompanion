@@ -11,8 +11,10 @@
 #include "Disassembler.h"
 #include "Vocab000.h"
 #include "ResourceContainer.h"
+#include "Message.h"
+#include "Text.h"
 
-void ExtractAllResources(SCIVersion version, const std::string &destinationFolderIn, bool extractPicImages, bool extractViewImages, bool disassembleScripts, IExtractProgress *progress)
+void ExtractAllResources(SCIVersion version, const std::string &destinationFolderIn, bool extractPicImages, bool extractViewImages, bool disassembleScripts, bool extractMessages, IExtractProgress *progress)
 {
     std::string destinationFolder = destinationFolderIn;
     if (destinationFolder.back() != '\\')
@@ -44,6 +46,10 @@ void ExtractAllResources(SCIVersion version, const std::string &destinationFolde
             totalCount++;
         }
         if (disassembleScripts && (blob->GetType() == ResourceType::Pic))
+        {
+            totalCount++;
+        }
+        if (extractMessages && (blob->GetType() == ResourceType::Message))
         {
             totalCount++;
         }
@@ -132,6 +138,14 @@ void ExtractAllResources(SCIVersion version, const std::string &destinationFolde
                     std::stringstream out;
                     DisassembleScript(compiledScript, out, &scriptLookups, &objectFileLookups, appState->GetResourceMap().GetVocab000());
                     std::string actualPath = MakeTextFile(out.str().c_str(), scriptPath.c_str());
+                }
+
+                if (extractMessages && (blob->GetType() == ResourceType::Message))
+                {
+                    count++;
+                    std::string msgPath = fullPath + "-msg.txt";
+                    std::unique_ptr<ResourceEntity> resource = CreateResourceFromResourceData(*blob);
+                    ExportMessageToFile(resource->GetComponent<TextComponent>(), msgPath);
                 }
             }
         }
