@@ -212,8 +212,7 @@ void CMessageView::_SetItem(int iItem, PCTSTR pszString, const TextComponent *te
 
 BOOL CMessageView::PreCreateWindow(CREATESTRUCT& cs)
 {
-    // We wish to enable label edits.
-    cs.style |= LVS_EDITLABELS | LVS_SINGLESEL | LVS_SHOWSELALWAYS;
+    cs.style |= LVS_SINGLESEL | LVS_SHOWSELALWAYS;
 	// If I get rid of singlesel, then multiselect happens, but only when I click on labels. WTF.
 	// The number column is still single select.
 	return __super::PreCreateWindow(cs);
