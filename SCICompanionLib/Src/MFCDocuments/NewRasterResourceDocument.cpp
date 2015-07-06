@@ -48,7 +48,6 @@ CNewRasterResourceDocument::CNewRasterResourceDocument()
     _nLoop = 0;
     _color = 0xf;           // white, in EGA
     _alternateColor = 0x0;  // black, in EGA
-    memset(_currentPaletteVGA, 0, sizeof(_currentPaletteVGA));
 }
 
 void CNewRasterResourceDocument::v_OnUndoRedo()
@@ -63,28 +62,6 @@ void CNewRasterResourceDocument::SetNewResource(std::unique_ptr<ResourceEntity> 
     SetResource(move(pResource));
 }
 
-void CNewRasterResourceDocument::_SetInitialPalette()
-{
-    RasterComponent &raster = GetComponent<RasterComponent>();
-    if (raster.Traits.PaletteType == PaletteType::VGA_256)
-    {
-        SetPaletteChoice(_currentPaletteIndex, true);
-    }
-}
-
-void CNewRasterResourceDocument::RefreshPaletteOptions()
-{
-    _paletteChoices = appState->GetResourceMap().GetPaletteList();
-    const ResourceEntity *pResource = GetResource();
-    if (pResource && pResource->TryGetComponent<PaletteComponent>())
-    {
-        _paletteChoices.insert(_paletteChoices.begin(), EmbeddedPaletteId);
-        _paletteChoices.push_back(EmbeddedPaletteOnlyId);
-    }
-    _SetInitialPalette();
-    _UpdateHelper(RasterChange(RasterChangeHint::NewView));
-}
-
 void CNewRasterResourceDocument::SetResource(std::unique_ptr<ResourceEntity> pResource, int id)
 {
     _checksum = id;
@@ -94,85 +71,6 @@ void CNewRasterResourceDocument::SetResource(std::unique_ptr<ResourceEntity> pRe
     _ValidateCelIndex();
     _UpdateHelper(RasterChange(RasterChangeHint::NewView));
     _UpdateTitle();
-}
-
-std::string CNewRasterResourceDocument::GetPaletteChoiceName(int index)
-{
-    std::string name;
-    if (index < (int)_paletteChoices.size())
-    {
-        if (_paletteChoices[index] == EmbeddedPaletteId)
-        {
-            name = "Embedded";
-        }
-        else if (_paletteChoices[index] == EmbeddedPaletteOnlyId)
-        {
-            name = "Embedded only";
-        }
-        else
-        {
-            name = fmt::format("{0}", _paletteChoices[index]);
-        }
-    }
-    return name;
-}
-
-void CNewRasterResourceDocument::SwitchToEmbeddedPalette()
-{
-    if (_currentPaletteIndex < (int) _paletteChoices.size())
-    {
-        int id = _paletteChoices[_currentPaletteIndex];
-        if ((id == EmbeddedPaletteId) || (id == EmbeddedPaletteOnlyId))
-        {
-            // We're good
-            return;
-        }
-    }
-
-    for (int i = 0; i < (int)_paletteChoices.size(); i++)
-    {
-        if (_paletteChoices[i] == EmbeddedPaletteOnlyId)
-        {
-            SetPaletteChoice(i, false);
-            break;
-        }
-    }
-}
-
-void CNewRasterResourceDocument::SetPaletteChoice(int index, bool force)
-{
-    if ((force || (index != _currentPaletteIndex)) && (index >= 0) && (index < (int)_paletteChoices.size()))
-    {
-        _currentPaletteIndex = index;
-        int choice = _paletteChoices[index];
-        if (choice == EmbeddedPaletteId)
-        {
-            _currentPaletteComponent = appState->GetResourceMap().GetMergedPalette(*GetResource(), 999);
-        }
-        else if (choice == EmbeddedPaletteOnlyId)
-        {
-            PaletteComponent *temp = GetResource()->TryGetComponent<PaletteComponent>();
-            if (temp)
-            {
-                _currentPaletteComponent = std::make_unique<PaletteComponent>(*temp);
-            }
-            else
-            {
-                _currentPaletteComponent.reset(nullptr);
-            }
-        }
-        else
-        {
-            _currentPaletteComponent = appState->GetResourceMap().GetPalette(choice);
-        }
-
-        if (_currentPaletteComponent)
-        {
-            memcpy(_currentPaletteVGA, _currentPaletteComponent->Colors, sizeof(_currentPaletteVGA));
-        }
-
-        _UpdateHelper(RasterChange(RasterChangeHint::PaletteChoice));
-    }
 }
 
 void CNewRasterResourceDocument::PostApplyChanges(CObject *pObj)
@@ -219,8 +117,15 @@ COLORREF CNewRasterResourceDocument::SCIColorToCOLORREF(uint8_t color)
         RasterComponent &raster = GetComponent<RasterComponent>();
         if (raster.Traits.PaletteType == PaletteType::VGA_256)
         {
-            rgb = _currentPaletteVGA[color];
-
+            const PaletteComponent *palette = GetCurrentPaletteComponent();
+            if (palette)
+            {
+                rgb = palette->Colors[color];
+            }
+            else
+            {
+                rgb = RGBQUAD();
+            }
         }
         else
         {
@@ -233,12 +138,14 @@ COLORREF CNewRasterResourceDocument::SCIColorToCOLORREF(uint8_t color)
 
 const RGBQUAD *CNewRasterResourceDocument::GetPaletteVGA() const
 {
-    return _currentPaletteVGA;
-}
-
-const PaletteComponent *CNewRasterResourceDocument::GetCurrentPaletteComponent() const
-{
-    return _currentPaletteComponent.get();
+    if (_currentPaletteComponent)
+    {
+        return _currentPaletteComponent->Colors;
+    }
+    else
+    {
+        return nullptr;
+    }
 }
 
 int CNewRasterResourceDocument::GetSelectedGroup(CelIndex *rgGroups, size_t ceGroup)
@@ -742,4 +649,23 @@ void CNewRasterResourceDocument::OnResourceAdded(const ResourceBlob *pData, Appe
         RefreshPaletteOptions();
         UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(RasterChangeHint::NewView));
     }
+}
+
+bool CNewRasterResourceDocument::v_IsVGA()
+{
+    RasterComponent &raster = GetComponent<RasterComponent>();
+    return (raster.Traits.PaletteType == PaletteType::VGA_256);
+}
+
+void CNewRasterResourceDocument::v_OnUpdatePaletteOptions()
+{
+    _UpdateHelper(RasterChange(RasterChangeHint::NewView));
+}
+const ResourceEntity *CNewRasterResourceDocument::v_GetResource()
+{
+    return GetResource();
+}
+void CNewRasterResourceDocument::v_OnUpdatePaletteChoice()
+{
+    _UpdateHelper(RasterChange(RasterChangeHint::PaletteChoice));
 }

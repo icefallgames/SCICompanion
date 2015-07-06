@@ -137,11 +137,9 @@ void DrawDot(uint8_t *bits, int cx, int cy, int x, int y, int border, uint8_t va
     *(bits + rowOffset + column) = value;
 }
 
-// If imageCels are provided, we look into which palette entries are ACTUALLY used, instead of just going off the palette data.
-HBITMAP CreateBitmapFromPaletteResource(const ResourceEntity *prb, SCIBitmapInfo *pbmi, uint8_t **ppBitsDest, COLORREF *transparentColor, const std::vector<const Cel*> *imageCels)
+HBITMAP CreateBitmapFromPaletteComponent(const PaletteComponent &palette, SCIBitmapInfo *pbmi, uint8_t **ppBitsDest, COLORREF *transparentColor, const std::vector<const Cel*> *imageCels)
 {
     HBITMAP hbmpRet = nullptr;
-    const PaletteComponent &palette = prb->GetComponent<PaletteComponent>();
 
     const int border = 0;
 
@@ -228,6 +226,13 @@ HBITMAP CreateBitmapFromPaletteResource(const ResourceEntity *prb, SCIBitmapInfo
     }
 
     return hbmpRet;
+}
+
+// If imageCels are provided, we look into which palette entries are ACTUALLY used, instead of just going off the palette data.
+HBITMAP CreateBitmapFromPaletteResource(const ResourceEntity *prb, SCIBitmapInfo *pbmi, uint8_t **ppBitsDest, COLORREF *transparentColor, const std::vector<const Cel*> *imageCels)
+{
+    const PaletteComponent &palette = prb->GetComponent<PaletteComponent>();
+    return CreateBitmapFromPaletteComponent(palette, pbmi, ppBitsDest, transparentColor, imageCels);
 }
 
 void PaletteWriteTo_SCI10(const ResourceEntity &resource, sci::ostream &byteStream)

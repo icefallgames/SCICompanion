@@ -81,6 +81,7 @@ void PaletteEditorDialog::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_CHECKPREVIEWCYCLING, m_wndPreviewCycling);
         DDX_Control(pDX, IDC_BUTTONCYCLELEFT, m_wndCycleLeft);
         DDX_Control(pDX, IDC_BUTTONCYCLERIGHT, m_wndCycleRight);
+        DDX_Control(pDX, IDC_BUTTON_SAVEPALETTE, m_wndSaveAs);
 
         if (!_enableCycling)
         {
@@ -114,6 +115,7 @@ BEGIN_MESSAGE_MAP(PaletteEditorDialog, PaletteEditorCommon)
     ON_WM_TIMER()
     ON_BN_CLICKED(IDC_BUTTONCYCLELEFT, &PaletteEditorDialog::OnBnClickedButtoncycleleft)
     ON_BN_CLICKED(IDC_BUTTONCYCLERIGHT, &PaletteEditorDialog::OnBnClickedButtoncycleright)
+    ON_BN_CLICKED(IDC_BUTTON_SAVEPALETTE, OnSaveAsResource)
 END_MESSAGE_MAP()
 
 void PaletteEditorDialog::OnTimer(UINT_PTR nIDEvent)
@@ -173,7 +175,6 @@ void PaletteEditorDialog::OnBnClickedCheckpreviewcycling()
     }
 }
 
-
 void PaletteEditorDialog::OnBnClickedButtoncycleleft()
 {
     _cycleForward = false;
@@ -183,4 +184,11 @@ void PaletteEditorDialog::OnBnClickedButtoncycleleft()
 void PaletteEditorDialog::OnBnClickedButtoncycleright()
 {
     _cycleForward = true;
+}
+
+void PaletteEditorDialog::OnSaveAsResource()
+{
+    std::unique_ptr<ResourceEntity> newPalette(CreatePaletteResource(appState->GetVersion()));
+    newPalette->GetComponent<PaletteComponent>() = *this->_palette;
+    appState->GetResourceMap().AppendResourceAskForNumber(*newPalette);
 }

@@ -34,6 +34,8 @@ protected:
     void OnAddSeq();
     void OnUpdateIfSelection(CCmdUI *pCmdUI);
     void OnNewString();
+    void OnExportMessage();
+    void OnImportMessage();
 
     DECLARE_MESSAGE_MAP()
 

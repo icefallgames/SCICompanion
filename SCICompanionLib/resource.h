@@ -558,6 +558,7 @@
 #define IDC_ASSIGNFILENAMES             1242
 #define IDC_BUTTON_SAVERANGE            1242
 #define IDC_DECOMPILECANCEL             1243
+#define IDC_BUTTON_SAVEPALETTE          1243
 #define IDC_DECOMPILESTATUS             1244
 #define IDC_CHECKINSTRUCTIONCONSUMPTION 1245
 #define IDC_CHECKCONTROLFLOW            1246
@@ -624,9 +625,7 @@
 #define IDC_EDITSATURATION              1302
 #define IDC_STATICBRIGHTNESS            1304
 #define IDC_EDITBRIGHTNESS              1305
-#define IDC_STATICTINT                  1306
 #define IDC_STATICTINTSTRENGTH          1307
-#define IDC_EDITBRIGHTNESS2             1308
 #define IDC_EDITTINTSTRENGTH            1308
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
@@ -889,6 +888,13 @@
 #define ID_Menu33196                    33196
 #define ID_OBSERVEPOLYGONS              33197
 #define ID_VIEW_REMAPPALETTE            33198
+#define ID_MESSAGE_EXPORTTOTEXTFILE     33199
+#define ID_MESSAGE_EXPORT               33200
+#define ID_MESSAGE_IMPORTFROMTEXTFILE   33201
+#define ID_MESSAGE_IMPORT               33202
+#define ID_MESSAGE_ADDNEW               33203
+#define ID_MESSAGE_ADDSEQUENCE          33204
+#define ID_MESSAGE_ADDCLONE             33205
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -897,7 +903,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        387
-#define _APS_NEXT_COMMAND_VALUE         33199
+#define _APS_NEXT_COMMAND_VALUE         33206
 #define _APS_NEXT_CONTROL_VALUE         1301
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

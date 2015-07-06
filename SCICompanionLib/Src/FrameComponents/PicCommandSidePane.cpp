@@ -58,6 +58,7 @@ void PicCommandSidePane::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_STATIC2, m_wndPalette);
         DDX_Control(pDX, ID_PIC_EDITPALETTE, m_wndEditPaletteButton);
         m_wndEditPaletteButton.SetIcon(IDI_EDITPALETTE, 0, 0, 0, 24, 24);
+        DDX_Control(pDX, IDC_COMBO_PALETTE, m_wndComboPaletteChoices);
 
         DDX_Control(pDX, ID_EDIT_PASTEINTOPIC, m_wndSetBackground);
 
@@ -107,6 +108,7 @@ BEGIN_MESSAGE_MAP(PicCommandSidePane, CExtDialogFwdCmd)
     ON_BN_CLICKED(ID_UPLOADNAME, PushNameToPoly)
     ON_CBN_SELCHANGE(IDC_COMBOPOLYTYPE, OnCbnSelchangeComboPolyType)
     ON_NOTIFY(TCN_SELCHANGE, IDC_TABWHICHLIST, OnTcnSelchangeTabWhichList)
+    ON_CBN_SELCHANGE(IDC_COMBO_PALETTE, OnPaletteSelection)
 END_MESSAGE_MAP()
 
 void PicCommandSidePane::_ShowPolyOrCommands()
@@ -368,6 +370,7 @@ BOOL PicCommandSidePane::OnInitDialog()
     {
         AddAnchor(IDC_STATIC2, CPoint(0, 100), CPoint(100, 100));
         AddAnchor(ID_PIC_EDITPALETTE, CPoint(0, 100), CPoint(0, 100));
+        AddAnchor(IDC_COMBO_PALETTE, CPoint(0, 100), CPoint(100, 100));
     }
 
     return fRet;
@@ -674,6 +677,15 @@ void PicCommandSidePane::_UpdateItemCount()
     }
 }
 
+void PicCommandSidePane::_SyncPaletteChoice()
+{
+    if (_showPalette && _pDoc)
+    {
+        int index = _pDoc->GetPaletteChoice();
+        m_wndComboPaletteChoices.SetCurSel(index);
+    }
+}
+
 void PicCommandSidePane::_UpdatePolyItemCount()
 {
     if (m_wndListPolygons.GetSafeHwnd() && _pDoc)
@@ -729,12 +741,29 @@ const SCIPolygon *PicCommandSidePane::_GetCurrentPolygon()
     return polygon;
 }
 
+void PicCommandSidePane::_UpdatePaletteChoices()
+{
+    if (_showPalette && _pDoc)
+    {
+        m_wndComboPaletteChoices.SetRedraw(FALSE);
+        m_wndComboPaletteChoices.ResetContent();
+        std::vector<int> &paletteChoices = _pDoc->GetPaletteChoices();
+        for (int index = 0; index < (int)paletteChoices.size(); index++)
+        {
+            m_wndComboPaletteChoices.AddString(_pDoc->GetPaletteChoiceName(index).c_str());
+        }
+        m_wndComboPaletteChoices.SetCurSel(_pDoc->GetPaletteChoice());
+        m_wndComboPaletteChoices.SetRedraw(TRUE);
+        OnPaletteSelection();
+    }
+}
+
 void PicCommandSidePane::_UpdatePalette()
 {
     if (_showPalette && _pDoc)
     {
-        const ResourceEntity *resource = _pDoc->GetResource();
-        if (resource && resource->TryGetComponent<PaletteComponent>())
+        const PaletteComponent *palette = _pDoc->GetCurrentPaletteComponent();
+        if (palette)
         {
             // Find bitmaps
             vector<const Cel*> cels;
@@ -754,7 +783,7 @@ void PicCommandSidePane::_UpdatePalette()
             SCIBitmapInfo bmiPalette;
             uint8_t *pBitsDest;
             COLORREF background = g_PaintManager->GetColor(COLOR_3DFACE);
-            bitmapPalette.Attach(CreateBitmapFromPaletteResource(resource, &bmiPalette, &pBitsDest, &background, &cels));
+            bitmapPalette.Attach(CreateBitmapFromPaletteComponent(*palette, &bmiPalette, &pBitsDest, &background, &cels));
             m_wndPalette.FromBitmap((HBITMAP)bitmapPalette, bmiPalette.bmiHeader.biWidth, abs(bmiPalette.bmiHeader.biHeight), false);
         }
     }
@@ -770,10 +799,10 @@ void PicCommandSidePane::UpdateNonView(CObject *pObject)
         m_wndListCommands.SendMessage(LB_RESETCONTENT, 0, 0);
         _UpdateItemCount();
         m_wndListCommands.SetRedraw(TRUE);
-        _UpdatePalette();
+        _UpdatePaletteChoices();
         // Selection changed.  Show a new pic.
 
-        hint |= PicChangeHint::EditPicPos | PicChangeHint::PolygonsChanged; // New pic, so we'll update pos changed too.
+        hint |= PicChangeHint::EditPicPos | PicChangeHint::PolygonsChanged | PicChangeHint::Palette | PicChangeHint::PreviewPalette; // New pic, so we'll update pos changed too.
     }
 
     if (IsFlagSet(hint, PicChangeHint::EditPicInvalid))
@@ -816,6 +845,12 @@ void PicCommandSidePane::UpdateNonView(CObject *pObject)
 
     if (_showPalette)
     {
+        if (IsFlagSet(hint, PicChangeHint::PreviewPalette))
+        {
+            _SyncPaletteChoice();
+            _UpdatePalette();
+        }
+
         if (IsFlagSet(hint, PicChangeHint::PolygonsChanged))
         {
             _UpdatePolyItemCount();
@@ -900,6 +935,18 @@ void PicCommandSidePane::SetDocument(CDocument *pDoc)
         else
         {
             m_wndGotoScript.EnableWindow(FALSE);
+        }
+    }
+}
+
+void PicCommandSidePane::OnPaletteSelection()
+{
+    if (_pDoc)
+    {
+        int curSel = m_wndComboPaletteChoices.GetCurSel();
+        if (curSel != CB_ERR)
+        {
+            _pDoc->SetPaletteChoice(curSel, false);
         }
     }
 }

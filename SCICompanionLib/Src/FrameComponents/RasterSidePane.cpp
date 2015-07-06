@@ -260,6 +260,7 @@ void RasterSidePane::_UpdatePaletteChoices()
             RasterComponent &raster = _pDoc->GetComponent<RasterComponent>();
             if (raster.Traits.PaletteType == PaletteType::VGA_256)
             {
+                m_wndPaletteChoice.SetRedraw(FALSE);
                 m_wndPaletteChoice.ResetContent();
                 std::vector<int> &paletteChoices = _pDoc->GetPaletteChoices();
                 for (int index = 0; index < (int)paletteChoices.size(); index++)
@@ -270,6 +271,7 @@ void RasterSidePane::_UpdatePaletteChoices()
                 m_wndPaletteChoice.ShowWindow(SW_SHOW);
                 m_wndStatic9.ShowWindow(SW_SHOW);
                 m_wndEditPaletteButton.ShowWindow(SW_SHOW);
+                m_wndPaletteChoice.SetRedraw(TRUE);
             }
             else
             {

@@ -80,14 +80,14 @@ const char *c_rgControlColourNames[16] =
 
 void CPicDoc::InvokeDialog(UINT nID, RECT *prcButton)
 {
-    _pdm.SetPic(_GetPic(), _GetPalette());
+    _pdm.SetPic(_GetPic(), GetCurrentPaletteComponent());
     switch (nID)
     {
     case IDC_SETVISUAL:
         {
             if (_GetPic()->Traits.IsVGA)
             {
-                CChooseColorDialogVGA dialog(*_GetPalette());
+                CChooseColorDialogVGA dialog(*GetCurrentPaletteComponent());
                 dialog.SetTrackRect(prcButton);
                 if (IDOK == dialog.DoModal())
                 {
@@ -211,6 +211,7 @@ void CPicDoc::OnResourceAdded(const ResourceBlob *pData, AppendBehavior appendBe
 {
     if ((pData->GetType() == ResourceType::Palette) && (pData->GetNumber() == 999))
     {
+        RefreshPaletteOptions();
         UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::Palette));
     }
 }
@@ -226,6 +227,7 @@ void CPicDoc::SetEditPic(std::unique_ptr<ResourceEntity> pEditPic, int id)
     }
 
     AddFirstResource(move(pEditPic));
+    RefreshPaletteOptions();
 
     UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::NewPic));
     _UpdateTitle();
@@ -383,15 +385,41 @@ void CPicDoc::SetShowPolygons(bool showPolygons)
 
 void CPicDoc::v_OnUndoRedo()
 {
-    _pdm.Invalidate();
+    PostApplyChanges(&WrapHint(PicChangeHint::NewPic));
     UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::EditPicInvalid));
 }
 
 void CPicDoc::PostApplyChanges(CObject *pObj)
 {
+    // If palette choice changed or view changed, then we need to update palette choice (if it's currently an embedded palette)
+    // This has to be done before we calls views to update them, since they will ask us for the current palette to render with.
+    PicChangeHint hint = GetHint<PicChangeHint>(pObj);
+    if (IsFlagSet(hint, PicChangeHint::NewPic | PicChangeHint::Palette))
+    {
+        RefreshPaletteOptions();
+    }
+
     // Invalidate our pic before we update views..
     _pdm.Invalidate();
 }
+
+bool CPicDoc::v_IsVGA()
+{
+    return _GetPic() && _GetPic()->Traits.IsVGA;
+}
+void CPicDoc::v_OnUpdatePaletteOptions()
+{
+    UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::NewPic));
+}
+const ResourceEntity *CPicDoc::v_GetResource()
+{
+    return GetResource();
+}
+void CPicDoc::v_OnUpdatePaletteChoice()
+{
+    UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::PreviewPalette));
+}
+
 
 // CPicDoc diagnostics
 
@@ -413,15 +441,9 @@ PicComponent *CPicDoc::_GetPic() const
     return pEntity ? &pEntity->GetComponent<PicComponent>() : nullptr;
 }
 
-PaletteComponent *CPicDoc::_GetPalette() const
-{
-    const ResourceEntity *pEntity = static_cast<const ResourceEntity*>(GetResource());
-    return pEntity ? pEntity->TryGetComponent<PaletteComponent>() : nullptr;
-}
-
 PicDrawManager &CPicDoc::GetDrawManager()
 {
-    _pdm.SetPic(_GetPic(), _previewPalette ? _previewPalette : _GetPalette());
+    _pdm.SetPic(_GetPic(), _previewPalette ? _previewPalette : GetCurrentPaletteComponent());
     return _pdm;
 };
 

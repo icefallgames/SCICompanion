@@ -5,6 +5,7 @@
 #include "MessageSource.h"
 #include "Text.h"
 #include "Message.h"
+#include "format.h"
 
 using namespace std;
 
@@ -25,6 +26,8 @@ BEGIN_MESSAGE_MAP(CMessageView, CListView)
     ON_COMMAND(IDC_BUTTONADDNEW, OnAddNew)
     ON_COMMAND(IDC_BUTTONADDSEQ, OnAddSeq)
     ON_COMMAND(IDC_BUTTONCLONE, OnCloneMessage)
+    ON_COMMAND(ID_MESSAGE_EXPORT, OnExportMessage)
+    ON_COMMAND(ID_MESSAGE_IMPORT, OnImportMessage)
     ON_NOTIFY_REFLECT(LVN_ITEMCHANGED, OnItemChanged)
     ON_UPDATE_COMMAND_UI(ID_EDIT_RENAME, OnUpdateIfSelection)
     ON_UPDATE_COMMAND_UI(IDC_BUTTONADDSEQ, OnUpdateIfSelection)
@@ -307,6 +310,49 @@ void CMessageView::OnCloneMessage()
         _AddEntryAtCurrentPosition(*text);
     }
 }
+
+const char c_szMessageTxtFilter[] = "txt files (*.txt)|*.txt|All Files|*.*|";
+
+void CMessageView::OnExportMessage()
+{
+    CMessageDoc *pDoc = GetDocument();
+    if (pDoc)
+    {
+        const ResourceEntity *resource = pDoc->GetResource();
+        if (resource)
+        {
+            CFileDialog fileDialog(FALSE, nullptr, fmt::format("{0}.txt", resource->ResourceNumber).c_str(), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, c_szMessageTxtFilter);
+            if (IDOK == fileDialog.DoModal())
+            {
+                CString strFileName = fileDialog.GetPathName();
+                ExportMessageToFile(resource->GetComponent<TextComponent>(), (PCSTR)strFileName);
+            }
+        }
+    }
+}
+
+void CMessageView::OnImportMessage()
+{
+    CMessageDoc *pDoc = GetDocument();
+    if (pDoc)
+    {
+        pDoc->ApplyChanges<TextComponent>(
+            [](TextComponent &text)
+        {
+            MessageChangeHint hint = MessageChangeHint::None;
+            CFileDialog fileDialog(TRUE, nullptr, nullptr, OFN_HIDEREADONLY, c_szMessageTxtFilter);
+            if (IDOK == fileDialog.DoModal())
+            {
+                CString strFileName = fileDialog.GetPathName();
+                ImportMessageFromFile(text, (PCSTR)strFileName);
+                hint |= MessageChangeHint::Changed;
+            }
+            return WrapHint(hint);
+        }
+            );
+    }
+}
+
 
 TextEntry *CMessageView::_GetEntry()
 {

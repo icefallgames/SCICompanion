@@ -7,6 +7,7 @@
 #include "ResourceEntityDocument.h"
 #include "RasterOperations.h"
 #include "SyncResourceMap.h"
+#include "DocumentWithPaletteChoices.h"
 
 // CNewRasterResourceDocument document
 
@@ -15,7 +16,7 @@ CHintWithObject<CelIndex> WrapRasterChange(RasterChange change);
 
 struct ImageSequenceItem;
 
-class CNewRasterResourceDocument : public ResourceEntityDocument, public ISyncResourceMap
+class CNewRasterResourceDocument : public ResourceEntityDocument, public ISyncResourceMap, public DocumentWithPaletteChoices
 {
     DECLARE_DYNCREATE(CNewRasterResourceDocument)
 
@@ -43,7 +44,6 @@ public:
     COLORREF SCIColorToCOLORREF(uint8_t color);
 
     const RGBQUAD *GetPaletteVGA() const;
-    const PaletteComponent *GetCurrentPaletteComponent() const;
     int GetDefaultZoom() const;
     void SetDefaultZoom(int iZoom) const;
     BOOL CanDeleteCels() const { return TRUE; } // REVIEW: Not true for fonts?
@@ -53,8 +53,6 @@ public:
     void SetSelectedLoop(int nLoop);
     void SetSelectedCel(int nCel);
     void GetLabelString(PTSTR  pszLabel, size_t cch, int nCel) const { StringCchPrintf(pszLabel, cch, TEXT("%d"), nCel); }
-
-    void RefreshPaletteOptions();
 
     void SetPreviewLetters(std::string &previewLetters)
     {
@@ -73,12 +71,6 @@ public:
         return GetResource()->GetComponent<_T>();
     }
 
-    std::vector<int> &GetPaletteChoices() { return _paletteChoices; }
-    std::string GetPaletteChoiceName(int index);
-    int GetPaletteChoice() { return _currentPaletteIndex; }
-    void SetPaletteChoice(int choice, bool force);
-    void SwitchToEmbeddedPalette();
-
     void PostApplyChanges(CObject *pObj) override;
 
     // ISyncResourceMap
@@ -86,6 +78,11 @@ public:
     void OnResourceDeleted(const ResourceBlob *pData) {}
     void OnResourceMapReloaded(bool isInitialLoad) {}
     void OnResourceTypeReloaded(ResourceType iType) {}
+
+    bool v_IsVGA() override;
+    void v_OnUpdatePaletteOptions() override;
+    const ResourceEntity *v_GetResource() override;
+    void v_OnUpdatePaletteChoice() override;
 
     void OnCloseDocument() override;
 
@@ -126,12 +123,6 @@ private:
 
     uint8_t _color;
     uint8_t _alternateColor;
-
-    RGBQUAD _currentPaletteVGA[256];
-    // Keep around one of these too:
-    std::unique_ptr<PaletteComponent> _currentPaletteComponent;
-    std::vector<int> _paletteChoices; 
-    int _currentPaletteIndex;  // index into _paletteChoices
 
     // These should go away
     std::string _previewLetters = "!@#$%^&*()_+0123456789-=~`ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz{}|[]\\:\";'<>?,./";

@@ -40,6 +40,7 @@ private:
     CExtCheckBox m_wndPreviewCycling;
     CExtRadioButton m_wndCycleLeft;
     CExtRadioButton m_wndCycleRight;
+    CExtButton m_wndSaveAs;
     bool _enableCycling;
     bool _cycleForward;
     bool _cycling;
@@ -49,4 +50,5 @@ public:
     afx_msg void OnBnClickedCheckpreviewcycling();
     afx_msg void OnBnClickedButtoncycleleft();
     afx_msg void OnBnClickedButtoncycleright();
+    afx_msg void OnSaveAsResource();
 };

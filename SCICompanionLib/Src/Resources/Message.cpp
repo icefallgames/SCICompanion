@@ -176,6 +176,99 @@ void MessageWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
     }
 }
 
+std::vector<std::string> split(const std::string& value, char separator)
+{
+    std::vector<std::string> result;
+    std::string::size_type p = 0;
+    std::string::size_type q;
+    while ((q = value.find(separator, p)) != std::string::npos)
+    {
+        result.emplace_back(value, p, q - p);
+        p = q + 1;
+    }
+    result.emplace_back(value, p);
+    return result;
+}
+
+void ExportMessageToFile(const TextComponent &message, const std::string &filename)
+{
+    ofstream file;
+    file.open(filename, ios_base::out | ios_base::trunc);
+    if (file.is_open())
+    {
+        for (const auto &entry : message.Texts)
+        {
+            string firstPart = fmt::format("{0}\t{1}\t{2}\t{3}\t{4}\t", (int)entry.Noun, (int)entry.Verb, (int)entry.Condition, (int)entry.Sequence, (int)entry.Talker);
+            file << firstPart;
+            // Split by line to match SV.exe's output
+            vector<string> lines = split(entry.Text, '\n');
+            int lineNumber = 0;
+            for (const string &line : lines)
+            {
+                if (lineNumber > 0)
+                {
+                    file << "\t\t\t\t\t"; // "Empty stuff" before next line (matches SV.exe's output)
+                }
+                file << line;
+                file << endl;
+                lineNumber++;
+            }
+        }
+    }
+}
+
+void ConcatWithTabs(const vector<string> &pieces, size_t pos, string &text)
+{
+    while (pos < pieces.size())
+    {
+        text += "\t";
+        text += pieces[pos];
+        pos++;
+    }
+}
+
+void ImportMessageFromFile(TextComponent &message, const std::string &filename)
+{
+    ifstream file;
+    file.open(filename, ios_base::in);
+    if (file.is_open())
+    {
+        string line;
+        while (std::getline(file, line))
+        {
+            vector<string> linePieces = split(line, '\t');
+            if (linePieces.size() >= 6)
+            {
+                // If the first 5 are empty, then it's an extension of the previous line
+                bool empty = true;
+                for (int i = 0; empty && (i < 5); i++)
+                {
+                    empty = linePieces[i].empty();
+                }
+                if (!empty)
+                {
+                    TextEntry entry = {};
+                    entry.Noun = (uint8_t)stoi(linePieces[0]);
+                    entry.Verb = (uint8_t)stoi(linePieces[1]);
+                    entry.Condition = (uint8_t)stoi(linePieces[2]);
+                    entry.Sequence = (uint8_t)stoi(linePieces[3]);
+                    entry.Talker = (uint8_t)stoi(linePieces[4]);
+                    entry.Text = linePieces[5];
+                    ConcatWithTabs(linePieces, 6, entry.Text);
+                    message.Texts.push_back(entry);
+                }
+                else if (!message.Texts.empty())
+                {
+                    // Append to previous
+                    message.Texts.back().Text += "\n";
+                    message.Texts.back().Text += linePieces[5];
+                    ConcatWithTabs(linePieces, 6, message.Texts.back().Text);
+                }
+            }
+        }
+    }
+}
+
 bool ValidateMessage(const ResourceEntity &resource)
 {
     // Check for duplicate tuples

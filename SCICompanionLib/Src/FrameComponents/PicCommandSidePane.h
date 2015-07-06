@@ -64,11 +64,13 @@ protected:
     afx_msg void PushEditPointsToPoly();
     afx_msg void PushNameToPoly();
     afx_msg void OnTcnSelchangeTabWhichList(NMHDR *pNMHDR, LRESULT *pResult);
+    afx_msg void OnPaletteSelection();
     BOOL OnEraseBkgnd(CDC *pDC);
     void OnCropCommands();
     void OnCopyCommands();
     void OnCutCommands();
     void _OnUpdateCommands();
+    void _SyncPaletteChoice();
 
 private:
     void _ShowPolyOrCommands();
@@ -81,6 +83,7 @@ private:
     void _SyncPolyTypeCombo();
     void _SyncPolyChoice();
     const SCIPolygon *_GetCurrentPolygon();
+    void _UpdatePaletteChoices();
     bool _ShowingPolygons();
     
     CPicDoc *_pDoc;
@@ -110,6 +113,7 @@ private:
     CExtButton m_wndUploadPointsButton;
     CExtButton m_wndUploadNameButton;
     CExtButton m_wndEditPaletteButton;
+    CExtComboBox m_wndComboPaletteChoices;
     CExtButton m_wndDelete;
     CExtButton m_wndCopy;
     CExtButton m_wndCrop;

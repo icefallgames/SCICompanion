@@ -2,6 +2,8 @@
 
 #include "Components.h"
 
+struct TextComponent;
+
 // We re-use TextComponent
 
 enum class MessageChangeHint
@@ -23,3 +25,5 @@ ResourceEntity *CreateMessageResource(SCIVersion version);
 ResourceEntity *CreateDefaultMessageResource(SCIVersion version);
 ResourceEntity *CreateNewMessageResource(SCIVersion version, uint16_t msgVersion);
 uint16_t CheckMessageVersion(sci::istream &byteStream);
+void ExportMessageToFile(const TextComponent &message, const std::string &filename);
+void ImportMessageFromFile(TextComponent &message, const std::string &filename);

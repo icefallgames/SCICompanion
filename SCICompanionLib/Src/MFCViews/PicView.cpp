@@ -545,6 +545,8 @@ void CPicView::OnDeletePoint()
 
 void CPicView::EditVGAPalette()
 {
+    GetDocument()->SwitchToEmbeddedPalette();
+
     const PaletteComponent *palette = _GetPalette();
     if (palette)
     {
@@ -557,26 +559,22 @@ void CPicView::EditVGAPalette()
             }
         }
 
-        PaletteComponent paletteCopy = *palette; // Since we'll be changing it, and this is const
-        PaletteEditorDialog paletteEditor(this, paletteCopy, cels, true);
-
-        GetDocument()->SetPreviewPalette(&paletteCopy);
-
-        paletteEditor.DoModal();
-        PaletteComponent paletteResult = paletteEditor.GetPalette();
-        if (paletteResult != *palette)
+        GetDocument()->ApplyChanges<PaletteComponent>(
+            [&cels, this](PaletteComponent &palette)
         {
-            GetDocument()->ApplyChanges<PicComponent, PaletteComponent>(
-                [&paletteResult](PicComponent &pic, PaletteComponent &palette)
+            GetDocument()->SetPreviewPalette(&palette);
+            PicChangeHint hint = PicChangeHint::None;
+            PaletteComponent copy = palette;
+            PaletteEditorDialog paletteEditor(this, palette, cels, true);
+            paletteEditor.DoModal();
+            if (copy != palette)
             {
-                // Replace the palette with the new one.
-                palette = paletteResult;
-                return WrapHint(PicChangeHint::Palette);
+                hint |= PicChangeHint::Palette;
             }
-            );
+            GetDocument()->SetPreviewPalette(nullptr);
+            return WrapHint(hint);
         }
-
-        GetDocument()->SetPreviewPalette(nullptr);
+        );
     }
 }
 
@@ -4187,7 +4185,7 @@ const PaletteComponent *CPicView::_GetPalette()
         ASSERT_VALID(pDoc);
         if (pDoc)
         {
-            ppalette = pDoc->GetPalette();
+            ppalette = pDoc->GetCurrentPaletteComponent();
         }
     }
     return ppalette;

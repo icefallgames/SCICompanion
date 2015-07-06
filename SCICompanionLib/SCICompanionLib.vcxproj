@@ -227,6 +227,7 @@
     <ClCompile Include="Src\FrameComponents\MessageSource.cpp" />
     <ClCompile Include="Src\FrameComponents\NewOutputPane.cpp" />
     <ClCompile Include="Src\FrameComponents\PicHelperPane.cpp" />
+    <ClCompile Include="Src\MFCDocuments\DocumentWithPaletteChoices.cpp" />
     <ClCompile Include="Src\Resources\Polygon.cpp" />
     <ClCompile Include="Src\FrameComponents\ViewCelListBox.cpp" />
     <ClCompile Include="Src\FrameComponents\ZoomCelStatic.cpp" />
@@ -275,6 +276,7 @@
     <ClInclude Include="Src\FrameComponents\MessageSidePane.h" />
     <ClInclude Include="Src\FrameComponents\MessageSource.h" />
     <ClInclude Include="Src\FrameComponents\NewOutputPane.h" />
+    <ClInclude Include="Src\MFCDocuments\DocumentWithPaletteChoices.h" />
     <ClInclude Include="Src\Resources\Polygon.h" />
     <ClInclude Include="Src\FrameComponents\ViewCelListBox.h" />
     <ClInclude Include="Src\GIFLIB\gif_hash.h" />

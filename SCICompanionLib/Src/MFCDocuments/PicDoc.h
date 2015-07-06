@@ -12,6 +12,7 @@
 #include "ResourceEntityDocument.h"
 #include "SyncResourceMap.h"
 #include "Polygon.h"
+#include "DocumentWithPaletteChoices.h"
 
 using namespace std;
 
@@ -56,7 +57,7 @@ enum class PicChangeHint
 
 DEFINE_ENUM_FLAGS(PicChangeHint, uint32_t)
 
-class CPicDoc : public ResourceEntityDocument, public IDialogFactory, public ISyncResourceMap
+class CPicDoc : public ResourceEntityDocument, public IDialogFactory, public ISyncResourceMap, public DocumentWithPaletteChoices
 {
 protected: // create from serialization only
     CPicDoc();
@@ -115,7 +116,6 @@ public:
     void SetEditPic(std::unique_ptr<ResourceEntity> pEditPic, int id = -1);
     
     PicComponent *GetPic() const { return _GetPic(); }
-    PaletteComponent *GetPalette() const { return _GetPalette(); }
 
     void InformBitmapEditor(PicChangeHint hint, IBitmapEditor *pObj);
 
@@ -123,6 +123,11 @@ public:
 
 protected:
     virtual ResourceType _GetType() const { return ResourceType::Pic; }
+
+    bool v_IsVGA() override;
+    void v_OnUpdatePaletteOptions() override;
+    const ResourceEntity *v_GetResource() override;
+    void v_OnUpdatePaletteChoice() override;
 
     PicDrawManager _pdm;
 
@@ -134,7 +139,7 @@ private:
     void _CloneCurrentAndAdd();
     void _NotifyNewResource(PicChangeHint hint);
     PicComponent *_GetPic() const;
-    PaletteComponent *_GetPalette() const;
+    void _SetInitialPalette();
 
     const PaletteComponent *_previewPalette;
 
