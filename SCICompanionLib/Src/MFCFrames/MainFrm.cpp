@@ -280,6 +280,7 @@ const key_value_pair<PCSTR, MDITabType> c_ResourceSpecificMenus[] =
     { "Fo&nt", TAB_FONT},
     { "Voca&b", TAB_VOCAB},
     { "&View", TAB_VIEW},
+    { "&Message", TAB_MESSAGE },
 };
 
 bool CExtMenuControlBarHideShow::_ExcludeMenu(PCSTR pszName)
