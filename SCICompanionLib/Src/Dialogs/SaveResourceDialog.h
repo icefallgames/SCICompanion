@@ -10,8 +10,10 @@ public:
 	SaveResourceDialog(CWnd* pParent = NULL);   // standard constructor
 	virtual ~SaveResourceDialog();
     void Init(int iPackageNumber, int iResourceNumber) { _iResourceNumber = iResourceNumber; _iPackageNumber = iPackageNumber; }
+    void Init(int iPackageNumber, int iResourceNumber, const std::string &name) { _iResourceNumber = iResourceNumber; _iPackageNumber = iPackageNumber; _name = name; }
     int GetPackageNumber() { return _iPackageNumber; }
     int GetResourceNumber() { return _iResourceNumber; }
+    std::string GetName() { return _name; }
     virtual void OnOK();
 
 // Dialog Data
@@ -27,12 +29,15 @@ private:
 
     int _iResourceNumber;
     int _iPackageNumber;
+    std::string _name;
     CExtEdit m_wndEditPackage;
     CExtEdit m_wndEditResource;
+    CExtEdit m_wndEditName;
 
     // Visuals
     CExtButton m_wndOk;
     CExtButton m_wndCancel;
     CExtLabel m_wndLabel1;
     CExtLabel m_wndLabel2;
+    CExtLabel m_wndLabel3;
 };

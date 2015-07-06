@@ -5,6 +5,8 @@
 #include "AppState.h"
 #include "SaveResourceDialog.h"
 
+using namespace std;
+
 // SaveResourceDialog dialog
 
 SaveResourceDialog::SaveResourceDialog(CWnd* pParent /*=NULL*/)
@@ -25,7 +27,6 @@ int _GetValidPackage(int iPackage)
 {
     return max(min(iPackage, 63), 0);
 }
-
 
 void SaveResourceDialog::DoDataExchange(CDataExchange* pDX)
 {
@@ -53,12 +54,16 @@ void SaveResourceDialog::DoDataExchange(CDataExchange* pDX)
     m_wndEditResource.LimitText(5);
     StringCchPrintf(sz, ARRAYSIZE(sz), TEXT("%d"), _GetValidResource(_iResourceNumber));
     m_wndEditResource.SetWindowText(sz);
+
+    DDX_Control(pDX, IDC_EDITNAME, m_wndEditName);
+    m_wndEditName.SetWindowText(_name.c_str());
     
     // Visuals
     DDX_Control(pDX, IDOK, m_wndOk);
     DDX_Control(pDX, IDCANCEL, m_wndCancel);
     DDX_Control(pDX, IDC_STATIC1, m_wndLabel1);
     DDX_Control(pDX, IDC_STATIC2, m_wndLabel2);
+    DDX_Control(pDX, IDC_STATIC3, m_wndLabel3);
 }
 
 
@@ -96,6 +101,10 @@ void SaveResourceDialog::OnOK()
 
     m_wndEditResource.GetWindowText(str);
     _iResourceNumber = StrToInt(str);
+
+    CString strName;
+    m_wndEditName.GetWindowText(strName);
+    _name = (PCSTR)strName;
 
     if (_ValidateData())
     {

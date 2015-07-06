@@ -106,8 +106,9 @@ std::string GameFolderHelper::GetIniString(const std::string &sectionName, const
 }
 void GameFolderHelper::SetIniString(const std::string &sectionName, const std::string &keyName, const std::string &value) const
 {
-    WritePrivateProfileString(sectionName.c_str(), keyName.c_str(), value.c_str(), GetGameIniFileName().c_str());
+    WritePrivateProfileString(sectionName.c_str(), keyName.c_str(), value.empty() ? nullptr : value.c_str(), GetGameIniFileName().c_str());
 }
+
 
 std::string GameFolderHelper::GetGameIniFileName() const
 {

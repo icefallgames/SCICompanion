@@ -611,6 +611,13 @@ bool _IsWaveFile(PCSTR pszFileName)
     return (0 == _strcmpi(PathFindExtension(pszFileName), ".wav"));
 }
 
+std::string _NameFromFilename(PCSTR pszFilename)
+{
+    PCSTR pszFile = PathFindFileName(pszFilename);
+    PCSTR pszExt = PathFindExtension(pszFile);
+    return string(pszFile, pszExt - pszFile);
+}
+
 //
 // Drops the files in pDropFiles into the game.
 //
@@ -653,7 +660,7 @@ void DropResourceFiles(CArray<CString, CString&> *pDropFiles)
                 AudioComponentFromWaveFile(owner.getReader(), resource->GetComponent<AudioComponent>());
                 // REVIEW: We should know ahead of time if the game uses Aud or Sfx.
                 resource->SourceFlags = (appState->GetVersion().AudioVolumeName == AudioVolumeName::Sfx) ? ResourceSourceFlags::Sfx : ResourceSourceFlags::Aud;
-                appState->GetResourceMap().AppendResourceAskForNumber(*resource);
+                appState->GetResourceMap().AppendResourceAskForNumber(*resource, _NameFromFilename(pDropFiles->GetAt(i)));
             }
             catch (std::exception &e)
             {

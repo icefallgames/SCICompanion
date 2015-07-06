@@ -208,9 +208,14 @@ void CResourceMap::AssignName(ResourceType type, int iResourceNumber, PCTSTR psz
 {
     // Assign the name of the item.
     std::string keyName = default_reskey(iResourceNumber);
-    if (pszName && *pszName && (0 != lstrcmpi(keyName.c_str(), pszName)))
+    std::string newValue;
+    if (pszName)
     {
-        Helper().SetIniString(g_resourceInfo[(int)type].pszTitleDefault, keyName, pszName);
+        newValue = pszName;
+    }
+    if (0 != lstrcmpi(keyName.c_str(), newValue.c_str()))
+    {
+        Helper().SetIniString(g_resourceInfo[(int)type].pszTitleDefault, keyName, newValue);
     }
 }
 
@@ -364,14 +369,20 @@ void CResourceMap::AbortDebuggerThread()
 
 void CResourceMap::AppendResourceAskForNumber(ResourceEntity &resource)
 {
+    AppendResourceAskForNumber(resource, "");
+}
+
+void CResourceMap::AppendResourceAskForNumber(ResourceEntity &resource, const std::string &name)
+{
     // Invoke dialog to suggest/ask for a resource number
     SaveResourceDialog srd;
-    srd.Init(-1, SuggestResourceNumber(resource.GetType()));
+    srd.Init(-1, SuggestResourceNumber(resource.GetType()), name);
     if (IDOK == srd.DoModal())
     {
         // Assign it.
         resource.ResourceNumber = srd.GetResourceNumber();
         resource.PackageNumber = srd.GetPackageNumber();
+        AssignName(resource.GetType(), resource.ResourceNumber, srd.GetName().c_str());
         AppendResource(resource);
     }
 }
@@ -397,6 +408,10 @@ HRESULT CResourceMap::AppendResourceAskForNumber(ResourceBlob &resource)
         resource.SetNumber(srd.GetResourceNumber());
         resource.SetPackage(srd.GetPackageNumber());
         resource.SetName(nullptr);
+        if (!srd.GetName().empty())
+        {
+            resource.SetName(srd.GetName().c_str());
+        }
 
         // Save it.
         return AppendResource(resource);

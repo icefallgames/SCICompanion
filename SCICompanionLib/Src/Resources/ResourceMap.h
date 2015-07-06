@@ -41,6 +41,7 @@ public:
     HRESULT AppendResource(const ResourceBlob &resource);
     HRESULT AppendResourceAskForNumber(ResourceBlob &resource);
     void AppendResourceAskForNumber(ResourceEntity &resource);
+    void AppendResourceAskForNumber(ResourceEntity &resource, const std::string &name);
     bool AppendResource(const ResourceEntity &resource, int *pChecksum = nullptr);
     bool AppendResource(const ResourceEntity &resource, int packageNumber, int resourceNumber, int *pChecksum = nullptr);
 
