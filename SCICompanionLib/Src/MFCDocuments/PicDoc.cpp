@@ -209,7 +209,7 @@ void CPicDoc::OnCloseDocument()
 
 void CPicDoc::OnResourceAdded(const ResourceBlob *pData, AppendBehavior appendBehavior)
 {
-    if ((pData->GetType() == ResourceType::Palette) && (pData->GetNumber() == 999))
+    if (pData->GetType() == ResourceType::Palette)
     {
         RefreshPaletteOptions();
         UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::Palette));
