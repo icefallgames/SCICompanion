@@ -15,15 +15,30 @@ namespace UnitTests
 	public:
         TEST_CLASS_INITIALIZE(ClassSetup)
         {
-            _gameFolder = SetUpGame();
         }
 
         TEST_CLASS_CLEANUP(ClassCleanup)
         {
+        }
+
+        TEST_METHOD(TestCompileAllSCI0)
+        {
+            _gameFolder = SetUpGameSCI0();
+            _DoIt();
+        }
+
+        TEST_METHOD(TestCompileAllSCI11)
+        {
+            _gameFolder = SetUpGameSCI11();
+            _DoIt();
+        }
+
+        TEST_METHOD_CLEANUP(TestCompileAll_Clean)
+        {
             CleanUpGame(_gameFolder);
         }
 
-        TEST_METHOD(TestCompileAll)
+        void _DoIt()
         {
             std::vector<ScriptId> scripts;
             appState->GetResourceMap().GetAllScripts(scripts);

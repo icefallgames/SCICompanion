@@ -112,6 +112,8 @@ enum class ResourceTypeFlags
     Heap = 1 << (int)ResourceType::Heap,
 
     All = 0x3fffffff,
+
+    AllCreatable = View | Font | Cursor | Text | Sound | Vocab | Pic | Palette | Message | Audio | Map,
 };
 DEFINE_ENUM_FLAGS(ResourceTypeFlags, uint32_t)
 

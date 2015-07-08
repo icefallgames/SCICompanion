@@ -1348,7 +1348,12 @@ void ReadChannel(sci::istream &stream, std::vector<SoundEvent> &events, DWORD &t
 
             if (mustBeChannel)
             {
-                assert((event.GetChannel() == *mustBeChannel) || (event.GetChannel() == 0x0F));
+                // Castle of Dr Brain hits this.
+                /*
+                if ((event.GetChannel() != *mustBeChannel) && (event.GetChannel() != 0x0F))
+                {
+                    throw std::exception("Corrupt audio resource.");
+                }*/
             }
 
             if (!fDone)

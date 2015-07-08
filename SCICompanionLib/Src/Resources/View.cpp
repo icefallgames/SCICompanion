@@ -35,6 +35,8 @@ void ReadImageData(sci::istream &byteStream, Cel &cel, bool isVGA)
     ReadImageData(byteStream, cel, isVGA, byteStream);
 }
 
+const size_t ReasonableLimit = 640 * 480;
+
 void ReadImageData(sci::istream &byteStreamRLE, Cel &cel, bool isVGA, sci::istream &byteStreamLiteral)
 {
     uint8_t scratchBuffer[128];
@@ -49,6 +51,11 @@ void ReadImageData(sci::istream &byteStreamRLE, Cel &cel, bool isVGA, sci::istre
     // Bitmap buffer:
     int cBufferSizeRemaining = cxActual * (int)cel.size.cy;
     size_t dataSize = cBufferSizeRemaining;
+
+    if (dataSize > ReasonableLimit)
+    {
+        throw std::exception("Corrupt raster resource.");
+    }
 
     // The image starts from the bottom left, not the top left:
     int y = cel.size.cy - 1;

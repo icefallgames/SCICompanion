@@ -26,7 +26,7 @@ struct AudioHeader
     uint16_t sampleRate;
     AudioFlags flags;
     // REVIEW this is actually 16 bits:
-    uint32_t sizeExcludingHeader;
+    int32_t sizeExcludingHeader;
 };
 #include <poppack.h>
 

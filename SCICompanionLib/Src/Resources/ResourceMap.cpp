@@ -1223,6 +1223,8 @@ std::unique_ptr<ResourceEntity> CResourceMap::CreateResourceFromNumber(ResourceT
             } \
             catch (std::exception &theException) \
             { \
+                if (!fallbackOnException) \
+                    throw; \
                 /* Just create the default one */  \
                 appState->LogInfo(theException.what()); \
                 data.AddStatusFlags(ResourceLoadStatusFlags::ResourceCreationFailed); \
@@ -1244,7 +1246,7 @@ void DoNothing(ResourceEntity &resource)
 // a ResourceEntity.
 // If there is an exception creating the resource, a default one is handed back.
 //
-std::unique_ptr<ResourceEntity> CreateResourceFromResourceData(const ResourceBlob &data)
+std::unique_ptr<ResourceEntity> CreateResourceFromResourceData(const ResourceBlob &data, bool fallbackOnException)
 {
     std::unique_ptr<ResourceEntity> pResourceReturn;
     switch (data.GetType())

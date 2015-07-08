@@ -5,12 +5,12 @@
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
-std::string SetUpGame()
+std::string SetUpGame(const std::string &name)
 {
     char szPath[MAX_PATH];
     GetCurrentDirectory(MAX_PATH, szPath);
     std::string srcGameFolder = szPath;
-    srcGameFolder += "\\TemplateGame\\SCI0\\*";
+    srcGameFolder += name;
 
     std::string gameFolder = GetRandomTempFolder();
     Assert::IsFalse(gameFolder.empty());
@@ -43,4 +43,14 @@ void CleanUpGame(const std::string &gameFolder)
     fileOp.fFlags = FOF_SILENT | FOF_NOCONFIRMATION | FOF_NOERRORUI;
     int result = SHFileOperation(&fileOp);
 
+}
+
+std::string SetUpGameSCI0()
+{
+    return SetUpGame("\\TemplateGame\\SCI0\\*");
+}
+
+std::string SetUpGameSCI11()
+{
+    return SetUpGame("\\TemplateGame\\SCI1.1\\*");
 }

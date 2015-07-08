@@ -15,7 +15,7 @@ public:
 
 // fwd decl
 class ResourceBlob;
-std::unique_ptr<ResourceEntity> CreateResourceFromResourceData(const ResourceBlob &data);
+std::unique_ptr<ResourceEntity> CreateResourceFromResourceData(const ResourceBlob &data, bool fallbackOnException = true);
 
 void ExportResourceAsBitmap(const ResourceEntity &resourceEntity);
 
