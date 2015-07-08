@@ -5,8 +5,10 @@
 #include "AppState.h"
 #include "ResourceEntity.h"
 #include "format.h"
+#include "CDSPResampler.h"
 
 using namespace std;
+using namespace r8b;
 
 struct DeviceAndName
 {
@@ -119,6 +121,8 @@ struct WaveHeader
 };
 #include <poppack.h>
 
+const int MaxSierraSampleRate = 22050;
+
 void AudioComponentFromWaveFile(sci::istream &stream, AudioComponent &audio)
 {
     uint32_t riff, wave, fileSize, fmt, chunkSize, data, dataSize;
@@ -177,11 +181,14 @@ void AudioComponentFromWaveFile(sci::istream &stream, AudioComponent &audio)
     {
         throw std::exception("Only uncompressed wave files are supported");
     }
+
+    std::vector<CompileResult> conversionResults;
+
     if (header.channelCount != 1)
     {
-        // Try to read stero things.
-        // throw std::exception("Only mono wave files are supported");
+        conversionResults.emplace_back("Extracting left channel from multi-channel wave.");
     }
+
     // REVIEW: Check sample rate;
     uint16_t convertedBitsPerSample = header.bitsPerSample;
     if ((header.bitsPerSample != 8) && (header.bitsPerSample != 16))
@@ -190,10 +197,11 @@ void AudioComponentFromWaveFile(sci::istream &stream, AudioComponent &audio)
         throw std::exception(fmt::format("{0} bits per sample: Only 8 or 16 bit sound supported", header.bitsPerSample).c_str());
     }
 
-    if (header.sampleRate > 22050)
+    if (header.sampleRate > MaxSierraSampleRate)
     {
-        AfxMessageBox("Warning: sounds with over 22050Hz may not play correctly in Sierra's interpreter.", MB_OK | MB_ICONWARNING);
+        conversionResults.emplace_back(fmt::format("Downsampling from {0}Hz to {1}Hz.", header.sampleRate, MaxSierraSampleRate));
     }
+
     if (header.formatTag != WAVE_FORMAT_PCM)
     {
         AfxMessageBox("Warning: Imported .wav is not PCM.", MB_OK | MB_ICONWARNING);
@@ -220,29 +228,95 @@ void AudioComponentFromWaveFile(sci::istream &stream, AudioComponent &audio)
     temp2.assign(dataSize / header.channelCount, 0);
 
     // temp -> temp2: Extract one channel 
+    // Also at this point, convert so floating point data in case we need to downsample.
+    vector<double> fpData;
     for (int i = 0; i < sampleCount; i++)
     {
         // The sampleSize/convertedSampleSize was an attempt at converting from 24/32 bit to 16 bit, but it sounds awful.
         int iSource = i * header.channelCount;
-        uint32_t sampleIn = 0;
+        uint32_t theSample = 0;
         for (int k = 0; k < sampleSize; k++)
         {
-            sampleIn += ((uint32_t)temp[iSource * sampleSize + k] << (8 * k));
+            theSample += ((uint32_t)temp[iSource * sampleSize + k] << (8 * k));
         }
-        uint32_t sampleOut = sampleIn;
+
+        if (sampleSize == 2)
+        {
+            // 16 bit signed
+            int16_t value = (int16_t)(uint16_t)theSample;
+            double f = ((double)value) / 32768.0;
+            fpData.push_back(f);
+        }
+        else
+        {
+            // 8 bit unsigned
+            uint8_t value = (uint8_t)theSample;
+            double f = ((double)value) / 255.0;
+            f = (f * 2.0) - 1.0;
+            fpData.push_back(f);
+        }
+
         for (int k = 0; k < convertedSampleSize; k++)
         {
-            temp2[i * convertedSampleSize + k] = (uint8_t)(sampleOut >> (8 * k));
+            temp2[i * convertedSampleSize + k] = (uint8_t)(theSample >> (8 * k));
         }
     }
 
-    // TODO: sample rate conversion.
-    audio.DigitalSamplePCM.assign(dataSize / header.channelCount, 0);
-    for (size_t i = 0; i < temp2.size(); i++)
+    // Sample rate conversion to 22Khz
+    if (header.sampleRate > MaxSierraSampleRate)
     {
-        audio.DigitalSamplePCM[i] = temp2[i];
+        int fpSampleCount = (int)fpData.size();
+        // Convert to floating point.
+        unique_ptr<CDSPResampler24> resampler = make_unique<CDSPResampler24>(header.sampleRate, MaxSierraSampleRate, fpSampleCount);
+        double *results;
+        int samplesWritten = resampler->process(&fpData[0], fpSampleCount, results);
+
+        // Convert back to 16 bit (for now)
+        audio.DigitalSamplePCM.assign(samplesWritten * convertedSampleSize, 0);
+        for (int i = 0; i < samplesWritten; i++)
+        {
+            double f = fpData[i];
+            uint16_t value;
+            if (convertedSampleSize == 2)
+            {
+                // 16 bit signed
+                f *= 32768.0;
+                int32_t value32 = (int32_t)f;
+                if (value32 > 32767) value32 = 32767;
+                if (value32 < -32768) value32 = -32768;
+                value = (uint16_t)(int16_t)value32;
+            }
+            else
+            {
+                // 8 bit unsigned
+                f = (f + 1.0) * 0.5; // now 0->1
+                f *= 255.0;         // now 0->255
+                int32_t value32 = (int32_t)f;
+                if (value32 > 255) value32 = 255;
+                if (value32 < 0) value32 = 0;
+                value = (uint16_t)(int16_t)value32;
+            }
+            for (int k = 0; k < convertedSampleSize; k++)
+            {
+                audio.DigitalSamplePCM[i * convertedSampleSize + k] = (uint8_t)(value >> (8 * k));
+            }
+        }
+        audio.Frequency = MaxSierraSampleRate;
+    }
+    else
+    {
+        // Just copy over
+        audio.DigitalSamplePCM.assign(dataSize / header.channelCount, 0);
+        for (size_t i = 0; i < temp2.size(); i++)
+        {
+            audio.DigitalSamplePCM[i] = temp2[i];
+        }
     }
 
+    if (!conversionResults.empty())
+    {
+        appState->OutputResults(OutputPaneType::Compile, conversionResults);
+    }
 }
 
 std::string _NameFromFilename(PCSTR pszFilename)
