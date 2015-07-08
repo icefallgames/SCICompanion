@@ -256,6 +256,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Decompiler" "$(OutDir)Decompiler"
     <None Include="Files\Samples\SCI1.1\palettes\King 5.bin" />
     <None Include="Files\Samples\SCI1.1\palettes\Quest.bin" />
     <None Include="Files\Samples\SCI1.1\palettes\Space 5.bin" />
+    <None Include="Files\Samples\SCI1.1\pics\Black 200.bin" />
     <None Include="Files\Samples\SCI1.1\pics\Room 1.bin" />
     <None Include="Files\Samples\SCI1.1\views\Box.bin" />
     <None Include="Files\Samples\views\Brian.bin" />

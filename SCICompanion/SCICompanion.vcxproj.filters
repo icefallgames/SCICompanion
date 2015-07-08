@@ -593,6 +593,9 @@
     <None Include="Files\Samples\SCI1.1\views\Box.bin">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="Files\Samples\SCI1.1\pics\Black 200.bin">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />
