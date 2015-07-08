@@ -224,9 +224,7 @@ FontTraits fontTraitsSCI1 =
 ResourceEntity *CreateFontResource(SCIVersion version)
 {
     FontTraits *fontTraits = &fontTraitsSCI0;
-    // ASSUMPTION: VGA views means fonts can have extended chars. I don't know this for sure,
-    // we might need some other detection mechanism.
-    if (version.ViewFormat != ViewFormat::EGA)
+    if (version.FontExtendedChars)
     {
         fontTraits = &fontTraitsSCI1;
     }

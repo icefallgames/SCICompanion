@@ -71,87 +71,6 @@
     <None Include="Files\CompileInclude\sci.sh" />
     <None Include="Files\CompileInclude\sci.shp" />
     <None Include="Files\Licenses\cppformat_README.rst" />
-    <None Include="Files\Samples\cursors\Arrow 1.bin">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Files\Samples\cursors\Arrow Small.bin">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Files\Samples\cursors\Arrow Up.bin">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Files\Samples\cursors\Cross 1.bin">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Files\Samples\cursors\Cross 2.bin">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Files\Samples\cursors\Diagonal Arrow 1.bin">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Files\Samples\cursors\Diagonal Arrow 2.bin">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Files\Samples\cursors\Error Cursor.bin">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Files\Samples\cursors\Hand Point.bin">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Files\Samples\cursors\Help Arrow.bin">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Files\Samples\cursors\Hourglass 1.bin">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Files\Samples\cursors\Hourglass 2.bin">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Files\Samples\cursors\Hourglass Arrow.bin">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Files\Samples\cursors\Left-Right Arrow.bin">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Files\Samples\cursors\Move Arrow.bin">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Files\Samples\cursors\Scumm Style 1.bin">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Files\Samples\cursors\Scumm Style 2.bin">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Files\Samples\cursors\Text Cursor 1.bin">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Files\Samples\cursors\Text Cursor 2.bin">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Files\Samples\cursors\Up-Down Arrow.bin">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Files\Samples\fonts\BriPro.bin">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Files\Samples\pics\Black Screen.bin">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Files\Samples\pics\Bliss.bin">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Files\Samples\pics\Criss Cross.bin">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Files\Samples\pics\Room 1.bin">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Files\Samples\pics\Room 2.bin">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Files\Samples\pics\Simple.bin">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="Files\Samples\views\Brian.bin">
       <Filter>Resource Files</Filter>
     </None>
@@ -175,9 +94,6 @@
     </None>
     <None Include="Files\Decompiler\Decompiler.ini" />
     <None Include="Files\Decompiler\game.sh" />
-    <None Include="Files\Samples\palettes\DefaultPalette.bin">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="Files\TemplateGame\SCI0\ADL.DRV" />
     <None Include="Files\TemplateGame\SCI0\EGA320.DRV" />
     <None Include="Files\TemplateGame\SCI0\game.ini" />
@@ -548,6 +464,135 @@
     <None Include="Files\TemplateGame\SCI1.1\src\ColorInit.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\colorinit.sc" />
     <None Include="Files\TemplateGame\SCI1.1\msg\20.shm" />
+    <None Include="Files\Samples\SCI0\cursors\Arrow 1.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\cursors\Arrow Small.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\cursors\Arrow Up.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\cursors\Cross 1.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\cursors\Cross 2.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\cursors\Diagonal Arrow 1.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\cursors\Diagonal Arrow 2.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\cursors\Error Cursor.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\cursors\Hand Point.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\cursors\Help Arrow.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\cursors\Hourglass 1.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\cursors\Hourglass 2.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\cursors\Hourglass Arrow.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\cursors\Left-Right Arrow.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\cursors\Move Arrow.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\cursors\Scumm Style 1.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\cursors\Scumm Style 2.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\cursors\Text Cursor 1.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\cursors\Text Cursor 2.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\cursors\Up-Down Arrow.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\fonts\BriPro.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\pics\Black Screen.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\pics\Bliss.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\pics\Cave.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\pics\Criss Cross.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\pics\Room 1.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\pics\Room 2.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\pics\Simple.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\views\Brian.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\views\Dead Icon.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\views\Door (Big).bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\views\Door.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\views\Ego.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\views\Fire.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\views\Inv - Key.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\views\Key.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI0\views\Ranger.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI1.1\palettes\Default.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI1.1\palettes\King 5.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI1.1\palettes\Quest.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI1.1\palettes\Space 5.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI1.1\pics\Room 1.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI1.1\views\Box.bin">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />

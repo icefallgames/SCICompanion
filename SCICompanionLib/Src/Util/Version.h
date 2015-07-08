@@ -68,6 +68,7 @@ struct SCIVersion
     AudioVolumeName AudioVolumeName;
     bool SupportsMessages;
     bool SeparateMessageMap;
+    bool FontExtendedChars;
 
     bool operator==(const SCIVersion &src);
     bool operator!=(const SCIVersion &src);
@@ -90,3 +91,5 @@ struct SCIVersion
 extern SCIVersion sciVersion0;
 extern SCIVersion sciVersion1_Late;
 extern SCIVersion sciVersion1_1;
+
+bool IsVersionCompatible(ResourceType type, SCIVersion versionA, SCIVersion versionB);

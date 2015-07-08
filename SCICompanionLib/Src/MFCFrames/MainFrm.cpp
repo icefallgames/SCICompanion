@@ -1093,7 +1093,7 @@ BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
     return TRUE;
 }
 
-const char c_szDefaultPaletteSample[] = "\\palettes\\DefaultPalette.bin";
+const char c_szDefaultPaletteSample[] = "\\palettes\\Default.bin";
 
 void CMainFrame::OnFileNewPic()
 {

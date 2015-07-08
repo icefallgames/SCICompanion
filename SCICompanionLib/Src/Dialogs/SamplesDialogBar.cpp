@@ -78,6 +78,8 @@ void CSamplesDialogBar::_PrepareSamples()
 
     if (_pDoc)
     {
+        SCIVersion sampleVersion = (appState->GetVersion().MapFormat == ResourceMapFormat::SCI0) ? sciVersion0 : sciVersion1_1;
+
         ResourceType type = _pDoc->GetShownResourceType();
         if (type != ResourceType::None)
         {
@@ -96,11 +98,14 @@ void CSamplesDialogBar::_PrepareSamples()
                     // Use the filename minus the .bin:
                     TCHAR *pszExt = PathFindExtension(findData.cFileName);
                     *pszExt = 0; // Get rid of it.
-                    if (SUCCEEDED(blob.CreateFromFile(findData.cFileName, fileName.c_str(), sciVersion0, - 1, -1)))
+                    if (SUCCEEDED(blob.CreateFromFile(findData.cFileName, fileName.c_str(), sampleVersion, -1, -1)))
                     {
                         if (blob.GetType() == type)
                         {
-                            _samples.push_back(blob);
+                            if (IsVersionCompatible(type, blob.GetVersion(), appState->GetVersion()))
+                            {
+                                _samples.push_back(blob);
+                            }
                         }
                     }
                     fOk = FindNextFile(hFolder, &findData);
@@ -138,10 +143,18 @@ void CSamplesDialogBar::_PrepareSamples()
                     if (pPic)
                     {
                         // Special handler for pics.
-                        bitmap.Attach(GetPicBitmap(PicScreen::Visual, *pPic, nullptr, 40, 24));
+                        bitmap.Attach(GetPicBitmap(PicScreen::Visual, *pPic, pPalette, 40, 24));
                     }
                     else if (pRaster)
                     {
+                        // Incorporate the global palette if necessary
+                        std::unique_ptr<PaletteComponent> temp;
+                        if (pRaster->Traits.PaletteType == PaletteType::VGA_256)
+                        {
+                            temp = appState->GetResourceMap().GetMergedPalette(*resource, 999);
+                            pPalette = temp.get();
+                        }
+
                         // Note: if the index is out of bounds, it will return a NULL HBITMAP
                         bitmap.Attach(GetBitmap(*pRaster, pPalette, celIndex, 24, 24, BitmapScaleOptions::AllowMag | BitmapScaleOptions::AllowMin));
                     }

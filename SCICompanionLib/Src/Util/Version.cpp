@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include "Version.h"
 
+// The actual version structure is determined by inspecting the resource map and other game files.
+// The following "default" versions are just examples. They are currently used to associate with sample
+// resources available to add to games.
 SCIVersion sciVersion0 =
 {
     ResourceMapFormat::SCI0,
@@ -20,6 +23,7 @@ SCIVersion sciVersion0 =
     AudioVolumeName::None,
     false,
     false,
+    false
 };
 
 SCIVersion sciVersion1_Late =
@@ -41,6 +45,7 @@ SCIVersion sciVersion1_Late =
     AudioVolumeName::None,
     false,
     false,
+    true
 };
 
 SCIVersion sciVersion1_1 =
@@ -50,7 +55,7 @@ SCIVersion sciVersion1_1 =
     SoundFormat::SCI1,
     CompressionFormat::SCI1,
     true,
-    ViewFormat::VGA1,
+    ViewFormat::VGA1_1,
     PicFormat::VGA1_1,
     false,
     true,
@@ -62,6 +67,7 @@ SCIVersion sciVersion1_1 =
     AudioVolumeName::Aud,
     true,
     false,
+    true
 };
 
 bool SCIVersion::operator == (const SCIVersion &src)
@@ -73,3 +79,33 @@ bool SCIVersion::operator != (const SCIVersion &src)
     return 0 != memcmp(this, &src, sizeof(*this));
 }
 
+bool IsVersionCompatible(ResourceType type, SCIVersion versionA, SCIVersion versionB)
+{
+    // If identical versions, then fine.
+    if (versionA == versionB)
+    {
+        return true;
+    }
+
+    // But depending on type, we may be more lenient.
+    switch (type)
+    {
+        case ResourceType::View:
+            return versionA.ViewFormat == versionB.ViewFormat &&
+                versionA.sci11Palettes == versionB.sci11Palettes;
+
+        case ResourceType::Pic:
+            return versionA.PicFormat == versionB.PicFormat &&
+                versionA.sci11Palettes == versionB.sci11Palettes;
+
+        case ResourceType::Palette:
+            return versionA.sci11Palettes == versionB.sci11Palettes;
+
+        case ResourceType::Font:
+            return versionA.FontExtendedChars == versionB.FontExtendedChars;
+
+        case ResourceType::Cursor:
+            return versionA.ViewFormat == versionB.ViewFormat;
+    }
+    return false;
+}

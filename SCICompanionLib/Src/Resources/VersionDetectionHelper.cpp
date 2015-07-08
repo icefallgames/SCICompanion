@@ -472,4 +472,8 @@ void CResourceMap::_SniffSCIVersion()
 
     // Not sure about this, but it seems reasonable. Another clue, I think, is if there is more than just one global palette.
     _gameFolderHelper.Version.sci11Palettes = (_gameFolderHelper.Version.ViewFormat == ViewFormat::VGA1_1);
+
+    // ASSUMPTION: VGA views means fonts can have extended chars. I don't know this for sure,
+    // we might need some other detection mechanism.
+    _gameFolderHelper.Version.FontExtendedChars = _gameFolderHelper.Version.ViewFormat != ViewFormat::EGA;
 }

@@ -392,7 +392,7 @@ void CResourceMap::AppendResourceAskForNumber(ResourceEntity &resource, const st
 //
 HRESULT CResourceMap::AppendResourceAskForNumber(ResourceBlob &resource)
 {
-    if (resource.GetVersion() != GetSCIVersion())
+    if (!IsVersionCompatible(resource.GetType(), resource.GetVersion(), GetSCIVersion()))
     {
         if (IDNO == AfxMessageBox("The version of the resource being added does not match the version of the game.\nAdding it might cause the game to be corrupted.\nDo you want to go ahead anyway?", MB_YESNO))
         {
@@ -705,7 +705,16 @@ std::string CResourceMap::GetTemplateFolder()
 //
 std::string CResourceMap::GetSamplesFolder()
 {
-    return GetExeSubFolder("Samples");
+    std::string folder = GetExeSubFolder("Samples");
+    if (GetSCIVersion().MapFormat == ResourceMapFormat::SCI0)
+    {
+        folder += "\\SCI0";
+    }
+    else
+    {
+        folder += "\\SCI1.1";
+    }
+    return folder;
 }
 
 std::string CResourceMap::GetDecompilerFolder()
