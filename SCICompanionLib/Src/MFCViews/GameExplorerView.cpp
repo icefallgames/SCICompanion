@@ -672,7 +672,22 @@ void DropResourceFiles(CArray<CString, CString&> *pDropFiles)
             ResourceBlob data;
             if (SUCCEEDED(data.CreateFromFile(nullptr, (PCSTR)pDropFiles->GetAt(i), appState->GetVersion(), appState->GetVersion().DefaultVolumeFile, iNumber)))
             {
-                appState->GetResourceMap().AppendResource(data);
+                // Before adding it, check to see if this resource number already exists.
+                bool askForNumber = false;
+                if (appState->GetResourceMap().DoesResourceExist(data.GetType(), iNumber))
+                {
+                    askForNumber = (IDYES == AfxMessageBox(fmt::format("Resource {0} is already been used. Use a different resource number?", iNumber).c_str(), MB_OK | MB_YESNO));
+                }
+
+                data.SetName(nullptr);
+                if (askForNumber)
+                {
+                    appState->GetResourceMap().AppendResourceAskForNumber(data);
+                }
+                else
+                {
+                    appState->GetResourceMap().AppendResource(data);
+                }
             }
         }
     }
