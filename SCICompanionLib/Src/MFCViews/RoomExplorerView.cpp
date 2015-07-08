@@ -262,17 +262,17 @@ CRoomExplorerWorkResult *CRoomExplorerWorkResult::CreateFromWorkItem(CRoomExplor
         PicComponent &pic = picEntity->GetComponent<PicComponent>();
         PaletteComponent *palette = picEntity->TryGetComponent<PaletteComponent>();
         PicDrawManager pdm(&pic, palette);
-		std::unique_ptr<BYTE[]> dataDisplay = std::make_unique<BYTE[]>(BMPSIZE);
-		std::unique_ptr<BYTE[]> dataAux = std::make_unique<BYTE[]>(BMPSIZE);
+		std::unique_ptr<BYTE[]> dataDisplay = std::make_unique<BYTE[]>(pic.Size.cx * pic.Size.cy);
+        std::unique_ptr<BYTE[]> dataAux = std::make_unique<BYTE[]>(pic.Size.cx * pic.Size.cy);
         fOk = TRUE;
-        pdm.CopyBitmap(PicScreen::Visual, PicPosition::Final, dataDisplay.get(), dataAux.get(), nullptr);
+        pdm.CopyBitmap(PicScreen::Visual, PicPosition::Final, pic.Size, dataDisplay.get(), dataAux.get(), nullptr);
 
         for (auto &pRoomView : pWorkItem->_views)
         {
             std::unique_ptr<ResourceEntity> view(CreateViewResource(appState->GetVersion()));
             if (SUCCEEDED(view->InitFromResource(&pRoomView->blob)))
             {
-                DrawViewWithPriority(dataDisplay.get(), pdm.GetPicBits(PicScreen::Priority, PicPosition::Final), PriorityFromY(pRoomView->wy, *pdm.GetViewPort(PicPosition::Final)),
+                DrawViewWithPriority(pic.Size, dataDisplay.get(), pdm.GetPicBits(PicScreen::Priority, PicPosition::Final, pic.Size), PriorityFromY(pRoomView->wy, *pdm.GetViewPort(PicPosition::Final)),
                     pRoomView->wx, pRoomView->wy,
                     view.get(), pRoomView->wLoop, pRoomView->wCel);
             }
@@ -358,11 +358,11 @@ void CRoomExplorerNode::_ResizeBitmap(CSize size)
             palette = optionalPalette->Colors;
             paletteCout = ARRAYSIZE(optionalPalette->Colors);
         }
-        SCIBitmapInfo bmi(sPIC_WIDTH, sPIC_HEIGHT, palette, paletteCout);
+        SCIBitmapInfo bmi(DEFAULT_PIC_WIDTH, DEFAULT_PIC_HEIGHT, palette, paletteCout);
         pimg = Gdiplus::Bitmap::FromBITMAPINFO(&bmi, pBitmapData.get());
         if (pimg)
         {
-            if ((size.cx == sPIC_WIDTH) && (size.cy == sPIC_HEIGHT))
+            if ((size.cx == DEFAULT_PIC_WIDTH) && (size.cy == DEFAULT_PIC_HEIGHT))
             {
                 // Exact size.
                 pimg->GetHBITMAP(Color::Black, &BitmapScaled);
@@ -624,11 +624,11 @@ void CRoomExplorerView::CRoomExplorerGrid::_GetRoomRect(CRoomExplorerNode *pNode
     ptDraw.x *= (HORZ_SPACE / iZoom);
     ptDraw.y *= (VERT_SPACE / iZoom);
 
-    CPoint ptBR = ptDraw + CPoint(sPIC_WIDTH / iZoom, sPIC_HEIGHT / iZoom);
+    CPoint ptBR = ptDraw + CPoint(DEFAULT_PIC_WIDTH / iZoom, DEFAULT_PIC_HEIGHT / iZoom);
     rect.left = ptDraw.x;
-    rect.right = ptDraw.x + sPIC_WIDTH / iZoom;
+    rect.right = ptDraw.x + DEFAULT_PIC_WIDTH / iZoom;
     rect.top = ptDraw.y;
-    rect.bottom = ptDraw.y + sPIC_HEIGHT / iZoom;
+    rect.bottom = ptDraw.y + DEFAULT_PIC_HEIGHT / iZoom;
     rect.InflateRect(ROOM_MARGINS);
 
     CPoint pt = _pExplorer->GetOrigin();

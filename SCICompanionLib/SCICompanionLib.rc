@@ -474,6 +474,7 @@ BEGIN
         MENUITEM "&Import bitmap to pic",       ID_EDIT_PASTEINTOPIC
         MENUITEM "&Export 8-bit pic bitmap",    ID_PIC_EXPORT8
         MENUITEM "Edit p&alette",               ID_PIC_EDITPALETTE
+        MENUITEM "Change &height",              ID_PIC_CHANGEDIMENSIONS
     END
     POPUP "Fo&nt"
     BEGIN
@@ -1716,6 +1717,20 @@ BEGIN
     EDITTEXT        IDC_EDITTINTSTRENGTH,164,75,34,14,ES_AUTOHSCROLL | ES_NUMBER
 END
 
+IDD_PICSIZE DIALOGEX 0, 0, 147, 103
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Pic dimensions"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,7,82,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,62,82,50,14
+    EDITTEXT        IDC_EDITWIDTH,63,45,40,14,ES_AUTOHSCROLL | ES_READONLY | ES_NUMBER
+    RTEXT           "Width:",IDC_STATIC1,32,48,22,8
+    EDITTEXT        IDC_EDITHEIGHT,63,62,40,14,ES_AUTOHSCROLL | ES_NUMBER
+    RTEXT           "Height:",IDC_STATIC2,31,65,24,8
+    LTEXT           "The standard height for pic resources is 190, but it may be extended to 200. After changing the height, you will need to re-import a background image.",IDC_STATIC3,7,7,133,32
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2331,6 +2346,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 133
     END
+
+    IDD_PICSIZE, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 140
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 96
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -2718,6 +2741,7 @@ STRINGTABLE
 BEGIN
     ID_MESSAGE_EXPORT       "Export to tab delimited text file"
     ID_MESSAGE_IMPORT       "Import from tab delimited text file"
+    ID_PIC_CHANGEDIMENSIONS "Change the height of the pic resource."
 END
 
 #endif    // English (United States) resources

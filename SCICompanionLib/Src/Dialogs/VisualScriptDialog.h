@@ -53,8 +53,8 @@ public:
 
 private:
     DECLARE_MESSAGE_MAP()
-    virtual int _GetViewWidth() { return sPIC_WIDTH * _iZoom; }
-    virtual int _GetViewHeight() { return sPIC_HEIGHT * _iZoom; }
+    virtual int _GetViewWidth() { return DEFAULT_PIC_WIDTH * _iZoom; }
+    virtual int _GetViewHeight() { return DEFAULT_PIC_HEIGHT * _iZoom; }
     CPoint _MapClientPointToPic(CPoint ptClient);
     void _SelectItemFromPicPoint(CPoint point);
     void _CleanUp();

@@ -26,6 +26,7 @@ class IBitmapEditor
 {
 public:
     virtual CPoint GetCursorPos() = 0;
+    virtual CSize GetBitmapSize() = 0;
     virtual PicScreen GetPicScreen() = 0;
 };
 

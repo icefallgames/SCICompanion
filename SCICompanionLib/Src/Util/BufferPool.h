@@ -2,11 +2,13 @@
 
 #pragma warning(disable: 4351)      // New behavior for arrays in initializer list.
 
-template<size_t BufferSize, int MaxBuffer>
+template<int MaxBuffer>
 class BufferPool
 {
 public:
-    BufferPool() : _used{} {}
+    BufferPool(size_t size) : _used{}, _size(size) {}
+
+    size_t GetSize() { return _size; }
 
     uint8_t *AllocateBuffer()
     {
@@ -16,7 +18,7 @@ public:
             {
                 if (!_buffers[i])
                 {
-                    _buffers[i] = std::make_unique<uint8_t[]>(BufferSize);
+                    _buffers[i] = std::make_unique<uint8_t[]>(_size);
                 }
                 _used[i] = true;
                 return _buffers[i].get();
@@ -44,6 +46,5 @@ public:
 private:
     std::unique_ptr<uint8_t[]> _buffers[MaxBuffer];
     bool _used[MaxBuffer];
-    int _maxBuffers;
     size_t _size;
 };

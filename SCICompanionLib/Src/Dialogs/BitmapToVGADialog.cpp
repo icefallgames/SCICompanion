@@ -18,9 +18,9 @@ int g_iScaleImageVGA = 0;   // Don't scale by default
 
 // The end result of this dialog is image data (a Cel) and possibly a palette
 
-CBitmapToVGADialog::CBitmapToVGADialog(const PaletteComponent *targetPalette, bool allowInsertAtCurrentPosition, CWnd* pParent /*=nullptr*/)
+CBitmapToVGADialog::CBitmapToVGADialog(const PaletteComponent *targetPalette, bool allowInsertAtCurrentPosition, size16 picDimensions, CWnd* pParent /*=nullptr*/)
     : CExtNCW<CExtResizableDialog>(CBitmapToVGADialog::IDD, pParent),
-    PrepareBitmapBase(-1, IDC_STATICORIG)
+    PrepareBitmapBase(-1, IDC_STATICORIG, picDimensions)
 {
     _transparentColor = 255;
     _allowInsertAtCurrentPosition = allowInsertAtCurrentPosition;

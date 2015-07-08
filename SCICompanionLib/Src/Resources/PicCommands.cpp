@@ -14,8 +14,8 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 // As long as these values are unsigned, there's no need to check for 0
-#define CHECK_RECT(x,y)\
-    ( x < sPIC_WIDTH && y < sPIC_HEIGHT )
+#define CHECK_RECT(cx, cy, x,y)\
+    ( x < cx && y < cy )
 
 #define BYTE_FROM_PALETTE_AND_OFFSET(num, offset)   ((uint8_t) (((num) * PALETTE_SIZE) + (offset)))
 #define BYTE_FROM_EGACOLOR(color)                   ((uint8_t) ((color).color1 + ((color).color2 << 4)))
@@ -319,11 +319,11 @@ void Command_Serialize(sci::ostream *pSerial, const PicCommand *pCommand, const 
 //
 // Given a bunch of pasted PICCOMMANDs', figure out the visual bounding rect that contains all the commands.
 //
-void PastedCommands_GetBounds(const PicCommand *pCommand, size_t cCommands, sRECT *prc)
+void PastedCommands_GetBounds(size16 displaySize, const PicCommand *pCommand, size_t cCommands, sRECT *prc)
 {
-    prc->left = sPIC_MAXX;
+    prc->left = displaySize.cx - 1;
     prc->right = 0;
-    prc->top = sPIC_MAXY;
+    prc->top = displaySize.cy - 1;
     prc->bottom = 0;
 
     const PicCommand *pCurrent = pCommand;
@@ -400,7 +400,7 @@ bool PastedCommands_ContainDrawCommands(const PicCommand *pCommands, size_t cCom
 //
 // Returns false if the coordiante is out of bounds.
 //
-bool Coord_Adjust(uint16_t *px, uint16_t *py, const PICCOMMAND_ADJUST *pAdjust)
+bool Coord_Adjust(size16 size, uint16_t *px, uint16_t *py, const PICCOMMAND_ADJUST *pAdjust)
 {
     int x = (int)*px;
     int y = (int)*py;
@@ -444,7 +444,7 @@ bool Coord_Adjust(uint16_t *px, uint16_t *py, const PICCOMMAND_ADJUST *pAdjust)
         y = (int)yNew;
     }
 
-    bool fRet = ((x >= 0) && (y >= 0) && (x < sPIC_WIDTH) && (y < sPIC_HEIGHT));
+    bool fRet = ((x >= 0) && (y >= 0) && (x < size.cx) && (y < size.cy));
 
     // Truncation/overflow is ok, since we've checked the bounds above.
     *px = (uint16_t)x;
@@ -456,7 +456,7 @@ bool Coord_Adjust(uint16_t *px, uint16_t *py, const PICCOMMAND_ADJUST *pAdjust)
 //
 // Returns FALSE if the command is out of bounds.
 //
-bool Command_Adjust(PicCommand *pCommand, const PICCOMMAND_ADJUST *pAdjust)
+bool Command_Adjust(size16 size, PicCommand *pCommand, const PICCOMMAND_ADJUST *pAdjust)
 {
     bool fRet = TRUE;
     __int16 dx = (__int16)(pAdjust->rcNew.left - pAdjust->rcBounds.left);
@@ -466,27 +466,27 @@ bool Command_Adjust(PicCommand *pCommand, const PICCOMMAND_ADJUST *pAdjust)
     case PicCommand::Line:
         // REVIEW: could clip the line instead of completely removing it, when it goes out of bounds.
         // Would need to use bresenham algorithm.
-        fRet = Coord_Adjust(&pCommand->drawLine.xFrom, &pCommand->drawLine.yFrom, pAdjust);
+        fRet = Coord_Adjust(size, &pCommand->drawLine.xFrom, &pCommand->drawLine.yFrom, pAdjust);
         if (fRet)
         {
-            fRet = Coord_Adjust(&pCommand->drawLine.xTo, &pCommand->drawLine.yTo, pAdjust);
+            fRet = Coord_Adjust(size, &pCommand->drawLine.xTo, &pCommand->drawLine.yTo, pAdjust);
         }
         break;
     case PicCommand::Circle:
         // REVIEW: could clip the line instead of completely removing it, when it goes out of bounds.
         // Would need to use bresenham algorithm.
-        fRet = Coord_Adjust(&pCommand->circle.xFrom, &pCommand->circle.yFrom, pAdjust);
+        fRet = Coord_Adjust(size, &pCommand->circle.xFrom, &pCommand->circle.yFrom, pAdjust);
         if (fRet)
         {
-            fRet = Coord_Adjust(&pCommand->circle.xTo, &pCommand->circle.yTo, pAdjust);
+            fRet = Coord_Adjust(size, &pCommand->circle.xTo, &pCommand->circle.yTo, pAdjust);
         }
         break;
     case PicCommand::Pattern:
-        fRet = Coord_Adjust(&pCommand->drawPattern.x, &pCommand->drawPattern.y, pAdjust);
+        fRet = Coord_Adjust(size, &pCommand->drawPattern.x, &pCommand->drawPattern.y, pAdjust);
         break;
 
     case PicCommand::Fill:
-        fRet = Coord_Adjust(&pCommand->fill.x, &pCommand->fill.y, pAdjust);
+        fRet = Coord_Adjust(size, &pCommand->fill.x, &pCommand->fill.y, pAdjust);
         break;
     }
     return fRet;
@@ -496,11 +496,11 @@ bool Command_Adjust(PicCommand *pCommand, const PICCOMMAND_ADJUST *pAdjust)
 // Adjusts the commands by the offset.
 // Commands that are out of bounds are removed from pCommandsIn.  The new number of commands is *pcCommandsOut.
 //
-void PastedCommands_Adjust(std::vector<PicCommand> &commandsIn, const PICCOMMAND_ADJUST *pAdjust)
+void PastedCommands_Adjust(size16 size, std::vector<PicCommand> &commandsIn, const PICCOMMAND_ADJUST *pAdjust)
 {
     for (size_t i = 0; i < commandsIn.size(); i++)
     {
-        if (Command_Adjust(&commandsIn[i], pAdjust))
+        if (Command_Adjust(size, &commandsIn[i], pAdjust))
         {
             // We're good
         }
@@ -549,7 +549,7 @@ bool PtInSRect(sRECT *prc, uint16_t x, uint16_t y)
 void Command_DrawWithOffset(const PicCommand *pCommandIn, PicData *pData, ViewPort *pState, const PICCOMMAND_ADJUST *pAdjust)
 {
     PicCommand commandAdjusted = *pCommandIn; // class copy, since we don't want to modify pCommandIn (should be const).
-    if (Command_Adjust(&commandAdjusted, pAdjust))
+    if (Command_Adjust(pData->size, &commandAdjusted, pAdjust))
     {
         g_DrawFunctions[pCommandIn->type](&commandAdjusted, pData, pState);
     }
@@ -608,7 +608,6 @@ void ViewPort::Reset(uint8_t bPaletteToUse)
     memset(rgLocked, 0, sizeof(rgLocked));
 
     std::copy(g_defaultPriBands, g_defaultPriBands + ARRAYSIZE(g_defaultPriBands), bPriorityLines);
-    //memcpy(bPriorityLines, g_defaultPriBands, sizeof(bPriorityLines));
 }
 
 inline void _PlotPixI(int p, PicData *pData, uint16_t x, uint16_t y, PicScreenFlags dwDrawEnable, EGACOLOR color, uint8_t bPriorityValue, uint8_t bControlValue)
@@ -665,12 +664,12 @@ struct PlotVGA
 template<typename _TFormat>
 inline void _PlotPix(PicData *pData, uint16_t x, uint16_t y, PicScreenFlags dwDrawEnable, typename _TFormat::PixelType color, uint8_t bPriorityValue, uint8_t bControlValue)
 {
-    if( x >= 320 || y >= 190)
+    if( x >= pData->size.cx || y >= pData->size.cy)
     {
         return;
     }
 
-    int p = BUFFEROFFSET(x, y);
+    int p = BUFFEROFFSET_NONSTD(pData->size.cx, pData->size.cy, x, y);
     //_PlotPixI(p, pData, x, y, dwDrawEnable, color, bPriorityValue, bControlValue);
     // Duplicate the code from _PlotPixI here for speed (perf increase of ~5%?)
     if (IsFlagSet(pData->dwMapsToRedraw, PicScreenFlags::Visual) && IsFlagSet(dwDrawEnable, PicScreenFlags::Visual))
@@ -811,22 +810,25 @@ void _DrawPattern(PicData *pData, uint16_t x, uint16_t y, typename _TFormat::Pix
 {
     uint16_t wSize = (uint16_t)bPatternSize;
 
+    uint16_t xMax = pData->size.cx - 1;
+    uint16_t ýMax = pData->size.cy - 1;
+
     // Fix up x and y
     if (x < wSize)
     {
         x = wSize;
     }
-    if ((x + wSize) > 319)
+    if ((x + wSize) > xMax)
     {
-        x = 319 - wSize;
+        x = xMax - wSize;
     }
     if (y < wSize)
     {
         y = wSize;
     }
-    if ((y + wSize) > 189)
+    if ((y + wSize) > ýMax)
     {
-        y = 189 - wSize;
+        y = ýMax - wSize;
     }
 
     if (bPatternNR < ARRAYSIZE(junqindex))
@@ -897,12 +899,9 @@ void _DrawPattern(PicData *pData, uint16_t x, uint16_t y, typename _TFormat::Pix
     }
 }
 
-
-
-
 //
 // REVIEW: This sucks - I had to make a full copy of this function, just to allow it to draw to something smaller
-// than 320 x 190.  (don't want to pass extra params to _PlotPix due to perf)
+// than 320 x 200.  (don't want to pass extra params to _PlotPix due to perf)
 //
 void DrawPatternInRect(int cx, int cy, PicData *pData, uint16_t x, uint16_t y, EGACOLOR color, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable, const PenStyle *pPenStyle)
 {
@@ -1053,18 +1052,18 @@ CRect GetViewBoundsRect(uint16_t xEgo, uint16_t yEgo, const ResourceEntity *pvr,
 // Determines if an object bounded by rect, can be there, based on the control mask.
 // rect is inclusive (e.g. includes both left and right columns, and top and bottom lines)
 //
-bool CanBeHere(const uint8_t *pdataControl, const CRect &rect, uint16_t wControlMask)
+bool CanBeHere(size16 size, const uint8_t *pdataControl, const CRect &rect, uint16_t wControlMask)
 {
     CRect rcClipped = rect;
     rcClipped.left = max(rcClipped.left, 0);
     rcClipped.top = max(rcClipped.top, 0);
-    rcClipped.bottom = min(rcClipped.bottom, sPIC_HEIGHT - 1);
-    rcClipped.right = min(rcClipped.right, sPIC_WIDTH - 1);
+    rcClipped.bottom = min(rcClipped.bottom, size.cy - 1);
+    rcClipped.right = min(rcClipped.right, size.cx - 1);
     for (int y = rcClipped.top; y <= rcClipped.bottom; y++)
     {
         for (int x = rcClipped.left; x <= rcClipped.right; x++)
         {
-            int p = BUFFEROFFSET(x, y);
+            int p = BUFFEROFFSET_NONSTD(size.cx, size.cy, x, y);
             assert(pdataControl[p] <= 15);
             if (wControlMask & (1 << (uint16_t)pdataControl[p]))
             {
@@ -1151,14 +1150,14 @@ bool HitTestEgoBox(uint16_t xCursor, uint16_t yCursor, uint16_t xEgo, uint16_t y
     return TRUE;
 }
 
-void DrawImageWithPriority(uint8_t *pdataDisplay, const uint8_t *pdataPriority, uint8_t bEgoPriority, int xLeft, int yTop, uint16_t cx, uint16_t cy, const uint8_t *pImageData, uint8_t transparent, bool fShowOutline)
+void DrawImageWithPriority(size16 displaySize, uint8_t *pdataDisplay, const uint8_t *pdataPriority, uint8_t bEgoPriority, int xLeft, int yTop, uint16_t cx, uint16_t cy, const uint8_t *pImageData, uint8_t transparent, bool fShowOutline)
 {
     int xRight = xLeft + cx;
     int yBottom = yTop + cy;
     int yView = 0;
     for (int yPic = yTop; yPic < yBottom; yPic++, yView++)
     {
-        if ((yPic < sPIC_HEIGHT) && (yPic >= 0))
+        if ((yPic < displaySize.cy) && (yPic >= 0))
         {
             int xViewLeft = 0;
             if (xLeft < 0)
@@ -1167,9 +1166,9 @@ void DrawImageWithPriority(uint8_t *pdataDisplay, const uint8_t *pdataPriority, 
                 xViewLeft = -xLeft;
             }
             int xViewRight = cx;
-            if (xRight >= sPIC_WIDTH)
+            if (xRight >= displaySize.cx)
             {
-                xViewRight -= (xRight - sPIC_WIDTH);
+                xViewRight -= (xRight - displaySize.cx);
             }
 
             int xFirstPixel = -1;
@@ -1177,9 +1176,10 @@ void DrawImageWithPriority(uint8_t *pdataDisplay, const uint8_t *pdataPriority, 
             int xPic = max(0, xLeft);
             for (int xView = xViewLeft; xView < xViewRight; xView++, xPic++)
             {
-                int pPicOffset = BUFFEROFFSET(xPic, yPic);
+                int pPicOffset = BUFFEROFFSET_NONSTD(displaySize.cx, displaySize.cy, xPic, yPic);
                 // We can draw something.
-                int pViewOffset = BUFFEROFFSET_NONSTD(CX_ACTUAL(cx), cy, xView, yView + 1);
+                //int pViewOffset = BUFFEROFFSET_NONSTD(CX_ACTUAL(cx), cy, xView, yView + 1);
+                int pViewOffset = BUFFEROFFSET_NONSTD(CX_ACTUAL(cx), cy, xView, yView);
                 uint8_t bView = *(pImageData + pViewOffset);
                 if (bView != transparent)
                 {
@@ -1205,14 +1205,14 @@ void DrawImageWithPriority(uint8_t *pdataDisplay, const uint8_t *pdataPriority, 
             }
             if (fShowOutline)
             {
-                if ((xFirstPixel >= 0) && (xFirstPixel < sPIC_WIDTH))
+                if ((xFirstPixel >= 0) && (xFirstPixel < displaySize.cx))
                 {
-                    int pPicOffset = BUFFEROFFSET(xFirstPixel, yPic);
+                    int pPicOffset = BUFFEROFFSET_NONSTD(displaySize.cx, displaySize.cy, xFirstPixel, yPic);
                     *(pdataDisplay + pPicOffset) = bEgoPriority;
                 }
-                if ((xLastPixel >= 0) && (xLastPixel < sPIC_WIDTH))
+                if ((xLastPixel >= 0) && (xLastPixel < displaySize.cx))
                 {
-                    int pPicOffset = BUFFEROFFSET(xLastPixel, yPic);
+                    int pPicOffset = BUFFEROFFSET_NONSTD(displaySize.cx, displaySize.cy, xLastPixel, yPic);
                     *(pdataDisplay + pPicOffset) = bEgoPriority;
                 }
 
@@ -1224,7 +1224,7 @@ void DrawImageWithPriority(uint8_t *pdataDisplay, const uint8_t *pdataPriority, 
 //
 // Draws a view (represented by pvr) onto a pic (represented by pdataDisplay and pdataPriority)
 //
-void DrawViewWithPriority(uint8_t *pdataDisplay, const uint8_t *pdataPriority, uint8_t bEgoPriority, uint16_t xIn, uint16_t yIn, const ResourceEntity *pvr, int nLoop, int nCel, bool fShowOutline)
+void DrawViewWithPriority(size16 displaySize, uint8_t *pdataDisplay, const uint8_t *pdataPriority, uint8_t bEgoPriority, uint16_t xIn, uint16_t yIn, const ResourceEntity *pvr, int nLoop, int nCel, bool fShowOutline)
 {
     const Cel &cel = GetCel(pvr, nLoop, nCel);
     uint8_t bTransparent = cel.TransparentColor;
@@ -1238,12 +1238,15 @@ void DrawViewWithPriority(uint8_t *pdataDisplay, const uint8_t *pdataPriority, u
     std::unique_ptr<uint8_t[]> data = std::make_unique<uint8_t[]>(CX_ACTUAL(cel.size.cx) * cel.size.cy);
     CopyBitmapData(pvr->GetComponent<RasterComponent>(), CelIndex(nLoop, nCel), data.get(), cel.size);
 
-    DrawImageWithPriority(pdataDisplay, pdataPriority, bEgoPriority, xLeft, yTop, cel.size.cx, cel.size.cy, &data[0], bTransparent, fShowOutline);
+    DrawImageWithPriority(displaySize, pdataDisplay, pdataPriority, bEgoPriority, xLeft, yTop, cel.size.cx, cel.size.cy, &data[0], bTransparent, fShowOutline);
 }
 
 
-void DrawBoxWithPriority(uint8_t *pdataDisplay, const uint8_t *pdataPriority, uint8_t bEgoPriority, uint16_t xIn, uint16_t yIn, uint16_t cx, uint16_t cy)
+void DrawBoxWithPriority(size16 picSize, uint8_t *pdataDisplay, const uint8_t *pdataPriority, uint8_t bEgoPriority, uint16_t xIn, uint16_t yIn, uint16_t cx, uint16_t cy)
 {
+    int xMax = picSize.cx - 1;
+    int yMax = picSize.cy - 1;
+
     uint16_t cxHalf = cx / 2;
     uint16_t xLeft;
     if (xIn < cxHalf)
@@ -1255,15 +1258,15 @@ void DrawBoxWithPriority(uint8_t *pdataDisplay, const uint8_t *pdataPriority, ui
         xLeft = xIn - cxHalf;
     }
     uint16_t xRight = xIn + cxHalf;
-    if (xRight >= 319)
+    if (xRight >= xMax)
     {
-        xRight = 319;
+        xRight = xMax;
     }
 
     uint16_t yBottom = yIn;
-    if (yBottom > 189)
+    if (yBottom > yMax)
     {
-        yBottom = 189;
+        yBottom = yMax;
     }
     uint16_t ySafeTop;
     if (yIn < cy)
@@ -1279,7 +1282,7 @@ void DrawBoxWithPriority(uint8_t *pdataDisplay, const uint8_t *pdataPriority, ui
     {
         for (uint16_t y = ySafeTop; y <= yBottom; y++)
         {
-            int p = BUFFEROFFSET(x, y);
+            int p = BUFFEROFFSET_NONSTD(picSize.cx, picSize.cy, x, y);
             if ( (*(pdataPriority + p)) <= bEgoPriority)
             {
                 // Then draw it.  Avoid using _PlotPix, since we need an aux map for that.
@@ -1297,23 +1300,16 @@ void DrawBoxWithPriority(uint8_t *pdataDisplay, const uint8_t *pdataPriority, ui
     }
 }
 
-
-
-
-
-
-#define sPIC_SIZE       60800U
-#define MAX_BUFF ((__int32)sPIC_SIZE)
 #define EMPTY ((__int32)-1)
 
 // Big global buffer.
 // We need to take care to serialize access to this.
 // It shouldn't be a problem if all drawing is done sequentially, and on the foreground thread.
-sPOINT g_buf[MAX_BUFF+1];
+sPOINT g_buf[BMPSIZE_MAX + 1];
 sPOINT g_pEmpty={EMPTY,EMPTY};
 
-#define GET_PIX_VISUAL(x, y) (*((pdata->pdataVisual) + BUFFEROFFSET(x, y)))
-#define GET_PIX_AUX(x, y) (*((pdata->pdataAux) +  BUFFEROFFSET(x, y)))
+#define GET_PIX_VISUAL(cx, cy, x, y) (*((pdata->pdataVisual) + BUFFEROFFSET_NONSTD(cx, cy, x, y)))
+#define GET_PIX_AUX(cx, cy, x, y) (*((pdata->pdataAux) +  BUFFEROFFSET_NONSTD(cx, cy, x, y)))
 
 //
 // BUG in FILL_BOUNDS and DitherFill:
@@ -1324,13 +1320,13 @@ sPOINT g_pEmpty={EMPTY,EMPTY};
 // Questionable whether we need to fix this or not, it only affects really large areas.
 //
 
-#define FILL_BOUNDS(fx, fy, white) ((((uint8_t)dwDrawEnable) & GET_PIX_AUX((fx), (fy))) && \
-                  !(IsFlagSet(dwDrawEnable, PicScreenFlags::Visual) && (GET_PIX_VISUAL((fx), (fy))==(white))))
+#define FILL_BOUNDS(cx, cy, fx, fy, white) ((((uint8_t)dwDrawEnable) & GET_PIX_AUX((cx), (cy), (fx), (fy))) && \
+                  !(IsFlagSet(dwDrawEnable, PicScreenFlags::Visual) && (GET_PIX_VISUAL((cx), (cy), (fx), (fy))==(white))))
 
 
-inline bool qstore(__int16 x,__int16 y, __int32 *prpos)
+inline bool qstore(int displayByteSize, __int16 x,__int16 y, __int32 *prpos)
 {
-   if ((*prpos) == MAX_BUFF)
+   if ((*prpos) == displayByteSize)
    {
        return FALSE;
    }
@@ -1352,7 +1348,7 @@ inline sPOINT qretrieve(__int32 *prpos)
 }
 
 
-#define OK_TO_FILL(x,y,white) ( CHECK_RECT((x),(y)) && !FILL_BOUNDS((x),(y),(white)) )
+#define OK_TO_FILL(cx, cy, x,y,white) ( CHECK_RECT((cx), (cy), (x),(y)) && !FILL_BOUNDS((cx), (cy), (x),(y),(white)) )
 
 int g_commands = 0;
 
@@ -1403,12 +1399,18 @@ void _DitherFill(PicData *pdata, uint16_t x, uint16_t y, typename  _TFormat::Pix
     sPOINT p;
     __int32 rpos, spos;
 
-    if (!CHECK_RECT(x,y))
+    int cx = pdata->size.cx;
+    int cy = pdata->size.cy;
+    int xMax = cx - 1;
+    int yMax = cy - 1;
+    int displayByteSize = cx * cy;
+
+    if (!CHECK_RECT(cx, cy, x, y))
     {
         return;
     }
 
-    if(FILL_BOUNDS(x,y, _TFormat::White))
+    if (FILL_BOUNDS(cx, cy, x, y, _TFormat::White))
     {
         return;
     }
@@ -1417,7 +1419,7 @@ void _DitherFill(PicData *pdata, uint16_t x, uint16_t y, typename  _TFormat::Pix
 
     rpos = spos = 0;
 
-    if(!qstore(x,y, &rpos))
+    if (!qstore(displayByteSize, x, y, &rpos))
     {
         return;
     }
@@ -1434,35 +1436,34 @@ void _DitherFill(PicData *pdata, uint16_t x, uint16_t y, typename  _TFormat::Pix
         }
         else
         {
-            if (OK_TO_FILL(x1, y1, _TFormat::White))
+            if (OK_TO_FILL(cx, cy, x1, y1, _TFormat::White))
             {
                 // PERF: maybe inline this call?
                 _PlotPix<_TFormat>(pdata, (uint16_t)x1, (uint16_t)y1, dwDrawEnable, color, bPriorityValue, bControlValue);
 
                 // PERF: Tried removing OK_TO_FILL here, but it made it worse
                 // (It's technically uncessary)
-                if ((y1 != 0) && OK_TO_FILL(x1, y1 - 1, _TFormat::White))
+                if ((y1 != 0) && OK_TO_FILL(cx, cy, x1, y1 - 1, _TFormat::White))
                 {
-                    if(!qstore(x1, y1-1, &rpos)) break;
+                    if (!qstore(displayByteSize, x1, y1 - 1, &rpos)) break;
                 }
-                if ((x1 != 0) && OK_TO_FILL(x1 - 1, y1, _TFormat::White))
+                if ((x1 != 0) && OK_TO_FILL(cx, cy, x1 - 1, y1, _TFormat::White))
                 {  
-                    if(!qstore(x1-1, y1, &rpos)) break;
+                    if (!qstore(displayByteSize, x1 - 1, y1, &rpos)) break;
                 }
-                if ((x1 != sPIC_MAXX) && OK_TO_FILL(x1 + 1, y1, _TFormat::White))
+                if ((x1 != xMax) && OK_TO_FILL(cx, cy, x1 + 1, y1, _TFormat::White))
                 { 
-                    if(!qstore(x1+1, y1, &rpos)) break;;
+                    if (!qstore(displayByteSize, x1 + 1, y1, &rpos)) break;;
                 }
-                if ((y1 != sPIC_MAXY) && OK_TO_FILL(x1, y1 + 1, _TFormat::White))
+                if ((y1 != yMax) && OK_TO_FILL(cx, cy, x1, y1 + 1, _TFormat::White))
                 {
-                    if(!qstore(x1, y1+1, &rpos)) break;;
+                    if (!qstore(displayByteSize, x1, y1 + 1, &rpos)) break;;
                 }
 
                 g_commands += 4;
             }
 
         }
-
     }
 }
 
@@ -2152,17 +2153,21 @@ void DrawVisualBitmap_Draw(const PicCommand *pCommand, PicData *pData, ViewPort 
 {
     if (pCommand->drawVisualBitmap.pCel)
     {
+        size16 displaySize = pData->size;
         Cel &cel = *pCommand->drawVisualBitmap.pCel;
         // Optimization
-        if ((cel.size.cx == 320) && (cel.size.cy == 190))
+#if CANT_DO_BECAUSE_OF_TRANS_COLOR
+        if ((cel.size.cx == pData->size.cx) && (cel.size.cy == pData->size.cy))
         {
             // Just bit copy everything
-            memcpy(pData->pdataVisual, &cel.Data[0], CX_ACTUAL(320) * 190);
+            memcpy(pData->pdataVisual, &cel.Data[0], CX_ACTUAL(cel.size.cx) * cel.size.cy);
         }
         else
+#endif
         {
             // Copy line by line.
             DrawImageWithPriority(
+                displaySize,
                 pData->pdataVisual,
                 pData->pdataPriority,
                 pState->bPriorityValue,
@@ -2176,11 +2181,11 @@ void DrawVisualBitmap_Draw(const PicCommand *pCommand, PicData *pData, ViewPort 
         }
 
         // Fill in the aux thing (otherwise stuff like LSL6, pic 320 is wrong).
-        for (int y = max(0, cel.placement.y); y < min(190, (cel.placement.y + cel.size.cy)); y++)
+        for (int y = max(0, cel.placement.y); y < min(pData->size.cy, (cel.placement.y + cel.size.cy)); y++)
         {
-            for (int x = max(0, cel.placement.x); x < min(320, (cel.placement.x + cel.size.cx)); x++)
+            for (int x = max(0, cel.placement.x); x < min(pData->size.cx, (cel.placement.x + cel.size.cx)); x++)
             {
-                pData->pdataAux[BUFFEROFFSET(x, y)] |= (uint8_t)PicScreenFlags::Visual;
+                pData->pdataAux[BUFFEROFFSET_NONSTD(displaySize.cx, displaySize.cy, x, y)] |= (uint8_t)PicScreenFlags::Visual;
             }
         }
 

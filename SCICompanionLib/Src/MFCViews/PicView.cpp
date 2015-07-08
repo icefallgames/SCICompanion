@@ -21,6 +21,7 @@
 #include "format.h"
 #include "View.h"
 #include "PaletteEditorDialog.h"
+#include "PicDimensionsDialog.h"
 
 const int PicGutter = 5;
 
@@ -54,19 +55,21 @@ const COLORREF PolygonColors[] =
     RGB(196, 255, 196)
 };
 
-void _ClampPoint(CPoint &point)
+void CPicView::_ClampPoint(CPoint &point)
 {
+    size16 size = _GetPicSize();
     point.x = max(0, point.x);
     point.y = max(0, point.y);
-    point.x = min(sPIC_WIDTH - 1, point.x);
-    point.y = min(sPIC_HEIGHT - 1, point.y);
+    point.x = min(size.cx - 1, point.x);
+    point.y = min(size.cy - 1, point.y);
 }
-void _ClampPoint(point16 &point)
+void CPicView::_ClampPoint(point16 &point)
 {
+    size16 size = _GetPicSize();
     point.x = max(0, point.x);
     point.y = max(0, point.y);
-    point.x = min(sPIC_WIDTH - 1, point.x);
-    point.y = min(sPIC_HEIGHT - 1, point.y);
+    point.x = min(size.cx - 1, point.x);
+    point.y = min(size.cy - 1, point.y);
 }
 
 void CommandModifier::Reset()
@@ -266,6 +269,7 @@ BEGIN_MESSAGE_MAP(CPicView, CScrollingThing<CView>)
     ON_COMMAND(ID_PIC_EXPORT8, CPicView::OnExportPalettizedBitmap)
     ON_COMMAND(ID_PIC_EDITPALETTE, CPicView::EditVGAPalette)
     ON_COMMAND(ID_PIC_DELETEPOINT, CPicView::OnDeletePoint)
+    ON_COMMAND(ID_PIC_CHANGEDIMENSIONS, CPicView::ChangeDimensions)
     
     ON_COMMAND_RANGE(ID_DEFAULTPRIORITY, ID_MAIN_PRI15, CPicView::OnSetEgoPriority)
     ON_UPDATE_COMMAND_UI(ID_PENTOOL, CPicView::OnUpdateAllPicCommands)
@@ -310,6 +314,7 @@ BEGIN_MESSAGE_MAP(CPicView, CScrollingThing<CView>)
     ON_UPDATE_COMMAND_UI(ID_OBSERVEPOLYGONS, CPicView::OnUpdateObservePolygons)
     ON_UPDATE_COMMAND_UI(ID_PIC_EXPORT8, CPicView::OnUpdateIsVGA)
     ON_UPDATE_COMMAND_UI(ID_PIC_EDITPALETTE, CPicView::OnUpdateIsVGA)
+    ON_UPDATE_COMMAND_UI(ID_PIC_CHANGEDIMENSIONS, CPicView::OnUpdateIsVGA)
     ON_UPDATE_COMMAND_UI(ID_PIC_DELETEPOINT, CPicView::OnCommandUIAlwaysValid)  // Since it's in a context menu we only bring up when it's available.
     ON_UPDATE_COMMAND_UI(ID_PIC_SPLITEDGE, CPicView::OnCommandUIAlwaysValid)  // Since it's in a context menu we only bring up when it's available.
     ON_WM_ERASEBKGND()
@@ -374,8 +379,8 @@ CPicView::CPicView()
     _xOrigin = 0;
 
     // Default size of a pic.
-    _cyPic = sPIC_HEIGHT * 2;
-    _cxPic = sPIC_WIDTH * 2;
+    _cyPic = DEFAULT_PIC_HEIGHT * 2;
+    _cxPic = DEFAULT_PIC_WIDTH * 2;
 
     // Start with the visual screen.
     _mainViewScreen = PicScreen::Visual;
@@ -389,12 +394,12 @@ CPicView::CPicView()
 // Scrolling
 int CPicView::_GetViewWidth()
 {
-    int zoom = _cxPic / sPIC_WIDTH;
+    int zoom = _cxPic / _GetPicSize().cx;
     return _cxPic + PriorityBarWidth + 2 * zoom * PicGutter;
 }
 int CPicView::_GetViewHeight()
 {
-    int zoom = _cyPic / sPIC_HEIGHT;
+    int zoom = _cyPic / _GetPicSize().cy;
     return GetPicScreenHeight() + 2 * zoom * PicGutter;
 }
 
@@ -410,7 +415,7 @@ int CPicView::GetPicScreenHeight() const
 
 CPoint CPicView::GetZoomOffset() const
 {
-    return CPoint((_cyPic / sPIC_WIDTH) / 2, (GetPicScreenHeight() / sPIC_HEIGHT) / 2);
+    return CPoint((_cyPic / _GetPicSize().cx) / 2, (GetPicScreenHeight() / _GetPicSize().cy) / 2);
 }
 
 PicDrawManager &CPicView::_GetDrawManager()
@@ -435,8 +440,8 @@ CPicView::~CPicView()
 //
 CPoint CPicView::_MapClientPointToPic(CPoint ptScreen)
 {
-    return CPoint((ptScreen.x + _xOrigin) * sPIC_WIDTH / _cxPic - PicGutter,
-        (ptScreen.y + _yOrigin) * sPIC_HEIGHT / GetPicScreenHeight() - PicGutter);
+    return CPoint((ptScreen.x + _xOrigin) * _GetPicSize().cx / _cxPic - PicGutter,
+        (ptScreen.y + _yOrigin) * _GetPicSize().cy / GetPicScreenHeight() - PicGutter);
 }
 
 //
@@ -445,8 +450,8 @@ CPoint CPicView::_MapClientPointToPic(CPoint ptScreen)
 //
 CPoint CPicView::_MapPicPointToClient(CPoint ptPic)
 {
-    return CPoint(((ptPic.x + PicGutter) * _cxPic / sPIC_WIDTH) - _xOrigin,
-        ((ptPic.y + PicGutter) * GetPicScreenHeight() / sPIC_HEIGHT) - _yOrigin);
+    return CPoint(((ptPic.x + PicGutter) * _cxPic / _GetPicSize().cx) - _xOrigin,
+        ((ptPic.y + PicGutter) * GetPicScreenHeight() / _GetPicSize().cy) - _yOrigin);
 }
 
 void CPicView::OnPenCommand()
@@ -541,6 +546,26 @@ void CPicView::OnDeletePoint()
     }
     );
     _transformCommandMod.Reset();
+}
+
+void CPicView::ChangeDimensions()
+{
+    const PicComponent *pic = _GetEditPic();
+    if (pic)
+    {
+        PicDimensionsDialog dialog(pic->Size);
+        if ((IDOK == dialog.DoModal()) && (dialog.GetSize() != pic->Size))
+        {
+            size16 newSize = dialog.GetSize();
+            GetDocument()->ApplyChanges<PicComponent>(
+                [newSize](PicComponent &pic)
+            {
+                pic.Size = newSize;
+                return WrapHint(PicChangeHint::NewPic);
+            }
+            );
+        }
+    }
 }
 
 void CPicView::EditVGAPalette()
@@ -654,7 +679,7 @@ void CPicView::_MakeNewMasterTraceImage(PCTSTR pszFileName, BITMAPINFO *pbmi, vo
     // we need to regenerate the 320x190 bitmap on the next draw cycle.
     if (_pgdiplusTrace)
     {
-        if ((_pgdiplusTrace->GetWidth() != sPIC_WIDTH) || (_pgdiplusTrace->GetHeight() != sPIC_HEIGHT))
+        if ((_pgdiplusTrace->GetWidth() != _GetPicSize().cx) || (_pgdiplusTrace->GetHeight() != _GetPicSize().cy))
         {
             if (!appState->_fDontShowTraceScaleWarning)
             {
@@ -924,7 +949,7 @@ void CPicView::_InsertPastedCommands()
         // Adjust the commands:
         PICCOMMAND_ADJUST adjust = { 0 };
         _InitCommandAdjust(&adjust);
-        PastedCommands_Adjust(_pastedCommands, &adjust);
+        PastedCommands_Adjust(_GetPicSize(), _pastedCommands, &adjust);
 
         // And then insert them.
         GetDocument()->InsertCommands(_pastedCommands.size(), &_pastedCommands[0]);
@@ -940,11 +965,11 @@ void CPicView::_GetPasteRect(CRect &rect)
     rect.left = _xPasted + _xPasteOffset;
     rect.left = max(0, rect.left);
     rect.right = _xPasted + _xPasteOffset + _cxPastedScale;
-    rect.right = min(sPIC_WIDTH, rect.right);
+    rect.right = min(_GetPicSize().cx, rect.right);
     rect.top = _yPasted + _yPasteOffset;
     rect.top = max(0, rect.top);
     rect.bottom = _yPasted + _yPasteOffset + _cyPastedScale;
-    rect.bottom = min(sPIC_HEIGHT, rect.bottom);
+    rect.bottom = min(_GetPicSize().cy, rect.bottom);
 }
 
 void CPicView::_OnPasteCommands(HGLOBAL hMem)
@@ -975,7 +1000,7 @@ void CPicView::_OnPasteCommands(HGLOBAL hMem)
             }
 
             sRECT rcPasted;
-            PastedCommands_GetBounds(&_pastedCommands[0], _pastedCommands.size(), &rcPasted);
+            PastedCommands_GetBounds(_GetPicSize(), &_pastedCommands[0], _pastedCommands.size(), &rcPasted);
             _cxPasted = rcPasted.right - rcPasted.left;
             _cyPasted = rcPasted.bottom - rcPasted.top;
             _xPasteOffset = 0;
@@ -1053,7 +1078,7 @@ void CPicView::OnPasteIntoPic()
 {
     if (_GetEditPic()->Traits.IsVGA)
     {
-        CBitmapToVGADialog dialog(_GetPalette(), _GetEditPic()->Traits.AllowMultipleBitmaps);
+        CBitmapToVGADialog dialog(_GetPalette(), _GetEditPic()->Traits.AllowMultipleBitmaps, _GetEditPic()->Size);
         if (IDOK == dialog.DoModal())
         {
             std::unique_ptr<Cel> result = dialog.GetFinalResult();
@@ -1242,28 +1267,30 @@ void CPicView::SetOpacity(int iOpacity)
 //
 void CPicView::OnCommandUIStatus(CCmdUI *pCmdUI)
 {
+    size16 picSize = _GetPicSize();
     TCHAR szText[50];
     szText[0] = 0;
     if (pCmdUI->m_nID == ID_INDICATOR_COORDS)
     {
-        int x = min(_ptCurrentHover.x, 319);
-        int y = min(_ptCurrentHover.y, 189);
+        int x = min(_ptCurrentHover.x, picSize.cx - 1);
+        int y = min(_ptCurrentHover.y, picSize.cy - 1);
         pCmdUI->Enable(); 
         StringCchPrintf(szText, ARRAYSIZE(szText), "%3d,%3d", x, y);
         pCmdUI->SetText(szText);
     }
     else if (pCmdUI->m_nID == ID_INDICATOR_PRI)
     {
-        int y = min(_ptCurrentHover.y, 189);
+        int y = min(_ptCurrentHover.y, picSize.cy - 1);
         pCmdUI->Enable();
         const ViewPort *pstate = _GetDrawManager().GetViewPort(PicPosition::PostPlugin);
         StringCchPrintf(szText, ARRAYSIZE(szText), "Pri bar: %2d", PriorityFromY((uint16_t)y, *pstate));
         pCmdUI->SetText(szText);
     }
-    else if ((_ptCurrentHover.x >= 0) && (_ptCurrentHover.y >= 0) && (_ptCurrentHover.x < sPIC_WIDTH) && (_ptCurrentHover.y < sPIC_HEIGHT))
+    else if ((_ptCurrentHover.x >= 0) && (_ptCurrentHover.y >= 0) && (_ptCurrentHover.x < picSize.cx) && (_ptCurrentHover.y < picSize.cy))
     {
-        const uint8_t *picBits = _GetDrawManager().GetPicBits(_mainViewScreen, PicPosition::PrePlugin);
-        uint8_t bColor = *(picBits + BUFFEROFFSET(_ptCurrentHover.x, _ptCurrentHover.y));
+        const uint8_t *picBits = _GetDrawManager().GetPicBits(_mainViewScreen, PicPosition::PrePlugin, _GetPicSize());
+        size16 displaySize = _GetPicSize();
+        uint8_t bColor = *(picBits + BUFFEROFFSET_NONSTD(displaySize.cx, displaySize.cy, _ptCurrentHover.x, _ptCurrentHover.y));
         if ((pCmdUI->m_nID == ID_INDICATOR_CONTROLCOLOR) && (_mainViewScreen == PicScreen::Control))
         {
             StringCchCopy(szText, ARRAYSIZE(szText), c_rgControlColourNames[bColor % 16]);
@@ -1696,8 +1723,11 @@ void CPicView::OnInitialUpdate()
     CRect rect;
     GetClientRect(&rect);
     // Set our initial zoom level to the biggest we can fit (or at least 2)
-    int iZoom = min(rect.Width() / sPIC_WIDTH, rect.Height() / sPIC_HEIGHT);
+    // NOTE: We do NOT yet have a pic resource here, so we'll be using the defaults for cx/cy
+    int iZoom = min(rect.Width() / _GetPicSize().cx, rect.Height() / _GetPicSize().cy);
     iZoom = max(iZoom, 2);
+    _cyPic = iZoom * _GetPicSize().cy;
+    _cxPic = iZoom * _GetPicSize().cx;
     GetDocument()->SetZoom(iZoom);
     GetDocument()->InformBitmapEditor(PicChangeHint::CursorPosition, this);
 }
@@ -1721,13 +1751,16 @@ BOOL CPicView::PreCreateWindow(CREATESTRUCT& cs)
 
 // CPicView drawing
 
-void CPicView::_EnsureDoubleBuffer(PicScreen screen)
+void CPicView::_EnsureDoubleBuffer()
 {
+    size16 size = _GetPicSize();
     CBitmap &bitmap = _bitmapDoubleBuf;
-    if ((HBITMAP)bitmap == nullptr)
+    if (((HBITMAP)bitmap == nullptr) || (bitmap.GetBitmapDimension().cx != size.cx) || (bitmap.GetBitmapDimension().cy != size.cy))
     {
+        bitmap.DeleteObject();
         CDC *pDC = this->GetDC();
-        bitmap.CreateCompatibleBitmap(pDC, sPIC_WIDTH, sPIC_HEIGHT);
+        bitmap.CreateCompatibleBitmap(pDC, _GetPicSize().cx, _GetPicSize().cy);
+        bitmap.SetBitmapDimension(_GetPicSize().cx, _GetPicSize().cy);
         this->ReleaseDC(pDC);
     }
 }
@@ -1739,7 +1772,7 @@ void CPicView::_GenerateTraceImage(CDC *pDC)
     // Take our master copy, and generate a 320x190 version of it.
     if (_pgdiplusTrace)
     {
-        _bitmapTrace.CreateCompatibleBitmap(pDC, sPIC_WIDTH, sPIC_HEIGHT);
+        _bitmapTrace.CreateCompatibleBitmap(pDC, _GetPicSize().cx, _GetPicSize().cy);
 
         // Now copy the trace image into it.
         CDC dcDest;
@@ -1749,12 +1782,12 @@ void CPicView::_GenerateTraceImage(CDC *pDC)
             Graphics graphics((HDC)dcDest);
             if (appState->_fScaleTracingImages)
             {
-                graphics.DrawImage(_pgdiplusTrace.get(), 0, 0, sPIC_WIDTH, sPIC_HEIGHT);
+                graphics.DrawImage(_pgdiplusTrace.get(), 0, 0, _GetPicSize().cx, _GetPicSize().cy);
             }
             else
             {
-                int cx = min(sPIC_WIDTH, _pgdiplusTrace->GetWidth());
-                int cy = min(sPIC_HEIGHT, _pgdiplusTrace->GetHeight());
+                int cx = min(_GetPicSize().cx, _pgdiplusTrace->GetWidth());
+                int cy = min(_GetPicSize().cy, _pgdiplusTrace->GetHeight());
                 graphics.DrawImage(_pgdiplusTrace.get(), 0, 0, 0, 0, cx, cy, Gdiplus::UnitPixel);
             }
             dcDest.SelectObject(hgdiObj);
@@ -1970,7 +2003,7 @@ void CPicView::_DrawPriorityLines(CDC *pDC)
         for (int i = 0; i < NumPriorityBars; i++)
         {
             int yPriLine = priLines[i] - 1;
-            pDC->AlphaBlend(0, yPriLine, sPIC_WIDTH, 2, &dcMem2, 0, i, 1, 2, blendFunc);
+            pDC->AlphaBlend(0, yPriLine, _GetPicSize().cx, 2, &dcMem2, 0, i, 1, 2, blendFunc);
         }
         dcMem2.SelectObject(hgdiObj2);
     }
@@ -2009,7 +2042,7 @@ void CPicView::_MovePriorityBar(bool commit, int dy)
     // For now, don't allow dragging onto another priority line
     // Not sure if SCI technically allows overlapping pri lines, but I'm pretty sure some pics have them.
     int minBound = (_priBarMoveIndex > 0) ? priLines[_priBarMoveIndex - 1] : 0;
-    int maxBound = (_priBarMoveIndex < (priLineCount - 1)) ? priLines[_priBarMoveIndex + 1] : (sPIC_HEIGHT - 1);
+    int maxBound = (_priBarMoveIndex < (priLineCount - 1)) ? priLines[_priBarMoveIndex + 1] : (_GetPicSize().cy - 1);
     newPriValue = max(minBound, min(maxBound, newPriValue));
 
     PicCommand newPriBarsCommand = _originalPriValueCommand;
@@ -2053,7 +2086,7 @@ void CPicView::_MovePriorityBar(bool commit, int dy)
 bool CPicView::_HitTestPriorityBar(CPoint pt, int *barIndex)
 {
     *barIndex = -1;
-    CRect rect(sPIC_WIDTH, 0, sPIC_WIDTH + PriorityBarWidth, sPIC_HEIGHT);
+    CRect rect(_GetPicSize().cx, 0, _GetPicSize().cx + PriorityBarWidth, _GetPicSize().cy);
     bool hit = !!rect.PtInRect(pt);
     if (hit && _GetEditPic()->Traits.CanChangePriorityLines)
     {
@@ -2062,7 +2095,7 @@ bool CPicView::_HitTestPriorityBar(CPoint pt, int *barIndex)
         // Hit on current line and previous
         for (size_t i = 0; i < priLineCount; i++)
         {
-            int priLine = (i < priLineCount) ? priLines[i] : sPIC_HEIGHT;
+            int priLine = (i < priLineCount) ? priLines[i] : _GetPicSize().cy;
             if ((pt.y >= (priLine - 1)) && (pt.y <= priLine))
             {
                 *barIndex = (int)i;
@@ -2077,13 +2110,13 @@ void CPicView::_DrawPriorityBar(CDC *pDC, CPoint offset)
 {
     const uint16_t *priLines = _GetDrawManager().GetViewPort(PicPosition::PostPlugin)->bPriorityLines;
     size_t priLineCount = ARRAYSIZE(_GetDrawManager().GetViewPort(PicPosition::PostPlugin)->bPriorityLines);
-    int zoom = _cxPic / sPIC_WIDTH;
+    int zoom = _cxPic / _GetPicSize().cx;
 
     size_t i = 0;
     int previousPriorityY = -1;
     for (; i <= priLineCount; i++, previousPriorityY++)
     {
-        int priLine = (i < priLineCount) ? priLines[i] : sPIC_HEIGHT;
+        int priLine = (i < priLineCount) ? priLines[i] : _GetPicSize().cy;
         priLine--;
         CBrush brush(g_egaColorsCR[i]);
         CRect rect(CPoint(_cxPic - _xOrigin + offset.x, appState->AspectRatioY(previousPriorityY * zoom) - _yOrigin + offset.y), CSize(PriorityBarWidth, appState->AspectRatioY(zoom * (priLine - previousPriorityY + 1))));
@@ -2097,6 +2130,12 @@ CPoint CPicView::GetCursorPos()
     return _ptCurrentHover;
 }
 
+CSize CPicView::GetBitmapSize()
+{
+    size16 size = _GetPicSize();
+    return CSize(size.cx, size.cy);
+}
+
 void CPicView::OnVGAPaletteChanged()
 {
     CPicDoc *pDoc = GetDocument();
@@ -2108,7 +2147,7 @@ void CPicView::OnVGAPaletteChanged()
 
 bool CPicView::EnsureBitmapUpToDate(CDC *pDCMem, PicScreen screen, bool force)
 {
-    _EnsureDoubleBuffer(screen);
+    _EnsureDoubleBuffer();
 
     CBitmap &bitmap = _bitmapDoubleBuf;
     PicScreenFlags dwDrawEnable = PicScreenToFlags(screen);
@@ -2198,7 +2237,7 @@ int CPicView::_GetTransformHitTestDistance(int x, int y)
 
 CPoint CPicView::_GetGutterOffset()
 {
-    int zoom = _cxPic / sPIC_WIDTH;
+    int zoom = _cxPic / _GetPicSize().cx;
     return CPoint(zoom * PicGutter, zoom * PicGutter);
 }
 
@@ -2241,7 +2280,7 @@ void CPicView::OnDraw(CDC *pDC)
                 {
                     HGDIOBJ hgdiObj2 = dcMem2.SelectObject(_bitmapTrace);
                     // Draw this.
-                    dcMem.AlphaBlend(0, 0, sPIC_WIDTH, sPIC_HEIGHT, &dcMem2, 0, 0, sPIC_WIDTH, sPIC_HEIGHT, blendFunc);
+                    dcMem.AlphaBlend(0, 0, _GetPicSize().cx, _GetPicSize().cy, &dcMem2, 0, 0, _GetPicSize().cx, _GetPicSize().cy, blendFunc);
                     dcMem2.SelectObject(hgdiObj2);
                 }
             }
@@ -2268,7 +2307,7 @@ void CPicView::OnDraw(CDC *pDC)
 
         // Now blt back to the real DC.
         // Now we want to copy it back to the real dc.
-        pDC->StretchBlt(-_xOrigin + gutter.x, -_yOrigin + gutter.y, _cxPic, GetPicScreenHeight(), &dcMem, 0, 0, sPIC_WIDTH, sPIC_HEIGHT, SRCCOPY);
+        pDC->StretchBlt(-_xOrigin + gutter.x, -_yOrigin + gutter.y, _cxPic, GetPicScreenHeight(), &dcMem, 0, 0, _GetPicSize().cx, _GetPicSize().cy, SRCCOPY);
 
         dcMem.SelectObject(hgdiObj);
     }
@@ -2372,12 +2411,12 @@ void CPicView::_DrawShowingEgoWorker(const ViewPort &viewPort, uint8_t *pdataVis
         if (!appState->_fUseBoxEgo && appState->GetSelectedViewResource())
         {
             // Draw a view.
-            DrawViewWithPriority(pdataVisual, pdataPriority, bEgoPriority, (uint16_t)_pointEgo.x, (uint16_t)_pointEgo.y, appState->GetSelectedViewResource(), _nFakeLoop, _nFakeCel, _HitTestFakeEgo(_ptCurrentHover));
+            DrawViewWithPriority(_GetPicSize(), pdataVisual, pdataPriority, bEgoPriority, (uint16_t)_pointEgo.x, (uint16_t)_pointEgo.y, appState->GetSelectedViewResource(), _nFakeLoop, _nFakeCel, _HitTestFakeEgo(_ptCurrentHover));
         }
         else
         {
             // Just draw a box
-            DrawBoxWithPriority(pdataVisual, pdataPriority, bEgoPriority, (uint16_t)_pointEgo.x, (uint16_t)_pointEgo.y, appState->_cxFakeEgo, appState->_cyFakeEgo);
+            DrawBoxWithPriority(_GetPicSize(), pdataVisual, pdataPriority, bEgoPriority, (uint16_t)_pointEgo.x, (uint16_t)_pointEgo.y, appState->_cxFakeEgo, appState->_cyFakeEgo);
         }
     }
 }
@@ -2404,7 +2443,7 @@ void CPicView::_DrawShowingEgoVGA(CDC &dc, PicDrawManager &pdm)
             // When drawing the ego, we don't want to be limited by the palette of the screen
             // we're currently showing.
             
-            SCIBitmapInfo bmi(sPIC_WIDTH, sPIC_HEIGHT, (appState->_fUseBoxEgo ? g_egaColorsPlusOne : palette->Colors), appState->_fUseBoxEgo ? ARRAYSIZE(g_egaColorsPlusOne) : ARRAYSIZE(palette->Colors));
+            SCIBitmapInfo bmi(_GetPicSize().cx, _GetPicSize().cy, (appState->_fUseBoxEgo ? g_egaColorsPlusOne : palette->Colors), appState->_fUseBoxEgo ? ARRAYSIZE(g_egaColorsPlusOne) : ARRAYSIZE(palette->Colors));
             uint8_t transparentColor = cel.TransparentColor;
             RGBQUAD transparentRGB = palette->Colors[cel.TransparentColor];
             if (appState->_fUseBoxEgo)
@@ -2418,13 +2457,13 @@ void CPicView::_DrawShowingEgoVGA(CDC &dc, PicDrawManager &pdm)
             bitmap.Attach(CreateDIBSection((HDC)dcMem, &bmi, DIB_RGB_COLORS, (void**)&pBitsDest, nullptr, 0));
             if ((HBITMAP)bitmap)
             {
-                memset(pBitsDest, transparentColor, sPIC_WIDTH * sPIC_HEIGHT);
-                _DrawShowingEgoWorker(*_GetDrawManager().GetViewPort(PicPosition::PostPlugin), pBitsDest, _GetDrawManager().GetPicBits(PicScreen::Priority, PicPosition::PostPlugin), PicScreenFlags::Visual);
+                memset(pBitsDest, transparentColor, _GetPicSize().cx * _GetPicSize().cy);
+                _DrawShowingEgoWorker(*_GetDrawManager().GetViewPort(PicPosition::PostPlugin), pBitsDest, _GetDrawManager().GetPicBits(PicScreen::Priority, PicPosition::PostPlugin, _GetPicSize()), PicScreenFlags::Visual);
 
                 // Now blt it
                 HGDIOBJ hold = dcMem.SelectObject(bitmap);
                 COLORREF transparent = RGB(transparentRGB.rgbRed, transparentRGB.rgbGreen, transparentRGB.rgbBlue);
-                TransparentBlt(dc, 0, 0, sPIC_WIDTH, sPIC_HEIGHT, dcMem, 0, 0, sPIC_WIDTH, sPIC_HEIGHT, transparent);
+                TransparentBlt(dc, 0, 0, _GetPicSize().cx, _GetPicSize().cy, dcMem, 0, 0, _GetPicSize().cx, _GetPicSize().cy, transparent);
                 dcMem.SelectObject(hold);
             }
         }
@@ -2502,20 +2541,20 @@ void CPicView::_DrawGuideLines(CDC &dcMem)
         dcMem.MoveTo(0, _ptCurrentHover.y);
         dcMem.LineTo(rcAroundThis.left, _ptCurrentHover.y);
     }
-    if (rcAroundThis.right < sPIC_WIDTH)
+    if (rcAroundThis.right < _GetPicSize().cx)
     {
         dcMem.MoveTo(rcAroundThis.right, _ptCurrentHover.y);
-        dcMem.LineTo(sPIC_WIDTH, _ptCurrentHover.y);
+        dcMem.LineTo(_GetPicSize().cx, _ptCurrentHover.y);
     }
     if (rcAroundThis.top >= 0)
     {
         dcMem.MoveTo(_ptCurrentHover.x, 0);
         dcMem.LineTo(_ptCurrentHover.x, rcAroundThis.top);
     }
-    if (rcAroundThis.bottom < sPIC_HEIGHT)
+    if (rcAroundThis.bottom < _GetPicSize().cy)
     {
         dcMem.MoveTo(_ptCurrentHover.x, rcAroundThis.bottom);
-        dcMem.LineTo(_ptCurrentHover.x, sPIC_HEIGHT);
+        dcMem.LineTo(_ptCurrentHover.x, _GetPicSize().cy);
     }
 }
 
@@ -2607,14 +2646,14 @@ void CPicView::_OnDraw(CDC* pDC, PicScreen screen)
 {
     BITMAPINFO *pbmi;
 
-    const uint8_t *displayBits = _GetDrawManager().GetPicBits(screen, PicPosition::PostPlugin);
+    const uint8_t *displayBits = _GetDrawManager().GetPicBits(screen, PicPosition::PostPlugin, _GetPicSize());
     _GetDrawManager().GetBitmapInfo(screen, &pbmi);
 
     // FEATURE: this could be optimized (when zoomed, by limiting how much we copy)
     // - it involves palette conversion, so it could be expensive.
     if (pbmi)
     {
-        StretchDIBits((HDC)*pDC, 0, 0, sPIC_WIDTH, sPIC_HEIGHT, 0, 0, sPIC_WIDTH, sPIC_HEIGHT, displayBits, pbmi, DIB_RGB_COLORS, SRCCOPY);
+        StretchDIBits((HDC)*pDC, 0, 0, _GetPicSize().cx, _GetPicSize().cy, 0, 0, _GetPicSize().cx, _GetPicSize().cy, displayBits, pbmi, DIB_RGB_COLORS, SRCCOPY);
         delete pbmi;
 
         // Draw a special line for when line-drawing is "invisible".  We can't do this directly
@@ -2708,7 +2747,7 @@ void CPicView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
         int iZoom = GetDocument()->GetZoom();
         if (iZoom)
         {
-            int iOldZoom = _cxPic / sPIC_WIDTH;
+            int iOldZoom = _cxPic / _GetPicSize().cx;
             if (iOldZoom != iZoom)
             {
                 int iMultiplier;
@@ -2728,7 +2767,7 @@ void CPicView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
                 if (_cxPic < rcClient.Width())
                 {
                     // Yes... zoom around the center of the pic
-                    ptZoom.SetPoint(sPIC_WIDTH / 2, sPIC_HEIGHT / 2);
+                    ptZoom.SetPoint(_GetPicSize().cx / 2, _GetPicSize().cy / 2);
                 }
                 else
                 {
@@ -2738,6 +2777,14 @@ void CPicView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
                 _OnZoomClick(&ptZoom, iMultiplier);
             }
         }
+    }
+
+    if (IsFlagSet(hint, PicChangeHint::NewPic))
+    {
+        // Need to update our size, potentially.
+        int iZoom = GetDocument()->GetZoom();
+        _cyPic = iZoom * _GetPicSize().cy;
+        _cxPic = iZoom * _GetPicSize().cx;
     }
 
     if (IsFlagSet(hint, PicChangeHint::NewPic | PicChangeHint::EditPicPos | PicChangeHint::Palette | PicChangeHint::EditPicInvalid | PicChangeHint::PreviewPalette))
@@ -3269,14 +3316,14 @@ void CPicView::_OnZoomClick(CPoint *ppt, int iMultiplier)
          ptScreenBefore = _MapPicPointToClient(*ppt);
     }
 
-    _cxPic = _cxPic + (sPIC_WIDTH * iMultiplier);
-    _cyPic = _cyPic + (sPIC_HEIGHT * iMultiplier);
-    _cxPic = max(_cxPic, sPIC_WIDTH);
-    _cyPic = max(_cyPic, sPIC_HEIGHT);
+    _cxPic = _cxPic + (_GetPicSize().cx * iMultiplier);
+    _cyPic = _cyPic + (_GetPicSize().cy * iMultiplier);
+    _cxPic = max(_cxPic, _GetPicSize().cx);
+    _cyPic = max(_cyPic, _GetPicSize().cy);
 
     CPicDoc* pDoc = GetDocument();
     // Push to the document (it only fires an event when it changes, so we shouldn't get re-entered).
-    pDoc->SetZoom(_cxPic / sPIC_WIDTH);
+    pDoc->SetZoom(_cxPic / _GetPicSize().cx);
 
     CPoint ptScreenAfter;
     if (ppt)
@@ -3297,7 +3344,7 @@ void CPicView::_OnZoomClick(CPoint *ppt, int iMultiplier)
 //
 void CPicView::_OnZoomLClick(CPoint *ppt)
 {
-    if (_cxPic < (sPIC_WIDTH * 16))
+    if (_cxPic < (_GetPicSize().cx * 16))
     {
         _OnZoomClick(ppt, 1);
     }
@@ -3309,7 +3356,7 @@ void CPicView::_OnZoomLClick(CPoint *ppt)
 //
 void CPicView::_OnZoomRClick(CPoint *ppt)
 {
-    if (_cxPic > sPIC_WIDTH)
+    if (_cxPic > _GetPicSize().cx)
     {
         _OnZoomClick(ppt, -1);
     }
@@ -3508,7 +3555,7 @@ void CPicView::OnLButtonDown(UINT nFlags, CPoint point)
         InvalidateOurselves();
     }
 
-    if ((ptPic.x >= sPIC_WIDTH) || (ptPic.y >= sPIC_HEIGHT))
+    if ((ptPic.x >= _GetPicSize().cx) || (ptPic.y >= _GetPicSize().cy))
     {
         if (_fShowPriorityLines && _HitTestPriorityBar(ptPic, &_priBarMoveIndex) && (_priBarMoveIndex != -1))
         {
@@ -3683,11 +3730,11 @@ bool CPicView::_CanBeInPolygons(CPoint pt)
 
 bool CPicView::_EvaluateCanBeHere(CPoint pt)
 {
-    const BYTE *pdataControl = _GetDrawManager().GetPicBits(PicScreen::Control, PicPosition::PrePlugin);
+    const BYTE *pdataControl = _GetDrawManager().GetPicBits(PicScreen::Control, PicPosition::PrePlugin, _GetPicSize());
     bool canBe = true;
     if (appState->_fObserveControlLines)
     {
-        canBe = CanBeHere(pdataControl, GetViewBoundsRect((uint16_t)pt.x, (uint16_t)pt.y, appState->GetSelectedViewResource(), _nFakeLoop, _nFakeCel));
+        canBe = CanBeHere(_GetPicSize(), pdataControl, GetViewBoundsRect((uint16_t)pt.x, (uint16_t)pt.y, appState->GetSelectedViewResource(), _nFakeLoop, _nFakeCel));
     }
 
     if (canBe && appState->_fObservePolygons)
@@ -3760,7 +3807,7 @@ void CPicView::OnLButtonDblClk(UINT nFlags, CPoint point)
     CPoint ptPic = _MapClientPointToPic(point);
 
     // Don't do anything if this is off the picture.
-    if ((ptPic.x >= sPIC_WIDTH) || (ptPic.y >= sPIC_HEIGHT))
+    if ((ptPic.x >= _GetPicSize().cx) || (ptPic.y >= _GetPicSize().cy))
     {
         return;
     }
@@ -3827,7 +3874,7 @@ void CPicView::OnRButtonDown(UINT nFlags, CPoint point)
     CPoint ptPic = _MapClientPointToPic(point);
 
     // Don't do anything if this is off the picture.
-    if ((ptPic.x >= sPIC_WIDTH) || (ptPic.y >= sPIC_HEIGHT))
+    if ((ptPic.x >= _GetPicSize().cx) || (ptPic.y >= _GetPicSize().cy))
     {
         return;
     }
@@ -3973,7 +4020,7 @@ void CPicView::OnRButtonDblClk(UINT nFlags, CPoint point)
     CPoint ptPic = _MapClientPointToPic(point);
 
     // Don't do anything if this is off the picture.
-    if ((ptPic.x >= sPIC_WIDTH) || (ptPic.y >= sPIC_HEIGHT))
+    if ((ptPic.x >= _GetPicSize().cx) || (ptPic.y >= _GetPicSize().cy))
     {
         return;
     }
@@ -4024,7 +4071,7 @@ void CPicView::_OnMouseWheel(UINT nFlags, BOOL fForward, CPoint pt, short nNotch
     if (nFlags == 0)
     {
         // No keys held down.  Do a scroll by 5 pics coordinates.
-        int iAmount = 5 * (_cxPic / sPIC_WIDTH) * nNotches;
+        int iAmount = 5 * (_cxPic / _GetPicSize().cx) * nNotches;
 
         // Which scroll bar?  Which one are we closest to?
         RECT rc;
@@ -4153,7 +4200,18 @@ void CPicView::OnEndPrinting(CDC* /*pDC*/, CPrintInfo* /*pInfo*/)
 {
 }
 
-const PicComponent *CPicView::_GetEditPic()
+size16 CPicView::_GetPicSize() const
+{
+    size16 size = size16(DEFAULT_PIC_WIDTH, DEFAULT_PIC_HEIGHT);
+    const PicComponent *pic = _GetEditPic();
+    if (pic)
+    {
+        size = pic->Size;
+    }
+    return size;
+}
+
+const PicComponent *CPicView::_GetEditPic() const
 {
     const PicComponent *ppic = nullptr;
     if (_pPreview)

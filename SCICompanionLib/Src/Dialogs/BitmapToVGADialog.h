@@ -11,7 +11,7 @@ struct Cel;
 class CBitmapToVGADialog : public CExtNCW<CExtResizableDialog>, public PrepareBitmapBase
 {
 public:
-    CBitmapToVGADialog(const PaletteComponent *targetPalette, bool allowInsertAtCurrentPosition, CWnd* pParent = NULL);   // standard constructor
+    CBitmapToVGADialog(const PaletteComponent *targetPalette, bool allowInsertAtCurrentPosition, size16 picDimensions, CWnd* pParent = NULL);   // standard constructor
     virtual ~CBitmapToVGADialog();
 
     // Dialog Data

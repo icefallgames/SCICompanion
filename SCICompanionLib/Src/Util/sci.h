@@ -164,11 +164,14 @@ struct ScopedFile : public ScopedHandle
     std::string filename;
 };
 
-#define sPIC_WIDTH      320
-#define sPIC_HEIGHT     190  
+#define DEFAULT_PIC_WIDTH      320
+#define DEFAULT_PIC_HEIGHT     190  
+#define sPIC_WIDTH_MAX          320
+#define sPIC_HEIGHT_MAX         200
 
 // 320 x 190 pixels, each a byte. (For our drawing buffers)
-#define BMPSIZE (sPIC_WIDTH * sPIC_HEIGHT)
+#define BMPSIZE (DEFAULT_PIC_WIDTH * DEFAULT_PIC_HEIGHT)
+#define BMPSIZE_MAX (sPIC_WIDTH_MAX * sPIC_HEIGHT_MAX)
 
 struct EGACOLOR
 {

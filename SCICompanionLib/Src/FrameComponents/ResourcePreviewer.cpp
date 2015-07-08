@@ -81,7 +81,7 @@ BOOL PicPreviewer::OnSetPalette(UINT nID)
     PicDrawManager pdm(&_pic->GetComponent<PicComponent>(), _pic->TryGetComponent<PaletteComponent>());
 
     pdm.SetPalette(_paletteNumber);
-    _ResetVisualBitmap(pdm);
+    _ResetVisualBitmap(_pic->GetComponent<PicComponent>(), pdm);
 
     // Update buttons states - ON_UPDATE_COMMAND_UI doesn't work in dialogs.
     for (UINT buttonId = IDC_BUTTON1; buttonId <= IDC_BUTTON4; buttonId++)
@@ -99,12 +99,12 @@ void PicPreviewer::OnUpdatePaletteButton(CCmdUI *pCmdUI)
     pCmdUI->SetCheck(paletteNumber == _paletteNumber);
 }
 
-void PicPreviewer::_ResetVisualBitmap(PicDrawManager &pdm)
+void PicPreviewer::_ResetVisualBitmap(const PicComponent &pic, PicDrawManager &pdm)
 {
     CRect rc;
     m_wndVisual.GetClientRect(&rc);
     CBitmap bitmap;
-    bitmap.Attach(pdm.CreateBitmap(PicScreen::Visual, PicPosition::Final, rc.Width(), rc.Height()));
+    bitmap.Attach(pdm.CreateBitmap(PicScreen::Visual, PicPosition::Final, pic.Size, rc.Width(), rc.Height()));
     m_wndVisual.FromBitmap((HBITMAP)bitmap, rc.Width(), rc.Height(), true);
 }
 
@@ -120,19 +120,20 @@ void PicPreviewer::SetResource(const ResourceBlob &blob)
     m_wndButton4.ShowWindow(showSCI0PaletteControls);
     m_wndStaticPalette.ShowWindow(showSCI0PaletteControls);
 
-    PicDrawManager pdm(&_pic->GetComponent<PicComponent>(), _pic->TryGetComponent<PaletteComponent>());
+    const PicComponent &pic = _pic->GetComponent<PicComponent>();
+    PicDrawManager pdm(&pic, _pic->TryGetComponent<PaletteComponent>());
     pdm.SetPalette(_paletteNumber);
     pdm.RefreshAllScreens(PicScreenFlags::All, PicPositionFlags::Final); // Be efficient - we're going to get all 3 screens.
-    _ResetVisualBitmap(pdm);
+    _ResetVisualBitmap(pic, pdm);
 
     // Do the priority and controls too.
     CRect rc;
     m_wndVisual.GetClientRect(&rc);
     CBitmap bitmapP;
-    bitmapP.Attach(pdm.CreateBitmap(PicScreen::Priority, PicPosition::Final, rc.Width(), rc.Height()));
+    bitmapP.Attach(pdm.CreateBitmap(PicScreen::Priority, PicPosition::Final, pic.Size, rc.Width(), rc.Height()));
     m_wndPriority.FromBitmap((HBITMAP)bitmapP, rc.Width(), rc.Height(), true);
     CBitmap bitmapC;
-    bitmapC.Attach(pdm.CreateBitmap(PicScreen::Control, PicPosition::Final, rc.Width(), rc.Height()));
+    bitmapC.Attach(pdm.CreateBitmap(PicScreen::Control, PicPosition::Final, pic.Size, rc.Width(), rc.Height()));
     m_wndControl.FromBitmap((HBITMAP)bitmapC, rc.Width(), rc.Height(), true);
 }
 

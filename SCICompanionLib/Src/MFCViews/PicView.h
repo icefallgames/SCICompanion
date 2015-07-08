@@ -80,6 +80,7 @@ public:
 
     // IBitmapEditor
     CPoint GetCursorPos() override;
+    CSize GetBitmapSize() override;
     PicScreen GetPicScreen() override { return _mainViewScreen; }
 
     // IVGAPaletteDefinitionCallback
@@ -115,7 +116,10 @@ public:
 
 protected:
     CPoint _GetGutterOffset();
-    const PicComponent *_GetEditPic();
+    const PicComponent *_GetEditPic() const;
+    void _ClampPoint(point16 &point);
+    void _ClampPoint(CPoint &point);
+    size16 _GetPicSize() const;
     const PaletteComponent *_GetPalette();
     void _OnHistoryLClick(CPoint point);
     void _OnHistoryRClick(CPoint point);
@@ -148,7 +152,7 @@ protected:
 
     CPoint _MapClientPointToPic(CPoint ptScreen);
     CPoint _MapPicPointToClient(CPoint ptPic);
-    void _EnsureDoubleBuffer(PicScreen screen);
+    void _EnsureDoubleBuffer();
     PicCommand _EnsurePriorityBarCommand();
     void _GenerateTraceImage(CDC *pDC);
     void _OnDraw(CDC* pDC, PicScreen screen);
@@ -235,6 +239,7 @@ protected:
     afx_msg void OnObservePolygons();
     afx_msg void OnExportPalettizedBitmap();
     afx_msg void EditVGAPalette();
+    afx_msg void ChangeDimensions();
     afx_msg void OnDeletePoint();
     afx_msg void OnUpdateAllPicCommands(CCmdUI *pCmdUI);
     afx_msg void OnUpdateShowTraceImage(CCmdUI *pCmdUI);

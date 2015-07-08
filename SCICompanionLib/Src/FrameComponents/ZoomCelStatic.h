@@ -25,6 +25,7 @@ protected:
 private:
 
     void _Update();
+    CSize _GetBitmapSize();
 
     CPoint _cursorPos;
 

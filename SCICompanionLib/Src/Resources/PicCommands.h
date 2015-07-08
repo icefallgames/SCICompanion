@@ -14,10 +14,7 @@ namespace sci
 // fwd decl
 class ResourceEntity;
 
-#define sPIC_MAXX       319
-#define sPIC_MAXY       189
-#define BUFFEROFFSET(x, y) (sPIC_MAXY-(y))*sPIC_WIDTH+(x)
-#define BUFFEROFFSET_NONSTD(cx, cy, x, y) (cy-(y))*cx+(x)
+#define BUFFEROFFSET_NONSTD(cx, cy, x, y) (((cy) - 1) -(y))*cx+(x)
 
 // Pic opcodes
 const uint8_t PIC_OP_SET_COLOR = 0xf0;
@@ -91,6 +88,7 @@ struct PicData
     uint8_t *pdataControl;
     uint8_t *pdataAux;
     bool isVGA;
+    size16 size;
 };
 
 //
@@ -463,9 +461,9 @@ struct PICCOMMAND_ADJUST
     int iAngle;
 };
 
-void PastedCommands_GetBounds(const PicCommand *pCommand, size_t cCommands, sRECT *prc);
+void PastedCommands_GetBounds(size16 displaySize, const PicCommand *pCommand, size_t cCommands, sRECT *prc);
 void Command_DrawWithOffset(const PicCommand *pCommandIn, PicData *pData, ViewPort *pState, const PICCOMMAND_ADJUST *pAdjust);
-void PastedCommands_Adjust(std::vector<PicCommand> &commandsIn, const PICCOMMAND_ADJUST *pAdjust);
+void PastedCommands_Adjust(size16 displaySize, std::vector<PicCommand> &commandsIn, const PICCOMMAND_ADJUST *pAdjust);
 HGLOBAL CopiedCommands_AllocAndFillMemory(const PicCommand *pCommands, size_t cCommands);
 bool PastedCommands_ContainDrawCommands(const PicCommand *pCommands, size_t cCommands);
 
@@ -488,14 +486,14 @@ void DeleteDitherCritSec();
 //
 // For the fake ego feature.
 //
-void DrawBoxWithPriority(uint8_t *pdataDisplay, const uint8_t *pdataPriority, uint8_t bEgoPriority, uint16_t x, uint16_t y, uint16_t cx, uint16_t cy);
-void DrawViewWithPriority(uint8_t *pdataDisplay, const uint8_t *pdataPriority, uint8_t bEgoPriority, uint16_t xIn, uint16_t yIn, const ResourceEntity *pvr, int nLoop, int nCel, bool fShowOutline = FALSE); 
+void DrawBoxWithPriority(size16 picSize, uint8_t *pdataDisplay, const uint8_t *pdataPriority, uint8_t bEgoPriority, uint16_t x, uint16_t y, uint16_t cx, uint16_t cy);
+void DrawViewWithPriority(size16 displaySize, uint8_t *pdataDisplay, const uint8_t *pdataPriority, uint8_t bEgoPriority, uint16_t xIn, uint16_t yIn, const ResourceEntity *pvr, int nLoop, int nCel, bool fShowOutline = FALSE);
 bool HitTestEgoBox(uint16_t xCursor, uint16_t yCursor, uint16_t xEgo, uint16_t yEgo, uint16_t cx, uint16_t cy);
 bool HitTestView(uint16_t xCursor, uint16_t yCursor, uint16_t xEgo, uint16_t yEgo, const ResourceEntity *pvr, int nLoop, int nCel);
 void GetViewRect(CRect *prc, uint16_t xEgo, uint16_t yEgo, const ResourceEntity *pvr, int nLoop, int nCel);
 CPoint FindCenterOfView(uint16_t xEgo, uint16_t yEgo, const ResourceEntity *pvr, int nLoop, int nCel);
 CRect GetViewBoundsRect(uint16_t xEgo, uint16_t yEgo, const ResourceEntity *pvr, int nLoop, int nCel);
-bool CanBeHere(const uint8_t *pdataPriority, const CRect &rect, uint16_t wControlMask = 0x8000); 
+bool CanBeHere(size16 displaySize, const uint8_t *pdataPriority, const CRect &rect, uint16_t wControlMask = 0x8000);
 void DrawPatternInRect(int cx, int cy, PicData *pData, uint16_t x, uint16_t y, EGACOLOR color, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable, const PenStyle *pPenStyle);
 
 //

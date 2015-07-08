@@ -19,7 +19,7 @@ struct PicComponent : ResourceComponent
 {
     PicComponent();
     PicComponent(const PicComponent &src) = default;
-    PicComponent(const PicTraits &traits) : Traits(traits) {}
+    PicComponent(const PicTraits &traits);
     ResourceComponent *Clone() const override
     {
         return new PicComponent(*this);
@@ -27,6 +27,7 @@ struct PicComponent : ResourceComponent
 
     int _uniqueId;
     std::vector<PicCommand> commands;
+    size16 Size;
 
     const PicTraits &Traits;
 };

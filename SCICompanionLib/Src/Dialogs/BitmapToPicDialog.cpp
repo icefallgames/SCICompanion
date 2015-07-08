@@ -96,7 +96,7 @@ BOOL InitThreadInfo(THREADINFO *pInfo, HWND hwnd, bool fIgnoreWhite, int iAlgori
 #define UWM_CONVERTSTATUS   (WM_APP + 2) // LPARAM is text
 
 CBitmapToPicDialog::CBitmapToPicDialog(CWnd* pParent /*=nullptr*/)
-    : CExtNCW<CExtResizableDialog>(CBitmapToPicDialog::IDD, pParent), PrepareBitmapBase(IDC_BUTTONCONVERT, IDC_STATICORIG)
+    : CExtNCW<CExtResizableDialog>(CBitmapToPicDialog::IDD, pParent), PrepareBitmapBase(IDC_BUTTONCONVERT, IDC_STATICORIG, size16(DEFAULT_PIC_WIDTH, DEFAULT_PIC_HEIGHT))
 {
     _pCRBitmap = nullptr;
     _nColors = g_nColors;
@@ -531,7 +531,7 @@ UINT CBitmapToPicDialog::s_ThreadWorker(void *pParam)
 
             // We're good.
             PicDrawManager pdm(&pic);
-            HBITMAP hbm = pdm.CreateBitmap(PicScreen::Visual, PicPosition::Final, 320, 190);
+            HBITMAP hbm = pdm.CreateBitmap(PicScreen::Visual, PicPosition::Final, pic.Size, pic.Size.cx, pic.Size.cy);
             if (hbm)
             {
                 THREADRESPONSE *pResponse = new THREADRESPONSE;
@@ -826,7 +826,7 @@ BOOL CBitmapToPicDialog::s_ConvertToPic(HWND hwnd, HANDLE hEvent, std::vector<Pi
             {
                 // If we make white the "most common" on every line, then it will be drawn first,
                 // which is essential if we're "ignoring white"
-                fragmentsPerColor[0xff] = sPIC_WIDTH + 1;
+                fragmentsPerColor[0xff] = DEFAULT_PIC_WIDTH + 1;
             }
 
             // Now we have a count of the most popular colours on this line, and how many fragments there are of each.

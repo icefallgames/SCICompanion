@@ -622,7 +622,7 @@ void CVisualScript::_GenerateDoubleBuffer(CDC *pDC)
     _pbitmapDoubleBuf = new CBitmap();
     if (_pbitmapDoubleBuf)
     {
-        _fDoubleBuf = _pbitmapDoubleBuf->CreateCompatibleBitmap(pDC, sPIC_WIDTH, sPIC_HEIGHT);
+        _fDoubleBuf = _pbitmapDoubleBuf->CreateCompatibleBitmap(pDC, DEFAULT_PIC_WIDTH, DEFAULT_PIC_HEIGHT);
     }
 }
 
@@ -674,7 +674,7 @@ void CVisualScript::_OnDraw(CDC *pDC)
             }
         }
 
-        StretchDIBits((HDC)*pDC, 0, 0, sPIC_WIDTH, sPIC_HEIGHT, 0, 0, sPIC_WIDTH, sPIC_HEIGHT, _pdataDisplay, pbmi, DIB_RGB_COLORS, SRCCOPY);
+        StretchDIBits((HDC)*pDC, 0, 0, sPIC_WIDTH, sPIC_HEIGHT, 0, 0, DEFAULT_PIC_WIDTH, DEFAULT_PIC_HEIGHT, _pdataDisplay, pbmi, DIB_RGB_COLORS, SRCCOPY);
         HGDIOBJ hOldBrush = pDC->SelectObject(&_brushHollow);
         for (INT_PTR i = 0; i < views.GetSize(); i++)
         {
@@ -740,13 +740,13 @@ void CVisualScript::OnPaint()
             HGDIOBJ hgdiObj = dcMem.SelectObject(_pbitmapDoubleBuf);
 
             // Fill background with white.
-            dcMem.FillSolidRect(0, 0, sPIC_WIDTH, sPIC_HEIGHT, RGB(0xff, 0xff, 0xff));
+            dcMem.FillSolidRect(0, 0, DEFAULT_PIC_WIDTH, DEFAULT_PIC_HEIGHT, RGB(0xff, 0xff, 0xff));
 
             // Draw the picture.
             _OnDraw(&dcMem);
 
             // Now blt back to the real DC.
-            dc.StretchBlt(-_xOrigin, -_yOrigin, _GetViewWidth(), _GetViewHeight(), &dcMem, 0, 0, sPIC_WIDTH, sPIC_HEIGHT, SRCCOPY); 
+            dc.StretchBlt(-_xOrigin, -_yOrigin, _GetViewWidth(), _GetViewHeight(), &dcMem, 0, 0, DEFAULT_PIC_WIDTH, DEFAULT_PIC_HEIGHT, SRCCOPY); 
 
             dcMem.SelectObject(hgdiObj);
         }

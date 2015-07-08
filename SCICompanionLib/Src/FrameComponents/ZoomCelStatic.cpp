@@ -38,13 +38,23 @@ void ZoomCelStatic::OnUpdateBitmapEditor(IBitmapEditor *be)
     _Update();
 }
 
+CSize ZoomCelStatic::_GetBitmapSize()
+{
+    if (_be)
+    {
+        return _be->GetBitmapSize();
+    }
+    return CSize(DEFAULT_PIC_WIDTH, DEFAULT_PIC_HEIGHT);
+}
+
 void ZoomCelStatic::_Update()
 {
+    CSize size = _GetBitmapSize();
     // Hack
     if (!_drawCrossHairs)
     {
-        _cursorPos.x = sPIC_WIDTH / 2;
-        _cursorPos.y = sPIC_HEIGHT / 2;
+        _cursorPos.x = size.cx / 2;
+        _cursorPos.y = size.cy / 2;
     }
     else
     {
@@ -68,9 +78,9 @@ void ZoomCelStatic::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
     {
         int saveHandle = pDC->SaveDC();
 
-        // TODO: get actual bitmap dimensions
-        int cxBitmap = 320;
-        int cyBitmap = 190;
+        CSize size = _GetBitmapSize();
+        int cxBitmap = size.cx;
+        int cyBitmap = size.cy;
         int cyBitmapDest = appState->AspectRatioY(cyBitmap);
 
         // We might have to go lower than zoom = 1
@@ -131,7 +141,7 @@ void ZoomCelStatic::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
             // PostPlugin.
             BITMAPINFO *pbmi;
             _pdm->GetBitmapInfo(_currentZoomScreen, &pbmi);
-            const uint8_t *screenBits = _pdm->GetPicBits(_currentZoomScreen, _picPosition);
+            const uint8_t *screenBits = _pdm->GetPicBits(_currentZoomScreen, _picPosition, size16((uint16_t)size.cx, (uint16_t)size.cy));
             StretchDIBits(*pDC, xTopLeftDest, yTopLeftDest, cxBitmap * zoom16 / ZoomGranularity, cyBitmapDest * zoom16 / ZoomGranularity, 0, 0, cxBitmap, cyBitmap, screenBits, pbmi, DIB_RGB_COLORS, SRCCOPY);
             delete pbmi;
 

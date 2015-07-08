@@ -36,7 +36,7 @@ END_MESSAGE_MAP()
 
 int _GetPicBitmapHeight()
 {
-    return appState->AspectRatioY(sPIC_HEIGHT) / 2;
+    return appState->AspectRatioY(DEFAULT_PIC_HEIGHT) / 2;
 }
 
 CResourcePicListCtrl::CResourcePicListCtrl()
@@ -60,7 +60,7 @@ PICWORKRESULT *PICWORKRESULT::CreateFromWorkItem(PICWORKITEM *pWorkItem)
     HBITMAP hbm = NULL;
     std::unique_ptr<ResourceEntity> picResource = CreateResourceFromResourceData(pWorkItem->blob);
     // Draw this pic!
-    hbm = GetPicBitmap(PicScreen::Visual, picResource->GetComponent<PicComponent>(), picResource->TryGetComponent<PaletteComponent>(), sPIC_WIDTH / 2, _GetPicBitmapHeight());
+    hbm = GetPicBitmap(PicScreen::Visual, picResource->GetComponent<PicComponent>(), picResource->TryGetComponent<PaletteComponent>(), DEFAULT_PIC_WIDTH / 2, _GetPicBitmapHeight());
 
     PICWORKRESULT *pResult = new PICWORKRESULT;
     if (pResult)
@@ -147,7 +147,7 @@ void CResourcePicListCtrl::_OnInitListView(int cItems)
 
     // Note: this color depth must match that which we get back from the pic resource 
     // Also: ILC_MASK must be specified, because of the overlay
-    _himlPics = ImageList_Create(sPIC_WIDTH / 2, _GetPicBitmapHeight(), ILC_COLOR24 | ILC_MASK, cItems, 30);
+    _himlPics = ImageList_Create(DEFAULT_PIC_WIDTH / 2, _GetPicBitmapHeight(), ILC_COLOR24 | ILC_MASK, cItems, 30);
     
     if (_himlPics)
     {
@@ -159,7 +159,7 @@ void CResourcePicListCtrl::_OnInitListView(int cItems)
         // pTemp is a temporary object that we don't need to delete.
 
         // Add a token image.  Create an 8bpp bitmap that is blank.
-        HBITMAP hbm = CreateBitmap(sPIC_WIDTH / 2, _GetPicBitmapHeight(), 1, 8, NULL);
+        HBITMAP hbm = CreateBitmap(DEFAULT_PIC_WIDTH / 2, _GetPicBitmapHeight(), 1, 8, NULL);
         if (hbm)
         {
             _iTokenImageIndex = ImageList_Add(_himlPics, hbm, NULL);

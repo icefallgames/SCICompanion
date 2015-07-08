@@ -43,10 +43,9 @@ public:
     const PicComponent *GetPic() const { return _pPicWeak; }
 
     // Use these to get the pic image:
-    HBITMAP CreateBitmap(PicScreen screen, PicPosition position, int cx, int cy, SCIBitmapInfo *pbmi = nullptr, uint8_t **pBitsDest = nullptr);
-    const uint8_t *GetPicBits(PicScreen screen, PicPosition position);
-    void CopyBitmap(PicScreen screen, PicPosition position, uint8_t *pdataDisplay, uint8_t *pdataAux, BITMAPINFO **ppbmi);
-
+    HBITMAP CreateBitmap(PicScreen screen, PicPosition position, size16 size, int cx, int cy, SCIBitmapInfo *pbmi = nullptr, uint8_t **pBitsDest = nullptr);
+    const uint8_t *GetPicBits(PicScreen screen, PicPosition position, size16 size);
+    void CopyBitmap(PicScreen screen, PicPosition position, size16 size, uint8_t *pdataDisplay, uint8_t *pdataAux, BITMAPINFO **ppbmi);
     void GetBitmapInfo(PicScreen screen, BITMAPINFO **ppbmi);
 
     void SetPalette(uint8_t bPaletteNumber);
@@ -76,8 +75,8 @@ private:
     void _RedrawBuffers(ViewPort *pState, PicScreenFlags dwRequestedMaps, PicPositionFlags picPositionFlags, bool assertIfCausedRedraw = false);
     HBITMAP _CreateBitmap(uint8_t *pData, int cx, int cy, const RGBQUAD *palette, int paletteCount, SCIBitmapInfo *pbmi = nullptr, uint8_t **pBitsDest = nullptr) const;
     HBITMAP _GetBitmapGDIP(uint8_t *pData, int cx, int cy, const RGBQUAD *palette, int paletteCount) const;
-    //void _EnsureCorrectState();
     void _OnPosChanged(bool fNotify = true);
+    size16 _GetPicSize() const;
 
     uint8_t *GetScreenData(PicScreen screen, PicPosition pos);
     void SetScreenData(PicScreen screen, PicPosition pos, uint8_t *data);
@@ -86,11 +85,12 @@ private:
     void _EnsureInitialBuffers(PicScreenFlags screenFlags);
     void _ApplyVGAPalette(const PaletteComponent *pPalette);
     RGBQUAD *PicDrawManager::_GetPalette();
+    void _EnsureBufferPool(size16 size);
 
     const PicComponent *_pPicWeak;
     RGBQUAD _paletteVGA[256];
 
-    BufferPool<sPIC_WIDTH * sPIC_HEIGHT, 12> _bufferPool;
+    std::unique_ptr<BufferPool<12>> _bufferPool;
     // These are the screens (PicPosition is the first dimension, PicScreen is the second)
     // These are not necessarily all unique. If we only need the final version, then all 3
     // will be the same.

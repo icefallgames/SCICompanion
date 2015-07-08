@@ -34,11 +34,20 @@ PicDrawManager::PicDrawManager(const PicComponent *pPic, const PaletteComponent 
     }
 }
 
+void PicDrawManager::_EnsureBufferPool(size16 size)
+{
+    size_t byteSize = size.cx * size.cy;
+    if (!_bufferPool || (_bufferPool->GetSize() != byteSize))
+    {
+        _bufferPool = std::make_unique<BufferPool<12>>(byteSize);
+        Invalidate();
+    }
+}
+
 RGBQUAD *PicDrawManager::_GetPalette()
 {
     return (_isVGA ? _paletteVGA : nullptr);
 }
-
 
 void PicDrawManager::_ApplyVGAPalette(const PaletteComponent *pPalette)
 {
@@ -76,28 +85,32 @@ void PicDrawManager::SetPic(const PicComponent *pPic, const PaletteComponent *pP
 //
 // Caller needs to free HBITMAP
 //
-HBITMAP PicDrawManager::CreateBitmap(PicScreen screen, PicPosition pos, int cx, int cy, SCIBitmapInfo *pbmi, uint8_t **pBitsDest)
+HBITMAP PicDrawManager::CreateBitmap(PicScreen screen, PicPosition pos, size16 size, int cx, int cy, SCIBitmapInfo *pbmi, uint8_t **pBitsDest)
 {
+    _EnsureBufferPool(size);
     _RedrawBuffers(nullptr, PicScreenToFlags(screen), PicPositionToFlags(pos));
     return _CreateBitmap(GetScreenData(screen, pos), cx, cy, _GetPalette(), 256, pbmi, pBitsDest);
 }
 
-const uint8_t *PicDrawManager::GetPicBits(PicScreen screen, PicPosition pos)
+const uint8_t *PicDrawManager::GetPicBits(PicScreen screen, PicPosition pos, size16 size)
 {
+    _EnsureBufferPool(size);
     _RedrawBuffers(nullptr, PicScreenToFlags(screen), PicPositionToFlags(pos));
     return GetScreenData(screen, pos);
 }
 
 void PicDrawManager::GetBitmapInfo(PicScreen screen, BITMAPINFO **ppbmi)
 {
+    size16 size = _GetPicSize();
+    _EnsureBufferPool(size);
     if (screen == PicScreen::Visual)
     {
-        *ppbmi = new SCIBitmapInfo(sPIC_WIDTH, sPIC_HEIGHT, _GetPalette(), 256);
+        *ppbmi = new SCIBitmapInfo(size.cx, size.cy, _GetPalette(), 256);
     }
     else
     {
         // These are always EGA bitmaps
-        *ppbmi = new SCIBitmapInfo(sPIC_WIDTH, sPIC_HEIGHT);
+        *ppbmi = new SCIBitmapInfo(size.cx, size.cy);
     }
 }
 
@@ -107,27 +120,30 @@ void PicDrawManager::GetBitmapInfo(PicScreen screen, BITMAPINFO **ppbmi)
 // and add things.
 // Caller must delete the optional parameter *ppbmi
 //
-void PicDrawManager::CopyBitmap(PicScreen screen, PicPosition pos, uint8_t *pdataDisplay, uint8_t *pdataAux, BITMAPINFO **ppbmi)
+void PicDrawManager::CopyBitmap(PicScreen screen, PicPosition pos, size16 size, uint8_t *pdataDisplay, uint8_t *pdataAux, BITMAPINFO **ppbmi)
 {
+    assert(size == _GetPicSize());
+    _EnsureBufferPool(size);
+
     PicScreenFlags flags = PicScreenToFlags(screen);
     _RedrawBuffers(nullptr, flags, PicPositionToFlags(pos));
     assert(IsFlagSet(_fValidScreens, flags));
 
-    memcpy(pdataDisplay, GetScreenData(screen, pos), BMPSIZE);
+    memcpy(pdataDisplay, GetScreenData(screen, pos), size.cx * size.cy);
     if (ppbmi)
     {
         if (screen == PicScreen::Visual)
         {
-            *ppbmi = new SCIBitmapInfo(sPIC_WIDTH, sPIC_HEIGHT, _GetPalette(), 256);
+            *ppbmi = new SCIBitmapInfo(size.cx, size.cy, _GetPalette(), 256);
         }
         else
         {
             // These are always EGA bitmaps
-            *ppbmi = new SCIBitmapInfo(sPIC_WIDTH, sPIC_HEIGHT);
+            *ppbmi = new SCIBitmapInfo(size.cx, size.cy);
         }
     }
 
-    memcpy(pdataAux, GetScreenData(PicScreen::Aux, pos), BMPSIZE);
+    memcpy(pdataAux, GetScreenData(PicScreen::Aux, pos), size.cx * size.cy);
 }
 
 void PicDrawManager::SetPalette(uint8_t bPaletteNumber)
@@ -159,7 +175,7 @@ void PicDrawManager::_EnsureInitialBuffers(PicScreenFlags screenFlags)
         {
             if (!_screenBuffers[0][i])
             {
-                _screenBuffers[0][i] = _bufferPool.AllocateBuffer();
+                _screenBuffers[0][i] = _bufferPool->AllocateBuffer();
 
                 // REVIEW test -> indicate uninitlaize data.
                 *_screenBuffers[0][i] = 0xe;
@@ -177,6 +193,8 @@ static int g_redrawDebug = 0;
 
 void PicDrawManager::_RedrawBuffers(ViewPort *pState, PicScreenFlags screenFlags, PicPositionFlags picPositionFlags, bool assertIfCausedRedraw)
 {
+    size16 size = _GetPicSize();
+    _EnsureBufferPool(size);
     ViewPort state(_bPaletteNumber);
     if (pState == nullptr)
     {
@@ -259,17 +277,17 @@ void PicDrawManager::_RedrawBuffers(ViewPort *pState, PicScreenFlags screenFlags
         // Default states
         if (IsFlagSet(screenFlags, PicScreenFlags::Priority))
         {
-            memset(GetScreenData(PicScreen::Priority, PicPosition::PrePlugin), 0x00, BMPSIZE);
+            memset(GetScreenData(PicScreen::Priority, PicPosition::PrePlugin), 0x00, _bufferPool->GetSize());
         }
         if (IsFlagSet(screenFlags, PicScreenFlags::Control))
         {
-            memset(GetScreenData(PicScreen::Control, PicPosition::PrePlugin), 0x00, BMPSIZE);
+            memset(GetScreenData(PicScreen::Control, PicPosition::PrePlugin), 0x00, _bufferPool->GetSize());
         }
         if (IsFlagSet(screenFlags, PicScreenFlags::Visual))
         {
-            memset(GetScreenData(PicScreen::Visual, PicPosition::PrePlugin), _isVGA ? 0xff : 0x0f, BMPSIZE);
+            memset(GetScreenData(PicScreen::Visual, PicPosition::PrePlugin), _isVGA ? 0xff : 0x0f, _bufferPool->GetSize());
         }
-        memset(GetScreenData(PicScreen::Aux, PicPosition::PrePlugin), 0x00, BMPSIZE);
+        memset(GetScreenData(PicScreen::Aux, PicPosition::PrePlugin), 0x00, _bufferPool->GetSize());
 
         PicData data =
         {
@@ -279,6 +297,7 @@ void PicDrawManager::_RedrawBuffers(ViewPort *pState, PicScreenFlags screenFlags
             GetScreenData(PicScreen::Control, PicPosition::PrePlugin),
             GetScreenData(PicScreen::Aux, PicPosition::PrePlugin),
             _isVGA,
+            _GetPicSize(),
         };
 
         // Now draw!
@@ -309,6 +328,7 @@ void PicDrawManager::_RedrawBuffers(ViewPort *pState, PicScreenFlags screenFlags
                 GetScreenData(PicScreen::Control, PicPosition::PostPlugin),
                 GetScreenData(PicScreen::Aux, PicPosition::PostPlugin),
                 _isVGA,
+                _GetPicSize(),
             };
 
             // OutputDebugString("Drawing plguins\n");
@@ -350,6 +370,7 @@ void PicDrawManager::_RedrawBuffers(ViewPort *pState, PicScreenFlags screenFlags
                 GetScreenData(PicScreen::Control, PicPosition::Final),
                 GetScreenData(PicScreen::Aux, PicPosition::Final),
                 _isVGA,
+                _GetPicSize(),
             };
 
             // Now draw!
@@ -382,7 +403,7 @@ void PicDrawManager::_ReturnOldBufferIfNotUsedAnywhere(PicScreen screen, PicPosi
     }
     if (!usedElsewhere)
     {
-        _bufferPool.FreeBuffer(buffer);
+        _bufferPool->FreeBuffer(buffer);
     }
     SetScreenData(screen, pos, nullptr);
 }
@@ -408,8 +429,9 @@ void PicDrawManager::_MoveToNextStep(PicPositionFlags requestedFlags, PicPositio
             // Otherwise just assign pointers.
             if (IsFlagSet(requestedFlags, posFlagsCompleted))
             {
-                SetScreenData(screen, nextPos, _bufferPool.AllocateBuffer());
-                memcpy(GetScreenData(screen, nextPos), prev, sPIC_WIDTH * sPIC_HEIGHT);
+                SetScreenData(screen, nextPos, _bufferPool->AllocateBuffer());
+                size16 size = _GetPicSize();
+                memcpy(GetScreenData(screen, nextPos), prev, size.cx * size.cy);
                 debugFlag = true;
             }
             else
@@ -431,11 +453,11 @@ void PicDrawManager::_MoveToNextStep(PicPositionFlags requestedFlags, PicPositio
 }
 
 
-HBITMAP _ScaleByHalf(uint8_t *pData, int cx, int cy, const RGBQUAD *palette, int paletteCount)
+HBITMAP _ScaleByHalf(uint8_t *pData, size16 sizeSource, int cx, int cy, const RGBQUAD *palette, int paletteCount)
 {
     HBITMAP hbm = nullptr;
 
-    SCIBitmapInfo bmiSCI(sPIC_WIDTH, sPIC_HEIGHT, palette, paletteCount);
+    SCIBitmapInfo bmiSCI(sizeSource.cx, sizeSource.cy, palette, paletteCount);
     RGBQUAD *newData = nullptr;
     HDC hDC = GetDC(nullptr);
     BITMAPINFO bmi;
@@ -452,8 +474,8 @@ HBITMAP _ScaleByHalf(uint8_t *pData, int cx, int cy, const RGBQUAD *palette, int
 
     for (int y = 0; y < cy; y++)
     {
-        uint8_t *source = pData + (y * 2 * sPIC_WIDTH);
-        uint8_t *sourceNext = pData + ((y * 2 + 1) * sPIC_WIDTH);
+        uint8_t *source = pData + (y * 2 * sizeSource.cx);
+        uint8_t *sourceNext = pData + ((y * 2 + 1) * sizeSource.cx);
         RGBQUAD *dest = newData + ((cy - (y + 1)) * cx);
         for (int x = 0; x < cx; x++)
         {
@@ -479,21 +501,22 @@ HBITMAP _ScaleByHalf(uint8_t *pData, int cx, int cy, const RGBQUAD *palette, int
 
 HBITMAP PicDrawManager::_GetBitmapGDIP(uint8_t *pData, int cx, int cy, const RGBQUAD *palette, int paletteCount) const
 {
+    size16 size = _GetPicSize();
     HBITMAP hbm = nullptr;
-    SCIBitmapInfo bmi(sPIC_WIDTH, sPIC_HEIGHT, palette, paletteCount);
+    SCIBitmapInfo bmi(size.cx, size.cy, palette, paletteCount);
     std::unique_ptr<Gdiplus::Bitmap> pimgVisual(Gdiplus::Bitmap::FromBITMAPINFO(&bmi, pData));
     if (pimgVisual)
     {
-        if ((cx == sPIC_WIDTH) && (cy == sPIC_HEIGHT))
+        if ((cx == size.cx) && (cy == size.cy))
         {
             // Exact size.
             pimgVisual->GetHBITMAP(Color::Black, &hbm);
         }
         else
         {
-            if ((cx == sPIC_WIDTH / 2) && (cy == sPIC_HEIGHT / 2))
+            if ((cx == size.cx / 2) && (cy == size.cy / 2))
             {
-                hbm =  _ScaleByHalf(pData, cx, cy, palette, paletteCount);
+                hbm =  _ScaleByHalf(pData, size, cx, cy, palette, paletteCount);
             }
             else
             {
@@ -587,11 +610,12 @@ const ViewPort *PicDrawManager::GetViewPort(PicPosition pos)
 ptrdiff_t PicDrawManager::PosFromPoint(int x, int y, ptrdiff_t iStart)
 {
     ViewPort state(0);
-
+    size16 size = _GetPicSize();
+    size_t byteSize = size.cx * size.cy;
     // Clear out our cached bitmaps.
     PicScreenFlags dwMapsToRedraw = PicScreenFlags::None;
-    std::vector<uint8_t> pdataVisual(BMPSIZE, 0x0f);
-    std::vector<uint8_t> pdataAux(BMPSIZE, 0x00);
+    std::vector<uint8_t> pdataVisual(byteSize, 0x0f);
+    std::vector<uint8_t> pdataAux(byteSize, 0x00);
     dwMapsToRedraw |= PicScreenFlags::Visual;
     PicData data =
     {
@@ -601,6 +625,7 @@ ptrdiff_t PicDrawManager::PosFromPoint(int x, int y, ptrdiff_t iStart)
         nullptr,
         &pdataAux[0], // Aux always needs to be provided (for fill)
         _isVGA,
+        _GetPicSize()
     };
 
     return GetLastChangedSpot(*_pPicWeak, data, state, x, y);
@@ -642,4 +667,14 @@ void PicDrawManager::_OnPosChanged(bool fNotify)
 void PicDrawManager::InvalidatePlugins()
 {
     _validPositions &= ~(PicPositionFlags::Final | PicPositionFlags::PostPlugin);
+}
+
+size16 PicDrawManager::_GetPicSize() const
+{
+    size16 size(DEFAULT_PIC_WIDTH, DEFAULT_PIC_HEIGHT);
+    if (_pPicWeak)
+    {
+        size = _pPicWeak->Size;
+    }
+    return size;
 }

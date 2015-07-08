@@ -279,6 +279,7 @@
 #define IDD_PREVIEWAUDIO                384
 #define IDD_CONVERTTOPALETTE            385
 #define IDD_PALETTEADJUST               386
+#define IDD_PICSIZE                     387
 #define IDC_CHOOSECOLORSTATIC           1001
 #define IDC_BUTTON1                     1003
 #define IDC_BUTTONDOWN                  1003
@@ -313,7 +314,6 @@
 #define IDC_EDITPACKAGE                 1012
 #define IDC_EDITRESOURCE                1013
 #define IDC_FAKEEGOX                    1014
-#define IDC_EDITRESOURCE2               1014
 #define IDC_FAKEEGOY                    1015
 #define IDC_GLOBALPALETTES              1016
 #define IDC_DRAWGRIDLINES               1017
@@ -415,6 +415,7 @@
 #define IDC_INSTANCES                   1126
 #define IDC_EDIT1                       1127
 #define IDC_BROWSEINFO                  1128
+#define IDC_EDITHEIGHT                  1128
 #define IDC_PARAMINFO                   1129
 #define IDC_CODECOMPLETION              1130
 #define IDC_HOVERTIPS                   1131
@@ -623,6 +624,7 @@
 #define IDC_EDITHUE                     1299
 #define IDC_BUTTONCOLOR                 1300
 #define IDC_STATICSATURATION            1301
+#define IDC_EDITWIDTH                   1301
 #define IDC_EDITSATURATION              1302
 #define IDC_STATICBRIGHTNESS            1304
 #define IDC_EDITBRIGHTNESS              1305
@@ -896,6 +898,7 @@
 #define ID_MESSAGE_ADDNEW               33203
 #define ID_MESSAGE_ADDSEQUENCE          33204
 #define ID_MESSAGE_ADDCLONE             33205
+#define ID_PIC_CHANGEDIMENSIONS         33206
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -903,9 +906,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        387
-#define _APS_NEXT_COMMAND_VALUE         33206
-#define _APS_NEXT_CONTROL_VALUE         1301
+#define _APS_NEXT_RESOURCE_VALUE        388
+#define _APS_NEXT_COMMAND_VALUE         33207
+#define _APS_NEXT_CONTROL_VALUE         1302
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

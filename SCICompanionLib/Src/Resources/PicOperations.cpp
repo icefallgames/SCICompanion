@@ -32,7 +32,7 @@ size_t GetCommandCount(const PicComponent &pic) { return pic.commands.size(); }
 
 HBITMAP GetPicBitmap(PicScreen screen, const PicComponent &pic, const PaletteComponent *palette, int cx, int cy, SCIBitmapInfo *pbmi, uint8_t **pBitsDest)
 {
-    return PicDrawManager(&pic, palette).CreateBitmap(screen, PicPosition::Final, cx, cy, pbmi, pBitsDest);
+    return PicDrawManager(&pic, palette).CreateBitmap(screen, PicPosition::Final, pic.Size, cx, cy, pbmi, pBitsDest);
 }
 
 EGACOLOR g_egaColorChooserPalette[] =
@@ -303,10 +303,10 @@ size_t GetLastChangedSpot(const PicComponent &pic, PicData &data, ViewPort &stat
     for (size_t i = 0; i < iPos; i++)
     {
         pic.commands[i].Draw(&data, state);
-        if (data.pdataVisual[BUFFEROFFSET(x, y)] != bColor)
+        if (data.pdataVisual[BUFFEROFFSET_NONSTD(data.size.cx, data.size.cy, x, y)] != bColor)
         {
             iLastTimeItChanged = i;
-            bColor = data.pdataVisual[BUFFEROFFSET(x, y)];
+            bColor = data.pdataVisual[BUFFEROFFSET_NONSTD(data.size.cx, data.size.cy, x, y)];
         }
     }
     return iLastTimeItChanged;

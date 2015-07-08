@@ -36,7 +36,7 @@ public:
 
 private:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-    void _ResetVisualBitmap(PicDrawManager &pdm);
+    void _ResetVisualBitmap(const PicComponent &pic, PicDrawManager &pdm);
     BOOL OnSetPalette(UINT nID);
     afx_msg void OnUpdatePaletteButton(CCmdUI *pCmdUI);
     BOOL OnEraseBkgnd(CDC *pDC);

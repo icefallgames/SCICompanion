@@ -809,6 +809,11 @@ void PicReadFromVGA11(ResourceEntity &resource, sci::istream &byteStream)
         byteStream.seekg(header.celHeaderOffset);
         ReadCelFromVGA11(byteStream, celTemp, true);
         // "plug it in" to our system by making a drawing command for it, just like SCI 1.0 VGA would do
+        // SCI 1.1 pics can be 200 pixels high:
+        pic.Size.cy = max(DEFAULT_PIC_HEIGHT, celTemp.size.cy);
+        pic.Size.cy = min(sPIC_HEIGHT_MAX, pic.Size.cy);
+        pic.Size.cx = max(DEFAULT_PIC_WIDTH, celTemp.size.cx);
+        pic.Size.cx = min(sPIC_WIDTH_MAX, pic.Size.cx);
         pic.commands.push_back(PicCommand());
         pic.commands.back().CreateDrawVisualBitmap(celTemp, true);
     }
@@ -947,7 +952,9 @@ ResourceTraits picResourceTraitsVGA11 =
     &PicWritePolygons,
 };
 
-PicComponent::PicComponent() : Traits(picTraitsEGA) {}
+PicComponent::PicComponent() : PicComponent(picTraitsEGA) {}
+
+PicComponent::PicComponent(const PicTraits &traits) : Traits(traits), Size(size16(DEFAULT_PIC_WIDTH, DEFAULT_PIC_HEIGHT)) {}
 
 ResourceEntity *CreatePicResource(SCIVersion version)
 {

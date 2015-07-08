@@ -6,7 +6,7 @@
 
 using namespace std;
 
-PrepareBitmapBase::PrepareBitmapBase(int convertButtonId, int staticOriginalImageId) : _convertButtonId(convertButtonId), _staticOriginalImageId(staticOriginalImageId), _disableAllEffects(false)
+PrepareBitmapBase::PrepareBitmapBase(int convertButtonId, int staticOriginalImageId, size16 picResourceDimensions) : _convertButtonId(convertButtonId), _staticOriginalImageId(staticOriginalImageId), _disableAllEffects(false), _picResourceDimensions(picResourceDimensions)
 {
 }
 
@@ -245,7 +245,7 @@ BOOL PrepareBitmapBase::_Init(std::unique_ptr<Gdiplus::Bitmap> pImageIn, CWnd *p
     _numberOfPaletteEntries = 0;
     _originalPalette = GetPaletteFromImage(*_pbmpOrig, &_numberOfPaletteEntries);
 
-    CSize size(min(sPIC_WIDTH, _pbmpOrig->GetWidth()), min(sPIC_HEIGHT, _pbmpOrig->GetHeight()));
+    CSize size(min(_picResourceDimensions.cx, _pbmpOrig->GetWidth()), min(_picResourceDimensions.cy, _pbmpOrig->GetHeight()));
     BOOL fRet = FALSE;
 
     // Clear out any old ones.
@@ -277,11 +277,11 @@ BOOL PrepareBitmapBase::_Init(std::unique_ptr<Gdiplus::Bitmap> pImageIn, CWnd *p
 
         if (fRet)
         {
-            _pbmpScaled = new Gdiplus::Bitmap(sPIC_WIDTH, sPIC_HEIGHT, PixelFormat32bppARGB);
+            _pbmpScaled = new Gdiplus::Bitmap(_picResourceDimensions.cx, _picResourceDimensions.cy, PixelFormat32bppARGB);
             if (_pbmpScaled)
             {
                 Graphics graphics(_pbmpScaled);
-                fRet = (Ok == graphics.DrawImage(_pbmpOrig.get(), 0, 0, sPIC_WIDTH, sPIC_HEIGHT));
+                fRet = (Ok == graphics.DrawImage(_pbmpOrig.get(), 0, 0, _picResourceDimensions.cx, _picResourceDimensions.cy));
                 if (fRet)
                 {
                     _CalculateContrastCenter(_pbmpScaled, &_bContrastCenterScaled);

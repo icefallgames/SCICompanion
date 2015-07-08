@@ -91,7 +91,7 @@ void ExtractAllResources(SCIVersion version, const std::string &destinationFolde
                     std::unique_ptr<ResourceEntity> resource = CreateResourceFromResourceData(*blob);
                     PicComponent &pic = resource->GetComponent<PicComponent>();
                     PaletteComponent *palette = resource->TryGetComponent<PaletteComponent>();
-                    bitmap.Attach(GetPicBitmap(PicScreen::Visual, pic, palette, sPIC_WIDTH, sPIC_HEIGHT, &bmi, &pBitsDest));
+                    bitmap.Attach(GetPicBitmap(PicScreen::Visual, pic, palette, pic.Size.cx, pic.Size.cy, &bmi, &pBitsDest));
                 }
 
                 if (extractViewImages && (blob->GetType() == ResourceType::View))

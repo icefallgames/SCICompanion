@@ -5,7 +5,7 @@ struct PaletteComponent;
 class PrepareBitmapBase
 {
 public:
-    PrepareBitmapBase(int convertButtonId, int staticOriginalImageId);
+    PrepareBitmapBase(int convertButtonId, int staticOriginalImageId, size16 picResourceDimensions);
     virtual ~PrepareBitmapBase();
 
 protected:
@@ -42,4 +42,6 @@ protected:
     uint8_t _bContrastCenterScaled;
 
     bool _disableAllEffects;
+
+    size16 _picResourceDimensions;
 };
