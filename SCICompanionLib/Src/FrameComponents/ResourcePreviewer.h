@@ -236,6 +236,7 @@ public:
 private:
     afx_msg void OnPlay();
     afx_msg void OnStop();
+    afx_msg void OnBrowse();
     afx_msg void OnTimer(UINT_PTR nIDEvent);
     void _UpdatePlayState();
     virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
@@ -250,6 +251,7 @@ private:
     CExtCheckBox m_wndAutoPreview;
     CExtLabel m_wndDuration;
     CExtEdit m_wndDescription;
+    CExtButton m_wndBrowse;
 
     std::unique_ptr<ResourceEntity> _audio;
 

@@ -742,6 +742,7 @@ void SoundPreviewer::OnTimer(UINT_PTR nIDEvent)
 BEGIN_MESSAGE_MAP(AudioPreviewer, ResourcePreviewer)
     ON_BN_CLICKED(IDC_BUTTON_PLAY, OnPlay)
     ON_BN_CLICKED(IDC_BUTTON_STOP, OnStop)
+    ON_BN_CLICKED(IDC_BUTTONBROWSE, OnBrowse)
     ON_WM_TIMER()
 END_MESSAGE_MAP()
 
@@ -796,7 +797,9 @@ void AudioPreviewer::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_CHECK_AUTOPREV, m_wndAutoPreview);
     DDX_Control(pDX, IDC_STATIC_DURATION, m_wndDuration);
     DDX_Control(pDX, IDC_EDIT_DESCRIPTION, m_wndDescription);
-    m_wndDescription.SetWindowText("To add audio resources to the game, drag .wav files into the view. Files should be uncompressed 8 or 16 bit audio, 22050Hz or less.");
+    DDX_Control(pDX, IDC_BUTTONBROWSE, m_wndBrowse);
+    
+    m_wndDescription.SetWindowText("To add audio resources to the game, drag .wav files into the view. Files should be uncompressed 8 or 16 bit audio, 22050Hz or less.\r\nSCI only supports monaural sounds. The left channel will be used for stereo .wav files.");
 
     AddAnchor(IDC_SLIDER, CPoint(0, 0), CPoint(100, 0));
     AddAnchor(IDC_EDIT_SAMPLEBIT, CPoint(0, 0), CPoint(100, 0));
@@ -860,6 +863,23 @@ void AudioPreviewer::OnPlay()
         g_audioPlayback.Stop();
         g_audioPlayback.Play();
         _UpdatePlayState();
+    }
+}
+void AudioPreviewer::OnBrowse()
+{
+    CFileDialog fileDialog(TRUE, nullptr, nullptr, 0, "WAV files (*.wav)|*.wav|All Files|*.*|");
+    fileDialog.m_ofn.lpstrTitle = "Add wav to game";
+    if (IDOK == fileDialog.DoModal())
+    {
+        std::string filename = (PCSTR)fileDialog.GetPathName();
+        try
+        {
+            AddWaveFileToGame(filename);
+        }
+        catch (std::exception &e)
+        {
+            AfxMessageBox(e.what(), MB_OK | MB_ICONWARNING);
+        }
     }
 }
 void AudioPreviewer::OnStop()

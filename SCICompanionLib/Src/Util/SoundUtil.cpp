@@ -2,6 +2,9 @@
 #include "SoundUtil.h"
 #include "Audio.h"
 #include "Sound.h"
+#include "AppState.h"
+#include "ResourceEntity.h"
+#include "format.h"
 
 using namespace std;
 
@@ -122,29 +125,52 @@ void AudioComponentFromWaveFile(sci::istream &stream, AudioComponent &audio)
     stream >> riff;
     stream >> fileSize;
     stream >> wave;
+
+    if ((riff != (*(uint32_t*)riffMarker)) ||
+        (wave != (*(uint32_t*)waveMarker)))
+    {
+        throw std::exception("Wave file: invalid header.");
+    }
+
     stream >> fmt;
     stream >> chunkSize;
+    while (stream.good() && (fmt != (*(uint32_t*)fmtMarker)))
+    {
+        stream.skip(chunkSize);
+        stream >> fmt;
+        stream >> chunkSize;
+    }
+
+    if (!stream.good())
+    {
+        throw std::exception("Unable to find wave fmt marker.");
+    }
+
+    if (chunkSize < sizeof(WaveHeader))
+    {
+        throw std::exception("Wave file: invalid fmt header.");
+    }
+
     WaveHeader header;
     stream >> header;
     static_assert(sizeof(WaveHeader) == 16, "bad wave header size");
 
-    if ((riff != (*(uint32_t*)riffMarker)) ||
-        (wave != (*(uint32_t*)waveMarker)) ||
-        (fmt != (*(uint32_t*)fmtMarker)) ||
-        (chunkSize < sizeof(WaveHeader)))
-    {
-        throw std::exception("Wave file: invalidate header.");
-    }
-
     // There might be some extra bytes in the header
     stream.skip(chunkSize - sizeof(WaveHeader));
     stream >> data;
-    if (data != (*(uint32_t*)dataMarker))
+    stream >> dataSize;
+
+    while (stream.good() && (data != (*(uint32_t*)dataMarker)))
     {
-        throw std::exception("Wave file: invalid data marker.");
+        stream.skip(dataSize);
+        stream >> data;
+        stream >> dataSize;
     }
 
-    stream >> dataSize;
+    if (!stream.good())
+    {
+        throw std::exception("Unable to find wave data marker.");
+    }
 
     // Now validate the format
     if (header.formatTag != 1)
@@ -153,12 +179,15 @@ void AudioComponentFromWaveFile(sci::istream &stream, AudioComponent &audio)
     }
     if (header.channelCount != 1)
     {
-        throw std::exception("Only mono wave files are supported");
+        // Try to read stero things.
+        // throw std::exception("Only mono wave files are supported");
     }
     // REVIEW: Check sample rate;
+    uint16_t convertedBitsPerSample = header.bitsPerSample;
     if ((header.bitsPerSample != 8) && (header.bitsPerSample != 16))
     {
-        throw std::exception("Only 8 or 16 bit sound supported");
+        convertedBitsPerSample = 16;
+        throw std::exception(fmt::format("{0} bits per sample: Only 8 or 16 bit sound supported", header.bitsPerSample).c_str());
     }
 
     if (header.sampleRate > 22050)
@@ -172,10 +201,70 @@ void AudioComponentFromWaveFile(sci::istream &stream, AudioComponent &audio)
 
     // Set up the AudioComponent and read the data.
     audio.Frequency = header.sampleRate;
-    if (header.bitsPerSample == 16)
+    if (convertedBitsPerSample == 16)
     {
         audio.Flags |= AudioFlags::SixteenBit | AudioFlags::Signed;
     }
-    audio.DigitalSamplePCM.assign(dataSize, 0);
-    stream.read_data(&audio.DigitalSamplePCM[0], audio.DigitalSamplePCM.size());
+
+    // audio.DigitalSamplePCM.assign(dataSize, 0);
+    // Attempt to get channel zero
+    vector<uint8_t> temp;
+    temp.assign(dataSize, 0);
+    stream.read_data(&temp[0], temp.size());
+
+    int sampleCount = dataSize / header.channelCount / (header.bitsPerSample / 8);
+    int sampleSize = header.bitsPerSample / 8;
+    int convertedSampleSize = convertedBitsPerSample / 8;
+
+    vector<uint8_t> temp2;
+    temp2.assign(dataSize / header.channelCount, 0);
+
+    // temp -> temp2: Extract one channel 
+    for (int i = 0; i < sampleCount; i++)
+    {
+        // The sampleSize/convertedSampleSize was an attempt at converting from 24/32 bit to 16 bit, but it sounds awful.
+        int iSource = i * header.channelCount;
+        uint32_t sampleIn = 0;
+        for (int k = 0; k < sampleSize; k++)
+        {
+            sampleIn += ((uint32_t)temp[iSource * sampleSize + k] << (8 * k));
+        }
+        uint32_t sampleOut = sampleIn;
+        for (int k = 0; k < convertedSampleSize; k++)
+        {
+            temp2[i * convertedSampleSize + k] = (uint8_t)(sampleOut >> (8 * k));
+        }
+    }
+
+    // TODO: sample rate conversion.
+    audio.DigitalSamplePCM.assign(dataSize / header.channelCount, 0);
+    for (size_t i = 0; i < temp2.size(); i++)
+    {
+        audio.DigitalSamplePCM[i] = temp2[i];
+    }
+
 }
+
+std::string _NameFromFilename(PCSTR pszFilename)
+{
+    PCSTR pszFile = PathFindFileName(pszFilename);
+    PCSTR pszExt = PathFindExtension(pszFile);
+    return string(pszFile, pszExt - pszFile);
+}
+
+bool IsWaveFile(PCSTR pszFileName)
+{
+    return (0 == _strcmpi(PathFindExtension(pszFileName), ".wav"));
+}
+
+void AddWaveFileToGame(const std::string &filename)
+{
+    std::unique_ptr<ResourceEntity> resource(CreateDefaultAudioResource(appState->GetVersion()));
+    ScopedFile scopedFile(filename, GENERIC_READ, FILE_SHARE_WRITE, OPEN_EXISTING);
+    sci::streamOwner owner(scopedFile.hFile);
+    AudioComponentFromWaveFile(owner.getReader(), resource->GetComponent<AudioComponent>());
+    // REVIEW: We should know ahead of time if the game uses Aud or Sfx.
+    resource->SourceFlags = (appState->GetVersion().AudioVolumeName == AudioVolumeName::Sfx) ? ResourceSourceFlags::Sfx : ResourceSourceFlags::Aud;
+    appState->GetResourceMap().AppendResourceAskForNumber(*resource, _NameFromFilename(filename.c_str()));
+}
+
