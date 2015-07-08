@@ -4,6 +4,8 @@
 #include "PaletteOperations.h"
 #include "gif_lib.h"
 
+using namespace Gdiplus;
+
 int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
 {
     UINT  num = 0;          // number of image encoders

@@ -14,6 +14,7 @@
 
 using namespace sci;
 using namespace std;
+using namespace Gdiplus;
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

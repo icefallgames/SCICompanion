@@ -24,6 +24,7 @@
 #include "PicDimensionsDialog.h"
 
 const int PicGutter = 5;
+using namespace Gdiplus;
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

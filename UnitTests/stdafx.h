@@ -46,7 +46,6 @@
 #include <shlwapi.h>
 
 #include <gdiplus.h>
-using namespace Gdiplus;
 #include <Gdipluspixelformats.h>
 #include <afxdlgs.h>
 

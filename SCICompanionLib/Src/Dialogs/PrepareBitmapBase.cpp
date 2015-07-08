@@ -5,6 +5,7 @@
 #include "ImageUtil.h"
 
 using namespace std;
+using namespace Gdiplus;
 
 PrepareBitmapBase::PrepareBitmapBase(int convertButtonId, int staticOriginalImageId, size16 picResourceDimensions) : _convertButtonId(convertButtonId), _staticOriginalImageId(staticOriginalImageId), _disableAllEffects(false), _picResourceDimensions(picResourceDimensions)
 {

@@ -10,14 +10,14 @@
 #include "format.h"
 #include "ImageUtil.h"
 #include "CustomMessageBox.h"
-
 volatile BOOL g_fDitherImages2 = FALSE;
 
 // A sort of workaround
 CHintWithObject<CelIndex> WrapRasterChange(RasterChange change) { return CHintWithObject<CelIndex>(static_cast<uint32_t>(change.hint), change.index); }
 
 using namespace std;
-// CNewRasterResourceDocument
+using namespace Gdiplus;
+
 
 const int EmbeddedPaletteId = -1;
 const int EmbeddedPaletteOnlyId = -2;

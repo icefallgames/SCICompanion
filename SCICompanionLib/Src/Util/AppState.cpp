@@ -201,7 +201,7 @@ BOOL AppState::InitInstance()
 
     if (!_fNoGdiPlus)
     {
-        if (Ok != GdiplusStartup(&_gdiplusToken, &_gdiplusStartupInput, nullptr))
+        if (Gdiplus::Ok != GdiplusStartup(&_gdiplusToken, &_gdiplusStartupInput, nullptr))
         {
             AfxMessageBox(TEXT("Unable to initialize gdi+."), MB_ERRORFLAGS);
             _fNoGdiPlus = TRUE;
@@ -583,7 +583,7 @@ int AppState::ExitInstance()
 
     if (!_fNoGdiPlus)
     {
-        GdiplusShutdown(_gdiplusToken);
+        Gdiplus::GdiplusShutdown(_gdiplusToken);
     }
 
     return 0;

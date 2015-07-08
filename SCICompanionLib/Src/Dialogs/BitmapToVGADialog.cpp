@@ -11,6 +11,7 @@
 
 using namespace std;
 using namespace fmt;
+using namespace Gdiplus;
 
 #define FROMCLIPBOARD_TIMER 2345
 

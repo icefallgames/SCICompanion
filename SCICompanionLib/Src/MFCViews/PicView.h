@@ -340,7 +340,7 @@ private:
 
     // Trace image.
     CBitmap _bitmapTrace;
-    std::unique_ptr<Bitmap> _pgdiplusTrace;
+    std::unique_ptr<Gdiplus::Bitmap> _pgdiplusTrace;
     BOOL _fRegenerateTrace;
 
     // alpha-blended Priority lines

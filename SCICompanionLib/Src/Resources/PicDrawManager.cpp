@@ -6,6 +6,8 @@
 #include "PaletteOperations.h"
 #include "format.h"
 
+using namespace Gdiplus;
+
 PicScreenFlags PicScreenToFlags(PicScreen screen)
 {
     return (PicScreenFlags)(0x1 << (int)screen);
