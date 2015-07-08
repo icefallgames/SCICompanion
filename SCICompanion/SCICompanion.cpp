@@ -538,17 +538,11 @@ protected:
     CExtButton m_wndOk;
     CExtLabel m_wndLabel1;
     CExtLabel m_wndLabel2;
-    CExtLabel m_wndLabel3;
+    CExtEdit m_wndEdit;
     CExtLabel m_wndLabel4;
-    /*CButton m_wndOk;
-    CStatic m_wndLabel1;
-    CStatic m_wndLabel2;
-    CStatic m_wndLabel3;
-    CStatic m_wndLabel4;*/
 };
 
 CAboutDlg::CAboutDlg() : CExtResizableDialog(CAboutDlg::IDD)
-//CAboutDlg::CAboutDlg() : CDialog(CAboutDlg::IDD)
 {
 }
 
@@ -559,8 +553,12 @@ void CAboutDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDOK, m_wndOk);
     DDX_Control(pDX, IDC_STATIC1, m_wndLabel1);
     DDX_Control(pDX, IDC_STATIC2, m_wndLabel2);
-    DDX_Control(pDX, IDC_STATIC3, m_wndLabel3);
+    DDX_Control(pDX, IDC_EDIT1, m_wndEdit);
     DDX_Control(pDX, IDC_STATIC4, m_wndLabel4);
+
+    m_wndEdit.SetWindowText(
+        "By Phil Fortier (IceFall Games)\r\n\r\n\r\nParts of code (""Crystal Edit"" text editor) by Andrei Stcherbatchenko\r\n\r\nContains decompression routines from the ScummVM project.\r\n\r\ncppformat library  Copyright (c) 2012 - 2015, Victor Zverovich\r\n\r\nSample rate converter designed by Aleksey Vaneev of Voxengo"
+        );
 }
 
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialog)
