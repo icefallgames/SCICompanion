@@ -107,7 +107,7 @@ void AudioReadFrom(ResourceEntity &resource, sci::istream &stream)
 
     audio.Frequency = header.sampleRate;
     audio.Flags = header.flags;
-
+    
     if (header.sizeExcludingHeader > 0)
     {
         if (IsFlagSet(audio.Flags, AudioFlags::SixteenBit))

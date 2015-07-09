@@ -579,9 +579,6 @@
     <None Include="Files\Samples\SCI1.1\palettes\Default.bin">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="Files\Samples\SCI1.1\palettes\King 5.bin">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="Files\Samples\SCI1.1\palettes\Quest.bin">
       <Filter>Resource Files</Filter>
     </None>
@@ -595,6 +592,21 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="Files\Samples\SCI1.1\pics\Black 200.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI1.1\palettes\King 6.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI1.1\fonts\Sierra Sans.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI1.1\fonts\Sierra Serif.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI1.1\fonts\Sierra Small A.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI1.1\fonts\Sierra Small B.bin">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

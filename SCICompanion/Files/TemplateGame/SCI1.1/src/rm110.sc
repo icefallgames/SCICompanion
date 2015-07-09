@@ -47,7 +47,7 @@
 			)
         	(default
         		(send gEgo:
-        			posn(150 100)
+        			posn(150 130)
         			loop(1)
 				)
 			)
@@ -62,8 +62,9 @@
 (instance public anObject of Prop
 	(properties
 		view 900
-		x 200
-		y 100
+		x 99
+		y 140
+		z 10
 		noun N_ANOBJECT
 	)
 	
