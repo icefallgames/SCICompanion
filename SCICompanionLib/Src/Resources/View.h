@@ -106,6 +106,8 @@ struct RasterTraits
     int PreviewCel;
     GetItemLabelFuncPtr GetItemLabelFunc;
     bool SupportsScaling;
+    uint8_t DefaultEditColor;
+    uint8_t DefaultEditAltColor;
 };
 
 struct RasterSettings

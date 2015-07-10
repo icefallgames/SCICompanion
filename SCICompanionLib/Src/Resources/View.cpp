@@ -1010,7 +1010,9 @@ RasterTraits viewRasterTraits =
     g_egaColors,
     0,
     nullptr,
-    false
+    false,
+    0xf,    // EGA white
+    0x0,    // EGA black
 };
 
 RasterTraits viewRasterTraitsVGA1 =
@@ -1024,7 +1026,9 @@ RasterTraits viewRasterTraitsVGA1 =
     nullptr,    // There is no hard-coded palette for VGA.
     0,
     nullptr,
-    false
+    false,
+    0x7,    // 7th color...
+    0x0,    // Tends to be black
 };
 
 RasterTraits viewRasterTraitsVGA1_1 =
@@ -1038,7 +1042,9 @@ RasterTraits viewRasterTraitsVGA1_1 =
     nullptr,    // There is no hard-coded palette for VGA.
     0,
     nullptr,
-    true
+    true,
+    0x7,    // 7th color...
+    0x0,    // Tends to be black
 };
 
 RasterSettings viewRasterSettings =

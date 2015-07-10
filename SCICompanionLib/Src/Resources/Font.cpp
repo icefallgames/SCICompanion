@@ -195,7 +195,9 @@ RasterTraits fontRasterTraits =
     g_egaColors,
     65,         // Preview cel
     &GetCharacterLabel,
-    false
+    false,
+    0x0,        // Black
+    0xf,        // White (transparent)
 };
 
 RasterSettings fontRasterSettings =

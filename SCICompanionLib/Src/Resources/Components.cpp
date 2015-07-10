@@ -25,7 +25,9 @@ RasterTraits emptyRasterTraits =
     emptyMapping,
     g_egaColors,
     0,
-    0
+    0,
+    0,
+    0,
 };
 
 RasterSettings emptyRasterSettings =

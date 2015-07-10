@@ -46,8 +46,10 @@ CNewRasterResourceDocument::CNewRasterResourceDocument()
     _fApplyToAllCels = FALSE;
     _nCel = 0;
     _nLoop = 0;
-    _color = 0xf;           // white, in EGA
-    _alternateColor = 0x0;  // black, in EGA
+
+    // These get set in SetResource
+    _color = 0;
+    _alternateColor = 0x0;
 }
 
 void CNewRasterResourceDocument::v_OnUndoRedo()
@@ -65,6 +67,9 @@ void CNewRasterResourceDocument::SetNewResource(std::unique_ptr<ResourceEntity> 
 void CNewRasterResourceDocument::SetResource(std::unique_ptr<ResourceEntity> pResource, int id)
 {
     _checksum = id;
+    const RasterComponent &raster = pResource->GetComponent<RasterComponent>();
+    _color = raster.Traits.DefaultEditColor;
+    _alternateColor = raster.Traits.DefaultEditAltColor;
 
     AddFirstResource(move(pResource));
     RefreshPaletteOptions();

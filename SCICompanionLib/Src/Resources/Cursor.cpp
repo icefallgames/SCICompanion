@@ -132,7 +132,9 @@ RasterTraits cursorRasterTraitsSCI0 =
     g_egaColors,
     0,
     nullptr,
-    false
+    false,
+    0xf,    // White
+    0x0,    // Black
 };
 
 uint8_t cursorPaletteMapping1[] = { 0, 0xf, 0x7, 0x3 }; // REVIEW: Not sure if this is right... 
@@ -150,7 +152,9 @@ RasterTraits cursorRasterTraitsSCI1 =
     g_egaColors,
     0,
     nullptr,
-    false
+    false,
+    0xf,    // White
+    0x0,    // Black
 };
 
 RasterSettings cursorRasterSettings =
