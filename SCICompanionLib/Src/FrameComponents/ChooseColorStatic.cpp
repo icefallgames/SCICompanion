@@ -570,6 +570,11 @@ void CChooseColorStatic::_OnButtonDown(UINT nFlags, CPoint point, BOOL fLeft)
                 {
                     _multipleSelection[colorIndex] = true;
                 }
+
+                if (!shift)
+                {
+                    _focusIndex = colorIndex;
+                }
             }
             else
             {
@@ -577,11 +582,6 @@ void CChooseColorStatic::_OnButtonDown(UINT nFlags, CPoint point, BOOL fLeft)
             }
             Invalidate(FALSE);
         }
-    }
-
-    if (fLeft)
-    {
-        _focusIndex = colorIndex;
     }
 
     if (_pCallback)
