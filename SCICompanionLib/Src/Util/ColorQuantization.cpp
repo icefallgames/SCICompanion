@@ -325,7 +325,7 @@ void color_quant(image im, int n_colors, int dither, uint8_t *sciBits, RGBQUAD *
 }
 
 // Returns a 24bit RGB bitmap from an input bitmap. *pDIBBits points to the resulting bits.
-HBITMAP BitmapToRGB24Bitmap(const BITMAPINFO *pbmi, int desiredWidth, int desiredHeight, void **pDIBBits24)
+HBITMAP BitmapToRGB32Bitmap(const BITMAPINFO *pbmi, int desiredWidth, int desiredHeight, void **pDIBBits32)
 {
     HBITMAP bmpReturn = nullptr;
     void *pDIBBits = _GetBitsPtrFromBITMAPINFO(pbmi);
@@ -339,14 +339,14 @@ HBITMAP BitmapToRGB24Bitmap(const BITMAPINFO *pbmi, int desiredWidth, int desire
             bitmapInfo.bmiHeader.biWidth = desiredWidth;
             bitmapInfo.bmiHeader.biHeight = desiredHeight;
             bitmapInfo.bmiHeader.biPlanes = 1;
-            bitmapInfo.bmiHeader.biBitCount = 24;
+            bitmapInfo.bmiHeader.biBitCount = 32;
             bitmapInfo.bmiHeader.biCompression = BI_RGB;
             bitmapInfo.bmiHeader.biSizeImage = 0; // 0 is ok for BI_RGB
             bitmapInfo.bmiHeader.biXPelsPerMeter = 0; // ???
             bitmapInfo.bmiHeader.biYPelsPerMeter = 0; // ??? 
             bitmapInfo.bmiHeader.biClrUsed = 0;         // ???
             bitmapInfo.bmiHeader.biClrImportant = 0;    // ???
-            HBITMAP bmpReturn = CreateDIBSection((HDC)dc, &bitmapInfo, DIB_RGB_COLORS, pDIBBits24, nullptr, 0);
+            bmpReturn = CreateDIBSection((HDC)dc, &bitmapInfo, DIB_RGB_COLORS, pDIBBits32, nullptr, 0);
             if (bmpReturn)
             {
                 // Select our new HBITMAP into the DC
@@ -366,16 +366,17 @@ HBITMAP BitmapToRGB24Bitmap(const BITMAPINFO *pbmi, int desiredWidth, int desire
 }
 
 // globalPalette needs to have empty slots.
-std::unique_ptr<uint8_t[]> QuantizeImage(void *pDIBBits24, int width, int inStride, int height, const RGBQUAD *globalPalette, RGBQUAD *imagePalette, int transparentIndex)
+std::unique_ptr<uint8_t[]> QuantizeImage(void *pDIBBits32, int width, int inStride, int height, const RGBQUAD *globalPalette, RGBQUAD *imagePaletteResult, int transparentIndex, uint8_t alphaThreshold)
 {
     RGBQUAD black = {};
 
-    // Our SCI/GDI/GDIP bitmaps use a DWORD-aligned stride (pDIBBits24, and our return parameter), but this algorithm does not. So we need to translate.
+    // Our SCI/GDI/GDIP bitmaps use a DWORD-aligned stride (pDIBBits32, and our return parameter), but this algorithm does not. So we need to translate.
     int outStride = CX_ACTUAL(width);
 
     // REVIEW: We will have to do this for views.
     size_t bitmapLength = width * height;
     std::unique_ptr<uint8_t[]> sciBits = std::make_unique<uint8_t[]>(bitmapLength);
+    std::unique_ptr<bool[]> opaqueMask = std::make_unique<bool[]>(bitmapLength);
 
     std::vector<uint8_t> unusedIndices;
 
@@ -391,21 +392,33 @@ std::unique_ptr<uint8_t[]> QuantizeImage(void *pDIBBits24, int width, int inStri
         else
         {
             // Copy it over but mark it as unused.
-            imagePalette[i] = globalPalette ? globalPalette[i] : black;
-            imagePalette[i].rgbReserved = 0x1;
+            imagePaletteResult[i] = globalPalette ? globalPalette[i] : black;
+            imagePaletteResult[i].rgbReserved = 0x1;
         }
     }
 
     if (colorCount > 0)
     {
-        // Now our pDIBBits24 should point to the raw bitmap data.
+        // Now our pDIBBits32 should point to the raw bitmap data.
         image img = img_new(width, height);
 
         // Copy our data into img used by the algorithm. Because we may have a different stride than width,
         // we need to go line by line.
+        uint8_t *destBuffer = (uint8_t*)pDIBBits32;
         for (int y = 0; y < height; y++)
         {
-            memcpy(img->pix + (y * width * 3), ((uint8_t*)pDIBBits24) + (y * inStride), width * 3);
+            unsigned char* dest = img->pix + (y * width * 3);
+            uint8_t *src = destBuffer + (y * inStride);
+            for (int x = 0; x < width; x++)
+            {
+                *dest++ = *src++;
+                *dest++ = *src++;
+                *dest++ = *src++;
+
+                // The 4th source byte is alpha.
+                opaqueMask[y * width + x] = ((*src++) > alphaThreshold);
+                // Note: for transparent pixels, we'll still evaluate colors. Oh well. Hopefully they'll be all black.
+            }
         }
 
         RGBQUAD usedColors[256];
@@ -415,12 +428,19 @@ std::unique_ptr<uint8_t[]> QuantizeImage(void *pDIBBits24, int width, int inStri
         // unusedIndices contains the real palette indices where we want to put these things.
         for (int i = 0; i < (int)bitmapLength; i++)
         {
-            sciBits[i] = unusedIndices[sciBits[i]];
+            if (opaqueMask[i])
+            {
+                sciBits[i] = unusedIndices[sciBits[i]];
+            }
+            else
+            {
+                sciBits[i] = (uint8_t)transparentIndex;
+            }
         }
         for (int i = 0; i < colorCount; i++)
         {
-            imagePalette[unusedIndices[i]] = usedColors[i];
-            imagePalette[unusedIndices[i]].rgbReserved = 0x3;
+            imagePaletteResult[unusedIndices[i]] = usedColors[i];
+            imagePaletteResult[unusedIndices[i]].rgbReserved = 0x3;
         }
 
         free(img);

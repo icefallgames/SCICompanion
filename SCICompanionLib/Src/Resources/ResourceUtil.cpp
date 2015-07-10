@@ -18,7 +18,7 @@ SCI_RESOURCE_INFO g_resourceInfo[18] =
     { "memory", "Memory", "memory.{}", "{}.mem", "memory\\.(\\d+)", "(\\d+)\\.mem" },
     { "vocab", "Vocab", "vocab.{}", "{}.voc", "vocab\\.(\\d+)", "(\\d+)\\.voc" },
     { "font", "Font", "font.{}", "{}.fon", "font\\.(\\d+)", "(\\d+)\\.fon" },
-    { "cursor", "Cursor", "curosr.{}", "{}.cur", "curosr\\.(\\d+)", "(\\d+)\\.cur" },
+    { "cursor", "Cursor", "cursor.{}", "{}.cur", "curosr\\.(\\d+)", "(\\d+)\\.cur" },
     { "patch", "Patch", "patch.{}", "{}.pat", "patch\\.(\\d+)", "(\\d+)\\.pat" },
     { "bitmap", "Bitmap", "bitmap.{}", "{}.bit", "bitmap\\.(\\d+)", "(\\d+)\\.bit" },        // Purpose unknown, file extension unknown
     { "palette", "Palette", "palette.{}", "{}.pal", "palette\\.(\\d+)", "(\\d+)\\.pal" },

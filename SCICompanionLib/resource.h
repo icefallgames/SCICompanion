@@ -280,6 +280,7 @@
 #define IDD_CONVERTTOPALETTE            385
 #define IDD_PALETTEADJUST               386
 #define IDD_PICSIZE                     387
+#define IDI_REFRESH                     388
 #define IDC_CHOOSECOLORSTATIC           1001
 #define IDC_BUTTON1                     1003
 #define IDC_BUTTONDOWN                  1003
@@ -626,6 +627,8 @@
 #define IDC_STATICSATURATION            1301
 #define IDC_EDITWIDTH                   1301
 #define IDC_EDITSATURATION              1302
+#define IDC_BUTTONREFRESH               1302
+#define IDC_CHECKOVERLAY                1303
 #define IDC_STATICBRIGHTNESS            1304
 #define IDC_EDITBRIGHTNESS              1305
 #define IDC_STATICTINTSTRENGTH          1307
@@ -906,9 +909,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        388
+#define _APS_NEXT_RESOURCE_VALUE        389
 #define _APS_NEXT_COMMAND_VALUE         33207
-#define _APS_NEXT_CONTROL_VALUE         1302
+#define _APS_NEXT_CONTROL_VALUE         1304
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

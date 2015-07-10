@@ -579,7 +579,10 @@ void CChooseColorStatic::_OnButtonDown(UINT nFlags, CPoint point, BOOL fLeft)
         }
     }
 
-    _focusIndex = colorIndex;
+    if (fLeft)
+    {
+        _focusIndex = colorIndex;
+    }
 
     if (_pCallback)
     {

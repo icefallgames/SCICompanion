@@ -1079,7 +1079,17 @@ void CPicView::OnPasteIntoPic()
 {
     if (_GetEditPic()->Traits.IsVGA)
     {
-        CBitmapToVGADialog dialog(_GetPalette(), _GetEditPic()->Traits.AllowMultipleBitmaps, _GetEditPic()->Size);
+        // Provide the current background, in case they wish to overlay.
+        const Cel *backgroundCurrent = nullptr;
+        for (const auto &command : _GetEditPic()->commands)
+        {
+            if (command.type == PicCommand::CommandType::DrawBitmap)
+            {
+                backgroundCurrent = command.drawVisualBitmap.pCel;
+            }
+        }
+
+        CBitmapToVGADialog dialog(backgroundCurrent, _GetPalette(), _GetEditPic()->Traits.AllowMultipleBitmaps, _GetEditPic()->Size);
         if (IDOK == dialog.DoModal())
         {
             std::unique_ptr<Cel> result = dialog.GetFinalResult();
@@ -1146,9 +1156,9 @@ void CPicView::OnPaste()
                         BITMAPINFO *pbmi = globalLock.Object;
                         if (pbmi)
                         {
-                            void *pDIBBits24 = nullptr;;
+                            void *pDIBBits32 = nullptr;;
                             CBitmap bitmap;
-                            bitmap.Attach(BitmapToRGB24Bitmap(pbmi, 320, 190, &pDIBBits24));
+                            bitmap.Attach(BitmapToRGB32Bitmap(pbmi, 320, 190, &pDIBBits32));
                             globalLock.Unlock();    // Unlock and close ASAP, before we do the expensive quantization
                             openClipboard.Close();
 
@@ -1158,9 +1168,9 @@ void CPicView::OnPaste()
                                 const PaletteComponent *globalPalette = appState->GetResourceMap().GetPalette999();
 
                                 GetDocument()->ApplyChanges<PicComponent, PaletteComponent>(
-                                    [globalPalette, pDIBBits24](PicComponent &pic, PaletteComponent &palette)
+                                    [globalPalette, pDIBBits32](PicComponent &pic, PaletteComponent &palette)
                                 {
-                                    std::unique_ptr<uint8_t[]> sciBits = QuantizeImage(pDIBBits24, 320, 320 * 3, 190, globalPalette->Colors, palette.Colors, 255);
+                                    std::unique_ptr<uint8_t[]> sciBits = QuantizeImage(pDIBBits32, 320, 320 * 3, 190, globalPalette->Colors, palette.Colors, 255, 128);
                                     // We just directly modified the palette.
                                     PicCommand command;
                                     Cel cel;

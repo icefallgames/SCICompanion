@@ -812,6 +812,7 @@
     <Image Include="res\prioritylines.ico" />
     <Image Include="res\rect.ico" />
     <Image Include="res\rect_solid.ico" />
+    <Image Include="res\refresh.ico" />
     <Image Include="res\Right.bmp" />
     <Image Include="res\roundedrect.ico" />
     <Image Include="res\roundedrect_solid.ico" />

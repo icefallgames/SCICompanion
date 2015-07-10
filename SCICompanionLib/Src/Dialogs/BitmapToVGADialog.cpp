@@ -19,9 +19,9 @@ int g_iScaleImageVGA = 0;   // Don't scale by default
 
 // The end result of this dialog is image data (a Cel) and possibly a palette
 
-CBitmapToVGADialog::CBitmapToVGADialog(const PaletteComponent *targetPalette, bool allowInsertAtCurrentPosition, size16 picDimensions, CWnd* pParent /*=nullptr*/)
+CBitmapToVGADialog::CBitmapToVGADialog(const Cel *currentBackgroundOptional, const PaletteComponent *targetPalette, bool allowInsertAtCurrentPosition, size16 picDimensions, CWnd* pParent /*=nullptr*/)
     : CExtNCW<CExtResizableDialog>(CBitmapToVGADialog::IDD, pParent),
-    PrepareBitmapBase(-1, IDC_STATICORIG, picDimensions)
+    PrepareBitmapBase(-1, IDC_STATICORIG, picDimensions), _currentBackgroundOptional(currentBackgroundOptional)
 {
     _transparentColor = 255;
     _allowInsertAtCurrentPosition = allowInsertAtCurrentPosition;
@@ -65,11 +65,18 @@ CBitmapToVGADialog::CBitmapToVGADialog(const PaletteComponent *targetPalette, bo
     if (targetPalette)
     {
         _targetCurrentPalette = make_unique<PaletteComponent>(*targetPalette);
+        _finalResultPalette = make_unique<PaletteComponent>(*targetPalette);    // Just something to start with, so the palette box shows something.
     }
+
+    if (!_finalResultPalette && _globalPalette)
+    {
+        _finalResultPalette = make_unique<PaletteComponent>(*_globalPalette);
+    }
+
 
     _pCRBitmap = nullptr;
     _iScaleImage = g_iScaleImageVGA;
-    _honorGlobalPalette = true; // Always honour by default
+    _honorGlobalPalette = BST_CHECKED; // Always honour by default
     _size.SetSize(0, 0);
 
     _pbmpNormal = nullptr;
@@ -93,6 +100,12 @@ std::unique_ptr<Cel> CBitmapToVGADialog::GetFinalResult()
 std::unique_ptr<PaletteComponent> CBitmapToVGADialog::GetFinalResultPalette()
 {
     return move(_finalResultPalette);
+}
+
+void CBitmapToVGADialog::OnColorClick(BYTE bIndex, int nID, BOOL fLeft)
+{
+    // Enable the refresh button
+    m_wndRefresh.EnableWindow(TRUE);
 }
 
 CBitmapToVGADialog::~CBitmapToVGADialog()
@@ -138,6 +151,7 @@ void CBitmapToVGADialog::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_RADIO2, m_wndRadio2);
         DDX_Control(pDX, IDC_RADIO3, m_wndRadio3);
         DDX_Control(pDX, IDC_CHECKINSERT, m_wndCheckInsert);
+        DDX_Control(pDX, IDC_CHECKOVERLAY, m_wndCheckOverlay);
 
         DDX_Control(pDX, IDC_STATICGROUP3, m_wndGroup3);
         DDX_Control(pDX, IDC_EDITTRANSPARENTCOLOR, m_wndEditTransparentColor);
@@ -146,9 +160,20 @@ void CBitmapToVGADialog::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_CHECKDONTUSEINPALETTE, m_wndCheckDontUseInPalette);
         m_wndCheckDontUseInPalette.SetCheck(1);
         
+        DDX_Control(pDX, IDC_BUTTONREFRESH, m_wndRefresh);
+        m_wndRefresh.EnableWindow(FALSE);
+        m_wndRefresh.SetIcon(IDI_REFRESH, 0, 0, 0, 16, 16);
+
         m_wndRadio1.SetCheck(1); // Check the first guy by default
         _paletteAlgorithm = 0;
         _fInitializedControls = true;
+
+        DDX_Control(pDX, IDC_STATICPALETTE, m_wndPalette);
+        m_wndPalette.ShowSelection(TRUE);
+        m_wndPalette.ShowSelectionBoxes(TRUE);
+        m_wndPalette.SetAutoHandleSelection(true);
+        m_wndPalette.SetCallback(this);
+        _UpdatePalette();
     }
 
     m_wndCheckGlobalPalette.SetWindowTextA(format("Only use {0} free palette entries", _numUnusedPaletteEntriesInGlobalPalette).c_str());
@@ -181,8 +206,6 @@ void CBitmapToVGADialog::DoDataExchange(CDataExchange* pDX)
     GetDlgItem(IDC_SLIDERSATURATION)->SendMessage(TBM_SETTICFREQ, 10, 0);
     DDX_Slider(pDX, IDC_SLIDERSATURATION, _nSaturation);
 
-    DDX_Control(pDX, IDC_STATICPALETTE, m_wndPalette);
-
     if ((_nBrightness != nBrightness) ||
         (_nContrast != nContrast) ||
         (_nSaturation != nSaturation) ||
@@ -205,6 +228,16 @@ void CBitmapToVGADialog::DoDataExchange(CDataExchange* pDX)
     SetTimer(FROMCLIPBOARD_TIMER, 1000, nullptr);
 
     _Update();
+}
+
+void CBitmapToVGADialog::_SetAvailableColorsFromGlobalPalette()
+{
+    bool available[256];
+    for (int i = 0; i < ARRAYSIZE(available); i++)
+    {
+        available[i] = _globalPalette->Colors[i].rgbReserved == 0;
+    }
+    m_wndPalette.SetSelection(available);
 }
 
 void _FlipImageData(Cel &cel)
@@ -327,12 +360,53 @@ void CBitmapToVGADialog::_SyncControlState()
     Invalidate();
 }
 
+PaletteComponent _CreatePaletteWithFreeSlots(const PaletteComponent *source, CChooseColorStatic &wndPalette)
+{
+    PaletteComponent palette;
+    palette = *source;
+    bool selection[256];
+    wndPalette.GetMultipleSelection(selection);
+    for (int i = 0; i < ARRAYSIZE(selection); i++)
+    {
+        palette.Colors[i].rgbReserved = selection[i] ? 0 : 0x1;
+    }
+    return palette;
+}
+
+void _Overlay(Cel &cel, const Cel *currentBackgroundOptional)
+{
+    if (currentBackgroundOptional)
+    {
+        // We'll use the current image as a reference for size and such. Otherwise we can't enlargen the background.
+        for (int y = 0; y < cel.size.cy; y++)
+        {
+            int rowOffset = y * CX_ACTUAL(cel.size.cx);
+            for (int x = 0; x < cel.size.cx; x++)
+            {
+                uint8_t color = cel.Data[rowOffset + x];
+                if (color == cel.TransparentColor)
+                {
+                    // Let the background show through:
+                    if ((y < currentBackgroundOptional->size.cy) && (x < currentBackgroundOptional->size.cx))
+                    {
+                        color = currentBackgroundOptional->Data[y * CX_ACTUAL(currentBackgroundOptional->size.cx) + x];
+                    }
+                    cel.Data[rowOffset + x] = color;
+                }
+            }
+        }
+    }
+}
+
 const uint8_t AlphaThreshold = 128;
 
 void CBitmapToVGADialog::_Update()
 {
     _finalResult.reset(nullptr);
     _finalResultPalette.reset(nullptr);
+
+    PaletteComponent referencePalette = _CreatePaletteWithFreeSlots(_targetCurrentPalette.get(), m_wndPalette);
+
     // We need to generate a final image for m_wndPic
     switch (_paletteAlgorithm)
     {
@@ -349,17 +423,25 @@ void CBitmapToVGADialog::_Update()
 
                 Gdiplus::Rect rect(0, 0, cx, cy);
                 Gdiplus::BitmapData bitmapData;
-                if (Ok == _pbmpCurrent->LockBits(&rect, ImageLockModeRead, PixelFormat24bppRGB, &bitmapData))
+                if (Ok == _pbmpCurrent->LockBits(&rect, ImageLockModeRead, PixelFormat32bppARGB, &bitmapData))
                 {
                     std::unique_ptr<Cel> temp = make_unique<Cel>();
-                    std::unique_ptr<PaletteComponent> tempPalette = make_unique<PaletteComponent>();
+                    std::unique_ptr<PaletteComponent> tempPalette;
+                    if (_targetCurrentPalette)
+                    {
+                        tempPalette = make_unique<PaletteComponent>(*_targetCurrentPalette);
+                    }
+                    else
+                    {
+                        tempPalette = make_unique<PaletteComponent>();
+                    }
                     // TODO: Transparent color should be set by the user, and should not be part of the palette (unless desired)
                     temp->TransparentColor = _transparentColor;
                     temp->size = size16((uint16_t)cx, (uint16_t)cy);
 
-                    uint8_t *pDIBBits24 = (uint8_t *)bitmapData.Scan0;
+                    uint8_t *pDIBBits32 = (uint8_t *)bitmapData.Scan0;
 
-                    std::unique_ptr<uint8_t[]> sciBits = QuantizeImage(pDIBBits24, cx, bitmapData.Stride, cy, _honorGlobalPalette ? _globalPalette->Colors : nullptr, tempPalette->Colors, _transparentColor);
+                    std::unique_ptr<uint8_t[]> sciBits = QuantizeImage(pDIBBits32, cx, bitmapData.Stride, cy, (_honorGlobalPalette != BST_UNCHECKED) ? referencePalette.Colors : nullptr, tempPalette->Colors, _transparentColor, AlphaThreshold);
                     temp->Data.allocate(PaddedSize(temp->size));
                     temp->Data.assign(&sciBits.get()[0], &sciBits.get()[temp->Data.size()]);
 
@@ -375,7 +457,7 @@ void CBitmapToVGADialog::_Update()
     case 1:
         if (_targetCurrentPalette && _pbmpCurrent)
         {
-            // Map to the current pic palette
+            // Try to map colors to the current pic palette
             // We can use _pbmpCurrent, the scaled, modified whatever.
             UINT cx = _pbmpCurrent->GetWidth();
             UINT cy = _pbmpCurrent->GetHeight();
@@ -400,6 +482,9 @@ void CBitmapToVGADialog::_Update()
                 uint8_t *pDIBBits24 = (uint8_t *)bitmapData.Scan0;
                 temp->Data.allocate(PaddedSize(temp->size));
 
+                bool usableColors[256];
+                m_wndPalette.GetMultipleSelection(usableColors);
+
                 for (UINT y = 0; y < cy; y++)
                 {
                     for (UINT x = 0; x < cx; x++)
@@ -418,14 +503,17 @@ void CBitmapToVGADialog::_Update()
                         {
                             for (int i = 0; i < 256; i++)
                             {
-                                RGBQUAD paletteColor = _targetCurrentPalette->Colors[i];
-                                if ((i != (int)_transparentColor) && (paletteColor.rgbReserved != 0x0))
+                                if (usableColors[i])
                                 {
-                                    int distance = GetColorDistance(rgb, paletteColor);
-                                    if (distance < bestDistance)
+                                    RGBQUAD paletteColor = _targetCurrentPalette->Colors[i];
+                                    if ((i != (int)_transparentColor) && (paletteColor.rgbReserved != 0x0))
                                     {
-                                        bestIndex = i;
-                                        bestDistance = distance;
+                                        int distance = GetColorDistance(rgb, paletteColor);
+                                        if (distance < bestDistance)
+                                        {
+                                            bestIndex = i;
+                                            bestDistance = distance;
+                                        }
                                     }
                                 }
                             }
@@ -452,9 +540,9 @@ void CBitmapToVGADialog::_Update()
             if (GetCelsAndPaletteFromGdiplus(*_pbmpOrig, _transparentColor, tempCels, tempPalette))
             {
                 _finalResult = make_unique<Cel>(tempCels[0]);
-                if (_honorGlobalPalette && _globalPalette)
+                if ((_honorGlobalPalette != BST_UNCHECKED) && _globalPalette)
                 {
-                    _finalResultPalette = _RemapImagePalette(&_finalResult->Data[0], tempCels[0].size.cx, tempCels[0].size.cy, *_originalPalette, *_globalPalette);
+                    _finalResultPalette = _RemapImagePalette(&_finalResult->Data[0], tempCels[0].size.cx, tempCels[0].size.cy, *_originalPalette, referencePalette);
                 }
                 else
                 {
@@ -469,16 +557,21 @@ void CBitmapToVGADialog::_Update()
     if (_finalResult)
     {
         _FlipImageData(*_finalResult);
+        if (m_wndCheckOverlay.GetCheck() == BST_CHECKED)
+        {
+            // Overlay this image on the current background
+            _Overlay(*_finalResult, _currentBackgroundOptional);
+        }
         CBitmap bitmap;
         bitmap.Attach(GetBitmap(*_finalResult, _finalResultPalette.get(), _finalResult->size.cx, _finalResult->size.cy, BitmapScaleOptions::None, 0));
         m_wndPic.FromBitmap((HBITMAP)bitmap, _finalResult->size.cx, _finalResult->size.cy, true);
         m_wndPic.ShowWindow(SW_SHOW);
+        _UpdatePalette();
     }
     else
     {
         m_wndPic.ShowWindow(SW_HIDE);
     }
-    _UpdatePalette();
 
     // Put up some kind of informative message
     if (_originalPalette)
@@ -496,7 +589,7 @@ void CBitmapToVGADialog::_Update()
     }
 
     GetDlgItem(IDOK)->EnableWindow(!!_finalResult);
-
+    m_wndRefresh.EnableWindow(FALSE);
     _needsUpdate = false;
 }
 
@@ -526,6 +619,8 @@ BEGIN_MESSAGE_MAP(CBitmapToVGADialog, CExtNCW<CExtResizableDialog>)
     ON_BN_CLICKED(IDC_RADIO3, &CBitmapToVGADialog::OnBnClickedRadio3)
     ON_BN_CLICKED(IDC_CHECKINSERT, &CBitmapToVGADialog::OnBnClickedCheckinsert)
     ON_EN_KILLFOCUS(IDC_EDITTRANSPARENTCOLOR, &CBitmapToVGADialog::OnEnKillfocusEdittransparentcolor)
+    ON_BN_CLICKED(IDC_BUTTONREFRESH, &CBitmapToVGADialog::OnBnClickedButtonrefresh)
+    ON_BN_CLICKED(IDC_CHECKOVERLAY, &CBitmapToVGADialog::OnBnClickedCheckoverlay)
 END_MESSAGE_MAP()
 
 
@@ -567,12 +662,28 @@ void CBitmapToVGADialog::OnTimer(UINT_PTR nIDEvent)
     }
 }
 
+void CBitmapToVGADialog::_PushPaletteSelection()
+{
+    if (_honorGlobalPalette == BST_CHECKED)
+    {
+        _SetAvailableColorsFromGlobalPalette();
+    }
+    else if (_honorGlobalPalette == BST_UNCHECKED)
+    {
+        bool selectAll[256];
+        std::fill_n(selectAll, ARRAYSIZE(selectAll), true);
+        m_wndPalette.SetSelection(selectAll);
+    }
+    // else indeterminate
+}
+
 void CBitmapToVGADialog::_UpdatePalette()
 {
     if (_finalResultPalette)
     {
         m_wndPalette.SetPalette(16, 16, reinterpret_cast<const EGACOLOR *>(_finalResultPalette->Mapping), 256, _finalResultPalette->Colors, false);
         m_wndPalette.ShowWindow(SW_SHOW);
+        _PushPaletteSelection();
         m_wndPalette.Invalidate(FALSE);
     }
     else
@@ -606,6 +717,7 @@ void CBitmapToVGADialog::OnBnClickedCheckglobalpalette()
 {
     // Do this manually, since DDX_Check doesn't seem to work.
     _honorGlobalPalette = m_wndCheckGlobalPalette.GetCheck();
+    _PushPaletteSelection();
     _Update();
 }
 
@@ -645,4 +757,18 @@ void CBitmapToVGADialog::OnEnKillfocusEdittransparentcolor()
     BOOL translated;
     _transparentColor = min(255, GetDlgItemInt(IDC_EDITTRANSPARENTCOLOR, &translated, FALSE));
     SetDlgItemInt(IDC_EDITTRANSPARENTCOLOR, _transparentColor, FALSE);
+}
+
+
+void CBitmapToVGADialog::OnBnClickedButtonrefresh()
+{
+    _honorGlobalPalette = BST_INDETERMINATE;
+    m_wndCheckGlobalPalette.SetCheck(_honorGlobalPalette);
+    _Update();
+}
+
+
+void CBitmapToVGADialog::OnBnClickedCheckoverlay()
+{
+    _Update();
 }

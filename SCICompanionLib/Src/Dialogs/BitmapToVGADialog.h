@@ -8,10 +8,10 @@
 
 struct Cel;
 
-class CBitmapToVGADialog : public CExtNCW<CExtResizableDialog>, public PrepareBitmapBase
+class CBitmapToVGADialog : public CExtNCW<CExtResizableDialog>, public PrepareBitmapBase, public IColorDialogCallback
 {
 public:
-    CBitmapToVGADialog(const PaletteComponent *targetPalette, bool allowInsertAtCurrentPosition, size16 picDimensions, CWnd* pParent = NULL);   // standard constructor
+    CBitmapToVGADialog(const Cel *currentBackgroundOptional, const PaletteComponent *targetPalette, bool allowInsertAtCurrentPosition, size16 picDimensions, CWnd* pParent = NULL);   // standard constructor
     virtual ~CBitmapToVGADialog();
 
     // Dialog Data
@@ -21,6 +21,9 @@ public:
     std::unique_ptr<Cel> GetFinalResult();
     std::unique_ptr<PaletteComponent> GetFinalResultPalette();
 
+    // IColorDialogCallback
+    void OnColorClick(BYTE bIndex, int nID, BOOL fLeft) override;
+
 private:
     virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
     virtual void OnCancel();
@@ -28,7 +31,9 @@ private:
     void OnTimer(UINT_PTR nIDEvent);
     void _AddToEdit(PCTSTR pszText);
     void _UpdatePalette();
+    void _PushPaletteSelection();
     void _SyncControlState();
+    void _SetAvailableColorsFromGlobalPalette();
     afx_msg void OnBrowse();
     afx_msg void OnPasteFromClipboard();
     void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar *pWnd);
@@ -64,13 +69,15 @@ private:
     CExtRadioButton m_wndRadio3;
     int _paletteAlgorithm;
     CExtCheckBox m_wndCheckGlobalPalette;
+    CExtCheckBox m_wndCheckOverlay;
 
     CExtGroupBox m_wndGroup3;
     CExtEdit m_wndEditTransparentColor;
     CExtLabel m_wndLabel4;
     CExtCheckBox m_wndCheckDontUseInPalette;
-
+    
     CChooseColorStatic m_wndPalette;
+    CExtButton m_wndRefresh;
 
     bool _fInitializedControls;
 
@@ -89,6 +96,8 @@ private:
 
     uint8_t _transparentColor;
 
+    const Cel *_currentBackgroundOptional;
+
     afx_msg void OnScaleClicked();
     afx_msg void OnBnClickedRadio2();
     afx_msg void OnBnClickedCheckglobalpalette();
@@ -97,5 +106,7 @@ private:
 public:
     afx_msg void OnBnClickedCheckinsert();
     afx_msg void OnEnKillfocusEdittransparentcolor();
+    afx_msg void OnBnClickedButtonrefresh();
+    afx_msg void OnBnClickedCheckoverlay();
 };
 
