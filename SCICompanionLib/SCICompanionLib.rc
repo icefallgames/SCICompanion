@@ -476,6 +476,7 @@ BEGIN
         MENUITEM "&Export 8-bit pic bitmap",    ID_PIC_EXPORT8
         MENUITEM "Edit p&alette",               ID_PIC_EDITPALETTE
         MENUITEM "Change &height",              ID_PIC_CHANGEDIMENSIONS
+        MENUITEM "Remove set &visual",          ID_PIC_REMOVESETVISUAL
     END
     POPUP "Fo&nt"
     BEGIN
@@ -2746,6 +2747,7 @@ BEGIN
     ID_MESSAGE_EXPORT       "Export to tab delimited text file"
     ID_MESSAGE_IMPORT       "Import from tab delimited text file"
     ID_PIC_CHANGEDIMENSIONS "Change the height of the pic resource."
+    ID_PIC_REMOVESETVISUAL  "Remove all set visual commands."
 END
 
 #endif    // English (United States) resources

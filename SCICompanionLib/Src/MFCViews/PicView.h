@@ -241,6 +241,7 @@ protected:
     afx_msg void EditVGAPalette();
     afx_msg void ChangeDimensions();
     afx_msg void OnDeletePoint();
+    afx_msg void RemoveSetVisual();
     afx_msg void OnUpdateAllPicCommands(CCmdUI *pCmdUI);
     afx_msg void OnUpdateShowTraceImage(CCmdUI *pCmdUI);
     afx_msg void OnUpdateAlphaSlider(CCmdUI *pCmdUI);

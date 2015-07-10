@@ -902,6 +902,7 @@
 #define ID_MESSAGE_ADDSEQUENCE          33204
 #define ID_MESSAGE_ADDCLONE             33205
 #define ID_PIC_CHANGEDIMENSIONS         33206
+#define ID_PIC_REMOVESETVISUAL          33207
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -910,7 +911,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        389
-#define _APS_NEXT_COMMAND_VALUE         33207
+#define _APS_NEXT_COMMAND_VALUE         33208
 #define _APS_NEXT_CONTROL_VALUE         1304
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

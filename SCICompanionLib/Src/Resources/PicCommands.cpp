@@ -1391,6 +1391,12 @@ void _DitherFill(PicData *pdata, uint16_t x, uint16_t y, typename  _TFormat::Pix
         return;
     }
 
+    // If no screen is being drawn to, bail.
+    if (dwDrawEnable == PicScreenFlags::None)
+    {
+        return;
+    }
+
     // Guard access to the buffers we use for dithering.
     CGuard guard(&g_csDither);
 

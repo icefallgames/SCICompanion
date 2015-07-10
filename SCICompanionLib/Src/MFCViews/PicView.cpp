@@ -271,7 +271,7 @@ BEGIN_MESSAGE_MAP(CPicView, CScrollingThing<CView>)
     ON_COMMAND(ID_PIC_EDITPALETTE, CPicView::EditVGAPalette)
     ON_COMMAND(ID_PIC_DELETEPOINT, CPicView::OnDeletePoint)
     ON_COMMAND(ID_PIC_CHANGEDIMENSIONS, CPicView::ChangeDimensions)
-    
+    ON_COMMAND(ID_PIC_REMOVESETVISUAL, CPicView::RemoveSetVisual)
     ON_COMMAND_RANGE(ID_DEFAULTPRIORITY, ID_MAIN_PRI15, CPicView::OnSetEgoPriority)
     ON_UPDATE_COMMAND_UI(ID_PENTOOL, CPicView::OnUpdateAllPicCommands)
     ON_UPDATE_COMMAND_UI(ID_LINE, CPicView::OnUpdateAllPicCommands)
@@ -973,6 +973,80 @@ void CPicView::_GetPasteRect(CRect &rect)
     rect.bottom = min(_GetPicSize().cy, rect.bottom);
 }
 
+bool _AllowCommand(bool supportsPen, bool isVGA, bool canChangePriLines, const PicCommand &command)
+{
+    if (!supportsPen && (command.type == PicCommand::CommandType::Pattern))
+    {
+        return false;
+    }
+    if (isVGA && ((command.type == PicCommand::CommandType::SetPalette) || (command.type == PicCommand::CommandType::SetPaletteEntry)))
+    {
+        return false;
+    }
+    if (canChangePriLines && (command.type == PicCommand::CommandType::SetPriorityBars))
+    {
+        return false;
+    }
+    return true;
+}
+
+// Useful for importing EGA pics into a VGA game.
+void CPicView::RemoveSetVisual()
+{
+    if (GetDocument())
+    {
+        GetDocument()->ApplyChanges<PicComponent>(
+            [](PicComponent &pic)
+        {
+            std::vector<PicCommand> newCommands;
+            PicScreenFlags drawEnable = PicScreenFlags::None;
+            for (const PicCommand &command : pic.commands)
+            {
+                bool discard = false;
+                switch (command.type)
+                {
+                    case PicCommand::CommandType::SetVisual:
+                        discard = true;
+                        break;
+                    case PicCommand::CommandType::SetControl:
+                        drawEnable |= PicScreenFlags::Control;
+                        break;
+                    case PicCommand::CommandType::SetPriority:
+                        drawEnable |= PicScreenFlags::Priority;
+                        break;
+
+                    case PicCommand::CommandType::DisableControl:
+                        ClearFlag(drawEnable, PicScreenFlags::Control);
+                        break;
+                    case PicCommand::CommandType::DisablePriority:
+                        ClearFlag(drawEnable, PicScreenFlags::Priority);
+                        break;
+
+                    // Drawing commands:
+                    case PicCommand::CommandType::Circle:
+                    case PicCommand::CommandType::Fill:
+                    case PicCommand::CommandType::Pattern:
+                    case PicCommand::CommandType::Line:
+                        // Discard this drawing command if it now does nothing.
+                        discard = (drawEnable == PicScreenFlags::None);
+                        break;
+
+                }
+
+                if (!discard)
+                {
+                    newCommands.push_back(command);
+                }
+            }
+
+            pic.commands = newCommands;
+            return WrapHint(PicChangeHint::EditPicInvalid);
+        }
+            );
+
+    }
+}
+
 void CPicView::_OnPasteCommands(HGLOBAL hMem)
 {
     if (_currentTool != Pasting) // If we're already "pasting", we can't do it again.
@@ -985,6 +1059,10 @@ void CPicView::_OnPasteCommands(HGLOBAL hMem)
         BYTE *pBits = globalLock.Object;
         if (pBits)
         {
+            bool supportsPen = (_GetEditPic()->Traits.SupportsPenCommands);
+            bool isVGA = (_GetEditPic()->Traits.IsVGA);
+            bool canChangePriLines = (_GetEditPic()->Traits.CanChangePriorityLines);
+
             // Create a byte stream with this data.
             sci::ostream stream;
             stream.WriteBytes(pBits, (int)cb);
@@ -994,7 +1072,7 @@ void CPicView::_OnPasteCommands(HGLOBAL hMem)
             {
                 PicCommand command;
                 fOk = command.Initialize(reader);
-                if (fOk)
+                if (fOk && _AllowCommand(supportsPen, isVGA, canChangePriLines, command))
                 {
                     _pastedCommands.push_back(command);
                 }
