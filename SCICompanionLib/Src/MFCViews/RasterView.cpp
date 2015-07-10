@@ -3059,6 +3059,7 @@ void CRasterView::EditVGAPalette()
 
 void _RemapPaletteWorker(RasterComponent &raster, const PaletteComponent &from, const PaletteComponent &to)
 {
+    int nLoop = 0;
     for (Loop &loop : raster.Loops)
     {
         if (!loop.IsMirror)
@@ -3067,7 +3068,9 @@ void _RemapPaletteWorker(RasterComponent &raster, const PaletteComponent &from, 
             {
                 ConvertCelToNewPalette(nullptr, cel, from, cel.TransparentColor, false, false, 256, to.Mapping, to.Colors);
             }
+            UpdateMirrors(raster, nLoop);
         }
+        nLoop++;
     }
 }
 
