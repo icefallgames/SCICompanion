@@ -609,6 +609,9 @@
     <None Include="Files\Samples\SCI1.1\fonts\Sierra Small B.bin">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="Files\Samples\SCI1.1\fonts\Sierra Debug.bin">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />

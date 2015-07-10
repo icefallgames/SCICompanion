@@ -253,6 +253,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Decompiler" "$(OutDir)Decompiler"
     <None Include="Files\Samples\SCI0\views\Inv - Key.bin" />
     <None Include="Files\Samples\SCI0\views\Key.bin" />
     <None Include="Files\Samples\SCI0\views\Ranger.bin" />
+    <None Include="Files\Samples\SCI1.1\fonts\Sierra Debug.bin" />
     <None Include="Files\Samples\SCI1.1\fonts\Sierra Sans.bin" />
     <None Include="Files\Samples\SCI1.1\fonts\Sierra Serif.bin" />
     <None Include="Files\Samples\SCI1.1\fonts\Sierra Small A.bin" />
