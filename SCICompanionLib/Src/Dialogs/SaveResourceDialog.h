@@ -7,7 +7,7 @@
 class SaveResourceDialog : public CExtResizableDialog
 {
 public:
-	SaveResourceDialog(CWnd* pParent = NULL);   // standard constructor
+	SaveResourceDialog(bool warnOnOverwrite, ResourceType type, CWnd* pParent = NULL);   // standard constructor
 	virtual ~SaveResourceDialog();
     void Init(int iPackageNumber, int iResourceNumber) { _iResourceNumber = iResourceNumber; _iPackageNumber = iPackageNumber; }
     void Init(int iPackageNumber, int iResourceNumber, const std::string &name) { _iResourceNumber = iResourceNumber; _iPackageNumber = iPackageNumber; _name = name; }
@@ -30,6 +30,10 @@ private:
     int _iResourceNumber;
     int _iPackageNumber;
     std::string _name;
+
+    bool _warnOnOverwrite;
+    ResourceType _type;
+
     CExtEdit m_wndEditPackage;
     CExtEdit m_wndEditResource;
     CExtEdit m_wndEditName;

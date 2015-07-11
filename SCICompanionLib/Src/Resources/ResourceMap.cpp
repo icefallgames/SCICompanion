@@ -369,13 +369,13 @@ void CResourceMap::AbortDebuggerThread()
 
 void CResourceMap::AppendResourceAskForNumber(ResourceEntity &resource)
 {
-    AppendResourceAskForNumber(resource, "");
+    AppendResourceAskForNumber(resource, "", false);
 }
 
-void CResourceMap::AppendResourceAskForNumber(ResourceEntity &resource, const std::string &name)
+void CResourceMap::AppendResourceAskForNumber(ResourceEntity &resource, const std::string &name, bool warnOnOverwrite)
 {
     // Invoke dialog to suggest/ask for a resource number
-    SaveResourceDialog srd;
+    SaveResourceDialog srd(warnOnOverwrite, resource.GetType());
     srd.Init(-1, SuggestResourceNumber(resource.GetType()), name);
     if (IDOK == srd.DoModal())
     {
@@ -390,7 +390,7 @@ void CResourceMap::AppendResourceAskForNumber(ResourceEntity &resource, const st
 //
 // Ask the user where to save the resource... and then save it.
 //
-HRESULT CResourceMap::AppendResourceAskForNumber(ResourceBlob &resource)
+HRESULT CResourceMap::AppendResourceAskForNumber(ResourceBlob &resource, bool warnOnOverwrite)
 {
     if (!IsVersionCompatible(resource.GetType(), resource.GetVersion(), GetSCIVersion()))
     {
@@ -400,7 +400,7 @@ HRESULT CResourceMap::AppendResourceAskForNumber(ResourceBlob &resource)
         }
     }
     // Invoke dialog to suggest/ask for a resource number
-    SaveResourceDialog srd;
+    SaveResourceDialog srd(warnOnOverwrite, resource.GetType());
     srd.Init(-1, SuggestResourceNumber(resource.GetType()));
     if (IDOK == srd.DoModal())
     {

@@ -1213,7 +1213,7 @@ void CMainFrame::OnFileNewMessage()
     }
 
     // Ask the user for resource number. We need this so we can support adding nouns and such.
-    SaveResourceDialog saveResourceDialog;
+    SaveResourceDialog saveResourceDialog(false, ResourceType::Message);
     int suggestedNumber = appState->GetResourceMap().SuggestResourceNumber(ResourceType::Message);
     saveResourceDialog.Init(appState->GetVersion().DefaultVolumeFile, suggestedNumber);
     if (IDOK == saveResourceDialog.DoModal())
@@ -1349,7 +1349,7 @@ void CMainFrame::OnFileAddResource()
     {
 		CString strFileName = fileDialog.GetPathName();
         // Get a resource number and package
-        SaveResourceDialog srd;
+        SaveResourceDialog srd(false, ResourceType::None);
         srd.Init(appState->GetVersion().DefaultVolumeFile, ResourceNumberFromFileName(strFileName));
         if (IDOK == srd.DoModal())
         {

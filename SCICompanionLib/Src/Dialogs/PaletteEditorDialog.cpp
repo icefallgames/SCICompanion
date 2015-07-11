@@ -190,5 +190,5 @@ void PaletteEditorDialog::OnSaveAsResource()
 {
     std::unique_ptr<ResourceEntity> newPalette(CreatePaletteResource(appState->GetVersion()));
     newPalette->GetComponent<PaletteComponent>() = *this->_palette;
-    appState->GetResourceMap().AppendResourceAskForNumber(*newPalette);
+    appState->GetResourceMap().AppendResourceAskForNumber(*newPalette, "", true);
 }

@@ -161,7 +161,7 @@ BOOL CResourceDocument::DoPreResourceSave(BOOL fSaveAs)
                             iResourceNumber = appState->GetResourceMap().SuggestResourceNumber(pResource->GetType());
                         }
                         // Invoke dialog.
-                        SaveResourceDialog srd;
+                        SaveResourceDialog srd(true, pResource->GetType());
                         srd.Init(iPackageNumber, iResourceNumber);
                         if (IDOK == srd.DoModal())
                         {

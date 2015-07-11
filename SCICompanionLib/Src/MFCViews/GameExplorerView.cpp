@@ -631,7 +631,7 @@ void DropResourceFiles(CArray<CString, CString&> *pDropFiles)
                 StringCchCopy(szName, ARRAYSIZE(szName), PathFindFileName(pDropFiles->GetAt(i)));
                 *PathFindExtension(szName) = 0; // cut off extension.
                 data->SetName(szName);
-                appState->GetResourceMap().AppendResourceAskForNumber(*data);
+                appState->GetResourceMap().AppendResourceAskForNumber(*data, false);
             }
             else
             {
@@ -665,7 +665,7 @@ void DropResourceFiles(CArray<CString, CString&> *pDropFiles)
                 data.SetName(nullptr);
                 if (askForNumber)
                 {
-                    appState->GetResourceMap().AppendResourceAskForNumber(data);
+                    appState->GetResourceMap().AppendResourceAskForNumber(data, true);
                 }
                 else
                 {

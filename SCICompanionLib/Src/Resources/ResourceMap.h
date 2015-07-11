@@ -39,9 +39,9 @@ public:
     // ResourceBlob: the raw resource bits already in a ready-to-save format.
     // ResourceEntity: a runtime version of a resource that we can edit.
     HRESULT AppendResource(const ResourceBlob &resource);
-    HRESULT AppendResourceAskForNumber(ResourceBlob &resource);
+    HRESULT AppendResourceAskForNumber(ResourceBlob &resource, bool warnOnOverwrite);
     void AppendResourceAskForNumber(ResourceEntity &resource);
-    void AppendResourceAskForNumber(ResourceEntity &resource, const std::string &name);
+    void AppendResourceAskForNumber(ResourceEntity &resource, const std::string &name, bool warnOnOverwrite = false);
     bool AppendResource(const ResourceEntity &resource, int *pChecksum = nullptr);
     bool AppendResource(const ResourceEntity &resource, int packageNumber, int resourceNumber, int *pChecksum = nullptr);
 

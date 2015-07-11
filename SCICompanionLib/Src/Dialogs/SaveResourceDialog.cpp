@@ -9,8 +9,8 @@ using namespace std;
 
 // SaveResourceDialog dialog
 
-SaveResourceDialog::SaveResourceDialog(CWnd* pParent /*=NULL*/)
-    : CExtResizableDialog(SaveResourceDialog::IDD, pParent), _iPackageNumber(0), _iResourceNumber(0)
+SaveResourceDialog::SaveResourceDialog(bool warnOnOverwrite, ResourceType type, CWnd* pParent /*=NULL*/)
+    : CExtResizableDialog(SaveResourceDialog::IDD, pParent), _iPackageNumber(0), _iResourceNumber(0), _warnOnOverwrite(warnOnOverwrite), _type(type)
 {
 }
 
@@ -90,6 +90,15 @@ BOOL SaveResourceDialog::_ValidateData()
                       MB_OK | MB_APPLMODAL | MB_ICONSTOP);
         fRet = FALSE;
     }
+
+    if (fRet && _warnOnOverwrite)
+    {
+        if (appState->GetResourceMap().DoesResourceExist(_type, _iResourceNumber))
+        {
+            fRet = (IDYES == AfxMessageBox("A resource already exists for this number. Overwrite?", MB_YESNO | MB_ICONWARNING));
+        }
+    }
+
     return fRet;
 }
 
