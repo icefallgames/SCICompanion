@@ -101,12 +101,12 @@ void ColorShifterDialog::_UpdateView()
                         int index = y * CX_ACTUAL(celActual.size.cx);
                         for (int x = 0; x < celActual.size.cx; x++)
                         {
-                            index++;
                             uint8_t value = celStart.Data[index];
                             if (_startingSelection[value])
                             {
                                 celActual.Data[index] = value + _totalShift; // Wrap is ok. Desired.
                             }
+                            index++;
                         }
                     }
                     UpdateMirrors(_rasterActual, CelIndex(nLoop, nCel));
