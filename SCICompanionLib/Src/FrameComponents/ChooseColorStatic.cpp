@@ -354,6 +354,18 @@ void CChooseColorStatic::_DrawActualUsedColors(CDC *pDC)
             pDC->PolyPolyline(&points[0], &pointCounts[0], (int)pointCounts.size());
             pDC->SelectObject(hOld);
         }
+        if (!points.empty())
+        {
+            // Offset by a pixel and draw a dark dot so this shows up even on light colors.
+            for (CPoint &point : points)
+            {
+                point.y++;
+            }
+            CPen pen(PS_SOLID, 1, RGB(20, 20, 20));
+            HGDIOBJ hOld = pDC->SelectObject(pen);
+            pDC->PolyPolyline(&points[0], &pointCounts[0], (int)pointCounts.size());
+            pDC->SelectObject(hOld);
+        }
     }
 }
 
