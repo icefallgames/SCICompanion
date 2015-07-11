@@ -26,7 +26,7 @@ CBitmapToVGADialog::CBitmapToVGADialog(const Cel *currentBackgroundOptional, con
     _transparentColor = 255;
     _allowInsertAtCurrentPosition = allowInsertAtCurrentPosition;
     _needsUpdate = true;
-    _paletteAlgorithm = 0;
+    _paletteAlgorithm = PaletteAlgorithm::Quantize;
     _insertAtCurrentPosition = 0;
 
     const PaletteComponent *globalPalette = appState->GetResourceMap().GetPalette999();
@@ -167,7 +167,7 @@ void CBitmapToVGADialog::DoDataExchange(CDataExchange* pDX)
         m_wndRefresh.SetIcon(IDI_REFRESH, 0, 0, 0, 16, 16);
 
         m_wndRadio1.SetCheck(1); // Check the first guy by default
-        _paletteAlgorithm = 0;
+        _paletteAlgorithm = PaletteAlgorithm::Quantize;
         _fInitializedControls = true;
 
         DDX_Control(pDX, IDC_STATICPALETTE, m_wndPalette);
@@ -301,11 +301,11 @@ void CBitmapToVGADialog::_SyncControlState()
         // We can't offer an option to use the image palette
         m_wndRadio3.EnableWindow(FALSE);
         disableRadio3 = true;
-        if (_paletteAlgorithm == 2)
+        if (_paletteAlgorithm == PaletteAlgorithm::UseImported)
         {
             m_wndRadio1.SetCheck(1);
             m_wndRadio3.SetCheck(0);
-            _paletteAlgorithm = 0;
+            _paletteAlgorithm = PaletteAlgorithm::Quantize;
             optionsChanged = true;
         }
     }
@@ -317,10 +317,10 @@ void CBitmapToVGADialog::_SyncControlState()
     // We can't use anything but the current pic palette if we "insert at current position"
     if (_insertAtCurrentPosition)
     {
-        if (_paletteAlgorithm != 1)
+        if (_paletteAlgorithm != PaletteAlgorithm::MatchExisting)
         {
             m_wndRadio2.SetCheck(1);
-            _paletteAlgorithm = 1;
+            _paletteAlgorithm = PaletteAlgorithm::MatchExisting;
             optionsChanged = true;
         }
         m_wndRadio1.EnableWindow(FALSE);
@@ -332,7 +332,7 @@ void CBitmapToVGADialog::_SyncControlState()
         m_wndRadio3.EnableWindow(!disableRadio3);
     }
 
-    if (_paletteAlgorithm == 2)
+    if (_paletteAlgorithm == PaletteAlgorithm::UseImported)
     {
         // Ensure all sliders and the scale checkbox are disabled.
         if (m_wndCheck1.IsWindowEnabled())
@@ -354,7 +354,7 @@ void CBitmapToVGADialog::_SyncControlState()
         _disableAllEffects = false;
     }
 
-    if (_paletteAlgorithm == 1)
+    if (_paletteAlgorithm == PaletteAlgorithm::MatchExisting)
     {
         m_wndDither.EnableWindow(TRUE);
     }
@@ -451,7 +451,7 @@ void CBitmapToVGADialog::_Update()
     // We need to generate a final image for m_wndPic
     switch (_paletteAlgorithm)
     {
-    case 0:
+    case PaletteAlgorithm::Quantize:
         {
             if (_pbmpCurrent)
             {
@@ -495,7 +495,7 @@ void CBitmapToVGADialog::_Update()
         }
         break;
 
-    case 1:
+    case PaletteAlgorithm::MatchExisting:
         if (_targetCurrentPalette && _pbmpCurrent)
         {
             // Try to map colors to the current pic palette
@@ -512,6 +512,7 @@ void CBitmapToVGADialog::_Update()
             PixelFormat format1 = _pbmpCurrent->GetPixelFormat();
             PixelFormat format2 = PixelFormat32bppARGB;
 
+            bool dither = (m_wndDither.GetCheck() == BST_CHECKED);
 
             if (Ok == _pbmpCurrent->LockBits(&rect, ImageLockModeRead, PixelFormat32bppARGB, &bitmapData))
             {
@@ -529,6 +530,7 @@ void CBitmapToVGADialog::_Update()
                 int cxE = cx + 2;   // Room for below left and right
                 int cyE = cy + 1;   // Room for below
                 unique_ptr<RGBError[]> error = make_unique<RGBError[]>(cxE * cyE);
+                RGBQUAD *targetColors = _targetCurrentPalette->Colors;
 
                 for (UINT y = 0; y < cy; y++)
                 {
@@ -557,7 +559,7 @@ void CBitmapToVGADialog::_Update()
                             {
                                 if (usableColors[i])
                                 {
-                                    RGBQUAD paletteColor = _targetCurrentPalette->Colors[i];
+                                    RGBQUAD paletteColor = targetColors[i];
                                     if ((i != (int)_transparentColor) && (paletteColor.rgbReserved != 0x0))
                                     {
                                         int distance = GetColorDistance(rgb, paletteColor);
@@ -573,10 +575,10 @@ void CBitmapToVGADialog::_Update()
 
                         temp->Data[x + y * CX_ACTUAL(cx)] = (uint8_t)bestIndex;
 
-                        if (m_wndDither.GetCheck() == BST_CHECKED)
+                        if (dither)
                         {
                             // Propagate the error to nearby pixels using the floyd-steinberg algorithm
-                            RGBQUAD usedRgb = _targetCurrentPalette->Colors[bestIndex];
+                            RGBQUAD usedRgb = targetColors[bestIndex];
                             RGBError errorBase;
                             errorBase.r = (int16_t)rgb.rgbRed - (int16_t)usedRgb.rgbRed;
                             errorBase.g = (int16_t)rgb.rgbGreen - (int16_t)usedRgb.rgbGreen;
@@ -596,7 +598,7 @@ void CBitmapToVGADialog::_Update()
             }
         }
         break;
-    case 2:
+    case PaletteAlgorithm::UseImported:
         // Use imported palette... no mods allowed, so use _pbmpOrig, _originalPalette
         // This should only be enabled if _originalPalette is set.
         if (_originalPalette)
@@ -790,21 +792,21 @@ void CBitmapToVGADialog::OnBnClickedCheckglobalpalette()
 
 void CBitmapToVGADialog::OnBnClickedRadio1()
 {
-    _paletteAlgorithm = 0;
+    _paletteAlgorithm = PaletteAlgorithm::Quantize;
     _SyncControlState();
     _Update();
 }
 
 void CBitmapToVGADialog::OnBnClickedRadio2()
 {
-    _paletteAlgorithm = 1;
+    _paletteAlgorithm = PaletteAlgorithm::MatchExisting;
     _SyncControlState();
     _Update();
 }
 
 void CBitmapToVGADialog::OnBnClickedRadio3()
 {
-    _paletteAlgorithm = 2;
+    _paletteAlgorithm = PaletteAlgorithm::UseImported;
     _SyncControlState();
     _Update();
 }

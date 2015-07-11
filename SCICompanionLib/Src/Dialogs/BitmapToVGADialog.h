@@ -4,9 +4,14 @@
 #include "PrepareBitmapBase.h"
 #include "ChooseColorStatic.h"
 
-// CBitmapToVGADialog dialog
-
 struct Cel;
+
+enum class PaletteAlgorithm
+{
+    Quantize = 0,
+    MatchExisting = 1,
+    UseImported = 2,
+};
 
 class CBitmapToVGADialog : public CExtNCW<CExtResizableDialog>, public PrepareBitmapBase, public IColorDialogCallback
 {
@@ -68,7 +73,7 @@ private:
     CExtRadioButton m_wndRadio1;    // palette options
     CExtRadioButton m_wndRadio2;
     CExtRadioButton m_wndRadio3;
-    int _paletteAlgorithm;
+    PaletteAlgorithm _paletteAlgorithm;
     CExtCheckBox m_wndCheckGlobalPalette;
     CExtCheckBox m_wndCheckOverlay;
 
