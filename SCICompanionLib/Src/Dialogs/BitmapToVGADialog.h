@@ -61,6 +61,7 @@ private:
     CExtGroupBox m_wndGroup2;
     CExtCheckBox m_wndCheck1;
     CExtCheckBox m_wndCheckInsert;
+    CExtCheckBox m_wndDither;
     CExtLabel m_wndLabel1;
     CExtLabel m_wndLabel2;
     CExtLabel m_wndLabel3;
@@ -108,5 +109,6 @@ public:
     afx_msg void OnEnKillfocusEdittransparentcolor();
     afx_msg void OnBnClickedButtonrefresh();
     afx_msg void OnBnClickedCheckoverlay();
+    afx_msg void OnBnClickedCheckdither();
 };
 

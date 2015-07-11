@@ -152,6 +152,8 @@ void CBitmapToVGADialog::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_RADIO3, m_wndRadio3);
         DDX_Control(pDX, IDC_CHECKINSERT, m_wndCheckInsert);
         DDX_Control(pDX, IDC_CHECKOVERLAY, m_wndCheckOverlay);
+        DDX_Control(pDX, IDC_CHECKDITHER, m_wndDither);
+        m_wndDither.SetCheck(BST_UNCHECKED);
 
         DDX_Control(pDX, IDC_STATICGROUP3, m_wndGroup3);
         DDX_Control(pDX, IDC_EDITTRANSPARENTCOLOR, m_wndEditTransparentColor);
@@ -352,6 +354,15 @@ void CBitmapToVGADialog::_SyncControlState()
         _disableAllEffects = false;
     }
 
+    if (_paletteAlgorithm == 1)
+    {
+        m_wndDither.EnableWindow(TRUE);
+    }
+    else
+    {
+        m_wndDither.EnableWindow(FALSE);
+    }
+
     if (optionsChanged)
     {
         _UpdateOrigBitmap(this);
@@ -399,6 +410,36 @@ void _Overlay(Cel &cel, const Cel *currentBackgroundOptional)
 }
 
 const uint8_t AlphaThreshold = 128;
+
+struct RGBError
+{
+    RGBError() : r(0), g(0), b(0) {}
+    int16_t r;
+    int16_t g;
+    int16_t b;
+
+    RGBError operator*(int16_t m)
+    {
+        RGBError error = *this;
+        error.r *= m;
+        error.g *= m;
+        error.b *= m;
+        return error;
+    }
+
+    RGBError &operator+=(const RGBError &error)
+    {
+        r += error.r;
+        g += error.g;
+        b += error.b;
+        return *this;
+    }
+};
+
+uint8_t ClampTo8(int16_t in)
+{
+    return (uint8_t)min(max(in, 0), 255);
+}
 
 void CBitmapToVGADialog::_Update()
 {
@@ -485,6 +526,10 @@ void CBitmapToVGADialog::_Update()
                 bool usableColors[256];
                 m_wndPalette.GetMultipleSelection(usableColors);
 
+                int cxE = cx + 2;   // Room for below left and right
+                int cyE = cy + 1;   // Room for below
+                unique_ptr<RGBError[]> error = make_unique<RGBError[]>(cxE * cyE);
+
                 for (UINT y = 0; y < cy; y++)
                 {
                     for (UINT x = 0; x < cx; x++)
@@ -494,6 +539,13 @@ void CBitmapToVGADialog::_Update()
                         int bestDistance = INT_MAX;
                         uint8_t *source = pDIBBits24 + (x * 4) + y * bitmapData.Stride;
                         RGBQUAD rgb = { *source, *(source + 1), *(source + 2) };
+
+                        // Apply the accumulated error before matching:
+                        RGBError errorAccum = error[y * cxE + x];
+                        rgb.rgbGreen = ClampTo8((int16_t)rgb.rgbGreen + (errorAccum.g / 16));
+                        rgb.rgbRed = ClampTo8((int16_t)rgb.rgbRed + (errorAccum.r / 16));
+                        rgb.rgbBlue = ClampTo8((int16_t)rgb.rgbBlue + (errorAccum.b / 16));
+
                         bool isTransparent = (*(source + 3) < AlphaThreshold);
                         if (isTransparent)
                         {
@@ -520,6 +572,20 @@ void CBitmapToVGADialog::_Update()
                         }
 
                         temp->Data[x + y * CX_ACTUAL(cx)] = (uint8_t)bestIndex;
+
+                        if (m_wndDither.GetCheck() == BST_CHECKED)
+                        {
+                            // Propagate the error to nearby pixels using the floyd-steinberg algorithm
+                            RGBQUAD usedRgb = _targetCurrentPalette->Colors[bestIndex];
+                            RGBError errorBase;
+                            errorBase.r = (int16_t)rgb.rgbRed - (int16_t)usedRgb.rgbRed;
+                            errorBase.g = (int16_t)rgb.rgbGreen - (int16_t)usedRgb.rgbGreen;
+                            errorBase.b = (int16_t)rgb.rgbBlue - (int16_t)usedRgb.rgbBlue;
+                            error[y * cxE + x + 1] += errorBase * 7;        // 7 to the right
+                            error[(y + 1) * cxE + x - 1] += errorBase * 3;  // 3 below the left (CRAP, WE OVERWRITE PREV LINE)
+                            error[(y + 1) * cxE + x] += errorBase * 5;      // 5 below
+                            error[(y + 1) * cxE + x + 1] += errorBase * 1;  // 1 below to the right
+                        }
                     }
                 }
 
@@ -621,6 +687,7 @@ BEGIN_MESSAGE_MAP(CBitmapToVGADialog, CExtNCW<CExtResizableDialog>)
     ON_EN_KILLFOCUS(IDC_EDITTRANSPARENTCOLOR, &CBitmapToVGADialog::OnEnKillfocusEdittransparentcolor)
     ON_BN_CLICKED(IDC_BUTTONREFRESH, &CBitmapToVGADialog::OnBnClickedButtonrefresh)
     ON_BN_CLICKED(IDC_CHECKOVERLAY, &CBitmapToVGADialog::OnBnClickedCheckoverlay)
+    ON_BN_CLICKED(IDC_CHECKDITHER, &CBitmapToVGADialog::OnBnClickedCheckdither)
 END_MESSAGE_MAP()
 
 
@@ -769,6 +836,12 @@ void CBitmapToVGADialog::OnBnClickedButtonrefresh()
 
 
 void CBitmapToVGADialog::OnBnClickedCheckoverlay()
+{
+    _Update();
+}
+
+
+void CBitmapToVGADialog::OnBnClickedCheckdither()
 {
     _Update();
 }

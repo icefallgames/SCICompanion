@@ -388,6 +388,7 @@
 #define IDC_RADIO2                      1089
 #define IDC_RADIO3                      1090
 #define IDC_RADIO4                      1091
+#define IDC_CHECKDITHER                 1091
 #define IDC_SLIDERNUMCOLORS             1092
 #define IDC_RADIO5                      1093
 #define IDC_RADIOHALFTONE               1094
