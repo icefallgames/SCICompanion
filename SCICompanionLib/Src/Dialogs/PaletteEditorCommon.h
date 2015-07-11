@@ -201,55 +201,10 @@ protected:
         return false;
     }
 
-    // Returns inclusive start/end pairs
-    std::vector<std::pair<uint8_t, uint8_t>> GetSelectedRanges()
-    {
-        std::vector<std::pair<uint8_t, uint8_t>> ranges;
-
-        bool multipleSelection[256];
-        m_wndStatic.GetMultipleSelection(multipleSelection);
-        // Calculate the ranges
-        bool on = false;
-        int startRange = 0;
-        for (int i = 0; i < 256; i++)
-        {
-            if (multipleSelection[i] && !on)
-            {
-                startRange = i;
-                on = true;
-            }
-            if (!multipleSelection[i] && on)
-            {
-                ranges.emplace_back((uint8_t)startRange, (uint8_t)(i - 1));
-                on = false;
-            }
-        }
-        if (on)
-        {
-            ranges.emplace_back((uint8_t)startRange, 255);
-        }
-        return ranges;
-    }
-
     void _SyncSelection()
     {
-        std::vector<std::pair<uint8_t, uint8_t>> ranges = GetSelectedRanges();
-        std::string rangeText;
-        for (auto &range : ranges)
-        {
-            if (!rangeText.empty())
-            {
-                rangeText += ",\r\n";
-            }
-            if (range.first == range.second)
-            {
-                rangeText += fmt::format("{0}", (int)range.first);
-            }
-            else
-            {
-                rangeText += fmt::format("{0}-{1}", (int)range.first, (int)range.second);
-            }
-        }
+        std::vector<std::pair<uint8_t, uint8_t>> ranges = GetSelectedRanges(m_wndStatic);
+        std::string rangeText = GetRangeText(ranges);
         m_wndEditRange.SetWindowTextA(rangeText.c_str());
 
         // The range button only works with a single range3.
@@ -448,7 +403,7 @@ void PaletteEditorCommon<T>::OnBnClickedButtoneditcolor()
 template<class T>
 void PaletteEditorCommon<T>::OnBnClickedButtonGradient()
 {
-    std::vector<std::pair<uint8_t, uint8_t>> ranges = GetSelectedRanges();
+    std::vector<std::pair<uint8_t, uint8_t>> ranges = GetSelectedRanges(m_wndStatic);
     if (_IsSingleRangeSelected(ranges))
     {
         PaletteComponent paletteBackup = *_palette;
@@ -550,7 +505,7 @@ void PaletteEditorCommon<T>::OnImportPaletteAt()
 template<class T>
 void PaletteEditorCommon<T>::OnExportPaletteRange()
 {
-    std::vector<std::pair<uint8_t, uint8_t>> ranges = GetSelectedRanges();
+    std::vector<std::pair<uint8_t, uint8_t>> ranges = GetSelectedRanges(m_wndStatic);
     if (_IsSingleRangeSelected(ranges))
     {
         std::string filename;

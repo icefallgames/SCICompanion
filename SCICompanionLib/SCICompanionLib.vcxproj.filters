@@ -663,6 +663,9 @@
     <ClCompile Include="Src\r8brain\r8bbase.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Dialogs\ColorShifterDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCICompanionLib.h">
@@ -1407,6 +1410,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\r8brain\r8butil.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Dialogs\ColorShifterDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Dialogs\ColorShiftCallback.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

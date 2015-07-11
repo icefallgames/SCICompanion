@@ -15,6 +15,7 @@
 #include "PaletteEditorDialog.h"
 #include "ImageUtil.h"
 #include "ConvertFromToPaletteDialog.h"
+#include "ColorShifterDialog.h"
 
 // Thickness of the sizers around the image:
 #define SIZER_SIZE 6
@@ -426,6 +427,7 @@ BEGIN_MESSAGE_MAP(CRasterView, CScrollingThing<CView>)
     ON_COMMAND(ID_VIEW_EDITPALETTE, EditVGAPalette)
     ON_COMMAND(ID_VIEW_REMOVEEMBEDDEDPALETTE, RemoveVGAPalette)
     ON_COMMAND(ID_VIEW_REMAPPALETTE, RemapPalette)
+    ON_COMMAND(ID_VIEW_SHIFTCOLORS, ShiftColors)
     ON_WM_RBUTTONDOWN()
     ON_WM_LBUTTONDOWN()
     ON_WM_LBUTTONUP()
@@ -468,6 +470,7 @@ BEGIN_MESSAGE_MAP(CRasterView, CScrollingThing<CView>)
     ON_UPDATE_COMMAND_UI(ID_VIEW_EDITPALETTE, OnUpdateIsVGA)
     ON_UPDATE_COMMAND_UI(ID_VIEW_REMOVEEMBEDDEDPALETTE, OnUpdateHasVGAPalette)
     ON_UPDATE_COMMAND_UI(ID_VIEW_REMAPPALETTE, OnUpdateIsVGA)
+    ON_UPDATE_COMMAND_UI(ID_VIEW_SHIFTCOLORS, OnUpdateIsVGA)
 END_MESSAGE_MAP()
 
 
@@ -697,6 +700,15 @@ void CRasterView::OnInitialUpdate()
     {
         _nPenWidth = pDoc->GetPenWidth();
         _SyncColor(pDoc);
+    }
+}
+
+void CRasterView::OnColorShift()
+{
+    CNewRasterResourceDocument *pDoc = GetDoc();
+    if (pDoc)
+    {
+        pDoc->UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(RasterChangeHint::NewView));
     }
 }
 
@@ -3095,6 +3107,32 @@ void CRasterView::RemapPalette()
         });
         
         // TODO: switch to new palette in document.
+    }
+}
+
+void DoNothing(ResourceEntity &resource);
+
+void CRasterView::ShiftColors()
+{
+    CNewRasterResourceDocument *pDoc = GetDoc();
+    if (pDoc)
+    {
+        const PaletteComponent *paletteComponent = pDoc->GetCurrentPaletteComponent();
+        if (paletteComponent)
+        {
+            pDoc->PreviewChanges<RasterComponent>(
+                [paletteComponent, pDoc, this](RasterComponent &raster)
+            {
+                RasterChangeHint hint = RasterChangeHint::None;
+                ColorShifterDialog dialog(*paletteComponent, raster, pDoc->GetSelectedIndex(), *this);
+                if (IDOK == dialog.DoModal())
+                {
+                    hint |= RasterChangeHint::NewView;
+                }
+                return WrapHint(hint);
+            }
+                );
+        }
     }
 }
 

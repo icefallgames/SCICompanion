@@ -31,23 +31,37 @@ public:
         return ApplyChanges<_TComponentArgs ...>(f, DoNothing);
     }
 
+    // Similar to ApplyChanges, but the new item is added to the undo stack before it's committed
+    // so it can be accessed by views/docs. If no changes are made, it is removed from the undo stack.
+    template<typename... _TComponentArgs, typename _Func>
+    bool PreviewChanges(_Func f)
+    {
+        return ApplyChanges<_TComponentArgs ...>(f, DoNothing, true);
+    }
+
     // 
     // Usage as above, but allows for a second lambda to be passed, which receives the ResourceEntity
     // This is called prior to the first lamba. You would use this to add/remove components from the resource.
     // 
     template<typename... _TComponentArgs, typename _Func, typename _PreFunc>
-    bool ApplyChanges(_Func f, _PreFunc pf)
+    bool ApplyChanges(_Func f, _PreFunc pf, bool preview = false)
     {
         bool modified = false;
         const ResourceEntity *pEntity = static_cast<const ResourceEntity*>(GetResource());
         if (pEntity)
         {
             std::unique_ptr<ResourceEntity> pNew = pEntity->Clone();
+            ResourceEntity *temp = pNew.get();
+            if (preview)
+            {
+                // If previewing, add it now...
+                AddNewResourceToUndo(std::move(pNew));
+            }
 
             // Allows modification of the ResourceEntity itself
-            pf(*pNew);
+            pf(*temp);
             // Allows modification of the components attached to it
-            auto updateHint = f(pNew->GetComponent<_TComponentArgs>()... );
+            auto updateHint = f(temp->GetComponent<_TComponentArgs>()...);
 
             static_assert(std::is_base_of<CObject, decltype(updateHint)>::value, "The value returned by the function must be a subclass of CObject. Use WrapHint.");
 
@@ -56,7 +70,10 @@ public:
             modified = (hintNumber != 0);
             if (modified)
             {
-                AddNewResourceToUndo(std::move(pNew));
+                if (!preview)
+                {
+                    AddNewResourceToUndo(std::move(pNew));
+                }
 
                 // This needs to happen before we update views:
                 PostApplyChanges(&updateHint);
@@ -67,6 +84,14 @@ public:
                 if (modified)
                 {
                     SetModifiedFlag(TRUE);
+                }
+            }
+            else
+            {
+                if (preview)
+                {
+                    // Undo the preview we added to the stack.
+                    OnUndo();
                 }
             }
         } 

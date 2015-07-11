@@ -281,6 +281,7 @@
 #define IDD_PALETTEADJUST               386
 #define IDD_PICSIZE                     387
 #define IDI_REFRESH                     388
+#define IDD_COLOR_SHIFTER               388
 #define IDC_CHOOSECOLORSTATIC           1001
 #define IDC_BUTTON1                     1003
 #define IDC_BUTTONDOWN                  1003
@@ -630,8 +631,12 @@
 #define IDC_BUTTONREFRESH               1302
 #define IDC_CHECKOVERLAY                1303
 #define IDC_STATICBRIGHTNESS            1304
+#define IDC_STATICGROUP                 1304
 #define IDC_EDITBRIGHTNESS              1305
+#define IDC_RADIOCEL                    1305
+#define IDC_RADIOLOOP                   1306
 #define IDC_STATICTINTSTRENGTH          1307
+#define IDC_RADIOVIEW                   1307
 #define IDC_EDITTINTSTRENGTH            1308
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
@@ -903,6 +908,7 @@
 #define ID_MESSAGE_ADDCLONE             33205
 #define ID_PIC_CHANGEDIMENSIONS         33206
 #define ID_PIC_REMOVESETVISUAL          33207
+#define ID_VIEW_SHIFTCOLORS             33208
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -911,8 +917,8 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        389
-#define _APS_NEXT_COMMAND_VALUE         33208
-#define _APS_NEXT_CONTROL_VALUE         1304
+#define _APS_NEXT_COMMAND_VALUE         33209
+#define _APS_NEXT_CONTROL_VALUE         1306
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

@@ -23,7 +23,7 @@ void PaletteEditorDialog::UpdateNonView(CObject *pObject)
 
 void PaletteEditorDialog::_SyncSelectionCycle()
 {
-    std::vector<std::pair<uint8_t, uint8_t>> ranges = GetSelectedRanges();
+    std::vector<std::pair<uint8_t, uint8_t>> ranges = GetSelectedRanges(m_wndStatic);
     bool canCycle = _IsSingleRangeSelected(ranges);
     if (canCycle)
     {
@@ -124,7 +124,7 @@ void PaletteEditorDialog::OnTimer(UINT_PTR nIDEvent)
     {
         if (_cycling)
         {
-            std::vector<std::pair<uint8_t, uint8_t>> ranges = GetSelectedRanges();
+            std::vector<std::pair<uint8_t, uint8_t>> ranges = GetSelectedRanges(m_wndStatic);
             if (_IsSingleRangeSelected(ranges))
             {
                 int offset = _cycleForward ? 1 : -1;

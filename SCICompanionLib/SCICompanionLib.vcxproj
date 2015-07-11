@@ -212,6 +212,7 @@
     <ClCompile Include="Src\Dialogs\BitmapToVGADialog.cpp" />
     <ClCompile Include="Src\Dialogs\ChooseColorDialogVGA.cpp" />
     <ClCompile Include="Src\Dialogs\ColorAdjustDialog.cpp" />
+    <ClCompile Include="Src\Dialogs\ColorShifterDialog.cpp" />
     <ClCompile Include="Src\Dialogs\ConvertFromToPaletteDialog.cpp" />
     <ClCompile Include="Src\Dialogs\DecompileDialog.cpp" />
     <ClCompile Include="Src\Dialogs\ExtractAllDialog.cpp" />
@@ -265,6 +266,8 @@
     <ClInclude Include="Src\Compile\DecompilerResults.h" />
     <ClInclude Include="Src\cpptoml\cpptoml.h" />
     <ClInclude Include="Src\Dialogs\ColorAdjustDialog.h" />
+    <ClInclude Include="Src\Dialogs\ColorShiftCallback.h" />
+    <ClInclude Include="Src\Dialogs\ColorShifterDialog.h" />
     <ClInclude Include="Src\Dialogs\ConvertFromToPaletteDialog.h" />
     <ClInclude Include="Src\Dialogs\DecompileDialog.h" />
     <ClInclude Include="Src\Dialogs\GradientDialog.h" />

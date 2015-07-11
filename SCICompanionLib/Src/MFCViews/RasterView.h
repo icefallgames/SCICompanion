@@ -2,7 +2,7 @@
 
 #include "ScrollingThing.h"
 #include "View.h"
-
+#include "ColorShiftCallback.h"
 
 // #define FORCE_REDRAW
 
@@ -13,7 +13,7 @@ struct Cel;
 
 // CRasterView view
 
-class CRasterView : public CScrollingThing<CView>
+class CRasterView : public CScrollingThing<CView>, public IColorShiftCallback
 {
 	DECLARE_DYNCREATE(CRasterView)
 
@@ -48,6 +48,9 @@ public:
 	virtual void Dump(CDumpContext& dc) const;
 #endif
     virtual void OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint);
+
+    // IColorShiftCallback
+    void OnColorShift() override;
 
 private:
     // Timer constants
@@ -265,6 +268,7 @@ private:
     afx_msg void EditVGAPalette();
     afx_msg void RemoveVGAPalette();
     afx_msg void RemapPalette();
+    afx_msg void ShiftColors();
 
     void _OnDrawCommand(ViewToolType type);
     void _OnDraw(CDC* pDC);

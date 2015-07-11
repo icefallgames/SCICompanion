@@ -5,6 +5,7 @@
 #include "AppState.h"
 #include "ChooseColorStatic.h"
 #include "ChooseColorDialog.h"
+#include "format.h"
 
 // CChooseColorStatic
 
@@ -726,4 +727,56 @@ void CChooseBrushStatic::_DrawItem(CDC *pDC, int cx, int cy)
     }
 
     _DrawHover(pDC);
+}
+
+
+// Returns inclusive start/end pairs
+std::vector<std::pair<uint8_t, uint8_t>> GetSelectedRanges(CChooseColorStatic &wndStatic)
+{
+    std::vector<std::pair<uint8_t, uint8_t>> ranges;
+
+    bool multipleSelection[256];
+    wndStatic.GetMultipleSelection(multipleSelection);
+    // Calculate the ranges
+    bool on = false;
+    int startRange = 0;
+    for (int i = 0; i < 256; i++)
+    {
+        if (multipleSelection[i] && !on)
+        {
+            startRange = i;
+            on = true;
+        }
+        if (!multipleSelection[i] && on)
+        {
+            ranges.emplace_back((uint8_t)startRange, (uint8_t)(i - 1));
+            on = false;
+        }
+    }
+    if (on)
+    {
+        ranges.emplace_back((uint8_t)startRange, 255);
+    }
+    return ranges;
+}
+
+std::string GetRangeText(const std::vector<std::pair<uint8_t, uint8_t>> &ranges)
+{
+    std::string rangeText;
+    for (auto &range : ranges)
+    {
+        if (!rangeText.empty())
+        {
+            rangeText += ",\r\n";
+        }
+        if (range.first == range.second)
+        {
+            rangeText += fmt::format("{0}", (int)range.first);
+        }
+        else
+        {
+            rangeText += fmt::format("{0}-{1}", (int)range.first, (int)range.second);
+        }
+    }
+    return rangeText;
 }
