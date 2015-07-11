@@ -330,9 +330,18 @@ BOOL PicCommandSidePane::PreTranslateMessage(MSG* pMsg)
     BOOL fRet = FALSE;
     if (GetFocus() == static_cast<CWnd*>(&m_wndEditPolyPoints))
     {
+        fRet = HandleEditBoxCommands(pMsg, m_wndEditPolyPoints);
+    }
+    if (!fRet && (GetFocus() == static_cast<CWnd*>(&m_wndEditPolyName)))
+    {
+        fRet = HandleEditBoxCommands(pMsg, m_wndEditPolyName);
         if (!fRet)
         {
-            fRet = HandleEditBoxCommands(pMsg, m_wndEditPolyPoints);
+            if ((pMsg->message == WM_KEYDOWN) && (pMsg->wParam == VK_RETURN))
+            {
+                PushNameToPoly();
+                fRet = TRUE;
+            }
         }
     }
     if (!fRet && _hAccel && (pMsg->message >= WM_KEYFIRST && pMsg->message <= WM_KEYLAST))
