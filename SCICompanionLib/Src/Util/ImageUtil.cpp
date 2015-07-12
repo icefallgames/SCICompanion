@@ -3,6 +3,7 @@
 #include "View.h"
 #include "PaletteOperations.h"
 #include "gif_lib.h"
+#include "VGADither.h"
 
 using namespace Gdiplus;
 
@@ -350,12 +351,12 @@ uint8_t _FindBestPaletteIndexMatch(uint8_t transparentColor, RGBQUAD desiredColo
 
 int g_dummyTrack[256];
 
-void ConvertBitmapToCel(int *trackUsage, Gdiplus::Bitmap &bitmap, uint8_t transparentColor, bool isEGA16, bool egaDither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *colors, std::vector<Cel> &cels)
+void ConvertBitmapToCel(int *trackUsage, Gdiplus::Bitmap &bitmap, uint8_t transparentColor, bool isEGA16, bool performDither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *colors, std::vector<Cel> &cels)
 {
     bool write = (trackUsage == nullptr);
     if (trackUsage)
     {
-        egaDither = false;
+        performDither = false;
     }
     else
     {
@@ -389,6 +390,9 @@ void ConvertBitmapToCel(int *trackUsage, Gdiplus::Bitmap &bitmap, uint8_t transp
         cel.size = size16(width, height);
         cel.TransparentColor = transparentColor;
         cel.Data.allocate(CX_ACTUAL(width)* height);
+
+        VGADither dither(width, height);
+
         for (int y = 0; y < height; y++)
         {
             uint8_t *pBitsRow = &cel.Data[0] + ((height - y - 1) * CX_ACTUAL(width));
@@ -409,16 +413,22 @@ void ConvertBitmapToCel(int *trackUsage, Gdiplus::Bitmap &bitmap, uint8_t transp
                         if (isEGA16)
                         {
                             // Special-case ega, because we can do dithering
-                            EGACOLOR curColor = GetClosestEGAColor(1, egaDither ? 3 : 2, color.ToCOLORREF());
+                            EGACOLOR curColor = GetClosestEGAColor(1, performDither ? 3 : 2, color.ToCOLORREF());
                             *valuePointer = ((x^y) & 1) ? curColor.color1 : curColor.color2;
                             trackUsage[curColor.color1]++;
                         }
                         else
                         {
                             RGBQUAD rgb = { color.GetB(), color.GetG(), color.GetR(), 0 };
+                            rgb = dither.ApplyErrorAt(rgb, x, y);
                             uint8_t bestMatch = _FindBestPaletteIndexMatch(transparentColor, rgb, colorCount, paletteMapping, colors);
                             trackUsage[bestMatch]++;
                             *valuePointer = bestMatch;
+
+                            if (performDither)
+                            {
+                                dither.PropagateError(rgb, colors[bestMatch], x, y);
+                            }
                         }
                     }
                 }

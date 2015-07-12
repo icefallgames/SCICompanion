@@ -8,6 +8,7 @@
 #include "Components.h"
 #include "RasterOperations.h"
 #include "ImageUtil.h"
+#include "VGADither.h"
 
 using namespace std;
 using namespace fmt;
@@ -411,36 +412,6 @@ void _Overlay(Cel &cel, const Cel *currentBackgroundOptional)
 
 const uint8_t AlphaThreshold = 128;
 
-struct RGBError
-{
-    RGBError() : r(0), g(0), b(0) {}
-    int16_t r;
-    int16_t g;
-    int16_t b;
-
-    RGBError operator*(int16_t m)
-    {
-        RGBError error = *this;
-        error.r *= m;
-        error.g *= m;
-        error.b *= m;
-        return error;
-    }
-
-    RGBError &operator+=(const RGBError &error)
-    {
-        r += error.r;
-        g += error.g;
-        b += error.b;
-        return *this;
-    }
-};
-
-uint8_t ClampTo8(int16_t in)
-{
-    return (uint8_t)min(max(in, 0), 255);
-}
-
 void CBitmapToVGADialog::_Update()
 {
     _finalResult.reset(nullptr);
@@ -512,7 +483,7 @@ void CBitmapToVGADialog::_Update()
             PixelFormat format1 = _pbmpCurrent->GetPixelFormat();
             PixelFormat format2 = PixelFormat32bppARGB;
 
-            bool dither = (m_wndDither.GetCheck() == BST_CHECKED);
+            bool performDither = (m_wndDither.GetCheck() == BST_CHECKED);
 
             if (Ok == _pbmpCurrent->LockBits(&rect, ImageLockModeRead, PixelFormat32bppARGB, &bitmapData))
             {
@@ -527,9 +498,7 @@ void CBitmapToVGADialog::_Update()
                 bool usableColors[256];
                 m_wndPalette.GetMultipleSelection(usableColors);
 
-                int cxE = cx + 2;   // Room for below left and right
-                int cyE = cy + 1;   // Room for below
-                unique_ptr<RGBError[]> error = make_unique<RGBError[]>(cxE * cyE);
+                VGADither dither(cx, cy);
                 RGBQUAD *targetColors = _targetCurrentPalette->Colors;
 
                 for (UINT y = 0; y < cy; y++)
@@ -543,10 +512,7 @@ void CBitmapToVGADialog::_Update()
                         RGBQUAD rgb = { *source, *(source + 1), *(source + 2) };
 
                         // Apply the accumulated error before matching:
-                        RGBError errorAccum = error[y * cxE + x];
-                        rgb.rgbGreen = ClampTo8((int16_t)rgb.rgbGreen + (errorAccum.g / 16));
-                        rgb.rgbRed = ClampTo8((int16_t)rgb.rgbRed + (errorAccum.r / 16));
-                        rgb.rgbBlue = ClampTo8((int16_t)rgb.rgbBlue + (errorAccum.b / 16));
+                        rgb = dither.ApplyErrorAt(rgb, x, y);
 
                         bool isTransparent = (*(source + 3) < AlphaThreshold);
                         if (isTransparent)
@@ -575,18 +541,10 @@ void CBitmapToVGADialog::_Update()
 
                         temp->Data[x + y * CX_ACTUAL(cx)] = (uint8_t)bestIndex;
 
-                        if (dither)
+                        if (performDither)
                         {
-                            // Propagate the error to nearby pixels using the floyd-steinberg algorithm
                             RGBQUAD usedRgb = targetColors[bestIndex];
-                            RGBError errorBase;
-                            errorBase.r = (int16_t)rgb.rgbRed - (int16_t)usedRgb.rgbRed;
-                            errorBase.g = (int16_t)rgb.rgbGreen - (int16_t)usedRgb.rgbGreen;
-                            errorBase.b = (int16_t)rgb.rgbBlue - (int16_t)usedRgb.rgbBlue;
-                            error[y * cxE + x + 1] += errorBase * 7;        // 7 to the right
-                            error[(y + 1) * cxE + x - 1] += errorBase * 3;  // 3 below the left (CRAP, WE OVERWRITE PREV LINE)
-                            error[(y + 1) * cxE + x] += errorBase * 5;      // 5 below
-                            error[(y + 1) * cxE + x + 1] += errorBase * 1;  // 1 below to the right
+                            dither.PropagateError(rgb, usedRgb, x, y);
                         }
                     }
                 }
