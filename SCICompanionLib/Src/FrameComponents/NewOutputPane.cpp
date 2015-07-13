@@ -41,6 +41,9 @@ void NewOutputPane::AddBatch(OutputPaneType type, std::vector<CompileResult> &co
     std::vector<CompileResult> &results = _results[(int)type];
     copy(compileResults.begin(), compileResults.end(), back_inserter(results));
     _SyncCombo();
+    // Scroll to the bottom
+     m_wndListBox.SendMessage(LB_SETTOPINDEX, ((int)results.size() - 1), 0);
+    //m_wndListBox.SendMessage(WM_KEYDOWN, VK_END, 0);
 }
 
 int NewOutputPane::_GetCurrentType()

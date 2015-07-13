@@ -386,7 +386,7 @@ LRESULT CMainFrame::OnOutputPaneResults(WPARAM wParam, LPARAM lParam)
 {
     std::vector<CompileResult> *results = reinterpret_cast<std::vector<CompileResult>*>(lParam);
     GetOutputPane().AddBatch((OutputPaneType)wParam, *results);
-    GetOutputPane().FinishAdd((OutputPaneType)wParam);
+    //GetOutputPane().FinishAdd((OutputPaneType)wParam);
     delete results;
     return 0;
 }
