@@ -657,12 +657,13 @@ void DropResourceFiles(CArray<CString, CString&> *pDropFiles)
             {
                 // Before adding it, check to see if this resource number already exists.
                 bool askForNumber = false;
-                if (appState->GetResourceMap().DoesResourceExist(data.GetType(), iNumber))
+                data.SetName(nullptr);
+                std::string existingName;
+                if (appState->GetResourceMap().DoesResourceExist(data.GetType(), iNumber, &existingName))
                 {
+                    data.SetName(existingName.c_str());
                     askForNumber = (IDYES == AfxMessageBox(fmt::format("Resource {0} is already been used. Use a different resource number?", iNumber).c_str(), MB_OK | MB_YESNO));
                 }
-
-                data.SetName(nullptr);
                 if (askForNumber)
                 {
                     appState->GetResourceMap().AppendResourceAskForNumber(data, true);

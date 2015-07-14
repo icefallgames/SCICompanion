@@ -543,15 +543,23 @@ std::unique_ptr<ResourceContainer> CResourceMap::Resources(ResourceTypeFlags typ
     return Helper().Resources(types, enumFlags, pRecency);
 }
 
-bool CResourceMap::DoesResourceExist(ResourceType type, int number)
+bool CResourceMap::DoesResourceExist(ResourceType type, int number, std::string *retrieveName)
 {
     // NOTE: We exclude path files right now. We could push this functionality into the ResourceSources to optimize.
     ResourceEnumFlags enumFlags = ResourceEnumFlags::ExcludePatchFiles;
+    if (retrieveName)
+    {
+        enumFlags |= ResourceEnumFlags::NameLookups;
+    }
     auto &resourceContainer = Resources(ResourceTypeToFlag(type), enumFlags);
     for (auto &blobIt = resourceContainer->begin(); blobIt != resourceContainer->end(); ++blobIt)
     {
         if (blobIt.GetResourceNumber() == number)
         {
+            if (retrieveName)
+            {
+                *retrieveName = (*blobIt)->GetName();
+            }
             return true;
         }
     }
