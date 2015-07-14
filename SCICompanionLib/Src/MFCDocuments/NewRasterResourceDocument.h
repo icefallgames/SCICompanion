@@ -61,6 +61,7 @@ public:
     }
     std::string GetPreviewLetters() { return _previewLetters;  }
     void MakeFont();
+    void ExportAsGif();
 
     bool v_PreventUndos() { return _fLocked; }
     void v_OnUndoRedo();
@@ -101,6 +102,11 @@ private:
     void _InsertFiles(const std::vector<std::string> &files);
     void _ApplyImageSequence(uint8_t transparentColor, const PaletteComponent *optionalNewPalette, std::vector<ImageSequenceItem> &items);
     std::list<ResourceEntity*>::iterator _GetLastUndoFrame();
+    bool _GetColors(const RasterComponent &raster, const PaletteComponent *optionalNewPalette,
+        const uint8_t **paletteMapping,
+        int *colorCount,
+        const RGBQUAD **colors
+        );
 
     template<typename _T>
     const _T &GetComponent() const

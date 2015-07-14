@@ -29,7 +29,9 @@ BEGIN_MESSAGE_MAP(CNewRasterResourceDocument, TCLASS_2(CUndoResource, CResourceD
     ON_COMMAND(ID_ANIMATE, OnAnimate)
     ON_COMMAND(ID_IMPORT_IMAGESEQUENCE, OnImportImageSequence)
     ON_COMMAND(ID_MAKEFONT, MakeFont)
+    ON_COMMAND(ID_VIEW_EXPORTASGIF, ExportAsGif)
     ON_UPDATE_COMMAND_UI(ID_IMPORT_IMAGESEQUENCE, OnUpdateImportImage)
+    ON_UPDATE_COMMAND_UI(ID_VIEW_EXPORTASGIF, CResourceDocument::OnUpdateAlwaysOn)
     ON_UPDATE_COMMAND_UI(ID_ANIMATE, OnUpdateAnimate)
     ON_UPDATE_COMMAND_UI(ID_MAKEFONT, OnUpdateFont)
 END_MESSAGE_MAP()
@@ -314,6 +316,51 @@ void _FinalizeSequence(int *trackUsage, vector<Cel> &finalCels, bool optionalNew
     }
 }
 
+bool CNewRasterResourceDocument::_GetColors(const RasterComponent &raster, const PaletteComponent *optionalNewPalette,
+    const uint8_t **paletteMapping,
+    int *colorCount,
+    const RGBQUAD **colors
+    )
+{
+    // TODO: Handle transparent colors?
+    bool isEGA16 = false;
+    *paletteMapping = optionalNewPalette ? optionalNewPalette->Mapping : raster.Traits.PaletteMapping;
+    *colorCount = optionalNewPalette ? 256 : 0;
+    *colors = optionalNewPalette ? optionalNewPalette->Colors : raster.Traits.Palette;
+    switch (raster.Traits.PaletteType)
+    {
+        case PaletteType::VGA_256:
+        {
+            *colorCount = 256;
+            const PaletteComponent *embedded = GetResource()->TryGetComponent<PaletteComponent>();
+            if (embedded)
+            {
+                *colors = embedded->Colors;
+            }
+            else
+            {
+                const PaletteComponent *global = this->GetCurrentPaletteComponent();
+                if (global)
+                {
+                    *colors = global->Colors;
+                }
+            }
+            break;
+        }
+        case PaletteType::EGA_Four:
+            *colorCount = 4;
+            break;
+        case PaletteType::EGA_Sixteen:
+            isEGA16 = true;
+            *colorCount = 16;
+            break;
+        case PaletteType::EGA_Two:
+            *colorCount = 2;
+            break;
+    }
+    return isEGA16;
+}
+
 void CNewRasterResourceDocument::_ApplyImageSequence(uint8_t transparentColor, const PaletteComponent *optionalNewPalette, std::vector<ImageSequenceItem> &items)
 {
     // If optionalNewPalette isn't provided, we need to obtain the palette we're converting to.
@@ -322,42 +369,10 @@ void CNewRasterResourceDocument::_ApplyImageSequence(uint8_t transparentColor, c
     //  - embedded palette
     //  - global palette
     RasterComponent &raster = GetComponent<RasterComponent>();
-    // TODO: Handle transparent colors?
-    bool isEGA16 = false;
-    const uint8_t *paletteMapping = optionalNewPalette ? optionalNewPalette->Mapping : raster.Traits.PaletteMapping;
-    int colorCount = optionalNewPalette ? 256 : 0;
-    const RGBQUAD *colors = optionalNewPalette ? optionalNewPalette->Colors : raster.Traits.Palette;
-    switch (raster.Traits.PaletteType)
-    {
-        case PaletteType::VGA_256:
-        {
-            colorCount = 256;
-            const PaletteComponent *embedded = GetResource()->TryGetComponent<PaletteComponent>();
-            if (embedded)
-            {
-                colors = embedded->Colors;
-            }
-            else
-            {
-                const PaletteComponent *global = this->GetCurrentPaletteComponent();
-                if (global)
-                {
-                    colors = global->Colors;
-                }
-            }
-            break;
-        }
-        case PaletteType::EGA_Four:
-            colorCount = 4;
-            break;
-        case PaletteType::EGA_Sixteen:
-            isEGA16 = true;
-            colorCount = 16;
-            break;
-        case PaletteType::EGA_Two:
-            colorCount = 2;
-            break;
-    }
+    int colorCount;
+    const RGBQUAD *colors;
+    const uint8_t *paletteMapping;
+    bool isEGA16 = _GetColors(raster, optionalNewPalette, &paletteMapping, &colorCount, &colors);
 
     if (colors)
     {
@@ -616,6 +631,33 @@ void CNewRasterResourceDocument::OnAnimate()
         dialog.SetTitle(GetTitle());
         dialog.SetLoop(_nLoop);
         dialog.DoModal();
+    }
+}
+
+const TCHAR g_rgszHeaderFilter[] = TEXT("GIF Files (*.gif)|*.gif|All Files (*.*)|*.*");
+
+void CNewRasterResourceDocument::ExportAsGif()
+{
+    SCI_RESOURCE_INFO &ri = GetResourceInfo(GetResource()->GetType());
+    // Set up the save dialog.
+    std::string filespec = fmt::format("{0}_{1}", ri.pszTitleDefault, GetResource()->ResourceNumber);
+    CFileDialog fileDialog(FALSE,
+        ".gif",
+        filespec.c_str(),
+        OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+        g_rgszHeaderFilter);
+    if (IDOK == fileDialog.DoModal())
+    {
+        CString strFileName = fileDialog.GetPathName();
+        _ValidateCelIndex();
+        RasterComponent &raster = GetComponent<RasterComponent>();
+
+        int colorCount;
+        const RGBQUAD *colors;
+        const uint8_t *paletteMapping;
+        _GetColors(raster, nullptr, &paletteMapping, &colorCount, &colors);
+
+        SaveCelsAndPaletteToGIFFile(strFileName, raster.Loops[_nLoop].Cels, colorCount, colors, paletteMapping, raster.Loops[_nLoop].Cels[0].TransparentColor);
     }
 }
 

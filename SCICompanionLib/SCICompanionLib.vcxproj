@@ -229,6 +229,7 @@
     <ClCompile Include="Src\FrameComponents\MessageSource.cpp" />
     <ClCompile Include="Src\FrameComponents\NewOutputPane.cpp" />
     <ClCompile Include="Src\FrameComponents\PicHelperPane.cpp" />
+    <ClCompile Include="Src\GIFLIB\egif_lib.cpp" />
     <ClCompile Include="Src\MFCDocuments\DocumentWithPaletteChoices.cpp" />
     <ClCompile Include="Src\r8brain\r8bbase.cpp" />
     <ClCompile Include="Src\Resources\Polygon.cpp" />
