@@ -472,7 +472,7 @@ BEGIN
         MENUITEM "Show &priority lines",        32799
         MENUITEM "Toggle fake &ego\tCtrl-E",    ID_TOGGLEEGO
         MENUITEM "&Transform coords\tCtrl-T",   ID_LIGHTUPCOORDS
-        MENUITEM "&Import bitmap to pic",       ID_EDIT_PASTEINTOPIC
+        MENUITEM "&Import bitmap to pic",       ID_EDIT_IMPORTPICBACKGROUND
         MENUITEM "&Export 8-bit pic bitmap",    ID_PIC_EXPORT8
         MENUITEM "Edit p&alette",               ID_PIC_EDITPALETTE
         MENUITEM "Change &height",              ID_PIC_CHANGEDIMENSIONS
@@ -657,7 +657,7 @@ IDR_MENUPICBG MENU
 BEGIN
     POPUP "main"
     BEGIN
-        MENUITEM "&Import bitmap to pic",       ID_EDIT_PASTEINTOPIC
+        MENUITEM "&Import bitmap to pic",       ID_EDIT_IMPORTPICBACKGROUND
         MENUITEM "&Export 8-bit pic bitmap",    ID_PIC_EXPORT8
         MENUITEM "Edit &palette",               ID_PIC_EDITPALETTE
     END
@@ -1245,7 +1245,7 @@ BEGIN
     PUSHBUTTON      "Copy",ID_EDIT_COPY,7,42,32,14
     PUSHBUTTON      "Goto script",IDC_GOTOSCRIPT,7,7,103,14,BS_RIGHT
     PUSHBUTTON      "Edit",ID_PIC_EDITPALETTE,7,162,19,14,BS_ICON | BS_FLAT
-    PUSHBUTTON      "Set background",ID_EDIT_PASTEINTOPIC,44,25,66,14
+    PUSHBUTTON      "Set background",ID_EDIT_IMPORTPICBACKGROUND, 44, 25, 66, 14
 END
 
 IDD_DIALOGEMPTY DIALOGEX 0, 0, 129, 221
@@ -1654,7 +1654,7 @@ BEGIN
     PUSHBUTTON      "Copy",ID_EDIT_COPY,7,56,32,14
     PUSHBUTTON      "Goto script",IDC_GOTOSCRIPT,7,7,103,14,BS_RIGHT
     PUSHBUTTON      "Edit",ID_PIC_EDITPALETTE,7,162,19,14,BS_ICON | BS_FLAT
-    PUSHBUTTON      "Set background",ID_EDIT_PASTEINTOPIC,44,25,66,14
+    PUSHBUTTON      "Set background",ID_EDIT_IMPORTPICBACKGROUND, 44, 25, 66, 14
     LISTBOX         IDC_LISTPOLYGONS,7,105,103,31,LBS_OWNERDRAWFIXED | LBS_NOINTEGRALHEIGHT | LBS_NODATA | WS_VSCROLL | WS_TABSTOP
     COMBOBOX        IDC_COMBOPOLYTYPE,44,90,66,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     RTEXT           "Type:",IDC_STATICPOLYTYPE,7,92,30,8

@@ -262,7 +262,7 @@ BEGIN_MESSAGE_MAP(CPicView, CScrollingThing<CView>)
     ON_COMMAND(ID_DEFINEPALETTES, CPicView::OnSetPalette)
     ON_COMMAND(ID_EDIT_COPY, CPicView::OnCopyPic)
     ON_COMMAND(ID_EDIT_PASTE, CPicView::OnPaste)
-    ON_COMMAND(ID_EDIT_PASTEINTOPIC, CPicView::OnPasteIntoPic)
+    ON_COMMAND(ID_EDIT_IMPORTPICBACKGROUND, CPicView::OnPasteIntoPic)
     ON_COMMAND(ID_VIEW_ZOOMIN, CPicView::OnZoomIn)
     ON_COMMAND(ID_VIEW_ZOOMOUT, CPicView::OnZoomOut)
     ON_COMMAND(ID_OBSERVECONTROLLINES, CPicView::OnObserveControlLines)
@@ -307,7 +307,7 @@ BEGIN_MESSAGE_MAP(CPicView, CScrollingThing<CView>)
     ON_UPDATE_COMMAND_UI(ID_DEFINEPALETTES, CPicView::OnCommandUIAlwaysValid)
     ON_UPDATE_COMMAND_UI(ID_EDIT_COPY, CPicView::OnCommandUIAlwaysValid)
     ON_UPDATE_COMMAND_UI(ID_EDIT_PASTE, CPicView::OnCommandUpdatePastePic)
-    ON_UPDATE_COMMAND_UI(ID_EDIT_PASTEINTOPIC, CPicView::OnUpdateIsGDIPAvailable)
+    ON_UPDATE_COMMAND_UI(ID_EDIT_IMPORTPICBACKGROUND, CPicView::OnUpdateIsGDIPAvailable)
     ON_UPDATE_COMMAND_UI(ID_DEFAULTPRIORITY, CPicView::OnCommandUIAlwaysValid)
     ON_UPDATE_COMMAND_UI_RANGE(ID_DEFAULTPRIORITY, ID_MAIN_PRI15, CPicView::OnCommandUIAlwaysValid)
     ON_UPDATE_COMMAND_UI(ID_ZOOMSLIDER, CPicView::OnCommandUIAlwaysValid)
@@ -1240,36 +1240,10 @@ void CPicView::OnPaste()
                             globalLock.Unlock();    // Unlock and close ASAP, before we do the expensive quantization
                             openClipboard.Close();
 
-
-                            if (_GetEditPic()->Traits.IsVGA)
+                            void *pDIBBits = _GetBitsPtrFromBITMAPINFO(pbmi);
+                            if (pDIBBits)
                             {
-                                const PaletteComponent *globalPalette = appState->GetResourceMap().GetPalette999();
-
-                                GetDocument()->ApplyChanges<PicComponent, PaletteComponent>(
-                                    [globalPalette, pDIBBits32](PicComponent &pic, PaletteComponent &palette)
-                                {
-                                    std::unique_ptr<uint8_t[]> sciBits = QuantizeImage(pDIBBits32, 320, 320 * 3, 190, globalPalette->Colors, palette.Colors, 255, 128);
-                                    // We just directly modified the palette.
-                                    PicCommand command;
-                                    Cel cel;
-                                    cel.placement = point16(0, 0);
-                                    cel.size = size16(320, 190);
-                                    cel.TransparentColor = 255;
-                                    cel.Data.allocate(PaddedSize(cel.size));
-                                    cel.Data.assign(&sciBits.get()[0], &sciBits.get()[cel.Data.size()]);
-                                    command.CreateDrawVisualBitmap(cel, true);
-                                    _ReplaceDrawVisual(pic, cel);
-                                    return WrapHint(PicChangeHint::EditPicInvalid | PicChangeHint::Palette);
-                                });
-
-                            }
-                            else
-                            {
-                                void *pDIBBits = _GetBitsPtrFromBITMAPINFO(pbmi);
-                                if (pDIBBits)
-                                {
-                                    _MakeNewMasterTraceImage(NULL, pbmi, pDIBBits);
-                                }
+                                _MakeNewMasterTraceImage(NULL, pbmi, pDIBBits);
                             }
                         }
                     }

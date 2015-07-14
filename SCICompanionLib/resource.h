@@ -726,7 +726,7 @@
 #define ID_EDIT_FINDINFILES             32928
 #define ID_FILE_CLOSEGAME               32937
 #define ID_EDIT_PASTETRANSPARENT        32942
-#define ID_EDIT_PASTEINTOPIC            32945
+#define ID_EDIT_IMPORTPICBACKGROUND     32945
 #define ID_EDIT_SELECTALL               32948
 #define ID_BUTTON32954                  32954
 #define ID_DITHER                       32954
