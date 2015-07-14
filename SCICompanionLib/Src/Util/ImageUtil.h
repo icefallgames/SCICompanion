@@ -8,6 +8,7 @@ namespace Gdiplus
     class Bitmap;
 }
 
+CRect GetCelRect(const Cel &cel);
 bool Save8BitBmpGdiP(const char *filename, const Cel &cel, const PaletteComponent &palette);
 void FlipImageData(uint8_t *data, int cx, int cy, int stride);
 int SquishPalette(uint8_t *data, size_t dataSize, const PaletteComponent &palette, RGBQUAD *results);

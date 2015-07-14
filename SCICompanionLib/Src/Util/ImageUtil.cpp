@@ -266,7 +266,7 @@ bool GetCelsAndPaletteFromGIFFile(const char *filename, std::vector<Cel> &cels, 
             cel.placement.y = (int16_t)(savedImage.ImageDesc.Top + savedImage.ImageDesc.Height - bottom);
 
             GraphicsControlBlock gcb;
-            if (GIF_ERROR != DGifSavedExtensionToGCB(fileType, 0, &gcb))
+            if (GIF_ERROR != DGifSavedExtensionToGCB(fileType, i, &gcb))
             {
                 cel.TransparentColor = gcb.TransparentColor;
             }
@@ -281,28 +281,44 @@ bool GetCelsAndPaletteFromGIFFile(const char *filename, std::vector<Cel> &cels, 
     return success;
 }
 
+char appExtensionBlockData[] = "NETSCAPE2.0";
+char continuationBlockData[] = "\1\0\0";
+
 void SaveCelsAndPaletteToGIFFile(const char *filename, const std::vector<Cel> &cels, int colorCount, const RGBQUAD *colors, const uint8_t *paletteMapping, uint8_t transparentIndex)
 {
     int error;
     GifFileType *fileType = EGifOpenFileName(filename, false, &error);
     if (fileType)
     {
-        // To start with, we'll ignore placement.
+        fileType->ImageCount = (int)cels.size();
         fileType->SWidth = 0;
         fileType->SHeight = 0;
+        CRect rectEntire;
+        fileType->SavedImages = new SavedImage[fileType->ImageCount];   // TODO: Use their own allocator.
+        memset(fileType->SavedImages, 0, sizeof(SavedImage) * fileType->ImageCount);
         for (const Cel &cel : cels)
         {
-            fileType->SWidth = max(fileType->SWidth, cel.size.cx);
-            fileType->SHeight = max(fileType->SHeight, cel.size.cy);
+            CRect rect = GetCelRect(cel);
+            // Not sure if I call UnionRect on the same rect as one of the sources... :-(
+            CRect rectEntireTemp;
+            rectEntireTemp.UnionRect(&rect, &rectEntire);
+            rectEntire = rectEntireTemp;
         }
+
+        fileType->SWidth = rectEntire.Width();
+        fileType->SHeight = rectEntire.Height();
+
+        // Offset it so it's at 0/0
+        CPoint offset(-rectEntire.left, -rectEntire.top);
+        rectEntire.OffsetRect(offset);
+
         fileType->SColorResolution = 8;
-        fileType->ImageCount = (int)cels.size();
         fileType->Image.Interlace = false;
-        // Not sure what these 4 things are:
-        fileType->Image.Left = 0;
-        fileType->Image.Top = 0;
-        fileType->Image.Width = fileType->SWidth;
-        fileType->Image.Height = fileType->SHeight;
+        // Not sure what these 4 things are? When loading gifs they are different than SWidth, SHEight
+        fileType->Image.Left = rectEntire.left;
+        fileType->Image.Top = rectEntire.top;
+        fileType->Image.Width = rectEntire.Width();
+        fileType->Image.Height = rectEntire.Height();
 
         GifColorType gifColors[256];
         for (int i = 0; i < colorCount; i++)
@@ -313,19 +329,22 @@ void SaveCelsAndPaletteToGIFFile(const char *filename, const std::vector<Cel> &c
             gifColors[i].Blue = rgb.rgbBlue;
         }
         fileType->SColorMap = GifMakeMapObject(colorCount, gifColors);
+        fileType->SColorMap->SortFlag = true;   // SV.exe includes it, so I will too.
 
         // Now the images
-        fileType->SavedImages = new SavedImage[fileType->ImageCount];
-        for (size_t i = 0; i < cels.size(); i++)
+        int result = GIF_OK;
+        for (size_t i = 0; (result == GIF_OK) && (i < cels.size()); i++)
         {
             const Cel &cel = cels[i];
+            CRect celRect = GetCelRect(cel);
+            celRect.OffsetRect(offset);
             fileType->SavedImages[i].ExtensionBlockCount = 0;
             fileType->SavedImages[i].ImageDesc.ColorMap = nullptr;
             fileType->SavedImages[i].ImageDesc.Interlace = false;
-            fileType->SavedImages[i].ImageDesc.Left = 0;
-            fileType->SavedImages[i].ImageDesc.Top = 0;
-            fileType->SavedImages[i].ImageDesc.Width = cel.size.cx;
-            fileType->SavedImages[i].ImageDesc.Height = cel.size.cy;
+            fileType->SavedImages[i].ImageDesc.Left = celRect.left;
+            fileType->SavedImages[i].ImageDesc.Top = celRect.top;
+            fileType->SavedImages[i].ImageDesc.Width = celRect.Width();
+            fileType->SavedImages[i].ImageDesc.Height = celRect.Height();
 
             fileType->SavedImages[i].RasterBits = new GifByteType[cel.size.cx * cel.size.cy];
             for (int y = 0; y < cel.size.cy; y++)
@@ -335,20 +354,57 @@ void SaveCelsAndPaletteToGIFFile(const char *filename, const std::vector<Cel> &c
                 uint8_t *dest = fileType->SavedImages[i].RasterBits + yUpsideDown * fileType->SavedImages[i].ImageDesc.Width;
                 memcpy(dest, src, fileType->SavedImages[i].ImageDesc.Width);
             }
+
+            // Just copying what SV.exe does
+            // First image index has a APPLICATION_EXT_FUNC_CODE block, which indicates looping.
+            if (i == 0)
+            {
+                result = GifAddExtensionBlock(&fileType->SavedImages[i].ExtensionBlockCount,
+                    &fileType->SavedImages[i].ExtensionBlocks,
+                    APPLICATION_EXT_FUNC_CODE,
+                    sizeof(appExtensionBlockData) - 1,
+                    reinterpret_cast<unsigned char*>(appExtensionBlockData));
+
+                if (result == GIF_OK)
+                {
+                    result = GifAddExtensionBlock(&fileType->SavedImages[i].ExtensionBlockCount,
+                        &fileType->SavedImages[i].ExtensionBlocks,
+                        CONTINUE_EXT_FUNC_CODE,
+                        sizeof(continuationBlockData) - 1,
+                        reinterpret_cast<unsigned char*>(continuationBlockData));
+                }
+            }
+
+            if (result == GIF_OK)
+            {
+                GraphicsControlBlock gcb;
+                gcb.DelayTime = 10;
+                gcb.DisposalMode = 2;
+                gcb.TransparentColor = cel.TransparentColor;
+                gcb.UserInputFlag = false;
+                result = EGifGCBToSavedExtension(&gcb, fileType, i);
+            }
         }
 
-        int result = EGifSpew(fileType);
+        if (result == GIF_OK)
+        {
+            result = EGifSpew(fileType);
+        }
         if (result != GIF_OK)
         {
             // If an error happens, then I have to close the file? What on earth?
             int closeError;
             EGifCloseFile(fileType, &closeError);
         }
-        // If no error, then the file is already closed.
+        
+        if (result != GIF_OK)
+        {
+            AfxMessageBox("There was an error writing the gif.", MB_OK | MB_ICONWARNING);
+        }
     }
     else
     {
-        // TODO: throw up message box.
+        AfxMessageBox("There was an error opening the gif file for writing.", MB_OK | MB_ICONWARNING);
     }
 }
 

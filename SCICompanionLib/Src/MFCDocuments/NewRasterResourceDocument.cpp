@@ -639,8 +639,9 @@ const TCHAR g_rgszHeaderFilter[] = TEXT("GIF Files (*.gif)|*.gif|All Files (*.*)
 void CNewRasterResourceDocument::ExportAsGif()
 {
     SCI_RESOURCE_INFO &ri = GetResourceInfo(GetResource()->GetType());
+    _ValidateCelIndex();
     // Set up the save dialog.
-    std::string filespec = fmt::format("{0}_{1}", ri.pszTitleDefault, GetResource()->ResourceNumber);
+    std::string filespec = fmt::format("{0}{1}-{2}", ri.pszTitleDefault, GetResource()->ResourceNumber, _nLoop);
     CFileDialog fileDialog(FALSE,
         ".gif",
         filespec.c_str(),
@@ -649,7 +650,6 @@ void CNewRasterResourceDocument::ExportAsGif()
     if (IDOK == fileDialog.DoModal())
     {
         CString strFileName = fileDialog.GetPathName();
-        _ValidateCelIndex();
         RasterComponent &raster = GetComponent<RasterComponent>();
 
         int colorCount;
