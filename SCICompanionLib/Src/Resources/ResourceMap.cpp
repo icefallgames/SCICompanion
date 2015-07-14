@@ -624,6 +624,14 @@ void CResourceMap::RemoveSync(ISyncResourceMap *pSync)
 //
 void CResourceMap::DeleteResource(const ResourceBlob *pData)
 {
+    // Early bail out. Without palette 999, we'll mis-identify the SCI type, and things will be bad
+    // (and also... we won't have a global palette)
+    if ((pData->GetType() == ResourceType::Palette) && (pData->GetNumber() == 999))
+    {
+        AfxMessageBox("Palette 999 is the global palette and cannot be deleted.", MB_OK | MB_ICONERROR);
+        return;
+    }
+
     try
     {
         ::DeleteResource(*this, *pData);

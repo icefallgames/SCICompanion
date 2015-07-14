@@ -151,7 +151,7 @@ void ReadImageData(sci::istream &byteStreamRLE, Cel &cel, bool isVGA, sci::istre
 }
 
 const uint16_t ReasonableCelWidth = 320;
-const uint16_t ReasonableCelHeight = 190;
+const uint16_t ReasonableCelHeight = 200;
 
 void ReadCelFrom(ResourceEntity &resource, sci::istream byteStream, Cel &cel, bool isVGA)
 {
