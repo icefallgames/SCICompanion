@@ -614,6 +614,12 @@
     </None>
     <None Include="Files\Objects\SCI1.1\Objects.sc" />
     <None Include="Files\Objects\SCI0\Objects.sc" />
+    <None Include="Files\Samples\SCI1.1\fonts\Wilco Small Caps.bin">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="Files\Samples\SCI1.1\fonts\Sierra Large.bin">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />
