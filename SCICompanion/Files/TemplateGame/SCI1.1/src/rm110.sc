@@ -37,18 +37,17 @@
         (send gEgo:get(0))
         
         (anObject:init())
-        SetUpEgo()
         (switch (gPreviousRoomNumber)
         	(case south
+		        SetUpEgo(-1 3)
         		(send gEgo:
         			posn(150 180)
-        			loop(3)
 				)
 			)
         	(default
+		        SetUpEgo(-1 1)
         		(send gEgo:
         			posn(150 130)
-        			loop(1)
 				)
 			)
 		)

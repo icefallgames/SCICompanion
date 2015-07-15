@@ -13,7 +13,7 @@
 
 (instance public rm105 of Rm
     (properties
-        picture 31
+        picture 105
         north 110
         horizon 50
         east 0
@@ -26,9 +26,9 @@
         (super:init())
         (self:setScript(RoomScript))
         
-        SetUpEgo()
         (switch (gPreviousRoomNumber)
             (default 
+		        SetUpEgo(-1 2)
                 (send gEgo:
                     posn(150 100)
                 )

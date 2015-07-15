@@ -138,7 +138,7 @@
     gColorWindowForeground
     gColorWindowBackground
     gLowlightColor
-    gDefaultEgoView =     1
+    gDefaultEgoView =     13
     gRegister
     gFlags[14]		// Start of bit set. Room for 14x16 = 224 flags.
     gEdgeDistance = 10	// Margin around screen to make it easier to walk the ego to the edge
@@ -187,16 +187,16 @@
         )
 )
 
-(procedure public (SetUpEgo param1 param2)
-    (if ((> paramTotal 0) and (<> param1 -1))
-        (send gEgo:view(param1))
-        (if ((> paramTotal 1) and (<> param2 -1))
-            (send gEgo:loop(param2))
+(procedure public (SetUpEgo theView theLoop)
+    (if ((> paramTotal 0) and (<> theView -1))
+        (send gEgo:view(theView))
+        (if ((> paramTotal 1) and (<> theLoop -1))
+            (send gEgo:loop(theLoop))
         )
     )(else
         (send gEgo:view(gDefaultEgoView))
-        (if ((> paramTotal 1) and (<> param2 -1))
-            (send gEgo:loop(param2))
+        (if ((> paramTotal 1) and (<> theLoop -1))
+            (send gEgo:loop(theLoop))
         )
     )
     (if ((send gEgo:looper))
@@ -242,7 +242,6 @@
         setLoop(stopGroop)
         setPri(-1)
         setMotion(NULL)
-        view(13)
         state(| (send gEgo:state) $0002)
     )
 )
@@ -351,7 +350,14 @@
 		(= polyCount Memory(memPEEK polyBuffer))
 		(+= polyBuffer 2)
 		(while (polyCount)
-			(send gRoom:addObstacle(CreateNewPolygonHelper(polyBuffer @polyBuffer)))
+			(send gRoom:addObstacle(
+					(if (== polyCount 1)
+						CreateNewPolygonHelper(polyBuffer)
+					)
+					(else
+						CreateNewPolygonHelper(polyBuffer @polyBuffer)
+					)
+					))
 			--polyCount
 		)
 	 )
@@ -523,7 +529,7 @@
             Bset(0)
         )
         // The position of these font resource numbers correspond to font codes used in messages:
-        TextFonts(1605 1605 1605 1605 1605 2106)
+        TextFonts(1605 1605 1605 1605 1605 0)
         // These correspond to color codes used in messages (values into global palette):
         TextColors(0 15 26 31 34 52 63)
         = gVersion "x.yyy.zzz"
