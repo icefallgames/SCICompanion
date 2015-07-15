@@ -637,6 +637,7 @@
 #define IDC_EDITBRIGHTNESS              1305
 #define IDC_RADIOCEL                    1305
 #define IDC_RADIOLOOP                   1306
+#define IDC_STATICTITLE                 1306
 #define IDC_STATICTINTSTRENGTH          1307
 #define IDC_RADIOVIEW                   1307
 #define IDC_EDITTINTSTRENGTH            1308
@@ -941,7 +942,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        389
 #define _APS_NEXT_COMMAND_VALUE         33230
-#define _APS_NEXT_CONTROL_VALUE         1306
+#define _APS_NEXT_CONTROL_VALUE         1307
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

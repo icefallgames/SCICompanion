@@ -116,6 +116,7 @@ private:
 	DECLARE_MESSAGE_MAP()
 
     CExtEdit m_wndEdit;
+    CExtLabel m_wndTitle;
 };
 
 
@@ -216,6 +217,7 @@ private:
     CExtSliderWnd m_wndSlider;
     CExtCheckBox m_wndAutoPreview;
     CExtLabel m_wndDuration;
+    CExtLabel m_wndTitle;
 
     DeviceType _device;
     WORD _wChannelMask;
@@ -252,6 +254,7 @@ private:
     CExtLabel m_wndDuration;
     CExtEdit m_wndDescription;
     CExtButton m_wndBrowse;
+    CExtLabel m_wndTitle;
 
     std::unique_ptr<ResourceEntity> _audio;
 

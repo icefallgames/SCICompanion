@@ -310,6 +310,23 @@ void TextPreviewer::SetResource(const ResourceBlob &blob)
 {
     std::unique_ptr<ResourceEntity> resource = CreateResourceFromResourceData(blob);
     TextComponent *pText = resource->TryGetComponent<TextComponent>();
+
+    if (blob.GetType() == ResourceType::Message)
+    {
+        m_wndTitle.SetWindowText("Message resources are used for displaying text in-game.");
+    }
+    else
+    {
+        if (appState->GetVersion().SupportsMessages)
+        {
+            m_wndTitle.SetWindowText("Text resources can be used for displaying text in-game. Message resources have generally replaced Text resources for SCI1 and above.");
+        }
+        else
+        {
+            m_wndTitle.SetWindowText("Text resources can be used for displaying text in-game.");
+        }
+    }
+
     if (pText)
     {
         std::stringstream ss;
@@ -329,6 +346,7 @@ void TextPreviewer::DoDataExchange(CDataExchange* pDX)
 {
 	__super::DoDataExchange(pDX);
     DDX_Control(pDX, IDC_EDITSCRIPT, m_wndEdit);
+    DDX_Control(pDX, IDC_STATICTITLE, m_wndTitle);
     AddAnchor(IDC_EDITSCRIPT, CPoint(0, 0), CPoint(100, 100));
 }
 
@@ -592,6 +610,7 @@ void SoundPreviewer::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_SLIDER, m_wndSlider);
     DDX_Control(pDX, IDC_CHECK_AUTOPREV, m_wndAutoPreview);
     DDX_Control(pDX, IDC_STATIC_DURATION, m_wndDuration);
+    DDX_Control(pDX, IDC_STATICTITLE, m_wndTitle);
 
     AddAnchor(IDC_COMBO_DEVICE, CPoint(0, 0), CPoint(100, 0));
     AddAnchor(IDC_SLIDER, CPoint(0, 0), CPoint(100, 0));
@@ -798,6 +817,7 @@ void AudioPreviewer::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_STATIC_DURATION, m_wndDuration);
     DDX_Control(pDX, IDC_EDIT_DESCRIPTION, m_wndDescription);
     DDX_Control(pDX, IDC_BUTTONBROWSE, m_wndBrowse);
+    DDX_Control(pDX, IDC_STATICTITLE, m_wndTitle);
     
     m_wndDescription.SetWindowText("To add audio resources to the game, drag .wav files into the view. Files should be uncompressed 8 or 16 bit audio, 22050Hz or less.\r\nSCI only supports monaural sounds. The left channel will be used for stereo .wav files.");
 
