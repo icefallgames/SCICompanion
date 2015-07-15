@@ -255,9 +255,9 @@ public:
     void Visit(const CodeBlock &block) override
     {
         out.SyncComments(block);
-        if (out.fExpandCodeBlock)
+        if (out.fExpandCodeBlock || out.fAlwaysExpandCodeBlocks)
         {
-            Inline inln(out, false);
+            Inline inln(out, true);
             Forward(block.GetList());
         }
         else

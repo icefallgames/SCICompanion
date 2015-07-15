@@ -155,6 +155,8 @@ BOOL CInsertObject::_PrepareBuffer()
         // unused functions are included. Really, we need an option to parse comments inline.
         sci::SourceCodeWriter out(ss, appState->GetResourceMap().Helper().GetGameLanguage(), nullptr);
         out.pszNewLine = "\r\n";
+        out.fAlwaysExpandCodeBlocks = true;
+        ss << out.pszNewLine;
         theClass->OutputSourceCode(out);
         _strBuffer = ss.str().c_str();
     }

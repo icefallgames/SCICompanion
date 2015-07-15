@@ -194,7 +194,7 @@ public:
         {
             out.out << "ERROR_EMPTY_STATEMENT";
         }
-    }
+    } 
 
     void Visit(const VariableDecl &varDecl) override
     {
@@ -285,9 +285,9 @@ public:
     void Visit(const CodeBlock &block) override
     {
         out.SyncComments(block);
-        if (out.fExpandCodeBlock)
+        if (out.fExpandCodeBlock || out.fAlwaysExpandCodeBlocks)
         {
-            Inline inln(out, false);
+            Inline inln(out, !out.fExpandCodeBlock);
             Forward(block.GetList());
         }
         else
@@ -559,6 +559,7 @@ public:
             DebugLine line(out);
             out.out << "(switch (";
             Inline inln(out, true);
+            BracketScope bracketScope(out, false);
             switchStatement.GetStatement1()->Accept(*this);
             out.out << ")";
         }

@@ -11,14 +11,16 @@ protected:
     template<typename _T>
     void Forward(_T &things)
     {
+        bool first = true;
         for (const auto &thing : things)
         {
-            thing->Accept(*this);
-            if (out.fInline)
+            if (!first && out.fInline)
             {
                 // If these are all inline, add whitespace between them.
                 out.out << " ";
             }
+            thing->Accept(*this);
+            first = false;
         }
     }
 
