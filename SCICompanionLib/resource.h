@@ -914,6 +914,24 @@
 #define ID_VIEW_EXPORTASGIF             33209
 #define ID_MAIN_INSERTOBJECT            33210
 #define ID_INSERTOBJECTAT               33211
+#define ID_INSERTOBJECTAT1              33212
+#define ID_INSERTOBJECTAT2              33213
+#define ID_INSERTOBJECTAT3              33214
+#define ID_INSERTOBJECTAT4              33215
+#define ID_INSERTOBJECTAT5              33216
+#define ID_INSERTOBJECTAT6              33217
+#define ID_INSERTOBJECTAT7              33218
+#define ID_INSERTOBJECTAT8              33219
+#define ID_INSERTOBJECTAT9              33220
+#define ID_INSERTOBJECTAT10             33221
+#define ID_INSERTOBJECTAT11             33222
+#define ID_INSERTOBJECTAT12             33223
+#define ID_INSERTOBJECTAT13             33224
+#define ID_INSERTOBJECTAT14             33225
+#define ID_INSERTOBJECTAT15             33226
+#define ID_INSERTOBJECTAT16             33227
+#define ID_INSERTOBJECTAT17             33228
+#define ID_INSERTOBJECTAT18             33229
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -922,7 +940,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        389
-#define _APS_NEXT_COMMAND_VALUE         33212
+#define _APS_NEXT_COMMAND_VALUE         33230
 #define _APS_NEXT_CONTROL_VALUE         1306
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

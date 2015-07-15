@@ -728,7 +728,7 @@ enum class IfDefDefineState
 class SyntaxContext
 {
 public:
-    SyntaxContext(streamIt beginning, sci::Script &script, std::unordered_set<std::string> preProcessorDefines) : _beginning(beginning), _script(script), extraKeywords(nullptr), ifDefDefineState(IfDefDefineState::None), _preProcessorDefines(preProcessorDefines) {}
+    SyntaxContext(streamIt beginning, sci::Script &script, std::unordered_set<std::string> preProcessorDefines, bool addCommentsDirectly) : _beginning(beginning), _script(script), extraKeywords(nullptr), ifDefDefineState(IfDefDefineState::None), _preProcessorDefines(preProcessorDefines), _addCommentsToOM(addCommentsDirectly) {}
 
 	~SyntaxContext()
     {
@@ -806,6 +806,23 @@ public:
     {
         // Put a null on the statement stack to make room for a statement
 		_statements.push(std::move(std::unique_ptr<sci::SyntaxNode>()));
+    }
+
+    void TryAddCommentDirectly(std::unique_ptr<sci::Comment> &comment)
+    {
+        if (_addCommentsToOM)   // For now...
+        {
+            if (!_statements.empty())
+            {
+                _statements.push(move(comment));
+            }
+            else if (FunctionPtr)
+            {
+                std::unique_ptr<sci::SingleStatement> statement = std::make_unique<sci::SingleStatement>();
+                statement->SetSyntaxNode(move(comment));
+                FunctionPtr->AddStatement(move(statement));
+            }
+        }
     }
 
     // This is the "return value" from a generic statement
@@ -928,7 +945,7 @@ private:
 
     std::string _error;
     streamIt _beginning;
-
+    bool _addCommentsToOM;
     sci::Script &_script;
     std::string _scratch;
     std::string _scratch2;
@@ -949,7 +966,7 @@ public:
 class SCISyntaxParser
 {
 public:
-    bool Parse(sci::Script &script, CCrystalScriptStream::const_iterator &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pError);
+    bool Parse(sci::Script &script, CCrystalScriptStream::const_iterator &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pError, bool addCommentsToOM);
     bool Parse(sci::Script &script, CCrystalScriptStream::const_iterator &stream, std::unordered_set<std::string> preProcessorDefines, SyntaxContext &context);
     bool ParseHeader(sci::Script &script, CCrystalScriptStream::const_iterator &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pError);
     void Load();

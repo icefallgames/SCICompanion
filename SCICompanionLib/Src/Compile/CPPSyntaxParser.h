@@ -379,6 +379,8 @@ public:
         return _beginning;
     }
 
+    void TryAddCommentDirectly(std::unique_ptr<sci::Comment> &comment) {}
+
     // PERF: doing a new and delete here at every level is very expensive, so ParseLevel uses
     // a pool allocator.
     void StartLevel()

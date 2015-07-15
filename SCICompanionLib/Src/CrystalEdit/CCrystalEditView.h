@@ -90,6 +90,7 @@ public:
 
 	BOOL ReplaceSelection(LPCTSTR pszNewText);
     void PasteTextAtCursor(LPCTSTR pszNewText);
+    void PasteTextAtCursorAndHightlightWord(LPCTSTR pszNewText, LPCSTR pszWord);
 
 	virtual void OnEditOperation(int nAction, LPCTSTR pszText);
 

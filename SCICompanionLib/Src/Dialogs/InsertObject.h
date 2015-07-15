@@ -6,6 +6,25 @@ namespace sci
     class ClassDefinition;
 }
 
+extern const char c_szUnnamedObject[];
+
+class AvailableObjects
+{
+public:
+    AvailableObjects();
+    
+    std::vector<sci::ClassDefinition*> &GetObjects() {
+        return _objects;
+    }
+
+    void PrepareBuffer(sci::ClassDefinition *classDef, CString &buffer, CListBox *pListProps = nullptr, CListBox *pListMethods = nullptr);
+
+private:
+    std::vector<sci::ClassDefinition*> _objects;
+    std::vector<std::unique_ptr<sci::Script>> _scripts;
+    std::unordered_map<sci::ClassDefinition*, sci::Script*> _objectToScript;
+};
+
 class CInsertObject : public CExtResizableDialog
 {
 public:
@@ -40,9 +59,7 @@ private:
     CListBox m_wndListProps;
     CListBox m_wndListMethods;
 
-    std::vector<sci::ClassDefinition*> _objects;
-    std::vector<std::unique_ptr<sci::Script>> _scripts;
-    std::unordered_map<sci::ClassDefinition*, sci::Script*> _objectToScript;
+    AvailableObjects _availableObjects;
 
     LangSyntax _lang;
 public:

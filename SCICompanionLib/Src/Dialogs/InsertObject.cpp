@@ -12,38 +12,6 @@
 using namespace sci;
 using namespace std;
 
-// CInsertObject dialog
-CInsertObject::CInsertObject(LangSyntax lang, CWnd* pParent /*=NULL*/)
-	: CExtResizableDialog(CInsertObject::IDD, pParent), _lang(lang)
-{
-}
-
-int g_nSelObjectType = 0;
-
-void CInsertObject::_PrepareControls()
-{
-    // Populate the combo
-    for (const auto &theClass : _objects)
-    {
-        m_wndComboType.AddString(theClass->GetSuperClass().c_str());
-    }
-
-    // Auto-select last used object type.
-    m_wndComboType.SetCurSel(g_nSelObjectType);
-
-    _SyncSelection();
-}
-
-ClassDefinition *CInsertObject::_GetCurrentObject()
-{
-    ClassDefinition *theClass = nullptr;
-    int selection = m_wndComboType.GetCurSel();
-    if (selection != CB_ERR)
-    {
-        theClass = _objects[selection];
-    }
-    return theClass;
-}
 
 bool _IsMarkedOptional(const string &name, string &resolved)
 {
@@ -66,11 +34,161 @@ bool _IsMarkedOptional(const string &name)
     return _IsMarkedOptional(name, dummy);
 }
 
-void _CleanName(NamedNode &named)
+bool _CleanName(NamedNode &named)
 {
     string name = named.GetName();
-    _IsMarkedOptional(name, name);
+    bool optional = _IsMarkedOptional(name, name);
     named.SetName(name);
+    return optional;
+}
+
+class DummyLog : public ICompileLog
+{
+    void ReportResult(const CompileResult &result) override {}
+};
+
+AvailableObjects::AvailableObjects()
+{
+    vector<string> filenames;
+    // REVIEW: Could we just ask for the list of scripts instead?
+    std::string objFolder = appState->GetResourceMap().GetObjectsFolder();
+    objFolder += "\\*.sc";
+    WIN32_FIND_DATA findData = { 0 };
+    HANDLE hFFF = FindFirstFile(objFolder.c_str(), &findData);
+    if (hFFF != INVALID_HANDLE_VALUE)
+    {
+        BOOL fOk = TRUE;
+        while (fOk)
+        {
+            filenames.push_back(findData.cFileName);
+            fOk = FindNextFile(hFFF, &findData);
+        }
+        FindClose(hFFF);
+    }
+
+    // Now compile them.
+    for (string filename : filenames)
+    {
+        string fullPath = appState->GetResourceMap().GetObjectsFolder() + "\\" + filename;
+        DummyLog log;
+        // Make a new buffer.
+        CCrystalTextBuffer buffer;
+        if (buffer.LoadFromFile(fullPath.c_str()))
+        {
+            CScriptStreamLimiter limiter(&buffer);
+            CCrystalScriptStream stream(&limiter);
+            std::unique_ptr<sci::Script> pScript = std::make_unique<sci::Script>();
+            if (g_Parser.Parse(*pScript, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log, false, nullptr, true))
+            {
+                transform(pScript->GetClassesNC().begin(), pScript->GetClassesNC().end(), back_inserter(_objects),
+                    [](unique_ptr<ClassDefinition> &theClass) { return theClass.get(); }
+                );
+
+                for (auto &classDef : pScript->GetClassesNC())
+                {
+                    _objectToScript[classDef.get()] = pScript.get();
+                }
+
+                _scripts.push_back(move(pScript));
+            }
+            else
+            {
+                int x = 0;
+            }
+            buffer.FreeAll();
+        }
+    }
+}
+
+void AvailableObjects::PrepareBuffer(sci::ClassDefinition *theClass, CString &buffer, CListBox *pListProps, CListBox *pListMethods)
+{
+    // Remove props that aren't selected.
+    auto &props = theClass->GetPropertiesNC();
+    int propCount = props.size();
+    for (int i = propCount - 1; i >= 0; i--)
+    {
+        bool erase = false;
+        if (pListProps)
+        {
+            erase = (pListProps->GetSel(i) <= 0);
+        }
+        bool wasOptional = _CleanName(*props[i]);
+        if (!pListProps && wasOptional)
+        {
+            erase = true;
+        }
+        
+        if (erase)
+        {
+            props.erase(props.begin() + i);
+        }
+    }
+
+    // Remove methods that aren't selected.
+    auto &methods = theClass->GetMethodsNC();
+    int methodCount = methods.size();
+    for (int i = methodCount - 1; i >= 0; i--)
+    {
+        bool erase = false;
+        if (pListMethods)
+        {
+            erase = (pListMethods->GetSel(i) <= 0);
+        }
+        bool wasOptional = _CleanName(*methods[i]);
+        if (!pListMethods && wasOptional)
+        {
+            erase = true;
+        }
+
+        if (erase)
+        {
+            methods.erase(methods.begin() + i);
+        }
+    }
+
+    std::stringstream ss;
+    //sci::SourceCodeWriter out(ss, appState->GetResourceMap().Helper().GetGameLanguage(), _objectToScript[theClass]);
+    // Providing the script lets us sync comments, but it is not working properly. They merge with newlines, and comments in
+    // unused functions are included. Really, we need an option to parse comments inline.
+    sci::SourceCodeWriter out(ss, appState->GetResourceMap().Helper().GetGameLanguage(), nullptr);
+    out.pszNewLine = "\r\n";
+    out.fAlwaysExpandCodeBlocks = true;
+    ss << out.pszNewLine;
+    theClass->OutputSourceCode(out);
+    buffer = ss.str().c_str();
+}
+
+// CInsertObject dialog
+CInsertObject::CInsertObject(LangSyntax lang, CWnd* pParent /*=NULL*/)
+	: CExtResizableDialog(CInsertObject::IDD, pParent), _lang(lang)
+{
+}
+
+int g_nSelObjectType = 0;
+
+void CInsertObject::_PrepareControls()
+{
+    // Populate the combo
+    for (const auto &theClass : _availableObjects.GetObjects())
+    {
+        m_wndComboType.AddString(theClass->GetSuperClass().c_str());
+    }
+
+    // Auto-select last used object type.
+    m_wndComboType.SetCurSel(g_nSelObjectType);
+
+    _SyncSelection();
+}
+
+ClassDefinition *CInsertObject::_GetCurrentObject()
+{
+    ClassDefinition *theClass = nullptr;
+    int selection = m_wndComboType.GetCurSel();
+    if (selection != CB_ERR)
+    {
+        theClass = _availableObjects.GetObjects()[selection];
+    }
+    return theClass;
 }
 
 void CInsertObject::_SyncSelection()
@@ -119,46 +237,7 @@ BOOL CInsertObject::_PrepareBuffer()
         m_wndEditName.GetWindowText(strName);
         theClass->SetName((PCSTR)strName);
 
-        // Remove props that aren't selected.
-        auto &props = theClass->GetPropertiesNC();
-        int propCount = props.size();
-        for (int i = propCount - 1; i >= 0; i--)
-        {
-            if (m_wndListProps.GetSel(i) <= 0)
-            {
-                props.erase(props.begin() + i);
-            }
-            else
-            {
-                _CleanName(*props[i]);
-            }
-        }
-
-        // Remove methods that aren't selected.
-        auto &methods = theClass->GetMethodsNC();
-        int methodCount = methods.size();
-        for (int i = methodCount - 1; i >= 0; i--)
-        {
-            if (m_wndListMethods.GetSel(i) <= 0)
-            {
-                methods.erase(methods.begin() + i);
-            }
-            else
-            {
-                _CleanName(*methods[i]);
-            }
-        }
-
-        std::stringstream ss;
-        //sci::SourceCodeWriter out(ss, appState->GetResourceMap().Helper().GetGameLanguage(), _objectToScript[theClass]);
-        // Providing the script lets us sync comments, but it is not working properly. They merge with newlines, and comments in
-        // unused functions are included. Really, we need an option to parse comments inline.
-        sci::SourceCodeWriter out(ss, appState->GetResourceMap().Helper().GetGameLanguage(), nullptr);
-        out.pszNewLine = "\r\n";
-        out.fAlwaysExpandCodeBlocks = true;
-        ss << out.pszNewLine;
-        theClass->OutputSourceCode(out);
-        _strBuffer = ss.str().c_str();
+        _availableObjects.PrepareBuffer(theClass, _strBuffer, &m_wndListProps, &m_wndListMethods);
     }
     else
     {
@@ -189,74 +268,13 @@ void CInsertObject::DoDataExchange(CDataExchange* pDX)
     _PrepareControls();
 }
 
-class DummyLog : public ICompileLog
-{
-    void ReportResult(const CompileResult &result) override {}
-};
-
-
-
-void CInsertObject::_SetupObjects()
-{
-    vector<string> filenames;
-    // REVIEW: Could we just ask for the list of scripts instead?
-    std::string objFolder = appState->GetResourceMap().GetObjectsFolder();
-    objFolder += "\\*.sc";
-    WIN32_FIND_DATA findData = { 0 };
-    HANDLE hFFF = FindFirstFile(objFolder.c_str(), &findData);
-    if (hFFF != INVALID_HANDLE_VALUE)
-    {
-        BOOL fOk = TRUE;
-        while (fOk)
-        {
-            filenames.push_back(findData.cFileName);
-            fOk = FindNextFile(hFFF, &findData);
-        }
-        FindClose(hFFF);
-    }
-
-    // Now compile them.
-    for (string filename : filenames)
-    {
-        string fullPath = appState->GetResourceMap().GetObjectsFolder() + "\\" + filename;
-        DummyLog log;
-        // Make a new buffer.
-        CCrystalTextBuffer buffer;
-        if (buffer.LoadFromFile(fullPath.c_str()))
-        {
-            CScriptStreamLimiter limiter(&buffer);
-            CCrystalScriptStream stream(&limiter);
-            std::unique_ptr<sci::Script> pScript = std::make_unique<sci::Script>();
-            if (g_Parser.Parse(*pScript, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log))
-            {
-                transform(pScript->GetClassesNC().begin(), pScript->GetClassesNC().end(), back_inserter(_objects),
-                    [](unique_ptr<ClassDefinition> &theClass) { return theClass.get(); }
-                    );
-
-                for (auto &classDef : pScript->GetClassesNC())
-                {
-                    _objectToScript[classDef.get()] = pScript.get();
-                }
-
-                _scripts.push_back(move(pScript));
-            }
-            else
-            {
-                int x = 0;
-            }
-            buffer.FreeAll();
-        }
-    }
-}
-
+const char c_szUnnamedObject[] = "type_name_here";
 
 BOOL CInsertObject::OnInitDialog()
 {
-    _SetupObjects();
-
     __super::OnInitDialog();
 
-    m_wndEditName.SetWindowText(TEXT("type_name_here"));
+    m_wndEditName.SetWindowText(TEXT(c_szUnnamedObject));
     m_wndEditName.SetSel(0, -1);
     m_wndEditName.SetFocus();
 

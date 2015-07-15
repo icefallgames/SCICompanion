@@ -279,15 +279,19 @@ public:
 
         _VisitFunctionBase(function, function.GetClass());
     }
-
+    
     void Visit(const Synonym &syn) override {}
 
     void Visit(const CodeBlock &block) override
     {
         out.SyncComments(block);
-        if (out.fExpandCodeBlock || out.fAlwaysExpandCodeBlocks)
+        if (out.fExpandCodeBlock)
         {
-            Inline inln(out, !out.fExpandCodeBlock);
+            Inline inln(out, false);
+            Forward(block.GetList());
+        }
+        else if (out.fAlwaysExpandCodeBlocks)
+        {
             Forward(block.GetList());
         }
         else

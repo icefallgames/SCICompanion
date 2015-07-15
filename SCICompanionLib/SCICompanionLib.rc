@@ -549,7 +549,10 @@ BEGIN
         MENUITEM "Paste",                       ID_EDIT_PASTE
         MENUITEM "Delete",                      ID_EDIT_DELETE
         MENUITEM SEPARATOR
-        MENUITEM "Insert Object",               ID_INSERTOBJECTAT
+        POPUP "Insert Object"
+        BEGIN
+            MENUITEM "Custom ...",                  ID_INSERTOBJECTAT
+        END
         POPUP "Add as"
         BEGIN
             MENUITEM "Noun",                        ID_ADDAS_NOUN

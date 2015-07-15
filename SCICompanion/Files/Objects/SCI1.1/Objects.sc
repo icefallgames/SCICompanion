@@ -158,7 +158,7 @@
 	(properties)
 
 	(method (doit_)
-		// Code...
+		// This code gets called on every update.
 		(super:doit())
 	)
 

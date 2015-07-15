@@ -57,7 +57,7 @@ void AutoCompleteThread::_DoWork()
         _it = _itOrig; // Restart from the beginning.
         _fDoingWork = true;
         sci::Script script;
-        SyntaxContext context(_it, script, PreProcessorDefinesFromSCIVersion(appState->GetVersion()));
+        SyntaxContext context(_it, script, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), false);
         _pContext = &context;
         OutputDebugString("ACThread: PARSE START\n");
         //g_Parser.Parse(script, _it, NULL);

@@ -36,7 +36,11 @@ inline void _DoComment(TContext *pContext, const _It &streamBegin, const _It &st
     pComment->SetPosition(streamBegin.GetPosition());
     pComment->SetEndPosition(streamEnd.GetPosition());
     pComment->SetName(comment); // The comment text
-	pContext->Script().AddComment(move(pComment));
+    pContext->TryAddCommentDirectly(pComment);
+    if (pComment)
+    {
+        pContext->Script().AddComment(move(pComment));
+    }
 }
 
 template<typename TContext, typename _It>

@@ -57,6 +57,7 @@ BEGIN_MESSAGE_MAP(CScriptView, CCrystalEditView)
     ON_WM_TIMER()
     ON_COMMAND(ID_INSERTOBJECT, OnInsertObject)
     ON_COMMAND(ID_INSERTOBJECTAT, OnInsertObjectAt)
+    ON_COMMAND_RANGE(ID_INSERTOBJECTAT1, ID_INSERTOBJECTAT18, OnInsertObjectAtRange)
     ON_COMMAND(ID_ADDAS_NOUN, OnAddAsNoun)
     ON_COMMAND(ID_ADDAS_IMPERATIVEVERB, OnAddAsImperativeVerb)
     ON_COMMAND(ID_ADDAS_SYNONYMOF, OnAddAsSynonymOf)
@@ -734,6 +735,10 @@ BOOL _GetGoToDefnMenuItem(CMenu *pMenu, UINT *pnID)
     return _GetMenuItem(TEXT("Go to definition"), pMenu, pnID);
 }
 
+BOOL _GetInsertObjectMenuItem(CMenu *pMenu, UINT *pnID)
+{
+    return _GetMenuItem(TEXT("Insert object"), pMenu, pnID);
+}
 
 void CScriptView::OnContextMenu(CWnd *pWnd, CPoint point)
 {
@@ -807,6 +812,28 @@ void CScriptView::OnContextMenu(CWnd *pWnd, CPoint point)
                 _gotoDefinitionText = result.strBaseText.c_str();
                 _gotoScript = result.scriptId;
                 _gotoLineNumber = result.iLineNumber;
+            }
+        }
+
+        // Add objects?
+        UINT insertObjectIndex;
+        if (_GetInsertObjectMenuItem(pTracker, &insertObjectIndex))
+        {
+            CMenu *subMenu = pTracker->GetSubMenu(insertObjectIndex);
+            if (subMenu)
+            {
+                _availableObjects = make_unique<AvailableObjects>();
+                for (size_t i = 0; i < _availableObjects->GetObjects().size(); i++)
+                {
+                    int iIndex = 0;
+                    MENUITEMINFO mii = { 0 };
+                    mii.cbSize = sizeof(mii);
+                    mii.fMask = MIIM_ID | MIIM_STRING;
+                    mii.wID = ID_INSERTOBJECTAT1 + i;
+                    std::string foo = _availableObjects->GetObjects()[i]->GetSuperClass();
+                    mii.dwTypeData = const_cast<LPSTR>(foo.c_str());
+                    subMenu->InsertMenuItem(ID_INSERTOBJECTAT1 + i, &mii, FALSE);
+                }
             }
         }
 
@@ -981,7 +1008,7 @@ void CScriptView::_OnInsertObject(bool currentPosition)
             {
                 MoveToEnd();
             }
-            PasteTextAtCursor(strBuffer);
+            PasteTextAtCursorAndHightlightWord(strBuffer, c_szUnnamedObject);
         }
     }
 }
@@ -994,6 +1021,22 @@ void CScriptView::OnInsertObject()
 void CScriptView::OnInsertObjectAt()
 {
     _OnInsertObject(true);
+}
+
+void CScriptView::OnInsertObjectAtRange(UINT nID)
+{
+    int index = nID - ID_INSERTOBJECTAT1;
+    if (_availableObjects)
+    {
+        CString strBuffer;
+        ClassDefinition *classDef = _availableObjects->GetObjects()[index];
+        classDef->SetName(c_szUnnamedObject);
+        _availableObjects->PrepareBuffer(classDef, strBuffer);
+
+        PasteTextAtCursorAndHightlightWord(strBuffer, c_szUnnamedObject);
+
+        _availableObjects.reset(nullptr);
+    }
 }
 
 void CScriptView::OnAddAsNoun()
@@ -1134,7 +1177,7 @@ ToolTipResult CScriptView::_DoToolTipParse(CPoint pt)
         CScriptStreamLimiter limiter(LocateTextBuffer());
         CCrystalScriptStream stream(&limiter);
         sci::Script script;
-        SyntaxContext context(stream.begin(), script, PreProcessorDefinesFromSCIVersion(appState->GetVersion()));
+        SyntaxContext context(stream.begin(), script, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), false);
         limiter.Limit(LineCol(pt.y, pt.x));
         CCrystalScriptStream::const_iterator it = stream.begin();
         

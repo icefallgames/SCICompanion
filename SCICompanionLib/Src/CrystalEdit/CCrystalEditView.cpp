@@ -1103,6 +1103,33 @@ void CCrystalEditView::PasteTextAtCursor(LPCTSTR pszNewText)
 }
 
 
+void CCrystalEditView::PasteTextAtCursorAndHightlightWord(LPCTSTR pszNewText, LPCSTR pszWord)
+{
+    CPoint ptCursorPos = GetCursorPos();
+    ASSERT_VALIDTEXTPOS(ptCursorPos);
+    int x, y;
+    m_pTextBuffer->InsertText(this, ptCursorPos.y, ptCursorPos.x, pszNewText, y, x, CE_ACTION_REPLACE); //	[JRT]
+    CPoint ptEndOfBlock = CPoint(x, y);
+    ASSERT_VALIDTEXTPOS(ptCursorPos);
+    ASSERT_VALIDTEXTPOS(ptEndOfBlock);
+
+    CPoint foundPos;
+    if (FindTextInBlock(pszWord, ptCursorPos, ptCursorPos, ptEndOfBlock, FIND_MATCH_CASE | FIND_WHOLE_WORD, FALSE, &foundPos))
+    {
+        SetAnchor(foundPos);
+        HighlightText(foundPos, lstrlen(pszWord));
+        SetCursorPos(foundPos);
+    }
+    else
+    {
+        // Select it all
+        SetAnchor(ptEndOfBlock);
+        SetSelection(ptCursorPos, ptEndOfBlock);
+        SetCursorPos(ptEndOfBlock);
+    }
+    EnsureVisible(ptEndOfBlock);
+}
+
 void CCrystalEditView::OnUpdateEditUndo(CCmdUI* pCmdUI) 
 {
 	BOOL bCanUndo = m_pTextBuffer != NULL && m_pTextBuffer->CanUndo();

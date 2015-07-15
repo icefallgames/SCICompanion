@@ -248,6 +248,7 @@ class CommentScript
 public:
     CommentScript(sci::Script *pScript) : _pScript(pScript) {}
     sci::Script &Script() { return *_pScript; }
+    void TryAddCommentDirectly(std::unique_ptr<sci::Comment> &comment) {}
 private:
     sci::Script *_pScript;
 };

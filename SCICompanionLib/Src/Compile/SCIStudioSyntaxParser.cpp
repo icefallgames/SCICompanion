@@ -1434,9 +1434,9 @@ void SyntaxContext::ReportError(std::string error, streamIt pos)
 //
 // This does the parsing.
 //
-bool SCISyntaxParser::Parse(Script &script, streamIt &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pError)
+bool SCISyntaxParser::Parse(Script &script, streamIt &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pError, bool addCommentsToOM)
 {
-    SyntaxContext context(stream, script, preProcessorDefines);
+    SyntaxContext context(stream, script, preProcessorDefines, addCommentsToOM);
     bool fRet = false;
     if (entire_script.Match(&context, stream).Result() && (*stream == 0)) // Needs a full match
     {
@@ -1471,7 +1471,7 @@ bool SCISyntaxParser::Parse(Script &script, streamIt &stream, std::unordered_set
 
 bool SCISyntaxParser::ParseHeader(Script &script, streamIt &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pError)
 {
-    SyntaxContext context(stream, script, preProcessorDefines);
+    SyntaxContext context(stream, script, preProcessorDefines, false);
 	bool fRet = entire_header.Match(&context, stream).Result() && (*stream == 0);
     if (!fRet)
     {
