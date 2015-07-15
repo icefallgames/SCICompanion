@@ -40,7 +40,9 @@ private:
     CListBox m_wndListProps;
     CListBox m_wndListMethods;
 
-    std::vector<std::unique_ptr<sci::ClassDefinition>> _objects;
+    std::vector<sci::ClassDefinition*> _objects;
+    std::vector<std::unique_ptr<sci::Script>> _scripts;
+    std::unordered_map<sci::ClassDefinition*, sci::Script*> _objectToScript;
 
     LangSyntax _lang;
 public:

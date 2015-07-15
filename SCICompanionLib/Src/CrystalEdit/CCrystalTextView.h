@@ -189,6 +189,7 @@ protected:
 	void MoveCtrlEnd(BOOL bSelect);
 
 	void SelectAll();
+    void MoveToEnd();
 	void Copy();
 
 	BOOL IsSelection();

@@ -80,6 +80,7 @@ protected:
     afx_msg void OnSetFocus(CWnd *pNewWnd);
     afx_msg void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
     afx_msg void OnInsertObject();
+    afx_msg void OnInsertObjectAt();
     afx_msg void OnAddAsNoun();
     afx_msg void OnAddAsImperativeVerb();
     afx_msg void OnAddAsPreposition();
@@ -109,6 +110,7 @@ protected:
     ToolTipResult _DoToolTipParse(CPoint pt);
     void _BringUpToolTip(CPoint ptClient);
     BOOL _ClientToTextNoMargin(CPoint ptClient, CPoint &ptText);
+    void _OnInsertObject(bool currentPosition);
 
     CString _contextMenuText;
     CString _gotoScriptText;

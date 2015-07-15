@@ -56,6 +56,7 @@ BEGIN_MESSAGE_MAP(CScriptView, CCrystalEditView)
     ON_WM_MOUSEMOVE()
     ON_WM_TIMER()
     ON_COMMAND(ID_INSERTOBJECT, OnInsertObject)
+    ON_COMMAND(ID_INSERTOBJECTAT, OnInsertObjectAt)
     ON_COMMAND(ID_ADDAS_NOUN, OnAddAsNoun)
     ON_COMMAND(ID_ADDAS_IMPERATIVEVERB, OnAddAsImperativeVerb)
     ON_COMMAND(ID_ADDAS_SYNONYMOF, OnAddAsSynonymOf)
@@ -967,7 +968,7 @@ void CScriptView::_OnAddAs(WordClass dwClass)
     }
 }
 
-void CScriptView::OnInsertObject()
+void CScriptView::_OnInsertObject(bool currentPosition)
 {
     CScriptDocument *pDoc = GetDocument();
     if (pDoc)
@@ -976,9 +977,23 @@ void CScriptView::OnInsertObject()
         if (IDOK == dialog.DoModal())
         {
             CString strBuffer = dialog.GetBuffer();
+            if (!currentPosition)
+            {
+                MoveToEnd();
+            }
             PasteTextAtCursor(strBuffer);
         }
     }
+}
+
+void CScriptView::OnInsertObject()
+{
+    _OnInsertObject(false);
+}
+
+void CScriptView::OnInsertObjectAt()
+{
+    _OnInsertObject(true);
 }
 
 void CScriptView::OnAddAsNoun()

@@ -411,6 +411,14 @@ CPoint CCrystalTextView::WordToLeft(CPoint pt)
 	return pt;
 }
 
+void CCrystalTextView::MoveToEnd()
+{
+    int nLineCount = GetLineCount();
+    m_ptCursorPos.x = GetLineLength(nLineCount - 1);
+    m_ptCursorPos.y = nLineCount - 1;
+    UpdateCaret();
+}
+
 void CCrystalTextView::SelectAll()
 {
 	int nLineCount = GetLineCount();

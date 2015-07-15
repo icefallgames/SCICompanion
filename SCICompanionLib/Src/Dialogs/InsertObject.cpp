@@ -40,7 +40,7 @@ ClassDefinition *CInsertObject::_GetCurrentObject()
     int selection = m_wndComboType.GetCurSel();
     if (selection != CB_ERR)
     {
-        theClass = _objects[selection].get();
+        theClass = _objects[selection];
     }
     return theClass;
 }
@@ -150,7 +150,10 @@ BOOL CInsertObject::_PrepareBuffer()
         }
 
         std::stringstream ss;
-        sci::SourceCodeWriter out(ss, appState->GetResourceMap().Helper().GetGameLanguage());
+        //sci::SourceCodeWriter out(ss, appState->GetResourceMap().Helper().GetGameLanguage(), _objectToScript[theClass]);
+        // Providing the script lets us sync comments, but it is not working properly. They merge with newlines, and comments in
+        // unused functions are included. Really, we need an option to parse comments inline.
+        sci::SourceCodeWriter out(ss, appState->GetResourceMap().Helper().GetGameLanguage(), nullptr);
         out.pszNewLine = "\r\n";
         theClass->OutputSourceCode(out);
         _strBuffer = ss.str().c_str();
@@ -225,8 +228,15 @@ void CInsertObject::_SetupObjects()
             if (g_Parser.Parse(*pScript, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log))
             {
                 transform(pScript->GetClassesNC().begin(), pScript->GetClassesNC().end(), back_inserter(_objects),
-                    [](unique_ptr<ClassDefinition> &theClass) { return move(theClass); }
+                    [](unique_ptr<ClassDefinition> &theClass) { return theClass.get(); }
                     );
+
+                for (auto &classDef : pScript->GetClassesNC())
+                {
+                    _objectToScript[classDef.get()] = pScript.get();
+                }
+
+                _scripts.push_back(move(pScript));
             }
             else
             {

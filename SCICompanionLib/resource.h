@@ -912,6 +912,8 @@
 #define ID_PIC_REMOVESETVISUAL          33207
 #define ID_VIEW_SHIFTCOLORS             33208
 #define ID_VIEW_EXPORTASGIF             33209
+#define ID_MAIN_INSERTOBJECT            33210
+#define ID_INSERTOBJECTAT               33211
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -920,7 +922,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        389
-#define _APS_NEXT_COMMAND_VALUE         33210
+#define _APS_NEXT_COMMAND_VALUE         33212
 #define _APS_NEXT_CONTROL_VALUE         1306
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
