@@ -21,10 +21,23 @@ using namespace sci;
 using namespace std;
 using namespace fmt;
 
+
+enum class NewRoomProfile
+{
+    SCI0,
+    SCI11
+};
+
+// Simplistic way to figure out which template game this is
+NewRoomProfile GetProfile(SCIVersion version)
+{
+    return version.SeparateHeapResources ? NewRoomProfile::SCI11 : NewRoomProfile::SCI0;
+}
+
 //
 // Scripts that are used by default
 //
-const TCHAR* g_UsedByDefault[] =
+const TCHAR* g_UsedByDefaultSCI0[] =
 {
     TEXT("Controls"),
     TEXT("Cycle"),
@@ -36,16 +49,38 @@ const TCHAR* g_UsedByDefault[] =
     TEXT("Obj"),
 };
 
+const TCHAR* g_UsedByDefaultSCI11[] =
+{
+    TEXT("Cycle"),
+    TEXT("Door"),
+    TEXT("Feature"),
+    TEXT("View"),
+    TEXT("Game"),
+    TEXT("Inv"),
+    TEXT("Main"),
+    TEXT("Obj"),
+    TEXT("Polygon"),
+};
+
 bool IsDefaultUse(PCTSTR pszName)
 {
 	bool fRet = false;
-    for (int i = 0; !fRet && (i < ARRAYSIZE(g_UsedByDefault)); i++)
+    if (GetProfile(appState->GetVersion()) == NewRoomProfile::SCI11)
     {
-        fRet = (0 == _strcmpi(pszName, g_UsedByDefault[i]));
+        for (int i = 0; !fRet && (i < ARRAYSIZE(g_UsedByDefaultSCI11)); i++)
+        {
+            fRet = (0 == _strcmpi(pszName, g_UsedByDefaultSCI11[i]));
+        }
+    }
+    else
+    {
+        for (int i = 0; !fRet && (i < ARRAYSIZE(g_UsedByDefaultSCI0)); i++)
+        {
+            fRet = (0 == _strcmpi(pszName, g_UsedByDefaultSCI0[i]));
+        }
     }
     return fRet;
 }
-
 
 // CNewRoomDialog dialog
 
@@ -118,7 +153,7 @@ void CNewRoomDialog::_AttachControls(CDataExchange* pDX)
     DDX_Control(pDX, IDC_PICGROUP, m_wndPicNumberGroup);
 }
 
-void _AddPrevRoomNumSwitch(MethodDefinition &method)
+void _AddPrevRoomNumSwitch(MethodDefinition &method, NewRoomProfile profile)
 {
 	unique_ptr<SwitchStatement> pSwitch = std::make_unique<SwitchStatement>();
 
@@ -129,6 +164,16 @@ void _AddPrevRoomNumSwitch(MethodDefinition &method)
 	unique_ptr<sci::CaseStatement> pCase = std::make_unique<sci::CaseStatement>();
     SingleStatement statementZero;
     pCase->SetDefault(true);
+
+    if (profile == NewRoomProfile::SCI11)
+    {
+        unique_ptr<ProcedureCall> pSetUpEgo = std::make_unique<ProcedureCall>();
+        pSetUpEgo->SetName("SetUpEgo");
+        _AddStatement(*pCase, std::make_unique<Comment>("// Set up ego view and loop (direction)"));
+        _AddStatement(*pSetUpEgo, std::make_unique<PropertyValue>(-1, true)); // view = -1
+        _AddStatement(*pSetUpEgo, std::make_unique<PropertyValue>(0));  // loop = 0
+        _AddStatement(*pCase, std::move(pSetUpEgo));
+    }
 
     // Now set the ego's position
 	unique_ptr<SendCall> pSend = std::make_unique<SendCall>();
@@ -150,6 +195,7 @@ void _AddPrevRoomNumSwitch(MethodDefinition &method)
         pSend->AddSendParam(std::move(pParam));
     }
 
+    if (profile == NewRoomProfile::SCI0)
     {
 		unique_ptr<SendParam> pParam = std::make_unique<SendParam>();
         pParam->SetName("loop");
@@ -214,8 +260,8 @@ int CNewRoomDialog::_GetMinSuggestedScriptNumber()
 
 void CNewRoomDialog::_PrepareBuffer()
 {
+    NewRoomProfile profile = GetProfile(appState->GetVersion());
     sci::Script script(_scriptId);
-
     bool includePolys = (appState->GetVersion().PicFormat != PicFormat::EGA) && (m_wndCheckPolys.GetCheck() == BST_CHECKED);
 
     script.AddInclude("sci.sh");
@@ -232,17 +278,13 @@ void CNewRoomDialog::_PrepareBuffer()
         script.AddInclude(polyfileInclude);
     }
 
-    if (appState->GetVersion().SeparateHeapResources)
+    if (profile == NewRoomProfile::SCI11)
     {
         // e.g. for SCI0, keep SCIStudio compatible. Otherwise, use version 2
         script.SyntaxVersion = 2;
     }
 
     // Now the uses.
-    if (includePolys && find(_usedNames.begin(), _usedNames.end(), "Polygon") == _usedNames.end())
-    {
-        _usedNames.push_back("Polygon");
-    }
     for (size_t i = 0; i < _usedNames.size(); ++i)
     {
         script.AddUse(_usedNames[i]);
@@ -304,8 +346,9 @@ void CNewRoomDialog::_PrepareBuffer()
             _AddSendCall(*pInit, "super", "init", "");
             _AddSendCall(*pInit, "self", "setScript", "RoomScript");
 
-            _AddPrevRoomNumSwitch(*pInit);
+            _AddPrevRoomNumSwitch(*pInit, profile);
 
+            if (profile == NewRoomProfile::SCI0)
             {
 				unique_ptr<ProcedureCall> pSetUpEgo = std::make_unique<ProcedureCall>();
                 pSetUpEgo->SetName("SetUpEgo");
@@ -342,7 +385,8 @@ void CNewRoomDialog::_PrepareBuffer()
 			pClass->AddMethod(std::move(pDoit));
         }
 
-        // The handleEvent method
+        // The handleEvent method, most useful in SCI0
+        if (profile == NewRoomProfile::SCI0)
         {
 			std::unique_ptr<MethodDefinition> pHE = std::make_unique<MethodDefinition>();
             pHE->SetName("handleEvent");

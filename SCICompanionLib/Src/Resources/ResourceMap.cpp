@@ -733,6 +733,24 @@ std::string CResourceMap::GetSamplesFolder()
     return folder;
 }
 
+
+//
+// Gets the objects folder 
+//
+std::string CResourceMap::GetObjectsFolder()
+{
+    std::string folder = GetExeSubFolder("Objects");
+    if (GetSCIVersion().MapFormat == ResourceMapFormat::SCI0)
+    {
+        folder += "\\SCI0";
+    }
+    else
+    {
+        folder += "\\SCI1.1";
+    }
+    return folder;
+}
+
 std::string CResourceMap::GetDecompilerFolder()
 {
     return GetExeSubFolder("Decompiler");

@@ -498,6 +498,14 @@ namespace sci
         {
             SetValue(number);
         }
+        PropertyValue(uint16_t number, bool negate) : PropertyValueBase()
+        {
+            SetValue(number);
+            if (negate)
+            {
+                Negate();
+            }
+        }
 
 		void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
         void Accept(ISyntaxNodeVisitor &visitor) const override;
@@ -1077,6 +1085,7 @@ namespace sci
         DECLARE_NODE_TYPE(NodeTypeComment)
     public:
         Comment() : NamedNode() {}
+        Comment(const std::string &comment) : NamedNode(comment) {}
 
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const { return CodeResult(); }
