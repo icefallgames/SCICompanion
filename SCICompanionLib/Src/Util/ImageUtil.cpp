@@ -294,7 +294,13 @@ void SaveCelsAndPaletteToGIFFile(const char *filename, const std::vector<Cel> &c
         fileType->SWidth = 0;
         fileType->SHeight = 0;
         CRect rectEntire;
-        fileType->SavedImages = new SavedImage[fileType->ImageCount];   // TODO: Use their own allocator.
+
+        // We keep our own storage for the SavedImages. Unfortunately giflib's memory management model seems to be
+        // completely broken, so we have to hack around it.
+        std::unique_ptr<SavedImage[]> savedImages = std::make_unique<SavedImage[]>(fileType->ImageCount);
+        std::vector<std::unique_ptr<GifByteType[]>> rasterData;
+
+        fileType->SavedImages = savedImages.get();
         memset(fileType->SavedImages, 0, sizeof(SavedImage) * fileType->ImageCount);
         for (const Cel &cel : cels)
         {
@@ -346,7 +352,9 @@ void SaveCelsAndPaletteToGIFFile(const char *filename, const std::vector<Cel> &c
             fileType->SavedImages[i].ImageDesc.Width = celRect.Width();
             fileType->SavedImages[i].ImageDesc.Height = celRect.Height();
 
-            fileType->SavedImages[i].RasterBits = new GifByteType[cel.size.cx * cel.size.cy];
+            rasterData.push_back(std::make_unique<GifByteType[]>(cel.size.cx * cel.size.cy));
+            fileType->SavedImages[i].RasterBits = rasterData.back().get();
+
             for (int y = 0; y < cel.size.cy; y++)
             {
                 int yUpsideDown = fileType->SavedImages[i].ImageDesc.Height - y - 1;
@@ -389,6 +397,9 @@ void SaveCelsAndPaletteToGIFFile(const char *filename, const std::vector<Cel> &c
         if (result == GIF_OK)
         {
             result = EGifSpew(fileType);
+            // Amazingly, this deallocates internal storage for nearly everything, except for the SavedImage data.
+            // We can't delete the SavedImage data afterwards, because the fileType struct contents will be garbage.
+            // We can't delete them before, because they are required for EGifSpew. What a silly API.
         }
         if (result != GIF_OK)
         {
@@ -400,6 +411,15 @@ void SaveCelsAndPaletteToGIFFile(const char *filename, const std::vector<Cel> &c
         if (result != GIF_OK)
         {
             AfxMessageBox("There was an error writing the gif.", MB_OK | MB_ICONWARNING);
+        }
+
+        // Even though we stored our own SavedImage and the raster data inside it, we (necessarily) didn't manage
+        // the memory for the extension blocks in our SavedImages. So we need to free them with giflib now.
+        // Yuck.
+        for (size_t i = 0; i < cels.size(); i++)
+        {
+            SavedImage &savedImageTemp = savedImages[i];
+            GifFreeExtensions(&savedImageTemp.ExtensionBlockCount, &savedImageTemp.ExtensionBlocks);
         }
     }
     else

@@ -294,11 +294,16 @@ EGifPutScreenDesc(GifFileType *GifFile,
     GifFile->SColorResolution = ColorRes;
     GifFile->SBackGroundColor = BackGround;
     if (ColorMap) {
-        GifFile->SColorMap = GifMakeMapObject(ColorMap->ColorCount,
-                                           ColorMap->Colors);
-        if (GifFile->SColorMap == NULL) {
-            GifFile->Error = E_GIF_ERR_NOT_ENOUGH_MEM;
-            return GIF_ERROR;
+        // REVIEW: I added this to fix a mem leak, since EGifSpew calls EGifPutScreenDesc
+        // with GifFile->SColorMap as the color map.
+        if (GifFile->SColorMap != ColorMap)
+        {
+            GifFile->SColorMap = GifMakeMapObject(ColorMap->ColorCount,
+                ColorMap->Colors);
+            if (GifFile->SColorMap == NULL) {
+                GifFile->Error = E_GIF_ERR_NOT_ENOUGH_MEM;
+                return GIF_ERROR;
+            }
         }
     } else
         GifFile->SColorMap = NULL;
