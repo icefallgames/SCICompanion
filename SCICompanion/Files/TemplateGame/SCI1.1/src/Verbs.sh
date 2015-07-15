@@ -9,5 +9,4 @@
 (define V_DO 4)
 (define V_HELP 5)
 (define V_COMBINE 7)
-(define V_PAY 17)
 

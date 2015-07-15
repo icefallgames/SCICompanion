@@ -1,7 +1,7 @@
-// 300.shp -- Produced by SCI Companion
+// 100.shp -- Produced by SCI Companion
 // This file should only be edited with the SCI Companion polygon editor
 
 (local
-    P_Default300 =     0
+    P_Default100 =     0
 
 )

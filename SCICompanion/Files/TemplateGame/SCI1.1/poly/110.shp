@@ -2,6 +2,6 @@
 // This file should only be edited with the SCI Companion polygon editor
 
 (local
-    P_Default110[51] = (3 PContainedAccess 8 314 189 257 103 225 103 224 90 197 90 195 103 64 103 6 189 PBarredAccess 8 235 148 246 148 254 155 253 159 246 164 233 164 226 159 226 153 PBarredAccess 6 84 124 134 124 139 145 133 149 84 149 78 144 )
+    P_Default110[11] = (1 PContainedAccess 4 319 189 319 50 0 50 0 189 )
 
 )

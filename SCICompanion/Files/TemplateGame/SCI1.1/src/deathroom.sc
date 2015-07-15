@@ -32,7 +32,7 @@
 
 (instance public deathRoom of Rm
     (properties
-        picture 200
+        picture 100
     )
 
     (method (init)
@@ -40,10 +40,6 @@
         PalVary(pvUNINIT)
         (send gGame:handsOff())
         (super:init())
-        (send gSq5Music1:
-            number(46)
-            play()
-        )
         (send gSq5Music2:stop())
         (switch (gDeathReason)
         	// TODO: Add special cases here

@@ -15,8 +15,6 @@
 (use "Obj")
 (script INVENTORY_SCRIPT)
 
-
-
 (class Sq5InvItem of InvI
     (properties
         view 0
@@ -120,7 +118,8 @@
             rgtBordColor2(6)
         )
         (self:
-            add(Money ) // TODO: Add more inventory items here
+        	// Add inventory items here.
+            // add(Money AThing AnotherThing)
             eachElementDo(#lowlightColor 2)
             add(invLook invSelect invHelp invUp invDown ok)
         )
@@ -271,6 +270,9 @@
         helpVerb V_HELP
     )
 )
+
+// Declare inventory items here.
+/*
 (instance Money of Sq5InvItem
     (properties
         view 900
@@ -280,4 +282,4 @@
         signal $0002
         noun N_MONEY
     )
-)
+)*/

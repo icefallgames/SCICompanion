@@ -554,9 +554,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <None Include="Files\TemplateGame\SCI1.1\src\Rev.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\rev.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\rm001.sco" />
-    <None Include="Files\TemplateGame\SCI1.1\src\rm100.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\rm100.sco" />
-    <None Include="Files\TemplateGame\SCI1.1\src\rm105.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\rm105.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\rm106.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\rm110.sc" />
@@ -644,7 +642,6 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <None Include="Files\TemplateGame\SCI1.1\msg\106.shm" />
     <None Include="Files\TemplateGame\SCI1.1\msg\110.shm" />
     <None Include="Files\TemplateGame\SCI1.1\msg\13.shm" />
-    <None Include="Files\TemplateGame\SCI1.1\msg\15.shm" />
     <None Include="res\SCICompanion.rc2">
       <SubType>Designer</SubType>
     </None>

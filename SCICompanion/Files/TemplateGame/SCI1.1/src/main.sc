@@ -131,17 +131,17 @@
     gSq5Win_2
     gDeathReason
     gSq5Music1
-    gDongle = 1234		// This variable CAN'T MOVE
+    gDongle = 1234				// This variable CAN'T MOVE
     gSq5Music2
     gCurrentTalkerNumber
     gGEgoMoveSpeed
     gColorWindowForeground
     gColorWindowBackground
     gLowlightColor
-    gDefaultEgoView =     13
+    gDefaultEgoView =     0		// The default view resource for the ego
     gRegister
-    gFlags[14]		// Start of bit set. Room for 14x16 = 224 flags.
-    gEdgeDistance = 10	// Margin around screen to make it easier to walk the ego to the edge
+    gFlags[14]					// Start of bit set. Room for 14x16 = 224 flags.
+    gEdgeDistance = 10			// Margin around screen to make it easier to walk the ego to the edge
     gDebugOut
 )
 
