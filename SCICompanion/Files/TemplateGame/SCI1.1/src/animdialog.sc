@@ -4,7 +4,7 @@
 (use "Main")
 (use "Controls")
 (use "Print")
-(use "Blink")
+(use "Talker")
 (use "RandCycle")
 (use "Obj")
 (script ANIMDIALOG_SCRIPT)

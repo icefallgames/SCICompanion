@@ -13,65 +13,61 @@
 (use "Obj")
 (script 921)
 
-
-
-(procedure public (TextPrint param1)
+(procedure public (TextPrint theText)
     (Print:
-        addText(rest param1)
+        addText(rest theText)
         init()
     )
 )
 
-
-(procedure public (FormatPrint param1)
+(procedure public (FormatPrint theText)
     (Print:
-        addTextF(rest param1)
+        addTextF(rest theText)
         init()
     )
 )
 
-
-(procedure public (EditPrint param1 param2 param3 param4)
-    (if ((Print:
-        font(
-            (if (> paramTotal 3)
-                param4
-            )(else
-                gFont
+(procedure public (EditPrint theText theMax theMessage theFont)
+    (if (
+        (Print:
+            font(
+                (if (> paramTotal 3)
+                    theFont
+                )(else
+                    gFont
+                )
             )
-			)
-        addText(
-            (if ((> paramTotal 2) and param3)
-                param3
-            )(else
-                ""
+            addText(
+                (if ((> paramTotal 2) and theMessage)
+                    theMessage
+                )(else
+                    ""
+                )
             )
-			   )
-        addEdit(param1 param2 0 12 param1)
-        init()
-		 )
-		)
-        StrLen(param1)
-	)
+            addEdit(theText theMax 0 12 theText)
+            init()
+            )
+        )
+        StrLen(theText)
+    )
 )
 
-
-(procedure public (GetTotalLength param1 param2)
+(procedure public (GetTotalLength theText param2)
     (var temp0, temp1, temp2, temp3)
-    = temp1 StrLen(param1)
+    = temp1 StrLen(theText)
     = temp0 temp1
     = temp2 0
     = temp3 0
     (while (< temp3 temp1)
-        (if (== StrAt(param1 temp3) 37)
-            (switch (StrAt(param1 ++temp3))
-                (case 100
+        (if (== StrAt(theText temp3) 37)	// %
+            (switch (StrAt(theText ++temp3))
+                (case KEY_d
                     = temp0 (+ temp0 5)
                 )
-                (case 120
+                (case KEY_x
                     = temp0 (+ temp0 4)
                 )
-                (case 115
+                (case KEY_s
                     = temp0 (+ temp0 StrLen(param2[temp2]))
                 )
             )
@@ -81,7 +77,6 @@
     )
     return ++temp0
 )
-
 
 (class Print of Obj
     (properties
@@ -101,13 +96,13 @@
         saveCursor 0
     )
 
-    (method (init theCaller param2)
+    (method (init theCaller theText)
         = caller 0
         (if (paramTotal)
             = caller theCaller
         )
         (if (> paramTotal 1)
-            (self:addText(rest param2))
+            (self:addText(rest theText))
         )
         (if (not modeless)
             (if (not IsObject(gPrintEventHandler))
@@ -118,11 +113,9 @@
         (self:showSelf())
     )
 
-
     (method (doit)
         (send dialog:eachElementDo(#doit))
     )
-
 
     (method (dispose)
         (if (gPrintEventHandler and (send gPrintEventHandler:contains(self)))
@@ -142,7 +135,6 @@
         (super:dispose())
     )
 
-
     (method (showSelf)
         (var theFirst, temp1, temp2, temp3, temp4)
         (if (saveCursor)
@@ -157,7 +149,7 @@
                 )(else
                     gSq5Win
                 )
-)
+            )
             name("PODialog")
             caller(self)
         )
@@ -181,13 +173,7 @@
             )
         (send dialog:moveTo(temp3 temp4))
         = temp1 GetPort()
-        (send dialog:open(
-            (if (title)
-                4
-            )(else
-                0
-            )
- 			15))
+        (send dialog:open( (if (title) nwTITLE)(else nwNORMAL) 15))
         return 
             (if (modeless)
                 = gOldPort GetPort()
@@ -227,9 +213,10 @@
             )
     )
 
-
-    (method (addButton param1 theTheGModNum)
-        (var theTheTheGModNum, theTheTheGModNum_2, theTheTheGModNum_3, temp3, theTheTheGModNum_4, theTheTheGModNum_5, theGModNum, temp7, temp8)
+    // addButton (theValue noun verb cond seq x y modNum)
+    // addButton (theValue theText x y)
+    (method (addButton theValue params)
+        (var noun, verb, cond, seq, x, y, modNum, text, temp8)
         (if (not dialog)
             = dialog (Dialog:new())
         )
@@ -237,108 +224,109 @@
             = font gFont
         )
         (if (> paramTotal 4)
-            = theTheTheGModNum theTheGModNum[0]
-            = theTheTheGModNum_2 theTheGModNum[1]
-            = theTheTheGModNum_3 theTheGModNum[2]
-            = temp3 
-                (if (theTheGModNum[3])
-                    theTheGModNum[3]
+            = noun params[0]
+            = verb params[1]
+            = cond params[2]
+            = seq 
+                (if (params[3])
+                    params[3]
                 )(else
                     1
                 )
-            = theTheTheGModNum_4 0
-            = theTheTheGModNum_5 0
-            = theGModNum gModNum
+            = x 0
+            = y 0
+            = modNum gModNum
             (if (> paramTotal 5)
-                = theTheTheGModNum_4 theTheGModNum[4]
+                = x params[4]
                 (if (> paramTotal 6)
-                    = theTheTheGModNum_5 theTheGModNum[5]
+                    = y params[5]
                     (if (> paramTotal 7)
-                        = theGModNum theTheGModNum[6]
+                        = modNum params[6]
                     )
                 )
             )
-            = temp8 Message(msgSIZE theGModNum theTheTheGModNum theTheTheGModNum_2 theTheTheGModNum_3 temp3)
+            = temp8 Message(msgSIZE modNum noun verb cond seq)
             (if (temp8)
-                = temp7 Memory(memALLOC_CRIT (= temp8 Message(msgSIZE theGModNum theTheTheGModNum theTheTheGModNum_2 theTheTheGModNum_3 temp3)))
-                (if (not Message(msgGET theGModNum theTheTheGModNum theTheTheGModNum_2 theTheTheGModNum_3 temp3 temp7))
-                    = temp7 0
+                = text Memory(memALLOC_CRIT (= temp8 Message(msgSIZE modNum noun verb cond seq)))
+                (if (not Message(msgGET modNum noun verb cond seq text))
+                    = text 0
                 )
             )
         )(else
-            = theTheTheGModNum_4 0
-            = theTheTheGModNum_5 0
+            = x 0
+            = y 0
             (if (> paramTotal 2)
-                = theTheTheGModNum_4 theTheGModNum[1]
+                = x params[1]
                 (if (> paramTotal 3)
-                    = theTheTheGModNum_5 theTheGModNum[2]
+                    = y params[2]
                 )
             )
-            = temp7 Memory(memALLOC_CRIT (+ StrLen(theTheGModNum[0]) 1))
-            StrCpy(temp7 theTheGModNum[0])
+            = text Memory(memALLOC_CRIT (+ StrLen(params[0]) 1))
+            StrCpy(text params[0])
         )
-        (if (temp7)
+        (if (text)
             (send dialog:
                 add((send ((DButton:new())):
-                        value(param1)
+                        value(theValue)
                         font(font)
-                        text(temp7)
+                        text(text)
                         setSize()
-                        moveTo((+ 4 theTheTheGModNum_4) (+ 4 theTheTheGModNum_5))
+                        moveTo((+ 4 x) (+ 4 y))
                         yourself()
                     )
-				   )
+                     )
                 setSize()
             )
         )
     )
 
     // addColorButton(theValue noun verb cond seq x y modNum)
-    (method (addColorButton theValue theTheGModNum)
-        (var theTheTheGModNum, theTheTheGModNum_2, theTheTheGModNum_3, temp3, theTheTheGModNum_4, theTheTheGModNum_5, theGModNum, temp7, temp8, theTheTheGModNum_6, theTheTheGModNum_9, theTheTheGModNum_7, theTheTheGModNum_10, theTheTheGModNum_8, theTheTheGModNum_11)
+    // addColorButton(theValue noun verb cond seq x y modNum normalForeColor highlightForeColor selectedForeColor normalBackColor highlightBackColor selectedBackColor)
+    (method (addColorButton theValue params)
+        (var noun, verb, cond, seq, x, y, modNum, temp7, temp8, normalForeColor, normalBackColor, highlightForeColor, highlightBackColor, selectedForeColor, selectedBackColor)
         (if (not dialog)
             = dialog (Dialog:new())
         )
         (if (== font -1)
             = font gFont
         )
-        = theTheTheGModNum_6 0
-        = theTheTheGModNum_7 15
-        = theTheTheGModNum_8 31
-        = theTheTheGModNum_9 5
-        = theTheTheGModNum_10 5
-        = theTheTheGModNum_11 5
-        (if (< Abs(theTheGModNum[0]) 1000)
-            = theTheTheGModNum theTheGModNum[0]
-            = theTheTheGModNum_2 theTheGModNum[1]
-            = theTheTheGModNum_3 theTheGModNum[2]
-            = temp3 
-                (if (theTheGModNum[3])
-                    theTheGModNum[3]
+        = normalForeColor 0
+        = highlightForeColor 15
+        = selectedForeColor 31
+        = normalBackColor 5
+        = highlightBackColor 5
+        = selectedBackColor 5
+        (if (< Abs(params[0]) 1000)
+            = noun params[0]
+            = verb params[1]
+            = cond params[2]
+            = seq 
+                (if (params[3])
+                    params[3]
                 )(else
                     1
                 )
-            = theTheTheGModNum_4 0
-            = theTheTheGModNum_5 0
-            = theGModNum gModNum
+            = x 0
+            = y 0
+            = modNum gModNum
             (if (> paramTotal 5)
-                = theTheTheGModNum_4 theTheGModNum[4]
+                = x params[4]
                 (if (> paramTotal 6)
-                    = theTheTheGModNum_5 theTheGModNum[5]
+                    = y params[5]
                     (if (> paramTotal 7)
-                        = theGModNum theTheGModNum[6]
+                        = modNum params[6]
                         (if (> paramTotal 8)
-                            = theTheTheGModNum_6 theTheGModNum[7]
+                            = normalForeColor params[7]
                             (if (> paramTotal 9)
-                                = theTheTheGModNum_7 theTheGModNum[8]
+                                = highlightForeColor params[8]
                                 (if (> paramTotal 10)
-                                    = theTheTheGModNum_8 theTheGModNum[9]
+                                    = selectedForeColor params[9]
                                     (if (> paramTotal 11)
-                                        = theTheTheGModNum_9 theTheGModNum[10]
+                                        = normalBackColor params[10]
                                         (if (> paramTotal 12)
-                                            = theTheTheGModNum_10 theTheGModNum[11]
+                                            = highlightBackColor params[11]
                                             (if (> paramTotal 13)
-                                                = theTheTheGModNum_11 theTheGModNum[12]
+                                                = selectedBackColor params[12]
                                             )
                                         )
                                     )
@@ -348,32 +336,32 @@
                     )
                 )
             )
-            = temp8 Message(msgSIZE theGModNum theTheTheGModNum theTheTheGModNum_2 theTheTheGModNum_3 temp3)
+            = temp8 Message(msgSIZE modNum noun verb cond seq)
             (if (temp8)
-                = temp7 Memory(memALLOC_CRIT (= temp8 Message(msgSIZE theGModNum theTheTheGModNum theTheTheGModNum_2 theTheTheGModNum_3 temp3)))
-                (if (not Message(msgGET theGModNum theTheTheGModNum theTheTheGModNum_2 theTheTheGModNum_3 temp3 temp7))
+                = temp7 Memory(memALLOC_CRIT (= temp8 Message(msgSIZE modNum noun verb cond seq)))
+                (if (not Message(msgGET modNum noun verb cond seq temp7))
                     = temp7 0
                 )
             )
         )(else
-            = theTheTheGModNum_4 0
-            = theTheTheGModNum_5 0
+            = x 0
+            = y 0
             (if (> paramTotal 2)
-                = theTheTheGModNum_4 theTheGModNum[1]
+                = x params[1]
                 (if (> paramTotal 3)
-                    = theTheTheGModNum_5 theTheGModNum[2]
+                    = y params[2]
                     (if (> paramTotal 4)
-                        = theTheTheGModNum_6 theTheGModNum[3]
+                        = normalForeColor params[3]
                         (if (> paramTotal 5)
-                            = theTheTheGModNum_7 theTheGModNum[4]
+                            = highlightForeColor params[4]
                             (if (> paramTotal 6)
-                                = theTheTheGModNum_8 theTheGModNum[5]
+                                = selectedForeColor params[5]
                                 (if (> paramTotal 7)
-                                    = theTheTheGModNum_9 theTheGModNum[6]
+                                    = normalBackColor params[6]
                                     (if (> paramTotal 8)
-                                        = theTheTheGModNum_10 theTheGModNum[7]
+                                        = highlightBackColor params[7]
                                         (if (> paramTotal 9)
-                                            = theTheTheGModNum_11 theTheGModNum[8]
+                                            = selectedBackColor params[8]
                                         )
                                     )
                                 )
@@ -382,8 +370,8 @@
                     )
                 )
             )
-            = temp7 Memory(memALLOC_CRIT (+ StrLen(theTheGModNum[0]) 1))
-            StrCpy(temp7 theTheGModNum[0])
+            = temp7 Memory(memALLOC_CRIT (+ StrLen(params[0]) 1))
+            StrCpy(temp7 params[0])
         )
         (if (temp7)
             (send dialog:
@@ -392,96 +380,96 @@
                         font(font)
                         text(temp7)
                         mode(mode)
-                        nfc(theTheTheGModNum_6)
-                        nbc(theTheTheGModNum_9)
-                        sfc(theTheTheGModNum_8)
-                        sbc(theTheTheGModNum_11)
-                        hfc(theTheTheGModNum_7)
-                        hbc(theTheTheGModNum_10)
+                        nfc(normalForeColor)
+                        nbc(normalBackColor)
+                        sfc(selectedForeColor)
+                        sbc(selectedBackColor)
+                        hfc(highlightForeColor)
+                        hbc(highlightBackColor)
                         setSize(width)
-                        moveTo(+ 4 theTheTheGModNum_4 + 4 theTheTheGModNum_5)
+                        moveTo((+ 4 x) (+ 4 y))
                         yourself()
                     )
-)
+                )
                 setSize()
             )
         )
     )
 
-
-    (method (addEdit param1 param2 param3 param4 param5)
-        (var temp0, temp1)
+	// addEdit(theBuffer maxLength [x] [y] [initialText])
+    (method (addEdit theBuffer maxLength x y initialText)
+        (var theX, theY)
         (if (not dialog)
             = dialog (Dialog:new())
         )
-        StrCpy(param1 
+        StrCpy(theBuffer 
             (if (> paramTotal 4)
-                param5
+                initialText
             )(else
                 ""
             )
-)
+        )
         (if (> paramTotal 2)
-            = temp0 param3
+            = theX x
             (if (> paramTotal 3)
-                = temp1 param4
+                = theY y
             )
         )
         (send dialog:
             add((send ((DEdit:new())):
-                    text(param1)
-                    max(param2)
+                    text(theBuffer)
+                    max(maxLength)
                     setSize()
-                    moveTo(+ temp0 4 + temp1 4)
+                    moveTo((+ theX 4) (+ theY 4))
                     yourself()
                 )
-)
+            )
             setSize()
         )
     )
 
-
-    (method (addIcon param1 param2 param3 param4 param5)
+    (method (addIcon theView theLoop theCel theX theY)
         (var temp0, temp1)
         (if (not dialog)
             = dialog (Dialog:new())
         )
         (if (> paramTotal 3)
-            = temp0 param4
-            = temp1 param5
+            = temp0 theX
+            = temp1 theY
         )(else
             = temp1 0
             = temp0 temp1
         )
-        (if (IsObject(param1))
+        (if (IsObject(theView))
             (send dialog:
-                add((send param1:
+                add((send theView:
                         setSize()
                         moveTo(+ temp0 4 + temp1 4)
                         yourself()
                     )
-)
+                )
                 setSize()
             )
         )(else
             (send dialog:
                 add((send ((DIcon:new())):
-                        view(param1)
-                        loop(param2)
-                        cel(param3)
+                        view(theView)
+                        loop(theLoop)
+                        cel(theCel)
                         setSize()
                         moveTo(+ temp0 4 + temp1 4)
                         yourself()
                     )
-)
+                )
                 setSize()
             )
         )
     )
 
-
-    (method (addText theTheGModNum)
-        (var theTheTheGModNum, theTheTheGModNum_2, theTheTheGModNum_3, temp3, theTheTheGModNum_4, theTheTheGModNum_5, theGModNum, temp7, temp8)
+    // addText (noun verb cond seq x y modNum)
+    // addText (theText x y)
+    (method (addText params)
+        (var noun, verb, cond, seq, x, y, modNum, text, temp8)
         (if (not dialog)
             = dialog (Dialog:new())
         )
@@ -489,114 +477,111 @@
             = font gFont
         )
         (if (> paramTotal 3)
-            = theTheTheGModNum theTheGModNum[0]
-            = theTheTheGModNum_2 theTheGModNum[1]
-            = theTheTheGModNum_3 theTheGModNum[2]
-            = temp3 
-                (if (theTheGModNum[3])
-                    theTheGModNum[3]
+            = noun params[0]
+            = verb params[1]
+            = cond params[2]
+            = seq 
+                (if (params[3])
+                    params[3]
                 )(else
                     1
                 )
-            = theTheTheGModNum_4 0
-            = theTheTheGModNum_5 0
-            = theGModNum gModNum
+            = x 0
+            = y 0
+            = modNum gModNum
             (if (>= paramTotal 5)
-                = theTheTheGModNum_4 theTheGModNum[4]
+                = x params[4]
                 (if (>= paramTotal 6)
-                    = theTheTheGModNum_5 theTheGModNum[5]
+                    = y params[5]
                     (if (>= paramTotal 7)
-                        = theGModNum theTheGModNum[6]
+                        = modNum params[6]
                     )
                 )
             )
-            = temp8 Message(msgSIZE theGModNum theTheTheGModNum theTheTheGModNum_2 theTheTheGModNum_3 temp3)
+            = temp8 Message(msgSIZE modNum noun verb cond seq)
             (if (temp8)
-                = temp7 Memory(memALLOC_CRIT (= temp8 Message(msgSIZE theGModNum theTheTheGModNum theTheTheGModNum_2 theTheTheGModNum_3 temp3)))
-                (if (Message(msgGET theGModNum theTheTheGModNum theTheTheGModNum_2 theTheTheGModNum_3 temp3 temp7))
+                = text Memory(memALLOC_CRIT (= temp8 Message(msgSIZE modNum noun verb cond seq)))
+                (if (Message(msgGET modNum noun verb cond seq text))
                     (send dialog:
                         add((send ((DText:new())):
-                                text(temp7)
+                                text(text)
                                 font(font)
                                 mode(mode)
                                 setSize(width)
-                                moveTo(+ 4 theTheTheGModNum_4 + 4 theTheTheGModNum_5)
+                                moveTo(+ 4 x + 4 y)
                                 yourself()
                             )
-)
+                        )
                         setSize()
                     )
                 )
             )
         )(else
-            = theTheTheGModNum_4 0
-            = theTheTheGModNum_5 0
+            = x 0
+            = y 0
             (if (>= paramTotal 2)
-                = theTheTheGModNum_4 theTheGModNum[1]
+                = x params[1]
                 (if (>= paramTotal 3)
-                    = theTheTheGModNum_5 theTheGModNum[2]
+                    = y params[2]
                 )
             )
-            = temp7 Memory(memALLOC_CRIT (+ StrLen(theTheGModNum[0]) 1))
-            StrCpy(temp7 theTheGModNum[0])
+            = text Memory(memALLOC_CRIT (+ StrLen(params[0]) 1))
+            StrCpy(text params[0])
             (send dialog:
                 add((send ((DText:new())):
-                        text(temp7)
+                        text(text)
                         font(font)
                         mode(mode)
                         setSize(width)
-                        moveTo(+ 4 theTheTheGModNum_4 + 4 theTheTheGModNum_5)
+                        moveTo(+ 4 x + 4 y)
                         yourself()
                     )
-)
+                )
                 setSize()
             )
         )
     )
 
-
-    (method (addTextF param1)
+    (method (addTextF params)
         (var temp0, temp1)
-        = temp0 GetTotalLength(rest param1)
+        = temp0 GetTotalLength(rest params)
         = temp1 Memory(memALLOC_CRIT temp0)
-        Format(temp1 rest param1)
+        Format(temp1 rest params)
         (self:addText(temp1))
         Memory(memFREE temp1)
     )
 
-
-    (method (addTitle param1)
-        (var temp0, temp1, temp2, temp3, temp4, temp5)
+    // addTitle (noun verb cond seq modNum)
+    // addTitle (theText)
+    (method (addTitle params)
+        (var noun, verb, cond, seq, modNum, temp5)
         (if (> paramTotal 1)
-            = temp0 param1[0]
-            = temp1 param1[1]
-            = temp2 param1[2]
-            = temp3 param1[3]
-            = temp4 param1[4]
-            = temp5 Message(msgSIZE temp4 temp0 temp1 temp2 temp3)
+            = noun params[0]
+            = verb params[1]
+            = cond params[2]
+            = seq params[3]
+            = modNum params[4]
+            = temp5 Message(msgSIZE modNum noun verb cond seq)
             (if (temp5)
-                = title Memory(memALLOC_CRIT (= temp5 Message(msgSIZE temp4 temp0 temp1 temp2 temp3)))
-                Message(msgGET temp4 temp0 temp1 temp2 temp3 title)
+                = title Memory(memALLOC_CRIT (= temp5 Message(msgSIZE modNum noun verb cond seq)))
+                Message(msgGET modNum noun verb cond seq title)
             )
         )(else
-            = title Memory(memALLOC_CRIT (+ StrLen(param1[0]) 1))
-            StrCpy(title param1[0])
+            = title Memory(memALLOC_CRIT (+ StrLen(params[0]) 1))
+            StrCpy(title params[0])
         )
     )
-
 
     (method (posn theX theY)
         = x theX
         = y theY
     )
 
-
     (method (handleEvent pEvent)
         (if ((send dialog:handleEvent(pEvent)))
             (send dialog:dispose())
         )
     )
-
 
     (method (cue)
         (var theCaller)
@@ -610,5 +595,4 @@
             (send theCaller:cue())
         )
     )
-
 )

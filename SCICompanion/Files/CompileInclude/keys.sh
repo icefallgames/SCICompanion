@@ -29,6 +29,7 @@
 (define KEY_DOWN  			$5000)
 (define KEY_PAGEDOWN  		$4900)
 (define KEY_PAGEUP  		$5100)
+(define KEY_PERCENT  		$25)
 (define KEY_SELECT  		$29)
 (define KEY_PRINT  			$2A)
 (define KEY_EXECUTE  		$2B)

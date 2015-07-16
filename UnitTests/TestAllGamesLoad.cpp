@@ -117,7 +117,7 @@ namespace UnitTests
                     }
                 }
             }
-
+            
             message = fmt::format(L"Loaded {0} resources.", count);
             Logger::WriteMessage(message.c_str());
 

@@ -28,7 +28,7 @@
 (use "Print")
 (use "DIcon")
 (use "Messager")
-(use "Blink")
+(use "Talker")
 (use "PseudoMouse")
 (use "Scaler")
 (use "BorderWindow")
