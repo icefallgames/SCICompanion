@@ -1370,7 +1370,7 @@ void SCISyntaxParser::Load()
     use = keyword_p("use") >> quotedstring_p[AddUseA];
     version = keyword_p("version") >> integer_p[SetVersionA];
 
-    export_entry = integer_p >> alphanum_p[AddExportA];
+    export_entry = integer_p >> general_token[AddExportA];
     exports = keyword_p("exports") >> *export_entry;
 
     define = keyword_p("define")[CreateDefineA] >> alphanum_p[DefineLabelA] >> integer_p[DefineValueA];

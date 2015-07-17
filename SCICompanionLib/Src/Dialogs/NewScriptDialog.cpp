@@ -174,7 +174,6 @@ void CNewScriptDialog::OnOK()
     BOOL fClose = !_ValidateScriptNumber();
 
     WORD nScript = _scriptId.GetResourceNumber();
-    ASSERT(nScript < 1000);
 
     if (fClose)
     {

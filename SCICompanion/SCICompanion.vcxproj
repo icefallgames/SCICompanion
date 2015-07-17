@@ -474,8 +474,6 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <None Include="Files\TemplateGame\SCI1.1\src\gauge.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\gauge.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\genetix.sco" />
-    <None Include="Files\TemplateGame\SCI1.1\src\GlobalPalettes.sc" />
-    <None Include="Files\TemplateGame\SCI1.1\src\globalpalettes.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\GravMover.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\gravmover.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\grooper.sc" />

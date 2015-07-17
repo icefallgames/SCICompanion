@@ -422,7 +422,10 @@ void CNewRasterResourceDocument::_InsertFiles(const vector<string> &files)
     RasterComponent &raster = GetComponent<RasterComponent>();
     bool isVGA = (raster.Traits.PaletteType == PaletteType::VGA_256);
 
-    uint8_t transparentColor = 0;   // ????
+    // Use the transparent color of the current cel.
+    // Another option would be to set the transparent color automatically by detecting the least-used color in the
+    // imported image.
+    uint8_t transparentColor = raster.GetCel(GetSelectedIndex()).TransparentColor;
 
     // First, get a collection of usable images
     std::vector<ImageSequenceItem> imageSequenceItems;
