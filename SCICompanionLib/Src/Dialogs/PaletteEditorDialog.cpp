@@ -45,6 +45,7 @@ void PaletteEditorDialog::_SyncSelectionCycle()
     m_wndPreviewCycling.EnableWindow(canCycle);
     m_wndCycleLeft.EnableWindow(canCycle);
     m_wndCycleRight.EnableWindow(canCycle);
+    m_wndCycleSlider.EnableWindow(canCycle);
 
     _SyncCheckState();
 }
@@ -81,6 +82,9 @@ void PaletteEditorDialog::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_CHECKPREVIEWCYCLING, m_wndPreviewCycling);
         DDX_Control(pDX, IDC_BUTTONCYCLELEFT, m_wndCycleLeft);
         DDX_Control(pDX, IDC_BUTTONCYCLERIGHT, m_wndCycleRight);
+        DDX_Control(pDX, IDC_SLIDERCYCLESPEED, m_wndCycleSlider);
+        m_wndCycleSlider.SetRange(0, 10);
+        
         DDX_Control(pDX, IDC_BUTTON_SAVEPALETTE, m_wndSaveAs);
 
         if (!_enableCycling)
@@ -124,28 +128,34 @@ void PaletteEditorDialog::OnTimer(UINT_PTR nIDEvent)
     {
         if (_cycling)
         {
-            std::vector<std::pair<uint8_t, uint8_t>> ranges = GetSelectedRanges(m_wndStatic);
-            if (_IsSingleRangeSelected(ranges))
+            _cycleCountdown--;
+            if (_cycleCountdown <= 0)
             {
-                int offset = _cycleForward ? 1 : -1;
-                PaletteComponent prev = *_palette;
-                for (int i = ranges[0].first; i <= (int)ranges[0].second; i++)
-                {
-                    int oldIndex = i + offset;
-                    if (oldIndex < (int)ranges[0].first)
-                    {
-                        oldIndex = ranges[0].second;
-                    }
-                    if (oldIndex > (int)ranges[0].second)
-                    {
-                        oldIndex = ranges[0].first;
-                    }
-                    _palette->Colors[i] = prev.Colors[oldIndex];
-                }
+                _cycleCountdown += m_wndCycleSlider.GetPos();
 
-                if (_callback)
+                std::vector<std::pair<uint8_t, uint8_t>> ranges = GetSelectedRanges(m_wndStatic);
+                if (_IsSingleRangeSelected(ranges))
                 {
-                    _callback->OnVGAPaletteChanged();
+                    int offset = _cycleForward ? 1 : -1;
+                    PaletteComponent prev = *_palette;
+                    for (int i = ranges[0].first; i <= (int)ranges[0].second; i++)
+                    {
+                        int oldIndex = i + offset;
+                        if (oldIndex < (int)ranges[0].first)
+                        {
+                            oldIndex = ranges[0].second;
+                        }
+                        if (oldIndex > (int)ranges[0].second)
+                        {
+                            oldIndex = ranges[0].first;
+                        }
+                        _palette->Colors[i] = prev.Colors[oldIndex];
+                    }
+
+                    if (_callback)
+                    {
+                        _callback->OnVGAPaletteChanged();
+                    }
                 }
             }
         }

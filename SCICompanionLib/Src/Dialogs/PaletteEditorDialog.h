@@ -40,6 +40,8 @@ private:
     CExtCheckBox m_wndPreviewCycling;
     CExtRadioButton m_wndCycleLeft;
     CExtRadioButton m_wndCycleRight;
+    CExtSliderWnd m_wndCycleSlider;
+    int _cycleCountdown;
     CExtButton m_wndSaveAs;
     bool _enableCycling;
     bool _cycleForward;
