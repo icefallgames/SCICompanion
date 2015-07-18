@@ -2709,6 +2709,14 @@ void CPicView::_OnDraw(CDC* pDC, PicScreen screen)
 {
     BITMAPINFO *pbmi;
 
+#ifdef DEBUG
+    // Show aux screen when shift is held.
+    if (GetKeyState(VK_SHIFT) & 0x8000)
+    {
+        screen = PicScreen::Aux;
+    }
+#endif
+
     const uint8_t *displayBits = _GetDrawManager().GetPicBits(screen, PicPosition::PostPlugin, _GetPicSize());
     _GetDrawManager().GetBitmapInfo(screen, &pbmi);
 

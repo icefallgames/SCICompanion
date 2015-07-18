@@ -400,7 +400,7 @@ bool PastedCommands_ContainDrawCommands(const PicCommand *pCommands, size_t cCom
 //
 // Returns false if the coordiante is out of bounds.
 //
-bool Coord_Adjust(size16 size, uint16_t *px, uint16_t *py, const PICCOMMAND_ADJUST *pAdjust)
+bool Coord_Adjust(size16 size, int16_t *px, int16_t *py, const PICCOMMAND_ADJUST *pAdjust)
 {
     int x = (int)*px;
     int y = (int)*py;
@@ -447,8 +447,8 @@ bool Coord_Adjust(size16 size, uint16_t *px, uint16_t *py, const PICCOMMAND_ADJU
     bool fRet = ((x >= 0) && (y >= 0) && (x < size.cx) && (y < size.cy));
 
     // Truncation/overflow is ok, since we've checked the bounds above.
-    *px = (uint16_t)x;
-    *py = (uint16_t)y;
+    *px = (int16_t)x;
+    *py = (int16_t)y;
 
     return fRet;
 }
@@ -541,7 +541,7 @@ HGLOBAL CopiedCommands_AllocAndFillMemory(const PicCommand *pCommands, size_t cC
 }
 
 
-bool PtInSRect(sRECT *prc, uint16_t x, uint16_t y)
+bool PtInSRect(sRECT *prc, int16_t x, int16_t y)
 {
     return ( (((__int16)x) >= prc->left) && (((__int16)x) < prc->right) && (((__int16)y) >= prc->top) && (((__int16)y) < prc->bottom));
 }
@@ -610,7 +610,7 @@ void ViewPort::Reset(uint8_t bPaletteToUse)
     std::copy(g_defaultPriBands, g_defaultPriBands + ARRAYSIZE(g_defaultPriBands), bPriorityLines);
 }
 
-inline void _PlotPixI(int p, PicData *pData, uint16_t x, uint16_t y, PicScreenFlags dwDrawEnable, EGACOLOR color, uint8_t bPriorityValue, uint8_t bControlValue)
+inline void _PlotPixI(int p, PicData *pData, int16_t x, int16_t y, PicScreenFlags dwDrawEnable, EGACOLOR color, uint8_t bPriorityValue, uint8_t bControlValue)
 {
     if (IsFlagSet(pData->dwMapsToRedraw, PicScreenFlags::Visual) && IsFlagSet(dwDrawEnable, PicScreenFlags::Visual))
     {
@@ -628,43 +628,51 @@ inline void _PlotPixI(int p, PicData *pData, uint16_t x, uint16_t y, PicScreenFl
 
 struct PlotEGA
 {
-    static uint8_t Plot(uint16_t x, uint16_t y, EGACOLOR color)
+    typedef EGACOLOR PixelType;
+
+    static uint8_t Plot(int16_t x, int16_t y, EGACOLOR color)
     {
         return ((x^y) & 1) ? color.color1 : color.color2;
     }
 
+    static bool IsWhite(PixelType pixel) { return pixel.color1 == White && pixel.color2 == White; }
+
     // Guard against someone doing a fill with pure white, since this algorithm will hang in that case.
     // Hero's quest does this, when some pictures are drawn with some palettes.
-    static bool EarlyBail(PicScreenFlags dwDrawEnable, EGACOLOR color)
+    static bool EarlyBail(PicScreenFlags dwDrawEnable, EGACOLOR color, uint8_t priValue, uint8_t controlValue)
     {
         return (IsFlagSet(dwDrawEnable, PicScreenFlags::Visual) && ((color.color1 == 0xf) && (color.color2 == 0xf)));
+        // ScummVM appears to have the following logic, but that is incorrect.
+        /* ||
+            (IsFlagSet(dwDrawEnable, PicScreenFlags::Control) && (controlValue == 0)) ||
+            (IsFlagSet(dwDrawEnable, PicScreenFlags::Priority) && (priValue == 0));*/
     }
 
     static const uint8_t White = 0xf;
-
-    typedef EGACOLOR PixelType;
 };
 
 struct PlotVGA
 {
-    static uint8_t Plot(uint16_t x, uint16_t y, uint8_t color)
+    typedef uint8_t PixelType;
+
+    static uint8_t Plot(int16_t x, int16_t y, int8_t color)
     {
         return color;
     }
 
-    static bool EarlyBail(PicScreenFlags dwDrawEnable, uint8_t color)
+    static bool IsWhite(PixelType pixel) { return pixel == White; }
+
+    static bool EarlyBail(PicScreenFlags dwDrawEnable, uint8_t color, uint8_t priValue, uint8_t controlValue)
     {
-        return false;
+        return (IsFlagSet(dwDrawEnable, PicScreenFlags::Visual) && (color == 0xff)); // See PlotEGA
     }
     static const uint8_t White = 0xff;
-
-    typedef uint8_t PixelType;
 };
 
 template<typename _TFormat>
-inline void _PlotPix(PicData *pData, uint16_t x, uint16_t y, PicScreenFlags dwDrawEnable, typename _TFormat::PixelType color, uint8_t bPriorityValue, uint8_t bControlValue)
+inline void _PlotPix(PicData *pData, int16_t x, int16_t y, PicScreenFlags dwDrawEnable, PicScreenFlags auxSet, typename _TFormat::PixelType color, uint8_t bPriorityValue, uint8_t bControlValue)
 {
-    if( x >= pData->size.cx || y >= pData->size.cy)
+    if(x < 0 || y < 0 || x >= pData->size.cx || y >= pData->size.cy)
     {
         return;
     }
@@ -685,12 +693,31 @@ inline void _PlotPix(PicData *pData, uint16_t x, uint16_t y, PicScreenFlags dwDr
         pData->pdataControl[p] = bControlValue;
     }
 
-    pData->pdataAux[p] |= (uint8_t)dwDrawEnable;
+    pData->pdataAux[p] |= (uint8_t)auxSet;
 }
 
-void _PlotPixNonStd(int cx, int cy, PicData *pData, uint16_t x, uint16_t y, PicScreenFlags dwDrawEnable, EGACOLOR color, uint8_t bPriorityValue, uint8_t bControlValue)
+template<typename _TFormat>
+PicScreenFlags _GetAuxSet(typename  _TFormat::PixelType color, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable)
 {
-    if( x >= cx || y >= cy)
+    PicScreenFlags auxSet = dwDrawEnable;
+    if (_TFormat::IsWhite(color))
+    {
+        ClearFlag(auxSet, PicScreenFlags::Visual);
+    }
+    if (bPriorityValue == 0)
+    {
+        ClearFlag(auxSet, PicScreenFlags::Priority);
+    }
+    if (bControlValue == 0)
+    {
+        ClearFlag(auxSet, PicScreenFlags::Control);
+    }
+    return auxSet;
+}
+
+void _PlotPixNonStd(int cx, int cy, PicData *pData, int16_t x, int16_t y, PicScreenFlags dwDrawEnable, EGACOLOR color, uint8_t bPriorityValue, uint8_t bControlValue)
+{
+    if(x < 0 || y < 0 || x >= cx || y >= cy)
     {
         return;
     }
@@ -710,17 +737,17 @@ void _PlotPixNonStd(int cx, int cy, PicData *pData, uint16_t x, uint16_t y, PicS
    incrE = ((deltanonlinear) > 0) ? -(deltanonlinear) : (deltanonlinear);  \
    d = nonlinearstart-1;  \
    while (linearvar != (linearend)) { \
-     _PlotPix<_TFormat>(pData, x,y, dwDrawEnable, color, bPriorityValue, bControlValue); \
+     _PlotPix<_TFormat>(pData, x,y, dwDrawEnable, auxSet, color, bPriorityValue, bControlValue); \
      linearvar += linearmod; \
      if ((d+=incrE) < 0) { \
        d += incrNE; \
        nonlinearvar += nonlinearmod; \
      }; \
    }; \
-   _PlotPix<_TFormat>(pData, x, y, dwDrawEnable, color, bPriorityValue, bControlValue);
+   _PlotPix<_TFormat>(pData, x, y, dwDrawEnable, auxSet, color, bPriorityValue, bControlValue);
 
 template<typename _TFormat>
-void _DitherLine(PicData *pData, uint16_t xStart, uint16_t yStart, uint16_t xEnd, uint16_t yEnd, typename _TFormat::PixelType color, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable)
+void _DitherLine(PicData *pData, int16_t xStart, int16_t yStart, int16_t xEnd, int16_t yEnd, typename _TFormat::PixelType color, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable)
 {
     int dx, dy, incrE, incrNE, d, finalx, finaly;
     int x = (int)xStart;
@@ -729,6 +756,8 @@ void _DitherLine(PicData *pData, uint16_t xStart, uint16_t yStart, uint16_t xEnd
     dy = (int)yEnd - (int)y;
     finalx = (int)xEnd;
     finaly = (int)yEnd;
+
+    PicScreenFlags auxSet = _GetAuxSet<_TFormat>(color, bPriorityValue, bControlValue, dwDrawEnable);
 
     dx = abs(dx);
     dy = abs(dy);
@@ -806,12 +835,14 @@ uint8_t junqindex[128] = { /* starting points for junq fill */
 // fRectangle:      rect or circle?
 //
 template<typename _TFormat>
-void _DrawPattern(PicData *pData, uint16_t x, uint16_t y, typename _TFormat::PixelType color, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable, bool fPattern, uint8_t bPatternSize, uint8_t bPatternNR, bool fRectangle)
+void _DrawPattern(PicData *pData, int16_t x, int16_t y, typename _TFormat::PixelType color, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable, bool fPattern, uint8_t bPatternSize, uint8_t bPatternNR, bool fRectangle)
 {
     uint16_t wSize = (uint16_t)bPatternSize;
 
-    uint16_t xMax = pData->size.cx - 1;
-    uint16_t ýMax = pData->size.cy - 1;
+    PicScreenFlags auxSet = _GetAuxSet<_TFormat>(color, bPriorityValue, bControlValue, dwDrawEnable);
+
+    int16_t xMax = pData->size.cx - 1;
+    int16_t ýMax = pData->size.cy - 1;
 
     // Fix up x and y
     if (x < wSize)
@@ -845,7 +876,7 @@ void _DrawPattern(PicData *pData, uint16_t x, uint16_t y, typename _TFormat::Pix
                     {
                         if ( (junq[junqbit>>3] >> (7-(junqbit & 7))) & 1)
                         {
-                            _PlotPix<_TFormat>(pData, k, l, dwDrawEnable, color, bPriorityValue, bControlValue);
+                            _PlotPix<_TFormat>(pData, k, l, dwDrawEnable, auxSet, color, bPriorityValue, bControlValue);
                         }
                         junqbit++;
                         if (junqbit == 0xff)
@@ -855,7 +886,7 @@ void _DrawPattern(PicData *pData, uint16_t x, uint16_t y, typename _TFormat::Pix
                     }
                     else
                     {
-                        _PlotPix<_TFormat>(pData, k, l, dwDrawEnable, color, bPriorityValue, bControlValue);
+                        _PlotPix<_TFormat>(pData, k, l, dwDrawEnable, auxSet, color, bPriorityValue, bControlValue);
                     }
                 }
             }
@@ -875,7 +906,7 @@ void _DrawPattern(PicData *pData, uint16_t x, uint16_t y, typename _TFormat::Pix
                         {
                             if ((junq[junqbit>>3] >> (7-(junqbit & 7))) & 1)
                             {
-                                _PlotPix<_TFormat>(pData, k, l, dwDrawEnable, color, bPriorityValue, bControlValue);
+                                _PlotPix<_TFormat>(pData, k, l, dwDrawEnable, auxSet, color, bPriorityValue, bControlValue);
                             }
                             junqbit++;
                             if (junqbit == 0xff)
@@ -885,7 +916,7 @@ void _DrawPattern(PicData *pData, uint16_t x, uint16_t y, typename _TFormat::Pix
                         }
                         else
                         {
-                            _PlotPix<_TFormat>(pData, k, l, dwDrawEnable, color, bPriorityValue, bControlValue);
+                            _PlotPix<_TFormat>(pData, k, l, dwDrawEnable, auxSet, color, bPriorityValue, bControlValue);
                         }
                     }
                     circlebit++;
@@ -903,7 +934,7 @@ void _DrawPattern(PicData *pData, uint16_t x, uint16_t y, typename _TFormat::Pix
 // REVIEW: This sucks - I had to make a full copy of this function, just to allow it to draw to something smaller
 // than 320 x 200.  (don't want to pass extra params to _PlotPix due to perf)
 //
-void DrawPatternInRect(int cx, int cy, PicData *pData, uint16_t x, uint16_t y, EGACOLOR color, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable, const PenStyle *pPenStyle)
+void DrawPatternInRect(int cx, int cy, PicData *pData, int16_t x, int16_t y, EGACOLOR color, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable, const PenStyle *pPenStyle)
 {
     uint16_t wSize = (uint16_t)pPenStyle->bPatternSize;
 
@@ -1028,7 +1059,7 @@ const Cel &GetCel(const ResourceEntity *pvr, int &nLoop, int &nCel)
 // Give a view, and its position, returns the point that is at the
 // center of the view.
 //
-CPoint FindCenterOfView(uint16_t xEgo, uint16_t yEgo, const ResourceEntity *pvr, int nLoop, int nCel)
+CPoint FindCenterOfView(int16_t xEgo, int16_t yEgo, const ResourceEntity *pvr, int nLoop, int nCel)
 {
     const Cel &cel = GetCel(pvr, nLoop, nCel);
     int xiEgo = (int)xEgo + cel.placement.x;
@@ -1037,7 +1068,7 @@ CPoint FindCenterOfView(uint16_t xEgo, uint16_t yEgo, const ResourceEntity *pvr,
 }
 
 #define YSTEP 2 // We may want to allow the user to change this.
-CRect GetViewBoundsRect(uint16_t xEgo, uint16_t yEgo, const ResourceEntity *pvr, int nLoop, int nCel)
+CRect GetViewBoundsRect(int16_t xEgo, int16_t yEgo, const ResourceEntity *pvr, int nLoop, int nCel)
 {
     const Cel &cel = GetCel(pvr, nLoop, nCel);
     CRect rect;
@@ -1074,14 +1105,14 @@ bool CanBeHere(size16 size, const uint8_t *pdataControl, const CRect &rect, uint
     return true;
 }
 
-bool HitTestView(uint16_t xCursor, uint16_t yCursor, uint16_t xEgo, uint16_t yEgo, const ResourceEntity *pvr, int nLoop, int nCel)
+bool HitTestView(int16_t xCursor, int16_t yCursor, int16_t xEgo, int16_t yEgo, const ResourceEntity *pvr, int nLoop, int nCel)
 {
     const Cel &cel = GetCel(pvr, nLoop, nCel);
     int xiEgo = (int)xEgo + cel.placement.x;
     int yiEgo = (int)yEgo + cel.placement.y;
     if ((xiEgo >= 0) && (yiEgo >= 0))
     {
-        return HitTestEgoBox(xCursor, yCursor, (uint16_t)xiEgo, (uint16_t)yiEgo, cel.size.cx, cel.size.cy);
+        return HitTestEgoBox(xCursor, yCursor, (int16_t)xiEgo, (int16_t)yiEgo, cel.size.cx, cel.size.cy);
     }
     else
     {
@@ -1089,7 +1120,7 @@ bool HitTestView(uint16_t xCursor, uint16_t yCursor, uint16_t xEgo, uint16_t yEg
     }
 }
 
-void GetViewRect(CRect *prc, uint16_t xEgo, uint16_t yEgo, const ResourceEntity *pvr, int nLoop, int nCel)
+void GetViewRect(CRect *prc, int16_t xEgo, int16_t yEgo, const ResourceEntity *pvr, int nLoop, int nCel)
 {
     const Cel &cel = GetCel(pvr, nLoop, nCel);
     int xiEgo = (int)xEgo + cel.placement.x;
@@ -1105,7 +1136,7 @@ void GetViewRect(CRect *prc, uint16_t xEgo, uint16_t yEgo, const ResourceEntity 
 //
 // y is at the bottom of ego, x is in the middle (just like the game)
 //
-bool HitTestEgoBox(uint16_t xCursor, uint16_t yCursor, uint16_t xEgo, uint16_t yEgo, uint16_t cx, uint16_t cy)
+bool HitTestEgoBox(int16_t xCursor, int16_t yCursor, int16_t xEgo, int16_t yEgo, uint16_t cx, uint16_t cy)
 {
     uint16_t cxHalf = cx / 2;
 
@@ -1224,7 +1255,7 @@ void DrawImageWithPriority(size16 displaySize, uint8_t *pdataDisplay, const uint
 //
 // Draws a view (represented by pvr) onto a pic (represented by pdataDisplay and pdataPriority)
 //
-void DrawViewWithPriority(size16 displaySize, uint8_t *pdataDisplay, const uint8_t *pdataPriority, uint8_t bEgoPriority, uint16_t xIn, uint16_t yIn, const ResourceEntity *pvr, int nLoop, int nCel, bool fShowOutline)
+void DrawViewWithPriority(size16 displaySize, uint8_t *pdataDisplay, const uint8_t *pdataPriority, uint8_t bEgoPriority, int16_t xIn, int16_t yIn, const ResourceEntity *pvr, int nLoop, int nCel, bool fShowOutline)
 {
     const Cel &cel = GetCel(pvr, nLoop, nCel);
     uint8_t bTransparent = cel.TransparentColor;
@@ -1242,13 +1273,13 @@ void DrawViewWithPriority(size16 displaySize, uint8_t *pdataDisplay, const uint8
 }
 
 
-void DrawBoxWithPriority(size16 picSize, uint8_t *pdataDisplay, const uint8_t *pdataPriority, uint8_t bEgoPriority, uint16_t xIn, uint16_t yIn, uint16_t cx, uint16_t cy)
+void DrawBoxWithPriority(size16 picSize, uint8_t *pdataDisplay, const uint8_t *pdataPriority, uint8_t bEgoPriority, int16_t xIn, int16_t yIn, uint16_t cx, uint16_t cy)
 {
     int xMax = picSize.cx - 1;
     int yMax = picSize.cy - 1;
 
     uint16_t cxHalf = cx / 2;
-    uint16_t xLeft;
+    int16_t xLeft;
     if (xIn < cxHalf)
     {
         xLeft = 0;
@@ -1257,18 +1288,18 @@ void DrawBoxWithPriority(size16 picSize, uint8_t *pdataDisplay, const uint8_t *p
     {
         xLeft = xIn - cxHalf;
     }
-    uint16_t xRight = xIn + cxHalf;
+    int16_t xRight = xIn + cxHalf;
     if (xRight >= xMax)
     {
         xRight = xMax;
     }
 
-    uint16_t yBottom = yIn;
+    int16_t yBottom = yIn;
     if (yBottom > yMax)
     {
         yBottom = yMax;
     }
-    uint16_t ySafeTop;
+    int16_t ySafeTop;
     if (yIn < cy)
     {
         ySafeTop = 0;
@@ -1278,9 +1309,9 @@ void DrawBoxWithPriority(size16 picSize, uint8_t *pdataDisplay, const uint8_t *p
         ySafeTop = yIn - cy;
     }
 
-    for (uint16_t x = xLeft; x <= xRight; x++)
+    for (int16_t x = xLeft; x <= xRight; x++)
     {
-        for (uint16_t y = ySafeTop; y <= yBottom; y++)
+        for (int16_t y = ySafeTop; y <= yBottom; y++)
         {
             int p = BUFFEROFFSET_NONSTD(picSize.cx, picSize.cy, x, y);
             if ( (*(pdataPriority + p)) <= bEgoPriority)
@@ -1377,16 +1408,19 @@ void DeleteDitherCritSec()
 }
 
 template<typename _TFormat>
-void _DitherFill(PicData *pdata, uint16_t x, uint16_t y, typename  _TFormat::PixelType color, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable)
+void _DitherFill(PicData *pdata, int16_t x, int16_t y, typename  _TFormat::PixelType color, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable)
 {
     if (!g_fDitherCritSecInited)
     {
         return;
     }
 
+    PicScreenFlags auxSet = _GetAuxSet<_TFormat>(color, bPriorityValue, bControlValue, dwDrawEnable);
+    dwDrawEnable = auxSet;
+
     // Guard against someone doing a fill with pure white, since this algorithm will hang in that case.
     // Hero's quest does this, when some pictures are drawn with some palettes.
-    if (_TFormat::EarlyBail(dwDrawEnable, color))
+    if (_TFormat::EarlyBail(dwDrawEnable, color, bPriorityValue, bControlValue))
     {
         return;
     }
@@ -1445,7 +1479,7 @@ void _DitherFill(PicData *pdata, uint16_t x, uint16_t y, typename  _TFormat::Pix
             if (OK_TO_FILL(cx, cy, x1, y1, _TFormat::White))
             {
                 // PERF: maybe inline this call?
-                _PlotPix<_TFormat>(pdata, (uint16_t)x1, (uint16_t)y1, dwDrawEnable, color, bPriorityValue, bControlValue);
+                _PlotPix<_TFormat>(pdata, (int16_t)x1, (int16_t)y1, dwDrawEnable, auxSet, color, bPriorityValue, bControlValue);
 
                 // PERF: Tried removing OK_TO_FILL here, but it made it worse
                 // (It's technically uncessary)
@@ -1479,7 +1513,7 @@ void _DitherFill(PicData *pdata, uint16_t x, uint16_t y, typename  _TFormat::Pix
 //
 // DRAW LINE
 //
-void PicCommand::_CreateLine(uint16_t xFrom, uint16_t yFrom, uint16_t xTo, uint16_t yTo)
+void PicCommand::_CreateLine(int16_t xFrom, int16_t yFrom, int16_t xTo, int16_t yTo)
 {
     assert(_IsEmpty());
     type = Line;
@@ -1589,7 +1623,7 @@ void LineCommand_Serialize(sci::ostream *pSerial, const PicCommand *pCommand, co
 //
 // PATTERN
 //
-void PicCommand::_CreatePattern(uint16_t x, uint16_t y, uint8_t bPatternSize, uint8_t bPatternNR, bool fPattern, bool fRectangle)
+void PicCommand::_CreatePattern(int16_t x, int16_t y, uint8_t bPatternSize, uint8_t bPatternNR, bool fPattern, bool fRectangle)
 {
     assert(_IsEmpty());
     assert(bPatternNR < 128);
@@ -1753,7 +1787,7 @@ void PatternCommand_Serialize(sci::ostream *pSerial, const PicCommand *pCommand,
 //
 // FILL
 //
-void PicCommand::_CreateFill(uint16_t x, uint16_t y)
+void PicCommand::_CreateFill(int16_t x, int16_t y)
 {
     assert(_IsEmpty());
     type = Fill;
@@ -2232,7 +2266,7 @@ void DrawVisualBitmap_Serialize(sci::ostream *pSerial, const PicCommand *pComman
 //
 // Circle command
 //
-void PicCommand::CreateCircle(uint16_t xFrom, uint16_t yFrom, uint16_t xTo, uint16_t yTo)
+void PicCommand::CreateCircle(int16_t xFrom, int16_t yFrom, int16_t xTo, int16_t yTo)
 {
     assert(_IsEmpty());
     type = Circle;
@@ -2273,12 +2307,12 @@ void _CircleHelper(const PicCommand *pCommand, std::vector<PicCommand> &temp)
     {
         float xTo = centx + a * cos(t);
         float yTo = centy - b * sin(t);
-        temp.push_back(PicCommand::CreateLine(static_cast<uint16_t>(xFrom), static_cast<uint16_t>(yFrom), static_cast<uint16_t>(xTo), static_cast<uint16_t>(yTo)));
+        temp.push_back(PicCommand::CreateLine(static_cast<int16_t>(xFrom), static_cast<int16_t>(yFrom), static_cast<int16_t>(xTo), static_cast<int16_t>(yTo)));
         xFrom = xTo;
         yFrom = yTo;
     }
     // Close it off...
-    temp.push_back(PicCommand::CreateLine(static_cast<uint16_t>(xFrom), static_cast<uint16_t>(yFrom), static_cast<uint16_t>(xOrig), static_cast<uint16_t>(yOrig)));
+    temp.push_back(PicCommand::CreateLine(static_cast<int16_t>(xFrom), static_cast<int16_t>(yFrom), static_cast<int16_t>(xOrig), static_cast<int16_t>(yOrig)));
 }
 
 void CircleCommand_DrawOnly(const PicCommand *pCommand, PicData *pData, const ViewPort *pState)

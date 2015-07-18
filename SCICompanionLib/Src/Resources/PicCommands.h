@@ -109,31 +109,31 @@ struct sRECT
     int16_t bottom;
 };
 
-bool PtInSRect(sRECT *prc, uint16_t x, uint16_t y);
+bool PtInSRect(sRECT *prc, int16_t x, int16_t y);
 
 //
 // COMMAND structures
 //
 struct LINECOMMAND
 {
-    uint16_t xFrom;
-    uint16_t yFrom;
-    uint16_t xTo;
-    uint16_t yTo;
+    int16_t xFrom;
+    int16_t yFrom;
+    int16_t xTo;
+    int16_t yTo;
 }; // 8 bytes
 
 struct CIRCLECOMMAND
 {
-    uint16_t xFrom;
-    uint16_t yFrom;
-    uint16_t xTo;
-    uint16_t yTo;
+    int16_t xFrom;
+    int16_t yFrom;
+    int16_t xTo;
+    int16_t yTo;
 }; // 8 bytes
 
 struct PATTERNCOMMAND
 {
-    uint16_t x;
-    uint16_t y;
+    int16_t x;
+    int16_t y;
     uint8_t bPatternSize;
     uint8_t bPatternNR;
     uint8_t wFlags; // 
@@ -141,8 +141,8 @@ struct PATTERNCOMMAND
 
 struct FILLCOMMAND
 {
-    uint16_t x;
-    uint16_t y;
+    int16_t x;
+    int16_t y;
 }; // 4 bytes
 
 struct SETVISUALCOMMAND
@@ -276,19 +276,19 @@ public:
     CommandType type;
 
     // Create functions
-    static PicCommand CreateLine(uint16_t xFrom, uint16_t yFrom, uint16_t xTo, uint16_t yTo)
+    static PicCommand CreateLine(int16_t xFrom, int16_t yFrom, int16_t xTo, int16_t yTo)
     {
         PicCommand command;
         command._CreateLine(xFrom, yFrom, xTo, yTo);
         return command;
     }
-    static PicCommand CreatePattern(uint16_t x, uint16_t y, uint8_t bPatternSize, uint8_t bPatternNR, bool fPattern, bool fRectangle)
+    static PicCommand CreatePattern(int16_t x, int16_t y, uint8_t bPatternSize, uint8_t bPatternNR, bool fPattern, bool fRectangle)
     {
         PicCommand command;
         command._CreatePattern(x, y, bPatternSize, bPatternNR, fPattern, fRectangle);
         return command;
     }
-    static PicCommand CreateFill(uint16_t x, uint16_t y)
+    static PicCommand CreateFill(int16_t x, int16_t y)
     {
         PicCommand command;
         command._CreateFill(x, y);
@@ -350,16 +350,16 @@ public:
     }
     void CreateSetPriorityBars(const uint16_t *pBars, bool is16Bit, bool isVGA);
     void CreateDrawVisualBitmap(const Cel &cel, bool isVGA);
-    void CreateCircle(uint16_t xFrom, uint16_t yFrom, uint16_t xTo, uint16_t yTo);
+    void CreateCircle(int16_t xFrom, int16_t yFrom, int16_t xTo, int16_t yTo);
 
     // Drawing functions, etc...
     void Draw(PicData *pData, ViewPort &state) const;
     void GetName(TCHAR *pszBuf, size_t cchBuf) const;
 
 private:
-    void _CreateLine(uint16_t xFrom, uint16_t yFrom, uint16_t xTo, uint16_t yTo);
-    void _CreatePattern(uint16_t x, uint16_t y, uint8_t bPatternSize, uint8_t bPatternNR, bool fPattern, bool fRectangle);
-    void _CreateFill(uint16_t x, uint16_t y);
+    void _CreateLine(int16_t xFrom, int16_t yFrom, int16_t xTo, int16_t yTo);
+    void _CreatePattern(int16_t x, int16_t y, uint8_t bPatternSize, uint8_t bPatternNR, bool fPattern, bool fRectangle);
+    void _CreateFill(int16_t x, int16_t y);
     void _CreateSetVisual(uint8_t bPaletteNumber, uint8_t bPaletteIndex);
     void _CreateSetVisualVGA(uint8_t bColor);
     void _CreateSetPriority(uint8_t bPriorityValue);
@@ -369,7 +369,7 @@ private:
     void _CreateDisableControl();
     void _CreateSetPalette(uint8_t bPaletteNumber, const EGACOLOR *pPalette);
     void _CreateSetPaletteEntry(uint8_t bPaletteNumber, uint8_t bOffset, EGACOLOR color);
-    void _CreateCircle(uint16_t xFrom, uint16_t yFrom, uint16_t xTo, uint16_t yTo);
+    void _CreateCircle(int16_t xFrom, int16_t yFrom, int16_t xTo, int16_t yTo);
 
     bool _IsEmpty();
     void _CleanUp();
@@ -486,15 +486,15 @@ void DeleteDitherCritSec();
 //
 // For the fake ego feature.
 //
-void DrawBoxWithPriority(size16 picSize, uint8_t *pdataDisplay, const uint8_t *pdataPriority, uint8_t bEgoPriority, uint16_t x, uint16_t y, uint16_t cx, uint16_t cy);
-void DrawViewWithPriority(size16 displaySize, uint8_t *pdataDisplay, const uint8_t *pdataPriority, uint8_t bEgoPriority, uint16_t xIn, uint16_t yIn, const ResourceEntity *pvr, int nLoop, int nCel, bool fShowOutline = FALSE);
-bool HitTestEgoBox(uint16_t xCursor, uint16_t yCursor, uint16_t xEgo, uint16_t yEgo, uint16_t cx, uint16_t cy);
-bool HitTestView(uint16_t xCursor, uint16_t yCursor, uint16_t xEgo, uint16_t yEgo, const ResourceEntity *pvr, int nLoop, int nCel);
-void GetViewRect(CRect *prc, uint16_t xEgo, uint16_t yEgo, const ResourceEntity *pvr, int nLoop, int nCel);
-CPoint FindCenterOfView(uint16_t xEgo, uint16_t yEgo, const ResourceEntity *pvr, int nLoop, int nCel);
-CRect GetViewBoundsRect(uint16_t xEgo, uint16_t yEgo, const ResourceEntity *pvr, int nLoop, int nCel);
+void DrawBoxWithPriority(size16 picSize, uint8_t *pdataDisplay, const uint8_t *pdataPriority, uint8_t bEgoPriority, int16_t x, int16_t y, uint16_t cx, uint16_t cy);
+void DrawViewWithPriority(size16 displaySize, uint8_t *pdataDisplay, const uint8_t *pdataPriority, uint8_t bEgoPriority, int16_t xIn, int16_t yIn, const ResourceEntity *pvr, int nLoop, int nCel, bool fShowOutline = FALSE);
+bool HitTestEgoBox(int16_t xCursor, int16_t yCursor, int16_t xEgo, int16_t yEgo, uint16_t cx, uint16_t cy);
+bool HitTestView(int16_t xCursor, int16_t yCursor, int16_t xEgo, int16_t yEgo, const ResourceEntity *pvr, int nLoop, int nCel);
+void GetViewRect(CRect *prc, int16_t xEgo, int16_t yEgo, const ResourceEntity *pvr, int nLoop, int nCel);
+CPoint FindCenterOfView(int16_t xEgo, int16_t yEgo, const ResourceEntity *pvr, int nLoop, int nCel);
+CRect GetViewBoundsRect(int16_t xEgo, int16_t yEgo, const ResourceEntity *pvr, int nLoop, int nCel);
 bool CanBeHere(size16 displaySize, const uint8_t *pdataPriority, const CRect &rect, uint16_t wControlMask = 0x8000);
-void DrawPatternInRect(int cx, int cy, PicData *pData, uint16_t x, uint16_t y, EGACOLOR color, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable, const PenStyle *pPenStyle);
+void DrawPatternInRect(int cx, int cy, PicData *pData, int16_t x, int16_t y, EGACOLOR color, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable, const PenStyle *pPenStyle);
 
 //
 // Each command shall have the following:

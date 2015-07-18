@@ -640,6 +640,7 @@
 #define IDC_STATICTITLE                 1306
 #define IDC_STATICTINTSTRENGTH          1307
 #define IDC_RADIOVIEW                   1307
+#define IDC_SLIDERCYCLESPEED            1307
 #define IDC_EDITTINTSTRENGTH            1308
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
@@ -942,7 +943,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        389
 #define _APS_NEXT_COMMAND_VALUE         33230
-#define _APS_NEXT_CONTROL_VALUE         1307
+#define _APS_NEXT_CONTROL_VALUE         1308
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif
