@@ -91,7 +91,19 @@ HBITMAP PicDrawManager::CreateBitmap(PicScreen screen, PicPosition pos, size16 s
 {
     _EnsureBufferPool(size);
     _RedrawBuffers(nullptr, PicScreenToFlags(screen), PicPositionToFlags(pos));
-    return _CreateBitmap(GetScreenData(screen, pos), cx, cy, _GetPalette(), 256, pbmi, pBitsDest);
+    RGBQUAD *colors = _GetPalette();
+    int colorCount = 256;
+    if (screen == PicScreen::Visual)
+    {
+        colors = _GetPalette();
+        colorCount = 256;
+    }
+    else
+    {
+        colors = g_egaColors;
+        colorCount = ARRAYSIZE(g_egaColors);
+    }
+    return _CreateBitmap(GetScreenData(screen, pos), cx, cy, colors, colorCount, pbmi, pBitsDest);
 }
 
 const uint8_t *PicDrawManager::GetPicBits(PicScreen screen, PicPosition pos, size16 size)
