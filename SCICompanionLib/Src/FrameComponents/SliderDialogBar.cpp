@@ -111,9 +111,11 @@ void CPositionSlider::UpdateNonView(CObject *pObject)
     int x =0;
     assert(_pDoc);
     PicDrawManager &pdm = _pDoc->GetDrawManager();
+    bool rangeChanged = false;
     if ((hint == PicChangeHint::None) || IsFlagSet(hint, PicChangeHint::NewPic | PicChangeHint::EditPicInvalid))
     {
         size_t cCommands = GetCommandCount(*pdm.GetPic());
+        rangeChanged = GetRangeMax() != (int)cCommands;
         SetRange(0, (int)cCommands);
         SetPageSize((int) (cCommands / 20));
         SetLineSize(1);
@@ -130,7 +132,10 @@ void CPositionSlider::UpdateNonView(CObject *pObject)
         }
         // Even if the range changed, if the position doesn't change the slider won't update.
         // So temporarily set it to zero, then to iPos.
-        SetPos(0);
+        if (rangeChanged)
+        {
+            SetPos(0);
+        }
         SetPos((int)iPos);
     }
 }
