@@ -35,7 +35,8 @@
                     register(killed)
                     yourself()
                 )
-))
+							 )
+			)
         )
         (super:dispose())
     )
@@ -59,59 +60,61 @@
         )
     )
 
-
-    (method (say theCaller)
-        (var theTheCaller, theTheCaller_2, theTheCaller_3, temp3, temp4[20], temp24)
-        = theTheCaller_3 (= curSequence 0)
-        = theTheCaller_2 theTheCaller_3
-        = theTheCaller theTheCaller_2
+	// say(noun [verb] [cond] [seq] [lastSeq] [caller] [modNum])
+	// say(noun [verb] [cond] [seq] [caller] [modNum])
+	// say(-1 caller)
+    (method (say params)
+        (var noun, verb, cond, modNum, temp4[20], temp24)
+        = cond (= curSequence 0)
+        = verb cond
+        = noun verb
         = caller (= oneOnly (= killed 0))
         (if (gSq5IconBar and not oldIconBarState)
             = oldIconBarState (send gSq5IconBar:state)
         )
-        = theTheCaller theCaller[0]
-        (if (== theTheCaller -1)
-            (if ((> paramTotal 1) and IsObject(theCaller[1]))
-                = caller theCaller[1]
+        = noun params[0]
+        (if (== noun -1)
+            (if ((> paramTotal 1) and IsObject(params[1]))
+                = caller params[1]
             )
             (self:sayNext())
         )(else
-            (if ((> paramTotal 1) and theCaller[1])
-                = theTheCaller_2 theCaller[1]
+            (if ((> paramTotal 1) and params[1])
+                = verb params[1]
             )
-            (if ((> paramTotal 2) and theCaller[2])
-                = theTheCaller_3 theCaller[2]
+            (if ((> paramTotal 2) and params[2])
+                = cond params[2]
             )
-            (if ((> paramTotal 3) and theCaller[3])
+            (if ((> paramTotal 3) and params[3])
                 = oneOnly 1
-                = curSequence theCaller[3]
+                = curSequence params[3]
             )(else
                 = curSequence 1
             )
             = temp24 4
-            (if (((> paramTotal temp24) and theCaller[temp24]) and not IsObject(theCaller[temp24]))
-                = lastSequence theCaller[temp24]
+            (if (((> paramTotal temp24) and params[temp24]) and not IsObject(params[temp24]))
+                = lastSequence params[temp24]
                 ++temp24
                 = oneOnly 0
             )(else
                 = lastSequence 0
             )
-            (if ((> paramTotal temp24) and theCaller[temp24])
-                = caller theCaller[temp24]
+            (if ((> paramTotal temp24) and params[temp24])
+                = caller params[temp24]
             )(else
                 = caller 0
             )
-            = temp3 
+            = modNum 
                 (if (> paramTotal ++temp24)
-                    theCaller[temp24]
+                    params[temp24]
                 )(else
                     gModNum
                 )
-            (if (global90 and Message(msgGET temp3 theTheCaller theTheCaller_2 theTheCaller_3 curSequence))
-                (self:sayNext(temp3 theTheCaller theTheCaller_2 theTheCaller_3 curSequence))
+            (if (global90 and Message(msgGET modNum noun verb cond curSequence))
+                (self:sayNext(modNum noun verb cond curSequence))
             )(else
                 (Print:
-                    addTextF("<Messager>\n\tmsgType set to 0 or\n\t%d: %d, %d, %d, %d not found" temp3 theTheCaller theTheCaller_2 theTheCaller_3 curSequence)
+                    addTextF("<Messager>\n\tmsgType set to 0 or\n\t%d: %d, %d, %d, %d not found" modNum noun verb cond curSequence)
                     init()
                 )
                 (self:dispose())
@@ -120,30 +123,30 @@
     )
 
 
-    (method (sayFormat param1 param2 theCaller param4)
-        (var temp0, temp1, temp2)
+    (method (sayFormat talkerNumber formatString theCaller param4)
+        (var temp0, buffer, theTalker)
         (if (gSq5IconBar and not oldIconBarState)
             = oldIconBarState (send gSq5IconBar:state)
         )
-        = temp2 (self:findTalker(param1))
-        = temp0 GetTotalLength(param2 theCaller rest param4)
+        = theTalker (self:findTalker(talkerNumber))
+        = temp0 GetTotalLength(formatString theCaller rest param4)
         (if (IsObject(theCaller[- paramTotal 2]))
             = caller theCaller[(- paramTotal 2)]
         )
         = oneOnly 1
-        = temp1 Memory(memALLOC_CRIT temp0)
-        Format(temp1 param2 theCaller rest param4)
-        (send temp2:say(temp1 self))
-        Memory(memFREE temp1)
+        = buffer Memory(memALLOC_CRIT temp0)
+        Format(buffer formatString theCaller rest param4)
+        (send theTalker:say(buffer self))
+        Memory(memFREE buffer)
     )
 
 
-    (method (sayNext param1 param2 param3 param4 param5)
-        (var temp0, temp1[200], temp201)
+    (method (sayNext theModNum noun verb cond seq)
+        (var temp0, buffer[200], temp201)
         (if (paramTotal)
-            = temp0 Message(msgGET param1 param2 param3 param4 param5 @temp1)
+            = temp0 Message(msgGET theModNum noun verb cond seq @buffer)
         )(else
-            = temp0 Message(msgNEXT @temp1)
+            = temp0 Message(msgNEXT @buffer)
         )
         (if (& global90 $0002)
             = temp201 Memory(memALLOC_CRIT 12)
@@ -155,13 +158,13 @@
                 (talkerSet:add(temp0))
                 (if (& global90 $0002)
                     (send temp0:
-                        modNum(param1)
+                        modNum(theModNum)
                         say(temp201 self)
                     )
                 )(else
                     (send temp0:
-                        modNum(param1)
-                        say(@temp1 self param1 param2 param3 param4 param5)
+                        modNum(theModNum)
+                        say(@buffer self theModNum noun verb cond seq)
                     )
                 )
                 ++curSequence

@@ -1364,6 +1364,9 @@
             )
             
         (if (temp0)
+        	(if (not (send temp0:isKindOf(Narrator)))
+        		TextPrint("Invalid talker.")
+			)
             return temp0
         )(else
             return (super:findTalker(talkerNumber))
