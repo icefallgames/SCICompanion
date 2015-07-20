@@ -1171,7 +1171,6 @@ void CResourceMap::GetNumberToNameMap(std::unordered_map<WORD, std::string> &sco
 
 bool CResourceMap::CanSaveResourcesToMap()
 {
-    //return (GetSCIVersion().MapFormat == ResourceMapFormat::SCI0);
     return true;    // Now supported for all.
 }
 
