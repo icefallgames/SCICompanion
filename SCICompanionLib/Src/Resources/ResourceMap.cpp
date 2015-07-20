@@ -1208,6 +1208,8 @@ void CResourceMap::SetGameFolder(const string &gameFolder)
     _globalCompiledScriptLookups.reset(nullptr);
     _pAudioMap65535.reset(nullptr);
     _gameFolderHelper.Language = LangSyntaxUnknown;
+    _talkersHeaderFile.reset(nullptr);
+    _verbsHeaderFile.reset(nullptr);
     if (!gameFolder.empty())
     {
         try
