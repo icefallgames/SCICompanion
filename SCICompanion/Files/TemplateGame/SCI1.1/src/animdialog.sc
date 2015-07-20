@@ -167,7 +167,7 @@
     )
 
     (method (display theText param2)
-        (var theTalkWidth, newGSq5Win, temp2, temp3, temp4, temp5, newPrint)
+        (var theTalkWidth, newWindow, temp2, temp3, temp4, temp5, newPrint)
         (if (normal)
             (super:display(theText rest param2))
         )(else
@@ -176,8 +176,8 @@
             )(else
                 = theTalkWidth talkWidth
             )
-            = newGSq5Win (send gWindow:new())
-            (send newGSq5Win:
+            = newWindow (send gWindow:new())
+            (send newWindow:
                 color(color)
                 back(back)
             )
@@ -193,7 +193,7 @@
             = newPrint (Print:new())
             (send newPrint:
                 dialog((AnimDialog:new()))
-                window(newGSq5Win)
+                window(newWindow)
                 posn(x y)
                 font(font)
                 width(theTalkWidth)
@@ -394,12 +394,12 @@
 
 
     (method (display theText param2)
-        (var temp0, theTalkWidth, temp2, newGSq5Win, temp4, temp5, temp6, temp7, newPrint)
+        (var temp0, theTalkWidth, temp2, newWindow, temp4, temp5, temp6, temp7, newPrint)
         (if (normal)
             (super:display(theText rest param2))
         )(else
-            = newGSq5Win (send gWindow:new())
-            (send newGSq5Win:
+            = newWindow (send gWindow:new())
+            (send newWindow:
                 color(color)
                 back(back)
             )
@@ -421,7 +421,7 @@
                     (send newPrint:addTitle(name))
                 )
                 (send newPrint:
-                    window(newGSq5Win)
+                    window(newWindow)
                     dialog((AnimDialog:new()))
                     posn(x y)
                     modeless(0)
@@ -444,7 +444,7 @@
                     (send newPrint:addTitle(name))
                 )
                 (send newPrint:
-                    window(newGSq5Win)
+                    window(newWindow)
                     dialog((AnimDialog:new()))
                     posn(+ x textX + y textY)
                     modeless(0)

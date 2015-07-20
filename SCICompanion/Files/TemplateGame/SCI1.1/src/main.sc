@@ -422,7 +422,7 @@
     )
 
 )
-(instance sq5IconBar of IconBar
+(instance templateIconBar of IconBar
     (properties)
 
     (method (show)
@@ -441,11 +441,11 @@
     )
 
     (method (noClickHelp)
-        (var temp0, temp1, temp2, temp3, gSq5WinEraseOnly)
+        (var temp0, temp1, temp2, temp3, winEraseOnly)
         = temp2 0
         = temp1 temp2
         = temp3 GetPort()
-        = gSq5WinEraseOnly (send gWindow:eraseOnly)
+        = winEraseOnly (send gWindow:eraseOnly)
         (send gWindow:eraseOnly(1))
         (while (not (send (= temp0 (send ((send gUser:curEvent)):new())):type))
             (if (not (self:isMemberOf(IconBar)))
@@ -478,7 +478,7 @@
             )
             (send temp0:dispose())
         )
-        (send gWindow:eraseOnly(gSq5WinEraseOnly))
+        (send gWindow:eraseOnly(winEraseOnly))
         (send gGame:setCursor(999 1))
         (if (gDialog)
             (send gDialog:dispose())
@@ -538,7 +538,7 @@
         FileIO(fiCLOSE temp7)
         ColorInit()
         DisposeScript(COLORINIT_SCRIPT)
-        = gNarrator sQ5Narrator
+        = gNarrator templateNarrator
         = gWindow mainWindow
         = gWindow2 mainWindow
         = gTestMessager testMessager
@@ -565,7 +565,7 @@
             flags(1)
             init()
         )
-        = gIconBar sq5IconBar
+        = gIconBar templateIconBar
         (send gIconBar:
         	// These correspond to ICONINDEX_*** in game.sh
             add(icon0 icon1 icon2 icon3 icon4 icon6 icon7 icon8 icon9)
@@ -1336,7 +1336,7 @@
 (instance mainWindow of BorderWindow
     (properties)
 )
-(instance sQ5Narrator of Narrator
+(instance templateNarrator of Narrator
     (properties)
 
     (method (init param1)

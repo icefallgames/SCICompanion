@@ -427,14 +427,14 @@
     (properties)
 
     (method (init)
-        (var temp0, temp1, temp2, temp3, newDText, gSq5InvFirst, temp6)
+        (var temp0, temp1, temp2, temp3, newDText, curInvItem, temp6)
         = temp1 4
         = temp0 temp1
         = temp2 temp0
         = temp3 0
-        = gSq5InvFirst (send gInv:first())
-        (while (gSq5InvFirst)
-            = temp6 NodeValue(gSq5InvFirst)
+        = curInvItem (send gInv:first())
+        (while (curInvItem)
+            = temp6 NodeValue(curInvItem)
             ++temp3
             (if ((send temp6:isKindOf(InvI)))
                 = newDText (DText:new())
@@ -459,7 +459,7 @@
                 = temp0 (+ temp0 (+ temp2 10))
                 = temp2 0
             )
-            = gSq5InvFirst (send gInv:next(gSq5InvFirst))
+            = curInvItem (send gInv:next(curInvItem))
         )
         = window gWindow
         (self:setSize())

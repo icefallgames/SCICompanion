@@ -665,11 +665,11 @@
 
 
     (method (noClickHelp)
-        (var temp0, temp1, temp2, temp3, gSq5WinEraseOnly, temp5)
+        (var temp0, temp1, temp2, temp3, winEraseOnly, temp5)
         = temp2 0
         = temp1 temp2
         = temp3 GetPort()
-        = gSq5WinEraseOnly (send gWindow:eraseOnly)
+        = winEraseOnly (send gWindow:eraseOnly)
         (send gWindow:eraseOnly(1))
         (while (not (send (= temp0 (send ((send gUser:curEvent)):new())):type))
             (if (not (self:isMemberOf(IconBar)))
@@ -700,7 +700,7 @@
             )
             (send temp0:dispose())
         )
-        (send gWindow:eraseOnly(gSq5WinEraseOnly))
+        (send gWindow:eraseOnly(winEraseOnly))
         (send gGame:setCursor(999 1))
         (if (gDialog)
             (send gDialog:dispose())

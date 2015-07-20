@@ -277,14 +277,14 @@
 
 
     (method (display theText)
-        (var theTalkWidth, newGSq5Win)
+        (var theTalkWidth, newWindow)
         (if (> (+ x talkWidth) 318)
             = theTalkWidth (- 318 x)
         )(else
             = theTalkWidth talkWidth
         )
-        = newGSq5Win (send gWindow:new())
-        (send newGSq5Win:
+        = newWindow (send gWindow:new())
+        (send newWindow:
             color(color)
             back(back)
         )
@@ -298,7 +298,7 @@
             (Print:addTitle(name))
         )
         (Print:
-            window(newGSq5Win)
+            window(newWindow)
             posn(x y)
             font(font)
             width(theTalkWidth)
@@ -495,9 +495,9 @@
 
 
     (method (display theText)
-        (var temp0, theTalkWidth, temp2, newGSq5Win)
-        = newGSq5Win (send gWindow:new())
-        (send newGSq5Win:
+        (var temp0, theTalkWidth, temp2, newWindow)
+        = newWindow (send gWindow:new())
+        (send newWindow:
             color(color)
             back(back)
         )
@@ -518,7 +518,7 @@
                 (Print:addTitle(name))
             )
             (Print:
-                window(newGSq5Win)
+                window(newWindow)
                 posn(x y)
                 modeless(1)
                 font(font)
@@ -540,7 +540,7 @@
                 (Print:addTitle(name))
             )
             (Print:
-                window(newGSq5Win)
+                window(newWindow)
                 posn(+ x textX + y textY)
                 modeless(1)
                 font(font)

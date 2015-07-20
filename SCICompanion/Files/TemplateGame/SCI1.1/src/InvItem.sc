@@ -99,7 +99,7 @@
     )
 
 )
-(instance sq5Inv of ScrollableInventory
+(instance templateInventory of ScrollableInventory
     (properties)
 
     (method (init param1)
@@ -147,7 +147,7 @@
     (properties)
 
     (method (init)
-        = gInv sq5Inv
+        = gInv templateInventory
         (send gInv:init())
     )
 

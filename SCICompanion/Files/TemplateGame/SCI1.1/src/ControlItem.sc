@@ -54,7 +54,7 @@
     (properties)
 
     (method (dispatchEvent param1)
-        (var gSq5WinEraseOnly, temp1, temp2, temp3[50], temp53, temp54)
+        (var winEraseOnly, temp1, temp2, temp3[50], temp53, temp54)
         = temp53 (send param1:type)
         = temp54 (send param1:message)
         return 
@@ -63,7 +63,7 @@
                 (if (temp1 and (send ((= temp1 (self:firstTrue(#onMe param1)))):helpVerb))
                     = temp2 GetPort()
                     (if ((send gWindow:respondsTo(#eraseOnly)))
-                        = gSq5WinEraseOnly (send gWindow:eraseOnly)
+                        = winEraseOnly (send gWindow:eraseOnly)
                         (send gWindow:eraseOnly(1))
                         (Print:
                             font(gFont)
@@ -71,7 +71,7 @@
                             addText((send temp1:noun) (send temp1:helpVerb) 0 1 0 0 (send temp1:modNum))
                             init()
                         )
-                        (send gWindow:eraseOnly(gSq5WinEraseOnly))
+                        (send gWindow:eraseOnly(winEraseOnly))
                     )(else
                         (Print:
                             font(gFont)

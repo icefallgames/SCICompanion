@@ -26,7 +26,7 @@
     local389
     local390
     local391
-    theGSq5Win
+    theWindow
     newFile
 
 )
@@ -185,7 +185,7 @@
     (method (doit)
         (var temp0[15], temp15, newEvent)
         (send gGame:setCursor(999))
-        = theGSq5Win gWindow
+        = theWindow gWindow
         = gWindow wfWin
         (if (not local389)
             = temp0 0
@@ -258,7 +258,7 @@
         )
         localproc_06e6()
         (FeatureSaver:doit(temp15))
-        = gWindow theGSq5Win
+        = gWindow theWindow
     )
 
 )

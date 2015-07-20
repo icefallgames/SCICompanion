@@ -11,7 +11,7 @@
 (script DIALOGEDIT_SCRIPT)
 
 (local
-    theGSq5Win
+    theWindow
     local1
     local2[40]
     local42[20]
@@ -1082,7 +1082,7 @@
     )
 
     (method (init)
-        = theGSq5Win gWindow
+        = theWindow gWindow
         StrCpy(@local42 "DialogEditor  v1.1")
         = gWindow SysWindow
         (send gWindow:
@@ -1115,7 +1115,7 @@
     (method (dispose)
         (mainMenu:dispose())
         (DlgWindow:dispose())
-        = gWindow theGSq5Win
+        = gWindow theWindow
         (send gGame:setCursor((send ((send gIconBar:curIcon)):cursor)))
         DrawStatus(" " 0 0)
         DrawStatus(0)

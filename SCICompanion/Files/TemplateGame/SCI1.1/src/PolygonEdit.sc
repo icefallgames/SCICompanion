@@ -12,7 +12,7 @@
 
 (local
     local0
-    theGSq5Win
+    theMainWin
     local2[40]
     theLsTop
     theLsLeft
@@ -916,7 +916,7 @@ code_06d6:  ret
         (send gOldATPs:doit())
         (send gOldCast:eachElementDo(#stopUpd))
         Animate((send gOldCast:elements) 0)
-        = theGSq5Win gWindow
+        = theMainWin gWindow
         = gWindow SysWindow
         = local0 1
         (send gGame:setCursor(999 1))
@@ -982,7 +982,7 @@ code_06d6:  ret
             )
             (send gOldATPs:doit())
         )
-        = gWindow theGSq5Win
+        = gWindow theMainWin
         DisposeScript(FILE_SCRIPT)
         (super:dispose())
         DisposeScript(POLYGONEDIT_SCRIPT)
