@@ -408,6 +408,8 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <None Include="Files\TemplateGame\SCI1.1\src\cliffygoeswith.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\colorinit.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\ColorInit.sco" />
+    <None Include="Files\TemplateGame\SCI1.1\src\ControlItem.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\ControlItem.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\controls.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\Controls.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\crestpiece.sco" />
@@ -486,6 +488,8 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <None Include="Files\TemplateGame\SCI1.1\src\inset.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\invi.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\invi.sco" />
+    <None Include="Files\TemplateGame\SCI1.1\src\InvItem.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\InvItem.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\jump.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\jump.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\keystuff.sco" />
@@ -584,10 +588,6 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <None Include="Files\TemplateGame\SCI1.1\src\SpeakWindow.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\speakwindow.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\spushbuttons.sco" />
-    <None Include="Files\TemplateGame\SCI1.1\src\sq5controlitem.sc" />
-    <None Include="Files\TemplateGame\SCI1.1\src\sq5controlitem.sco" />
-    <None Include="Files\TemplateGame\SCI1.1\src\sq5invitem.sc" />
-    <None Include="Files\TemplateGame\SCI1.1\src\sq5invitem.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\sqego.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\sqego.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\srdialog.sc" />

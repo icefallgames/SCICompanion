@@ -193,7 +193,7 @@ code_09d1:pushi   7
 
     (method (init param1 param2 param3)
         (var temp0[250])
-        = window gSq5Win
+        = window gWindow
         = nsBottom 0
         = local2 GetSaveFiles((send gGame:name) param2 param3)
         (if (== local2 -1)
@@ -836,7 +836,7 @@ code_072e:  pushi   1
 
     (method (doit param1)
         (var temp0, temp1[15], temp16[15], temp31[15], temp46[15])
-        = window gSq5Win
+        = window gWindow
         Message(msgGET 990 33 0 0 1 @temp1)
         (text1:
             text(@temp1)

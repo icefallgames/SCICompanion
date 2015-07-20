@@ -24,9 +24,9 @@
         canControl(1)
         canInput(1)
     )
-    (send gSq5IconBar:enable())
-    (send gSq5IconBar:enable(ICONINDEX_DO))
-    (send gSq5IconBar:select((send gSq5IconBar:at(2))))
+    (send gIconBar:enable())
+    (send gIconBar:enable(ICONINDEX_DO))
+    (send gIconBar:select((send gIconBar:at(2))))
     (send gGame:setCursor(999))
 )
 
@@ -40,7 +40,7 @@
         PalVary(pvUNINIT)
         (send gGame:handsOff())
         (super:init())
-        (send gSq5Music2:stop())
+        (send gMusic2:stop())
         (switch (gDeathReason)
         	// TODO: Add special cases here
             (default

@@ -299,7 +299,7 @@
                                 canInput(1)
                                 canControl(1)
                             )
-                            (send gSq5IconBar:enable(
+                            (send gIconBar:enable(
 				        		ICONINDEX_WALK
 				        		ICONINDEX_LOOK
 				        		ICONINDEX_DO
@@ -432,7 +432,7 @@
         = temp0 temp1
         = temp2 temp0
         = temp3 0
-        = gSq5InvFirst (send gSq5Inv:first())
+        = gSq5InvFirst (send gInv:first())
         (while (gSq5InvFirst)
             = temp6 NodeValue(gSq5InvFirst)
             ++temp3
@@ -459,9 +459,9 @@
                 = temp0 (+ temp0 (+ temp2 10))
                 = temp2 0
             )
-            = gSq5InvFirst (send gSq5Inv:next(gSq5InvFirst))
+            = gSq5InvFirst (send gInv:next(gSq5InvFirst))
         )
-        = window gSq5Win
+        = window gWindow
         (self:setSize())
         = newDButton (DButton:new())
         (send newDButton:
@@ -489,7 +489,7 @@
             (if ((not theNewDButton or (== theNewDButton -1)) or (== theNewDButton newDButton))
                 break
             )
-            (send gEgo:get((send gSq5Inv:indexOf((send theNewDButton:value)))))
+            (send gEgo:get((send gInv:indexOf((send theNewDButton:value)))))
         )
         (self:
             eachElementDo(#dispose 1)

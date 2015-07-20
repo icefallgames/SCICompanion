@@ -21,8 +21,8 @@
 
     (method (dispose)
         (talkerSet:dispose())
-        (if (gSq5IconBar)
-            (send gSq5IconBar:state(oldIconBarState))
+        (if (gIconBar)
+            (send gIconBar:state(oldIconBarState))
             = oldIconBarState 0
         )
         (if (caller)
@@ -69,8 +69,8 @@
         = verb cond
         = noun verb
         = caller (= oneOnly (= killed 0))
-        (if (gSq5IconBar and not oldIconBarState)
-            = oldIconBarState (send gSq5IconBar:state)
+        (if (gIconBar and not oldIconBarState)
+            = oldIconBarState (send gIconBar:state)
         )
         = noun params[0]
         (if (== noun -1)
@@ -125,8 +125,8 @@
 
     (method (sayFormat talkerNumber formatString theCaller param4)
         (var temp0, buffer, theTalker)
-        (if (gSq5IconBar and not oldIconBarState)
-            = oldIconBarState (send gSq5IconBar:state)
+        (if (gIconBar and not oldIconBarState)
+            = oldIconBarState (send gIconBar:state)
         )
         = theTalker (self:findTalker(talkerNumber))
         = temp0 GetTotalLength(formatString theCaller rest param4)
@@ -200,7 +200,7 @@
             addText("<Messager findTalker:>\n\tCan't find talker or\n\tfindTalker method not over-ridden")
             init()
         )
-        return gSQ5Narrator
+        return gNarrator
     )
 
 )

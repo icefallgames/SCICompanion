@@ -32,7 +32,7 @@
         (send gOldMH:addToFront(self))
         (send gOldKH:addToFront(self))
         (send gGame:setCursor(996 1))
-        (send gSq5IconBar:
+        (send gIconBar:
             hide()
             disable()
         )
@@ -43,7 +43,7 @@
     (method (dispose param1)
     	// Restore the port to standard size.
     	SetPort(0 0 190 320 10 0)
-        (send gSq5IconBar:
+        (send gIconBar:
             hide()
             enable()
         )

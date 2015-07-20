@@ -15,7 +15,7 @@
 (use "Obj")
 (script INVENTORY_SCRIPT)
 
-(class Sq5InvItem of InvI
+(class InvItem of InvI
     (properties
         view 0
         loop 0
@@ -147,8 +147,8 @@
     (properties)
 
     (method (init)
-        = gSq5Inv sq5Inv
-        (send gSq5Inv:init())
+        = gInv sq5Inv
+        (send gInv:init())
     )
 
 )
@@ -182,7 +182,7 @@
 
     (method (select param1)
         (if ((super:select(rest param1)))
-            (send gSq5Inv:scroll(-1))
+            (send gInv:scroll(-1))
         )
         return 0
     )
@@ -204,7 +204,7 @@
 
     (method (select param1)
         (if ((super:select(rest param1)))
-            (send gSq5Inv:scroll(1))
+            (send gInv:scroll(1))
         )
         return 0
     )
@@ -273,7 +273,7 @@
 
 // Declare inventory items here.
 /*
-(instance Money of Sq5InvItem
+(instance Money of InvItem
     (properties
         view 900
         loop 1

@@ -17,7 +17,7 @@
 
 
 
-(class SQ5ControlItem of ControlIcon
+(class ControlItem of ControlIcon
     (properties
         view -1
         loop -1
@@ -62,16 +62,16 @@
                 = temp1 (self:firstTrue(#onMe param1))
                 (if (temp1 and (send ((= temp1 (self:firstTrue(#onMe param1)))):helpVerb))
                     = temp2 GetPort()
-                    (if ((send gSq5Win:respondsTo(#eraseOnly)))
-                        = gSq5WinEraseOnly (send gSq5Win:eraseOnly)
-                        (send gSq5Win:eraseOnly(1))
+                    (if ((send gWindow:respondsTo(#eraseOnly)))
+                        = gSq5WinEraseOnly (send gWindow:eraseOnly)
+                        (send gWindow:eraseOnly(1))
                         (Print:
                             font(gFont)
                             width(250)
                             addText((send temp1:noun) (send temp1:helpVerb) 0 1 0 0 (send temp1:modNum))
                             init()
                         )
-                        (send gSq5Win:eraseOnly(gSq5WinEraseOnly))
+                        (send gWindow:eraseOnly(gSq5WinEraseOnly))
                     )(else
                         (Print:
                             font(gFont)
@@ -288,7 +288,7 @@
     )
 
 )
-(instance iconSave of SQ5ControlItem
+(instance iconSave of ControlItem
     (properties
         view 995
         loop 2
@@ -301,7 +301,7 @@
         helpVerb V_HELP
     )
 )
-(instance iconRestore of SQ5ControlItem
+(instance iconRestore of ControlItem
     (properties
         view 995
         loop 3
@@ -314,7 +314,7 @@
         helpVerb V_HELP
     )
 )
-(instance iconRestart of SQ5ControlItem
+(instance iconRestart of ControlItem
     (properties
         view 995
         loop 4
@@ -327,7 +327,7 @@
         helpVerb V_HELP
     )
 )
-(instance iconQuit of SQ5ControlItem
+(instance iconQuit of ControlItem
     (properties
         view 995
         loop 5
@@ -340,7 +340,7 @@
         helpVerb V_HELP
     )
 )
-(instance iconAbout of SQ5ControlItem
+(instance iconAbout of ControlItem
     (properties
         view 995
         loop 6

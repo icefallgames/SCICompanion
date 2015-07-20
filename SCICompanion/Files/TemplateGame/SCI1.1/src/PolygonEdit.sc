@@ -528,7 +528,8 @@
     (method (writeFile theFile param2)
         (var temp0, temp1, temp2, temp3, temp4[10], temp14)
         (if (== param2 srcList)
-            (send theFile:writeString("\t\t\t((Polygon new:)\n" "\t\t\t\ttype:\t\t" 
+            (send theFile:writeString("\t\t\t((Polygon new:)
+\n" "\t\t\t\ttype:\t\t" 
                 (switch (type)
                     (case 0
                         "PTotalAccess"
@@ -543,7 +544,8 @@
                         "PContainedAccess"
                     )
                 )
- ",\n"))
+ ",
+\n"))
             (send theFile:writeString("\t\t\t\tinit:\t\t"))
             = temp14 1
             = temp0 17
@@ -554,7 +556,8 @@
                 = temp1 (+ StrLen(@temp4) 1)
                 = temp0 (+ temp0 temp1)
                 (if (>= temp0 80)
-                    (send theFile:writeString("\n\t\t\t\t\t\t"))
+                    (send theFile:writeString("
+\n\t\t\t\t\t\t"))
                     = temp14 1
                     = temp0 (+ 17 temp1)
                 )
@@ -565,8 +568,11 @@
                 = temp14 0
                 = temp3 NextNode(temp3)
             )
-            (send theFile:writeString(",\n"))
-            (send theFile:writeString("\t\t\t\tyourself:\n" "\t\t\t)\n"))
+            (send theFile:writeString(",
+\n"))
+            (send theFile:writeString("\t\t\t\tyourself:
+\n" "\t\t\t)
+\n"))
         )
     )
 
@@ -910,8 +916,8 @@ code_06d6:  ret
         (send gOldATPs:doit())
         (send gOldCast:eachElementDo(#stopUpd))
         Animate((send gOldCast:elements) 0)
-        = theGSq5Win gSq5Win
-        = gSq5Win SysWindow
+        = theGSq5Win gWindow
+        = gWindow SysWindow
         = local0 1
         (send gGame:setCursor(999 1))
         (self:readObstacles())
@@ -976,7 +982,7 @@ code_06d6:  ret
             )
             (send gOldATPs:doit())
         )
-        = gSq5Win theGSq5Win
+        = gWindow theGSq5Win
         DisposeScript(FILE_SCRIPT)
         (super:dispose())
         DisposeScript(POLYGONEDIT_SCRIPT)
@@ -1116,10 +1122,29 @@ code_06d6:  ret
                     (case 104
                         (switch (state)
                             (case 0
-                                localproc_18f1("           CREATING POLYGON\n\nClick to create each corner of the polygon, then choose Done from the menu to finish.  You can also press Esc or Ctrl-click to finish.\n\nTo UNDO a corner, choose Undo.\n\nTo change MAP displayed (visual or control), choose Map.\n\nTo EXIT the Polygon Editor, choose eXit or press Ctrl-S." 0)
+                                localproc_18f1("           CREATING POLYGON
+\n
+\nClick to create each corner of the polygon, then choose Done from the menu to finish.  You can also press Esc or Ctrl-click to finish.
+\n
+\nTo UNDO a corner, choose Undo.
+\n
+\nTo change MAP displayed (visual or control), choose Map.
+\n
+\nTo EXIT the Polygon Editor, choose eXit or press Ctrl-S." 0)
                             )
                             (case 1
-                                localproc_18f1("             EDITING POLYGON\n\nTo MOVE a corner, click on it and drag it to the new position.\nTo INSERT a new corner, Ctrl-click to create it, then drag it to the correct position.\nTo DELETE a corner, Shift-click on it.\nTo UNDO an action, choose Undo from the menu.\nTo CREATE a new polygon, choose Create.\nTo change a polygon's TYPE (Total, Near or Barred), choose Type.\nTo change MAP displayed (visual or control), choose Map.\nTo EXIT the Polygon Editor, choose eXit or press Ctrl-S.\n\nIn addition to using the mouse, you can use Space and BackSpace to select corners and Tab and BackTab to select polygons. " 0)
+                                localproc_18f1("             EDITING POLYGON
+\n
+\nTo MOVE a corner, click on it and drag it to the new position.
+\nTo INSERT a new corner, Ctrl-click to create it, then drag it to the correct position.
+\nTo DELETE a corner, Shift-click on it.
+\nTo UNDO an action, choose Undo from the menu.
+\nTo CREATE a new polygon, choose Create.
+\nTo change a polygon's TYPE (Total, Near or Barred), choose Type.
+\nTo change MAP displayed (visual or control), choose Map.
+\nTo EXIT the Polygon Editor, choose eXit or press Ctrl-S.
+\n
+\nIn addition to using the mouse, you can use Space and BackSpace to select corners and Tab and BackTab to select polygons. " 0)
                             )
                         )
                     )
@@ -1136,7 +1161,11 @@ code_06d6:  ret
                         (self:showMap(4))
                     )
                     (case 97
-                        localproc_18f1(" by\n\nMark Wilden\n\nOriginal program by Chad Bye " 1)
+                        localproc_18f1(" by
+\n
+\nMark Wilden
+\n
+\nOriginal program by Chad Bye " 1)
                     )
                     (case 114
                         (if (== state 1)
@@ -1467,12 +1496,17 @@ code_06d6:  ret
         )
         (send newFile:writeString(Format(@temp0 943 6 "Polygon Editor 1.11")))
         (send newFile:writeString(Format(@temp0 943 7 "Dynamic Obstacles" (send gRoom:curPic))))
-        (send newFile:writeString("\t\t(curRoom addObstacle:\n"))
+        (send newFile:writeString("\t\t(curRoom addObstacle:
+\n"))
         (self:eachElementDo(#writeFile newFile 0))
-        (send newFile:writeString("\t\t)\n\n"))
-        (send newFile:writeString("\t\t(altPolyList add:\n"))
+        (send newFile:writeString("\t\t)
+\n
+\n"))
+        (send newFile:writeString("\t\t(altPolyList add:
+\n"))
         (self:eachElementDo(#writeFile newFile 1))
-        (send newFile:writeString("\t\t)\n"))
+        (send newFile:writeString("\t\t)
+\n"))
         (send newFile:dispose())
         return 1
     )

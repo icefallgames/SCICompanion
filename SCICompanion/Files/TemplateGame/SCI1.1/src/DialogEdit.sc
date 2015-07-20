@@ -1082,10 +1082,10 @@
     )
 
     (method (init)
-        = theGSq5Win gSq5Win
+        = theGSq5Win gWindow
         StrCpy(@local42 "DialogEditor  v1.1")
-        = gSq5Win SysWindow
-        (send gSq5Win:
+        = gWindow SysWindow
+        (send gWindow:
             color(gColorWindowForeground)
             back(255)
         )
@@ -1115,8 +1115,8 @@
     (method (dispose)
         (mainMenu:dispose())
         (DlgWindow:dispose())
-        = gSq5Win theGSq5Win
-        (send gGame:setCursor((send ((send gSq5IconBar:curIcon)):cursor)))
+        = gWindow theGSq5Win
+        (send gGame:setCursor((send ((send gIconBar:curIcon)):cursor)))
         DrawStatus(" " 0 0)
         DrawStatus(0)
         (super:dispose())
@@ -1588,18 +1588,24 @@
             return 0
         )
         (send newFile:
-            writeString("\t\t; DialogEditor v1.0\n")
-            writeString("\t\t; by Brian K. Hughes\n")
-            writeString("\t\t(Print\n")
+            writeString("\t\t; DialogEditor v1.0
+\n")
+            writeString("\t\t; by Brian K. Hughes
+\n")
+            writeString("\t\t(Print
+\n")
         )
         (if (local1)
-            Format(@temp0 "\t\t\tposn:\t\t\t%d %d,\n" (DlgWindow:left) (DlgWindow:top))
+            Format(@temp0 "\t\t\tposn:\t\t\t%d %d,
+\n" (DlgWindow:left) (DlgWindow:top))
             (send newFile:writeString(@temp0))
             (if ((DlgWindow:title))
                 (if ((DlgWindow:seq))
-                    Format(@temp0 "\t\t\taddTitle:\t%d %d %d %d %d,\n" (DlgWindow:noun) (DlgWindow:verb) (DlgWindow:cond) (DlgWindow:seq) (DlgWindow:modNum))
+                    Format(@temp0 "\t\t\taddTitle:\t%d %d %d %d %d,
+\n" (DlgWindow:noun) (DlgWindow:verb) (DlgWindow:cond) (DlgWindow:seq) (DlgWindow:modNum))
                 )(else
-                    Format(@temp0 "\t\t\taddTitle:\t{%s},\n" (DlgWindow:title))
+                    Format(@temp0 "\t\t\taddTitle:\t{%s},
+\n" (DlgWindow:title))
                 )
                 (send newFile:writeString(@temp0))
             )
@@ -1614,11 +1620,14 @@
             init()
         )
 )
-            (send newFile:writeString("\t\t\tmodeless:\tTRUE,\n"))
+            (send newFile:writeString("\t\t\tmodeless:\tTRUE,
+\n"))
         )
         (send newFile:
-            writeString("\t\t\tinit:\n")
-            writeString("\t\t)\n")
+            writeString("\t\t\tinit:
+\n")
+            writeString("\t\t)
+\n")
         )
         (send newFile:dispose())
         return 1
@@ -1636,25 +1645,30 @@
                 (case _DButton
                     (if (<> (send temp1:font) temp102)
                         = temp102 (send temp1:font)
-                        Format(@temp2 "\t\t\tfont:\t\t\t%d,\n" temp102)
+                        Format(@temp2 "\t\t\tfont:\t\t\t%d,
+\n" temp102)
                         (send param1:writeString(@temp2))
                     )
                     (if ((send temp1:seq))
-                        Format(@temp2 "\t\t\taddButton:\t%d %d %d %d %d %d %d %d, \n" (send temp1:value) (send temp1:noun) (send temp1:verb) (send temp1:case) (send temp1:seq) - (- (send temp1:nsLeft) (DlgWindow:left)) 4 - (- (send temp1:nsTop) (DlgWindow:top)) 4 (send temp1:modNum))
+                        Format(@temp2 "\t\t\taddButton:\t%d %d %d %d %d %d %d %d, 
+\n" (send temp1:value) (send temp1:noun) (send temp1:verb) (send temp1:case) (send temp1:seq) - (- (send temp1:nsLeft) (DlgWindow:left)) 4 - (- (send temp1:nsTop) (DlgWindow:top)) 4 (send temp1:modNum))
                     )(else
-                        Format(@temp2 "\t\t\taddButton:\t%d {%s} %d %d,\n" (send temp1:value) (send temp1:text) - (- (send temp1:nsLeft) (DlgWindow:left)) 4 - (- (send temp1:nsTop) (DlgWindow:top)) 4)
+                        Format(@temp2 "\t\t\taddButton:\t%d {%s} %d %d,
+\n" (send temp1:value) (send temp1:text) - (- (send temp1:nsLeft) (DlgWindow:left)) 4 - (- (send temp1:nsTop) (DlgWindow:top)) 4)
                     )
                     (send param1:writeString(@temp2))
                 )
                 (case _DText
                     (if (<> (send temp1:font) temp102)
                         = temp102 (send temp1:font)
-                        Format(@temp2 "\t\t\tfont:\t\t\t%d,\n" temp102)
+                        Format(@temp2 "\t\t\tfont:\t\t\t%d,
+\n" temp102)
                         (send param1:writeString(@temp2))
                     )
                     (if (<> (send temp1:mode) temp103)
                         = temp103 (send temp1:mode)
-                        Format(@temp2 "\t\t\tmode:\t\t\t%s,\n" 
+                        Format(@temp2 "\t\t\tmode:\t\t\t%s,
+\n" 
                             (switch ((send temp1:mode))
                                 (case 0
                                     "teJustLeft"
@@ -1671,27 +1685,33 @@
                     )
                     (if (<> (send temp1:width) temp104)
                         = temp104 (send temp1:width)
-                        Format(@temp2 "\t\t\twidth:\t\t%d, \n" temp104)
+                        Format(@temp2 "\t\t\twidth:\t\t%d, 
+\n" temp104)
                         (send param1:writeString(@temp2))
                     )
                     (if ((send temp1:seq))
-                        Format(@temp2 "\t\t\taddText:\t\t%d %d %d %d %d %d %d, \n" (send temp1:noun) (send temp1:verb) (send temp1:case) (send temp1:seq) - (- (send temp1:nsLeft) (DlgWindow:left)) 4 - (- (send temp1:nsTop) (DlgWindow:top)) 4 (send temp1:modNum))
+                        Format(@temp2 "\t\t\taddText:\t\t%d %d %d %d %d %d %d, 
+\n" (send temp1:noun) (send temp1:verb) (send temp1:case) (send temp1:seq) - (- (send temp1:nsLeft) (DlgWindow:left)) 4 - (- (send temp1:nsTop) (DlgWindow:top)) 4 (send temp1:modNum))
                     )(else
-                        Format(@temp2 "\t\t\taddText:\t\t{%s} %d %d,\n" (send temp1:text) - (- (send temp1:nsLeft) (DlgWindow:left)) 4 - (- (send temp1:nsTop) (DlgWindow:top)) 4)
+                        Format(@temp2 "\t\t\taddText:\t\t{%s} %d %d,
+\n" (send temp1:text) - (- (send temp1:nsLeft) (DlgWindow:left)) 4 - (- (send temp1:nsTop) (DlgWindow:top)) 4)
                     )
                     (send param1:writeString(@temp2))
                 )
                 (case _DEdit
                     (if (<> (send temp1:font) temp102)
                         = temp102 (send temp1:font)
-                        Format(@temp2 "\t\t\tfont:\t\t\t%d,\n" temp102)
+                        Format(@temp2 "\t\t\tfont:\t\t\t%d,
+\n" temp102)
                         (send param1:writeString(@temp2))
                     )
-                    Format(@temp2 "\t\t\taddEdit:\t\t@str %d %d %d {%s},\n" (send temp1:max) - (- (send temp1:nsLeft) (DlgWindow:left)) 4 - (- (send temp1:nsTop) (DlgWindow:top)) 4 (send temp1:text))
+                    Format(@temp2 "\t\t\taddEdit:\t\t@str %d %d %d {%s},
+\n" (send temp1:max) - (- (send temp1:nsLeft) (DlgWindow:left)) 4 - (- (send temp1:nsTop) (DlgWindow:top)) 4 (send temp1:text))
                     (send param1:writeString(@temp2))
                 )
                 (case _DIcon
-                    Format(@temp2 "\t\t\taddIcon:\t\t%d %d %d %d %d,\n" (send temp1:view) (send temp1:loop) (send temp1:cel) - (- (send temp1:nsLeft) (DlgWindow:left)) 4 - (- (send temp1:nsTop) (DlgWindow:top)) 4)
+                    Format(@temp2 "\t\t\taddIcon:\t\t%d %d %d %d %d,
+\n" (send temp1:view) (send temp1:loop) (send temp1:cel) - (- (send temp1:nsLeft) (DlgWindow:left)) 4 - (- (send temp1:nsTop) (DlgWindow:top)) 4)
                     (send param1:writeString(@temp2))
                 )
             )

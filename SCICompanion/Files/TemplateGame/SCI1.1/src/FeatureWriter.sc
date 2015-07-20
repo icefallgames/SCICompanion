@@ -185,8 +185,8 @@
     (method (doit)
         (var temp0[15], temp15, newEvent)
         (send gGame:setCursor(999))
-        = theGSq5Win gSq5Win
-        = gSq5Win wfWin
+        = theGSq5Win gWindow
+        = gWindow wfWin
         (if (not local389)
             = temp0 0
             Format(@temp0 "%d.fea" (send gRoom:curPic))
@@ -258,7 +258,7 @@
         )
         localproc_06e6()
         (FeatureSaver:doit(temp15))
-        = gSq5Win theGSq5Win
+        = gWindow theGSq5Win
     )
 
 )
@@ -299,7 +299,11 @@
         )
         = temp0 0
         (if ((send param1:isMemberOf(Feature)))
-            Format(@temp400 " \t\tnsLeft\t\t\t%d\n\t\tnsTop\t\t\t\t%d\n\t\tnsBottom\t\t\t%d\n\t\tnsRight\t\t\t%d\n" (send param1:nsLeft) (send param1:nsTop) (send param1:nsBottom) (send param1:nsRight))
+            Format(@temp400 " \t\tnsLeft\t\t\t%d
+\n\t\tnsTop\t\t\t\t%d
+\n\t\tnsBottom\t\t\t%d
+\n\t\tnsRight\t\t\t%d
+\n" (send param1:nsLeft) (send param1:nsTop) (send param1:nsBottom) (send param1:nsRight))
             Format(@temp592 "..\msg\%d.shm" (send gRoom:curPic))
             (shmFile:name(@temp592))
             (if (not (shmFile:open(fOPENFAIL)))
@@ -356,10 +360,27 @@
                 noun(temp604)
             )
         )(else
-            Format(@temp400 " \t\tview\t\t\t%d\n\t\tloop\t\t\t%d\n\t\tcel\t\t\t%d\n" (send param1:view) (send param1:loop) (send param1:cel))
+            Format(@temp400 " \t\tview\t\t\t%d
+\n\t\tloop\t\t\t%d
+\n\t\tcel\t\t\t%d
+\n" (send param1:view) (send param1:loop) (send param1:cel))
         )
-        Format(@temp440 " \t\tapproachX\t\t%d\n\t\tapproachY\t\t%d\n\t\tapproachDist\t%d\n\t\t_approachVerbs\t$%x\n" (send param1:approachX) (send param1:approachY) (send param1:approachDist) (send param1:_approachVerbs))
-        Format(@temp0 " \n(instance %s of %s\n\t(properties\n\t\tx\t\t\t\t\t%d\n\t\ty\t\t\t\t\t%d\n\t\tz\t\t\t\t\t%d\n\t\theading\t\t\t%d\n%s \t\tsightAngle\t\t%d\n%s \t\tnoun\t\t\t\t%s\n\t)\n" @local0 (send ((send param1:{-super-})):name) (send param1:x) (send param1:y) (send param1:z) (send param1:heading) @temp400 (send param1:sightAngle) @temp440 @local50)
+        Format(@temp440 " \t\tapproachX\t\t%d
+\n\t\tapproachY\t\t%d
+\n\t\tapproachDist\t%d
+\n\t\t_approachVerbs\t$%x
+\n" (send param1:approachX) (send param1:approachY) (send param1:approachDist) (send param1:_approachVerbs))
+        Format(@temp0 " 
+\n(instance %s of %s
+\n\t(properties
+\n\t\tx\t\t\t\t\t%d
+\n\t\ty\t\t\t\t\t%d
+\n\t\tz\t\t\t\t\t%d
+\n\t\theading\t\t\t%d
+\n%s \t\tsightAngle\t\t%d
+\n%s \t\tnoun\t\t\t\t%s
+\n\t)
+\n" @local0 (send ((send param1:{-super-})):name) (send param1:x) (send param1:y) (send param1:z) (send param1:heading) @temp400 (send param1:sightAngle) @temp440 @local50)
         (if (local387)
             (Print:
                 font(999)
@@ -370,24 +391,38 @@
         )
         localproc_0714(@temp0)
         (if (local391)
-            Format(@temp0 " \t(method (doVerb theVerb)\n\t\t(switch theVerb\n")
+            Format(@temp0 " \t(method (doVerb theVerb)
+\n\t\t(switch theVerb
+\n")
             localproc_0714(@temp0)
             (if (local180[0])
-                Format(@temp0 " \t\t\t(LOOK\n\t\t\t)\n" @local180)
+                Format(@temp0 " \t\t\t(LOOK
+\n\t\t\t)
+\n" @local180)
                 localproc_0714(@temp0)
             )
             (if (local80[0])
-                Format(@temp0 " \t\t\t(DO\n\t\t\t)\n" @local80)
+                Format(@temp0 " \t\t\t(DO
+\n\t\t\t)
+\n" @local80)
                 localproc_0714(@temp0)
             )
             (if (local280[0])
-                Format(@temp0 " \t\t\t(TALK\n\t\t\t)\n" @local280)
+                Format(@temp0 " \t\t\t(TALK
+\n\t\t\t)
+\n" @local280)
                 localproc_0714(@temp0)
             )
-            Format(@temp0 " \t\t\t(else\n\t\t\t\t(super doVerb: theVerb)\n\t\t\t)\n\t\t)\n\t)\n")
+            Format(@temp0 " \t\t\t(else
+\n\t\t\t\t(super doVerb: theVerb)
+\n\t\t\t)
+\n\t\t)
+\n\t)
+\n")
             localproc_0714(@temp0)
         )
-        StrCpy(@temp0 ")\n")
+        StrCpy(@temp0 ")
+\n")
         localproc_0714(@temp0)
         (if ((send param1:isMemberOf(Feature)))
             (send param1:dispose())

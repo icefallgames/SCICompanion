@@ -106,8 +106,8 @@
         Graph(grRESTORE_BOX priBits)
         = priBits 0
         Graph(grREDRAW_BOX nsTop nsLeft nsBottom nsRight)
-        (if (gSq5IconBar)
-            (send gSq5IconBar:enable())
+        (if (gIconBar)
+            (send gIconBar:enable())
         )
     )
 

@@ -156,7 +156,7 @@
         (var temp0)
         = temp0 0
         (while (< temp0 paramTotal)
-            (send ((send gSq5Inv:at(param1[temp0]))):moveTo(self))
+            (send ((send gInv:at(param1[temp0]))):moveTo(self))
             ++temp0
         )
     )
@@ -165,7 +165,7 @@
     (method (put param1 param2)
         (var temp0)
         (if ((self:has(param1)))
-            = temp0 (send gSq5Inv:at(param1))
+            = temp0 (send gInv:at(param1))
             (send temp0:moveTo(
                 (if (== paramTotal 1)
                     -1
@@ -173,10 +173,10 @@
                     param2
                 )
 ))
-            (if (gSq5IconBar and (== (send gSq5IconBar:curInvIcon) temp0))
-                (send gSq5IconBar:
+            (if (gIconBar and (== (send gIconBar:curInvIcon) temp0))
+                (send gIconBar:
                     curInvIcon(0)
-                    disable((send ((send gSq5IconBar:useIconItem)):
+                    disable((send ((send gIconBar:useIconItem)):
                             cursor(999)
                             yourself()
                         )
@@ -189,9 +189,9 @@
 
     (method (has param1)
         (var temp0)
-        = temp0 (send gSq5Inv:at(param1))
+        = temp0 (send gInv:at(param1))
         (if (temp0)
-            (send (= temp0 (send gSq5Inv:at(param1))):ownedBy(self))
+            (send (= temp0 (send gInv:at(param1))):ownedBy(self))
         )
     )
 

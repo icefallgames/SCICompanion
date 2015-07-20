@@ -83,11 +83,11 @@
             = pEventMessage (send pEvent:message)
             (if (& pEventType evSAID)
                 (if ((== pEventMessage JOY_UP) and (((= temp4 (send gOldCast:firstTrue(#perform findNoun))) or (= temp4 (send gOldFeatures:firstTrue(#perform findNoun)))) or (= temp4 (send gOldATPs:firstTrue(#perform findNoun)))))
-                    (send temp4:doVerb((send ((send gSq5IconBar:curIcon)):message)))
+                    (send temp4:doVerb((send ((send gIconBar:curIcon)):message)))
                 )(else
-                    = temp4 (send gSq5IconBar:findIcon(pEventMessage))
+                    = temp4 (send gIconBar:findIcon(pEventMessage))
                     (if (temp4)
-                        (send gSq5IconBar:select((= temp4 (send gSq5IconBar:findIcon(pEventMessage)))))
+                        (send gIconBar:select((= temp4 (send gIconBar:findIcon(pEventMessage)))))
                         (send gGame:setCursor((send temp4:cursor)))
                     )
                 )
@@ -96,7 +96,7 @@
                     (if (gOldDH and (send gOldDH:handleEvent(pEvent)))
                         return 1
                     )(else
-                        (if ((((((gSq5IconBar and (== (send gSq5IconBar:curIcon) (send gSq5IconBar:walkIconItem))) or not gSq5IconBar) and alterEgo) and controls) and (send gOldCast:contains(alterEgo))) and (send alterEgo:handleEvent(pEvent)))
+                        (if ((((((gIconBar and (== (send gIconBar:curIcon) (send gIconBar:walkIconItem))) or not gIconBar) and alterEgo) and controls) and (send gOldCast:contains(alterEgo))) and (send alterEgo:handleEvent(pEvent)))
                             return 1
                         )(else
                             (if ((gPseudoMouse and (not (& pEventType evKEYBOARD) or (<> pEventMessage JOY_NULL))) and (send gPseudoMouse:handleEvent(pEvent)))
@@ -115,8 +115,8 @@
                 )
             )
         )
-        (if (gSq5IconBar)
-            (send gSq5IconBar:handleEvent(pEvent))
+        (if (gIconBar)
+            (send gIconBar:handleEvent(pEvent))
         )
         = pEventType (send pEvent:type)
         = pEventMessage (send pEvent:message)

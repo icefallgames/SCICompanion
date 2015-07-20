@@ -224,8 +224,8 @@
 
 
     (method (say param1 param2)
-        (if (gSq5IconBar)
-            (send gSq5IconBar:disable())
+        (if (gIconBar)
+            (send gIconBar:disable())
         )
         (if (not initialized)
             (self:init())
@@ -283,7 +283,7 @@
         )(else
             = theTalkWidth talkWidth
         )
-        = newGSq5Win (send gSq5Win:new())
+        = newGSq5Win (send gWindow:new())
         (send newGSq5Win:
             color(color)
             back(back)
@@ -443,8 +443,8 @@
         Graph(grRESTORE_BOX underBits)
         = underBits 0
         Graph(grREDRAW_BOX nsTop nsLeft nsBottom nsRight)
-        (if (gSq5IconBar)
-            (send gSq5IconBar:enable())
+        (if (gIconBar)
+            (send gIconBar:enable())
         )
     )
 
@@ -496,7 +496,7 @@
 
     (method (display theText)
         (var temp0, theTalkWidth, temp2, newGSq5Win)
-        = newGSq5Win (send gSq5Win:new())
+        = newGSq5Win (send gWindow:new())
         (send newGSq5Win:
             color(color)
             back(back)

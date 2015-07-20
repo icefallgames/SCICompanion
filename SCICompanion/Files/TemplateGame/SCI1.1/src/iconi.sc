@@ -87,7 +87,7 @@
                     )
                     = gGameScript (send gGame:script)
                     (if (gGameScript and (send gGameScript:isKindOf(Tutorial)))
-                        (if ((== (send gGameScript:nextItem) self) and (<> (send gGameScript:nextAction) (send ((send gSq5IconBar:helpIconItem)):message)))
+                        (if ((== (send gGameScript:nextItem) self) and (<> (send gGameScript:nextAction) (send ((send gIconBar:helpIconItem)):message)))
                             (send gGameScript:cue())
                         )(else
                             (if (not temp1)
@@ -102,7 +102,7 @@
                 )(else
                     = gGameScript (send gGame:script)
                     (if (gGameScript and (send gGameScript:isKindOf(Tutorial)))
-                        (if ((== (send gGameScript:nextItem) self) and (<> (send gGameScript:nextAction) (send ((send gSq5IconBar:helpIconItem)):message)))
+                        (if ((== (send gGameScript:nextItem) self) and (<> (send gGameScript:nextAction) (send ((send gIconBar:helpIconItem)):message)))
                             (send gGameScript:cue())
                         )(else
                             (send gGameScript:report())
@@ -349,7 +349,7 @@
             = temp5 temp6
         )
         (if (curInvIcon)
-            (if ((send gEgo:has((send gSq5Inv:indexOf(curInvIcon)))))
+            (if ((send gEgo:has((send gInv:indexOf(curInvIcon)))))
                 = temp3 (+ (/ (- (- (send useIconItem:nsRight) (send useIconItem:nsLeft)) CelWide((send curInvIcon:view) (send curInvIcon:loop) (send curInvIcon:cel))) 2) (send useIconItem:nsLeft))
                 = theY (+ (+ y (/ (- (- (send useIconItem:nsBottom) (send useIconItem:nsTop)) CelHigh((send curInvIcon:view) (send curInvIcon:loop) (send curInvIcon:cel))) 2)) (send useIconItem:nsTop))
                 DrawCel((send curInvIcon:view) (send curInvIcon:loop) (send curInvIcon:cel) temp3 theY -1)
@@ -669,8 +669,8 @@
         = temp2 0
         = temp1 temp2
         = temp3 GetPort()
-        = gSq5WinEraseOnly (send gSq5Win:eraseOnly)
-        (send gSq5Win:eraseOnly(1))
+        = gSq5WinEraseOnly (send gWindow:eraseOnly)
+        (send gWindow:eraseOnly(1))
         (while (not (send (= temp0 (send ((send gUser:curEvent)):new())):type))
             (if (not (self:isMemberOf(IconBar)))
                 (send temp0:localize())
@@ -700,7 +700,7 @@
             )
             (send temp0:dispose())
         )
-        (send gSq5Win:eraseOnly(gSq5WinEraseOnly))
+        (send gWindow:eraseOnly(gSq5WinEraseOnly))
         (send gGame:setCursor(999 1))
         (if (gDialog)
             (send gDialog:dispose())

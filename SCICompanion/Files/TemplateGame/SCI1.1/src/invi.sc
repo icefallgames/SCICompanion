@@ -626,18 +626,18 @@ code_0b7a:  lst     temp2
             pushi   #respondsTo
             pushi   1
             pushi   244
-            lag     gSq5Win
+            lag     gWindow
             send    6
             bnt     code_0c0a
             pushi   #eraseOnly
             pushi   0
-            lag     gSq5Win
+            lag     gWindow
             send    4
             sat     temp7
             pushi   #eraseOnly
             pushi   1
             pushi   1
-            lag     gSq5Win
+            lag     gWindow
             send    6
             pushi   1
             lea     @temp10
@@ -646,7 +646,7 @@ code_0b7a:  lst     temp2
             pushi   #eraseOnly
             pushi   1
             lst     temp7
-            lag     gSq5Win
+            lag     gWindow
             send    6
             jmp     code_0c15
 code_0c0a:  pushi   1
@@ -734,18 +734,18 @@ code_0ca3:  pToa    curIcon
             pushi   #respondsTo
             pushi   1
             pushi   244
-            lag     gSq5Win
+            lag     gWindow
             send    6
             bnt     code_0cc7
             pushi   #eraseOnly
             pushi   0
-            lag     gSq5Win
+            lag     gWindow
             send    4
             sat     temp7
             pushi   #eraseOnly
             pushi   1
             pushi   1
-            lag     gSq5Win
+            lag     gWindow
             send    6
 code_0cc7:  pushi   #isKindOf
             pushi   1
@@ -776,13 +776,13 @@ code_0ce5:  pushi   #doVerb
 code_0cf5:  pushi   #respondsTo
             pushi   1
             pushi   244
-            lag     gSq5Win
+            lag     gWindow
             send    6
             bnt     code_08a5
             pushi   #eraseOnly
             pushi   1
             lst     temp7
-            lag     gSq5Win
+            lag     gWindow
             send    6
             jmp     code_08a5
 code_0d0f:  pushi   #hide
@@ -798,8 +798,8 @@ code_0d0f:  pushi   #hide
         (if (gPseudoMouse and (send gPseudoMouse:respondsTo(#stop)))
             (send gPseudoMouse:stop())
         )
-        (if ((send gSq5IconBar:height))
-            (send gSq5IconBar:hide())
+        (if ((send gIconBar:height))
+            (send gIconBar:hide())
         )
         (if (not window)
             = window (SysWindow:new())
@@ -842,7 +842,7 @@ code_0d0f:  pushi   #hide
 	                )(else
 	                    gEgo
 					)
- 					(send gSq5IconBar:curIcon)))
+ 					(send gIconBar:curIcon)))
         (if (not temp1)
             = state (& state $ffdf)
         )
@@ -861,20 +861,20 @@ code_0d0f:  pushi   #hide
             (send window:dispose())
         )
         (if (IsObject(curIcon) and (send curIcon:isKindOf(InvI)))
-            (if (not (send gSq5IconBar:curInvIcon))
-                (send gSq5IconBar:enable((send gSq5IconBar:useIconItem)))
+            (if (not (send gIconBar:curInvIcon))
+                (send gIconBar:enable((send gIconBar:useIconItem)))
             )
-            (send gSq5IconBar:
-                curIcon((send ((send gSq5IconBar:useIconItem)):
+            (send gIconBar:
+                curIcon((send ((send gIconBar:useIconItem)):
 	                        cursor((send curIcon:cursor))
 	                        yourself()
 						)
 					   )
                 curInvIcon(curIcon)
             )
-            = temp0 (send ((send gSq5IconBar:curIcon)):cursor)
+            = temp0 (send ((send gIconBar:curIcon)):cursor)
             (if (temp0)
-                (send gGame:setCursor((= temp0 (send ((send gSq5IconBar:curIcon)):cursor))))
+                (send gGame:setCursor((= temp0 (send ((send gIconBar:curIcon)):cursor))))
             )
         )
     )

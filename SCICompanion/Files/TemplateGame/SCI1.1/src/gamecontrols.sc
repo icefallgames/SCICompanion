@@ -39,7 +39,7 @@
         (if (IsObject(window))
             (send window:open())
         )(else
-            = window (send ((send gSq5Win:new())):
+            = window (send ((send gWindow:new())):
                     top(46)
                     left(24)
                     bottom(155)
@@ -120,16 +120,16 @@
                 = temp1 (self:firstTrue(#onMe param1))
                 (if (temp1 and (send ((= temp1 (self:firstTrue(#onMe param1)))):helpVerb))
                     = temp2 GetPort()
-                    (if ((send gSq5Win:respondsTo(#eraseOnly)))
-                        = gSq5WinEraseOnly (send gSq5Win:eraseOnly)
-                        (send gSq5Win:eraseOnly(1))
+                    (if ((send gWindow:respondsTo(#eraseOnly)))
+                        = gSq5WinEraseOnly (send gWindow:eraseOnly)
+                        (send gWindow:eraseOnly(1))
                         (Print:
                             font(gFont)
                             width(250)
                             addText((send temp1:noun) (send temp1:helpVerb) 0 1 0 0 (send temp1:modNum))
                             init()
                         )
-                        (send gSq5Win:eraseOnly(gSq5WinEraseOnly))
+                        (send gWindow:eraseOnly(gSq5WinEraseOnly))
                     )(else
                         (Print:
                             font(gFont)

@@ -147,7 +147,7 @@
             window(
                 (if (window)
                 )(else
-                    gSq5Win
+                    gWindow
                 )
             )
             name("PODialog")
@@ -206,7 +206,7 @@
                     )
                 )
                 (if (saveCursor)
-                    (send gGame:setCursor((send ((send gSq5IconBar:curIcon)):cursor)))
+                    (send gGame:setCursor((send ((send gIconBar:curIcon)):cursor)))
                 )
                 (send dialog:dispose())
                 return retValue

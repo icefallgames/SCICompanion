@@ -401,10 +401,6 @@
     <None Include="Files\TemplateGame\SCI1.1\src\SpeakWindow.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\speakwindow.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\spushbuttons.sco" />
-    <None Include="Files\TemplateGame\SCI1.1\src\sq5controlitem.sc" />
-    <None Include="Files\TemplateGame\SCI1.1\src\sq5controlitem.sco" />
-    <None Include="Files\TemplateGame\SCI1.1\src\sq5invitem.sc" />
-    <None Include="Files\TemplateGame\SCI1.1\src\sq5invitem.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\sqego.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\sqego.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\srdialog.sc" />
@@ -613,6 +609,10 @@
     <None Include="Files\Samples\SCI1.1\fonts\Sierra Large.bin">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="Files\TemplateGame\SCI1.1\src\ControlItem.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\ControlItem.sco" />
+    <None Include="Files\TemplateGame\SCI1.1\src\InvItem.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\InvItem.sco" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />

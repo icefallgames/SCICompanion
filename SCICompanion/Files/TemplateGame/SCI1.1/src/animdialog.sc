@@ -176,7 +176,7 @@
             )(else
                 = theTalkWidth talkWidth
             )
-            = newGSq5Win (send gSq5Win:new())
+            = newGSq5Win (send gWindow:new())
             (send newGSq5Win:
                 color(color)
                 back(back)
@@ -332,8 +332,8 @@
                 (if ((> view 0) and not underBits)
                     (self:init())
                 )
-                (if (gSq5IconBar)
-                    (send gSq5IconBar:disable())
+                (if (gIconBar)
+                    (send gIconBar:disable())
                 )
                 (if (not initialized)
                     (self:init())
@@ -398,7 +398,7 @@
         (if (normal)
             (super:display(theText rest param2))
         )(else
-            = newGSq5Win (send gSq5Win:new())
+            = newGSq5Win (send gWindow:new())
             (send newGSq5Win:
                 color(color)
                 back(back)

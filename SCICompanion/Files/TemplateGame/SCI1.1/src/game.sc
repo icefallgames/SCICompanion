@@ -309,8 +309,8 @@
         (if (not (send gUser:canControl()) and not (send gUser:canInput()))
             (send gGame:setCursor(gInvisibleCursor))
         )(else
-            (if (gSq5IconBar and (send gSq5IconBar:curIcon))
-                (send gGame:setCursor((send ((send gSq5IconBar:curIcon)):cursor)))
+            (if (gIconBar and (send gIconBar:curIcon))
+                (send gGame:setCursor((send ((send gIconBar:curIcon)):cursor)))
             )(else
                 (send gGame:setCursor(gCursor))
             )

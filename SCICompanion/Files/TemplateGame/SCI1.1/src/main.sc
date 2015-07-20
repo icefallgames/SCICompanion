@@ -3,7 +3,7 @@
 (include "game.sh")
 (include "0.shm")
 (exports
-    0 SQ5
+    0 Template
     1 Btest
     2 Bset
     3 Bclear
@@ -58,7 +58,7 @@
     gRegions
     gTimers
     gSounds
-    gSq5Inv
+    gInv
     gOldATPs
     gModNum				// Brian called this gRoomNumberExit. It's what gets set to move to the next room, which will then be gRoomNumber
     					// It's used everywhere in place of gRoomNumber here though.
@@ -84,7 +84,7 @@
     global34
     gPicNumber =     -1
     gCastMotionCue
-    gSq5Win
+    gWindow
     global39	// Unused	(foreground text?)
     global40	// Unused	(window background color?)
     gOldPort
@@ -94,7 +94,7 @@
     gDoVerbCode
     gApproachCode
     global67 =     1		// Has something to do with default Motion for ego (0: MoveTo, 1: PolyPath, 2: PolyPath...)
-    gSq5IconBar
+    gIconBar
     gPEventX
     gPEventY
     gOldKH
@@ -111,7 +111,7 @@
     gFont_2
     global86				// Something to do with time (ticks per frame?)
     gLastTicks
-    gSQ5Narrator
+    gNarrator
     global90 =     $0001	// Seems to be a flag for talker: 0x1 (text) and 0x2 (audio)
     gTestMessager
     gPrintEventHandler
@@ -122,17 +122,17 @@
     gPolyphony
     gStopGroop
     global107
-    gGSq5IconBarCurIcon
+    gCurrentIcon
     gGUserCanControl
     gGUserCanInput
     gCheckedIcons
     gState
     gNewSpeakWindow
-    gSq5Win_2
+    gWindow2
     gDeathReason
-    gSq5Music1
+    gMusic1
     gDongle = 1234				// This variable CAN'T MOVE
-    gSq5Music2
+    gMusic2
     gCurrentTalkerNumber
     gGEgoMoveSpeed
     gColorWindowForeground
@@ -172,7 +172,7 @@
     = temp0 0
     (while (< temp0 8)
         (if (& gCheckedIcons (>> $8000 temp0))
-            (send gSq5IconBar:disable(temp0))
+            (send gIconBar:disable(temp0))
         )
         ++temp0
     )
@@ -296,7 +296,7 @@
 (procedure public (AddToScore param1 param2)
     (if (not Btest(param1))
         = gScore (+ gScore param2)
-        (sq5StatusLineCode:doit())
+        (statusLineCode:doit())
         Bset(param1)
         (rm0Sound:
             priority(15)
@@ -380,12 +380,12 @@
         priority 15
     )
 )
-(instance sq5Music1 of Sound
+(instance music1 of Sound
     (properties
         flags $0001
     )
 )
-(instance sq5Music2 of Sound
+(instance music2 of Sound
     (properties
         flags $0001
     )
@@ -399,7 +399,7 @@
 (instance ego of SQEgo
     (properties)
 )
-(instance sq5StatusLineCode of Code
+(instance statusLineCode of Code
     (properties)
 
     (method (doit)
@@ -445,8 +445,8 @@
         = temp2 0
         = temp1 temp2
         = temp3 GetPort()
-        = gSq5WinEraseOnly (send gSq5Win:eraseOnly)
-        (send gSq5Win:eraseOnly(1))
+        = gSq5WinEraseOnly (send gWindow:eraseOnly)
+        (send gWindow:eraseOnly(1))
         (while (not (send (= temp0 (send ((send gUser:curEvent)):new())):type))
             (if (not (self:isMemberOf(IconBar)))
                 (send temp0:localize())
@@ -478,7 +478,7 @@
             )
             (send temp0:dispose())
         )
-        (send gSq5Win:eraseOnly(gSq5WinEraseOnly))
+        (send gWindow:eraseOnly(gSq5WinEraseOnly))
         (send gGame:setCursor(999 1))
         (if (gDialog)
             (send gDialog:dispose())
@@ -491,7 +491,7 @@
     )
 )
 
-(class public SQ5 of Game
+(class public Template of Game
     (properties
         script 0
         printLang 1
@@ -538,12 +538,12 @@
         FileIO(fiCLOSE temp7)
         ColorInit()
         DisposeScript(COLORINIT_SCRIPT)
-        = gSQ5Narrator sQ5Narrator
-        = gSq5Win sq5Win
-        = gSq5Win_2 sq5Win
+        = gNarrator sQ5Narrator
+        = gWindow mainWindow
+        = gWindow2 mainWindow
         = gTestMessager testMessager
         = gNewSpeakWindow (SpeakWindow:new())
-        (send gSq5Win:
+        (send gWindow:
             color(gColorWindowForeground)
             back(gColorWindowBackground)
         )
@@ -551,22 +551,22 @@
             setCursor(gCursorNumber TRUE 304 172)
             detailLevel(3)
         )
-        = gSq5Music1 sq5Music1
-        (send gSq5Music1:
+        = gMusic1 music1
+        (send gMusic1:
             //number(1)
             owner(self)
             flags(1)
             init()
         )
-        = gSq5Music2 sq5Music2
-        (send gSq5Music2:
+        = gMusic2 music2
+        (send gMusic2:
             //number(1)
             owner(self)
             flags(1)
             init()
         )
-        = gSq5IconBar sq5IconBar
-        (send gSq5IconBar:
+        = gIconBar sq5IconBar
+        (send gIconBar:
         	// These correspond to ICONINDEX_*** in game.sh
             add(icon0 icon1 icon2 icon3 icon4 icon6 icon7 icon8 icon9)
             eachElementDo(#init)
@@ -593,7 +593,7 @@
             (if (IsOneOf(gModNum TITLEROOM_SCRIPT))
                 HideStatus()
             )(else
-                (sq5StatusLineCode:doit())
+                (statusLineCode:doit())
             )
             = gColorDepth Graph(grGET_COLOURS)
             (if (== gColorDepth 256)
@@ -644,7 +644,7 @@
         (if (IsOneOf(param1 TITLEROOM_SCRIPT))
             HideStatus()
         )(else
-            (sq5StatusLineCode:doit())
+            (statusLineCode:doit())
         )
         (if (gPseudoMouse)
             (send gPseudoMouse:stop())
@@ -657,12 +657,12 @@
 
     (method (restart param1)
         (var temp0, temp1)
-        = temp1 (send ((send gSq5IconBar:curIcon)):cursor)
+        = temp1 (send ((send gIconBar:curIcon)):cursor)
         (send gGame:setCursor(999))
         = temp0 (Print:
                 font(gFont)
                 width(75)
-                window(gSq5Win)
+                window(gWindow)
                 mode(1)
                 addText(N_RESTART V_LOOK 0 1 0 0 0)
                 addColorButton(1 N_RESTART V_LOOK 0 2 0 40 0)
@@ -680,13 +680,13 @@
     (method (restore param1)
         (var temp0[2])
         (super:restore(rest param1))
-        (send gGame:setCursor((send ((send gSq5IconBar:curIcon)):cursor)))
+        (send gGame:setCursor((send ((send gIconBar:curIcon)):cursor)))
     )
 
 
     (method (save param1)
         (super:save(rest param1))
-        (send gGame:setCursor((send ((send gSq5IconBar:curIcon)):cursor)))
+        (send gGame:setCursor((send ((send gIconBar:curIcon)):cursor)))
     )
 
 
@@ -703,25 +703,25 @@
                 (case evKEYBOARD
                     (switch ((send pEvent:message))
                         (case KEY_TAB
-                            (if (not & (send ((send gSq5IconBar:at(6))):signal) icDISABLED)
+                            (if (not & (send ((send gIconBar:at(6))):signal) icDISABLED)
                                 (if (gNewEventHandler)
                                     return gNewEventHandler
                                 )
                                 = theGCursorNumber gCursorNumber
-                                (send gSq5Inv:showSelf(gEgo))
+                                (send gInv:showSelf(gEgo))
                                 (send gGame:setCursor(theGCursorNumber 1))
                                 (send pEvent:claimed(1))
                             )
                         )
                         (case KEY_CONTROL
-                            (if (not & (send ((send gSq5IconBar:at(7))):signal) icDISABLED)
+                            (if (not & (send ((send gIconBar:at(7))):signal) icDISABLED)
                                 (send gGame:quitGame())
                                 (send pEvent:claimed(1))
                             )
                         )
                         (case JOY_RIGHT
-                            (if (not & (send ((send gSq5IconBar:at(7))):signal) icDISABLED)
-                                = theGCursorNumber (send ((send gSq5IconBar:curIcon)):cursor)
+                            (if (not & (send ((send gIconBar:at(7))):signal) icDISABLED)
+                                = theGCursorNumber (send ((send gIconBar:curIcon)):cursor)
                                 (send (ScriptID(24 0)):doit())
                                 (send gGameControls:dispose())
                                 (send gGame:setCursor(theGCursorNumber 1))
@@ -740,7 +740,7 @@
                             (send pEvent:claimed(1))
                         )
                         (case KEY_F5
-                            (if (not & (send ((send gSq5IconBar:at(7))):signal) icDISABLED)
+                            (if (not & (send ((send gIconBar:at(7))):signal) icDISABLED)
                                 (if (gNewEventHandler)
                                     return gNewEventHandler
                                 )
@@ -751,7 +751,7 @@
                             )
                         )
                         (case KEY_F7
-                            (if (not & (send ((send gSq5IconBar:at(7))):signal) icDISABLED)
+                            (if (not & (send ((send gIconBar:at(7))):signal) icDISABLED)
                                 (if (gNewEventHandler)
                                     return gNewEventHandler
                                 )
@@ -823,7 +823,7 @@
 
     (method (quitGame param1)
         (var temp0, temp1)
-        = temp1 (send ((send gSq5IconBar:curIcon)):cursor)
+        = temp1 (send ((send gIconBar:curIcon)):cursor)
         (send gGame:setCursor(999))
         = temp0 (Print:
                 font(gFont)
@@ -866,8 +866,8 @@
 
 
     (method (handsOff)
-        (if (not gGSq5IconBarCurIcon)
-            = gGSq5IconBarCurIcon (send gSq5IconBar:curIcon)
+        (if (not gCurrentIcon)
+            = gCurrentIcon (send gIconBar:curIcon)
         )
         = gGUserCanControl (send gUser:canControl())
         = gGUserCanInput (send gUser:canInput())
@@ -877,10 +877,10 @@
         )
         (send gEgo:setMotion(0))
         = gCheckedIcons 0
-        (send gSq5IconBar:eachElementDo(#perform checkIcon))
-        (send gSq5IconBar:curIcon((send gSq5IconBar:at(7))))
-        (send gSq5IconBar:disable())
-        (send gSq5IconBar:disable(
+        (send gIconBar:eachElementDo(#perform checkIcon))
+        (send gIconBar:curIcon((send gIconBar:at(7))))
+        (send gIconBar:disable())
+        (send gIconBar:disable(
         		ICONINDEX_WALK
         		ICONINDEX_LOOK
         		ICONINDEX_DO
@@ -895,12 +895,12 @@
 
 
     (method (handsOn fRestore)
-        (send gSq5IconBar:enable())
+        (send gIconBar:enable())
         (send gUser:
             canControl(1)
             canInput(1)
         )
-        (send gSq5IconBar:enable(
+        (send gIconBar:enable(
         		ICONINDEX_WALK
         		ICONINDEX_LOOK
         		ICONINDEX_DO
@@ -911,26 +911,26 @@
         		ICONINDEX_SETTINGS)
         		)
         		
-        (send gSq5IconBar:disable(
+        (send gIconBar:disable(
         		// See above
         		ICONINDEX_CUSTOM)
 		)
         (if (paramTotal and fRestore)
             RestorePreviousHandsOn()
         )
-        (if (not (send gSq5IconBar:curInvIcon))
-            (send gSq5IconBar:disable(ICONINDEX_CURITEM))
+        (if (not (send gIconBar:curInvIcon))
+            (send gIconBar:disable(ICONINDEX_CURITEM))
         )
-        (if (gGSq5IconBarCurIcon)
-            (send gSq5IconBar:curIcon(gGSq5IconBarCurIcon))
-            (send gGame:setCursor((send gGSq5IconBarCurIcon:cursor)))
-            = gGSq5IconBarCurIcon 0
-            (if ((== (send gSq5IconBar:curIcon) (send gSq5IconBar:at(5))) and not (send gSq5IconBar:curInvIcon))
-                (send gSq5IconBar:advanceCurIcon())
+        (if (gCurrentIcon)
+            (send gIconBar:curIcon(gCurrentIcon))
+            (send gGame:setCursor((send gCurrentIcon:cursor)))
+            = gCurrentIcon 0
+            (if ((== (send gIconBar:curIcon) (send gIconBar:at(5))) and not (send gIconBar:curInvIcon))
+                (send gIconBar:advanceCurIcon())
             )
         )
-        (send gGame:setCursor((send ((send gSq5IconBar:curIcon)):cursor) 1))
-        = gCursorNumber (send ((send gSq5IconBar:curIcon)):cursor)
+        (send gGame:setCursor((send ((send gIconBar:curIcon)):cursor) 1))
+        = gCursorNumber (send ((send gIconBar:curIcon)):cursor)
     )
 
 
@@ -942,7 +942,7 @@
 
     (method (showControls)
         (var temp0)
-        = temp0 (send ((send gSq5IconBar:curIcon)):cursor)
+        = temp0 (send ((send gIconBar:curIcon)):cursor)
         (send (ScriptID(GAMECONTROLS_SCRIPT 0)):doit())
         (send gGameControls:dispose())
         (send gGame:setCursor(temp0 1))
@@ -974,7 +974,7 @@
         (var temp0)
         return 
             (if ((super:select(rest param1)))
-                (send gSq5IconBar:hide())
+                (send gIconBar:hide())
                 return 1
             )(else
                 return 0
@@ -1088,22 +1088,22 @@
 
 
     (method (select param1)
-        (var newEvent, temp1, gSq5IconBarCurInvIcon, temp3, temp4)
+        (var newEvent, temp1, currentInvIcon, temp3, temp4)
         return 
             (if (& signal icDISABLED)
                 0
             )(else
                 (if ((paramTotal and param1) and (& signal notUpd))
-                    = gSq5IconBarCurInvIcon (send gSq5IconBar:curInvIcon)
-                    (if (gSq5IconBarCurInvIcon)
-                        = temp3 (+ (/ (- (- nsRight nsLeft) CelWide((send gSq5IconBarCurInvIcon:view) 2 (send gSq5IconBarCurInvIcon:cel))) 2) nsLeft)
-                        = temp4 (+ (+ (send gSq5IconBar:y) (/ (- (- nsBottom nsTop) CelHigh((send gSq5IconBarCurInvIcon:view) 2 (send gSq5IconBarCurInvIcon:cel))) 2)) nsTop)
+                    = currentInvIcon (send gIconBar:curInvIcon)
+                    (if (currentInvIcon)
+                        = temp3 (+ (/ (- (- nsRight nsLeft) CelWide((send currentInvIcon:view) 2 (send currentInvIcon:cel))) 2) nsLeft)
+                        = temp4 (+ (+ (send gIconBar:y) (/ (- (- nsBottom nsTop) CelHigh((send currentInvIcon:view) 2 (send currentInvIcon:cel))) 2)) nsTop)
                     )
                     = temp1 1
                     DrawCel(view loop temp1 nsLeft nsTop -1)
-                    = gSq5IconBarCurInvIcon (send gSq5IconBar:curInvIcon)
-                    (if (gSq5IconBarCurInvIcon)
-                        DrawCel((send (= gSq5IconBarCurInvIcon (send gSq5IconBar:curInvIcon)):view) 2 (send gSq5IconBarCurInvIcon:cel) temp3 temp4 -1)
+                    = currentInvIcon (send gIconBar:curInvIcon)
+                    (if (currentInvIcon)
+                        DrawCel((send (= currentInvIcon (send gIconBar:curInvIcon)):view) 2 (send currentInvIcon:cel) temp3 temp4 -1)
                     )
                     Graph(grUPDATE_BOX nsTop nsLeft nsBottom nsRight 1)
                     (while (<> (send ((= newEvent (Event:new()))):type) 2)
@@ -1112,9 +1112,9 @@
                             (if (not temp1)
                                 = temp1 1
                                 DrawCel(view loop temp1 nsLeft nsTop -1)
-                                = gSq5IconBarCurInvIcon (send gSq5IconBar:curInvIcon)
-                                (if (gSq5IconBarCurInvIcon)
-                                    DrawCel((send (= gSq5IconBarCurInvIcon (send gSq5IconBar:curInvIcon)):view) 2 (send gSq5IconBarCurInvIcon:cel) temp3 temp4 -1)
+                                = currentInvIcon (send gIconBar:curInvIcon)
+                                (if (currentInvIcon)
+                                    DrawCel((send (= currentInvIcon (send gIconBar:curInvIcon)):view) 2 (send currentInvIcon:cel) temp3 temp4 -1)
                                 )
                                 Graph(grUPDATE_BOX nsTop nsLeft nsBottom nsRight 1)
                             )
@@ -1122,9 +1122,9 @@
                             (if (temp1)
                                 = temp1 0
                                 DrawCel(view loop temp1 nsLeft nsTop -1)
-                                = gSq5IconBarCurInvIcon (send gSq5IconBar:curInvIcon)
-                                (if (gSq5IconBarCurInvIcon)
-                                    DrawCel((send (= gSq5IconBarCurInvIcon (send gSq5IconBar:curInvIcon)):view) 2 (send gSq5IconBarCurInvIcon:cel) temp3 temp4 -1)
+                                = currentInvIcon (send gIconBar:curInvIcon)
+                                (if (currentInvIcon)
+                                    DrawCel((send (= currentInvIcon (send gIconBar:curInvIcon)):view) 2 (send currentInvIcon:cel) temp3 temp4 -1)
                                 )
                                 Graph(grUPDATE_BOX nsTop nsLeft nsBottom nsRight 1)
                             )
@@ -1134,9 +1134,9 @@
                     (send newEvent:dispose())
                     (if (== temp1 1)
                         DrawCel(view loop 0 nsLeft nsTop -1)
-                        = gSq5IconBarCurInvIcon (send gSq5IconBar:curInvIcon)
-                        (if (gSq5IconBarCurInvIcon)
-                            DrawCel((send (= gSq5IconBarCurInvIcon (send gSq5IconBar:curInvIcon)):view) 2 (send gSq5IconBarCurInvIcon:cel) temp3 temp4 -1)
+                        = currentInvIcon (send gIconBar:curInvIcon)
+                        (if (currentInvIcon)
+                            DrawCel((send (= currentInvIcon (send gIconBar:curInvIcon)):view) 2 (send currentInvIcon:cel) temp3 temp4 -1)
                         )
                         Graph(grUPDATE_BOX nsTop nsLeft nsBottom nsRight 1)
                     )
@@ -1173,9 +1173,9 @@
         (var theGCursorNumber)
         return 
             (if ((super:select(rest param1)))
-                (send gSq5IconBar:hide())
+                (send gIconBar:hide())
                 = theGCursorNumber gCursorNumber
-                (send gSq5Inv:showSelf(gEgo))
+                (send gInv:showSelf(gEgo))
                 (send gGame:setCursor(theGCursorNumber 1))
                 return 1
             )(else
@@ -1207,7 +1207,7 @@
     (method (select param1)
         return 
             (if ((super:select(rest param1)))
-                (send gSq5IconBar:hide())
+                (send gIconBar:hide())
                 (send gGame:showControls())
                 return 1
             )(else
@@ -1245,7 +1245,7 @@
 
     (method (doit param1)
         (if ((send param1:isKindOf(IconI)) and (& (send param1:signal) $0004))
-            = gCheckedIcons (| gCheckedIcons (>> $8000 (send gSq5IconBar:indexOf(param1))))
+            = gCheckedIcons (| gCheckedIcons (>> $8000 (send gIconBar:indexOf(param1))))
         )
     )
 
@@ -1333,7 +1333,7 @@
     )
 )
 
-(instance sq5Win of BorderWindow
+(instance mainWindow of BorderWindow
     (properties)
 )
 (instance sQ5Narrator of Narrator
@@ -1355,7 +1355,7 @@
         = temp0 
             (switch (talkerNumber)
                 (case NARRATOR
-                    gSQ5Narrator
+                    gNarrator
                 )
                 // Add more cases here for different narrators
                 // (case 8

@@ -92,13 +92,13 @@
     (method (doVerb theVerb param2)
         (switch (theVerb)
             (case V_LOOK
-                (send gTestMessager:say(22 1 0 Random(1 2) 0 0))
+                (send gTestMessager:say(N_EGO V_LOOK 0 Random(1 2) 0 0))
             )
             (case V_DO
-                (send gTestMessager:say(22 4 0 Random(1 2) 0 0))
+                (send gTestMessager:say(N_EGO V_DO 0 Random(1 2) 0 0))
             )
             (case V_TALK
-                (send gTestMessager:say(22 2 0 Random(1 2) 0 0))
+                (send gTestMessager:say(N_EGO V_TALK 0 Random(1 2) 0 0))
             )
             (case 32
                 (if ((send gRoom:script))
