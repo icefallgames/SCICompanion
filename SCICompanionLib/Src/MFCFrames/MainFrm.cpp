@@ -1255,7 +1255,6 @@ void CMainFrame::OnFileNewSound()
     }
     
     std::unique_ptr<ResourceEntity> pSound(CreateSoundResource(appState->GetVersion()));
-    //std::unique_ptr<ResourceEntity> pSound(ImportMidi(device));
     if (pSound)
     {
         CDocTemplate *pDocTemplate = appState->GetSoundTemplate();

@@ -65,7 +65,8 @@
 		(super:doit())
 	)
 
-	(method (changeState state)
+	(method (changeState newState)
+   		(= state newState)
 		(switch (state)
 			(case 0
 			)

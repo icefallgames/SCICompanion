@@ -689,14 +689,16 @@ bool SoundEvent::operator!=(const SoundEvent &other)
     return !(*this == other);
 }
 
-const SoundEvent g_Channel16Mandatory0(0, 0x50, 0x7f, 0xbf);
-const SoundEvent g_Channel16Mandatory1(0, 0x0a, 0x40, 0xbf);
+const SoundEvent g_Channel16Mandatory0(0, 0, 0, 0xcf);
+const SoundEvent g_Channel16Mandatory1(0, 0x50, 0x7f, 0xbf);
+const SoundEvent g_Channel16Mandatory2(0, 0x0a, 0x40, 0xbf);
 
 void _EnsureCh15Presamble(vector<SoundEvent> &events)
 {
     // If we have a loop point or cues, these events are mandatory, or else the SCI interpreter will hang when playing the sound.
     bool need0 = true;
     bool need1 = true;
+    bool need2 = true;
     DWORD ticks = 0;
     size_t i = 0;
     while ((ticks == 0) && (i < events.size()))
@@ -709,6 +711,10 @@ void _EnsureCh15Presamble(vector<SoundEvent> &events)
         {
             need1 = false;
         }
+        if (events[i] == g_Channel16Mandatory2)
+        {
+            need2 = false;
+        }
         ticks += events[i].wTimeDelta;
         i++;
     }
@@ -719,6 +725,10 @@ void _EnsureCh15Presamble(vector<SoundEvent> &events)
     if (need1)
     {
         events.insert(events.begin() + 1, g_Channel16Mandatory1);
+    }
+    if (need2)
+    {
+        events.insert(events.begin() + 2, g_Channel16Mandatory2);
     }
 }
 
