@@ -3021,25 +3021,16 @@ void CRasterView::EditVGAPalette()
                     }
                 }
 
+                const PaletteComponent *paletteToAdd = nullptr;
                 const PaletteComponent *palette = pResource->TryGetComponent<PaletteComponent>();
-                bool addedPalette = false;
                 if (palette == nullptr)
                 {
-                    const PaletteComponent *globalPalette = appState->GetResourceMap().GetPalette999();
-                    if (globalPalette)
+                    paletteToAdd = pDoc->GetCurrentPaletteComponent();
+                    if (paletteToAdd)
                     {
                         if (IDYES == AfxMessageBox("There is no palette embedded in this view. Would you like to add one?", MB_YESNO))
                         {
-                            // const_cast! Ugly, but we know what we're doing, and ApplyChanges doesn't allow for adding components.
-                            ResourceEntity *resource = const_cast<ResourceEntity *>(GetDoc()->GetResource());
-                            if (resource)
-                            {
-                                addedPalette = true;
-                                std::unique_ptr<PaletteComponent> newPalette = std::make_unique<PaletteComponent>(*globalPalette);
-                                resource->AddComponent(move(newPalette));
-                                palette = pResource->TryGetComponent<PaletteComponent>();
-                                GetDoc()->RefreshPaletteOptions();
-                            }
+                            palette = paletteToAdd;
                         }
                     }
                 }
@@ -3050,22 +3041,39 @@ void CRasterView::EditVGAPalette()
                     PaletteEditorDialog paletteEditor(nullptr, paletteCopy, cels, false);
                     paletteEditor.DoModal();
                     PaletteComponent paletteResult = paletteEditor.GetPalette();
-                    if (addedPalette || (paletteResult != *palette))
+
+                    if (paletteToAdd)
                     {
                         GetDoc()->ApplyChanges<PaletteComponent>(
-                            [&paletteResult, addedPalette](PaletteComponent &palette)
+                            [](PaletteComponent &palette)
                         {
+                            // Don't need to do anything here, except return a change hint.
+                            return WrapHint(RasterChangeHint::NewView | RasterChangeHint::PaletteChoice);
+                        },
+                            [&paletteResult](ResourceEntity &resource)
+                        {
+                            // Since the work is done here...
+                            resource.AddComponent(std::make_unique<PaletteComponent>(paletteResult));
+                        }
+                        );
+                        GetDoc()->SetPaletteChoice(0, true);    // Switch to embedded palette.
+                        GetDoc()->RefreshPaletteOptions();
+                    }
+                    else if (paletteResult != *palette)    // We didn't add, but we changed.
+                    {
+                        GetDoc()->ApplyChanges<PaletteComponent>(
+                            [&paletteResult](PaletteComponent &palette)
+                            {
                             // Replace the palette with the new one.
                             palette = paletteResult;
                             return WrapHint(RasterChangeHint::NewView | RasterChangeHint::PaletteChoice);
-                        }
+                            }
                         );
-
                         GetDoc()->SetPaletteChoice(GetDoc()->GetPaletteChoice(), true);
                     }
                 }
             }
-       }
+        }
     }
 }
 
