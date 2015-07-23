@@ -200,6 +200,7 @@ void InsertCommands(PicComponent &pic, ptrdiff_t iStart, size_t cCount, PicComma
     PicCommand::CommandType type;
     if ((cCount == 1) &&
         (iStart > 0) &&
+        ((iStart - 1) < (int)pic.commands.size()) &&
         _GetOppositeCommandType(pCommands, &type) &&
         (pic.commands[iStart - 1].type == type))
 

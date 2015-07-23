@@ -91,6 +91,15 @@ void CNewRasterResourceDocument::PostApplyChanges(CObject *pObj)
     }
 }
 
+void CNewRasterResourceDocument::SetPenStyle(PenStyle penStyle)
+{
+    if (penStyle != _penStyle)
+    {
+        _penStyle = penStyle;
+        _UpdateHelper(RasterChange(RasterChangeHint::PenStyle));
+    }
+}
+
 void CNewRasterResourceDocument::SetPenWidth(int nPenWidth)
 {
     int nNewPenWidth = max(1, min(8, nPenWidth));

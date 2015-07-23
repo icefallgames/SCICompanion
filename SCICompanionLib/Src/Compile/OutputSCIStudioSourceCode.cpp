@@ -768,3 +768,9 @@ void OutputSourceCode_SCIStudio(const sci::ClassDefinition &classDef, sci::Sourc
     OutputSCIStudioSourceCode output(out);
     output.Visit(classDef);
 }
+
+void OutputSourceCode_SCIStudio(const sci::MethodDefinition &classDef, sci::SourceCodeWriter &out)
+{
+    OutputSCIStudioSourceCode output(out);
+    output.Visit(classDef);
+}

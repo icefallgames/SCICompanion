@@ -707,3 +707,8 @@ void OutputSourceCode_CPP(const sci::ClassDefinition &classDef, sci::SourceCodeW
     OutputCPPSourceCode output(out);
     output.Visit(classDef);
 }
+void OutputSourceCode_CPP(const sci::MethodDefinition &classDef, sci::SourceCodeWriter &out)
+{
+    OutputCPPSourceCode output(out);
+    output.Visit(classDef);
+}

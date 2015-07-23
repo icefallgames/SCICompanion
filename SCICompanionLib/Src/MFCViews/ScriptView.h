@@ -17,6 +17,7 @@ class CMethodInfoTip;
 class AutoCompleteThread;
 class CScriptDocument;
 class AvailableObjects;
+class AvailableMethods;
 
 class CScriptView : public CCrystalEditView, public IAutoCompleteClient
 {
@@ -83,6 +84,7 @@ protected:
     afx_msg void OnInsertObject();
     afx_msg void OnInsertObjectAt();
     afx_msg void OnInsertObjectAtRange(UINT nID);
+    afx_msg void OnInsertMethodAtRange(UINT nID);
     afx_msg void OnAddAsNoun();
     afx_msg void OnAddAsImperativeVerb();
     afx_msg void OnAddAsPreposition();
@@ -143,6 +145,7 @@ protected:
 
     // For "Insert object"
     std::unique_ptr<AvailableObjects> _availableObjects;
+    std::unique_ptr<AvailableMethods> _availableMethods;
 };
 
 #ifndef _DEBUG  // debug version in SCICompilerView.cpp

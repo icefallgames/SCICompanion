@@ -8,6 +8,7 @@
 #include "ScriptMakerHelper.h"
 #include "SyntaxParser.h"
 #include "CrystalScriptStream.h"
+#include "OutputCodeHelper.h"
 
 using namespace sci;
 using namespace std;
@@ -47,10 +48,50 @@ class DummyLog : public ICompileLog
     void ReportResult(const CompileResult &result) override {}
 };
 
+AvailableMethods::AvailableMethods()
+{
+    string fullPath = appState->GetResourceMap().GetObjectsFolder() + "\\Methods.sc";
+    DummyLog log;
+    // Make a new buffer.
+    CCrystalTextBuffer buffer;
+    if (buffer.LoadFromFile(fullPath.c_str()))
+    {
+        CScriptStreamLimiter limiter(&buffer);
+        CCrystalScriptStream stream(&limiter);
+        _script = std::make_unique<sci::Script>();
+        if (g_Parser.Parse(*_script, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log, false, nullptr, true))
+        {
+            for (const auto &theClass : _script->GetClassesNC())
+            {
+                transform(theClass->GetMethods().begin(), theClass->GetMethods().end(), back_inserter(_methods),
+                    [](const unique_ptr<MethodDefinition> &theMethod) { return theMethod.get(); }
+                );
+            }
+        }
+        buffer.FreeAll();
+    }
+}
+
+void AvailableMethods::PrepareBuffer(const sci::MethodDefinition *methodDef, CString &buffer)
+{
+    std::stringstream ss;
+    //sci::SourceCodeWriter out(ss, appState->GetResourceMap().Helper().GetGameLanguage(), _objectToScript[theClass]);
+    // Providing the script lets us sync comments, but it is not working properly. They merge with newlines, and comments in
+    // unused functions are included. Really, we need an option to parse comments inline.
+    sci::SourceCodeWriter out(ss, appState->GetResourceMap().Helper().GetGameLanguage(), nullptr);
+    DebugIndent indent(out);
+    out.pszNewLine = "\r\n";
+    out.fAlwaysExpandCodeBlocks = true;
+    ss << out.pszNewLine;
+    methodDef->OutputSourceCode(out);
+    buffer = ss.str().c_str();
+}
+
 AvailableObjects::AvailableObjects()
 {
     vector<string> filenames;
-    // REVIEW: Could we just ask for the list of scripts instead?
+
+    /*
     std::string objFolder = appState->GetResourceMap().GetObjectsFolder();
     objFolder += "\\*.sc";
     WIN32_FIND_DATA findData = { 0 };
@@ -64,7 +105,10 @@ AvailableObjects::AvailableObjects()
             fOk = FindNextFile(hFFF, &findData);
         }
         FindClose(hFFF);
-    }
+    }*/
+
+    // Hard-code it for now, instead of enumerating all, since we'll have other files for methods, etc..
+    filenames.push_back("Objects.sc");
 
     // Now compile them.
     for (string filename : filenames)
@@ -90,10 +134,6 @@ AvailableObjects::AvailableObjects()
                 }
 
                 _scripts.push_back(move(pScript));
-            }
-            else
-            {
-                int x = 0;
             }
             buffer.FreeAll();
         }

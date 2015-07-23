@@ -59,6 +59,7 @@ private:
     void OnRight();
     void OnLeft();
     void OnMakeFont();
+    void OnPenStyle();
     void OnApplyToAll();
     void OnIsScalable();
 
@@ -132,6 +133,7 @@ private:
     CExtButton m_wndCelBefore;
     CExtButton m_wndDeleteCel;
     CExtButton m_wndMakeFont;
+    CExtButton m_wndButtonPenStyle;
     CExtLabel m_wndStatic1;
     CExtLabel m_wndStatic2;
     CExtLabel m_wndStatic3;

@@ -57,6 +57,7 @@ BEGIN_MESSAGE_MAP(CScriptView, CCrystalEditView)
     ON_WM_TIMER()
     ON_COMMAND(ID_INSERTOBJECT, OnInsertObject)
     ON_COMMAND(ID_INSERTOBJECTAT, OnInsertObjectAt)
+    ON_COMMAND_RANGE(ID_INSERTMETHODAT1, ID_INSERTMETHODAT18, OnInsertMethodAtRange)
     ON_COMMAND_RANGE(ID_INSERTOBJECTAT1, ID_INSERTOBJECTAT18, OnInsertObjectAtRange)
     ON_COMMAND(ID_ADDAS_NOUN, OnAddAsNoun)
     ON_COMMAND(ID_ADDAS_IMPERATIVEVERB, OnAddAsImperativeVerb)
@@ -740,6 +741,11 @@ BOOL _GetInsertObjectMenuItem(CMenu *pMenu, UINT *pnID)
     return _GetMenuItem(TEXT("Insert object"), pMenu, pnID);
 }
 
+BOOL _GetInsertMethodMenuItem(CMenu *pMenu, UINT *pnID)
+{
+    return _GetMenuItem(TEXT("Insert method"), pMenu, pnID);
+}
+
 void CScriptView::OnContextMenu(CWnd *pWnd, CPoint point)
 {
     CPoint ptClient = point;
@@ -833,6 +839,29 @@ void CScriptView::OnContextMenu(CWnd *pWnd, CPoint point)
                     std::string foo = _availableObjects->GetObjects()[i]->GetSuperClass();
                     mii.dwTypeData = const_cast<LPSTR>(foo.c_str());
                     subMenu->InsertMenuItem(ID_INSERTOBJECTAT1 + i, &mii, FALSE);
+                }
+            }
+        }
+
+        // Add methods?
+        UINT insertMethodIndex;
+        if (_GetInsertMethodMenuItem(pTracker, &insertMethodIndex))
+        {
+            CMenu *subMenu = pTracker->GetSubMenu(insertMethodIndex);
+            if (subMenu)
+            {
+                subMenu->RemoveMenu(0, MF_BYPOSITION);
+                _availableMethods = make_unique<AvailableMethods>();
+                for (size_t i = 0; i < _availableMethods->GetMethods().size(); i++)
+                {
+                    int iIndex = 0;
+                    MENUITEMINFO mii = { 0 };
+                    mii.cbSize = sizeof(mii);
+                    mii.fMask = MIIM_ID | MIIM_STRING;
+                    mii.wID = ID_INSERTMETHODAT1 + i;
+                    std::string foo = _availableMethods->GetMethods()[i]->GetName();
+                    mii.dwTypeData = const_cast<LPSTR>(foo.c_str());
+                    subMenu->InsertMenuItem(ID_INSERTMETHODAT1 + i, &mii, FALSE);
                 }
             }
         }
@@ -1021,6 +1050,19 @@ void CScriptView::OnInsertObject()
 void CScriptView::OnInsertObjectAt()
 {
     _OnInsertObject(true);
+}
+
+void CScriptView::OnInsertMethodAtRange(UINT nID)
+{
+    int index = nID - ID_INSERTMETHODAT1;
+    if (_availableMethods)
+    {
+        CString strBuffer;
+        const MethodDefinition *methodDef = _availableMethods->GetMethods()[index];
+        _availableMethods->PrepareBuffer(methodDef, strBuffer);
+        PasteTextAtCursor(strBuffer);
+        _availableMethods.reset(nullptr);
+    }
 }
 
 void CScriptView::OnInsertObjectAtRange(UINT nID)

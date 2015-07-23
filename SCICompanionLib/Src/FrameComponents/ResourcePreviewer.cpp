@@ -819,7 +819,7 @@ void AudioPreviewer::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_BUTTONBROWSE, m_wndBrowse);
     DDX_Control(pDX, IDC_STATICTITLE, m_wndTitle);
     
-    m_wndDescription.SetWindowText("To add audio resources to the game, drag .wav files into the view. Files should be uncompressed 8 or 16 bit audio, 22050Hz or less.\r\nSCI only supports monaural sounds. The left channel will be used for stereo .wav files.");
+    m_wndDescription.SetWindowText("To add audio resources to the game, drag .wav files into the view. Files should be uncompressed 8 or 16 bit audio (8 bit is best for loops), 22050Hz or less.\r\nSCI only supports monaural sounds. The left channel will be used for stereo .wav files.");
 
     AddAnchor(IDC_SLIDER, CPoint(0, 0), CPoint(100, 0));
     AddAnchor(IDC_EDIT_SAMPLEBIT, CPoint(0, 0), CPoint(100, 0));

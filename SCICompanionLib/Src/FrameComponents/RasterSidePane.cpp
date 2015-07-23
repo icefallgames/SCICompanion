@@ -12,6 +12,7 @@
 #include "FontOperations.h"
 #include "PaletteOperations.h"
 #include "format.h"
+#include "ChoosePenStyleDialog.h"
 
 // RasterSidePane
 
@@ -78,6 +79,7 @@ BEGIN_MESSAGE_MAP(RasterSidePane, CExtDialogFwdCmd)
     ON_COMMAND(IDC_BUTTONRIGHT, OnRight)
     ON_COMMAND(IDC_BUTTONLEFT, OnLeft)
     ON_COMMAND(ID_MAKEFONT, OnMakeFont)
+    ON_COMMAND(IDC_BUTTONPENSTYLE, OnPenStyle)
 END_MESSAGE_MAP()
 
 void RasterSidePane::_OnUpdateCommandUIs()
@@ -1001,6 +1003,11 @@ void RasterSidePane::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, ID_MAKEFONT, m_wndMakeFont);
         AddAnchor(ID_MAKEFONT, CPoint(100, 0), CPoint(100, 0));
     }
+    if (GetDlgItem(IDC_BUTTONPENSTYLE))
+    {
+        DDX_Control(pDX, IDC_BUTTONPENSTYLE, m_wndButtonPenStyle);
+        AddAnchor(IDC_BUTTONPENSTYLE, CPoint(100, 0), CPoint(100, 0));
+    }
 }
 
 void RasterSidePane::_OnAddCel(bool before)
@@ -1118,6 +1125,23 @@ void RasterSidePane::OnMakeFont()
     if (_pDoc)
     {
         _pDoc->MakeFont();
+    }
+}
+void RasterSidePane::OnPenStyle()
+{
+    if (_pDoc)
+    {
+        CChoosePenStyleDialog dialog;
+        PenStyle penStyle = _pDoc->GetPenStyle();
+        dialog.SetPenStyle(&penStyle);
+        CRect rect;
+        m_wndButtonPenStyle.GetClientRect(&rect);
+        dialog.SetTrackRect(&rect);
+        if (IDOK == dialog.DoModal())
+        {
+            dialog.GetPenStyle(&penStyle);
+            _pDoc->SetPenStyle(penStyle);
+        }
     }
 }
 

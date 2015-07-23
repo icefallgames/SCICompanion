@@ -553,6 +553,10 @@ BEGIN
         BEGIN
             MENUITEM "Custom ...",                  ID_INSERTOBJECTAT
         END
+        POPUP "Insert Method"
+        BEGIN
+            MENUITEM "deleteme",                    65535
+        END
         POPUP "Add as"
         BEGIN
             MENUITEM "Noun",                        ID_ADDAS_NOUN
@@ -1228,6 +1232,7 @@ BEGIN
     COMBOBOX        IDC_COMBO_PALETTE,39,123,37,200,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Is scalable",IDC_CHECKISSCALABLE,"Button",BS_AUTOCHECKBOX | BS_MULTILINE | WS_TABSTOP,3,145,45,11
     PUSHBUTTON      "Edit",ID_VIEW_EDITPALETTE,80,122,19,14,BS_ICON | BS_FLAT
+    PUSHBUTTON      "Button5",IDC_BUTTONPENSTYLE,83,105,16,14
 END
 
 IDD_PICCOMMANDS DIALOGEX 0, 0, 117, 277

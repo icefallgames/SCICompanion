@@ -1707,6 +1707,21 @@ void CRasterView::_DrawDitheredPen(CDC *pDC, CPoint point)
     pDC->SetBkColor(crBkOld);
 }
 
+/*
+void CRasterView::_DrawPen(CDC *pDC, CPoint point, uint8_t color, uint8_t alternateColor, BOOL fUseForeground)
+{
+    // In order to get a round pen, use PS_GEOMETRIC
+    LOGBRUSH logbrush = { 0 };
+    logbrush.lbColor = _SCIColorToCOLORREF(fUseForeground ? color : alternateColor);
+    logbrush.lbStyle = BS_SOLID;
+    CPen pen(PS_GEOMETRIC | PS_ENDCAP_ROUND, _nPenWidth, &logbrush, 0, NULL);
+    HGDIOBJ hOldPen = pDC->SelectObject(&pen);
+
+    pDC->MoveTo(point);
+    pDC->LineTo(point);
+    pDC->SelectObject(hOldPen);
+}*/
+
 void CRasterView::_DrawPen(CDC *pDC, CPoint point, uint8_t color, uint8_t alternateColor, BOOL fUseForeground)
 {
     // In order to get a round pen, use PS_GEOMETRIC
@@ -1720,6 +1735,7 @@ void CRasterView::_DrawPen(CDC *pDC, CPoint point, uint8_t color, uint8_t altern
     pDC->LineTo(point);
     pDC->SelectObject(hOldPen);
 }
+
 
 void CRasterView::_OnReplaceTool(CPoint point, BOOL fReplaceAll, bool fLeftClick)
 {

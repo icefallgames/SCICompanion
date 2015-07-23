@@ -29,6 +29,8 @@ public:
     void LockResource(bool fLock) { _fLocked = fLock; }
     int GetPenWidth() { return _nPenWidth; }
     void SetPenWidth(int nPenWidth);
+    PenStyle GetPenStyle() { return _penStyle; }
+    void SetPenStyle(PenStyle penStyle);
     void SetApplyToAllCels(BOOL fApply) { _fApplyToAllCels = !!fApply; UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(RasterChangeHint::ApplyToAll)); }
     BOOL GetApplyToAllCels() const { return _fApplyToAllCels; }
 
@@ -123,6 +125,7 @@ private:
 
     bool _fLocked;
     int _nPenWidth;
+    PenStyle _penStyle;
     bool _fApplyToAllCels;
     int _nCel;
     int _nLoop;

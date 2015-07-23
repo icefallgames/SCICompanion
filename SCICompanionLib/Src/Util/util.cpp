@@ -890,6 +890,12 @@ void TerminateProcessTree(HANDLE hProcess, DWORD retCode)
         bool kill = false;
         std::vector<DWORD> childrenToKill;
         auto itParent = childToParent.find(pair.first);
+
+        // REVIEW: Got into an infinite loop here when we had a mapping of:
+        // [508]->[524], and
+        // [524]->[508]
+        // This may be a race condition where new processes were created?
+
         while ((itParent != childToParent.end()) && itParent->first)
         {
             childrenToKill.push_back(itParent->first);

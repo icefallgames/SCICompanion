@@ -15,6 +15,7 @@ enum class RasterChangeHint
     SampleText = 0x0080,
     ApplyToAll = 0x0100,
     PaletteChoice = 0x0200,
+    PenStyle = 0x0400,
 };
 
 DEFINE_ENUM_FLAGS(RasterChangeHint, uint32_t)

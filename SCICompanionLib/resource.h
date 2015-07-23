@@ -642,6 +642,8 @@
 #define IDC_RADIOVIEW                   1307
 #define IDC_SLIDERCYCLESPEED            1307
 #define IDC_EDITTINTSTRENGTH            1308
+#define IDC_BUTTON5                     1308
+#define IDC_BUTTONPENSTYLE              1308
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -934,6 +936,30 @@
 #define ID_INSERTOBJECTAT16             33227
 #define ID_INSERTOBJECTAT17             33228
 #define ID_INSERTOBJECTAT18             33229
+#define ID_INSERTMETHODAT               33230
+#define ID_INSERTMETHODAT1              33231
+#define ID_INSERTMETHODAT2              33232
+#define ID_INSERTMETHODAT3              33233
+#define ID_INSERTMETHODAT4              33234
+#define ID_INSERTMETHODAT5              33235
+#define ID_INSERTMETHODAT6              33236
+#define ID_INSERTMETHODAT7              33237
+#define ID_INSERTMETHODAT8              33238
+#define ID_INSERTMETHODAT9              33239
+#define ID_INSERTMETHODAT10             33240
+#define ID_INSERTMETHODAT11             33241
+#define ID_INSERTMETHODAT12             33242
+#define ID_INSERTMETHODAT13             33243
+#define ID_INSERTMETHODAT14             33244
+#define ID_INSERTMETHODAT15             33245
+#define ID_INSERTMETHODAT16             33246
+#define ID_INSERTMETHODAT17             33247
+#define ID_INSERTMETHODAT18             33248
+#define ID_MAIN_INSERTMETHOD            33249
+#define ID_MAIN_INSERTMETHOD33250       33250
+#define ID_INSERTMETHOD_DELETEME        33251
+#define ID_MAIN_INSERTMETHOD33252       33252
+#define ID_INSERTMETHOD_DELETEME33253   33253
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -942,8 +968,8 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        389
-#define _APS_NEXT_COMMAND_VALUE         33230
-#define _APS_NEXT_CONTROL_VALUE         1308
+#define _APS_NEXT_COMMAND_VALUE         33254
+#define _APS_NEXT_CONTROL_VALUE         1309
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

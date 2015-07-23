@@ -4,9 +4,28 @@
 namespace sci
 {
     class ClassDefinition;
+    class MethodDefinition;
 }
 
 extern const char c_szUnnamedObject[];
+
+
+class AvailableMethods
+{
+public:
+    AvailableMethods();
+
+    std::vector<const sci::MethodDefinition*> &GetMethods() {
+        return _methods;
+    }
+
+    void PrepareBuffer(const sci::MethodDefinition *methodDef, CString &buffer);
+
+private:
+    std::vector<const sci::MethodDefinition*> _methods;
+    std::unique_ptr<sci::Script> _script;
+};
+    
 
 class AvailableObjects
 {

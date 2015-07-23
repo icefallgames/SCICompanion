@@ -878,9 +878,10 @@ namespace sci
 
         void SetPrivate(bool f) { _fPrivate = f; }
         bool SetPrivate() const { return _fPrivate; }
-        
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
+
+        void OutputSourceCode(SourceCodeWriter &out) const;
 
     private:
         bool _fPrivate;
