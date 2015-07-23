@@ -341,6 +341,8 @@ private:
     void _SyncColor(CNewRasterResourceDocument *pDoc);
     void _CopyCelDataToClipboard(const Cel *cel);
     std::unique_ptr<Cel> _GetClipboardDataIfPaletteMatches();
+    bool _EnsurePenBitmap();
+    int  _GetPenWidth();
 
     // Scrolling
     virtual int _GetViewWidth() { return _cxViewZoom; }
@@ -385,7 +387,8 @@ private:
     // Pens
     bool _fPreviewPen;              // Is the user dragging a pen.  When we're in this mode, we don't keep
                                     // updating our data from the view resource, since pen's are additive.
-    int _nPenWidth;                 // The width of the pen.
+    CBitmap _penBitmap;
+    uint8_t _bRandomNR;
     std::unique_ptr<BYTE[]> _pBitsScratch1;
     size16 _sizeScratch1;
 

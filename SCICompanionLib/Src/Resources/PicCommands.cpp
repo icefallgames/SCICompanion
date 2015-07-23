@@ -930,6 +930,62 @@ void _DrawPattern(PicData *pData, int16_t x, int16_t y, typename _TFormat::Pixel
     }
 }
 
+
+#define CX_ACTUAL_MONO(cx) (((cx) + 7) / 8)
+
+bool CreatePatternBitmap(CBitmap &bitmapOut, uint8_t patternSize, uint8_t patternNR, bool rectangle, bool pattern)
+{
+    uint16_t wSize = (uint16_t)patternSize;
+    uint16_t actualSize = wSize * 2 + 1;
+    size_t dataSize = CX_ACTUAL(actualSize) * actualSize;
+    std::unique_ptr<uint8_t[]> buffer = std::make_unique<uint8_t[]>(dataSize);
+    memset(buffer.get(), 0xff, dataSize);
+    std::unique_ptr<uint8_t[]> aux = std::make_unique<uint8_t[]>(dataSize);
+    memset(aux.get(), 0, dataSize);
+    PicData data =
+    {
+        PicScreenFlags::Visual,
+        buffer.get(),
+        nullptr,
+        nullptr,
+        aux.get(),
+        true,
+        size16(actualSize, actualSize)
+    };
+
+    _DrawPattern<PlotVGA>(&data,
+        patternSize, patternSize,
+        0, 0, 0, PicScreenFlags::Visual,
+        pattern,
+        patternSize,
+        patternNR,
+        rectangle);
+
+    // Ok, it should be in there. Now convert from 8bpp to 1bpp
+    size_t bitDataSize = CX_ACTUAL_MONO(actualSize) * actualSize;
+    std::unique_ptr<uint8_t[]> bitBuffer = std::make_unique<uint8_t[]>(bitDataSize);
+    memset(bitBuffer.get(), 0, bitDataSize);
+    uint8_t *destRaw = bitBuffer.get();
+    uint8_t *srcRaw = buffer.get();
+    for (size_t y = 0; y < actualSize; y++)
+    {
+        for (size_t x = 0; x < actualSize; x++)
+        {
+            bool white = (srcRaw[x] == 0xff);
+            if (white)
+            {
+                destRaw[x / 8] |= (0x80) >> (x % 8);
+            }
+        }
+        destRaw += CX_ACTUAL_MONO(actualSize);
+        //srcRaw += CX_ACTUAL(actualSize);
+        srcRaw += actualSize;
+    }
+    BOOL result = bitmapOut.CreateBitmap(actualSize, actualSize, 1, 1, bitBuffer.get());
+    return !!result;
+}
+
+
 //
 // REVIEW: This sucks - I had to make a full copy of this function, just to allow it to draw to something smaller
 // than 320 x 200.  (don't want to pass extra params to _PlotPix due to perf)

@@ -27,8 +27,6 @@ public:
     void SetNewResource(std::unique_ptr<ResourceEntity> pResource);
 
     void LockResource(bool fLock) { _fLocked = fLock; }
-    int GetPenWidth() { return _nPenWidth; }
-    void SetPenWidth(int nPenWidth);
     PenStyle GetPenStyle() { return _penStyle; }
     void SetPenStyle(PenStyle penStyle);
     void SetApplyToAllCels(BOOL fApply) { _fApplyToAllCels = !!fApply; UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(RasterChangeHint::ApplyToAll)); }
@@ -124,7 +122,6 @@ private:
     afx_msg void OnUpdateFont(CCmdUI *pCmdUI);
 
     bool _fLocked;
-    int _nPenWidth;
     PenStyle _penStyle;
     bool _fApplyToAllCels;
     int _nCel;

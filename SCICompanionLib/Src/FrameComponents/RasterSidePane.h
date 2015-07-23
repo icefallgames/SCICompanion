@@ -38,7 +38,6 @@ public:
 private:
     void DoDataExchange(CDataExchange* pDX);
     void OnMirrorSelection();
-    void OnPenWidthSelection();
     void OnPaletteSelection();
     void OnChooseLoop();
     void OnAddCelBefore();
@@ -75,8 +74,7 @@ private:
     void _OnAddCel(bool before);
     void _OnAddLoop(bool before);
     void _OnEditSize(UINT nID, CWnd *pwnd);
-    void _OnPenWidthChanged();
-    void _PreparePenWidth();
+    void _OnPenStyleChanged();
     void _OnDirectionButton(CPoint point);
     void _SyncPalette();
 
@@ -106,7 +104,6 @@ private:
     // Color: (supported by all)
     CChooseColorStatic m_wndPalette;
     CExtLabel m_wndChosenColors;
-    CExtComboBox m_wndPenWidth;
 
     // Font related things
     bool _fSupportsFonts;
@@ -133,7 +130,7 @@ private:
     CExtButton m_wndCelBefore;
     CExtButton m_wndDeleteCel;
     CExtButton m_wndMakeFont;
-    CExtButton m_wndButtonPenStyle;
+    CBrushButton m_wndButtonPenStyle;
     CExtLabel m_wndStatic1;
     CExtLabel m_wndStatic2;
     CExtLabel m_wndStatic3;

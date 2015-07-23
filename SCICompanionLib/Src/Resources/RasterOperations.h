@@ -11,11 +11,10 @@ enum class RasterChangeHint
     Loop = 0x0008,
     NewView = 0x0010,
     Color = 0x0020,
-    PenWidth = 0x0040,
+    PenStyle = 0x0040,
     SampleText = 0x0080,
     ApplyToAll = 0x0100,
     PaletteChoice = 0x0200,
-    PenStyle = 0x0400,
 };
 
 DEFINE_ENUM_FLAGS(RasterChangeHint, uint32_t)

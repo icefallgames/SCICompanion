@@ -496,6 +496,8 @@ CRect GetViewBoundsRect(int16_t xEgo, int16_t yEgo, const ResourceEntity *pvr, i
 bool CanBeHere(size16 displaySize, const uint8_t *pdataPriority, const CRect &rect, uint16_t wControlMask = 0x8000);
 void DrawPatternInRect(int cx, int cy, PicData *pData, int16_t x, int16_t y, EGACOLOR color, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable, const PenStyle *pPenStyle);
 
+bool CreatePatternBitmap(CBitmap &bitmapOut, uint8_t patternSize, uint8_t patternNR, bool rectangle, bool pattern);
+
 //
 // Each command shall have the following:
 // A way to draw a particular screen onto a hdc.

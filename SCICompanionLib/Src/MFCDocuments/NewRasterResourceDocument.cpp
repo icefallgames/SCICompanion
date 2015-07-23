@@ -43,7 +43,6 @@ CNewRasterResourceDocument::CNewRasterResourceDocument()
     map.AddSync(this);
 
     _currentPaletteIndex = 0;
-    _nPenWidth = 1;
     _fLocked = false;
     _fApplyToAllCels = FALSE;
     _nCel = 0;
@@ -97,16 +96,6 @@ void CNewRasterResourceDocument::SetPenStyle(PenStyle penStyle)
     {
         _penStyle = penStyle;
         _UpdateHelper(RasterChange(RasterChangeHint::PenStyle));
-    }
-}
-
-void CNewRasterResourceDocument::SetPenWidth(int nPenWidth)
-{
-    int nNewPenWidth = max(1, min(8, nPenWidth));
-    if (nNewPenWidth != _nPenWidth)
-    {
-        _nPenWidth = nNewPenWidth;
-        _UpdateHelper(RasterChange(RasterChangeHint::PenWidth));
     }
 }
 

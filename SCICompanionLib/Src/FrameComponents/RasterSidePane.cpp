@@ -56,7 +56,6 @@ BOOL RasterSidePane::PreTranslateMessage(MSG* pMsg)
 
 BEGIN_MESSAGE_MAP(RasterSidePane, CExtDialogFwdCmd)
     ON_CBN_SELCHANGE(IDC_COMBO_MIRROR, OnMirrorSelection)
-    ON_CBN_SELCHANGE(IDC_COMBO_PENWIDTH, OnPenWidthSelection)
     ON_CBN_SELCHANGE(IDC_COMBO_PALETTE, OnPaletteSelection)
     ON_EN_KILLFOCUS(IDC_EDIT_CELWIDTH, OnEditCelWidth)
     ON_EN_KILLFOCUS(IDC_EDIT_CELHEIGHT, OnEditCelHeight)
@@ -205,7 +204,7 @@ void RasterSidePane::SetDocument(CDocument *pDoc)
 
         _SyncPalette();
         _SyncSampleText();
-        _OnPenWidthChanged();
+        _OnPenStyleChanged();
         _SyncCelPane();
         _SyncLoopPane();
         _OnUpdateCommandUIs();
@@ -580,10 +579,10 @@ void RasterSidePane::UpdateNonView(CObject *pObject)
         ClearFlag(hint, RasterChangeHint::PaletteChoice);
     }
 
-    if (IsFlagSet(hint, RasterChangeHint::PenWidth))
+    if (IsFlagSet(hint, RasterChangeHint::PenStyle))
     {
-        _OnPenWidthChanged();
-        ClearFlag(hint, RasterChangeHint::PenWidth);
+        _OnPenStyleChanged();
+        ClearFlag(hint, RasterChangeHint::PenStyle);
     }
 
     if (IsFlagSet(hint, RasterChangeHint::SampleText))
@@ -602,7 +601,7 @@ void RasterSidePane::UpdateNonView(CObject *pObject)
 
     if (hint != RasterChangeHint::None)
     {
-        _OnPenWidthChanged();
+        _OnPenStyleChanged();
         _SyncCelPane();
         _SyncLoopPane();
         _OnUpdateCommandUIs(); // TODO: could be more efficient..
@@ -756,17 +755,6 @@ void RasterSidePane::_SyncCelPane()
     }
 }
 
-void RasterSidePane::_PreparePenWidth()
-{
-    // Add the numbers 1-8 to the combobox.
-    for (int i = 0; i < 8; i++)
-    {
-        std::stringstream ss;
-        ss << (i + 1);
-        m_wndPenWidth.AddString(ss.str().c_str());
-    }
-}
-
 void RasterSidePane::OnApplyToAll()
 {
     if (_pDoc)
@@ -788,20 +776,11 @@ void RasterSidePane::OnIsScalable()
     }
 }
 
-void RasterSidePane::OnPenWidthSelection()
+void RasterSidePane::_OnPenStyleChanged()
 {
     if (_pDoc)
     {
-        _pDoc->SetPenWidth(m_wndPenWidth.GetCurSel() + 1);
-    }
-}
-
-void RasterSidePane::_OnPenWidthChanged()
-{
-    if (_pDoc)
-    {
-        // Indicies 0-7 correspond to pen widths 1-8
-        m_wndPenWidth.SetCurSel(_pDoc->GetPenWidth() - 1);
+        m_wndButtonPenStyle.SetPenStyle(_pDoc->GetPenStyle());
     }
 }
 
@@ -877,9 +856,6 @@ void RasterSidePane::DoDataExchange(CDataExchange* pDX)
 
     DDX_Control(pDX, IDC_STATIC_CHOSENCOLORS, m_wndChosenColors);
     AddAnchor(IDC_STATIC_CHOSENCOLORS, CPoint(0, 0), CPoint(0, 0));
-    DDX_Control(pDX, IDC_COMBO_PENWIDTH, m_wndPenWidth);
-    AddAnchor(IDC_COMBO_PENWIDTH, CPoint(0, 0), CPoint(100, 0));
-    _PreparePenWidth();
 
     // Prepare the VGA palette
     if (GetDlgItem(IDC_COMBO_PALETTE))
@@ -947,6 +923,7 @@ void RasterSidePane::DoDataExchange(CDataExchange* pDX)
     if (GetDlgItem(IDC_STATIC1))
     {
         DDX_Control(pDX, IDC_STATIC1, m_wndStatic1);
+        AddAnchor(IDC_STATIC1, CPoint(100, 0), CPoint(100, 0));
     }
     if (GetDlgItem(IDC_STATIC2))
     {
@@ -1135,7 +1112,7 @@ void RasterSidePane::OnPenStyle()
         PenStyle penStyle = _pDoc->GetPenStyle();
         dialog.SetPenStyle(&penStyle);
         CRect rect;
-        m_wndButtonPenStyle.GetClientRect(&rect);
+        m_wndButtonPenStyle.GetWindowRect(&rect);
         dialog.SetTrackRect(&rect);
         if (IDOK == dialog.DoModal())
         {

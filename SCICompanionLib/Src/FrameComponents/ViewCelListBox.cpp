@@ -630,7 +630,7 @@ void ViewCelListBox::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
     RasterChangeHint hint = GetHint<RasterChangeHint>(pHint);
     if (_GetDoc())
     {
-        hint &= ~(RasterChangeHint::Color | RasterChangeHint::PenWidth);    // Remove stuff we don't care about
+        hint &= ~(RasterChangeHint::Color | RasterChangeHint::PenStyle);    // Remove stuff we don't care about
         if (IsFlagSet(hint, RasterChangeHint::PaletteChoice))
         {
             _EnsureSCIBitmap(_CalcRequiredBitmapSize(), true);

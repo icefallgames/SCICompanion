@@ -16,6 +16,7 @@
 #include "ImageUtil.h"
 #include "ConvertFromToPaletteDialog.h"
 #include "ColorShifterDialog.h"
+#include "PicCommands.h"
 
 // Thickness of the sizers around the image:
 #define SIZER_SIZE 6
@@ -318,6 +319,8 @@ CRasterView::CRasterView()
 
     _cWorkingCels = 0;
 
+    _bRandomNR = 0;
+
     // Scrolling:
     _yOrigin = 0;
     _xOrigin = 0;
@@ -353,7 +356,6 @@ CRasterView::CRasterView()
     _rectSelection = CRect(0, 0, 0, 0);
     _iRubberBandFrameNumber = 0;
 
-    _nPenWidth = 1;
     _sizeScratch1 = size16(0, 0);
 
     _fHotSpot = FALSE;
@@ -698,7 +700,6 @@ void CRasterView::OnInitialUpdate()
     CNewRasterResourceDocument *pDoc = GetDoc();
     if (pDoc)
     {
-        _nPenWidth = pDoc->GetPenWidth();
         _SyncColor(pDoc);
     }
 }
@@ -725,10 +726,10 @@ void CRasterView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
         hint &= ~RasterChangeHint::Color;
     }
 
-    if (IsFlagSet(hint, RasterChangeHint::PenWidth))
+    if (IsFlagSet(hint, RasterChangeHint::PenStyle))
     {
-        _nPenWidth = GetDoc()->GetPenWidth();
-        hint &= ~RasterChangeHint::PenWidth;
+        _penBitmap.DeleteObject();
+        hint &= ~RasterChangeHint::PenStyle;
     }
 
     if (IsFlagSet(hint, RasterChangeHint::CelSelection | RasterChangeHint::LoopSelection))
@@ -1210,8 +1211,20 @@ COLORREF CRasterView::_SCIColorToCOLORREF(uint8_t color)
     return RGB(rgb.rgbRed, rgb.rgbGreen, rgb.rgbBlue);
 }
 
+int CRasterView::_GetPenWidth()
+{
+    int penWidth = 1;
+    if (GetDoc())
+    {
+        penWidth = GetDoc()->GetPenStyle().bPatternSize + 1;
+        // +1 since pattern size starts at zero.
+    }
+    return penWidth;
+}
+
 void CRasterView::_DrawCaptureToolHelper(CDC *pDC, CPoint ptStart, CPoint ptEnd)
 {
+    int penWidth = _GetPenWidth();
     // For commands that support two "origins" of drawing, set that up now.
     if (GetKeyState(VK_SHIFT) & 0x8000)
     {
@@ -1236,13 +1249,13 @@ void CRasterView::_DrawCaptureToolHelper(CDC *pDC, CPoint ptStart, CPoint ptEnd)
     int nPenEndCaps = (_currentTool == Line) ? PS_ENDCAP_ROUND : PS_ENDCAP_FLAT;
     if (_fDithered)
     {
-        pen.CreatePen(PS_GEOMETRIC | nPenEndCaps, _nPenWidth, &logBrushDither, 0, NULL);
+        pen.CreatePen(PS_GEOMETRIC | nPenEndCaps, penWidth, &logBrushDither, 0, NULL);
         crTextOld = pDC->SetTextColor(_SCIColorToCOLORREF(_color));
         crBkOld = pDC->SetBkColor(_SCIColorToCOLORREF(_alternateColor));
     }
     else
     {
-        pen.CreatePen(PS_GEOMETRIC | nPenEndCaps, _nPenWidth, &logbrush, 0, NULL);
+        pen.CreatePen(PS_GEOMETRIC | nPenEndCaps, penWidth, &logbrush, 0, NULL);
     }
 
     CRect rect;
@@ -1696,7 +1709,7 @@ void CRasterView::_OnFillLClick(CPoint point, bool fUseForeground)
 void CRasterView::_DrawDitheredPen(CDC *pDC, CPoint point)
 {
     LOGBRUSH logBrushDither = { BS_PATTERN, 0, (ULONG_PTR)(HBITMAP)_bitmapBrush };
-    CPen pen(PS_GEOMETRIC, _nPenWidth, &logBrushDither, 0, NULL);
+    CPen pen(PS_GEOMETRIC, _GetPenWidth(), &logBrushDither, 0, NULL);
     int crTextOld = pDC->SetTextColor(_SCIColorToCOLORREF(_color));
     int crBkOld = pDC->SetBkColor(_SCIColorToCOLORREF(_alternateColor));
     HGDIOBJ hOldPen = pDC->SelectObject(&pen);
@@ -1707,35 +1720,43 @@ void CRasterView::_DrawDitheredPen(CDC *pDC, CPoint point)
     pDC->SetBkColor(crBkOld);
 }
 
-/*
-void CRasterView::_DrawPen(CDC *pDC, CPoint point, uint8_t color, uint8_t alternateColor, BOOL fUseForeground)
+bool CRasterView::_EnsurePenBitmap()
 {
-    // In order to get a round pen, use PS_GEOMETRIC
-    LOGBRUSH logbrush = { 0 };
-    logbrush.lbColor = _SCIColorToCOLORREF(fUseForeground ? color : alternateColor);
-    logbrush.lbStyle = BS_SOLID;
-    CPen pen(PS_GEOMETRIC | PS_ENDCAP_ROUND, _nPenWidth, &logbrush, 0, NULL);
-    HGDIOBJ hOldPen = pDC->SelectObject(&pen);
+    PenStyle penStyle = GetDoc()->GetPenStyle();
+    if (penStyle.fRandomNR)
+    {
+        // If random, keep redo-ing it.
+        _bRandomNR = (rand() % 128);
+        _penBitmap.DeleteObject();
+    }
 
-    pDC->MoveTo(point);
-    pDC->LineTo(point);
-    pDC->SelectObject(hOldPen);
-}*/
-
-void CRasterView::_DrawPen(CDC *pDC, CPoint point, uint8_t color, uint8_t alternateColor, BOOL fUseForeground)
-{
-    // In order to get a round pen, use PS_GEOMETRIC
-    LOGBRUSH logbrush = { 0 };
-    logbrush.lbColor = _SCIColorToCOLORREF(fUseForeground ? color : alternateColor);
-    logbrush.lbStyle = BS_SOLID;
-    CPen pen(PS_GEOMETRIC | PS_ENDCAP_ROUND, _nPenWidth, &logbrush, 0, NULL);
-    HGDIOBJ hOldPen = pDC->SelectObject(&pen);
-
-    pDC->MoveTo(point);
-    pDC->LineTo(point);
-    pDC->SelectObject(hOldPen);
+    if (!(HBITMAP)_penBitmap && GetDoc())
+    {
+        CreatePatternBitmap(_penBitmap, penStyle.bPatternSize, _bRandomNR, penStyle.fRectangle, penStyle.fPattern);
+    }
+    return (HBITMAP)_penBitmap != nullptr;
 }
 
+// ISSUES:
+// BS_PATTERN brush can't be drawn transparent :-(
+// Pens: PS_GEOMTRIC only works with round endcaps?
+// Pens: no transparency either!
+// Pens: pens always have same origin. -> SetBrushOrg fixes this.
+void CRasterView::_DrawPen(CDC *pDC, CPoint point, uint8_t color, uint8_t alternateColor, BOOL fUseForeground)
+{
+    PenStyle penStyle = GetDoc()->GetPenStyle();
+    if (_EnsurePenBitmap())
+    {
+        int penWidth = penStyle.bPatternSize * 2 + 1;
+        int crTextOld = pDC->SetTextColor(_SCIColorToCOLORREF(fUseForeground ? color : alternateColor));
+        CDC dcMem;
+        dcMem.CreateCompatibleDC(pDC);
+        HGDIOBJ hOldBitmap = dcMem.SelectObject(_penBitmap);
+        pDC->TransparentBlt(point.x - penStyle.bPatternSize, point.y - penStyle.bPatternSize, penWidth, penWidth, &dcMem, 0, 0, penWidth, penWidth, RGB(255, 255, 255));
+        dcMem.SelectObject(hOldBitmap);
+        pDC->SetTextColor(crTextOld);
+    }
+}
 
 void CRasterView::_OnReplaceTool(CPoint point, BOOL fReplaceAll, bool fLeftClick)
 {
