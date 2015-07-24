@@ -107,6 +107,7 @@ void CBitmapToVGADialog::OnColorClick(BYTE bIndex, int nID, BOOL fLeft)
 {
     // Enable the refresh button
     m_wndRefresh.EnableWindow(TRUE);
+    m_wndEditPaletteRanges.SetWindowText("Press refresh...");
 }
 
 CBitmapToVGADialog::~CBitmapToVGADialog()
@@ -142,6 +143,7 @@ void CBitmapToVGADialog::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDCANCEL, m_wndButton4);
         DDX_Control(pDX, IDC_STATICGROUP1, m_wndGroup1);
         DDX_Control(pDX, IDC_STATICGROUP2, m_wndGroup2);
+        DDX_Control(pDX, IDC_STATICGROUP4, m_wndGroup4);
         DDX_Control(pDX, IDC_CHECKSCALE, m_wndCheck1);
         DDX_Control(pDX, IDC_CHECKGLOBALPALETTE, m_wndCheckGlobalPalette);
         m_wndCheckGlobalPalette.SetCheck(1);    // Checked by default.
@@ -155,6 +157,8 @@ void CBitmapToVGADialog::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_CHECKOVERLAY, m_wndCheckOverlay);
         DDX_Control(pDX, IDC_CHECKDITHER, m_wndDither);
         m_wndDither.SetCheck(BST_UNCHECKED);
+        DDX_Control(pDX, IDC_CHECKDITHERALPHA, m_wndDitherAlpha);
+        m_wndDitherAlpha.SetCheck(BST_UNCHECKED);
 
         DDX_Control(pDX, IDC_STATICGROUP3, m_wndGroup3);
         DDX_Control(pDX, IDC_EDITTRANSPARENTCOLOR, m_wndEditTransparentColor);
@@ -166,6 +170,7 @@ void CBitmapToVGADialog::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_BUTTONREFRESH, m_wndRefresh);
         m_wndRefresh.EnableWindow(FALSE);
         m_wndRefresh.SetIcon(IDI_REFRESH, 0, 0, 0, 16, 16);
+        DDX_Control(pDX, IDC_EDITRANGES, m_wndEditPaletteRanges);
 
         m_wndRadio1.SetCheck(1); // Check the first guy by default
         _paletteAlgorithm = PaletteAlgorithm::Quantize;
@@ -358,10 +363,12 @@ void CBitmapToVGADialog::_SyncControlState()
     if (_paletteAlgorithm == PaletteAlgorithm::MatchExisting)
     {
         m_wndDither.EnableWindow(TRUE);
+        m_wndDitherAlpha.EnableWindow(TRUE);
     }
     else
     {
         m_wndDither.EnableWindow(FALSE);
+        m_wndDitherAlpha.EnableWindow(FALSE);
     }
 
     if (optionsChanged)
@@ -390,23 +397,29 @@ void _Overlay(Cel &cel, const Cel *currentBackgroundOptional)
     if (currentBackgroundOptional)
     {
         // We'll use the current image as a reference for size and such. Otherwise we can't enlargen the background.
-        for (int y = 0; y < cel.size.cy; y++)
+        // Wait a sec... if we have a currentbackground and we're overlaying, we should use that!
+        Cel newCel = *currentBackgroundOptional;
+        for (int y = 0; y < newCel.size.cy; y++)
         {
-            int rowOffset = y * CX_ACTUAL(cel.size.cx);
-            for (int x = 0; x < cel.size.cx; x++)
+            int destRowOffset = y * CX_ACTUAL(newCel.size.cx);
+            for (int x = 0; x < newCel.size.cx; x++)
             {
-                uint8_t color = cel.Data[rowOffset + x];
-                if (color == cel.TransparentColor)
+                bool isTransparent = true;
+                uint8_t newColor = currentBackgroundOptional->Data[destRowOffset + x];
+                if ((y < cel.size.cy) && (x < cel.size.cx))
                 {
-                    // Let the background show through:
-                    if ((y < currentBackgroundOptional->size.cy) && (x < currentBackgroundOptional->size.cx))
+                    int srcRowOffset = y * CX_ACTUAL(cel.size.cx);
+                    isTransparent = (cel.Data[srcRowOffset + x] == cel.TransparentColor);
+                    if (!isTransparent)
                     {
-                        color = currentBackgroundOptional->Data[y * CX_ACTUAL(currentBackgroundOptional->size.cx) + x];
+                        newColor = cel.Data[srcRowOffset + x];
                     }
-                    cel.Data[rowOffset + x] = color;
                 }
+                newCel.Data[destRowOffset + x] = newColor;
             }
         }
+        // Replace!
+        cel = newCel;
     }
 }
 
@@ -418,6 +431,8 @@ void CBitmapToVGADialog::_Update()
     _finalResultPalette.reset(nullptr);
 
     PaletteComponent referencePalette = _CreatePaletteWithFreeSlots(_targetCurrentPalette.get(), m_wndPalette);
+
+    m_wndEditPaletteRanges.SetWindowText(GetRangeText(GetSelectedRanges(m_wndPalette)).c_str());
 
     // We need to generate a final image for m_wndPic
     switch (_paletteAlgorithm)
@@ -484,6 +499,7 @@ void CBitmapToVGADialog::_Update()
             PixelFormat format2 = PixelFormat32bppARGB;
 
             bool performDither = (m_wndDither.GetCheck() == BST_CHECKED);
+            bool performAlphaDither = (m_wndDitherAlpha.GetCheck() == BST_CHECKED);
 
             if (Ok == _pbmpCurrent->LockBits(&rect, ImageLockModeRead, PixelFormat32bppARGB, &bitmapData))
             {
@@ -498,7 +514,8 @@ void CBitmapToVGADialog::_Update()
                 bool usableColors[256];
                 m_wndPalette.GetMultipleSelection(usableColors);
 
-                VGADither dither(cx, cy);
+                Dither<RGBQUAD> dither(cx, cy);
+                Dither<uint8_t> alphaDither(cx, cy);
                 RGBQUAD *targetColors = _targetCurrentPalette->Colors;
 
                 for (UINT y = 0; y < cy; y++)
@@ -514,7 +531,10 @@ void CBitmapToVGADialog::_Update()
                         // Apply the accumulated error before matching:
                         rgb = dither.ApplyErrorAt(rgb, x, y);
 
-                        bool isTransparent = (*(source + 3) < AlphaThreshold);
+                        uint8_t origAlpha = *(source + 3);
+                        uint8_t adjustedAlpha = alphaDither.ApplyErrorAt(origAlpha, x, y);
+
+                        bool isTransparent = (adjustedAlpha < AlphaThreshold);
                         if (isTransparent)
                         {
                             bestIndex = _transparentColor;
@@ -541,10 +561,15 @@ void CBitmapToVGADialog::_Update()
 
                         temp->Data[x + y * CX_ACTUAL(cx)] = (uint8_t)bestIndex;
 
-                        if (performDither)
+                        if (performDither && !isTransparent)
                         {
                             RGBQUAD usedRgb = targetColors[bestIndex];
                             dither.PropagateError(rgb, usedRgb, x, y);
+                        }
+                        if (performAlphaDither)
+                        {
+                            uint8_t usedAlpha = isTransparent ? 0 : 255;
+                            alphaDither.PropagateError(origAlpha, usedAlpha, x, y);
                         }
                     }
                 }
@@ -646,8 +671,9 @@ BEGIN_MESSAGE_MAP(CBitmapToVGADialog, CExtNCW<CExtResizableDialog>)
     ON_BN_CLICKED(IDC_CHECKINSERT, &CBitmapToVGADialog::OnBnClickedCheckinsert)
     ON_EN_KILLFOCUS(IDC_EDITTRANSPARENTCOLOR, &CBitmapToVGADialog::OnEnKillfocusEdittransparentcolor)
     ON_BN_CLICKED(IDC_BUTTONREFRESH, &CBitmapToVGADialog::OnBnClickedButtonrefresh)
-    ON_BN_CLICKED(IDC_CHECKOVERLAY, &CBitmapToVGADialog::OnBnClickedCheckoverlay)
-    ON_BN_CLICKED(IDC_CHECKDITHER, &CBitmapToVGADialog::OnBnClickedCheckdither)
+    ON_BN_CLICKED(IDC_CHECKOVERLAY, &CBitmapToVGADialog::OnBnClickedThatThatShouldUpdate)
+    ON_BN_CLICKED(IDC_CHECKDITHER, &CBitmapToVGADialog::OnBnClickedThatThatShouldUpdate)
+    ON_BN_CLICKED(IDC_CHECKDITHERALPHA, &CBitmapToVGADialog::OnBnClickedThatThatShouldUpdate)
 END_MESSAGE_MAP()
 
 
@@ -791,17 +817,12 @@ void CBitmapToVGADialog::OnBnClickedButtonrefresh()
 {
     _honorGlobalPalette = BST_INDETERMINATE;
     m_wndCheckGlobalPalette.SetCheck(_honorGlobalPalette);
+    m_wndRefresh.EnableWindow(FALSE);
     _Update();
 }
 
 
-void CBitmapToVGADialog::OnBnClickedCheckoverlay()
-{
-    _Update();
-}
-
-
-void CBitmapToVGADialog::OnBnClickedCheckdither()
+void CBitmapToVGADialog::OnBnClickedThatThatShouldUpdate()
 {
     _Update();
 }

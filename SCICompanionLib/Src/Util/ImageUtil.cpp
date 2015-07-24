@@ -498,7 +498,7 @@ uint8_t _FindBestPaletteIndexMatch(uint8_t transparentColor, RGBQUAD desiredColo
 
 int g_dummyTrack[256];
 
-void ConvertBitmapToCel(int *trackUsage, Gdiplus::Bitmap &bitmap, uint8_t transparentColor, bool isEGA16, bool performDither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *colors, std::vector<Cel> &cels)
+void ConvertBitmapToCel(int *trackUsage, Gdiplus::Bitmap &bitmap, uint8_t transparentColor, bool isEGA16, bool performDither, bool performAlphaDither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *colors, std::vector<Cel> &cels)
 {
     bool write = (trackUsage == nullptr);
     if (trackUsage)
@@ -538,7 +538,8 @@ void ConvertBitmapToCel(int *trackUsage, Gdiplus::Bitmap &bitmap, uint8_t transp
         cel.TransparentColor = transparentColor;
         cel.Data.allocate(CX_ACTUAL(width)* height);
 
-        VGADither dither(width, height);
+        Dither<RGBQUAD> dither(width, height);
+        Dither<uint8_t> alphaDither(width, height);
 
         for (int y = 0; y < height; y++)
         {
@@ -550,7 +551,10 @@ void ConvertBitmapToCel(int *trackUsage, Gdiplus::Bitmap &bitmap, uint8_t transp
                 Color color;
                 if (Ok == bitmap.GetPixel(x, y, &color))
                 {
-                    if (color.GetA() < AlphaThreshold)
+                    uint8_t origAlpha = color.GetA();
+                    uint8_t adjustedAlpha = alphaDither.ApplyErrorAt(origAlpha, x, y);
+                    bool isTransparent = adjustedAlpha < AlphaThreshold;
+                    if (isTransparent)
                     {
                         *valuePointer = transparentColor;
                     }
@@ -577,6 +581,12 @@ void ConvertBitmapToCel(int *trackUsage, Gdiplus::Bitmap &bitmap, uint8_t transp
                                 dither.PropagateError(rgb, colors[bestMatch], x, y);
                             }
                         }
+                    }
+
+                    if (performAlphaDither)
+                    {
+                        uint8_t usedAlpha = isTransparent ? 0 : 255;
+                        alphaDither.PropagateError(origAlpha, usedAlpha, x, y);
                     }
                 }
             }

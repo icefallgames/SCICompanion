@@ -64,9 +64,11 @@ private:
     CExtButton m_wndButton4;
     CExtGroupBox m_wndGroup1;
     CExtGroupBox m_wndGroup2;
+    CExtGroupBox m_wndGroup4;
     CExtCheckBox m_wndCheck1;
     CExtCheckBox m_wndCheckInsert;
     CExtCheckBox m_wndDither;
+    CExtCheckBox m_wndDitherAlpha;
     CExtLabel m_wndLabel1;
     CExtLabel m_wndLabel2;
     CExtLabel m_wndLabel3;
@@ -84,6 +86,7 @@ private:
     
     CChooseColorStatic m_wndPalette;
     CExtButton m_wndRefresh;
+    CExtEdit m_wndEditPaletteRanges;
 
     bool _fInitializedControls;
 
@@ -113,7 +116,6 @@ public:
     afx_msg void OnBnClickedCheckinsert();
     afx_msg void OnEnKillfocusEdittransparentcolor();
     afx_msg void OnBnClickedButtonrefresh();
-    afx_msg void OnBnClickedCheckoverlay();
-    afx_msg void OnBnClickedCheckdither();
+    afx_msg void OnBnClickedThatThatShouldUpdate();
 };
 

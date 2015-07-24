@@ -390,6 +390,8 @@
 #define IDC_RADIO4                      1091
 #define IDC_CHECKDITHER                 1091
 #define IDC_SLIDERNUMCOLORS             1092
+#define IDC_CHECKDITHER2                1092
+#define IDC_CHECKDITHERALPHA            1092
 #define IDC_RADIO5                      1093
 #define IDC_RADIOHALFTONE               1094
 #define IDC_RADIOSOLID                  1095
@@ -642,8 +644,8 @@
 #define IDC_RADIOVIEW                   1307
 #define IDC_SLIDERCYCLESPEED            1307
 #define IDC_EDITTINTSTRENGTH            1308
-#define IDC_BUTTON5                     1308
 #define IDC_BUTTONPENSTYLE              1308
+#define IDC_EDITRANGES                  1309
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -969,7 +971,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        389
 #define _APS_NEXT_COMMAND_VALUE         33254
-#define _APS_NEXT_CONTROL_VALUE         1309
+#define _APS_NEXT_CONTROL_VALUE         1310
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

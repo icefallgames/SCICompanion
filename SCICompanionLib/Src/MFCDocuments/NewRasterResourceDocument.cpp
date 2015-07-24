@@ -286,14 +286,14 @@ struct ImageSequenceItem
     std::unique_ptr<Bitmap> Bitmap;
 };
 
-void _FinalizeSequence(int *trackUsage, vector<Cel> &finalCels, bool optionalNewPalette, std::vector<ImageSequenceItem> &items, uint8_t transparentColor, bool isEGA16, bool dither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *colors)
+void _FinalizeSequence(int *trackUsage, vector<Cel> &finalCels, bool optionalNewPalette, std::vector<ImageSequenceItem> &items, uint8_t transparentColor, bool isEGA16, bool dither, bool alphaDither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *colors)
 {
     for (ImageSequenceItem &item : items)
     {
         if (item.Cels.empty())
         {
             // Convert the bitmap using the palette we have
-            ConvertBitmapToCel(trackUsage, *item.Bitmap, transparentColor, isEGA16, dither, colorCount, paletteMapping, colors, item.Cels);
+            ConvertBitmapToCel(trackUsage, *item.Bitmap, transparentColor, isEGA16, dither, alphaDither, colorCount, paletteMapping, colors, item.Cels);
         }
         else
         {
@@ -361,6 +361,10 @@ bool CNewRasterResourceDocument::_GetColors(const RasterComponent &raster, const
 
 void CNewRasterResourceDocument::_ApplyImageSequence(uint8_t transparentColor, const PaletteComponent *optionalNewPalette, std::vector<ImageSequenceItem> &items)
 {
+    bool alphaDither = false; // TODO for now.
+
+
+
     // If optionalNewPalette isn't provided, we need to obtain the palette we're converting to.
     // That might be:
     //  - EGA palette
@@ -379,11 +383,11 @@ void CNewRasterResourceDocument::_ApplyImageSequence(uint8_t transparentColor, c
         vector<Cel> finalCels;
         std::unique_ptr<int[]> trackUsage = std::make_unique<int[]>(colorCount);
         // First, do everything, but just track how often each index would be used
-        _FinalizeSequence(trackUsage.get(), finalCels, !!optionalNewPalette, items, transparentColor, isEGA16, !!g_fDitherImages2, colorCount, paletteMapping, colors);
+        _FinalizeSequence(trackUsage.get(), finalCels, !!optionalNewPalette, items, transparentColor, isEGA16, !!g_fDitherImages2, alphaDither, colorCount, paletteMapping, colors);
         // So that we can truly find a good transparent color
         transparentColor = (uint8_t)(std::min_element(&trackUsage[0], &trackUsage[colorCount]) - &trackUsage[0]);
         // Now do it for real
-        _FinalizeSequence(nullptr, finalCels, !!optionalNewPalette, items, transparentColor, isEGA16, !!g_fDitherImages2, colorCount, paletteMapping, colors);
+        _FinalizeSequence(nullptr, finalCels, !!optionalNewPalette, items, transparentColor, isEGA16, !!g_fDitherImages2, alphaDither, colorCount, paletteMapping, colors);
 
         int nLoop = GetSelectedLoop();
 
