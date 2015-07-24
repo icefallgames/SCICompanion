@@ -136,7 +136,7 @@ void FlipImageData(uint8_t *data, int cx, int cy, int stride)
 int SquishPalette(uint8_t *data, size_t dataSize, const PaletteComponent &palette, RGBQUAD *results)
 {
     uint8_t mapOldToNew[256] = { };
-    uint8_t usedColors = 0;
+    int usedColors = 0;
     for (int i = 0; i < 256; i++)
     {
         if (palette.Colors[i].rgbReserved != 0x0)
