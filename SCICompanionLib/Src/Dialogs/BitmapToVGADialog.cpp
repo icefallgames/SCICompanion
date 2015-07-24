@@ -471,7 +471,11 @@ void CBitmapToVGADialog::_Update()
 
                     std::unique_ptr<uint8_t[]> sciBits = QuantizeImage(imageData.get(), cx, cy, (_honorGlobalPalette != BST_UNCHECKED) ? referencePalette.Colors : nullptr, tempPalette->Colors, _transparentColor);
 
-                    RGBToPalettized(sciBits.get(), imageData.get(), cx, cy, performDither, ARRAYSIZE(tempPalette->Colors), tempPalette->Mapping, tempPalette->Colors, _transparentColor);
+                    if (performDither)
+                    {
+                        // This is expensive, and we only need to do this if we're dithering, as sciBits already contains the quantized image data.
+                        RGBToPalettized(sciBits.get(), imageData.get(), cx, cy, performDither, ARRAYSIZE(tempPalette->Colors), tempPalette->Mapping, tempPalette->Colors, _transparentColor);
+                    }
 
                     temp->Data.allocate(PaddedSize(temp->size));
                     temp->Data.assign(&sciBits.get()[0], &sciBits.get()[temp->Data.size()]);
