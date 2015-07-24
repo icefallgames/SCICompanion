@@ -363,8 +363,6 @@ void CNewRasterResourceDocument::_ApplyImageSequence(uint8_t transparentColor, c
 {
     bool alphaDither = false; // TODO for now.
 
-
-
     // If optionalNewPalette isn't provided, we need to obtain the palette we're converting to.
     // That might be:
     //  - EGA palette

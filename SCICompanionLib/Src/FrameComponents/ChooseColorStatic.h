@@ -22,7 +22,7 @@ public:
     void SetPrintIndex(BOOL fPrintIndex) { _fPrintIndex = fPrintIndex; }
     void ShowSelection(BOOL fShowSelection) { _fShowSelection = fShowSelection; }
     void ShowSelectionNumbers(BOOL fShow) { _fSelectionNumbers = fShow; }
-    void ShowSelectionBoxes(bool fShow) { _showSelectionBoxes = fShow; }
+    void ShowFocusBoxes(bool fShow) { _showSelectionBoxes = fShow; }
     void SetSelection(BYTE bIndex);
     void SetSelection(bool *multipleSelection);
     void GetMultipleSelection(bool *multipleSelection);

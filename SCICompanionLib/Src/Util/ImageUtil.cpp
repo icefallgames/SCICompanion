@@ -646,3 +646,78 @@ void ConvertCelToNewPalette(int *trackUsage, Cel &cel, const PaletteComponent &c
     }
 }
 
+// Turns the alpha channel into a discrete on/off channel.
+void CutoutAlpha(RGBQUAD *data, int cx, int cy, bool performDither, uint8_t alphaThreshold)
+{
+    Dither<uint8_t> dither(cx, cy);
+    for (int y = 0; y < cy; y++)
+    {
+        for (int x = 0; x < cx; x++)
+        {
+            uint8_t alphaOrig = data[y * cx + x].rgbReserved;
+            uint8_t alpha = dither.ApplyErrorAt(alphaOrig, x, y);
+            bool isTransparent = alpha < alphaThreshold;
+            data[y * cx + x].rgbReserved = isTransparent ? 0x00 : 0xff;
+
+            if (performDither)
+            {
+                dither.PropagateError(alpha, isTransparent ? 0x00 : 0xff, x, y);
+            }
+        }
+    }
+}
+
+std::unique_ptr<RGBQUAD[]> ConvertGdiplusToRaw(Gdiplus::Bitmap &bitmap)
+{
+    std::unique_ptr<RGBQUAD[]> data;
+    UINT cx = bitmap.GetWidth();
+    UINT cy = bitmap.GetHeight();
+    Gdiplus::Rect rect(0, 0, cx, cy);
+    Gdiplus::BitmapData bitmapData;
+    if (Ok == bitmap.LockBits(&rect, ImageLockModeRead, PixelFormat32bppARGB, &bitmapData))
+    {
+        data = std::make_unique<RGBQUAD[]>(cx * cy);
+        uint8_t *pDIBBits24 = (uint8_t *)bitmapData.Scan0;
+        for (UINT y = 0; y < cy; y++)
+        {
+            for (UINT x = 0; x < cx; x++)
+            {
+                uint8_t *source = pDIBBits24 + (x * 4) + y * bitmapData.Stride;
+                RGBQUAD rgb = { *source, *(source + 1), *(source + 2), *(source+ 3) };
+                data[y * cx + x] = rgb;
+            }
+        }
+        bitmap.UnlockBits(&bitmapData);
+    }
+    return data;
+}
+
+// This assumes cutout alpha.
+void RGBToPalettized(uint8_t *sciData, const RGBQUAD *dataOrig, int cx, int cy, bool performDither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *paletteColors, uint8_t transparentColor)
+{
+    Dither<RGBQUAD> dither(cx, cy);
+    for (int y = 0; y < cy; y++)
+    {
+        const RGBQUAD *origRow = dataOrig + y * cx;
+        uint8_t *destRow = sciData + y * CX_ACTUAL(cx);
+        for (int x = 0; x < cx; x++)
+        {
+            RGBQUAD rgbOrig = origRow[x];
+            rgbOrig = dither.ApplyErrorAt(rgbOrig, x, y);
+            if (rgbOrig.rgbReserved == 0xff)
+            {
+                uint8_t bestMatch = _FindBestPaletteIndexMatch(transparentColor, rgbOrig, colorCount, paletteMapping, paletteColors);
+                destRow[x] = bestMatch;
+                if (performDither)
+                {
+                    dither.PropagateError(rgbOrig, paletteColors[bestMatch], x, y);
+                }
+            }
+            else
+            {
+                destRow[x] = transparentColor;
+                // And no need to propagate error...
+            }
+        }
+    }
+}

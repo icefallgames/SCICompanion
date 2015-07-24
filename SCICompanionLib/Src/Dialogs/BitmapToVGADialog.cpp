@@ -178,7 +178,7 @@ void CBitmapToVGADialog::DoDataExchange(CDataExchange* pDX)
 
         DDX_Control(pDX, IDC_STATICPALETTE, m_wndPalette);
         m_wndPalette.ShowSelection(TRUE);
-        m_wndPalette.ShowSelectionBoxes(TRUE);
+        m_wndPalette.ShowFocusBoxes(FALSE);
         m_wndPalette.SetAutoHandleSelection(true);
         m_wndPalette.SetCallback(this);
         _UpdatePalette();
@@ -360,8 +360,10 @@ void CBitmapToVGADialog::_SyncControlState()
         _disableAllEffects = false;
     }
 
-    if (_paletteAlgorithm == PaletteAlgorithm::MatchExisting)
+    if (_paletteAlgorithm != PaletteAlgorithm::UseImported)
     {
+        // Enable dithering for the first two algorithms, but not when we're
+        // using the imported palette directly.
         m_wndDither.EnableWindow(TRUE);
         m_wndDitherAlpha.EnableWindow(TRUE);
     }
@@ -434,6 +436,9 @@ void CBitmapToVGADialog::_Update()
 
     m_wndEditPaletteRanges.SetWindowText(GetRangeText(GetSelectedRanges(m_wndPalette)).c_str());
 
+    bool performAlphaDither = (m_wndDitherAlpha.GetCheck() == BST_CHECKED);
+    bool performDither = (m_wndDither.GetCheck() == BST_CHECKED);
+
     // We need to generate a final image for m_wndPic
     switch (_paletteAlgorithm)
     {
@@ -445,13 +450,11 @@ void CBitmapToVGADialog::_Update()
                 // We can use _pbmpCurrent, the scaled, modified whatever.
                 UINT cx = _pbmpCurrent->GetWidth();
                 UINT cy = _pbmpCurrent->GetHeight();
-
-                PixelFormat foo = _pbmpCurrent->GetPixelFormat();
-
-                Gdiplus::Rect rect(0, 0, cx, cy);
-                Gdiplus::BitmapData bitmapData;
-                if (Ok == _pbmpCurrent->LockBits(&rect, ImageLockModeRead, PixelFormat32bppARGB, &bitmapData))
+                unique_ptr<RGBQUAD[]> imageData = ConvertGdiplusToRaw(*_pbmpCurrent);
+                if (imageData)
                 {
+                    CutoutAlpha(imageData.get(), cx, cy, performAlphaDither, AlphaThreshold);
+
                     std::unique_ptr<Cel> temp = make_unique<Cel>();
                     std::unique_ptr<PaletteComponent> tempPalette;
                     if (_targetCurrentPalette)
@@ -462,20 +465,19 @@ void CBitmapToVGADialog::_Update()
                     {
                         tempPalette = make_unique<PaletteComponent>();
                     }
-                    // TODO: Transparent color should be set by the user, and should not be part of the palette (unless desired)
+
                     temp->TransparentColor = _transparentColor;
                     temp->size = size16((uint16_t)cx, (uint16_t)cy);
 
-                    uint8_t *pDIBBits32 = (uint8_t *)bitmapData.Scan0;
+                    std::unique_ptr<uint8_t[]> sciBits = QuantizeImage(imageData.get(), cx, cy, (_honorGlobalPalette != BST_UNCHECKED) ? referencePalette.Colors : nullptr, tempPalette->Colors, _transparentColor);
 
-                    std::unique_ptr<uint8_t[]> sciBits = QuantizeImage(pDIBBits32, cx, bitmapData.Stride, cy, (_honorGlobalPalette != BST_UNCHECKED) ? referencePalette.Colors : nullptr, tempPalette->Colors, _transparentColor, AlphaThreshold);
+                    RGBToPalettized(sciBits.get(), imageData.get(), cx, cy, performDither, ARRAYSIZE(tempPalette->Colors), tempPalette->Mapping, tempPalette->Colors, _transparentColor);
+
                     temp->Data.allocate(PaddedSize(temp->size));
                     temp->Data.assign(&sciBits.get()[0], &sciBits.get()[temp->Data.size()]);
 
                     _finalResult = move(temp);
                     _finalResultPalette = move(tempPalette);
-
-                    _pbmpCurrent->UnlockBits(&bitmapData); // REVIEW: Not exception-safe
                 }
             }
         }
@@ -489,95 +491,30 @@ void CBitmapToVGADialog::_Update()
             UINT cx = _pbmpCurrent->GetWidth();
             UINT cy = _pbmpCurrent->GetHeight();
 
-            // We need to come up with a list of the colors used in _targetCurrentPalette.
-            // For every pixel, we need to map its values to the closest one, and store that index
-
-            Gdiplus::Rect rect(0, 0, cx, cy);
-            Gdiplus::BitmapData bitmapData;
-
-            PixelFormat format1 = _pbmpCurrent->GetPixelFormat();
-            PixelFormat format2 = PixelFormat32bppARGB;
-
-            bool performDither = (m_wndDither.GetCheck() == BST_CHECKED);
-            bool performAlphaDither = (m_wndDitherAlpha.GetCheck() == BST_CHECKED);
-
-            if (Ok == _pbmpCurrent->LockBits(&rect, ImageLockModeRead, PixelFormat32bppARGB, &bitmapData))
+            unique_ptr<RGBQUAD[]> imageData = ConvertGdiplusToRaw(*_pbmpCurrent);
+            if (imageData)
             {
+                CutoutAlpha(imageData.get(), cx, cy, performAlphaDither, AlphaThreshold);
+
                 std::unique_ptr<Cel> temp = make_unique<Cel>();
-                std::unique_ptr<PaletteComponent> tempPalette = make_unique<PaletteComponent>();
                 temp->TransparentColor = _transparentColor;
                 temp->size = size16((uint16_t)cx, (uint16_t)cy);
-
-                uint8_t *pDIBBits24 = (uint8_t *)bitmapData.Scan0;
                 temp->Data.allocate(PaddedSize(temp->size));
 
                 bool usableColors[256];
                 m_wndPalette.GetMultipleSelection(usableColors);
-
-                Dither<RGBQUAD> dither(cx, cy);
-                Dither<uint8_t> alphaDither(cx, cy);
-                RGBQUAD *targetColors = _targetCurrentPalette->Colors;
-
-                for (UINT y = 0; y < cy; y++)
+                RGBQUAD targetColors[256];
+                // rgbReserved must be 0x1 where there are usable colors and 0x0 elsewhere.
+                for (int i = 0; i < 256; i++)
                 {
-                    for (UINT x = 0; x < cx; x++)
-                    {
-                        // Find the index that best maps this color
-                        int bestIndex = _transparentColor;
-                        int bestDistance = INT_MAX;
-                        uint8_t *source = pDIBBits24 + (x * 4) + y * bitmapData.Stride;
-                        RGBQUAD rgb = { *source, *(source + 1), *(source + 2) };
-
-                        // Apply the accumulated error before matching:
-                        rgb = dither.ApplyErrorAt(rgb, x, y);
-
-                        uint8_t origAlpha = *(source + 3);
-                        uint8_t adjustedAlpha = alphaDither.ApplyErrorAt(origAlpha, x, y);
-
-                        bool isTransparent = (adjustedAlpha < AlphaThreshold);
-                        if (isTransparent)
-                        {
-                            bestIndex = _transparentColor;
-                        }
-                        else
-                        {
-                            for (int i = 0; i < 256; i++)
-                            {
-                                if (usableColors[i])
-                                {
-                                    RGBQUAD paletteColor = targetColors[i];
-                                    if ((i != (int)_transparentColor) && (paletteColor.rgbReserved != 0x0))
-                                    {
-                                        int distance = GetColorDistance(rgb, paletteColor);
-                                        if (distance < bestDistance)
-                                        {
-                                            bestIndex = i;
-                                            bestDistance = distance;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        temp->Data[x + y * CX_ACTUAL(cx)] = (uint8_t)bestIndex;
-
-                        if (performDither && !isTransparent)
-                        {
-                            RGBQUAD usedRgb = targetColors[bestIndex];
-                            dither.PropagateError(rgb, usedRgb, x, y);
-                        }
-                        if (performAlphaDither)
-                        {
-                            uint8_t usedAlpha = isTransparent ? 0 : 255;
-                            alphaDither.PropagateError(origAlpha, usedAlpha, x, y);
-                        }
-                    }
+                    targetColors[i] = _targetCurrentPalette->Colors[i];
+                    targetColors[i].rgbReserved = usableColors[i] ? 0x1 : 0x0;
                 }
+
+                RGBToPalettized(&temp->Data[0], imageData.get(), cx, cy, performDither, 256, _targetCurrentPalette->Mapping, targetColors, _transparentColor);
 
                 _finalResult = move(temp);
                 _finalResultPalette = make_unique<PaletteComponent>(*_targetCurrentPalette);
-
-                _pbmpCurrent->UnlockBits(&bitmapData); // REVIEW: Not exception-safe
             }
         }
         break;

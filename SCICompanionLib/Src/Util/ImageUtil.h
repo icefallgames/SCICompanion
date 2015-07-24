@@ -21,3 +21,6 @@ bool GetCelsAndPaletteFromGdiplus(Gdiplus::Bitmap &bitmap, uint8_t transparentCo
 bool DoPalettesMatch(const PaletteComponent &paletteA, const PaletteComponent &paletteB);
 void ConvertBitmapToCel(int *trackUsage, Gdiplus::Bitmap &bitmap, uint8_t transparentColor, bool isEGA16, bool performDither, bool performAlphaDither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *colors, std::vector<Cel> &cels);
 void ConvertCelToNewPalette(int *trackUsage, Cel &cel, const PaletteComponent &currentPalette, uint8_t transparentColor, bool isEGA16, bool g_fDitherImages2, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *colors);
+void CutoutAlpha(RGBQUAD *data, int cx, int cy, bool dither, uint8_t alphaThreshold);
+std::unique_ptr<RGBQUAD[]> ConvertGdiplusToRaw(Gdiplus::Bitmap &bitmap);
+void RGBToPalettized(uint8_t *sciData, const RGBQUAD *dataOrig, int cx, int cy, bool performDither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *paletteColors, uint8_t transparentColor);

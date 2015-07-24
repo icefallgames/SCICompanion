@@ -366,11 +366,11 @@ HBITMAP BitmapToRGB32Bitmap(const BITMAPINFO *pbmi, int desiredWidth, int desire
 }
 
 // globalPalette needs to have empty slots.
-std::unique_ptr<uint8_t[]> QuantizeImage(void *pDIBBits32, int width, int inStride, int height, const RGBQUAD *globalPalette, RGBQUAD *imagePaletteResult, int transparentIndex, uint8_t alphaThreshold)
+// data has no specific stride
+// data's alpha should have been stripped (either on or off)
+std::unique_ptr<uint8_t[]> QuantizeImage(const RGBQUAD *data, int width, int height, const RGBQUAD *globalPalette, RGBQUAD *imagePaletteResult, int transparentIndex)
 {
     RGBQUAD black = {};
-
-    // Our SCI/GDI/GDIP bitmaps use a DWORD-aligned stride (pDIBBits32, and our return parameter), but this algorithm does not. So we need to translate.
     int outStride = CX_ACTUAL(width);
 
     // REVIEW: We will have to do this for views.
@@ -402,22 +402,31 @@ std::unique_ptr<uint8_t[]> QuantizeImage(void *pDIBBits32, int width, int inStri
         // Now our pDIBBits32 should point to the raw bitmap data.
         image img = img_new(width, height);
 
-        // Copy our data into img used by the algorithm. Because we may have a different stride than width,
-        // we need to go line by line.
-        uint8_t *destBuffer = (uint8_t*)pDIBBits32;
+        // Copy our data into img used by the algorithm, which is 3 bytes per pixel.
         for (int y = 0; y < height; y++)
         {
             unsigned char* dest = img->pix + (y * width * 3);
-            uint8_t *src = destBuffer + (y * inStride);
             for (int x = 0; x < width; x++)
             {
-                *dest++ = *src++;
-                *dest++ = *src++;
-                *dest++ = *src++;
+                const RGBQUAD *src = data + (y * width) + x;
 
                 // The 4th source byte is alpha.
-                opaqueMask[y * width + x] = ((*src++) > alphaThreshold);
+                bool isOpaque = (src->rgbReserved == 0xff);
+                opaqueMask[y * width + x] = isOpaque;
                 // Note: for transparent pixels, we'll still evaluate colors. Oh well. Hopefully they'll be all black.
+                // Let's make them black
+                // TODO/REVIEW: We should modify our quantization algorithm so it doesn't pay attention to the transparent colors. i.e. make image be one dimensional
+                RGBQUAD toUse = *src;
+                if (!isOpaque)
+                {
+                    toUse.rgbBlue = 0;
+                    toUse.rgbGreen = 0;
+                    toUse.rgbRed = 0;
+                }
+
+                *dest++ = toUse.rgbBlue;
+                *dest++ = toUse.rgbGreen;
+                *dest++ = toUse.rgbRed;
             }
         }
 

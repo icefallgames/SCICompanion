@@ -852,7 +852,7 @@ void RasterSidePane::DoDataExchange(CDataExchange* pDX)
     m_wndPalette.SetPalette(0, 0, nullptr, 0, nullptr);
     m_wndPalette.SetCallback(this);
     m_wndPalette.SetShowHover(false);
-    m_wndPalette.ShowSelectionBoxes(true);
+    m_wndPalette.ShowFocusBoxes(true);
 
     DDX_Control(pDX, IDC_STATIC_CHOSENCOLORS, m_wndChosenColors);
     AddAnchor(IDC_STATIC_CHOSENCOLORS, CPoint(0, 0), CPoint(0, 0));
