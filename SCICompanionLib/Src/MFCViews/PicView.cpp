@@ -604,9 +604,6 @@ void CPicView::EditVGAPalette()
     }
 }
 
-// Default to bmp files by default, since those are the only ones that have consistent behavior end-to-end.
-extern char g_szGdiplus8BitSaveFilter[] = "Bitmap files(*.bmp)|*.bmp|GIF files(*.gif)|*.gif|PNG files(*.png)|*.png|TIFF files(*.tif;*.tiff)|*.tif;*.tiff|All Files|*.*|";
-
 void CPicView::OnExportPalettizedBitmap()
 {
     const PicComponent *pic = _GetEditPic();

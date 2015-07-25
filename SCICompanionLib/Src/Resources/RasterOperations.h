@@ -76,6 +76,7 @@ RasterChange SetGroupBitmapData(RasterComponent &raster, int cCels, CelIndex *rg
 RasterChange MoveCelFromTo(RasterComponent &raster, int nLoop, int celFrom, int celTo);
 RasterChange MoveLoopFromTo(RasterComponent &raster, int nLoopFrom, int loopTo);
 HBITMAP CreateBitmapFromResource(const ResourceEntity &resource, const PaletteComponent *palette, SCIBitmapInfo *pbmi, uint8_t **ppBitsDest);
+HBITMAP CreateBitmapFromResource(const ResourceEntity &resource, CelIndex celIndex, const PaletteComponent *palette, SCIBitmapInfo *pbmi, uint8_t **ppBitsDest);
 RasterChange InsertLoop(RasterComponent &raster, int nLoop, bool before);
 RasterChange RemoveLoop(RasterComponent &raster, int nLoop);
 RasterChange SetScalable(RasterComponent &raster, bool scalable);

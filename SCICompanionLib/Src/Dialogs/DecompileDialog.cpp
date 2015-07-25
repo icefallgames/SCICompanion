@@ -14,6 +14,11 @@
 using namespace std;
 using namespace concurrency;
 
+// Use the XP toolset, PBS_MARQUEE is not defined...
+#ifndef PBS_MARQUEE
+#define PBS_MARQUEE 0x08
+#endif
+
 #define UWM_UPDATESTATUS (WM_APP + 1)
 #define CHEKCDONE_TIMER 3456
 
@@ -66,6 +71,8 @@ void DecompileDialog::DoDataExchange(CDataExchange* pDX)
         );
     
     DDX_Control(pDX, IDC_PROGRESS1, m_wndProgress);
+    // Set this here instead of the rc file, due to the xp toolset issue mentioned above.
+    m_wndProgress.ModifyStyle(0, PBS_MARQUEE, 0);
     // For some reason this seems necessary, even though I'm using a marquee progress bar:
     m_wndProgress.SetRange(0, 100);
     m_wndProgress.SetPos(1);

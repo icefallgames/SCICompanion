@@ -122,10 +122,13 @@ AppState::AppState(CWinApp *pApp)
     crcInit();
 
     // Prepare g_egaColorsExtended
-    for (int i = 0; i < 16; i += 16)
+    for (int i = 0; i < 256; i += 16)
     {
         CopyMemory(g_egaColorsExtended + i, g_egaColors, sizeof(g_egaColors));
     }
+    // Fake EGA palette for when it's needed.
+    memcpy(g_egaDummyPalette.Colors, g_egaColors, sizeof(g_egaColors));
+
     // Prepare g_vgaPaletteMapping
     for (int i = 0; i < 256; i++)
     {

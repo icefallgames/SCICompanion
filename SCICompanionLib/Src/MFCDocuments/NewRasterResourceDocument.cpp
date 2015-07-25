@@ -25,7 +25,8 @@ const int EmbeddedPaletteOnlyId = -2;
 IMPLEMENT_DYNCREATE(CNewRasterResourceDocument, CResourceDocument)
 
 BEGIN_MESSAGE_MAP(CNewRasterResourceDocument, TCLASS_2(CUndoResource, CResourceDocument, ResourceEntity))
-    ON_UPDATE_COMMAND_UI(ID_FILE_EXPORTASBITMAP, CResourceDocument::OnUpdateAlwaysOn) // Put this here instead of in CResourceDocument
+    ON_COMMAND(ID_FILE_EXPORTASBITMAP, CResourceDocument::OnExportAsBitmap)
+    ON_UPDATE_COMMAND_UI(ID_FILE_EXPORTASBITMAP, OnUpdateEGA)
     ON_COMMAND(ID_ANIMATE, OnAnimate)
     ON_COMMAND(ID_IMPORT_IMAGESEQUENCE, OnImportImageSequence)
     ON_COMMAND(ID_MAKEFONT, MakeFont)
@@ -34,6 +35,9 @@ BEGIN_MESSAGE_MAP(CNewRasterResourceDocument, TCLASS_2(CUndoResource, CResourceD
     ON_UPDATE_COMMAND_UI(ID_VIEW_EXPORTASGIF, CResourceDocument::OnUpdateAlwaysOn)
     ON_UPDATE_COMMAND_UI(ID_ANIMATE, OnUpdateAnimate)
     ON_UPDATE_COMMAND_UI(ID_MAKEFONT, OnUpdateFont)
+    ON_COMMAND(ID_EXPORT_CELASIMAGE, OnExportCelAsImage)
+    ON_COMMAND(ID_EXPORT_LOOPASIMAGE, OnExportLoopAsImage)
+    ON_COMMAND(ID_EXPORT_VIEWASIMAGE, OnExportViewAsImage)
 END_MESSAGE_MAP()
 
 CNewRasterResourceDocument::CNewRasterResourceDocument()
@@ -598,6 +602,57 @@ void CNewRasterResourceDocument::OnImportImageSequence()
         sort(fileList.begin(), fileList.end());
         _InsertFiles(fileList);
     }
+}
+
+void CNewRasterResourceDocument::_OnExportAsImageWorker(CelIndex celIndex)
+{
+    const ResourceEntity *resource = GetResource();
+    if (resource)
+    {
+        PaletteComponent *palette = _currentPaletteComponent.get();
+        if (!palette)
+        {
+            palette = &g_egaDummyPalette;
+        }
+        CBitmap bitmap;
+        SCIBitmapInfo bmi;
+        BYTE *pBitsDest;
+        bitmap.Attach(CreateBitmapFromResource(*resource, celIndex, palette, &bmi, &pBitsDest));
+        if ((HBITMAP)bitmap)
+        {
+            // Construct a cel based on the bitmap. Throw away the HBITMAP.
+            Cel celEntire(size16((uint16_t)bmi.bmiHeader.biWidth, (uint16_t)bmi.bmiHeader.biHeight), point16(), 0);
+            celEntire.Data.allocate(celEntire.GetDataSize());
+            celEntire.Data.assign(pBitsDest, pBitsDest + celEntire.GetDataSize());
+            // Default extension should be the first one in the list for g_szGdiplus8BitSaveFilter
+            CFileDialog fileDialog(FALSE, ".bmp", nullptr, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, g_szGdiplus8BitSaveFilter);
+            if (IDOK == fileDialog.DoModal())
+            {
+                CString strFileName = fileDialog.GetPathName();
+                Save8BitBmpGdiP(strFileName, celEntire, *palette);
+            }
+        }
+    }
+}
+
+void CNewRasterResourceDocument::OnExportCelAsImage()
+{
+    _OnExportAsImageWorker(GetSelectedIndex());
+}
+void CNewRasterResourceDocument::OnExportLoopAsImage()
+{
+    CelIndex celIndex = GetSelectedIndex();
+    celIndex.cel = -1;
+    _OnExportAsImageWorker(celIndex);
+}
+void CNewRasterResourceDocument::OnExportViewAsImage()
+{
+    _OnExportAsImageWorker(CelIndex(-1, -1));
+}
+
+void CNewRasterResourceDocument::OnUpdateEGA(CCmdUI *pCmdUI)
+{
+    pCmdUI->Enable(GetComponent<RasterComponent>().Traits.PaletteType != PaletteType::VGA_256);
 }
 
 void CNewRasterResourceDocument::OnUpdateImportImage(CCmdUI *pCmdUI)

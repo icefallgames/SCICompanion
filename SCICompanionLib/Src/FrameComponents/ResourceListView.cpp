@@ -10,6 +10,7 @@
 #include "ResourceContainer.h"
 #include "CObjectWrap.h"
 #include "Text.h"
+#include "View.h"
 
 using namespace std;
 
@@ -422,20 +423,6 @@ int CALLBACK BrowseCallbackProc(HWND hwnd, UINT uMsg, LPARAM lParam, LPARAM lpDa
         }
     }
     return 0;
-}
-
-void CResourceListCtrl::OnExtractAsBitmap()
-{
-    UINT cCount = GetSelectedCount();
-    if (cCount == 1)
-    {
-        const ResourceBlob *pData = _GetResourceForItem(GetSelectedItem());
-        if (pData)
-        {
-            std::unique_ptr<ResourceEntity> resource = CreateResourceFromResourceData(*pData);
-            ExportResourceAsBitmap(*resource);
-        }
-    }
 }
 
 void CResourceListCtrl::OnViewRawData()

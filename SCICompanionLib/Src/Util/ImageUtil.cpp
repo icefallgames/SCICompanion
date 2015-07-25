@@ -8,6 +8,9 @@
 
 using namespace Gdiplus;
 
+// Default to bmp files by default, since those are the only ones that have consistent behavior end-to-end.
+extern char g_szGdiplus8BitSaveFilter[] = "Bitmap files(*.bmp)|*.bmp|GIF files(*.gif)|*.gif|PNG files(*.png)|*.png|TIFF files(*.tif;*.tiff)|*.tif;*.tiff|All Files|*.*|";
+
 int GetEncoderClsid(const WCHAR* format, CLSID* pClsid)
 {
     UINT  num = 0;          // number of image encoders

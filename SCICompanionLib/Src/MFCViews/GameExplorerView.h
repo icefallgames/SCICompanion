@@ -52,7 +52,6 @@ protected:
     afx_msg void OnRename();
     afx_msg void OnExtractResources();
     afx_msg void OnViewRawData();
-    afx_msg void OnExtractAsBitmap();
     afx_msg void OnUpdateDelete(CCmdUI *pCmdUI);
     afx_msg void OnUpdateItemCount(CCmdUI *pCmdUI);
     void OnDraw(CDC *pDC);

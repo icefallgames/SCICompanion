@@ -54,8 +54,6 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
-// Switch to v120_xp left this undefined:
-#define PBS_MARQUEE             0x08
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -501,7 +499,14 @@ BEGIN
         MENUITEM "&Remove embedded palette",    ID_VIEW_REMOVEEMBEDDEDPALETTE
         MENUITEM "Re&map palette",              ID_VIEW_REMAPPALETTE
         MENUITEM "&Shift colors",               ID_VIEW_SHIFTCOLORS
-        MENUITEM "&Export current loop as gif", ID_VIEW_EXPORTASGIF
+        POPUP "&Export"
+        BEGIN
+            MENUITEM "&Cel as image",               ID_EXPORT_CELASIMAGE
+            MENUITEM "&Loop as image",              ID_EXPORT_LOOPASIMAGE
+            MENUITEM "&View as image",              ID_EXPORT_VIEWASIMAGE
+            MENUITEM "Loop as animated &gif",       ID_VIEW_EXPORTASGIF
+            MENUITEM "View as &encoded bitmap",     ID_FILE_EXPORTASBITMAP
+        END
     END
     POPUP "Voca&b"
     BEGIN
@@ -607,7 +612,6 @@ BEGIN
         MENUITEM "&Rename",                     ID_EDIT_RENAME
         MENUITEM SEPARATOR
         MENUITEM "&Export to file",             ID_FILE_EXPORTASRESOURCE
-        MENUITEM "Export as encoded &bitmap",   ID_FILE_EXPORTASBITMAP
         MENUITEM "&View raw data",              ID_VIEWITEM_VIEWRAWDATA
     END
 END
@@ -1590,7 +1594,7 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,174,78,97,10
     CONTROL         "Debug control flow",IDC_CHECKCONTROLFLOW,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,174,65,81,10
     EDITTEXT        IDC_DECOMPILATIONRESULTS,308,180,292,78,ES_MULTILINE | ES_AUTOHSCROLL | ES_READONLY | WS_VSCROLL
-    CONTROL         "",IDC_PROGRESS1,"msctls_progress32",PBS_MARQUEE | NOT WS_VISIBLE | WS_BORDER,308,263,207,14
+    CONTROL         "",IDC_PROGRESS1,"msctls_progress32",NOT WS_VISIBLE | WS_BORDER,308,263,207,14
     EDITTEXT        IDC_EDITDEBUGMATCH,174,50,68,14,ES_AUTOHSCROLL
     LTEXT           "SCO:",IDC_INSTRUCTIONS,174,117,18,8
     CONTROL         "Disassemble only",IDC_CHECKASM,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,174,40,70,10

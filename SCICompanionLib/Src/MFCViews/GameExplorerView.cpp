@@ -312,7 +312,6 @@ BEGIN_MESSAGE_MAP(CGameExplorerView, CView)
     ON_COMMAND(ID_EDIT_RENAME, OnRename)
     ON_COMMAND(ID_FILE_EXPORTASRESOURCE, OnExtractResources)
     ON_COMMAND(ID_VIEWITEM_VIEWRAWDATA, OnViewRawData)
-    ON_COMMAND(ID_FILE_EXPORTASBITMAP, OnExtractAsBitmap)
     ON_UPDATE_COMMAND_UI(ID_INDICATOR_RESCOUNT, OnUpdateItemCount)
 END_MESSAGE_MAP()
 
@@ -486,15 +485,6 @@ void CGameExplorerView::OnViewRawData()
     if (pView && !pView->InLabelEdit())
     {
         pView->OnViewRawData();
-    }
-}
-
-void CGameExplorerView::OnExtractAsBitmap()
-{
-    CResourceListCtrl *pView = _GetSelectedView();
-    if (pView && !pView->InLabelEdit())
-    {
-        pView->OnExtractAsBitmap();
     }
 }
 

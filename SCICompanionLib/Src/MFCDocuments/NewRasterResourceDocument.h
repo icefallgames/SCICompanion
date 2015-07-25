@@ -88,6 +88,8 @@ public:
     void OnCloseDocument() override;
 
 private:
+    void _OnExportAsImageWorker(CelIndex celIndex);
+
     virtual ResourceType _GetType() const
     {
         const ResourceEntity *pResource = static_cast<const ResourceEntity*>(GetResource());
@@ -117,7 +119,11 @@ private:
     DECLARE_MESSAGE_MAP()
     afx_msg void OnAnimate();
     afx_msg void OnImportImageSequence();
+    afx_msg void OnExportCelAsImage();
+    afx_msg void OnExportLoopAsImage();
+    afx_msg void OnExportViewAsImage();
     afx_msg void OnUpdateImportImage(CCmdUI *pCmdUI);
+    afx_msg void OnUpdateEGA(CCmdUI *pCmdUI);
     afx_msg void OnUpdateAnimate(CCmdUI *pCmdUI);
     afx_msg void OnUpdateFont(CCmdUI *pCmdUI);
 

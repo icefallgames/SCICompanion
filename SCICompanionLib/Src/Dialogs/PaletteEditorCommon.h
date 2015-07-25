@@ -125,9 +125,6 @@ public:
         if (_pDoc)
         {
             UpdateCommon(&WrapHint(PaletteChangeHint::Changed));
-            //_pDoc->AddNonViewClient(this);
-            //std::vector<const Cel*> cels;
-            //Init(_pDoc->GetResource()->GetComponent<PaletteComponent>(), cels);
         }
     }
 

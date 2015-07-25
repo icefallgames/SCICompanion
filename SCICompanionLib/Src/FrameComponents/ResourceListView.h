@@ -37,7 +37,6 @@ public:
     void OnRename();
     void OnExtractResources();
     void OnViewRawData();
-    void OnExtractAsBitmap();
     BOOL PreTranslateMessage(MSG *pMsg);
 
 public:

@@ -763,25 +763,41 @@ RasterChange SetGroupPlacement(RasterComponent &raster, int cCels, CelIndex *rgd
 
 HBITMAP CreateBitmapFromResource(const ResourceEntity &resource, const PaletteComponent *optionalPalette, SCIBitmapInfo *pbmi, uint8_t **ppBitsDest)
 {
+    return CreateBitmapFromResource(resource, CelIndex(-1, -1), optionalPalette, pbmi, ppBitsDest);
+}
+
+HBITMAP CreateBitmapFromResource(const ResourceEntity &resource, CelIndex celIndex, const PaletteComponent *optionalPalette, SCIBitmapInfo *pbmi, uint8_t **ppBitsDest)
+{
     HBITMAP hbmpRet = nullptr;
 
     const RasterComponent &raster = resource.GetComponent<RasterComponent>();
 
+    int startLoop = (celIndex.loop == 0xffff) ? 0 : celIndex.loop;
+    int endLoop = (celIndex.loop == 0xffff) ? raster.LoopCount() : (celIndex.loop + 1);
+
+    int startCelBase = -1;
+    int endCelBase = -1;
+    if (celIndex.loop != 0xffff)
+    {
+        startCelBase = (celIndex.cel == 0xffff) ? 0 : celIndex.cel;
+        endCelBase = (celIndex.cel == 0xffff) ? (int)raster.Loops[celIndex.loop].Cels.size() : (celIndex.cel + 1);
+    }
+
     // Generate our bitmap.
     // First, figure out the size
-    int cLoops = (int)raster.Loops.size();
     int cx = 0;         // Total width
     int cy = 0;         // Total height
     int cBytesMax = 0;  // Max buffer size we need for an individual bitmap.
     std::vector<int> loopHeights;   // Height of each row
     // Flip the order of the loops, since we're drawing the bitmaps upside down, essetially.
-    for (int nLoop = cLoops - 1; nLoop >= 0; nLoop--)
+    for (int nLoop = endLoop - 1; nLoop >= startLoop; nLoop--)
     {
         const Loop &loop = raster.Loops[nLoop];
         int cxLoop = 0;
         int cyLoop = 0;
-        int cCels = (int)loop.Cels.size();
-        for (int nCel = 0; nCel < cCels; nCel++)
+        int startCel = (startCelBase == -1) ? 0 : startCelBase;
+        int endCel = (endCelBase == -1) ? (int)loop.Cels.size() : endCelBase;
+        for (int nCel = startCel; nCel < endCel; nCel++)
         {
             const Cel &cel = loop.Cels[nCel];
             cBytesMax = max(cBytesMax, PaddedSize(cel.size));
@@ -821,12 +837,13 @@ HBITMAP CreateBitmapFromResource(const ResourceEntity &resource, const PaletteCo
             memset(pBitsDest, 0x0, CX_ACTUAL(cx) * cy); // Fill with black
             std::unique_ptr<BYTE[]> buffer = std::make_unique<BYTE[]>(cBytesMax);
             int top = 0;
-            for (int nLoop = cLoops - 1; nLoop >= 0; nLoop--)
+            for (int nLoop = endLoop - 1; nLoop >= startLoop; nLoop--)
             {
                 const Loop &loop = raster.Loops[nLoop];
-                int cCels = (int)loop.Cels.size();;
+                int startCel = (startCelBase == -1) ? 0 : startCelBase;
+                int endCel = (endCelBase == -1) ? (int)loop.Cels.size() : endCelBase;
                 int left = 0;
-                for (int nCel = 0; nCel < cCels; nCel++)
+                for (int nCel = startCel; nCel < endCel; nCel++)
                 {
                     const Cel &cel = loop.Cels[nCel];
                     CopyBitmapData(cel, buffer.get(), cel.size);   // 1 for 1
@@ -843,7 +860,7 @@ HBITMAP CreateBitmapFromResource(const ResourceEntity &resource, const PaletteCo
                     }
                     left += cel.size.cx + 1;
                 }
-                top += loopHeights[cLoops - nLoop - 1];
+                top += loopHeights[endLoop - nLoop - 1];
             }
             hbmpRet = (HBITMAP)bitmap.Detach();
             *pbmi = bmi;

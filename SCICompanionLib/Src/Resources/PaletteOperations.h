@@ -57,6 +57,8 @@ struct PaletteComponent : public ResourceComponent
     void MergeFromOther(const PaletteComponent *globalPalette);
 };
 
+extern PaletteComponent g_egaDummyPalette;
+
 void ReadPalette(PaletteComponent &palette, sci::istream &byteStream);
 void WritePalette(sci::ostream &byteStream, const PaletteComponent &palette);
 void WritePaletteShortForm(sci::ostream &byteStream, const PaletteComponent &palette);

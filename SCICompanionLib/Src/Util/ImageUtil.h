@@ -8,6 +8,8 @@ namespace Gdiplus
     class Bitmap;
 }
 
+char g_szGdiplus8BitSaveFilter[];
+
 CRect GetCelRect(const Cel &cel);
 bool Save8BitBmpGdiP(const char *filename, const Cel &cel, const PaletteComponent &palette);
 void FlipImageData(uint8_t *data, int cx, int cy, int stride);

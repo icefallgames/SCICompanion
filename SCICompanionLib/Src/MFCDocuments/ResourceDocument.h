@@ -38,10 +38,11 @@ private:
     afx_msg void OnUpdateResSize(CCmdUI *pCmdUI);
     
     BOOL DoPreResourceSave(BOOL fSaveAs);
-    void OnExportAsBitmap();
     void OnExportAsResource();
 
 protected:
+    void OnExportAsBitmap();
+
     BOOL _DoResourceSave(int iPackageNumber, int iResourceNumber);
     void _UpdateTitle();
     afx_msg void OnUpdateAlwaysOn(CCmdUI *pCmdUI) { pCmdUI->Enable() ; }
