@@ -519,7 +519,7 @@ void CResourceListCtrl::OnExtractResources()
         {
             std::string filename = GetFileNameFor(pData->GetType(), pData->GetNumber(), pData->GetVersion());
             std::string filter = GetFileDialogFilterFor(pData->GetType(), pData->GetVersion());
-            CFileDialog fileDialog(FALSE, NULL, filename.c_str(), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, filter.c_str());
+            CFileDialog fileDialog(FALSE, NULL, filename.c_str(), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR, filter.c_str());
             if (IDOK == fileDialog.DoModal())
             {
                 CString strFileName = fileDialog.GetPathName();

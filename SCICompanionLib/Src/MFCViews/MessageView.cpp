@@ -320,7 +320,7 @@ void CMessageView::OnExportMessage()
         const ResourceEntity *resource = pDoc->GetResource();
         if (resource)
         {
-            CFileDialog fileDialog(FALSE, nullptr, fmt::format("{0}.txt", resource->ResourceNumber).c_str(), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, c_szMessageTxtFilter);
+            CFileDialog fileDialog(FALSE, nullptr, fmt::format("{0}.txt", resource->ResourceNumber).c_str(), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR, c_szMessageTxtFilter);
             if (IDOK == fileDialog.DoModal())
             {
                 CString strFileName = fileDialog.GetPathName();
@@ -339,7 +339,7 @@ void CMessageView::OnImportMessage()
             [](TextComponent &text)
         {
             MessageChangeHint hint = MessageChangeHint::None;
-            CFileDialog fileDialog(TRUE, nullptr, nullptr, OFN_HIDEREADONLY, c_szMessageTxtFilter);
+            CFileDialog fileDialog(TRUE, nullptr, nullptr, OFN_HIDEREADONLY | OFN_NOCHANGEDIR, c_szMessageTxtFilter);
             if (IDOK == fileDialog.DoModal())
             {
                 CString strFileName = fileDialog.GetPathName();

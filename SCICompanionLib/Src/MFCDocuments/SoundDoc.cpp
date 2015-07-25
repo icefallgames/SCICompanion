@@ -189,7 +189,7 @@ bool ImportMidi(std::vector<DeviceType> devices, ResourceEntity *resourceEntity)
 {
     bool success = false;
     // Create a file dialog.
-    CFileDialog fileDialog(TRUE, NULL, NULL, OFN_ENABLESIZING | OFN_EXPLORER | OFN_HIDEREADONLY, c_szMidiFilter);
+    CFileDialog fileDialog(TRUE, NULL, NULL, OFN_ENABLESIZING | OFN_EXPLORER | OFN_HIDEREADONLY | OFN_NOCHANGEDIR, c_szMidiFilter);
     fileDialog.m_ofn.lpstrTitle = TEXT("Import midi file");
     if (IDOK == fileDialog.DoModal())
     {

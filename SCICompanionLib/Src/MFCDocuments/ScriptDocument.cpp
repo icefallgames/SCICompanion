@@ -714,7 +714,7 @@ void CScriptDocument::OnFileSaveAs()
     CFileDialog fileDialog(FALSE,
                            _scriptId.IsHeader() ? ".sh" : ".sc",
                            strTitle,
-                           OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+                           OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR,
                            _scriptId.IsHeader() ? g_rgszHeaderFilter : g_rgszScriptFilter);
     CString strFolder = _scriptId.GetFolder().c_str();
     fileDialog.m_pOFN->lpstrInitialDir = strFolder;

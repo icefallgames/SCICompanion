@@ -44,7 +44,7 @@ void CGamePropertiesDialog::OnBrowse()
     CFileDialog fileDialog(TRUE,
                            NULL,
                            NULL,
-                           OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+                           OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR,
                            TEXT("Programs|*.exe;*.cmd;*.bat|All files|*.*||"));
     std::string gameFolder = appState->GetResourceMap().GetGameFolder();
     fileDialog.m_pOFN->lpstrInitialDir = gameFolder.c_str();

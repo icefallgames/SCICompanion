@@ -541,7 +541,8 @@ class CDitherFileDialog : public CFileDialog
 {
 public:
     CDitherFileDialog(int fDither) : CFileDialog(TRUE, nullptr, nullptr,
-        fDither ? OFN_ENABLESIZING | OFN_EXPLORER | OFN_ALLOWMULTISELECT | OFN_READONLY : OFN_ENABLESIZING | OFN_EXPLORER | OFN_ALLOWMULTISELECT,
+        fDither ? OFN_ENABLESIZING | OFN_EXPLORER | OFN_ALLOWMULTISELECT | OFN_READONLY | OFN_NOCHANGEDIR
+        : OFN_ENABLESIZING | OFN_EXPLORER | OFN_ALLOWMULTISELECT | OFN_NOCHANGEDIR,
         g_szGdiplusFilter,
         nullptr,
         0,
@@ -625,7 +626,7 @@ void CNewRasterResourceDocument::_OnExportAsImageWorker(CelIndex celIndex)
             celEntire.Data.allocate(celEntire.GetDataSize());
             celEntire.Data.assign(pBitsDest, pBitsDest + celEntire.GetDataSize());
             // Default extension should be the first one in the list for g_szGdiplus8BitSaveFilter
-            CFileDialog fileDialog(FALSE, ".bmp", nullptr, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT, g_szGdiplus8BitSaveFilter);
+            CFileDialog fileDialog(FALSE, ".bmp", nullptr, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR, g_szGdiplus8BitSaveFilter);
             if (IDOK == fileDialog.DoModal())
             {
                 CString strFileName = fileDialog.GetPathName();
@@ -703,7 +704,7 @@ void CNewRasterResourceDocument::ExportAsGif()
     CFileDialog fileDialog(FALSE,
         ".gif",
         filespec.c_str(),
-        OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+        OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR,
         g_rgszHeaderFilter);
     if (IDOK == fileDialog.DoModal())
     {
