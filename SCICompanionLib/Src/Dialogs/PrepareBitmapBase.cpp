@@ -54,7 +54,7 @@ void PrepareBitmapBase::_UpdateOrigBitmap(CWnd *pwnd)
         }
 
         HBITMAP hbmpOrig = nullptr;
-        if (Ok == _pbmpCurrent->GetHBITMAP(Color::Black, &hbmpOrig))
+        if (Ok == _pbmpCurrent->GetHBITMAP(Color::Magenta, &hbmpOrig))
         {
             ASSERT(hbmpOrig);
             CBitmap bitmapOrig;

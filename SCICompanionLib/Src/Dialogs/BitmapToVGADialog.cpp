@@ -636,7 +636,6 @@ void CBitmapToVGADialog::OnScaleClicked()
 {
     // Get the most recent values
     UpdateData(TRUE);
-    _Update();
 }
 
 void CBitmapToVGADialog::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar *pWnd)
