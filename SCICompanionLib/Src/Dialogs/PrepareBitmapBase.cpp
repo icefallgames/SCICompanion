@@ -355,7 +355,17 @@ void PrepareBitmapBase::_OnBrowse(CWnd *pwnd)
 #endif    
         if (pImage)
         {
-            if (_Init(move(pImage), pwnd))
+            // Gdiplus Bitmaps keep the file open, and we don't want that. So clone it.
+            unique_ptr<Bitmap> clonedBitmap(new Bitmap(pImage->GetWidth(), pImage->GetHeight(), pImage->GetPixelFormat()));
+            Graphics g(clonedBitmap.get());
+            g.DrawImage(
+                pImage.get(),
+                0,
+                0,
+                pImage->GetWidth(),
+                pImage->GetHeight()
+                );
+            if (_Init(move(clonedBitmap), pwnd))
             {
                 _UpdateOrigBitmap(pwnd);
             }
