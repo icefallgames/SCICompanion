@@ -54,6 +54,8 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
+// Switch to v120_xp left this undefined:
+#define PBS_MARQUEE             0x08
 
 /////////////////////////////////////////////////////////////////////////////
 //

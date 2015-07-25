@@ -4,6 +4,7 @@
 #include "PaletteOperations.h"
 #include "gif_lib.h"
 #include "VGADither.h"
+#include "RGBOctree.h"
 
 using namespace Gdiplus;
 

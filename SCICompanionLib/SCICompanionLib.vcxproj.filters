@@ -675,6 +675,9 @@
     <ClCompile Include="Src\Compile\ScriptMakerHelper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Util\RGBOctree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCICompanionLib.h">
@@ -1428,6 +1431,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\Util\VGADither.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Util\RGBOctree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

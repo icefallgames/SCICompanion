@@ -23,21 +23,21 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v120_xp</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
     <UseOfMfc>Static</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='DeadCodeAnalysis|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v120_xp</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
     <UseOfMfc>Static</UseOfMfc>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v120</PlatformToolset>
+    <PlatformToolset>v120_xp</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
     <UseOfMfc>Static</UseOfMfc>
@@ -328,6 +328,7 @@
     <ClCompile Include="Src\Util\ExtractAll.cpp" />
     <ClCompile Include="Src\Util\ImageUtil.cpp" />
     <ClCompile Include="Src\Util\MidiPlayer.cpp" />
+    <ClCompile Include="Src\Util\RGBOctree.cpp" />
     <ClCompile Include="Src\Util\SoundUtil.cpp" />
     <ClCompile Include="Src\Compile\Compile.cpp" />
     <ClCompile Include="Src\Compile\CompileContext.cpp" />
@@ -511,6 +512,7 @@
     <ClInclude Include="Src\Util\ExtractAll.h" />
     <ClInclude Include="Src\Util\ImageUtil.h" />
     <ClInclude Include="Src\Util\MidiPlayer.h" />
+    <ClInclude Include="Src\Util\RGBOctree.h" />
     <ClInclude Include="Src\Util\SortedVector.h" />
     <ClInclude Include="Src\Util\SoundUtil.h" />
     <ClInclude Include="Src\Compile\CompileContext.h" />
