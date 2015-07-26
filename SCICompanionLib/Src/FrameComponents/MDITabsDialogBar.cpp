@@ -450,7 +450,8 @@ void CMDITabsDialogBar::DrawItem(LPDRAWITEMSTRUCT pdis)
             rcUsable.OffsetRect(-1, -1);
             rcUsable.bottom++;
         }
-        COLORREF basicColor = fSelected ? RGB(0, 255, 0) : RGB(0, 144, 0);
+        //COLORREF basicColor = fSelected ? RGB(0, 255, 0) : RGB(0, 144, 0);
+        COLORREF basicColor = fSelected ? RGB(0, 255, 0) : RGB(0, 255, 0);
         COLORREF accentColor = CExtBitmap::stat_HLS_Adjust(basicColor, c_rgHueAdjust[iIndex], c_rgLumAdjust[iIndex], c_rgSatAdjust[iIndex]);
         COLORREF backgroundColor = g_PaintManager->GetColor(COLOR_3DFACE);
         if (!fSelected)
@@ -463,13 +464,31 @@ void CMDITabsDialogBar::DrawItem(LPDRAWITEMSTRUCT pdis)
         CRect rcGradient = rcUsable;
         // Blend between our main color and the background color for the top part of the gradient (so the gradient isn't so extreme)
         COLORREF blended = CExtBitmap::stat_RGB_Blend(accentColor, backgroundColor, fSelected ? 196 : 128);
-        TRIVERTEX vertices[2] =
+        if (fSelected)
         {
-            { rcGradient.left, rcGradient.top, GetRValue(blended) * 256, GetGValue(blended) * 256, GetBValue(blended) * 256, 65280 },
-            { rcGradient.right, rcGradient.bottom, GetRValue(backgroundColor) * 256, GetGValue(backgroundColor) * 256, GetBValue(backgroundColor) * 256, 65280 },
-        };
-        GRADIENT_RECT gradRects[1] = { 0, 1 };
-        dc.GradientFill(vertices, ARRAYSIZE(vertices), gradRects, ARRAYSIZE(gradRects), GRADIENT_FILL_RECT_V);
+            TRIVERTEX vertices[2] =
+            {
+                { rcGradient.left, rcGradient.top, GetRValue(blended) * 256, GetGValue(blended) * 256, GetBValue(blended) * 256, 65280 },
+                { rcGradient.right, rcGradient.bottom, GetRValue(backgroundColor) * 256, GetGValue(backgroundColor) * 256, GetBValue(backgroundColor) * 256, 65280 },
+            };
+            GRADIENT_RECT gradRects[1] = { 0, 1 };
+            dc.GradientFill(vertices, ARRAYSIZE(vertices), gradRects, ARRAYSIZE(gradRects), GRADIENT_FILL_RECT_V);
+        }
+        else
+        {
+            int dx = rcGradient.Width() * 5 / 10;
+            int dy = rcGradient.Height() * 5 / 10;
+
+            TRIVERTEX vertices[3] =
+            {
+                { rcGradient.left, rcGradient.top, GetRValue(blended) * 256, GetGValue(blended) * 256, GetBValue(blended) * 256, 65280 },
+                // -1 because using right again seems to cause some div by zero and mess up GDI
+                { rcGradient.right - 1, rcGradient.top + dy, GetRValue(backgroundColor) * 256, GetGValue(backgroundColor) * 256, GetBValue(backgroundColor) * 256, 65280 },
+                { rcGradient.right, rcGradient.bottom, GetRValue(backgroundColor) * 256, GetGValue(backgroundColor) * 256, GetBValue(backgroundColor) * 256, 65280 },
+            };
+            GRADIENT_RECT gradRects[2] = { { 0, 1 }, { 1, 2 } };
+            dc.GradientFill(vertices, ARRAYSIZE(vertices), gradRects, ARRAYSIZE(gradRects), GRADIENT_FILL_RECT_V);
+        }
 
         // Use a different font decoration depending on if this is the most recent version of this item.
         bool fNotMostRecent = false;
@@ -507,6 +526,11 @@ void CMDITabsDialogBar::DrawItem(LPDRAWITEMSTRUCT pdis)
         rcUsable.OffsetRect(4, 1); // indent
 
         COLORREF crText = g_PaintManager->GetColor(COLOR_BTNTEXT);
+        if (!fSelected)
+        {
+            // Blend it with grey a bit.
+            crText = CExtBitmap::stat_RGB_Blend(crText, RGB(128, 128, 128), 180);
+        }
         //COLORREF crText = RGB(0, 0, 0); // g_PaintManager->PAINTPUSHBUTTONDATA::m_clrForceTextNormal; // green in release, black in debug!
 
         int nOldText = dc.SetTextColor(crText);
