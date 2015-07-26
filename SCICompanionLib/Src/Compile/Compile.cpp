@@ -2691,6 +2691,11 @@ void ProcedureDefinition::PreScan(CompileContext &context)
 void VariableDecl::PreScan(CompileContext &context) 
 {
     ValidateVariableDeclaration(context, this, _name);
+    _size.PreScan(context);
+    if (_size.GetType() != ValueType::Number)
+    {
+        context.ReportError(this, "Array size is not a constant expression: %s", _size.GetStringValue().c_str());
+    }
 	ForwardPreScan2(_segments, context);
 }
 
@@ -2699,7 +2704,7 @@ CodeResult VariableDecl::OutputByteCode(CompileContext &context) const
     declare_conditional isCondition(context, false);
     change_meaning meaning(context, true);
     // Handled in MethodDefinition
-    assert(FALSE);
+    assert(false);
     return 0;
 }
 

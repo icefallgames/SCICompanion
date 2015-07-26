@@ -334,7 +334,7 @@ ComplexPropertyValue& ComplexPropertyValue::operator=(ComplexPropertyValue& src)
     return (*this);
 }
 
-VariableDecl::VariableDecl() : StatementsNode(), TypedNode(), _wSize(1), _unspecifiedSize(false)
+VariableDecl::VariableDecl() : StatementsNode(), TypedNode(), _size(1), _unspecifiedSize(false)
 {
 }
 void VariableDecl::AddSimpleInitializer(const PropertyValue &value)

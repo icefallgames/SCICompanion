@@ -469,7 +469,19 @@ void VarDeclSizeA(MatchResult &match, const Parser *pParser, SyntaxContext *pCon
     {
         pContext->VariableDecl->SetSize(pContext->Integer);
     }
-    else
+}
+
+void VarDeclSizeConstantA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->VariableDecl->SetSize(pContext->ScratchString());
+    }
+}
+
+void VarDeclSizeErrorA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (!match.Result())
     {
         pContext->ReportError("Expected array size.", stream);
     }
@@ -480,12 +492,7 @@ void CreateScriptVarA(MatchResult &match, const Parser *pParser, SyntaxContext *
 {
     if (match.Result())
     {
-        pContext->CreateScriptVariable();
-        pContext->VariableDeclPtr->SetName(pContext->VariableDecl->GetName());
-		pContext->VariableDeclPtr->SetSize(pContext->VariableDecl->GetSize());
-        pContext->VariableDeclPtr->SetIsUnspecifiedSize(pContext->VariableDecl->IsUnspecifiedSize());
-        pContext->VariableDeclPtr->SetScript(&pContext->Script());
-        pContext->VariableDeclPtr->SetPosition(stream.GetPosition());
+        pContext->TransferScriptVariable();
     }
     else
     {
@@ -1118,7 +1125,7 @@ void SCISyntaxParser::Load()
             operator_p("<<=") | operator_p("=");
 
     // Variable declaration, with optional array size (array size must be numeric!)
-    var_decl = alphanum_p[CreateVarDeclA] >> -(opbracket >> integer_p[VarDeclSizeA] >> clbracket);
+    var_decl = alphanum_p[CreateVarDeclA] >> -(opbracket >> (integer_p[VarDeclSizeA] | alphanum_p2[VarDeclSizeConstantA])[VarDeclSizeErrorA] >> clbracket);
 
     // General code pieces
     // (we need to put the token on the statement stack, since it's possible there could be another one in "statement"

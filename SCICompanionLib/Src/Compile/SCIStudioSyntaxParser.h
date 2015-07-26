@@ -925,7 +925,11 @@ public:
         ifDefDefineState = IfDefDefineState::None;
     }
 
-    void CreateScriptVariable() { VariableDeclPtr = std::make_unique<sci::VariableDecl>(); }
+    void TransferScriptVariable()
+    {
+        VariableDeclPtr = std::move(VariableDecl);
+        VariableDecl = std::make_unique<sci::VariableDecl>();
+    }
     std::unique_ptr<sci::VariableDecl> VariableDeclPtr;
 
     // A generic values for everyone to use (one at a time!)
