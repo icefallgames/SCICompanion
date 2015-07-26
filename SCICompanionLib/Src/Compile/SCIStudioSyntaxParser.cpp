@@ -26,11 +26,12 @@ bool IsOpcode(const std::string &theString)
     return opcodeSet.find(theString) != opcodeSet.end();
 }
 
-const char *g_keywords[3] =
+const char *g_keywords[4] =
 {
     "if",
     "while",
     "do",
+    "switch",
     // The below causes not and neg not to be resolved (scratch string is empty for unary ops) INVESTIGATE
     // Because I think we may have broken asm
     /*
@@ -487,6 +488,14 @@ void VarDeclSizeErrorA(MatchResult &match, const Parser *pParser, SyntaxContext 
     }
 }
 
+void ExpectedProperyValueE(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (!match.Result())
+    {
+        pContext->ReportError("Expected a property value. Are you missing a property value in the list of properties?", stream);
+    }
+}
+
 // Script variable
 void CreateScriptVarA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
@@ -656,6 +665,14 @@ void ProcedureClassA(MatchResult &match, const Parser *pParser, SyntaxContext *p
     else
     {
         pContext->ReportError("Expected class name.", stream);
+    }
+}
+
+void NoCaseE(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (!match.Result())
+    {
+        pContext->ReportError("Expected 'case' or 'default' keyword.", stream);
     }
 }
 
@@ -1088,13 +1105,13 @@ void SCISyntaxParser::Load()
 
     property_value =
         simple_value
-        | alphanum_p[PropValueStringA<ValueType::Token>];
+        | alphanum_p2[PropValueStringA<ValueType::Token>];
 
     // moveSpeed 5
     // phil
     property_decl = general_token[CreateClassPropertyA] >>
          (property_value[FinishClassPropertyA]
-        | property_value_expanded[FinishClassPropertyStatementA] )
+         | property_value_expanded[FinishClassPropertyStatementA])[ExpectedProperyValueE]
         ;
 
 
@@ -1203,7 +1220,7 @@ void SCISyntaxParser::Load()
     // Requires syntax node.
     case_statement = oppar[SetStatementA<CaseStatement>]
         >>      (keyword_p("default")[SetDefaultCaseA]
-            |    keyword_p("case") >> statement[StatementBindTo1stA<CaseStatement, errCaseArg>])
+            |    keyword_p("case") >> statement[StatementBindTo1stA<CaseStatement, errCaseArg>])[NoCaseE]
         >> *statement[AddStatementA<CaseStatement>]
         >> clpar;
 

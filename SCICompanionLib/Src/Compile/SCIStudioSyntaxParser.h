@@ -307,7 +307,7 @@ bool AsmInstructionP(const ParserBase<_TContext, _It> *pParser, _TContext *pCont
 
 
 
-extern const char *g_keywords[3];
+extern const char *g_keywords[4];
 
 // TODO: Refactor with above
 template<typename _It, typename _TContext>

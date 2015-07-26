@@ -1282,7 +1282,7 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
                     break;
                 default:
                     wObjectSpecies = DataTypeAny; // Just so we can continue
-					ErrorHelper(context, this, "Can not send to", _object3->GetName());
+					ErrorHelper(context, this, "Unknown identifier: can not send to", _object3->GetName());
                     break;
                 }
                 // Good to go...
