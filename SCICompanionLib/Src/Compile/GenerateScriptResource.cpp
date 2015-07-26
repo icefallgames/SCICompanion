@@ -514,9 +514,16 @@ void _Section10_LocalVariables(Script &script, CompileContext &context, vector<B
                 push_word(output, pValue->GetNumberValue());
                 size++;
             }
-            // Fill any remaining spots with 0
-            WORD wZeroFill = (var->GetSize() - (WORD)size);
-            output.insert(output.end(), wZeroFill * 2, 0); // WORD = BYTE * 2
+            if ((int)var->GetSize() < size)
+            {
+                context.ReportError(var.get(), "Initializer too large (%d) for array size (%d).", size, var->GetSize());
+            }
+            else
+            {
+                // Fill any remaining spots with 0
+                WORD wZeroFill = (var->GetSize() - (WORD)size);
+                output.insert(output.end(), wZeroFill * 2, 0); // WORD = BYTE * 2
+            }
         }
 
         if (separateHeapResource)

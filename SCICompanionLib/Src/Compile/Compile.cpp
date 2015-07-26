@@ -2369,6 +2369,8 @@ CodeResult SwitchStatement::OutputByteCode(CompileContext &context) const
             // out where that is)
             code_pos fakeCodePos = context.code().get_cur_pos();
 
+            std::set<uint16_t> caseValues;
+
             auto caseIndex = _cases.begin();
             auto defaultIndex = _cases.end();
             bool fHasDefault = false;
@@ -2387,6 +2389,18 @@ CodeResult SwitchStatement::OutputByteCode(CompileContext &context) const
                 }
                 else
                 {
+
+                    // For simple values, catch duplication
+                    uint16_t numberValue;
+                    if (pCase->GetCaseValue()->Evaluate(context, numberValue))
+                    {
+                        if (caseValues.find(numberValue) != caseValues.end())
+                        {
+                            context.ReportError(pCase, "Duplicate case values. Already encountered a case for '%d'", numberValue);
+                        }
+                        caseValues.insert(numberValue);
+                    }
+
                     bool fCaseIsEmpty = pCase->GetCodeSegments().empty(); // Optimization for empty case statements.
                     if (!fCaseIsEmpty)
                     {
@@ -2514,6 +2528,7 @@ code_pos FunctionOutputByteCodeHelper(const FunctionBase &function, CompileConte
 		for (auto &varDecl : tempVars)
         {
 			WORD cInitializers = static_cast<WORD>(varDecl->GetInitializers().size());
+            assert((cInitializers <= 1) && "Shoudln't hit this because only single var initializers allowed in function");
 			if (cInitializers > (size_t)varDecl->GetSize())
             {
 				context.ReportError(varDecl.get(), "Too many initializers (%d) for variable '%s'[%d].", cInitializers, varDecl->GetName().c_str(), varDecl->GetSize());
@@ -3329,6 +3344,17 @@ void Script::PreScan(CompileContext &context)
         {
             context.ReportError(notPublicError, "%s needs to be marked public in ordered to be exported.", theExport->Name.c_str());
         }
+    }
+
+    // Look for duplicate class names
+    std::set<std::string> classNames;
+    for (auto &theClass : _classes)
+    {
+        if (classNames.find(theClass->GetName()) != classNames.end())
+        {
+            context.ReportError(theClass.get(), "There is already a class called '%s' in this script.", theClass->GetName().c_str());
+        }
+        classNames.insert(theClass->GetName());
     }
 
     ForwardPreScan2(_procedures, context);

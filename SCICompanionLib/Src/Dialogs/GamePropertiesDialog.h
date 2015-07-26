@@ -26,10 +26,7 @@ private:
     CExtButton m_wndBrowse;
     CExtButton m_wndOk;
     CExtButton m_wndCancel;
-    CExtRadioButton m_wndRadioCpp;
-    CExtRadioButton m_wndRadioSCIStudio;
     CExtGroupBox m_wndGeneral;
-    CExtGroupBox m_wndLanguage;
     CExtLabel m_wndGameName;
     CExtLabel m_wndExe;
     CExtLabel m_wndExeParam;

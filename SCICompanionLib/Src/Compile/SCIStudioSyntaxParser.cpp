@@ -469,6 +469,10 @@ void VarDeclSizeA(MatchResult &match, const Parser *pParser, SyntaxContext *pCon
     {
         pContext->VariableDecl->SetSize(pContext->Integer);
     }
+    else
+    {
+        pContext->ReportError("Expected array size.", stream);
+    }
 }
 
 // Script variable
