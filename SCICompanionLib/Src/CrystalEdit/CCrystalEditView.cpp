@@ -33,6 +33,7 @@
 #include "CCrystalEditView.h"
 #include "CCrystalTextBuffer.h"
 #include "CEditReplaceDlg.h"
+#include "format.h"
 
 #ifndef __AFXPRIV_H__
 #pragma message("Include <afxpriv.h> in your stdafx.h to avoid this message")
@@ -726,20 +727,26 @@ void CCrystalEditView::OnEditUntab()
 
 void CCrystalEditView::OnUpdateIndicatorCol(CCmdUI* pCmdUI)
 {
-	pCmdUI->Enable(FALSE);
+	pCmdUI->Enable(TRUE);
+    CPoint pt = GetCursorPos();
+    pCmdUI->SetText(fmt::format("Ln {0} Col {1}", pt.y, pt.x).c_str());
 }
 
 void CCrystalEditView::OnUpdateIndicatorOvr(CCmdUI* pCmdUI)
 {
-	pCmdUI->Enable(m_bOvrMode);
+	pCmdUI->Enable(TRUE);
+    pCmdUI->SetText(m_bOvrMode ? "OVR" : "INS");
 }
 
 void CCrystalEditView::OnUpdateIndicatorRead(CCmdUI* pCmdUI)
 {
 	if (m_pTextBuffer == NULL)
 		pCmdUI->Enable(FALSE);
-	else
-		pCmdUI->Enable(m_pTextBuffer->GetReadOnly());
+    else
+    {
+        pCmdUI->Enable(TRUE);
+        pCmdUI->SetText(m_pTextBuffer->GetReadOnly() ? "read only" : "");
+    }
 }
 
 void CCrystalEditView::OnEditSwitchOvrmode() 

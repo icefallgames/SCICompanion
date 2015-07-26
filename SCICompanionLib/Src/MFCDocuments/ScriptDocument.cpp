@@ -598,12 +598,8 @@ void CScriptDocument::OnUpdateConvertScript(CCmdUI *pCmdUI)
 
 void CScriptDocument::OnUpdateLineCount(CCmdUI *pCmdUI)
 {
-    std::stringstream ss;
-    ss << _buffer.GetLineCount();
-    ss << " lines.";
-    pCmdUI->SetText(ss.str().c_str());
+    pCmdUI->SetText(fmt::format("{0} lines.", _buffer.GetLineCount()).c_str());
 }
-
 
 void CScriptDocument::_DoErrorSummary(ICompileLog &log)
 {
