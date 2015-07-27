@@ -25,6 +25,7 @@ CBitmapToVGADialog::CBitmapToVGADialog(const Cel *currentBackgroundOptional, con
     PrepareBitmapBase(-1, IDC_STATICORIG, picDimensions), _currentBackgroundOptional(currentBackgroundOptional)
 {
     _transparentColor = 255;
+    _alphaThreshold = 128;
     _allowInsertAtCurrentPosition = allowInsertAtCurrentPosition;
     _needsUpdate = true;
     _paletteAlgorithm = PaletteAlgorithm::Quantize;
@@ -164,6 +165,9 @@ void CBitmapToVGADialog::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_EDITTRANSPARENTCOLOR, m_wndEditTransparentColor);
         SetDlgItemInt(IDC_EDITTRANSPARENTCOLOR, _transparentColor, FALSE);
         DDX_Control(pDX, IDC_STATICTRANSLABEL, m_wndLabel4);
+        DDX_Control(pDX, IDC_EDITALPHATHRESHOLD, m_wndEditAlphaThreshold);
+        SetDlgItemInt(IDC_EDITALPHATHRESHOLD, _alphaThreshold, FALSE);
+        DDX_Control(pDX, IDC_STATICALPHALABEL, m_wndLabel5);
         DDX_Control(pDX, IDC_CHECKDONTUSEINPALETTE, m_wndCheckDontUseInPalette);
         m_wndCheckDontUseInPalette.SetCheck(1);
         
@@ -425,8 +429,6 @@ void _Overlay(Cel &cel, const Cel *currentBackgroundOptional)
     }
 }
 
-const uint8_t AlphaThreshold = 128;
-
 void CBitmapToVGADialog::_Update()
 {
     _finalResult.reset(nullptr);
@@ -453,7 +455,7 @@ void CBitmapToVGADialog::_Update()
                 unique_ptr<RGBQUAD[]> imageData = ConvertGdiplusToRaw(*_pbmpCurrent);
                 if (imageData)
                 {
-                    CutoutAlpha(imageData.get(), cx, cy, performAlphaDither, AlphaThreshold);
+                    CutoutAlpha(imageData.get(), cx, cy, performAlphaDither, _alphaThreshold);
 
                     std::unique_ptr<Cel> temp = make_unique<Cel>();
                     std::unique_ptr<PaletteComponent> tempPalette;
@@ -498,7 +500,7 @@ void CBitmapToVGADialog::_Update()
             unique_ptr<RGBQUAD[]> imageData = ConvertGdiplusToRaw(*_pbmpCurrent);
             if (imageData)
             {
-                CutoutAlpha(imageData.get(), cx, cy, performAlphaDither, AlphaThreshold);
+                CutoutAlpha(imageData.get(), cx, cy, performAlphaDither, _alphaThreshold);
 
                 std::unique_ptr<Cel> temp = make_unique<Cel>();
                 temp->TransparentColor = _transparentColor;
@@ -615,6 +617,7 @@ BEGIN_MESSAGE_MAP(CBitmapToVGADialog, CExtNCW<CExtResizableDialog>)
     ON_BN_CLICKED(IDC_CHECKOVERLAY, &CBitmapToVGADialog::OnBnClickedThatThatShouldUpdate)
     ON_BN_CLICKED(IDC_CHECKDITHER, &CBitmapToVGADialog::OnBnClickedThatThatShouldUpdate)
     ON_BN_CLICKED(IDC_CHECKDITHERALPHA, &CBitmapToVGADialog::OnBnClickedThatThatShouldUpdate)
+    ON_EN_KILLFOCUS(IDC_EDITALPHATHRESHOLD, &CBitmapToVGADialog::OnEnKillfocusEditalphathreshold)
 END_MESSAGE_MAP()
 
 
@@ -750,6 +753,7 @@ void CBitmapToVGADialog::OnEnKillfocusEdittransparentcolor()
     BOOL translated;
     _transparentColor = min(255, GetDlgItemInt(IDC_EDITTRANSPARENTCOLOR, &translated, FALSE));
     SetDlgItemInt(IDC_EDITTRANSPARENTCOLOR, _transparentColor, FALSE);
+    _Update();
 }
 
 
@@ -764,5 +768,15 @@ void CBitmapToVGADialog::OnBnClickedButtonrefresh()
 
 void CBitmapToVGADialog::OnBnClickedThatThatShouldUpdate()
 {
+    _Update();
+}
+
+
+void CBitmapToVGADialog::OnEnKillfocusEditalphathreshold()
+{
+    // Validate the edit control
+    BOOL translated;
+    _alphaThreshold = min(255, GetDlgItemInt(IDC_EDITALPHATHRESHOLD, &translated, FALSE));
+    SetDlgItemInt(IDC_EDITALPHATHRESHOLD, _alphaThreshold, FALSE);
     _Update();
 }

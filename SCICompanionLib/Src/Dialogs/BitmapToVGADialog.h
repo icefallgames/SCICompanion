@@ -81,7 +81,9 @@ private:
 
     CExtGroupBox m_wndGroup3;
     CExtEdit m_wndEditTransparentColor;
+    CExtEdit m_wndEditAlphaThreshold;
     CExtLabel m_wndLabel4;
+    CExtLabel m_wndLabel5;
     CExtCheckBox m_wndCheckDontUseInPalette;
     
     CChooseColorStatic m_wndPalette;
@@ -104,6 +106,7 @@ private:
     bool _needsUpdate;
 
     uint8_t _transparentColor;
+    uint8_t _alphaThreshold;
 
     const Cel *_currentBackgroundOptional;
 
@@ -117,5 +120,6 @@ public:
     afx_msg void OnEnKillfocusEdittransparentcolor();
     afx_msg void OnBnClickedButtonrefresh();
     afx_msg void OnBnClickedThatThatShouldUpdate();
+    afx_msg void OnEnKillfocusEditalphathreshold();
 };
 

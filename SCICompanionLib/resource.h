@@ -555,7 +555,10 @@
 #define IDC_STATICTRANSLABEL            1234
 #define IDC_CHECKDONTUSEINPALETTE       1235
 #define IDC_BUTTONREVERT                1236
+#define IDC_EDITALPHATHRESHOLD          1236
 #define IDC_BUTTONEDITCOLOR             1237
+#define IDC_STATICTRANSLABEL2           1237
+#define IDC_STATICALPHALABEL            1237
 #define IDC_BUTTON_SAVE                 1238
 #define IDC_BUTTON_LOAD                 1239
 #define IDC_TREESCO                     1239
