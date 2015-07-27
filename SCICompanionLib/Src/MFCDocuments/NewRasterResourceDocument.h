@@ -103,6 +103,7 @@ private:
     void _TrimUndoStack();
     void _InsertFiles(const std::vector<std::string> &files);
     void _ApplyImageSequence(uint8_t transparentColor, const PaletteComponent *optionalNewPalette, std::vector<ImageSequenceItem> &items);
+    void _ApplyImageSequenceNew(uint8_t transparentColor, const PaletteComponent *optionalNewPalette, std::vector<ImageSequenceItem> &items);
     std::list<ResourceEntity*>::iterator _GetLastUndoFrame();
     bool _GetColors(const RasterComponent &raster, const PaletteComponent *optionalNewPalette,
         const uint8_t **paletteMapping,

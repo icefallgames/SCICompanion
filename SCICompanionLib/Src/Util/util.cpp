@@ -895,6 +895,7 @@ void TerminateProcessTree(HANDLE hProcess, DWORD retCode)
         // [508]->[524], and
         // [524]->[508]
         // This may be a race condition where new processes were created?
+        // This has happened twice now.
 
         while ((itParent != childToParent.end()) && itParent->first)
         {

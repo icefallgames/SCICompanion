@@ -20,15 +20,20 @@ int g_iScaleImageVGA = 0;   // Don't scale by default
 
 // The end result of this dialog is image data (a Cel) and possibly a palette
 
-CBitmapToVGADialog::CBitmapToVGADialog(const Cel *currentBackgroundOptional, const PaletteComponent *targetPalette, bool allowInsertAtCurrentPosition, size16 picDimensions, CWnd* pParent /*=nullptr*/)
+CBitmapToVGADialog::CBitmapToVGADialog(std::unique_ptr<Gdiplus::Bitmap> existingBitmap, const Cel *currentBackgroundOptional, const PaletteComponent *targetPalette, bool allowInsertAtCurrentPosition, size16 picDimensions, uint8_t defaultTransparentColor, PaletteAlgorithm defaultAlgorithm, DefaultPaletteUsage defaultColorUsage, const char *pszTitle, CWnd* pParent /*=nullptr*/)
     : CExtNCW<CExtResizableDialog>(CBitmapToVGADialog::IDD, pParent),
-    PrepareBitmapBase(-1, IDC_STATICORIG, picDimensions), _currentBackgroundOptional(currentBackgroundOptional)
+    PrepareBitmapBase(-1, IDC_STATICORIG, picDimensions),
+    _currentBackgroundOptional(currentBackgroundOptional),
+    _existingBitmap(move(existingBitmap)),
+    _transparentColor(defaultTransparentColor),
+    _paletteAlgorithm(defaultAlgorithm),
+    _defaultColorUsage(defaultColorUsage),
+    _pszTitle(pszTitle),
+    _manuallyModifiedColors(false)
 {
-    _transparentColor = 255;
     _alphaThreshold = 128;
     _allowInsertAtCurrentPosition = allowInsertAtCurrentPosition;
     _needsUpdate = true;
-    _paletteAlgorithm = PaletteAlgorithm::Quantize;
     _insertAtCurrentPosition = 0;
 
     const PaletteComponent *globalPalette = appState->GetResourceMap().GetPalette999();
@@ -161,6 +166,8 @@ void CBitmapToVGADialog::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_CHECKDITHERALPHA, m_wndDitherAlpha);
         m_wndDitherAlpha.SetCheck(BST_UNCHECKED);
 
+        DDX_Control(pDX, IDC_BUTTONCLIPBOARD, m_wndFromClipboard);
+
         DDX_Control(pDX, IDC_STATICGROUP3, m_wndGroup3);
         DDX_Control(pDX, IDC_EDITTRANSPARENTCOLOR, m_wndEditTransparentColor);
         SetDlgItemInt(IDC_EDITTRANSPARENTCOLOR, _transparentColor, FALSE);
@@ -176,8 +183,9 @@ void CBitmapToVGADialog::DoDataExchange(CDataExchange* pDX)
         m_wndRefresh.SetIcon(IDI_REFRESH, 0, 0, 0, 16, 16);
         DDX_Control(pDX, IDC_EDITRANGES, m_wndEditPaletteRanges);
 
-        m_wndRadio1.SetCheck(1); // Check the first guy by default
-        _paletteAlgorithm = PaletteAlgorithm::Quantize;
+        // Check the appropriate algorithm by default
+        CExtCheckBox *algorithmCheckBoxes[] = { &m_wndRadio1, &m_wndRadio2, &m_wndRadio3 };
+        algorithmCheckBoxes[(int)_paletteAlgorithm]->SetCheck(BST_CHECKED);
         _fInitializedControls = true;
 
         DDX_Control(pDX, IDC_STATICPALETTE, m_wndPalette);
@@ -186,15 +194,30 @@ void CBitmapToVGADialog::DoDataExchange(CDataExchange* pDX)
         m_wndPalette.SetAutoHandleSelection(true);
         m_wndPalette.SetCallback(this);
         _UpdatePalette();
+
+        if (_existingBitmap)
+        {
+            // Hide certain controls if the dialog was given a bitmap on which to operate.
+            m_wndButton2.ShowWindow(SW_HIDE);       // Browse
+            m_wndFromClipboard.ShowWindow(SW_HIDE);
+            m_wndCheck1.ShowWindow(SW_HIDE);        // Scale
+            m_wndCheckOverlay.ShowWindow(SW_HIDE);
+        }
     }
 
-    m_wndCheckGlobalPalette.SetWindowTextA(format("Only use {0} free palette entries", _numUnusedPaletteEntriesInGlobalPalette).c_str());
+    if (_defaultColorUsage == DefaultPaletteUsage::UnusedColors)
+    {
+        m_wndCheckGlobalPalette.SetWindowTextA(format("Only use {0} free palette entries", _numUnusedPaletteEntriesInGlobalPalette).c_str());
+    }
+    else
+    {
+        m_wndCheckGlobalPalette.SetWindowTextA(format("Use {0} global palette entries", (256 - _numUnusedPaletteEntriesInGlobalPalette)).c_str());
+    }
 
     DDX_Control(pDX, IDC_EDITSTATUS, m_wndEditStatus);
     m_wndEditStatus.FmtLines(TRUE);
     DDX_Control(pDX, IDC_STATICPIC, m_wndPic);
     DDX_Control(pDX, IDC_STATICORIG, m_wndOrig);
-    DDX_Control(pDX, IDC_BUTTONCLIPBOARD, m_wndFromClipboard);
     m_wndFromClipboard.EnableWindow(IsClipboardFormatAvailable(CF_BITMAP));
     DDX_Check(pDX, IDC_CHECKSCALE, _iScaleImage);
     DDX_Check(pDX, IDC_CHECKGLOBALPALETTE, _honorGlobalPalette);
@@ -247,7 +270,12 @@ void CBitmapToVGADialog::_SetAvailableColorsFromGlobalPalette()
     bool available[256];
     for (int i = 0; i < ARRAYSIZE(available); i++)
     {
-        available[i] = _globalPalette->Colors[i].rgbReserved == 0;
+        bool temp = _globalPalette->Colors[i].rgbReserved == 0;
+        if (_defaultColorUsage == DefaultPaletteUsage::UsedColors)
+        {
+            temp = !temp;
+        }
+        available[i] = temp;
     }
     m_wndPalette.SetSelection(available);
 }
@@ -571,9 +599,17 @@ void CBitmapToVGADialog::_Update()
     if (_originalPalette)
     {
         std::string text = format("Embedded palette has {0} entries.", _numberOfPaletteEntries);
-        if (_numberOfPaletteEntries > _numUnusedPaletteEntriesInGlobalPalette)
+        int numEntriesToUse = (_defaultColorUsage == DefaultPaletteUsage::UsedColors) ? (256 - _numUnusedPaletteEntriesInGlobalPalette) : _numUnusedPaletteEntriesInGlobalPalette;
+        if (_numberOfPaletteEntries > numEntriesToUse)
         {
-            text += format(" Global palette has only {0} unused entries!", _numUnusedPaletteEntriesInGlobalPalette);
+            if (_defaultColorUsage == DefaultPaletteUsage::UsedColors)
+            {
+                text += format(" Global palette has only {0} main entries!", (256 - _numUnusedPaletteEntriesInGlobalPalette));
+            }
+            else
+            {
+                text += format(" Global palette has only {0} unused entries!", _numUnusedPaletteEntriesInGlobalPalette);
+            }
         }
         _AddToEdit(text.c_str());
     }
@@ -699,12 +735,27 @@ BOOL CBitmapToVGADialog::OnInitDialog()
 {
     __super::OnInitDialog();
 
+    if (_pszTitle)
+    {
+        SetWindowText(_pszTitle);
+    }
+
     GetDlgItem(IDOK)->EnableWindow(FALSE);
 
     // Put a little help text
     _AddToEdit(TEXT("Open a file or pull from clipboard"));
 
-    OnPasteFromClipboard();
+    if (_existingBitmap)
+    {
+        _Init(move(_existingBitmap), this);
+        _UpdateOrigBitmap(this);
+        _SyncControlState();
+        _Update();
+    }
+    else
+    {
+        OnPasteFromClipboard();
+    }
 
     return TRUE;
 }
@@ -713,6 +764,7 @@ void CBitmapToVGADialog::OnBnClickedCheckglobalpalette()
 {
     // Do this manually, since DDX_Check doesn't seem to work.
     _honorGlobalPalette = m_wndCheckGlobalPalette.GetCheck();
+    _manuallyModifiedColors = true;
     _PushPaletteSelection();
     _Update();
 }
@@ -720,6 +772,12 @@ void CBitmapToVGADialog::OnBnClickedCheckglobalpalette()
 void CBitmapToVGADialog::OnBnClickedRadio1()
 {
     _paletteAlgorithm = PaletteAlgorithm::Quantize;
+    if (!_manuallyModifiedColors)
+    {
+        assert(_honorGlobalPalette != BST_INDETERMINATE);
+        _honorGlobalPalette = BST_CHECKED;
+        _PushPaletteSelection();
+    }
     _SyncControlState();
     _Update();
 }
@@ -727,6 +785,12 @@ void CBitmapToVGADialog::OnBnClickedRadio1()
 void CBitmapToVGADialog::OnBnClickedRadio2()
 {
     _paletteAlgorithm = PaletteAlgorithm::MatchExisting;
+    if (!_manuallyModifiedColors)
+    {
+        assert(_honorGlobalPalette != BST_INDETERMINATE);
+        _honorGlobalPalette = BST_CHECKED;
+        _PushPaletteSelection();
+    }
     _SyncControlState();
     _Update();
 }
@@ -734,6 +798,12 @@ void CBitmapToVGADialog::OnBnClickedRadio2()
 void CBitmapToVGADialog::OnBnClickedRadio3()
 {
     _paletteAlgorithm = PaletteAlgorithm::UseImported;
+    if (!_manuallyModifiedColors)
+    {
+        assert(_honorGlobalPalette != BST_INDETERMINATE);
+        _honorGlobalPalette = BST_UNCHECKED;
+        _PushPaletteSelection();
+    }
     _SyncControlState();
     _Update();
 }
@@ -762,6 +832,7 @@ void CBitmapToVGADialog::OnBnClickedButtonrefresh()
     _honorGlobalPalette = BST_INDETERMINATE;
     m_wndCheckGlobalPalette.SetCheck(_honorGlobalPalette);
     m_wndRefresh.EnableWindow(FALSE);
+    _manuallyModifiedColors = true;
     _Update();
 }
 

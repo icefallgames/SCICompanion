@@ -10,6 +10,7 @@
 #include "format.h"
 #include "ImageUtil.h"
 #include "CustomMessageBox.h"
+#include "BitmapToVGADialog.h"
 volatile BOOL g_fDitherImages2 = FALSE;
 
 // A sort of workaround
@@ -261,7 +262,6 @@ void CNewRasterResourceDocument::SetDefaultZoom(int iZoom) const
 
 // We need collect all the info first, then make a decision.
 // We have: palette/cel combinations and gidplus images.
-
 struct ImageSequenceItem
 {
     ImageSequenceItem() {}
@@ -289,6 +289,119 @@ struct ImageSequenceItem
     // Or we have a 24 bit bitmap in this form:
     std::unique_ptr<Bitmap> Bitmap;
 };
+
+const float IdealAspectRatio = 1.7f;
+
+unique_ptr<Bitmap> _DrawImageSequenceToLargeBitmap(vector<ImageSequenceItem> &items, vector<CRect> &rectsOut)
+{
+    // Rules:
+    // 1) If we have any Bitmaps, then we'll lose the palette.
+    // 2) If we have more than one Bitmap, we'll lose the palette.
+    vector<unique_ptr<Bitmap>> bitmaps;
+    PixelFormat pixelFormat = PixelFormat8bppIndexed;       // We consider this ideal.
+    PaletteComponent palette;
+    int totalWidth = 0;
+    int totalHeight = 0;
+    int maxHeight = 0;
+    int maxWidth = 0;
+    for (auto &item : items)
+    {
+        if (item.Bitmap)
+        {
+            if (item.Bitmap->GetPixelFormat() != pixelFormat)
+            {
+                pixelFormat = PixelFormat32bppARGB;
+            }
+            totalWidth += item.Bitmap->GetWidth();
+            totalHeight += item.Bitmap->GetHeight();
+            maxHeight = max((int)item.Bitmap->GetHeight(), maxHeight);
+            maxWidth = max((int)item.Bitmap->GetWidth(), maxWidth);
+            bitmaps.push_back(move(item.Bitmap));
+        }
+        else
+        {
+            palette = item.Palette;
+            for (auto &cel : item.Cels)
+            {
+                bitmaps.push_back(move(CelAndPaletteToBitmap(cel, palette, false)));
+                totalWidth += cel.size.cx;
+                totalHeight += cel.size.cy;
+                maxHeight = max((int)cel.size.cy, maxHeight);
+                maxWidth = max((int)cel.size.cx, maxWidth);
+            }
+        }
+    }
+
+    // Use the average aspect ratio to determine how to lay things out. This should really be handled
+    // by the UI, but we're compiling all the images into a single bitmap prior to sending it to the dialog.
+    float averageAspectRatio = (float)totalWidth / (float)totalHeight;
+    // IGNORE THIS FOR NOW until we get stuff working.
+    float avgToIdealAspectRatio = IdealAspectRatio / averageAspectRatio;
+    // If this is close to 1, then in general we want the same number of rows as columns
+    float rowsF = sqrt((float)bitmaps.size() / avgToIdealAspectRatio);
+    int rows = max(1, (int)rowsF);
+    int columns = max(1, (int)bitmaps.size() / rows);
+    // Now figure out our rects before we make the big bitmap
+    UINT width = max(maxWidth, columns * totalWidth / (int)bitmaps.size());
+    int x = 0;
+    int y = 0;
+    int maxRowHeight = 0;
+    for (auto &bitmap : bitmaps)
+    {
+        if ((x + bitmap->GetWidth()) > width)
+        {
+            y += maxRowHeight;
+            maxRowHeight = 0;
+            x = 0;
+        }
+        int right = x + bitmap->GetWidth();
+        maxRowHeight = max(maxRowHeight, (int)bitmap->GetHeight());
+        rectsOut.emplace_back(x, y, right, y + bitmap->GetHeight());
+        x = right;
+    }
+
+    // Now we're ready to create the big bitmap
+    UINT height = y + maxRowHeight;
+    unique_ptr<Bitmap> bigBitmap(new Bitmap(width, height, pixelFormat));
+    int currentCol = 0;
+    if (bigBitmap)
+    {
+        // WOW! This is crucial. Our "non-scaled" image will be scaled if we don't set these to whatever
+        // the default screen resolution is.
+        REAL verticalDPI = bigBitmap->GetVerticalResolution();
+        REAL horizontalDPI = bigBitmap->GetHorizontalResolution();
+
+        std::unique_ptr<uint8_t[]> cp;
+        if (pixelFormat == PixelFormat8bppIndexed)
+        {
+            // Each bitmap must have a palette in this case, so grab the one from the first one.
+            INT paletteSize = bitmaps[0]->GetPaletteSize();
+            cp = std::make_unique<uint8_t[]>(paletteSize);
+            ColorPalette *colorPalette = reinterpret_cast<ColorPalette*>(cp.get());
+            bitmaps[0]->GetPalette(colorPalette, paletteSize);
+            bigBitmap->SetPalette(colorPalette);
+        }
+
+        Gdiplus::Graphics g(bigBitmap.get());
+
+        if (pixelFormat == PixelFormat8bppIndexed)
+        {
+            // 8bpp won't get drawn to an 8bpp Graphics unless this is set:
+            g.SetCompositingMode(Gdiplus::CompositingModeSourceCopy);
+            // (despite Gdiplus still returning Ok from the DrawImage call)
+        }
+
+        int index = 0;
+        for (auto &bitmap : bitmaps)
+        {
+            CRect &rect = rectsOut[index];
+            bitmap->SetResolution(horizontalDPI, verticalDPI);
+            int result = g.DrawImage(bitmap.get(), rect.left, rect.top, 0, 0, bitmap->GetWidth(), bitmap->GetHeight(), UnitPixel);
+            index++;
+        }
+    }
+    return bigBitmap;
+}
 
 void _FinalizeSequence(int *trackUsage, vector<Cel> &finalCels, bool optionalNewPalette, std::vector<ImageSequenceItem> &items, uint8_t transparentColor, bool isEGA16, bool dither, bool alphaDither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *colors)
 {
@@ -361,6 +474,68 @@ bool CNewRasterResourceDocument::_GetColors(const RasterComponent &raster, const
             break;
     }
     return isEGA16;
+}
+
+void CNewRasterResourceDocument::_ApplyImageSequenceNew(uint8_t transparentColor, const PaletteComponent *currentPalette, std::vector<ImageSequenceItem> &items)
+{
+    vector<CRect> bitmapRects;
+    unique_ptr<Bitmap> bigBitmap = _DrawImageSequenceToLargeBitmap(items, bitmapRects);
+    size16 size((uint16_t)bigBitmap->GetWidth(), (uint16_t)bigBitmap->GetHeight());
+    CBitmapToVGADialog dialog(move(bigBitmap), nullptr, currentPalette, false, size, transparentColor, PaletteAlgorithm::MatchExisting, DefaultPaletteUsage::UsedColors, "Import images");
+    if (dialog.DoModal() == IDOK)
+    {
+        int nLoop = GetSelectedLoop();
+        auto &bigCel = dialog.GetFinalResult();
+
+        auto finalPalette = dialog.GetFinalResultPalette();
+        const PaletteComponent *optionalNewPalette = nullptr;
+        if (*finalPalette != *currentPalette)
+        {
+            // Only apply a palette if it changed...
+            optionalNewPalette = finalPalette.get();
+        }
+
+        // Restore our big bitmap to the individual cels.
+        vector<Cel> finalCels;
+        for (auto &rect : bitmapRects)
+        {
+            finalCels.emplace_back(size16((uint16_t)rect.Width(), (uint16_t)rect.Height()), point16(0, 0), transparentColor);
+            Cel &cel = finalCels.back();
+            cel.Data.allocate(cel.GetDataSize());
+            for (int y = 0; y < cel.size.cy; y++)
+            {
+                int sourceLine = bigCel->size.cy - 1 - y - rect.top;
+                int destLine = cel.size.cy - 1 - y;// -rect.top;
+                memcpy(&cel.Data[destLine * CX_ACTUAL(cel.size.cx)], &bigCel->Data[sourceLine * CX_ACTUAL(bigCel->size.cx) + rect.left], cel.size.cx);
+            }
+        }
+            
+        ApplyChanges<RasterComponent>(
+            [nLoop, &finalCels](RasterComponent &raster)
+        {
+            RasterChange chnage = ApplyCelsToLoop(raster, nLoop, finalCels);
+            chnage.hint |= RasterChangeHint::PaletteChoice;
+            return WrapRasterChange(chnage);
+        },
+
+            // Apply the new palette if needed.
+            [optionalNewPalette](ResourceEntity &resource)
+        {
+            if (optionalNewPalette)
+            {
+                if (resource.TryGetComponent<PaletteComponent>())
+                {
+                    PaletteComponent &existingPalette = resource.GetComponent<PaletteComponent>();
+                    existingPalette = *optionalNewPalette;
+                }
+                else
+                {
+                    resource.AddComponent<PaletteComponent>(std::make_unique<PaletteComponent>(*optionalNewPalette));
+                }
+            }
+        }
+        );
+    }
 }
 
 void CNewRasterResourceDocument::_ApplyImageSequence(uint8_t transparentColor, const PaletteComponent *optionalNewPalette, std::vector<ImageSequenceItem> &items)
@@ -457,15 +632,6 @@ void CNewRasterResourceDocument::_InsertFiles(const vector<string> &files)
             SysFreeString(unicodestr);
 #endif    
             success = item.Bitmap->GetLastStatus() == Gdiplus::Ok;
-            if (success)
-            {
-                // See if we can convert this into a cel now.
-                if (GetCelsAndPaletteFromGdiplus(*item.Bitmap, transparentColor, item.Cels, item.Palette))
-                {
-                    // Then get rid of the bitmap
-                    item.Bitmap.reset(nullptr);
-                }
-            }
         }
         if (!success)
         {
@@ -476,58 +642,16 @@ void CNewRasterResourceDocument::_InsertFiles(const vector<string> &files)
     // If we got some, then figure out what to do
     if (!imageSequenceItems.empty())
     {
-        // If we got a palette, then (if VGA) we need to figure out what to do. 
-        // We'll just look at the first palette.
-        unique_ptr<PaletteComponent> onePalette;
-        for (auto &item : imageSequenceItems)
+        // At this point, if onePalette is not null, we should apply it to the view and directly copy any cel data (gdiplus bitmaps will still be remapped)
+        // Otherwise, we should remap everything based on RGB.
+        if (!isVGA)
         {
-            if (!item.Cels.empty())
-            {
-                onePalette = make_unique<PaletteComponent>(item.Palette);
-                break;
-            }
-        }
-       
-        if (isVGA && onePalette)
-        {
-            // We have a few choices here. Lots of choices, but we'll only handle a few.
-            // If it's identical to our current palette, then no problem. This could be the case when the user is importing multiple image sequences for different loops.
-            // If we don't have a palette, we might want to offer the option of remapping to the global palette.
-            // If we have a palette, and it doesn't match, then we can offer the option of remapping to the embedded palette.
-            // Basically, we'll offer these choices:
-            //  - use palette from image?
-            //  - remap to embedded (or global)
-            //
-            // For 24bit images, or when we're EGA, we'll just remap to the embedded.
-            PaletteComponent *existingPalette = GetResource()->TryGetComponent<PaletteComponent>();
-            if (!existingPalette || !DoPalettesMatch(*existingPalette, *onePalette))
-            {
-                string remapOrApply = "Re-map";
-                string message = "A palette was found in the loaded image(s) which doesn't match the current view palette.\nReplace view's palette with it, or re-map it to the view's palette?";
-                if (!existingPalette)
-                {
-                    message = "A palette was found in the loaded image(s).\nApply this to the view or re-map to the currently selected palette?";
-                    remapOrApply = "Apply";
-                }
-
-                MessageBoxCustomization mb(
-                { { MessageBoxCustomization::Yes, "Replace" }, { MessageBoxCustomization::No, remapOrApply } }
-                );
-                if (IDNO == AfxMessageBox(message.c_str(), MB_YESNO | MB_ICONINFORMATION))
-                {
-                    // Pretend there wasn't a palette in the loaded image, which will then force us to re-map
-                    onePalette.reset(nullptr);
-                }
-            }
+            _ApplyImageSequence(transparentColor, nullptr, imageSequenceItems);
         }
         else
         {
-            onePalette.reset(nullptr); // Don't need this
+            _ApplyImageSequenceNew(transparentColor, GetCurrentPaletteComponent(), imageSequenceItems);
         }
-
-        // At this point, if onePalette is not null, we should apply it to the view and directly copy any cel data (gdiplus bitmaps will still be remapped)
-        // Otherwise, we should remap everything based on RGB.
-        _ApplyImageSequence(transparentColor, onePalette.get(), imageSequenceItems);
     }
 
     // Reset the selection.

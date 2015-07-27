@@ -13,10 +13,16 @@ enum class PaletteAlgorithm
     UseImported = 2,
 };
 
+enum class DefaultPaletteUsage
+{
+    UnusedColors = 0,
+    UsedColors = 1,
+};
+
 class CBitmapToVGADialog : public CExtNCW<CExtResizableDialog>, public PrepareBitmapBase, public IColorDialogCallback
 {
 public:
-    CBitmapToVGADialog(const Cel *currentBackgroundOptional, const PaletteComponent *targetPalette, bool allowInsertAtCurrentPosition, size16 picDimensions, CWnd* pParent = NULL);   // standard constructor
+    CBitmapToVGADialog(std::unique_ptr<Gdiplus::Bitmap> existingBitmap, const Cel *currentBackgroundOptional, const PaletteComponent *targetPalette, bool allowInsertAtCurrentPosition, size16 picDimensions, uint8_t defaultTransparentColor, PaletteAlgorithm defaultAlgorithm, DefaultPaletteUsage defaultColorUsage, const char *pszTitle = nullptr, CWnd* pParent = NULL);   // standard constructor
     virtual ~CBitmapToVGADialog();
 
     // Dialog Data
@@ -76,6 +82,8 @@ private:
     CExtRadioButton m_wndRadio2;
     CExtRadioButton m_wndRadio3;
     PaletteAlgorithm _paletteAlgorithm;
+    DefaultPaletteUsage _defaultColorUsage;
+    const char *_pszTitle;
     CExtCheckBox m_wndCheckGlobalPalette;
     CExtCheckBox m_wndCheckOverlay;
 
@@ -100,6 +108,7 @@ private:
     std::unique_ptr<PaletteComponent> _globalPalette;
     int _numUnusedPaletteEntriesInGlobalPalette;
     int _honorGlobalPalette;
+    bool _manuallyModifiedColors;
     int _insertAtCurrentPosition;
     bool _allowInsertAtCurrentPosition;
 
@@ -109,6 +118,8 @@ private:
     uint8_t _alphaThreshold;
 
     const Cel *_currentBackgroundOptional;
+
+    std::unique_ptr<Gdiplus::Bitmap> _existingBitmap;
 
     afx_msg void OnScaleClicked();
     afx_msg void OnBnClickedRadio2();

@@ -61,30 +61,57 @@ g_fileExtToFormat[] =
     { ".png", L"image/png" },
 };
 
-// TODO: mark unused colors and squash the bits
-bool Save8BitBmpGdiP(const char *filename, const Cel &cel, const PaletteComponent &palette)
+std::unique_ptr<Bitmap> CelAndPaletteToBitmap(const Cel &cel, const PaletteComponent &palette, bool squishPalette)
 {
     // We need to flip the data, so make a copy of it and do that.
     sci::array<uint8_t> buffer(cel.Data.size());
     buffer.assign(&cel.Data[0], &cel.Data[cel.Data.size()]);
     FlipImageData(&buffer[0], cel.size.cx, cel.size.cy, CX_ACTUAL(cel.size.cx));
 
-    // Now "squish" the palette (and modify the data) so all the used colors are at the beginning.
     RGBQUAD newPaletteColors[256];
-    int usedColors = SquishPalette(&buffer[0], buffer.size(), palette, newPaletteColors);
-
-    Bitmap bitmap(cel.size.cx, cel.size.cy, CX_ACTUAL(cel.size.cx), PixelFormat8bppIndexed, &buffer[0]);
-    ColorPalette *pcp = (ColorPalette*)malloc(sizeof(ColorPalette) + usedColors * 4);
-    pcp->Count = usedColors;
-    pcp->Flags = 0;
-    for (int i = 0; i < usedColors; i++)
+    int usedColors = 256;
+    if (squishPalette)
     {
-        RGBQUAD rgb = newPaletteColors[i];
-        ARGB argb = (rgb.rgbRed << RED_SHIFT) | (rgb.rgbGreen << GREEN_SHIFT) | (rgb.rgbBlue << BLUE_SHIFT);
-        pcp->Entries[i] = argb;
+        // Now "squish" the palette (and modify the data) so all the used colors are at the beginning.
+        usedColors = SquishPalette(&buffer[0], buffer.size(), palette, newPaletteColors);
     }
-    bitmap.SetPalette(pcp);
-    free(pcp);
+    else
+    {
+        memcpy(newPaletteColors, palette.Colors, sizeof(newPaletteColors));
+    }
+
+    // Allocate the bitmap. We can't just give it a pointer to the buffer, because we'd need to keep that buffer
+    // alive during the lifetime of the Bitmap. So we'll need to copy again!
+    std::unique_ptr<Bitmap> bitmap = std::make_unique<Bitmap>(cel.size.cx, cel.size.cy, PixelFormat8bppIndexed);
+    Gdiplus::Rect rect(0, 0, cel.size.cx, cel.size.cy);
+    Gdiplus::BitmapData bitmapData;
+    if (Ok == bitmap->LockBits(&rect, ImageLockModeRead | ImageLockModeWrite, PixelFormat8bppIndexed, &bitmapData))
+    {
+        memcpy(bitmapData.Scan0, &buffer[0], PaddedSize(cel.size));
+
+        ColorPalette *pcp = (ColorPalette*)malloc(sizeof(ColorPalette) + usedColors * 4);
+        pcp->Count = usedColors;
+        pcp->Flags = 0;
+        for (int i = 0; i < usedColors; i++)
+        {
+            RGBQUAD rgb = newPaletteColors[i];
+            ARGB argb = (rgb.rgbRed << RED_SHIFT) | (rgb.rgbGreen << GREEN_SHIFT) | (rgb.rgbBlue << BLUE_SHIFT) | (0xff << ALPHA_SHIFT);
+            pcp->Entries[i] = argb;
+        }
+        bitmap->SetPalette(pcp);
+        free(pcp);
+
+        bitmap->UnlockBits(&bitmapData);
+    }
+
+
+    return bitmap;
+}
+
+// TODO: mark unused colors and squash the bits
+bool Save8BitBmpGdiP(const char *filename, const Cel &cel, const PaletteComponent &palette)
+{
+    std::unique_ptr<Bitmap> bitmap = CelAndPaletteToBitmap(cel, palette, true);
 
     // Find the encoder we want
     const char *extension = PathFindExtension(filename);
@@ -115,7 +142,7 @@ bool Save8BitBmpGdiP(const char *filename, const Cel &cel, const PaletteComponen
     int a = lstrlenA(filename);
     BSTR unicodestr = SysAllocStringLen(nullptr, a);
     MultiByteToWideChar(CP_ACP, 0, filename, a, unicodestr, a);
-    bitmap.Save(unicodestr, &encoderClsid, nullptr);
+    bitmap->Save(unicodestr, &encoderClsid, nullptr);
     //... when done, free the BSTR
     SysFreeString(unicodestr);
 
