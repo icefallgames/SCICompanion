@@ -249,6 +249,21 @@
 (define sndGLOBAL_REVERB 19)
 (define sndUPDATE 20)
 
+(define audWPLAY 1)
+(define audPLAY 2)
+(define audSTOP 3)
+(define audPAUSE 4)
+(define audRESUME 5)
+(define audPOSITION 6)
+(define audRATE 7)
+(define audVOLUME 8)
+(define audLANGUAGE 9)
+(define audCD 10)
+
+(define syncSTART 0)
+(define syncNEXT 1)
+(define syncSTOP 2)
+
 (define fiOPEN 0)
 (define fiCLOSE 1)
 (define fiREAD 2)
