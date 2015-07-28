@@ -11,7 +11,6 @@
 #include "ImageUtil.h"
 #include "CustomMessageBox.h"
 #include "BitmapToVGADialog.h"
-volatile BOOL g_fDitherImages2 = FALSE;
 
 // A sort of workaround
 CHintWithObject<CelIndex> WrapRasterChange(RasterChange change) { return CHintWithObject<CelIndex>(static_cast<uint32_t>(change.hint), change.index); }
@@ -592,66 +591,13 @@ void CNewRasterResourceDocument::_InsertFiles(const vector<string> &files)
     _nCel = 0;
 }
 
-
-#define MULTISELECT_BUFFERLENGTH 4096
-
-class CDitherFileDialog : public CFileDialog
-{
-public:
-    CDitherFileDialog(int fDither) : CFileDialog(TRUE, nullptr, nullptr,
-        fDither ? OFN_ENABLESIZING | OFN_EXPLORER | OFN_ALLOWMULTISELECT | OFN_READONLY | OFN_NOCHANGEDIR
-        : OFN_ENABLESIZING | OFN_EXPLORER | OFN_ALLOWMULTISELECT | OFN_NOCHANGEDIR,
-        g_szGdiplusFilter,
-        nullptr,
-        0,
-        false)
-    {
-        _pszOldBuffer = GetOFN().lpstrFile;
-        GetOFN().nMaxFile = MULTISELECT_BUFFERLENGTH;
-        GetOFN().lpstrFile = new TCHAR[MULTISELECT_BUFFERLENGTH];
-        *GetOFN().lpstrFile = 0;
-        _fDither = fDither;
-    }
-
-    ~CDitherFileDialog()
-    {
-        delete[] GetOFN().lpstrFile;
-        GetOFN().lpstrFile = _pszOldBuffer;
-    }
-
-    BOOL GetDither()
-    {
-        return _fDither;
-    }
-
-protected:
-    void OnInitDone()
-    {
-        __super::OnInitDone();
-        this->GetParent()->SetDlgItemText(chx1, TEXT("Dither images"));
-    }
-
-    BOOL OnFileNameOK()
-    {
-        // Get the state of the checkbox (OFN_READONLY doesn't work when multi-select)
-        HWND hwndCheck = GetParent()->GetDlgItem(chx1)->GetSafeHwnd();
-        _fDither = (::SendMessage(hwndCheck, BM_GETCHECK, 0, 0) == BST_CHECKED);
-        return __super::OnFileNameOK();
-    }
-
-private:
-    TCHAR *_pszOldBuffer;
-    BOOL _fDither;
-};
-
 void CNewRasterResourceDocument::OnImportImageSequence()
 {
     // Create a file dialog.
-    CDitherFileDialog fileDialog(g_fDitherImages2);
+    CFileDialog fileDialog(TRUE, nullptr, nullptr, OFN_ENABLESIZING | OFN_EXPLORER | OFN_ALLOWMULTISELECT | OFN_NOCHANGEDIR);
     fileDialog.m_ofn.lpstrTitle = TEXT("Import image sequence");
     if (IDOK == fileDialog.DoModal())
     {
-        g_fDitherImages2 = fileDialog.GetDither();
         vector<string> fileList;
         POSITION pos = fileDialog.GetStartPosition();
         while (pos != nullptr)

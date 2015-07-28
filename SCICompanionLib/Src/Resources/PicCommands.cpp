@@ -962,7 +962,8 @@ bool CreatePatternBitmap(CBitmap &bitmapOut, uint8_t patternSize, uint8_t patter
         rectangle);
 
     // Ok, it should be in there. Now convert from 8bpp to 1bpp
-    size_t bitDataSize = CX_ACTUAL_MONO(actualSize) * actualSize;
+    size_t bitDataWidth = max(CX_ACTUAL_MONO(actualSize), 2);
+    size_t bitDataSize = bitDataWidth * actualSize;
     std::unique_ptr<uint8_t[]> bitBuffer = std::make_unique<uint8_t[]>(bitDataSize);
     memset(bitBuffer.get(), 0, bitDataSize);
     uint8_t *destRaw = bitBuffer.get();
@@ -977,7 +978,7 @@ bool CreatePatternBitmap(CBitmap &bitmapOut, uint8_t patternSize, uint8_t patter
                 destRaw[x / 8] |= (0x80) >> (x % 8);
             }
         }
-        destRaw += CX_ACTUAL_MONO(actualSize);
+        destRaw += bitDataWidth;
         //srcRaw += CX_ACTUAL(actualSize);
         srcRaw += actualSize;
     }

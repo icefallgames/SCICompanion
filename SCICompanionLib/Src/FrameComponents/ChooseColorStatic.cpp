@@ -698,10 +698,9 @@ void CChooseBrushStatic::_DrawItem(CDC *pDC, int cx, int cy)
     // Fill in the background
     pDC->FillSolidRect(0, 0, cx, cy, g_PaintManager->GetColor(COLOR_BTNFACE));
 
-    _DrawSelection(pDC);
-
     // Create a bitmap large enough for one brush.
     EGACOLOR color = { 0x00, 0x00 }; // Black
+    _DrawSelection(pDC);
 
     BYTE dataBrush[PATTERN_BMP_SIZE];
     // Fake a PicData to draw into, with a visual brush.
@@ -731,7 +730,8 @@ void CChooseBrushStatic::_DrawItem(CDC *pDC, int cx, int cy)
         
         SCIBitmapInfo bmi(PATTERN_PAINT_SIZE, PATTERN_PAINT_SIZE);
         // Adjust the colors a little for the current scheme...
-        bmi._colors[0xe] = RGBQUADFromCOLORREF(g_PaintManager->GetColor(COLOR_BTNFACE));
+        COLORREF bgColor = (bPaletteIndex == _bSelectedColorIndex) ? RGB(255, 255, 255) : (g_PaintManager->GetColor(COLOR_BTNFACE));
+        bmi._colors[0xe] = RGBQUADFromCOLORREF(bgColor);
 #pragma warning(suppress: 6386)
         bmi._colors[-1] = RGBQUADFromCOLORREF(g_PaintManager->GetColor(COLOR_BTNTEXT)); // REVIEW: Not sure why I'm using -1
         StretchDIBits((HDC)*pDC, rectSquare.left, rectSquare.top, RECTWIDTH(rectSquare), RECTHEIGHT(rectSquare),
