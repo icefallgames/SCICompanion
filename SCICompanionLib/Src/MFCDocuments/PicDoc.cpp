@@ -283,8 +283,8 @@ INT_PTR _PrevPicPos(INT_PTR iPos, INT_PTR delta)
 void CPicDoc::InsertCommand(PicCommand *pCommand)
 {
     _CloneCurrentAndAdd();
-    ::InsertCommands(*_GetPic(), _pdm.GetPos(), 1, pCommand);
-    SeekToPos(_NextPicPos(_pdm.GetPos(), 1), false);
+    ptrdiff_t delta = ::InsertCommands(*_GetPic(), _pdm.GetPos(), 1, pCommand);
+    SeekToPos(_NextPicPos(_pdm.GetPos(), delta), false);
     _pdm.Invalidate();
     _NotifyNewResource(PicChangeHint::EditPicInvalid | PicChangeHint::EditPicPos);
     SetModifiedFlag(TRUE);

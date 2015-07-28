@@ -11,7 +11,7 @@ bool IsSame(const PicComponent &pic, const PicComponent *pPic);
 HBITMAP GetPicBitmap(PicScreen screen, const PicComponent &pic, const PaletteComponent *palette, int cx, int cy, SCIBitmapInfo *pbmi = nullptr, uint8_t **pBitsDest = nullptr);
 
 // Insert/remove commands from pic
-void InsertCommands(PicComponent &pic, ptrdiff_t iStart, size_t cCount, PicCommand *pCommands);
+ptrdiff_t InsertCommands(PicComponent &pic, ptrdiff_t iStart, size_t cCount, PicCommand *pCommands);
 void RemoveCommand(PicComponent &pic, ptrdiff_t iCommandIndex);
 void RemoveCommandRange(PicComponent &pic, ptrdiff_t iStart, ptrdiff_t iEnd);
 HRESULT CopyRangeToClipboard(const PicComponent &pic, ptrdiff_t iStart, ptrdiff_t iEnd);

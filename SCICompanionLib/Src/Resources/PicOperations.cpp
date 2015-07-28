@@ -155,6 +155,18 @@ SCIBitmapInfoEx::SCIBitmapInfoEx(int cx, int cy)
     }
 }
 
+bool _IsSet(PicCommand *pCommand)
+{
+    switch (pCommand->type)
+    {
+        case PicCommand::SetVisual:
+        case PicCommand::SetPriority:
+        case PicCommand::SetControl:
+            return true;
+    }
+    return false;
+}
+
 BOOL _GetOppositeCommandType(PicCommand *pCommand, PicCommand::CommandType *pType)
 {
     BOOL fRet = FALSE;
@@ -188,7 +200,7 @@ BOOL _GetOppositeCommandType(PicCommand *pCommand, PicCommand::CommandType *pTyp
     return fRet;
 }
 
-void InsertCommands(PicComponent &pic, ptrdiff_t iStart, size_t cCount, PicCommand *pCommands)
+ptrdiff_t InsertCommands(PicComponent &pic, ptrdiff_t iStart, size_t cCount, PicCommand *pCommands)
 {
     if (iStart == -1)
     {
@@ -207,10 +219,19 @@ void InsertCommands(PicComponent &pic, ptrdiff_t iStart, size_t cCount, PicComma
     {
         // delete instead.
         RemoveCommand(pic, iStart - 1);
+        ptrdiff_t delta = -1;
+        if (_IsSet(pCommands))
+        {
+            // If this is a set though, we do need to insert, not just delete the prev.
+            _InsertCommands(pic, iStart - 1, cCount, pCommands);
+            delta++;
+        }
+        return delta;
     }
     else
     {
         _InsertCommands(pic, iStart, cCount, pCommands);
+        return cCount;
     }
 }
 
