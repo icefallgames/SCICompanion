@@ -16,11 +16,25 @@ using namespace Gdiplus;
 
 #define FROMCLIPBOARD_TIMER 2345
 
+const int MaxPaletteColors = 256;
+
 int g_iScaleImageVGA = 0;   // Don't scale by default
 
 // The end result of this dialog is image data (a Cel) and possibly a palette
 
-CBitmapToVGADialog::CBitmapToVGADialog(std::unique_ptr<Gdiplus::Bitmap> existingBitmap, const Cel *currentBackgroundOptional, const PaletteComponent *targetPalette, bool allowInsertAtCurrentPosition, size16 picDimensions, uint8_t defaultTransparentColor, PaletteAlgorithm defaultAlgorithm, DefaultPaletteUsage defaultColorUsage, const char *pszTitle, CWnd* pParent /*=nullptr*/)
+CBitmapToVGADialog::CBitmapToVGADialog(
+        std::unique_ptr<Gdiplus::Bitmap> existingBitmap,
+        const Cel *currentBackgroundOptional,
+        const PaletteComponent *targetPalette,
+        bool fixedPalette,
+        int colorCount,
+        bool allowInsertAtCurrentPosition,
+        size16 picDimensions,
+        uint8_t defaultTransparentColor,
+        PaletteAlgorithm defaultAlgorithm,
+        DefaultPaletteUsage defaultColorUsage,
+        const char *pszTitle,
+        CWnd* pParent /*=nullptr*/)
     : CExtNCW<CExtResizableDialog>(CBitmapToVGADialog::IDD, pParent),
     PrepareBitmapBase(-1, IDC_STATICORIG, picDimensions),
     _currentBackgroundOptional(currentBackgroundOptional),
@@ -29,41 +43,54 @@ CBitmapToVGADialog::CBitmapToVGADialog(std::unique_ptr<Gdiplus::Bitmap> existing
     _paletteAlgorithm(defaultAlgorithm),
     _defaultColorUsage(defaultColorUsage),
     _pszTitle(pszTitle),
-    _manuallyModifiedColors(false)
+    _manuallyModifiedColors(false),
+    _fixedPalette(fixedPalette),
+    _paletteSize(colorCount)
 {
     _alphaThreshold = 128;
     _allowInsertAtCurrentPosition = allowInsertAtCurrentPosition;
     _needsUpdate = true;
     _insertAtCurrentPosition = 0;
 
-    const PaletteComponent *globalPalette = appState->GetResourceMap().GetPalette999();
-    _numUnusedPaletteEntriesInGlobalPalette = 256;
-    if (globalPalette)
+    if (fixedPalette)
     {
+        assert(_paletteAlgorithm != PaletteAlgorithm::Quantize);
         _numUnusedPaletteEntriesInGlobalPalette = 0;
-        _globalPalette = make_unique<PaletteComponent>(*globalPalette);
-        for (int i = 0; i < 256; i++)
+        assert(targetPalette && "Fixed palette must provide a palette");
+        _globalPalette = make_unique<PaletteComponent>(*targetPalette);
+    }
+    else
+    {
+        assert(_paletteSize == 256);
+        const PaletteComponent *globalPalette = appState->GetResourceMap().GetPalette999();
+        _numUnusedPaletteEntriesInGlobalPalette = 256;
+        if (globalPalette)
         {
-            if (_globalPalette->Colors[i].rgbReserved == 0x0)
+            _numUnusedPaletteEntriesInGlobalPalette = 0;
+            _globalPalette = make_unique<PaletteComponent>(*globalPalette);
+            for (int i = 0; i < 256; i++)
             {
-                _numUnusedPaletteEntriesInGlobalPalette++;
-            }
-        }
-
-        if (_numUnusedPaletteEntriesInGlobalPalette == 0)
-        {
-            // Some games (SQ4) don't have any entries marked "unused" in the global palette.
-            // There are no great options here (other than allowing the user to specify a range)
-            // So instead we'll try to detect which ones are unused by seeing which ones are black.
-            // Assume 0 and 255 are used.
-            for (int i = 1; i < 255; i++)
-            {
-                RGBQUAD color = _globalPalette->Colors[i];
-                if ((color.rgbBlue == 0) && (color.rgbRed == 0) && (color.rgbGreen == 0))
+                if (_globalPalette->Colors[i].rgbReserved == 0x0)
                 {
-                    // Officially mark it as unused.
-                    _globalPalette->Colors[i].rgbReserved = 0x0;
                     _numUnusedPaletteEntriesInGlobalPalette++;
+                }
+            }
+
+            if (_numUnusedPaletteEntriesInGlobalPalette == 0)
+            {
+                // Some games (SQ4) don't have any entries marked "unused" in the global palette.
+                // There are no great options here (other than allowing the user to specify a range)
+                // So instead we'll try to detect which ones are unused by seeing which ones are black.
+                // Assume 0 and 255 are used.
+                for (int i = 1; i < 255; i++)
+                {
+                    RGBQUAD color = _globalPalette->Colors[i];
+                    if ((color.rgbBlue == 0) && (color.rgbRed == 0) && (color.rgbGreen == 0))
+                    {
+                        // Officially mark it as unused.
+                        _globalPalette->Colors[i].rgbReserved = 0x0;
+                        _numUnusedPaletteEntriesInGlobalPalette++;
+                    }
                 }
             }
         }
@@ -137,7 +164,9 @@ void CBitmapToVGADialog::DoDataExchange(CDataExchange* pDX)
 
     if (!_fInitializedControls)
     {
-        // Necessary for prof-uis
+        
+        DDX_Control(pDX, IDC_STATICARROW, m_wndRightArrow);
+
         DDX_Control(pDX, IDC_SLIDERBRIGHTNESS, m_wndSlider2);
         m_wndSlider2.SetStyle(CExtSliderWnd::e_style_t::ES_PROFUIS);
         DDX_Control(pDX, IDC_SLIDERCONTRAST, m_wndSlider3);
@@ -203,6 +232,12 @@ void CBitmapToVGADialog::DoDataExchange(CDataExchange* pDX)
             m_wndCheck1.ShowWindow(SW_HIDE);        // Scale
             m_wndCheckOverlay.ShowWindow(SW_HIDE);
         }
+
+        if (_fixedPalette)
+        {
+            // Hide the first algorithm (generate palette)
+            m_wndRadio1.ShowWindow(SW_HIDE);
+        }
     }
 
     if (_defaultColorUsage == DefaultPaletteUsage::UnusedColors)
@@ -211,7 +246,7 @@ void CBitmapToVGADialog::DoDataExchange(CDataExchange* pDX)
     }
     else
     {
-        m_wndCheckGlobalPalette.SetWindowTextA(format("Use {0} global palette entries", (256 - _numUnusedPaletteEntriesInGlobalPalette)).c_str());
+        m_wndCheckGlobalPalette.SetWindowTextA(format("Use {0} global palette entries", (_paletteSize - _numUnusedPaletteEntriesInGlobalPalette)).c_str());
     }
 
     DDX_Control(pDX, IDC_EDITSTATUS, m_wndEditStatus);
@@ -267,7 +302,7 @@ void CBitmapToVGADialog::DoDataExchange(CDataExchange* pDX)
 
 void CBitmapToVGADialog::_SetAvailableColorsFromGlobalPalette()
 {
-    bool available[256];
+    bool available[MaxPaletteColors];
     for (int i = 0; i < ARRAYSIZE(available); i++)
     {
         bool temp = _globalPalette->Colors[i].rgbReserved == 0;
@@ -285,16 +320,16 @@ void _FlipImageData(Cel &cel)
     FlipImageData(&cel.Data[0], cel.size.cx, cel.size.cy, CX_ACTUAL(cel.size.cx));
 }
 
-std::unique_ptr<PaletteComponent> _RemapImagePalette(uint8_t *data, int cx, int cy, const PaletteComponent &imagePalette, const PaletteComponent &globalPalette)
+std::unique_ptr<PaletteComponent> _RemapImagePalette(uint8_t *data, int cx, int cy, const PaletteComponent &imagePalette, const PaletteComponent &globalPalette, int paletteSize)
 {
     // Start off with a copy of global palette.
     std::unique_ptr<PaletteComponent> newPalette = make_unique<PaletteComponent>(globalPalette);
 
     // global palette will have "holes" in it. We will fill those holes with the values from image palette
-    uint8_t remapOldToNew[256];
+    uint8_t remapOldToNew[MaxPaletteColors];
     int imagePaletteIndex = 0;
     int globalPaletteIndex = 0;
-    while (globalPaletteIndex < 256)
+    while (globalPaletteIndex < paletteSize)
     {
         if (globalPalette.Colors[globalPaletteIndex].rgbReserved == 0x0)
         {
@@ -316,7 +351,7 @@ std::unique_ptr<PaletteComponent> _RemapImagePalette(uint8_t *data, int cx, int 
     // dealing with uninitialized data
     // This is a problem, of course, if the imported image has more palette entries than there are
     // free ones, but we should have already warned the user about that.
-    for (int i = imagePaletteIndex; i < 256; i++)
+    for (int i = imagePaletteIndex; i < ARRAYSIZE(remapOldToNew); i++)
     {
         remapOldToNew[i] = 0;
     }
@@ -417,7 +452,7 @@ PaletteComponent _CreatePaletteWithFreeSlots(const PaletteComponent *source, CCh
 {
     PaletteComponent palette;
     palette = *source;
-    bool selection[256];
+    bool selection[MaxPaletteColors];
     wndPalette.GetMultipleSelection(selection);
     for (int i = 0; i < ARRAYSIZE(selection); i++)
     {
@@ -476,6 +511,7 @@ void CBitmapToVGADialog::_Update()
         {
             if (_pbmpCurrent)
             {
+                assert(!_fixedPalette);
                 // Generate a palette
                 // We can use _pbmpCurrent, the scaled, modified whatever.
                 UINT cx = _pbmpCurrent->GetWidth();
@@ -535,17 +571,17 @@ void CBitmapToVGADialog::_Update()
                 temp->size = size16((uint16_t)cx, (uint16_t)cy);
                 temp->Data.allocate(PaddedSize(temp->size));
 
-                bool usableColors[256];
+                bool usableColors[MaxPaletteColors];
                 m_wndPalette.GetMultipleSelection(usableColors);
-                RGBQUAD targetColors[256];
+                RGBQUAD targetColors[MaxPaletteColors];
                 // rgbReserved must be 0x1 where there are usable colors and 0x0 elsewhere.
-                for (int i = 0; i < 256; i++)
+                for (int i = 0; i < _paletteSize; i++)
                 {
                     targetColors[i] = _targetCurrentPalette->Colors[i];
                     targetColors[i].rgbReserved = usableColors[i] ? 0x1 : 0x0;
                 }
 
-                RGBToPalettized(&temp->Data[0], imageData.get(), cx, cy, performDither, 256, _targetCurrentPalette->Mapping, targetColors, _transparentColor);
+                RGBToPalettized(&temp->Data[0], imageData.get(), cx, cy, performDither, _paletteSize, _targetCurrentPalette->Mapping, targetColors, _transparentColor);
 
                 _finalResult = move(temp);
                 _finalResultPalette = make_unique<PaletteComponent>(*_targetCurrentPalette);
@@ -564,7 +600,7 @@ void CBitmapToVGADialog::_Update()
                 _finalResult = make_unique<Cel>(tempCels[0]);
                 if ((_honorGlobalPalette != BST_UNCHECKED) && _globalPalette)
                 {
-                    _finalResultPalette = _RemapImagePalette(&_finalResult->Data[0], tempCels[0].size.cx, tempCels[0].size.cy, *_originalPalette, referencePalette);
+                    _finalResultPalette = _RemapImagePalette(&_finalResult->Data[0], tempCels[0].size.cx, tempCels[0].size.cy, *_originalPalette, referencePalette, _paletteSize);
                 }
                 else
                 {
@@ -599,12 +635,12 @@ void CBitmapToVGADialog::_Update()
     if (_originalPalette)
     {
         std::string text = format("Embedded palette has {0} entries.", _numberOfPaletteEntries);
-        int numEntriesToUse = (_defaultColorUsage == DefaultPaletteUsage::UsedColors) ? (256 - _numUnusedPaletteEntriesInGlobalPalette) : _numUnusedPaletteEntriesInGlobalPalette;
+        int numEntriesToUse = (_defaultColorUsage == DefaultPaletteUsage::UsedColors) ? (_paletteSize - _numUnusedPaletteEntriesInGlobalPalette) : _numUnusedPaletteEntriesInGlobalPalette;
         if (_numberOfPaletteEntries > numEntriesToUse)
         {
             if (_defaultColorUsage == DefaultPaletteUsage::UsedColors)
             {
-                text += format(" Global palette has only {0} main entries!", (256 - _numUnusedPaletteEntriesInGlobalPalette));
+                text += format(" Global palette has only {0} main entries!", (_paletteSize - _numUnusedPaletteEntriesInGlobalPalette));
             }
             else
             {
@@ -702,7 +738,7 @@ void CBitmapToVGADialog::_PushPaletteSelection()
     }
     else if (_honorGlobalPalette == BST_UNCHECKED)
     {
-        bool selectAll[256];
+        bool selectAll[MaxPaletteColors];
         std::fill_n(selectAll, ARRAYSIZE(selectAll), true);
         m_wndPalette.SetSelection(selectAll);
     }
@@ -713,7 +749,9 @@ void CBitmapToVGADialog::_UpdatePalette()
 {
     if (_finalResultPalette)
     {
-        m_wndPalette.SetPalette(16, 16, reinterpret_cast<const EGACOLOR *>(_finalResultPalette->Mapping), 256, _finalResultPalette->Colors, false);
+        int rows = max(1, (int)sqrt(_paletteSize));
+        int columns = _paletteSize / rows;
+        m_wndPalette.SetPalette(rows, columns, reinterpret_cast<const EGACOLOR *>(_finalResultPalette->Mapping), _paletteSize, _finalResultPalette->Colors, false);
         m_wndPalette.ShowWindow(SW_SHOW);
         _PushPaletteSelection();
         m_wndPalette.Invalidate(FALSE);

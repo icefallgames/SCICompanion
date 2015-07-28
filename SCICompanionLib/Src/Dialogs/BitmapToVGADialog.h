@@ -22,7 +22,19 @@ enum class DefaultPaletteUsage
 class CBitmapToVGADialog : public CExtNCW<CExtResizableDialog>, public PrepareBitmapBase, public IColorDialogCallback
 {
 public:
-    CBitmapToVGADialog(std::unique_ptr<Gdiplus::Bitmap> existingBitmap, const Cel *currentBackgroundOptional, const PaletteComponent *targetPalette, bool allowInsertAtCurrentPosition, size16 picDimensions, uint8_t defaultTransparentColor, PaletteAlgorithm defaultAlgorithm, DefaultPaletteUsage defaultColorUsage, const char *pszTitle = nullptr, CWnd* pParent = NULL);   // standard constructor
+    CBitmapToVGADialog(
+        std::unique_ptr<Gdiplus::Bitmap> existingBitmap,
+        const Cel *currentBackgroundOptional,
+        const PaletteComponent *targetPalette,
+        bool fixedPalette,
+        int colorCount,
+        bool allowInsertAtCurrentPosition,
+        size16 picDimensions,
+        uint8_t defaultTransparentColor,
+        PaletteAlgorithm defaultAlgorithm,
+        DefaultPaletteUsage defaultColorUsage,
+        const char *pszTitle = nullptr,
+        CWnd* pParent = NULL);   // standard constructor
     virtual ~CBitmapToVGADialog();
 
     // Dialog Data
@@ -86,6 +98,7 @@ private:
     const char *_pszTitle;
     CExtCheckBox m_wndCheckGlobalPalette;
     CExtCheckBox m_wndCheckOverlay;
+    CExtLabel m_wndRightArrow;
 
     CExtGroupBox m_wndGroup3;
     CExtEdit m_wndEditTransparentColor;
@@ -120,6 +133,9 @@ private:
     const Cel *_currentBackgroundOptional;
 
     std::unique_ptr<Gdiplus::Bitmap> _existingBitmap;
+
+    bool _fixedPalette;
+    int _paletteSize;
 
     afx_msg void OnScaleClicked();
     afx_msg void OnBnClickedRadio2();

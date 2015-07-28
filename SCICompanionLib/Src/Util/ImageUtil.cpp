@@ -526,116 +526,8 @@ uint8_t _FindBestPaletteIndexMatch(uint8_t transparentColor, RGBQUAD desiredColo
     return (uint8_t)bestIndex;
 }
 
-
-int g_dummyTrack[256];
-
-void ConvertBitmapToCel(int *trackUsage, Gdiplus::Bitmap &bitmap, uint8_t transparentColor, bool isEGA16, bool performDither, bool performAlphaDither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *colors, std::vector<Cel> &cels)
+void ConvertCelToNewPalette(Cel &cel, const PaletteComponent &currentPalette, uint8_t transparentColor, bool egaDither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *colors)
 {
-    bool write = (trackUsage == nullptr);
-    if (trackUsage)
-    {
-        performDither = false;
-    }
-    else
-    {
-        trackUsage = g_dummyTrack;
-    }
-
-    uint16_t width = (uint16_t)bitmap.GetWidth();
-    uint16_t height = (uint16_t)bitmap.GetHeight();
-
-    // Clamp size to allowed values.
-    width = min(320, width);
-    width = max(1, width);
-    height = min(190, height);
-    height = max(1, height);
-
-    Cel celDummy;
-    UINT count = bitmap.GetFrameDimensionsCount();
-    std::unique_ptr<GUID[]> dimensionIds = std::make_unique<GUID[]>(count);
-    bitmap.GetFrameDimensionsList(dimensionIds.get(), count);
-    UINT frameCount = bitmap.GetFrameCount(&dimensionIds.get()[0]);
-    for (UINT frame = 0; frame < frameCount; frame++)
-    {
-        GUID guid = FrameDimensionTime;
-        bitmap.SelectActiveFrame(&guid, frame);
-
-        if (write)
-        {
-            cels.emplace_back();
-        }
-        Cel &cel = write ? cels.back() : celDummy;
-        cel.size = size16(width, height);
-        cel.TransparentColor = transparentColor;
-        cel.Data.allocate(CX_ACTUAL(width)* height);
-
-        Dither<RGBQUAD> dither(width, height);
-        Dither<uint8_t> alphaDither(width, height);
-
-        for (int y = 0; y < height; y++)
-        {
-            uint8_t *pBitsRow = &cel.Data[0] + ((height - y - 1) * CX_ACTUAL(width));
-            for (int x = 0; x < width; x++)
-            {
-                uint8_t dummy;
-                uint8_t *valuePointer = write ? (pBitsRow + x) : &dummy;
-                Color color;
-                if (Ok == bitmap.GetPixel(x, y, &color))
-                {
-                    uint8_t origAlpha = color.GetA();
-                    uint8_t adjustedAlpha = alphaDither.ApplyErrorAt(origAlpha, x, y);
-                    bool isTransparent = adjustedAlpha < AlphaThreshold;
-                    if (isTransparent)
-                    {
-                        *valuePointer = transparentColor;
-                    }
-                    else
-                    {
-                        // find closest match.
-                        if (isEGA16)
-                        {
-                            // Special-case ega, because we can do dithering
-                            EGACOLOR curColor = GetClosestEGAColor(1, performDither ? 3 : 2, color.ToCOLORREF());
-                            *valuePointer = ((x^y) & 1) ? curColor.color1 : curColor.color2;
-                            trackUsage[curColor.color1]++;
-                        }
-                        else
-                        {
-                            RGBQUAD rgb = { color.GetB(), color.GetG(), color.GetR(), 0 };
-                            rgb = dither.ApplyErrorAt(rgb, x, y);
-                            uint8_t bestMatch = _FindBestPaletteIndexMatch(transparentColor, rgb, colorCount, paletteMapping, colors);
-                            trackUsage[bestMatch]++;
-                            *valuePointer = bestMatch;
-
-                            if (performDither)
-                            {
-                                dither.PropagateError(rgb, colors[bestMatch], x, y);
-                            }
-                        }
-                    }
-
-                    if (performAlphaDither)
-                    {
-                        uint8_t usedAlpha = isTransparent ? 0 : 255;
-                        alphaDither.PropagateError(origAlpha, usedAlpha, x, y);
-                    }
-                }
-            }
-        }
-    }
-}
-
-void ConvertCelToNewPalette(int *trackUsage, Cel &cel, const PaletteComponent &currentPalette, uint8_t transparentColor, bool isEGA16, bool egaDither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *colors)
-{
-    bool write = (trackUsage == nullptr);
-    if (trackUsage)
-    {
-        egaDither = false;
-    }
-    else
-    {
-        trackUsage = g_dummyTrack;
-    }
     int height = cel.size.cy;
     int width = cel.size.cx;
     for (int y = 0; y < height; y++)
@@ -643,9 +535,8 @@ void ConvertCelToNewPalette(int *trackUsage, Cel &cel, const PaletteComponent &c
         uint8_t *pBitsRow = &cel.Data[0] + ((height - y - 1) * CX_ACTUAL(width));
         for (int x = 0; x < width; x++)
         {
-            uint8_t dummy;
             uint8_t value = *(pBitsRow + x);
-            uint8_t *setValuePointer = write ? (pBitsRow + x) : &dummy;
+            uint8_t *setValuePointer = pBitsRow + x;
             if (value == cel.TransparentColor)
             {
                 *setValuePointer = transparentColor;
@@ -654,27 +545,13 @@ void ConvertCelToNewPalette(int *trackUsage, Cel &cel, const PaletteComponent &c
             {
                 RGBQUAD rgbExisting = currentPalette.Colors[value];
                 // find closest match.
-                if (isEGA16)
-                {
-                    // Special-case ega, because we can do dithering
-                    EGACOLOR curColor = GetClosestEGAColor(1, egaDither ? 3 : 2, RGB(rgbExisting.rgbRed, rgbExisting.rgbGreen, rgbExisting.rgbBlue));
-                    *setValuePointer = ((x^y) & 1) ? curColor.color1 : curColor.color2;
-                    trackUsage[curColor.color1]++;
-                }
-                else
-                {
-                    uint8_t bestMatch = _FindBestPaletteIndexMatch(transparentColor, rgbExisting, colorCount, paletteMapping, colors);;
-                    *setValuePointer = bestMatch;
-                    trackUsage[bestMatch]++;
-                }
+                uint8_t bestMatch = _FindBestPaletteIndexMatch(transparentColor, rgbExisting, colorCount, paletteMapping, colors);;
+                *setValuePointer = bestMatch;
             }
         }
     }
 
-    if (write)
-    {
-        cel.TransparentColor = transparentColor;
-    }
+    cel.TransparentColor = transparentColor;
 }
 
 // Turns the alpha channel into a discrete on/off channel.

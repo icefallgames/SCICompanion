@@ -3123,7 +3123,7 @@ void _RemapPaletteWorker(RasterComponent &raster, const PaletteComponent &from, 
         {
             for (Cel &cel : loop.Cels)
             {
-                ConvertCelToNewPalette(nullptr, cel, from, cel.TransparentColor, false, false, 256, to.Mapping, to.Colors);
+                ConvertCelToNewPalette(cel, from, cel.TransparentColor, false, 256, to.Mapping, to.Colors);
             }
             UpdateMirrors(raster, nLoop);
         }

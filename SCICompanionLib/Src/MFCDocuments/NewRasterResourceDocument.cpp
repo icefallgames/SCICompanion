@@ -403,34 +403,6 @@ unique_ptr<Bitmap> _DrawImageSequenceToLargeBitmap(vector<ImageSequenceItem> &it
     return bigBitmap;
 }
 
-void _FinalizeSequence(int *trackUsage, vector<Cel> &finalCels, bool optionalNewPalette, std::vector<ImageSequenceItem> &items, uint8_t transparentColor, bool isEGA16, bool dither, bool alphaDither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *colors)
-{
-    for (ImageSequenceItem &item : items)
-    {
-        if (item.Cels.empty())
-        {
-            // Convert the bitmap using the palette we have
-            ConvertBitmapToCel(trackUsage, *item.Bitmap, transparentColor, isEGA16, dither, alphaDither, colorCount, paletteMapping, colors, item.Cels);
-        }
-        else
-        {
-            if (!optionalNewPalette)
-            {
-                // Remap cels
-                for (Cel &cel : item.Cels)
-                {
-                    ConvertCelToNewPalette(trackUsage, cel, item.Palette, transparentColor, isEGA16, dither, colorCount, paletteMapping, colors);
-                }
-            }
-            // else we're good
-        }
-        if (!trackUsage)
-        {
-            finalCels.insert(finalCels.end(), item.Cels.begin(), item.Cels.end());
-        }
-    }
-}
-
 bool CNewRasterResourceDocument::_GetColors(const RasterComponent &raster, const PaletteComponent *optionalNewPalette,
     const uint8_t **paletteMapping,
     int *colorCount,
@@ -476,12 +448,24 @@ bool CNewRasterResourceDocument::_GetColors(const RasterComponent &raster, const
     return isEGA16;
 }
 
-void CNewRasterResourceDocument::_ApplyImageSequenceNew(uint8_t transparentColor, const PaletteComponent *currentPalette, std::vector<ImageSequenceItem> &items)
+void CNewRasterResourceDocument::_ApplyImageSequenceNew(uint8_t transparentColor, const PaletteComponent *currentPalette, std::vector<ImageSequenceItem> &items, bool fixedPalette, int paletteSize)
 {
     vector<CRect> bitmapRects;
     unique_ptr<Bitmap> bigBitmap = _DrawImageSequenceToLargeBitmap(items, bitmapRects);
     size16 size((uint16_t)bigBitmap->GetWidth(), (uint16_t)bigBitmap->GetHeight());
-    CBitmapToVGADialog dialog(move(bigBitmap), nullptr, currentPalette, false, size, transparentColor, PaletteAlgorithm::MatchExisting, DefaultPaletteUsage::UsedColors, "Import images");
+    CBitmapToVGADialog dialog(
+        move(bigBitmap),
+        nullptr,
+        currentPalette,
+        fixedPalette,
+        paletteSize,
+        false,
+        size,
+        transparentColor,
+        PaletteAlgorithm::MatchExisting,
+        DefaultPaletteUsage::UsedColors,
+        "Import images");
+    
     if (dialog.DoModal() == IDOK)
     {
         int nLoop = GetSelectedLoop();
@@ -489,7 +473,7 @@ void CNewRasterResourceDocument::_ApplyImageSequenceNew(uint8_t transparentColor
 
         auto finalPalette = dialog.GetFinalResultPalette();
         const PaletteComponent *optionalNewPalette = nullptr;
-        if (*finalPalette != *currentPalette)
+        if (!fixedPalette && (*finalPalette != *currentPalette))
         {
             // Only apply a palette if it changed...
             optionalNewPalette = finalPalette.get();
@@ -510,64 +494,6 @@ void CNewRasterResourceDocument::_ApplyImageSequenceNew(uint8_t transparentColor
             }
         }
             
-        ApplyChanges<RasterComponent>(
-            [nLoop, &finalCels](RasterComponent &raster)
-        {
-            RasterChange chnage = ApplyCelsToLoop(raster, nLoop, finalCels);
-            chnage.hint |= RasterChangeHint::PaletteChoice;
-            return WrapRasterChange(chnage);
-        },
-
-            // Apply the new palette if needed.
-            [optionalNewPalette](ResourceEntity &resource)
-        {
-            if (optionalNewPalette)
-            {
-                if (resource.TryGetComponent<PaletteComponent>())
-                {
-                    PaletteComponent &existingPalette = resource.GetComponent<PaletteComponent>();
-                    existingPalette = *optionalNewPalette;
-                }
-                else
-                {
-                    resource.AddComponent<PaletteComponent>(std::make_unique<PaletteComponent>(*optionalNewPalette));
-                }
-            }
-        }
-        );
-    }
-}
-
-void CNewRasterResourceDocument::_ApplyImageSequence(uint8_t transparentColor, const PaletteComponent *optionalNewPalette, std::vector<ImageSequenceItem> &items)
-{
-    bool alphaDither = false; // TODO for now.
-
-    // If optionalNewPalette isn't provided, we need to obtain the palette we're converting to.
-    // That might be:
-    //  - EGA palette
-    //  - embedded palette
-    //  - global palette
-    RasterComponent &raster = GetComponent<RasterComponent>();
-    int colorCount;
-    const RGBQUAD *colors;
-    const uint8_t *paletteMapping;
-    bool isEGA16 = _GetColors(raster, optionalNewPalette, &paletteMapping, &colorCount, &colors);
-
-    if (colors)
-    {
-        // Let's turn this into a sequence of cels before applying changes. That way the we'll just need
-        // to copy the cels to the loop
-        vector<Cel> finalCels;
-        std::unique_ptr<int[]> trackUsage = std::make_unique<int[]>(colorCount);
-        // First, do everything, but just track how often each index would be used
-        _FinalizeSequence(trackUsage.get(), finalCels, !!optionalNewPalette, items, transparentColor, isEGA16, !!g_fDitherImages2, alphaDither, colorCount, paletteMapping, colors);
-        // So that we can truly find a good transparent color
-        transparentColor = (uint8_t)(std::min_element(&trackUsage[0], &trackUsage[colorCount]) - &trackUsage[0]);
-        // Now do it for real
-        _FinalizeSequence(nullptr, finalCels, !!optionalNewPalette, items, transparentColor, isEGA16, !!g_fDitherImages2, alphaDither, colorCount, paletteMapping, colors);
-
-        int nLoop = GetSelectedLoop();
-
         ApplyChanges<RasterComponent>(
             [nLoop, &finalCels](RasterComponent &raster)
         {
@@ -646,11 +572,19 @@ void CNewRasterResourceDocument::_InsertFiles(const vector<string> &files)
         // Otherwise, we should remap everything based on RGB.
         if (!isVGA)
         {
-            _ApplyImageSequence(transparentColor, nullptr, imageSequenceItems);
+            // Prepare "fake" ega palettes.
+            PaletteComponent egaPalette;
+            int colorCount;
+            const RGBQUAD *colors;
+            const uint8_t *paletteMapping;
+            _GetColors(raster, nullptr, &paletteMapping, &colorCount, &colors);
+            memcpy(egaPalette.Mapping, paletteMapping, sizeof(*paletteMapping) * colorCount);
+            memcpy(egaPalette.Colors, colors, sizeof(*colors) * colorCount);
+            _ApplyImageSequenceNew(transparentColor, &egaPalette, imageSequenceItems, true, colorCount);
         }
         else
         {
-            _ApplyImageSequenceNew(transparentColor, GetCurrentPaletteComponent(), imageSequenceItems);
+            _ApplyImageSequenceNew(transparentColor, GetCurrentPaletteComponent(), imageSequenceItems, false, 256);
         }
     }
 

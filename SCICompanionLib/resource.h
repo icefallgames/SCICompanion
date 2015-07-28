@@ -282,6 +282,7 @@
 #define IDD_PICSIZE                     387
 #define IDI_REFRESH                     388
 #define IDD_COLOR_SHIFTER               388
+#define IDI_RIGHT_ARROW                 389
 #define IDC_CHOOSECOLORSTATIC           1001
 #define IDC_BUTTON1                     1003
 #define IDC_BUTTONDOWN                  1003
@@ -649,6 +650,7 @@
 #define IDC_EDITTINTSTRENGTH            1308
 #define IDC_BUTTONPENSTYLE              1308
 #define IDC_EDITRANGES                  1309
+#define IDC_STATICARROW                 1310
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -978,9 +980,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        389
+#define _APS_NEXT_RESOURCE_VALUE        390
 #define _APS_NEXT_COMMAND_VALUE         33260
-#define _APS_NEXT_CONTROL_VALUE         1310
+#define _APS_NEXT_CONTROL_VALUE         1311
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

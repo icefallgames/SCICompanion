@@ -1164,7 +1164,7 @@ void CPicView::OnPasteIntoPic()
             }
         }
 
-        CBitmapToVGADialog dialog(nullptr, backgroundCurrent, _GetPalette(), _GetEditPic()->Traits.AllowMultipleBitmaps, _GetEditPic()->Size, 255, PaletteAlgorithm::Quantize, DefaultPaletteUsage::UnusedColors);
+        CBitmapToVGADialog dialog(nullptr, backgroundCurrent, _GetPalette(), false, 256, _GetEditPic()->Traits.AllowMultipleBitmaps, _GetEditPic()->Size, 255, PaletteAlgorithm::Quantize, DefaultPaletteUsage::UnusedColors);
         if (IDOK == dialog.DoModal())
         {
             std::unique_ptr<Cel> result = dialog.GetFinalResult();

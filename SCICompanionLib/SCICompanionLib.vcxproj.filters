@@ -1968,5 +1968,8 @@
     <Image Include="res\refresh.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="res\RightArrow.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

@@ -164,6 +164,7 @@ IDI_DEBUGROOM           ICON                    "res\\debug_room.ico"
 IDI_STOPDEBUG           ICON                    "res\\stopdebug.ico"
 IDI_UPLOAD              ICON                    "res\\Upload.ico"
 IDI_REFRESH             ICON                    "res\\refresh.ico"
+IDI_RIGHT_ARROW         ICON                    "res\\RightArrow.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1069,7 +1070,7 @@ BEGIN
     PUSHBUTTON      "&Convert",IDC_BUTTONCONVERT,287,258,50,14
     DEFPUSHBUTTON   "&Accept",IDOK,347,258,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,406,258,50,14
-    ICON            IDI_ICONCONVERT,IDC_STATIC,222,60,20,20
+    ICON            IDI_RIGHT_ARROW,IDC_STATICARROW,222,60,20,20
     CONTROL         "",IDC_STATICORIG,"Static",SS_OWNERDRAW | SS_NOTIFY | WS_GROUP,7,7,209,125
     CONTROL         "",IDC_STATICPIC,"Static",SS_OWNERDRAW | SS_NOTIFY | WS_GROUP,243,10,213,117
 END
@@ -1459,7 +1460,7 @@ BEGIN
     DEFPUSHBUTTON   "&Accept",IDOK,347,276,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,406,276,50,14
     CONTROL         "",IDC_STATICORIG,"Static",SS_OWNERDRAW | SS_NOTIFY | WS_GROUP,7,7,209,125
-    ICON            IDI_ICONCONVERT,IDC_STATIC,222,60,20,20
+    ICON            IDI_RIGHT_ARROW,IDC_STATICARROW,222,60,20,20
     CONTROL         "",IDC_STATICPIC,"Static",SS_OWNERDRAW | SS_NOTIFY | WS_GROUP,243,10,213,117
     EDITTEXT        IDC_EDITSTATUS,7,139,449,14,ES_AUTOHSCROLL | ES_READONLY
     CONTROL         "Generate best palette",IDC_RADIO1,"Button",BS_AUTORADIOBUTTON | WS_GROUP,239,168,87,10
