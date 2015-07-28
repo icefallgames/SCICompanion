@@ -962,6 +962,7 @@ bool CreatePatternBitmap(CBitmap &bitmapOut, uint8_t patternSize, uint8_t patter
         rectangle);
 
     // Ok, it should be in there. Now convert from 8bpp to 1bpp
+    // For some reason, the mono bitmap stride must be at least 2 bytes (not 1 or 4).
     size_t bitDataWidth = max(CX_ACTUAL_MONO(actualSize), 2);
     size_t bitDataSize = bitDataWidth * actualSize;
     std::unique_ptr<uint8_t[]> bitBuffer = std::make_unique<uint8_t[]>(bitDataSize);

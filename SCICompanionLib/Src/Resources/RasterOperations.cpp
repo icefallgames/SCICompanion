@@ -739,7 +739,8 @@ RasterChange SetPlacement(RasterComponent &raster, CelIndex celIndex, int16_t x,
     else if (IsFlagSet(raster.Traits.Caps, RasterCaps::EightBitPlacement))
     {
         x = max(INT8_MIN, min(x, INT8_MAX));
-        y = max(INT8_MIN, min(y, INT8_MAX));
+        // -ve y placements are not allowed:
+        y = max(0, min(y, INT8_MAX));
     }
 
     if (IsValidLoopCel(raster, celIndex))
