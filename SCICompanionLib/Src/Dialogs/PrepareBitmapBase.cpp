@@ -112,11 +112,13 @@ void PrepareBitmapBase::_PrepareBitmapForConversion()
     }
 }
 
-
+#define SET_COLOR_A(color, a) color = (DWORD(color) & 0x00FFFFFF) | ((DWORD(a) & 0xFF) << 24)
+#define GetAValue(rgb)      (LOBYTE((rgb)>>24))
 
 void PrepareBitmapBase::_ApplySettingsToCurrentBitmap()
 {
     int nBrightness = (_nBrightness - 50) * 255 / 50; // 0 - 100  --> -255 to 255
+    double brightness = (double)(_nBrightness - 50) / 50.0f;    // 0 - 100 -> -1 to 1
 
     int nContrast = (100 - _nContrast);
     nContrast = max(1, nContrast); // avoid divide by zero
@@ -125,6 +127,8 @@ void PrepareBitmapBase::_ApplySettingsToCurrentBitmap()
     int nSat = (100 - _nSaturation);
     nSat = max(1, nSat); // avoid divide by zero
     nSat = 255 * 50 / nSat;
+    double saturation = (double)(_nSaturation - 50) / 50.0f;    // 0 - 100 -> -1 to 1
+    double hue = (double)(_hue - 50) / 50.0f;    // 0 - 100 -> -1 to 1
 
     UINT cx = _pbmpCurrent->GetWidth();
     UINT cy = _pbmpCurrent->GetHeight();
@@ -141,28 +145,13 @@ void PrepareBitmapBase::_ApplySettingsToCurrentBitmap()
             ARGB *pLine = ((COLORREF*)bitmapData.Scan0) + y * bitmapData.Width;
             for (UINT x = 0; x < cx; x++, pLine++)
             {
-                Gdiplus::Color color;
-                color.SetValue(*pLine);
-
-                int red = (int)color.GetR();
-                int blue = (int)color.GetB();
-                int green = (int)color.GetG();
-                int alpha = (int)color.GetA();
-                if (nBrightness != 0)
-                {
-                    red += nBrightness;
-                    blue += nBrightness;
-                    green += nBrightness;
-                }
-
-                red = min(255, max(red, 0));
-                blue = min(255, max(blue, 0));
-                green = min(255, max(green, 0));
-                nCCRed += red;
-                nCCGreen += green;
-                nCCBlue += blue;
-
-                *pLine = Gdiplus::Color::MakeARGB(alpha, red, green, blue);
+                COLORREF crOld = *pLine;
+                COLORREF crNew = CExtBitmap::stat_HLS_Adjust(crOld, hue, brightness, saturation);
+                SET_COLOR_A(crNew, GetAValue(crOld));
+                nCCRed += GetRValue(crNew);
+                nCCGreen += GetGValue(crNew);
+                nCCBlue += GetBValue(crNew);
+                *pLine = crNew;
             }
         }
         nCCGreen /= (cx * cy);
@@ -188,25 +177,12 @@ void PrepareBitmapBase::_ApplySettingsToCurrentBitmap()
                     blue = ((blue - nCCBlue) * nContrast / 255) + nCCBlue;
                 }
 
-                if (nSat != 255)
-                {
-                    // Take the avg of the colours
-                    int avg = (red + green + blue) / 3;
-
-                    // Everything will tend towards or away from this colour.
-                    red = ((red - avg) * nSat / 255) + avg;
-                    blue = ((blue - avg) * nSat / 255) + avg;
-                    green = ((green - avg) * nSat / 255) + avg;
-                }
-
                 red = min(255, max(red, 0));
                 blue = min(255, max(blue, 0));
                 green = min(255, max(green, 0));
                 *pLine = Gdiplus::Color::MakeARGB(alpha, red, green, blue);
             }
         }
-
-
         _pbmpCurrent->UnlockBits(&bitmapData);
     }
 }

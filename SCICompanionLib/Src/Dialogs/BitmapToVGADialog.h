@@ -77,6 +77,7 @@ private:
     CExtSliderWnd m_wndSlider2;
     CExtSliderWnd m_wndSlider3;
     CExtSliderWnd m_wndSlider4;
+    CExtSliderWnd m_wndSlider5;
     CExtButton m_wndButton2;
     CExtButton m_wndButton3;
     CExtButton m_wndButton4;
@@ -90,6 +91,7 @@ private:
     CExtLabel m_wndLabel1;
     CExtLabel m_wndLabel2;
     CExtLabel m_wndLabel3;
+    CExtLabel m_wndLabel6;
     CExtRadioButton m_wndRadio1;    // palette options
     CExtRadioButton m_wndRadio2;
     CExtRadioButton m_wndRadio3;

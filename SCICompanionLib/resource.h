@@ -402,6 +402,7 @@
 #define IDC_SLIDERCONTRAST              1100
 #define IDC_SLIDERTINTSTRENGTH          1100
 #define IDC_STATICCONVERTTO             1101
+#define IDC_SLIDERSATURATION2           1101
 #define IDC_CHECK_OPTION                1102
 #define IDC_RADIOPICPALETTE             1103
 #define IDC_CHECKIGNOREWHITE            1104

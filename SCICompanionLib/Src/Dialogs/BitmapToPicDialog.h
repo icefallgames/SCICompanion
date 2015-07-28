@@ -55,10 +55,12 @@ private:
     CExtNoFlickerStatic m_wndOrig;
 
     // just for prof-uis
+    CExtLabel m_wndRightArrow;
     CExtSliderWnd m_wndSlider1;
     CExtSliderWnd m_wndSlider2;
     CExtSliderWnd m_wndSlider3;
     CExtSliderWnd m_wndSlider4;
+    CExtSliderWnd m_wndSlider5;
     CExtButton m_wndButton1;
     CExtButton m_wndButton2;
     CExtButton m_wndButton3;
@@ -81,6 +83,7 @@ private:
     CExtLabel m_wndLabel1;
     CExtLabel m_wndLabel2;
     CExtLabel m_wndLabel3;
+    CExtLabel m_wndLabel4;
 
     CWinThread *_pThread;
     bool _fConverting;

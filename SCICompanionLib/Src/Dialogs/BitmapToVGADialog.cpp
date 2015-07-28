@@ -122,6 +122,7 @@ CBitmapToVGADialog::CBitmapToVGADialog(
     _nBrightness = 50;
     _nContrast = 50;
     _nSaturation = 50;
+    _hue = 50;
 
     _fInitializedControls = false;
 }
@@ -158,13 +159,13 @@ void CBitmapToVGADialog::DoDataExchange(CDataExchange* pDX)
     int nBrightness = _nBrightness;
     int nContrast = _nContrast;
     int nSaturation = _nSaturation;
+    int hue = _hue;
     int iScale = _iScaleImage;
 
     CExtNCW<CExtResizableDialog>::DoDataExchange(pDX);
 
     if (!_fInitializedControls)
     {
-        
         DDX_Control(pDX, IDC_STATICARROW, m_wndRightArrow);
 
         DDX_Control(pDX, IDC_SLIDERBRIGHTNESS, m_wndSlider2);
@@ -173,6 +174,8 @@ void CBitmapToVGADialog::DoDataExchange(CDataExchange* pDX)
         m_wndSlider3.SetStyle(CExtSliderWnd::e_style_t::ES_PROFUIS);
         DDX_Control(pDX, IDC_SLIDERSATURATION, m_wndSlider4);
         m_wndSlider4.SetStyle(CExtSliderWnd::e_style_t::ES_PROFUIS);
+        DDX_Control(pDX, IDC_SLIDERHUE, m_wndSlider5);
+        m_wndSlider5.SetStyle(CExtSliderWnd::e_style_t::ES_PROFUIS);
         DDX_Control(pDX, IDC_BUTTONBROWSE, m_wndButton2);
         DDX_Control(pDX, IDOK, m_wndButton3);
         DDX_Control(pDX, IDCANCEL, m_wndButton4);
@@ -185,6 +188,7 @@ void CBitmapToVGADialog::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_STATIC1, m_wndLabel1);
         DDX_Control(pDX, IDC_STATIC2, m_wndLabel2);
         DDX_Control(pDX, IDC_STATIC3, m_wndLabel3);
+        DDX_Control(pDX, IDC_STATIC4, m_wndLabel6);
         DDX_Control(pDX, IDC_RADIO1, m_wndRadio1);
         DDX_Control(pDX, IDC_RADIO2, m_wndRadio2);
         DDX_Control(pDX, IDC_RADIO3, m_wndRadio3);
@@ -276,9 +280,15 @@ void CBitmapToVGADialog::DoDataExchange(CDataExchange* pDX)
     GetDlgItem(IDC_SLIDERSATURATION)->SendMessage(TBM_SETTICFREQ, 10, 0);
     DDX_Slider(pDX, IDC_SLIDERSATURATION, _nSaturation);
 
+    GetDlgItem(IDC_SLIDERHUE)->SendMessage(TBM_SETRANGEMIN, FALSE, (LPARAM)0);
+    GetDlgItem(IDC_SLIDERHUE)->SendMessage(TBM_SETRANGEMAX, TRUE, (LPARAM)100);
+    GetDlgItem(IDC_SLIDERHUE)->SendMessage(TBM_SETTICFREQ, 10, 0);
+    DDX_Slider(pDX, IDC_SLIDERHUE, _hue);
+
     if ((_nBrightness != nBrightness) ||
         (_nContrast != nContrast) ||
         (_nSaturation != nSaturation) ||
+        (_hue != hue) ||
         (_iScaleImage != iScale))
     {
         _UpdateOrigBitmap(this);

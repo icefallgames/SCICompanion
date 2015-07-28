@@ -175,7 +175,6 @@ int GetNormalizedColorDistance(COLORREF color1, COLORREF color2)
     return (int)sqrt((double)iDistance);
 }
 
-
 //
 // Differences between two colours, using HSL and euclidian distance
 //
