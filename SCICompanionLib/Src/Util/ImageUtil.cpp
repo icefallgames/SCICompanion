@@ -506,16 +506,34 @@ bool DoPalettesMatch(const PaletteComponent &paletteA, const PaletteComponent &p
 
 const uint8_t AlphaThreshold = 128;
 
-uint8_t _FindBestPaletteIndexMatch(uint8_t transparentColor, RGBQUAD desiredColor, int colorCount, const uint8_t *mapping, const RGBQUAD *colors)
+// Compare the difference of two RGB values, weigh by CCIR 601 luminosity:
+double GetColorDistanceCCIR(RGBQUAD one, RGBQUAD two)
+{
+    int r1 = one.rgbRed;
+    int g1 = one.rgbGreen;
+    int b1 = one.rgbBlue;
+    int r2 = two.rgbRed;
+    int g2 = two.rgbGreen;
+    int b2 = two.rgbBlue;
+    double luma1 = (r1 * 299 + g1 * 587 + b1 * 114) / (255.0 * 1000);
+    double luma2 = (r2 * 299 + g2 * 587 + b2 * 114) / (255.0 * 1000);
+    double lumadiff = luma1 - luma2;
+    double diffR = (r1 - r2) / 255.0, diffG = (g1 - g2) / 255.0, diffB = (b1 - b2) / 255.0;
+    return (diffR*diffR*0.299 + diffG*diffG*0.587 + diffB*diffB*0.114)*0.75
+        + lumadiff*lumadiff;
+}
+
+template<typename _TCompare>
+uint8_t _FindBestPaletteIndexMatch(_TCompare compare, uint8_t transparentColor, RGBQUAD desiredColor, int colorCount, const uint8_t *mapping, const RGBQUAD *colors)
 {
     int bestIndex = 1;  // Just something that's not zero, so we can determine when we failed.
-    int bestDistance = INT_MAX;
+    double bestDistance = 1000000000000000.0;
     for (int i = 0; i < colorCount; i++)
     {
         RGBQUAD paletteColor = colors[mapping[i]];
         if ((i != (int)transparentColor) && (paletteColor.rgbReserved != 0x0))
         {
-            int distance = GetColorDistance(desiredColor, paletteColor);
+            double distance = compare(desiredColor, paletteColor);
             if (distance < bestDistance)
             {
                 bestIndex = i;
@@ -545,7 +563,7 @@ void ConvertCelToNewPalette(Cel &cel, const PaletteComponent &currentPalette, ui
             {
                 RGBQUAD rgbExisting = currentPalette.Colors[value];
                 // find closest match.
-                uint8_t bestMatch = _FindBestPaletteIndexMatch(transparentColor, rgbExisting, colorCount, paletteMapping, colors);;
+                uint8_t bestMatch = _FindBestPaletteIndexMatch(GetColorDistanceRGB, transparentColor, rgbExisting, colorCount, paletteMapping, colors);;
                 *setValuePointer = bestMatch;
             }
         }
@@ -601,7 +619,7 @@ std::unique_ptr<RGBQUAD[]> ConvertGdiplusToRaw(Gdiplus::Bitmap &bitmap)
 }
 
 // This assumes cutout alpha.
-void RGBToPalettized(uint8_t *sciData, const RGBQUAD *dataOrig, int cx, int cy, bool performDither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *paletteColors, uint8_t transparentColor)
+void RGBToPalettized(ColorMatching colorMatching, uint8_t *sciData, const RGBQUAD *dataOrig, int cx, int cy, bool performDither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *paletteColors, uint8_t transparentColor)
 {
     Dither<RGBQUAD> dither(cx, cy);
     for (int y = 0; y < cy; y++)
@@ -614,7 +632,10 @@ void RGBToPalettized(uint8_t *sciData, const RGBQUAD *dataOrig, int cx, int cy, 
             rgbOrig = dither.ApplyErrorAt(rgbOrig, x, y);
             if (rgbOrig.rgbReserved == 0xff)
             {
-                uint8_t bestMatch = _FindBestPaletteIndexMatch(transparentColor, rgbOrig, colorCount, paletteMapping, paletteColors);
+                uint8_t bestMatch =
+                    colorMatching == ColorMatching::RGB ?
+                    _FindBestPaletteIndexMatch(GetColorDistanceRGB, transparentColor, rgbOrig, colorCount, paletteMapping, paletteColors):
+                    _FindBestPaletteIndexMatch(GetColorDistanceCCIR, transparentColor, rgbOrig, colorCount, paletteMapping, paletteColors);
                 destRow[x] = bestMatch;
                 if (performDither)
                 {

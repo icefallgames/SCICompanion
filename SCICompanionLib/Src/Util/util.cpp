@@ -156,7 +156,7 @@ int GetColorDistance(COLORREF color1, COLORREF color2)
     return (redsq + bluesq + greensq);
 }
 
-int GetColorDistance(RGBQUAD color1, RGBQUAD color2)
+int GetColorDistanceRGB(RGBQUAD color1, RGBQUAD color2)
 {
     int redsq = (int)color1.rgbRed - (int)color2.rgbRed;
     redsq *= redsq;

@@ -1,5 +1,7 @@
 #pragma once
 
+// We use error diffusion dithering. Ordered dithering won't work with arbitrary or non-evenly spaced palettes.
+
 template <typename T>
 class dither_traits
 {
@@ -114,3 +116,4 @@ private:
     int _cxE;
     int _cyE;
 };
+

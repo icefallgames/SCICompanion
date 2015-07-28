@@ -19,6 +19,8 @@ enum class DefaultPaletteUsage
     UsedColors = 1,
 };
 
+enum class ColorMatching;
+
 class CBitmapToVGADialog : public CExtNCW<CExtResizableDialog>, public PrepareBitmapBase, public IColorDialogCallback
 {
 public:
@@ -92,6 +94,8 @@ private:
     CExtLabel m_wndLabel2;
     CExtLabel m_wndLabel3;
     CExtLabel m_wndLabel6;
+    CExtLabel m_wndLabel8;
+    CExtComboBox m_wndComboMatch;
     CExtRadioButton m_wndRadio1;    // palette options
     CExtRadioButton m_wndRadio2;
     CExtRadioButton m_wndRadio3;
@@ -139,6 +143,8 @@ private:
     bool _fixedPalette;
     int _paletteSize;
 
+    ColorMatching _colorMatching;
+
     afx_msg void OnScaleClicked();
     afx_msg void OnBnClickedRadio2();
     afx_msg void OnBnClickedCheckglobalpalette();
@@ -150,5 +156,6 @@ public:
     afx_msg void OnBnClickedButtonrefresh();
     afx_msg void OnBnClickedThatThatShouldUpdate();
     afx_msg void OnEnKillfocusEditalphathreshold();
+    afx_msg void OnCbnSelchangeCombomatch();
 };
 

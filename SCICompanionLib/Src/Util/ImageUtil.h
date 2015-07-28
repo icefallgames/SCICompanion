@@ -10,6 +10,12 @@ namespace Gdiplus
 
 char g_szGdiplus8BitSaveFilter[];
 
+enum class ColorMatching
+{
+    RGB = 0,
+    CCIR = 1,
+};
+
 CRect GetCelRect(const Cel &cel);
 bool Save8BitBmpGdiP(const char *filename, const Cel &cel, const PaletteComponent &palette);
 std::unique_ptr<Gdiplus::Bitmap> CelAndPaletteToBitmap(const Cel &cel, const PaletteComponent &palette, bool squishPalette);
@@ -25,4 +31,4 @@ bool DoPalettesMatch(const PaletteComponent &paletteA, const PaletteComponent &p
 void ConvertCelToNewPalette(Cel &cel, const PaletteComponent &currentPalette, uint8_t transparentColor, bool ditherImages, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *colors);
 void CutoutAlpha(RGBQUAD *data, int cx, int cy, bool dither, uint8_t alphaThreshold);
 std::unique_ptr<RGBQUAD[]> ConvertGdiplusToRaw(Gdiplus::Bitmap &bitmap);
-void RGBToPalettized(uint8_t *sciData, const RGBQUAD *dataOrig, int cx, int cy, bool performDither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *paletteColors, uint8_t transparentColor);
+void RGBToPalettized(ColorMatching colorMatching, uint8_t *sciData, const RGBQUAD *dataOrig, int cx, int cy, bool performDither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *paletteColors, uint8_t transparentColor);

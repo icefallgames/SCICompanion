@@ -23,18 +23,18 @@ int g_iScaleImageVGA = 0;   // Don't scale by default
 // The end result of this dialog is image data (a Cel) and possibly a palette
 
 CBitmapToVGADialog::CBitmapToVGADialog(
-        std::unique_ptr<Gdiplus::Bitmap> existingBitmap,
-        const Cel *currentBackgroundOptional,
-        const PaletteComponent *targetPalette,
-        bool fixedPalette,
-        int colorCount,
-        bool allowInsertAtCurrentPosition,
-        size16 picDimensions,
-        uint8_t defaultTransparentColor,
-        PaletteAlgorithm defaultAlgorithm,
-        DefaultPaletteUsage defaultColorUsage,
-        const char *pszTitle,
-        CWnd* pParent /*=nullptr*/)
+    std::unique_ptr<Gdiplus::Bitmap> existingBitmap,
+    const Cel *currentBackgroundOptional,
+    const PaletteComponent *targetPalette,
+    bool fixedPalette,
+    int colorCount,
+    bool allowInsertAtCurrentPosition,
+    size16 picDimensions,
+    uint8_t defaultTransparentColor,
+    PaletteAlgorithm defaultAlgorithm,
+    DefaultPaletteUsage defaultColorUsage,
+    const char *pszTitle,
+    CWnd* pParent /*=nullptr*/)
     : CExtNCW<CExtResizableDialog>(CBitmapToVGADialog::IDD, pParent),
     PrepareBitmapBase(-1, IDC_STATICORIG, picDimensions),
     _currentBackgroundOptional(currentBackgroundOptional),
@@ -45,7 +45,8 @@ CBitmapToVGADialog::CBitmapToVGADialog(
     _pszTitle(pszTitle),
     _manuallyModifiedColors(false),
     _fixedPalette(fixedPalette),
-    _paletteSize(colorCount)
+    _paletteSize(colorCount),
+    _colorMatching(ColorMatching::RGB)
 {
     _alphaThreshold = 128;
     _allowInsertAtCurrentPosition = allowInsertAtCurrentPosition;
@@ -189,6 +190,8 @@ void CBitmapToVGADialog::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_STATIC2, m_wndLabel2);
         DDX_Control(pDX, IDC_STATIC3, m_wndLabel3);
         DDX_Control(pDX, IDC_STATIC4, m_wndLabel6);
+        DDX_Control(pDX, IDC_STATIC8, m_wndLabel8);
+        DDX_Control(pDX, IDC_COMBOMATCH, m_wndComboMatch);
         DDX_Control(pDX, IDC_RADIO1, m_wndRadio1);
         DDX_Control(pDX, IDC_RADIO2, m_wndRadio2);
         DDX_Control(pDX, IDC_RADIO3, m_wndRadio3);
@@ -242,6 +245,8 @@ void CBitmapToVGADialog::DoDataExchange(CDataExchange* pDX)
             // Hide the first algorithm (generate palette)
             m_wndRadio1.ShowWindow(SW_HIDE);
         }
+
+        m_wndComboMatch.SetCurSel((int)_colorMatching);
     }
 
     if (_defaultColorUsage == DefaultPaletteUsage::UnusedColors)
@@ -550,7 +555,7 @@ void CBitmapToVGADialog::_Update()
                     if (performDither)
                     {
                         // This is expensive, and we only need to do this if we're dithering, as sciBits already contains the quantized image data.
-                        RGBToPalettized(sciBits.get(), imageData.get(), cx, cy, performDither, ARRAYSIZE(tempPalette->Colors), tempPalette->Mapping, tempPalette->Colors, _transparentColor);
+                        RGBToPalettized(_colorMatching, sciBits.get(), imageData.get(), cx, cy, performDither, ARRAYSIZE(tempPalette->Colors), tempPalette->Mapping, tempPalette->Colors, _transparentColor);
                     }
 
                     temp->Data.allocate(PaddedSize(temp->size));
@@ -591,7 +596,7 @@ void CBitmapToVGADialog::_Update()
                     targetColors[i].rgbReserved = usableColors[i] ? 0x1 : 0x0;
                 }
 
-                RGBToPalettized(&temp->Data[0], imageData.get(), cx, cy, performDither, _paletteSize, _targetCurrentPalette->Mapping, targetColors, _transparentColor);
+                RGBToPalettized(_colorMatching, &temp->Data[0], imageData.get(), cx, cy, performDither, _paletteSize, _targetCurrentPalette->Mapping, targetColors, _transparentColor);
 
                 _finalResult = move(temp);
                 _finalResultPalette = make_unique<PaletteComponent>(*_targetCurrentPalette);
@@ -700,6 +705,7 @@ BEGIN_MESSAGE_MAP(CBitmapToVGADialog, CExtNCW<CExtResizableDialog>)
     ON_BN_CLICKED(IDC_CHECKDITHER, &CBitmapToVGADialog::OnBnClickedThatThatShouldUpdate)
     ON_BN_CLICKED(IDC_CHECKDITHERALPHA, &CBitmapToVGADialog::OnBnClickedThatThatShouldUpdate)
     ON_EN_KILLFOCUS(IDC_EDITALPHATHRESHOLD, &CBitmapToVGADialog::OnEnKillfocusEditalphathreshold)
+    ON_CBN_SELCHANGE(IDC_COMBOMATCH, &CBitmapToVGADialog::OnCbnSelchangeCombomatch)
 END_MESSAGE_MAP()
 
 
@@ -897,5 +903,12 @@ void CBitmapToVGADialog::OnEnKillfocusEditalphathreshold()
     BOOL translated;
     _alphaThreshold = min(255, GetDlgItemInt(IDC_EDITALPHATHRESHOLD, &translated, FALSE));
     SetDlgItemInt(IDC_EDITALPHATHRESHOLD, _alphaThreshold, FALSE);
+    _Update();
+}
+
+
+void CBitmapToVGADialog::OnCbnSelchangeCombomatch()
+{
+    _colorMatching = (ColorMatching)m_wndComboMatch.GetCurSel();
     _Update();
 }

@@ -208,7 +208,7 @@ EGACOLOR g_egaColorChooserPalette[];
 EGACOLOR EGAColorFromByte(BYTE b);
 
 int GetColorDistance(COLORREF color1, COLORREF color2);
-int GetColorDistance(RGBQUAD color1, RGBQUAD color2);
+int GetColorDistanceRGB(RGBQUAD color1, RGBQUAD color2);
 EGACOLOR GetClosestEGAColor(int iAlgorithm, int iPalette, COLORREF color);
 EGACOLOR GetClosestEGAColorFromSet(int iAlgorithm, COLORREF color, EGACOLOR *rgColors, int cColors);
 

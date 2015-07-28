@@ -402,7 +402,6 @@
 #define IDC_SLIDERCONTRAST              1100
 #define IDC_SLIDERTINTSTRENGTH          1100
 #define IDC_STATICCONVERTTO             1101
-#define IDC_SLIDERSATURATION2           1101
 #define IDC_CHECK_OPTION                1102
 #define IDC_RADIOPICPALETTE             1103
 #define IDC_CHECKIGNOREWHITE            1104
@@ -652,6 +651,7 @@
 #define IDC_BUTTONPENSTYLE              1308
 #define IDC_EDITRANGES                  1309
 #define IDC_STATICARROW                 1310
+#define IDC_COMBOMATCH                  1311
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -983,7 +983,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        390
 #define _APS_NEXT_COMMAND_VALUE         33260
-#define _APS_NEXT_CONTROL_VALUE         1311
+#define _APS_NEXT_CONTROL_VALUE         1312
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif
