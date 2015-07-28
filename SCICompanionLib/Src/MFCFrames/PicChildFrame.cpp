@@ -119,7 +119,7 @@ int CPicChildFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     if (__super::OnCreate(lpCreateStruct) == -1)
         return -1;
 
-
+    
     // the pic helper dialog
     m_wndResizableBarPicHelper.SetInitDesiredSizeVertical(CSize(240, 100));
     if (!m_wndResizableBarPicHelper.Create("Helper", this, ID_BAR_PICHELPER))

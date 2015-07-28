@@ -173,5 +173,44 @@
 	(method (handleEvent_ pEvent)
 		(super:handleEvent(pEvent))
 	)
+)
 
+(instance public {name} of Talker
+    (properties
+        x 150
+        y 100
+        view 100
+        loop 0
+        talkWidth 150
+        back 5
+        textX 120
+        textY 10
+    )
+
+    (method (init params)
+        = font gFont
+        (super:init(theBustProp theEyesProp theMouthProp rest params))
+    )
+)
+
+(instance public {name} of Narrator
+    (properties
+        talkWidth 120
+    )
+
+    (method (init params)
+        = font gFont
+        = gWindow SpeakWindow
+        (send gWindow:
+            tailX(85)
+            tailY(135)
+            xOffset(15)
+        )
+        (super:init(rest params))
+    )
+
+    (method (dispose param1)
+        = gWindow gWindow2
+        (super:dispose(rest param1))
+    )
 )

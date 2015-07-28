@@ -219,6 +219,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <None Include="Files\Decompiler\Decompiler.ini" />
     <None Include="Files\Decompiler\game.sh" />
     <None Include="Files\Licenses\cppformat_README.rst" />
+    <None Include="Files\Objects\SCI0\Methods.sc" />
     <None Include="Files\Objects\SCI0\Objects.sc" />
     <None Include="Files\Objects\SCI1.1\Methods.sc" />
     <None Include="Files\Objects\SCI1.1\Objects.sc" />

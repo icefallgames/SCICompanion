@@ -9,14 +9,6 @@
 		(super:init(rest params))
 	)
 
-	(method (doVerb theVerb params)
-		(switch (theVerb)
-			(default
-				(super:doVerb(theVerb rest params))
-			)
-		)
-	)
-
 	(method (handleEvent pEvent)
 		(super:handleEvent(pEvent))
 	)
