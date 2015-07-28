@@ -866,8 +866,9 @@ BOOL HandleEditBoxCommands(MSG* pMsg, CEdit &wndEdit)
     return fRet;
 }
 
-void TerminateProcessTree(HANDLE hProcess, DWORD retCode)
+bool TerminateProcessTree(HANDLE hProcess, DWORD retCode)
 {
+    bool success = true;
     DWORD killId = GetProcessId(hProcess);
 
     // Error handling removed for brevity
@@ -890,12 +891,6 @@ void TerminateProcessTree(HANDLE hProcess, DWORD retCode)
         std::vector<DWORD> childrenToKill;
         auto itParent = childToParent.find(pair.first);
 
-        // REVIEW: Got into an infinite loop here when we had a mapping of:
-        // [508]->[524], and
-        // [524]->[508]
-        // This may be a race condition where new processes were created?
-        // This has happened twice now.
-
         while ((itParent != childToParent.end()) && itParent->first)
         {
             childrenToKill.push_back(itParent->first);
@@ -904,7 +899,19 @@ void TerminateProcessTree(HANDLE hProcess, DWORD retCode)
                 kill = true;
                 break;
             }
+            DWORD temp = itParent->first;
             itParent = childToParent.find(itParent->second);
+            if ((itParent != childToParent.end()) && (temp == itParent->second))
+            {
+                // REVIEW: Got into an infinite loop here when we had a mapping of:
+                // [508]->[524], and
+                // [524]->[508]
+                // This may be a race condition where new processes were created?
+                // This has happened twice now.
+                // Let's detect and bail.
+                success = false;
+                break;
+            }
         }
         if (kill)
         {
@@ -921,4 +928,5 @@ void TerminateProcessTree(HANDLE hProcess, DWORD retCode)
             CloseHandle(killHandle);
         }
     }
+    return success;
 }

@@ -613,4 +613,4 @@ enum class OutputPaneType
     Debug = 2
 };
 
-void TerminateProcessTree(HANDLE hProcess, DWORD retCode);
+bool TerminateProcessTree(HANDLE hProcess, DWORD retCode);

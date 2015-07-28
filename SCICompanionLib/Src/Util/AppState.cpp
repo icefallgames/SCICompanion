@@ -554,7 +554,10 @@ void AppState::TerminateDebuggedProcess()
 {
     if (IsProcessBeingDebugged())
     {
-        TerminateProcessTree(_hProcessDebugged.hFile, 0);
+        if (!TerminateProcessTree(_hProcessDebugged.hFile, 0))
+        {
+            AfxMessageBox("Unable to terminate process.", MB_OK | MB_ICONERROR);
+        }
         _hProcessDebugged.Close();
         GetResourceMap().AbortDebuggerThread();
     }
