@@ -10,6 +10,7 @@
 #include "PicDoc.h"
 #include "CObjectWrap.h"
 #include "PicHelperPane.h"
+#include "ExtControlBarNoX.h"
 
 // fwd decl
 class CPicView;
@@ -121,7 +122,7 @@ protected:
     CPositionSlider m_wndPositionSlider;
 
     PicHelperPane m_wndPicHelper;
-    CExtControlBar m_wndResizableBarPicHelper;
+    CExtControlBarNoX m_wndResizableBarPicHelper;
 
 // Generated message map functions
 protected:

@@ -3,6 +3,7 @@
 #include "MDITabChildWnd.h"
 #include "MessageNounConditionPane.h"
 #include "MessageEditPane.h"
+#include "ExtControlBarNoX.h"
 
 class CMessageChildFrame : public CMDITabChildWnd
 {
@@ -19,9 +20,9 @@ protected:
     DECLARE_MESSAGE_MAP()
 
     MessageNounConditionPane m_wndNounConditionPane;
-    CExtControlBar m_wndResizableBarNounCondition;
+    CExtControlBarNoX m_wndResizableBarNounCondition;
     MessageEditPane m_wndMessageEditPane;
-    CExtControlBar m_wndResizableBarMessageEdit;
+    CExtControlBarNoX m_wndResizableBarMessageEdit;
 };
 
 
