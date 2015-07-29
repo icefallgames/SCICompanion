@@ -30,7 +30,7 @@ END_MESSAGE_MAP()
 
 // CPicDoc construction/destruction
 
-CPicDoc::CPicDoc() : _previewPalette(nullptr), _showPolygons(false), _currentPolyIndex(-1)
+CPicDoc::CPicDoc() : _previewPalette(nullptr), _showPolygons(false), _currentPolyIndex(-1), _fakeEgoResourceNumber(-1)
 {
     // Add ourselves as a sync
     CResourceMap &map = appState->GetResourceMap();
@@ -214,6 +214,13 @@ void CPicDoc::OnResourceAdded(const ResourceBlob *pData, AppendBehavior appendBe
         RefreshPaletteOptions();
         UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::Palette));
     }
+    if (pData->GetType() == ResourceType::View)
+    {
+        if (pData->GetNumber() == _fakeEgoResourceNumber)
+        {
+            UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::FakeEgo));
+        }
+    }
 }
 
 void CPicDoc::SetEditPic(std::unique_ptr<ResourceEntity> pEditPic, int id)
@@ -241,6 +248,23 @@ void CPicDoc::SetZoom(int iZoom)
     {
         _iZoom = iZoom;
         UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::ZoomLevel));
+    }
+}
+
+void CPicDoc::SetFakeEgo(int resourceNumber)
+{
+    if (resourceNumber != _fakeEgoResourceNumber)
+    {
+        _fakeEgoResourceNumber = resourceNumber;
+        UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::FakeEgo));
+    }
+}
+
+void CPicDoc::EnsureFakeEgoNumber()
+{
+    if (_fakeEgoResourceNumber == -1)
+    {
+        _fakeEgoResourceNumber = appState->GetSelectedViewResourceNumber();
     }
 }
 

@@ -21,6 +21,8 @@ protected:
 public:
     CExtEdit m_LineNumber;
     int _iLineNumber;
+    std::string Title;
+    std::string Label;
 
     // Visuals
     CExtButton m_wndOK;

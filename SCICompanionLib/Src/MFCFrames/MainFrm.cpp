@@ -380,6 +380,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_COMMAND_EX(ID_BAR_OUTPUT, OnBarCheck)
     ON_UPDATE_COMMAND_UI(ID_BAR_OUTPUT, OnUpdateControlBarMenu)
     ON_MESSAGE(UWM_RESULTS, OnOutputPaneResults)
+    ON_REGISTERED_MESSAGE(CExtPopupMenuWnd::g_nMsgPrepareMenu, OnExtMenuPrepare)
 END_MESSAGE_MAP()
 
 LRESULT CMainFrame::OnOutputPaneResults(WPARAM wParam, LPARAM lParam)
@@ -530,6 +531,12 @@ void RegisterCommands()
         hicon,
         true);
     DeleteObject(hicon);
+
+    // The fake ego commands
+    for (UINT id = ID_FAKEEGO0; id <= ID_FAKEEGO12; id++)
+    {
+        g_CmdManager->CmdAllocPtr(appState->_pszCommandProfile, id);
+    }
 }
 
 void CMainFrame::OnDestroy()
@@ -577,6 +584,63 @@ void CMainFrame::RefreshExplorerTools()
 
         m_wndExplorerTools.InitContentExpandButton(); // Overflow...
     }
+}
+
+// Prepare fake ego menu
+LRESULT CMainFrame::OnExtMenuPrepare(WPARAM wParam, LPARAM)
+{
+    CExtPopupMenuWnd::MsgPrepareMenuData_t *pData =
+        reinterpret_cast<CExtPopupMenuWnd::MsgPrepareMenuData_t*>(wParam);
+    CExtPopupMenuWnd * pPopup = pData->m_pPopup;
+    INT nItemPos = pPopup->ItemFindPosForCmdID(ID_FAKEEGONUMBER);
+    if (nItemPos >= 0)
+    {
+        int index = 0;
+        for (int viewNumber : appState->GetRecentViews())
+        {
+            UINT commandId = ID_FAKEEGO0 + index;
+            std::string text = fmt::format("{0}", viewNumber);
+            // Get a bitmap for it and assign it to the command.
+            try
+            {
+                std::unique_ptr<ResourceBlob> blob = appState->GetResourceMap().MostRecentResource(ResourceType::View, viewNumber, true);
+                if (blob)
+                {
+                    text = blob->GetName();
+
+                    auto resource = CreateResourceFromResourceData(*blob);
+
+                    // Incorporate the global palette if necessary
+                    auto &raster = resource->GetComponent<RasterComponent>();
+                    PaletteComponent *palette = nullptr;
+                    std::unique_ptr<PaletteComponent> temp;
+                    if (raster.Traits.PaletteType == PaletteType::VGA_256)
+                    {
+                        temp = appState->GetResourceMap().GetMergedPalette(*resource, 999);
+                        palette = temp.get();
+                    }
+
+                    // Note: if the index is out of bounds, it will return a NULL HBITMAP
+                    CBitmap bitmap;
+                    bitmap.Attach(GetBitmap(raster, palette, CelIndex(0, 0), 32, 32, BitmapScaleOptions::AllowMag | BitmapScaleOptions::AllowMin));
+
+                    if ((HBITMAP)bitmap)
+                    {
+                        CExtBitmap extBitmap;
+                        extBitmap.FromBitmap((HBITMAP)bitmap);
+                        g_CmdManager->CmdSetIcon(appState->_pszCommandProfile, commandId, extBitmap, RGB(255, 255, 255), CRect(0, 0, 32, 32));
+                    }
+                }
+            }
+            catch (std::exception) {}
+
+            CExtCmdItem *pCmdItem = g_CmdManager->CmdGetPtr(appState->_pszCommandProfile, commandId);
+            pCmdItem->m_sMenuText = text.c_str();
+            pPopup->ItemInsert(commandId, index);
+            index++;
+        }
+    }
+    return 0;
 }
 
 int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -748,6 +812,16 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
         TRACE0( "Failed to create toolbar" );
         return -1;
     }
+
+    // phil testing here
+    int buttonIndex = m_wndPicTools.CommandToIndex(ID_TOGGLEEGO);
+    CExtBarButton *pEgo = m_wndPicTools.GetButton(buttonIndex);
+    CMenu menuTemp;
+    menuTemp.LoadMenu(IDR_MENUEGOS);
+    m_wndPicTools.SetButtonMenu(buttonIndex, menuTemp.Detach());
+    pEgo->SetSeparatedDropDown(true);
+
+
     _PreparePicCommands();
     ShowControlBar(&m_wndPicTools, FALSE, FALSE);
     ASSERT(g_pPicAlphaSlider == nullptr);

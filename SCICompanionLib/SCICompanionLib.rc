@@ -694,6 +694,14 @@ BEGIN
     END
 END
 
+IDR_MENUEGOS MENU
+BEGIN
+    POPUP "Root item"
+    BEGIN
+    MENUITEM "Enter resource number...", ID_FAKEEGONUMBER
+    END
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

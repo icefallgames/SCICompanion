@@ -163,6 +163,7 @@ private:
     LRESULT OnConstructPopupMenuCB(WPARAM wParam, LPARAM lParam);
     LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam);
     LRESULT OnOutputPaneResults(WPARAM wParam, LPARAM lParam);
+    LRESULT OnExtMenuPrepare(WPARAM wParam, LPARAM);
 
     afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
     afx_msg void OnDestroy();

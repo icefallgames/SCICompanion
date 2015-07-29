@@ -51,7 +51,11 @@ void CRasterResourceListCtrl::OnItemChanged(NMHDR* pNMHDR, LRESULT* pResult)
         {
             // Set the "global selected view"
             // (use for InsertObject dialog, or the fake ego in the pic editor)
-            appState->_iView = _GetResourceForItem(pnmlv->iItem)->GetNumber();
+            auto resource = _GetResourceForItem(pnmlv->iItem);
+            if (resource->GetType() == ResourceType::View)
+            {
+                appState->SetRecentlyInteractedView(resource->GetNumber());
+            }
         }
     }
     __super::OnItemClick(pNMHDR, pResult); // Our base class does some processing...

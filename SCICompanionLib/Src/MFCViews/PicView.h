@@ -191,6 +191,7 @@ protected:
     bool _CanBeInPolygons(CPoint pt);
     PicDrawManager &_GetDrawManager();
     const SCIPolygon *_GetCurrentPolygon();
+    ResourceEntity *_GetFakeEgo();
 
     // Scrolling
     int _GetViewWidth() override;
@@ -213,6 +214,7 @@ protected:
     afx_msg void OnZoomIn() { _OnZoomLClick(&_ptCurrentHover); }
     afx_msg void OnZoomOut() { _OnZoomRClick(&_ptCurrentHover); }
     afx_msg void OnSetEgoPriority(UINT nID);
+    afx_msg void OnEnableFakeEgo(UINT nID);
     afx_msg void OnHistoryTool();
     afx_msg void OnMouseMove(UINT nFlags, CPoint point);
     afx_msg void OnTraceBitmap();
@@ -240,6 +242,7 @@ protected:
     afx_msg void OnExportPalettizedBitmap();
     afx_msg void EditVGAPalette();
     afx_msg void ChangeDimensions();
+    afx_msg void OnEnableFakeEgoCustom();
     afx_msg void OnDeletePoint();
     afx_msg void RemoveSetVisual();
     afx_msg void OnUpdateAllPicCommands(CCmdUI *pCmdUI);
@@ -395,6 +398,8 @@ private:
     int _polyDragPointIndex;
     point16 _startDragPolyPoint;
     point16 _currentDragPolyPoint;
+
+    std::unique_ptr<ResourceEntity> _fakeEgo;
 
 };
 

@@ -104,7 +104,6 @@ AppState::AppState(CWinApp *pApp)
     _cxFakeEgo = 30;
     _cyFakeEgo = 48;
     _ptFakeEgo = CPoint(160, 120);
-    _iView = 0;
     _fObserveControlLines = false;
     _fObservePolygons = false;
     _fDontCheckPic = FALSE;
@@ -581,7 +580,7 @@ bool AppState::IsProcessBeingDebugged()
 
 int AppState::ExitInstance()
 {
-    _pViewResource.reset(nullptr);
+    _recentViews.clear();
 
     _pPicTemplate = nullptr; // Just in case someone asks us (note: don't need to free)
 
@@ -718,6 +717,7 @@ void AppState::OnGameFolderUpdate()
         CMainFrame *pMainWnd = static_cast<CMainFrame*>(_pApp->m_pMainWnd);
         pMainWnd->RefreshExplorerTools();
         _hProcessDebugged.Close();
+        _recentViews.clear();
     }
 }
 
@@ -758,20 +758,35 @@ HRESULT AppState::_GetGameIni(PTSTR pszValue, size_t cchValue)
     return hr;
 }
 
-ResourceEntity *AppState::GetSelectedViewResource()
+const size_t RecentViewQueueSize = 10;
+
+void AppState::SetRecentlyInteractedView(int resourceNumber)
 {
-    // TODO: If the user modifies a view, he'll have to select a different one in order
-    // for this to reload.  We should fix that.
-    if (!_pViewResource.get() || (_pViewResource->ResourceNumber != _iView))
+    auto itFind = find(_recentViews.begin(), _recentViews.end(), resourceNumber);
+    if (itFind != _recentViews.end())
     {
-        std::unique_ptr<ResourceBlob> blob = GetResourceMap().MostRecentResource(ResourceType::View, _iView, false);
-        if (blob)
-        {
-            _pViewResource = move(CreateResourceFromResourceData(*blob));
-        }
+        _recentViews.erase(itFind);
     }
-    return _pViewResource.get();
+    if (_recentViews.size() > RecentViewQueueSize)
+    {
+        _recentViews.erase(_recentViews.begin());
+    }
+    _recentViews.insert(_recentViews.begin(), resourceNumber);
 }
+
+int AppState::GetSelectedViewResourceNumber()
+{
+    if (_recentViews.empty())
+    {
+        return 0;
+    }
+    else
+    {
+        return _recentViews[0];
+    }
+}
+
+std::vector<int> &AppState::GetRecentViews() { return _recentViews; }
 
 void AppState::LogInfo(const TCHAR *pszFormat, ...)
 {

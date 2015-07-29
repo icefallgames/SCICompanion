@@ -65,7 +65,8 @@ public:
     SCIVersion &GetVersion() { return _resourceMap.GetSCIVersion(); }
     UINT GetCommandClipboardFormat() { return _uClipboardFormat; }
     CDocument* OpenDocumentFile(PCTSTR lpszFileName);
-    ResourceEntity *GetSelectedViewResource();
+    int GetSelectedViewResourceNumber();
+    std::vector<int> &GetRecentViews();
     void SetExportFolder(LPITEMIDLIST pidl); // Takes ownership
     const LPITEMIDLIST GetExportFolder() { return _pidlFolder; }
     CIntellisenseListBox &GetIntellisense() { return m_wndIntel; }
@@ -78,6 +79,7 @@ public:
     void ResetClassBrowser();
     void ClearResourceManagerDoc() { _pResourceDoc = NULL; }
     void NotifyChangeAspectRatio();
+    void SetRecentlyInteractedView(int resourceNumber);
 
     void TerminateDebuggedProcess();
     bool IsProcessBeingDebugged();
@@ -143,9 +145,8 @@ public:
 
     // Last known position of a fake ego:
     CPoint _ptFakeEgo;
-    // Last selected view
-    int _iView;
-    std::unique_ptr<ResourceEntity> _pViewResource;
+    // Last selected views
+    std::vector<int> _recentViews;
     bool _fObserveControlLines; // Does fake ego observe control lines?
     bool _fObservePolygons;     // Does it observe polygons?
 

@@ -209,6 +209,12 @@ void RasterSidePane::SetDocument(CDocument *pDoc)
         _SyncLoopPane();
         _OnUpdateCommandUIs();
         _UpdatePaletteChoices();
+
+        // It's a bit of a hack to put this here, but let's use this as a clue that the user is interested in this view
+        if (_pDoc->GetResource()->GetType() == ResourceType::View)
+        {
+            appState->SetRecentlyInteractedView(_pDoc->GetResource()->ResourceNumber);
+        }
     }
 }
 

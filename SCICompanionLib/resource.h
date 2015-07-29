@@ -283,6 +283,7 @@
 #define IDI_REFRESH                     388
 #define IDD_COLOR_SHIFTER               388
 #define IDI_RIGHT_ARROW                 389
+#define IDR_MENUEGOS                    391
 #define IDC_CHOOSECOLORSTATIC           1001
 #define IDC_BUTTON1                     1003
 #define IDC_BUTTONDOWN                  1003
@@ -974,6 +975,21 @@
 #define ID_EXPORT_VIEWASIMAGE           33257
 #define ID_EXPORT_LOOPASIMAGE           33258
 #define ID_EXPORT_CELASIMAGE            33259
+#define ID_ROOTITEM_ANOTHERITEM         33260
+#define ID_FAKEEGONUMBER                33261
+#define ID_FAKEEGO0                     33262
+#define ID_FAKEEGO1                     33263
+#define ID_FAKEEGO2                     33264
+#define ID_FAKEEGO3                     33265
+#define ID_FAKEEGO4                     33266
+#define ID_FAKEEGO5                     33267
+#define ID_FAKEEGO6                     33268
+#define ID_FAKEEGO7                     33269
+#define ID_FAKEEGO8                     33270
+#define ID_FAKEEGO9                     33271
+#define ID_FAKEEGO10                    33272
+#define ID_FAKEEGO11                    33273
+#define ID_FAKEEGO12                    33274
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -981,8 +997,8 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        390
-#define _APS_NEXT_COMMAND_VALUE         33260
+#define _APS_NEXT_RESOURCE_VALUE        392
+#define _APS_NEXT_COMMAND_VALUE         33275
 #define _APS_NEXT_CONTROL_VALUE         1312
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

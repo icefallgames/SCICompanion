@@ -53,6 +53,7 @@ enum class PicChangeHint
     PreviewPalette = 0x00000800,
     PolygonChoice = 0x00001000,
     PolygonsChanged = 0x00002000,
+    FakeEgo = 0x00004000,
 };
 
 
@@ -73,6 +74,9 @@ public:
     PenStyle GetPenStyle() { return _penStyle; }
     int GetZoom() { return _iZoom; }
     void SetZoom(int iZoom);
+    int GetFakeEgo() { return _fakeEgoResourceNumber; }
+    void SetFakeEgo(int resourceNumber);
+    void EnsureFakeEgoNumber();
     void SetPalette(BYTE b);
 
     void SeekToPos(INT_PTR iPos, bool fNotify = true);
@@ -153,6 +157,8 @@ private:
 
     // Zoom level of pic.
     int _iZoom;
+
+    int _fakeEgoResourceNumber;
 
     // For resources with PolygonComponent
     int _currentPolyIndex;

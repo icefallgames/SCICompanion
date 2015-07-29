@@ -22,6 +22,7 @@
 #include "View.h"
 #include "PaletteEditorDialog.h"
 #include "PicDimensionsDialog.h"
+#include "GotoDialog.h"
 
 const int PicGutter = 5;
 using namespace Gdiplus;
@@ -273,6 +274,8 @@ BEGIN_MESSAGE_MAP(CPicView, CScrollingThing<CView>)
     ON_COMMAND(ID_PIC_CHANGEDIMENSIONS, CPicView::ChangeDimensions)
     ON_COMMAND(ID_PIC_REMOVESETVISUAL, CPicView::RemoveSetVisual)
     ON_COMMAND_RANGE(ID_DEFAULTPRIORITY, ID_MAIN_PRI15, CPicView::OnSetEgoPriority)
+    ON_COMMAND_RANGE(ID_FAKEEGO0, ID_FAKEEGO12, CPicView::OnEnableFakeEgo)
+    ON_COMMAND(ID_FAKEEGONUMBER, CPicView::OnEnableFakeEgoCustom)
     ON_UPDATE_COMMAND_UI(ID_PENTOOL, CPicView::OnUpdateAllPicCommands)
     ON_UPDATE_COMMAND_UI(ID_LINE, CPicView::OnUpdateAllPicCommands)
     ON_UPDATE_COMMAND_UI(ID_FILL, CPicView::OnUpdateAllPicCommands)
@@ -318,6 +321,7 @@ BEGIN_MESSAGE_MAP(CPicView, CScrollingThing<CView>)
     ON_UPDATE_COMMAND_UI(ID_PIC_CHANGEDIMENSIONS, CPicView::OnUpdateIsVGA)
     ON_UPDATE_COMMAND_UI(ID_PIC_DELETEPOINT, CPicView::OnCommandUIAlwaysValid)  // Since it's in a context menu we only bring up when it's available.
     ON_UPDATE_COMMAND_UI(ID_PIC_SPLITEDGE, CPicView::OnCommandUIAlwaysValid)  // Since it's in a context menu we only bring up when it's available.
+    ON_UPDATE_COMMAND_UI(ID_FAKEEGONUMBER, CPicView::OnCommandUIAlwaysValid)
     ON_WM_ERASEBKGND()
     ON_WM_RBUTTONDOWN()
     ON_WM_LBUTTONDOWN()
@@ -515,6 +519,17 @@ void CPicView::OnHistoryTool()
     _OnCommandChanged();
 }
 
+void CPicView::OnEnableFakeEgo(UINT nID)
+{
+    if (GetDocument())
+    {
+        int resourceNumber = appState->GetRecentViews()[nID - ID_FAKEEGO0];
+        GetDocument()->SetFakeEgo(resourceNumber);
+        _fShowingEgo = false;
+        OnToggleEgo();
+    }
+}
+
 void CPicView::OnSetEgoPriority(UINT nID)
 {
     if (nID == ID_DEFAULTPRIORITY)
@@ -547,6 +562,22 @@ void CPicView::OnDeletePoint()
     }
     );
     _transformCommandMod.Reset();
+}
+
+void CPicView::OnEnableFakeEgoCustom()
+{
+    if (GetDocument())
+    {
+        CGotoDialog resourceNumDialog;
+        resourceNumDialog.Title = "Choose view number";
+        resourceNumDialog.Label = "View number:";
+        if (resourceNumDialog.DoModal() == IDOK)
+        {
+            GetDocument()->SetFakeEgo(resourceNumDialog.GetLineNumber());
+            _fShowingEgo = false;
+            OnToggleEgo();
+        }
+    }
 }
 
 void CPicView::ChangeDimensions()
@@ -842,6 +873,8 @@ void CPicView::OnToggleEgo()
     _fShowingEgo = !_fShowingEgo;
     if (_fShowingEgo)
     {
+        GetDocument()->EnsureFakeEgoNumber();
+
         // Generally, when showing the ego, we'll assume the user no longer wants
         // to use a drawing tool.  This behaviour is a little strange.
         // The alternative is to have draw commands not work when the mouse is over the
@@ -1859,7 +1892,7 @@ void CPicView::_GenerateTraceImage(CDC *pDC)
 
 void CPicView::_DrawEgoCoordinates(CDC *pDC)
 {
-    if ((appState->_fUseBoxEgo && (_nFakePri != -1)) || (!appState->_fUseBoxEgo && appState->GetSelectedViewResource()))
+    if ((appState->_fUseBoxEgo && (_nFakePri != -1)) || (!appState->_fUseBoxEgo && _GetFakeEgo()))
     {
         // The cursor is over the ego.  Draw the coordinates.
         // First we need to convert the ego coordinates to "client" coordinates
@@ -2468,10 +2501,10 @@ void CPicView::_DrawShowingEgoWorker(const ViewPort &viewPort, uint8_t *pdataVis
     if (pdataPriority)
     {
         // Alright, we're part way there.
-        if (!appState->_fUseBoxEgo && appState->GetSelectedViewResource())
+        if (!appState->_fUseBoxEgo && _GetFakeEgo())
         {
             // Draw a view.
-            DrawViewWithPriority(_GetPicSize(), pdataVisual, pdataPriority, bEgoPriority, (uint16_t)_pointEgo.x, (uint16_t)_pointEgo.y, appState->GetSelectedViewResource(), _nFakeLoop, _nFakeCel, _HitTestFakeEgo(_ptCurrentHover));
+            DrawViewWithPriority(_GetPicSize(), pdataVisual, pdataPriority, bEgoPriority, (uint16_t)_pointEgo.x, (uint16_t)_pointEgo.y, _GetFakeEgo(), _nFakeLoop, _nFakeCel, _HitTestFakeEgo(_ptCurrentHover));
         }
         else
         {
@@ -2490,7 +2523,7 @@ void CPicView::_DrawShowingEgoEGA(ViewPort &viewPort, PicData &picData, PicScree
 void CPicView::_DrawShowingEgoVGA(CDC &dc, PicDrawManager &pdm)
 {
     const PaletteComponent *palette = _GetPalette();
-    ResourceEntity *fakeEgo = appState->GetSelectedViewResource();
+    ResourceEntity *fakeEgo = _GetFakeEgo();
     if (fakeEgo && palette)
     {
         CDC dcMem;
@@ -2878,6 +2911,13 @@ void CPicView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
         // Be smart and switch into pen mode.
         OnPenCommand();
     }
+
+    if (IsFlagSet(hint, PicChangeHint::FakeEgo))
+    {
+        // Force ourselves to get it again...
+        _fakeEgo.reset(nullptr);
+        InvalidateOurselves();
+    }
 }
 
 //
@@ -3032,6 +3072,20 @@ void CPicView::_OnCircleRClick(CPoint point)
     }
     _xOld = -1;
     _yOld = -1;
+}
+
+ResourceEntity *CPicView::_GetFakeEgo()
+{
+    if (!_fakeEgo && GetDocument())
+    {
+        int viewNumber = GetDocument()->GetFakeEgo();
+        std::unique_ptr<ResourceBlob> blob = appState->GetResourceMap().MostRecentResource(ResourceType::View, viewNumber, false);
+        if (blob)
+        {
+            _fakeEgo = CreateResourceFromResourceData(*blob);
+        }
+    }
+    return _fakeEgo.get();
 }
 
 const SCIPolygon *CPicView::_GetCurrentPolygon()
@@ -3802,7 +3856,7 @@ bool CPicView::_EvaluateCanBeHere(CPoint pt)
     bool canBe = true;
     if (appState->_fObserveControlLines)
     {
-        canBe = CanBeHere(_GetPicSize(), pdataControl, GetViewBoundsRect((uint16_t)pt.x, (uint16_t)pt.y, appState->GetSelectedViewResource(), _nFakeLoop, _nFakeCel));
+        canBe = CanBeHere(_GetPicSize(), pdataControl, GetViewBoundsRect((uint16_t)pt.x, (uint16_t)pt.y, _GetFakeEgo(), _nFakeLoop, _nFakeCel));
     }
 
     if (canBe && appState->_fObservePolygons)
@@ -3816,9 +3870,9 @@ bool CPicView::_EvaluateCanBeHere(CPoint pt)
 bool CPicView::_HitTestFakeEgo(CPoint ptPic)
 {
     bool fHitTest = false;
-    if (!appState->_fUseBoxEgo && appState->GetSelectedViewResource())
+    if (!appState->_fUseBoxEgo && _GetFakeEgo())
     {
-        fHitTest = HitTestView((uint16_t)ptPic.x, (uint16_t)ptPic.y, (uint16_t)_pointEgo.x, (uint16_t)_pointEgo.y, appState->GetSelectedViewResource(), _nFakeLoop, _nFakeCel);
+        fHitTest = HitTestView((uint16_t)ptPic.x, (uint16_t)ptPic.y, (uint16_t)_pointEgo.x, (uint16_t)_pointEgo.y, _GetFakeEgo(), _nFakeLoop, _nFakeCel);
     }
     else
     {
@@ -3838,7 +3892,7 @@ CPoint CPicView::_FindCenterOfFakeEgo()
     }
     else
     {
-        return FindCenterOfView((uint16_t)_pointEgo.x, (uint16_t)_pointEgo.y, appState->GetSelectedViewResource(), _nFakeLoop, _nFakeCel);
+        return FindCenterOfView((uint16_t)_pointEgo.x, (uint16_t)_pointEgo.y, _GetFakeEgo(), _nFakeLoop, _nFakeCel);
     }
 }
 
