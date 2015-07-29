@@ -927,7 +927,7 @@ std::unique_ptr<PaletteComponent> CResourceMap::GetMergedPalette(const ResourceE
 {
     assert((_gameFolderHelper.Version.ViewFormat != ViewFormat::EGA) || (_gameFolderHelper.Version.PicFormat != PicFormat::EGA));
     std::unique_ptr<PaletteComponent> paletteReturn;
-    PaletteComponent *paletteEmbedded = resource.TryGetComponent<PaletteComponent>();
+    const PaletteComponent *paletteEmbedded = resource.TryGetComponent<PaletteComponent>();
     if (!paletteEmbedded)
     {
         paletteEmbedded = &_emptyPalette;

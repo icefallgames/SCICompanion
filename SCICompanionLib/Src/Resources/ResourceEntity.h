@@ -103,7 +103,19 @@ public:
     }
 
     template<typename _T>
-    _T *TryGetComponent() const
+    _T *TryGetComponent()
+    {
+        const std::type_info& r2 = typeid(_T);
+        auto result = components.find(std::type_index(r2));
+        if (result != components.end())
+        {
+            return static_cast<_T*>(result->second.get());
+        }
+        return nullptr;
+    }
+
+    template<typename _T>
+    const _T *TryGetComponent() const
     {
         const std::type_info& r2 = typeid(_T);
         auto result = components.find(std::type_index(r2));
