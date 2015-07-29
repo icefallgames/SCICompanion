@@ -72,20 +72,18 @@ public:
     static const OffsetAndWeight Matrix[12];
 };
 
-
 uint8_t ClampTo8(int16_t in);
 RGBError CalculateError(RGBQUAD rgbOrig, RGBQUAD rgbChosen);
 int16_t CalculateError(uint8_t orig, uint8_t chosen);
 RGBQUAD AdjustWithError(RGBQUAD orig, RGBError accError, int16_t factor);
 uint8_t AdjustWithError(uint8_t orig, int16_t accError, int16_t factor);
 
-template<typename T>
+template<typename T, typename _TAlgorithm>
 class Dither
 {
 public:
     typedef typename dither_traits<T>::error_type TError;
-    typedef FloydSteinberg Algorithm;
-    //typedef JarvisJudiceNinke Algorithm;
+    typedef _TAlgorithm Algorithm;
 
     Dither(int cx, int cy)
     {
@@ -116,4 +114,53 @@ private:
     int _cxE;
     int _cyE;
 };
+
+extern int16_t BayerMatrix[4][4];
+
+template<typename T>
+class NoDither
+{
+public:
+    NoDither(int cx, int cy) {}
+    T ApplyErrorAt(T rgb, int x, int y)
+    {
+        return rgb;
+    }
+
+    void PropagateError(T rgbOrig, T rgbChosen, int x, int y) {}
+};
+
+template<typename T>
+class OrderedDither
+{
+public:
+    typedef typename dither_traits<T>::error_type TError;
+    static const int MatrixSize = 4;
+    static const int Divisor = (MatrixSize * MatrixSize) + 1;
+
+    OrderedDither(int cx, int cy)
+    {
+        // Scale the matrix to 0-255. So basically, this only works for white/black dithering.
+        for (int y = 0; y < MatrixSize; y++)
+        {
+            for (int x = 0; x < MatrixSize; x++)
+            {
+                _matrix[x][y] = BayerMatrix[x][y] * 255 - 128 * Divisor;
+            }
+        }
+    }
+
+    T ApplyErrorAt(T rgb, int x, int y)
+    {
+        TError errorAccum = _matrix[x % MatrixSize][y % MatrixSize];
+        return AdjustWithError(rgb, errorAccum, Divisor);
+    }
+
+    void PropagateError(T rgbOrig, T rgbChosen, int x, int y) {}
+
+private:
+    int16_t _matrix[MatrixSize][MatrixSize];
+};
+
+
 

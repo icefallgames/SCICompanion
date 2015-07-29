@@ -57,3 +57,11 @@ const OffsetAndWeight JarvisJudiceNinke::Matrix[12] =
     { 1, 2, 3 },
     { 2, 2, 1 },
 };
+
+int16_t BayerMatrix[4][4] =
+{
+    { 1, 9, 3, 11 },
+    { 13, 5, 15, 7 },
+    { 4, 12, 2, 10 },
+    { 16, 8, 14, 6 },
+};

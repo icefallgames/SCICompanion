@@ -905,7 +905,7 @@ void ViewReadFromVGA(ResourceEntity &resource, sci::istream &byteStream)
 
 void ViewWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, bool isVGA)
 {
-    RasterComponent &raster = resource.GetComponent<RasterComponent>();
+    const RasterComponent &raster = resource.GetComponent<RasterComponent>();
     uint16_t cLoops = (uint16_t)raster.Loops.size();
     // The wMirrorMask is used only during serialization.  Update it now.
     uint16_t wMirrorMask = 0;
@@ -917,7 +917,7 @@ void ViewWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, bool 
         }
     }
 
-    PaletteComponent *palette = resource.TryGetComponent<PaletteComponent>();
+    const PaletteComponent *palette = resource.TryGetComponent<PaletteComponent>();
     assert(isVGA || (palette == nullptr));
 
     // # of loops

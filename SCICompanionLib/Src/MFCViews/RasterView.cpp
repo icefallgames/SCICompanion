@@ -518,7 +518,7 @@ void CRasterView::_LockDoc(bool fLock)
 
 const RasterComponent *CRasterView::_GetRaster() const
 {
-    RasterComponent *raster = nullptr;
+    const RasterComponent *raster = nullptr;
     CResourceDocument *pDoc = static_cast<CResourceDocument*>(GetDocument());
     if (pDoc)
     {

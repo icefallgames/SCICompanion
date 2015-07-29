@@ -572,27 +572,6 @@ void ConvertCelToNewPalette(Cel &cel, const PaletteComponent &currentPalette, ui
     cel.TransparentColor = transparentColor;
 }
 
-// Turns the alpha channel into a discrete on/off channel.
-void CutoutAlpha(RGBQUAD *data, int cx, int cy, bool performDither, uint8_t alphaThreshold)
-{
-    Dither<uint8_t> dither(cx, cy);
-    for (int y = 0; y < cy; y++)
-    {
-        for (int x = 0; x < cx; x++)
-        {
-            uint8_t alphaOrig = data[y * cx + x].rgbReserved;
-            uint8_t alpha = dither.ApplyErrorAt(alphaOrig, x, y);
-            bool isTransparent = alpha < alphaThreshold;
-            data[y * cx + x].rgbReserved = isTransparent ? 0x00 : 0xff;
-
-            if (performDither)
-            {
-                dither.PropagateError(alpha, isTransparent ? 0x00 : 0xff, x, y);
-            }
-        }
-    }
-}
-
 std::unique_ptr<RGBQUAD[]> ConvertGdiplusToRaw(Gdiplus::Bitmap &bitmap)
 {
     std::unique_ptr<RGBQUAD[]> data;
@@ -621,7 +600,7 @@ std::unique_ptr<RGBQUAD[]> ConvertGdiplusToRaw(Gdiplus::Bitmap &bitmap)
 // This assumes cutout alpha.
 void RGBToPalettized(ColorMatching colorMatching, uint8_t *sciData, const RGBQUAD *dataOrig, int cx, int cy, bool performDither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *paletteColors, uint8_t transparentColor)
 {
-    Dither<RGBQUAD> dither(cx, cy);
+    Dither<RGBQUAD, FloydSteinberg> dither(cx, cy);
     for (int y = 0; y < cy; y++)
     {
         const RGBQUAD *origRow = dataOrig + y * cx;
@@ -648,5 +627,42 @@ void RGBToPalettized(ColorMatching colorMatching, uint8_t *sciData, const RGBQUA
                 // And no need to propagate error...
             }
         }
+    }
+}
+
+// Turns the alpha channel into a discrete on/off channel.
+template<typename _TAlgorithm>
+void CutoutAlpha(RGBQUAD *data, int cx, int cy, uint8_t alphaThreshold)
+{
+    _TAlgorithm dither(cx, cy);
+    for (int y = 0; y < cy; y++)
+    {
+        for (int x = 0; x < cx; x++)
+        {
+            uint8_t alphaOrig = data[y * cx + x].rgbReserved;
+            uint8_t alpha = dither.ApplyErrorAt(alphaOrig, x, y);
+            bool isTransparent = alpha < alphaThreshold;
+            data[y * cx + x].rgbReserved = isTransparent ? 0x00 : 0xff;
+            dither.PropagateError(alpha, isTransparent ? 0x00 : 0xff, x, y);
+        }
+    }
+}
+
+void CutoutAlpha(DitherAlgorithm ditherAlgorithm, RGBQUAD *data, int cx, int cy, uint8_t alphaThreshold)
+{
+    switch (ditherAlgorithm)
+    {
+        case DitherAlgorithm::FloydSteinberg:
+            CutoutAlpha<Dither<uint8_t, FloydSteinberg>>(data, cx, cy, alphaThreshold);
+            break;
+        case DitherAlgorithm::JarvisJudiceNinke:
+            CutoutAlpha<Dither<uint8_t, JarvisJudiceNinke>>(data, cx, cy, alphaThreshold);
+            break;
+        case DitherAlgorithm::OrderedBayer:
+            CutoutAlpha<OrderedDither<uint8_t>>(data, cx, cy, alphaThreshold);
+            break;
+        case DitherAlgorithm::None:
+            CutoutAlpha<NoDither<uint8_t>>(data, cx, cy, alphaThreshold);
+            break;
     }
 }

@@ -516,7 +516,8 @@ void CBitmapToVGADialog::_Update()
 
     m_wndEditPaletteRanges.SetWindowText(GetRangeText(GetSelectedRanges(m_wndPalette)).c_str());
 
-    bool performAlphaDither = (m_wndDitherAlpha.GetCheck() == BST_CHECKED);
+    DitherAlgorithm alphaDither = (m_wndDitherAlpha.GetCheck() != BST_CHECKED) ? DitherAlgorithm::None : DitherAlgorithm::FloydSteinberg;
+
     bool performDither = (m_wndDither.GetCheck() == BST_CHECKED);
 
     // We need to generate a final image for m_wndPic
@@ -534,7 +535,7 @@ void CBitmapToVGADialog::_Update()
                 unique_ptr<RGBQUAD[]> imageData = ConvertGdiplusToRaw(*_pbmpCurrent);
                 if (imageData)
                 {
-                    CutoutAlpha(imageData.get(), cx, cy, performAlphaDither, _alphaThreshold);
+                    CutoutAlpha(alphaDither, imageData.get(), cx, cy, _alphaThreshold);
 
                     std::unique_ptr<Cel> temp = make_unique<Cel>();
                     std::unique_ptr<PaletteComponent> tempPalette;
@@ -579,7 +580,7 @@ void CBitmapToVGADialog::_Update()
             unique_ptr<RGBQUAD[]> imageData = ConvertGdiplusToRaw(*_pbmpCurrent);
             if (imageData)
             {
-                CutoutAlpha(imageData.get(), cx, cy, performAlphaDither, _alphaThreshold);
+                CutoutAlpha(alphaDither, imageData.get(), cx, cy, _alphaThreshold);
 
                 std::unique_ptr<Cel> temp = make_unique<Cel>();
                 temp->TransparentColor = _transparentColor;
