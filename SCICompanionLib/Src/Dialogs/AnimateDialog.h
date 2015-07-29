@@ -12,7 +12,7 @@ struct RasterComponent;
 class CAnimateDialog : public CExtResizableDialog
 {
 public:
-    CAnimateDialog(CWnd* pParent, RasterComponent &raster, PaletteComponent *palette);   // standard constructor
+    CAnimateDialog(CWnd* pParent, const RasterComponent &raster, PaletteComponent *palette);   // standard constructor
 
     void SetTitle(PCTSTR pszTitle) { _strTitle = pszTitle; }
     void SetLoop(int nLoop) { _nLoop = nLoop; }
@@ -36,11 +36,11 @@ private:
     CSize _RecalcSizeNeeded();
     void _UpdateButton();
     int _GetCelCount();
-    Cel &GetCel();
+    const Cel &GetCel();
 
 	DECLARE_MESSAGE_MAP()
 
-    RasterComponent &_raster;
+    const RasterComponent &_raster;
     PaletteComponent *_palette;
     CString _strTitle;
     int _nLoop;

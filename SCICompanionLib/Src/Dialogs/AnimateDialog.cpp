@@ -11,7 +11,7 @@ using namespace std;
 
 // CAnimateDialog dialog
 
-CAnimateDialog::CAnimateDialog(CWnd* pParent /*=NULL*/, RasterComponent &raster, PaletteComponent *palette)
+CAnimateDialog::CAnimateDialog(CWnd* pParent /*=NULL*/, const RasterComponent &raster, PaletteComponent *palette)
     : CExtResizableDialog(CAnimateDialog::IDD, pParent), _raster(raster), _palette(palette)
 {
     _fDoubleBuffer = false;
@@ -253,7 +253,7 @@ void CAnimateDialog::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar *pWnd)
     }
 }
 
-Cel &CAnimateDialog::GetCel()
+const Cel &CAnimateDialog::GetCel()
 {
     return _raster.Loops[_nLoop].Cels[_nCel];
 }
@@ -276,7 +276,7 @@ void CAnimateDialog::_OnDraw(CDC *pDC, LPRECT prc)
         }
     }
 
-    Cel &cel = GetCel();
+    const Cel &cel = GetCel();
     size_t cbViewData = CX_ACTUAL(cel.size.cx) * cel.size.cy;
 
     std::unique_ptr<BYTE[]> viewData = std::make_unique<BYTE[]>(cbViewData);

@@ -120,7 +120,7 @@ public:
     // This transfers ownership of pic resource to this class.
     void SetEditPic(std::unique_ptr<ResourceEntity> pEditPic, int id = -1);
     
-    PicComponent *GetPic() const { return _GetPic(); }
+    const PicComponent *GetPic() const { return _GetPic(); }
 
     void InformBitmapEditor(PicChangeHint hint, IBitmapEditor *pObj);
 
@@ -143,7 +143,7 @@ protected:
 private:
     void _CloneCurrentAndAdd();
     void _NotifyNewResource(PicChangeHint hint);
-    PicComponent *_GetPic() const;
+    const PicComponent *_GetPic() const;
     void _SetInitialPalette();
 
     const PaletteComponent *_previewPalette;
@@ -166,7 +166,7 @@ private:
 };
 
 template<class _T>
-BOOL InsertPaletteCommands(typename _T *pepic, INT_PTR iPos, const EGACOLOR *pPaletteOrig, EGACOLOR *pPaletteNew, BOOL fWriteEntire)
+BOOL InsertPaletteCommands(typename _T *pepic, INT_PTR iPos, const EGACOLOR *pPaletteOrig, const EGACOLOR *pPaletteNew, BOOL fWriteEntire)
 {
     BOOL fSomethingChanged = FALSE;
     if (fWriteEntire)

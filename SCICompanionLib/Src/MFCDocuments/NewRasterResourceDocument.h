@@ -67,7 +67,7 @@ public:
     void v_OnUndoRedo();
 
     template<typename _T>
-    _T &GetComponent()
+    const _T &GetComponent()
     {
         return GetResource()->GetComponent<_T>();
     }

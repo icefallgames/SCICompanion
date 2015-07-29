@@ -79,7 +79,19 @@ public:
     bool CanSave;
 
     template<typename _T>
-    _T &GetComponent() const
+    const _T &GetComponent() const
+    {
+        const std::type_info& r2 = typeid(_T);
+        auto result = components.find(std::type_index(r2));
+        if (result != components.end())
+        {
+            return static_cast<_T&>(*(result->second));
+        }
+        throw std::exception("No component of this type exists");
+    }
+
+    template<typename _T>
+    _T &GetComponent()
     {
         const std::type_info& r2 = typeid(_T);
         auto result = components.find(std::type_index(r2));

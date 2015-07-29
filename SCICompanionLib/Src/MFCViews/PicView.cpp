@@ -903,7 +903,15 @@ void CPicView::OnSomethingChanged(BOOL fWriteEntire, EGACOLOR *pPalettes, int iP
     _pPreview->GetDrawManager().SeekToPos(iRealPos);
     // Grab the palette state from the actual pic:
     const ViewPort *pstate = _GetDrawManager().GetViewPort(PicPosition::PostPlugin);
-    InsertPaletteCommands(&_pPreview->GetPicResource(), _pPreview->GetDrawManager().GetPos(), pstate->pPalettes, pPalettes, fWriteEntire);
+
+    GetDocument()->ApplyChanges<PicComponent>(
+        [this, pstate, pPalettes, fWriteEntire](PicComponent &pic)
+    {
+        BOOL somethingChanged = InsertPaletteCommands(&pic, _pPreview->GetDrawManager().GetPos(), pstate->pPalettes, pPalettes, fWriteEntire);
+        return WrapHint(somethingChanged ? PicChangeHint::EditPicInvalid : PicChangeHint::None);
+    }
+        );
+
     _pPreview->GetDrawManager().SeekToPos(-1); // Move to the end for the preview...
     InvalidateOurselves();
 }
@@ -935,7 +943,14 @@ void CPicView::OnSetPalette()
         {
             EGACOLOR paletteNew[160];
             dialog.RetrievePalettes(paletteNew);
-            InsertPaletteCommands(GetDocument()->GetPic(), pdm.GetPos(), pstate->pPalettes, paletteNew, dialog.GetWriteEntirePalette());
+
+            GetDocument()->ApplyChanges<PicComponent>(
+                [&pdm, pstate, &paletteNew, &dialog](PicComponent &pic)
+            {
+                BOOL somethingChanged = InsertPaletteCommands(&pic, pdm.GetPos(), pstate->pPalettes, paletteNew, dialog.GetWriteEntirePalette());
+                return WrapHint(somethingChanged ? PicChangeHint::EditPicInvalid : PicChangeHint::None);
+            }
+                );
         }
         InvalidateOurselves(); // In case we didn't insert anything (to refresh from possible preview)
     }
@@ -2142,7 +2157,8 @@ void CPicView::_MovePriorityBar(bool commit, int dy)
     newPriBarsCommand.setPriorityBars.pPriorityLines[_priBarMoveIndex] = newPriValue;
 
     // Find the pri bar command
-    vector<PicCommand> &commands = GetDocument()->GetPic()->commands;
+    // HACK: We're modifying the pic commands directly.
+    vector<PicCommand> &commands = const_cast<vector<PicCommand>&>(GetDocument()->GetPic()->commands);
     size_t i = 0;
     for (i = 0; i < commands.size(); i++)
     {
@@ -3636,7 +3652,7 @@ void CPicView::_TransformPoint(bool commit, CPoint pt)
         // Apply changes works on a clone of the current resource, while the current resource
         // goes into the undo stack. Since we've been modifying the current resource, we
         // need to restore it before applying our final changes to the clone.
-        _transformCommandMod.ApplyDifference(*GetDocument()->GetPic(), 0, 0);
+        _transformCommandMod.ApplyDifference(const_cast<PicComponent&>(*GetDocument()->GetPic()), 0, 0);
 
         GetDocument()->ApplyChanges<PicComponent>(
             [this, dx, dy](PicComponent &pic)
@@ -3649,7 +3665,7 @@ void CPicView::_TransformPoint(bool commit, CPoint pt)
     else
     {
         // We have to go poking around in the resource directly
-        _transformCommandMod.ApplyDifference(*GetDocument()->GetPic(), dx, dy);
+        _transformCommandMod.ApplyDifference(const_cast<PicComponent&>(*GetDocument()->GetPic()), dx, dy);
         // As a result we need to tell people manually to update
     }
 }

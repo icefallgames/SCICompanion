@@ -306,48 +306,65 @@ INT_PTR _PrevPicPos(INT_PTR iPos, INT_PTR delta)
 
 void CPicDoc::InsertCommand(PicCommand *pCommand)
 {
-    _CloneCurrentAndAdd();
-    ptrdiff_t delta = ::InsertCommands(*_GetPic(), _pdm.GetPos(), 1, pCommand);
-    SeekToPos(_NextPicPos(_pdm.GetPos(), delta), false);
-    _pdm.Invalidate();
-    _NotifyNewResource(PicChangeHint::EditPicInvalid | PicChangeHint::EditPicPos);
-    SetModifiedFlag(TRUE);
+    ptrdiff_t delta = 0;
+    ptrdiff_t pos = _pdm.GetPos();
+    ApplyChangesWithPost<PicComponent>(
+        [pCommand, &delta, pos](PicComponent &pic)
+    {
+        delta = ::InsertCommands(pic, pos, 1, pCommand);
+        return WrapHint(PicChangeHint::EditPicInvalid | PicChangeHint::EditPicPos);
+    },
+        [this, &delta](ResourceEntity &resource)
+    {
+        SeekToPos(_NextPicPos(_pdm.GetPos(), delta), false);
+    }
+        );
 }
+
 void CPicDoc::InsertCommands(INT_PTR iStart, INT_PTR cCount, PicCommand *pCommands)
 {
-    _CloneCurrentAndAdd();
-    ::InsertCommands(*_GetPic(), iStart, cCount, pCommands);
     INT_PTR iPos = _pdm.GetPos();
-    if (iStart <= iPos)
+
+    ApplyChangesWithPost<PicComponent>(
+        [iStart, cCount, pCommands](PicComponent &pic)
     {
-        SeekToPos(_NextPicPos(iPos, cCount), false);
+        ::InsertCommands(pic, iStart, cCount, pCommands);
+        return WrapHint(PicChangeHint::EditPicInvalid | PicChangeHint::EditPicPos);
+    },
+        [iPos, iStart, this, cCount](ResourceEntity &resource)
+    {
+        if (iStart <= iPos)
+        {
+            SeekToPos(_NextPicPos(iPos, cCount), false);
+        }
     }
-    _pdm.Invalidate();
-    _NotifyNewResource(PicChangeHint::EditPicInvalid | PicChangeHint::EditPicPos);
-    SetModifiedFlag(TRUE);
+        );
 }
+
 void CPicDoc::InsertCommands(INT_PTR cCount, PicCommand *pCommands)
 {
-    _CloneCurrentAndAdd();
-    ::InsertCommands(*_GetPic(), _pdm.GetPos(), cCount, pCommands);
-    SeekToPos(_NextPicPos(_pdm.GetPos(), cCount), false);
-    _pdm.Invalidate();
-    _NotifyNewResource(PicChangeHint::EditPicInvalid | PicChangeHint::EditPicPos);
-    SetModifiedFlag(TRUE);
+    InsertCommands(_pdm.GetPos(), cCount, pCommands);
 }
+
 void CPicDoc::RemoveCommand(INT_PTR iCommandIndex)
 {
-    _CloneCurrentAndAdd();
-    ::RemoveCommand(*_GetPic(), iCommandIndex);
     INT_PTR iPos = _pdm.GetPos();
-    if (iCommandIndex < iPos)
+    ApplyChangesWithPost<PicComponent>(
+        [iCommandIndex](PicComponent &pic)
     {
-        SeekToPos(_PrevPicPos(iPos, 1), false);
+        ::RemoveCommand(pic, iCommandIndex);
+        return WrapHint(PicChangeHint::EditPicInvalid | PicChangeHint::EditPicPos);
+    },
+        [this, iPos, iCommandIndex](ResourceEntity &entity)
+    {
+        if (iCommandIndex < iPos)
+        {
+            SeekToPos(_PrevPicPos(iPos, 1), false);
+        }
     }
-    _pdm.Invalidate();
-    _NotifyNewResource(PicChangeHint::EditPicInvalid | PicChangeHint::EditPicPos);
-    SetModifiedFlag(TRUE);
+        );
 }
+
 void CPicDoc::RemoveCommandRange(INT_PTR iStart, INT_PTR iEnd)
 {
     if (iEnd == -1)
@@ -355,22 +372,28 @@ void CPicDoc::RemoveCommandRange(INT_PTR iStart, INT_PTR iEnd)
         iEnd = (int)_GetPic()->commands.size() - 1;
     }
     int delta = (iEnd - iStart + 1);
-    _CloneCurrentAndAdd();
-    ::RemoveCommandRange(*_GetPic(), iStart, iEnd);
     INT_PTR iPos = _pdm.GetPos();
-    if (iEnd < iPos)
+
+    ApplyChangesWithPost<PicComponent>(
+        [iStart, iEnd](PicComponent &pic)
     {
-        // Adjust selection down
-        SeekToPos(_PrevPicPos(iPos, delta), false);
-    }
-    else if (iStart < iPos)
+        ::RemoveCommandRange(pic, iStart, iEnd);
+        return WrapHint(PicChangeHint::EditPicInvalid | PicChangeHint::EditPicPos);
+    },
+        [this, iEnd, iPos, iStart, delta](ResourceEntity &entity)
     {
-        // It was in the selection
-        SeekToPos(iStart, false);
+        if (iEnd < iPos)
+        {
+            // Adjust selection down
+            SeekToPos(_PrevPicPos(iPos, delta), false);
+        }
+        else if (iStart < iPos)
+        {
+            // It was in the selection
+            SeekToPos(iStart, false);
+        }
     }
-    _pdm.Invalidate();
-    _NotifyNewResource(PicChangeHint::EditPicInvalid | PicChangeHint::EditPicPos);
-    SetModifiedFlag(TRUE);
+    );
 }
 
 void CPicDoc::ExplicitNotify(PicChangeHint hint)
@@ -459,7 +482,7 @@ void CPicDoc::Dump(CDumpContext& dc) const
 }
 #endif //_DEBUG
 
-PicComponent *CPicDoc::_GetPic() const
+const PicComponent *CPicDoc::_GetPic() const
 {
     const ResourceEntity *pEntity = static_cast<const ResourceEntity*>(GetResource());
     return pEntity ? &pEntity->GetComponent<PicComponent>() : nullptr;

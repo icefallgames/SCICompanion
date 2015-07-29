@@ -123,7 +123,7 @@ COLORREF CNewRasterResourceDocument::SCIColorToCOLORREF(uint8_t color)
     if (pResource)
     {
         RGBQUAD rgb;
-        RasterComponent &raster = GetComponent<RasterComponent>();
+        const RasterComponent &raster = GetComponent<RasterComponent>();
         if (raster.Traits.PaletteType == PaletteType::VGA_256)
         {
             const PaletteComponent *palette = GetCurrentPaletteComponent();
@@ -162,7 +162,7 @@ int CNewRasterResourceDocument::GetSelectedGroup(CelIndex *rgGroups, size_t ceGr
     int iRet = 0;
     if (_fApplyToAllCels)
     {
-        RasterComponent &raster = GetComponent<RasterComponent>();
+        const RasterComponent &raster = GetComponent<RasterComponent>();
         size_t iCelCount = raster.Loops[_nLoop].Cels.size();
         if (iCelCount <= ceGroup)
         {
@@ -196,7 +196,7 @@ int CNewRasterResourceDocument::GetSelectedGroup(CelIndex *rgGroups, size_t ceGr
 //
 void CNewRasterResourceDocument::_ValidateCelIndex()
 {
-    RasterComponent &raster = GetComponent<RasterComponent>();
+    const RasterComponent &raster = GetComponent<RasterComponent>();
     int cLoops = (int)raster.Loops.size();
     _nLoop = min(_nLoop, cLoops - 1);
     _nLoop = max(_nLoop, 0);
@@ -523,7 +523,7 @@ void CNewRasterResourceDocument::_ApplyImageSequenceNew(uint8_t transparentColor
 
 void CNewRasterResourceDocument::_InsertFiles(const vector<string> &files)
 {
-    RasterComponent &raster = GetComponent<RasterComponent>();
+    const RasterComponent &raster = GetComponent<RasterComponent>();
     bool isVGA = (raster.Traits.PaletteType == PaletteType::VGA_256);
 
     // Use the transparent color of the current cel.
@@ -713,7 +713,7 @@ void CNewRasterResourceDocument::ExportAsGif()
     if (IDOK == fileDialog.DoModal())
     {
         CString strFileName = fileDialog.GetPathName();
-        RasterComponent &raster = GetComponent<RasterComponent>();
+        const RasterComponent &raster = GetComponent<RasterComponent>();
 
         int colorCount;
         const RGBQUAD *colors;
@@ -732,9 +732,8 @@ void CNewRasterResourceDocument::MakeFont()
         LOGFONT *pLogFont = fontDialog.m_cf.lpLogFont;
         if (pLogFont)
         {
-            FontComponent &font = GetComponent<FontComponent>();
-            ApplyChanges<RasterComponent>(
-                [&](RasterComponent &raster)
+            ApplyChanges<RasterComponent, FontComponent>(
+                [&](RasterComponent &raster, FontComponent &font)
             {
                 InitFontFromLOGFONT(raster, font, pLogFont);
                 return WrapHint(RasterChangeHint::Cel | RasterChangeHint::NewView);
@@ -763,7 +762,7 @@ void CNewRasterResourceDocument::OnResourceAdded(const ResourceBlob *pData, Appe
 
 bool CNewRasterResourceDocument::v_IsVGA()
 {
-    RasterComponent &raster = GetComponent<RasterComponent>();
+    const RasterComponent &raster = GetComponent<RasterComponent>();
     return (raster.Traits.PaletteType == PaletteType::VGA_256);
 }
 

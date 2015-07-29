@@ -45,7 +45,7 @@ struct Loop
     Loop() : UnknownData(0), IsMirror(false), MirrorOf(0xff) {}
     Loop(const Loop &loop) = default;
     Loop &operator=(const Loop &loop) = default;
-    int GetMirrorOf()
+    int GetMirrorOf() const
     {
         return IsMirror ? (int)MirrorOf : -1;
 

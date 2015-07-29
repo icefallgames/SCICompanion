@@ -28,7 +28,7 @@ public:
     template<typename... _TComponentArgs, typename _Func>
     bool ApplyChanges(_Func f)
     {
-        return ApplyChanges<_TComponentArgs ...>(f, DoNothing);
+        return ApplyChanges<_TComponentArgs ...>(f, DoNothing, DoNothing);
     }
 
     // Similar to ApplyChanges, but the new item is added to the undo stack before it's committed
@@ -39,12 +39,24 @@ public:
         return ApplyChanges<_TComponentArgs ...>(f, DoNothing, true);
     }
 
+    template<typename... _TComponentArgs, typename _Func, typename _PostFunc>
+    bool ApplyChangesWithPost(_Func f, _PostFunc postf)
+    {
+        return ApplyChanges<_TComponentArgs ...>(f, DoNothing, postf);
+    }
+
+    template<typename... _TComponentArgs, typename _Func, typename _PreFunc>
+    bool ApplyChanges(_Func f, _PreFunc pf, bool preview = false)
+    {
+        return ApplyChanges<_TComponentArgs ...>(f, pf, DoNothing);
+    }
+
     // 
     // Usage as above, but allows for a second lambda to be passed, which receives the ResourceEntity
     // This is called prior to the first lamba. You would use this to add/remove components from the resource.
     // 
-    template<typename... _TComponentArgs, typename _Func, typename _PreFunc>
-    bool ApplyChanges(_Func f, _PreFunc pf, bool preview = false)
+    template<typename... _TComponentArgs, typename _Func, typename _PreFunc, typename _PostFunc>
+    bool ApplyChanges(_Func f, _PreFunc pf, _PostFunc postf, bool preview = false)
     {
         bool modified = false;
         const ResourceEntity *pEntity = static_cast<const ResourceEntity*>(GetResource());
@@ -75,6 +87,7 @@ public:
                     AddNewResourceToUndo(std::move(pNew));
                 }
 
+                postf(*temp);
                 // This needs to happen before we update views:
                 PostApplyChanges(&updateHint);
 

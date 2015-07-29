@@ -89,7 +89,7 @@ void RasterSidePane::_OnUpdateCommandUIs()
         int nCel = _pDoc->GetSelectedCel();
         int nLoop = _pDoc->GetSelectedLoop();
 
-        RasterComponent &raster = _pDoc->GetResource()->GetComponent<RasterComponent>();
+        const RasterComponent &raster = _pDoc->GetResource()->GetComponent<RasterComponent>();
 
         if (m_wndUp.GetSafeHwnd())
         {
@@ -117,14 +117,14 @@ void RasterSidePane::_OnUpdateCommandUIs()
 
     if (m_wndIsScalable.GetSafeHwnd() && _pDoc)
     {
-        RasterComponent &raster = _pDoc->GetResource()->GetComponent<RasterComponent>();
+        const RasterComponent &raster = _pDoc->GetResource()->GetComponent<RasterComponent>();
         m_wndIsScalable.EnableWindow(raster.Traits.SupportsScaling);
         m_wndIsScalable.SetCheck(IsScalable(raster));
     }
 
     if (_pDoc)
     {
-        RasterComponent &raster = _pDoc->GetResource()->GetComponent<RasterComponent>();
+        const RasterComponent &raster = _pDoc->GetResource()->GetComponent<RasterComponent>();
         if (m_wndDeleteLoop.GetSafeHwnd())
         {
             // We can only delete the loop if there is more than one.
@@ -222,7 +222,7 @@ void RasterSidePane::_SyncPalette()
 {
     if (_pDoc)
     {
-        RasterComponent &raster = _pDoc->GetComponent<RasterComponent>();
+        const RasterComponent &raster = _pDoc->GetComponent<RasterComponent>();
         const RGBQUAD *paletteColors = raster.Traits.Palette;
         bool dithered = false;
         switch (raster.Traits.PaletteType)
@@ -264,7 +264,7 @@ void RasterSidePane::_UpdatePaletteChoices()
     {
         if (m_wndPaletteChoice.m_hWnd)
         {
-            RasterComponent &raster = _pDoc->GetComponent<RasterComponent>();
+            const RasterComponent &raster = _pDoc->GetComponent<RasterComponent>();
             if (raster.Traits.PaletteType == PaletteType::VGA_256)
             {
                 m_wndPaletteChoice.SetRedraw(FALSE);
@@ -309,7 +309,7 @@ void RasterSidePane::OnColorClick(BYTE bIndex, int nID, BOOL fLeft)
     if (_pDoc)
     {
         assert((int)bIndex < (_cRows * _cColumns)); // Don't overflow our array.
-        RasterComponent &raster = _pDoc->GetComponent<RasterComponent>();
+        const RasterComponent &raster = _pDoc->GetComponent<RasterComponent>();
         uint8_t mappedColorIndex = raster.Traits.PaletteMapping[bIndex];
 
         if (fLeft)
@@ -331,8 +331,8 @@ void RasterSidePane::InvokeDialog(UINT nID, RECT *prcTarget)
     assert(nID == IDC_BUTTON_TRANSPARENCY);
     if (_pDoc)
     {
-        RasterComponent &raster = _pDoc->GetComponent<RasterComponent>();
-        Cel &cel = raster.GetCel(_pDoc->GetSelectedIndex());
+        const RasterComponent &raster = _pDoc->GetComponent<RasterComponent>();
+        const Cel &cel = raster.GetCel(_pDoc->GetSelectedIndex());
         uint8_t bColor = cel.TransparentColor;
         CChoosePriConDialog dialog(_pDoc->GetCurrentPaletteComponent());
         dialog.SetCaptionID(IDS_CHOOSEATRANSPARENCY);
@@ -402,8 +402,8 @@ void RasterSidePane::_OnEditSize(UINT nID, CWnd *pwnd)
 {
     if (_pDoc)
     {
-        RasterComponent &raster = _pDoc->GetResource()->GetComponent<RasterComponent>();
-        Cel &cel = raster.GetCel(_pDoc->GetSelectedIndex());
+        const RasterComponent &raster = _pDoc->GetResource()->GetComponent<RasterComponent>();
+        const Cel &cel = raster.GetCel(_pDoc->GetSelectedIndex());
 
         CSize size = SizeToCSize(cel.size);
         CPoint point = PointToCPoint(cel.placement);
@@ -621,7 +621,7 @@ void RasterSidePane::_SyncLoopPane()
 
     if (_pDoc)
     {
-        RasterComponent &raster = _pDoc->GetResource()->GetComponent<RasterComponent>();
+        const RasterComponent &raster = _pDoc->GetResource()->GetComponent<RasterComponent>();
         int nLoop = _pDoc->GetSelectedLoop();
         TCHAR szMsg[MAX_PATH];
         StringCchPrintf(szMsg, ARRAYSIZE(szMsg), TEXT("Loop %d/%d    (%d cels)"), nLoop, raster.LoopCount() - 1, raster.CelCount(nLoop));
@@ -635,14 +635,14 @@ void RasterSidePane::_SyncMirror()
     {
         if (_pDoc)
         {
-            RasterComponent &raster = _pDoc->GetResource()->GetComponent<RasterComponent>();
+            const RasterComponent &raster = _pDoc->GetResource()->GetComponent<RasterComponent>();
             m_wndMirrorOf.SetRedraw(FALSE);
             int nLoop = _pDoc->GetSelectedLoop();
             // Redo the combobox.
             m_wndMirrorOf.ResetContent();
             int iNoneIndex = m_wndMirrorOf.AddString(TEXT("None"));
             m_wndMirrorOf.SetItemData(iNoneIndex, -1);
-            Loop &loop = raster.Loops[nLoop];
+            const Loop &loop = raster.Loops[nLoop];
             int iCurrentMirrorOf = loop.GetMirrorOf();
             int cLoops = raster.LoopCount();
             BOOL fEnableCombo = TRUE;
@@ -710,8 +710,8 @@ void RasterSidePane::_SyncCelPane()
             SetDlgItemText(IDC_STATIC_CELGROUP, ss.str().c_str());
         }
 
-        RasterComponent &raster = _pDoc->GetResource()->GetComponent<RasterComponent>();
-        Cel &cel = raster.GetCel(_pDoc->GetSelectedIndex());
+        const RasterComponent &raster = _pDoc->GetResource()->GetComponent<RasterComponent>();
+        const Cel &cel = raster.GetCel(_pDoc->GetSelectedIndex());
 
         if (_fSupportsSize)
         {
