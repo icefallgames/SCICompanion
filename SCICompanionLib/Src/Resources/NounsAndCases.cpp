@@ -5,8 +5,9 @@
 using namespace std;
 
 NounsAndCasesComponent::NounsAndCasesComponent(const std::string &msgFolder, int messageNumber) : _messageNumber(messageNumber), _msgFolder(msgFolder),
-    _headerFile(fmt::format("{0}\\{1}.shm", msgFolder, messageNumber), fmt::format("{0}.shm", messageNumber), initializer_list<string>({ "NOUNS", "CASES" }))
+    _headerFile(msgFolder, messageNumber, initializer_list<string>({ "NOUNS", "CASES" }))
 {
+
 }
 
 MessageSource &NounsAndCasesComponent::GetNouns()
@@ -29,5 +30,6 @@ const MessageSource &NounsAndCasesComponent::GetCases() const
 // REVIEW: Why does it pass a nmssage number?
 void NounsAndCasesComponent::Commit(int messageNumber)
 {
-    _headerFile.Commit();
+    _messageNumber = messageNumber;
+    _headerFile.Commit(messageNumber);
 }

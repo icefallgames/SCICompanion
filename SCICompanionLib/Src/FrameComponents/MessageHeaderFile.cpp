@@ -4,8 +4,15 @@
 
 using namespace std;
 
-MessageHeaderFile::MessageHeaderFile(const std::string &filepath, const std::string &title, const std::vector<std::string> &sourcesOptional) : _filePath(filepath), _title(title)
+MessageHeaderFile::MessageHeaderFile(const std::string &filepath, const std::string &title, const std::vector<std::string> &sourcesOptional) : _filePath(filepath), _title(title), _resourceNumber(-1)
 {
+    _Load(sourcesOptional);
+}
+
+MessageHeaderFile::MessageHeaderFile(const std::string &folderPath, int resourceNumber, const std::vector<std::string> &sourcesOptional) : _folderPath(folderPath), _resourceNumber(resourceNumber)
+{
+    _title = fmt::format("{0}.shm", _resourceNumber);
+    _filePath = fmt::format("{0}\\{1}", _folderPath, _title);
     _Load(sourcesOptional);
 }
 
@@ -117,8 +124,15 @@ MessageSource *MessageHeaderFile::GetMessageSource()
     return &_sources.begin()->second;
 }
 
-void MessageHeaderFile::Commit()
+void MessageHeaderFile::Commit(int resourceNumber)
 {
+    if ((resourceNumber != -1) && !_folderPath.empty())
+    {
+        _resourceNumber = resourceNumber;
+        _title = fmt::format("{0}.shm", _resourceNumber);
+        _filePath = fmt::format("{0}\\{1}", _folderPath, _title);
+    }
+
     ofstream file;
     string bakFile = _filePath + ".bak";
     file.open(bakFile, ios_base::out | ios_base::trunc);
