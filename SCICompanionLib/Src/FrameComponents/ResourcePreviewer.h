@@ -185,6 +185,7 @@ private:
 
     CExtNoFlickerStatic m_wndView;
     CExtNoFlickerStatic m_wndPaletteNOT;
+    CExtLabel m_wndStaticResNum;
     std::unique_ptr<ResourceEntity> _palette;
 };
 

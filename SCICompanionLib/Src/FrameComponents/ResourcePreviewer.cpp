@@ -219,6 +219,8 @@ void PalettePreviewer::SetResource(const ResourceBlob &blob)
     COLORREF background = g_PaintManager->GetColor(COLOR_3DFACE);
     bitmap.Attach(CreateBitmapFromPaletteResource(_palette.get(), &bmi, &pBitsDest, &background));
     m_wndView.FromBitmap((HBITMAP)bitmap, bmi.bmiHeader.biWidth, abs(bmi.bmiHeader.biHeight), false);
+
+    m_wndStaticResNum.SetWindowText(GetFileNameFor(blob.GetType(), blob.GetNumber(), blob.GetVersion()).c_str());
 }
 
 void PalettePreviewer::DoDataExchange(CDataExchange* pDX)
@@ -228,6 +230,8 @@ void PalettePreviewer::DoDataExchange(CDataExchange* pDX)
     AddAnchor(IDC_STATICVIEW, CPoint(0, 0), CPoint(100, 100));
     DDX_Control(pDX, IDC_STATIC2, m_wndPaletteNOT);
     AddAnchor(IDC_STATIC2, CPoint(100, 100), CPoint(100, 100));
+    DDX_Control(pDX, IDC_STATICRESNUM, m_wndStaticResNum);
+    AddAnchor(IDC_STATICRESNUM, CPoint(0, 0), CPoint(100, 0));
 }
 
 //
