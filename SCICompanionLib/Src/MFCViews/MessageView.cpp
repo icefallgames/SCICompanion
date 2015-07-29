@@ -6,6 +6,7 @@
 #include "Text.h"
 #include "Message.h"
 #include "format.h"
+#include "NounsAndCases.h"
 
 using namespace std;
 
@@ -184,16 +185,17 @@ void CMessageView::_SetItem(int iItem, PCTSTR pszString, const TextComponent *te
         int iSubItem = _columns[iSub].iSubItem;
         if (text)
         {
+            NounsAndCasesComponent &nounsAndCases = GetDocument()->GetResource()->GetComponent<NounsAndCasesComponent>();
             switch (iSubItem)
             {
             case COL_NOUN:
-                _GetDefineFromValue(szBuf, ARRAYSIZE(szBuf), GetDocument()->GetNounMessageSource(), text->Texts[iItem].Noun, true);
+                _GetDefineFromValue(szBuf, ARRAYSIZE(szBuf), &nounsAndCases.GetNouns(), text->Texts[iItem].Noun, true);
                 break;
             case COL_VERB:
                 _GetDefineFromValue(szBuf, ARRAYSIZE(szBuf), appState->GetResourceMap().GetVerbsMessageSource(), text->Texts[iItem].Verb, true);
                 break;
             case COL_CONDITION:
-                _GetDefineFromValue(szBuf, ARRAYSIZE(szBuf), GetDocument()->GetConditionMessageSource(), text->Texts[iItem].Condition, true);
+                _GetDefineFromValue(szBuf, ARRAYSIZE(szBuf), &nounsAndCases.GetCases(), text->Texts[iItem].Condition, true);
                 break;
             case COL_SEQUENCE:
                 StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%d"), text->Texts[iItem].Sequence);

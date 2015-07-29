@@ -26,9 +26,6 @@ public:
     virtual void Dump(CDumpContext& dc) const;
 #endif
 
-    MessageSource *GetNounMessageSource();
-    MessageSource *GetConditionMessageSource();
-
     void SetSelectedIndex(int index, bool force = false);
     int GetSelectedIndex() const { return _selectedIndex; }
 
@@ -40,7 +37,6 @@ protected:
         return pResource->GetType();
     }
 
-    std::unique_ptr<MessageHeaderFile> _messageHeaderFile;
     int _selectedIndex;
 
     DECLARE_MESSAGE_MAP()

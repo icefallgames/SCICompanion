@@ -41,7 +41,7 @@ void AdvanceToWhitespace(const std::string &line, size_t &offset)
 
 void MessageHeaderFile::_Load(const std::vector<std::string> &sourcesOptional)
 {
-    unique_ptr<MessageSource> currentSource;
+    MessageSource *currentSource = nullptr;
     // For speed, we won't bother with our standard parser here. Also, we need comments.
     ifstream file;
     file.open(_filePath);
@@ -58,14 +58,9 @@ void MessageHeaderFile::_Load(const std::vector<std::string> &sourcesOptional)
             string token = line.substr(offset, afterName - offset);
             if (find(sourcesOptional.begin(), sourcesOptional.end(), token) != sourcesOptional.end())
             {
-                // Add any current source to the list
-                if (currentSource)
-                {
-                    assert(_sources.find(currentSource->Name) == _sources.end());
-                    _sources[currentSource->Name] = move(currentSource);
-                }
-                // And start a new one
-                currentSource = make_unique<MessageSource>(this);
+                // Start a new one
+                auto itPair = _sources.emplace(std::make_pair(token, MessageSource(this)));
+                currentSource = &itPair.first->second;
                 currentSource->Name = token;
                 currentSource->MandatoryPrefix = token.substr(0, 1) + "_";
             }
@@ -74,7 +69,9 @@ void MessageHeaderFile::_Load(const std::vector<std::string> &sourcesOptional)
         {
             if (currentSource == nullptr)
             {
-                currentSource = make_unique<MessageSource>(this);
+                auto itPair = _sources.emplace(std::make_pair("", MessageSource(this)));
+                currentSource = &itPair.first->second;
+                currentSource->Name = "";
             }
 
             size_t offset = ARRAYSIZE(c_szDefine);
@@ -92,11 +89,11 @@ void MessageHeaderFile::_Load(const std::vector<std::string> &sourcesOptional)
             currentSource->AddDefine(name, value);
         }
     }
+}
 
-    if (currentSource)
-    {
-        _sources[currentSource->Name] = move(currentSource);
-    }
+const MessageSource *MessageHeaderFile::GetMessageSource(const std::string &name) const
+{
+    return &(_sources.find(name)->second);
 }
 
 MessageSource *MessageHeaderFile::GetMessageSource(const std::string &name)
@@ -104,19 +101,20 @@ MessageSource *MessageHeaderFile::GetMessageSource(const std::string &name)
     if (_sources.find(name) == _sources.end())
     {
         // We hit this when we don't have a file to begin with.
-        _sources[name] = make_unique<MessageSource>(this);
-        _sources[name]->MandatoryPrefix = name.substr(0, 1) + "_";
+        _sources.emplace(std::make_pair(name, MessageSource(this)));
+        _sources[name].Name = name;
+        _sources[name].MandatoryPrefix = name.substr(0, 1) + "_";
     }
-    return _sources[name].get();
+    return &_sources[name];
 }
 
 MessageSource *MessageHeaderFile::GetMessageSource()
 {
     if (_sources.size() == 0)
     {
-        _sources[""] = make_unique<MessageSource>(this);
+        _sources.emplace(std::make_pair("", MessageSource(this)));
     }
-    return _sources.begin()->second.get();
+    return &_sources.begin()->second;
 }
 
 void MessageHeaderFile::Commit()
@@ -133,7 +131,7 @@ void MessageHeaderFile::Commit()
         {
             file << c_szComment << " " << source.first << "\n";
             file << "\n";
-            for (auto &define : source.second->GetDefines())
+            for (auto &define : source.second.GetDefines())
             {
                 file << "(define " << define.first << " " << define.second << ")\n";
             }

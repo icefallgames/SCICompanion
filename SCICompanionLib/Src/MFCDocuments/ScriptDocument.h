@@ -48,6 +48,8 @@ public:
     ScriptId GetScriptId() { return _scriptId; }
     void SetScriptNumber(WORD wScriptNum) { _scriptId.SetResourceNumber(wScriptNum); }
 
+    void Compile() { OnCompile(); }
+
 protected:
 	virtual BOOL OnNewDocument();
 	DECLARE_MESSAGE_MAP()

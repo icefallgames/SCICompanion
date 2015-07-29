@@ -8,6 +8,7 @@
 #include "format.h"
 #include "MessageSource.h"
 #include "WindowsUtil.h"
+#include "NounsAndCases.h"
 
 using namespace std;
 
@@ -159,9 +160,10 @@ void MessageEditPane::_UpdateCombos(MessageChangeHint hint)
 {
     if (_pDoc)
     {
+        const ResourceEntity *resource = _pDoc->GetResource();
         if (IsFlagSet(hint, MessageChangeHint::NounsChanged))
         {
-            _PopulateComboFromMessageSource(m_wndComboNoun, _pDoc->GetNounMessageSource(), true);
+            _PopulateComboFromMessageSource(m_wndComboNoun, resource ? &resource->GetComponent<NounsAndCasesComponent>().GetNouns() : nullptr, true);
         }
         if (IsFlagSet(hint, MessageChangeHint::VerbsChanged))
         {
@@ -173,7 +175,7 @@ void MessageEditPane::_UpdateCombos(MessageChangeHint hint)
         }
         if (IsFlagSet(hint, MessageChangeHint::ConditionsChanged))
         {
-            _PopulateComboFromMessageSource(m_wndComboCondition, _pDoc->GetConditionMessageSource(), true);
+            _PopulateComboFromMessageSource(m_wndComboCondition, resource ? &resource->GetComponent<NounsAndCasesComponent>().GetCases() : nullptr, true);
         }
     }
 }
@@ -291,10 +293,11 @@ void MessageEditPane::_Update()
             m_wndEditMessage.SetWindowTextA(entry->Text.c_str());
             _UpdateSequence(entry->Sequence);
             
+            NounsAndCasesComponent &nounsAndCases = _pDoc->GetResource()->GetComponent<NounsAndCasesComponent>();
             _UpdateComboFromValue(m_wndComboVerb, entry->Verb, appState->GetResourceMap().GetVerbsMessageSource());
             _UpdateComboFromValue(m_wndComboTalker, entry->Talker, appState->GetResourceMap().GetTalkersMessageSource());
-            _UpdateComboFromValue(m_wndComboNoun, entry->Noun, _pDoc->GetNounMessageSource());
-            _UpdateComboFromValue(m_wndComboCondition, entry->Condition, _pDoc->GetNounMessageSource());
+            _UpdateComboFromValue(m_wndComboNoun, entry->Noun, &nounsAndCases.GetNouns());
+            _UpdateComboFromValue(m_wndComboCondition, entry->Condition, &nounsAndCases.GetCases());
         }
         else
         {

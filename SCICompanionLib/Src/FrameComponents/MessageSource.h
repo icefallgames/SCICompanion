@@ -15,6 +15,7 @@ class MessageSource
 {
 public:
     MessageSource(MessageHeaderFile *file);
+    MessageSource() { assert(false); }
 
     const std::vector<MessageDefine> &GetDefines() const { return _defines; }
     void SetName(size_t index, const std::string &newName);

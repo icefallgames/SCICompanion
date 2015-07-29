@@ -3,6 +3,7 @@
 #include "Text.h"
 #include "ResourceEntity.h"
 #include "format.h"
+#include "NounsAndCases.h"
 
 using namespace std;
 
@@ -297,13 +298,25 @@ bool ValidateMessage(const ResourceEntity &resource)
     return true;
 }
 
+void MessageWriteNounsAndCases(const ResourceEntity &resource, int resourceNumber)
+{
+    NounsAndCasesComponent *nounsAndCases = resource.TryGetComponent<NounsAndCasesComponent>();
+    if (nounsAndCases)
+    {
+        // Use the provided resource number instead of that in the ResourceEntity, since it may
+        // be -1
+        nounsAndCases->Commit(resourceNumber);
+    }
+}
+
+
 ResourceTraits messageTraits =
 {
     ResourceType::Message,
     &MessageReadFrom,
     &MessageWriteTo,
     &ValidateMessage,
-    nullptr
+    &MessageWriteNounsAndCases,
 };
 
 ResourceEntity *CreateMessageResource(SCIVersion version)

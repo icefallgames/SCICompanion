@@ -6,6 +6,7 @@
 #include "AppState.h"
 #include "MessageDoc.h"
 #include "WindowsUtil.h"
+#include "NounsAndCases.h"
 
 using namespace std;
 
@@ -59,6 +60,41 @@ bool _IsValidToken(const string &value)
     return ret;
 }
 
+template<typename _Func>
+void MessageEditorListCtrl::ApplyMessageChanges(_Func f)
+{
+    if (_pDoc)
+    {
+        switch (_sourceType)
+        {
+            case MessageSourceType::Conditions:
+            case MessageSourceType::Nouns:
+            {
+                MessageSourceType sourceType = _sourceType;
+                _pDoc->ApplyChanges<NounsAndCasesComponent>(
+                    [sourceType, f](NounsAndCasesComponent &nounsAndCases)
+                {
+                    if (sourceType == MessageSourceType::Conditions)
+                    {
+                        f(&nounsAndCases.GetCases());
+                    }
+                    else
+                    {
+                        f(&nounsAndCases.GetNouns());
+                    }
+                    return WrapHint(MessageChangeHint::AllMessageFiles);
+                }
+                );
+                break;
+            }
+            default:
+                MessageSource *source = GetMessageSourceFromType(_pDoc, _sourceType, false);
+                f(source);
+                _Commit();
+        }
+    }
+}
+
 void MessageEditorListCtrl::OnEndLabelEdit(NMHDR* pNMHDR, LRESULT* pResult)
 {
     MessageSource *source = _GetSource();
@@ -87,9 +123,14 @@ void MessageEditorListCtrl::OnEndLabelEdit(NMHDR* pNMHDR, LRESULT* pResult)
             }
             else
             {
+                int itemIndex = plvdi->item.iItem;
                 SetItemText(plvdi->item.iItem, COL_VALUE, strResult);
-                source->SetValue(plvdi->item.iItem, (uint16_t)value);
-                _Commit();
+                ApplyMessageChanges(
+                    [itemIndex, value](MessageSource *source)
+                {
+                    source->SetValue(itemIndex, (uint16_t)value);
+                }
+                    );
                 *pResult = TRUE;
                 success = true;
             }
@@ -114,9 +155,15 @@ void MessageEditorListCtrl::OnEndLabelEdit(NMHDR* pNMHDR, LRESULT* pResult)
             }
             else
             {
-                SetItemText(plvdi->item.iItem, COL_NAME, result.c_str());
-                source->SetName(plvdi->item.iItem, result);
-                _Commit();
+                int itemIndex = plvdi->item.iItem;
+                SetItemText(itemIndex, COL_NAME, result.c_str());
+                ApplyMessageChanges(
+                    [itemIndex, result](MessageSource *source)
+                {
+                    source->SetName(itemIndex, result);
+                }
+                );
+
                 // Set this to FALSE, so since we already set the name (and we may have had to prefix it)
                 *pResult = FALSE;
                 success = true;
@@ -128,8 +175,14 @@ void MessageEditorListCtrl::OnEndLabelEdit(NMHDR* pNMHDR, LRESULT* pResult)
     {
         if (!success)
         {
-            source->DeleteDefine(plvdi->item.iItem);
-            DeleteItem(plvdi->item.iItem);
+            int itemIndex = plvdi->item.iItem;
+            ApplyMessageChanges(
+                [itemIndex](MessageSource *source)
+            {
+                source->DeleteDefine(itemIndex);
+            }
+            );
+            DeleteItem(itemIndex);
         }
         _removeIfFailEdit = false;
     }
@@ -248,9 +301,13 @@ void MessageEditorListCtrl::DeleteSelectedItem()
         int item = GetNextSelectedItem(pos);
         if (item != -1)
         {
-            _GetSource()->DeleteDefine(item);
+            ApplyMessageChanges(
+                [item](MessageSource *source)
+            {
+                source->DeleteDefine(item);
+            }
+                );
             _Populate();
-            _Commit();
         }
     }
 }
@@ -278,7 +335,14 @@ void MessageEditorListCtrl::AddNewItem()
 
     if (newValue < ARRAYSIZE(used))
     {
-        size_t newIndex = _GetSource()->AddDefine(_GetSource()->MandatoryPrefix + "NEWITEM", (uint16_t)newValue);
+        size_t newIndex = 0;
+        ApplyMessageChanges(
+            [&newIndex, newValue](MessageSource *source)
+        {
+            newIndex = source->AddDefine(source->MandatoryPrefix + "NEWITEM", (uint16_t)newValue);
+        }
+            );
+
         _Populate();
         SetFocus();
         EditLabel((int)newIndex);
@@ -296,18 +360,7 @@ void MessageEditorListCtrl::SetSource(CMessageDoc *pDoc, MessageSourceType sourc
 
 MessageSource *MessageEditorListCtrl::_GetSource(bool reload)
 {
-    switch (_sourceType)
-    {
-        case MessageSourceType::Conditions:
-            return _pDoc->GetConditionMessageSource();
-        case MessageSourceType::Verbs:
-            return appState->GetResourceMap().GetVerbsMessageSource(reload);
-        case MessageSourceType::Talkers:
-            return appState->GetResourceMap().GetTalkersMessageSource(reload);
-        case MessageSourceType::Nouns:
-            return _pDoc->GetNounMessageSource();
-    }
-    return nullptr;
+    return GetMessageSourceFromType(_pDoc, _sourceType, reload);
 }
 
 void MessageEditorListCtrl::_Commit()
@@ -315,6 +368,7 @@ void MessageEditorListCtrl::_Commit()
     MessageSource *source = _GetSource();
     if (source)
     {
+        assert((_sourceType == MessageSourceType::Verbs || _sourceType == MessageSourceType::Nouns) && "Other types should go through components.");
         source->Commit();
         if (_pDoc)
         {

@@ -40,6 +40,11 @@ protected:
 
 private:
     MessageSource *_GetSource(bool reload = false);
+
+    template<typename _Func>
+    void ApplyMessageChanges(_Func f);
+
+
     void _InitColumns();
     void _Populate();
     void _Commit();

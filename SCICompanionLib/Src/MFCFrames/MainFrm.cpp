@@ -1550,6 +1550,8 @@ void CMainFrame::_OnNewScriptDialog(CNewScriptDialog &dialog)
             if (pDoc)
             {
                 pDoc->SetNameAndContent(script, dialog.GetNumber(), strBuffer);
+                // Compile it so it is added to the resource map.
+                pDoc->Compile();
             }
         }
     }    

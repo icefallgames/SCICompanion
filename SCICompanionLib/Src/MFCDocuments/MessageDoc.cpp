@@ -9,6 +9,7 @@
 #include "MessageSource.h"
 #include "MessageHeaderFile.h"
 #include "format.h"
+#include "NounsAndCases.h"
 
 using namespace std;
 
@@ -32,17 +33,17 @@ void CMessageDoc::SetSelectedIndex(int index, bool force)
 void CMessageDoc::SetMessageResource(std::unique_ptr<ResourceEntity> pMessage, int id)
 {
     _checksum = id;
+
+    if (pMessage)
+    {
+        // Add a nouns/cases component
+        pMessage->AddComponent<NounsAndCasesComponent>(
+            std::make_unique<NounsAndCasesComponent>(appState->GetResourceMap().Helper().GetMsgFolder(), pMessage->ResourceNumber)
+            );
+    }
+
     AddFirstResource(move(pMessage));
     _UpdateTitle();
-
-    if (GetResource())
-    {
-        _messageHeaderFile = GetMessageFile(appState->GetResourceMap().Helper().GetMsgFolder(), GetResource()->ResourceNumber);
-    }
-    else
-    {
-        _messageHeaderFile = nullptr;
-    }
 
     UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(MessageChangeHint::Changed | MessageChangeHint::AllMessageFiles));
 }
@@ -59,37 +60,22 @@ MessageSource *GetMessageSourceFromType(CMessageDoc *pDoc, MessageSourceType sou
 {
     if (pDoc)
     {
+        const ResourceEntity *resource = pDoc->GetResource();
         switch (sourceType)
         {
             case MessageSourceType::Conditions:
-                return pDoc->GetConditionMessageSource();
+                return resource ? &resource->GetComponent<NounsAndCasesComponent>().GetCases() : nullptr;
             case MessageSourceType::Verbs:
                 return appState->GetResourceMap().GetVerbsMessageSource(reload);
             case MessageSourceType::Talkers:
                 return appState->GetResourceMap().GetTalkersMessageSource(reload);
             case MessageSourceType::Nouns:
-                return pDoc->GetNounMessageSource();
+                return resource ? &resource->GetComponent<NounsAndCasesComponent>().GetNouns() : nullptr;
         }
     }
     return nullptr;
 }
 
-MessageSource *CMessageDoc::GetNounMessageSource()
-{
-    if (_messageHeaderFile)
-    {
-        return _messageHeaderFile->GetMessageSource("NOUNS");
-    }
-    return nullptr;
-}
-MessageSource *CMessageDoc::GetConditionMessageSource()
-{
-    if (_messageHeaderFile)
-    {
-        return _messageHeaderFile->GetMessageSource("CASES");
-    }
-    return nullptr;
-}
 
 // CMessageDoc diagnostics
 
