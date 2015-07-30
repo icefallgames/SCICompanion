@@ -158,7 +158,7 @@ void MessageReadFrom(ResourceEntity &resource, sci::istream &byteStream)
 
 void MessageWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
 {
-    TextComponent &message = resource.GetComponent<TextComponent>();
+    const TextComponent &message = resource.GetComponent<TextComponent>();
     byteStream << message.msgVersion;
     byteStream.WriteWord(0);    // Unknown
     if (message.msgVersion <= 0x835)
@@ -294,13 +294,32 @@ bool ValidateMessage(const ResourceEntity &resource)
         }
     }
 
-    // TODO: Warn about missing sequences?
+    // Check for sequences beginning with something other than 1.
+    std::map<uint32_t, bool> tuplesHaveSeq;
+    for (auto &entry : text.Texts)
+    {
+        uint32_t tuple = entry.Noun + (entry.Verb << 8) + (entry.Condition << 16);
+        tuplesHaveSeq[tuple] = tuplesHaveSeq[tuple] || (entry.Sequence == 1);
+    }
+    for (auto &pair : tuplesHaveSeq)
+    {
+        if (!pair.second)
+        {
+            string message = fmt::format("The following mesaage: (noun:{0}, verb:{1}, cond:{2}) has a sequence that doesn't begin at 1. Save anyway?", (pair.first & 0xff), (pair.first >> 8) & 0xff, (pair.first >> 16) & 0xff);
+            if (IDNO == AfxMessageBox(message.c_str(), MB_YESNO | MB_ICONWARNING))
+            {
+                return false;
+            }
+            break;
+        }
+    }
+
     return true;
 }
 
 void MessageWriteNounsAndCases(const ResourceEntity &resource, int resourceNumber)
 {
-    NounsAndCasesComponent *nounsAndCases = resource.TryGetComponent<NounsAndCasesComponent>();
+    NounsAndCasesComponent *nounsAndCases = const_cast<NounsAndCasesComponent*>(resource.TryGetComponent<NounsAndCasesComponent>());
     if (nounsAndCases)
     {
         // Use the provided resource number instead of that in the ResourceEntity, since it may
