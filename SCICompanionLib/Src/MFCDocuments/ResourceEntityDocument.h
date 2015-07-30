@@ -48,7 +48,7 @@ public:
     template<typename... _TComponentArgs, typename _Func, typename _PreFunc>
     bool ApplyChanges(_Func f, _PreFunc pf, bool preview = false)
     {
-        return ApplyChanges<_TComponentArgs ...>(f, pf, DoNothing);
+        return ApplyChanges<_TComponentArgs ...>(f, pf, DoNothing, preview);
     }
 
     // 
