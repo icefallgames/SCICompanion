@@ -47,6 +47,7 @@ private:
     CStatic m_wndAnimate;
     CExtSliderWnd m_wndSlider;
     CExtButton m_wndButton;
+    CExtButton m_wndButtonBG;
     CSize _sizeAnimate;     // of the animate ctl. Zoomed
     CSize _sizeWeDrawIn;    // Part of the animate control we draw in (centered based on _SizeAnimate). Zoomed
     //CRect _rectPlacements;  // Not zoomed
@@ -63,4 +64,6 @@ private:
 
     // Visuals
     CExtButton m_wndOK;
+public:
+    afx_msg void OnBnClickedButtonbg();
 };

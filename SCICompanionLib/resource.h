@@ -297,6 +297,7 @@
 #define IDC_BUTTON_TRANSPARENCY         1004
 #define IDC_BUTTONBROWSE                1004
 #define IDC_BUTTONMOVE                  1004
+#define IDC_BUTTONBG                    1004
 #define IDC_BUTTON3                     1005
 #define IDC_SETPENSTYLE                 1005
 #define IDC_BUTTON_ADDCELAFTER          1005

@@ -9,6 +9,9 @@
 #include "PaletteOperations.h"
 using namespace std;
 
+const int MaxBackground = 4;
+int g_currentBackground = 0;
+
 // CAnimateDialog dialog
 
 CAnimateDialog::CAnimateDialog(CWnd* pParent /*=NULL*/, const RasterComponent &raster, PaletteComponent *palette)
@@ -105,6 +108,8 @@ void CAnimateDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_ANIMATE, m_wndAnimate);
     DDX_Control(pDX, IDC_SLIDER, m_wndSlider);
     DDX_Control(pDX, IDC_BUTTONPLAY, m_wndButton);
+    DDX_Control(pDX, IDC_BUTTONBG, m_wndButtonBG);
+    
     CRect rectOrig;
     m_wndAnimate.GetClientRect(&rectOrig);
     _sizeAnimate.cx = rectOrig.Width();
@@ -145,6 +150,7 @@ BEGIN_MESSAGE_MAP(CAnimateDialog, CExtResizableDialog)
     ON_WM_TIMER()
     ON_WM_HSCROLL()
     ON_COMMAND(IDC_BUTTONPLAY, OnPlay)
+    ON_BN_CLICKED(IDC_BUTTONBG, &CAnimateDialog::OnBnClickedButtonbg)
 END_MESSAGE_MAP()
 
 void CAnimateDialog::OnSize(UINT nType, int cx, int cy)
@@ -264,16 +270,33 @@ const Cel &CAnimateDialog::GetCel()
 void CAnimateDialog::_OnDraw(CDC *pDC, LPRECT prc)
 {
     // First fill with a transparent background
-    CBitmap bm;
-    RGBQUAD a = { 204, 204, 204, 0 };
-    RGBQUAD b = { 255, 255, 255, 0 };
-    if (CreateDCCompatiblePattern(a, b, 8, 8, pDC, &bm))
+    switch (g_currentBackground)
     {
-        CBrush brushPat;
-        if (brushPat.CreatePatternBrush(&bm))
+        case 0:
         {
-            pDC->FillRect(prc, &brushPat);
+            CBitmap bm;
+            RGBQUAD a = { 204, 204, 204, 0 };
+            RGBQUAD b = { 255, 255, 255, 0 };
+            if (CreateDCCompatiblePattern(a, b, 8, 8, pDC, &bm))
+            {
+                CBrush brushPat;
+                if (brushPat.CreatePatternBrush(&bm))
+                {
+                    pDC->FillRect(prc, &brushPat);
+                }
+            }
         }
+        break;
+
+        case 1:
+            pDC->FillSolidRect(prc, RGB(0, 0, 0));
+            break;
+        case 2:
+            pDC->FillSolidRect(prc, RGB(255, 0, 255));
+            break;
+        case 3:
+            pDC->FillSolidRect(prc, RGB(255, 255, 255));
+            break;
     }
 
     const Cel &cel = GetCel();
@@ -377,4 +400,12 @@ void CAnimateDialog::_GenerateDoubleBuffer(CDC *pDC, LPRECT prc)
         _pbitmapDoubleBuf = make_unique<CBitmap>();
         _fDoubleBuffer = !!_pbitmapDoubleBuf->CreateCompatibleBitmap(pDC, _sizeDoubleBuf.cx, _sizeDoubleBuf.cy);
     }
+}
+
+
+void CAnimateDialog::OnBnClickedButtonbg()
+{
+    g_currentBackground++;
+    g_currentBackground %= MaxBackground;
+    m_wndAnimate.Invalidate(FALSE);
 }
