@@ -762,16 +762,19 @@ const size_t RecentViewQueueSize = 10;
 
 void AppState::SetRecentlyInteractedView(int resourceNumber)
 {
-    auto itFind = find(_recentViews.begin(), _recentViews.end(), resourceNumber);
-    if (itFind != _recentViews.end())
+    if (resourceNumber != -1)
     {
-        _recentViews.erase(itFind);
+        auto itFind = find(_recentViews.begin(), _recentViews.end(), resourceNumber);
+        if (itFind != _recentViews.end())
+        {
+            _recentViews.erase(itFind);
+        }
+        if (_recentViews.size() > RecentViewQueueSize)
+        {
+            _recentViews.erase(_recentViews.begin());
+        }
+        _recentViews.insert(_recentViews.begin(), resourceNumber);
     }
-    if (_recentViews.size() > RecentViewQueueSize)
-    {
-        _recentViews.erase(_recentViews.begin());
-    }
-    _recentViews.insert(_recentViews.begin(), resourceNumber);
 }
 
 int AppState::GetSelectedViewResourceNumber()

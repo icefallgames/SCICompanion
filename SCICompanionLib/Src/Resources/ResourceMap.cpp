@@ -433,6 +433,11 @@ HRESULT CResourceMap::AppendResource(const ResourceBlob &resource)
     }
     else
     {
+        if (resource.GetType() == ResourceType::View)
+        {
+            appState->SetRecentlyInteractedView(resource.GetNumber());
+        }
+
         // Enumerate resources and write the ones we have not already encountered.
         std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(_gameFolderHelper.GameFolder, _gameFolderHelper.Version, resource.GetSourceFlags());
         std::vector<ResourceBlob> blobs;

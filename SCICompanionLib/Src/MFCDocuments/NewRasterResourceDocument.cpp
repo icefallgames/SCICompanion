@@ -596,6 +596,13 @@ void CNewRasterResourceDocument::OnImportImageSequence()
     // Create a file dialog.
     CFileDialog fileDialog(TRUE, nullptr, nullptr, OFN_ENABLESIZING | OFN_EXPLORER | OFN_ALLOWMULTISELECT | OFN_NOCHANGEDIR);
     fileDialog.m_ofn.lpstrTitle = TEXT("Import image sequence");
+
+    // set a buffer to keep at least 100 full path and file names
+    int bufferSize = 100 * (MAX_PATH + 1) + 1;
+    unique_ptr<char[]> buffer = make_unique<char[]>(bufferSize);
+    fileDialog.GetOFN().lpstrFile = buffer.get();
+    fileDialog.GetOFN().nMaxFile = bufferSize;
+
     if (IDOK == fileDialog.DoModal())
     {
         vector<string> fileList;
