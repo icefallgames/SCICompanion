@@ -199,8 +199,9 @@ void CBitmapToVGADialog::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_CHECKOVERLAY, m_wndCheckOverlay);
         DDX_Control(pDX, IDC_CHECKDITHER, m_wndDither);
         m_wndDither.SetCheck(BST_UNCHECKED);
-        DDX_Control(pDX, IDC_CHECKDITHERALPHA, m_wndDitherAlpha);
-        m_wndDitherAlpha.SetCheck(BST_UNCHECKED);
+        DDX_Control(pDX, IDC_STATICDITHERALPHA, m_wndLabelDitherAlpha);
+        DDX_Control(pDX, IDC_COMBODITHERALPHA, m_wndComboDitherAlpha);
+        m_wndComboDitherAlpha.SetCurSel((int)DitherAlgorithm::None);
 
         DDX_Control(pDX, IDC_BUTTONCLIPBOARD, m_wndFromClipboard);
 
@@ -447,12 +448,14 @@ void CBitmapToVGADialog::_SyncControlState()
         // Enable dithering for the first two algorithms, but not when we're
         // using the imported palette directly.
         m_wndDither.EnableWindow(TRUE);
-        m_wndDitherAlpha.EnableWindow(TRUE);
+        m_wndComboDitherAlpha.EnableWindow(TRUE);
+        m_wndLabelDitherAlpha.EnableWindow(TRUE);
     }
     else
     {
         m_wndDither.EnableWindow(FALSE);
-        m_wndDitherAlpha.EnableWindow(FALSE);
+        m_wndComboDitherAlpha.EnableWindow(FALSE);
+        m_wndLabelDitherAlpha.EnableWindow(FALSE);
     }
 
     if (optionsChanged)
@@ -516,7 +519,7 @@ void CBitmapToVGADialog::_Update()
 
     m_wndEditPaletteRanges.SetWindowText(GetRangeText(GetSelectedRanges(m_wndPalette)).c_str());
 
-    DitherAlgorithm alphaDither = (m_wndDitherAlpha.GetCheck() != BST_CHECKED) ? DitherAlgorithm::None : DitherAlgorithm::FloydSteinberg;
+    DitherAlgorithm alphaDither = (DitherAlgorithm)m_wndComboDitherAlpha.GetCurSel();
 
     bool performDither = (m_wndDither.GetCheck() == BST_CHECKED);
 
@@ -704,7 +707,7 @@ BEGIN_MESSAGE_MAP(CBitmapToVGADialog, CExtNCW<CExtResizableDialog>)
     ON_BN_CLICKED(IDC_BUTTONREFRESH, &CBitmapToVGADialog::OnBnClickedButtonrefresh)
     ON_BN_CLICKED(IDC_CHECKOVERLAY, &CBitmapToVGADialog::OnBnClickedThatThatShouldUpdate)
     ON_BN_CLICKED(IDC_CHECKDITHER, &CBitmapToVGADialog::OnBnClickedThatThatShouldUpdate)
-    ON_BN_CLICKED(IDC_CHECKDITHERALPHA, &CBitmapToVGADialog::OnBnClickedThatThatShouldUpdate)
+    ON_CBN_SELCHANGE(IDC_COMBODITHERALPHA, &CBitmapToVGADialog::OnBnClickedThatThatShouldUpdate)
     ON_EN_KILLFOCUS(IDC_EDITALPHATHRESHOLD, &CBitmapToVGADialog::OnEnKillfocusEditalphathreshold)
     ON_CBN_SELCHANGE(IDC_COMBOMATCH, &CBitmapToVGADialog::OnCbnSelchangeCombomatch)
 END_MESSAGE_MAP()

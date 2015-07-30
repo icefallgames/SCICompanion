@@ -89,7 +89,8 @@ private:
     CExtCheckBox m_wndCheck1;
     CExtCheckBox m_wndCheckInsert;
     CExtCheckBox m_wndDither;
-    CExtCheckBox m_wndDitherAlpha;
+    CExtLabel m_wndLabelDitherAlpha;
+    CExtComboBox m_wndComboDitherAlpha;
     CExtLabel m_wndLabel1;
     CExtLabel m_wndLabel2;
     CExtLabel m_wndLabel3;

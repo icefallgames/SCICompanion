@@ -73,19 +73,21 @@ public:
 };
 
 uint8_t ClampTo8(int16_t in);
+int16_t ClampToSpan(int16_t in, int factor);
+RGBError ClampToSpan(RGBError in, int factor);
 RGBError CalculateError(RGBQUAD rgbOrig, RGBQUAD rgbChosen);
 int16_t CalculateError(uint8_t orig, uint8_t chosen);
 RGBQUAD AdjustWithError(RGBQUAD orig, RGBError accError, int16_t factor);
 uint8_t AdjustWithError(uint8_t orig, int16_t accError, int16_t factor);
 
 template<typename T, typename _TAlgorithm>
-class Dither
+class ErrorDiffusionDither
 {
 public:
     typedef typename dither_traits<T>::error_type TError;
     typedef _TAlgorithm Algorithm;
 
-    Dither(int cx, int cy)
+    ErrorDiffusionDither(int cx, int cy)
     {
         _cxE = cx + Algorithm::ExpandX;   // Room for below left and right
         _cyE = cy + Algorithm::ExpandY;   // Room for below
@@ -105,7 +107,13 @@ public:
 
         for (auto &offsetAndWeight : Algorithm::Matrix)
         {
-            _error[(y + offsetAndWeight.y) * _cxE + x + offsetAndWeight.x] += errorBase * offsetAndWeight.weight;
+            int index = (y + offsetAndWeight.y) * _cxE + x + offsetAndWeight.x;
+            TError temp = _error[index];
+            temp += errorBase * offsetAndWeight.weight;
+            // Trying to fix error with JarvisJudiceNinke where completely transparent pixels
+            // Overall, things should average out, not sure why I'm getting error values beyond our range.
+            // _error[index] = ClampToSpan(temp, Algorithm::Divisor);
+            _error[index] = temp;
         }
     }
 

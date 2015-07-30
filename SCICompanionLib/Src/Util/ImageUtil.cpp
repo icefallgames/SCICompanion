@@ -600,7 +600,7 @@ std::unique_ptr<RGBQUAD[]> ConvertGdiplusToRaw(Gdiplus::Bitmap &bitmap)
 // This assumes cutout alpha.
 void RGBToPalettized(ColorMatching colorMatching, uint8_t *sciData, const RGBQUAD *dataOrig, int cx, int cy, bool performDither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *paletteColors, uint8_t transparentColor)
 {
-    Dither<RGBQUAD, FloydSteinberg> dither(cx, cy);
+    ErrorDiffusionDither<RGBQUAD, FloydSteinberg> dither(cx, cy);
     for (int y = 0; y < cy; y++)
     {
         const RGBQUAD *origRow = dataOrig + y * cx;
@@ -640,7 +640,12 @@ void CutoutAlpha(RGBQUAD *data, int cx, int cy, uint8_t alphaThreshold)
         for (int x = 0; x < cx; x++)
         {
             uint8_t alphaOrig = data[y * cx + x].rgbReserved;
-            uint8_t alpha = dither.ApplyErrorAt(alphaOrig, x, y);
+            uint8_t alpha = 0;
+            // Prevent completely transparent pixels from becoming opaque.
+            if (alphaOrig)
+            { 
+                alpha = dither.ApplyErrorAt(alphaOrig, x, y);
+            }
             bool isTransparent = alpha < alphaThreshold;
             data[y * cx + x].rgbReserved = isTransparent ? 0x00 : 0xff;
             dither.PropagateError(alpha, isTransparent ? 0x00 : 0xff, x, y);
@@ -653,10 +658,10 @@ void CutoutAlpha(DitherAlgorithm ditherAlgorithm, RGBQUAD *data, int cx, int cy,
     switch (ditherAlgorithm)
     {
         case DitherAlgorithm::FloydSteinberg:
-            CutoutAlpha<Dither<uint8_t, FloydSteinberg>>(data, cx, cy, alphaThreshold);
+            CutoutAlpha<ErrorDiffusionDither<uint8_t, FloydSteinberg>>(data, cx, cy, alphaThreshold);
             break;
         case DitherAlgorithm::JarvisJudiceNinke:
-            CutoutAlpha<Dither<uint8_t, JarvisJudiceNinke>>(data, cx, cy, alphaThreshold);
+            CutoutAlpha<ErrorDiffusionDither<uint8_t, JarvisJudiceNinke>>(data, cx, cy, alphaThreshold);
             break;
         case DitherAlgorithm::OrderedBayer:
             CutoutAlpha<OrderedDither<uint8_t>>(data, cx, cy, alphaThreshold);

@@ -34,6 +34,19 @@ uint8_t AdjustWithError(uint8_t orig, int16_t accError, int16_t factor)
     return ClampTo8((int16_t)orig + (accError / factor));
 }
 
+int16_t ClampToSpan(int16_t in, int factor)
+{
+    return min(128 * factor, max(in, -128 * factor));
+}
+RGBError ClampToSpan(RGBError in, int factor)
+{
+    // TODO: Don't want color shifting, so we should do a smarter clamp.
+    in.b = ClampToSpan(in.b, factor);
+    in.g = ClampToSpan(in.g, factor);
+    in.r = ClampToSpan(in.r, factor);
+    return in;
+}
+
 const OffsetAndWeight FloydSteinberg::Matrix[4] =
 {
     { 1, 0, 7 },

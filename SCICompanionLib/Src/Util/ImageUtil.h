@@ -18,10 +18,10 @@ enum class ColorMatching
 
 enum class DitherAlgorithm
 {
-    FloydSteinberg = 0,
-    JarvisJudiceNinke = 1,
-    OrderedBayer = 2,
-    None = 100,
+    None = 0,
+    FloydSteinberg = 1,
+    JarvisJudiceNinke = 2,
+    OrderedBayer = 3,
 };
 
 CRect GetCelRect(const Cel &cel);
