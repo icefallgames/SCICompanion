@@ -33,6 +33,8 @@ public:
     void ShowIndices(BOOL fShowIndices) { _fShowIndices = fShowIndices; }
     void OnPaletteUpdated();
     void ShowUnused(bool showUnused) { _showUnused = showUnused; }
+    void SetShowTransparentIndex(bool showTransparent) { _showTransparent = showTransparent; }
+    void SetTransparentIndex(uint8_t transparent);
 
 protected:
 	DECLARE_MESSAGE_MAP()
@@ -85,6 +87,9 @@ protected:
     bool _dithered;
     IColorDialogCallback *_pCallback;
     int _paletteSquareInset;
+
+    bool _showTransparent;
+    uint8_t _transparentIndex;
 };
 
 //

@@ -748,10 +748,11 @@ void RasterSidePane::_SyncCelPane()
                 EGACOLOR color = { bTransparent, bTransparent };
                 m_wndTransparent.SetColorAndState(color, TRUE);
             }
+            m_wndPalette.SetTransparentIndex(bTransparent);
         }
 
         // Font line height and number of chars
-        FontComponent *fontComponent = static_cast<CNewRasterResourceDocument*>(_pDoc)->GetResource()->TryGetComponent<FontComponent>();
+        const FontComponent *fontComponent = static_cast<CNewRasterResourceDocument*>(_pDoc)->GetResource()->TryGetComponent<FontComponent>();
         if (fontComponent)
         {
             assert(_fSupportsFonts);
@@ -859,6 +860,7 @@ void RasterSidePane::DoDataExchange(CDataExchange* pDX)
     m_wndPalette.SetCallback(this);
     m_wndPalette.SetShowHover(false);
     m_wndPalette.ShowFocusBoxes(true);
+    m_wndPalette.SetShowTransparentIndex(_fTransparency);
 
     DDX_Control(pDX, IDC_STATIC_CHOSENCOLORS, m_wndChosenColors);
     AddAnchor(IDC_STATIC_CHOSENCOLORS, CPoint(0, 0), CPoint(0, 0));

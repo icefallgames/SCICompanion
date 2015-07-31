@@ -30,6 +30,8 @@ CChooseColorStatic::CChooseColorStatic()
     _showHover = true;
     _showActualUsedColors = false;
     _showSelectionBoxes = false;
+    _showTransparent = false;
+    _transparentIndex = 0;
 }
 
 CChooseColorStatic::~CChooseColorStatic()
@@ -51,6 +53,19 @@ void CChooseColorStatic::SetSelection(BYTE bIndex)
     {
         Invalidate(FALSE);
     }
+}
+
+void CChooseColorStatic::SetTransparentIndex(uint8_t transparent)
+{
+    if (_transparentIndex != transparent)
+    {
+        _transparentIndex = transparent;
+        if (m_hWnd)
+        {
+            Invalidate(FALSE);
+        }
+    }
+    _showTransparent = true;
 }
 
 void CChooseColorStatic::SetAuxSelection(BYTE bIndex)
@@ -204,6 +219,11 @@ void CChooseColorStatic::_DrawItem(CDC *pDC, int cx, int cy)
                 _MapIndexToRect((uint8_t)_bAuxSelectedColorIndex, &rectHover);
                 pDC->DrawFocusRect(&rectHover);
             }
+        }
+
+        if (_showTransparent)
+        {
+            _DrawTextAtIndex(pDC, _transparentIndex, TEXT("T"));
         }
 
         _DrawHover(pDC);
