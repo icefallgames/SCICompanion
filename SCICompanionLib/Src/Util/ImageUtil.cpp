@@ -524,14 +524,15 @@ double GetColorDistanceCCIR(RGBQUAD one, RGBQUAD two)
 }
 
 template<typename _TCompare>
-uint8_t _FindBestPaletteIndexMatch(_TCompare compare, uint8_t transparentColor, RGBQUAD desiredColor, int colorCount, const uint8_t *mapping, const RGBQUAD *colors)
+uint8_t _FindBestPaletteIndexMatch(_TCompare compare, uint8_t transparentColor, bool excludeTransparentIndexFromMatching, RGBQUAD desiredColor, int colorCount, const uint8_t *mapping, const RGBQUAD *colors)
 {
     int bestIndex = 1;  // Just something that's not zero, so we can determine when we failed.
     double bestDistance = 1000000000000000.0;
     for (int i = 0; i < colorCount; i++)
     {
         RGBQUAD paletteColor = colors[mapping[i]];
-        if ((i != (int)transparentColor) && (paletteColor.rgbReserved != 0x0))
+        if ((!excludeTransparentIndexFromMatching || (i != (int)transparentColor)) &&
+            (paletteColor.rgbReserved != 0x0))
         {
             double distance = compare(desiredColor, paletteColor);
             if (distance < bestDistance)
@@ -563,7 +564,7 @@ void ConvertCelToNewPalette(Cel &cel, const PaletteComponent &currentPalette, ui
             {
                 RGBQUAD rgbExisting = currentPalette.Colors[value];
                 // find closest match.
-                uint8_t bestMatch = _FindBestPaletteIndexMatch(GetColorDistanceRGB, transparentColor, rgbExisting, colorCount, paletteMapping, colors);;
+                uint8_t bestMatch = _FindBestPaletteIndexMatch(GetColorDistanceRGB, transparentColor, true, rgbExisting, colorCount, paletteMapping, colors);;
                 *setValuePointer = bestMatch;
             }
         }
@@ -598,7 +599,7 @@ std::unique_ptr<RGBQUAD[]> ConvertGdiplusToRaw(Gdiplus::Bitmap &bitmap)
 }
 
 // This assumes cutout alpha.
-void RGBToPalettized(ColorMatching colorMatching, uint8_t *sciData, const RGBQUAD *dataOrig, int cx, int cy, bool performDither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *paletteColors, uint8_t transparentColor)
+void RGBToPalettized(ColorMatching colorMatching, uint8_t *sciData, const RGBQUAD *dataOrig, int cx, int cy, bool performDither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *paletteColors, uint8_t transparentColor, bool excludeTransparentIndexFromMatch)
 {
     ErrorDiffusionDither<RGBQUAD, FloydSteinberg> dither(cx, cy);
     for (int y = 0; y < cy; y++)
@@ -613,8 +614,8 @@ void RGBToPalettized(ColorMatching colorMatching, uint8_t *sciData, const RGBQUA
             {
                 uint8_t bestMatch =
                     colorMatching == ColorMatching::RGB ?
-                    _FindBestPaletteIndexMatch(GetColorDistanceRGB, transparentColor, rgbOrig, colorCount, paletteMapping, paletteColors):
-                    _FindBestPaletteIndexMatch(GetColorDistanceCCIR, transparentColor, rgbOrig, colorCount, paletteMapping, paletteColors);
+                    _FindBestPaletteIndexMatch(GetColorDistanceRGB, transparentColor, excludeTransparentIndexFromMatch, rgbOrig, colorCount, paletteMapping, paletteColors) :
+                    _FindBestPaletteIndexMatch(GetColorDistanceCCIR, transparentColor, excludeTransparentIndexFromMatch, rgbOrig, colorCount, paletteMapping, paletteColors);
                 destRow[x] = bestMatch;
                 if (performDither)
                 {

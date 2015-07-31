@@ -158,5 +158,6 @@ public:
     afx_msg void OnBnClickedThatThatShouldUpdate();
     afx_msg void OnEnKillfocusEditalphathreshold();
     afx_msg void OnCbnSelchangeCombomatch();
+    afx_msg void OnBnClickedCheckdontuseinpalette();
 };
 

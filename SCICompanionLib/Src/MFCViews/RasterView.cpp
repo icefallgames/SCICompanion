@@ -1049,7 +1049,7 @@ void CRasterView::OnDraw(CDC* pDC)
         {
             _GenerateDoubleBuffer(pDC);
         }
-
+        
         if (_fDoubleBuf)
         {
             // Draw the things that are in "view coordinates":

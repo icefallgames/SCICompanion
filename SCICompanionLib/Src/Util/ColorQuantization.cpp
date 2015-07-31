@@ -368,7 +368,7 @@ HBITMAP BitmapToRGB32Bitmap(const BITMAPINFO *pbmi, int desiredWidth, int desire
 // globalPalette needs to have empty slots.
 // data has no specific stride
 // data's alpha should have been stripped (either on or off)
-std::unique_ptr<uint8_t[]> QuantizeImage(const RGBQUAD *data, int width, int height, const RGBQUAD *globalPalette, RGBQUAD *imagePaletteResult, int transparentIndex)
+std::unique_ptr<uint8_t[]> QuantizeImage(const RGBQUAD *data, int width, int height, const RGBQUAD *globalPalette, RGBQUAD *imagePaletteResult, int transparentIndex, bool excludeTransparentColorFromPalette)
 {
     RGBQUAD black = {};
     int outStride = CX_ACTUAL(width);
@@ -384,7 +384,9 @@ std::unique_ptr<uint8_t[]> QuantizeImage(const RGBQUAD *data, int width, int hei
     int colorCount = 0;
     for (int i = 0; i < 256; i++)
     {
-        if ((i != transparentIndex) && (!globalPalette || (globalPalette[i].rgbReserved == 0x0)))
+        if (
+            (!excludeTransparentColorFromPalette || (i != transparentIndex)) &&
+            (!globalPalette || (globalPalette[i].rgbReserved == 0x0)))
         {
             colorCount++;
             unusedIndices.push_back((uint8_t)i);

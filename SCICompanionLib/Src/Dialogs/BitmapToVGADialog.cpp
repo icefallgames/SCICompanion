@@ -520,7 +520,7 @@ void CBitmapToVGADialog::_Update()
     m_wndEditPaletteRanges.SetWindowText(GetRangeText(GetSelectedRanges(m_wndPalette)).c_str());
 
     DitherAlgorithm alphaDither = (DitherAlgorithm)m_wndComboDitherAlpha.GetCurSel();
-
+    bool excludeTransparentColorFromPalette = m_wndCheckDontUseInPalette.GetCheck() == BST_CHECKED;
     bool performDither = (m_wndDither.GetCheck() == BST_CHECKED);
 
     // We need to generate a final image for m_wndPic
@@ -554,12 +554,12 @@ void CBitmapToVGADialog::_Update()
                     temp->TransparentColor = _transparentColor;
                     temp->size = size16((uint16_t)cx, (uint16_t)cy);
 
-                    std::unique_ptr<uint8_t[]> sciBits = QuantizeImage(imageData.get(), cx, cy, (_honorGlobalPalette != BST_UNCHECKED) ? referencePalette.Colors : nullptr, tempPalette->Colors, _transparentColor);
+                    std::unique_ptr<uint8_t[]> sciBits = QuantizeImage(imageData.get(), cx, cy, (_honorGlobalPalette != BST_UNCHECKED) ? referencePalette.Colors : nullptr, tempPalette->Colors, _transparentColor, excludeTransparentColorFromPalette);
 
                     if (performDither)
                     {
                         // This is expensive, and we only need to do this if we're dithering, as sciBits already contains the quantized image data.
-                        RGBToPalettized(_colorMatching, sciBits.get(), imageData.get(), cx, cy, performDither, ARRAYSIZE(tempPalette->Colors), tempPalette->Mapping, tempPalette->Colors, _transparentColor);
+                        RGBToPalettized(_colorMatching, sciBits.get(), imageData.get(), cx, cy, performDither, ARRAYSIZE(tempPalette->Colors), tempPalette->Mapping, tempPalette->Colors, _transparentColor, excludeTransparentColorFromPalette);
                     }
 
                     temp->Data.allocate(PaddedSize(temp->size));
@@ -600,7 +600,7 @@ void CBitmapToVGADialog::_Update()
                     targetColors[i].rgbReserved = usableColors[i] ? 0x1 : 0x0;
                 }
 
-                RGBToPalettized(_colorMatching, &temp->Data[0], imageData.get(), cx, cy, performDither, _paletteSize, _targetCurrentPalette->Mapping, targetColors, _transparentColor);
+                RGBToPalettized(_colorMatching, &temp->Data[0], imageData.get(), cx, cy, performDither, _paletteSize, _targetCurrentPalette->Mapping, targetColors, _transparentColor, excludeTransparentColorFromPalette);
 
                 _finalResult = move(temp);
                 _finalResultPalette = make_unique<PaletteComponent>(*_targetCurrentPalette);
@@ -710,6 +710,7 @@ BEGIN_MESSAGE_MAP(CBitmapToVGADialog, CExtNCW<CExtResizableDialog>)
     ON_CBN_SELCHANGE(IDC_COMBODITHERALPHA, &CBitmapToVGADialog::OnBnClickedThatThatShouldUpdate)
     ON_EN_KILLFOCUS(IDC_EDITALPHATHRESHOLD, &CBitmapToVGADialog::OnEnKillfocusEditalphathreshold)
     ON_CBN_SELCHANGE(IDC_COMBOMATCH, &CBitmapToVGADialog::OnCbnSelchangeCombomatch)
+    ON_BN_CLICKED(IDC_CHECKDONTUSEINPALETTE, &CBitmapToVGADialog::OnBnClickedCheckdontuseinpalette)
 END_MESSAGE_MAP()
 
 
@@ -910,9 +911,13 @@ void CBitmapToVGADialog::OnEnKillfocusEditalphathreshold()
     _Update();
 }
 
-
 void CBitmapToVGADialog::OnCbnSelchangeCombomatch()
 {
     _colorMatching = (ColorMatching)m_wndComboMatch.GetCurSel();
+    _Update();
+}
+
+void CBitmapToVGADialog::OnBnClickedCheckdontuseinpalette()
+{
     _Update();
 }

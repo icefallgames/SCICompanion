@@ -469,6 +469,7 @@ void CNewRasterResourceDocument::_ApplyImageSequenceNew(uint8_t transparentColor
     {
         int nLoop = GetSelectedLoop();
         auto &bigCel = dialog.GetFinalResult();
+        transparentColor = bigCel->TransparentColor;
 
         auto finalPalette = dialog.GetFinalResultPalette();
         const PaletteComponent *optionalNewPalette = nullptr;

@@ -2560,6 +2560,14 @@ void CPicView::_DrawShowingEgoVGA(CDC &dc, PicDrawManager &pdm)
                 transparentColor = 16;
                 transparentRGB = g_egaColorsPlusOne[transparentColor];
             }
+            else
+            {
+                // We have an issue when we have a palette with an RGB index identical to the transparent index's RGB value, but earlier in the palette.
+                // Even setting it to a random color doesn't make a difference though, so something else is up. The result is that the area surrounding the
+                // ego is opaque and the pic is no longer visible.
+                //transparentRGB = RGBQUADFromCOLORREF(RGB(255, 254, 253));
+                //bmi._colors[transparentColor] = transparentRGB;
+            }
 
             uint8_t *pBitsDest;
             CBitmap bitmap;
