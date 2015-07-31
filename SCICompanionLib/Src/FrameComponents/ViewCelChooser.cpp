@@ -76,7 +76,7 @@ void CEditViewCelChooser::OnGetDispInfo(NMHDR* pNMHDR, LRESULT* pResult)
 
         int nLoop = _GetDoc()->GetSelectedLoop();
 
-        RasterComponent &raster = _GetDoc()->GetResource()->GetComponent<RasterComponent>();
+        const RasterComponent &raster = _GetDoc()->GetResource()->GetComponent<RasterComponent>();
         // Draw this pic!
         CBitmap bitmap;
         bitmap.Attach(GetBitmap(raster, _GetDoc()->GetCurrentPaletteComponent(), CelIndex(nLoop, pItem->iItem), _sizeHiml.cx, _sizeHiml.cy, BitmapScaleOptions::AllowMag));
@@ -117,7 +117,7 @@ void CEditViewCelChooser::OnBeginDrag(NMHDR* pNMHDR, LRESULT* pResult)
         CResourceDocument *pDoc = static_cast<CResourceDocument*>(GetDocument());
         if (pDoc)
         {
-            RasterComponent &raster = static_cast<const ResourceEntity*>(pDoc->GetResource())->GetComponent<RasterComponent>();
+            const RasterComponent &raster = static_cast<const ResourceEntity*>(pDoc->GetResource())->GetComponent<RasterComponent>();
             int nLoop = _GetDoc()->GetSelectedLoop();
             cCels = raster.CelCount(nLoop);
         }
@@ -289,7 +289,7 @@ CSize CEditViewCelChooser::_CalcMaxSize()
         int nLoop = pDoc->GetSelectedLoop();
 
         // Find out if the max size of the cels has changed.
-        RasterComponent &raster = pDoc->GetResource()->GetComponent<RasterComponent>();
+        const RasterComponent &raster = pDoc->GetResource()->GetComponent<RasterComponent>();
         int cCels = raster.CelCount(nLoop);
         for (int i = 0; i < cCels; i++)
         {
@@ -322,7 +322,7 @@ void CEditViewCelChooser::_RefreshView(bool forceRegen)
             sizeMax.cy *= factor;
         }
         
-        RasterComponent &raster = static_cast<const ResourceEntity*>(pDoc->GetResource())->GetComponent<RasterComponent>();
+        const RasterComponent &raster = static_cast<const ResourceEntity*>(pDoc->GetResource())->GetComponent<RasterComponent>();
         int cCels = raster.CelCount(nLoop);
 
         BOOL fOk = TRUE;
@@ -354,7 +354,7 @@ void CEditViewCelChooser::_RefreshView(bool forceRegen)
                 TCHAR szBuf[10];
                 *szBuf = 0;
 
-                RasterComponent &raster = static_cast<const ResourceEntity*>(pDoc->GetResource())->GetComponent<RasterComponent>();
+                const RasterComponent &raster = static_cast<const ResourceEntity*>(pDoc->GetResource())->GetComponent<RasterComponent>();
                 if (raster.Traits.GetItemLabelFunc)
                 {
                     raster.Traits.GetItemLabelFunc(szBuf, ARRAYSIZE(szBuf), i);
@@ -456,7 +456,7 @@ void CEditViewCelChooser::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
                 else
                 {
                     // Just the internals of the cel changed.  Simply get a new image for it.
-                    RasterComponent &raster = _GetDoc()->GetResource()->GetComponent<RasterComponent>();
+                    const RasterComponent &raster = _GetDoc()->GetResource()->GetComponent<RasterComponent>();
                     const PaletteComponent *palette = _GetDoc()->GetCurrentPaletteComponent();
                     CBitmap bitmap;
                     bitmap.Attach(GetBitmap(raster, palette, CelIndex(nLoop, nCel), _sizeHiml.cx, _sizeHiml.cy, BitmapScaleOptions::AllowMag));

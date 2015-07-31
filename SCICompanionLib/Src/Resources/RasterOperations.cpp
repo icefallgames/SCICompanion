@@ -247,7 +247,7 @@ HBITMAP GetBitmap(
 }
 
 HBITMAP GetBitmap(
-    RasterComponent &raster,
+    const RasterComponent &raster,
     const PaletteComponent *palette,
     CelIndex celIndex,
     int cx, int cy, BitmapScaleOptions scaleOptions)

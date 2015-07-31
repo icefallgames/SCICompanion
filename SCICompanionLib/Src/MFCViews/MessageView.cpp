@@ -74,7 +74,7 @@ c_MessageColumnInfo[] =
 
 void CMessageView::_InitColumns()
 {
-    TextComponent &text = GetDocument()->GetResource()->GetComponent<TextComponent>();
+    const TextComponent &text = GetDocument()->GetResource()->GetComponent<TextComponent>();
     CListCtrl& listCtl = GetListCtrl();
 
     std::vector<int> orderArray;
@@ -123,7 +123,7 @@ void CMessageView::_ChangeView()
     SetWindowLongPtr(listCtl.m_hWnd, GWL_STYLE, (LONG)dwStyle);
 }
 
-void _GetDefineFromValue(char *psz, size_t cchBuf, MessageSource *source, uint16_t value, bool skipPrefix)
+void _GetDefineFromValue(char *psz, size_t cchBuf, const MessageSource *source, uint16_t value, bool skipPrefix)
 {
     bool found = false;
     if (source)
@@ -185,7 +185,7 @@ void CMessageView::_SetItem(int iItem, PCTSTR pszString, const TextComponent *te
         int iSubItem = _columns[iSub].iSubItem;
         if (text)
         {
-            NounsAndCasesComponent &nounsAndCases = GetDocument()->GetResource()->GetComponent<NounsAndCasesComponent>();
+            const NounsAndCasesComponent &nounsAndCases = GetDocument()->GetResource()->GetComponent<NounsAndCasesComponent>();
             switch (iSubItem)
             {
             case COL_NOUN:
@@ -355,10 +355,10 @@ void CMessageView::OnImportMessage()
 }
 
 
-TextEntry *CMessageView::_GetEntry()
+const TextEntry *CMessageView::_GetEntry()
 {
-    TextEntry *entry = nullptr;
-    TextComponent* text = GetTextComponent();
+    const TextEntry *entry = nullptr;
+    const TextComponent* text = GetTextComponent();
     if (text)
     {
         int index = _GetSelectedItem();
@@ -515,9 +515,9 @@ void CMessageView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
     }
 }
 
-TextComponent* CMessageView::GetTextComponent() const
+const TextComponent* CMessageView::GetTextComponent() const
 {
-    TextComponent *pText = nullptr;
+    const TextComponent *pText = nullptr;
     CMessageDoc *pDoc = GetDocument();
     if (pDoc)
     {

@@ -372,7 +372,7 @@ int SniffPicType(const uint8_t *pdata, size_t cbData)
 void PicWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
 {
     // Write out the palette first, if any
-    PaletteComponent *pPalette = resource.TryGetComponent<PaletteComponent>();
+    const PaletteComponent *pPalette = resource.TryGetComponent<PaletteComponent>();
     if (pPalette)
     {
         byteStream.WriteByte(0xfe); // Special opcode
@@ -380,7 +380,7 @@ void PicWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
         WritePalette(byteStream, *pPalette);
     }
 
-    PicComponent &pic = resource.GetComponent<PicComponent>();
+    const PicComponent &pic = resource.GetComponent<PicComponent>();
     SerializeAllCommands(&byteStream, pic.commands, pic.commands.size());
 }
 
@@ -824,7 +824,7 @@ void PicReadFromVGA11(ResourceEntity &resource, sci::istream &byteStream)
 
 bool PicValidateEGA(const ResourceEntity &resource)
 {
-    PicComponent &pic = resource.GetComponent<PicComponent>();
+    const PicComponent &pic = resource.GetComponent<PicComponent>();
 
     // Perform a little validation.
     if (!appState->_fDontCheckPic)
@@ -852,7 +852,7 @@ bool PicValidateEGA(const ResourceEntity &resource)
 bool PicValidateVGA(const ResourceEntity &resource)
 {
     bool ok = true;
-    PicComponent &pic = resource.GetComponent<PicComponent>();
+    const PicComponent &pic = resource.GetComponent<PicComponent>();
 
     if (!pic.Traits.SupportsPenCommands)
     {
@@ -891,7 +891,7 @@ bool PicValidateVGA(const ResourceEntity &resource)
 
 void PicWritePolygons(const ResourceEntity &resource, int resourceNumber)
 {
-    PolygonComponent *polygonComponent = resource.TryGetComponent<PolygonComponent>();
+    PolygonComponent *polygonComponent = const_cast<PolygonComponent*>(resource.TryGetComponent<PolygonComponent>());
     if (polygonComponent)
     {
         // Use the provided resource number instead of that in the ResourceEntity, since it may

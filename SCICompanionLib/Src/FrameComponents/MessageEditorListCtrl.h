@@ -39,7 +39,7 @@ protected:
     void OnBeginLabelEdit(NMHDR* pNMHDR, LRESULT* pResult);
 
 private:
-    MessageSource *_GetSource(bool reload = false);
+    const MessageSource *_GetSource(bool reload = false);
 
     template<typename _Func>
     void ApplyMessageChanges(_Func f);

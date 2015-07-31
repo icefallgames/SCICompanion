@@ -342,7 +342,7 @@ void MessageEditPane::OnEnChangeEditmessage()
     // Validation happens on focus lost, so nothing to do here.
 }
 
-bool _GetValueFromText(CComboBox &wndCombo, bool isSelChange, MessageSource *source, uint8_t &finalValue)
+bool _GetValueFromText(CComboBox &wndCombo, bool isSelChange, const MessageSource *source, uint8_t &finalValue)
 {
     bool success = false;
     if (source)
@@ -397,7 +397,7 @@ void _RespondToComboChange(MessageEditPane *mep, CComboBox &wndCombo, MessageSou
     CMessageDoc *pDoc = mep->GetDocument();
     if (pDoc)
     {
-        MessageSource *source = GetMessageSourceFromType(pDoc, sourceType, false);
+        const MessageSource *source = GetMessageSourceFromType(pDoc, sourceType, false);
         uint8_t value;
         if (_GetValueFromText(wndCombo, isSelChange, source, value))
         {

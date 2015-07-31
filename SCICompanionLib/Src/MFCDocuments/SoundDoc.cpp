@@ -40,9 +40,9 @@ void CSoundDoc::SetSoundResource(std::unique_ptr<ResourceEntity> pSound, int id)
     UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(SoundChangeHint::Changed));
 }
 
-SoundComponent *CSoundDoc::GetSoundComponent() const
+const SoundComponent *CSoundDoc::GetSoundComponent() const
 {
-    SoundComponent *pSound = nullptr;;
+    const SoundComponent *pSound = nullptr;;
     const ResourceEntity *pResource = GetResource();
     if (pResource)
     {
@@ -63,7 +63,7 @@ void CSoundDoc::SetActiveCue(int index)
 SoundChangeHint CSoundDoc::_UpdateChannelId()
 {
     SoundChangeHint hint = SoundChangeHint::None;
-    SoundComponent *sound = GetSoundComponent();
+    const SoundComponent *sound = GetSoundComponent();
     if (sound && (_selectedChannelId >= (int)sound->GetChannelInfos().size()))
     {
         _selectedChannelId = -1;
@@ -141,14 +141,13 @@ void CSoundDoc::_OnImportMidi()
 
 void CSoundDoc::SetTempo(WORD wTempo)
 {
-    SoundComponent *pSound = GetSoundComponent();
+    SoundComponent *pSound = const_cast<SoundComponent*>(GetSoundComponent());
     if (pSound)
     {
         if (pSound->GetTempo() != wTempo)
         {
             // Special case for tempo - don't make a new sound.  The tempo will change many times a second
             // when the user is sliding the tempo slider.
-            SoundComponent *pSound = GetSoundComponent();
             pSound->SetTempo(wTempo);
         }
     }

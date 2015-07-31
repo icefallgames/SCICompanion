@@ -80,7 +80,7 @@ void CursorReadFromSCI1(ResourceEntity &resource, sci::istream &byteStream)
 void CursorWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
 {
     // We only ever have one cel and one loop
-    Cel &cel = resource.GetComponent<RasterComponent>().Loops[0].Cels[0];
+    const Cel &cel = resource.GetComponent<RasterComponent>().Loops[0].Cels[0];
 
     byteStream.WriteWord(0);
     // The hot spot

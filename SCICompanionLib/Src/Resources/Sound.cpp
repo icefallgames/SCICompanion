@@ -1158,7 +1158,7 @@ void SoundWriteToWorker(const SoundComponent &sound, sci::ostream &byteStream)
 
 void SoundWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
 {
-    SoundComponent &sound = resource.GetComponent<SoundComponent>();
+    const SoundComponent &sound = resource.GetComponent<SoundComponent>();
     SoundWriteToWorker(sound, byteStream);
 }
 
@@ -1236,7 +1236,7 @@ void SoundWriteToWorker_SCI1(const SoundComponent &soundIn, sci::ostream &byteSt
 
 void SoundWriteTo_SCI1(const ResourceEntity &resource, sci::ostream &byteStream)
 {
-    SoundComponent &sound = resource.GetComponent<SoundComponent>();
+    const SoundComponent &sound = resource.GetComponent<SoundComponent>();
     SoundWriteToWorker_SCI1(sound, byteStream);
 }
 

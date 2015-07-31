@@ -37,9 +37,9 @@ void CVocabDoc::SetVocabResource(std::unique_ptr<ResourceEntity> pVocab, int id)
     UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(VocabChangeHint::Changed));
 }
 
-Vocab000 *CVocabDoc::GetVocab() const
+const Vocab000 *CVocabDoc::GetVocab() const
 {
-    Vocab000 *pVocab = nullptr;
+    const Vocab000 *pVocab = nullptr;
     const ResourceEntity *pResource = GetResource();
     if (pResource)
     {

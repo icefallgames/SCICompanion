@@ -61,7 +61,7 @@ public:
     VocabChangeHint AddSynonym(PCTSTR pszWord, PCTSTR pszOriginal);
     VocabChangeHint AddWord(PCTSTR pszWord, DWORD dwInfo, BOOL fShowUI);
     VocabChangeHint SetGroupClass(WordGroup dwGroup, WordClass dwClass);
-    bool GetGroupClass(WordGroup dwGroup, WordClass *pdwClass);
+    bool GetGroupClass(WordGroup dwGroup, WordClass *pdwClass) const;
     VocabChangeHint RemoveWord(PCTSTR pszWord);
 
     HRESULT QuickSave();
@@ -73,7 +73,7 @@ public:
     groups_iterator GroupsEnd() const { return _mapGroupToString.end(); }
     std::vector<std::string> &GetWords() { return _words; }
     bool LookupWord(const std::string &word, WordGroup &dwGroup) const;
-    WordGroup GroupFromString(PCTSTR pszString);
+    WordGroup GroupFromString(PCTSTR pszString) const;
 
     // ILookupNames
     std::string Lookup(uint16_t wIndex) const;

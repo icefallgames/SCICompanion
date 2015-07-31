@@ -15,7 +15,7 @@ protected:
 
 public:
     CTextDoc* GetDocument() const;
-    TextComponent* GetTextComponent() const;
+    const TextComponent* GetTextComponent() const;
 
 public:
 #ifdef _DEBUG

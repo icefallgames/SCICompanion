@@ -15,7 +15,7 @@ public:
 	virtual ~CVocabDoc();
 
     void SetVocabResource(std::unique_ptr<ResourceEntity> pVocab, int id);
-    Vocab000 *GetVocab() const;
+    const Vocab000 *GetVocab() const;
 
     void v_OnUndoRedo() override;
 

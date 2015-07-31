@@ -76,7 +76,7 @@ std::string TextComponent::Lookup(uint16_t wName) const
 
 void TextWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
 {
-    TextComponent &text = resource.GetComponent<TextComponent>();
+    const TextComponent &text = resource.GetComponent<TextComponent>();
     // Note: this function is not unicode aware
     for (size_t i = 0; i < text.Texts.size(); i++)
     {

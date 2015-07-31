@@ -57,7 +57,7 @@ protected:
     afx_msg void OnCheckCumulative();
 
 private:
-    SoundComponent *GetSound();
+    const SoundComponent *GetSound();
     void _UpdateItemCount();
     void _UpdateCues();
     void _UpdateOnSelectedCue();

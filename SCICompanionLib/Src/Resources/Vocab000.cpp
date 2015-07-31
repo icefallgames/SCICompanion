@@ -232,7 +232,7 @@ bool Vocab000::LookupWord(const std::string &word, WordGroup &dwGroup) const
     }
 }
 
-Vocab000::WordGroup Vocab000::GroupFromString(PCTSTR pszString)
+Vocab000::WordGroup Vocab000::GroupFromString(PCTSTR pszString) const
 {
     std::string strLower = pszString;
     std::transform(strLower.begin(), strLower.end(), strLower.begin(), 
@@ -426,10 +426,10 @@ VocabChangeHint Vocab000::SetGroupClass(WordGroup dwGroup, WordClass dwClass)
     return hint;
 }
 
-bool Vocab000::GetGroupClass(WordGroup dwGroup, WordClass *pdwClass)
+bool Vocab000::GetGroupClass(WordGroup dwGroup, WordClass *pdwClass) const
 {
     bool success = false;
-    group2class_map::iterator groupClassIt = _mapGroupToClass.find(dwGroup);
+    auto groupClassIt = _mapGroupToClass.find(dwGroup);
     if (groupClassIt != _mapGroupToClass.end())
     {
         success = true;
@@ -516,7 +516,7 @@ VocabChangeHint Vocab000::RemoveWord(PCTSTR pszWord)
 
 void VocabWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, bool is900)
 {
-    Vocab000 &vocab = resource.GetComponent<Vocab000>();
+    const Vocab000 &vocab = resource.GetComponent<Vocab000>();
 
     // _words should already be sorted.
 

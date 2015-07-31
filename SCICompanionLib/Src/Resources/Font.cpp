@@ -136,8 +136,8 @@ void WriteLetter(const RasterComponent &raster, sci::ostream &byteStream, uint16
 
 void FontWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
 {
-    RasterComponent &raster = resource.GetComponent<RasterComponent>();
-    FontComponent &font = resource.GetComponent<FontComponent>();
+    const RasterComponent &raster = resource.GetComponent<RasterComponent>();
+    const FontComponent &font = resource.GetComponent<FontComponent>();
 
     // First prepare the header.
     byteStream.WriteWord(0);

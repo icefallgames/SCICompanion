@@ -87,7 +87,7 @@ public:
         CSoundDoc *pDoc = _pView->GetDocument();
         if (pDoc)
         {
-            SoundComponent *pSound = pDoc->GetSoundComponent();
+            const SoundComponent *pSound = pDoc->GetSoundComponent();
             if (pSound)
             {
                 enabled = (pSound->GetLoopPoint() != SoundComponent::LoopPointNone);

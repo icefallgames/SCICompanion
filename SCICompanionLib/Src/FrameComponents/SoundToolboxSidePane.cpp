@@ -25,9 +25,9 @@ SoundToolboxSidePane::~SoundToolboxSidePane()
 {
 }
 
-SoundComponent *SoundToolboxSidePane::GetSound()
+const SoundComponent *SoundToolboxSidePane::GetSound()
 {
-    SoundComponent *pComponent = nullptr;
+    const SoundComponent *pComponent = nullptr;
     if (_pDoc)
     {
         const ResourceEntity *pResource = _pDoc->GetResource();
@@ -622,7 +622,7 @@ void SoundToolboxSidePane::UpdateNonView(CObject *pObject)
     SoundChangeHint hint = GetHint<SoundChangeHint>(pObject);
     if (IsFlagSet(hint, SoundChangeHint::Changed | SoundChangeHint::DeviceChanged))
     {
-        SoundComponent *pSound = GetSound();
+        const SoundComponent *pSound = GetSound();
         if (pSound)
         {
             WORD wChannelMask = pSound->CalculateChannelMask(GetDocument()->GetDevice());

@@ -16,7 +16,7 @@ public:
 
     // Takes ownership:
     void SetSoundResource(std::unique_ptr<ResourceEntity> pSound, int id = -1);
-    SoundComponent *GetSoundComponent() const;
+    const SoundComponent *GetSoundComponent() const;
     DeviceType GetDevice() const { return _device; }
     void SetDevice(DeviceType device, bool fNotify = true);
 

@@ -42,4 +42,4 @@ protected:
     DECLARE_MESSAGE_MAP()
 };
 
-MessageSource *GetMessageSourceFromType(CMessageDoc *pDoc, MessageSourceType sourceType, bool reload);
+const MessageSource *GetMessageSourceFromType(CMessageDoc *pDoc, MessageSourceType sourceType, bool reload);

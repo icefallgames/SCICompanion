@@ -88,7 +88,7 @@ void MessageEditorListCtrl::ApplyMessageChanges(_Func f)
                 break;
             }
             default:
-                MessageSource *source = GetMessageSourceFromType(_pDoc, _sourceType, false);
+                MessageSource *source = const_cast<MessageSource*>(GetMessageSourceFromType(_pDoc, _sourceType, false));
                 f(source);
                 _Commit();
         }
@@ -97,7 +97,7 @@ void MessageEditorListCtrl::ApplyMessageChanges(_Func f)
 
 void MessageEditorListCtrl::OnEndLabelEdit(NMHDR* pNMHDR, LRESULT* pResult)
 {
-    MessageSource *source = _GetSource();
+    const MessageSource *source = _GetSource();
 
     bool success = false;
     *pResult = FALSE;
@@ -278,7 +278,7 @@ void MessageEditorListCtrl::_Populate()
     this->SetRedraw(FALSE);
     DeleteAllItems();
 
-    MessageSource *source = _GetSource();
+    const MessageSource *source = _GetSource();
     if (source)
     {
         int index = 0;
@@ -358,14 +358,14 @@ void MessageEditorListCtrl::SetSource(CMessageDoc *pDoc, MessageSourceType sourc
     _Populate();
 }
 
-MessageSource *MessageEditorListCtrl::_GetSource(bool reload)
+const MessageSource *MessageEditorListCtrl::_GetSource(bool reload)
 {
     return GetMessageSourceFromType(_pDoc, _sourceType, reload);
 }
 
 void MessageEditorListCtrl::_Commit()
 {
-    MessageSource *source = _GetSource();
+    MessageSource *source = const_cast<MessageSource*>(_GetSource());
     if (source)
     {
         assert((_sourceType == MessageSourceType::Verbs || _sourceType == MessageSourceType::Nouns) && "Other types should go through components.");

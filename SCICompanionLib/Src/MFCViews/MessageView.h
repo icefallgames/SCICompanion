@@ -14,7 +14,7 @@ protected:
 
 public:
     CMessageDoc* GetDocument() const;
-    TextComponent* GetTextComponent() const;
+    const TextComponent* GetTextComponent() const;
 
 public:
 #ifdef _DEBUG
@@ -45,7 +45,7 @@ protected:
     int _GetSelectedItem();
     void _UpdateSelection(int *topIndex = nullptr);
     void _AddEntryAtCurrentPosition(const TextEntry &entry);
-    TextEntry *_GetEntry();
+    const TextEntry *_GetEntry();
 
 private:
     int _iView;

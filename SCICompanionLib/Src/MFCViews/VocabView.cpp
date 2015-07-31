@@ -551,7 +551,7 @@ void CVocabView::OnBeginLabelEdit(NMHDR* pNMHDR, LRESULT* pResult)
 
 void CVocabView::OnNewWord()
 {
-    Vocab000 *pVocab = GetVocab();
+    const  Vocab000 *pVocab = GetVocab();
     if (pVocab)
     {
         CListCtrl &listCtl = GetListCtrl();
@@ -613,7 +613,7 @@ LRESULT CVocabView::OnFindDialogMessage(WPARAM wParam, LPARAM lParam)
     if(_pFindDialog->FindNext())
     {
         CString strWord = _pFindDialog->GetFindString();
-        Vocab000 *pVocab = GetVocab();
+        const Vocab000 *pVocab = GetVocab();
         if (pVocab)
         {
             Vocab000::WordGroup dwGroup;
@@ -658,7 +658,7 @@ void CVocabView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
     if (IsCharAlphaNumericA(nChar))
     {
         // Try to find the best match.
-        Vocab000 *pVocab = GetVocab();
+        const Vocab000 *pVocab = GetVocab();
         if (pVocab)
         {
             _strMatchText.AppendChar(nChar);
@@ -723,14 +723,10 @@ void CVocabView::OnDelete()
                     {
                         VocabChangeHint hint = VocabChangeHint::None;
                         // Delete all these words.
-                        Vocab000 *pVocab = GetVocab();
-                        if (pVocab)
+                        for (INT_PTR i = 0; i <= words.GetUpperBound(); i++)
                         {
-                            for (INT_PTR i = 0; i <= words.GetUpperBound(); i++)
-                            {
-                                hint |= pVocab->RemoveWord(words.GetAt(i));
-                                assert(IsFlagSet(hint, VocabChangeHint::Changed)); // Else we're not in sync
-                            }
+                            hint |= vocab.RemoveWord(words.GetAt(i));
+                            assert(IsFlagSet(hint, VocabChangeHint::Changed)); // Else we're not in sync
                         }
 
                         // Delete the item from view. Do this in here before we return anything, as that will cause an update.
@@ -804,7 +800,7 @@ void CVocabView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
         CVocabDoc *pDoc = GetDocument();
         if (pDoc)
         {
-            Vocab000 *pVocab = pDoc->GetVocab();
+            const Vocab000 *pVocab = pDoc->GetVocab();
             if (pVocab)
             {
                 int iItem = 0;
@@ -833,7 +829,8 @@ Vocab000* CVocabView::GetVocab() const
     CVocabDoc *pDoc = GetDocument();
     if (pDoc)
     {
-        pVocab = pDoc->GetVocab();
+        // REVIEW: We need to clean this up and go through the proper channels for GetVocab()
+        pVocab = const_cast<Vocab000*>(pDoc->GetVocab());
     }
     return pVocab;
 }

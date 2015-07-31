@@ -71,7 +71,7 @@ c_TextColumnInfo [] =
 
 void CTextView::_InitColumns()
 {
-    TextComponent &text = GetDocument()->GetResource()->GetComponent<TextComponent>();
+    const TextComponent &text = GetDocument()->GetResource()->GetComponent<TextComponent>();
     CListCtrl& listCtl = GetListCtrl();
 
     std::vector<int> orderArray;
@@ -450,9 +450,9 @@ void CTextView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
     }
 }
 
-TextComponent* CTextView::GetTextComponent() const
+const TextComponent* CTextView::GetTextComponent() const
 {
-    TextComponent *pText = nullptr;
+    const TextComponent *pText = nullptr;
     CTextDoc *pDoc = GetDocument();
     if (pDoc)
     {
