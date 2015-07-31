@@ -87,7 +87,7 @@ BOOL MessageEditPane::OnEraseBkgnd(CDC *pDC)
     return __super::OnEraseBkgnd(pDC);
 }
 
-void _PopulateComboFromMessageSource(CExtComboBox &wndCombo, MessageSource *source, bool skipPrefix)
+void _PopulateComboFromMessageSource(CExtComboBox &wndCombo, const MessageSource *source, bool skipPrefix)
 {
     wndCombo.SetRedraw(FALSE);
     CString beforeText;
@@ -241,7 +241,7 @@ int MessageEditPane::_GetSelectedIndex()
     return -1;
 }
 
-void _UpdateComboFromValue(CExtComboBox &wndCombo, int value, MessageSource *source)
+void _UpdateComboFromValue(CExtComboBox &wndCombo, int value, const MessageSource *source)
 {
     if (source)
     {
@@ -293,7 +293,7 @@ void MessageEditPane::_Update()
             m_wndEditMessage.SetWindowTextA(entry->Text.c_str());
             _UpdateSequence(entry->Sequence);
             
-            NounsAndCasesComponent &nounsAndCases = _pDoc->GetResource()->GetComponent<NounsAndCasesComponent>();
+            const NounsAndCasesComponent &nounsAndCases = _pDoc->GetResource()->GetComponent<NounsAndCasesComponent>();
             _UpdateComboFromValue(m_wndComboVerb, entry->Verb, appState->GetResourceMap().GetVerbsMessageSource());
             _UpdateComboFromValue(m_wndComboTalker, entry->Talker, appState->GetResourceMap().GetTalkersMessageSource());
             _UpdateComboFromValue(m_wndComboNoun, entry->Noun, &nounsAndCases.GetNouns());
@@ -405,16 +405,16 @@ void _RespondToComboChange(MessageEditPane *mep, CComboBox &wndCombo, MessageSou
                 [mep, value, getProperty](TextComponent &text)
             {
                 TextEntry *entry = mep->_GetEntry(text);
-                uint8_t &property = getProperty(*entry);
-                if (property != value)
+                if (entry)
                 {
-                    property = value;
-                    return WrapHint(MessageChangeHint::ItemChanged);
+                    uint8_t &property = getProperty(*entry);
+                    if (property != value)
+                    {
+                        property = value;
+                        return WrapHint(MessageChangeHint::ItemChanged);
+                    }
                 }
-                else
-                {
-                    return WrapHint(MessageChangeHint::None);
-                }
+                return WrapHint(MessageChangeHint::None);
             }
             );
         }
