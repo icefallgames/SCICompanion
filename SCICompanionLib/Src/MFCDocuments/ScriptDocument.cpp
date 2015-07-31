@@ -736,6 +736,6 @@ void CScriptDocument::UpdateModified()
 
 void CScriptDocument::_OnUpdateTitle()
 {
-    SetTitle(_scriptId.GetFileName().c_str());
+    SetTitle(_scriptId.GetFileNameOrig().c_str());
 }
 

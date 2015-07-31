@@ -238,6 +238,7 @@ void AppState::OpenScriptHeader(std::string strName)
                     static_cast<CScriptDocument*>(_pScriptTemplate->OpenDocumentFile(scriptId.GetFullPath().c_str(), TRUE));
                 if (pDocument)
                 {
+                    pDocument->SetTitle(scriptId.GetFileNameOrig().c_str());
                     // Initialize the document somehow.
                 }
             }
@@ -304,6 +305,7 @@ void AppState::OpenScript(std::string strName, const ResourceBlob *pData, WORD w
                     fOpened = (pDocument != NULL);
                     if (pDocument)
                     {
+                        pDocument->SetTitle(scriptId.GetFileNameOrig().c_str());
                         // We lost context...
                         pDocument->SetScriptNumber(scriptId.GetResourceNumber());
                     }
@@ -345,6 +347,7 @@ void AppState::OpenScriptAtLine(ScriptId script, int iLine)
     {
         // Make an new one.
         pDoc = static_cast<CScriptDocument*>(_pScriptTemplate->OpenDocumentFile(script.GetFullPath().c_str(), TRUE));
+        pDoc->SetTitle(script.GetFileNameOrig().c_str());
     }
     if (pDoc)
     {

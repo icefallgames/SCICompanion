@@ -590,7 +590,7 @@ std::string GetBinaryDataVisualization(const uint8_t *data, size_t length, int c
 std::string ScriptId::GetTitle() const
 {
     TCHAR szFileName[MAX_PATH];
-    StringCchCopy(szFileName, ARRAYSIZE(szFileName), _strFileName.c_str());
+    StringCchCopy(szFileName, ARRAYSIZE(szFileName), _strFileNameOrig.c_str());
     PTSTR pszExt = PathFindExtension(szFileName);
     *pszExt = 0; // Chop off file extension
     return szFileName;
