@@ -48,6 +48,14 @@ void AdvanceToWhitespace(const std::string &line, size_t &offset)
 
 void MessageHeaderFile::_Load(const std::vector<std::string> &sourcesOptional)
 {
+    for (const auto &source : sourcesOptional)
+    {
+        auto itPair = _sources.emplace(std::make_pair(source, MessageSource(this)));
+        auto messageSource = &itPair.first->second;
+        messageSource->Name = source;
+        messageSource->MandatoryPrefix = source.substr(0, 1) + "_";
+    }
+
     MessageSource *currentSource = nullptr;
     // For speed, we won't bother with our standard parser here. Also, we need comments.
     ifstream file;
@@ -63,13 +71,14 @@ void MessageHeaderFile::_Load(const std::vector<std::string> &sourcesOptional)
             size_t afterName = offset;
             AdvanceToWhitespace(line, afterName);
             string token = line.substr(offset, afterName - offset);
-            if (find(sourcesOptional.begin(), sourcesOptional.end(), token) != sourcesOptional.end())
+            auto itFind = _sources.find(token);
+            if (itFind != _sources.end())
             {
-                // Start a new one
-                auto itPair = _sources.emplace(std::make_pair(token, MessageSource(this)));
-                currentSource = &itPair.first->second;
-                currentSource->Name = token;
-                currentSource->MandatoryPrefix = token.substr(0, 1) + "_";
+                currentSource = &itFind->second;
+            }
+            else
+            {
+                currentSource = nullptr;
             }
         }
         else if (line.compare(0, ARRAYSIZE(c_szDefine) - 1, c_szDefine) == 0)
