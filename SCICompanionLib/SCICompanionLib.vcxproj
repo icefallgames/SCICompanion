@@ -696,6 +696,7 @@
     <None Include="res\cursordo.cur" />
     <None Include="res\cursorli.cur" />
     <None Include="res\cursorre.cur" />
+    <None Include="res\cursorsh.cur" />
     <None Include="res\cursorup.cur" />
     <None Include="res\eyedropper.cur" />
     <None Include="res\SCICompanionLib.rc2">

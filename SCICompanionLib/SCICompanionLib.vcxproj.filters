@@ -1532,6 +1532,9 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="Src\cpptoml\LICENSE" />
+    <None Include="res\cursorsh.cur">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="SCICompanionLib.rc">

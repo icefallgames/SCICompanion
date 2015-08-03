@@ -2448,7 +2448,7 @@ IDC_CURSORZOOM          CURSOR                  "res\\cur00003.cur"
 IDC_CURSORFILL          CURSOR                  "res\\cursor2.cur"
 IDC_CURSORPASTE         CURSOR                  "res\\cur00004.cur"
 IDC_CURSORPLACEMENT     CURSOR                  "res\\cursorli.cur"
-IDC_CURSORSHAPE         CURSOR                  "res\\cur00005.cur"
+IDC_CURSORPOLYGON       CURSOR                  "res\\cur00005.cur"
 IDC_CURSORRESIZENS_BR   CURSOR                  "res\\cur00006.cur"
 IDC_CURSORRESIZENS_TL   CURSOR                  "res\\cursorre.cur"
 IDC_CURSORRESIZENS_STRETCH CURSOR                  "res\\cur00007.cur"
@@ -2465,6 +2465,7 @@ IDC_CURSORRIGHT         CURSOR                  "res\\cursordo.cur"
 IDC_CURSORLEFT          CURSOR                  "res\\cur00016.cur"
 IDC_CURSORCIRCLE        CURSOR                  "res\\cur00017.cur"
 IDC_CURSOREYEDROPPER    CURSOR                  "res\\eyedropper.cur"
+IDC_CURSORSHAPE         CURSOR                  "res\\cursorsh.cur"
 
 /////////////////////////////////////////////////////////////////////////////
 //

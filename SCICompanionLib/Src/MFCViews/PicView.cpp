@@ -1555,7 +1555,7 @@ const key_value_pair<UINT, int> c_IDToCursor [] =
     { ID_CIRCLE, IDC_CURSORCIRCLE },
     { ID_LINE, IDC_CURSORLINE },
     { ID_ZOOM, IDC_CURSORZOOM },
-    { ID_POLYPATH, IDC_CURSORLINE },
+    { ID_POLYPATH, IDC_CURSORPOLYGON },
 };
 int _IDToCursor(UINT nID)
 {

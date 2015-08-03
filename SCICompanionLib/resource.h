@@ -49,6 +49,7 @@
 #define IDD_DIALOGCEL                   170
 #define IDD_DIALOGANIMATE               173
 #define IDC_CURSORSHAPE                 174
+#define IDC_CURSORSHAPETEMP             174
 #define IDD_DIALOGFINDALL               175
 #define IDD_COMPILEDIALOG               176
 #define IDR_TOOLBARVOCAB                177
@@ -250,6 +251,7 @@
 #define IDC_CURSOREYEDROPPER            360
 #define IDD_EXTRACTALL                  360
 #define IDI_TRANSPARENCY                361
+#define IDC_CURSORPOLYGON               361
 #define IDR_MENUPICBG                   362
 #define IDD_PALETTE_EDITOR              363
 #define IDD_PALETTE_EDITOR1             364
