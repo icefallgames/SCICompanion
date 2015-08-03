@@ -11,10 +11,12 @@ class CScriptDocument;
 class QuickScriptsSidePane : public CExtResizableDialog, public INonViewClient
 {
 public:
-	QuickScriptsSidePane(CWnd* pParent = NULL);   // standard constructor
+	QuickScriptsSidePane(CWnd* pParent = nullptr);   // standard constructor
 	virtual ~QuickScriptsSidePane();
 
     void SetDocument(CDocument *pDoc);
+
+    void Refresh() { _UpdateEntries(); }
 
     // INonViewClient
     virtual void UpdateNonView(CObject *pObject) override;
@@ -68,7 +70,7 @@ private:
 
     CExtLabel m_wndScriptNum;
 
-    bool _bFirstTime;
+    bool _needsUpdate;
     int _nFirstScript;
 
     std::string _srcFolder;

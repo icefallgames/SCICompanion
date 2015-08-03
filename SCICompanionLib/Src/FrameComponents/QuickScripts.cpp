@@ -22,11 +22,10 @@ using namespace fmt;
 #define MAX_VIEWS (ID_GOTOVIEW10 - ID_GOTOVIEW1 + 1)
 
 // QuickScriptsSidePane dialog
-QuickScriptsSidePane::QuickScriptsSidePane(CWnd* pParent /*=NULL*/)
-	: CExtResizableDialog(QuickScriptsSidePane::IDD, pParent)
+QuickScriptsSidePane::QuickScriptsSidePane(CWnd* pParent /*=nullptr*/)
+    : CExtResizableDialog(QuickScriptsSidePane::IDD, pParent), _needsUpdate(true)
 {
-    _bFirstTime = true;
-    _pDoc = NULL;
+    _pDoc = nullptr;
     _wPic = InvalidResourceNumber;
     _wNorth = 0;
     _wEast = 0;
@@ -52,7 +51,7 @@ BOOL QuickScriptsSidePane::PreTranslateMessage(MSG* pMsg)
             // Get the selection
             int nItem = -1;
             POSITION pos = m_wndList.GetFirstSelectedItemPosition();
-            if (pos != NULL)
+            if (pos != nullptr)
             {
                 _OpenItem(m_wndList.GetNextSelectedItem(pos));
             }
@@ -68,7 +67,7 @@ BOOL QuickScriptsSidePane::PreTranslateMessage(MSG* pMsg)
 
 void QuickScriptsSidePane::_PrepareViewMenu(int cItems)
 {
-    if (m_wndButtonViews.m_menu == NULL)
+    if (m_wndButtonViews.m_menu == nullptr)
     {
         CMenu menu;
         if (menu.LoadMenu(IDR_MENUVIEWS))
@@ -116,7 +115,7 @@ void QuickScriptsSidePane::_PrepareViewCommands(int iIndex, const ResourceEntity
     // Ensure we have a command entry for this.
     CExtCmdItem *pCmdItem;
 	pCmdItem = g_CmdManager->CmdGetPtr(appState->_pszCommandProfile, nID);
-    if (pCmdItem == NULL)
+    if (pCmdItem == nullptr)
     {
         pCmdItem = g_CmdManager->CmdAllocPtr(appState->_pszCommandProfile, nID);
     }
@@ -126,7 +125,7 @@ void QuickScriptsSidePane::_PrepareViewCommands(int iIndex, const ResourceEntity
         CBitmap bitmap;
         // Note: if the index is out of bounds, it will return a NULL HBITMAP
         bitmap.Attach(GetBitmap(view.GetComponent<RasterComponent>(), view.TryGetComponent<PaletteComponent>(), CelIndex(nLoop, nCel), 24, 24, BitmapScaleOptions::AllowMag | BitmapScaleOptions::AllowMin));
-        if ((HBITMAP)bitmap == NULL)
+        if ((HBITMAP)bitmap == nullptr)
         {
             // Load an all black bitmap, to indicate the loop/cel are invalid.
             bitmap.LoadBitmap(IDB_BITMAPNULL);
@@ -286,7 +285,7 @@ void QuickScriptsSidePane::_AddFilesOfType(int &iItem, PCTSTR pszWildcard)
 
 void QuickScriptsSidePane::Initialize()
 {
-    if (_bFirstTime)
+    if (_needsUpdate)
     {
         _UpdateEntries();
     }
@@ -321,9 +320,9 @@ void QuickScriptsSidePane::_UpdateEntries()
 
     // Clear out old items.
     m_wndList.DeleteAllItems();
-    if (_bFirstTime)
+    if (_needsUpdate)
     {
-        _bFirstTime = false;
+        _needsUpdate = false;
         _InitColumns();
     }
 
@@ -518,7 +517,7 @@ BOOL QuickScriptsSidePane::OnGotoRoom(UINT nID)
 
 void QuickScriptsSidePane::SetDocument(CDocument *pDoc)
 {
-    ASSERT(pDoc == NULL || (pDoc->IsKindOf(RUNTIME_CLASS(CScriptDocument))));
+    ASSERT(pDoc == nullptr || (pDoc->IsKindOf(RUNTIME_CLASS(CScriptDocument))));
     _pDoc = static_cast<CScriptDocument*>(pDoc);
     if (_pDoc)
     {

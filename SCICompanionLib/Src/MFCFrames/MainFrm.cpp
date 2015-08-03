@@ -1552,6 +1552,8 @@ void CMainFrame::_OnNewScriptDialog(CNewScriptDialog &dialog)
                 pDoc->SetNameAndContent(script, dialog.GetNumber(), strBuffer);
                 // Compile it so it is added to the resource map.
                 pDoc->Compile();
+
+                m_dlgForPanelDialogScript.Refresh();
             }
         }
     }    
