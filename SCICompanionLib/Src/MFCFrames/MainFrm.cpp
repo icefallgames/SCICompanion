@@ -1377,7 +1377,7 @@ void CMainFrame::OnFileOpenResource()
     {
 		CString strFileName = fileDialog.GetPathName();
         ResourceBlob data;
-        HRESULT hr = data.CreateFromFile(nullptr, (PCSTR)strFileName, appState->GetVersion());
+        HRESULT hr = data.CreateFromFile(nullptr, (PCSTR)strFileName, appState->GetVersion(), appState->GetVersion().DefaultVolumeFile);
         if (SUCCEEDED(hr))
         {
             OpenResource(&data);

@@ -316,7 +316,7 @@ public:
     }
 
 
-    HRESULT CreateFromFile(PCTSTR pszName, std::string strFileName, SCIVersion version, int iPackage = 1, int iNumber = -1);
+    HRESULT CreateFromFile(PCTSTR pszName, std::string strFileName, SCIVersion version, int iPackage, int iNumber = -1);
     void CreateFromPackageBits(const std::string &name, const ResourceHeaderAgnostic &prh, sci::istream &byteStream);
 
     sci::istream GetReadStream() const;
