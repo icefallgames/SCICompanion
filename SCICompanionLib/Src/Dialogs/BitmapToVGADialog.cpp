@@ -432,6 +432,7 @@ void CBitmapToVGADialog::_SyncControlState()
         m_wndSlider2.EnableWindow(FALSE);
         m_wndSlider3.EnableWindow(FALSE);
         m_wndSlider4.EnableWindow(FALSE);
+        m_wndSlider5.EnableWindow(FALSE);
         _disableAllEffects = true;
     }
     else
@@ -439,7 +440,7 @@ void CBitmapToVGADialog::_SyncControlState()
         m_wndCheck1.EnableWindow(TRUE);
         m_wndSlider2.EnableWindow(TRUE);
         m_wndSlider3.EnableWindow(TRUE);
-        m_wndSlider4.EnableWindow(TRUE);
+        m_wndSlider5.EnableWindow(TRUE);
         _disableAllEffects = false;
     }
 
@@ -813,7 +814,7 @@ BOOL CBitmapToVGADialog::OnInitDialog()
 
     if (_existingBitmap)
     {
-        _Init(move(_existingBitmap), this);
+        _Init(move(_existingBitmap), nullptr, this);
         _UpdateOrigBitmap(this);
         _SyncControlState();
         _Update();
@@ -842,6 +843,7 @@ void CBitmapToVGADialog::OnBnClickedRadio1()
     {
         assert(_honorGlobalPalette != BST_INDETERMINATE);
         _honorGlobalPalette = BST_CHECKED;
+        m_wndCheckGlobalPalette.SetCheck(_honorGlobalPalette);
         _PushPaletteSelection();
     }
     _SyncControlState();
@@ -855,6 +857,7 @@ void CBitmapToVGADialog::OnBnClickedRadio2()
     {
         assert(_honorGlobalPalette != BST_INDETERMINATE);
         _honorGlobalPalette = BST_CHECKED;
+        m_wndCheckGlobalPalette.SetCheck(_honorGlobalPalette);
         _PushPaletteSelection();
     }
     _SyncControlState();
@@ -868,6 +871,7 @@ void CBitmapToVGADialog::OnBnClickedRadio3()
     {
         assert(_honorGlobalPalette != BST_INDETERMINATE);
         _honorGlobalPalette = BST_UNCHECKED;
+        m_wndCheckGlobalPalette.SetCheck(_honorGlobalPalette);
         _PushPaletteSelection();
     }
     _SyncControlState();

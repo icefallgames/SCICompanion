@@ -7,12 +7,16 @@
 using namespace std;
 using namespace Gdiplus;
 
-PrepareBitmapBase::PrepareBitmapBase(int convertButtonId, int staticOriginalImageId, size16 picResourceDimensions) : _convertButtonId(convertButtonId), _staticOriginalImageId(staticOriginalImageId), _disableAllEffects(false), _picResourceDimensions(picResourceDimensions)
+PrepareBitmapBase::PrepareBitmapBase(int convertButtonId, int staticOriginalImageId, size16 picResourceDimensions) : _convertButtonId(convertButtonId), _staticOriginalImageId(staticOriginalImageId), _disableAllEffects(false), _picResourceDimensions(picResourceDimensions), _imageStreamKeepAlive(nullptr)
 {
 }
 
 PrepareBitmapBase::~PrepareBitmapBase()
 {
+    if (_imageStreamKeepAlive)
+    {
+        _imageStreamKeepAlive->Release();
+    }
 }
 
 //
@@ -213,9 +217,16 @@ void PrepareBitmapBase::_CalculateContrastCenter(Gdiplus::Bitmap *pBitmap, BYTE 
     }
 }
 
-BOOL PrepareBitmapBase::_Init(std::unique_ptr<Gdiplus::Bitmap> pImageIn, CWnd *pwnd)
+BOOL PrepareBitmapBase::_Init(std::unique_ptr<Gdiplus::Bitmap> pImageIn, IStream *imageStreamKeepAlive, CWnd *pwnd)
 {
     _pbmpOrig = std::move(pImageIn);
+    if (_imageStreamKeepAlive)
+    {
+        _imageStreamKeepAlive->Release();
+        _imageStreamKeepAlive = nullptr;
+    }
+    _imageStreamKeepAlive = imageStreamKeepAlive;
+
     // Let's see if we can extract a palette.
     // Note that if we're using the original palette, we can't scale or adjust the thingies.
     _originalPalette.reset(nullptr);
@@ -288,7 +299,7 @@ void PrepareBitmapBase::_OnPasteFromClipboard(CWnd *pwnd)
             unique_ptr<Gdiplus::Bitmap> pBitmap(Gdiplus::Bitmap::FromHBITMAP(hBmp, nullptr));
             if (pBitmap)
             {
-                if (_Init(move(pBitmap), pwnd))
+                if (_Init(move(pBitmap), nullptr, pwnd))
                 {
                     _UpdateOrigBitmap(pwnd);
                 }
@@ -303,48 +314,59 @@ void PrepareBitmapBase::_OnBrowse(CWnd *pwnd)
     if (IDOK == dialog.DoModal())
     {
         CString strFileName = dialog.GetPathName();
-#ifdef UNICODE
-        unique_ptr<Gdiplus::Bitmap> pImage(Bitmap::FromFile(strFileName));
-#else
-        // GDI+ only deals with unicode.
-        int a = lstrlenA(strFileName);
-        BSTR unicodestr = SysAllocStringLen(nullptr, a);
-        MultiByteToWideChar(CP_ACP, 0, strFileName, a, unicodestr, a);
-        unique_ptr<Gdiplus::Bitmap> pImage(Bitmap::FromFile(unicodestr, TRUE));
+        unique_ptr<Gdiplus::Bitmap> pImage;
+        IStream *imageStream = nullptr;
 
-        // Just test various things, for investigation:
-        PixelFormat format = pImage->GetPixelFormat();
-        UINT dimensionsCount = pImage->GetFrameDimensionsCount();
-        if (dimensionsCount > 0)
+        OSVERSIONINFO versionInfo = { 0 };
+        versionInfo.dwOSVersionInfoSize = sizeof(versionInfo);
+        GetVersionEx(&versionInfo);
+        if (versionInfo.dwMajorVersion >= 6)
         {
-            std::unique_ptr<GUID[]> dimensionIds = make_unique<GUID[]>(dimensionsCount);
-            pImage->GetFrameDimensionsList(dimensionIds.get(), dimensionsCount);
-            for (UINT i = 0; i < dimensionsCount; i++)
+            std::ifstream is((PCSTR)strFileName, std::ifstream::binary);
+            if (is)
             {
-                UINT frameCount = pImage->GetFrameCount(&dimensionIds[i]);
-                int x = frameCount;
+                is.seekg(0, is.end);
+                size_t length = (size_t)is.tellg();
+                is.seekg(0, is.beg);
+                std::unique_ptr<char[]> buffer = std::make_unique<char[]>(length);
+                is.read(buffer.get(), length);
+                if (is)
+                {
+                    imageStream = SHCreateMemStream(static_cast<uint8_t*>(static_cast<void*>(buffer.get())), length);
+                    if (imageStream)
+                    {
+                        LARGE_INTEGER li = { 0 };
+                        imageStream->Seek(li, STREAM_SEEK_SET, nullptr);
+                        pImage.reset(Bitmap::FromStream(imageStream));
+                    }
+                }
             }
         }
+        else
+        {
+            // SHCreateMemStream is not exported by name from shlwapi, so just use Bitmap::FromFile,
+            // even though that will keep the file open as long as the image object exists.
+#ifdef UNICODE
+            unique_ptr<Gdiplus::Bitmap> pImage(Bitmap::FromFile(strFileName));
+#else
+            // GDI+ only deals with unicode.
+            int a = lstrlenA(strFileName);
+            BSTR unicodestr = SysAllocStringLen(nullptr, a);
+            MultiByteToWideChar(CP_ACP, 0, strFileName, a, unicodestr, a);
+            pImage.reset(Bitmap::FromFile(unicodestr, TRUE));
 
-        //... when done, free the BSTR
-        SysFreeString(unicodestr);
-#endif    
+            //... when done, free the BSTR
+            SysFreeString(unicodestr);
+        }
+
         if (pImage)
         {
-            // Gdiplus Bitmaps keep the file open, and we don't want that. So clone it.
-            unique_ptr<Bitmap> clonedBitmap(new Bitmap(pImage->GetWidth(), pImage->GetHeight(), pImage->GetPixelFormat()));
-            Graphics g(clonedBitmap.get());
-            g.DrawImage(
-                pImage.get(),
-                0,
-                0,
-                pImage->GetWidth(),
-                pImage->GetHeight()
-                );
-            if (_Init(move(clonedBitmap), pwnd))
+            if (_Init(move(pImage), imageStream, pwnd))
             {
                 _UpdateOrigBitmap(pwnd);
             }
         }
+#endif    
+
     }
 }
