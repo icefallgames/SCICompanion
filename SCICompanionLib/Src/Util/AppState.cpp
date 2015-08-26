@@ -347,7 +347,10 @@ void AppState::OpenScriptAtLine(ScriptId script, int iLine)
     {
         // Make an new one.
         pDoc = static_cast<CScriptDocument*>(_pScriptTemplate->OpenDocumentFile(script.GetFullPath().c_str(), TRUE));
-        pDoc->SetTitle(script.GetFileNameOrig().c_str());
+        if (pDoc)
+        {
+            pDoc->SetTitle(script.GetFileNameOrig().c_str());
+        }
     }
     if (pDoc)
     {
@@ -481,8 +484,7 @@ UINT LoadClassBrowserThreadWorker(void *pParam)
 {
     SCIClassBrowser *pBrowser = (SCIClassBrowser *)pParam;
     pBrowser->Lock();
-    //if (!pBrowser->ReLoadFromSources())
-    // Never load from sources now (although that ruins browse info :-()
+    if (!pBrowser->ReLoadFromSources())
     {
         // Might not be a fan-made game... try loading from the resources themselves so
         // that we are able to provide a class hierarchy at least.

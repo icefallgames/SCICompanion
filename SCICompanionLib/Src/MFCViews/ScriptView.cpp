@@ -781,8 +781,8 @@ void CScriptView::OnContextMenu(CWnd *pWnd, CPoint point)
                     CPoint ptRight = WordToRight(ptText);
                     CPoint ptLeft = WordToLeft(ptText);
                     TCHAR szBuffer[MAX_PATH];
-                    BOOL fDisableMenuOption = TRUE;
-                    if ((ptRight != ptLeft))
+                    bool fDisableMenuOption = true;
+                    if (appState->GetVersion().HasSaidVocab && (ptRight != ptLeft))
                     {
                         // This is a potential vocab string.
     	                GetText(ptLeft, ptRight, _contextMenuText);
@@ -791,7 +791,7 @@ void CScriptView::OnContextMenu(CWnd *pWnd, CPoint point)
                             StringCchPrintf(szBuffer, ARRAYSIZE(szBuffer), TEXT("Add \"%s\" as"), (PCTSTR)_contextMenuText);
                             mii.fMask = MIIM_STRING;
                             mii.dwTypeData = szBuffer;
-                            fDisableMenuOption = FALSE;
+                            fDisableMenuOption = false;
                         }
                     }
 

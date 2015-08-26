@@ -69,6 +69,7 @@ struct SCIVersion
     bool SupportsMessages;
     bool SeparateMessageMap;
     bool FontExtendedChars;
+    bool HasSaidVocab;
 
     bool operator==(const SCIVersion &src);
     bool operator!=(const SCIVersion &src);

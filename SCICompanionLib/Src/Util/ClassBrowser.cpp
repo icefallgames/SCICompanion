@@ -296,7 +296,6 @@ void SCIClassBrowser::_AddToClassTree(Script& script)
     }
 }
 
-
 bool SCIClassBrowser::ReLoadFromSources()
 {
     CGuard guard(&_csClassBrowser);
