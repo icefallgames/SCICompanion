@@ -34,5 +34,5 @@ SCI_RESOURCE_INFO &GetResourceInfo(ResourceType type);
 ResourceType ValidateResourceType(ResourceType type);
 std::string GetFileDialogFilterFor(ResourceType type, SCIVersion version);
 std::string GetFileNameFor(ResourceType type, int number, SCIVersion version);
-bool MatchesResourceFilenameFormat(const std::string &filename, ResourceType type, SCIVersion version, int *numberOut);
-bool MatchesResourceFilenameFormat(const std::string &filename, SCIVersion version, int *numberOut);
+bool MatchesResourceFilenameFormat(const std::string &filename, ResourceType type, SCIVersion version, int *numberOut, std::string &nameOut);
+bool MatchesResourceFilenameFormat(const std::string &filename, SCIVersion version, int *numberOut, std::string &nameOut);

@@ -1475,16 +1475,24 @@ void CMainFrame::OnFileAddResource()
     if (IDOK == fileDialog.DoModal())
     {
 		CString strFileName = fileDialog.GetPathName();
+
+        int number = -1;
+        std::string resNameFromFilename;
+        MatchesResourceFilenameFormat((PCSTR)strFileName, appState->GetVersion(), &number, resNameFromFilename);
+
         // Get a resource number and package
         SaveResourceDialog srd(false, ResourceType::None);
-        srd.Init(appState->GetVersion().DefaultVolumeFile, ResourceNumberFromFileName(strFileName));
+        srd.Init(appState->GetVersion().DefaultVolumeFile, number, resNameFromFilename);
         if (IDOK == srd.DoModal())
         {
             int iResourceNumber = srd.GetResourceNumber();
             int iPackageNumber = srd.GetPackageNumber();
             ResourceBlob data;
             HRESULT hr = data.CreateFromFile(nullptr, (PCSTR)strFileName, appState->GetVersion(), iPackageNumber, iResourceNumber);
-            data.SetName(nullptr);
+            if (!srd.GetName().empty())
+            {
+                data.SetName(srd.GetName().c_str());
+            }
             if (SUCCEEDED(hr))
             {
                 appState->GetResourceMap().AppendResource(data);

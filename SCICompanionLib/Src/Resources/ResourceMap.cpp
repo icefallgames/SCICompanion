@@ -401,7 +401,7 @@ HRESULT CResourceMap::AppendResourceAskForNumber(ResourceBlob &resource, bool wa
     }
     // Invoke dialog to suggest/ask for a resource number
     SaveResourceDialog srd(warnOnOverwrite, resource.GetType());
-    srd.Init(-1, SuggestResourceNumber(resource.GetType()));
+    srd.Init(-1, SuggestResourceNumber(resource.GetType()), resource.GetName());
     if (IDOK == srd.DoModal())
     {
         // Assign it.

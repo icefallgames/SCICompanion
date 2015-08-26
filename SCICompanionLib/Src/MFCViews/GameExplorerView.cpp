@@ -583,13 +583,12 @@ void CGameExplorerView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
     }
 }
 
-
-BOOL IsResourceFileName(PCTSTR pszFileName, int *piNumber)
+BOOL IsResourceFileName(PCTSTR pszFileName, int *piNumber, std::string &name)
 {
     SCIVersion version = appState->GetVersion();
     std::smatch cm;
     std::string filename = pszFileName;
-    return MatchesResourceFilenameFormat(filename, version, piNumber);
+    return MatchesResourceFilenameFormat(filename, version, piNumber, name);
 }
 
 bool _IsBitmapFile(PCSTR pszFileName)
@@ -610,6 +609,7 @@ void DropResourceFiles(CArray<CString, CString&> *pDropFiles)
     for (int i = 0; i < pDropFiles->GetCount(); i++)
     {
         int iNumber;
+        std::string resNameFromFilename;
  
         if (_IsBitmapFile(pDropFiles->GetAt(i)))
         {
@@ -640,20 +640,30 @@ void DropResourceFiles(CArray<CString, CString&> *pDropFiles)
                 AfxMessageBox(e.what(), MB_OK | MB_ICONWARNING);
             }
         }
-        else if (IsResourceFileName(PathFindFileName(pDropFiles->GetAt(i)), &iNumber))
+        else if (IsResourceFileName(PathFindFileName(pDropFiles->GetAt(i)), &iNumber, resNameFromFilename))
         {
             ResourceBlob data;
             if (SUCCEEDED(data.CreateFromFile(nullptr, (PCSTR)pDropFiles->GetAt(i), appState->GetVersion(), appState->GetVersion().DefaultVolumeFile, iNumber)))
             {
                 // Before adding it, check to see if this resource number already exists.
-                bool askForNumber = false;
-                data.SetName(nullptr);
-                std::string existingName;
-                if (appState->GetResourceMap().DoesResourceExist(data.GetType(), iNumber, &existingName))
+                bool askForNumber = (iNumber == -1);
+                if (!resNameFromFilename.empty())
                 {
-                    data.SetName(existingName.c_str());
-                    askForNumber = (IDYES == AfxMessageBox(fmt::format("Resource {0} is already been used. Use a different resource number?", iNumber).c_str(), MB_OK | MB_YESNO));
+                    data.SetName(resNameFromFilename.c_str());
                 }
+                std::string existingName;
+                if (iNumber != -1)
+                {
+                    if (appState->GetResourceMap().DoesResourceExist(data.GetType(), iNumber, &existingName))
+                    {
+                        if (resNameFromFilename.empty())
+                        {
+                            data.SetName(existingName.c_str());
+                        }
+                        askForNumber = (IDYES == AfxMessageBox(fmt::format("Resource {0} is already been used. Use a different resource number?", iNumber).c_str(), MB_OK | MB_YESNO));
+                    }
+                }
+
                 if (askForNumber)
                 {
                     appState->GetResourceMap().AppendResourceAskForNumber(data, true);
@@ -694,7 +704,8 @@ BOOL GetDropFiles(COleDataObject *pDataObject, CArray<CString, CString&> *pFileL
                     WideCharToMultiByte(CP_ACP, 0, pwsz, -1, psz, lstrlenW(pwsz) + 1, nullptr, nullptr);
                     PTSTR pszFileName = PathFindFileName(strFile);
                     int iNumber;
-                    if (IsResourceFileName(pszFileName, &iNumber) || _IsBitmapFile(pszFileName) || IsWaveFile(pszFileName))
+                    std::string resNameFromFilename;
+                    if (IsResourceFileName(pszFileName, &iNumber, resNameFromFilename) || _IsBitmapFile(pszFileName) || IsWaveFile(pszFileName))
                     {
                         pFileList->Add(strFile);
                         fRet = TRUE;
@@ -710,7 +721,8 @@ BOOL GetDropFiles(COleDataObject *pDataObject, CArray<CString, CString&> *pFileL
                 {
                     PTSTR pszFileName = PathFindFileName(psz);
                     int iNumber;
-                    if (IsResourceFileName(pszFileName, &iNumber) || _IsBitmapFile(pszFileName))
+                    std::string resNameFromFilename;
+                    if (IsResourceFileName(pszFileName, &iNumber, resNameFromFilename) || _IsBitmapFile(pszFileName))
                     {
                         CString strFile = psz;
                         pFileList->Add(strFile);
