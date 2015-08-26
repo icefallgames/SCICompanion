@@ -418,8 +418,56 @@ void CMainFrame::ActivateFrame(int nCmdShow)
     __super::ActivateFrame(nCmdShow);
 }
 
+HHOOK s_BrowseInfoStatusMH = nullptr;
+HWND hwndStatusPane = nullptr;
+CBrowseInfoStatusPane *hwndBrowseInfoStatus = nullptr;
+LRESULT CALLBACK s_BrowseInfoStatusMouseHook(
+    _In_ int    nCode,
+    _In_ WPARAM wParam,
+    _In_ LPARAM lParam
+    )
+{
+    bool callNext = true;
+    if (nCode == HC_ACTION)
+    {
+        if (wParam == WM_LBUTTONDBLCLK)
+        {
+            MOUSEHOOKSTRUCT *msh = reinterpret_cast<MOUSEHOOKSTRUCT*>(lParam);
+            if (hwndBrowseInfoStatus && (msh->hwnd == hwndStatusPane))
+            {
+                CRect rect;
+                GetWindowRect(hwndBrowseInfoStatus->GetSafeHwnd(), &rect);
+                if (rect.PtInRect(msh->pt))
+                {
+                    hwndBrowseInfoStatus->OnLButtonDblClk();
+                    callNext = false;
+                    OutputDebugString("dsouble click\n");
+                }
+            }
+        }
+    }
+
+    if (callNext)
+    {
+        return CallNextHookEx(s_BrowseInfoStatusMH, nCode, wParam, lParam);
+    }
+    else
+    {
+        return 1;
+    }
+}
+
 BOOL CMainFrame::DestroyWindow()
 {
+    // Unhook
+    if (s_BrowseInfoStatusMH)
+    {
+        UnhookWindowsHookEx(s_BrowseInfoStatusMH);
+        s_BrowseInfoStatusMH = nullptr;
+        hwndStatusPane = nullptr;
+        hwndBrowseInfoStatus = nullptr;
+    }
+
     // Prof-UIS GUI persistence
     CWinApp *pApp = ::AfxGetApp();
     ASSERT(pApp != nullptr);
@@ -699,6 +747,12 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
         TRACE0("Failed to create browse status pane\n");
         return -1;
     }
+
+    // Hook for browse info status double click.
+    s_BrowseInfoStatusMH = SetWindowsHookEx(WH_MOUSE, s_BrowseInfoStatusMouseHook, nullptr, GetCurrentThreadId());
+    hwndStatusPane = m_wndStatusBar.GetSafeHwnd();
+    hwndBrowseInfoStatus = &m_BrowseInfoStatus;
+
     if (!m_wndStatusBar.AddPane(ID_BROWSEINFOPANE, 0)) // position zero?
     {
         TRACE0("Failed to add browse status pane\n");
@@ -2288,7 +2342,6 @@ void CMainFrame::Dump(CDumpContext& dc) const
 #define UWM_STATUSREADY      (WM_APP + 0)
 
 BEGIN_MESSAGE_MAP(CBrowseInfoStatusPane, CExtLabel)
-    ON_WM_LBUTTONDBLCLK()
     ON_MESSAGE(UWM_STATUSREADY, _OnStatusReady)
 END_MESSAGE_MAP()
 
@@ -2319,14 +2372,13 @@ void CBrowseInfoStatusPane::OnDrawLabelText(CDC &dc, const RECT &rcText, __EXT_M
     __super::OnDrawLabelText(dc, rcText, strText, dwDrawTextFlags, bEnabled);
 }
 
-void CBrowseInfoStatusPane::OnLButtonDblClk(UINT nFlags, CPoint point)
+void CBrowseInfoStatusPane::OnLButtonDblClk()
 {
     if (_status == Errors)
     {
 		SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser();
         appState->OutputResults(OutputPaneType::Compile, browser.GetErrors());
     }
-    __super::OnLButtonDblClk(nFlags, point);
 }
 
 // This method may  be called on a different thread, so care should be taken

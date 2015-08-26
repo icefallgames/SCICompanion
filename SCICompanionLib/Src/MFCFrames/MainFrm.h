@@ -38,9 +38,10 @@ public:
     // Note: this method may be called on a different thread.
     void NotifyClassBrowserStatus(BrowseInfoStatus status, int iPercent);
 
+    void OnLButtonDblClk();
+
 private:
     DECLARE_MESSAGE_MAP()
-    void OnLButtonDblClk(UINT nFlags, CPoint point);
 	void OnDrawLabelText(CDC &dc, const RECT &rcText, __EXT_MFC_SAFE_LPCTSTR strText, DWORD dwDrawTextFlags, bool bEnabled);
     LRESULT _OnStatusReady(WPARAM wParam, LPARAM lParam);
     BrowseInfoStatus _status;

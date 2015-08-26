@@ -161,7 +161,7 @@ void NewOutputPane::DrawItem(DRAWITEMSTRUCT *pDrawItemStruct)
             result.GetMessageA().c_str(),
             -1,
             &pDrawItemStruct->rcItem,
-            DT_SINGLELINE | DT_LEFT);
+            DT_SINGLELINE | DT_LEFT | DT_NOPREFIX);
     }
 
     pDC->SelectObject(hFontOld);
