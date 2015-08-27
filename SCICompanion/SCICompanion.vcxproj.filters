@@ -20,6 +20,7 @@
     <Text Include="Files\TemplateGame\SCI1.1\INSTALL.TXT" />
     <Text Include="Files\Licenses\giflib-AUTHORS.txt" />
     <Text Include="Files\Licenses\r8brain-License.txt" />
+    <Text Include="Tools\DOSBox\DOSBox 0.74 Manual.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCICompanion.h">
@@ -615,6 +616,22 @@
     <None Include="Files\TemplateGame\SCI1.1\src\InvItem.sco" />
     <None Include="Files\Objects\SCI1.1\Methods.sc" />
     <None Include="Files\Objects\SCI0\Methods.sc" />
+    <None Include="Tools\DOSBox\DOSBox 0.74 Options.bat">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="Tools\DOSBox\DOSBox.exe" />
+    <None Include="Tools\DOSBox\Reset KeyMapper.bat">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="Tools\DOSBox\Reset Options.bat">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="Tools\DOSBox\Screenshots &amp; Recordings.bat">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="Tools\DOSBox\SDL.dll" />
+    <None Include="Tools\DOSBox\SDL_net.dll" />
+    <None Include="Tools\DOSBox\uninstall.exe" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />

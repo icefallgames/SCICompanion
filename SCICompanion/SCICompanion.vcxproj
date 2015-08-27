@@ -99,6 +99,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Help" "$(OutDir)Help"
 xcopy /S /Y /I /D "$(ProjectDir)Files\Samples" "$(OutDir)Samples"
 xcopy /S /Y /I /D "$(ProjectDir)Files\Decompiler" "$(OutDir)Decompiler"
 xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
+ xcopy /S /Y /I /D "$(ProjectDir)Tools" "$(OutDir)Tools"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -136,6 +137,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Help" "$(OutDir)Help"
 xcopy /S /Y /I /D "$(ProjectDir)Files\Samples" "$(OutDir)Samples"
 xcopy /S /Y /I /D "$(ProjectDir)Files\Decompiler" "$(OutDir)Decompiler"
 xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
+ xcopy /S /Y /I /D "$(ProjectDir)Tools" "$(OutDir)Tools"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -177,6 +179,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Help" "$(OutDir)Help"
 xcopy /S /Y /I /D "$(ProjectDir)Files\Samples" "$(OutDir)Samples"
 xcopy /S /Y /I /D "$(ProjectDir)Files\Decompiler" "$(OutDir)Decompiler"
 xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
+ xcopy /S /Y /I /D "$(ProjectDir)Tools" "$(OutDir)Tools"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -186,6 +189,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <Text Include="Files\TemplateGame\SCI0\game.txt" />
     <Text Include="Files\TemplateGame\SCI1.1\INSTALL.TXT" />
     <Text Include="ReadMe.txt" />
+    <Text Include="Tools\DOSBox\DOSBox 0.74 Manual.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ResourceOLD.h" />
@@ -643,6 +647,14 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <None Include="res\SCICompanion.rc2">
       <SubType>Designer</SubType>
     </None>
+    <None Include="Tools\DOSBox\DOSBox 0.74 Options.bat" />
+    <None Include="Tools\DOSBox\DOSBox.exe" />
+    <None Include="Tools\DOSBox\Reset KeyMapper.bat" />
+    <None Include="Tools\DOSBox\Reset Options.bat" />
+    <None Include="Tools\DOSBox\Screenshots &amp; Recordings.bat" />
+    <None Include="Tools\DOSBox\SDL.dll" />
+    <None Include="Tools\DOSBox\SDL_net.dll" />
+    <None Include="Tools\DOSBox\uninstall.exe" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Prof-UIS.2.92\ProfUISLIB\ProfUISLIB_1000.vcxproj">
