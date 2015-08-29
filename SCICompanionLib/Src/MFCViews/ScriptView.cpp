@@ -1233,7 +1233,12 @@ ToolTipResult CScriptView::_DoToolTipParse(CPoint pt)
 
             void Done()
             {
-                _result = GetToolTipResult<SyntaxContext>(&_context);
+                // Sometimes we get called twice (e.g. hovering over a send selector). Not sure if this is a bug
+                // in the parsing code, or legit. Anyway, it is easy to filter out the second one.
+                if (_result.empty())
+                {
+                    _result = GetToolTipResult<SyntaxContext>(&_context);
+                }
             }
         private:
             SyntaxContext &_context;

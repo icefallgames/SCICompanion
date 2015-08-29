@@ -138,14 +138,14 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
             {
                 bool fFound = false;
                 NodeType type = pContext->GetTopKnownNode();
-                if (type == NodeTypeSendCall)
+                if (type == NodeTypeSendParam)
                 {
-                    // Then strText should be a selector.
-                    const SendCall *pSend = static_cast<const SendCall*>(pContext->GetSyntaxNode(type));
-                    ASSERT(pSend);
+                    //const SendParam *pSendParam = static_cast<const SendParam*>(pContext->GetSyntaxNode(type));
+                    const SendCall *pSendCall = static_cast<const SendCall*>(pContext->GetSyntaxNode(NodeTypeSendCall));
+                    assert(pSendCall);
                     // Now we have the object to which we're sending... 
                     // Figure out which species/class it is.
-                    std::string object = _ClassFromObjectName(browser, pContext, pSend->GetObject());
+                    std::string object = _ClassFromObjectName(browser, pContext, pSendCall->GetObject());
                     if (!object.empty())
                     {
                         unique_ptr<RawMethodVector> pMethods(browser.CreateMethodArray(object, &pContext->Script()));
