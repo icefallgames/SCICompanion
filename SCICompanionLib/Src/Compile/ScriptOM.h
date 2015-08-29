@@ -712,8 +712,6 @@ namespace sci
         ClassProperty(const std::string &str, WORD wValue);
         ClassProperty(const std::string &str, const std::string &value);
         ClassProperty(const std::string &str, const PropertyValue &value);
-        //const PropertyValue GetValue() const;
-        std::string GetValueUnimplemented() const { return "Unimplemented"; }
         const PropertyValue *TryGetValue() const;
         void SetValue(const PropertyValue &value);
 
@@ -723,6 +721,8 @@ namespace sci
         void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
+
+        void OutputSourceCode(SourceCodeWriter &out) const;
     };
 
     typedef std::vector<std::unique_ptr<ClassProperty>> ClassPropertyVector;

@@ -878,6 +878,8 @@ void CScriptView::OnActivate(UINT nState, CWnd *pWndOther, BOOL bMinimized)
 {
     // REVIEW: This is never called.
     __super::OnActivate(nState, pWndOther, bMinimized);
+
+    //void GiveMeAutoComplete(CScriptView *pSV);
 }
 
 void CScriptView::OnKillFocus(CWnd *pNewWnd)
@@ -904,6 +906,7 @@ void CScriptView::OnKillFocus(CWnd *pNewWnd)
 
 void CScriptView::OnSetFocus(CWnd *pNewWnd)
 {
+    appState->GiveMeAutoComplete(this);
     if (_pAutoComp && _pAutoComp->IsWindowVisible())
     {
         // We're being focused, to a window other than the intellisense listbox.

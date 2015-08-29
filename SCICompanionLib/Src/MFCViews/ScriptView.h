@@ -1,8 +1,8 @@
 // SCICompilerView.h : interface of the CScriptView class
 //
-
-
 #pragma once
+
+#define SCI_AUTOCOMPLETE 1
 
 #include "CCrystalEditView.h"
 #include "Vocab000.h"

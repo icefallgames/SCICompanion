@@ -5,6 +5,7 @@
 #include "CodeToolTips.h"
 #include "AppState.h"
 #include <string>
+#include "OutputCodeHelper.h"
 
 //
 // CodeToolTips.cpp
@@ -20,19 +21,23 @@ using namespace std;
 //
 void _GetMethodInfoHelper(PTSTR szBuf, size_t cchBuf, const FunctionBase *pMethod)
 {
-    // TODO: needs updating due to pMethod->GetParams()
-    /*
-    StringCchPrintf(szBuf, cchBuf, TEXT("%s("), pMethod->GetName().c_str());
-    const std::vector<std::string> &params = pMethod->GetParams();
-    for (size_t iParam = 0; iParam < params.size(); iParam++)
+    const auto &sigs = pMethod->GetSignatures();
+    for (const auto &sig : sigs)
     {
-        StringCchCat(szBuf, cchBuf, params[iParam].c_str());
-        if (iParam < (params.size() - 1))
+        StringCchPrintf(szBuf, cchBuf, TEXT("%s("), pMethod->GetName().c_str());
+        const auto &params = sig->GetParams();
+        for (size_t iParam = 0; iParam < params.size(); iParam++)
         {
-            StringCchCat(szBuf, cchBuf, TEXT(" ")); // add a space
+            StringCchCat(szBuf, cchBuf, params[iParam]->GetName().c_str());
+            if (iParam < (params.size() - 1))
+            {
+                StringCchCat(szBuf, cchBuf, TEXT(" ")); // add a space
+            }
         }
+        StringCchCat(szBuf, cchBuf, TEXT(")"));
+
+        break; // Only support one signature for now...
     }
-    StringCchCat(szBuf, cchBuf, TEXT(")"));*/
 }
 
 void _GetClassInfoHelper(PTSTR szBuf, size_t cchBuf, const ClassDefinition *pClass)
@@ -44,14 +49,18 @@ void _GetClassInfoHelper(PTSTR szBuf, size_t cchBuf, const ClassDefinition *pCla
         StringCchPrintf(szTemp, ARRAYSIZE(szTemp), TEXT(" of %s"), pClass->GetSuperClass().c_str());
     }
     StringCchPrintf(szBuf, cchBuf, TEXT("(class %s%s\n    (properties\n"), pClass->GetName().c_str(), szTemp);
-    const ClassPropertyVector &properties = pClass->GetProperties(); // STLCLEANUP
-    for (size_t iProp = 0; iProp < properties.size(); iProp++)
+
+    std::stringstream ss;
+    SourceCodeWriter out(ss, appState->GetResourceMap().GetGameLanguage());
+    DebugIndent indent1(out);
+    DebugIndent indent2(out);
+    out.pszNewLine = "\r\n";
+    for (auto &prop : pClass->GetProperties())
     {
-        TCHAR szProp[100];
-        auto &prop = properties[iProp];
-        StringCchPrintf(szProp, ARRAYSIZE(szProp), TEXT("        %s = %s\n"), prop->GetName().c_str(), prop->GetValueUnimplemented().c_str());
-        StringCchCat(szBuf, cchBuf, szProp);
+        prop->OutputSourceCode(out);
     }
+    std::string propValues = ss.str();
+    StringCchCat(szBuf, cchBuf, propValues.c_str());
     StringCchCat(szBuf, cchBuf, TEXT("    )\n"));
 
     // Prepare methods

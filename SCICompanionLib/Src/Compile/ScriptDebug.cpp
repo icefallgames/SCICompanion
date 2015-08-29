@@ -89,3 +89,15 @@ void MethodDefinition::OutputSourceCode(SourceCodeWriter &out) const
         OutputSourceCode_CPP(*this, out);
     }
 }
+
+void ClassProperty::OutputSourceCode(SourceCodeWriter &out) const
+{
+    if (out.lang == LangSyntaxSCIStudio)
+    {
+        OutputSourceCode_SCIStudio(*this, out);
+    }
+    else if (out.lang == LangSyntaxCpp)
+    {
+        OutputSourceCode_CPP(*this, out);
+    }
+}

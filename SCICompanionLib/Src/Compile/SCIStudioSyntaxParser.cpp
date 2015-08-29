@@ -462,6 +462,7 @@ void CreateVarDeclA(MatchResult &match, const Parser *pParser, SyntaxContext *pC
     if (match.Result())
     {
         pContext->StartVariableDecl(pContext->ScratchString());
+        pContext->VariableDecl->SetPosition(stream.GetPosition());
     }
 }
 void VarDeclSizeA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
@@ -524,6 +525,7 @@ void FinishScriptVarA(MatchResult &match, const Parser *pParser, SyntaxContext *
 {
     if (match.Result())
     {
+        pContext->VariableDeclPtr->SetScript(&pContext->Script());
         pContext->Script().AddVariable(move(pContext->VariableDeclPtr));
     }
 }

@@ -163,6 +163,11 @@ int AppState::InverseAspectRatioY(int value) const
     }
 }
 
+void AppState::GiveMeAutoComplete(CScriptView *pSV)
+{
+    pSV->SetAutoComplete(&m_wndIntel, &m_wndToolTip, &m_wndToolTip, _pACThread);
+}
+
 AppState::~AppState()
 {
     delete _pACThread;

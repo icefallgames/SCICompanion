@@ -2176,6 +2176,7 @@ void CMainFrame::_RefreshToolboxPanel(CFrameWnd *pWnd)
                 m_dlgForPanelDialogScript.SetDocument(pDoc);
                 m_wndScriptToolComboBoxClass.SetDocument(pDoc);
                 //m_wndScriptToolComboBoxFunction.SetDocument(pDoc);
+
                 break;
             case TAB_GAME:
                 pWndToShow = &m_dlgForPanelDialogGame;
