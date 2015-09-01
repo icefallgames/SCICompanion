@@ -4,6 +4,23 @@
 // Our parser global variable
 SyntaxParser g_Parser;
 
+bool SyntaxParser::ParseAC(sci::Script &script, CCrystalScriptStream::const_iterator &streamIt, std::unordered_set<std::string> preProcessorDefines, SyntaxContext *pContext)
+{
+    bool fRet = false;
+    if (script.Language() == LangSyntaxSCIStudio)
+    {
+        _sci.Load();
+        if (script.IsHeader())
+        {
+        }
+        else
+        {
+            fRet = _sci.Parse(script, streamIt, preProcessorDefines, *pContext);
+        }
+    }
+    return fRet;
+}
+
 bool SyntaxParser::Parse(sci::Script &script, CCrystalScriptStream &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pLog, bool fParseComments, SyntaxContext *pContext, bool addCommentsToOM)
 {
     bool fRet = false;

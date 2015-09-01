@@ -70,7 +70,6 @@ Script *ParseScript(ScriptId script, CCrystalTextBuffer *pBuffer)
     std::unique_ptr<Script> pScript(new Script(script));
     DummyCompileLog log;
     if (g_Parser.Parse(*pScript, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log))
-    //if (SCISyntaxParser::Instance(pScript->Language(), appState->_fAllowBraceSyntax).Parse(*pScript, stream.begin(), NULL))
     {
         pRet = pScript.release();
     }
@@ -1237,7 +1236,8 @@ WORD SCIClassBrowser::GetScriptNumberHelper(Script *pScript) const
             // Cache it in the script for future use.
             pScript->SetScriptNumber(w);
         }
-        ASSERT(w != InvalidResourceNumber);
+        // This could be a header file, in which case we don't have a script number.
+        // assert(w != InvalidResourceNumber);
     }
     return w;
 }

@@ -850,7 +850,7 @@ BEGIN
     CONTROL         "Draw pic polygons as dotted",IDC_CHECKSCI01,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,92,118,10
     CONTROL         "Enable browse info",IDC_BROWSEINFO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,175,21,101,10
     CONTROL         "Auto code completion",IDC_CODECOMPLETION,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,189,34,97,10
-    CONTROL         "Parameter info",IDC_PARAMINFO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,189,46,89,10
+    CONTROL         "Script navigation",IDC_SCRIPTNAV,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,189,46,89,10
     CONTROL         "Hover tips",IDC_HOVERTIPS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,189,59,92,10
     GROUPBOX        "Script editor",IDC_GROUP1,164,7,184,72
     CONTROL         "Play sound when compile fails",IDC_COMPILEERRORSOUND,

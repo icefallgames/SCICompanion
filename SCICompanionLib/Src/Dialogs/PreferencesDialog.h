@@ -30,7 +30,7 @@ private:
     // Visuals
     CExtCheckBox m_wndBrowserInfo;
     CExtCheckBox m_wndCodeCompletion;
-    CExtCheckBox m_wndParamInfo;
+    CExtCheckBox m_wndScriptNav;
     CExtCheckBox m_wndHoverTips;
     CExtGroupBox m_wndGroup1;
 

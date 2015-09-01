@@ -426,7 +426,7 @@
 #define IDC_EDIT1                       1127
 #define IDC_BROWSEINFO                  1128
 #define IDC_EDITHEIGHT                  1128
-#define IDC_PARAMINFO                   1129
+#define IDC_SCRIPTNAV                   1129
 #define IDC_CODECOMPLETION              1130
 #define IDC_HOVERTIPS                   1131
 #define IDC_LISTPROPS                   1132

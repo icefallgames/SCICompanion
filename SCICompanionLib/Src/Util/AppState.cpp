@@ -92,7 +92,7 @@ AppState::AppState(CWinApp *pApp)
     _fUseBoxEgo = FALSE;
     _fShowPolyDotted = FALSE;
     _fBrowseInfo = FALSE;
-    _fParamInfo = TRUE;
+    _fScriptNav = TRUE;
     _fCodeCompletion = TRUE;
     _fHoverTips = TRUE;
     _fPlayCompileErrorSound = TRUE;

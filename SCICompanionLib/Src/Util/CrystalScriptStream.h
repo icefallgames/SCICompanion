@@ -22,11 +22,11 @@ public:
         // By default it's not limited:
         _nLineLimit = pBuffer->GetLineCount();
         _nCharLimit = pBuffer->GetLineLength(_nLineLimit - 1);
-        _hDoAC = NULL;
-        _hACDone = NULL;
+        _hDoAC = nullptr;
+        _hACDone = nullptr;
         _fCancel = false;
         _id = 0;
-        _pCallback = NULL;
+        _pCallback = nullptr;
     }
 
     ~CScriptStreamLimiter()
@@ -50,17 +50,16 @@ OutputDebugString("ID INCREMENT\n");
         _id++;
     }
 
-    void Limit(LineCol dwPos)
+    void Limit(LineCol dwPos, bool createEvents)
     { 
         _nLineLimit = dwPos.Line();
         _nCharLimit = dwPos.Column();
         _fCancel = false;
-        /*
-        if (!_hDoAC)
+        if (createEvents && !_hDoAC)
         {
-            _hDoAC = CreateEvent(NULL, FALSE, FALSE, NULL);
-            _hACDone = CreateEvent(NULL, FALSE, FALSE, NULL);
-        }*/
+            _hDoAC = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+            _hACDone = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+        }
     }
 
     void SetCallback(ISyntaxParserCallback *pCallback)

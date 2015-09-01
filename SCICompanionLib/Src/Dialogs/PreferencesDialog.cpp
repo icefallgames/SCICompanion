@@ -54,7 +54,7 @@ void CPreferencesDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Check(pDX, IDC_CHECKSCI01, appState->_fShowPolyDotted);
 
     DDX_Check(pDX, IDC_BROWSEINFO, appState->_fBrowseInfo);
-    DDX_Check(pDX, IDC_PARAMINFO, appState->_fParamInfo);
+    DDX_Check(pDX, IDC_SCRIPTNAV, appState->_fScriptNav);
     DDX_Check(pDX, IDC_CODECOMPLETION, appState->_fCodeCompletion);
     DDX_Check(pDX, IDC_HOVERTIPS, appState->_fHoverTips);
     DDX_Check(pDX, IDC_COMPILEERRORSOUND, appState->_fPlayCompileErrorSound);
@@ -70,7 +70,7 @@ void CPreferencesDialog::DoDataExchange(CDataExchange* pDX)
     // Visuals
     DDX_Control(pDX, IDC_BROWSEINFO, m_wndBrowserInfo);
     DDX_Control(pDX, IDC_CODECOMPLETION, m_wndCodeCompletion);
-    DDX_Control(pDX, IDC_PARAMINFO, m_wndParamInfo);
+    DDX_Control(pDX, IDC_SCRIPTNAV, m_wndScriptNav);
     DDX_Control(pDX, IDC_HOVERTIPS, m_wndHoverTips);
     DDX_Control(pDX, IDC_GROUP1, m_wndGroup1);
     DDX_Control(pDX, IDC_SCALETRACINGIMAGES, m_wndCheck1);
@@ -93,7 +93,7 @@ void CPreferencesDialog::_SyncBrowseInfo()
 {
     CButton *pCheck = static_cast<CButton*>(GetDlgItem(IDC_BROWSEINFO));
     int iChecked = pCheck->GetCheck();
-    GetDlgItem(IDC_PARAMINFO)->EnableWindow(iChecked);
+    GetDlgItem(IDC_SCRIPTNAV)->EnableWindow(iChecked);
     GetDlgItem(IDC_CODECOMPLETION)->EnableWindow(iChecked);
     GetDlgItem(IDC_HOVERTIPS)->EnableWindow(iChecked);
 }

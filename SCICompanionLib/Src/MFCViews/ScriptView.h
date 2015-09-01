@@ -129,10 +129,6 @@ protected:
     BOOL _fInOnChar;
     CPoint _ptAC;
 
-    // We don't own these.
-    HANDLE _hEventACDone;
-    HANDLE _hEventDoAC;
-
     CColoredToolTip *_pwndToolTip;
     CPoint _ptLastMM;
     CPoint _ptToolTipWord;

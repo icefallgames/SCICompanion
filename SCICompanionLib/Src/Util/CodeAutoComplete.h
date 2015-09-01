@@ -53,8 +53,6 @@ public:
 
 class SyntaxContext; // fwd decl
 
-AutoCompleteResult GeyAutoCompleteResult(SyntaxContext *pContext);
-
 class AutoCompleteThread
 {
 public:
@@ -65,7 +63,6 @@ public:
     void AutoCompleteThread::InitAutoComplete(CCrystalScriptStream::const_iterator it, CScriptStreamLimiter *pLimit);
     AutoCompleteResult DoAutoComplete(CPoint pt);
     CPoint GetCompletedPosition();
-    CPoint GetInsertPosition() { ASSERT(FALSE); return CPoint(0, 0); }
     void ResetPosition();
 
 private:

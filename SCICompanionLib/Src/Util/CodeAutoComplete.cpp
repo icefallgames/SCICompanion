@@ -4,6 +4,7 @@
 #include "SCIStudioSyntaxParser.h"
 #include "CodeAutoComplete.h"
 #include "AppState.h"
+#include "SyntaxParser.h"
 
 using namespace sci;
 using namespace std;
@@ -13,6 +14,11 @@ AutoCompleteResult GetAutoCompleteResult(SyntaxContext *pContext)
 {
     // TODO
     AutoCompleteResult result;
+
+    result.Add("hello", 1);
+    result.Add("bye", 2);
+    result.fResultsChanged = true;
+
     return result;
 }
 
@@ -58,10 +64,11 @@ void AutoCompleteThread::_DoWork()
         _fDoingWork = true;
         sci::Script script;
         SyntaxContext context(_it, script, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), false);
+        context.SyntaxOnly = true;
         _pContext = &context;
         OutputDebugString("ACThread: PARSE START\n");
-        //g_Parser.Parse(script, _it, NULL);
-        //SCISyntaxParser::Instance(LangSyntaxUnknown, appState->_fAllowBraceSyntax).Parse(script, _it, context);    
+        g_Parser.ParseAC(script, _it, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &context);
+
         OutputDebugString("ACThread: PARSE END\n");
         SetEvent(_hEndWork);
         _pContext = NULL;
@@ -121,7 +128,7 @@ AutoCompleteResult AutoCompleteThread::DoAutoComplete(CPoint pt)
     if (_pThread && ((pt.y > ptDone.y) || ((pt.y == ptDone.y) && (pt.x > ptDone.x))))
     {
         OutputDebugString("DAC: Continue where we left off...\n");
-        _pLimit->Limit(LineCol(pt.y, pt.x));
+        _pLimit->Limit(LineCol(pt.y, pt.x), true);
         if (!_fDoingWork)
         {
 OutputDebugString("DAC: Telling the thread to start work\n");
@@ -151,7 +158,7 @@ OutputDebugString("DAC: Telling the limiter to continue..\n");
         }
 
         // Ok, it's been reset, start it anew
-        _pLimit->Limit(LineCol(pt.y, pt.x));
+        _pLimit->Limit(LineCol(pt.y, pt.x), true);
         SetEvent(_hStartWork);
         _pLimit->Wait();
     }

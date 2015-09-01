@@ -74,7 +74,7 @@ public:
     bool IsBrowseInfoEnabled() { return _fBrowseInfo != 0; }
     BOOL IsCodeCompletionEnabled() { return _fBrowseInfo && _fCodeCompletion; }
     BOOL AreHoverTipsEnabled() { return _fBrowseInfo && _fHoverTips; }
-    BOOL IsParamInfoEnabled() { return _fBrowseInfo && _fParamInfo; }
+    BOOL IsScriptNavEnabled() { return _fBrowseInfo && _fScriptNav; }
     void GenerateBrowseInfo();
     void ResetClassBrowser();
     void ClearResourceManagerDoc() { _pResourceDoc = NULL; }
@@ -131,7 +131,7 @@ public:
     BOOL _fDupeNewCels;
     BOOL _fShowPolyDotted;
     BOOL _fBrowseInfo;
-    BOOL _fParamInfo;
+    BOOL _fScriptNav;
     BOOL _fCodeCompletion;
     BOOL _fHoverTips;
     BOOL _fPlayCompileErrorSound;

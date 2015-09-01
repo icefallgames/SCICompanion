@@ -422,7 +422,8 @@ BOOL SCICompanionApp::InitInstance()
     // Note: even though it's a top-level window, we have to give it a parent, so it can ownerdraw.
     // Give the frame as the "owner"
     SystemParametersInfo(SPI_SETLISTBOXSMOOTHSCROLLING, FALSE, NULL, 0); // turn off smoothscrolling, it makes autocomplete suck
-    appState->m_wndIntel.CreateEx(0, _T("LISTBOX"), NULL, WS_THICKFRAME | WS_VSCROLL | WS_POPUP | LBS_SORT | LBS_OWNERDRAWFIXED | LBS_HASSTRINGS | LBS_WANTKEYBOARDINPUT | LBS_NOTIFY, 0, 0, 100, 100, pMainFrame->GetSafeHwnd(), NULL);
+    //appState->m_wndIntel.CreateEx(0, _T("LISTBOX"), NULL, WS_THICKFRAME | WS_VSCROLL | WS_POPUP | LBS_SORT | LBS_OWNERDRAWFIXED | LBS_HASSTRINGS | LBS_WANTKEYBOARDINPUT | LBS_NOTIFY, 0, 0, 100, 100, pMainFrame->GetSafeHwnd(), NULL);
+    appState->m_wndIntel.CreateEx(0, _T("LISTBOX"), NULL, WS_DLGFRAME | WS_VSCROLL | WS_POPUP | LBS_SORT | LBS_OWNERDRAWFIXED | LBS_HASSTRINGS | LBS_WANTKEYBOARDINPUT | LBS_NOTIFY, 0, 0, 100, 100, pMainFrame->GetSafeHwnd(), NULL);
     // And the code tooltip
     appState->m_wndToolTip.CreateEx(0, _T("STATIC"), NULL, SS_NOTIFY | SS_OWNERDRAW | WS_POPUP | WS_CLIPSIBLINGS | WS_BORDER, 0, 0, 100, 100, pMainFrame->GetSafeHwnd(), NULL);
 
@@ -486,7 +487,7 @@ void SCICompanionApp::_LoadSettings(BOOL fReset)
     appState->_fDupeNewCels = GetProfileInt(pszRegName, TEXT("DupeNewCels"), TRUE);
     appState->_fShowPolyDotted = GetProfileInt(pszRegName, TEXT("ShowPolyDotted"), FALSE);
     appState->_fBrowseInfo = GetProfileInt(pszRegName, TEXT("BrowseInfo"), FALSE);
-    appState->_fParamInfo = GetProfileInt(pszRegName, TEXT("ParamInfo"), TRUE);
+    appState->_fScriptNav = GetProfileInt(pszRegName, TEXT("ScriptNav"), TRUE);
     appState->_fCodeCompletion = GetProfileInt(pszRegName, TEXT("CodeCompletion"), TRUE);
     appState->_fHoverTips = GetProfileInt(pszRegName, TEXT("HoverTips"), TRUE);
     appState->_fPlayCompileErrorSound = GetProfileInt(pszRegName, TEXT("CompileErrorSound"), TRUE);
@@ -508,7 +509,7 @@ void SCICompanionApp::_SaveSettings()
     WriteProfileInt(m_pszAppName, TEXT("DupeNewCels"), appState->_fDupeNewCels);
     WriteProfileInt(m_pszAppName, TEXT("ShowPolyDotted"), appState->_fShowPolyDotted);
     WriteProfileInt(m_pszAppName, TEXT("BrowseInfo"), appState->_fBrowseInfo);
-    WriteProfileInt(m_pszAppName, TEXT("ParamInfo"), appState->_fParamInfo);
+    WriteProfileInt(m_pszAppName, TEXT("ScriptNav"), appState->_fScriptNav);
     WriteProfileInt(m_pszAppName, TEXT("CodeCompletion"), appState->_fCodeCompletion);
     WriteProfileInt(m_pszAppName, TEXT("HoverTips"), appState->_fHoverTips);
     WriteProfileInt(m_pszAppName, TEXT("CompileErrorSound"), appState->_fPlayCompileErrorSound);

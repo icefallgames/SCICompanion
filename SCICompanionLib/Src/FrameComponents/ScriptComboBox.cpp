@@ -105,7 +105,7 @@ sci::Script *CScriptComboBox::_CreateScript(CPoint &pt)
 
 void CScriptComboBox::_ParseAndUpdate(bool fForce)
 {
-    if (_fDroppedDown)
+    if (_fDroppedDown || !appState->IsScriptNavEnabled())
     {
         // Don't do it while the user is looking at the combobox
         SetTimer(TIMER_UPDATECOMBO, 1000, NULL); // Try again in a second

@@ -184,7 +184,7 @@ public:
             OutputDebugString(ss.str().c_str());
         }
 #endif
-        if (_pfnA)
+        if (_pfnA && !pContext->SyntaxOnly)
         {
             (*_pfnA)(result, this, pContext, stream);
         }
@@ -728,13 +728,15 @@ enum class IfDefDefineState
 class SyntaxContext
 {
 public:
-    SyntaxContext(streamIt beginning, sci::Script &script, std::unordered_set<std::string> preProcessorDefines, bool addCommentsDirectly) : _beginning(beginning), _script(script), extraKeywords(nullptr), ifDefDefineState(IfDefDefineState::None), _preProcessorDefines(preProcessorDefines), _addCommentsToOM(addCommentsDirectly) {}
+    SyntaxContext(streamIt beginning, sci::Script &script, std::unordered_set<std::string> preProcessorDefines, bool addCommentsDirectly) : _beginning(beginning), _script(script), extraKeywords(nullptr), ifDefDefineState(IfDefDefineState::None), _preProcessorDefines(preProcessorDefines), _addCommentsToOM(addCommentsDirectly), SyntaxOnly(false) {}
 
 	~SyntaxContext()
     {
         assert(_statements.empty()); // Or else someone messed up, or there could have been an exception
     }
     void ReportError(std::string error, streamIt pos);
+
+    bool SyntaxOnly;
 
     std::string GetErrorText()
     {

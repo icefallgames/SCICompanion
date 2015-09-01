@@ -145,7 +145,7 @@ void CScriptView::UpdateView(CCrystalTextView *pSource, CUpdateContext *pContext
         pContext->RecalcPoint(ptRecalced);
         if (ptRecalced != pt)
         {
-            //_pACThread->ResetPosition();
+            _pACThread->ResetPosition();
         }
     }
     __super::UpdateView(pSource, pContext, dwFlags, nLineIndex);
@@ -878,8 +878,6 @@ void CScriptView::OnActivate(UINT nState, CWnd *pWndOther, BOOL bMinimized)
 {
     // REVIEW: This is never called.
     __super::OnActivate(nState, pWndOther, bMinimized);
-
-    //void GiveMeAutoComplete(CScriptView *pSV);
 }
 
 void CScriptView::OnKillFocus(CWnd *pNewWnd)
@@ -907,6 +905,13 @@ void CScriptView::OnKillFocus(CWnd *pNewWnd)
 void CScriptView::OnSetFocus(CWnd *pNewWnd)
 {
     appState->GiveMeAutoComplete(this);
+#ifdef SCI_AUTOCOMPLETE
+    if (_pACThread)
+    {
+        _pACThread->InitAutoComplete(_pStream->begin(), _pLimiter);
+    }
+#endif
+
     if (_pAutoComp && _pAutoComp->IsWindowVisible())
     {
         // We're being focused, to a window other than the intellisense listbox.
@@ -1181,10 +1186,7 @@ void CScriptView::OnInitialUpdate()
     __super::OnInitialUpdate();
 
     _pLimiter = new CScriptStreamLimiter(LocateTextBuffer());
-    if (_pLimiter)
-    {
-        _pStream = new CCrystalScriptStream(_pLimiter);
-    }
+    _pStream = new CCrystalScriptStream(_pLimiter);
 
 #ifdef SCI_AUTOCOMPLETE
     if (_pACThread)
@@ -1223,7 +1225,7 @@ ToolTipResult CScriptView::_DoToolTipParse(CPoint pt)
         CCrystalScriptStream stream(&limiter);
         sci::Script script;
         SyntaxContext context(stream.begin(), script, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), false);
-        limiter.Limit(LineCol(pt.y, pt.x));
+        limiter.Limit(LineCol(pt.y, pt.x), false);
         CCrystalScriptStream::const_iterator it = stream.begin();
         
         class CToolTipSyntaxParserCallback : public ISyntaxParserCallback
@@ -1305,10 +1307,10 @@ BOOL CScriptView::_ClientToTextNoMargin(CPoint ptClient, CPoint &ptText)
 
 void CScriptView::OnIntellisense()
 {
-    ASSERT(_hEventACDone);
-    ASSERT(_hEventDoAC);
+    //assert(_hEventACDone);
+    //assert(_hEventDoAC);
 
-    if (!appState->IsCodeCompletionEnabled() && !appState->IsParamInfoEnabled())
+    if (!appState->IsCodeCompletionEnabled())
     {
         // Nothing to see here...
         return;
@@ -1319,21 +1321,21 @@ void CScriptView::OnIntellisense()
     // And do the autocomplete
     
 	// Wow, lots of problems, I forget what.
-    //AutoCompleteResult result = _pACThread->DoAutoComplete(pt);
+    AutoCompleteResult result = _pACThread->DoAutoComplete(pt);
 
-/*
     // Wake up the autocomplete parsecontext, after telling it where we are.
-    CPoint pt = GetCursorPos();
-    _pParseContext->SetCurrentPos(_pStream, _pLimiter, FALSE, LINECHAR2POS(pt.y, pt.x));
-    _pParseContext->SetOptions(PARSECONTEXTOPTION_FORAUTOCOMPLETE);
-    SetEvent(_hEventDoAC);
+    //CPoint pt = GetCursorPos();
+    //_pParseContext->SetCurrentPos(_pStream, _pLimiter, FALSE, LINECHAR2POS(pt.y, pt.x));
+    //_pParseContext->SetOptions(PARSECONTEXTOPTION_FORAUTOCOMPLETE);
+    // SetEvent(_hEventDoAC);
     // Wait until it's done.
-    if (WAIT_OBJECT_0 == WaitForSingleObject(_hEventACDone, INFINITE))
+    //if (WAIT_OBJECT_0 == WaitForSingleObject(_hEventACDone, INFINITE))
     {
         // We have a result.
-        ResetEvent(_hEventACDone); // Reset for next time.
-        CAutoCompleteResult &result = _pParseContext->GetResult();
+      //  ResetEvent(_hEventACDone); // Reset for next time.
+        //AutoCompleteResult &result = _pParseContext->GetResult();
 
+        /*
         if (appState->IsParamInfoEnabled())
         {
             if (result.HasMethodTip())
@@ -1349,11 +1351,11 @@ void CScriptView::OnIntellisense()
                 // Hide it.
                 _pMethodTip->Hide();
             }
-        }
+        }*/
 
         if (appState->IsCodeCompletionEnabled())
         {
-            CAutoCompleteChoiceArray &choices = result.choices;
+            auto &choices = result.choices;
             if (choices.size() == 0)
             {
                 // No results
@@ -1369,7 +1371,7 @@ void CScriptView::OnIntellisense()
                     _pAutoComp->ResetContent();
                     for (size_t i = 0; i < choices.size(); i++)
                     {
-                        CAutoCompleteChoice &choice = choices[i];
+                        auto &choice = choices[i];
                         int iIndex = _pAutoComp->AddString(choice.GetText().c_str());
                         if (iIndex != LB_ERR)
                         {
@@ -1387,18 +1389,13 @@ void CScriptView::OnIntellisense()
                     _pAutoComp->Show(ptClient);
                 }
             }
-            std::string &strFindText = _pParseContext->GetResult().strFindText;
+            std::string &strFindText = result.strFindText;
             if (!strFindText.empty())
             {
                 _pAutoComp->Highlight(strFindText.c_str());
             }
         }
     }
-    else
-    {
-        // Uh oh.
-    }
-    */
 }
 
 BOOL CScriptView::OnACDoubleClick()
@@ -1415,20 +1412,25 @@ BOOL CScriptView::OnACDoubleClick()
 
             // Put this text in the document.
             // Delete what the user typed in first, if anything
-            CPoint ptAutoStart(_pACThread->GetInsertPosition());
-            if (ptAutoStart != GetCursorPos())
+            CPoint ptAutoStart = _pACThread->GetCompletedPosition();
+            ptAutoStart.x -= strChoice.GetLength();
+            if (ptAutoStart.x >= 0)
             {
-                SetSelection(ptAutoStart, GetCursorPos());
-                // Then stick the chosen text in.
-                ReplaceSelection(strChoice);
+                if (ptAutoStart != GetCursorPos())
+                {
+                    SetSelection(ptAutoStart, GetCursorPos());
+                    // Then stick the chosen text in.
+                    ReplaceSelection(strChoice);
+                }
+                else
+                {
+                    // If nothing typed, then jsut insert it.
+                    PasteTextAtCursor(strChoice);
+                }
+                // It will be highlighted... so unhighlight it.
+                SetSelection(GetCursorPos(), GetCursorPos());
             }
-            else
-            {
-                // If nothing typed, then jsut insert it.
-                PasteTextAtCursor(strChoice);
-            }
-            // It will be highlighted... so unhighlight it.
-            SetSelection(GetCursorPos(), GetCursorPos());
+            // else oh well
         }
     }
     return fSomethingWasSelected;
