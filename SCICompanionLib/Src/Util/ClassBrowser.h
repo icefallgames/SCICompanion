@@ -3,8 +3,11 @@
 #include "Vocab99x.h"
 #include "CompileInterfaces.h"
 #include <unordered_map>
+#include "TernarySearchTree.h"
+
 class SCIClassBrowserNode;
 class ISCIPropertyBag;
+class AutoCompleteChoice;
 
 namespace sci
 {
@@ -73,6 +76,7 @@ public:
     bool GetPropertyValue(PCTSTR pszName, const sci::ClassDefinition *pClass, WORD *pw);
     bool GetProperty(PCTSTR pszName, const sci::ClassDefinition *pClass, sci::PropertyValue &Out);
     bool GetPropertyValue(PCTSTR pszName, ISCIPropertyBag *pBag, const sci::ClassDefinition *pClass, WORD *pw);
+    void GetAutoCompleteChoices(const std::string &prefix, std::vector<AutoCompleteChoice> &choices);
     sci::Script *_LoadScript(PCTSTR pszPath);
     
     // Error reporting.
@@ -103,11 +107,14 @@ private:
     void _CacheHeaderDefines();
     void _AddInstanceToMap(sci::Script& script, sci::ClassDefinition *pClass);
     void _AddSubclassesToArray(std::vector<std::string> *pArray, SCIClassBrowserNode *pBrowserInfo);
+    void _GenerateAutoCompleteTree();
 
     SCIVersion _version;
 
     // This maps strings to SCIClassBrowserNode.  e.g. gEgo to it's node in the tree
     class_map _classMap;
+
+    TernarySearchTree<int> _aclist;
 
     // This maps script numbers to arrays of instances within them.
     instance_map _instanceMap;

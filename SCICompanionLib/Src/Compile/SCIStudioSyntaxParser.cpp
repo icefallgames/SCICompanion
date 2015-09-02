@@ -224,7 +224,10 @@ void SendParamIsMethod(MatchResult &match, const Parser *pParser, SyntaxContext 
 bool SyntaxNodeD(const Parser *pParser, SyntaxContext *pContext, streamIt &stream)
 {
     // Make room on the stack for a statement
-    pContext->PushSyntaxNode();
+    if (!pContext->ForAutoComplete)
+    {
+        pContext->PushSyntaxNode();
+    }
     // Then call our sub parser
     return pParser->_pa->Match(pContext, stream).Result();
 }

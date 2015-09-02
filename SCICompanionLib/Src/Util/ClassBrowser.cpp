@@ -9,6 +9,7 @@
 #include "SCIDocs.h"
 #include "CompileContext.h"
 #include "ResourceContainer.h"
+#include "CodeAutoComplete.h"
 
 using namespace sci;
 using namespace std;
@@ -746,6 +747,35 @@ bool SCIClassBrowser::_AddFileName(PCTSTR pszFullPath, PCTSTR pszFileName, BOOL 
     return fRet;
 }
 
+void SCIClassBrowser::_GenerateAutoCompleteTree()
+{
+    std::vector<TstItem<int>> items;
+    items.reserve(1000);
+    for (auto &aDefine : _headerDefines)
+    {
+        items.emplace_back(aDefine.first, 0);// NodeType::NodeTypeDefine);
+    }
+    _aclist.buildBalancedTree(items);
+}
+
+void SCIClassBrowser::GetAutoCompleteChoices(const std::string &prefixIn, std::vector<AutoCompleteChoice> &choices)
+{
+    choices.clear();
+    CGuard guard(&_csClassBrowser);
+    std::string prefix = prefixIn + "*";
+    std::vector<int> results = _aclist.partialMatchSearch(prefix.c_str());
+    for (int resultIndex : results)
+    {
+        int icon = 0;
+        switch (*_aclist.getValue(resultIndex))
+        {
+            default:
+                icon = 0;
+        }
+        choices.emplace_back(_aclist.getKey(resultIndex), icon);
+    }
+}
+
 bool SCIClassBrowser::_CreateClassTree()
 {
     ClearErrors();
@@ -778,6 +808,8 @@ bool SCIClassBrowser::_CreateClassTree()
         ++iItem;
         fAborted = (WAIT_OBJECT_0 == WaitForSingleObject(_hAborted, 0));
     }
+
+    _GenerateAutoCompleteTree();
 
     if (_pEvents)
     {

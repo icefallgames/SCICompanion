@@ -9,6 +9,27 @@ public:
     virtual void Done() = 0;
 };
 
+class ReadOnlyTextBuffer
+{
+public:
+    ReadOnlyTextBuffer(CCrystalTextBuffer *pBuffer);
+
+    int GetLineCount() { return _lineCount; }
+    int GetLineLength(int nLine);
+    PCTSTR GetLineChars(int nLine);
+
+private:
+    struct StartAndLength
+    {
+        int Start;
+        int Length;
+    };
+
+    int _lineCount;
+    std::unique_ptr<StartAndLength[]> _lineStartsAndLengths;
+    std::unique_ptr<char[]> _text;
+};
+
 //
 // Limits the text buffer to a particular line/char
 // (used for autocomplete and tooltips)
@@ -16,18 +37,7 @@ public:
 class CScriptStreamLimiter
 {
 public:
-    CScriptStreamLimiter(CCrystalTextBuffer *pBuffer)
-    {
-        _pBuffer = pBuffer;
-        // By default it's not limited:
-        _nLineLimit = pBuffer->GetLineCount();
-        _nCharLimit = pBuffer->GetLineLength(_nLineLimit - 1);
-        _hDoAC = nullptr;
-        _hACDone = nullptr;
-        _fCancel = false;
-        _id = 0;
-        _pCallback = nullptr;
-    }
+    CScriptStreamLimiter(CCrystalTextBuffer *pBuffer);
 
     ~CScriptStreamLimiter()
     {
@@ -78,9 +88,21 @@ OutputDebugString("ID INCREMENT\n");
     {
         SetEvent(_hDoAC);
     }
+
+    // Called from background thread.
+    void SetFailedAC()
+    {
+        if (_hACDone)
+        {
+            OutputDebugString("setting hACDone (because failed)\n");
+            SetEvent(_hACDone);
+        }
+    }
+
     // Wait for parsing to be done (called on UI thread)
     void Wait()
     {
+        OutputDebugString("waiting for hACDone\n");
         if (WAIT_OBJECT_0 == WaitForSingleObject(_hACDone, INFINITE))
         {
         }
@@ -117,16 +139,11 @@ OutputDebugString("ID INCREMENT\n");
         return iLength;
     }
 
-    LPTSTR GetLineChars(int nLine) { return _pBuffer->GetLineChars(nLine); } // Just fwd through.  We're limited by _nCharLimit
+    LPCTSTR GetLineChars(int nLine) { return _pBuffer->GetLineChars(nLine); } // Just fwd through.  We're limited by _nCharLimit
     void GetMoreData(int &nChar, int &nLine, int &nLength, PCSTR &pszLine);
 
-	void GetText(int nStartLine, int nStartChar, int nEndLine, int nEndChar, CString &text)
-    {
-        _pBuffer->GetText(nStartLine, nStartChar, nEndLine, nEndChar, text);
-    }
-
 private:
-    CCrystalTextBuffer *_pBuffer;
+    std::unique_ptr<ReadOnlyTextBuffer> _pBuffer;
     int _nLineLimit;    // Line limit
     int _nCharLimit;    // Char limit for last line
 
@@ -146,7 +163,7 @@ private:
 class CCrystalScriptStream
 {
 public:
-    CCrystalScriptStream(CScriptStreamLimiter *pBuffer);
+    CCrystalScriptStream(CScriptStreamLimiter *pLimiter);
 
     class const_iterator
     {
@@ -157,8 +174,8 @@ public:
 		typedef char& reference;
 		typedef char* pointer;
 
-        const_iterator() : _pBuffer(NULL), _pidStream(NULL), _id(0) {}
-        const_iterator(CScriptStreamLimiter *pBuffer, LineCol dwPos = LineCol());
+        const_iterator() : _limiter(NULL), _pidStream(NULL), _id(0) {}
+        const_iterator(CScriptStreamLimiter *limiter, LineCol dwPos = LineCol());
         char operator*();
         const_iterator& operator++();
         bool operator<(const const_iterator& _Right) const;
@@ -170,7 +187,7 @@ public:
         bool operator!=(const const_iterator& value) const;
 
     private:
-        CScriptStreamLimiter *_pBuffer;
+        CScriptStreamLimiter *_limiter;
         int _nLine;
         int _nChar;
         PCTSTR _pszLine;
@@ -179,11 +196,11 @@ public:
         int *_pidStream;
     };
 
-    const_iterator begin() { return const_iterator(_pBuffer); }
-    const_iterator get_at(LineCol dwPos) { return const_iterator(_pBuffer, dwPos); }
+    const_iterator begin() { return const_iterator(_pLimiter); }
+    const_iterator get_at(LineCol dwPos) { return const_iterator(_pLimiter, dwPos); }
 
 protected:
-    CScriptStreamLimiter *_pBuffer;
+    CScriptStreamLimiter *_pLimiter;
 };
 
 

@@ -5,7 +5,7 @@
 #include "CodeAutoComplete.h"
 #include "AppState.h"
 #include "SyntaxParser.h"
-
+#include "format.h"
 using namespace sci;
 using namespace std;
 
@@ -14,11 +14,12 @@ AutoCompleteResult GetAutoCompleteResult(SyntaxContext *pContext)
 {
     // TODO
     AutoCompleteResult result;
-
-    result.Add("hello", 1);
-    result.Add("bye", 2);
-    result.fResultsChanged = true;
-
+    if (pContext)
+    {
+        SCIClassBrowser *browser = appState->GetResourceMap().GetClassBrowser();
+        browser->GetAutoCompleteChoices(pContext->ScratchString(), result.choices);
+        result.fResultsChanged = true; // TODO
+    }
     return result;
 }
 
@@ -64,14 +65,23 @@ void AutoCompleteThread::_DoWork()
         _fDoingWork = true;
         sci::Script script;
         SyntaxContext context(_it, script, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), false);
-        context.SyntaxOnly = true;
+        context.ForAutoComplete = true;
         _pContext = &context;
         OutputDebugString("ACThread: PARSE START\n");
-        g_Parser.ParseAC(script, _it, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &context);
+        bool result = g_Parser.ParseAC(script, _it, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &context);
 
-        OutputDebugString("ACThread: PARSE END\n");
+        if (result)
+        {
+            OutputDebugString("ACThread: PARSE END SUCCESS\n");
+        }
+        else
+        {
+            OutputDebugString("ACThread: PARSE END FAILED\n");
+        }
+
+        _pContext = nullptr;
+        _pLimit->SetFailedAC();
         SetEvent(_hEndWork);
-        _pContext = NULL;
 OutputDebugString("ACThread: waiting to start work...\n");
         _fDoingWork = false;
     }
@@ -87,6 +97,10 @@ void AutoCompleteThread::Exit()
 CPoint AutoCompleteThread::GetCompletedPosition()
 {
     LineCol dwPos = _it.GetPosition();
+
+    OutputDebugString(fmt::format("GetCompletedPos: {0}, {1}\n", dwPos.Line(), dwPos.Column()).c_str());
+
+
     return CPoint(dwPos.Column(), dwPos.Line());
 }
 
@@ -165,9 +179,12 @@ OutputDebugString("DAC: Telling the limiter to continue..\n");
 
     // We have a result.
     AutoCompleteResult result = GetAutoCompleteResult(_pContext);
-    char sz[100];
-    StringCchPrintf(sz, ARRAYSIZE(sz), "Completed with %s\n", _pContext->ScratchString().c_str());
-    OutputDebugString(sz);
-    // REVIEW, this should probably be an allocated thing...
+    if (_pContext)
+    {
+        char sz[100];
+        StringCchPrintf(sz, ARRAYSIZE(sz), "Completed with %s\n", _pContext->ScratchString().c_str());
+        OutputDebugString(sz);
+        // REVIEW, this should probably be an allocated thing...
+    }
     return result;
 }
