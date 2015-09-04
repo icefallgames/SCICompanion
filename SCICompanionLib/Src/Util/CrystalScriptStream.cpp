@@ -2,48 +2,94 @@
 #include "CrystalScriptStream.h"
 #include "format.h"
 
-ReadOnlyTextBuffer::ReadOnlyTextBuffer(CCrystalTextBuffer *pBuffer)
+// Limit: y is inclusize, x is exclusive.
+// e.g. a limit of (1, 2) would mean that we can read all of line 0, and 2 characters of line 1.
+
+CPoint GetNaturalLimit(CCrystalTextBuffer *pBuffer)
 {
-    _lineCount = pBuffer->GetLineCount();
+    CPoint limit;
+    limit.y = pBuffer->GetLineCount() - 1;
+    if (limit.y >= 0)
+    {
+        limit.x = pBuffer->GetLineLength(limit.y);
+    }
+    return limit;
+}
+
+ReadOnlyTextBuffer::ReadOnlyTextBuffer(CCrystalTextBuffer *pBuffer) : ReadOnlyTextBuffer(pBuffer, GetNaturalLimit(pBuffer), 0) {}
+
+ReadOnlyTextBuffer::ReadOnlyTextBuffer(CCrystalTextBuffer *pBuffer, CPoint limit, int extraSpace)
+{
+    _limit = limit;
+    _extraSpace = extraSpace;
+
+    int lineCountMinusOne = limit.y;
+    _lineCount = lineCountMinusOne + 1;
     int totalCharCount = 0;
-    for (int i = 0; i < _lineCount; i++)
+    for (int i = 0; i < lineCountMinusOne; i++)
     {
         int charCount = pBuffer->GetLineLength(i);
         totalCharCount += charCount;
     }
+    totalCharCount += limit.x;
 
     int start = 0;
-    _text = std::make_unique<char[]>(totalCharCount);
+    _text.reserve(totalCharCount + extraSpace);
     _lineStartsAndLengths = std::make_unique<StartAndLength[]>(_lineCount);
-    for (int i = 0; i < _lineCount; i++)
+    for (int i = 0; i < lineCountMinusOne; i++)
     {
         int charCount = pBuffer->GetLineLength(i);
-        memcpy(&_text[start], pBuffer->GetLineChars(i), charCount * sizeof(char));
+        std::copy(pBuffer->GetLineChars(i), pBuffer->GetLineChars(i) + charCount, std::back_inserter(_text));
         _lineStartsAndLengths[i].Start = start;
         _lineStartsAndLengths[i].Length = charCount;
         start += charCount;
     }
+    assert(pBuffer->GetLineLength(lineCountMinusOne) >= limit.x);
+    std::copy(pBuffer->GetLineChars(lineCountMinusOne), pBuffer->GetLineChars(lineCountMinusOne) + limit.x, std::back_inserter(_text));
+    _lineStartsAndLengths[lineCountMinusOne].Start = start;
+    _lineStartsAndLengths[lineCountMinusOne].Length = limit.x;
 }
+
+void ReadOnlyTextBuffer::Extend(const std::string &extraChars)
+{
+    if ((int)extraChars.length() < _extraSpace)
+    {
+        OutputDebugString("extending with '");
+        OutputDebugString(extraChars.c_str());
+        OutputDebugString("'\n");
+
+        std::copy(extraChars.begin(), extraChars.end(), std::back_inserter(_text));
+        _lineStartsAndLengths[_lineCount - 1].Length += extraChars.length();
+        _extraSpace -= extraChars.length();
+        _limit.x += extraChars.length();
+    }
+}
+
 int ReadOnlyTextBuffer::GetLineLength(int nLine)
 {
     return _lineStartsAndLengths[nLine].Length;
 }
 PCTSTR ReadOnlyTextBuffer::GetLineChars(int nLine)
 {
-    return &_text[_lineStartsAndLengths[nLine].Start];
+    if (_lineStartsAndLengths[nLine].Length > 0)
+    {
+        return &_text[_lineStartsAndLengths[nLine].Start];
+    }
+    return nullptr;
 }
 
 CScriptStreamLimiter::CScriptStreamLimiter(CCrystalTextBuffer *pBuffer)
 {
     _pBuffer = std::make_unique<ReadOnlyTextBuffer>(pBuffer);
-    // By default it's not limited:
-    _nLineLimit = pBuffer->GetLineCount();
-    _nCharLimit = pBuffer->GetLineLength(_nLineLimit - 1);
-    _hDoAC = nullptr;
-    _hACDone = nullptr;
-    _fCancel = false;
-    _id = 0;
     _pCallback = nullptr;
+    _fCancel = false;
+}
+
+CScriptStreamLimiter::CScriptStreamLimiter(CCrystalTextBuffer *pBuffer, CPoint ptLimit, int extraSpace)
+{
+    _pBuffer = std::make_unique<ReadOnlyTextBuffer>(pBuffer, ptLimit, extraSpace);
+    _pCallback = nullptr;
+    _fCancel = false;
 }
 
 // CCrystalScriptStream
@@ -56,11 +102,22 @@ CCrystalScriptStream::CCrystalScriptStream(CScriptStreamLimiter *pLimiter)
 // Ensure we are on the line with nChar and nLine.
 void CScriptStreamLimiter::GetMoreData(int &nChar, int &nLine, int &nLength, PCSTR &pszLine)
 {
+    // If we're limited, call the callback
+    if (_pCallback && (nChar == nLength) && (nLine == (GetLineCount() - 1)))
+    {
+        // We're limited.
+        _fCancel = !_pCallback->Done();
+        if (!_fCancel)
+        {
+            nLength = GetLineLength(nLine);
+            pszLine = GetLineChars(nLine);
+        }
+    }
+
     while (nChar > nLength)
     {
         // Need to move to the next line
         int cLines = GetLineCount();
-        bool fAtLimitedEnd = true;
         while (nLine < cLines)
         {
             nLine++;
@@ -69,61 +126,19 @@ void CScriptStreamLimiter::GetMoreData(int &nChar, int &nLine, int &nLength, PCS
 
             if (nLine < cLines)
             {
-                fAtLimitedEnd  = false; // Indicate this definitely isn't a limited end.
                 nLength = GetLineLength(nLine);
                 pszLine = GetLineChars(nLine);
-                assert(pszLine != nullptr);
+                assert(pszLine != nullptr || nLength == 0);
                 nChar = 0;
                 break; // done
             }
         }
         if (nLine == cLines)
         {
-            bool fGenerateEOF = true;
             // We ran out of data.
-            if (fAtLimitedEnd)
-            {
-                if (_hACDone && !_fCancel)
-                {
-                    fGenerateEOF = false;
-                    // We're at a "limited end".  Let's tell the client and block.
-                    OutputDebugString("setting hACDone (because at limit)\n");
-                    SetEvent(_hACDone); // Tell the client
-                    // Wait for future instructions
-                    if (WAIT_OBJECT_0 == WaitForSingleObject(_hDoAC, INFINITE))
-                    {
-                        fGenerateEOF = _fCancel;
-                        if (!_fCancel)
-                        {
-                            nLine--;
-                            // 1) Pretend we're back where we were when we entered.
-                            //    nLength should be unchanged, nLine should be --, nChar should be unchanged.
-                            //    We should refetch nLength (since it may have changed) (don't think we need a new pszLine???)
-                            pszLine = GetLineChars(nLine); // REVIEW: is this even necessary?
-                            nLength = GetLineLength(nLine);
-                            //    And then go back to teh beginning of the top level loop.
-                        }
-                    }
-                    else
-                    {
-                        assert(false);
-                    }
-                }
-                else if (_pCallback)
-                {
-                    _pCallback->Done();
-                }
-            }
-            else
-            {
-                int x = 0;
-            }
-            if (fGenerateEOF)
-            {
-                pszLine = "\0"; // EOF
-                nLength = 1;
-                nChar = 0;
-            }
+            pszLine = "\0"; // EOF
+            nLength = 1;
+            nChar = 0;
         }
         // else we're all good.
     }
@@ -161,7 +176,7 @@ char CCrystalScriptStream::const_iterator::operator*()
 
 CCrystalScriptStream::const_iterator& CCrystalScriptStream::const_iterator::operator++()
 {
-    assert(*_pszLine != 0); // EOF
+    assert((_pszLine == nullptr) || (*_pszLine != 0)); // EOF
     _nChar++;
     if ((_nChar > _nLength) ||
         ((_nChar == _nLength) && (_nLine == (_limiter->GetLineCount() - 1)))) // for == we use '\n', unless this is the last line

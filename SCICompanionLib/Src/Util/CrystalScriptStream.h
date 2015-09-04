@@ -6,17 +6,21 @@
 class ISyntaxParserCallback
 {
 public:
-    virtual void Done() = 0;
+    // Returns true if we should continue, or false if we should bail
+    virtual bool Done() = 0;
 };
 
 class ReadOnlyTextBuffer
 {
 public:
     ReadOnlyTextBuffer(CCrystalTextBuffer *pBuffer);
+    ReadOnlyTextBuffer(CCrystalTextBuffer *pBuffer, CPoint limit, int extraSpace);
 
     int GetLineCount() { return _lineCount; }
     int GetLineLength(int nLine);
     PCTSTR GetLineChars(int nLine);
+    CPoint GetLimit() { return _limit; }
+    void Extend(const std::string &extraChars);
 
 private:
     struct StartAndLength
@@ -27,7 +31,9 @@ private:
 
     int _lineCount;
     std::unique_ptr<StartAndLength[]> _lineStartsAndLengths;
-    std::unique_ptr<char[]> _text;
+    std::vector<char> _text;
+    int _extraSpace;
+    CPoint _limit;
 };
 
 //
@@ -38,38 +44,17 @@ class CScriptStreamLimiter
 {
 public:
     CScriptStreamLimiter(CCrystalTextBuffer *pBuffer);
+    CScriptStreamLimiter(CCrystalTextBuffer *pBuffer, CPoint ptLimit, int extraSpace);
 
     ~CScriptStreamLimiter()
     {
-        if (_hDoAC)
-        {
-            CloseHandle(_hDoAC);
-        }
-        if (_hACDone)
-        {
-            CloseHandle(_hACDone);
-        }
     }
 
-    int GetId() { return _id; }
-    int *GetIdPtr() { return &_id; }
+    void Extend(const std::string &extraChars) { _pBuffer->Extend(extraChars); }
 
-    void InvalidateBuffer()
+    CPoint GetLimit()
     {
-OutputDebugString("ID INCREMENT\n");
-        _id++;
-    }
-
-    void Limit(LineCol dwPos, bool createEvents)
-    { 
-        _nLineLimit = dwPos.Line();
-        _nCharLimit = dwPos.Column();
-        _fCancel = false;
-        if (createEvents && !_hDoAC)
-        {
-            _hDoAC = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-            _hACDone = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-        }
+        return _pBuffer->GetLimit();
     }
 
     void SetCallback(ISyntaxParserCallback *pCallback)
@@ -77,50 +62,22 @@ OutputDebugString("ID INCREMENT\n");
         _pCallback = pCallback;
     }
 
-    // Bail on parsing (called on UI thread)
-    void Bail()
-    {
-        _fCancel = true;
-        Continue();
-    }
-    // Continue parsing (called on UI thread)
-    void Continue()
-    {
-        SetEvent(_hDoAC);
-    }
-
-    // Called from background thread.
-    void SetFailedAC()
-    {
-        if (_hACDone)
-        {
-            OutputDebugString("setting hACDone (because failed)\n");
-            SetEvent(_hACDone);
-        }
-    }
-
-    // Wait for parsing to be done (called on UI thread)
-    void Wait()
-    {
-        OutputDebugString("waiting for hACDone\n");
-        if (WAIT_OBJECT_0 == WaitForSingleObject(_hACDone, INFINITE))
-        {
-        }
-        else
-        {
-            ASSERT(FALSE);
-        }
-    }
-
     // Reflect some methods on CCrystalTextBuffer:
 	int GetLineCount()
     {
+        return _pBuffer->GetLineCount(); // REVIEW: Might be off by one.
         // + 1 since we really want to include the current line in the calc
-        return min(_nLineLimit + 1, _pBuffer->GetLineCount());
+        // return min(_nLineLimit + 1, );
     }
+
+    int _id;
+    int *GetIdPtr() { return &_id; }    // REVIEW: What's this for?
 
 	int GetLineLength(int nLine)
     {
+        return _pBuffer->GetLineLength(nLine);
+        // REVIEW: Might have some off by one errors here.
+        /*
         int iLength = 0;
         if (nLine == _nLineLimit + 1)
         {
@@ -136,7 +93,7 @@ OutputDebugString("ID INCREMENT\n");
         {
             iLength = _pBuffer->GetLineLength(nLine);
         }
-        return iLength;
+        return iLength;*/
     }
 
     LPCTSTR GetLineChars(int nLine) { return _pBuffer->GetLineChars(nLine); } // Just fwd through.  We're limited by _nCharLimit
@@ -144,14 +101,7 @@ OutputDebugString("ID INCREMENT\n");
 
 private:
     std::unique_ptr<ReadOnlyTextBuffer> _pBuffer;
-    int _nLineLimit;    // Line limit
-    int _nCharLimit;    // Char limit for last line
-
-    // Optional things for doing autocomplete
-    HANDLE _hDoAC;
-    HANDLE _hACDone;
     bool _fCancel;
-    int _id;
 
     // Or tooltips
     ISyntaxParserCallback *_pCallback;
@@ -312,6 +262,7 @@ namespace sci
 //
 // This aggregates a CCrystalScriptStream while being a stream itself.
 // It basically provides a tokenized stream.
+// THIS IS CURRENTLY UNUSED, AS CPP-STYLE SYNTAX IS NOT SUPPORTED
 //
 class CrystalScriptTokenStream
 {

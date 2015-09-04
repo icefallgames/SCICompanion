@@ -14,7 +14,7 @@ class Script;
 class CCrystalScriptStream;
 class CScriptStreamLimiter;
 class CMethodInfoTip;
-class AutoCompleteThread;
+class AutoCompleteThread2;
 class CScriptDocument;
 class AvailableObjects;
 class AvailableMethods;
@@ -35,7 +35,7 @@ public:
     void GetSelectedText(CString &text);
 
 #ifdef SCI_AUTOCOMPLETE
-    void SetAutoComplete(CIntellisenseListBox *pAutoComp, CColoredToolTip *pMethodToolTip, CColoredToolTip *pToolTip, AutoCompleteThread *pThread)
+    void SetAutoComplete(CIntellisenseListBox *pAutoComp, CColoredToolTip *pMethodToolTip, CColoredToolTip *pToolTip, AutoCompleteThread2 *pThread)
     {
         _pAutoComp = pAutoComp;
         _pACThread = pThread;
@@ -64,7 +64,6 @@ protected:
 
 // Implementation
 public:
-	virtual ~CScriptView();
 #ifdef _DEBUG
 	virtual void AssertValid() const;
 	virtual void Dump(CDumpContext& dc) const;
@@ -109,6 +108,7 @@ protected:
 protected:
 	DECLARE_MESSAGE_MAP()
 
+    LRESULT OnAutoCompleteReady(WPARAM wParam, LPARAM lParam);
     void _OnAddAs(WordClass dwClass);
     BOOL _ScreenToWordRight(CPoint ptClient, CPoint &ptWordRight);
     ToolTipResult _DoToolTipParse(CPoint pt);
@@ -121,11 +121,9 @@ protected:
 
     CIntellisenseListBox *_pAutoComp;
     CColoredToolTip *_pMethodTip;
-    AutoCompleteThread *_pACThread; // Not owned by us
+    AutoCompleteThread2 *_pACThread; // Not owned by us
 
     // Autocomplete
-    CCrystalScriptStream *_pStream;
-    CScriptStreamLimiter *_pLimiter;
     BOOL _fInOnChar;
     CPoint _ptAC;
 
@@ -138,6 +136,8 @@ protected:
     CString _gotoDefinitionText;
     ScriptId _gotoScript;
     int _gotoLineNumber;
+
+    CPoint _autoCompleteWordStartPosition;
 
     // For "Insert object"
     std::unique_ptr<AvailableObjects> _availableObjects;

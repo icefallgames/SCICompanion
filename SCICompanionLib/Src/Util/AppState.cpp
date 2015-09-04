@@ -115,7 +115,7 @@ AppState::AppState(CWinApp *pApp)
 
     _pACThread = nullptr;
 #ifdef SCI_AUTOCOMPLETE
-    _pACThread = new AutoCompleteThread();
+    _pACThread = new AutoCompleteThread2();
 #endif
 
     crcInit();

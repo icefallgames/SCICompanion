@@ -45,6 +45,7 @@ public:
     std::string strFindText;
     std::vector<AutoCompleteChoice> choices;
     ACType fACType;
+    CPoint OriginalLimit;
     
     // method info tips
     std::string strMethod;
@@ -53,28 +54,58 @@ public:
 
 class SyntaxContext; // fwd decl
 
-class AutoCompleteThread
+class AutoCompleteThread2
 {
 public:
-    // All public functions should be called by the UI thread only.
-    AutoCompleteThread();
-    ~AutoCompleteThread();
-    void Exit();
-    void AutoCompleteThread::InitAutoComplete(CCrystalScriptStream::const_iterator it, CScriptStreamLimiter *pLimit);
-    AutoCompleteResult DoAutoComplete(CPoint pt);
-    CPoint GetCompletedPosition();
+    // TODO: Crit sec to synchronize access to things
+    AutoCompleteThread2();
+    ~AutoCompleteThread2();
+
+    void InitializeForScript(CCrystalTextBuffer *buffer);
+    void StartAutoComplete(CPoint pt, HWND hwnd, UINT message);
+    std::unique_ptr<AutoCompleteResult> GetResult(int id);
     void ResetPosition();
+    void Exit();
 
 private:
     static UINT s_ThreadWorker(void *pParam);
     void _DoWork();
     CWinThread *_pThread;
+
+    struct AutoCompleteId
+    {
+        int id;
+        HWND hwnd;
+        UINT message;
+    };
+
+    void _SetResult(std::unique_ptr<AutoCompleteResult> result, AutoCompleteId id);
+
+    // Both
     HANDLE _hStartWork;
-    HANDLE _hEndWork;
-    bool _fCancel;
-    bool _fDoingWork;
-    CCrystalScriptStream::const_iterator _it;
-    CCrystalScriptStream::const_iterator _itOrig;
-    CScriptStreamLimiter *_pLimit;            // Not owned by us.
-    SyntaxContext *_pContext;
+    AutoCompleteId _id;
+    std::unique_ptr<CScriptStreamLimiter> _limiterPending;
+    std::unique_ptr<CCrystalScriptStream> _streamPending;
+    CRITICAL_SECTION _cs;
+    HANDLE _hWaitForMoreWork;
+    HANDLE _hExitThread;
+
+    std::string _additionalCharacters;
+    int _idUpdate;
+    bool _fCancelCurrentParse;
+
+    // Both
+    std::unique_ptr<AutoCompleteResult> _result;
+    int _resultId;
+    CRITICAL_SECTION _csResult;
+
+    // UI
+    int _nextId;
+    HWND _lastHWND;
+    CPoint _lastPoint;
+    CCrystalTextBuffer *_bufferUI;
+
+    // background
 };
+
+

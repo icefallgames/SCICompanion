@@ -10,181 +10,243 @@ using namespace sci;
 using namespace std;
 
 
-AutoCompleteResult GetAutoCompleteResult(SyntaxContext *pContext)
+std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(SyntaxContext *pContext)
 {
     // TODO
-    AutoCompleteResult result;
+    std::unique_ptr<AutoCompleteResult> result = std::make_unique<AutoCompleteResult>();
     if (pContext)
     {
         SCIClassBrowser *browser = appState->GetResourceMap().GetClassBrowser();
-        browser->GetAutoCompleteChoices(pContext->ScratchString(), result.choices);
-        result.fResultsChanged = true; // TODO
+        browser->GetAutoCompleteChoices(pContext->ScratchString(), result->choices);
+        result->fResultsChanged = true; // TODO
     }
     return result;
 }
-
-UINT AutoCompleteThread::s_ThreadWorker(void *pParam)
+AutoCompleteThread2::AutoCompleteThread2() : _nextId(0)
 {
-    ((AutoCompleteThread*)pParam)->_DoWork();
+    InitializeCriticalSection(&_cs);
+    InitializeCriticalSection(&_csResult);
+    _hStartWork = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+    _hWaitForMoreWork = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+    // ExitThread will be manual reset, since the background thread will wait on it multiple times:
+    _hExitThread = CreateEvent(nullptr, TRUE, FALSE, nullptr);
+    _pThread = AfxBeginThread(s_ThreadWorker, this, 0, 0, 0, nullptr);
+}
+
+AutoCompleteThread2::~AutoCompleteThread2()
+{
+    CloseHandle(_hStartWork);
+    CloseHandle(_hWaitForMoreWork);
+
+    SetEvent(_hExitThread);
+    WaitForSingleObject(_pThread->m_hThread, INFINITE);
+
+    CloseHandle(_hExitThread);
+
+    DeleteCriticalSection(&_cs);
+    DeleteCriticalSection(&_csResult);
+}
+
+void AutoCompleteThread2::InitializeForScript(CCrystalTextBuffer *buffer)
+{
+    _bufferUI = buffer;
+
+    // TODO: Cancel any parsing? Or I guess it really doesn't matter. Except that if a script is closed, we want to know, so we don't send message to non-existent hwnd.
+}
+
+#define EXTRA_AC_CHARS 100
+
+void AutoCompleteThread2::StartAutoComplete(CPoint pt, HWND hwnd, UINT message)
+{
+    // Take note if the background thread is potentially ready to continue parsing from where it left off.
+    bool bgIsWaiting;
+    {
+        CGuard guard(&_cs);
+        // It's ready if it hasn't begun yet (_limiterPending), or if the current parse hasn't been canceled.
+        bgIsWaiting = _limiterPending || !_fCancelCurrentParse;
+    }
+
+    if (bgIsWaiting && (_lastHWND == hwnd) && (pt.y == _lastPoint.y) && (pt.x > _lastPoint.x))
+    {
+        OutputDebugString("UI: Continuing existing parse\n");
+
+        // Continue an existing parse.
+        CString strText;
+        _bufferUI->GetText(_lastPoint.y, _lastPoint.x, pt.y, pt.x, strText);
+
+        {
+            CGuard guard(&_cs);
+            _additionalCharacters += (PCSTR)strText;
+            SetEvent(_hWaitForMoreWork);
+        }
+    }
+    else
+    {
+        OutputDebugString("UI: Starting new parse\n");
+
+        // Start a new one
+        // 1) If in parse, set the event getting out of it and indicate cancel.
+        {
+            CGuard guard(&_cs);
+            _additionalCharacters = "";
+            _fCancelCurrentParse = true;
+            _idUpdate = _nextId;
+            OutputDebugString("UI: Sending message to cancel current parse\n");
+
+            SetEvent(_hWaitForMoreWork);
+        }
+
+        // Now start a fresh parse
+        // Make a copy of the text buffer
+        std::unique_ptr<CScriptStreamLimiter> limiter = std::make_unique<CScriptStreamLimiter>(_bufferUI, pt, EXTRA_AC_CHARS);
+        //limiter->Limit(LineCol(pt.y, pt.x));
+        std::unique_ptr<CCrystalScriptStream> stream = std::make_unique<CCrystalScriptStream>(limiter.get());
+
+        // Give the work to the background thread
+        {
+            CGuard guard(&_cs);
+            _limiterPending = move(limiter);
+            _streamPending = move(stream);
+            _id.hwnd = hwnd;
+            _id.id = _nextId;
+            _id.message = message;
+            ResetEvent(_hWaitForMoreWork);
+            SetEvent(_hStartWork);
+        }
+    }
+
+    _nextId++;
+    _lastHWND = hwnd;
+    _lastPoint = pt;
+}
+
+void AutoCompleteThread2::ResetPosition()
+{
+    OutputDebugString("UI: ResetPosition\n");
+
+    _lastHWND = nullptr;
+    _lastPoint = CPoint();
+
+    // REVIEW this:
+    CGuard guard(&_cs);
+
+    _limiterPending.reset(nullptr);
+    _streamPending.reset(nullptr);
+    _id.hwnd = nullptr;
+    _id.id = -1;
+
+    _additionalCharacters = "";
+    _fCancelCurrentParse = true;
+    SetEvent(_hWaitForMoreWork);
+}
+
+std::unique_ptr<AutoCompleteResult> AutoCompleteThread2::GetResult(int id)
+{
+    std::unique_ptr<AutoCompleteResult> result;
+
+    {
+        CGuard guard(&_csResult);
+        if (_resultId == id)
+        {
+            result = move(_result);
+        }
+    }
+
+    return result;
+}
+
+UINT AutoCompleteThread2::s_ThreadWorker(void *pParam)
+{
+    (reinterpret_cast<AutoCompleteThread2*>(pParam))->_DoWork();
     return 0;
 }
 
-AutoCompleteThread::AutoCompleteThread()
+void AutoCompleteThread2::_SetResult(std::unique_ptr<AutoCompleteResult> result, AutoCompleteThread2::AutoCompleteId id)
 {
-    _fDoingWork = false;
-    _fCancel = false;
-    _hStartWork = CreateEvent(NULL, FALSE, FALSE, NULL);
-    _hEndWork = CreateEvent(NULL, FALSE, FALSE, NULL);
-    _pContext = NULL;
-    _pLimit = NULL;
-    _pThread = NULL;
+    {
+        CGuard guard(&_csResult);
+        _resultId = id.id;
+        _result = move(result);
+    }
+    SendMessage(id.hwnd, id.message, id.id, 0);
 }
 
-AutoCompleteThread::~AutoCompleteThread()
+void AutoCompleteThread2::_DoWork()
 {
-    if (!_fCancel)
+    HANDLE startWork[2] = { _hStartWork, _hExitThread };
+    while (WAIT_OBJECT_0 == WaitForMultipleObjects(ARRAYSIZE(startWork), startWork, FALSE, INFINITE))
     {
-        Exit();
-        // REVIEW, this is incomplete... we need to wait until the thread exits, really
-    }
-    if (_hStartWork)
-    {
-        CloseHandle(_hStartWork);
-    }
-    if (_hEndWork)
-    {
-        CloseHandle(_hEndWork);
-    }
-}
+        std::unique_ptr<CScriptStreamLimiter> limiter;
+        std::unique_ptr<CCrystalScriptStream> stream;
+        AutoCompleteId id;
 
-void AutoCompleteThread::_DoWork()
-{
-    while ((WAIT_OBJECT_0 == WaitForSingleObject(_hStartWork, INFINITE)) && !_fCancel)
-    {
-        _it = _itOrig; // Restart from the beginning.
-        _fDoingWork = true;
-        sci::Script script;
-        SyntaxContext context(_it, script, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), false);
-        context.ForAutoComplete = true;
-        _pContext = &context;
-        OutputDebugString("ACThread: PARSE START\n");
-        bool result = g_Parser.ParseAC(script, _it, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &context);
-
-        if (result)
         {
-            OutputDebugString("ACThread: PARSE END SUCCESS\n");
-        }
-        else
-        {
-            OutputDebugString("ACThread: PARSE END FAILED\n");
+            CGuard guard(&_cs);
+            limiter = move(_limiterPending);
+            stream = move(_streamPending);
+            _fCancelCurrentParse = false;
+            id = _id;
         }
 
-        _pContext = nullptr;
-        _pLimit->SetFailedAC();
-        SetEvent(_hEndWork);
-OutputDebugString("ACThread: waiting to start work...\n");
-        _fDoingWork = false;
-    }
-    ASSERT(FALSE);
-}
-
-void AutoCompleteThread::Exit()
-{
-    _fCancel = true;
-    SetEvent(_hStartWork);
-}
-
-CPoint AutoCompleteThread::GetCompletedPosition()
-{
-    LineCol dwPos = _it.GetPosition();
-
-    OutputDebugString(fmt::format("GetCompletedPos: {0}, {1}\n", dwPos.Line(), dwPos.Column()).c_str());
-
-
-    return CPoint(dwPos.Column(), dwPos.Line());
-}
-
-void AutoCompleteThread::ResetPosition()
-{
-OutputDebugString("Resetting position...\n");
-    _pLimit->Bail();
-    LineCol dwPos = _it.GetPosition(); // REVIEW, see what this is?
-    int x = 0;
-    // We need to wait for it to be done...
-OutputDebugString("(RP) Waiting for AC thread to come around... getting stuck here.\n");
-    if (WAIT_OBJECT_0 == WaitForSingleObject(_hEndWork, INFINITE))
-    {
-        // Done
-    }
-    else
-    {
-        ASSERT(FALSE);
-    }
-}
-
-// Needs to be called when you switch to a new script
-void AutoCompleteThread::InitAutoComplete(CCrystalScriptStream::const_iterator it, CScriptStreamLimiter *pLimit)
-{
-    _itOrig = it;
-    _pLimit = pLimit;
-}
-
-AutoCompleteResult AutoCompleteThread::DoAutoComplete(CPoint pt)
-{
-    // Since this thread works directly off the text buffers, make sure all references to text
-    // are invalidated (we're likely called here, because the user typed a character, which could
-    // invalidate our pointers to text inside the document)
-    _pLimit->InvalidateBuffer();
-
-    // REVIEW. if this is called, we need to sync here, to wait for it to be done?  Unwind to top, since
-    // we're changing things.
-    CPoint ptDone = GetCompletedPosition();
-    if (_pThread && ((pt.y > ptDone.y) || ((pt.y == ptDone.y) && (pt.x > ptDone.x))))
-    {
-        OutputDebugString("DAC: Continue where we left off...\n");
-        _pLimit->Limit(LineCol(pt.y, pt.x), true);
-        if (!_fDoingWork)
+        if (limiter)
         {
-OutputDebugString("DAC: Telling the thread to start work\n");
-            // Start the work...
-            SetEvent(_hStartWork);
-        }
-        else
-        {
-OutputDebugString("DAC: Telling the limiter to continue..\n");
-            // We can just continue from where we left off
-            _pLimit->Continue();
-        }
-        // Wait until we hit the end...
-        _pLimit->Wait();
-    }
-    else
-    {
-        if (_pThread == NULL)
-        {
-            // First time... create the thread... it will wait for the _hStartWork.
-            _pThread = AfxBeginThread(s_ThreadWorker, this, 0, 0, 0, NULL);
-        }
-        else
-        {
-            // We need to reset.  Tell the parser to bail.
-            ResetPosition();
-        }
+            assert(id.hwnd);
+            class AutoCompleteParseCallback : public ISyntaxParserCallback
+            {
+            public:
+                AutoCompleteParseCallback(SyntaxContext &context, AutoCompleteThread2 &ac, CScriptStreamLimiter &limiter, AutoCompleteId id) : _context(context), _id(id), _ac(ac), _limiter(limiter) {}
 
-        // Ok, it's been reset, start it anew
-        _pLimit->Limit(LineCol(pt.y, pt.x), true);
-        SetEvent(_hStartWork);
-        _pLimit->Wait();
-    }
+                bool Done()
+                {
+                    OutputDebugString(fmt::format("ACThread2: Callback for {0}. Set result and block\n", _context.ScratchString()).c_str());
+                    // Figure out the result
+                    std::unique_ptr<AutoCompleteResult> result = GetAutoCompleteResult(&_context);
+                    result->OriginalLimit = _limiter.GetLimit();
+                    result->OriginalLimit.x -= _context.ScratchString().length();
+                    result->OriginalLimit.x = max(result->OriginalLimit.x, 0);
+                    _ac._SetResult(move(result), _id);
 
-    // We have a result.
-    AutoCompleteResult result = GetAutoCompleteResult(_pContext);
-    if (_pContext)
-    {
-        char sz[100];
-        StringCchPrintf(sz, ARRAYSIZE(sz), "Completed with %s\n", _pContext->ScratchString().c_str());
-        OutputDebugString(sz);
-        // REVIEW, this should probably be an allocated thing...
+                    bool continueParsing = false;
+                    // Now wait in case we have more letters in sequence (so we don't have to reparse everything).
+                    // Now we block waiting for more characters, or to be "reset".
+                    HANDLE continueWork[2] = { _ac._hWaitForMoreWork, _ac._hExitThread };
+                    DWORD waitResult = WaitForMultipleObjects(ARRAYSIZE(continueWork), continueWork, FALSE, INFINITE);
+                    if (WAIT_OBJECT_0 == waitResult)
+                    {
+                        continueParsing = true;
+                        std::string additionalCharacters;
+                        {
+                            CGuard guard(&_ac._cs);
+                            continueParsing = !_ac._fCancelCurrentParse;
+                            _id.id = _ac._idUpdate;
+                            OutputDebugString(continueParsing ? "Continuing parsing\n" : "Abandoning and exiting parse\n");
+                            additionalCharacters = _ac._additionalCharacters;
+                            _ac._additionalCharacters = "";
+                        }
+                        _limiter.Extend(additionalCharacters);
+                    }
+
+                    return continueParsing;   // false -> bail
+                }
+            private:
+                SyntaxContext &_context;
+                AutoCompleteId _id;
+                AutoCompleteThread2 &_ac;
+                CScriptStreamLimiter &_limiter;
+            };
+
+            sci::Script script;
+            CCrystalScriptStream::const_iterator it(limiter.get());
+            SyntaxContext context(it, script, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), false);
+
+            AutoCompleteParseCallback callback(context, *this, *limiter, id);
+            limiter->SetCallback(&callback);
+
+            // context.ForAutoComplete = true;
+            OutputDebugString("Starting parsing session\n");
+            bool result = g_Parser.ParseAC(script, it, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &context);
+            OutputDebugString("Ending parsing session\n");
+        }
     }
-    return result;
+    OutputDebugString("Exiting AC thread\n");
 }

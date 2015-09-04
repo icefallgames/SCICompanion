@@ -7,7 +7,7 @@
 #include "ColoredToolTip.h"
 #include "CompileInterfaces.h"
 
-class AutoCompleteThread;
+class AutoCompleteThread2;
 class CScriptView;
 
 // FWD decl
@@ -197,7 +197,7 @@ public: // TODO for now
 
     CIntellisenseListBox m_wndIntel;
     CColoredToolTip m_wndToolTip;
-    AutoCompleteThread *_pACThread;
+    AutoCompleteThread2 *_pACThread;
 
     ScopedHandle _hProcessDebugged;
 };

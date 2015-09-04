@@ -42,6 +42,8 @@
 using namespace sci;
 using namespace std;
 
+#define UWM_AUTOCOMPLETEREADY      (WM_APP + 0)
+
 // CScriptView
 IMPLEMENT_DYNCREATE(CScriptView, CCrystalEditView)
 
@@ -84,6 +86,7 @@ BEGIN_MESSAGE_MAP(CScriptView, CCrystalEditView)
     ON_UPDATE_COMMAND_UI(ID_GOTOSCRIPT, OnUpdateGotoScriptHeader)
     ON_UPDATE_COMMAND_UI(ID_SCRIPT_GOTODEFINITION, OnUpdateGotoDefinition)
     ON_COMMAND(ID_VISUALSCRIPT, OnVisualScript)
+    ON_MESSAGE(UWM_AUTOCOMPLETEREADY, OnAutoCompleteReady)
     //ON_UPDATE_COMMAND_UI(ID_VISUALSCRIPT, OnUpdateAlwaysOn)
 END_MESSAGE_MAP()
 
@@ -92,8 +95,6 @@ END_MESSAGE_MAP()
 CScriptView::CScriptView()
 {
     _fInOnChar = FALSE;
-    _pStream = nullptr;
-    _pLimiter = nullptr;
     _pwndToolTip = nullptr;
     _ptLastMM = CPoint(0, 0);
     _ptToolTipWord = CPoint(0, 0);
@@ -140,13 +141,15 @@ void CScriptView::UpdateView(CCrystalTextView *pSource, CUpdateContext *pContext
 {
     if (_pACThread)
     {
+        // REVIEW: Not sure what this does
+        /*
         CPoint pt = _pACThread->GetCompletedPosition();
         CPoint ptRecalced(pt);
         pContext->RecalcPoint(ptRecalced);
         if (ptRecalced != pt)
         {
             _pACThread->ResetPosition();
-        }
+        }*/
     }
     __super::UpdateView(pSource, pContext, dwFlags, nLineIndex);
 }
@@ -205,12 +208,6 @@ BOOL CScriptView::PreTranslateMessage(MSG *pMsg)
         }
 	}
     return __super::PreTranslateMessage(pMsg);
-}
-
-CScriptView::~CScriptView()
-{
-    delete _pStream;
-    delete _pLimiter;
 }
 
 BOOL CScriptView::PreCreateWindow(CREATESTRUCT& cs)
@@ -908,7 +905,7 @@ void CScriptView::OnSetFocus(CWnd *pNewWnd)
 #ifdef SCI_AUTOCOMPLETE
     if (_pACThread)
     {
-        _pACThread->InitAutoComplete(_pStream->begin(), _pLimiter);
+        _pACThread->InitializeForScript(LocateTextBuffer());
     }
 #endif
 
@@ -1185,13 +1182,10 @@ void CScriptView::OnInitialUpdate()
 {
     __super::OnInitialUpdate();
 
-    _pLimiter = new CScriptStreamLimiter(LocateTextBuffer());
-    _pStream = new CCrystalScriptStream(_pLimiter);
-
 #ifdef SCI_AUTOCOMPLETE
     if (_pACThread)
     {
-        _pACThread->InitAutoComplete(_pStream->begin(), _pLimiter);
+        _pACThread->InitializeForScript(LocateTextBuffer());
     }
 #endif
 }
@@ -1221,11 +1215,10 @@ ToolTipResult CScriptView::_DoToolTipParse(CPoint pt)
     BOOL fRet = FALSE;
     if (appState->AreHoverTipsEnabled())
     {
-        CScriptStreamLimiter limiter(LocateTextBuffer());
+        CScriptStreamLimiter limiter(LocateTextBuffer(), pt, 0);
         CCrystalScriptStream stream(&limiter);
         sci::Script script;
         SyntaxContext context(stream.begin(), script, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), false);
-        limiter.Limit(LineCol(pt.y, pt.x), false);
         CCrystalScriptStream::const_iterator it = stream.begin();
         
         class CToolTipSyntaxParserCallback : public ISyntaxParserCallback
@@ -1233,7 +1226,7 @@ ToolTipResult CScriptView::_DoToolTipParse(CPoint pt)
         public:
             CToolTipSyntaxParserCallback(SyntaxContext &context, ToolTipResult &result) : _context(context), _result(result) {}
 
-            void Done()
+            bool Done()
             {
                 // Sometimes we get called twice (e.g. hovering over a send selector). Not sure if this is a bug
                 // in the parsing code, or legit. Anyway, it is easy to filter out the second one.
@@ -1241,6 +1234,7 @@ ToolTipResult CScriptView::_DoToolTipParse(CPoint pt)
                 {
                     _result = GetToolTipResult<SyntaxContext>(&_context);
                 }
+                return false;
             }
         private:
             SyntaxContext &_context;
@@ -1320,8 +1314,10 @@ void CScriptView::OnIntellisense()
     CPoint pt = GetCursorPos();
     // And do the autocomplete
     
-	// Wow, lots of problems, I forget what.
-    AutoCompleteResult result = _pACThread->DoAutoComplete(pt);
+    if (appState->IsCodeCompletionEnabled())
+    {
+        _pACThread->StartAutoComplete(pt, this->GetSafeHwnd(), UWM_AUTOCOMPLETEREADY);
+    }
 
     // Wake up the autocomplete parsecontext, after telling it where we are.
     //CPoint pt = GetCursorPos();
@@ -1332,69 +1328,26 @@ void CScriptView::OnIntellisense()
     //if (WAIT_OBJECT_0 == WaitForSingleObject(_hEventACDone, INFINITE))
     {
         // We have a result.
-      //  ResetEvent(_hEventACDone); // Reset for next time.
+        //  ResetEvent(_hEventACDone); // Reset for next time.
         //AutoCompleteResult &result = _pParseContext->GetResult();
 
         /*
         if (appState->IsParamInfoEnabled())
         {
-            if (result.HasMethodTip())
-            {
-                // Make it visible.
-                CPoint ptClient = TextToClient(GetCursorPos());
-                ClientToScreen(&ptClient);
-                ptClient.y -= GetLineHeight() + 2;
-                _pMethodTip->Show(ptClient, result.strMethod, result.strParams, result.cParamNumber);
-            }
-            else
-            {
-                // Hide it.
-                _pMethodTip->Hide();
-            }
-        }*/
-
-        if (appState->IsCodeCompletionEnabled())
+        if (result.HasMethodTip())
         {
-            auto &choices = result.choices;
-            if (choices.size() == 0)
-            {
-                // No results
-                if (_pAutoComp->IsWindowVisible())
-                {
-                    _pAutoComp->Hide();
-                }
-            }
-            else
-            {
-                if (result.fResultsChanged)
-                {
-                    _pAutoComp->ResetContent();
-                    for (size_t i = 0; i < choices.size(); i++)
-                    {
-                        auto &choice = choices[i];
-                        int iIndex = _pAutoComp->AddString(choice.GetText().c_str());
-                        if (iIndex != LB_ERR)
-                        {
-                            _pAutoComp->SetItemData(iIndex, choice.GetIcon());
-                        }
-                    }
-                }
-                if (!_pAutoComp->IsWindowVisible())
-                {
-                    // Make it visible.
-                    CPoint ptClient = TextToClient(GetCursorPos());
-                    ClientToScreen(&ptClient);
-                    ptClient.x -= 10; // Just offset a little
-                    ptClient.y += GetLineHeight() + 2; // Move it below the lien.
-                    _pAutoComp->Show(ptClient);
-                }
-            }
-            std::string &strFindText = result.strFindText;
-            if (!strFindText.empty())
-            {
-                _pAutoComp->Highlight(strFindText.c_str());
-            }
+        // Make it visible.
+        CPoint ptClient = TextToClient(GetCursorPos());
+        ClientToScreen(&ptClient);
+        ptClient.y -= GetLineHeight() + 2;
+        _pMethodTip->Show(ptClient, result.strMethod, result.strParams, result.cParamNumber);
         }
+        else
+        {
+        // Hide it.
+        _pMethodTip->Hide();
+        }
+        }*/
     }
 }
 
@@ -1412,8 +1365,7 @@ BOOL CScriptView::OnACDoubleClick()
 
             // Put this text in the document.
             // Delete what the user typed in first, if anything
-            CPoint ptAutoStart = _pACThread->GetCompletedPosition();
-            ptAutoStart.x -= strChoice.GetLength();
+            CPoint ptAutoStart = _autoCompleteWordStartPosition;
             if (ptAutoStart.x >= 0)
             {
                 if (ptAutoStart != GetCursorPos())
@@ -1652,6 +1604,58 @@ void CScriptView::OnGoto()
         SetCursorPos(CPoint(nChar, nLine));
         EnsureVisible(CPoint(nChar, nLine));
     }
+}
+
+LRESULT CScriptView::OnAutoCompleteReady(WPARAM wParam, LPARAM lParam)
+{
+    OutputDebugString("Auto complete is ready\n");
+
+    std::unique_ptr<AutoCompleteResult> result = _pACThread->GetResult(wParam);
+    if (result)
+    {
+        _autoCompleteWordStartPosition = result->OriginalLimit;
+
+        auto &choices = result->choices;
+        if (choices.size() == 0)
+        {
+            // No results
+            if (_pAutoComp->IsWindowVisible())
+            {
+                _pAutoComp->Hide();
+            }
+        }
+        else
+        {
+            if (result->fResultsChanged)
+            {
+                _pAutoComp->ResetContent();
+                for (size_t i = 0; i < choices.size(); i++)
+                {
+                    auto &choice = choices[i];
+                    int iIndex = _pAutoComp->AddString(choice.GetText().c_str());
+                    if (iIndex != LB_ERR)
+                    {
+                        _pAutoComp->SetItemData(iIndex, choice.GetIcon());
+                    }
+                }
+            }
+            if (!_pAutoComp->IsWindowVisible())
+            {
+                // Make it visible.
+                CPoint ptClient = TextToClient(GetCursorPos());
+                ClientToScreen(&ptClient);
+                ptClient.x -= 10; // Just offset a little
+                ptClient.y += GetLineHeight() + 2; // Move it below the lien.
+                _pAutoComp->Show(ptClient);
+            }
+        }
+        std::string &strFindText = result->strFindText;
+        if (!strFindText.empty())
+        {
+            _pAutoComp->Highlight(strFindText.c_str());
+        }
+    }
+    return 0;
 }
 
 
