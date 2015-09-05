@@ -261,6 +261,7 @@
     <ClCompile Include="Src\Resources\VersionDetectionHelper.cpp" />
     <ClCompile Include="Src\Resources\View.cpp" />
     <ClCompile Include="Src\Util\AudioPlayback.cpp" />
+    <ClInclude Include="Src\Compile\AutoCompleteContext.h" />
     <ClInclude Include="Src\Compile\AutoDetectVariableNames.h" />
     <ClInclude Include="Src\Compile\CompileCommon.h" />
     <ClInclude Include="Src\Compile\DecompilerConfig.h" />

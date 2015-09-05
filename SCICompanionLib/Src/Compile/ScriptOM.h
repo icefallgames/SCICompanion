@@ -185,7 +185,7 @@ namespace sci
     {
         NodeTypeUnknown,
         NodeTypeValue,
-        NodeTypeComplexValue,
+        NodeTypeComplexValue,           // 2
         NodeTypeAssignment,
         NodeTypeVariableDeclaration,
         NodeTypeDefine,
@@ -193,17 +193,17 @@ namespace sci
         NodeTypeStatement,
         NodeTypeFunction,
         NodeTypeClassDefinition,
-        NodeTypeSynonym,
+        NodeTypeSynonym,                // 10
         NodeTypeCodeBlock,
         NodeTypeSendParam,
         NodeTypeLValue,
         NodeTypeSendCall,
-        NodeTypeProcedureCall,
+        NodeTypeProcedureCall,          // 15
         NodeTypeConditionalExpression,
         NodeTypeCase,
         NodeTypeSwitch,
         NodeTypeAsm,
-        NodeTypeAsmBlock,
+        NodeTypeAsmBlock,               // 20
         NodeTypeReturn,
         NodeTypeBinaryOperation,
         NodeTypeUnaryOperation,

@@ -195,3 +195,12 @@ bool _ReadString(_It &stream, std::string &str)
     }
     return false;
 }
+
+enum class ParseAutoCompleteContext
+{
+    None,
+    Selector,
+    Value,
+    TopLevelKeyword,
+};
+

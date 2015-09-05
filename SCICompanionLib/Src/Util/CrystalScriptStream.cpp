@@ -103,7 +103,7 @@ CCrystalScriptStream::CCrystalScriptStream(CScriptStreamLimiter *pLimiter)
 void CScriptStreamLimiter::GetMoreData(int &nChar, int &nLine, int &nLength, PCSTR &pszLine)
 {
     // If we're limited, call the callback
-    if (_pCallback && (nChar == nLength) && (nLine == (GetLineCount() - 1)))
+    if (_pCallback && !_fCancel && (nChar == nLength) && (nLine == (GetLineCount() - 1)))
     {
         // We're limited.
         _fCancel = !_pCallback->Done();
@@ -111,6 +111,14 @@ void CScriptStreamLimiter::GetMoreData(int &nChar, int &nLine, int &nLength, PCS
         {
             nLength = GetLineLength(nLine);
             pszLine = GetLineChars(nLine);
+        }
+        else
+        {
+            // We ran out of data. "go to next line" and specify EOF
+            pszLine = "\0"; // EOF
+            nLine++;
+            nLength = 1;
+            nChar = 0;
         }
     }
 

@@ -151,6 +151,27 @@ sci::NodeType SyntaxContext::GetTopKnownNode() const
     return type;
 }
 
+AutoCompleteContext SyntaxContext::DetermineAutoCompleteContext() const
+{
+    AutoCompleteType type = AutoCompleteType::None;
+    if (!_scratch.empty())
+    {
+        char first = _scratch[0];
+        if (isalpha(first) || (first == '_'))
+        {
+            if (GetParseAutoCompleteContext() == ParseAutoCompleteContext::Selector)
+            {
+                type = AutoCompleteType::Selector;
+                OutputDebugString("SELECTOR\n");
+            }
+            else
+            {
+                type = AutoCompleteType::Value;
+            }
+        }
+    }
+    return AutoCompleteContext(_scratch, type);
+}
 
 
 //
@@ -161,13 +182,6 @@ void AddSendParamA(MatchResult &match, const Parser *pParser, SyntaxContext *pCo
     if (match.Result())
     {
 		pContext->GetPrevSyntaxNode<SendCall>()->AddSendParam(pContext->StealSyntaxNode<SendParam>());
-    }
-}
-void AddSendParamB(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-		pContext->GetPrevSyntaxNode<SendCall>()->AddSendParam(std::move(pContext->StealSyntaxNode<SendParam>()));
     }
 }
 void AddSendRestA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
@@ -345,6 +359,16 @@ void SetStatementNameA(MatchResult &match, const Parser *pParser, SyntaxContext 
     }
 }
 template<typename _T>
+void SetSelectorNameA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->CreateSyntaxNode<_T>(stream);
+        pContext->GetSyntaxNode<_T>()->SetName(pContext->ScratchString());
+    }
+}
+
+template<typename _T>
 void SetNameA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
     if (match.Result())
@@ -352,8 +376,6 @@ void SetNameA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext
         pContext->GetSyntaxNode<_T>()->SetName(pContext->ScratchString());
     }
 }
-
-
 
 //
 // Synonyms
@@ -1251,7 +1273,7 @@ void SCISyntaxParser::Load()
     // = gWnd clBlack (send gEgo:x)        = gWnd Print("foo")         (= button (+ 5 5))
     procedure_call = alphanumopen_p[SetStatementNameA<ProcedureCall>] >> *statement[AddStatementA<ProcedureCall>] >> clpar;
 
-    send_param_call = general_token[SetStatementNameA<SendParam>]
+    send_param_call = general_token[{SetStatementNameA<SendParam>, ParseAutoCompleteContext::Selector }]
         >> oppar[SendParamIsMethod] >> *statement[AddStatementA<SendParam>] >> clpar;
 
     // Note: SCIStudio requires the : come right after the text (if no send keyword), so we use +colon

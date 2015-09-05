@@ -4,6 +4,7 @@
 #include "ScriptOM.h"
 #include "CrystalScriptStream.h"
 #include "ParserCommon.h"
+#include "AutoCompleteContext.h"
 #include <stack>
 #include <deque>
 
@@ -24,6 +25,7 @@ private:
     bool _fResult;
 };
 
+
 template<typename _TContext, typename _It>
 class ParserBase
 {
@@ -36,6 +38,12 @@ public:
     typedef bool(*MATCHINGFUNCTION)(const ParserBase *pParser, _TContext *pContext, _It &stream);
     typedef void(*DEBUGFUNCTION)(bool fEnter, bool fResult);
     typedef void(*ACTION)(MatchResult &match, const ParserBase *pParser, _TContext *pContext, const _It &stream);
+
+    struct ActionAndContext
+    {
+        ACTION pfn;
+        ParseAutoCompleteContext pacc;
+    };
 
     // Fwd decl (Used for circular references in grammer descriptions)
     // If an empty Parser is created (since you need to refer to it subsequently, but you can't
@@ -68,6 +76,7 @@ public:
             _pRef = &src;
             _pfn = ReferenceForwarderP<_It>;
             _pfnA = nullptr;
+            _pacc = ParseAutoCompleteContext::None;
             _pfnDebug = nullptr;
             _fLiteral = false; // Doesn't matter
             _fOnlyRef = false; // We're a ref, so people can copy us.
@@ -79,6 +88,7 @@ public:
             _psz = src._psz; // Ok, because this is always a static string
             _pfn = src._pfn;
             _pfnA = src._pfnA;
+            _pacc = src._pacc;
             _pfnDebug = src._pfnDebug;
             _pRef = src._pRef; // Don't make a new object.
             _fLiteral = src._fLiteral;
@@ -106,6 +116,7 @@ public:
             _psz = src._psz; // Ok, because this is always a static string
             _pfn = src._pfn;
             _pfnA = src._pfnA;
+            _pacc = src._pacc;
             _pfnDebug = src._pfnDebug;
             _pRef = src._pRef; // Don't make a new object.
             _fLiteral = src._fLiteral;
@@ -130,10 +141,10 @@ public:
 
     // The default constructor will create an object that can only be copied by reference (see the copy constructor
     // and == operator, and _pRef)
-    ParserBase() : _pfn(nullptr), _pfnA(nullptr), _pfnDebug(nullptr), _pRef(nullptr), _fLiteral(false), _fOnlyRef(true), _psz(nullptr) {}
-    ParserBase(MATCHINGFUNCTION pfn) : _pfn(pfn), _pfnA(nullptr), _pfnDebug(nullptr), _pRef(nullptr), _fLiteral(false), _fOnlyRef(false), _psz(nullptr) {}
-    ParserBase(MATCHINGFUNCTION pfn, const ParserBase &a) : _pfn(pfn), _pa(new ParserBase(a)), _pfnA(nullptr), _pfnDebug(nullptr), _pRef(nullptr), _fLiteral(false), _fOnlyRef(false), _psz(nullptr) {}
-    ParserBase(MATCHINGFUNCTION pfn, const char *psz) : _pfn(pfn) , _psz(psz), _pfnA(nullptr), _pfnDebug(nullptr), _pRef(nullptr), _fLiteral(false), _fOnlyRef(false)
+    ParserBase() : _pfn(nullptr), _pfnA(nullptr), _pfnDebug(nullptr), _pRef(nullptr), _fLiteral(false), _fOnlyRef(true), _psz(nullptr), _pacc(ParseAutoCompleteContext::None) {}
+    ParserBase(MATCHINGFUNCTION pfn) : _pfn(pfn), _pfnA(nullptr), _pfnDebug(nullptr), _pRef(nullptr), _fLiteral(false), _fOnlyRef(false), _psz(nullptr), _pacc(ParseAutoCompleteContext::None)  {}
+    ParserBase(MATCHINGFUNCTION pfn, const ParserBase &a) : _pfn(pfn), _pa(new ParserBase(a)), _pfnA(nullptr), _pfnDebug(nullptr), _pRef(nullptr), _fLiteral(false), _fOnlyRef(false), _psz(nullptr), _pacc(ParseAutoCompleteContext::None)  {}
+    ParserBase(MATCHINGFUNCTION pfn, const char *psz) : _pfn(pfn), _psz(psz), _pfnA(nullptr), _pfnDebug(nullptr), _pRef(nullptr), _fLiteral(false), _fOnlyRef(false), _pacc(ParseAutoCompleteContext::None)
     {
     }
     MatchResult Match(_TContext *pContext, _It &stream) const
@@ -163,8 +174,9 @@ public:
         }
         g_ParseIndent++;
 #endif
+        pContext->PushParseAutoCompleteContext(_pacc);
         MatchResult result(_pRef ? _pRef->Match(pContext, stream) : (*_pfn)(this, pContext, stream));
-        
+        pContext->PopParseAutoCompleteContext();
 #ifdef PARSE_DEBUG
         g_ParseIndent--;
         if (!Name.empty() || _psz)
@@ -203,6 +215,15 @@ public:
         assert(_pfnA == nullptr); // Ensure we're not overwriting any action.
         ParserBase newOne(*this);
         newOne._pfnA = pfn;
+        return newOne;
+    }
+
+    ParserBase operator[](ActionAndContext aac)
+    {
+        assert(_pfnA == nullptr); // Ensure we're not overwriting any action.
+        ParserBase newOne(*this);
+        newOne._pfnA = aac.pfn;
+        newOne._pacc = aac.pacc;
         return newOne;
     }
 
@@ -246,6 +267,7 @@ public:
     // PERF: perhaps we could optimize for some cases here, and not have a matching functino (e.g. char)
     MATCHINGFUNCTION _pfn;
     ACTION _pfnA;
+    ParseAutoCompleteContext _pacc;
     DEBUGFUNCTION _pfnDebug;
     const ParserBase *_pRef;
     bool _fLiteral; // Don't skip whitespace
@@ -748,6 +770,21 @@ public:
         return _beginning;
     }
 
+    void PushParseAutoCompleteContext(ParseAutoCompleteContext pacc)
+    {
+        // For now, just set. We'll use a stack if necessary.
+        _parseAutoCompleteContext.push_back(pacc);
+    }
+    void PopParseAutoCompleteContext()
+    {
+        _parseAutoCompleteContext.pop_back();
+    }
+    ParseAutoCompleteContext GetParseAutoCompleteContext() const
+    {
+        auto it = find_if(_parseAutoCompleteContext.rbegin(), _parseAutoCompleteContext.rend(), [](ParseAutoCompleteContext pacc) { return pacc != ParseAutoCompleteContext::None; });
+        return (it != _parseAutoCompleteContext.rend()) ? *it : ParseAutoCompleteContext::None;
+    }
+
     // Accessors
     sci::Script &Script() { return _script; }
     std::string &ScratchString() { return _scratch; }
@@ -869,6 +906,8 @@ public:
     // Returns the type of the topmost non-null syntax node
     sci::NodeType GetTopKnownNode() const;
 
+    AutoCompleteContext DetermineAutoCompleteContext() const;
+
     // Get the syntax node at the top of the statement stack
     template<typename _statementT>
     _statementT* GetSyntaxNode() const
@@ -956,6 +995,7 @@ private:
     sci::Script &_script;
     std::string _scratch;
     std::string _scratch2;
+    std::vector<ParseAutoCompleteContext> _parseAutoCompleteContext;
     std::stack<std::unique_ptr<sci::SyntaxNode>> _statements;
 };
 

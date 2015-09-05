@@ -58,6 +58,8 @@ void AutoCompleteThread2::InitializeForScript(CCrystalTextBuffer *buffer)
 
 void AutoCompleteThread2::StartAutoComplete(CPoint pt, HWND hwnd, UINT message)
 {
+    OutputDebugString(fmt::format("last point is {0} {1}\n", _lastPoint.x, _lastPoint.y).c_str());
+
     // Take note if the background thread is potentially ready to continue parsing from where it left off.
     bool bgIsWaiting;
     {
@@ -118,6 +120,8 @@ void AutoCompleteThread2::StartAutoComplete(CPoint pt, HWND hwnd, UINT message)
     _nextId++;
     _lastHWND = hwnd;
     _lastPoint = pt;
+
+    OutputDebugString(fmt::format("last point is {0} {1}\n", _lastPoint.x, _lastPoint.y).c_str());
 }
 
 void AutoCompleteThread2::ResetPosition()
@@ -126,6 +130,8 @@ void AutoCompleteThread2::ResetPosition()
 
     _lastHWND = nullptr;
     _lastPoint = CPoint();
+
+    OutputDebugString(fmt::format("last point is {0} {1}\n", _lastPoint.x, _lastPoint.y).c_str());
 
     // REVIEW this:
     CGuard guard(&_cs);
@@ -198,7 +204,11 @@ void AutoCompleteThread2::_DoWork()
 
                 bool Done()
                 {
-                    OutputDebugString(fmt::format("ACThread2: Callback for {0}. Set result and block\n", _context.ScratchString()).c_str());
+                    OutputDebugString(fmt::format("ACThread: Callback for {0}, top statement is {1}. Set result and block\n", _context.ScratchString(), (int)_context.GetTopKnownNode()).c_str());
+                    _context.DetermineAutoCompleteContext();
+                    OutputDebugString("\n");
+
+
                     // Figure out the result
                     std::unique_ptr<AutoCompleteResult> result = GetAutoCompleteResult(&_context);
                     result->OriginalLimit = _limiter.GetLimit();
@@ -223,7 +233,10 @@ void AutoCompleteThread2::_DoWork()
                             additionalCharacters = _ac._additionalCharacters;
                             _ac._additionalCharacters = "";
                         }
-                        _limiter.Extend(additionalCharacters);
+                        if (continueParsing)
+                        {
+                            _limiter.Extend(additionalCharacters);
+                        }
                     }
 
                     return continueParsing;   // false -> bail
