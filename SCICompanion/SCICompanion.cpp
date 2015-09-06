@@ -217,9 +217,10 @@ SCICompanionApp theApp;
 // SCICompanionApp initialization
 BOOL SCICompanionApp::InitInstance()
 {
+    bool resetSettings = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
+
     appState = new AppState(this);
     appState->InitInstance();
-
     CWinApp::InitInstance();
 
     // Initialize OLE libraries
@@ -241,7 +242,7 @@ BOOL SCICompanionApp::InitInstance()
     //  serve as the connection between documents, frame windows and views
 
     BOOL fLoadRecentFile = FALSE;
-    if (GetKeyState(VK_SHIFT) & 0x8000)
+    if (resetSettings)
     {
         // Reset settings when the shift key is down
         _LoadSettings(TRUE);
@@ -375,9 +376,19 @@ BOOL SCICompanionApp::InitInstance()
     AddDocTemplate(appState->_pRoomExplorerTemplate);
 
     // Prof-UIS stuff
-    g_PaintManager.InstallPaintManager(new CExtPaintManagerOffice2007_R2_LunaBlue);
-    //g_PaintManager.InstallPaintManager(new CExtPaintManagerOffice2007_R2_Silver);
-    //g_PaintManager.InstallPaintManager(new CExtPaintManagerNativeXP);
+    CWinApp *pApp = ::AfxGetApp();
+    if (resetSettings)
+    {
+        g_PaintManager.InstallPaintManager(new CExtPaintManagerOffice2007_R2_LunaBlue);
+        g_PaintManager.PaintManagerStateSave(pApp->m_pszRegistryKey, pApp->m_pszProfileName, pApp->m_pszProfileName);
+    }
+    else
+    {
+        if (!g_PaintManager.PaintManagerStateLoad(pApp->m_pszRegistryKey, pApp->m_pszProfileName, pApp->m_pszProfileName))
+        {
+            g_PaintManager.InstallPaintManager(new CExtPaintManagerOffice2007_R2_LunaBlue);
+        }
+    }
 
     // create main MDI Frame window
     CMainFrame* pMainFrame = new CMainFrame;
@@ -464,7 +475,8 @@ BOOL SCICompanionApp::_RegisterWindowClasses()
 int SCICompanionApp::ExitInstance()
 {
     _SaveSettings();
-
+    CWinApp *pApp = ::AfxGetApp();
+    g_PaintManager.PaintManagerStateSave(pApp->m_pszRegistryKey, pApp->m_pszProfileName, pApp->m_pszProfileName);
     appState->ExitInstance();
     int iRet = __super::ExitInstance();
     delete appState;
