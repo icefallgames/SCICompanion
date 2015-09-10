@@ -10,15 +10,44 @@ using namespace sci;
 using namespace std;
 
 
-std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(SyntaxContext *pContext)
+std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &prefix, SyntaxContext *pContext)
 {
-    // TODO
     std::unique_ptr<AutoCompleteResult> result = std::make_unique<AutoCompleteResult>();
-    if (pContext)
+    if (pContext && !prefix.empty())
     {
-        SCIClassBrowser *browser = appState->GetResourceMap().GetClassBrowser();
-        browser->GetAutoCompleteChoices(pContext->ScratchString(), result->choices);
-        result->fResultsChanged = true; // TODO
+        AutoCompleteSourceType sourceTypes = AutoCompleteSourceType::None;
+        switch (pContext->GetParseAutoCompleteContext())
+        {
+            case ParseAutoCompleteContext::Selector:
+                sourceTypes |= AutoCompleteSourceType::Selector;
+                break;
+
+            case ParseAutoCompleteContext::TopLevelKeyword:
+                sourceTypes |= AutoCompleteSourceType::TopLevelKeyword;
+                break;
+
+            case ParseAutoCompleteContext::Value:
+                sourceTypes |= AutoCompleteSourceType::ClassName | AutoCompleteSourceType::Variable | AutoCompleteSourceType::Define;
+                break;
+
+            case ParseAutoCompleteContext::SuperClass:
+                sourceTypes |= AutoCompleteSourceType::ClassName;
+                break;
+
+            case ParseAutoCompleteContext::ScriptName:
+                sourceTypes |= AutoCompleteSourceType::ScriptName;
+                break;
+
+            default:
+                // TODO: Things like class properties, which require context.
+                break;
+        }
+        if (sourceTypes != AutoCompleteSourceType::None)
+        {
+            SCIClassBrowser *browser = appState->GetResourceMap().GetClassBrowser();
+            browser->GetAutoCompleteChoices(prefix, sourceTypes, result->choices);
+            result->fResultsChanged = true; // TODO
+        }
     }
     return result;
 }
@@ -204,15 +233,14 @@ void AutoCompleteThread2::_DoWork()
 
                 bool Done()
                 {
-                    OutputDebugString(fmt::format("ACThread: Callback for {0}, top statement is {1}. Set result and block\n", _context.ScratchString(), (int)_context.GetTopKnownNode()).c_str());
-                    _context.DetermineAutoCompleteContext();
+                    std::string word = _limiter.GetLastWord();
+                    OutputDebugString(fmt::format("ACThread: Callback for {0}, top statement is {1}. Set result and block\n", word.c_str(), (int)_context.GetTopKnownNode()).c_str());
                     OutputDebugString("\n");
 
-
                     // Figure out the result
-                    std::unique_ptr<AutoCompleteResult> result = GetAutoCompleteResult(&_context);
+                    std::unique_ptr<AutoCompleteResult> result = GetAutoCompleteResult(word, &_context);
                     result->OriginalLimit = _limiter.GetLimit();
-                    result->OriginalLimit.x -= _context.ScratchString().length();
+                    result->OriginalLimit.x -= word.length();
                     result->OriginalLimit.x = max(result->OriginalLimit.x, 0);
                     _ac._SetResult(move(result), _id);
 
@@ -251,6 +279,7 @@ void AutoCompleteThread2::_DoWork()
             sci::Script script;
             CCrystalScriptStream::const_iterator it(limiter.get());
             SyntaxContext context(it, script, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), false);
+            context.ParseDebug = true; // phil temp
 
             AutoCompleteParseCallback callback(context, *this, *limiter, id);
             limiter->SetCallback(&callback);

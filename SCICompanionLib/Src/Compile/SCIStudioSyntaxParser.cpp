@@ -151,29 +151,6 @@ sci::NodeType SyntaxContext::GetTopKnownNode() const
     return type;
 }
 
-AutoCompleteContext SyntaxContext::DetermineAutoCompleteContext() const
-{
-    AutoCompleteType type = AutoCompleteType::None;
-    if (!_scratch.empty())
-    {
-        char first = _scratch[0];
-        if (isalpha(first) || (first == '_'))
-        {
-            if (GetParseAutoCompleteContext() == ParseAutoCompleteContext::Selector)
-            {
-                type = AutoCompleteType::Selector;
-                OutputDebugString("SELECTOR\n");
-            }
-            else
-            {
-                type = AutoCompleteType::Value;
-            }
-        }
-    }
-    return AutoCompleteContext(_scratch, type);
-}
-
-
 //
 // send call
 //
@@ -238,10 +215,7 @@ void SendParamIsMethod(MatchResult &match, const Parser *pParser, SyntaxContext 
 bool SyntaxNodeD(const Parser *pParser, SyntaxContext *pContext, streamIt &stream)
 {
     // Make room on the stack for a statement
-    if (!pContext->ForAutoComplete)
-    {
-        pContext->PushSyntaxNode();
-    }
+    pContext->PushSyntaxNode();
     // Then call our sub parser
     return pParser->_pa->Match(pContext, stream).Result();
 }
@@ -1373,7 +1347,7 @@ void SCISyntaxParser::Load()
         | binary_operation
         | asm_block
         //| ternary_expression
-        | code_block)[FinishStatementA];
+        | code_block)[{FinishStatementA, ParseAutoCompleteContext::Value}];
 
     function_var_decl_begin = oppar >> keyword_p("var");
 
@@ -1474,7 +1448,11 @@ void SCISyntaxParser::Load()
 void SyntaxContext::ReportError(std::string error, streamIt pos)
 {
 #ifdef PARSE_DEBUG
-    OutputDebugString(error.c_str());
+    if (ParseDebug)
+    {
+        OutputDebugString(error.c_str());
+        OutputDebugString("\n");
+    }
 #endif
     // Prefer already-reported errors at the same spot
     // Otherwise prefer errors at a later position (presumably it means more

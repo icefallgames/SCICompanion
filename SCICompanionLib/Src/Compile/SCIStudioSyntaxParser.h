@@ -156,20 +156,15 @@ public:
         }
         _It streamSave(stream);
 #ifdef PARSE_DEBUG
-        if (!Name.empty() || _psz)
+        string text = stream.GetLookAhead(5);
+
+        if (pContext->ParseDebug && (!Name.empty() || _psz))
         {
             string name = !Name.empty() ? Name : _psz;
-            string text;
-            _It streamTemp = stream;
-            text += *streamTemp;
-            if (text[0])
-                text += *++streamTemp;
-            if (text[1])
-                text += *++streamTemp;
             std::stringstream ss;
             string spaces;
             spaces.append(g_ParseIndent, ' ');
-            ss << spaces << "-->Matching " << name << ": " << text << "\n";
+            ss << spaces << "-->Matching " << name << " against " << text << "\n";
             OutputDebugString(ss.str().c_str());
         }
         g_ParseIndent++;
@@ -179,25 +174,17 @@ public:
         pContext->PopParseAutoCompleteContext();
 #ifdef PARSE_DEBUG
         g_ParseIndent--;
-        if (!Name.empty() || _psz)
+        if (pContext->ParseDebug && (!Name.empty() || _psz))
         {
             string name = !Name.empty() ? Name : _psz;
-            string text;
-            _It streamTemp = stream;
-            text += *streamTemp;
-            if (text[0])
-                text += *++streamTemp;
-            if (text[1])
-                text += *++streamTemp;
             std::stringstream ss;
             string spaces;
             spaces.append(g_ParseIndent, ' ');
-            ss << spaces << "<--Matching " << name << " " << (result.Result() ? "true: " : "false: ") << text << "\n";
+            ss << spaces << (result.Result() ? "   TRUE" : "   FALSE") << "\n";
             OutputDebugString(ss.str().c_str());
         }
 #endif
-        if (_pfnA && !pContext->ForAutoComplete)
-        //if (_pfnA)
+        if (_pfnA)
         {
             (*_pfnA)(result, this, pContext, stream);
         }
@@ -751,7 +738,7 @@ enum class IfDefDefineState
 class SyntaxContext
 {
 public:
-    SyntaxContext(streamIt beginning, sci::Script &script, std::unordered_set<std::string> preProcessorDefines, bool addCommentsDirectly) : _beginning(beginning), _script(script), extraKeywords(nullptr), ifDefDefineState(IfDefDefineState::None), _preProcessorDefines(preProcessorDefines), _addCommentsToOM(addCommentsDirectly), ForAutoComplete(false) {}
+    SyntaxContext(streamIt beginning, sci::Script &script, std::unordered_set<std::string> preProcessorDefines, bool addCommentsDirectly) : _beginning(beginning), _script(script), extraKeywords(nullptr), ifDefDefineState(IfDefDefineState::None), _preProcessorDefines(preProcessorDefines), _addCommentsToOM(addCommentsDirectly), ParseDebug(false) {}
 
 	~SyntaxContext()
     {
@@ -759,7 +746,7 @@ public:
     }
     void ReportError(std::string error, streamIt pos);
 
-    bool ForAutoComplete;
+    bool ParseDebug;
 
     std::string GetErrorText()
     {
@@ -905,8 +892,6 @@ public:
     const sci::SyntaxNode *GetSyntaxNode(sci::NodeType type) const;
     // Returns the type of the topmost non-null syntax node
     sci::NodeType GetTopKnownNode() const;
-
-    AutoCompleteContext DetermineAutoCompleteContext() const;
 
     // Get the syntax node at the top of the statement stack
     template<typename _statementT>

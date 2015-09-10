@@ -98,6 +98,8 @@ public:
 
     LPCTSTR GetLineChars(int nLine) { return _pBuffer->GetLineChars(nLine); } // Just fwd through.  We're limited by _nCharLimit
     void GetMoreData(int &nChar, int &nLine, int &nLength, PCSTR &pszLine);
+    std::string GetLastWord();
+    std::string GetLookAhead(int nLine, int nChar, int nChars);
 
 private:
     std::unique_ptr<ReadOnlyTextBuffer> _pBuffer;
@@ -135,6 +137,9 @@ public:
         int GetColumnNumber() const;
         bool operator==(const const_iterator& value) const;
         bool operator!=(const const_iterator& value) const;
+
+        // For debugging
+        std::string GetLookAhead(int nChars);
 
     private:
         CScriptStreamLimiter *_limiter;

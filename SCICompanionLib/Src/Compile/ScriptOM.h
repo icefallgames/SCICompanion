@@ -4,6 +4,7 @@
 #include "SCO.h"
 #include "ScriptOMSmall.h"
 #include "ScriptOMInterfaces.h"
+#include "NodeTypes.h"
 class CompileContext;
 
 //
@@ -176,50 +177,6 @@ namespace sci
         ScriptSite& operator=(const ScriptSite& src) = delete;
     private:
         Script *_pScript;
-    };
-	
-    //
-    // Various things that might be interesting to outsiders.
-    //
-    enum NodeType
-    {
-        NodeTypeUnknown,
-        NodeTypeValue,
-        NodeTypeComplexValue,           // 2
-        NodeTypeAssignment,
-        NodeTypeVariableDeclaration,
-        NodeTypeDefine,
-        NodeTypeClassProperty,
-        NodeTypeStatement,
-        NodeTypeFunction,
-        NodeTypeClassDefinition,
-        NodeTypeSynonym,                // 10
-        NodeTypeCodeBlock,
-        NodeTypeSendParam,
-        NodeTypeLValue,
-        NodeTypeSendCall,
-        NodeTypeProcedureCall,          // 15
-        NodeTypeConditionalExpression,
-        NodeTypeCase,
-        NodeTypeSwitch,
-        NodeTypeAsm,
-        NodeTypeAsmBlock,               // 20
-        NodeTypeReturn,
-        NodeTypeBinaryOperation,
-        NodeTypeUnaryOperation,
-        NodeTypeForLoop,
-        NodeTypeWhileLoop,
-        NodeTypeDoLoop,
-        NodeTypeBreak,
-        NodeTypeRest,
-        NodeTypeScript,
-        NodeTypeComment,
-        NodeTypeFunctionParameter,
-        NodeTypeFunctionSignature,
-        NodeTypeCppIf,
-        NodeTypeCast,
-        NodeTypeConditionalExpressionSCIStudio,
-        NodeTypeExport,
     };
 
     class Comment;

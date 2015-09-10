@@ -40,6 +40,7 @@ public:
     std::string Lookup(uint16_t wName) const override;
     std::vector<std::string> GetNamesForDisplay() const;
     bool ReverseLookup(std::string name, uint16_t &wIndex);
+    const std::vector<std::string> &GetNames() const { return _names; }
 
     bool Load(const GameFolderHelper &helpern);
     uint16_t Add(const std::string &str);

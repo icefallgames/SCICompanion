@@ -8,6 +8,7 @@
 class SCIClassBrowserNode;
 class ISCIPropertyBag;
 class AutoCompleteChoice;
+enum class AutoCompleteSourceType;
 
 namespace sci
 {
@@ -76,7 +77,7 @@ public:
     bool GetPropertyValue(PCTSTR pszName, const sci::ClassDefinition *pClass, WORD *pw);
     bool GetProperty(PCTSTR pszName, const sci::ClassDefinition *pClass, sci::PropertyValue &Out);
     bool GetPropertyValue(PCTSTR pszName, ISCIPropertyBag *pBag, const sci::ClassDefinition *pClass, WORD *pw);
-    void GetAutoCompleteChoices(const std::string &prefix, std::vector<AutoCompleteChoice> &choices);
+    void GetAutoCompleteChoices(const std::string &prefix, AutoCompleteSourceType sourceTypes, std::vector<AutoCompleteChoice> &choices);
     sci::Script *_LoadScript(PCTSTR pszPath);
     
     // Error reporting.
@@ -114,7 +115,7 @@ private:
     // This maps strings to SCIClassBrowserNode.  e.g. gEgo to it's node in the tree
     class_map _classMap;
 
-    TernarySearchTree<int> _aclist;
+    TernarySearchTree<AutoCompleteSourceType> _aclist;
 
     // This maps script numbers to arrays of instances within them.
     instance_map _instanceMap;

@@ -10,6 +10,7 @@
 #include "CompileContext.h"
 #include "ResourceContainer.h"
 #include "CodeAutoComplete.h"
+#include "AutoCompleteContext.h"
 
 using namespace sci;
 using namespace std;
@@ -749,16 +750,26 @@ bool SCIClassBrowser::_AddFileName(PCTSTR pszFullPath, PCTSTR pszFileName, BOOL 
 
 void SCIClassBrowser::_GenerateAutoCompleteTree()
 {
-    std::vector<TstItem<int>> items;
-    items.reserve(1000);
+    // REVIEW: If we find this takes too long, we can split things into different _acLists that are updated at different freqs
+    std::vector<TstItem<AutoCompleteSourceType>> items;
+    items.reserve(4000);
     for (auto &aDefine : _headerDefines)
     {
-        items.emplace_back(aDefine.first, 0);// NodeType::NodeTypeDefine);
+        items.emplace_back(aDefine.first, AutoCompleteSourceType::Define);
     }
+    for (auto &aClass : _classMap)
+    {
+        items.emplace_back(aClass.first, AutoCompleteSourceType::ClassName);
+    }
+    for (auto &selector : _selectorNames.GetNames())
+    {
+        items.emplace_back(selector, AutoCompleteSourceType::Selector);
+    }
+    
     _aclist.buildBalancedTree(items);
 }
 
-void SCIClassBrowser::GetAutoCompleteChoices(const std::string &prefixIn, std::vector<AutoCompleteChoice> &choices)
+void SCIClassBrowser::GetAutoCompleteChoices(const std::string &prefixIn, AutoCompleteSourceType sourceTypes, std::vector<AutoCompleteChoice> &choices)
 {
     choices.clear();
     CGuard guard(&_csClassBrowser);
@@ -766,13 +777,16 @@ void SCIClassBrowser::GetAutoCompleteChoices(const std::string &prefixIn, std::v
     std::vector<int> results = _aclist.partialMatchSearch(prefix.c_str());
     for (int resultIndex : results)
     {
-        int icon = 0;
-        switch (*_aclist.getValue(resultIndex))
+        if ((*_aclist.getValue(resultIndex) & sourceTypes) != AutoCompleteSourceType::None)
         {
-            default:
-                icon = 0;
+            int icon = 0;
+            switch (*_aclist.getValue(resultIndex))
+            {
+                default:
+                    icon = 0;
+            }
+            choices.emplace_back(_aclist.getKey(resultIndex), icon);
         }
-        choices.emplace_back(_aclist.getKey(resultIndex), icon);
     }
 }
 

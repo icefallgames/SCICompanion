@@ -99,6 +99,45 @@ CCrystalScriptStream::CCrystalScriptStream(CScriptStreamLimiter *pLimiter)
     _pLimiter = pLimiter;
 }
 
+// For debugging
+std::string CScriptStreamLimiter::GetLookAhead(int nLine, int nChar, int cChars)
+{
+    //std::string GetLookAhead(int nLine, int nChars);
+
+    PCSTR pszLine = _pBuffer->GetLineChars(nLine);
+    int cLineChars = _pBuffer->GetLineLength(nLine);
+    std::string text;
+    while (pszLine && (nChar < cLineChars) && pszLine[nChar] && (cChars > 0))
+    {
+        text += pszLine[nChar++];
+    }
+    return text;
+}
+
+// For autocomplete
+std::string CScriptStreamLimiter::GetLastWord()
+{
+    CPoint pt = _pBuffer->GetLimit();
+    PCSTR pszLine = _pBuffer->GetLineChars(pt.y);
+    int nChar = pt.x - 1;
+    std::string word;
+    while (nChar > 0)
+    {
+        char theChar = pszLine[nChar];
+        if (isalnum(theChar) || (theChar == '_'))
+        {
+            word += theChar;
+        }
+        else
+        {
+            break;
+        }
+        nChar--;
+    }
+    std::reverse(word.begin(), word.end());
+    return word;
+}
+
 // Ensure we are on the line with nChar and nLine.
 void CScriptStreamLimiter::GetMoreData(int &nChar, int &nLine, int &nLength, PCSTR &pszLine)
 {
@@ -180,6 +219,11 @@ char CCrystalScriptStream::const_iterator::operator*()
         _id = *_pidStream;
         return (_nChar == _nLength) ? '\n' : _pszLine[_nChar];
     }
+}
+
+std::string CCrystalScriptStream::const_iterator::GetLookAhead(int nChars)
+{
+   return  _limiter->GetLookAhead(_nLine, _nChar, nChars);
 }
 
 CCrystalScriptStream::const_iterator& CCrystalScriptStream::const_iterator::operator++()

@@ -268,6 +268,7 @@
     <ClInclude Include="Src\Compile\DecompilerFallback.h" />
     <ClInclude Include="Src\Compile\DecompilerNew.h" />
     <ClInclude Include="Src\Compile\DecompilerResults.h" />
+    <ClInclude Include="Src\Compile\NodeTypes.h" />
     <ClInclude Include="Src\cpptoml\cpptoml.h" />
     <ClInclude Include="Src\Dialogs\ColorAdjustDialog.h" />
     <ClInclude Include="Src\Dialogs\ColorShiftCallback.h" />
