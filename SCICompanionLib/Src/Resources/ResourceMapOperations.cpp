@@ -12,7 +12,11 @@ std::unique_ptr<ResourceSource> _CreateResourceSource(const std::string &gameFol
 {
     if (version.MapFormat == ResourceMapFormat::SCI0)
     {
-        return std::make_unique<MapAndPackageSource<SCI0MapNavigator, _TFileDescriptor>>(version, MakeResourceHeaderReadWriter<RESOURCEHEADER_SCI0>(), gameFolder);
+        return std::make_unique<MapAndPackageSource<SCI0MapNavigator<RESOURCEMAPENTRY_SCI0>, _TFileDescriptor>>(version, MakeResourceHeaderReadWriter<RESOURCEHEADER_SCI0>(), gameFolder);
+    }
+    else if (version.MapFormat == ResourceMapFormat::SCI0_LayoutSCI1)
+    {
+        return std::make_unique<MapAndPackageSource<SCI0MapNavigator<RESOURCEMAPENTRY_SCI0_SCI1LAYOUT>, _TFileDescriptor>>(version, MakeResourceHeaderReadWriter<RESOURCEHEADER_SCI0>(), gameFolder);
     }
     else if (version.MapFormat == ResourceMapFormat::SCI1)
     {

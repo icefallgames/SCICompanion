@@ -230,6 +230,61 @@ ResourceMapFormat CResourceMap::_DetectMapFormat()
             }
         }
     }
+    else
+    {
+        // It's SCI0, in that it doesn't have a list of "pre-entries". But the format of the entries themselves could be "SCI1".
+        // Check by interpreting them as SCI0 and seeing if we can open all the volume files we encounter.
+        sci::istream byteStreamSCI0 = streamHolder->getReader();
+        sci::istream byteStreamSCI1 = streamHolder->getReader();
+        std::set<int> volumesSCI0;
+        std::set<int> volumesSCI1;
+        static_assert(sizeof(RESOURCEMAPENTRY_SCI0) == sizeof(RESOURCEMAPENTRY_SCI0_SCI1LAYOUT), "Mismatched resource map entry size.");
+        while (byteStreamSCI0.good())
+        {
+            RESOURCEMAPENTRY_SCI0 mapEntrySCI0;
+            byteStreamSCI0 >> mapEntrySCI0;
+            if (mapEntrySCI0.iType == 0x1f)
+            {
+                break; // EOF marker
+            }
+            volumesSCI0.insert(mapEntrySCI0.iPackageNumber);
+            RESOURCEMAPENTRY_SCI0_SCI1LAYOUT mapEntrySCI1;
+            byteStreamSCI1 >> mapEntrySCI1;
+            volumesSCI1.insert(mapEntrySCI1.iPackageNumber);
+        }
+
+        // If any of these don't exist, assume that we have SCI1 layout
+        bool probablyNotSCI0 = false;
+        for (int volume : volumesSCI0)
+        {
+            FileDescriptorResourceMap resourceMapFileDescriptor(_gameFolderHelper.GameFolder);
+            if (!PathFileExists(resourceMapFileDescriptor._GetVolumeFilename(volume).c_str()))
+            {
+                probablyNotSCI0 = true;
+                break;
+            }
+        }
+
+        // Let's verify first though (in case someone just deleted a package file)
+        if (probablyNotSCI0)
+        {
+            for (int volume : volumesSCI1)
+            {
+                FileDescriptorResourceMap resourceMapFileDescriptor(_gameFolderHelper.GameFolder);
+                if (!PathFileExists(resourceMapFileDescriptor._GetVolumeFilename(volume).c_str()))
+                {
+                    // Game is corrupt...
+                    probablyNotSCI0 = false;
+                    break;
+                }
+            }
+        }
+
+        if (probablyNotSCI0)
+        {
+            mapFormat = ResourceMapFormat::SCI0_LayoutSCI1;
+        }
+    }
 
     return mapFormat;
 }

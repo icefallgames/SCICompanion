@@ -583,9 +583,13 @@ public:
             CrystalScriptTokenStream::const_iterator streamTemp = stream;
             text += StringFromSyntaxTokenDEBUG((*streamTemp).type);
             if (text[0])
+            {
                 text += StringFromSyntaxTokenDEBUG((*++streamTemp).type);
-            if (text[1])
-                text += StringFromSyntaxTokenDEBUG((*++streamTemp).type);
+                if (text[1])
+                {
+                    text += StringFromSyntaxTokenDEBUG((*++streamTemp).type);
+                }
+            }
             std::stringstream ss;
             std::string spaces;
             spaces.append(g_ParseIndent2, ' ');
@@ -606,9 +610,13 @@ public:
             CrystalScriptTokenStream::const_iterator streamTemp = stream;
             text += StringFromSyntaxTokenDEBUG((*streamTemp).type);
             if (text[0])
+            {
                 text += StringFromSyntaxTokenDEBUG((*++streamTemp).type);
-            if (text[1])
-                text += StringFromSyntaxTokenDEBUG((*++streamTemp).type);
+                if (text[1])
+                {
+                    text += StringFromSyntaxTokenDEBUG((*++streamTemp).type);
+                }
+            }
             std::stringstream ss;
             std::string spaces;
             spaces.append(g_ParseIndent2, ' ');

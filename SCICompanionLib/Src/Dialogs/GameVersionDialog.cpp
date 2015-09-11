@@ -101,6 +101,7 @@ void CGameVersionDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_STATIC7, m_wndLabel7);
 
     DDX_Control(pDX, IDC_RADIOSCI0, m_wndRadioResourceMapSCI0);
+    DDX_Control(pDX, IDC_RADIOSCI0_1, m_wndRadioResourceMapSCI0_SCI1);
     DDX_Control(pDX, IDC_RADIOSCI1, m_wndRadioResourceMapSCI1);
     DDX_Control(pDX, IDC_RADIOSCI6, m_wndRadioResourceMapSCI11);
     DDX_Control(pDX, IDC_RADIOSCI7, m_wndRadioResourcePackSCI0);
@@ -190,7 +191,11 @@ void _OnViewResourceMap(const _TResourceSource &fileDescriptor, SCIVersion versi
 
     if (versionTest.MapFormat == ResourceMapFormat::SCI0)
     {
-        resourceSource = std::make_unique<MapAndPackageSource<SCI0MapNavigator, _TResourceSource>>(versionTest, dummy, gameFolder);
+        resourceSource = std::make_unique<MapAndPackageSource<SCI0MapNavigator<RESOURCEMAPENTRY_SCI0>, _TResourceSource>>(versionTest, dummy, gameFolder);
+    }
+    else if (versionTest.MapFormat == ResourceMapFormat::SCI0_LayoutSCI1)
+    {
+        resourceSource = std::make_unique<MapAndPackageSource<SCI0MapNavigator<RESOURCEMAPENTRY_SCI0_SCI1LAYOUT>, _TResourceSource>>(versionTest, dummy, gameFolder);
     }
     else if (versionTest.MapFormat == ResourceMapFormat::SCI1)
     {

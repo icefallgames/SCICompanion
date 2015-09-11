@@ -98,10 +98,24 @@ sci::istream ResourceContainer::ResourceIterator::_GetResourceHeaderAndPackage(R
         throw std::exception("invalid iterator!");
     }
 
-    sci::istream temp = (*_container->_mapAndVolumes)[_state.mapIndex]->GetHeaderAndPositionedStream(_currentEntry, rh);
+    sci::istream temp;
+    try
+    {
+        temp = (*_container->_mapAndVolumes)[_state.mapIndex]->GetHeaderAndPositionedStream(_currentEntry, rh);
+    }
+    catch (std::exception)
+    {
+        rh.Type = _currentEntry.Type;
+        rh.cbCompressed = 0;
+        rh.cbDecompressed = 0;
+        rh.CompressionMethod = 0;
+        rh.Version = appState->GetVersion();
+        //rh.Version = this->
+    }
 
-    assert((uint16_t)rh.Number == _currentEntry.Number && "Corrupt resource map");
-    assert(rh.PackageHint == _currentEntry.PackageNumber && "Corrupt resource map");
+ //   assert((uint16_t)rh.Number == _currentEntry.Number && "Corrupt resource map");
+  //  assert(rh.PackageHint == _currentEntry.PackageNumber && "Corrupt resource map");
+
     // By setting these to those in the resource map (instead of the header), we can ensure that the ResourceBlob matches
     // the resource map information. This ensures that we can delete resources in the case of a corrupt resource map/package.
     rh.Number = _currentEntry.Number;
@@ -205,43 +219,4 @@ void ResourceContainer::ResourceIterator::_GetNextEntry()
             _atEnd = true;
         }
     }
-}
-
-bool SCI0MapNavigator::NavAndReadNextEntry(ResourceTypeFlags typeFlags, sci::istream &mapStream, IteratorState &state, ResourceMapEntryAgnostic &entryOut, std::vector<uint8_t> *optionalRawData)
-{
-    mapStream.seekg(state.mapStreamOffset);
-
-    // lookupTableIndex not used for SCI0
-    RESOURCEMAPENTRY_SCI0 entry;
-    mapStream >> entry;
-    if (optionalRawData)
-    {
-        uint8_t *rawData = reinterpret_cast<uint8_t*>(&entry);
-        optionalRawData->assign(rawData, rawData + sizeof(entry));
-    }
-
-    entryOut = entry.ToAgnostic();
-    state.mapStreamOffset = mapStream.tellg();
-    return mapStream.good();
-}
-
-void SCI0MapNavigator::WriteEntry(const ResourceMapEntryAgnostic &entryIn, sci::ostream &mapStreamWriteMain, sci::ostream &mapStreamWriteSecondary, bool isNewEntry)
-{
-    RESOURCEMAPENTRY_SCI0 entry;
-    entry.FromAgnostic(entryIn);
-    mapStreamWriteSecondary << entry;
-    // Don't need to touch mapStreamWriteMain, since we don't have any lookup table.
-}
-
-void SCI0MapNavigator::FinalizeMapStreams(sci::ostream &mapStreamWriteMain, sci::ostream &mapStreamWriteSecondary)
-{
-    // The SCI1 navigator will need to do something more complicated here.
-    sci::istream reader = istream_from_ostream(mapStreamWriteSecondary);
-    reader.seekg(0);
-    transfer(reader, mapStreamWriteMain, reader.getBytesRemaining());
-    
-    // We need to write the terminating bits here
-    RESOURCEMAPENTRY_SCI0 entryTerm;
-    memset(&entryTerm, 0xff, sizeof(entryTerm));
-    mapStreamWriteMain.WriteBytes((uint8_t*)&entryTerm, sizeof(entryTerm));
 }

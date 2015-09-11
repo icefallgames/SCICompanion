@@ -78,7 +78,7 @@ void CSamplesDialogBar::_PrepareSamples()
 
     if (_pDoc)
     {
-        SCIVersion sampleVersion = (appState->GetVersion().MapFormat == ResourceMapFormat::SCI0) ? sciVersion0 : sciVersion1_1;
+        SCIVersion sampleVersion = (appState->GetVersion().MapFormat <= ResourceMapFormat::SCI0_LayoutSCI1) ? sciVersion0 : sciVersion1_1;
 
         ResourceType type = _pDoc->GetShownResourceType();
         if (type != ResourceType::None)

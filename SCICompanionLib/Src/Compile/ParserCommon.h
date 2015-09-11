@@ -5,7 +5,7 @@
 
 #ifdef DEBUG
 // Uncomment this to get parsing debug spew. It's still very flaky
- #define PARSE_DEBUG 1
+ // #define PARSE_DEBUG 1
 #endif
 
 //

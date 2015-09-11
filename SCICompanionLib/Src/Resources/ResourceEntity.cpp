@@ -20,7 +20,6 @@ ResourceTraits emptyTraits =
 ResourceEntity::ResourceEntity(const ResourceTraits &traits) :
 Traits(traits),
 ResourceNumber(-1),
-PackageNumber(-1),
-CanSave(true)
+PackageNumber(-1)
 {
 }

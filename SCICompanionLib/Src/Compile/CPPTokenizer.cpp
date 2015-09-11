@@ -86,7 +86,7 @@ const char *StringFromSyntaxToken(SyntaxToken token)
 
 const char *StringFromSyntaxTokenDEBUG(SyntaxToken token)
 {
-    const char *pszUnknown = "UNKNOWN";
+    const char *pszUnknown = "\0";
     const char *pszRet = LookupKeyValue(c_tokenMap, ARRAYSIZE(c_tokenMap), token, pszUnknown);
     return pszRet;
 }

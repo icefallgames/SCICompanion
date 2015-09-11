@@ -119,6 +119,15 @@ namespace sci
         _iIndex = absoluteOffset;
     }
 
+    istream::istream()
+    {
+        _throwExceptions = false;
+        _iIndex = 0;
+        _cbSizeValid = 0;
+        _pDataReadOnly = nullptr;
+        _state = std::ios_base::goodbit;
+    }
+
     istream::istream(const uint8_t *pData, uint32_t cbSize)
     {
         _throwExceptions = false;

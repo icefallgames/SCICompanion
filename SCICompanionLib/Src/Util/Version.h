@@ -5,8 +5,9 @@
 enum class ResourceMapFormat : uint8_t
 {
     SCI0 = 0,
-    SCI1 = 1,
-    SCI11 = 2,
+    SCI0_LayoutSCI1 = 1,
+    SCI1 = 2,
+    SCI11 = 3,
 };
 
 enum class ResourcePackageFormat : uint8_t

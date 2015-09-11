@@ -65,14 +65,9 @@ struct ResourceHeaderAgnostic
 // SCI0
 //
 
-// resource.map consists of an array of these structures, terminated by a sequence where all bits are set to on.
-struct RESOURCEMAPENTRY_SCI0
+template<typename _TLayout>
+struct RESOURCEMAPENTRY_SCI0_BASE : public _TLayout
 {
-	uint16_t iNumber:11;        // (0 to 999)
-	uint16_t iType:5;           // (0 to 9) e.g. PIC == 1
-	DWORD iOffset:26;       // Offset within the file resource.iPackageNumber
-	DWORD iPackageNumber:6; // Specifies which resource.xxx to use.
-
     ResourceType GetType() const { return (ResourceType)iType; }
 
     ResourceMapEntryAgnostic ToAgnostic()
@@ -93,6 +88,37 @@ struct RESOURCEMAPENTRY_SCI0
         iPackageNumber = agnostic.PackageNumber;
     }
 };
+
+struct LAYOUT_SCI0
+{
+    uint16_t iNumber : 11;        // (0 to 999)
+    uint16_t iType : 5;           // (0 to 9) e.g. PIC == 1
+    DWORD iOffset : 26;       // Offset within the file resource.iPackageNumber
+    DWORD iPackageNumber : 6; // Specifies which resource.xxx to use.
+};
+
+
+struct LAYOUT_SCI1
+{
+    uint16_t iNumber : 11;        // (0 to 999)
+    uint16_t iType : 5;           // (0 to 9) e.g. PIC == 1
+    DWORD iOffset : 28;       // Offset within the file resource.iPackageNumber
+    DWORD iPackageNumber : 4; // Specifies which resource.xxx to use.
+};
+
+// resource.map consists of an array of these structures, terminated by a sequence where all bits are set to on.
+struct RESOURCEMAPENTRY_SCI0 : public RESOURCEMAPENTRY_SCI0_BASE<LAYOUT_SCI0>
+{
+};
+
+// LSL1 VGA, for instance, has an "sci0" resource map, but the bits are aligned as for SCI1.
+struct RESOURCEMAPENTRY_SCI0_SCI1LAYOUT : public RESOURCEMAPENTRY_SCI0_BASE<LAYOUT_SCI1>
+{
+};
+
+//DWORD iOffset : 28;       // Offset within the file resource.iPackageNumber
+//DWORD iPackageNumber : 4; // Specifies which resource.xxx to use.
+
 
 // header for each entry in resource.xxx
 struct RESOURCEHEADER_SCI0

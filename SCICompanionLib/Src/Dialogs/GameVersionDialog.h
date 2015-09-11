@@ -51,6 +51,7 @@ private:
 
     CExtGroupBox m_wndGroupResourceMap;
     CExtRadioButton m_wndRadioResourceMapSCI0;
+    CExtRadioButton m_wndRadioResourceMapSCI0_SCI1;
     CExtRadioButton m_wndRadioResourceMapSCI1;
     CExtRadioButton m_wndRadioResourceMapSCI11;
 

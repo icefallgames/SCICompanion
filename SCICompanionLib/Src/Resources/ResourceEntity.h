@@ -51,7 +51,6 @@ public:
         SourceFlags = prd->GetSourceFlags();
         sci::istream byteStream = prd->GetReadStream();
         byteStream.setThrowExceptions(true);
-        CanSave = (prd->GetVersion().MapFormat == ResourceMapFormat::SCI0);
         Traits.ReadFromFunc(*this, byteStream);
         return S_OK;
     }
@@ -61,7 +60,6 @@ public:
         std::unique_ptr<ResourceEntity> pClone = std::make_unique<ResourceEntity>(Traits);
         pClone->ResourceNumber = ResourceNumber;
         pClone->PackageNumber = PackageNumber;
-        pClone->CanSave = CanSave;
         pClone->SourceFlags = SourceFlags;
 
         for (auto &pair : components)
@@ -76,7 +74,6 @@ public:
     int PackageNumber;
     ResourceSourceFlags SourceFlags;
     const ResourceTraits &Traits;
-    bool CanSave;
 
     template<typename _T>
     const _T &GetComponent() const

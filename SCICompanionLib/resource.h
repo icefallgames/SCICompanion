@@ -547,6 +547,8 @@
 #define IDC_STATICZOOM                  1227
 #define IDC_CHECK9                      1227
 #define IDC_CHECK_FOLLOWVIEW            1228
+#define IDC_RADIOSCI10_1                1228
+#define IDC_RADIOSCI0_1                 1228
 #define IDC_STATICFINAL                 1229
 #define IDC_CHECKV2                     1230
 #define IDC_EXTRACT                     1230

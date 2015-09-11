@@ -313,13 +313,51 @@ private:
     std::vector<RESOURCEMAPPREENTRY_SCI1> lookupPointers;
 };
 
+template<typename _TReaderMapHeader>
 class SCI0MapNavigator
 {
 public:
     const AppendBehavior AppendBehavior = AppendBehavior::Append;
-    bool NavAndReadNextEntry(ResourceTypeFlags typeFlags, sci::istream &mapStream, IteratorState &state, ResourceMapEntryAgnostic &entryOut, std::vector<uint8_t> *optionalRawData = nullptr);
-    void WriteEntry(const ResourceMapEntryAgnostic &entryIn, sci::ostream &mapStreamWriteMain, sci::ostream &mapStreamWriteSecondary, bool isNewEntry);
-    void FinalizeMapStreams(sci::ostream &mapStreamWriteMain, sci::ostream &mapStreamWriteSecondary);
+
+    bool NavAndReadNextEntry(ResourceTypeFlags typeFlags, sci::istream &mapStream, IteratorState &state, ResourceMapEntryAgnostic &entryOut, std::vector<uint8_t> *optionalRawData = nullptr)
+    {
+        mapStream.seekg(state.mapStreamOffset);
+
+        // lookupTableIndex not used for SCI0
+        _TReaderMapHeader entry;
+        mapStream >> entry;
+        if (optionalRawData)
+        {
+            uint8_t *rawData = reinterpret_cast<uint8_t*>(&entry);
+            optionalRawData->assign(rawData, rawData + sizeof(entry));
+        }
+
+        entryOut = entry.ToAgnostic();
+        state.mapStreamOffset = mapStream.tellg();
+        return mapStream.good();
+    }
+
+    void WriteEntry(const ResourceMapEntryAgnostic &entryIn, sci::ostream &mapStreamWriteMain, sci::ostream &mapStreamWriteSecondary, bool isNewEntry)
+    {
+        _TReaderMapHeader entry;
+        entry.FromAgnostic(entryIn);
+        mapStreamWriteSecondary << entry;
+        // Don't need to touch mapStreamWriteMain, since we don't have any lookup table.
+
+    }
+
+    void FinalizeMapStreams(sci::ostream &mapStreamWriteMain, sci::ostream &mapStreamWriteSecondary)
+    {
+        // The SCI1 navigator will need to do something more complicated here.
+        sci::istream reader = istream_from_ostream(mapStreamWriteSecondary);
+        reader.seekg(0);
+        transfer(reader, mapStreamWriteMain, reader.getBytesRemaining());
+
+        // We need to write the terminating bits here
+        _TReaderMapHeader entryTerm;
+        memset(&entryTerm, 0xff, sizeof(entryTerm));
+        mapStreamWriteMain.WriteBytes((uint8_t*)&entryTerm, sizeof(entryTerm));
+    }
     static void EnsureResourceAlignment(sci::ostream &volumeStream) {}
     static void EnsureResourceAlignment(uint32_t &offset) {}
 };

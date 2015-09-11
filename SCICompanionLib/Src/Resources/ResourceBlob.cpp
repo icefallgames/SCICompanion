@@ -91,7 +91,7 @@ int ResourceBlob::GetLengthOnDisk() const
 {
     // The size of the header plus the compressed size.
     uint32_t headerSize =
-        (header.Version.MapFormat > ResourceMapFormat::SCI0) ? sizeof(RESOURCEHEADER_SCI1) : sizeof(RESOURCEHEADER_SCI0);
+        (header.Version.MapFormat > ResourceMapFormat::SCI0_LayoutSCI1) ? sizeof(RESOURCEHEADER_SCI1) : sizeof(RESOURCEHEADER_SCI0);
 
     return headerSize + header.cbCompressed;
 }
@@ -160,7 +160,7 @@ HRESULT ResourceBlob::CreateFromFile(PCTSTR pszName, std::string strFileName, SC
 
 sci::istream ResourceBlob::GetReadStream() const
 {
-    return sci::istream(&_pData[0], header.cbDecompressed);
+    return (header.cbDecompressed > 0) ? sci::istream(&_pData[0], header.cbDecompressed) : sci::istream();
 }
 
 DecompressionAlgorithm VersionAndCompressionNumberToAlgorithm(SCIVersion version, int compressionNumber)
@@ -228,7 +228,10 @@ void ResourceBlob::_DecompressFromBits(sci::istream &byteStream)
         if (algorithm == DecompressionAlgorithm::None)
         {
             iResult = 0;
-            byteStream.read_data(&_pData[0], header.cbDecompressed);
+            if (header.cbDecompressed > 0)
+            {
+                byteStream.read_data(&_pData[0], header.cbDecompressed);
+            }
         }
         else
         {
@@ -499,7 +502,7 @@ HRESULT ResourceBlob::SaveToHandle(HANDLE hFile, BOOL fNoHeader, DWORD *pcbWritt
         }
         else
         {
-            if (header.Version.MapFormat > ResourceMapFormat::SCI0)
+            if (header.Version.MapFormat > ResourceMapFormat::SCI0_LayoutSCI1)
             {
                 fWrote = _WriteHeaderToFile<RESOURCEHEADER_SCI1>(hFile, header, &cbWrittenHeader);
             }
@@ -552,7 +555,7 @@ int ResourceBlob::GetChecksum() const
     if (!_fComputedChecksum)
     {
         size_t size = _pData.size();
-        _iChecksum = crcFast(&_pData[0], _pData.size());
+        _iChecksum = (size > 0) ? crcFast(&_pData[0], _pData.size()) : 0;
         _fComputedChecksum = true;
     }
     return _iChecksum;

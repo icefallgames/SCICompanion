@@ -61,6 +61,7 @@ namespace sci
     public:
         istream(const uint8_t *pData, uint32_t cbSize);
         istream(const sci::istream &original, uint32_t absoluteOffset);
+        istream();
 
         istream(const sci::istream &original) = default;
         istream &operator=(const sci::istream &original) = default;
