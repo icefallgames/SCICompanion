@@ -401,7 +401,10 @@ bool CompiledScript::_LoadSCI0_SCI1(sci::istream &byteStream)
                         // Because they have a room, which is a public instance.  Unclear what this is supposed to point
                         // to though... it appears to point to the species selector.
                         // (also: magic entry point for script 0, entry 0, the play method.
-                        fRet = _ReadExports(byteStream);
+                        if (!IsFlagSet(_flags, CompiledScriptFlags::DontLoadExports))
+                        {
+                            fRet = _ReadExports(byteStream);
+                        }
                     }
                     break;
 

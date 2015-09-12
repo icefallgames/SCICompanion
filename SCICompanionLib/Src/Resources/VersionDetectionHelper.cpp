@@ -334,32 +334,41 @@ void AnalyzeLofsa(Opcode opcode, const uint16_t *operands, uint16_t currentPCOff
 bool CResourceMap::_DetectLofsaFormat()
 {
     bool lofsaAbsolute = true; // By default?
-    CompiledScript compiledScript(0);
-    if (compiledScript.Load(Helper(), _gameFolderHelper.Version, 0, true))
+    // Don't load exports, because loading the export table depends on lofsaAbsolute being correct (IsExportWide).
+    g_discovered = false;
+
+    auto scriptContainer = Resources(ResourceTypeFlags::Script, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
+    for (auto &blobIt = scriptContainer->begin(); !g_discovered && (blobIt != scriptContainer->end()); ++blobIt)
     {
-        g_compiledScriptAnalyze = &compiledScript;
-        g_discovered = false;
-        g_lofsaAbsolute = false;
-
-        // Leverage the code we already have, even though it's doing more than we need.
-        std::stringstream dummyStream;
-        DummyLookupNames lookupNames;
-        // Don't bother loading either of these.
-        GlobalCompiledScriptLookups scriptLookups;
-        ObjectFileScriptLookups objectFileLookups(Helper());
-        DisassembleScript(compiledScript,
-            dummyStream,
-            &scriptLookups,
-            &objectFileLookups,
-            &lookupNames,
-            nullptr,
-            &AnalyzeLofsa);
-
-        if (g_discovered)
+        CompiledScript compiledScript(blobIt.GetResourceNumber(), CompiledScriptFlags::DontLoadExports);
+        if (compiledScript.Load(Helper(), _gameFolderHelper.Version, blobIt.GetResourceNumber(), (*blobIt)->GetReadStream()))
         {
-            lofsaAbsolute = g_lofsaAbsolute;
+            g_compiledScriptAnalyze = &compiledScript;
+            g_discovered = false;
+            g_lofsaAbsolute = false;
+
+            // Leverage the code we already have, even though it's doing more than we need.
+            std::stringstream dummyStream;
+            DummyLookupNames lookupNames;
+            // Don't bother loading either of these.
+            GlobalCompiledScriptLookups scriptLookups;
+            ObjectFileScriptLookups objectFileLookups(Helper());
+            DisassembleScript(compiledScript,
+                dummyStream,
+                &scriptLookups,
+                &objectFileLookups,
+                &lookupNames,
+                nullptr,
+                &AnalyzeLofsa);
+
         }
     }
+
+    if (g_discovered)
+    {
+        lofsaAbsolute = g_lofsaAbsolute;
+    }
+
     return lofsaAbsolute;
 }
 
@@ -440,8 +449,6 @@ void CResourceMap::_SniffSCIVersion()
     for (auto &blobIt = paletteContainer->begin(); blobIt != paletteContainer->end(); ++blobIt)
     {
         _gameFolderHelper.Version.HasPalette = true;
-        _gameFolderHelper.Version.PicFormat = PicFormat::VGA1;
-        _gameFolderHelper.Version.ViewFormat = ViewFormat::VGA1; // We'll get more specific on this later.
         break;
     }
 
@@ -460,6 +467,34 @@ void CResourceMap::_SniffSCIVersion()
             break;
         }
         remainingToCheck--;
+    }
+
+    // Prescence of a palette does not necessarily indicate a VGA game. Some SCI1 EGA games have palettes left in them from their conversion from VGA.
+    // So instead, we'll check the 2nd byte of a view resource, which for early SCI1 games will be 0x80 if it's VGA.
+    // Note that this needs to come *after* the compression format detection above.
+    if (_gameFolderHelper.Version.HasPalette)
+    {
+        bool mustBeVGA = (_gameFolderHelper.Version.MapFormat >= ResourceMapFormat::SCI11) || _gameFolderHelper.Version.SeparateHeapResources;
+        if (!mustBeVGA)
+        {
+            auto viewContainer = Resources(ResourceTypeFlags::View, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
+            for (auto &view : *viewContainer)
+            {
+                if (view->GetDecompressedLength() >= 2)
+                {
+                    uint8_t secondByte = view->GetData()[1];
+                    // VGA views should have the second byte as 0x80
+                    mustBeVGA = (secondByte == 0x80);
+                    break;
+                }
+            }
+        }
+
+        if (mustBeVGA)
+        {
+            _gameFolderHelper.Version.PicFormat = PicFormat::VGA1;
+            _gameFolderHelper.Version.ViewFormat = ViewFormat::VGA1; // We'll get more specific on this later.
+        }
     }
 
     // Let's get more specific on view formats.

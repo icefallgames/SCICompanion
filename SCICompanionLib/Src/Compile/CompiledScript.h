@@ -164,6 +164,13 @@ struct ScriptSection
 	uint16_t length;
 };
 
+enum class CompiledScriptFlags
+{
+    None = 0,
+    DontLoadExports = 0x00000001
+};
+DEFINE_ENUM_FLAGS(CompiledScriptFlags, int)
+
 //
 // This represents all the information in a compiled script resources
 //
@@ -171,7 +178,7 @@ class CompiledScript : /*public ILookupNames, */ public IPrivateSpeciesLookups, 
 {
 public:
     CompiledScript(const CompiledScript &src) = delete;
-    CompiledScript(uint16_t wScript) { _wScript = wScript; }
+    CompiledScript(uint16_t wScript, CompiledScriptFlags flags = CompiledScriptFlags::None) { _wScript = wScript; _flags = flags; }
     bool Load(const GameFolderHelper &helper, SCIVersion version, int iScriptNumber, bool quick);
     bool Load(const GameFolderHelper &helper, SCIVersion version, int iScriptNumber, sci::istream &byteStream, sci::istream *heapStream = nullptr);
     std::vector<std::unique_ptr<CompiledObjectBase>> &GetObjects() { return _objects; }
@@ -229,6 +236,7 @@ private:
     std::vector<BYTE> _scriptResource;
     std::vector<uint16_t> _stringPointerOffsetsSCI1_1;
     SCIVersion _version;
+    CompiledScriptFlags _flags;
 };
 
 int GetOperandSize(BYTE bOpcode, OperandType operandType);
