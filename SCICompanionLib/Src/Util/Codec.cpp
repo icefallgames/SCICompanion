@@ -11,29 +11,42 @@
 * SCI decoder. It has been ported to the FreeSCI environment by Sergey Lapin.
 ***************************************************************************/
 
-/* TODO: Clean up, re-organize, improve speed-wise */
-struct tokenlist {
-    BYTE data;
-    __int16 next;
-} tokens[0x1004];
 
-static __int8 stak[0x1014] = {0};
-static __int8 lastchar = 0;
-static __int16 stakptr = 0;
-static WORD numbits, bitstring, lastbits, decryptstart;
-static __int16 curtoken, endtoken;
+struct Decrypt3Info
+{
+#pragma warning (disable: 4351) // new behavior for initialize lists for arrays
+    Decrypt3Info() : stak{}
+    {
+    }
 
+    Decrypt3Info(Decrypt3Info &src) = delete;
+    Decrypt3Info& operator=(Decrypt3Info &src) = delete;
 
-DWORD gbits(int numbits,  BYTE * data, int dlen)
+    struct tokenlist {
+        BYTE data;
+        __int16 next;
+    } tokens[0x1004];
+
+    __int8 stak[0x1014];
+    __int8 lastchar = 0;
+    __int16 stakptr = 0;
+    WORD numbits, bitstring, lastbits, decryptstart;
+    __int16 curtoken, endtoken;
+
+    DWORD whichbit = 0;
+
+    int decryptComp3Helper(BoundsCheckedArray<BYTE> &dest, BYTE *src, int length, int complength, __int16 &token);
+};
+
+DWORD gbits(Decrypt3Info &info, int numbits, BYTE * data, int dlen)
 {
     int place; /* indicates location within byte */
     DWORD bitstring;
-    static DWORD whichbit=0;
     int i;
 
-    if(numbits==0) {whichbit=0; return 0;}
+    if (numbits == 0) { info.whichbit = 0; return 0; }
 
-    place = whichbit >> 3;
+    place = info.whichbit >> 3;
     bitstring=0;
     for(i=(numbits>>3)+1;i>=0;i--)
         {
@@ -42,31 +55,31 @@ DWORD gbits(int numbits,  BYTE * data, int dlen)
         }
     /*  bitstring = data[place+2] | (long)(data[place+1])<<8
         | (long)(data[place])<<16;*/
-    bitstring >>= 24-(whichbit & 7)-numbits;
+    bitstring >>= 24 - (info.whichbit & 7) - numbits;
     bitstring &= (0xffffffff >> (32-numbits));
     /* Okay, so this could be made faster with a table lookup.
        It doesn't matter. It's fast enough as it is. */
-    whichbit += numbits;
+    info.whichbit += numbits;
     return bitstring;
 }
 
-void decryptinit3()
+void decryptinit3(Decrypt3Info &info)
 {
     int i;
-    lastbits = bitstring = stakptr = 0;
-    lastchar = 0;
-    numbits = 9;
-    curtoken = 0x102;
-    endtoken = 0x1ff;
-    decryptstart = 0;
-    gbits(0,0,0);
+    info.lastbits = info.bitstring = info.stakptr = 0;
+    info.lastchar = 0;
+    info.numbits = 9;
+    info.curtoken = 0x102;
+    info.endtoken = 0x1ff;
+    info.decryptstart = 0;
+    gbits(info, 0, 0, 0);
     for(i=0;i<0x1004;i++) {
-        tokens[i].next=0;
-        tokens[i].data=0;
+        info.tokens[i].next = 0;
+        info.tokens[i].data = 0;
     }
 }
 
-int decryptComp3Helper(BoundsCheckedArray<BYTE> &dest, BYTE *src, int length, int complength, __int16 &token)
+int Decrypt3Info::decryptComp3Helper(BoundsCheckedArray<BYTE> &dest, BYTE *src, int length, int complength, __int16 &token)
 {
     //while(length != 0) {
     while(length >= 0) {
@@ -74,7 +87,7 @@ int decryptComp3Helper(BoundsCheckedArray<BYTE> &dest, BYTE *src, int length, in
         case 0:
         case 1:
             //bitstring = gbits(numbits, src, complength);
-            bitstring = (WORD)gbits(numbits, src, complength);
+            bitstring = (WORD)gbits(*this, numbits, src, complength);
             if (bitstring == 0x101) { /* found end-of-data signal */
                 decryptstart = 4;
                 return 0;
@@ -151,11 +164,12 @@ int decryptComp3Helper(BoundsCheckedArray<BYTE> &dest, BYTE *src, int length, in
 
 int decompressLZW_1(BYTE *dest, BYTE *src, int length, int complength)
 {
-    decryptinit3();
+    std::unique_ptr<Decrypt3Info> info = std::make_unique<Decrypt3Info>();
+    decryptinit3(*info);
 
-    static __int16 token;
+    __int16 token;
     BoundsCheckedArray<BYTE> bcaDest(dest, length);
-    return decryptComp3Helper(bcaDest, src, length, complength, token);
+    return info->decryptComp3Helper(bcaDest, src, length, complength, token);
 }
 
 
