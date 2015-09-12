@@ -43,6 +43,7 @@ public:
     {
         ACTION pfn;
         ParseAutoCompleteContext pacc;
+        PCSTR pszDebugName;
     };
 
     // Fwd decl (Used for circular references in grammer descriptions)
@@ -156,10 +157,11 @@ public:
         }
         _It streamSave(stream);
 #ifdef PARSE_DEBUG
-        string text = stream.GetLookAhead(5);
+        string text;
 
         if (pContext->ParseDebug && (!Name.empty() || _psz))
         {
+            text = stream.GetLookAhead(5);
             string name = !Name.empty() ? Name : _psz;
             std::stringstream ss;
             string spaces;
@@ -211,6 +213,12 @@ public:
         ParserBase newOne(*this);
         newOne._pfnA = aac.pfn;
         newOne._pacc = aac.pacc;
+#ifdef PARSE_DEBUG
+        if (aac.pszDebugName)
+        {
+            newOne.Name = aac.pszDebugName;
+        }
+#endif
         return newOne;
     }
 

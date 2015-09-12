@@ -102,14 +102,13 @@ CCrystalScriptStream::CCrystalScriptStream(CScriptStreamLimiter *pLimiter)
 // For debugging
 std::string CScriptStreamLimiter::GetLookAhead(int nLine, int nChar, int cChars)
 {
-    //std::string GetLookAhead(int nLine, int nChars);
-
     PCSTR pszLine = _pBuffer->GetLineChars(nLine);
     int cLineChars = _pBuffer->GetLineLength(nLine);
     std::string text;
     while (pszLine && (nChar < cLineChars) && pszLine[nChar] && (cChars > 0))
     {
         text += pszLine[nChar++];
+        --cChars;
     }
     return text;
 }

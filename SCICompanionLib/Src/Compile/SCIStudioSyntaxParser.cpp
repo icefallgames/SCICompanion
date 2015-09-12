@@ -1077,7 +1077,7 @@ void SCISyntaxParser::Load()
     string_immediateValue = integer_p[PropValueIntA] | alphanum_p[PropValueStringA<ValueType::Token>] | quotedstring_p[PropValueStringA<ValueType::String>];
     string_immediateValue2 = integer_p[PropValueIntA] | alphanum_p[PropValueStringA<ValueType::Token>] | quotedstring_p[PropValueStringA<ValueType::String>] | bracestring_p[PropValueStringA<ValueType::Token>];
 
-    general_token = alphanum_p2 | bracestring_p;
+    general_token = (alphanum_p2 | bracestring_p)[{nullptr, ParseAutoCompleteContext::None, "TOKEN"}];
 
     pointer = atsign;
 
@@ -1247,28 +1247,30 @@ void SCISyntaxParser::Load()
     // = gWnd clBlack (send gEgo:x)        = gWnd Print("foo")         (= button (+ 5 5))
     procedure_call = alphanumopen_p[SetStatementNameA<ProcedureCall>] >> *statement[AddStatementA<ProcedureCall>] >> clpar;
 
-    send_param_call = general_token[{SetStatementNameA<SendParam>, ParseAutoCompleteContext::Selector }]
+    send_param_call = general_token[{SetStatementNameA<SendParam>, ParseAutoCompleteContext::Selector, "SELECTOR_NAME" }]
         >> oppar[SendParamIsMethod] >> *statement[AddStatementA<SendParam>] >> clpar;
 
     // Note: SCIStudio requires the : come right after the text (if no send keyword), so we use +colon
-    send_call = 
-           (
-              ((keyword_p("send")[SetStatementA<SendCall>])
-                    >> ((syntaxnode_d[variable[SetLValueA<SendCall>]])                                // send flakes[4]:x
-                        | (oppar >> statement[StatementBindTo1stA<SendCall, errSendObject>] >> clpar)) >> +colon)  // send (= gEgo foo):x
-           |  (general_token[SetStatementNameA<SendCall>] >> +colon)                                // theMan:
-           )
-        >> 
-            *(
-            // In addition to regular "send param calls", we also need to support the case when it appears in brackets,
-            // as in "(send theItem:(checkState(1)))" in Controls.sc
-                syntaxnode_d[send_param_call[AddSendParamA]]
-              | (oppar >> syntaxnode_d[send_param_call[AddSendParamA]] >> clpar)
-             )
+    send_call =
+        (
+        (
+        ((keyword_p("send")[SetStatementA<SendCall>])
+        >> ((syntaxnode_d[variable[SetLValueA<SendCall>]])                                // send flakes[4]:x
+        | (oppar >> statement[StatementBindTo1stA<SendCall, errSendObject>] >> clpar)) >> +colon)  // send (= gEgo foo):x
+        | (general_token[{SetStatementNameA<SendCall>, ParseAutoCompleteContext::None, "SEND_TARGET" }] >> +colon)                                // theMan:
+        )
+        >>
+        *(
+        // In addition to regular "send param calls", we also need to support the case when it appears in brackets,
+        // as in "(send theItem:(checkState(1)))" in Controls.sc
+        syntaxnode_d[send_param_call[AddSendParamA]]
+        | (oppar >> syntaxnode_d[send_param_call[AddSendParamA]] >> clpar)
+        )
         // final single send param is allowed to have no parameters - or it could be a rest statement
         // e.g. "(send thing:foo(4) rest params)", instead of "(send thing:foo(4 rest params))" like it should be.
-        >> -( syntaxnode_d[rest_statement[AddSendRestA]]  // This SCIStudio syntax is strange, but the template game does it
-              | general_token[AddSingleSendParamA]); 
+        >> -(syntaxnode_d[rest_statement[AddSendRestA]]  // This SCIStudio syntax is strange, but the template game does it
+        | general_token[AddSingleSendParamA])
+        )[{nullptr, ParseAutoCompleteContext::None, "SEND_CALL"}];
 
     // Generic set of code inside parentheses
     code_block =
