@@ -165,23 +165,23 @@ public:
             string name = !Name.empty() ? Name : _psz;
             std::stringstream ss;
             string spaces;
-            spaces.append(g_ParseIndent, ' ');
+            spaces.append(pContext->ParseDebugIndent, ' ');
             ss << spaces << "-->Matching " << name << " against " << text << "\n";
             OutputDebugString(ss.str().c_str());
         }
-        g_ParseIndent++;
+        pContext->ParseDebugIndent++;
 #endif
         pContext->PushParseAutoCompleteContext(_pacc);
         MatchResult result(_pRef ? _pRef->Match(pContext, stream) : (*_pfn)(this, pContext, stream));
         pContext->PopParseAutoCompleteContext();
 #ifdef PARSE_DEBUG
-        g_ParseIndent--;
+        pContext->ParseDebugIndent--;
         if (pContext->ParseDebug && (!Name.empty() || _psz))
         {
             string name = !Name.empty() ? Name : _psz;
             std::stringstream ss;
             string spaces;
-            spaces.append(g_ParseIndent, ' ');
+            spaces.append(pContext->ParseDebugIndent, ' ');
             ss << spaces << (result.Result() ? "   TRUE" : "   FALSE") << "\n";
             OutputDebugString(ss.str().c_str());
         }
@@ -193,7 +193,7 @@ public:
         if (!result.Result())
         {
             // Revert the stream to what it was when we came in this function (after whitespace)
-            stream = streamSave;
+            stream.Restore(streamSave);
         }
         return result;
     }
@@ -754,7 +754,10 @@ public:
     }
     void ReportError(std::string error, streamIt pos);
 
+#ifdef PARSE_DEBUG
     bool ParseDebug;
+    int ParseDebugIndent = 0;
+#endif
 
     std::string GetErrorText()
     {

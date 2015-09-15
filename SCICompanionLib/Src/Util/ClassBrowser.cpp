@@ -755,16 +755,45 @@ void SCIClassBrowser::_GenerateAutoCompleteTree()
     items.reserve(4000);
     for (auto &aDefine : _headerDefines)
     {
+        // Standard defines in the system and game header files.
         items.emplace_back(aDefine.first, AutoCompleteSourceType::Define);
     }
     for (auto &aClass : _classMap)
     {
+        // Updated when new classes created (rare)
         items.emplace_back(aClass.first, AutoCompleteSourceType::ClassName);
     }
     for (auto &selector : _selectorNames.GetNames())
     {
+        // Updated only when new selectors are created (rare)
         items.emplace_back(selector, AutoCompleteSourceType::Selector);
     }
+    for (auto &kernelNames : _kernelNamesResource.GetNames())
+    {
+        // Updated only when new selectors are created (rare)
+        items.emplace_back(kernelNames, AutoCompleteSourceType::Kernel);
+    }
+    for (auto &publicProc : _publicProcedures)
+    {
+        items.emplace_back(publicProc->GetName(), AutoCompleteSourceType::Procedure);
+    }
+    for (auto &script : _scripts)
+    {
+        items.emplace_back(script->GetTitle(), AutoCompleteSourceType::ScriptName);
+    }
+
+    // Now some global variables
+    const VariableDeclVector *globals = SCIClassBrowser::GetMainGlobals();
+    if (globals)
+    {
+        for (const auto &global : *globals)
+        {
+            items.emplace_back(global->GetName(), AutoCompleteSourceType::Variable);
+        }
+    }
+
+    // TODO: Maybe have separate lists for classes and defines too? Not sure.
+    // TODO: Rebuild when any of these things change.
     
     _aclist.buildBalancedTree(items);
 }
@@ -777,17 +806,50 @@ void SCIClassBrowser::GetAutoCompleteChoices(const std::string &prefixIn, AutoCo
     std::vector<int> results = _aclist.partialMatchSearch(prefix.c_str());
     for (int resultIndex : results)
     {
-        if ((*_aclist.getValue(resultIndex) & sourceTypes) != AutoCompleteSourceType::None)
+        AutoCompleteSourceType type = *_aclist.getValue(resultIndex);
+        if ((type & sourceTypes) != AutoCompleteSourceType::None)
         {
             int icon = 0;
-            switch (*_aclist.getValue(resultIndex))
+            switch (type)
             {
+                case AutoCompleteSourceType::Define:
+                    icon = 6;
+                    break;
+                case AutoCompleteSourceType::TopLevelKeyword:
+                    icon = 9;
+                    break;
+                case AutoCompleteSourceType::ClassName:
+                    icon = 0;
+                    break;
+                case AutoCompleteSourceType::Selector:
+                    icon = 10;
+                    break;
+                case AutoCompleteSourceType::Procedure:
+                    icon = 3;
+                    break;
+                case AutoCompleteSourceType::Kernel:
+                    icon = 4;
+                    break;
+                case AutoCompleteSourceType::ScriptName:
+                    icon = 1;
+                    break;
+                case AutoCompleteSourceType::Variable:
+                    icon = 5;
+                    break;
                 default:
                     icon = 0;
             }
             choices.emplace_back(_aclist.getKey(resultIndex), icon);
         }
     }
+
+    // TODO: Maybe this comes from somewhere else?
+    // e.g. the code that calls this can look at LKG script and pick out instances and stuff.
+    /*
+    if (sourceTypes & AutoCompleteSourceType::Exports)
+    {
+
+    }*/
 }
 
 bool SCIClassBrowser::_CreateClassTree()
@@ -1005,7 +1067,7 @@ RawClassPropertyVector *SCIClassBrowser::CreatePropertyArray(const std::string &
         }
         else if (pszSuper)
         {
-            ASSERT(_classMap.find(strObject) == _classMap.end());
+            assert(_classMap.find(strObject) == _classMap.end());
             //nodeIt = classMap && classMap.Lookup(strObject.c_str(), pBrowserInfo))
             // Or maybe the caller already new the super 
             //int iNeedThisEventually = pBrowserInfo->ComputeAllProperties(*pProperties);
@@ -1112,32 +1174,30 @@ const Script *SCIClassBrowser::GetLKGScript(WORD wScriptNumber)
             if (_pLKGScript && (wScriptNumber == _wLKG))
             {
                 // We cached this...
-				pScriptLKG = _pLKGScript;
+                pScriptLKG = _pLKGScript;
             }
             else
             {
-				for (auto &script : _scripts)
-				{
-					if (GetScriptNumberHelper(script.get()) == wScriptNumber)
-					{
-						pScriptLKG = script.get();
-						_pLKGScript = pScriptLKG;
-						_wLKG = wScriptNumber;
-						break;
-					}
-				}
+                for (auto &script : _scripts)
+                {
+                    if (GetScriptNumberHelper(script.get()) == wScriptNumber)
+                    {
+                        pScriptLKG = script.get();
+                        _pLKGScript = pScriptLKG;
+                        _wLKG = wScriptNumber;
+                        break;
+                    }
+                }
             }
         }
     }
-	return pScriptLKG;
+    return pScriptLKG;
 }
-
-
 
 const VariableDeclVector *SCIClassBrowser::GetMainGlobals() const
 {
     CGuard guard(&_csClassBrowser); 
-    ASSERT(_fCBLocked);
+    assert(_fCBLocked);
     const VariableDeclVector *pArray = nullptr;
     if (IsBrowseInfoEnabled())
     {
@@ -1152,15 +1212,14 @@ const VariableDeclVector *SCIClassBrowser::GetMainGlobals() const
 const std::vector<std::string> &SCIClassBrowser::GetKernelNames() const
 {
     CGuard guard(&_csClassBrowser);
-    ASSERT(_fCBLocked);
+    assert(_fCBLocked);
     return _kernelNames;
 }
-
 
 const RawProcedureVector &SCIClassBrowser::GetPublicProcedures()
 {
     CGuard guard(&_csClassBrowser); 
-    ASSERT(_fCBLocked);
+    assert(_fCBLocked);
     if (!_fPublicProceduresValid)
     {
         _publicProcedures.clear();
@@ -1186,7 +1245,7 @@ const RawProcedureVector &SCIClassBrowser::GetPublicProcedures()
 const std::vector<ClassDefinition*> &SCIClassBrowser::GetAllClasses()
 {
     CGuard guard(&_csClassBrowser); 
-    ASSERT(_fCBLocked);
+    assert(_fCBLocked);
     if (!_fPublicClassesValid)
     {
         _allClasses.clear();

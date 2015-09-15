@@ -259,6 +259,14 @@ bool CCrystalScriptStream::const_iterator::operator!=(const const_iterator& valu
     return (_nChar != value._nChar) || (_nLine != value._nLine);
 }
 
+void CCrystalScriptStream::const_iterator::Restore(const const_iterator &prev)
+{
+    // This is a hack for autocomplete. Ideally, we should retrieve line length each time.
+    // If on the same line, keep the furthest length, since it may have been modified by AC.
+    int furthestLength = (prev._nLine == _nLine) ? _nLength : prev._nLength;
+    (*this) = prev;
+    _nLength = furthestLength;
+}
 
 LineCol CCrystalScriptStream::const_iterator::GetPosition() const
 {

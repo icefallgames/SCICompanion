@@ -9,17 +9,55 @@
 using namespace sci;
 using namespace std;
 
+bool operator<(const AutoCompleteChoice &one, const AutoCompleteChoice &two)
+{
+    return one.GetText() < two.GetText();
+}
+
+template<typename _TCollection, typename _TNameFunc>
+void MergeResults(std::vector<AutoCompleteChoice> &existingResults, const std::string &prefix, int icon, _TCollection &items, _TNameFunc nameFunc)
+{
+    std::vector<AutoCompleteChoice> newResults;
+    for (auto &item : items)
+    {
+        std::string name = nameFunc(item);
+        // TODO: support case insensitive?
+        if (0 == name.compare(0, prefix.size(), prefix))
+        {
+            newResults.emplace_back(name.c_str(), icon);
+        }
+    }
+    if (!newResults.empty())
+    {
+        std::sort(newResults.begin(), newResults.end());
+        std::vector<AutoCompleteChoice> tempResults;
+        tempResults.reserve(newResults.size() + existingResults.size());
+        std::merge(existingResults.begin(), existingResults.end(), newResults.begin(), newResults.end(), back_inserter(tempResults));
+        std::swap(tempResults, existingResults);
+    }
+}
+
+void MergeResults(std::vector<AutoCompleteChoice> &existingResults, const std::string &prefix, int icon, const std::vector<std::string> &items)
+{
+    return MergeResults(existingResults, prefix, icon, items,
+        [](const std::string text) { return text; });
+}
 
 std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &prefix, SyntaxContext *pContext)
 {
     std::unique_ptr<AutoCompleteResult> result = std::make_unique<AutoCompleteResult>();
     if (pContext && !prefix.empty())
     {
+        ParseAutoCompleteContext acContext = pContext->GetParseAutoCompleteContext();
         AutoCompleteSourceType sourceTypes = AutoCompleteSourceType::None;
-        switch (pContext->GetParseAutoCompleteContext())
+        switch (acContext)
         {
             case ParseAutoCompleteContext::Selector:
                 sourceTypes |= AutoCompleteSourceType::Selector;
+                break;
+
+            case ParseAutoCompleteContext::ClassSelector:
+                sourceTypes |= AutoCompleteSourceType::ClassSelector;
                 break;
 
             case ParseAutoCompleteContext::TopLevelKeyword:
@@ -27,7 +65,11 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
                 break;
 
             case ParseAutoCompleteContext::Value:
-                sourceTypes |= AutoCompleteSourceType::ClassName | AutoCompleteSourceType::Variable | AutoCompleteSourceType::Define;
+                sourceTypes |= AutoCompleteSourceType::ClassName | AutoCompleteSourceType::Variable | AutoCompleteSourceType::Define | AutoCompleteSourceType::Kernel | AutoCompleteSourceType::Procedure | AutoCompleteSourceType::ClassSelector;
+                break;
+
+            case ParseAutoCompleteContext::DefineValue:
+                sourceTypes |= AutoCompleteSourceType::Define;
                 break;
 
             case ParseAutoCompleteContext::SuperClass:
@@ -39,15 +81,129 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
                 break;
 
             default:
-                // TODO: Things like class properties, which require context.
+                // Other things handled below
                 break;
         }
+
+        SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser();
         if (sourceTypes != AutoCompleteSourceType::None)
         {
-            SCIClassBrowser *browser = appState->GetResourceMap().GetClassBrowser();
-            browser->GetAutoCompleteChoices(prefix, sourceTypes, result->choices);
-            result->fResultsChanged = true; // TODO
+            browser.GetAutoCompleteChoices(prefix, sourceTypes, result->choices);
         }
+
+        // Now get things from the local script:
+        if (IsFlagSet(sourceTypes, AutoCompleteSourceType::Variable))
+        {
+            ClassBrowserLock browserLock(browser);
+            browserLock.Lock();
+            const Script *thisScript = browser.GetLKGScript(pContext->Script().GetScriptNumber());
+            if (thisScript)
+            {
+                // Script variables
+                MergeResults(result->choices, prefix, 5, thisScript->GetScriptVariables(),
+                    [](const std::unique_ptr<VariableDecl> &theVar)
+                {
+                    return theVar->GetName();
+                }
+                );
+                // Script strings
+                MergeResults(result->choices, prefix, 5, thisScript->GetScriptStringsDeclarations(),
+                    [](const std::unique_ptr<VariableDecl> &theVar)
+                {
+                    return theVar->GetName();
+                }
+                );
+                if (pContext->FunctionPtr)
+                {
+                    MergeResults(result->choices, prefix, 5, pContext->FunctionPtr->GetVariables(),
+                        [](const std::unique_ptr<VariableDecl> &theVar)
+                    {
+                        return theVar->GetName();
+                    });
+                    if (!pContext->FunctionPtr->GetSignatures().empty())
+                    {
+                        MergeResults(result->choices, prefix, 5, pContext->FunctionPtr->GetSignatures()[0]->GetParams(),
+                            [](const std::unique_ptr<FunctionParameter> &theVar)
+                        {
+                            return theVar->GetName();
+                        });
+                    }
+                }
+            }
+        }
+
+        // Property selectors for the *current* class
+        if (IsFlagSet(sourceTypes, AutoCompleteSourceType::ClassSelector) && pContext->ClassPtr)
+        {
+            ClassBrowserLock browserLock(browser);
+            browserLock.Lock();
+            std::string species = pContext->ClassPtr->GetSpecies();
+            unique_ptr<RawClassPropertyVector> properties(browser.CreatePropertyArray(species, nullptr, nullptr));
+            MergeResults(result->choices, prefix, 5, *properties,
+                [](const ClassProperty *classProp)
+            {
+                return classProp->GetName();
+            }
+            );
+        }
+
+        if (IsFlagSet(sourceTypes, AutoCompleteSourceType::Define))
+        {
+            // Local script defines
+            ClassBrowserLock browserLock(browser);
+            browserLock.Lock();
+            const Script *thisScript = browser.GetLKGScript(pContext->Script().GetScriptNumber());
+            if (thisScript)
+            {
+                MergeResults(result->choices, prefix, 6, thisScript->GetDefines(),
+                    [](const std::unique_ptr<Define> &theDefine)
+                {
+                    return theDefine->GetName();
+                }
+                );
+            }
+        }
+
+        if (acContext == ParseAutoCompleteContext::Export)
+        {
+            ClassBrowserLock browserLock(browser);
+            browserLock.Lock();
+            const Script *thisScript = browser.GetLKGScript(pContext->Script().GetScriptNumber());
+            if (thisScript)
+            {
+                MergeResults(result->choices, prefix, 2, thisScript->GetProcedures(),
+                    [](const std::unique_ptr<ProcedureDefinition> &proc)
+                {
+                    return proc->GetName();
+                }
+                    );
+                MergeResults(result->choices, prefix, 2, thisScript->GetClasses(),
+                    [](const std::unique_ptr<ClassDefinition> &proc)
+                {
+                    return proc->IsInstance() ? proc->GetName() : "";   // Classes can't be exports.
+                }
+                );
+            }
+        }
+
+        LangSyntax lang = pContext->Script().Language();
+        if (acContext == ParseAutoCompleteContext::TopLevelKeyword)
+        {
+            MergeResults(result->choices, prefix, 8, GetTopLevelKeywords(lang));
+        }
+        if (acContext == ParseAutoCompleteContext::ClassLevelKeyword)
+        {
+            MergeResults(result->choices, prefix, 8, GetClassLevelKeywords(lang));
+        }
+        if (acContext == ParseAutoCompleteContext::Value)
+        {
+            MergeResults(result->choices, prefix, 8, GetCodeLevelKeywords(lang));
+        }
+
+        // Possible de-dupe
+        // vec.erase(unique(vec.begin(), vec.end()), vec.end());
+
+        result->fResultsChanged = true; // TODO
     }
     return result;
 }

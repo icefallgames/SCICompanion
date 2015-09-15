@@ -337,7 +337,7 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                     {
                         // Since we already know the superclass, don't pass the script in (since that relies on a
                         // successfully compiled previous script)
-                        unique_ptr<RawClassPropertyVector> pProperties(browser.CreatePropertyArray(pClass->GetName(), NULL, pClass->GetSuperClass().c_str()));
+                        unique_ptr<RawClassPropertyVector> pProperties(browser.CreatePropertyArray(pClass->GetName(), nullptr, pClass->GetSuperClass().c_str()));
                         fFound = matches_name(pProperties->begin(), pProperties->end(), strText);
                         if (fFound)
                         {

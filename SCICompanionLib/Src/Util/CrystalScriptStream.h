@@ -137,6 +137,7 @@ public:
         int GetColumnNumber() const;
         bool operator==(const const_iterator& value) const;
         bool operator!=(const const_iterator& value) const;
+        void Restore(const const_iterator &prev);
 
         // For debugging
         std::string GetLookAhead(int nChars);

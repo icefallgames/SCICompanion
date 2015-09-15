@@ -21,7 +21,3 @@ int charToI(char ch)
     }
 }
 
-
-#ifdef PARSE_DEBUG
-int g_ParseIndent = 0;
-#endif

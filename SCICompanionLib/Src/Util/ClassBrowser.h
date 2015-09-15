@@ -38,8 +38,8 @@ public:
 
     // See my comments in the implementations
     // These functions do not require using the lock.
-	std::vector<sci::MethodDefinition*> *CreateMethodArray(const std::string &strObject, sci::Script *pScript = NULL) const;
-	std::vector<sci::ClassProperty*> *CreatePropertyArray(const std::string &strObject, sci::Script *pScript = NULL, PCTSTR pszSuper = NULL) const;
+    std::vector<sci::MethodDefinition*> *CreateMethodArray(const std::string &strObject, sci::Script *pScript = nullptr) const;
+    std::vector<sci::ClassProperty*> *CreatePropertyArray(const std::string &strObject, sci::Script *pScript = nullptr, PCTSTR pszSuper = nullptr) const;
     std::vector<std::string> *CreateSubSpeciesArray(PCTSTR pszSpecies);
 
     //

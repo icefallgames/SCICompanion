@@ -409,7 +409,11 @@ enum LangSyntax
 
 bool IsSCIKeyword(LangSyntax lang, const std::string &word);
 bool IsTopLevelKeyword(LangSyntax lang, const std::string &word);
+const std::vector<std::string> &GetTopLevelKeywords(LangSyntax lang);
 bool IsCodeLevelKeyword(LangSyntax lang, const std::string &word);
+bool IsClassLevelKeyword(LangSyntax lang, const std::string &word);
+const std::vector<std::string> &GetCodeLevelKeywords(LangSyntax lang);
+const std::vector<std::string> &GetClassLevelKeywords(LangSyntax lang);
 bool IsValueKeyword(const std::string &word);
 
 static const WORD InvalidResourceNumber = 0xffff;

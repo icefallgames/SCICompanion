@@ -1081,7 +1081,7 @@ void SCISyntaxParser::Load()
 
     pointer = atsign;
 
-    selector = pound >> general_token;
+    selector = pound >> general_token[{nullptr, ParseAutoCompleteContext::Selector}];
 
     // Value, one of the following forms:
     // -45 | gEgo[4] | "fwef" | 'wef' | {fwe} | $c000 | #foo | @bar
@@ -1106,18 +1106,18 @@ void SCISyntaxParser::Load()
 
     property_value =
         simple_value
-        | alphanum_p2[PropValueStringA<ValueType::Token>];
+        | alphanum_p2[{PropValueStringA<ValueType::Token>, ParseAutoCompleteContext::DefineValue}];
 
     // moveSpeed 5
     // phil
-    property_decl = general_token[CreateClassPropertyA] >>
+    property_decl = general_token[{CreateClassPropertyA, ParseAutoCompleteContext::ClassSelector}] >>
          (property_value[FinishClassPropertyA]
          | property_value_expanded[FinishClassPropertyStatementA])[ExpectedProperyValueE]
         ;
 
 
     // The properties thing in a class or instance
-    properties_decl = oppar >> keyword_p("properties") >> *property_decl >> clpar;
+    properties_decl = oppar >> keyword_p("properties")[{nullptr, ParseAutoCompleteContext::ClassLevelKeyword}] >> *property_decl >> clpar;
 
     // An array initializer
     array_init = oppar >> *(string_immediateValue2[ScriptVarInitA]) >> clpar;  // (0 0 $4c VIEW_EGO)
@@ -1379,29 +1379,29 @@ void SCISyntaxParser::Load()
         >> function_var_decl
         >> *statement[FunctionStatementA];
 
-    method_decl = oppar >> keyword_p("method")[CreateMethodA] >> method_base >> clpar[FunctionCloseA];
+    method_decl = oppar >> keyword_p("method")[{CreateMethodA, ParseAutoCompleteContext::ClassLevelKeyword}] >> method_base >> clpar[FunctionCloseA];
 
     // Classes
     classbase_decl = -keyword_p("public")[ClassPublicA]
         >> general_token[ClassNameA]
-        >> -(keyword_p("of")[GeneralE] >> alphanum_p[ClassSuperA])
+        >> -(keyword_p("of")[GeneralE] >> alphanum_p[{ClassSuperA, ParseAutoCompleteContext::SuperClass}])
         >> -properties_decl
         >> *method_decl[FinishClassMethodA];
 
     instancebase_decl = -keyword_p("public")[ClassPublicA]
         >> general_token[ClassNameA]
         >> keyword_p("of")[GeneralE]
-        >> alphanum_p[ClassSuperA]
+        >> alphanum_p[{ClassSuperA, ParseAutoCompleteContext::SuperClass}]
         >> -properties_decl
         >> *method_decl[FinishClassMethodA];
 
     // Main script pieces.
     include = keyword_p("include") >> quotedstring_p[AddIncludeA];
 
-    use = keyword_p("use") >> quotedstring_p[AddUseA];
+    use = keyword_p("use") >> quotedstring_p[{AddUseA, ParseAutoCompleteContext::ScriptName}];
     version = keyword_p("version") >> integer_p[SetVersionA];
 
-    export_entry = integer_p >> general_token[AddExportA];
+    export_entry = integer_p >> general_token[{AddExportA, ParseAutoCompleteContext::Export}];
     exports = keyword_p("exports") >> *export_entry;
 
     define = keyword_p("define")[CreateDefineA] >> alphanum_p[DefineLabelA] >> integer_p[DefineValueA];
@@ -1435,7 +1435,7 @@ void SCISyntaxParser::Load()
             | scriptNum
             | synonyms
             | script_var
-            | script_string)[IdentifierE]
+            | script_string)[{IdentifierE, ParseAutoCompleteContext::TopLevelKeyword}]
         >> clpar[GeneralE]);
 
     // And for headers, only defines and includes are allowed. And also #ifdef!

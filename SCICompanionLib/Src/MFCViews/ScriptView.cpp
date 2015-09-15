@@ -248,121 +248,101 @@ bool _IsKeyword(const std::string &word, std::vector<std::string> &sortedVector,
     return binary_search(sortedVector.begin(), sortedVector.end(), word);
 }
 
-
-LPTSTR s_apszTopLevelKeywordListSCI[] =
+std::vector<std::string> topLevelKeywordsSCI =
 {
+    // Keep this alphabetically sorted.
+    _T("class"),
     _T("define"),
-	_T("include"),
-	_T("use"),
-	_T("script"),
-	_T("class"),
-	_T("public"),
-	_T("local"),
-	_T("instance"),
-	_T("procedure"),
-    _T("var"),
+    _T("exports"),
+    _T("include"),
+    _T("instance"),
+    _T("local"),
+    _T("procedure"),
+    _T("public"),
+    _T("script"),
     _T("string"),
     _T("synonyms"),
+    _T("use"),
+    _T("var"),
     _T("version"),
-    _T("exports"),
-	nullptr
 };
-std::vector<std::string> g_TopLevelKeywordsSCI;
-bool _IsTopLevelKeywordSCI(const std::string &word)
-{
-    // -1 since it ends with nullptr.
-    return _IsKeyword(word, g_TopLevelKeywordsSCI, s_apszTopLevelKeywordListSCI, ARRAYSIZE(s_apszTopLevelKeywordListSCI) - 1);
-}
 
-LPTSTR s_apszTopLevelKeywordListCpp[] =
+std::vector<std::string> topLevelKeywordCPP =
 {
+    // Keep this alphabetically sorted.
+    _T("class"),
     _T("define"),
-	_T("include"),
-	_T("use"),
-	_T("class"),
-	_T("public"),
-	_T("private"),
-	_T("instance"),
+    _T("include"),
+    _T("instance"),
+    _T("private"),
+    _T("public"),
     _T("synonyms"),
-	nullptr
+    _T("use"),
 };
 std::vector<std::string> g_TopLevelKeywordsCpp;
-bool _IsTopLevelKeywordCpp(const std::string &word)
-{
-    // -1 since it ends with nullptr.
-    return _IsKeyword(word, g_TopLevelKeywordsCpp, s_apszTopLevelKeywordListCpp, ARRAYSIZE(s_apszTopLevelKeywordListCpp) - 1);
-}
 
 bool IsTopLevelKeyword(LangSyntax lang, const std::string &word)
 {
-    return (lang == LangSyntaxCpp) ? _IsTopLevelKeywordCpp(word) : _IsTopLevelKeywordSCI(word);
+    auto &list = GetTopLevelKeywords(lang);
+    return binary_search(list.begin(), list.end(), word);
 }
 
-LPTSTR s_apszCodeLevelKeywordListSCI[] =
+const std::vector<std::string> &GetTopLevelKeywords(LangSyntax lang)
 {
-	_T("asm"),
-	_T("break"),
-	_T("send"),
-	_T("case"),
-	_T("switch"),
-	_T("properties"),
-	_T("method"),
-	_T("for"),
-	_T("if"),
-	_T("return"),
-	_T("default"),
-	_T("do"),
-	_T("while"),
-	_T("else"),
-	_T("rest"),
-    _T("super"),
-    _T("or"),
+    return (lang == LangSyntaxCpp) ? topLevelKeywordCPP : topLevelKeywordsSCI;
+}
+
+std::vector<std::string> codeLevelKeywordsSCI =
+{
+    // Sorted
     _T("and"),
-    _T("not"),
+    _T("asm"),
+	_T("break"),
+    _T("case"),
+    _T("default"),
+    _T("do"),
+    _T("else"),
+    _T("for"),
+    _T("if"),
     _T("neg"),
+    _T("not"),
     _T("of"),
+    _T("or"),
+    _T("rest"),
+    _T("return"),
     _T("scriptNumber"),
-    nullptr,
+    _T("send"),
+    _T("super"),
+    _T("switch"),
+	_T("while"),
 };
-std::vector<std::string> g_CodeLevelKeywordsSCI;
-bool _IsCodeLevelKeywordSCI(const std::string &word)
-{
-    // -1 since it ends with nullptr.
-    return _IsKeyword(word, g_CodeLevelKeywordsSCI, s_apszCodeLevelKeywordListSCI, ARRAYSIZE(s_apszCodeLevelKeywordListSCI) - 1);
-}
 
-LPTSTR s_apszCodeLevelKeywordListCpp[] =
+std::vector<std::string> codeLevelKeywordsCpp =
 {
 	_T("break"),
 	_T("case"),
-	_T("switch"),
-	_T("for"),
-	_T("if"),
-	_T("return"),
-	_T("default"),
-	_T("do"),
-	_T("while"),
-	_T("else"),
-	_T("rest"),
-    _T("super"),
-    _T("scriptNumber"),
-    _T("res"),
-    _T("true"),
-    _T("false"),
-    _T("null"),
     _T("cast"),
-    nullptr,
+    _T("default"),
+    _T("do"),
+    _T("else"),
+    _T("false"),
+    _T("for"),
+    _T("if"),
+    _T("null"),
+    _T("res"),
+    _T("rest"),
+    _T("return"),
+    _T("scriptNumber"),
+    _T("super"),
+    _T("switch"),
+    _T("true"),
+    _T("while"),
 };
-std::vector<std::string> g_CodeLevelKeywordsCpp;
-bool _IsCodeLevelKeywordCpp(const std::string &word)
-{
-    // -1 since it ends with nullptr.
-    return _IsKeyword(word, g_CodeLevelKeywordsCpp, s_apszCodeLevelKeywordListCpp, ARRAYSIZE(s_apszCodeLevelKeywordListCpp) - 1);
-}
 
 bool IsCodeLevelKeyword(LangSyntax lang, const std::string &word)
 {
-    return (lang == LangSyntaxCpp) ? _IsCodeLevelKeywordCpp(word) : _IsCodeLevelKeywordSCI(word);
+    auto &list = GetCodeLevelKeywords(lang);
+    return binary_search(list.begin(), list.end(), word);
 }
 
 LPTSTR s_apszCPPTypeKeywordList[] =
@@ -414,10 +394,28 @@ bool IsValueKeyword(const std::string &word)
     return _IsKeyword(word, g_ValueKeywords, s_apszSCIValueKeywordList, ARRAYSIZE(s_apszSCIValueKeywordList) - 1);
 }
 
+std::vector<std::string> classLevelKeywordsCpp = {};
+std::vector<std::string> classLevelKeywordsSCI = {  "method", "properties" };
+bool IsClassLevelKeyword(LangSyntax lang, const std::string &word)
+{
+    auto &list = GetClassLevelKeywords(lang);
+    return binary_search(list.begin(), list.end(), word);
+}
+
 bool IsSCIKeyword(LangSyntax lang, const std::string &word)
 {
-    return (IsValueKeyword(word) || IsCodeLevelKeyword(lang, word) || IsTopLevelKeyword(lang, word) ||
+    return (IsValueKeyword(word) || IsCodeLevelKeyword(lang, word) || IsTopLevelKeyword(lang, word) || IsClassLevelKeyword(lang, word) ||
             ((lang == LangSyntaxCpp) && IsCPPTypeKeyword(word)));
+}
+
+const std::vector<std::string> &GetCodeLevelKeywords(LangSyntax lang)
+{
+    return (lang == LangSyntaxCpp) ? codeLevelKeywordsCpp : codeLevelKeywordsSCI;
+}
+
+const std::vector<std::string> &GetClassLevelKeywords(LangSyntax lang)
+{
+    return (lang == LangSyntaxCpp) ? classLevelKeywordsCpp : classLevelKeywordsSCI;
 }
 
 static BOOL IsSCISelector(LPCTSTR pszChars, int nLength)

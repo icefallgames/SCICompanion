@@ -9,29 +9,8 @@ enum class AutoCompleteSourceType
     ClassName =             0x00000008,
     Variable =              0x00000010,
     ScriptName =            0x00000020,
+    Kernel =                0x00000040,
+    Procedure =             0x00000080,
+    ClassSelector =         0x00000100,
 };
 DEFINE_ENUM_FLAGS(AutoCompleteSourceType, int)
-
-enum class AutoCompleteType
-{
-    None,
-    Value,
-    TopLevelKeyword,
-    Selector,
-    ClassName
-};
-
-class AutoCompleteContext
-{
-public:
-    AutoCompleteContext(const std::string &text, AutoCompleteType type) : _text(text), _type(type)
-    {
-    }
-
-    const std::string &GetText() { return _text; }
-    AutoCompleteType GetType() { return _type; }
-
-private:
-    std::string _text;
-    AutoCompleteType _type;
-};

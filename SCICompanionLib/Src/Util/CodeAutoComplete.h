@@ -17,6 +17,8 @@ private:
     int _iIcon;
 };
 
+bool operator<(const AutoCompleteChoice &one, const AutoCompleteChoice &two);
+
 enum ACType
 {
     AC_Normal,
