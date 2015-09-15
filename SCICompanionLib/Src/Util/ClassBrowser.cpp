@@ -809,47 +809,37 @@ void SCIClassBrowser::GetAutoCompleteChoices(const std::string &prefixIn, AutoCo
         AutoCompleteSourceType type = *_aclist.getValue(resultIndex);
         if ((type & sourceTypes) != AutoCompleteSourceType::None)
         {
-            int icon = 0;
+            AutoCompleteIconIndex icon = AutoCompleteIconIndex::Unknown;
             switch (type)
             {
                 case AutoCompleteSourceType::Define:
-                    icon = 6;
+                    icon = AutoCompleteIconIndex::Define;
                     break;
                 case AutoCompleteSourceType::TopLevelKeyword:
-                    icon = 9;
+                    icon = AutoCompleteIconIndex::TopLevelKeyword;
                     break;
                 case AutoCompleteSourceType::ClassName:
-                    icon = 0;
+                    icon = AutoCompleteIconIndex::Class;
                     break;
                 case AutoCompleteSourceType::Selector:
-                    icon = 10;
+                    icon = AutoCompleteIconIndex::Selector;
                     break;
                 case AutoCompleteSourceType::Procedure:
-                    icon = 3;
+                    icon = AutoCompleteIconIndex::PublicProcedure;
                     break;
                 case AutoCompleteSourceType::Kernel:
-                    icon = 4;
+                    icon = AutoCompleteIconIndex::Kernel;
                     break;
                 case AutoCompleteSourceType::ScriptName:
-                    icon = 1;
+                    icon = AutoCompleteIconIndex::Script;
                     break;
                 case AutoCompleteSourceType::Variable:
-                    icon = 5;
+                    icon = AutoCompleteIconIndex::Variable;
                     break;
-                default:
-                    icon = 0;
             }
             choices.emplace_back(_aclist.getKey(resultIndex), icon);
         }
     }
-
-    // TODO: Maybe this comes from somewhere else?
-    // e.g. the code that calls this can look at LKG script and pick out instances and stuff.
-    /*
-    if (sourceTypes & AutoCompleteSourceType::Exports)
-    {
-
-    }*/
 }
 
 bool SCIClassBrowser::_CreateClassTree()

@@ -14,3 +14,18 @@ enum class AutoCompleteSourceType
     ClassSelector =         0x00000100,
 };
 DEFINE_ENUM_FLAGS(AutoCompleteSourceType, int)
+
+enum class AutoCompleteIconIndex
+{
+    Unknown = 0,
+    Class = 0,
+    Script = 1,
+    Procedure = 2,
+    PublicProcedure = 3,
+    Kernel = 4,
+    Variable = 5,
+    Define = 6,
+    Keyword = 8,
+    TopLevelKeyword = 9,
+    Selector = 10,
+};

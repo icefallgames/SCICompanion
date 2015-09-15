@@ -9,6 +9,7 @@
 #include "ScriptOM.h"
 #include "ScriptView.h"
 #include "CObjectWrap.h"
+#include "AutoCompleteContext.h"
 
 using namespace sci;
 using namespace std;
@@ -231,26 +232,29 @@ void CClassComboBox::OnDropDown()
 
 int _MapTypeToIndex(sci::SyntaxNode *pNode)
 {
+    AutoCompleteIconIndex iconIndex = AutoCompleteIconIndex::Unknown;
     switch (pNode->GetNodeType())
     {
     case sci::NodeTypeClassDefinition:
-        return 0;
+        iconIndex = AutoCompleteIconIndex::Class;
+        break;
     case sci::NodeTypeFunction:
         {
             sci::FunctionBase *pFunction = static_cast<sci::FunctionBase*>(pNode);
             if (pFunction->GetOwnerClass())
             {
-                return 2; // method
+                iconIndex = AutoCompleteIconIndex::Selector;
             }
             else
             {
-                return 3; // procedure
+                iconIndex = AutoCompleteIconIndex::Procedure;
             }
         }
+        break;
     default:
-        ASSERT(FALSE);
+        assert(false);
     }
-    return 0;
+    return (int)iconIndex;
 }
 
 void CScriptComboBox::DrawItem(LPDRAWITEMSTRUCT pDrawItemStruct)

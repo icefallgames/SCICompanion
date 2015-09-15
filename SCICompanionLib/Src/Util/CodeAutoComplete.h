@@ -3,18 +3,19 @@
 class CCrystalScriptStream::const_iterator;
 class CScriptStreamLimiter;
 class SyntaxContext;;
+enum class AutoCompleteIconIndex;
 
 class AutoCompleteChoice
 {
 public:
-    AutoCompleteChoice() { _iIcon = 0; }
-    AutoCompleteChoice(PCTSTR psz, int iIcon) { _strText = psz; _iIcon = iIcon; }
-    const std::string &GetText() const { return _strText; }
-    int GetIcon() const { return _iIcon; }
+    AutoCompleteChoice();
+    AutoCompleteChoice(PCTSTR psz, AutoCompleteIconIndex iIcon);
+    const std::string &GetText() const;
+    AutoCompleteIconIndex GetIcon() const;
 
 private:
     std::string _strText;
-    int _iIcon;
+    AutoCompleteIconIndex _iIcon;
 };
 
 bool operator<(const AutoCompleteChoice &one, const AutoCompleteChoice &two);
@@ -32,8 +33,8 @@ class AutoCompleteResult
 public:
     AutoCompleteResult() { Reset(); }
     ~AutoCompleteResult() {}
-    void Add(PCTSTR psz, int iIcon) { choices.push_back(AutoCompleteChoice(psz, iIcon)); }
-    void AddOnFirstLetter(PCTSTR pszLetters, PCTSTR pszText, int iIcon)
+    void Add(PCTSTR psz, AutoCompleteIconIndex iIcon) { choices.push_back(AutoCompleteChoice(psz, iIcon)); }
+    void AddOnFirstLetter(PCTSTR pszLetters, PCTSTR pszText, AutoCompleteIconIndex iIcon)
     {
         fACType = pszLetters[0] ? AC_ShowOnFirst_Shown : AC_ShowOnFirst_Empty;
         Add(pszText, iIcon);

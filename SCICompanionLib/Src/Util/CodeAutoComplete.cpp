@@ -9,13 +9,18 @@
 using namespace sci;
 using namespace std;
 
+AutoCompleteChoice::AutoCompleteChoice() { _iIcon = AutoCompleteIconIndex::Unknown; }
+AutoCompleteChoice::AutoCompleteChoice(PCTSTR psz, AutoCompleteIconIndex iIcon) { _strText = psz; _iIcon = iIcon; }
+const std::string &AutoCompleteChoice::GetText() const { return _strText; }
+AutoCompleteIconIndex AutoCompleteChoice::GetIcon() const { return _iIcon; }
+
 bool operator<(const AutoCompleteChoice &one, const AutoCompleteChoice &two)
 {
     return one.GetText() < two.GetText();
 }
 
 template<typename _TCollection, typename _TNameFunc>
-void MergeResults(std::vector<AutoCompleteChoice> &existingResults, const std::string &prefix, int icon, _TCollection &items, _TNameFunc nameFunc)
+void MergeResults(std::vector<AutoCompleteChoice> &existingResults, const std::string &prefix, AutoCompleteIconIndex icon, _TCollection &items, _TNameFunc nameFunc)
 {
     std::vector<AutoCompleteChoice> newResults;
     for (auto &item : items)
@@ -37,7 +42,7 @@ void MergeResults(std::vector<AutoCompleteChoice> &existingResults, const std::s
     }
 }
 
-void MergeResults(std::vector<AutoCompleteChoice> &existingResults, const std::string &prefix, int icon, const std::vector<std::string> &items)
+void MergeResults(std::vector<AutoCompleteChoice> &existingResults, const std::string &prefix, AutoCompleteIconIndex icon, const std::vector<std::string> &items)
 {
     return MergeResults(existingResults, prefix, icon, items,
         [](const std::string text) { return text; });
@@ -104,14 +109,14 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
             if (thisScript)
             {
                 // Script variables
-                MergeResults(result->choices, prefix, 5, thisScript->GetScriptVariables(),
+                MergeResults(result->choices, prefix, AutoCompleteIconIndex::Variable, thisScript->GetScriptVariables(),
                     [](const std::unique_ptr<VariableDecl> &theVar)
                 {
                     return theVar->GetName();
                 }
                 );
                 // Script strings
-                MergeResults(result->choices, prefix, 5, thisScript->GetScriptStringsDeclarations(),
+                MergeResults(result->choices, prefix, AutoCompleteIconIndex::Variable, thisScript->GetScriptStringsDeclarations(),
                     [](const std::unique_ptr<VariableDecl> &theVar)
                 {
                     return theVar->GetName();
@@ -119,14 +124,14 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
                 );
                 if (pContext->FunctionPtr)
                 {
-                    MergeResults(result->choices, prefix, 5, pContext->FunctionPtr->GetVariables(),
+                    MergeResults(result->choices, prefix, AutoCompleteIconIndex::Variable, pContext->FunctionPtr->GetVariables(),
                         [](const std::unique_ptr<VariableDecl> &theVar)
                     {
                         return theVar->GetName();
                     });
                     if (!pContext->FunctionPtr->GetSignatures().empty())
                     {
-                        MergeResults(result->choices, prefix, 5, pContext->FunctionPtr->GetSignatures()[0]->GetParams(),
+                        MergeResults(result->choices, prefix, AutoCompleteIconIndex::Variable, pContext->FunctionPtr->GetSignatures()[0]->GetParams(),
                             [](const std::unique_ptr<FunctionParameter> &theVar)
                         {
                             return theVar->GetName();
@@ -143,7 +148,7 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
             browserLock.Lock();
             std::string species = pContext->ClassPtr->GetSpecies();
             unique_ptr<RawClassPropertyVector> properties(browser.CreatePropertyArray(species, nullptr, nullptr));
-            MergeResults(result->choices, prefix, 5, *properties,
+            MergeResults(result->choices, prefix, AutoCompleteIconIndex::Variable, *properties,
                 [](const ClassProperty *classProp)
             {
                 return classProp->GetName();
@@ -159,7 +164,7 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
             const Script *thisScript = browser.GetLKGScript(pContext->Script().GetScriptNumber());
             if (thisScript)
             {
-                MergeResults(result->choices, prefix, 6, thisScript->GetDefines(),
+                MergeResults(result->choices, prefix, AutoCompleteIconIndex::Define, thisScript->GetDefines(),
                     [](const std::unique_ptr<Define> &theDefine)
                 {
                     return theDefine->GetName();
@@ -175,13 +180,13 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
             const Script *thisScript = browser.GetLKGScript(pContext->Script().GetScriptNumber());
             if (thisScript)
             {
-                MergeResults(result->choices, prefix, 2, thisScript->GetProcedures(),
+                MergeResults(result->choices, prefix, AutoCompleteIconIndex::Procedure, thisScript->GetProcedures(),
                     [](const std::unique_ptr<ProcedureDefinition> &proc)
                 {
                     return proc->GetName();
                 }
                     );
-                MergeResults(result->choices, prefix, 2, thisScript->GetClasses(),
+                MergeResults(result->choices, prefix, AutoCompleteIconIndex::Procedure, thisScript->GetClasses(),
                     [](const std::unique_ptr<ClassDefinition> &proc)
                 {
                     return proc->IsInstance() ? proc->GetName() : "";   // Classes can't be exports.
@@ -193,15 +198,15 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
         LangSyntax lang = pContext->Script().Language();
         if (acContext == ParseAutoCompleteContext::TopLevelKeyword)
         {
-            MergeResults(result->choices, prefix, 8, GetTopLevelKeywords(lang));
+            MergeResults(result->choices, prefix, AutoCompleteIconIndex::Keyword, GetTopLevelKeywords(lang));
         }
         if (acContext == ParseAutoCompleteContext::ClassLevelKeyword)
         {
-            MergeResults(result->choices, prefix, 8, GetClassLevelKeywords(lang));
+            MergeResults(result->choices, prefix, AutoCompleteIconIndex::Keyword, GetClassLevelKeywords(lang));
         }
         if (acContext == ParseAutoCompleteContext::Value)
         {
-            MergeResults(result->choices, prefix, 8, GetCodeLevelKeywords(lang));
+            MergeResults(result->choices, prefix, AutoCompleteIconIndex::Keyword, GetCodeLevelKeywords(lang));
         }
 
         // Possible de-dupe

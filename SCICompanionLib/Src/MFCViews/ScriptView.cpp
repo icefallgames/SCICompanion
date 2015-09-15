@@ -1633,7 +1633,7 @@ LRESULT CScriptView::OnAutoCompleteReady(WPARAM wParam, LPARAM lParam)
                     int iIndex = _pAutoComp->AddString(choice.GetText().c_str());
                     if (iIndex != LB_ERR)
                     {
-                        _pAutoComp->SetItemData(iIndex, choice.GetIcon());
+                        _pAutoComp->SetItemData(iIndex, (int)choice.GetIcon());
                     }
                 }
             }
