@@ -48,12 +48,12 @@ void MergeResults(std::vector<AutoCompleteChoice> &existingResults, const std::s
         [](const std::string text) { return text; });
 }
 
-std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &prefix, SyntaxContext *pContext)
+std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &prefix, SyntaxContext &context, std::unordered_set<std::string> &parsedCustomHeaders)
 {
     std::unique_ptr<AutoCompleteResult> result = std::make_unique<AutoCompleteResult>();
-    if (pContext && !prefix.empty())
+    if (!prefix.empty())
     {
-        ParseAutoCompleteContext acContext = pContext->GetParseAutoCompleteContext();
+        ParseAutoCompleteContext acContext = context.GetParseAutoCompleteContext();
         AutoCompleteSourceType sourceTypes = AutoCompleteSourceType::None;
         switch (acContext)
         {
@@ -94,18 +94,63 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
                 break;
         }
 
+        // Get things from the big global list
         SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser();
         if (sourceTypes != AutoCompleteSourceType::None)
         {
             browser.GetAutoCompleteChoices(prefix, sourceTypes, result->choices);
         }
 
-        // Now get things from the local script:
+        // Now get things from the local script
+        // First, ensure any headers that we've encountered are parsed
+        for (const string &include : context.Script().GetIncludes())
+        {
+            if (parsedCustomHeaders.find(include) == parsedCustomHeaders.end())
+            {
+                // Tell the class browser to pull this in. This could take some time, but the class browser
+                // isn't locked during most of this time.
+                browser.TriggerCustomIncludeCompile(include);
+                parsedCustomHeaders.insert(include);
+            }
+        }
+
+        // Grab variables and defines from included headers
+        if (IsFlagSet(sourceTypes, AutoCompleteSourceType::Variable | AutoCompleteSourceType::Define))
+        {
+            ClassBrowserLock browserLock(browser);
+            browserLock.Lock();
+            for (const std::string &headerName : parsedCustomHeaders)
+            {
+                sci::Script *headerScript = browser.GetCustomHeader(headerName);
+                if (headerScript)
+                {
+                    if (IsFlagSet(sourceTypes, AutoCompleteSourceType::Variable))
+                    {
+                        MergeResults(result->choices, prefix, AutoCompleteIconIndex::Variable, headerScript->GetScriptVariables(),
+                            [](const std::unique_ptr<VariableDecl> &theVar)
+                        {
+                            return theVar->GetName();
+                        }
+                        );
+                    }
+                    if (IsFlagSet(sourceTypes, AutoCompleteSourceType::Define))
+                    {
+                        MergeResults(result->choices, prefix, AutoCompleteIconIndex::Define, headerScript->GetDefines(),
+                            [](const std::unique_ptr<Define> &theDefine)
+                        {
+                            return theDefine->GetName();
+                        }
+                        );
+                    }
+                }
+            }
+        }
+
         if (IsFlagSet(sourceTypes, AutoCompleteSourceType::Variable))
         {
             ClassBrowserLock browserLock(browser);
             browserLock.Lock();
-            const Script *thisScript = browser.GetLKGScript(pContext->Script().GetScriptNumber());
+            const Script *thisScript = browser.GetLKGScript(context.Script().GetScriptNumber());
             if (thisScript)
             {
                 // Script variables
@@ -122,16 +167,16 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
                     return theVar->GetName();
                 }
                 );
-                if (pContext->FunctionPtr)
+                if (context.FunctionPtr)
                 {
-                    MergeResults(result->choices, prefix, AutoCompleteIconIndex::Variable, pContext->FunctionPtr->GetVariables(),
+                    MergeResults(result->choices, prefix, AutoCompleteIconIndex::Variable, context.FunctionPtr->GetVariables(),
                         [](const std::unique_ptr<VariableDecl> &theVar)
                     {
                         return theVar->GetName();
                     });
-                    if (!pContext->FunctionPtr->GetSignatures().empty())
+                    if (!context.FunctionPtr->GetSignatures().empty())
                     {
-                        MergeResults(result->choices, prefix, AutoCompleteIconIndex::Variable, pContext->FunctionPtr->GetSignatures()[0]->GetParams(),
+                        MergeResults(result->choices, prefix, AutoCompleteIconIndex::Variable, context.FunctionPtr->GetSignatures()[0]->GetParams(),
                             [](const std::unique_ptr<FunctionParameter> &theVar)
                         {
                             return theVar->GetName();
@@ -142,11 +187,11 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
         }
 
         // Property selectors for the *current* class
-        if (IsFlagSet(sourceTypes, AutoCompleteSourceType::ClassSelector) && pContext->ClassPtr)
+        if (IsFlagSet(sourceTypes, AutoCompleteSourceType::ClassSelector) && context.ClassPtr)
         {
             ClassBrowserLock browserLock(browser);
             browserLock.Lock();
-            std::string species = pContext->ClassPtr->GetSpecies();
+            std::string species = context.ClassPtr->GetSpecies();
             unique_ptr<RawClassPropertyVector> properties(browser.CreatePropertyArray(species, nullptr, nullptr));
             MergeResults(result->choices, prefix, AutoCompleteIconIndex::Variable, *properties,
                 [](const ClassProperty *classProp)
@@ -161,7 +206,7 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
             // Local script defines
             ClassBrowserLock browserLock(browser);
             browserLock.Lock();
-            const Script *thisScript = browser.GetLKGScript(pContext->Script().GetScriptNumber());
+            const Script *thisScript = browser.GetLKGScript(context.Script().GetScriptNumber());
             if (thisScript)
             {
                 MergeResults(result->choices, prefix, AutoCompleteIconIndex::Define, thisScript->GetDefines(),
@@ -177,7 +222,7 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
         {
             ClassBrowserLock browserLock(browser);
             browserLock.Lock();
-            const Script *thisScript = browser.GetLKGScript(pContext->Script().GetScriptNumber());
+            const Script *thisScript = browser.GetLKGScript(context.Script().GetScriptNumber());
             if (thisScript)
             {
                 MergeResults(result->choices, prefix, AutoCompleteIconIndex::Procedure, thisScript->GetProcedures(),
@@ -195,7 +240,7 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
             }
         }
 
-        LangSyntax lang = pContext->Script().Language();
+        LangSyntax lang = context.Script().Language();
         if (acContext == ParseAutoCompleteContext::TopLevelKeyword)
         {
             MergeResults(result->choices, prefix, AutoCompleteIconIndex::Keyword, GetTopLevelKeywords(lang));
@@ -403,7 +448,7 @@ void AutoCompleteThread2::_DoWork()
                     OutputDebugString("\n");
 
                     // Figure out the result
-                    std::unique_ptr<AutoCompleteResult> result = GetAutoCompleteResult(word, &_context);
+                    std::unique_ptr<AutoCompleteResult> result = GetAutoCompleteResult(word, _context, _parsedCustomHeaders);
                     result->OriginalLimit = _limiter.GetLimit();
                     result->OriginalLimit.x -= word.length();
                     result->OriginalLimit.x = max(result->OriginalLimit.x, 0);
@@ -439,6 +484,7 @@ void AutoCompleteThread2::_DoWork()
                 AutoCompleteId _id;
                 AutoCompleteThread2 &_ac;
                 CScriptStreamLimiter &_limiter;
+                std::unordered_set<std::string> _parsedCustomHeaders;
             };
 
             sci::Script script;

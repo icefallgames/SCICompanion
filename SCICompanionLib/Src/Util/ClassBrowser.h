@@ -80,6 +80,9 @@ public:
     void GetAutoCompleteChoices(const std::string &prefix, AutoCompleteSourceType sourceTypes, std::vector<AutoCompleteChoice> &choices);
     sci::Script *_LoadScript(PCTSTR pszPath);
     
+    void TriggerCustomIncludeCompile(std::string name);
+    sci::Script *GetCustomHeader(std::string name);
+    
     // Error reporting.
     void ReportResult(const CompileResult &result);
     void ClearErrors();
@@ -131,6 +134,20 @@ private:
 
     // This maps filenames to scriptnumbers.
     word_map _filenameToScriptNumber;
+
+    struct TimeAndHeader
+    {
+        TimeAndHeader();
+        TimeAndHeader(FILETIME ft, std::unique_ptr<sci::Script> header);
+        TimeAndHeader(TimeAndHeader &&src);
+        TimeAndHeader &operator=(TimeAndHeader &&src);
+        TimeAndHeader(const TimeAndHeader &src) = delete;
+        TimeAndHeader &operator=(const TimeAndHeader &src) = delete;
+
+        FILETIME ft;
+        std::unique_ptr<sci::Script> header;
+    };
+    std::unordered_map<std::string, TimeAndHeader> _customHeaderMap;
 
     // Cache;
     const sci::Script *_pLKGScript;

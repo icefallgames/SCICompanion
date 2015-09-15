@@ -27,7 +27,7 @@ BOOL IsValidResourceNumber(int iResourceNum)
     return (iResourceNum >= 0) && (iResourceNum < 1000);
 }
 
-CGuard::CGuard(CRITICAL_SECTION *pcs)
+CGuard::CGuard(CRITICAL_SECTION *pcs) : _acquired(true)
 {
     _pcs = pcs;
     EnterCriticalSection(_pcs);
@@ -35,7 +35,16 @@ CGuard::CGuard(CRITICAL_SECTION *pcs)
 
 CGuard::~CGuard()
 {
-    LeaveCriticalSection(_pcs);
+    Release();
+}
+
+void CGuard::Release()
+{
+    if (_acquired)
+    {
+        LeaveCriticalSection(_pcs);
+        _acquired = false;
+    }
 }
 
 typedef struct

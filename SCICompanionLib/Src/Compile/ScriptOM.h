@@ -1112,6 +1112,7 @@ namespace sci
         const VariableDeclVector &GetScriptVariables() const { return _scriptVariables; }
         const VariableDeclVector &GetScriptStringsDeclarations() const { return _scriptStringDeclarations; }
         const DefineVector &GetDefines() const { return _defines; }
+        DefineVector &GetDefines() { return _defines; }
         const ExportEntryVector &GetExports() const { return _exports; }
         ExportEntryVector &GetExports() { return _exports; }
         const SynonymVector &GetSynonyms() const { return _synonyms; }

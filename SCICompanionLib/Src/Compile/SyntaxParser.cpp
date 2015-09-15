@@ -33,20 +33,21 @@ bool SyntaxParser::Parse(sci::Script &script, CCrystalScriptStream &stream, std:
         }
         else
         {
-            if (pLog)
+            if (pContext)
             {
-	            // Someone either wants error logs:
-                fRet = _sci.Parse(script, stream.begin(), preProcessorDefines, pLog, addCommentsToOM);
+                // Someone is doing a partial compile (e.g. tooltips) and supply their own context.
+                fRet = _sci.Parse(script, stream.begin(), preProcessorDefines, *pContext);
             }
             else
             {
-	            // Or they are doing a partial compile (e.g. tooltips) and supply their own context.
-	            fRet = _sci.Parse(script, stream.begin(), preProcessorDefines, *pContext);
+                // Or maybe someone either wants error logs:
+                fRet = _sci.Parse(script, stream.begin(), preProcessorDefines, pLog, addCommentsToOM);
             }
         }
     }
     else if (script.Language() == LangSyntaxCpp)
     {
+        // This code path is only used for the kernels. CPP-based syntax is not currently supported in SCI Companion.
         _cpp.Load();
 
         // Tokenize it first.

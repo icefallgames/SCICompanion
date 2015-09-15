@@ -1217,7 +1217,6 @@ void PrecompiledHeaders::Update(CompileContext &context, Script &script)
                     {
                         CScriptStreamLimiter limiter(&buffer);
                         CCrystalScriptStream stream(&limiter);
-
                         unique_ptr<Script> pNewHeader = std::make_unique<Script>(scriptId);
                         if (g_Parser.Parse(*pNewHeader, stream, PreProcessorDefinesFromSCIVersion(context.GetVersion()), &context))
                         {

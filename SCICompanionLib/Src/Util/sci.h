@@ -291,9 +291,11 @@ class CGuard
 public:
     CGuard(CRITICAL_SECTION *pcs);
     ~CGuard();
+    void Release();
 
 private:
     CRITICAL_SECTION *_pcs;
+    bool _acquired;
 };
 
 struct GlobalAllocGuard

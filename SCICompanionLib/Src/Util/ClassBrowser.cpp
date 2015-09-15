@@ -169,6 +169,8 @@ void SCIClassBrowser::Reset()
 
     _fPublicProceduresValid = false;
     _fPublicClassesValid = false;
+
+    _customHeaderMap.clear();
 }
 
 void SCIClassBrowser::_AddInstanceToMap(Script& script, ClassDefinition *pClass)
@@ -773,7 +775,7 @@ void SCIClassBrowser::_GenerateAutoCompleteTree()
         // Updated only when new selectors are created (rare)
         items.emplace_back(kernelNames, AutoCompleteSourceType::Kernel);
     }
-    for (auto &publicProc : _publicProcedures)
+    for (auto &publicProc : GetPublicProcedures())
     {
         items.emplace_back(publicProc->GetName(), AutoCompleteSourceType::Procedure);
     }
@@ -840,6 +842,106 @@ void SCIClassBrowser::GetAutoCompleteChoices(const std::string &prefixIn, AutoCo
             choices.emplace_back(_aclist.getKey(resultIndex), icon);
         }
     }
+}
+
+SCIClassBrowser::TimeAndHeader::TimeAndHeader() {}
+SCIClassBrowser::TimeAndHeader::TimeAndHeader(FILETIME ft, std::unique_ptr<sci::Script> header) : ft(ft), header(std::move(header)) {}
+SCIClassBrowser::TimeAndHeader::TimeAndHeader(TimeAndHeader &&src) : ft(ft), header(std::move(src.header)) {}
+SCIClassBrowser::TimeAndHeader &SCIClassBrowser::TimeAndHeader::operator=(TimeAndHeader &&src)
+{
+    if (this != &src)
+    {
+        ft = src.ft;
+        header = std::move(src.header);
+    }
+    return *this;
+}
+
+std::vector<std::string> globalHeaders =
+{
+    "game.sh", "verbs.sh", "sci.sh", "keys.sh"
+};
+
+void SCIClassBrowser::TriggerCustomIncludeCompile(std::string name)
+{
+    // Exclude global headers. They tend to be large, and we index the defines in them seperately.
+    std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+    if (find(globalHeaders.begin(), globalHeaders.end(), name) == globalHeaders.end())
+    {
+        bool needRecompile = false;
+
+        CGuard guard(&_csClassBrowser);
+        auto it = _customHeaderMap.find(name);
+        bool alreadyExists = (it != _customHeaderMap.end());
+        needRecompile = !alreadyExists;
+        guard.Release();
+
+        // Get time stamp
+        std::string path = appState->GetResourceMap().GetIncludePath(name);
+        HANDLE hFile = CreateFile(path.c_str(), GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_DELETE | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+        if (hFile != INVALID_HANDLE_VALUE)
+        {
+            FILETIME lastWriteTime;
+            BOOL result = GetFileTime(hFile, nullptr, nullptr, &lastWriteTime);
+            CloseHandle(hFile);
+            if (result)
+            {
+                if (!needRecompile)
+                {
+                    needRecompile = (0 != CompareFileTime(&it->second.ft, &lastWriteTime));
+                }
+
+                if (needRecompile)
+                {
+                    // Time-stamp is different, or we haven't yet compiled this file
+                    // It's a header we have not yet encountered. Parse it.
+                    ScriptId scriptId(path);
+
+                    // phil temp
+                    OutputDebugString("compiling ");
+                    OutputDebugString(path.c_str());
+                    OutputDebugString("\n");
+
+                    CCrystalTextBuffer buffer;
+                    if (buffer.LoadFromFile(scriptId.GetFullPath().c_str()))
+                    {
+                        CScriptStreamLimiter limiter(&buffer);
+                        CCrystalScriptStream stream(&limiter);
+                        unique_ptr<Script> pNewHeader = std::make_unique<Script>(scriptId);
+                        if (g_Parser.Parse(*pNewHeader, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), nullptr))
+                        {
+                            // For performance, let's pre-sort the defines.
+                            std::sort(pNewHeader->GetDefines().begin(), pNewHeader->GetDefines().end(), 
+                                [](std::unique_ptr<sci::Define> &one, std::unique_ptr<sci::Define> &two) { return one->GetName() < two->GetName(); }
+                                );
+
+                            CGuard guard(&_csClassBrowser);
+                            TimeAndHeader th { lastWriteTime, move(pNewHeader) };
+                            _customHeaderMap[name] = move(th);
+                        }
+                        buffer.FreeAll();
+                    }
+                }
+            }
+        }
+    }
+}
+
+sci::Script *SCIClassBrowser::GetCustomHeader(std::string name)
+{
+    std::transform(name.begin(), name.end(), name.begin(), ::tolower);
+
+    // Be careful. We don't want to lock the class browser while compiling.
+    CGuard guard(&_csClassBrowser);
+    assert(_fCBLocked);
+
+    sci::Script *customHeader = nullptr;
+    auto it = _customHeaderMap.find(name);
+    if (it != _customHeaderMap.end())
+    {
+        customHeader = it->second.header.get();
+    }
+    return customHeader;
 }
 
 bool SCIClassBrowser::_CreateClassTree()
