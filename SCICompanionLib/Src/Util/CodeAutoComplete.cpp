@@ -68,6 +68,10 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
                 sourceTypes |= AutoCompleteSourceType::ClassName | AutoCompleteSourceType::Variable | AutoCompleteSourceType::Define | AutoCompleteSourceType::Kernel | AutoCompleteSourceType::Procedure | AutoCompleteSourceType::ClassSelector;
                 break;
 
+            case ParseAutoCompleteContext::LValue:
+                sourceTypes |= AutoCompleteSourceType::Variable | AutoCompleteSourceType::ClassSelector;
+                break;
+
             case ParseAutoCompleteContext::DefineValue:
                 sourceTypes |= AutoCompleteSourceType::Define;
                 break;
@@ -435,7 +439,9 @@ void AutoCompleteThread2::_DoWork()
             sci::Script script;
             CCrystalScriptStream::const_iterator it(limiter.get());
             SyntaxContext context(it, script, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), false);
-            context.ParseDebug = true; // phil temp
+#ifdef PARSE_DEBUG
+            context.ParseDebug = true;
+#endif
 
             AutoCompleteParseCallback callback(context, *this, *limiter, id);
             limiter->SetCallback(&callback);

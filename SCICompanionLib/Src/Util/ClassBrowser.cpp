@@ -958,6 +958,11 @@ void SCIClassBrowser::_AddHeaders()
     {
         _AddHeader(szHeaderPath);
     }
+    // SCI1.1 games have Verbs.sh
+    if (SUCCEEDED(StringCchPrintf(szHeaderPath, ARRAYSIZE(szHeaderPath), TEXT("%s\\Verbs.sh"), appState->GetResourceMap().Helper().GetSrcFolder().c_str())))
+    {
+        _AddHeader(szHeaderPath);
+    }
 
     // sci.sh
     std::string includeFolder = appState->GetResourceMap().GetIncludeFolder();

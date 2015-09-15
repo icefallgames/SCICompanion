@@ -1147,7 +1147,7 @@ void SCISyntaxParser::Load()
 
     // General code pieces
     // (we need to put the token on the statement stack, since it's possible there could be another one in "statement"
-    variable = general_token[SetStatementNameA<LValue>] >> -(opbracket >> statement[LValueIndexerA] >> clbracket);
+    variable = general_token[{SetStatementNameA<LValue>, ParseAutoCompleteContext::LValue}] >> -(opbracket >> statement[LValueIndexerA] >> clbracket);
 
     // Only used by "conditional".  This mimics the syntax used by SCI Studio, even though it's questionable.
     // Basically, (1 and (2 or 3)) turns into (1 and 2 or 3).  Within a conditional, parentheses are ignored essentially.

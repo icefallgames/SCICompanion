@@ -746,7 +746,11 @@ enum class IfDefDefineState
 class SyntaxContext
 {
 public:
-    SyntaxContext(streamIt beginning, sci::Script &script, std::unordered_set<std::string> preProcessorDefines, bool addCommentsDirectly) : _beginning(beginning), _script(script), extraKeywords(nullptr), ifDefDefineState(IfDefDefineState::None), _preProcessorDefines(preProcessorDefines), _addCommentsToOM(addCommentsDirectly), ParseDebug(false) {}
+    SyntaxContext(streamIt beginning, sci::Script &script, std::unordered_set<std::string> preProcessorDefines, bool addCommentsDirectly) : _beginning(beginning), _script(script), extraKeywords(nullptr), ifDefDefineState(IfDefDefineState::None), _preProcessorDefines(preProcessorDefines), _addCommentsToOM(addCommentsDirectly)
+#ifdef PARSE_DEBUG
+        ,ParseDebug(false)
+#endif
+    {}
 
 	~SyntaxContext()
     {
