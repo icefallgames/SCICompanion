@@ -12,26 +12,59 @@ bool BackgroundScheduler::IsAborted()
     return _exit;
 }
 
-void BackgroundScheduler::SubmitTask(std::unique_ptr<BackgroundTask> task)
+int BackgroundScheduler::SubmitTask(std::unique_ptr<BackgroundTask> task)
 {
+    int id = -1;
     {
         CGuard guard(&_cs);
+        id = _nextId++;
+        task->_id = id;
         _queue.push_back(move(task));
     }
 
     SetEvent(_hWakeUp);
+    return id;
 }
 
-BackgroundScheduler::BackgroundScheduler() : _exit(false)
+std::unique_ptr<TaskResponse> BackgroundScheduler::RetrieveResponse(int id)
+{
+    CGuard guard(&_csResponse);
+    // Pop off the front until we find the one we want.
+    std::unique_ptr<TaskResponse> response;
+    while (!response && !_responseQueue.empty())
+    {
+        if (_responseQueue.front()->_id == id)
+        {
+            response = move(_responseQueue.front());
+        }
+        _responseQueue.pop_front();
+    }
+    return response;
+}
+
+BackgroundScheduler::BackgroundScheduler() : BackgroundScheduler(nullptr, 0)
+{
+}
+
+BackgroundScheduler::BackgroundScheduler(HWND hwndResponse, UINT msgResponse) : _exit(false), _nextId(0), _hwndResponse(hwndResponse), _msgResponse(msgResponse)
 {
     InitializeCriticalSection(&_cs);
     _hWakeUp = CreateEvent(nullptr, FALSE, FALSE, nullptr);
     _pThread = AfxBeginThread(s_ThreadWorker, this, THREAD_PRIORITY_BELOW_NORMAL, 0, 0, nullptr);
+
+    if (_hwndResponse)
+    {
+        InitializeCriticalSection(&_csResponse);
+    }
 }
 
 BackgroundScheduler::~BackgroundScheduler()
 {
     DeleteCriticalSection(&_cs);
+    if (_hwndResponse)
+    {
+        DeleteCriticalSection(&_csResponse);
+    }
 }
 
 UINT BackgroundScheduler::s_ThreadWorker(void *pParam)
@@ -80,7 +113,19 @@ void BackgroundScheduler::_DoWork()
             if (task)
             {
                 task->_schedulerWeak = this;
-                task->Execute();
+                std::unique_ptr<TaskResponse> response = task->Execute();
+                // If the owner wanted a response, send it now.
+                if (response && _hwndResponse)
+                {
+                    response->_id = task->_id;
+
+                    {
+                        CGuard guard(&_csResponse);
+                        _responseQueue.push_back(move(response));
+                    }
+
+                    PostMessage(_hwndResponse, _msgResponse, 0, 0);
+                }
             }
         }
     }

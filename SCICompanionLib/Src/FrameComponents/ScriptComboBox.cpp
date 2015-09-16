@@ -10,20 +10,51 @@
 #include "ScriptView.h"
 #include "CObjectWrap.h"
 #include "AutoCompleteContext.h"
+#include "Task.h"
+#include "CrystalScriptStream.h"
+#include "SyntaxParser.h"
 
 using namespace sci;
 using namespace std;
 
 // CScriptComboBox
-
+#define UWM_RESPONSEREADY (WM_APP + 0)
 #define TIMER_UPDATECOMBO 1234
 
-CScriptComboBox::CScriptComboBox()
+class ParseTaskResponse : public TaskResponse
 {
-    _pDoc = NULL;
-    _fDroppedDown = false;
-    _fIgnorePosChanged = false;
+public:
+    ParseTaskResponse(std::unique_ptr<Script> script) : _script(move(script)) {}
+    std::unique_ptr<Script> GetScript() { return move(_script); }
 
+private:
+    std::unique_ptr<Script> _script;
+};
+
+class ParseBackgroundTask : public BackgroundTask
+{
+public:
+    ParseBackgroundTask(ScriptId script, CCrystalTextBuffer *pBuffer) : _limiter(pBuffer), _stream(&_limiter), _scriptId(script) {}
+
+    std::unique_ptr<TaskResponse> Execute() override
+    {
+        std::unique_ptr<TaskResponse> response;
+        std::unique_ptr<Script> pScript(new Script(_scriptId));
+        if (g_Parser.Parse(*pScript, _stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), nullptr))
+        {
+            response = make_unique<ParseTaskResponse>(move(pScript));
+        }
+        return response;
+    }
+
+private:
+    CScriptStreamLimiter _limiter;
+    CCrystalScriptStream _stream;
+    ScriptId _scriptId;
+};
+
+CScriptComboBox::CScriptComboBox() : _lastTaskId(-1), _pDoc(nullptr), _fDroppedDown(false), _fIgnorePosChanged(false)
+{
     // Load an image list.
     _imageList.Create(IDB_CLASSBROWSER, 16, 0, RGB(255, 0, 255));
 }
@@ -65,17 +96,62 @@ BEGIN_MESSAGE_MAP(CScriptComboBox, CExtComboBox)
     ON_CONTROL_REFLECT(CBN_SELCHANGE, OnSelChange)
     ON_CONTROL_REFLECT(CBN_CLOSEUP, OnCloseUp)
     ON_CONTROL_REFLECT(CBN_DROPDOWN, OnDropDown)
+    ON_WM_CREATE()
+    ON_WM_DESTROY()
+    ON_MESSAGE(UWM_RESPONSEREADY, OnResponseReady)
 END_MESSAGE_MAP()
 
-
-sci::Script *CScriptComboBox::_CreateScript(CPoint &pt)
+int CScriptComboBox::OnCreate(CREATESTRUCT *createStruct)
 {
-    sci::Script *pScript = NULL;
+    if (__super::OnCreate(createStruct) == -1)
+        return -1;
 
+    _scheduler = std::make_unique<BackgroundScheduler>(this->GetSafeHwnd(), UWM_RESPONSEREADY);
+
+    return 0;
+}
+
+
+void CScriptComboBox::OnDestroy()
+{
+    if (_scheduler)
+    {
+        _scheduler->Exit();
+    }
+    __super::OnDestroy();
+}
+
+bool CScriptComboBox::_SpawnScriptTask()
+{
+    bool isSuccessful = false;
     if (appState->_fBrowseInfo)
     {
         // NOTE: the document could have been closed, and the CDocument deleted.
         // Ensure that the active document is still us.
+        CFrameWnd *pFrame = static_cast<CFrameWnd*>(AfxGetMainWnd());
+        CFrameWnd *pMDIFrame = pFrame->GetActiveFrame();
+        if (pMDIFrame)
+        {
+            CDocument *pDocActive = pMDIFrame->GetActiveDocument();
+            if (_pDoc && (pDocActive == _pDoc))
+            {
+                // Do a full parse (e.g. don't ask for LKG)
+                _lastTaskId = _scheduler->SubmitTask(make_unique<ParseBackgroundTask>(_pDoc->GetScriptId(), _pDoc->GetTextBuffer()));
+                isSuccessful = true;
+            }
+        }
+    }
+    return isSuccessful;
+}
+
+LRESULT CScriptComboBox::OnResponseReady(WPARAM wParam, LPARAM lParam)
+{
+    unique_ptr<TaskResponse> response = _scheduler->RetrieveResponse(_lastTaskId);
+    if (response)
+    {
+        _script = move(static_cast<ParseTaskResponse*>(response.get())->GetScript());
+
+        CPoint pt;
         CFrameWnd *pFrame = static_cast<CFrameWnd*>(AfxGetMainWnd());
         CFrameWnd *pMDIFrame = pFrame->GetActiveFrame();
         if (pMDIFrame)
@@ -88,20 +164,13 @@ sci::Script *CScriptComboBox::_CreateScript(CPoint &pt)
                 {
                     CScriptView *pScriptView = static_cast<CScriptView*>(pView);
                     pt = pScriptView->GetCursorPos();
-
-					SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser();
-                    ClassBrowserLock lock(browser);
-                    if (lock.TryLock()) // Don't block
-                    {
-                        // Do a full parse (e.g. don't ask for LKG)
-                        // REVIEW: this causes a short pause when switching to a script.
-                        pScript = ParseScript(_pDoc->GetScriptId(), _pDoc->GetTextBuffer());
-                    }
                 }
             }
         }
+
+        _OnUpdateFromScript(_script.get(), pt);
     }
-    return pScript;
+    return 0;
 }
 
 void CScriptComboBox::_ParseAndUpdate(bool fForce)
@@ -113,16 +182,9 @@ void CScriptComboBox::_ParseAndUpdate(bool fForce)
     }
     else
     {
-        CPoint pt;
-        unique_ptr<sci::Script> script(_CreateScript(pt)); 
-        // Don't update if we failed the parse - unless we're forced too.
-        // The user may just be typing, and the parse will be failing if the thing isn't complete.
-        // REVIEW: maybe we can change things so that we can still get a partially completed syntax
-        // tree.
-        if (script.get() || fForce)
+        if (!_SpawnScriptTask() && fForce)
         {
-            _script = std::move(script);
-            _OnUpdateFromScript(_script.get(), pt); // REVIEW: exception safety.
+            // TODO: Clean out combo?
         }
     }
 }
@@ -133,7 +195,6 @@ void CScriptComboBox::OnTimer(UINT_PTR nIDEvent)
     if (nIDEvent == TIMER_UPDATECOMBO)
     {
         KillTimer(nIDEvent);
-        // REVIEW - disabled for now, crashes when typing a "
         _ParseAndUpdate();
     }
     else
@@ -202,7 +263,6 @@ void CClassComboBox::OnSelChange()//NMHDR *pnmhdr, LRESULT *plResult)
     if (iSelected != CB_ERR)
     {
         CPoint pt;
-		std::unique_ptr<sci::Script> pScript(_CreateScript(pt));
         sci::SyntaxNode *pPos = reinterpret_cast<sci::SyntaxNode*>(GetItemData(iSelected));
 
         CFrameWnd *pFrame = static_cast<CFrameWnd*>(AfxGetMainWnd());
@@ -261,7 +321,6 @@ void CScriptComboBox::DrawItem(LPDRAWITEMSTRUCT pDrawItemStruct)
 {
     if (pDrawItemStruct->itemID != -1)
     {
-
         CDC dc;
         dc.Attach(pDrawItemStruct->hDC);    
 

@@ -28,7 +28,7 @@ class LoadAllTask : public BackgroundTask
 public:
     LoadAllTask(SCIClassBrowser &browser) : _browser(browser) {}
 
-    void Execute() override
+    std::unique_ptr<TaskResponse> Execute() override
     {
         if (!_browser.ReLoadFromSources(*this) && !IsAborted())
         {
@@ -36,7 +36,7 @@ public:
             // that we are able to provide a class hierarchy at least.
             _browser.ReLoadFromCompiled(*this);
         }
-
+        return nullptr;
     }
 
 private:
@@ -49,9 +49,10 @@ class ReloadScriptTask : public BackgroundTask
 public:
     ReloadScriptTask(SCIClassBrowser &browser, const std::string &fullPath) : _browser(browser), _fullPath(fullPath) {}
 
-    void Execute() override
+    std::unique_ptr<TaskResponse>  Execute() override
     {
         _browser.ReloadScript(_fullPath);
+        return nullptr;
     }
 
 private:
@@ -98,21 +99,6 @@ class DummyCompileLog : public ICompileLog
 public:
     virtual void ReportResult(const CompileResult &result) {};
 };
-
-// Parsing helper
-Script *ParseScript(ScriptId script, CCrystalTextBuffer *pBuffer)
-{
-    Script *pRet = NULL;
-    CScriptStreamLimiter limiter(pBuffer);
-    CCrystalScriptStream stream(&limiter);
-    std::unique_ptr<Script> pScript(new Script(script));
-    DummyCompileLog log;
-    if (g_Parser.Parse(*pScript, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log))
-    {
-        pRet = pScript.release();
-    }
-    return pRet;
-}
 
 SCIClassBrowser::SCIClassBrowser() : _kernelNames(_kernelNamesResource.GetNames()), _invalidAutoCompleteSources(AutoCompleteSourceType::None)
 {

@@ -10,7 +10,10 @@
 #include "ColoredToolTip.h"
 #include "ToolTipResult.h"
 
-class Script;
+namespace sci
+{
+    class Script;
+}
 class CCrystalScriptStream;
 class CScriptStreamLimiter;
 class CMethodInfoTip;

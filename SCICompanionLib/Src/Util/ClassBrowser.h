@@ -194,12 +194,6 @@ private:
 //
 WORD GetPicResourceFromScript(SCIClassBrowser *pBrowser, const sci::Script *pScript);
 
-//
-// Quick helper for parsing a script (move this to a better place)
-//
-class CCrystalTextBuffer; 
-sci::Script *ParseScript(ScriptId script, CCrystalTextBuffer *pBuffer);
-
 class ClassBrowserLock
 {
 public:
