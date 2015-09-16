@@ -31,6 +31,9 @@ public:
     std::string MandatoryPrefix;
     std::string Name;   // Includes the prefix
 
+    // Returns empty string if not backed by file.
+    std::string GetBackingFile() const;
+
 private:
     std::vector<MessageDefine> _defines;
     MessageHeaderFile *_file;

@@ -690,11 +690,8 @@ void CScriptDocument::OnFileSave()
     _buffer.SaveToFile(path.c_str());
     // Update the classbrowser...
 	SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser();
-    {
-        ClassBrowserLock lock(browser);
-        lock.Lock();
-        browser.ReLoadScript(path.c_str());
-    }
+    browser.TriggerReloadScript(path.c_str());
+
     // Notify clients *after* we have updated the class browser.
     UpdateAllViewsAndNonViews(nullptr, 0, &WrapObject(ScriptChangeHint::Saved, this));
 }

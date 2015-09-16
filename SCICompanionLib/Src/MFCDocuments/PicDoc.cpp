@@ -11,6 +11,9 @@
 #include "ResourceMap.h"
 #include "CObjectWrap.h"
 #include "PaletteOperations.h"
+#include "AppState.h"
+#include "Polygon.h"
+#include "ClassBrowser.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -496,7 +499,8 @@ PicDrawManager &CPicDoc::GetDrawManager()
 
 void CPicDoc::PostSuccessfulSave(const ResourceEntity *pResource)
 {
-    // I was saving polygons here, but it makes no sense.
+    const PolygonComponent *polygon = pResource->TryGetComponent<PolygonComponent>();
+    appState->GetResourceMap().GetClassBrowser()->TriggerReloadScript(polygon->GetPolyFile());
 }
 
 // CPicDoc commands

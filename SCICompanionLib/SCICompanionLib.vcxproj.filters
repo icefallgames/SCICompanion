@@ -681,6 +681,9 @@
     <ClCompile Include="Src\Resources\NounsAndCases.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Util\Task.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCICompanionLib.h">
@@ -1449,6 +1452,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\Compile\NodeTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Util\Task.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -5,7 +5,7 @@
 
 #ifdef DEBUG
 // Uncomment this to get parsing debug spew. It's still very flaky
- // #define PARSE_DEBUG 1
+// #define PARSE_DEBUG 1
 #endif
 
 //
@@ -16,10 +16,6 @@
 #define _DEBUG_PARSER(x) (x).SetName(#x);
 #else
 #define _DEBUG_PARSER(x)
-#endif
-
-#ifdef PARSE_DEBUG
-extern int g_ParseIndent;
 #endif
 
 //
@@ -200,9 +196,14 @@ enum class ParseAutoCompleteContext
 {
     None,
     Selector,
+    ClassSelector,
     Value,
     TopLevelKeyword,
+    ClassLevelKeyword,
     SuperClass,
-    ScriptName
+    ScriptName,
+    DefineValue,         // Only define constants allowed (not variables, methods, etc...)
+    Export,
+    LValue,
 };
 

@@ -13,6 +13,8 @@ public:
     MessageSource *GetMessageSource();
     void Commit(int resourceNumber = -1);
 
+    std::string GetBackingFile() const;
+
 private:
     void _Load(const std::vector<std::string> &sourcesOptional);
     std::unordered_map<std::string, MessageSource> _sources;

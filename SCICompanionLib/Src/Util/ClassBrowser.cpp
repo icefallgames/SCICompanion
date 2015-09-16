@@ -11,6 +11,7 @@
 #include "ResourceContainer.h"
 #include "CodeAutoComplete.h"
 #include "AutoCompleteContext.h"
+#include "Task.h"
 
 using namespace sci;
 using namespace std;
@@ -22,6 +23,41 @@ using namespace stdext;
 static char THIS_FILE[] = __FILE__;
 #endif
 
+class LoadAllTask : public BackgroundTask
+{
+public:
+    LoadAllTask(SCIClassBrowser &browser) : _browser(browser) {}
+
+    void Execute() override
+    {
+        if (!_browser.ReLoadFromSources(*this) && !IsAborted())
+        {
+            // Might not be a fan-made game... try loading from the resources themselves so
+            // that we are able to provide a class hierarchy at least.
+            _browser.ReLoadFromCompiled(*this);
+        }
+
+    }
+
+private:
+    SCIClassBrowser &_browser;
+};
+
+
+class ReloadScriptTask : public BackgroundTask
+{
+public:
+    ReloadScriptTask(SCIClassBrowser &browser, const std::string &fullPath) : _browser(browser), _fullPath(fullPath) {}
+
+    void Execute() override
+    {
+        _browser.ReloadScript(_fullPath);
+    }
+
+private:
+    SCIClassBrowser &_browser;
+    std::string _fullPath;
+};
 
 //
 // helper that looks up a pointer in a map (e.g. like you use the operator[] for, but it doesn't create
@@ -78,9 +114,8 @@ Script *ParseScript(ScriptId script, CCrystalTextBuffer *pBuffer)
     return pRet;
 }
 
-SCIClassBrowser::SCIClassBrowser() : _kernelNames(_kernelNamesResource.GetNames())
+SCIClassBrowser::SCIClassBrowser() : _kernelNames(_kernelNamesResource.GetNames()), _invalidAutoCompleteSources(AutoCompleteSourceType::None)
 {
-    _hAborted = CreateEvent(NULL, FALSE, FALSE, NULL);
     _fPublicProceduresValid = false;
     _fPublicClassesValid = false;
 #pragma warning(suppress: 28125)
@@ -88,6 +123,7 @@ SCIClassBrowser::SCIClassBrowser() : _kernelNames(_kernelNamesResource.GetNames(
     InitializeCriticalSection(&_csErrorReport);
     _fCBLocked = 0;
     _pEvents = NULL;
+    _scheduler = std::make_unique<BackgroundScheduler>();
 }
 
 SCIClassBrowser::~SCIClassBrowser()
@@ -97,10 +133,7 @@ SCIClassBrowser::~SCIClassBrowser()
     ASSERT(_pLKGScript == NULL);
     DeleteCriticalSection(&_csClassBrowser);
     DeleteCriticalSection(&_csErrorReport);
-    if (_hAborted)
-    {
-        CloseHandle(_hAborted);
-    }
+    _scheduler->Exit();
 }
 
 void SCIClassBrowser::Lock() const
@@ -139,11 +172,27 @@ void SCIClassBrowser::SetClassBrowserEvents(IClassBrowserEvents *pEvents)
     _pEvents = pEvents;
 }
 
+void SCIClassBrowser::OnOpenGame(SCIVersion version)
+{
+    CGuard guard(&_csClassBrowser);
+    _version = version;
+    if (IsBrowseInfoEnabled())
+    {
+        Reset();
+        _scheduler->SubmitTask(std::make_unique<LoadAllTask>(*this));
+    }
+}
+
 void SCIClassBrowser::Reset()
 {
-    SetEvent(_hAborted); // Abort before we go into the critical section, which can block...
+    // Abort before we go into the critical section, which can block...
+    if (_scheduler)
+    {
+        _scheduler->Exit();
+    }
+
     CGuard guard(&_csClassBrowser);
-    ResetEvent(_hAborted); // Is this ok?
+
     _pLKGScript = NULL;
     _wLKG = 1000; // out of bounds
 
@@ -171,6 +220,9 @@ void SCIClassBrowser::Reset()
     _fPublicClassesValid = false;
 
     _customHeaderMap.clear();
+
+    // Make a new one.
+    _scheduler = std::make_unique<BackgroundScheduler>();
 }
 
 void SCIClassBrowser::_AddInstanceToMap(Script& script, ClassDefinition *pClass)
@@ -297,21 +349,23 @@ void SCIClassBrowser::_AddToClassTree(Script& script)
             }
         }
     }
+
+    _invalidAutoCompleteSources = AutoCompleteSourceType::ScriptName | AutoCompleteSourceType::ClassName | AutoCompleteSourceType::Procedure;
 }
 
-bool SCIClassBrowser::ReLoadFromSources()
+bool SCIClassBrowser::ReLoadFromSources(ITask &task)
 {
     CGuard guard(&_csClassBrowser);
     if (IsBrowseInfoEnabled())
     {
-        Reset();
         // Load the kernel and selector names
         _kernelNamesResource.Load(appState->GetResourceMap().Helper());
         _selectorNames.Load(appState->GetResourceMap().Helper());
 
         // Add headers first, since they have defines that are needed by the other scripts.
         _AddHeaders();
-        bool fRet = _CreateClassTree();
+        bool fRet = _CreateClassTree(task);
+        _MaybeGenerateAutoCompleteTree();
         return fRet;
     }
     else
@@ -404,7 +458,7 @@ void LoadScriptFromCompiled(sci::Script *pScript, CompiledScript *pCompiledScrip
 //
 // Generates a class browser from compiled scripts
 // 
-void SCIClassBrowser::ReLoadFromCompiled()
+void SCIClassBrowser::ReLoadFromCompiled(ITask &task)
 {
     if (!IsBrowseInfoEnabled())
     {
@@ -581,11 +635,15 @@ void SCIClassBrowser::ReLoadFromCompiled()
 #endif
 }
 
+void SCIClassBrowser::TriggerReloadScript(const std::string &fullPath)
+{
+    _scheduler->SubmitTask(std::make_unique<ReloadScriptTask>(*this, fullPath));
+}
 
 //
 // Reloads a single script into the class browser.
 //
-void SCIClassBrowser::ReLoadScript(PCTSTR pszFullPath)
+void SCIClassBrowser::ReloadScript(const std::string &fullPath)
 {
     ClearErrors();
     CGuard guard(&_csClassBrowser); 
@@ -593,23 +651,25 @@ void SCIClassBrowser::ReLoadScript(PCTSTR pszFullPath)
     {
         return;
     }
-    if (StrRStrI(PathFindFileName(pszFullPath), NULL, TEXT(".sh")))
+    if (StrRStrI(PathFindFileName(fullPath.c_str()), NULL, TEXT(".sh")))
     {
         // It's a header file
-        _AddHeader(pszFullPath);
+        _AddHeader(fullPath.c_str());
         // Regenerate the defines cache
         _CacheHeaderDefines();
     }
     else
     {
         // It's a regular one.
-        _AddFileName(pszFullPath, PathFindFileName(pszFullPath), TRUE);
+        _AddFileName(fullPath.c_str(), PathFindFileName(fullPath.c_str()), TRUE);
 
         if (_pEvents)
         {
             _pEvents->NotifyClassBrowserStatus(HasErrors() ? IClassBrowserEvents::Errors : IClassBrowserEvents::Ok, 0);
         }
     }
+
+    _MaybeGenerateAutoCompleteTree();
 }
 
 //
@@ -750,54 +810,56 @@ bool SCIClassBrowser::_AddFileName(PCTSTR pszFullPath, PCTSTR pszFileName, BOOL 
     return fRet;
 }
 
-void SCIClassBrowser::_GenerateAutoCompleteTree()
+void SCIClassBrowser::_MaybeGenerateAutoCompleteTree()
 {
-    // REVIEW: If we find this takes too long, we can split things into different _acLists that are updated at different freqs
-    std::vector<TstItem<AutoCompleteSourceType>> items;
-    items.reserve(4000);
-    for (auto &aDefine : _headerDefines)
+    if (_invalidAutoCompleteSources != AutoCompleteSourceType::None)
     {
-        // Standard defines in the system and game header files.
-        items.emplace_back(aDefine.first, AutoCompleteSourceType::Define);
-    }
-    for (auto &aClass : _classMap)
-    {
-        // Updated when new classes created (rare)
-        items.emplace_back(aClass.first, AutoCompleteSourceType::ClassName);
-    }
-    for (auto &selector : _selectorNames.GetNames())
-    {
-        // Updated only when new selectors are created (rare)
-        items.emplace_back(selector, AutoCompleteSourceType::Selector);
-    }
-    for (auto &kernelNames : _kernelNamesResource.GetNames())
-    {
-        // Updated only when new selectors are created (rare)
-        items.emplace_back(kernelNames, AutoCompleteSourceType::Kernel);
-    }
-    for (auto &publicProc : GetPublicProcedures())
-    {
-        items.emplace_back(publicProc->GetName(), AutoCompleteSourceType::Procedure);
-    }
-    for (auto &script : _scripts)
-    {
-        items.emplace_back(script->GetTitle(), AutoCompleteSourceType::ScriptName);
-    }
-
-    // Now some global variables
-    const VariableDeclVector *globals = SCIClassBrowser::GetMainGlobals();
-    if (globals)
-    {
-        for (const auto &global : *globals)
+        // REVIEW: If we find this takes too long, we can split things into different _acLists that are updated at different freqs
+        std::vector<TstItem<AutoCompleteSourceType>> items;
+        items.reserve(4000);
+        for (auto &aDefine : _headerDefines)
         {
-            items.emplace_back(global->GetName(), AutoCompleteSourceType::Variable);
+            // Standard defines in the system and game header files.
+            items.emplace_back(aDefine.first, AutoCompleteSourceType::Define);
         }
-    }
+        for (auto &aClass : _classMap)
+        {
+            // Updated when new classes created (rare)
+            items.emplace_back(aClass.first, AutoCompleteSourceType::ClassName);
+        }
+        for (auto &selector : _selectorNames.GetNames())
+        {
+            // Updated only when new selectors are created (rare)
+            items.emplace_back(selector, AutoCompleteSourceType::Selector);
+        }
+        for (auto &kernelNames : _kernelNamesResource.GetNames())
+        {
+            // Updated only when new selectors are created (rare)
+            items.emplace_back(kernelNames, AutoCompleteSourceType::Kernel);
+        }
+        for (auto &publicProc : _GetPublicProcedures())
+        {
+            items.emplace_back(publicProc->GetName(), AutoCompleteSourceType::Procedure);
+        }
+        for (auto &script : _scripts)
+        {
+            items.emplace_back(script->GetTitle(), AutoCompleteSourceType::ScriptName);
+        }
 
-    // TODO: Maybe have separate lists for classes and defines too? Not sure.
-    // TODO: Rebuild when any of these things change.
-    
-    _aclist.buildBalancedTree(items);
+        // Now some global variables
+        const VariableDeclVector *globals = _GetMainGlobals();
+        if (globals)
+        {
+            for (const auto &global : *globals)
+            {
+                items.emplace_back(global->GetName(), AutoCompleteSourceType::Variable);
+            }
+        }
+
+        _aclist.buildBalancedTree(items);
+
+        _invalidAutoCompleteSources = AutoCompleteSourceType::None;
+    }
 }
 
 void SCIClassBrowser::GetAutoCompleteChoices(const std::string &prefixIn, AutoCompleteSourceType sourceTypes, std::vector<AutoCompleteChoice> &choices)
@@ -859,7 +921,7 @@ SCIClassBrowser::TimeAndHeader &SCIClassBrowser::TimeAndHeader::operator=(TimeAn
 
 std::vector<std::string> globalHeaders =
 {
-    "game.sh", "verbs.sh", "sci.sh", "keys.sh"
+    "game.sh", "verbs.sh", "talkers.sh", "sci.sh", "keys.sh"
 };
 
 void SCIClassBrowser::TriggerCustomIncludeCompile(std::string name)
@@ -944,7 +1006,7 @@ sci::Script *SCIClassBrowser::GetCustomHeader(std::string name)
     return customHeader;
 }
 
-bool SCIClassBrowser::_CreateClassTree()
+bool SCIClassBrowser::_CreateClassTree(ITask &task)
 {
     ClearErrors();
 
@@ -974,10 +1036,8 @@ bool SCIClassBrowser::_CreateClassTree()
         }
         ++scriptIt;
         ++iItem;
-        fAborted = (WAIT_OBJECT_0 == WaitForSingleObject(_hAborted, 0));
+        fAborted = task.IsAborted();
     }
-
-    _GenerateAutoCompleteTree();
 
     if (_pEvents)
     {
@@ -1004,6 +1064,8 @@ void SCIClassBrowser::_CacheHeaderDefines()
         }
         headerIt++;
     }
+
+    _invalidAutoCompleteSources |= AutoCompleteSourceType::Define;
 }
 
 sci::Script *SCIClassBrowser::_LoadScript(PCTSTR pszPath)
@@ -1050,8 +1112,12 @@ void SCIClassBrowser::_AddHeaders()
     {
         _AddHeader(szHeaderPath);
     }
-    // SCI1.1 games have Verbs.sh
+    // SCI1.1 games have Verbs.sh and Talkers.sh
     if (SUCCEEDED(StringCchPrintf(szHeaderPath, ARRAYSIZE(szHeaderPath), TEXT("%s\\Verbs.sh"), appState->GetResourceMap().Helper().GetSrcFolder().c_str())))
+    {
+        _AddHeader(szHeaderPath);
+    }
+    if (SUCCEEDED(StringCchPrintf(szHeaderPath, ARRAYSIZE(szHeaderPath), TEXT("%s\\Talkers.sh"), appState->GetResourceMap().Helper().GetSrcFolder().c_str())))
     {
         _AddHeader(szHeaderPath);
     }
@@ -1291,10 +1357,9 @@ const Script *SCIClassBrowser::GetLKGScript(WORD wScriptNumber)
     return pScriptLKG;
 }
 
-const VariableDeclVector *SCIClassBrowser::GetMainGlobals() const
+const VariableDeclVector *SCIClassBrowser::_GetMainGlobals() const
 {
     CGuard guard(&_csClassBrowser); 
-    assert(_fCBLocked);
     const VariableDeclVector *pArray = nullptr;
     if (IsBrowseInfoEnabled())
     {
@@ -1306,6 +1371,13 @@ const VariableDeclVector *SCIClassBrowser::GetMainGlobals() const
     return pArray;
 }
 
+const VariableDeclVector *SCIClassBrowser::GetMainGlobals() const
+{
+    CGuard guard(&_csClassBrowser);
+    assert(_fCBLocked);
+    return _GetMainGlobals();
+}
+
 const std::vector<std::string> &SCIClassBrowser::GetKernelNames() const
 {
     CGuard guard(&_csClassBrowser);
@@ -1313,29 +1385,35 @@ const std::vector<std::string> &SCIClassBrowser::GetKernelNames() const
     return _kernelNames;
 }
 
-const RawProcedureVector &SCIClassBrowser::GetPublicProcedures()
+const RawProcedureVector &SCIClassBrowser::_GetPublicProcedures()
 {
-    CGuard guard(&_csClassBrowser); 
-    assert(_fCBLocked);
+    CGuard guard(&_csClassBrowser);
     if (!_fPublicProceduresValid)
     {
         _publicProcedures.clear();
         if (IsBrowseInfoEnabled())
         {
-			for (auto &script : _scripts)
+            for (auto &script : _scripts)
             {
-				for (auto &proc : script->GetProcedures())
-				{
-					if (proc->IsPublic())
-					{
-						this->_publicProcedures.push_back(proc.get());
-					}
-				}
+                for (auto &proc : script->GetProcedures())
+                {
+                    if (proc->IsPublic())
+                    {
+                        this->_publicProcedures.push_back(proc.get());
+                    }
+                }
             }
             _fPublicProceduresValid = true;
         }
     }
     return _publicProcedures;
+}
+
+const RawProcedureVector &SCIClassBrowser::GetPublicProcedures()
+{
+    CGuard guard(&_csClassBrowser); 
+    assert(_fCBLocked);
+    return _GetPublicProcedures();
 }
 
 
@@ -1587,9 +1665,7 @@ int SCIClassBrowser::HasErrors()
 bool SCIClassBrowser::ResolveValue(const Script *pScript, const std::string &strValue, PropertyValue &Out) const
 {
     CGuard guard(&_csClassBrowser); 
-    ASSERT(_fCBLocked);
     bool fFound = false;
-
     if (!strValue.empty())
     {
         // One special case

@@ -465,6 +465,7 @@
     <ClCompile Include="Src\Util\DrawHelper.cpp" />
     <ClCompile Include="Src\Util\SCIDocs.cpp" />
     <ClCompile Include="Src\Util\Stream.cpp" />
+    <ClCompile Include="Src\Util\Task.cpp" />
     <ClCompile Include="Src\Util\util.cpp" />
     <ClCompile Include="Src\Util\Version.cpp" />
     <ClCompile Include="Src\Util\VGADither.cpp" />
@@ -667,6 +668,7 @@
     <ClInclude Include="Src\Util\SCIDocs.h" />
     <ClInclude Include="Src\Util\StlUtil.h" />
     <ClInclude Include="Src\Util\Stream.h" />
+    <ClInclude Include="Src\Util\Task.h" />
     <ClInclude Include="Src\Util\ToolTipResult.h" />
     <ClInclude Include="Src\Util\Version.h" />
     <ClInclude Include="Src\Util\VGADither.h" />

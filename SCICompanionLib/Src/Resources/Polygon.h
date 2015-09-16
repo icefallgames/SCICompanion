@@ -52,9 +52,9 @@ public:
     SCIPolygon *GetBack();
     void AppendPolygon(const SCIPolygon &polygon);
     void DeletePolygon(size_t index);
+    std::string GetPolyFile() const;
 
 private:
-    std::string _GetPolyFile();
 
     std::vector<SCIPolygon> _polygons;
     std::string _polyFolder;

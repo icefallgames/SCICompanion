@@ -482,23 +482,6 @@ UINT AppState::GetMidiDeviceId()
     return deviceId;
 }
 
-//
-// Background thread to load the class browser.
-//
-UINT LoadClassBrowserThreadWorker(void *pParam)
-{
-    SCIClassBrowser *pBrowser = (SCIClassBrowser *)pParam;
-    pBrowser->Lock();
-    if (!pBrowser->ReLoadFromSources())
-    {
-        // Might not be a fan-made game... try loading from the resources themselves so
-        // that we are able to provide a class hierarchy at least.
-        pBrowser->ReLoadFromCompiled();
-    }
-    pBrowser->Unlock();
-    return 1;
-}
-
 CDocument* AppState::OpenDocumentFile(PCTSTR lpszFileName)
 {
     return _pApp->OpenDocumentFile(lpszFileName);
@@ -523,12 +506,7 @@ ResourceType AppState::GetShownResourceType()
 
 void AppState::GenerateBrowseInfo()
 {
-    GetResourceMap().GetClassBrowser()->SetVersion(GetVersion());
-    CWinThread *pThread = AfxBeginThread(LoadClassBrowserThreadWorker, GetResourceMap().GetClassBrowser(), THREAD_PRIORITY_BELOW_NORMAL, 0, 0, NULL);
-    if (pThread == NULL)
-    {
-        LogInfo(TEXT("Failed to create background class browser thread."));
-    }
+    GetResourceMap().GetClassBrowser()->OnOpenGame(GetVersion());
 }
 
 void AppState::ResetClassBrowser()

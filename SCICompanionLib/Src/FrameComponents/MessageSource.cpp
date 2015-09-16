@@ -59,6 +59,16 @@ std::string MessageSource::ValueToName(uint16_t value) const
     return "";
 }
 
+std::string MessageSource::GetBackingFile() const
+{
+    std::string path;
+    if (_file)
+    {
+        path = _file->GetBackingFile();
+    }
+    return path;
+}
+
 uint16_t MessageSource::NameToValue(const std::string &name) const
 {
     auto it = find_if(_defines.begin(), _defines.end(),

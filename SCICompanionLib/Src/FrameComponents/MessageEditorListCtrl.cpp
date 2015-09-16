@@ -7,6 +7,7 @@
 #include "MessageDoc.h"
 #include "WindowsUtil.h"
 #include "NounsAndCases.h"
+#include "ClassBrowser.h"
 
 using namespace std;
 
@@ -368,7 +369,7 @@ void MessageEditorListCtrl::_Commit()
     MessageSource *source = const_cast<MessageSource*>(_GetSource());
     if (source)
     {
-        assert((_sourceType == MessageSourceType::Verbs || _sourceType == MessageSourceType::Nouns) && "Other types should go through components.");
+        assert((_sourceType == MessageSourceType::Verbs || _sourceType == MessageSourceType::Talkers) && "Other types should go through components.");
         source->Commit();
         if (_pDoc)
         {
@@ -376,5 +377,10 @@ void MessageEditorListCtrl::_Commit()
             auto hint = WrapHint(MessageChangeHint::AllMessageFiles);
             _pDoc->UpdateAllViewsAndNonViews(nullptr, 0, &hint);
         }
+
+        // Notify the class browser. I'd rather have this functionality here than in the MessageSource.
+        // An even better way would be to have a thread that is monitoring certain files.
+        SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser();
+        browser.TriggerReloadScript(source->GetBackingFile().c_str());
     }
 }

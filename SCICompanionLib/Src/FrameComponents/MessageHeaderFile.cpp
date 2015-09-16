@@ -133,6 +133,11 @@ MessageSource *MessageHeaderFile::GetMessageSource()
     return &_sources.begin()->second;
 }
 
+std::string MessageHeaderFile::GetBackingFile() const
+{
+    return _filePath;
+}
+
 void MessageHeaderFile::Commit(int resourceNumber)
 {
     if ((resourceNumber != -1) && !_folderPath.empty())

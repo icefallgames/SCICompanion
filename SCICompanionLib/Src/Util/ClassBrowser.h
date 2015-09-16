@@ -8,6 +8,8 @@
 class SCIClassBrowserNode;
 class ISCIPropertyBag;
 class AutoCompleteChoice;
+class BackgroundScheduler;
+class ITask;
 enum class AutoCompleteSourceType;
 
 namespace sci
@@ -53,9 +55,10 @@ public:
     void Unlock() const; // Releases lock.
     bool HasLock() const; 
 
-    bool ReLoadFromSources();
-    void ReLoadFromCompiled();
-    void ReLoadScript(PCTSTR pszFullPath);
+    bool ReLoadFromSources(ITask &task);
+    void ReLoadFromCompiled(ITask &task);
+    void ReloadScript(const std::string &fullPath);
+    void TriggerReloadScript(const std::string &fullPath);
 
     // The remaining public functions should only be called if within a lock, as they return
     // information internal to this class.
@@ -90,7 +93,7 @@ public:
     int HasErrors(); // 0: no erors,  1: errors,  -1: unknown
 
     void Reset();
-    void SetVersion(SCIVersion version) { _version = version; }
+    void OnOpenGame(SCIVersion version);
 
 private:
 
@@ -102,7 +105,7 @@ private:
     typedef std::unordered_map<std::string, WORD> define_map;
     typedef std::unordered_map<std::string, WORD> word_map;
 
-    bool _CreateClassTree();
+    bool _CreateClassTree(ITask &task);
     void _AddToClassTree(sci::Script& script);
     bool _AddFileName(PCTSTR pszFullPath, PCTSTR pszFileName, BOOL fReplace = FALSE);
     void _RemoveAllRelatedData(sci::Script *pScript);
@@ -111,7 +114,9 @@ private:
     void _CacheHeaderDefines();
     void _AddInstanceToMap(sci::Script& script, sci::ClassDefinition *pClass);
     void _AddSubclassesToArray(std::vector<std::string> *pArray, SCIClassBrowserNode *pBrowserInfo);
-    void _GenerateAutoCompleteTree();
+    void _MaybeGenerateAutoCompleteTree();
+    const std::vector<sci::ProcedureDefinition*> &_GetPublicProcedures();
+    const std::vector<std::unique_ptr<sci::VariableDecl>> *_GetMainGlobals() const;
 
     SCIVersion _version;
 
@@ -119,6 +124,7 @@ private:
     class_map _classMap;
 
     TernarySearchTree<AutoCompleteSourceType> _aclist;
+    AutoCompleteSourceType _invalidAutoCompleteSources;
 
     // This maps script numbers to arrays of instances within them.
     instance_map _instanceMap;
@@ -176,7 +182,7 @@ private:
 
     IClassBrowserEvents *_pEvents;
 
-    HANDLE _hAborted;
+    std::unique_ptr<BackgroundScheduler> _scheduler;
 };
 
 //
