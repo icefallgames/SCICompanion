@@ -70,7 +70,7 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
                 break;
 
             case ParseAutoCompleteContext::Value:
-                sourceTypes |= AutoCompleteSourceType::ClassName | AutoCompleteSourceType::Variable | AutoCompleteSourceType::Define | AutoCompleteSourceType::Kernel | AutoCompleteSourceType::Procedure | AutoCompleteSourceType::ClassSelector;
+                sourceTypes |= AutoCompleteSourceType::ClassName | AutoCompleteSourceType::Variable | AutoCompleteSourceType::Define | AutoCompleteSourceType::Kernel | AutoCompleteSourceType::Procedure | AutoCompleteSourceType::ClassSelector | AutoCompleteSourceType::Instance;
                 break;
 
             case ParseAutoCompleteContext::LValue:
@@ -143,6 +143,27 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
                         );
                     }
                 }
+            }
+        }
+
+        if (IsFlagSet(sourceTypes, AutoCompleteSourceType::Instance))
+        {
+            // Instances in this script
+            ClassBrowserLock browserLock(browser);
+            browserLock.Lock();
+            const Script *thisScript = browser.GetLKGScript(context.Script().GetScriptNumber());
+            if (thisScript)
+            {
+                std::vector<std::string> instanceNames;
+                for (auto &theClass : thisScript->GetClasses())
+                {
+                    if (theClass->IsInstance())
+                    {
+                        instanceNames.push_back(theClass->GetName());
+                    }
+
+                }
+                MergeResults(result->choices, prefix, AutoCompleteIconIndex::Class, instanceNames);
             }
         }
 

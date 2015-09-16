@@ -1351,7 +1351,7 @@ void SCISyntaxParser::Load()
         //| ternary_expression
         | code_block)[{FinishStatementA, ParseAutoCompleteContext::Value}];
 
-    function_var_decl_begin = oppar >> keyword_p("var");
+    function_var_decl_begin = oppar >> keyword_p("var")[{nullptr, ParseAutoCompleteContext::Value}];
 
     function_var_decl_inner =
         ((var_decl[StartFunctionTempVarA] >> -(equalSign >> immediateValue[ErrorA<errInteger>]))[FinishFunctionTempVarA] % comma[GeneralE])
@@ -1365,7 +1365,7 @@ void SCISyntaxParser::Load()
         (!function_var_decl_begin)[FailedVarDecl];
 
     method_base = oppar
-        >> alphanum_p[FunctionNameA]
+        >> alphanum_p[{FunctionNameA, ParseAutoCompleteContext::Selector}]
         >> *alphanum_p[FunctionParameterA]
         >> clpar[GeneralE]
         >> function_var_decl
@@ -1375,7 +1375,8 @@ void SCISyntaxParser::Load()
         >> alphanum_p[FunctionNameA]
         >> *alphanum_p[FunctionParameterA]
         >> clpar[GeneralE]
-        >> -(keyword_p("of") >> alphanum_p[ProcedureClassA])
+        // ::Value for autocomplete context, since it will stick around until the functino body
+        >> -(keyword_p("of")[{nullptr, ParseAutoCompleteContext::Value}] >> alphanum_p[{ProcedureClassA, ParseAutoCompleteContext::SuperClass}])
         >> function_var_decl
         >> *statement[FunctionStatementA];
 

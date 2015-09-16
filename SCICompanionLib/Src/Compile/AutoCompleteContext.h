@@ -12,6 +12,7 @@ enum class AutoCompleteSourceType
     Kernel =                0x00000040,
     Procedure =             0x00000080,
     ClassSelector =         0x00000100,
+    Instance =              0x00000200,
 };
 DEFINE_ENUM_FLAGS(AutoCompleteSourceType, int)
 

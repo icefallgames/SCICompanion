@@ -263,7 +263,6 @@ std::vector<std::string> topLevelKeywordsSCI =
     _T("string"),
     _T("synonyms"),
     _T("use"),
-    _T("var"),
     _T("version"),
 };
 
@@ -311,9 +310,11 @@ std::vector<std::string> codeLevelKeywordsSCI =
     _T("rest"),
     _T("return"),
     _T("scriptNumber"),
+    _T("self"),
     _T("send"),
     _T("super"),
     _T("switch"),
+    _T("var"),
 	_T("while"),
 };
 

@@ -499,8 +499,7 @@ PicDrawManager &CPicDoc::GetDrawManager()
 
 void CPicDoc::PostSuccessfulSave(const ResourceEntity *pResource)
 {
-    const PolygonComponent *polygon = pResource->TryGetComponent<PolygonComponent>();
-    appState->GetResourceMap().GetClassBrowser()->TriggerReloadScript(polygon->GetPolyFile());
+
 }
 
 // CPicDoc commands
