@@ -68,20 +68,21 @@ void CScriptComboBox::UpdateNonView(CObject *pObject)
     ScriptChangeHint hint = GetHint<ScriptChangeHint>(pObject);
     if (_pDoc && (IsFlagSet(hint, ScriptChangeHint::Pos)) && !_fIgnorePosChanged)
     {
-        SetTimer(TIMER_UPDATECOMBO, 500, NULL);
+        SetTimer(TIMER_UPDATECOMBO, 500, nullptr);
     }
 }
 
 void CScriptComboBox::SetDocument(CDocument *pDoc)
 {
-    ASSERT(pDoc == NULL || pDoc->IsKindOf(RUNTIME_CLASS(CScriptDocument)));
+    assert(pDoc == nullptr|| pDoc->IsKindOf(RUNTIME_CLASS(CScriptDocument)));
+    _lastTaskId = -1;
     if (pDoc)
     {
         _pDoc = static_cast<CScriptDocument*>(pDoc);
         _pDoc->AddNonViewClient(this); // (assumes dupes are filtered out)
 
         // Don't update ourselves synchronously...
-        SetTimer(TIMER_UPDATECOMBO, 500, NULL);
+        SetTimer(TIMER_UPDATECOMBO, 500, nullptr);
     }
     else
     {
@@ -178,7 +179,7 @@ void CScriptComboBox::_ParseAndUpdate(bool fForce)
     if (_fDroppedDown || !appState->IsScriptNavEnabled())
     {
         // Don't do it while the user is looking at the combobox
-        SetTimer(TIMER_UPDATECOMBO, 1000, NULL); // Try again in a second
+        SetTimer(TIMER_UPDATECOMBO, 1000, nullptr); // Try again in a second
     }
     else
     {
@@ -215,7 +216,7 @@ void CClassComboBox::_OnUpdateFromScript(const sci::Script *pScript, CPoint pt)
     SetRedraw(FALSE);
     ResetContent();
     int iSelection = -1;
-    if (pScript != NULL)
+    if (pScript != nullptr)
     {
         // Add all the classes, and select the one that the point is in.
 		for (auto &classDef : pScript->GetClasses())
