@@ -176,7 +176,7 @@ void SCIClassBrowser::OnOpenGame(SCIVersion version)
 {
     CGuard guard(&_csClassBrowser);
     _version = version;
-    if (IsBrowseInfoEnabled())
+    if (IsBrowseInfoEnabled() && appState->GetResourceMap().IsGameLoaded())
     {
         Reset();
         _scheduler->SubmitTask(std::make_unique<LoadAllTask>(*this));
