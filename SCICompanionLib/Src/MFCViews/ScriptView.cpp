@@ -26,6 +26,7 @@
 #include "ClassBrowser.h"
 #include "CObjectWrap.h"
 #include "ResourceEntity.h"
+#include "Task.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -43,6 +44,59 @@ using namespace sci;
 using namespace std;
 
 #define UWM_AUTOCOMPLETEREADY      (WM_APP + 0)
+#define UWM_HOVERTIPREADY          (WM_APP + 1)
+
+class HoverTipTaskResponse : public TaskResponse
+{
+public:
+    HoverTipTaskResponse(CPoint location, std::unique_ptr<ToolTipResult> result) : Location(location), Result(move(result)) {}
+    std::unique_ptr<ToolTipResult> Result;
+    CPoint Location;
+};
+
+std::unique_ptr<ToolTipResult> DoToolTipParse(CCrystalScriptStream &stream, CScriptStreamLimiter &limiter)
+{
+    class CToolTipSyntaxParserCallback : public ISyntaxParserCallback
+    {
+    public:
+        CToolTipSyntaxParserCallback(SyntaxContext &context, ToolTipResult &result) : _context(context), _result(result) {}
+
+        bool Done()
+        {
+            _result = GetToolTipResult<SyntaxContext>(&_context);
+            return false;
+        }
+    private:
+        SyntaxContext &_context;
+        ToolTipResult &_result;
+    };
+
+    std::unique_ptr<ToolTipResult> result = make_unique<ToolTipResult>();
+
+    Script script;
+    SyntaxContext context(stream.begin(), script, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), false);
+    CToolTipSyntaxParserCallback callback(context, *result);
+    limiter.SetCallback(&callback);
+    g_Parser.Parse(script, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), nullptr, false, &context);
+
+    return result;
+}
+
+class HoverTipBackgroundTask : public BackgroundTask
+{
+public:
+    HoverTipBackgroundTask(CCrystalTextBuffer *pBuffer, CPoint ptLimit) : _limiter(pBuffer, ptLimit, 0), _stream(&_limiter), _location(ptLimit) {}
+
+    std::unique_ptr<TaskResponse> Execute() override
+    {
+        return make_unique<HoverTipTaskResponse>(_location, move(DoToolTipParse(_stream, _limiter)));
+    }
+
+private:
+    CScriptStreamLimiter _limiter;
+    CPoint _location;
+    CCrystalScriptStream _stream;
+};
 
 // CScriptView
 IMPLEMENT_DYNCREATE(CScriptView, CCrystalEditView)
@@ -87,6 +141,7 @@ BEGIN_MESSAGE_MAP(CScriptView, CCrystalEditView)
     ON_UPDATE_COMMAND_UI(ID_SCRIPT_GOTODEFINITION, OnUpdateGotoDefinition)
     ON_COMMAND(ID_VISUALSCRIPT, OnVisualScript)
     ON_MESSAGE(UWM_AUTOCOMPLETEREADY, OnAutoCompleteReady)
+    ON_MESSAGE(UWM_HOVERTIPREADY, OnHoverTipReady)
     //ON_UPDATE_COMMAND_UI(ID_VISUALSCRIPT, OnUpdateAlwaysOn)
 END_MESSAGE_MAP()
 
@@ -100,7 +155,9 @@ CScriptView::CScriptView()
     _ptToolTipWord = CPoint(0, 0);
     _pAutoComp = nullptr;
     _pACThread = nullptr;
+    _hoverTipScheduler = nullptr;
     _pMethodTip = nullptr;
+    _lastHoverTipParse = -1;
 }
 
 void CScriptView::UpdateCaret()
@@ -808,12 +865,15 @@ void CScriptView::OnContextMenu(CWnd *pWnd, CPoint point)
         {
             // Do a parse to see if we have something interesting to show for the "goto" entry.
             CPoint ptRight = WordToRight(ptText);
-            ToolTipResult result = _DoToolTipParse(ptRight);
-            if (!result.empty())
+
+            CScriptStreamLimiter limiter(LocateTextBuffer(), ptRight, 0);
+            CCrystalScriptStream stream(&limiter);
+            std::unique_ptr<ToolTipResult> result = DoToolTipParse(stream, limiter);
+            if (result && !result->empty())
             {
-                _gotoDefinitionText = result.strBaseText.c_str();
-                _gotoScript = result.scriptId;
-                _gotoLineNumber = result.iLineNumber;
+                _gotoDefinitionText = result->strBaseText.c_str();
+                _gotoScript = result->scriptId;
+                _gotoLineNumber = result->iLineNumber;
             }
         }
 
@@ -1205,52 +1265,18 @@ BOOL CScriptView::_ScreenToWordRight(CPoint ptClient, CPoint &ptWordRight)
     return fRet;
 }
 
-
-
-
-ToolTipResult CScriptView::_DoToolTipParse(CPoint pt)
+void CScriptView::_TriggerHoverTipParse(CPoint pt)
 {
-    ToolTipResult result;
-    BOOL fRet = FALSE;
-    if (appState->AreHoverTipsEnabled())
+    if (appState->AreHoverTipsEnabled() && _hoverTipScheduler)
     {
-        CScriptStreamLimiter limiter(LocateTextBuffer(), pt, 0);
-        CCrystalScriptStream stream(&limiter);
-        sci::Script script;
-        SyntaxContext context(stream.begin(), script, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), false);
-        CCrystalScriptStream::const_iterator it = stream.begin();
-        
-        class CToolTipSyntaxParserCallback : public ISyntaxParserCallback
-        {
-        public:
-            CToolTipSyntaxParserCallback(SyntaxContext &context, ToolTipResult &result) : _context(context), _result(result) {}
-
-            bool Done()
-            {
-                // Sometimes we get called twice (e.g. hovering over a send selector). Not sure if this is a bug
-                // in the parsing code, or legit. Anyway, it is easy to filter out the second one.
-                if (_result.empty())
-                {
-                    _result = GetToolTipResult<SyntaxContext>(&_context);
-                }
-                return false;
-            }
-        private:
-            SyntaxContext &_context;
-            ToolTipResult &_result;
-        };
-
-        CToolTipSyntaxParserCallback callback(context, result);
-        limiter.SetCallback(&callback);
-
-        CPrecisionTimer timer;
-        timer.Start();
-        g_Parser.Parse(script, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), nullptr, false, &context); // REVIEW: pass in context?
-        char sz[100];
-        StringCchPrintf(sz, ARRAYSIZE(sz), "Time was %d\n", (int)(timer.Stop() * 1000));
-        OutputDebugString(sz);
+        _lastHoverTipParse = _hoverTipScheduler->SubmitTask(this->GetSafeHwnd(), UWM_HOVERTIPREADY,
+            make_unique<HoverTipBackgroundTask>(LocateTextBuffer(), pt)
+            );
     }
-    return result;
+    else
+    {
+        _lastHoverTipParse = -1;
+    }
 }
 
 void CScriptView::_BringUpToolTip(CPoint ptClient)
@@ -1263,21 +1289,7 @@ void CScriptView::_BringUpToolTip(CPoint ptClient)
         BOOL fInEditableArea = _ScreenToWordRight(ptClient, _ptToolTipWord);
         if (fInEditableArea)
         {
-            ToolTipResult result = _DoToolTipParse(_ptToolTipWord);
-            if (!result.empty())
-            {
-                // Place the tooltip below the line and a little to the left.
-                CPoint ptTip = ClientToText(ptClient);
-                // Unfortunately we can't to TextToClient unless it's a valid text pos.
-                ptTip.x = ptClient.x + 10;
-                ptTip.y = TextToClientLine(ptTip.y + 1);
-
-                CRect rcScript;
-                GetWindowRect(&rcScript);
-                _pwndToolTip->Show(CPoint(rcScript.left + ptTip.x, rcScript.top + ptTip.y), result.strTip);
-
-                SetTimer(TOOLTIPEXPIRE_ID, TOOLTIPEXPIRE_TIMEOUT, nullptr);
-            }
+            _TriggerHoverTipParse(_ptToolTipWord);
         }
     }
 }
@@ -1603,6 +1615,34 @@ void CScriptView::OnGoto()
         SetCursorPos(CPoint(nChar, nLine));
         EnsureVisible(CPoint(nChar, nLine));
     }
+}
+
+LRESULT CScriptView::OnHoverTipReady(WPARAM wParam, LPARAM lParam)
+{
+    if (_hoverTipScheduler)
+    {
+        std::unique_ptr<TaskResponse> response = _hoverTipScheduler->RetrieveResponse(_lastHoverTipParse);
+        if (response)
+        {
+            std::unique_ptr<ToolTipResult> result = move(static_cast<HoverTipTaskResponse*>(response.get())->Result);
+            CPoint ptClient = static_cast<HoverTipTaskResponse*>(response.get())->Location;
+            if (result && !result->empty())
+            {
+                // Place the tooltip below the line and a little to the left.
+                CPoint ptTip = ptClient;
+                ptTip.x = ptClient.x + 10;
+                ptTip.y = TextToClientLine(ptTip.y + 1);
+
+                CRect rcScript;
+                GetWindowRect(&rcScript);
+                _pwndToolTip->Show(CPoint(rcScript.left + ptTip.x, rcScript.top + ptTip.y), result->strTip);
+
+                SetTimer(TOOLTIPEXPIRE_ID, TOOLTIPEXPIRE_TIMEOUT, nullptr);
+            }
+        }
+    }
+
+    return 0;
 }
 
 LRESULT CScriptView::OnAutoCompleteReady(WPARAM wParam, LPARAM lParam)

@@ -102,6 +102,8 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
     ToolTipResult result;
 	SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser();
     ClassBrowserLock lock(browser);
+    // REVIEW: TryLock may fail. For tooltips (which are extracted in the background), we may want to just Lock. But for the context menu
+    // (which is extracted in the foreground), we probably want to TryLock. Alternatively, we could implement "Lock" with a short timeout.
     if (lock.TryLock())
     {
         // Try to figure out where we are.

@@ -43,6 +43,7 @@ public:
     BackgroundScheduler(HWND hwndResponse, UINT msgResponse);
     ~BackgroundScheduler();
     int SubmitTask(std::unique_ptr<BackgroundTask> task);
+    int SubmitTask(HWND hwnd, UINT msg, std::unique_ptr<BackgroundTask> task);
     std::unique_ptr<TaskResponse> RetrieveResponse(int id);
     bool IsAborted();
     

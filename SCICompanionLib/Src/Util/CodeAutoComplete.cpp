@@ -151,7 +151,7 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
             // Instances in this script
             ClassBrowserLock browserLock(browser);
             browserLock.Lock();
-            const Script *thisScript = browser.GetLKGScript(context.Script().GetScriptNumber());
+            const Script *thisScript = browser.GetLKGScript(browser.GetScriptNumberHelper(&context.Script()));
             if (thisScript)
             {
                 std::vector<std::string> instanceNames;
@@ -171,7 +171,7 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
         {
             ClassBrowserLock browserLock(browser);
             browserLock.Lock();
-            const Script *thisScript = browser.GetLKGScript(context.Script().GetScriptNumber());
+            const Script *thisScript = browser.GetLKGScript(browser.GetScriptNumberHelper(&context.Script()));
             if (thisScript)
             {
                 // Script variables
@@ -212,7 +212,7 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
         {
             ClassBrowserLock browserLock(browser);
             browserLock.Lock();
-            std::string species = context.ClassPtr->GetSpecies();
+            std::string species = context.ClassPtr->IsInstance() ? context.ClassPtr->GetSuperClass() : context.ClassPtr->GetName();
             unique_ptr<RawClassPropertyVector> properties(browser.CreatePropertyArray(species, nullptr, nullptr));
             MergeResults(result->choices, prefix, AutoCompleteIconIndex::Variable, *properties,
                 [](const ClassProperty *classProp)
@@ -227,7 +227,7 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
             // Local script defines
             ClassBrowserLock browserLock(browser);
             browserLock.Lock();
-            const Script *thisScript = browser.GetLKGScript(context.Script().GetScriptNumber());
+            const Script *thisScript = browser.GetLKGScript(browser.GetScriptNumberHelper(&context.Script()));
             if (thisScript)
             {
                 MergeResults(result->choices, prefix, AutoCompleteIconIndex::Define, thisScript->GetDefines(),
@@ -243,7 +243,7 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
         {
             ClassBrowserLock browserLock(browser);
             browserLock.Lock();
-            const Script *thisScript = browser.GetLKGScript(context.Script().GetScriptNumber());
+            const Script *thisScript = browser.GetLKGScript(browser.GetScriptNumberHelper(&context.Script()));
             if (thisScript)
             {
                 MergeResults(result->choices, prefix, AutoCompleteIconIndex::Procedure, thisScript->GetProcedures(),

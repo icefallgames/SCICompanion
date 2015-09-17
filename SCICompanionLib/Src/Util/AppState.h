@@ -8,6 +8,7 @@
 #include "CompileInterfaces.h"
 
 class AutoCompleteThread2;
+class BackgroundScheduler;
 class CScriptView;
 
 // FWD decl
@@ -198,6 +199,8 @@ public: // TODO for now
     CIntellisenseListBox m_wndIntel;
     CColoredToolTip m_wndToolTip;
     AutoCompleteThread2 *_pACThread;
+
+    std::unique_ptr<BackgroundScheduler> _pHoverTipScheduler;
 
     ScopedHandle _hProcessDebugged;
 };

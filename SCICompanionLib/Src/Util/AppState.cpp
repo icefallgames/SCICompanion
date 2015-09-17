@@ -51,6 +51,8 @@
 #include "View.h"
 #include "NewRasterResourceDocument.h"
 
+#include "Task.h"
+
 #include "crc.h"
 
 static const char c_szExecutableString[] = "Executable";
@@ -116,6 +118,7 @@ AppState::AppState(CWinApp *pApp)
     _pACThread = nullptr;
 #ifdef SCI_AUTOCOMPLETE
     _pACThread = new AutoCompleteThread2();
+    _pHoverTipScheduler = std::make_unique<BackgroundScheduler>();
 #endif
 
     crcInit();
@@ -165,7 +168,7 @@ int AppState::InverseAspectRatioY(int value) const
 
 void AppState::GiveMeAutoComplete(CScriptView *pSV)
 {
-    pSV->SetAutoComplete(&m_wndIntel, &m_wndToolTip, &m_wndToolTip, _pACThread);
+    pSV->SetAutoComplete(&m_wndIntel, &m_wndToolTip, &m_wndToolTip, _pACThread, _pHoverTipScheduler.get());
 }
 
 AppState::~AppState()

@@ -18,6 +18,7 @@ class CCrystalScriptStream;
 class CScriptStreamLimiter;
 class CMethodInfoTip;
 class AutoCompleteThread2;
+class BackgroundScheduler;
 class CScriptDocument;
 class AvailableObjects;
 class AvailableMethods;
@@ -38,12 +39,13 @@ public:
     void GetSelectedText(CString &text);
 
 #ifdef SCI_AUTOCOMPLETE
-    void SetAutoComplete(CIntellisenseListBox *pAutoComp, CColoredToolTip *pMethodToolTip, CColoredToolTip *pToolTip, AutoCompleteThread2 *pThread)
+    void SetAutoComplete(CIntellisenseListBox *pAutoComp, CColoredToolTip *pMethodToolTip, CColoredToolTip *pToolTip, AutoCompleteThread2 *pThread, BackgroundScheduler *hoverTipScheduler)
     {
         _pAutoComp = pAutoComp;
         _pACThread = pThread;
         _pMethodTip = pMethodToolTip;
         _pwndToolTip = pToolTip;
+        _hoverTipScheduler = hoverTipScheduler;
     }
 #endif
 
@@ -112,9 +114,10 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
     LRESULT OnAutoCompleteReady(WPARAM wParam, LPARAM lParam);
+    LRESULT OnHoverTipReady(WPARAM wParam, LPARAM lParam);
     void _OnAddAs(WordClass dwClass);
     BOOL _ScreenToWordRight(CPoint ptClient, CPoint &ptWordRight);
-    ToolTipResult _DoToolTipParse(CPoint pt);
+    void _TriggerHoverTipParse(CPoint pt);
     void _BringUpToolTip(CPoint ptClient);
     BOOL _ClientToTextNoMargin(CPoint ptClient, CPoint &ptText);
     void _OnInsertObject(bool currentPosition);
@@ -125,6 +128,8 @@ protected:
     CIntellisenseListBox *_pAutoComp;
     CColoredToolTip *_pMethodTip;
     AutoCompleteThread2 *_pACThread; // Not owned by us
+    BackgroundScheduler *_hoverTipScheduler; // Not owned by us
+    int _lastHoverTipParse;
 
     // Autocomplete
     BOOL _fInOnChar;

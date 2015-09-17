@@ -26,6 +26,18 @@ int BackgroundScheduler::SubmitTask(std::unique_ptr<BackgroundTask> task)
     return id;
 }
 
+int BackgroundScheduler::SubmitTask(HWND hwnd, UINT msg, std::unique_ptr<BackgroundTask> task)
+{
+    // This allows us to keep the same scheduler around for different windows
+    {
+        CGuard guard(&_cs);
+        _hwndResponse = hwnd;
+        _msgResponse = msg;
+    }
+
+    return SubmitTask(move(task));
+}
+
 std::unique_ptr<TaskResponse> BackgroundScheduler::RetrieveResponse(int id)
 {
     CGuard guard(&_csResponse);
@@ -51,20 +63,13 @@ BackgroundScheduler::BackgroundScheduler(HWND hwndResponse, UINT msgResponse) : 
     InitializeCriticalSection(&_cs);
     _hWakeUp = CreateEvent(nullptr, FALSE, FALSE, nullptr);
     _pThread = AfxBeginThread(s_ThreadWorker, this, THREAD_PRIORITY_BELOW_NORMAL, 0, 0, nullptr);
-
-    if (_hwndResponse)
-    {
-        InitializeCriticalSection(&_csResponse);
-    }
+    InitializeCriticalSection(&_csResponse);
 }
 
 BackgroundScheduler::~BackgroundScheduler()
 {
     DeleteCriticalSection(&_cs);
-    if (_hwndResponse)
-    {
-        DeleteCriticalSection(&_csResponse);
-    }
+    DeleteCriticalSection(&_csResponse);
 }
 
 UINT BackgroundScheduler::s_ThreadWorker(void *pParam)
@@ -115,16 +120,21 @@ void BackgroundScheduler::_DoWork()
                 task->_schedulerWeak = this;
                 std::unique_ptr<TaskResponse> response = task->Execute();
                 // If the owner wanted a response, send it now.
-                if (response && _hwndResponse)
+                if (response)
                 {
-                    response->_id = task->_id;
-
+                    HWND hwnd;
+                    UINT msg;
                     {
                         CGuard guard(&_csResponse);
-                        _responseQueue.push_back(move(response));
+                        hwnd = _hwndResponse;
+                        msg = _msgResponse;
+                        if (_hwndResponse)
+                        {
+                            response->_id = task->_id;
+                            _responseQueue.push_back(move(response));
+                        }
                     }
-
-                    PostMessage(_hwndResponse, _msgResponse, 0, 0);
+                    PostMessage(hwnd, msg, 0, 0);
                 }
             }
         }
