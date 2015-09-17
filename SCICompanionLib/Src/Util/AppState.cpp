@@ -116,10 +116,8 @@ AppState::AppState(CWinApp *pApp)
     _shownType = ResourceType::View;
 
     _pACThread = nullptr;
-#ifdef SCI_AUTOCOMPLETE
     _pACThread = new AutoCompleteThread2();
     _pHoverTipScheduler = std::make_unique<BackgroundScheduler>();
-#endif
 
     crcInit();
 

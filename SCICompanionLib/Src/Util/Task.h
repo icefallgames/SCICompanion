@@ -46,6 +46,7 @@ public:
     int SubmitTask(HWND hwnd, UINT msg, std::unique_ptr<BackgroundTask> task);
     std::unique_ptr<TaskResponse> RetrieveResponse(int id);
     bool IsAborted();
+    void DeactivateHWND(HWND hwndNoMore);
     
     // Waits until background thread exits.
     void Exit();

@@ -12,6 +12,17 @@ bool BackgroundScheduler::IsAborted()
     return _exit;
 }
 
+void BackgroundScheduler::DeactivateHWND(HWND hwndNoMore)
+{
+    // Since multiple windows may use the same scheduler, when a window that submits
+    // as task is destroyed, we want to clear the response hwnd out so that we don't
+    // post to an invalid hwnd.
+    if (_hwndResponse == hwndNoMore)
+    {
+        _hwndResponse = nullptr;
+    }
+}
+
 int BackgroundScheduler::SubmitTask(std::unique_ptr<BackgroundTask> task)
 {
     int id = -1;
@@ -134,7 +145,10 @@ void BackgroundScheduler::_DoWork()
                             _responseQueue.push_back(move(response));
                         }
                     }
-                    PostMessage(hwnd, msg, 0, 0);
+                    if (hwnd)
+                    {
+                        PostMessage(hwnd, msg, 0, 0);
+                    }
                 }
             }
         }

@@ -2,8 +2,6 @@
 //
 #pragma once
 
-#define SCI_AUTOCOMPLETE 1
-
 #include "CCrystalEditView.h"
 #include "Vocab000.h"
 #include "IntellisenseListBox.h"
@@ -38,7 +36,6 @@ public:
     BOOL GetHeaderFile(CPoint pt, CString &strHeader);
     void GetSelectedText(CString &text);
 
-#ifdef SCI_AUTOCOMPLETE
     void SetAutoComplete(CIntellisenseListBox *pAutoComp, CColoredToolTip *pMethodToolTip, CColoredToolTip *pToolTip, AutoCompleteThread2 *pThread, BackgroundScheduler *hoverTipScheduler)
     {
         _pAutoComp = pAutoComp;
@@ -47,7 +44,6 @@ public:
         _pwndToolTip = pToolTip;
         _hoverTipScheduler = hoverTipScheduler;
     }
-#endif
 
 // Operations
 public:
@@ -86,6 +82,7 @@ protected:
     afx_msg void OnSetFocus(CWnd *pNewWnd);
     afx_msg void OnChar(UINT nChar, UINT nRepCnt, UINT nFlags);
     afx_msg void OnInsertObject();
+    afx_msg void OnDestroy();
     afx_msg void OnInsertObjectAt();
     afx_msg void OnInsertObjectAtRange(UINT nID);
     afx_msg void OnInsertMethodAtRange(UINT nID);

@@ -111,6 +111,7 @@ BEGIN_MESSAGE_MAP(CScriptView, CCrystalEditView)
     ON_WM_RBUTTONDOWN()
     ON_WM_MOUSEMOVE()
     ON_WM_TIMER()
+    ON_WM_DESTROY()
     ON_COMMAND(ID_INSERTOBJECT, OnInsertObject)
     ON_COMMAND(ID_INSERTOBJECTAT, OnInsertObjectAt)
     ON_COMMAND_RANGE(ID_INSERTMETHODAT1, ID_INSERTMETHODAT18, OnInsertMethodAtRange)
@@ -961,12 +962,10 @@ void CScriptView::OnKillFocus(CWnd *pNewWnd)
 void CScriptView::OnSetFocus(CWnd *pNewWnd)
 {
     appState->GiveMeAutoComplete(this);
-#ifdef SCI_AUTOCOMPLETE
     if (_pACThread)
     {
         _pACThread->InitializeForScript(LocateTextBuffer());
     }
-#endif
 
     if (_pAutoComp && _pAutoComp->IsWindowVisible())
     {
@@ -1106,6 +1105,15 @@ void CScriptView::_OnInsertObject(bool currentPosition)
     }
 }
 
+void CScriptView::OnDestroy()
+{
+    if (_hoverTipScheduler)
+    {
+        _hoverTipScheduler->DeactivateHWND(this->GetSafeHwnd());
+    }
+    __super::OnDestroy();
+}
+
 void CScriptView::OnInsertObject()
 {
     _OnInsertObject(false);
@@ -1241,12 +1249,10 @@ void CScriptView::OnInitialUpdate()
 {
     __super::OnInitialUpdate();
 
-#ifdef SCI_AUTOCOMPLETE
     if (_pACThread)
     {
         _pACThread->InitializeForScript(LocateTextBuffer());
     }
-#endif
 }
 
 //
