@@ -117,7 +117,7 @@ AppState::AppState(CWinApp *pApp)
 
     _pACThread = nullptr;
     _pACThread = new AutoCompleteThread2();
-    _pHoverTipScheduler = std::make_unique<BackgroundScheduler>();
+    _pHoverTipScheduler = std::make_unique<BackgroundScheduler<HoverTipPayload, HoverTipResponse>>();
 
     crcInit();
 

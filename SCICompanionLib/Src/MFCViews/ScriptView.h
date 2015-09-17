@@ -7,19 +7,34 @@
 #include "IntellisenseListBox.h"
 #include "ColoredToolTip.h"
 #include "ToolTipResult.h"
+#include "CrystalScriptStream.h"
+
+template<typename _TPayload, typename _TResponse>
+class BackgroundScheduler;
 
 namespace sci
 {
     class Script;
 }
-class CCrystalScriptStream;
-class CScriptStreamLimiter;
 class CMethodInfoTip;
 class AutoCompleteThread2;
-class BackgroundScheduler;
 class CScriptDocument;
 class AvailableObjects;
 class AvailableMethods;
+
+struct HoverTipPayload
+{
+    HoverTipPayload(CCrystalTextBuffer *pBuffer, CPoint ptLimit) : Limiter(pBuffer, ptLimit, 0), Stream(&Limiter), Location(ptLimit) {}
+    CScriptStreamLimiter Limiter;
+    CPoint Location;
+    CCrystalScriptStream Stream;
+};
+
+struct HoverTipResponse
+{
+    ToolTipResult Result;
+    CPoint Location;
+};
 
 class CScriptView : public CCrystalEditView, public IAutoCompleteClient
 {
@@ -36,7 +51,7 @@ public:
     BOOL GetHeaderFile(CPoint pt, CString &strHeader);
     void GetSelectedText(CString &text);
 
-    void SetAutoComplete(CIntellisenseListBox *pAutoComp, CColoredToolTip *pMethodToolTip, CColoredToolTip *pToolTip, AutoCompleteThread2 *pThread, BackgroundScheduler *hoverTipScheduler)
+    void SetAutoComplete(CIntellisenseListBox *pAutoComp, CColoredToolTip *pMethodToolTip, CColoredToolTip *pToolTip, AutoCompleteThread2 *pThread, BackgroundScheduler<HoverTipPayload, HoverTipResponse> *hoverTipScheduler)
     {
         _pAutoComp = pAutoComp;
         _pACThread = pThread;
@@ -125,7 +140,7 @@ protected:
     CIntellisenseListBox *_pAutoComp;
     CColoredToolTip *_pMethodTip;
     AutoCompleteThread2 *_pACThread; // Not owned by us
-    BackgroundScheduler *_hoverTipScheduler; // Not owned by us
+    BackgroundScheduler<HoverTipPayload, HoverTipResponse> *_hoverTipScheduler; // Not owned by us
     int _lastHoverTipParse;
 
     // Autocomplete

@@ -8,14 +8,22 @@
 #include "CompileInterfaces.h"
 
 class AutoCompleteThread2;
-class BackgroundScheduler;
 class CScriptView;
+
+struct HoverTipPayload;
+struct HoverTipResponse;
+
+template<typename _TPayload, typename _TResponse>
+class BackgroundScheduler;
 
 // FWD decl
 class CScriptDoc;
 class ResourceEntity;
 class CResourceListDoc;
 class AppState;
+
+template<typename _TPayload, typename _TResponse>
+class BackgroundScheduler;
 
 //
 // This allows us to hook up the slider bar, celdialogbar, and other "non views"
@@ -200,7 +208,7 @@ public: // TODO for now
     CColoredToolTip m_wndToolTip;
     AutoCompleteThread2 *_pACThread;
 
-    std::unique_ptr<BackgroundScheduler> _pHoverTipScheduler;
+    std::unique_ptr<BackgroundScheduler<HoverTipPayload, HoverTipResponse>> _pHoverTipScheduler;
 
     ScopedHandle _hProcessDebugged;
 };

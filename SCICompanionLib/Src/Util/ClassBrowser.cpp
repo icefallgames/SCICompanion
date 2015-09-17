@@ -23,42 +23,13 @@ using namespace stdext;
 static char THIS_FILE[] = __FILE__;
 #endif
 
-class LoadAllTask : public BackgroundTask
+struct ReloadScriptPayload
 {
-public:
-    LoadAllTask(SCIClassBrowser &browser) : _browser(browser) {}
-
-    std::unique_ptr<TaskResponse> Execute() override
-    {
-        if (!_browser.ReLoadFromSources(*this) && !IsAborted())
-        {
-            // Might not be a fan-made game... try loading from the resources themselves so
-            // that we are able to provide a class hierarchy at least.
-            _browser.ReLoadFromCompiled(*this);
-        }
-        return nullptr;
-    }
-
-private:
-    SCIClassBrowser &_browser;
+    ReloadScriptPayload(SCIClassBrowser &browser, const std::string &pathIfSingleScript) : Browser(browser), ScriptPath(pathIfSingleScript) {}
+    SCIClassBrowser &Browser;
+    std::string ScriptPath;
 };
 
-
-class ReloadScriptTask : public BackgroundTask
-{
-public:
-    ReloadScriptTask(SCIClassBrowser &browser, const std::string &fullPath) : _browser(browser), _fullPath(fullPath) {}
-
-    std::unique_ptr<TaskResponse>  Execute() override
-    {
-        _browser.ReloadScript(_fullPath);
-        return nullptr;
-    }
-
-private:
-    SCIClassBrowser &_browser;
-    std::string _fullPath;
-};
 
 //
 // helper that looks up a pointer in a map (e.g. like you use the operator[] for, but it doesn't create
@@ -109,7 +80,7 @@ SCIClassBrowser::SCIClassBrowser() : _kernelNames(_kernelNamesResource.GetNames(
     InitializeCriticalSection(&_csErrorReport);
     _fCBLocked = 0;
     _pEvents = NULL;
-    _scheduler = std::make_unique<BackgroundScheduler>();
+    _scheduler = std::make_unique<BackgroundScheduler<ReloadScriptPayload>>();
 }
 
 SCIClassBrowser::~SCIClassBrowser()
@@ -165,7 +136,19 @@ void SCIClassBrowser::OnOpenGame(SCIVersion version)
     if (IsBrowseInfoEnabled() && appState->GetResourceMap().IsGameLoaded())
     {
         Reset();
-        _scheduler->SubmitTask(std::make_unique<LoadAllTask>(*this));
+        _scheduler->SubmitTask(
+            std::make_unique<ReloadScriptPayload>(*this, ""),
+            [](ITaskStatus &status, ReloadScriptPayload &payload)
+        {
+            if (!payload.Browser.ReLoadFromSources(status) && !status.IsAborted())
+            {
+                // Might not be a fan-made game... try loading from the resources themselves so
+                // that we are able to provide a class hierarchy at least.
+                payload.Browser.ReLoadFromCompiled(status);
+            }
+            return nullptr;
+        }
+            );
     }
 }
 
@@ -208,7 +191,7 @@ void SCIClassBrowser::Reset()
     _customHeaderMap.clear();
 
     // Make a new one.
-    _scheduler = std::make_unique<BackgroundScheduler>();
+    _scheduler = std::make_unique<BackgroundScheduler<ReloadScriptPayload>>();
 }
 
 void SCIClassBrowser::_AddInstanceToMap(Script& script, ClassDefinition *pClass)
@@ -339,7 +322,7 @@ void SCIClassBrowser::_AddToClassTree(Script& script)
     _invalidAutoCompleteSources = AutoCompleteSourceType::ScriptName | AutoCompleteSourceType::ClassName | AutoCompleteSourceType::Procedure;
 }
 
-bool SCIClassBrowser::ReLoadFromSources(ITask &task)
+bool SCIClassBrowser::ReLoadFromSources(ITaskStatus &task)
 {
     CGuard guard(&_csClassBrowser);
     if (IsBrowseInfoEnabled())
@@ -444,7 +427,7 @@ void LoadScriptFromCompiled(sci::Script *pScript, CompiledScript *pCompiledScrip
 //
 // Generates a class browser from compiled scripts
 // 
-void SCIClassBrowser::ReLoadFromCompiled(ITask &task)
+void SCIClassBrowser::ReLoadFromCompiled(ITaskStatus &task)
 {
     if (!IsBrowseInfoEnabled())
     {
@@ -623,7 +606,14 @@ void SCIClassBrowser::ReLoadFromCompiled(ITask &task)
 
 void SCIClassBrowser::TriggerReloadScript(const std::string &fullPath)
 {
-    _scheduler->SubmitTask(std::make_unique<ReloadScriptTask>(*this, fullPath));
+    _scheduler->SubmitTask(
+        std::make_unique<ReloadScriptPayload>(*this, fullPath),
+        [](ITaskStatus &status, ReloadScriptPayload &payload)
+    {
+        payload.Browser.ReloadScript(payload.ScriptPath);
+        return nullptr;
+    }
+        );
 }
 
 //
@@ -992,7 +982,7 @@ sci::Script *SCIClassBrowser::GetCustomHeader(std::string name)
     return customHeader;
 }
 
-bool SCIClassBrowser::_CreateClassTree(ITask &task)
+bool SCIClassBrowser::_CreateClassTree(ITaskStatus &task)
 {
     ClearErrors();
 

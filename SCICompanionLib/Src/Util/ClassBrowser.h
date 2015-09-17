@@ -4,12 +4,15 @@
 #include "CompileInterfaces.h"
 #include <unordered_map>
 #include "TernarySearchTree.h"
+#include "Task.h"
 
 class SCIClassBrowserNode;
 class ISCIPropertyBag;
 class AutoCompleteChoice;
-class BackgroundScheduler;
-class ITask;
+
+struct ReloadScriptPayload;
+
+class ITaskStatus;
 enum class AutoCompleteSourceType;
 
 namespace sci
@@ -55,8 +58,8 @@ public:
     void Unlock() const; // Releases lock.
     bool HasLock() const; 
 
-    bool ReLoadFromSources(ITask &task);
-    void ReLoadFromCompiled(ITask &task);
+    bool ReLoadFromSources(ITaskStatus &task);
+    void ReLoadFromCompiled(ITaskStatus &task);
     void ReloadScript(const std::string &fullPath);
     void TriggerReloadScript(const std::string &fullPath);
 
@@ -105,7 +108,7 @@ private:
     typedef std::unordered_map<std::string, WORD> define_map;
     typedef std::unordered_map<std::string, WORD> word_map;
 
-    bool _CreateClassTree(ITask &task);
+    bool _CreateClassTree(ITaskStatus &task);
     void _AddToClassTree(sci::Script& script);
     bool _AddFileName(PCTSTR pszFullPath, PCTSTR pszFileName, BOOL fReplace = FALSE);
     void _RemoveAllRelatedData(sci::Script *pScript);
@@ -182,7 +185,7 @@ private:
 
     IClassBrowserEvents *_pEvents;
 
-    std::unique_ptr<BackgroundScheduler> _scheduler;
+    std::unique_ptr<BackgroundScheduler<ReloadScriptPayload>> _scheduler;
 };
 
 //

@@ -46,15 +46,7 @@ using namespace std;
 #define UWM_AUTOCOMPLETEREADY      (WM_APP + 0)
 #define UWM_HOVERTIPREADY          (WM_APP + 1)
 
-class HoverTipTaskResponse : public TaskResponse
-{
-public:
-    HoverTipTaskResponse(CPoint location, std::unique_ptr<ToolTipResult> result) : Location(location), Result(move(result)) {}
-    std::unique_ptr<ToolTipResult> Result;
-    CPoint Location;
-};
-
-std::unique_ptr<ToolTipResult> DoToolTipParse(CCrystalScriptStream &stream, CScriptStreamLimiter &limiter)
+void DoToolTipParse(CCrystalScriptStream &stream, CScriptStreamLimiter &limiter, ToolTipResult &result)
 {
     class CToolTipSyntaxParserCallback : public ISyntaxParserCallback
     {
@@ -71,32 +63,12 @@ std::unique_ptr<ToolTipResult> DoToolTipParse(CCrystalScriptStream &stream, CScr
         ToolTipResult &_result;
     };
 
-    std::unique_ptr<ToolTipResult> result = make_unique<ToolTipResult>();
-
     Script script;
     SyntaxContext context(stream.begin(), script, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), false);
-    CToolTipSyntaxParserCallback callback(context, *result);
+    CToolTipSyntaxParserCallback callback(context, result);
     limiter.SetCallback(&callback);
     g_Parser.Parse(script, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), nullptr, false, &context);
-
-    return result;
 }
-
-class HoverTipBackgroundTask : public BackgroundTask
-{
-public:
-    HoverTipBackgroundTask(CCrystalTextBuffer *pBuffer, CPoint ptLimit) : _limiter(pBuffer, ptLimit, 0), _stream(&_limiter), _location(ptLimit) {}
-
-    std::unique_ptr<TaskResponse> Execute() override
-    {
-        return make_unique<HoverTipTaskResponse>(_location, move(DoToolTipParse(_stream, _limiter)));
-    }
-
-private:
-    CScriptStreamLimiter _limiter;
-    CPoint _location;
-    CCrystalScriptStream _stream;
-};
 
 // CScriptView
 IMPLEMENT_DYNCREATE(CScriptView, CCrystalEditView)
@@ -869,12 +841,13 @@ void CScriptView::OnContextMenu(CWnd *pWnd, CPoint point)
 
             CScriptStreamLimiter limiter(LocateTextBuffer(), ptRight, 0);
             CCrystalScriptStream stream(&limiter);
-            std::unique_ptr<ToolTipResult> result = DoToolTipParse(stream, limiter);
-            if (result && !result->empty())
+            ToolTipResult result;
+            DoToolTipParse(stream, limiter, result);
+            if (!result.empty())
             {
-                _gotoDefinitionText = result->strBaseText.c_str();
-                _gotoScript = result->scriptId;
-                _gotoLineNumber = result->iLineNumber;
+                _gotoDefinitionText = result.strBaseText.c_str();
+                _gotoScript = result.scriptId;
+                _gotoLineNumber = result.iLineNumber;
             }
         }
 
@@ -1275,8 +1248,17 @@ void CScriptView::_TriggerHoverTipParse(CPoint pt)
 {
     if (appState->AreHoverTipsEnabled() && _hoverTipScheduler)
     {
-        _lastHoverTipParse = _hoverTipScheduler->SubmitTask(this->GetSafeHwnd(), UWM_HOVERTIPREADY,
-            make_unique<HoverTipBackgroundTask>(LocateTextBuffer(), pt)
+        _lastHoverTipParse = _hoverTipScheduler->SubmitTask(
+            this->GetSafeHwnd(),
+            UWM_HOVERTIPREADY,
+            make_unique<HoverTipPayload>(LocateTextBuffer(), pt),
+            [](ITaskStatus &status, HoverTipPayload &payload)
+        {
+            std::unique_ptr<HoverTipResponse> response = std::make_unique<HoverTipResponse>();
+            response->Location = payload.Location;
+            DoToolTipParse(payload.Stream, payload.Limiter, response->Result);
+            return response;
+        }
             );
     }
     else
@@ -1627,12 +1609,11 @@ LRESULT CScriptView::OnHoverTipReady(WPARAM wParam, LPARAM lParam)
 {
     if (_hoverTipScheduler)
     {
-        std::unique_ptr<TaskResponse> response = _hoverTipScheduler->RetrieveResponse(_lastHoverTipParse);
+        std::unique_ptr<HoverTipResponse> response = _hoverTipScheduler->RetrieveResponse(_lastHoverTipParse);
         if (response)
         {
-            std::unique_ptr<ToolTipResult> result = move(static_cast<HoverTipTaskResponse*>(response.get())->Result);
-            CPoint ptClient = static_cast<HoverTipTaskResponse*>(response.get())->Location;
-            if (result && !result->empty())
+            CPoint ptClient = response->Location;
+            if (response && !response->Result.empty())
             {
                 // Place the tooltip below the line and a little to the left.
                 CPoint ptTip = ptClient;
@@ -1641,7 +1622,7 @@ LRESULT CScriptView::OnHoverTipReady(WPARAM wParam, LPARAM lParam)
 
                 CRect rcScript;
                 GetWindowRect(&rcScript);
-                _pwndToolTip->Show(CPoint(rcScript.left + ptTip.x, rcScript.top + ptTip.y), result->strTip);
+                _pwndToolTip->Show(CPoint(rcScript.left + ptTip.x, rcScript.top + ptTip.y), response->Result.strTip);
 
                 SetTimer(TOOLTIPEXPIRE_ID, TOOLTIPEXPIRE_TIMEOUT, nullptr);
             }

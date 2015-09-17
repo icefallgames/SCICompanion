@@ -21,37 +21,17 @@ using namespace std;
 #define UWM_RESPONSEREADY (WM_APP + 0)
 #define TIMER_UPDATECOMBO 1234
 
-class ParseTaskResponse : public TaskResponse
+struct ParsePayload
 {
-public:
-    ParseTaskResponse(std::unique_ptr<Script> script) : _script(move(script)) {}
-    std::unique_ptr<Script> GetScript() { return move(_script); }
+    ParsePayload(ScriptId script, CCrystalTextBuffer *pBuffer);
 
-private:
-    std::unique_ptr<Script> _script;
+    CScriptStreamLimiter Limiter;
+    CCrystalScriptStream Stream;
+    ScriptId Script;
 };
 
-class ParseBackgroundTask : public BackgroundTask
-{
-public:
-    ParseBackgroundTask(ScriptId script, CCrystalTextBuffer *pBuffer) : _limiter(pBuffer), _stream(&_limiter), _scriptId(script) {}
-
-    std::unique_ptr<TaskResponse> Execute() override
-    {
-        std::unique_ptr<TaskResponse> response;
-        std::unique_ptr<Script> pScript(new Script(_scriptId));
-        if (g_Parser.Parse(*pScript, _stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), nullptr))
-        {
-            response = make_unique<ParseTaskResponse>(move(pScript));
-        }
-        return response;
-    }
-
-private:
-    CScriptStreamLimiter _limiter;
-    CCrystalScriptStream _stream;
-    ScriptId _scriptId;
-};
+ParsePayload::ParsePayload(ScriptId script, CCrystalTextBuffer *pBuffer) :
+    Limiter(pBuffer), Stream(&Limiter), Script(script) {}
 
 CScriptComboBox::CScriptComboBox() : _lastTaskId(-1), _pDoc(nullptr), _fDroppedDown(false), _fIgnorePosChanged(false)
 {
@@ -107,7 +87,7 @@ int CScriptComboBox::OnCreate(CREATESTRUCT *createStruct)
     if (__super::OnCreate(createStruct) == -1)
         return -1;
 
-    _scheduler = std::make_unique<BackgroundScheduler>(this->GetSafeHwnd(), UWM_RESPONSEREADY);
+    _scheduler = std::make_unique<BackgroundScheduler<ParsePayload, sci::Script>>(this->GetSafeHwnd(), UWM_RESPONSEREADY);
 
     return 0;
 }
@@ -137,7 +117,18 @@ bool CScriptComboBox::_SpawnScriptTask()
             if (_pDoc && (pDocActive == _pDoc))
             {
                 // Do a full parse (e.g. don't ask for LKG)
-                _lastTaskId = _scheduler->SubmitTask(make_unique<ParseBackgroundTask>(_pDoc->GetScriptId(), _pDoc->GetTextBuffer()));
+                _lastTaskId = _scheduler->SubmitTask(
+                    make_unique<ParsePayload>(_pDoc->GetScriptId(), _pDoc->GetTextBuffer()),
+                    [](ITaskStatus &status, ParsePayload &payload)
+                {
+                    std::unique_ptr<Script> pScript(new Script(payload.Script));
+                    if (!g_Parser.Parse(*pScript, payload.Stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), nullptr))
+                    {
+                        pScript.reset(nullptr);
+                    }
+                    return pScript;
+                }
+                    );
                 isSuccessful = true;
             }
         }
@@ -147,10 +138,10 @@ bool CScriptComboBox::_SpawnScriptTask()
 
 LRESULT CScriptComboBox::OnResponseReady(WPARAM wParam, LPARAM lParam)
 {
-    unique_ptr<TaskResponse> response = _scheduler->RetrieveResponse(_lastTaskId);
+    unique_ptr<sci::Script> response = _scheduler->RetrieveResponse(_lastTaskId);
     if (response)
     {
-        _script = move(static_cast<ParseTaskResponse*>(response.get())->GetScript());
+        _script = move(response);
 
         CPoint pt;
         CFrameWnd *pFrame = static_cast<CFrameWnd*>(AfxGetMainWnd());

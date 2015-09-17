@@ -3,9 +3,15 @@
 #include "NonViewClient.h"
 #include "CompileInterfaces.h"
 
+template<typename _TPayload, typename _TResponse>
+class BackgroundScheduler;
+
+struct ParsePayload;
+
 // Fwd declarations
 class CScriptDocument;
-class BackgroundScheduler;
+class CCrystalTextBuffer;
+
 namespace sci
 {
     class Script;
@@ -53,7 +59,7 @@ protected:
     // Note: this object must be kept in sync with the itemdata in the combobox.
     std::unique_ptr<sci::Script> _script;
 
-    std::unique_ptr<BackgroundScheduler> _scheduler;
+    std::unique_ptr<BackgroundScheduler<ParsePayload, sci::Script>> _scheduler;
     int _lastTaskId;
 
     CImageList _imageList;
