@@ -12,4 +12,6 @@ struct ToolTipResult
     int iLineNumber;
     ScriptId scriptId;
     std::string strBaseText;
+
+    std::string OriginalText;
 };

@@ -395,7 +395,7 @@ void QuickScriptsSidePane::_ResetUI()
     if (lock.TryLock()) // Don't hang UI... if we can't get the lock, just skip it.
     {
         bool fFoundRoom = false;
-        const Script *pScript = browser.GetLKGScript(_pDoc->GetScriptId().GetFullPath().c_str());
+        const Script *pScript = browser.GetLKGScript(_pDoc->GetScriptId().GetFullPath());
         if (pScript)
         {
             // Find the Rm instance

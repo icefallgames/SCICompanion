@@ -1402,7 +1402,7 @@ void CScriptView::OnVisualScript()
     ClassBrowserLock lock(browser);
     lock.Lock();
     std::string fullPath = GetDocument()->GetScriptId().GetFullPath();
-    const sci::Script *pScript = browser.GetLKGScript(fullPath.c_str());
+    const sci::Script *pScript = browser.GetLKGScript(fullPath);
     CVisualScriptDialog dialog(const_cast<sci::Script *>(pScript), &browser);
     dialog.DoModal();
 #endif
@@ -1619,8 +1619,9 @@ LRESULT CScriptView::OnHoverTipReady(WPARAM wParam, LPARAM lParam)
             {
                 // Place the tooltip below the line and a little to the left.
                 CPoint ptTip = ptClient;
-                ptTip.x = ptClient.x + 10;
-                ptTip.y = TextToClientLine(ptTip.y + 1);
+                ptTip.x = max(0, ptTip.x - response->Result.OriginalText.size());
+                ptTip = TextToClient(ptTip);
+                ptTip.y += GetLineHeight();
 
                 CRect rcScript;
                 GetWindowRect(&rcScript);

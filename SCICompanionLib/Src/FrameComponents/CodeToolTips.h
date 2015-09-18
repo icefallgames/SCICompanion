@@ -5,6 +5,7 @@
 #include "AppState.h"
 #include "PMachine.h"
 #include "OutputCodeHelper.h"
+#include "format.h"
 
 const key_value_pair<PCSTR, PCSTR> c_szVarToClass[] =
 {
@@ -101,20 +102,45 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
 
     bool fFound = false;
     ToolTipResult result;
-	SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser();
+    result.OriginalText = pContext->ScratchString();
+    SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser();
+
+    // Trigger any custom header compiles
+    for (const string &include : pContext->Script().GetIncludes())
+    {
+        browser.TriggerCustomIncludeCompile(include);
+    }
+
     ClassBrowserLock lock(browser);
     // REVIEW: TryLock may fail. For tooltips (which are extracted in the background), we may want to just Lock. But for the context menu
     // (which is extracted in the foreground), we probably want to TryLock. Alternatively, we could implement "Lock" with a short timeout.
     if (lock.TryLock())
     {
-        // Try to figure out where we are.
-        // 1. A classname in a class definition? (Detect this by seeing if name is empty, but superclass is not)
-		//	REVIEW: The above comment makes no sense. I've changed it to the logic below: (prior to that, it required GetSuperClass to be empty)
-        if (pContext->ClassPtr &&
-            !pContext->ClassPtr->GetName().empty() &&
-            !pContext->ClassPtr->GetSuperClass().empty())
+        // Grab some scripts to look at.
+        std::vector<const sci::Script*> scriptsToSearch;
+        // Get the last known good version of this script (for resolving things that reside in this script)
+        const sci::Script *pGood = browser.GetLKGScript(browser.GetScriptNumberHelper(&pContext->Script()));
+        if (pGood)
         {
-            std::string strText = pContext->ScratchString();
+            scriptsToSearch.push_back(pGood);
+        }
+        // And our headers...
+        for (const string &include : pContext->Script().GetIncludes())
+        {
+            sci::Script *temp = browser.GetCustomHeader(include);
+            if (temp)
+            {
+                scriptsToSearch.push_back(temp);
+            }
+        }
+
+        std::string strText = pContext->ScratchString();
+
+        // Try to figure out where we are.
+        // 1. A classname in a class definition?
+        if (pContext->ClassPtr &&
+            pContext->GetParseAutoCompleteContext() == ParseAutoCompleteContext::SuperClass)
+        {
             const std::vector<ClassDefinition*> &classes = browser.GetAllClasses();
             auto classIt = match_name(classes.begin(), classes.end(), strText);
             if (classIt != classes.end())
@@ -126,24 +152,53 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                 result.strBaseText = (*classIt)->GetName();
                 result.iLineNumber = (*classIt)->GetLineNumber();
                 result.scriptId = ScriptId((*classIt)->GetOwnerScript()->GetPath().c_str());
-				fFound = true;
+                fFound = true;
             }
         }
 
-		if (!fFound)
-		{
-            // Get the last known good version of this script (for resolving things that reside in this script)
-            const sci::Script *pGood = browser.GetLKGScript(browser.GetScriptNumberHelper(&pContext->Script()));
+        if (!fFound && !strText.empty() && (pContext->GetParseAutoCompleteContext() == ParseAutoCompleteContext::ScriptName))
+        {
+            std::string filename =  appState->GetResourceMap().Helper().GetScriptFileName(strText, pContext->Script().Language());
+            const sci::Script *useScript = browser.GetLKGScript(filename);
+            if (useScript)
+            {
+                // Show the classes and exports.
+                std::stringstream ss;
+                ss << "    " << filename << "\n";
+                ss << "Exports:" << "\n";
+                for (auto &theExport : useScript->GetExports())
+                {
+                    if (!theExport->Name.empty())
+                    {
+                        ss << "    " << theExport->Slot << ": " << theExport->Name << "\n";
+                    }
+                }
+                ss << "Classes:" << "\n";
+                for (auto &theClass : useScript->GetClasses())
+                {
+                    if (!theClass->IsInstance())
+                    {
+                        ss << "    " << theClass->GetName() << "\n";
+                    }
+                }
+                result.strTip = ss.str();
+                // Give location information for it.
+                result.strBaseText = strText;
+                result.iLineNumber = 0;
+                result.scriptId = ScriptId(filename);
+                fFound = true;
+            }
+        }
 
+        if (!fFound)
+        {
             // 2) A selector in a send statement (e.g. x in (send gEgo:x))
-            std::string strText = pContext->ScratchString();
             if (!strText.empty())
             {
                 bool fFound = false;
                 NodeType type = pContext->GetTopKnownNode();
-                if (type == NodeTypeSendParam)
+                if (type == NodeTypeSendCall)
                 {
-                    //const SendParam *pSendParam = static_cast<const SendParam*>(pContext->GetSyntaxNode(type));
                     const SendCall *pSendCall = static_cast<const SendCall*>(pContext->GetSyntaxNode(NodeTypeSendCall));
                     assert(pSendCall);
                     // Now we have the object to which we're sending... 
@@ -191,17 +246,21 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                     // Check for defines.
                     DefineVector::const_iterator defineIt;
                     // Local ones.
-                    if (pGood)
+                    for (auto &script : scriptsToSearch)
                     {
-                        const DefineVector &defines = pGood->GetDefines();
+                        const DefineVector &defines = script->GetDefines();
                         defineIt = match_name(defines.begin(), defines.end(), strText);
                         fFound = (defineIt != defines.end());
+                        if (fFound)
+                        {
+                            break;
+                        }
                     }
                     if (!fFound)
                     {
                         // Global ones (even those not included by this script)
                         const vector<sci::Script*> &headers = browser.GetHeaders();
-                        vector<sci::Script*>::const_iterator headerIt = headers.begin();
+                        auto headerIt = headers.begin();
                         for (; !fFound && (headerIt != headers.end()); ++headerIt)
                         {
                             const DefineVector &defines = (*headerIt)->GetDefines();
@@ -209,6 +268,18 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                             fFound = (defineIt != defines.end());
                         }
                     }
+                    if (!fFound)
+                    {
+                        // Custom includes
+                        auto headerIt = scriptsToSearch.begin();
+                        for (; !fFound && (headerIt != scriptsToSearch.end()); ++headerIt)
+                        {
+                            const DefineVector &defines = (*headerIt)->GetDefines();
+                            defineIt = match_name(defines.begin(), defines.end(), strText);
+                            fFound = (defineIt != defines.end());
+                        }
+                    }
+
                     if (fFound)
                     {
                         // It was a define.
@@ -216,8 +287,7 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                         bool isNeg = IsFlagSet((*defineIt)->GetFlags(), IntegerFlags::Negative);
                         std::stringstream ss;
                         _OutputNumber(ss, (*defineIt)->GetValue(), isHex, isNeg);
-                        StringCchPrintf(szTip, ARRAYSIZE(szTip), TEXT("(define %s %s)"), strText.c_str(), ss.str().c_str());
-                        result.strTip = szTip;
+                        result.strTip = fmt::format("(define {0} {1})", strText, ss.str());
                         // Give location information for it.
                         result.strBaseText = (*defineIt)->GetLabel().c_str();
                         result.iLineNumber = (*defineIt)->GetLineNumber();
@@ -227,33 +297,37 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                 if (!fFound)
                 {
                     // 4. Maybe it's a procedure
-                    const ProcedureDefinition *pProc = NULL;
+                    const ProcedureDefinition *pProc = nullptr;
                     // Check public procedures
                     const RawProcedureVector &publicProcs = browser.GetPublicProcedures();
                     auto procIt = match_name(publicProcs.begin(), publicProcs.end(), strText);
                     fFound = (procIt != publicProcs.end());
-					if (fFound)
-					{
-						pProc = *procIt;
-					}
-                    if (!fFound && pGood)
+                    if (fFound)
                     {
-                        const ProcedureVector &localProcs = pGood->GetProcedures();
-                        auto procIt2 = match_name(localProcs.begin(), localProcs.end(), strText);
-                        fFound = (procIt2 != localProcs.end());
-						if (fFound)
-						{
-							pProc = (*procIt2).get();
-						}
+                        pProc = *procIt;
+                    }
+                    if (!fFound)
+                    {
+                        for (auto &script : scriptsToSearch)
+                        {
+                            const ProcedureVector &localProcs = script->GetProcedures();
+                            auto procIt2 = match_name(localProcs.begin(), localProcs.end(), strText);
+                            fFound = (procIt2 != localProcs.end());
+                            if (fFound)
+                            {
+                                pProc = (*procIt2).get();
+                                break;
+                            }
+                        }
                     }
                     if (fFound)
                     {
-						_GetMethodInfoHelper(szTip, ARRAYSIZE(szTip), pProc);
+                        _GetMethodInfoHelper(szTip, ARRAYSIZE(szTip), pProc);
                         result.strTip = szTip;
                         // "goto definition" info
-						result.iLineNumber = pProc->GetLineNumber();
-						result.scriptId = ScriptId(pProc->GetOwnerScript()->GetPath().c_str());
-						result.strBaseText = pProc->GetName();
+                        result.iLineNumber = pProc->GetLineNumber();
+                        result.scriptId = ScriptId(pProc->GetOwnerScript()->GetPath().c_str());
+                        result.strBaseText = pProc->GetName();
                     }
                 }
                 if (!fFound)
@@ -263,8 +337,7 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                     fFound = (pkernel != KrnlInfo + ARRAYSIZE(KrnlInfo));
                     if (fFound)
                     {
-                        StringCchPrintf(szTip, ARRAYSIZE(szTip), TEXT("%s %s(%s)"), (PCTSTR)pkernel->Ret, (PCTSTR)pkernel->Name, (PCTSTR)pkernel->Params);
-                        result.strTip = szTip;
+                        result.strTip = fmt::format("{} {}({})", pkernel->Ret, pkernel->Name, pkernel->Params);
                     }
                 }
                 if (!fFound)
@@ -277,20 +350,17 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                         fFound = matches_name(tempVars.begin(), tempVars.end(), strText);
                         if (fFound)
                         {
-                            StringCchPrintf(szTip, ARRAYSIZE(szTip), TEXT("Temporary variable: %s"), strText.c_str());
-                            result.strTip = szTip;
+                            result.strTip = fmt::format("Temporary variable: {}", strText);
                         }
-                        if (!fFound)
+                        if (!fFound && !pFunction->GetSignatures().empty())
                         {
-                            // TODO: needs updating due to GetParams
-                            /*
-                            const vector<std::string> &functionParams = pFunction->GetParams();
-                            fFound = find(functionParams.begin(), functionParams.end(), strText) != functionParams.end();
+                            const auto &functionParams = pFunction->GetSignatures()[0]->GetParams();
+                            auto procIt2 = match_name(functionParams.begin(), functionParams.end(), strText);
+                            fFound = (procIt2 != functionParams.end());
                             if (fFound)
                             {
-                                StringCchPrintf(szTip, ARRAYSIZE(szTip), TEXT("Parameter: %s"), strText.c_str());
-                                result.strTip = szTip;
-                            }*/
+                                result.strTip = fmt::format("Parameter {}", strText);
+                            }
                         }
                     }
                 }
@@ -298,17 +368,17 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                 {
                     // 7. Script variables
                     VariableDecl *pVar = nullptr; // Used for goto information
-                    if (pGood)
+                    for (auto &script : scriptsToSearch)
                     {
                         // Locals
-                        const VariableDeclVector &localVars = pGood->GetScriptVariables();
+                        const VariableDeclVector &localVars = script->GetScriptVariables();
                         auto varIt = match_name(localVars.begin(), localVars.end(), strText);
                         fFound = (varIt != localVars.end());
                         if (fFound)
                         {
                             pVar = (*varIt).get();
-                            StringCchPrintf(szTip, ARRAYSIZE(szTip), TEXT("Script variable: %s"), strText.c_str());
-                            result.strTip = szTip;
+                            result.strTip = fmt::format("Script variable: {}", strText);
+                            break;
                         }
                     }
                     if (!fFound)
@@ -322,8 +392,7 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                             if (fFound)
                             {
                                 pVar = (*varIt).get();
-                                StringCchPrintf(szTip, ARRAYSIZE(szTip), TEXT("Global variable: %s"), strText.c_str());
-                                result.strTip = szTip;
+                                result.strTip = fmt::format("Global variable: {}", strText);
                             }
                         }
                     }
@@ -348,26 +417,27 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                         fFound = matches_name(pProperties->begin(), pProperties->end(), strText);
                         if (fFound)
                         {
-                            StringCchPrintf(szTip, ARRAYSIZE(szTip), TEXT("%s::%s"), pClass->GetSuperClass().c_str(), strText.c_str());
-                            result.strTip = szTip;
+                            result.strTip = fmt::format("{}::{}", pClass->GetSuperClass(), strText);
                         }
                     }
                 }
-                if (!fFound && pGood)
+                if (!fFound)
                 {
-                    // 9. Local instance (or class, but we would have already handled that in 8)
-                    // Find a class that it matches
-                    const sci::ClassVector &classes = pGood->GetClasses();
-                    auto classIt = match_name(classes.begin(), classes.end(), strText);
-                    fFound = (classIt != classes.end());
-                    if (fFound)
+                    for (auto &script : scriptsToSearch)
                     {
-                        StringCchPrintf(szTip, ARRAYSIZE(szTip), TEXT("%s of %s"), strText.c_str(), (*classIt)->GetSuperClass().c_str());
-                        result.strTip = szTip;
-                        // "goto definition" info
-                        result.iLineNumber = (*classIt)->GetLineNumber();
-                        result.scriptId = ScriptId((*classIt)->GetOwnerScript()->GetPath().c_str());
-                        result.strBaseText = (*classIt)->GetName();
+                        // 9. Local instance (or class, but we would have already handled that in 8)
+                        // Find a class that it matches
+                        const sci::ClassVector &classes = script->GetClasses();
+                        auto classIt = match_name(classes.begin(), classes.end(), strText);
+                        fFound = (classIt != classes.end());
+                        if (fFound)
+                        {
+                            result.strTip = fmt::format("{} of {}", strText, (*classIt)->GetSuperClass());
+                            // "goto definition" info
+                            result.iLineNumber = (*classIt)->GetLineNumber();
+                            result.scriptId = ScriptId((*classIt)->GetOwnerScript()->GetPath().c_str());
+                            result.strBaseText = (*classIt)->GetName();
+                        }
                     }
                 }
                 if (!fFound)

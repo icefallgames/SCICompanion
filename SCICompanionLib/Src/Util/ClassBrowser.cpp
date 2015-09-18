@@ -1260,14 +1260,15 @@ size_t SCIClassBrowser::GetNumRoots() const
     return IsBrowseInfoEnabled() ? strRootNames.size() : 0;
 }
 
-const Script *SCIClassBrowser::GetLKGScript(PCTSTR pszScriptFullPath)
+const Script *SCIClassBrowser::GetLKGScript(std::string fullPath)
 {
+    std::transform(fullPath.begin(), fullPath.end(), fullPath.begin(), ::tolower);
     CGuard guard(&_csClassBrowser); 
     ASSERT(_fCBLocked);
     const Script *pScript = NULL;
     if (IsBrowseInfoEnabled())
     {
-        word_map::iterator filenameIt = _filenameToScriptNumber.find(pszScriptFullPath);
+        word_map::iterator filenameIt = _filenameToScriptNumber.find(fullPath);
         if (filenameIt != _filenameToScriptNumber.end())
         {
             pScript = GetLKGScript(filenameIt->second);

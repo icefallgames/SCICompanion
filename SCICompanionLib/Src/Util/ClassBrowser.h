@@ -68,7 +68,7 @@ public:
     const SCIClassBrowserNode *GetRoot(size_t i) const;
     size_t GetNumRoots() const;
     const sci::Script *GetLKGScript(WORD wScriptNumber);
-    const sci::Script *GetLKGScript(PCTSTR pszScriptFullPath);
+    const sci::Script *GetLKGScript(std::string fullPath);
     const std::vector<std::unique_ptr<sci::VariableDecl>> *GetMainGlobals() const;
     const std::vector<std::string> &GetKernelNames() const;
 	const std::vector<sci::ProcedureDefinition*> &GetPublicProcedures();
