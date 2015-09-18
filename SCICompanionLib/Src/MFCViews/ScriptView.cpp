@@ -1315,7 +1315,7 @@ void CScriptView::OnIntellisense()
     
     if (appState->IsCodeCompletionEnabled())
     {
-        _pACThread->StartAutoComplete(pt, this->GetSafeHwnd(), UWM_AUTOCOMPLETEREADY);
+        _pACThread->StartAutoComplete(pt, this->GetSafeHwnd(), UWM_AUTOCOMPLETEREADY, GetDocument()->GetScriptId().GetResourceNumber());
     }
 
     // Wake up the autocomplete parsecontext, after telling it where we are.

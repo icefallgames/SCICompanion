@@ -783,8 +783,18 @@ public:
     }
     ParseAutoCompleteContext GetParseAutoCompleteContext() const
     {
-        auto it = find_if(_parseAutoCompleteContext.rbegin(), _parseAutoCompleteContext.rend(), [](ParseAutoCompleteContext pacc) { return pacc != ParseAutoCompleteContext::None; });
-        return (it != _parseAutoCompleteContext.rend()) ? *it : ParseAutoCompleteContext::None;
+        for (auto it = _parseAutoCompleteContext.rbegin(); it != _parseAutoCompleteContext.rend(); ++it)
+        {
+            if (*it == ParseAutoCompleteContext::Block)
+            {
+                return ParseAutoCompleteContext::None;
+            }
+            if (*it != ParseAutoCompleteContext::None)
+            {
+                return *it;
+            }
+        }
+        return ParseAutoCompleteContext::None;
     }
 
     // Accessors

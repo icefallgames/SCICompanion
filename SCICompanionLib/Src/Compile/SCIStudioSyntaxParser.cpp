@@ -1406,7 +1406,7 @@ void SCISyntaxParser::Load()
         >> *method_decl[FinishClassMethodA];
 
     // Main script pieces.
-    include = keyword_p("include") >> quotedstring_p[AddIncludeA];
+    include = keyword_p("include") >> quotedstring_p[{AddIncludeA, ParseAutoCompleteContext::Block}];
 
     use = keyword_p("use") >> quotedstring_p[{AddUseA, ParseAutoCompleteContext::ScriptName}];
     version = keyword_p("version") >> integer_p[SetVersionA];

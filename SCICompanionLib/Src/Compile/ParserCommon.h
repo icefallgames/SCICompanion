@@ -202,8 +202,9 @@ enum class ParseAutoCompleteContext
     ClassLevelKeyword,
     SuperClass,
     ScriptName,
-    DefineValue,         // Only define constants allowed (not variables, methods, etc...)
+    DefineValue,        // Only define constants allowed (not variables, methods, etc...)
     Export,
     LValue,
+    Block               // Use this in parsing in order to block searching up the context stack.
 };
 

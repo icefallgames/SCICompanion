@@ -27,14 +27,6 @@ bool operator<(const AutoCompleteChoice &one, const AutoCompleteChoice &two)
     return one.GetLower() < two.GetLower();
 }
 
-bool operator==(const AutoCompleteChoice &one, const AutoCompleteChoice &two)
-{
-    return one.GetText() == two.GetText() &&
-        one.GetLower() == two.GetLower() &&
-        one.GetIcon() == two.GetIcon();
-}
-
-
 template<typename _TCollection, typename _TNameFunc>
 void MergeResults(std::vector<AutoCompleteChoice> &existingResults, const std::string &prefixLower, AutoCompleteIconIndex icon, _TCollection &items, _TNameFunc nameFunc)
 {
@@ -65,8 +57,13 @@ void MergeResults(std::vector<AutoCompleteChoice> &existingResults, const std::s
         [](const std::string text) { return text; });
 }
 
-std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &prefix, SyntaxContext &context, std::unordered_set<std::string> &parsedCustomHeaders)
+std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &prefixIn, uint16_t scriptNumber, SyntaxContext &context, std::unordered_set<std::string> &parsedCustomHeaders)
 {
+    // Use the scriptNumber provided instead of that in the SyntaxContext's script, because we may not have reached the scriptNumber declaration in the script yet.
+
+    std::string prefix = prefixIn;
+    std::transform(prefix.begin(), prefix.end(), prefix.begin(), ::tolower);
+
     std::unique_ptr<AutoCompleteResult> result = std::make_unique<AutoCompleteResult>();
     if (!prefix.empty())
     {
@@ -168,7 +165,7 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
             // Instances in this script
             ClassBrowserLock browserLock(browser);
             browserLock.Lock();
-            const Script *thisScript = browser.GetLKGScript(browser.GetScriptNumberHelper(&context.Script()));
+            const Script *thisScript = browser.GetLKGScript(scriptNumber);
             if (thisScript)
             {
                 std::vector<std::string> instanceNames;
@@ -188,7 +185,7 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
         {
             ClassBrowserLock browserLock(browser);
             browserLock.Lock();
-            const Script *thisScript = browser.GetLKGScript(browser.GetScriptNumberHelper(&context.Script()));
+            const Script *thisScript = browser.GetLKGScript(scriptNumber);
             if (thisScript)
             {
                 // Script variables
@@ -244,7 +241,7 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
             // Local script defines
             ClassBrowserLock browserLock(browser);
             browserLock.Lock();
-            const Script *thisScript = browser.GetLKGScript(browser.GetScriptNumberHelper(&context.Script()));
+            const Script *thisScript = browser.GetLKGScript(scriptNumber);
             if (thisScript)
             {
                 MergeResults(result->choices, prefix, AutoCompleteIconIndex::Define, thisScript->GetDefines(),
@@ -260,7 +257,7 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
         {
             ClassBrowserLock browserLock(browser);
             browserLock.Lock();
-            const Script *thisScript = browser.GetLKGScript(browser.GetScriptNumberHelper(&context.Script()));
+            const Script *thisScript = browser.GetLKGScript(scriptNumber);
             if (thisScript)
             {
                 MergeResults(result->choices, prefix, AutoCompleteIconIndex::Procedure, thisScript->GetProcedures(),
@@ -339,7 +336,7 @@ void AutoCompleteThread2::InitializeForScript(CCrystalTextBuffer *buffer)
 
 #define EXTRA_AC_CHARS 100
 
-void AutoCompleteThread2::StartAutoComplete(CPoint pt, HWND hwnd, UINT message)
+void AutoCompleteThread2::StartAutoComplete(CPoint pt, HWND hwnd, UINT message, uint16_t scriptNumber)
 {
     // Take note if the background thread is potentially ready to continue parsing from where it left off.
     bool bgIsWaiting;
@@ -384,6 +381,7 @@ void AutoCompleteThread2::StartAutoComplete(CPoint pt, HWND hwnd, UINT message)
             CGuard guard(&_cs);
             _limiterPending = move(limiter);
             _streamPending = move(stream);
+            _scriptNumberPending = scriptNumber;
             _id.hwnd = hwnd;
             _id.id = _nextId;
             _id.message = message;
@@ -458,12 +456,14 @@ void AutoCompleteThread2::_DoWork()
     {
         std::unique_ptr<CScriptStreamLimiter> limiter;
         std::unique_ptr<CCrystalScriptStream> stream;
+        uint16_t scriptNumber;
         AutoCompleteId id;
 
         {
             CGuard guard(&_cs);
             limiter = move(_limiterPending);
             stream = move(_streamPending);
+            scriptNumber = _scriptNumberPending;
             _fCancelCurrentParse = false;
             id = _id;
         }
@@ -474,14 +474,14 @@ void AutoCompleteThread2::_DoWork()
             class AutoCompleteParseCallback : public ISyntaxParserCallback
             {
             public:
-                AutoCompleteParseCallback(SyntaxContext &context, AutoCompleteThread2 &ac, CScriptStreamLimiter &limiter, AutoCompleteId id) : _context(context), _id(id), _ac(ac), _limiter(limiter) {}
+                AutoCompleteParseCallback(uint16_t scriptNumber, SyntaxContext &context, AutoCompleteThread2 &ac, CScriptStreamLimiter &limiter, AutoCompleteId id) : _context(context), _id(id), _ac(ac), _limiter(limiter), _scriptNumber(scriptNumber) {}
 
                 bool Done()
                 {
                     std::string word = _limiter.GetLastWord();
 
                     // Figure out the result
-                    std::unique_ptr<AutoCompleteResult> result = GetAutoCompleteResult(word, _context, _parsedCustomHeaders);
+                    std::unique_ptr<AutoCompleteResult> result = GetAutoCompleteResult(word, _scriptNumber, _context, _parsedCustomHeaders);
                     result->OriginalLimit = _limiter.GetLimit();
                     result->OriginalLimit.x -= word.length();
                     result->OriginalLimit.x = max(result->OriginalLimit.x, 0);
@@ -512,6 +512,7 @@ void AutoCompleteThread2::_DoWork()
                     return continueParsing;   // false -> bail
                 }
             private:
+                uint16_t _scriptNumber;
                 SyntaxContext &_context;
                 AutoCompleteId _id;
                 AutoCompleteThread2 &_ac;
@@ -526,7 +527,7 @@ void AutoCompleteThread2::_DoWork()
             context.ParseDebug = true;
 #endif
 
-            AutoCompleteParseCallback callback(context, *this, *limiter, id);
+            AutoCompleteParseCallback callback(scriptNumber, context, *this, *limiter, id);
             limiter->SetCallback(&callback);
 
             // context.ForAutoComplete = true;

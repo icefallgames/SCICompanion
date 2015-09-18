@@ -22,8 +22,6 @@ private:
     AutoCompleteIconIndex _iIcon;
 };
 
-bool operator==(const AutoCompleteChoice &one, const AutoCompleteChoice &two);
-
 bool operator<(const AutoCompleteChoice &one, const AutoCompleteChoice &two);
 
 enum ACType
@@ -70,7 +68,7 @@ public:
     ~AutoCompleteThread2();
 
     void InitializeForScript(CCrystalTextBuffer *buffer);
-    void StartAutoComplete(CPoint pt, HWND hwnd, UINT message);
+    void StartAutoComplete(CPoint pt, HWND hwnd, UINT message, uint16_t scriptNumber);
     std::unique_ptr<AutoCompleteResult> GetResult(int id);
     CPoint GetCompletedPosition();
     void ResetPosition();
@@ -95,6 +93,7 @@ private:
     AutoCompleteId _id;
     std::unique_ptr<CScriptStreamLimiter> _limiterPending;
     std::unique_ptr<CCrystalScriptStream> _streamPending;
+    uint16_t _scriptNumberPending;
     CRITICAL_SECTION _cs;
     HANDLE _hWaitForMoreWork;
     HANDLE _hExitThread;
