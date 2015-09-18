@@ -10,23 +10,7 @@
 #include "AppState.h"
 #include "IntellisenseListBox.h"
 #include "ScriptView.h"
-
-//
-// Intellisense icons
-//
-
-#define ICON_CLASS 0
-#define ICON_PROPERTY 1
-#define ICON_METHOD 2
-#define ICON_PROC 3
-#define ICON_PUBLICPROC 4
-#define ICON_METHODVAR 5
-#define ICON_SCRIPTVAR 6
-#define ICON_GLOBALVAR 7
-#define ICON_KEYWORD 8
-#define ICON_KERNEL 9
-#define ICON_DEFINE 10
-#define ICON_UNKNOWN 10
+#include "AutoCompleteContext.h"
 
 
 // CIntellisenseListBox
@@ -208,7 +192,7 @@ void CIntellisenseListBox::DrawItem(LPDRAWITEMSTRUCT pDrawItemStruct)
     }
     else
     {
-        if (ICON_KEYWORD == (int)pDrawItemStruct->itemData)
+        if ((int)AutoCompleteIconIndex::Keyword == (int)pDrawItemStruct->itemData)
         {
             // Highlight keywords in blue.
             dc.SetTextColor(RGB(0, 0, 255));
@@ -247,9 +231,19 @@ void CIntellisenseListBox::Show(CPoint pt)
         cy = min(150, iHeightLine * GetCount() + iFudge);
         ReleaseDC(pDC);
     }
+
     // Before showing ourselves, figure out how big we should be.
-    SetWindowPos(NULL, pt.x, pt.y, 210, cy, SWP_NOZORDER | SWP_NOACTIVATE);
-    ShowWindow(SW_SHOWNOACTIVATE);
+    DWORD swpFlags = SWP_NOZORDER | SWP_NOACTIVATE;
+    if (IsWindowVisible())
+    {
+        swpFlags |= SWP_NOMOVE;
+    }
+    SetWindowPos(NULL, pt.x, pt.y, 210, cy, swpFlags);
+
+    if (!IsWindowVisible())
+    {
+        ShowWindow(SW_SHOWNOACTIVATE);
+    }
 }
 
 void CIntellisenseListBox::Hide()

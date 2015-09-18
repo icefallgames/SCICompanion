@@ -169,6 +169,18 @@ void AppState::GiveMeAutoComplete(CScriptView *pSV)
     pSV->SetAutoComplete(&m_wndIntel, &m_wndToolTip, &m_wndToolTip, _pACThread, _pHoverTipScheduler.get());
 }
 
+void AppState::HideTipWindows()
+{
+    if (m_wndIntel.GetSafeHwnd())
+    {
+        m_wndIntel.Hide();
+    }
+    if (m_wndToolTip.GetSafeHwnd())
+    {
+        m_wndToolTip.Hide();
+    }
+}
+
 AppState::~AppState()
 {
     delete _pACThread;

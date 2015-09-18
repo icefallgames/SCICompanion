@@ -97,6 +97,7 @@ public:
     int InverseAspectRatioY(int value) const;
 
     void GiveMeAutoComplete(CScriptView *pSV);
+    void HideTipWindows();
 
     // Output pane
     void OutputResults(OutputPaneType type, std::vector<CompileResult> &compileResults);

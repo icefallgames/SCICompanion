@@ -420,6 +420,7 @@ void SelectorTable::Save()
                 push_string_rle(output, _names[index]);
             }
         }
+
         // Now create a resource data for it and save it.
         appState->GetResourceMap().AppendResource(ResourceBlob(nullptr, ResourceType::Vocab, output, _version.DefaultVolumeFile, VocabSelectorNames, appState->GetVersion(), ResourceSourceFlags::ResourceMap));
     }

@@ -367,9 +367,10 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_UPDATE_COMMAND_UI(ID_SCRIPT_MANAGEDECOMPILATION, OnUpdateShowIfGameLoaded)
     ON_COMMAND(ID_STOPDEBUG, OnStopDebugging)
     ON_UPDATE_COMMAND_UI(ID_STOPDEBUG, OnUpdateStopDebugging)
-
     ON_COMMAND(ID_SELFTEST, OnSelfTest)
     ON_WM_TIMER()
+
+    ON_WM_WINDOWPOSCHANGED()
 
     // Bar states
     // ID_BAR_GAME and ID_BAR_TOOLBOX can never be turned off, so no need
@@ -689,6 +690,18 @@ LRESULT CMainFrame::OnExtMenuPrepare(WPARAM wParam, LPARAM)
         }
     }
     return 0;
+}
+
+void CMainFrame::OnWindowPosChanged(WINDOWPOS *wp)
+{
+    if ((wp->flags & SWP_NOMOVE) == 0)
+    {
+        if (wp->hwnd == this->GetSafeHwnd())
+        {
+            appState->HideTipWindows();
+        }
+    }
+    __super::OnWindowPosChanged(wp);
 }
 
 int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)

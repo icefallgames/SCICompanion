@@ -166,6 +166,7 @@ private:
     LRESULT OnOutputPaneResults(WPARAM wParam, LPARAM lParam);
     LRESULT OnExtMenuPrepare(WPARAM wParam, LPARAM);
 
+    afx_msg void OnWindowPosChanged(WINDOWPOS *wp);
     afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
     afx_msg void OnDestroy();
     afx_msg void OnFileNewPic();

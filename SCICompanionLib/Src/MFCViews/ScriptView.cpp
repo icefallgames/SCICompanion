@@ -1665,15 +1665,13 @@ LRESULT CScriptView::OnAutoCompleteReady(WPARAM wParam, LPARAM lParam)
                     }
                 }
             }
-            if (!_pAutoComp->IsWindowVisible())
-            {
-                // Make it visible.
-                CPoint ptClient = TextToClient(GetCursorPos());
-                ClientToScreen(&ptClient);
-                ptClient.x -= 10; // Just offset a little
-                ptClient.y += GetLineHeight() + 2; // Move it below the lien.
-                _pAutoComp->Show(ptClient);
-            }
+
+            // Make it visible (or update size of already visible)
+            CPoint ptClient = TextToClient(GetCursorPos());
+            ClientToScreen(&ptClient);
+            ptClient.x -= 10; // Just offset a little
+            ptClient.y += GetLineHeight() + 2; // Move it below the lien.
+            _pAutoComp->Show(ptClient);
         }
         std::string &strFindText = result->strFindText;
         if (!strFindText.empty())
