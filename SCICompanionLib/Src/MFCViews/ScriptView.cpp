@@ -171,15 +171,15 @@ void CScriptView::UpdateView(CCrystalTextView *pSource, CUpdateContext *pContext
 {
     if (_pACThread)
     {
-        // REVIEW: Not sure what this does
-        /*
+        // This detects the case when text is inserted prior to the last autocompleted point,
+        // thus invalidating our current autocomplete position and requiring us to reparse from the beginning.
         CPoint pt = _pACThread->GetCompletedPosition();
         CPoint ptRecalced(pt);
         pContext->RecalcPoint(ptRecalced);
         if (ptRecalced != pt)
         {
             _pACThread->ResetPosition();
-        }*/
+        }
     }
     __super::UpdateView(pSource, pContext, dwFlags, nLineIndex);
 }
@@ -1380,6 +1380,8 @@ BOOL CScriptView::OnACDoubleClick()
                 }
                 // It will be highlighted... so unhighlight it.
                 SetSelection(GetCursorPos(), GetCursorPos());
+
+                _pAutoComp->RememberChoice(strChoice);
             }
             // else oh well
         }
@@ -1654,16 +1656,7 @@ LRESULT CScriptView::OnAutoCompleteReady(WPARAM wParam, LPARAM lParam)
         {
             if (result->fResultsChanged)
             {
-                _pAutoComp->ResetContent();
-                for (size_t i = 0; i < choices.size(); i++)
-                {
-                    auto &choice = choices[i];
-                    int iIndex = _pAutoComp->AddString(choice.GetText().c_str());
-                    if (iIndex != LB_ERR)
-                    {
-                        _pAutoComp->SetItemData(iIndex, (int)choice.GetIcon());
-                    }
-                }
+                _pAutoComp->UpdateChoices(choices);
             }
 
             // Make it visible (or update size of already visible)
@@ -1672,11 +1665,6 @@ LRESULT CScriptView::OnAutoCompleteReady(WPARAM wParam, LPARAM lParam)
             ptClient.x -= 10; // Just offset a little
             ptClient.y += GetLineHeight() + 2; // Move it below the lien.
             _pAutoComp->Show(ptClient);
-        }
-        std::string &strFindText = result->strFindText;
-        if (!strFindText.empty())
-        {
-            _pAutoComp->Highlight(strFindText.c_str());
         }
     }
     return 0;

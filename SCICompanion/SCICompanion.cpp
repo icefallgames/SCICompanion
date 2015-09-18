@@ -434,7 +434,7 @@ BOOL SCICompanionApp::InitInstance()
     // Give the frame as the "owner"
     SystemParametersInfo(SPI_SETLISTBOXSMOOTHSCROLLING, FALSE, NULL, 0); // turn off smoothscrolling, it makes autocomplete suck
     //appState->m_wndIntel.CreateEx(0, _T("LISTBOX"), NULL, WS_THICKFRAME | WS_VSCROLL | WS_POPUP | LBS_SORT | LBS_OWNERDRAWFIXED | LBS_HASSTRINGS | LBS_WANTKEYBOARDINPUT | LBS_NOTIFY, 0, 0, 100, 100, pMainFrame->GetSafeHwnd(), NULL);
-    appState->m_wndIntel.CreateEx(0, _T("LISTBOX"), NULL, WS_DLGFRAME | WS_VSCROLL | WS_POPUP | LBS_SORT | LBS_OWNERDRAWFIXED | LBS_HASSTRINGS | LBS_WANTKEYBOARDINPUT | LBS_NOTIFY, 0, 0, 100, 100, pMainFrame->GetSafeHwnd(), NULL);
+    appState->m_wndIntel.CreateEx(0, _T("LISTBOX"), NULL, WS_DLGFRAME | WS_VSCROLL | WS_POPUP | LBS_OWNERDRAWFIXED | LBS_HASSTRINGS | LBS_WANTKEYBOARDINPUT | LBS_NOTIFY, 0, 0, 100, 100, pMainFrame->GetSafeHwnd(), NULL);
     // And the code tooltip
     appState->m_wndToolTip.CreateEx(0, _T("STATIC"), NULL, SS_NOTIFY | SS_OWNERDRAW | WS_POPUP | WS_CLIPSIBLINGS | WS_BORDER, 0, 0, 100, 100, pMainFrame->GetSafeHwnd(), NULL);
 

@@ -11,17 +11,17 @@
 #include "IntellisenseListBox.h"
 #include "ScriptView.h"
 #include "AutoCompleteContext.h"
+#include "CodeAutoComplete.h"
 
+const int IntellisenseMRUSize = 30;
 
 // CIntellisenseListBox
 
 IMPLEMENT_DYNAMIC(CIntellisenseListBox, CListBox)
 
-CIntellisenseListBox::CIntellisenseListBox()
+CIntellisenseListBox::CIntellisenseListBox() : _nextRememberChoiceStamp(0), _pClient(nullptr), _hasUserInteracted(false)
 {
-    _pClient = NULL;
 }
-
 
 CIntellisenseListBox::~CIntellisenseListBox()
 {
@@ -49,6 +49,50 @@ int CIntellisenseListBox::OnCreate(LPCREATESTRUCT lpCreateStruct)
 void CIntellisenseListBox::OnDestroy()
 {
 
+}
+
+void CIntellisenseListBox::RememberChoice(PCSTR pszChoice)
+{
+    auto it = _sortedRememberedChoices.begin();
+    bool found = false;
+    std::string lower = pszChoice;
+    std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+    while (it != _sortedRememberedChoices.end())
+    {
+        if (it->TextLower == lower)
+        {
+            found = true;
+            it->TimeStamp = _nextRememberChoiceStamp++;
+            break;
+        }
+        ++it;
+    }
+
+    if (!found)
+    {
+        if (_sortedRememberedChoices.size() >= IntellisenseMRUSize)
+        {
+            // Age out the oldest.
+            auto itMin = std::min_element(_sortedRememberedChoices.begin(), _sortedRememberedChoices.end(),
+                [](const MruEntry &one, const MruEntry &two)
+            {
+                return one.TimeStamp < two.TimeStamp;
+            }
+                );
+
+            _sortedRememberedChoices.erase(itMin);
+        }
+
+        _sortedRememberedChoices.emplace_back();
+        _sortedRememberedChoices.back().TextLower = lower;
+        _sortedRememberedChoices.back().TimeStamp = _nextRememberChoiceStamp++;
+        std::sort(_sortedRememberedChoices.begin(), _sortedRememberedChoices.end(),
+            [](const MruEntry &one, const MruEntry &two)
+            {
+                return one.TextLower < two.TextLower;
+            }
+        );
+    }
 }
 
 BOOL CIntellisenseListBox::GetSelectedText(CString &strText)
@@ -242,6 +286,7 @@ void CIntellisenseListBox::Show(CPoint pt)
 
     if (!IsWindowVisible())
     {
+        _hasUserInteracted = false;
         ShowWindow(SW_SHOWNOACTIVATE);
     }
 }
@@ -253,16 +298,69 @@ void CIntellisenseListBox::Hide()
 
 void CIntellisenseListBox::Highlight(PCTSTR pszText)
 {
+    int iIndex = FindString(-1, pszText);
+    _Highlight(iIndex);
+}
+
+void CIntellisenseListBox::_Highlight(int index)
+{
     CRect rcClient;
     GetClientRect(&rcClient);
     int cyItem = GetItemHeight(0);
-    int iIndex = FindString(-1, pszText);
     // Center the item.
     int cItemsVisible = rcClient.Height() / cyItem;
-    SetCurSel(iIndex);
-    iIndex -= (cItemsVisible / 2);
-    iIndex = max(0, iIndex);
-    SetTopIndex(iIndex);
+    SetCurSel(index);
+    index -= (cItemsVisible / 2);
+    index = max(0, index);
+    SetTopIndex(index);
+}
+
+void CIntellisenseListBox::UpdateChoices(const std::vector<AutoCompleteChoice> &choices)
+{
+    SetRedraw(FALSE);
+    ResetContent();
+    // TODO: We could be more efficient by being owner data.
+
+    // As we fill the combobox, we'll see if any of the strings are in the MRU. We'll highlight the most recent one.
+    // Both choices and _sortedRememberedChoices are sorted, so we only need to do one pass through each.
+    auto itMRU = _sortedRememberedChoices.begin();
+
+    int bestIndex = -1;
+    int highestMRUStamp = -1;
+    for (size_t i = 0; i < choices.size(); i++)
+    {
+        auto &choice = choices[i];
+        while ((itMRU != _sortedRememberedChoices.end()) && (itMRU->TextLower < choice.GetLower()))
+        {
+            ++itMRU;
+        }
+        if ((itMRU != _sortedRememberedChoices.end()) && (itMRU->TextLower == choice.GetLower()))
+        {
+            // It's a match!
+            if (highestMRUStamp < itMRU->TimeStamp)
+            {
+                bestIndex = i;
+                highestMRUStamp = itMRU->TimeStamp;
+            }
+        }
+        int iIndex = AddString(choice.GetText().c_str());
+        if (iIndex != LB_ERR)
+        {
+            SetItemData(iIndex, (int)choice.GetIcon());
+        }
+    }
+
+    if (bestIndex != -1)
+    {
+        _Highlight(bestIndex);
+    }
+    else if (choices.size() == 1)
+    {
+        // Highlight single items
+        _Highlight(0);
+    }
+
+    SetRedraw(TRUE);
 }
 
 

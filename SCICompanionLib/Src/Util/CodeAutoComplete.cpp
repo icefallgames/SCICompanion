@@ -10,26 +10,35 @@ using namespace sci;
 using namespace std;
 
 AutoCompleteChoice::AutoCompleteChoice() { _iIcon = AutoCompleteIconIndex::Unknown; }
-AutoCompleteChoice::AutoCompleteChoice(PCTSTR psz, AutoCompleteIconIndex iIcon) { _strText = psz; _iIcon = iIcon; }
+AutoCompleteChoice::AutoCompleteChoice(const std::string &text, AutoCompleteIconIndex iIcon)
+{
+    _strLower = text;
+    std::transform(_strLower.begin(), _strLower.end(), _strLower.begin(), ::tolower);
+    _strText = text;
+    _iIcon = iIcon;
+}
+AutoCompleteChoice::AutoCompleteChoice(const std::string &text, const std::string &lower, AutoCompleteIconIndex iIcon) { _strText = text; _strLower = lower, _iIcon = iIcon; }
 const std::string &AutoCompleteChoice::GetText() const { return _strText; }
+const std::string &AutoCompleteChoice::GetLower() const { return _strLower; }
 AutoCompleteIconIndex AutoCompleteChoice::GetIcon() const { return _iIcon; }
 
 bool operator<(const AutoCompleteChoice &one, const AutoCompleteChoice &two)
 {
-    return one.GetText() < two.GetText();
+    return one.GetLower() < two.GetLower();
 }
 
 template<typename _TCollection, typename _TNameFunc>
-void MergeResults(std::vector<AutoCompleteChoice> &existingResults, const std::string &prefix, AutoCompleteIconIndex icon, _TCollection &items, _TNameFunc nameFunc)
+void MergeResults(std::vector<AutoCompleteChoice> &existingResults, const std::string &prefixLower, AutoCompleteIconIndex icon, _TCollection &items, _TNameFunc nameFunc)
 {
     std::vector<AutoCompleteChoice> newResults;
     for (auto &item : items)
     {
         std::string name = nameFunc(item);
-        // TODO: support case insensitive?
-        if (0 == name.compare(0, prefix.size(), prefix))
+        std::string lower = name;
+        std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+        if (0 == lower.compare(0, prefixLower.size(), prefixLower))
         {
-            newResults.emplace_back(name.c_str(), icon);
+            newResults.emplace_back(name, lower, icon);
         }
     }
     if (!newResults.empty())
@@ -324,8 +333,6 @@ void AutoCompleteThread2::InitializeForScript(CCrystalTextBuffer *buffer)
 
 void AutoCompleteThread2::StartAutoComplete(CPoint pt, HWND hwnd, UINT message)
 {
-    OutputDebugString(fmt::format("last point is {0} {1}\n", _lastPoint.x, _lastPoint.y).c_str());
-
     // Take note if the background thread is potentially ready to continue parsing from where it left off.
     bool bgIsWaiting;
     {
@@ -336,8 +343,6 @@ void AutoCompleteThread2::StartAutoComplete(CPoint pt, HWND hwnd, UINT message)
 
     if (bgIsWaiting && (_lastHWND == hwnd) && (pt.y == _lastPoint.y) && (pt.x > _lastPoint.x))
     {
-        OutputDebugString("UI: Continuing existing parse\n");
-
         // Continue an existing parse.
         CString strText;
         _bufferUI->GetText(_lastPoint.y, _lastPoint.x, pt.y, pt.x, strText);
@@ -350,8 +355,6 @@ void AutoCompleteThread2::StartAutoComplete(CPoint pt, HWND hwnd, UINT message)
     }
     else
     {
-        OutputDebugString("UI: Starting new parse\n");
-
         // Start a new one
         // 1) If in parse, set the event getting out of it and indicate cancel.
         {
@@ -359,8 +362,6 @@ void AutoCompleteThread2::StartAutoComplete(CPoint pt, HWND hwnd, UINT message)
             _additionalCharacters = "";
             _fCancelCurrentParse = true;
             _idUpdate = _nextId;
-            OutputDebugString("UI: Sending message to cancel current parse\n");
-
             SetEvent(_hWaitForMoreWork);
         }
 
@@ -386,18 +387,12 @@ void AutoCompleteThread2::StartAutoComplete(CPoint pt, HWND hwnd, UINT message)
     _nextId++;
     _lastHWND = hwnd;
     _lastPoint = pt;
-
-    OutputDebugString(fmt::format("last point is {0} {1}\n", _lastPoint.x, _lastPoint.y).c_str());
 }
 
 void AutoCompleteThread2::ResetPosition()
 {
-    OutputDebugString("UI: ResetPosition\n");
-
     _lastHWND = nullptr;
     _lastPoint = CPoint();
-
-    OutputDebugString(fmt::format("last point is {0} {1}\n", _lastPoint.x, _lastPoint.y).c_str());
 
     // REVIEW this:
     CGuard guard(&_cs);
@@ -410,6 +405,11 @@ void AutoCompleteThread2::ResetPosition()
     _additionalCharacters = "";
     _fCancelCurrentParse = true;
     SetEvent(_hWaitForMoreWork);
+}
+
+CPoint AutoCompleteThread2::GetCompletedPosition()
+{
+    return _lastPoint;
 }
 
 std::unique_ptr<AutoCompleteResult> AutoCompleteThread2::GetResult(int id)
@@ -471,8 +471,6 @@ void AutoCompleteThread2::_DoWork()
                 bool Done()
                 {
                     std::string word = _limiter.GetLastWord();
-                    OutputDebugString(fmt::format("ACThread: Callback for {0}, top statement is {1}. Set result and block\n", word.c_str(), (int)_context.GetTopKnownNode()).c_str());
-                    OutputDebugString("\n");
 
                     // Figure out the result
                     std::unique_ptr<AutoCompleteResult> result = GetAutoCompleteResult(word, _context, _parsedCustomHeaders);
@@ -494,7 +492,6 @@ void AutoCompleteThread2::_DoWork()
                             CGuard guard(&_ac._cs);
                             continueParsing = !_ac._fCancelCurrentParse;
                             _id.id = _ac._idUpdate;
-                            OutputDebugString(continueParsing ? "Continuing parsing\n" : "Abandoning and exiting parse\n");
                             additionalCharacters = _ac._additionalCharacters;
                             _ac._additionalCharacters = "";
                         }
@@ -525,10 +522,7 @@ void AutoCompleteThread2::_DoWork()
             limiter->SetCallback(&callback);
 
             // context.ForAutoComplete = true;
-            OutputDebugString("Starting parsing session\n");
             bool result = g_Parser.ParseAC(script, it, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &context);
-            OutputDebugString("Ending parsing session\n");
         }
     }
-    OutputDebugString("Exiting AC thread\n");
 }

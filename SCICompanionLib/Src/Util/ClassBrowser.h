@@ -26,6 +26,13 @@ namespace sci
 	class VariableDecl;
 }
 
+struct ACTreeLeaf
+{
+    ACTreeLeaf(AutoCompleteSourceType sourceType, std::string original) : Original(original), SourceType(sourceType) {}
+    AutoCompleteSourceType SourceType;
+    std::string Original;
+};
+
 //
 // SCIClassBrowser
 //
@@ -126,7 +133,7 @@ private:
     // This maps strings to SCIClassBrowserNode.  e.g. gEgo to it's node in the tree
     class_map _classMap;
 
-    TernarySearchTree<AutoCompleteSourceType> _aclist;
+    TernarySearchTree<ACTreeLeaf> _aclist;
     AutoCompleteSourceType _invalidAutoCompleteSources;
 
     // This maps script numbers to arrays of instances within them.

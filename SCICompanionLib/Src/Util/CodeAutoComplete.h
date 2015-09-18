@@ -9,12 +9,15 @@ class AutoCompleteChoice
 {
 public:
     AutoCompleteChoice();
-    AutoCompleteChoice(PCTSTR psz, AutoCompleteIconIndex iIcon);
+    AutoCompleteChoice(const std::string &text, AutoCompleteIconIndex iIcon);
+    AutoCompleteChoice(const std::string &text, const std::string &lower, AutoCompleteIconIndex iIcon);
     const std::string &GetText() const;
+    const std::string &GetLower() const;
     AutoCompleteIconIndex GetIcon() const;
 
 private:
     std::string _strText;
+    std::string _strLower;
     AutoCompleteIconIndex _iIcon;
 };
 
@@ -45,7 +48,6 @@ public:
 
     DWORD dwFailedPos;
     BOOL fResultsChanged;
-    std::string strFindText;
     std::vector<AutoCompleteChoice> choices;
     ACType fACType;
     CPoint OriginalLimit;
@@ -67,6 +69,7 @@ public:
     void InitializeForScript(CCrystalTextBuffer *buffer);
     void StartAutoComplete(CPoint pt, HWND hwnd, UINT message);
     std::unique_ptr<AutoCompleteResult> GetResult(int id);
+    CPoint GetCompletedPosition();
     void ResetPosition();
     void Exit();
 

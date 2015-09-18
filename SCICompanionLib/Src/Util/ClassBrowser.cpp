@@ -786,40 +786,46 @@ bool SCIClassBrowser::_AddFileName(PCTSTR pszFullPath, PCTSTR pszFileName, BOOL 
     return fRet;
 }
 
+void AddToTernaryList(std::vector<TstItem<ACTreeLeaf>> &items, const std::string &value, AutoCompleteSourceType type)
+{
+    std::string lower = value;
+    std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+    items.emplace_back(lower, ACTreeLeaf(type, value));
+}
+
 void SCIClassBrowser::_MaybeGenerateAutoCompleteTree()
 {
     if (_invalidAutoCompleteSources != AutoCompleteSourceType::None)
     {
         // REVIEW: If we find this takes too long, we can split things into different _acLists that are updated at different freqs
-        std::vector<TstItem<AutoCompleteSourceType>> items;
+        std::vector<TstItem<ACTreeLeaf>> items;
         items.reserve(4000);
         for (auto &aDefine : _headerDefines)
         {
             // Standard defines in the system and game header files.
-            items.emplace_back(aDefine.first, AutoCompleteSourceType::Define);
+            AddToTernaryList(items, aDefine.first, AutoCompleteSourceType::Define);
         }
         for (auto &aClass : _classMap)
         {
             // Updated when new classes created (rare)
-            items.emplace_back(aClass.first, AutoCompleteSourceType::ClassName);
+            AddToTernaryList(items, aClass.first, AutoCompleteSourceType::ClassName);
         }
         for (auto &selector : _selectorNames.GetNames())
         {
             // Updated only when new selectors are created (rare)
-            items.emplace_back(selector, AutoCompleteSourceType::Selector);
+            AddToTernaryList(items, selector, AutoCompleteSourceType::Selector);
         }
         for (auto &kernelNames : _kernelNamesResource.GetNames())
         {
-            // Updated only when new selectors are created (rare)
-            items.emplace_back(kernelNames, AutoCompleteSourceType::Kernel);
+            AddToTernaryList(items, kernelNames, AutoCompleteSourceType::Kernel);
         }
         for (auto &publicProc : _GetPublicProcedures())
         {
-            items.emplace_back(publicProc->GetName(), AutoCompleteSourceType::Procedure);
+            AddToTernaryList(items, publicProc->GetName(), AutoCompleteSourceType::Procedure);
         }
         for (auto &script : _scripts)
         {
-            items.emplace_back(script->GetTitle(), AutoCompleteSourceType::ScriptName);
+            AddToTernaryList(items, script->GetTitle(), AutoCompleteSourceType::ScriptName);
         }
 
         // Now some global variables
@@ -828,7 +834,7 @@ void SCIClassBrowser::_MaybeGenerateAutoCompleteTree()
         {
             for (const auto &global : *globals)
             {
-                items.emplace_back(global->GetName(), AutoCompleteSourceType::Variable);
+                AddToTernaryList(items, global->GetName(), AutoCompleteSourceType::Variable);
             }
         }
 
@@ -843,10 +849,12 @@ void SCIClassBrowser::GetAutoCompleteChoices(const std::string &prefixIn, AutoCo
     choices.clear();
     CGuard guard(&_csClassBrowser);
     std::string prefix = prefixIn + "*";
+    std::transform(prefix.begin(), prefix.end(), prefix.begin(), ::tolower);
     std::vector<int> results = _aclist.partialMatchSearch(prefix.c_str());
     for (int resultIndex : results)
     {
-        AutoCompleteSourceType type = *_aclist.getValue(resultIndex);
+        ACTreeLeaf leaf = *_aclist.getValue(resultIndex);
+        AutoCompleteSourceType type = leaf.SourceType;
         if ((type & sourceTypes) != AutoCompleteSourceType::None)
         {
             AutoCompleteIconIndex icon = AutoCompleteIconIndex::Unknown;
@@ -877,7 +885,7 @@ void SCIClassBrowser::GetAutoCompleteChoices(const std::string &prefixIn, AutoCo
                     icon = AutoCompleteIconIndex::Variable;
                     break;
             }
-            choices.emplace_back(_aclist.getKey(resultIndex), icon);
+            choices.emplace_back(leaf.Original, icon);
         }
     }
 }
