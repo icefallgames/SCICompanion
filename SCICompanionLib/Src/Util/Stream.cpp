@@ -12,6 +12,13 @@ namespace sci
         _state = std::ios_base::goodbit;
     }
 
+    void ostream::reset()
+    {
+        _cbSizeValid = 0;
+        _iIndex = 0;
+        _state = std::ios_base::goodbit;
+    }
+
     void  ostream::EnsureCapacity(uint32_t size)
     {
         if (size > _cbReserved)

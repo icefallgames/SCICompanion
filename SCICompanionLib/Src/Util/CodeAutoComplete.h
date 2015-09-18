@@ -1,6 +1,7 @@
 #pragma once
 
-class CCrystalScriptStream::const_iterator;
+class CCrystalScriptStream;
+class CCrystalTextBuffer;
 class CScriptStreamLimiter;
 class SyntaxContext;;
 enum class AutoCompleteIconIndex;
@@ -20,6 +21,8 @@ private:
     std::string _strLower;
     AutoCompleteIconIndex _iIcon;
 };
+
+bool operator==(const AutoCompleteChoice &one, const AutoCompleteChoice &two);
 
 bool operator<(const AutoCompleteChoice &one, const AutoCompleteChoice &two);
 

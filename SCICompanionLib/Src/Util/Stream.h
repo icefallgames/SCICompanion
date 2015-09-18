@@ -16,6 +16,7 @@ namespace sci
         void WriteBytes(const uint8_t *pData, int cCount);
         void FillByte(uint8_t value, int cCount);
 
+        void reset();
         uint32_t tellp() { return _cbSizeValid; }
 
         void seekp(uint32_t newPosition);

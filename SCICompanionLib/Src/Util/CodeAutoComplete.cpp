@@ -27,6 +27,14 @@ bool operator<(const AutoCompleteChoice &one, const AutoCompleteChoice &two)
     return one.GetLower() < two.GetLower();
 }
 
+bool operator==(const AutoCompleteChoice &one, const AutoCompleteChoice &two)
+{
+    return one.GetText() == two.GetText() &&
+        one.GetLower() == two.GetLower() &&
+        one.GetIcon() == two.GetIcon();
+}
+
+
 template<typename _TCollection, typename _TNameFunc>
 void MergeResults(std::vector<AutoCompleteChoice> &existingResults, const std::string &prefixLower, AutoCompleteIconIndex icon, _TCollection &items, _TNameFunc nameFunc)
 {

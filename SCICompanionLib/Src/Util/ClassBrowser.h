@@ -3,8 +3,8 @@
 #include "Vocab99x.h"
 #include "CompileInterfaces.h"
 #include <unordered_map>
-#include "TernarySearchTree.h"
 #include "Task.h"
+#include "TokenDatabase.h"
 
 class SCIClassBrowserNode;
 class ISCIPropertyBag;
@@ -25,13 +25,6 @@ namespace sci
 	class ProcedureDefinition;
 	class VariableDecl;
 }
-
-struct ACTreeLeaf
-{
-    ACTreeLeaf(AutoCompleteSourceType sourceType, std::string original) : Original(original), SourceType(sourceType) {}
-    AutoCompleteSourceType SourceType;
-    std::string Original;
-};
 
 //
 // SCIClassBrowser
@@ -139,7 +132,7 @@ private:
     // This maps strings to SCIClassBrowserNode.  e.g. gEgo to it's node in the tree
     class_map _classMap;
 
-    TernarySearchTree<ACTreeLeaf> _aclist;
+    TokenDatabase _aclist;
     AutoCompleteSourceType _invalidAutoCompleteSources;
 
     // This maps script numbers to arrays of instances within them.
