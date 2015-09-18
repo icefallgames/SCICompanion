@@ -77,27 +77,6 @@ void NewLine(sci::SourceCodeWriter &out)
     }
 }
 
-void _OutputNumber(sci::SourceCodeWriter &out, WORD wNum, bool fHex, bool fNegate)
-{
-    if (fNegate)
-    {
-        assert(!fHex);
-        wNum = (~wNum) + 1; // two's complement
-        out.out << "-";
-    }
-    out.out << (fHex ? std::hex : std::dec);
-    if (fHex)
-    {
-        out.out << "$" << std::setw(4) << std::setfill('0') << wNum;
-    }
-    else
-    {
-        out.out << wNum;
-    }
-    // Don't contaminate stream state:
-    out.out << std::dec;
-}
-
 std::string _DeduceReturnType(sci::FunctionBase &function)
 {
     CheckForReturnValue en;

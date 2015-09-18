@@ -245,7 +245,7 @@ public:
     {
         type = TokenInvalid;
         integer = 0;
-        intFlags = IFNone;
+        intFlags = IntegerFlags::None;
     }
     SyntaxToken type;
     LineCol start;      // Start position

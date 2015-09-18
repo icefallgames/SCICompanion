@@ -1027,7 +1027,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode2(ConsumptionNode &node, Decomp
         {
             // This could mean FALSE, or NULL, we don't know which. So just use 0.
             unique_ptr<PropertyValue> valueTemp = make_unique<PropertyValue>();
-            valueTemp->SetValue(0, IntegerFlags::IFNone);
+            valueTemp->SetValue(0, IntegerFlags::None);
             return unique_ptr<SyntaxNode>(move(valueTemp));
         }
 

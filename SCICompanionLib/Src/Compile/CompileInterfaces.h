@@ -69,12 +69,13 @@ struct species_property
 };
 
 
-enum IntegerFlags
+enum class IntegerFlags : uint16_t
 {
-    IFNone =      0x00000000,
-    IFHex =       0x00000001,  // Originally represented as a hex number.
-    IFNegative =  0x00000002,  // Originally represented as a -ve number. (value is already correct)
+    None =      0x00000000,
+    Hex =       0x00000001,  // Originally represented as a hex number.
+    Negative =  0x00000002,  // Originally represented as a -ve number. (value is already correct)
 };
+DEFINE_ENUM_FLAGS(IntegerFlags, uint16_t)
 
 //
 // This represents a result of compiling, which may include a line number and

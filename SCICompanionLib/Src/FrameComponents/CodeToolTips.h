@@ -4,6 +4,7 @@
 #include "ScriptOMAll.h"
 #include "AppState.h"
 #include "PMachine.h"
+#include "OutputCodeHelper.h"
 
 const key_value_pair<PCSTR, PCSTR> c_szVarToClass[] =
 {
@@ -211,7 +212,11 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                     if (fFound)
                     {
                         // It was a define.
-                        StringCchPrintf(szTip, ARRAYSIZE(szTip), TEXT("(define %s %04x)"), strText.c_str(), (*defineIt)->GetValue());
+                        bool isHex = IsFlagSet((*defineIt)->GetFlags(), IntegerFlags::Hex);
+                        bool isNeg = IsFlagSet((*defineIt)->GetFlags(), IntegerFlags::Negative);
+                        std::stringstream ss;
+                        _OutputNumber(ss, (*defineIt)->GetValue(), isHex, isNeg);
+                        StringCchPrintf(szTip, ARRAYSIZE(szTip), TEXT("(define %s %s)"), strText.c_str(), ss.str().c_str());
                         result.strTip = szTip;
                         // Give location information for it.
                         result.strBaseText = (*defineIt)->GetLabel().c_str();

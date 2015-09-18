@@ -158,7 +158,27 @@ private:
     sci::SourceCodeWriter &_out;
 };
 
-void _OutputNumber(sci::SourceCodeWriter &out, WORD wNum, bool fHex, bool fNegate);
+template<typename _TStream>
+void _OutputNumber(_TStream &out, WORD wNum, bool fHex, bool fNegate)
+{
+    if (fNegate)
+    {
+        assert(!fHex);
+        wNum = (~wNum) + 1; // two's complement
+        out << "-";
+    }
+    out << (fHex ? std::hex : std::dec);
+    if (fHex)
+    {
+        out << "$" << std::setw(4) << std::setfill('0') << wNum;
+    }
+    else
+    {
+        out << wNum;
+    }
+    // Don't contaminate stream state:
+    out << std::dec;
+}
 
 class CheckForReturnValue : public sci::IExploreNode
 {

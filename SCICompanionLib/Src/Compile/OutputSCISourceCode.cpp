@@ -115,7 +115,7 @@ public:
             out.out << "'" << prop.GetStringValue() << "'";
             break;
         case ValueType::Number:
-            _OutputNumber(out, prop.GetNumberValue(), prop._fHex, prop._fNegate);
+            _OutputNumber(out.out, prop.GetNumberValue(), prop._fHex, prop._fNegate);
             break;
         case ValueType::Token:
             // Surround in braces if there are spaces in the string.
@@ -152,10 +152,10 @@ public:
     void Visit(const Define &define) override
     {
         out.SyncComments(define);
-        bool fHex = !!(define.GetFlags() & IFHex);
-        bool fNegate = !!(define.GetFlags() & IFNegative);
+        bool fHex = IsFlagSet(define.GetFlags(), IntegerFlags::Hex);
+        bool fNegate = IsFlagSet(define.GetFlags(), IntegerFlags::Negative);
         out.out << "(define " << define.GetLabel() << " ";
-        _OutputNumber(out, define.GetValue(), fHex, fNegate);
+        _OutputNumber(out.out, define.GetValue(), fHex, fNegate);
         out.out << ")" << out.NewLineString();
     }
 

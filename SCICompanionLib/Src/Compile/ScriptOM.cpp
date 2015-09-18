@@ -312,8 +312,8 @@ void PropertyValueBase::SetValue(int iValue, IntegerFlags flags)
     ASSERT(iValue <= 65536);
     _numberValue = static_cast<WORD>(iValue);
     _type = sci::ValueType::Number;
-    _fHex = !!(flags & IFHex);
-    _fNegate = !!(flags & IFNegative);
+    _fHex = IsFlagSet(flags, IntegerFlags::Hex);
+    _fNegate = IsFlagSet(flags, IntegerFlags::Negative);
     _stringValue.clear();
 }
 

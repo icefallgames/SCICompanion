@@ -152,11 +152,11 @@ bool IntegerPCopiedFromSomewhere(_It &stream, int &i, IntegerFlags &flags)
     {
         if (fNeg)
         {
-            flags = static_cast<IntegerFlags>(flags | IFNegative);
+            flags = static_cast<IntegerFlags>(flags | IntegerFlags::Negative);
         }
         if (fHex)
         {
-            flags = static_cast<IntegerFlags>(flags | IFHex);
+            flags = static_cast<IntegerFlags>(flags | IntegerFlags::Hex);
         }
     }
     else

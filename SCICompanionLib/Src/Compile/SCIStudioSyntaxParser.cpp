@@ -422,7 +422,16 @@ void DefineValueA(MatchResult &match, const Parser *pParser, SyntaxContext *pCon
 {
     if (match.Result())
     {
-        pContext->DefinePtr->SetValue(pContext->Integer);
+        IntegerFlags flags = IntegerFlags::None;
+        if (pContext->HexInt)
+        {
+            flags |= IntegerFlags::Hex;
+        }
+        if (pContext->NegInt)
+        {
+            flags |= IntegerFlags::Negative;
+        }
+        pContext->DefinePtr->SetValue(pContext->Integer, flags);
     }
     else
     {

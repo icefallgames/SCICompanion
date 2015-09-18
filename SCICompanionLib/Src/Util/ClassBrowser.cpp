@@ -1044,7 +1044,8 @@ void SCIClassBrowser::_CacheHeaderDefines()
         const DefineVector &defines = headerIt->second->GetDefines();
         for (DefineVector::const_iterator defineIt = defines.begin(); defineIt != defines.end(); defineIt++)
         {
-			_headerDefines[(*defineIt)->GetLabel()] = (*defineIt)->GetValue();
+            auto &theDefine = *defineIt;
+            _headerDefines.emplace(theDefine->GetLabel(), DefineValueCache(theDefine->GetValue(), theDefine->GetFlags()));
         }
         headerIt++;
     }
@@ -1673,9 +1674,10 @@ bool SCIClassBrowser::ResolveValue(const Script *pScript, const std::string &str
             }
             if (!fFound)
             {
-                WORD wValue;
-                if (lookup_item(_headerDefines, strValue, wValue))
+                DefineValueCache dvc;
+                if (lookup_item(_headerDefines, strValue, dvc))
                 {
+                    WORD wValue = dvc.value;
                     fFound = true;
                     Out.SetValue(wValue);
                 }

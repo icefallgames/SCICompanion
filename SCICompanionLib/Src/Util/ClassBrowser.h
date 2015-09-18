@@ -107,12 +107,18 @@ public:
 
 private:
 
-	
+    struct DefineValueCache
+    {
+        DefineValueCache() = default;
+        DefineValueCache(uint16_t value, IntegerFlags flags) : value(value), flags(flags) {}
+        uint16_t value;
+        IntegerFlags flags;
+    };
 
     typedef std::unordered_map<std::string, SCIClassBrowserNode*> class_map;
 	typedef std::unordered_map<WORD, std::vector<sci::ClassDefinition*>*> instance_map;
     typedef std::unordered_map<std::string, sci::Script*> script_map;
-    typedef std::unordered_map<std::string, WORD> define_map;
+    typedef std::unordered_map<std::string, DefineValueCache> define_map;
     typedef std::unordered_map<std::string, WORD> word_map;
 
     bool _CreateClassTree(ITaskStatus &task);

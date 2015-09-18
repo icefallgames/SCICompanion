@@ -116,13 +116,13 @@ public:
     {
         _type = Type::None;
         _number = 0;
-        _intFlags = IFNone;
+        _intFlags = IntegerFlags::None;
     }
     ASTNode(Type type, LineCol startPos, LineCol endPos)
     {
         _type = type;
         _number = 0;
-        _intFlags = IFNone;
+        _intFlags = IntegerFlags::None;
         _startPos = startPos;
         _endPos = endPos;
     }
@@ -131,7 +131,7 @@ public:
         _type = type;
         _text = text;
         _number = 0;
-        _intFlags = IFNone;
+        _intFlags = IntegerFlags::None;
         _startPos = startPos;
         _endPos = endPos;
     }
