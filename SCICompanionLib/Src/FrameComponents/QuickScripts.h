@@ -39,6 +39,7 @@ private:
     afx_msg void OnGotoMessage();
     afx_msg BOOL OnGotoRoom(UINT nID);
     afx_msg void OnGotoView(UINT nID);
+    afx_msg void OnTimer(UINT_PTR nIDEvent);
     afx_msg void OnUpdateAlwaysOn(CCmdUI *pCmdUI) { pCmdUI->Enable(TRUE); }
 
     void _InitColumns();
@@ -72,6 +73,7 @@ private:
 
     bool _needsUpdate;
     int _nFirstScript;
+    bool _needInfoFromThisScript;
 
     std::string _srcFolder;
 };

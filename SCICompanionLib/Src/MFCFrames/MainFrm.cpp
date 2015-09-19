@@ -2414,6 +2414,7 @@ void CBrowseInfoStatusPane::NotifyClassBrowserStatus(BrowseInfoStatus status, in
         CGuard guard(&_csTextPosting);
         _status = status;
         if (status == Ok)
+
         {
             _textToPost = "Browse info complete";
         }

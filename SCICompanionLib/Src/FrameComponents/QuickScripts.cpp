@@ -19,6 +19,7 @@ using namespace sci;
 using namespace std;
 using namespace fmt;
 
+#define SCRIPTS_TIMER 4321
 #define MAX_VIEWS (ID_GOTOVIEW10 - ID_GOTOVIEW1 + 1)
 
 // QuickScriptsSidePane dialog
@@ -32,6 +33,7 @@ QuickScriptsSidePane::QuickScriptsSidePane(CWnd* pParent /*=nullptr*/)
     _wSouth = 0;
     _wWest = 0;
     _viewNumbers.resize(MAX_VIEWS);
+    _needInfoFromThisScript = false;
 }
 
 QuickScriptsSidePane::~QuickScriptsSidePane()
@@ -64,6 +66,21 @@ BOOL QuickScriptsSidePane::PreTranslateMessage(MSG* pMsg)
     }
     return fRet;
 }
+
+void QuickScriptsSidePane::OnTimer(UINT_PTR nIDEvent)
+{
+    if (nIDEvent == SCRIPTS_TIMER)
+    {
+        // Sometimes we can't get the info we need at key events, so fire a timer
+        // so that we do a light check periodically.
+        _ResetUI();
+    }
+    else
+    {
+        __super::OnTimer(nIDEvent);
+    }
+}
+
 
 void QuickScriptsSidePane::_PrepareViewMenu(int cItems)
 {
@@ -173,6 +190,8 @@ void QuickScriptsSidePane::DoDataExchange(CDataExchange* pDX)
     m_wndWest.m_bUseStdCommandNotification = true;
     m_wndWest.EnableWindow(FALSE);
 
+    SetTimer(SCRIPTS_TIMER, 1000, nullptr);
+
     DDX_Control(pDX, IDC_STATICSCRIPTNUM, m_wndScriptNum);
 }
 
@@ -198,6 +217,7 @@ BEGIN_MESSAGE_MAP(QuickScriptsSidePane, CExtResizableDialog)
     ON_COMMAND_EX(IDC_WEST, OnGotoRoom)
     ON_UPDATE_COMMAND_UI(ID_VIEWMENU, OnUpdateAlwaysOn)
     ON_COMMAND_RANGE(ID_GOTOVIEW1, ID_GOTOVIEW10, OnGotoView)
+    ON_WM_TIMER()
 END_MESSAGE_MAP()
 
 
@@ -363,6 +383,11 @@ void _EnableDirection(std::string direction, CWnd &wnd, WORD wNumber)
 
 void QuickScriptsSidePane::_ResetUI()
 {
+    if (!_pDoc || !_needInfoFromThisScript)
+    {
+        return;
+    }
+
     bool fFound = false;
     _wPic = InvalidResourceNumber;
     _wNorth = _wEast = _wSouth = _wWest = 0;
@@ -398,6 +423,8 @@ void QuickScriptsSidePane::_ResetUI()
         const Script *pScript = browser.GetLKGScript(_pDoc->GetScriptId().GetFullPath());
         if (pScript)
         {
+            _needInfoFromThisScript = false;
+
             // Find the Rm instance
 			for (auto &classDef : pScript->GetClasses())
             {
@@ -405,34 +432,40 @@ void QuickScriptsSidePane::_ResetUI()
                 {
 					if (!fFoundRoom && browser.IsSubClassOf(classDef->GetSuperClass().c_str(), "Rm"))
                     {
-                        // Figure out the pic number of the Rm
-						if (browser.GetPropertyValue("picture", classDef.get(), &_wPic))
+                        if (_wPic == InvalidResourceNumber)
                         {
-                            // Create the pic resource
-                            unique_ptr<ResourceEntity> pic = appState->GetResourceMap().CreateResourceFromNumber(ResourceType::Pic, _wPic);
-                            if (pic)
+                            // Figure out the pic number of the Rm
+                            if (browser.GetPropertyValue("picture", classDef.get(), &_wPic))
                             {
-                                CRect rc;
-                                m_wndPic.GetClientRect(&rc);
-                                CBitmap bitmap;
-                                bitmap.Attach(GetPicBitmap(PicScreen::Visual, pic->GetComponent<PicComponent>(), pic->TryGetComponent<PaletteComponent>(), rc.Width(), rc.Height()));
-                                m_wndPic.FromBitmap((HBITMAP)bitmap, rc.Width(), rc.Height(), true);
-                                if (!m_wndPic.IsWindowVisible())
+                                // Create the pic resource
+                                unique_ptr<ResourceEntity> pic = appState->GetResourceMap().CreateResourceFromNumber(ResourceType::Pic, _wPic);
+                                if (pic)
                                 {
-                                    m_wndPic.ShowWindow(SW_SHOW);
+                                    CRect rc;
+                                    m_wndPic.GetClientRect(&rc);
+                                    CBitmap bitmap;
+                                    bitmap.Attach(GetPicBitmap(PicScreen::Visual, pic->GetComponent<PicComponent>(), pic->TryGetComponent<PaletteComponent>(), rc.Width(), rc.Height()));
+                                    m_wndPic.FromBitmap((HBITMAP)bitmap, rc.Width(), rc.Height(), true);
+                                    if (!m_wndPic.IsWindowVisible())
+                                    {
+                                        m_wndPic.ShowWindow(SW_SHOW);
+                                    }
+                                    stringstream ss;
+                                    ss << "pic " << setfill('0') << setw(3) << (int)_wPic;
+                                    m_wndGotoPic.SetWindowText(ss.str().c_str());
+                                    m_wndGotoPic.EnableWindow(TRUE);
+                                    fFound = true;
                                 }
-                                stringstream ss;
-                                ss << "pic " << setfill('0') << setw(3) << (int)_wPic;
-                                m_wndGotoPic.SetWindowText(ss.str().c_str());
-                                m_wndGotoPic.EnableWindow(TRUE);
-                                fFound = true;
                             }
                         }
-						browser.GetPropertyValue("north", classDef.get(), &_wNorth);
-						browser.GetPropertyValue("east", classDef.get(), &_wEast);
-						browser.GetPropertyValue("south", classDef.get(), &_wSouth);
-						browser.GetPropertyValue("west", classDef.get(), &_wWest);
-                        fFoundRoom = true;
+                        if (!_wNorth && !_wEast && !_wSouth && !_wEast)
+                        {
+                            browser.GetPropertyValue("north", classDef.get(), &_wNorth);
+                            browser.GetPropertyValue("east", classDef.get(), &_wEast);
+                            browser.GetPropertyValue("south", classDef.get(), &_wSouth);
+                            browser.GetPropertyValue("west", classDef.get(), &_wWest);
+                            fFoundRoom = true;
+                        }
                     }
 
                     // Also do views, if we have room left
@@ -460,18 +493,19 @@ void QuickScriptsSidePane::_ResetUI()
                 }
             }
         }
+        if (!fFound)
+        {
+            m_wndGotoPic.SetWindowText(STR_NOPIC);
+            m_wndGotoPic.EnableWindow(FALSE);
+            m_wndPic.ShowWindow(SW_HIDE);
+        }
+        _EnableDirection("North: ", m_wndNorth, _wNorth);
+        _EnableDirection("East: ", m_wndEast, _wEast);
+        _EnableDirection("South: ", m_wndSouth, _wSouth);
+        _EnableDirection("West: ", m_wndWest, _wWest);
+        _PrepareViewMenu(iViewIndex);
+
     }
-    if (!fFound)
-    {
-        m_wndGotoPic.SetWindowText(STR_NOPIC);
-        m_wndGotoPic.EnableWindow(FALSE);
-        m_wndPic.ShowWindow(SW_HIDE);
-    }
-    _EnableDirection("North: ", m_wndNorth, _wNorth);
-    _EnableDirection("East: ", m_wndEast, _wEast);
-    _EnableDirection("South: ", m_wndSouth, _wSouth);
-    _EnableDirection("West: ", m_wndWest, _wWest);
-    _PrepareViewMenu(iViewIndex);
 }
 
 void QuickScriptsSidePane::OnGotoPic()
@@ -521,6 +555,8 @@ void QuickScriptsSidePane::SetDocument(CDocument *pDoc)
     _pDoc = static_cast<CScriptDocument*>(pDoc);
     if (_pDoc)
     {
+        _needInfoFromThisScript = true;
+
         _pDoc->AddNonViewClient(this);
         _ResetUI();
 
@@ -542,6 +578,7 @@ void QuickScriptsSidePane::UpdateNonView(CObject *pObject)
     if (IsFlagSet(hint, ScriptChangeHint::Saved | ScriptChangeHint::Converted))
     {
         // Go update ourselves again (might not be our script, but oh well)
+        _needInfoFromThisScript = true;
         _ResetUI();
     }
 }
