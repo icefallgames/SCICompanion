@@ -785,7 +785,7 @@ CodeResult _OutputCodeForIfStatement(CompileContext &context, const SyntaxNode &
 }
 
 // Returns true if wValue is filled in.
-// Reports and error if a keyword is used.
+// Reports an error if a keyword is used.
 bool _PreScanPropertyTokenToNumber(CompileContext &context, SyntaxNode *pNode, const std::string &token, WORD &wValue)
 {
     bool fRet = true;
@@ -802,6 +802,11 @@ bool _PreScanPropertyTokenToNumber(CompileContext &context, SyntaxNode *pNode, c
     else if ((token == "false") || (token == "nullptr"))
     {
         wValue = 0;
+    }
+    else if (token == "self")
+    {
+        // Special case
+        fRet = false;
     }
     // Finally, process any errors.
     else if (IsCodeLevelKeyword(context.GetLanguage(), token))

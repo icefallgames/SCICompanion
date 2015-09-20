@@ -40,6 +40,42 @@ void _GetMethodInfoHelper(PTSTR szBuf, size_t cchBuf, const FunctionBase *pMetho
     }
 }
 
+// Finds the class where a property is defined.
+tuple<const ClassDefinition *, const sci::ClassDefinition *, const ClassProperty *> _FindClassProperty(SCIClassBrowser &browser, const sci::ClassDefinition &leafClass, const std::string &propertyName)
+{
+    ClassProperty *classProp = nullptr;
+    ClassDefinition *classDef = nullptr;
+    ClassDefinition *sourceClassDef = nullptr;
+    const std::vector<ClassDefinition*> &allClasses = browser.GetAllClasses();
+    std::string current = leafClass.IsInstance() ? leafClass.GetSuperClass() : leafClass.GetName();
+    while (!current.empty())
+    {
+        auto itClass = match_name(allClasses.begin(), allClasses.end(), current);
+        if (itClass != allClasses.end())
+        {
+            auto &classProps = (*itClass)->GetProperties();
+            auto itProp = match_name(classProps.begin(), classProps.end(), propertyName);
+            if (itProp != classProps.end())
+            {
+                if (!classDef)
+                {
+                    // This is the first class where it's defined.
+                    classDef = *itClass;
+                    classProp = (*itProp).get();
+                }
+                // This is the most "top" class
+                sourceClassDef = *itClass;
+            }
+            current = (*itClass)->GetSuperClass();
+        }
+        else
+        {
+            break;
+        }
+    }
+    return make_tuple(classDef, sourceClassDef, classProp);
+}
+
 void _GetClassInfoHelper(PTSTR szBuf, size_t cchBuf, const ClassDefinition *pClass)
 {
     TCHAR szTemp[100];

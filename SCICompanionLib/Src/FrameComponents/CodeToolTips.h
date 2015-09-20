@@ -38,6 +38,7 @@ using sci::FunctionBase;
 
 void _GetMethodInfoHelper(PTSTR szBuf, size_t cchBuf, const sci::FunctionBase *pMethod);
 void _GetClassInfoHelper(PTSTR szBuf, size_t cchBuf, const sci::ClassDefinition *pClass);
+std::tuple<const sci::ClassDefinition *, const sci::ClassDefinition *, const sci::ClassProperty *> _FindClassProperty(SCIClassBrowser &browser, const sci::ClassDefinition &leafClass, const std::string &propertyName);
 
 template<typename _TContext>
 std::string _ClassFromObjectName(SCIClassBrowser &browser, _TContext *pContext, const std::string &strObject)
@@ -419,15 +420,16 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                 {
                     // 8. Class property
                     const ClassPtr pClass = pContext->ClassPtr.get();
-                    if (pClass && !pClass->GetSuperClass().empty())
+                    if (pClass)
                     {
-                        // Since we already know the superclass, don't pass the script in (since that relies on a
-                        // successfully compiled previous script)
-                        unique_ptr<RawClassPropertyVector> pProperties(browser.CreatePropertyArray(pClass->GetName(), nullptr, pClass->GetSuperClass().c_str()));
-                        fFound = matches_name(pProperties->begin(), pProperties->end(), strText);
-                        if (fFound)
+                        auto classAndProp = _FindClassProperty(browser, *pClass, strText);
+                        if (get<0>(classAndProp))
                         {
-                            result.strTip = fmt::format("{}::{}", pClass->GetSuperClass(), strText);
+                            result.strTip = fmt::format("{}::{}", get<1>(classAndProp)->GetName(), strText);
+                            // Add some goto info
+                            result.iLineNumber = get<2>(classAndProp)->GetLineNumber();
+                            result.scriptId = ScriptId(get<0>(classAndProp)->GetOwnerScript()->GetPath().c_str());
+                            result.strBaseText = strText;
                         }
                     }
                 }
