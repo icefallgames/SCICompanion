@@ -347,10 +347,15 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                     if (pFunction)
                     {
                         const VariableDeclVector &tempVars = pFunction->GetVariables();
-                        fFound = matches_name(tempVars.begin(), tempVars.end(), strText);
+                        auto varIt = match_name(tempVars.begin(), tempVars.end(), strText);
+                        fFound = (varIt != tempVars.end());
                         if (fFound)
                         {
                             result.strTip = fmt::format("Temporary variable: {}", strText);
+                            // Add some goto info
+                            result.iLineNumber = (*varIt)->GetLineNumber();
+                            result.scriptId = ScriptId(pFunction->GetOwnerScript()->GetPath().c_str());
+                            result.strBaseText = (*varIt)->GetName().c_str();
                         }
                         if (!fFound && !pFunction->GetSignatures().empty())
                         {
@@ -360,14 +365,19 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                             if (fFound)
                             {
                                 result.strTip = fmt::format("Parameter {}", strText);
+                                // Add some goto info
+                                result.iLineNumber = (*procIt2)->GetLineNumber();
+                                result.scriptId = ScriptId(pFunction->GetOwnerScript()->GetPath().c_str());
+                                result.strBaseText = (*procIt2)->GetName().c_str();
                             }
                         }
                     }
                 }
                 if (!fFound)
                 {
-                    // 7. Script variables
                     VariableDecl *pVar = nullptr; // Used for goto information
+
+                    // 7. Script variables
                     for (auto &script : scriptsToSearch)
                     {
                         // Locals
@@ -402,9 +412,9 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                         result.iLineNumber = pVar->GetLineNumber();
                         result.scriptId = ScriptId(pVar->GetOwnerScript()->GetPath().c_str());
                         result.strBaseText = pVar->GetName().c_str();
-
                     }
                 }
+
                 if (!fFound)
                 {
                     // 8. Class property

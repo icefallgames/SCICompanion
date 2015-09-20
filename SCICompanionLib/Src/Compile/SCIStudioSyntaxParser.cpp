@@ -641,7 +641,9 @@ void FunctionParameterA(MatchResult &match, const Parser *pParser, SyntaxContext
 {
     if (match.Result())
     {
-        pContext->FunctionPtr->AddParam(pContext->ScratchString());
+        std::unique_ptr<FunctionParameter> param = std::make_unique<FunctionParameter>(pContext->ScratchString());
+        param->SetPosition(stream.GetPosition());
+        pContext->FunctionPtr->GetSignaturesNC()[0]->AddParam(std::move(param), false);
     }
 }
 void FunctionStatementA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)

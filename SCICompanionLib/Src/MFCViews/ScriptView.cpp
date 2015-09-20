@@ -46,7 +46,7 @@ using namespace std;
 #define UWM_AUTOCOMPLETEREADY      (WM_APP + 0)
 #define UWM_HOVERTIPREADY          (WM_APP + 1)
 
-void DoToolTipParse(CCrystalScriptStream &stream, CScriptStreamLimiter &limiter, ToolTipResult &result)
+void DoToolTipParse(ScriptId scriptId, CCrystalScriptStream &stream, CScriptStreamLimiter &limiter, ToolTipResult &result)
 {
     class CToolTipSyntaxParserCallback : public ISyntaxParserCallback
     {
@@ -63,7 +63,7 @@ void DoToolTipParse(CCrystalScriptStream &stream, CScriptStreamLimiter &limiter,
         ToolTipResult &_result;
     };
 
-    Script script;
+    Script script(scriptId);
     SyntaxContext context(stream.begin(), script, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), false);
     CToolTipSyntaxParserCallback callback(context, result);
     limiter.SetCallback(&callback);
@@ -842,7 +842,7 @@ void CScriptView::OnContextMenu(CWnd *pWnd, CPoint point)
             CScriptStreamLimiter limiter(LocateTextBuffer(), ptRight, 0);
             CCrystalScriptStream stream(&limiter);
             ToolTipResult result;
-            DoToolTipParse(stream, limiter, result);
+            DoToolTipParse(GetDocument()->GetScriptId(), stream, limiter, result);
             if (!result.empty())
             {
                 _gotoDefinitionText = result.strBaseText.c_str();
@@ -1251,12 +1251,12 @@ void CScriptView::_TriggerHoverTipParse(CPoint pt)
         _lastHoverTipParse = _hoverTipScheduler->SubmitTask(
             this->GetSafeHwnd(),
             UWM_HOVERTIPREADY,
-            make_unique<HoverTipPayload>(LocateTextBuffer(), pt),
+            make_unique<HoverTipPayload>(GetDocument()->GetScriptId(), LocateTextBuffer(), pt),
             [](ITaskStatus &status, HoverTipPayload &payload)
         {
             std::unique_ptr<HoverTipResponse> response = std::make_unique<HoverTipResponse>();
             response->Location = payload.Location;
-            DoToolTipParse(payload.Stream, payload.Limiter, response->Result);
+            DoToolTipParse(payload.ScriptId, payload.Stream, payload.Limiter, response->Result);
             return response;
         }
             );

@@ -24,10 +24,11 @@ class AvailableMethods;
 
 struct HoverTipPayload
 {
-    HoverTipPayload(CCrystalTextBuffer *pBuffer, CPoint ptLimit) : Limiter(pBuffer, ptLimit, 0), Stream(&Limiter), Location(ptLimit) {}
+    HoverTipPayload(ScriptId scriptId, CCrystalTextBuffer *pBuffer, CPoint ptLimit) : ScriptId(scriptId), Limiter(pBuffer, ptLimit, 0), Stream(&Limiter), Location(ptLimit) {}
     CScriptStreamLimiter Limiter;
     CPoint Location;
     CCrystalScriptStream Stream;
+    ScriptId ScriptId;
 };
 
 struct HoverTipResponse
