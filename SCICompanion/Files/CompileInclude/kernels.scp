@@ -1051,7 +1051,18 @@ public int Wait(int ticks)
 
 // SCI1+ kernel stubs
 public int ShiftScreen() {}
-public int Palette() {}
+
+public
+void Palette(int palSET_INTENSITY, int startIndex, int endIndex, int intensity, bool setPalette)
+void Palette(int palANIMATE, int startIndex, int endIndex, int speed)
+void Palette(int palSET_FROM_RESOURCE, int resourceNumber, int force)
+void Palette(int palSET_FLAG, int startIndex, int endIndex, int flags)
+void Palette(int palUNSET_FLAG, int startIndex, int endIndex, int flags)
+int Palette(int palFIND_COLOR, int red, int green, int blue)
+int Palette(int palSAVE)
+void Palette(int palRESTORE, int cookie)
+{}
+
 public int MemorySegment() {}
 public int Intersections() {}
 public int Memory() {}

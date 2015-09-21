@@ -93,7 +93,7 @@ AppState::AppState(CWinApp *pApp)
     _fDupeNewCels = TRUE;
     _fUseBoxEgo = FALSE;
     _fShowPolyDotted = FALSE;
-    _fBrowseInfo = FALSE;
+    _fBrowseInfo = TRUE;
     _fScriptNav = TRUE;
     _fCodeCompletion = TRUE;
     _fHoverTips = TRUE;

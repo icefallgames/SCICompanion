@@ -2,6 +2,7 @@
 #include "CppUnitTest.h"
 #include "Helper.h"
 #include "AppState.h"
+#include "ClassBrowser.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -29,6 +30,8 @@ std::string SetUpGame(const std::string &name)
 
 void CleanUpGame(const std::string &gameFolder)
 {
+    appState->GetResourceMap().GetClassBrowser()->SetClassBrowserEvents(nullptr);
+
     delete appState;
 
     char szPath[MAX_PATH];

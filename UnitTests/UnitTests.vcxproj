@@ -139,6 +139,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="TestAllGamesLoad.cpp" />
+    <ClCompile Include="TestClassBrowser.cpp" />
     <ClCompile Include="TestCompile.cpp" />
     <ClCompile Include="TestResource.cpp" />
     <ClCompile Include="TestResourceLoad.cpp" />
