@@ -8,7 +8,8 @@
 #include "ResourceMap.h"
 #include "ClassBrowser.h"
 #include "ClassBrowserInfo.h"
-#include ".\classbrowserdialog.h"
+#include "ClassBrowserDialog.h"
+#include "format.h"
 
 using namespace sci;
 
@@ -249,8 +250,13 @@ void CClassBrowserDialog::OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT pDrawItemStruc
             // Put the prop value a little after.
             dc.SetTextColor(RGB(0, 0, 255));
             rcProp.left += rcName.Width() + 6;
-            //CString strProp = pProperty->GetValue().ToString().c_str();
-            CString strProp = "Unimplemented";
+            const sci::PropertyValue *pValue = pProperty->TryGetValue();
+            CString strProp = "[complex value]";
+            if (pValue)
+            {
+                uint16_t numValue = pValue->GetNumberValue();
+                strProp = fmt::format("{}", numValue).c_str();
+            }
             dc.DrawText(strProp, &rcProp, DT_SINGLELINE);
         }
     }
@@ -313,7 +319,7 @@ void CClassBrowserDialog::_OnClassOrInstanceSelected(const SCIClassBrowserNode *
         //strFullName += classProp->GetValue().ToString();
         strFullName += "Unimplemented";
         int iIndex = m_wndProperties.InsertString(-1, strFullName.c_str());
-        m_wndProperties.SetItemDataPtr(iIndex, &classProp);
+        m_wndProperties.SetItemDataPtr(iIndex, classProp);
     }
 
     // Attempt to restore position in list box:

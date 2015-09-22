@@ -84,7 +84,7 @@ public:
     bool GetProperty(PCTSTR pszName, const sci::ClassDefinition *pClass, sci::PropertyValue &Out);
     bool GetPropertyValue(PCTSTR pszName, ISCIPropertyBag *pBag, const sci::ClassDefinition *pClass, WORD *pw);
     void GetAutoCompleteChoices(const std::string &prefix, AutoCompleteSourceType sourceTypes, std::vector<AutoCompleteChoice> &choices);
-    sci::Script *_LoadScript(PCTSTR pszPath);
+    std::unique_ptr<sci::Script> _LoadScript(PCTSTR pszPath);
     
     void TriggerCustomIncludeCompile(std::string name);
     sci::Script *GetCustomHeader(std::string name);
@@ -108,9 +108,9 @@ private:
         IntegerFlags flags;
     };
 
-    typedef std::unordered_map<std::string, SCIClassBrowserNode*> class_map;
-	typedef std::unordered_map<WORD, std::vector<sci::ClassDefinition*>*> instance_map;
-    typedef std::unordered_map<std::string, sci::Script*> script_map;
+    typedef std::unordered_map<std::string, std::unique_ptr<SCIClassBrowserNode>> class_map;
+	typedef std::unordered_map<WORD, std::vector<sci::ClassDefinition*>> instance_map;
+    typedef std::unordered_map<std::string, std::unique_ptr<sci::Script>> script_map;
     typedef std::unordered_map<std::string, DefineValueCache> define_map;
     typedef std::unordered_map<std::string, WORD> word_map;
 

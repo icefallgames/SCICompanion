@@ -36,13 +36,13 @@ struct ReloadScriptPayload
 // a new entry in the map)
 //
 template<typename T, typename T2>
-T *lookup_ptr(const std::unordered_map<T2, T*> &map, const T2 &str)
+typename T::pointer lookup_ptr(const std::unordered_map<T2, T> &map, const T2 &str)
 {
-    T *pRet = NULL;
-	std::unordered_map<T2, T*>::const_iterator nodeIt = map.find(str);
+    typename T::pointer pRet = nullptr;
+	std::unordered_map<T2, T>::const_iterator nodeIt = map.find(str);
     if (nodeIt != map.end())
     {
-        pRet = nodeIt->second;
+        pRet = nodeIt->second.get();
     }
     return pRet;
 }
@@ -168,17 +168,14 @@ void SCIClassBrowser::ExitSchedulerAndReset()
     _scripts.clear();
 
     // Delete all header scripts.
-    for_each(_headerMap.begin(), _headerMap.end(), delete_map_value());
     _headerMap.clear();
 
     // Delete all our browser infos for the classes
-    for_each(_classMap.begin(), _classMap.end(), delete_map_value());
     _classMap.clear();
 
     // And the objects
     _instances.clear();
 
-    for_each(_instanceMap.begin(), _instanceMap.end(), delete_map_value());
     _instanceMap.clear();
 
     // These are the files we look at
@@ -203,15 +200,9 @@ void SCIClassBrowser::_AddInstanceToMap(Script& script, ClassDefinition *pClass)
     {
         appState->LogInfo(TEXT("Class browser: Invalid script number in %s."), script.GetPath());
     }
-    RawClassVector *pClassArray = lookup_ptr(_instanceMap, wScript);
-    if (pClassArray == nullptr)
-    {
-        // This is the first method for this script.
-		pClassArray = new RawClassVector();
-        _instanceMap[wScript] = pClassArray;
-    }
+
     // As always, the script owns the class
-    pClassArray->push_back(pClass);
+    _instanceMap[wScript].push_back(pClass);
 }
 
 void SCIClassBrowser::_AddToClassTree(Script& script)
@@ -235,49 +226,45 @@ void SCIClassBrowser::_AddToClassTree(Script& script)
         else
         {
             // Add an entry for ourselves, if there is not one already.
-            //if (classMap.Lookup(pTheClass->GetName().c_str(), pBrowserInfo))
-            class_map::iterator nodeIt = _classMap.find(pTheClass->GetName());
+            auto nodeIt = _classMap.find(pTheClass->GetName());
             if (nodeIt != _classMap.end())
             {
-                pBrowserInfo = (*nodeIt).second;
-				if (pBrowserInfo)
-				{
-					// Ensure that we don't add the same class twice (instances don't count)
-					ASSERT(!pTheClass->IsInstance());
-					if (pBrowserInfo->GetClassDefinition() == nullptr)
-					{
-						// We're already there.  That just means a subclass of ours was added
-						// first.  Just set our pClass.
-						pBrowserInfo->SetClassDefinition(pTheClass);
+                pBrowserInfo = (*nodeIt).second.get();
+                if (pBrowserInfo)
+                {
+                    // Ensure that we don't add the same class twice (instances don't count)
+                    assert(!pTheClass->IsInstance());
+                    if (pBrowserInfo->GetClassDefinition() == nullptr)
+                    {
+                        // We're already there.  That just means a subclass of ours was added
+                        // first.  Just set our pClass.
+                        pBrowserInfo->SetClassDefinition(pTheClass);
 
-						// And fill in the script.
-						ASSERT(pBrowserInfo->GetScript() == nullptr);
-						pBrowserInfo->SetScript(&script);
-					}
-					else
-					{
-						// SCI compiler seems to allow you to declare a class twice, even though they're automatically
-						// exported from the script.  The actual engine uses class selectors to identify superclasses, so
-						// it can handle it.  The name is just an artifact of the compiler. I'm not sure what would happen
-						// if you "included" two different scripts that had the same class, thus generating an ambiguity.
-						// I've not tried that.
-						appState->LogInfo(TEXT("Encountered second class named %s.  Not adding to tree"), pTheClass->GetName().c_str());
-						// Set this to null so we bail out of the rest of the function.
-						pBrowserInfo = nullptr;
-					}
-				}
+                        // And fill in the script.
+                        assert(pBrowserInfo->GetScript() == nullptr);
+                        pBrowserInfo->SetScript(&script);
+                    }
+                    else
+                    {
+                        // SCI compiler seems to allow you to declare a class twice, even though they're automatically
+                        // exported from the script.  The actual engine uses class selectors to identify superclasses, so
+                        // it can handle it.  The name is just an artifact of the compiler. I'm not sure what would happen
+                        // if you "included" two different scripts that had the same class, thus generating an ambiguity.
+                        // I've not tried that.
+                        appState->LogInfo(TEXT("Encountered second class named %s.  Not adding to tree"), pTheClass->GetName().c_str());
+                        // Set this to null so we bail out of the rest of the function.
+                        pBrowserInfo = nullptr;
+                    }
+                }
             }
             else
             {
                 // This is the first time we've been encountered (didn't encounter any subclasses first)
-                pBrowserInfo = new SCIClassBrowserNode(&script);
-                if (pBrowserInfo)
-                {
-                    pBrowserInfo->SetClassDefinition(pTheClass);
-                    pBrowserInfo->SetName(pTheClass->GetName());
-                    //classMap.SetAt(pTheClass->GetName().c_str(), pBrowserInfo);
-                    _classMap[pTheClass->GetName()] = pBrowserInfo;
-                }
+                unique_ptr<SCIClassBrowserNode> newNode = make_unique<SCIClassBrowserNode>(&script);
+                pBrowserInfo = newNode.get();
+                newNode->SetClassDefinition(pTheClass);
+                newNode->SetName(pTheClass->GetName());
+                _classMap[pTheClass->GetName()] = move(newNode);
             }
         }
 
@@ -297,7 +284,7 @@ void SCIClassBrowser::_AddToClassTree(Script& script)
                 class_map::iterator nodeIt = _classMap.find(superClassName);
                 if (nodeIt != _classMap.end())
                 {
-                    SCIClassBrowserNode *pBrowserInfoSuper = (*nodeIt).second;
+                    SCIClassBrowserNode *pBrowserInfoSuper = (*nodeIt).second.get();
                     // It's already there.  Just add ourselves to it.
                     pBrowserInfoSuper->AddSubClass(pBrowserInfo);
                     // And we get a reference on it.
@@ -306,14 +293,11 @@ void SCIClassBrowser::_AddToClassTree(Script& script)
                 else
                 {
                     // There isn't any superclass for us yet.  Make a new one.
-                    SCIClassBrowserNode *pBrowserInfoSuper = new SCIClassBrowserNode();
-                    if (pBrowserInfoSuper)
-                    {
-                        pBrowserInfoSuper->AddSubClass(pBrowserInfo); // Add ourselves to its subclasses.
-                        pBrowserInfoSuper->SetName(superClassName); // The name is all we have now.
-                        _classMap[superClassName] = pBrowserInfoSuper; // Add our super to the classMap.
-                        pBrowserInfo->SetSuperClass(pBrowserInfoSuper); // So we have a way to get to it.
-                    }
+                    unique_ptr<SCIClassBrowserNode> pBrowserInfoSuper = make_unique<SCIClassBrowserNode>();
+                    pBrowserInfoSuper->AddSubClass(pBrowserInfo); // Add ourselves to its subclasses.
+                    pBrowserInfoSuper->SetName(superClassName); // The name is all we have now.
+                    pBrowserInfo->SetSuperClass(pBrowserInfoSuper.get()); // So we have a way to get to it.
+                    _classMap[superClassName] = move(pBrowserInfoSuper); // Add our super to the classMap.
                 }
             }
         }
@@ -400,6 +384,7 @@ void LoadClassFromCompiled(sci::ClassDefinition *pClass, const CompiledScript &c
     {
 		std::unique_ptr<sci::MethodDefinition> pMethod = std::make_unique<sci::MethodDefinition>();
         pMethod->SetName(pNames->Lookup(methods[i]));
+        pMethod->SetOwnerClass(pClass);
 		pClass->AddMethod(std::move(pMethod));
     }
 }
@@ -575,10 +560,10 @@ void SCIClassBrowser::ReLoadFromCompiled(ITaskStatus &task)
 		sci::ClassDefinition *pClass = const_cast<sci::ClassDefinition*>(instanceNode->GetClassDefinition());
         std::string superClass = pClass->GetSuperClass();
         // Find the super class...
-        class_map::const_iterator nodeIt = _classMap.find(superClass);
+        auto nodeIt = _classMap.find(superClass);
         if (nodeIt != _classMap.end())
         {
-            SCIClassBrowserNode *pNodeSuper = nodeIt->second;
+            SCIClassBrowserNode *pNodeSuper = nodeIt->second.get();
             sci::ClassPropertyVector &classProps = const_cast<sci::ClassPropertyVector&>(pClass->GetProperties());
             const sci::ClassPropertyVector &superClassProps = pNodeSuper->GetClassDefinition()->GetProperties();
             for (size_t i = 0; i < superClassProps.size(); i++)
@@ -656,7 +641,6 @@ void SCIClassBrowser::_RemoveAllRelatedData(Script *pScript)
     instance_map::iterator instanceIt = _instanceMap.find(GetScriptNumberHelper(pScript));
     if (instanceIt != _instanceMap.end())
     {
-        delete instanceIt->second;
         _instanceMap.erase(instanceIt);
     }
 
@@ -685,38 +669,36 @@ void SCIClassBrowser::_RemoveAllRelatedData(Script *pScript)
     class_map::iterator nodeIt = _classMap.begin();
     while (nodeIt != _classMap.end())
     {
-        SCIClassBrowserNode *pNode = (*nodeIt).second;
-		if (pNode)
-		{
-			if (pNode->GetScript() == pScript)
-			{
-				// This is from the script we're removing.  We need to delete this node.
-				// But first, remove ourselves from our superclass.
-				if (pNode->GetSuperClass())
-				{
-					pNode->GetSuperClass()->RemoveSubClass(pNode);
-				}
-				// And remove ourselves from our subclasses
-				std::vector<SCIClassBrowserNode*> &subClasses = pNode->GetSubClasses();
-				for (size_t i = 0; i < subClasses.size(); i++)
-				{
-					SCIClassBrowserNode *pNodeSubClass = subClasses[i];
-					if (pNodeSubClass)
-					{
-						ASSERT(pNodeSubClass->GetSuperClass() == pNode); // Make sure its us.
-						pNodeSubClass->SetSuperClass(NULL); // Remove it
-					}
-				}
-				// Now we can delete ourselves.
-				nodeIt = _classMap.erase(nodeIt);
-				// And delete ourselves
-				delete pNode;
-			}
-			else
-			{
-				nodeIt++;
-			}
-		}
+        SCIClassBrowserNode *pNode = (*nodeIt).second.get();
+        if (pNode)
+        {
+            if (pNode->GetScript() == pScript)
+            {
+                // This is from the script we're removing.  We need to delete this node.
+                // But first, remove ourselves from our superclass.
+                if (pNode->GetSuperClass())
+                {
+                    pNode->GetSuperClass()->RemoveSubClass(pNode);
+                }
+                // And remove ourselves from our subclasses
+                std::vector<SCIClassBrowserNode*> &subClasses = pNode->GetSubClasses();
+                for (size_t i = 0; i < subClasses.size(); i++)
+                {
+                    SCIClassBrowserNode *pNodeSubClass = subClasses[i];
+                    if (pNodeSubClass)
+                    {
+                        assert(pNodeSubClass->GetSuperClass() == pNode); // Make sure its us.
+                        pNodeSubClass->SetSuperClass(nullptr); // Remove it
+                    }
+                }
+                // Now we can delete ourselves.
+                nodeIt = _classMap.erase(nodeIt);
+            }
+            else
+            {
+                nodeIt++;
+            }
+        }
     }
 
 
@@ -981,6 +963,7 @@ bool SCIClassBrowser::_CreateClassTree(ITaskStatus &task)
         }
         if (_AddFileName(scriptIt->GetFullPath().c_str(), scriptIt->GetFileName().c_str()))
         {
+            // As long as we find one script, we consider it a success and don't fallback to compiled sources.
             fRet = true;
         }
         ++scriptIt;
@@ -1002,25 +985,21 @@ OutputDebugString(szMsg);
 void SCIClassBrowser::_CacheHeaderDefines()
 {
     _headerDefines.clear();
-    script_map::iterator headerIt = _headerMap.begin();
-    while (headerIt != _headerMap.end())
+    for (auto &header : _headerMap)
     {
         // Suck out the defines and make them convenienty accessible in a classMap
-        const DefineVector &defines = headerIt->second->GetDefines();
-        for (DefineVector::const_iterator defineIt = defines.begin(); defineIt != defines.end(); defineIt++)
+        for (auto &theDefine : header.second->GetDefines())
         {
-            auto &theDefine = *defineIt;
             _headerDefines.emplace(theDefine->GetLabel(), DefineValueCache(theDefine->GetValue(), theDefine->GetFlags()));
         }
-        headerIt++;
     }
 
     _invalidAutoCompleteSources |= AutoCompleteSourceType::Define;
 }
 
-sci::Script *SCIClassBrowser::_LoadScript(PCTSTR pszPath)
+std::unique_ptr<sci::Script> SCIClassBrowser::_LoadScript(PCTSTR pszPath)
 {
-    Script *pScript = NULL;
+    unique_ptr<Script> pScript;
     CCrystalTextBuffer buffer;
     if (buffer.LoadFromFile(pszPath))
     {
@@ -1029,8 +1008,7 @@ sci::Script *SCIClassBrowser::_LoadScript(PCTSTR pszPath)
         std::unique_ptr<Script> pScriptT = std::make_unique<Script>(pszPath);
         if (g_Parser.Parse(*pScriptT, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), this))
         {
-            pScript = pScriptT.get();
-            pScriptT.release();
+            pScript = move(pScriptT);
         }
         buffer.FreeAll(); // REVIEW: not exception safe.
     }
@@ -1039,14 +1017,10 @@ sci::Script *SCIClassBrowser::_LoadScript(PCTSTR pszPath)
 
 void SCIClassBrowser::_AddHeader(PCTSTR pszHeaderPath)
 {
-    Script *pScript = _LoadScript(pszHeaderPath); 
+    unique_ptr<Script> pScript = _LoadScript(pszHeaderPath);
     if (pScript)
     {
-        // Delete old header for this path
-        delete lookup_ptr<Script, std::string>(_headerMap, pszHeaderPath);
-        // Takes ownership
-        _headerMap[pszHeaderPath] = pScript;
-        // No reason to add headers to _AddToClassTree
+        _headerMap[pszHeaderPath] = move(pScript);
     }
 }
 
@@ -1106,20 +1080,20 @@ RawMethodVector *SCIClassBrowser::CreateMethodArray(const std::string &strObject
         // If a script was provided, try first looking up the object in the instance array for that script.
         if (pScript)
         {
-            std::vector<ClassDefinition*> *pInstanceArray = lookup_ptr(_instanceMap, GetScriptNumberHelper(pScript));
-            if (pInstanceArray)
+            auto instanceIt = _instanceMap.find(GetScriptNumberHelper(pScript));
+            if (instanceIt != _instanceMap.end())
             {
                 // Find a match
-                for (size_t i = 0; !fFound && i < pInstanceArray->size(); i++)
+                for (auto &theClass : instanceIt->second)
                 {
-                    ClassDefinition *pClass = (*pInstanceArray)[i];
-                    fFound = (pClass->GetName() == strObject);
+                    fFound = (theClass->GetName() == strObject);
                     if (fFound)
                     {
-						// Add this instance's methods to the method array
-						add_smart_to_raw(pClass->GetMethods(), *pMethods);
+                        // Add this instance's methods to the method array
+                        add_smart_to_raw(theClass->GetMethods(), *pMethods);
                         // And use instance's super class as the class to lookup
-                        strClass = pClass->GetSuperClass();
+                        strClass = theClass->GetSuperClass();
+                        break;
                     }
                 }
             }
@@ -1158,22 +1132,22 @@ RawClassPropertyVector *SCIClassBrowser::CreatePropertyArray(const std::string &
         else if (pScript)
         {
             // If looking up strObject didn't work, maybe it's an instance (which isn't in the class classMap)
-            RawClassVector *pInstanceArray = lookup_ptr(_instanceMap, GetScriptNumberHelper(pScript));
-            if (pInstanceArray)
+            auto instanceIt = _instanceMap.find(GetScriptNumberHelper(pScript));
+            if (instanceIt != _instanceMap.end())
             {
                 bool fFound = false;
-                for (size_t i = 0; !fFound && i < pInstanceArray->size(); i++)
+                for (auto &theClass : instanceIt->second)
                 {
-                    ClassDefinition *pClass = (*pInstanceArray)[i];
-                    fFound = (pClass->GetName() == strObject);
+                    fFound = (theClass->GetName() == strObject);
                     if (fFound)
                     {
                         // Found it.  Now look up its superclass (species)
-                        nodeIt = _classMap.find(pClass->GetSuperClass());
+                        nodeIt = _classMap.find(theClass->GetSuperClass());
                         if (nodeIt != _classMap.end())
                         {
                             int iNeedThisEventually = nodeIt->second->ComputeAllProperties(*pProperties);
                         }
+                        break;
                     }
                 }
             }
@@ -1204,7 +1178,7 @@ std::vector<std::string> *SCIClassBrowser::CreateSubSpeciesArray(PCTSTR pszSpeci
         class_map::iterator nodeIt = _classMap.find(pszSpecies);
         if (nodeIt != _classMap.end())
         {
-            _AddSubclassesToArray(pArray, nodeIt->second);
+            _AddSubclassesToArray(pArray, nodeIt->second.get());
         }
     }
     return pArray;
@@ -1396,15 +1370,13 @@ const std::vector<ClassDefinition*> &SCIClassBrowser::GetAllClasses()
 const std::vector<sci::Script*> &SCIClassBrowser::GetHeaders()
 {
     CGuard guard(&_csClassBrowser);
-    ASSERT(_fCBLocked);
+    assert(_fCBLocked);
     // REVIEW: why are we doing this every time?
     // Regenerate the _headers array.
     _headers.clear();
-    script_map::const_iterator headerIt = _headerMap.begin();
-    while (headerIt != _headerMap.end())
+    for (auto &headerPair : _headerMap)
     {
-        _headers.push_back(headerIt->second);
-        headerIt++;
+        _headers.push_back(headerPair.second.get());
     }
     return _headers;
 }
@@ -1412,7 +1384,7 @@ const std::vector<sci::Script*> &SCIClassBrowser::GetHeaders()
 const SelectorTable &SCIClassBrowser::GetSelectorNames()
 {
     CGuard guard(&_csClassBrowser); 
-    ASSERT(_fCBLocked);
+    assert(_fCBLocked);
     return _selectorNames;
 }
 
@@ -1422,11 +1394,12 @@ const SelectorTable &SCIClassBrowser::GetSelectorNames()
 bool SCIClassBrowser::IsSubClassOf(PCTSTR pszClass, PCTSTR pszSuper)
 {
     CGuard guard(&_csClassBrowser); 
-    ASSERT(_fCBLocked);
+    assert(_fCBLocked);
     bool fRet = false;
     SCIClassBrowserNode *pNode = nullptr;
     int iOverflow = 100;
-    while (!fRet && (pNode = lookup_ptr<SCIClassBrowserNode, std::string>(_classMap, pszClass)) && (iOverflow--)) // in case of infinite loop?
+    std::string className = pszClass;
+    while (!fRet && (pNode = lookup_ptr(_classMap, className)) && (iOverflow--)) // in case of infinite loop?
     {
         if (pNode->GetName() == pszSuper)
         {
