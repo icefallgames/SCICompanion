@@ -135,7 +135,7 @@ void SCIClassBrowser::OnOpenGame(SCIVersion version)
     _version = version;
     if (IsBrowseInfoEnabled() && appState->GetResourceMap().IsGameLoaded())
     {
-        Reset();
+        ExitSchedulerAndReset();
         _scheduler->SubmitTask(
             std::make_unique<ReloadScriptPayload>(*this, ""),
             [](ITaskStatus &status, ReloadScriptPayload &payload)
@@ -152,7 +152,7 @@ void SCIClassBrowser::OnOpenGame(SCIVersion version)
     }
 }
 
-void SCIClassBrowser::Reset()
+void SCIClassBrowser::ExitSchedulerAndReset()
 {
     // Abort before we go into the critical section, which can block...
     if (_scheduler)
@@ -435,7 +435,6 @@ void SCIClassBrowser::ReLoadFromCompiled(ITaskStatus &task)
     }
 
     CGuard guard(&_csClassBrowser); 
-    Reset();
 
 #ifdef REENABLE_COMPILEDSCRIPTS
 

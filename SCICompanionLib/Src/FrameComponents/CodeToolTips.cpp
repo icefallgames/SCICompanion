@@ -22,21 +22,37 @@ using namespace std;
 void _GetMethodInfoHelper(PTSTR szBuf, size_t cchBuf, const FunctionBase *pMethod)
 {
     const auto &sigs = pMethod->GetSignatures();
+    bool first = true;
+    szBuf[0] = 0;
     for (const auto &sig : sigs)
     {
-        StringCchPrintf(szBuf, cchBuf, TEXT("%s("), pMethod->GetName().c_str());
+        if (!first)
+        {
+            StringCchCat(szBuf, cchBuf, "\n");
+        }
+        char szTemp[512];
+        StringCchPrintf(szTemp, ARRAYSIZE(szTemp), TEXT("%s("), pMethod->GetName().c_str());
         const auto &params = sig->GetParams();
+        size_t requiredParamCount = sig->GetRequiredParameterCount();
         for (size_t iParam = 0; iParam < params.size(); iParam++)
         {
-            StringCchCat(szBuf, cchBuf, params[iParam]->GetName().c_str());
+            if (iParam >= requiredParamCount)
+            {
+                StringCchCat(szTemp, ARRAYSIZE(szTemp), TEXT("["));
+            }
+            StringCchCat(szTemp, ARRAYSIZE(szTemp), params[iParam]->GetName().c_str());
+            if (iParam >= requiredParamCount)
+            {
+                StringCchCat(szTemp, ARRAYSIZE(szTemp), TEXT("]"));
+            }
             if (iParam < (params.size() - 1))
             {
-                StringCchCat(szBuf, cchBuf, TEXT(" ")); // add a space
+                StringCchCat(szTemp, ARRAYSIZE(szTemp), TEXT(" ")); // add a space
             }
         }
-        StringCchCat(szBuf, cchBuf, TEXT(")"));
-
-        break; // Only support one signature for now...
+        StringCchCat(szTemp, ARRAYSIZE(szTemp), TEXT(")"));
+        StringCchCat(szBuf, cchBuf, szTemp);
+        first = false;
     }
 }
 

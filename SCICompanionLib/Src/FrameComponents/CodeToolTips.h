@@ -3,9 +3,9 @@
 #include "ToolTipResult.h"
 #include "ScriptOMAll.h"
 #include "AppState.h"
-#include "PMachine.h"
 #include "OutputCodeHelper.h"
 #include "format.h"
+#include "Kernels.h"
 
 const key_value_pair<PCSTR, PCSTR> c_szVarToClass[] =
 {
@@ -334,11 +334,14 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                 if (!fFound)
                 {
                     // 5. Kernel function?
-                    KernelInfo *pkernel = match_name_dot(KrnlInfo, KrnlInfo + ARRAYSIZE(KrnlInfo), strText);
-                    fFound = (pkernel != KrnlInfo + ARRAYSIZE(KrnlInfo));
-                    if (fFound)
+                    const auto &kProcs = GetKernelSignaturesScript(nullptr).GetProcedures();
+                    auto itProc = match_name(kProcs.begin(), kProcs.end(), strText);
+                    if (itProc != kProcs.end())
                     {
-                        result.strTip = fmt::format("{} {}({})", pkernel->Ret, pkernel->Name, pkernel->Params);
+                        _GetMethodInfoHelper(szTip, ARRAYSIZE(szTip), (*itProc).get());
+                        result.strTip = szTip;
+                        // TODO: goto could bring us to documentation (or just open webpage)
+                        fFound = true;
                     }
                 }
                 if (!fFound)

@@ -95,7 +95,7 @@ public:
     std::vector<CompileResult> GetErrors();
     int HasErrors(); // 0: no erors,  1: errors,  -1: unknown
 
-    void Reset();
+    void ExitSchedulerAndReset();
     void OnOpenGame(SCIVersion version);
 
 private:

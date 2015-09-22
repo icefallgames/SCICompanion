@@ -185,9 +185,8 @@ CResourceMap::CResourceMap()
 
 CResourceMap::~CResourceMap()
 {
-    ASSERT(_syncs.empty()); // They should remove themselves.
-    _classBrowser->Reset();
-    ASSERT(_cDeferAppend == 0);
+    assert(_syncs.empty()); // They should remove themselves.
+    assert(_cDeferAppend == 0);
 }
 
 //

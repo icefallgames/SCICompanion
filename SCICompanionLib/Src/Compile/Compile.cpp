@@ -1194,7 +1194,7 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
     }
 
     UpdateOperandFn updateOperand = nullptr;
-    code_pos sendPushInstruction;
+    code_pos sendPushInstruction = context.code().get_undetermined();
 
     {
         // Imbue meaning from here on out
@@ -1311,6 +1311,7 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
             if (context.LookupSpeciesIndex(context.GetSuperClassName(), wClassIndex))
             {
                 context.code().inst(Opcode::SUPER, wClassIndex.Type(), NumberOfSendPushesSentinel);
+                sendPushInstruction = context.code().get_cur_pos();
                 updateOperand = _UpdateSecondOperand;
             }
             else
@@ -1322,9 +1323,9 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
         {
             assert((bOpSend == Opcode::SELF) || (bOpSend == Opcode::SEND));
             context.code().inst(bOpSend, NumberOfSendPushesSentinel);
+            sendPushInstruction = context.code().get_cur_pos();
             updateOperand = _UpdateFirstOperand;
         }
-        sendPushInstruction = context.code().get_cur_pos();
     }
 
     WORD wSendPushes = 0;
@@ -1362,7 +1363,7 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
         }
     }
 
-	if (updateOperand)
+    if (updateOperand && (sendPushInstruction != context.code().get_undetermined()))
 	{
 		(*updateOperand)(sendPushInstruction, wSendPushes);
 	}

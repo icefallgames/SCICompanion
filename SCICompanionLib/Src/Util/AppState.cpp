@@ -7,6 +7,8 @@
 #include "PicDoc.h"
 #include "PicView.h"
 
+#include "Kernels.h"
+
 #include "VocabDoc.h"
 #include "VocabChildFrame.h"
 #include "VocabView.h"
@@ -208,6 +210,9 @@ BOOL AppState::InitInstance()
     InitCommonControls();
 
     InitDitherCritSec();
+
+    // Do this:
+    const sci::Script &kernelScript = GetKernelSignaturesScript(nullptr);
 
     HMODULE hinstGdiPlus = LoadLibrary("gdiplus.dll");
     if (hinstGdiPlus)
@@ -524,7 +529,7 @@ void AppState::GenerateBrowseInfo()
 
 void AppState::ResetClassBrowser()
 {
-    GetResourceMap().GetClassBrowser()->Reset();
+    GetResourceMap().GetClassBrowser()->ExitSchedulerAndReset();
 }
 
 BOOL CALLBACK InvalidateChildProc(HWND hwnd, LPARAM lParam)

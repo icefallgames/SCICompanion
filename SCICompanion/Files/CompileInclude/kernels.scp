@@ -1053,9 +1053,9 @@ public int Wait(int ticks)
 public int ShiftScreen() {}
 
 public
-void Palette(int palSET_INTENSITY, int startIndex, int endIndex, int intensity, bool setPalette)
+void Palette(int palSET_INTENSITY, int startIndex, int endIndex, int intensity [, bool setPalette])
 void Palette(int palANIMATE, int startIndex, int endIndex, int speed)
-void Palette(int palSET_FROM_RESOURCE, int resourceNumber, int force)
+void Palette(int palSET_FROM_RESOURCE, int resourceNumber [, int force])
 void Palette(int palSET_FLAG, int startIndex, int endIndex, int flags)
 void Palette(int palUNSET_FLAG, int startIndex, int endIndex, int flags)
 int Palette(int palFIND_COLOR, int red, int green, int blue)

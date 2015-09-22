@@ -15,27 +15,23 @@ bool g_fKernelLoaded = false;
 std::unordered_map<std::string, CSCOPublicExport> _scoKernels;
 bool g_fSCOKernelsLoaded = false;
 
-sci::Script &GetKernelSignaturesScript(ICompileLog &log)
+const sci::Script &GetKernelSignaturesScript(ICompileLog *log)
 {
     if (!g_fKernelLoaded)
     {
-        g_fKernelLoaded = true;
         ScriptId scriptId(appState->GetResourceMap().GetIncludePath("kernels.scp"));
         g_kernelScript.SetScriptId(scriptId);
-        ASSERT(scriptId.Language() == LangSyntaxCpp);
+        assert(scriptId.Language() == LangSyntaxCpp);
 
         CCrystalTextBuffer buffer;
         if (buffer.LoadFromFile(scriptId.GetFullPath().c_str()))
         {
             CScriptStreamLimiter limiter(&buffer);
             CCrystalScriptStream stream(&limiter);
-            if (g_Parser.Parse(g_kernelScript, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log))
+            if (g_Parser.Parse(g_kernelScript, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), log))
             {
+                g_fKernelLoaded = true;
                 g_kernelScript.SetScriptNumber(KernelScriptNumber);
-            }
-            else
-            {
-                ASSERT(FALSE);
             }
             buffer.FreeAll();
         }
@@ -43,18 +39,11 @@ sci::Script &GetKernelSignaturesScript(ICompileLog &log)
     return g_kernelScript;
 }
 
-// ASSERTs and makes code prettier.
-SpeciesIndex _GetSpeciesIndex(CompileContext &context, const std::string &typeName)
-{
-    SpeciesIndex si = DataTypeAny;
-    bool fResult = context.LookupTypeSpeciesIndex(typeName, si);
-    ASSERT(fResult); // Everything in the kernel file should be known
-    return si;
-}
-
 CSCOPublicExport GetKernelSCO(SCIVersion version, CompileContext &context, const std::string &name)
 {
-    sci::Script &script = GetKernelSignaturesScript(context);
+    // Yuck for this const_cast, but GenerateScriptResource *does* need it currently. It can theoretically re-organize
+    // case statements and resolve values and such.
+    sci::Script &script = const_cast<sci::Script &>(GetKernelSignaturesScript(&context));
     CSCOPublicExport scoSigs;
     if (g_fKernelLoaded)
     {
@@ -84,7 +73,7 @@ CSCOPublicExport GetKernelSCO(SCIVersion version, CompileContext &context, const
         }
         if (g_fSCOKernelsLoaded)
         {
-            ASSERT(_scoKernels.find(name) != _scoKernels.end());
+            assert(_scoKernels.find(name) != _scoKernels.end());
             scoSigs = _scoKernels[name];
         }
     }
