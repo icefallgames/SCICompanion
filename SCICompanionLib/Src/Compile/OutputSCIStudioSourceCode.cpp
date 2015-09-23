@@ -752,7 +752,7 @@ public:
     void Visit(const ExportEntry &exportEntry) override
     {
         DebugLine exportLine(out);
-        out.out << exportEntry.Slot << " " << exportEntry.Name;
+        out.out << exportEntry.Slot << " " << CleanToken(exportEntry.Name);
     }
 
 };

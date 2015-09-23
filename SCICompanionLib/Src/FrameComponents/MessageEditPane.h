@@ -51,6 +51,7 @@ protected:
 private:
     void _UpdateSequence(int sequence);
     void _UpdateCombos(MessageChangeHint hint);
+    void _UpdateAudio(const TextEntry &entry);
 
     CMessageDoc *_pDoc;
 
@@ -79,6 +80,13 @@ private:
     CExtButton m_wndButton3;
     CExtButton m_wndButtonFakeCommit;
     CExtSpinWnd m_wndSpinner;
+
+    // Audio
+    CExtEdit m_wndInfo;
+    CExtButton m_wndPlay;
+    CExtButton m_wndStop;
+    CExtCheckBox m_wndAutoPreview;
+
     int _spinnerValue;
 
     HACCEL _hAccel;

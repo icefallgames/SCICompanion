@@ -567,4 +567,20 @@ void CResourceMap::_SniffSCIVersion()
     // ASSUMPTION: VGA views means fonts can have extended chars. I don't know this for sure,
     // we might need some other detection mechanism.
     _gameFolderHelper.Version.FontExtendedChars = _gameFolderHelper.Version.ViewFormat != ViewFormat::EGA;
+
+    // If we find a map resource that isn't number 65535, then assume that this game has seq resources
+    _gameFolderHelper.Version.HasSeqResources = false;
+    if (_gameFolderHelper.Version.AudioVolumeName != AudioVolumeName::None)
+    {
+        auto audContainer = Resources(ResourceTypeFlags::Map, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
+        for (auto &blobIt = audContainer->begin(); blobIt != audContainer->end(); ++blobIt)
+        {
+            // Usually the audio is map 65535. Sometimes (LB2, non-CD version) it is 0.
+            if ((blobIt.GetResourceNumber() != 65535) && (blobIt.GetResourceNumber() != 0))
+            {
+                _gameFolderHelper.Version.HasSeqResources = true;
+                break;
+            }
+        }
+    }
 }

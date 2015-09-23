@@ -4,6 +4,13 @@
 
 struct TextComponent;
 
+template<typename T>
+uint32_t GetMessageTuple(const T& entry)
+{
+    uint32_t tuple = entry.Condition | (entry.Noun << 8) | (entry.Verb << 16) | (entry.Sequence << 24);
+    return tuple;
+}
+
 // We re-use TextComponent
 
 enum class MessageChangeHint

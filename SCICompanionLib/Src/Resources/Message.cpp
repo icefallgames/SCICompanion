@@ -277,7 +277,7 @@ bool ValidateMessage(const ResourceEntity &resource)
     unordered_map<uint32_t, const TextEntry *> tuples;
     for (const auto &entry : text.Texts)
     {
-        uint32_t tuple = entry.Condition | (entry.Noun << 8) | (entry.Verb << 16) | (entry.Sequence << 24);
+        uint32_t tuple = GetMessageTuple(entry);
         if (tuples.find(tuple) != tuples.end())
         {
             string message = fmt::format("Entries must be distinct. The following entries have the same noun/verb/condition/sequence:\n{0}\n{1}",

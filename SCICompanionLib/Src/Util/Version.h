@@ -71,6 +71,7 @@ struct SCIVersion
     bool SeparateMessageMap;
     bool FontExtendedChars;
     bool HasSaidVocab;
+    bool HasSeqResources;
 
     bool operator==(const SCIVersion &src);
     bool operator!=(const SCIVersion &src);

@@ -9,6 +9,7 @@
 #include "MessageSource.h"
 #include "WindowsUtil.h"
 #include "NounsAndCases.h"
+#include "AudioSyncMap.h"
 
 using namespace std;
 
@@ -53,6 +54,11 @@ void MessageEditPane::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_BUTTONCOMMIT, m_wndButtonFakeCommit);
 
         DDX_Control(pDX, IDC_SPINSEQ, m_wndSpinner);
+
+        DDX_Control(pDX, IDC_EDIT_SAMPLEBIT, m_wndInfo);
+        DDX_Control(pDX, IDC_BUTTON_PLAY2, m_wndPlay);
+        DDX_Control(pDX, IDC_BUTTON_STOP, m_wndStop);
+        DDX_Control(pDX, IDC_CHECK_AUTOPREV, m_wndAutoPreview);
     }
     DDX_Text(pDX, IDC_EDITSEQ, _spinnerValue);
 }
@@ -151,6 +157,12 @@ BOOL MessageEditPane::OnInitDialog()
 
     // Set up anchoring for resize
     AddAnchor(IDC_EDITMESSAGE, CPoint(0, 0), CPoint(100, 100));
+
+    AddAnchor(IDC_EDIT_SAMPLEBIT, CPoint(100, 0), CPoint(100, 0));
+    AddAnchor(IDC_BUTTON_PLAY2, CPoint(100, 0), CPoint(100, 0));
+    AddAnchor(IDC_BUTTON_STOP, CPoint(100, 0), CPoint(100, 0));
+    AddAnchor(IDC_CHECK_AUTOPREV, CPoint(100, 0), CPoint(100, 0));
+
     // Hide the sizing grip
     ShowSizeGrip(FALSE);
     return fRet;
@@ -277,6 +289,29 @@ void MessageEditPane::_UpdateSequence(int sequence)
     UpdateData(false);
 }
 
+void MessageEditPane::_UpdateAudio(const TextEntry &messageEntry)
+{
+    if (appState->GetVersion().HasSeqResources)
+    {
+        uint32_t tuple = GetMessageTuple(messageEntry);
+
+        // Try to get a sequence map for this resource
+        int mapResourceNumber = _pDoc->GetResource()->ResourceNumber;
+        std::unique_ptr<ResourceEntity> map = appState->GetResourceMap().CreateResourceFromNumber(ResourceType::Map, mapResourceNumber);
+        if (map)
+        {
+            for (const auto &entry : map->GetComponent<AudioSyncMapComponent>().Entries)
+            {
+                if (GetMessageTuple(entry) == tuple)
+                {
+                    // Match. Now try to load the audio resource given the offset.
+                    break;
+                }
+            }
+        }
+    }
+}
+
 void MessageEditPane::_Update()
 {
     if (_pDoc)
@@ -298,6 +333,8 @@ void MessageEditPane::_Update()
             _UpdateComboFromValue(m_wndComboTalker, entry->Talker, appState->GetResourceMap().GetTalkersMessageSource());
             _UpdateComboFromValue(m_wndComboNoun, entry->Noun, &nounsAndCases.GetNouns());
             _UpdateComboFromValue(m_wndComboCondition, entry->Condition, &nounsAndCases.GetCases());
+
+            _UpdateAudio(*entry);
         }
         else
         {
@@ -305,6 +342,13 @@ void MessageEditPane::_Update()
             m_wndEditMessage.SetWindowTextA("");
         }
     }
+
+    // Hide/show audio controls when appropriate.
+    int cmdShow = appState->GetVersion().HasSeqResources ? SW_SHOW : SW_HIDE;
+    m_wndPlay.ShowWindow(cmdShow);
+    m_wndStop.ShowWindow(cmdShow);
+    m_wndAutoPreview.ShowWindow(cmdShow);
+    m_wndInfo.ShowWindow(cmdShow);
 }
 
 void MessageEditPane::SetDocument(CDocument *pDoc)

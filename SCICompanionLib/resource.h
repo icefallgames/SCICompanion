@@ -510,6 +510,7 @@
 #define IDC_CHECK_ALLCHANNELS           1198
 #define IDC_COMBOVERB                   1198
 #define IDC_LIST_CUES                   1199
+#define IDC_BUTTON_PLAY2                1199
 #define IDC_EDIT_VALUE                  1200
 #define IDC_COMBOTALKER                 1200
 #define IDC_BUTTON_ADDCUE               1201
@@ -547,7 +548,6 @@
 #define IDC_STATICZOOM                  1227
 #define IDC_CHECK9                      1227
 #define IDC_CHECK_FOLLOWVIEW            1228
-#define IDC_RADIOSCI10_1                1228
 #define IDC_RADIOSCI0_1                 1228
 #define IDC_STATICFINAL                 1229
 #define IDC_CHECKV2                     1230

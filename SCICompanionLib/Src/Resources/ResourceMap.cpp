@@ -19,6 +19,7 @@
 #include "Message.h"
 #include "Audio.h"
 #include "AudioMap.h"
+#include "AudioSyncMap.h"
 #include "ResourceEntity.h"
 #include "ResourceSources.h"
 #include "CompiledScript.h"
@@ -1250,35 +1251,32 @@ std::unique_ptr<ResourceEntity> CResourceMap::CreateResourceFromNumber(ResourceT
     return pResource;
 }
 
-
-#define DECLARE_CREATE_RESOURCE_WITH_CREATE_FUNCTION(type, createFunction, fallbackCreateFunction, postProcessFunction) \
-    case type: \
-        { \
-            pResourceReturn.reset(createFunction(data.GetVersion())); \
-            try \
-            { \
-                pResourceReturn->InitFromResource(&data); \
-                postProcessFunction(*pResourceReturn); \
-            } \
-            catch (std::exception &theException) \
-            { \
-                if (!fallbackOnException) \
-                    throw; \
-                /* Just create the default one */  \
-                appState->LogInfo(theException.what()); \
-                data.AddStatusFlags(ResourceLoadStatusFlags::ResourceCreationFailed); \
-                pResourceReturn.reset(fallbackCreateFunction(data.GetVersion())); \
-                pResourceReturn->ResourceNumber = data.GetNumber(); \
-                pResourceReturn->PackageNumber = data.GetPackageHint(); \
-            } \
-        } \
-        break; \
-
-
-void DoNothing(ResourceEntity &resource)
+template<typename TCreateFunc, typename TFallbackFunc>
+std::unique_ptr<ResourceEntity> CreateResourceHelper(const ResourceBlob &data, TCreateFunc createFunction, TFallbackFunc fallbackFunc, bool fallbackOnException)
 {
+    std::unique_ptr<ResourceEntity> pResourceReturn(createFunction(data.GetVersion()));
+    try 
+    { 
+        pResourceReturn->InitFromResource(&data); 
+    } 
+    catch (std::exception &theException) 
+    { 
+        if (!fallbackOnException)
+        {
+            throw;
+        }
 
+        /* Just create the default one */ 
+        appState->LogInfo(theException.what());
+        data.AddStatusFlags(ResourceLoadStatusFlags::ResourceCreationFailed);
+        pResourceReturn.reset(fallbackFunc(data.GetVersion()));
+        pResourceReturn->ResourceNumber = data.GetNumber();
+        pResourceReturn->PackageNumber = data.GetPackageHint();
+    }
+    return pResourceReturn;
 }
+
+void DoNothing(ResourceEntity &resource) {}
 
 //
 // Given a ResourceBlob, this creates the SCI resource represented by the data, and hands back
@@ -1287,25 +1285,42 @@ void DoNothing(ResourceEntity &resource)
 //
 std::unique_ptr<ResourceEntity> CreateResourceFromResourceData(const ResourceBlob &data, bool fallbackOnException)
 {
-    std::unique_ptr<ResourceEntity> pResourceReturn;
     switch (data.GetType())
     {
-        DECLARE_CREATE_RESOURCE_WITH_CREATE_FUNCTION(ResourceType::View, CreateViewResource, CreateDefaultViewResource, DoNothing)
-        DECLARE_CREATE_RESOURCE_WITH_CREATE_FUNCTION(ResourceType::Font, CreateFontResource, CreateDefaultFontResource, DoNothing)
-        DECLARE_CREATE_RESOURCE_WITH_CREATE_FUNCTION(ResourceType::Cursor, CreateCursorResource, CreateDefaultCursorResource, DoNothing)
-        DECLARE_CREATE_RESOURCE_WITH_CREATE_FUNCTION(ResourceType::Text, CreateTextResource, CreateDefaultTextResource, DoNothing)
-        DECLARE_CREATE_RESOURCE_WITH_CREATE_FUNCTION(ResourceType::Sound, CreateSoundResource, CreateDefaultSoundResource, DoNothing)
-        DECLARE_CREATE_RESOURCE_WITH_CREATE_FUNCTION(ResourceType::Vocab, CreateVocabResource, CreateVocabResource, DoNothing)
-        DECLARE_CREATE_RESOURCE_WITH_CREATE_FUNCTION(ResourceType::Pic, CreatePicResource, CreateDefaultPicResource, DoNothing)
-        DECLARE_CREATE_RESOURCE_WITH_CREATE_FUNCTION(ResourceType::Palette, CreatePaletteResource, CreatePaletteResource, DoNothing)
-        DECLARE_CREATE_RESOURCE_WITH_CREATE_FUNCTION(ResourceType::Message, CreateMessageResource, CreateDefaultMessageResource, DoNothing)
-        DECLARE_CREATE_RESOURCE_WITH_CREATE_FUNCTION(ResourceType::Audio, CreateAudioResource, CreateDefaultAudioResource, DoNothing)
-        DECLARE_CREATE_RESOURCE_WITH_CREATE_FUNCTION(ResourceType::Map, CreateMapResource, CreateMapResource, DoNothing)
+        case ResourceType::View:
+            return CreateResourceHelper(data, CreateViewResource, CreateDefaultViewResource, fallbackOnException);
+        case ResourceType::Font:
+            return CreateResourceHelper(data, CreateFontResource, CreateDefaultFontResource, fallbackOnException);
+        case ResourceType::Cursor:
+            return CreateResourceHelper(data, CreateCursorResource, CreateDefaultCursorResource, fallbackOnException);
+        case ResourceType::Text:
+            return CreateResourceHelper(data, CreateTextResource, CreateDefaultTextResource, fallbackOnException);
+        case ResourceType::Sound:
+            return CreateResourceHelper(data, CreateSoundResource, CreateDefaultSoundResource, fallbackOnException);
+        case ResourceType::Vocab:
+            return CreateResourceHelper(data, CreateVocabResource, CreateVocabResource, fallbackOnException);
+        case ResourceType::Pic:
+            return CreateResourceHelper(data, CreatePicResource, CreateDefaultPicResource, fallbackOnException);
+        case ResourceType::Palette:
+            return CreateResourceHelper(data, CreatePaletteResource, CreatePaletteResource, fallbackOnException);
+        case ResourceType::Message:
+            return CreateResourceHelper(data, CreateMessageResource, CreateDefaultMessageResource, fallbackOnException);
+        case ResourceType::Audio:
+            return CreateResourceHelper(data, CreateAudioResource, CreateDefaultAudioResource, fallbackOnException);
+        case ResourceType::Map:
+            if (data.GetNumber() == 65535)
+            {
+                return CreateResourceHelper(data, CreateMapResource, CreateMapResource, fallbackOnException);
+            }
+            else
+            {
+                return CreateResourceHelper(data, CreateSequenceMapResource, CreateSequenceMapResource, fallbackOnException);
+            }
     default:
         assert(false);
         break;
     }
-    return pResourceReturn;
+    return nullptr;
 }
 
 void CResourceMap::SetGameLanguage(LangSyntax lang)

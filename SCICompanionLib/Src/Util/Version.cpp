@@ -25,6 +25,7 @@ SCIVersion sciVersion0 =
     false,
     false,
     true,
+    false
 };
 
 SCIVersion sciVersion1_Late =
@@ -47,7 +48,8 @@ SCIVersion sciVersion1_Late =
     false,
     false,
     true,
-    true
+    true,
+    false
 };
 
 SCIVersion sciVersion1_1 =
@@ -70,6 +72,7 @@ SCIVersion sciVersion1_1 =
     true,
     false,
     true,
+    false,
     false
 };
 
