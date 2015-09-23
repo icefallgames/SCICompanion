@@ -350,8 +350,8 @@ namespace sci
         }
         if (dwSize != INVALID_FILE_SIZE)
         {
-            // Limit ourselves a little.
-            if ((dwSizeHigh == 0) && (dwSize < 67108864))  // 2 ^ 26
+            // Limit ourselves a little (to 4GB).
+            if (dwSizeHigh == 0) 
             {
                 _pData = std::make_unique<uint8_t[]>(dwSize);
                 DWORD dwSizeRead;
