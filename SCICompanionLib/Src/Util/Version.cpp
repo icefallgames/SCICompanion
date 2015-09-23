@@ -25,7 +25,8 @@ SCIVersion sciVersion0 =
     false,
     false,
     true,
-    false
+    false,
+    65535,
 };
 
 SCIVersion sciVersion1_Late =
@@ -49,7 +50,8 @@ SCIVersion sciVersion1_Late =
     false,
     true,
     true,
-    false
+    false,
+    65535,
 };
 
 SCIVersion sciVersion1_1 =
@@ -73,7 +75,8 @@ SCIVersion sciVersion1_1 =
     false,
     true,
     false,
-    false
+    false,
+    65535,
 };
 
 bool SCIVersion::operator == (const SCIVersion &src)

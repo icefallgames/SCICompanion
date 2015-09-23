@@ -6,7 +6,7 @@ using namespace std;
 
 void AudioMapWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
 {
-    uint8_t ff[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+    uint8_t ff[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
     const AudioMapComponent &map = resource.GetComponent<AudioMapComponent>();
     if (map.Version == AudioMapVersion::FiveBytes)
     {
@@ -30,6 +30,17 @@ void AudioMapWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
         }
         byteStream.WriteBytes(ff, 6);
     }
+    else if (map.Version == AudioMapVersion::EightBytes)
+    {
+        for (const AudioMapEntry &entry : map.Entries)
+        {
+            byteStream << entry.Number;
+            uint16_t ffff = 0xffff;
+            byteStream << ffff;
+            byteStream << entry.Offset;
+        }
+        byteStream.WriteBytes(ff, 8);
+    }
 }
 
 void AudioMapReadFrom(ResourceEntity &resource, sci::istream &stream)
@@ -51,17 +62,31 @@ void AudioMapReadFrom(ResourceEntity &resource, sci::istream &stream)
             break;
         }
     }
-    if (ffCount >= 6)
+    if (resource.ResourceNumber == 65535)
     {
-        map.Version = AudioMapVersion::SixBytes;
+        if (ffCount >= 6)
+        {
+            map.Version = AudioMapVersion::SixBytes;
+        }
+        else if (ffCount == 5)
+        {
+            map.Version = AudioMapVersion::FiveBytes;
+        }
+        else
+        {
+            throw new std::exception("Unknown audio map format");
+        }
     }
-    else if (ffCount == 5)
+    else if (resource.ResourceNumber == 0)
     {
-        map.Version = AudioMapVersion::FiveBytes;
-    }
-    else
-    {
-        throw new std::exception("Unknown audio map format");
+        if (ffCount >= 8)
+        {
+            map.Version = AudioMapVersion::EightBytes;
+        }
+        else
+        {
+            throw new std::exception("Unknown audio map format");
+        }
     }
 
     AudioMapEntry entry = {};
@@ -81,6 +106,11 @@ void AudioMapReadFrom(ResourceEntity &resource, sci::istream &stream)
             stream >> high;
             uint32_t add = low + (high << 16);
             entry.Offset += add;
+        }
+        else if (map.Version == AudioMapVersion::EightBytes)
+        {
+            stream.skip(2); // This should be 0xffff
+            stream >> entry.Offset;
         }
 
         if (entry.Number != 0xffff)

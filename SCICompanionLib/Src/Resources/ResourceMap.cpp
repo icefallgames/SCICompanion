@@ -960,7 +960,7 @@ const AudioMapComponent *CResourceMap::GetAudioMap65535()
     if (!_pAudioMap65535)
     {
         // In some games this is a "patch file", in others it's embedded in resource.map
-        _pAudioMap65535 = CreateResourceFromNumber(ResourceType::Map, 65535);
+        _pAudioMap65535 = CreateResourceFromNumber(ResourceType::Map, Helper().Version.AudioMapResourceNumber);
     }
 
     return _pAudioMap65535 ? _pAudioMap65535->TryGetComponent<AudioMapComponent>() : nullptr;
@@ -1308,7 +1308,7 @@ std::unique_ptr<ResourceEntity> CreateResourceFromResourceData(const ResourceBlo
         case ResourceType::Audio:
             return CreateResourceHelper(data, CreateAudioResource, CreateDefaultAudioResource, fallbackOnException);
         case ResourceType::Map:
-            if (data.GetNumber() == 65535)
+            if (data.GetNumber() == data.GetVersion().AudioMapResourceNumber)
             {
                 return CreateResourceHelper(data, CreateMapResource, CreateMapResource, fallbackOnException);
             }

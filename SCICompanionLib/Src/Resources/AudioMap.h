@@ -5,7 +5,8 @@
 enum class AudioMapVersion
 {
     FiveBytes = 5,
-    SixBytes = 6
+    SixBytes = 6,
+    EightBytes = 8,
 };
 
 class ResourceEntity;

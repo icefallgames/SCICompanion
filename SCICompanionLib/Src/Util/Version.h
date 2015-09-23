@@ -72,6 +72,7 @@ struct SCIVersion
     bool FontExtendedChars;
     bool HasSaidVocab;
     bool HasSeqResources;
+    int AudioMapResourceNumber;
 
     bool operator==(const SCIVersion &src);
     bool operator!=(const SCIVersion &src);

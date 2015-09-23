@@ -572,15 +572,35 @@ void CResourceMap::_SniffSCIVersion()
     _gameFolderHelper.Version.HasSeqResources = false;
     if (_gameFolderHelper.Version.AudioVolumeName != AudioVolumeName::None)
     {
+        // Usually the audio is map 65535. Sometimes (LB2, non-CD version) it is 0.
+        bool found65535 = false;
+        bool found0 = false;
         auto audContainer = Resources(ResourceTypeFlags::Map, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
         for (auto &blobIt = audContainer->begin(); blobIt != audContainer->end(); ++blobIt)
         {
-            // Usually the audio is map 65535. Sometimes (LB2, non-CD version) it is 0.
-            if ((blobIt.GetResourceNumber() != 65535) && (blobIt.GetResourceNumber() != 0))
+            if (blobIt.GetResourceNumber() == 65535)
             {
-                _gameFolderHelper.Version.HasSeqResources = true;
-                break;
+                found65535 = true;
             }
+            else if (blobIt.GetResourceNumber() == 0)
+            {
+                found0 = true;
+            }
+            else
+            {
+                // We found something *other* than 0 or 65535
+                _gameFolderHelper.Version.HasSeqResources = true;
+            }
+        }
+        // Now, if we didn't find either 65535 or 0, that's fine. 65535 may be a patch file.
+        if (found65535 || !found0)
+        {
+            _gameFolderHelper.Version.AudioMapResourceNumber = 65535;
+        }
+        else
+        {
+            // AFAIK, 0 will never be a patch file (but I could be wrong?)
+            _gameFolderHelper.Version.AudioMapResourceNumber = 0;
         }
     }
 }
