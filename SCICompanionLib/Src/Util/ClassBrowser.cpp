@@ -12,6 +12,8 @@
 #include "CodeAutoComplete.h"
 #include "AutoCompleteContext.h"
 #include "Task.h"
+#include "CCrystalTextBuffer.h"
+#include "CrystalScriptStream.h"
 
 using namespace sci;
 using namespace std;
@@ -621,7 +623,7 @@ void SCIClassBrowser::ReloadScript(const std::string &fullPath)
     else
     {
         // It's a regular one.
-        _AddFileName(fullPath.c_str(), PathFindFileName(fullPath.c_str()), TRUE);
+        _AddFileName(fullPath, true);
 
         if (_pEvents)
         {
@@ -708,21 +710,17 @@ void SCIClassBrowser::_RemoveAllRelatedData(Script *pScript)
     _fPublicClassesValid = false;
 }
 
-
-
-#include "CCrystalTextBuffer.h"
-#include "CrystalScriptStream.h"
-bool SCIClassBrowser::_AddFileName(PCTSTR pszFullPath, PCTSTR pszFileName, BOOL fReplace)
+bool SCIClassBrowser::_AddFileName(const std::string &fullPath, bool fReplace)
 {
     _pLKGScript = NULL; // Clear cache.  Possible optimization: check LKG number, and if this is the same, then set _pLKGScript to this one.
 
     bool fRet = false;
     CCrystalTextBuffer buffer;
-    if (buffer.LoadFromFile(pszFullPath))
+    if (buffer.LoadFromFile(fullPath.c_str()))
     {
         CScriptStreamLimiter limiter(&buffer);
         CCrystalScriptStream stream(&limiter);
-        std::unique_ptr<Script> pScript = std::make_unique<Script>(pszFullPath);
+        std::unique_ptr<Script> pScript = std::make_unique<Script>(fullPath.c_str());
         if (g_Parser.Parse(*pScript, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), this))
         {
 #ifdef DOCSUPPORT
@@ -734,7 +732,7 @@ bool SCIClassBrowser::_AddFileName(PCTSTR pszFullPath, PCTSTR pszFileName, BOOL 
             if (fReplace)
             {
                 WORD wScriptNumber = GetScriptNumberHelper(pScript.get());
-                _filenameToScriptNumber[pszFullPath] = wScriptNumber;
+                _filenameToScriptNumber[fullPath] = wScriptNumber;
 
                 ASSERT(wScriptNumber != InvalidResourceNumber); // Do something about this.
                 // Find matching script number and replace
@@ -752,7 +750,7 @@ bool SCIClassBrowser::_AddFileName(PCTSTR pszFullPath, PCTSTR pszFileName, BOOL 
             else
             {
                 WORD wScriptNumber = GetScriptNumberHelper(pScript.get());
-                _filenameToScriptNumber[pszFullPath] = wScriptNumber;
+                _filenameToScriptNumber[fullPath] = wScriptNumber;
             }
 
             _AddToClassTree(*pWeakRef);
@@ -961,7 +959,7 @@ bool SCIClassBrowser::_CreateClassTree(ITaskStatus &task)
         {
             _pEvents->NotifyClassBrowserStatus(IClassBrowserEvents::InProgress, 100 * iItem / cItems);
         }
-        if (_AddFileName(scriptIt->GetFullPath().c_str(), scriptIt->GetFileName().c_str()))
+        if (_AddFileName(scriptIt->GetFullPath()))
         {
             // As long as we find one script, we consider it a success and don't fallback to compiled sources.
             fRet = true;

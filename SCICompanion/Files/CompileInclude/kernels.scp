@@ -489,10 +489,7 @@ public void DrawMenuBar(bool mode)
 	DrawPic(100 dpCLOSEREOPEN_EDGECENTER dpCLEAR 1)
     [/code]
  */
-public void DrawPic(int picNum, int animation, bool clear, int defaultPalette)
-//void DrawPic(int picNum, int animation, bool clear)
-//void DrawPic(int picNum, int animation)
-//void DrawPic(int picNum)
+public void DrawPic(int picNum [, int animation, bool clear, int defaultPalette])
 {
 }
 
@@ -632,8 +629,7 @@ public void HiliteControl(Control control)
 {
 }
 
-public void InitBresen(Motion mover)
-//void InitBresen(Motion mover, int stepMult)
+public void InitBresen(Motion mover [, int stepMult])
 {
 }
 
@@ -718,8 +714,7 @@ public bool Parse(string text, Event event)
 {
 }
 
-public int PicNotValid()
-//int PicNotValid(int newFlag)
+public int PicNotValid([int newFlag])
 {
 }
 
@@ -810,8 +805,7 @@ public bool SaveGame(string gameName, int slotNumber, string description, string
 }
 
 public
-var ScriptID(int scriptNum, int index)
-var ScriptID(int scriptNum)
+var ScriptID(int scriptNum [, int index])
 {
 }
 
@@ -825,9 +819,7 @@ var ScriptID(int scriptNum)
 	y - y position at which to place the cursor.
  */
 public
-void SetCursor(int resourceNumber)
-void SetCursor(int resourceNumber, bool visible)
-void SetCursor(int resourceNumber, bool visible, int x, int y)
+void SetCursor(int resourceNumber [, bool visible, int x, int y])
 {
 }
 
@@ -905,8 +897,7 @@ public void SetSynonyms(Set scripts)
 	ShakeScreen(20 ssFULL_SHAKE); // Does a complete shake screen twenty times
 	[/code]
  */
-public void ShakeScreen(int shakeCount)
-//void ShakeScreen(int shakeCount, int direction)
+public void ShakeScreen(int shakeCount [, int direction])
 {
 }
 
@@ -1012,14 +1003,15 @@ public string StrCat(string dest, string src)
 {
 }
 
-public int StrCmp(string a, string b)
-//int StrCmp(string a, string b, int maxChars)
+public
+int StrCmp(string a, string b)
+int StrCmp(string a, string b, int maxChars)
 {
 }
 
 
 public string StrCpy(string dest, string src)
-//string StrCpy(string dest, string src, int maxChars)
+string StrCpy(string dest, string src, int maxChars)
 {
 }
 
@@ -1032,8 +1024,7 @@ public int StrLen(string text)
 }
 
 public
-void TextSize(pointer rect, string text, int font)
-void TextSize(pointer rect, string text, int font, int maxLength)
+void TextSize(pointer rect, string text, int font [, int maxLength])
 {
 }
 
@@ -1065,30 +1056,113 @@ void Palette(int palRESTORE, int cookie)
 
 public int MemorySegment() {}
 public int Intersections() {}
-public int Memory() {}
+
+public
+void Memory(int memFREE, int address)
+int Memory(int memALLOC_CRIT, int byteCount)
+int Memory(int memALLOC_NONCRIT, int byteCount)
+void Memory(int memCOPY, int destinationAddress, int sourceAddress, int byteCount)
+int Memory(int memPEEK, int address)
+int Memory(int memPOKE, int address, int value)
+{}
+
 public int ListOps() {}
-public int FileIO() {}
-public int DoAudio() {}
-public int DoSync() {}
-public int AvoidPath() {}
+
+public
+int FileIO(int fiOPEN, string filename, int mode)
+void FileIO(int fiCLOSE, int handle)
+int FileIO(int fiREAD, int handle, string outBuffer, int byteCount)
+int FileIO(int fiWRITE, int handle, string inBuffer, int byteCount)
+int FileIO(int fiUNLINK, string filename)
+int FileIO(int fiREAD_STRING, string outText, int byteCount, int handle)
+int FileIO(int fiWRITE_STRING, int handle, string inText)
+int FileIO(int fiSEEK, int handle, int offset, int whence)
+int FileIO(int fiFIND_FIRST, string filenameMask, string outBuffer, int fileAttributes)
+int FileIO(int fiFIND_NEXT)
+int FileIO(int fiEXISTS, string filename)
+int FileIO(int fiRENAME, string oldFilename, string newFilename)
+{}
+
+public
+int DoAudio(int audWPLAY, int resourceNumber)
+int DoAudio(int audWPLAY, int moduleNumber, int a, int b, int c, int d)
+int DoAudio(int audPLAY, int resourceNumber)
+int DoAudio(int audWPLAY, int moduleNumber, int a, int b, int c, int d)
+void DoAudio(int audSTOP)
+void DoAudio(int audPAUSE)
+void DoAudio(int audRESUME)
+int DoAudio(int audPOSITION)
+void DoAudio(int audRATE, int rate)
+int DoAudio(int audVOLUME, int volume)
+int DoAudio(int audLANGUAGE)
+int DoAudio(int audCD, ...)
+{}
+
+public
+void DoSync(int syncSTART, int syncObject, int a, int b, int c, int d)
+void DoSync(int syncSTART, int syncObject)
+void DoSync(int syncNEXT, int syncObject)
+void DoSync(int syncSTOP)
+{}
+
+public
+int AvoidPath(int xStart, int yStart, Polygon polygon)
+int AvoidPath(int xStart, int yStart, int xEnd, int yEnd, k_list polygons, int polyCount [,int options])
+{}
+
 public int Sort() {}
+
+/*
+    Not supported in Scumm
+ */
 public int ATan() {}
+
 public int Lock() {}
-public int StrSplit() {}
-public int GetMessage() {}
-public int Message() {}
-public int IsItSkip() {}
-public int MergePoly() {}
+
+public
+int StrSplit(string outBuffer, string format [,string separator])
+{}
+
+public
+void Message(int msgGET [, int moduleNumber, int noun, int verb, int condition, int sequence, string outBuffer])
+int Message(int msgSIZE [, int moduleNumber, int noun, int verb, int condition, int sequence])
+void Message(int msgNEXT [, string outBuffer])
+int Message(int msgREF_NOUN [, int moduleNumber, int noun, int verb, int condition, int sequence])
+int Message(int msgREF_VERB [, int moduleNumber, int noun, int verb, int condition, int sequence])
+int Message(int msgREF_COND [, int moduleNumber, int noun, int verb, int condition, int sequence])
+void Message(int msgPUSH)
+void Message(int msgPOP)
+{}
+
+public
+bool IsItSkip(int view, int loop, int cel, int x, int y)
+{}
+
+public
+int MergePoly(var points, k_list polygons, int polyCount)
+{}
+
 public int ResCheck() {}
 public int AssertPalette() {}
-public int TextColors() {}
-public int TextFonts() {}
+
+public int TextColors(...) {}
+public int TextFonts(...) {}
+
 public int Record() {}
 public int PlayBack() {}
 public int ShowMovie() {}
 public int SetVideoMode() {}
 public int SetQuitStr() {}
 public int DbugStr() {}
-public int PalVary() {}
+
+public
+void PalVary(int pvINIT, int resourceNumber [, int stepStop, int direction])
+void PalVary(int pvUNINIT)
+void PalVary(int pvREVERSE [, int ticks, int stepStop, int direction])
+int PalVary(int pvGET_CURRENT_STEP)
+void PalVary(int pvCHANGE_TARGET, int resourceNumber)
+void PalVary(int pvCHANGE_TICKS, int ticks)
+void PalVary(int pvPAUSE_RESUME, bool pause)
+{}
 
 

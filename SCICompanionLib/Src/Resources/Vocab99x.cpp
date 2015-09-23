@@ -166,7 +166,7 @@ static const char *const s_defaultKernelNames[] = {
     /*0x88*/ "DbugStr"          // for debugging
 };
 
-
+ 
 bool CVocabWithNames::_Create(sci::istream &byteStream, bool fTruncationOk)
 {
     _names.clear();

@@ -116,7 +116,7 @@ private:
 
     bool _CreateClassTree(ITaskStatus &task);
     void _AddToClassTree(sci::Script& script);
-    bool _AddFileName(PCTSTR pszFullPath, PCTSTR pszFileName, BOOL fReplace = FALSE);
+    bool _AddFileName(const std::string &fullPath, bool fReplace = false);
     void _RemoveAllRelatedData(sci::Script *pScript);
     void _AddHeaders();
     void _AddHeader(PCTSTR pszHeaderPath);
