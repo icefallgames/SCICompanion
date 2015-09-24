@@ -4,6 +4,8 @@
 #include "format.h"
 #include "Audio.h"  // For the audio source
 #include "AudioMap.h"  // For the audio source
+#include "ResourceEntity.h"
+#include "Message.h"
 
 using namespace std;
 
@@ -170,49 +172,117 @@ bool IsResourceCompatible(const ResourceBlob &blob)
 
 bool AudioResourceSource::ReadNextEntry(ResourceTypeFlags typeFlags, IteratorState &state, ResourceMapEntryAgnostic &entry, std::vector<uint8_t> *optionalRawData)
 {
-    const AudioMapComponent *audioMap = appState->GetResourceMap().GetAudioMap65535();
-    if (audioMap)
+    const auto &audioMaps = appState->GetResourceMap().GetAudioMaps();
+    // Read 6 byte entry (for resource.aud. For resource.sfx it would be 5 bytes)
+    // Early SCI1.1 65535.MAP structure (uses RESOURCE.AUD):
+    // =========
+    // 6-byte entries:
+    // w nEntry
+    // dw offset
+
+    // Late SCI1.1 65535.MAP structure (uses RESOURCE.SFX):
+    // =========
+    // 5-byte entries:
+    // w nEntry
+    // tb offset (cumulative)
+
+    // For LSL6, which uses resource.sfx, there is no 65535.map file. It's in the resource map, in a map resource.
+    // So we'll need to do some funky thing where we "recursively" call for that resource. Or, perhaps a better thing,
+    // it so have a GetAudioMap65535 thingy, just like we have GetPalette999. And it either grabs it from the patch resource
+    // or from the actual resource map. How about that, easy. Then we'll either look for resource.aud or resource.aux to know how
+    // we should read it.
+    // LB_Dagger has it as 0.map in the resource map
+    // QF3 has a 65535.map in resource.map, but I don't see the actual audio files anywhere.
+
+    // To iterate through audio maps, we'll need 3 indices:
+    //  - index into audiomap component     (15 bits)
+    //  - index into audiomap entry         (16 bits)
+    //  - index indicating audio or sync    (1 bit)
+
+    uint32_t audioMapIndex = ((state.mapStreamOffset & 0xfffe0000) >> 17);
+    uint32_t audioMapEntryIndex = ((state.mapStreamOffset & 0x1fffe) >> 1);
+    uint32_t audioOrSyncIndex = (state.mapStreamOffset & 0x1);
+    bool found = false;
+    while (!found && (audioMapIndex < audioMaps.size()))
     {
-        // Read 6 byte entry (for resource.aud. For resource.sfx it would be 5 bytes)
-        // Early SCI1.1 65535.MAP structure (uses RESOURCE.AUD):
-        // =========
-        // 6-byte entries:
-        // w nEntry
-        // dw offset
-
-        // Late SCI1.1 65535.MAP structure (uses RESOURCE.SFX):
-        // =========
-        // 5-byte entries:
-        // w nEntry
-        // tb offset (cumulative)
-
-        // For LSL6, which uses resource.sfx, there is no 65535.map file. It's in the resource map, in a map resource.
-        // So we'll need to do some funky thing where we "recursively" call for that resource. Or, perhaps a better thing,
-        // it so have a GetAudioMap65535 thingy, just like we have GetPalette999. And it either grabs it from the patch resource
-        // or from the actual resource map. How about that, easy. Then we'll either look for resource.aud or resource.aux to know how
-        // we should read it.
-        // LB_Dagger has it as 0.map in the resource map
-        // QF3 has a 65535.map in resource.map, but I don't see the actual audio files anywhere.
-
-        if (state.mapStreamOffset < audioMap->Entries.size())
+        const AudioMapComponent &audioMap = audioMaps[audioMapIndex]->GetComponent<AudioMapComponent>();
+        while (!found && (audioMapEntryIndex < audioMap.Entries.size()))
         {
-            AudioMapEntry mapEntry = audioMap->Entries[state.mapStreamOffset];
-            state.mapStreamOffset++;
-            entry.Number = mapEntry.Number;
-            entry.Offset = mapEntry.Offset;
-            entry.ExtraData = 0;
-            entry.PackageNumber = 0;
-            entry.Type = ResourceType::Audio;
-            return true;
+            const AudioMapEntry &mapEntry = audioMap.Entries[audioMapEntryIndex];
+            if (!IsMainAudioMap(audioMap.Version))
+            {
+                // Audio map with optional sync information.
+                // If this AudioMapEntry has two parts (audio and sync), then audioOrSyncIndex = 0 means audio and audioOrSyncIndex == 1 means sync
+                if (audioOrSyncIndex == 0)
+                {
+                    entry.Number = mapEntry.Number;
+                    entry.Offset = mapEntry.Offset + mapEntry.SyncSize;
+                    entry.ExtraData = 0;
+                    entry.PackageNumber = 0;
+                    entry.Type = ResourceType::Audio;
+                    entry.Base36Number = GetMessageTuple(mapEntry);
+
+                    if (mapEntry.SyncSize)
+                    {
+                        // This also has a sync resource
+                        audioOrSyncIndex++;
+                    }
+                    else
+                    {
+                        // It doesn't...
+                        audioOrSyncIndex = 0;
+                        audioMapEntryIndex++;
+                    }
+                    found = true;
+                }
+                else if (audioOrSyncIndex == 1)
+                {
+                    assert(mapEntry.SyncSize > 0);
+                    entry.Number = mapEntry.Number;
+                    entry.Offset = mapEntry.Offset;
+                    entry.ExtraData = 0;
+                    entry.PackageNumber = 0;
+                    entry.Type = ResourceType::Sync;
+                    entry.Base36Number = GetMessageTuple(mapEntry);
+
+                    audioOrSyncIndex = 0;
+                    audioMapEntryIndex++;
+                    found = true;
+                }
+            }
+            else
+            {
+                // Straightforward main audio map
+                entry.Number = mapEntry.Number;
+                entry.Offset = mapEntry.Offset;
+                entry.ExtraData = 0;
+                entry.PackageNumber = 0;
+                entry.Type = ResourceType::Audio;
+                entry.Base36Number = NoBase36;
+                audioMapEntryIndex++;
+                audioOrSyncIndex = 0;
+                found = true;
+            }
+        }
+        if (!found)
+        {
+            audioMapIndex++;
+            audioMapEntryIndex = 0;
         }
     }
-    return false;
+
+    uint32_t newStreamOffset = audioOrSyncIndex;
+    newStreamOffset |= audioMapEntryIndex << 1;
+    newStreamOffset |= audioMapIndex << 17;
+    state.mapStreamOffset = newStreamOffset;
+
+    return found;
 }
 
-std::string AudioResourceSource::_GetAudioVolumePath(bool bak, ResourceSourceFlags *sourceFlags)
+std::string AudioResourceSource::_GetAudioVolumePath(bool bak, AudioVolumeName volumeToUse, ResourceSourceFlags *sourceFlags)
 {
-    ResourceSourceFlags sourceFlagsTemp = (_version.AudioVolumeName == AudioVolumeName::Aud) ? ResourceSourceFlags::Aud : ResourceSourceFlags::Sfx;
-    std::string fullPath = _gameFolder + "\\" + ((_version.AudioVolumeName == AudioVolumeName::Aud) ? "resource.aud" : "resource.sfx");
+    ResourceSourceFlags sourceFlagsTemp = (volumeToUse == AudioVolumeName::Aud) ? ResourceSourceFlags::Aud : ResourceSourceFlags::Sfx;
+    std::string fullPath = _gameFolder + "\\" + ((volumeToUse == AudioVolumeName::Aud) ? "resource.aud" : "resource.sfx");
     if (bak)
     {
         fullPath += ".bak";
@@ -224,29 +294,49 @@ std::string AudioResourceSource::_GetAudioVolumePath(bool bak, ResourceSourceFla
     }
     return fullPath;
 }
-void AudioResourceSource::_EnsureAudioVolume()
+
+AudioVolumeName AudioResourceSource::_GetVolumeToUse(uint32_t base36Number)
 {
-    if (!_volumeStreamOwner)
+    AudioVolumeName volumeToUse = _version.AudioVolumeName;
+    if (_version.AudioVolumeName == AudioVolumeName::Both)
     {
-        ScopedFile scoped(_GetAudioVolumePath(false, &_sourceFlags), GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
-        _volumeStreamOwner = std::make_unique<sci::streamOwner>(scoped.hFile);
+        // When both are present, base36-indexed audio is in Aud, and regular audio is in Sfx
+        volumeToUse = (base36Number == NoBase36) ? AudioVolumeName::Sfx : AudioVolumeName::Aud;
     }
+    return volumeToUse;
+}
+
+sci::streamOwner *AudioResourceSource::_EnsureAudioVolume(uint32_t base36Number)
+{
+    AudioVolumeName volumeToUse = _GetVolumeToUse(base36Number);
+
+    if ((volumeToUse == AudioVolumeName::Sfx) && !_volumeStreamOwnerSfx)
+    {
+        ScopedFile scoped(_GetAudioVolumePath(false, volumeToUse, &_sourceFlags), GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
+        _volumeStreamOwnerSfx = std::make_unique<sci::streamOwner>(scoped.hFile);
+    }
+    if ((volumeToUse == AudioVolumeName::Aud) && !_volumeStreamOwnerAud)
+    {
+        ScopedFile scoped(_GetAudioVolumePath(false, volumeToUse, &_sourceFlags), GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
+        _volumeStreamOwnerAud = std::make_unique<sci::streamOwner>(scoped.hFile);
+    }
+    return (volumeToUse == AudioVolumeName::Sfx) ? _volumeStreamOwnerSfx.get() : _volumeStreamOwnerAud.get();
 }
 
 sci::istream AudioResourceSource::GetHeaderAndPositionedStream(const ResourceMapEntryAgnostic &mapEntry, ResourceHeaderAgnostic &headerEntry)
 {
-    _EnsureAudioVolume();
-
-    if (_volumeStreamOwner)
+    sci::streamOwner *streamOwner = _EnsureAudioVolume(mapEntry.Base36Number);
+    if (streamOwner)
     {
-        sci::istream reader = _volumeStreamOwner->getReader();
+        sci::istream reader = streamOwner->getReader();
         reader.seekg(mapEntry.Offset);
         headerEntry.Number = mapEntry.Number;
+        headerEntry.Base36Number = mapEntry.Base36Number;
         headerEntry.PackageHint = mapEntry.PackageNumber;
         headerEntry.CompressionMethod = 0;
         headerEntry.SourceFlags = _sourceFlags;
         headerEntry.Version = _version;
-        headerEntry.Type = ResourceType::Audio;
+        headerEntry.Type = mapEntry.Type;
         headerEntry.cbDecompressed = 0;
         AudioHeader audioHeader;
         reader >> audioHeader;
@@ -261,23 +351,31 @@ sci::istream AudioResourceSource::GetHeaderAndPositionedStream(const ResourceMap
 
 void AudioResourceSource::RemoveEntry(const ResourceMapEntryAgnostic &mapEntry) 
 {
-    _EnsureAudioVolume();
-    const AudioMapComponent *audioMap = appState->GetResourceMap().GetAudioMap65535();
-    if (audioMap)
+    sci::streamOwner *streamOwner = _EnsureAudioVolume(mapEntry.Base36Number);
+    if (streamOwner)
     {
-        sci::istream oldReader = _volumeStreamOwner->getReader();
-        unique_ptr<AudioMapComponent> newAudioMap = make_unique<AudioMapComponent>(*audioMap);
-        newAudioMap->Entries.clear();
+        const auto &audioMaps = appState->GetResourceMap().GetAudioMaps();
+        auto it = find_if(audioMaps.begin(), audioMaps.end(),
+            [](const std::unique_ptr<ResourceEntity> &audioMap) { return IsMainAudioMap(audioMap->GetComponent<AudioMapComponent>().Version); }
+        );
+        if (it != audioMaps.end())
+        {
+            const AudioMapComponent &audioMap = (*it)->GetComponent<AudioMapComponent>();
 
-        sci::ostream newVolumeStream;
-        newVolumeStream.EnsureCapacity(_volumeStreamOwner->getReader().GetDataSize());  // Avoid some re-allocs
+            sci::istream oldReader = streamOwner->getReader();
+            unique_ptr<AudioMapComponent> newAudioMap = make_unique<AudioMapComponent>(audioMap);
+            newAudioMap->Entries.clear();
 
-        // Copy over the old entries, minus the new one
-        set<uint16_t> removeThese;
-        removeThese.insert(mapEntry.Number);
-        _CopyWithoutThese(*audioMap, *newAudioMap, oldReader, newVolumeStream, removeThese);
+            sci::ostream newVolumeStream;
+            newVolumeStream.EnsureCapacity(streamOwner->getReader().GetDataSize());  // Avoid some re-allocs
 
-        _Finalize(*newAudioMap, newVolumeStream);
+            // Copy over the old entries, minus the new one
+            set<uint16_t> removeThese;
+            removeThese.insert(mapEntry.Number);
+            _CopyWithoutThese(audioMap, *newAudioMap, oldReader, newVolumeStream, removeThese);
+
+            _Finalize(*newAudioMap, newVolumeStream, mapEntry.Base36Number);
+        }
     }
 }
 
@@ -312,11 +410,12 @@ void AudioResourceSource::_CopyWithoutThese(const AudioMapComponent &audioMap, A
     }
 }
 
-void AudioResourceSource::_Finalize(AudioMapComponent &newAudioMap, sci::ostream &newVolumeStream)
+void AudioResourceSource::_Finalize(AudioMapComponent &newAudioMap, sci::ostream &newVolumeStream, uint32_t base36Number)
 {
+    AudioVolumeName volumeToUse = _GetVolumeToUse(base36Number);
     // TODO: Save to bak. Then write resource map thingy. Then swap to real
     // Now let's save the stream to the bak file
-    string bakPath = _GetAudioVolumePath(true);
+    string bakPath = _GetAudioVolumePath(true, volumeToUse);
     {
         ScopedFile bakFile(bakPath, GENERIC_WRITE, 0, CREATE_ALWAYS);
         bakFile.Write(newVolumeStream.GetInternalPointer(), newVolumeStream.GetDataSize());
@@ -324,35 +423,41 @@ void AudioResourceSource::_Finalize(AudioMapComponent &newAudioMap, sci::ostream
 
     // This is risky since these operations are not atomic. To minimize issues, we should try to open the
     // file for write first (e.g. test write). And only then saveAudioMap65535
-    testopenforwrite(_GetAudioVolumePath(false));
+    testopenforwrite(_GetAudioVolumePath(false, volumeToUse));
 
     // Then we'll save our new map.
     appState->GetResourceMap().SaveAudioMap65535(newAudioMap);
 
     // If that caused no problems, then finally do the swap of the file, and hopefully that worked.
-    deletefile(_GetAudioVolumePath(false));
-    movefile(bakPath, _GetAudioVolumePath(false));
+    deletefile(_GetAudioVolumePath(false, volumeToUse));
+    movefile(bakPath, _GetAudioVolumePath(false, volumeToUse));
 }
 
 AppendBehavior AudioResourceSource::AppendResources(const std::vector<ResourceBlob> &entries)
 {
-    _EnsureAudioVolume();
     for (const ResourceBlob &blob : entries)
     {
-        const AudioMapComponent *audioMap = appState->GetResourceMap().GetAudioMap65535();
-        if (audioMap)
+        const auto &audioMaps = appState->GetResourceMap().GetAudioMaps();
+        auto it = find_if(audioMaps.begin(), audioMaps.end(),
+            [](const std::unique_ptr<ResourceEntity> &audioMap) { return IsMainAudioMap(audioMap->GetComponent<AudioMapComponent>().Version); }
+        );
+        if (it != audioMaps.end())
         {
-            sci::istream oldReader = _volumeStreamOwner->getReader();
-            unique_ptr<AudioMapComponent> newAudioMap = make_unique<AudioMapComponent>(*audioMap);
+            sci::streamOwner *streamOwner = _EnsureAudioVolume(blob.GetHeader().Base36Number);
+
+            const AudioMapComponent &audioMap = (*it)->GetComponent<AudioMapComponent>();
+
+            sci::istream oldReader = streamOwner->getReader();
+            unique_ptr<AudioMapComponent> newAudioMap = make_unique<AudioMapComponent>(audioMap);
             newAudioMap->Entries.clear();
 
             sci::ostream newVolumeStream;
-            newVolumeStream.EnsureCapacity(_volumeStreamOwner->getReader().GetDataSize());  // Avoid some re-allocs
+            newVolumeStream.EnsureCapacity(streamOwner->getReader().GetDataSize());  // Avoid some re-allocs
 
             // Copy over the old entries, minus the new one
             set<uint16_t> removeThese;
             removeThese.insert(blob.GetNumber());
-            _CopyWithoutThese(*audioMap, *newAudioMap, oldReader, newVolumeStream, removeThese);
+            _CopyWithoutThese(audioMap, *newAudioMap, oldReader, newVolumeStream, removeThese);
 
             // Append our new resource
             AudioMapEntry newEntry;
@@ -361,7 +466,7 @@ AppendBehavior AudioResourceSource::AppendResources(const std::vector<ResourceBl
             newAudioMap->Entries.push_back(newEntry);
             transfer(blob.GetReadStream(), newVolumeStream, blob.GetCompressedLength());
 
-            _Finalize(*newAudioMap, newVolumeStream);
+            _Finalize(*newAudioMap, newVolumeStream, blob.GetHeader().Base36Number);
         }
     }
     return AppendBehavior::Replace;

@@ -60,7 +60,7 @@ ResourceBlob::ResourceBlob()
     _hasNumber = false;
 }
 
-ResourceBlob::ResourceBlob(PCTSTR pszName, ResourceType iType, const std::vector<BYTE> &data, int iPackageHint, int iNumber, SCIVersion version, ResourceSourceFlags sourceFlags)
+ResourceBlob::ResourceBlob(PCTSTR pszName, ResourceType iType, const std::vector<BYTE> &data, int iPackageHint, int iNumber, uint32_t base36Number, SCIVersion version, ResourceSourceFlags sourceFlags)
 {
     _resourceLoadStatus = ResourceLoadStatusFlags::None;
     _pData = data;
@@ -79,7 +79,7 @@ ResourceBlob::ResourceBlob(PCTSTR pszName, ResourceType iType, const std::vector
     header.PackageHint = iPackageHint;
     if (!pszName || (*pszName == 0))
     {
-        _strName = appState->GetResourceMap().Helper().FigureOutName(iType, iNumber);
+        _strName = appState->GetResourceMap().Helper().FigureOutName(iType, iNumber, base36Number);
     }
     else
     {
@@ -96,7 +96,7 @@ int ResourceBlob::GetLengthOnDisk() const
     return headerSize + header.cbCompressed;
 }
 
-HRESULT ResourceBlob::CreateFromBits(PCTSTR pszName, ResourceType iType, sci::istream *pStream, int iPackageHint, int iNumber, SCIVersion version, ResourceSourceFlags sourceFlags)
+HRESULT ResourceBlob::CreateFromBits(PCTSTR pszName, ResourceType iType, sci::istream *pStream, int iPackageHint, int iNumber, uint32_t base36Number, SCIVersion version, ResourceSourceFlags sourceFlags)
 {
     HRESULT hr = E_FAIL;
     if (pStream)
@@ -118,7 +118,7 @@ HRESULT ResourceBlob::CreateFromBits(PCTSTR pszName, ResourceType iType, sci::is
 
         if (!pszName || (*pszName == 0))
         {
-            _strName = appState->GetResourceMap().Helper().FigureOutName(iType, iNumber);
+            _strName = appState->GetResourceMap().Helper().FigureOutName(iType, iNumber, base36Number);
         }
         else
         {
@@ -707,7 +707,7 @@ ResourceBlob *Load8BitBmp(const std::string &filename)
                     {
                         sci::istream stream(extractedData.get(), header.wSize);
                         std::unique_ptr<ResourceBlob> blob(new ResourceBlob());
-                        if (SUCCEEDED(blob.get()->CreateFromBits(NULL, type, &stream, -1, -1, appState->GetVersion(), ResourceSourceFlags::ResourceMap)))
+                        if (SUCCEEDED(blob.get()->CreateFromBits(NULL, type, &stream, -1, -1, NoBase36, appState->GetVersion(), ResourceSourceFlags::ResourceMap)))
                         {
                             pBlob = blob.get();
                             blob.release();
@@ -727,7 +727,8 @@ bool operator==(const ResourceMapEntryAgnostic &one, const ResourceMapEntryAgnos
     return one.Number == two.Number &&
         one.Offset == two.Offset &&
         one.PackageNumber == two.PackageNumber &&
-        one.Type == two.Type;
+        one.Type == two.Type &&
+        one.Base36Number == two.Base36Number;
 }
 
 

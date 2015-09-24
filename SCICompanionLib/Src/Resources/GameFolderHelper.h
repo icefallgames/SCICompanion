@@ -8,7 +8,7 @@ enum class ResourceEnumFlags : uint16_t;
 // interact with the ResourceMap object.
 
 // Returns "n004" for 4.
-std::string default_reskey(int iNumber);
+std::string default_reskey(int iNumber, uint32_t base36Number);
 
 class ResourceRecency;
 
@@ -32,7 +32,7 @@ public:
     void SetIniString(const std::string &sectionName, const std::string &keyName, const std::string &value) const;
     LangSyntax GetGameLanguage() const { return Language; }
     ScriptId GetScriptId(const std::string &name) const;
-    std::string FigureOutName(ResourceType type, int iResourceNum) const;
+    std::string FigureOutName(ResourceType type, int iResourceNum, uint32_t base36Number) const;
     std::unique_ptr<ResourceContainer> Resources(ResourceTypeFlags types, ResourceEnumFlags enumFlags, ResourceRecency *pRecency = nullptr) const;
     std::unique_ptr<ResourceBlob> GameFolderHelper::MostRecentResource(ResourceType type, int number, ResourceEnumFlags flags) const;
 

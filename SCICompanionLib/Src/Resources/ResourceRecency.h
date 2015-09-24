@@ -42,12 +42,9 @@ public:
 
 private:
     //
-    // A map for each of the 10 different resource types.
+    // A map for each of the n different resource types.
     // Each map contains values which are arrays of the unique resource ids
     //
-
-    //CMap<int, int, CArray<int, int>*, CArray<int, int>* > _resourceToRecency[NumResourceTypes];
-
     typedef std::vector<int> ResourceIdArray;
     // hmm... each entry in this array has a bunch of resource keys (combo of number/package) that maps to lists of
     // resource ids.

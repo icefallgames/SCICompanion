@@ -254,12 +254,12 @@ bool NewCompileScript(CompileLog &log, CompileTables &tables, PrecompiledHeaders
 
                 // Save the script resource
                 std::vector<BYTE> &output = results.GetScriptResource();
-                appState->GetResourceMap().AppendResource(ResourceBlob(nullptr, ResourceType::Script, output, appState->GetVersion().DefaultVolumeFile, wNum, appState->GetVersion(), ResourceSourceFlags::ResourceMap));
+                appState->GetResourceMap().AppendResource(ResourceBlob(nullptr, ResourceType::Script, output, appState->GetVersion().DefaultVolumeFile, wNum, NoBase36, appState->GetVersion(), ResourceSourceFlags::ResourceMap));
 
                 std::vector<BYTE> &outputHep = results.GetHeapResource();
                 if (!outputHep.empty())
                 {
-                    appState->GetResourceMap().AppendResource(ResourceBlob(nullptr, ResourceType::Heap, outputHep, appState->GetVersion().DefaultVolumeFile, wNum, appState->GetVersion(), ResourceSourceFlags::ResourceMap));
+                    appState->GetResourceMap().AppendResource(ResourceBlob(nullptr, ResourceType::Heap, outputHep, appState->GetVersion().DefaultVolumeFile, wNum, NoBase36, appState->GetVersion(), ResourceSourceFlags::ResourceMap));
                 }
 
                 // Save the corresponding sco file.
@@ -678,7 +678,7 @@ void CScriptDocument::SetNameAndContent(ScriptId scriptId, int iResourceNumber, 
     int nEndChar = 0;
     _buffer.InsertText(NULL, 0, 0, text.c_str(), nEndLine, nEndChar);
     _buffer.SetModified();
-    appState->GetResourceMap().AssignName(ResourceType::Script, iResourceNumber, scriptId.GetTitle().c_str());
+    appState->GetResourceMap().AssignName(ResourceType::Script, iResourceNumber, NoBase36, scriptId.GetTitle().c_str());
     // Since we're assigning a name, we'd better save it too.
     OnFileSave();
 }

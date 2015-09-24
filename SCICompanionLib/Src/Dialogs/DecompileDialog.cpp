@@ -151,7 +151,7 @@ void DecompileDialog::_UpdateScripts(set<uint16_t> updatedScripts)
         uint16_t scriptNum = (uint16_t)m_wndListScripts.GetItemData(i);
         if (contains(updatedScripts, scriptNum))
         {
-            string name = _helper.FigureOutName(ResourceType::Script, scriptNum);
+            string name = _helper.FigureOutName(ResourceType::Script, scriptNum, NoBase36);
             LVITEM item = {};
             item.iItem = i;
 
@@ -498,7 +498,7 @@ void DecompileDialog::OnLvnEndlabeleditListscripts(NMHDR *pNMHDR, LRESULT *pResu
         // Rename the .sco and .sc files
         string scOld = _helper.GetScriptFileName(scriptNumber);
         string scoOld = _helper.GetScriptObjectFileName(scriptNumber);
-        appState->GetResourceMap().AssignName(ResourceType::Script, scriptNumber, pDispInfo->item.pszText);
+        appState->GetResourceMap().AssignName(ResourceType::Script, scriptNumber, NoBase36, pDispInfo->item.pszText);
         
         // And move them.
         try
@@ -644,7 +644,7 @@ void DecompileDialog::OnBnClickedAssignfilenames()
                 }
                 usedNames.insert(suggestedName);
 
-                appState->GetResourceMap().AssignName(ResourceType::Script, script->GetScriptNumber(), suggestedName.c_str());
+                appState->GetResourceMap().AssignName(ResourceType::Script, script->GetScriptNumber(), NoBase36, suggestedName.c_str());
             }
         }
 

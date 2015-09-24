@@ -392,9 +392,17 @@ void CResourceMap::_SniffSCIVersion()
     {
         _gameFolderHelper.Version.AudioVolumeName = AudioVolumeName::Aud;
     }
-    else if (PathFileExists(fullPathSFX.c_str()))
+
+    if (PathFileExists(fullPathSFX.c_str()))
     {
-        _gameFolderHelper.Version.AudioVolumeName = AudioVolumeName::Sfx;
+        if (_gameFolderHelper.Version.AudioVolumeName == AudioVolumeName::Aud)
+        {
+            _gameFolderHelper.Version.AudioVolumeName = AudioVolumeName::Both;
+        }
+        else
+        {
+            _gameFolderHelper.Version.AudioVolumeName = AudioVolumeName::Sfx;
+        }
     }
 
     // Is there a message file?
@@ -569,7 +577,7 @@ void CResourceMap::_SniffSCIVersion()
     _gameFolderHelper.Version.FontExtendedChars = _gameFolderHelper.Version.ViewFormat != ViewFormat::EGA;
 
     // If we find a map resource that isn't number 65535, then assume that this game has seq resources
-    _gameFolderHelper.Version.HasSeqResources = false;
+    _gameFolderHelper.Version.HasSyncResources = false;
     if (_gameFolderHelper.Version.AudioVolumeName != AudioVolumeName::None)
     {
         // Usually the audio is map 65535. Sometimes (LB2, non-CD version) it is 0.
@@ -589,7 +597,7 @@ void CResourceMap::_SniffSCIVersion()
             else
             {
                 // We found something *other* than 0 or 65535
-                _gameFolderHelper.Version.HasSeqResources = true;
+                _gameFolderHelper.Version.HasSyncResources = true;
             }
         }
         // Now, if we didn't find either 65535 or 0, that's fine. 65535 may be a patch file.

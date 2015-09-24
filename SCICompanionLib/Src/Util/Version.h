@@ -48,6 +48,7 @@ enum class AudioVolumeName : uint8_t
     None = 0,
     Aud = 1,
     Sfx = 2,
+    Both = 3,   // In which case, base36 audio is in .aud.
 };
 
 struct SCIVersion
@@ -71,7 +72,7 @@ struct SCIVersion
     bool SeparateMessageMap;
     bool FontExtendedChars;
     bool HasSaidVocab;
-    bool HasSeqResources;
+    bool HasSyncResources;
     int AudioMapResourceNumber;
 
     bool operator==(const SCIVersion &src);

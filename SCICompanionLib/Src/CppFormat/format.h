@@ -1156,6 +1156,18 @@ IntFormatSpec<int, TypeSpec<'x'> > hex(int value);
 IntFormatSpec<int, TypeSpec<'X'> > hexu(int value);
 
 /**
+Returns an integer format specifier to format the value in base 36 using
+lower-case letters for the digits above 9.
+*/
+IntFormatSpec<int, TypeSpec<'t'> > base36(int value);
+
+/**
+Returns an integer formatter format specifier to format in base 36 using
+upper-case letters for the digits above 9.
+*/
+IntFormatSpec<int, TypeSpec<'T'> > base36u(int value);
+
+/**
   \rst
   Returns an integer format specifier to pad the formatted argument with the
   fill character to the specified width using the default (right) numeric
@@ -1188,6 +1200,14 @@ inline IntFormatSpec<TYPE, TypeSpec<'x'> > hex(TYPE value) { \
  \
 inline IntFormatSpec<TYPE, TypeSpec<'X'> > hexu(TYPE value) { \
   return IntFormatSpec<TYPE, TypeSpec<'X'> >(value, TypeSpec<'X'>()); \
+} \
+ \
+inline IntFormatSpec<TYPE, TypeSpec<'t'> > base36(TYPE value) { \
+  return IntFormatSpec<TYPE, TypeSpec<'t'> >(value, TypeSpec<'t'>()); \
+} \
+ \
+inline IntFormatSpec<TYPE, TypeSpec<'T'> > base36u(TYPE value) { \
+  return IntFormatSpec<TYPE, TypeSpec<'T'> >(value, TypeSpec<'T'>()); \
 } \
  \
 template <char TYPE_CODE> \
@@ -1836,6 +1856,26 @@ void BasicWriter<Char>::write_int(T value, Spec spec) {
       *p-- = digits[n & 0xf];
     } while ((n >>= 4) != 0);
     break;
+  }
+  case 't': case 'T': {
+      UnsignedType n = abs_value;
+      if (spec.flag(HASH_FLAG)) {
+          prefix[prefix_size++] = '0';
+          prefix[prefix_size++] = spec.type();
+      }
+      unsigned num_digits = 0;
+      do {
+          ++num_digits;
+      } while ((n /= 36) != 0);
+      Char *p = get(prepare_int_buffer(
+          num_digits, spec, prefix, prefix_size));
+      n = abs_value;
+      const char *digits = spec.type() == 't' ?
+          "0123456789abcdefghijklmnopqrstuvwxyz" : "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      do {
+          *p-- = digits[n % 36];
+      } while ((n /= 36) != 0);
+      break;
   }
   case 'b': case 'B': {
     UnsignedType n = abs_value;

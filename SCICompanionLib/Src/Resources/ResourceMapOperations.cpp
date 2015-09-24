@@ -139,7 +139,7 @@ void DeleteResource(CResourceMap &resourceMap, const ResourceBlob &data)
             if (IDOK == dialog.DoModal())
             {
                 // Remove it from the ini
-                std::string iniKey = default_reskey(data.GetNumber());
+                std::string iniKey = default_reskey(data.GetNumber(), data.GetHeader().Base36Number);
                 std::string scriptTitle = helper.GetIniString("Script", iniKey);
                 ScriptId scriptId = resourceMap.Helper().GetScriptId(scriptTitle);
                 // First, remove from the [Script] section

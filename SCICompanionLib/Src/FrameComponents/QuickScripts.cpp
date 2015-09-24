@@ -150,7 +150,7 @@ void QuickScriptsSidePane::_PrepareViewCommands(int iIndex, const ResourceEntity
         CExtBitmap extBitmap;
         extBitmap.FromBitmap((HBITMAP)bitmap);
         g_CmdManager->CmdSetIcon(appState->_pszCommandProfile, nID, extBitmap, RGB(255, 255, 255), CRect(0, 0, 24, 24));
-        std::string name = appState->GetResourceMap().Helper().FigureOutName(ResourceType::View, view.ResourceNumber);
+        std::string name = appState->GetResourceMap().Helper().FigureOutName(ResourceType::View, view.ResourceNumber, NoBase36);
         pCmdItem->m_sMenuText = name.c_str();
         pCmdItem->m_sTipTool = pCmdItem->m_sMenuText;
     }
@@ -370,7 +370,7 @@ void _EnableDirection(std::string direction, CWnd &wnd, WORD wNumber)
 {
     if (wNumber)
     {
-        direction += appState->GetResourceMap().Helper().FigureOutName(ResourceType::Script, wNumber);
+        direction += appState->GetResourceMap().Helper().FigureOutName(ResourceType::Script, wNumber, NoBase36);
         wnd.SetWindowText(direction.c_str());
         wnd.EnableWindow(TRUE);
     }

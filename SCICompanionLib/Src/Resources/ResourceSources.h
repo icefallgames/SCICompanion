@@ -508,15 +508,18 @@ public:
     void RebuildResources() override {}
 
 private:
-    void _Finalize(AudioMapComponent &newAudioMap, sci::ostream &newVolumeStream);
+    AudioVolumeName _GetVolumeToUse(uint32_t base36Number);
+    void _Finalize(AudioMapComponent &newAudioMap, sci::ostream &newVolumeStream, uint32_t base36Number);
     void _CopyWithoutThese(const AudioMapComponent &audioMap, AudioMapComponent &newAudioMap, sci::istream &oldReader, sci::ostream &newVolumeStream, const std::set<uint16_t> &removeThese);
-    std::string _GetAudioVolumePath(bool bak, ResourceSourceFlags *sourceFlags = nullptr);
-    void _EnsureAudioVolume();
+    std::string _GetAudioVolumePath(bool bak, AudioVolumeName volumeName, ResourceSourceFlags *sourceFlags = nullptr);
+    sci::streamOwner *_EnsureAudioVolume(uint32_t base36Number);
 
     std::string _gameFolder;
     SCIVersion _version;
     ResourceSourceFlags _sourceFlags;
-    std::unique_ptr<sci::streamOwner> _volumeStreamOwner;
+
+    std::unique_ptr<sci::streamOwner> _volumeStreamOwnerSfx;
+    std::unique_ptr<sci::streamOwner> _volumeStreamOwnerAud;
 };
 
 

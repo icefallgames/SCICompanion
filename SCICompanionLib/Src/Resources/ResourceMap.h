@@ -43,11 +43,11 @@ public:
     void AppendResourceAskForNumber(ResourceEntity &resource);
     void AppendResourceAskForNumber(ResourceEntity &resource, const std::string &name, bool warnOnOverwrite = false);
     bool AppendResource(const ResourceEntity &resource, int *pChecksum = nullptr);
-    bool AppendResource(const ResourceEntity &resource, int packageNumber, int resourceNumber, int *pChecksum = nullptr);
+    bool AppendResource(const ResourceEntity &resource, int packageNumber, int resourceNumber, uint32_t base36Header = NoBase36, int *pChecksum = nullptr);
 
     int SuggestResourceNumber(ResourceType type);
     void AssignName(const ResourceBlob &resource);
-    void AssignName(ResourceType iType, int iResourceNumber, PCTSTR pszName);
+    void AssignName(ResourceType iType, int iResourceNumber, uint32_t base36Number, PCTSTR pszName);
 
     // The main functions for enumerating resources.
     std::unique_ptr<ResourceContainer> Resources(ResourceTypeFlags types, ResourceEnumFlags flags);
@@ -81,7 +81,7 @@ public:
     const GameFolderHelper &Helper() { return _gameFolderHelper; }
     const Vocab000 *GetVocab000();
     const PaletteComponent *GetPalette999();
-    const AudioMapComponent *GetAudioMap65535();
+    const std::vector<std::unique_ptr<ResourceEntity>> &GetAudioMaps();
     void SaveAudioMap65535(const AudioMapComponent &newAudioMap);
     GlobalCompiledScriptLookups *GetCompiledScriptLookups();
     std::vector<int> GetPaletteList();
@@ -129,7 +129,7 @@ private:
     // Useful resources to cache
     std::unique_ptr<ResourceEntity> _pVocab000;
     std::unique_ptr<ResourceEntity> _pPalette999;
-    std::unique_ptr<ResourceEntity> _pAudioMap65535;
+    std::vector<std::unique_ptr<ResourceEntity>> _audioMaps;
     PaletteComponent _emptyPalette;
     std::vector<int> _paletteList;
     bool _paletteListNeedsUpdate;

@@ -161,7 +161,7 @@ void DetermineAndInsertUsings(const GameFolderHelper &helper, Script &script, De
 {
     for (uint16_t usingScript : lookups.GetUsings())
     {
-        script.AddUse(helper.FigureOutName(ResourceType::Script, usingScript));
+        script.AddUse(helper.FigureOutName(ResourceType::Script, usingScript, NoBase36));
     }
 }
 

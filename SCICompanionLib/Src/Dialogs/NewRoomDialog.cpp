@@ -247,7 +247,7 @@ void _CreateMessageFile(int scriptNumber)
             entry.Sequence = 1; 
             entry.Text = "This is the room description";
             text.Texts.push_back(entry);
-            appState->GetResourceMap().AppendResource(*newMessageResource, appState->GetVersion().DefaultVolumeFile, scriptNumber);
+            appState->GetResourceMap().AppendResource(*newMessageResource, appState->GetVersion().DefaultVolumeFile, scriptNumber, NoBase36);
         }
     }
 }

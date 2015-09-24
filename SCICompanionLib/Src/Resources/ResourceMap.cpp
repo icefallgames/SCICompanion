@@ -19,7 +19,6 @@
 #include "Message.h"
 #include "Audio.h"
 #include "AudioMap.h"
-#include "AudioSyncMap.h"
 #include "ResourceEntity.h"
 #include "ResourceSources.h"
 #include "CompiledScript.h"
@@ -196,7 +195,7 @@ CResourceMap::~CResourceMap()
 void CResourceMap::AssignName(const ResourceBlob &resource)
 {
     // Assign the name of the item.
-    std::string keyName = default_reskey(resource.GetNumber());
+    std::string keyName = default_reskey(resource.GetNumber(), resource.GetHeader().Base36Number);
     std::string name = resource.GetName();
     if (!name.empty() && (0 != lstrcmpi(keyName.c_str(), name.c_str())))
     {
@@ -204,10 +203,10 @@ void CResourceMap::AssignName(const ResourceBlob &resource)
     }
 }
 
-void CResourceMap::AssignName(ResourceType type, int iResourceNumber, PCTSTR pszName)
+void CResourceMap::AssignName(ResourceType type, int iResourceNumber, uint32_t base36Number, PCTSTR pszName)
 {
     // Assign the name of the item.
-    std::string keyName = default_reskey(iResourceNumber);
+    std::string keyName = default_reskey(iResourceNumber, base36Number);
     std::string newValue;
     if (pszName)
     {
@@ -382,7 +381,7 @@ void CResourceMap::AppendResourceAskForNumber(ResourceEntity &resource, const st
         // Assign it.
         resource.ResourceNumber = srd.GetResourceNumber();
         resource.PackageNumber = srd.GetPackageNumber();
-        AssignName(resource.GetType(), resource.ResourceNumber, srd.GetName().c_str());
+        AssignName(resource.GetType(), resource.ResourceNumber, NoBase36, srd.GetName().c_str());
         AppendResource(resource);
     }
 }
@@ -504,10 +503,10 @@ HRESULT CResourceMap::AppendResource(const ResourceBlob &resource)
 
 bool CResourceMap::AppendResource(const ResourceEntity &resource, int *pChecksum)
 {
-    return AppendResource(resource, resource.PackageNumber, resource.ResourceNumber, pChecksum);
+    return AppendResource(resource, resource.PackageNumber, resource.ResourceNumber, resource.Base36Number, pChecksum);
 }
 
-bool CResourceMap::AppendResource(const ResourceEntity &resource, int packageNumber, int resourceNumber, int *pChecksum)
+bool CResourceMap::AppendResource(const ResourceEntity &resource, int packageNumber, int resourceNumber, uint32_t base36Number, int *pChecksum)
 {
     bool success = false;
     if (resource.PerformChecks())
@@ -518,7 +517,7 @@ bool CResourceMap::AppendResource(const ResourceEntity &resource, int packageNum
         {
             ResourceBlob data;
             sci::istream readStream = istream_from_ostream(serial);
-            data.CreateFromBits(nullptr, resource.GetType(), &readStream, packageNumber, resourceNumber, _gameFolderHelper.Version, resource.SourceFlags);
+            data.CreateFromBits(nullptr, resource.GetType(), &readStream, packageNumber, resourceNumber, base36Number, _gameFolderHelper.Version, resource.SourceFlags);
             success = SUCCEEDED(AppendResource(data));
             if (pChecksum)
             {
@@ -838,12 +837,12 @@ SCIVersion &CResourceMap::GetSCIVersion()
 //
 // Perf: we're opening and closing the file each time.  We could do this once.
 //
-std::string FigureOutResourceName(const std::string &iniFileName, ResourceType type, int iNumber)
+std::string FigureOutResourceName(const std::string &iniFileName, ResourceType type, int iNumber, uint32_t base36Number)
 {
     std::string name;
     if ((size_t)type < ARRAYSIZE(g_resourceInfo))
     {
-        std::string keyName = default_reskey(iNumber);
+        std::string keyName = default_reskey(iNumber, base36Number);
         name = GetIniString(iniFileName, GetResourceInfo(type).pszTitleDefault, keyName, keyName.c_str());
     }
     return name;
@@ -955,24 +954,29 @@ std::unique_ptr<PaletteComponent> CResourceMap::GetMergedPalette(const ResourceE
     return paletteReturn;
 }
 
-const AudioMapComponent *CResourceMap::GetAudioMap65535()
+const std::vector<std::unique_ptr<ResourceEntity>> &CResourceMap::GetAudioMaps()
 {
-    if (!_pAudioMap65535)
+    if (_audioMaps.empty())
     {
         // In some games this is a "patch file", in others it's embedded in resource.map
-        _pAudioMap65535 = CreateResourceFromNumber(ResourceType::Map, Helper().Version.AudioMapResourceNumber);
+        auto resourceContainer = Helper().Resources(ResourceTypeFlags::Map, ResourceEnumFlags::MostRecentOnly);
+        for (auto &blob : *resourceContainer)
+        {
+            _audioMaps.push_back(CreateResourceFromResourceData(*blob));
+        }
     }
 
-    return _pAudioMap65535 ? _pAudioMap65535->TryGetComponent<AudioMapComponent>() : nullptr;
+    return _audioMaps;
 }
 
 void CResourceMap::SaveAudioMap65535(const AudioMapComponent &newAudioMap)
 {
-    GetAudioMap65535(); // Just ensure we have one
+    std::unique_ptr<ResourceEntity> entity(CreateMapResource(Helper().Version));
     // Assign the new component to it.
-    _pAudioMap65535->GetComponent<AudioMapComponent>() = newAudioMap;
-    AppendResource(*_pAudioMap65535);
-    _pAudioMap65535.reset(nullptr);
+    entity->RemoveComponent<AudioMapComponent>();
+    entity->AddComponent<AudioMapComponent>(std::make_unique<AudioMapComponent>(newAudioMap));
+    AppendResource(*entity);
+    _audioMaps.clear();
 }
 
 const PaletteComponent *CResourceMap::GetPalette999()
@@ -1210,7 +1214,7 @@ void CResourceMap::SetGameFolder(const string &gameFolder)
     ClearVocab000();
     _pPalette999.reset(nullptr);                    // REVIEW: also do this if global palette is edited.
     _globalCompiledScriptLookups.reset(nullptr);
-    _pAudioMap65535.reset(nullptr);
+    _audioMaps.clear();
     _gameFolderHelper.Language = LangSyntaxUnknown;
     _talkersHeaderFile.reset(nullptr);
     _verbsHeaderFile.reset(nullptr);
@@ -1308,14 +1312,7 @@ std::unique_ptr<ResourceEntity> CreateResourceFromResourceData(const ResourceBlo
         case ResourceType::Audio:
             return CreateResourceHelper(data, CreateAudioResource, CreateDefaultAudioResource, fallbackOnException);
         case ResourceType::Map:
-            if (data.GetNumber() == data.GetVersion().AudioMapResourceNumber)
-            {
-                return CreateResourceHelper(data, CreateMapResource, CreateMapResource, fallbackOnException);
-            }
-            else
-            {
-                return CreateResourceHelper(data, CreateSequenceMapResource, CreateSequenceMapResource, fallbackOnException);
-            }
+            return CreateResourceHelper(data, CreateMapResource, CreateMapResource, fallbackOnException);
     default:
         assert(false);
         break;

@@ -422,7 +422,7 @@ void SelectorTable::Save()
         }
 
         // Now create a resource data for it and save it.
-        appState->GetResourceMap().AppendResource(ResourceBlob(nullptr, ResourceType::Vocab, output, _version.DefaultVolumeFile, VocabSelectorNames, appState->GetVersion(), ResourceSourceFlags::ResourceMap));
+        appState->GetResourceMap().AppendResource(ResourceBlob(nullptr, ResourceType::Vocab, output, _version.DefaultVolumeFile, VocabSelectorNames, NoBase36, appState->GetVersion(), ResourceSourceFlags::ResourceMap));
     }
 }
 
@@ -678,7 +678,7 @@ void SpeciesTable::Save()
             push_word(output, *speciesIt);
         }
         // Now create a resource data for it
-        appState->GetResourceMap().AppendResource(ResourceBlob(nullptr, ResourceType::Vocab, output, appState->GetVersion().DefaultVolumeFile, VocabClassTable, appState->GetVersion(), ResourceSourceFlags::ResourceMap));
+        appState->GetResourceMap().AppendResource(ResourceBlob(nullptr, ResourceType::Vocab, output, appState->GetVersion().DefaultVolumeFile, VocabClassTable, NoBase36, appState->GetVersion(), ResourceSourceFlags::ResourceMap));
     }
 }
 

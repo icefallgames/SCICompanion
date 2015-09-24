@@ -15,12 +15,13 @@ static const DWORD SCIResourceBitmapMarker = (('S' << 24) + ('C' << 16) + ('I' <
 // Common way to talk about resource map entries that is SCI version agnostic.
 struct ResourceMapEntryAgnostic
 {
-    ResourceMapEntryAgnostic() : Number(0), Type(ResourceType::None), PackageNumber(0), Offset(0), ExtraData(0) {}
+    ResourceMapEntryAgnostic() : Number(0), Type(ResourceType::None), PackageNumber(0), Offset(0), ExtraData(0), Base36Number(0xffffffff) {}
     uint16_t Number;            // e.g. 0-999
     ResourceType Type;          // (0 to x) e.g. PIC == 1
     uint8_t PackageNumber;      // Specifies which resource.xxx to use.
     DWORD Offset;               // Offset within the file resource.iPackageNumber
     uint32_t ExtraData;
+    uint32_t Base36Number;
     // Adding more members? Update operator==
 };
 
@@ -55,6 +56,7 @@ struct ResourceHeaderAgnostic
     ResourceType Type;
     SCIVersion Version;
     ResourceSourceFlags SourceFlags;
+    uint32_t Base36Number;
 };
 
 // The following two structure need to have 1-byte packing, since
@@ -290,9 +292,9 @@ public:
     ResourceBlob();
     ResourceBlob(const ResourceBlob &src) = default;
     ResourceBlob &operator=(const ResourceBlob &src) = default;
-    ResourceBlob(PCTSTR pszName, ResourceType iType, const std::vector<uint8_t> &data, int iPackageHint, int iNumberHint, SCIVersion version, ResourceSourceFlags sourceFlags);
+    ResourceBlob(PCTSTR pszName, ResourceType iType, const std::vector<uint8_t> &data, int iPackageHint, int iNumberHint, uint32_t base36Number, SCIVersion version, ResourceSourceFlags sourceFlags);
 
-    HRESULT CreateFromBits(PCTSTR pszName, ResourceType iType, sci::istream *pStream, int iPackageHint, int iNumberHint, SCIVersion version, ResourceSourceFlags sourceFlags);
+    HRESULT CreateFromBits(PCTSTR pszName, ResourceType iType, sci::istream *pStream, int iPackageHint, int iNumberHint, uint32_t base36Number, SCIVersion version, ResourceSourceFlags sourceFlags);
     HRESULT CreateFromHandle(PCTSTR pszName, HANDLE hFile, int iPackageHint, SCIVersion version);
 
     //
@@ -318,7 +320,7 @@ public:
             // Figure out a name based on the number
             if (!pszName || (*pszName == 0))
             {
-                _strName = appState->GetResourceMap().FigureOutName(header.Type, header.Number);
+                _strName = appState->GetResourceMap().FigureOutName(header.Type, header.Number, header.Base36Number);
             }
         }
 

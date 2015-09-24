@@ -145,7 +145,7 @@ ResourceContainer::ResourceIterator::reference ResourceContainer::ResourceIterat
     std::string name;
     if ((_container->_resourceEnumFlags & ResourceEnumFlags::NameLookups) != ResourceEnumFlags::None)
     {
-        name = FigureOutResourceName(GetGameIniFileName(_container->_gameFolder), _currentEntry.Type, _currentEntry.Number);
+        name = FigureOutResourceName(GetGameIniFileName(_container->_gameFolder), _currentEntry.Type, _currentEntry.Number, _currentEntry.Base36Number);
     }
 
     std::unique_ptr<ResourceBlob> blob = std::make_unique<ResourceBlob>();

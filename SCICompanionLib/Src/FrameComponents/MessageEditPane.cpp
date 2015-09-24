@@ -9,7 +9,7 @@
 #include "MessageSource.h"
 #include "WindowsUtil.h"
 #include "NounsAndCases.h"
-#include "AudioSyncMap.h"
+#include "AudioMap.h"
 
 using namespace std;
 
@@ -291,7 +291,7 @@ void MessageEditPane::_UpdateSequence(int sequence)
 
 void MessageEditPane::_UpdateAudio(const TextEntry &messageEntry)
 {
-    if (appState->GetVersion().HasSeqResources)
+    if (appState->GetVersion().HasSyncResources)
     {
         uint32_t tuple = GetMessageTuple(messageEntry);
 
@@ -300,7 +300,7 @@ void MessageEditPane::_UpdateAudio(const TextEntry &messageEntry)
         std::unique_ptr<ResourceEntity> map = appState->GetResourceMap().CreateResourceFromNumber(ResourceType::Map, mapResourceNumber);
         if (map)
         {
-            for (const auto &entry : map->GetComponent<AudioSyncMapComponent>().Entries)
+            for (const auto &entry : map->GetComponent<AudioMapComponent>().Entries)
             {
                 if (GetMessageTuple(entry) == tuple)
                 {
@@ -344,7 +344,7 @@ void MessageEditPane::_Update()
     }
 
     // Hide/show audio controls when appropriate.
-    int cmdShow = appState->GetVersion().HasSeqResources ? SW_SHOW : SW_HIDE;
+    int cmdShow = appState->GetVersion().HasSyncResources ? SW_SHOW : SW_HIDE;
     m_wndPlay.ShowWindow(cmdShow);
     m_wndStop.ShowWindow(cmdShow);
     m_wndAutoPreview.ShowWindow(cmdShow);

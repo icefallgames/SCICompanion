@@ -48,6 +48,7 @@ public:
     {
         PackageNumber = prd->GetPackageHint();
         ResourceNumber = prd->HasNumber() ? prd->GetNumber() : -1;
+        Base36Number = prd->GetHeader().Base36Number;
         SourceFlags = prd->GetSourceFlags();
         sci::istream byteStream = prd->GetReadStream();
         byteStream.setThrowExceptions(true);
@@ -60,6 +61,7 @@ public:
         std::unique_ptr<ResourceEntity> pClone = std::make_unique<ResourceEntity>(Traits);
         pClone->ResourceNumber = ResourceNumber;
         pClone->PackageNumber = PackageNumber;
+        pClone->Base36Number = Base36Number;
         pClone->SourceFlags = SourceFlags;
 
         for (auto &pair : components)
@@ -72,6 +74,7 @@ public:
     
     int ResourceNumber;
     int PackageNumber;
+    uint32_t Base36Number;
     ResourceSourceFlags SourceFlags;
     const ResourceTraits &Traits;
 

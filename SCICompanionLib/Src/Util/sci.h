@@ -126,8 +126,10 @@ ResourceType ResourceCommandToType(UINT nId);
 BOOL IsValidResourceType(int iResourceType);
 BOOL IsValidResourceNumber(int iResourceNum);
 
+static const uint32_t NoBase36 = 0xffffffff;
+
 std::string GetGameIniFileName(const std::string &gameFolder);
-std::string FigureOutResourceName(const std::string &iniFileName, ResourceType type, int iNumber);
+std::string FigureOutResourceName(const std::string &iniFileName, ResourceType type, int iNumber, uint32_t base36Number);
 
 const TCHAR *g_rgszTypeToSectionName[];
 

@@ -3,21 +3,35 @@
 #include "GameFolderHelper.h"
 #include "ResourceBlob.h"
 #include "ResourceMapOperations.h"
+#include "format.h"
 
 using namespace std;
 
 // Returns "n004" for input of 4
-std::string default_reskey(int iNumber)
+std::string default_reskey(int iNumber, uint32_t base36Number)
 {
-    stringstream ss;
-    ss << "n" << setfill('0') << setw(3) << iNumber;
-    return ss.str();
+    if (base36Number == 0xffffffff)
+    {
+        stringstream ss;
+        ss << "n" << setfill('0') << setw(3) << iNumber;
+        return ss.str();
+    }
+    else
+    {
+        return fmt::format("{0:0>3t}{1:0>2t}{2:0>2t}.{3:0>2t}{4:0>1t}",
+            iNumber,
+            (base36Number >> 8) & 0xff,
+            (base36Number >> 16) & 0xff,
+            (base36Number >> 0) & 0xff,
+            (base36Number >> 24) & 0xff
+            );
+    }
 }
 
 std::string GameFolderHelper::GetScriptFileName(WORD wScript, LangSyntax lang) const
 {
     std::string filename;
-    std::string scriptTitle = GetIniString("Script", default_reskey(wScript), default_reskey(wScript).c_str());
+    std::string scriptTitle = GetIniString("Script", default_reskey(wScript, NoBase36), default_reskey(wScript, NoBase36).c_str());
     if (!scriptTitle.empty())
     {
         filename = GetScriptFileName(scriptTitle, lang);
@@ -64,7 +78,7 @@ std::string GameFolderHelper::GetScriptObjectFileName(const std::string &title, 
 std::string GameFolderHelper::GetScriptObjectFileName(WORD wScript, LangSyntax lang) const
 {
     std::string filename;
-    std::string scriptTitle = GetIniString("Script", default_reskey(wScript), default_reskey(wScript).c_str());
+    std::string scriptTitle = GetIniString("Script", default_reskey(wScript, NoBase36), default_reskey(wScript, NoBase36).c_str());
     if (!scriptTitle.empty())
     {
         filename = GetScriptObjectFileName(scriptTitle, lang);
@@ -159,12 +173,12 @@ ScriptId GameFolderHelper::GetScriptId(const std::string &name) const
 //
 // Perf: we're opening and closing the file each time.  We could do this once.
 //
-std::string GameFolderHelper::FigureOutName(ResourceType type, int iNumber) const
+std::string GameFolderHelper::FigureOutName(ResourceType type, int iNumber, uint32_t base36Number) const
 {
     std::string name;
     if ((size_t)type < ARRAYSIZE(g_resourceInfo))
     {
-        std::string keyName = default_reskey(iNumber);
+        std::string keyName = default_reskey(iNumber, base36Number);
         name = GetIniString(GetResourceInfo(type).pszTitleDefault, keyName, keyName.c_str());
     }
     return name;
@@ -172,6 +186,12 @@ std::string GameFolderHelper::FigureOutName(ResourceType type, int iNumber) cons
 
 std::unique_ptr<ResourceContainer> GameFolderHelper::Resources(ResourceTypeFlags types, ResourceEnumFlags enumFlags, ResourceRecency *pRecency) const
 {
+    // If audio or sync resources are requested, we can't also have maps.
+    if (IsFlagSet(types, ResourceTypeFlags::Audio | ResourceTypeFlags::Sync))
+    {
+        ClearFlag(types, ResourceTypeFlags::Map);
+    }
+
     // Resources can come from various sources.
     std::unique_ptr<ResourceSourceArray> mapAndVolumes = std::make_unique<ResourceSourceArray>();
 
@@ -193,7 +213,7 @@ std::unique_ptr<ResourceContainer> GameFolderHelper::Resources(ResourceTypeFlags
             }
         }
         
-        if (IsFlagSet(types, ResourceTypeFlags::Audio))
+        if (IsFlagSet(types, ResourceTypeFlags::Audio | ResourceTypeFlags::Sync))
         {
             mapAndVolumes->push_back(move(make_unique<AudioResourceSource>(Version, GameFolder)));
         }
