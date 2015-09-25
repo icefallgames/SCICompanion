@@ -6,7 +6,7 @@
 
 using namespace std;
 
-std::string GetAudioLength(AudioComponent &audio)
+std::string GetAudioLength(const AudioComponent &audio)
 {
     int freq = max(1, audio.Frequency);
     if (IsFlagSet(audio.Flags, AudioFlags::SixteenBit))

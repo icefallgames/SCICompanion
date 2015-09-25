@@ -33,7 +33,7 @@ bool ResourceContainer::_PassesFilter(ResourceType type, int resourceNumber, uin
     {
         // Generate an index consisting of type and number
         uint32_t indexTemp = ((uint32_t)type) + (resourceNumber << 16);
-        uint64_t index = indexTemp + (base36Number << 32);
+        uint64_t index = indexTemp + ((uint64_t)base36Number << 32);
         pass = (_trackResources.find(index) == _trackResources.end());
         if (pass)
         {

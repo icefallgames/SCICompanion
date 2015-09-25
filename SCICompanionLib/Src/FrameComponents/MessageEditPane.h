@@ -5,12 +5,13 @@
 #include "NoFlickerStatic.h"
 #include "MessageEditorListCtrl.h"
 #include "Message.h"
+#include "AudioPlaybackUI.h"
 
 class CMessageDoc;
 struct TextComponent;
 struct TextEntry;
 
-class MessageEditPane : public CExtDialogFwdCmd, public INonViewClient
+class MessageEditPane : public AudioPlaybackUI<CExtDialogFwdCmd>, public INonViewClient
 {
 public:
     MessageEditPane(CWnd* pParent = NULL);   // standard constructor
@@ -80,11 +81,7 @@ private:
     CExtButton m_wndButtonFakeCommit;
     CExtSpinWnd m_wndSpinner;
 
-    // Audio
-    CExtEdit m_wndInfo;
-    CExtButton m_wndPlay;
-    CExtButton m_wndStop;
-    CExtCheckBox m_wndAutoPreview;
+    // Audio stuff
     std::unique_ptr<ResourceEntity> _audioResource;
     std::unique_ptr<ResourceEntity> _syncResource;
 

@@ -5,6 +5,7 @@
 #include "Sound.h"
 #include "FontPreviewView.h"
 #include "NoFlickerStatic.h"
+#include "AudioPlaybackUI.h"
 // ResourcePreviewer dialog
 
 // fwd decl
@@ -229,38 +230,17 @@ private:
 };
 
 
-class AudioPreviewer : public ResourcePreviewer
+class AudioPreviewer : public AudioPlaybackUI<ResourcePreviewer>
 {
 public:
-    AudioPreviewer();
     UINT GetIDD() { return IDD_PREVIEWAUDIO; }
     void SetResource(const ResourceBlob &blob);
 
 private:
-    afx_msg void OnPlay();
-    afx_msg void OnStop();
-    afx_msg void OnBrowse();
-    afx_msg void OnTimer(UINT_PTR nIDEvent);
-    void _UpdatePlayState();
     virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
     BOOL OnInitDialog();
-    DECLARE_MESSAGE_MAP()
-    bool _IsPlaying();
 
-    CExtEdit m_wndInfo;
-    CExtButton m_wndPlay;
-    CExtButton m_wndStop;
-    CExtSliderWnd m_wndSlider;
-    CExtCheckBox m_wndAutoPreview;
-    CExtLabel m_wndDuration;
-    CExtEdit m_wndDescription;
-    CExtButton m_wndBrowse;
-    CExtLabel m_wndTitle;
-
-    std::unique_ptr<ResourceEntity> _audio;
-
-    SCIVersion _lastVersion;
-    CFont _marlettFont;
+    std::unique_ptr<ResourceEntity> _resource;
 };
 
 

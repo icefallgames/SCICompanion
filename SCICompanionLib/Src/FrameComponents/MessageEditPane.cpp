@@ -16,7 +16,7 @@
 using namespace std;
 
 MessageEditPane::MessageEditPane(CWnd* pParent /*=NULL*/)
-    : CExtDialogFwdCmd(IDD, pParent), _hAccel(nullptr), _initialized(false), _verbEdited(false), _nounEdited(false), _conditionEdited(false), _talkerEdited(false)
+    : AudioPlaybackUI<CExtDialogFwdCmd>(IDD, pParent), _hAccel(nullptr), _initialized(false), _verbEdited(false), _nounEdited(false), _conditionEdited(false), _talkerEdited(false)
 {
     // Load our accelerators
     // HINSTANCE hInst = AfxFindResourceHandle(MAKEINTRESOURCE(IDR_ACCELERATORPICCOMMANDS), RT_ACCELERATOR);
@@ -34,6 +34,9 @@ void MessageEditPane::DoDataExchange(CDataExchange* pDX)
     if (!_initialized)
     {
         _initialized = true;
+
+        DoDataExchangeHelper(pDX);
+
         DDX_Control(pDX, IDC_COMBONOUN, m_wndComboNoun);
         DDX_Control(pDX, IDC_COMBOVERB, m_wndComboVerb);
         DDX_Control(pDX, IDC_COMBOTALKER, m_wndComboTalker);
@@ -65,7 +68,7 @@ void MessageEditPane::DoDataExchange(CDataExchange* pDX)
     DDX_Text(pDX, IDC_EDITSEQ, _spinnerValue);
 }
 
-BEGIN_MESSAGE_MAP(MessageEditPane, CExtDialogFwdCmd)
+BEGIN_MESSAGE_MAP(MessageEditPane, AudioPlaybackUI<CExtDialogFwdCmd>)
     ON_WM_DRAWITEM()
     ON_WM_CREATE()
     ON_WM_ERASEBKGND()
@@ -88,7 +91,6 @@ BEGIN_MESSAGE_MAP(MessageEditPane, CExtDialogFwdCmd)
     ON_CBN_SETFOCUS(IDC_COMBOTALKER, &MessageEditPane::OnCbnSetfocusCombotalker)
     ON_CBN_KILLFOCUS(IDC_COMBOTALKER, &MessageEditPane::OnCbnKillfocusCombotalker)
     ON_CBN_EDITCHANGE(IDC_COMBOTALKER, &MessageEditPane::OnCbnEditchangeCombotalker)
-    ON_COMMAND(IDC_BUTTON_PLAY2, OnPlayAudio)
 END_MESSAGE_MAP()
 
 void MessageEditPane::OnPlayAudio()
@@ -163,13 +165,18 @@ BOOL MessageEditPane::OnInitDialog()
 {
     BOOL fRet = __super::OnInitDialog();
 
+    OnInitDialogHelper();
+
     // Set up anchoring for resize
     AddAnchor(IDC_EDITMESSAGE, CPoint(0, 0), CPoint(100, 100));
 
     AddAnchor(IDC_EDIT_SAMPLEBIT, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_BUTTON_PLAY2, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_BUTTON_STOP, CPoint(100, 0), CPoint(100, 0));
+    AddAnchor(IDC_BUTTONBROWSE, CPoint(100, 0), CPoint(100, 0));
+    AddAnchor(IDC_SLIDER, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_CHECK_AUTOPREV, CPoint(100, 0), CPoint(100, 0));
+    AddAnchor(IDC_STATIC_DURATION, CPoint(100, 0), CPoint(100, 0));
 
     // Hide the sizing grip
     ShowSizeGrip(FALSE);
@@ -323,15 +330,7 @@ void MessageEditPane::_UpdateAudio(const TextEntry &messageEntry)
                 }
             }
 
-            if (_audioResource)
-            {
-                g_audioPlayback.SetAudio(&_audioResource->GetComponent<AudioComponent>());
-            }
-            else
-            {
-                g_audioPlayback.SetAudio(nullptr);
-            }
-
+            SetAudioResource(_audioResource.get());
         }
     }
 }

@@ -1460,6 +1460,9 @@
     <ClInclude Include="Src\Util\TokenDatabase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Src\FrameComponents\AudioPlaybackUI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="SCICompanionLib.def">

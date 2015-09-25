@@ -52,4 +52,4 @@ public:
 ResourceEntity *CreateAudioResource(SCIVersion version);
 ResourceEntity *CreateDefaultAudioResource(SCIVersion version);
 
-std::string GetAudioLength(AudioComponent &audio);
+std::string GetAudioLength(const AudioComponent &audio);

@@ -279,6 +279,7 @@
     <ClInclude Include="Src\Dialogs\PaletteEditorCommon.h" />
     <ClInclude Include="Src\Dialogs\PaletteEditorDialog.h" />
     <ClInclude Include="Src\Dialogs\PicDimensionsDialog.h" />
+    <ClInclude Include="Src\FrameComponents\AudioPlaybackUI.h" />
     <ClInclude Include="Src\FrameComponents\ExtTabControl.h" />
     <ClInclude Include="Src\FrameComponents\MessageEditorListCtrl.h" />
     <ClInclude Include="Src\FrameComponents\MessageEditPane.h" />
