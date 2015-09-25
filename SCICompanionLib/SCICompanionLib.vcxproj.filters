@@ -687,6 +687,9 @@
     <ClCompile Include="Src\Util\TokenDatabase.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Util\PerfTimer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCICompanionLib.h">
@@ -1461,6 +1464,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\FrameComponents\AudioPlaybackUI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Util\PerfTimer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

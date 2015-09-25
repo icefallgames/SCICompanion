@@ -217,7 +217,7 @@ std::unique_ptr<ResourceContainer> GameFolderHelper::Resources(ResourceTypeFlags
         
         if (IsFlagSet(types, ResourceTypeFlags::Audio | ResourceTypeFlags::Sync))
         {
-            mapAndVolumes->push_back(move(make_unique<AudioResourceSource>(Version, GameFolder, mapContext)));
+            mapAndVolumes->push_back(move(make_unique<AudioResourceSource>(Version, GameFolder, mapContext, ResourceSourceAccessFlags::Read)));
         }
 
         // Now the standard resource maps

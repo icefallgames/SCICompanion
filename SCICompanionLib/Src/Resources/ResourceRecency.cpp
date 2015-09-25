@@ -9,7 +9,7 @@ uint64_t _GetLookupKey(const IResourceIdentifier *pData)
     assert(pData->GetPackageHint() != -1);
     uint64_t first = pData->GetNumber() * 256 * 256 + pData->GetPackageHint();
     uint64_t low = pData->GetBase36();
-    return low + first << 32;
+    return low + (first << 32);
 }
 
 template<typename _T, typename _K>

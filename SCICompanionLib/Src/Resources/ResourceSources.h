@@ -13,6 +13,13 @@ enum class AppendBehavior
     Replace,
 };
 
+enum class ResourceSourceAccessFlags
+{
+    ReadWrite = 0x1,
+    Read = 0x2,
+};
+DEFINE_ENUM_FLAGS(ResourceSourceAccessFlags, uint32_t)
+
 typedef ResourceHeaderAgnostic(*ReadResourceHeaderFunc)(sci::istream &byteStream, SCIVersion version, ResourceSourceFlags sourceFlags, uint16_t packageHint);
 typedef void(*WriteResourceHeaderFunc)(sci::ostream &byteStream, const ResourceHeaderAgnostic &header);
 
@@ -489,10 +496,11 @@ struct AudioMapComponent;
 class AudioResourceSource : public ResourceSource
 {
 public:
-    AudioResourceSource(SCIVersion version, const std::string &gameFolder, int mapContext) :
+    AudioResourceSource(SCIVersion version, const std::string &gameFolder, int mapContext, ResourceSourceAccessFlags access) :
         _gameFolder(gameFolder),
         _version(version),
-        _mapContext(mapContext)
+        _mapContext(mapContext),
+        _access(access)
     {
         _EnsureAudioMaps();
     }
@@ -519,15 +527,18 @@ private:
     void _Finalize(AudioMapComponent &newAudioMap, sci::ostream &newVolumeStream, uint32_t base36Number);
     void _CopyWithoutThese(const AudioMapComponent &audioMap, AudioMapComponent &newAudioMap, sci::istream &oldReader, sci::ostream &newVolumeStream, const std::set<uint16_t> &removeThese);
     std::string _GetAudioVolumePath(bool bak, AudioVolumeName volumeName, ResourceSourceFlags *sourceFlags = nullptr);
-    sci::streamOwner *_EnsureAudioVolume(uint32_t base36Number);
+    sci::streamOwner *_EnsureReadOnlyAudioVolume(uint32_t base36Number);
+    std::unique_ptr<sci::streamOwner> _GetAudioVolume(uint32_t base36Number);
 
     std::string _gameFolder;
     SCIVersion _version;
     int _mapContext;
+    ResourceSourceAccessFlags _access;
     ResourceSourceFlags _sourceFlags;
 
     std::vector<std::unique_ptr<ResourceEntity>> _audioMaps;
 
+    // Use memory mapped files, because these volumes tend to be large (several hundred MB)
     std::unique_ptr<sci::streamOwner> _volumeStreamOwnerSfx;
     std::unique_ptr<sci::streamOwner> _volumeStreamOwnerAud;
 };

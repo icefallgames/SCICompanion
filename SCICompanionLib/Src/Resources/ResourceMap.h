@@ -82,7 +82,7 @@ public:
     const GameFolderHelper &Helper() { return _gameFolderHelper; }
     const Vocab000 *GetVocab000();
     const PaletteComponent *GetPalette999();
-    void SaveAudioMap65535(const AudioMapComponent &newAudioMap);
+    void SaveAudioMap65535(const AudioMapComponent &newAudioMap, int mapContext);
     GlobalCompiledScriptLookups *GetCompiledScriptLookups();
     std::vector<int> GetPaletteList();
     std::unique_ptr<PaletteComponent> GetPalette(int fallbackPalette);

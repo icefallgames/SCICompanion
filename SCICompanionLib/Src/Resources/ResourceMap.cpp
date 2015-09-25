@@ -252,7 +252,7 @@ HRESULT CResourceMap::EndDeferAppend()
 
                 ResourceSourceFlags sourceFlags = _deferredResources[0].GetSourceFlags();
                 // Enumerate resources and write the ones we have not already encountered.
-                std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(_gameFolderHelper.GameFolder, _gameFolderHelper.Version, sourceFlags);
+                std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(_gameFolderHelper.GameFolder, _gameFolderHelper.Version, sourceFlags, ResourceSourceAccessFlags::ReadWrite);
 
                 try
                 {
@@ -438,7 +438,7 @@ HRESULT CResourceMap::AppendResource(const ResourceBlob &resource)
         }
 
         // Enumerate resources and write the ones we have not already encountered.
-        std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(_gameFolderHelper.GameFolder, _gameFolderHelper.Version, resource.GetSourceFlags());
+        std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(_gameFolderHelper.GameFolder, _gameFolderHelper.Version, resource.GetSourceFlags(), ResourceSourceAccessFlags::ReadWrite);
         std::vector<ResourceBlob> blobs;
         blobs.push_back(resource);
 
@@ -958,9 +958,16 @@ std::unique_ptr<PaletteComponent> CResourceMap::GetMergedPalette(const ResourceE
     return paletteReturn;
 }
 
-void CResourceMap::SaveAudioMap65535(const AudioMapComponent &newAudioMap)
+void CResourceMap::SaveAudioMap65535(const AudioMapComponent &newAudioMap, int mapContext)
 {
-    std::unique_ptr<ResourceEntity> entity(CreateMapResource(Helper().Version));
+    // Best idea is to get the existing one, modify, then save. That way we don't need to figure out where it came from.
+    int number = mapContext;
+    if (mapContext == -1)
+    {
+        number = newAudioMap.Traits.MainAudioMapResourceNumber;
+    }
+    std::unique_ptr<ResourceEntity> entity = CreateResourceFromNumber(ResourceType::Map, number, NoBase36, mapContext);
+    
     // Assign the new component to it.
     entity->RemoveComponent<AudioMapComponent>();
     entity->AddComponent<AudioMapComponent>(std::make_unique<AudioMapComponent>(newAudioMap));

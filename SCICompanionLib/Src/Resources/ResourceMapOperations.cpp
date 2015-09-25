@@ -29,7 +29,7 @@ std::unique_ptr<ResourceSource> _CreateResourceSource(const std::string &gameFol
     return std::unique_ptr<ResourceSource>(nullptr);
 }
 
-std::unique_ptr<ResourceSource> CreateResourceSource(const std::string &gameFolder, SCIVersion version, ResourceSourceFlags source)
+std::unique_ptr<ResourceSource> CreateResourceSource(const std::string &gameFolder, SCIVersion version, ResourceSourceFlags source, ResourceSourceAccessFlags access)
 {
     if (source == ResourceSourceFlags::ResourceMap)
     {
@@ -45,7 +45,7 @@ std::unique_ptr<ResourceSource> CreateResourceSource(const std::string &gameFold
     }
     else if ((source == ResourceSourceFlags::Aud) || (source == ResourceSourceFlags::Sfx))
     {
-        return std::make_unique<AudioResourceSource>(version, gameFolder, -1);
+        return std::make_unique<AudioResourceSource>(version, gameFolder, -1, access);
     }
     return std::unique_ptr<ResourceSource>(nullptr);
 }
@@ -62,7 +62,7 @@ void DeleteResource(CResourceMap &resourceMap, const ResourceBlob &data)
     bool isLastOne = true;
 
     // This is the thing that changes based on version and messagemap or blah.
-    std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(resourceMap.GetGameFolder(), data.GetVersion(), data.GetSourceFlags());
+    std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(resourceMap.GetGameFolder(), data.GetVersion(), data.GetSourceFlags(), ResourceSourceAccessFlags::ReadWrite);
     if (resourceSource)
     {
         ResourceMapEntryAgnostic mapEntry;

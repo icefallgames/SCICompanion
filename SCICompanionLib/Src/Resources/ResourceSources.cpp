@@ -324,26 +324,39 @@ AudioVolumeName AudioResourceSource::_GetVolumeToUse(uint32_t base36Number)
     return volumeToUse;
 }
 
-sci::streamOwner *AudioResourceSource::_EnsureAudioVolume(uint32_t base36Number)
+std::unique_ptr<sci::streamOwner> AudioResourceSource::_GetAudioVolume(uint32_t base36Number)
+{
+    if (IsFlagSet(_access, ResourceSourceAccessFlags::ReadWrite))
+    {
+        // If we want to eventually write using this same ResourceSource, then use the version of streamOwner that copies the file.
+        ScopedFile scoped(_GetAudioVolumePath(false, _GetVolumeToUse(base36Number), &_sourceFlags), GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
+        return std::make_unique<sci::streamOwner>(scoped.hFile);
+    }
+    else
+    {
+        // We can use a memory mapped file for optimum performance.
+        return std::make_unique<sci::streamOwner>(_GetAudioVolumePath(false, _GetVolumeToUse(base36Number), &_sourceFlags));
+    }
+}
+
+sci::streamOwner *AudioResourceSource::_EnsureReadOnlyAudioVolume(uint32_t base36Number)
 {
     AudioVolumeName volumeToUse = _GetVolumeToUse(base36Number);
 
     if ((volumeToUse == AudioVolumeName::Sfx) && !_volumeStreamOwnerSfx)
     {
-        ScopedFile scoped(_GetAudioVolumePath(false, volumeToUse, &_sourceFlags), GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
-        _volumeStreamOwnerSfx = std::make_unique<sci::streamOwner>(scoped.hFile);
+        _volumeStreamOwnerSfx = _GetAudioVolume(base36Number);
     }
     if ((volumeToUse == AudioVolumeName::Aud) && !_volumeStreamOwnerAud)
     {
-        ScopedFile scoped(_GetAudioVolumePath(false, volumeToUse, &_sourceFlags), GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
-        _volumeStreamOwnerAud = std::make_unique<sci::streamOwner>(scoped.hFile);
+        _volumeStreamOwnerAud = _GetAudioVolume(base36Number);
     }
     return (volumeToUse == AudioVolumeName::Sfx) ? _volumeStreamOwnerSfx.get() : _volumeStreamOwnerAud.get();
 }
 
 sci::istream AudioResourceSource::GetHeaderAndPositionedStream(const ResourceMapEntryAgnostic &mapEntry, ResourceHeaderAgnostic &headerEntry)
 {
-    sci::streamOwner *streamOwner = _EnsureAudioVolume(mapEntry.Base36Number);
+    sci::streamOwner *streamOwner = _EnsureReadOnlyAudioVolume(mapEntry.Base36Number);
     if (streamOwner)
     {
         sci::istream reader = streamOwner->getReader();
@@ -369,7 +382,9 @@ sci::istream AudioResourceSource::GetHeaderAndPositionedStream(const ResourceMap
 
 void AudioResourceSource::RemoveEntry(const ResourceMapEntryAgnostic &mapEntry) 
 {
-    sci::streamOwner *streamOwner = _EnsureAudioVolume(mapEntry.Base36Number);
+    assert(IsFlagSet(_access, ResourceSourceAccessFlags::ReadWrite));
+
+    std::unique_ptr<sci::streamOwner> streamOwner = _GetAudioVolume(mapEntry.Base36Number);
     if (streamOwner)
     {
         auto it = find_if(_audioMaps.begin(), _audioMaps.end(),
@@ -390,7 +405,9 @@ void AudioResourceSource::RemoveEntry(const ResourceMapEntryAgnostic &mapEntry)
             set<uint16_t> removeThese;
             removeThese.insert(mapEntry.Number);
             _CopyWithoutThese(audioMap, *newAudioMap, oldReader, newVolumeStream, removeThese);
-
+            
+            // Release the file before writing:
+            streamOwner.reset(nullptr);
             _Finalize(*newAudioMap, newVolumeStream, mapEntry.Base36Number);
         }
     }
@@ -443,7 +460,7 @@ void AudioResourceSource::_Finalize(AudioMapComponent &newAudioMap, sci::ostream
     testopenforwrite(_GetAudioVolumePath(false, volumeToUse));
 
     // Then we'll save our new map.
-    appState->GetResourceMap().SaveAudioMap65535(newAudioMap);
+    appState->GetResourceMap().SaveAudioMap65535(newAudioMap, _mapContext);
 
     // If that caused no problems, then finally do the swap of the file, and hopefully that worked.
     deletefile(_GetAudioVolumePath(false, volumeToUse));
@@ -452,6 +469,8 @@ void AudioResourceSource::_Finalize(AudioMapComponent &newAudioMap, sci::ostream
 
 AppendBehavior AudioResourceSource::AppendResources(const std::vector<ResourceBlob> &entries)
 {
+    assert(IsFlagSet(_access, ResourceSourceAccessFlags::ReadWrite));
+
     for (const ResourceBlob &blob : entries)
     {
         auto it = find_if(_audioMaps.begin(), _audioMaps.end(),
@@ -459,7 +478,7 @@ AppendBehavior AudioResourceSource::AppendResources(const std::vector<ResourceBl
         );
         if (it != _audioMaps.end())
         {
-            sci::streamOwner *streamOwner = _EnsureAudioVolume(blob.GetHeader().Base36Number);
+            std::unique_ptr<sci::streamOwner> streamOwner = _GetAudioVolume(blob.GetHeader().Base36Number);
 
             const AudioMapComponent &audioMap = (*it)->GetComponent<AudioMapComponent>();
 
@@ -482,6 +501,8 @@ AppendBehavior AudioResourceSource::AppendResources(const std::vector<ResourceBl
             newAudioMap->Entries.push_back(newEntry);
             transfer(blob.GetReadStream(), newVolumeStream, blob.GetCompressedLength());
 
+            // Release the file before writing:
+            streamOwner.reset(nullptr);
             _Finalize(*newAudioMap, newVolumeStream, blob.GetHeader().Base36Number);
         }
     }

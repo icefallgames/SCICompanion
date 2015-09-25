@@ -13,6 +13,7 @@
 #include "AudioPlayback.h"
 #include "Audio.h"
 #include "ResourceContainer.h"
+#include "PerfTimer.h"
 
 using namespace std;
 
@@ -219,6 +220,8 @@ void MessageEditPane::UpdateNonView(CObject *pObject)
         _Update();
         if (_needAudioPreload)
         {
+            PerfTimer timer("preloadAudio");
+
             _PreloadAudio();
             _needAudioPreload = false;
         }

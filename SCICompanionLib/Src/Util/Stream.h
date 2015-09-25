@@ -128,11 +128,17 @@ namespace sci
     public:
         streamOwner(const uint8_t *data, uint32_t size);
         streamOwner(HANDLE hFile, DWORD lengthToInclude = 0);
+        streamOwner(const std::string &filename);   // Memory mapped
+        ~streamOwner();
         istream getReader();
 
     private:
         std::unique_ptr<uint8_t[]> _pData;        // Our data
         uint32_t _cbSizeValid;
+
+        const uint8_t *_dataMemoryMapped;
+        HANDLE _hFile;
+        HANDLE _hMap;
     };
 
     void transfer(istream from, ostream &to, uint32_t count);

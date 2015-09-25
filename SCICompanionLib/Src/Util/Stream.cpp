@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Stream.h"
+#include "PerfTimer.h"
 
 namespace sci
 {
@@ -324,20 +325,16 @@ namespace sci
         return istream(src.GetInternalPointer(), src.tellp());
     }
 
-    streamOwner::streamOwner(const uint8_t *data, uint32_t size)
+    streamOwner::streamOwner(const uint8_t *data, uint32_t size) : _dataMemoryMapped(nullptr), _hMap(nullptr), _hFile(INVALID_HANDLE_VALUE)
     {
         _pData = std::make_unique<uint8_t[]>(size);
         _cbSizeValid = size;
         memcpy(_pData.get(), data, size);
     }
 
-    double totalTimeMS;
-
-    streamOwner::streamOwner(HANDLE hFile, DWORD lengthToInclude)
+    streamOwner::streamOwner(HANDLE hFile, DWORD lengthToInclude) : _dataMemoryMapped(nullptr), _hMap(nullptr), _hFile(INVALID_HANDLE_VALUE)
     {
-        LARGE_INTEGER lStart;
-        QueryPerformanceCounter(&lStart);
-
+        PerfTimer timer("streamOwner");
 
         DWORD dwSizeHigh = 0;
         // Start from the current position:
@@ -353,7 +350,9 @@ namespace sci
             // Limit ourselves a little (to 4GB).
             if (dwSizeHigh == 0) 
             {
-                _pData = std::make_unique<uint8_t[]>(dwSize);
+                // = std::make_unique<uint8_t[]>(dwSize);
+                // Don't use make_unique, because it will zero init the array (perf).
+                _pData.reset(new uint8_t[dwSize]);
                 DWORD dwSizeRead;
                 if (ReadFile(hFile, _pData.get(), dwSize, &dwSizeRead, nullptr) && (dwSizeRead == dwSize))
                 {
@@ -366,16 +365,6 @@ namespace sci
             }
         }
 
-        LARGE_INTEGER lEnd;
-        QueryPerformanceCounter(&lEnd);
-        LARGE_INTEGER freq;
-        QueryPerformanceFrequency(&freq);
-        totalTimeMS += (double)(lEnd.LowPart - lStart.LowPart) * 1000.0 / (double)freq.LowPart;
-    }
-
-    istream streamOwner::getReader()
-    {
-        return istream(_pData.get(), _cbSizeValid);
     }
 
     void transfer(istream from, ostream &to, uint32_t count)
@@ -391,6 +380,61 @@ namespace sci
             count -= amountToTransfer;
         }
     }
+
+
+    streamOwner::streamOwner(const std::string &filename) : _dataMemoryMapped(nullptr), _hMap(nullptr), _cbSizeValid(0), _pData(nullptr)
+    {
+        _hFile = CreateFile(filename.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
+        if (_hFile != INVALID_HANDLE_VALUE)
+        {
+            // If no length specifies, then until the end of the file.
+            DWORD dwSizeHigh;
+            DWORD dwSize = GetFileSize(_hFile, &dwSizeHigh);
+            if (dwSize != INVALID_FILE_SIZE)
+            {
+                assert(dwSizeHigh == 0);
+                _hMap = CreateFileMapping(_hFile, nullptr, PAGE_READONLY, 0, 0, nullptr);
+                if (_hMap != nullptr)
+                {
+                    _dataMemoryMapped = reinterpret_cast<uint8_t*>(MapViewOfFile(_hMap, FILE_MAP_READ, 0, 0, 0));
+                    if (_dataMemoryMapped)
+                    {
+                        _cbSizeValid = dwSize;
+                    }
+                }
+            }
+        }
+    }
+
+    streamOwner::~streamOwner()
+    {
+        if (_dataMemoryMapped)
+        {
+            BOOL result = UnmapViewOfFile(_dataMemoryMapped);
+            assert(result);
+        }
+        if (_hMap)
+        {
+            CloseHandle(_hMap);
+        }
+        if (_hFile != INVALID_HANDLE_VALUE)
+        {
+            CloseHandle(_hFile);
+        }
+
+    }
+    istream streamOwner::getReader()
+    {
+        if (_dataMemoryMapped)
+        {
+            return istream(_dataMemoryMapped, _cbSizeValid);
+        }
+        else
+        {
+            return istream(_pData.get(), _cbSizeValid);
+        }
+    }
+
 }
 
 
