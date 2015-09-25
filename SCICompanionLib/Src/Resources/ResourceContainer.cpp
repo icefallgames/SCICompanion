@@ -26,13 +26,14 @@ _mapAndVolumes(move(mapAndVolumes))
 {
 }
 
-bool ResourceContainer::_PassesFilter(ResourceType type, int resourceNumber)
+bool ResourceContainer::_PassesFilter(ResourceType type, int resourceNumber, uint32_t base36Number)
 {
     bool pass = (ResourceTypeFlags::None != (_resourceTypes & ResourceTypeToFlag(type)));
     if (pass && (ResourceEnumFlags::None != (_resourceEnumFlags & ResourceEnumFlags::MostRecentOnly)))
     {
         // Generate an index consisting of type and number
-        uint32_t index = ((uint32_t)type) + (resourceNumber << 16);
+        uint32_t indexTemp = ((uint32_t)type) + (resourceNumber << 16);
+        uint64_t index = indexTemp + (base36Number << 32);
         pass = (_trackResources.find(index) == _trackResources.end());
         if (pass)
         {
@@ -207,7 +208,7 @@ void ResourceContainer::ResourceIterator::_GetNextEntry()
         if (_state.mapIndex < _container->_mapAndVolumes->size())
         {
             // Does it pass our filter?
-            if (_container->_PassesFilter(entry.Type, entry.Number))
+            if (_container->_PassesFilter(entry.Type, entry.Number, entry.Base36Number))
             {
                 _currentEntry = entry;
                 // We're good to go.

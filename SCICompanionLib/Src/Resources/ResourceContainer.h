@@ -81,10 +81,10 @@ public:
     iterator end();
 
 private:
-    bool _PassesFilter(ResourceType type, int resourceNumber);
+    bool _PassesFilter(ResourceType type, int resourceNumber, uint32_t base36Number);
 
     std::string _gameFolder;
-    std::set<uint32_t> _trackResources;
+    std::set<uint64_t> _trackResources;
 
     std::unique_ptr<ResourceSourceArray> _mapAndVolumes;
 

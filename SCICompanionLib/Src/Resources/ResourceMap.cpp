@@ -570,14 +570,14 @@ bool CResourceMap::DoesResourceExist(ResourceType type, int number, std::string 
     return false;
 }
 
-std::unique_ptr<ResourceBlob> CResourceMap::MostRecentResource(ResourceType type, int number, bool getName, uint32_t base36Number)
+std::unique_ptr<ResourceBlob> CResourceMap::MostRecentResource(ResourceType type, int number, bool getName, uint32_t base36Number, int mapContext)
 {
     ResourceEnumFlags flags = ResourceEnumFlags::None;
     if (getName)
     {
         flags |= ResourceEnumFlags::NameLookups;
     }
-    return Helper().MostRecentResource(type, number, flags, base36Number);
+    return Helper().MostRecentResource(type, number, flags, base36Number, mapContext);
 }
 
 void CResourceMap::PurgeUnnecessaryResources()
@@ -1230,10 +1230,10 @@ void CResourceMap::SetGameFolder(const string &gameFolder)
 }
 
 // Returns null if it doesn't exist.
-std::unique_ptr<ResourceEntity> CResourceMap::CreateResourceFromNumber(ResourceType type, int number)
+std::unique_ptr<ResourceEntity> CResourceMap::CreateResourceFromNumber(ResourceType type, int number, uint32_t base36Number, int mapContext)
 {
     std::unique_ptr<ResourceEntity> pResource;
-    unique_ptr<ResourceBlob> data = MostRecentResource(type, number, true);
+    unique_ptr<ResourceBlob> data = MostRecentResource(type, number, true, base36Number, mapContext);
     // This can legitimately fail. For instance, a script that hasn't yet been compiled.
     if (data)
     {

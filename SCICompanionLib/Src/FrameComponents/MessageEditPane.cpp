@@ -10,6 +10,8 @@
 #include "WindowsUtil.h"
 #include "NounsAndCases.h"
 #include "AudioMap.h"
+#include "AudioPlayback.h"
+#include "Audio.h"
 
 using namespace std;
 
@@ -86,7 +88,13 @@ BEGIN_MESSAGE_MAP(MessageEditPane, CExtDialogFwdCmd)
     ON_CBN_SETFOCUS(IDC_COMBOTALKER, &MessageEditPane::OnCbnSetfocusCombotalker)
     ON_CBN_KILLFOCUS(IDC_COMBOTALKER, &MessageEditPane::OnCbnKillfocusCombotalker)
     ON_CBN_EDITCHANGE(IDC_COMBOTALKER, &MessageEditPane::OnCbnEditchangeCombotalker)
+    ON_COMMAND(IDC_BUTTON_PLAY2, OnPlayAudio)
 END_MESSAGE_MAP()
+
+void MessageEditPane::OnPlayAudio()
+{
+    g_audioPlayback.Play();
+}
 
 BOOL MessageEditPane::OnEraseBkgnd(CDC *pDC)
 {
@@ -295,19 +303,35 @@ void MessageEditPane::_UpdateAudio(const TextEntry &messageEntry)
     {
         uint32_t tuple = GetMessageTuple(messageEntry);
 
-        // Try to get a sequence map for this resource
-        int mapResourceNumber = _pDoc->GetResource()->ResourceNumber;
-        std::unique_ptr<ResourceEntity> map = appState->GetResourceMap().CreateResourceFromNumber(ResourceType::Map, mapResourceNumber);
-        if (map)
+        if (!_audioResource || (_audioResource->Base36Number != tuple))
         {
-            for (const auto &entry : map->GetComponent<AudioMapComponent>().Entries)
+            g_audioPlayback.Stop();
+            _audioResource.reset(nullptr);
+
+            // Try to get a sequence map for this resource
+            int mapResourceNumber = _pDoc->GetResource()->ResourceNumber;
+            std::unique_ptr<ResourceEntity> map = appState->GetResourceMap().CreateResourceFromNumber(ResourceType::Map, mapResourceNumber);
+            if (map)
             {
-                if (GetMessageTuple(entry) == tuple)
+                for (const auto &entry : map->GetComponent<AudioMapComponent>().Entries)
                 {
-                    // Match. Now try to load the audio resource given the offset.
-                    break;
+                    if (GetMessageTuple(entry) == tuple)
+                    {
+                        _audioResource = appState->GetResourceMap().CreateResourceFromNumber(ResourceType::Audio, mapResourceNumber, tuple, mapResourceNumber);
+                        break;
+                    }
                 }
             }
+
+            if (_audioResource)
+            {
+                g_audioPlayback.SetAudio(&_audioResource->GetComponent<AudioComponent>());
+            }
+            else
+            {
+                g_audioPlayback.SetAudio(nullptr);
+            }
+
         }
     }
 }

@@ -41,8 +41,7 @@ protected:
 
     virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
     virtual BOOL OnInitDialog();
-    afx_msg void OnGotoTalkers();
-    afx_msg void OnGotoVerbs();
+    afx_msg void OnPlayAudio();
 
     DECLARE_MESSAGE_MAP()
 
@@ -86,6 +85,8 @@ private:
     CExtButton m_wndPlay;
     CExtButton m_wndStop;
     CExtCheckBox m_wndAutoPreview;
+    std::unique_ptr<ResourceEntity> _audioResource;
+    std::unique_ptr<ResourceEntity> _syncResource;
 
     int _spinnerValue;
 

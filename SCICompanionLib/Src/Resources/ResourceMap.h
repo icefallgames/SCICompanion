@@ -52,7 +52,7 @@ public:
 
     // The main functions for enumerating resources.
     std::unique_ptr<ResourceContainer> Resources(ResourceTypeFlags types, ResourceEnumFlags flags, int mapContext = -1);
-    std::unique_ptr<ResourceBlob> MostRecentResource(ResourceType type, int number, bool getName, uint32_t base36Number = NoBase36);
+    std::unique_ptr<ResourceBlob> MostRecentResource(ResourceType type, int number, bool getName, uint32_t base36Number = NoBase36, int mapContext = -1);
     bool DoesResourceExist(ResourceType type, int number, std::string *retrieveName = nullptr);
 
     void PurgeUnnecessaryResources();
@@ -90,7 +90,7 @@ public:
     ResourceEntity *GetVocabResourceToEdit();
     void ClearVocab000();
     SCIClassBrowser *GetClassBrowser() { return _classBrowser.get(); }
-    std::unique_ptr<ResourceEntity> CreateResourceFromNumber(ResourceType type, int wNumber);
+    std::unique_ptr<ResourceEntity> CreateResourceFromNumber(ResourceType type, int wNumber, uint32_t base36Number = NoBase36, int mapContext = -1);
     void GetAllScripts(std::vector<ScriptId> &scripts);
 	void GetNumberToNameMap(std::unordered_map<WORD, std::string> &scos);
     void SetScriptLanguage(ScriptId script, LangSyntax language);
