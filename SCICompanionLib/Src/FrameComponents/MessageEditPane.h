@@ -39,6 +39,7 @@ protected:
     const TextEntry *_GetEntry();
     int _GetSelectedIndex();
     void _AddEntryAtCurrentPosition(const TextEntry &entry);
+    void _PreloadAudio();
 
     virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
     virtual BOOL OnInitDialog();
@@ -82,8 +83,9 @@ private:
     CExtSpinWnd m_wndSpinner;
 
     // Audio stuff
-    std::unique_ptr<ResourceEntity> _audioResource;
-    std::unique_ptr<ResourceEntity> _syncResource;
+    bool _needAudioPreload;
+    std::unordered_map<uint32_t, std::unique_ptr<ResourceEntity>> _audioResources;
+    std::unordered_map<uint32_t, std::unique_ptr<ResourceEntity>> _syncResources;
 
     int _spinnerValue;
 

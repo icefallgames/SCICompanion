@@ -12,11 +12,12 @@
 #include "AudioMap.h"
 #include "AudioPlayback.h"
 #include "Audio.h"
+#include "ResourceContainer.h"
 
 using namespace std;
 
 MessageEditPane::MessageEditPane(CWnd* pParent /*=NULL*/)
-    : AudioPlaybackUI<CExtDialogFwdCmd>(IDD, pParent), _hAccel(nullptr), _initialized(false), _verbEdited(false), _nounEdited(false), _conditionEdited(false), _talkerEdited(false)
+    : AudioPlaybackUI<CExtDialogFwdCmd>(IDD, pParent), _hAccel(nullptr), _initialized(false), _verbEdited(false), _nounEdited(false), _conditionEdited(false), _talkerEdited(false), _needAudioPreload(false)
 {
     // Load our accelerators
     // HINSTANCE hInst = AfxFindResourceHandle(MAKEINTRESOURCE(IDR_ACCELERATORPICCOMMANDS), RT_ACCELERATOR);
@@ -216,6 +217,11 @@ void MessageEditPane::UpdateNonView(CObject *pObject)
     if (IsFlagSet(hint, MessageChangeHint::Selection | MessageChangeHint::AllMessageFiles | MessageChangeHint::ItemChanged | MessageChangeHint::Changed))
     {
         _Update();
+        if (_needAudioPreload)
+        {
+            _PreloadAudio();
+            _needAudioPreload = false;
+        }
     }
 }
 
@@ -309,28 +315,16 @@ void MessageEditPane::_UpdateAudio(const TextEntry &messageEntry)
     if (appState->GetVersion().HasSyncResources)
     {
         uint32_t tuple = GetMessageTuple(messageEntry);
+        g_audioPlayback.Stop();
 
-        if (!_audioResource || (_audioResource->Base36Number != tuple))
+        auto it = _audioResources.find(tuple);
+        if (it == _audioResources.end())
         {
-            g_audioPlayback.Stop();
-            _audioResource.reset(nullptr);
-
-            // Try to get a sequence map for this resource
-            int mapResourceNumber = _pDoc->GetResource()->ResourceNumber;
-            std::unique_ptr<ResourceEntity> map = appState->GetResourceMap().CreateResourceFromNumber(ResourceType::Map, mapResourceNumber);
-            if (map)
-            {
-                for (const auto &entry : map->GetComponent<AudioMapComponent>().Entries)
-                {
-                    if (GetMessageTuple(entry) == tuple)
-                    {
-                        _audioResource = appState->GetResourceMap().CreateResourceFromNumber(ResourceType::Audio, mapResourceNumber, tuple, mapResourceNumber);
-                        break;
-                    }
-                }
-            }
-
-            SetAudioResource(_audioResource.get());
+            SetAudioResource(nullptr);
+        }
+        else
+        {
+            SetAudioResource((*it).second.get());
         }
     }
 }
@@ -379,9 +373,30 @@ void MessageEditPane::SetDocument(CDocument *pDoc)
     _pDoc = static_cast<CMessageDoc*>(pDoc);
     if (_pDoc)
     {
+
         _pDoc->AddNonViewClient(this);
         _UpdateCombos(MessageChangeHint::ConditionsChanged | MessageChangeHint::TalkersChanged | MessageChangeHint::VerbsChanged | MessageChangeHint::NounsChanged);
         _Update();
+    }
+    _needAudioPreload = true;
+}
+
+void MessageEditPane::_PreloadAudio()
+{
+    if (appState->GetVersion().HasSyncResources)
+    {
+        SetAudioResource(nullptr);
+        _audioResources.clear();
+
+        if (_pDoc->GetResource())
+        {
+            int mapResourceNumber = _pDoc->GetResource()->ResourceNumber;
+            auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Audio, ResourceEnumFlags::MostRecentOnly, mapResourceNumber);
+            for (auto resource : *resourceContainer)
+            {
+                _audioResources[resource->GetBase36()] = CreateResourceFromResourceData(*resource);
+            }
+        }
     }
 }
 
