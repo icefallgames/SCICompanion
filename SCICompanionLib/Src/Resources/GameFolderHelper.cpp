@@ -4,13 +4,14 @@
 #include "ResourceBlob.h"
 #include "ResourceMapOperations.h"
 #include "format.h"
+#include "ResourceEntity.h"
 
 using namespace std;
 
 // Returns "n004" for input of 4
 std::string default_reskey(int iNumber, uint32_t base36Number)
 {
-    if (base36Number == 0xffffffff)
+    if (base36Number == NoBase36)
     {
         stringstream ss;
         ss << "n" << setfill('0') << setw(3) << iNumber;
@@ -18,6 +19,7 @@ std::string default_reskey(int iNumber, uint32_t base36Number)
     }
     else
     {
+        // NNNNNVV.CCS
         return fmt::format("{0:0>3t}{1:0>2t}{2:0>2t}.{3:0>2t}{4:0>1t}",
             iNumber,
             (base36Number >> 8) & 0xff,
@@ -184,7 +186,7 @@ std::string GameFolderHelper::FigureOutName(ResourceType type, int iNumber, uint
     return name;
 }
 
-std::unique_ptr<ResourceContainer> GameFolderHelper::Resources(ResourceTypeFlags types, ResourceEnumFlags enumFlags, ResourceRecency *pRecency) const
+std::unique_ptr<ResourceContainer> GameFolderHelper::Resources(ResourceTypeFlags types, ResourceEnumFlags enumFlags, ResourceRecency *pRecency, int mapContext) const
 {
     // If audio or sync resources are requested, we can't also have maps.
     if (IsFlagSet(types, ResourceTypeFlags::Audio | ResourceTypeFlags::Sync))
@@ -215,7 +217,7 @@ std::unique_ptr<ResourceContainer> GameFolderHelper::Resources(ResourceTypeFlags
         
         if (IsFlagSet(types, ResourceTypeFlags::Audio | ResourceTypeFlags::Sync))
         {
-            mapAndVolumes->push_back(move(make_unique<AudioResourceSource>(Version, GameFolder)));
+            mapAndVolumes->push_back(move(make_unique<AudioResourceSource>(Version, GameFolder, mapContext)));
         }
 
         // Now the standard resource maps
@@ -234,14 +236,14 @@ std::unique_ptr<ResourceContainer> GameFolderHelper::Resources(ResourceTypeFlags
     return resourceContainer;
 }
 
-std::unique_ptr<ResourceBlob> GameFolderHelper::MostRecentResource(ResourceType type, int number, ResourceEnumFlags flags) const
+std::unique_ptr<ResourceBlob> GameFolderHelper::MostRecentResource(ResourceType type, int number, ResourceEnumFlags flags, uint32_t base36Number) const
 {
     std::unique_ptr<ResourceBlob> returnBlob;
     ResourceEnumFlags enumFlags = flags | ResourceEnumFlags::MostRecentOnly;
     auto &resourceContainer = Resources(ResourceTypeToFlag(type), enumFlags);
     for (auto &blobIt = resourceContainer->begin(); blobIt != resourceContainer->end(); ++blobIt)
     {
-        if (blobIt.GetResourceNumber() == number)
+        if ((blobIt.GetResourceNumber() == number) && (blobIt.GetResourceHeader().Base36Number == base36Number))
         {
             returnBlob = move(*blobIt);
             break;

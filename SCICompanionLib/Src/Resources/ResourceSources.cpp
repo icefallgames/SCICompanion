@@ -6,6 +6,7 @@
 #include "AudioMap.h"  // For the audio source
 #include "ResourceEntity.h"
 #include "Message.h"
+#include "ResourceContainer.h"
 
 using namespace std;
 
@@ -170,9 +171,26 @@ bool IsResourceCompatible(const ResourceBlob &blob)
     return appState->GetResourceMap().IsResourceCompatible(blob);
 }
 
+void AudioResourceSource::_EnsureAudioMaps()
+{
+    // Right now we'll only ever get one audio map. However, I'd like to keep the multimap functionality for now...
+    if (_mapContext == -1)
+    {
+        _mapContext = _version.AudioMapResourceNumber;
+    }
+    auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Map, ResourceEnumFlags::MostRecentOnly);
+    for (auto &blob : *resourceContainer)
+    {
+        if ((_mapContext == -1) || (blob->GetNumber() == _mapContext))
+        {
+            _audioMaps.push_back(CreateResourceFromResourceData(*blob));
+        }
+    }
+}
+
 bool AudioResourceSource::ReadNextEntry(ResourceTypeFlags typeFlags, IteratorState &state, ResourceMapEntryAgnostic &entry, std::vector<uint8_t> *optionalRawData)
 {
-    const auto &audioMaps = appState->GetResourceMap().GetAudioMaps();
+
     // Read 6 byte entry (for resource.aud. For resource.sfx it would be 5 bytes)
     // Early SCI1.1 65535.MAP structure (uses RESOURCE.AUD):
     // =========
@@ -203,9 +221,9 @@ bool AudioResourceSource::ReadNextEntry(ResourceTypeFlags typeFlags, IteratorSta
     uint32_t audioMapEntryIndex = ((state.mapStreamOffset & 0x1fffe) >> 1);
     uint32_t audioOrSyncIndex = (state.mapStreamOffset & 0x1);
     bool found = false;
-    while (!found && (audioMapIndex < audioMaps.size()))
+    while (!found && (audioMapIndex < _audioMaps.size()))
     {
-        const AudioMapComponent &audioMap = audioMaps[audioMapIndex]->GetComponent<AudioMapComponent>();
+        const AudioMapComponent &audioMap = _audioMaps[audioMapIndex]->GetComponent<AudioMapComponent>();
         while (!found && (audioMapEntryIndex < audioMap.Entries.size()))
         {
             const AudioMapEntry &mapEntry = audioMap.Entries[audioMapEntryIndex];
@@ -354,11 +372,10 @@ void AudioResourceSource::RemoveEntry(const ResourceMapEntryAgnostic &mapEntry)
     sci::streamOwner *streamOwner = _EnsureAudioVolume(mapEntry.Base36Number);
     if (streamOwner)
     {
-        const auto &audioMaps = appState->GetResourceMap().GetAudioMaps();
-        auto it = find_if(audioMaps.begin(), audioMaps.end(),
+        auto it = find_if(_audioMaps.begin(), _audioMaps.end(),
             [](const std::unique_ptr<ResourceEntity> &audioMap) { return IsMainAudioMap(audioMap->GetComponent<AudioMapComponent>().Version); }
         );
-        if (it != audioMaps.end())
+        if (it != _audioMaps.end())
         {
             const AudioMapComponent &audioMap = (*it)->GetComponent<AudioMapComponent>();
 
@@ -437,11 +454,10 @@ AppendBehavior AudioResourceSource::AppendResources(const std::vector<ResourceBl
 {
     for (const ResourceBlob &blob : entries)
     {
-        const auto &audioMaps = appState->GetResourceMap().GetAudioMaps();
-        auto it = find_if(audioMaps.begin(), audioMaps.end(),
+        auto it = find_if(_audioMaps.begin(), _audioMaps.end(),
             [](const std::unique_ptr<ResourceEntity> &audioMap) { return IsMainAudioMap(audioMap->GetComponent<AudioMapComponent>().Version); }
         );
-        if (it != audioMaps.end())
+        if (it != _audioMaps.end())
         {
             sci::streamOwner *streamOwner = _EnsureAudioVolume(blob.GetHeader().Base36Number);
 
@@ -471,3 +487,5 @@ AppendBehavior AudioResourceSource::AppendResources(const std::vector<ResourceBl
     }
     return AppendBehavior::Replace;
 }
+
+AudioResourceSource::~AudioResourceSource() {}

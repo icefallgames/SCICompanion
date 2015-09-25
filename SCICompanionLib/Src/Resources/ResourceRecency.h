@@ -48,7 +48,7 @@ private:
     typedef std::vector<int> ResourceIdArray;
     // hmm... each entry in this array has a bunch of resource keys (combo of number/package) that maps to lists of
     // resource ids.
-	typedef std::unordered_map<int, ResourceIdArray*> RecencyMap;
+	typedef std::unordered_map<uint64_t, ResourceIdArray*> RecencyMap;
     RecencyMap _resourceRecency[NumResourceTypes];
 
     int _idJustAdded;

@@ -439,9 +439,7 @@ void ResourceBlob::_SetName(PCTSTR pszName)
     }
     else
     {
-        TCHAR szDefName[MAX_PATH];
-        StringCchPrintf(szDefName, ARRAYSIZE(szDefName), TEXT("n%03d"), header.Number);
-        _strName = szDefName;
+        _strName = default_reskey(header.Number, header.Base36Number);
     }
 }
 

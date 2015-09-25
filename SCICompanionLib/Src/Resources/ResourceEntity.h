@@ -36,7 +36,7 @@ class ResourceEntity final
 {
 public:
     ResourceEntity(const ResourceTraits &traits);
-    ResourceEntity() : ResourceEntity(emptyTraits) {}
+    ResourceEntity();
 
     ResourceEntity(const ResourceEntity &src) = delete;
     ResourceEntity &operator=(const ResourceEntity &src) = delete;

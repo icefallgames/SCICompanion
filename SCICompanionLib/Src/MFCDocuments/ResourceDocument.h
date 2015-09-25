@@ -28,6 +28,7 @@ public:
     // IResourceIdentifier
     int GetPackageHint() const override;
     int GetNumber() const override;
+    uint32_t GetBase36() const override;
     ResourceType GetType() const override;
     int GetChecksum() const override { return _checksum; }
 

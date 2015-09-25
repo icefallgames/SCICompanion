@@ -357,6 +357,19 @@ int CResourceDocument::GetNumber() const
         return -1;
     }
 }
+uint32_t CResourceDocument::GetBase36() const
+{
+    const ResourceEntity *pRes = GetResource();
+    if (pRes)
+    {
+        return pRes->Base36Number;
+    }
+    else
+    {
+        return NoBase36;
+    }
+
+}
 ResourceType CResourceDocument::GetType() const
 {
     return _GetType();

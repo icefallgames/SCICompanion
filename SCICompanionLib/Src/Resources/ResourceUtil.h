@@ -11,6 +11,7 @@ public:
     virtual int GetNumber() const = 0;
     virtual ResourceType GetType() const = 0;
     virtual int GetChecksum() const = 0;
+    virtual uint32_t GetBase36() const = 0;
 };
 
 // fwd decl

@@ -528,7 +528,7 @@ bool CResourceMap::AppendResource(const ResourceEntity &resource, int packageNum
     return success;
 }
 
-std::unique_ptr<ResourceContainer> CResourceMap::Resources(ResourceTypeFlags types, ResourceEnumFlags enumFlags)
+std::unique_ptr<ResourceContainer> CResourceMap::Resources(ResourceTypeFlags types, ResourceEnumFlags enumFlags, int mapContext)
 {
     ResourceRecency *pRecency = nullptr;
     if ((enumFlags & ResourceEnumFlags::CalculateRecency) != ResourceEnumFlags::None)
@@ -544,7 +544,7 @@ std::unique_ptr<ResourceContainer> CResourceMap::Resources(ResourceTypeFlags typ
         }
     }
 
-    return Helper().Resources(types, enumFlags, pRecency);
+    return Helper().Resources(types, enumFlags, pRecency, mapContext);
 }
 
 bool CResourceMap::DoesResourceExist(ResourceType type, int number, std::string *retrieveName)
@@ -570,14 +570,14 @@ bool CResourceMap::DoesResourceExist(ResourceType type, int number, std::string 
     return false;
 }
 
-std::unique_ptr<ResourceBlob> CResourceMap::MostRecentResource(ResourceType type, int number, bool getName)
+std::unique_ptr<ResourceBlob> CResourceMap::MostRecentResource(ResourceType type, int number, bool getName, uint32_t base36Number)
 {
     ResourceEnumFlags flags = ResourceEnumFlags::None;
     if (getName)
     {
         flags |= ResourceEnumFlags::NameLookups;
     }
-    return Helper().MostRecentResource(type, number, flags);
+    return Helper().MostRecentResource(type, number, flags, base36Number);
 }
 
 void CResourceMap::PurgeUnnecessaryResources()
@@ -914,7 +914,11 @@ std::unique_ptr<PaletteComponent> CResourceMap::GetPalette(int fallbackPaletteNu
     std::unique_ptr<PaletteComponent> paletteReturn;
     if (fallbackPaletteNumber == 999)
     {
-        paletteReturn = make_unique<PaletteComponent>(*GetPalette999());
+        const PaletteComponent *pc = GetPalette999();
+        if (pc)
+        {
+            paletteReturn = make_unique<PaletteComponent>(*pc);
+        }
     }
     else
     {
@@ -954,21 +958,6 @@ std::unique_ptr<PaletteComponent> CResourceMap::GetMergedPalette(const ResourceE
     return paletteReturn;
 }
 
-const std::vector<std::unique_ptr<ResourceEntity>> &CResourceMap::GetAudioMaps()
-{
-    if (_audioMaps.empty())
-    {
-        // In some games this is a "patch file", in others it's embedded in resource.map
-        auto resourceContainer = Helper().Resources(ResourceTypeFlags::Map, ResourceEnumFlags::MostRecentOnly);
-        for (auto &blob : *resourceContainer)
-        {
-            _audioMaps.push_back(CreateResourceFromResourceData(*blob));
-        }
-    }
-
-    return _audioMaps;
-}
-
 void CResourceMap::SaveAudioMap65535(const AudioMapComponent &newAudioMap)
 {
     std::unique_ptr<ResourceEntity> entity(CreateMapResource(Helper().Version));
@@ -976,7 +965,6 @@ void CResourceMap::SaveAudioMap65535(const AudioMapComponent &newAudioMap)
     entity->RemoveComponent<AudioMapComponent>();
     entity->AddComponent<AudioMapComponent>(std::make_unique<AudioMapComponent>(newAudioMap));
     AppendResource(*entity);
-    _audioMaps.clear();
 }
 
 const PaletteComponent *CResourceMap::GetPalette999()
@@ -1214,7 +1202,6 @@ void CResourceMap::SetGameFolder(const string &gameFolder)
     ClearVocab000();
     _pPalette999.reset(nullptr);                    // REVIEW: also do this if global palette is edited.
     _globalCompiledScriptLookups.reset(nullptr);
-    _audioMaps.clear();
     _gameFolderHelper.Language = LangSyntaxUnknown;
     _talkersHeaderFile.reset(nullptr);
     _verbsHeaderFile.reset(nullptr);

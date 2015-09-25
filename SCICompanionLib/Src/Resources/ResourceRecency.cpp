@@ -2,12 +2,14 @@
 
 #include "ResourceRecency.h"
 
-int _GetLookupKey(const IResourceIdentifier *pData)
+uint64_t _GetLookupKey(const IResourceIdentifier *pData)
 {
     // These should always be already-added resources, so they should never be -1
     assert(pData->GetNumber() != -1);
     assert(pData->GetPackageHint() != -1);
-    return pData->GetNumber() * 256 * 256 + pData->GetPackageHint();
+    uint64_t first = pData->GetNumber() * 256 * 256 + pData->GetPackageHint();
+    uint64_t low = pData->GetBase36();
+    return low + first << 32;
 }
 
 template<typename _T, typename _K>
@@ -19,7 +21,7 @@ bool contains(const _T &container, const _K &key)
 void ResourceRecency::AddResourceToRecency(const IResourceIdentifier *pData, BOOL fAddToEnd)
 {
     _idJustAdded = -1;
-    int iKey = _GetLookupKey(pData);
+    uint64_t iKey = _GetLookupKey(pData);
 
     ResourceIdArray *pidList;
     RecencyMap::iterator found = _resourceRecency[(int)pData->GetType()].find(iKey);
@@ -57,7 +59,7 @@ void ResourceRecency::AddResourceToRecency(const IResourceIdentifier *pData, BOO
 
 void ResourceRecency::DeleteResourceFromRecency(const ResourceBlob *pData)
 {
-    int iKey = _GetLookupKey(pData);
+    uint64_t iKey = _GetLookupKey(pData);
 
     RecencyMap::iterator found = _resourceRecency[(int)pData->GetType()].find(iKey);
     if (found != _resourceRecency[(int)pData->GetType()].end())
@@ -90,7 +92,7 @@ bool ResourceRecency::IsResourceMostRecent(const IResourceIdentifier *pData)
     else
     {
         fRet = false;
-        int iKey = _GetLookupKey(pData);
+        uint64_t iKey = _GetLookupKey(pData);
 
         RecencyMap::iterator found = _resourceRecency[(int)pData->GetType()].find(iKey);
         if (found != _resourceRecency[(int)pData->GetType()].end())

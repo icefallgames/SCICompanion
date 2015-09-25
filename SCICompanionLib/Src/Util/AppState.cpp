@@ -275,12 +275,11 @@ void AppState::OpenScript(WORD w)
     HRESULT hr = _GetGameIni(szGameIni, ARRAYSIZE(szGameIni));
     if (SUCCEEDED(hr))
     {
-        TCHAR szKeyName[MAX_PATH];
-        StringCchPrintf(szKeyName, ARRAYSIZE(szKeyName), TEXT("n%03d"), w);
+        std::string keyName = default_reskey(w, NoBase36);
         TCHAR szScriptName[100];
-        if (GetPrivateProfileString(GetResourceInfo(ResourceType::Script).pszTitleDefault, szKeyName, szKeyName, szScriptName, ARRAYSIZE(szScriptName), szGameIni))
+        if (GetPrivateProfileString(GetResourceInfo(ResourceType::Script).pszTitleDefault, keyName.c_str(), keyName.c_str(), szScriptName, ARRAYSIZE(szScriptName), szGameIni))
         {
-            OpenScript(szScriptName, NULL, w);
+            OpenScript(szScriptName, nullptr, w);
         }
     }
 }

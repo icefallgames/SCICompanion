@@ -41,7 +41,7 @@ DEFINE_ENUM_FLAGS(ResourceSourceFlags, uint16_t)
 // Common way to talk about resource headers that is SCI version agnostic.
 struct ResourceHeaderAgnostic
 {
-    ResourceHeaderAgnostic() {}
+    ResourceHeaderAgnostic() : Base36Number(NoBase36) {}
     ResourceHeaderAgnostic(const ResourceHeaderAgnostic &src) = default;
     ResourceHeaderAgnostic &operator=(const ResourceHeaderAgnostic &src) = default;
 
@@ -365,6 +365,10 @@ public:
         {
             return header.Number;
         }
+    }
+    uint32_t GetBase36() const override
+    {
+        return header.Base36Number;
     }
     ResourceType GetType() const override { return header.Type; }
     int GetChecksum() const override;

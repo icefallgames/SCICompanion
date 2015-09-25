@@ -5,6 +5,7 @@
 #include "GameFolderHelper.h"
 #include "scii.h"
 #include "ResourceContainer.h"
+#include "ResourceEntity.h"
 
 using namespace std;
 using namespace sci;

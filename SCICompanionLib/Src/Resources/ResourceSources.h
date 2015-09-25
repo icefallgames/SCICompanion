@@ -489,10 +489,16 @@ struct AudioMapComponent;
 class AudioResourceSource : public ResourceSource
 {
 public:
-    AudioResourceSource(SCIVersion version, const std::string &gameFolder) :
+    AudioResourceSource(SCIVersion version, const std::string &gameFolder, int mapContext) :
         _gameFolder(gameFolder),
-        _version(version)
-    {}
+        _version(version),
+        _mapContext(mapContext)
+    {
+        _EnsureAudioMaps();
+    }
+    ~AudioResourceSource();
+
+    AudioResourceSource& operator=(AudioResourceSource &src) = delete;
 
     bool ReadNextEntry(ResourceTypeFlags typeFlags, IteratorState &state, ResourceMapEntryAgnostic &entry, std::vector<uint8_t> *optionalRawData = nullptr) override;
     sci::istream GetHeaderAndPositionedStream(const ResourceMapEntryAgnostic &mapEntry, ResourceHeaderAgnostic &headerEntry) override;
@@ -508,6 +514,7 @@ public:
     void RebuildResources() override {}
 
 private:
+    void _EnsureAudioMaps();
     AudioVolumeName _GetVolumeToUse(uint32_t base36Number);
     void _Finalize(AudioMapComponent &newAudioMap, sci::ostream &newVolumeStream, uint32_t base36Number);
     void _CopyWithoutThese(const AudioMapComponent &audioMap, AudioMapComponent &newAudioMap, sci::istream &oldReader, sci::ostream &newVolumeStream, const std::set<uint16_t> &removeThese);
@@ -516,7 +523,10 @@ private:
 
     std::string _gameFolder;
     SCIVersion _version;
+    int _mapContext;
     ResourceSourceFlags _sourceFlags;
+
+    std::vector<std::unique_ptr<ResourceEntity>> _audioMaps;
 
     std::unique_ptr<sci::streamOwner> _volumeStreamOwnerSfx;
     std::unique_ptr<sci::streamOwner> _volumeStreamOwnerAud;

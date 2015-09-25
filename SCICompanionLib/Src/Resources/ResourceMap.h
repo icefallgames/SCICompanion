@@ -3,6 +3,7 @@
 #include "PaletteOperations.h"
 #include "GameFolderHelper.h"
 #include "CompiledScript.h"
+#include "ResourceEntity.h"
 
 class DebuggerThread;
 struct Vocab000;
@@ -50,8 +51,8 @@ public:
     void AssignName(ResourceType iType, int iResourceNumber, uint32_t base36Number, PCTSTR pszName);
 
     // The main functions for enumerating resources.
-    std::unique_ptr<ResourceContainer> Resources(ResourceTypeFlags types, ResourceEnumFlags flags);
-    std::unique_ptr<ResourceBlob> MostRecentResource(ResourceType type, int number, bool getName);
+    std::unique_ptr<ResourceContainer> Resources(ResourceTypeFlags types, ResourceEnumFlags flags, int mapContext = -1);
+    std::unique_ptr<ResourceBlob> MostRecentResource(ResourceType type, int number, bool getName, uint32_t base36Number = NoBase36);
     bool DoesResourceExist(ResourceType type, int number, std::string *retrieveName = nullptr);
 
     void PurgeUnnecessaryResources();
@@ -81,7 +82,6 @@ public:
     const GameFolderHelper &Helper() { return _gameFolderHelper; }
     const Vocab000 *GetVocab000();
     const PaletteComponent *GetPalette999();
-    const std::vector<std::unique_ptr<ResourceEntity>> &GetAudioMaps();
     void SaveAudioMap65535(const AudioMapComponent &newAudioMap);
     GlobalCompiledScriptLookups *GetCompiledScriptLookups();
     std::vector<int> GetPaletteList();
@@ -129,7 +129,6 @@ private:
     // Useful resources to cache
     std::unique_ptr<ResourceEntity> _pVocab000;
     std::unique_ptr<ResourceEntity> _pPalette999;
-    std::vector<std::unique_ptr<ResourceEntity>> _audioMaps;
     PaletteComponent _emptyPalette;
     std::vector<int> _paletteList;
     bool _paletteListNeedsUpdate;

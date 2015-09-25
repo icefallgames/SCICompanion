@@ -24,3 +24,5 @@ PackageNumber(-1),
 Base36Number(NoBase36)
 {
 }
+
+ResourceEntity::ResourceEntity() : ResourceEntity(emptyTraits) {}

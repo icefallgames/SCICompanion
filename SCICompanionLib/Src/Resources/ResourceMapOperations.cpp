@@ -45,7 +45,7 @@ std::unique_ptr<ResourceSource> CreateResourceSource(const std::string &gameFold
     }
     else if ((source == ResourceSourceFlags::Aud) || (source == ResourceSourceFlags::Sfx))
     {
-        return std::make_unique<AudioResourceSource>(version, gameFolder);
+        return std::make_unique<AudioResourceSource>(version, gameFolder, -1);
     }
     return std::unique_ptr<ResourceSource>(nullptr);
 }
