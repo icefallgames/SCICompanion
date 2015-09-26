@@ -478,6 +478,8 @@ bool KernelTable::Load(const GameFolderHelper &helper)
     }
     else
     {
+        _names.clear();
+        _names.reserve(ARRAYSIZE(s_defaultKernelNames));
         // Kernel names not present. Use the hardcoded list (this is the case in later SCI versions)
         assert(appState->GetVersion().MapFormat != ResourceMapFormat::SCI0); // Shouldn't happen for SCI0
         for (size_t i = 0; i < ARRAYSIZE(s_defaultKernelNames); i++)
