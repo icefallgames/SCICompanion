@@ -258,6 +258,7 @@
     <ClCompile Include="Src\Dialogs\GameVersionDialog.cpp" />
     <ClCompile Include="Src\Resources\PaletteOperations.cpp" />
     <ClCompile Include="Src\Resources\SoundOperations.cpp" />
+    <ClCompile Include="Src\Resources\Sync.cpp" />
     <ClCompile Include="Src\Resources\VersionDetectionHelper.cpp" />
     <ClCompile Include="Src\Resources\View.cpp" />
     <ClCompile Include="Src\Util\AudioPlayback.cpp" />
@@ -317,6 +318,7 @@
     <ClInclude Include="Src\Resources\GameFolderHelper.h" />
     <ClInclude Include="Src\Resources\Pic.h" />
     <ClInclude Include="Src\Resources\ResourceMapEvents.h" />
+    <ClInclude Include="Src\Resources\Sync.h" />
     <ClInclude Include="Src\Resources\View.h" />
     <ClInclude Include="Src\Util\AudioRecording.h" />
     <ClInclude Include="Src\Util\BufferPool.h">

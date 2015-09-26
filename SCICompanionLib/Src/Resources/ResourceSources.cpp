@@ -259,7 +259,8 @@ bool AudioResourceSource::ReadNextEntry(ResourceTypeFlags typeFlags, IteratorSta
                     assert(mapEntry.SyncSize > 0);
                     entry.Number = mapEntry.Number;
                     entry.Offset = mapEntry.Offset;
-                    entry.ExtraData = 0;
+                    // Use extra data to store the size of the sync section.
+                    entry.ExtraData = mapEntry.SyncSize;
                     entry.PackageNumber = 0;
                     entry.Type = ResourceType::Sync;
                     entry.Base36Number = GetMessageTuple(mapEntry);
@@ -364,11 +365,22 @@ sci::istream AudioResourceSource::GetHeaderAndPositionedStream(const ResourceMap
         headerEntry.Version = _version;
         headerEntry.Type = mapEntry.Type;
         headerEntry.cbDecompressed = 0;
-        AudioHeader audioHeader;
-        reader >> audioHeader;
-        reader.seekg(-(int)sizeof(audioHeader), std::ios_base::cur);
-        headerEntry.cbDecompressed = audioHeader.headerSize + 2 + audioHeader.sizeExcludingHeader;
-        headerEntry.cbCompressed = headerEntry.cbDecompressed;
+        if (mapEntry.Type == ResourceType::Audio)
+        {
+            AudioHeader audioHeader;
+            reader >> audioHeader;
+            reader.seekg(-(int)sizeof(audioHeader), std::ios_base::cur);
+            headerEntry.cbDecompressed = audioHeader.headerSize + 2 + audioHeader.sizeExcludingHeader;
+            headerEntry.cbCompressed = headerEntry.cbDecompressed;
+        }
+        else
+        {
+            uint16_t resType;
+            reader >> resType;
+            assert(resType == 0x8e);
+            headerEntry.cbDecompressed = mapEntry.ExtraData;
+            headerEntry.cbCompressed = mapEntry.ExtraData;
+        }
 
         return reader;
     }

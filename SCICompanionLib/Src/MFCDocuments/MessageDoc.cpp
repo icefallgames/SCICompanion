@@ -40,10 +40,17 @@ void CMessageDoc::_PreloadAudio()
     {
         _audioSidecarResources.clear();
         int mapResourceNumber = GetResource()->ResourceNumber;
-        auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Audio, ResourceEnumFlags::MostRecentOnly, mapResourceNumber);
+        auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Audio | ResourceTypeFlags::Sync, ResourceEnumFlags::MostRecentOnly, mapResourceNumber);
         for (auto resource : *resourceContainer)
         {
-            _audioSidecarResources[resource->GetBase36()] = CreateResourceFromResourceData(*resource);
+            if (resource->GetType() == ResourceType::Audio)
+            {
+                _audioSidecarResources[resource->GetBase36()] = CreateResourceFromResourceData(*resource);
+            }
+            else
+            {
+                _syncSidecarResources[resource->GetBase36()] = CreateResourceFromResourceData(*resource);
+            }
         }
     }
 }

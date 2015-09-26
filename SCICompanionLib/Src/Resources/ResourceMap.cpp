@@ -19,6 +19,7 @@
 #include "Message.h"
 #include "Audio.h"
 #include "AudioMap.h"
+#include "Sync.h"
 #include "ResourceEntity.h"
 #include "ResourceSources.h"
 #include "CompiledScript.h"
@@ -1309,7 +1310,9 @@ std::unique_ptr<ResourceEntity> CreateResourceFromResourceData(const ResourceBlo
             return CreateResourceHelper(data, CreateAudioResource, CreateDefaultAudioResource, fallbackOnException);
         case ResourceType::Map:
             return CreateResourceHelper(data, CreateMapResource, CreateMapResource, fallbackOnException);
-    default:
+        case ResourceType::Sync:
+            return CreateResourceHelper(data, CreateSyncResource, CreateDefaultSyncResource, fallbackOnException);
+        default:
         assert(false);
         break;
     }
