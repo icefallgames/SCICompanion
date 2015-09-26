@@ -150,7 +150,7 @@
 #define __EXT_MFC_NO_BACKSTAGEVIEWWND
 
 // optional features (you can also exclude some resources in the resource.rc file)
-//#define __EXT_MFC_NO_PROF_UIS_ABOUT_DIALOG
+#define __EXT_MFC_NO_PROF_UIS_ABOUT_DIALOG
 //#define __EXT_MFC_NO_MDI_WINDOWS_LIST_DIALOG
 //#define __EXT_MFC_NO_SPLITTER_WND
 //#define __EXT_MFC_NO_DOCK_MARKERS
@@ -162,15 +162,15 @@
 //#define __EXT_MFC_NO_SCROLLITEMWND
 //#define __EXT_MFC_NO_SCROLLCONAINERWND
 //#define __EXT_MFC_NO_SCROLLRICHCONTENTWND
-//#define __EXT_MFC_NO_RICHCONTENTGENERATORWND
+#define __EXT_MFC_NO_RICHCONTENTGENERATORWND
 //#define __EXT_MFC_NO_SPIN
 //#define __EXT_MFC_NO_STATUSBAR
 //#define __EXT_MFC_NO_NC_FRAME
 //#define __EXT_MFC_NO_PROGRESS_WND
 //#define __EXT_MFC_NO_THEME_SWITCHER_TOOLBAR
-//#define __EXT_MFC_NO_TREE_VIEW_CTRL
-//#define __EXT_MFC_NO_LIST_VIEW_CTRL
-//#define __EXT_MFC_NO_MSG_BOX
+#define __EXT_MFC_NO_TREE_VIEW_CTRL
+#define __EXT_MFC_NO_LIST_VIEW_CTRL
+#define __EXT_MFC_NO_MSG_BOX
 
 // exclude unneded classes for ProfUIS-AX distributives
 //#define __EXT_PROFUIS_AX_DISTRIBUTE_BUILD

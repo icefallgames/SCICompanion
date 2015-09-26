@@ -745,8 +745,6 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	}
     m_ThemeSwitcher.ShowWindow(SW_HIDE);
 
-
-
     // These are just placeholders...
     if (!m_wndStatusBar.Create(this))
     {
