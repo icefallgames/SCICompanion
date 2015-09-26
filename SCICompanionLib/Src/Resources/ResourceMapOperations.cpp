@@ -29,7 +29,7 @@ std::unique_ptr<ResourceSource> _CreateResourceSource(const std::string &gameFol
     return std::unique_ptr<ResourceSource>(nullptr);
 }
 
-std::unique_ptr<ResourceSource> CreateResourceSource(const std::string &gameFolder, SCIVersion version, ResourceSourceFlags source, ResourceSourceAccessFlags access)
+std::unique_ptr<ResourceSource> CreateResourceSource(const std::string &gameFolder, SCIVersion version, ResourceSourceFlags source, ResourceSourceAccessFlags access, int mapContext)
 {
     if (source == ResourceSourceFlags::ResourceMap)
     {
@@ -45,7 +45,7 @@ std::unique_ptr<ResourceSource> CreateResourceSource(const std::string &gameFold
     }
     else if ((source == ResourceSourceFlags::Aud) || (source == ResourceSourceFlags::Sfx))
     {
-        return std::make_unique<AudioResourceSource>(version, gameFolder, -1, access);
+        return std::make_unique<AudioResourceSource>(version, gameFolder, mapContext, access);
     }
     return std::unique_ptr<ResourceSource>(nullptr);
 }

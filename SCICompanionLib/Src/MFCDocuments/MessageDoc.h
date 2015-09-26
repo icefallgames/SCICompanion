@@ -29,15 +29,28 @@ public:
     void SetSelectedIndex(int index, bool force = false);
     int GetSelectedIndex() const { return _selectedIndex; }
 
-protected:
+    // Audio sidecar support:
+    ResourceEntity *FindAudioResource(uint32_t base36Number);
+    void AddNewAudioResource(std::unique_ptr<ResourceEntity> audioResource);
 
-    virtual ResourceType _GetType() const
+protected:
+    void PostSuccessfulSave(const ResourceEntity *pResource) override;
+
+    ResourceType _GetType() const override
     {
         const ResourceEntity *pResource = static_cast<const ResourceEntity*>(GetResource());
         return pResource->GetType();
     }
 
+private:
+    void _PreloadAudio();
+
     int _selectedIndex;
+
+    // Audio sidecare stuff.
+    std::unordered_map<uint32_t, std::unique_ptr<ResourceEntity>> _audioSidecarResources;
+    std::vector<ResourceEntity*> _newAudioSidecarResources; // temp
+    std::unordered_map<uint32_t, std::unique_ptr<ResourceEntity>> _syncSidecarResources;
 
     DECLARE_MESSAGE_MAP()
 };

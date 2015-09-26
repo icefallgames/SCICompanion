@@ -660,7 +660,10 @@ void SCIClassBrowser::_RemoveAllRelatedData(Script *pScript)
             {
 				ASSERT(node->GetSubClasses().size() == 0); // since it's an instance
 				// Remove ourself from our super's list of subclasses
-				node->GetSuperClass()->RemoveSubClass(node.get());
+                if (node->GetSuperClass()) // REVIEW REVIEW: why was this null? sq5Narrator in main.
+                {
+                    node->GetSuperClass()->RemoveSubClass(node.get());
+                }
 				// Remove this node.
 				_instances.erase(_instances.begin() + i);
             }

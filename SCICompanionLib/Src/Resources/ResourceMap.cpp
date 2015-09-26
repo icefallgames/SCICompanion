@@ -251,8 +251,9 @@ HRESULT CResourceMap::EndDeferAppend()
                 // probably something we'll need to handle.
 
                 ResourceSourceFlags sourceFlags = _deferredResources[0].GetSourceFlags();
+                int mapContext = _deferredResources[0].GetNumber();
                 // Enumerate resources and write the ones we have not already encountered.
-                std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(_gameFolderHelper.GameFolder, _gameFolderHelper.Version, sourceFlags, ResourceSourceAccessFlags::ReadWrite);
+                std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(_gameFolderHelper.GameFolder, _gameFolderHelper.Version, sourceFlags, ResourceSourceAccessFlags::ReadWrite, mapContext);
 
                 try
                 {
@@ -438,7 +439,8 @@ HRESULT CResourceMap::AppendResource(const ResourceBlob &resource)
         }
 
         // Enumerate resources and write the ones we have not already encountered.
-        std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(_gameFolderHelper.GameFolder, _gameFolderHelper.Version, resource.GetSourceFlags(), ResourceSourceAccessFlags::ReadWrite);
+        int mapContext = resource.GetNumber();
+        std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(_gameFolderHelper.GameFolder, _gameFolderHelper.Version, resource.GetSourceFlags(), ResourceSourceAccessFlags::ReadWrite, mapContext);
         std::vector<ResourceBlob> blobs;
         blobs.push_back(resource);
 

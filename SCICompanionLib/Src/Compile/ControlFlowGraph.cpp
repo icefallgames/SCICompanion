@@ -1735,7 +1735,10 @@ ControlFlowNode *ControlFlowGraph::_PartitionCode(code_pos start, code_pos end)
         (*mainStructure)[SemId::Tail] = nodeWithLastCodePos;
     }
 #endif
-    assert((*mainStructure)[SemId::Tail]);
+    if ((*mainStructure)[SemId::Tail] == nullptr)
+    {
+        throw ControlFlowException(mainStructure, "Code partition failure.");
+    }
     ExitNode *exitNode = MakeNode<ExitNode>();
     exitNode->InsertPredecessor(mainStructure);  // NOT main's tail
     (*mainStructure)[SemId::Follow] = exitNode;

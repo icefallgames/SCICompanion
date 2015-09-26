@@ -11,10 +11,25 @@ class CMessageDoc;
 struct TextComponent;
 struct TextEntry;
 
+enum class SidecarResourceStatus
+{
+    Added = 0x1,        // This has been added since we last saved
+    Deleted = 0x2,      // This has been deleted since we last saved
+    Moved = 0x4,        // This was moved (e.g. map needs to be updated, but not the thing)
+};
+DEFINE_ENUM_FLAGS(SidecarResourceStatus, uint32_t)
+
+/*
+struct SidecarResource
+{
+    SidecarResourceStatus Status;
+    std::unique_ptr<ResourceEntity> Resource;
+};*/
+
 class MessageEditPane : public AudioPlaybackUI<CExtDialogFwdCmd>, public INonViewClient
 {
 public:
-    MessageEditPane(CWnd* pParent = NULL);   // standard constructor
+    MessageEditPane(CWnd* pParent = nullptr);   // standard constructor
     virtual ~MessageEditPane();
 
     // Dialog Data
@@ -41,7 +56,6 @@ protected:
     const TextEntry *_GetEntry();
     int _GetSelectedIndex();
     void _AddEntryAtCurrentPosition(const TextEntry &entry);
-    void _PreloadAudio();
 
     virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
     virtual BOOL OnInitDialog();
@@ -83,11 +97,6 @@ private:
     CExtButton m_wndButton3;
     CExtButton m_wndButtonFakeCommit;
     CExtSpinWnd m_wndSpinner;
-
-    // Audio stuff
-    bool _needAudioPreload;
-    std::unordered_map<uint32_t, std::unique_ptr<ResourceEntity>> _audioResources;
-    std::unordered_map<uint32_t, std::unique_ptr<ResourceEntity>> _syncResources;
 
     int _spinnerValue;
 

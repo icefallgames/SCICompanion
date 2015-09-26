@@ -175,8 +175,11 @@ void CScriptView::UpdateView(CCrystalTextView *pSource, CUpdateContext *pContext
         // thus invalidating our current autocomplete position and requiring us to reparse from the beginning.
         CPoint pt = _pACThread->GetCompletedPosition();
         CPoint ptRecalced(pt);
-        pContext->RecalcPoint(ptRecalced);
-        if (ptRecalced != pt)
+        if (pContext)
+        {
+            pContext->RecalcPoint(ptRecalced);
+        }
+        if (!pContext || (ptRecalced != pt))
         {
             _pACThread->ResetPosition();
         }

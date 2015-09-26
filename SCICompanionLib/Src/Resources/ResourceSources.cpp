@@ -383,7 +383,12 @@ void AudioResourceSource::RemoveEntry(const ResourceMapEntryAgnostic &mapEntry)
     if (streamOwner)
     {
         auto it = find_if(_audioMaps.begin(), _audioMaps.end(),
-            [](const std::unique_ptr<ResourceEntity> &audioMap) { return IsMainAudioMap(audioMap->GetComponent<AudioMapComponent>().Version); }
+            [&mapEntry](const std::unique_ptr<ResourceEntity> &audioMap)
+        {
+            // Either the entry has no base36 number and this is the main audio map, or
+            // is *does* have a base 36 number and this its resource number matches that of the audiomap.
+            return (audioMap->ResourceNumber == mapEntry.Number) || ((mapEntry.Base36Number == NoBase36) && IsMainAudioMap(audioMap->GetComponent<AudioMapComponent>().Version));
+        }
         );
         if (it != _audioMaps.end())
         {
@@ -469,7 +474,12 @@ AppendBehavior AudioResourceSource::AppendResources(const std::vector<ResourceBl
     for (const ResourceBlob &blob : entries)
     {
         auto it = find_if(_audioMaps.begin(), _audioMaps.end(),
-            [](const std::unique_ptr<ResourceEntity> &audioMap) { return IsMainAudioMap(audioMap->GetComponent<AudioMapComponent>().Version); }
+            [&blob](const std::unique_ptr<ResourceEntity> &audioMap)
+        {
+            // Either the entry has no base36 number and this is the main audio map, or
+            // is *does* have a base 36 number and this its resource number matches that of the audiomap.
+            return (audioMap->ResourceNumber == blob.GetNumber()) || ((blob.GetBase36() == NoBase36) && IsMainAudioMap(audioMap->GetComponent<AudioMapComponent>().Version));
+        }
         );
         if (it != _audioMaps.end())
         {

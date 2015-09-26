@@ -100,9 +100,12 @@ void MessageSource::Commit()
 {
     if (_dirty)
     {
-        _file->Commit();
-        _dirty = false;
+        if (_file)
+        {
+            _file->Commit();
+        }
     }
+    _dirty = false;
 }
 
 std::unique_ptr<MessageHeaderFile> GetMessageFile(const std::string &messageFolder, int scriptNumber)

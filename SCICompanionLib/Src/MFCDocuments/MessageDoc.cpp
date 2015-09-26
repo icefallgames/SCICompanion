@@ -10,6 +10,9 @@
 #include "MessageHeaderFile.h"
 #include "format.h"
 #include "NounsAndCases.h"
+#include "ResourceContainer.h"
+#include "PerfTimer.h"
+#include "ResourceMap.h"
 
 using namespace std;
 
@@ -30,6 +33,61 @@ void CMessageDoc::SetSelectedIndex(int index, bool force)
     }
 }
 
+void CMessageDoc::_PreloadAudio()
+{
+    PerfTimer timer("preloadAudio");
+    if (appState->GetVersion().HasSyncResources)
+    {
+        _audioSidecarResources.clear();
+        int mapResourceNumber = GetResource()->ResourceNumber;
+        auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Audio, ResourceEnumFlags::MostRecentOnly, mapResourceNumber);
+        for (auto resource : *resourceContainer)
+        {
+            _audioSidecarResources[resource->GetBase36()] = CreateResourceFromResourceData(*resource);
+        }
+    }
+}
+
+void CMessageDoc::AddNewAudioResource(std::unique_ptr<ResourceEntity> audioResource)
+{
+    _newAudioSidecarResources.push_back(audioResource.get());
+    _audioSidecarResources[audioResource->Base36Number] = std::move(audioResource);
+
+    SetModifiedFlag(TRUE);
+}
+
+void CMessageDoc::PostSuccessfulSave(const ResourceEntity *pResource)
+{
+    // We only support adding now, this is kind of hacky.
+    // (Supporting changing of the base36 number is an optimization we can do.)
+
+    CResourceMap &map = appState->GetResourceMap();
+
+    {
+        DeferResourceAppend defer(map);
+        for (auto &resource : _newAudioSidecarResources)
+        {
+            map.AppendResource(*resource);
+        }
+        defer.Commit();
+    }
+
+    _newAudioSidecarResources.clear();
+}
+
+ResourceEntity *CMessageDoc::FindAudioResource(uint32_t base36Number)
+{
+    auto it = _audioSidecarResources.find(base36Number);
+    if (it == _audioSidecarResources.end())
+    {
+        return nullptr;
+    }
+    else
+    {
+        return (*it).second.get();
+    }
+}
+
 void CMessageDoc::SetMessageResource(std::unique_ptr<ResourceEntity> pMessage, int id)
 {
     _checksum = id;
@@ -44,6 +102,8 @@ void CMessageDoc::SetMessageResource(std::unique_ptr<ResourceEntity> pMessage, i
 
     AddFirstResource(move(pMessage));
     _UpdateTitle();
+
+    _PreloadAudio();
 
     UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(MessageChangeHint::Changed | MessageChangeHint::AllMessageFiles));
 }

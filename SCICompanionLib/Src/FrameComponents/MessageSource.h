@@ -34,6 +34,8 @@ public:
     // Returns empty string if not backed by file.
     std::string GetBackingFile() const;
 
+    bool IsDirty() const { return _dirty; }
+
 private:
     std::vector<MessageDefine> _defines;
     MessageHeaderFile *_file;

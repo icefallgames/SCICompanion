@@ -12,13 +12,11 @@
 #include "AudioMap.h"
 #include "AudioPlayback.h"
 #include "Audio.h"
-#include "ResourceContainer.h"
-#include "PerfTimer.h"
 
 using namespace std;
 
 MessageEditPane::MessageEditPane(CWnd* pParent /*=NULL*/)
-    : AudioPlaybackUI<CExtDialogFwdCmd>(IDD, pParent), _hAccel(nullptr), _initialized(false), _verbEdited(false), _nounEdited(false), _conditionEdited(false), _talkerEdited(false), _needAudioPreload(false)
+    : AudioPlaybackUI<CExtDialogFwdCmd>(IDD, pParent), _hAccel(nullptr), _initialized(false), _verbEdited(false), _nounEdited(false), _conditionEdited(false), _talkerEdited(false)
 {
     // Load our accelerators
     // HINSTANCE hInst = AfxFindResourceHandle(MAKEINTRESOURCE(IDR_ACCELERATORPICCOMMANDS), RT_ACCELERATOR);
@@ -172,6 +170,7 @@ BOOL MessageEditPane::OnInitDialog()
     // Set up anchoring for resize
     AddAnchor(IDC_EDITMESSAGE, CPoint(0, 0), CPoint(100, 100));
 
+    // Recording functionality:
     AddAnchor(IDC_EDIT_SAMPLEBIT, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_BUTTON_PLAY2, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_BUTTON_STOP, CPoint(100, 0), CPoint(100, 0));
@@ -180,6 +179,7 @@ BOOL MessageEditPane::OnInitDialog()
     AddAnchor(IDC_SLIDER, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_CHECK_AUTOPREV, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_STATIC_DURATION, CPoint(100, 0), CPoint(100, 0));
+    AddAnchor(IDC_COMBO_WAVEFORMAT, CPoint(100, 0), CPoint(100, 0));
 
     // Hide the sizing grip
     ShowSizeGrip(FALSE);
@@ -219,13 +219,6 @@ void MessageEditPane::UpdateNonView(CObject *pObject)
     if (IsFlagSet(hint, MessageChangeHint::Selection | MessageChangeHint::AllMessageFiles | MessageChangeHint::ItemChanged | MessageChangeHint::Changed))
     {
         _Update();
-        if (_needAudioPreload)
-        {
-            PerfTimer timer("preloadAudio");
-
-            _PreloadAudio();
-            _needAudioPreload = false;
-        }
     }
 }
 
@@ -320,16 +313,7 @@ void MessageEditPane::_UpdateAudio(const TextEntry &messageEntry)
     {
         uint32_t tuple = GetMessageTuple(messageEntry);
         g_audioPlayback.Stop();
-
-        auto it = _audioResources.find(tuple);
-        if (it == _audioResources.end())
-        {
-            SetAudioResource(nullptr);
-        }
-        else
-        {
-            SetAudioResource((*it).second.get());
-        }
+        SetAudioResource(_pDoc->FindAudioResource(tuple));
     }
 }
 
@@ -342,8 +326,13 @@ void MessageEditPane::OnNewResourceCreated(std::unique_ptr<ResourceEntity> audio
         audioResource->Base36Number = GetMessageTuple(*entry);
         audioResource->ResourceNumber = _pDoc->GetNumber();
 
+        // TODO: This is temporary. For now we'll add everything.
+        _pDoc->AddNewAudioResource(std::move(audioResource));
         // Don't do this now. Instead, add to a list until we save?
         // appState->GetResourceMap().AppendResource(*audioResource);
+
+        // Now we may have just deleted the old one, so let's update.
+        _Update();
     }
 }
 
@@ -380,10 +369,17 @@ void MessageEditPane::_Update()
 
     // Hide/show audio controls when appropriate.
     int cmdShow = appState->GetVersion().HasSyncResources ? SW_SHOW : SW_HIDE;
+    m_wndInfo.ShowWindow(cmdShow);
     m_wndPlay.ShowWindow(cmdShow);
     m_wndStop.ShowWindow(cmdShow);
+    m_wndRecord.ShowWindow(cmdShow);
+    m_wndSlider.ShowWindow(cmdShow);
     m_wndAutoPreview.ShowWindow(cmdShow);
-    m_wndInfo.ShowWindow(cmdShow);
+    m_wndDuration.ShowWindow(cmdShow);
+    //m_wndDescription.ShowWindow(cmdShow);
+    m_wndBrowse.ShowWindow(cmdShow);
+    //m_wndTitle.ShowWindow(cmdShow);
+    m_wndWaveType.ShowWindow(cmdShow);
 }
 
 void MessageEditPane::SetDocument(CDocument *pDoc)
@@ -395,26 +391,6 @@ void MessageEditPane::SetDocument(CDocument *pDoc)
         _pDoc->AddNonViewClient(this);
         _UpdateCombos(MessageChangeHint::ConditionsChanged | MessageChangeHint::TalkersChanged | MessageChangeHint::VerbsChanged | MessageChangeHint::NounsChanged);
         _Update();
-    }
-    _needAudioPreload = true;
-}
-
-void MessageEditPane::_PreloadAudio()
-{
-    if (appState->GetVersion().HasSyncResources)
-    {
-        SetAudioResource(nullptr);
-        _audioResources.clear();
-
-        if (_pDoc->GetResource())
-        {
-            int mapResourceNumber = _pDoc->GetResource()->ResourceNumber;
-            auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Audio, ResourceEnumFlags::MostRecentOnly, mapResourceNumber);
-            for (auto resource : *resourceContainer)
-            {
-                _audioResources[resource->GetBase36()] = CreateResourceFromResourceData(*resource);
-            }
-        }
     }
 }
 

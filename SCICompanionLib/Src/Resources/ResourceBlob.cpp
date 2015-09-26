@@ -108,6 +108,7 @@ HRESULT ResourceBlob::CreateFromBits(PCTSTR pszName, ResourceType iType, sci::is
         // REVIEW: do some validation
         header.Type = iType;
         header.Number = (WORD)iNumber;
+        header.Base36Number = base36Number;
         _hasNumber = (iNumber != -1);
         header.CompressionMethod = 0;
         header.cbDecompressed = pStream->GetDataSize();
