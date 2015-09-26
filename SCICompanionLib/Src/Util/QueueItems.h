@@ -1,5 +1,6 @@
-
 #pragma once
+
+#include <thread>
 
 //
 // This template implements a worker thread that can be used to perform background tasks.
@@ -71,12 +72,13 @@ public:
         if (_hEventWorkAvailable)
         {
             AddRef(); // For the worker thread.
-            _pThread = AfxBeginThread(s_ThreadWorker, this, 0, 0, 0, NULL);
-            if (_pThread)
+            try
             {
+                _thread = std::thread(s_ThreadWorker, this);
+                _thread.detach();
                 fRet = true;
             }
-            else
+            catch (std::system_error)
             {
                 Release(); // (for worker thread)
             }
@@ -187,7 +189,7 @@ private:
     CRITICAL_SECTION _cs;
     HANDLE _hEventWorkAvailable;
 
-    CWinThread *_pThread;
+    std::thread _thread;
     bool _fAbort;
 
     std::list<std::unique_ptr<TITEM>> _workItems;

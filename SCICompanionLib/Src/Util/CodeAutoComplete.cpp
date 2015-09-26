@@ -304,12 +304,7 @@ AutoCompleteThread2::AutoCompleteThread2() : _nextId(0)
     _hWaitForMoreWork = CreateEvent(nullptr, FALSE, FALSE, nullptr);
     // ExitThread will be manual reset, since the background thread will wait on it multiple times:
     _hExitThread = CreateEvent(nullptr, TRUE, FALSE, nullptr);
-    _pThread = AfxBeginThread(s_ThreadWorker, this, 0, 0, CREATE_SUSPENDED, nullptr);
-    if (_pThread)
-    {
-        _pThread->m_bAutoDelete = FALSE;
-        _pThread->ResumeThread();
-    }
+    _thread = std::thread(s_ThreadWorker, this);
 }
 
 AutoCompleteThread2::~AutoCompleteThread2()
@@ -318,8 +313,8 @@ AutoCompleteThread2::~AutoCompleteThread2()
     CloseHandle(_hWaitForMoreWork);
 
     SetEvent(_hExitThread);
-    WaitForSingleObject(_pThread->m_hThread, INFINITE);
-    delete _pThread;
+
+    _thread.join();
 
     CloseHandle(_hExitThread);
 

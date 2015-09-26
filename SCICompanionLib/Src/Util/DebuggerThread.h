@@ -1,5 +1,7 @@
 #pragma once
 
+#include <thread>
+
 class DebuggerThread
 {
 public:
@@ -14,7 +16,6 @@ private:
     static UINT s_DebugThreadWorker(void *pParam);
     void _Main();
 
-    CWinThread *_thread;
     HWND _hwndUI;
     std::shared_ptr<DebuggerThread> _myself;
     std::string _gameFolder;

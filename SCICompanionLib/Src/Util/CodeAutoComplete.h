@@ -1,5 +1,7 @@
 #pragma once
 
+#include <thread>
+
 class CCrystalScriptStream;
 class CCrystalTextBuffer;
 class CScriptStreamLimiter;
@@ -77,7 +79,8 @@ public:
 private:
     static UINT s_ThreadWorker(void *pParam);
     void _DoWork();
-    CWinThread *_pThread;
+
+    std::thread _thread;
 
     struct AutoCompleteId
     {

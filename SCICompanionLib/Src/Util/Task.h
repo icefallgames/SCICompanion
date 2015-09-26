@@ -1,6 +1,7 @@
 #pragma once
 
 #include <deque>
+#include <thread>
 
 class ITaskStatus
 {
@@ -18,12 +19,7 @@ public:
     {
         InitializeCriticalSection(&_cs);
         _hWakeUp = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-        _pThread = AfxBeginThread(s_ThreadWorker, this, THREAD_PRIORITY_BELOW_NORMAL, 0, CREATE_SUSPENDED, nullptr);
-        if (_pThread)
-        {
-            _pThread->m_bAutoDelete = FALSE;
-            _pThread->ResumeThread();
-        }
+        _thread = std::thread(s_ThreadWorker, this);
         InitializeCriticalSection(&_csResponse);
     }
 
@@ -110,9 +106,7 @@ public:
             SetEvent(_hWakeUp);
 
             // We need to wait until the background thread is done.
-            WaitForSingleObject(_pThread->m_hThread, INFINITE);
-            delete _pThread;
-            _pThread = nullptr;
+            _thread.join();
         }
     }
 
@@ -178,7 +172,7 @@ private:
         }
     }
 
-    CWinThread *_pThread;
+    std::thread _thread;
     HANDLE _hWakeUp;
 
     bool _exit;

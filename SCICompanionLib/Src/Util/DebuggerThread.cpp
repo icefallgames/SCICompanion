@@ -75,19 +75,21 @@ void DebuggerThread::_Start(std::shared_ptr<DebuggerThread> myself)
     }
 
     // Now we can start our watcher thread.
-    _thread = AfxBeginThread(s_DebugThreadWorker, this, 0, 0, CREATE_SUSPENDED, nullptr);
-    if (_thread)
+    appState->OutputClearResults(OutputPaneType::Debug);
+    appState->ShowOutputPane(OutputPaneType::Debug);
+    _hwndUI = AfxGetMainWnd()->GetSafeHwnd();
+    _hAbort.hFile = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+    _myself = myself;
+    try
     {
-        appState->OutputClearResults(OutputPaneType::Debug);
-        appState->ShowOutputPane(OutputPaneType::Debug);
-        _hwndUI = AfxGetMainWnd()->GetSafeHwnd();
-        //_decompileResults = make_unique<DecompilerDialogResults>(this->GetSafeHwnd());
-        //_SyncButtonState();
-        _thread->m_bAutoDelete = TRUE;
-        _hAbort.hFile = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-        //_hThread = _pThread->m_hThread;
-        _myself = myself;
-        _thread->ResumeThread();
+        std::thread ourThread = std::thread(s_DebugThreadWorker, this);
+        ourThread.detach();   // Thread deletes itself when done.
+    }
+    catch (std::system_error)
+    {
+        _hwndUI = nullptr;
+        CloseHandle(_hAbort.hFile);
+        _myself = nullptr;
     }
 
 }
@@ -209,6 +211,4 @@ void DebuggerThread::_Main()
     DeleteFile(debugOnFileName.c_str());
     DeleteFile(debugLogFilename.c_str());
     DeleteFile(GetStartDebugFilename(_gameFolder).c_str());
-
-    _thread = nullptr;
 }
