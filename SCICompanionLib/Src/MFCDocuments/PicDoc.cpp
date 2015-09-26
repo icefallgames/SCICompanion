@@ -206,7 +206,7 @@ void CPicDoc::OnCloseDocument()
 {
     // Remove ourselves as a sync
     CResourceMap &map = appState->GetResourceMap();
-    map.RemoveSync((ISyncResourceMap*)this);
+    map.RemoveSync((IResourceMapEvents*)this);
     __super::OnCloseDocument();
 }
 

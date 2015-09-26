@@ -7,7 +7,7 @@ enum class AppendBehavior;
 // Clients can implement this interface to be notified when
 // resources have been added or removed.
 //
-class ISyncResourceMap
+class IResourceMapEvents
 {
 public:
     virtual void OnResourceAdded(const ResourceBlob *pData, AppendBehavior appendBehavior) = 0;

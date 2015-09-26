@@ -18,7 +18,7 @@ class ResourceBlob;
 class ResourceRecency;
 class ResourceEntity;
 class GlobalCompiledScriptLookups;
-class ISyncResourceMap;
+class IResourceMapEvents;
 
 std::string GetIniString(const std::string &iniFileName, std::string &sectionName, const std::string &keyName, PCSTR pszDefault);
 HRESULT RebuildResources(BOOL fShowUI);
@@ -57,8 +57,8 @@ public:
 
     void PurgeUnnecessaryResources();
 
-    void AddSync(ISyncResourceMap *pSync);
-    void RemoveSync(ISyncResourceMap *pSync);
+    void AddSync(IResourceMapEvents *pSync);
+    void RemoveSync(IResourceMapEvents *pSync);
     void NotifyToReloadResourceType(ResourceType iType);
 
     void DeleteResource(const ResourceBlob *pResource);
@@ -124,7 +124,7 @@ private:
 
     // Member variables
 
-    std::vector<ISyncResourceMap*> _syncs;
+    std::vector<IResourceMapEvents*> _syncs;
 
     // Useful resources to cache
     std::unique_ptr<ResourceEntity> _pVocab000;

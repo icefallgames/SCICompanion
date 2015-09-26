@@ -16,7 +16,7 @@ CHintWithObject<CelIndex> WrapRasterChange(RasterChange change);
 
 struct ImageSequenceItem;
 
-class CNewRasterResourceDocument : public ResourceEntityDocument, public ISyncResourceMap, public DocumentWithPaletteChoices
+class CNewRasterResourceDocument : public ResourceEntityDocument, public IResourceMapEvents, public DocumentWithPaletteChoices
 {
     DECLARE_DYNCREATE(CNewRasterResourceDocument)
 
@@ -74,7 +74,7 @@ public:
 
     void PostApplyChanges(CObject *pObj) override;
 
-    // ISyncResourceMap
+    // IResourceMapEvents
     void OnResourceAdded(const ResourceBlob *pData, AppendBehavior appendBehavior);
     void OnResourceDeleted(const ResourceBlob *pData) {}
     void OnResourceMapReloaded(bool isInitialLoad) {}

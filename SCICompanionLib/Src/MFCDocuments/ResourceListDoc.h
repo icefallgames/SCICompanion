@@ -31,7 +31,7 @@ DEFINE_ENUM_FLAGS(ResourceMapChangeHint, uint32_t)
 //
 // Manages a bunch of ResourceBlob's.
 //
-class CResourceListDoc : public CNonViewHostDocument, public ISyncResourceMap
+class CResourceListDoc : public CNonViewHostDocument, public IResourceMapEvents
 {
 	DECLARE_DYNCREATE(CResourceListDoc)
 
@@ -40,7 +40,7 @@ public:
 	virtual ~CResourceListDoc();
 	virtual void Serialize(CArchive& ar);   // overridden for document i/o
 
-    // ISyncResourceMap
+    // IResourceMapEvents
     void OnResourceAdded(const ResourceBlob *pData, AppendBehavior appendBehavior);
     void OnResourceDeleted(const ResourceBlob *pData);
     void OnResourceMapReloaded(bool isInitialLoad);

@@ -588,13 +588,13 @@ void CResourceMap::PurgeUnnecessaryResources()
     if (SUCCEEDED(hr))
     {
         // Refresh everything.
-        for_each(_syncs.begin(), _syncs.end(), bind2nd(mem_fun(&ISyncResourceMap::OnResourceMapReloaded), false));
+        for_each(_syncs.begin(), _syncs.end(), bind2nd(mem_fun(&IResourceMapEvents::OnResourceMapReloaded), false));
     }
 }
 
 void CResourceMap::NotifyToReloadResourceType(ResourceType iType)
 {
-	for_each(_syncs.begin(), _syncs.end(), bind2nd(mem_fun(&ISyncResourceMap::OnResourceTypeReloaded), iType));
+	for_each(_syncs.begin(), _syncs.end(), bind2nd(mem_fun(&IResourceMapEvents::OnResourceTypeReloaded), iType));
     if (iType == ResourceType::Palette)
     {
         _paletteListNeedsUpdate = true;
@@ -610,7 +610,7 @@ void CResourceMap::NotifyToReloadResourceType(ResourceType iType)
 //
 // Add a listener for events.
 //
-void CResourceMap::AddSync(ISyncResourceMap *pSync)
+void CResourceMap::AddSync(IResourceMapEvents *pSync)
 {
     _syncs.push_back(pSync);
 }
@@ -618,7 +618,7 @@ void CResourceMap::AddSync(ISyncResourceMap *pSync)
 //
 // Before your object gets destroyed, it MUST remove itself
 //
-void CResourceMap::RemoveSync(ISyncResourceMap *pSync)
+void CResourceMap::RemoveSync(IResourceMapEvents *pSync)
 {
     // We wouldn't expect to remove a sync that isn't there, so we can just erase
     // whatever we find (which should be a valid iterator)
@@ -654,7 +654,7 @@ void CResourceMap::DeleteResource(const ResourceBlob *pData)
         _globalCompiledScriptLookups.reset(nullptr);
     }
 
-    for_each(_syncs.begin(), _syncs.end(), bind2nd(mem_fun(&ISyncResourceMap::OnResourceDeleted), pData));
+    for_each(_syncs.begin(), _syncs.end(), bind2nd(mem_fun(&IResourceMapEvents::OnResourceDeleted), pData));
     if (pData->GetType() == ResourceType::Palette)
     {
         _paletteListNeedsUpdate = true;
@@ -1221,7 +1221,7 @@ void CResourceMap::SetGameFolder(const string &gameFolder)
             // We get here when we close documents.
             _SniffSCIVersion();
             // Send initial load notification
-            for_each(_syncs.begin(), _syncs.end(), bind2nd(mem_fun(&ISyncResourceMap::OnResourceMapReloaded), true));
+            for_each(_syncs.begin(), _syncs.end(), bind2nd(mem_fun(&IResourceMapEvents::OnResourceMapReloaded), true));
 
             _paletteListNeedsUpdate = true;
         }

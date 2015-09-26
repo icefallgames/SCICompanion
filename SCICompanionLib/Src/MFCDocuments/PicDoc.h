@@ -59,7 +59,7 @@ enum class PicChangeHint
 
 DEFINE_ENUM_FLAGS(PicChangeHint, uint32_t)
 
-class CPicDoc : public ResourceEntityDocument, public IDialogFactory, public ISyncResourceMap, public DocumentWithPaletteChoices
+class CPicDoc : public ResourceEntityDocument, public IDialogFactory, public IResourceMapEvents, public DocumentWithPaletteChoices
 {
 protected: // create from serialization only
     CPicDoc();
@@ -97,7 +97,7 @@ public:
 
     void SetPreviewPalette(const PaletteComponent *palette);
 
-    // ISyncResourceMap
+    // IResourceMapEvents
     void OnResourceAdded(const ResourceBlob *pData, AppendBehavior appendBehavior);
     void OnResourceDeleted(const ResourceBlob *pData) {}
     void OnResourceMapReloaded(bool isInitialLoad) {}
