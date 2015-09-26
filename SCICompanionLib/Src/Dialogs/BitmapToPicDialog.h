@@ -5,7 +5,7 @@
 
 // fwd decl
 class CPicDoc;
-
+struct THREADINFO;
 // CBitmapToPicDialog dialog
 
 class CBitmapToPicDialog : public CExtNCW<CExtResizableDialog>, public PrepareBitmapBase
@@ -28,7 +28,7 @@ private:
     virtual void OnOK();
     static BOOL s_ConvertToPic(HWND hwnd, HANDLE hEvent, std::vector<PicCommand> &commands, EGACOLOR *pegaTemp, CSize &size, bool fIgnoreWhite, EGACOLOR *rgColors, int cColors, bool fDontSetPalette);
     void _AddToEdit(PCTSTR pszText);
-    static UINT s_ThreadWorker(void *pParam);
+    static UINT s_ThreadWorker(THREADINFO *pInfo);
     afx_msg void OnConvert();
     afx_msg void OnBrowse();
     afx_msg void OnPasteFromClipboard();
@@ -85,7 +85,6 @@ private:
     CExtLabel m_wndLabel3;
     CExtLabel m_wndLabel4;
 
-    CWinThread *_pThread;
     bool _fConverting;
     HANDLE _hEvent;
 

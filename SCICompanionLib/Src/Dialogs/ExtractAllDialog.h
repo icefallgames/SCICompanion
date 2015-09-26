@@ -1,13 +1,14 @@
 #pragma once
 
 #include "ExtractAll.h"
+#include <future>
 
 // CCompileDialog dialog
 
 class ExtractAllDialog : public CExtResizableDialog, public IExtractProgress
 {
 public:
-    ExtractAllDialog(CWnd* pParent = NULL);   // standard constructor
+    ExtractAllDialog(CWnd* pParent = nullptr);   // standard constructor
     virtual ~ExtractAllDialog();
     bool GetResult() { return _fResult; }
     bool GetAborted() { return _fAbort; }
@@ -22,7 +23,7 @@ protected:
     virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
     LRESULT UpdateStatus(WPARAM wParam, LPARAM lParam);
     virtual BOOL OnInitDialog();
-    static UINT s_ThreadWorker(void *pParam);
+    static void s_ThreadWorker(ExtractAllDialog *pParam);
 
     DECLARE_MESSAGE_MAP()
 
@@ -46,14 +47,13 @@ protected:
     CExtCheckBox m_wndDisassembleScripts;
     CExtCheckBox m_wndExportMessages;
 
-    std::unique_ptr<CWinThread> _pThread;
+    std::unique_ptr<std::future<void>> _future;
     CString _location;
     SCIVersion _version;
     bool _extractPicImages;
     bool _extractViewImages;
     bool _disassembleScripts;
     bool _exportMessages;
-    HANDLE _hThread;
 
     void OnTimer(UINT_PTR nIDEvent);
 

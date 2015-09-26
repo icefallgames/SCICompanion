@@ -23,7 +23,7 @@ using namespace concurrency;
 #define CHEKCDONE_TIMER 3456
 
 DecompileDialog::DecompileDialog(CWnd* pParent /*=NULL*/)
-    : CExtResizableDialog(DecompileDialog::IDD, pParent), previousSelection(-1), _inScriptListLabelEdit(false), _inSCOLabelEdit(false), initialized(false), _helper(appState->GetResourceMap().Helper()), _hThread(nullptr)
+    : CExtResizableDialog(DecompileDialog::IDD, pParent), previousSelection(-1), _inScriptListLabelEdit(false), _inSCOLabelEdit(false), initialized(false), _helper(appState->GetResourceMap().Helper())
 {
     if (_helper.GetGameLanguage() == LangSyntaxUnknown)
     {
@@ -525,23 +525,18 @@ void DecompileDialog::OnTimer(UINT_PTR nIDEvent)
 {
     if (nIDEvent == CHEKCDONE_TIMER)
     {
-        if (_hThread && (_hThread != INVALID_HANDLE_VALUE))
+        if (_future && (future_status::ready == _future->wait_for(std::chrono::seconds(0))))
         {
-            DWORD result = WaitForSingleObject(_hThread, 0);
-            if (result == WAIT_OBJECT_0)
-            {
-                _hThread = INVALID_HANDLE_VALUE;
-                _decompileResults.reset(nullptr);
-                _pThread.reset(nullptr);
-                _SyncButtonState();
-                m_wndStatus.SetWindowTextA("");
-                _UpdateScripts(_scriptNumbers);
-                _SyncSelection(true);
+            _decompileResults.reset(nullptr);
+            _SyncButtonState();
+            _future.reset(nullptr); // Don't need this anymore
+            m_wndStatus.SetWindowTextA("");
+            _UpdateScripts(_scriptNumbers);
+            _SyncSelection(true);
 
-                for (uint16_t scriptNumber : _scriptNumbers)
-                {
-                    appState->ReopenScriptDocument(scriptNumber);
-                }
+            for (uint16_t scriptNumber : _scriptNumbers)
+            {
+                appState->ReopenScriptDocument(scriptNumber);
             }
         }
     }
@@ -572,14 +567,19 @@ void DecompileDialog::OnBnClickedDecompile()
 
     if (!_scriptNumbers.empty())
     {
-        _pThread.reset(AfxBeginThread(s_DecompileThreadWorker, this, 0, 0, CREATE_SUSPENDED, nullptr));
-        if (_pThread)
+        if (!_future)
         {
             _decompileResults = make_unique<DecompilerDialogResults>(this->GetSafeHwnd());
             _SyncButtonState();
-            _pThread->m_bAutoDelete = FALSE;
-            _hThread = _pThread->m_hThread;
-            _pThread->ResumeThread();
+            try
+            {
+                _future = std::make_unique<std::future<void>>(std::async(std::launch::async, s_DecompileThreadWorker, this));
+            }
+            catch (std::system_error)
+            {
+                _decompileResults.reset(nullptr);
+                _SyncButtonState();
+            }
         }
     }
 }
@@ -662,10 +662,8 @@ void DecompileDialog::OnBnClickedDecompilecancel()
     }
 }
 
-UINT DecompileDialog::s_DecompileThreadWorker(void *pParam)
+void DecompileDialog::s_DecompileThreadWorker(DecompileDialog *pThis)
 {
-    DecompileDialog *pThis = reinterpret_cast<DecompileDialog*>(pParam);
-
     try
     {
         set<uint16_t> scriptNumbers = pThis->_scriptNumbers;
@@ -738,8 +736,6 @@ UINT DecompileDialog::s_DecompileThreadWorker(void *pParam)
     {
         pThis->_decompileResults->AddResult(DecompilerResultType::Important, "Fell back to assembly for the remaining functions.");
     }
-
-    return 0;
 }
 
 void DecompilerDialogResults::AddResult(DecompilerResultType type, const std::string &message)

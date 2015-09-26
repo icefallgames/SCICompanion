@@ -2,6 +2,7 @@
 #include "afxwin.h"
 #include "GameFolderHelper.h"
 #include "DecompilerResults.h"
+#include <future>
 
 class CSCOFile;
 class IDecompilerConfig;
@@ -53,7 +54,6 @@ private:
     CExtButton m_wndDecomileCancel;
     CExtButton m_wndClearSCO;
     CExtButton m_wndSetFilenames;
-    //CExtProgressWnd m_wndProgress;
     CProgressCtrl m_wndProgress;
 
     CExtCheckBox m_wndDebugControlFlow;
@@ -82,13 +82,13 @@ private:
     void _SyncSelection(bool force = false);
     void _SyncButtonState();
 
-    static UINT s_DecompileThreadWorker(void *pParam);
+    static void s_DecompileThreadWorker(DecompileDialog *pThis);
     void OnTimer(UINT_PTR nIDEvent);
     LRESULT UpdateStatus(WPARAM wParam, LPARAM lParam);
     std::unique_ptr<DecompilerDialogResults> _decompileResults;
-    std::unique_ptr<CWinThread> _pThread;
+    std::unique_ptr<std::future<void>> _future;
+
     std::set<uint16_t> _scriptNumbers;
-    HANDLE _hThread;
     bool _debugControlFlow;
     bool _debugInstConsumption;
     bool _debugAsm;

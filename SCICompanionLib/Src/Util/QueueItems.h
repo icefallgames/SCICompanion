@@ -68,7 +68,7 @@ public:
     bool Init()
     {
         bool fRet = false;
-        _hEventWorkAvailable = CreateEvent(NULL, TRUE, FALSE, NULL);
+        _hEventWorkAvailable = CreateEvent(nullptr, TRUE, FALSE, nullptr);
         if (_hEventWorkAvailable)
         {
             AddRef(); // For the worker thread.

@@ -9,6 +9,7 @@
 #include "BitmapToPicDialog.h"
 #include "PicDrawManager.h"
 #include "PicDoc.h"
+#include <thread>
 
 using namespace std;
 
@@ -106,7 +107,6 @@ CBitmapToPicDialog::CBitmapToPicDialog(CWnd* pParent /*=nullptr*/)
     _iIgnoreWhite = g_iIgnoreWhite;
     _size.SetSize(0, 0);
 
-    _pThread = nullptr;
     _hEvent = nullptr;
     _fConverting = FALSE;
     _fTooBig = FALSE;
@@ -382,9 +382,8 @@ BOOL _SendProgressAndCheckAbort(HWND hwnd, HANDLE hEvent, int nCurrent, int nMax
     }
 }
 
-UINT CBitmapToPicDialog::s_ThreadWorker(void *pParam)
+UINT CBitmapToPicDialog::s_ThreadWorker(THREADINFO *pInfo)
 {
-    THREADINFO *pInfo = (THREADINFO*)pParam;
     CSize size = pInfo->size;
     int cPixels = pInfo->size.cx * pInfo->size.cy;
     int iAlgorithm = pInfo->iAlgorithm;
@@ -663,12 +662,14 @@ void CBitmapToPicDialog::OnConvert()
     {
         _fConverting = TRUE;
         _hEvent = pInfo->hEvent;
-        _pThread = AfxBeginThread(s_ThreadWorker, pInfo, 0, 0, 0, nullptr);
-        if (_pThread)
+
+        try
         {
+            std::thread thread = std::thread(s_ThreadWorker, pInfo);
+            thread.detach();
             pInfo = nullptr;
         }
-        else
+        catch (std::system_error)
         {
             FreeThreadInfo(pInfo);
             _fConverting = FALSE;

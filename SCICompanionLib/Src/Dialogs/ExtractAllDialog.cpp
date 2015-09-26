@@ -24,7 +24,6 @@ ExtractAllDialog::ExtractAllDialog(CWnd* pParent /*=NULL*/)
     _fResult = false;
     _fAbort = false;
     _fExtracting = false;
-    _hThread = INVALID_HANDLE_VALUE;
 }
 
 ExtractAllDialog::~ExtractAllDialog()
@@ -210,41 +209,34 @@ void ExtractAllDialog::OnBnClickedExtract()
         _disassembleScripts = m_wndDisassembleScripts.GetCheck() != 0;
         _exportMessages = m_wndExportMessages.GetCheck() != 0;
 
-        _pThread.reset(AfxBeginThread(s_ThreadWorker, this, 0, 0, CREATE_SUSPENDED, nullptr));
-        if (_pThread)
+        try
         {
-            _pThread->m_bAutoDelete = FALSE;
-            _hThread = _pThread->m_hThread;
-            _fExtracting = true;
-            _pThread->ResumeThread();
+            _future = make_unique<future<void>>(async(launch::async, s_ThreadWorker, this));
+        }
+        catch (std::system_error)
+        {
+            _fExtracting = false;
         }
     }
 }
 
-UINT ExtractAllDialog::s_ThreadWorker(void *pParam)
+void ExtractAllDialog::s_ThreadWorker(ExtractAllDialog *pThis)
 {
-    ExtractAllDialog *pThis = reinterpret_cast<ExtractAllDialog*>(pParam);
     ExtractAllResources(pThis->_version, (PCSTR)pThis->_location, pThis->_extractPicImages, pThis->_extractViewImages, pThis->_disassembleScripts, pThis->_exportMessages, pThis);
-    return 0;
 }
 
 void ExtractAllDialog::OnTimer(UINT_PTR nIDEvent)
 {
     if (nIDEvent == CHEKCDONE_TIMER)
     {
-        if (_hThread && (_hThread != INVALID_HANDLE_VALUE))
+        if (_future && (future_status::ready == _future->wait_for(std::chrono::seconds(0))))
         {
-            DWORD result = WaitForSingleObject(_hThread, 0);
-            if (result == WAIT_OBJECT_0)
-            {
-                _hThread = INVALID_HANDLE_VALUE;
-                _fExtracting = false;
-                _pThread.reset(nullptr);
-                m_wndDisplay.SetWindowTextA(_fAbort ? "Aborted" : "Done!");
-                _fAbort = false;
-                m_wndExtract.EnableWindow(TRUE);
-                m_wndProgress.SetPos(0);
-            }
+            _fExtracting = false;
+            _future = nullptr;
+            m_wndDisplay.SetWindowTextA(_fAbort ? "Aborted" : "Done!");
+            _fAbort = false;
+            m_wndExtract.EnableWindow(TRUE);
+            m_wndProgress.SetPos(0);
         }
     }
     else
