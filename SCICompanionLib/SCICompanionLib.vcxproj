@@ -318,9 +318,11 @@
     <ClInclude Include="Src\Resources\Pic.h" />
     <ClInclude Include="Src\Resources\SyncResourceMap.h" />
     <ClInclude Include="Src\Resources\View.h" />
+    <ClInclude Include="Src\Util\AudioRecording.h" />
     <ClInclude Include="Src\Util\BufferPool.h">
       <FileType>CppCode</FileType>
     </ClInclude>
+    <ClCompile Include="Src\Util\AudioRecording.cpp" />
     <ClCompile Include="Src\Util\CodecAlt.cpp" />
     <ClCompile Include="Src\Resources\Sound.cpp" />
     <ClCompile Include="SCICompanionLib.cpp" />

@@ -176,6 +176,7 @@ BOOL MessageEditPane::OnInitDialog()
     AddAnchor(IDC_BUTTON_PLAY2, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_BUTTON_STOP, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_BUTTONBROWSE, CPoint(100, 0), CPoint(100, 0));
+    AddAnchor(IDC_BUTTON_RECORD, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_SLIDER, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_CHECK_AUTOPREV, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_STATIC_DURATION, CPoint(100, 0), CPoint(100, 0));
@@ -329,6 +330,20 @@ void MessageEditPane::_UpdateAudio(const TextEntry &messageEntry)
         {
             SetAudioResource((*it).second.get());
         }
+    }
+}
+
+void MessageEditPane::OnNewResourceCreated(std::unique_ptr<ResourceEntity> audioResource, const std::string &name)
+{
+    const TextEntry *entry = _GetEntry();
+    if (entry)
+    {
+        audioResource->SourceFlags = (GetVolumeToUse(appState->GetVersion(), GetMessageTuple(*entry)) == AudioVolumeName::Sfx) ? ResourceSourceFlags::Sfx : ResourceSourceFlags::Aud;
+        audioResource->Base36Number = GetMessageTuple(*entry);
+        audioResource->ResourceNumber = _pDoc->GetNumber();
+
+        // Don't do this now. Instead, add to a list until we save?
+        // appState->GetResourceMap().AppendResource(*audioResource);
     }
 }
 

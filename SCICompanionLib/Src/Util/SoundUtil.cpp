@@ -331,14 +331,30 @@ bool IsWaveFile(PCSTR pszFileName)
     return (0 == _strcmpi(PathFindExtension(pszFileName), ".wav"));
 }
 
-void AddWaveFileToGame(const std::string &filename)
+AudioVolumeName GetVolumeToUse(SCIVersion version, uint32_t base36Number)
+{
+    AudioVolumeName volumeToUse = version.AudioVolumeName;
+    if (version.AudioVolumeName == AudioVolumeName::Both)
+    {
+        // When both are present, base36-indexed audio is in Aud, and regular audio is in Sfx
+        volumeToUse = (base36Number == NoBase36) ? AudioVolumeName::Sfx : AudioVolumeName::Aud;
+    }
+    return volumeToUse;
+}
+
+std::unique_ptr<ResourceEntity> WaveResourceFromFilename(const std::string &filename)
 {
     std::unique_ptr<ResourceEntity> resource(CreateDefaultAudioResource(appState->GetVersion()));
     ScopedFile scopedFile(filename, GENERIC_READ, FILE_SHARE_WRITE, OPEN_EXISTING);
     sci::streamOwner owner(scopedFile.hFile);
     AudioComponentFromWaveFile(owner.getReader(), resource->GetComponent<AudioComponent>());
-    // REVIEW: We should know ahead of time if the game uses Aud or Sfx.
-    resource->SourceFlags = (appState->GetVersion().AudioVolumeName == AudioVolumeName::Sfx) ? ResourceSourceFlags::Sfx : ResourceSourceFlags::Aud;
+    return resource;
+}
+
+void AddWaveFileToGame(const std::string &filename)
+{
+    std::unique_ptr<ResourceEntity> resource = WaveResourceFromFilename(filename);
+    resource->SourceFlags = (GetVolumeToUse(appState->GetVersion(), NoBase36) == AudioVolumeName::Sfx) ? ResourceSourceFlags::Sfx : ResourceSourceFlags::Aud;
     appState->GetResourceMap().AppendResourceAskForNumber(*resource, _NameFromFilename(filename.c_str()));
 }
 

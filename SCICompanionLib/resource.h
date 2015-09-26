@@ -503,7 +503,7 @@
 #define IDC_COMBODEVICE                 1194
 #define IDC_STATIC_DEVICES              1195
 #define IDC_COMBO2                      1195
-#define IDC_BUTTON_STOP                 1196
+#define IDC_BUTTON_STOP2                1196
 #define IDC_COMBO3                      1196
 #define IDC_BUTTON_PLAY                 1197
 #define IDC_COMBOCONDITION              1197
@@ -525,7 +525,9 @@
 #define IDC_STATICQUESTION              1210
 #define IDC_CHECKDELETE                 1211
 #define IDC_CHECK_ENABLELOOPPOINT       1212
+#define IDC_BUTTON_RECORD               1212
 #define IDC_RADIOSCI0                   1212
+#define IDC_BUTTON_STOP                 1213
 #define IDC_RADIOSCI1                   1213
 #define IDC_RADIOSCI2                   1214
 #define IDC_RADIOSCI3                   1215
@@ -660,6 +662,7 @@
 #define IDC_COMBOMATCH                  1311
 #define IDC_COMBODITHERALPHA            1312
 #define IDC_STATICDITHERALPHA           1313
+#define IDC_COMBO_WAVEFORMAT            1314
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -1004,9 +1007,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        392
+#define _APS_NEXT_RESOURCE_VALUE        393
 #define _APS_NEXT_COMMAND_VALUE         33275
-#define _APS_NEXT_CONTROL_VALUE         1314
+#define _APS_NEXT_CONTROL_VALUE         1315
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

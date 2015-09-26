@@ -7,6 +7,7 @@
 #include "ResourceEntity.h"
 #include "Message.h"
 #include "ResourceContainer.h"
+#include "SoundUtil.h"
 
 using namespace std;
 
@@ -315,13 +316,7 @@ std::string AudioResourceSource::_GetAudioVolumePath(bool bak, AudioVolumeName v
 
 AudioVolumeName AudioResourceSource::_GetVolumeToUse(uint32_t base36Number)
 {
-    AudioVolumeName volumeToUse = _version.AudioVolumeName;
-    if (_version.AudioVolumeName == AudioVolumeName::Both)
-    {
-        // When both are present, base36-indexed audio is in Aud, and regular audio is in Sfx
-        volumeToUse = (base36Number == NoBase36) ? AudioVolumeName::Sfx : AudioVolumeName::Aud;
-    }
-    return volumeToUse;
+    return GetVolumeToUse(_version, base36Number);
 }
 
 std::unique_ptr<sci::streamOwner> AudioResourceSource::_GetAudioVolume(uint32_t base36Number)
