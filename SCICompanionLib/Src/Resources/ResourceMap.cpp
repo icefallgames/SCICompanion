@@ -27,7 +27,7 @@
 #include "MessageHeaderFile.h"
 #include "MessageSource.h"
 #include "format.h"
-#include "SyncResourceMap.h"
+#include "ResourceMapEvents.h"
 #include "DebuggerThread.h"
 
 using namespace std;

@@ -10,7 +10,7 @@
 #include "ResourceEntity.h"
 #include "PicOperations.h"
 #include "ResourceEntityDocument.h"
-#include "SyncResourceMap.h"
+#include "ResourceMapEvents.h"
 #include "Polygon.h"
 #include "DocumentWithPaletteChoices.h"
 

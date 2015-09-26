@@ -316,7 +316,7 @@
     <ClInclude Include="Src\Resources\AudioMap.h" />
     <ClInclude Include="Src\Resources\GameFolderHelper.h" />
     <ClInclude Include="Src\Resources\Pic.h" />
-    <ClInclude Include="Src\Resources\SyncResourceMap.h" />
+    <ClInclude Include="Src\Resources\ResourceMapEvents.h" />
     <ClInclude Include="Src\Resources\View.h" />
     <ClInclude Include="Src\Util\AudioRecording.h" />
     <ClInclude Include="Src\Util\BufferPool.h">

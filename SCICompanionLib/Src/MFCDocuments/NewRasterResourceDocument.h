@@ -6,7 +6,7 @@
 #include "ResourceEntity.h"
 #include "ResourceEntityDocument.h"
 #include "RasterOperations.h"
-#include "SyncResourceMap.h"
+#include "ResourceMapEvents.h"
 #include "DocumentWithPaletteChoices.h"
 
 // CNewRasterResourceDocument document
