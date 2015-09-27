@@ -12,10 +12,8 @@ using namespace std;
 
 IMPLEMENT_DYNCREATE(CMessageView, CListView)
 
-CMessageView::CMessageView()
+CMessageView::CMessageView() : _iSortColumn(-1), _iView(LVS_REPORT), _fInited(false)
 {
-    _iView = LVS_REPORT;
-    _fInited = false;
 }
 
 CMessageView::~CMessageView()
@@ -30,6 +28,7 @@ BEGIN_MESSAGE_MAP(CMessageView, CListView)
     ON_COMMAND(ID_MESSAGE_EXPORT, OnExportMessage)
     ON_COMMAND(ID_MESSAGE_IMPORT, OnImportMessage)
     ON_NOTIFY_REFLECT(LVN_ITEMCHANGED, OnItemChanged)
+    ON_NOTIFY_REFLECT(LVN_COLUMNCLICK, OnColumnClicked)
     ON_UPDATE_COMMAND_UI(ID_EDIT_RENAME, OnUpdateIfSelection)
     ON_UPDATE_COMMAND_UI(IDC_BUTTONADDSEQ, OnUpdateIfSelection)
     ON_UPDATE_COMMAND_UI(IDC_BUTTONCLONE, OnUpdateIfSelection)
@@ -72,8 +71,18 @@ c_MessageColumnInfo[] =
     { TEXT("Talker"), 110, MessagePropertyFlags::Talker, COL_TALKER },
 };
 
+CImageList g_messageImageList;
+bool g_createdMessageImageList = false;
+
 void CMessageView::_InitColumns()
 {
+    if (!g_createdMessageImageList)
+    {
+        g_messageImageList.Create(IDB_MESSAGEAUDIOICONS, 16, 32, RGB(255, 0, 255));
+        g_createdMessageImageList = true;
+    }
+    GetListCtrl().SetImageList(&g_messageImageList, LVSIL_SMALL);
+
     const TextComponent &text = GetDocument()->GetResource()->GetComponent<TextComponent>();
     CListCtrl& listCtl = GetListCtrl();
 
@@ -82,7 +91,8 @@ void CMessageView::_InitColumns()
     {
         // Name
         LVCOLUMN col = { 0 };
-        col.mask = LVCF_FMT | LVCF_ORDER | LVCF_SUBITEM | LVCF_TEXT | LVCF_WIDTH; 
+        col.mask = LVCF_FMT | LVCF_ORDER | LVCF_SUBITEM | LVCF_TEXT | LVCF_WIDTH;
+        col.iImage = 0;
         col.iOrder = i;
         col.iSubItem = i;
         col.pszText = c_TextColumnInfo[i].pszName;
@@ -113,6 +123,79 @@ void CMessageView::_InitColumns()
     orderArray.push_back(COL_STRING);
     listCtl.SetColumnOrderArray(orderArray.size(), &orderArray[0]);
 }
+
+struct SortInfo
+{
+    SortInfo(const TextComponent::container_type &texts, int sortColumn) : texts(texts), sortColumn(sortColumn)
+    { }
+    const TextComponent::container_type &texts;
+    int sortColumn;
+};
+
+template<int Multiplier>
+int CALLBACK MessageColumnSort(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
+{
+    SortInfo *sortInfo = reinterpret_cast<SortInfo*>(lParamSort);
+    const TextEntry *p1 = &sortInfo->texts[lParam1];
+    const TextEntry *p2 = &sortInfo->texts[lParam2];
+    int iRet = 0;
+    switch (sortInfo->sortColumn)
+    {
+        case COL_STRING:
+            iRet = (p1->Text.compare(p2->Text));
+            break;
+        case COL_NOUN:
+            iRet = p1->Noun - p2->Noun;
+            break;
+        case COL_VERB:
+            iRet = p1->Verb - p2->Verb;
+            break;
+        case COL_CONDITION:
+            iRet = p1->Condition - p2->Condition;
+            break;
+        case COL_SEQUENCE:
+            iRet = p1->Sequence - p2->Sequence;
+            break;
+        case COL_TALKER:
+            iRet = p1->Talker - p2->Talker;
+            break;
+    }
+    return iRet * Multiplier;
+}
+
+void CMessageView::_SortItemsHelper(int sortColumn, bool toggle)
+{
+    if (sortColumn == -1)
+    {
+        return;
+    }
+
+    const TextComponent *pText = GetDocument()->GetResource()->TryGetComponent<TextComponent>();
+    if (pText)
+    {
+        auto it = _sortOrder.find(sortColumn);
+        if (it == _sortOrder.end())
+        {
+            _sortOrder[sortColumn] = true;
+        }
+        else if (toggle)
+        {
+            _sortOrder[sortColumn] = !it->second;
+        }
+
+        SortInfo sortInfo(pText->Texts, _iSortColumn);
+        GetListCtrl().SortItems(_sortOrder[sortColumn] ? MessageColumnSort<1> : MessageColumnSort<-1>, reinterpret_cast<DWORD_PTR>(&sortInfo));
+    }
+}
+
+void CMessageView::OnColumnClicked(NMHDR* pNMHDR, LRESULT* pResult)
+{
+    NMLISTVIEW *plv = reinterpret_cast<NMLISTVIEW*>(pNMHDR);
+    ASSERT(plv->iItem == -1);
+    _iSortColumn = plv->iSubItem;
+    _SortItemsHelper(_iSortColumn, true);
+}
+
 
 void CMessageView::_ChangeView()
 {
@@ -154,13 +237,21 @@ void _GetDefineFromValue(char *psz, size_t cchBuf, const MessageSource *source, 
     }
 }
 
-void CMessageView::_SetItem(int iItem, PCTSTR pszString, const TextComponent *text, bool insert)
+void CMessageView::_SetItem(int itemIndex, int visualIndex, PCTSTR pszString, const TextComponent *text, bool insert)
 {
+    assert(insert || (_GetViewIndex(itemIndex) == visualIndex));
     CListCtrl& listCtl = GetListCtrl();
 
+    CMessageDoc *pDoc = GetDocument();
+    bool hasAudio = pDoc && pDoc->FindAudioResource(GetMessageTuple(text->Texts[itemIndex]));
+    bool hasLipSync = pDoc && pDoc->FindSyncResource(GetMessageTuple(text->Texts[itemIndex]));
+
     LVITEM item = { 0 };
-    item.mask = LVIF_TEXT;
-    item.iItem = iItem;
+    item.mask = LVIF_TEXT | LVIF_PARAM;
+    item.mask |= LVIF_IMAGE;
+    item.iImage = (hasLipSync ? 2 : (hasAudio ? 1 : 0));    // Lipsync implies also audio
+    item.iItem = visualIndex;
+    item.lParam = itemIndex;
     item.iSubItem = 0;
     item.pszText = const_cast<PTSTR>(pszString);
     if (insert)
@@ -178,7 +269,7 @@ void CMessageView::_SetItem(int iItem, PCTSTR pszString, const TextComponent *te
         TCHAR szBuf[100];
         LVITEM item = { 0 };
         item.mask = LVIF_TEXT;
-        item.iItem = iItem;
+        item.iItem = visualIndex;
         item.iSubItem = _columns[iSub].iSubItem;
         item.pszText = szBuf;
 
@@ -189,19 +280,19 @@ void CMessageView::_SetItem(int iItem, PCTSTR pszString, const TextComponent *te
             switch (iSubItem)
             {
             case COL_NOUN:
-                _GetDefineFromValue(szBuf, ARRAYSIZE(szBuf), &nounsAndCases.GetNouns(), text->Texts[iItem].Noun, true);
+                _GetDefineFromValue(szBuf, ARRAYSIZE(szBuf), &nounsAndCases.GetNouns(), text->Texts[itemIndex].Noun, true);
                 break;
             case COL_VERB:
-                _GetDefineFromValue(szBuf, ARRAYSIZE(szBuf), appState->GetResourceMap().GetVerbsMessageSource(), text->Texts[iItem].Verb, true);
+                _GetDefineFromValue(szBuf, ARRAYSIZE(szBuf), appState->GetResourceMap().GetVerbsMessageSource(), text->Texts[itemIndex].Verb, true);
                 break;
             case COL_CONDITION:
-                _GetDefineFromValue(szBuf, ARRAYSIZE(szBuf), &nounsAndCases.GetCases(), text->Texts[iItem].Condition, true);
+                _GetDefineFromValue(szBuf, ARRAYSIZE(szBuf), &nounsAndCases.GetCases(), text->Texts[itemIndex].Condition, true);
                 break;
             case COL_SEQUENCE:
-                StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%d"), text->Texts[iItem].Sequence);
+                StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%d"), text->Texts[itemIndex].Sequence);
                 break;
             case COL_TALKER:
-                _GetDefineFromValue(szBuf, ARRAYSIZE(szBuf), appState->GetResourceMap().GetTalkersMessageSource(), text->Texts[iItem].Talker, false);
+                _GetDefineFromValue(szBuf, ARRAYSIZE(szBuf), appState->GetResourceMap().GetTalkersMessageSource(), text->Texts[itemIndex].Talker, false);
                 // Temporary code for message investigation
                 // StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%x"), text->Texts[iItem].Style);
                 break;
@@ -251,6 +342,8 @@ int CMessageView::_GetSelectedItem()
     if (pos != NULL)
     {
         nItem = listCtl.GetNextSelectedItem(pos);
+        // But the param is the actual index
+        nItem = listCtl.GetItemData(nItem);
     }
     return nItem;
 }
@@ -266,7 +359,7 @@ void CMessageView::OnItemChanged(NMHDR* pNMHDR, LRESULT* pResult)
             CMessageDoc *pDoc = GetDocument();
             if (pDoc)
             {
-                pDoc->SetSelectedIndex(pnmlv->iItem);
+                pDoc->SetSelectedIndex(pnmlv->lParam);
             }
         }
     }
@@ -403,13 +496,27 @@ void CMessageView::OnDelete()
     }
 }
 
+int CMessageView::_GetViewIndex(int index)
+{
+    CListCtrl &list = GetListCtrl();
+    int cItems = list.GetItemCount();
+    for (int i = 0; i < cItems; i++)
+    {
+        if (index == list.GetItemData(i))
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
 void CMessageView::_UpdateSelection(int *topIndex)
 {
     CMessageDoc *pDoc = GetDocument();
     if (pDoc)
     {
-        int index = pDoc->GetSelectedIndex();
-        this->GetListCtrl().SetItemState(index, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+        int viewIndex = _GetViewIndex(pDoc->GetSelectedIndex());
+        this->GetListCtrl().SetItemState(viewIndex, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
         //this->GetListCtrl().SetSelectionMark(index);
         if (topIndex)
         {
@@ -425,6 +532,10 @@ void CMessageView::_UpdateSelection(int *topIndex)
             {
                 this->GetListCtrl().Scroll(size);
             }*/
+        }
+        else
+        {
+            this->GetListCtrl().EnsureVisible(viewIndex, FALSE);
         }
     }
 }
@@ -466,11 +577,15 @@ void CMessageView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
                 {
                     CString strText = individualString.Text.c_str();
                     _EscapeString(strText);
-                    _SetItem(i, (PCSTR)strText, pText, true);
+                    _SetItem(i, i, (PCSTR)strText, pText, true);
                     ++i;
                 }
 
                 _UpdateSelection(&topIndex);
+
+                // Sort
+                _SortItemsHelper(_iSortColumn, false);
+
                 GetListCtrl().SetRedraw(TRUE);
             }
         }
@@ -492,7 +607,9 @@ void CMessageView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
                     // Just update this row
                     CString strText = entry.Text.c_str();
                     _EscapeString(strText);
-                    _SetItem(index, (PCSTR)strText, pText, false);
+                    _SetItem(index, _GetViewIndex(index), (PCSTR)strText, pText, false);
+
+                    _SortItemsHelper(_iSortColumn, false);
                 }
             }
         }
@@ -509,8 +626,9 @@ void CMessageView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
                 // Just update this row
                 CString strText = entry.Text.c_str();
                 _EscapeString(strText);
-                _SetItem(i, (PCSTR)strText, pText, false);
+                _SetItem(i, i, (PCSTR)strText, pText, false);
             }
+            _SortItemsHelper(_iSortColumn, false);
         }
     }
 }

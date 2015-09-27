@@ -94,6 +94,18 @@ ResourceEntity *CMessageDoc::FindAudioResource(uint32_t base36Number)
         return (*it).second.get();
     }
 }
+ResourceEntity *CMessageDoc::FindSyncResource(uint32_t base36Number)
+{
+    auto it = _syncSidecarResources.find(base36Number);
+    if (it == _syncSidecarResources.end())
+    {
+        return nullptr;
+    }
+    else
+    {
+        return (*it).second.get();
+    }
+}
 
 void CMessageDoc::SetMessageResource(std::unique_ptr<ResourceEntity> pMessage, int id)
 {

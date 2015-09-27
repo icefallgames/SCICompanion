@@ -40,7 +40,7 @@ protected:
     DECLARE_MESSAGE_MAP()
 
     void _InitColumns();
-    void _SetItem(int iItem, PCTSTR pszString, const TextComponent *text, bool insert);
+    void _SetItem(int itemIndex, int visualIndex, PCTSTR pszString, const TextComponent *text, bool insert);
     void _ChangeView();
     int _GetSelectedItem();
     void _UpdateSelection(int *topIndex = nullptr);
@@ -48,9 +48,16 @@ protected:
     const TextEntry *_GetEntry();
 
 private:
+    void OnColumnClicked(NMHDR* pNMHDR, LRESULT* pResult);
+    void _SortItemsHelper(int sortColumn, bool toggle);
+    int _GetViewIndex(int index);
+
     int _iView;
     bool _fInited;
     std::vector<LVCOLUMN> _columns;
+
+    std::unordered_map<int, bool> _sortOrder;
+    int _iSortColumn;
 };
 
 #ifndef _DEBUG  // debug version in TextView.cpp

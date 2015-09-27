@@ -238,6 +238,8 @@
 #define IDD_DIALOGVERSION               352
 #define IDB_CLOSE_INACTIVE              353
 #define IDI_PALETTEVGA                  354
+#define IDB_MESSAGEICONS                354
+#define IDB_MESSAGEAUDIOICONS           354
 #define IDD_PICCOMMANDS_VGA             355
 #define IDD_DIALOGCHOOSECOLORVGA        356
 #define IDI_ICON3                       357
@@ -1007,7 +1009,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        393
+#define _APS_NEXT_RESOURCE_VALUE        394
 #define _APS_NEXT_COMMAND_VALUE         33275
 #define _APS_NEXT_CONTROL_VALUE         1315
 #define _APS_NEXT_SYMED_VALUE           105

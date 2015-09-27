@@ -31,6 +31,7 @@ public:
 
     // Audio sidecar support:
     ResourceEntity *FindAudioResource(uint32_t base36Number);
+    ResourceEntity *FindSyncResource(uint32_t base36Number);
     void AddNewAudioResource(std::unique_ptr<ResourceEntity> audioResource);
 
 protected:

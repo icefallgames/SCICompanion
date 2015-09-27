@@ -734,6 +734,7 @@
     <Image Include="res\bitmap1.bmp" />
     <Image Include="res\bitmapcu.bmp" />
     <Image Include="res\bitmaplo.bmp" />
+    <Image Include="res\bitmapob.bmp" />
     <Image Include="res\bitmapup.bmp" />
     <Image Include="res\bmp00001.bmp" />
     <Image Include="res\bmp00002.bmp" />
