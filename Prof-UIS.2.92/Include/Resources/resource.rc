@@ -69,6 +69,8 @@ IDR_EXT_DEFAULT_CSS     CSS     DISCARDABLE     "Resources\\CSS\\IDR_EXT_DEFAULT
 #define __EXT_MFC_NO_RESOURCES_TURKISH_DEFAULT
 #define __EXT_MFC_NO_RESOURCES_UKRAINIAN_DEFAULT
 
+#define __EXT_MFC_NO_RIBBON_RES
+
 /////////////////////////////////////////////////////////////////////////////
 // Resources for geo controls
 
