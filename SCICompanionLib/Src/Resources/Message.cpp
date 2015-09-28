@@ -133,7 +133,7 @@ uint16_t CheckMessageVersion(sci::istream &byteStream)
     return msgVersion;
 }
 
-void MessageReadFrom(ResourceEntity &resource, sci::istream &byteStream)
+void MessageReadFrom(ResourceEntity &resource, sci::istream &byteStream, const std::map<BlobKey, uint32_t> &propertyBag)
 {
     TextComponent &message = resource.GetComponent<TextComponent>();
 
@@ -156,7 +156,7 @@ void MessageReadFrom(ResourceEntity &resource, sci::istream &byteStream)
     }
 }
 
-void MessageWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
+void MessageWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag)
 {
     const TextComponent &message = resource.GetComponent<TextComponent>();
     byteStream << message.msgVersion;

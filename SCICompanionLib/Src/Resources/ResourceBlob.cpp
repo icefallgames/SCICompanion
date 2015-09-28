@@ -186,6 +186,22 @@ DecompressionAlgorithm VersionAndCompressionNumberToAlgorithm(SCIVersion version
     return DecompressionAlgorithm::Unknown;
 }
 
+void ResourceBlob::SetKeyValue(BlobKey key, uint32_t value)
+{
+    header.PropertyBag[key] = value;
+}
+
+bool ResourceBlob::GetKeyValue(BlobKey key, uint32_t &value) const
+{
+    auto it = header.PropertyBag.find(key);
+    if (it != header.PropertyBag.end())
+    {
+        value = it->second;
+        return true;
+    }
+    return false;
+}
+
 std::string ResourceBlob::GetEncodingString() const
 {
     switch (VersionAndCompressionNumberToAlgorithm(appState->GetVersion(), header.CompressionMethod))

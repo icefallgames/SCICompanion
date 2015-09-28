@@ -3,6 +3,8 @@
 #include "ResourceUtil.h"
 #include "Version.h"
 
+enum class BlobKey;
+
 bool IsValidResourceName(PCTSTR pszName);
 void DisplayInvalidResourceNameMessage(PCTSTR pszName);
 bool ValidateResourceSize(DWORD cb, ResourceType type);
@@ -57,6 +59,8 @@ struct ResourceHeaderAgnostic
     SCIVersion Version;
     ResourceSourceFlags SourceFlags;
     uint32_t Base36Number;
+    // This only needs to be an unordered_map, but an empty map (the common case) takes up less space (12 bytes vs 40):
+    std::map<BlobKey, uint32_t> PropertyBag;
 };
 
 // The following two structure need to have 1-byte packing, since
@@ -280,6 +284,11 @@ enum class ResourceLoadStatusFlags : uint8_t
     Corrupted = 0x04,
 };
 
+enum class BlobKey
+{
+    LipSyncDataSize,
+};
+
 DEFINE_ENUM_FLAGS(ResourceLoadStatusFlags, uint8_t)
 
 //
@@ -391,6 +400,11 @@ public:
 
     DWORD GetCompressedLength() const { return header.cbCompressed; }
     DWORD GetDecompressedLength() const { return header.cbDecompressed; }
+
+    void SetKeyValue(BlobKey key, uint32_t value);
+    bool GetKeyValue(BlobKey key, uint32_t &value) const;
+    std::map<BlobKey, uint32_t> &GetPropertyBag() { return header.PropertyBag; };
+    const std::map<BlobKey, uint32_t> &GetPropertyBag() const { return header.PropertyBag; };
 
     const ResourceHeaderAgnostic &GetHeader() const { return header; }
     ResourceHeaderAgnostic &GetHeader() { return header; }

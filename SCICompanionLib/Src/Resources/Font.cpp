@@ -61,7 +61,7 @@ void ReadLetter(RasterComponent &raster, int nLetter, sci::istream &byteStream)
 
 // Helpers for view resources
 // We'll assume resource and package number are already taken care of, because they are common to all.
-void FontReadFrom(ResourceEntity &resource, sci::istream &byteStream)
+void FontReadFrom(ResourceEntity &resource, sci::istream &byteStream, const std::map<BlobKey, uint32_t> &propertyBag)
 {
     RasterComponent &raster = resource.GetComponent<RasterComponent>();
     FontComponent &font = resource.GetComponent<FontComponent>();
@@ -134,7 +134,7 @@ void WriteLetter(const RasterComponent &raster, sci::ostream &byteStream, uint16
     }
 }
 
-void FontWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
+void FontWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag)
 {
     const RasterComponent &raster = resource.GetComponent<RasterComponent>();
     const FontComponent &font = resource.GetComponent<FontComponent>();

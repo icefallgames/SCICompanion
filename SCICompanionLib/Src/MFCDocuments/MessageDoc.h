@@ -31,7 +31,6 @@ public:
 
     // Audio sidecar support:
     ResourceEntity *FindAudioResource(uint32_t base36Number);
-    ResourceEntity *FindSyncResource(uint32_t base36Number);
     void AddNewAudioResource(std::unique_ptr<ResourceEntity> audioResource);
 
 protected:
@@ -51,7 +50,6 @@ private:
     // Audio sidecare stuff.
     std::unordered_map<uint32_t, std::unique_ptr<ResourceEntity>> _audioSidecarResources;
     std::vector<ResourceEntity*> _newAudioSidecarResources; // temp
-    std::unordered_map<uint32_t, std::unique_ptr<ResourceEntity>> _syncSidecarResources;
 
     DECLARE_MESSAGE_MAP()
 };

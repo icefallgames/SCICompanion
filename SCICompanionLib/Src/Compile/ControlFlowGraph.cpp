@@ -1788,11 +1788,6 @@ bool ControlFlowGraph::Generate(code_pos start, code_pos end)
 
         bool showFile = _debug && (!_pszDebugFilter || PathMatchSpec(_contextName.c_str(), _pszDebugFilter));
 
-        if (showFile)
-        {
-            int x = 0;
-        }
-
         ControlFlowNode *main = _PartitionCode(start, end);
 
         // I had removed this because it prevented loop break detection. But I think I need it

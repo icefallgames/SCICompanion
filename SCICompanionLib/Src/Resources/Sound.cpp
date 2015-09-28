@@ -1156,7 +1156,7 @@ void SoundWriteToWorker(const SoundComponent &sound, sci::ostream &byteStream)
     WriteChannelStream(events, byteStream);
 }
 
-void SoundWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
+void SoundWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag)
 {
     const SoundComponent &sound = resource.GetComponent<SoundComponent>();
     SoundWriteToWorker(sound, byteStream);
@@ -1234,7 +1234,7 @@ void SoundWriteToWorker_SCI1(const SoundComponent &soundIn, sci::ostream &byteSt
     sci::transfer(sci::istream_from_ostream(channelStream), byteStream, channelStream.tellp());
 }
 
-void SoundWriteTo_SCI1(const ResourceEntity &resource, sci::ostream &byteStream)
+void SoundWriteTo_SCI1(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag)
 {
     const SoundComponent &sound = resource.GetComponent<SoundComponent>();
     SoundWriteToWorker_SCI1(sound, byteStream);
@@ -1361,7 +1361,7 @@ void ReadChannel(sci::istream &stream, std::vector<SoundEvent> &events, DWORD &t
     }
 }
 
-void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream)
+void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream, const std::map<BlobKey, uint32_t> &propertyBag)
 {
     SoundComponent &sound = resource.GetComponent<SoundComponent>();
     sound.TotalTicks = 0;
@@ -1438,7 +1438,6 @@ void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream)
                     {
                         channelInfo.Flags = 0;
                         // Digital chanenl 
-                        int x = 0;
                     }
                     else
                     {
@@ -1633,7 +1632,7 @@ void ConvertSCI0ToNewFormat(const vector<SoundEvent> &events, SoundComponent &so
     AssertNoDuplicateTracks(sound);
 }
 
-void SoundReadFrom_SCI0(ResourceEntity &resource, sci::istream &stream)
+void SoundReadFrom_SCI0(ResourceEntity &resource, sci::istream &stream, const std::map<BlobKey, uint32_t> &propertyBag)
 {
     SoundComponent &sound = resource.GetComponent<SoundComponent>();
 

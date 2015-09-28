@@ -3,6 +3,7 @@
 #include "Components.h"
 
 class ResourceEntity;
+enum class BlobKey;
 
 namespace sci
 {
@@ -177,13 +178,11 @@ public:
     }
     void Reset();
 
-    friend void SoundWriteTo(const ResourceEntity &resource, sci::ostream &byteStream);
+    friend void SoundWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag);
     friend void SoundWriteToWorker(const SoundComponent &sound, sci::ostream &byteStream);
     friend void SoundWriteToWorker_SCI1(const SoundComponent &sound, sci::ostream &byteStream);
-    friend void SoundReadFrom(ResourceEntity &resource, sci::istream &byteStream);
-    friend void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream);
-    friend void SoundReadFrom_SCI1OLD(ResourceEntity &resource, sci::istream &stream);
-    friend void SoundReadFrom_SCI0(ResourceEntity &resource, sci::istream &stream);
+    friend void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream, const std::map<BlobKey, uint32_t> &propertyBag);
+    friend void SoundReadFrom_SCI0(ResourceEntity &resource, sci::istream &stream, const std::map<BlobKey, uint32_t> &propertyBag);
     friend SoundChangeHint InitializeFromMidi(SCIVersion version, std::vector<DeviceType> devices, SoundComponent &sound, const std::string &filename);
     friend void ReadChannel(sci::istream &stream, std::vector<SoundEvent> &events, DWORD &totalTicks, SoundComponent &sound, int *mustBeChannel = nullptr);
     friend void ScanAndReadDigitalSample(ResourceEntity &resource, sci::istream stream);

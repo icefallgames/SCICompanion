@@ -753,6 +753,27 @@ void ScopedFile::Write(const uint8_t *data, uint32_t length)
     }
 }
 
+uint32_t ScopedFile::SeekToEnd()
+{
+    uint32_t position = SetFilePointer(hFile, 0, nullptr, FILE_END);
+    if (position == INVALID_SET_FILE_POINTER)
+    {
+        throw std::exception("Can't seek to end");
+    }
+    return position;
+}
+
+uint32_t ScopedFile::GetLength()
+{
+    DWORD upperSize;
+    uint32_t size = GetFileSize(hFile, &upperSize);
+    if (upperSize > 0)
+    {
+        throw std::exception("File too large.");
+    }
+    return size;
+}
+
 void testopenforwrite(const std::string &filename)
 {
     ScopedFile file(filename, GENERIC_WRITE, 0, OPEN_ALWAYS);

@@ -237,12 +237,12 @@ HBITMAP CreateBitmapFromPaletteResource(const ResourceEntity *prb, SCIBitmapInfo
     return CreateBitmapFromPaletteComponent(palette, pbmi, ppBitsDest, transparentColor, imageCels);
 }
 
-void PaletteWriteTo_SCI10(const ResourceEntity &resource, sci::ostream &byteStream)
+void PaletteWriteTo_SCI10(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag)
 {
     WritePalette(byteStream, resource.GetComponent<PaletteComponent>());
 }
 
-void PaletteWriteTo_SCI11(const ResourceEntity &resource, sci::ostream &byteStream)
+void PaletteWriteTo_SCI11(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag)
 {
     WritePaletteShortForm(byteStream, resource.GetComponent<PaletteComponent>());
 }
@@ -402,7 +402,7 @@ void ReadPalette(PaletteComponent &palette, sci::istream &byteStream)
     }
 }
 
-void PaletteReadFrom(ResourceEntity &resource, sci::istream &byteStream)
+void PaletteReadFrom(ResourceEntity &resource, sci::istream &byteStream, const std::map<BlobKey, uint32_t> &propertyBag)
 {
     ReadPalette(resource.GetComponent<PaletteComponent>(), byteStream);
 }

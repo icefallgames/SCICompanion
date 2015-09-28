@@ -632,21 +632,21 @@ void VocabReadFrom(ResourceEntity &resource, sci::istream &byteStream, bool is90
     }
 }
 
-void VocabReadFrom_000(ResourceEntity &resource, sci::istream &byteStream)
+void VocabReadFrom_000(ResourceEntity &resource, sci::istream &byteStream, const std::map<BlobKey, uint32_t> &propertyBag)
 {
     VocabReadFrom(resource, byteStream, false);
 }
-void VocabReadFrom_900(ResourceEntity &resource, sci::istream &byteStream)
+void VocabReadFrom_900(ResourceEntity &resource, sci::istream &byteStream, const std::map<BlobKey, uint32_t> &propertyBag)
 {
     VocabReadFrom(resource, byteStream, true);
 }
 
-void VocabWriteTo_000(const ResourceEntity &resource, sci::ostream &byteStream)
+void VocabWriteTo_000(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag)
 {
     VocabWriteTo(resource, byteStream, false);
 }
 
-void VocabWriteTo_900(const ResourceEntity &resource, sci::ostream &byteStream)
+void VocabWriteTo_900(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag)
 {
     VocabWriteTo(resource, byteStream, true);
 }

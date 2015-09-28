@@ -74,7 +74,7 @@ std::string TextComponent::Lookup(uint16_t wName) const
     return ret;
 }
 
-void TextWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
+void TextWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag)
 {
     const TextComponent &text = resource.GetComponent<TextComponent>();
     // Note: this function is not unicode aware
@@ -85,7 +85,7 @@ void TextWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
     }
 }
 
-void TextReadFrom(ResourceEntity &resource, sci::istream &byteStream)
+void TextReadFrom(ResourceEntity &resource, sci::istream &byteStream, const std::map<BlobKey, uint32_t> &propertyBag)
 {
     TextComponent &text = resource.GetComponent<TextComponent>();
     assert(text.Texts.empty());

@@ -6,6 +6,7 @@
 // (1) resource.map/resource.xxx
 // (2) message.map/resource.msg
 // (3) solitary files (e.g. 017.p56)
+// (4) audio volumes (resource.aud, resource.sfx)
 
 enum class AppendBehavior
 {
@@ -519,6 +520,7 @@ public:
 
     void RemoveEntry(const ResourceMapEntryAgnostic &mapEntry) override;
     AppendBehavior AppendResources(const std::vector<ResourceBlob> &entries) override;
+    AppendBehavior AppendResourcesOLD(const std::vector<ResourceBlob> &entries);
     void RebuildResources() override {}
 
 private:

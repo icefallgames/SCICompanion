@@ -716,7 +716,6 @@ void DecompileDialog::s_DecompileThreadWorker(DecompileDialog *pThis)
     }
     catch (...)
     {
-        int x = 0;
     }
 
     // Stats reporting

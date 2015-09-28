@@ -36,25 +36,3 @@ void SyncReadFrom(ResourceEntity &resource, sci::istream &stream)
 
     // TODO: There is extra data after this, enclosed in {{}}. Raw lip-sync data?
 }
-
-ResourceTraits syncTraits =
-{
-    ResourceType::Map,
-    &SyncReadFrom,
-    &SyncWriteTo,
-    &NoValidationFunc,
-    nullptr
-};
-
-ResourceEntity *CreateSyncResource(SCIVersion version)
-{
-    std::unique_ptr<ResourceEntity> pResource = std::make_unique<ResourceEntity>(syncTraits);
-    pResource->AddComponent(move(make_unique<SyncComponent>()));
-    return pResource.release();
-}
-
-ResourceEntity *CreateDefaultSyncResource(SCIVersion version)
-{
-    // Nothing different.
-    return CreateSyncResource(version);
-}

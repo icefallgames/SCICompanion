@@ -2,6 +2,7 @@
 #include "Audio.h"
 #include "AppState.h"
 #include "ResourceEntity.h"
+#include "Sync.h"
 #include "format.h"
 
 using namespace std;
@@ -79,8 +80,16 @@ static void deDPCM8(uint8_t *soundBuf, sci::istream &audioStream, uint32_t n) {
 
 const char solMarker[] = "SOL";
 
-void AudioWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
+void AudioWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag)
 {
+    uint32_t baseOffset = byteStream.tellp();
+    // Write the sync data first, if we have it.
+    if (resource.TryGetComponent<SyncComponent>())
+    {
+        SyncWriteTo(resource, byteStream);
+        propertyBag[BlobKey::LipSyncDataSize] = (byteStream.tellp() - baseOffset);
+    }
+
     const AudioComponent &audio = resource.GetComponent<AudioComponent>();
 
     AudioHeader header = {};
@@ -96,14 +105,26 @@ void AudioWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
     byteStream.WriteBytes(&audio.DigitalSamplePCM[0], (int)audio.DigitalSamplePCM.size());
 }
 
-void AudioReadFrom(ResourceEntity &resource, sci::istream &stream)
+void AudioReadFrom(ResourceEntity &resource, sci::istream &stream, const std::map<BlobKey, uint32_t> &propertyBag)
 {
+    uint32_t offset = 0;
+    auto itLipSyncDataSize = propertyBag.find(BlobKey::LipSyncDataSize);
+    if (itLipSyncDataSize != propertyBag.end())
+    {
+        // This resource contains lip sync data
+        resource.AddComponent<SyncComponent>(make_unique<SyncComponent>());
+        sci::istream streamLipSync = stream;
+        SyncReadFrom(resource, streamLipSync);
+        offset = (*itLipSyncDataSize).second;
+    }
+    stream.skip(offset);
+
     AudioComponent &audio = resource.GetComponent<AudioComponent>();
 
     AudioHeader header;
     stream >> header;
 
-    stream.seekg(header.headerSize + 2);
+    stream.seekg(offset + header.headerSize + 2);
 
     audio.Frequency = header.sampleRate;
     audio.Flags = header.flags;

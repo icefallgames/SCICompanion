@@ -527,7 +527,7 @@ UINT CBitmapToPicDialog::s_ThreadWorker(THREADINFO *pInfo)
             // Make sure the pic is small enough.
             bool fTooBig = false;
             sci::ostream serial;
-            pResource->WriteTo(serial, false, pResource->ResourceNumber);
+            pResource->WriteToTest(serial, false, pResource->ResourceNumber);
 
             DWORD cMax = 0xff00; // Provide safe boundary, since we have other pic commands in pic
             if (serial.tellp() > cMax)

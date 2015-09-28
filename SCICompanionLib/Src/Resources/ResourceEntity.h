@@ -6,9 +6,10 @@
 #include <typeindex>
 
 class ResourceEntity;
+enum class BlobKey;
 
-typedef void(*DeserializeFuncPtr)(ResourceEntity &resource, sci::istream &byteStream);
-typedef void(*SerializeFuncPtr)(const ResourceEntity &resource, sci::ostream &byteStream);
+typedef void(*DeserializeFuncPtr)(ResourceEntity &resource, sci::istream &byteStream, const std::map<BlobKey, uint32_t> &propertyBag);
+typedef void(*SerializeFuncPtr)(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag);
 typedef void(*SidecarSerializeFuncPtr)(const ResourceEntity &resource, int resourceNumber);
 typedef bool(*ValidationFuncPtr)(const ResourceEntity &resource);
 
@@ -52,7 +53,7 @@ public:
         SourceFlags = prd->GetSourceFlags();
         sci::istream byteStream = prd->GetReadStream();
         byteStream.setThrowExceptions(true);
-        Traits.ReadFromFunc(*this, byteStream);
+        Traits.ReadFromFunc(*this, byteStream, prd->GetPropertyBag());
         return S_OK;
     }
 
@@ -145,22 +146,9 @@ public:
         }
     }
 
-    void ReadFrom(sci::istream byteStream)
-    {
-        (*Traits.ReadFromFunc)(*this, byteStream);
-    }
-
-    void WriteTo(sci::ostream &byteStream, bool fullWrite, int resourceNumber) const
-    {
-        if (Traits.WriteToFunc)
-        {
-            (*Traits.WriteToFunc)(*this, byteStream);
-        }
-        if (fullWrite && Traits.SidecarWriteToFunc)
-        {
-            (*Traits.SidecarWriteToFunc)(*this, resourceNumber);
-        }
-    }
+    void ReadFrom(sci::istream byteStream, const std::map<BlobKey, uint32_t> &propertyBag);
+    void WriteToTest(sci::ostream &byteStream, bool fullWrite, int resourceNumber) const;
+    void WriteTo(sci::ostream &byteStream, bool fullWrite, int resourceNumber, std::map<BlobKey, uint32_t> &propertyBag) const;
 
     bool CanWrite() const
     {

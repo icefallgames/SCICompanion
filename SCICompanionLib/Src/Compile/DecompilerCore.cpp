@@ -340,12 +340,6 @@ Consumption _GetInstructionConsumption(scii &inst, DecompileLookups *lookups)
     bool fEatsPrev = false;
     bool fChangesPrev = false;
 
-
-    if (bOpcode == Opcode::SAGI)
-    {
-        int x = 0;
-    }
-
     switch (bOpcode)
     {
     case Opcode::SELF:

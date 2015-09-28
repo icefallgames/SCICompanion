@@ -27,7 +27,7 @@ enum class ResourceType
     Palette = 11,
     CDAudio = 12,
     Audio = 13,
-    Sync = 14,
+    // Sync = 14,       // Included with Audio resources
     Message = 15,
     Map = 16,
     Heap = 17,
@@ -106,7 +106,8 @@ enum class ResourceTypeFlags
     Palette = 1 << (int)ResourceType::Palette,
     CDAudio = 1 << (int)ResourceType::CDAudio,
     Audio = 1 << (int)ResourceType::Audio,
-    Sync = 1 << (int)ResourceType::Sync,
+    // NOTE: Sync resources are included in Audio resources.
+    // Sync = 1 << (int)ResourceType::Sync,
     Message = 1 << (int)ResourceType::Message,
     Map = 1 << (int)ResourceType::Map,
     Heap = 1 << (int)ResourceType::Heap,
@@ -164,6 +165,8 @@ struct ScopedFile : public ScopedHandle
 {
     ScopedFile(const std::string &filename, DWORD desiredAccess, DWORD shareMode, DWORD creationDisposition);
     void Write(const uint8_t *data, uint32_t length);
+    uint32_t GetLength();
+    uint32_t SeekToEnd();
 
     std::string filename;
 };

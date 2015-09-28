@@ -514,11 +514,11 @@ bool CResourceMap::AppendResource(const ResourceEntity &resource, int packageNum
     bool success = false;
     if (resource.PerformChecks())
     {
+        ResourceBlob data;
         sci::ostream serial;
-        resource.WriteTo(serial, true, resourceNumber);
+        resource.WriteTo(serial, true, resourceNumber, data.GetPropertyBag());
         if (ValidateResourceSize(serial.tellp(), resource.GetType()))
         {
-            ResourceBlob data;
             sci::istream readStream = istream_from_ostream(serial);
             data.CreateFromBits(nullptr, resource.GetType(), &readStream, packageNumber, resourceNumber, base36Number, _gameFolderHelper.Version, resource.SourceFlags);
             success = SUCCEEDED(AppendResource(data));
@@ -1310,8 +1310,6 @@ std::unique_ptr<ResourceEntity> CreateResourceFromResourceData(const ResourceBlo
             return CreateResourceHelper(data, CreateAudioResource, CreateDefaultAudioResource, fallbackOnException);
         case ResourceType::Map:
             return CreateResourceHelper(data, CreateMapResource, CreateMapResource, fallbackOnException);
-        case ResourceType::Sync:
-            return CreateResourceHelper(data, CreateSyncResource, CreateDefaultSyncResource, fallbackOnException);
         default:
         assert(false);
         break;

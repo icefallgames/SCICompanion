@@ -40,17 +40,10 @@ void CMessageDoc::_PreloadAudio()
     {
         _audioSidecarResources.clear();
         int mapResourceNumber = GetResource()->ResourceNumber;
-        auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Audio | ResourceTypeFlags::Sync, ResourceEnumFlags::MostRecentOnly, mapResourceNumber);
+        auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Audio, ResourceEnumFlags::MostRecentOnly, mapResourceNumber);
         for (auto resource : *resourceContainer)
         {
-            if (resource->GetType() == ResourceType::Audio)
-            {
-                _audioSidecarResources[resource->GetBase36()] = CreateResourceFromResourceData(*resource);
-            }
-            else
-            {
-                _syncSidecarResources[resource->GetBase36()] = CreateResourceFromResourceData(*resource);
-            }
+            _audioSidecarResources[resource->GetBase36()] = CreateResourceFromResourceData(*resource);
         }
     }
 }
@@ -86,18 +79,6 @@ ResourceEntity *CMessageDoc::FindAudioResource(uint32_t base36Number)
 {
     auto it = _audioSidecarResources.find(base36Number);
     if (it == _audioSidecarResources.end())
-    {
-        return nullptr;
-    }
-    else
-    {
-        return (*it).second.get();
-    }
-}
-ResourceEntity *CMessageDoc::FindSyncResource(uint32_t base36Number)
-{
-    auto it = _syncSidecarResources.find(base36Number);
-    if (it == _syncSidecarResources.end())
     {
         return nullptr;
     }

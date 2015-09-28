@@ -189,7 +189,7 @@ std::string GameFolderHelper::FigureOutName(ResourceType type, int iNumber, uint
 std::unique_ptr<ResourceContainer> GameFolderHelper::Resources(ResourceTypeFlags types, ResourceEnumFlags enumFlags, ResourceRecency *pRecency, int mapContext) const
 {
     // If audio or sync resources are requested, we can't also have maps.
-    if (IsFlagSet(types, ResourceTypeFlags::Audio | ResourceTypeFlags::Sync))
+    if (IsFlagSet(types, ResourceTypeFlags::Audio))
     {
         ClearFlag(types, ResourceTypeFlags::Map);
     }
@@ -215,7 +215,7 @@ std::unique_ptr<ResourceContainer> GameFolderHelper::Resources(ResourceTypeFlags
             }
         }
         
-        if (IsFlagSet(types, ResourceTypeFlags::Audio | ResourceTypeFlags::Sync))
+        if (IsFlagSet(types, ResourceTypeFlags::Audio))
         {
             mapAndVolumes->push_back(move(make_unique<AudioResourceSource>(Version, GameFolder, mapContext, ResourceSourceAccessFlags::Read)));
         }

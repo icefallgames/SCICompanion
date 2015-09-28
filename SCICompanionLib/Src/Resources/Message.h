@@ -11,6 +11,15 @@ uint32_t GetMessageTuple(const T& entry)
     return tuple;
 }
 
+template<typename T>
+void SetMessageTuple(T& entry, uint32_t base36Number)
+{
+    entry.Condition = base36Number & 0xff;
+    entry.Noun = (base36Number >> 8) & 0xff;
+    entry.Verb = (base36Number >> 16) & 0xff;
+    entry.Sequence = (base36Number >> 24) & 0xff;
+}
+
 // We re-use TextComponent
 
 enum class MessageChangeHint

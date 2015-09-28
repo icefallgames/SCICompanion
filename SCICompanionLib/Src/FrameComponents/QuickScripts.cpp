@@ -260,7 +260,6 @@ void QuickScriptsSidePane::OnItemEnter(NMHDR* pNMHDR, LRESULT* pResult)
     /*NMLVKEYDOWN *pNMKD = (NMLVKEYDOWN*)pNMHDR;
     if (pNMKD->wVKey == VK_RETURN)
     {
-        int x = 0;
         //_OpenItem(m_wndList.GetSelectedItem());
     }*/
     *pResult = 0;

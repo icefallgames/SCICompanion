@@ -369,7 +369,7 @@ int SniffPicType(const uint8_t *pdata, size_t cbData)
     return iRet;
 }
 
-void PicWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
+void PicWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag)
 {
     // Write out the palette first, if any
     const PaletteComponent *pPalette = resource.TryGetComponent<PaletteComponent>();
@@ -637,11 +637,11 @@ void PicReadFromSCI0_SCI1(ResourceEntity &resource, sci::istream &byteStream, bo
 //
 // And this for existing ones.
 //
-void PicReadFromEGA(ResourceEntity &resource, sci::istream &byteStream)
+void PicReadFromEGA(ResourceEntity &resource, sci::istream &byteStream, const std::map<BlobKey, uint32_t> &propertyBag)
 {
     PicReadFromSCI0_SCI1(resource, byteStream, false);
 }
-void PicReadFromVGA(ResourceEntity &resource, sci::istream &byteStream)
+void PicReadFromVGA(ResourceEntity &resource, sci::istream &byteStream, const std::map<BlobKey, uint32_t> &propertyBag)
 {
     PicReadFromSCI0_SCI1(resource, byteStream, true);
 }
@@ -673,7 +673,7 @@ struct PicCelHeader_VGA11
 };
 #include <poppack.h>
 
-void PicWriteToVGA11(const ResourceEntity &resource, sci::ostream &byteStream)
+void PicWriteToVGA11(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag)
 {
     const PicComponent &pic = resource.GetComponent<PicComponent>();
     const PaletteComponent *palette = resource.TryGetComponent<PaletteComponent>();
@@ -772,7 +772,7 @@ void PicWriteToVGA11(const ResourceEntity &resource, sci::ostream &byteStream)
     byteStream << header;
 }
 
-void PicReadFromVGA11(ResourceEntity &resource, sci::istream &byteStream)
+void PicReadFromVGA11(ResourceEntity &resource, sci::istream &byteStream, const std::map<BlobKey, uint32_t> &propertyBag)
 {
     PicComponent &pic = resource.GetComponent<PicComponent>();
     PicHeader_VGA11 header;

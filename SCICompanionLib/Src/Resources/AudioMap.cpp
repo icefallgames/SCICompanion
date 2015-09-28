@@ -4,7 +4,7 @@
 
 using namespace std;
 
-void AudioMapWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
+void AudioMapWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag)
 {
     uint8_t ff[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
     const AudioMapComponent &map = resource.GetComponent<AudioMapComponent>();
@@ -117,7 +117,7 @@ AudioMapVersion _DetermineAudioMapVersion(int resourceNumber, int mainAudioMapRe
     throw new std::exception("Unknown audio map format");
 }
 
-void AudioMapReadFrom(ResourceEntity &resource, sci::istream &stream)
+void AudioMapReadFrom(ResourceEntity &resource, sci::istream &stream, const std::map<BlobKey, uint32_t> &propertyBag)
 {
     AudioMapComponent &map = resource.GetComponent<AudioMapComponent>();
 
@@ -131,7 +131,7 @@ void AudioMapReadFrom(ResourceEntity &resource, sci::istream &stream)
 
     while (stream.getBytesRemaining() > (uint32_t)map.Version)
     {
-        AudioMapEntry entry = {};
+        AudioMapEntry entry;
         switch (map.Version)
         {
             case AudioMapVersion::SixBytes:

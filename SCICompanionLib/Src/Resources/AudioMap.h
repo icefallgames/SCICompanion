@@ -26,6 +26,8 @@ struct AudioMapTraits
 
 struct AudioMapEntry
 {
+    AudioMapEntry() : Number(0), Offset(0), Noun(0xff), Verb(0xff), Condition(0xff), Sequence(0xff), SyncSize(0) {}
+
     uint16_t Number;
     uint32_t Offset;
 

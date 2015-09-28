@@ -19,5 +19,5 @@ public:
     std::vector<SyncEntry> Entries;
 };
 
-ResourceEntity *CreateSyncResource(SCIVersion version);
-ResourceEntity *CreateDefaultSyncResource(SCIVersion version);
+void SyncWriteTo(const ResourceEntity &resource, sci::ostream &byteStream);
+void SyncReadFrom(ResourceEntity &resource, sci::istream &stream);

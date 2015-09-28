@@ -704,7 +704,7 @@ void ReadLoopFromVGA11(ResourceEntity &resource, sci::istream &byteStream, Loop 
     }
 }
 
-void ViewWriteToVGA11(const ResourceEntity &resource, sci::ostream &byteStream)
+void ViewWriteToVGA11(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag)
 {
     const RasterComponent &raster = resource.GetComponent<RasterComponent>();
 
@@ -837,7 +837,7 @@ void ViewWriteToVGA11(const ResourceEntity &resource, sci::ostream &byteStream)
     // Done!
 }
 
-void ViewReadFromVGA11(ResourceEntity &resource, sci::istream &byteStream)
+void ViewReadFromVGA11(ResourceEntity &resource, sci::istream &byteStream, const std::map<BlobKey, uint32_t> &propertyBag)
 {
     RasterComponent &raster = resource.GetComponent<RasterComponent>();
 
@@ -893,12 +893,12 @@ void ViewReadFromVGA11(ResourceEntity &resource, sci::istream &byteStream)
     PostReadProcessing(resource, raster);
 }
 
-void ViewReadFromEGA(ResourceEntity &resource, sci::istream &byteStream)
+void ViewReadFromEGA(ResourceEntity &resource, sci::istream &byteStream, const std::map<BlobKey, uint32_t> &propertyBag)
 {
     ViewReadFromVersioned(resource, byteStream, false);
 }
 
-void ViewReadFromVGA(ResourceEntity &resource, sci::istream &byteStream)
+void ViewReadFromVGA(ResourceEntity &resource, sci::istream &byteStream, const std::map<BlobKey, uint32_t> &propertyBag)
 {
     ViewReadFromVersioned(resource, byteStream, true);
 }
@@ -988,12 +988,12 @@ void ViewWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, bool 
     }
 }
 
-void ViewWriteToEGA(const ResourceEntity &resource, sci::ostream &byteStream)
+void ViewWriteToEGA(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag)
 {
     ViewWriteTo(resource, byteStream, false);
 }
 
-void ViewWriteToVGA(const ResourceEntity &resource, sci::ostream &byteStream)
+void ViewWriteToVGA(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag)
 {
     ViewWriteTo(resource, byteStream, true);
 }

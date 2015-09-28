@@ -8,6 +8,7 @@
 #include "Message.h"
 #include "ResourceContainer.h"
 #include "SoundUtil.h"
+#include <limits>
 
 using namespace std;
 
@@ -213,14 +214,12 @@ bool AudioResourceSource::ReadNextEntry(ResourceTypeFlags typeFlags, IteratorSta
     // LB_Dagger has it as 0.map in the resource map
     // QF3 has a 65535.map in resource.map, but I don't see the actual audio files anywhere.
 
-    // To iterate through audio maps, we'll need 3 indices:
-    //  - index into audiomap component     (15 bits)
+    // To iterate through audio maps, we'll need 2 indices:
+    //  - index into audiomap component     (16 bits)
     //  - index into audiomap entry         (16 bits)
-    //  - index indicating audio or sync    (1 bit)
 
-    uint32_t audioMapIndex = ((state.mapStreamOffset & 0xfffe0000) >> 17);
-    uint32_t audioMapEntryIndex = ((state.mapStreamOffset & 0x1fffe) >> 1);
-    uint32_t audioOrSyncIndex = (state.mapStreamOffset & 0x1);
+    uint32_t audioMapIndex = ((state.mapStreamOffset & 0xffff0000) >> 16);
+    uint32_t audioMapEntryIndex = (state.mapStreamOffset & 0x0ffff);
     bool found = false;
     while (!found && (audioMapIndex < _audioMaps.size()))
     {
@@ -228,61 +227,15 @@ bool AudioResourceSource::ReadNextEntry(ResourceTypeFlags typeFlags, IteratorSta
         while (!found && (audioMapEntryIndex < audioMap.Entries.size()))
         {
             const AudioMapEntry &mapEntry = audioMap.Entries[audioMapEntryIndex];
-            if (!IsMainAudioMap(audioMap.Version))
-            {
-                // Audio map with optional sync information.
-                // If this AudioMapEntry has two parts (audio and sync), then audioOrSyncIndex = 0 means audio and audioOrSyncIndex == 1 means sync
-                if (audioOrSyncIndex == 0)
-                {
-                    entry.Number = mapEntry.Number;
-                    entry.Offset = mapEntry.Offset + mapEntry.SyncSize;
-                    entry.ExtraData = 0;
-                    entry.PackageNumber = 0;
-                    entry.Type = ResourceType::Audio;
-                    entry.Base36Number = GetMessageTuple(mapEntry);
-
-                    if (mapEntry.SyncSize)
-                    {
-                        // This also has a sync resource
-                        audioOrSyncIndex++;
-                    }
-                    else
-                    {
-                        // It doesn't...
-                        audioOrSyncIndex = 0;
-                        audioMapEntryIndex++;
-                    }
-                    found = true;
-                }
-                else if (audioOrSyncIndex == 1)
-                {
-                    assert(mapEntry.SyncSize > 0);
-                    entry.Number = mapEntry.Number;
-                    entry.Offset = mapEntry.Offset;
-                    // Use extra data to store the size of the sync section.
-                    entry.ExtraData = mapEntry.SyncSize;
-                    entry.PackageNumber = 0;
-                    entry.Type = ResourceType::Sync;
-                    entry.Base36Number = GetMessageTuple(mapEntry);
-
-                    audioOrSyncIndex = 0;
-                    audioMapEntryIndex++;
-                    found = true;
-                }
-            }
-            else
-            {
-                // Straightforward main audio map
-                entry.Number = mapEntry.Number;
-                entry.Offset = mapEntry.Offset;
-                entry.ExtraData = 0;
-                entry.PackageNumber = 0;
-                entry.Type = ResourceType::Audio;
-                entry.Base36Number = NoBase36;
-                audioMapEntryIndex++;
-                audioOrSyncIndex = 0;
-                found = true;
-            }
+            // Use ExtraData to store the SyncSize.
+            entry.ExtraData = mapEntry.SyncSize;
+            entry.Number = mapEntry.Number;
+            entry.Offset = mapEntry.Offset;
+            entry.PackageNumber = 0;
+            entry.Type = ResourceType::Audio;
+            entry.Base36Number = IsMainAudioMap(audioMap.Version) ? NoBase36 : GetMessageTuple(mapEntry);
+            audioMapEntryIndex++;
+            found = true;
         }
         if (!found)
         {
@@ -291,9 +244,8 @@ bool AudioResourceSource::ReadNextEntry(ResourceTypeFlags typeFlags, IteratorSta
         }
     }
 
-    uint32_t newStreamOffset = audioOrSyncIndex;
-    newStreamOffset |= audioMapEntryIndex << 1;
-    newStreamOffset |= audioMapIndex << 17;
+    uint32_t newStreamOffset = audioMapEntryIndex;
+    newStreamOffset |= audioMapIndex << 16;
     state.mapStreamOffset = newStreamOffset;
 
     return found;
@@ -365,22 +317,22 @@ sci::istream AudioResourceSource::GetHeaderAndPositionedStream(const ResourceMap
         headerEntry.Version = _version;
         headerEntry.Type = mapEntry.Type;
         headerEntry.cbDecompressed = 0;
-        if (mapEntry.Type == ResourceType::Audio)
+
+        if (mapEntry.ExtraData > 0)
         {
-            AudioHeader audioHeader;
-            reader >> audioHeader;
-            reader.seekg(-(int)sizeof(audioHeader), std::ios_base::cur);
-            headerEntry.cbDecompressed = audioHeader.headerSize + 2 + audioHeader.sizeExcludingHeader;
-            headerEntry.cbCompressed = headerEntry.cbDecompressed;
+            // Identifier for lipsync data.
+            assert(reader.peek() == 0x8e);
+            headerEntry.PropertyBag[BlobKey::LipSyncDataSize] = mapEntry.ExtraData;
         }
-        else
-        {
-            uint16_t resType;
-            reader >> resType;
-            assert(resType == 0x8e);
-            headerEntry.cbDecompressed = mapEntry.ExtraData;
-            headerEntry.cbCompressed = mapEntry.ExtraData;
-        }
+
+        // To know how big we are, we need to read the audio header.
+        // This comes after the lipsync data
+        sci::istream audioReader = reader;      // Make a copy
+        audioReader.skip(mapEntry.ExtraData);   // Lip sync data size
+        AudioHeader audioHeader;
+        audioReader >> audioHeader;
+        headerEntry.cbDecompressed = audioHeader.headerSize + 2 + audioHeader.sizeExcludingHeader + mapEntry.ExtraData;
+        headerEntry.cbCompressed = headerEntry.cbDecompressed;
 
         return reader;
     }
@@ -389,6 +341,7 @@ sci::istream AudioResourceSource::GetHeaderAndPositionedStream(const ResourceMap
 
 void AudioResourceSource::RemoveEntry(const ResourceMapEntryAgnostic &mapEntry) 
 {
+    // TODO: fixup
     assert(IsFlagSet(_access, ResourceSourceAccessFlags::ReadWrite));
 
     std::unique_ptr<sci::streamOwner> streamOwner = _GetAudioVolume(mapEntry.Base36Number);
@@ -456,6 +409,7 @@ void AudioResourceSource::_CopyWithoutThese(const AudioMapComponent &audioMap, A
     }
 }
 
+// TODO: Get rid of this?
 void AudioResourceSource::_Finalize(AudioMapComponent &newAudioMap, sci::ostream &newVolumeStream, uint32_t base36Number)
 {
     AudioVolumeName volumeToUse = _GetVolumeToUse(base36Number);
@@ -480,6 +434,78 @@ void AudioResourceSource::_Finalize(AudioMapComponent &newAudioMap, sci::ostream
 }
 
 AppendBehavior AudioResourceSource::AppendResources(const std::vector<ResourceBlob> &entries)
+{
+    assert(IsFlagSet(_access, ResourceSourceAccessFlags::ReadWrite));
+    // Audio resource files tend to be large (>300MB for CD-based games), so we won't rewrite them.
+    // Instead, we'll append to the end of resource.aud/sfx and then update the offsets in the audio maps.
+    // Finally we re-write the audio maps.
+    // This will result in audio files that are ever-expanding, so the user will need to rebuild resources
+    // every once in a while.
+
+    for (const ResourceBlob &blob : entries)
+    {
+        auto it = find_if(_audioMaps.begin(), _audioMaps.end(),
+            [&blob](std::unique_ptr<ResourceEntity> &audioMap)
+        {
+            // Either the entry has no base36 number and this is the main audio map, or
+            // is *does* have a base 36 number and this its resource number matches that of the audiomap.
+            return (audioMap->ResourceNumber == blob.GetNumber()) || ((blob.GetBase36() == NoBase36) && IsMainAudioMap(audioMap->GetComponent<AudioMapComponent>().Version));
+        }
+        );
+        if (it != _audioMaps.end())
+        {
+            uint32_t messageTuple = blob.GetBase36();
+            // 1) Get the audio volume, positioned at the end
+            ScopedFile audioVolumeStream(_GetAudioVolumePath(false, _GetVolumeToUse(messageTuple), &_sourceFlags), GENERIC_WRITE, 0, OPEN_ALWAYS);
+            // 2) Take note of the offset.
+            uint32_t offset = audioVolumeStream.SeekToEnd();
+            // 3) Write the resource data, which consists of an optional lip sync section, and the audio data. Then close the file.
+            sci::istream audioStream = blob.GetReadStream();
+            audioVolumeStream.Write(audioStream.GetInternalPointer(), audioStream.GetDataSize());
+            audioVolumeStream.Close();
+            
+            // 4) Create our new AudioMapEntry 
+            AudioMapEntry newEntry;
+            newEntry.Number = blob.GetNumber();
+            newEntry.Offset = offset;
+            SetMessageTuple(newEntry, blob.GetBase36());
+            uint32_t lipSyncSize;
+            if (blob.GetKeyValue(BlobKey::LipSyncDataSize, lipSyncSize))
+            {
+                assert(lipSyncSize < (std::numeric_limits<uint16_t>::max)());
+                newEntry.SyncSize = static_cast<uint16_t>(lipSyncSize);
+            }
+
+            // 5) Find an existing entry and replace it, or add a new one.
+            int x = 0; // TODO: Main audio map doens't have tuples... in that case, just a matching number will do. Check this.
+            AudioMapComponent &audioMap = (*it)->GetComponent<AudioMapComponent>();
+            uint16_t resNumber = (uint16_t)blob.GetNumber();
+            auto itFind = find_if(audioMap.Entries.begin(), audioMap.Entries.end(),
+                [messageTuple, resNumber](AudioMapEntry &entry) { return GetMessageTuple(entry) == messageTuple && entry.Number == resNumber; }
+                );
+            if (itFind != audioMap.Entries.end())
+            {
+                // Reassign.
+                *itFind = newEntry;
+            }
+            else
+            {
+                // Add
+                audioMap.Entries.push_back(newEntry);
+            }
+            
+            // 6) Save the audio map 
+            int y = 0; // TOdo: Check main audio map is ok here.
+            appState->GetResourceMap().SaveAudioMap65535(audioMap, resNumber);
+        }
+    }
+    // Even though we appended, technically there's no way to get at the old info. Should we return Replace?
+    // I think returning Append is ok, because then the user will know that they should rebuild resources.
+    // Even though a refresh would make the thing vanish.
+    return AppendBehavior::Append;
+}
+
+AppendBehavior AudioResourceSource::AppendResourcesOLD(const std::vector<ResourceBlob> &entries)
 {
     assert(IsFlagSet(_access, ResourceSourceAccessFlags::ReadWrite));
 

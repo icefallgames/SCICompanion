@@ -67,17 +67,17 @@ void CursorReadFromVersioned(ResourceEntity &resource, sci::istream &byteStream,
     }
 }
 
-void CursorReadFromSCI0(ResourceEntity &resource, sci::istream &byteStream)
+void CursorReadFromSCI0(ResourceEntity &resource, sci::istream &byteStream, const std::map<BlobKey, uint32_t> &propertyBag)
 {
     CursorReadFromVersioned(resource, byteStream, true);
 }
 
-void CursorReadFromSCI1(ResourceEntity &resource, sci::istream &byteStream)
+void CursorReadFromSCI1(ResourceEntity &resource, sci::istream &byteStream, const std::map<BlobKey, uint32_t> &propertyBag)
 {
     CursorReadFromVersioned(resource, byteStream, false);
 }
 
-void CursorWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
+void CursorWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag)
 {
     // We only ever have one cel and one loop
     const Cel &cel = resource.GetComponent<RasterComponent>().Loops[0].Cels[0];

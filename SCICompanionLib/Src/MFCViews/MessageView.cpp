@@ -7,6 +7,7 @@
 #include "Message.h"
 #include "format.h"
 #include "NounsAndCases.h"
+#include "Sync.h"
 
 using namespace std;
 
@@ -243,8 +244,13 @@ void CMessageView::_SetItem(int itemIndex, int visualIndex, PCTSTR pszString, co
     CListCtrl& listCtl = GetListCtrl();
 
     CMessageDoc *pDoc = GetDocument();
-    bool hasAudio = pDoc && pDoc->FindAudioResource(GetMessageTuple(text->Texts[itemIndex]));
-    bool hasLipSync = pDoc && pDoc->FindSyncResource(GetMessageTuple(text->Texts[itemIndex]));
+    ResourceEntity *audioResource = nullptr;
+    if (pDoc)
+    {
+        audioResource = pDoc->FindAudioResource(GetMessageTuple(text->Texts[itemIndex]));
+    }
+    bool hasAudio = (audioResource != nullptr);
+    bool hasLipSync = audioResource && audioResource->TryGetComponent<SyncComponent>();
 
     LVITEM item = { 0 };
     item.mask = LVIF_TEXT | LVIF_PARAM;
