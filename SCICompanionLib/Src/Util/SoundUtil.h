@@ -16,3 +16,4 @@ std::string _NameFromFilename(PCSTR pszFilename);
 void AddWaveFileToGame(const std::string &filename);
 AudioVolumeName GetVolumeToUse(SCIVersion version, uint32_t base36Number);
 bool IsWaveFile(PCSTR pszFileName);
+void WriteWaveFile(const std::string &filename, const AudioComponent &audio);

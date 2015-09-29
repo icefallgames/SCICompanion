@@ -21,6 +21,7 @@
     <Text Include="Files\Licenses\giflib-AUTHORS.txt" />
     <Text Include="Files\Licenses\r8brain-License.txt" />
     <Text Include="Tools\DOSBox\DOSBox 0.74 Manual.txt" />
+    <Text Include="Files\Samples\sample_phoneme_map.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCICompanion.h">
@@ -632,6 +633,9 @@
     <None Include="Tools\DOSBox\SDL.dll" />
     <None Include="Tools\DOSBox\SDL_net.dll" />
     <None Include="Tools\DOSBox\uninstall.exe" />
+    <None Include="Files\Samples\SCI1.1\views\MouthShapes.bin">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />

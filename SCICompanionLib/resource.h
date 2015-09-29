@@ -238,7 +238,6 @@
 #define IDD_DIALOGVERSION               352
 #define IDB_CLOSE_INACTIVE              353
 #define IDI_PALETTEVGA                  354
-#define IDB_MESSAGEICONS                354
 #define IDB_MESSAGEAUDIOICONS           354
 #define IDD_PICCOMMANDS_VGA             355
 #define IDD_DIALOGCHOOSECOLORVGA        356
@@ -287,6 +286,7 @@
 #define IDI_REFRESH                     388
 #define IDD_COLOR_SHIFTER               388
 #define IDI_RIGHT_ARROW                 389
+#define IDD_LIPSYNCDIALOG               389
 #define IDR_MENUEGOS                    391
 #define IDC_CHOOSECOLORSTATIC           1001
 #define IDC_BUTTON1                     1003
@@ -665,6 +665,7 @@
 #define IDC_COMBODITHERALPHA            1312
 #define IDC_STATICDITHERALPHA           1313
 #define IDC_COMBO_WAVEFORMAT            1314
+#define IDC_BUTTONLIPSYNC               1315
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -1011,7 +1012,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        394
 #define _APS_NEXT_COMMAND_VALUE         33275
-#define _APS_NEXT_CONTROL_VALUE         1315
+#define _APS_NEXT_CONTROL_VALUE         1316
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

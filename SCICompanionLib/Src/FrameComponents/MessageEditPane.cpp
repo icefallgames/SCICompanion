@@ -12,6 +12,7 @@
 #include "AudioMap.h"
 #include "AudioPlayback.h"
 #include "Audio.h"
+#include "ExtractLipSyncDialog.h"
 
 using namespace std;
 
@@ -91,6 +92,7 @@ BEGIN_MESSAGE_MAP(MessageEditPane, AudioPlaybackUI<CExtDialogFwdCmd>)
     ON_CBN_SETFOCUS(IDC_COMBOTALKER, &MessageEditPane::OnCbnSetfocusCombotalker)
     ON_CBN_KILLFOCUS(IDC_COMBOTALKER, &MessageEditPane::OnCbnKillfocusCombotalker)
     ON_CBN_EDITCHANGE(IDC_COMBOTALKER, &MessageEditPane::OnCbnEditchangeCombotalker)
+    ON_BN_CLICKED(IDC_BUTTONLIPSYNC, &MessageEditPane::OnBnClickedButtonlipsync)
 END_MESSAGE_MAP()
 
 void MessageEditPane::OnPlayAudio()
@@ -180,6 +182,7 @@ BOOL MessageEditPane::OnInitDialog()
     AddAnchor(IDC_CHECK_AUTOPREV, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_STATIC_DURATION, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_COMBO_WAVEFORMAT, CPoint(100, 0), CPoint(100, 0));
+    AddAnchor(IDC_BUTTONLIPSYNC, CPoint(100, 0), CPoint(100, 0));
 
     // Hide the sizing grip
     ShowSizeGrip(FALSE);
@@ -642,4 +645,20 @@ void MessageEditPane::OnCbnKillfocusCombotalker()
 void MessageEditPane::OnCbnEditchangeCombotalker()
 {
     _talkerEdited = true;
+}
+
+
+void MessageEditPane::OnBnClickedButtonlipsync()
+{
+    std::string tempWaveFilename = appState->GetResourceMap().Helper().GameFolder + "\\lipsync-temp.wav";
+    if (_audio)
+    {
+        WriteWaveFile(tempWaveFilename, _audio->GetComponent<AudioComponent>());
+        ExtractLipSyncDialog dialog(tempWaveFilename);
+        if (IDOK == dialog.DoModal())
+        {
+            // Add it...
+        }
+    }
+
 }

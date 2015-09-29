@@ -177,7 +177,7 @@ void AudioComponentFromWaveFile(sci::istream &stream, AudioComponent &audio)
     }
 
     // Now validate the format
-    if (header.formatTag != 1)
+    if (header.formatTag != WAVE_FORMAT_PCM)
     {
         throw std::exception("Only uncompressed wave files are supported");
     }
@@ -329,6 +329,44 @@ std::string _NameFromFilename(PCSTR pszFilename)
 bool IsWaveFile(PCSTR pszFileName)
 {
     return (0 == _strcmpi(PathFindExtension(pszFileName), ".wav"));
+}
+
+void WriteWaveFile(const std::string &filename, const AudioComponent &audio)
+{
+    sci::ostream out;
+    out << (*(uint32_t*)riffMarker);
+    
+    uint32_t fileSizePosition = out.tellp();
+    uint32_t fileSize = 0;
+    out << fileSize;    // We'll fill this in later
+    out << (*(uint32_t*)waveMarker);
+
+    out << (*(uint32_t*)fmtMarker);
+    WaveHeader waveHeader = {};
+    uint32_t chunkSize = sizeof(waveHeader);
+    out << chunkSize;    // We'll fill this in later
+
+    WORD blockAlign = IsFlagSet(audio.Flags, AudioFlags::SixteenBit) ? 2 : 1;
+    waveHeader.formatTag = WAVE_FORMAT_PCM;
+    waveHeader.channelCount = 1;
+    waveHeader.sampleRate = audio.Frequency;
+    waveHeader.blockAlign = blockAlign;
+    waveHeader.bitsPerSample = 8 * blockAlign;
+    waveHeader.bytesPerSecond = audio.Frequency * blockAlign;
+    out << waveHeader;
+
+    out << (*(uint32_t*)dataMarker);
+    uint32_t dataSize = audio.DigitalSamplePCM.size();
+    out << dataSize;
+    out.WriteBytes(&audio.DigitalSamplePCM[0], dataSize);
+
+    fileSize = out.GetDataSize();
+    // Go back and write it...
+    out.seekp(fileSizePosition);
+    out << fileSize;
+
+    ScopedFile file(filename, GENERIC_WRITE, 0, CREATE_ALWAYS);
+    file.Write(out.GetInternalPointer(), out.GetDataSize());
 }
 
 AudioVolumeName GetVolumeToUse(SCIVersion version, uint32_t base36Number)

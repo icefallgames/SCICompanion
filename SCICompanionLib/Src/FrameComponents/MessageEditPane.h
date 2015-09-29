@@ -125,4 +125,5 @@ public:
     afx_msg void OnCbnSetfocusCombotalker();
     afx_msg void OnCbnKillfocusCombotalker();
     afx_msg void OnCbnEditchangeCombotalker();
+    afx_msg void OnBnClickedButtonlipsync();
 };

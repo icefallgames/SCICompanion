@@ -186,6 +186,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
   <ItemGroup>
     <Text Include="Files\Licenses\giflib-AUTHORS.txt" />
     <Text Include="Files\Licenses\r8brain-License.txt" />
+    <Text Include="Files\Samples\sample_phoneme_map.txt" />
     <Text Include="Files\TemplateGame\SCI0\game.txt" />
     <Text Include="Files\TemplateGame\SCI1.1\INSTALL.TXT" />
     <Text Include="ReadMe.txt" />
@@ -278,6 +279,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <None Include="Files\Samples\SCI1.1\pics\Black 200.bin" />
     <None Include="Files\Samples\SCI1.1\pics\Room 1.bin" />
     <None Include="Files\Samples\SCI1.1\views\Box.bin" />
+    <None Include="Files\Samples\SCI1.1\views\MouthShapes.bin" />
     <None Include="Files\Samples\views\Brian.bin" />
     <None Include="Files\Samples\views\Dead Icon.bin" />
     <None Include="Files\Samples\views\Door (Big).bin" />
