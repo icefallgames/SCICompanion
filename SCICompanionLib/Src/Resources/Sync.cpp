@@ -36,3 +36,27 @@ void SyncReadFrom(ResourceEntity &resource, sci::istream &stream)
 
     // TODO: There is extra data after this, enclosed in {{}}. Raw lip-sync data?
 }
+
+uint16_t SyncComponent::GetMaxTicks() const
+{
+    uint16_t maxTicks = 0;
+    if (!Entries.empty())
+    {
+        maxTicks = Entries.back().Tick;
+    }
+    return maxTicks;
+}
+
+uint16_t SyncComponent::GetCelAtTick(uint16_t tickPosition) const
+{
+    uint16_t lastCel = Entries.empty() ? 0 : Entries[0].Cel;
+    for (const auto &entry : Entries)
+    {
+        if (tickPosition < entry.Tick)
+        {
+            break; // last cel is what we want.
+        }
+        lastCel = entry.Cel;
+    }
+    return lastCel;
+}

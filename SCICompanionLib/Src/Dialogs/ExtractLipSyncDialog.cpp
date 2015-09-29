@@ -3,6 +3,9 @@
 #include "sapi_lipsync.h"
 #include "phone_estimate.h"
 #include "ExtractLipSyncDialog.h"
+#include "PhonemeMap.h"
+#include "Sync.h"
+#include "LipSyncUtil.h"
 
 #include "AppState.h"
 #include "ScriptOM.h"
@@ -101,17 +104,7 @@ void ExtractLipSyncDialog::OnTimer(UINT_PTR nIDEvent)
             // this call will estimate phoneme timings 
             _lipSync->finalize_phoneme_alignment();
 
-            std::stringstream ss;
-            _lipSync->print_results(ss);
-            ShowTextFile(ss.str().c_str(), "LipSync.txt");
-
-            ///PostMessage(WM_CLOSE, 0, 0);
-            /*
-            std::vector<alignment_result> &results = _lipSync->get_phoneme_alignment();
-            for (auto &result : results)
-            {
-                result.
-            }*/
+            PostMessage(WM_CLOSE, 0, 0);
         }
     }
     else
@@ -125,5 +118,7 @@ BEGIN_MESSAGE_MAP(ExtractLipSyncDialog, CExtResizableDialog)
     ON_WM_TIMER()
 END_MESSAGE_MAP()
 
-
-// ExtractLipSyncDialog message handlers
+std::unique_ptr<SyncComponent> ExtractLipSyncDialog::CreateLipSyncComponent(PhonemeMap &phonemeMap)
+{
+    return CreateLipSyncComponentFromPhonemes(phonemeMap, _lipSync->get_phoneme_alignment());
+}

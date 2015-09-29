@@ -32,7 +32,8 @@ ViewUIElement::ViewUIElement()
     _fInitialized(false),
     _iZoom(1),
     _bgColor(RGB(255, 0, 255)),
-    _isBackgroundPatterned(false)
+    _isBackgroundPatterned(false),
+    _fillArea(false)
 {
 }
 
@@ -84,22 +85,47 @@ const Cel &ViewUIElement::GetCel()
     return _viewResource->GetComponent<RasterComponent>().Loops[_nLoop].Cels[_nCel];
 }
 
+void ViewUIElement::_ValidateLoopCel()
+{
+    if (_viewResource)
+    {
+        const RasterComponent &raster = _viewResource->GetComponent<RasterComponent>();
+        _nLoop = max(0, min(raster.LoopCount() - 1, _nLoop));
+        const Loop &loop = raster.Loops[_nLoop];
+        _nCel = max(0, min((int)loop.Cels.size() - 1, _nCel));
+    }
+}
+
 void ViewUIElement::SetLoop(int nLoop)
 {
     _nLoop = nLoop;
+    _ValidateLoopCel();
     _sizeWeDrawIn = _RecalcSizeNeeded();
     Invalidate(FALSE);
 }
 
-void ViewUIElement::SetCel(int nCel)
+void ViewUIElement::SetCel(int nCel, bool updateNow)
 {
-    _nCel = nCel;
-    Invalidate(FALSE);
+    if (_nCel != nCel)
+    {
+        _nCel = nCel;
+        _ValidateLoopCel();
+        if (updateNow)
+        {
+            RedrawWindow();
+        }
+        else
+        {
+            Invalidate(FALSE);
+        }
+    }
 }
 
 void ViewUIElement::SetBackground(COLORREF color) { _bgColor = color; Invalidate(FALSE); }
 
 void ViewUIElement::SetPatterned(bool isPatterned) { _isBackgroundPatterned = isPatterned; Invalidate(FALSE); }
+
+void ViewUIElement::SetFillArea(bool fillArea) { _fillArea = fillArea; Invalidate(FALSE); }
 
 void ViewUIElement::SetResource(const ResourceEntity *view, const PaletteComponent *optionalPalette)
 {
@@ -201,10 +227,25 @@ void ViewUIElement::_OnDraw(CDC *pDC, LPRECT prc)
             if (hbmpTemp)
             {
                 HGDIOBJ hOld = dcMem.SelectObject(hbmpTemp);
-                // Note that we really want to use a transparent palette *index*, not an rgb color. Oh well, this will work for most cases.
-                TransparentBlt((HDC)*pDC, upperLeftBounds.x, upperLeftBounds.y, cxDest, cyDest, dcMem, 0, 0, cel.size.cx, cel.size.cy, transparentColorRef);
+                if (_fillArea)
+                {
+                    // Fills the entire area.
+                    double xZoom = (double)RECTWIDTH(*prc) / (double)cxDest;
+                    double yZoom = (double)RECTHEIGHT(*prc) / (double)cyDest;
+                    double zoom = min(xZoom, yZoom);
+                    int newCXDest = (int)((double)cxDest * zoom);
+                    int newCYDest = (int)((double)cyDest * zoom);
+                    int xDest = upperLeftBounds.x - (newCXDest - cxDest) / 2;
+                    int yDest = upperLeftBounds.y - (newCYDest - cyDest) / 2;
+                    StretchBlt((HDC)*pDC, xDest, yDest, newCXDest, newCYDest, dcMem, 0, 0, cel.size.cx, cel.size.cy, SRCCOPY);
+                }
+                else
+                {
+                    // Pixel-perfect, supports transparency, but may not fill the entire area.
+                    // Note that we really want to use a transparent palette *index*, not an rgb color. Oh well, this will work for most cases.
+                    TransparentBlt((HDC)*pDC, upperLeftBounds.x, upperLeftBounds.y, cxDest, cyDest, dcMem, 0, 0, cel.size.cx, cel.size.cy, transparentColorRef);
+                }
                 dcMem.SelectObject(hOld);
-
                 DeleteObject(hbmpTemp);
             }
         }

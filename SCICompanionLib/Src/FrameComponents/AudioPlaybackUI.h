@@ -16,12 +16,12 @@ public:
     virtual ~AudioPlaybackUI();
     void SetAudioResource(const ResourceEntity *audio);
 
-
 protected:
     // Call these things:
     void DoDataExchangeHelper(CDataExchange* pDX);    // DDX/DDV support
     void OnInitDialogHelper();
 
+    virtual void OnPlaybackTimer() {}
     virtual void OnNewResourceCreated(std::unique_ptr<ResourceEntity> audioResource, const std::string &name) = 0;
 
 protected:
@@ -200,7 +200,7 @@ void AudioPlaybackUI<T>::_UpdatePlayState()
 {
     if (_IsPlaying() || _IsRecording())
     {
-        SetTimer(AUDIO_TIMER, 100, NULL);
+        SetTimer(AUDIO_TIMER, 33, NULL);
     }
     else
     {
@@ -286,6 +286,8 @@ void AudioPlaybackUI<T>::OnTimer(UINT_PTR nIDEvent)
         {
             m_wndSlider.SetPos(g_audioPlayback.QueryPosition(100));
             g_audioPlayback.IdleUpdate();
+
+            OnPlaybackTimer();
         }
         if (!_IsPlaying())
         {

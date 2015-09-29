@@ -4,6 +4,8 @@
 
 class sapi_textless_lipsync;
 class phoneme_estimator;
+class PhonemeMap;
+struct SyncComponent;
 
 class ExtractLipSyncDialog : public CExtResizableDialog
 {
@@ -14,6 +16,8 @@ public:
 
     // Dialog Data
     enum { IDD = IDD_LIPSYNCDIALOG };
+
+    std::unique_ptr<SyncComponent> CreateLipSyncComponent(PhonemeMap &phonemeMap);
 
 protected:
     virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support

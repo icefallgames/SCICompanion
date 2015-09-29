@@ -14,9 +14,7 @@
 #include "Audio.h"
 #include "ExtractLipSyncDialog.h"
 #include "PhonemeMap.h"
-#include "View.h"
-#include "RasterOperations.h"
-#include "PaletteOperations.h"
+#include "Sync.h"
 
 #define MOUTH_TIMER 9753
 
@@ -73,12 +71,13 @@ void MessageEditPane::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_CHECK_AUTOPREV, m_wndAutoPreview);
 
         DDX_Control(pDX, IDC_ANIMATE, m_wndMouth);
+        m_wndMouth.SetBackground(g_PaintManager->GetColor(COLOR_BTNFACE));
+        m_wndMouth.SetFillArea(true);
     }
     DDX_Text(pDX, IDC_EDITSEQ, _spinnerValue);
 }
 
 BEGIN_MESSAGE_MAP(MessageEditPane, AudioPlaybackUI<CExtDialogFwdCmd>)
-    ON_WM_TIMER()
     ON_WM_CREATE()
     ON_WM_ERASEBKGND()
     ON_EN_CHANGE(IDC_EDITMESSAGE, &MessageEditPane::OnEnChangeEditmessage)
@@ -351,19 +350,6 @@ void MessageEditPane::_UpdateAudio(const TextEntry &messageEntry)
     }
 }
 
-void MessageEditPane::OnTimer(UINT_PTR nIDEvent)
-{
-    if (nIDEvent == MOUTH_TIMER)
-    {
-        // TODO: check where we are in the audioplay back, and find the right cel.
-        // m_wndAnimate.Invalidate(FALSE);
-    }
-    else
-    {
-        __super::OnTimer(nIDEvent);
-    }
-}
-
 void MessageEditPane::OnNewResourceCreated(std::unique_ptr<ResourceEntity> audioResource, const std::string &name)
 {
     const TextEntry *entry = _GetEntry();
@@ -423,9 +409,7 @@ void MessageEditPane::_Update()
     m_wndSlider.ShowWindow(cmdShow);
     m_wndAutoPreview.ShowWindow(cmdShow);
     m_wndDuration.ShowWindow(cmdShow);
-    //m_wndDescription.ShowWindow(cmdShow);
     m_wndBrowse.ShowWindow(cmdShow);
-    //m_wndTitle.ShowWindow(cmdShow);
     m_wndWaveType.ShowWindow(cmdShow);
 }
 
@@ -691,7 +675,6 @@ void MessageEditPane::OnCbnEditchangeCombotalker()
     _talkerEdited = true;
 }
 
-
 void MessageEditPane::OnBnClickedButtonlipsync()
 {
     std::string tempWaveFilename = appState->GetResourceMap().Helper().GameFolder + "\\lipsync-temp.wav";
@@ -699,10 +682,34 @@ void MessageEditPane::OnBnClickedButtonlipsync()
     {
         WriteWaveFile(tempWaveFilename, _audio->GetComponent<AudioComponent>());
         ExtractLipSyncDialog dialog(tempWaveFilename);
-        if (IDOK == dialog.DoModal())
+        if (IDCANCEL == dialog.DoModal()) // IDCANCEL temp
         {
-            // Add it...
+            std::unique_ptr<PhonemeMap> samplePhonemeMap = std::make_unique<PhonemeMap>(GetExeSubFolder("Samples") + "\\sample_phoneme_map.ini");
+            std::unique_ptr<SyncComponent> syncComponent = dialog.CreateLipSyncComponent(*samplePhonemeMap);
+
+            // Update the sync component (or add one)
+            const TextEntry *entry = _GetEntry();
+            uint32_t tuple = GetMessageTuple(*entry);
+            ResourceEntity *entity = _pDoc->FindAudioResource(tuple);
+            entity->RemoveComponent<SyncComponent>();
+            entity->AddComponent<SyncComponent>(std::move(syncComponent));
         }
     }
+}
 
+void MessageEditPane::OnPlaybackTimer()
+{
+    if (_audio)
+    {
+        const SyncComponent *syncComponent = _audio->TryGetComponent<SyncComponent>();
+        if (syncComponent)
+        {
+            uint16_t tickPosition = (uint16_t)g_audioPlayback.QueryPosition(syncComponent->GetMaxTicks());
+            uint16_t cel = syncComponent->GetCelAtTick(tickPosition);
+            if (cel != 0xffff)
+            {
+                m_wndMouth.SetCel(cel, true);
+            }
+        }
+    }
 }

@@ -51,6 +51,7 @@ public:
     void _Update();
 
 protected:
+    void OnPlaybackTimer() override;
     void OnNewResourceCreated(std::unique_ptr<ResourceEntity> audioResource, const std::string &name) override;
 
     const TextComponent *_GetResource();
@@ -134,5 +135,4 @@ public:
     afx_msg void OnCbnKillfocusCombotalker();
     afx_msg void OnCbnEditchangeCombotalker();
     afx_msg void OnBnClickedButtonlipsync();
-    afx_msg void OnTimer(UINT_PTR nIDEvent);
 };

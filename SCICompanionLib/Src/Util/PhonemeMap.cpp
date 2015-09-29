@@ -25,13 +25,13 @@ PhonemeMap::PhonemeMap(const std::string &filename) : _filename(filename)
     }
 }
 
-int PhonemeMap::PhonemeToCel(const std::string &phoneme)
+uint16_t PhonemeMap::PhonemeToCel(const std::string &phoneme)
 {
-    int cel = -1;
+    uint16_t cel = 0xffff;
     auto it = _phonemeToCel.find(phoneme);
     if (it != _phonemeToCel.end())
     {
-        cel = it->second;
+        cel = (uint16_t)it->second;
     }
     return cel;
 }

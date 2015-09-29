@@ -4,6 +4,9 @@
 
 struct SyncEntry
 {
+    SyncEntry() : SyncEntry(0, 0) {}
+    SyncEntry(uint16_t ticks, uint16_t cel) : Tick(ticks), Cel(cel) {}
+
     uint16_t Tick;
     uint16_t Cel;
 };
@@ -15,6 +18,9 @@ public:
     {
         return new SyncComponent(*this);
     }
+
+    uint16_t GetMaxTicks() const;
+    uint16_t GetCelAtTick(uint16_t tickPosition) const;
 
     std::vector<SyncEntry> Entries;
 };

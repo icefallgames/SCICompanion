@@ -16,9 +16,10 @@ public:
     void SetResource(const ResourceEntity *view, const PaletteComponent *optionalPalette);
 
     void SetLoop(int nLoop);
-    void SetCel(int nCel);
+    void SetCel(int nCel, bool updateNow = false);
     void SetBackground(COLORREF color);
     void SetPatterned(bool isPatterned);
+    void SetFillArea(bool fillArea);
     CSize GetSizeNeeded() { return _sizeWeDrawIn; }
 
 private:
@@ -30,6 +31,7 @@ private:
     void _GenerateDoubleBuffer(CDC *pDC, LPRECT prc);
     CSize _RecalcSizeNeeded();
     const Cel &GetCel();
+    void _ValidateLoopCel();
 
     DECLARE_MESSAGE_MAP()
 
@@ -50,4 +52,6 @@ private:
 
     bool _isBackgroundPatterned;
     COLORREF _bgColor;
+
+    bool _fillArea;
 };
