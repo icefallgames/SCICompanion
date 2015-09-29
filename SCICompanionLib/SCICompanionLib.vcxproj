@@ -231,6 +231,7 @@
     <ClCompile Include="Src\FrameComponents\MessageSource.cpp" />
     <ClCompile Include="Src\FrameComponents\NewOutputPane.cpp" />
     <ClCompile Include="Src\FrameComponents\PicHelperPane.cpp" />
+    <ClCompile Include="Src\FrameComponents\ViewUIElement.cpp" />
     <ClCompile Include="Src\GIFLIB\egif_lib.cpp" />
     <ClCompile Include="Src\LipSync\phone_estimate.cpp" />
     <ClCompile Include="Src\LipSync\sapi_lipsync.cpp" />
@@ -294,6 +295,7 @@
     <ClInclude Include="Src\FrameComponents\MessageSidePane.h" />
     <ClInclude Include="Src\FrameComponents\MessageSource.h" />
     <ClInclude Include="Src\FrameComponents\NewOutputPane.h" />
+    <ClInclude Include="Src\FrameComponents\ViewUIElement.h" />
     <ClInclude Include="Src\LipSync\phone_estimate.h" />
     <ClInclude Include="Src\LipSync\sapi_lipsync.h" />
     <ClInclude Include="Src\LipSync\sapi_util.h" />
@@ -346,6 +348,7 @@
     <ClCompile Include="Src\Util\ImageUtil.cpp" />
     <ClCompile Include="Src\Util\MidiPlayer.cpp" />
     <ClCompile Include="Src\Util\PerfTimer.cpp" />
+    <ClCompile Include="Src\Util\PhonemeMap.cpp" />
     <ClCompile Include="Src\Util\RGBOctree.cpp" />
     <ClCompile Include="Src\Util\SoundUtil.cpp" />
     <ClCompile Include="Src\Compile\Compile.cpp" />
@@ -533,6 +536,7 @@
     <ClInclude Include="Src\Util\ImageUtil.h" />
     <ClInclude Include="Src\Util\MidiPlayer.h" />
     <ClInclude Include="Src\Util\PerfTimer.h" />
+    <ClInclude Include="Src\Util\PhonemeMap.h" />
     <ClInclude Include="Src\Util\RGBOctree.h" />
     <ClInclude Include="Src\Util\SortedVector.h" />
     <ClInclude Include="Src\Util\SoundUtil.h" />

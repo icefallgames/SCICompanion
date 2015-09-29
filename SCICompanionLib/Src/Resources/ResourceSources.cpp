@@ -470,7 +470,6 @@ AppendBehavior AudioResourceSource::AppendResources(const std::vector<ResourceBl
             }
 
             // 5) Find an existing entry and replace it, or add a new one.
-            int x = 0; // TODO: Main audio map doens't have tuples... in that case, just a matching number will do. Check this.
             AudioMapComponent &audioMap = (*it)->GetComponent<AudioMapComponent>();
             uint16_t resNumber = (uint16_t)blob.GetNumber();
             auto itFind = find_if(audioMap.Entries.begin(), audioMap.Entries.end(),
@@ -488,7 +487,6 @@ AppendBehavior AudioResourceSource::AppendResources(const std::vector<ResourceBl
             }
             
             // 6) Save the audio map 
-            int y = 0; // TOdo: Check main audio map is ok here.
             appState->GetResourceMap().SaveAudioMap65535(audioMap, resNumber);
         }
     }

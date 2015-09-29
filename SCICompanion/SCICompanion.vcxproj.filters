@@ -21,7 +21,7 @@
     <Text Include="Files\Licenses\giflib-AUTHORS.txt" />
     <Text Include="Files\Licenses\r8brain-License.txt" />
     <Text Include="Tools\DOSBox\DOSBox 0.74 Manual.txt" />
-    <Text Include="Files\Samples\sample_phoneme_map.txt" />
+    <Text Include="Files\Samples\sample_phoneme_map.ini" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCICompanion.h">

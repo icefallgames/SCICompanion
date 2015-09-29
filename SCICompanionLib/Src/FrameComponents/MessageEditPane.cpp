@@ -13,6 +13,12 @@
 #include "AudioPlayback.h"
 #include "Audio.h"
 #include "ExtractLipSyncDialog.h"
+#include "PhonemeMap.h"
+#include "View.h"
+#include "RasterOperations.h"
+#include "PaletteOperations.h"
+
+#define MOUTH_TIMER 9753
 
 using namespace std;
 
@@ -65,12 +71,14 @@ void MessageEditPane::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_BUTTON_PLAY2, m_wndPlay);
         DDX_Control(pDX, IDC_BUTTON_STOP, m_wndStop);
         DDX_Control(pDX, IDC_CHECK_AUTOPREV, m_wndAutoPreview);
+
+        DDX_Control(pDX, IDC_ANIMATE, m_wndMouth);
     }
     DDX_Text(pDX, IDC_EDITSEQ, _spinnerValue);
 }
 
 BEGIN_MESSAGE_MAP(MessageEditPane, AudioPlaybackUI<CExtDialogFwdCmd>)
-    ON_WM_DRAWITEM()
+    ON_WM_TIMER()
     ON_WM_CREATE()
     ON_WM_ERASEBKGND()
     ON_EN_CHANGE(IDC_EDITMESSAGE, &MessageEditPane::OnEnChangeEditmessage)
@@ -183,6 +191,7 @@ BOOL MessageEditPane::OnInitDialog()
     AddAnchor(IDC_STATIC_DURATION, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_COMBO_WAVEFORMAT, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_BUTTONLIPSYNC, CPoint(100, 0), CPoint(100, 0));
+    AddAnchor(IDC_ANIMATE, CPoint(100, 0), CPoint(100, 0));
 
     // Hide the sizing grip
     ShowSizeGrip(FALSE);
@@ -317,6 +326,41 @@ void MessageEditPane::_UpdateAudio(const TextEntry &messageEntry)
         uint32_t tuple = GetMessageTuple(messageEntry);
         g_audioPlayback.Stop();
         SetAudioResource(_pDoc->FindAudioResource(tuple));
+
+        // phil
+        std::unique_ptr<PhonemeMap> samplePhonemeMap = std::make_unique<PhonemeMap>(GetExeSubFolder("Samples") + "\\sample_phoneme_map.ini");
+        if (!_mouthView)
+        {
+            _mouthLoop = 0;
+            _mouthCel = 0;
+
+            std::string mouthSampleFilename = appState->GetResourceMap().GetSamplesFolder() + "\\views\\MouthShapes.bin";
+            ResourceBlob blob;
+            if (SUCCEEDED(blob.CreateFromFile("it's a mouth", mouthSampleFilename, sciVersion1_1, -1, -1)))
+            {
+                _mouthView = CreateResourceFromResourceData(blob);
+            }
+        }
+
+        if (_mouthView)
+        {
+            m_wndMouth.SetResource(_mouthView.get(), nullptr);
+            m_wndMouth.SetLoop(_mouthLoop);
+            m_wndMouth.SetCel(_mouthCel);
+        }
+    }
+}
+
+void MessageEditPane::OnTimer(UINT_PTR nIDEvent)
+{
+    if (nIDEvent == MOUTH_TIMER)
+    {
+        // TODO: check where we are in the audioplay back, and find the right cel.
+        // m_wndAnimate.Invalidate(FALSE);
+    }
+    else
+    {
+        __super::OnTimer(nIDEvent);
     }
 }
 

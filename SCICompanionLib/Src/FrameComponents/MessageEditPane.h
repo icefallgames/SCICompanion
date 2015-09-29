@@ -6,6 +6,7 @@
 #include "MessageEditorListCtrl.h"
 #include "Message.h"
 #include "AudioPlaybackUI.h"
+#include "ViewUIElement.h"
 
 class CMessageDoc;
 struct TextComponent;
@@ -98,6 +99,13 @@ private:
     CExtButton m_wndButtonFakeCommit;
     CExtSpinWnd m_wndSpinner;
 
+    // Lipsync stuff
+    ViewUIElement m_wndMouth;
+    std::unique_ptr<ResourceEntity> _mouthView;
+    int _mouthLoop;
+    int _mouthCel;
+    CBitmap _currentCelImage;
+
     int _spinnerValue;
 
     HACCEL _hAccel;
@@ -126,4 +134,5 @@ public:
     afx_msg void OnCbnKillfocusCombotalker();
     afx_msg void OnCbnEditchangeCombotalker();
     afx_msg void OnBnClickedButtonlipsync();
+    afx_msg void OnTimer(UINT_PTR nIDEvent);
 };

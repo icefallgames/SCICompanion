@@ -24,12 +24,15 @@ protected:
 
     virtual void OnNewResourceCreated(std::unique_ptr<ResourceEntity> audioResource, const std::string &name) = 0;
 
+protected:
+    afx_msg void OnTimer(UINT_PTR nIDEvent);
+
+
 private:
     afx_msg void OnPlay();
     afx_msg void OnStop();
     afx_msg void OnRecord();
     afx_msg void OnBrowse();
-    afx_msg void OnTimer(UINT_PTR nIDEvent);
     void _UpdatePlayState();
     DECLARE_MESSAGE_MAP()
     bool _IsPlaying();

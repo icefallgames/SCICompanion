@@ -698,7 +698,7 @@ void CNewRasterResourceDocument::OnAnimate()
 {
     if (HasUndos() && !_fLocked)
     {
-        CAnimateDialog dialog(nullptr, GetComponent<RasterComponent>(), _currentPaletteComponent.get());
+        CAnimateDialog dialog(nullptr, GetResource(), _currentPaletteComponent.get());
         dialog.SetTitle(GetTitle());
         dialog.SetLoop(_nLoop);
         dialog.DoModal();
