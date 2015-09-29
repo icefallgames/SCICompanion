@@ -8,6 +8,8 @@
 
 using namespace std;
 
+
+
 // Returns "n004" for input of 4
 std::string default_reskey(int iNumber, uint32_t base36Number)
 {

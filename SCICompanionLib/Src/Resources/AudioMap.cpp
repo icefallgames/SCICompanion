@@ -1,12 +1,13 @@
 #include "stdafx.h"
 #include "AudioMap.h"
 #include "ResourceEntity.h"
+#include "format.h"
 
 using namespace std;
 
 void AudioMapWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag)
 {
-    uint8_t ff[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
+    uint8_t ff[] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
     const AudioMapComponent &map = resource.GetComponent<AudioMapComponent>();
     if (map.Version == AudioMapVersion::FiveBytes)
     {
@@ -19,7 +20,7 @@ void AudioMapWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, s
             byteStream.WriteByte((uint8_t)(cumOffset >> 16));
             prevOffset = entry.Offset;
         }
-        byteStream.WriteBytes(ff, 5);
+        byteStream.FillByte(0xff, 5);
     }
     else if (map.Version == AudioMapVersion::SixBytes)
     {
@@ -28,7 +29,7 @@ void AudioMapWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, s
             byteStream << entry.Number;
             byteStream << entry.Offset;
         }
-        byteStream.WriteBytes(ff, 6);
+        byteStream.FillByte(0xff, 6);
     }
     else if (map.Version == AudioMapVersion::EightBytes)
     {
@@ -39,7 +40,7 @@ void AudioMapWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, s
             byteStream << ffff;
             byteStream << entry.Offset;
         }
-        byteStream.WriteBytes(ff, 8);
+        byteStream.FillByte(0xff, 8);
     }
     else if (map.Version == AudioMapVersion::SyncMapEarly)
     {
@@ -52,11 +53,44 @@ void AudioMapWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, s
             byteStream << entry.Offset;
             byteStream << entry.SyncSize;
         }
-        byteStream.WriteBytes(ff, 10);
+        byteStream.FillByte(0xff, 10);
     }
-    else
+    else if (map.Version == AudioMapVersion::SyncMapLate)
     {
-        throw std::exception("unimplemented");
+        // Offsets must be ever increasing. That limits sounds to 16 MB. I guess LB2 uses the old version which doesn't?
+        uint32_t cumulativeOffset = 0;
+        if (!map.Entries.empty())
+        {
+            cumulativeOffset = map.Entries[0].Offset;
+            byteStream << cumulativeOffset;
+        }
+        for (const AudioMapEntry &entry : map.Entries)
+        {
+            byteStream << entry.Noun;
+            byteStream << entry.Verb;
+            byteStream << entry.Condition;
+            uint8_t seq = entry.Sequence;
+            if (entry.SyncSize > 0)
+            {
+                seq |= 0x80;    // Flag indicating we have a sync size
+            }
+            byteStream << seq;
+            // There is also 0x40 for raw lip sync data, but we don't support that.
+
+            assert(entry.Offset >= cumulativeOffset);   // We should never allow this to happen
+            uint32_t delta = entry.Offset - cumulativeOffset;
+            cumulativeOffset = entry.Offset;
+            // This should have been validated.
+            assert(delta < (256 * 256 * 256));
+            uint8_t bytes[3] = { (uint8_t)(0xff & delta), (uint8_t)(0xff & (delta >> 8)), (uint8_t)(0xff & (delta >> 16)) };
+            byteStream.WriteBytes(bytes, sizeof(bytes));
+
+            if (entry.SyncSize > 0)
+            {
+                byteStream << entry.SyncSize;
+            }
+        }
+        byteStream.FillByte(0xff, 11);
     }
 }
 
@@ -215,12 +249,36 @@ void AudioMapReadFrom(ResourceEntity &resource, sci::istream &stream, const std:
     }
 }
 
+bool ValidateAudioMap(const ResourceEntity &resource)
+{
+    const AudioMapComponent &map = resource.GetComponent<AudioMapComponent>();
+    if (map.Version == AudioMapVersion::SyncMapLate)
+    {
+        uint32_t cumulativeOffset = 0;
+        if (!map.Entries.empty())
+        {
+            cumulativeOffset = map.Entries[0].Offset;
+        }
+        for (const AudioMapEntry &entry : map.Entries)
+        {
+            if ((entry.Offset - cumulativeOffset) > (256 * 256 * 256))
+            {
+                std::string message = fmt::format("N:{0}, V:{1}, C:{2}, S:{3} is tool large. It needs to be less than 16MB.", entry.Noun, entry.Verb, entry.Condition, entry.Sequence);
+                AfxMessageBox(message.c_str(), MB_ICONWARNING | MB_OK);
+                return false;
+            }
+            cumulativeOffset = entry.Offset;
+        }
+    }
+    return true;
+}
+
 ResourceTraits audioMapTraits =
 {
     ResourceType::Map,
     &AudioMapReadFrom,
     &AudioMapWriteTo,
-    &NoValidationFunc,
+    &ValidateAudioMap,
     nullptr
 };
 

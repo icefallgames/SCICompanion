@@ -511,6 +511,12 @@ void MessageEditPane::OnEnChangeEditseq()
             _spinnerValue = 1;
             UpdateData(false);
         }
+        if (_spinnerValue > 63)
+        {
+            // Only 6 bits allowed, since the top two can be used to indicate lip sync data is present.
+            _spinnerValue = 63;
+            UpdateData(false);
+        }
         _pDoc->ApplyChanges<TextComponent>(
             [this](TextComponent &text)
         {

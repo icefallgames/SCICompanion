@@ -54,7 +54,6 @@ bool PatchFilesResourceSource::ReadNextEntry(ResourceTypeFlags typeFlags, Iterat
     bool foundOne = false;
     while (_stillMore && !foundOne)
     {
-        // For now just hard code pics and views
         if (PathMatchSpec(_findData.cFileName, g_szResourceSpec))
         {
             int number = ResourceNumberFromFileName(_findData.cFileName);
@@ -341,7 +340,6 @@ sci::istream AudioResourceSource::GetHeaderAndPositionedStream(const ResourceMap
 
 void AudioResourceSource::RemoveEntry(const ResourceMapEntryAgnostic &mapEntry) 
 {
-    // TODO: fixup
     assert(IsFlagSet(_access, ResourceSourceAccessFlags::ReadWrite));
 
     std::unique_ptr<sci::streamOwner> streamOwner = _GetAudioVolume(mapEntry.Base36Number);
@@ -357,23 +355,18 @@ void AudioResourceSource::RemoveEntry(const ResourceMapEntryAgnostic &mapEntry)
         );
         if (it != _audioMaps.end())
         {
-            const AudioMapComponent &audioMap = (*it)->GetComponent<AudioMapComponent>();
+            // Just re-write the audio map without this entry. We'll leave it in the actual file until rebuild.
 
-            sci::istream oldReader = streamOwner->getReader();
-            unique_ptr<AudioMapComponent> newAudioMap = make_unique<AudioMapComponent>(audioMap);
-            newAudioMap->Entries.clear();
+            // Remove the entry corresponding to mapEntry.
+            AudioMapComponent &audioMap = (*it)->GetComponent<AudioMapComponent>();
+            audioMap.Entries.erase(
+                std::remove_if(audioMap.Entries.begin(), audioMap.Entries.end(),
+                [&mapEntry](AudioMapEntry &entry) { return (entry.Number == mapEntry.Number) && (mapEntry.Base36Number == GetMessageTuple(entry)); }
+                ),
+                audioMap.Entries.end()
+                );
 
-            sci::ostream newVolumeStream;
-            newVolumeStream.EnsureCapacity(streamOwner->getReader().GetDataSize());  // Avoid some re-allocs
-
-            // Copy over the old entries, minus the new one
-            set<uint16_t> removeThese;
-            removeThese.insert(mapEntry.Number);
-            _CopyWithoutThese(audioMap, *newAudioMap, oldReader, newVolumeStream, removeThese);
-            
-            // Release the file before writing:
-            streamOwner.reset(nullptr);
-            _Finalize(*newAudioMap, newVolumeStream, mapEntry.Base36Number);
+            appState->GetResourceMap().SaveAudioMap65535(audioMap, _mapContext);
         }
     }
 }
