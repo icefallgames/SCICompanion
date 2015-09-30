@@ -23,7 +23,7 @@ public:
     CSize GetSizeNeeded() { return _sizeWeDrawIn; }
 
 private:
-    afx_msg int OnCreate(CREATESTRUCT *createStruct);
+    void PreSubclassWindow() override;
     afx_msg void OnSize(UINT nType, int cx, int cy);
     afx_msg void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct) override;
 
@@ -48,7 +48,6 @@ private:
     std::unique_ptr<CBitmap> _pbitmapDoubleBuf;
     CSize _sizeDoubleBuf;
     int _nCel;
-    bool _fInitialized;
 
     bool _isBackgroundPatterned;
     COLORREF _bgColor;

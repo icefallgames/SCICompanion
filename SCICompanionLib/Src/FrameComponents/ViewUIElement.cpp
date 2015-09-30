@@ -29,7 +29,6 @@ ViewUIElement::ViewUIElement()
     _fDoubleBuffer(false),
     _nCel(0),
     _nLoop(0),
-    _fInitialized(false),
     _iZoom(1),
     _bgColor(RGB(255, 0, 255)),
     _isBackgroundPatterned(false),
@@ -69,6 +68,17 @@ BEGIN_MESSAGE_MAP(ViewUIElement, CStatic)
     ON_WM_SIZE()
     ON_WM_DRAWITEM_REFLECT()
 END_MESSAGE_MAP()
+
+void ViewUIElement::PreSubclassWindow()
+{
+    CRect rect;
+    GetClientRect(&rect);
+    _sizeAnimate.cx = rect.Width();
+    _sizeAnimate.cy = rect.Height();
+    _sizeWeDrawIn = _RecalcSizeNeeded();
+
+    __super::PreSubclassWindow();
+}
 
 void ViewUIElement::OnSize(UINT nType, int cx, int cy)
 {
@@ -141,14 +151,6 @@ void ViewUIElement::SetResource(const ResourceEntity *view, const PaletteCompone
 //
 void ViewUIElement::_OnDraw(CDC *pDC, LPRECT prc)
 {
-    if (!_fInitialized)
-    {
-        _fInitialized = true;
-        CRect rect;
-        GetClientRect(&rect);
-        OnSize(0, rect.Width(), rect.Height());
-    }
-
     // First fill with a transparent background
     if (_isBackgroundPatterned)
     {
