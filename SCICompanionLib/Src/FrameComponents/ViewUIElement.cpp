@@ -130,6 +130,7 @@ void ViewUIElement::SetFillArea(bool fillArea) { _fillArea = fillArea; Invalidat
 void ViewUIElement::SetResource(const ResourceEntity *view, const PaletteComponent *optionalPalette)
 {
     _viewResource = view;
+    _ValidateLoopCel();
     _optionalPalette = optionalPalette;
     _sizeWeDrawIn = _RecalcSizeNeeded();
     Invalidate(FALSE);

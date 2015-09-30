@@ -18,37 +18,89 @@ using namespace std;
 
 // ExtractLipSyncDialog dialog
 
-ExtractLipSyncDialog::ExtractLipSyncDialog(const AudioComponent &audio, uint8_t talker, CWnd* pParent /*=NULL*/)
-    : AudioPlaybackUI<CExtResizableDialog>(ExtractLipSyncDialog::IDD, pParent), _talker(talker), _talkerToViewMap(appState)
+ExtractLipSyncDialog::ExtractLipSyncDialog(const AudioComponent &audio, const SyncComponent *sync, uint8_t talker, CWnd* pParent /*=NULL*/)
+    : AudioPlaybackUI<CExtResizableDialog>(ExtractLipSyncDialog::IDD, pParent), _talker(talker), _talkerToViewMap(appState), _initialized(false)
 {
     _audioCopy = std::make_unique<AudioComponent>(audio);
+    if (sync)
+    {
+        _syncComponent = std::make_unique<SyncComponent>(*sync);
+    }
 }
 
 ExtractLipSyncDialog::~ExtractLipSyncDialog()
 {
 }
 
+void ExtractLipSyncDialog::_UpdateSyncList()
+{
+    m_wndSyncList.SetRedraw(FALSE);
+    m_wndSyncList.DeleteAllItems();
+    if (_syncComponent)
+    {
+        int index = 0;
+        for (auto &entry : _syncComponent->Entries)
+        {
+            m_wndSyncList.InsertItem(index, fmt::format("{}", (int)entry.Tick).c_str());
+            m_wndSyncList.SetItem(index, 1, LVIF_TEXT, fmt::format("{}", (int)entry.Cel).c_str(), 0, 0, 0, 0);
+            index++;
+        }
+    }
+    m_wndSyncList.SetRedraw(TRUE);
+
+}
+
+void ExtractLipSyncDialog::_InitSyncListColumns()
+{
+    ListView_SetExtendedListViewStyle(m_wndSyncList.GetSafeHwnd(), LVS_EX_FULLROWSELECT);
+
+    // Name
+    LVCOLUMN col = { 0 };
+    col.mask = LVCF_FMT | LVCF_ORDER | LVCF_SUBITEM | LVCF_TEXT | LVCF_WIDTH;
+    col.iOrder = 0;
+    col.iSubItem = 0;
+    col.pszText = "Ticks";
+    col.cx = 100;
+    col.fmt = LVCFMT_LEFT;
+    m_wndSyncList.InsertColumn(0, &col);
+
+    col.iOrder = 1;
+    col.iSubItem = 1;
+    col.pszText = "Cel";
+    col.cx = 30;
+    col.fmt = LVCFMT_LEFT;
+    m_wndSyncList.InsertColumn(1, &col);
+}
+
 void ExtractLipSyncDialog::DoDataExchange(CDataExchange* pDX)
 {
     CDialog::DoDataExchange(pDX);
 
-    DDX_Control(pDX, IDC_PROGRESS, m_wndProgress);
+    if (!_initialized)
+    {
+        _initialized = true;
+        DDX_Control(pDX, IDC_PROGRESS, m_wndProgress);
 
-    DDX_Control(pDX, IDC_EDIT_LOOP, m_wndLoopNumber);
-    DDX_Control(pDX, IDC_EDIT_VIEW, m_wndViewNumber);
-    DDX_Control(pDX, IDC_STATIC_TALKER, m_wndTalkerLabel);
-    DDX_Control(pDX, IDC_ANIMATE, m_wndMouth);
-    m_wndMouth.SetBackground(g_PaintManager->GetColor(COLOR_BTNFACE));
-    m_wndMouth.SetFillArea(true);
+        DDX_Control(pDX, IDC_EDIT_LOOP, m_wndLoopNumber);
+        DDX_Control(pDX, IDC_EDIT_VIEW, m_wndViewNumber);
+        DDX_Control(pDX, IDC_STATIC_TALKER, m_wndTalkerLabel);
+        DDX_Control(pDX, IDC_ANIMATE, m_wndMouth);
+        m_wndMouth.SetBackground(g_PaintManager->GetColor(COLOR_BTNFACE));
+        m_wndMouth.SetFillArea(true);
 
-    string label = fmt::format("Talker {0} mouth view:", (int)_talker);
-    m_wndTalkerLabel.SetWindowText(label.c_str());
+        string label = fmt::format("Talker {0} mouth view:", (int)_talker);
+        m_wndTalkerLabel.SetWindowText(label.c_str());
 
-    // Visuals
-    DDX_Control(pDX, IDCANCEL, m_wndCancel);
+        DDX_Control(pDX, IDC_LIST_SYNCRESOURCE, m_wndSyncList);
+        _InitSyncListColumns();
+        _UpdateSyncList();
 
-    _UpdateViewLoop();
-    _SyncViewLoop();
+        // Visuals
+        DDX_Control(pDX, IDCANCEL, m_wndCancel);
+
+        _UpdateViewLoop();
+        _SyncViewLoop();
+    }
 }
 
 void ExtractLipSyncDialog::_SyncViewLoop()

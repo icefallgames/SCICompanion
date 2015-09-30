@@ -73,9 +73,10 @@ std::unique_ptr<SyncComponent> CreateLipSyncComponentFromPhonemes(const PhonemeM
 
     }
 
-    // Add on a closing marker.
+    // Add on a closing marker. Possibly this will overlap the last phoneme? How do we tell it to return to silence?
     uint16_t finalTicks = alignments.empty() ? 0 : MillisecondsToSCITicks(alignments.back().m_msEnd);
-    AddSyncEntry(*syncComponent, finalTicks, 0xffff);
+    AddSyncEntry(*syncComponent, finalTicks, silenceCel);
+    // Sierra sync resources don't always end with 0xffff. So I'm not sure what I'm supposed to do.
 
     return syncComponent;
 }

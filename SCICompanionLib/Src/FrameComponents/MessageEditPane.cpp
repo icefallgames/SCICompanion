@@ -717,27 +717,6 @@ void MessageEditPane::OnBnClickedButtonlipsync()
             [audioCopy, samplePhonemeMap]() { return CreateLipSyncComponentFromAudioAndPhonemes2(audioCopy, samplePhonemeMap); }
         );
     }
-
-    /*
-    std::string tempWaveFilename = appState->GetResourceMap().Helper().GameFolder + "\\lipsync-temp.wav";
-    if (_audio)
-    {
-        const TextEntry *entry = _GetEntry();
-
-        WriteWaveFile(tempWaveFilename, _audio->GetComponent<AudioComponent>());
-        ExtractLipSyncDialog dialog(tempWaveFilename, entry->Talker);
-        if (IDCANCEL == dialog.DoModal()) // IDCANCEL temp
-        {
-            std::unique_ptr<PhonemeMap> samplePhonemeMap = std::make_unique<PhonemeMap>(GetExeSubFolder("Samples") + "\\sample_phoneme_map.ini");
-            std::unique_ptr<SyncComponent> syncComponent = dialog.CreateLipSyncComponent(*samplePhonemeMap);
-
-            // Update the sync component (or add one)
-            uint32_t tuple = GetMessageTuple(*entry);
-            ResourceEntity *entity = _pDoc->FindAudioResource(tuple);
-            entity->RemoveComponent<SyncComponent>();
-            entity->AddComponent<SyncComponent>(std::move(syncComponent));
-        }
-    }*/
 }
 
 LRESULT MessageEditPane::_OnLipSyncDone(WPARAM wParam, LPARAM lParam)
@@ -764,6 +743,11 @@ void MessageEditPane::OnPlaybackTimer()
         {
             uint16_t tickPosition = (uint16_t)g_audioPlayback.QueryPosition(syncComponent->GetMaxTicks());
             uint16_t cel = syncComponent->GetCelAtTick(tickPosition);
+            if (!g_audioPlayback.IsPlaying() && !syncComponent->Entries.empty())
+            {
+                // We've stopped playing, do the last one.
+                cel = syncComponent->Entries.back().Cel;
+            }
             if (cel != 0xffff)
             {
                 m_wndMouth.SetCel(cel, true);
@@ -777,7 +761,7 @@ void MessageEditPane::OnBnClickedButtonlipsyncDialog()
     if (_audio)
     {
         const TextEntry *entry = _GetEntry();
-        ExtractLipSyncDialog dialog(_audio->GetComponent<AudioComponent>(), entry->Talker);
+        ExtractLipSyncDialog dialog(_audio->GetComponent<AudioComponent>(), _audio->TryGetComponent<SyncComponent>(), entry->Talker);
         if (IDOK == dialog.DoModal())
         {
 

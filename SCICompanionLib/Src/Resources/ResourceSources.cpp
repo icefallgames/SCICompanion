@@ -320,7 +320,9 @@ sci::istream AudioResourceSource::GetHeaderAndPositionedStream(const ResourceMap
         if (mapEntry.ExtraData > 0)
         {
             // Identifier for lipsync data.
-            assert(reader.peek() == 0x8e);
+            // assert(reader.peek() == 0x8e);
+            // Actually, this could be raw lipsync data, like in KQ6 CD, 270, NN:0x12, VV:0x1b, SS:0x02, CC: 0x00
+            // We'd need to extend ExtraData to two values in order to support this.
             headerEntry.PropertyBag[BlobKey::LipSyncDataSize] = mapEntry.ExtraData;
         }
 

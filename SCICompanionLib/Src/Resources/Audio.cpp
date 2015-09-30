@@ -112,10 +112,15 @@ void AudioReadFrom(ResourceEntity &resource, sci::istream &stream, const std::ma
     if (itLipSyncDataSize != propertyBag.end())
     {
         // This resource contains lip sync data
-        resource.AddComponent<SyncComponent>(make_unique<SyncComponent>());
         sci::istream streamLipSync = stream;
-        streamLipSync.skip(2);  // resource type header...
-        SyncReadFrom(resource, streamLipSync);
+        uint16_t lipSyncMarker;
+        streamLipSync >> lipSyncMarker;
+        if (lipSyncMarker == 0x8e)
+        {
+            resource.AddComponent<SyncComponent>(make_unique<SyncComponent>());
+            SyncReadFrom(resource, streamLipSync);
+        }
+        // Else, if it's not 0x8e, then it means it's probably raw lipsync data, which we don't support.
         offset = (*itLipSyncDataSize).second;
     }
     stream.skip(offset);

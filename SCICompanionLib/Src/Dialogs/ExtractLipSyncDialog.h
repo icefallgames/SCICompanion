@@ -6,12 +6,13 @@
 #include "TalkerToViewMap.h"
 
 struct AudioComponent;
+struct SyncComponent;
 class ResourceEntity;
 
 class ExtractLipSyncDialog : public AudioPlaybackUI<CExtResizableDialog>
 {
 public:
-    ExtractLipSyncDialog(const AudioComponent &audio, uint8_t talker, CWnd* pParent = NULL);   // standard constructor
+    ExtractLipSyncDialog(const AudioComponent &audio, const SyncComponent *sync, uint8_t talker, CWnd* pParent = NULL);   // standard constructor
     virtual ~ExtractLipSyncDialog();
     virtual void OnCancel();
 
@@ -21,6 +22,8 @@ public:
 protected:
     void _UpdateViewLoop();
     void _SyncViewLoop();
+    void _UpdateSyncList();
+    void _InitSyncListColumns();
 
     virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
     virtual BOOL OnInitDialog();
@@ -36,11 +39,15 @@ protected:
     CExtEdit m_wndLoopNumber;
     CExtLabel m_wndTalkerLabel;
     ViewUIElement m_wndMouth;
+    CListCtrl m_wndSyncList;
 
     std::unique_ptr<ResourceEntity> _viewResource;
     std::unique_ptr<AudioComponent> _audioCopy;
+    std::unique_ptr<SyncComponent> _syncComponent;
     uint8_t _talker;
     TalkerToViewMap _talkerToViewMap;
+
+    bool _initialized;
 
 public:
     afx_msg void OnBnClickedButtonResetmapping();
