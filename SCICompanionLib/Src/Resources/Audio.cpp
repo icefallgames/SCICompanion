@@ -114,6 +114,7 @@ void AudioReadFrom(ResourceEntity &resource, sci::istream &stream, const std::ma
         // This resource contains lip sync data
         resource.AddComponent<SyncComponent>(make_unique<SyncComponent>());
         sci::istream streamLipSync = stream;
+        streamLipSync.skip(2);  // resource type header...
         SyncReadFrom(resource, streamLipSync);
         offset = (*itLipSyncDataSize).second;
     }

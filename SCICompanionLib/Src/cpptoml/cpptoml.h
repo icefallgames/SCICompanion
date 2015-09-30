@@ -1354,7 +1354,8 @@ class parser
 
             eat_numbers();
 
-            if (!is_exp && (*check_it == 'e' || *check_it == 'E'))
+            // phil, I changed this from !is_exp
+            if (is_exp && (*check_it == 'e' || *check_it == 'E'))
             {
                 ++check_it;
                 eat_sign();

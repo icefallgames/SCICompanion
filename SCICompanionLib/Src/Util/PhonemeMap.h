@@ -5,7 +5,7 @@ class PhonemeMap
 public:
     PhonemeMap(const std::string &filename);
 
-    uint16_t PhonemeToCel(const std::string &phoneme);
+    uint16_t PhonemeToCel(const std::string &phoneme) const;
 
 private:
     std::string _filename;

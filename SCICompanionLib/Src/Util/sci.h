@@ -161,6 +161,9 @@ struct ScopedHandle
     HANDLE hFile;
 };
 
+bool DirectoryExists(LPCTSTR szPath);
+void AdvancePastWhitespace(const std::string &line, size_t &offset);
+
 struct ScopedFile : public ScopedHandle
 {
     ScopedFile(const std::string &filename, DWORD desiredAccess, DWORD shareMode, DWORD creationDisposition);

@@ -7,6 +7,8 @@
 #include "Sync.h"
 #include <locale>
 #include <codecvt>
+#include "SoundUtil.h"
+#include "AppState.h"
 
 // 60 ticks per second
 uint16_t MillisecondsToSCITicks(long ms)
@@ -31,7 +33,7 @@ void AddSyncEntry(SyncComponent &sync, uint16_t ticks, uint16_t cel)
 
 // TODO: GEnerate warning report hwne missing phonemes............
 // TODO: Generate word report too
-std::unique_ptr<SyncComponent> CreateLipSyncComponentFromPhonemes(PhonemeMap &phonemeMap, const std::vector<alignment_result> &alignments)
+std::unique_ptr<SyncComponent> CreateLipSyncComponentFromPhonemes(const PhonemeMap &phonemeMap, const std::vector<alignment_result> &alignments)
 {
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
 
@@ -76,4 +78,61 @@ std::unique_ptr<SyncComponent> CreateLipSyncComponentFromPhonemes(PhonemeMap &ph
     AddSyncEntry(*syncComponent, finalTicks, 0xffff);
 
     return syncComponent;
+}
+
+std::unique_ptr<SyncComponent> CreateLipSyncComponentFromAudioAndPhonemes(const AudioComponent &audio, const PhonemeMap &phonemeMap)
+{
+    std::unique_ptr<SyncComponent> result;
+
+    char szTempFilename[MAX_PATH];
+    if (GetTempFileName(appState->GetResourceMap().Helper().GameFolder.c_str(), "LIP", 0, szTempFilename))
+    {
+        std::string tempWaveFilename = szTempFilename;
+        WriteWaveFile(tempWaveFilename, audio);
+
+        // Do the sapi thing
+        HRESULT hrCoinit = CoInitialize(nullptr);
+        if (SUCCEEDED(hrCoinit))
+        {
+            try
+            {
+                // 1. [optional] declare the SAPI 5.1 estimator. 
+                // NOTE: for different phoneme sets: create a new estimator
+                phoneme_estimator sapi51Estimator;
+
+                // 2. declare the sapi lipsync object and call the lipsync method to
+                // start the lipsync process
+                sapi_textless_lipsync lipSync(&sapi51Estimator);
+
+                std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+                std::wstring wfilename = converter.from_bytes(tempWaveFilename);
+                if (lipSync.lipsync(wfilename))
+                {
+                    // Apparently, even though this is not a UI thread, we need to pump messages.
+                    MSG msg;
+                    while (!lipSync.isDone())
+                    {
+                        while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+                        {
+                            TranslateMessage(&msg);
+                            DispatchMessage(&msg);
+                        }
+                        Sleep(1);
+                    }
+
+                    lipSync.finalize_phoneme_alignment();
+
+                    result = CreateLipSyncComponentFromPhonemes(phonemeMap, lipSync.get_phoneme_alignment());
+
+                }
+            }
+            catch (...)
+            {
+                CoUninitialize();
+            }
+        }
+
+        deletefile(tempWaveFilename);
+    }
+    return result;
 }

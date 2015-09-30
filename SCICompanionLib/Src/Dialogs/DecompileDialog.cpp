@@ -9,10 +9,8 @@
 #include "DecompilerConfig.h"
 #include "format.h"
 #include "ResourceContainer.h"
-#include <ppl.h>
 
 using namespace std;
-using namespace concurrency;
 
 // Use the XP toolset, PBS_MARQUEE is not defined...
 #ifndef PBS_MARQUEE

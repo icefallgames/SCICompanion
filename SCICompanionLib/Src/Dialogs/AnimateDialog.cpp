@@ -62,6 +62,7 @@ void CAnimateDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_BUTTONBG, m_wndButtonBG);
     
     m_wndAnimate.SetResource(_resource, _palette);
+    m_wndAnimate.SetLoop(_nLoop);
     _UpdateBackground();
 
     GetClientRect(&_rectDialogSize);

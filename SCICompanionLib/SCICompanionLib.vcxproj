@@ -482,6 +482,7 @@
     <ClCompile Include="Src\Util\DrawHelper.cpp" />
     <ClCompile Include="Src\Util\SCIDocs.cpp" />
     <ClCompile Include="Src\Util\Stream.cpp" />
+    <ClCompile Include="Src\Util\TalkerToViewMap.cpp" />
     <ClCompile Include="Src\Util\Task.cpp" />
     <ClCompile Include="Src\Util\TokenDatabase.cpp" />
     <ClCompile Include="Src\Util\util.cpp" />
@@ -689,6 +690,7 @@
     <ClInclude Include="Src\Util\SCIDocs.h" />
     <ClInclude Include="Src\Util\StlUtil.h" />
     <ClInclude Include="Src\Util\Stream.h" />
+    <ClInclude Include="Src\Util\TalkerToViewMap.h" />
     <ClInclude Include="Src\Util\Task.h" />
     <ClInclude Include="Src\Util\TokenDatabase.h" />
     <ClInclude Include="Src\Util\ToolTipResult.h" />

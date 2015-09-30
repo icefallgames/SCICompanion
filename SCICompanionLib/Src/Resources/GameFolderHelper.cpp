@@ -145,6 +145,16 @@ std::string GameFolderHelper::GetSrcFolder() const
     return srcFolder;
 }
 
+std::string GameFolderHelper::GetLipSyncFolder() const
+{
+    std::string srcFolder = this->GameFolder;
+    if (!srcFolder.empty())
+    {
+        srcFolder += "\\lipsync";
+    }
+    return srcFolder;
+}
+
 std::string GameFolderHelper::GetMsgFolder() const
 {
     std::string srcFolder = this->GameFolder;

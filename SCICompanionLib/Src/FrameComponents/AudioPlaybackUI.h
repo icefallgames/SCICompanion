@@ -22,7 +22,7 @@ protected:
     void OnInitDialogHelper();
 
     virtual void OnPlaybackTimer() {}
-    virtual void OnNewResourceCreated(std::unique_ptr<ResourceEntity> audioResource, const std::string &name) = 0;
+    virtual void OnNewResourceCreated(std::unique_ptr<ResourceEntity> audioResource, const std::string &name) {};
 
 protected:
     afx_msg void OnTimer(UINT_PTR nIDEvent);

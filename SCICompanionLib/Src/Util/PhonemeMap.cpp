@@ -25,7 +25,7 @@ PhonemeMap::PhonemeMap(const std::string &filename) : _filename(filename)
     }
 }
 
-uint16_t PhonemeMap::PhonemeToCel(const std::string &phoneme)
+uint16_t PhonemeMap::PhonemeToCel(const std::string &phoneme) const
 {
     uint16_t cel = 0xffff;
     auto it = _phonemeToCel.find(phoneme);

@@ -1,40 +1,51 @@
 #pragma once
 
 #include "resource.h"
+#include "AudioPlaybackUI.h"
+#include "ViewUIElement.h"
+#include "TalkerToViewMap.h"
 
-class sapi_textless_lipsync;
-class phoneme_estimator;
-class PhonemeMap;
-struct SyncComponent;
+struct AudioComponent;
+class ResourceEntity;
 
-class ExtractLipSyncDialog : public CExtResizableDialog
+class ExtractLipSyncDialog : public AudioPlaybackUI<CExtResizableDialog>
 {
 public:
-    ExtractLipSyncDialog(const std::string &filename, CWnd* pParent = NULL);   // standard constructor
+    ExtractLipSyncDialog(const AudioComponent &audio, uint8_t talker, CWnd* pParent = NULL);   // standard constructor
     virtual ~ExtractLipSyncDialog();
     virtual void OnCancel();
 
     // Dialog Data
     enum { IDD = IDD_LIPSYNCDIALOG };
 
-    std::unique_ptr<SyncComponent> CreateLipSyncComponent(PhonemeMap &phonemeMap);
-
 protected:
+    void _UpdateViewLoop();
+    void _SyncViewLoop();
+
     virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
     virtual BOOL OnInitDialog();
     DECLARE_MESSAGE_MAP()
 
     afx_msg void OnTimer(UINT_PTR nIDEvent);
 
-    std::unique_ptr<sapi_textless_lipsync> _lipSync;
-    std::unique_ptr<phoneme_estimator> _sapi51Estimator;
-
     CExtProgressWnd m_wndProgress;
-    CExtEdit m_wndDisplay;
 
     // Visuals
     CExtButton m_wndCancel;
+    CExtEdit m_wndViewNumber;
+    CExtEdit m_wndLoopNumber;
+    CExtLabel m_wndTalkerLabel;
+    ViewUIElement m_wndMouth;
 
-    HRESULT _hrCoinit;
-    std::string _filename;
+    std::unique_ptr<ResourceEntity> _viewResource;
+    std::unique_ptr<AudioComponent> _audioCopy;
+    uint8_t _talker;
+    TalkerToViewMap _talkerToViewMap;
+
+public:
+    afx_msg void OnBnClickedButtonResetmapping();
+    afx_msg void OnEnKillfocusEditPhonememap();
+    afx_msg void OnEnKillfocusEditView();
+    afx_msg void OnEnKillfocusEditLoop();
+    afx_msg void OnBnClickedGeneratelipsync();
 };

@@ -15,13 +15,19 @@
 #include "ExtractLipSyncDialog.h"
 #include "PhonemeMap.h"
 #include "Sync.h"
+#include "LipSyncUtil.h"
+#include "TalkerToViewMap.h"
 
 #define MOUTH_TIMER 9753
+
+#define UM_LIPSYNCDONE        (WM_APP + 0)
 
 using namespace std;
 
 MessageEditPane::MessageEditPane(CWnd* pParent /*=NULL*/)
-    : AudioPlaybackUI<CExtDialogFwdCmd>(IDD, pParent), _hAccel(nullptr), _initialized(false), _verbEdited(false), _nounEdited(false), _conditionEdited(false), _talkerEdited(false)
+    : AudioPlaybackUI<CExtDialogFwdCmd>(IDD, pParent), _hAccel(nullptr), _initialized(false), _verbEdited(false), _nounEdited(false), _conditionEdited(false), _talkerEdited(false),
+    _lipSyncTaskSink(this, UM_LIPSYNCDONE)
+
 {
     // Load our accelerators
     // HINSTANCE hInst = AfxFindResourceHandle(MAKEINTRESOURCE(IDR_ACCELERATORPICCOMMANDS), RT_ACCELERATOR);
@@ -73,11 +79,14 @@ void MessageEditPane::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_ANIMATE, m_wndMouth);
         m_wndMouth.SetBackground(g_PaintManager->GetColor(COLOR_BTNFACE));
         m_wndMouth.SetFillArea(true);
+
+        DDX_Control(pDX, IDC_BUTTONLIPSYNC, m_wndQuickLipSync);
     }
     DDX_Text(pDX, IDC_EDITSEQ, _spinnerValue);
 }
 
 BEGIN_MESSAGE_MAP(MessageEditPane, AudioPlaybackUI<CExtDialogFwdCmd>)
+    ON_MESSAGE(UM_LIPSYNCDONE, _OnLipSyncDone)
     ON_WM_CREATE()
     ON_WM_ERASEBKGND()
     ON_EN_CHANGE(IDC_EDITMESSAGE, &MessageEditPane::OnEnChangeEditmessage)
@@ -100,6 +109,7 @@ BEGIN_MESSAGE_MAP(MessageEditPane, AudioPlaybackUI<CExtDialogFwdCmd>)
     ON_CBN_KILLFOCUS(IDC_COMBOTALKER, &MessageEditPane::OnCbnKillfocusCombotalker)
     ON_CBN_EDITCHANGE(IDC_COMBOTALKER, &MessageEditPane::OnCbnEditchangeCombotalker)
     ON_BN_CLICKED(IDC_BUTTONLIPSYNC, &MessageEditPane::OnBnClickedButtonlipsync)
+    ON_BN_CLICKED(IDC_BUTTONLIPSYNC_DIALOG, &MessageEditPane::OnBnClickedButtonlipsyncDialog)
 END_MESSAGE_MAP()
 
 void MessageEditPane::OnPlayAudio()
@@ -191,6 +201,7 @@ BOOL MessageEditPane::OnInitDialog()
     AddAnchor(IDC_COMBO_WAVEFORMAT, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_BUTTONLIPSYNC, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_ANIMATE, CPoint(100, 0), CPoint(100, 0));
+    AddAnchor(IDC_BUTTONLIPSYNC_DIALOG, CPoint(100, 0), CPoint(100, 0));
 
     // Hide the sizing grip
     ShowSizeGrip(FALSE);
@@ -326,13 +337,17 @@ void MessageEditPane::_UpdateAudio(const TextEntry &messageEntry)
         g_audioPlayback.Stop();
         SetAudioResource(_pDoc->FindAudioResource(tuple));
 
-        // phil
-        std::unique_ptr<PhonemeMap> samplePhonemeMap = std::make_unique<PhonemeMap>(GetExeSubFolder("Samples") + "\\sample_phoneme_map.ini");
+        // TODO: Make this part of ResourceMap so we only load once?
+        // TODO: Optimize all this resource loading.
+        TalkerToViewMap talkerToViewMap(appState);
+        uint16_t view, loop;
+        _mouthView.reset(nullptr);
+        if (talkerToViewMap.TalkerToViewLoop(messageEntry.Talker, view, loop))
+        {
+            _mouthView = appState->GetResourceMap().CreateResourceFromNumber(ResourceType::View, view);
+        }
         if (!_mouthView)
         {
-            _mouthLoop = 0;
-            _mouthCel = 0;
-
             std::string mouthSampleFilename = appState->GetResourceMap().GetSamplesFolder() + "\\views\\MouthShapes.bin";
             ResourceBlob blob;
             if (SUCCEEDED(blob.CreateFromFile("it's a mouth", mouthSampleFilename, sciVersion1_1, -1, -1)))
@@ -340,6 +355,9 @@ void MessageEditPane::_UpdateAudio(const TextEntry &messageEntry)
                 _mouthView = CreateResourceFromResourceData(blob);
             }
         }
+
+        _mouthLoop = loop;
+        _mouthCel = 0;
 
         if (_mouthView)
         {
@@ -675,26 +693,66 @@ void MessageEditPane::OnCbnEditchangeCombotalker()
     _talkerEdited = true;
 }
 
+SyncComponent CreateLipSyncComponentFromAudioAndPhonemes2(const AudioComponent &audio, const PhonemeMap &phonemeMap)
+{
+    std::unique_ptr<SyncComponent> syncComponent = CreateLipSyncComponentFromAudioAndPhonemes(audio, phonemeMap);
+    if (syncComponent)
+    {
+        return *syncComponent;
+    }
+    return SyncComponent(); // empty one, failure
+}
+
+
 void MessageEditPane::OnBnClickedButtonlipsync()
 {
+    if (_audio)
+    {
+        AudioComponent audioCopy = _audio->GetComponent<AudioComponent>();
+        PhonemeMap samplePhonemeMap(GetExeSubFolder("Samples") + "\\sample_phoneme_map.ini");
+
+        m_wndQuickLipSync.EnableWindow(FALSE);
+
+        _lipSyncTaskSink.StartTask(
+            [audioCopy, samplePhonemeMap]() { return CreateLipSyncComponentFromAudioAndPhonemes2(audioCopy, samplePhonemeMap); }
+        );
+    }
+
+    /*
     std::string tempWaveFilename = appState->GetResourceMap().Helper().GameFolder + "\\lipsync-temp.wav";
     if (_audio)
     {
+        const TextEntry *entry = _GetEntry();
+
         WriteWaveFile(tempWaveFilename, _audio->GetComponent<AudioComponent>());
-        ExtractLipSyncDialog dialog(tempWaveFilename);
+        ExtractLipSyncDialog dialog(tempWaveFilename, entry->Talker);
         if (IDCANCEL == dialog.DoModal()) // IDCANCEL temp
         {
             std::unique_ptr<PhonemeMap> samplePhonemeMap = std::make_unique<PhonemeMap>(GetExeSubFolder("Samples") + "\\sample_phoneme_map.ini");
             std::unique_ptr<SyncComponent> syncComponent = dialog.CreateLipSyncComponent(*samplePhonemeMap);
 
             // Update the sync component (or add one)
-            const TextEntry *entry = _GetEntry();
             uint32_t tuple = GetMessageTuple(*entry);
             ResourceEntity *entity = _pDoc->FindAudioResource(tuple);
             entity->RemoveComponent<SyncComponent>();
             entity->AddComponent<SyncComponent>(std::move(syncComponent));
         }
-    }
+    }*/
+}
+
+LRESULT MessageEditPane::_OnLipSyncDone(WPARAM wParam, LPARAM lParam)
+{
+    // TODO: Check for task failure
+    m_wndQuickLipSync.EnableWindow(TRUE);
+
+    // Update the sync component (or add one)
+    std::unique_ptr<SyncComponent> syncComponent = std::make_unique<SyncComponent>(_lipSyncTaskSink.GetResponse());
+    const TextEntry *entry = _GetEntry();
+    uint32_t tuple = GetMessageTuple(*entry);
+    ResourceEntity *entity = _pDoc->FindAudioResource(tuple);
+    entity->RemoveComponent<SyncComponent>();
+    entity->AddComponent<SyncComponent>(std::move(syncComponent));
+    return 0;
 }
 
 void MessageEditPane::OnPlaybackTimer()
@@ -710,6 +768,19 @@ void MessageEditPane::OnPlaybackTimer()
             {
                 m_wndMouth.SetCel(cel, true);
             }
+        }
+    }
+}
+
+void MessageEditPane::OnBnClickedButtonlipsyncDialog()
+{
+    if (_audio)
+    {
+        const TextEntry *entry = _GetEntry();
+        ExtractLipSyncDialog dialog(_audio->GetComponent<AudioComponent>(), entry->Talker);
+        if (IDOK == dialog.DoModal())
+        {
+
         }
     }
 }

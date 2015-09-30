@@ -56,6 +56,7 @@ Mark Zartler - mzartler@annosoft.com
 #include "sapi_lipsync.h"
 #include "phone_estimate.h"
 #include "sapi_util.h"
+#include "format.h"
 
 ///////////////////////////////////////////////////////////////////////////////
 /// constants

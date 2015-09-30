@@ -636,6 +636,7 @@
     <None Include="Files\Samples\SCI1.1\views\MouthShapes.bin">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="Files\Samples\default_phoneme_map.ini" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />

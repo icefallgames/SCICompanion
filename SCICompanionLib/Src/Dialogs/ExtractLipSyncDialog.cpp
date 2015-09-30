@@ -1,19 +1,10 @@
 #include "stdafx.h"
-#include <sphelper.h>
-#include "sapi_lipsync.h"
-#include "phone_estimate.h"
 #include "ExtractLipSyncDialog.h"
 #include "PhonemeMap.h"
 #include "Sync.h"
 #include "LipSyncUtil.h"
-
+#include "format.h"
 #include "AppState.h"
-#include "ScriptOM.h"
-#include "NewCompileDialog.h"
-#include "ScriptDocument.h"
-
-#include <locale>
-#include <codecvt>
 
 #define LIPSYNC_TIMER 2345
 
@@ -23,22 +14,18 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
+using namespace std;
+
 // ExtractLipSyncDialog dialog
 
-ExtractLipSyncDialog::ExtractLipSyncDialog(const std::string &filename, CWnd* pParent /*=NULL*/)
-    : CExtResizableDialog(ExtractLipSyncDialog::IDD, pParent), _filename(filename), _hrCoinit(E_FAIL)
+ExtractLipSyncDialog::ExtractLipSyncDialog(const AudioComponent &audio, uint8_t talker, CWnd* pParent /*=NULL*/)
+    : AudioPlaybackUI<CExtResizableDialog>(ExtractLipSyncDialog::IDD, pParent), _talker(talker), _talkerToViewMap(appState)
 {
+    _audioCopy = std::make_unique<AudioComponent>(audio);
 }
 
 ExtractLipSyncDialog::~ExtractLipSyncDialog()
 {
-    _lipSync.reset(nullptr);
-    _sapi51Estimator.reset(nullptr);
-
-    if (SUCCEEDED(_hrCoinit))
-    {
-        CoUninitialize();
-    }
 }
 
 void ExtractLipSyncDialog::DoDataExchange(CDataExchange* pDX)
@@ -46,43 +33,83 @@ void ExtractLipSyncDialog::DoDataExchange(CDataExchange* pDX)
     CDialog::DoDataExchange(pDX);
 
     DDX_Control(pDX, IDC_PROGRESS, m_wndProgress);
-    DDX_Control(pDX, IDC_EDIT, m_wndDisplay);
+
+    DDX_Control(pDX, IDC_EDIT_LOOP, m_wndLoopNumber);
+    DDX_Control(pDX, IDC_EDIT_VIEW, m_wndViewNumber);
+    DDX_Control(pDX, IDC_STATIC_TALKER, m_wndTalkerLabel);
+    DDX_Control(pDX, IDC_ANIMATE, m_wndMouth);
+    m_wndMouth.SetBackground(g_PaintManager->GetColor(COLOR_BTNFACE));
+    m_wndMouth.SetFillArea(true);
+
+    string label = fmt::format("Talker {0} mouth view:", (int)_talker);
+    m_wndTalkerLabel.SetWindowText(label.c_str());
 
     // Visuals
     DDX_Control(pDX, IDCANCEL, m_wndCancel);
+
+    _UpdateViewLoop();
+    _SyncViewLoop();
+}
+
+void ExtractLipSyncDialog::_SyncViewLoop()
+{
+    CString strView;
+    m_wndViewNumber.GetWindowText(strView);
+    uint16_t viewNumber = 65535;
+    try
+    {
+        viewNumber = (uint16_t)stoi((PCSTR)strView);
+    }
+    catch (std::invalid_argument){}
+
+    CString strLoop;
+    m_wndLoopNumber.GetWindowText(strLoop);
+    uint16_t loopNumber = 65535;
+    try
+    {
+        loopNumber = (uint16_t)stoi((PCSTR)strLoop);
+    }
+    catch (std::invalid_argument){}
+
+    bool needsNew = !_viewResource || (_viewResource->ResourceNumber != viewNumber);
+    if (needsNew)
+    {
+        _viewResource = appState->GetResourceMap().CreateResourceFromNumber(ResourceType::View, viewNumber);
+        if (!_viewResource)
+        {
+            std::string mouthSampleFilename = appState->GetResourceMap().GetSamplesFolder() + "\\views\\MouthShapes.bin";
+            ResourceBlob blob;
+            if (SUCCEEDED(blob.CreateFromFile("it's a mouth", mouthSampleFilename, sciVersion1_1, -1, -1)))
+            {
+                _viewResource = CreateResourceFromResourceData(blob);
+            }
+        }
+        m_wndMouth.SetResource(_viewResource.get(), nullptr);
+    }
+    m_wndMouth.SetLoop(loopNumber);
+
+    _talkerToViewMap.SetTalkerToViewLoop(_talker, viewNumber, loopNumber);
+}
+
+void ExtractLipSyncDialog::_UpdateViewLoop()
+{
+    uint16_t view, loop;
+    if (_talkerToViewMap.TalkerToViewLoop(_talker, view, loop))
+    {
+        m_wndLoopNumber.SetWindowText(fmt::format("{}", loop).c_str());
+        m_wndViewNumber.SetWindowText(fmt::format("{}", view).c_str());
+    }
+    else
+    {
+        m_wndLoopNumber.SetWindowText("");
+        m_wndViewNumber.SetWindowText("");
+    }
 }
 
 BOOL ExtractLipSyncDialog::OnInitDialog()
 {
     BOOL fRet = __super::OnInitDialog();
     ShowSizeGrip(FALSE);
-
-    _hrCoinit = CoInitialize(nullptr);
-
-    // 1. [optional] declare the SAPI 5.1 estimator. 
-    // NOTE: for different phoneme sets: create a new estimator
-    _sapi51Estimator = std::make_unique<phoneme_estimator>();
-
-    // 2. declare the sapi lipsync object and call the lipsync method to
-    // start the lipsync process
-    _lipSync = std::make_unique<sapi_textless_lipsync>(_sapi51Estimator.get());
-
-    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-    std::wstring wfilename = converter.from_bytes(_filename);
-    if (_lipSync->lipsync(wfilename))
-    {
-        SetTimer(LIPSYNC_TIMER, 200, nullptr);
-    }
-    else
-    {
-        PostMessage(WM_CLOSE, 0, 0);
-    }
-
-    // TODO: STart it here.
-
-    // make a timer and check periodically.
-    // 
-
     return fRet;
 }
 
@@ -92,33 +119,40 @@ void ExtractLipSyncDialog::OnCancel()
     __super::OnCancel();
 }
 
-void ExtractLipSyncDialog::OnTimer(UINT_PTR nIDEvent)
-{
-    if (nIDEvent == LIPSYNC_TIMER)
-    {
-        if (_lipSync->isDone())
-        {
-            KillTimer(nIDEvent);
-
-            // 5. finalize the lipsync results for printing
-            // this call will estimate phoneme timings 
-            _lipSync->finalize_phoneme_alignment();
-
-            PostMessage(WM_CLOSE, 0, 0);
-        }
-    }
-    else
-    {
-        __super::OnTimer(nIDEvent);
-    }
-}
-
-BEGIN_MESSAGE_MAP(ExtractLipSyncDialog, CExtResizableDialog)
+BEGIN_MESSAGE_MAP(ExtractLipSyncDialog, AudioPlaybackUI<CExtResizableDialog>)
     ON_WM_DESTROY()
-    ON_WM_TIMER()
+    ON_BN_CLICKED(IDC_BUTTON_RESETMAPPING, &ExtractLipSyncDialog::OnBnClickedButtonResetmapping)
+    ON_EN_KILLFOCUS(IDC_EDIT_PHONEMEMAP, &ExtractLipSyncDialog::OnEnKillfocusEditPhonememap)
+    ON_EN_KILLFOCUS(IDC_EDIT_VIEW, &ExtractLipSyncDialog::OnEnKillfocusEditView)
+    ON_EN_KILLFOCUS(IDC_EDIT_LOOP, &ExtractLipSyncDialog::OnEnKillfocusEditLoop)
+    ON_BN_CLICKED(ID_GENERATELIPSYNC, &ExtractLipSyncDialog::OnBnClickedGeneratelipsync)
 END_MESSAGE_MAP()
 
-std::unique_ptr<SyncComponent> ExtractLipSyncDialog::CreateLipSyncComponent(PhonemeMap &phonemeMap)
+void ExtractLipSyncDialog::OnBnClickedButtonResetmapping()
 {
-    return CreateLipSyncComponentFromPhonemes(phonemeMap, _lipSync->get_phoneme_alignment());
+    // TODO: get the default phonememap, after asking user if they're sure...
+}
+
+
+void ExtractLipSyncDialog::OnEnKillfocusEditPhonememap()
+{
+    // TODO: Commit the phonemap here
+}
+
+
+void ExtractLipSyncDialog::OnEnKillfocusEditView()
+{
+    _SyncViewLoop();
+}
+
+
+void ExtractLipSyncDialog::OnEnKillfocusEditLoop()
+{
+    _SyncViewLoop();
+}
+
+
+void ExtractLipSyncDialog::OnBnClickedGeneratelipsync()
+{
+    // TODO: Start the lipsync data gen task
 }

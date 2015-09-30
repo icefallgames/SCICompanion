@@ -2,6 +2,7 @@
 // Microsoft Visual C++ generated include file.
 // Used by SCICompanionLib.rc
 //
+#define ID_GENERATELIPSYNC              4
 #define IDD_ABOUTBOX                    100
 #define IDP_OLE_INIT_FAILED             100
 #define IDR_MAINFRAME                   128
@@ -563,7 +564,9 @@
 #define IDC_EDITTRANSPARENTCOLOR        1233
 #define IDC_EDITRANGE                   1233
 #define IDC_EDITSEQ                     1233
+#define IDC_EDIT_VIEW                   1233
 #define IDC_STATICTRANSLABEL            1234
+#define IDC_EDIT_LOOP                   1234
 #define IDC_CHECKDONTUSEINPALETTE       1235
 #define IDC_BUTTONREVERT                1236
 #define IDC_EDITALPHATHRESHOLD          1236
@@ -666,6 +669,17 @@
 #define IDC_STATICDITHERALPHA           1313
 #define IDC_COMBO_WAVEFORMAT            1314
 #define IDC_BUTTONLIPSYNC               1315
+#define IDC_EDIT_WORDS                  1316
+#define IDC_BUTTONLIPSYNC2              1316
+#define IDC_BUTTONLIPSYNC_DIALOG        1316
+#define IDC_STATIC_WORDS                1317
+#define IDC_LIST_SYNCRESOURCE           1319
+#define IDC_STATIC_TALKER               1320
+#define IDC_STATIC_LOOP                 1321
+#define IDC_EDIT_PHONEMEMAP             1322
+#define IDC_STATIC_PHONEME              1323
+#define IDC_BUTTON_RESETMAPPING         1324
+#define IDC_EDIT_PHONEMEMAPSTATUS       1325
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -1012,7 +1026,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        394
 #define _APS_NEXT_COMMAND_VALUE         33275
-#define _APS_NEXT_CONTROL_VALUE         1316
+#define _APS_NEXT_CONTROL_VALUE         1326
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

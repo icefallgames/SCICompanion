@@ -2,6 +2,7 @@
 
 #include <deque>
 #include <thread>
+#include <mutex>
 
 class ITaskStatus
 {
@@ -203,3 +204,73 @@ private:
     UINT _msgResponse;
     std::deque<TaskResponse> _responseQueue;
 };
+
+#if 0
+// A more generic mechanism?
+template<typename _TResponse>
+class CWndTaskSink
+{
+public:
+    // pwnd guaranteed to exist as long as CWndTaskSink does.
+    CWndTaskSink(CWnd *pwnd) : _pwnd(pwnd) {}
+
+    ~CWndTaskSink() { Abandon(); }
+
+    void Abandon()
+    {
+        _communicator->Unhook();
+    }
+
+    std::unique_ptr<_TResponse> GetResponse()
+    {
+        return std::move(_communicator->GetResponse());
+    }
+
+private:
+
+    class TaskCommunicator
+    {
+    public:
+        TaskCommunicator(HWND hwnd, UINT message) : _hwnd(hwnd) {}
+
+        void Unhook()
+        {
+            std::lock_guard<std::mutex> lock(_mutex);
+            _hwnd = nullptr;
+            _response = nullptr;
+        }
+
+        std::unique_ptr<_TResponse> GetResponse()
+        {
+            std::lock_guard<std::mutex> lock(_mutex);
+            if (_hwnd)
+            {
+                return std::move(_response);
+            }
+        }
+
+        void ProvideResponse(std::unique_ptr<_TResponse> response)
+        {
+            std::lock_guard<std::mutex> lock(_mutex);
+            if (_hwnd)
+            {
+                _response = std::move(response);
+                PostMessage(_hwnd, _message, 0, 0);
+            }
+        }
+
+    private:
+        // TODO: Maybe this is sharedptr?
+        HWND _hwnd;
+        UINT _message;
+        std::unique_ptr<_TResponse> _response;
+        std::mutex _mutex;
+    };
+
+    std::shared_ptr<TaskCommunicator> _communicator;
+
+    CWnd *_pwnd;
+};
+#endif
+
+
