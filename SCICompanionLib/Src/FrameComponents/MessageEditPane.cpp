@@ -740,7 +740,7 @@ void MessageEditPane::OnBnClickedButtonlipsyncDialog()
     if (_audio)
     {
         const TextEntry *entry = _GetEntry();
-        ExtractLipSyncDialog dialog(*_audio, entry->Talker);
+        ExtractLipSyncDialog dialog(*_audio, entry->Talker, entry->Text);
         if (IDOK == dialog.DoModal())
         {
             // TODO: get possibly updated SyncComponent.

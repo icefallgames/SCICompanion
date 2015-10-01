@@ -288,6 +288,7 @@
 #define IDD_COLOR_SHIFTER               388
 #define IDI_RIGHT_ARROW                 389
 #define IDD_LIPSYNCDIALOG               389
+#define IDD_VIEWLOOP                    390
 #define IDR_MENUEGOS                    391
 #define IDC_CHOOSECOLORSTATIC           1001
 #define IDC_BUTTON1                     1003
@@ -565,9 +566,7 @@
 #define IDC_EDITTRANSPARENTCOLOR        1233
 #define IDC_EDITRANGE                   1233
 #define IDC_EDITSEQ                     1233
-#define IDC_EDIT_VIEW                   1233
 #define IDC_STATICTRANSLABEL            1234
-#define IDC_EDIT_LOOP                   1234
 #define IDC_CHECKDONTUSEINPALETTE       1235
 #define IDC_BUTTONREVERT                1236
 #define IDC_EDITALPHATHRESHOLD          1236
@@ -675,7 +674,6 @@
 #define IDC_STATIC_WORDS                1317
 #define IDC_LIST_SYNCRESOURCE           1319
 #define IDC_STATIC_TALKER               1320
-#define IDC_STATIC_LOOP                 1321
 #define IDC_EDIT_PHONEMEMAP             1322
 #define IDC_STATIC_PHONEME              1323
 #define IDC_BUTTON_RESETMAPPING         1324
@@ -683,6 +681,14 @@
 #define IDC_CHECK_HALFSPEED             1326
 #define IDC_STATIC_SYNC36               1327
 #define IDC_BUTTON_COMMITMAPPING        1328
+#define IDC_BUTTON_SETVIEW              1329
+#define IDC_CHECK_USESAMPLE             1330
+#define IDC_EDITVIEW                    1331
+#define IDC_EDITLOOP                    1332
+#define IDC_GROUP_VIEWLOOP              1333
+#define IDC_GROUP_MESSAGE               1334
+#define IDC_GROUP_TALKER                1335
+#define IDC_BUTTON_DELETE_SYNC          1336
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -1029,7 +1035,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        394
 #define _APS_NEXT_COMMAND_VALUE         33275
-#define _APS_NEXT_CONTROL_VALUE         1328
+#define _APS_NEXT_CONTROL_VALUE         1337
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

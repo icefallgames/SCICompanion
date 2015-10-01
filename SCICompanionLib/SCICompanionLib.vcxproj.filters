@@ -723,6 +723,9 @@
     <ClCompile Include="Src\FrameComponents\AudioWaveformUI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Dialogs\ChooseTalkerViewLoopDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCICompanionLib.h">
@@ -1533,6 +1536,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\FrameComponents\AudioWaveformUI.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Dialogs\ChooseTalkerViewLoopDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

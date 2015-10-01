@@ -21,8 +21,6 @@ public:
 
 private:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
-    void OnEditPackage();
-    void OnEditResource();
     BOOL _ValidateData();
 
 	DECLARE_MESSAGE_MAP()

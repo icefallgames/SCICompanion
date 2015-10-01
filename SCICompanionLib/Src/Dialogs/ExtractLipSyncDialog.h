@@ -17,7 +17,7 @@ struct LipSyncDialogTaskResult;
 class ExtractLipSyncDialog : public AudioPlaybackUI<CExtResizableDialog>
 {
 public:
-    ExtractLipSyncDialog(const ResourceEntity &resource, uint8_t talker, CWnd* pParent = NULL);   // standard constructor
+    ExtractLipSyncDialog(const ResourceEntity &resource, uint8_t talker, const std::string &messageText, CWnd* pParent = NULL);   // standard constructor
     virtual ~ExtractLipSyncDialog();
     std::unique_ptr<SyncComponent> GetSyncComponent() const;
 
@@ -25,7 +25,6 @@ public:
     enum { IDD = IDD_LIPSYNCDIALOG };
 
 protected:
-    void _UpdateViewLoop();
     void _SyncViewLoop();
     void _UpdateSyncList();
     void _InitSyncListColumns();
@@ -39,8 +38,6 @@ protected:
 
     CProgressCtrl m_wndProgress;
 
-    CExtEdit m_wndViewNumber;
-    CExtEdit m_wndLoopNumber;
     CExtLabel m_wndTalkerLabel;
     ViewUIElement m_wndMouth;
     AudioWaveformUI m_wndWaveform;
@@ -55,16 +52,28 @@ protected:
     CExtButton m_wndOk;
     CExtButton m_wndCommitMapping;
     CExtButton m_wndResetMapping;
+    CExtButton m_wndSetView;
+    CExtButton m_wndDeleteSync;
     CExtLabel m_wndStatic1;
     CExtLabel m_wndStatic2;
     CExtLabel m_wndStatic3;
+
+    CExtGroupBox m_wndGroupViewLoop;
+    CExtGroupBox m_wndGroupMessage;
+    CExtGroupBox m_wndGroupTalker;
+
     CExtLabel m_wndStatic4;
+    CExtCheckBox m_wndUseSample;
 
     std::unique_ptr<ResourceEntity> _audioResource;
     std::unique_ptr<ResourceEntity> _viewResource;
-    bool _haveActualViewResource;
+    bool _wantToUseSample;
+    bool _actuallyUsingSample;
+    int _nView, _nLoop;
     uint8_t _talker;
     TalkerToViewMap _talkerToViewMap;
+
+    std::string _messageText;
 
     std::unique_ptr<CWndTaskSink<LipSyncDialogTaskResult>> _taskSink;
 
@@ -76,8 +85,9 @@ public:
     afx_msg LRESULT _OnLipSyncDone(WPARAM wParam, LPARAM lParam);
     afx_msg void OnBnClickedButtonResetmapping();
     afx_msg void OnEnKillfocusEditPhonememap();
-    afx_msg void OnEnKillfocusEditView();
-    afx_msg void OnEnKillfocusEditLoop();
     afx_msg void OnBnClickedGeneratelipsync();
     afx_msg void OnBnClickedButtonCommitmapping();
+    afx_msg void OnBnClickedButtonSetview();
+    afx_msg void OnBnClickedCheckUsesample();
+    afx_msg void OnBnClickedButtonDeleteSync();
 };
