@@ -17,7 +17,7 @@ struct LipSyncDialogTaskResult;
 class ExtractLipSyncDialog : public AudioPlaybackUI<CExtResizableDialog>
 {
 public:
-    ExtractLipSyncDialog(const ResourceEntity &resource, uint8_t talker, const std::string &messageText, CWnd* pParent = NULL);   // standard constructor
+    ExtractLipSyncDialog(const ResourceEntity &resource, uint8_t talker, const std::string &talkerName, const std::string &messageText, CWnd* pParent = NULL);   // standard constructor
     virtual ~ExtractLipSyncDialog();
     std::unique_ptr<SyncComponent> GetSyncComponent() const;
 
@@ -54,6 +54,7 @@ protected:
     CExtButton m_wndResetMapping;
     CExtButton m_wndSetView;
     CExtButton m_wndDeleteSync;
+    CExtButton m_wndButtonRaw;
     CExtLabel m_wndStatic1;
     CExtLabel m_wndStatic2;
     CExtLabel m_wndStatic3;
@@ -71,6 +72,7 @@ protected:
     bool _actuallyUsingSample;
     int _nView, _nLoop;
     uint8_t _talker;
+    std::string _talkerName;
     TalkerToViewMap _talkerToViewMap;
 
     std::string _messageText;
@@ -90,4 +92,5 @@ public:
     afx_msg void OnBnClickedButtonSetview();
     afx_msg void OnBnClickedCheckUsesample();
     afx_msg void OnBnClickedButtonDeleteSync();
+    afx_msg void OnBnClickedButtonRaw();
 };

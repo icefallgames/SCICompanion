@@ -130,7 +130,28 @@ void AudioReadFrom(ResourceEntity &resource, sci::istream &stream, const std::ma
             resource.AddComponent<SyncComponent>(make_unique<SyncComponent>());
             SyncReadFrom(resource, streamLipSync);
         }
-        // Else, if it's not 0x8e, then it means it's probably raw lipsync data, which we don't support.
+        // else if it's not 0x8e, then it means this resource is kind of corrupt and *only* has raw lipsync data.
+
+        // We can still read in the raw data in either case though. It should be the rest of the data between the end
+        // of the normal lipsync data and the beginning of the audio.
+        if (streamLipSync.tellg() < (*itLipSyncDataSize).second)
+        {
+            uint32_t bufferSize = (*itLipSyncDataSize).second - streamLipSync.tellg();
+            std::unique_ptr<uint8_t[]> buffer = std::make_unique<uint8_t[]>(bufferSize);
+            streamLipSync.read_data(buffer.get(), bufferSize);
+            std::string rawLipSyncData;
+            std::transform(&buffer[0], &buffer[0] + bufferSize, std::back_inserter(rawLipSyncData),
+                [](uint8_t data) { return (char)data; }
+                );
+
+            SyncComponent *sync = resource.TryGetComponent<SyncComponent>();
+            if (sync)
+            {
+                std::copy(&buffer[0], &buffer[0] + bufferSize, std::back_inserter(sync->RawDataBinary));
+                sync->RawData = rawLipSyncData;
+            }
+        }
+
         offset = (*itLipSyncDataSize).second;
     }
     stream.skip(offset);

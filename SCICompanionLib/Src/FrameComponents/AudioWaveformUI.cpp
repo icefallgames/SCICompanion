@@ -1,11 +1,13 @@
 #include "stdafx.h"
 #include "AudioWaveformUI.h"
 #include "Audio.h"
+#include "Sync.h"
 #include "ResourceEntity.h"
 #include <sphelper.h>
 #include "sapi_lipsync.h"
 #include <locale>
 #include <codecvt>
+#include "LipSyncUtil.h"
 
 using namespace std;
 
@@ -52,6 +54,80 @@ void AudioWaveformUI::SetResource(const ResourceEntity *audio)
 void AudioWaveformUI::SetStreamPosition(uint32_t streamPosition)
 {
     _streamPosition = streamPosition;
+    Invalidate(FALSE);
+}
+
+void AudioWaveformUI::SetRawLipSyncData(const SyncComponent &sync)
+{
+    std::string sierraRawLipSyncData = sync.RawData;
+    // KQ6: Consists of a string of "phoneme [space] tickdelta [space]" pairs
+    // LB2: Consists of {{}}, in between which are 2 chars and some sort of absolute time delta.
+    bool isBinary = false;
+    if (sierraRawLipSyncData.size() >= 2)
+    {
+        isBinary = sierraRawLipSyncData[0] == '{' && sierraRawLipSyncData[1] == '{';
+    }
+
+    vector<string> phonemes;
+    vector<int> ticks;
+
+    if (isBinary)
+    {
+        const int MagicNumber = 5;
+        sci::istream stream(&sync.RawDataBinary[2], sync.RawDataBinary.size());
+        uint16_t binaryPhoneme;
+        stream >> binaryPhoneme;
+        uint16_t previousAccTick = 0;
+        while (stream.has_more_data() && binaryPhoneme != 0x7d7d) // }}
+        {
+            uint16_t accumulatedTicks;
+            stream >> accumulatedTicks;
+            std::string phonemeText;
+            phonemeText.push_back((char)binaryPhoneme & 0xff);
+            if ((binaryPhoneme >> 8) != 0x20) // space
+            {
+                phonemeText.push_back((char)(binaryPhoneme >> 8));
+            }
+
+            phonemes.push_back(phonemeText);
+            ticks.push_back(SCITicksToMilliseconds((accumulatedTicks - previousAccTick) * MagicNumber));
+            previousAccTick = accumulatedTicks;
+
+            stream >> binaryPhoneme;
+        }
+    }
+    else
+    {
+        stringstream ss(sierraRawLipSyncData);
+        string token;
+        bool isPhoneme = true;
+
+        while (getline(ss, token, ' '))
+        {
+            if (isPhoneme)
+            {
+                phonemes.push_back(token);
+            }
+            else
+            {
+                ticks.push_back(SCITicksToMilliseconds(string_to_int(token)));
+            }
+            isPhoneme = !isPhoneme;
+        }
+    }
+
+    _pbitmapDoubleBuf = nullptr;    // Trigger redraw.
+    _rawLipSyncData.clear();
+
+    uint32_t previousTime = 0;
+    size_t count = min(phonemes.size(), ticks.size());
+    for (size_t i = 0; i < count; i++)
+    {
+        uint32_t endTime = previousTime + ticks[i];
+        UILipSyncData uiData = { previousTime, endTime, phonemes[i] };
+        _rawLipSyncData.push_back(uiData);
+        previousTime = endTime;
+    }
     Invalidate(FALSE);
 }
 

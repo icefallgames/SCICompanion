@@ -65,6 +65,15 @@ uint16_t PhonemeMap::PhonemeToCel(const std::string &phoneme) const
     return cel;
 }
 
+// Detects an empty phonememap (all zeroes)
+bool PhonemeMap::IsEmpty() const
+{
+    auto itNotZero = std::find_if(_phonemeToCel.begin(), _phonemeToCel.end(),
+        [](const std::pair<std::string, int> &entry) { return entry.second != 0; }
+        );
+    return itNotZero == _phonemeToCel.end();
+}
+
 bool SaveForViewLoop(const std::string &text, AppState *appState, int view, int loop, std::string &errors)
 {
     std::string fullPath = GetPhonemeMapPath(appState, view, loop);

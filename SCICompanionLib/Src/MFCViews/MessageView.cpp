@@ -251,11 +251,12 @@ void CMessageView::_SetItem(int itemIndex, int visualIndex, PCTSTR pszString, co
     }
     bool hasAudio = (audioResource != nullptr);
     bool hasLipSync = audioResource && audioResource->TryGetComponent<SyncComponent>();
+    bool hasRawLipSync = hasLipSync && !audioResource->GetComponent<SyncComponent>().RawData.empty();
 
     LVITEM item = { 0 };
     item.mask = LVIF_TEXT | LVIF_PARAM;
     item.mask |= LVIF_IMAGE;
-    item.iImage = (hasLipSync ? 2 : (hasAudio ? 1 : 0));    // Lipsync implies also audio
+    item.iImage = (hasRawLipSync ? 3 : (hasLipSync ? 2 : (hasAudio ? 1 : 0)));    // Lipsync implies also audio
     item.iItem = visualIndex;
     item.lParam = itemIndex;
     item.iSubItem = 0;

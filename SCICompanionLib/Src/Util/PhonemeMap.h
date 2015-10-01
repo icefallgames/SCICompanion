@@ -11,6 +11,7 @@ public:
     const std::string &GetErrors() const { return _errors; }
     const std::string &GetFilespec() const { return _filespec; }
     const std::string &GetFileContents() const { return _fileContents; }
+    bool IsEmpty() const;
     
     bool HasErrors() const { return !_errors.empty(); }
 private:

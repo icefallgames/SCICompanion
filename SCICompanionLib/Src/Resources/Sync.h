@@ -23,6 +23,9 @@ public:
     uint16_t GetCelAtTick(uint16_t tickPosition) const;
 
     std::vector<SyncEntry> Entries;
+
+    std::string RawData;    // Present in some Sierra games in some resources. We read but don't write.
+    std::vector<uint8_t> RawDataBinary;
 };
 
 void SyncWriteTo(const ResourceEntity &resource, sci::ostream &byteStream);

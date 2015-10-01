@@ -426,7 +426,7 @@ bool IsClassLevelKeyword(LangSyntax lang, const std::string &word);
 const std::vector<std::string> &GetCodeLevelKeywords(LangSyntax lang);
 const std::vector<std::string> &GetClassLevelKeywords(LangSyntax lang);
 bool IsValueKeyword(const std::string &word);
-
+int string_to_int(const std::string &word);
 static const WORD InvalidResourceNumber = 0xffff;
 
 //

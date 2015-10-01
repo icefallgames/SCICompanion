@@ -2,6 +2,7 @@
 
 // AudioWaveformUI, A control that shows an audio waveform
 class alignment_result;
+struct SyncComponent;
 
 struct UILipSyncData
 {
@@ -23,6 +24,7 @@ public:
     void SetResource(const ResourceEntity *audio);
     void SetStreamPosition(uint32_t streamPosition);
     void SetRawLipSyncData(std::vector<alignment_result> &rawLipSyncData);
+    void SetRawLipSyncData(const SyncComponent &sync);
 
 private:
     afx_msg void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct) override;

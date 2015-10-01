@@ -11,6 +11,8 @@ uint32_t GetMessageTuple(const T& entry)
     return tuple;
 }
 
+// SSVVNNCC
+
 template<typename T>
 void SetMessageTuple(T& entry, uint32_t base36Number)
 {

@@ -960,3 +960,20 @@ bool TerminateProcessTree(HANDLE hProcess, DWORD retCode)
     }
     return success;
 }
+
+// Very basic function that turns a string into an integer, with no exceptions, no error-checking, etc...
+int string_to_int(const std::string &word)
+{
+    int value = 0;
+    for (char c : word)
+    {
+        int digitValue = c - '0';
+        if ((digitValue < 0) || (digitValue > 9))
+        {
+            break;
+        }
+        value *= 10;
+        value += digitValue;
+    }
+    return value;
+}

@@ -88,6 +88,7 @@ private:
     CExtLabel m_wndLabel4;
     CExtLabel m_wndLabel5;
     CExtLabel m_wndLabel6;
+    CExtLabel m_wndLabelBase36;
     CExtButton m_wndButton1;
     CExtButton m_wndButton2;
     CExtButton m_wndButton3;

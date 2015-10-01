@@ -82,6 +82,8 @@ void MessageEditPane::DoDataExchange(CDataExchange* pDX)
         SetMouthElement(&m_wndMouth);
 
         DDX_Control(pDX, IDC_BUTTONLIPSYNC, m_wndQuickLipSync);
+
+        DDX_Control(pDX, IDC_STATIC_BASE36NAME, m_wndLabelBase36);
     }
     DDX_Text(pDX, IDC_EDITSEQ, _spinnerValue);
 }
@@ -203,6 +205,7 @@ BOOL MessageEditPane::OnInitDialog()
     AddAnchor(IDC_BUTTONLIPSYNC, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_ANIMATE, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_BUTTONLIPSYNC_DIALOG, CPoint(100, 0), CPoint(100, 0));
+    AddAnchor(IDC_STATIC_BASE36NAME, CPoint(100, 0), CPoint(100, 0));
 
     // Hide the sizing grip
     ShowSizeGrip(FALSE);
@@ -366,6 +369,12 @@ void MessageEditPane::_UpdateAudio(const TextEntry &messageEntry)
             m_wndMouth.SetLoop(_mouthLoop);
             m_wndMouth.SetCel(_mouthCel);
         }
+
+        m_wndLabelBase36.SetWindowText(default_reskey(_pDoc->GetNumber(), tuple).c_str());
+    }
+    else
+    {
+        m_wndLabelBase36.SetWindowText("");
     }
 }
 
@@ -414,8 +423,8 @@ void MessageEditPane::_Update()
         }
         else
         {
-            // TODO: Clear everything out
             m_wndEditMessage.SetWindowTextA("");
+            m_wndLabelBase36.SetWindowText("");
         }
     }
 
@@ -740,7 +749,15 @@ void MessageEditPane::OnBnClickedButtonlipsyncDialog()
     if (_audio)
     {
         const TextEntry *entry = _GetEntry();
-        ExtractLipSyncDialog dialog(*_audio, entry->Talker, entry->Text);
+
+        std::string talkerName;
+        MessageSource *talkersSource = appState->GetResourceMap().GetTalkersMessageSource();
+        if (talkersSource)
+        {
+            talkerName = talkersSource->ValueToName(entry->Talker);
+        }
+
+        ExtractLipSyncDialog dialog(*_audio, entry->Talker, talkerName, entry->Text);
         if (IDOK == dialog.DoModal())
         {
             // TODO: get possibly updated SyncComponent.

@@ -16,6 +16,11 @@ uint16_t MillisecondsToSCITicks(long ms)
     return (uint16_t)(ms * SCITicksPerSecond / 1000);
 }
 
+int SCITicksToMilliseconds(int ticks)
+{
+    return ticks * 1000 / SCITicksPerSecond;
+}
+
 void AddSyncEntry(SyncComponent &sync, uint16_t ticks, uint16_t cel)
 {
     if (sync.Entries.back().Tick == ticks)
