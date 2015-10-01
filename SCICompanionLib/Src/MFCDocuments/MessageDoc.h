@@ -4,6 +4,7 @@
 #include "MessageSource.h"
 #include "Message.h"
 
+struct SyncComponent;
 class MessageSource;
 class MessageHeaderFile;
 
@@ -32,6 +33,7 @@ public:
     // Audio sidecar support:
     ResourceEntity *FindAudioResource(uint32_t base36Number);
     void AddNewAudioResource(std::unique_ptr<ResourceEntity> audioResource);
+    bool SetSyncComponent(uint32_t base36Number, std::unique_ptr<SyncComponent> sync);
 
 protected:
     void PostSuccessfulSave(const ResourceEntity *pResource) override;

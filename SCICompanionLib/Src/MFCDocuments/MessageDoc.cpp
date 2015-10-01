@@ -13,6 +13,7 @@
 #include "ResourceContainer.h"
 #include "PerfTimer.h"
 #include "ResourceMap.h"
+#include "Sync.h"
 
 using namespace std;
 
@@ -54,6 +55,42 @@ void CMessageDoc::AddNewAudioResource(std::unique_ptr<ResourceEntity> audioResou
     _audioSidecarResources[audioResource->Base36Number] = std::move(audioResource);
 
     SetModifiedFlag(TRUE);
+}
+
+bool CMessageDoc::SetSyncComponent(uint32_t base36Number, std::unique_ptr<SyncComponent> sync)
+{
+    bool changed = false;
+    auto it = _audioSidecarResources.find(base36Number);
+    if (it != _audioSidecarResources.end())
+    {
+        ResourceEntity *entity = it->second.get();
+        SyncComponent *existingSync = entity->TryGetComponent<SyncComponent>();
+        if (existingSync && sync)
+        {
+            changed = *existingSync == *sync;
+            if (changed)
+            {
+                entity->RemoveComponent<SyncComponent>();
+                entity->AddComponent<SyncComponent>(std::move(sync));
+            }
+        }
+        else if (!existingSync && sync)
+        {
+            changed = true;
+            entity->AddComponent<SyncComponent>(std::move(sync));
+        }
+        else if (existingSync && !sync)
+        {
+            changed = true;
+            entity->RemoveComponent<SyncComponent>();
+        }
+    }
+
+    if (changed)
+    {
+        SetModifiedFlag(TRUE);
+    }
+    return changed;
 }
 
 void CMessageDoc::PostSuccessfulSave(const ResourceEntity *pResource)

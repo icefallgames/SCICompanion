@@ -60,3 +60,24 @@ uint16_t SyncComponent::GetCelAtTick(uint16_t tickPosition) const
     }
     return lastCel;
 }
+
+bool SyncComponent::operator == (const SyncComponent &other) const
+{
+    return Entries == other.Entries &&
+        RawData == other.RawData &&
+        RawDataBinary == other.RawDataBinary;
+}
+bool SyncComponent::operator!=(const SyncComponent &other) const
+{
+    return !(*this == other);
+}
+
+bool SyncEntry::operator == (const SyncEntry &other) const
+{
+    return Tick == other.Tick &&
+        Cel == other.Cel;
+}
+bool SyncEntry::operator!=(const SyncEntry &other) const
+{
+    return !(*this == other);
+}

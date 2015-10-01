@@ -177,7 +177,7 @@ void ExtractLipSyncDialog::_SyncViewLoop()
 {
     // This indicates that _useSample or _nView or _nLoop has changed.
     
-    bool needsNew = !_viewResource || (_viewResource->ResourceNumber != _nView);
+    bool needsNew = !_viewResource || (_viewResource->ResourceNumber != _nView) || (_wantToUseSample != _actuallyUsingSample);
     if (needsNew)
     {
         _viewResource = nullptr;

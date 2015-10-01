@@ -47,6 +47,7 @@ private:
     CExtButton m_wndPlay;
     CExtButton m_wndStop;
     CExtButton m_wndRecord;
+    CExtLabel m_wndStaticRec;
     CExtCheckBox m_wndHalfSpeed;
     CExtSliderWnd m_wndSlider;
     CExtCheckBox m_wndAutoPreview;
@@ -312,19 +313,15 @@ void AudioPlaybackUI<T>::OnStop()
 {
     g_audioPlayback.Stop();
 
-    // REVIEW: We won't always have an audio source... need to handle that case.
-    // REVIEW: We're overwrriten.
-    if (_audio)
+    // If we're recording notify about it.
+    std::unique_ptr<AudioComponent> newAudio = g_audioRecording.Stop();
+    if (newAudio)
     {
-        std::unique_ptr<AudioComponent> newAudio = g_audioRecording.Stop();
-        if (newAudio)
-        {
-            std::unique_ptr<ResourceEntity> resource(CreateDefaultAudioResource(appState->GetVersion()));
-            resource->RemoveComponent<AudioComponent>();
-            resource->AddComponent(std::move(newAudio));
-            OnNewResourceCreated(std::move(resource), "recording");
-            // Tell them.
-        }
+        std::unique_ptr<ResourceEntity> resource(CreateDefaultAudioResource(appState->GetVersion()));
+        resource->RemoveComponent<AudioComponent>();
+        resource->AddComponent(std::move(newAudio));
+        OnNewResourceCreated(std::move(resource), "recording");
+        assert(_audio); // They should have set it back on us!
     }
 
     _UpdatePlayState();

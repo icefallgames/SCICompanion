@@ -64,7 +64,7 @@ protected:
 private:
     void _UpdateSequence(int sequence);
     void _UpdateCombos(MessageChangeHint hint);
-    void _UpdateAudio(const TextEntry &entry);
+    bool _UpdateAudio(const TextEntry &entry);
 
     CMessageDoc *_pDoc;
 
@@ -98,6 +98,7 @@ private:
     // Lipsync stuff
     ViewUIElement m_wndMouth;
     CExtButton m_wndQuickLipSync;
+    CExtButton m_wndLipSyncDialog;
     std::unique_ptr<ResourceEntity> _mouthView;
     int _mouthLoop;
     int _mouthCel;

@@ -62,6 +62,7 @@ void MessageEditPane::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_STATIC8, m_wndLabel4);
         DDX_Control(pDX, IDC_STATIC9, m_wndLabel5);
         DDX_Control(pDX, IDC_STATIC2, m_wndLabel6);
+        DDX_Control(pDX, IDC_STATIC_REC, m_wndStaticRec);
 
         DDX_Control(pDX, IDC_BUTTONADDSEQ, m_wndButton1);
         DDX_Control(pDX, IDC_BUTTONCLONE, m_wndButton2);
@@ -82,6 +83,7 @@ void MessageEditPane::DoDataExchange(CDataExchange* pDX)
         SetMouthElement(&m_wndMouth);
 
         DDX_Control(pDX, IDC_BUTTONLIPSYNC, m_wndQuickLipSync);
+        DDX_Control(pDX, IDC_BUTTONLIPSYNC_DIALOG, m_wndLipSyncDialog);
 
         DDX_Control(pDX, IDC_STATIC_BASE36NAME, m_wndLabelBase36);
     }
@@ -206,6 +208,7 @@ BOOL MessageEditPane::OnInitDialog()
     AddAnchor(IDC_ANIMATE, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_BUTTONLIPSYNC_DIALOG, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_STATIC_BASE36NAME, CPoint(100, 0), CPoint(100, 0));
+    AddAnchor(IDC_STATIC_REC, CPoint(100, 0), CPoint(100, 0));
 
     // Hide the sizing grip
     ShowSizeGrip(FALSE);
@@ -333,13 +336,17 @@ void MessageEditPane::_UpdateSequence(int sequence)
     UpdateData(false);
 }
 
-void MessageEditPane::_UpdateAudio(const TextEntry &messageEntry)
+bool MessageEditPane::_UpdateAudio(const TextEntry &messageEntry)
 {
+    bool hasAudio = false;
     if (appState->GetVersion().HasSyncResources)
     {
         uint32_t tuple = GetMessageTuple(messageEntry);
         g_audioPlayback.Stop();
-        SetAudioResource(_pDoc->FindAudioResource(tuple));
+
+        ResourceEntity *audioEntity = _pDoc->FindAudioResource(tuple);
+        hasAudio = !!audioEntity;
+        SetAudioResource(audioEntity);
 
         // TODO: Make this part of ResourceMap so we only load once?
         // TODO: Optimize all this resource loading.
@@ -376,6 +383,7 @@ void MessageEditPane::_UpdateAudio(const TextEntry &messageEntry)
     {
         m_wndLabelBase36.SetWindowText("");
     }
+    return hasAudio;
 }
 
 void MessageEditPane::OnNewResourceCreated(std::unique_ptr<ResourceEntity> audioResource, const std::string &name)
@@ -399,6 +407,7 @@ void MessageEditPane::OnNewResourceCreated(std::unique_ptr<ResourceEntity> audio
 
 void MessageEditPane::_Update()
 {
+    bool hasAudio = false;
     if (_pDoc)
     {
         CWnd *controls[] = { &m_wndEditMessage };
@@ -419,7 +428,7 @@ void MessageEditPane::_Update()
             _UpdateComboFromValue(m_wndComboNoun, entry->Noun, &nounsAndCases.GetNouns());
             _UpdateComboFromValue(m_wndComboCondition, entry->Condition, &nounsAndCases.GetCases());
 
-            _UpdateAudio(*entry);
+            hasAudio = _UpdateAudio(*entry);
         }
         else
         {
@@ -429,16 +438,22 @@ void MessageEditPane::_Update()
     }
 
     // Hide/show audio controls when appropriate.
-    int cmdShow = appState->GetVersion().HasSyncResources ? SW_SHOW : SW_HIDE;
-    m_wndInfo.ShowWindow(cmdShow);
-    m_wndPlay.ShowWindow(cmdShow);
-    m_wndStop.ShowWindow(cmdShow);
-    m_wndRecord.ShowWindow(cmdShow);
-    m_wndSlider.ShowWindow(cmdShow);
-    m_wndAutoPreview.ShowWindow(cmdShow);
-    m_wndDuration.ShowWindow(cmdShow);
-    m_wndBrowse.ShowWindow(cmdShow);
-    m_wndWaveType.ShowWindow(cmdShow);
+    int cmdShowSupportsSync = appState->GetVersion().HasSyncResources ? SW_SHOW : SW_HIDE;
+    int cmdShowHasAudio = hasAudio ? SW_SHOW : SW_HIDE;
+
+    m_wndInfo.ShowWindow(cmdShowHasAudio);
+    m_wndPlay.ShowWindow(cmdShowHasAudio);
+    m_wndStop.ShowWindow(cmdShowSupportsSync);
+    m_wndStaticRec.ShowWindow(cmdShowSupportsSync);
+    m_wndRecord.ShowWindow(cmdShowSupportsSync);
+    m_wndSlider.ShowWindow(cmdShowHasAudio);
+    m_wndAutoPreview.ShowWindow(cmdShowHasAudio);
+    m_wndDuration.ShowWindow(cmdShowHasAudio);
+    m_wndBrowse.ShowWindow(cmdShowSupportsSync);
+    m_wndWaveType.ShowWindow(cmdShowSupportsSync);
+    m_wndMouth.ShowWindow(cmdShowHasAudio);
+    m_wndQuickLipSync.ShowWindow(cmdShowHasAudio);
+    m_wndLipSyncDialog.ShowWindow(cmdShowHasAudio);
 }
 
 void MessageEditPane::SetDocument(CDocument *pDoc)
@@ -760,7 +775,11 @@ void MessageEditPane::OnBnClickedButtonlipsyncDialog()
         ExtractLipSyncDialog dialog(*_audio, entry->Talker, talkerName, entry->Text);
         if (IDOK == dialog.DoModal())
         {
-            // TODO: get possibly updated SyncComponent.
+            std::unique_ptr<SyncComponent> syncFromDialog = dialog.GetSyncComponent();
+            if (_pDoc->SetSyncComponent(_audio->Base36Number, std::move(syncFromDialog)))
+            {
+                _Update();
+            }
         }
     }
 }
