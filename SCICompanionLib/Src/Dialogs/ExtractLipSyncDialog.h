@@ -4,15 +4,19 @@
 #include "AudioPlaybackUI.h"
 #include "ViewUIElement.h"
 #include "TalkerToViewMap.h"
+#include "AudioWaveformUI.h"
+#include "Task.h"
 
 struct AudioComponent;
 struct SyncComponent;
 class ResourceEntity;
+class alignment_result;
+struct LipSyncDialogTaskResult;
 
 class ExtractLipSyncDialog : public AudioPlaybackUI<CExtResizableDialog>
 {
 public:
-    ExtractLipSyncDialog(const AudioComponent &audio, const SyncComponent *sync, uint8_t talker, CWnd* pParent = NULL);   // standard constructor
+    ExtractLipSyncDialog(const ResourceEntity &resource, uint8_t talker, CWnd* pParent = NULL);   // standard constructor
     virtual ~ExtractLipSyncDialog();
     virtual void OnCancel();
 
@@ -24,6 +28,7 @@ protected:
     void _SyncViewLoop();
     void _UpdateSyncList();
     void _InitSyncListColumns();
+    void _UpdateWords(const std::vector<alignment_result> &rawResults);
 
     virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
     virtual BOOL OnInitDialog();
@@ -31,7 +36,7 @@ protected:
 
     afx_msg void OnTimer(UINT_PTR nIDEvent);
 
-    CExtProgressWnd m_wndProgress;
+    CProgressCtrl m_wndProgress;
 
     // Visuals
     CExtButton m_wndCancel;
@@ -39,17 +44,22 @@ protected:
     CExtEdit m_wndLoopNumber;
     CExtLabel m_wndTalkerLabel;
     ViewUIElement m_wndMouth;
+    AudioWaveformUI m_wndWaveform;
     CListCtrl m_wndSyncList;
+    CExtEdit m_rawLipSyncWords;
+    CExtButton m_wndLipSyncButton;
 
+    std::unique_ptr<ResourceEntity> _audioResource;
     std::unique_ptr<ResourceEntity> _viewResource;
-    std::unique_ptr<AudioComponent> _audioCopy;
-    std::unique_ptr<SyncComponent> _syncComponent;
     uint8_t _talker;
     TalkerToViewMap _talkerToViewMap;
+
+    std::unique_ptr<CWndTaskSink<LipSyncDialogTaskResult>> _taskSink;
 
     bool _initialized;
 
 public:
+    afx_msg LRESULT _OnLipSyncDone(WPARAM wParam, LPARAM lParam);
     afx_msg void OnBnClickedButtonResetmapping();
     afx_msg void OnEnKillfocusEditPhonememap();
     afx_msg void OnEnKillfocusEditView();

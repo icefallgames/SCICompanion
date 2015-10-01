@@ -4,8 +4,12 @@
 #include "AudioPlayback.h"
 #include "AudioRecording.h"
 #include "SoundUtil.h"
+#include "Sync.h"
+#include "ViewUIElement.h"
+#include "AudioWaveformUI.h"
 
 enum class WaveRecordingFormat;
+class ViewUIElement;
 
 template<typename T>
 class AudioPlaybackUI : public T
@@ -15,13 +19,14 @@ public:
     AudioPlaybackUI(int id, CWnd *parent);
     virtual ~AudioPlaybackUI();
     void SetAudioResource(const ResourceEntity *audio);
+    void SetMouthElement(ViewUIElement *_pwndMouth);
+    void SetWaveformElement(AudioWaveformUI *_pwndWaveform);
 
 protected:
     // Call these things:
     void DoDataExchangeHelper(CDataExchange* pDX);    // DDX/DDV support
     void OnInitDialogHelper();
 
-    virtual void OnPlaybackTimer() {}
     virtual void OnNewResourceCreated(std::unique_ptr<ResourceEntity> audioResource, const std::string &name) {};
 
 protected:
@@ -42,6 +47,7 @@ private:
     CExtButton m_wndPlay;
     CExtButton m_wndStop;
     CExtButton m_wndRecord;
+    CExtCheckBox m_wndHalfSpeed;
     CExtSliderWnd m_wndSlider;
     CExtCheckBox m_wndAutoPreview;
     CExtLabel m_wndDuration;
@@ -50,7 +56,10 @@ private:
     CExtLabel m_wndTitle;
     CExtComboBox m_wndWaveType;
 
+    ViewUIElement *_pwndMouth;
     const ResourceEntity *_audio;
+
+    AudioWaveformUI *_pwndWaveform;
 
     int _recordingFormat;
     CFont _marlettFont;
@@ -88,6 +97,18 @@ AudioPlaybackUI<T>::AudioPlaybackUI(int id, CWnd *parent) : T(id, parent), _reco
 }
 
 template <typename T>
+void AudioPlaybackUI<T>::SetMouthElement(ViewUIElement *pwndMouth)
+{
+    _pwndMouth = pwndMouth;
+}
+
+template <typename T>
+void AudioPlaybackUI<T>::SetWaveformElement(AudioWaveformUI *pwndWaveform)
+{
+    _pwndWaveform = pwndWaveform;
+}
+
+template <typename T>
 void AudioPlaybackUI<T>::SetAudioResource(const ResourceEntity *audio)
 {
     _audio = audio;
@@ -108,7 +129,8 @@ void AudioPlaybackUI<T>::SetAudioResource(const ResourceEntity *audio)
                 IsFlagSet(audioComp->Flags, AudioFlags::SixteenBit) ? "16-bit" : "8-bit",
                 IsFlagSet(audioComp->Flags, AudioFlags::DPCM) ? "DPCM" : "");
         }
-        if (m_wndAutoPreview.GetCheck() == BST_CHECKED)
+
+        if (m_wndAutoPreview && (m_wndAutoPreview.GetCheck() == BST_CHECKED))
         {
             OnPlay();
         }
@@ -131,14 +153,30 @@ void AudioPlaybackUI<T>::DoDataExchangeHelper(CDataExchange* pDX)
 {
     DDX_Control(pDX, IDC_EDIT_SAMPLEBIT, m_wndInfo);
     DDX_Control(pDX, IDC_BUTTON_PLAY2, m_wndPlay);
-    DDX_Control(pDX, IDC_BUTTON_RECORD, m_wndRecord);
+    if (GetDlgItem(IDC_CHECK_HALFSPEED))
+    {
+        DDX_Control(pDX, IDC_CHECK_HALFSPEED, m_wndHalfSpeed);
+    }
+    if (GetDlgItem(IDC_BUTTON_RECORD))
+    {
+        DDX_Control(pDX, IDC_BUTTON_RECORD, m_wndRecord);
+        DDX_Control(pDX, IDC_COMBO_WAVEFORMAT, m_wndWaveType);
+        DDX_CBIndex(pDX, IDC_COMBO_WAVEFORMAT, _recordingFormat);
+    }
     DDX_Control(pDX, IDC_BUTTON_STOP, m_wndStop);
-    DDX_Control(pDX, IDC_SLIDER, m_wndSlider);
-    DDX_Control(pDX, IDC_CHECK_AUTOPREV, m_wndAutoPreview);
+    if (GetDlgItem(IDC_SLIDER))
+    {
+        DDX_Control(pDX, IDC_SLIDER, m_wndSlider);
+    }
+    if (GetDlgItem(IDC_CHECK_AUTOPREV))
+    {
+        DDX_Control(pDX, IDC_CHECK_AUTOPREV, m_wndAutoPreview);
+    }
     DDX_Control(pDX, IDC_STATIC_DURATION, m_wndDuration);
-    DDX_Control(pDX, IDC_BUTTONBROWSE, m_wndBrowse);
-    DDX_Control(pDX, IDC_COMBO_WAVEFORMAT, m_wndWaveType);
-    DDX_CBIndex(pDX, IDC_COMBO_WAVEFORMAT, _recordingFormat);
+    if (GetDlgItem(IDC_BUTTONBROWSE))
+    {
+        DDX_Control(pDX, IDC_BUTTONBROWSE, m_wndBrowse);
+    }
 
     if (this->GetDlgItem(IDC_EDIT_DESCRIPTION))
     {
@@ -173,10 +211,16 @@ void AudioPlaybackUI<T>::OnInitDialogHelper()
         _marlettFont.CreateFontIndirect(&logFont);
         m_wndPlay.SetFont(&_marlettFont);
         m_wndStop.SetFont(&_marlettFont);
-        m_wndRecord.SetFont(&_marlettFont);
+        if (m_wndRecord)
+        {
+            m_wndRecord.SetFont(&_marlettFont);
+        }
     }
 
-    m_wndSlider.SetRange(0, 100);
+    if (m_wndSlider)
+    {
+        m_wndSlider.SetRange(0, 100);
+    }
 
     _UpdatePlayState();
 
@@ -216,9 +260,18 @@ void AudioPlaybackUI<T>::OnPlay()
     const AudioComponent *audio = _audio->TryGetComponent<AudioComponent>();
     if (audio && (audio->Frequency != 0))
     {
+        int slowDown = 1;
+        if (m_wndHalfSpeed && (m_wndHalfSpeed.GetCheck() == BST_CHECKED))
+        {
+            slowDown = 2;
+        }
         g_audioPlayback.Stop();
-        g_audioPlayback.Play();
+        g_audioPlayback.Play(slowDown);
         _UpdatePlayState();
+        if (_pwndWaveform)
+        {
+            _pwndWaveform->SetStreamPosition(0);
+        }
     }
 }
 
@@ -284,10 +337,32 @@ void AudioPlaybackUI<T>::OnTimer(UINT_PTR nIDEvent)
     {
         if (g_audioPlayback.IsPlaying())
         {
-            m_wndSlider.SetPos(g_audioPlayback.QueryPosition(100));
+            if (m_wndSlider)
+            {
+                m_wndSlider.SetPos(g_audioPlayback.QueryPosition(100));
+            }
+            if (_pwndWaveform)
+            {
+                _pwndWaveform->SetStreamPosition(g_audioPlayback.QueryStreamPosition());
+            }
             g_audioPlayback.IdleUpdate();
 
-            OnPlaybackTimer();
+            const SyncComponent *syncComponent = _audio->TryGetComponent<SyncComponent>();
+            if (_pwndMouth && syncComponent)
+            {
+                uint16_t tickPosition = (uint16_t)g_audioPlayback.QueryPosition(_audio->GetComponent<AudioComponent>().GetLengthInTicks());
+                uint16_t cel = syncComponent->GetCelAtTick(tickPosition);
+                if (!g_audioPlayback.IsPlaying() && !syncComponent->Entries.empty())
+                {
+                    // We've stopped playing, do the last one.
+                    cel = syncComponent->Entries.back().Cel;
+                }
+                if (cel != 0xffff)
+                {
+                    _pwndMouth->SetCel(cel, true);
+                }
+            }
+
         }
         if (!_IsPlaying())
         {

@@ -26,7 +26,6 @@ ViewUIElement::~ViewUIElement() {}
 
 ViewUIElement::ViewUIElement()
     : CStatic(),
-    _fDoubleBuffer(false),
     _nCel(0),
     _nLoop(0),
     _iZoom(1),
@@ -285,11 +284,12 @@ void ViewUIElement::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 
 void ViewUIElement::_GenerateDoubleBuffer(CDC *pDC, LPRECT prc)
 {
-    if (!_fDoubleBuffer || (_sizeDoubleBuf != _sizeAnimate))
+    if (!_pbitmapDoubleBuf || (_sizeDoubleBuf != _sizeAnimate))
     {
         _sizeDoubleBuf = _sizeAnimate;
         _pbitmapDoubleBuf = make_unique<CBitmap>();
-        _fDoubleBuffer = !!_pbitmapDoubleBuf->CreateCompatibleBitmap(pDC, _sizeDoubleBuf.cx, _sizeDoubleBuf.cy);
+        // Hope this succeededs...
+        _pbitmapDoubleBuf->CreateCompatibleBitmap(pDC, _sizeDoubleBuf.cx, _sizeDoubleBuf.cy);
     }
 }
 

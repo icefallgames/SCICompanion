@@ -18,6 +18,12 @@ std::string GetAudioLength(const AudioComponent &audio)
     return fmt::format("{0:02}:{1:02}", seconds / 60, seconds % 60);
 }
 
+uint32_t AudioComponent::GetLengthInTicks() const
+{
+    int bytePerSecond = max(1, Frequency);
+    return SCITicksPerSecond * DigitalSamplePCM.size() / bytePerSecond;
+}
+
 // Decompression routines From SCUMMVM:
 
 static const uint16_t tableDPCM16[128] = {

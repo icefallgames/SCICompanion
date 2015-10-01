@@ -79,6 +79,7 @@ void MessageEditPane::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_ANIMATE, m_wndMouth);
         m_wndMouth.SetBackground(g_PaintManager->GetColor(COLOR_BTNFACE));
         m_wndMouth.SetFillArea(true);
+        SetMouthElement(&m_wndMouth);
 
         DDX_Control(pDX, IDC_BUTTONLIPSYNC, m_wndQuickLipSync);
     }
@@ -734,37 +735,15 @@ LRESULT MessageEditPane::_OnLipSyncDone(WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
-void MessageEditPane::OnPlaybackTimer()
-{
-    if (_audio)
-    {
-        const SyncComponent *syncComponent = _audio->TryGetComponent<SyncComponent>();
-        if (syncComponent)
-        {
-            uint16_t tickPosition = (uint16_t)g_audioPlayback.QueryPosition(syncComponent->GetMaxTicks());
-            uint16_t cel = syncComponent->GetCelAtTick(tickPosition);
-            if (!g_audioPlayback.IsPlaying() && !syncComponent->Entries.empty())
-            {
-                // We've stopped playing, do the last one.
-                cel = syncComponent->Entries.back().Cel;
-            }
-            if (cel != 0xffff)
-            {
-                m_wndMouth.SetCel(cel, true);
-            }
-        }
-    }
-}
-
 void MessageEditPane::OnBnClickedButtonlipsyncDialog()
 {
     if (_audio)
     {
         const TextEntry *entry = _GetEntry();
-        ExtractLipSyncDialog dialog(_audio->GetComponent<AudioComponent>(), _audio->TryGetComponent<SyncComponent>(), entry->Talker);
+        ExtractLipSyncDialog dialog(*_audio, entry->Talker);
         if (IDOK == dialog.DoModal())
         {
-
+            // TODO: get possibly updated SyncComponent.
         }
     }
 }

@@ -43,6 +43,22 @@ DWORD AudioPlayback::QueryPosition(DWORD scope)
     return pos;
 }
 
+uint32_t AudioPlayback::QueryStreamPosition()
+{
+    uint32_t pos = 0;
+    if (hWaveOut && _sound)
+    {
+        MMTIME mmTime = {};
+        mmTime.wType = TIME_BYTES;
+        if (MMSYSERR_NOERROR == waveOutGetPosition(hWaveOut, &mmTime, sizeof(mmTime)))
+        {
+            pos = mmTime.u.cb;
+        }
+    }
+    return pos;
+}
+
+
 void AudioPlayback::SetAudio(const AudioComponent *sound)
 {
     _sound = sound;
@@ -70,7 +86,7 @@ void AudioPlayback::Stop()
     Cleanup();
 }
 
-void AudioPlayback::Play()
+void AudioPlayback::Play(int slowDown)
 {
     if (hWaveOut)
     {
@@ -88,13 +104,16 @@ void AudioPlayback::Play()
 
     if (_sound)
     {
+        uint16_t freq = _sound->Frequency;
+        freq /= slowDown;
+
         assert(!hWaveOut);
         WORD blockAlign = IsFlagSet(_sound->Flags, AudioFlags::SixteenBit) ? 2 : 1;
         WAVEFORMATEX waveFormat = { 0 };
         waveFormat.wFormatTag = WAVE_FORMAT_PCM;
         waveFormat.nChannels = 1;   // mono
-        waveFormat.nSamplesPerSec = _sound->Frequency;
-        waveFormat.nAvgBytesPerSec = _sound->Frequency * blockAlign;
+        waveFormat.nSamplesPerSec = freq;
+        waveFormat.nAvgBytesPerSec = freq * blockAlign;
         waveFormat.nBlockAlign = blockAlign;
         waveFormat.wBitsPerSample = 8 * blockAlign;
         waveFormat.cbSize = 0;

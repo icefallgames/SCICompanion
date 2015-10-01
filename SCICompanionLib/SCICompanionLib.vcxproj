@@ -222,6 +222,7 @@
     <ClCompile Include="Src\Dialogs\PaletteEditorDialog.cpp" />
     <ClCompile Include="Src\Dialogs\PicDimensionsDialog.cpp" />
     <ClCompile Include="Src\Dialogs\PrepareBitmapBase.cpp" />
+    <ClCompile Include="Src\FrameComponents\AudioWaveformUI.cpp" />
     <ClCompile Include="Src\FrameComponents\ExtTabControl.cpp" />
     <ClCompile Include="Src\FrameComponents\MessageEditorListCtrl.cpp" />
     <ClCompile Include="Src\FrameComponents\MessageEditPane.cpp" />
@@ -287,6 +288,7 @@
     <ClInclude Include="Src\Dialogs\PaletteEditorDialog.h" />
     <ClInclude Include="Src\Dialogs\PicDimensionsDialog.h" />
     <ClInclude Include="Src\FrameComponents\AudioPlaybackUI.h" />
+    <ClInclude Include="Src\FrameComponents\AudioWaveformUI.h" />
     <ClInclude Include="Src\FrameComponents\ExtTabControl.h" />
     <ClInclude Include="Src\FrameComponents\MessageEditorListCtrl.h" />
     <ClInclude Include="Src\FrameComponents\MessageEditPane.h" />

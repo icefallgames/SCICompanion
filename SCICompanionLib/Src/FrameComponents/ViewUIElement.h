@@ -44,7 +44,6 @@ private:
     CRect _rectFullBounds;  // Not zoomed
     int _iZoom;
     CPoint _ptOrigin;
-    bool _fDoubleBuffer;
     std::unique_ptr<CBitmap> _pbitmapDoubleBuf;
     CSize _sizeDoubleBuf;
     int _nCel;

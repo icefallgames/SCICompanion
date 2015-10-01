@@ -7,6 +7,7 @@
 #include "Message.h"
 #include "AudioPlaybackUI.h"
 #include "ViewUIElement.h"
+#include "Task.h"
 
 class CMessageDoc;
 struct SyncComponent;
@@ -20,82 +21,6 @@ enum class SidecarResourceStatus
     Moved = 0x4,        // This was moved (e.g. map needs to be updated, but not the thing)
 };
 DEFINE_ENUM_FLAGS(SidecarResourceStatus, uint32_t)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#include <future>
-
-template <typename _TResponse>
-class CWndTaskWrapperNEW
-{
-    // Use a function object so that we can null out the hwnd?
-    // That's an advanced feature, we won't bother for now.
-};
-
-template<typename _TResponse, typename _TInnerFunc>
-_TResponse HWNDTaskWrapper(_TInnerFunc innerFunc, HWND hwnd, UINT message)
-{
-    _TResponse response = innerFunc();
-    PostMessage(hwnd, message, 0, 0);
-    return response;
-}
-
-// A more generic mechanism?
-template<typename _TResponse>
-class CWndTaskSink
-{
-public:
-    // pwnd guaranteed to exist as long as CWndTaskSink does.
-    CWndTaskSink(CWnd *pwnd, UINT message) : _pwnd(pwnd), _message(message) {}
-
-    ~CWndTaskSink() { Abandon(); }
-
-    template<typename _TFunc>
-    void StartTask(_TFunc func)
-    {
-        // TODO: add futures to a queue, so we can instantiate new ones.
-        _future = std::make_unique<std::future<_TResponse>>(std::async(std::launch::async, HWNDTaskWrapper<_TResponse, _TFunc>, func, _pwnd->GetSafeHwnd(), _message));
-    }
-
-    void Abandon()
-    {
-        // TODO
-    }
-
-    _TResponse GetResponse()
-    {
-        // Ok to block, since we posted the message just as we were about to be done. get blocks
-        //if (future_status::ready == _future.wait_for(std::chrono::seconds(0)))
-        return _future->get();
-    }
-
-private:
-    std::unique_ptr<std::future<_TResponse>> _future;
-
-    CWnd *_pwnd;
-    UINT _message;
-};
-
-
-
-
-
-
-
-
-
 
 class MessageEditPane : public AudioPlaybackUI<CExtDialogFwdCmd>, public INonViewClient
 {
@@ -121,7 +46,6 @@ public:
     void _Update();
 
 protected:
-    void OnPlaybackTimer() override;
     void OnNewResourceCreated(std::unique_ptr<ResourceEntity> audioResource, const std::string &name) override;
 
     const TextComponent *_GetResource();

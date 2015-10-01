@@ -205,72 +205,50 @@ private:
     std::deque<TaskResponse> _responseQueue;
 };
 
-#if 0
+#include <future>
+
+template<typename _TResponse, typename _TInnerFunc>
+_TResponse HWNDTaskWrapper(_TInnerFunc innerFunc, HWND hwnd, UINT message)
+{
+    _TResponse response = innerFunc();
+    PostMessage(hwnd, message, 0, 0);
+    return response;
+}
+
 // A more generic mechanism?
 template<typename _TResponse>
 class CWndTaskSink
 {
 public:
     // pwnd guaranteed to exist as long as CWndTaskSink does.
-    CWndTaskSink(CWnd *pwnd) : _pwnd(pwnd) {}
+    CWndTaskSink(CWnd *pwnd, UINT message) : _pwnd(pwnd), _message(message) {}
 
     ~CWndTaskSink() { Abandon(); }
 
-    void Abandon()
+    template<typename _TFunc>
+    void StartTask(_TFunc func)
     {
-        _communicator->Unhook();
+        // TODO: add futures to a queue, so we can instantiate new ones.
+        _future = std::make_unique<std::future<_TResponse>>(std::async(std::launch::async, HWNDTaskWrapper<_TResponse, _TFunc>, func, _pwnd->GetSafeHwnd(), _message));
     }
 
-    std::unique_ptr<_TResponse> GetResponse()
+    void Abandon()
     {
-        return std::move(_communicator->GetResponse());
+        // TODO
+    }
+
+    _TResponse GetResponse()
+    {
+        // Ok to block, since we posted the message just as we were about to be done. get blocks
+        //if (future_status::ready == _future.wait_for(std::chrono::seconds(0)))
+        return _future->get();
     }
 
 private:
-
-    class TaskCommunicator
-    {
-    public:
-        TaskCommunicator(HWND hwnd, UINT message) : _hwnd(hwnd) {}
-
-        void Unhook()
-        {
-            std::lock_guard<std::mutex> lock(_mutex);
-            _hwnd = nullptr;
-            _response = nullptr;
-        }
-
-        std::unique_ptr<_TResponse> GetResponse()
-        {
-            std::lock_guard<std::mutex> lock(_mutex);
-            if (_hwnd)
-            {
-                return std::move(_response);
-            }
-        }
-
-        void ProvideResponse(std::unique_ptr<_TResponse> response)
-        {
-            std::lock_guard<std::mutex> lock(_mutex);
-            if (_hwnd)
-            {
-                _response = std::move(response);
-                PostMessage(_hwnd, _message, 0, 0);
-            }
-        }
-
-    private:
-        // TODO: Maybe this is sharedptr?
-        HWND _hwnd;
-        UINT _message;
-        std::unique_ptr<_TResponse> _response;
-        std::mutex _mutex;
-    };
-
-    std::shared_ptr<TaskCommunicator> _communicator;
+    std::unique_ptr<std::future<_TResponse>> _future;
 
     CWnd *_pwnd;
+    UINT _message;
 };
-#endif
 
 

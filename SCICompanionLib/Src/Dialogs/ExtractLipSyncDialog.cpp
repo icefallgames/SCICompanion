@@ -5,6 +5,10 @@
 #include "LipSyncUtil.h"
 #include "format.h"
 #include "AppState.h"
+#include <sphelper.h>
+#include "sapi_lipsync.h"
+#include <locale>
+#include <codecvt>
 
 #define LIPSYNC_TIMER 2345
 
@@ -16,16 +20,21 @@ static char THIS_FILE[] = __FILE__;
 
 using namespace std;
 
+struct LipSyncDialogTaskResult
+{
+    SyncComponent Sync;
+    std::vector<alignment_result> RawResults;
+};
+
+#define UWM_LIPSYNCTASKDONE (WM_APP + 1)
+
 // ExtractLipSyncDialog dialog
 
-ExtractLipSyncDialog::ExtractLipSyncDialog(const AudioComponent &audio, const SyncComponent *sync, uint8_t talker, CWnd* pParent /*=NULL*/)
+ExtractLipSyncDialog::ExtractLipSyncDialog(const ResourceEntity &resource, uint8_t talker, CWnd* pParent /*=NULL*/)
     : AudioPlaybackUI<CExtResizableDialog>(ExtractLipSyncDialog::IDD, pParent), _talker(talker), _talkerToViewMap(appState), _initialized(false)
 {
-    _audioCopy = std::make_unique<AudioComponent>(audio);
-    if (sync)
-    {
-        _syncComponent = std::make_unique<SyncComponent>(*sync);
-    }
+    _audioResource = resource.Clone();
+    _taskSink = std::make_unique<CWndTaskSink<LipSyncDialogTaskResult>>(this, UWM_LIPSYNCTASKDONE);
 }
 
 ExtractLipSyncDialog::~ExtractLipSyncDialog()
@@ -36,10 +45,10 @@ void ExtractLipSyncDialog::_UpdateSyncList()
 {
     m_wndSyncList.SetRedraw(FALSE);
     m_wndSyncList.DeleteAllItems();
-    if (_syncComponent)
+    if (_audioResource->TryGetComponent<SyncComponent>())
     {
         int index = 0;
-        for (auto &entry : _syncComponent->Entries)
+        for (auto &entry : _audioResource->TryGetComponent<SyncComponent>()->Entries)
         {
             m_wndSyncList.InsertItem(index, fmt::format("{}", (int)entry.Tick).c_str());
             m_wndSyncList.SetItem(index, 1, LVIF_TEXT, fmt::format("{}", (int)entry.Cel).c_str(), 0, 0, 0, 0);
@@ -60,14 +69,14 @@ void ExtractLipSyncDialog::_InitSyncListColumns()
     col.iOrder = 0;
     col.iSubItem = 0;
     col.pszText = "Ticks";
-    col.cx = 100;
+    col.cx = 40;
     col.fmt = LVCFMT_LEFT;
     m_wndSyncList.InsertColumn(0, &col);
 
     col.iOrder = 1;
     col.iSubItem = 1;
     col.pszText = "Cel";
-    col.cx = 30;
+    col.cx = 40;
     col.fmt = LVCFMT_LEFT;
     m_wndSyncList.InsertColumn(1, &col);
 }
@@ -79,7 +88,17 @@ void ExtractLipSyncDialog::DoDataExchange(CDataExchange* pDX)
     if (!_initialized)
     {
         _initialized = true;
+
+        DoDataExchangeHelper(pDX);
+
+        DDX_Control(pDX, IDC_EDIT_WORDS, m_rawLipSyncWords);
+        DDX_Control(pDX, ID_GENERATELIPSYNC, m_wndLipSyncButton);
         DDX_Control(pDX, IDC_PROGRESS, m_wndProgress);
+        // Set this here instead of the rc file, due to the xp toolset issue mentioned above.
+        m_wndProgress.ModifyStyle(0, PBS_MARQUEE, 0);
+        // For some reason this seems necessary, even though I'm using a marquee progress bar:
+        m_wndProgress.SetRange(0, 100);
+        m_wndProgress.SetPos(1);
 
         DDX_Control(pDX, IDC_EDIT_LOOP, m_wndLoopNumber);
         DDX_Control(pDX, IDC_EDIT_VIEW, m_wndViewNumber);
@@ -87,6 +106,7 @@ void ExtractLipSyncDialog::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_ANIMATE, m_wndMouth);
         m_wndMouth.SetBackground(g_PaintManager->GetColor(COLOR_BTNFACE));
         m_wndMouth.SetFillArea(true);
+        SetMouthElement(&m_wndMouth);
 
         string label = fmt::format("Talker {0} mouth view:", (int)_talker);
         m_wndTalkerLabel.SetWindowText(label.c_str());
@@ -97,6 +117,12 @@ void ExtractLipSyncDialog::DoDataExchange(CDataExchange* pDX)
 
         // Visuals
         DDX_Control(pDX, IDCANCEL, m_wndCancel);
+
+        SetAudioResource(_audioResource.get());
+
+        DDX_Control(pDX, IDC_WAVEFORM, m_wndWaveform);
+        m_wndWaveform.SetResource(_audioResource.get());
+        SetWaveformElement(&m_wndWaveform);
 
         _UpdateViewLoop();
         _SyncViewLoop();
@@ -161,6 +187,7 @@ void ExtractLipSyncDialog::_UpdateViewLoop()
 BOOL ExtractLipSyncDialog::OnInitDialog()
 {
     BOOL fRet = __super::OnInitDialog();
+    OnInitDialogHelper();
     ShowSizeGrip(FALSE);
     return fRet;
 }
@@ -171,8 +198,37 @@ void ExtractLipSyncDialog::OnCancel()
     __super::OnCancel();
 }
 
+void ExtractLipSyncDialog::_UpdateWords(const std::vector<alignment_result> &rawResults)
+{
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    std::stringstream ss;
+    for (auto &result : rawResults)
+    {
+        ss << converter.to_bytes(result.m_orthography);
+        ss << " ";
+    }
+    m_rawLipSyncWords.SetWindowText(ss.str().c_str());
+}
+
+const int LipSyncMarqueeMilliseconds = 30;
+
+LRESULT ExtractLipSyncDialog::_OnLipSyncDone(WPARAM wParam, LPARAM lParam)
+{
+    m_wndLipSyncButton.EnableWindow(TRUE);
+    LipSyncDialogTaskResult result = _taskSink->GetResponse();
+
+    _audioResource->RemoveComponent<SyncComponent>();
+    _audioResource->AddComponent<SyncComponent>(make_unique<SyncComponent>(result.Sync));
+    m_wndWaveform.SetRawLipSyncData(result.RawResults);
+    _UpdateWords(result.RawResults);
+    m_wndProgress.SendMessage(PBM_SETMARQUEE, FALSE, LipSyncMarqueeMilliseconds);
+    _UpdateSyncList();
+    return 0;
+}
+
 BEGIN_MESSAGE_MAP(ExtractLipSyncDialog, AudioPlaybackUI<CExtResizableDialog>)
     ON_WM_DESTROY()
+    ON_MESSAGE(UWM_LIPSYNCTASKDONE, _OnLipSyncDone)
     ON_BN_CLICKED(IDC_BUTTON_RESETMAPPING, &ExtractLipSyncDialog::OnBnClickedButtonResetmapping)
     ON_EN_KILLFOCUS(IDC_EDIT_PHONEMEMAP, &ExtractLipSyncDialog::OnEnKillfocusEditPhonememap)
     ON_EN_KILLFOCUS(IDC_EDIT_VIEW, &ExtractLipSyncDialog::OnEnKillfocusEditView)
@@ -197,14 +253,33 @@ void ExtractLipSyncDialog::OnEnKillfocusEditView()
     _SyncViewLoop();
 }
 
-
 void ExtractLipSyncDialog::OnEnKillfocusEditLoop()
 {
     _SyncViewLoop();
 }
 
+LipSyncDialogTaskResult CreateLipSyncComponentAndRawDataFromAudioAndPhonemes(const AudioComponent &audio, const PhonemeMap &phonemeMap)
+{
+    std::vector<alignment_result> rawResults;
+    LipSyncDialogTaskResult result;
+    std::unique_ptr<SyncComponent> syncComponent = CreateLipSyncComponentFromAudioAndPhonemes(audio, phonemeMap, &rawResults);
+    if (syncComponent)
+    {
+        result = { *syncComponent, rawResults };
+    }
+    return result;
+}
 
 void ExtractLipSyncDialog::OnBnClickedGeneratelipsync()
 {
-    // TODO: Start the lipsync data gen task
+    AudioComponent audioCopy = _audio->GetComponent<AudioComponent>();
+    // TODO: Get the proper phonemes.
+    PhonemeMap samplePhonemeMap(GetExeSubFolder("Samples") + "\\sample_phoneme_map.ini");
+
+    m_wndLipSyncButton.EnableWindow(FALSE);
+
+    _taskSink->StartTask(
+        [audioCopy, samplePhonemeMap]() { return CreateLipSyncComponentAndRawDataFromAudioAndPhonemes(audioCopy, samplePhonemeMap); }
+    );
+    m_wndProgress.SendMessage(PBM_SETMARQUEE, TRUE, LipSyncMarqueeMilliseconds);
 }

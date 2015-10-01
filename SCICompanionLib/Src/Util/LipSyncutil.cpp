@@ -13,7 +13,7 @@
 // 60 ticks per second
 uint16_t MillisecondsToSCITicks(long ms)
 {
-    return (uint16_t)(ms * 60 / 1000);
+    return (uint16_t)(ms * SCITicksPerSecond / 1000);
 }
 
 void AddSyncEntry(SyncComponent &sync, uint16_t ticks, uint16_t cel)
@@ -31,8 +31,6 @@ void AddSyncEntry(SyncComponent &sync, uint16_t ticks, uint16_t cel)
     }
 }
 
-// TODO: GEnerate warning report hwne missing phonemes............
-// TODO: Generate word report too
 std::unique_ptr<SyncComponent> CreateLipSyncComponentFromPhonemes(const PhonemeMap &phonemeMap, const std::vector<alignment_result> &alignments)
 {
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
@@ -81,7 +79,7 @@ std::unique_ptr<SyncComponent> CreateLipSyncComponentFromPhonemes(const PhonemeM
     return syncComponent;
 }
 
-std::unique_ptr<SyncComponent> CreateLipSyncComponentFromAudioAndPhonemes(const AudioComponent &audio, const PhonemeMap &phonemeMap)
+std::unique_ptr<SyncComponent> CreateLipSyncComponentFromAudioAndPhonemes(const AudioComponent &audio, const PhonemeMap &phonemeMap, std::vector<alignment_result> *optRawResults)
 {
     std::unique_ptr<SyncComponent> result;
 
@@ -122,6 +120,11 @@ std::unique_ptr<SyncComponent> CreateLipSyncComponentFromAudioAndPhonemes(const 
                     }
 
                     lipSync.finalize_phoneme_alignment();
+
+                    if (optRawResults)
+                    {
+                        *optRawResults = lipSync.get_phoneme_alignment();
+                    }
 
                     result = CreateLipSyncComponentFromPhonemes(phonemeMap, lipSync.get_phoneme_alignment());
 
