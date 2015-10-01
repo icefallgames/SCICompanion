@@ -16,6 +16,9 @@ public:
     void SetResource(const ResourceEntity *view, const PaletteComponent *optionalPalette);
 
     void SetLoop(int nLoop);
+    int GetLoop() const {
+        return _nLoop;
+    }
     void SetCel(int nCel, bool updateNow = false);
     void SetBackground(COLORREF color);
     void SetPatterned(bool isPatterned);

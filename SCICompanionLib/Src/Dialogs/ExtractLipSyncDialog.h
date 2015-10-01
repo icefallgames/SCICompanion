@@ -7,6 +7,7 @@
 #include "AudioWaveformUI.h"
 #include "Task.h"
 
+class PhonemeMap;
 struct AudioComponent;
 struct SyncComponent;
 class ResourceEntity;
@@ -18,7 +19,7 @@ class ExtractLipSyncDialog : public AudioPlaybackUI<CExtResizableDialog>
 public:
     ExtractLipSyncDialog(const ResourceEntity &resource, uint8_t talker, CWnd* pParent = NULL);   // standard constructor
     virtual ~ExtractLipSyncDialog();
-    virtual void OnCancel();
+    std::unique_ptr<SyncComponent> GetSyncComponent() const;
 
     // Dialog Data
     enum { IDD = IDD_LIPSYNCDIALOG };
@@ -38,8 +39,6 @@ protected:
 
     CProgressCtrl m_wndProgress;
 
-    // Visuals
-    CExtButton m_wndCancel;
     CExtEdit m_wndViewNumber;
     CExtEdit m_wndLoopNumber;
     CExtLabel m_wndTalkerLabel;
@@ -47,14 +46,29 @@ protected:
     AudioWaveformUI m_wndWaveform;
     CListCtrl m_wndSyncList;
     CExtEdit m_rawLipSyncWords;
+    CExtEdit m_wndEditPhonemeMap;
+    CExtEdit m_wndEditPhonemeMapStatus;
     CExtButton m_wndLipSyncButton;
+
+    // Visuals
+    CExtButton m_wndCancel;
+    CExtButton m_wndOk;
+    CExtButton m_wndCommitMapping;
+    CExtButton m_wndResetMapping;
+    CExtLabel m_wndStatic1;
+    CExtLabel m_wndStatic2;
+    CExtLabel m_wndStatic3;
+    CExtLabel m_wndStatic4;
 
     std::unique_ptr<ResourceEntity> _audioResource;
     std::unique_ptr<ResourceEntity> _viewResource;
+    bool _haveActualViewResource;
     uint8_t _talker;
     TalkerToViewMap _talkerToViewMap;
 
     std::unique_ptr<CWndTaskSink<LipSyncDialogTaskResult>> _taskSink;
+
+    std::unique_ptr<PhonemeMap> _phonemeMap;
 
     bool _initialized;
 
@@ -65,4 +79,5 @@ public:
     afx_msg void OnEnKillfocusEditView();
     afx_msg void OnEnKillfocusEditLoop();
     afx_msg void OnBnClickedGeneratelipsync();
+    afx_msg void OnBnClickedButtonCommitmapping();
 };

@@ -21,6 +21,10 @@ std::string GetAudioLength(const AudioComponent &audio)
 uint32_t AudioComponent::GetLengthInTicks() const
 {
     int bytePerSecond = max(1, Frequency);
+    if (IsFlagSet(Flags, AudioFlags::SixteenBit))
+    {
+        bytePerSecond *= 2;
+    }
     return SCITicksPerSecond * DigitalSamplePCM.size() / bytePerSecond;
 }
 

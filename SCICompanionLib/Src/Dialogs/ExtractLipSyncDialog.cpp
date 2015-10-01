@@ -31,7 +31,7 @@ struct LipSyncDialogTaskResult
 // ExtractLipSyncDialog dialog
 
 ExtractLipSyncDialog::ExtractLipSyncDialog(const ResourceEntity &resource, uint8_t talker, CWnd* pParent /*=NULL*/)
-    : AudioPlaybackUI<CExtResizableDialog>(ExtractLipSyncDialog::IDD, pParent), _talker(talker), _talkerToViewMap(appState), _initialized(false)
+    : AudioPlaybackUI<CExtResizableDialog>(ExtractLipSyncDialog::IDD, pParent), _talker(talker), _talkerToViewMap(appState), _initialized(false), _haveActualViewResource(false)
 {
     _audioResource = resource.Clone();
     _taskSink = std::make_unique<CWndTaskSink<LipSyncDialogTaskResult>>(this, UWM_LIPSYNCTASKDONE);
@@ -111,12 +111,22 @@ void ExtractLipSyncDialog::DoDataExchange(CDataExchange* pDX)
         string label = fmt::format("Talker {0} mouth view:", (int)_talker);
         m_wndTalkerLabel.SetWindowText(label.c_str());
 
+        DDX_Control(pDX, IDC_EDIT_PHONEMEMAP, m_wndEditPhonemeMap);
+        DDX_Control(pDX, IDC_EDIT_PHONEMEMAPSTATUS, m_wndEditPhonemeMapStatus);
+
         DDX_Control(pDX, IDC_LIST_SYNCRESOURCE, m_wndSyncList);
         _InitSyncListColumns();
         _UpdateSyncList();
 
         // Visuals
         DDX_Control(pDX, IDCANCEL, m_wndCancel);
+        DDX_Control(pDX, IDOK, m_wndOk);
+        DDX_Control(pDX, IDC_STATIC_SYNC36, m_wndStatic1);
+        DDX_Control(pDX, IDC_STATIC_LOOP, m_wndStatic2);
+        DDX_Control(pDX, IDC_STATIC_PHONEME, m_wndStatic3);
+        DDX_Control(pDX, IDC_STATIC_WORDS, m_wndStatic4);
+        DDX_Control(pDX, IDC_BUTTON_COMMITMAPPING, m_wndCommitMapping);
+        DDX_Control(pDX, IDC_BUTTON_RESETMAPPING, m_wndResetMapping);
 
         SetAudioResource(_audioResource.get());
 
@@ -149,10 +159,12 @@ void ExtractLipSyncDialog::_SyncViewLoop()
     }
     catch (std::invalid_argument){}
 
+    bool useSampleMap = false;
     bool needsNew = !_viewResource || (_viewResource->ResourceNumber != viewNumber);
     if (needsNew)
     {
         _viewResource = appState->GetResourceMap().CreateResourceFromNumber(ResourceType::View, viewNumber);
+        _haveActualViewResource = !!_viewResource;
         if (!_viewResource)
         {
             std::string mouthSampleFilename = appState->GetResourceMap().GetSamplesFolder() + "\\views\\MouthShapes.bin";
@@ -160,6 +172,7 @@ void ExtractLipSyncDialog::_SyncViewLoop()
             if (SUCCEEDED(blob.CreateFromFile("it's a mouth", mouthSampleFilename, sciVersion1_1, -1, -1)))
             {
                 _viewResource = CreateResourceFromResourceData(blob);
+                useSampleMap = true;
             }
         }
         m_wndMouth.SetResource(_viewResource.get(), nullptr);
@@ -167,6 +180,40 @@ void ExtractLipSyncDialog::_SyncViewLoop()
     m_wndMouth.SetLoop(loopNumber);
 
     _talkerToViewMap.SetTalkerToViewLoop(_talker, viewNumber, loopNumber);
+
+    // Try to load a phonememap.
+    if (useSampleMap)
+    {
+        _phonemeMap = std::make_unique<PhonemeMap>(GetExeSubFolder("Samples") + "\\sample_phoneme_map.ini");
+        m_wndCommitMapping.EnableWindow(TRUE);
+        m_wndEditPhonemeMapStatus.SetWindowText("Loaded sample phoneme map.");
+    }
+    else
+    {
+        // Try to load one. If we can't, show errors and load a default one.
+        _phonemeMap = LoadPhonemeMapForViewLoop(appState, viewNumber, loopNumber);
+        if (_phonemeMap->HasErrors() && _phonemeMap->GetFileContents().empty())
+        {
+            // couldn't even load the file. Show the deafult one?
+            _phonemeMap = std::make_unique<PhonemeMap>(GetExeSubFolder("Samples") + "\\default_phoneme_map.ini");
+            m_wndCommitMapping.EnableWindow(TRUE);
+            m_wndEditPhonemeMapStatus.SetWindowText("Loaded a default phoneme map, as none exists for this view/loop");
+        }
+        else
+        {
+            m_wndCommitMapping.EnableWindow(FALSE);
+            if (_phonemeMap->HasErrors())
+            {
+                m_wndEditPhonemeMapStatus.SetWindowText(_phonemeMap->GetErrors().c_str());
+            }
+            else
+            {
+                std::string status = "Loaded " + _phonemeMap->GetFilespec();
+                m_wndEditPhonemeMapStatus.SetWindowText(status.c_str());
+            }
+        }
+    }
+    m_wndEditPhonemeMap.SetWindowText(_phonemeMap->GetFileContents().c_str());
 }
 
 void ExtractLipSyncDialog::_UpdateViewLoop()
@@ -192,10 +239,15 @@ BOOL ExtractLipSyncDialog::OnInitDialog()
     return fRet;
 }
 
-void ExtractLipSyncDialog::OnCancel()
+std::unique_ptr<SyncComponent> ExtractLipSyncDialog::GetSyncComponent() const
 {
-    // TODO: what to do? if we cancelled? how do I stop it
-    __super::OnCancel();
+    const SyncComponent *sync = _audioResource->TryGetComponent<SyncComponent>();
+    std::unique_ptr<SyncComponent> syncReturn;
+    if (sync)
+    {
+        syncReturn = std::make_unique<SyncComponent>(*sync);
+    }
+    return syncReturn;
 }
 
 void ExtractLipSyncDialog::_UpdateWords(const std::vector<alignment_result> &rawResults)
@@ -234,19 +286,23 @@ BEGIN_MESSAGE_MAP(ExtractLipSyncDialog, AudioPlaybackUI<CExtResizableDialog>)
     ON_EN_KILLFOCUS(IDC_EDIT_VIEW, &ExtractLipSyncDialog::OnEnKillfocusEditView)
     ON_EN_KILLFOCUS(IDC_EDIT_LOOP, &ExtractLipSyncDialog::OnEnKillfocusEditLoop)
     ON_BN_CLICKED(ID_GENERATELIPSYNC, &ExtractLipSyncDialog::OnBnClickedGeneratelipsync)
+    ON_BN_CLICKED(IDC_BUTTON_COMMITMAPPING, &ExtractLipSyncDialog::OnBnClickedButtonCommitmapping)
 END_MESSAGE_MAP()
 
 void ExtractLipSyncDialog::OnBnClickedButtonResetmapping()
 {
-    // TODO: get the default phonememap, after asking user if they're sure...
+    if (IDYES == AfxMessageBox("Replace the current mapping with the template?", MB_YESNO))
+    {
+        _phonemeMap = std::make_unique<PhonemeMap>(GetExeSubFolder("Samples") + "\\default_phoneme_map.ini");
+        m_wndCommitMapping.EnableWindow(TRUE);
+        m_wndEditPhonemeMap.SetWindowText(_phonemeMap->GetFileContents().c_str());
+    }
 }
-
 
 void ExtractLipSyncDialog::OnEnKillfocusEditPhonememap()
 {
-    // TODO: Commit the phonemap here
+    m_wndCommitMapping.EnableWindow(TRUE);
 }
-
 
 void ExtractLipSyncDialog::OnEnKillfocusEditView()
 {
@@ -273,13 +329,36 @@ LipSyncDialogTaskResult CreateLipSyncComponentAndRawDataFromAudioAndPhonemes(con
 void ExtractLipSyncDialog::OnBnClickedGeneratelipsync()
 {
     AudioComponent audioCopy = _audio->GetComponent<AudioComponent>();
-    // TODO: Get the proper phonemes.
-    PhonemeMap samplePhonemeMap(GetExeSubFolder("Samples") + "\\sample_phoneme_map.ini");
+    if (_phonemeMap)
+    {
+        m_wndLipSyncButton.EnableWindow(FALSE);
+        PhonemeMap phonemeMapCopy = *_phonemeMap;
+        _taskSink->StartTask(
+            [audioCopy, phonemeMapCopy]() { return CreateLipSyncComponentAndRawDataFromAudioAndPhonemes(audioCopy, phonemeMapCopy); }
+        );
+        m_wndProgress.SendMessage(PBM_SETMARQUEE, TRUE, LipSyncMarqueeMilliseconds);
+    }
+}
 
-    m_wndLipSyncButton.EnableWindow(FALSE);
 
-    _taskSink->StartTask(
-        [audioCopy, samplePhonemeMap]() { return CreateLipSyncComponentAndRawDataFromAudioAndPhonemes(audioCopy, samplePhonemeMap); }
-    );
-    m_wndProgress.SendMessage(PBM_SETMARQUEE, TRUE, LipSyncMarqueeMilliseconds);
+void ExtractLipSyncDialog::OnBnClickedButtonCommitmapping()
+{
+    if (!_haveActualViewResource)
+    {
+        AfxMessageBox("You need to choose an existing view and loop before saving.", MB_OK | MB_ICONWARNING);
+    }
+    else
+    {
+        std::string errors;
+        CString strText;
+        m_wndEditPhonemeMap.GetWindowText(strText);
+        std::string message = "Saving ";
+        message += GetPhonemeMapFilespec(appState, _viewResource->ResourceNumber, m_wndMouth.GetLoop());
+        if (!SaveForViewLoop((PCSTR)strText, appState, _viewResource->ResourceNumber, m_wndMouth.GetLoop(), errors))
+        {
+            message += " : ";
+            message += errors;
+        }
+        m_wndEditPhonemeMapStatus.SetWindowText(message.c_str());
+    }
 }

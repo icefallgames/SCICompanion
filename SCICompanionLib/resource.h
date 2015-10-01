@@ -681,6 +681,8 @@
 #define IDC_BUTTON_RESETMAPPING         1324
 #define IDC_EDIT_PHONEMEMAPSTATUS       1325
 #define IDC_CHECK_HALFSPEED             1326
+#define IDC_STATIC_SYNC36               1327
+#define IDC_BUTTON_COMMITMAPPING        1328
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -1027,7 +1029,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        394
 #define _APS_NEXT_COMMAND_VALUE         33275
-#define _APS_NEXT_CONTROL_VALUE         1327
+#define _APS_NEXT_CONTROL_VALUE         1328
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

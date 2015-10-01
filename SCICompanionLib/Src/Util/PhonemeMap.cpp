@@ -1,11 +1,32 @@
 #include "stdafx.h"
 #include "PhonemeMap.h"
+#include "AppState.h"
 #include "cpptoml.h"
+#include "format.h"
 
 using namespace std;
 using namespace cpptoml;
 
-PhonemeMap::PhonemeMap(const std::string &filename) : _filename(filename)
+std::string GetPhonemeMapFilespec(AppState *appState, int view, int loop)
+{
+    return fmt::format("phoneme_{0}_{1}.ini", view, loop);
+}
+
+std::string GetPhonemeMapPath(AppState *appState, int view, int loop)
+{
+    std::string folder = appState->GetResourceMap().Helper().GetLipSyncFolder();
+    folder += "\\";
+    folder += GetPhonemeMapFilespec(appState, view, loop);
+    return folder;
+}
+
+std::unique_ptr<PhonemeMap> LoadPhonemeMapForViewLoop(AppState *appState, int view, int loop)
+{
+    std::string fullPath = GetPhonemeMapPath(appState, view, loop);
+    return std::make_unique<PhonemeMap>(fullPath);
+}
+
+PhonemeMap::PhonemeMap(const std::string &filename) : _filespec(filename.substr(filename.find_last_of("\\/")))
 {
     try
     {
@@ -19,9 +40,17 @@ PhonemeMap::PhonemeMap(const std::string &filename) : _filename(filename)
                 _phonemeToCel[entry.first] = (int)(*value).get();
             }
         }
+
+        ifstream file;
+        file.open(filename, std::ios_base::binary | std::ios_base::in);
+        if (file.is_open())
+        {
+            _fileContents = std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+        }
     }
-    catch (parse_exception)
+    catch (...)
     {
+        _errors = "There was en error";
     }
 }
 
@@ -34,4 +63,36 @@ uint16_t PhonemeMap::PhonemeToCel(const std::string &phoneme) const
         cel = (uint16_t)it->second;
     }
     return cel;
+}
+
+bool SaveForViewLoop(const std::string &text, AppState *appState, int view, int loop, std::string &errors)
+{
+    std::string fullPath = GetPhonemeMapPath(appState, view, loop);
+    std::string fullPathBak = fullPath + ".bak";
+
+    std::ofstream fileBak;
+    fileBak.open(fullPathBak, std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
+    if (fileBak.is_open())
+    {
+        fileBak << text;
+        fileBak.close();
+    }
+
+    std::unique_ptr<PhonemeMap> mapTest = std::make_unique<PhonemeMap>(fullPathBak);
+    if (!mapTest->HasErrors())
+    {
+        // Save the real one.
+        std::ofstream file;
+        file.open(fullPath, std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
+        if (file.is_open())
+        {
+            file << text;
+            file.close();
+        }
+    }
+
+    deletefile(fullPathBak);
+
+    errors = mapTest->GetErrors();
+    return !mapTest->HasErrors();
 }

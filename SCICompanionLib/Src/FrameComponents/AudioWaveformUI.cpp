@@ -24,6 +24,15 @@ BEGIN_MESSAGE_MAP(AudioWaveformUI, CStatic)
     ON_WM_DRAWITEM_REFLECT()
 END_MESSAGE_MAP()
 
+COLORREF g_darkPhonemeColors[] =
+{
+    RGB(144, 144, 255),
+    RGB(144, 255, 144),
+    RGB(144, 255, 255),
+    RGB(255, 144, 255),
+    RGB(255, 255, 144),
+    RGB(255, 255, 255),
+};
 COLORREF g_phonemeColors[] =
 {
     RGB(196, 196, 255),
@@ -118,6 +127,7 @@ void AudioWaveformUI::_DrawWaveform(CDC *pDC, LPRECT prc)
         dcMem.FillSolidRect(prc, RGB(196, 196, 196));
 
         int blockAlign = IsFlagSet(audio.Flags, AudioFlags::SixteenBit) ? 2 : 1;
+        int scale = (blockAlign == 2) ? 65535 : 128;
         int sampleCount = audio.GetLength() / blockAlign;
         std::vector<CPoint> points;
         std::vector<DWORD> pointCounts;
@@ -131,17 +141,26 @@ void AudioWaveformUI::_DrawWaveform(CDC *pDC, LPRECT prc)
         int binSize = (sampleCount + (width - 1)) / width;  // "round up"
         for (int i = 0; i < sampleCount; i++)
         {
-            int value = (int)audio.DigitalSamplePCM[i] - 128; // Normalize
+            int value;
+            if (blockAlign == 1)
+            { 
+                value = (int)audio.DigitalSamplePCM[i] - scale; // Normalize
+            }
+            else
+            {
+                // 16 bit is signed already? (usually)
+                value = *reinterpret_cast<const int16_t*>(&audio.DigitalSamplePCM[i * 2]);
+            }
+            
             waveFormMax[i / binSize] = max(waveFormMax[i / binSize], value);
             waveFormMin[i / binSize] = min(waveFormMin[i / binSize], value);
         }
-        // TODO: support for 16 bits
 
         for (int x = 0; x < width; x++)
         {
             // Add a line from y to -y the middle.
-            int yTop = waveFormMax[x] * height / 128;
-            int yBottom = waveFormMin[x] * height / 128;
+            int yTop = waveFormMax[x] * height / scale;
+            int yBottom = waveFormMin[x] * height / scale;
             points.emplace_back(x, yMiddle + yTop);
             points.emplace_back(x, yMiddle + yBottom);
             pointCounts.push_back(2);
@@ -160,24 +179,59 @@ void AudioWaveformUI::_DrawWaveform(CDC *pDC, LPRECT prc)
             dcMem.SelectObject(hOld);
         }
 
-        // If we have lipsync data, draw that.
-        long ms = audio.GetLength() * 1000 / audio.Frequency;
+        // If we have lipsync data, draw those phonemes now.
+        long ms = audio.GetLength() * 1000 / audio.Frequency / blockAlign;
         int colorIndex = 0;
         dcMem.SetTextColor(RGB(0, 0, 0));
-        dcMem.SetBkMode(OPAQUE);
+        dcMem.SetBkMode(TRANSPARENT);
         CRect rcMeasure = {};
         dcMem.DrawText("M", &rcMeasure, DT_SINGLELINE | DT_CALCRECT);
+        int lineHeight = RECTHEIGHT(rcMeasure);
+        int xLastEnds[4] = { 0, 0, 0, 0 };
         for (auto &phoneme : _rawLipSyncData)
         {
             // To start with, just draw them.
             int xStart = phoneme.start * width / ms;
             int xEnd = phoneme.stop * width / ms;
+            if (xStart == xEnd)
+            {
+                xEnd++; // Ensure we have at least one pixel.
+            }
             dcMem.SetBkColor(g_phonemeColors[colorIndex]);
             colorIndex++;
             colorIndex %= ARRAYSIZE(g_phonemeColors);
 
-            CRect rcText = { xStart, 0, xEnd, RECTHEIGHT(rcMeasure) };
+            // Find a "line" on which to draw it
+            int line = 0;
+            while (line < ARRAYSIZE(xLastEnds))
+            {
+                if (xStart >= xLastEnds[line])
+                {
+                    break;
+                }
+                line++;
+            }
+            line %= ARRAYSIZE(xLastEnds);
+            int yTop = line * lineHeight;
+
+            CRect rcMeasureP = { xStart, 0, 0, 0 };
+            dcMem.DrawText(phoneme.phoneme.c_str(), &rcMeasureP, DT_SINGLELINE | DT_CALCRECT);
+            
+            // Background...
+            CRect rcBackgroundDark = { xStart, yTop, xEnd, yTop + lineHeight };
+            dcMem.FillSolidRect(&rcBackgroundDark, g_darkPhonemeColors[colorIndex]);
+            if (xEnd < rcMeasureP.right)
+            {
+                // Text is longer than timespan... extend the background under it
+                CRect rcBackground = { xEnd, yTop, rcMeasureP.right, yTop + lineHeight };
+                dcMem.FillSolidRect(&rcBackground, g_phonemeColors[colorIndex]);
+            }
+
+            CRect rcText = { xStart, yTop, rcMeasureP.right, yTop + lineHeight };
             dcMem.DrawText(phoneme.phoneme.c_str(), &rcText, DT_SINGLELINE);
+
+            // Two widths to consider... text string length and phoneme length.
+            xLastEnds[line] = max(xEnd, rcMeasureP.right); 
         }
 
         dcMem.SelectObject(hOldBmp);
