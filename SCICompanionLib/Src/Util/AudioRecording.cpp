@@ -150,6 +150,88 @@ void AudioRecording::IdleUpdate()
     }
 }
 
+static uint16_t s_threshold = 512;
+
+int NoiseGate(int sample)
+{
+    if (sample > s_threshold || sample < -s_threshold)
+    {
+        sample = sample;
+    }
+    else sample = 0;
+    return sample;
+}
+
+// Needs some tweaking.
+static float AttackTime = 0.015f;
+static float ReleaseTime = 0.025f;
+static float HoldTime = 0.1f;
+static float OpenThresholdDb = -26.0f;
+static float CloseThresholdDb = -32.0f;
+
+float dbToRms(float db)
+{
+    return pow(10.0f, db / 20.0f);
+}
+
+void ApplyNoiseGate(float *buffer, int totalFloats, float sampleRate)
+{
+    float attenuation = 0.0f;
+    float level = 0.0f;
+    float heldTime = 0.0f;
+    bool isOpen = false;
+
+    float OpenThreshold = dbToRms(OpenThresholdDb);
+    float CloseThreshold = dbToRms(CloseThresholdDb);
+
+    const float SAMPLE_RATE_F = sampleRate;
+    const float dtPerSample = 1.0f / SAMPLE_RATE_F;
+
+    // Convert configuration times into per-sample amounts
+    const float attackRate = 1.0f / (AttackTime * SAMPLE_RATE_F);
+    const float releaseRate = 1.0f / (ReleaseTime * SAMPLE_RATE_F);
+
+    // Determine level decay rate. We don't want human voice (75-300Hz) to cross the close
+    // threshold if the previous peak crosses the open threshold.
+    const float thresholdDiff = OpenThreshold - CloseThreshold;
+    const float minDecayPeriod = (1.0f / 75.0f) * SAMPLE_RATE_F;
+    const float decayRate = thresholdDiff / minDecayPeriod;
+
+    // We can't use SSE as the processing of each sample depends on the processed
+    // result of the previous sample.
+    for (int i = 0; i < totalFloats; i ++)
+    {
+        // Get current input level
+        float curLvl = abs(buffer[i]);
+
+        // Test thresholds
+        if (curLvl > OpenThreshold && !isOpen)
+            isOpen = true;
+        if (level < CloseThreshold && isOpen)
+        {
+            heldTime = 0.0f;
+            isOpen = false;
+        }
+
+        // Decay level slowly so human voice (75-300Hz) doesn't cross the close threshold
+        // (Essentially a peak detector with very fast decay)
+        level = max(level, curLvl) - decayRate;
+
+        // Apply gate state to attenuation
+        if (isOpen)
+            attenuation = min(1.0f, attenuation + attackRate);
+        else
+        {
+            heldTime += dtPerSample;
+            if (heldTime > HoldTime)
+                attenuation = max(0.0f, attenuation - releaseRate);
+        }
+
+        // Attenuate!
+        buffer[i] *= attenuation;
+    }
+}
+
 std::unique_ptr<AudioComponent> AudioRecording::Stop()
 {
     std::unique_ptr<AudioComponent> audio = std::make_unique<AudioComponent>();
@@ -158,6 +240,30 @@ std::unique_ptr<AudioComponent> AudioRecording::Stop()
     {
         audio.reset(nullptr);   // Error
     }
+
+    if (audio)
+    {
+        // convert to float
+        std::vector<float> buffer;
+        buffer.reserve(audio->DigitalSamplePCM.size());
+        std::transform(audio->DigitalSamplePCM.begin(), audio->DigitalSamplePCM.end(), std::back_inserter(buffer),
+            [](uint8_t byte) { return ((float)((int)byte - 128)) / 128.0f; }
+            );
+
+        ApplyNoiseGate(&buffer[0], buffer.size(), audio->Frequency);
+    
+        // Push it back
+        std::transform(buffer.begin(), buffer.end(), audio->DigitalSamplePCM.begin(),
+            [](float value)
+        {
+            float temp = (value * 128.0f) + 128.0f;
+            int temp2 = (int)temp;
+            return (uint8_t)(min(max(temp2, 0), 255));
+        }
+        );
+
+    }
+
     return audio;
 }
 
