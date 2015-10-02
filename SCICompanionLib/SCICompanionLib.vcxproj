@@ -810,6 +810,7 @@
     <Image Include="res\GameFolder.ico" />
     <Image Include="res\greyscal.ico" />
     <Image Include="res\greyscale.ico" />
+    <Image Include="res\headphones.ico" />
     <Image Include="res\history1.ico" />
     <Image Include="res\ico00001.ico" />
     <Image Include="res\icon1.ico" />
@@ -858,6 +859,7 @@
     <Image Include="res\PolyPath.ico" />
     <Image Include="res\preferences.ico" />
     <Image Include="res\prioritylines.ico" />
+    <Image Include="res\record.ico" />
     <Image Include="res\rect.ico" />
     <Image Include="res\rect_solid.ico" />
     <Image Include="res\refresh.ico" />

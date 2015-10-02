@@ -4,6 +4,7 @@
 #include "ExtDialogFwdCmd.h"
 #include "NoFlickerStatic.h"
 #include "MessageEditorListCtrl.h"
+#include "LevelMeter.h"
 
 class CMessageDoc;
 struct TextComponent;
@@ -52,6 +53,9 @@ private:
     CExtButton m_wndButton3;
     CExtButton m_wndButton4;
 
+    CExtCheckBox m_wndCheckMonitor;
+    LevelMeter m_wndLevelMeter;
+
     CExtHyperLinkButton m_wndGotoScript;
 
     HACCEL _hAccel;
@@ -60,5 +64,6 @@ public:
     afx_msg void OnBnClickedButtonaddverb();
     afx_msg void OnBnClickedButtonaddtalker();
     afx_msg void OnBnClickedButtondeleteverb();
+    afx_msg void OnBnClickedButtoncheckmonitor();
     afx_msg void OnBnClickedButtondeletetalker();
 };

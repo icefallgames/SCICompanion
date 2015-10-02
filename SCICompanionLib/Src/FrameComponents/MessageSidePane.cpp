@@ -37,6 +37,12 @@ void MessageSidePane::DoDataExchange(CDataExchange* pDX)
 
     DDX_Control(pDX, IDC_GOTOSCRIPT, m_wndGotoScript);
     m_wndGotoScript.m_bUseStdCommandNotification = true;
+
+    // Show these all the time, even if audio36 isn't support. No harm.
+    DDX_Control(pDX, IDC_CHECK_MONITOR, m_wndCheckMonitor);
+    m_wndCheckMonitor.SetIcon(IDI_MONITOR, 0, 0, 0, 16, 16);
+    DDX_Control(pDX, IDC_LEVELMETER, m_wndLevelMeter);
+    m_wndLevelMeter.SetCheckBox(&m_wndCheckMonitor);    // Associated with level meter so it can be updated.
 }
 
 
@@ -49,6 +55,7 @@ BEGIN_MESSAGE_MAP(MessageSidePane, CExtDialogFwdCmd)
     ON_BN_CLICKED(IDC_BUTTONADDTALKER, &MessageSidePane::OnBnClickedButtonaddtalker)
     ON_BN_CLICKED(IDC_BUTTONDELETEVERB, &MessageSidePane::OnBnClickedButtondeleteverb)
     ON_BN_CLICKED(IDC_BUTTONDELETETALKER, &MessageSidePane::OnBnClickedButtondeletetalker)
+    ON_BN_CLICKED(IDC_CHECK_MONITOR, &MessageSidePane::OnBnClickedButtoncheckmonitor)
 END_MESSAGE_MAP()
 
 BOOL MessageSidePane::OnEraseBkgnd(CDC *pDC)
@@ -96,6 +103,8 @@ BOOL MessageSidePane::OnInitDialog()
     AddAnchor(IDC_BUTTONADDVERB, CPoint(0, 0), CPoint(100, 0));
     AddAnchor(IDC_BUTTONDELETETALKER, CPoint(100, 50), CPoint(100, 50));
     AddAnchor(IDC_BUTTONDELETEVERB, CPoint(100, 0), CPoint(100, 0));
+    AddAnchor(IDC_CHECK_MONITOR, CPoint(0, 0), CPoint(0, 0));
+    AddAnchor(IDC_LEVELMETER, CPoint(0, 0), CPoint(100, 0));
     // Hide the sizing grip
     ShowSizeGrip(FALSE);
 
@@ -148,6 +157,11 @@ void MessageSidePane::OnBnClickedButtonaddtalker()
 void MessageSidePane::OnBnClickedButtondeleteverb()
 {
     m_wndVerbs.DeleteSelectedItem();
+}
+
+void MessageSidePane::OnBnClickedButtoncheckmonitor()
+{
+    m_wndLevelMeter.Monitor(m_wndCheckMonitor.GetCheck() == BST_CHECKED);
 }
 
 void MessageSidePane::OnBnClickedButtondeletetalker()

@@ -290,6 +290,8 @@
 #define IDD_LIPSYNCDIALOG               389
 #define IDD_VIEWLOOP                    390
 #define IDR_MENUEGOS                    391
+#define IDI_RECORD                      392
+#define IDI_MONITOR                     393
 #define IDC_CHOOSECOLORSTATIC           1001
 #define IDC_BUTTON1                     1003
 #define IDC_BUTTONDOWN                  1003
@@ -373,7 +375,6 @@
 #define IDC_COMBO_PALETTE               1063
 #define IDC_EDIT_FINDWHAT               1064
 #define IDC_WAVEFORM                    1064
-#define IDC_ANIMATE2                    1064
 #define IDC_LEVELMETER                  1064
 #define IDC_CHECK_MATCHCASE             1065
 #define IDC_CHECK_MATCHWHOLEWORD        1066
@@ -696,6 +697,7 @@
 #define IDC_STATIC_BASE36NAME           1337
 #define IDC_STATIC_REC                  1338
 #define IDC_CHECK_TEXTLESS              1339
+#define IDC_CHECK_MONITOR               1340
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -1042,7 +1044,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        394
 #define _APS_NEXT_COMMAND_VALUE         33275
-#define _APS_NEXT_CONTROL_VALUE         1340
+#define _APS_NEXT_CONTROL_VALUE         1341
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

@@ -232,7 +232,7 @@ void AudioPlaybackUI<T>::OnInitDialogHelper()
         m_wndStop.SetFont(&_marlettFont);
         if (m_wndRecord)
         {
-            m_wndRecord.SetFont(&_marlettFont);
+            m_wndRecord.SetIcon(IDI_RECORD, 0, 0, 0, 16, 16);
         }
     }
 
@@ -358,7 +358,6 @@ void AudioPlaybackUI<T>::OnStop()
         resource->RemoveComponent<AudioComponent>();
         resource->AddComponent(std::move(newAudio));
         OnNewResourceCreated(std::move(resource), "recording");
-        assert(_audio); // They should have set it back on us!
     }
 
     _UpdatePlayState();

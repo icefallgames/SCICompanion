@@ -51,13 +51,13 @@ const uint32_t MonitorMilliseconds = 30;
 
 int AudioRecording::GetLevel()
 {
+    // Gets recent "levels" for the current recording/monitoring.
     if (hWaveIn)
     {
-        // TODO: Don't overlap things... i.e. don't run the algorihtm over the same set of
-        // bytes... might need to adjust things abit.
+        // REVIEW: Don't overlap things... i.e. don't run the algorihtm over the same set of
+        // bytes. This is really only a problem if we have multiple clients asking for the levels.
+        // Currently we don't.
 
-
-        // Use the value from the current recording.
         uint32_t bytesRecorded = waveHeader.dwBytesRecorded;
         assert(bytesRecorded >= lastStreamPositionMonitored);
         if (waveHeader.dwBytesRecorded > lastStreamPositionMonitored)
@@ -88,7 +88,21 @@ int AudioRecording::GetLevel()
             }
             else
             {
-                throw std::exception("implement this when done with 8 bit");
+                // 16 bit
+                int16_t maxValue = (std::numeric_limits<int16_t>::max)();
+                int16_t minValue = (std::numeric_limits<int16_t>::min)();
+
+                assert((bytesRecorded % 2) == 0);
+                const int16_t *sixteenBitBuffer = reinterpret_cast<const int16_t*>(waveHeader.lpData);
+                uint32_t samplesRecorded = bytesRecorded / 2;
+                for (size_t i = (samplesRecorded - samplesToExamine); i < samplesRecorded; i++)
+                {
+                    int16_t value = sixteenBitBuffer[i];
+                    maxValue = max(maxValue, value);
+                    minValue = min(minValue, value);
+                }
+                _lastLevelMonitored = max(abs(maxValue), abs(minValue));
+                _lastLevelMonitored = _lastLevelMonitored * 100 / (256 * 128);
             }
             
         }
