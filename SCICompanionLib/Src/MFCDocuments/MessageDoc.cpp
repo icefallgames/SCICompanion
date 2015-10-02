@@ -68,7 +68,7 @@ bool CMessageDoc::SetSyncComponent(uint32_t base36Number, std::unique_ptr<SyncCo
         SyncComponent *existingSync = entity->TryGetComponent<SyncComponent>();
         if (existingSync && sync)
         {
-            changed = *existingSync == *sync;
+            changed = *existingSync != *sync;
             if (changed)
             {
                 entity->RemoveComponent<SyncComponent>();

@@ -48,6 +48,8 @@ void MessageEditPane::DoDataExchange(CDataExchange* pDX)
 
         DoDataExchangeHelper(pDX);
 
+        DDX_Control(pDX, IDC_CHECK_TEXTLESS, m_wndTextless);
+        m_wndTextless.SetCheck(BST_CHECKED);    // Textless by default, the timing is more accurate.
         DDX_Control(pDX, IDC_COMBONOUN, m_wndComboNoun);
         DDX_Control(pDX, IDC_COMBOVERB, m_wndComboVerb);
         DDX_Control(pDX, IDC_COMBOTALKER, m_wndComboTalker);
@@ -210,6 +212,7 @@ BOOL MessageEditPane::OnInitDialog()
     AddAnchor(IDC_BUTTONLIPSYNC_DIALOG, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_STATIC_BASE36NAME, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_STATIC_REC, CPoint(100, 0), CPoint(100, 0));
+    AddAnchor(IDC_CHECK_TEXTLESS, CPoint(100, 0), CPoint(100, 0));
 
     // Hide the sizing grip
     ShowSizeGrip(FALSE);
@@ -456,6 +459,7 @@ void MessageEditPane::_Update()
     m_wndMouth.ShowWindow(cmdShowHasAudio);
     m_wndQuickLipSync.ShowWindow(cmdShowHasAudio);
     m_wndLipSyncDialog.ShowWindow(cmdShowHasAudio);
+    m_wndTextless.ShowWindow(cmdShowHasAudio);
 }
 
 void MessageEditPane::SetDocument(CDocument *pDoc)
@@ -720,9 +724,9 @@ void MessageEditPane::OnCbnEditchangeCombotalker()
     _talkerEdited = true;
 }
 
-SyncComponent CreateLipSyncComponentFromAudioAndPhonemes2(const AudioComponent &audio, const PhonemeMap &phonemeMap)
+SyncComponent CreateLipSyncComponentFromAudioAndPhonemes2(const AudioComponent &audio, const std::string &optionalText, const PhonemeMap &phonemeMap)
 {
-    std::unique_ptr<SyncComponent> syncComponent = CreateLipSyncComponentFromAudioAndPhonemes(audio, phonemeMap);
+    std::unique_ptr<SyncComponent> syncComponent = CreateLipSyncComponentFromAudioAndPhonemes(audio, optionalText, phonemeMap);
     if (syncComponent)
     {
         return *syncComponent;
@@ -730,18 +734,23 @@ SyncComponent CreateLipSyncComponentFromAudioAndPhonemes2(const AudioComponent &
     return SyncComponent(); // empty one, failure
 }
 
-
 void MessageEditPane::OnBnClickedButtonlipsync()
 {
     if (_audio)
     {
         AudioComponent audioCopy = _audio->GetComponent<AudioComponent>();
+        const TextEntry *entry = _GetEntry();
+        std::string optionalText;
+        if (m_wndTextless.GetCheck() != BST_CHECKED)
+        {
+            optionalText = entry->Text;
+        }
         PhonemeMap samplePhonemeMap(GetExeSubFolder("Samples") + "\\sample_phoneme_map.ini");
 
         m_wndQuickLipSync.EnableWindow(FALSE);
 
         _lipSyncTaskSink.StartTask(
-            [audioCopy, samplePhonemeMap]() { return CreateLipSyncComponentFromAudioAndPhonemes2(audioCopy, samplePhonemeMap); }
+            [audioCopy, optionalText, samplePhonemeMap]() { return CreateLipSyncComponentFromAudioAndPhonemes2(audioCopy, optionalText, samplePhonemeMap); }
         );
     }
 }
@@ -778,7 +787,7 @@ void MessageEditPane::OnBnClickedButtonlipsyncDialog()
             talkerName = talkersSource->ValueToName(entry->Talker);
         }
 
-        ExtractLipSyncDialog dialog(*_audio, entry->Talker, talkerName, entry->Text);
+        ExtractLipSyncDialog dialog(*_audio, entry->Talker, talkerName, entry->Text, m_wndTextless.GetCheck() == BST_CHECKED);
         if (IDOK == dialog.DoModal())
         {
             std::unique_ptr<SyncComponent> syncFromDialog = dialog.GetSyncComponent();

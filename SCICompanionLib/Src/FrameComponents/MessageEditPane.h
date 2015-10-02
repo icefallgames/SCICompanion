@@ -79,6 +79,7 @@ private:
     CExtComboBox m_wndComboCondition;
     bool _conditionEdited;
 
+    CExtCheckBox m_wndTextless;
     CExtEdit m_wndEditSequence;
 
     // Visual

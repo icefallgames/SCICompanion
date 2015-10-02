@@ -8,4 +8,4 @@ struct AudioComponent;
 int SCITicksToMilliseconds(int ticks);
 uint16_t MillisecondsToSCITicks(long ms);
 std::unique_ptr<SyncComponent> CreateLipSyncComponentFromPhonemes(const PhonemeMap &phonemeMap, const std::vector<alignment_result> &alignments);
-std::unique_ptr<SyncComponent> CreateLipSyncComponentFromAudioAndPhonemes(const AudioComponent &audio, const PhonemeMap &phonemeMap, std::vector<alignment_result> *optRawResults = nullptr);
+std::unique_ptr<SyncComponent> CreateLipSyncComponentFromAudioAndPhonemes(const AudioComponent &audio, const std::string &optionalText, const PhonemeMap &phonemeMap, std::vector<alignment_result> *optRawResults = nullptr);

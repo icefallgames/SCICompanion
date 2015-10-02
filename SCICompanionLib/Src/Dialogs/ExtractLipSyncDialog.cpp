@@ -33,7 +33,7 @@ struct LipSyncDialogTaskResult
 
 // ExtractLipSyncDialog dialog
 
-ExtractLipSyncDialog::ExtractLipSyncDialog(const ResourceEntity &resource, uint8_t talker, const std::string &talkerName, const std::string &messageText, CWnd * pParent /*=NULL*/)
+ExtractLipSyncDialog::ExtractLipSyncDialog(const ResourceEntity &resource, uint8_t talker, const std::string &talkerName, const std::string &messageText, bool textless, CWnd * pParent /*=NULL*/)
     : AudioPlaybackUI<CExtResizableDialog>(ExtractLipSyncDialog::IDD, pParent),
     _talker(talker),
     _talkerName(talkerName),
@@ -42,7 +42,8 @@ ExtractLipSyncDialog::ExtractLipSyncDialog(const ResourceEntity &resource, uint8
     _wantToUseSample(false),
     _nLoop(0),
     _nView(0),
-    _messageText(messageText)
+    _messageText(messageText),
+    _textless(textless)
 {
     uint16_t view, loop;
     if (_talkerToViewMap.TalkerToViewLoop(_talker, view, loop))
@@ -109,6 +110,8 @@ void ExtractLipSyncDialog::DoDataExchange(CDataExchange* pDX)
         DoDataExchangeHelper(pDX);
 
         DDX_Control(pDX, IDC_CHECK_USESAMPLE, m_wndUseSample);
+        DDX_Control(pDX, IDC_CHECK_TEXTLESS, m_wndTextless);
+        m_wndTextless.SetCheck(_textless ? BST_CHECKED : BST_UNCHECKED);
         DDX_Control(pDX, IDC_BUTTON_SETVIEW, m_wndSetView);
         DDX_Control(pDX, IDC_BUTTON_DELETE_SYNC, m_wndDeleteSync);
         m_wndDeleteSync.SetIcon(IDI_DELETE, 0, 0, 0, 16, 16);
@@ -315,11 +318,11 @@ void ExtractLipSyncDialog::OnEnKillfocusEditPhonememap()
     m_wndCommitMapping.EnableWindow(TRUE);
 }
 
-LipSyncDialogTaskResult CreateLipSyncComponentAndRawDataFromAudioAndPhonemes(const AudioComponent &audio, const PhonemeMap &phonemeMap)
+LipSyncDialogTaskResult CreateLipSyncComponentAndRawDataFromAudioAndPhonemes(const AudioComponent &audio, const std::string &optionalText, const PhonemeMap &phonemeMap)
 {
     std::vector<alignment_result> rawResults;
     LipSyncDialogTaskResult result;
-    std::unique_ptr<SyncComponent> syncComponent = CreateLipSyncComponentFromAudioAndPhonemes(audio, phonemeMap, &rawResults);
+    std::unique_ptr<SyncComponent> syncComponent = CreateLipSyncComponentFromAudioAndPhonemes(audio, optionalText, phonemeMap, &rawResults);
     if (syncComponent)
     {
         result = { *syncComponent, rawResults };
@@ -335,10 +338,15 @@ void ExtractLipSyncDialog::OnBnClickedGeneratelipsync()
         if (!_phonemeMap->IsEmpty() ||
             (IDYES == AfxMessageBox("The phoneme map appears to be all zeroes. Continue anyway?", MB_YESNO | MB_ICONWARNING)))
         {
+            std::string optionalText;
+            if (m_wndTextless.GetCheck() != BST_CHECKED)
+            {
+                optionalText = _messageText;
+            }
             m_wndLipSyncButton.EnableWindow(FALSE);
             PhonemeMap phonemeMapCopy = *_phonemeMap;
             _taskSink->StartTask(
-                [audioCopy, phonemeMapCopy]() { return CreateLipSyncComponentAndRawDataFromAudioAndPhonemes(audioCopy, phonemeMapCopy); }
+                [audioCopy, optionalText, phonemeMapCopy]() { return CreateLipSyncComponentAndRawDataFromAudioAndPhonemes(audioCopy, optionalText, phonemeMapCopy); }
             );
             m_wndProgress.SendMessage(PBM_SETMARQUEE, TRUE, LipSyncMarqueeMilliseconds);
         }

@@ -84,7 +84,7 @@ std::unique_ptr<SyncComponent> CreateLipSyncComponentFromPhonemes(const PhonemeM
     return syncComponent;
 }
 
-std::unique_ptr<SyncComponent> CreateLipSyncComponentFromAudioAndPhonemes(const AudioComponent &audio, const PhonemeMap &phonemeMap, std::vector<alignment_result> *optRawResults)
+std::unique_ptr<SyncComponent> CreateLipSyncComponentFromAudioAndPhonemes(const AudioComponent &audio, const std::string &optionalTextIn, const PhonemeMap &phonemeMap, std::vector<alignment_result> *optRawResults)
 {
     std::unique_ptr<SyncComponent> result;
 
@@ -104,17 +104,37 @@ std::unique_ptr<SyncComponent> CreateLipSyncComponentFromAudioAndPhonemes(const 
                 // NOTE: for different phoneme sets: create a new estimator
                 phoneme_estimator sapi51Estimator;
 
-                // 2. declare the sapi lipsync object and call the lipsync method to
-                // start the lipsync process
-                sapi_textless_lipsync lipSync(&sapi51Estimator);
-
                 std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
                 std::wstring wfilename = converter.from_bytes(tempWaveFilename);
-                if (lipSync.lipsync(wfilename))
+                std::wstring optionalText = converter.from_bytes(optionalTextIn);
+
+                // 2. declare the sapi lipsync object and call the lipsync method to
+                // start the lipsync process
+                std::unique_ptr<sapi_textless_lipsync> lipSyncTextless;
+                std::unique_ptr<sapi_textbased_lipsync> lipSyncTextbased;
+                sapi_lipsync *lipSync = nullptr;
+                if (optionalText.empty())
+                {
+                    lipSyncTextless = std::make_unique<sapi_textless_lipsync>(&sapi51Estimator);
+                    if (lipSyncTextless->lipsync(wfilename))
+                    {
+                        lipSync = lipSyncTextless.get();
+                    }
+                }
+                else
+                {
+                    lipSyncTextbased = std::make_unique<sapi_textbased_lipsync>(&sapi51Estimator);
+                    if (lipSyncTextbased->lipsync(wfilename, optionalText))
+                    {
+                        lipSync = lipSyncTextbased.get();
+                    }
+                }
+
+                if (lipSync)
                 {
                     // Apparently, even though this is not a UI thread, we need to pump messages.
                     MSG msg;
-                    while (!lipSync.isDone())
+                    while (!lipSync->isDone())
                     {
                         while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
                         {
@@ -124,14 +144,14 @@ std::unique_ptr<SyncComponent> CreateLipSyncComponentFromAudioAndPhonemes(const 
                         Sleep(1);
                     }
 
-                    lipSync.finalize_phoneme_alignment();
+                    lipSync->finalize_phoneme_alignment();
 
                     if (optRawResults)
                     {
-                        *optRawResults = lipSync.get_phoneme_alignment();
+                        *optRawResults = lipSync->get_phoneme_alignment();
                     }
 
-                    result = CreateLipSyncComponentFromPhonemes(phonemeMap, lipSync.get_phoneme_alignment());
+                    result = CreateLipSyncComponentFromPhonemes(phonemeMap, lipSync->get_phoneme_alignment());
 
                 }
             }
