@@ -148,7 +148,7 @@ AudioMapVersion _DetermineAudioMapVersion(int resourceNumber, int mainAudioMapRe
         }
     }
 
-    throw new std::exception("Unknown audio map format");
+    throw std::exception("Unknown audio map format");
 }
 
 void AudioMapReadFrom(ResourceEntity &resource, sci::istream &stream, const std::map<BlobKey, uint32_t> &propertyBag)

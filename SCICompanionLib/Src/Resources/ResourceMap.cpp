@@ -1260,14 +1260,13 @@ std::unique_ptr<ResourceEntity> CreateResourceHelper(const ResourceBlob &data, T
     { 
         pResourceReturn->InitFromResource(&data); 
     } 
-    catch (std::exception &theException) 
-    { 
+    catch (std::exception &theException)
+    {
         if (!fallbackOnException)
         {
             throw;
         }
-
-        /* Just create the default one */ 
+        // Just create the default one 
         appState->LogInfo(theException.what());
         data.AddStatusFlags(ResourceLoadStatusFlags::ResourceCreationFailed);
         pResourceReturn.reset(fallbackFunc(data.GetVersion()));
