@@ -78,6 +78,10 @@ void MessageEditPane::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_BUTTON_PLAY2, m_wndPlay);
         DDX_Control(pDX, IDC_BUTTON_STOP, m_wndStop);
         DDX_Control(pDX, IDC_CHECK_AUTOPREV, m_wndAutoPreview);
+        DDX_Control(pDX, IDC_LEVELMETER, m_wndLevelMeter);
+
+        // TODO: when this is more robust.
+        // m_wndLevelMeter.Monitor(true);
 
         DDX_Control(pDX, IDC_ANIMATE, m_wndMouth);
         m_wndMouth.SetBackground(g_PaintManager->GetColor(COLOR_BTNFACE));
@@ -213,6 +217,7 @@ BOOL MessageEditPane::OnInitDialog()
     AddAnchor(IDC_STATIC_BASE36NAME, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_STATIC_REC, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_CHECK_TEXTLESS, CPoint(100, 0), CPoint(100, 0));
+    AddAnchor(IDC_LEVELMETER, CPoint(100, 0), CPoint(100, 0));
 
     // Hide the sizing grip
     ShowSizeGrip(FALSE);
@@ -460,6 +465,7 @@ void MessageEditPane::_Update()
     m_wndQuickLipSync.ShowWindow(cmdShowHasAudio);
     m_wndLipSyncDialog.ShowWindow(cmdShowHasAudio);
     m_wndTextless.ShowWindow(cmdShowHasAudio);
+    m_wndLevelMeter.ShowWindow(cmdShowSupportsSync);
 }
 
 void MessageEditPane::SetDocument(CDocument *pDoc)

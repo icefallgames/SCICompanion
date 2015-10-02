@@ -28,13 +28,29 @@ public:
     void IdleUpdate();
     bool IsRecording();
     DWORD QueryPosition(DWORD scope);
+    int GetLevel(); // 0 to 100
 
 private:
+
+    enum class RecordState
+    {
+        Stopped,
+        Monitor,
+        Recording
+    };
+
+    void _StartBuffer(RecordState state, WaveRecordingFormat format);
     void Cleanup(AudioComponent *audioResult = nullptr);
 
     HWAVEIN hWaveIn;
     AudioFlags _recordingFlags;
     uint16_t _recordingFreq;
+
+    RecordState _state;
+
+    // Monitoring
+    int _lastLevelMonitored;    // 0 to 100
+    uint32_t lastStreamPositionMonitored;
 
     WAVEHDR waveHeader;
     std::unique_ptr<uint8_t[]> _buffer;

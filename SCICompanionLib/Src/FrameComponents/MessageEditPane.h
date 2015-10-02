@@ -7,6 +7,7 @@
 #include "Message.h"
 #include "AudioPlaybackUI.h"
 #include "ViewUIElement.h"
+#include "LevelMeter.h"
 #include "Task.h"
 
 class CMessageDoc;
@@ -97,6 +98,7 @@ private:
     CExtSpinWnd m_wndSpinner;
 
     // Lipsync stuff
+    LevelMeter m_wndLevelMeter;
     ViewUIElement m_wndMouth;
     CExtButton m_wndQuickLipSync;
     CExtButton m_wndLipSyncDialog;

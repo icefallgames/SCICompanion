@@ -8,7 +8,7 @@ WaveRecordingFormat g_WaveRecordingFormat = WaveRecordingFormat::TwentyTwoK8;
 
 #define BUFFER_SIZE (8 * 1024 * 1024)
 
-AudioRecording::AudioRecording() : hWaveIn(nullptr), waveHeader()
+AudioRecording::AudioRecording() : hWaveIn(nullptr), waveHeader(), _state(RecordState::Stopped), _lastLevelMonitored(0), lastStreamPositionMonitored(0)
 {
     _buffer = std::make_unique<uint8_t[]>(BUFFER_SIZE); // 8 MB for now. Workaround is just to browse for wav.
 }
@@ -25,12 +25,15 @@ void AudioRecording::Cleanup(AudioComponent *audio)
         MMRESULT result = waveInReset(hWaveIn);
         if (result == MMSYSERR_NOERROR)
         {
-            if (audio && (waveHeader.dwBytesRecorded > 0))
+            if (_state == RecordState::Recording)
             {
-                audio->Frequency = _recordingFreq;
-                audio->Flags = _recordingFlags;
-                audio->DigitalSamplePCM.clear();
-                std::copy(&_buffer[0], &_buffer[waveHeader.dwBytesRecorded], std::back_inserter(audio->DigitalSamplePCM));
+                if (audio && (waveHeader.dwBytesRecorded > 0))
+                {
+                    audio->Frequency = _recordingFreq;
+                    audio->Flags = _recordingFlags;
+                    audio->DigitalSamplePCM.clear();
+                    std::copy(&_buffer[0], &_buffer[waveHeader.dwBytesRecorded], std::back_inserter(audio->DigitalSamplePCM));
+                }
             }
         }
 
@@ -38,7 +41,66 @@ void AudioRecording::Cleanup(AudioComponent *audio)
         waveInClose(hWaveIn);
         hWaveIn = nullptr;
         memset(&waveHeader, 0, sizeof(waveHeader)); // Just for good measure
+
+        lastStreamPositionMonitored = 0;
     }
+    _state = RecordState::Stopped;
+}
+
+const uint32_t MonitorMilliseconds = 30;
+
+int AudioRecording::GetLevel()
+{
+    if (hWaveIn)
+    {
+        // TODO: Don't overlap things... i.e. don't run the algorihtm over the same set of
+        // bytes... might need to adjust things abit.
+
+
+        // Use the value from the current recording.
+        uint32_t bytesRecorded = waveHeader.dwBytesRecorded;
+        assert(bytesRecorded >= lastStreamPositionMonitored);
+        if (waveHeader.dwBytesRecorded > lastStreamPositionMonitored)
+        {
+            uint32_t bytesToExamine = (waveHeader.dwBytesRecorded - lastStreamPositionMonitored);
+            int blockAlign = IsFlagSet(_recordingFlags, AudioFlags::SixteenBit) ? 2 : 1;
+
+            // We only want to go back a max of MonitorMilliseconds though...
+            uint32_t maxBytesToExamine = MonitorMilliseconds * _recordingFreq * blockAlign / 1000;
+            bytesToExamine = min(bytesToExamine, maxBytesToExamine);
+
+            uint32_t samplesToExamine = bytesToExamine / blockAlign;
+            if (blockAlign == 1)
+            {
+                // Easy
+                uint8_t maxValue = 0;
+                uint8_t minValue = 255;
+                for (size_t i = (bytesRecorded - samplesToExamine); i < bytesRecorded; i++)
+                {
+                    uint8_t value = waveHeader.lpData[i];
+                    maxValue = max(maxValue, value);
+                    minValue = min(minValue, value);
+                }
+                int maxValueFinal = (int)maxValue - 128;
+                int minValueFinal = (int)minValue - 128;
+                _lastLevelMonitored = max(abs(maxValueFinal), abs(minValueFinal));
+                _lastLevelMonitored = _lastLevelMonitored * 100 / 128;
+            }
+            else
+            {
+                throw std::exception("implement this when done with 8 bit");
+            }
+            
+        }
+
+        lastStreamPositionMonitored = waveHeader.dwBytesRecorded;
+    }
+    else
+    {
+        // Start monitoring, we'll get a value next time.
+        _StartBuffer(RecordState::Monitor, WaveRecordingFormat::TwentyTwoK8);
+    }
+    return _lastLevelMonitored;
 }
 
 DWORD AudioRecording::QueryPosition(DWORD scope)
@@ -59,7 +121,7 @@ DWORD AudioRecording::QueryPosition(DWORD scope)
 
 bool AudioRecording::IsRecording()
 {
-    return hWaveIn != nullptr;
+    return (hWaveIn != nullptr) && (_state == RecordState::Recording);  // As opposed to monitoring.
 }
 
 void AudioRecording::IdleUpdate()
@@ -85,22 +147,8 @@ std::unique_ptr<AudioComponent> AudioRecording::Stop()
     return audio;
 }
 
-void AudioRecording::Record(WaveRecordingFormat format)
+void AudioRecording::_StartBuffer(AudioRecording::RecordState state, WaveRecordingFormat format)
 {
-    if (hWaveIn)
-    {
-        // If we're finished playing, then close
-        if (waveHeader.dwFlags & WHDR_DONE)
-        {
-            Cleanup();
-        }
-        else
-        {
-            // We're busy.
-            return;
-        }
-    }
-
     WORD blockAlign = IsFlagSet(format, WaveRecordingFormat::SixteenBit) ? 2 : 1;
     _recordingFreq = IsFlagSet(format, WaveRecordingFormat::TwentyTwoK) ? 22050 : 11025;
     _recordingFlags = AudioFlags::None;
@@ -146,12 +194,29 @@ void AudioRecording::Record(WaveRecordingFormat format)
             }
         }
 
-        if (!success)
+        if (success)
+        {
+            _state = state;
+        }
+        else
         {
             waveInClose(hWaveIn);
             hWaveIn = nullptr;
         }
     }
+    lastStreamPositionMonitored = 0;
+}
+
+void AudioRecording::Record(WaveRecordingFormat format)
+{
+    if (hWaveIn)
+    {
+        // Stop any existing recording.
+        Cleanup();
+    }
+
+    _StartBuffer(RecordState::Recording, format);
+
 }
 
 

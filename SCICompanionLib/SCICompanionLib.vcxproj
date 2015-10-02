@@ -225,6 +225,7 @@
     <ClCompile Include="Src\Dialogs\PrepareBitmapBase.cpp" />
     <ClCompile Include="Src\FrameComponents\AudioWaveformUI.cpp" />
     <ClCompile Include="Src\FrameComponents\ExtTabControl.cpp" />
+    <ClCompile Include="Src\FrameComponents\LevelMeter.cpp" />
     <ClCompile Include="Src\FrameComponents\MessageEditorListCtrl.cpp" />
     <ClCompile Include="Src\FrameComponents\MessageEditPane.cpp" />
     <ClCompile Include="Src\FrameComponents\MessageHeaderFile.cpp" />
@@ -292,6 +293,7 @@
     <ClInclude Include="Src\FrameComponents\AudioPlaybackUI.h" />
     <ClInclude Include="Src\FrameComponents\AudioWaveformUI.h" />
     <ClInclude Include="Src\FrameComponents\ExtTabControl.h" />
+    <ClInclude Include="Src\FrameComponents\LevelMeter.h" />
     <ClInclude Include="Src\FrameComponents\MessageEditorListCtrl.h" />
     <ClInclude Include="Src\FrameComponents\MessageEditPane.h" />
     <ClInclude Include="Src\FrameComponents\MessageHeaderFile.h" />

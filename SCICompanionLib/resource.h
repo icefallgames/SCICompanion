@@ -373,6 +373,8 @@
 #define IDC_COMBO_PALETTE               1063
 #define IDC_EDIT_FINDWHAT               1064
 #define IDC_WAVEFORM                    1064
+#define IDC_ANIMATE2                    1064
+#define IDC_LEVELMETER                  1064
 #define IDC_CHECK_MATCHCASE             1065
 #define IDC_CHECK_MATCHWHOLEWORD        1066
 #define IDC_RADIO_ALLFILES              1067
