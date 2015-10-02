@@ -308,6 +308,8 @@
 #define IDC_SETPENSTYLE                 1005
 #define IDC_BUTTON_ADDCELAFTER          1005
 #define IDC_BUTTONCLIPBOARD             1005
+#define IDC_BUTTONBROWSE2               1005
+#define IDC_BUTTON_EXPORT               1005
 #define IDC_BUTTON4                     1006
 #define IDC_SETCONTROL                  1006
 #define IDC_BUTTON_ADDLOOPAFTER         1006

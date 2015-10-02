@@ -31,6 +31,20 @@ BOOL ResourcePreviewer::OnInitDialog()
     return fRet;
 }
 
+BEGIN_MESSAGE_MAP(ResourcePreviewer, CExtResizableDialog)
+    ON_WM_WINDOWPOSCHANGED()
+END_MESSAGE_MAP()
+
+void ResourcePreviewer::OnWindowPosChanged(WINDOWPOS* lpwndpos)
+{
+    if (lpwndpos->flags & SWP_HIDEWINDOW)
+    {
+        OnPreviewerHidden();
+    }
+    __super::OnWindowPosChanged(lpwndpos);
+}
+
+
 //
 // Pic Previewer
 //
@@ -771,6 +785,11 @@ void AudioPreviewer::OnNewResourceCreated(std::unique_ptr<ResourceEntity> audioR
     appState->GetResourceMap().AppendResourceAskForNumber(*audioResource, name);
 }
 
+void AudioPreviewer::OnPreviewerHidden()
+{
+    AutomaticStop();
+}
+
 void AudioPreviewer::DoDataExchange(CDataExchange* pDX)
 {
     __super::DoDataExchange(pDX);
@@ -779,6 +798,7 @@ void AudioPreviewer::DoDataExchange(CDataExchange* pDX)
     AddAnchor(IDC_EDIT_DESCRIPTION, CPoint(0, 0), CPoint(100, 0));
     AddAnchor(IDC_SLIDER, CPoint(0, 0), CPoint(100, 0));
     AddAnchor(IDC_EDIT_SAMPLEBIT, CPoint(0, 0), CPoint(100, 0));
+    AddAnchor(IDC_BUTTON_EXPORT, CPoint(0, 0), CPoint(100, 0));
 }
 
 BOOL AudioPreviewer::OnInitDialog()
@@ -787,9 +807,6 @@ BOOL AudioPreviewer::OnInitDialog()
     OnInitDialogHelper();
     return fRet;
 }
-
-
-
 
 //
 // Blank previewer

@@ -48,9 +48,9 @@ PhonemeMap::PhonemeMap(const std::string &filename) : _filespec(filename.substr(
             _fileContents = std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
         }
     }
-    catch (...)
+    catch (cpptoml::parse_exception &e)
     {
-        _errors = "There was en error";
+        _errors = e.what();
     }
 }
 

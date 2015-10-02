@@ -235,8 +235,8 @@ void AudioWaveformUI::_DrawWaveform(CDC *pDC, LPRECT prc)
         for (int x = 0; x < width; x++)
         {
             // Add a line from y to -y the middle.
-            int yTop = waveFormMax[x] * height / scale;
-            int yBottom = waveFormMin[x] * height / scale;
+            int yTop = waveFormMax[x] * height / scale / 2;
+            int yBottom = waveFormMin[x] * height / scale / 2;
             points.emplace_back(x, yMiddle + yTop);
             points.emplace_back(x, yMiddle + yBottom);
             pointCounts.push_back(2);

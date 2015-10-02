@@ -134,7 +134,6 @@ public:
     afx_msg void OnCbnKillfocusCombotalker();
     afx_msg void OnCbnEditchangeCombotalker();
     afx_msg void OnBnClickedButtonlipsync();
-
     LRESULT _OnLipSyncDone(WPARAM wParam, LPARAM lParam);
     afx_msg void OnBnClickedButtonlipsyncDialog();
 };

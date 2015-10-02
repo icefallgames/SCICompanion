@@ -119,7 +119,7 @@ END_MESSAGE_MAP()
 
 void MessageEditPane::OnPlayAudio()
 {
-    g_audioPlayback.Play();
+    _audioPlayback.Play();
 }
 
 BOOL MessageEditPane::OnEraseBkgnd(CDC *pDC)
@@ -199,6 +199,7 @@ BOOL MessageEditPane::OnInitDialog()
     AddAnchor(IDC_BUTTON_PLAY2, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_BUTTON_STOP, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_BUTTONBROWSE, CPoint(100, 0), CPoint(100, 0));
+    AddAnchor(IDC_BUTTON_EXPORT, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_BUTTON_RECORD, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_SLIDER, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_CHECK_AUTOPREV, CPoint(100, 0), CPoint(100, 0));
@@ -342,7 +343,7 @@ bool MessageEditPane::_UpdateAudio(const TextEntry &messageEntry)
     if (appState->GetVersion().HasSyncResources)
     {
         uint32_t tuple = GetMessageTuple(messageEntry);
-        g_audioPlayback.Stop();
+        _audioPlayback.Stop();
 
         ResourceEntity *audioEntity = _pDoc->FindAudioResource(tuple);
         hasAudio = !!audioEntity;
@@ -450,6 +451,7 @@ void MessageEditPane::_Update()
     m_wndAutoPreview.ShowWindow(cmdShowHasAudio);
     m_wndDuration.ShowWindow(cmdShowHasAudio);
     m_wndBrowse.ShowWindow(cmdShowSupportsSync);
+    m_wndExport.ShowWindow(cmdShowHasAudio);
     m_wndWaveType.ShowWindow(cmdShowSupportsSync);
     m_wndMouth.ShowWindow(cmdShowHasAudio);
     m_wndQuickLipSync.ShowWindow(cmdShowHasAudio);
@@ -753,9 +755,11 @@ LRESULT MessageEditPane::_OnLipSyncDone(WPARAM wParam, LPARAM lParam)
     std::unique_ptr<SyncComponent> syncComponent = std::make_unique<SyncComponent>(_lipSyncTaskSink.GetResponse());
     const TextEntry *entry = _GetEntry();
     uint32_t tuple = GetMessageTuple(*entry);
-    ResourceEntity *entity = _pDoc->FindAudioResource(tuple);
-    entity->RemoveComponent<SyncComponent>();
-    entity->AddComponent<SyncComponent>(std::move(syncComponent));
+
+    if (_pDoc->SetSyncComponent(tuple, std::move(syncComponent)))
+    {
+        _Update();
+    }
     return 0;
 }
 
@@ -764,6 +768,8 @@ void MessageEditPane::OnBnClickedButtonlipsyncDialog()
     if (_audio)
     {
         const TextEntry *entry = _GetEntry();
+
+        AutomaticStop();
 
         std::string talkerName;
         MessageSource *talkersSource = appState->GetResourceMap().GetTalkersMessageSource();

@@ -24,5 +24,3 @@ private:
     WAVEHDR waveHeader;
     const AudioComponent *_sound;
 };
-
-extern AudioPlayback g_audioPlayback;

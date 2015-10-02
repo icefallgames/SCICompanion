@@ -28,7 +28,7 @@ ResourcePreviewer *CGameExplorerFrame::_GetPreviewer(ResourceType iType)
 {
     if (!m_dlgEmpty.GetSafeHwnd())
     {
-        return NULL;
+        return nullptr;
     }
     else
     {
@@ -40,7 +40,7 @@ ResourcePreviewer *CGameExplorerFrame::_GetPreviewer(ResourceType iType)
         else
         {
             // First time - create one.
-            ResourcePreviewer *pPreviewer = NULL;
+            ResourcePreviewer *pPreviewer = nullptr;
             switch (iType)
             {
             case ResourceType::Pic:

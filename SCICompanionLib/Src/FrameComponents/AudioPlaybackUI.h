@@ -26,6 +26,7 @@ protected:
     // Call these things:
     void DoDataExchangeHelper(CDataExchange* pDX);    // DDX/DDV support
     void OnInitDialogHelper();
+    void AutomaticStop();
 
     virtual void OnNewResourceCreated(std::unique_ptr<ResourceEntity> audioResource, const std::string &name) {};
 
@@ -38,6 +39,7 @@ private:
     afx_msg void OnStop();
     afx_msg void OnRecord();
     afx_msg void OnBrowse();
+    afx_msg void OnExport();
     void _UpdatePlayState();
     DECLARE_MESSAGE_MAP()
     bool _IsPlaying();
@@ -54,6 +56,7 @@ private:
     CExtLabel m_wndDuration;
     CExtEdit m_wndDescription;
     CExtButton m_wndBrowse;
+    CExtButton m_wndExport;
     CExtLabel m_wndTitle;
     CExtComboBox m_wndWaveType;
 
@@ -61,6 +64,8 @@ private:
     const ResourceEntity *_audio;
 
     AudioWaveformUI *_pwndWaveform;
+
+    AudioPlayback _audioPlayback;
 
     int _recordingFormat;
     CFont _marlettFont;
@@ -76,6 +81,7 @@ BEGIN_TEMPLATE_MESSAGE_MAP(AudioPlaybackUI, T, T)
     ON_BN_CLICKED(IDC_BUTTON_STOP, OnStop)
     ON_BN_CLICKED(IDC_BUTTON_RECORD, OnRecord)
     ON_BN_CLICKED(IDC_BUTTONBROWSE, OnBrowse)
+    ON_BN_CLICKED(IDC_BUTTON_EXPORT, OnExport)
     ON_WM_TIMER()
 END_MESSAGE_MAP()
 
@@ -122,7 +128,7 @@ void AudioPlaybackUI<T>::SetAudioResource(const ResourceEntity *audio)
         if (audioComp)
         {
             durationString += GetAudioLength(*audioComp);
-            g_audioPlayback.SetAudio(audioComp);
+            _audioPlayback.SetAudio(audioComp);
             // Put some information in the channels window
             info = fmt::format("{0}Hz, {1} bytes. {2} {3}",
                 audioComp->Frequency,
@@ -178,6 +184,10 @@ void AudioPlaybackUI<T>::DoDataExchangeHelper(CDataExchange* pDX)
     {
         DDX_Control(pDX, IDC_BUTTONBROWSE, m_wndBrowse);
     }
+    if (GetDlgItem(IDC_BUTTON_EXPORT))
+    {
+        DDX_Control(pDX, IDC_BUTTON_EXPORT, m_wndExport);
+    }
 
     if (this->GetDlgItem(IDC_EDIT_DESCRIPTION))
     {
@@ -189,6 +199,14 @@ void AudioPlaybackUI<T>::DoDataExchangeHelper(CDataExchange* pDX)
     {
         DDX_Control(pDX, IDC_STATICTITLE, m_wndTitle);
     }
+}
+
+// A stop caused programatically, not by the user pressing stop.
+template <typename T>
+void AudioPlaybackUI<T>::AutomaticStop()
+{
+    _audioPlayback.Stop();
+    _UpdatePlayState();
 }
 
 template <typename T>
@@ -231,7 +249,7 @@ void AudioPlaybackUI<T>::OnInitDialogHelper()
 template <typename T>
 bool AudioPlaybackUI<T>::_IsPlaying()
 {
-    return g_audioPlayback.IsPlaying();
+    return _audioPlayback.IsPlaying();
 }
 
 template <typename T>
@@ -266,8 +284,8 @@ void AudioPlaybackUI<T>::OnPlay()
         {
             slowDown = 2;
         }
-        g_audioPlayback.Stop();
-        g_audioPlayback.Play(slowDown);
+        _audioPlayback.Stop();
+        _audioPlayback.Play(slowDown);
         _UpdatePlayState();
         if (_pwndWaveform)
         {
@@ -279,7 +297,7 @@ void AudioPlaybackUI<T>::OnPlay()
 template <typename T>
 void AudioPlaybackUI<T>::OnRecord()
 {
-    g_audioPlayback.Stop();
+    _audioPlayback.Stop();
     int curSel = m_wndWaveType.GetCurSel();
     if (curSel != CB_ERR)
     {
@@ -309,9 +327,28 @@ void AudioPlaybackUI<T>::OnBrowse()
 }
 
 template <typename T>
+void AudioPlaybackUI<T>::OnExport()
+{
+    CFileDialog fileDialog(FALSE, ".wav", nullptr, 0, "WAV files (*.wav)|*.wav|All Files|*.*|");
+    fileDialog.m_ofn.lpstrTitle = "Export as .wav";
+    if (IDOK == fileDialog.DoModal())
+    {
+        std::string filename = (PCSTR)fileDialog.GetPathName();
+        try
+        {
+            WriteWaveFile(filename, _audio->GetComponent<AudioComponent>());
+        }
+        catch (std::exception &e)
+        {
+            AfxMessageBox(e.what(), MB_OK | MB_ICONWARNING);
+        }
+    }
+}
+
+template <typename T>
 void AudioPlaybackUI<T>::OnStop()
 {
-    g_audioPlayback.Stop();
+    _audioPlayback.Stop();
 
     // If we're recording notify about it.
     std::unique_ptr<AudioComponent> newAudio = g_audioRecording.Stop();
@@ -332,24 +369,24 @@ void AudioPlaybackUI<T>::OnTimer(UINT_PTR nIDEvent)
 {
     if (nIDEvent == AUDIO_TIMER)
     {
-        if (g_audioPlayback.IsPlaying())
+        if (_audioPlayback.IsPlaying())
         {
             if (m_wndSlider)
             {
-                m_wndSlider.SetPos(g_audioPlayback.QueryPosition(100));
+                m_wndSlider.SetPos(_audioPlayback.QueryPosition(100));
             }
             if (_pwndWaveform)
             {
-                _pwndWaveform->SetStreamPosition(g_audioPlayback.QueryStreamPosition());
+                _pwndWaveform->SetStreamPosition(_audioPlayback.QueryStreamPosition());
             }
-            g_audioPlayback.IdleUpdate();
+            _audioPlayback.IdleUpdate();
 
             const SyncComponent *syncComponent = _audio->TryGetComponent<SyncComponent>();
             if (_pwndMouth && syncComponent)
             {
-                uint16_t tickPosition = (uint16_t)g_audioPlayback.QueryPosition(_audio->GetComponent<AudioComponent>().GetLengthInTicks());
+                uint16_t tickPosition = (uint16_t)_audioPlayback.QueryPosition(_audio->GetComponent<AudioComponent>().GetLengthInTicks());
                 uint16_t cel = syncComponent->GetCelAtTick(tickPosition);
-                if (!g_audioPlayback.IsPlaying() && !syncComponent->Entries.empty())
+                if (!_audioPlayback.IsPlaying() && !syncComponent->Entries.empty())
                 {
                     // We've stopped playing, do the last one.
                     cel = syncComponent->Entries.back().Cel;

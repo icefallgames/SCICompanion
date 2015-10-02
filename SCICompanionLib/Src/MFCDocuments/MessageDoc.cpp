@@ -55,6 +55,7 @@ void CMessageDoc::AddNewAudioResource(std::unique_ptr<ResourceEntity> audioResou
     _audioSidecarResources[audioResource->Base36Number] = std::move(audioResource);
 
     SetModifiedFlag(TRUE);
+    UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(MessageChangeHint::ItemChanged));
 }
 
 bool CMessageDoc::SetSyncComponent(uint32_t base36Number, std::unique_ptr<SyncComponent> sync)
@@ -89,6 +90,7 @@ bool CMessageDoc::SetSyncComponent(uint32_t base36Number, std::unique_ptr<SyncCo
     if (changed)
     {
         SetModifiedFlag(TRUE);
+        UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(MessageChangeHint::ItemChanged));
     }
     return changed;
 }

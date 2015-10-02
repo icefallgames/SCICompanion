@@ -2,9 +2,6 @@
 #include "AudioPlayback.h"
 #include "Audio.h"
 
-// Our global instance
-AudioPlayback g_audioPlayback;
-
 AudioPlayback::AudioPlayback() : hWaveOut(nullptr), waveHeader()
 {
 

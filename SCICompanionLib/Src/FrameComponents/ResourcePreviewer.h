@@ -23,6 +23,10 @@ public:
     virtual UINT GetIDD() = 0;
 
 protected:
+    DECLARE_MESSAGE_MAP()
+    afx_msg void OnWindowPosChanged(WINDOWPOS* lpwndpos);
+
+    virtual void OnPreviewerHidden() {}
     BOOL OnInitDialog();
 };
 
@@ -235,9 +239,9 @@ class AudioPreviewer : public AudioPlaybackUI<ResourcePreviewer>
 public:
     UINT GetIDD() { return IDD_PREVIEWAUDIO; }
     void SetResource(const ResourceBlob &blob);
-
 protected:
     void OnNewResourceCreated(std::unique_ptr<ResourceEntity> audioResource, const std::string &name) override;
+    void OnPreviewerHidden() override;
 
 private:
     virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
