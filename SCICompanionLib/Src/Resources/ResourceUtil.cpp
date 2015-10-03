@@ -45,13 +45,30 @@ SCI_RESOURCE_INFO &GetResourceInfo(ResourceType type)
     return g_resourceInfo[(int)type];
 }
 
-std::string GetFileNameFor(ResourceType type, int number, SCIVersion version)
+std::string GetFileNameFor(const ResourceBlob &blob)
+{
+    return GetFileNameFor(blob.GetType(), blob.GetNumber(), blob.GetBase36(), blob.GetVersion());
+}
+
+const char Base36AudioPrefix = '@';
+const char Base36SyncPrefix = '#';
+
+std::string GetFileNameFor(ResourceType type, int number, uint32_t base36Number, SCIVersion version)
 {
     SCI_RESOURCE_INFO &resInfo = GetResourceInfo(type);
-    std::string formatString = (version.MapFormat > ResourceMapFormat::SCI0) ? resInfo.pszFileFilter_SCI1 : resInfo.pszFileFilter_SCI0;
-    std::string numberFormatString = (version.MapFormat > ResourceMapFormat::SCI0) ? "{:d}" : "{:03d}";
-    std::string numberString = format(numberFormatString, number);
-    return format(formatString, numberString);
+    if (base36Number == NoBase36)
+    {
+        std::string formatString = (version.MapFormat > ResourceMapFormat::SCI0) ? resInfo.pszFileFilter_SCI1 : resInfo.pszFileFilter_SCI0;
+        std::string numberFormatString = (version.MapFormat > ResourceMapFormat::SCI0) ? "{:d}" : "{:03d}";
+        std::string numberString = format(numberFormatString, number);
+        return format(formatString, numberString);
+    }
+    else
+    {
+        assert(type == ResourceType::Audio || type == ResourceType::Sync);
+        std::string core = default_reskey(number, base36Number);
+        return format("{0}{1}", (type == ResourceType::Audio) ? Base36AudioPrefix : Base36SyncPrefix, core);
+    }
 }
 
 

@@ -423,6 +423,9 @@ namespace sci
         }
 
     }
+
+    uint32_t streamOwner::GetDataSize() { return _cbSizeValid; }
+
     istream streamOwner::getReader()
     {
         if (_dataMemoryMapped)

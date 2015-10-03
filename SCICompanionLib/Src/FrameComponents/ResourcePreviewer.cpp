@@ -167,7 +167,7 @@ void ViewPreviewer::SetResource(const ResourceBlob &blob)
     SCIBitmapInfo bmi;
     BYTE *pBitsDest;
 
-    m_wndStaticResNum.SetWindowText(GetFileNameFor(blob.GetType(), blob.GetNumber(), blob.GetVersion()).c_str());
+    m_wndStaticResNum.SetWindowText(GetFileNameFor(blob).c_str());
 
     std::unique_ptr<PaletteComponent> optionalPalette;
     if (_view->GetComponent<RasterComponent>().Traits.PaletteType == PaletteType::VGA_256)
@@ -234,7 +234,7 @@ void PalettePreviewer::SetResource(const ResourceBlob &blob)
     bitmap.Attach(CreateBitmapFromPaletteResource(_palette.get(), &bmi, &pBitsDest, &background));
     m_wndView.FromBitmap((HBITMAP)bitmap, bmi.bmiHeader.biWidth, abs(bmi.bmiHeader.biHeight), false);
 
-    m_wndStaticResNum.SetWindowText(GetFileNameFor(blob.GetType(), blob.GetNumber(), blob.GetVersion()).c_str());
+    m_wndStaticResNum.SetWindowText(GetFileNameFor(blob).c_str());
 }
 
 void PalettePreviewer::DoDataExchange(CDataExchange* pDX)

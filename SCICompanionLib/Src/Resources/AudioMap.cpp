@@ -275,7 +275,7 @@ bool ValidateAudioMap(const ResourceEntity &resource)
 
 ResourceTraits audioMapTraits =
 {
-    ResourceType::Map,
+    ResourceType::AudioMap,
     &AudioMapReadFrom,
     &AudioMapWriteTo,
     &ValidateAudioMap,

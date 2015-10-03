@@ -356,10 +356,21 @@ bool MessageEditPane::_UpdateAudio(const TextEntry &messageEntry)
         // TODO: Optimize all this resource loading.
         TalkerToViewMap talkerToViewMap(appState);
         uint16_t view, loop;
-        _mouthView.reset(nullptr);
+        int currentMouthView = _mouthView ? _mouthView->ResourceNumber : -1;
         if (talkerToViewMap.TalkerToViewLoop(messageEntry.Talker, view, loop))
         {
-            _mouthView = appState->GetResourceMap().CreateResourceFromNumber(ResourceType::View, view);
+            if (view != currentMouthView)
+            {
+                _mouthView = appState->GetResourceMap().CreateResourceFromNumber(ResourceType::View, view);
+            }
+        }
+        else
+        {
+            if (-1 != currentMouthView)
+            {
+                // Clear it out so we provide the default one again...
+                _mouthView.reset(nullptr);
+            }
         }
         if (!_mouthView)
         {

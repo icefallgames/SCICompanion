@@ -34,6 +34,10 @@ extern SCI_RESOURCE_INFO g_resourceInfo[18];
 SCI_RESOURCE_INFO &GetResourceInfo(ResourceType type);
 ResourceType ValidateResourceType(ResourceType type);
 std::string GetFileDialogFilterFor(ResourceType type, SCIVersion version);
-std::string GetFileNameFor(ResourceType type, int number, SCIVersion version);
+std::string GetFileNameFor(ResourceType type, int number, uint32_t base36Number, SCIVersion version);
+std::string GetFileNameFor(const ResourceBlob &blob);
 bool MatchesResourceFilenameFormat(const std::string &filename, ResourceType type, SCIVersion version, int *numberOut, std::string &nameOut);
 bool MatchesResourceFilenameFormat(const std::string &filename, SCIVersion version, int *numberOut, std::string &nameOut);
+
+extern const char Base36AudioPrefix;
+extern const char Base36SyncPrefix;

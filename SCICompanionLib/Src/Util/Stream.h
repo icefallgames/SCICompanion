@@ -131,6 +131,7 @@ namespace sci
         streamOwner(const std::string &filename);   // Memory mapped
         ~streamOwner();
         istream getReader();
+        uint32_t GetDataSize();
 
     private:
         std::unique_ptr<uint8_t[]> _pData;        // Our data

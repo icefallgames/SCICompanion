@@ -55,7 +55,7 @@ ResourceContainer::ResourceIterator::ResourceIterator(ResourceContainer *contain
     }
 }
 
-ResourceContainer::ResourceIterator::ResourceIterator(ResourceContainer *container, bool atEnd, IteratorState state) : _container(container), _atEnd(atEnd), _state(state)
+ResourceContainer::ResourceIterator::ResourceIterator(ResourceContainer *container, bool atEnd, IteratorStatePrivate state) : _container(container), _atEnd(atEnd), _state(state)
 {
     if (!_atEnd)
     {
@@ -81,13 +81,13 @@ bool operator!=(const ResourceContainer::ResourceIterator &one, const ResourceCo
         );
 }
 
-bool operator==(const IteratorState &one, const IteratorState &two)
+bool operator==(const IteratorStatePrivate &one, const IteratorStatePrivate &two)
 {
     return one.lookupTableIndex == two.lookupTableIndex &&
         one.mapIndex == two.mapIndex &&
         one.mapStreamOffset == two.mapStreamOffset;
 }
-bool operator!=(const IteratorState &one, const IteratorState &two)
+bool operator!=(const IteratorStatePrivate &one, const IteratorStatePrivate &two)
 {
     return !(one == two);
 }

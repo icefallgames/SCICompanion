@@ -5,6 +5,9 @@
 #include "ResourceMapOperations.h"
 #include "format.h"
 #include "ResourceEntity.h"
+#include "AudioResourceSource.h"
+#include "AudioCacheResourceSource.h"
+#include "PatchResourceSource.h"
 
 using namespace std;
 
@@ -135,44 +138,35 @@ std::string GameFolderHelper::GetGameIniFileName() const
     return filename;
 }
 
-std::string GameFolderHelper::GetSrcFolder() const
+std::string GameFolderHelper::_GetSubfolder(const char *key) const
 {
     std::string srcFolder = this->GameFolder;
     if (!srcFolder.empty())
     {
-        srcFolder += "\\src";
+        srcFolder += "\\";
+        srcFolder += key;
     }
     return srcFolder;
+}
+
+std::string GameFolderHelper::GetSrcFolder() const
+{
+    return _GetSubfolder("src");
 }
 
 std::string GameFolderHelper::GetLipSyncFolder() const
 {
-    std::string srcFolder = this->GameFolder;
-    if (!srcFolder.empty())
-    {
-        srcFolder += "\\lipsync";
-    }
-    return srcFolder;
+    return _GetSubfolder("lipsync");
 }
 
 std::string GameFolderHelper::GetMsgFolder() const
 {
-    std::string srcFolder = this->GameFolder;
-    if (!srcFolder.empty())
-    {
-        srcFolder += "\\msg";
-    }
-    return srcFolder;
+    return _GetSubfolder("msg");
 }
 
 std::string GameFolderHelper::GetPolyFolder() const
 {
-    std::string srcFolder = this->GameFolder;
-    if (!srcFolder.empty())
-    {
-        srcFolder += "\\poly";
-    }
-    return srcFolder;
+    return _GetSubfolder("poly");
 }
 
 //
@@ -203,7 +197,7 @@ std::unique_ptr<ResourceContainer> GameFolderHelper::Resources(ResourceTypeFlags
     // If audio or sync resources are requested, we can't also have maps.
     if (IsFlagSet(types, ResourceTypeFlags::Audio))
     {
-        ClearFlag(types, ResourceTypeFlags::Map);
+        ClearFlag(types, ResourceTypeFlags::AudioMap);
     }
 
     // Resources can come from various sources.
@@ -211,10 +205,25 @@ std::unique_ptr<ResourceContainer> GameFolderHelper::Resources(ResourceTypeFlags
 
     if (!GameFolder.empty())
     {
+        if (IsFlagSet(enumFlags, ResourceEnumFlags::IncludeCacheFiles))
+        {
+            // Our audio cache files take precedence
+            if (IsFlagSet(types, ResourceTypeFlags::Audio))
+            {
+                mapAndVolumes->push_back(move(make_unique<AudioCacheResourceSource>(Version, GameFolder, mapContext, ResourceSourceAccessFlags::Read)));
+            }
+
+            // Audiomaps can come from the cache files folder too... but we can re-use PatchFilesResourceSource for this
+            if (IsFlagSet(types, ResourceTypeFlags::AudioMap))
+            {
+                mapAndVolumes->push_back(move(std::make_unique<PatchFilesResourceSource>(Version, GameFolder + pszAudioCacheFolder, ResourceSourceFlags::AudioCache)));
+            }
+        }
+
         // First, any stray files...
         if (!IsFlagSet(enumFlags, ResourceEnumFlags::ExcludePatchFiles))
         {
-            mapAndVolumes->push_back(move(std::make_unique<PatchFilesResourceSource>(Version, GameFolder)));
+            mapAndVolumes->push_back(move(std::make_unique<PatchFilesResourceSource>(Version, GameFolder, ResourceSourceFlags::PatchFile)));
         }
 
         // Add readers for message map files, if requrested

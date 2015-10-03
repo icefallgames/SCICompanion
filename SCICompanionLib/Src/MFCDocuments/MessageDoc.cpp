@@ -41,7 +41,7 @@ void CMessageDoc::_PreloadAudio()
     {
         _audioSidecarResources.clear();
         int mapResourceNumber = GetResource()->ResourceNumber;
-        auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Audio, ResourceEnumFlags::MostRecentOnly, mapResourceNumber);
+        auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Audio, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::IncludeCacheFiles, mapResourceNumber);
         for (auto resource : *resourceContainer)
         {
             _audioSidecarResources[resource->GetBase36()] = CreateResourceFromResourceData(*resource);
@@ -99,13 +99,14 @@ void CMessageDoc::PostSuccessfulSave(const ResourceEntity *pResource)
 {
     // We only support adding now, this is kind of hacky.
     // (Supporting changing of the base36 number is an optimization we can do.)
-
     CResourceMap &map = appState->GetResourceMap();
 
     {
         DeferResourceAppend defer(map);
         for (auto &resource : _newAudioSidecarResources)
         {
+            // We *only* support saving to the audio cachhe.
+            resource->SourceFlags = ResourceSourceFlags::AudioCache;
             map.AppendResource(*resource);
         }
         defer.Commit();

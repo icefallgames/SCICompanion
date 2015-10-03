@@ -11,6 +11,7 @@ enum class ResourceEnumFlags : uint16_t
     CalculateRecency =0x0002,
     MostRecentOnly  = 0x0004,
     ExcludePatchFiles = 0x0008,
+    IncludeCacheFiles = 0x0010,
 };
 
 std::string GetGameIniFileName(const std::string &gameFolder);
@@ -42,7 +43,7 @@ public:
         ResourceIterator(const ResourceIterator &src) = default;
         ResourceIterator& operator=(const ResourceIterator &src) = default;
         ResourceIterator(ResourceContainer *container, bool atEnd);
-        ResourceIterator(ResourceContainer *container, bool atEnd, IteratorState state);
+        ResourceIterator(ResourceContainer *container, bool atEnd, IteratorStatePrivate state);
 
         typedef std::unique_ptr<ResourceBlob> *pointer;
         typedef std::ptrdiff_t difference_type; // ??
@@ -67,7 +68,7 @@ public:
         sci::istream _GetResourceHeaderAndPackage(ResourceHeaderAgnostic &rh) const;
         void _GetNextEntry();
 
-        IteratorState _state;
+        IteratorStatePrivate _state;
 
         ResourceContainer *_container;
         bool _atEnd;

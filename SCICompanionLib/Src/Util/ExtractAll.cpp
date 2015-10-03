@@ -60,7 +60,7 @@ void ExtractAllResources(SCIVersion version, const std::string &destinationFolde
     resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::All, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
     for (auto &blob : *resourceContainer)
     {
-        std::string filename = GetFileNameFor(blob->GetType(), blob->GetNumber(), blob->GetVersion());
+        std::string filename = GetFileNameFor(*blob);
         std::string fullPath = destinationFolder + filename;
         bool keepGoing = true;
         try

@@ -2,6 +2,9 @@
 #include "ResourceMap.h"
 #include "ResourceBlob.h"
 #include "ResourceSources.h"
+#include "AudioResourceSource.h"
+#include "AudioCacheResourceSource.h"
+#include "PatchResourceSource.h"
 #include "ResourceMapOperations.h"
 #include "resource.h"
 #include "RemoveScriptDialog.h"
@@ -41,11 +44,15 @@ std::unique_ptr<ResourceSource> CreateResourceSource(const std::string &gameFold
     }
     else if (source == ResourceSourceFlags::PatchFile)
     {
-        return std::make_unique<PatchFilesResourceSource>(version, gameFolder);
+        return std::make_unique<PatchFilesResourceSource>(version, gameFolder, ResourceSourceFlags::PatchFile);
     }
     else if ((source == ResourceSourceFlags::Aud) || (source == ResourceSourceFlags::Sfx))
     {
         return std::make_unique<AudioResourceSource>(version, gameFolder, mapContext, access);
+    }
+    else if (source == ResourceSourceFlags::AudioCache)
+    {
+        return std::make_unique<AudioCacheResourceSource>(version, gameFolder, mapContext, access);
     }
     return std::unique_ptr<ResourceSource>(nullptr);
 }

@@ -27,9 +27,9 @@ enum class ResourceType
     Palette = 11,
     CDAudio = 12,
     Audio = 13,
-    // Sync = 14,       // Included with Audio resources
+    Sync = 14,          // Included with Audio resources, not a separate type
     Message = 15,
-    Map = 16,
+    AudioMap = 16,
     Heap = 17,
 };
 
@@ -109,12 +109,12 @@ enum class ResourceTypeFlags
     // NOTE: Sync resources are included in Audio resources.
     // Sync = 1 << (int)ResourceType::Sync,
     Message = 1 << (int)ResourceType::Message,
-    Map = 1 << (int)ResourceType::Map,
+    AudioMap = 1 << (int)ResourceType::AudioMap,
     Heap = 1 << (int)ResourceType::Heap,
 
     All = 0x3fffffff,
 
-    AllCreatable = View | Font | Cursor | Text | Sound | Vocab | Pic | Palette | Message | Audio | Map,
+    AllCreatable = View | Font | Cursor | Text | Sound | Vocab | Pic | Palette | Message | Audio | AudioMap,
 };
 DEFINE_ENUM_FLAGS(ResourceTypeFlags, uint32_t)
 
@@ -638,3 +638,6 @@ enum class OutputPaneType
 };
 
 bool TerminateProcessTree(HANDLE hProcess, DWORD retCode);
+
+// Returns "n004" for 4.
+std::string default_reskey(int iNumber, uint32_t base36Number);

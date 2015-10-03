@@ -7,9 +7,6 @@ enum class ResourceEnumFlags : uint16_t;
 // We can carry this to a background thread, for instace, and not have to
 // interact with the ResourceMap object.
 
-// Returns "n004" for 4.
-std::string default_reskey(int iNumber, uint32_t base36Number);
-
 class ResourceRecency;
 
 class GameFolderHelper
@@ -41,5 +38,8 @@ public:
     SCIVersion Version;
     std::string GameFolder;
     LangSyntax Language;
+
+private:
+    std::string _GetSubfolder(const char *key) const;
 };
 

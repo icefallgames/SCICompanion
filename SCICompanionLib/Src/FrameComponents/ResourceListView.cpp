@@ -436,7 +436,7 @@ void CResourceListCtrl::OnViewRawData()
         const ResourceBlob *pData = _GetResourceForItem(nItem);
         if (pData)
         {
-            std::string filename = GetFileNameFor(pData->GetType(), pData->GetNumber(), pData->GetVersion());
+            std::string filename = GetFileNameFor(*pData);
             filename += ".txt";
             if (SUCCEEDED(hr))
             {
@@ -476,7 +476,7 @@ void CResourceListCtrl::OnExtractResources()
                         pData = _GetResourceForItem(nItem);
                         if (pData)
                         {
-                            std::string filename = GetFileNameFor(pData->GetType(), pData->GetNumber(), pData->GetVersion());
+                            std::string filename = GetFileNameFor(*pData);
                             if (SUCCEEDED(hr))
                             {
                                 hr = pData->SaveToFile(filename.c_str());
@@ -517,7 +517,7 @@ void CResourceListCtrl::OnExtractResources()
         const ResourceBlob *pData = _GetResourceForItem(GetSelectedItem());
         if (pData)
         {
-            std::string filename = GetFileNameFor(pData->GetType(), pData->GetNumber(), pData->GetVersion());
+            std::string filename = GetFileNameFor(*pData);
             std::string filter = GetFileDialogFilterFor(pData->GetType(), pData->GetVersion());
             CFileDialog fileDialog(FALSE, NULL, filename.c_str(), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR, filter.c_str());
             if (IDOK == fileDialog.DoModal())
@@ -764,6 +764,10 @@ void CResourceListCtrl::_InsertItem(ResourceBlob *pData)
             else if (IsFlagSet(sourceFlags, ResourceSourceFlags::Sfx))
             {
                 item.pszText = "resource.sfx";
+            }
+            else if (IsFlagSet(sourceFlags, ResourceSourceFlags::AudioCache))
+            {
+                item.pszText = "audio cache";
             }
             else
             {

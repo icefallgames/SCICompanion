@@ -252,6 +252,7 @@ HRESULT CResourceMap::EndDeferAppend()
                 // probably something we'll need to handle.
 
                 ResourceSourceFlags sourceFlags = _deferredResources[0].GetSourceFlags();
+
                 int mapContext = _deferredResources[0].GetNumber();
                 // Enumerate resources and write the ones we have not already encountered.
                 std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(_gameFolderHelper.GameFolder, _gameFolderHelper.Version, sourceFlags, ResourceSourceAccessFlags::ReadWrite, mapContext);
@@ -969,7 +970,7 @@ void CResourceMap::SaveAudioMap65535(const AudioMapComponent &newAudioMap, int m
     {
         number = newAudioMap.Traits.MainAudioMapResourceNumber;
     }
-    std::unique_ptr<ResourceEntity> entity = CreateResourceFromNumber(ResourceType::Map, number, NoBase36, mapContext);
+    std::unique_ptr<ResourceEntity> entity = CreateResourceFromNumber(ResourceType::AudioMap, number, NoBase36, mapContext);
     
     // Assign the new component to it.
     entity->RemoveComponent<AudioMapComponent>();
@@ -1307,7 +1308,7 @@ std::unique_ptr<ResourceEntity> CreateResourceFromResourceData(const ResourceBlo
             return CreateResourceHelper(data, CreateMessageResource, CreateDefaultMessageResource, fallbackOnException);
         case ResourceType::Audio:
             return CreateResourceHelper(data, CreateAudioResource, CreateDefaultAudioResource, fallbackOnException);
-        case ResourceType::Map:
+        case ResourceType::AudioMap:
             return CreateResourceHelper(data, CreateMapResource, CreateMapResource, fallbackOnException);
         default:
         assert(false);

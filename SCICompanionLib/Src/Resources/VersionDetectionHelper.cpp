@@ -583,7 +583,7 @@ void CResourceMap::_SniffSCIVersion()
         // Usually the audio is map 65535. Sometimes (LB2, non-CD version) it is 0.
         bool found65535 = false;
         bool found0 = false;
-        auto audContainer = Resources(ResourceTypeFlags::Map, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
+        auto audContainer = Resources(ResourceTypeFlags::AudioMap, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
         for (auto &blobIt = audContainer->begin(); blobIt != audContainer->end(); ++blobIt)
         {
             if (blobIt.GetResourceNumber() == 65535)

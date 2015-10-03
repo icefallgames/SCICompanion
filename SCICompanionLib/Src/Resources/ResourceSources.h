@@ -69,14 +69,20 @@ ResourceHeaderReadWrite MakeResourceHeaderReadWriter()
 
 struct IteratorState
 {
-    IteratorState() : mapIndex(0), lookupTableIndex(0), mapStreamOffset(0) {}
+    IteratorState() : lookupTableIndex(0), mapStreamOffset(0) {}
 
-    friend bool operator==(const IteratorState &one, const IteratorState &two);
-    friend bool operator!=(const IteratorState &one, const IteratorState &two);
-
-    size_t mapIndex;            // Support for enumerating multiple *.map files in one iteration
     size_t lookupTableIndex;    // In >SCI1 there is a lookuptable at the beginning of resource.map
     uint32_t mapStreamOffset;   // Current offset within resource.map
+};
+
+struct IteratorStatePrivate : public IteratorState
+{
+    IteratorStatePrivate() : mapIndex(0), IteratorState() {}
+
+    friend bool operator==(const IteratorStatePrivate &one, const IteratorStatePrivate &two);
+    friend bool operator!=(const IteratorStatePrivate &one, const IteratorStatePrivate &two);
+
+    size_t mapIndex;            // Support for enumerating multiple *.map files in one iteration
 };
 
 // Main base class for expressing resource sources
@@ -450,99 +456,3 @@ private:
     std::unique_ptr<sci::istream> _mapStream;
     std::unordered_map<int, std::unique_ptr<sci::streamOwner>> _volumeStreams;
 };
-
-// ResourceSource for isolated patch files
-class PatchFilesResourceSource : public ResourceSource
-{
-public:
-    PatchFilesResourceSource(SCIVersion version, const std::string &gameFolder) :
-        _gameFolder(gameFolder),
-        _gameFolderSpec(gameFolder + "\\*.*"),
-        _hFind(INVALID_HANDLE_VALUE),
-        _version(version),
-        _stillMore(true)
-    {}
-    ~PatchFilesResourceSource();
-
-    bool ReadNextEntry(ResourceTypeFlags typeFlags, IteratorState &state, ResourceMapEntryAgnostic &entry, std::vector<uint8_t> *optionalRawData = nullptr) override;
-    sci::istream GetHeaderAndPositionedStream(const ResourceMapEntryAgnostic &mapEntry, ResourceHeaderAgnostic &headerEntry) override;
-
-    sci::istream GetPositionedStreamAndResourceSizeIncludingHeader(const ResourceMapEntryAgnostic &mapEntry, uint32_t &size) override
-    {
-        assert(false && "Not implemented");
-        return sci::istream(nullptr, 0);
-    }
-
-    void RemoveEntry(const ResourceMapEntryAgnostic &mapEntry) override;
-    AppendBehavior AppendResources(const std::vector<ResourceBlob> &entries) override;
-    void RebuildResources() override {} // Nothing to do here.
-
-private:
-    HANDLE _hFind;
-    bool _stillMore;
-    std::string _gameFolder;
-    std::string _gameFolderSpec;
-    WIN32_FIND_DATA _findData;
-    SCIVersion _version;
-
-    // Muck
-    int _nextIndex;
-    std::unordered_map<int, std::string> _indexToFilename;
-    std::unordered_map<int, std::unique_ptr<sci::streamOwner>> _streamHolder;
-};
-
-struct AudioMapComponent;
-
-// ResourceSource for SCI1.1 audio resources
-class AudioResourceSource : public ResourceSource
-{
-public:
-    AudioResourceSource(SCIVersion version, const std::string &gameFolder, int mapContext, ResourceSourceAccessFlags access) :
-        _gameFolder(gameFolder),
-        _version(version),
-        _mapContext(mapContext),
-        _access(access)
-    {
-        _EnsureAudioMaps();
-    }
-    ~AudioResourceSource();
-
-    AudioResourceSource& operator=(AudioResourceSource &src) = delete;
-
-    bool ReadNextEntry(ResourceTypeFlags typeFlags, IteratorState &state, ResourceMapEntryAgnostic &entry, std::vector<uint8_t> *optionalRawData = nullptr) override;
-    sci::istream GetHeaderAndPositionedStream(const ResourceMapEntryAgnostic &mapEntry, ResourceHeaderAgnostic &headerEntry) override;
-
-    sci::istream GetPositionedStreamAndResourceSizeIncludingHeader(const ResourceMapEntryAgnostic &mapEntry, uint32_t &size) override
-    {
-        assert(false && "Not implemented");
-        return sci::istream(nullptr, 0);
-    }
-
-    void RemoveEntry(const ResourceMapEntryAgnostic &mapEntry) override;
-    AppendBehavior AppendResources(const std::vector<ResourceBlob> &entries) override;
-    AppendBehavior AppendResourcesOLD(const std::vector<ResourceBlob> &entries);
-    void RebuildResources() override {}
-
-private:
-    void _EnsureAudioMaps();
-    AudioVolumeName _GetVolumeToUse(uint32_t base36Number);
-    void _Finalize(AudioMapComponent &newAudioMap, sci::ostream &newVolumeStream, uint32_t base36Number);
-    void _CopyWithoutThese(const AudioMapComponent &audioMap, AudioMapComponent &newAudioMap, sci::istream &oldReader, sci::ostream &newVolumeStream, const std::set<uint16_t> &removeThese);
-    std::string _GetAudioVolumePath(bool bak, AudioVolumeName volumeName, ResourceSourceFlags *sourceFlags = nullptr);
-    sci::streamOwner *_EnsureReadOnlyAudioVolume(uint32_t base36Number);
-    std::unique_ptr<sci::streamOwner> _GetAudioVolume(uint32_t base36Number);
-
-    std::string _gameFolder;
-    SCIVersion _version;
-    int _mapContext;
-    ResourceSourceAccessFlags _access;
-    ResourceSourceFlags _sourceFlags;
-
-    std::vector<std::unique_ptr<ResourceEntity>> _audioMaps;
-
-    // Use memory mapped files, because these volumes tend to be large (several hundred MB)
-    std::unique_ptr<sci::streamOwner> _volumeStreamOwnerSfx;
-    std::unique_ptr<sci::streamOwner> _volumeStreamOwnerAud;
-};
-
-

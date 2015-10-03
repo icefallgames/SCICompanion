@@ -241,7 +241,10 @@
     <ClCompile Include="Src\LipSync\sapi_util.cpp" />
     <ClCompile Include="Src\MFCDocuments\DocumentWithPaletteChoices.cpp" />
     <ClCompile Include="Src\r8brain\r8bbase.cpp" />
+    <ClCompile Include="Src\Resources\AudioCacheResourceSource.cpp" />
+    <ClCompile Include="Src\Resources\AudioResourceSource.cpp" />
     <ClCompile Include="Src\Resources\NounsAndCases.cpp" />
+    <ClCompile Include="Src\Resources\PatchResourceSource.cpp" />
     <ClCompile Include="Src\Resources\Polygon.cpp" />
     <ClCompile Include="Src\FrameComponents\ViewCelListBox.cpp" />
     <ClCompile Include="Src\FrameComponents\ZoomCelStatic.cpp" />
@@ -317,7 +320,10 @@
     <ClInclude Include="Src\r8brain\r8bbase.h" />
     <ClInclude Include="Src\r8brain\r8bconf.h" />
     <ClInclude Include="Src\r8brain\r8butil.h" />
+    <ClInclude Include="Src\Resources\AudioCacheResourceSource.h" />
+    <ClInclude Include="Src\Resources\AudioResourceSource.h" />
     <ClInclude Include="Src\Resources\NounsAndCases.h" />
+    <ClInclude Include="Src\Resources\PatchResourceSource.h" />
     <ClInclude Include="Src\Resources\Polygon.h" />
     <ClInclude Include="Src\FrameComponents\ViewCelListBox.h" />
     <ClInclude Include="Src\GIFLIB\gif_hash.h" />

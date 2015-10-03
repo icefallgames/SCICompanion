@@ -299,7 +299,7 @@ void CResourceDocument::OnExportAsResource()
                 iNumber = 0;
             }
 
-            std::string filename = GetFileNameFor(GetType(), iNumber, appState->GetVersion());
+            std::string filename = GetFileNameFor(GetType(), iNumber, pResource->Base36Number, appState->GetVersion());
             std::string filter = _GetFileDialogFilter();
             CFileDialog fileDialog(FALSE, nullptr, filename.c_str(), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR, filter.c_str());
             if (IDOK == fileDialog.DoModal())
