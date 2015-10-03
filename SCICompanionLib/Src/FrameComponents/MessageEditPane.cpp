@@ -410,6 +410,15 @@ void MessageEditPane::OnNewResourceCreated(std::unique_ptr<ResourceEntity> audio
         audioResource->Base36Number = GetMessageTuple(*entry);
         audioResource->ResourceNumber = _pDoc->GetNumber();
 
+        // If we currently have a sync component add it back in
+        // Alternately, we could have OnNewResourceCreated return a AudioComponent and not a ResourceEntity. But other use cases for
+        // it have it make more sense to return a ResourceEntity;
+        ResourceEntity *existingResource = _pDoc->FindAudioResource(GetMessageTuple(*entry));
+        if (existingResource->TryGetComponent<SyncComponent>())
+        {
+            audioResource->AddComponent(std::make_unique<SyncComponent>(existingResource->GetComponent<SyncComponent>()));
+        }
+
         // TODO: This is temporary. For now we'll add everything.
         _pDoc->AddNewAudioResource(std::move(audioResource));
         // Don't do this now. Instead, add to a list until we save?
