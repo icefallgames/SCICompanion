@@ -54,6 +54,10 @@ std::unique_ptr<ResourceSource> CreateResourceSource(const std::string &gameFold
     {
         return std::make_unique<AudioCacheResourceSource>(version, gameFolder, mapContext, access);
     }
+    else if (source == ResourceSourceFlags::AudioMapCache)
+    {
+        return std::make_unique<PatchFilesResourceSource>(version, gameFolder, ResourceSourceFlags::AudioMapCache);
+    }
     return std::unique_ptr<ResourceSource>(nullptr);
 }
 

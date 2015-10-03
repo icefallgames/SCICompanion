@@ -765,7 +765,7 @@ void CResourceListCtrl::_InsertItem(ResourceBlob *pData)
             {
                 item.pszText = "resource.sfx";
             }
-            else if (IsFlagSet(sourceFlags, ResourceSourceFlags::AudioCache))
+            else if (IsFlagSet(sourceFlags, ResourceSourceFlags::AudioCache | ResourceSourceFlags::AudioMapCache))
             {
                 item.pszText = "audio cache";
             }

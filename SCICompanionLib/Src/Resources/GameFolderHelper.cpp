@@ -216,7 +216,7 @@ std::unique_ptr<ResourceContainer> GameFolderHelper::Resources(ResourceTypeFlags
             // Audiomaps can come from the cache files folder too... but we can re-use PatchFilesResourceSource for this
             if (IsFlagSet(types, ResourceTypeFlags::AudioMap))
             {
-                mapAndVolumes->push_back(move(std::make_unique<PatchFilesResourceSource>(Version, GameFolder + pszAudioCacheFolder, ResourceSourceFlags::AudioCache)));
+                mapAndVolumes->push_back(move(std::make_unique<PatchFilesResourceSource>(Version, GameFolder + pszAudioCacheFolder, ResourceSourceFlags::AudioMapCache)));
             }
         }
 

@@ -36,7 +36,8 @@ enum class ResourceSourceFlags
     PatchFile = 0x0002,
     Aud = 0x0004,
     Sfx = 0x0008,
-    AudioCache = 0x0010 // Our special audio folder
+    AudioCache = 0x0010,    // Our special audio folder
+    AudioMapCache = 0x0020  // 
 };
 
 DEFINE_ENUM_FLAGS(ResourceSourceFlags, uint16_t)
