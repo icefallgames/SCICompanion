@@ -356,7 +356,7 @@ AppendBehavior AudioCacheResourceSource::AppendResources(const std::vector<Resou
             {
                 int number = blobToBeSaved.GetNumber();
                 uint32_t tuple = blobToBeSaved.GetBase36();
-                auto itFind = std::find_if(audioMapComponent.Entries.begin(), audioMapComponent.Entries.begin(),
+                auto itFind = std::find_if(audioMapComponent.Entries.begin(), audioMapComponent.Entries.end(),
                     [number, tuple](const AudioMapEntry &amEntry) {  return amEntry.Number == number && GetMessageTuple(amEntry) == tuple; });
                 if (itFind == audioMapComponent.Entries.end())
                 {
@@ -379,6 +379,19 @@ AppendBehavior AudioCacheResourceSource::AppendResources(const std::vector<Resou
     }
 
     return AppendBehavior::Replace;
+}
+
+void AudioCacheResourceSource::RebuildResources()
+{
+    // We need to rebuild the resource.aud and such from scratch.
+    // How do we find the list of all the audio maps? Well, we can,:
+    //  - enumerate all message resources
+    //  - then add the main audio map.
+    // From there, we'll either get audio maps from the cache files (first), or the resource.map/patch files (second).
+    // For those we got from the cache files, we'll only look in the cache files (and we need to calc lip sync stuff)
+    // For those we got from the other stuff, we'll look only in the other stuff.
+    // NOTE: we don't always save to same place also... resource.sfx or resource.aud. So go through proper channels?
+    // Can we leverage AudioResourceSource?
 }
 
 AudioCacheResourceSource::~AudioCacheResourceSource() {}

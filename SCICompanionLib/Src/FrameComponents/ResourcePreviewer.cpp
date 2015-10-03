@@ -781,7 +781,7 @@ void AudioPreviewer::SetResource(const ResourceBlob &blob)
 
 void AudioPreviewer::OnNewResourceCreated(std::unique_ptr<ResourceEntity> audioResource, const std::string &name)
 {
-    audioResource->SourceFlags = (GetVolumeToUse(appState->GetVersion(), NoBase36) == AudioVolumeName::Sfx) ? ResourceSourceFlags::Sfx : ResourceSourceFlags::Aud;
+    audioResource->SourceFlags = ResourceSourceFlags::AudioCache;
     appState->GetResourceMap().AppendResourceAskForNumber(*audioResource, name);
 }
 

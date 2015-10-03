@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "AudioRecording.h"
 #include "Audio.h"
+#include "AppState.h"
 
 // Our global instance
 AudioRecording g_audioRecording;
@@ -232,38 +233,60 @@ void ApplyNoiseGate(float *buffer, int totalFloats, float sampleRate)
     }
 }
 
+void AudioRecording::StopMonitor()
+{
+    if (_state == RecordState::Monitor)
+    {
+        Cleanup();
+    }
+}
+
 std::unique_ptr<AudioComponent> AudioRecording::Stop()
 {
-    std::unique_ptr<AudioComponent> audio = std::make_unique<AudioComponent>();
-    Cleanup(audio.get());
-    if (audio->Frequency == 0)
+    std::unique_ptr<AudioComponent> audio;
+    // If we're just monitoring, don't stop...
+    if (_state == RecordState::Recording)
     {
-        audio.reset(nullptr);   // Error
-    }
+        audio = std::make_unique<AudioComponent>();
+        Cleanup(audio.get());
+        if (audio->Frequency == 0)
+        {
+            audio.reset(nullptr);   // Error
+        }
 
-    if (audio)
-    {
-        // convert to float
-        std::vector<float> buffer;
-        buffer.reserve(audio->DigitalSamplePCM.size());
-        std::transform(audio->DigitalSamplePCM.begin(), audio->DigitalSamplePCM.end(), std::back_inserter(buffer),
-            [](uint8_t byte) { return ((float)((int)byte - 128)) / 128.0f; }
+        if (audio)
+        {
+            // Trim the ends.
+            uint32_t bytesPerSecond = audio->GetBytesPerSecond();
+            uint32_t bytesToRemoveOffBack = min(bytesPerSecond * appState->_audioTrimRight / 1000, audio->DigitalSamplePCM.size());
+            audio->DigitalSamplePCM.resize(audio->DigitalSamplePCM.size() - bytesToRemoveOffBack);
+            uint32_t bytesToRemoveOffFront = min(bytesPerSecond * appState->_audioTrimLeft / 1000, audio->DigitalSamplePCM.size());
+            audio->DigitalSamplePCM.erase(audio->DigitalSamplePCM.begin(), audio->DigitalSamplePCM.begin() + bytesToRemoveOffFront);
+
+            // convert to float
+            std::vector<float> buffer;
+            buffer.reserve(audio->DigitalSamplePCM.size());
+            std::transform(audio->DigitalSamplePCM.begin(), audio->DigitalSamplePCM.end(), std::back_inserter(buffer),
+                [](uint8_t byte) { return ((float)((int)byte - 128)) / 128.0f; }
             );
 
-        ApplyNoiseGate(&buffer[0], buffer.size(), audio->Frequency);
-    
-        // Push it back
-        std::transform(buffer.begin(), buffer.end(), audio->DigitalSamplePCM.begin(),
-            [](float value)
-        {
-            float temp = (value * 128.0f) + 128.0f;
-            int temp2 = (int)temp;
-            return (uint8_t)(min(max(temp2, 0), 255));
+            if (!buffer.empty())
+            {
+                ApplyNoiseGate(&buffer[0], buffer.size(), audio->Frequency);
+            }
+
+            // Push it back
+            std::transform(buffer.begin(), buffer.end(), audio->DigitalSamplePCM.begin(),
+                [](float value)
+            {
+                float temp = (value * 128.0f) + 128.0f;
+                int temp2 = (int)temp;
+                return (uint8_t)(min(max(temp2, 0), 255));
+            }
+            );
+
         }
-        );
-
     }
-
     return audio;
 }
 

@@ -99,7 +99,7 @@ void AudioPlayback::Play(int slowDown)
         }
     }
 
-    if (_sound)
+    if (_sound && !_sound->DigitalSamplePCM.empty())
     {
         uint16_t freq = _sound->Frequency;
         freq /= slowDown;

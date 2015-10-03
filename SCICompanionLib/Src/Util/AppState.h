@@ -131,6 +131,8 @@ public:
     // Global settings:
     int _cxFakeEgo;
     int _cyFakeEgo;
+    int _audioTrimLeft;
+    int _audioTrimRight;
     BOOL _fUseBoxEgo;
     int _fGridLines;
     int _fScaleTracingImages;

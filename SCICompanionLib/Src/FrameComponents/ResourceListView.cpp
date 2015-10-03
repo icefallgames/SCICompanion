@@ -897,7 +897,16 @@ HRESULT CResourceListCtrl::_UpdateEntries()
 
         // Temporary cache of ResourceBlob's from the resource map enumerator
         vector<unique_ptr<ResourceBlob>> resources;
-        auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeToFlag(GetType()), ResourceEnumFlags::NameLookups | ResourceEnumFlags::CalculateRecency);
+        ResourceEnumFlags enumFlags = ResourceEnumFlags::NameLookups | ResourceEnumFlags::CalculateRecency;
+        if (GetType() == ResourceType::Audio)
+        {
+            // This is special. We want to prioritize cache files, and if they are present, NOT fallback to the game's resources.
+            // SCI 1.1 doesn't allow dupes in general anyway, so we can say "most recent only"
+            enumFlags |= ResourceEnumFlags::IncludeCacheFiles | ResourceEnumFlags::MostRecentOnly;
+            // And we don't need to bother calculating recency.
+            // enumFlags &= ~ResourceEnumFlags::CalculateRecency;
+        }
+        auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeToFlag(GetType()), enumFlags);
         copy(resourceContainer->begin(), resourceContainer->end(), back_inserter(resources));
 
         if (!resources.empty())

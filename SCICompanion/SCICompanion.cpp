@@ -489,6 +489,8 @@ void SCICompanionApp::_LoadSettings(BOOL fReset)
     PCTSTR pszRegName = fReset ? TEXT("SomethingThatIsntThere") : m_pszAppName;
     appState->_cyFakeEgo = GetProfileInt(pszRegName, TEXT("FakeEgoY"), 48);
     appState->_cxFakeEgo = GetProfileInt(pszRegName, TEXT("FakeEgoX"), 30);
+    appState->_audioTrimLeft = GetProfileInt(pszRegName, TEXT("AudioTrimLeft"), 100);
+    appState->_audioTrimRight = GetProfileInt(pszRegName, TEXT("AudioTrimRight"), 100);
     appState->_fUseBoxEgo = GetProfileInt(pszRegName, TEXT("UseBoxEgo"), FALSE);
     appState->_fGridLines = GetProfileInt(pszRegName, TEXT("GridLines"), FALSE);
     appState->_fScaleTracingImages = GetProfileInt(pszRegName, TEXT("ScaleTracingImages"), TRUE);
@@ -511,6 +513,8 @@ void SCICompanionApp::_SaveSettings()
 {
     WriteProfileInt(m_pszAppName, TEXT("FakeEgoY"), appState->_cyFakeEgo);
     WriteProfileInt(m_pszAppName, TEXT("FakeEgoX"), appState->_cxFakeEgo);
+    WriteProfileInt(m_pszAppName, TEXT("AudioTrimLeft"), appState->_audioTrimLeft);
+    WriteProfileInt(m_pszAppName, TEXT("AudioTrimRight"), appState->_audioTrimRight);
     WriteProfileInt(m_pszAppName, TEXT("UseBoxEgo"), appState->_fUseBoxEgo);
     WriteProfileInt(m_pszAppName, TEXT("GridLines"), appState->_fGridLines);
     WriteProfileInt(m_pszAppName, TEXT("ScaleTracingImages"), appState->_fScaleTracingImages);

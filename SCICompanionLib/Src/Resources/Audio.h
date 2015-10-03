@@ -44,9 +44,10 @@ public:
 
     uint32_t GetLength() const { return (uint32_t)DigitalSamplePCM.size(); }
     uint32_t GetLengthInTicks() const;
+    uint32_t GetBytesPerSecond() const;
 
     std::vector<uint8_t> DigitalSamplePCM;
-    uint16_t Frequency; // I think this is bytes per second, and not samples per second
+    uint16_t Frequency; // Samples per second
     AudioFlags Flags;
 };
 

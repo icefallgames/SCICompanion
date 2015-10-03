@@ -18,6 +18,11 @@ std::string GetAudioLength(const AudioComponent &audio)
     return fmt::format("{0:02}:{1:02}", seconds / 60, seconds % 60);
 }
 
+uint32_t AudioComponent::GetBytesPerSecond() const
+{
+    return Frequency * (IsFlagSet(Flags, AudioFlags::SixteenBit) ? 2 : 1);
+}
+
 uint32_t AudioComponent::GetLengthInTicks() const
 {
     int bytePerSecond = max(1, Frequency);

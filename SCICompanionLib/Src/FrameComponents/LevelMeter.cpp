@@ -40,6 +40,10 @@ void LevelMeter::Monitor(bool monitor)
     if (_monitor != monitor)
     {
         _monitor = monitor;
+        if (!_monitor)
+        {
+            g_audioRecording.StopMonitor();
+        }
         Invalidate(FALSE);
     }
     if (_checkbox)

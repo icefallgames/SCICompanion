@@ -107,6 +107,8 @@ AppState::AppState(CWinApp *pApp)
 
     _cxFakeEgo = 30;
     _cyFakeEgo = 48;
+    _audioTrimLeft = 100;
+    _audioTrimRight = 100;
     _ptFakeEgo = CPoint(160, 120);
     _fObserveControlLines = false;
     _fObservePolygons = false;

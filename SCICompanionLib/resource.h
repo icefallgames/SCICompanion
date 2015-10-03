@@ -698,6 +698,9 @@
 #define IDC_STATIC_REC                  1338
 #define IDC_CHECK_TEXTLESS              1339
 #define IDC_CHECK_MONITOR               1340
+#define IDC_EDIT_TRIMLEFT               1341
+#define IDC_EDIT_TRIMRIGHT              1342
+#define IDC_GROUP2                      1343
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -1044,7 +1047,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        394
 #define _APS_NEXT_COMMAND_VALUE         33275
-#define _APS_NEXT_CONTROL_VALUE         1341
+#define _APS_NEXT_CONTROL_VALUE         1344
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

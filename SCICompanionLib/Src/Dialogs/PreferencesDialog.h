@@ -33,6 +33,7 @@ private:
     CExtCheckBox m_wndScriptNav;
     CExtCheckBox m_wndHoverTips;
     CExtGroupBox m_wndGroup1;
+    CExtGroupBox m_wndGroup2;
 
     CExtCheckBox m_wndCheck1;
     CExtCheckBox m_wndCheck2;
@@ -48,6 +49,7 @@ private:
 
     CComboBox m_wndMIDIDevices;
     CExtLabel m_wndStatic1;
+    CExtLabel m_wndStatic2;
 
 public:
     afx_msg void OnBnClickedBrowseinfo();

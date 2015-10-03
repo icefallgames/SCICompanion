@@ -25,6 +25,7 @@ public:
     void SetAudio(const AudioRecording *sound);
     void Record(WaveRecordingFormat format);
     std::unique_ptr<AudioComponent> Stop();
+    void StopMonitor();
     void IdleUpdate();
     bool IsRecording();
     DWORD QueryPosition(DWORD scope);

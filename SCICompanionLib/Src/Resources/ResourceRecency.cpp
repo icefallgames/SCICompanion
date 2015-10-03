@@ -101,6 +101,12 @@ bool ResourceRecency::IsResourceMostRecent(const IResourceIdentifier *pData)
             // (should always have at least one element)
             fRet = !pidList->empty() && (*pidList->begin() == pData->GetChecksum());
         }
+        else
+        {
+            // If we didn't find anything, then consider it the most recent.
+            // (for some items, like audio resources, we don't calculate recency)
+            fRet = true;
+        }
     }
     return fRet;
 }
