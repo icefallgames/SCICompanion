@@ -30,7 +30,7 @@ std::string default_reskey(int iNumber, uint32_t base36Number)
             (base36Number >> 8) & 0xff,
             (base36Number >> 16) & 0xff,
             (base36Number >> 0) & 0xff,
-            (base36Number >> 24) & 0xff
+            ((base36Number >> 24) & 0xff) % 36      // If this number (sequence) is 36, we want it to wrap 0 zero. Seq 0 not allowed.
             );
     }
 }

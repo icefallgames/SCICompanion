@@ -7,6 +7,8 @@
 #include "AppState.h"
 #include "ResourceContainer.h"
 #include "AudioMap.h"
+#include "SoundUtil.h"
+#include <filesystem>
 
 // The SCI Companion folder tree for audio cache files looks like this:
 //  gamefolder\
@@ -21,6 +23,7 @@
 //          65535\
 //              individual sync36, audio36 under here.
 
+using namespace std::tr2;
 
 // This handles both base 36 resources and regular audio files.
 // It does NOT enumerate maps currently. It does load a map internally, and permits saving maps.
@@ -67,6 +70,11 @@ bool ExtractTupleFromFilename(const char *pszFilename, uint32_t &tuple)
             {
                 if (ExtractBase36(pszFilename + 11, 1, entry.Sequence))
                 {
+                    if (entry.Sequence == 0)
+                    {
+                        // Only 1 digit to represent this. Seq 0 not allowed, seq 36 is.
+                        entry.Sequence = 36;
+                    }
                     tuple = GetMessageTuple(entry);
                     return true;
                 }
@@ -80,6 +88,7 @@ bool ExtractTupleFromFilename(const char *pszFilename, uint32_t &tuple)
 const char *pszAudioCacheFolder = "\\audiocache";
 
 AudioCacheResourceSource::AudioCacheResourceSource(SCIVersion version, const std::string &gameFolder, int mapContext, ResourceSourceAccessFlags access) :
+    _gameFolder(gameFolder),
     _cacheFolder(gameFolder + pszAudioCacheFolder),
     _version(version),
     _mapContext(mapContext),
@@ -196,9 +205,14 @@ bool AudioCacheResourceSource::ReadNextEntry(ResourceTypeFlags typeFlags, Iterat
     return success;
 }
 
+uint64_t _GetLookupKey(int number, uint32_t base36)
+{
+    return number + ((uint64_t)base36 << 32);
+}
+
 uint64_t _GetLookupKey(const ResourceMapEntryAgnostic &mapEntry)
 {
-    return mapEntry.Number + ((uint64_t)mapEntry.Base36Number << 32);
+    return _GetLookupKey(mapEntry.Number, mapEntry.Base36Number);
 }
 
 sci::istream AudioCacheResourceSource::GetHeaderAndPositionedStream(const ResourceMapEntryAgnostic &mapEntry, ResourceHeaderAgnostic &headerEntry)
@@ -311,23 +325,11 @@ void FirstTimeAudioExtraction(const std::string &cacheFolder, const std::string 
     }
 }
 
-void _EnsureFolderExists(const std::string &folder)
-{
-    if (!PathFileExists(folder.c_str()))
-    {
-        if (!CreateDirectory(folder.c_str(), nullptr))
-        {
-            std::string error = GetMessageFromLastError(folder);
-            throw std::exception(error.c_str());
-        }
-    }
-}
-
 AppendBehavior AudioCacheResourceSource::AppendResources(const std::vector<ResourceBlob> &entries)
 {
     // First, ensure our cache folder exists
-    _EnsureFolderExists(_cacheFolder);
-    _EnsureFolderExists(_cacheSubFolder);
+    EnsureFolderExists(_cacheFolder);
+    EnsureFolderExists(_cacheSubFolder);
 
     // Now, we need to write the existing audio map. This audio map *could* come from us, or it could come from the original.
     // If it came from the original, we need to extract all the files for the first time.
@@ -381,6 +383,118 @@ AppendBehavior AudioCacheResourceSource::AppendResources(const std::vector<Resou
     return AppendBehavior::Replace;
 }
 
+void RebuildFromResources(SCIVersion version, const std::string &gameFolder, AudioMapComponent &audioMap, int number, std::ostream &writeStream)
+{
+    GameFolderHelper helper;
+    helper.GameFolder = gameFolder;
+    helper.Version = version;
+
+    // First, cache all the blobs
+    std::unordered_map<uint64_t, std::unique_ptr<ResourceBlob>> blobs;
+    int mapContext = (number == version.AudioMapResourceNumber) ? -1 : number;
+    auto resourceContainer = helper.Resources(ResourceTypeFlags::Audio, ResourceEnumFlags::MostRecentOnly, nullptr, mapContext);
+    for (auto &blob : *resourceContainer)
+    {
+        uint64_t key = _GetLookupKey(blob->GetNumber(), blob->GetBase36());
+        blobs[key] = std::move(blob);
+    }
+
+    std::vector<AudioMapEntry> newEntries;
+    for (auto &entry : audioMap.Entries)
+    {
+        uint32_t tuple = GetMessageTuple(entry);
+        uint64_t key = _GetLookupKey(entry.Number, tuple);
+        auto itFind = blobs.find(key);
+        if (itFind != blobs.end())
+        {
+            ResourceBlob &blob = *itFind->second;
+            entry.Offset = static_cast<uint32_t>(writeStream.tellp());
+            entry.SyncSize = 0;
+            auto props = blob.GetPropertyBag();
+            auto itProp = props.find(BlobKey::LipSyncDataSize);
+            if (itProp != props.end())
+            {
+                entry.SyncSize = itProp->second;
+            }
+            newEntries.push_back(entry);
+
+            writeStream.write(reinterpret_cast<const char *>(blob.GetData()), blob.GetDecompressedLength());
+            // TODO transfer data
+            blob.GetReadStream();
+        }
+        // else leave it out
+    }
+
+    // Assign the new ones...
+    std::swap(audioMap.Entries, newEntries);
+}
+
+void RebuildFromAudioCacheFiles(SCIVersion version, const std::string &cacheSubfolder, AudioMapComponent &audioMap, int number, std::ostream &writeStream)
+{
+    bool isMain = number == version.AudioMapResourceNumber;
+
+    std::vector<AudioMapEntry> newEntries;
+    for (auto &entry : audioMap.Entries)
+    {
+        uint32_t tuple = isMain ? NoBase36 : GetMessageTuple(entry);
+        std::string fullPathAudio = cacheSubfolder + "\\" + GetFileNameFor(ResourceType::Audio, entry.Number, tuple, version);
+        std::string fullPathSync;
+        if (!isMain)
+        {
+            fullPathSync = cacheSubfolder + "\\" + GetFileNameFor(ResourceType::Sync, entry.Number, tuple, version);
+        }
+        
+        entry.Offset = static_cast<uint32_t>(writeStream.tellp());
+        entry.SyncSize = 0;
+        // If it exists, open sync file and write it. Then take note of size. Then write audio.
+        if (sys::exists(sys::path(fullPathAudio)))
+        {
+            if (!fullPathSync.empty() && sys::exists(sys::path(fullPathSync)))
+            {
+                std::ifstream syncFile;
+                syncFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+                syncFile.open(fullPathSync, std::ios_base::binary | std::ios_base::in);
+                writeStream << syncFile.rdbuf();
+                entry.SyncSize = (uint32_t)writeStream.tellp() - entry.Offset;
+            }
+
+            std::ifstream audFile;
+            audFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+            audFile.open(fullPathAudio, std::ios_base::binary | std::ios_base::in);
+            writeStream << audFile.rdbuf();
+
+            newEntries.push_back(entry);
+        }
+        // If we didn't find it, skip (TODO: log this isue)
+    }
+
+    // Assign the new ones...
+    std::swap(audioMap.Entries, newEntries);
+}
+
+std::ostream *_ChooseBakOutputStream(SCIVersion version, const std::string &gameFolder, int number, std::ofstream &audStream, std::ofstream &sfxStream)
+{
+    AudioVolumeName volumeName;
+    if (number == version.AudioMapResourceNumber)
+    {
+        volumeName = GetVolumeToUse(version, NoBase36);
+    }
+    else
+    {
+        volumeName = GetVolumeToUse(version, number);
+    }
+    std::ofstream *toUse = (volumeName == AudioVolumeName::Aud) ? &audStream : &sfxStream;
+
+    if (!toUse->is_open())
+    {
+        std::string path = GetAudioVolumePath(gameFolder, true, volumeName);
+        toUse->exceptions(std::ofstream::failbit | std::ofstream::badbit);
+        toUse->open(path, std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
+    }
+
+    return toUse;
+}
+
 void AudioCacheResourceSource::RebuildResources()
 {
     // We need to rebuild the resource.aud and such from scratch.
@@ -392,7 +506,97 @@ void AudioCacheResourceSource::RebuildResources()
     // For those we got from the other stuff, we'll look only in the other stuff.
     // NOTE: we don't always save to same place also... resource.sfx or resource.aud. So go through proper channels?
     // Can we leverage AudioResourceSource?
+
+    // 1) Find all the audio maps. We'll use the message resources to do this. This is so we don't include audio that no longer
+    // has a place (e.g. no matching message resource - suppose it was deleted)
+    std::set<int> audioMapNumbers;
+    audioMapNumbers.insert(_version.AudioMapResourceNumber); // The default audio map.
+    {
+        auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Message, ResourceEnumFlags::MostRecentOnly);
+        // Use iterator directly so we don't instantiate the blobs
+        for (auto it = resourceContainer->begin(); it != resourceContainer->end(); ++it)
+        {
+            audioMapNumbers.insert(it.GetResourceNumber());
+        }
+    }
+
+    // 2) Accumulate the audio maps... we can just do a regular enumeration, which should do them in this order:
+    //      a) audio cache folder
+    //      b) patch files (is this even necessary?)
+    //      c) std resource map
+    std::map<int, std::unique_ptr<ResourceEntity>> audioMaps;
+    {   
+        auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::AudioMap, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::IncludeCacheFiles);
+        for (auto &blob : *resourceContainer)
+        {
+            audioMaps[blob->GetNumber()] = std::move(CreateResourceFromResourceData(*blob));
+        }
+    }
+
+    // 3) Based on the information in the audio maps, write the necessary audio resources into the audio volume files (resource.aud/resource.sfx, as appropriate)
+    std::ofstream audStream;
+    std::ofstream sfxStream;
+    for (int amNumber : audioMapNumbers)
+    {
+        auto itAudioMapPair = audioMaps.find(amNumber);
+        if (itAudioMapPair != audioMaps.end())
+        {
+            std::ostream &streamToUse = *_ChooseBakOutputStream(_version, _gameFolder, itAudioMapPair->first, audStream, sfxStream);
+
+            ResourceEntity *audioMapResource = itAudioMapPair->second.get();
+            if (audioMapResource->SourceFlags == ResourceSourceFlags::AudioMapCache)
+            {
+                //  Just copy the cache files directly into this stream...
+                std::string cacheSubfolder = _cacheFolder + fmt::format("\\{0}", audioMapResource->ResourceNumber);
+                RebuildFromAudioCacheFiles(_version, cacheSubfolder, audioMapResource->GetComponent<AudioMapComponent>(), audioMapResource->ResourceNumber, streamToUse);
+            }
+            else
+            {
+                RebuildFromResources(_version, _gameFolder, audioMapResource->GetComponent<AudioMapComponent>(), audioMapResource->ResourceNumber, streamToUse);
+            }
+        }
+        
+    }
+
+    // 4) Test that we can open the non bak versions for writing
+    if (audStream.is_open())
+    {
+        testopenforwrite(GetAudioVolumePath(_gameFolder, false, AudioVolumeName::Aud));
+    }
+    if (sfxStream.is_open())
+    {
+        testopenforwrite(GetAudioVolumePath(_gameFolder, false, AudioVolumeName::Sfx));
+    }
+
+    // 5) If that's good, then save the audio maps
+    {
+        DeferResourceAppend defer(appState->GetResourceMap());
+        for (auto &audioMap : audioMaps)
+        {
+            appState->GetResourceMap().AppendResource(*audioMap.second);
+        }
+        defer.Commit();
+    }
+
+    // 6) And then if that's good, then replace the audio files.
+    if (audStream.is_open())
+    {
+        audStream.close();
+        std::string finalPath = GetAudioVolumePath(_gameFolder, false, AudioVolumeName::Aud);
+        deletefile(finalPath);
+        movefile(GetAudioVolumePath(_gameFolder, true, AudioVolumeName::Aud), finalPath);
+    }
+    if (sfxStream.is_open())
+    {
+        sfxStream.close();
+        std::string finalPath = GetAudioVolumePath(_gameFolder, false, AudioVolumeName::Sfx);
+        deletefile(finalPath);
+        movefile(GetAudioVolumePath(_gameFolder, true, AudioVolumeName::Sfx), finalPath);
+    }
+
+    // TODO: Check if there are audio maps that have no representation in a message resource?
 }
 
 AudioCacheResourceSource::~AudioCacheResourceSource() {}
+
 

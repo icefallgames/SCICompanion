@@ -51,7 +51,7 @@ private:
 
     // Audio sidecare stuff.
     std::unordered_map<uint32_t, std::unique_ptr<ResourceEntity>> _audioSidecarResources;
-    std::vector<ResourceEntity*> _newAudioSidecarResources; // temp
+    std::unordered_set<uint32_t> _newAudioSidecarResources; // we need a more complex thing here, to track deleting and such
 
     DECLARE_MESSAGE_MAP()
 };

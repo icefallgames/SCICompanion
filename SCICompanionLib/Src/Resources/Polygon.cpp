@@ -328,10 +328,6 @@ SCIPolygon *PolygonComponent::GetBack()
 
 unique_ptr<PolygonComponent> CreatePolygonComponent(const string &polyFolder, int picNumber)
 {
-    // Create the directory if it doesn't exist
-    if (!PathFileExists(polyFolder.c_str()))
-    {
-        CreateDirectory(polyFolder.c_str(), nullptr);
-    }
+    EnsureFolderExists(polyFolder, false);
     return make_unique<PolygonComponent>(polyFolder, picNumber);
 }

@@ -369,6 +369,23 @@ void WriteWaveFile(const std::string &filename, const AudioComponent &audio)
     file.Write(out.GetInternalPointer(), out.GetDataSize());
 }
 
+
+std::string GetAudioVolumePath(const std::string &gameFolder, bool bak, AudioVolumeName volumeToUse, ResourceSourceFlags *sourceFlags)
+{
+    ResourceSourceFlags sourceFlagsTemp = (volumeToUse == AudioVolumeName::Aud) ? ResourceSourceFlags::Aud : ResourceSourceFlags::Sfx;
+    std::string fullPath = gameFolder + "\\" + ((volumeToUse == AudioVolumeName::Aud) ? "resource.aud" : "resource.sfx");
+    if (bak)
+    {
+        fullPath += ".bak";
+    }
+
+    if (sourceFlags)
+    {
+        *sourceFlags = sourceFlagsTemp;
+    }
+    return fullPath;
+}
+
 AudioVolumeName GetVolumeToUse(SCIVersion version, uint32_t base36Number)
 {
     AudioVolumeName volumeToUse = version.AudioVolumeName;

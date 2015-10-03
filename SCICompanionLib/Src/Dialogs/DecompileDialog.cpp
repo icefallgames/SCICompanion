@@ -81,13 +81,10 @@ void DecompileDialog::DoDataExchange(CDataExchange* pDX)
     {
         // Ensure we have a src directory
         string sourceFolder = _helper.GetSrcFolder();
-        if (!PathFileExists(sourceFolder.c_str()))
+        if (!EnsureFolderExists(sourceFolder, false))
         {
-            if (!CreateDirectory(sourceFolder.c_str(), nullptr))
-            {
-                std::string error = GetMessageFromLastError(sourceFolder);
-                AfxMessageBox(error.c_str(), MB_OK | MB_APPLMODAL);
-            }
+            std::string error = GetMessageFromLastError(sourceFolder);
+            AfxMessageBox(error.c_str(), MB_OK | MB_APPLMODAL);
         }
 
         // Ensure we have a decompiler.ini

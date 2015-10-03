@@ -169,14 +169,11 @@ void ExtractAllDialog::OnBnClickedExtract()
 
     if (good)
     {
-        if (!DirectoryExists(strLocation))
+        good = EnsureFolderExists((PCSTR)strLocation, false);
+        if (!good)
         {
-            good = !!CreateDirectory(strLocation, nullptr);
-            if (!good)
-            {
-                string details = format("Creating \"{}\"", (PCSTR)strLocation);
-                AfxMessageBox(GetMessageFromLastError(details).c_str(), MB_OK | MB_ICONERROR);
-            }
+            string details = format("Creating \"{}\"", (PCSTR)strLocation);
+            AfxMessageBox(GetMessageFromLastError(details).c_str(), MB_OK | MB_ICONERROR);
         }
     }
 

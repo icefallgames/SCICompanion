@@ -47,6 +47,7 @@ private:
     std::unordered_map<uint64_t, std::unique_ptr<sci::ostream>> _streamHolders2;
 
     bool _enumInitialized;
+    std::string _gameFolder;
     std::string _cacheFolder;
     std::string _cacheSubFolder;
 };

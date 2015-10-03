@@ -147,6 +147,22 @@ ResourceType ResourceFlagToType(ResourceTypeFlags dwFlags)
 template<typename _TMapEntry, typename _THeaderEntry>
 HRESULT RebuildResources(SCIVersion version, BOOL fShowUI)
 {
+    // phil test
+    if (version.AudioVolumeName != AudioVolumeName::None)
+    {
+        try
+        {
+            std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(appState->GetResourceMap().GetGameFolder(), appState->GetVersion(), ResourceSourceFlags::AudioCache);
+            resourceSource->RebuildResources();
+        }
+        catch (std::exception &e)
+        {
+            AfxMessageBox(e.what(), MB_OK | MB_ICONWARNING);
+        }
+    }
+
+#if DISABLEDFORNOW
+
     // Enumerate resources and write the ones we have not already encountered.
     std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(appState->GetResourceMap().GetGameFolder(), appState->GetVersion(), ResourceSourceFlags::ResourceMap);
     try
@@ -162,7 +178,7 @@ HRESULT RebuildResources(SCIVersion version, BOOL fShowUI)
     {
         AfxMessageBox(e.what(), MB_OK | MB_ICONWARNING);
     }
-
+#endif
     return S_OK;
 }
 

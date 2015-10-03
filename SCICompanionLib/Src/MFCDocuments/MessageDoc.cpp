@@ -51,7 +51,7 @@ void CMessageDoc::_PreloadAudio()
 
 void CMessageDoc::AddNewAudioResource(std::unique_ptr<ResourceEntity> audioResource)
 {
-    _newAudioSidecarResources.push_back(audioResource.get());
+    _newAudioSidecarResources.insert(audioResource->Base36Number);
     _audioSidecarResources[audioResource->Base36Number] = std::move(audioResource);
 
     SetModifiedFlag(TRUE);
@@ -103,11 +103,12 @@ void CMessageDoc::PostSuccessfulSave(const ResourceEntity *pResource)
 
     {
         DeferResourceAppend defer(map);
-        for (auto &resource : _newAudioSidecarResources)
+        for (uint32_t tuple : _newAudioSidecarResources)
         {
+            ResourceEntity &resource = *_audioSidecarResources[tuple];
             // We *only* support saving to the audio cachhe.
-            resource->SourceFlags = ResourceSourceFlags::AudioCache;
-            map.AppendResource(*resource);
+            resource.SourceFlags = ResourceSourceFlags::AudioCache;
+            map.AppendResource(resource);
         }
         defer.Commit();
     }

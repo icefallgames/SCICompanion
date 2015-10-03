@@ -67,6 +67,7 @@ std::string GetFileNameFor(ResourceType type, int number, uint32_t base36Number,
     {
         assert(type == ResourceType::Audio || type == ResourceType::Sync);
         std::string core = default_reskey(number, base36Number);
+        assert(core.length() == 11);
         return format("{0}{1}", (type == ResourceType::Audio) ? Base36AudioPrefix : Base36SyncPrefix, core);
     }
 }

@@ -81,12 +81,9 @@ void TalkerToViewMap::SetTalkerToViewLoop(uint16_t talker, uint16_t view, uint16
     _talkerToViewLoop[talker] = std::pair<uint16_t, uint16_t>(view, loop);
 
     // Save it
-    if (!DirectoryExists(_folder.c_str()))
+    if (!EnsureFolderExists(_folder, false))
     {
-        if (!CreateDirectory(_folder.c_str(), nullptr))
-        {
-            return;
-        }
+        return;
     }
 
     std::ofstream file;

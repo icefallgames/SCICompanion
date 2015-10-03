@@ -536,6 +536,23 @@ bool Save8BitBmp(const std::string &filename, const BITMAPINFO &info, BYTE *pBit
     }
     return false;
 }
+
+bool EnsureFolderExists(const std::string &folderName, bool throwException)
+{
+    if (!PathFileExists(folderName.c_str()))
+    {
+        if (!CreateDirectory(folderName.c_str(), nullptr))
+        {
+            if (throwException)
+            {
+                std::string error = GetMessageFromLastError(folderName);
+                throw std::exception(error.c_str());
+            }
+            return false;
+        }
+    }
+    return true;
+}
  
 std::string GetRandomTempFolder()
 { 
