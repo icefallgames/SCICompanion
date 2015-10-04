@@ -30,22 +30,29 @@ PhonemeMap::PhonemeMap(const std::string &filename) : _filespec(filename.substr(
 {
     try
     {
-        unique_ptr<cpptoml::table> table = make_unique<cpptoml::table>(parse_file(filename));
-        if (table->contains("phoneme_to_cel"))
+        if (PathFileExists(filename.c_str()))
         {
-            shared_ptr<cpptoml::table> phonemes = table->get_table("phoneme_to_cel");
-            for (auto entry : *phonemes.get())
+            unique_ptr<cpptoml::table> table = make_unique<cpptoml::table>(parse_file(filename));
+            if (table->contains("phoneme_to_cel"))
             {
-                auto value = entry.second->as<int64_t>();
-                _phonemeToCel[entry.first] = (int)(*value).get();
+                shared_ptr<cpptoml::table> phonemes = table->get_table("phoneme_to_cel");
+                for (auto entry : *phonemes.get())
+                {
+                    auto value = entry.second->as<int64_t>();
+                    _phonemeToCel[entry.first] = (int)(*value).get();
+                }
+            }
+
+            ifstream file;
+            file.open(filename, std::ios_base::binary | std::ios_base::in);
+            if (file.is_open())
+            {
+                _fileContents = std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
             }
         }
-
-        ifstream file;
-        file.open(filename, std::ios_base::binary | std::ios_base::in);
-        if (file.is_open())
+        else
         {
-            _fileContents = std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+            _errors = std::string("Can't open ") + filename;
         }
     }
     catch (cpptoml::parse_exception &e)

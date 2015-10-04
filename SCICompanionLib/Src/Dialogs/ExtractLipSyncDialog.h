@@ -16,7 +16,7 @@ struct LipSyncDialogTaskResult;
 class ExtractLipSyncDialog : public AudioPlaybackUI<CExtResizableDialog>
 {
 public:
-    ExtractLipSyncDialog(const ResourceEntity &resource, uint8_t talker, const std::string &talkerName, const std::string &messageText, bool textless, CWnd* pParent = NULL);   // standard constructor
+    ExtractLipSyncDialog(const ResourceEntity &resource, uint8_t talker, const std::string &talkerName, const std::string &messageText, bool useText, CWnd* pParent = NULL);   // standard constructor
     virtual ~ExtractLipSyncDialog();
     std::unique_ptr<SyncComponent> GetSyncComponent() const;
 
@@ -64,7 +64,7 @@ protected:
 
     CExtLabel m_wndStatic4;
     CExtCheckBox m_wndUseSample;
-    CExtCheckBox m_wndTextless;
+    CExtCheckBox m_wndUseText;
 
     std::unique_ptr<ResourceEntity> _audioResource;
     std::unique_ptr<ResourceEntity> _viewResource;
@@ -72,7 +72,7 @@ protected:
     bool _actuallyUsingSample;
     int _nView, _nLoop;
     uint8_t _talker;
-    bool _textless;
+    bool _useText;
     std::string _talkerName;
     
     std::string _messageText;

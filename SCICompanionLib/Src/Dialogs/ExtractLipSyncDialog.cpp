@@ -33,7 +33,7 @@ struct LipSyncDialogTaskResult
 
 // ExtractLipSyncDialog dialog
 
-ExtractLipSyncDialog::ExtractLipSyncDialog(const ResourceEntity &resource, uint8_t talker, const std::string &talkerName, const std::string &messageText, bool textless, CWnd * pParent /*=NULL*/)
+ExtractLipSyncDialog::ExtractLipSyncDialog(const ResourceEntity &resource, uint8_t talker, const std::string &talkerName, const std::string &messageText, bool useText, CWnd * pParent /*=NULL*/)
     : AudioPlaybackUI<CExtResizableDialog>(ExtractLipSyncDialog::IDD, pParent),
     _talker(talker),
     _talkerName(talkerName),
@@ -42,7 +42,7 @@ ExtractLipSyncDialog::ExtractLipSyncDialog(const ResourceEntity &resource, uint8
     _nLoop(0),
     _nView(0),
     _messageText(messageText),
-    _textless(textless)
+    _useText(useText)
 {
     uint16_t view, loop;
     if (appState->GetResourceMap().GetTalkerToViewMap().TalkerToViewLoop(_talker, view, loop))
@@ -109,8 +109,8 @@ void ExtractLipSyncDialog::DoDataExchange(CDataExchange* pDX)
         DoDataExchangeHelper(pDX);
 
         DDX_Control(pDX, IDC_CHECK_USESAMPLE, m_wndUseSample);
-        DDX_Control(pDX, IDC_CHECK_TEXTLESS, m_wndTextless);
-        m_wndTextless.SetCheck(_textless ? BST_CHECKED : BST_UNCHECKED);
+        DDX_Control(pDX, IDC_CHECK_USETEXT, m_wndUseText);
+        m_wndUseText.SetCheck(_useText ? BST_CHECKED : BST_UNCHECKED);
         DDX_Control(pDX, IDC_BUTTON_SETVIEW, m_wndSetView);
         DDX_Control(pDX, IDC_BUTTON_DELETE_SYNC, m_wndDeleteSync);
         m_wndDeleteSync.SetIcon(IDI_DELETE, 0, 0, 0, 16, 16);
@@ -333,7 +333,7 @@ void ExtractLipSyncDialog::OnBnClickedGeneratelipsync()
             (IDYES == AfxMessageBox("The phoneme map appears to be all zeroes. Continue anyway?", MB_YESNO | MB_ICONWARNING)))
         {
             std::string optionalText;
-            if (m_wndTextless.GetCheck() != BST_CHECKED)
+            if (m_wndUseText.GetCheck() == BST_CHECKED)
             {
                 optionalText = _messageText;
             }
