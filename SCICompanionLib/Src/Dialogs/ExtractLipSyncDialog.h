@@ -3,7 +3,6 @@
 #include "resource.h"
 #include "AudioPlaybackUI.h"
 #include "ViewUIElement.h"
-#include "TalkerToViewMap.h"
 #include "AudioWaveformUI.h"
 #include "Task.h"
 
@@ -75,8 +74,7 @@ protected:
     uint8_t _talker;
     bool _textless;
     std::string _talkerName;
-    TalkerToViewMap _talkerToViewMap;
-
+    
     std::string _messageText;
 
     std::unique_ptr<CWndTaskSink<LipSyncDialogTaskResult>> _taskSink;
@@ -88,11 +86,11 @@ protected:
 public:
     afx_msg LRESULT _OnLipSyncDone(WPARAM wParam, LPARAM lParam);
     afx_msg void OnBnClickedButtonResetmapping();
-    afx_msg void OnEnKillfocusEditPhonememap();
     afx_msg void OnBnClickedGeneratelipsync();
     afx_msg void OnBnClickedButtonCommitmapping();
     afx_msg void OnBnClickedButtonSetview();
     afx_msg void OnBnClickedCheckUsesample();
     afx_msg void OnBnClickedButtonDeleteSync();
     afx_msg void OnBnClickedButtonRaw();
+    afx_msg void OnEnChangeEditPhonememap();
 };

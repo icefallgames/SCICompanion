@@ -7,9 +7,9 @@
 using namespace std;
 using namespace cpptoml;
 
-TalkerToViewMap::TalkerToViewMap(AppState *appState)
+TalkerToViewMap::TalkerToViewMap(const std::string &lipSyncFolder)
 {
-    _folder = appState->GetResourceMap().Helper().GetLipSyncFolder();
+    _folder = lipSyncFolder;
     _filename = _folder + "\\talker_to_view.ini";
 
     try

@@ -7,6 +7,8 @@ using namespace std;
 
 void SyncWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
 {
+    uint16_t resourceMarker = 0x008e;
+    byteStream << resourceMarker;
     const SyncComponent &sync = resource.GetComponent<SyncComponent>();
 
     for (auto &entry : sync.Entries)

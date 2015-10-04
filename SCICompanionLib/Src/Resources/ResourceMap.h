@@ -4,6 +4,7 @@
 #include "GameFolderHelper.h"
 #include "CompiledScript.h"
 #include "ResourceEntity.h"
+#include "TalkerToViewMap.h"
 
 class DebuggerThread;
 struct Vocab000;
@@ -65,6 +66,8 @@ public:
 
     void SetGameFolder(const std::string &gameFolder);
 
+    TalkerToViewMap &GetTalkerToViewMap();
+
     std::string GetGameFolder() const;
     std::string GetIncludeFolder();
     std::string GetIncludePath(const std::string &includeFileName);
@@ -123,6 +126,8 @@ private:
     friend class DeferResourceAppend;
 
     // Member variables
+
+    TalkerToViewMap _talkerToView;
 
     std::vector<IResourceMapEvents*> _syncs;
 

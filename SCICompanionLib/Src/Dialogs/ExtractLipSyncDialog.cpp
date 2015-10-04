@@ -37,7 +37,6 @@ ExtractLipSyncDialog::ExtractLipSyncDialog(const ResourceEntity &resource, uint8
     : AudioPlaybackUI<CExtResizableDialog>(ExtractLipSyncDialog::IDD, pParent),
     _talker(talker),
     _talkerName(talkerName),
-    _talkerToViewMap(appState),
     _initialized(false),
     _wantToUseSample(false),
     _nLoop(0),
@@ -46,7 +45,7 @@ ExtractLipSyncDialog::ExtractLipSyncDialog(const ResourceEntity &resource, uint8
     _textless(textless)
 {
     uint16_t view, loop;
-    if (_talkerToViewMap.TalkerToViewLoop(_talker, view, loop))
+    if (appState->GetResourceMap().GetTalkerToViewMap().TalkerToViewLoop(_talker, view, loop))
     {
         _nView = view;
         _nLoop = loop;
@@ -294,13 +293,13 @@ BEGIN_MESSAGE_MAP(ExtractLipSyncDialog, AudioPlaybackUI<CExtResizableDialog>)
     ON_WM_DESTROY()
     ON_MESSAGE(UWM_LIPSYNCTASKDONE, _OnLipSyncDone)
     ON_BN_CLICKED(IDC_BUTTON_RESETMAPPING, &ExtractLipSyncDialog::OnBnClickedButtonResetmapping)
-    ON_EN_KILLFOCUS(IDC_EDIT_PHONEMEMAP, &ExtractLipSyncDialog::OnEnKillfocusEditPhonememap)
     ON_BN_CLICKED(ID_GENERATELIPSYNC, &ExtractLipSyncDialog::OnBnClickedGeneratelipsync)
     ON_BN_CLICKED(IDC_BUTTON_COMMITMAPPING, &ExtractLipSyncDialog::OnBnClickedButtonCommitmapping)
     ON_BN_CLICKED(IDC_BUTTON_SETVIEW, &ExtractLipSyncDialog::OnBnClickedButtonSetview)
     ON_BN_CLICKED(IDC_CHECK_USESAMPLE, &ExtractLipSyncDialog::OnBnClickedCheckUsesample)
     ON_BN_CLICKED(IDC_BUTTON_DELETE_SYNC, &ExtractLipSyncDialog::OnBnClickedButtonDeleteSync)
     ON_BN_CLICKED(IDC_BUTTON_RAW, &ExtractLipSyncDialog::OnBnClickedButtonRaw)
+    ON_EN_CHANGE(IDC_EDIT_PHONEMEMAP, &ExtractLipSyncDialog::OnEnChangeEditPhonememap)
 END_MESSAGE_MAP()
 
 void ExtractLipSyncDialog::OnBnClickedButtonResetmapping()
@@ -311,11 +310,6 @@ void ExtractLipSyncDialog::OnBnClickedButtonResetmapping()
         m_wndCommitMapping.EnableWindow(TRUE);
         m_wndEditPhonemeMap.SetWindowText(_phonemeMap->GetFileContents().c_str());
     }
-}
-
-void ExtractLipSyncDialog::OnEnKillfocusEditPhonememap()
-{
-    m_wndCommitMapping.EnableWindow(TRUE);
 }
 
 LipSyncDialogTaskResult CreateLipSyncComponentAndRawDataFromAudioAndPhonemes(const AudioComponent &audio, const std::string &optionalText, const PhonemeMap &phonemeMap)
@@ -366,6 +360,8 @@ void ExtractLipSyncDialog::OnBnClickedButtonCommitmapping()
         message += errors;
     }
     m_wndEditPhonemeMapStatus.SetWindowText(message.c_str());
+    // Reload:
+    _phonemeMap = LoadPhonemeMapForViewLoop(appState, _nView, _nLoop);
 }
 
 
@@ -381,7 +377,7 @@ void ExtractLipSyncDialog::OnBnClickedButtonSetview()
             _nLoop = dialog.GetLoop();
             _wantToUseSample = false;
             m_wndUseSample.SetCheck(BST_UNCHECKED);
-            _talkerToViewMap.SetTalkerToViewLoop(_talker, _nView, _nLoop);
+            appState->GetResourceMap().GetTalkerToViewMap().SetTalkerToViewLoop(_talker, _nView, _nLoop);
             _SyncViewLoop();
         }
     }
@@ -412,4 +408,10 @@ void ExtractLipSyncDialog::OnBnClickedButtonDeleteSync()
 void ExtractLipSyncDialog::OnBnClickedButtonRaw()
 {
     ShowTextFile(_audioResource->GetComponent<SyncComponent>().RawData.c_str(), fmt::format("{0}_rawlipsync.txt", default_reskey(_audioResource->ResourceNumber, _audioResource->Base36Number)));
+}
+
+
+void ExtractLipSyncDialog::OnEnChangeEditPhonememap()
+{
+    m_wndCommitMapping.EnableWindow(TRUE);
 }

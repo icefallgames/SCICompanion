@@ -16,7 +16,6 @@
 #include "PhonemeMap.h"
 #include "Sync.h"
 #include "LipSyncUtil.h"
-#include "TalkerToViewMap.h"
 
 #define MOUTH_TIMER 9753
 
@@ -354,10 +353,9 @@ bool MessageEditPane::_UpdateAudio(const TextEntry &messageEntry)
 
         // TODO: Make this part of ResourceMap so we only load once?
         // TODO: Optimize all this resource loading.
-        TalkerToViewMap talkerToViewMap(appState);
         uint16_t view, loop;
         int currentMouthView = _mouthView ? _mouthView->ResourceNumber : -1;
-        if (talkerToViewMap.TalkerToViewLoop(messageEntry.Talker, view, loop))
+        if (appState->GetResourceMap().GetTalkerToViewMap().TalkerToViewLoop(messageEntry.Talker, view, loop))
         {
             if (view != currentMouthView)
             {
@@ -765,13 +763,22 @@ void MessageEditPane::OnBnClickedButtonlipsync()
         {
             optionalText = entry->Text;
         }
-        PhonemeMap samplePhonemeMap(GetExeSubFolder("Samples") + "\\sample_phoneme_map.ini");
 
-        m_wndQuickLipSync.EnableWindow(FALSE);
-
-        _lipSyncTaskSink.StartTask(
-            [audioCopy, optionalText, samplePhonemeMap]() { return CreateLipSyncComponentFromAudioAndPhonemes2(audioCopy, optionalText, samplePhonemeMap); }
-        );
+        uint16_t view, loop;
+        appState->GetResourceMap().GetTalkerToViewMap().TalkerToViewLoop(entry->Talker, view, loop);
+        std::unique_ptr<PhonemeMap> phonemeMap = LoadPhonemeMapForViewLoop(appState, view, loop);
+        if (!phonemeMap)
+        {
+            phonemeMap = std::make_unique<PhonemeMap>(GetExeSubFolder("Samples") + "\\sample_phoneme_map.ini");
+        }
+        if (phonemeMap)
+        {
+            PhonemeMap phonemeMapCopy = *phonemeMap;
+            m_wndQuickLipSync.EnableWindow(FALSE);
+            _lipSyncTaskSink.StartTask(
+                [audioCopy, optionalText, phonemeMapCopy]() { return CreateLipSyncComponentFromAudioAndPhonemes2(audioCopy, optionalText, phonemeMapCopy); }
+            );
+        }
     }
 }
 

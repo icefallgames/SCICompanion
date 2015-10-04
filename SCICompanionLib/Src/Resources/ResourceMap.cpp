@@ -1226,6 +1226,7 @@ MessageSource *CResourceMap::GetTalkersMessageSource(bool reload)
 void CResourceMap::SetGameFolder(const string &gameFolder)
 {
     _gameFolderHelper.GameFolder = gameFolder;
+    _talkerToView = TalkerToViewMap(Helper().GetLipSyncFolder());
     ClearVocab000();
     _pPalette999.reset(nullptr);                    // REVIEW: also do this if global palette is edited.
     _globalCompiledScriptLookups.reset(nullptr);
@@ -1254,6 +1255,11 @@ void CResourceMap::SetGameFolder(const string &gameFolder)
     AbortDebuggerThread();
 
     appState->OnGameFolderUpdate();
+}
+
+TalkerToViewMap &CResourceMap::GetTalkerToViewMap()
+{
+    return _talkerToView;
 }
 
 // Returns null if it doesn't exist.

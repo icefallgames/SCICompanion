@@ -95,7 +95,7 @@ AudioCacheResourceSource::AudioCacheResourceSource(SCIVersion version, const std
     _enumInitialized(false),
     _access(access)
 {
-    _cacheSubFolder = _cacheFolder + fmt::format("\\{0}", (mapContext == -1) ? version.AudioMapResourceNumber : mapContext);
+    _cacheSubFolderForEnum = _cacheFolder + fmt::format("\\{0}", (mapContext == -1) ? version.AudioMapResourceNumber : mapContext);
 }
 
 void AudioCacheResourceSource::_EnsureEnumInitialized()
@@ -119,13 +119,13 @@ void AudioCacheResourceSource::_EnsureEnumInitialized()
             if (_mapContext == -1)
             {
                 // "global" audio resources
-                audioFileSpec = _cacheSubFolder + "\\*.aud";
+                audioFileSpec = _cacheSubFolderForEnum + "\\*.aud";
             }
             else
             {
                 // base36 audio and sync resources
                 // nnnNNVV.CCS
-                audioFileSpec = _cacheSubFolder + fmt::format("\\?{0:0>3t}????.???", _mapContext);
+                audioFileSpec = _cacheSubFolderForEnum + fmt::format("\\?{0:0>3t}????.???", _mapContext);
             }
 
             WIN32_FIND_DATA findData = {};
@@ -221,7 +221,7 @@ sci::istream AudioCacheResourceSource::GetHeaderAndPositionedStream(const Resour
 
     std::string fileName = GetFileNameFor(mapEntry.Type, mapEntry.Number, mapEntry.Base36Number, _version);
     assert(!fileName.empty());
-    std::string fullPath = _cacheSubFolder + "\\" + fileName;
+    std::string fullPath = _cacheSubFolderForEnum + "\\" + fileName;
 
     // Now fill in the headerEntry
     headerEntry.Number = mapEntry.Number;
@@ -249,7 +249,7 @@ sci::istream AudioCacheResourceSource::GetHeaderAndPositionedStream(const Resour
     else
     {
         std::string fileNameSync = GetFileNameFor(ResourceType::Sync, mapEntry.Number, mapEntry.Base36Number, _version);
-        std::string fullPathSync = _cacheSubFolder + "\\" + fileNameSync;
+        std::string fullPathSync = _cacheSubFolderForEnum + "\\" + fileNameSync;
 
         // Audio36 plus maybe sync36. We want to combine these two into a single stream,
         // with the Sync36 data coming first, and the sync36 data indicated by BlobKey::LipSyncDataSize
@@ -278,11 +278,6 @@ sci::istream AudioCacheResourceSource::GetHeaderAndPositionedStream(const Resour
     return sci::istream(nullptr, 0); // Empty stream....
 }
 
-void AudioCacheResourceSource::RemoveEntry(const ResourceMapEntryAgnostic &mapEntry)
-{
-    // TODO:
-}
-
 // Split a resource blob into audio and sync files (if appropriate)
 void SaveAudioBlobToFiles(const ResourceBlob &blob, const std::string &cacheSubFolder, SCIVersion version)
 {
@@ -293,11 +288,17 @@ void SaveAudioBlobToFiles(const ResourceBlob &blob, const std::string &cacheSubF
         lipSyncDataSize = it->second;
     }
 
+    std::string syncFileName = GetFileNameFor(ResourceType::Sync, blob.GetNumber(), blob.GetBase36(), blob.GetVersion());
+    std::string syncFullPath = cacheSubFolder + "\\" + syncFileName;
     if (lipSyncDataSize)
     {
-        std::string syncFileName = GetFileNameFor(ResourceType::Sync, blob.GetNumber(), blob.GetBase36(), blob.GetVersion());
-        ScopedFile syncFile(cacheSubFolder + "\\" + syncFileName, GENERIC_WRITE, 0, CREATE_ALWAYS);
+        ScopedFile syncFile(syncFullPath, GENERIC_WRITE, 0, CREATE_ALWAYS);
         syncFile.Write(blob.GetData(), lipSyncDataSize);
+    }
+    else
+    {
+        // If we *don't* have a sync component, we should delete this file. Otherwise it'll keep coming back when we rebuild or enumerate.
+        deletefile(syncFullPath);
     }
 
     std::string audioFileName = GetFileNameFor(ResourceType::Audio, blob.GetNumber(), blob.GetBase36(), blob.GetVersion());
@@ -325,11 +326,14 @@ void FirstTimeAudioExtraction(const std::string &cacheFolder, const std::string 
     }
 }
 
-AppendBehavior AudioCacheResourceSource::AppendResources(const std::vector<ResourceBlob> &entries)
+// Call this before adding or remove resources. It will return the audio map that we need to modify.
+std::unique_ptr<ResourceEntity> AudioCacheResourceSource::_PrepareForAddOrRemove()
 {
+    std::unique_ptr<ResourceEntity> audioMap;
+
     // First, ensure our cache folder exists
     EnsureFolderExists(_cacheFolder);
-    EnsureFolderExists(_cacheSubFolder);
+    EnsureFolderExists(_cacheSubFolderForEnum);
 
     // Now, we need to write the existing audio map. This audio map *could* come from us, or it could come from the original.
     // If it came from the original, we need to extract all the files for the first time.
@@ -339,7 +343,7 @@ AppendBehavior AudioCacheResourceSource::AppendResources(const std::vector<Resou
     {
         if (!IsFlagSet(audioMapBlobTest->GetSourceFlags(), ResourceSourceFlags::AudioMapCache))
         {
-            FirstTimeAudioExtraction(_cacheFolder, _cacheSubFolder, _version, _mapContext);
+            FirstTimeAudioExtraction(_cacheFolder, _cacheSubFolderForEnum, _version, _mapContext);
             audioMapBlobTest = appState->GetResourceMap().Helper().MostRecentResource(ResourceType::AudioMap, resourceNumber, ResourceEnumFlags::IncludeCacheFiles | ResourceEnumFlags::MostRecentOnly);
         }
 
@@ -347,38 +351,78 @@ AppendBehavior AudioCacheResourceSource::AppendResources(const std::vector<Resou
         assert(IsFlagSet(audioMapBlobTest->GetSourceFlags(), ResourceSourceFlags::AudioMapCache));
 
         // Now, modify the audio map as per the resourceblobs provided.
-        try
+        audioMap = CreateResourceFromResourceData(*audioMapBlobTest, false);
+    }
+    return audioMap;
+}
+
+void AudioCacheResourceSource::RemoveEntry(const ResourceMapEntryAgnostic &mapEntry)
+{
+    try
+    {
+        std::unique_ptr<ResourceEntity> audioMap = _PrepareForAddOrRemove();
+        AudioMapComponent &audioMapComponent = audioMap->GetComponent<AudioMapComponent>();
+
+        // Find the matching entry and remove it 
+        int number = mapEntry.Number;
+        uint32_t tuple = mapEntry.Base36Number;
+        auto itFind = std::find_if(audioMapComponent.Entries.begin(), audioMapComponent.Entries.end(),
+            [number, tuple](const AudioMapEntry &amEntry) {  return amEntry.Number == number && GetMessageTuple(amEntry) == tuple; });
+        if (itFind != audioMapComponent.Entries.end())
         {
-            std::unique_ptr<ResourceEntity> audioMap = CreateResourceFromResourceData(*audioMapBlobTest, false);
-            AudioMapComponent &audioMapComponent = audioMap->GetComponent<AudioMapComponent>();
+            audioMapComponent.Entries.erase(itFind);
+        }
 
-            // If there is no matching entry, add one. We don't currently care about offsets and sync sizes,
-            // since those are only relevant when the resources exist in the official audio map.
-            for (auto &blobToBeSaved : entries)
+        // Now we need to delete any files associated with it.
+        std::string fullPath = _cacheSubFolderForEnum + "\\" + GetFileNameFor(ResourceType::Audio, number, tuple, _version);
+        deletefile(fullPath);
+        fullPath = _cacheSubFolderForEnum + "\\" + GetFileNameFor(ResourceType::Sync, number, tuple, _version);
+        deletefile(fullPath);
+
+        // And finally, save the modified audiomap. We *should* just be able to go through the resource map again,
+        // and it should route it to the "patch files" resource source, under the audiocache folder.
+        assert(IsFlagSet(audioMap->SourceFlags, ResourceSourceFlags::AudioMapCache));
+        appState->GetResourceMap().AppendResource(*audioMap);
+    }
+    catch (std::exception)
+    {
+
+    }
+}
+
+AppendBehavior AudioCacheResourceSource::AppendResources(const std::vector<ResourceBlob> &entries)
+{
+    try
+    {
+        std::unique_ptr<ResourceEntity> audioMap = _PrepareForAddOrRemove();
+        AudioMapComponent &audioMapComponent = audioMap->GetComponent<AudioMapComponent>();
+
+        // If there is no matching entry, add one. We don't currently care about offsets and sync sizes,
+        // since those are only relevant when the resources exist in the official audio map.
+        for (auto &blobToBeSaved : entries)
+        {
+            int number = blobToBeSaved.GetNumber();
+            uint32_t tuple = blobToBeSaved.GetBase36();
+            auto itFind = std::find_if(audioMapComponent.Entries.begin(), audioMapComponent.Entries.end(),
+                [number, tuple](const AudioMapEntry &amEntry) {  return amEntry.Number == number && GetMessageTuple(amEntry) == tuple; });
+            if (itFind == audioMapComponent.Entries.end())
             {
-                int number = blobToBeSaved.GetNumber();
-                uint32_t tuple = blobToBeSaved.GetBase36();
-                auto itFind = std::find_if(audioMapComponent.Entries.begin(), audioMapComponent.Entries.end(),
-                    [number, tuple](const AudioMapEntry &amEntry) {  return amEntry.Number == number && GetMessageTuple(amEntry) == tuple; });
-                if (itFind == audioMapComponent.Entries.end())
-                {
-                    AudioMapEntry newEntry = {};
-                    SetMessageTuple(newEntry, tuple);
-                    newEntry.Number = number;
-                    audioMapComponent.Entries.push_back(newEntry);
-                }
-
-                // Meanwhile, save this blob to files
-                SaveAudioBlobToFiles(blobToBeSaved, _cacheSubFolder, _version);
+                AudioMapEntry newEntry = {};
+                SetMessageTuple(newEntry, tuple);
+                newEntry.Number = number;
+                audioMapComponent.Entries.push_back(newEntry);
             }
 
-            // And finally, serialize the audiomap and save it. We *should* just be able to go through the resource map again,
-            // and it should route it to the "patch files" resource source, under the audiocache folder.
-            assert(IsFlagSet(audioMap->SourceFlags, ResourceSourceFlags::AudioMapCache));
-            appState->GetResourceMap().AppendResource(*audioMap);
+            // Meanwhile, save this blob to files
+            SaveAudioBlobToFiles(blobToBeSaved, _cacheSubFolderForEnum, _version);
         }
-        catch (std::exception) {}
+
+        // And finally, serialize the audiomap and save it. We *should* just be able to go through the resource map again,
+        // and it should route it to the "patch files" resource source, under the audiocache folder.
+        assert(IsFlagSet(audioMap->SourceFlags, ResourceSourceFlags::AudioMapCache));
+        appState->GetResourceMap().AppendResource(*audioMap);
     }
+    catch (std::exception) {}
 
     return AppendBehavior::Replace;
 }

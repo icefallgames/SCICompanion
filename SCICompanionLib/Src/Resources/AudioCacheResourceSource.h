@@ -30,6 +30,7 @@ public:
     void RebuildResources() override;
 
 private:
+    std::unique_ptr<ResourceEntity> _PrepareForAddOrRemove();
     void _EnsureEnumInitialized();
 
     SCIVersion _version;
@@ -49,6 +50,6 @@ private:
     bool _enumInitialized;
     std::string _gameFolder;
     std::string _cacheFolder;
-    std::string _cacheSubFolder;
+    std::string _cacheSubFolderForEnum;
 };
 

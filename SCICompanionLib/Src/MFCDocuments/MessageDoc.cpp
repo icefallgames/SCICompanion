@@ -89,6 +89,7 @@ bool CMessageDoc::SetSyncComponent(uint32_t base36Number, std::unique_ptr<SyncCo
 
     if (changed)
     {
+        _newAudioSidecarResources.insert(base36Number);
         SetModifiedFlag(TRUE);
         UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(MessageChangeHint::ItemChanged));
     }

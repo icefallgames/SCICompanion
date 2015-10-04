@@ -147,6 +147,9 @@ void MessageHeaderFile::Commit(int resourceNumber)
         _filePath = fmt::format("{0}\\{1}", _folderPath, _title);
     }
 
+    // Ensure _folderPath exists.
+    EnsureFolderExists(_folderPath, false);
+
     ofstream file;
     string bakFile = _filePath + ".bak";
     file.open(bakFile, ios_base::out | ios_base::trunc);
@@ -179,6 +182,6 @@ void MessageHeaderFile::Commit(int resourceNumber)
     }
     else
     {
-        AfxMessageBox("Unable to open file for writing.", MB_ICONWARNING | MB_OK);
+        AfxMessageBox(fmt::format("Unable to open {0} for writing.", bakFile).c_str(), MB_ICONWARNING | MB_OK);
     }
 }
