@@ -12,6 +12,7 @@
 #include "Vocab000.h"
 #include "ResourceListDoc.h"
 #include "PreferencesDialog.h"
+#include "AudioPreferencesDialog.h"
 #include "SaveResourceDialog.h"
 #include "NewGameDialog.h"
 #include "NewRoomDialog.h"
@@ -327,6 +328,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_COMMAND(ID_FILE_ADDRESOURCE, OnFileAddResource)
     ON_COMMAND(ID_EDIT_FINDINFILES, OnFindInFiles)
     ON_COMMAND(ID_PREFERENCES, OnShowPreferences)
+    ON_COMMAND(ID_TOOLS_AUDIOPREFERENCES, OnShowAudioPreferences)
     ON_COMMAND(ID_TOOLS_EXTRACTALLRESOURCES, OnExtractAllResources)
     ON_COMMAND(ID_TOOLS_REBUILDRESOURCES, OnRebuildResources)
     ON_COMMAND(ID_TOOLS_REBUILDCLASSTABLE, OnRebuildClassTable)
@@ -1575,15 +1577,14 @@ void CMainFrame::OnShowPreferences()
     CPreferencesDialog dialog;
     if (IDOK == dialog.DoModal())
     {
-        // This code doesn't work because no view is ever active when the dialog is up.
-        // It's also flawed because we're sending a pic-specific message to any old document.
-        // A better solution would be to call some method on the "current" document.
-        /*
-        CDocument* pDocument = GetActiveDocument();
-        if (pDocument)
-        {
-            pDocument->UpdateAllViews(nullptr, 0, &WrapHint(PicChangeHint::Preferences));
-        }*/
+    }
+}
+
+void CMainFrame::OnShowAudioPreferences()
+{
+    AudioPreferencesDialog dialog;
+    if (IDOK == dialog.DoModal())
+    {
     }
 }
 

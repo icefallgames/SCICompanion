@@ -185,6 +185,7 @@ private:
     afx_msg void OnUpdateShowIfGameLoaded(CCmdUI *pCmdUI);
     afx_msg void OnUpdateStopDebugging(CCmdUI *pCmdUI);
     afx_msg void OnShowPreferences();
+    afx_msg void OnShowAudioPreferences();
     afx_msg void OnStopDebugging();
     afx_msg void OnRebuildResources();
     afx_msg void OnRebuildClassTable();

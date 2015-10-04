@@ -290,6 +290,8 @@
 #define IDD_LIPSYNCDIALOG               389
 #define IDD_VIEWLOOP                    390
 #define IDR_MENUEGOS                    391
+#define IDD_PREFERENCES1                391
+#define IDD_AUDIOPREFERENCES            391
 #define IDI_RECORD                      392
 #define IDI_MONITOR                     393
 #define IDC_CHOOSECOLORSTATIC           1001
@@ -1039,6 +1041,7 @@
 #define ID_FAKEEGO10                    33272
 #define ID_FAKEEGO11                    33273
 #define ID_FAKEEGO12                    33274
+#define ID_TOOLS_AUDIOPREFERENCES       33275
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -1047,7 +1050,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        394
-#define _APS_NEXT_COMMAND_VALUE         33275
+#define _APS_NEXT_COMMAND_VALUE         33276
 #define _APS_NEXT_CONTROL_VALUE         1345
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

@@ -4,8 +4,6 @@
 #include "stdafx.h"
 #include "AppState.h"
 #include "PreferencesDialog.h"
-#include ".\preferencesdialog.h"
-#include "MidiPlayer.h"
 
 // CPreferencesDialog dialog
 
@@ -18,27 +16,6 @@ CPreferencesDialog::CPreferencesDialog(CWnd* pParent /*=NULL*/)
 
 CPreferencesDialog::~CPreferencesDialog()
 {
-}
-
-BOOL CPreferencesDialog::OnInitDialog()
-{
-    BOOL fRet = __super::OnInitDialog();
-    // Add the MIDI devices
-    UINT cDevices = midiOutGetNumDevs();
-    for (UINT i = 0; i < cDevices; i++)
-    {
-        MIDIOUTCAPS outcaps = { 0 };
-        MMRESULT result = midiOutGetDevCaps(i, &outcaps, sizeof(outcaps));
-        if (result == MMSYSERR_NOERROR)
-        {
-            m_wndMIDIDevices.InsertString(-1, outcaps.szPname);
-        }
-    }
-    if (cDevices)
-    {
-        m_wndMIDIDevices.SetCurSel(appState->GetMidiDeviceId());
-    }
-    return fRet;
 }
 
 void CPreferencesDialog::DoDataExchange(CDataExchange* pDX)
@@ -65,20 +42,12 @@ void CPreferencesDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Text(pDX, IDC_FAKEEGOY, appState->_cyFakeEgo);
     DDV_MinMaxInt(pDX, appState->_cyFakeEgo, 10, 80);
 
-    DDX_Text(pDX, IDC_EDIT_TRIMLEFT, appState->_audioTrimLeft);
-    DDV_MinMaxInt(pDX, appState->_audioTrimLeft, 0, 1000);
-    DDX_Text(pDX, IDC_EDIT_TRIMRIGHT, appState->_audioTrimRight);
-    DDV_MinMaxInt(pDX, appState->_audioTrimRight, 0, 1000);
-
-    DDX_Control(pDX, IDC_COMBO_MIDIDEVICE, m_wndMIDIDevices);
-
     // Visuals
     DDX_Control(pDX, IDC_BROWSEINFO, m_wndBrowserInfo);
     DDX_Control(pDX, IDC_CODECOMPLETION, m_wndCodeCompletion);
     DDX_Control(pDX, IDC_SCRIPTNAV, m_wndScriptNav);
     DDX_Control(pDX, IDC_HOVERTIPS, m_wndHoverTips);
     DDX_Control(pDX, IDC_GROUP1, m_wndGroup1);
-    DDX_Control(pDX, IDC_GROUP2, m_wndGroup2);
     DDX_Control(pDX, IDC_SCALETRACINGIMAGES, m_wndCheck1);
     DDX_Control(pDX, IDC_DRAWGRIDLINES, m_wndCheck2);
     DDX_Control(pDX, IDC_CHECKAUTOSUGGEST, m_wndCheck3);
@@ -90,8 +59,6 @@ void CPreferencesDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_CHECK_ASPECTRATIO, m_wndCheck9);
     DDX_Control(pDX, IDOK, m_wndOk);
     DDX_Control(pDX, IDCANCEL, m_wndCancel);
-    DDX_Control(pDX, IDC_STATIC1, m_wndStatic1);
-    DDX_Control(pDX, IDC_STATIC2, m_wndStatic2);
 
     _SyncBrowseInfo();
 }
@@ -108,7 +75,6 @@ void CPreferencesDialog::_SyncBrowseInfo()
 
 BEGIN_MESSAGE_MAP(CPreferencesDialog, CExtResizableDialog)
     ON_BN_CLICKED(IDC_BROWSEINFO, OnBnClickedBrowseinfo)
-    ON_CBN_SELCHANGE(IDC_COMBO_MIDIDEVICE, &CPreferencesDialog::OnCbnSelchangeComboMididevice)
 END_MESSAGE_MAP()
 
 
@@ -132,17 +98,5 @@ void CPreferencesDialog::OnOK()
     if (_fAspectRatioStart != appState->_fUseOriginalAspectRatio)
     {
         appState->NotifyChangeAspectRatio();
-    }
-}
-
-void CPreferencesDialog::OnCbnSelchangeComboMididevice()
-{
-    int selection = m_wndMIDIDevices.GetCurSel();
-    if (selection != CB_ERR)
-    {
-        CString string;
-        m_wndMIDIDevices.GetLBText(selection, string);
-        appState->_midiDeviceName = (PCSTR)string;
-        g_midiPlayer.Reset();
     }
 }

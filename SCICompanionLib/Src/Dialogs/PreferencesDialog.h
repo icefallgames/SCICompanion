@@ -15,7 +15,6 @@ public:
 private:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
     virtual void OnOK();
-    BOOL OnInitDialog();
 
 	DECLARE_MESSAGE_MAP()
 
@@ -33,7 +32,6 @@ private:
     CExtCheckBox m_wndScriptNav;
     CExtCheckBox m_wndHoverTips;
     CExtGroupBox m_wndGroup1;
-    CExtGroupBox m_wndGroup2;
 
     CExtCheckBox m_wndCheck1;
     CExtCheckBox m_wndCheck2;
@@ -48,10 +46,7 @@ private:
     CExtButton m_wndCancel;
 
     CComboBox m_wndMIDIDevices;
-    CExtLabel m_wndStatic1;
-    CExtLabel m_wndStatic2;
 
 public:
     afx_msg void OnBnClickedBrowseinfo();
-    afx_msg void OnCbnSelchangeComboMididevice();
 };
