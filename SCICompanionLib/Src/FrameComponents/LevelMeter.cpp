@@ -80,6 +80,8 @@ void LevelMeter::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
     CDC dc;
     dc.Attach(lpDrawItemStruct->hDC);
 
+    InflateRect(prc, -1, -1);
+
     int activeSegmentCount = _maxRecentLevel * MaxSegments / 100;
     int gap = 1;
     int segmentWidth = RECTWIDTH(*prc) / MaxSegments;
@@ -104,6 +106,19 @@ void LevelMeter::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
     }
     CRect rcEnd = { remainder, prc->top, prc->right, prc->bottom };
     dc.FillSolidRect(&rcEnd, _monitor ? RGB(0, 0, 0) : RGB(96, 96, 96));
+
+    // Draw a bevel around the edge
+    InflateRect(prc, 1, 1);
+    CPen pen(PS_SOLID, 1, RGB(0, 0, 0));
+    HGDIOBJ hOldPen = dc.SelectObject(pen);
+    dc.MoveTo(prc->left, prc->top);
+    dc.LineTo(prc->right, prc->top);
+    dc.LineTo(prc->right, prc->bottom);
+    CPen lightPen(PS_SOLID, 1, RGB(128, 128, 128));
+    dc.SelectObject(lightPen);
+    dc.LineTo(prc->left, prc->bottom);
+    dc.LineTo(prc->left, prc->top);
+    dc.SelectObject(hOldPen);
 
     dc.Detach();
 }
