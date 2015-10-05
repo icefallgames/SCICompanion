@@ -15,6 +15,7 @@
 #include "ResourceMap.h"
 #include "Sync.h"
 #include "AudioCacheResourceSource.h"
+#include "AudioMap.h"
 
 using namespace std;
 
@@ -40,8 +41,26 @@ void CMessageDoc::_PreloadAudio()
     {
         const TextComponent &text = GetResource()->GetComponent<TextComponent>();
         _audioResources.clear();
-        _modified.clear();
-        _originalTuplesPresent.clear();
+        _audioModified.clear();
+        _originalTuplesWithAudio.clear();
+
+        // If we're sourced from the cache files, we want to *only* include entries from the cached audiomap (i.e. not 
+        // combine them with audio resources enumerated from resource.aud). Otherwise, you could delete an audio resource from
+        // a message entry, and it would keeping "returning" when you re-opened the message resource (until you rebuilt audio files)
+        std::unique_ptr<std::unordered_set<uint32_t>> restrictToTheseTuples;
+        unique_ptr<ResourceBlob> amBlob = appState->GetResourceMap().Helper().MostRecentResource(ResourceType::AudioMap, GetResource()->ResourceNumber, ResourceEnumFlags::IncludeCacheFiles);
+        if (amBlob && (amBlob->GetSourceFlags() == ResourceSourceFlags::AudioMapCache))
+        {
+            std::unique_ptr<ResourceEntity> amResource = CreateResourceFromResourceData(*amBlob);
+            if (amResource)
+            {
+                restrictToTheseTuples = std::make_unique<std::unordered_set<uint32_t>>();
+                for (const auto &entry : amResource->GetComponent<AudioMapComponent>().Entries)
+                {
+                    restrictToTheseTuples->insert(GetMessageTuple(entry));
+                }
+            }
+        }
 
         // Get all the resources from the audio map
         std::unordered_map<uint32_t, std::unique_ptr<ResourceEntity>> _temporaryMap;
@@ -49,8 +68,12 @@ void CMessageDoc::_PreloadAudio()
         auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Audio, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::IncludeCacheFiles, mapResourceNumber);
         for (auto resource : *resourceContainer)
         {
-            _temporaryMap[resource->GetBase36()] = CreateResourceFromResourceData(*resource);
-            _originalTuplesPresent.insert(resource->GetBase36());
+            // Again, as mentioned above, we only want to take our audio resources from a single source: the cache files, or the actual game resources.
+            if (!restrictToTheseTuples || (restrictToTheseTuples->find(resource->GetBase36()) != restrictToTheseTuples->end()))
+            {
+                _temporaryMap[resource->GetBase36()] = CreateResourceFromResourceData(*resource);
+                _originalTuplesWithAudio.insert(resource->GetBase36());
+            }
         }
 
         // Now assign them slots based on the text entry indices.
@@ -59,7 +82,7 @@ void CMessageDoc::_PreloadAudio()
         for (const TextEntry &entry : text.Texts)
         {
             _audioResources.push_back(std::move(_temporaryMap[GetMessageTuple(entry)]));
-            _modified.push_back(false);
+            _audioModified.push_back(false);
         }
         assert(_audioResources.size() == text.Texts.size());
     }
@@ -76,7 +99,7 @@ void CMessageDoc::PostSuccessfulSave(const ResourceEntity *pResource)
     // "moved". We know they moved by looking at the different tuple they are now associated with.
     // So we could potentially pass in a list of "old tuples" to the AudioCacheResourceSource. And if they
     // are not associated with any current entry in the audiomap, they can be deleted.
-    std::set<uint32_t> currentTextEntryTuples;
+    std::set<uint32_t> currentTextEntryTuplesWithAudio;
     const TextComponent &text = pResource->GetComponent<TextComponent>();
     CResourceMap &map = appState->GetResourceMap();
     DeferResourceAppend defer(map);
@@ -84,9 +107,12 @@ void CMessageDoc::PostSuccessfulSave(const ResourceEntity *pResource)
     {
         const TextEntry &entry = text.Texts[i];
         uint32_t textEntryTuple = GetMessageTuple(entry);
-        currentTextEntryTuples.insert(textEntryTuple);
         ResourceEntity *companionAudio = _audioResources[i].get();
-        if (_modified[i])
+        if (companionAudio)
+        {
+            currentTextEntryTuplesWithAudio.insert(textEntryTuple);
+        }
+        if (_audioModified[i])
         {
             if (companionAudio)
             {
@@ -112,9 +138,9 @@ void CMessageDoc::PostSuccessfulSave(const ResourceEntity *pResource)
     // Ok, we've commited the modified/new entries.
     // Now, we want to delete any tuples that existed previously, which are *not* in the current set of text entry tuples
     std::vector<uint32_t> deletedTuples;
-    for (uint32_t originalTuple : _originalTuplesPresent)
+    for (uint32_t originalTuple : _originalTuplesWithAudio)
     {
-        if (currentTextEntryTuples.find(originalTuple) == currentTextEntryTuples.end())
+        if (currentTextEntryTuplesWithAudio.find(originalTuple) == currentTextEntryTuplesWithAudio.end())
         {
             deletedTuples.push_back(originalTuple);
         }
@@ -127,17 +153,17 @@ void CMessageDoc::PostSuccessfulSave(const ResourceEntity *pResource)
     resourceSource->RemoveEntries(mapContext, deletedTuples);
 
     // Keep our list of original tuples up-to-date
-    _originalTuplesPresent.clear();
+    _originalTuplesWithAudio.clear();
     for (auto &resource : _audioResources)
     {
         if (resource)
         {
-            _originalTuplesPresent.insert(resource->Base36Number);
+            _originalTuplesWithAudio.insert(resource->Base36Number);
         }
     }
 
     // Finally, clear out the modified flags
-    std::fill(_modified.begin(), _modified.end(), false);
+    std::fill(_audioModified.begin(), _audioModified.end(), false);
 }
 
 void CMessageDoc::AddEntry(const TextEntry &entry)
@@ -154,7 +180,8 @@ void CMessageDoc::AddEntry(const TextEntry &entry)
         [index, this](ResourceEntity &resource)
     {
         this->_audioResources.insert(this->_audioResources.begin() + index, nullptr);
-        this->_modified.insert(this->_modified.begin() + index, false);
+        // "false" for modified is ok, since there is no audio resource yet.
+        this->_audioModified.insert(this->_audioModified.begin() + index, false);
     }
     );
     // Now select it
@@ -185,7 +212,7 @@ void CMessageDoc::DeleteCurrentEntry()
                 [selected, &newSelected, this](ResourceEntity &resource)
             {
                 this->_audioResources.erase(this->_audioResources.begin() + selected);
-                this->_modified.erase(this->_modified.begin() + selected);
+                this->_audioModified.erase(this->_audioModified.begin() + selected);
             }
             );
             SetSelectedIndex(newSelected, true);
@@ -210,7 +237,7 @@ void CMessageDoc::ImportMessage()
 
             // Fill with empty spots:
             this->_audioResources.resize(text.Texts.size());
-            this->_modified.resize(text.Texts.size(), false);
+            this->_audioModified.resize(text.Texts.size(), false);
         }
         return WrapHint(hint);
     }
@@ -254,7 +281,7 @@ void CMessageDoc::SetEntry(const TextEntry &newEntry)
         if (tupleChanged)
         {
             // Not really necessary, we could detect this easily...
-            _modified[selected] = true;
+            _audioModified[selected] = true;
         }
     }
 }
@@ -283,7 +310,7 @@ void CMessageDoc::SetAudioResource(std::unique_ptr<ResourceEntity> audioResource
 {
     assert(_selectedIndex != -1);
     _audioResources[_selectedIndex] = std::move(audioResource);
-    _modified[_selectedIndex] = true;
+    _audioModified[_selectedIndex] = true;
 
     SetModifiedFlag(TRUE);
     UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(MessageChangeHint::ItemChanged));
