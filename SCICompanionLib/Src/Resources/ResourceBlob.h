@@ -399,6 +399,7 @@ public:
     ResourceLoadStatusFlags GetStatusFlags() const { return _resourceLoadStatus; }
     void AddStatusFlags(ResourceLoadStatusFlags flags) const { _resourceLoadStatus |= flags;  }
     ResourceSourceFlags GetSourceFlags()  const { return header.SourceFlags; }
+    void SetSourceFlags(ResourceSourceFlags flags)  { header.SourceFlags = flags; }
 
     DWORD GetCompressedLength() const { return header.cbCompressed; }
     DWORD GetDecompressedLength() const { return header.cbDecompressed; }

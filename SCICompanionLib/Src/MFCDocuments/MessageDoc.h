@@ -79,6 +79,7 @@ private:
     std::vector<bool> _audioModified;
     // We keep track of this so we know which audio files we can delete:
     std::set<uint32_t> _originalTuplesWithAudio;
+    int _originalResourceNumber;
     uint32_t _estimatedAudioSize;
 
     DECLARE_MESSAGE_MAP()

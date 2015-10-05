@@ -48,7 +48,6 @@ const Vocab000 *CVocabDoc::GetVocab() const
     return pVocab;
 }
 
-
 void CVocabDoc::PostSuccessfulSave(const ResourceEntity *pResource)
 {
     appState->GetResourceMap().ClearVocab000();

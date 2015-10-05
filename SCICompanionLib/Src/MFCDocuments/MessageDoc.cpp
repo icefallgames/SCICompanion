@@ -23,7 +23,7 @@ using namespace std;
 
 IMPLEMENT_DYNCREATE(CMessageDoc, CResourceDocument)
 
-CMessageDoc::CMessageDoc() : _selectedIndex(-1), _estimatedAudioSize(0)
+CMessageDoc::CMessageDoc() : _selectedIndex(-1), _estimatedAudioSize(0), _originalResourceNumber(-1)
 {
 }
 
@@ -45,6 +45,7 @@ void CMessageDoc::_PreloadAudio()
         _audioResources.clear();
         _audioModified.clear();
         _originalTuplesWithAudio.clear();
+        _originalResourceNumber = GetResource()->ResourceNumber;
 
         // If we're sourced from the cache files, we want to *only* include entries from the cached audiomap (i.e. not 
         // combine them with audio resources enumerated from resource.aud). Otherwise, you could delete an audio resource from
@@ -117,14 +118,35 @@ bool CMessageDoc::v_DoPreResourceSave()
 
 void CMessageDoc::PostSuccessfulSave(const ResourceEntity *pResource)
 {
-    // We need to figure out the series of changes required to save our modified audio resources.
-    // We could do something very simple, which is just do an AppendResource for every modified entry.
-    // The issue then, is that if the user changes the noun/verb/cond/seq of a tuple, we'll be saving it
-    // under a new filename, and the old files will linger, never to be deleted.
-    // We *could* something more intelligent, like mark some of the appended resources as
-    // "moved". We know they moved by looking at the different tuple they are now associated with.
-    // So we could potentially pass in a list of "old tuples" to the AudioCacheResourceSource. And if they
-    // are not associated with any current entry in the audiomap, they can be deleted.
+    if (pResource->ResourceNumber != _originalResourceNumber)
+    {
+        // This was a "save as". We need to do a bit of extra work to get things working.
+        int newNumber = pResource->ResourceNumber;
+
+        // First get the original audiomap and save it under the number, just sowe have something in the right place.
+        unique_ptr<ResourceBlob> amBlob = appState->GetResourceMap().Helper().MostRecentResource(ResourceType::AudioMap, _originalResourceNumber, ResourceEnumFlags::IncludeCacheFiles);
+        if (amBlob)
+        {
+            amBlob->SetNumber(newNumber);
+            amBlob->SetSourceFlags(ResourceSourceFlags::AudioMapCache);
+            appState->GetResourceMap().AppendResource(*amBlob);
+        }
+
+        // Now, update this:
+        _originalResourceNumber = newNumber;
+
+        // Next, mark everything as modified, and change the resource numbers
+        for (size_t i = 0; i < _audioResources.size(); i++)
+        {
+            _audioModified[i] = true;
+            _audioResources[i]->ResourceNumber = newNumber;
+            // We don't need to bother setting resource flags, we always append to the cache files
+        }
+
+        // Then, proceed as usual...
+    }
+
+    // Save any modified or new audio resources
     std::set<uint32_t> currentTextEntryTuplesWithAudio;
     const TextComponent &text = pResource->GetComponent<TextComponent>();
     CResourceMap &map = appState->GetResourceMap();

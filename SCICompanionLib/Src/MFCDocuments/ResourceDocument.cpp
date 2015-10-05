@@ -181,11 +181,6 @@ BOOL CResourceDocument::DoPreResourceSave(BOOL fSaveAs)
                             fRet = _DoResourceSave(iPackageNumber, iResourceNumber);
                             if (fRet)
                             {
-                                // If we successfully saved, make sure our resource has these
-                                // possibly new package/resource numbers.
-                                pResource->PackageNumber = iPackageNumber;
-                                pResource->ResourceNumber = iResourceNumber;
-
                                 // We might have a new resource number, so update our title.
                                 _UpdateTitle();
                             }
@@ -216,6 +211,12 @@ BOOL CResourceDocument::_DoResourceSave(int iPackageNumber, int iResourceNumber)
 
     if (saved)
     {
+        // If we successfully saved, make sure our resource has these
+        // possibly new package/resource numbers. Need to do this prior to _OnSuccessfulSave!
+        ResourceEntity *pEntityNC = const_cast<ResourceEntity*>(pResource);
+        pEntityNC->PackageNumber = iPackageNumber;
+        pEntityNC->ResourceNumber = iResourceNumber;
+
         _checksum = checksum;
         _OnSuccessfulSave(pResource);
         _UpdateTitle();

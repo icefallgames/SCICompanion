@@ -544,6 +544,13 @@ void CResourceListCtrl::OnDelete()
         }
     }
 
+    bool deleteCompanionAudio = false;
+    if ((this->GetType() == ResourceType::Message) && appState->GetVersion().HasSyncResources)
+    {
+        deleteCompanionAudio = (IDYES == AfxMessageBox("Do you also want to delete any audio resources associated with this message resource(s)?", MB_YESNO | MB_ICONWARNING));
+    }
+
+    std::set<int> deletedResourceNumbers;
     UINT cCount = GetSelectedCount();
     if (cCount > 1)
     {
@@ -563,6 +570,7 @@ void CResourceListCtrl::OnDelete()
 
             for (ResourceBlob *pData : resourcesTempCopy)
             {
+                deletedResourceNumbers.insert(pData->GetNumber());
                 assert(pData);
                 // We'll get updated a lot here.
                 appState->GetResourceMap().DeleteResource(pData);
@@ -583,8 +591,29 @@ void CResourceListCtrl::OnDelete()
             StringCchPrintf(szBuffer, ARRAYSIZE(szBuffer), TEXT("Delete %s?"), pData->GetName().c_str());
             if (IDYES == AfxMessageBox(szBuffer, MB_YESNO | MB_APPLMODAL | MB_ICONEXCLAMATION))
             {
+                deletedResourceNumbers.insert(pData->GetNumber());
                 appState->GetResourceMap().DeleteResource(pData);
             }
+        }
+    }
+
+    if (deleteCompanionAudio)
+    {
+        std::vector<std::unique_ptr<ResourceBlob>> audioResourcesToDelete;
+        {
+            auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::AudioMap, ResourceEnumFlags::IncludeCacheFiles);
+            for (auto &blob : *resourceContainer)
+            {
+                if (deletedResourceNumbers.find(blob->GetNumber()) != deletedResourceNumbers.end())
+                {
+                    audioResourcesToDelete.push_back(std::move(blob));
+                }
+            }
+        }
+
+        for (auto &blob : audioResourcesToDelete)
+        {
+            appState->GetResourceMap().DeleteResource(blob.get());
         }
     }
 }
