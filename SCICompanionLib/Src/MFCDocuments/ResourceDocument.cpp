@@ -137,54 +137,58 @@ BOOL CResourceDocument::DoPreResourceSave(BOOL fSaveAs)
         }
         else
         {
-            BOOL fCancelled = FALSE;
-            // const_cast: special case, because we're saving... we're modifying the resource only
-            // by giving it a resource package/number
-            ResourceEntity *pResource = const_cast<ResourceEntity*>(GetResource());
-            if (pResource)
+            if (v_DoPreResourceSave())
             {
-                if (!pResource->CanWrite())
+                // const_cast: special case, because we're saving... we're modifying the resource only
+                // by giving it a resource package/number
+                ResourceEntity *pResource = const_cast<ResourceEntity*>(GetResource());
+                if (pResource)
                 {
-                    _ShowCantSaveMessage();
-                }
-                else
-                {
-                    // Make sure we have a package and resource number.
-                    int iResourceNumber = pResource->ResourceNumber;
-                    int iPackageNumber = pResource->PackageNumber;
-                    if (fSaveAs || (iResourceNumber == -1) || (iPackageNumber == -1))
+                    if (!pResource->CanWrite())
                     {
-                        if (iResourceNumber == -1)
-                        {
-                            iResourceNumber = appState->GetResourceMap().SuggestResourceNumber(pResource->GetType());
-                        }
-                        // Invoke dialog.
-                        SaveResourceDialog srd(true, pResource->GetType());
-                        srd.Init(iPackageNumber, iResourceNumber);
-                        if (IDOK == srd.DoModal())
-                        {
-                            iResourceNumber = srd.GetResourceNumber();
-                            iPackageNumber = srd.GetPackageNumber();
-                        }
-                        else
-                        {
-                            fCancelled = TRUE;
-                        }
+                        _ShowCantSaveMessage();
                     }
-
-                    if (!fCancelled && (iResourceNumber != -1) && (iPackageNumber != -1))
+                    else
                     {
-                        // We're good to go.
-                        fRet = _DoResourceSave(iPackageNumber, iResourceNumber);
-                        if (fRet)
-                        {
-                            // If we successfully saved, make sure our resource has these
-                            // possibly new package/resource numbers.
-                            pResource->PackageNumber = iPackageNumber;
-                            pResource->ResourceNumber = iResourceNumber;
+                        bool fCancelled = false;
 
-                            // We might have a new resource number, so update our title.
-                            _UpdateTitle();
+                        // Make sure we have a package and resource number.
+                        int iResourceNumber = pResource->ResourceNumber;
+                        int iPackageNumber = pResource->PackageNumber;
+                        if (fSaveAs || (iResourceNumber == -1) || (iPackageNumber == -1))
+                        {
+                            if (iResourceNumber == -1)
+                            {
+                                iResourceNumber = appState->GetResourceMap().SuggestResourceNumber(pResource->GetType());
+                            }
+                            // Invoke dialog.
+                            SaveResourceDialog srd(true, pResource->GetType());
+                            srd.Init(iPackageNumber, iResourceNumber);
+                            if (IDOK == srd.DoModal())
+                            {
+                                iResourceNumber = srd.GetResourceNumber();
+                                iPackageNumber = srd.GetPackageNumber();
+                            }
+                            else
+                            {
+                                fCancelled = true;
+                            }
+                        }
+
+                        if (!fCancelled && (iResourceNumber != -1) && (iPackageNumber != -1))
+                        {
+                            // We're good to go.
+                            fRet = _DoResourceSave(iPackageNumber, iResourceNumber);
+                            if (fRet)
+                            {
+                                // If we successfully saved, make sure our resource has these
+                                // possibly new package/resource numbers.
+                                pResource->PackageNumber = iPackageNumber;
+                                pResource->ResourceNumber = iResourceNumber;
+
+                                // We might have a new resource number, so update our title.
+                                _UpdateTitle();
+                            }
                         }
                     }
                 }

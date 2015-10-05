@@ -87,6 +87,10 @@ void MessageEditPane::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_BUTTONLIPSYNC_DIALOG, m_wndLipSyncDialog);
 
         DDX_Control(pDX, IDC_STATIC_BASE36NAME, m_wndLabelBase36);
+
+        DDX_Control(pDX, IDC_BUTTONDELETEAUDIO, m_wndDeleteAudio);
+        m_wndDeleteAudio.SetIcon(IDI_DELETE, 0, 0, 0, 16, 16);
+        
     }
     DDX_Text(pDX, IDC_EDITSEQ, _spinnerValue);
 }
@@ -116,6 +120,7 @@ BEGIN_MESSAGE_MAP(MessageEditPane, AudioPlaybackUI<CExtDialogFwdCmd>)
     ON_CBN_EDITCHANGE(IDC_COMBOTALKER, &MessageEditPane::OnCbnEditchangeCombotalker)
     ON_BN_CLICKED(IDC_BUTTONLIPSYNC, &MessageEditPane::OnBnClickedButtonlipsync)
     ON_BN_CLICKED(IDC_BUTTONLIPSYNC_DIALOG, &MessageEditPane::OnBnClickedButtonlipsyncDialog)
+    ON_BN_CLICKED(IDC_BUTTONDELETEAUDIO, &MessageEditPane::OnBnClickedButtondeleteaudio)
 END_MESSAGE_MAP()
 
 void MessageEditPane::OnPlayAudio()
@@ -212,6 +217,7 @@ BOOL MessageEditPane::OnInitDialog()
     AddAnchor(IDC_STATIC_BASE36NAME, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_STATIC_REC, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_CHECK_USETEXT, CPoint(100, 0), CPoint(100, 0));
+    AddAnchor(IDC_BUTTONDELETEAUDIO, CPoint(100, 0), CPoint(100, 0));
 
     // Hide the sizing grip
     ShowSizeGrip(FALSE);
@@ -457,6 +463,7 @@ void MessageEditPane::_Update()
     m_wndQuickLipSync.ShowWindow(cmdShowHasAudio);
     m_wndLipSyncDialog.ShowWindow(cmdShowHasAudio);
     m_wndUseText.ShowWindow(cmdShowHasAudio);
+    m_wndDeleteAudio.ShowWindow(cmdShowHasAudio);
 }
 
 void MessageEditPane::SetDocument(CDocument *pDoc)
@@ -780,6 +787,17 @@ void MessageEditPane::OnBnClickedButtonlipsyncDialog()
                 );
 
             _Update();
+        }
+    }
+}
+
+void MessageEditPane::OnBnClickedButtondeleteaudio()
+{
+    if (_pDoc)
+    {
+        if (IDYES == AfxMessageBox("Delete the audio associated with this entry?", MB_YESNO | MB_ICONWARNING))
+        {
+            _pDoc->SetAudioResource(nullptr);
         }
     }
 }

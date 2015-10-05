@@ -34,6 +34,7 @@ BEGIN_MESSAGE_MAP(CMessageView, CListView)
     ON_UPDATE_COMMAND_UI(IDC_BUTTONADDSEQ, OnUpdateIfSelection)
     ON_UPDATE_COMMAND_UI(IDC_BUTTONCLONE, OnUpdateIfSelection)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_DELETE, OnUpdateIfSelection)
+    ON_UPDATE_COMMAND_UI(ID_INDICATOR_AUDIOSIZE, OnCommandAudioSize)
 END_MESSAGE_MAP()
 
 void _EscapeString(CString &str);
@@ -597,6 +598,19 @@ const TextComponent* CMessageView::GetTextComponent() const
         pText = pDoc->GetResource()->TryGetComponent<TextComponent>();
     }
     return pText;
+}
+
+void CMessageView::OnCommandAudioSize(CCmdUI *pCmdUI)
+{
+    CMessageDoc *pDoc = GetDocument();
+    if (pDoc && appState->GetVersion().HasSyncResources)
+    {
+        pCmdUI->SetText(fmt::format("{:2f} MB (max 16 MB)", ((double)pDoc->GetEstimatedAudioSize() / 1048576.0)).c_str());
+    }
+    else
+    {
+        pCmdUI->SetText("");
+    }
 }
 
 // CMessageView diagnostics

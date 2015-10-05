@@ -5,6 +5,11 @@
 
 using namespace std;
 
+uint32_t SyncEstimateSize(const SyncComponent &sync)
+{
+    return 2 + 2 + 4 * sync.Entries.size();
+}
+
 void SyncWriteTo(const ResourceEntity &resource, sci::ostream &byteStream)
 {
     uint16_t resourceMarker = 0x008e;

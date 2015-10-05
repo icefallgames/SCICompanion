@@ -36,6 +36,7 @@ protected:
     void OnNewString();
     void OnExportMessage();
     void OnImportMessage();
+    void OnCommandAudioSize(CCmdUI *pCmdUI);
 
     DECLARE_MESSAGE_MAP()
 

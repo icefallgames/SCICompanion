@@ -15,13 +15,15 @@
 #include "ResourceMap.h"
 #include "Sync.h"
 #include "AudioCacheResourceSource.h"
+#include "Audio.h"
 #include "AudioMap.h"
+#include <numeric>
 
 using namespace std;
 
 IMPLEMENT_DYNCREATE(CMessageDoc, CResourceDocument)
 
-CMessageDoc::CMessageDoc() : _selectedIndex(-1)
+CMessageDoc::CMessageDoc() : _selectedIndex(-1), _estimatedAudioSize(0)
 {
 }
 
@@ -86,8 +88,32 @@ void CMessageDoc::_PreloadAudio()
         }
         assert(_audioResources.size() == text.Texts.size());
     }
+
+    _RecalcAudioSize();
 }
 
+void CMessageDoc::_RecalcAudioSize()
+{
+    _estimatedAudioSize = std::accumulate(_audioResources.begin(), _audioResources.end(), 0,
+        [](uint32_t sum, const std::unique_ptr<ResourceEntity> &resource)
+    {
+        return sum + (resource ? AudioEstimateSize(*resource) : 0);
+    }
+        );
+}
+
+bool CMessageDoc::v_DoPreResourceSave()
+{
+    if (_estimatedAudioSize >= (256 * 256 * 256))
+    {
+        // Disabled for now. Depending on the type of audio map (32bit or 24bit offsets), it could be larger.
+        // Games typically have around 16MB as a max, but sometimes a bit over (e.g. some in EcoQuest), and it appears to be ok.
+        /*
+        AfxMessageBox("The audio resources associated with this message resources are too large. The maximum size is 16 MB.", MB_ICONERROR);
+        return false;*/
+    }
+    return true;
+}
 
 void CMessageDoc::PostSuccessfulSave(const ResourceEntity *pResource)
 {
@@ -313,6 +339,7 @@ void CMessageDoc::SetAudioResource(std::unique_ptr<ResourceEntity> audioResource
     _audioModified[_selectedIndex] = true;
 
     SetModifiedFlag(TRUE);
+    _RecalcAudioSize();
     UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(MessageChangeHint::ItemChanged));
 }
 

@@ -48,6 +48,8 @@ protected:
     void _UpdateTitle();
     afx_msg void OnUpdateAlwaysOn(CCmdUI *pCmdUI) { pCmdUI->Enable() ; }
 
+    // Override to prevent saving (by returning false)
+    virtual bool v_DoPreResourceSave() { return true; }
     virtual void _OnSuccessfulSave(const ResourceEntity *pResource) {};
     virtual ResourceType _GetType() const = 0;
 

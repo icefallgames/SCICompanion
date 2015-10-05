@@ -95,6 +95,18 @@ static void deDPCM8(uint8_t *soundBuf, sci::istream &audioStream, uint32_t n) {
 
 const char solMarker[] = "SOL";
 
+uint32_t AudioEstimateSize(const ResourceEntity &resource)
+{
+    uint32_t size = 0;
+    if (resource.TryGetComponent<SyncComponent>())
+    {
+        size += SyncEstimateSize(*resource.TryGetComponent<SyncComponent>());
+    }
+    size += sizeof(AudioHeader);
+    size += resource.GetComponent<AudioComponent>().DigitalSamplePCM.size();
+    return size;
+}
+
 void AudioWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag)
 {
     uint32_t baseOffset = byteStream.tellp();

@@ -42,9 +42,11 @@ public:
             f(*_audioResources[_selectedIndex]);
             _audioModified[_selectedIndex] = true;
             SetModifiedFlag(TRUE);
+            _RecalcAudioSize();
             UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(MessageChangeHint::ItemChanged));
         }
     }
+    uint32_t GetEstimatedAudioSize() const { return _estimatedAudioSize; }
 
     bool v_PreventUndos() const override;
 
@@ -57,6 +59,7 @@ public:
     void ExportMessage();
 
 protected:
+    bool v_DoPreResourceSave() override;
     void PostSuccessfulSave(const ResourceEntity *pResource) override;
 
     ResourceType _GetType() const override
@@ -67,6 +70,7 @@ protected:
 
 private:
     void _PreloadAudio();
+    void _RecalcAudioSize();
 
     int _selectedIndex;
 
@@ -75,6 +79,7 @@ private:
     std::vector<bool> _audioModified;
     // We keep track of this so we know which audio files we can delete:
     std::set<uint32_t> _originalTuplesWithAudio;
+    uint32_t _estimatedAudioSize;
 
     DECLARE_MESSAGE_MAP()
 };

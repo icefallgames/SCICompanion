@@ -294,6 +294,7 @@
 #define IDD_AUDIOPREFERENCES            391
 #define IDI_RECORD                      392
 #define IDI_MONITOR                     393
+#define ID_INDICATOR_AUDIOSIZE          394
 #define IDC_CHOOSECOLORSTATIC           1001
 #define IDC_BUTTON1                     1003
 #define IDC_BUTTONDOWN                  1003
@@ -620,6 +621,7 @@
 #define IDC_CHECKMESSAGE                1269
 #define IDC_BUTTONEDGES                 1270
 #define IDC_CHECKPOLYS                  1270
+#define IDC_BUTTONDELETEAUDIO           1270
 #define IDC_BUTTONCENTER                1271
 #define IDC_RADIOLINEAR                 1272
 #define IDC_RADIOCENTER                 1273
@@ -1049,7 +1051,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        394
+#define _APS_NEXT_RESOURCE_VALUE        395
 #define _APS_NEXT_COMMAND_VALUE         33276
 #define _APS_NEXT_CONTROL_VALUE         1345
 #define _APS_NEXT_SYMED_VALUE           105

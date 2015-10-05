@@ -2034,6 +2034,17 @@ StatusIndicatorInfo soundIndicators[] =
     { ID_INDICATOR_RESSIZE, 100 },
 };
 
+StatusIndicatorInfo textIndicators[] =
+{
+    { ID_INDICATOR_RESSIZE, 150 },
+};
+
+StatusIndicatorInfo messageIndicators[] =
+{
+    { ID_INDICATOR_RESSIZE, 150 },
+    { ID_INDICATOR_AUDIOSIZE, 150 },
+};
+
 StatusIndicatorInfo gameIndicators[] =
 {
     { ID_INDICATOR_RESCOUNT, 200 },
@@ -2088,6 +2099,15 @@ void CMainFrame::_ApplyIndicators(MDITabType tabType)
         break;
 
     case TAB_TEXT:
+        indicators = textIndicators;
+        count = ARRAYSIZE(textIndicators);
+        break;
+
+    case TAB_MESSAGE:
+        indicators = messageIndicators;
+        count = ARRAYSIZE(messageIndicators);
+        break;
+
     case TAB_PALETTE:
     case TAB_ROOMEXPLORER:
     case TAB_NONE:

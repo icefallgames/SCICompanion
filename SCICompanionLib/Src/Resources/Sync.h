@@ -36,3 +36,4 @@ public:
 
 void SyncWriteTo(const ResourceEntity &resource, sci::ostream &byteStream);
 void SyncReadFrom(ResourceEntity &resource, sci::istream &stream);
+uint32_t SyncEstimateSize(const SyncComponent &sync);
