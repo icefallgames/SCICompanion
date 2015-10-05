@@ -27,7 +27,7 @@ public:
 
     void RemoveEntry(const ResourceMapEntryAgnostic &mapEntry) override;
     AppendBehavior AppendResources(const std::vector<ResourceBlob> &entries) override;
-    void RebuildResources() override {} // Nothing to do here.
+    void RebuildResources(bool force) override {} // Nothing to do here.
 
 private:
     HANDLE _hFind;

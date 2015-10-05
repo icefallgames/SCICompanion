@@ -57,6 +57,10 @@
 
 #include "crc.h"
 
+#include "ResourceSources.h"
+#include "ResourceMapOperations.h"
+#include "AudioCacheResourceSource.h"
+
 static const char c_szExecutableString[] = "Executable";
 static const char c_szExeParametersString[] = "ExeCmdLineParameters";
 static const char c_szDefaultExe[] = "sciv.exe";
@@ -647,6 +651,14 @@ void AppState::RunGame(bool debug, int optionalResourceNumber)
 {
     if (GetResourceMap().IsGameLoaded())
     {
+        // Rebuild any out-of-date audio resources. This should nearly be a no-op if none are out of data.
+        // TODO: This could be slow, so provide some kind of UI feedback?
+        if (GetVersion().AudioVolumeName != AudioVolumeName::None)
+        {
+            std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(GetResourceMap().GetGameFolder(), GetVersion(), ResourceSourceFlags::AudioCache);
+            resourceSource->RebuildResources(false);    // false -> don't force.
+        }
+
         BOOL fShellEx = FALSE;
         std::string gameFolder = GetResourceMap().GetGameFolder();
         TCHAR szGameIni[MAX_PATH];
@@ -654,7 +666,6 @@ void AppState::RunGame(bool debug, int optionalResourceNumber)
         {
             // Warning if any script patches are applied.
             // TODO: scan game folder for script.000, pic.000, etc...
-
             char szGameName[MAX_PATH];
             if (GetPrivateProfileString("Game", c_szExecutableString, c_szDefaultExe, szGameName, ARRAYSIZE(szGameName), szGameIni))
             {

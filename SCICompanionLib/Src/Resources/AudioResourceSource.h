@@ -31,7 +31,7 @@ public:
 
     void RemoveEntry(const ResourceMapEntryAgnostic &mapEntry) override;
     AppendBehavior AppendResources(const std::vector<ResourceBlob> &entries) override;
-    void RebuildResources() override {}
+    void RebuildResources(bool force) override {}
 
 private:
     void _EnsureAudioMaps();

@@ -27,7 +27,7 @@ public:
 
     void RemoveEntry(const ResourceMapEntryAgnostic &mapEntry) override;
     AppendBehavior AppendResources(const std::vector<ResourceBlob> &entries) override;
-    void RebuildResources() override;
+    void RebuildResources(bool force) override;
 
 private:
     std::unique_ptr<ResourceEntity> _PrepareForAddOrRemove();

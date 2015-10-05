@@ -147,38 +147,29 @@ ResourceType ResourceFlagToType(ResourceTypeFlags dwFlags)
 template<typename _TMapEntry, typename _THeaderEntry>
 HRESULT RebuildResources(SCIVersion version, BOOL fShowUI)
 {
-    // phil test
-    if (version.AudioVolumeName != AudioVolumeName::None)
-    {
-        try
-        {
-            std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(appState->GetResourceMap().GetGameFolder(), appState->GetVersion(), ResourceSourceFlags::AudioCache);
-            resourceSource->RebuildResources();
-        }
-        catch (std::exception &e)
-        {
-            AfxMessageBox(e.what(), MB_OK | MB_ICONWARNING);
-        }
-    }
-
-#if DISABLEDFORNOW
-
-    // Enumerate resources and write the ones we have not already encountered.
-    std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(appState->GetResourceMap().GetGameFolder(), appState->GetVersion(), ResourceSourceFlags::ResourceMap);
     try
     {
-        resourceSource->RebuildResources();
+        // Do the audio stuff first, because it will end up adding new audio maps to the game's resources
+        // (and RebuildResource should clean out the old ones)
+        if (version.AudioVolumeName != AudioVolumeName::None)
+        {
+            std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(appState->GetResourceMap().GetGameFolder(), appState->GetVersion(), ResourceSourceFlags::AudioCache);
+            resourceSource->RebuildResources(true);
+        }
+
+        // Enumerate resources and write the ones we have not already encountered.
+        std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(appState->GetResourceMap().GetGameFolder(), appState->GetVersion(), ResourceSourceFlags::ResourceMap);
+        resourceSource->RebuildResources(true);
         if (version.SeparateMessageMap)
         {
             std::unique_ptr<ResourceSource> messageSource = CreateResourceSource(appState->GetResourceMap().GetGameFolder(), appState->GetVersion(), ResourceSourceFlags::MessageMap);
-            messageSource->RebuildResources();
+            messageSource->RebuildResources(true);
         }
     }
     catch (std::exception &e)
     {
         AfxMessageBox(e.what(), MB_OK | MB_ICONWARNING);
     }
-#endif
     return S_OK;
 }
 

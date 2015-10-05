@@ -9,10 +9,12 @@
 #include "AudioMap.h"
 #include "SoundUtil.h"
 #include <filesystem>
+#include "PerfTimer.h"
 
 // The SCI Companion folder tree for audio cache files looks like this:
 //  gamefolder\
-//      audiocache\
+//      audiocache\\
+//          uptodate.bin        --> a list of resources that are up-to-date.
 //          4.map
 //          17.map
 //          65535.map
@@ -24,6 +26,47 @@
 //              individual sync36, audio36 under here.
 
 using namespace std::tr2;
+
+// Tracks which cached audio files are currently up-to-date in the game's main resources.
+// Prevents us from having to rebuild resource.aud/sfx unnecessarily.
+class UpToDateResources
+{
+public:
+    UpToDateResources(const std::string &cacheFolder) : _cacheTrackerFilename(cacheFolder + "\\updatetodate.bin")
+    {
+        std::ifstream file;
+        file.open(_cacheTrackerFilename, std::ios_base::in | std::ios_base::binary);
+        if (file.is_open())
+        {
+            int resource;
+            while (file >> resource)
+            {
+                _upToDate.insert(resource);
+            }
+        }
+    }
+
+    void Add(int resource) { _upToDate.insert(resource); }
+    void Remove(int resource) { _upToDate.erase(resource); }
+    bool IsUpToDate(int resource) { return _upToDate.find(resource) != _upToDate.end(); }
+
+    void Save()
+    {
+        std::ofstream file;
+        file.open(_cacheTrackerFilename, std::ios_base::out | std::ios_base::binary);
+        if (file.is_open())
+        {
+            for (int resource : _upToDate)
+            {
+                file << resource;
+            }
+        }
+    }
+
+private:
+    std::set<int> _upToDate;
+    const std::string _cacheTrackerFilename;
+};
 
 // This handles both base 36 resources and regular audio files.
 // It does NOT enumerate maps currently. It does load a map internally, and permits saving maps.
@@ -383,6 +426,11 @@ void AudioCacheResourceSource::RemoveEntry(const ResourceMapEntryAgnostic &mapEn
         // and it should route it to the "patch files" resource source, under the audiocache folder.
         assert(IsFlagSet(audioMap->SourceFlags, ResourceSourceFlags::AudioMapCache));
         appState->GetResourceMap().AppendResource(*audioMap);
+
+        // This is no longer up-to-date.
+        UpToDateResources upToDate(_cacheFolder);
+        upToDate.Remove(audioMap->ResourceNumber);
+        upToDate.Save();
     }
     catch (std::exception)
     {
@@ -421,6 +469,11 @@ AppendBehavior AudioCacheResourceSource::AppendResources(const std::vector<Resou
         // and it should route it to the "patch files" resource source, under the audiocache folder.
         assert(IsFlagSet(audioMap->SourceFlags, ResourceSourceFlags::AudioMapCache));
         appState->GetResourceMap().AppendResource(*audioMap);
+
+        // This is no longer up-to-date.
+        UpToDateResources upToDate(_cacheFolder);
+        upToDate.Remove(audioMap->ResourceNumber);
+        upToDate.Save();
     }
     catch (std::exception) {}
 
@@ -539,17 +592,9 @@ std::ostream *_ChooseBakOutputStream(SCIVersion version, const std::string &game
     return toUse;
 }
 
-void AudioCacheResourceSource::RebuildResources()
+void AudioCacheResourceSource::RebuildResources(bool force)
 {
-    // We need to rebuild the resource.aud and such from scratch.
-    // How do we find the list of all the audio maps? Well, we can,:
-    //  - enumerate all message resources
-    //  - then add the main audio map.
-    // From there, we'll either get audio maps from the cache files (first), or the resource.map/patch files (second).
-    // For those we got from the cache files, we'll only look in the cache files (and we need to calc lip sync stuff)
-    // For those we got from the other stuff, we'll look only in the other stuff.
-    // NOTE: we don't always save to same place also... resource.sfx or resource.aud. So go through proper channels?
-    // Can we leverage AudioResourceSource?
+    UpToDateResources upToDate(_cacheFolder);
 
     // 1) Find all the audio maps. We'll use the message resources to do this. This is so we don't include audio that no longer
     // has a place (e.g. no matching message resource - suppose it was deleted)
@@ -568,76 +613,98 @@ void AudioCacheResourceSource::RebuildResources()
     //      a) audio cache folder
     //      b) patch files (is this even necessary?)
     //      c) std resource map
+    bool allCacheFilesUpToDate = true;
     std::map<int, std::unique_ptr<ResourceEntity>> audioMaps;
     {   
         auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::AudioMap, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::IncludeCacheFiles);
         for (auto &blob : *resourceContainer)
         {
+            // If this audio map is sourced from the cache, then if it's out of date we definitely need to rebuild.
+            if (ResourceSourceFlags::AudioMapCache == blob->GetSourceFlags())
+            {
+                allCacheFilesUpToDate = allCacheFilesUpToDate && upToDate.IsUpToDate(blob->GetNumber());
+            }
             audioMaps[blob->GetNumber()] = std::move(CreateResourceFromResourceData(*blob));
         }
     }
 
-    // 3) Based on the information in the audio maps, write the necessary audio resources into the audio volume files (resource.aud/resource.sfx, as appropriate)
-    std::ofstream audStream;
-    std::ofstream sfxStream;
-    for (int amNumber : audioMapNumbers)
+    // We can avoid doing anything here if we know that all cached files have up-to-date versions built into the game's resources.
+    bool needToRebuild = !allCacheFilesUpToDate || force;
+    if (needToRebuild)
     {
-        auto itAudioMapPair = audioMaps.find(amNumber);
-        if (itAudioMapPair != audioMaps.end())
+        // 3) Based on the information in the audio maps, write the necessary audio resources into the audio volume files (resource.aud/resource.sfx, as appropriate)
+        std::ofstream audStream;
+        std::ofstream sfxStream;
+        for (int amNumber : audioMapNumbers)
         {
-            std::ostream &streamToUse = *_ChooseBakOutputStream(_version, _gameFolder, itAudioMapPair->first, audStream, sfxStream);
+            auto itAudioMapPair = audioMaps.find(amNumber);
+            if (itAudioMapPair != audioMaps.end())
+            {
+                std::ostream &streamToUse = *_ChooseBakOutputStream(_version, _gameFolder, itAudioMapPair->first, audStream, sfxStream);
 
-            ResourceEntity *audioMapResource = itAudioMapPair->second.get();
-            if (audioMapResource->SourceFlags == ResourceSourceFlags::AudioMapCache)
-            {
-                //  Just copy the cache files directly into this stream...
-                std::string cacheSubfolder = _cacheFolder + fmt::format("\\{0}", audioMapResource->ResourceNumber);
-                RebuildFromAudioCacheFiles(_version, cacheSubfolder, audioMapResource->GetComponent<AudioMapComponent>(), audioMapResource->ResourceNumber, streamToUse);
-            }
-            else
-            {
-                RebuildFromResources(_version, _gameFolder, audioMapResource->GetComponent<AudioMapComponent>(), audioMapResource->ResourceNumber, streamToUse);
+                ResourceEntity *audioMapResource = itAudioMapPair->second.get();
+                // Rebuilding from files is about 3x slower in release mode (about 100x slower in debug due to the way we copy data),
+                // vs just copying out of the original resources.
+                // So let's avoid it if we can.
+                bool rebuildFromCacheFiles = false;
+                if ((audioMapResource->SourceFlags == ResourceSourceFlags::AudioMapCache))
+                {
+                    rebuildFromCacheFiles = force || !upToDate.IsUpToDate(audioMapResource->ResourceNumber);
+                    // But it *will* be up-to-date when we're done with it:
+                    upToDate.Add(audioMapResource->ResourceNumber); 
+                }
+                if (rebuildFromCacheFiles)
+                {
+                    //  Copy all the cache files directly into this stream...
+                    std::string cacheSubfolder = _cacheFolder + fmt::format("\\{0}", audioMapResource->ResourceNumber);
+                    RebuildFromAudioCacheFiles(_version, cacheSubfolder, audioMapResource->GetComponent<AudioMapComponent>(), audioMapResource->ResourceNumber, streamToUse);
+                }
+                else
+                {
+                    // Copy straight from the resources.
+                    RebuildFromResources(_version, _gameFolder, audioMapResource->GetComponent<AudioMapComponent>(), audioMapResource->ResourceNumber, streamToUse);
+                }
             }
         }
-        
-    }
 
-    // 4) Test that we can open the non bak versions for writing
-    if (audStream.is_open())
-    {
-        testopenforwrite(GetAudioVolumePath(_gameFolder, false, AudioVolumeName::Aud));
-    }
-    if (sfxStream.is_open())
-    {
-        testopenforwrite(GetAudioVolumePath(_gameFolder, false, AudioVolumeName::Sfx));
-    }
-
-    // 5) If that's good, then save the audio maps
-    {
-        DeferResourceAppend defer(appState->GetResourceMap());
-        for (auto &audioMap : audioMaps)
+        // 4) Test that we can open the non bak versions for writing
+        if (audStream.is_open())
         {
-            appState->GetResourceMap().AppendResource(*audioMap.second);
+            testopenforwrite(GetAudioVolumePath(_gameFolder, false, AudioVolumeName::Aud));
         }
-        defer.Commit();
-    }
+        if (sfxStream.is_open())
+        {
+            testopenforwrite(GetAudioVolumePath(_gameFolder, false, AudioVolumeName::Sfx));
+        }
 
-    // 6) And then if that's good, then replace the audio files.
-    if (audStream.is_open())
-    {
-        audStream.close();
-        std::string finalPath = GetAudioVolumePath(_gameFolder, false, AudioVolumeName::Aud);
-        deletefile(finalPath);
-        movefile(GetAudioVolumePath(_gameFolder, true, AudioVolumeName::Aud), finalPath);
-    }
-    if (sfxStream.is_open())
-    {
-        sfxStream.close();
-        std::string finalPath = GetAudioVolumePath(_gameFolder, false, AudioVolumeName::Sfx);
-        deletefile(finalPath);
-        movefile(GetAudioVolumePath(_gameFolder, true, AudioVolumeName::Sfx), finalPath);
-    }
+        // 5) If that's good, then save the audio maps
+        {
+            DeferResourceAppend defer(appState->GetResourceMap());
+            for (auto &audioMap : audioMaps)
+            {
+                appState->GetResourceMap().AppendResource(*audioMap.second);
+            }
+            defer.Commit();
+        }
 
+        // 6) And then if that's good, then replace the audio files.
+        if (audStream.is_open())
+        {
+            audStream.close();
+            std::string finalPath = GetAudioVolumePath(_gameFolder, false, AudioVolumeName::Aud);
+            deletefile(finalPath);
+            movefile(GetAudioVolumePath(_gameFolder, true, AudioVolumeName::Aud), finalPath);
+        }
+        if (sfxStream.is_open())
+        {
+            sfxStream.close();
+            std::string finalPath = GetAudioVolumePath(_gameFolder, false, AudioVolumeName::Sfx);
+            deletefile(finalPath);
+            movefile(GetAudioVolumePath(_gameFolder, true, AudioVolumeName::Sfx), finalPath);
+        }
+
+        upToDate.Save();
+    }
     // TODO: Check if there are audio maps that have no representation in a message resource?
 }
 

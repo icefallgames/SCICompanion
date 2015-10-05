@@ -97,7 +97,7 @@ public:
     virtual sci::istream GetPositionedStreamAndResourceSizeIncludingHeader(const ResourceMapEntryAgnostic &mapEntry, uint32_t &size) = 0;
 
     virtual void RemoveEntry(const ResourceMapEntryAgnostic &mapEntry) = 0;
-    virtual void RebuildResources() = 0;
+    virtual void RebuildResources(bool force) = 0;
     virtual AppendBehavior AppendResources(const std::vector<ResourceBlob> &entries) = 0;
 };
 
@@ -306,7 +306,7 @@ public:
         this->WriteAndReplaceMapAndVolumes(mapStreamWrite1, volumeStreamWrites);
     }
 
-    void RebuildResources() override
+    void RebuildResources(bool force) override
     {
         IteratorState iteratorState;
 
