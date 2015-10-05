@@ -35,6 +35,9 @@ struct TextEntry
     uint8_t Talker;
     uint32_t Style;  // Just a guess...
     std::string Text;
+
+    bool operator==(const TextEntry &other) const;
+    bool operator!=(const TextEntry &other) const;
 };
 
 struct TextComponent : public ResourceComponent, public ILookupNames

@@ -42,16 +42,14 @@ public:
 
     virtual BOOL PreTranslateMessage(MSG* pMsg);
 
-    TextEntry *_GetEntry(TextComponent &text);
     void _Update();
+    const TextEntry *_GetEntry();
 
 protected:
     void OnNewResourceCreated(std::unique_ptr<ResourceEntity> audioResource, const std::string &name) override;
 
     const TextComponent *_GetResource();
-    const TextEntry *_GetEntry();
     int _GetSelectedIndex();
-    void _AddEntryAtCurrentPosition(const TextEntry &entry);
 
     virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
     virtual BOOL OnInitDialog();

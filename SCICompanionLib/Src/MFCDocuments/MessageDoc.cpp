@@ -39,65 +39,37 @@ void CMessageDoc::_PreloadAudio()
     PerfTimer timer("preloadAudio");
     if (appState->GetVersion().HasSyncResources)
     {
-        _audioSidecarResources.clear();
+        const TextComponent &text = GetResource()->GetComponent<TextComponent>();
+        _audioResources.clear();
+        _modified.clear();
+
+        // Get all the resources from the audio map
+        std::unordered_map<uint32_t, std::unique_ptr<ResourceEntity>> _temporaryMap;
         int mapResourceNumber = GetResource()->ResourceNumber;
         auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Audio, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::IncludeCacheFiles, mapResourceNumber);
         for (auto resource : *resourceContainer)
         {
-            _audioSidecarResources[resource->GetBase36()] = CreateResourceFromResourceData(*resource);
+            _temporaryMap[resource->GetBase36()] = CreateResourceFromResourceData(*resource);
         }
+
+        // Now assign them slots based on the text entry indices.
+        // Using this system (instead of looking them up by tuples), since we want an easy way to keep
+        // track of things when the user changes the message entry tuple.
+        for (const TextEntry &entry : text.Texts)
+        {
+            _audioResources.push_back(std::move(_temporaryMap[GetMessageTuple(entry)]));
+            _modified.push_back(false);
+        }
+        assert(_audioResources.size() == text.Texts.size());
     }
 }
 
-void CMessageDoc::AddNewAudioResource(std::unique_ptr<ResourceEntity> audioResource)
-{
-    _newAudioSidecarResources.insert(audioResource->Base36Number);
-    _audioSidecarResources[audioResource->Base36Number] = std::move(audioResource);
-
-    SetModifiedFlag(TRUE);
-    UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(MessageChangeHint::ItemChanged));
-}
-
-bool CMessageDoc::SetSyncComponent(uint32_t base36Number, std::unique_ptr<SyncComponent> sync)
-{
-    bool changed = false;
-    auto it = _audioSidecarResources.find(base36Number);
-    if (it != _audioSidecarResources.end())
-    {
-        ResourceEntity *entity = it->second.get();
-        SyncComponent *existingSync = entity->TryGetComponent<SyncComponent>();
-        if (existingSync && sync)
-        {
-            changed = *existingSync != *sync;
-            if (changed)
-            {
-                entity->RemoveComponent<SyncComponent>();
-                entity->AddComponent<SyncComponent>(std::move(sync));
-            }
-        }
-        else if (!existingSync && sync)
-        {
-            changed = true;
-            entity->AddComponent<SyncComponent>(std::move(sync));
-        }
-        else if (existingSync && !sync)
-        {
-            changed = true;
-            entity->RemoveComponent<SyncComponent>();
-        }
-    }
-
-    if (changed)
-    {
-        _newAudioSidecarResources.insert(base36Number);
-        SetModifiedFlag(TRUE);
-        UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(MessageChangeHint::ItemChanged));
-    }
-    return changed;
-}
 
 void CMessageDoc::PostSuccessfulSave(const ResourceEntity *pResource)
 {
+    // We need to figure out the series of changes required to save our modified audio resources.
+
+    /*
     // We only support adding now, this is kind of hacky.
     // (Supporting changing of the base36 number is an optimization we can do.)
     CResourceMap &map = appState->GetResourceMap();
@@ -113,21 +85,157 @@ void CMessageDoc::PostSuccessfulSave(const ResourceEntity *pResource)
         }
         defer.Commit();
     }
-
-    _newAudioSidecarResources.clear();
+    */
+    // Clear out the modified flags
+    std::fill(_modified.begin(), _modified.end(), false);
 }
 
-ResourceEntity *CMessageDoc::FindAudioResource(uint32_t base36Number)
+void CMessageDoc::AddEntry(const TextEntry &entry)
 {
-    auto it = _audioSidecarResources.find(base36Number);
-    if (it == _audioSidecarResources.end())
+    int index = GetSelectedIndex();
+    index++;
+
+    ApplyChangesWithPost<TextComponent>(
+        [index, &entry](TextComponent &text)
     {
-        return nullptr;
-    }
-    else
+        text.Texts.insert(text.Texts.begin() + index, entry);
+        return WrapHint(MessageChangeHint::Changed);
+    },
+        [index, this](ResourceEntity &resource)
     {
-        return (*it).second.get();
+        this->_audioResources.insert(this->_audioResources.begin() + index, nullptr);
+        this->_modified.insert(this->_modified.begin() + index, false);
     }
+    );
+    // Now select it
+    SetSelectedIndex(index);
+}
+
+void CMessageDoc::DeleteCurrentEntry()
+{
+    int selected = GetSelectedIndex();
+    if (selected != -1)
+    {
+        bool ok = true;
+        if (_audioResources[selected])
+        {
+            ok = (IDYES == AfxMessageBox("This entry contains an associated audio resources. This will delete the audio resource too. Continue?", MB_YESNO | MB_ICONWARNING));
+        }
+
+        if (ok)
+        {
+            int newSelected = selected;
+            ApplyChangesWithPost<TextComponent>(
+                [selected, &newSelected](TextComponent &text)
+            {
+                TextChangeHint hint = text.DeleteString(selected);
+                newSelected = max(0, min(selected, (int)(text.Texts.size() - 1)));
+                return WrapHint(hint);
+            },
+                [selected, &newSelected, this](ResourceEntity &resource)
+            {
+                this->_audioResources.erase(this->_audioResources.begin() + selected);
+                this->_modified.erase(this->_modified.begin() + selected);
+            }
+            );
+            SetSelectedIndex(newSelected, true);
+        }
+    }
+}
+
+const char c_szMessageTxtFilter[] = "txt files (*.txt)|*.txt|All Files|*.*|";
+
+void CMessageDoc::ImportMessage()
+{
+    ApplyChanges<TextComponent>(
+        [&](TextComponent &text)
+    {
+        MessageChangeHint hint = MessageChangeHint::None;
+        CFileDialog fileDialog(TRUE, nullptr, nullptr, OFN_HIDEREADONLY | OFN_NOCHANGEDIR, c_szMessageTxtFilter);
+        if (IDOK == fileDialog.DoModal())
+        {
+            CString strFileName = fileDialog.GetPathName();
+            ImportMessageFromFile(text, (PCSTR)strFileName);
+            hint |= MessageChangeHint::Changed;
+
+            // Fill with empty spots:
+            this->_audioResources.resize(text.Texts.size());
+            this->_modified.resize(text.Texts.size(), false);
+        }
+        return WrapHint(hint);
+    }
+    );
+}
+
+void CMessageDoc::ExportMessage()
+{
+    const ResourceEntity *resource = GetResource();
+    if (resource)
+    {
+        CFileDialog fileDialog(FALSE, nullptr, fmt::format("{0}.txt", resource->ResourceNumber).c_str(), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR, c_szMessageTxtFilter);
+        if (IDOK == fileDialog.DoModal())
+        {
+            CString strFileName = fileDialog.GetPathName();
+            ExportMessageToFile(resource->GetComponent<TextComponent>(), (PCSTR)strFileName);
+        }
+    }
+}
+
+void CMessageDoc::SetEntry(const TextEntry &newEntry)
+{
+    int selected = GetSelectedIndex();
+    if (selected != -1)
+    {
+        bool tupleChanged = false;
+        ApplyChanges<TextComponent>(
+            [selected, newEntry, &tupleChanged](TextComponent &text)
+        {
+            MessageChangeHint hint = MessageChangeHint::None;
+            if (newEntry != text.Texts[selected])
+            {
+                tupleChanged = GetMessageTuple(newEntry) != GetMessageTuple(text.Texts[selected]);
+                text.Texts[selected] = newEntry;
+                hint |= MessageChangeHint::ItemChanged;
+            }
+            return WrapHint(hint);
+        }
+        );
+
+        if (tupleChanged)
+        {
+            // Not really necessary, we could detect this easily...
+            _modified[selected] = true;
+        }
+    }
+}
+
+ResourceEntity *CMessageDoc::GetAudioResource()
+{
+    ResourceEntity *resource = nullptr;
+    if (_selectedIndex != -1)
+    {
+        resource = _audioResources[_selectedIndex].get();
+    }
+    return resource;
+}
+
+ResourceEntity *CMessageDoc::GetAudioResource(int index)
+{
+    ResourceEntity *resource = nullptr;
+    if (index >= 0 && index < (int)_audioResources.size())
+    {
+        resource = _audioResources[index].get();
+    }
+    return resource;
+}
+
+void CMessageDoc::SetAudioResource(std::unique_ptr<ResourceEntity> audioResource)
+{
+    assert(_selectedIndex != -1);
+    _audioResources[_selectedIndex] = std::move(audioResource);
+
+    SetModifiedFlag(TRUE);
+    UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(MessageChangeHint::ItemChanged));
 }
 
 void CMessageDoc::SetMessageResource(std::unique_ptr<ResourceEntity> pMessage, int id)
@@ -176,6 +284,12 @@ const MessageSource *GetMessageSourceFromType(CMessageDoc *pDoc, MessageSourceTy
         }
     }
     return nullptr;
+}
+
+// Since we modify audio resources in a significant way, we prevent undos if audio is supported for messages.
+bool CMessageDoc::v_PreventUndos() const
+{
+    return appState->GetVersion().HasSyncResources;
 }
 
 

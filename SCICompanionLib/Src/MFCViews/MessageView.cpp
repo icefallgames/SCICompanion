@@ -247,7 +247,7 @@ void CMessageView::_SetItem(int itemIndex, int visualIndex, PCTSTR pszString, co
     ResourceEntity *audioResource = nullptr;
     if (pDoc)
     {
-        audioResource = pDoc->FindAudioResource(GetMessageTuple(text->Texts[itemIndex]));
+        audioResource = pDoc->GetAudioResource(itemIndex);
     }
     bool hasAudio = (audioResource != nullptr);
     bool hasLipSync = audioResource && audioResource->TryGetComponent<SyncComponent>();
@@ -377,18 +377,7 @@ void CMessageView::_AddEntryAtCurrentPosition(const TextEntry &entry)
     CMessageDoc *pDoc = GetDocument();
     if (pDoc)
     {
-        int index = pDoc->GetSelectedIndex();
-        index++;
-        pDoc->ApplyChanges<TextComponent>(
-            [index, &entry](TextComponent &text)
-        {
-            text.Texts.insert(text.Texts.begin() + index, entry);
-            return WrapHint(MessageChangeHint::Changed);
-        }
-        );
-
-        // Now select it
-        pDoc->SetSelectedIndex(index);
+        pDoc->AddEntry(entry);
     }
 }
 
@@ -412,23 +401,12 @@ void CMessageView::OnCloneMessage()
     }
 }
 
-const char c_szMessageTxtFilter[] = "txt files (*.txt)|*.txt|All Files|*.*|";
-
 void CMessageView::OnExportMessage()
 {
     CMessageDoc *pDoc = GetDocument();
     if (pDoc)
     {
-        const ResourceEntity *resource = pDoc->GetResource();
-        if (resource)
-        {
-            CFileDialog fileDialog(FALSE, nullptr, fmt::format("{0}.txt", resource->ResourceNumber).c_str(), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR, c_szMessageTxtFilter);
-            if (IDOK == fileDialog.DoModal())
-            {
-                CString strFileName = fileDialog.GetPathName();
-                ExportMessageToFile(resource->GetComponent<TextComponent>(), (PCSTR)strFileName);
-            }
-        }
+        pDoc->ExportMessage();
     }
 }
 
@@ -437,20 +415,7 @@ void CMessageView::OnImportMessage()
     CMessageDoc *pDoc = GetDocument();
     if (pDoc)
     {
-        pDoc->ApplyChanges<TextComponent>(
-            [](TextComponent &text)
-        {
-            MessageChangeHint hint = MessageChangeHint::None;
-            CFileDialog fileDialog(TRUE, nullptr, nullptr, OFN_HIDEREADONLY | OFN_NOCHANGEDIR, c_szMessageTxtFilter);
-            if (IDOK == fileDialog.DoModal())
-            {
-                CString strFileName = fileDialog.GetPathName();
-                ImportMessageFromFile(text, (PCSTR)strFileName);
-                hint |= MessageChangeHint::Changed;
-            }
-            return WrapHint(hint);
-        }
-            );
+        pDoc->ImportMessage();
     }
 }
 
@@ -479,27 +444,10 @@ void CMessageView::OnAddNew()
 
 void CMessageView::OnDelete()
 {
-    int nItem = _GetSelectedItem();
-    if (nItem != -1)
+    CMessageDoc *pDoc = GetDocument();
+    if (pDoc)
     {
-        CListCtrl &listCtl = GetListCtrl();
-        
-        // Delete the item from the resource.  So we can keep tracking of moving selection to the next guy,
-        // we'll modify the resource directly (not the document), so this won't cause a full update.
-        // That means, though, that we'll need to delete the item from the listview ourselves,
-        // and adjust all the resource numbers.
-        CMessageDoc *pDoc = GetDocument();
-        if (pDoc)
-        {
-            pDoc->ApplyChanges<TextComponent>(
-                [&](TextComponent &text)
-            {
-                return WrapHint(text.DeleteString(nItem));
-            }
-            );
-            int newSelectedIndex = max(0, min(nItem, (int)(GetTextComponent()->Texts.size() - 1)));
-            pDoc->SetSelectedIndex(newSelectedIndex, true);
-        }
+        pDoc->DeleteCurrentEntry();
     }
 }
 

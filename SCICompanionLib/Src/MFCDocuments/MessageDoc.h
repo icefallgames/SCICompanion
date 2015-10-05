@@ -7,6 +7,7 @@
 struct SyncComponent;
 class MessageSource;
 class MessageHeaderFile;
+struct TextEntry;
 
 class CMessageDoc : public ResourceEntityDocument
 {
@@ -29,11 +30,30 @@ public:
 
     void SetSelectedIndex(int index, bool force = false);
     int GetSelectedIndex() const { return _selectedIndex; }
+    ResourceEntity *GetAudioResource();             // Can return null_ptr
+    ResourceEntity *GetAudioResource(int index);    // Can return null_ptr
 
-    // Audio sidecar support:
-    ResourceEntity *FindAudioResource(uint32_t base36Number);
-    void AddNewAudioResource(std::unique_ptr<ResourceEntity> audioResource);
-    bool SetSyncComponent(uint32_t base36Number, std::unique_ptr<SyncComponent> sync);
+    void SetAudioResource(std::unique_ptr<ResourceEntity> audioResource);
+    template<typename _TFunc>
+    void ModifyCurrentAudioResource(_TFunc f)
+    {
+        if ((_selectedIndex != -1) && _audioResources[_selectedIndex])
+        {
+            f(*_audioResources[_selectedIndex]);
+            SetModifiedFlag(TRUE);
+            UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(MessageChangeHint::ItemChanged));
+        }
+    }
+
+    bool v_PreventUndos() const override;
+
+    // All modifications to text entries should go through CMessageDoc instead of the caller calling ApplyChanges directly,
+    // since it needs to track sidecar audio resources. I wish I could enforce this somehow.
+    void DeleteCurrentEntry();
+    void AddEntry(const TextEntry &entry);
+    void SetEntry(const TextEntry &entry);
+    void ImportMessage();
+    void ExportMessage();
 
 protected:
     void PostSuccessfulSave(const ResourceEntity *pResource) override;
@@ -49,9 +69,9 @@ private:
 
     int _selectedIndex;
 
-    // Audio sidecare stuff.
-    std::unordered_map<uint32_t, std::unique_ptr<ResourceEntity>> _audioSidecarResources;
-    std::unordered_set<uint32_t> _newAudioSidecarResources; // we need a more complex thing here, to track deleting and such
+    // Audio sidecare stuff. These vector match the list of texts, and can be indexed with _selectedIndex
+    std::vector<std::unique_ptr<ResourceEntity>> _audioResources;
+    std::vector<bool> _modified;
 
     DECLARE_MESSAGE_MAP()
 };

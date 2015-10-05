@@ -63,7 +63,7 @@ public:
     void MakeFont();
     void ExportAsGif();
 
-    bool v_PreventUndos() { return _fLocked; }
+    bool v_PreventUndos() const override { return _fLocked; }
     void v_OnUndoRedo();
 
     template<typename _T>

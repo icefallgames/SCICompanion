@@ -4,6 +4,21 @@
 
 using namespace std;
 
+bool TextEntry::operator == (const TextEntry &other) const
+{
+    return Noun == other.Noun &&
+        Verb == other.Verb &&
+        Condition == other.Condition &&
+        Sequence == other.Sequence &&
+        Style == other.Style &&
+        Text == other.Text &&
+        Talker == other.Talker;
+}
+bool TextEntry::operator!=(const TextEntry &other) const
+{
+    return !(*this == other);
+}
+
 int TextComponent::AddString(const std::string &theString)
 {
     TextEntry entry = { 0 };

@@ -268,17 +268,6 @@ const TextComponent *MessageEditPane::_GetResource()
     return text;
 }
 
-TextEntry *MessageEditPane::_GetEntry(TextComponent &text)
-{
-    TextEntry *entry = nullptr;
-    int index = _GetSelectedIndex();
-    if ((index != -1) && (index < (int)text.Texts.size()))
-    {
-        entry = &text.Texts[index];
-    }
-    return entry;
-}
-
 const TextEntry *MessageEditPane::_GetEntry()
 {
     const TextEntry *entry = nullptr;
@@ -347,7 +336,7 @@ bool MessageEditPane::_UpdateAudio(const TextEntry &messageEntry)
         uint32_t tuple = GetMessageTuple(messageEntry);
         _audioPlayback.Stop();
 
-        ResourceEntity *audioEntity = _pDoc->FindAudioResource(tuple);
+        ResourceEntity *audioEntity = _pDoc->GetAudioResource();
         hasAudio = !!audioEntity;
         SetAudioResource(audioEntity);
 
@@ -408,19 +397,9 @@ void MessageEditPane::OnNewResourceCreated(std::unique_ptr<ResourceEntity> audio
         audioResource->Base36Number = GetMessageTuple(*entry);
         audioResource->ResourceNumber = _pDoc->GetNumber();
 
-        // If we currently have a sync component add it back in
-        // Alternately, we could have OnNewResourceCreated return a AudioComponent and not a ResourceEntity. But other use cases for
-        // it have it make more sense to return a ResourceEntity;
-        ResourceEntity *existingResource = _pDoc->FindAudioResource(GetMessageTuple(*entry));
-        if (existingResource->TryGetComponent<SyncComponent>())
-        {
-            audioResource->AddComponent(std::make_unique<SyncComponent>(existingResource->GetComponent<SyncComponent>()));
-        }
-
-        // TODO: This is temporary. For now we'll add everything.
-        _pDoc->AddNewAudioResource(std::move(audioResource));
-        // Don't do this now. Instead, add to a list until we save?
-        // appState->GetResourceMap().AppendResource(*audioResource);
+        // If we have a new piece audio, I think it makes sense to remove any existing lipsync component.
+        // So we can just replace what's already there:
+        _pDoc->SetAudioResource(std::move(audioResource));
 
         // Now we may have just deleted the old one, so let's update.
         _Update();
@@ -492,25 +471,6 @@ void MessageEditPane::SetDocument(CDocument *pDoc)
     }
 }
 
-void MessageEditPane::_AddEntryAtCurrentPosition(const TextEntry &entry)
-{
-    if (_pDoc)
-    {
-        int index = _pDoc->GetSelectedIndex();
-        index++;
-        _pDoc->ApplyChanges<TextComponent>(
-            [index, &entry](TextComponent &text)
-        {
-            text.Texts.insert(text.Texts.begin() + index, entry);
-            return WrapHint(MessageChangeHint::Changed);
-        }
-        );
-
-        // Now select it
-        _pDoc->SetSelectedIndex(index);
-    }
-}
-
 void MessageEditPane::OnEnChangeEditmessage()
 {
     // Validation happens on focus lost, so nothing to do here.
@@ -575,22 +535,14 @@ void _RespondToComboChange(MessageEditPane *mep, CComboBox &wndCombo, MessageSou
         uint8_t value;
         if (_GetValueFromText(wndCombo, isSelChange, source, value))
         {
-            pDoc->ApplyChanges<TextComponent>(
-                [mep, value, getProperty](TextComponent &text)
+            const TextEntry *entry = mep->_GetEntry();
+            if (entry)
             {
-                TextEntry *entry = mep->_GetEntry(text);
-                if (entry)
-                {
-                    uint8_t &property = getProperty(*entry);
-                    if (property != value)
-                    {
-                        property = value;
-                        return WrapHint(MessageChangeHint::ItemChanged);
-                    }
-                }
-                return WrapHint(MessageChangeHint::None);
+                TextEntry copy = *entry;
+                uint8_t &property = getProperty(copy);
+                property = value;
+                pDoc->SetEntry(copy);
             }
-            );
         }
         else
         {
@@ -615,14 +567,14 @@ void MessageEditPane::OnEnChangeEditseq()
             _spinnerValue = 63;
             UpdateData(false);
         }
-        _pDoc->ApplyChanges<TextComponent>(
-            [this](TextComponent &text)
+
+        const TextEntry *entry = _GetEntry();
+        if (entry)
         {
-            TextEntry *entry = this->_GetEntry(text);
-            entry->Sequence = this->_spinnerValue;
-            return WrapHint(MessageChangeHint::ItemChanged);
+            TextEntry copy = *entry;
+            copy.Sequence = this->_spinnerValue;
+            _pDoc->SetEntry(copy);
         }
-        );
     }
 }
 
@@ -630,21 +582,15 @@ void MessageEditPane::OnEnKillfocusEditmessage()
 {
     if (_pDoc)
     {
-        _pDoc->ApplyChanges<TextComponent>(
-            [this](TextComponent &text)
+        CString strText;
+        this->m_wndEditMessage.GetWindowTextA(strText);
+        const TextEntry *entry = _GetEntry();
+        if (entry)
         {
-            TextEntry *entry = this->_GetEntry(text);
-            CString strText;
-            this->m_wndEditMessage.GetWindowTextA(strText);
-            MessageChangeHint hint = MessageChangeHint::None;
-            if (entry->Text != (PCSTR)strText)
-            {
-                entry->Text = (PCSTR)strText;
-                hint |= MessageChangeHint::ItemChanged;
-            }
-            return WrapHint(hint);
+            TextEntry copy = *entry;
+            copy.Text = (PCSTR)strText;
+            _pDoc->SetEntry(copy);
         }
-            );
     }
 }
 
@@ -789,13 +735,14 @@ LRESULT MessageEditPane::_OnLipSyncDone(WPARAM wParam, LPARAM lParam)
 
     // Update the sync component (or add one)
     std::unique_ptr<SyncComponent> syncComponent = std::make_unique<SyncComponent>(_lipSyncTaskSink.GetResponse());
-    const TextEntry *entry = _GetEntry();
-    uint32_t tuple = GetMessageTuple(*entry);
-
-    if (_pDoc->SetSyncComponent(tuple, std::move(syncComponent)))
+    _pDoc->ModifyCurrentAudioResource(
+        [&syncComponent](ResourceEntity &audioResource)
     {
-        _Update();
+        // AddComponent does a replace if that component already exists.
+        audioResource.AddComponent<SyncComponent>(std::move(syncComponent));
     }
+        );
+    _Update();
     return 0;
 }
 
@@ -818,10 +765,21 @@ void MessageEditPane::OnBnClickedButtonlipsyncDialog()
         if (IDOK == dialog.DoModal())
         {
             std::unique_ptr<SyncComponent> syncFromDialog = dialog.GetSyncComponent();
-            if (_pDoc->SetSyncComponent(_audio->Base36Number, std::move(syncFromDialog)))
+            _pDoc->ModifyCurrentAudioResource(
+                [&syncFromDialog](ResourceEntity &audioResource)
             {
-                _Update();
+                if (syncFromDialog)
+                {
+                    audioResource.AddComponent<SyncComponent>(std::move(syncFromDialog));
+                }
+                else
+                {
+                    audioResource.RemoveComponent<SyncComponent>();
+                }
             }
+                );
+
+            _Update();
         }
     }
 }
