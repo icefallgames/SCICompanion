@@ -47,7 +47,7 @@ public:
     }
 
     void Add(int resource) { _upToDate.insert(resource); }
-    void Remove(int resource) { _upToDate.erase(resource); }
+    void MarkDirty(int resource) { _upToDate.erase(resource); }
     bool IsUpToDate(int resource) { return _upToDate.find(resource) != _upToDate.end(); }
 
     void Save()
@@ -401,40 +401,51 @@ std::unique_ptr<ResourceEntity> AudioCacheResourceSource::_PrepareForAddOrRemove
 
 void AudioCacheResourceSource::RemoveEntry(const ResourceMapEntryAgnostic &mapEntry)
 {
+    std::vector<uint32_t> tuples = { mapEntry.Base36Number };
+    RemoveEntries(mapEntry.Number, tuples);
+}
+
+void AudioCacheResourceSource::RemoveEntries(int number, const std::vector<uint32_t> tuples)
+{
     try
     {
         std::unique_ptr<ResourceEntity> audioMap = _PrepareForAddOrRemove();
         AudioMapComponent &audioMapComponent = audioMap->GetComponent<AudioMapComponent>();
-
-        // Find the matching entry and remove it 
-        int number = mapEntry.Number;
-        uint32_t tuple = mapEntry.Base36Number;
-        auto itFind = std::find_if(audioMapComponent.Entries.begin(), audioMapComponent.Entries.end(),
-            [number, tuple](const AudioMapEntry &amEntry) {  return amEntry.Number == number && GetMessageTuple(amEntry) == tuple; });
-        if (itFind != audioMapComponent.Entries.end())
+        bool audioMapModified = false;
+        for (uint32_t tuple : tuples)
         {
-            audioMapComponent.Entries.erase(itFind);
-        }
+            // Find the matching entry and remove it 
+            auto itFind = std::find_if(audioMapComponent.Entries.begin(), audioMapComponent.Entries.end(),
+                [number, tuple](const AudioMapEntry &amEntry) {  return amEntry.Number == number && GetMessageTuple(amEntry) == tuple; });
+            if (itFind != audioMapComponent.Entries.end())
+            {
+                audioMapComponent.Entries.erase(itFind);
+                audioMapModified = true;
+            }
 
-        // Now we need to delete any files associated with it.
-        std::string fullPath = _cacheSubFolderForEnum + "\\" + GetFileNameFor(ResourceType::Audio, number, tuple, _version);
-        deletefile(fullPath);
-        fullPath = _cacheSubFolderForEnum + "\\" + GetFileNameFor(ResourceType::Sync, number, tuple, _version);
-        deletefile(fullPath);
+            // Now we need to delete any files associated with it.
+            std::string fullPath = _cacheSubFolderForEnum + "\\" + GetFileNameFor(ResourceType::Audio, number, tuple, _version);
+            deletefile(fullPath);
+            fullPath = _cacheSubFolderForEnum + "\\" + GetFileNameFor(ResourceType::Sync, number, tuple, _version);
+            deletefile(fullPath);
+        }
 
         // And finally, save the modified audiomap. We *should* just be able to go through the resource map again,
         // and it should route it to the "patch files" resource source, under the audiocache folder.
-        assert(IsFlagSet(audioMap->SourceFlags, ResourceSourceFlags::AudioMapCache));
-        appState->GetResourceMap().AppendResource(*audioMap);
+        if (audioMapModified)
+        {
+            assert(IsFlagSet(audioMap->SourceFlags, ResourceSourceFlags::AudioMapCache));
+            appState->GetResourceMap().AppendResource(*audioMap);
 
-        // This is no longer up-to-date.
-        UpToDateResources upToDate(_cacheFolder);
-        upToDate.Remove(audioMap->ResourceNumber);
-        upToDate.Save();
+            // This is no longer up-to-date.
+            UpToDateResources upToDate(_cacheFolder);
+            upToDate.MarkDirty(audioMap->ResourceNumber);
+            upToDate.Save();
+        }
     }
     catch (std::exception)
     {
-
+        // REVIEW
     }
 }
 
@@ -472,7 +483,7 @@ AppendBehavior AudioCacheResourceSource::AppendResources(const std::vector<Resou
 
         // This is no longer up-to-date.
         UpToDateResources upToDate(_cacheFolder);
-        upToDate.Remove(audioMap->ResourceNumber);
+        upToDate.MarkDirty(audioMap->ResourceNumber);
         upToDate.Save();
     }
     catch (std::exception) {}

@@ -29,6 +29,9 @@ public:
     AppendBehavior AppendResources(const std::vector<ResourceBlob> &entries) override;
     void RebuildResources(bool force) override;
 
+    // A way to call RemoveEntry directly, for more efficiency.
+    void AudioCacheResourceSource::RemoveEntries(int number, const std::vector<uint32_t> tuples);
+
 private:
     std::unique_ptr<ResourceEntity> _PrepareForAddOrRemove();
     void _EnsureEnumInitialized();

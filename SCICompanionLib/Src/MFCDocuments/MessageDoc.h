@@ -40,6 +40,7 @@ public:
         if ((_selectedIndex != -1) && _audioResources[_selectedIndex])
         {
             f(*_audioResources[_selectedIndex]);
+            _modified[_selectedIndex] = true;
             SetModifiedFlag(TRUE);
             UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(MessageChangeHint::ItemChanged));
         }
@@ -72,6 +73,8 @@ private:
     // Audio sidecare stuff. These vector match the list of texts, and can be indexed with _selectedIndex
     std::vector<std::unique_ptr<ResourceEntity>> _audioResources;
     std::vector<bool> _modified;
+    // We keep track of this so we know which audio files we can delete:
+    std::set<uint32_t> _originalTuplesPresent;
 
     DECLARE_MESSAGE_MAP()
 };
