@@ -196,9 +196,12 @@ void CMessageDoc::PostSuccessfulSave(const ResourceEntity *pResource)
     // These tuples need to get deleted from the audio map too... so we should go through the proper channels.
     // We can't go through the CResourceMap, because that relies on having an exact identical version of the thing
     // we are deleting. All we want to do is invoke the AudioCacheResourceSource directly and tell it to delete things.
-    int mapContext = pResource->ResourceNumber;
-    std::unique_ptr<AudioCacheResourceSource> resourceSource = std::make_unique<AudioCacheResourceSource>(map.GetSCIVersion() , map.GetGameFolder(), mapContext, ResourceSourceAccessFlags::ReadWrite);
-    resourceSource->RemoveEntries(mapContext, deletedTuples);
+    if (!deletedTuples.empty())
+    {
+        int mapContext = pResource->ResourceNumber;
+        std::unique_ptr<AudioCacheResourceSource> resourceSource = std::make_unique<AudioCacheResourceSource>(map.GetSCIVersion(), map.GetGameFolder(), mapContext, ResourceSourceAccessFlags::ReadWrite);
+        resourceSource->RemoveEntries(mapContext, deletedTuples);
+    }
 
     // Keep our list of original tuples up-to-date
     _originalTuplesWithAudio.clear();

@@ -470,7 +470,9 @@
 #define IDC_GROUPSEARCH                 1162
 #define IDC_STATIC7                     1162
 #define IDC_GROUP1                      1163
+#define IDC_STATIC10                    1163
 #define IDC_LISTCOMMANDS                1164
+#define IDC_STATIC11                    1164
 #define IDC_LIST1                       1165
 #define IDC_LISTSCRIPTS                 1165
 #define IDC_LISTBOX_NOTES               1165
@@ -519,10 +521,12 @@
 #define IDC_COMBO3                      1196
 #define IDC_BUTTON_PLAY                 1197
 #define IDC_COMBOCONDITION              1197
+#define IDC_COMBO4                      1197
 #define IDC_CHECK_ALLCHANNELS           1198
 #define IDC_COMBOVERB                   1198
 #define IDC_LIST_CUES                   1199
 #define IDC_BUTTON_PLAY2                1199
+#define IDC_COMBO5                      1199
 #define IDC_EDIT_VALUE                  1200
 #define IDC_COMBOTALKER                 1200
 #define IDC_BUTTON_ADDCUE               1201

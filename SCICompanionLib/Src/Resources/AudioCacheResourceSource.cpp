@@ -396,6 +396,12 @@ std::unique_ptr<ResourceEntity> AudioCacheResourceSource::_PrepareForAddOrRemove
         // Now, modify the audio map as per the resourceblobs provided.
         audioMap = CreateResourceFromResourceData(*audioMapBlobTest, false);
     }
+    else
+    {
+        // Make a default empty audio map. This is used when we create new audio maps (e.g. when creating new message resources)
+        audioMap.reset(CreateDefaultMapResource(_version, resourceNumber));
+        audioMap->SourceFlags = ResourceSourceFlags::AudioMapCache;
+    }
     return audioMap;
 }
 

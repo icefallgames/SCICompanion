@@ -316,3 +316,13 @@ ResourceEntity *CreateMapResource(SCIVersion version)
     pResource->AddComponent(move(make_unique<AudioMapComponent>(*mapTraits)));
     return pResource.release();
 }
+
+ResourceEntity *CreateDefaultMapResource(SCIVersion version, int number)
+{
+    ResourceEntity *resource = CreateMapResource(version);
+    resource->GetComponent<AudioMapComponent>().Version = (number == version.AudioMapResourceNumber) ? version.MainAudioMapVersion : version.Base36AudioMapVersion;
+    resource->Base36Number = NoBase36;
+    resource->PackageNumber = version.DefaultVolumeFile;
+    resource->ResourceNumber = number;
+    return resource;
+}

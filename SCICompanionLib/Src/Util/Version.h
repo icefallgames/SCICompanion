@@ -51,6 +51,8 @@ enum class AudioVolumeName : uint8_t
     Both = 3,   // In which case, base36 audio is in .aud.
 };
 
+enum class AudioMapVersion;
+
 struct SCIVersion
 {
     ResourceMapFormat MapFormat;
@@ -74,6 +76,8 @@ struct SCIVersion
     bool HasSaidVocab;
     bool HasSyncResources;
     int AudioMapResourceNumber;
+    AudioMapVersion MainAudioMapVersion;
+    AudioMapVersion Base36AudioMapVersion;
 
     bool operator==(const SCIVersion &src);
     bool operator!=(const SCIVersion &src);

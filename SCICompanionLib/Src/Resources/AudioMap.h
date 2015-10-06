@@ -4,11 +4,12 @@
 
 enum class AudioMapVersion
 {
-    FiveBytes = 5,
-    SixBytes = 6,
-    EightBytes = 8,
-    SyncMapEarly = 10,
-    SyncMapLate = 11,
+    None = 0,
+    FiveBytes = 1,
+    SixBytes = 2,
+    EightBytes = 3,
+    SyncMapEarly = 4,
+    SyncMapLate = 5,
 };
 
 bool IsMainAudioMap(AudioMapVersion version);
@@ -59,3 +60,4 @@ public:
 };
 
 ResourceEntity *CreateMapResource(SCIVersion version);
+ResourceEntity *CreateDefaultMapResource(SCIVersion version, int number);

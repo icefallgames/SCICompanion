@@ -35,6 +35,9 @@ void CGameVersionDialog::_Sync()
     _compressionVersion = (int)_version.CompressionFormat;
     _soundVersion = (int)_version.SoundFormat;
     _fSeparateHeapResources = (int)_version.SeparateHeapResources;
+
+    _mainAudioMapFormat = (int)_version.MainAudioMapVersion;
+    _base36AudioMapFormat = (int)_version.Base36AudioMapVersion;
 }
 
 SCIVersion CGameVersionDialog::_ReverseSync()
@@ -57,6 +60,9 @@ SCIVersion CGameVersionDialog::_ReverseSync()
     version.CompressionFormat = (CompressionFormat)_compressionVersion;
     version.SoundFormat = (SoundFormat)_soundVersion;
     version.SeparateHeapResources = (_fSeparateHeapResources != 0);
+
+    _version.MainAudioMapVersion = (AudioMapVersion)_mainAudioMapFormat;
+    _version.Base36AudioMapVersion = (AudioMapVersion)_base36AudioMapFormat;
     return version;
 }
 
@@ -99,6 +105,8 @@ void CGameVersionDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_STATIC5, m_wndLabel5);
     DDX_Control(pDX, IDC_STATIC6, m_wndGroupResourcePack);
     DDX_Control(pDX, IDC_STATIC7, m_wndLabel7);
+    DDX_Control(pDX, IDC_STATIC10, m_wndLabel10);
+    DDX_Control(pDX, IDC_STATIC11, m_wndLabel11);
 
     DDX_Control(pDX, IDC_RADIOSCI0, m_wndRadioResourceMapSCI0);
     DDX_Control(pDX, IDC_RADIOSCI0_1, m_wndRadioResourceMapSCI0_SCI1);
@@ -125,6 +133,12 @@ void CGameVersionDialog::DoDataExchange(CDataExchange* pDX)
 
     DDX_Control(pDX, IDC_COMBO3, m_wndAudioCombo);
     DDX_CBIndex(pDX, IDC_COMBO3, _audioVolume);
+
+    DDX_Control(pDX, IDC_COMBO4, m_wndMainAudioMapCombo);
+    DDX_CBIndex(pDX, IDC_COMBO4, _mainAudioMapFormat);
+
+    DDX_Control(pDX, IDC_COMBO5, m_wndBase36AudioMapCombo);
+    DDX_CBIndex(pDX, IDC_COMBO5, _base36AudioMapFormat);
 
     DDX_Control(pDX, IDOK, m_wndOk);
     DDX_Control(pDX, IDCANCEL, m_wndCancel);

@@ -43,6 +43,8 @@ private:
     int _resourcePackVersion;
     int _compressionVersion;
     int _soundVersion;
+    int _mainAudioMapFormat;
+    int _base36AudioMapFormat;
 
     CExtButton m_wndOk;
     CExtButton m_wndCancel;
@@ -72,9 +74,14 @@ private:
     CExtComboBox m_wndPicCombo;
     CExtComboBox m_wndAudioCombo;
 
-    CExtNoFlickerStatic m_wndLabel4;
-    CExtNoFlickerStatic m_wndLabel5;
-    CExtNoFlickerStatic m_wndLabel7;
+    CExtLabel m_wndLabel10;
+    CExtComboBox m_wndMainAudioMapCombo;
+    CExtLabel m_wndLabel11;
+    CExtComboBox m_wndBase36AudioMapCombo;
+
+    CExtLabel m_wndLabel4;
+    CExtLabel m_wndLabel5;
+    CExtLabel m_wndLabel7;
 
     CExtCheckBox m_wndHasPalette;
     CExtCheckBox m_wndGrayscaleCursors;

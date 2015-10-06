@@ -3,6 +3,8 @@
 #include "CompiledScript.h"
 #include "Disassembler.h"
 #include "ResourceContainer.h"
+#include "ResourceEntity.h"
+#include "AudioMap.h"
 
 using namespace std;
 
@@ -580,6 +582,8 @@ void CResourceMap::_SniffSCIVersion()
     _gameFolderHelper.Version.HasSyncResources = false;
     if (_gameFolderHelper.Version.AudioVolumeName != AudioVolumeName::None)
     {
+        std::unique_ptr<ResourceBlob> audioMap65535, audioMap0, audioMapOther;
+        std::unique_ptr<ResourceBlob> audioMapMain, audioMapBase36;
         // Usually the audio is map 65535. Sometimes (LB2, non-CD version) it is 0.
         bool found65535 = false;
         bool found0 = false;
@@ -589,26 +593,52 @@ void CResourceMap::_SniffSCIVersion()
             if (blobIt.GetResourceNumber() == 65535)
             {
                 found65535 = true;
+                audioMap65535 = std::move(*blobIt);
             }
             else if (blobIt.GetResourceNumber() == 0)
             {
                 found0 = true;
+                audioMap0 = std::move(*blobIt);
             }
             else
             {
                 // We found something *other* than 0 or 65535
                 _gameFolderHelper.Version.HasSyncResources = true;
+                audioMapOther = std::move(*blobIt);
             }
         }
         // Now, if we didn't find either 65535 or 0, that's fine. 65535 may be a patch file.
         if (found65535 || !found0)
         {
             _gameFolderHelper.Version.AudioMapResourceNumber = 65535;
+            audioMapMain = std::move(audioMap65535);
+            audioMapBase36 = audioMapOther ? std::move(audioMapOther) : std::move(audioMap0);
         }
         else
         {
             // AFAIK, 0 will never be a patch file (but I could be wrong?)
             _gameFolderHelper.Version.AudioMapResourceNumber = 0;
+            audioMapMain = std::move(audioMap0);
+            audioMapBase36 = audioMapOther ? std::move(audioMapOther) : std::move(audioMap65535);
+        }
+
+        // Try to figure out the format of audio maps, in case we need to make an empty one from scratch
+        try
+        {
+            if (audioMapMain)
+            {
+                std::unique_ptr<ResourceEntity> audioMap = CreateResourceFromResourceData(*audioMapMain, false);
+                _gameFolderHelper.Version.MainAudioMapVersion = audioMap->GetComponent<AudioMapComponent>().Version;
+            }
+            if (audioMapBase36)
+            {
+                std::unique_ptr<ResourceEntity> audioMap = CreateResourceFromResourceData(*audioMapBase36, false);
+                _gameFolderHelper.Version.Base36AudioMapVersion = audioMap->GetComponent<AudioMapComponent>().Version;
+            }
+        }
+        catch (...)
+        {
+
         }
     }
 }

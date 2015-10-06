@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Version.h"
+#include "AudioMap.h"
 
 // The actual version structure is determined by inspecting the resource map and other game files.
 // The following "default" versions are just examples. They are currently used to associate with sample
@@ -27,6 +28,8 @@ SCIVersion sciVersion0 =
     true,
     false,
     65535,
+    AudioMapVersion::None,
+    AudioMapVersion::None,
 };
 
 SCIVersion sciVersion1_Late =
@@ -52,6 +55,8 @@ SCIVersion sciVersion1_Late =
     true,
     false,
     65535,
+    AudioMapVersion::None,
+    AudioMapVersion::None,
 };
 
 SCIVersion sciVersion1_1 =
@@ -77,6 +82,8 @@ SCIVersion sciVersion1_1 =
     false,
     false,
     65535,
+    AudioMapVersion::FiveBytes,
+    AudioMapVersion::SyncMapEarly,
 };
 
 bool SCIVersion::operator == (const SCIVersion &src)
