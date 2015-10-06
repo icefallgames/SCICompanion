@@ -49,6 +49,11 @@ ExtractLipSyncDialog::ExtractLipSyncDialog(const ResourceEntity &resource, uint8
     {
         _nView = view;
         _nLoop = loop;
+        _wantToUseSample = false;
+    }
+    else
+    {
+        _wantToUseSample = true;
     }
     _audioResource = resource.Clone();
     _taskSink = std::make_unique<CWndTaskSink<LipSyncDialogTaskResult>>(this, UWM_LIPSYNCTASKDONE);
@@ -198,7 +203,7 @@ void ExtractLipSyncDialog::_SyncViewLoop()
                 _actuallyUsingSample = true;
             }
         }
-        m_wndMouth.SetResource(_viewResource.get(), nullptr);
+        m_wndMouth.SetResource(_viewResource.get());
     }
     m_wndMouth.SetLoop(_nLoop);
 
@@ -370,7 +375,7 @@ void ExtractLipSyncDialog::OnBnClickedButtonSetview()
     ChooseTalkerViewLoopDialog dialog(_talker, _nView, _nLoop);
     if (IDOK == dialog.DoModal())
     {
-        bool dirty = (_nView != dialog.GetView()) || (_nLoop != dialog.GetLoop());
+        bool dirty = _wantToUseSample || (_nView != dialog.GetView()) || (_nLoop != dialog.GetLoop());
         if (dirty)
         {
             _nView = dialog.GetView();
@@ -388,7 +393,6 @@ void ExtractLipSyncDialog::OnBnClickedCheckUsesample()
 {
     _wantToUseSample = (m_wndUseSample.GetCheck() == BST_CHECKED);
     _SyncViewLoop();
-    //m_wndUseSample.SetCheck(_wantToUseSample ? BST_CHECKED : BST_UNCHECKED);
 }
 
 

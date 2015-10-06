@@ -380,7 +380,7 @@ bool MessageEditPane::_UpdateAudio(const TextEntry &messageEntry)
 
         if (_mouthView)
         {
-            m_wndMouth.SetResource(_mouthView.get(), nullptr);
+            m_wndMouth.SetResource(_mouthView.get());
             m_wndMouth.SetLoop(_mouthLoop);
             m_wndMouth.SetCel(_mouthCel);
         }

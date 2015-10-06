@@ -13,7 +13,7 @@ public:
     ViewUIElement();
     virtual ~ViewUIElement();
 
-    void SetResource(const ResourceEntity *view, const PaletteComponent *optionalPalette);
+    void SetResource(const ResourceEntity *view, const PaletteComponent *optionalPalette = nullptr);
 
     void SetLoop(int nLoop);
     int GetLoop() const {
@@ -40,6 +40,7 @@ private:
 
     const ResourceEntity *_viewResource;
     const PaletteComponent *_optionalPalette;
+    std::unique_ptr<PaletteComponent> _paletteHolder;
 
     int _nLoop;
     CSize _sizeAnimate;     // size of us
