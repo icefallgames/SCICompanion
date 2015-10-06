@@ -183,11 +183,13 @@ private:
     afx_msg void OnUpdateNewPic(CCmdUI *pCmdUI);
     afx_msg void OnUpdateNewMessage(CCmdUI *pCmdUI);
     afx_msg void OnUpdateShowIfGameLoaded(CCmdUI *pCmdUI);
+    afx_msg void OnUpdateShowIfSupportsAudio(CCmdUI *pCmdUI);
     afx_msg void OnUpdateStopDebugging(CCmdUI *pCmdUI);
     afx_msg void OnShowPreferences();
     afx_msg void OnShowAudioPreferences();
     afx_msg void OnStopDebugging();
     afx_msg void OnRebuildResources();
+    afx_msg void OnRepackageAudio();
     afx_msg void OnRebuildClassTable();
     afx_msg void OnExtractAllResources();
     afx_msg BOOL OnShowResource(UINT nId);

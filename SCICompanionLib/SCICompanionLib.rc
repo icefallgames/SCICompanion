@@ -79,6 +79,7 @@ IDI_EDIT_PASTE          ICON                    "res\\edit_paste.ico"
 IDI_FILE_OPEN           ICON                    "res\\file_open.ico"
 IDI_FILE_SAVE           ICON                    "res\\file_save.ico"
 IDI_REBUILDRESOURCES    ICON                    "res\\main_rebuild.ico"
+IDI_CD                  ICON                    "res\\CD.ico"
 IDI_RUNGAME             ICON                    "res\\main_run.ico"
 IDI_HISTORY             ICON                    "res\\pic_history.ico"
 IDI_COMPILE             ICON                    "res\\script_compile.ico"
@@ -386,6 +387,8 @@ BEGIN
     BUTTON      IDC_BUTTONCLONE
     BUTTON      IDC_BUTTONADDSEQ
     BUTTON      ID_EDIT_DELETE
+    SEPARATOR
+    BUTTON      ID_TOOLS_REPACKAGEAUDIO
 END
 
 
@@ -448,16 +451,17 @@ BEGIN
     POPUP "&Tools"
     BEGIN
         MENUITEM "&Rebuild resources",          ID_TOOLS_REBUILDRESOURCES
-        MENUITEM "Rebuild &class table",        ID_TOOLS_REBUILDCLASSTABLE
+        MENUITEM "Repackage a&udio",            ID_TOOLS_REPACKAGEAUDIO
+        MENUITEM SEPARATOR
         POPUP "UI theme"
         BEGIN
             MENUITEM "<<prof uis theme>>",          29999
         END
-        MENUITEM SEPARATOR
         MENUITEM "&Preferences",                ID_PREFERENCES
         MENUITEM "&Audio preferences",          ID_TOOLS_AUDIOPREFERENCES
         MENUITEM SEPARATOR
         MENUITEM "&Extract all resources",      ID_TOOLS_EXTRACTALLRESOURCES
+        MENUITEM "Rebuild &class table",        ID_TOOLS_REBUILDCLASSTABLE
     END
     POPUP "&Game"
     BEGIN
@@ -1885,14 +1889,16 @@ STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSM
 CAPTION "Audio Preferences"
 FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    DEFPUSHBUTTON   "Ok",IDOK,36,124,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,121,124,50,14
-    COMBOBOX        IDC_COMBO_MIDIDEVICE,61,87,111,150,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Midi device:",IDC_STATIC1,7,89,55,8,0,WS_EX_RIGHT
+    DEFPUSHBUTTON   "Ok",IDOK,80,124,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,136,124,50,14
+    COMBOBOX        IDC_COMBO_MIDIDEVICE,61,62,125,150,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Midi device:",IDC_STATIC1,7,64,45,8,0,WS_EX_RIGHT
     LTEXT           "Start/end recording trim (ms):",IDC_STATIC2,24,21,102,8
-    EDITTEXT        IDC_EDIT_TRIMLEFT,37,35,40,14,ES_AUTOHSCROLL | ES_NUMBER
-    EDITTEXT        IDC_EDIT_TRIMRIGHT,87,35,40,14,ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        IDC_EDIT_TRIMLEFT,21,34,40,14,ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        IDC_EDIT_TRIMRIGHT,77,33,40,14,ES_AUTOHSCROLL | ES_NUMBER
     GROUPBOX        "Recording",IDC_GROUP2,7,7,119,50
+    PUSHBUTTON      "Force repackage audio",IDC_BUTTON_REPACKAGE,97,82,89,14
+    PUSHBUTTON      "Clear audio file cache",IDC_BUTTON_CLEARAUDIOCACHE,97,100,89,14
 END
 
 
@@ -3022,6 +3028,11 @@ BEGIN
     ID_MESSAGE_IMPORT       "Import from tab delimited text file"
     ID_PIC_CHANGEDIMENSIONS "Change the height of the pic resource."
     ID_PIC_REMOVESETVISUAL  "Remove all set visual commands."
+END
+
+STRINGTABLE
+BEGIN
+    ID_TOOLS_REPACKAGEAUDIO "Repackage audio files so they can be used by the game\nRepackage audio files"
 END
 
 #endif    // English (United States) resources

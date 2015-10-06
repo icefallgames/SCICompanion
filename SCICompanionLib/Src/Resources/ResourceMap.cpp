@@ -381,6 +381,17 @@ void CResourceMap::StartDebuggerThread(int optionalResourceNumber)
     _debuggerThread = CreateDebuggerThread(Helper().GameFolder, optionalResourceNumber);
 }
  
+void CResourceMap::RepackageAudio(bool force)
+{
+    // Rebuild any out-of-date audio resources. This should nearly be a no-op if none are out of data.
+    // TODO: This could be slow, so provide some kind of UI feedback?
+    if (GetSCIVersion().AudioVolumeName != AudioVolumeName::None)
+    {
+        std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(GetGameFolder(), GetSCIVersion(), ResourceSourceFlags::AudioCache);
+        resourceSource->RebuildResources(force);    // false -> don't force.
+    }
+}
+
 void CResourceMap::AbortDebuggerThread()
 {
     if (_debuggerThread)

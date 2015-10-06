@@ -43,6 +43,7 @@
 #include "ExtractAllDialog.h"
 #include "DecompileDialog.h"
 #include "ResourceContainer.h"
+#include "AudioMap.h"
 #include <regex>
 
 #ifdef _DEBUG
@@ -331,6 +332,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_COMMAND(ID_TOOLS_AUDIOPREFERENCES, OnShowAudioPreferences)
     ON_COMMAND(ID_TOOLS_EXTRACTALLRESOURCES, OnExtractAllResources)
     ON_COMMAND(ID_TOOLS_REBUILDRESOURCES, OnRebuildResources)
+    ON_COMMAND(ID_TOOLS_REPACKAGEAUDIO, OnRepackageAudio)
     ON_COMMAND(ID_TOOLS_REBUILDCLASSTABLE, OnRebuildClassTable)
     ON_COMMAND(ID_NEWROOM, OnNewRoom)
     ON_COMMAND(ID_NEWSCRIPT, OnNewScript)
@@ -355,6 +357,7 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_UPDATE_COMMAND_UI(ID_NEW_PALETTE, OnUpdateNewPalette)
     ON_UPDATE_COMMAND_UI(ID_TOOLS_EXTRACTALLRESOURCES, OnUpdateShowIfGameLoaded)
     ON_UPDATE_COMMAND_UI(ID_TOOLS_REBUILDRESOURCES, OnUpdateShowIfGameLoaded)
+    ON_UPDATE_COMMAND_UI(ID_TOOLS_REPACKAGEAUDIO, OnUpdateShowIfSupportsAudio)
     ON_UPDATE_COMMAND_UI(ID_TOOLS_REBUILDCLASSTABLE, OnUpdateShowIfGameLoaded)
     ON_COMMAND(ID_BACK, OnGoBack)
     ON_COMMAND(ID_FORWARD, OnGoForward)
@@ -1167,6 +1170,7 @@ void CMainFrame::_PrepareMainCommands()
         { ID_EDIT_DELETE, IDI_DELETE },
         { ID_EDIT_FIND, IDI_EDIT_FIND },
         { ID_TOOLS_REBUILDRESOURCES, IDI_REBUILDRESOURCES },
+        { ID_TOOLS_REPACKAGEAUDIO, IDI_CD },
         { ID_RUNGAME, IDI_RUNGAME },
         { ID_DEBUGGAME, IDI_DEBUG },
         { ID_STOPDEBUG, IDI_STOPDEBUG },
@@ -1539,6 +1543,10 @@ void CMainFrame::OnUpdateShowIfGameLoaded(CCmdUI *pCmdUI)
     pCmdUI->Enable(appState->GetResourceMap().IsGameLoaded());
 }
 
+void CMainFrame::OnUpdateShowIfSupportsAudio(CCmdUI *pCmdUI)
+{
+    pCmdUI->Enable(appState->GetVersion().MainAudioMapVersion != AudioMapVersion::None);
+}
 
 void CMainFrame::_HideTabIfNot(MDITabType iTabTypeCurrent, MDITabType iTabTypeCompare, CExtControlBar &bar)
 {
@@ -1591,6 +1599,11 @@ void CMainFrame::OnShowAudioPreferences()
 void CMainFrame::OnRebuildResources()
 {
     appState->GetResourceMap().PurgeUnnecessaryResources();
+}
+
+void CMainFrame::OnRepackageAudio()
+{
+    appState->GetResourceMap().RepackageAudio();
 }
 
 void CMainFrame::OnRebuildClassTable()

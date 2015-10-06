@@ -59,7 +59,6 @@
 
 #include "ResourceSources.h"
 #include "ResourceMapOperations.h"
-#include "AudioCacheResourceSource.h"
 
 static const char c_szExecutableString[] = "Executable";
 static const char c_szExeParametersString[] = "ExeCmdLineParameters";
@@ -651,13 +650,7 @@ void AppState::RunGame(bool debug, int optionalResourceNumber)
 {
     if (GetResourceMap().IsGameLoaded())
     {
-        // Rebuild any out-of-date audio resources. This should nearly be a no-op if none are out of data.
-        // TODO: This could be slow, so provide some kind of UI feedback?
-        if (GetVersion().AudioVolumeName != AudioVolumeName::None)
-        {
-            std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(GetResourceMap().GetGameFolder(), GetVersion(), ResourceSourceFlags::AudioCache);
-            resourceSource->RebuildResources(false);    // false -> don't force.
-        }
+        GetResourceMap().RepackageAudio();
 
         BOOL fShellEx = FALSE;
         std::string gameFolder = GetResourceMap().GetGameFolder();

@@ -112,6 +112,8 @@ public:
     void StartDebuggerThread(int optionalResourceNumber);
     void AbortDebuggerThread();
 
+    void RepackageAudio(bool force = false);
+
 private:
     ViewFormat _DetectViewVGAVersion();
     ResourcePackageFormat _DetectPackageFormat();

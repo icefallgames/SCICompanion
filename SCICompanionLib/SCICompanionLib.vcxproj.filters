@@ -2118,5 +2118,8 @@
     <Image Include="res\headphones.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="res\CD.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

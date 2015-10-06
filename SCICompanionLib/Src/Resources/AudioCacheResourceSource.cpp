@@ -141,6 +141,11 @@ AudioCacheResourceSource::AudioCacheResourceSource(SCIVersion version, const std
     _cacheSubFolderForEnum = _cacheFolder + fmt::format("\\{0}", (mapContext == -1) ? version.AudioMapResourceNumber : mapContext);
 }
 
+void AudioCacheResourceSource::Clear()
+{
+    DeleteDirectory(nullptr, _cacheFolder);
+}
+
 void AudioCacheResourceSource::_EnsureEnumInitialized()
 {
     if (!_enumInitialized)

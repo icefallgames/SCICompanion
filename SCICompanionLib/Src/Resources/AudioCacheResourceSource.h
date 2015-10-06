@@ -32,6 +32,8 @@ public:
     // A way to call RemoveEntry directly, for more efficiency.
     void AudioCacheResourceSource::RemoveEntries(int number, const std::vector<uint32_t> tuples);
 
+    void Clear();
+
 private:
     std::unique_ptr<ResourceEntity> _PrepareForAddOrRemove();
     void _EnsureEnumInitialized();

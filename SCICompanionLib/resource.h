@@ -295,6 +295,7 @@
 #define IDI_RECORD                      392
 #define IDI_MONITOR                     393
 #define ID_INDICATOR_AUDIOSIZE          394
+#define IDI_CD                          395
 #define IDC_CHOOSECOLORSTATIC           1001
 #define IDC_BUTTON1                     1003
 #define IDC_BUTTONDOWN                  1003
@@ -713,6 +714,9 @@
 #define IDC_EDIT_TRIMRIGHT              1342
 #define IDC_GROUP2                      1343
 #define IDC_CHECK_USETEXT               1344
+#define IDC_BUTTON_REPACKAGE            1346
+#define IDC_BUTTON_REPACKAGE2           1347
+#define IDC_BUTTON_CLEARAUDIOCACHE      1347
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -1051,6 +1055,7 @@
 #define ID_FAKEEGO11                    33273
 #define ID_FAKEEGO12                    33274
 #define ID_TOOLS_AUDIOPREFERENCES       33275
+#define ID_TOOLS_REPACKAGEAUDIO         33276
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -1058,9 +1063,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        395
-#define _APS_NEXT_COMMAND_VALUE         33276
-#define _APS_NEXT_CONTROL_VALUE         1346
+#define _APS_NEXT_RESOURCE_VALUE        396
+#define _APS_NEXT_COMMAND_VALUE         33277
+#define _APS_NEXT_CONTROL_VALUE         1347
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

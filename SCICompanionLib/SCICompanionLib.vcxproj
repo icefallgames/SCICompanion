@@ -787,6 +787,7 @@
     <Image Include="res\bmp00019.bmp" />
     <Image Include="res\bmp00020.bmp" />
     <Image Include="res\bmp00021.bmp" />
+    <Image Include="res\CD.ico" />
     <Image Include="res\clonemessageentry.ico" />
     <Image Include="res\CloseActive.bmp" />
     <Image Include="res\CloseInactive.bmp" />

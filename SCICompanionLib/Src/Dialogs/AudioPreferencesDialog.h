@@ -26,7 +26,11 @@ private:
     CComboBox m_wndMIDIDevices;
     CExtLabel m_wndStatic1;
     CExtLabel m_wndStatic2;
+    CExtButton m_wndButton1;
+    CExtButton m_wndButton2;
 
 public:
     afx_msg void OnCbnSelchangeComboMididevice();
+    afx_msg void OnBnClickedButtonRepackage();
+    afx_msg void OnBnClickedButtonClearAudioCache();
 };

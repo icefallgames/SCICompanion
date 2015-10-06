@@ -855,6 +855,21 @@ bool CopyFilesOver(HWND hwnd, const std::string &from, const std::string &to)
     return success;
 }
 
+bool DeleteDirectory(HWND hwnd, const std::string &folder)
+{
+    char szPath[MAX_PATH];
+    StringCchCopy(szPath, ARRAYSIZE(szPath), folder.c_str());
+    szPath[folder.length() + 1] = 0;   // double null term
+
+    SHFILEOPSTRUCT fileOp = { 0 };
+    fileOp.hwnd = nullptr;
+    fileOp.wFunc = FO_DELETE;
+    fileOp.pFrom = szPath;
+    fileOp.pTo = nullptr;
+    fileOp.fFlags = FOF_SILENT | FOF_NOCONFIRMATION | FOF_NOERRORUI;
+    return (SHFileOperation(&fileOp) == 0);
+}
+
 #define VK_A        65
 #define VK_C        67
 #define VK_V        86
