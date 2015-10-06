@@ -1085,8 +1085,8 @@ void SCISyntaxParser::Load()
     // An integer or plain alphanumeric token
     immediateValue = integer_p[PropValueIntA] | alphanum_p[PropValueStringA<ValueType::Token>] | bracestring_p[PropValueStringA<ValueType::Token>];
 
-    string_immediateValue = integer_p[PropValueIntA] | alphanum_p[PropValueStringA<ValueType::Token>] | quotedstring_p[PropValueStringA<ValueType::String>];
-    string_immediateValue2 = integer_p[PropValueIntA] | alphanum_p[PropValueStringA<ValueType::Token>] | quotedstring_p[PropValueStringA<ValueType::String>] | bracestring_p[PropValueStringA<ValueType::Token>];
+    string_immediateValue = integer_p[PropValueIntA] | alphanum_p[PropValueStringA<ValueType::Token>] | quotedstring_p[{ PropValueStringA<ValueType::String>, ParseAutoCompleteContext::Block}];
+    string_immediateValue2 = integer_p[PropValueIntA] | alphanum_p[PropValueStringA<ValueType::Token>] | quotedstring_p[{PropValueStringA<ValueType::String>, ParseAutoCompleteContext::Block}] | bracestring_p[PropValueStringA<ValueType::Token>];
 
     general_token = (alphanum_p2 | bracestring_p)[{nullptr, ParseAutoCompleteContext::None, "TOKEN"}];
 
@@ -1099,14 +1099,14 @@ void SCISyntaxParser::Load()
     // REVIEW: might we want to allow [] after {fwe} ? 
     simple_value =
         integer_p[PropValueIntA]
-        | quotedstring_p[PropValueStringA<ValueType::String>]
-        | squotedstring_p[PropValueStringA<ValueType::Said>];
+        | quotedstring_p[{PropValueStringA<ValueType::String>, ParseAutoCompleteContext::Block}]
+        | squotedstring_p[{PropValueStringA<ValueType::Said>, ParseAutoCompleteContext::Block}];
 
     value =
         alwaysmatch_p[SetStatementA<ComplexPropertyValue>]
         >> (integer_p[ComplexValueIntA]
-            | quotedstring_p[ComplexValueStringA<ValueType::String>]
-            | squotedstring_p[ComplexValueStringA<ValueType::Said>]
+        | quotedstring_p[{ComplexValueStringA<ValueType::String>, ParseAutoCompleteContext::Block}]
+        | squotedstring_p[{ComplexValueStringA<ValueType::Said>, ParseAutoCompleteContext::Block}]
             | (-pointer[ComplexValuePointerA] >> general_token[ComplexValueStringA<ValueType::Token>] >> -(opbracket >> statement[ComplexValueIndexerA] >> clbracket))
             | selector[ComplexValueStringA<ValueType::Selector>]);
 
