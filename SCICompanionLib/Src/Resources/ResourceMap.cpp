@@ -187,7 +187,7 @@ CResourceMap::CResourceMap()
     _gameFolderHelper.Version = sciVersion0;    // By default
 	// This is a pointer because we don't want a dependency on it in the header file.
 	_classBrowser = std::make_unique<SCIClassBrowser>();
-
+    _deferredResources.reserve(300);            // So we don't need to resize much it when adding
     memset(_emptyPalette.Colors, 0, sizeof(_emptyPalette.Colors));
 }
 
@@ -256,23 +256,37 @@ HRESULT CResourceMap::EndDeferAppend()
                 // TODO: Assert that all defereed resources come from the same source.
                 // Or rather we could support from multiple sources. The defer append only happens during
                 // "compile all". Which actually might eventually support auto-generating message resources, so this is
-                // probably something we'll need to handle.
+                // probably something we'll need to handle. And now also audiomaps
 
-                ResourceSourceFlags sourceFlags = _deferredResources[0].GetSourceFlags();
-
-                int mapContext = (_deferredResources[0].GetBase36() == NoBase36) ? -1 : _deferredResources[0].GetNumber();
-                // Enumerate resources and write the ones we have not already encountered.
-                std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(_gameFolderHelper.GameFolder, _gameFolderHelper.Version, sourceFlags, ResourceSourceAccessFlags::ReadWrite, mapContext);
-
-                try
+                // Bucketize the resources by resourcesource and map context.
+                std::map<uint64_t, std::vector<const ResourceBlob*>> keyToIndices;
+                for (size_t i = 0; i < _deferredResources.size(); i++)
                 {
-                    // We're going to tell the relevant folks to reload completely, so we
-                    // don't care about the return value here (replace or append)
-                    resourceSource->AppendResources(_deferredResources);
+                    uint32_t mapContext = (uint32_t)((_deferredResources[i].GetBase36() == NoBase36) ? -1 : _deferredResources[i].GetNumber());
+                    uint64_t bucketKey = (uint64_t)_deferredResources[i].GetSourceFlags() | (((uint64_t)mapContext) << 32);
+                    keyToIndices[bucketKey].push_back(&_deferredResources[i]);
                 }
-                catch (std::exception &e)
+
+                for (auto &pair : keyToIndices)
                 {
-                    AfxMessageBox(e.what(), MB_OK | MB_ICONWARNING);
+                    // For each bucket, create a resourcesource and save them.
+                    std::vector<const ResourceBlob*> &blobsForThisSource = pair.second;
+                    ResourceSourceFlags sourceFlags = blobsForThisSource[0]->GetSourceFlags();
+
+                    int mapContext = (blobsForThisSource[0]->GetBase36() == NoBase36) ? -1 : blobsForThisSource[0]->GetNumber();
+                    // Enumerate resources and write the ones we have not already encountered.
+                    std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(_gameFolderHelper.GameFolder, _gameFolderHelper.Version, sourceFlags, ResourceSourceAccessFlags::ReadWrite, mapContext);
+
+                    try
+                    {
+                        // We're going to tell the relevant folks to reload completely, so we
+                        // don't care about the return value here (replace or append)
+                        resourceSource->AppendResources(blobsForThisSource);
+                    }
+                    catch (std::exception &e)
+                    {
+                        AfxMessageBox(e.what(), MB_OK | MB_ICONWARNING);
+                    }
                 }
 
                 bool reload[NumResourceTypes] = {};
@@ -450,8 +464,8 @@ HRESULT CResourceMap::AppendResource(const ResourceBlob &resource)
         // Enumerate resources and write the ones we have not already encountered.
         int mapContext = (resource.GetBase36() == NoBase36) ? -1 : resource.GetNumber();
         std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(_gameFolderHelper.GameFolder, _gameFolderHelper.Version, resource.GetSourceFlags(), ResourceSourceAccessFlags::ReadWrite, mapContext);
-        std::vector<ResourceBlob> blobs;
-        blobs.push_back(resource);
+        std::vector<const ResourceBlob*> blobs;
+        blobs.push_back(&resource);
 
         AppendBehavior appendBehavior = AppendBehavior::Append;
         hr = E_FAIL;

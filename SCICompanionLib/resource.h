@@ -479,6 +479,7 @@
 #define IDC_LISTNOUNS                   1165
 #define IDC_LISTCOMMANDS2               1165
 #define IDC_LISTPOLYGONS                1165
+#define IDC_STATIC12                    1165
 #define IDC_STATICVISUAL                1166
 #define IDC_STATICCONTROL               1167
 #define IDC_STATICPRIORITY              1168
@@ -524,6 +525,7 @@
 #define IDC_COMBO4                      1197
 #define IDC_CHECK_ALLCHANNELS           1198
 #define IDC_COMBOVERB                   1198
+#define IDC_COMBO6                      1198
 #define IDC_LIST_CUES                   1199
 #define IDC_BUTTON_PLAY2                1199
 #define IDC_COMBO5                      1199
@@ -634,6 +636,7 @@
 #define IDC_CHECK10                     1276
 #define IDC_CHECK11                     1277
 #define IDC_EDITNUMCHARS                1278
+#define IDC_CHECK12                     1278
 #define IDC_BUTTONCYCLELEFT             1279
 #define IDC_CHECKPREVIEWCYCLING         1280
 #define IDC_BUTTONCYCLERIGHT            1281
@@ -1057,7 +1060,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        395
 #define _APS_NEXT_COMMAND_VALUE         33276
-#define _APS_NEXT_CONTROL_VALUE         1345
+#define _APS_NEXT_CONTROL_VALUE         1346
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

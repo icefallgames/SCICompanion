@@ -455,7 +455,7 @@ void AudioCacheResourceSource::RemoveEntries(int number, const std::vector<uint3
     }
 }
 
-AppendBehavior AudioCacheResourceSource::AppendResources(const std::vector<ResourceBlob> &entries)
+AppendBehavior AudioCacheResourceSource::AppendResources(const std::vector<const ResourceBlob*> &blobs)
 {
     try
     {
@@ -464,10 +464,10 @@ AppendBehavior AudioCacheResourceSource::AppendResources(const std::vector<Resou
 
         // If there is no matching entry, add one. We don't currently care about offsets and sync sizes,
         // since those are only relevant when the resources exist in the official audio map.
-        for (auto &blobToBeSaved : entries)
+        for (const ResourceBlob *blobToBeSaved : blobs)
         {
-            int number = blobToBeSaved.GetNumber();
-            uint32_t tuple = blobToBeSaved.GetBase36();
+            int number = blobToBeSaved->GetNumber();
+            uint32_t tuple = blobToBeSaved->GetBase36();
             auto itFind = std::find_if(audioMapComponent.Entries.begin(), audioMapComponent.Entries.end(),
                 [number, tuple](const AudioMapEntry &amEntry) {  return amEntry.Number == number && GetMessageTuple(amEntry) == tuple; });
             if (itFind == audioMapComponent.Entries.end())
@@ -479,7 +479,7 @@ AppendBehavior AudioCacheResourceSource::AppendResources(const std::vector<Resou
             }
 
             // Meanwhile, save this blob to files
-            SaveAudioBlobToFiles(blobToBeSaved, _cacheSubFolderForEnum, _version);
+            SaveAudioBlobToFiles(*blobToBeSaved, _cacheSubFolderForEnum, _version);
         }
 
         // And finally, serialize the audiomap and save it. We *should* just be able to go through the resource map again,
@@ -694,11 +694,12 @@ void AudioCacheResourceSource::RebuildResources(bool force)
             testopenforwrite(GetAudioVolumePath(_gameFolder, false, AudioVolumeName::Sfx));
         }
 
-        // 5) If that's good, then save the audio maps
+        // 5) If that's good, then save the audio maps *TO THE RESOURCE MAP*
         {
             DeferResourceAppend defer(appState->GetResourceMap());
             for (auto &audioMap : audioMaps)
             {
+                audioMap.second->SourceFlags = ResourceSourceFlags::ResourceMap;
                 appState->GetResourceMap().AppendResource(*audioMap.second);
             }
             defer.Commit();

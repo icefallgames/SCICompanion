@@ -98,7 +98,7 @@ public:
 
     virtual void RemoveEntry(const ResourceMapEntryAgnostic &mapEntry) = 0;
     virtual void RebuildResources(bool force) = 0;
-    virtual AppendBehavior AppendResources(const std::vector<ResourceBlob> &entries) = 0;
+    virtual AppendBehavior AppendResources(const std::vector<const ResourceBlob*> &blobs) = 0;
 };
 
 typedef std::vector<std::unique_ptr<ResourceSource>> ResourceSourceArray;
@@ -362,7 +362,7 @@ public:
         this->WriteAndReplaceMapAndVolumes(mapStreamWrite1, volumeWriteStreams);
     }
 
-    virtual ::AppendBehavior AppendResources(const std::vector<ResourceBlob> &blobs)
+    virtual ::AppendBehavior AppendResources(const std::vector<const ResourceBlob*> &blobs)
     {
         // For this, we append the resource data to the end of the volume file.
         // We could have any number of volumes being saved to, so we'll use a map.
@@ -373,15 +373,15 @@ public:
 
         // Now append our resources to the volume. We'll need to ask the navigator to write the version specific header,
         // then we can write the raw data.
-        for (const ResourceBlob &blob : blobs)
+        for (const ResourceBlob *blob : blobs)
         {
-            assert(IsResourceCompatible(blob));
-            ResourceHeaderAgnostic header = blob.GetHeader();
+            assert(IsResourceCompatible(*blob));
+            ResourceHeaderAgnostic header = blob->GetHeader();
 
             // Possibly copy over a new volume, if we haven't written to it yet
             if (volumeWriteStreams.find(header.PackageHint) == volumeWriteStreams.end())
             {
-                sci::istream volumeReadStream = _GetVolumeStream(blob.GetPackageHint());
+                sci::istream volumeReadStream = _GetVolumeStream(blob->GetPackageHint());
                 volumeReadStream.seekg(0);
                 transfer(volumeReadStream, volumeWriteStreams[header.PackageHint], volumeReadStream.getBytesRemaining());
             }
@@ -400,10 +400,10 @@ public:
 
             // Write the header to the volume
             header.CompressionMethod = 0; // We never write with compression, currently
-            (*_headerReadWrite.writer)(volumeWriteStreams[header.PackageHint], blob.GetHeader());
+            (*_headerReadWrite.writer)(volumeWriteStreams[header.PackageHint], blob->GetHeader());
             
             // Follow the volume header with the actual resource data
-            transfer(blob.GetReadStream(), volumeWriteStreams[header.PackageHint], blob.GetDecompressedLength());
+            transfer(blob->GetReadStream(), volumeWriteStreams[header.PackageHint], blob->GetDecompressedLength());
         }
 
         // Now we need to follow up with the rest of the map entries. For SCI0, we could just copy over the original resource map.

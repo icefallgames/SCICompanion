@@ -99,17 +99,17 @@ void PatchFilesResourceSource::RemoveEntry(const ResourceMapEntryAgnostic &mapEn
     deletefile(fullPath);
 }
 
-AppendBehavior PatchFilesResourceSource::AppendResources(const std::vector<ResourceBlob> &blobs)
+AppendBehavior PatchFilesResourceSource::AppendResources(const std::vector<const ResourceBlob*> &blobs)
 {
-    for (const ResourceBlob &blob : blobs)
+    for (const ResourceBlob *blob : blobs)
     {
-        std::string filename = GetFileNameFor(blob);
+        std::string filename = GetFileNameFor(*blob);
         std::string fullPath = _gameFolder + "\\" + filename;
         std::string bakPath = _gameFolder + "\\" + filename + ".bak";
         // Write to the bak file
         {
             ScopedFile file(bakPath, GENERIC_WRITE, 0, CREATE_ALWAYS);
-            blob.SaveToHandle(file.hFile, TRUE);
+            blob->SaveToHandle(file.hFile, TRUE);
         }
         // move it to the main guy
         deletefile(fullPath);

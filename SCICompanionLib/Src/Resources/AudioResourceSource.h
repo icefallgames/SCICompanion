@@ -30,7 +30,7 @@ public:
     }
 
     void RemoveEntry(const ResourceMapEntryAgnostic &mapEntry) override;
-    AppendBehavior AppendResources(const std::vector<ResourceBlob> &entries) override;
+    AppendBehavior AppendResources(const std::vector<const ResourceBlob*> &blobs) override;
     void RebuildResources(bool force) override {}
 
 private:

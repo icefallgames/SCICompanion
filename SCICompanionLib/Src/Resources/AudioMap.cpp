@@ -92,6 +92,10 @@ void AudioMapWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, s
         }
         byteStream.FillByte(0xff, 11);
     }
+    else
+    {
+        assert(false);
+    }
 }
 
 AudioMapVersion _DetermineAudioMapVersion(int resourceNumber, int mainAudioMapResourceNumber, sci::istream &stream)
@@ -165,7 +169,7 @@ void AudioMapReadFrom(ResourceEntity &resource, sci::istream &stream, const std:
 
     while (stream.getBytesRemaining() > (uint32_t)map.Version)
     {
-        AudioMapEntry entry;
+        AudioMapEntry entry = { };
         switch (map.Version)
         {
             case AudioMapVersion::SixBytes:
@@ -242,10 +246,26 @@ void AudioMapReadFrom(ResourceEntity &resource, sci::istream &stream, const std:
                 assert(false);
                 break;
         }
-        if (entry.Number != 0xffff)
+
+        switch (map.Version)
         {
-            map.Entries.push_back(entry);
+            case AudioMapVersion::FiveBytes:
+            case AudioMapVersion::SixBytes:
+            case AudioMapVersion::EightBytes:
+                if (entry.Number != 0xffff)
+                {
+                    map.Entries.push_back(entry);
+                }
+                break;
+
+            default:
+                if ((entry.Noun != 0xff) || (entry.Verb != 0xff) || (entry.Condition != 0xff))
+                {
+                    map.Entries.push_back(entry);
+                }
+                break;
         }
+
     }
 }
 

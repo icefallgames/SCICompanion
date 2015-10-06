@@ -28,6 +28,7 @@ void CGameVersionDialog::_Sync()
     _fEarlySCI0Script = _version.HasOldSCI0ScriptHeader ? 1 : 0;
     _fSCI11Palettes = _version.sci11Palettes ? 1 : 0;
     _fSupportsMessages = _version.SupportsMessages ? 1 : 0;
+    _fSupportsMessageAudio = _version.HasSyncResources ? 1 : 0;
     _fSeparateMessageMap = _version.SeparateMessageMap ? 1 : 0;
 
     _resourceMapVersion = (int)_version.MapFormat;
@@ -38,6 +39,7 @@ void CGameVersionDialog::_Sync()
 
     _mainAudioMapFormat = (int)_version.MainAudioMapVersion;
     _base36AudioMapFormat = (int)_version.Base36AudioMapVersion;
+    _audioMapNumberIndex = (_version.AudioMapResourceNumber == 0) ? 0 : 1;
 }
 
 SCIVersion CGameVersionDialog::_ReverseSync()
@@ -53,6 +55,7 @@ SCIVersion CGameVersionDialog::_ReverseSync()
     version.HasOldSCI0ScriptHeader = (_fEarlySCI0Script != 0);
     version.sci11Palettes = (_fSCI11Palettes != 0);
     version.SupportsMessages = (_fSupportsMessages != 0);
+    version.HasSyncResources = (_fSupportsMessageAudio != 0);
     version.SeparateMessageMap = (_fSeparateMessageMap != 0);
 
     version.MapFormat = (ResourceMapFormat)_resourceMapVersion;
@@ -61,8 +64,9 @@ SCIVersion CGameVersionDialog::_ReverseSync()
     version.SoundFormat = (SoundFormat)_soundVersion;
     version.SeparateHeapResources = (_fSeparateHeapResources != 0);
 
-    _version.MainAudioMapVersion = (AudioMapVersion)_mainAudioMapFormat;
-    _version.Base36AudioMapVersion = (AudioMapVersion)_base36AudioMapFormat;
+    version.MainAudioMapVersion = (AudioMapVersion)_mainAudioMapFormat;
+    version.Base36AudioMapVersion = (AudioMapVersion)_base36AudioMapFormat;
+    version.AudioMapResourceNumber = (_audioMapNumberIndex == 0) ? 0 : 65535;
     return version;
 }
 
@@ -86,6 +90,7 @@ void CGameVersionDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_CHECK9, m_wndSCI11Palettes);
     DDX_Control(pDX, IDC_CHECK10, m_wndSeparateMessageMap);
     DDX_Control(pDX, IDC_CHECK11, m_wndSupportsMessages);
+    DDX_Control(pDX, IDC_CHECK12, m_wndSupportsMessageAudio);
     
 
     DDX_Check(pDX, IDC_CHECK1, _fHasPalette);
@@ -97,6 +102,7 @@ void CGameVersionDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Check(pDX, IDC_CHECK9, _fSCI11Palettes);
     DDX_Check(pDX, IDC_CHECK10, _fSeparateMessageMap);
     DDX_Check(pDX, IDC_CHECK11, _fSupportsMessages);
+    DDX_Check(pDX, IDC_CHECK12, _fSupportsMessageAudio);
     
     DDX_Control(pDX, IDC_STATIC1, m_wndGroupResourceMap);
     DDX_Control(pDX, IDC_STATIC2, m_wndGroupSound);
@@ -107,6 +113,7 @@ void CGameVersionDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_STATIC7, m_wndLabel7);
     DDX_Control(pDX, IDC_STATIC10, m_wndLabel10);
     DDX_Control(pDX, IDC_STATIC11, m_wndLabel11);
+    DDX_Control(pDX, IDC_STATIC12, m_wndLabel12);
 
     DDX_Control(pDX, IDC_RADIOSCI0, m_wndRadioResourceMapSCI0);
     DDX_Control(pDX, IDC_RADIOSCI0_1, m_wndRadioResourceMapSCI0_SCI1);
@@ -139,6 +146,9 @@ void CGameVersionDialog::DoDataExchange(CDataExchange* pDX)
 
     DDX_Control(pDX, IDC_COMBO5, m_wndBase36AudioMapCombo);
     DDX_CBIndex(pDX, IDC_COMBO5, _base36AudioMapFormat);
+
+    DDX_Control(pDX, IDC_COMBO6, m_wndAudioMapNumberCombo);
+    DDX_CBIndex(pDX, IDC_COMBO6, _audioMapNumberIndex);
 
     DDX_Control(pDX, IDOK, m_wndOk);
     DDX_Control(pDX, IDCANCEL, m_wndCancel);

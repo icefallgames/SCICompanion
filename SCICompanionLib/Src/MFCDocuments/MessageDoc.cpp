@@ -39,14 +39,15 @@ void CMessageDoc::SetSelectedIndex(int index, bool force)
 void CMessageDoc::_PreloadAudio()
 {
     PerfTimer timer("preloadAudio");
+    const TextComponent &text = GetResource()->GetComponent<TextComponent>();
+    _audioResources.clear();
+    _audioModified.clear();
+    _originalTuplesWithAudio.clear();
+    _originalResourceNumber = GetResource()->ResourceNumber;
+
+    std::unordered_map<uint32_t, std::unique_ptr<ResourceEntity>> _temporaryMap;
     if (appState->GetVersion().HasSyncResources)
     {
-        const TextComponent &text = GetResource()->GetComponent<TextComponent>();
-        _audioResources.clear();
-        _audioModified.clear();
-        _originalTuplesWithAudio.clear();
-        _originalResourceNumber = GetResource()->ResourceNumber;
-
         // If we're sourced from the cache files, we want to *only* include entries from the cached audiomap (i.e. not 
         // combine them with audio resources enumerated from resource.aud). Otherwise, you could delete an audio resource from
         // a message entry, and it would keeping "returning" when you re-opened the message resource (until you rebuilt audio files)
@@ -66,7 +67,6 @@ void CMessageDoc::_PreloadAudio()
         }
 
         // Get all the resources from the audio map
-        std::unordered_map<uint32_t, std::unique_ptr<ResourceEntity>> _temporaryMap;
         int mapResourceNumber = GetResource()->ResourceNumber;
         auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Audio, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::IncludeCacheFiles, mapResourceNumber);
         for (auto resource : *resourceContainer)
@@ -78,17 +78,17 @@ void CMessageDoc::_PreloadAudio()
                 _originalTuplesWithAudio.insert(resource->GetBase36());
             }
         }
-
-        // Now assign them slots based on the text entry indices.
-        // Using this system (instead of looking them up by tuples), since we want an easy way to keep
-        // track of things when the user changes the message entry tuple.
-        for (const TextEntry &entry : text.Texts)
-        {
-            _audioResources.push_back(std::move(_temporaryMap[GetMessageTuple(entry)]));
-            _audioModified.push_back(false);
-        }
-        assert(_audioResources.size() == text.Texts.size());
     }
+
+    // Now assign them slots based on the text entry indices.
+    // Using this system (instead of looking them up by tuples), since we want an easy way to keep
+    // track of things when the user changes the message entry tuple.
+    for (const TextEntry &entry : text.Texts)
+    {
+        _audioResources.push_back(std::move(_temporaryMap[GetMessageTuple(entry)]));
+        _audioModified.push_back(false);
+    }
+    assert(_audioResources.size() == text.Texts.size());
 
     _RecalcAudioSize();
 }
@@ -118,103 +118,106 @@ bool CMessageDoc::v_DoPreResourceSave()
 
 void CMessageDoc::PostSuccessfulSave(const ResourceEntity *pResource)
 {
-    if (pResource->ResourceNumber != _originalResourceNumber)
+    if (appState->GetVersion().HasSyncResources)
     {
-        // This was a "save as". We need to do a bit of extra work to get things working.
-        int newNumber = pResource->ResourceNumber;
-
-        // First get the original audiomap and save it under the number, just sowe have something in the right place.
-        unique_ptr<ResourceBlob> amBlob = appState->GetResourceMap().Helper().MostRecentResource(ResourceType::AudioMap, _originalResourceNumber, ResourceEnumFlags::IncludeCacheFiles);
-        if (amBlob)
+        if (pResource->ResourceNumber != _originalResourceNumber)
         {
-            amBlob->SetNumber(newNumber);
-            amBlob->SetSourceFlags(ResourceSourceFlags::AudioMapCache);
-            appState->GetResourceMap().AppendResource(*amBlob);
+            // This was a "save as". We need to do a bit of extra work to get things working.
+            int newNumber = pResource->ResourceNumber;
+
+            // First get the original audiomap and save it under the number, just sowe have something in the right place.
+            unique_ptr<ResourceBlob> amBlob = appState->GetResourceMap().Helper().MostRecentResource(ResourceType::AudioMap, _originalResourceNumber, ResourceEnumFlags::IncludeCacheFiles);
+            if (amBlob)
+            {
+                amBlob->SetNumber(newNumber);
+                amBlob->SetSourceFlags(ResourceSourceFlags::AudioMapCache);
+                appState->GetResourceMap().AppendResource(*amBlob);
+            }
+
+            // Now, update this:
+            _originalResourceNumber = newNumber;
+
+            // Next, mark everything as modified, and change the resource numbers
+            for (size_t i = 0; i < _audioResources.size(); i++)
+            {
+                _audioModified[i] = true;
+                _audioResources[i]->ResourceNumber = newNumber;
+                // We don't need to bother setting resource flags, we always append to the cache files
+            }
+
+            // Then, proceed as usual...
         }
 
-        // Now, update this:
-        _originalResourceNumber = newNumber;
-
-        // Next, mark everything as modified, and change the resource numbers
-        for (size_t i = 0; i < _audioResources.size(); i++)
+        // Save any modified or new audio resources
+        std::set<uint32_t> currentTextEntryTuplesWithAudio;
+        const TextComponent &text = pResource->GetComponent<TextComponent>();
+        CResourceMap &map = appState->GetResourceMap();
+        DeferResourceAppend defer(map);
+        for (size_t i = 0; i < text.Texts.size(); i++)
         {
-            _audioModified[i] = true;
-            _audioResources[i]->ResourceNumber = newNumber;
-            // We don't need to bother setting resource flags, we always append to the cache files
-        }
-
-        // Then, proceed as usual...
-    }
-
-    // Save any modified or new audio resources
-    std::set<uint32_t> currentTextEntryTuplesWithAudio;
-    const TextComponent &text = pResource->GetComponent<TextComponent>();
-    CResourceMap &map = appState->GetResourceMap();
-    DeferResourceAppend defer(map);
-    for (size_t i = 0; i < text.Texts.size(); i++)
-    {
-        const TextEntry &entry = text.Texts[i];
-        uint32_t textEntryTuple = GetMessageTuple(entry);
-        ResourceEntity *companionAudio = _audioResources[i].get();
-        if (companionAudio)
-        {
-            currentTextEntryTuplesWithAudio.insert(textEntryTuple);
-        }
-        if (_audioModified[i])
-        {
+            const TextEntry &entry = text.Texts[i];
+            uint32_t textEntryTuple = GetMessageTuple(entry);
+            ResourceEntity *companionAudio = _audioResources[i].get();
             if (companionAudio)
             {
-                // Now endow this audio resource with up-to-date information based on the text entry
-                companionAudio->SourceFlags = ResourceSourceFlags::AudioCache;
-                companionAudio->Base36Number = textEntryTuple;
-                map.AppendResource(*companionAudio);
+                currentTextEntryTuplesWithAudio.insert(textEntryTuple);
+            }
+            if (_audioModified[i])
+            {
+                if (companionAudio)
+                {
+                    // Now endow this audio resource with up-to-date information based on the text entry
+                    companionAudio->SourceFlags = ResourceSourceFlags::AudioCache;
+                    companionAudio->Base36Number = textEntryTuple;
+                    map.AppendResource(*companionAudio);
+                }
+                else
+                {
+                    // Probably deletion. We no longer know what the original tuple for this guy is at this point
+                    // (we *could* track that info... but it gets complicated, since it could have
+                    // been removed or added many times).
+                }
             }
             else
             {
-                // Probably deletion. We no longer know what the original tuple for this guy is at this point
-                // (we *could* track that info... but it gets complicated, since it could have
-                // been removed or added many times).
+                assert(!companionAudio || (textEntryTuple == companionAudio->Base36Number));
             }
         }
-        else
-        {
-            assert(!companionAudio || (textEntryTuple == companionAudio->Base36Number));
-        }
-    }
-    defer.Commit();
+        defer.Commit();
 
-    // Ok, we've commited the modified/new entries.
-    // Now, we want to delete any tuples that existed previously, which are *not* in the current set of text entry tuples
-    std::vector<uint32_t> deletedTuples;
-    for (uint32_t originalTuple : _originalTuplesWithAudio)
-    {
-        if (currentTextEntryTuplesWithAudio.find(originalTuple) == currentTextEntryTuplesWithAudio.end())
+        // Ok, we've commited the modified/new entries.
+        // Now, we want to delete any tuples that existed previously, which are *not* in the current set of text entry tuples
+        std::vector<uint32_t> deletedTuples;
+        for (uint32_t originalTuple : _originalTuplesWithAudio)
         {
-            deletedTuples.push_back(originalTuple);
+            if (currentTextEntryTuplesWithAudio.find(originalTuple) == currentTextEntryTuplesWithAudio.end())
+            {
+                deletedTuples.push_back(originalTuple);
+            }
         }
-    }
-    // These tuples need to get deleted from the audio map too... so we should go through the proper channels.
-    // We can't go through the CResourceMap, because that relies on having an exact identical version of the thing
-    // we are deleting. All we want to do is invoke the AudioCacheResourceSource directly and tell it to delete things.
-    if (!deletedTuples.empty())
-    {
-        int mapContext = pResource->ResourceNumber;
-        std::unique_ptr<AudioCacheResourceSource> resourceSource = std::make_unique<AudioCacheResourceSource>(map.GetSCIVersion(), map.GetGameFolder(), mapContext, ResourceSourceAccessFlags::ReadWrite);
-        resourceSource->RemoveEntries(mapContext, deletedTuples);
-    }
-
-    // Keep our list of original tuples up-to-date
-    _originalTuplesWithAudio.clear();
-    for (auto &resource : _audioResources)
-    {
-        if (resource)
+        // These tuples need to get deleted from the audio map too... so we should go through the proper channels.
+        // We can't go through the CResourceMap, because that relies on having an exact identical version of the thing
+        // we are deleting. All we want to do is invoke the AudioCacheResourceSource directly and tell it to delete things.
+        if (!deletedTuples.empty())
         {
-            _originalTuplesWithAudio.insert(resource->Base36Number);
+            int mapContext = pResource->ResourceNumber;
+            std::unique_ptr<AudioCacheResourceSource> resourceSource = std::make_unique<AudioCacheResourceSource>(map.GetSCIVersion(), map.GetGameFolder(), mapContext, ResourceSourceAccessFlags::ReadWrite);
+            resourceSource->RemoveEntries(mapContext, deletedTuples);
         }
-    }
 
-    // Finally, clear out the modified flags
-    std::fill(_audioModified.begin(), _audioModified.end(), false);
+        // Keep our list of original tuples up-to-date
+        _originalTuplesWithAudio.clear();
+        for (auto &resource : _audioResources)
+        {
+            if (resource)
+            {
+                _originalTuplesWithAudio.insert(resource->Base36Number);
+            }
+        }
+
+        // Finally, clear out the modified flags
+        std::fill(_audioModified.begin(), _audioModified.end(), false);
+    }
 }
 
 void CMessageDoc::AddEntry(const TextEntry &entry)
