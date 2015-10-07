@@ -53,6 +53,20 @@
 (define rsFONT   $87)
 (define rsCURSOR $88)
 (define rsPATCH  $89)
+
+#ifdef SCI_1_1
+(define rsBITMAP $8a)
+(define rsPALETTE $8b)
+(define rsCDAUDIO $8c)
+(define rsAUDIO  $8d)
+(define rsSYNC  $8e)
+(define rsMESSAGE $8f)
+(define rsAUDIOMAP $90)
+(define rsHEAP   $91)
+(define rsAUDIO36 $92)
+(define rsSYNC36 $93)
+// Hmm, but we have 92 and 93 also... are those AUDIO36 and SYNC36?
+#endif
 /*************************************************************************
  * SCREENS
  *************************************************************************/
