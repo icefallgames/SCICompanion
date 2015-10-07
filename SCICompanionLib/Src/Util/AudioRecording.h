@@ -45,6 +45,7 @@ private:
 
     HWAVEIN hWaveIn;
     AudioFlags _recordingFlags;
+    AudioFlags _finalFormatFlags;
     uint16_t _recordingFreq;
 
     RecordState _state;

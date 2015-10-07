@@ -741,6 +741,9 @@
     <ClCompile Include="Src\Dialogs\AudioPreferencesDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Util\AudioProcessing.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCICompanionLib.h">
@@ -1569,6 +1572,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\Dialogs\AudioPreferencesDialog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Util\AudioProcessing.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
