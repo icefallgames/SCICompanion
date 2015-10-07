@@ -708,14 +708,15 @@
 #define IDC_BUTTON_RAW                  1337
 #define IDC_STATIC_BASE36NAME           1337
 #define IDC_STATIC_REC                  1338
+#define IDC_BUTTON_EXPORTSYNC           1338
 #define IDC_CHECK_TEXTLESS              1339
+#define IDC_BUTTON_IMPORTSYNC           1339
 #define IDC_CHECK_MONITOR               1340
 #define IDC_EDIT_TRIMLEFT               1341
 #define IDC_EDIT_TRIMRIGHT              1342
 #define IDC_GROUP2                      1343
 #define IDC_CHECK_USETEXT               1344
 #define IDC_BUTTON_REPACKAGE            1346
-#define IDC_BUTTON_REPACKAGE2           1347
 #define IDC_BUTTON_CLEARAUDIOCACHE      1347
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773

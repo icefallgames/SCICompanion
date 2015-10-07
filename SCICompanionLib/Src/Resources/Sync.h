@@ -37,3 +37,5 @@ public:
 void SyncWriteTo(const ResourceEntity &resource, sci::ostream &byteStream);
 void SyncReadFrom(ResourceEntity &resource, sci::istream &stream);
 uint32_t SyncEstimateSize(const SyncComponent &sync);
+bool SyncFromFile(SyncComponent &sync, const std::string &filename);
+bool SyncToFile(const SyncComponent &sync, const std::string &filename);

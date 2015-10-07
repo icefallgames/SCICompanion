@@ -119,6 +119,10 @@ void ExtractLipSyncDialog::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_BUTTON_SETVIEW, m_wndSetView);
         DDX_Control(pDX, IDC_BUTTON_DELETE_SYNC, m_wndDeleteSync);
         m_wndDeleteSync.SetIcon(IDI_DELETE, 0, 0, 0, 16, 16);
+        DDX_Control(pDX, IDC_BUTTON_IMPORTSYNC, m_wndImportSync);
+        m_wndImportSync.SetIcon(IDI_FILE_OPEN, 0, 0, 0, 16, 16);
+        DDX_Control(pDX, IDC_BUTTON_EXPORTSYNC, m_wndExportSync);
+        m_wndExportSync.SetIcon(IDI_FILE_SAVE, 0, 0, 0, 16, 16);
 
         DDX_Control(pDX, IDC_BUTTON_RAW, m_wndButtonRaw);
         std::string rawLipSyncData;
@@ -285,7 +289,6 @@ LRESULT ExtractLipSyncDialog::_OnLipSyncDone(WPARAM wParam, LPARAM lParam)
     m_wndLipSyncButton.EnableWindow(TRUE);
     LipSyncDialogTaskResult result = _taskSink->GetResponse();
 
-    _audioResource->RemoveComponent<SyncComponent>();
     _audioResource->AddComponent<SyncComponent>(make_unique<SyncComponent>(result.Sync));
     m_wndWaveform.SetRawLipSyncData(result.RawResults);
     _UpdateWords(result.RawResults);
@@ -305,6 +308,8 @@ BEGIN_MESSAGE_MAP(ExtractLipSyncDialog, AudioPlaybackUI<CExtResizableDialog>)
     ON_BN_CLICKED(IDC_BUTTON_DELETE_SYNC, &ExtractLipSyncDialog::OnBnClickedButtonDeleteSync)
     ON_BN_CLICKED(IDC_BUTTON_RAW, &ExtractLipSyncDialog::OnBnClickedButtonRaw)
     ON_EN_CHANGE(IDC_EDIT_PHONEMEMAP, &ExtractLipSyncDialog::OnEnChangeEditPhonememap)
+    ON_BN_CLICKED(IDC_BUTTON_EXPORTSYNC, &ExtractLipSyncDialog::OnBnClickedButtonExportsync)
+    ON_BN_CLICKED(IDC_BUTTON_IMPORTSYNC, &ExtractLipSyncDialog::OnBnClickedButtonImportsync)
 END_MESSAGE_MAP()
 
 void ExtractLipSyncDialog::OnBnClickedButtonResetmapping()
@@ -418,4 +423,34 @@ void ExtractLipSyncDialog::OnBnClickedButtonRaw()
 void ExtractLipSyncDialog::OnEnChangeEditPhonememap()
 {
     m_wndCommitMapping.EnableWindow(TRUE);
+}
+
+const char c_szLipSyncTxtFilter[] = "txt files (*.txt)|*.txt|All Files|*.*|";
+
+void ExtractLipSyncDialog::OnBnClickedButtonExportsync()
+{
+    if (_audioResource->TryGetComponent<SyncComponent>())
+    {
+        CFileDialog fileDialog(FALSE, ".txt", fmt::format("{0}_lipsync.txt", default_reskey(_audioResource->ResourceNumber, _audioResource->Base36Number)).c_str(), OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR, c_szLipSyncTxtFilter);
+        if (IDOK == fileDialog.DoModal())
+        {
+            CString strFileName = fileDialog.GetPathName();
+            SyncToFile(*_audioResource->TryGetComponent<SyncComponent>(), (PCSTR)strFileName);
+        }
+    }
+}
+
+void ExtractLipSyncDialog::OnBnClickedButtonImportsync()
+{
+    CFileDialog fileDialog(TRUE, ".txt", nullptr, OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR, c_szLipSyncTxtFilter);
+    if (IDOK == fileDialog.DoModal())
+    {
+        CString strFileName = fileDialog.GetPathName();
+        SyncComponent sync;
+        if (SyncFromFile(sync, (PCSTR)strFileName))
+        {
+            _audioResource->AddComponent(std::make_unique<SyncComponent>(sync));
+            _UpdateSyncList();
+        }
+    }
 }

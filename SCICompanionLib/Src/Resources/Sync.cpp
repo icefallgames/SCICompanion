@@ -2,9 +2,50 @@
 #include "Sync.h"
 #include "ResourceEntity.h"
 #include "AppState.h"
+#include "format.h"
 
 using namespace std;
 
+bool SyncFromFile(SyncComponent &sync, const std::string &filename)
+{
+    sync.Entries.clear();
+    sync.RawData.clear();
+    sync.RawDataBinary.clear();
+    std::ifstream file(filename, std::ios_base::in);
+    bool success = file.is_open();
+    if (success)
+    {
+        bool isTick = true;
+        std::string token;
+        while (file >> token)
+        {
+            uint16_t value = (uint16_t)string_to_int(token);
+            if (isTick)
+            {
+                sync.Entries.emplace_back(value, 0);
+            }
+            else
+            {
+                sync.Entries.back().Cel = value;
+            }
+            isTick = !isTick;
+        }
+    }
+    return success;
+}
+bool SyncToFile(const SyncComponent &sync, const std::string &filename)
+{
+    std::ofstream file(filename, std::ios_base::out);
+    bool success = file.is_open();
+    if (success)
+    {
+        for (auto &entry : sync.Entries)
+        {
+            file << fmt::format("{0}\t{1}\n", entry.Tick, entry.Cel);
+        }
+    }
+    return success;
+}
 uint32_t SyncEstimateSize(const SyncComponent &sync)
 {
     return 2 + 2 + 4 * sync.Entries.size();
