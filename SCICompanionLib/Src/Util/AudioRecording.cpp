@@ -3,84 +3,13 @@
 #include "Audio.h"
 #include "AppState.h"
 #include "AudioProcessing.h"
+#include "AudioNegative.h"
 
 // Our global instance
 AudioRecording g_audioRecording;
 WaveRecordingFormat g_WaveRecordingFormat = WaveRecordingFormat::TwentyTwoK8;
 
 #define BUFFER_SIZE (8 * 1024 * 1024)
-
-
-// Needs some tweaking.
-static float AttackTime = 0.015f;
-static float ReleaseTime = 0.025f;
-static float HoldTime = 0.1f;
-static float OpenThresholdDb = -26.0f;
-static float CloseThresholdDb = -32.0f;
-
-float dbToRms(float db)
-{
-    return pow(10.0f, db / 20.0f);
-}
-
-void ApplyNoiseGate(float *buffer, int totalFloats, float sampleRate)
-{
-    float attenuation = 0.0f;
-    float level = 0.0f;
-    float heldTime = 0.0f;
-    bool isOpen = false;
-
-    float OpenThreshold = dbToRms(OpenThresholdDb);
-    float CloseThreshold = dbToRms(CloseThresholdDb);
-
-    const float SAMPLE_RATE_F = sampleRate;
-    const float dtPerSample = 1.0f / SAMPLE_RATE_F;
-
-    // Convert configuration times into per-sample amounts
-    const float attackRate = 1.0f / (AttackTime * SAMPLE_RATE_F);
-    const float releaseRate = 1.0f / (ReleaseTime * SAMPLE_RATE_F);
-
-    // Determine level decay rate. We don't want human voice (75-300Hz) to cross the close
-    // threshold if the previous peak crosses the open threshold.
-    const float thresholdDiff = OpenThreshold - CloseThreshold;
-    const float minDecayPeriod = (1.0f / 75.0f) * SAMPLE_RATE_F;
-    const float decayRate = thresholdDiff / minDecayPeriod;
-
-    // We can't use SSE as the processing of each sample depends on the processed
-    // result of the previous sample.
-    for (int i = 0; i < totalFloats; i++)
-    {
-        // Get current input level
-        float curLvl = abs(buffer[i]);
-
-        // Test thresholds
-        if (curLvl > OpenThreshold && !isOpen)
-            isOpen = true;
-        if (level < CloseThreshold && isOpen)
-        {
-            heldTime = 0.0f;
-            isOpen = false;
-        }
-
-        // Decay level slowly so human voice (75-300Hz) doesn't cross the close threshold
-        // (Essentially a peak detector with very fast decay)
-        level = max(level, curLvl) - decayRate;
-
-        // Apply gate state to attenuation
-        if (isOpen)
-            attenuation = min(1.0f, attenuation + attackRate);
-        else
-        {
-            heldTime += dtPerSample;
-            if (heldTime > HoldTime)
-                attenuation = max(0.0f, attenuation - releaseRate);
-        }
-
-        // Attenuate!
-        buffer[i] *= attenuation;
-    }
-}
-
 
 AudioRecording::AudioRecording() : hWaveIn(nullptr), waveHeader(), _state(RecordState::Stopped), _lastLevelMonitored(0), lastStreamPositionMonitored(0)
 {
@@ -92,29 +21,7 @@ AudioRecording::~AudioRecording()
     Cleanup();
 }
 
-void ProcessSound(uint16_t freq, const int16_t *data, int samples, std::vector<int16_t> &result)
-{
-    // Trim the ends.
-    /*
-    uint32_t bytesPerSecond = audio->GetBytesPerSecond();
-    uint32_t bytesToRemoveOffBack = min(bytesPerSecond * appState->_audioTrimRight / 1000, audio->DigitalSamplePCM.size());
-    audio->DigitalSamplePCM.resize(audio->DigitalSamplePCM.size() - bytesToRemoveOffBack);
-    uint32_t bytesToRemoveOffFront = min(bytesPerSecond * appState->_audioTrimLeft / 1000, audio->DigitalSamplePCM.size());
-    audio->DigitalSamplePCM.erase(audio->DigitalSamplePCM.begin(), audio->DigitalSamplePCM.begin() + bytesToRemoveOffFront);
-    */
-
-    std::vector<float> buffer;
-    SixteenBitToFloat(data, samples, buffer);
-
-    if (!buffer.empty())
-    {
-        ApplyNoiseGate(&buffer[0], buffer.size(), freq);
-    }
-
-    FloatToSixteenBit(buffer, result);
-}
-
-void AudioRecording::Cleanup(AudioComponent *audio)
+void AudioRecording::Cleanup(AudioComponent *audio, AudioNegativeComponent *audioNeg)
 {
     if (hWaveIn)
     {
@@ -123,42 +30,23 @@ void AudioRecording::Cleanup(AudioComponent *audio)
         {
             if (_state == RecordState::Recording)
             {
-                if (audio && (waveHeader.dwBytesRecorded > 0))
+                if (audioNeg && (waveHeader.dwBytesRecorded > 0))
                 {
-                    audio->Frequency = _recordingFreq;
+                    // Fill in the audio negative.
+                    audioNeg->Audio.Frequency = _recordingFreq;
+                    audioNeg->Audio.Flags = _recordingFlags;
+                    uint8_t *rawData = reinterpret_cast<uint8_t*>(waveHeader.lpData);
+                    audioNeg->Audio.DigitalSamplePCM.clear();
+                    audioNeg->Audio.DigitalSamplePCM.reserve(waveHeader.dwBytesRecorded);
+                    std::copy(rawData, rawData + waveHeader.dwBytesRecorded, std::back_inserter(audioNeg->Audio.DigitalSamplePCM));
+                    // Use the default settings:
+                    audioNeg->Settings = appState->_audioProcessing;
+
                     audio->Flags = _finalFormatFlags;
+                    audio->Frequency = _recordingFreq;
                     audio->DigitalSamplePCM.clear();
 
-                    std::vector<int16_t> processedSound;
-                    ProcessSound(audio->Frequency, reinterpret_cast<int16_t*>(waveHeader.lpData), waveHeader.dwBytesRecorded / 2, processedSound);
-
-                    if (!processedSound.empty())
-                    {
-                        if (IsFlagSet(_finalFormatFlags, AudioFlags::SixteenBit))
-                        {
-                            uint8_t *asBytes = reinterpret_cast<uint8_t*>(&processedSound[0]);
-                            std::copy(asBytes, asBytes + processedSound.size() * 2, std::back_inserter(audio->DigitalSamplePCM));
-                        }
-                        else
-                        {
-                            // We always record in 16bit. Now we'll reduce to 8 bit.
-                            // We want [-128,128] to map to [127.5,128.5]
-                            DWORD samples = processedSound.size();
-                            audio->DigitalSamplePCM.reserve(samples);
-                            for (DWORD i = 0; i < samples; i++)
-                            {
-                                // I think this is more accurate:
-                                uint32_t unsigned16 = processedSound[i] + 32768 + 128;
-                                unsigned16 = min(unsigned16, 65535);
-                                uint8_t unsigned8 = (uint8_t)(unsigned16 / 256);
-                                audio->DigitalSamplePCM.push_back(unsigned8);
-
-                                // But this flattens out noise around 0 better.
-                                //int8_t signed8 = sixteenBitBuffer[i] / 256;
-                                //audio->DigitalSamplePCM.push_back(signed8 + 128);
-                            }
-                        }
-                    }
+                    ProcessSound(*audioNeg, *audio);
                 }
             }
         }
@@ -286,20 +174,21 @@ void AudioRecording::StopMonitor()
     }
 }
 
-std::unique_ptr<AudioComponent> AudioRecording::Stop()
+std::unique_ptr<ResourceEntity> AudioRecording::Stop()
 {
-    std::unique_ptr<AudioComponent> audio;
+    std::unique_ptr<ResourceEntity> resource;
     // If we're just monitoring, don't stop...
     if (_state == RecordState::Recording)
     {
-        audio = std::make_unique<AudioComponent>();
-        Cleanup(audio.get());
-        if (audio->Frequency == 0)
+        resource.reset(CreateDefaultAudioResource(appState->GetVersion()));
+        resource->AddComponent<AudioNegativeComponent>(std::make_unique<AudioNegativeComponent>());
+        Cleanup(resource->TryGetComponent<AudioComponent>(), resource->TryGetComponent<AudioNegativeComponent>());
+        if (resource->GetComponent<AudioComponent>().Frequency == 0)
         {
-            audio.reset(nullptr);   // Error
+            resource.reset(nullptr);   // Error
         }
     }
-    return audio;
+    return resource;
 }
 
 void AudioRecording::_StartBuffer(AudioRecording::RecordState state, WaveRecordingFormat format)

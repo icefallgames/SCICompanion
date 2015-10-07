@@ -17,6 +17,7 @@
 #include "AudioCacheResourceSource.h"
 #include "Audio.h"
 #include "AudioMap.h"
+#include "AudioNegative.h"
 #include <numeric>
 
 using namespace std;
@@ -44,6 +45,7 @@ void CMessageDoc::_PreloadAudio()
     _audioModified.clear();
     _originalTuplesWithAudio.clear();
     _originalResourceNumber = GetResource()->ResourceNumber;
+    CResourceMap &map = appState->GetResourceMap();
 
     std::unordered_map<uint32_t, std::unique_ptr<ResourceEntity>> _temporaryMap;
     if (appState->GetVersion().HasSyncResources)
@@ -89,6 +91,18 @@ void CMessageDoc::_PreloadAudio()
         _audioModified.push_back(false);
     }
     assert(_audioResources.size() == text.Texts.size());
+
+    // Add the negatives in. NOTE: This might be slow, we could do this on demand. But we'd need to pull them in
+    // whenever one was set to modified (or else we'd remove the negative upon save).
+    int mapContext = GetResource()->ResourceNumber;
+    std::unique_ptr<AudioCacheResourceSource> resourceSource = std::make_unique<AudioCacheResourceSource>(map.GetSCIVersion(), map.GetGameFolder(), mapContext, ResourceSourceAccessFlags::Read);
+    for (auto &audioResource : _audioResources)
+    {
+        if (audioResource)
+        {
+            resourceSource->MaybeAddNegative(*audioResource);
+        }
+    }
 
     _RecalcAudioSize();
 }
@@ -148,6 +162,8 @@ void CMessageDoc::PostSuccessfulSave(const ResourceEntity *pResource)
             // Then, proceed as usual...
         }
 
+        std::vector<ResourceEntity*> audioNegatives;
+
         // Save any modified or new audio resources
         std::set<uint32_t> currentTextEntryTuplesWithAudio;
         const TextComponent &text = pResource->GetComponent<TextComponent>();
@@ -170,6 +186,8 @@ void CMessageDoc::PostSuccessfulSave(const ResourceEntity *pResource)
                     companionAudio->SourceFlags = ResourceSourceFlags::AudioCache;
                     companionAudio->Base36Number = textEntryTuple;
                     map.AppendResource(*companionAudio);
+
+                    audioNegatives.push_back(companionAudio);
                 }
                 else
                 {
@@ -184,6 +202,14 @@ void CMessageDoc::PostSuccessfulSave(const ResourceEntity *pResource)
             }
         }
         defer.Commit();
+
+        // Save the negatives
+        if (!audioNegatives.empty())
+        {
+            int mapContext = pResource->ResourceNumber;
+            std::unique_ptr<AudioCacheResourceSource> resourceSource = std::make_unique<AudioCacheResourceSource>(map.GetSCIVersion(), map.GetGameFolder(), mapContext, ResourceSourceAccessFlags::ReadWrite);
+            resourceSource->SaveOrRemoveNegatives(audioNegatives);
+        }
 
         // Ok, we've commited the modified/new entries.
         // Now, we want to delete any tuples that existed previously, which are *not* in the current set of text entry tuples

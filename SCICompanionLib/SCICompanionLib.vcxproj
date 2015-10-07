@@ -224,6 +224,7 @@
     <ClCompile Include="Src\Dialogs\PaletteEditorDialog.cpp" />
     <ClCompile Include="Src\Dialogs\PicDimensionsDialog.cpp" />
     <ClCompile Include="Src\Dialogs\PrepareBitmapBase.cpp" />
+    <ClCompile Include="Src\FrameComponents\AudioProcessingSettingsUI.cpp" />
     <ClCompile Include="Src\FrameComponents\AudioWaveformUI.cpp" />
     <ClCompile Include="Src\FrameComponents\ExtTabControl.cpp" />
     <ClCompile Include="Src\FrameComponents\LevelMeter.cpp" />
@@ -243,6 +244,7 @@
     <ClCompile Include="Src\MFCDocuments\DocumentWithPaletteChoices.cpp" />
     <ClCompile Include="Src\r8brain\r8bbase.cpp" />
     <ClCompile Include="Src\Resources\AudioCacheResourceSource.cpp" />
+    <ClCompile Include="Src\Resources\AudioNegative.cpp" />
     <ClCompile Include="Src\Resources\AudioResourceSource.cpp" />
     <ClCompile Include="Src\Resources\NounsAndCases.cpp" />
     <ClCompile Include="Src\Resources\PatchResourceSource.cpp" />
@@ -296,6 +298,7 @@
     <ClInclude Include="Src\Dialogs\PaletteEditorDialog.h" />
     <ClInclude Include="Src\Dialogs\PicDimensionsDialog.h" />
     <ClInclude Include="Src\FrameComponents\AudioPlaybackUI.h" />
+    <ClInclude Include="Src\FrameComponents\AudioProcessingSettingsUI.h" />
     <ClInclude Include="Src\FrameComponents\AudioWaveformUI.h" />
     <ClInclude Include="Src\FrameComponents\ExtTabControl.h" />
     <ClInclude Include="Src\FrameComponents\LevelMeter.h" />
@@ -323,6 +326,7 @@
     <ClInclude Include="Src\r8brain\r8bconf.h" />
     <ClInclude Include="Src\r8brain\r8butil.h" />
     <ClInclude Include="Src\Resources\AudioCacheResourceSource.h" />
+    <ClInclude Include="Src\Resources\AudioNegative.h" />
     <ClInclude Include="Src\Resources\AudioResourceSource.h" />
     <ClInclude Include="Src\Resources\NounsAndCases.h" />
     <ClInclude Include="Src\Resources\PatchResourceSource.h" />
@@ -345,6 +349,7 @@
     <ClInclude Include="Src\Resources\Sync.h" />
     <ClInclude Include="Src\Resources\View.h" />
     <ClInclude Include="Src\Util\AudioProcessing.h" />
+    <ClInclude Include="Src\Util\AudioProcessingSettings.h" />
     <ClInclude Include="Src\Util\AudioRecording.h" />
     <ClInclude Include="Src\Util\BufferPool.h">
       <FileType>CppCode</FileType>

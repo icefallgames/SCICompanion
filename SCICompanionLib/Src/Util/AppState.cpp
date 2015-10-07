@@ -110,8 +110,17 @@ AppState::AppState(CWinApp *pApp)
 
     _cxFakeEgo = 30;
     _cyFakeEgo = 48;
-    _audioTrimLeft = 100;
-    _audioTrimRight = 100;
+
+    _audioProcessing.TrimLeftMS = 100;
+    _audioProcessing.TrimRightMS = 100;
+    _audioProcessing.AutoGain = FALSE;
+    _audioProcessing.DetectStartEnd = TRUE;
+    _audioProcessing.NoiseAttackTimeMS = 15;
+    _audioProcessing.NoiseReleaseTimeMS = 25;
+    _audioProcessing.NoiseHoldTimeMS = 100;
+    _audioProcessing.NoiseOpenThresholdDB = -26;
+    _audioProcessing.NoiseCloseThresholdDB = -32;
+
     _ptFakeEgo = CPoint(160, 120);
     _fObserveControlLines = false;
     _fObservePolygons = false;

@@ -3,6 +3,8 @@
 #include <mmsystem.h>
 
 struct AudioComponent;
+struct AudioNegativeComponent;
+class ResourceEntity;
 enum class AudioFlags : uint8_t;
 
 enum class WaveRecordingFormat
@@ -24,7 +26,7 @@ public:
     ~AudioRecording();
     void SetAudio(const AudioRecording *sound);
     void Record(WaveRecordingFormat format);
-    std::unique_ptr<AudioComponent> Stop();
+    std::unique_ptr<ResourceEntity> Stop();
     void StopMonitor();
     void IdleUpdate();
     bool IsRecording();
@@ -41,7 +43,7 @@ private:
     };
 
     void _StartBuffer(RecordState state, WaveRecordingFormat format);
-    void Cleanup(AudioComponent *audioResult = nullptr);
+    void Cleanup(AudioComponent *audioResult = nullptr, AudioNegativeComponent *audioNeg = nullptr);
 
     HWAVEIN hWaveIn;
     AudioFlags _recordingFlags;

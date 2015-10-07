@@ -6,6 +6,7 @@
 #include "IntellisenseListBox.h"
 #include "ColoredToolTip.h"
 #include "CompileInterfaces.h"
+#include "AudioProcessingSettings.h"
 
 class AutoCompleteThread2;
 class CScriptView;
@@ -131,8 +132,6 @@ public:
     // Global settings:
     int _cxFakeEgo;
     int _cyFakeEgo;
-    int _audioTrimLeft;
-    int _audioTrimRight;
     BOOL _fUseBoxEgo;
     int _fGridLines;
     int _fScaleTracingImages;
@@ -149,6 +148,7 @@ public:
     BOOL _fPlayCompileErrorSound;
     BOOL _fUseOriginalAspectRatio;
     std::string _midiDeviceName;
+    AudioProcessingSettings _audioProcessing;
 
     BOOL _fNoGdiPlus;   // GDI+ is not available
 

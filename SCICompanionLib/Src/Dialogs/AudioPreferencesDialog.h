@@ -1,5 +1,7 @@
 #pragma once
 
+#include "AudioProcessingSettingsUI.h"
+
 class AudioPreferencesDialog : public CExtResizableDialog
 {
 public:
@@ -28,6 +30,8 @@ private:
     CExtLabel m_wndStatic2;
     CExtButton m_wndButton1;
     CExtButton m_wndButton2;
+
+    AudioProcessingSettingsUI _audioProcessingSettingsUI;
 
 public:
     afx_msg void OnCbnSelchangeComboMididevice();

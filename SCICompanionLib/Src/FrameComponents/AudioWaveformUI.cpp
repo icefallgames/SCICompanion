@@ -203,7 +203,7 @@ void AudioWaveformUI::_DrawWaveform(CDC *pDC, LPRECT prc)
         dcMem.FillSolidRect(prc, RGB(196, 196, 196));
 
         int blockAlign = IsFlagSet(audio.Flags, AudioFlags::SixteenBit) ? 2 : 1;
-        int scale = (blockAlign == 2) ? 65535 : 128;
+        int scale = (blockAlign == 2) ? 32768 : 128;
         int sampleCount = audio.GetLength() / blockAlign;
         std::vector<CPoint> points;
         std::vector<DWORD> pointCounts;

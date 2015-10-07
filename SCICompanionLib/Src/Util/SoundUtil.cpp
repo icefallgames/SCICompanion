@@ -6,6 +6,7 @@
 #include "ResourceEntity.h"
 #include "format.h"
 #include "CDSPResampler.h"
+#include "AudioProcessingSettings.h"
 
 using namespace std;
 using namespace r8b;
@@ -108,6 +109,7 @@ const char riffMarker[] = "RIFF";
 const char waveMarker[] = "WAVE";
 const char fmtMarker[] = "fmt ";
 const char dataMarker[] = "data";
+const char scicMarker[] = "scic";
 
 #include <pshpack1.h>
 struct WaveHeader
@@ -123,7 +125,13 @@ struct WaveHeader
 
 const int MaxSierraSampleRate = 22050;
 
-void AudioComponentFromWaveFile(sci::istream &stream, AudioComponent &audio)
+void ReadAudioProcessingSettings(sci::istream stream, AudioProcessingSettings &settings)
+{
+    // REVIEW: This might eventually be a more generic property bag.
+    stream >> settings;
+}
+
+void AudioComponentFromWaveFile(sci::istream &stream, AudioComponent &audio, AudioProcessingSettings *audioProcessingSettings)
 {
     uint32_t riff, wave, fileSize, fmt, chunkSize, data, dataSize;
     stream >> riff;
@@ -138,6 +146,18 @@ void AudioComponentFromWaveFile(sci::istream &stream, AudioComponent &audio)
 
     stream >> fmt;
     stream >> chunkSize;
+
+    if (audioProcessingSettings)
+    {
+        if (stream.good() && (fmt == (*(uint32_t*)scicMarker)))
+        {
+            ReadAudioProcessingSettings(stream, *audioProcessingSettings);
+            stream.skip(chunkSize);
+            stream >> fmt;
+            stream >> chunkSize;
+        }
+    }
+
     while (stream.good() && (fmt != (*(uint32_t*)fmtMarker)))
     {
         stream.skip(chunkSize);
@@ -331,7 +351,7 @@ bool IsWaveFile(PCSTR pszFileName)
     return (0 == _strcmpi(PathFindExtension(pszFileName), ".wav"));
 }
 
-void WriteWaveFile(const std::string &filename, const AudioComponent &audio)
+void WriteWaveFile(const std::string &filename, const AudioComponent &audio, const AudioProcessingSettings *audioProcessingSettings)
 {
     sci::ostream out;
     out << (*(uint32_t*)riffMarker);
@@ -341,10 +361,18 @@ void WriteWaveFile(const std::string &filename, const AudioComponent &audio)
     out << fileSize;    // We'll fill this in later
     out << (*(uint32_t*)waveMarker);
 
+    if (audioProcessingSettings)
+    {
+        out << (*(uint32_t*)scicMarker);
+        uint32_t chunkSize = sizeof(*audioProcessingSettings);
+        out << chunkSize;    // We'll fill this in later
+        out << *audioProcessingSettings;
+    }
+
     out << (*(uint32_t*)fmtMarker);
     WaveHeader waveHeader = {};
     uint32_t chunkSize = sizeof(waveHeader);
-    out << chunkSize;    // We'll fill this in later
+    out << chunkSize;
 
     WORD blockAlign = IsFlagSet(audio.Flags, AudioFlags::SixteenBit) ? 2 : 1;
     waveHeader.formatTag = WAVE_FORMAT_PCM;
@@ -400,7 +428,7 @@ AudioVolumeName GetVolumeToUse(SCIVersion version, uint32_t base36Number)
 std::unique_ptr<ResourceEntity> WaveResourceFromFilename(const std::string &filename)
 {
     std::unique_ptr<ResourceEntity> resource(CreateDefaultAudioResource(appState->GetVersion()));
-    ScopedFile scopedFile(filename, GENERIC_READ, FILE_SHARE_WRITE, OPEN_EXISTING);
+    ScopedFile scopedFile(filename, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
     sci::streamOwner owner(scopedFile.hFile);
     AudioComponentFromWaveFile(owner.getReader(), resource->GetComponent<AudioComponent>());
     return resource;

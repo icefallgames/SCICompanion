@@ -7,7 +7,7 @@
 // AudioPreferencesDialog dialog
 
 AudioPreferencesDialog::AudioPreferencesDialog(CWnd* pParent /*=NULL*/)
-    : CExtResizableDialog(AudioPreferencesDialog::IDD, pParent)
+    : CExtResizableDialog(AudioPreferencesDialog::IDD, pParent), _audioProcessingSettingsUI(appState->_audioProcessing)
 {
 }
 
@@ -41,10 +41,7 @@ void AudioPreferencesDialog::DoDataExchange(CDataExchange* pDX)
     __super::DoDataExchange(pDX);
     ShowSizeGrip(FALSE);
 
-    DDX_Text(pDX, IDC_EDIT_TRIMLEFT, appState->_audioTrimLeft);
-    DDV_MinMaxInt(pDX, appState->_audioTrimLeft, 0, 1000);
-    DDX_Text(pDX, IDC_EDIT_TRIMRIGHT, appState->_audioTrimRight);
-    DDV_MinMaxInt(pDX, appState->_audioTrimRight, 0, 1000);
+    _audioProcessingSettingsUI.DoDataExchangeHelper(pDX);
 
     DDX_Control(pDX, IDC_COMBO_MIDIDEVICE, m_wndMIDIDevices);
 
@@ -53,7 +50,6 @@ void AudioPreferencesDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDOK, m_wndOk);
     DDX_Control(pDX, IDCANCEL, m_wndCancel);
     DDX_Control(pDX, IDC_STATIC1, m_wndStatic1);
-    DDX_Control(pDX, IDC_STATIC2, m_wndStatic2);
     DDX_Control(pDX, IDC_BUTTON_REPACKAGE, m_wndButton1);
     DDX_Control(pDX, IDC_BUTTON_CLEARAUDIOCACHE, m_wndButton2);
 }

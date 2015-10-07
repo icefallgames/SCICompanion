@@ -30,7 +30,9 @@ public:
     void RebuildResources(bool force) override;
 
     // A way to call RemoveEntry directly, for more efficiency.
-    void AudioCacheResourceSource::RemoveEntries(int number, const std::vector<uint32_t> tuples);
+    void RemoveEntries(int number, const std::vector<uint32_t> tuples);
+    void SaveOrRemoveNegatives(const std::vector<ResourceEntity*> negatives);
+    void MaybeAddNegative(ResourceEntity &resource);
 
     void Clear();
 

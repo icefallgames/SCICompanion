@@ -351,13 +351,10 @@ void AudioPlaybackUI<T>::OnStop()
     _audioPlayback.Stop();
 
     // If we're recording notify about it.
-    std::unique_ptr<AudioComponent> newAudio = g_audioRecording.Stop();
+    std::unique_ptr<ResourceEntity> newAudio = g_audioRecording.Stop();
     if (newAudio)
     {
-        std::unique_ptr<ResourceEntity> resource(CreateDefaultAudioResource(appState->GetVersion()));
-        resource->RemoveComponent<AudioComponent>();
-        resource->AddComponent(std::move(newAudio));
-        OnNewResourceCreated(std::move(resource), "recording");
+        OnNewResourceCreated(std::move(newAudio), "recording");
     }
 
     _UpdatePlayState();

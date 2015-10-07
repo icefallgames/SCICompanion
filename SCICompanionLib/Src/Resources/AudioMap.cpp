@@ -77,13 +77,20 @@ void AudioMapWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, s
             byteStream << seq;
             // There is also 0x40 for raw lip sync data, but we don't support that.
 
-            assert(entry.Offset >= cumulativeOffset);   // We should never allow this to happen
-            uint32_t delta = entry.Offset - cumulativeOffset;
-            cumulativeOffset = entry.Offset;
-            // This should have been validated.
-            assert(delta < (256 * 256 * 256));
-            uint8_t bytes[3] = { (uint8_t)(0xff & delta), (uint8_t)(0xff & (delta >> 8)), (uint8_t)(0xff & (delta >> 16)) };
-            byteStream.WriteBytes(bytes, sizeof(bytes));
+            if (resource.SourceFlags == ResourceSourceFlags::AudioMapCache)
+            {
+                byteStream.FillByte(0, 3); // Don't care if this is the cache file.
+            }
+            else
+            {
+                assert(entry.Offset >= cumulativeOffset);   // We should never allow this to happen
+                uint32_t delta = entry.Offset - cumulativeOffset;
+                cumulativeOffset = entry.Offset;
+                // This should have been validated.
+                assert(delta < (256 * 256 * 256));
+                uint8_t bytes[3] = { (uint8_t)(0xff & delta), (uint8_t)(0xff & (delta >> 8)), (uint8_t)(0xff & (delta >> 16)) };
+                byteStream.WriteBytes(bytes, sizeof(bytes));
+            }
 
             if (entry.SyncSize > 0)
             {
@@ -271,6 +278,12 @@ void AudioMapReadFrom(ResourceEntity &resource, sci::istream &stream, const std:
 
 bool ValidateAudioMap(const ResourceEntity &resource)
 {
+    if (resource.SourceFlags == ResourceSourceFlags::AudioMapCache)
+    {
+        // Offsets may not be valid in this case, so we don't need to worry.
+        return true;
+    }
+
     const AudioMapComponent &map = resource.GetComponent<AudioMapComponent>();
     if (map.Version == AudioMapVersion::SyncMapLate)
     {
@@ -283,7 +296,7 @@ bool ValidateAudioMap(const ResourceEntity &resource)
         {
             if ((entry.Offset - cumulativeOffset) > (256 * 256 * 256))
             {
-                std::string message = fmt::format("N:{0}, V:{1}, C:{2}, S:{3} is tool large. It needs to be less than 16MB.", entry.Noun, entry.Verb, entry.Condition, entry.Sequence);
+                std::string message = fmt::format("N:{0}, V:{1}, C:{2}, S:{3} is tool large. It needs to be less than 16MB.", (int)entry.Noun, (int)entry.Verb, (int)entry.Condition, (int)entry.Sequence);
                 AfxMessageBox(message.c_str(), MB_ICONWARNING | MB_OK);
                 return false;
             }

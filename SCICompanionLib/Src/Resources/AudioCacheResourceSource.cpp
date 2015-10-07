@@ -7,6 +7,7 @@
 #include "AppState.h"
 #include "ResourceContainer.h"
 #include "AudioMap.h"
+#include "AudioNegative.h"
 #include "SoundUtil.h"
 #include <filesystem>
 #include "PerfTimer.h"
@@ -181,10 +182,13 @@ void AudioCacheResourceSource::_EnsureEnumInitialized()
             bool stillMore = (hFind != INVALID_HANDLE_VALUE);
             while (stillMore)
             {
+                int length = lstrlen(findData.cFileName);
                 if (findData.cFileName[0] == Base36AudioPrefix)
                 {
+                    // Check for length==12, because our filter will also match against msdos names.
+                    // So that means @1234567.890.wav will match!
                     uint32_t tuple;
-                    if (ExtractTupleFromFilename(findData.cFileName, tuple))
+                    if ((length == 12) && ExtractTupleFromFilename(findData.cFileName, tuple))
                     {
                         _audioTuplesPresent.push_back(tuple);
                     }
@@ -192,7 +196,7 @@ void AudioCacheResourceSource::_EnsureEnumInitialized()
                 else if (findData.cFileName[0] == Base36SyncPrefix)
                 {
                     uint32_t tuple;
-                    if (ExtractTupleFromFilename(findData.cFileName, tuple))
+                    if ((length == 12) && ExtractTupleFromFilename(findData.cFileName, tuple))
                     {
                         _syncTuplesPresent.insert(tuple);
                     }
@@ -416,6 +420,45 @@ void AudioCacheResourceSource::RemoveEntry(const ResourceMapEntryAgnostic &mapEn
     RemoveEntries(mapEntry.Number, tuples);
 }
 
+void AudioCacheResourceSource::SaveOrRemoveNegatives(const std::vector<ResourceEntity*> negatives)
+{
+    try
+    {
+        for (ResourceEntity *resource : negatives)
+        {
+            std::string fullPath = _cacheSubFolderForEnum + "\\" + GetFileNameFor(ResourceType::Audio, resource->ResourceNumber, resource->Base36Number, _version) + ".wav";
+            const AudioNegativeComponent *neg = resource->TryGetComponent<AudioNegativeComponent>();
+            if (neg)
+            {
+                WriteWaveFile(fullPath, neg->Audio, &neg->Settings);
+            }
+            else
+            {
+                // Remove any negative, there's none associated with this guy.
+                deletefile(fullPath);
+            }
+        }
+    }
+    catch (...) {}
+}
+
+void AudioCacheResourceSource::MaybeAddNegative(ResourceEntity &resource)
+{
+    try
+    {
+        std::string fullPath = _cacheSubFolderForEnum + "\\" + GetFileNameFor(ResourceType::Audio, resource.ResourceNumber, resource.Base36Number, _version) + ".wav";
+        if (PathFileExists(fullPath.c_str()))
+        {
+            ScopedFile scopedFile(fullPath, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
+            sci::streamOwner owner(scopedFile.hFile);
+            std::unique_ptr<AudioNegativeComponent> negative = std::make_unique<AudioNegativeComponent>();
+            AudioComponentFromWaveFile(owner.getReader(), negative->Audio, &negative->Settings);
+            resource.AddComponent(std::move(negative));
+        }
+    }
+    catch (...) {}
+}
+
 void AudioCacheResourceSource::RemoveEntries(int number, const std::vector<uint32_t> tuples)
 {
     try
@@ -437,6 +480,8 @@ void AudioCacheResourceSource::RemoveEntries(int number, const std::vector<uint3
             // Now we need to delete any files associated with it.
             std::string fullPath = _cacheSubFolderForEnum + "\\" + GetFileNameFor(ResourceType::Audio, number, tuple, _version);
             deletefile(fullPath);
+            fullPath += ".wav";
+            deletefile(fullPath);   // The negative, if it exists.
             fullPath = _cacheSubFolderForEnum + "\\" + GetFileNameFor(ResourceType::Sync, number, tuple, _version);
             deletefile(fullPath);
         }

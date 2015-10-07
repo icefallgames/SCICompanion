@@ -718,6 +718,19 @@
 #define IDC_CHECK_USETEXT               1344
 #define IDC_BUTTON_REPACKAGE            1346
 #define IDC_BUTTON_CLEARAUDIOCACHE      1347
+#define IDC_CHECK_AUTOGAIN              1348
+#define IDC_CHECK_DETECTSTARTEND        1349
+#define IDC_EDIT_ATTACK                 1350
+#define IDC_EDIT_RELEASE                1351
+#define IDC_EDIT_HOLD                   1352
+#define IDC_STATIC_ATTACK               1353
+#define IDC_STATIC_HOLD                 1354
+#define IDC_STATIC_RELEASE              1355
+#define IDC_EDIT_OPENTHR                1356
+#define IDC_STATIC_OPENTHR              1357
+#define IDC_EDIT_CLOSETHR               1358
+#define IDC_STATIC_CLOSETHR             1359
+#define IDC_STATIC_TRIM                 1360
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -1066,7 +1079,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        396
 #define _APS_NEXT_COMMAND_VALUE         33277
-#define _APS_NEXT_CONTROL_VALUE         1347
+#define _APS_NEXT_CONTROL_VALUE         1361
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif
