@@ -293,6 +293,7 @@
 #define IDD_PREFERENCES1                391
 #define IDD_AUDIOPREFERENCES            391
 #define IDI_RECORD                      392
+#define IDD_AUDIOEDIT                   392
 #define IDI_MONITOR                     393
 #define ID_INDICATOR_AUDIOSIZE          394
 #define IDI_CD                          395
@@ -382,6 +383,7 @@
 #define IDC_LEVELMETER                  1064
 #define IDC_CHECK_MATCHCASE             1065
 #define IDC_CHECK_MATCHWHOLEWORD        1066
+#define IDC_WAVEFORM2                   1066
 #define IDC_RADIO_ALLFILES              1067
 #define IDC_RADIO_OPENFILES             1068
 #define IDC_CHECKAUTOLOADGAME           1069
@@ -731,6 +733,8 @@
 #define IDC_EDIT_CLOSETHR               1358
 #define IDC_STATIC_CLOSETHR             1359
 #define IDC_STATIC_TRIM                 1360
+#define IDC_EDITAUDIO                   1361
+#define IDC_BUTTON_PROCESS              1362
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -1079,7 +1083,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        396
 #define _APS_NEXT_COMMAND_VALUE         33277
-#define _APS_NEXT_CONTROL_VALUE         1361
+#define _APS_NEXT_CONTROL_VALUE         1363
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

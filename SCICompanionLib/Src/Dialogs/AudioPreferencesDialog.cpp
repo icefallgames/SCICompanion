@@ -1,4 +1,5 @@
 #include "stdafx.h"
+#include "resource.h"
 #include "AppState.h"
 #include "AudioPreferencesDialog.h"
 #include "AudioCacheResourceSource.h"

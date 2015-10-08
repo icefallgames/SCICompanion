@@ -12,6 +12,8 @@
 #include "ChooseTalkerViewLoopDialog.h"
 #include "Message.h"
 #include "AudioMap.h"
+#include "AudioEditDialog.h"
+#include "AudioNegative.h"
 
 #define LIPSYNC_TIMER 2345
 
@@ -173,7 +175,7 @@ void ExtractLipSyncDialog::DoDataExchange(CDataExchange* pDX)
         SetAudioResource(_audioResource.get());
 
         DDX_Control(pDX, IDC_WAVEFORM, m_wndWaveform);
-        m_wndWaveform.SetResource(_audioResource.get());
+        m_wndWaveform.SetResource(_audioResource->TryGetComponent<AudioComponent>());
         SetWaveformElement(&m_wndWaveform);
         if (!rawLipSyncData.empty())
         {
@@ -181,6 +183,10 @@ void ExtractLipSyncDialog::DoDataExchange(CDataExchange* pDX)
         }
 
         _SyncViewLoop();
+
+        DDX_Control(pDX, IDC_EDITAUDIO, m_wndEditAudio);
+        m_wndEditAudio.SetIcon(IDI_EDITPALETTE, 0, 0, 0, 24, 24);
+        m_wndEditAudio.EnableWindow(_audioResource->TryGetComponent<AudioNegativeComponent>() != nullptr);
     }
 }
 
@@ -310,6 +316,7 @@ BEGIN_MESSAGE_MAP(ExtractLipSyncDialog, AudioPlaybackUI<CExtResizableDialog>)
     ON_EN_CHANGE(IDC_EDIT_PHONEMEMAP, &ExtractLipSyncDialog::OnEnChangeEditPhonememap)
     ON_BN_CLICKED(IDC_BUTTON_EXPORTSYNC, &ExtractLipSyncDialog::OnBnClickedButtonExportsync)
     ON_BN_CLICKED(IDC_BUTTON_IMPORTSYNC, &ExtractLipSyncDialog::OnBnClickedButtonImportsync)
+    ON_BN_CLICKED(IDC_EDITAUDIO, &ExtractLipSyncDialog::OnBnClickedEditaudio)
 END_MESSAGE_MAP()
 
 void ExtractLipSyncDialog::OnBnClickedButtonResetmapping()
@@ -451,6 +458,19 @@ void ExtractLipSyncDialog::OnBnClickedButtonImportsync()
         {
             _audioResource->AddComponent(std::make_unique<SyncComponent>(sync));
             _UpdateSyncList();
+        }
+    }
+}
+
+
+void ExtractLipSyncDialog::OnBnClickedEditaudio()
+{
+    if (_audioResource)
+    {
+        AudioEditDialog dialog(*_audioResource);
+        if (IDOK == dialog.DoModal())
+        {
+            m_wndWaveform.SetResource(_audioResource->TryGetComponent<AudioComponent>());
         }
     }
 }

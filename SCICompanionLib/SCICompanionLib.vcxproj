@@ -210,6 +210,7 @@
     <ClCompile Include="Src\Compile\ScriptMakerHelper.cpp" />
     <ClCompile Include="Src\Compile\SummarizeScript.cpp" />
     <ClCompile Include="Src\Compile\TarjanAlgorithm.cpp" />
+    <ClCompile Include="Src\Dialogs\AudioEditDialog.cpp" />
     <ClCompile Include="Src\Dialogs\AudioPreferencesDialog.cpp" />
     <ClCompile Include="Src\Dialogs\BitmapToVGADialog.cpp" />
     <ClCompile Include="Src\Dialogs\ChooseColorDialogVGA.cpp" />
@@ -285,6 +286,7 @@
     <ClInclude Include="Src\Compile\DecompilerResults.h" />
     <ClInclude Include="Src\Compile\NodeTypes.h" />
     <ClInclude Include="Src\cpptoml\cpptoml.h" />
+    <ClInclude Include="Src\Dialogs\AudioEditDialog.h" />
     <ClInclude Include="Src\Dialogs\AudioPreferencesDialog.h" />
     <ClInclude Include="Src\Dialogs\ChooseTalkerViewLoopDialog.h" />
     <ClInclude Include="Src\Dialogs\ColorAdjustDialog.h" />

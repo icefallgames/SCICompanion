@@ -4,6 +4,8 @@
 class alignment_result;
 struct SyncComponent;
 
+struct AudioComponent;
+
 struct UILipSyncData
 {
     uint32_t start;
@@ -20,8 +22,7 @@ public:
     AudioWaveformUI();
     virtual ~AudioWaveformUI();
 
-    // TODO: raw lip sync data
-    void SetResource(const ResourceEntity *audio);
+    void SetResource(const AudioComponent *audio);
     void SetStreamPosition(uint32_t streamPosition);
     void SetRawLipSyncData(std::vector<alignment_result> &rawLipSyncData);
     void SetRawLipSyncData(const SyncComponent &sync);
@@ -35,7 +36,7 @@ private:
 
     DECLARE_MESSAGE_MAP()
 
-    const ResourceEntity *_audioResource;
+    const AudioComponent *_audioComponent;
 
     uint32_t _streamPosition;
     std::unique_ptr<CBitmap> _pbitmapDoubleBuf;

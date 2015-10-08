@@ -56,6 +56,7 @@ protected:
     CExtButton m_wndImportSync;
     CExtButton m_wndExportSync;
     CExtButton m_wndButtonRaw;
+    CExtButton m_wndEditAudio;
     CExtLabel m_wndStatic1;
     CExtLabel m_wndStatic2;
     CExtLabel m_wndStatic3;
@@ -97,4 +98,5 @@ public:
     afx_msg void OnEnChangeEditPhonememap();
     afx_msg void OnBnClickedButtonExportsync();
     afx_msg void OnBnClickedButtonImportsync();
+    afx_msg void OnBnClickedEditaudio();
 };

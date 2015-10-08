@@ -18,7 +18,7 @@ IMPLEMENT_DYNAMIC(AudioWaveformUI, CStatic)
 AudioWaveformUI::~AudioWaveformUI() {}
 
 AudioWaveformUI::AudioWaveformUI()
-    : CStatic(), _streamPosition(0)
+    : CStatic(), _streamPosition(0), _audioComponent(nullptr)
 {
 }
 
@@ -45,9 +45,10 @@ COLORREF g_phonemeColors[] =
     RGB(255, 255, 255),
 };
 
-void AudioWaveformUI::SetResource(const ResourceEntity *audio)
+void AudioWaveformUI::SetResource(const AudioComponent *audio)
 {
-    _audioResource = audio;
+    _audioComponent = audio;
+    _pbitmapDoubleBuf.reset(nullptr);
     Invalidate(FALSE);
 }
 
@@ -173,12 +174,11 @@ void AudioWaveformUI::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
             dcMem.SelectObject(hOldBmp);
         }
 
-        if (_audioResource)
+        if (_audioComponent)
         {
-            const AudioComponent &audio = _audioResource->GetComponent<AudioComponent>();
-            if (audio.GetLength() > 0)
+            if (_audioComponent->GetLength() > 0)
             {
-                uint32_t bar = _streamPosition * RECTWIDTH(*prc) / audio.GetLength();
+                uint32_t bar = _streamPosition * RECTWIDTH(*prc) / _audioComponent->GetLength();
 
                 CPen pen(PS_SOLID, 1, RGB(0, 128, 0));
                 HGDIOBJ hOld = dc.SelectObject(pen);
@@ -194,7 +194,6 @@ void AudioWaveformUI::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 
 void AudioWaveformUI::_DrawWaveform(CDC *pDC, LPRECT prc)
 {
-    const AudioComponent &audio = _audioResource->GetComponent<AudioComponent>();
     CDC dcMem;
     if (dcMem.CreateCompatibleDC(pDC))
     {
@@ -202,9 +201,9 @@ void AudioWaveformUI::_DrawWaveform(CDC *pDC, LPRECT prc)
 
         dcMem.FillSolidRect(prc, RGB(196, 196, 196));
 
-        int blockAlign = IsFlagSet(audio.Flags, AudioFlags::SixteenBit) ? 2 : 1;
+        int blockAlign = IsFlagSet(_audioComponent->Flags, AudioFlags::SixteenBit) ? 2 : 1;
         int scale = (blockAlign == 2) ? 32768 : 128;
-        int sampleCount = audio.GetLength() / blockAlign;
+        int sampleCount = _audioComponent->GetLength() / blockAlign;
         std::vector<CPoint> points;
         std::vector<DWORD> pointCounts;
         points.reserve(200);
@@ -220,12 +219,12 @@ void AudioWaveformUI::_DrawWaveform(CDC *pDC, LPRECT prc)
             int value;
             if (blockAlign == 1)
             { 
-                value = (int)audio.DigitalSamplePCM[i] - scale; // Normalize
+                value = (int)_audioComponent->DigitalSamplePCM[i] - scale; // Normalize
             }
             else
             {
                 // 16 bit is signed already? (usually)
-                value = *reinterpret_cast<const int16_t*>(&audio.DigitalSamplePCM[i * 2]);
+                value = *reinterpret_cast<const int16_t*>(&_audioComponent->DigitalSamplePCM[i * 2]);
             }
             
             waveFormMax[i / binSize] = max(waveFormMax[i / binSize], value);
@@ -256,7 +255,7 @@ void AudioWaveformUI::_DrawWaveform(CDC *pDC, LPRECT prc)
         }
 
         // If we have lipsync data, draw those phonemes now.
-        long ms = audio.GetLength() * 1000 / audio.Frequency / blockAlign;
+        long ms = _audioComponent->GetLength() * 1000 / _audioComponent->Frequency / blockAlign;
         int colorIndex = 0;
         dcMem.SetTextColor(RGB(0, 0, 0));
         dcMem.SetBkMode(TRANSPARENT);
@@ -319,7 +318,7 @@ void AudioWaveformUI::_GenerateDoubleBuffer(CDC *pDC, LPRECT prc)
     CSize sizeCurrent = CSize(RECTWIDTH(*prc), RECTHEIGHT(*prc));
     if (!_pbitmapDoubleBuf || (_sizeDoubleBuf != sizeCurrent))
     {
-        if (_audioResource)
+        if (_audioComponent)
         {
             _sizeDoubleBuf = sizeCurrent;
             _pbitmapDoubleBuf = make_unique<CBitmap>();

@@ -7,6 +7,7 @@
 #include "Sync.h"
 #include "ViewUIElement.h"
 #include "AudioWaveformUI.h"
+#include "format.h"
 
 enum class WaveRecordingFormat;
 class ViewUIElement;
@@ -276,20 +277,23 @@ void AudioPlaybackUI<T>::_UpdatePlayState()
 template <typename T>
 void AudioPlaybackUI<T>::OnPlay()
 {
-    const AudioComponent *audio = _audio->TryGetComponent<AudioComponent>();
-    if (audio && (audio->Frequency != 0))
+    if (_audio)
     {
-        int slowDown = 1;
-        if (m_wndHalfSpeed && (m_wndHalfSpeed.GetCheck() == BST_CHECKED))
+        const AudioComponent *audio = _audio->TryGetComponent<AudioComponent>();
+        if (audio && (audio->Frequency != 0))
         {
-            slowDown = 2;
-        }
-        _audioPlayback.Stop();
-        _audioPlayback.Play(slowDown);
-        _UpdatePlayState();
-        if (_pwndWaveform)
-        {
-            _pwndWaveform->SetStreamPosition(0);
+            int slowDown = 1;
+            if (m_wndHalfSpeed && (m_wndHalfSpeed.GetCheck() == BST_CHECKED))
+            {
+                slowDown = 2;
+            }
+            _audioPlayback.Stop();
+            _audioPlayback.Play(slowDown);
+            _UpdatePlayState();
+            if (_pwndWaveform)
+            {
+                _pwndWaveform->SetStreamPosition(0);
+            }
         }
     }
 }
