@@ -20,6 +20,7 @@ public:
     AudioPlaybackUI(int id, CWnd *parent);
     virtual ~AudioPlaybackUI();
     void SetAudioResource(const ResourceEntity *audio);
+    void SetAudioResource(const AudioComponent *audio, const SyncComponent *sync = nullptr);
     void SetMouthElement(ViewUIElement *_pwndMouth);
     void SetWaveformElement(AudioWaveformUI *_pwndWaveform);
 
@@ -62,7 +63,8 @@ private:
     CExtComboBox m_wndWaveType;
 
     ViewUIElement *_pwndMouth;
-    const ResourceEntity *_audio;
+    const AudioComponent *_audio;
+    const SyncComponent *_sync;
 
     AudioWaveformUI *_pwndWaveform;
 
@@ -117,43 +119,49 @@ void AudioPlaybackUI<T>::SetWaveformElement(AudioWaveformUI *pwndWaveform)
 }
 
 template <typename T>
-void AudioPlaybackUI<T>::SetAudioResource(const ResourceEntity *audio)
+void AudioPlaybackUI<T>::SetAudioResource(const AudioComponent *audio, const SyncComponent *sync)
 {
     _audio = audio;
+    _sync = sync;
 
     std::string durationString = "Duration: ";
     std::string info;
     if (_audio)
     {
-        const AudioComponent *audioComp = _audio->TryGetComponent<AudioComponent>();
-        if (audioComp)
-        {
-            durationString += GetAudioLength(*audioComp);
-            _audioPlayback.SetAudio(audioComp);
-            // Put some information in the channels window
-            info = fmt::format("{0}Hz, {1} bytes. {2} {3}",
-                audioComp->Frequency,
-                audioComp->GetLength(),
-                IsFlagSet(audioComp->Flags, AudioFlags::SixteenBit) ? "16-bit" : "8-bit",
-                IsFlagSet(audioComp->Flags, AudioFlags::DPCM) ? "DPCM" : "");
-        }
+        durationString += GetAudioLength(*_audio);
+        _audioPlayback.SetAudio(_audio);
+        // Put some information in the channels window
+        info = fmt::format("{0}Hz, {1} bytes. {2} {3}",
+            _audio->Frequency,
+            _audio->GetLength(),
+            IsFlagSet(_audio->Flags, AudioFlags::SixteenBit) ? "16-bit" : "8-bit",
+            IsFlagSet(_audio->Flags, AudioFlags::DPCM) ? "DPCM" : "");
+    }
 
-        if (m_wndAutoPreview && (m_wndAutoPreview.GetCheck() == BST_CHECKED))
-        {
-            OnPlay();
-        }
-        else
-        {
-            OnStop();
-        }
+    if (m_wndAutoPreview && (m_wndAutoPreview.GetCheck() == BST_CHECKED))
+    {
+        OnPlay();
     }
     else
     {
         OnStop();
     }
+    
     m_wndInfo.SetWindowTextA(info.c_str());
     m_wndDuration.SetWindowText(durationString.c_str());
+}
 
+template <typename T>
+void AudioPlaybackUI<T>::SetAudioResource(const ResourceEntity *audio)
+{
+    if (audio)
+    {
+        SetAudioResource(audio->TryGetComponent<AudioComponent>(), audio->TryGetComponent<SyncComponent>());
+    }
+    else
+    {
+        SetAudioResource(nullptr, nullptr);
+    }
 }
 
 template <typename T>
@@ -277,23 +285,19 @@ void AudioPlaybackUI<T>::_UpdatePlayState()
 template <typename T>
 void AudioPlaybackUI<T>::OnPlay()
 {
-    if (_audio)
+    if (_audio && (_audio->Frequency != 0))
     {
-        const AudioComponent *audio = _audio->TryGetComponent<AudioComponent>();
-        if (audio && (audio->Frequency != 0))
+        int slowDown = 1;
+        if (m_wndHalfSpeed && (m_wndHalfSpeed.GetCheck() == BST_CHECKED))
         {
-            int slowDown = 1;
-            if (m_wndHalfSpeed && (m_wndHalfSpeed.GetCheck() == BST_CHECKED))
-            {
-                slowDown = 2;
-            }
-            _audioPlayback.Stop();
-            _audioPlayback.Play(slowDown);
-            _UpdatePlayState();
-            if (_pwndWaveform)
-            {
-                _pwndWaveform->SetStreamPosition(0);
-            }
+            slowDown = 2;
+        }
+        _audioPlayback.Stop();
+        _audioPlayback.Play(slowDown);
+        _UpdatePlayState();
+        if (_pwndWaveform)
+        {
+            _pwndWaveform->SetStreamPosition(0);
         }
     }
 }
@@ -340,7 +344,7 @@ void AudioPlaybackUI<T>::OnExport()
         std::string filename = (PCSTR)fileDialog.GetPathName();
         try
         {
-            WriteWaveFile(filename, _audio->GetComponent<AudioComponent>());
+            WriteWaveFile(filename, *_audio);
         }
         catch (std::exception &e)
         {
@@ -381,15 +385,14 @@ void AudioPlaybackUI<T>::OnTimer(UINT_PTR nIDEvent)
             }
             _audioPlayback.IdleUpdate();
 
-            const SyncComponent *syncComponent = _audio->TryGetComponent<SyncComponent>();
-            if (_pwndMouth && syncComponent)
+            if (_pwndMouth && _sync)
             {
-                uint16_t tickPosition = (uint16_t)_audioPlayback.QueryPosition(_audio->GetComponent<AudioComponent>().GetLengthInTicks());
-                uint16_t cel = syncComponent->GetCelAtTick(tickPosition);
-                if (!_audioPlayback.IsPlaying() && !syncComponent->Entries.empty())
+                uint16_t tickPosition = (uint16_t)_audioPlayback.QueryPosition(_audio->GetLengthInTicks());
+                uint16_t cel = _sync->GetCelAtTick(tickPosition);
+                if (!_audioPlayback.IsPlaying() && !_sync->Entries.empty())
                 {
                     // We've stopped playing, do the last one.
-                    cel = syncComponent->Entries.back().Cel;
+                    cel = _sync->Entries.back().Cel;
                 }
                 if (cel != 0xffff)
                 {

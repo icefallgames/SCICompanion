@@ -19,6 +19,7 @@ class AudioWaveformUI : public CStatic
     DECLARE_DYNAMIC(AudioWaveformUI)
 
 public:
+    AudioWaveformUI(const std::string &label);
     AudioWaveformUI();
     virtual ~AudioWaveformUI();
 
@@ -42,4 +43,5 @@ private:
     std::unique_ptr<CBitmap> _pbitmapDoubleBuf;
     std::vector<UILipSyncData> _rawLipSyncData;
     CSize _sizeDoubleBuf;
+    std::string _label;
 };

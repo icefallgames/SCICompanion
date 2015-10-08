@@ -709,7 +709,7 @@ void MessageEditPane::OnBnClickedButtonlipsync()
 {
     if (_audio)
     {
-        AudioComponent audioCopy = _audio->GetComponent<AudioComponent>();
+        AudioComponent audioCopy = *_audio;
         const TextEntry *entry = _GetEntry();
         std::string optionalText;
         if (m_wndUseText.GetCheck() == BST_CHECKED)
@@ -755,7 +755,7 @@ LRESULT MessageEditPane::_OnLipSyncDone(WPARAM wParam, LPARAM lParam)
 
 void MessageEditPane::OnBnClickedButtonlipsyncDialog()
 {
-    if (_audio)
+    if (_pDoc->GetAudioResource())
     {
         const TextEntry *entry = _GetEntry();
 
@@ -768,24 +768,11 @@ void MessageEditPane::OnBnClickedButtonlipsyncDialog()
             talkerName = talkersSource->ValueToName(entry->Talker);
         }
 
-        ExtractLipSyncDialog dialog(*_audio, entry->Talker, talkerName, entry->Text, m_wndUseText.GetCheck() == BST_CHECKED);
+        ExtractLipSyncDialog dialog(*_pDoc->GetAudioResource(), entry->Talker, talkerName, entry->Text, m_wndUseText.GetCheck() == BST_CHECKED);
         if (IDOK == dialog.DoModal())
         {
-            std::unique_ptr<SyncComponent> syncFromDialog = dialog.GetSyncComponent();
-            _pDoc->ModifyCurrentAudioResource(
-                [&syncFromDialog](ResourceEntity &audioResource)
-            {
-                if (syncFromDialog)
-                {
-                    audioResource.AddComponent<SyncComponent>(std::move(syncFromDialog));
-                }
-                else
-                {
-                    audioResource.RemoveComponent<SyncComponent>();
-                }
-            }
-                );
-
+            // The lipsync dialog may have actually changed the audio too.
+            _pDoc->SetAudioResource(std::move(dialog.GetResult()));
             _Update();
         }
     }

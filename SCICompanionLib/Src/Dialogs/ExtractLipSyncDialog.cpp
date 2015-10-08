@@ -81,6 +81,8 @@ void ExtractLipSyncDialog::_UpdateSyncList()
     }
     m_wndSyncList.SetRedraw(TRUE);
 
+    // Sync information may have changed, and this is the way we do it:
+    SetAudioResource(_audioResource.get());
 }
 
 void ExtractLipSyncDialog::_InitSyncListColumns()
@@ -265,15 +267,9 @@ BOOL ExtractLipSyncDialog::OnInitDialog()
     return fRet;
 }
 
-std::unique_ptr<SyncComponent> ExtractLipSyncDialog::GetSyncComponent() const
+std::unique_ptr<ResourceEntity> ExtractLipSyncDialog::GetResult()
 {
-    const SyncComponent *sync = _audioResource->TryGetComponent<SyncComponent>();
-    std::unique_ptr<SyncComponent> syncReturn;
-    if (sync)
-    {
-        syncReturn = std::make_unique<SyncComponent>(*sync);
-    }
-    return syncReturn;
+    return std::move(_audioResource);
 }
 
 void ExtractLipSyncDialog::_UpdateWords(const std::vector<alignment_result> &rawResults)
@@ -343,7 +339,7 @@ LipSyncDialogTaskResult CreateLipSyncComponentAndRawDataFromAudioAndPhonemes(con
 
 void ExtractLipSyncDialog::OnBnClickedGeneratelipsync()
 {
-    AudioComponent audioCopy = _audio->GetComponent<AudioComponent>();
+    AudioComponent audioCopy = *_audio;
     if (_phonemeMap)
     {
         if (!_phonemeMap->IsEmpty() ||
@@ -467,6 +463,7 @@ void ExtractLipSyncDialog::OnBnClickedEditaudio()
 {
     if (_audioResource)
     {
+        _audioPlayback.Stop();
         AudioEditDialog dialog(*_audioResource);
         if (IDOK == dialog.DoModal())
         {

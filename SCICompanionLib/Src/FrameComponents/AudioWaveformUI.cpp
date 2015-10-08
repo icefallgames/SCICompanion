@@ -17,8 +17,10 @@ IMPLEMENT_DYNAMIC(AudioWaveformUI, CStatic)
 
 AudioWaveformUI::~AudioWaveformUI() {}
 
-AudioWaveformUI::AudioWaveformUI()
-    : CStatic(), _streamPosition(0), _audioComponent(nullptr)
+AudioWaveformUI::AudioWaveformUI() : AudioWaveformUI("") {}
+
+AudioWaveformUI::AudioWaveformUI(const std::string &label)
+    : CStatic(), _streamPosition(0), _audioComponent(nullptr), _label(label)
 {
 }
 
@@ -307,6 +309,18 @@ void AudioWaveformUI::_DrawWaveform(CDC *pDC, LPRECT prc)
 
             // Two widths to consider... text string length and phoneme length.
             xLastEnds[line] = max(xEnd, rcMeasureP.right); 
+        }
+
+        if (!_label.empty())
+        {
+            dcMem.SetTextColor(RGB(92, 92, 92));
+            CRect rc = {};
+            dcMem.DrawText(_label.c_str(), -1, &rc, DT_SINGLELINE | DT_CALCRECT);
+            rc.left = prc->right - rc.Width();
+            rc.right = prc->right;
+            rc.top = prc->bottom - rc.Height();
+            rc.bottom = prc->bottom;
+            dcMem.DrawText(_label.c_str(), -1, &rc, DT_SINGLELINE);
         }
 
         dcMem.SelectObject(hOldBmp);

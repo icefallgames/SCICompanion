@@ -509,7 +509,7 @@ void SCICompanionApp::_LoadSettings(BOOL fReset)
     appState->_fAutoLoadGame = GetProfileInt(pszRegName, TEXT("AutoLoadGame"), FALSE);
     appState->_fDupeNewCels = GetProfileInt(pszRegName, TEXT("DupeNewCels"), TRUE);
     appState->_fShowPolyDotted = GetProfileInt(pszRegName, TEXT("ShowPolyDotted"), FALSE);
-    appState->_fBrowseInfo = GetProfileInt(pszRegName, TEXT("BrowseInfo"), FALSE);
+    appState->_fBrowseInfo = GetProfileInt(pszRegName, TEXT("BrowseInfo"), TRUE);
     appState->_fScriptNav = GetProfileInt(pszRegName, TEXT("ScriptNav"), TRUE);
     appState->_fCodeCompletion = GetProfileInt(pszRegName, TEXT("CodeCompletion"), TRUE);
     appState->_fHoverTips = GetProfileInt(pszRegName, TEXT("HoverTips"), TRUE);

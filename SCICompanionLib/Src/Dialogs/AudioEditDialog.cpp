@@ -9,9 +9,13 @@
 
 AudioEditDialog::AudioEditDialog(ResourceEntity &resource, CWnd* pParent /*=NULL*/)
     : AudioPlaybackUI<CExtResizableDialog>(AudioEditDialog::IDD, pParent),
-    _audioProcessingSettingsUI(resource.GetComponent<AudioNegativeComponent>().Settings),
-    _resource(resource),
-    _changed(false)
+    _negative(std::make_unique<AudioNegativeComponent>(resource.GetComponent<AudioNegativeComponent>())),
+    _audio(std::make_unique<AudioComponent>(resource.GetComponent<AudioComponent>())),
+    _audioProcessingSettingsUI(_negative->Settings),
+    _changed(false),
+    m_wndWaveformFinal("Final"),
+    m_wndWaveformNegative("Original recording"),
+    _resource(resource)
 {
 }
 
@@ -44,14 +48,19 @@ void AudioEditDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_BUTTON_PROCESS, m_wndButtonProcess);
     
 
-    const AudioNegativeComponent *audioNegative = _resource.TryGetComponent<AudioNegativeComponent>();
-    m_wndWaveformNegative.SetResource(&audioNegative->Audio);
+    m_wndWaveformNegative.SetResource(&_negative->Audio);
 
-    m_wndWaveformFinal.SetResource(_resource.TryGetComponent<AudioComponent>());
+    m_wndWaveformFinal.SetResource(_audio.get());
 
     SetWaveformElement(&m_wndWaveformFinal);
 
-    SetAudioResource(&_resource);
+    _UpdatePlayback();
+}
+
+void AudioEditDialog::_UpdatePlayback()
+{
+    // TODO: Choose based on radio
+    SetAudioResource(_audio.get());
 }
 
 BEGIN_MESSAGE_MAP(AudioEditDialog, AudioPlaybackUI<CExtResizableDialog>)
@@ -67,6 +76,8 @@ void AudioEditDialog::OnOK()
     {
         // TODO: Audio playback needs to operate on a copy of AudioComponent, the one we'll be processing.
         // Also, AudioNegativeComponent needs to be a copy (since we modify settings).
+        _resource.GetComponent<AudioComponent>() = *_audio;
+        _resource.GetComponent<AudioNegativeComponent>() = *_negative;
     }
     __super::OnOK();
 }
@@ -75,7 +86,8 @@ void AudioEditDialog::OnOK()
 void AudioEditDialog::OnBnClickedButtonProcess()
 {
     UpdateData(TRUE);   // So that audio processing settings gets updated from the UI.
-    ProcessSound(_resource.GetComponent<AudioNegativeComponent>(), _resource.GetComponent<AudioComponent>());
-    m_wndWaveformFinal.SetResource(_resource.TryGetComponent<AudioComponent>());
+    ProcessSound(*_negative, *_audio);
+    m_wndWaveformFinal.SetResource(_audio.get());
+    _UpdatePlayback();
     _changed = true;
 }

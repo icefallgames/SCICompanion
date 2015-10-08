@@ -22,6 +22,8 @@ private:
     virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
     virtual void OnOK();
 
+    void _UpdatePlayback();
+
     DECLARE_MESSAGE_MAP()
 
     // Visuals
@@ -33,11 +35,13 @@ private:
     AudioWaveformUI m_wndWaveformNegative;
     AudioWaveformUI m_wndWaveformFinal;
 
-    AudioProcessingSettingsUI _audioProcessingSettingsUI;
-
+    std::unique_ptr<AudioComponent> _audio;
+    std::unique_ptr<AudioNegativeComponent> _negative;
     ResourceEntity &_resource;
 
     bool _changed;
+
+    AudioProcessingSettingsUI _audioProcessingSettingsUI;
 
 public:
     afx_msg void OnBnClickedButtonProcess();

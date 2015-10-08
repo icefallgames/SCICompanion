@@ -18,7 +18,7 @@ class ExtractLipSyncDialog : public AudioPlaybackUI<CExtResizableDialog>
 public:
     ExtractLipSyncDialog(const ResourceEntity &resource, uint8_t talker, const std::string &talkerName, const std::string &messageText, bool useText, CWnd* pParent = NULL);   // standard constructor
     virtual ~ExtractLipSyncDialog();
-    std::unique_ptr<SyncComponent> GetSyncComponent() const;
+    std::unique_ptr<ResourceEntity> GetResult();
 
     // Dialog Data
     enum { IDD = IDD_LIPSYNCDIALOG };
