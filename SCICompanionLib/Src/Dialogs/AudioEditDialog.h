@@ -31,6 +31,8 @@ private:
     CExtButton m_wndOk;
     CExtButton m_wndCancel;
     CExtButton m_wndButtonProcess;
+    CExtRadioButton m_wndCheckNegative, m_wndCheckFinal;
+    CExtComboBox m_wndComboBit;
 
     AudioWaveformUI m_wndWaveformNegative;
     AudioWaveformUI m_wndWaveformFinal;
@@ -45,4 +47,8 @@ private:
 
 public:
     afx_msg void OnBnClickedButtonProcess();
+    afx_msg void OnBnClickedRadioNegative();
+    afx_msg void OnBnClickedRadioFinal();
+    afx_msg void OnCbnSelchangeComboBit();
+    afx_msg void OnCbnSelchangeComboPreset();
 };

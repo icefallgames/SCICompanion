@@ -60,6 +60,8 @@
 #include "ResourceSources.h"
 #include "ResourceMapOperations.h"
 
+#include "AudioProcessingSettings.h"
+
 static const char c_szExecutableString[] = "Executable";
 static const char c_szExeParametersString[] = "ExeCmdLineParameters";
 static const char c_szDefaultExe[] = "sciv.exe";
@@ -86,7 +88,7 @@ void CMultiDocTemplateWithNonViews::InitialUpdateFrame(CFrameWnd *pFrame, CDocum
 AppState::AppState(CWinApp *pApp)
 {
     _pApp = pApp;
-
+    _audioProcessing = std::make_unique<AudioProcessingSettings>();
     // Place all significant initialization in InitInstance
     _pPicTemplate = NULL;
     _fGridLines = FALSE;
@@ -111,15 +113,16 @@ AppState::AppState(CWinApp *pApp)
     _cxFakeEgo = 30;
     _cyFakeEgo = 48;
 
-    _audioProcessing.TrimLeftMS = 100;
-    _audioProcessing.TrimRightMS = 100;
-    _audioProcessing.AutoGain = FALSE;
-    _audioProcessing.DetectStartEnd = TRUE;
-    _audioProcessing.NoiseAttackTimeMS = 15;
-    _audioProcessing.NoiseReleaseTimeMS = 25;
-    _audioProcessing.NoiseHoldTimeMS = 100;
-    _audioProcessing.NoiseOpenThresholdDB = -26;
-    _audioProcessing.NoiseCloseThresholdDB = -32;
+    _audioProcessing->TrimLeftMS = 100;
+    _audioProcessing->TrimRightMS = 100;
+    _audioProcessing->AutoGain = FALSE;
+    _audioProcessing->DetectStartEnd = TRUE;
+
+    _audioProcessing->Noise.AttackTimeMS = 15;
+    _audioProcessing->Noise.ReleaseTimeMS = 50;
+    _audioProcessing->Noise.HoldTimeMS = 50;
+    _audioProcessing->Noise.OpenThresholdDB = -22;
+    _audioProcessing->Noise.CloseThresholdDB = -28;
 
     _ptFakeEgo = CPoint(160, 120);
     _fObserveControlLines = false;

@@ -40,7 +40,7 @@ void AudioRecording::Cleanup(AudioComponent *audio, AudioNegativeComponent *audi
                     audioNeg->Audio.DigitalSamplePCM.reserve(waveHeader.dwBytesRecorded);
                     std::copy(rawData, rawData + waveHeader.dwBytesRecorded, std::back_inserter(audioNeg->Audio.DigitalSamplePCM));
                     // Use the default settings:
-                    audioNeg->Settings = appState->_audioProcessing;
+                    audioNeg->Settings = *appState->_audioProcessing;
 
                     audio->Flags = _finalFormatFlags;
                     audio->Frequency = _recordingFreq;

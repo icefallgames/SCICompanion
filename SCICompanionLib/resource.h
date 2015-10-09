@@ -734,7 +734,13 @@
 #define IDC_STATIC_CLOSETHR             1359
 #define IDC_STATIC_TRIM                 1360
 #define IDC_EDITAUDIO                   1361
+#define IDC_STATIC_PRESET               1361
 #define IDC_BUTTON_PROCESS              1362
+#define IDC_COMBO_BIT                   1363
+#define IDC_RADIO_NEGATIVE              1364
+#define IDC_RADIO_FINAL                 1365
+#define IDC_COMBO_PRESET                1365
+#define IDC_COMBO_PRESET2               1366
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -1081,9 +1087,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        396
+#define _APS_NEXT_RESOURCE_VALUE        397
 #define _APS_NEXT_COMMAND_VALUE         33277
-#define _APS_NEXT_CONTROL_VALUE         1363
+#define _APS_NEXT_CONTROL_VALUE         1366
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

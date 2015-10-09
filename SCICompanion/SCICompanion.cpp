@@ -77,6 +77,8 @@
 
 #include "GameVersionDialog.h"
 
+#include "AudioProcessingSettings.h"
+
 // REVIEW temp
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
@@ -490,15 +492,15 @@ void SCICompanionApp::_LoadSettings(BOOL fReset)
     appState->_cyFakeEgo = GetProfileInt(pszRegName, TEXT("FakeEgoY"), 48);
     appState->_cxFakeEgo = GetProfileInt(pszRegName, TEXT("FakeEgoX"), 30);
 
-    appState->_audioProcessing.TrimLeftMS = GetProfileInt(pszRegName, TEXT("AudioTrimLeft"), appState->_audioProcessing.TrimLeftMS);
-    appState->_audioProcessing.TrimLeftMS = GetProfileInt(pszRegName, TEXT("AudioTrimRight"), appState->_audioProcessing.TrimLeftMS);
-    appState->_audioProcessing.AutoGain = GetProfileInt(pszRegName, TEXT("AutoGain"), appState->_audioProcessing.AutoGain);
-    appState->_audioProcessing.DetectStartEnd = GetProfileInt(pszRegName, TEXT("DetectStartEnd"), appState->_audioProcessing.DetectStartEnd);
-    appState->_audioProcessing.NoiseAttackTimeMS = GetProfileInt(pszRegName, TEXT("NoiseAttackTimeMS"), appState->_audioProcessing.NoiseAttackTimeMS);
-    appState->_audioProcessing.NoiseReleaseTimeMS = GetProfileInt(pszRegName, TEXT("NoiseReleaseTimeMS"), appState->_audioProcessing.NoiseReleaseTimeMS);
-    appState->_audioProcessing.NoiseHoldTimeMS = GetProfileInt(pszRegName, TEXT("NoiseHoldTimeMS"), appState->_audioProcessing.NoiseHoldTimeMS);
-    appState->_audioProcessing.NoiseOpenThresholdDB = GetProfileInt(pszRegName, TEXT("NoiseOpenThresholdDB"), appState->_audioProcessing.NoiseOpenThresholdDB);
-    appState->_audioProcessing.NoiseCloseThresholdDB = GetProfileInt(pszRegName, TEXT("NoiseCloseThresholdDB"), appState->_audioProcessing.NoiseCloseThresholdDB);
+    appState->_audioProcessing->TrimLeftMS = GetProfileInt(pszRegName, TEXT("AudioTrimLeft"), appState->_audioProcessing->TrimLeftMS);
+    appState->_audioProcessing->TrimLeftMS = GetProfileInt(pszRegName, TEXT("AudioTrimRight"), appState->_audioProcessing->TrimLeftMS);
+    appState->_audioProcessing->AutoGain = GetProfileInt(pszRegName, TEXT("AutoGain"), appState->_audioProcessing->AutoGain);
+    appState->_audioProcessing->DetectStartEnd = GetProfileInt(pszRegName, TEXT("DetectStartEnd"), appState->_audioProcessing->DetectStartEnd);
+    appState->_audioProcessing->Noise.AttackTimeMS = GetProfileInt(pszRegName, TEXT("NoiseAttackTimeMS"), appState->_audioProcessing->Noise.AttackTimeMS);
+    appState->_audioProcessing->Noise.ReleaseTimeMS = GetProfileInt(pszRegName, TEXT("NoiseReleaseTimeMS"), appState->_audioProcessing->Noise.ReleaseTimeMS);
+    appState->_audioProcessing->Noise.HoldTimeMS = GetProfileInt(pszRegName, TEXT("NoiseHoldTimeMS"), appState->_audioProcessing->Noise.HoldTimeMS);
+    appState->_audioProcessing->Noise.OpenThresholdDB = GetProfileInt(pszRegName, TEXT("NoiseOpenThresholdDB"), appState->_audioProcessing->Noise.OpenThresholdDB);
+    appState->_audioProcessing->Noise.CloseThresholdDB = GetProfileInt(pszRegName, TEXT("NoiseCloseThresholdDB"), appState->_audioProcessing->Noise.CloseThresholdDB);
 
     appState->_fUseBoxEgo = GetProfileInt(pszRegName, TEXT("UseBoxEgo"), FALSE);
     appState->_fGridLines = GetProfileInt(pszRegName, TEXT("GridLines"), FALSE);
@@ -523,15 +525,15 @@ void SCICompanionApp::_SaveSettings()
     WriteProfileInt(m_pszAppName, TEXT("FakeEgoY"), appState->_cyFakeEgo);
     WriteProfileInt(m_pszAppName, TEXT("FakeEgoX"), appState->_cxFakeEgo);
 
-    WriteProfileInt(m_pszAppName, TEXT("TrimLeftMS"), appState->_audioProcessing.TrimLeftMS);
-    WriteProfileInt(m_pszAppName, TEXT("TrimRightMS"), appState->_audioProcessing.TrimRightMS);
-    WriteProfileInt(m_pszAppName, TEXT("AutoGain"), appState->_audioProcessing.AutoGain);
-    WriteProfileInt(m_pszAppName, TEXT("DetectStartEnd"), appState->_audioProcessing.DetectStartEnd);
-    WriteProfileInt(m_pszAppName, TEXT("NoiseAttackTimeMS"), appState->_audioProcessing.NoiseAttackTimeMS);
-    WriteProfileInt(m_pszAppName, TEXT("NoiseReleaseTimeMS"), appState->_audioProcessing.NoiseReleaseTimeMS);
-    WriteProfileInt(m_pszAppName, TEXT("NoiseHoldTimeMS"), appState->_audioProcessing.NoiseHoldTimeMS);
-    WriteProfileInt(m_pszAppName, TEXT("NoiseOpenThresholdDB"), appState->_audioProcessing.NoiseOpenThresholdDB);
-    WriteProfileInt(m_pszAppName, TEXT("NoiseCloseThresholdDB"), appState->_audioProcessing.NoiseCloseThresholdDB);
+    WriteProfileInt(m_pszAppName, TEXT("TrimLeftMS"), appState->_audioProcessing->TrimLeftMS);
+    WriteProfileInt(m_pszAppName, TEXT("TrimRightMS"), appState->_audioProcessing->TrimRightMS);
+    WriteProfileInt(m_pszAppName, TEXT("AutoGain"), appState->_audioProcessing->AutoGain);
+    WriteProfileInt(m_pszAppName, TEXT("DetectStartEnd"), appState->_audioProcessing->DetectStartEnd);
+    WriteProfileInt(m_pszAppName, TEXT("NoiseAttackTimeMS"), appState->_audioProcessing->Noise.AttackTimeMS);
+    WriteProfileInt(m_pszAppName, TEXT("NoiseReleaseTimeMS"), appState->_audioProcessing->Noise.ReleaseTimeMS);
+    WriteProfileInt(m_pszAppName, TEXT("NoiseHoldTimeMS"), appState->_audioProcessing->Noise.HoldTimeMS);
+    WriteProfileInt(m_pszAppName, TEXT("NoiseOpenThresholdDB"), appState->_audioProcessing->Noise.OpenThresholdDB);
+    WriteProfileInt(m_pszAppName, TEXT("NoiseCloseThresholdDB"), appState->_audioProcessing->Noise.CloseThresholdDB);
 
     WriteProfileInt(m_pszAppName, TEXT("UseBoxEgo"), appState->_fUseBoxEgo);
     WriteProfileInt(m_pszAppName, TEXT("GridLines"), appState->_fGridLines);

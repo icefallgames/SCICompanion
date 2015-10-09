@@ -20,7 +20,7 @@ AudioWaveformUI::~AudioWaveformUI() {}
 AudioWaveformUI::AudioWaveformUI() : AudioWaveformUI("") {}
 
 AudioWaveformUI::AudioWaveformUI(const std::string &label)
-    : CStatic(), _streamPosition(0), _audioComponent(nullptr), _label(label)
+    : CStatic(), _streamPosition(0), _audioComponent(nullptr), _label(label), _selected(true)
 {
 }
 
@@ -50,6 +50,13 @@ COLORREF g_phonemeColors[] =
 void AudioWaveformUI::SetResource(const AudioComponent *audio)
 {
     _audioComponent = audio;
+    _pbitmapDoubleBuf.reset(nullptr);
+    Invalidate(FALSE);
+}
+
+void AudioWaveformUI::SetSelected(bool selected)
+{
+    _selected = selected;
     _pbitmapDoubleBuf.reset(nullptr);
     Invalidate(FALSE);
 }
@@ -250,7 +257,7 @@ void AudioWaveformUI::_DrawWaveform(CDC *pDC, LPRECT prc)
 
         if (!points.empty())
         {
-            CPen pen(PS_SOLID, 1, RGB(0, 0, 128));
+            CPen pen(PS_SOLID, 1, _selected ? RGB(0, 0, 128) : RGB(64, 64, 128));
             HGDIOBJ hOld = dcMem.SelectObject(pen);
             dcMem.PolyPolyline(&points[0], &pointCounts[0], (int)pointCounts.size());
             dcMem.SelectObject(hOld);

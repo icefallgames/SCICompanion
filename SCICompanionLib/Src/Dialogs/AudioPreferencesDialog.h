@@ -37,4 +37,5 @@ public:
     afx_msg void OnCbnSelchangeComboMididevice();
     afx_msg void OnBnClickedButtonRepackage();
     afx_msg void OnBnClickedButtonClearAudioCache();
+    afx_msg void OnCbnSelchangeComboPreset();
 };

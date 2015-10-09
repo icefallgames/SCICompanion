@@ -203,6 +203,7 @@ void ExtractLipSyncDialog::_SyncViewLoop()
         if (!_wantToUseSample)
         {
             _viewResource = appState->GetResourceMap().CreateResourceFromNumber(ResourceType::View, _nView);
+            _actuallyUsingSample = false;
         }
         if (!_viewResource)
         {

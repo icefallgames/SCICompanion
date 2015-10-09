@@ -8,7 +8,7 @@
 // AudioPreferencesDialog dialog
 
 AudioPreferencesDialog::AudioPreferencesDialog(CWnd* pParent /*=NULL*/)
-    : CExtResizableDialog(AudioPreferencesDialog::IDD, pParent), _audioProcessingSettingsUI(appState->_audioProcessing)
+    : CExtResizableDialog(AudioPreferencesDialog::IDD, pParent), _audioProcessingSettingsUI(*appState->_audioProcessing)
 {
 }
 
@@ -59,6 +59,7 @@ BEGIN_MESSAGE_MAP(AudioPreferencesDialog, CExtResizableDialog)
     ON_CBN_SELCHANGE(IDC_COMBO_MIDIDEVICE, &AudioPreferencesDialog::OnCbnSelchangeComboMididevice)
     ON_BN_CLICKED(IDC_BUTTON_REPACKAGE, &AudioPreferencesDialog::OnBnClickedButtonRepackage)
     ON_BN_CLICKED(IDC_BUTTON_CLEARAUDIOCACHE, &AudioPreferencesDialog::OnBnClickedButtonClearAudioCache)
+    ON_CBN_SELCHANGE(IDC_COMBO_PRESET2, &AudioPreferencesDialog::OnCbnSelchangeComboPreset)
 END_MESSAGE_MAP()
 
 
@@ -95,4 +96,10 @@ void AudioPreferencesDialog::OnBnClickedButtonClearAudioCache()
         std::unique_ptr<AudioCacheResourceSource> cache = std::make_unique<AudioCacheResourceSource>(appState->GetVersion(), appState->GetResourceMap().GetGameFolder(), -1, ResourceSourceAccessFlags::ReadWrite);
         cache->Clear();
     }
+}
+
+void AudioPreferencesDialog::OnCbnSelchangeComboPreset()
+{
+    _audioProcessingSettingsUI.OnCbnSelchangeComboPreset();
+    UpdateData(FALSE);
 }

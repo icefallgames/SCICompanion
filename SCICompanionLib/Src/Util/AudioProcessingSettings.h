@@ -1,5 +1,14 @@
 #pragma once
 
+struct NoiseSettings
+{
+    uint32_t AttackTimeMS;
+    uint32_t ReleaseTimeMS;
+    uint32_t HoldTimeMS;
+    int32_t OpenThresholdDB;
+    int32_t CloseThresholdDB;
+};
+
 struct AudioProcessingSettings
 {
     AudioProcessingSettings() : 
@@ -8,11 +17,7 @@ struct AudioProcessingSettings
         TrimRightMS(0),
         AutoGain(FALSE),
         DetectStartEnd(FALSE),
-        NoiseAttackTimeMS(0),
-        NoiseReleaseTimeMS(0),
-        NoiseHoldTimeMS(0),
-        NoiseOpenThresholdDB(0),
-        NoiseCloseThresholdDB(0)
+        Noise()
     {
     }
 
@@ -24,9 +29,5 @@ struct AudioProcessingSettings
     BOOL DetectStartEnd;
 
     // Noise settings
-    uint32_t NoiseAttackTimeMS;
-    uint32_t NoiseReleaseTimeMS;
-    uint32_t NoiseHoldTimeMS;
-    int32_t NoiseOpenThresholdDB;
-    int32_t NoiseCloseThresholdDB;
+    NoiseSettings Noise;
 };

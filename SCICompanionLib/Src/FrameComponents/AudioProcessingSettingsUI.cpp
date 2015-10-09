@@ -2,6 +2,34 @@
 #include "resource.h"
 #include "AudioProcessingSettingsUI.h"
 
+struct NoisePreset
+{
+    NoiseSettings Settings;
+    std::string Description;
+};
+
+NoiseSettings noop = { 0, 0, 0, 0, 0 };
+
+NoisePreset noNoiseGate =
+{
+    { 0, 0, 0, -99, -99 }, "No noise gate"
+};
+NoisePreset strongNoiseGate =
+{
+    { 15, 50, 50, -18, -22}, "Strong (good for 8-bit)"
+};
+NoisePreset moderateNoiseGate =
+{
+    { 15, 50, 50, -22, -28 }, "Moderate (good for 16-bit)"
+};
+
+NoisePreset *noisePresets[] =
+{
+    &noNoiseGate,
+    &moderateNoiseGate,
+    &strongNoiseGate
+};
+
 void AudioProcessingSettingsUI::DoDataExchangeHelper(CDataExchange* pDX)
 {
     DDX_Text(pDX, IDC_EDIT_TRIMLEFT, _settings.TrimLeftMS);
@@ -9,16 +37,16 @@ void AudioProcessingSettingsUI::DoDataExchangeHelper(CDataExchange* pDX)
     DDX_Text(pDX, IDC_EDIT_TRIMRIGHT, _settings.TrimRightMS);
     DDV_MinMaxInt(pDX, _settings.TrimRightMS, 0, 1000);
 
-    DDX_Text(pDX, IDC_EDIT_ATTACK, _settings.NoiseAttackTimeMS);
-    DDV_MinMaxInt(pDX, _settings.NoiseAttackTimeMS, 0, 300);
-    DDX_Text(pDX, IDC_EDIT_RELEASE, _settings.NoiseReleaseTimeMS);
-    DDV_MinMaxInt(pDX, _settings.NoiseReleaseTimeMS, 0, 300);
-    DDX_Text(pDX, IDC_EDIT_HOLD, _settings.NoiseHoldTimeMS);
-    DDV_MinMaxInt(pDX, _settings.NoiseHoldTimeMS, 0, 300);
-    DDX_Text(pDX, IDC_EDIT_OPENTHR, _settings.NoiseOpenThresholdDB);
-    DDV_MinMaxInt(pDX, _settings.NoiseOpenThresholdDB, -99, 0);
-    DDX_Text(pDX, IDC_EDIT_CLOSETHR, _settings.NoiseCloseThresholdDB);
-    DDV_MinMaxInt(pDX, _settings.NoiseCloseThresholdDB, -99, 0);
+    DDX_Text(pDX, IDC_EDIT_ATTACK, _settings.Noise.AttackTimeMS);
+    DDV_MinMaxInt(pDX, _settings.Noise.AttackTimeMS, 0, 300);
+    DDX_Text(pDX, IDC_EDIT_RELEASE, _settings.Noise.ReleaseTimeMS);
+    DDV_MinMaxInt(pDX, _settings.Noise.ReleaseTimeMS, 0, 300);
+    DDX_Text(pDX, IDC_EDIT_HOLD, _settings.Noise.HoldTimeMS);
+    DDV_MinMaxInt(pDX, _settings.Noise.HoldTimeMS, 0, 300);
+    DDX_Text(pDX, IDC_EDIT_OPENTHR, _settings.Noise.OpenThresholdDB);
+    DDV_MinMaxInt(pDX, _settings.Noise.OpenThresholdDB, -99, 0);
+    DDX_Text(pDX, IDC_EDIT_CLOSETHR, _settings.Noise.CloseThresholdDB);
+    DDV_MinMaxInt(pDX, _settings.Noise.CloseThresholdDB, -99, 0);
 
     DDX_Check(pDX, IDC_CHECK_AUTOGAIN, _settings.AutoGain);
     DDX_Check(pDX, IDC_CHECK_DETECTSTARTEND, _settings.DetectStartEnd);
@@ -30,6 +58,25 @@ void AudioProcessingSettingsUI::DoDataExchangeHelper(CDataExchange* pDX)
     DDX_Control(pDX, IDC_STATIC_OPENTHR, m_wndLabel4);
     DDX_Control(pDX, IDC_STATIC_CLOSETHR, m_wndLabel5);
     DDX_Control(pDX, IDC_STATIC_TRIM, m_wndLabel6);
+    DDX_Control(pDX, IDC_STATIC_PRESET, m_wndLabel6);
     DDX_Control(pDX, IDC_CHECK_AUTOGAIN, m_wndCheck1);
     DDX_Control(pDX, IDC_CHECK_DETECTSTARTEND, m_wndCheck2);
+    DDX_Control(pDX, IDC_COMBO_PRESET2, m_wndComboPreset);
+
+    if (m_wndComboPreset.GetCount() == 0)
+    {
+        for (NoisePreset *preset : noisePresets)
+        {
+            m_wndComboPreset.AddString(preset->Description.c_str());
+        }
+    }
+}
+
+void AudioProcessingSettingsUI::OnCbnSelchangeComboPreset()
+{
+    int curSel = m_wndComboPreset.GetCurSel();
+    if (curSel != CB_ERR)
+    {
+        _settings.Noise = noisePresets[curSel]->Settings;
+    }
 }

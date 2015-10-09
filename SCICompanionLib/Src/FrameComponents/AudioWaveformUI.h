@@ -27,6 +27,7 @@ public:
     void SetStreamPosition(uint32_t streamPosition);
     void SetRawLipSyncData(std::vector<alignment_result> &rawLipSyncData);
     void SetRawLipSyncData(const SyncComponent &sync);
+    void SetSelected(bool selected);
 
 private:
     afx_msg void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct) override;
@@ -44,4 +45,5 @@ private:
     std::vector<UILipSyncData> _rawLipSyncData;
     CSize _sizeDoubleBuf;
     std::string _label;
+    bool _selected;
 };

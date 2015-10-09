@@ -6,7 +6,6 @@
 #include "IntellisenseListBox.h"
 #include "ColoredToolTip.h"
 #include "CompileInterfaces.h"
-#include "AudioProcessingSettings.h"
 
 class AutoCompleteThread2;
 class CScriptView;
@@ -22,6 +21,7 @@ class CScriptDoc;
 class ResourceEntity;
 class CResourceListDoc;
 class AppState;
+struct AudioProcessingSettings;
 
 template<typename _TPayload, typename _TResponse>
 class BackgroundScheduler;
@@ -148,7 +148,7 @@ public:
     BOOL _fPlayCompileErrorSound;
     BOOL _fUseOriginalAspectRatio;
     std::string _midiDeviceName;
-    AudioProcessingSettings _audioProcessing;
+    std::unique_ptr<AudioProcessingSettings> _audioProcessing;
 
     BOOL _fNoGdiPlus;   // GDI+ is not available
 

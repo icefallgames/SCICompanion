@@ -46,25 +46,48 @@ void AudioEditDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_WAVEFORM, m_wndWaveformNegative);
     DDX_Control(pDX, IDC_WAVEFORM2, m_wndWaveformFinal);
     DDX_Control(pDX, IDC_BUTTON_PROCESS, m_wndButtonProcess);
-    
+    DDX_Control(pDX, IDC_RADIO_NEGATIVE, m_wndCheckNegative);
+    DDX_Control(pDX, IDC_RADIO_FINAL, m_wndCheckFinal);
+    DDX_Control(pDX, IDC_COMBO_BIT, m_wndComboBit);
 
-    m_wndWaveformNegative.SetResource(&_negative->Audio);
+    if (!pDX->m_bSaveAndValidate)
+    {
+        m_wndCheckFinal.SetCheck(BST_CHECKED);
+        m_wndButtonProcess.SetIcon(IDI_REFRESH, 0, 0, 0, 16, 16);
+        m_wndComboBit.SetCurSel(IsFlagSet(_audio->Flags, AudioFlags::SixteenBit) ? 1 : 0);
 
-    m_wndWaveformFinal.SetResource(_audio.get());
+        m_wndWaveformNegative.SetResource(&_negative->Audio);
 
-    SetWaveformElement(&m_wndWaveformFinal);
+        m_wndWaveformFinal.SetResource(_audio.get());
 
-    _UpdatePlayback();
+        SetWaveformElement(&m_wndWaveformFinal);
+
+        _UpdatePlayback();
+    }
 }
 
 void AudioEditDialog::_UpdatePlayback()
 {
-    // TODO: Choose based on radio
-    SetAudioResource(_audio.get());
+    bool finalChecked = m_wndCheckFinal.GetCheck() == BST_CHECKED;
+    if (finalChecked)
+    {
+        SetAudioResource(_audio.get());
+    }
+    else
+    {
+        SetAudioResource(&_negative->Audio);
+    }
+    SetWaveformElement(finalChecked ? &m_wndWaveformFinal : &m_wndWaveformNegative);
+    m_wndWaveformFinal.SetSelected(finalChecked);
+    m_wndWaveformNegative.SetSelected(!finalChecked);
 }
 
 BEGIN_MESSAGE_MAP(AudioEditDialog, AudioPlaybackUI<CExtResizableDialog>)
     ON_BN_CLICKED(IDC_BUTTON_PROCESS, &AudioEditDialog::OnBnClickedButtonProcess)
+    ON_BN_CLICKED(IDC_RADIO_NEGATIVE, &AudioEditDialog::OnBnClickedRadioNegative)
+    ON_BN_CLICKED(IDC_RADIO_FINAL, &AudioEditDialog::OnBnClickedRadioFinal)
+    ON_CBN_SELCHANGE(IDC_COMBO_BIT, &AudioEditDialog::OnCbnSelchangeComboBit)
+    ON_CBN_SELCHANGE(IDC_COMBO_PRESET2, &AudioEditDialog::OnCbnSelchangeComboPreset)
 END_MESSAGE_MAP()
 
 
@@ -90,4 +113,43 @@ void AudioEditDialog::OnBnClickedButtonProcess()
     m_wndWaveformFinal.SetResource(_audio.get());
     _UpdatePlayback();
     _changed = true;
+}
+
+
+void AudioEditDialog::OnBnClickedRadioNegative()
+{
+    m_wndCheckFinal.SetCheck(BST_UNCHECKED);
+    _UpdatePlayback();
+}
+
+
+void AudioEditDialog::OnBnClickedRadioFinal()
+{
+    m_wndCheckNegative.SetCheck(BST_UNCHECKED);
+    _UpdatePlayback();
+}
+
+
+void AudioEditDialog::OnCbnSelchangeComboBit()
+{
+    int curSel = m_wndComboBit.GetCurSel();
+    if (curSel != CB_ERR)
+    {
+        if (curSel == 0)
+        {
+            _audio->Flags &= ~AudioFlags::SixteenBit;
+        }
+        else
+        {
+            _audio->Flags |= AudioFlags::SixteenBit;
+        }
+        // Process, so that the data in the audio matches the bit depth we just set.
+        OnBnClickedButtonProcess();
+    }
+}
+
+void AudioEditDialog::OnCbnSelchangeComboPreset()
+{
+    _audioProcessingSettingsUI.OnCbnSelchangeComboPreset();
+    UpdateData(FALSE);
 }

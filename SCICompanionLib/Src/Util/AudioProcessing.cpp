@@ -51,11 +51,11 @@ float dbToRms(float db)
 
 void ApplyNoiseGate(float *buffer, int totalFloats, float sampleRate, const AudioProcessingSettings &settings)
 {
-    const float AttackTime = (float)settings.NoiseAttackTimeMS / 1000.0f;
-    const float ReleaseTime = (float)settings.NoiseReleaseTimeMS / 1000.0f;
-    const float HoldTime = (float)settings.NoiseHoldTimeMS / 1000.0f;
-    const float OpenThresholdDb = (float)settings.NoiseOpenThresholdDB;
-    const float CloseThresholdDb = (float)settings.NoiseCloseThresholdDB;
+    const float AttackTime = (float)settings.Noise.AttackTimeMS / 1000.0f;
+    const float ReleaseTime = (float)settings.Noise.ReleaseTimeMS / 1000.0f;
+    const float HoldTime = (float)settings.Noise.HoldTimeMS / 1000.0f;
+    const float OpenThresholdDb = (float)settings.Noise.OpenThresholdDB;
+    const float CloseThresholdDb = (float)settings.Noise.CloseThresholdDB;
 
     float attenuation = 0.0f;
     float level = 0.0f;
@@ -136,18 +136,20 @@ void ProcessSound(const AudioNegativeComponent &negative, AudioComponent &audioF
 
     if (!buffer.empty())
     {
+        ApplyNoiseGate(&buffer[0], buffer.size(), negative.Audio.Frequency, negative.Settings);
+
+        // I figure autogain should be applied after the noise gate, otherwise we'll need different noise settings
+        // for every single "volume" of source audio.
         if (negative.Settings.AutoGain)
         {
             ApplyAutoGain(&buffer[0], buffer.size());
         }
 
-        ApplyNoiseGate(&buffer[0], buffer.size(), negative.Audio.Frequency, negative.Settings);
-
         // This makes most sense after a noise gate has been applied:
         if (negative.Settings.DetectStartEnd)
         {
             // Remove quiet at end:
-            while (buffer.back() == 0.0f)
+            while (!buffer.empty() && (buffer.back() == 0.0f))
             {
                 buffer.pop_back();
             }
