@@ -120,9 +120,11 @@ void ApplyNoiseGate(float *buffer, int totalFloats, float sampleRate, const Audi
 }
 
 
-void ProcessSound(const AudioNegativeComponent &negative, AudioComponent &audioFinal)
+void ProcessSound(const AudioNegativeComponent &negative, AudioComponent &audioFinal, AudioFlags finalFlags)
 {
     audioFinal.DigitalSamplePCM.clear();
+    audioFinal.Frequency = negative.Audio.Frequency;
+    audioFinal.Flags = finalFlags;
 
     std::vector<float> buffer;
     int blockAlign = 2;
@@ -173,7 +175,7 @@ void ProcessSound(const AudioNegativeComponent &negative, AudioComponent &audioF
     std::vector<int16_t> processedSound;
     FloatToSixteenBit(buffer, processedSound);
 
-    if (IsFlagSet(audioFinal.Flags, AudioFlags::SixteenBit))
+    if (IsFlagSet(finalFlags, AudioFlags::SixteenBit))
     {
         // Just a straight copy
         uint8_t *asBytes = reinterpret_cast<uint8_t*>(&processedSound[0]);

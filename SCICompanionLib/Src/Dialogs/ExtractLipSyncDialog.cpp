@@ -14,6 +14,7 @@
 #include "AudioMap.h"
 #include "AudioEditDialog.h"
 #include "AudioNegative.h"
+#include "AudioProcessing.h"
 
 #define LIPSYNC_TIMER 2345
 
@@ -340,7 +341,18 @@ LipSyncDialogTaskResult CreateLipSyncComponentAndRawDataFromAudioAndPhonemes(con
 
 void ExtractLipSyncDialog::OnBnClickedGeneratelipsync()
 {
-    AudioComponent audioCopy = *_audio;
+    AudioComponent audioCopy;
+    if (_audioResource->TryGetComponent<AudioNegativeComponent>())
+    {
+        // If we have an audio negative, use it for generating lipsync data. The data is higher quality when generated
+        // with sixteen bit audio.
+        ProcessSound(_audioResource->GetComponent<AudioNegativeComponent>(), audioCopy, AudioFlags::SixteenBit);
+    }
+    else
+    {
+        audioCopy = _audioResource->GetComponent<AudioComponent>();
+    }
+
     if (_phonemeMap)
     {
         if (!_phonemeMap->IsEmpty() ||

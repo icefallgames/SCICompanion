@@ -109,7 +109,7 @@ void AudioEditDialog::OnOK()
 void AudioEditDialog::OnBnClickedButtonProcess()
 {
     UpdateData(TRUE);   // So that audio processing settings gets updated from the UI.
-    ProcessSound(*_negative, *_audio);
+    ProcessSound(*_negative, *_audio, _audio->Flags);
     m_wndWaveformFinal.SetResource(_audio.get());
     _UpdatePlayback();
     _changed = true;

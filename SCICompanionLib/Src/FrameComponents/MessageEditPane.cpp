@@ -16,6 +16,8 @@
 #include "PhonemeMap.h"
 #include "Sync.h"
 #include "LipSyncUtil.h"
+#include "AudioProcessing.h"
+#include "AudioNegative.h"
 
 #define MOUTH_TIMER 9753
 
@@ -707,9 +709,21 @@ SyncComponent CreateLipSyncComponentFromAudioAndPhonemes2(const AudioComponent &
 
 void MessageEditPane::OnBnClickedButtonlipsync()
 {
-    if (_audio)
+    const ResourceEntity *resource = _pDoc->GetResource();
+    if (resource)
     {
-        AudioComponent audioCopy = *_audio;
+        AudioComponent audioCopy;
+        if (resource->TryGetComponent<AudioNegativeComponent>())
+        {
+            // If we have an audio negative, use it for generating lipsync data. The data is higher quality when generated
+            // with sixteen bit audio.
+            ProcessSound(resource->GetComponent<AudioNegativeComponent>(), audioCopy, AudioFlags::SixteenBit);
+        }
+        else
+        {
+            audioCopy = resource->GetComponent<AudioComponent>();
+        }
+
         const TextEntry *entry = _GetEntry();
         std::string optionalText;
         if (m_wndUseText.GetCheck() == BST_CHECKED)

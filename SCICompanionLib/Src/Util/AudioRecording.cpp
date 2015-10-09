@@ -46,7 +46,7 @@ void AudioRecording::Cleanup(AudioComponent *audio, AudioNegativeComponent *audi
                     audio->Frequency = _recordingFreq;
                     audio->DigitalSamplePCM.clear();
 
-                    ProcessSound(*audioNeg, *audio);
+                    ProcessSound(*audioNeg, *audio, audio->Flags);
                 }
             }
         }
