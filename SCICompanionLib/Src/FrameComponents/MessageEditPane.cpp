@@ -18,6 +18,7 @@
 #include "LipSyncUtil.h"
 #include "AudioProcessing.h"
 #include "AudioNegative.h"
+#include "AudioEditDialog.h"
 
 #define MOUTH_TIMER 9753
 
@@ -92,7 +93,9 @@ void MessageEditPane::DoDataExchange(CDataExchange* pDX)
 
         DDX_Control(pDX, IDC_BUTTONDELETEAUDIO, m_wndDeleteAudio);
         m_wndDeleteAudio.SetIcon(IDI_DELETE, 0, 0, 0, 16, 16);
-        
+
+        DDX_Control(pDX, IDC_EDITAUDIO, m_wndEditAudio);
+        m_wndEditAudio.SetIcon(IDI_EDITPALETTE, 0, 0, 0, 24, 24);
     }
     DDX_Text(pDX, IDC_EDITSEQ, _spinnerValue);
 }
@@ -123,6 +126,7 @@ BEGIN_MESSAGE_MAP(MessageEditPane, AudioPlaybackUI<CExtDialogFwdCmd>)
     ON_BN_CLICKED(IDC_BUTTONLIPSYNC, &MessageEditPane::OnBnClickedButtonlipsync)
     ON_BN_CLICKED(IDC_BUTTONLIPSYNC_DIALOG, &MessageEditPane::OnBnClickedButtonlipsyncDialog)
     ON_BN_CLICKED(IDC_BUTTONDELETEAUDIO, &MessageEditPane::OnBnClickedButtondeleteaudio)
+    ON_BN_CLICKED(IDC_EDITAUDIO, &MessageEditPane::OnBnClickedEditaudio)
 END_MESSAGE_MAP()
 
 void MessageEditPane::OnPlayAudio()
@@ -220,6 +224,7 @@ BOOL MessageEditPane::OnInitDialog()
     AddAnchor(IDC_STATIC_REC, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_CHECK_USETEXT, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_BUTTONDELETEAUDIO, CPoint(100, 0), CPoint(100, 0));
+    AddAnchor(IDC_EDITAUDIO, CPoint(100, 0), CPoint(100, 0));
 
     // Hide the sizing grip
     ShowSizeGrip(FALSE);
@@ -438,6 +443,9 @@ void MessageEditPane::_Update()
             _UpdateComboFromValue(m_wndComboCondition, entry->Condition, &nounsAndCases.GetCases());
 
             hasAudio = _UpdateAudio(*entry);
+
+            // Enable the edit button if there's a negative
+            m_wndEditAudio.EnableWindow(_pDoc->GetAudioResource()->TryGetComponent<AudioNegativeComponent>() ? TRUE : FALSE);
         }
         else
         {
@@ -466,6 +474,7 @@ void MessageEditPane::_Update()
     m_wndLipSyncDialog.ShowWindow(cmdShowHasAudio);
     m_wndUseText.ShowWindow(cmdShowHasAudio);
     m_wndDeleteAudio.ShowWindow(cmdShowHasAudio);
+    m_wndEditAudio.ShowWindow(cmdShowHasAudio);
 }
 
 void MessageEditPane::SetDocument(CDocument *pDoc)
@@ -801,4 +810,19 @@ void MessageEditPane::OnBnClickedButtondeleteaudio()
             _pDoc->SetAudioResource(nullptr);
         }
     }
+}
+
+void MessageEditPane::OnBnClickedEditaudio()
+{
+    _audioPlayback.Stop();
+    _pDoc->ModifyCurrentAudioResource(
+        [](ResourceEntity &audioResource)
+    {
+        AudioEditDialog dialog(audioResource);
+        if (IDOK == dialog.DoModal())
+        {
+        }
+    }
+    );
+    _Update();
 }

@@ -94,6 +94,7 @@ private:
     CExtButton m_wndButtonFakeCommit;
     CExtSpinWnd m_wndSpinner;
     CExtButton m_wndDeleteAudio;
+    CExtButton m_wndEditAudio;
 
     // Lipsync stuff
     ViewUIElement m_wndMouth;
@@ -137,4 +138,5 @@ public:
     LRESULT _OnLipSyncDone(WPARAM wParam, LPARAM lParam);
     afx_msg void OnBnClickedButtonlipsyncDialog();
     afx_msg void OnBnClickedButtondeleteaudio();
+    afx_msg void OnBnClickedEditaudio();
 };

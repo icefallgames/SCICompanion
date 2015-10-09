@@ -739,7 +739,6 @@
 #define IDC_COMBO_BIT                   1363
 #define IDC_RADIO_NEGATIVE              1364
 #define IDC_RADIO_FINAL                 1365
-#define IDC_COMBO_PRESET                1365
 #define IDC_COMBO_PRESET2               1366
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
