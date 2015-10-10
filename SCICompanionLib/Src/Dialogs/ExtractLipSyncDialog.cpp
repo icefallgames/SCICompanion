@@ -38,7 +38,7 @@ struct LipSyncDialogTaskResult
 // ExtractLipSyncDialog dialog
 
 ExtractLipSyncDialog::ExtractLipSyncDialog(const ResourceEntity &resource, uint8_t talker, const std::string &talkerName, const std::string &messageText, bool useText, CWnd * pParent /*=NULL*/)
-    : AudioPlaybackUI<CExtResizableDialog>(ExtractLipSyncDialog::IDD, pParent),
+    : AudioPlaybackUI<ToolTipDialog>(ExtractLipSyncDialog::IDD, pParent),
     _talker(talker),
     _talkerName(talkerName),
     _initialized(false),
@@ -316,7 +316,7 @@ LRESULT ExtractLipSyncDialog::_OnLipSyncDone(WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
-BEGIN_MESSAGE_MAP(ExtractLipSyncDialog, AudioPlaybackUI<CExtResizableDialog>)
+BEGIN_MESSAGE_MAP(ExtractLipSyncDialog, AudioPlaybackUI<ToolTipDialog>)
     ON_WM_DESTROY()
     ON_MESSAGE(UWM_LIPSYNCTASKDONE, _OnLipSyncDone)
     ON_BN_CLICKED(IDC_BUTTON_RESETMAPPING, &ExtractLipSyncDialog::OnBnClickedButtonResetmapping)

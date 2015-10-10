@@ -3137,6 +3137,23 @@ BEGIN
     ID_TOOLS_REPACKAGEAUDIO "Repackage audio files so they can be used by the game\nRepackage audio files"
 END
 
+STRINGTABLE
+BEGIN
+    IDC_EDITAUDIO           "Re-process the audio based on the original recording"
+    IDC_EDITPHONEMEMAP      "Edit the phoneme map for this view/loop"
+END
+
+STRINGTABLE
+BEGIN
+    IDC_BUTTON_SETVIEW      "Set the view/loop for this talker"
+    IDC_CHECK_USESAMPLE     "Use a sample view just to check lip-sync accuracy"
+END
+
+STRINGTABLE
+BEGIN
+    IDC_CHECK_USETEXT       "Use text (in addition to audio) when generating lip sync data"
+END
+
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 

@@ -9,6 +9,7 @@
 #include <codecvt>
 #include "SoundUtil.h"
 #include "AppState.h"
+#include <regex>
 
 // 60 ticks per second
 uint16_t MillisecondsToSCITicks(long ms)
@@ -34,6 +35,14 @@ void AddSyncEntry(SyncComponent &sync, uint16_t ticks, uint16_t cel)
         // Otherwise add
         sync.Entries.emplace_back(ticks, cel);
     }
+}
+
+std::string RemoveVocalCues(const std::string text)
+{
+    std::regex pattern1("\\([^)]+\\)");
+    std::string temp = std::regex_replace(text, pattern1, "");
+    std::regex pattern2("\\|[^)]+\\|");
+    return std::regex_replace(temp, pattern2, "");
 }
 
 std::unique_ptr<SyncComponent> CreateLipSyncComponentFromPhonemes(const PhonemeMap &phonemeMap, const std::vector<alignment_result> &alignments)
@@ -98,7 +107,8 @@ void CreateLipSyncDataFromWav(const std::string &wavePath, const std::string &op
 
             std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
             std::wstring wfilename = converter.from_bytes(wavePath);
-            std::wstring optionalText = converter.from_bytes(optionalTextIn);
+            std::string optionalTextTemp = RemoveVocalCues(optionalTextIn);
+            std::wstring optionalText = converter.from_bytes(optionalTextTemp);
 
             // 2. declare the sapi lipsync object and call the lipsync method to
             // start the lipsync process

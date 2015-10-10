@@ -147,6 +147,7 @@ public:
     BOOL _fHoverTips;
     BOOL _fPlayCompileErrorSound;
     BOOL _fUseOriginalAspectRatio;
+    BOOL _fShowToolTips;
     std::string _midiDeviceName;
     std::unique_ptr<AudioProcessingSettings> _audioProcessing;
 

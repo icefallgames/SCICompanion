@@ -106,6 +106,7 @@ AppState::AppState(CWinApp *pApp)
     _fHoverTips = TRUE;
     _fPlayCompileErrorSound = TRUE;
     _fUseOriginalAspectRatio = false;
+    _fShowToolTips = TRUE;
 
     _pVocabTemplate = NULL;
     _pPicTemplate = NULL;

@@ -226,6 +226,7 @@
     <ClCompile Include="Src\Dialogs\PhonemeDialog.cpp" />
     <ClCompile Include="Src\Dialogs\PicDimensionsDialog.cpp" />
     <ClCompile Include="Src\Dialogs\PrepareBitmapBase.cpp" />
+    <ClCompile Include="Src\Dialogs\ToolTipDialog.cpp" />
     <ClCompile Include="Src\FrameComponents\AudioProcessingSettingsUI.cpp" />
     <ClCompile Include="Src\FrameComponents\AudioWaveformUI.cpp" />
     <ClCompile Include="Src\FrameComponents\ExtTabControl.cpp" />
@@ -302,6 +303,7 @@
     <ClInclude Include="Src\Dialogs\PaletteEditorCommon.h" />
     <ClInclude Include="Src\Dialogs\PaletteEditorDialog.h" />
     <ClInclude Include="Src\Dialogs\PicDimensionsDialog.h" />
+    <ClInclude Include="Src\Dialogs\ToolTipDialog.h" />
     <ClInclude Include="Src\FrameComponents\AudioPlaybackUI.h" />
     <ClInclude Include="Src\FrameComponents\AudioProcessingSettingsUI.h" />
     <ClInclude Include="Src\FrameComponents\AudioWaveformUI.h" />

@@ -5,6 +5,7 @@
 #include "ViewUIElement.h"
 #include "AudioWaveformUI.h"
 #include "Task.h"
+#include "ToolTipDialog.h"
 
 class PhonemeMap;
 struct AudioComponent;
@@ -13,7 +14,7 @@ class ResourceEntity;
 class alignment_result;
 struct LipSyncDialogTaskResult;
 
-class ExtractLipSyncDialog : public AudioPlaybackUI<CExtResizableDialog>
+class ExtractLipSyncDialog : public AudioPlaybackUI<ToolTipDialog>
 {
 public:
     ExtractLipSyncDialog(const ResourceEntity &resource, uint8_t talker, const std::string &talkerName, const std::string &messageText, bool useText, CWnd* pParent = NULL);   // standard constructor
