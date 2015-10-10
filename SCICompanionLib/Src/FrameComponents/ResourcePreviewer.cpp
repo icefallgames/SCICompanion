@@ -31,7 +31,7 @@ BOOL ResourcePreviewer::OnInitDialog()
     return fRet;
 }
 
-BEGIN_MESSAGE_MAP(ResourcePreviewer, CExtResizableDialog)
+BEGIN_MESSAGE_MAP(ResourcePreviewer, ToolTipDialog)
     ON_WM_WINDOWPOSCHANGED()
 END_MESSAGE_MAP()
 

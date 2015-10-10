@@ -6,6 +6,7 @@
 #include "FontPreviewView.h"
 #include "NoFlickerStatic.h"
 #include "AudioPlaybackUI.h"
+#include "ToolTipDialog.h"
 // ResourcePreviewer dialog
 
 // fwd decl
@@ -14,7 +15,7 @@ class PicDrawManager;
 //
 // Common interface for previewers
 //
-class ResourcePreviewer : public CExtResizableDialog
+class ResourcePreviewer : public ToolTipDialog
 {
 public:
     virtual ~ResourcePreviewer() {}

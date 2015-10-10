@@ -5,13 +5,15 @@
 class ToolTipDialog : public CExtResizableDialog
 {
 public:
+    ToolTipDialog();
     ToolTipDialog(UINT id, CWnd* pParent = nullptr);   // standard constructor
+
+    DECLARE_MESSAGE_MAP()
 
 protected:
     BOOL OnInitDialog();
     BOOL PreTranslateMessage(MSG *pMsg);
 
-    DECLARE_MESSAGE_MAP()
-
+    
     CToolTipCtrl m_wndToolTip;
 };

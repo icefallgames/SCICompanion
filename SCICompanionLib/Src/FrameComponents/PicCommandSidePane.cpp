@@ -57,7 +57,7 @@ void PicCommandSidePane::DoDataExchange(CDataExchange* pDX)
     {
         DDX_Control(pDX, IDC_STATIC2, m_wndPalette);
         DDX_Control(pDX, ID_PIC_EDITPALETTE, m_wndEditPaletteButton);
-        m_wndEditPaletteButton.SetIcon(IDI_EDITPALETTE, 0, 0, 0, 24, 24);
+        m_wndEditPaletteButton.SetIcon(IDI_PALETTEVGA, 0, 0, 0, 24, 24);
         DDX_Control(pDX, IDC_COMBO_PALETTE, m_wndComboPaletteChoices);
 
         DDX_Control(pDX, ID_EDIT_IMPORTPICBACKGROUND, m_wndSetBackground);

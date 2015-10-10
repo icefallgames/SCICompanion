@@ -2,6 +2,11 @@
 #include "ToolTipDialog.h"
 #include "AppState.h"
 
+ToolTipDialog::ToolTipDialog() : CExtResizableDialog()
+{
+
+}
+
 ToolTipDialog::ToolTipDialog(UINT id, CWnd* pParent) : CExtResizableDialog(id, pParent)
 {
 

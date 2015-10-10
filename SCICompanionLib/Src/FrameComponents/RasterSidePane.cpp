@@ -872,7 +872,7 @@ void RasterSidePane::DoDataExchange(CDataExchange* pDX)
         AddAnchor(IDC_COMBO_PALETTE, CPoint(0, 0), CPoint(100, 0));
 
         DDX_Control(pDX, ID_VIEW_EDITPALETTE, m_wndEditPaletteButton);
-        m_wndEditPaletteButton.SetIcon(IDI_EDITPALETTE, 0, 0, 0, 24, 24);
+        m_wndEditPaletteButton.SetIcon(IDI_PALETTEVGA, 0, 0, 0, 24, 24);
         AddAnchor(ID_VIEW_EDITPALETTE, CPoint(100, 0), CPoint(100, 0));
     }
 

@@ -72,7 +72,7 @@ void PicHelperPane::_Sync()
 }
 
 
-BEGIN_MESSAGE_MAP(PicHelperPane, CExtDialogFwdCmd)
+BEGIN_MESSAGE_MAP(PicHelperPane, CExtResizableDialog)
     ON_WM_CREATE()
     ON_WM_ERASEBKGND()
     ON_BN_CLICKED(IDC_CHECKV, &PicHelperPane::OnBnClickedCheckv)
