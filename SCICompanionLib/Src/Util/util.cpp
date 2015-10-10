@@ -473,6 +473,11 @@ std::string MakeTextFile(PCSTR pszContent, const std::string &filename)
 void ShowTextFile(PCSTR pszContent, const std::string &filename)
 {
     std::string actualPath = MakeTextFile(pszContent, filename);
+    ShowFile(actualPath);
+}
+
+void ShowFile(const std::string &actualPath)
+{
     if (!actualPath.empty())
     {
         bool fError = true;

@@ -29,7 +29,8 @@ PhonemeEditor::PhonemeEditor(IPhonemeMapNotify *notify, const ResourceEntity *vi
     _capturing(false),
     _highlightIndex(-1, -1),
     _dragging(false),
-    _notify(notify)
+    _notify(notify),
+    _dragOverIndex(-1, -1)
 {
     
     const RasterComponent &raster = _viewResource->GetComponent<RasterComponent>();
@@ -157,9 +158,9 @@ void PhonemeEditor::_SetHighlight(CPoint index)
     }
 }
 
-void PhonemeEditor::_SetDragOverIndex(CPoint index)
+void PhonemeEditor::_SetDragOverIndex(CPoint index, bool force)
 {
-    if (_dragOverIndex.y != index.y)
+    if (force || (_dragOverIndex.y != index.y))
     {
         _InvalidateRow(index.y);
         _InvalidateRow(_dragOverIndex.y);
@@ -221,7 +222,7 @@ void PhonemeEditor::OnLButtonUp(UINT nFlags, CPoint point)
         _toolTip.Hide();
         ReleaseCapture();
 
-        _dragOverIndex = _HitTest(point);
+        _SetDragOverIndex(_HitTest(point), true);
         if ((_dragOverIndex.y != -1) && (_dragOverIndex.y != _dragSourceIndex.y))
         {
             // Move this phoneme
@@ -242,6 +243,8 @@ void PhonemeEditor::OnLButtonUp(UINT nFlags, CPoint point)
 
             // And notify the dialog...
             _notify->OnMapUpdated();
+
+            _SetDragOverIndex(CPoint(-1, -1), true);
         }
     }
 }
@@ -292,6 +295,23 @@ void PhonemeEditor::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
                     dc.SetTextColor((index == _highlightIndex) ? RGB(255, 255, 255) : RGB(0, 0, 0));
                     CRect rc = _GetIndexRect(index);
                     dc.DrawText(_cache[row][column].c_str(), &rc, DT_SINGLELINE);
+                }
+
+                // Highlight the selected row
+                if (_dragging && (row == _dragOverIndex.y))
+                {
+                    CPen pen(PS_SOLID, 1, RGB(255, 0, 0));
+                    HGDIOBJ hOldPen = dc.SelectObject(pen);
+                    CRect rcRow = _GetRowRect(row);
+                    rcRow.left = ImageBarWidth;
+                    rcRow.right--;
+                    rcRow.bottom--;
+                    dc.MoveTo(rcRow.left, rcRow.top);
+                    dc.LineTo(rcRow.right, rcRow.top);
+                    dc.LineTo(rcRow.right, rcRow.bottom);
+                    dc.LineTo(rcRow.left, rcRow.bottom);
+                    dc.LineTo(rcRow.left, rcRow.top);
+                    dc.SelectObject(hOldPen);
                 }
             }
 
@@ -385,6 +405,7 @@ void PhonemeEditor::_DrawCels(CDC *pDC, LPRECT prc)
 
                 // We want to spread our guys out vertically.
                 int height = RECTHEIGHT(*prc) * maxX / ImageBarWidth;
+
                 int perItemHeight = min(height / celCount, maxY);
 
                 _EnsureSCIBitmap(CSize(maxX, height));
@@ -394,7 +415,10 @@ void PhonemeEditor::_DrawCels(CDC *pDC, LPRECT prc)
                 for (const Cel &cel : loop.Cels)
                 {
                     int y = row * height / celCount;
-                    CopyBitmapData(cel, _dibBits, 0, y + yCenterOffset, CX_ACTUAL(_sciBitmap->GetBitmapDimension().cx), true);
+                    if ((y + cel.size.cy) < height)
+                    {
+                        CopyBitmapData(cel, _dibBits, 0, y + yCenterOffset, CX_ACTUAL(_sciBitmap->GetBitmapDimension().cx), true);
+                    }
                     row++;
                 }
 

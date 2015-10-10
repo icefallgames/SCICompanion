@@ -173,7 +173,8 @@ void ExtractLipSyncDialog::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_STATIC_PHONEME, m_wndStatic3);
         DDX_Control(pDX, IDC_GROUP_VIEWLOOP, m_wndGroupViewLoop);
         DDX_Control(pDX, IDC_STATIC_WORDS, m_wndStatic4);
-        DDX_Control(pDX, IDC_BUTTON_COMMITMAPPING, m_wndCommitMapping);
+        DDX_Control(pDX, IDC_BUTTON_RELOADMAPPING, m_wndReloadMapping);
+        DDX_Control(pDX, IDC_BUTTON_OPENMAPPING, m_wndOpenMapping);
         DDX_Control(pDX, IDC_BUTTON_RESETMAPPING, m_wndResetMapping);
 
         SetAudioResource(_audioResource.get());
@@ -185,6 +186,8 @@ void ExtractLipSyncDialog::DoDataExchange(CDataExchange* pDX)
         {
             m_wndWaveform.SetRawLipSyncData(_audioResource->GetComponent<SyncComponent>());
         }
+
+        DDX_Control(pDX, IDC_EDITPHONEMEMAP, m_wndEditPhoneme);
 
         _SyncViewLoop();
 
@@ -227,38 +230,48 @@ void ExtractLipSyncDialog::_SyncViewLoop()
         fmt::format("Using View {0}, Loop {1}", _nView, _nLoop);
     m_wndTalkerLabel.SetWindowText(label.c_str());
 
-    m_wndCommitMapping.EnableWindow(_wantToUseSample);
+    m_wndReloadMapping.EnableWindow(!_wantToUseSample);
+    m_wndEditPhoneme.EnableWindow(!_wantToUseSample);
+    m_wndOpenMapping.EnableWindow(!_wantToUseSample);
+    m_wndResetMapping.EnableWindow(!_wantToUseSample);
+
     // Try to load a phonememap.
     if (_wantToUseSample)
     {
         _phonemeMap = std::make_unique<PhonemeMap>(GetExeSubFolder("Samples") + "\\sample_phoneme_map.ini");
         m_wndEditPhonemeMapStatus.SetWindowText("Loaded sample phoneme map.");
         m_wndGroupViewLoop.SetWindowText("Sample");
+        m_wndEditPhonemeMap.SetWindowText(_phonemeMap->GetFileContents().c_str());
     }
     else
     {
-        // Try to load one. If we can't, show errors and load a default one.
-        _phonemeMap = LoadPhonemeMapForViewLoop(appState, _nView, _nLoop);
-        if (_phonemeMap->HasErrors() && _phonemeMap->GetFileContents().empty())
+        _ReloadPhonemeMap();
+    }
+}
+
+void ExtractLipSyncDialog::_ReloadPhonemeMap()
+{
+    // Try to load one. If we can't, show errors and load a default one.
+    _phonemeMap = LoadPhonemeMapForViewLoop(appState, _nView, _nLoop);
+    if (_phonemeMap->HasErrors() && _phonemeMap->GetFileContents().empty())
+    {
+        // couldn't even load the file. Show the deafult one?
+        _phonemeMap = std::make_unique<PhonemeMap>(GetExeSubFolder("Samples") + "\\default_phoneme_map.ini");
+        m_wndEditPhonemeMapStatus.SetWindowText("Loaded a default phoneme map, as none exists for this view/loop");
+    }
+    else
+    {
+        if (_phonemeMap->HasErrors())
         {
-            // couldn't even load the file. Show the deafult one?
-            _phonemeMap = std::make_unique<PhonemeMap>(GetExeSubFolder("Samples") + "\\default_phoneme_map.ini");
-            m_wndEditPhonemeMapStatus.SetWindowText("Loaded a default phoneme map, as none exists for this view/loop");
+            m_wndEditPhonemeMapStatus.SetWindowText(_phonemeMap->GetErrors().c_str());
         }
         else
         {
-            if (_phonemeMap->HasErrors())
-            {
-                m_wndEditPhonemeMapStatus.SetWindowText(_phonemeMap->GetErrors().c_str());
-            }
-            else
-            {
-                std::string status = "Loaded " + _phonemeMap->GetFilespec();
-                m_wndEditPhonemeMapStatus.SetWindowText(status.c_str());
-            }
+            std::string status = "Loaded " + _phonemeMap->GetFilespec();
+            m_wndEditPhonemeMapStatus.SetWindowText(status.c_str());
         }
-        m_wndGroupViewLoop.SetWindowText(fmt::format("View/Loop {0}/{1}:", _nView, _nLoop).c_str());
     }
+    m_wndGroupViewLoop.SetWindowText(fmt::format("View/Loop {0}/{1}:", _nView, _nLoop).c_str());
     m_wndEditPhonemeMap.SetWindowText(_phonemeMap->GetFileContents().c_str());
 }
 
@@ -307,16 +320,16 @@ BEGIN_MESSAGE_MAP(ExtractLipSyncDialog, AudioPlaybackUI<CExtResizableDialog>)
     ON_MESSAGE(UWM_LIPSYNCTASKDONE, _OnLipSyncDone)
     ON_BN_CLICKED(IDC_BUTTON_RESETMAPPING, &ExtractLipSyncDialog::OnBnClickedButtonResetmapping)
     ON_BN_CLICKED(ID_GENERATELIPSYNC, &ExtractLipSyncDialog::OnBnClickedGeneratelipsync)
-    ON_BN_CLICKED(IDC_BUTTON_COMMITMAPPING, &ExtractLipSyncDialog::OnBnClickedButtonCommitmapping)
+    ON_BN_CLICKED(IDC_BUTTON_RELOADMAPPING, &ExtractLipSyncDialog::OnBnClickedButtonReloadmapping)
     ON_BN_CLICKED(IDC_BUTTON_SETVIEW, &ExtractLipSyncDialog::OnBnClickedButtonSetview)
     ON_BN_CLICKED(IDC_CHECK_USESAMPLE, &ExtractLipSyncDialog::OnBnClickedCheckUsesample)
     ON_BN_CLICKED(IDC_BUTTON_DELETE_SYNC, &ExtractLipSyncDialog::OnBnClickedButtonDeleteSync)
     ON_BN_CLICKED(IDC_BUTTON_RAW, &ExtractLipSyncDialog::OnBnClickedButtonRaw)
-    ON_EN_CHANGE(IDC_EDIT_PHONEMEMAP, &ExtractLipSyncDialog::OnEnChangeEditPhonememap)
     ON_BN_CLICKED(IDC_BUTTON_EXPORTSYNC, &ExtractLipSyncDialog::OnBnClickedButtonExportsync)
     ON_BN_CLICKED(IDC_BUTTON_IMPORTSYNC, &ExtractLipSyncDialog::OnBnClickedButtonImportsync)
     ON_BN_CLICKED(IDC_EDITAUDIO, &ExtractLipSyncDialog::OnBnClickedEditaudio)
     ON_BN_CLICKED(IDC_EDITPHONEMEMAP, &ExtractLipSyncDialog::OnBnClickedEditphonememap)
+    ON_BN_CLICKED(IDC_BUTTON_RESETMAPPING2, &ExtractLipSyncDialog::OnBnClickedButtonOpenmapping)
 END_MESSAGE_MAP()
 
 void ExtractLipSyncDialog::OnBnClickedButtonResetmapping()
@@ -324,7 +337,6 @@ void ExtractLipSyncDialog::OnBnClickedButtonResetmapping()
     if (IDYES == AfxMessageBox("Replace the current mapping with the template?", MB_YESNO))
     {
         _phonemeMap = std::make_unique<PhonemeMap>(GetExeSubFolder("Samples") + "\\default_phoneme_map.ini");
-        m_wndCommitMapping.EnableWindow(TRUE);
         m_wndEditPhonemeMap.SetWindowText(_phonemeMap->GetFileContents().c_str());
     }
 }
@@ -375,21 +387,9 @@ void ExtractLipSyncDialog::OnBnClickedGeneratelipsync()
     }
 }
 
-void ExtractLipSyncDialog::OnBnClickedButtonCommitmapping()
+void ExtractLipSyncDialog::OnBnClickedButtonReloadmapping()
 {
-    std::string errors;
-    CString strText;
-    m_wndEditPhonemeMap.GetWindowText(strText);
-    std::string message = "Saving ";
-    message += GetPhonemeMapFilespec(appState, _nView, _nLoop);
-    if (!SaveForViewLoop((PCSTR)strText, appState, _nView, _nLoop, errors))
-    {
-        message += " : ";
-        message += errors;
-    }
-    m_wndEditPhonemeMapStatus.SetWindowText(message.c_str());
-    // Reload:
-    _phonemeMap = LoadPhonemeMapForViewLoop(appState, _nView, _nLoop);
+    _ReloadPhonemeMap();
 }
 
 
@@ -435,12 +435,6 @@ void ExtractLipSyncDialog::OnBnClickedButtonDeleteSync()
 void ExtractLipSyncDialog::OnBnClickedButtonRaw()
 {
     ShowTextFile(_audioResource->GetComponent<SyncComponent>().RawData.c_str(), fmt::format("{0}_rawlipsync.txt", default_reskey(_audioResource->ResourceNumber, _audioResource->Base36Number)));
-}
-
-
-void ExtractLipSyncDialog::OnEnChangeEditPhonememap()
-{
-    m_wndCommitMapping.EnableWindow(TRUE);
 }
 
 const char c_szLipSyncTxtFilter[] = "txt files (*.txt)|*.txt|All Files|*.*|";
@@ -492,10 +486,35 @@ void ExtractLipSyncDialog::OnBnClickedEditphonememap()
 {
     if (_phonemeMap && _viewResource && !_actuallyUsingSample)
     {
-        PhonemeDialog dialog(_nView, _nLoop, *_phonemeMap);
+        PhonemeMap copy = *_phonemeMap;
+        PhonemeDialog dialog(_nView, _nLoop, copy);
         if (dialog.DoModal() == IDOK)
         {
+            // Update the phoneme map
+            *_phonemeMap = copy;
 
+            // And save it...
+            std::string errors;
+            CString strText;
+            std::string message = "Saving ";
+            message += GetPhonemeMapFilespec(appState, _nView, _nLoop);
+            if (!SaveForViewLoop(*_phonemeMap, appState, _nView, _nLoop, errors))
+            {
+                message += " : ";
+                message += errors;
+            }
+            m_wndEditPhonemeMapStatus.SetWindowText(message.c_str());
+
+            OnBnClickedButtonReloadmapping(); // And reload...
         }
+    }
+}
+
+void ExtractLipSyncDialog::OnBnClickedButtonOpenmapping()
+{
+    if (_phonemeMap)
+    {
+        std::string fullPath = GetPhonemeMapPath(appState, _nView, _nLoop);
+        ShowFile(fullPath);
     }
 }

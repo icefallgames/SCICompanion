@@ -28,6 +28,7 @@ protected:
     void _UpdateSyncList();
     void _InitSyncListColumns();
     void _UpdateWords(const std::vector<alignment_result> &rawResults);
+    void _ReloadPhonemeMap();
 
     virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
     virtual BOOL OnInitDialog();
@@ -49,7 +50,8 @@ protected:
     // Visuals
     CExtButton m_wndCancel;
     CExtButton m_wndOk;
-    CExtButton m_wndCommitMapping;
+    CExtButton m_wndReloadMapping;
+    CExtButton m_wndOpenMapping;
     CExtButton m_wndResetMapping;
     CExtButton m_wndSetView;
     CExtButton m_wndDeleteSync;
@@ -57,6 +59,7 @@ protected:
     CExtButton m_wndExportSync;
     CExtButton m_wndButtonRaw;
     CExtButton m_wndEditAudio;
+    CExtButton m_wndEditPhoneme;
     CExtLabel m_wndStatic1;
     CExtLabel m_wndStatic2;
     CExtLabel m_wndStatic3;
@@ -90,14 +93,14 @@ public:
     afx_msg LRESULT _OnLipSyncDone(WPARAM wParam, LPARAM lParam);
     afx_msg void OnBnClickedButtonResetmapping();
     afx_msg void OnBnClickedGeneratelipsync();
-    afx_msg void OnBnClickedButtonCommitmapping();
+    afx_msg void OnBnClickedButtonReloadmapping();
     afx_msg void OnBnClickedButtonSetview();
     afx_msg void OnBnClickedCheckUsesample();
     afx_msg void OnBnClickedButtonDeleteSync();
     afx_msg void OnBnClickedButtonRaw();
-    afx_msg void OnEnChangeEditPhonememap();
     afx_msg void OnBnClickedButtonExportsync();
     afx_msg void OnBnClickedButtonImportsync();
     afx_msg void OnBnClickedEditaudio();
     afx_msg void OnBnClickedEditphonememap();
+    afx_msg void OnBnClickedButtonOpenmapping();
 };

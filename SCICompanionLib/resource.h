@@ -700,9 +700,12 @@
 #define IDC_CHECK_HALFSPEED             1326
 #define IDC_STATIC_SYNC36               1327
 #define IDC_BUTTON_COMMITMAPPING        1328
+#define IDC_BUTTON_RELOADMAPPING        1328
 #define IDC_BUTTON_SETVIEW              1329
 #define IDC_CHECK_USESAMPLE             1330
 #define IDC_EDITVIEW                    1331
+#define IDC_BUTTON_RESETMAPPING2        1331
+#define IDC_BUTTON_OPENMAPPING          1331
 #define IDC_EDITLOOP                    1332
 #define IDC_GROUP_VIEWLOOP              1333
 #define IDC_GROUP_MESSAGE               1334
@@ -737,7 +740,6 @@
 #define IDC_EDITAUDIO                   1361
 #define IDC_STATIC_PRESET               1361
 #define IDC_BUTTON_PROCESS              1362
-#define IDC_EDITAUDIO2                  1362
 #define IDC_EDITPHONEMEMAP              1362
 #define IDC_COMBO_BIT                   1363
 #define IDC_RADIO_NEGATIVE              1364

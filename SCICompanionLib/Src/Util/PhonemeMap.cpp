@@ -7,6 +7,8 @@
 using namespace std;
 using namespace cpptoml;
 
+std::unordered_map<std::string, std::string> CreatePhonemeToExampleMap();
+
 std::string GetPhonemeMapFilespec(AppState *appState, int view, int loop)
 {
     return fmt::format("phoneme_{0}_{1}.ini", view, loop);
@@ -86,7 +88,18 @@ bool PhonemeMap::IsEmpty() const
     return itNotZero == _phonemeToCel.end();
 }
 
-bool SaveForViewLoop(const std::string &text, AppState *appState, int view, int loop, std::string &errors)
+void SaveToStream(std::ofstream &file, const PhonemeMap &map)
+{
+    std::unordered_map<std::string, std::string> examples = CreatePhonemeToExampleMap();
+
+    file << "[phoneme_to_cel]\r\n";
+    for (const auto &entry : map.Entries())
+    {
+        file << fmt::format("{0} =\t{1}\t# {2}\r\n", entry.first, entry.second, examples[entry.first]);
+    }
+}
+
+bool SaveForViewLoop(const PhonemeMap &map, AppState *appState, int view, int loop, std::string &errors)
 {
     std::string fullPath = GetPhonemeMapPath(appState, view, loop);
     std::string fullPathBak = fullPath + ".bak";
@@ -95,7 +108,7 @@ bool SaveForViewLoop(const std::string &text, AppState *appState, int view, int 
     fileBak.open(fullPathBak, std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
     if (fileBak.is_open())
     {
-        fileBak << text;
+        SaveToStream(fileBak, map);
         fileBak.close();
     }
 
@@ -107,7 +120,7 @@ bool SaveForViewLoop(const std::string &text, AppState *appState, int view, int 
         file.open(fullPath, std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
         if (file.is_open())
         {
-            file << text;
+            SaveToStream(file, map);
             file.close();
         }
     }

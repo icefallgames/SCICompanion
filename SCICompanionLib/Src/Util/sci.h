@@ -568,6 +568,7 @@ public:
 
 const std::string MakeFile(PCSTR pszContent, const std::string &filename);
 void ShowTextFile(PCSTR pszContent, const std::string &filename);
+void ShowFile(const std::string &actualPath);
 std::string MakeTextFile(PCSTR pszContent, const std::string &filename);
 bool Save8BitBmp(const std::string &filename, const BITMAPINFO &info, BYTE *pBits, DWORD id = 0);
 std::string GetBinaryDataVisualization(const uint8_t *data, size_t length, int columns = 16);

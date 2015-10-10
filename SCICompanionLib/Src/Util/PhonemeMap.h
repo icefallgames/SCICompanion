@@ -16,7 +16,7 @@ public:
     
     bool HasErrors() const { return !_errors.empty(); }
 
-    const std::map<std::string, int> &Entries() { return _phonemeToCel; }
+    const std::map<std::string, int> &Entries() const { return _phonemeToCel; }
 
 private:
     std::map<std::string, int> _phonemeToCel;
@@ -26,7 +26,7 @@ private:
     std::string _fileContents;
 };
 
-bool SaveForViewLoop(const std::string &text, AppState *appState, int view, int loop, std::string &errors);
+bool SaveForViewLoop(const PhonemeMap &map, AppState *appState, int view, int loop, std::string &errors);
 std::unique_ptr<PhonemeMap> LoadPhonemeMapForViewLoop(AppState *appState, int view, int loop);
 std::string GetPhonemeMapPath(AppState *appState, int view, int loop);
 std::string GetPhonemeMapFilespec(AppState *appState, int view, int loop);

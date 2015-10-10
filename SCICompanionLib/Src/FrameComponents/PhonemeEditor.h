@@ -37,7 +37,7 @@ private:
     CRect _GetRowRect(int row);
     void _InvalidateRow(int row);
     void _InvalidateIndex(CPoint pt);
-    void _SetDragOverIndex(CPoint index);
+    void _SetDragOverIndex(CPoint index, bool force = false);
 
     DECLARE_MESSAGE_MAP()
 

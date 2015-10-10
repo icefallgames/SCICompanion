@@ -64,8 +64,8 @@ This file has the following data and constants
 */
 engine_phoneme_spec SapiEnglish51[] =
 {
-engine_phoneme_spec(L"-", L"x",  L"syllable", engine_phoneme_spec::silence),
-engine_phoneme_spec(L"!", L"x", L"Sentence" , engine_phoneme_spec::silence),
+engine_phoneme_spec(L"-", L"x",  L"silence", engine_phoneme_spec::silence),     // syllable
+engine_phoneme_spec(L"!", L"x", L"silence" , engine_phoneme_spec::silence),    // sentence
 engine_phoneme_spec(L"aa", L"AH", L"father", engine_phoneme_spec::voiced), 
 engine_phoneme_spec(L"ae", L"AE", L"cat", engine_phoneme_spec::voiced), 
 engine_phoneme_spec(L"ah", L"AH", L"cut", engine_phoneme_spec::voiced),
