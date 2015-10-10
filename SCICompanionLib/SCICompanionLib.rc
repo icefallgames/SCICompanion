@@ -168,6 +168,7 @@ IDI_STOPDEBUG           ICON                    "res\\stopdebug.ico"
 IDI_UPLOAD              ICON                    "res\\Upload.ico"
 IDI_REFRESH             ICON                    "res\\refresh.ico"
 IDI_RIGHT_ARROW         ICON                    "res\\RightArrow.ico"
+IDI_WAVEFORM            ICON                    "res\\waveform.ico"
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -1916,7 +1917,7 @@ BEGIN
     COMBOBOX        IDC_COMBO_MIDIDEVICE,61,125,139,150,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "Force repackage audio",IDC_BUTTON_REPACKAGE,95,142,105,14
     PUSHBUTTON      "Clear audio file cache",IDC_BUTTON_CLEARAUDIOCACHE,95,160,105,14
-    GROUPBOX        "Recording",IDC_GROUP2,7,7,193,113
+    GROUPBOX        "Recording Defaults",IDC_GROUP2,7,7,193,113
     RTEXT           "Noise Gate Preset:",IDC_STATIC_PRESET,15,54,72,8
     COMBOBOX        IDC_COMBO_PRESET2,95,52,97,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
 END

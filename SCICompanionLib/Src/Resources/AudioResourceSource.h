@@ -36,8 +36,6 @@ public:
 private:
     void _EnsureAudioMaps();
     AudioVolumeName _GetVolumeToUse(uint32_t base36Number);
-    void _Finalize(AudioMapComponent &newAudioMap, sci::ostream &newVolumeStream, uint32_t base36Number);
-    void _CopyWithoutThese(const AudioMapComponent &audioMap, AudioMapComponent &newAudioMap, sci::istream &oldReader, sci::ostream &newVolumeStream, const std::set<uint16_t> &removeThese);
     std::string _GetAudioVolumePath(bool bak, AudioVolumeName volumeName, ResourceSourceFlags *sourceFlags = nullptr);
     sci::streamOwner *_EnsureReadOnlyAudioVolume(uint32_t base36Number);
     std::unique_ptr<sci::streamOwner> _GetAudioVolume(uint32_t base36Number);

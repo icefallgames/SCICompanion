@@ -192,7 +192,7 @@ void ExtractLipSyncDialog::DoDataExchange(CDataExchange* pDX)
         _SyncViewLoop();
 
         DDX_Control(pDX, IDC_EDITAUDIO, m_wndEditAudio);
-        m_wndEditAudio.SetIcon(IDI_EDITPALETTE, 0, 0, 0, 24, 24);
+        m_wndEditAudio.SetIcon(IDI_WAVEFORM, 0, 0, 0, 24, 24);
         m_wndEditAudio.EnableWindow(_audioResource->TryGetComponent<AudioNegativeComponent>() != nullptr);
     }
 }
@@ -311,6 +311,7 @@ LRESULT ExtractLipSyncDialog::_OnLipSyncDone(WPARAM wParam, LPARAM lParam)
     m_wndWaveform.SetRawLipSyncData(result.RawResults);
     _UpdateWords(result.RawResults);
     m_wndProgress.SendMessage(PBM_SETMARQUEE, FALSE, LipSyncMarqueeMilliseconds);
+    m_wndProgress.ShowWindow(SW_HIDE);
     _UpdateSyncList();
     return 0;
 }
@@ -382,6 +383,7 @@ void ExtractLipSyncDialog::OnBnClickedGeneratelipsync()
             _taskSink->StartTask(
                 [audioCopy, optionalText, phonemeMapCopy]() { return CreateLipSyncComponentAndRawDataFromAudioAndPhonemes(audioCopy, optionalText, phonemeMapCopy); }
             );
+            m_wndProgress.ShowWindow(SW_SHOW);
             m_wndProgress.SendMessage(PBM_SETMARQUEE, TRUE, LipSyncMarqueeMilliseconds);
         }
     }

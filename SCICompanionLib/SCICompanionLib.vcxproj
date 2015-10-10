@@ -918,6 +918,7 @@
     <Image Include="res\Vocab.ico" />
     <Image Include="res\vpc_highlight.bmp" />
     <Image Include="res\vpc_highlightx.bmp" />
+    <Image Include="res\waveform.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

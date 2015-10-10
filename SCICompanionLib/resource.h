@@ -298,6 +298,7 @@
 #define ID_INDICATOR_AUDIOSIZE          394
 #define IDI_CD                          395
 #define IDD_PHONEMEEDITOR               397
+#define IDI_WAVEFORM                    398
 #define IDC_CHOOSECOLORSTATIC           1001
 #define IDC_BUTTON1                     1003
 #define IDC_BUTTONDOWN                  1003
@@ -1092,7 +1093,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        398
+#define _APS_NEXT_RESOURCE_VALUE        399
 #define _APS_NEXT_COMMAND_VALUE         33277
 #define _APS_NEXT_CONTROL_VALUE         1367
 #define _APS_NEXT_SYMED_VALUE           105

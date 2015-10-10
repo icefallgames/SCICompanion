@@ -95,7 +95,7 @@ void MessageEditPane::DoDataExchange(CDataExchange* pDX)
         m_wndDeleteAudio.SetIcon(IDI_DELETE, 0, 0, 0, 16, 16);
 
         DDX_Control(pDX, IDC_EDITAUDIO, m_wndEditAudio);
-        m_wndEditAudio.SetIcon(IDI_EDITPALETTE, 0, 0, 0, 24, 24);
+        m_wndEditAudio.SetIcon(IDI_WAVEFORM, 0, 0, 0, 24, 24);
     }
     DDX_Text(pDX, IDC_EDITSEQ, _spinnerValue);
 }
