@@ -720,7 +720,7 @@ SyncComponent CreateLipSyncComponentFromAudioAndPhonemes2(const AudioComponent &
 
 void MessageEditPane::OnBnClickedButtonlipsync()
 {
-    const ResourceEntity *resource = _pDoc->GetResource();
+    const ResourceEntity *resource = _pDoc->GetAudioResource();
     if (resource)
     {
         AudioComponent audioCopy;
@@ -743,8 +743,11 @@ void MessageEditPane::OnBnClickedButtonlipsync()
         }
 
         uint16_t view, loop;
-        appState->GetResourceMap().GetTalkerToViewMap().TalkerToViewLoop(entry->Talker, view, loop);
-        std::unique_ptr<PhonemeMap> phonemeMap = LoadPhonemeMapForViewLoop(appState, view, loop);
+        std::unique_ptr<PhonemeMap> phonemeMap;
+        if (appState->GetResourceMap().GetTalkerToViewMap().TalkerToViewLoop(entry->Talker, view, loop))
+        {
+            phonemeMap = LoadPhonemeMapForViewLoop(appState, view, loop);
+        }
         if (!phonemeMap)
         {
             phonemeMap = std::make_unique<PhonemeMap>(GetExeSubFolder("Samples") + "\\sample_phoneme_map.ini");
