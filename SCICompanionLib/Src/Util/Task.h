@@ -210,8 +210,12 @@ private:
 template<typename _TResponse, typename _TInnerFunc>
 _TResponse HWNDTaskWrapper(_TInnerFunc innerFunc, HWND hwnd, UINT message)
 {
+    assert(hwnd != nullptr);
     _TResponse response = innerFunc();
-    PostMessage(hwnd, message, 0, 0);
+    if (hwnd)
+    {
+        PostMessage(hwnd, message, 0, 0);
+    }
     return response;
 }
 

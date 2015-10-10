@@ -95,7 +95,6 @@ void CAnimateDialog::OnPlay()
 
 BEGIN_MESSAGE_MAP(CAnimateDialog, CExtResizableDialog)
     ON_WM_SIZE()
-    ON_WM_DRAWITEM()
     ON_WM_TIMER()
     ON_WM_HSCROLL()
     ON_COMMAND(IDC_BUTTONPLAY, OnPlay)

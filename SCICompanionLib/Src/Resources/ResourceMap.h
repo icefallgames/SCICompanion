@@ -76,6 +76,7 @@ public:
 #endif
     std::string GetTemplateFolder();
     std::string GetSamplesFolder();
+    std::string GetTopLevelSamplesFolder();
     std::string GetObjectsFolder();
     std::string GetDecompilerFolder();
     bool IsGameLoaded() { return !_gameFolderHelper.GameFolder.empty(); }

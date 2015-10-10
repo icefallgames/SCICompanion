@@ -157,6 +157,4 @@ public:
 	}
 };
 
-
-
 #endif

@@ -99,4 +99,5 @@ public:
     afx_msg void OnBnClickedButtonExportsync();
     afx_msg void OnBnClickedButtonImportsync();
     afx_msg void OnBnClickedEditaudio();
+    afx_msg void OnBnClickedEditphonememap();
 };

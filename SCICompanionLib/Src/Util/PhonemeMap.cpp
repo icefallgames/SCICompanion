@@ -61,6 +61,11 @@ PhonemeMap::PhonemeMap(const std::string &filename) : _filespec(filename.substr(
     }
 }
 
+void PhonemeMap::SetCel(const std::string &phoneme, uint16_t cel)
+{
+    _phonemeToCel[phoneme] = cel;
+}
+
 uint16_t PhonemeMap::PhonemeToCel(const std::string &phoneme) const
 {
     uint16_t cel = 0xffff;

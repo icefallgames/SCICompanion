@@ -297,6 +297,7 @@
 #define IDI_MONITOR                     393
 #define ID_INDICATOR_AUDIOSIZE          394
 #define IDI_CD                          395
+#define IDD_PHONEMEEDITOR               397
 #define IDC_CHOOSECOLORSTATIC           1001
 #define IDC_BUTTON1                     1003
 #define IDC_BUTTONDOWN                  1003
@@ -736,10 +737,13 @@
 #define IDC_EDITAUDIO                   1361
 #define IDC_STATIC_PRESET               1361
 #define IDC_BUTTON_PROCESS              1362
+#define IDC_EDITAUDIO2                  1362
+#define IDC_EDITPHONEMEMAP              1362
 #define IDC_COMBO_BIT                   1363
 #define IDC_RADIO_NEGATIVE              1364
 #define IDC_RADIO_FINAL                 1365
 #define IDC_COMBO_PRESET2               1366
+#define IDC_PHONEME                     1366
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -1086,9 +1090,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        397
+#define _APS_NEXT_RESOURCE_VALUE        398
 #define _APS_NEXT_COMMAND_VALUE         33277
-#define _APS_NEXT_CONTROL_VALUE         1366
+#define _APS_NEXT_CONTROL_VALUE         1367
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

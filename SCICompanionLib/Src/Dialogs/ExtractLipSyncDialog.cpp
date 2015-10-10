@@ -15,6 +15,7 @@
 #include "AudioEditDialog.h"
 #include "AudioNegative.h"
 #include "AudioProcessing.h"
+#include "PhonemeDialog.h"
 
 #define LIPSYNC_TIMER 2345
 
@@ -315,6 +316,7 @@ BEGIN_MESSAGE_MAP(ExtractLipSyncDialog, AudioPlaybackUI<CExtResizableDialog>)
     ON_BN_CLICKED(IDC_BUTTON_EXPORTSYNC, &ExtractLipSyncDialog::OnBnClickedButtonExportsync)
     ON_BN_CLICKED(IDC_BUTTON_IMPORTSYNC, &ExtractLipSyncDialog::OnBnClickedButtonImportsync)
     ON_BN_CLICKED(IDC_EDITAUDIO, &ExtractLipSyncDialog::OnBnClickedEditaudio)
+    ON_BN_CLICKED(IDC_EDITPHONEMEMAP, &ExtractLipSyncDialog::OnBnClickedEditphonememap)
 END_MESSAGE_MAP()
 
 void ExtractLipSyncDialog::OnBnClickedButtonResetmapping()
@@ -481,6 +483,19 @@ void ExtractLipSyncDialog::OnBnClickedEditaudio()
         if (IDOK == dialog.DoModal())
         {
             m_wndWaveform.SetResource(_audioResource->TryGetComponent<AudioComponent>());
+        }
+    }
+}
+
+
+void ExtractLipSyncDialog::OnBnClickedEditphonememap()
+{
+    if (_phonemeMap && _viewResource && !_actuallyUsingSample)
+    {
+        PhonemeDialog dialog(_nView, _nLoop, *_phonemeMap);
+        if (dialog.DoModal() == IDOK)
+        {
+
         }
     }
 }

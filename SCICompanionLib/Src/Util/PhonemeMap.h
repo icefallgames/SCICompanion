@@ -8,14 +8,18 @@ public:
     PhonemeMap(const std::string &filename);
     
     uint16_t PhonemeToCel(const std::string &phoneme) const;
+    void SetCel(const std::string &phoneme, uint16_t cel);
     const std::string &GetErrors() const { return _errors; }
     const std::string &GetFilespec() const { return _filespec; }
     const std::string &GetFileContents() const { return _fileContents; }
     bool IsEmpty() const;
     
     bool HasErrors() const { return !_errors.empty(); }
+
+    const std::map<std::string, int> &Entries() { return _phonemeToCel; }
+
 private:
-    std::unordered_map<std::string, int> _phonemeToCel;
+    std::map<std::string, int> _phonemeToCel;
 
     std::string _errors;
     std::string _filespec;

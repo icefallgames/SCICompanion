@@ -49,7 +49,8 @@ This file has the following data and constants
 #include "sapi_lipsync.h"
 #include "phone_estimate.h"
 #include "sapi_util.h"
-
+#include <locale>
+#include <codecvt>
 
 /** @brief This global is the default phoneme map
 	
@@ -109,6 +110,17 @@ engine_phoneme_spec(L"zh", L"ZH", L"pleasure", engine_phoneme_spec::unvoiced),
 engine_phoneme_spec(L"", L"", L"", engine_phoneme_spec::silence)
 };
 
+std::unordered_map<std::string, std::string> CreatePhonemeToExampleMap()
+{
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+
+    std::unordered_map<std::string, std::string> result;
+    for (auto &entry : SapiEnglish51)
+    {
+        result[converter.to_bytes(entry.outputPhoneme)] = converter.to_bytes(entry.desc);
+    }
+    return result;
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////

@@ -20,9 +20,11 @@ public:
     AudioPlaybackUI(int id, CWnd *parent);
     virtual ~AudioPlaybackUI();
     void SetAudioResource(const ResourceEntity *audio);
+    void SetSyncResource(const SyncComponent *sync);
     void SetAudioResource(const AudioComponent *audio, const SyncComponent *sync = nullptr);
     void SetMouthElement(ViewUIElement *_pwndMouth);
     void SetWaveformElement(AudioWaveformUI *_pwndWaveform);
+    void SetLoop(bool loop) { _loop = loop; }
 
 protected:
     // Call these things:
@@ -72,6 +74,7 @@ private:
 
     int _recordingFormat;
     CFont _marlettFont;
+    bool _loop;
 };
 
 
@@ -91,7 +94,7 @@ END_MESSAGE_MAP()
 #define AUDIO_TIMER 5004
 
 template <typename T>
-AudioPlaybackUI<T>::AudioPlaybackUI() : _recordingFormat((int)g_WaveRecordingFormat)
+AudioPlaybackUI<T>::AudioPlaybackUI() : _recordingFormat((int)g_WaveRecordingFormat), _loop(false)
 {
 }
 
@@ -102,7 +105,7 @@ AudioPlaybackUI<T>::~AudioPlaybackUI()
 }
 
 template <typename T>
-AudioPlaybackUI<T>::AudioPlaybackUI(int id, CWnd *parent) : T(id, parent), _recordingFormat((int)g_WaveRecordingFormat)
+AudioPlaybackUI<T>::AudioPlaybackUI(int id, CWnd *parent) : T(id, parent), _recordingFormat((int)g_WaveRecordingFormat), _loop(false)
 {
 }
 
@@ -116,6 +119,13 @@ template <typename T>
 void AudioPlaybackUI<T>::SetWaveformElement(AudioWaveformUI *pwndWaveform)
 {
     _pwndWaveform = pwndWaveform;
+}
+
+template <typename T>
+void AudioPlaybackUI<T>::SetSyncResource(const SyncComponent *sync)
+{
+    // Don't need to stop playing...
+    _sync = sync;
 }
 
 template <typename T>
@@ -147,8 +157,14 @@ void AudioPlaybackUI<T>::SetAudioResource(const AudioComponent *audio, const Syn
         OnStop();
     }
     
-    m_wndInfo.SetWindowTextA(info.c_str());
-    m_wndDuration.SetWindowText(durationString.c_str());
+    if (m_wndInfo)
+    {
+        m_wndInfo.SetWindowTextA(info.c_str());
+    }
+    if (m_wndDuration)
+    {
+        m_wndDuration.SetWindowText(durationString.c_str());
+    }
 }
 
 template <typename T>
@@ -167,7 +183,10 @@ void AudioPlaybackUI<T>::SetAudioResource(const ResourceEntity *audio)
 template <typename T>
 void AudioPlaybackUI<T>::DoDataExchangeHelper(CDataExchange* pDX)
 {
-    DDX_Control(pDX, IDC_EDIT_SAMPLEBIT, m_wndInfo);
+    if (GetDlgItem(IDC_EDIT_SAMPLEBIT))
+    {
+        DDX_Control(pDX, IDC_EDIT_SAMPLEBIT, m_wndInfo);
+    }
     DDX_Control(pDX, IDC_BUTTON_PLAY2, m_wndPlay);
     if (GetDlgItem(IDC_CHECK_HALFSPEED))
     {
@@ -188,7 +207,10 @@ void AudioPlaybackUI<T>::DoDataExchangeHelper(CDataExchange* pDX)
     {
         DDX_Control(pDX, IDC_CHECK_AUTOPREV, m_wndAutoPreview);
     }
-    DDX_Control(pDX, IDC_STATIC_DURATION, m_wndDuration);
+    if (GetDlgItem(IDC_STATIC_DURATION))
+    {
+        DDX_Control(pDX, IDC_STATIC_DURATION, m_wndDuration);
+    }
     if (GetDlgItem(IDC_BUTTONBROWSE))
     {
         DDX_Control(pDX, IDC_BUTTONBROWSE, m_wndBrowse);
@@ -400,6 +422,11 @@ void AudioPlaybackUI<T>::OnTimer(UINT_PTR nIDEvent)
                 }
             }
 
+            // Start again if we're looping.
+            if (!_IsPlaying() && _loop)
+            {
+                OnPlay();
+            }
         }
         if (!_IsPlaying())
         {

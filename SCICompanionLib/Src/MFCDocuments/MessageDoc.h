@@ -39,11 +39,13 @@ public:
     {
         if ((_selectedIndex != -1) && _audioResources[_selectedIndex])
         {
-            f(*_audioResources[_selectedIndex]);
-            _audioModified[_selectedIndex] = true;
-            SetModifiedFlag(TRUE);
-            _RecalcAudioSize();
-            UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(MessageChangeHint::ItemChanged));
+            if (f(*_audioResources[_selectedIndex]))
+            {
+                _audioModified[_selectedIndex] = true;
+                SetModifiedFlag(TRUE);
+                _RecalcAudioSize();
+                UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(MessageChangeHint::ItemChanged));
+            }
         }
     }
     uint32_t GetEstimatedAudioSize() const { return _estimatedAudioSize; }

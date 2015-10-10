@@ -84,6 +84,71 @@ std::unique_ptr<SyncComponent> CreateLipSyncComponentFromPhonemes(const PhonemeM
     return syncComponent;
 }
 
+void CreateLipSyncDataFromWav(const std::string &wavePath, const std::string &optionalTextIn, std::vector<alignment_result> &rawResults)
+{
+    // Do the sapi thing
+    HRESULT hrCoinit = CoInitialize(nullptr);
+    if (SUCCEEDED(hrCoinit))
+    {
+        try
+        {
+            // 1. [optional] declare the SAPI 5.1 estimator. 
+            // NOTE: for different phoneme sets: create a new estimator
+            phoneme_estimator sapi51Estimator;
+
+            std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+            std::wstring wfilename = converter.from_bytes(wavePath);
+            std::wstring optionalText = converter.from_bytes(optionalTextIn);
+
+            // 2. declare the sapi lipsync object and call the lipsync method to
+            // start the lipsync process
+            std::unique_ptr<sapi_textless_lipsync> lipSyncTextless;
+            std::unique_ptr<sapi_textbased_lipsync> lipSyncTextbased;
+            sapi_lipsync *lipSync = nullptr;
+            if (optionalText.empty())
+            {
+                lipSyncTextless = std::make_unique<sapi_textless_lipsync>(&sapi51Estimator);
+                if (lipSyncTextless->lipsync(wfilename))
+                {
+                    lipSync = lipSyncTextless.get();
+                }
+            }
+            else
+            {
+                lipSyncTextbased = std::make_unique<sapi_textbased_lipsync>(&sapi51Estimator);
+                if (lipSyncTextbased->lipsync(wfilename, optionalText))
+                {
+                    lipSync = lipSyncTextbased.get();
+                }
+            }
+
+            if (lipSync)
+            {
+                // Apparently, even though this is not a UI thread, we need to pump messages.
+                MSG msg;
+                while (!lipSync->isDone())
+                {
+                    while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+                    {
+                        TranslateMessage(&msg);
+                        DispatchMessage(&msg);
+                    }
+                    Sleep(1);
+                }
+
+                lipSync->finalize_phoneme_alignment();
+
+                rawResults = lipSync->get_phoneme_alignment();
+
+            }
+        }
+        catch (...)
+        {
+            CoUninitialize();
+        }
+    }
+}
+
 std::unique_ptr<SyncComponent> CreateLipSyncComponentFromAudioAndPhonemes(const AudioComponent &audio, const std::string &optionalTextIn, const PhonemeMap &phonemeMap, std::vector<alignment_result> *optRawResults)
 {
     std::unique_ptr<SyncComponent> result;
@@ -94,72 +159,14 @@ std::unique_ptr<SyncComponent> CreateLipSyncComponentFromAudioAndPhonemes(const 
         std::string tempWaveFilename = szTempFilename;
         WriteWaveFile(tempWaveFilename, audio);
 
-        // Do the sapi thing
-        HRESULT hrCoinit = CoInitialize(nullptr);
-        if (SUCCEEDED(hrCoinit))
+        std::vector<alignment_result> phonemeAlignment;
+        CreateLipSyncDataFromWav(tempWaveFilename, optionalTextIn, phonemeAlignment);
+        if (optRawResults)
         {
-            try
-            {
-                // 1. [optional] declare the SAPI 5.1 estimator. 
-                // NOTE: for different phoneme sets: create a new estimator
-                phoneme_estimator sapi51Estimator;
-
-                std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-                std::wstring wfilename = converter.from_bytes(tempWaveFilename);
-                std::wstring optionalText = converter.from_bytes(optionalTextIn);
-
-                // 2. declare the sapi lipsync object and call the lipsync method to
-                // start the lipsync process
-                std::unique_ptr<sapi_textless_lipsync> lipSyncTextless;
-                std::unique_ptr<sapi_textbased_lipsync> lipSyncTextbased;
-                sapi_lipsync *lipSync = nullptr;
-                if (optionalText.empty())
-                {
-                    lipSyncTextless = std::make_unique<sapi_textless_lipsync>(&sapi51Estimator);
-                    if (lipSyncTextless->lipsync(wfilename))
-                    {
-                        lipSync = lipSyncTextless.get();
-                    }
-                }
-                else
-                {
-                    lipSyncTextbased = std::make_unique<sapi_textbased_lipsync>(&sapi51Estimator);
-                    if (lipSyncTextbased->lipsync(wfilename, optionalText))
-                    {
-                        lipSync = lipSyncTextbased.get();
-                    }
-                }
-
-                if (lipSync)
-                {
-                    // Apparently, even though this is not a UI thread, we need to pump messages.
-                    MSG msg;
-                    while (!lipSync->isDone())
-                    {
-                        while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
-                        {
-                            TranslateMessage(&msg);
-                            DispatchMessage(&msg);
-                        }
-                        Sleep(1);
-                    }
-
-                    lipSync->finalize_phoneme_alignment();
-
-                    if (optRawResults)
-                    {
-                        *optRawResults = lipSync->get_phoneme_alignment();
-                    }
-
-                    result = CreateLipSyncComponentFromPhonemes(phonemeMap, lipSync->get_phoneme_alignment());
-
-                }
-            }
-            catch (...)
-            {
-                CoUninitialize();
-            }
+            *optRawResults = phonemeAlignment;
         }
+
+        result = CreateLipSyncComponentFromPhonemes(phonemeMap, phonemeAlignment);
 
         deletefile(tempWaveFilename);
     }

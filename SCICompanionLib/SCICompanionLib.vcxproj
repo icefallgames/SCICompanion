@@ -223,6 +223,7 @@
     <ClCompile Include="Src\Dialogs\ExtractLipSyncDialog.cpp" />
     <ClCompile Include="Src\Dialogs\GradientDialog.cpp" />
     <ClCompile Include="Src\Dialogs\PaletteEditorDialog.cpp" />
+    <ClCompile Include="Src\Dialogs\PhonemeDialog.cpp" />
     <ClCompile Include="Src\Dialogs\PicDimensionsDialog.cpp" />
     <ClCompile Include="Src\Dialogs\PrepareBitmapBase.cpp" />
     <ClCompile Include="Src\FrameComponents\AudioProcessingSettingsUI.cpp" />
@@ -236,6 +237,7 @@
     <ClCompile Include="Src\FrameComponents\MessageSidePane.cpp" />
     <ClCompile Include="Src\FrameComponents\MessageSource.cpp" />
     <ClCompile Include="Src\FrameComponents\NewOutputPane.cpp" />
+    <ClCompile Include="Src\FrameComponents\PhonemeEditor.cpp" />
     <ClCompile Include="Src\FrameComponents\PicHelperPane.cpp" />
     <ClCompile Include="Src\FrameComponents\ViewUIElement.cpp" />
     <ClCompile Include="Src\GIFLIB\egif_lib.cpp" />
@@ -296,6 +298,7 @@
     <ClInclude Include="Src\Dialogs\DecompileDialog.h" />
     <ClInclude Include="Src\Dialogs\ExtractLipSyncDialog.h" />
     <ClInclude Include="Src\Dialogs\GradientDialog.h" />
+    <ClInclude Include="Src\Dialogs\PhonemeDialog.h" />
     <ClInclude Include="Src\Dialogs\PaletteEditorCommon.h" />
     <ClInclude Include="Src\Dialogs\PaletteEditorDialog.h" />
     <ClInclude Include="Src\Dialogs\PicDimensionsDialog.h" />
@@ -311,6 +314,7 @@
     <ClInclude Include="Src\FrameComponents\MessageSidePane.h" />
     <ClInclude Include="Src\FrameComponents\MessageSource.h" />
     <ClInclude Include="Src\FrameComponents\NewOutputPane.h" />
+    <ClInclude Include="Src\FrameComponents\PhonemeEditor.h" />
     <ClInclude Include="Src\FrameComponents\ViewUIElement.h" />
     <ClInclude Include="Src\LipSync\phone_estimate.h" />
     <ClInclude Include="Src\LipSync\sapi_lipsync.h" />

@@ -770,6 +770,7 @@ LRESULT MessageEditPane::_OnLipSyncDone(WPARAM wParam, LPARAM lParam)
     {
         // AddComponent does a replace if that component already exists.
         audioResource.AddComponent<SyncComponent>(std::move(syncComponent));
+        return true;
     }
         );
     _Update();
@@ -815,14 +816,18 @@ void MessageEditPane::OnBnClickedButtondeleteaudio()
 void MessageEditPane::OnBnClickedEditaudio()
 {
     _audioPlayback.Stop();
+    bool modified = false;
     _pDoc->ModifyCurrentAudioResource(
-        [](ResourceEntity &audioResource)
+        [&modified](ResourceEntity &audioResource)
     {
         AudioEditDialog dialog(audioResource);
-        if (IDOK == dialog.DoModal())
-        {
-        }
+        modified = (IDOK == dialog.DoModal());
+        return modified;
     }
     );
-    _Update();
+
+    if (modified)
+    {
+        _Update();
+    }
 }

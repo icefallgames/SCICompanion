@@ -186,6 +186,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
   <ItemGroup>
     <Text Include="Files\Licenses\giflib-AUTHORS.txt" />
     <Text Include="Files\Licenses\r8brain-License.txt" />
+    <Text Include="Files\Samples\PhonemeSentence.txt" />
     <Text Include="Files\Samples\sample_phoneme_map.ini" />
     <Text Include="Files\TemplateGame\SCI0\game.txt" />
     <Text Include="Files\TemplateGame\SCI1.1\INSTALL.TXT" />
@@ -669,6 +670,9 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="Files\Samples\PhonemeSentence.wav" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

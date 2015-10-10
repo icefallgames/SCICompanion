@@ -756,6 +756,11 @@ std::string CResourceMap::GetTemplateFolder()
     return GetExeSubFolder("TemplateGame");
 }
 
+std::string CResourceMap::GetTopLevelSamplesFolder()
+{
+    return GetExeSubFolder("Samples");
+}
+
 //
 // Gets the samples folder 
 //

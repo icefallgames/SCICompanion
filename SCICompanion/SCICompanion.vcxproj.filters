@@ -22,6 +22,7 @@
     <Text Include="Files\Licenses\r8brain-License.txt" />
     <Text Include="Tools\DOSBox\DOSBox 0.74 Manual.txt" />
     <Text Include="Files\Samples\sample_phoneme_map.ini" />
+    <Text Include="Files\Samples\PhonemeSentence.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCICompanion.h">
@@ -640,5 +641,10 @@
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="Files\Samples\PhonemeSentence.wav">
+      <Filter>Resource Files</Filter>
+    </Media>
   </ItemGroup>
 </Project>
