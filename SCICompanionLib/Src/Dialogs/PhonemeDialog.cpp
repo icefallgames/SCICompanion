@@ -85,6 +85,10 @@ void PhonemeDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDOK, m_wndOK);
     DDX_Control(pDX, IDCANCEL, m_wndCancel);
     DDX_Control(pDX, IDC_EDIT_SAMPLE, m_wndSampleText);
+    DDX_Control(pDX, IDC_EDIT_DESCRIPTION2, m_wndDescription);
+    m_wndDescription.SetWindowText(
+        "Drag phonemes next to the mouth shape that best represents them. Press the play button to listen to a sample sentence using the phoneme map."
+        );
     DDX_Control(pDX, IDC_ANIMATE, m_wndMouth);
     m_wndMouth.SetResource(_viewResource.get());
     m_wndMouth.SetLoop(_nLoop);

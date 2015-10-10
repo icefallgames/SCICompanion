@@ -41,6 +41,7 @@ private:
     CExtButton m_wndCancel;
     ViewUIElement m_wndMouth;
     CExtEdit m_wndSampleText;
+    CExtEdit m_wndDescription;
 
     std::unique_ptr<SyncComponent> _syncComponent;
     PhonemeMap &_map;

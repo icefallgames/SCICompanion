@@ -443,9 +443,11 @@ void MessageEditPane::_Update()
             _UpdateComboFromValue(m_wndComboCondition, entry->Condition, &nounsAndCases.GetCases());
 
             hasAudio = _UpdateAudio(*entry);
-
-            // Enable the edit button if there's a negative
-            m_wndEditAudio.EnableWindow(_pDoc->GetAudioResource()->TryGetComponent<AudioNegativeComponent>() ? TRUE : FALSE);
+            if (hasAudio)
+            {
+                // Enable the edit button if there's a negative
+                m_wndEditAudio.EnableWindow(_pDoc->GetAudioResource()->TryGetComponent<AudioNegativeComponent>() ? TRUE : FALSE);
+            }
         }
         else
         {

@@ -415,9 +415,10 @@ void PhonemeEditor::_DrawCels(CDC *pDC, LPRECT prc)
                 for (const Cel &cel : loop.Cels)
                 {
                     int y = row * height / celCount;
-                    if ((y + cel.size.cy) < height)
+                    y += yCenterOffset;
+                    if (((y + cel.size.cy) < height) && (y >= 0))
                     {
-                        CopyBitmapData(cel, _dibBits, 0, y + yCenterOffset, CX_ACTUAL(_sciBitmap->GetBitmapDimension().cx), true);
+                        CopyBitmapData(cel, _dibBits, 0, y, CX_ACTUAL(_sciBitmap->GetBitmapDimension().cx), true);
                     }
                     row++;
                 }
