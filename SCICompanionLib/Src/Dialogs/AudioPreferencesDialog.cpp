@@ -8,7 +8,7 @@
 // AudioPreferencesDialog dialog
 
 AudioPreferencesDialog::AudioPreferencesDialog(CWnd* pParent /*=NULL*/)
-    : CExtResizableDialog(AudioPreferencesDialog::IDD, pParent), _audioProcessingSettingsUI(*appState->_audioProcessing)
+    : ToolTipDialog(AudioPreferencesDialog::IDD, pParent), _audioProcessingSettingsUI(*appState->_audioProcessing)
 {
 }
 
@@ -55,7 +55,7 @@ void AudioPreferencesDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_BUTTON_CLEARAUDIOCACHE, m_wndButton2);
 }
 
-BEGIN_MESSAGE_MAP(AudioPreferencesDialog, CExtResizableDialog)
+BEGIN_MESSAGE_MAP(AudioPreferencesDialog, ToolTipDialog)
     ON_CBN_SELCHANGE(IDC_COMBO_MIDIDEVICE, &AudioPreferencesDialog::OnCbnSelchangeComboMididevice)
     ON_BN_CLICKED(IDC_BUTTON_REPACKAGE, &AudioPreferencesDialog::OnBnClickedButtonRepackage)
     ON_BN_CLICKED(IDC_BUTTON_CLEARAUDIOCACHE, &AudioPreferencesDialog::OnBnClickedButtonClearAudioCache)

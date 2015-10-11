@@ -8,7 +8,7 @@
 // AudioEditDialog dialog
 
 AudioEditDialog::AudioEditDialog(ResourceEntity &resource, CWnd* pParent /*=NULL*/)
-    : AudioPlaybackUI<CExtResizableDialog>(AudioEditDialog::IDD, pParent),
+    : AudioPlaybackUI<ToolTipDialog>(AudioEditDialog::IDD, pParent),
     _negative(std::make_unique<AudioNegativeComponent>(resource.GetComponent<AudioNegativeComponent>())),
     _audio(std::make_unique<AudioComponent>(resource.GetComponent<AudioComponent>())),
     _audioProcessingSettingsUI(_negative->Settings),
@@ -82,7 +82,7 @@ void AudioEditDialog::_UpdatePlayback()
     m_wndWaveformNegative.SetSelected(!finalChecked);
 }
 
-BEGIN_MESSAGE_MAP(AudioEditDialog, AudioPlaybackUI<CExtResizableDialog>)
+BEGIN_MESSAGE_MAP(AudioEditDialog, AudioPlaybackUI<ToolTipDialog>)
     ON_BN_CLICKED(IDC_BUTTON_PROCESS, &AudioEditDialog::OnBnClickedButtonProcess)
     ON_BN_CLICKED(IDC_RADIO_NEGATIVE, &AudioEditDialog::OnBnClickedRadioNegative)
     ON_BN_CLICKED(IDC_RADIO_FINAL, &AudioEditDialog::OnBnClickedRadioFinal)

@@ -2944,7 +2944,7 @@ END
 
 STRINGTABLE
 BEGIN
-    AFX_IDS_PREVIEW_CLOSE   "                                                            "
+    AFX_IDS_PREVIEW_CLOSE   " "
 END
 
 STRINGTABLE
@@ -3141,6 +3141,8 @@ STRINGTABLE
 BEGIN
     IDC_EDITAUDIO           "Re-process the audio based on the original recording"
     IDC_EDITPHONEMEMAP      "Edit the phoneme map for this view/loop"
+    IDC_COMBO_BIT           "Switch the bit-depth of the final audio (recordings are always 16-bit)"
+    IDC_BUTTON_PROCESS      "Re-process the audio recording with the current settings"
 END
 
 STRINGTABLE
@@ -3153,6 +3155,12 @@ END
 STRINGTABLE
 BEGIN
     IDC_CHECK_USETEXT       "Use text (in addition to audio) when generating lip sync data"
+    IDC_BUTTON_REPACKAGE    "Force a repackage of all the audio files into the game"
+    IDC_BUTTON_CLEARAUDIOCACHE 
+                            "Clear out the working audio file cache. This will remove all original recordings."
+    IDC_CHECK_AUTOGAIN      "Apply gain to the original recording so it uses the full dynamic range"
+    IDC_CHECK_DETECTSTARTEND 
+                            "Trim the completely silent parts off the beginning and end (requires a noise gate)"
 END
 
 STRINGTABLE

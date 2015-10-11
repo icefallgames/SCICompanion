@@ -1,8 +1,9 @@
 #pragma once
 
 #include "AudioProcessingSettingsUI.h"
+#include "ToolTipDialog.h"
 
-class AudioPreferencesDialog : public CExtResizableDialog
+class AudioPreferencesDialog : public ToolTipDialog
 {
 public:
     AudioPreferencesDialog(CWnd* pParent = NULL);   // standard constructor

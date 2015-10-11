@@ -3,10 +3,11 @@
 #include "AudioProcessingSettingsUI.h"
 #include "AudioWaveformUI.h"
 #include "AudioPlaybackUI.h"
+#include "ToolTipDialog.h"
 
 class ResourceEntity;
 
-class AudioEditDialog : public AudioPlaybackUI<CExtResizableDialog>
+class AudioEditDialog : public AudioPlaybackUI<ToolTipDialog>
 {
 public:
     AudioEditDialog(ResourceEntity &resource, CWnd* pParent = NULL);   // standard constructor
