@@ -531,7 +531,6 @@ void ExtractLipSyncDialog::OnBnClickedButtonOpenmapping()
     }
 }
 
-
 void ExtractLipSyncDialog::OnDeltaposSpinLipsync(NMHDR *pNMHDR, LRESULT *pResult)
 {
     LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);

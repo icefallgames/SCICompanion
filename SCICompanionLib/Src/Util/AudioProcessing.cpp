@@ -218,13 +218,13 @@ void ProcessSound(const AudioNegativeComponent &negative, AudioComponent &audioF
                     value -= distribution(myRandom) + distribution(myRandom);
                 }
             }
-            // TODO: Clamp properly... I guess it's ok with 65535 below, but the -ve will be bad.
 
             // I think this is more accurate:
-            uint32_t unsigned16Raw = value + 32768;
-            uint32_t unsigned16 = min(unsigned16Raw + 128, 65535);     // +128 acts as rounding so we can truncate
-            uint8_t unsigned8 = (uint8_t)(unsigned16 / 256);
-            prevError = (int32_t)unsigned16Raw - (int32_t)(unsigned8 * 256);
+            int32_t signed16Raw = value + 32768;
+            int32_t signed16 = min(signed16Raw + 128, 65535);     // +128 acts as rounding so we can truncate
+            signed16 = max(signed16, 0);
+            uint8_t unsigned8 = (uint8_t)(signed16 / 256);
+            prevError = (int32_t)signed16Raw - (int32_t)(unsigned8 * 256);
             audioFinal.DigitalSamplePCM.push_back(unsigned8);
 
             // But this flattens out noise around 0 better.
