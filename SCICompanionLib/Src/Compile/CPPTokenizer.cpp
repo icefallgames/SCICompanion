@@ -249,6 +249,9 @@ public:
     CommentScript(sci::Script *pScript) : _pScript(pScript) {}
     sci::Script &Script() { return *_pScript; }
     void TryAddCommentDirectly(std::unique_ptr<sci::Comment> &comment) {}
+    void PushParseAutoCompleteContext(ParseAutoCompleteContext pacc) {}
+    void PopParseAutoCompleteContext() {}
+
 private:
     sci::Script *_pScript;
 };

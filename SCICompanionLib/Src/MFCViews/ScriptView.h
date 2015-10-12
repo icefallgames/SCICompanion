@@ -129,7 +129,7 @@ protected:
     LRESULT OnAutoCompleteReady(WPARAM wParam, LPARAM lParam);
     LRESULT OnHoverTipReady(WPARAM wParam, LPARAM lParam);
     void _OnAddAs(WordClass dwClass);
-    BOOL _ScreenToWordRight(CPoint ptClient, CPoint &ptWordRight);
+    BOOL _ScreenToWordRight(CPoint ptClient, CPoint &ptUnder, CPoint &ptWordRight);
     void _TriggerHoverTipParse(CPoint pt);
     void _BringUpToolTip(CPoint ptClient);
     BOOL _ClientToTextNoMargin(CPoint ptClient, CPoint &ptText);

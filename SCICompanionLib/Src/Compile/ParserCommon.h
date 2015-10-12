@@ -58,6 +58,12 @@ inline void _EatWhitespaceAndComments(TContext *pContext, _It &stream)
             char ch = *(++stream);
             if (ch == '/')
             {
+                // Indicate we're in a comment for autocomplete's sake
+                if (pContext)
+                {
+                    pContext->PushParseAutoCompleteContext(ParseAutoCompleteContext::Block);
+                }
+
                 // Go until end of line
                 while ((ch = *(++stream)) && (ch != '\n')) {} // Look for \n or EOF
                 if (ch == '\n') // As opposed to EOF
@@ -69,11 +75,18 @@ inline void _EatWhitespaceAndComments(TContext *pContext, _It &stream)
                 // Comment gathering.  This may be expensive, so only do this if pContext is non-NULL
                 if (pContext)
                 {
+                    pContext->PopParseAutoCompleteContext();
                     _DoComment(pContext, streamSave, stream);
                 }
             }
             else if (ch == '*')
             {
+                // Indicate we're in a comment for autocomplete's sake
+                if (pContext)
+                {
+                    pContext->PushParseAutoCompleteContext(ParseAutoCompleteContext::Block);
+                }
+
                 // Go until */
                 bool fLookingForSlash = false;
                 while (TRUE)
@@ -103,8 +116,10 @@ inline void _EatWhitespaceAndComments(TContext *pContext, _It &stream)
                 {
                     ++stream; // Move past '/'
                 }
+
                 if (pContext)
                 {
+                    pContext->PopParseAutoCompleteContext();
                     _DoComment(pContext, streamSave, stream);
                 }
                 fDone = false; // Check for whitespace again

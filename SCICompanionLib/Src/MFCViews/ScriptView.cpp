@@ -997,8 +997,8 @@ void CScriptView::OnMouseMove(UINT nFlags, CPoint point)
 {
     if (_pwndToolTip)
     {
-        CPoint ptWordRight;
-        BOOL fInEditableArea = _ScreenToWordRight(point, ptWordRight);
+        CPoint ptWordRight, ptDummy;
+        BOOL fInEditableArea = _ScreenToWordRight(point, ptDummy, ptWordRight);
         if (!fInEditableArea || (_ptToolTipWord != ptWordRight))
         {
             _pwndToolTip->Hide();
@@ -1233,16 +1233,16 @@ void CScriptView::OnInitialUpdate()
 
 //
 // Given a screen coordinate, finds the corresponding point in text coordinates
-// that would be used for parsing a tooltip
+// that would be used for parsing a tooltip. Also returns the point under ptClient.
 //
-BOOL CScriptView::_ScreenToWordRight(CPoint ptClient, CPoint &ptWordRight)
+BOOL CScriptView::_ScreenToWordRight(CPoint ptClient, CPoint &ptUnder, CPoint &ptWordRight)
 {
     AdjustTextPoint(ptClient);
-    BOOL fRet = _ClientToTextNoMargin(ptClient, ptWordRight);
+    BOOL fRet = _ClientToTextNoMargin(ptClient, ptUnder);
     if (fRet)
     {
         // Move to the end of the word to the right.
-        ptWordRight = WordToRight(ptWordRight);
+        ptWordRight = WordToRight(ptUnder);
     }
     return fRet;
 }
@@ -1277,9 +1277,12 @@ void CScriptView::_BringUpToolTip(CPoint ptClient)
 
     if (_pwndToolTip)
     {
-        BOOL fInEditableArea = _ScreenToWordRight(ptClient, _ptToolTipWord);
-        if (fInEditableArea)
+        CPoint ptUnder, ptToolTipWord;
+        BOOL fInEditableArea = _ScreenToWordRight(ptClient, ptUnder, ptToolTipWord);
+        // If ptUnder == ptToolTipWord, then there's no word under the mouse.
+        if (fInEditableArea && (ptToolTipWord != ptUnder))
         {
+            _ptToolTipWord = ptToolTipWord;
             _TriggerHoverTipParse(_ptToolTipWord);
         }
     }
