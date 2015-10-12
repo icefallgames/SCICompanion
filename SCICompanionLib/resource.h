@@ -748,6 +748,7 @@
 #define IDC_EDIT_DESCRIPTION2           1367
 #define IDC_BUTTON_PROCESS              1368
 #define IDC_EDITAUDIO                   1369
+#define IDC_SPIN_LIPSYNC                1370
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -1096,7 +1097,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        399
 #define _APS_NEXT_COMMAND_VALUE         33277
-#define _APS_NEXT_CONTROL_VALUE         1370
+#define _APS_NEXT_CONTROL_VALUE         1371
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

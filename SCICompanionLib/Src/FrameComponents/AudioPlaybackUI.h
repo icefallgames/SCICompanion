@@ -32,7 +32,7 @@ protected:
     void OnInitDialogHelper();
     void AutomaticStop();
 
-    virtual void OnNewResourceCreated(std::unique_ptr<ResourceEntity> audioResource, const std::string &name) {};
+    virtual void OnNewResourceCreated(std::unique_ptr<ResourceEntity> audioResource, const std::string &name, bool isRecording) {};
 
 protected:
     afx_msg void OnTimer(UINT_PTR nIDEvent);
@@ -347,7 +347,7 @@ void AudioPlaybackUI<T>::OnBrowse()
         std::string filename = (PCSTR)fileDialog.GetPathName();
         try
         {
-            OnNewResourceCreated(WaveResourceFromFilename(filename), _NameFromFilename(filename.c_str()));
+            OnNewResourceCreated(WaveResourceFromFilename(filename), _NameFromFilename(filename.c_str()), false);
         }
         catch (std::exception &e)
         {
@@ -384,7 +384,7 @@ void AudioPlaybackUI<T>::OnStop()
     std::unique_ptr<ResourceEntity> newAudio = g_audioRecording.Stop();
     if (newAudio)
     {
-        OnNewResourceCreated(std::move(newAudio), "recording");
+        OnNewResourceCreated(std::move(newAudio), "recording", true);
     }
 
     _UpdatePlayState();

@@ -46,7 +46,7 @@ public:
     const TextEntry *_GetEntry();
 
 protected:
-    void OnNewResourceCreated(std::unique_ptr<ResourceEntity> audioResource, const std::string &name) override;
+    void OnNewResourceCreated(std::unique_ptr<ResourceEntity> audioResource, const std::string &name, bool isRecording) override;
 
     const TextComponent *_GetResource();
     int _GetSelectedIndex();

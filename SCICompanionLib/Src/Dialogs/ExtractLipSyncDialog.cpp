@@ -119,6 +119,10 @@ void ExtractLipSyncDialog::DoDataExchange(CDataExchange* pDX)
 
         DoDataExchangeHelper(pDX);
 
+        DDX_Control(pDX, IDC_SPIN_LIPSYNC, m_wndSpinLipSync);
+        m_wndSpinLipSync.SetRange(0, 100);
+        m_wndSpinLipSync.SetPos(50);
+
         DDX_Control(pDX, IDC_CHECK_USESAMPLE, m_wndUseSample);
         DDX_Control(pDX, IDC_CHECK_USETEXT, m_wndUseText);
         m_wndUseText.SetCheck(_useText ? BST_CHECKED : BST_UNCHECKED);
@@ -331,6 +335,7 @@ BEGIN_MESSAGE_MAP(ExtractLipSyncDialog, AudioPlaybackUI<ToolTipDialog>)
     ON_BN_CLICKED(IDC_EDITAUDIO, &ExtractLipSyncDialog::OnBnClickedEditaudio)
     ON_BN_CLICKED(IDC_EDITPHONEMEMAP, &ExtractLipSyncDialog::OnBnClickedEditphonememap)
     ON_BN_CLICKED(IDC_BUTTON_RESETMAPPING2, &ExtractLipSyncDialog::OnBnClickedButtonOpenmapping)
+    ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN_LIPSYNC, &ExtractLipSyncDialog::OnDeltaposSpinLipsync)
 END_MESSAGE_MAP()
 
 void ExtractLipSyncDialog::OnBnClickedButtonResetmapping()
@@ -519,4 +524,21 @@ void ExtractLipSyncDialog::OnBnClickedButtonOpenmapping()
         std::string fullPath = GetPhonemeMapPath(appState, _nView, _nLoop);
         ShowFile(fullPath);
     }
+}
+
+
+void ExtractLipSyncDialog::OnDeltaposSpinLipsync(NMHDR *pNMHDR, LRESULT *pResult)
+{
+    LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
+    SyncComponent *sync = _audioResource->TryGetComponent<SyncComponent>();
+    if (sync)
+    {
+        for (auto &entry : sync->Entries)
+        {
+            int newValue = (int)entry.Tick + pNMUpDown->iDelta;
+            entry.Tick = (uint16_t)max(0, newValue);
+        }
+        _UpdateSyncList();
+    }
+    *pResult = 0;
 }

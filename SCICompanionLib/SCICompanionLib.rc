@@ -1861,6 +1861,7 @@ BEGIN
     CONTROL         "",IDC_LIST_SYNCRESOURCE,"SysListView32",LVS_REPORT | LVS_ALIGNLEFT | WS_BORDER | WS_TABSTOP,136,149,75,90
     PUSHBUTTON      "Import",IDC_BUTTON_IMPORTSYNC,136,240,18,14,BS_ICON
     PUSHBUTTON      "Export",IDC_BUTTON_EXPORTSYNC,155,240,18,14,BS_ICON
+    CONTROL         "",IDC_SPIN_LIPSYNC,"msctls_updown32",UDS_ARROWKEYS,178,240,10,14
     PUSHBUTTON      "Delete",IDC_BUTTON_DELETE_SYNC,193,240,18,14,BS_ICON
     PUSHBUTTON      "8",IDC_BUTTON_PLAY2,155,57,19,14
     PUSHBUTTON      "g",IDC_BUTTON_STOP,182,57,19,14
@@ -3139,10 +3140,11 @@ END
 
 STRINGTABLE
 BEGIN
-    IDC_EDITAUDIO           "Re-process the audio based on the original recording"
     IDC_EDITPHONEMEMAP      "Edit the phoneme map for this view/loop"
     IDC_COMBO_BIT           "Switch the bit-depth of the final audio (recordings are always 16-bit)"
     IDC_BUTTON_PROCESS      "Re-process the audio recording with the current settings"
+    IDC_EDITAUDIO           "Re-process the audio based on the original recording"
+    IDC_SPIN_LIPSYNC        "Offset the timing of the lip sync markers"
 END
 
 STRINGTABLE

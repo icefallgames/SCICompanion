@@ -241,7 +241,7 @@ public:
     UINT GetIDD() { return IDD_PREVIEWAUDIO; }
     void SetResource(const ResourceBlob &blob);
 protected:
-    void OnNewResourceCreated(std::unique_ptr<ResourceEntity> audioResource, const std::string &name) override;
+    void OnNewResourceCreated(std::unique_ptr<ResourceEntity> audioResource, const std::string &name, bool isRecording) override;
     void OnPreviewerHidden() override;
 
 private:

@@ -779,7 +779,7 @@ void AudioPreviewer::SetResource(const ResourceBlob &blob)
     SetAudioResource(_resource.get());
 }
 
-void AudioPreviewer::OnNewResourceCreated(std::unique_ptr<ResourceEntity> audioResource, const std::string &name)
+void AudioPreviewer::OnNewResourceCreated(std::unique_ptr<ResourceEntity> audioResource, const std::string &name, bool isRecording)
 {
     audioResource->SourceFlags = ResourceSourceFlags::AudioCache;
     appState->GetResourceMap().AppendResourceAskForNumber(*audioResource, name);

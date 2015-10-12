@@ -401,7 +401,7 @@ bool MessageEditPane::_UpdateAudio(const TextEntry &messageEntry)
     return hasAudio;
 }
 
-void MessageEditPane::OnNewResourceCreated(std::unique_ptr<ResourceEntity> audioResource, const std::string &name)
+void MessageEditPane::OnNewResourceCreated(std::unique_ptr<ResourceEntity> audioResource, const std::string &name, bool isRecording)
 {
     const TextEntry *entry = _GetEntry();
     if (entry)
@@ -411,7 +411,7 @@ void MessageEditPane::OnNewResourceCreated(std::unique_ptr<ResourceEntity> audio
         audioResource->ResourceNumber = _pDoc->GetNumber();
 
         ResourceEntity *existing = _pDoc->GetAudioResource();
-        if (existing->TryGetComponent<SyncComponent>())
+        if (!isRecording && existing->TryGetComponent<SyncComponent>())
         {
             // If there is an existing lipsync component, ask if the user wants to remove it.
             // A scenario where don't want to remove it would be if they are exporting the wave for audio prcessing, and

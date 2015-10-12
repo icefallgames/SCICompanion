@@ -64,6 +64,7 @@ protected:
     CExtLabel m_wndStatic1;
     CExtLabel m_wndStatic2;
     CExtLabel m_wndStatic3;
+    CExtSpinWnd m_wndSpinLipSync;
 
     CExtGroupBox m_wndGroupViewLoop;
     CExtGroupBox m_wndGroupMessage;
@@ -104,4 +105,5 @@ public:
     afx_msg void OnBnClickedEditaudio();
     afx_msg void OnBnClickedEditphonememap();
     afx_msg void OnBnClickedButtonOpenmapping();
+    afx_msg void OnDeltaposSpinLipsync(NMHDR *pNMHDR, LRESULT *pResult);
 };
