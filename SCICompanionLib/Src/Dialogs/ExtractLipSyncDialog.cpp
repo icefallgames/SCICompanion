@@ -522,6 +522,11 @@ void ExtractLipSyncDialog::OnBnClickedButtonOpenmapping()
     if (_phonemeMap)
     {
         std::string fullPath = GetPhonemeMapPath(appState, _nView, _nLoop);
+        if (!PathFileExists(fullPath.c_str()))
+        {
+            std::string errors;
+            SaveForViewLoop(*_phonemeMap, appState, _nView, _nLoop, errors);
+        }
         ShowFile(fullPath);
     }
 }

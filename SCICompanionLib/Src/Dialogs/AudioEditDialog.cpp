@@ -150,6 +150,7 @@ void AudioEditDialog::OnCbnSelchangeComboBit()
 
 void AudioEditDialog::OnCbnSelchangeComboPreset()
 {
+    UpdateData(TRUE);
     _audioProcessingSettingsUI.OnCbnSelchangeComboPreset();
     UpdateData(FALSE);
 }

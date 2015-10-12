@@ -49,6 +49,7 @@ void AudioProcessingSettingsUI::DoDataExchangeHelper(CDataExchange* pDX)
     DDV_MinMaxInt(pDX, _settings.Noise.CloseThresholdDB, -99, 0);
 
     DDX_Check(pDX, IDC_CHECK_AUTOGAIN, _settings.AutoGain);
+    DDX_Check(pDX, IDC_CHECK_AUDIODITHER, _settings.AudioDither);
     DDX_Check(pDX, IDC_CHECK_DETECTSTARTEND, _settings.DetectStartEnd);
 
     // Visuals
@@ -60,6 +61,7 @@ void AudioProcessingSettingsUI::DoDataExchangeHelper(CDataExchange* pDX)
     DDX_Control(pDX, IDC_STATIC_TRIM, m_wndLabel6);
     DDX_Control(pDX, IDC_STATIC_PRESET, m_wndLabel6);
     DDX_Control(pDX, IDC_CHECK_AUTOGAIN, m_wndCheck1);
+    DDX_Control(pDX, IDC_CHECK_AUDIODITHER, m_wndCheck3);
     DDX_Control(pDX, IDC_CHECK_DETECTSTARTEND, m_wndCheck2);
     DDX_Control(pDX, IDC_COMBO_PRESET2, m_wndComboPreset);
 

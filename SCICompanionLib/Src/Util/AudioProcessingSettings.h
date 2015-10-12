@@ -17,6 +17,7 @@ struct AudioProcessingSettings
         TrimRightMS(0),
         AutoGain(FALSE),
         DetectStartEnd(FALSE),
+        AudioDither(FALSE),
         Noise()
     {
     }
@@ -27,6 +28,7 @@ struct AudioProcessingSettings
     uint32_t TrimRightMS;
     BOOL AutoGain;
     BOOL DetectStartEnd;
+    BOOL AudioDither;
 
     // Noise settings
     NoiseSettings Noise;

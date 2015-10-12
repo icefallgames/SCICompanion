@@ -2,6 +2,7 @@
 #include "AudioProcessing.h"
 #include "Audio.h"
 #include "AudioNegative.h"
+#include <random>
 
 void SixteenBitToFloat(const int16_t *bufferIn, size_t sampleCount, std::vector<float> &result)
 {
@@ -183,22 +184,55 @@ void ProcessSound(const AudioNegativeComponent &negative, AudioComponent &audioF
     }
     else
     {
+        std::random_device rd;
+        std::mt19937 myRandom(rd());
+        std::uniform_int_distribution<int32_t> distribution(0, 128);
+        std::uniform_int_distribution<int32_t> distribution2(0, 64);
+
+        // Track quantization error
+        int32_t prevError = 0;
+
         // We always record in 16bit. Now we'll reduce to 8 bit.
         // We want [-128,128] to map to [127.5,128.5]
         DWORD samples = processedSound.size();
         audioFinal.DigitalSamplePCM.reserve(samples);
         for (DWORD i = 0; i < samples; i++)
         {
+            int32_t value = processedSound[i];
+
+            // Add error from previous sample
+            value += prevError;
+
+            if (negative.Settings.AudioDither)
+            {
+                // Triangular pdf
+                // Alternative -ve/+ve to try to simulate a frequency of 11Khz, which
+                // the human ear isn't that senstive to (assuming sampling rate of 22050Hz).
+                // This sounds significantly better than a purely random value.
+                if (i % 2 == 0)
+                {
+                    value += distribution(myRandom) + distribution(myRandom);
+                }
+                else
+                {
+                    value -= distribution(myRandom) + distribution(myRandom);
+                }
+            }
+            // TODO: Clamp properly... I guess it's ok with 65535 below, but the -ve will be bad.
+
             // I think this is more accurate:
-            uint32_t unsigned16 = processedSound[i] + 32768 + 128;
-            unsigned16 = min(unsigned16, 65535);
+            uint32_t unsigned16Raw = value + 32768;
+            uint32_t unsigned16 = min(unsigned16Raw + 128, 65535);     // +128 acts as rounding so we can truncate
             uint8_t unsigned8 = (uint8_t)(unsigned16 / 256);
+            prevError = (int32_t)unsigned16Raw - (int32_t)(unsigned8 * 256);
             audioFinal.DigitalSamplePCM.push_back(unsigned8);
 
             // But this flattens out noise around 0 better.
             //int8_t signed8 = sixteenBitBuffer[i] / 256;
             //audio->DigitalSamplePCM.push_back(signed8 + 128);
         }
+
+        int x = 0;
     }
 
 }

@@ -22,6 +22,7 @@ private:
     CExtLabel m_wndLabel6;
     CExtLabel m_wndLabel7;
     CExtCheckBox m_wndCheck1;
+    CExtCheckBox m_wndCheck3;
     CExtCheckBox m_wndCheck2;
     CExtComboBox m_wndComboPreset;
 };
