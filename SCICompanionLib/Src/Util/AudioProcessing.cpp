@@ -50,7 +50,7 @@ float dbToRms(float db)
     return pow(10.0f, db / 20.0f);
 }
 
-void ApplyNoiseGate(float *buffer, int totalFloats, float sampleRate, const AudioProcessingSettings &settings)
+bool ApplyNoiseGate(float *buffer, int totalFloats, float sampleRate, const AudioProcessingSettings &settings)
 {
     const float AttackTime = (float)settings.Noise.AttackTimeMS / 1000.0f;
     const float ReleaseTime = (float)settings.Noise.ReleaseTimeMS / 1000.0f;
@@ -69,7 +69,7 @@ void ApplyNoiseGate(float *buffer, int totalFloats, float sampleRate, const Audi
     if ((OpenThreshold < 0.0001f) && (CloseThreshold < 0.0001f))
     {
         // No noise reduction
-        return;
+        return false;
     }
 
     const float SAMPLE_RATE_F = sampleRate;
@@ -118,6 +118,7 @@ void ApplyNoiseGate(float *buffer, int totalFloats, float sampleRate, const Audi
         // Attenuate!
         buffer[i] *= attenuation;
     }
+    return true;
 }
 
 
@@ -137,16 +138,18 @@ void ProcessSound(const AudioNegativeComponent &negative, AudioComponent &audioF
     uint32_t samplesToRemoveOffFront = min(negative.Audio.Frequency * negative.Settings.TrimLeftMS / 1000, buffer.size());
     buffer.erase(buffer.begin(), buffer.begin() + samplesToRemoveOffFront);
 
+    bool hadNoiseGate = false;
     if (!buffer.empty())
     {
-        ApplyNoiseGate(&buffer[0], buffer.size(), negative.Audio.Frequency, negative.Settings);
-
         // I figure autogain should be applied after the noise gate, otherwise we'll need different noise settings
         // for every single "volume" of source audio.
+        // NOPE - changed my mind
         if (negative.Settings.AutoGain)
         {
             ApplyAutoGain(&buffer[0], buffer.size());
         }
+
+        hadNoiseGate = ApplyNoiseGate(&buffer[0], buffer.size(), negative.Audio.Frequency, negative.Settings);
 
         // This makes most sense after a noise gate has been applied:
         if (negative.Settings.DetectStartEnd)
@@ -179,8 +182,11 @@ void ProcessSound(const AudioNegativeComponent &negative, AudioComponent &audioF
     if (IsFlagSet(finalFlags, AudioFlags::SixteenBit))
     {
         // Just a straight copy
-        uint8_t *asBytes = reinterpret_cast<uint8_t*>(&processedSound[0]);
-        std::copy(asBytes, asBytes + processedSound.size() * 2, std::back_inserter(audioFinal.DigitalSamplePCM));
+        if (!processedSound.empty())
+        {
+            uint8_t *asBytes = reinterpret_cast<uint8_t*>(&processedSound[0]);
+            std::copy(asBytes, asBytes + processedSound.size() * 2, std::back_inserter(audioFinal.DigitalSamplePCM));
+        }
     }
     else
     {
@@ -200,22 +206,27 @@ void ProcessSound(const AudioNegativeComponent &negative, AudioComponent &audioF
         {
             int32_t value = processedSound[i];
 
-            // Add error from previous sample
-            value += prevError;
-
-            if (negative.Settings.AudioDither)
+            // If the value is zero, it's probably from a noise gate. Keep it quiet rather than
+            // introducing dither noise at zero level.
+            if (hadNoiseGate && (value != 0))
             {
-                // Triangular pdf
-                // Alternative -ve/+ve to try to simulate a frequency of 11Khz, which
-                // the human ear isn't that senstive to (assuming sampling rate of 22050Hz).
-                // This sounds significantly better than a purely random value.
-                if (i % 2 == 0)
+                // Add error from previous sample
+                value += prevError;
+
+                if (negative.Settings.AudioDither)
                 {
-                    value += distribution(myRandom) + distribution(myRandom);
-                }
-                else
-                {
-                    value -= distribution(myRandom) + distribution(myRandom);
+                    // Triangular pdf
+                    // Alternative -ve/+ve to try to simulate a frequency of 11Khz, which
+                    // the human ear isn't that senstive to (assuming sampling rate of 22050Hz).
+                    // This sounds significantly better than a purely random value.
+                    if (i % 2 == 0)
+                    {
+                        value += distribution(myRandom) + distribution(myRandom);
+                    }
+                    else
+                    {
+                        value -= distribution(myRandom) + distribution(myRandom);
+                    }
                 }
             }
 

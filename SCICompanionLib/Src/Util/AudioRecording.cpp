@@ -193,6 +193,15 @@ std::unique_ptr<ResourceEntity> AudioRecording::Stop()
 
 void AudioRecording::_StartBuffer(AudioRecording::RecordState state, WaveRecordingFormat format)
 {
+    UINT cCount = waveInGetNumDevs();
+    for (UINT i = 0; i < cCount; i++)
+    {
+        WAVEINCAPS caps;
+        int result2 = waveInGetDevCaps(i, &caps, sizeof(caps));
+        int x = 0;
+    }
+
+
     _recordingFreq = IsFlagSet(format, WaveRecordingFormat::TwentyTwoK) ? 22050 : 11025;
     _finalFormatFlags = AudioFlags::None;
     if (IsFlagSet(format, WaveRecordingFormat::SixteenBit))
