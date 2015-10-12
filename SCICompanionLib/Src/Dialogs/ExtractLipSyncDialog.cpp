@@ -190,7 +190,7 @@ void ExtractLipSyncDialog::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_EDITPHONEMEMAP, m_wndEditPhoneme);
 
         _SyncViewLoop();
-
+        
         DDX_Control(pDX, IDC_EDITAUDIO, m_wndEditAudio);
         m_wndEditAudio.SetIcon(IDI_WAVEFORM, 0, 0, 0, 24, 24);
         m_wndEditAudio.EnableWindow(_audioResource->TryGetComponent<AudioNegativeComponent>() != nullptr);

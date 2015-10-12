@@ -197,13 +197,13 @@ void AudioRecording::_StartBuffer(AudioRecording::RecordState state, WaveRecordi
     _finalFormatFlags = AudioFlags::None;
     if (IsFlagSet(format, WaveRecordingFormat::SixteenBit))
     {
-        _finalFormatFlags = AudioFlags::SixteenBit;
+        _finalFormatFlags = AudioFlags::SixteenBit | AudioFlags::Signed;
     }
 
     // We'll always record in 16 bit, then reduce the bit depth later. Recording in 8 bit is noisy, silence
     // oscillates between values 128 and 129. It should be 128.
     WORD blockAlign = 2;
-    _recordingFlags = AudioFlags::SixteenBit;
+    _recordingFlags = AudioFlags::SixteenBit | AudioFlags::Signed;
 
     WAVEFORMATEX waveFormat = { 0 };
     waveFormat.wFormatTag = WAVE_FORMAT_PCM;

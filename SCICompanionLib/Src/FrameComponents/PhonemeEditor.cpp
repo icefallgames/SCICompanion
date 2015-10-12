@@ -43,6 +43,7 @@ PhonemeEditor::PhonemeEditor(IPhonemeMapNotify *notify, const ResourceEntity *vi
     for (const auto &entry : map.Entries())
     {
         uint16_t cel = min((uint16_t)entry.second, (uint16_t)celCount);
+        cel = min(cel, (uint16_t)(_cache.size() - 1));
         _cache[cel].push_back(entry.first);
     }
 
@@ -405,6 +406,7 @@ void PhonemeEditor::_DrawCels(CDC *pDC, LPRECT prc)
 
                 // We want to spread our guys out vertically.
                 int height = RECTHEIGHT(*prc) * maxX / ImageBarWidth;
+                height = max(height, maxY * celCount);  // At least this high.
 
                 int perItemHeight = min(height / celCount, maxY);
 
@@ -416,10 +418,7 @@ void PhonemeEditor::_DrawCels(CDC *pDC, LPRECT prc)
                 {
                     int y = row * height / celCount;
                     y += yCenterOffset;
-                    if (((y + cel.size.cy) < height) && (y >= 0))
-                    {
-                        CopyBitmapData(cel, _dibBits, 0, y, CX_ACTUAL(_sciBitmap->GetBitmapDimension().cx), true);
-                    }
+                    CopyBitmapData(cel, _dibBits, 0, y, CX_ACTUAL(_sciBitmap->GetBitmapDimension().cx), true);
                     row++;
                 }
 

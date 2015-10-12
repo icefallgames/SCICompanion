@@ -410,8 +410,17 @@ void MessageEditPane::OnNewResourceCreated(std::unique_ptr<ResourceEntity> audio
         audioResource->Base36Number = GetMessageTuple(*entry);
         audioResource->ResourceNumber = _pDoc->GetNumber();
 
-        // If we have a new piece audio, I think it makes sense to remove any existing lipsync component.
-        // So we can just replace what's already there:
+        ResourceEntity *existing = _pDoc->GetAudioResource();
+        if (existing->TryGetComponent<SyncComponent>())
+        {
+            // If there is an existing lipsync component, ask if the user wants to remove it.
+            // A scenario where don't want to remove it would be if they are exporting the wave for audio prcessing, and
+            // then re-importing it.
+            if (IDYES == AfxMessageBox("The audio resource you're replacing has lip sync data. Do you want to keep this lip sync data?", MB_YESNO | MB_ICONQUESTION))
+            {
+                audioResource->AddComponent<SyncComponent>(std::make_unique<SyncComponent>(existing->GetComponent<SyncComponent>()));
+            }
+        }
         _pDoc->SetAudioResource(std::move(audioResource));
 
         // Now we may have just deleted the old one, so let's update.

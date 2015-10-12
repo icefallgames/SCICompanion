@@ -137,11 +137,11 @@ void AudioEditDialog::OnCbnSelchangeComboBit()
     {
         if (curSel == 0)
         {
-            _audio->Flags &= ~AudioFlags::SixteenBit;
+            _audio->Flags &= ~(AudioFlags::SixteenBit | AudioFlags::Signed);
         }
         else
         {
-            _audio->Flags |= AudioFlags::SixteenBit;
+            _audio->Flags |= (AudioFlags::SixteenBit | AudioFlags::Signed);
         }
         // Process, so that the data in the audio matches the bit depth we just set.
         OnBnClickedButtonProcess();
