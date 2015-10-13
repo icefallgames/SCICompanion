@@ -18,6 +18,7 @@ struct AudioProcessingSettings
         AutoGain(FALSE),
         DetectStartEnd(FALSE),
         AudioDither(FALSE),
+        Compression(FALSE),
         Noise()
     {
     }
@@ -29,6 +30,7 @@ struct AudioProcessingSettings
     BOOL AutoGain;
     BOOL DetectStartEnd;
     BOOL AudioDither;
+    BOOL Compression;
 
     // Noise settings
     NoiseSettings Noise;

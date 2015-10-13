@@ -116,8 +116,9 @@ AppState::AppState(CWinApp *pApp)
 
     _audioProcessing->TrimLeftMS = 100;
     _audioProcessing->TrimRightMS = 100;
-    _audioProcessing->AutoGain = FALSE;
+    _audioProcessing->AutoGain = TRUE;
     _audioProcessing->DetectStartEnd = TRUE;
+    _audioProcessing->Compression = TRUE;
     _audioProcessing->AudioDither = FALSE;
 
     _audioProcessing->Noise.AttackTimeMS = 15;

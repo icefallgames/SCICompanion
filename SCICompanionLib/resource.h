@@ -740,7 +740,6 @@
 #define IDC_STATIC_TRIM                 1360
 #define IDC_STATIC_PRESET               1361
 #define IDC_EDITPHONEMEMAP              1362
-#define IDC_CHECK_AUTOGAIN2             1362
 #define IDC_CHECK_AUDIODITHER           1362
 #define IDC_COMBO_BIT                   1363
 #define IDC_RADIO_NEGATIVE              1364
@@ -748,6 +747,8 @@
 #define IDC_COMBO_PRESET2               1366
 #define IDC_PHONEME                     1366
 #define IDC_EDIT_DESCRIPTION2           1367
+#define IDC_CHECK_AUTOGAIN2             1367
+#define IDC_CHECK_COMPRESSION           1367
 #define IDC_BUTTON_PROCESS              1368
 #define IDC_EDITAUDIO                   1369
 #define IDC_SPIN_LIPSYNC                1370

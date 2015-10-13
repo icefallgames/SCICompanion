@@ -50,6 +50,80 @@ float dbToRms(float db)
     return pow(10.0f, db / 20.0f);
 }
 
+const float DC_OFFSET = 0.00001f;
+const float DB_2_LOG = 0.115129254649f;
+const float LOG_2_DB = 8.685889638065f;
+
+float DecibelsToLinear(float dB)
+{
+    return std::exp(dB * DB_2_LOG);
+}
+float LinearToDecibels(float lin)
+{
+    return std::log(lin) * LOG_2_DB;
+}
+
+void ApplyCompression(float *buffer, int totalFloats, float sampleRate, const AudioProcessingSettings &settings)
+{
+    // Algorithm from NAudio
+
+    // For now, we've hard-coded these values (suitable for voice)
+    const float Threshold = -8.0f;      // db above with compression is applied
+    const float Ratio = 0.2f;           // 5:1 compression ratio
+    const float MakeUpGain = 3.0f;
+    const uint32_t AttackMS = 5;
+    const uint32_t ReleaseMS = 400;     // Make it more?
+
+    float attackCoeff = std::exp(-1.0f / (0.001f * (float)AttackMS * sampleRate));
+    float releaseCoeff = std::exp(-1.0f / (0.001f * (float)ReleaseMS * sampleRate));
+
+    float envdB = DC_OFFSET;
+
+    for (int i = 0; i < totalFloats; i++)
+    {
+        // Get current input level
+        float link = abs(buffer[i]);
+
+        link += DC_OFFSET;					// add DC offset to avoid log( 0 )
+        float keydB = LinearToDecibels(link);		// convert linear -> dB
+
+        // threshold
+        float overdB = keydB - Threshold;	// delta over threshold
+        if (overdB < 0.0f)
+            overdB = 0.0f;
+
+        // attack/release
+
+        overdB += DC_OFFSET;					// add DC offset to avoid denormal
+
+        if (overdB > envdB)
+        {
+            // Attack
+            envdB = overdB + attackCoeff * (envdB - overdB);
+        }
+        else
+        {
+            // Release
+            envdB = overdB + releaseCoeff * (envdB - overdB);
+        }
+
+        overdB = envdB - DC_OFFSET;			// subtract DC offset
+
+        // Regarding the DC offset: In this case, since the offset is added before 
+        // the attack/release processes, the envelope will never fall below the offset,
+        // thereby avoiding denormals. However, to prevent the offset from causing
+        // constant gain reduction, we must subtract it from the envelope, yielding
+        // a minimum value of 0dB.
+
+        // transfer function
+        float gr = overdB * (Ratio - 1.0f);	// gain reduction (dB)
+        gr = DecibelsToLinear(gr) * DecibelsToLinear(MakeUpGain); // convert dB -> linear
+
+        // output gain
+        buffer[i] *= gr;	// apply gain reduction to input
+    }
+}
+
 bool ApplyNoiseGate(float *buffer, int totalFloats, float sampleRate, const AudioProcessingSettings &settings)
 {
     const float AttackTime = (float)settings.Noise.AttackTimeMS / 1000.0f;
@@ -150,6 +224,11 @@ void ProcessSound(const AudioNegativeComponent &negative, AudioComponent &audioF
         }
 
         hadNoiseGate = ApplyNoiseGate(&buffer[0], buffer.size(), negative.Audio.Frequency, negative.Settings);
+
+        if (negative.Settings.Compression)
+        {
+            ApplyCompression(&buffer[0], buffer.size(), negative.Audio.Frequency, negative.Settings);
+        }
 
         // This makes most sense after a noise gate has been applied:
         if (negative.Settings.DetectStartEnd)

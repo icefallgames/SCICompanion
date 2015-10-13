@@ -496,7 +496,7 @@ void SCICompanionApp::_LoadSettings(BOOL fReset)
     appState->_audioProcessing->TrimLeftMS = GetProfileInt(pszRegName, TEXT("AudioTrimRight"), appState->_audioProcessing->TrimLeftMS);
     appState->_audioProcessing->AutoGain = GetProfileInt(pszRegName, TEXT("AutoGain"), appState->_audioProcessing->AutoGain);
     appState->_audioProcessing->AudioDither = GetProfileInt(pszRegName, TEXT("AudioDither"), appState->_audioProcessing->AudioDither);
-    appState->_audioProcessing->DetectStartEnd = GetProfileInt(pszRegName, TEXT("DetectStartEnd"), appState->_audioProcessing->DetectStartEnd);
+    appState->_audioProcessing->Compression = GetProfileInt(pszRegName, TEXT("Compression"), appState->_audioProcessing->Compression);
     appState->_audioProcessing->Noise.AttackTimeMS = GetProfileInt(pszRegName, TEXT("NoiseAttackTimeMS"), appState->_audioProcessing->Noise.AttackTimeMS);
     appState->_audioProcessing->Noise.ReleaseTimeMS = GetProfileInt(pszRegName, TEXT("NoiseReleaseTimeMS"), appState->_audioProcessing->Noise.ReleaseTimeMS);
     appState->_audioProcessing->Noise.HoldTimeMS = GetProfileInt(pszRegName, TEXT("NoiseHoldTimeMS"), appState->_audioProcessing->Noise.HoldTimeMS);
@@ -531,6 +531,7 @@ void SCICompanionApp::_SaveSettings()
     WriteProfileInt(m_pszAppName, TEXT("AudioDither"), appState->_audioProcessing->AudioDither);
     WriteProfileInt(m_pszAppName, TEXT("AutoGain"), appState->_audioProcessing->AutoGain);
     WriteProfileInt(m_pszAppName, TEXT("DetectStartEnd"), appState->_audioProcessing->DetectStartEnd);
+    WriteProfileInt(m_pszAppName, TEXT("Compression"), appState->_audioProcessing->Compression);
     WriteProfileInt(m_pszAppName, TEXT("NoiseAttackTimeMS"), appState->_audioProcessing->Noise.AttackTimeMS);
     WriteProfileInt(m_pszAppName, TEXT("NoiseReleaseTimeMS"), appState->_audioProcessing->Noise.ReleaseTimeMS);
     WriteProfileInt(m_pszAppName, TEXT("NoiseHoldTimeMS"), appState->_audioProcessing->Noise.HoldTimeMS);

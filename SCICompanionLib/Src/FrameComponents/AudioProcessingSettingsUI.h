@@ -24,5 +24,6 @@ private:
     CExtCheckBox m_wndCheck1;
     CExtCheckBox m_wndCheck3;
     CExtCheckBox m_wndCheck2;
+    CExtCheckBox m_wndCheck4;
     CExtComboBox m_wndComboPreset;
 };

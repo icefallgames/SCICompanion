@@ -51,6 +51,7 @@ void AudioProcessingSettingsUI::DoDataExchangeHelper(CDataExchange* pDX)
     DDX_Check(pDX, IDC_CHECK_AUTOGAIN, _settings.AutoGain);
     DDX_Check(pDX, IDC_CHECK_AUDIODITHER, _settings.AudioDither);
     DDX_Check(pDX, IDC_CHECK_DETECTSTARTEND, _settings.DetectStartEnd);
+    DDX_Check(pDX, IDC_CHECK_COMPRESSION, _settings.Compression);
 
     // Visuals
     DDX_Control(pDX, IDC_STATIC_ATTACK, m_wndLabel1);
@@ -63,6 +64,7 @@ void AudioProcessingSettingsUI::DoDataExchangeHelper(CDataExchange* pDX)
     DDX_Control(pDX, IDC_CHECK_AUTOGAIN, m_wndCheck1);
     DDX_Control(pDX, IDC_CHECK_AUDIODITHER, m_wndCheck3);
     DDX_Control(pDX, IDC_CHECK_DETECTSTARTEND, m_wndCheck2);
+    DDX_Control(pDX, IDC_CHECK_COMPRESSION, m_wndCheck4);
     DDX_Control(pDX, IDC_COMBO_PRESET2, m_wndComboPreset);
 
     if (m_wndComboPreset.GetCount() == 0)
