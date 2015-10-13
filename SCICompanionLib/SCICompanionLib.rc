@@ -1899,7 +1899,7 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "Ok",IDOK,95,189,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,150,189,50,14
-    LTEXT           "Start/end trim (ms):",IDC_STATIC_TRIM,18,32,102,8
+    LTEXT           "Start/end trim (ms):",IDC_STATIC_TRIM,18,32,77,8
     EDITTEXT        IDC_EDIT_TRIMLEFT,17,44,36,14,ES_AUTOHSCROLL | ES_NUMBER
     EDITTEXT        IDC_EDIT_TRIMRIGHT,61,44,34,14,ES_AUTOHSCROLL | ES_NUMBER
     RTEXT           "Noise Gate Preset:",IDC_STATIC_PRESET,15,65,72,8
@@ -1932,7 +1932,7 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     DEFPUSHBUTTON   "Accept",IDOK,149,205,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,208,205,50,14
-    LTEXT           "Start/end trim (ms):",IDC_STATIC_TRIM,18,21,102,8
+    LTEXT           "Start/end trim (ms):",IDC_STATIC_TRIM,18,21,76,8
     EDITTEXT        IDC_EDIT_TRIMLEFT,17,34,36,14,ES_AUTOHSCROLL | ES_NUMBER
     EDITTEXT        IDC_EDIT_TRIMRIGHT,61,33,33,14,ES_AUTOHSCROLL | ES_NUMBER
     CONTROL         "Auto gain",IDC_CHECK_AUTOGAIN,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,108,16,47,10
@@ -3147,6 +3147,7 @@ STRINGTABLE
 BEGIN
     IDC_EDITPHONEMEMAP      "Edit the phoneme map for this view/loop"
     IDC_COMBO_BIT           "Switch the bit-depth of the final audio (recordings are always 16-bit)"
+    IDC_CHECK_COMPRESSION   "Apply a compressor to even out audio levels"
     IDC_BUTTON_PROCESS      "Re-process the audio recording with the current settings"
     IDC_EDITAUDIO           "Re-process the audio based on the original recording"
     IDC_SPIN_LIPSYNC        "Offset the timing of the lip sync markers"
