@@ -25,23 +25,33 @@ void FloatToSixteenBit(const std::vector<float> &bufferIn, std::vector<int16_t> 
     }
 }
 
-void ApplyAutoGain(float *buffer, size_t totalFloats)
+float CalculateMaxAmplitude(const float *buffer, size_t totalFloats)
 {
     float maxAmp = 0.0f;
     for (size_t i = 0; i < totalFloats; i++)
     {
         maxAmp = max(abs(buffer[i]), maxAmp);
     }
+    return maxAmp;
+}
+
+// Auto gain will bring the waveform to within 80% of max. This is fairly in line with
+// other Sierra games. Higher than that and we risk clipping when we apply compression.
+void ApplyAutoGain(float *buffer, size_t totalFloats, float maxAmp)
+{
     float scale = 10.0f;    // At most...
     if (maxAmp > 0.002f)    // epsilon
     {
         maxAmp += 0.001f;   // Ensure we don't go QUITE to max.
-        scale = min(scale, 1.0f / maxAmp);
+        scale = min(scale, 0.8f / maxAmp);
     }
 
-    for (size_t i = 0; i < totalFloats; i++)
+    if (scale > 1.0f)
     {
-        buffer[i] = buffer[i] * scale;
+        for (size_t i = 0; i < totalFloats; i++)
+        {
+            buffer[i] = buffer[i] * scale;
+        }
     }
 }
 
@@ -63,16 +73,32 @@ float LinearToDecibels(float lin)
     return std::log(lin) * LOG_2_DB;
 }
 
-void ApplyCompression(float *buffer, int totalFloats, float sampleRate, const AudioProcessingSettings &settings)
+const float MaxAllowedAmplitudeDb = -0.4455f;   // 0.95 amplitude
+
+void ApplyCompression(float *buffer, int totalFloats, float sampleRate, const AudioProcessingSettings &settings, float maxAmplitude)
 {
     // Algorithm from NAudio
 
     // For now, we've hard-coded these values (suitable for voice)
     const float Threshold = -8.0f;      // db above with compression is applied
     const float Ratio = 0.2f;           // 5:1 compression ratio
-    const float MakeUpGain = 3.0f;
-    const uint32_t AttackMS = 5;
+    const uint32_t AttackMS = 1;
     const uint32_t ReleaseMS = 400;     // Make it more?
+
+    // We apply MakeUpGain so that the compression doesn't make the signal *less* loud.
+    // However, we don't want the gain to bring us up above MaxAllowedAmplitudeDb
+    float maxAmplitudeDb = LinearToDecibels(maxAmplitude);
+    // After compression, this amplitude will be less though...
+    if (maxAmplitudeDb > Threshold)
+    {
+        // Ignoring attack, this is our max amplitude after compression
+        // maxAmplitudeDb = Threshold + (maxAmplitudeDb - Threshold) * Ratio;
+        // Except we can't really ignore attack... it's spikes that we're worried about... Even with a 1ms attack,
+        // the waveform could reach its highest level.
+    }
+    float MakeUpGain = max(0.0f, MaxAllowedAmplitudeDb - maxAmplitudeDb);
+    MakeUpGain = min(3.0f, MakeUpGain); // But no more than 3db of makeup gain.
+
 
     float attackCoeff = std::exp(-1.0f / (0.001f * (float)AttackMS * sampleRate));
     float releaseCoeff = std::exp(-1.0f / (0.001f * (float)ReleaseMS * sampleRate));
@@ -121,6 +147,8 @@ void ApplyCompression(float *buffer, int totalFloats, float sampleRate, const Au
 
         // output gain
         buffer[i] *= gr;	// apply gain reduction to input
+
+        assert(buffer[i] >= -0.96f);
     }
 }
 
@@ -215,19 +243,25 @@ void ProcessSound(const AudioNegativeComponent &negative, AudioComponent &audioF
     bool hadNoiseGate = false;
     if (!buffer.empty())
     {
+        float maxAmp = 1.0f;
+        if (negative.Settings.AutoGain || negative.Settings.Compression)
+        {
+            maxAmp = CalculateMaxAmplitude(&buffer[0], buffer.size());
+        }
+
         // I figure autogain should be applied after the noise gate, otherwise we'll need different noise settings
         // for every single "volume" of source audio.
         // NOPE - changed my mind
         if (negative.Settings.AutoGain)
         {
-            ApplyAutoGain(&buffer[0], buffer.size());
+            ApplyAutoGain(&buffer[0], buffer.size(), maxAmp);
         }
 
         hadNoiseGate = ApplyNoiseGate(&buffer[0], buffer.size(), negative.Audio.Frequency, negative.Settings);
 
         if (negative.Settings.Compression)
         {
-            ApplyCompression(&buffer[0], buffer.size(), negative.Audio.Frequency, negative.Settings);
+            ApplyCompression(&buffer[0], buffer.size(), negative.Audio.Frequency, negative.Settings, maxAmp);
         }
 
         // This makes most sense after a noise gate has been applied:
