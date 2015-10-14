@@ -779,6 +779,11 @@ BEGIN
     "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
 END
 
+IDR_ACCELERATORMESSAGEEDIT ACCELERATORS
+BEGIN
+    "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

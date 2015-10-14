@@ -130,6 +130,7 @@
 #define IDR_MENUVIEWS                   254
 #define IDD_QUICKSCRIPTS1               254
 #define IDD_SAMPLES                     254
+#define IDR_ACCELERATORMESSAGEEDIT      254
 #define IDB_BITMAPNULL                  255
 #define IDD_PREVIEWBLANK                255
 #define ID_BROWSEINFOPANE               256
