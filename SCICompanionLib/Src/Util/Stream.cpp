@@ -334,8 +334,6 @@ namespace sci
 
     streamOwner::streamOwner(HANDLE hFile, DWORD lengthToInclude) : _dataMemoryMapped(nullptr), _hMap(nullptr), _hFile(INVALID_HANDLE_VALUE)
     {
-        PerfTimer timer("streamOwner");
-
         DWORD dwSizeHigh = 0;
         // Start from the current position:
         uint32_t dwSize = lengthToInclude;
@@ -364,7 +362,6 @@ namespace sci
                 }
             }
         }
-
     }
 
     void transfer(istream from, ostream &to, uint32_t count)

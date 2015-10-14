@@ -225,6 +225,7 @@ BOOL MessageEditPane::OnInitDialog()
     AddAnchor(IDC_CHECK_USETEXT, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_BUTTONDELETEAUDIO, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_EDITAUDIO, CPoint(100, 0), CPoint(100, 0));
+    AddAnchor(IDC_STATIC_CLIPPED, CPoint(100, 0), CPoint(100, 0));
 
     // Hide the sizing grip
     ShowSizeGrip(FALSE);
@@ -411,7 +412,7 @@ void MessageEditPane::OnNewResourceCreated(std::unique_ptr<ResourceEntity> audio
         audioResource->ResourceNumber = _pDoc->GetNumber();
 
         ResourceEntity *existing = _pDoc->GetAudioResource();
-        if (!isRecording && existing->TryGetComponent<SyncComponent>())
+        if (!isRecording && existing && existing->TryGetComponent<SyncComponent>())
         {
             // If there is an existing lipsync component, ask if the user wants to remove it.
             // A scenario where don't want to remove it would be if they are exporting the wave for audio prcessing, and
@@ -805,6 +806,23 @@ void MessageEditPane::OnBnClickedButtonlipsyncDialog()
         {
             talkerName = talkersSource->ValueToName(entry->Talker);
         }
+
+
+
+
+        // phil temp min max
+        uint8_t maxV = 0;
+        uint8_t minV = 255;
+        for (uint8_t value : _pDoc->GetAudioResource()->GetComponent<AudioComponent>().DigitalSamplePCM)
+        {
+            maxV = max(maxV, value);
+            minV = min(minV, value);
+        }
+        std::string foo = fmt::format("min:{0}  max:{1}\n", (int)minV, (int)maxV);
+        OutputDebugString(foo.c_str());
+
+
+
 
         ExtractLipSyncDialog dialog(*_pDoc->GetAudioResource(), entry->Talker, talkerName, entry->Text, m_wndUseText.GetCheck() == BST_CHECKED);
         if (IDOK == dialog.DoModal())

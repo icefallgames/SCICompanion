@@ -370,8 +370,6 @@
     <None Include="Files\TemplateGame\SCI1.1\src\Rev.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\rev.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\rm001.sco" />
-    <None Include="Files\TemplateGame\SCI1.1\src\rm100.sco" />
-    <None Include="Files\TemplateGame\SCI1.1\src\rm105.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\rm106.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\rm110.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\rm110.sco" />
@@ -638,6 +636,10 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="Files\Samples\default_phoneme_map.ini" />
+    <None Include="Files\TemplateGame\SCI1.1\src\talker.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\talker.sco" />
+    <None Include="Files\TemplateGame\SCI1.1\src\titlescreen.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\titlescreen.sco" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />

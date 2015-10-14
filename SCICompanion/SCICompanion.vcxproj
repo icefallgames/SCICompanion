@@ -564,8 +564,6 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <None Include="Files\TemplateGame\SCI1.1\src\Rev.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\rev.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\rm001.sco" />
-    <None Include="Files\TemplateGame\SCI1.1\src\rm100.sco" />
-    <None Include="Files\TemplateGame\SCI1.1\src\rm105.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\rm106.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\rm110.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\rm110.sco" />
@@ -617,9 +615,13 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <None Include="Files\TemplateGame\SCI1.1\src\syslogger.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\SysWindow.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\syswindow.sco" />
+    <None Include="Files\TemplateGame\SCI1.1\src\talker.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\talker.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\Talkers.sh" />
     <None Include="Files\TemplateGame\SCI1.1\src\timer.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\timer.sco" />
+    <None Include="Files\TemplateGame\SCI1.1\src\titlescreen.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\titlescreen.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\tkrcliffy.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\tkrroger.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\tkrwd40.sco" />

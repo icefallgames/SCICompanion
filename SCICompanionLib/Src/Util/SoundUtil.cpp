@@ -337,6 +337,8 @@ void AudioComponentFromWaveFile(sci::istream &stream, AudioComponent &audio, Aud
     {
         appState->OutputResults(OutputPaneType::Compile, conversionResults);
     }
+
+    audio.ScanForClipped();
 }
 
 std::string _NameFromFilename(PCSTR pszFilename)

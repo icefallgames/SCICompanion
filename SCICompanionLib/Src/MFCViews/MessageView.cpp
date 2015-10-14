@@ -8,6 +8,8 @@
 #include "format.h"
 #include "NounsAndCases.h"
 #include "Sync.h"
+#include "Audio.h"
+#include "AudioNegative.h"
 
 using namespace std;
 
@@ -253,11 +255,15 @@ void CMessageView::_SetItem(int itemIndex, int visualIndex, PCTSTR pszString, co
     bool hasAudio = (audioResource != nullptr);
     bool hasLipSync = audioResource && audioResource->TryGetComponent<SyncComponent>();
     bool hasRawLipSync = hasLipSync && !audioResource->GetComponent<SyncComponent>().RawData.empty();
+    bool hasNegative = audioResource && audioResource->TryGetComponent<AudioNegativeComponent>();
+    bool isOverLevel = (hasAudio && audioResource->GetComponent<AudioComponent>().IsClipped) ||
+        (hasNegative && audioResource->GetComponent<AudioNegativeComponent>().Audio.IsClipped);
 
     LVITEM item = { 0 };
     item.mask = LVIF_TEXT | LVIF_PARAM;
     item.mask |= LVIF_IMAGE;
-    item.iImage = (hasRawLipSync ? 3 : (hasLipSync ? 2 : (hasAudio ? 1 : 0)));    // Lipsync implies also audio
+    int imageIndex = (hasRawLipSync ? 3 : (hasLipSync ? 2 : (hasAudio ? 1 : 0)));    // Lipsync implies also audio
+    item.iImage = isOverLevel ? (imageIndex + 4) : imageIndex;
     item.iItem = visualIndex;
     item.lParam = itemIndex;
     item.iSubItem = 0;

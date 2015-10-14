@@ -324,5 +324,5 @@ void ProcessSound(const AudioNegativeComponent &negative, AudioComponent &audioF
 
         int x = 0;
     }
-
+    audioFinal.ScanForClipped();
 }

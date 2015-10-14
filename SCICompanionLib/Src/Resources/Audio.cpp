@@ -7,6 +7,14 @@
 
 using namespace std;
 
+// Speed work-around for VC 2013:
+// https://randomascii.wordpress.com/2013/11/24/stdmin-causing-three-times-slowdown-on-vc/
+template <class T>
+T FastMax(const T& left, const T& right)
+{
+    return left > right ? left : right;
+}
+
 std::string GetAudioLength(const AudioComponent &audio)
 {
     int freq = max(1, audio.Frequency);
@@ -21,6 +29,39 @@ std::string GetAudioLength(const AudioComponent &audio)
 uint32_t AudioComponent::GetBytesPerSecond() const
 {
     return Frequency * (IsFlagSet(Flags, AudioFlags::SixteenBit) ? 2 : 1);
+}
+
+void AudioComponent::ScanForClipped()
+{
+    IsClipped = false;
+    if (IsFlagSet(Flags, AudioFlags::SixteenBit))
+    {
+        if (!DigitalSamplePCM.empty())
+        {
+            const int16_t *data = reinterpret_cast<const int16_t*>(&DigitalSamplePCM[0]);
+            size_t samples = DigitalSamplePCM.size() / 2;
+            for (size_t i = 0; i < samples; i++)
+            {
+                int16_t value = data[i];
+                if ((value == -32768) || (value == 32767))
+                {
+                    IsClipped = true;
+                    return;
+                }
+            }
+        }
+    }
+    else
+    {
+        for (uint8_t value : DigitalSamplePCM)
+        {
+            if ((value == 0) || (value == 255))
+            {
+                IsClipped = true;
+                return;
+            }
+        }
+    }
 }
 
 uint32_t AudioComponent::GetLengthInTicks() const
@@ -219,6 +260,8 @@ void AudioReadFrom(ResourceEntity &resource, sci::istream &stream, const std::ma
             }
         }
     }
+
+    audio.ScanForClipped();
 }
 
 ResourceTraits audioTraits =

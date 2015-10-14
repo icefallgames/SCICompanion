@@ -50,6 +50,7 @@ private:
     bool _IsRecording();
 
     CExtEdit m_wndInfo;
+    CExtLabel m_wndClipped;
     CExtButton m_wndPlay;
     CExtButton m_wndStop;
     CExtButton m_wndRecord;
@@ -146,6 +147,18 @@ void AudioPlaybackUI<T>::SetAudioResource(const AudioComponent *audio, const Syn
             _audio->GetLength(),
             IsFlagSet(_audio->Flags, AudioFlags::SixteenBit) ? "16-bit" : "8-bit",
             IsFlagSet(_audio->Flags, AudioFlags::DPCM) ? "DPCM" : "");
+
+        if (m_wndClipped)
+        {
+            m_wndClipped.ShowWindow(_audio->IsClipped ? SW_SHOW : SW_HIDE);
+        }
+    }
+    else
+    {
+        if (m_wndClipped)
+        {
+            m_wndClipped.ShowWindow(SW_HIDE);
+        }
     }
 
     if (m_wndAutoPreview && (m_wndAutoPreview.GetCheck() == BST_CHECKED))
@@ -186,6 +199,13 @@ void AudioPlaybackUI<T>::DoDataExchangeHelper(CDataExchange* pDX)
     if (GetDlgItem(IDC_EDIT_SAMPLEBIT))
     {
         DDX_Control(pDX, IDC_EDIT_SAMPLEBIT, m_wndInfo);
+    }
+    if (GetDlgItem(IDC_STATIC_CLIPPED))
+    {
+        DDX_Control(pDX, IDC_STATIC_CLIPPED, m_wndClipped);
+        m_wndClipped.SetTextColor(true, RGB(255, 255, 255));
+        m_wndClipped.SetBkColor(RGB(255, 0, 0));
+        m_wndClipped.ShowWindow(SW_HIDE);
     }
     DDX_Control(pDX, IDC_BUTTON_PLAY2, m_wndPlay);
     if (GetDlgItem(IDC_CHECK_HALFSPEED))

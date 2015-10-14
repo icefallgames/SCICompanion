@@ -217,6 +217,8 @@ void AudioWaveformUI::_DrawWaveform(CDC *pDC, LPRECT prc)
         std::vector<DWORD> pointCounts;
         points.reserve(200);
         pointCounts.reserve(100);
+        std::vector<CPoint> pointsClipped;
+        std::vector<DWORD> pointCountsClipped;
         int yMiddle = (prc->top + prc->bottom) / 2;
         int height = RECTHEIGHT(*prc);
         int width = RECTWIDTH(*prc);
@@ -235,7 +237,7 @@ void AudioWaveformUI::_DrawWaveform(CDC *pDC, LPRECT prc)
                 // 16 bit is signed already? (usually)
                 value = *reinterpret_cast<const int16_t*>(&_audioComponent->DigitalSamplePCM[i * 2]);
             }
-            
+
             waveFormMax[i / binSize] = max(waveFormMax[i / binSize], value);
             waveFormMin[i / binSize] = min(waveFormMin[i / binSize], value);
         }
@@ -245,9 +247,29 @@ void AudioWaveformUI::_DrawWaveform(CDC *pDC, LPRECT prc)
             // Add a line from y to -y the middle.
             int yTop = waveFormMax[x] * height / scale / 2;
             int yBottom = waveFormMin[x] * height / scale / 2;
-            points.emplace_back(x, yMiddle + yTop);
-            points.emplace_back(x, yMiddle + yBottom);
-            pointCounts.push_back(2);
+
+            bool clipped = false;
+            if (blockAlign == 2)
+            {
+                clipped = (waveFormMax[x] == 32767) || (waveFormMin[x] == -32768);
+            }
+            else
+            {
+                clipped = (waveFormMax[x] == 127) || (waveFormMin[x] == -128);
+            }
+
+            if (clipped)
+            {
+                pointsClipped.emplace_back(x, yMiddle + yTop);
+                pointsClipped.emplace_back(x, yMiddle + yBottom);
+                pointCountsClipped.push_back(2);
+            }
+            else
+            {
+                points.emplace_back(x, yMiddle + yTop);
+                points.emplace_back(x, yMiddle + yBottom);
+                pointCounts.push_back(2);
+            }
         }
 
         // Finally a horizontal line
@@ -260,6 +282,13 @@ void AudioWaveformUI::_DrawWaveform(CDC *pDC, LPRECT prc)
             CPen pen(PS_SOLID, 1, _selected ? RGB(0, 0, 128) : RGB(64, 64, 128));
             HGDIOBJ hOld = dcMem.SelectObject(pen);
             dcMem.PolyPolyline(&points[0], &pointCounts[0], (int)pointCounts.size());
+            dcMem.SelectObject(hOld);
+        }
+        if (!pointsClipped.empty())
+        {
+            CPen pen(PS_SOLID, 1, _selected ? RGB(255, 0, 0) : RGB(255, 64, 64));
+            HGDIOBJ hOld = dcMem.SelectObject(pen);
+            dcMem.PolyPolyline(&pointsClipped[0], &pointCountsClipped[0], (int)pointCountsClipped.size());
             dcMem.SelectObject(hOld);
         }
 

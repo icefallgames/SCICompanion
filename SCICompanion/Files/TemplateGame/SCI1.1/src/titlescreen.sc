@@ -2,6 +2,7 @@
 (include "sci.sh")
 (include "Verbs.sh")
 (include "0.shm")
+(include "game.sh")
 (exports
     0 rm100
 )

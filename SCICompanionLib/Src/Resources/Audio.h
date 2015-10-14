@@ -35,7 +35,7 @@ class ResourceEntity;
 struct AudioComponent : public ResourceComponent
 {
 public:
-    AudioComponent() : Frequency(0), Flags(AudioFlags::None) {}
+    AudioComponent() : Frequency(0), Flags(AudioFlags::None), IsClipped(false) {}
 
     ResourceComponent *Clone() const override
     {
@@ -46,9 +46,12 @@ public:
     uint32_t GetLengthInTicks() const;
     uint32_t GetBytesPerSecond() const;
 
+    void ScanForClipped();
+
     std::vector<uint8_t> DigitalSamplePCM;
     uint16_t Frequency; // Samples per second
     AudioFlags Flags;
+    bool IsClipped;
 };
 
 ResourceEntity *CreateAudioResource(SCIVersion version);

@@ -791,7 +791,7 @@ CAPTION "About SCICompanion"
 FONT 8, "MS Shell Dlg", 0, 0, 0x1
 BEGIN
     ICON            IDR_MAINFRAME,IDC_STATIC4,11,17,20,20
-    LTEXT           "SCICompanion version 3.0.0.11",IDC_STATIC1,50,7,121,8,SS_NOPREFIX
+    LTEXT           "SCICompanion version 3.0.0.12",IDC_STATIC1,50,7,121,8,SS_NOPREFIX
     LTEXT           "Copyright (C) 2015",IDC_STATIC2,50,25,119,8
     DEFPUSHBUTTON   "OK",IDOK,208,7,50,16,BS_FLAT | WS_GROUP
     EDITTEXT        IDC_EDIT1,50,41,208,127,ES_MULTILINE | ES_READONLY
@@ -1682,13 +1682,13 @@ BEGIN
     LTEXT           "Message text:",IDC_STATIC2,172,11,47,8
     PUSHBUTTON      "Commit",IDC_BUTTONCOMMIT,232,7,50,14
     PUSHBUTTON      "Add new",IDC_BUTTONADDNEW,7,7,42,14
-    EDITTEXT        IDC_EDIT_SAMPLEBIT,383,75,109,14,ES_AUTOHSCROLL | ES_READONLY
+    EDITTEXT        IDC_EDIT_SAMPLEBIT,383,78,109,14,ES_AUTOHSCROLL | ES_READONLY
     PUSHBUTTON      "8",IDC_BUTTON_PLAY2,383,7,19,14
     PUSHBUTTON      "g",IDC_BUTTON_STOP,403,7,19,14
-    CONTROL         "",IDC_SLIDER,"msctls_trackbar32",WS_TABSTOP,442,48,50,15
-    CONTROL         "Auto preview",IDC_CHECK_AUTOPREV,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,384,49,54,10
-    LTEXT           "Duration:",IDC_STATIC_DURATION,386,63,106,8
-    PUSHBUTTON      "&Browse",IDC_BUTTONBROWSE,431,90,38,14
+    CONTROL         "",IDC_SLIDER,"msctls_trackbar32",WS_TABSTOP,442,53,50,15
+    CONTROL         "Auto preview",IDC_CHECK_AUTOPREV,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,384,54,54,10
+    LTEXT           "Duration:",IDC_STATIC_DURATION,386,67,106,8
+    PUSHBUTTON      "&Browse",IDC_BUTTONBROWSE,431,93,38,14
     PUSHBUTTON      "Record",IDC_BUTTON_RECORD,403,24,19,14,BS_ICON
     COMBOBOX        IDC_COMBO_WAVEFORMAT,426,25,66,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     PUSHBUTTON      "Quick Lip Sync",IDC_BUTTONLIPSYNC,321,24,55,14
@@ -1696,10 +1696,11 @@ BEGIN
     PUSHBUTTON      "Advanced",IDC_BUTTONLIPSYNC_DIALOG,321,52,55,14
     LTEXT           "Static",IDC_STATIC_BASE36NAME,322,10,55,8
     RTEXT           "Recording format:",IDC_STATIC_REC,427,11,59,8
-    PUSHBUTTON      "&Export",IDC_BUTTON_EXPORT,384,90,44,14
+    PUSHBUTTON      "&Export",IDC_BUTTON_EXPORT,384,93,44,14
     CONTROL         "Use Text",IDC_CHECK_USETEXT,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,321,41,55,10
-    PUSHBUTTON      "Delete",IDC_BUTTONDELETEAUDIO,474,90,18,14,BS_ICON
+    PUSHBUTTON      "Delete",IDC_BUTTONDELETEAUDIO,474,93,18,14,BS_ICON
     PUSHBUTTON      "Edit",IDC_EDITAUDIO,383,24,19,14,BS_ICON | BS_FLAT
+    LTEXT           "Levels Clipped",IDC_STATIC_CLIPPED,386,42,106,8
 END
 
 IDD_DIALOGGRADIENTS DIALOGEX 0, 0, 117, 108
@@ -1876,6 +1877,7 @@ BEGIN
     GROUPBOX        "Message: N V C S",IDC_GROUP_MESSAGE,7,123,209,133
     EDITTEXT        IDC_EDIT_PHONEMEMAPSTATUS,228,196,115,36,ES_MULTILINE | ES_AUTOVSCROLL | ES_READONLY | WS_VSCROLL
     PUSHBUTTON      "Edit",IDC_EDITAUDIO,331,7,19,14,BS_ICON | BS_FLAT
+    LTEXT           "Levels Clipped",IDC_STATIC_CLIPPED,158,98,51,8
 END
 
 IDD_VIEWLOOP DIALOGEX 0, 0, 131, 93
@@ -1958,10 +1960,11 @@ BEGIN
     CONTROL         "",IDC_WAVEFORM,"Static",SS_OWNERDRAW,26,108,232,29
     CONTROL         "",IDC_WAVEFORM2,"Static",SS_OWNERDRAW,25,156,233,29
     RTEXT           "Duration:",IDC_STATIC_DURATION,12,191,52,8
-    EDITTEXT        IDC_EDIT_SAMPLEBIT,71,188,187,14,ES_AUTOHSCROLL | ES_READONLY
+    EDITTEXT        IDC_EDIT_SAMPLEBIT,71,188,128,14,ES_AUTOHSCROLL | ES_READONLY
     COMBOBOX        IDC_COMBO_BIT,72,207,62,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "",IDC_RADIO_NEGATIVE,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,7,118,16,10
     CONTROL         "",IDC_RADIO_FINAL,"Button",BS_AUTORADIOBUTTON | BS_LEFTTEXT,7,167,16,10
+    LTEXT           "Levels Clipped",IDC_STATIC_CLIPPED,205,191,52,8
 END
 
 IDD_PHONEMEEDITOR DIALOGEX 0, 0, 315, 266
@@ -2004,12 +2007,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "IceFall Games"
             VALUE "FileDescription", "SCICompanion"
-            VALUE "FileVersion", "3.0.0.11"
+            VALUE "FileVersion", "3.0.0.12"
             VALUE "InternalName", "SCICompanion.exe"
             VALUE "LegalCopyright", "(c) IceFall Games.  All rights reserved."
             VALUE "OriginalFilename", "SCICompanion.exe"
             VALUE "ProductName", "SCI Companion 3"
-            VALUE "ProductVersion", "3.0.0.11"
+            VALUE "ProductVersion", "3.0.0.12"
         END
     END
     BLOCK "VarFileInfo"
@@ -3147,10 +3150,10 @@ STRINGTABLE
 BEGIN
     IDC_EDITPHONEMEMAP      "Edit the phoneme map for this view/loop"
     IDC_COMBO_BIT           "Switch the bit-depth of the final audio (recordings are always 16-bit)"
-    IDC_CHECK_COMPRESSION   "Apply a compressor to even out audio levels"
     IDC_BUTTON_PROCESS      "Re-process the audio recording with the current settings"
     IDC_EDITAUDIO           "Re-process the audio based on the original recording"
     IDC_SPIN_LIPSYNC        "Offset the timing of the lip sync markers"
+    IDC_CHECK_COMPRESSION   "Apply a compressor to even out audio levels"
 END
 
 STRINGTABLE

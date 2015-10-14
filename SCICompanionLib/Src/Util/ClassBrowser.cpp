@@ -821,10 +821,6 @@ void SCIClassBrowser::_MaybeGenerateAutoCompleteTree()
         std::copy(items.begin(), items.end(), std::inserter(itemsSorted, itemsSorted.begin()));
         _aclist.BuildDatabase(itemsSorted);
 
-        TCHAR szMsg[100];
-        StringCchPrintf(szMsg, ARRAYSIZE(szMsg), TEXT("milliseconds: %d\n"), (int)(timer.Stop() * 1000));
-        OutputDebugString(szMsg);
-
         _invalidAutoCompleteSources = AutoCompleteSourceType::None;
     }
 }
@@ -976,10 +972,6 @@ bool SCIClassBrowser::_CreateClassTree(ITaskStatus &task)
     {
         _pEvents->NotifyClassBrowserStatus(HasErrors() ? IClassBrowserEvents::Errors : IClassBrowserEvents::Ok, 0);
     }
-
-TCHAR szMsg[100];
-StringCchPrintf(szMsg, ARRAYSIZE(szMsg), TEXT("milliseconds: %d\n"), (int)(timer.Stop() * 1000));
-OutputDebugString(szMsg);
 
     return fRet;
 }

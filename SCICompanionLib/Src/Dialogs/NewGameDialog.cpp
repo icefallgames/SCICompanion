@@ -165,7 +165,7 @@ void NewGameDialog::OnBnClickedOk()
         else if (appState->GetResourceMap().DoesResourceExist(ResourceType::Script, 100))
         {
             // REVIEW: Temp hack. We might want a config file that says which resources to open by default.
-            appState->OpenScript("rm100");
+            appState->OpenScript("titlescreen");
         }
         OnOK();
     }
