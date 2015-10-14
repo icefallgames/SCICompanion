@@ -3,7 +3,7 @@
 (include "game.sh")
 (include "0.shm")
 (exports
-    0 Template
+    0 SQ5
     1 Btest
     2 Bset
     3 Bclear
@@ -491,7 +491,9 @@
     )
 )
 
-(class public Template of Game
+// In order for this game to run in ScummVM, the game name needs to
+// be a known one (e.g. SQ5)
+(class public SQ5 of Game
     (properties
         script 0
         printLang 1

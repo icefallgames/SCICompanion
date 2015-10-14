@@ -3159,6 +3159,7 @@ BEGIN
     IDC_EDITAUDIO           "Re-process the audio based on the original recording"
     IDC_SPIN_LIPSYNC        "Offset the timing of the lip sync markers"
     IDC_CHECK_COMPRESSION   "Apply a compressor to even out audio levels"
+    IDC_BUTTONDELETEAUDIO   "Remove the audio from this message entry"
 END
 
 STRINGTABLE

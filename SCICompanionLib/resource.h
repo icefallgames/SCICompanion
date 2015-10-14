@@ -633,7 +633,6 @@
 #define IDC_CHECKMESSAGE                1269
 #define IDC_BUTTONEDGES                 1270
 #define IDC_CHECKPOLYS                  1270
-#define IDC_BUTTONDELETEAUDIO           1270
 #define IDC_BUTTONCENTER                1271
 #define IDC_RADIOLINEAR                 1272
 #define IDC_RADIOCENTER                 1273
@@ -753,6 +752,7 @@
 #define IDC_SPIN_LIPSYNC                1370
 #define IDC_CHECK_COMPRESSION           1371
 #define IDC_STATIC_CLIPPED              1372
+#define IDC_BUTTONDELETEAUDIO           1373
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -1101,7 +1101,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        399
 #define _APS_NEXT_COMMAND_VALUE         33277
-#define _APS_NEXT_CONTROL_VALUE         1373
+#define _APS_NEXT_CONTROL_VALUE         1374
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

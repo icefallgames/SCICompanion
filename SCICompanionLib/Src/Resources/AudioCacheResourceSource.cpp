@@ -33,14 +33,14 @@ using namespace std::tr2;
 class UpToDateResources
 {
 public:
-    UpToDateResources(const std::string &cacheFolder) : _cacheTrackerFilename(cacheFolder + "\\updatetodate.bin")
+    UpToDateResources(const std::string &cacheFolder) : _cacheTrackerFilename(cacheFolder + "\\uptodate.bin")
     {
         std::ifstream file;
         file.open(_cacheTrackerFilename, std::ios_base::in | std::ios_base::binary);
         if (file.is_open())
         {
             int resource;
-            while (file >> resource)
+            while (file.read(reinterpret_cast<char*>(&resource), sizeof(resource)))
             {
                 _upToDate.insert(resource);
             }
@@ -54,12 +54,12 @@ public:
     void Save()
     {
         std::ofstream file;
-        file.open(_cacheTrackerFilename, std::ios_base::out | std::ios_base::binary);
+        file.open(_cacheTrackerFilename, std::ios_base::out | std::ios_base::trunc | std::ios_base::binary);
         if (file.is_open())
         {
             for (int resource : _upToDate)
             {
-                file << resource;
+                file.write(reinterpret_cast<const char*>(&resource), sizeof(resource));
             }
         }
     }
