@@ -407,7 +407,7 @@ void MessageEditPane::OnNewResourceCreated(std::unique_ptr<ResourceEntity> audio
     const TextEntry *entry = _GetEntry();
     if (entry)
     {
-        audioResource->SourceFlags = (GetVolumeToUse(appState->GetVersion(), GetMessageTuple(*entry)) == AudioVolumeName::Sfx) ? ResourceSourceFlags::Sfx : ResourceSourceFlags::Aud;
+        assert(audioResource->SourceFlags == ResourceSourceFlags::AudioCache);
         audioResource->Base36Number = GetMessageTuple(*entry);
         audioResource->ResourceNumber = _pDoc->GetNumber();
 

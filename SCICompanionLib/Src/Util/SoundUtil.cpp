@@ -433,13 +433,13 @@ std::unique_ptr<ResourceEntity> WaveResourceFromFilename(const std::string &file
     ScopedFile scopedFile(filename, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
     sci::streamOwner owner(scopedFile.hFile);
     AudioComponentFromWaveFile(owner.getReader(), resource->GetComponent<AudioComponent>());
+    resource->SourceFlags = ResourceSourceFlags::AudioCache;
     return resource;
 }
 
 void AddWaveFileToGame(const std::string &filename)
 {
     std::unique_ptr<ResourceEntity> resource = WaveResourceFromFilename(filename);
-    resource->SourceFlags = (GetVolumeToUse(appState->GetVersion(), NoBase36) == AudioVolumeName::Sfx) ? ResourceSourceFlags::Sfx : ResourceSourceFlags::Aud;
     appState->GetResourceMap().AppendResourceAskForNumber(*resource, _NameFromFilename(filename.c_str()));
 }
 
