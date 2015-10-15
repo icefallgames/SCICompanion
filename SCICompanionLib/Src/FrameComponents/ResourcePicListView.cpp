@@ -90,7 +90,7 @@ LRESULT CResourcePicListCtrl::OnPicReady(WPARAM wParam, LPARAM lParam)
         int cItems = GetItemCount();
         for (int i = 0; i < cItems; i++)
         {
-            ResourceBlob *pData = _GetResourceForItem(i);
+            const ResourceBlob *pData = _GetResourceForItem(i);
             if ((pData->GetChecksum() == pWorkResult->nID) &&
                 (pData->GetNumber() == pWorkResult->iResourceNumber) &&
                 (pData->GetPackageHint() == pWorkResult->iPackageNumber))

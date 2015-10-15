@@ -372,8 +372,8 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_UPDATE_COMMAND_UI(ID_SCRIPT_MANAGEDECOMPILATION, OnUpdateShowIfGameLoaded)
     ON_COMMAND(ID_STOPDEBUG, OnStopDebugging)
     ON_UPDATE_COMMAND_UI(ID_STOPDEBUG, OnUpdateStopDebugging)
-    ON_COMMAND(ID_SELFTEST, OnSelfTest)
-    ON_WM_TIMER()
+    // ON_COMMAND(ID_SELFTEST, OnSelfTest)
+    // ON_WM_TIMER()
 
     ON_WM_WINDOWPOSCHANGED()
 
@@ -2329,7 +2329,7 @@ void CMainFrame::OnUpdateClassBrowser(CCmdUI *pCmdUI)
     }
 }
 
-
+/*
 void CMainFrame::OnSelfTest()
 {
     if (!_fSelfTest)
@@ -2373,7 +2373,7 @@ void CMainFrame::OnTimer(UINT_PTR nIDEvent)
         __super::OnTimer(nIDEvent);
     }
 }
-
+*/
 
 // CMainFrame diagnostics
 

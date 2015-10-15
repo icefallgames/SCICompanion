@@ -61,7 +61,7 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
     void _SortItemsHelper(int sortColumn, bool toggle);
-    void _UpdateStatusIfFlagsChanged(ResourceBlob &data, ResourceLoadStatusFlags originalFlags, int item);
+    void _UpdateStatusIfFlagsChanged(const ResourceBlob &data, ResourceLoadStatusFlags originalFlags, int item);
     void _InitColumns();
     void _InsertItem(ResourceBlob *pData);
     void _DeleteItem(const ResourceBlob *pData);

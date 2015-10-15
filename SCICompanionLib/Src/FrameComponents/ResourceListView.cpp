@@ -43,8 +43,8 @@ c_ColumnInfo [] =
 
 IMPLEMENT_DYNCREATE(CResourceListCtrl, CListCtrl)
 
-void GetStatusString(ResourceBlob &data, TCHAR *pszBuffer, size_t cchBuffer, bool mostRecent);
-void GetInfoString(ResourceBlob &data, TCHAR *pszBuffer, size_t cchBuffer)
+void GetStatusString(const ResourceBlob &data, TCHAR *pszBuffer, size_t cchBuffer, bool mostRecent);
+void GetInfoString(const ResourceBlob &data, TCHAR *pszBuffer, size_t cchBuffer)
 {
     *pszBuffer = 0;
 }
@@ -116,7 +116,7 @@ void CResourceListCtrl::OnItemClick(NMHDR* pNMHDR, LRESULT* pResult)
         CGameExplorerFrame *pFrame = static_cast<CGameExplorerFrame*>(GetParentFrame());
         if (pFrame)
         {
-            ResourceBlob *pData = _GetResourceForItem(plv->iItem);
+            const ResourceBlob *pData = _GetResourceForItem(plv->iItem);
             if (pData)
             {
                 ResourceLoadStatusFlags originalFlags = pData->GetStatusFlags();
@@ -205,7 +205,7 @@ void CResourceListCtrl::OnEndLabelEdit(NMHDR* pNMHDR, LRESULT* pResult)
             // We have a new name.
             // Get the item.
             ResourceBlob *pData = _GetResourceForItem(plvdi->item.iItem);
-            ASSERT(pData);
+            assert(pData);
             // Put the name in game.ini
             pData->SetName(plvdi->item.pszText);
             appState->GetResourceMap().AssignName(*pData);
@@ -269,8 +269,8 @@ void CResourceListCtrl::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         int nItem = GetSelectedItem();
         if (nItem != -1)
         {
-            ResourceBlob *pData = _GetResourceForItem(nItem);
-            ASSERT(pData);
+            const ResourceBlob *pData = _GetResourceForItem(nItem);
+            assert(pData);
             _OnItemDoubleClick(pData);
         }
     }
@@ -387,8 +387,8 @@ void CResourceListCtrl::OnItemDoubleClick(NMHDR* pNMHDR, LRESULT* pResult)
     int iViewIndex = pNMLV->iItem;
     if (iViewIndex != -1) // Could be -1 if user clicked on the background.
     {
-        ResourceBlob *pData = _GetResourceForItem(iViewIndex);
-        ASSERT(pData);
+        const ResourceBlob *pData = _GetResourceForItem(iViewIndex);
+        assert(pData);
         _OnItemDoubleClick(pData);
     }
     *pResult = 0;
@@ -560,7 +560,7 @@ void CResourceListCtrl::OnDelete()
         if (IDYES == AfxMessageBox(szBuffer, MB_YESNO | MB_APPLMODAL | MB_ICONEXCLAMATION))
         {
             // Grab all the selected ResourceBlob's, before we start deleting any items.
-            vector<ResourceBlob*> resourcesTempCopy;
+            vector<const ResourceBlob*> resourcesTempCopy;
             POSITION pos = GetFirstSelectedItemPosition();
             while (pos != NULL)
             {
@@ -568,7 +568,7 @@ void CResourceListCtrl::OnDelete()
                 resourcesTempCopy.push_back(_GetResourceForItem(nItem));
             }
 
-            for (ResourceBlob *pData : resourcesTempCopy)
+            for (const ResourceBlob *pData : resourcesTempCopy)
             {
                 deletedResourceNumbers.insert(pData->GetNumber());
                 assert(pData);
@@ -585,8 +585,8 @@ void CResourceListCtrl::OnDelete()
         int nItem = GetSelectedItem();
         if (nItem != -1)
         {
-            ResourceBlob *pData = _GetResourceForItem(nItem);
-            ASSERT(pData);
+            const ResourceBlob *pData = _GetResourceForItem(nItem);
+            assert(pData);
             TCHAR szBuffer[MAX_PATH];
             StringCchPrintf(szBuffer, ARRAYSIZE(szBuffer), TEXT("Delete %s?"), pData->GetName().c_str());
             if (IDYES == AfxMessageBox(szBuffer, MB_YESNO | MB_APPLMODAL | MB_ICONEXCLAMATION))
@@ -651,7 +651,7 @@ void CResourceListCtrl::_ReevaluateRecency(const ResourceBlob *pData)
     int cItems = GetItemCount();
     for (int i = 0; i < cItems; i++)
     {
-        ResourceBlob *pDataCur = _GetResourceForItem(i);
+        const ResourceBlob *pDataCur = _GetResourceForItem(i);
         if ((pDataCur->GetPackageHint() == pData->GetPackageHint()) &&
             (pDataCur->GetNumber() == pData->GetNumber()))
         {
@@ -820,7 +820,7 @@ void CResourceListCtrl::_InsertItem(ResourceBlob *pData)
     }
 }
 
-void CResourceListCtrl::_UpdateStatusIfFlagsChanged(ResourceBlob &data, ResourceLoadStatusFlags originalFlags, int nItem)
+void CResourceListCtrl::_UpdateStatusIfFlagsChanged(const ResourceBlob &data, ResourceLoadStatusFlags originalFlags, int nItem)
 {
     if (originalFlags != data.GetStatusFlags())
     {
@@ -836,7 +836,7 @@ void CResourceListCtrl::_UpdateStatusIfFlagsChanged(ResourceBlob &data, Resource
     }
 }
 
-void GetStatusString(ResourceBlob &data, TCHAR *pszBuffer, size_t cchBuffer, bool mostRecent)
+void GetStatusString(const ResourceBlob &data, TCHAR *pszBuffer, size_t cchBuffer, bool mostRecent)
 {
     bool needsSeparator = false;
     if (!mostRecent)
