@@ -345,14 +345,7 @@ void _AssignDefaultResourceSourceFlags(ResourceBlob &blob)
     switch (blob.GetType())
     {
         case ResourceType::Audio:
-            if (appState->GetVersion().AudioVolumeName == AudioVolumeName::Sfx)
-            {
-                blob.GetHeader().SourceFlags = ResourceSourceFlags::Sfx;
-            }
-            else
-            {
-                blob.GetHeader().SourceFlags = ResourceSourceFlags::Aud;
-            }
+            blob.GetHeader().SourceFlags = ResourceSourceFlags::AudioCache;
             break;
 
         case ResourceType::Message:
