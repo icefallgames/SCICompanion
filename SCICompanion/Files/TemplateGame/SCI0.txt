@@ -1,0 +1,1 @@
+SCI0: This engine supports 16-color EGA graphics, vector backgrounds, MIDI sounds, and a text parsing interface.

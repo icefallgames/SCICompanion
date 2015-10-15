@@ -20,8 +20,8 @@ NewGameDialog::~NewGameDialog()
 
 void NewGameDialog::_PopulateTemplates()
 {
-    std::string templateFolder = appState->GetResourceMap().GetTemplateFolder();
-    std::string findFirstString = templateFolder + "\\" + "SCI*";
+    std::string templateFolder = appState->GetResourceMap().GetTemplateFolder() + "\\";
+    std::string findFirstString = templateFolder + "SCI*";
     // Find top-level folders that start with SCI
     WIN32_FIND_DATA findData = { 0 };
     HANDLE hFolder = FindFirstFile(findFirstString.c_str(), &findData);
@@ -36,6 +36,17 @@ void NewGameDialog::_PopulateTemplates()
                 // Include this
                 m_wndComboTemplate.AddString(findData.cFileName);
             }
+            else
+            {
+                if (0 == strncmp(PathFindExtension(findData.cFileName), ".txt", 4))
+                {
+                    std::ifstream descriptionFile(templateFolder + findData.cFileName);
+                    std::string description((std::istreambuf_iterator<char>(descriptionFile)),
+                        std::istreambuf_iterator<char>());
+                    std::string key(findData.cFileName, PathFindExtension(findData.cFileName));
+                    _descriptions[key] = description;
+                }
+            }
 
             ok = FindNextFile(hFolder, &findData);
         }
@@ -45,6 +56,7 @@ void NewGameDialog::_PopulateTemplates()
     if (m_wndComboTemplate.GetCount() > 0)
     {
         m_wndComboTemplate.SetCurSel(0);
+        OnCbnSelchangeCombotemplate();
     }
 }
 
@@ -62,10 +74,7 @@ void NewGameDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_STATIC3, m_wndStatic3);
     DDX_Control(pDX, IDOK, m_wndOK);
     DDX_Control(pDX, IDCANCEL, m_wndCancel);
-    DDX_Control(pDX, IDC_GROUP1, m_wndGroup1);
-    DDX_Control(pDX, IDC_SYNTAX_SCI, m_wndSyntaxSCI);
-    m_wndSyntaxSCI.SetCheck(true); // REVIEW: temporary until CPP is enabled
-    DDX_Control(pDX, IDC_SYNTAX_CPP, m_wndSyntaxCPP);
+    DDX_Control(pDX, IDC_EDIT_DESCRIPTION, m_wndDescription);
 
     DDX_Control(pDX, IDC_COMBOTEMPLATE, m_wndComboTemplate);
     _PopulateTemplates();
@@ -93,6 +102,7 @@ BOOL NewGameDialog::OnInitDialog()
 BEGIN_MESSAGE_MAP(NewGameDialog, CExtResizableDialog)
     ON_BN_CLICKED(IDOK, OnBnClickedOk)
     ON_BN_CLICKED(IDC_BUTTONBROWSE, OnBnClickedButtonbrowse)
+    ON_CBN_SELCHANGE(IDC_COMBOTEMPLATE, &NewGameDialog::OnCbnSelchangeCombotemplate)
 END_MESSAGE_MAP()
 
 
@@ -197,5 +207,17 @@ void NewGameDialog::OnBnClickedButtonbrowse()
     if (SUCCEEDED(hr))
     {
         OleUninitialize();
+    }
+}
+
+
+void NewGameDialog::OnCbnSelchangeCombotemplate()
+{
+    int curSel = m_wndComboTemplate.GetCurSel();
+    if (curSel != CB_ERR)
+    {
+        CString str;
+        m_wndComboTemplate.GetLBText(curSel, str);
+        m_wndDescription.SetWindowText(_descriptions[(PCSTR)str].c_str());
     }
 }

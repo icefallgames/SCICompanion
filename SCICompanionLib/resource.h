@@ -865,7 +865,7 @@
 #define ID_FILE_SCRIPTEDITOR            33005
 #define ID_HELP_SCICOMPANION            33011
 #define ID_INTELLISENSE                 33012
-#define ID_DUMPXML                      33014
+#define ID_RECORD                       33014
 #define ID_CLASSBROWSER                 33015
 #define ID_ROOM_EXPLORER                33017
 #define ID_EDIT_GOTO                    33018

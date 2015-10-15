@@ -30,11 +30,12 @@ protected:
     CExtButton m_wndOK;
     CExtButton m_wndCancel;
     CExtButton m_wndBrowse;
-    CExtGroupBox m_wndGroup1;
-    CExtRadioButton m_wndSyntaxSCI;
-    CExtRadioButton m_wndSyntaxCPP;
+    CExtEdit m_wndDescription;
+
+    std::map<std::string, std::string> _descriptions;
 
 public:
     afx_msg void OnBnClickedOk();
     afx_msg void OnBnClickedButtonbrowse();
+    afx_msg void OnCbnSelchangeCombotemplate();
 };

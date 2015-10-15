@@ -8,6 +8,7 @@
 #include "ViewUIElement.h"
 #include "AudioWaveformUI.h"
 #include "format.h"
+#include "AudioNegative.h"
 
 enum class WaveRecordingFormat;
 class ViewUIElement;
@@ -21,7 +22,7 @@ public:
     virtual ~AudioPlaybackUI();
     void SetAudioResource(const ResourceEntity *audio);
     void SetSyncResource(const SyncComponent *sync);
-    void SetAudioResource(const AudioComponent *audio, const SyncComponent *sync = nullptr);
+    void SetAudioResource(const AudioComponent *audio, const SyncComponent *sync = nullptr, const AudioNegativeComponent *negative = nullptr);
     void SetMouthElement(ViewUIElement *_pwndMouth);
     void SetWaveformElement(AudioWaveformUI *_pwndWaveform);
     void SetLoop(bool loop) { _loop = loop; }
@@ -68,6 +69,7 @@ private:
     ViewUIElement *_pwndMouth;
     const AudioComponent *_audio;
     const SyncComponent *_sync;
+    const AudioNegativeComponent *_negative;
 
     AudioWaveformUI *_pwndWaveform;
 
@@ -130,10 +132,11 @@ void AudioPlaybackUI<T>::SetSyncResource(const SyncComponent *sync)
 }
 
 template <typename T>
-void AudioPlaybackUI<T>::SetAudioResource(const AudioComponent *audio, const SyncComponent *sync)
+void AudioPlaybackUI<T>::SetAudioResource(const AudioComponent *audio, const SyncComponent *sync, const AudioNegativeComponent *negative)
 {
     _audio = audio;
     _sync = sync;
+    _negative = negative;
 
     std::string durationString = "Duration: ";
     std::string info;
@@ -150,7 +153,7 @@ void AudioPlaybackUI<T>::SetAudioResource(const AudioComponent *audio, const Syn
 
         if (m_wndClipped)
         {
-            m_wndClipped.ShowWindow(_audio->IsClipped ? SW_SHOW : SW_HIDE);
+            m_wndClipped.ShowWindow((_audio->IsClipped || (_negative && _negative->Audio.IsClipped)) ? SW_SHOW : SW_HIDE);
         }
     }
     else
@@ -185,11 +188,11 @@ void AudioPlaybackUI<T>::SetAudioResource(const ResourceEntity *audio)
 {
     if (audio)
     {
-        SetAudioResource(audio->TryGetComponent<AudioComponent>(), audio->TryGetComponent<SyncComponent>());
+        SetAudioResource(audio->TryGetComponent<AudioComponent>(), audio->TryGetComponent<SyncComponent>(), audio->TryGetComponent<AudioNegativeComponent>());
     }
     else
     {
-        SetAudioResource(nullptr, nullptr);
+        SetAudioResource(nullptr, nullptr, nullptr);
     }
 }
 
@@ -348,12 +351,21 @@ template <typename T>
 void AudioPlaybackUI<T>::OnRecord()
 {
     _audioPlayback.Stop();
-    int curSel = m_wndWaveType.GetCurSel();
-    if (curSel != CB_ERR)
+
+    if (g_audioRecording.IsRecording())
     {
-        _recordingFormat = curSel;
+        // If we're recording, pressing the record button again stops.
+        OnStop();
     }
-    g_audioRecording.Record((WaveRecordingFormat)_recordingFormat);
+    else
+    {
+        int curSel = m_wndWaveType.GetCurSel();
+        if (curSel != CB_ERR)
+        {
+            _recordingFormat = curSel;
+        }
+        g_audioRecording.Record((WaveRecordingFormat)_recordingFormat);
+    }
     _UpdatePlayState();
 }
 

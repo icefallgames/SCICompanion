@@ -1,0 +1,1 @@
+SCI1.1: This engine supports 256-color VGA graphics, bitmapped backgrounds, MIDI and digital audio sfx, speech, and a point-and-click interface.
