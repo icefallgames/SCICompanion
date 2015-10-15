@@ -6,8 +6,6 @@
 (use "Obj")
 (script 924)
 
-
-
 (class Messager of Obj
     (properties
         caller 0
@@ -17,14 +15,17 @@
         oldIconBarState 0
         curSequence 0
         lastSequence 0
+        talker 0
     )
 
     (method (dispose)
         (talkerSet:dispose())
+       
         (if (gIconBar)
             (send gIconBar:state(oldIconBarState))
             = oldIconBarState 0
         )
+
         (if (caller)
             (if (not gNewSet)
                 = gNewSet (Set:new())
@@ -38,6 +39,7 @@
 							 )
 			)
         )
+        (= talker 0)
         (super:dispose())
     )
 
@@ -142,27 +144,36 @@
 
 
     (method (sayNext theModNum noun verb cond seq)
-        (var temp0, buffer[200], temp201)
+        (var theTalker, buffer[200], temp201)
         (if (paramTotal)
-            = temp0 Message(msgGET theModNum noun verb cond seq @buffer)
+            = theTalker Message(msgGET theModNum noun verb cond seq @buffer)
         )(else
-            = temp0 Message(msgNEXT @buffer)
+            = theTalker Message(msgNEXT @buffer)
         )
         (if (& global90 $0002)
             = temp201 Memory(memALLOC_CRIT 12)
             Message(msgLAST_MESSAGE temp201)
         )
-        (if (temp0 and (not lastSequence or (lastSequence and (<= curSequence lastSequence))))
-            = temp0 (self:findTalker(temp0))
-            (if (<> temp0 -1)
-                (talkerSet:add(temp0))
+        
+        (if (theTalker and (not lastSequence or (lastSequence and (<= curSequence lastSequence))))
+            = theTalker (self:findTalker(theTalker))
+            
+            (if ((talker and (<> theTalker talker)) and (== (send talker:disposeWhenDone) 2))
+                (send talker:
+                    caller(0)
+                    dispose(1)
+                )
+            )            
+            (= talker theTalker)
+            (if (<> theTalker -1)
+                (talkerSet:add(theTalker))
                 (if (& global90 $0002)
-                    (send temp0:
+                    (send theTalker:
                         modNum(theModNum)
                         say(temp201 self)
                     )
                 )(else
-                    (send temp0:
+                    (send theTalker:
                         modNum(theModNum)
                         say(@buffer self theModNum noun verb cond seq)
                     )

@@ -215,7 +215,6 @@
     <None Include="Files\TemplateGame\SCI1.1\msg\1.shm" />
     <None Include="Files\TemplateGame\SCI1.1\msg\13.shm" />
     <None Include="Files\TemplateGame\SCI1.1\msg\105.shm" />
-    <None Include="Files\TemplateGame\SCI1.1\msg\106.shm" />
     <None Include="Files\TemplateGame\SCI1.1\msg\110.shm" />
     <None Include="Files\TemplateGame\SCI1.1\src\aboutcode.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\aboutcode.sco" />
@@ -640,6 +639,8 @@
     <None Include="Files\TemplateGame\SCI1.1\src\talker.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\titlescreen.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\titlescreen.sco" />
+    <None Include="Files\TemplateGame\SCI1.1\msg\15.shm" />
+    <None Include="Files\TemplateGame\SCI1.1\resource.aud" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />

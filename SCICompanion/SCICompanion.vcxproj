@@ -383,6 +383,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <None Include="Files\TemplateGame\SCI1.1\INTERP.ERR" />
     <None Include="Files\TemplateGame\SCI1.1\LSL6.BAT" />
     <None Include="Files\TemplateGame\SCI1.1\MICROSOF.DRV" />
+    <None Include="Files\TemplateGame\SCI1.1\msg\15.shm" />
     <None Include="Files\TemplateGame\SCI1.1\msg\20.shm" />
     <None Include="Files\TemplateGame\SCI1.1\MT32.DRV" />
     <None Include="Files\TemplateGame\SCI1.1\poly\110.shp" />
@@ -390,6 +391,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <None Include="Files\TemplateGame\SCI1.1\README" />
     <None Include="Files\TemplateGame\SCI1.1\README.BAT" />
     <None Include="Files\TemplateGame\SCI1.1\resource.000" />
+    <None Include="Files\TemplateGame\SCI1.1\resource.aud" />
     <None Include="Files\TemplateGame\SCI1.1\RESOURCE.CFG" />
     <None Include="Files\TemplateGame\SCI1.1\resource.map" />
     <None Include="Files\TemplateGame\SCI1.1\resource.sfx" />
@@ -647,7 +649,6 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <None Include="Files\TemplateGame\SCI1.1\msg\0.shm" />
     <None Include="Files\TemplateGame\SCI1.1\msg\1.shm" />
     <None Include="Files\TemplateGame\SCI1.1\msg\105.shm" />
-    <None Include="Files\TemplateGame\SCI1.1\msg\106.shm" />
     <None Include="Files\TemplateGame\SCI1.1\msg\110.shm" />
     <None Include="Files\TemplateGame\SCI1.1\msg\13.shm" />
     <None Include="res\SCICompanion.rc2">

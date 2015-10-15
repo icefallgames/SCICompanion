@@ -9,8 +9,6 @@
 (use "Obj")
 (script 928)
 
-
-
 (class Blink of Cycle
     (properties
         client 0
@@ -70,6 +68,7 @@
         z 0
         heading 0
         noun 0
+        _case 0
         modNum -1
         nsTop 0
         nsLeft 0
@@ -109,7 +108,7 @@
         detailLevel 0
         scaler 0
         caller 0
-        disposeWhenDone 1
+        disposeWhenDone 2
         ticks 0
         talkWidth 0
         keepWindow 0
@@ -125,15 +124,15 @@
     )
 
     (method (init)
-        (if (global83)
-            (self:curVolume((send gGame:masterVolume())))
-            (if (>= (send gGame:masterVolume()) 4)
-                (send gGame:masterVolume((- curVolume 4)))
-            )
-            (if (not modeless)
-                = saveCursor (send gGame:setCursor(gInvisibleCursor 1))
-            )
+    	(var theCurVolume_2, temp1, theCurVolume)
+    	
+        (if (((& global90 $0002) and not modeless) or not HaveMouse())
+            = saveCursor gCursorNumber
+            (send gGame:setCursor(gInvisibleCursor 1))
         )
+        
+        = gLastTicks (+ global86 GetTime())
+        
         = initialized 1
     )
 
@@ -141,12 +140,12 @@
     (method (doit)
         (if ((<> ticks -1) and (> (- gLastTicks ticks) 0))
             (if (
-            (if (global83)
-                (== DoAudio(6) -1)
+            (if (& global90 $0002)
+                (== DoAudio(audPOSITION) -1)
             )(else
                 1
             )
- and (not keepWindow or global83))
+ 			and (not keepWindow or (& global90 $0002)))
                 (self:dispose(disposeWhenDone))
                 return 0
             )
@@ -154,10 +153,10 @@
         return 1
     )
 
-
-    (method (dispose param1)
+    (method (dispose theDisposeWhenDone)
         = ticks -1
-        (if (not paramTotal or param1)
+       
+        (if (not paramTotal or (== theDisposeWhenDone 1))
             (if (modeless)
                 (send gOldKH:delete(self))
                 (send gOldMH:delete(self))
@@ -171,8 +170,8 @@
                     )
                 )
             )
-            (if (global83)
-                DoAudio(3)
+            (if (& global90 $0002)
+                DoAudio(audSTOP)
             )
             = modNum -1
             = initialized 0
@@ -180,11 +179,12 @@
         (if (gDialog)
             (send gDialog:dispose())
         )
-        (if (global83)
-            (send gGame:masterVolume(curVolume))
-        )
-        (if (saveCursor and not HaveMouse())
-            (send gGame:setCursor(saveCursor))
+        (if (saveCursor)
+            (if (((& global90 $0002) and not modeless) or not HaveMouse())
+                (send gGame:setCursor(saveCursor))
+			)
+        )(else
+            = saveCursor 0
         )
         (if (caller)
             (send caller:cue(cueVal))
@@ -264,10 +264,12 @@
 
     (method (startText param1)
         (var temp0)
-        (if (not & global90 $0002)
+        // No need to check this. If we did the check, then if there's no audio, the ticks would be 0
+        // startAudio is always called after this, and it sets ticks.
+        //(if (not & global90 $0002)
             = temp0 StrLen(param1)
             = ticks Max(240 (* (* gTextReadSpeed 2) temp0))
-        )
+        //)
         (if (gDialog)
             (send gDialog:dispose())
         )
@@ -277,33 +279,35 @@
 
 
     (method (display theText)
-        (var theTalkWidth, newWindow)
+        (var theTalkWidth, newGSq5Win, textBuffer[500])
         (if (> (+ x talkWidth) 318)
             = theTalkWidth (- 318 x)
         )(else
             = theTalkWidth talkWidth
         )
-        = newWindow (send gWindow:new())
-        (send newWindow:
+        = newGSq5Win (send gWindow:new())
+        (send newGSq5Win:
             color(color)
             back(back)
-        )
-        (if (not HaveMouse() and (<> gCursorNumber 996))
-            = saveCursor gCursorNumber
-            (send gGame:setCursor(996))
-        )(else
-            = saveCursor 0
         )
         (if (showTitle)
             (Print:addTitle(name))
         )
         (Print:
-            window(newWindow)
+            window(newGSq5Win)
             posn(x y)
             font(font)
             width(theTalkWidth)
-            addText(theText)
             modeless(1)
+		)
+		(if (& global90 $0002)
+            Message(msgGET GetValueAt(theText 0) GetValueAt(theText 1) GetValueAt(theText 2) GetValueAt(theText 3) GetValueAt(theText 4) @textBuffer)
+            (Print:addText(@textBuffer))
+		)
+		(else
+			(Print:addText(theText))
+		)
+		(Print:            
             init()
         )
     )
@@ -316,10 +320,12 @@
         = temp2 GetValueAt(param1 2)
         = temp3 GetValueAt(param1 3)
         = temp4 GetValueAt(param1 4)
-        = ticks DoAudio(2 temp0 temp1 temp2 temp3 temp4)
+        (if (ResCheck(rsAUDIO36 temp0 temp1 temp2 temp3 temp4))
+        	= ticks DoAudio(audPLAY temp0 temp1 temp2 temp3 temp4)
+		)
     )
-
 )
+
 (class Talker of Narrator
     (properties
         x -1
@@ -327,6 +333,7 @@
         z 0
         heading 0
         noun 0
+        _case 0
         modNum -1
         nsTop 0
         nsLeft 0
@@ -366,7 +373,7 @@
         detailLevel 0
         scaler 0
         caller 0
-        disposeWhenDone 1
+        disposeWhenDone 2
         ticks 0
         talkWidth 318
         keepWindow 0
@@ -390,6 +397,7 @@
     )
 
     (method (init theBust theEyes theMouth)
+   	
         (if (paramTotal)
             = bust theBust
             (if (> paramTotal 1)
@@ -425,7 +433,7 @@
             )
             (send mouth:setCycle(0))
         )
-        (if (not paramTotal or param1)
+        (if (not paramTotal or (== param1 1))
             (if (eyes and underBits)
                 (send eyes:
                     setCycle(0)
@@ -485,7 +493,9 @@
             (self:show())
         )
         = temp0 (super:startText(rest param1))
+        DebugPrint("starting mouth")
         (if (mouth)
+        	DebugPrint("yup, have mouth, setting rand cycle")
             (send mouth:setCycle(RandCycle (* 4 temp0) 0 1))
         )
         (if (eyes and not (send eyes:cycler))
@@ -495,17 +505,11 @@
 
 
     (method (display theText)
-        (var temp0, theTalkWidth, temp2, newWindow)
-        = newWindow (send gWindow:new())
-        (send newWindow:
+        (var temp0, theTalkWidth, temp2, newGSq5Win, textBuffer[500])
+        = newGSq5Win (send gWindow:new())
+        (send newGSq5Win:
             color(color)
             back(back)
-        )
-        (if (not HaveMouse() and (<> gCursorNumber 996))
-            = saveCursor gCursorNumber
-            (send gGame:setCursor(996))
-        )(else
-            = saveCursor 0
         )
         (if (viewInPrint)
             = temp0 
@@ -518,7 +522,7 @@
                 (Print:addTitle(name))
             )
             (Print:
-                window(newWindow)
+                window(newGSq5Win)
                 posn(x y)
                 modeless(1)
                 font(font)
@@ -540,30 +544,48 @@
                 (Print:addTitle(name))
             )
             (Print:
-                window(newWindow)
+                window(newGSq5Win)
                 posn(+ x textX + y textY)
                 modeless(1)
                 font(font)
                 width(theTalkWidth)
-                addText(theText)
-                init()
             )
+			(if (& global90 $0002)
+	            Message(msgGET GetValueAt(theText 0) GetValueAt(theText 1) GetValueAt(theText 2) GetValueAt(theText 3) GetValueAt(theText 4) @textBuffer)
+	            (Print:addText(@textBuffer))
+			)
+			(else
+				(Print:addText(theText))
+			)
+			(Print:init())
+            
         )
     )
 
 
     (method (startAudio param1)
-        (var temp0, temp1, temp2, temp3, temp4)
+        (var temp0, temp1, temp2, temp3, temp4, temp5)
         (self:show())
-        (super:startAudio(param1))
         (if (mouth)
             = temp0 GetValueAt(param1 0)
             = temp1 GetValueAt(param1 1)
             = temp2 GetValueAt(param1 2)
             = temp3 GetValueAt(param1 3)
             = temp4 GetValueAt(param1 4)
-            (send mouth:setCycle(MouthSync temp0 temp1 temp2 temp3 temp4))
+            
+            (if (ResCheck(rsSYNC36 temp0 temp1 temp2 temp3 temp4))
+            	DebugPrint("yup, have mouth, setting sync 36 cycle")
+                (send mouth:setCycle(MouthSync temp0 temp1 temp2 temp3 temp4))
+                = temp5 (super:startAudio(param1))
+            )(else
+                = temp5 (super:startAudio(param1))
+                DebugPrint("yup, have mouth, setting rand")
+                (send mouth:setCycle(RandCycle temp5 0))
+            )
         )
+        (else
+        	= temp5 (super:startAudio(param1))
+		)
         (if (eyes and not (send eyes:cycler))
             (send eyes:setCycle(Blink blinkSpeed))
         )
@@ -612,7 +634,7 @@
                 )(else
                     0
                 )
-))
+				))
         = nsBottom (+ nsTop Max(
                 (if (view)
                     CelHigh(view loop cel)
@@ -637,7 +659,7 @@
                 )(else
                     0
                 )
-))
+				))
     )
 
 )

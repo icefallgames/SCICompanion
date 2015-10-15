@@ -1,0 +1,17 @@
+// 15.shm -- Produced by SCI Companion
+// This file should only be edited with the SCI Companion message editor
+
+// CASES
+
+
+// NOUNS
+
+(define N_DOWNICON 11)
+(define N_DOICON 12)
+(define N_13 13)
+(define N_HELPICON 14)
+(define N_DESCICON 15)
+(define N_CLOSEBUTTON 16)
+(define N_SELECTICON 17)
+(define N_UPICON 18)
+
