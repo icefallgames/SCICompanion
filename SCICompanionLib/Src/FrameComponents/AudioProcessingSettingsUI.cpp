@@ -14,18 +14,28 @@ NoisePreset noNoiseGate =
 {
     { 0, 0, 0, -99, -99 }, "No noise gate"
 };
+NoisePreset minimalNoiseGate =
+{
+    { 15, 25, 25, -38, -42 }, "Minimal"
+};
+NoisePreset weakNoiseGate =
+{
+    { 15, 15, 25, -26, -32 }, "Weak"
+};
 NoisePreset strongNoiseGate =
 {
-    { 15, 50, 50, -18, -22}, "Strong (good for 8-bit)"
+    { 15, 25, 50, -18, -22}, "Strong"
 };
 NoisePreset moderateNoiseGate =
 {
-    { 15, 50, 50, -22, -28 }, "Moderate (good for 16-bit)"
+    { 15, 25, 50, -22, -28 }, "Moderate"
 };
 
 NoisePreset *noisePresets[] =
 {
     &noNoiseGate,
+    &minimalNoiseGate,
+    &weakNoiseGate,
     &moderateNoiseGate,
     &strongNoiseGate
 };

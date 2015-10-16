@@ -160,6 +160,8 @@ bool ApplyNoiseGate(float *buffer, int totalFloats, float sampleRate, const Audi
     const float OpenThresholdDb = (float)settings.Noise.OpenThresholdDB;
     const float CloseThresholdDb = (float)settings.Noise.CloseThresholdDB;
 
+    const size_t LookAheadSampleCount = (size_t)(AttackTime * sampleRate);
+
     float attenuation = 0.0f;
     float level = 0.0f;
     float heldTime = 0.0f;
@@ -189,10 +191,12 @@ bool ApplyNoiseGate(float *buffer, int totalFloats, float sampleRate, const Audi
 
     // We can't use SSE as the processing of each sample depends on the processed
     // result of the previous sample.
+    size_t lastIndex = totalFloats - 1;
     for (int i = 0; i < totalFloats; i++)
     {
         // Get current input level
-        float curLvl = abs(buffer[i]);
+        //float curLvl = abs(buffer[i]);
+        float curLvl = abs(buffer[min(i + LookAheadSampleCount, lastIndex)]);
 
         // Test thresholds
         if (curLvl > OpenThreshold && !isOpen)

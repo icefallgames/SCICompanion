@@ -17,12 +17,13 @@ template<typename T>
 class AudioPlaybackUI : public T
 {
 public:
-    AudioPlaybackUI();
-    AudioPlaybackUI(int id, CWnd *parent);
+    AudioPlaybackUI(bool recordingNeedsExistingResource);
+    AudioPlaybackUI(int id, CWnd *parent, bool recordingNeedsExistingResource = false);
     virtual ~AudioPlaybackUI();
     void SetAudioResource(const ResourceEntity *audio);
+    void SetAllowRecording(bool hasExistingResource);
     void SetSyncResource(const SyncComponent *sync);
-    void SetAudioResource(const AudioComponent *audio, const SyncComponent *sync = nullptr, const AudioNegativeComponent *negative = nullptr);
+    void SetAudioComponents(const AudioComponent *audio, const SyncComponent *sync = nullptr, const AudioNegativeComponent *negative = nullptr);
     void SetMouthElement(ViewUIElement *_pwndMouth);
     void SetWaveformElement(AudioWaveformUI *_pwndWaveform);
     void SetLoop(bool loop) { _loop = loop; }
@@ -66,6 +67,8 @@ private:
     CExtButton m_wndExport;
     CExtLabel m_wndTitle;
     CExtComboBox m_wndWaveType;
+    bool _hasExistingResource;
+    bool _needsExistingResource;
 
     ViewUIElement *_pwndMouth;
     const AudioComponent *_audio;
@@ -98,7 +101,7 @@ END_MESSAGE_MAP()
 #define AUDIO_TIMER 5004
 
 template <typename T>
-AudioPlaybackUI<T>::AudioPlaybackUI() : _recordingFormat((int)g_WaveRecordingFormat), _loop(false)
+AudioPlaybackUI<T>::AudioPlaybackUI(bool recordingNeedsExistingResource) : _recordingFormat((int)g_WaveRecordingFormat), _loop(false), _needsExistingResource(recordingNeedsExistingResource), _hasExistingResource(false)
 {
 }
 
@@ -109,7 +112,7 @@ AudioPlaybackUI<T>::~AudioPlaybackUI()
 }
 
 template <typename T>
-AudioPlaybackUI<T>::AudioPlaybackUI(int id, CWnd *parent) : T(id, parent), _recordingFormat((int)g_WaveRecordingFormat), _loop(false)
+AudioPlaybackUI<T>::AudioPlaybackUI(int id, CWnd *parent, bool recordingNeedsExistingResource) : T(id, parent), _recordingFormat((int)g_WaveRecordingFormat), _loop(false), _needsExistingResource(recordingNeedsExistingResource), _hasExistingResource(false)
 {
 }
 
@@ -133,7 +136,7 @@ void AudioPlaybackUI<T>::SetSyncResource(const SyncComponent *sync)
 }
 
 template <typename T>
-void AudioPlaybackUI<T>::SetAudioResource(const AudioComponent *audio, const SyncComponent *sync, const AudioNegativeComponent *negative)
+void AudioPlaybackUI<T>::SetAudioComponents(const AudioComponent *audio, const SyncComponent *sync, const AudioNegativeComponent *negative)
 {
     _audio = audio;
     _sync = sync;
@@ -185,15 +188,22 @@ void AudioPlaybackUI<T>::SetAudioResource(const AudioComponent *audio, const Syn
 }
 
 template <typename T>
+void AudioPlaybackUI<T>::SetAllowRecording(bool hasExistingResource)
+{
+    _hasExistingResource = hasExistingResource;
+}
+
+template <typename T>
 void AudioPlaybackUI<T>::SetAudioResource(const ResourceEntity *audio)
 {
     if (audio)
     {
-        SetAudioResource(audio->TryGetComponent<AudioComponent>(), audio->TryGetComponent<SyncComponent>(), audio->TryGetComponent<AudioNegativeComponent>());
+        SetAudioComponents(audio->TryGetComponent<AudioComponent>(), audio->TryGetComponent<SyncComponent>(), audio->TryGetComponent<AudioNegativeComponent>());
     }
     else
     {
-        SetAudioResource(nullptr, nullptr, nullptr);
+
+        SetAudioComponents(nullptr, nullptr, nullptr);
     }
 }
 
@@ -360,12 +370,19 @@ void AudioPlaybackUI<T>::OnRecord()
     }
     else
     {
-        int curSel = m_wndWaveType.GetCurSel();
-        if (curSel != CB_ERR)
+        if (!_hasExistingResource && _needsExistingResource)
         {
-            _recordingFormat = curSel;
+            AfxMessageBox("Please select an entry to record to.");
         }
-        g_audioRecording.Record((WaveRecordingFormat)_recordingFormat);
+        else
+        {
+            int curSel = m_wndWaveType.GetCurSel();
+            if (curSel != CB_ERR)
+            {
+                _recordingFormat = curSel;
+            }
+            g_audioRecording.Record((WaveRecordingFormat)_recordingFormat);
+        }
     }
     _UpdatePlayState();
 }

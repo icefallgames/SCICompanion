@@ -19,7 +19,7 @@ std::string g_samplePhonemeSentenceText;
 LRESULT PhonemeDialog::_OnLipSyncDone(WPARAM wParam, LPARAM lParam)
 {
     g_samplePhonemeSentence = _taskSink->GetResponse();
-    SetAudioResource(g_samplePhonemeSentenceAudio->TryGetComponent<AudioComponent>(), _syncComponent.get());
+    SetAudioComponents(g_samplePhonemeSentenceAudio->TryGetComponent<AudioComponent>(), _syncComponent.get());
     _UpdateLipSync();
     return 0;
 }
@@ -70,7 +70,7 @@ BOOL PhonemeDialog::OnInitDialog()
         }
         catch (...) {}
     }
-    SetAudioResource(g_samplePhonemeSentenceAudio->TryGetComponent<AudioComponent>(), _syncComponent.get());
+    SetAudioComponents(g_samplePhonemeSentenceAudio->TryGetComponent<AudioComponent>(), _syncComponent.get());
     _UpdateLipSync();
     return fRet;
 }

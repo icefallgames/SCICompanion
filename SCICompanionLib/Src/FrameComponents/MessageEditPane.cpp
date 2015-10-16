@@ -27,7 +27,7 @@
 using namespace std;
 
 MessageEditPane::MessageEditPane(CWnd* pParent /*=NULL*/)
-    : AudioPlaybackUI<CExtDialogFwdCmd>(IDD, pParent), _hAccel(nullptr), _initialized(false), _verbEdited(false), _nounEdited(false), _conditionEdited(false), _talkerEdited(false),
+    : AudioPlaybackUI<CExtDialogFwdCmd>(IDD, pParent, true), _hAccel(nullptr), _initialized(false), _verbEdited(false), _nounEdited(false), _conditionEdited(false), _talkerEdited(false),
     _lipSyncTaskSink(this, UM_LIPSYNCDONE)
 
 {
@@ -452,6 +452,7 @@ void MessageEditPane::_Update()
             _UpdateComboFromValue(m_wndComboNoun, entry->Noun, &nounsAndCases.GetNouns());
             _UpdateComboFromValue(m_wndComboCondition, entry->Condition, &nounsAndCases.GetCases());
 
+            SetAllowRecording(true);
             hasAudio = _UpdateAudio(*entry);
             if (hasAudio)
             {
@@ -461,6 +462,7 @@ void MessageEditPane::_Update()
         }
         else
         {
+            SetAllowRecording(false);
             m_wndEditMessage.SetWindowTextA("");
             m_wndLabelBase36.SetWindowText("");
         }

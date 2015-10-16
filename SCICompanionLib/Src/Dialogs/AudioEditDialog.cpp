@@ -16,6 +16,7 @@ AudioEditDialog::AudioEditDialog(ResourceEntity &resource, CWnd* pParent /*=NULL
     m_wndWaveformFinal("Final"),
     m_wndWaveformNegative("Original recording"),
     _resource(resource)
+
 {
 }
 
@@ -71,11 +72,11 @@ void AudioEditDialog::_UpdatePlayback()
     bool finalChecked = m_wndCheckFinal.GetCheck() == BST_CHECKED;
     if (finalChecked)
     {
-        SetAudioResource(_audio.get());
+        SetAudioComponents(_audio.get());
     }
     else
     {
-        SetAudioResource(&_negative->Audio);
+        SetAudioComponents(&_negative->Audio);
     }
     SetWaveformElement(finalChecked ? &m_wndWaveformFinal : &m_wndWaveformNegative);
     m_wndWaveformFinal.SetSelected(finalChecked);

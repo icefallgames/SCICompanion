@@ -238,6 +238,8 @@ private:
 class AudioPreviewer : public AudioPlaybackUI<ResourcePreviewer>
 {
 public:
+    AudioPreviewer() : AudioPlaybackUI<ResourcePreviewer>(false) {}
+
     UINT GetIDD() { return IDD_PREVIEWAUDIO; }
     void SetResource(const ResourceBlob &blob);
 protected:

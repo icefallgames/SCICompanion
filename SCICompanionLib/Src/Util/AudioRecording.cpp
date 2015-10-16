@@ -183,6 +183,7 @@ std::unique_ptr<ResourceEntity> AudioRecording::Stop()
     {
         resource.reset(CreateDefaultAudioResource(appState->GetVersion()));
         resource->AddComponent<AudioNegativeComponent>(std::make_unique<AudioNegativeComponent>());
+        resource->SourceFlags = ResourceSourceFlags::AudioCache;
         Cleanup(resource->TryGetComponent<AudioComponent>(), resource->TryGetComponent<AudioNegativeComponent>());
         if (resource->GetComponent<AudioComponent>().Frequency == 0)
         {
