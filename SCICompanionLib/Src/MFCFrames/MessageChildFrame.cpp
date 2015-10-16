@@ -19,7 +19,23 @@ void CMessageChildFrame::HookUpNonViews(CDocument *pDoc)
 }
 
 BEGIN_MESSAGE_MAP(CMessageChildFrame, CMDITabChildWnd)
+    ON_COMMAND(ID_PLAY, OnAudioPlay)
+    ON_COMMAND(ID_RECORD, OnAudioRecord)
+    ON_COMMAND(ID_STOP, OnAudioStop)
 END_MESSAGE_MAP()
+
+void CMessageChildFrame::OnAudioPlay()
+{
+    m_wndMessageEditPane.OnPlay();
+}
+void CMessageChildFrame::OnAudioRecord()
+{
+    m_wndMessageEditPane.OnRecord();
+}
+void CMessageChildFrame::OnAudioStop()
+{
+    m_wndMessageEditPane.OnStop();
+}
 
 int CMessageChildFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {

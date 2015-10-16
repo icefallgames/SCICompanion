@@ -15,6 +15,11 @@ protected:
 
     void HookUpNonViews(CDocument *pDoc) override;
 
+private:
+    afx_msg void OnAudioPlay();
+    afx_msg void OnAudioStop();
+    afx_msg void OnAudioRecord();
+
 protected:
     virtual int OnCreate(LPCREATESTRUCT lpCreateStruct);
     DECLARE_MESSAGE_MAP()

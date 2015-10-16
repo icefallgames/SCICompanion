@@ -38,11 +38,12 @@ protected:
 protected:
     afx_msg void OnTimer(UINT_PTR nIDEvent);
 
-
-private:
+public:
     afx_msg void OnPlay();
     afx_msg void OnStop();
     afx_msg void OnRecord();
+
+private:
     afx_msg void OnBrowse();
     afx_msg void OnExport();
     void _UpdatePlayState();
