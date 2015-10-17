@@ -1,0 +1,162 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Getting Started &mdash; SCICompanion 3.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '3.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="SCICompanion 3.0 documentation" href="index.html" />
+    <link rel="prev" title="SCICompanion - an IDE for Sierra’s SCI engine" href="index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="getting-started">
+<h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="opening-an-existing-game">
+<h2>Opening an existing game<a class="headerlink" href="#opening-an-existing-game" title="Permalink to this headline">¶</a></h2>
+<p>To open an existing game, choose <em>File-&gt;Open</em> and open the game&#8217;s <strong>resource.map</strong> file. The game should then open in
+<strong>SCI</strong>Companion and you should see the different resources in the game. SCI
+games come in many different versions with different features. <strong>SCI</strong>Companion should be able to automatically
+detect the various features of the game.</p>
+<p>Broadly, there are these versions of the SCI interpreter:</p>
+<ul class="simple">
+<li><strong>SCI0</strong> was used for games like King&#8217;s Quest 4 and Space Quest 3. It supports 320x200 EGA graphics, MIDI sound/music, and the player enters text commands to control the game.</li>
+<li>SCI1 was used for games such as King&#8217;s Quest 5 and Space Quest 4. It supports 320x200 VGA graphics and a point-and-click interface, as well as digital sound effects.</li>
+<li><strong>SCI1.1</strong> was used for games such as Leisure Suit Larry 6, King&#8217;s Quest 6 and Space Quest 5. It has some improvements over SCI1, including support for actor speech.</li>
+<li>SCI2 was used for games such as Gabriel Knight and King&#8217;s Quest 7. It is a 32-bit engine that supports 640x480. <strong>SCI</strong>Companion does not support this version of SCI.</li>
+</ul>
+<p>The versions marked in bold above are those for which <strong>SCI</strong>Companion supports creating a new game.</p>
+<p>In reality, the differences between SCI0, SCI1 and SCI1.1 are a bit muddied - some games are a mix. The differences are mostly with the technical resource specifications though.</p>
+</div>
+<div class="section" id="resource-management">
+<h2>Resource management<a class="headerlink" href="#resource-management" title="Permalink to this headline">¶</a></h2>
+<p>The first thing you see when you open a game will be the <em>Explorer</em> tab. It will show a series of buttons corresponding
+to the different types of resources in the game. Click on them to see those resources. From each resource tab, you can
+select individual resources and open them by double-clicking. Previews are available for some resources.</p>
+<p>Via the right-click menu, you can also delete, export or give resources names.</p>
+<p>New resources can be created using the buttons on the main toolbar, or in the <em>File-&gt;New</em> menu. You can also import resources by dragging them into the resource view, or using the <em>File-&gt;Import Resource</em> menu item.</p>
+<p>SCI games have the following types of resources:</p>
+<ul class="simple">
+<li><em>Views</em> - these are raster graphics that correspond to the actors, props and other animated (or non-animated) objects in the game.</li>
+<li><em>Pics</em> - these are the backgrounds. Generally, EGA (16-color) games use vector graphics, and VGA (256-color) games use raster graphics.</li>
+<li><em>Scripts</em> - these contain the logic for the game. The actual script data is compiled and non-human-readable, but <strong>SCI</strong>Companion has a fully-featured script compiler. It also has a decompiler that can attempt to recover (as much as is possible) the original scripts of a game. Opening a script resource will open the source code file if it exists.</li>
+<li><em>Texts</em> - these contain the in-game text. Text can also be part of scripts, but having it as a separate resource helps with translating a game into other languages, and also saves a bit of in-game memory.</li>
+<li><a class="reference internal" href="messages.html"><em>Messages</em></a> - in SCI1.1, message resources largely replaced text resources. These are basically the things the narrator or in-game characters say (or anything else in the game&#8217;s UI). They integrate with the Narrator/Talker system in the game and can optionally be associated with spoken text.</li>
+<li><em>Sounds</em> - these are MIDI-based music and sound effects.</li>
+<li><em>Vocabs</em> - these are used for various purposes. The main one you will be concered with is vocab.000 in SCI0 games. This comprises the words that the in-game text parser understands.</li>
+<li><em>Fonts</em> - bitmapped fonts used to display text in the game.</li>
+<li><em>Cursors</em> - mouse cursor resources. These are only used for SCI0 (2-color) and SCI1 (3-color). In SCI1.1, views are used for mouse cursors.</li>
+<li><em>Patches</em> - these are needed for the various MIDI drivers. <strong>SCI</strong>Companion does not support editing them (nor should you need to).</li>
+<li><em>Palettes</em> - for VGA games (SCI1 and above), these are the color palettes.</li>
+<li><em>Audio</em> - in SCI1.1, these are digital sound effects (SCI1 supports digital audio also, but it is embedded in the sound resources, and <strong>SCI</strong>Companion does not support editing those). Speech is also digital audio, but it is accessed through the message resources.</li>
+<li><em>Heaps</em> - in SCI1.1, scripts were split into logic and data. Heap resources contain the data. <strong>SCI</strong>Companion takes care of creating these automatically when you compile.</li>
+</ul>
+<p>There are a few other types, but these are not shown in <strong>SCI</strong>Companion&#8217;s user interface. In particular, map, audio36 (digital audio) and sync36 (lip syncing) resources exist in SCI1.1. These are tied to messages though, and are managed through the message editor.</p>
+</div>
+<div class="section" id="running-the-game">
+<h2>Running the game<a class="headerlink" href="#running-the-game" title="Permalink to this headline">¶</a></h2>
+<p>To run the game, Press the green or red play button in the main toolbar, use the Game menu, or press F5. This will run the executable that is specified in the <em>Game-&gt;Game properties</em> dialog.</p>
+</div>
+<div class="section" id="creating-a-new-game">
+<h2>Creating a new game<a class="headerlink" href="#creating-a-new-game" title="Permalink to this headline">¶</a></h2>
+<p>To create a new game, choose <em>File-&gt;Create new game</em>. From there, you can choose one of two templates:</p>
+<ul class="simple">
+<li><em>SCI0</em>: This will start you with a classic 16-color EGA game with a text parser interface. EGA views can be easier to draw than VGA views, but SCI0 pic backgrounds are vector graphics. Drawing good backgrounds can take some practice.</li>
+<li><em>SCI1.1</em>: This will start you with a 256-color VGA game with a point-and-click interface. In-game text is provided by message resources, backgrounds are bitmapped instead of vector, and digital audio and speech are supported.</li>
+</ul>
+<p>Though the scripting is very similar, the two template games are not compatible. They use different resource formats, so porting from one to the other would be tedious.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Getting Started</a><ul>
+<li><a class="reference internal" href="#opening-an-existing-game">Opening an existing game</a></li>
+<li><a class="reference internal" href="#resource-management">Resource management</a></li>
+<li><a class="reference internal" href="#running-the-game">Running the game</a></li>
+<li><a class="reference internal" href="#creating-a-new-game">Creating a new game</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="index.html" title="previous chapter"><strong>SCI</strong>Companion - an IDE for Sierra&#8217;s SCI engine</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/intro.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Phil Fortier.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/intro.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

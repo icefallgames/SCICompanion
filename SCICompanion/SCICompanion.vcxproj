@@ -213,6 +213,12 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <ResourceCompile Include="SCICompanion.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="Docs\source\images\MessageEntry.PNG" />
+    <Image Include="Docs\source\images\MessageHeaderInclude.PNG" />
+    <Image Include="Docs\source\images\MessageLightSwitch.PNG" />
+    <Image Include="Docs\source\images\MessageLightSwitchCode.PNG" />
+    <Image Include="Docs\source\images\Nouns.PNG" />
+    <Image Include="Docs\source\images\Verbs.PNG" />
     <Image Include="Files\TemplateGame\SCI0.bmp" />
     <Image Include="Files\TemplateGame\SCI0\game.bmp" />
     <Image Include="Files\TemplateGame\SCI1.1.bmp" />
@@ -221,6 +227,17 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <Image Include="UserImages.bmp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Docs\build\html\genindex.html" />
+    <None Include="Docs\build\html\index.html" />
+    <None Include="Docs\build\html\intro.html" />
+    <None Include="Docs\build\html\messages.html" />
+    <None Include="Docs\build\html\search.html" />
+    <None Include="Docs\make.bat" />
+    <None Include="Docs\Makefile" />
+    <None Include="Docs\source\conf.py" />
+    <None Include="Docs\source\index.rst" />
+    <None Include="Docs\source\intro.rst" />
+    <None Include="Docs\source\messages.rst" />
     <None Include="Files\CompileInclude\kernels.scp" />
     <None Include="Files\CompileInclude\keys.sh" />
     <None Include="Files\CompileInclude\keys.shp" />
