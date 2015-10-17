@@ -31,8 +31,10 @@ protected:
     CExtButton m_wndCancel;
     CExtButton m_wndBrowse;
     CExtEdit m_wndDescription;
+    CStatic m_wndImage;
 
     std::map<std::string, std::string> _descriptions;
+    std::map<std::string, std::unique_ptr<CBitmap>> _bitmaps;
 
 public:
     afx_msg void OnBnClickedOk();

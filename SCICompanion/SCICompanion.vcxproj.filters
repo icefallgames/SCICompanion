@@ -66,6 +66,12 @@
     <Image Include="Files\TemplateGame\SCI0\game.bmp">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Files\TemplateGame\SCI0.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\TemplateGame\SCI1.1.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\SCICompanion.rc2">

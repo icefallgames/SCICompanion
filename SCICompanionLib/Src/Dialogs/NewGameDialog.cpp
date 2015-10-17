@@ -6,6 +6,7 @@
 #include "NewGameDialog.h"
 //#include <shfolder.h>
 #include <shlobj.h>
+#include "atlimage.h"
 
 // NewGameDialog dialog
 
@@ -38,13 +39,24 @@ void NewGameDialog::_PopulateTemplates()
             }
             else
             {
-                if (0 == strncmp(PathFindExtension(findData.cFileName), ".txt", 4))
+                PCSTR pszExt = PathFindExtension(findData.cFileName);
+                std::string key(findData.cFileName, pszExt);
+                if (0 == strncmp(pszExt, ".txt", 4))
                 {
                     std::ifstream descriptionFile(templateFolder + findData.cFileName);
                     std::string description((std::istreambuf_iterator<char>(descriptionFile)),
                         std::istreambuf_iterator<char>());
-                    std::string key(findData.cFileName, PathFindExtension(findData.cFileName));
                     _descriptions[key] = description;
+                }
+                else if (0 == strncmp(pszExt, ".bmp", 4))
+                {
+                    CImage image;
+                    if (SUCCEEDED(image.Load((templateFolder + findData.cFileName).c_str())))
+                    {
+                        std::unique_ptr<CBitmap> bitmap = std::make_unique<CBitmap>();
+                        bitmap->Attach(image.Detach());
+                        _bitmaps[key] = std::move(bitmap);
+                    }
                 }
             }
 
@@ -67,7 +79,7 @@ void NewGameDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_EDITPATH, m_wndPath);
     DDX_Control(pDX, IDC_EDITNAME, m_wndName);
     DDX_Control(pDX, IDC_BUTTONBROWSE, m_wndBrowse);
-
+    
     // Visuals
     DDX_Control(pDX, IDC_STATIC1, m_wndStatic1);
     DDX_Control(pDX, IDC_STATIC2, m_wndStatic2);
@@ -75,6 +87,7 @@ void NewGameDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDOK, m_wndOK);
     DDX_Control(pDX, IDCANCEL, m_wndCancel);
     DDX_Control(pDX, IDC_EDIT_DESCRIPTION, m_wndDescription);
+    DDX_Control(pDX, IDC_STATIC_IMAGE, m_wndImage);
 
     DDX_Control(pDX, IDC_COMBOTEMPLATE, m_wndComboTemplate);
     _PopulateTemplates();
@@ -219,5 +232,6 @@ void NewGameDialog::OnCbnSelchangeCombotemplate()
         CString str;
         m_wndComboTemplate.GetLBText(curSel, str);
         m_wndDescription.SetWindowText(_descriptions[(PCSTR)str].c_str());
+        m_wndImage.SetBitmap(*_bitmaps[(PCSTR)str]);
     }
 }

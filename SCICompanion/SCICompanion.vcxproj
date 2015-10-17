@@ -213,7 +213,9 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <ResourceCompile Include="SCICompanion.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="Files\TemplateGame\SCI0.bmp" />
     <Image Include="Files\TemplateGame\SCI0\game.bmp" />
+    <Image Include="Files\TemplateGame\SCI1.1.bmp" />
     <Image Include="res\SCICompanion.ico" />
     <Image Include="res\SCICompanionDoc.ico" />
     <Image Include="UserImages.bmp" />
