@@ -227,11 +227,6 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <Image Include="UserImages.bmp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Docs\build\html\genindex.html" />
-    <None Include="Docs\build\html\index.html" />
-    <None Include="Docs\build\html\intro.html" />
-    <None Include="Docs\build\html\messages.html" />
-    <None Include="Docs\build\html\search.html" />
     <None Include="Docs\make.bat" />
     <None Include="Docs\Makefile" />
     <None Include="Docs\source\conf.py" />
