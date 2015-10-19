@@ -55,7 +55,7 @@ int CMessageChildFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
         return -1;		// fail to create
     }
 
-    m_wndResizableBarMessageEdit.SetInitDesiredSizeHorizontal(CSize(320, 200));
+    m_wndResizableBarMessageEdit.SetInitDesiredSizeHorizontal(CSize(320, 210));
     if (!m_wndResizableBarMessageEdit.Create("Message details", this, ID_BAR_MESSAGEEDIT))
     {
         TRACE0("Failed to create m_wndResizableBarMessageEdit\n");

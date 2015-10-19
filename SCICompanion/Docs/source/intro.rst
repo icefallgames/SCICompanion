@@ -58,7 +58,11 @@ Running the game
 ================
 
 To run the game, Press the green or red play button in the main toolbar, use the Game menu, or press F5. This will run the executable that is specified in the *Game->Game properties* dialog.
+By default, the template game sets this up to run DOSBox_ with the Sierra executable as a target. The versions of SCI used in the template games are 16-bit executables,
+which means they won't run on modern 64-bit operating systems. DOSBox_ can be used to run them in a DOS emulator, or you can run them inside ScummVM_.
 
+.. _DOSBox: http://www.dosbox.com/
+.. _ScummVM: http://scummvm.org/
 
 Creating a new game
 ========================
@@ -68,4 +72,7 @@ To create a new game, choose *File->Create new game*. From there, you can choose
 - *SCI0*: This will start you with a classic 16-color EGA game with a text parser interface. EGA views can be easier to draw than VGA views, but SCI0 pic backgrounds are vector graphics. Drawing good backgrounds can take some practice.
 - *SCI1.1*: This will start you with a 256-color VGA game with a point-and-click interface. In-game text is provided by message resources, backgrounds are bitmapped instead of vector, and digital audio and speech are supported.
 
-Though the scripting is very similar, the two template games are not compatible. They use different resource formats, so porting from one to the other would be tedious.
+.. TIP::
+    Though the scripting is very similar, the two template games are not compatible. They use different resource formats, so porting from one to the other would be tedious.
+
+Once you create the game, you are ready to run it, compile it, or start adding content!

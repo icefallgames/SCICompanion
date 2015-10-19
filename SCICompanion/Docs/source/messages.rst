@@ -1,12 +1,20 @@
 .. Message editing
 
+.. IMPORTANT::
+    This section applies to SCI 1.1 only
+
 ================
- Message editor - (SCI 1.1 only)
+ Message editor
 ================
 
 In SCI 1.1, message resources are used for nearly all in-game text. They have special features, however,
 to enable them to be easily associated with various actions on different objects. In contrast to SCI0, almost no
 code is needed to display text to the player in response to the player doing something with an object.
+
+.. figure:: /images/MessageEditor.png
+
+    The message editor consists of the main list of messages, a *message details* pane to edit properties of a particular message entry, and an optional speech and lip-sync section. In addition, there are
+    panes to edit the global verbs and talkers, and the nouns and conditions for this room.
 
 What's in a message
 ===================
@@ -34,15 +42,21 @@ in the Verbs.sh header file, and are also shown in the message editor. Verbs are
 which contains all the label to number mappings. You don't edit the Verbs.sh header file directly - instead, you can add, edit and remove verbs in
 the pane on the lefthand side of the message editor.
 
-.. image:: /images/Verbs.PNG
+.. figure:: /images/Verbs.PNG
+
+    The global verbs list
 
 Nouns, in contrast, are scoped to the particular room you are in. When you create a new room in your game, a header file (nnn.shm, which nnn is the room number) is already set up for
 you that will contain one noun: N_ROOM. You can add as many as you which, corresponding to objects in the room. The ego (main character) is a bit special. It is
 associated with module 0 (the main script), which by default has a N_EGO noun defined in its message header file (0.shm).
 
-.. image:: /images/MessageHeaderInclude.PNG
+.. figure:: /images/MessageHeaderInclude.PNG
 
-.. image:: /images/Nouns.PNG
+    The message header is included by default in a new room script
+
+.. figure:: /images/Nouns.PNG
+
+    The room's nouns list in the message editor, which corresponds to the values defined in the .shm header
 
 When you create a new room, if you open its corresponding message resource you'll see one message entry already created for you. It's associated with the N_ROOM noun, and the V_LOOK verb.
 That means when the player clicks on the room background with the "look" icon, they will see this message in response.
@@ -50,9 +64,13 @@ That means when the player clicks on the room background with the "look" icon, t
 When adding objects to the room, you can add a noun in the message editor, and then set the object's *noun* property to that noun. Then, in the message editor it is a simple matter to add
 message entries corresponding to various actions taken on that noun (e.g. V_LOOK, V_TALK, V_DO).
 
-.. image:: /images/MessageLightSwitchCode.PNG
+.. figure:: /images/MessageLightSwitchCode.PNG
 
-.. image:: /images/MessageLightSwitch.PNG
+    Set the noun in the object's declaration in script
+
+.. figure:: /images/MessageLightSwitch.PNG
+
+    Then add message entries for it
 
 
 Conditions
@@ -70,12 +88,16 @@ Sequences
 Often, you'll want a series of messages to be displayed in sequence in response to some in-game action. To do so, you can create a series of message entries with the same noun/verb/condition values,
 but with increasing sequence numbers. Sequence numbers start at 1 and continue up to 36.
 
+.. TIP::
+    You can select an existing message entry and use the Add Sequence button to add a message entry with an increased sequence number.
+
 Talkers
 -------
 
 In addition to the message text itself, a talker value must be associated with each message. By default, this will be talker 99, or N_NARRATOR. This is generally the value you should use for 
 text that is not part of a game characters speech. Talkers, like verbs, are global in scope. They are defined in Talkers.sh, which can be edited from the message editor.
 
+:doc:`More information on Talkers and Narrators. <talkers>`
 
 
 Speech
@@ -85,7 +107,7 @@ If the game supports it (such as the SCI 1.1 template game), a spoken text (or a
 **SCI**\ Companion can record audio for you, or you can import a .wav file. In addition, lip-syncing can be automatically generated and applied so that the speech matches
 a character's lip movement.
 
-// TODO insert links to that
+:doc:`More information speech. <messageaudio>`
 
 
 Special encodings

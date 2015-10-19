@@ -82,7 +82,9 @@ select individual resources and open them by double-clicking. Previews are avail
 </div>
 <div class="section" id="running-the-game">
 <h2>Running the game<a class="headerlink" href="#running-the-game" title="Permalink to this headline">¶</a></h2>
-<p>To run the game, Press the green or red play button in the main toolbar, use the Game menu, or press F5. This will run the executable that is specified in the <em>Game-&gt;Game properties</em> dialog.</p>
+<p>To run the game, Press the green or red play button in the main toolbar, use the Game menu, or press F5. This will run the executable that is specified in the <em>Game-&gt;Game properties</em> dialog.
+By default, the template game sets this up to run <a class="reference external" href="http://www.dosbox.com/">DOSBox</a> with the Sierra executable as a target. The versions of SCI used in the template games are 16-bit executables,
+which means they won&#8217;t run on modern 64-bit operating systems. <a class="reference external" href="http://www.dosbox.com/">DOSBox</a> can be used to run them in a DOS emulator, or you can run them inside <a class="reference external" href="http://scummvm.org/">ScummVM</a>.</p>
 </div>
 <div class="section" id="creating-a-new-game">
 <h2>Creating a new game<a class="headerlink" href="#creating-a-new-game" title="Permalink to this headline">¶</a></h2>
@@ -91,7 +93,11 @@ select individual resources and open them by double-clicking. Previews are avail
 <li><em>SCI0</em>: This will start you with a classic 16-color EGA game with a text parser interface. EGA views can be easier to draw than VGA views, but SCI0 pic backgrounds are vector graphics. Drawing good backgrounds can take some practice.</li>
 <li><em>SCI1.1</em>: This will start you with a 256-color VGA game with a point-and-click interface. In-game text is provided by message resources, backgrounds are bitmapped instead of vector, and digital audio and speech are supported.</li>
 </ul>
-<p>Though the scripting is very similar, the two template games are not compatible. They use different resource formats, so porting from one to the other would be tedious.</p>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">Though the scripting is very similar, the two template games are not compatible. They use different resource formats, so porting from one to the other would be tedious.</p>
+</div>
+<p>Once you create the game, you are ready to run it, compile it, or start adding content!</p>
 </div>
 </div>
 

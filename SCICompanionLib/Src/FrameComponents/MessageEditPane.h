@@ -95,6 +95,7 @@ private:
     CExtSpinWnd m_wndSpinner;
     CExtButton m_wndDeleteAudio;
     CExtButton m_wndEditAudio;
+    CExtGroupBox m_wndAudioGroup;
 
     // Lipsync stuff
     ViewUIElement m_wndMouth;

@@ -80,6 +80,7 @@ void MessageEditPane::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_BUTTON_PLAY2, m_wndPlay);
         DDX_Control(pDX, IDC_BUTTON_STOP, m_wndStop);
         DDX_Control(pDX, IDC_CHECK_AUTOPREV, m_wndAutoPreview);
+        DDX_Control(pDX, IDC_GROUP_AUDIO, m_wndAudioGroup);
 
         DDX_Control(pDX, IDC_ANIMATE, m_wndMouth);
         m_wndMouth.SetBackground(g_PaintManager->GetColor(COLOR_BTNFACE));
@@ -226,6 +227,7 @@ BOOL MessageEditPane::OnInitDialog()
     AddAnchor(IDC_BUTTONDELETEAUDIO, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_EDITAUDIO, CPoint(100, 0), CPoint(100, 0));
     AddAnchor(IDC_STATIC_CLIPPED, CPoint(100, 0), CPoint(100, 0));
+    AddAnchor(IDC_GROUP_AUDIO, CPoint(100, 0), CPoint(100, 0));
 
     // Hide the sizing grip
     ShowSizeGrip(FALSE);
@@ -489,6 +491,7 @@ void MessageEditPane::_Update()
     m_wndUseText.ShowWindow(cmdShowHasAudio);
     m_wndDeleteAudio.ShowWindow(cmdShowHasAudio);
     m_wndEditAudio.ShowWindow(cmdShowHasAudio);
+    m_wndAudioGroup.ShowWindow(cmdShowSupportsSync);
 }
 
 void MessageEditPane::SetDocument(CDocument *pDoc)
@@ -760,7 +763,7 @@ void MessageEditPane::OnBnClickedButtonlipsync()
         {
             phonemeMap = LoadPhonemeMapForViewLoop(appState, view, loop);
         }
-        if (!phonemeMap)
+        if (!phonemeMap || phonemeMap->HasErrors())
         {
             phonemeMap = std::make_unique<PhonemeMap>(GetExeSubFolder("Samples") + "\\sample_phoneme_map.ini");
         }
