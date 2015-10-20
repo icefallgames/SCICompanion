@@ -17,6 +17,7 @@
 #include "ConvertFromToPaletteDialog.h"
 #include "ColorShifterDialog.h"
 #include "PicCommands.h"
+#include "BayerMatrix.h"
 
 // Thickness of the sizers around the image:
 #define SIZER_SIZE 6
@@ -358,8 +359,9 @@ CRasterView::CRasterView()
 
     _sizeScratch1 = size16(0, 0);
 
-    _fHotSpot = FALSE;
+    _fHotSpot = false;
     _fDithered = false;
+    _ditherStrength = 8;
     _InitPatternBrush();
 }
 
@@ -1151,8 +1153,29 @@ bool CRasterView::_IsCaptureTool()
 
 void CRasterView::_InitPatternBrush()
 {
+    // We need four lines for each thing.
+    uint16_t wFoo[4];   // Four lines
+
+    for (int y = 0; y < 4; y++)
+    {
+        uint16_t rowBits = 0;
+        for (int x = 0; x < 4; x++)
+        {
+            if (BayerMatrix[y][x] <= _ditherStrength)
+            {
+                // This bit is on
+                rowBits |= (0x1 << x);
+            }
+        }
+        // Fill up the stride
+        rowBits |= (rowBits << 4);
+        wFoo[y] = rowBits | (rowBits << 8);
+    }
+
+    _bitmapBrush.DeleteObject();
+    _brushPattern.DeleteObject();
     // Create a monochrome bitmap. 
-    WORD wFoo[4] = { 0xaaaa, 0x5555, 0xaaaa, 0x5555 };
+    // WORD wFoo[4] = { 0xaaaa, 0x5555, 0xaaaa, 0x5555 };
     if (_bitmapBrush.CreateBitmap(4, 4, 1, 1, (LPBYTE)wFoo))
     {
         _brushPattern.CreatePatternBrush(&_bitmapBrush);
@@ -1249,13 +1272,13 @@ void CRasterView::_DrawCaptureToolHelper(CDC *pDC, CPoint ptStart, CPoint ptEnd)
     int nPenEndCaps = (_currentTool == Line) ? PS_ENDCAP_ROUND : PS_ENDCAP_FLAT;
     if (_fDithered)
     {
-        pen.CreatePen(PS_GEOMETRIC | nPenEndCaps, penWidth, &logBrushDither, 0, NULL);
+        pen.CreatePen(PS_GEOMETRIC | nPenEndCaps, penWidth, &logBrushDither, 0, nullptr);
         crTextOld = pDC->SetTextColor(_SCIColorToCOLORREF(_color));
         crBkOld = pDC->SetBkColor(_SCIColorToCOLORREF(_alternateColor));
     }
     else
     {
-        pen.CreatePen(PS_GEOMETRIC | nPenEndCaps, penWidth, &logbrush, 0, NULL);
+        pen.CreatePen(PS_GEOMETRIC | nPenEndCaps, penWidth, &logbrush, 0, nullptr);
     }
 
     CRect rect;
@@ -3006,6 +3029,16 @@ void CRasterView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
                 point.y++;
                 break;
             }
+        case VK_OEM_MINUS:
+        case VK_OEM_PLUS:
+            if (_fDithered)
+            {
+                _ditherStrength += (nChar == VK_OEM_PLUS) ? 1 : -1;
+                _ditherStrength = max(1, _ditherStrength);
+                _ditherStrength = min(14, _ditherStrength);
+                _InitPatternBrush();
+            }
+            break;
         default:
             {
                 __super::OnKeyDown(nChar, nRepCnt, nFlags);

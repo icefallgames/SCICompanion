@@ -1616,6 +1616,9 @@
     <ClInclude Include="Src\Dialogs\ToolTipDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Util\BayerMatrix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="SCICompanionLib.def">

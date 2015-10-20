@@ -411,6 +411,7 @@ private:
     CBrush _brushPattern;
     CBitmap _bitmapBrush;
     bool _fDithered;
+    int _ditherStrength;
 
     COLORREF _colorEditor;
 

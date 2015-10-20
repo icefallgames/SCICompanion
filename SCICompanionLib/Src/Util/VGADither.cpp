@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "VGADither.h"
+#include "BayerMatrix.h"
 
 using namespace std;
 

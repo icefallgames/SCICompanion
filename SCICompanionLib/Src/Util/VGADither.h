@@ -169,6 +169,3 @@ public:
 private:
     int16_t _matrix[MatrixSize][MatrixSize];
 };
-
-
-

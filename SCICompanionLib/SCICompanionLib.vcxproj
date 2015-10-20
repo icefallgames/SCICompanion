@@ -359,6 +359,7 @@
     <ClInclude Include="Src\Util\AudioProcessing.h" />
     <ClInclude Include="Src\Util\AudioProcessingSettings.h" />
     <ClInclude Include="Src\Util\AudioRecording.h" />
+    <ClInclude Include="Src\Util\BayerMatrix.h" />
     <ClInclude Include="Src\Util\BufferPool.h">
       <FileType>CppCode</FileType>
     </ClInclude>
