@@ -90,6 +90,75 @@
     <Image Include="Docs\source\images\Verbs.PNG">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Docs\source\images\AudioPreview.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\CuePoint.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\EcoBoy.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\EditAudio.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\KQ6Narrator.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\KQ6Talker.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\LipSyncDialog.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\LoopPoint.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\MessageEditor.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\MIDIImport.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\NewWord.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\PaletteAdjust.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\PaletteEditor.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\PaletteNotUsed.PNG">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\PaletteUnderline.PNG">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\PaletteUsedInResource.PNG">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\PhonemeEditor.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\SoundEditor.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\SpeechLipSyncSection.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\TextEditor.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\Vocab_Example.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\Vocab_TypeExample.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\WordFind.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\SCICompanion.rc2">
@@ -675,6 +744,20 @@
     <None Include="Docs\source\intro.rst" />
     <None Include="Docs\source\index.rst" />
     <None Include="Docs\source\conf.py" />
+    <None Include="Docs\source\audio.rst" />
+    <None Include="Docs\source\audiofiles.rst" />
+    <None Include="Docs\source\decompiler.rst" />
+    <None Include="Docs\source\lipsync.rst" />
+    <None Include="Docs\source\messageaudio.rst" />
+    <None Include="Docs\source\palettecycling.rst" />
+    <None Include="Docs\source\palettes.rst" />
+    <None Include="Docs\source\sounds.rst" />
+    <None Include="Docs\source\recording.rst" />
+    <None Include="Docs\source\talkers.rst" />
+    <None Include="Docs\source\texts.rst" />
+    <None Include="Docs\source\views.rst" />
+    <None Include="Docs\source\vocabs.rst" />
+    <None Include="Docs\source\includes\standard.rst" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />

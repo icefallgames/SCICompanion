@@ -1,5 +1,7 @@
 .. Message editing
 
+.. include:: /includes/standard.rst
+
 .. IMPORTANT::
     This section applies to SCI 1.1 only
 
@@ -31,7 +33,7 @@ When you open a message for a module (e.g. a room), you'll see that each message
 - A **talker** number that indicates who is delivering this message. Often it is the game "narrator", but it may also be a character.
 
 A message is uniquely defined by its module number (i.e. room number), and its noun, verb, condition and sequence. That means these combined values must 
-be different for each individual message. **SCI**\ Companion enforces this in the message editor, so it's hard to go wrong.
+be different for each individual message. |scicomp| enforces this in the message editor, so it's hard to go wrong.
 
 Nouns and verbs
 ---------------
@@ -104,7 +106,7 @@ Speech
 ======
 
 If the game supports it (such as the SCI 1.1 template game), a spoken text (or any digital audio sample) can be associated with each message entry.
-**SCI**\ Companion can record audio for you, or you can import a .wav file. In addition, lip-syncing can be automatically generated and applied so that the speech matches
+|scicomp| can record audio for you, or you can import a .wav file. In addition, lip-syncing can be automatically generated and applied so that the speech matches
 a character's lip movement.
 
 :doc:`More information speech. <messageaudio>`

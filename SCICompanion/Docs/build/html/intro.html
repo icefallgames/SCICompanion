@@ -61,24 +61,47 @@ detect the various features of the game.</p>
 to the different types of resources in the game. Click on them to see those resources. From each resource tab, you can
 select individual resources and open them by double-clicking. Previews are available for some resources.</p>
 <p>Via the right-click menu, you can also delete, export or give resources names.</p>
-<p>New resources can be created using the buttons on the main toolbar, or in the <em>File-&gt;New</em> menu. You can also import resources by dragging them into the resource view, or using the <em>File-&gt;Import Resource</em> menu item.</p>
-<p>SCI games have the following types of resources:</p>
-<ul class="simple">
-<li><em>Views</em> - these are raster graphics that correspond to the actors, props and other animated (or non-animated) objects in the game.</li>
-<li><em>Pics</em> - these are the backgrounds. Generally, EGA (16-color) games use vector graphics, and VGA (256-color) games use raster graphics.</li>
-<li><em>Scripts</em> - these contain the logic for the game. The actual script data is compiled and non-human-readable, but <strong>SCI</strong>Companion has a fully-featured script compiler. It also has a decompiler that can attempt to recover (as much as is possible) the original scripts of a game. Opening a script resource will open the source code file if it exists.</li>
-<li><em>Texts</em> - these contain the in-game text. Text can also be part of scripts, but having it as a separate resource helps with translating a game into other languages, and also saves a bit of in-game memory.</li>
-<li><a class="reference internal" href="messages.html"><em>Messages</em></a> - in SCI1.1, message resources largely replaced text resources. These are basically the things the narrator or in-game characters say (or anything else in the game&#8217;s UI). They integrate with the Narrator/Talker system in the game and can optionally be associated with spoken text.</li>
-<li><em>Sounds</em> - these are MIDI-based music and sound effects.</li>
-<li><em>Vocabs</em> - these are used for various purposes. The main one you will be concered with is vocab.000 in SCI0 games. This comprises the words that the in-game text parser understands.</li>
-<li><em>Fonts</em> - bitmapped fonts used to display text in the game.</li>
-<li><em>Cursors</em> - mouse cursor resources. These are only used for SCI0 (2-color) and SCI1 (3-color). In SCI1.1, views are used for mouse cursors.</li>
-<li><em>Patches</em> - these are needed for the various MIDI drivers. <strong>SCI</strong>Companion does not support editing them (nor should you need to).</li>
-<li><em>Palettes</em> - for VGA games (SCI1 and above), these are the color palettes.</li>
-<li><em>Audio</em> - in SCI1.1, these are digital sound effects (SCI1 supports digital audio also, but it is embedded in the sound resources, and <strong>SCI</strong>Companion does not support editing those). Speech is also digital audio, but it is accessed through the message resources.</li>
-<li><em>Heaps</em> - in SCI1.1, scripts were split into logic and data. Heap resources contain the data. <strong>SCI</strong>Companion takes care of creating these automatically when you compile.</li>
-</ul>
-<p>There are a few other types, but these are not shown in <strong>SCI</strong>Companion&#8217;s user interface. In particular, map, audio36 (digital audio) and sync36 (lip syncing) resources exist in SCI1.1. These are tied to messages though, and are managed through the message editor.</p>
+<p>New resources can be created using the buttons on the main toolbar, or in the <em>File-&gt;New</em> menu. You can also import individual resource files by dragging them into the resource view, or using the <em>File-&gt;Import Resource</em> menu item.</p>
+<p><strong>SCI</strong>Companion shows the following kind of resources that are part of SCI games:</p>
+<dl class="docutils">
+<dt>Views</dt>
+<dd>These are raster graphics that correspond to the actors, props and other animated (or non-animated) objects in the game.</dd>
+<dt>Pics</dt>
+<dd>These are the backgrounds. Generally, EGA (16-color) games use vector graphics, and VGA (256-color) games use raster graphics.</dd>
+<dt>Scripts</dt>
+<dd>These contain the logic for the game. The actual script data is compiled and non-human-readable, but <strong>SCI</strong>Companion has a fully-featured script compiler. It also has a decompiler that can attempt to recover (as much as is possible) the original scripts of a game. Opening a script resource will open the source code file if it exists.</dd>
+<dt><a class="reference internal" href="texts.html"><em>Texts</em></a></dt>
+<dd>These contain the in-game text. Text can also be part of scripts, but having it as a separate resource helps with translating a game into other languages, and also saves a bit of in-game memory.</dd>
+<dt><a class="reference internal" href="messages.html"><em>Messages</em></a></dt>
+<dd>In SCI1.1, message resources largely replaced text resources. These are basically the things the narrator or in-game characters say (or anything else in the game&#8217;s UI). They integrate with the Narrator/Talker system in the game and can optionally be associated with spoken text.</dd>
+<dt><a class="reference internal" href="sounds.html"><em>Sounds</em></a></dt>
+<dd>These are MIDI-based music and sound effects.</dd>
+<dt><a class="reference internal" href="vocabs.html"><em>Vocabs</em></a></dt>
+<dd>These are used for various purposes. The main one you will be concered with is vocab.000 in SCI0 games. This comprises the words that the in-game text parser understands.</dd>
+<dt>Fonts</dt>
+<dd>Bitmapped fonts used to display text in the game.</dd>
+<dt>Cursors</dt>
+<dd>Mouse cursor resources. These are only used for SCI0 (2-color) and SCI1 (3-color). In SCI1.1, views are used for mouse cursors.</dd>
+<dt>Patches</dt>
+<dd>These are needed for the various MIDI drivers. <strong>SCI</strong>Companion does not support editing them (nor should you need to).</dd>
+<dt><a class="reference internal" href="palettes.html"><em>Palettes</em></a></dt>
+<dd>For VGA games (SCI1 and above), these are the color palettes.</dd>
+<dt><a class="reference internal" href="audio.html"><em>Audio</em></a></dt>
+<dd>In SCI1.1, these are digital sound effects (SCI1 supports digital audio also, but it is embedded in the sound resources, and <strong>SCI</strong>Companion does not support editing that aspect of sound resources). Speech is also digital audio, but it is accessed through the message resources.</dd>
+<dt>Heaps</dt>
+<dd>In SCI1.1, scripts were split into logic and data. Heap resources contain the data. <strong>SCI</strong>Companion takes care of creating these automatically when you compile.</dd>
+</dl>
+<p>There are a few other types, but these are not shown in <strong>SCI</strong>Companion&#8216;s user interface. In particular, map, audio36 (digital audio) and sync36 (lip syncing) resources exist in SCI1.1. These are tied to messages though, and are managed through the message editor.</p>
+<div class="section" id="adding-new-resources">
+<h3>Adding new resources<a class="headerlink" href="#adding-new-resources" title="Permalink to this headline">¶</a></h3>
+<p>SCI0 and SCI 1.1 work slightly differently when it comes to adding resources. The format of the resource.map file in SCI0 allows it to be used almost like a version control system. That is, you
+can add new resources while still keeping the old ones around. The game itself will only see the new one, but <strong>SCI</strong>Companion will still show the old ones and allow you to edit them and save them
+as new resources. Using <em>Tools-&gt;Rebuild resources</em> will rebuild the resource.map and resource packages and remove any old unused resources.</p>
+<p>In SCI 1.1, the resource.map file format is different and this functionality is no longer possible. This means when you save a resource, it replaces the old one. You should make sure to keep backups
+of your game as you develop it (or use a version control system). It should be noted, however, that <strong>SCI</strong>Companion just appends new resources to the resource package files. This means the old resources still take
+up space in the package files, they&#8217;re just not accessible. This was done because otherwise there would be a performance cost to rebuilding the entire resource package file during every resource save.
+In summary, it is still useful to use <em>Tools-&gt;Rebuild resources</em> to trim the package files down after a while.</p>
+</div>
 </div>
 <div class="section" id="running-the-game">
 <h2>Running the game<a class="headerlink" href="#running-the-game" title="Permalink to this headline">¶</a></h2>
@@ -111,7 +134,10 @@ which means they won&#8217;t run on modern 64-bit operating systems. <a class="r
   <ul>
 <li><a class="reference internal" href="#">Getting Started</a><ul>
 <li><a class="reference internal" href="#opening-an-existing-game">Opening an existing game</a></li>
-<li><a class="reference internal" href="#resource-management">Resource management</a></li>
+<li><a class="reference internal" href="#resource-management">Resource management</a><ul>
+<li><a class="reference internal" href="#adding-new-resources">Adding new resources</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#running-the-game">Running the game</a></li>
 <li><a class="reference internal" href="#creating-a-new-game">Creating a new game</a></li>
 </ul>

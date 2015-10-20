@@ -678,7 +678,9 @@ void CNewRasterResourceDocument::OnUpdateImportImage(CCmdUI *pCmdUI)
 
 void CNewRasterResourceDocument::OnUpdateAnimate(CCmdUI *pCmdUI)
 {
-    pCmdUI->Enable();
+    pCmdUI->Enable(
+        ((GetComponent<RasterComponent>().Traits.Caps & RasterCaps::Animate) != RasterCaps::None)
+        );
 }
 
 void CNewRasterResourceDocument::OnUpdateFont(CCmdUI *pCmdUI)
