@@ -15942,6 +15942,11 @@ CWnd * pWnd = DYNAMIC_DOWNCAST( CWnd, _pgd.m_pHelperSrc );
 					ASSERT( _pgd.m_clrFlashCaptionText != COLORREF(-1L) );
 					dc.FillSolidRect( _pgd.m_rcGripper, _pgd.m_clrFlashCaptionBackground );
 				} // if( _pgd.m_bFlashCaptionHighlightedState )
+                else
+                {
+                    // pfortier - change made here to support ViewCelListBox
+                    dc.FillSolidRect(_pgd.m_rcGripper, ::GetSysColor(COLOR_INACTIVECAPTION));
+                }
 		}
 
 		int nTextLen = 0;
