@@ -1418,6 +1418,10 @@ void CRasterView::_OnDraw(CDC* pDC)
     const Cel *activeCel = _GetSelectedCel();
     if (activeCel)
     {
+        // So patterned things line up nicely across cels
+        // pDC->SetBrushOrg(activeCel->placement.x, activeCel->size.cy + activeCel->placement.y);
+        // Doesn't seem to work...
+
         if (_GetMainViewData())
         {
 #ifdef DEBUG
@@ -3035,7 +3039,7 @@ void CRasterView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             {
                 _ditherStrength += (nChar == VK_OEM_PLUS) ? 1 : -1;
                 _ditherStrength = max(1, _ditherStrength);
-                _ditherStrength = min(14, _ditherStrength);
+                _ditherStrength = min(15, _ditherStrength);
                 _InitPatternBrush();
             }
             break;
