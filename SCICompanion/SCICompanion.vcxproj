@@ -213,16 +213,21 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <ResourceCompile Include="SCICompanion.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="Docs\source\images\AddWord.png" />
     <Image Include="Docs\source\images\AudioPreview.png" />
+    <Image Include="Docs\source\images\AutoComplete.png" />
     <Image Include="Docs\source\images\Boom.gif" />
     <Image Include="Docs\source\images\ColorShift.png" />
     <Image Include="Docs\source\images\CommandList_Example.png" />
     <Image Include="Docs\source\images\CommandList_GreenLine.png" />
     <Image Include="Docs\source\images\CommandPaste_Example.png" />
+    <Image Include="Docs\source\images\Compile.png" />
+    <Image Include="Docs\source\images\CompileAll.png" />
     <Image Include="Docs\source\images\ConvertBitmap.jpg" />
     <Image Include="Docs\source\images\CuePoint.png" />
     <Image Include="Docs\source\images\CursorExample.png" />
     <Image Include="Docs\source\images\DayNight.png" />
+    <Image Include="Docs\source\images\DebugRoom.png" />
     <Image Include="Docs\source\images\DrawingAnimate.png" />
     <Image Include="Docs\source\images\DrawingDither.png" />
     <Image Include="Docs\source\images\DrawingEyedropper.png" />
@@ -247,12 +252,19 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <Image Include="Docs\source\images\FakeEgoList.png" />
     <Image Include="Docs\source\images\FakeEgoTool.png" />
     <Image Include="Docs\source\images\FakeEgo_Example.png" />
+    <Image Include="Docs\source\images\FindInFiles.png" />
     <Image Include="Docs\source\images\Flame.gif" />
     <Image Include="Docs\source\images\FontEditor.jpg" />
+    <Image Include="Docs\source\images\GotoDefinition.png" />
+    <Image Include="Docs\source\images\GotoHeader.png" />
     <Image Include="Docs\source\images\History.png" />
     <Image Include="Docs\source\images\ImportBackground.jpg" />
     <Image Include="Docs\source\images\ImportImage.jpg" />
     <Image Include="Docs\source\images\ImportImageDitherCompare.png" />
+    <Image Include="Docs\source\images\InsertActor.png" />
+    <Image Include="Docs\source\images\InsertMethod.png" />
+    <Image Include="Docs\source\images\InsertObject.png" />
+    <Image Include="Docs\source\images\JumpToMethod.png" />
     <Image Include="Docs\source\images\KQ6Narrator.png" />
     <Image Include="Docs\source\images\KQ6Talker.png" />
     <Image Include="Docs\source\images\LipSyncDialog.png" />
@@ -264,6 +276,8 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <Image Include="Docs\source\images\MessageLightSwitch.PNG" />
     <Image Include="Docs\source\images\MessageLightSwitchCode.PNG" />
     <Image Include="Docs\source\images\MIDIImport.png" />
+    <Image Include="Docs\source\images\NewRoom.png" />
+    <Image Include="Docs\source\images\NewScript.png" />
     <Image Include="Docs\source\images\NewWord.png" />
     <Image Include="Docs\source\images\Nouns.PNG" />
     <Image Include="Docs\source\images\PaletteAdjust.png" />
@@ -279,7 +293,9 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <Image Include="Docs\source\images\PolygonTool.png" />
     <Image Include="Docs\source\images\PriBands.jpg" />
     <Image Include="Docs\source\images\PriLineTool.png" />
+    <Image Include="Docs\source\images\QuickLinks.png" />
     <Image Include="Docs\source\images\Resize_Example.png" />
+    <Image Include="Docs\source\images\ScriptEditor.jpg" />
     <Image Include="Docs\source\images\Selection_Example.png" />
     <Image Include="Docs\source\images\SliderBar.png" />
     <Image Include="Docs\source\images\SoundEditor.jpg" />
@@ -329,8 +345,10 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <None Include="Docs\source\palettes.rst" />
     <None Include="Docs\source\pics.rst" />
     <None Include="Docs\source\polygons.rst" />
+    <None Include="Docs\source\preferences.rst" />
     <None Include="Docs\source\rastertools.rst" />
     <None Include="Docs\source\recording.rst" />
+    <None Include="Docs\source\scripts.rst" />
     <None Include="Docs\source\selectionandresize.rst" />
     <None Include="Docs\source\sounds.rst" />
     <None Include="Docs\source\talkers.rst" />

@@ -339,6 +339,54 @@
     <Image Include="Docs\source\images\VPCScreens.jpg">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Docs\source\images\AddWord.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\AutoComplete.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\Compile.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\CompileAll.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\DebugRoom.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\FindInFiles.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\GotoDefinition.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\GotoHeader.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\InsertActor.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\InsertMethod.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\InsertObject.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\JumpToMethod.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\NewRoom.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\NewScript.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\QuickLinks.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\ScriptEditor.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\SCICompanion.rc2">
@@ -945,6 +993,8 @@
     <None Include="Docs\source\pics.rst" />
     <None Include="Docs\source\polygons.rst" />
     <None Include="Docs\source\selectionandresize.rst" />
+    <None Include="Docs\source\preferences.rst" />
+    <None Include="Docs\source\scripts.rst" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />
