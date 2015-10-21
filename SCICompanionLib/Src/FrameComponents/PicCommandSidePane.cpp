@@ -156,8 +156,14 @@ void PicCommandSidePane::PushNameToPoly()
     {
         CString nameTemp;
         m_wndEditPolyName.GetWindowText(nameTemp);
-        string name = c_szPolyNamePrefix;
-        name += (PCSTR)nameTemp;
+        string name;
+        if (!nameTemp.IsEmpty())
+        {
+            name = c_szPolyNamePrefix;
+            name += (PCSTR)nameTemp;
+        }
+        // If empty, restore to default...
+
         if (name != polygon->Name)
         {
             // They are different - push the points to the polygon
