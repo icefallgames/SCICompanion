@@ -51,7 +51,6 @@ public:
     {
         _SyncPalette();
     }
-    void SetPosition(ptrdiff_t pos) override {}
 
     // IColorDialogCallback
     void OnColorClick(BYTE bIndex, int nID, BOOL fLeftClick)

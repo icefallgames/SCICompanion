@@ -29,7 +29,7 @@ struct CommandModifier
     void Delete(PicComponent &pic);
 };
 
-class CPicView : public CScrollingThing<CView>, public IBitmapEditor, public IPicDrawPlugin, public IVGAPaletteDefinitionCallback
+class CPicView : public CScrollingThing<CView>, public IBitmapEditor, public IPicDrawPlugin, public IVGAPaletteDefinitionCallback, public IEGAPaletteDefinitionCallback
 {
 private: // create from serialization only
     CPicView();
@@ -85,6 +85,7 @@ public:
 
     // IVGAPaletteDefinitionCallback
     void OnVGAPaletteChanged() override;
+    // IEGAPaletteDefinitionCallback
     void SetPosition(ptrdiff_t position) override;
 
 protected:

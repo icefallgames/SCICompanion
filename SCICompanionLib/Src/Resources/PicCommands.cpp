@@ -580,9 +580,8 @@ ViewPort::ViewPort(uint8_t bPaletteToUse)
     Reset(bPaletteToUse);
 }
 
-ViewPort::ViewPort()
+ViewPort::ViewPort() :ViewPort(static_cast<uint8_t>(0))
 {
-    ViewPort(static_cast<uint8_t>(0));
 }
 
 void ViewPort::Reset(uint8_t bPaletteToUse)

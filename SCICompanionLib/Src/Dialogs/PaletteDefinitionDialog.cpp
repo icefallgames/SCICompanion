@@ -10,11 +10,9 @@
 volatile int g_fChecked = 0;
 volatile int g_fPreview = 0;
 
-CPaletteDefinitionDialog::CPaletteDefinitionDialog(IVGAPaletteDefinitionCallback &callback, PicComponent &pic, ptrdiff_t pos, CWnd* pParent /*=NULL*/)
-    : CExtResizableDialog(CPaletteDefinitionDialog::IDD, pParent), _callback(callback), _pic(pic), _position(pos), _changed(false), _copy(pic)
+CPaletteDefinitionDialog::CPaletteDefinitionDialog(IEGAPaletteDefinitionCallback &callback, PicComponent &pic, ptrdiff_t pos, uint8_t paletteNumber, CWnd* pParent /*=NULL*/)
+    : CExtResizableDialog(CPaletteDefinitionDialog::IDD, pParent), _callback(callback), _pic(pic), _position(pos), _changed(false), _copy(pic), _viewport(paletteNumber)
 {
-    int x = 0;
-
     // Store the current palette state by processing all pallet commands up to position.
     for (ptrdiff_t i = 0; i < _position; i++)
     {

@@ -15,7 +15,7 @@ extern volatile int g_fPreview;
 class CPaletteDefinitionDialog : public CExtResizableDialog, public IColorDialogCallback
 {
 public:
-    CPaletteDefinitionDialog(IVGAPaletteDefinitionCallback &callback, PicComponent &pic, ptrdiff_t pos, CWnd* pParent = nullptr);  // standard constructor
+    CPaletteDefinitionDialog(IEGAPaletteDefinitionCallback &callback, PicComponent &pic, ptrdiff_t pos, uint8_t paletteNumber, CWnd* pParent = nullptr);  // standard constructor
 
     // IColorDialogCallback
     void OnColorClick(BYTE bIndex, int nID, BOOL fLeftClick);
@@ -58,7 +58,7 @@ protected:
     int _iCurPalette; // from 0 to 3
     BOOL _bSelection;
 
-    IVGAPaletteDefinitionCallback &_callback;
+    IEGAPaletteDefinitionCallback &_callback;
     PicComponent &_pic;
     PicComponent _copy;
     ptrdiff_t _position;

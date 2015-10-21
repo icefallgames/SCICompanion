@@ -901,10 +901,13 @@ void CPicView::OnSetPalette()
             pos = pic->commands.size() - 1;
         }
 
+        uint8_t paletteNumber = _GetDrawManager().GetPalette();
+
+
         GetDocument()->PreviewChanges<PicComponent>(
-            [&, pos](PicComponent &pic)
+            [&, pos, paletteNumber](PicComponent &pic)
         {
-            CPaletteDefinitionDialog dialog(*this, pic, pos);
+            CPaletteDefinitionDialog dialog(*this, pic, pos, paletteNumber);
             INT_PTR result = dialog.DoModal();
             PicChangeHint hint = PicChangeHint::None;
             if ((result == IDOK) && dialog.GetChanged())
