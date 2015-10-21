@@ -44,7 +44,7 @@ New resources can be created using the buttons on the main toolbar, or in the *F
 :doc:`Pics <pics>`
     These are the backgrounds. Generally, EGA (16-color) games use vector graphics, and VGA (256-color) games use raster graphics.
 
-Scripts
+:doc:`Scripts <scripts>`
     These contain the logic for the game. The actual script data is compiled and non-human-readable, but |scicomp| has a fully-featured script compiler. It also has a decompiler that can attempt to recover (as much as is possible) the original scripts of a game. Opening a script resource will open the source code file if it exists.
 
 :doc:`Texts <texts>`

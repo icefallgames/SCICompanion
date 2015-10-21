@@ -119,6 +119,8 @@ In script, you can assign the polygon to a feature's "onMeCheck" like this:
 
 Note that any named polygons will *not* appear in the default polygons for that room.
 
+If you need to remove the name of a polygon to set it back to being a "default polygon", just give it a blank name.
+
 
 .. |polygon| image:: /images/PolygonTool.png
 .. |upload| image:: /images/Upload.png
