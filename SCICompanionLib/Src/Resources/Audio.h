@@ -37,6 +37,9 @@ struct AudioComponent : public ResourceComponent
 public:
     AudioComponent() : Frequency(0), Flags(AudioFlags::None), IsClipped(false) {}
 
+    AudioComponent(const AudioComponent &src) = default;
+    AudioComponent& operator=(const AudioComponent &src) = default;
+
     ResourceComponent *Clone() const override
     {
         return new AudioComponent(*this);

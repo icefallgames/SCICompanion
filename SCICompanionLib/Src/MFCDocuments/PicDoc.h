@@ -166,9 +166,9 @@ private:
 };
 
 template<class _T>
-BOOL InsertPaletteCommands(typename _T *pepic, INT_PTR iPos, const EGACOLOR *pPaletteOrig, const EGACOLOR *pPaletteNew, BOOL fWriteEntire)
+bool InsertPaletteCommands(typename _T *pepic, INT_PTR iPos, const EGACOLOR *pPaletteOrig, const EGACOLOR *pPaletteNew, BOOL fWriteEntire)
 {
-    BOOL fSomethingChanged = FALSE;
+    bool fSomethingChanged = false;
     if (fWriteEntire)
     {
         // Write the entire palette, for any palette that changed.
@@ -179,7 +179,7 @@ BOOL InsertPaletteCommands(typename _T *pepic, INT_PTR iPos, const EGACOLOR *pPa
                 // This palette changed.  Write it.
                 PicCommand command = PicCommand::CreateSetPalette(i, &pPaletteNew[40 * i]);
                 InsertCommands(*pepic, iPos, 1, &command);
-                fSomethingChanged = TRUE;
+                fSomethingChanged = true;
             }
         }
     }
@@ -200,7 +200,7 @@ BOOL InsertPaletteCommands(typename _T *pepic, INT_PTR iPos, const EGACOLOR *pPa
         if (commands.size() > 0)
         {
             InsertCommands(*pepic, iPos, commands.size(), &commands[0]);
-            fSomethingChanged = TRUE;
+            fSomethingChanged = true;
         }
     }
     return fSomethingChanged;

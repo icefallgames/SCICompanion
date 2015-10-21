@@ -10,9 +10,27 @@
 volatile int g_fChecked = 0;
 volatile int g_fPreview = 0;
 
-CPaletteDefinitionDialog::CPaletteDefinitionDialog(CWnd* pParent /*=NULL*/)
-	: CExtResizableDialog(CPaletteDefinitionDialog::IDD, pParent)
+CPaletteDefinitionDialog::CPaletteDefinitionDialog(IVGAPaletteDefinitionCallback &callback, PicComponent &pic, ptrdiff_t pos, CWnd* pParent /*=NULL*/)
+    : CExtResizableDialog(CPaletteDefinitionDialog::IDD, pParent), _callback(callback), _pic(pic), _position(pos), _changed(false), _copy(pic)
 {
+    int x = 0;
+
+    // Store the current palette state by processing all pallet commands up to position.
+    for (ptrdiff_t i = 0; i < _position; i++)
+    {
+        auto &command = _pic.commands[i];
+        if (command.type == PicCommand::CommandType::SetPalette)
+        {
+            SetPaletteCommand_Draw(&command, nullptr, &_viewport);
+        }
+        else if (command.type == PicCommand::CommandType::SetPaletteEntry)
+        {
+            SetPaletteEntryCommand_Draw(&command, nullptr, &_viewport);
+        }
+    }
+    // Set initial palette state:
+    memcpy(_palette, _viewport.pPalettes, sizeof(_palette));
+
     _bSelection = 0;
     _iCurPalette = 0;
 
@@ -56,9 +74,9 @@ void CPaletteDefinitionDialog::DoDataExchange(CDataExchange* pDX)
 
     m_wndCheck.SetCheck(g_fChecked);
     m_wndPreview.SetCheck(g_fPreview);
-    if (g_fPreview && _pCallbackWeak)
+    if (g_fPreview)
     {
-        _pCallbackWeak->OnSomethingChanged(g_fChecked, _palette, _iCurPalette);
+        _callback.SetPosition(-1);
     }
 
     // Visuals
@@ -81,26 +99,6 @@ BEGIN_MESSAGE_MAP(CPaletteDefinitionDialog, CExtResizableDialog)
     ON_BN_CLICKED(IDC_BUTTONADVANCED, OnAdvancedClick)
 END_MESSAGE_MAP()
 
-
-void CPaletteDefinitionDialog::InitPalettes(const EGACOLOR *pPalette)
-{
-    CopyMemory(_palette, pPalette, sizeof(_palette));
-
-    // Set initial selection in color boxes.
-    if (m_wndStaticColors.GetSafeHwnd())
-    {
-        m_wndStaticColors.SetSelection(GetCurrentPalettePtr()[_bSelection].color1);
-        m_wndStaticColors.SetAuxSelection(GetCurrentPalettePtr()[_bSelection].color2);
-        m_wndStaticPalette.SetPalette(5, 8, GetCurrentPalettePtr(), ARRAYSIZE(g_egaColors), g_egaColors);
-        m_wndStaticPalette.OnPaletteUpdated();
-    }
-}
-
-void CPaletteDefinitionDialog::RetrievePalettes(EGACOLOR *pPalette)
-{
-    CopyMemory(pPalette, _palette, sizeof(_palette));
-}
-
 void CPaletteDefinitionDialog::OnTabChange(NMHDR *pnmhdr, LRESULT *ples)
 {
     _iCurPalette = m_wndTab.GetCurSel();
@@ -111,11 +109,31 @@ void CPaletteDefinitionDialog::OnTabChange(NMHDR *pnmhdr, LRESULT *ples)
     m_wndStaticColors.SetSelection(GetCurrentPalettePtr()[_bSelection].color1);
     m_wndStaticColors.SetAuxSelection(GetCurrentPalettePtr()[_bSelection].color2);
 
-    // And finally, if we're previewing...
-    if (g_fPreview && _pCallbackWeak)
+    ApplyPreview();
+}
+
+void CPaletteDefinitionDialog::ApplyPreview()
+{
+    if (g_fPreview)
     {
-        _pCallbackWeak->OnSomethingChanged(g_fChecked, _palette, _iCurPalette);
+        ApplyChanges();
+        if (_changed)
+        {
+            _callback.SetPosition(-1);
+        }
     }
+}
+
+void CPaletteDefinitionDialog::OnOK()
+{
+    ApplyChanges();
+    __super::OnOK();
+}
+
+void CPaletteDefinitionDialog::ApplyChanges()
+{
+    _pic = _copy;
+    _changed = InsertPaletteCommands(&_pic, _position, _viewport.pPalettes, _palette, GetWriteEntirePalette());
 }
 
 void CPaletteDefinitionDialog::OnCheckClick()
@@ -128,16 +146,16 @@ void CPaletteDefinitionDialog::OnPreviewToggle()
 {
     g_fPreview = m_wndPreview.GetCheck();
 
-    if (_pCallbackWeak)
+    ApplyPreview();
+    if (!g_fPreview)
     {
-        if (g_fPreview)
-        {
-            _pCallbackWeak->OnSomethingChanged(g_fChecked, _palette, _iCurPalette);
-        }
-        else
-        {
-            _pCallbackWeak->OnPreviewOff();
-        }
+        // Restore
+        _pic = _copy;
+        _callback.SetPosition(_position);   // Back to the actual position
+    }
+    else
+    {
+        _callback.SetPosition(-1);
     }
 }
 
@@ -195,11 +213,7 @@ void CPaletteDefinitionDialog::OnColorClick(BYTE bIndex, int nID, BOOL fLeftClic
         m_wndStaticPalette.SetPalette(5, 8, GetCurrentPalettePtr(), ARRAYSIZE(g_egaColors), g_egaColors);
         m_wndStaticPalette.OnPaletteUpdated();
 
-        if (_pCallbackWeak && g_fPreview)
-        {
-            // If we're supposed to preview, tell the callback that something changed.
-            _pCallbackWeak->OnSomethingChanged(g_fChecked, _palette, _iCurPalette);
-        }
+        ApplyPreview();
     }
 }
 

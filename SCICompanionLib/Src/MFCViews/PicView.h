@@ -29,7 +29,7 @@ struct CommandModifier
     void Delete(PicComponent &pic);
 };
 
-class CPicView : public CScrollingThing<CView>, public IPaletteDefinitionCallback, public IBitmapEditor, public IPicDrawPlugin, public IVGAPaletteDefinitionCallback
+class CPicView : public CScrollingThing<CView>, public IBitmapEditor, public IPicDrawPlugin, public IVGAPaletteDefinitionCallback
 {
 private: // create from serialization only
     CPicView();
@@ -85,6 +85,7 @@ public:
 
     // IVGAPaletteDefinitionCallback
     void OnVGAPaletteChanged() override;
+    void SetPosition(ptrdiff_t position) override;
 
 protected:
     void InvalidateOurselves();
@@ -100,10 +101,6 @@ protected:
     virtual void OnRButtonDblClk(UINT nFlags, CPoint point);
     virtual void OnLButtonUp(UINT nFlags, CPoint point);
     virtual void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
-
-// IPaletteDefinitionCallback
-    virtual void OnSomethingChanged(BOOL fWriteEntire, EGACOLOR *pPalettes, int iPalette);
-    virtual void OnPreviewOff();
 
 // Implementation
 public:
@@ -305,32 +302,6 @@ private:
     int _priBarMoveIndex;
     int _originalPriValue;
     PicCommand _originalPriValueCommand;
-
-    // For previewing palette changes.
-    class PaletteChangePreview
-    {
-    public:
-        PaletteChangePreview(const PicComponent *pResource, const PaletteComponent *pPalette, PicDrawManager &pdm) : _pic(*pResource), _pdm(NULL)
-        {
-            if (pPalette)
-            {
-                _palette.reset(new PaletteComponent(*pPalette));
-            }
-            else
-            {
-                _palette.reset(nullptr);
-            }
-            _pdm.SetPic(&_pic, _palette.get());
-        }
-        PicComponent &GetPicResource() { return _pic; }
-        PaletteComponent *GetPaletteResource() { return _palette.get(); }
-        PicDrawManager &GetDrawManager() { return _pdm; }
-    private:
-        PicComponent _pic;
-        std::unique_ptr<PaletteComponent> _palette;
-        PicDrawManager _pdm;
-    };
-    std::unique_ptr<PaletteChangePreview> _pPreview;
 
     // These are all in pic coordinates
     int _xOld;  // -1

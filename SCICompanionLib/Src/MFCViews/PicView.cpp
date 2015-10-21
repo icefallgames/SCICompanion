@@ -426,14 +426,7 @@ CPoint CPicView::GetZoomOffset() const
 
 PicDrawManager &CPicView::_GetDrawManager()
 {
-    if (_pPreview)
-    {
-        return _pPreview->GetDrawManager();
-    }
-    else
-    {
-        return GetDocument()->GetDrawManager();
-    }
+    return GetDocument()->GetDrawManager();
 }
 
 CPicView::~CPicView()
@@ -673,7 +666,7 @@ void CPicView::OnUpdateObservePolygons(CCmdUI *pCmdUI)
 
 void CPicView::OnUpdateIsVGA(CCmdUI *pCmdUI)
 {
-    pCmdUI->Enable(_GetEditPic() && _GetEditPic()->Traits.IsVGA);
+    pCmdUI->Enable(_GetEditPic() && _GetEditPic()->Traits->IsVGA);
 }
 
 
@@ -893,67 +886,36 @@ void CPicView::OnLightUpCoords()
     InvalidateOurselves();
 }
 
-void CPicView::OnSomethingChanged(BOOL fWriteEntire, EGACOLOR *pPalettes, int iPalette)
-{
-    _pPreview.reset(); // Reset to NULL before making a new one, since we rely on
-                       // getting the "real" draw manager and pic resource.
-    INT_PTR iRealPos = _GetDrawManager().GetPos();
-    _pPreview.reset(new PaletteChangePreview(_GetEditPic(), _GetPalette(), _GetDrawManager()));
-    _pPreview->GetDrawManager().SetPalette(static_cast<BYTE>(iPalette));
-    // Insert the commands at the current spot:
-    _pPreview->GetDrawManager().SeekToPos(iRealPos);
-    // Grab the palette state from the actual pic:
-    const ViewPort *pstate = _GetDrawManager().GetViewPort(PicPosition::PostPlugin);
-
-    GetDocument()->ApplyChanges<PicComponent>(
-        [this, pstate, pPalettes, fWriteEntire](PicComponent &pic)
-    {
-        BOOL somethingChanged = InsertPaletteCommands(&pic, _pPreview->GetDrawManager().GetPos(), pstate->pPalettes, pPalettes, fWriteEntire);
-        return WrapHint(somethingChanged ? PicChangeHint::EditPicInvalid : PicChangeHint::None);
-    }
-        );
-
-    _pPreview->GetDrawManager().SeekToPos(-1); // Move to the end for the preview...
-    InvalidateOurselves();
-}
-
-void CPicView::OnPreviewOff()
-{
-    _pPreview.reset();
-    InvalidateOurselves();
-}
-
 void CPicView::OnSetPalette()
 {
-    if (_GetEditPic()->Traits.IsVGA)
+    if (_GetEditPic()->Traits->IsVGA)
     {
         EditVGAPalette();
     }
     else
     {
-        PicDrawManager &pdm = _GetDrawManager();
-        CPaletteDefinitionDialog dialog;
-        const ViewPort *pstate = pdm.GetViewPort(PicPosition::PostPlugin);
-
-        // For now, just do palette 0
-        dialog.SetCallback(this);
-        dialog.InitPalettes(pstate->pPalettes);
-        INT_PTR iDialogResult = dialog.DoModal();
-        _pPreview.reset();
-        if (IDOK == iDialogResult)
+        const PicComponent *pic = _GetEditPic();
+        ptrdiff_t pos = GetDocument()->GetDrawManager().GetPos();
+        if (pos == -1)
         {
-            EGACOLOR paletteNew[160];
-            dialog.RetrievePalettes(paletteNew);
-
-            GetDocument()->ApplyChanges<PicComponent>(
-                [&pdm, pstate, &paletteNew, &dialog](PicComponent &pic)
-            {
-                BOOL somethingChanged = InsertPaletteCommands(&pic, pdm.GetPos(), pstate->pPalettes, paletteNew, dialog.GetWriteEntirePalette());
-                return WrapHint(somethingChanged ? PicChangeHint::EditPicInvalid : PicChangeHint::None);
-            }
-                );
+            pos = pic->commands.size() - 1;
         }
-        InvalidateOurselves(); // In case we didn't insert anything (to refresh from possible preview)
+
+        GetDocument()->PreviewChanges<PicComponent>(
+            [&, pos](PicComponent &pic)
+        {
+            CPaletteDefinitionDialog dialog(*this, pic, pos);
+            INT_PTR result = dialog.DoModal();
+            PicChangeHint hint = PicChangeHint::None;
+            if ((result == IDOK) && dialog.GetChanged())
+            {
+                hint |= PicChangeHint::EditPicInvalid;
+            }
+            return WrapHint(hint);
+        }
+        );
+
+        this->SetPosition(pos);
     }
 }
 
@@ -1105,9 +1067,9 @@ void CPicView::_OnPasteCommands(HGLOBAL hMem)
         BYTE *pBits = globalLock.Object;
         if (pBits)
         {
-            bool supportsPen = (_GetEditPic()->Traits.SupportsPenCommands);
-            bool isVGA = (_GetEditPic()->Traits.IsVGA);
-            bool canChangePriLines = (_GetEditPic()->Traits.CanChangePriorityLines);
+            bool supportsPen = (_GetEditPic()->Traits->SupportsPenCommands);
+            bool isVGA = (_GetEditPic()->Traits->IsVGA);
+            bool canChangePriLines = (_GetEditPic()->Traits->CanChangePriorityLines);
 
             // Create a byte stream with this data.
             sci::ostream stream;
@@ -1201,7 +1163,7 @@ void _ReplaceDrawVisual(PicComponent &pic, const Cel &cel)
 
 void CPicView::OnPasteIntoPic()
 {
-    if (_GetEditPic()->Traits.IsVGA)
+    if (_GetEditPic()->Traits->IsVGA)
     {
         // Provide the current background, in case they wish to overlay.
         const Cel *backgroundCurrent = nullptr;
@@ -1213,7 +1175,7 @@ void CPicView::OnPasteIntoPic()
             }
         }
 
-        CBitmapToVGADialog dialog(nullptr, backgroundCurrent, _GetPalette(), false, 256, _GetEditPic()->Traits.AllowMultipleBitmaps, _GetEditPic()->Size, 255, PaletteAlgorithm::Quantize, DefaultPaletteUsage::UnusedColors);
+        CBitmapToVGADialog dialog(nullptr, backgroundCurrent, _GetPalette(), false, 256, _GetEditPic()->Traits->AllowMultipleBitmaps, _GetEditPic()->Size, 255, PaletteAlgorithm::Quantize, DefaultPaletteUsage::UnusedColors);
         if (IDOK == dialog.DoModal())
         {
             std::unique_ptr<Cel> result = dialog.GetFinalResult();
@@ -1450,12 +1412,12 @@ void CPicView::OnUpdateShowScreenControl(CCmdUI *pCmdUI)
 
 void CPicView::OnUpdateIsEGA(CCmdUI *pCmdUI)
 {
-    pCmdUI->Enable(!_GetEditPic()->Traits.IsVGA);
+    pCmdUI->Enable(!_GetEditPic()->Traits->IsVGA);
 }
 
 void CPicView::OnUpdateShowPaletteControl(CCmdUI *pCmdUI)
 {
-    if (_GetEditPic()->Traits.IsVGA)
+    if (_GetEditPic()->Traits->IsVGA)
     {
         pCmdUI->Enable(FALSE);
     }
@@ -1804,11 +1766,11 @@ void CPicView::OnUpdateAllPicCommands(CCmdUI *pCmdUI)
     BOOL enabled = true;
     if (pCmdUI->m_nID == ID_PENTOOL && _GetEditPic())
     {
-        enabled = _GetEditPic()->Traits.SupportsPenCommands;
+        enabled = _GetEditPic()->Traits->SupportsPenCommands;
     }
     if (pCmdUI->m_nID == ID_POLYPATH && _GetEditPic())
     {
-        enabled = _GetEditPic()->Traits.IsVGA;
+        enabled = _GetEditPic()->Traits->IsVGA;
     }
         
     pCmdUI->Enable(enabled);
@@ -2120,7 +2082,7 @@ void CPicView::_DrawPriorityLines(CDC *pDC)
 
 PicCommand CPicView::_EnsurePriorityBarCommand()
 {
-    assert(_GetEditPic()->Traits.CanChangePriorityLines);
+    assert(_GetEditPic()->Traits->CanChangePriorityLines);
     for (const PicCommand &command : _GetEditPic()->commands)
     {
         if (command.type == PicCommand::CommandType::SetPriorityBars)
@@ -2134,7 +2096,7 @@ PicCommand CPicView::_EnsurePriorityBarCommand()
         [](PicComponent &pic)
     {
         PicCommand setPriBarsCommand;
-        setPriBarsCommand.CreateSetPriorityBars(g_defaultPriBands16Bit, pic.Traits.SixteenBitPri, pic.Traits.IsVGA);
+        setPriBarsCommand.CreateSetPriorityBars(g_defaultPriBands16Bit, pic.Traits->SixteenBitPri, pic.Traits->IsVGA);
         pic.commands.insert(pic.commands.begin(), setPriBarsCommand);
         return WrapHint(PicChangeHint::EditPicInvalid);
     }
@@ -2198,7 +2160,7 @@ bool CPicView::_HitTestPriorityBar(CPoint pt, int *barIndex)
     *barIndex = -1;
     CRect rect(_GetPicSize().cx, 0, _GetPicSize().cx + PriorityBarWidth, _GetPicSize().cy);
     bool hit = !!rect.PtInRect(pt);
-    if (hit && _GetEditPic()->Traits.CanChangePriorityLines)
+    if (hit && _GetEditPic()->Traits->CanChangePriorityLines)
     {
         const uint16_t *priLines = _GetDrawManager().GetViewPort(PicPosition::PostPlugin)->bPriorityLines;
         size_t priLineCount = ARRAYSIZE(_GetDrawManager().GetViewPort(PicPosition::PostPlugin)->bPriorityLines);
@@ -2244,6 +2206,17 @@ CSize CPicView::GetBitmapSize()
 {
     size16 size = _GetPicSize();
     return CSize(size.cx, size.cy);
+}
+
+void CPicView::SetPosition(ptrdiff_t position)
+{
+    GetDocument()->SeekToPos(position);
+    _GetDrawManager().Invalidate();
+    CPicDoc *pDoc = GetDocument();
+    if (pDoc)
+    {
+        pDoc->UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::PreviewPalette));
+    }
 }
 
 void CPicView::OnVGAPaletteChanged()
@@ -2402,7 +2375,7 @@ void CPicView::OnDraw(CDC *pDC)
                 _DrawGuideLines(dcMem);
             }
 
-            if (_fShowingEgo && _GetEditPic()->Traits.IsVGA)
+            if (_fShowingEgo && _GetEditPic()->Traits->IsVGA)
             {
                 _DrawShowingEgoVGA(dcMem, _GetDrawManager());
             }
@@ -2732,7 +2705,7 @@ bool CPicView::WillDrawOnPic()
 
 void CPicView::DrawOnPic(ViewPort &viewPort, PicData &picData, PicScreenFlags flags)
 {
-    if (_fShowingEgo && !_GetEditPic()->Traits.IsVGA)
+    if (_fShowingEgo && !_GetEditPic()->Traits->IsVGA)
     {
         _DrawShowingEgoEGA(viewPort, picData, flags);
     }
@@ -4363,18 +4336,11 @@ size16 CPicView::_GetPicSize() const
 const PicComponent *CPicView::_GetEditPic() const
 {
     const PicComponent *ppic = nullptr;
-    if (_pPreview)
+    CPicDoc* pDoc = GetDocument();
+    ASSERT_VALID(pDoc);
+    if (pDoc)
     {
-        ppic = &_pPreview->GetPicResource();
-    }
-    else
-    {
-        CPicDoc* pDoc = GetDocument();
-        ASSERT_VALID(pDoc);
-        if (pDoc)
-        {
-            ppic = pDoc->GetPic();
-        }
+        ppic = pDoc->GetPic();
     }
     return ppic;
 }
@@ -4382,18 +4348,11 @@ const PicComponent *CPicView::_GetEditPic() const
 const PaletteComponent *CPicView::_GetPalette()
 {
     const PaletteComponent *ppalette = nullptr;
-    if (_pPreview)
+    CPicDoc* pDoc = GetDocument();
+    ASSERT_VALID(pDoc);
+    if (pDoc)
     {
-        ppalette = _pPreview->GetPaletteResource();
-    }
-    else
-    {
-        CPicDoc* pDoc = GetDocument();
-        ASSERT_VALID(pDoc);
-        if (pDoc)
-        {
-            ppalette = pDoc->GetCurrentPaletteComponent();
-        }
+        ppalette = pDoc->GetCurrentPaletteComponent();
     }
     return ppalette;
 }

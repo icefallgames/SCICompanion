@@ -88,7 +88,7 @@ void CPicDoc::InvokeDialog(UINT nID, RECT *prcButton)
     {
     case IDC_SETVISUAL:
         {
-            if (_GetPic()->Traits.IsVGA)
+            if (_GetPic()->Traits->IsVGA)
             {
                 CChooseColorDialogVGA dialog(*GetCurrentPaletteComponent());
                 dialog.SetTrackRect(prcButton);
@@ -230,7 +230,7 @@ void CPicDoc::SetEditPic(std::unique_ptr<ResourceEntity> pEditPic, int id)
 {
     _checksum = id;
 
-    if (pEditPic && pEditPic->GetComponent<PicComponent>().Traits.IsVGA)
+    if (pEditPic && pEditPic->GetComponent<PicComponent>().Traits->IsVGA)
     {
         // Add a polygon component
         pEditPic->AddComponent<PolygonComponent>(CreatePolygonComponent(appState->GetResourceMap().Helper().GetPolyFolder(), pEditPic->ResourceNumber));
@@ -455,7 +455,7 @@ void CPicDoc::PostApplyChanges(CObject *pObj)
 
 bool CPicDoc::v_IsVGA()
 {
-    return _GetPic() && _GetPic()->Traits.IsVGA;
+    return _GetPic() && _GetPic()->Traits->IsVGA;
 }
 void CPicDoc::v_OnUpdatePaletteOptions()
 {

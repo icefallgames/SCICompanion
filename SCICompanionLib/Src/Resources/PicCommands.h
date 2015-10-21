@@ -448,10 +448,6 @@ void LineCommand_DrawEx(int cx, int cy, PicCommand *pCommand, uint8_t *pData, EG
 
 // Serialize functions (to be added later)
 
-// General functions
-void Command_Draw(const PicCommand *pCommand, PicData *pData, ViewPort *pState);
-void Command_DrawF(PicCommand *pCommand, DWORD *pData, ViewPort *pState);
-
 struct PICCOMMAND_ADJUST
 {
     RECT rcBounds; // Original bounds

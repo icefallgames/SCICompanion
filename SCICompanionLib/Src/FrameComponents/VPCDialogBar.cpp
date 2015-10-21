@@ -50,7 +50,7 @@ void CVPCDialogBar::UpdateNonView(CObject *pObject)
             bool penEnabled = false;
             if (resource)
             {
-                penEnabled = resource->GetComponent<PicComponent>().Traits.SupportsPenCommands;
+                penEnabled = resource->GetComponent<PicComponent>().Traits->SupportsPenCommands;
             }
             m_wndPenSet.EnableWindow(penEnabled);
             m_wndLabel.EnableWindow(penEnabled);

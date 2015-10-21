@@ -17,8 +17,6 @@ using namespace std;
 #define PALETTE(x) (pPalettes + x * 40)
 #define CURPALETTE (pPalettes + bCurrentPalette * 40)
 
-bool IsSame(const PicComponent &pic, const PicComponent *pPic) { return pPic && (pic._uniqueId == pPic->_uniqueId); }
-
 struct PatternInfo
 {
     PatternInfo() : bPatternNR(0), bPatternCode(0), bPatternSize(0) {}
@@ -511,7 +509,7 @@ void PicReadExtendedFunctionSCI0(ResourceEntity &resource, PicComponent &pic, sc
 void PicReadFromSCI0_SCI1(ResourceEntity &resource, sci::istream &byteStream, bool isVGA)
 {
     PicComponent &pic = resource.GetComponent<PicComponent>();
-    bool supportsPenCommands = pic.Traits.SupportsPenCommands;
+    bool supportsPenCommands = pic.Traits->SupportsPenCommands;
 
     // See how many bytes long the stream is:
     int cBytes = (int)byteStream.GetDataSize();
@@ -854,7 +852,7 @@ bool PicValidateVGA(const ResourceEntity &resource)
     bool ok = true;
     const PicComponent &pic = resource.GetComponent<PicComponent>();
 
-    if (!pic.Traits.SupportsPenCommands)
+    if (!pic.Traits->SupportsPenCommands)
     {
         bool found = false;
         for (size_t i = 0; !found && (i < pic.commands.size()); i++)
@@ -952,9 +950,9 @@ ResourceTraits picResourceTraitsVGA11 =
     &PicWritePolygons,
 };
 
-PicComponent::PicComponent() : PicComponent(picTraitsEGA) {}
+PicComponent::PicComponent() : PicComponent(&picTraitsEGA) {}
 
-PicComponent::PicComponent(const PicTraits &traits) : Traits(traits), Size(size16(DEFAULT_PIC_WIDTH, DEFAULT_PIC_HEIGHT)) {}
+PicComponent::PicComponent(const PicTraits *traits) : Traits(traits), Size(size16(DEFAULT_PIC_WIDTH, DEFAULT_PIC_HEIGHT)) {}
 
 ResourceEntity *CreatePicResource(SCIVersion version)
 {
@@ -972,7 +970,7 @@ ResourceEntity *CreatePicResource(SCIVersion version)
     }
 
     std::unique_ptr<ResourceEntity> pResource = std::make_unique<ResourceEntity>(*ptraits);
-    pResource->AddComponent(move(make_unique<PicComponent>(*picTraits)));
+    pResource->AddComponent(move(make_unique<PicComponent>(picTraits)));
     return pResource.release();
 }
 
@@ -1006,7 +1004,7 @@ ResourceEntity *CreateDefaultPicResource(SCIVersion version)
     {
         // We need to have a set priority bars command
         PicCommand setPriBarsCommand;
-        setPriBarsCommand.CreateSetPriorityBars(g_defaultPriBands16Bit, pic.Traits.SixteenBitPri, pic.Traits.IsVGA);
+        setPriBarsCommand.CreateSetPriorityBars(g_defaultPriBands16Bit, pic.Traits->SixteenBitPri, pic.Traits->IsVGA);
         pic.commands.insert(pic.commands.begin(), setPriBarsCommand);
     }
 

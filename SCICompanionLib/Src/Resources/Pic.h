@@ -19,17 +19,17 @@ struct PicComponent : ResourceComponent
 {
     PicComponent();
     PicComponent(const PicComponent &src) = default;
-    PicComponent(const PicTraits &traits);
+    PicComponent& operator=(const PicComponent &src) = default;
+    PicComponent(const PicTraits *traits);
     ResourceComponent *Clone() const override
     {
         return new PicComponent(*this);
     }
 
-    int _uniqueId;
     std::vector<PicCommand> commands;
     size16 Size;
 
-    const PicTraits &Traits;
+    const PicTraits *Traits;
 };
 
 ResourceEntity *CreatePicResource(SCIVersion version);

@@ -73,7 +73,7 @@ void PicDrawManager::_Reset()
 void PicDrawManager::SetPic(const PicComponent *pPic, const PaletteComponent *pPalette)
 {
     _isVGA = (pPalette != nullptr);
-    if (!IsSame(*pPic, _pPicWeak))
+    if (pPic != _pPicWeak)
     {
         _Reset();
     }
