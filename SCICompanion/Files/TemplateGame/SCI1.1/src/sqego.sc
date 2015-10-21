@@ -100,17 +100,6 @@
             (case V_TALK
                 (send gTestMessager:say(N_EGO V_TALK 0 Random(1 2) 0 0))
             )
-            (case 32
-                (if ((send gRoom:script))
-                    (super:doVerb(theVerb rest param2))
-                )(else
-                    (if (IsOneOf(gModNum 730 740 760 790 620 640 400 410 420))
-                        (send gRoom:setScript(ScriptID(gModNum 20)))
-                    )(else
-                        (super:doVerb(theVerb rest param2))
-                    )
-                )
-            )
             (default 
                 (super:doVerb(theVerb rest param2))
             )

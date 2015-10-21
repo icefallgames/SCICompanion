@@ -16,6 +16,11 @@ uint16_t FontTraits::ValidateCharCount(uint16_t charCount) const
     {
         charCount = SCI0LetterCount;
     }
+    else
+    {
+        // A max of 256 chars.
+        charCount = min(256, charCount);
+    }
     return charCount;
 }
 

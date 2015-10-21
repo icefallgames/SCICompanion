@@ -595,7 +595,7 @@ void CNewRasterResourceDocument::_InsertFiles(const vector<string> &files)
 void CNewRasterResourceDocument::OnImportImageSequence()
 {
     // Create a file dialog.
-    CFileDialog fileDialog(TRUE, nullptr, nullptr, OFN_ENABLESIZING | OFN_EXPLORER | OFN_ALLOWMULTISELECT | OFN_NOCHANGEDIR);
+    CFileDialog fileDialog(TRUE, nullptr, nullptr, OFN_ENABLESIZING | OFN_EXPLORER | OFN_ALLOWMULTISELECT | OFN_NOCHANGEDIR, g_szGdiplusFilter);
     fileDialog.m_ofn.lpstrTitle = TEXT("Import image sequence");
 
     // set a buffer to keep at least 100 full path and file names

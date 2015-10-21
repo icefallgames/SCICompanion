@@ -38,10 +38,10 @@ New resources can be created using the buttons on the main toolbar, or in the *F
 
 |scicomp| shows the following kind of resources that are part of SCI games:
 
-Views
+:doc:`Views <views>`
     These are raster graphics that correspond to the actors, props and other animated (or non-animated) objects in the game.
 
-Pics
+:doc:`Pics <pics>`
     These are the backgrounds. Generally, EGA (16-color) games use vector graphics, and VGA (256-color) games use raster graphics.
 
 Scripts
@@ -59,10 +59,10 @@ Scripts
 :doc:`Vocabs <vocabs>`
     These are used for various purposes. The main one you will be concered with is vocab.000 in SCI0 games. This comprises the words that the in-game text parser understands.
 
-Fonts
+:doc:`Fonts <fonts>`
     Bitmapped fonts used to display text in the game.
 
-Cursors
+:doc:`Cursors <cursors>`
     Mouse cursor resources. These are only used for SCI0 (2-color) and SCI1 (3-color). In SCI1.1, views are used for mouse cursors.
 
 Patches
