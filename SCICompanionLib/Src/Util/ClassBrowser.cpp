@@ -1400,11 +1400,12 @@ bool SCIClassBrowser::IsSubClassOf(PCTSTR pszClass, PCTSTR pszSuper)
         }
         else
         {
-            pszClass = pNode->GetSuperClass() ? pNode->GetSuperClass()->GetName().c_str() : NULL;
-            if (pszClass == NULL)
+            pszClass = pNode->GetSuperClass() ? pNode->GetSuperClass()->GetName().c_str() : nullptr;
+            if (pszClass == nullptr)
             {
                 break;
             }
+            className = pszClass;
         }
     }
     return fRet;
