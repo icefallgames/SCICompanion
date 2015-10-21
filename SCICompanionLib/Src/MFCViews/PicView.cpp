@@ -250,6 +250,7 @@ BEGIN_MESSAGE_MAP(CPicView, CScrollingThing<CView>)
     ON_COMMAND(IDC_TOGGLEPRIORITY, CPicView::OnTogglePriority)
     ON_COMMAND(IDC_TOGGLECONTROL, CPicView::OnToggleControl)
     ON_COMMAND(ID_SHOWVISUALSCREEN, CPicView::OnShowVisual)
+    ON_COMMAND(ID_EDIT_RENAME, CPicView::OnShowVisual)  // A complete hack, but we use one accelerator list F2
     ON_COMMAND(ID_SHOWPRIORITYSCREEN, CPicView::OnShowPriority)
     ON_COMMAND(ID_SHOWCONTROLSCREEN, CPicView::OnShowControl)
     ON_COMMAND(ID_SHOWPALETTE0, CPicView::OnShowPalette0)
@@ -2763,6 +2764,7 @@ void CPicView::_OnDraw(CDC* pDC, PicScreen screen)
 {
     BITMAPINFO *pbmi;
 
+    /*
 #ifdef DEBUG
     // Show aux screen when shift is held.
     if (GetKeyState(VK_SHIFT) & 0x8000)
@@ -2770,6 +2772,7 @@ void CPicView::_OnDraw(CDC* pDC, PicScreen screen)
         screen = PicScreen::Aux;
     }
 #endif
+    */
 
     const uint8_t *displayBits = _GetDrawManager().GetPicBits(screen, PicPosition::PostPlugin, _GetPicSize());
     _GetDrawManager().GetBitmapInfo(screen, &pbmi);
