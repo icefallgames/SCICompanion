@@ -2,6 +2,7 @@
 // Microsoft Visual C++ generated include file.
 // Used by SCICompanionLib.rc
 //
+#define IDCANCEL2                       3
 #define ID_GENERATELIPSYNC              4
 #define IDD_ABOUTBOX                    100
 #define IDP_OLE_INIT_FAILED             100

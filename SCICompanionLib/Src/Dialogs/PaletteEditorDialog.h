@@ -4,6 +4,9 @@
 #include "NonViewClient.h"
 #include "PaletteEditorCommon.h"
 
+#define DEBUG_OUTPUT_CYCLE
+#define DEBUG_OUTPUT_CYCLE_PATH ""
+
 class CResourceDocument;
 struct PaletteComponent;
 struct Cel;
@@ -36,6 +39,7 @@ private:
     void _UpdateCycleUI();
     void _SyncCheckState();
     void _SyncSelectionCycle();
+    void _Cycle();
 
     CExtCheckBox m_wndPreviewCycling;
     CExtRadioButton m_wndCycleLeft;
@@ -48,6 +52,11 @@ private:
     bool _cycling;
     bool _initialized;
     std::unique_ptr<PaletteComponent> _cyclePaletteCopy;
+
+#ifdef DEBUG_OUTPUT_CYCLE
+    std::unique_ptr<Cel> _celTemp;
+#endif
+
 public:
     afx_msg void OnBnClickedCheckpreviewcycling();
     afx_msg void OnBnClickedButtoncycleleft();

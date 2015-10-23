@@ -13,6 +13,10 @@ PaletteEditorDialog::PaletteEditorDialog(IVGAPaletteDefinitionCallback *callback
     : PaletteEditorCommon<CExtResizableDialog>(callback, PaletteEditorDialog::IDD, nullptr), _cycleForward(true), _cycling(false), _initialized(false), _enableCycling(enableCycling)
 {
     Init(palette, cels);
+
+#ifdef DEBUG_OUTPUT_CYCLE
+    _celTemp = std::make_unique<Cel>(*cels.back());
+#endif
 }
 
 // INonViewClient
@@ -122,6 +126,41 @@ BEGIN_MESSAGE_MAP(PaletteEditorDialog, PaletteEditorCommon)
     ON_BN_CLICKED(IDC_BUTTON_SAVEPALETTE, OnSaveAsResource)
 END_MESSAGE_MAP()
 
+#ifdef DEBUG_OUTPUT_CYCLE
+int g_saveAsGifTest = 0;
+#endif
+
+void PaletteEditorDialog::_Cycle()
+{
+    std::vector<std::pair<uint8_t, uint8_t>> ranges = GetSelectedRanges(m_wndStatic);
+    if (_IsSingleRangeSelected(ranges))
+    {
+        int offset = _cycleForward ? 1 : -1;
+        PaletteComponent prev = *_palette;
+        for (int i = ranges[0].first; i <= (int)ranges[0].second; i++)
+        {
+            int oldIndex = i + offset;
+            if (oldIndex < (int)ranges[0].first)
+            {
+                oldIndex = ranges[0].second;
+            }
+            if (oldIndex > (int)ranges[0].second)
+            {
+                oldIndex = ranges[0].first;
+            }
+            _palette->Colors[i] = prev.Colors[oldIndex];
+        }
+
+#ifdef DEBUG_OUTPUT_CYCLE
+        g_saveAsGifTest++;
+        g_saveAsGifTest %= ((int)ranges.back().second - (int)ranges.back().first + 1);
+        std::vector<Cel> cels;
+        cels.push_back(*_celTemp);
+        SaveCelsAndPaletteToGIFFile(fmt::format("{0}\\image_{1:0>3}.gif", DEBUG_OUTPUT_CYCLE_PATH, g_saveAsGifTest).c_str(), cels, 256, _palette->Colors, _palette->Mapping, _celTemp->TransparentColor);
+#endif
+    }
+}
+
 void PaletteEditorDialog::OnTimer(UINT_PTR nIDEvent)
 {
     if (nIDEvent == PALETTE_TIMER)
@@ -132,30 +171,10 @@ void PaletteEditorDialog::OnTimer(UINT_PTR nIDEvent)
             if (_cycleCountdown <= 0)
             {
                 _cycleCountdown += m_wndCycleSlider.GetPos();
-
-                std::vector<std::pair<uint8_t, uint8_t>> ranges = GetSelectedRanges(m_wndStatic);
-                if (_IsSingleRangeSelected(ranges))
+                _Cycle();
+                if (_callback)
                 {
-                    int offset = _cycleForward ? 1 : -1;
-                    PaletteComponent prev = *_palette;
-                    for (int i = ranges[0].first; i <= (int)ranges[0].second; i++)
-                    {
-                        int oldIndex = i + offset;
-                        if (oldIndex < (int)ranges[0].first)
-                        {
-                            oldIndex = ranges[0].second;
-                        }
-                        if (oldIndex > (int)ranges[0].second)
-                        {
-                            oldIndex = ranges[0].first;
-                        }
-                        _palette->Colors[i] = prev.Colors[oldIndex];
-                    }
-
-                    if (_callback)
-                    {
-                        _callback->OnVGAPaletteChanged();
-                    }
+                    _callback->OnVGAPaletteChanged();
                 }
             }
         }
@@ -173,6 +192,11 @@ void PaletteEditorDialog::OnBnClickedCheckpreviewcycling()
     {
         // Make a copy of the palette so we can restore it
         _cyclePaletteCopy = std::make_unique<PaletteComponent>(*_palette);
+
+#ifdef DEBUG_OUTPUT_CYCLE
+        g_saveAsGifTest = 0; 
+#endif
+
     }
     else
     {

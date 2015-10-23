@@ -7,7 +7,7 @@
 using namespace std;
 using namespace Gdiplus;
 
-PrepareBitmapBase::PrepareBitmapBase(int convertButtonId, int staticOriginalImageId, size16 picResourceDimensions) : _convertButtonId(convertButtonId), _staticOriginalImageId(staticOriginalImageId), _disableAllEffects(false), _picResourceDimensions(picResourceDimensions), _imageStreamKeepAlive(nullptr)
+PrepareBitmapBase::PrepareBitmapBase(int convertButtonId, int staticOriginalImageId, size16 picResourceDimensions) : _convertButtonId(convertButtonId), _staticOriginalImageId(staticOriginalImageId), _disableAllEffects(false), _picResourceDimensions(picResourceDimensions), _imageStreamKeepAlive(nullptr), _gammaCorrect(true)
 {
 }
 
@@ -119,8 +119,31 @@ void PrepareBitmapBase::_PrepareBitmapForConversion()
 #define SET_COLOR_A(color, a) color = (DWORD(color) & 0x00FFFFFF) | ((DWORD(a) & 0xFF) << 24)
 #define GetAValue(rgb)      (LOBYTE((rgb)>>24))
 
+/*
+uint8_t g_ToLinear[256];
+bool g_SRGBToLinearInitialized = false;
+
+void _EnsureSRGBToLinear()
+{
+    if (!g_SRGBToLinearInitialized)
+    {
+        for (int i = 0; i < ARRAYSIZE(g_ToLinear); i++)
+        {
+            double val = (double)i / 255.0;     // 0 -> 1
+            val = pow(val, (1.0 / 2.2));  // Gamma correction
+            val = round(val * 255.0);
+            val = min(255.0, val);
+            g_ToLinear[i] = (uint8_t)val;
+        }
+
+        g_SRGBToLinearInitialized = true;
+    }
+}*/
+
 void PrepareBitmapBase::_ApplySettingsToCurrentBitmap()
 {
+    // _EnsureSRGBToLinear();
+
     int nBrightness = (_nBrightness - 50) * 255 / 50; // 0 - 100  --> -255 to 255
     double brightness = (double)(_nBrightness - 50) / 50.0f;    // 0 - 100 -> -1 to 1
 
@@ -150,11 +173,13 @@ void PrepareBitmapBase::_ApplySettingsToCurrentBitmap()
             for (UINT x = 0; x < cx; x++, pLine++)
             {
                 COLORREF crOld = *pLine;
+
                 COLORREF crNew = CExtBitmap::stat_HLS_Adjust(crOld, hue, brightness, saturation);
-                SET_COLOR_A(crNew, GetAValue(crOld));
                 nCCRed += GetRValue(crNew);
                 nCCGreen += GetGValue(crNew);
                 nCCBlue += GetBValue(crNew);
+                // crNew = RGB(g_ToLinear[GetRValue(crNew)], g_ToLinear[GetGValue(crNew)], g_ToLinear[GetBValue(crNew)]);
+                SET_COLOR_A(crNew, GetAValue(crOld));
                 *pLine = crNew;
             }
         }

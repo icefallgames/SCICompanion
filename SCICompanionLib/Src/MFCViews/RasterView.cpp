@@ -715,6 +715,16 @@ void CRasterView::OnColorShift()
     }
 }
 
+void CRasterView::OnVGAPaletteChanged()
+{
+    CNewRasterResourceDocument *pDoc = GetDoc();
+    if (pDoc)
+    {
+        GetDoc()->SetPaletteChoice(GetDoc()->GetPaletteChoice(), true);
+        pDoc->UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(RasterChangeHint::NewView | RasterChangeHint::Color));
+    }
+}
+
 void CRasterView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
 {
     RasterChangeHint hint = GetHint<RasterChangeHint>(pHint);;
@@ -3111,38 +3121,42 @@ void CRasterView::EditVGAPalette()
 
                 if (palette)
                 {
-                    PaletteComponent paletteCopy = *palette; // Since we'll be changing it, and this is const
-                    PaletteEditorDialog paletteEditor(nullptr, paletteCopy, cels, false);
-                    paletteEditor.DoModal();
-                    PaletteComponent paletteResult = paletteEditor.GetPalette();
+                    // We invoke the dialog in ApplyChanges, with a pre-function that optionally adds a palette.
+                    GetDoc()->ApplyChanges<PaletteComponent>(
+                        [this, &cels, paletteToAdd](PaletteComponent &palette)
+                    {
+                        PaletteComponent orig = palette;
+                        RasterChangeHint hint = RasterChangeHint::None;
+                        PaletteEditorDialog paletteEditor(this, palette, cels, true);
+                        if (IDOK == paletteEditor.DoModal())
+                        {
+                            PaletteComponent paletteResult = paletteEditor.GetPalette();
+                            // If we were told to add a palette, or the palette is different, then this is actually a change.
+                            if (paletteToAdd || (paletteResult != orig))
+                            {
+                                hint |= RasterChangeHint::NewView | RasterChangeHint::PaletteChoice;
+                            }
+                        }
+                        return WrapHint(hint);
+                    },
+                        [paletteToAdd](ResourceEntity &resource)    // pre-function
+                    {
+                        if (paletteToAdd)
+                        {
+                            resource.AddComponent(std::make_unique<PaletteComponent>(*paletteToAdd));
+                        }
+                    },
+                        true    // Preview
+                        );
+
 
                     if (paletteToAdd)
                     {
-                        GetDoc()->ApplyChanges<PaletteComponent>(
-                            [](PaletteComponent &palette)
-                        {
-                            // Don't need to do anything here, except return a change hint.
-                            return WrapHint(RasterChangeHint::NewView | RasterChangeHint::PaletteChoice);
-                        },
-                            [&paletteResult](ResourceEntity &resource)
-                        {
-                            // Since the work is done here...
-                            resource.AddComponent(std::make_unique<PaletteComponent>(paletteResult));
-                        }
-                        );
                         GetDoc()->SetPaletteChoice(0, true);    // Switch to embedded palette.
                         GetDoc()->RefreshPaletteOptions();
                     }
-                    else if (paletteResult != *palette)    // We didn't add, but we changed.
+                    else
                     {
-                        GetDoc()->ApplyChanges<PaletteComponent>(
-                            [&paletteResult](PaletteComponent &palette)
-                            {
-                            // Replace the palette with the new one.
-                            palette = paletteResult;
-                            return WrapHint(RasterChangeHint::NewView | RasterChangeHint::PaletteChoice);
-                            }
-                        );
                         GetDoc()->SetPaletteChoice(GetDoc()->GetPaletteChoice(), true);
                     }
                 }

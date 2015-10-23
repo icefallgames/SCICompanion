@@ -617,10 +617,12 @@ void CPicView::EditVGAPalette()
             PicChangeHint hint = PicChangeHint::None;
             PaletteComponent copy = palette;
             PaletteEditorDialog paletteEditor(this, palette, cels, true);
-            paletteEditor.DoModal();
-            if (copy != palette)
+            if (IDOK == paletteEditor.DoModal())
             {
-                hint |= PicChangeHint::Palette;
+                if (copy != palette)
+                {
+                    hint |= PicChangeHint::Palette;
+                }
             }
             GetDocument()->SetPreviewPalette(nullptr);
             return WrapHint(hint);

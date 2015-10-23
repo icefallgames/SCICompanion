@@ -3,6 +3,7 @@
 #include "ScrollingThing.h"
 #include "View.h"
 #include "ColorShiftCallback.h"
+#include "PaletteDefinitionCallback.h"
 
 // #define FORCE_REDRAW
 
@@ -13,7 +14,7 @@ struct Cel;
 
 // CRasterView view
 
-class CRasterView : public CScrollingThing<CView>, public IColorShiftCallback
+class CRasterView : public CScrollingThing<CView>, public IColorShiftCallback, public IVGAPaletteDefinitionCallback
 {
 	DECLARE_DYNCREATE(CRasterView)
 
@@ -51,6 +52,9 @@ public:
 
     // IColorShiftCallback
     void OnColorShift() override;
+
+    // IVGAPaletteDefinitionCallback
+    void OnVGAPaletteChanged() override;
 
 private:
     // Timer constants

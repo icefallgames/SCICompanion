@@ -172,6 +172,10 @@ public:
         {
             DDX_Control(pDX, IDC_BUTTONREVERT, m_wndRevert);
         }
+        if (GetDlgItem(IDOK))
+        {
+            DDX_Control(pDX, IDOK, m_wndOk);
+        }
         DDX_Control(pDX, IDC_EDIT1, m_wndEditDescription);
         DDX_Control(pDX, IDC_BUTTON_SAVE, m_wndSave);
         DDX_Control(pDX, IDC_BUTTON_LOAD, m_wndLoad);
@@ -264,6 +268,7 @@ protected:
 
     // Visuals
     CExtButton m_wndCancel;
+    CExtButton m_wndOk;
     CExtButton m_wndRevert;
     CExtButton m_wndSave;
     CExtButton m_wndSaveRange;

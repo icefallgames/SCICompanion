@@ -41,7 +41,7 @@ dialog and create an A-B gradient that goes from red to blue. Mark those colors 
 
 The next step is to import the background image. Open the Import Background dialog and browse for the logo image. The key part here is that we'll
 map the colors in the logi image to the currently palette for the background. Select the 64-254 color range again, and also black (0). Then click
-on **Map to current palette**. Click **Accept*.
+on **Map to current palette**. Click **Accept**.
 
 .. image:: /images/ImportLogo.jpg
 
@@ -50,5 +50,14 @@ You should end up with something like this:
 .. image:: /images/ImportedLogo.jpg
 
 Now we have an image with color indices that go from 64 to 254 gradually across the image - perfect for palette cycling. We can then
-assign the colors we want.
+assign the colors we want:
+
+.. image:: /images/LogoSetColors.jpg
+
+And obtain a result like this:
+
+.. image:: /images/LogoCycle.gif
+
+
+
 

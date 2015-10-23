@@ -27,6 +27,7 @@ protected:
     int _nContrast;
     int _nSaturation;
     int _hue;
+    bool _gammaCorrect;
 
     // Straight through
     COLORREF *_pCRBitmap;
