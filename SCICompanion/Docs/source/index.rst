@@ -6,7 +6,7 @@
 .. include:: /includes/standard.rst
 
 |scicomp| - an IDE for Sierra's SCI engine
-========================================
+===========================================
 
 |scicomp| is a fully-featured development environment that lets you view, modify, and create
 games that run on Sierra On-Line's SCI engine. The same engine used for the King's Quest,
@@ -22,6 +22,23 @@ Topics:
    :maxdepth: 2
 
    intro
+   anatomy
+   views
+   pics
+   scripts
+   texts
+   messages
+   sounds
+   vocabs
+   fonts
+   cursors
+   palettes
+   audio
+   outputpane
+   debugging
+   undo
+   aspectratio
+   palettecycling
 
 Other
 ==================

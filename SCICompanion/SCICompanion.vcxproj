@@ -214,6 +214,9 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
   </ItemGroup>
   <ItemGroup>
     <Image Include="Docs\source\images\AddWord.png" />
+    <Image Include="Docs\source\images\AspectRatio1610.png" />
+    <Image Include="Docs\source\images\AspectRatio43.png" />
+    <Image Include="Docs\source\images\AspectRatioSCIComp.jpg" />
     <Image Include="Docs\source\images\AudioPreview.png" />
     <Image Include="Docs\source\images\AutoComplete.png" />
     <Image Include="Docs\source\images\Boom.gif" />
@@ -227,6 +230,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <Image Include="Docs\source\images\CuePoint.png" />
     <Image Include="Docs\source\images\CursorExample.png" />
     <Image Include="Docs\source\images\DayNight.png" />
+    <Image Include="Docs\source\images\Debug.png" />
     <Image Include="Docs\source\images\DebugRoom.png" />
     <Image Include="Docs\source\images\DrawingAnimate.png" />
     <Image Include="Docs\source\images\DrawingDither.png" />
@@ -257,10 +261,13 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <Image Include="Docs\source\images\FontEditor.jpg" />
     <Image Include="Docs\source\images\GotoDefinition.png" />
     <Image Include="Docs\source\images\GotoHeader.png" />
+    <Image Include="Docs\source\images\Gradient.jpg" />
     <Image Include="Docs\source\images\History.png" />
     <Image Include="Docs\source\images\ImportBackground.jpg" />
+    <Image Include="Docs\source\images\ImportedLogo.jpg" />
     <Image Include="Docs\source\images\ImportImage.jpg" />
     <Image Include="Docs\source\images\ImportImageDitherCompare.png" />
+    <Image Include="Docs\source\images\ImportLogo.jpg" />
     <Image Include="Docs\source\images\InsertActor.png" />
     <Image Include="Docs\source\images\InsertMethod.png" />
     <Image Include="Docs\source\images\InsertObject.png" />
@@ -269,7 +276,9 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <Image Include="Docs\source\images\KQ6Talker.png" />
     <Image Include="Docs\source\images\LipSyncDialog.png" />
     <Image Include="Docs\source\images\LoadTraceImage.png" />
+    <Image Include="Docs\source\images\LogoGradient.png" />
     <Image Include="Docs\source\images\LoopPoint.png" />
+    <Image Include="Docs\source\images\MakeRedBlueGrad.jpg" />
     <Image Include="Docs\source\images\MessageEditor.png" />
     <Image Include="Docs\source\images\MessageEntry.PNG" />
     <Image Include="Docs\source\images\MessageHeaderInclude.PNG" />
@@ -280,6 +289,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <Image Include="Docs\source\images\NewScript.png" />
     <Image Include="Docs\source\images\NewWord.png" />
     <Image Include="Docs\source\images\Nouns.PNG" />
+    <Image Include="Docs\source\images\OutputPane.png" />
     <Image Include="Docs\source\images\PaletteAdjust.png" />
     <Image Include="Docs\source\images\PaletteButton.png" />
     <Image Include="Docs\source\images\PaletteChooser.png" />
@@ -297,10 +307,13 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <Image Include="Docs\source\images\Resize_Example.png" />
     <Image Include="Docs\source\images\ScriptEditor.jpg" />
     <Image Include="Docs\source\images\Selection_Example.png" />
+    <Image Include="Docs\source\images\SierraDebugger.png" />
     <Image Include="Docs\source\images\SliderBar.png" />
     <Image Include="Docs\source\images\SoundEditor.jpg" />
     <Image Include="Docs\source\images\SpeechLipSyncSection.png" />
     <Image Include="Docs\source\images\SQ5Polygon.png" />
+    <Image Include="Docs\source\images\TemplateGameDebugger1.png" />
+    <Image Include="Docs\source\images\TemplateGameDebugger2.png" />
     <Image Include="Docs\source\images\TextEditor.jpg" />
     <Image Include="Docs\source\images\ToggleTraceImage.png" />
     <Image Include="Docs\source\images\TraceOpacity.png" />
@@ -317,6 +330,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <Image Include="Docs\source\images\Vocab_TypeExample.png" />
     <Image Include="Docs\source\images\VPC.png" />
     <Image Include="Docs\source\images\VPCScreens.jpg" />
+    <Image Include="Docs\source\images\Waterfall.gif" />
     <Image Include="Docs\source\images\WordFind.png" />
     <Image Include="Files\TemplateGame\SCI0.bmp" />
     <Image Include="Files\TemplateGame\SCI0\game.bmp" />
@@ -328,10 +342,13 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
   <ItemGroup>
     <None Include="Docs\make.bat" />
     <None Include="Docs\Makefile" />
+    <None Include="Docs\source\anatomy.rst" />
+    <None Include="Docs\source\aspectratio.rst" />
     <None Include="Docs\source\audio.rst" />
     <None Include="Docs\source\audiofiles.rst" />
     <None Include="Docs\source\conf.py" />
     <None Include="Docs\source\cursors.rst" />
+    <None Include="Docs\source\debugging.rst" />
     <None Include="Docs\source\decompiler.rst" />
     <None Include="Docs\source\fonts.rst" />
     <None Include="Docs\source\importimages.rst" />
@@ -341,6 +358,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <None Include="Docs\source\lipsync.rst" />
     <None Include="Docs\source\messageaudio.rst" />
     <None Include="Docs\source\messages.rst" />
+    <None Include="Docs\source\outputpane.rst" />
     <None Include="Docs\source\palettecycling.rst" />
     <None Include="Docs\source\palettes.rst" />
     <None Include="Docs\source\pics.rst" />
@@ -353,6 +371,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <None Include="Docs\source\sounds.rst" />
     <None Include="Docs\source\talkers.rst" />
     <None Include="Docs\source\texts.rst" />
+    <None Include="Docs\source\undo.rst" />
     <None Include="Docs\source\views.rst" />
     <None Include="Docs\source\vocabs.rst" />
     <None Include="Files\CompileInclude\kernels.scp" />
@@ -519,15 +538,12 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <None Include="Files\TemplateGame\SCI1.1\INSTALL.HLP" />
     <None Include="Files\TemplateGame\SCI1.1\INSTALL.SCR" />
     <None Include="Files\TemplateGame\SCI1.1\INTERP.ERR" />
-    <None Include="Files\TemplateGame\SCI1.1\LSL6.BAT" />
     <None Include="Files\TemplateGame\SCI1.1\MICROSOF.DRV" />
     <None Include="Files\TemplateGame\SCI1.1\msg\15.shm" />
     <None Include="Files\TemplateGame\SCI1.1\msg\20.shm" />
     <None Include="Files\TemplateGame\SCI1.1\MT32.DRV" />
     <None Include="Files\TemplateGame\SCI1.1\poly\110.shp" />
     <None Include="Files\TemplateGame\SCI1.1\PROAUDIO.DRV" />
-    <None Include="Files\TemplateGame\SCI1.1\README" />
-    <None Include="Files\TemplateGame\SCI1.1\README.BAT" />
     <None Include="Files\TemplateGame\SCI1.1\resource.000" />
     <None Include="Files\TemplateGame\SCI1.1\resource.aud" />
     <None Include="Files\TemplateGame\SCI1.1\RESOURCE.CFG" />

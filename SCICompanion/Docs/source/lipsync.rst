@@ -59,6 +59,8 @@ will be associated with cel 0. You can drag the phonemes alongside the different
 
 .. image:: /images/PhonemeEditor.png
 
+You can test it be having the mouth read the text at the bottom of the dialog, which contains all US English phonemes.
+
 Once you're done, click *Ok* to accept the changes.
 
 This information will be stored in a file in the *lipsync* folder of your game. It's only used by |scicomp|, not the actual game.

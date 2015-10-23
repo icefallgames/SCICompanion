@@ -3,7 +3,7 @@
 .. include:: /includes/standard.rst
 
 ================
- Views
+ View Editor
 ================
 
 Views are used for all the graphical elements in the game: Actors, Props, icons, window borders and more.

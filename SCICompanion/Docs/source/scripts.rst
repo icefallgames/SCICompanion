@@ -147,6 +147,7 @@ it will switch you to that resource. Otherwise, it will open the appropriate edi
 
 In this section for SCI1.1 games, you'll also find a link to the messages resource for this room.
 
+.. _debugroom-label:
 
 Debug room
 ===========

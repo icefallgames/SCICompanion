@@ -3,7 +3,7 @@
 .. include:: /includes/standard.rst
 
 ================
- Sounds
+ Sound Editor
 ================
 
 SCI Sound resources are MIDI-based music and sound effects. In SCI0, they are the only form of audio, while

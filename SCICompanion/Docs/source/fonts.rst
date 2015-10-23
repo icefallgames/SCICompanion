@@ -3,7 +3,7 @@
 .. include:: /includes/standard.rst
 
 ================
- Fonts
+ Font Editor
 ================
 
 Fonts in SCI are 1-bit bitmapped characters. SCI0 fonts always have 128 characters, while SCI1 and above allow up to 256 characters. Black represents opaque and white represents transparent.

@@ -855,7 +855,8 @@ BEGIN
     CONTROL         "Drawing controls have grid lines",IDC_DRAWGRIDLINES,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,20,140,14
     CONTROL         "Scale tracing images",IDC_SCALETRACINGIMAGES,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,36,95,10
-    CONTROL         "Use auto-suggest",IDC_CHECKAUTOSUGGEST,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,50,98,10
+    CONTROL         "Use auto-suggest in vocab dialog",IDC_CHECKAUTOSUGGEST,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,50,119,10
     CONTROL         "Automatically load last game on open.",IDC_CHECKAUTOLOADGAME,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,64,137,10
     CONTROL         "Views: dupe new cels",IDC_CHECKDUPENEWCELS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,78,97,10

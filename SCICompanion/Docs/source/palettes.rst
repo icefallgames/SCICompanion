@@ -1,11 +1,13 @@
 .. Palettes
 
+.. include:: /includes/standard.rst
+
 .. IMPORTANT::
     This section applies to VGA games only
 
-================
- VGA Palettes
-================
+====================
+ VGA Palette Editor
+====================
 
 Overview
 ========
@@ -66,8 +68,13 @@ Gradient
 
 This sets the range of selected colors to a color gradient (A-B or A-B-A). This can be useful to set up :doc:`palette cycling <palettecycling>`.
 
+.. figure:: /images/Gradient.jpg
+
+    Setting a gradient for a range of palette indices.
+
+
 Import, Export, Import At, Export Range
---------------
+-------------------------------------------
 
 You can export and import the palette to/from a *.pal* file (this is a common palette file format used on Windows). This lets you edit it in an external
 editor. You can also export just the currently selected range, or you can import the colors in a *.pal* file starting from the currently selected color.

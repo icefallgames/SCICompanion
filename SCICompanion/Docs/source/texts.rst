@@ -3,7 +3,7 @@
 .. include:: /includes/standard.rst
 
 ================
- Texts
+ Text Editor
 ================
 
 .. image:: /images/TextEditor.jpg
