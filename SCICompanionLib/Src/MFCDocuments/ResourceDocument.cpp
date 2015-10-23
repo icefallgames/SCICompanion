@@ -102,23 +102,28 @@ void CResourceDocument::_UpdateTitle()
 //
 void CResourceDocument::OnUpdateResSize(CCmdUI *pCmdUI)
 {
-    TCHAR szBuf[MAX_PATH];
-    StringCchCopy(szBuf, ARRAYSIZE(szBuf), TEXT("Unknown size"));
-    const ResourceEntity *pResource = GetResource();
-    if (pResource && pResource->CanWrite())
+    if (_needsResourceSizeUpdate)
     {
-        sci::ostream serial;
-        try
+        TCHAR szBuf[MAX_PATH];
+        StringCchCopy(szBuf, ARRAYSIZE(szBuf), TEXT("Unknown size"));
+        const ResourceEntity *pResource = GetResource();
+        if (pResource && pResource->CanWrite())
         {
-            pResource->WriteToTest(serial, false, pResource->ResourceNumber);
-            StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%s: %d bytes"), _GetTitleDefault(), serial.tellp());
+            sci::ostream serial;
+            try
+            {
+                pResource->WriteToTest(serial, false, pResource->ResourceNumber);
+                StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%s: %d bytes"), _GetTitleDefault(), serial.tellp());
+            }
+            catch (std::exception)
+            {
+                StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("unknown size"));
+            }
+            _needsResourceSizeUpdate = false;
         }
-        catch (std::exception)
-        {
-            StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("unknown size"));
-        }
+        _resSize = szBuf;
     }
-    pCmdUI->SetText(szBuf);
+    pCmdUI->SetText(_resSize.c_str());
 }
 
 void _ShowCantSaveMessage()
@@ -336,6 +341,12 @@ void CResourceDocument::OnExportAsResource()
 bool CResourceDocument::IsMostRecent() const
 {
     return _fMostRecent;
+}
+
+void CResourceDocument::SetModifiedFlag(BOOL bModified)
+{
+    _needsResourceSizeUpdate = true;
+    __super::SetModifiedFlag(bModified);
 }
 
 int CResourceDocument::GetPackageHint() const

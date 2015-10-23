@@ -16,7 +16,7 @@ class CResourceDocument : public CNonViewHostDocument, public IResourceIdentifie
 	DECLARE_DYNAMIC(CResourceDocument)
 
 public:
-    CResourceDocument() { _checksum = -1; _fMostRecent = true; }
+    CResourceDocument() { _checksum = -1; _fMostRecent = true; _needsResourceSizeUpdate = true; }
     BOOL CanCloseFrame(CFrameWnd* pFrameArg);
 	virtual BOOL SaveModified(); // return TRUE if ok to continue
     void OnFileSave();
@@ -33,6 +33,8 @@ public:
     int GetChecksum() const override { return _checksum; }
 
     bool IsMostRecent() const;
+
+    void SetModifiedFlag(BOOL bModified = TRUE) override;
 
 private:
     afx_msg void OnUpdateFileSave(CCmdUI *pCmdUI) { pCmdUI->Enable(IsModified()) ; }
@@ -62,4 +64,6 @@ protected:
 
     int _checksum;
     bool _fMostRecent;
+    bool _needsResourceSizeUpdate;
+    std::string _resSize;
 };
