@@ -57,8 +57,11 @@ The View, Font and Cursor editors all share a number of drawing tools that opera
 **Placement** |placement|
     This lets you set the hotspot, or "center", of the view or cursor by clicking on the image. It does not apply to fonts.
 
-**Import images** |importfiles|
-    This lets you import a sequence of images into a loop. See :ref:`Import Image <importimages-label>`.
+**Import image sequence** |importfiles|
+    This lets you import a sequence of images (or animated .gif) into a loop. See :ref:`Import Image <importimages-label>`.
+
+**Import image** |importfile|
+    This lets you import a single image into a cel. See :ref:`Import Image <importimages-label>`.
 
 **Animate** |animate|
     This brings up a dialog that animates the current loop of the view.
@@ -69,6 +72,7 @@ The View, Font and Cursor editors all share a number of drawing tools that opera
 .. |flip| image:: /images/DrawingFlip.png
 .. |grayscale| image:: /images/DrawingGrayscale.png
 .. |importfiles| image:: /images/DrawingImportFiles.png
+.. |importfile| image:: /images/DrawingImportFile.png
 .. |invert| image:: /images/DrawingInvert.png
 .. |line| image:: /images/DrawingLine.png
 .. |pen| image:: /images/DrawingPen.png

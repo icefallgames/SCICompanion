@@ -86,7 +86,15 @@ If you remove all cels in a loop, that loop will be deleted. You can not remove 
 Importing images into an SCI view
 ===========================================
 
-Images and image sequences can be imported into both EGA and VGA views (and cursors). Image formats supported include jpg, png, tiff, bmp and gif (including multi-frame gif).
+Images and image sequences (or an animated .gif) can be imported into both EGA and VGA views (and cursors). Image formats supported include jpg, png, tiff, bmp and gif.
+
+To import a single image to replace the current cel, use the Import Image button on the drawing tool bar |importfile|, or in the *View* menu. To import multiple images
+(or an animated .gif) and replace the entire current loop, use the Import Images button on the tool bar |importfiles|, or in the *View* menu.
+
+In either case, you are first shown a file dialog that lets you
+choose one or more images. Once you've made your selection, the Import Images dialog is presented:
+
+.. image:: /images/ImportImage.jpg
 
 The Import Images dialog offers full control over how these images are converted to the restricted palette of SCI. In particular, this includes control over:
 
@@ -96,18 +104,13 @@ The Import Images dialog offers full control over how these images are converted
 - Optional dithering for limited color palettes or images with an alpha channel
 - Modifications to brightness, contrast, saturation and hue of the input image
 
-The Import Images dialog is available from the drawing toolbar |importfiles|, or *View->Import Image Sequence*. It first brings up a file dialog that lets you
-choose one or more images. Once you've made your selection, the Image Images dialog is presented:
-
-.. image:: /images/ImportImage.jpg
-
 If you've selected multiple images, they will be arranged in alphabetical order. The original image(s) are displayed on the left, and the processed
 image(s) on the right.
 
 Palettes
 --------
 
-You have three options for palettes:
+You have three options for palettes in the Import Images dialog:
 
 1) You can have |scicomp| generate a palette automatically, replacing the selected colors of the existing palette of the view. This is only available for VGA views.
 2) You can try to map colors to selected colors of the existing palette (using either RGB or CCIR color matching)
@@ -119,6 +122,8 @@ palette 999.
 
 If you want to customize which indices are used, you can check or uncheck the *Use global palette entries* checkbox to quickly control which palette indices are used, or you can manually
 select them in the palette and press the refresh button.
+
+Note that if you change the palette (any option other than mapping to the existing palette), it will change the palette for the entire view, not just the cel or loop you are replacing.
 
 Transparency
 ------------
@@ -218,5 +223,6 @@ walking off into the distance.
 .. |placement| image:: /images/DrawingPlacement.png
 .. |transparenteyedropper| image:: /images/DrawingTransparentEyedropper.png
 .. |importfiles| image:: /images/DrawingImportFiles.png
+.. |importfile| image:: /images/DrawingImportFile.png
 
 

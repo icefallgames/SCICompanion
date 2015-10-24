@@ -115,7 +115,7 @@ void CRasterView::SelectionManager::_GenerateSelectionBits(int cCels, CSize size
 
 BYTE *CRasterView::SelectionManager::GetMainSelection(CSize &sizeOut)
 {
-    BYTE *pData = NULL;
+    BYTE *pData = nullptr;
     if (_iMain != -1)
     {
         pData = _selectionBits[_iMain].get();
