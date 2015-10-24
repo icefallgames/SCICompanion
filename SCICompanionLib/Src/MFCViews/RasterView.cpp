@@ -2209,6 +2209,39 @@ void CRasterView::OnPasteTransparent()
     _OnPaste(true);
 }
 
+void CRasterView::_EnsureCelsLargeEnoughForPaste(size16 requiredSize)
+{
+    std::vector<size_t> resizeIndices;
+    for (size_t i = 0; i < (size_t)_cWorkingCels; i++)
+    {
+        size16 currentSize = _celData[i].GetSize();
+        if ((currentSize.cx < requiredSize.cx) ||
+            (currentSize.cy < requiredSize.cy))
+        {
+            resizeIndices.push_back(i);
+        }
+    }
+    if (!resizeIndices.empty())
+    {
+        if (IDYES == AfxMessageBox("The pasted image is larger than the cel. Grow the cel so it can fit?", MB_YESNO | MB_ICONWARNING))
+        {
+            // Delete the entire current cel
+            GetDoc()->ApplyChanges<RasterComponent>(
+                [&, requiredSize](RasterComponent &raster)
+            {
+                for (size_t i = 0; i < _cWorkingCels; i++)
+                {
+                    size16 currentSize = _celData[i].GetSize();
+                    size16 newSize = { max(currentSize.cx, requiredSize.cx), max(currentSize.cy, requiredSize.cy) };
+                    SetSize(raster, _celData[i].GetIndex(), newSize, RasterResizeFlags::Normal);
+                }
+                return WrapRasterChange(RasterChangeHint::NewView); // Since we changed a lot
+            }
+            );
+        }
+    }
+}
+
 void CRasterView::_OnPaste(bool fTransparent)
 {
     bool success = false;
@@ -2216,6 +2249,7 @@ void CRasterView::_OnPaste(bool fTransparent)
     if (cel)
     {
         success = true;
+        _EnsureCelsLargeEnoughForPaste(cel->size);
         _rectSelection = _selectionManager.PasteCel(*cel, _cWorkingCels, SizeToCSize(_celData[_iMainIndex].GetSize()));
     }
     else if (IsClipboardFormatAvailable(CF_DIB))
@@ -2231,6 +2265,7 @@ void CRasterView::_OnPaste(bool fTransparent)
                 if (pbmi && (_iMainIndex != -1))
                 {
                     success = true;
+                    _EnsureCelsLargeEnoughForPaste(size16((uint16_t)pbmi->bmiHeader.biWidth, (uint16_t)(abs(pbmi->bmiHeader.biHeight))));
                     _rectSelection = _selectionManager.PasteBitmap(pbmi, _cWorkingCels, SizeToCSize(_celData[_iMainIndex].GetSize()), _palette, _paletteCount);
                 }
             }

@@ -274,6 +274,7 @@ private:
     afx_msg void RemapPalette();
     afx_msg void ShiftColors();
 
+    void _EnsureCelsLargeEnoughForPaste(size16 size);
     void _OnDrawCommand(ViewToolType type);
     void _OnDraw(CDC* pDC);
     void _OnBltResized(CDC *pDCDest, CDC *pDCSrc);
