@@ -389,6 +389,7 @@ BEGIN_MESSAGE_MAP(CRasterView, CScrollingThing<CView>)
     ON_COMMAND(ID_EDIT_COPY, OnCopyPic)
     ON_COMMAND(ID_EDIT_PASTE, OnPaste)
     ON_COMMAND(ID_EDIT_PASTETRANSPARENT, OnPasteTransparent)
+    ON_COMMAND(ID_VIEW_PASTESPECIAL, OnPasteSpecial)
     ON_COMMAND(ID_EDIT_CUT, OnCut)
     ON_COMMAND(ID_EDIT_DELETE, OnDelete)
     ON_COMMAND(ID_EDIT_SELECT_ALL, OnSelectAll)
@@ -2172,12 +2173,18 @@ void CRasterView::OnCopyPic()
 
 void CRasterView::OnPaste()
 {
-    _OnPaste(false);
+    _OnPaste(false, false);
 }
 
 void CRasterView::OnPasteTransparent()
 {
-    _OnPaste(true);
+    _OnPaste(true, false);
+}
+
+void CRasterView::OnPasteSpecial()
+{
+    // We don't need a OnPasteSpecialTransparent, because nothing from the clipboard will ever have alpha.
+    _OnPaste(false, true);
 }
 
 // Note: this function can result in changes to the sizes in _celData!
@@ -2214,11 +2221,11 @@ void CRasterView::_EnsureCelsLargeEnoughForPaste(size16 requiredSize)
     }
 }
 
-void CRasterView::_OnPaste(bool fTransparent)
+void CRasterView::_OnPaste(bool fTransparent, bool provideOptions)
 {
     bool success = false;
     std::unique_ptr<Cel> cel = _GetClipboardDataIfPaletteMatches();
-    if (cel)
+    if (cel && !provideOptions)
     {
         success = true;
         _EnsureCelsLargeEnoughForPaste(cel->size);
@@ -2235,19 +2242,91 @@ void CRasterView::_OnPaste(bool fTransparent)
                 std::unique_ptr<Gdiplus::Bitmap> pBitmap(Gdiplus::Bitmap::FromHBITMAP(hBmp, nullptr));
                 if (pBitmap)
                 {
-                    pBitmap->RotateFlip(Gdiplus::RotateNoneFlipY);
+                    size16 imageSize((uint16_t)pBitmap->GetWidth(), (uint16_t)pBitmap->GetHeight());
+                    _EnsureCelsLargeEnoughForPaste(imageSize);
 
-                    bool usableColors[256];
-                    assert(_paletteCount <= ARRAYSIZE(usableColors));
-                    for (size_t i = 0; i < (size_t)_paletteCount; i++)
+                    if (provideOptions)
                     {
-                        // The ones marked as "fixed" are usable
-                        usableColors[i] = (_palette[i].rgbReserved != 0);
-                    }
 
-                    _EnsureCelsLargeEnoughForPaste(size16((uint16_t)pBitmap->GetWidth(), (uint16_t)pBitmap->GetHeight()));
-                    std::unique_ptr<Cel> finalResult =
-                        GdiPlusBitmapToCel(
+                        // Invoke the import image dialog to offer options
+                        PaletteComponent anyPalette;
+                        int colorCount;
+                        bool fixedPalette;
+                        uint8_t transparentColor = _celData[_iMainIndex].GetTransparentColor();
+                        GetDoc()->PrepareEGAOrVGAPalette(anyPalette, colorCount, fixedPalette);
+                        // Invoke the Import Image dialog
+                        CBitmapToVGADialog dialog(
+                            move(pBitmap),
+                            nullptr,
+                            &anyPalette,
+                            fixedPalette,
+                            colorCount,
+                            false,
+                            imageSize,
+                            transparentColor,
+                            PaletteAlgorithm::MatchExisting,    // REQUIRED for fixed palette. So be careful if changing this.
+                            DefaultPaletteUsage::UsedColors,
+                            "Paste image");
+
+                        if (dialog.DoModal() == IDOK)
+                        {
+                            auto &finalCel = dialog.GetFinalResult();
+                            auto finalPalette = dialog.GetFinalResultPalette();
+
+                            // If the user changed the palette, we'll need to add one.
+                            const PaletteComponent *optionalNewPalette = nullptr;
+                            if (!fixedPalette && (*finalPalette != anyPalette))
+                            {
+                                optionalNewPalette = finalPalette.get();
+                            }
+
+                            // The user may have changed the transparent color too.
+                            uint8_t newTransparentColor = finalCel->TransparentColor;
+                            GetDoc()->ApplyChanges<RasterComponent>(
+                                [&, optionalNewPalette, newTransparentColor, transparentColor](RasterComponent &raster)
+                            {
+                                RasterChangeHint hint = RasterChangeHint::None;
+                                if (newTransparentColor != transparentColor)
+                                {
+                                    hint |= RasterChangeHint::NewView;
+                                    SetGroupTransparentColor(raster, _cWorkingCels, _rgdwGroups, newTransparentColor);
+                                }
+                                if (optionalNewPalette)
+                                {
+                                    hint |= RasterChangeHint::NewView;
+                                }
+                                return WrapRasterChange(hint);
+                            },
+                                // Apply the new palette if needed.
+                                [optionalNewPalette](ResourceEntity &resource)
+                            {
+                                if (optionalNewPalette)
+                                {
+                                    AfxMessageBox("A new palette is being applied to this entire view.", MB_OK | MB_ICONWARNING);
+                                    resource.AddComponent<PaletteComponent>(std::make_unique<PaletteComponent>(*optionalNewPalette));
+                                }
+                            }
+                            );
+
+                            success = true;
+                            _rectSelection = _selectionManager.PasteCel(*finalCel, _cWorkingCels, SizeToCSize(_celData[_iMainIndex].GetSize()));
+                        }
+                    }
+                    else
+                    {
+                        // Just paste in without allowing the user any options
+                        pBitmap->RotateFlip(Gdiplus::RotateNoneFlipY);
+
+                        bool usableColors[256];
+                        assert(_paletteCount <= ARRAYSIZE(usableColors));
+                        for (size_t i = 0; i < (size_t)_paletteCount; i++)
+                        {
+                            // The ones marked as "fixed" are usable
+                            usableColors[i] = (_palette[i].rgbReserved != 0);
+                        }
+
+                        std::unique_ptr<Cel> finalResult =
+                            GdiPlusBitmapToCel(
                             *pBitmap,
                             false,  // No dither
                             DitherAlgorithm::None,  // No alpha dither
@@ -2259,13 +2338,13 @@ void CRasterView::_OnPaste(bool fTransparent)
                             usableColors,
                             _palette,
                             g_vgaPaletteMapping
-                        );
-                        
-                    if (finalResult)
-                    {
-                        success = true;
-                        _rectSelection = _selectionManager.PasteCel(*finalResult, _cWorkingCels, SizeToCSize(_celData[_iMainIndex].GetSize()));
-                        //_rectSelection = _selectionManager.PasteBitmap(pbmi, _cWorkingCels, SizeToCSize(_celData[_iMainIndex].GetSize()), _palette, _paletteCount);
+                            );
+
+                        if (finalResult)
+                        {
+                            success = true;
+                            _rectSelection = _selectionManager.PasteCel(*finalResult, _cWorkingCels, SizeToCSize(_celData[_iMainIndex].GetSize()));
+                        }
                     }
                 }
             }

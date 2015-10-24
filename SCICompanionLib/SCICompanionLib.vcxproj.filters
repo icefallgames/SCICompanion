@@ -2178,5 +2178,8 @@
     <Image Include="res\waveform.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="res\image.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

@@ -1099,6 +1099,8 @@
 #define ID_TOOLS_REPACKAGEAUDIO         33276
 #define ID_IMPORTIMAGE                  33277
 #define ID_IMPORT_IMAG                  33278
+#define ID_VIEW_PASTESPECIAL            33280
+#define ID_VIEW_PASTESPECIALTRANSPARENT 33281
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -1107,7 +1109,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        400
-#define _APS_NEXT_COMMAND_VALUE         33280
+#define _APS_NEXT_COMMAND_VALUE         33282
 #define _APS_NEXT_CONTROL_VALUE         1377
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

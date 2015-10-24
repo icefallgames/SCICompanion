@@ -536,6 +536,32 @@ void CNewRasterResourceDocument::_ApplyImageSequenceNew(uint8_t transparentColor
     }
 }
 
+void CNewRasterResourceDocument::PrepareEGAOrVGAPalette(PaletteComponent &egaPalette, int &colorCount, bool &fixedPalette)
+{
+
+    const RasterComponent &raster = GetComponent<RasterComponent>();
+    bool isVGA = (raster.Traits.PaletteType == PaletteType::VGA_256);
+    if (isVGA)
+    {
+        if (GetCurrentPaletteComponent())
+        {
+            egaPalette = *GetCurrentPaletteComponent();
+        }
+        // else we can't do anything...
+        colorCount = 256;
+        fixedPalette = false;
+    }
+    else
+    {
+        const RGBQUAD *colors;
+        const uint8_t *paletteMapping;
+        _GetColors(raster, nullptr, &paletteMapping, &colorCount, &colors);
+        memcpy(egaPalette.Mapping, paletteMapping, sizeof(*paletteMapping) * colorCount);
+        memcpy(egaPalette.Colors, colors, sizeof(*colors) * colorCount);
+        fixedPalette = true;
+    }
+}
+
 void CNewRasterResourceDocument::_InsertFiles(const vector<string> &files, bool replaceEntireLoop)
 {
     assert(replaceEntireLoop || (files.size() == 1));
@@ -597,22 +623,11 @@ void CNewRasterResourceDocument::_InsertFiles(const vector<string> &files, bool 
 
         // At this point, if onePalette is not null, we should apply it to the view and directly copy any cel data (gdiplus bitmaps will still be remapped)
         // Otherwise, we should remap everything based on RGB.
-        if (!isVGA)
-        {
-            // Prepare "fake" ega palettes.
-            PaletteComponent egaPalette;
-            int colorCount;
-            const RGBQUAD *colors;
-            const uint8_t *paletteMapping;
-            _GetColors(raster, nullptr, &paletteMapping, &colorCount, &colors);
-            memcpy(egaPalette.Mapping, paletteMapping, sizeof(*paletteMapping) * colorCount);
-            memcpy(egaPalette.Colors, colors, sizeof(*colors) * colorCount);
-            _ApplyImageSequenceNew(transparentColor, &egaPalette, imageSequenceItems, true, colorCount, replaceEntireLoop);
-        }
-        else
-        {
-            _ApplyImageSequenceNew(transparentColor, GetCurrentPaletteComponent(), imageSequenceItems, false, 256, replaceEntireLoop);
-        }
+        PaletteComponent tempPalette;
+        int colorCount;
+        bool fixedPalette;
+        PrepareEGAOrVGAPalette(tempPalette, colorCount, fixedPalette);
+        _ApplyImageSequenceNew(transparentColor, &tempPalette, imageSequenceItems, fixedPalette, colorCount, replaceEntireLoop);
     }
 
     // Reset the selection.

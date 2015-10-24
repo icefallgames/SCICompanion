@@ -844,6 +844,7 @@
     <Image Include="res\icon2.ico" />
     <Image Include="res\icon3.ico" />
     <Image Include="res\icon5.ico" />
+    <Image Include="res\image.ico" />
     <Image Include="res\image_sequence.ico" />
     <Image Include="res\invert.ico" />
     <Image Include="res\Left.bmp" />

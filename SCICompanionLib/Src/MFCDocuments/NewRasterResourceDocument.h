@@ -43,6 +43,9 @@ public:
     void SetAlternateViewColor(uint8_t color);
     COLORREF SCIColorToCOLORREF(uint8_t color);
 
+    // Returns color count
+    void PrepareEGAOrVGAPalette(PaletteComponent &egaPalette, int &colorCount, bool &fixedPalette);
+
     const RGBQUAD *GetPaletteVGA() const;
     int GetDefaultZoom() const;
     void SetDefaultZoom(int iZoom) const;

@@ -507,6 +507,9 @@ BEGIN
     BEGIN
         MENUITEM "&Import image sequence",      33001
         MENUITEM "Image image",                 ID_IMPORT_IMAGE
+        MENUITEM SEPARATOR
+        MENUITEM "Paste special\tCtrl+B",       ID_VIEW_PASTESPECIAL
+        MENUITEM SEPARATOR
         MENUITEM "&Animate",                    ID_ANIMATE
         MENUITEM "Edit &palette",               ID_VIEW_EDITPALETTE
         MENUITEM "&Remove embedded palette",    ID_VIEW_REMOVEEMBEDDEDPALETTE
@@ -736,6 +739,8 @@ BEGIN
     "V",            ID_EDIT_PASTE,          VIRTKEY, CONTROL, NOINVERT
     VK_INSERT,      ID_EDIT_PASTE,          VIRTKEY, SHIFT, NOINVERT
     "V",            ID_EDIT_PASTETRANSPARENT, VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "B",            ID_VIEW_PASTESPECIAL,   VIRTKEY, CONTROL, NOINVERT
+    "B",            ID_VIEW_PASTESPECIALTRANSPARENT, VIRTKEY, SHIFT, CONTROL, NOINVERT
     "Y",            ID_EDIT_REDO,           VIRTKEY, CONTROL, NOINVERT
     VK_F2,          ID_EDIT_RENAME,         VIRTKEY, NOINVERT
     "A",            ID_EDIT_SELECT_ALL,     VIRTKEY, CONTROL, NOINVERT
@@ -3187,6 +3192,13 @@ END
 STRINGTABLE
 BEGIN
     IDC_COMBO_WAVEFORMAT    "Recording format"
+END
+
+STRINGTABLE
+BEGIN
+    ID_VIEW_PASTESPECIAL    "Paste image from clipboard with options\nPaste image with options"
+    ID_VIEW_PASTESPECIALTRANSPARENT 
+                            "Paste transparent image from clipboard with options\nPaste transparent image with options"
 END
 
 #endif    // English (United States) resources

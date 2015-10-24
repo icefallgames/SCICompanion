@@ -250,6 +250,7 @@ private:
     afx_msg void OnCopyPic();
     afx_msg void OnPaste();
     afx_msg void OnPasteTransparent();
+    afx_msg void OnPasteSpecial();
     afx_msg void OnUpdateAllViewCommands(CCmdUI *pCmdUI);
     afx_msg void OnCut();
     afx_msg void OnDelete();
@@ -325,7 +326,7 @@ private:
     void _EnsureScratchBuffer1(size16 size);
     void _DrawPen(CDC *pDC, CPoint point, uint8_t color, uint8_t alternateColor, BOOL fUseForeground);
     BOOL _IsPenTool() { return ((_currentTool == Pen) || (_currentTool == Replace)); }
-    void _OnPaste(bool fTransparent);
+    void _OnPaste(bool fTransparent, bool provideOptions);
     void _DrawDitheredPen(CDC *pDC, CPoint point);
     BYTE *_ViewOffset(int y) { return (_iMainIndex == -1) ? NULL : _ViewOffset(_iMainIndex, y); }
     BYTE *_ViewOffset(int iIndex, int y) { return _celData[iIndex].GetDataPtr() + CX_ACTUAL(_celData[iIndex].GetSize().cx) * y; }
