@@ -229,7 +229,6 @@ private:
         BYTE *GetMainSelection(CSize &sizeOut);
         void DrawSelection(CRect rectSelection, int iIndex, BOOL fTransparent, CelData &celData);
         void ClearSelection() { _GenerateSelectionBits(0, CSize(0, 0)); }
-        CRect PasteBitmap(BITMAPINFO *pbmi, int cCels, CSize sizeMain, const RGBQUAD *palette, int paletteCount);
         CRect PasteCel(const Cel &celPaste, int cCels, CSize sizeMain);
 
     private:
@@ -384,7 +383,7 @@ private:
     uint8_t _color;
     uint8_t _alternateColor;
     RGBQUAD _palette[256];
-    int _paletteCount;              // How many entries are valid in _paletteCount
+    int _paletteCount;              // How many entries are valid in _palette
 
     // Used for drawing tools that require capturing the mouse
     bool _fAux; // This means the user is holding down the right mouse button.

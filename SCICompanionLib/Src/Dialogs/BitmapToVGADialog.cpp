@@ -512,6 +512,52 @@ void _Overlay(Cel &cel, const Cel *currentBackgroundOptional)
     }
 }
 
+std::unique_ptr<Cel> GdiPlusBitmapToCel(
+    Gdiplus::Bitmap &bmpCurrent,
+    bool performDither,
+    DitherAlgorithm alphaDither,
+    ColorMatching colorMatching,
+    uint8_t alphaThreshold,
+    uint8_t transparentColor,
+    bool excludeTransparentColorFromPalette,
+    int paletteSize,
+    const bool *usableColors,
+    const RGBQUAD *colors,
+    const uint8_t *mapping
+    )
+{
+    std::unique_ptr<Cel> finalResult;
+
+    // Try to map colors to the current pic palette
+    // We can use _pbmpCurrent, the scaled, modified whatever.
+    UINT cx = bmpCurrent.GetWidth();
+    UINT cy = bmpCurrent.GetHeight();
+
+    unique_ptr<RGBQUAD[]> imageData = ConvertGdiplusToRaw(bmpCurrent);
+    if (imageData)
+    {
+        CutoutAlpha(alphaDither, imageData.get(), cx, cy, alphaThreshold);
+
+        std::unique_ptr<Cel> temp = make_unique<Cel>();
+        temp->TransparentColor = transparentColor;
+        temp->size = size16((uint16_t)cx, (uint16_t)cy);
+        temp->Data.allocate(PaddedSize(temp->size));
+
+        RGBQUAD targetColors[MaxPaletteColors];
+        // rgbReserved must be 0x1 where there are usable colors and 0x0 elsewhere.
+        for (int i = 0; i < paletteSize; i++)
+        {
+            targetColors[i] = colors[i];
+            targetColors[i].rgbReserved = usableColors[i] ? 0x1 : 0x0;
+        }
+
+        RGBToPalettized(colorMatching, &temp->Data[0], imageData.get(), cx, cy, performDither, paletteSize, mapping, targetColors, transparentColor, excludeTransparentColorFromPalette);
+
+        finalResult = move(temp);
+    }
+    return finalResult;
+}
+
 void CBitmapToVGADialog::_Update()
 {
     _finalResult.reset(nullptr);
@@ -584,34 +630,25 @@ void CBitmapToVGADialog::_Update()
     case PaletteAlgorithm::MatchExisting:
         if (_targetCurrentPalette && _pbmpCurrent)
         {
-            // Try to map colors to the current pic palette
-            // We can use _pbmpCurrent, the scaled, modified whatever.
-            UINT cx = _pbmpCurrent->GetWidth();
-            UINT cy = _pbmpCurrent->GetHeight();
+            bool usableColors[MaxPaletteColors];
+            m_wndPalette.GetMultipleSelection(usableColors);
 
-            unique_ptr<RGBQUAD[]> imageData = ConvertGdiplusToRaw(*_pbmpCurrent);
-            if (imageData)
+            _finalResult = GdiPlusBitmapToCel(
+                *_pbmpCurrent,
+                performDither,
+                alphaDither,
+                _colorMatching,
+                _alphaThreshold,
+                _transparentColor,
+                excludeTransparentColorFromPalette,
+                _paletteSize,
+                usableColors,
+                _targetCurrentPalette->Colors,
+                _targetCurrentPalette->Mapping
+                );
+
+            if (_finalResult)
             {
-                CutoutAlpha(alphaDither, imageData.get(), cx, cy, _alphaThreshold);
-
-                std::unique_ptr<Cel> temp = make_unique<Cel>();
-                temp->TransparentColor = _transparentColor;
-                temp->size = size16((uint16_t)cx, (uint16_t)cy);
-                temp->Data.allocate(PaddedSize(temp->size));
-
-                bool usableColors[MaxPaletteColors];
-                m_wndPalette.GetMultipleSelection(usableColors);
-                RGBQUAD targetColors[MaxPaletteColors];
-                // rgbReserved must be 0x1 where there are usable colors and 0x0 elsewhere.
-                for (int i = 0; i < _paletteSize; i++)
-                {
-                    targetColors[i] = _targetCurrentPalette->Colors[i];
-                    targetColors[i].rgbReserved = usableColors[i] ? 0x1 : 0x0;
-                }
-
-                RGBToPalettized(_colorMatching, &temp->Data[0], imageData.get(), cx, cy, performDither, _paletteSize, _targetCurrentPalette->Mapping, targetColors, _transparentColor, excludeTransparentColorFromPalette);
-
-                _finalResult = move(temp);
                 _finalResultPalette = make_unique<PaletteComponent>(*_targetCurrentPalette);
             }
         }

@@ -18,6 +18,8 @@
 #include "ColorShifterDialog.h"
 #include "PicCommands.h"
 #include "BayerMatrix.h"
+#include "BitmapToVGADialog.h"
+#include "ImageUtil.h"
 
 // Thickness of the sizers around the image:
 #define SIZER_SIZE 6
@@ -212,37 +214,6 @@ CRect CRasterView::SelectionManager::PasteCel(const Cel &celPaste, int cCels, CS
     _fSelection = true;
     return rect;
 }
-
-CRect CRasterView::SelectionManager::PasteBitmap(BITMAPINFO *pbmi, int cCels, CSize sizeMain, const RGBQUAD *palette, int paletteCount)
-{
-    CRect rect;
-    // Get rid of any selection.
-    ClearSelection();
-    void *pDIBBits = _GetBitsPtrFromBITMAPINFO(pbmi);
-    if (pDIBBits)
-    {
-        _sizeSelectionBits = CSize(min(sizeMain.cx, pbmi->bmiHeader.biWidth),
-                                   min(sizeMain.cy, pbmi->bmiHeader.biHeight));
-        _GenerateSelectionBits(cCels, _sizeSelectionBits);
-        rect = CRect(0, 0, _sizeSelectionBits.cx, _sizeSelectionBits.cy);
-		std::unique_ptr<BYTE> pBitsFromDIB(new BYTE[CX_ACTUAL(_sizeSelectionBits.cx) * _sizeSelectionBits.cy]);
-        {
-            CSCIDrawHelper helper(nullptr, pBitsFromDIB.get(), _sizeSelectionBits, palette, paletteCount);
-            StretchDIBits((HDC)helper.dc,
-                        0, 0, _sizeSelectionBits.cx, _sizeSelectionBits.cy,
-                        0, 0, _sizeSelectionBits.cx, _sizeSelectionBits.cy,
-                        pDIBBits, pbmi, DIB_RGB_COLORS, SRCCOPY);
-        }
-        // Apply our new selection;
-        for (int i = 0; i < cCels; i++)
-        {
-            _ConvertDrawnDIBBitsToSelectionBits(pBitsFromDIB.get(), _sizeSelectionBits.cx, _sizeSelectionBits, _selectionBits[i].get());
-        }
-        _fSelection = true;
-    }
-    return rect; // empty if something failed.
-}
-
 
 void CRasterView::SelectionManager::DrawSelection(CRect rectSelection, int iIndex, BOOL fTransparent, CelData &celData)
 {
@@ -2209,6 +2180,7 @@ void CRasterView::OnPasteTransparent()
     _OnPaste(true);
 }
 
+// Note: this function can result in changes to the sizes in _celData!
 void CRasterView::_EnsureCelsLargeEnoughForPaste(size16 requiredSize)
 {
     std::vector<size_t> resizeIndices;
@@ -2229,7 +2201,7 @@ void CRasterView::_EnsureCelsLargeEnoughForPaste(size16 requiredSize)
             GetDoc()->ApplyChanges<RasterComponent>(
                 [&, requiredSize](RasterComponent &raster)
             {
-                for (size_t i = 0; i < _cWorkingCels; i++)
+                for (size_t i = 0; i < (size_t)_cWorkingCels; i++)
                 {
                     size16 currentSize = _celData[i].GetSize();
                     size16 newSize = { max(currentSize.cx, requiredSize.cx), max(currentSize.cy, requiredSize.cy) };
@@ -2252,21 +2224,49 @@ void CRasterView::_OnPaste(bool fTransparent)
         _EnsureCelsLargeEnoughForPaste(cel->size);
         _rectSelection = _selectionManager.PasteCel(*cel, _cWorkingCels, SizeToCSize(_celData[_iMainIndex].GetSize()));
     }
-    else if (IsClipboardFormatAvailable(CF_DIB))
+    else if (IsClipboardFormatAvailable(CF_BITMAP))
     {
-        OpenClipboardGuard clipBoard(this);
-        if (clipBoard.IsOpen())
+        if (_iMainIndex != -1)
         {
-            HGLOBAL hMem = GetClipboardData(CF_DIB);
-            if (hMem)   // No need to free?
+            OpenClipboardGuard guard(this);
+            if (guard.IsOpen())
             {
-                GlobalLockGuard<BITMAPINFO*> globalLock(hMem);
-                BITMAPINFO *pbmi = globalLock.Object;
-                if (pbmi && (_iMainIndex != -1))
+                HBITMAP hBmp = (HBITMAP)GetClipboardData(CF_BITMAP);
+                std::unique_ptr<Gdiplus::Bitmap> pBitmap(Gdiplus::Bitmap::FromHBITMAP(hBmp, nullptr));
+                if (pBitmap)
                 {
-                    success = true;
-                    _EnsureCelsLargeEnoughForPaste(size16((uint16_t)pbmi->bmiHeader.biWidth, (uint16_t)(abs(pbmi->bmiHeader.biHeight))));
-                    _rectSelection = _selectionManager.PasteBitmap(pbmi, _cWorkingCels, SizeToCSize(_celData[_iMainIndex].GetSize()), _palette, _paletteCount);
+                    pBitmap->RotateFlip(Gdiplus::RotateNoneFlipY);
+
+                    bool usableColors[256];
+                    assert(_paletteCount <= ARRAYSIZE(usableColors));
+                    for (size_t i = 0; i < (size_t)_paletteCount; i++)
+                    {
+                        // The ones marked as "fixed" are usable
+                        usableColors[i] = (_palette[i].rgbReserved != 0);
+                    }
+
+                    _EnsureCelsLargeEnoughForPaste(size16((uint16_t)pBitmap->GetWidth(), (uint16_t)pBitmap->GetHeight()));
+                    std::unique_ptr<Cel> finalResult =
+                        GdiPlusBitmapToCel(
+                            *pBitmap,
+                            false,  // No dither
+                            DitherAlgorithm::None,  // No alpha dither
+                            ColorMatching::RGB,
+                            128,    // alpha threshold
+                            _celData[_iMainIndex].GetTransparentColor(),
+                            true,   // Exclude transparent color from conversion
+                            _paletteCount,
+                            usableColors,
+                            _palette,
+                            g_vgaPaletteMapping
+                        );
+                        
+                    if (finalResult)
+                    {
+                        success = true;
+                        _rectSelection = _selectionManager.PasteCel(*finalResult, _cWorkingCels, SizeToCSize(_celData[_iMainIndex].GetSize()));
+                        //_rectSelection = _selectionManager.PasteBitmap(pbmi, _cWorkingCels, SizeToCSize(_celData[_iMainIndex].GetSize()), _palette, _paletteCount);
+                    }
                 }
             }
         }

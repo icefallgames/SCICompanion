@@ -42,6 +42,19 @@ Via the right-click menu, you can also delete, export or give resources names.
 
 New resources can be created using the buttons on the main toolbar, or in the *File->New* menu. You can also import individual resource files by dragging them into the resource view, or using the *File->Import Resource* menu item.
 
+Resource Numbering
+-------------------
+
+Resource numbers are very important - this is how resources are accessed in game code.
+A resource is uniquely identified by its type and its number (0-999 in SCI0, and 0-65535 in SCI1+). When you save a newly-created view or other resource,
+you'll be asked to give it a number (and optional name). If it conflicts with an existing resource of that type and number, you'll be asked if you wish to overwrite.
+
+Resources can be given names when you save them, or by renaming them in the resource view. The names are used only in |scicomp| as a convenient way to identify resources
+(especially useful for those resources without visual representations, like sounds).
+
+Resource Types
+----------------
+
 |scicomp| shows the following kind of resources that are part of SCI games:
 
 :doc:`Views <views>`
@@ -101,9 +114,10 @@ In summary, it is still useful to use *Tools->Rebuild resources* to trim the pac
 Running the game
 ================
 
-To run the game, Press the green or red play button in the main toolbar, use the Game menu, or press F5. This will run the executable that is specified in the *Game->Game properties* dialog.
+To run the game, Press the green or red play button in the main toolbar, use the Game menu, or press F5. This will run the executable that is specified in the *Game->Properties* dialog.
 By default, the template game sets this up to run DOSBox_ with the Sierra executable as a target. The versions of SCI used in the template games are 16-bit executables,
-which means they won't run on modern 64-bit operating systems. DOSBox_ can be used to run them in a DOS emulator, or you can run them inside ScummVM_.
+which means they won't run on modern 64-bit operating systems. DOSBox_ can be used to run them in a DOS emulator. You can run them inside ScummVM_, and |scicomp| has a profile for this too. You can use the 
+*Game->Properties* dialog to switch to the ScummVM profile, or set up your own custom way of running the game.
 
 Creating a new game
 ========================

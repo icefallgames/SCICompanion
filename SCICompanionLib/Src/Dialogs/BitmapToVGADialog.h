@@ -4,6 +4,8 @@
 #include "PrepareBitmapBase.h"
 #include "ChooseColorStatic.h"
 
+enum class DitherAlgorithm;
+
 struct Cel;
 
 enum class PaletteAlgorithm
@@ -161,3 +163,16 @@ public:
     afx_msg void OnBnClickedCheckdontuseinpalette();
 };
 
+std::unique_ptr<Cel> GdiPlusBitmapToCel(
+    Gdiplus::Bitmap &bmpCurrent,
+    bool performDither,
+    DitherAlgorithm alphaDither,
+    ColorMatching colorMatching,
+    uint8_t alphaThreshold,
+    uint8_t transparentColor,
+    bool excludeTransparentColorFromPalette,
+    int paletteSize,
+    const bool *usableColors,
+    const RGBQUAD *colors,
+    const uint8_t *mapping
+    );
