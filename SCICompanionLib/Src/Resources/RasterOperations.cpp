@@ -721,6 +721,17 @@ RasterChange ApplyCelsToLoop(RasterComponent &raster, int nLoop, const std::vect
     return RasterChange(RasterChangeHint::NewView);
 }
 
+RasterChange ReplaceCel(RasterComponent &raster, CelIndex celIndex, const Cel &celReplacement)
+{
+    if (IsValidLoopCel(raster, celIndex))
+    {
+        Cel &cel = raster.GetCel(celIndex);
+        cel = celReplacement;
+        UpdateMirrors(raster, celIndex);
+    }
+    return RasterChange(RasterChangeHint::NewView);
+}
+
 RasterChange SetPlacement(RasterComponent &raster, CelIndex celIndex, int16_t x, int16_t y)
 {
     if (IsFlagSet(raster.Traits.Caps, RasterCaps::SCI0CursorPlacement))

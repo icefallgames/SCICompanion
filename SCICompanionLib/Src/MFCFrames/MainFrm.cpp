@@ -1066,6 +1066,7 @@ void CMainFrame::_PrepareRasterCommands()
         { ID_ZOOM, IDI_ZOOM },
         { ID_ANIMATE, IDI_ANIMATE },
         { ID_IMPORT_IMAGESEQUENCE, IDI_IMAGESEQUENCE },
+        { ID_IMPORT_IMAGE, IDI_IMAGE },
         { ID_DRAWOVAL, IDI_ELLIPSE },
         { ID_DRAWOVALSOLID, IDI_ELLIPSE_SOLID },
         { ID_DRAWRECT, IDI_RECT },

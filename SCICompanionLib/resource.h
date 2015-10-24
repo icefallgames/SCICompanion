@@ -300,6 +300,7 @@
 #define IDI_CD                          395
 #define IDD_PHONEMEEDITOR               397
 #define IDI_WAVEFORM                    398
+#define IDI_IMAGE                       399
 #define IDC_CHOOSECOLORSTATIC           1001
 #define IDC_BUTTON1                     1003
 #define IDC_BUTTONDOWN                  1003
@@ -861,7 +862,7 @@
 #define ID_HELP_GETLATESTUPDATES        32989
 #define ID_GAME_PROPERTIES              32990
 #define ID_VIEWBG_VIEW                  32995
-#define ID_IMPORT_BITMAPSEQUENCE        33000
+#define ID_IMPORT_IMAGE                 33000
 #define ID_IMPORT_IMAGESEQUENCE         33001
 #define ID_FILE_NEWFONT                 33002
 #define ID_FILE_NEWCURSOR               33003
@@ -1096,6 +1097,8 @@
 #define ID_FAKEEGO12                    33274
 #define ID_TOOLS_AUDIOPREFERENCES       33275
 #define ID_TOOLS_REPACKAGEAUDIO         33276
+#define ID_IMPORTIMAGE                  33277
+#define ID_IMPORT_IMAG                  33278
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -1103,8 +1106,8 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        399
-#define _APS_NEXT_COMMAND_VALUE         33277
+#define _APS_NEXT_RESOURCE_VALUE        400
+#define _APS_NEXT_COMMAND_VALUE         33280
 #define _APS_NEXT_CONTROL_VALUE         1377
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

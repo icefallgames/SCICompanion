@@ -29,9 +29,11 @@ BEGIN_MESSAGE_MAP(CNewRasterResourceDocument, TCLASS_2(CUndoResource, CResourceD
     ON_UPDATE_COMMAND_UI(ID_FILE_EXPORTASBITMAP, OnUpdateEGA)
     ON_COMMAND(ID_ANIMATE, OnAnimate)
     ON_COMMAND(ID_IMPORT_IMAGESEQUENCE, OnImportImageSequence)
+    ON_COMMAND(ID_IMPORT_IMAGE, OnImportImage)
     ON_COMMAND(ID_MAKEFONT, MakeFont)
     ON_COMMAND(ID_VIEW_EXPORTASGIF, ExportAsGif)
     ON_UPDATE_COMMAND_UI(ID_IMPORT_IMAGESEQUENCE, OnUpdateImportImage)
+    ON_UPDATE_COMMAND_UI(ID_IMPORT_IMAGE, OnUpdateImportImage)
     ON_UPDATE_COMMAND_UI(ID_VIEW_EXPORTASGIF, CResourceDocument::OnUpdateAlwaysOn)
     ON_UPDATE_COMMAND_UI(ID_ANIMATE, OnUpdateAnimate)
     ON_UPDATE_COMMAND_UI(ID_MAKEFONT, OnUpdateFont)
@@ -279,6 +281,7 @@ struct ImageSequenceItem
             Cels = other.Cels;
             Bitmap = move(other.Bitmap);
         }
+        return *this;
     }
 
     // Either we have:
@@ -447,7 +450,7 @@ bool CNewRasterResourceDocument::_GetColors(const RasterComponent &raster, const
     return isEGA16;
 }
 
-void CNewRasterResourceDocument::_ApplyImageSequenceNew(uint8_t transparentColor, const PaletteComponent *currentPalette, std::vector<ImageSequenceItem> &items, bool fixedPalette, int paletteSize)
+void CNewRasterResourceDocument::_ApplyImageSequenceNew(uint8_t transparentColor, const PaletteComponent *currentPalette, std::vector<ImageSequenceItem> &items, bool fixedPalette, int paletteSize, bool replaceEntireLoop)
 {
     vector<CRect> bitmapRects;
     unique_ptr<Bitmap> bigBitmap = _DrawImageSequenceToLargeBitmap(items, bitmapRects);
@@ -468,6 +471,7 @@ void CNewRasterResourceDocument::_ApplyImageSequenceNew(uint8_t transparentColor
     if (dialog.DoModal() == IDOK)
     {
         int nLoop = GetSelectedLoop();
+        int nCel = GetSelectedCel();
         auto &bigCel = dialog.GetFinalResult();
         transparentColor = bigCel->TransparentColor;
 
@@ -493,11 +497,21 @@ void CNewRasterResourceDocument::_ApplyImageSequenceNew(uint8_t transparentColor
                 memcpy(&cel.Data[destLine * CX_ACTUAL(cel.size.cx)], &bigCel->Data[sourceLine * CX_ACTUAL(bigCel->size.cx) + rect.left], cel.size.cx);
             }
         }
+
+        assert(replaceEntireLoop || finalCels.size() == 1);
             
         ApplyChanges<RasterComponent>(
-            [nLoop, &finalCels](RasterComponent &raster)
+            [replaceEntireLoop, nLoop, nCel, &finalCels](RasterComponent &raster)
         {
-            RasterChange chnage = ApplyCelsToLoop(raster, nLoop, finalCels);
+            RasterChange chnage;
+            if (replaceEntireLoop)
+            {
+                chnage = ApplyCelsToLoop(raster, nLoop, finalCels);
+            }
+            else
+            {
+                chnage = ReplaceCel(raster, CelIndex(nLoop, nCel), finalCels.back());
+            }
             chnage.hint |= RasterChangeHint::PaletteChoice;
             return WrapRasterChange(chnage);
         },
@@ -522,8 +536,9 @@ void CNewRasterResourceDocument::_ApplyImageSequenceNew(uint8_t transparentColor
     }
 }
 
-void CNewRasterResourceDocument::_InsertFiles(const vector<string> &files)
+void CNewRasterResourceDocument::_InsertFiles(const vector<string> &files, bool replaceEntireLoop)
 {
+    assert(replaceEntireLoop || (files.size() == 1));
     const RasterComponent &raster = GetComponent<RasterComponent>();
     bool isVGA = (raster.Traits.PaletteType == PaletteType::VGA_256);
 
@@ -568,6 +583,18 @@ void CNewRasterResourceDocument::_InsertFiles(const vector<string> &files)
     // If we got some, then figure out what to do
     if (!imageSequenceItems.empty())
     {
+        // If we're only replacing a cel, just take the first image.
+        // (We might have opened just a single file, but it might have been a gif with multiple frames)
+        if (!replaceEntireLoop)
+        {
+            assert(imageSequenceItems.size() == 1);
+            vector<Cel> &canOnlyBeOne = imageSequenceItems.back().Cels;
+            if (!canOnlyBeOne.empty())
+            {
+                canOnlyBeOne.erase(canOnlyBeOne.begin() + 1, canOnlyBeOne.end());
+            }
+        }
+
         // At this point, if onePalette is not null, we should apply it to the view and directly copy any cel data (gdiplus bitmaps will still be remapped)
         // Otherwise, we should remap everything based on RGB.
         if (!isVGA)
@@ -580,16 +607,29 @@ void CNewRasterResourceDocument::_InsertFiles(const vector<string> &files)
             _GetColors(raster, nullptr, &paletteMapping, &colorCount, &colors);
             memcpy(egaPalette.Mapping, paletteMapping, sizeof(*paletteMapping) * colorCount);
             memcpy(egaPalette.Colors, colors, sizeof(*colors) * colorCount);
-            _ApplyImageSequenceNew(transparentColor, &egaPalette, imageSequenceItems, true, colorCount);
+            _ApplyImageSequenceNew(transparentColor, &egaPalette, imageSequenceItems, true, colorCount, replaceEntireLoop);
         }
         else
         {
-            _ApplyImageSequenceNew(transparentColor, GetCurrentPaletteComponent(), imageSequenceItems, false, 256);
+            _ApplyImageSequenceNew(transparentColor, GetCurrentPaletteComponent(), imageSequenceItems, false, 256, replaceEntireLoop);
         }
     }
 
     // Reset the selection.
     _nCel = 0;
+}
+
+void CNewRasterResourceDocument::OnImportImage()
+{
+    // Create a file dialog.
+    CFileDialog fileDialog(TRUE, nullptr, nullptr, OFN_ENABLESIZING | OFN_EXPLORER | OFN_NOCHANGEDIR, g_szGdiplusFilter);
+    fileDialog.m_ofn.lpstrTitle = TEXT("Import image");
+
+    if (IDOK == fileDialog.DoModal())
+    {
+        vector<string> fileList = { (PCSTR)fileDialog.GetPathName() };
+        _InsertFiles(fileList, false);
+    }
 }
 
 void CNewRasterResourceDocument::OnImportImageSequence()
@@ -613,7 +653,7 @@ void CNewRasterResourceDocument::OnImportImageSequence()
             fileList.push_back((PCTSTR)fileDialog.GetNextPathName(pos));
         }
         sort(fileList.begin(), fileList.end());
-        _InsertFiles(fileList);
+        _InsertFiles(fileList, true);
     }
 }
 

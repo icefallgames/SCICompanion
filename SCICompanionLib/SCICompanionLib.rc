@@ -119,6 +119,7 @@ IDI_EDITPALETTE         ICON                    "res\\editpalette.ico"
 IDI_ANIMATE             ICON                    "res\\animate.ico"
 IDI_PALETTE             ICON                    "res\\palette.ico"
 IDI_IMAGESEQUENCE       ICON                    "res\\image_sequence.ico"
+IDI_IMAGE               ICON                    "res\\image.ico"
 IDI_VIEWDETAILS         ICON                    "res\\view_details.ico"
 IDI_VIEWICONS           ICON                    "res\\view_icons.ico"
 IDI_SCRIPT_CONVERT      ICON                    "res\\script_convert.ico"
@@ -336,6 +337,7 @@ BEGIN
     BUTTON      ID_GREYSCALE
     BUTTON      ID_INVERT
     SEPARATOR
+    BUTTON      ID_IMPORT_IMAGE
     BUTTON      ID_IMPORT_IMAGESEQUENCE
     BUTTON      ID_ANIMATE
 END
@@ -504,6 +506,7 @@ BEGIN
     POPUP "&View"
     BEGIN
         MENUITEM "&Import image sequence",      33001
+        MENUITEM "Image image",                 ID_IMPORT_IMAGE
         MENUITEM "&Animate",                    ID_ANIMATE
         MENUITEM "Edit &palette",               ID_VIEW_EDITPALETTE
         MENUITEM "&Remove embedded palette",    ID_VIEW_REMOVEEMBEDDEDPALETTE
@@ -3100,9 +3103,8 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_IMPORT_BITMAPSEQUENCE 
-                            "Import image sequence\nImport a sequence of images to use in this loop."
-    ID_IMPORT_IMAGESEQUENCE "Import image sequence\nImport a sequence of images to use in a loop."
+    ID_IMPORT_IMAGE         "Import image\nImport image into a cel."
+    ID_IMPORT_IMAGESEQUENCE "Import image sequence\nImport images as a loop."
     ID_FILE_NEWFONT         "Create an empty font resource.\nNew font"
     ID_FILE_NEWCURSOR       "Create an empty cursor resource\nNew cursor"
     ID_FILE_NEWTEXT         "Create an empty text resource.\nNew text resource"

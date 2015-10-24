@@ -34,10 +34,6 @@ static const char* c_szCommonGameExes[] =
     "SIERRA.EXE", "SCIV.EXE", "SCIDHUV.EXE", "SCIDUV.EXE", "SCIDHV.EXE", "SCIWV.EXE"
 };
 
-// TODO: need to set the id as part of the game.ini in the template game, e.g. 
-// TODO: need to get sciv.exe or sierra.exe
-// "C:\Program Files (x86)\ScummVM\scummvm.exe" --config = scummvm.ini sq5-demo
-
 RunLogic::RunLogic() :
 _profileToExeKey({ { c_szDOSBox, c_szDOSBoxExecutableString }, { c_szScummVM, c_szScummVMExecutableString }, { c_szOther, c_szOtherExecutableString } }),
 _profileToParamsKey({ { c_szDOSBox, c_szDOSBoxExeParametersString }, { c_szScummVM, c_szScummVMExeParametersString }, { c_szOther, c_szOtherExeParametersString } })
