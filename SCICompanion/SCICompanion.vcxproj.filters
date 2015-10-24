@@ -435,6 +435,18 @@
     <Image Include="Docs\source\images\LogoSetColors.jpg">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Docs\source\images\PasteRect.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\DrawingImportFile.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\GameExplorerToolbar.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\RightClickMenu.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\SCICompanion.rc2">

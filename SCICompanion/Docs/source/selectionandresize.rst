@@ -23,13 +23,15 @@ Paste
 =====
 
 If you paste *(CTRL-V)* an image from the clipboard into the view,
-it will appear in the top left of the current cel, in a rubber band selection rectangle. You can position it as you desire. Double-clicking on the selection will set it permanently.
-If the image is a 24-bit image from another application, |scicomp| will attempt to map the colors to the current palette (more control over this can be obtained by using *View->Import image sequence*).
+it will appear in the top left of the current cel, in a rubber band selection rectangle. You can position it as you desire. Double-clicking on the selection will commit it.
+If the image is a 24-bit image from another application, |scicomp| will attempt to map the colors to the current palette (more control over this can be obtained by using *View->Import image sequence*,
+or by using *CTRL-B* instead of *CTRL-V*).
 
 Transparent Paste
 =================
 
-Transparent pasting *(CTRL-SHIFT-V)* will paste an image, but not include the pixels that are the same colour as the transparent colour of the cel.
+Transparent pasting *(CTRL-SHIFT-V)* will paste an image, but not include the pixels that are transparent. Note that alpha transparency
+is not preserved in standard Windows clipboard formats, so this will only work if the source image is another view cel inside |scicomp|.
 
 
 Resizing

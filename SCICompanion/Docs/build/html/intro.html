@@ -77,6 +77,16 @@ select individual resources and open them by double-clicking. Previews are avail
 <p>Via the right-click menu, you can also delete, export or give resources names.</p>
 <img alt="_images/RightClickMenu.png" src="_images/RightClickMenu.png" />
 <p>New resources can be created using the buttons on the main toolbar, or in the <em>File-&gt;New</em> menu. You can also import individual resource files by dragging them into the resource view, or using the <em>File-&gt;Import Resource</em> menu item.</p>
+<div class="section" id="resource-numbering">
+<h3>Resource Numbering<a class="headerlink" href="#resource-numbering" title="Permalink to this headline">¶</a></h3>
+<p>Resource numbers are very important - this is how resources are accessed in game code.
+A resource is uniquely identified by its type and its number (0-999 in SCI0, and 0-65535 in SCI1+). When you save a newly-created view or other resource,
+you&#8217;ll be asked to give it a number (and optional name). If it conflicts with an existing resource of that type and number, you&#8217;ll be asked if you wish to overwrite.</p>
+<p>Resources can be given names when you save them, or by renaming them in the resource view. The names are used only in <strong>SCI</strong>Companion as a convenient way to identify resources
+(especially useful for those resources without visual representations, like sounds).</p>
+</div>
+<div class="section" id="resource-types">
+<h3>Resource Types<a class="headerlink" href="#resource-types" title="Permalink to this headline">¶</a></h3>
 <p><strong>SCI</strong>Companion shows the following kind of resources that are part of SCI games:</p>
 <dl class="docutils">
 <dt><a class="reference internal" href="views.html"><em>Views</em></a></dt>
@@ -107,6 +117,7 @@ select individual resources and open them by double-clicking. Previews are avail
 <dd>In SCI1.1, scripts were split into logic and data. Heap resources contain the data. <strong>SCI</strong>Companion takes care of creating these automatically when you compile.</dd>
 </dl>
 <p>There are a few other types, but these are not shown in <strong>SCI</strong>Companion&#8216;s user interface. In particular, map, audio36 (digital audio) and sync36 (lip syncing) resources exist in SCI1.1. These are tied to messages though, and are managed through the message editor.</p>
+</div>
 <div class="section" id="adding-new-resources">
 <h3>Adding new resources<a class="headerlink" href="#adding-new-resources" title="Permalink to this headline">¶</a></h3>
 <p>SCI0 and SCI 1.1 work slightly differently when it comes to adding resources. The format of the resource.map file in SCI0 allows it to be used almost like a version control system. That is, you
@@ -120,9 +131,10 @@ In summary, it is still useful to use <em>Tools-&gt;Rebuild resources</em> to tr
 </div>
 <div class="section" id="running-the-game">
 <h2>Running the game<a class="headerlink" href="#running-the-game" title="Permalink to this headline">¶</a></h2>
-<p>To run the game, Press the green or red play button in the main toolbar, use the Game menu, or press F5. This will run the executable that is specified in the <em>Game-&gt;Game properties</em> dialog.
+<p>To run the game, Press the green or red play button in the main toolbar, use the Game menu, or press F5. This will run the executable that is specified in the <em>Game-&gt;Properties</em> dialog.
 By default, the template game sets this up to run <a class="reference external" href="http://www.dosbox.com">DOSBox</a> with the Sierra executable as a target. The versions of SCI used in the template games are 16-bit executables,
-which means they won&#8217;t run on modern 64-bit operating systems. <a class="reference external" href="http://www.dosbox.com">DOSBox</a> can be used to run them in a DOS emulator, or you can run them inside <a class="reference external" href="http://scummvm.org">ScummVM</a>.</p>
+which means they won&#8217;t run on modern 64-bit operating systems. <a class="reference external" href="http://www.dosbox.com">DOSBox</a> can be used to run them in a DOS emulator. You can run them inside <a class="reference external" href="http://scummvm.org">ScummVM</a>, and <strong>SCI</strong>Companion has a profile for this too. You can use the
+<em>Game-&gt;Properties</em> dialog to switch to the ScummVM profile, or set up your own custom way of running the game.</p>
 </div>
 <div class="section" id="creating-a-new-game">
 <h2>Creating a new game<a class="headerlink" href="#creating-a-new-game" title="Permalink to this headline">¶</a></h2>
@@ -150,6 +162,8 @@ which means they won&#8217;t run on modern 64-bit operating systems. <a class="r
 <li><a class="reference internal" href="#">Getting Started</a><ul>
 <li><a class="reference internal" href="#opening-an-existing-game">Opening an existing game</a></li>
 <li><a class="reference internal" href="#resource-management">Resource management</a><ul>
+<li><a class="reference internal" href="#resource-numbering">Resource Numbering</a></li>
+<li><a class="reference internal" href="#resource-types">Resource Types</a></li>
 <li><a class="reference internal" href="#adding-new-resources">Adding new resources</a></li>
 </ul>
 </li>

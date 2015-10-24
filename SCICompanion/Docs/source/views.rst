@@ -160,8 +160,17 @@ these parameters might help.
 Pasting an image into a view cel
 ---------------------------------
 
-You can also avoid the Import Images dialog altogether and just paste an image on the clipboard directly into a view cel, and it will appear in a selection rect that you can move around. This offers little control
-on how the color mapping is done, however.
+You can also just paste an image on the clipboard directly into a view cel, and it will appear in a selection rect that you can move around. Double-click to
+commit the selection. This offers little control
+on how the color mapping is done, however. If you are pasting within a view, or from one view to another, you can also use *Edit->Paste Transparent*, which
+will retain the transparency of the source view cel.
+
+.. figure:: /images/PasteRect.png
+
+    Pasting into a view
+
+For more control, you can choose *View->Paste Special*, or **CTRL-B**. This will also paste the clipboard image into a selection rectangle. However,
+it will first bring up the Import Image dialog to give you more control over the final result.
 
 Mirrors
 ==============================

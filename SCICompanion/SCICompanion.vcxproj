@@ -238,6 +238,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <Image Include="Docs\source\images\DrawingFill.png" />
     <Image Include="Docs\source\images\DrawingFlip.png" />
     <Image Include="Docs\source\images\DrawingGrayscale.png" />
+    <Image Include="Docs\source\images\DrawingImportFile.png" />
     <Image Include="Docs\source\images\DrawingImportFiles.png" />
     <Image Include="Docs\source\images\DrawingInvert.png" />
     <Image Include="Docs\source\images\DrawingLine.png" />
@@ -259,6 +260,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <Image Include="Docs\source\images\FindInFiles.png" />
     <Image Include="Docs\source\images\Flame.gif" />
     <Image Include="Docs\source\images\FontEditor.jpg" />
+    <Image Include="Docs\source\images\GameExplorerToolbar.jpg" />
     <Image Include="Docs\source\images\GotoDefinition.png" />
     <Image Include="Docs\source\images\GotoHeader.png" />
     <Image Include="Docs\source\images\Gradient.jpg" />
@@ -299,6 +301,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <Image Include="Docs\source\images\PaletteNotUsed.PNG" />
     <Image Include="Docs\source\images\PaletteUnderline.PNG" />
     <Image Include="Docs\source\images\PaletteUsedInResource.PNG" />
+    <Image Include="Docs\source\images\PasteRect.png" />
     <Image Include="Docs\source\images\PhonemeEditor.png" />
     <Image Include="Docs\source\images\PicEditor.jpg" />
     <Image Include="Docs\source\images\PicHelper.jpg" />
@@ -307,6 +310,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <Image Include="Docs\source\images\PriLineTool.png" />
     <Image Include="Docs\source\images\QuickLinks.png" />
     <Image Include="Docs\source\images\Resize_Example.png" />
+    <Image Include="Docs\source\images\RightClickMenu.png" />
     <Image Include="Docs\source\images\ScriptEditor.jpg" />
     <Image Include="Docs\source\images\Selection_Example.png" />
     <Image Include="Docs\source\images\SierraDebugger.png" />
