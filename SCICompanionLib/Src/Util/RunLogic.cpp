@@ -44,9 +44,9 @@ _profileToParamsKey({ { c_szDOSBox, c_szDOSBoxExeParametersString }, { c_szScumm
     std::string DOSBoxFolder = GetExeSubFolder("Tools\\DOSBox");
     _profileToDefaultExe[c_szDOSBox] = DOSBoxFolder + "\\" + "DOSBox.exe";
     
-    // Default ScummVM exe:
+    // Default ScummVM exe. ScummVM and SCICompanion are both 32-bit processes, so %ProgramFiles% will resolve correctly.
     char szScummPath[MAX_PATH] = {};
-    ExpandEnvironmentStrings("%ProgramFiles(x86)%\\ScummVM\\scummvm.exe", szScummPath, ARRAYSIZE(szScummPath));
+    ExpandEnvironmentStrings("%ProgramFiles%\\ScummVM\\scummvm.exe", szScummPath, ARRAYSIZE(szScummPath));
     _profileToDefaultExe[c_szScummVM] = szScummPath;
 }
 
