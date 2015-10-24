@@ -30,6 +30,7 @@
 #include "format.h"
 #include "ResourceMapEvents.h"
 #include "DebuggerThread.h"
+#include "RunLogic.h"
 
 using namespace std;
 
@@ -179,6 +180,7 @@ HRESULT RebuildResources(SCIVersion version, BOOL fShowUI)
 //
 CResourceMap::CResourceMap()
 {
+    _runLogic = std::make_unique<RunLogic>();
     _paletteListNeedsUpdate = true;
     _skipVersionSniffOnce = false;
     _pVocab000 = nullptr;
@@ -1241,11 +1243,17 @@ MessageSource *CResourceMap::GetTalkersMessageSource(bool reload)
     return _talkersHeaderFile->GetMessageSource();
 }
 
+RunLogic &CResourceMap::GetRunLogic()
+{
+    return *_runLogic;
+}
+
 //
 // Called when we open a new game.
 //
 void CResourceMap::SetGameFolder(const string &gameFolder)
 {
+    _runLogic->SetGameFolder(gameFolder);
     _gameFolderHelper.GameFolder = gameFolder;
     _talkerToView = TalkerToViewMap(Helper().GetLipSyncFolder());
     ClearVocab000();

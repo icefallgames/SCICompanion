@@ -448,6 +448,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <None Include="Files\Samples\views\Inv - Key.bin" />
     <None Include="Files\Samples\views\Key.bin" />
     <None Include="Files\TemplateGame\SCI0\ADL.DRV" />
+    <None Include="Files\TemplateGame\SCI0\dosbox.conf" />
     <None Include="Files\TemplateGame\SCI0\EGA320.DRV" />
     <None Include="Files\TemplateGame\SCI0\game.ini" />
     <None Include="Files\TemplateGame\SCI0\gm.drv" />
@@ -550,7 +551,6 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <None Include="Files\TemplateGame\SCI1.1\RESOURCE.CFG" />
     <None Include="Files\TemplateGame\SCI1.1\resource.map" />
     <None Include="Files\TemplateGame\SCI1.1\resource.sfx" />
-    <None Include="Files\TemplateGame\SCI1.1\run.cmd" />
     <None Include="Files\TemplateGame\SCI1.1\SBPRO.DRV" />
     <None Include="Files\TemplateGame\SCI1.1\SIERRA.EXE" />
     <None Include="Files\TemplateGame\SCI1.1\src\aboutcode.sc" />

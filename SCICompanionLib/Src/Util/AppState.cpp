@@ -62,10 +62,6 @@
 
 #include "AudioProcessingSettings.h"
 
-static const char c_szExecutableString[] = "Executable";
-static const char c_szExeParametersString[] = "ExeCmdLineParameters";
-static const char c_szDefaultExe[] = "sciv.exe";
-
 // The one and only
 extern AppState *appState;
 
@@ -640,94 +636,29 @@ void AppState::SetGameName(PCTSTR pszName)
     _SetGameStringProperty(TEXT("Name"), pszName);
 }
 
-std::string AppState::GetGameExecutable()
-{
-    TCHAR szGameExe[MAX_PATH];
-    _GetGameStringProperty(c_szExecutableString, szGameExe, ARRAYSIZE(szGameExe));
-    return szGameExe;
-
-}
-
-void AppState::SetGameExecutable(PCTSTR pszExe)
-{
-    _SetGameStringProperty(c_szExecutableString, pszExe);
-}
-
-std::string AppState::GetGameExecutableParameters()
-{
-    TCHAR szGameExe[MAX_PATH];
-    _GetGameStringProperty(c_szExeParametersString, szGameExe, ARRAYSIZE(szGameExe));
-    return szGameExe;
-
-}
-
 void AppState::RunGame(bool debug, int optionalResourceNumber)
 {
     if (GetResourceMap().IsGameLoaded())
     {
         GetResourceMap().RepackageAudio();
 
-        BOOL fShellEx = FALSE;
-        std::string gameFolder = GetResourceMap().GetGameFolder();
-        TCHAR szGameIni[MAX_PATH];
-        if (SUCCEEDED(StringCchPrintf(szGameIni, ARRAYSIZE(szGameIni), TEXT("%s\\game.ini"), gameFolder.c_str())))
+        if (debug)
         {
-            // Warning if any script patches are applied.
-            // TODO: scan game folder for script.000, pic.000, etc...
-            char szGameName[MAX_PATH];
-            if (GetPrivateProfileString("Game", c_szExecutableString, c_szDefaultExe, szGameName, ARRAYSIZE(szGameName), szGameIni))
-            {
-                char szParameters[MAX_PATH];
-                *szParameters = 0;
-                GetPrivateProfileString("Game", c_szExeParametersString, "", szParameters, ARRAYSIZE(szParameters), szGameIni);
-                if (SUCCEEDED(StringCchPrintf(szGameIni, ARRAYSIZE(szGameIni), "%s\\%s", gameFolder.c_str(), szGameName)))
-                {
-                    if (debug)
-                    {
-                        GetResourceMap().StartDebuggerThread(optionalResourceNumber);
-                    }
-
-                    fShellEx = TRUE;
-
-                    SHELLEXECUTEINFO ei = {};
-                    ei.fMask = SEE_MASK_DEFAULT | SEE_MASK_NOCLOSEPROCESS;
-                    ei.cbSize = sizeof(ei);
-                    ei.hwnd = AfxGetMainWnd()->GetSafeHwnd();
-                    ei.lpFile = szGameIni;
-                    ei.lpVerb = "Open";
-                    ei.lpParameters = szParameters;
-                    ei.lpDirectory = gameFolder.c_str();
-                    ei.nShow = SW_SHOWNORMAL;
-                    // ShellExecuteEx throws an RPC exception, but I guess that's ok.
-                    if (!ShellExecuteEx(&ei))
-                    {
-                        INT_PTR iResult = GetLastError();
-
-                    //INT_PTR iResult = (INT_PTR)ShellExecute(AfxGetMainWnd()->GetSafeHwnd(), 0, szGameIni, szParameters, gameFolder.c_str(), SW_SHOWNORMAL);
-                    //if (iResult <= 32)
-                    //{
-                        // Prepare error.
-                        TCHAR szReason[MAX_PATH];
-                        szReason[0] = 0;
-                        FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM, 0, (DWORD)iResult, 0, szReason, ARRAYSIZE(szReason), NULL);
-
-                        TCHAR szError[MAX_PATH];
-                        StringCchPrintf(szError, ARRAYSIZE(szError), TEXT("Failed to start %s: %s"), szGameIni, szReason);
-                        AfxMessageBox(szError, MB_OK | MB_APPLMODAL | MB_ICONEXCLAMATION);
-
-                        GetResourceMap().AbortDebuggerThread();
-                    }
-                    else
-                    {
-                        _hProcessDebugged.Close();
-                        _hProcessDebugged.hFile = ei.hProcess;
-                    }
-                }
-            }
+            GetResourceMap().StartDebuggerThread(optionalResourceNumber);
         }
-        if (!fShellEx)
+
+        BOOL fShellEx = FALSE;
+        std::string errors;
+        HANDLE hProcess;
+        if (!GetResourceMap().GetRunLogic().RunGame(errors, hProcess))
         {
-            AfxMessageBox(TEXT("Failed to locate game executable."), MB_OK | MB_APPLMODAL | MB_ICONEXCLAMATION);
+            AfxMessageBox(errors.c_str(), MB_OK | MB_APPLMODAL | MB_ICONEXCLAMATION);
+            GetResourceMap().AbortDebuggerThread();
+        }
+        else
+        {
+            _hProcessDebugged.Close();
+            _hProcessDebugged.hFile = hProcess;
         }
     }
     else
@@ -745,11 +676,6 @@ void AppState::OnGameFolderUpdate()
         _hProcessDebugged.Close();
         _recentViews.clear();
     }
-}
-
-void AppState::SetGameExecutableParameters(PCTSTR pszExe)
-{
-    _SetGameStringProperty(c_szExeParametersString, pszExe);
 }
 
 HRESULT AppState::_GetGameStringProperty(PCTSTR pszProp, PTSTR pszValue, size_t cchValue)

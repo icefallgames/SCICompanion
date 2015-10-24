@@ -6,6 +6,7 @@
 #include "ResourceEntity.h"
 #include "TalkerToViewMap.h"
 
+class RunLogic;
 class DebuggerThread;
 struct Vocab000;
 struct AudioMapComponent;
@@ -37,6 +38,8 @@ class CResourceMap
 public:
     CResourceMap();
     ~CResourceMap();
+
+    RunLogic &GetRunLogic();
 
     // ResourceBlob: the raw resource bits already in a ready-to-save format.
     // ResourceEntity: a runtime version of a resource that we can edit.
@@ -160,6 +163,8 @@ private:
     std::string _includeFolderOverride;             // For unit-testing
 
     std::shared_ptr<DebuggerThread> _debuggerThread;
+
+    std::unique_ptr<RunLogic> _runLogic;
 };
 
 // TODO REVIEW: Remove this from header file

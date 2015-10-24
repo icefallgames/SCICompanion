@@ -1,1 +1,0 @@
-"c:\Program Files (x86)\DOSBox-0.74\dosbox.exe" "sierra.exe"  -exit -conf "dosbox.conf"

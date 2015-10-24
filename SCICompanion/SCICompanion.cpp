@@ -715,19 +715,13 @@ void SCICompanionApp::OnGameVersionDetection()
 
 void SCICompanionApp::OnGameProperties()
 {
-    CGamePropertiesDialog dialog;
+    CGamePropertiesDialog dialog(appState->GetResourceMap().GetRunLogic());
     dialog._strGameName = appState->GetGameName().c_str();
-    dialog._strGameExecutable = appState->GetGameExecutable().c_str();
-    dialog._strGameExecutableParameters = appState->GetGameExecutableParameters().c_str();
     LangSyntax lang = appState->_resourceMap.GetGameLanguage();
-    dialog._fCPPSyntax = (lang == LangSyntaxCpp);
-    dialog._fSCIStudioSyntax = (lang == LangSyntaxSCIStudio);
     if (IDOK == dialog.DoModal())
     {
-        appState->SetGameExecutable(dialog._strGameExecutable);
-        appState->SetGameExecutableParameters(dialog._strGameExecutableParameters);
         appState->SetGameName(dialog._strGameName);
-        appState->_resourceMap.SetGameLanguage(dialog._fCPPSyntax ? LangSyntaxCpp : LangSyntaxSCIStudio);
+        appState->_resourceMap.SetGameLanguage(LangSyntaxSCIStudio);
     }
 }
 

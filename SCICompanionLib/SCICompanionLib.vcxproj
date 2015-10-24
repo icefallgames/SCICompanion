@@ -381,6 +381,7 @@
     <ClCompile Include="Src\Util\PerfTimer.cpp" />
     <ClCompile Include="Src\Util\PhonemeMap.cpp" />
     <ClCompile Include="Src\Util\RGBOctree.cpp" />
+    <ClCompile Include="Src\Util\RunLogic.cpp" />
     <ClCompile Include="Src\Util\SoundUtil.cpp" />
     <ClCompile Include="Src\Compile\Compile.cpp" />
     <ClCompile Include="Src\Compile\CompileContext.cpp" />
@@ -571,6 +572,7 @@
     <ClInclude Include="Src\Util\PerfTimer.h" />
     <ClInclude Include="Src\Util\PhonemeMap.h" />
     <ClInclude Include="Src\Util\RGBOctree.h" />
+    <ClInclude Include="Src\Util\RunLogic.h" />
     <ClInclude Include="Src\Util\SortedVector.h" />
     <ClInclude Include="Src\Util\SoundUtil.h" />
     <ClInclude Include="Src\Compile\CompileContext.h" />

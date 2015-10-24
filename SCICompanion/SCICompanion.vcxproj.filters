@@ -568,7 +568,6 @@
     <None Include="Files\TemplateGame\SCI1.1\RESOURCE.CFG" />
     <None Include="Files\TemplateGame\SCI1.1\resource.map" />
     <None Include="Files\TemplateGame\SCI1.1\resource.sfx" />
-    <None Include="Files\TemplateGame\SCI1.1\run.cmd" />
     <None Include="Files\TemplateGame\SCI1.1\SBPRO.DRV" />
     <None Include="Files\TemplateGame\SCI1.1\SIERRA.EXE" />
     <None Include="Files\TemplateGame\SCI1.1\STD.DRV" />
@@ -1040,6 +1039,7 @@
     <None Include="Docs\source\debugging.rst" />
     <None Include="Docs\source\outputpane.rst" />
     <None Include="Docs\source\undo.rst" />
+    <None Include="Files\TemplateGame\SCI0\dosbox.conf" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />

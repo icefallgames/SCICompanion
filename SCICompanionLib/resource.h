@@ -2,7 +2,6 @@
 // Microsoft Visual C++ generated include file.
 // Used by SCICompanionLib.rc
 //
-#define IDCANCEL2                       3
 #define ID_GENERATELIPSYNC              4
 #define IDD_ABOUTBOX                    100
 #define IDP_OLE_INIT_FAILED             100
@@ -465,6 +464,7 @@
 #define IDC_STATICGAMENAME              1150
 #define IDC_STATICEXE                   1151
 #define IDC_STATICGROUP1                1152
+#define IDC_STATICPROFILE               1152
 #define IDC_STATICGROUP2                1153
 #define IDC_STATICGROUP3                1154
 #define IDC_STATICGROUP4                1155
@@ -756,6 +756,7 @@
 #define IDC_BUTTONDELETEAUDIO           1373
 #define IDC_STATIC_IMAGE                1374
 #define IDC_GROUP_AUDIO                 1375
+#define IDC_COMBOPROFILE                1376
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -1104,7 +1105,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        399
 #define _APS_NEXT_COMMAND_VALUE         33277
-#define _APS_NEXT_CONTROL_VALUE         1376
+#define _APS_NEXT_CONTROL_VALUE         1377
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

@@ -6,6 +6,7 @@
 #include "IntellisenseListBox.h"
 #include "ColoredToolTip.h"
 #include "CompileInterfaces.h"
+#include "RunLogic.h"
 
 class AutoCompleteThread2;
 class CScriptView;
@@ -118,10 +119,6 @@ public:
     // Game properties
     std::string GetGameName();
     void SetGameName(PCTSTR pszName);
-    std::string GetGameExecutable();
-    void SetGameExecutable(PCTSTR pszName);
-    std::string GetGameExecutableParameters();
-    void SetGameExecutableParameters(PCTSTR pszName);
 
     void RunGame(bool debug, int optionalResourceNumber);
 
@@ -215,6 +212,8 @@ public: // TODO for now
     std::unique_ptr<BackgroundScheduler<HoverTipPayload, HoverTipResponse>> _pHoverTipScheduler;
 
     ScopedHandle _hProcessDebugged;
+
+    RunLogic _runLogic;
 };
 
 extern AppState *appState;
