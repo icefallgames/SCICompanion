@@ -245,6 +245,7 @@ void CBitmapToVGADialog::DoDataExchange(CDataExchange* pDX)
         {
             // Hide the first algorithm (generate palette)
             m_wndRadio1.ShowWindow(SW_HIDE);
+            m_wndRadio3.ShowWindow(SW_HIDE);
         }
 
         m_wndComboMatch.SetCurSel((int)_colorMatching);

@@ -461,7 +461,7 @@ void CNewRasterResourceDocument::_ApplyImageSequenceNew(uint8_t transparentColor
         false,
         size,
         transparentColor,
-        PaletteAlgorithm::MatchExisting,
+        PaletteAlgorithm::MatchExisting,    // REQUIRED for fixed palette. So be careful if changing this.
         DefaultPaletteUsage::UsedColors,
         "Import images");
     
