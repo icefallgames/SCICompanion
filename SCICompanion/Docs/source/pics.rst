@@ -284,7 +284,7 @@ choose *Pic->Import bitmap to pic*.
 
     The Import Background dialog
 
-You'll note that this looks fairly similar to :doc:`importing images <importimages>` dialog for view resources. As in that case, you have
+You'll note that this looks fairly similar to :ref:`Import Image <importimages-label>` dialog for view resources. As in that case, you have
 three palette options:
 
 1) You can have |scicomp| generate a palette automatically, replacing the selected colors of the existing palette of the pic
@@ -297,7 +297,7 @@ from palette 999 are used. This is generally what is desired for pic backgrounds
 If you want to customize which indices are used, you can check or uncheck the *Only use x free palette entries* checkbox to quickly control which palette indices are used, or you can manually
 select them in the palette and press the refresh button.
 
-There is also an option to overlay an image onto an already existing background (this can be a very useful feature), in addition to all the same dithering options available in the :doc:`importing images <importimages>` dialog.
+There is also an option to overlay an image onto an already existing background (this can be a very useful feature), in addition to all the same dithering options available in the :ref:`Import Image <importimages-label>` dialog.
 
 
 Editing a VGA pic palette

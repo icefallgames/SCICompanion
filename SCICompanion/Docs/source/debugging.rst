@@ -6,6 +6,9 @@
  Debugger
 ==========
 
+It's important to know how to properly debug your game in order to quickly find the causes of bugs. Debugging support with SCI is somewhat limited,
+but |scicomp| does have some functionality to help you.
+
 Debugging with |scicomp|
 =========================
 
@@ -35,10 +38,11 @@ Debugging with Sierra's interpreter
     This section only applies to SCI0
 
 Most (or all) SCI0 games include debugging functionality right in Sierra's interpreter. It is triggered by pressing both **SHIFT** keys and the **numpad minus** key all at the same time.
+Sierra's debugger does take some time to understand.
 
 .. image:: /images/SierraDebugger.png
 
-The internal debugger was removed in later SCI versions.
+Unfortunately the internal debugger was removed in later SCI versions.
 
 
 In-game debug functionality for SCI1.1
@@ -63,6 +67,12 @@ As an example, ALT-v, ALT-p and ALT-c switch between visual, priority and contro
 The debugger must be reactivated upon entering a new room.
 
 
+ScummVM
+========
+
+If you run your game in the ScummVM_ interpreter, you're in luck! ScummVM provides fairly complete debugging functionality,
+including the ability to set breakpoints and step through code (or rather, SCI byte code). You can trigger the ScummVM debugger by pressing CTRL-SHIFT-d while
+playing the game.
 
 
 

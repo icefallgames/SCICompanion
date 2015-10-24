@@ -58,7 +58,7 @@ The View, Font and Cursor editors all share a number of drawing tools that opera
     This lets you set the hotspot, or "center", of the view or cursor by clicking on the image. It does not apply to fonts.
 
 **Import images** |importfiles|
-    This lets you import a sequence of images into a loop. See :doc:`importing images <importimages>` for more information.
+    This lets you import a sequence of images into a loop. See :ref:`Import Image <importimages-label>`.
 
 **Animate** |animate|
     This brings up a dialog that animates the current loop of the view.

@@ -15,7 +15,7 @@ The Audio tab in the Game Explorer shows the current audio resources in the game
 .. image:: /images/AudioPreview.png
 
 Relation to Sound resources
-==========================
+============================
 
 Audio and Sound resources share the same "namespace". That is to say that from script there is no way to distinguish between Sound resource #146 and Audio resource #146.
 Both are controlled by the Sound object in script.
@@ -30,7 +30,7 @@ In your game's resource.cfg file, the following line will ensure that digital au
     prefer_digitalsfx = true
 
 Sound file management in |scicomp|
-=========================
+===================================
 
 Please read the section on the :doc:`audio file cache <audiofiles>`.
 

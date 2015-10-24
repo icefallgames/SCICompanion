@@ -58,7 +58,7 @@ Managing the audio cache
 You can force the audio files to be re-packaged into resource.aud or resource.sfx by using *Tools->Repackage Audio*. You'll need to do this
 if you're running the game externally (i.e. not from within |scicomp|) and you want to be using your latest audio changes.
 
-From *Tools->Audio Preferences", you can also force a repackage of all audio files (instead of just those that |scicomp| thinks are out of date).
+From *Tools->Audio Preferences*, you can also force a repackage of all audio files (instead of just those that |scicomp| thinks are out of date).
 
 You can also clear out the audio file cache completely. This means you will *lose* any new audio files that have not been repackaged. You
 will also lose the audio negatives for any recordings you have made in |scicomp|.

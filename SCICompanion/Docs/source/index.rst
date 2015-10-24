@@ -22,7 +22,6 @@ Topics:
    :maxdepth: 2
 
    intro
-   anatomy
    views
    pics
    scripts
@@ -39,6 +38,9 @@ Topics:
    undo
    aspectratio
    palettecycling
+   anatomy
+   decompiler
+   preferences
 
 Other
 ==================

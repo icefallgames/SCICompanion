@@ -39,7 +39,7 @@ You should see something like this:
 
 
 Associating a talker number with a view/loop.
---------------------------------------------
+------------------------------------------------
 
 In the Lip Sync dialog, you can use the *Set View* button to associate the given talker number with
 a view and loop. Once that is done, the mouth loop will appear in the dialog and in the message editor

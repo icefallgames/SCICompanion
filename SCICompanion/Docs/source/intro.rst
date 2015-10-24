@@ -29,10 +29,16 @@ Resource management
 ========================
 
 The first thing you see when you open a game will be the *Explorer* tab. It will show a series of buttons corresponding
-to the different types of resources in the game. Click on them to see those resources. From each resource tab, you can
+to the different types of resources in the game. Click on them to see those resources. 
+
+.. image:: /images/GameExplorerToolbar.jpg
+
+From each resource tab, you can
 select individual resources and open them by double-clicking. Previews are available for some resources.
 
 Via the right-click menu, you can also delete, export or give resources names.
+
+.. image:: /images/RightClickMenu.png
 
 New resources can be created using the buttons on the main toolbar, or in the *File->New* menu. You can also import individual resource files by dragging them into the resource view, or using the *File->Import Resource* menu item.
 
@@ -98,9 +104,6 @@ Running the game
 To run the game, Press the green or red play button in the main toolbar, use the Game menu, or press F5. This will run the executable that is specified in the *Game->Game properties* dialog.
 By default, the template game sets this up to run DOSBox_ with the Sierra executable as a target. The versions of SCI used in the template games are 16-bit executables,
 which means they won't run on modern 64-bit operating systems. DOSBox_ can be used to run them in a DOS emulator, or you can run them inside ScummVM_.
-
-.. _DOSBox: http://www.dosbox.com/
-.. _ScummVM: http://scummvm.org/
 
 Creating a new game
 ========================

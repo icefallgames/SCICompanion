@@ -126,7 +126,7 @@ So to get a complete decompile, it is recommended to run the decompilation steps
 names for global variables (and any names for procedures that you have entered).
 
 Accuracy
-=======
+===========
 
 Decompilation is not a perfect science, and there will be situations where |scicomp| is not able to reconstruct the high level language conditional structures.
 In that case, the code for a method or procedure will fall back to disassembly (in an *asm* block). In general, this should only happen for about 2% to at most 5% of the

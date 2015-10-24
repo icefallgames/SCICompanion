@@ -8,7 +8,7 @@
     
     <title>SCICompanion - an IDE for Sierra’s SCI engine &mdash; SCICompanion 3.0 documentation</title>
     
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     
     <script type="text/javascript">
@@ -24,13 +24,21 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <link rel="top" title="SCICompanion 3.0 documentation" href="#" />
-    <link rel="next" title="Getting Started" href="intro.html" />
-   
-  
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
-
+    <link rel="next" title="Getting Started" href="intro.html" /> 
   </head>
-  <body role="document">  
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="intro.html" title="Getting Started"
+             accesskey="N">next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">SCICompanion 3.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
 
     <div class="document">
       <div class="documentwrapper">
@@ -55,16 +63,19 @@ among many other features.</p>
 <li class="toctree-l2"><a class="reference internal" href="intro.html#creating-a-new-game">Creating a new game</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="anatomy.html">Anatomy of an SCI game</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="anatomy.html#the-interpreter">The interpreter</a></li>
-<li class="toctree-l2"><a class="reference internal" href="anatomy.html#the-game-resources">The game resources</a></li>
-<li class="toctree-l2"><a class="reference internal" href="anatomy.html#configuration-file">Configuration File</a></li>
-<li class="toctree-l2"><a class="reference internal" href="anatomy.html#drivers">Drivers</a></li>
-<li class="toctree-l2"><a class="reference internal" href="anatomy.html#other-files">Other files</a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="views.html">View Editor</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="views.html#the-view-editor-layout">The View Editor layout</a></li>
+<li class="toctree-l2"><a class="reference internal" href="views.html#drawing-on-the-main-view-pane">Drawing on the main view pane</a></li>
+<li class="toctree-l2"><a class="reference internal" href="views.html#selection-and-resizing">Selection and resizing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="views.html#palettes">Palettes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="views.html#adding-and-removing-cels-and-loops">Adding and removing cels and loops</a></li>
+<li class="toctree-l2"><a class="reference internal" href="views.html#importing-images-into-an-sci-view">Importing images into an SCI view</a></li>
+<li class="toctree-l2"><a class="reference internal" href="views.html#mirrors">Mirrors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="views.html#id2">Transparency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="views.html#offset">Offset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="views.html#affect-all-cels">Affect all cels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="views.html#color-shifting">Color shifting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="views.html#scaleable-views">Scaleable views</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="pics.html">Pic Editor</a><ul>
@@ -154,6 +165,7 @@ among many other features.</p>
 <li class="toctree-l2"><a class="reference internal" href="debugging.html#debugging-with-scicomp">Debugging with <strong>SCI</strong>Companion</a></li>
 <li class="toctree-l2"><a class="reference internal" href="debugging.html#debugging-with-sierra-s-interpreter">Debugging with Sierra&#8217;s interpreter</a></li>
 <li class="toctree-l2"><a class="reference internal" href="debugging.html#in-game-debug-functionality-for-sci1-1">In-game debug functionality for SCI1.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="debugging.html#id1">ScummVM</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="undo.html">Undo</a></li>
@@ -162,6 +174,21 @@ among many other features.</p>
 <li class="toctree-l2"><a class="reference internal" href="palettecycling.html#example">Example</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="anatomy.html">Anatomy of an SCI game</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="anatomy.html#the-interpreter">The interpreter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="anatomy.html#the-game-resources">The game resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="anatomy.html#configuration-file">Configuration File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="anatomy.html#drivers">Drivers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="anatomy.html#source-files">Source Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="anatomy.html#other-files">Other files</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="decompiler.html">Decompiler</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="decompiler.html#the-decompile-dialog">The Decompile dialog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="decompiler.html#accuracy">Accuracy</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="preferences.html">TODO</a></li>
 </ul>
 </div>
 </div>
@@ -189,14 +216,10 @@ among many other features.</p>
 </li>
 <li><a class="reference internal" href="#other">Other</a></li>
 </ul>
-<div class="relations">
-<h3>Related Topics</h3>
-<ul>
-  <li><a href="#">Documentation overview</a><ul>
-      <li>Next: <a href="intro.html" title="next chapter">Getting Started</a></li>
-  </ul></li>
-</ul>
-</div>
+
+  <h4>Next topic</h4>
+  <p class="topless"><a href="intro.html"
+                        title="next chapter">Getting Started</a></p>
   <div role="note" aria-label="source link">
     <h3>This Page</h3>
     <ul class="this-page-menu">
@@ -221,20 +244,21 @@ among many other features.</p>
       </div>
       <div class="clearer"></div>
     </div>
-    <div class="footer">
-      &copy;2015, Phil Fortier.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
-      
-      |
-      <a href="_sources/index.txt"
-          rel="nofollow">Page source</a>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="intro.html" title="Getting Started"
+             >next</a> |</li>
+        <li class="nav-item nav-item-0"><a href="#">SCICompanion 3.0 documentation</a> &raquo;</li> 
+      </ul>
     </div>
-
-    
-
-    
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, Phil Fortier.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
   </body>
 </html>

@@ -276,7 +276,9 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <Image Include="Docs\source\images\KQ6Talker.png" />
     <Image Include="Docs\source\images\LipSyncDialog.png" />
     <Image Include="Docs\source\images\LoadTraceImage.png" />
+    <Image Include="Docs\source\images\LogoCycle.gif" />
     <Image Include="Docs\source\images\LogoGradient.png" />
+    <Image Include="Docs\source\images\LogoSetColors.jpg" />
     <Image Include="Docs\source\images\LoopPoint.png" />
     <Image Include="Docs\source\images\MakeRedBlueGrad.jpg" />
     <Image Include="Docs\source\images\MessageEditor.png" />
@@ -351,7 +353,6 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <None Include="Docs\source\debugging.rst" />
     <None Include="Docs\source\decompiler.rst" />
     <None Include="Docs\source\fonts.rst" />
-    <None Include="Docs\source\importimages.rst" />
     <None Include="Docs\source\includes\standard.rst" />
     <None Include="Docs\source\index.rst" />
     <None Include="Docs\source\intro.rst" />

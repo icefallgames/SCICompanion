@@ -12,6 +12,7 @@ SCI games consist of the following things:
     - A package of game resources, including scripts which compile to byte-code and are run by the interpreter. This is where all the game-specific stuff is.
     - A configuration file
     - Drivers 
+    - Source files, for games created with SCIStudio or |scicomp|
 
 The interpreter
 ================
@@ -93,11 +94,24 @@ Drivers
 You notice a plethora of **.DRV** files in the game folder. These comprise the DOS drivers used by Sierra's interpreter.
 If you want, you can remove the ones that aren't listed in resource.cfg.
 
+
+Source Files
+=============
+
+If you've created a game with SCIStudio or |scicomp|, you'll see a **src** folder in your game's main folder. This is where the source files (\*.sc) and object files (\*.sco) exist, in addition to any game-specific header files (\*.sh).
+
+In addition, if you created an SCI1.1 game with |scicomp|, you'll see the following folders:
+
+- **msg**: This is where the message header files (\*.shm) exist. See :doc:`messages`.
+- **poly**: This is where the polygon header files (\*.shp) exist. See :doc:`polygons`.
+- **lipsync**: This contains files that tell |scicomp| how to map phonemes to mouth cels, and which talkers use which mouth view/loops. See :doc:`lipsync`.
+- **audiocache**: This is where |scicomp| keeps :doc:`audiofiles`.
+
 Other files
 ===========
 
 You'll notice a few other stray files in the game folder. In the SCI1.1 template game, **INTERP.ERR** and **VERSION** are essential for the
-game to work with Sierra's interpreter, so don't change or remove them.
+game to work with Sierra's interpreter, *so don't change or remove them*.
 
 **INSTALL.EXE** and the other files that begin with INSTALL comprise a DOS
 app that lets you configure **resource.cfg** via a series of menus. These can be removed.

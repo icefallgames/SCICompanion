@@ -5,9 +5,9 @@
 .. IMPORTANT::
     This section applies to SCI 1.1 only
 
-================
+================================
  Audio recording in |scicomp|
-================
+================================
 
 If you have a microphone attached to your computer, you can record audio directly into message resources in |scicomp|.
 
