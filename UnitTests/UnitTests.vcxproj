@@ -152,6 +152,9 @@
       <Project>{761de01c-57f6-45c5-aafc-ac48000c423f}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="UnitTests.licenseheader" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

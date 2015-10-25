@@ -1055,6 +1055,7 @@
     <None Include="Docs\source\outputpane.rst" />
     <None Include="Docs\source\undo.rst" />
     <None Include="Files\TemplateGame\SCI0\dosbox.conf" />
+    <None Include="SCICompanion.licenseheader" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />
