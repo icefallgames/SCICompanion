@@ -1722,6 +1722,7 @@
     <None Include="Src\GIFLIB\AUTHORS" />
     <None Include="Src\GIFLIB\COPYING" />
     <None Include="Src\CppFormat\README.rst" />
+    <None Include="SCICompanionLib.licenseheader" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="SCICompanionLib.rc">

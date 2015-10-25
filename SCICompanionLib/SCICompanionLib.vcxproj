@@ -764,6 +764,7 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="SCICompanionLib.def" />
+    <None Include="SCICompanionLib.licenseheader" />
     <None Include="Src\CppFormat\README.rst" />
     <None Include="Src\cpptoml\LICENSE" />
     <None Include="Src\CrystalEdit\CCrystalEditView.inl" />
