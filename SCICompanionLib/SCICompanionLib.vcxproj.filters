@@ -1718,6 +1718,10 @@
     <None Include="res\cursorsh.cur">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="Src\r8brain\README.md" />
+    <None Include="Src\GIFLIB\AUTHORS" />
+    <None Include="Src\GIFLIB\COPYING" />
+    <None Include="Src\CppFormat\README.rst" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="SCICompanionLib.rc">

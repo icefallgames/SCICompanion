@@ -764,10 +764,14 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="SCICompanionLib.def" />
+    <None Include="Src\CppFormat\README.rst" />
     <None Include="Src\cpptoml\LICENSE" />
     <None Include="Src\CrystalEdit\CCrystalEditView.inl" />
     <None Include="Src\CrystalEdit\CCrystalTextBuffer.inl" />
     <None Include="Src\CrystalEdit\CCrystalTextView.inl" />
+    <None Include="Src\GIFLIB\AUTHORS" />
+    <None Include="Src\GIFLIB\COPYING" />
+    <None Include="Src\r8brain\README.md" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="SCICompanionLib.rc" />
