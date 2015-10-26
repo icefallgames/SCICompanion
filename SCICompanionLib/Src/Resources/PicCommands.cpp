@@ -1251,7 +1251,7 @@ bool HitTestEgoBox(int16_t xCursor, int16_t yCursor, int16_t xEgo, int16_t yEgo,
     return TRUE;
 }
 
-void DrawImageWithPriority(size16 displaySize, uint8_t *pdataDisplay, const uint8_t *pdataPriority, uint8_t bEgoPriority, int xLeft, int yTop, uint16_t cx, uint16_t cy, const uint8_t *pImageData, uint8_t transparent, bool fShowOutline)
+void DrawImageWithPriority(size16 displaySize, uint8_t *pdataDisplay, const uint8_t *pdataPriority, uint8_t *pdataPriorityWrite, uint8_t bEgoPriority, int xLeft, int yTop, uint16_t cx, uint16_t cy, uint16_t cxStride, const uint8_t *pImageData, uint8_t transparent, bool fShowOutline)
 {
     int xRight = xLeft + cx;
     int yBottom = yTop + cy;
@@ -1279,8 +1279,7 @@ void DrawImageWithPriority(size16 displaySize, uint8_t *pdataDisplay, const uint
             {
                 int pPicOffset = BUFFEROFFSET_NONSTD(displaySize.cx, displaySize.cy, xPic, yPic);
                 // We can draw something.
-                //int pViewOffset = BUFFEROFFSET_NONSTD(CX_ACTUAL(cx), cy, xView, yView + 1);
-                int pViewOffset = BUFFEROFFSET_NONSTD(CX_ACTUAL(cx), cy, xView, yView);
+                int pViewOffset = BUFFEROFFSET_NONSTD(cxStride, cy, xView, yView);
                 uint8_t bView = *(pImageData + pViewOffset);
                 if (bView != transparent)
                 {
@@ -1290,6 +1289,11 @@ void DrawImageWithPriority(size16 displaySize, uint8_t *pdataDisplay, const uint
                         // Copy a pixel!
                         *(pdataDisplay + pPicOffset) = bView;
                         xLastPixel = -1;
+
+                        if (pdataPriorityWrite)
+                        {
+                            *(pdataPriorityWrite + pPicOffset) = bEgoPriority;
+                        }
                     }
                     else
                     {
@@ -1339,7 +1343,7 @@ void DrawViewWithPriority(size16 displaySize, uint8_t *pdataDisplay, const uint8
     std::unique_ptr<uint8_t[]> data = std::make_unique<uint8_t[]>(CX_ACTUAL(cel.size.cx) * cel.size.cy);
     CopyBitmapData(pvr->GetComponent<RasterComponent>(), CelIndex(nLoop, nCel), data.get(), cel.size);
 
-    DrawImageWithPriority(displaySize, pdataDisplay, pdataPriority, bEgoPriority, xLeft, yTop, cel.size.cx, cel.size.cy, &data[0], bTransparent, fShowOutline);
+    DrawImageWithPriority(displaySize, pdataDisplay, pdataPriority, nullptr, bEgoPriority, xLeft, yTop, cel.size.cx, cel.size.cy, cel.GetStride(), &data[0], bTransparent, fShowOutline);
 }
 
 
@@ -2280,11 +2284,13 @@ void DrawVisualBitmap_Draw(const PicCommand *pCommand, PicData *pData, ViewPort 
                 displaySize,
                 pData->pdataVisual,
                 pData->pdataPriority,
+                pData->pdataPriority,
                 pState->bPriorityValue,
                 cel.placement.x,
                 cel.placement.y,
                 cel.size.cx,
                 cel.size.cy,
+                cel.GetStride(),
                 &cel.Data[0],
                 cel.TransparentColor,
                 false);

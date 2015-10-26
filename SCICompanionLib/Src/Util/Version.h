@@ -55,6 +55,7 @@ enum class PicFormat : uint8_t
     EGA = 0,
     VGA1 = 1,
     VGA1_1 = 2,
+    VGA2 = 3,
 };
 
 enum class AudioVolumeName : uint8_t

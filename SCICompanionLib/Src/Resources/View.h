@@ -33,15 +33,17 @@ struct Cel
         this->size = size;
         this->placement = placement;
         this->TransparentColor = transparentColor;
+        this->Stride32 = true;
     }
 
-    Cel() = default;
+    Cel() : Stride32(true) {}
     Cel(const Cel &cel) = default;
     Cel &operator=(const Cel &cel) = default;
 
+    uint16_t GetStride() const { return Stride32 ? CX_ACTUAL(size.cx) : size.cx; }
     size_t GetDataSize() const
     {
-        return (CX_ACTUAL(size.cx) * size.cy);
+        return (GetStride() * size.cy);
     }
 
     // REVIEW: std::vector is 16 bytes. We could change this to 4 bytes if we wish
@@ -51,6 +53,7 @@ struct Cel
     size16 size;
     point16 placement;
     uint8_t TransparentColor;
+    bool Stride32;  // 32 bit stride
 };
 
 struct Loop

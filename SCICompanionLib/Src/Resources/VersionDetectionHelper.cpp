@@ -518,6 +518,11 @@ void CResourceMap::_SniffSCIVersion()
         }
     }
 
+    if (_gameFolderHelper.Version.PackageFormat == ResourcePackageFormat::SCI2)
+    {
+        _gameFolderHelper.Version.PicFormat = PicFormat::VGA2;
+    }
+
     // Let's get more specific on view formats.
     // TODO: Also if old resource map format, but we find DCL compression (PQ4 demo, apparently)
     //if (_gameFolderHelper.Version.MapFormat == ResourceMapFormat::SCI11)

@@ -22,6 +22,7 @@
 #include "PaletteOperations.h"
 #include "View.h"
 #include "Polygon.h"
+#include "ImageUtil.h"
 
 using namespace std;
 
@@ -682,6 +683,35 @@ struct PicCelHeader_VGA11
     uint16_t ohFourOh1; // 0x0401
     uint32_t totalCelDataSize;
 };
+
+struct PicHeader_VGA2
+{
+    uint16_t headerSize;
+    uint8_t celCount; // Which screens are present? Unclear.
+    uint8_t unknown1;
+    uint16_t celHeaderSize;
+    uint32_t paletteOffset;
+    uint32_t unknown2;
+};
+
+struct PicCelHeader_VGA2
+{
+    size16 size;
+    point16 placement;
+    uint8_t transparentColor;
+    uint8_t compressed;
+    uint16_t unknown1;
+    uint32_t unknown2;
+    uint32_t unknown3;
+    uint32_t unknown4;
+    uint32_t offsetRLE;
+    uint32_t offsetLiteral;
+    uint16_t unknown5;
+    uint16_t unknown6;
+    int16_t priority;
+    point16 relativePlacement;
+};
+
 #include <poppack.h>
 
 void PicWriteToVGA11(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag)
@@ -781,6 +811,78 @@ void PicWriteToVGA11(const ResourceEntity &resource, sci::ostream &byteStream, s
     // Now write the actual header:
     byteStream.seekp(0);
     byteStream << header;
+}
+
+
+void ReadPicCelFromVGA2(sci::istream &byteStream, Cel &cel, int16_t &priority)
+{
+    PicCelHeader_VGA2 celHeader;
+    byteStream >> celHeader;
+
+    cel.size = celHeader.size;
+    // Perhaps relativePlacement is affected by mirroring and placement is not?
+    cel.placement = celHeader.placement + celHeader.relativePlacement;
+    cel.TransparentColor = celHeader.transparentColor;
+    cel.Stride32 = false;   // Apparently the stride is simply the pixel width
+    priority = celHeader.priority;
+
+    // I'm not sure why both literal and RLE exist.
+    byteStream.seekg(celHeader.offsetRLE);
+    if (celHeader.offsetLiteral == 0)
+    {
+        // Just copy the bits directly. AFAIK this is only for LB_Dagger views 86, 456 and 527
+        size_t dataSize = celHeader.size.cx * celHeader.size.cy; // Not sure if padding happens?
+        cel.Data.allocate(max(1, dataSize));
+        byteStream.read_data(&cel.Data[0], dataSize);
+        FlipImageData(&cel.Data[0], celHeader.size.cx, celHeader.size.cy, celHeader.size.cx);
+    }
+    else
+    {
+        ReadImageData(byteStream, cel, true, sci::istream(byteStream, celHeader.offsetLiteral));
+    }
+}
+
+void PicReadFromVGA2(ResourceEntity &resource, sci::istream &byteStream, const std::map<BlobKey, uint32_t> &propertyBag)
+{
+    PicComponent &pic = resource.GetComponent<PicComponent>();
+    PicHeader_VGA2 header;
+    byteStream >> header;
+
+    assert(header.headerSize == 0xe);
+    static_assert(sizeof(PicHeader_VGA2) == 0xe, "PicHeader wrong size");
+    assert(header.celHeaderSize == sizeof(PicCelHeader_VGA2));
+
+    uint32_t base = byteStream.tellg();
+    uint16_t minWidth = 320;
+    uint16_t minHeight = 190;
+    for (uint8_t cel = 0; cel < header.celCount; cel++)
+    {
+        byteStream.seekg(base + cel * header.celHeaderSize);
+        Cel picCel;
+        int16_t priority;
+        ReadPicCelFromVGA2(byteStream, picCel, priority);
+        minWidth = max(minWidth, picCel.size.cx);
+        minHeight = max(minHeight, picCel.size.cy);
+
+        // TODO: SCI32 appears to have arbitrary priority levels
+        // -1000 is the background, and others roughly correspond to the y value of object?
+        // For now, we'll just round them down to SCI1 levels.
+        priority = max(0, priority);
+        uint8_t sci1Priority = (uint8_t)((0xff & priority) / 16);
+        pic.commands.push_back(PicCommand::CreateSetPriority(sci1Priority));
+
+        pic.commands.push_back(PicCommand());
+        pic.commands.back().CreateDrawVisualBitmap(picCel, true);
+    }
+
+    pic.Size = size16(minWidth, minHeight);
+
+    if (header.paletteOffset)
+    {
+        resource.AddComponent(move(make_unique<PaletteComponent>()));
+        byteStream.seekg(header.paletteOffset);
+        ReadPalette(resource.GetComponent<PaletteComponent>(), byteStream);
+    }
 }
 
 void PicReadFromVGA11(ResourceEntity &resource, sci::istream &byteStream, const std::map<BlobKey, uint32_t> &propertyBag)
@@ -935,6 +1037,14 @@ PicTraits picTraitsVGA_1_1 =
     true,
     false,
 };
+PicTraits picTraitsVGA_2 =
+{
+    true,
+    false,
+    true,
+    true,
+    false,
+};
 
 ResourceTraits picResourceTraitsEGA =
 {
@@ -963,6 +1073,15 @@ ResourceTraits picResourceTraitsVGA11 =
     &PicWritePolygons,
 };
 
+ResourceTraits picResourceTraitsVGA2 =
+{
+    ResourceType::Pic,
+    &PicReadFromVGA2,
+    nullptr,
+    &NoValidationFunc,
+    &PicWritePolygons,
+};
+
 PicComponent::PicComponent() : PicComponent(&picTraitsEGA) {}
 
 PicComponent::PicComponent(const PicTraits *traits) : Traits(traits), Size(size16(DEFAULT_PIC_WIDTH, DEFAULT_PIC_HEIGHT)) {}
@@ -980,6 +1099,11 @@ ResourceEntity *CreatePicResource(SCIVersion version)
     {
         ptraits = &picResourceTraitsVGA11;
         picTraits = &picTraitsVGA_1_1;
+    }
+    else if (version.PicFormat == PicFormat::VGA2)
+    {
+        ptraits = &picResourceTraitsVGA2;
+        picTraits = &picTraitsVGA_2;
     }
 
     std::unique_ptr<ResourceEntity> pResource = std::make_unique<ResourceEntity>(*ptraits);
