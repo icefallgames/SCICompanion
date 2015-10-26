@@ -162,134 +162,139 @@ void _ReadHeapPointerOffsets(sci::istream scriptStream, uint16_t heapPointerList
 
 bool CompiledScript::_LoadSCI1_1(const GameFolderHelper &helper, int iScriptNumber, sci::istream &scriptStream, sci::istream *heapStream)
 {
-    bool isSuccess = true;
-    // First thing to do is to load the heap resource
-    unique_ptr<ResourceBlob> heapBlob;
-    unique_ptr<sci::istream> heapStreamScope;
-    if (heapStream == nullptr)
+    bool isSuccess = false;
+
+    if (scriptStream.GetDataSize() > 0)
     {
-        heapBlob = helper.MostRecentResource(ResourceType::Heap, iScriptNumber, ResourceEnumFlags::None);
-        if (heapBlob)
+        isSuccess = true;
+        // First thing to do is to load the heap resource
+        unique_ptr<ResourceBlob> heapBlob;
+        unique_ptr<sci::istream> heapStreamScope;
+        if (heapStream == nullptr)
         {
-            heapStreamScope = make_unique<sci::istream>(heapBlob->GetReadStream());
-            heapStream = heapStreamScope.get();
-        }
-    }
-
-    if (heapStream)
-    {
-        // Make a copy of everything
-        _scriptResource.resize(scriptStream.GetDataSize());
-        scriptStream.read_data(&_scriptResource[0], scriptStream.GetDataSize());
-        // Then go back to the beginning
-        scriptStream.seekg(0);
-
-        uint16_t earliestMethodCodeOffset = 0xffff;
-
-        // Now we have both a heap and a script stream.
-
-        // Figure out which things in the script stream actually point to the heap.
-        uint16_t heapPointerListOffset;
-        scriptStream >> heapPointerListOffset;
-        unordered_set<uint16_t> heapPointerList;
-        _ReadHeapPointerOffsets(scriptStream, heapPointerListOffset, heapPointerList);
-
-        scriptStream.skip(4);   // This might have a preload flag, not sure.
-
-        // Now read the exports
-        uint16_t wNumExports;
-        scriptStream >> wNumExports;
-        for (uint16_t i = 0; i < wNumExports; i++)
-        {
-            bool isHeapPointer = heapPointerList.find((uint16_t)scriptStream.tellg()) != heapPointerList.end();
-            uint16_t exportOffset;
-            scriptStream >> exportOffset;
-            _exportsTO.push_back(exportOffset);
-            if (isHeapPointer)
+            heapBlob = helper.MostRecentResource(ResourceType::Heap, iScriptNumber, ResourceEnumFlags::None);
+            if (heapBlob)
             {
-                _exportedObjectInstances.push_back(exportOffset);
-                assert(_DoesExportPointToObjectInstanceSCI1_1(exportOffset, *heapStream));
-            }
-            // REVIEW: Many scripts (e.g. SQ5, 165) have lots of exports that point to zero. What's the purpose of this?
-            else if (exportOffset != 0)
-            {
-                // Just raw code (procedure)
-                earliestMethodCodeOffset = min(exportOffset, earliestMethodCodeOffset);
+                heapStreamScope = make_unique<sci::istream>(heapBlob->GetReadStream());
+                heapStream = heapStreamScope.get();
             }
         }
 
-        uint16_t addressAfterLastObject = (uint16_t)scriptStream.tellg();
-        if (isSuccess)
+        if (heapStream)
         {
-            // Local variables
-            uint16_t stringPointerOffsetsOffset;
-            (*heapStream) >> stringPointerOffsetsOffset;
-            _LoadStringOffsetsSCI1_1(stringPointerOffsetsOffset, *heapStream);
-            uint16_t localsCount;
-            (*heapStream) >> localsCount;
-            for (int i = 0; i < localsCount; i++)
-            {
-                bool isObjectOrString = IsStringPointerSCI1_1((uint16_t)heapStream->tellg());
-                uint16_t w;
-                (*heapStream) >> w;
-                _localVars.push_back({ w, isObjectOrString });
-            }
+            // Make a copy of everything
+            _scriptResource.resize(scriptStream.GetDataSize());
+            scriptStream.read_data(&_scriptResource[0], scriptStream.GetDataSize());
+            // Then go back to the beginning
+            scriptStream.seekg(0);
 
-            // Now we're into the objects.
-            uint16_t magic;
-            int classIndex = 0;
-            while (isSuccess && heapStream->peek(magic) && (magic == 0x1234))
+            uint16_t earliestMethodCodeOffset = 0xffff;
+
+            // Now we have both a heap and a script stream.
+
+            // Figure out which things in the script stream actually point to the heap.
+            uint16_t heapPointerListOffset;
+            scriptStream >> heapPointerListOffset;
+            unordered_set<uint16_t> heapPointerList;
+            _ReadHeapPointerOffsets(scriptStream, heapPointerListOffset, heapPointerList);
+
+            scriptStream.skip(4);   // This might have a preload flag, not sure.
+
+            // Now read the exports
+            uint16_t wNumExports;
+            scriptStream >> wNumExports;
+            for (uint16_t i = 0; i < wNumExports; i++)
             {
-                unique_ptr<CompiledObjectBase> pObject = make_unique<CompiledObjectBase>();
-                // Is the current position of the heapstream (which points to an object) in the list of public instance exports?
-                pObject->IsPublic = (find(_exportedObjectInstances.begin(), _exportedObjectInstances.end(), (uint16_t)heapStream->tellg()) != _exportedObjectInstances.end());
-                uint16_t wInstanceOffsetTO, endOfObjectInScript;
-                isSuccess = pObject->Create_SCI1_1(*this, _version, scriptStream, *heapStream, &wInstanceOffsetTO, classIndex, &endOfObjectInScript);
-                if (isSuccess)
+                bool isHeapPointer = heapPointerList.find((uint16_t)scriptStream.tellg()) != heapPointerList.end();
+                uint16_t exportOffset;
+                scriptStream >> exportOffset;
+                _exportsTO.push_back(exportOffset);
+                if (isHeapPointer)
                 {
-                    addressAfterLastObject = max(endOfObjectInScript, addressAfterLastObject);
+                    _exportedObjectInstances.push_back(exportOffset);
+                    assert(_DoesExportPointToObjectInstanceSCI1_1(exportOffset, *heapStream));
+                }
+                // REVIEW: Many scripts (e.g. SQ5, 165) have lots of exports that point to zero. What's the purpose of this?
+                else if (exportOffset != 0)
+                {
+                    // Just raw code (procedure)
+                    earliestMethodCodeOffset = min(exportOffset, earliestMethodCodeOffset);
+                }
+            }
 
-                    // Keep track of the earliest code
-                    for (uint16_t codePointer : pObject->GetMethodCodePointersTO())
+            uint16_t addressAfterLastObject = (uint16_t)scriptStream.tellg();
+            if (isSuccess)
+            {
+                // Local variables
+                uint16_t stringPointerOffsetsOffset;
+                (*heapStream) >> stringPointerOffsetsOffset;
+                _LoadStringOffsetsSCI1_1(stringPointerOffsetsOffset, *heapStream);
+                uint16_t localsCount;
+                (*heapStream) >> localsCount;
+                for (int i = 0; i < localsCount; i++)
+                {
+                    bool isObjectOrString = IsStringPointerSCI1_1((uint16_t)heapStream->tellg());
+                    uint16_t w;
+                    (*heapStream) >> w;
+                    _localVars.push_back({ w, isObjectOrString });
+                }
+
+                // Now we're into the objects.
+                uint16_t magic;
+                int classIndex = 0;
+                while (isSuccess && heapStream->peek(magic) && (magic == 0x1234))
+                {
+                    unique_ptr<CompiledObjectBase> pObject = make_unique<CompiledObjectBase>();
+                    // Is the current position of the heapstream (which points to an object) in the list of public instance exports?
+                    pObject->IsPublic = (find(_exportedObjectInstances.begin(), _exportedObjectInstances.end(), (uint16_t)heapStream->tellg()) != _exportedObjectInstances.end());
+                    uint16_t wInstanceOffsetTO, endOfObjectInScript;
+                    isSuccess = pObject->Create_SCI1_1(*this, _version, scriptStream, *heapStream, &wInstanceOffsetTO, classIndex, &endOfObjectInScript);
+                    if (isSuccess)
                     {
-                        earliestMethodCodeOffset = min(codePointer, earliestMethodCodeOffset);
-                    }
+                        addressAfterLastObject = max(endOfObjectInScript, addressAfterLastObject);
 
-                    _objectsOffsetTO.push_back(wInstanceOffsetTO);
-                    _objects.push_back(move(pObject));
+                        // Keep track of the earliest code
+                        for (uint16_t codePointer : pObject->GetMethodCodePointersTO())
+                        {
+                            earliestMethodCodeOffset = min(codePointer, earliestMethodCodeOffset);
+                        }
+
+                        _objectsOffsetTO.push_back(wInstanceOffsetTO);
+                        _objects.push_back(move(pObject));
+                    }
+                    classIndex++;
                 }
-                classIndex++;
+
+                uint16_t terminator;
+                (*heapStream) >> terminator;
+                assert(terminator == 0x0000); // Just guessing.
+                std::string aString;
+                do
+                {
+                    uint16_t offset = (uint16_t)heapStream->tellg();
+                    (*heapStream) >> aString;
+                    // We DO add empty strings to the offsets. However, we may have a bogus empty
+                    // one at the end, since afterStrings is WORD-aligned.
+                    if (!aString.empty() || (heapStream->tellg() < stringPointerOffsetsOffset))
+                    {
+                        _stringsOffset.push_back(offset);
+                        _strings.push_back(aString);
+                    }
+                } while (heapStream->tellg() < stringPointerOffsetsOffset);
+
             }
 
-            uint16_t terminator;
-            (*heapStream) >> terminator;
-            assert(terminator == 0x0000); // Just guessing.
-            std::string aString;
-            do
+            // So far, I'm assuming everything is in one code section in the script resource.
+            // We have two hints to where the code begins: The object methods and export (which have explicit
+            // pointers to look at), and the end of the last object in the script resource.
+            assert(addressAfterLastObject <= earliestMethodCodeOffset);
+            if (addressAfterLastObject < heapPointerListOffset)
             {
-                uint16_t offset = (uint16_t)heapStream->tellg();
-                (*heapStream) >> aString;
-                // We DO add empty strings to the offsets. However, we may have a bogus empty
-                // one at the end, since afterStrings is WORD-aligned.
-                if (!aString.empty() || (heapStream->tellg() < stringPointerOffsetsOffset))
-                {
-                    _stringsOffset.push_back(offset);
-                    _strings.push_back(aString);
-                }
-            } while (heapStream->tellg() < stringPointerOffsetsOffset);
-
-        }
-
-        // So far, I'm assuming everything is in one code section in the script resource.
-        // We have two hints to where the code begins: The object methods and export (which have explicit
-        // pointers to look at), and the end of the last object in the script resource.
-        assert(addressAfterLastObject <= earliestMethodCodeOffset);
-        if (addressAfterLastObject < heapPointerListOffset)
-        {
-            CodeSection all;
-            all.begin = addressAfterLastObject;
-            all.end = heapPointerListOffset;
-            _codeSections.push_back(all);
+                CodeSection all;
+                all.begin = addressAfterLastObject;
+                all.end = heapPointerListOffset;
+                _codeSections.push_back(all);
+            }
         }
     }
     return isSuccess;

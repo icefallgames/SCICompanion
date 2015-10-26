@@ -371,6 +371,8 @@
     <ClCompile Include="Src\Resources\PicOperations.cpp" />
     <ClCompile Include="Src\Util\CodecDCL-freesci.cpp" />
     <ClCompile Include="Src\Util\CodecDCL.cpp" />
+    <ClCompile Include="Src\Util\CodecDecompressor.cpp" />
+    <ClCompile Include="Src\Util\CodecSTAC.cpp" />
     <ClCompile Include="Src\Util\ColorQuantization.cpp" />
     <ClCompile Include="Src\Util\CustomMessageBox.cpp" />
     <ClCompile Include="Src\Util\DebuggerThread.cpp" />
@@ -562,6 +564,7 @@
     <ClInclude Include="SCICompanionLib.h" />
     <ClInclude Include="Src\Resources\PicOperations.h" />
     <ClInclude Include="Src\Util\CObjectWrap.h" />
+    <ClInclude Include="Src\Util\CodecDecompressor.h" />
     <ClInclude Include="Src\Util\ColorQuantization.h" />
     <ClInclude Include="Src\Util\CustomMessageBox.h" />
     <ClInclude Include="Src\Util\DebuggerThread.h" />

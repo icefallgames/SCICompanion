@@ -256,20 +256,23 @@ struct RESOURCEMAPENTRY_SCI1_1
     }
 };
 
+bool DoesPackageFormatIncludeHeaderInCompressedSize(SCIVersion version);
+
 // header for each entry in resource.xxx
-struct RESOURCEHEADER_SCI1
+template<typename _TDataSizeSize>
+struct RESOURCEHEADERBASE
 {
-    uint8_t bType;             // type (0x80 ... 0x91)
-    uint16_t iNumber;           // The number of the resource (0 to 999)
-	uint16_t cbCompressed;      // Compressed byte count (includes cbDecompressed and iMethod)
-	uint16_t cbDecompressed;    // Uncompressed byte count (doesn't include cbDecompressed or iMethod)
-	uint16_t iMethod;           // Compression method. (0 - 3?)
+    uint8_t bType;                     // type (0x80 ... 0x91)
+    uint16_t iNumber;                  // The number of the resource (0 to 999)
+    _TDataSizeSize cbCompressed;       // Compressed byte count (includes cbDecompressed and iMethod)
+    _TDataSizeSize cbDecompressed;     // Uncompressed byte count (doesn't include cbDecompressed or iMethod)
+	uint16_t iMethod;                  // Compression method. (0 - 3?)
 
     ResourceHeaderAgnostic ToAgnostic(SCIVersion version, ResourceSourceFlags sourceFlags, int packageHint)
     {
         ResourceHeaderAgnostic agnostic;
         agnostic.Type = (ResourceType)(bType - 0x80);
-        agnostic.cbCompressed = cbCompressed - ((version.PackageFormat == ResourcePackageFormat::SCI11) ? 0 : 4);
+        agnostic.cbCompressed = cbCompressed - (DoesPackageFormatIncludeHeaderInCompressedSize(version) ? 4 : 0);
         agnostic.cbDecompressed = cbDecompressed;
         agnostic.Number = iNumber;
         agnostic.CompressionMethod = iMethod;
@@ -283,11 +286,22 @@ struct RESOURCEHEADER_SCI1
     {
         bType = (uint8_t)agnostic.Type + 0x80;
         iNumber = agnostic.Number;
-        cbDecompressed = (uint16_t)agnostic.cbDecompressed;
-        cbCompressed = (uint16_t)agnostic.cbCompressed + ((agnostic.Version.PackageFormat == ResourcePackageFormat::SCI11) ? 0 : 4);
+        cbDecompressed = (_TDataSizeSize)agnostic.cbDecompressed;
+        cbCompressed = (_TDataSizeSize)agnostic.cbCompressed + ((DoesPackageFormatIncludeHeaderInCompressedSize(agnostic.Version)) ? 4 : 0);
         iMethod = agnostic.CompressionMethod;
     }
 };
+
+struct RESOURCEHEADER_SCI1 : public RESOURCEHEADERBASE<uint16_t>
+{
+
+};
+
+struct RESOURCEHEADER_SCI2 : public RESOURCEHEADERBASE<uint32_t>
+{
+
+};
+
 
 #include <poppack.h>
 
@@ -400,8 +414,8 @@ public:
     HRESULT SaveToFile(const std::string &strFileName) const;
     int GetEncoding() const { return header.CompressionMethod; }
     std::string GetEncodingString() const;
-    const uint8_t *GetData() const { return &_pData[0]; }
-    const uint8_t *GetDataCompressed() const { return &_pDataCompressed[0]; } // WARNING: this can be NULL!
+    const uint8_t *GetData() const;
+    const uint8_t *GetDataCompressed() const; // WARNING: this can be nullptr!
     int GetLength() const { return header.cbDecompressed; }
     std::string GetName() const { return _strName; }
     void SetName(PCTSTR pszName) { _SetName(pszName); }

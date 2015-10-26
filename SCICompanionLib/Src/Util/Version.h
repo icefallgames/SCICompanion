@@ -28,6 +28,7 @@ enum class ResourcePackageFormat : uint8_t
     SCI0 = 0,
     SCI1 = 1,
     SCI11 = 2,
+    SCI2 = 3,
 };
 
 enum class SoundFormat : uint8_t

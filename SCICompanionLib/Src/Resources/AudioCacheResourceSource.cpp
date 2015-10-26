@@ -595,8 +595,11 @@ void RebuildFromResources(SCIVersion version, const std::string &gameFolder, Aud
             }
             newEntries.push_back(entry);
 
-            writeStream.write(reinterpret_cast<const char *>(blob.GetData()), blob.GetDecompressedLength());
-            // TODO transfer data
+            // Transfer data
+            if (blob.GetDecompressedLength() > 0)
+            {
+                writeStream.write(reinterpret_cast<const char *>(blob.GetData()), blob.GetDecompressedLength());
+            }
             blob.GetReadStream();
         }
         // else leave it out

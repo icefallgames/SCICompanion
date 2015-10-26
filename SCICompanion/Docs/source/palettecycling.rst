@@ -59,5 +59,64 @@ And obtain a result like this:
 .. image:: /images/LogoCycle.gif
 
 
+An example using overlay
+=========================
+
+Let's go through another example of how something like the following scene from Quest For Glory 1 (VGA remake) might work.
+
+.. image:: /images/Waterfall.gif
+
+If we inspect the decompiled code, we see that there are three palette cycling regions, 232-239, 240-247, and 248-254:
+
+..
+
+    Palette(palANIMATE 232 239 -1 240 247 -1 248 254 -1)
+
+These roughly correspond to the three different shades (light, medium, and dark) of the waterfall and lake. 
+Let's just briefly visualize the three ranges of indices that cycle separately. They are highlighted in red, yellow and blue in this image:
+
+.. image:: /images/PC2_Visualization.png
 
 
+So suppose we now
+start with some artwork like this:
+
+.. figure:: /images/PC2_Base.jpg
+
+    The base scene.
+
+We create a new pic in |scicomp|, and set this image as the background. However, we want to reserve space in the palette for
+the ranges that cycle. So instead of using the default range of 64-254, we'll tell the import background dialog to just
+use color indices in the range 64-231:
+
+.. image:: /images/PC2_Import.jpg
+
+Next, after this image is set as the background, we'll want to define A-B white-to-black gradients for the three palette ranges we want to cycle.
+Open the Palette Editor, select each range, and click on the Gradient button to set the gradient. That would look like this:
+
+.. image:: /images/PC2_DefineGradient.jpg
+
+Now comes the *artistic* part. The artist needs to produce images that are mostly transparent, except for the regions of the
+image we want to cycle: one image for each of the three palette cycling ranges in this example.
+Let's take the example of the cycling pixels in dark area of the waterfall.
+For those pixels there should be white-to-black gradients which will essentially define the direction that the water appears to move.
+
+.. figure:: /images/PC2_ZoomIn.png
+
+    A zoomed in view of the pixels in the image that we want to cycle.
+
+Next, import this into the pic background in |scicomp|, except we'll want to **overlay** this mostly-transparent image. This looks like the following:
+
+.. figure:: /images/PC2_ImportOverlay.jpg
+
+    The source image is on the left (magenta parts are transparent). The **overlay** checkbox is checked, we **Map to current palette**, and we select the appropriate palette range, in this case 248-254.
+
+Click **Accept**, and the waterfall streaks will be overlaid on the current background. What you've basically done is associate the
+streaks of water in the waterfall with increasing palette indices. So now, you can open the Palette Editor and replace the white-to-black
+gradient for 248-254 with an A-B-A gradient of the desired colors (or whatever custom color sequence you want):
+
+.. image:: /images/PC2_SetRange.jpg
+
+Finally, repeat the last few steps for the remaining two color ranges, and this will produce the final result:
+
+.. image:: /images/Waterfall.gif

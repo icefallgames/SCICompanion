@@ -25,6 +25,28 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
+bool DoesPackageFormatIncludeHeaderInCompressedSize(SCIVersion version)
+{
+    return version.PackageFormat != ResourcePackageFormat::SCI11 && version.PackageFormat != ResourcePackageFormat::SCI2;
+}
+
+const uint8_t *ResourceBlob::GetData() const
+{
+    if (_pData.empty())
+    {
+        return nullptr;
+    }
+    return &_pData[0];
+}
+
+const uint8_t *ResourceBlob::GetDataCompressed() const
+{
+    if (_pDataCompressed.empty())
+    {
+        return nullptr;
+    }
+    return &_pDataCompressed[0];
+}
 
 bool IsValidResourceName(PCTSTR pszName)
 {
@@ -195,6 +217,8 @@ DecompressionAlgorithm VersionAndCompressionNumberToAlgorithm(SCIVersion version
     case 19:
     case 20:
         return DecompressionAlgorithm::DCL;
+    case 32:
+        return DecompressionAlgorithm::STACpack;
     }
     return DecompressionAlgorithm::Unknown;
 }
@@ -233,6 +257,8 @@ std::string ResourceBlob::GetEncodingString() const
         return "LZW_Pic";
     case DecompressionAlgorithm::DCL:
         return "DCL";
+    case DecompressionAlgorithm::STACpack:
+        return "STAC";
     }
     return "Unknown";
 }
@@ -299,6 +325,7 @@ void ResourceBlob::_DecompressFromBits(sci::istream &byteStream)
                         reorderPic(&pTemp[0], &_pData[0], header.cbDecompressed);
                     }
                 }
+
                 break;
                 case DecompressionAlgorithm::DCL:
                     iResult =
@@ -306,6 +333,11 @@ void ResourceBlob::_DecompressFromBits(sci::istream &byteStream)
                         0 : -1;
                     break;
 
+                case DecompressionAlgorithm::STACpack:
+                    iResult =
+                        decompressLZS(&_pData[0], &_pDataCompressed[0], header.cbDecompressed, cbCompressedRemaining) ?
+                        0 : -1;
+                    break;
             }
         }
 

@@ -16,6 +16,7 @@
 #include "PrepareBitmapBase.h"
 #include "PaletteOperations.h"
 #include "ImageUtil.h"
+#include "format.h"
 
 using namespace std;
 using namespace Gdiplus;
@@ -355,6 +356,8 @@ void PrepareBitmapBase::_OnBrowse(CWnd *pwnd)
         unique_ptr<Gdiplus::Bitmap> pImage;
         IStream *imageStream = nullptr;
 
+        Gdiplus::Status status = Ok;
+
         OSVERSIONINFO versionInfo = { 0 };
         versionInfo.dwOSVersionInfoSize = sizeof(versionInfo);
         GetVersionEx(&versionInfo);
@@ -376,6 +379,7 @@ void PrepareBitmapBase::_OnBrowse(CWnd *pwnd)
                         LARGE_INTEGER li = { 0 };
                         imageStream->Seek(li, STREAM_SEEK_SET, nullptr);
                         pImage.reset(Bitmap::FromStream(imageStream));
+                        status = pImage->GetLastStatus();
                     }
                 }
             }
@@ -392,13 +396,18 @@ void PrepareBitmapBase::_OnBrowse(CWnd *pwnd)
             BSTR unicodestr = SysAllocStringLen(nullptr, a);
             MultiByteToWideChar(CP_ACP, 0, strFileName, a, unicodestr, a);
             pImage.reset(Bitmap::FromFile(unicodestr, TRUE));
-
+            status = pImage->GetLastStatus();
             //... when done, free the BSTR
             SysFreeString(unicodestr);
         }
 
         if (pImage)
         {
+            if (status != Gdiplus::Ok)
+            {
+                AfxMessageBox(fmt::format("Error opening {0}: {1}", (PCSTR)strFileName, GetGdiplusStatusString(status)).c_str(), MB_OK | MB_ICONERROR);
+            }
+
             if (_Init(move(pImage), imageStream, pwnd))
             {
                 _UpdateOrigBitmap(pwnd);

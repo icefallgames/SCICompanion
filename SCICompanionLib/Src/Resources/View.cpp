@@ -655,7 +655,8 @@ void ReadCelFromVGA11(sci::istream &byteStream, Cel &cel, bool isPic)
     }
     else
     {
-        assert(celHeader.offsetRLE && !celHeader.offsetLiteral);
+        // This hits in SCI2.
+        //assert(celHeader.offsetRLE && !celHeader.offsetLiteral);
     }
 
     cel.size = celHeader.size;

@@ -215,12 +215,20 @@ EGA pic palettes
 .. IMPORTANT::
     This section applies to SCI0 only
 
-In EGA pics, you draw on the visual screen with one of 40 "colors",
-each one of which is composed of two of the 16 EGA colours. There are 4 palettes of 40 colours.
-A pic may be drawn by the game in any palette you choose. Using different palettes can be useful if you
+EGA pics support a fixed palette of 16 colors. However, dithering can be used to mix any two colors together.
+So the visual screen of EGA pics is actually drawn with a 40 color, customizable palette.
+
+.. figure:: /images/Dither.png
+
+    Hero's Quest used dithering extensively.
+
+Each pic can have up to 4 palettes of 40 colours, which can be switched during gameplay.
+Using different EGA palettes can be useful if you
 need the same pic resource to be used for both day and night scenes, for instance.
 
-.. image:: /images/PaletteChooser.png
+.. figure:: /images/PaletteChooser.png
+
+    The 16 natural EGA colors on the bottom, and the 40 customizable dithered colors on top.
 
 The palettes are chosen using the palette button |palette| in the toolbar.
 This brings up a dialog where you can assign colours to each of the 40 positions of each palette by right
@@ -297,7 +305,8 @@ from palette 999 are used. This is generally what is desired for pic backgrounds
 If you want to customize which indices are used, you can check or uncheck the *Only use x free palette entries* checkbox to quickly control which palette indices are used, or you can manually
 select them in the palette and press the refresh button.
 
-There is also an option to overlay an image onto an already existing background (this can be a very useful feature), in addition to all the same dithering options available in the :ref:`Import Image <importimages-label>` dialog.
+There is also an option to overlay an image onto an already existing background (this can be useful for things like :doc:`palette cycling <palettecycling>`),
+in addition to all the same dithering options available in the :ref:`Import Image <importimages-label>` dialog.
 
 
 Editing a VGA pic palette

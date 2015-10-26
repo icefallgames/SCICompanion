@@ -10,13 +10,15 @@ enum class DecompressionAlgorithm
     LZW1,
     LZW_View,
     LZW_Pic,
-    DCL
+    DCL,
+    STACpack
 };
 
 int decompressHuffman(BYTE* dest, BYTE* src, int length, int complength);
 int decompressLZW_1(BYTE *dest, BYTE *src, int length, int complength);
 int decompressLZW(BYTE *dest, BYTE *src, int length, int complength);
 bool decompressDCL(byte *dest, byte *src, uint32_t unpackedSize, uint32_t packedSize);
+bool decompressLZS(byte *dest, byte *src, uint32_t unpackedSize, uint32_t packedSize);
 int decrypt4(byte* dest, byte* src, int length, int complength);
 
 /*** INITIALIZATION RESULT TYPES ***/

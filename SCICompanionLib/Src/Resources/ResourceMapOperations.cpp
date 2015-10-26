@@ -36,7 +36,14 @@ std::unique_ptr<ResourceSource> _CreateResourceSource(const std::string &gameFol
     }
     else if (version.MapFormat == ResourceMapFormat::SCI1)
     {
-        return std::make_unique<MapAndPackageSource<SCI1MapNavigator<RESOURCEMAPENTRY_SCI1>, _TFileDescriptor>>(version, MakeResourceHeaderReadWriter<RESOURCEHEADER_SCI1>(), gameFolder);
+        if (version.PackageFormat == ResourcePackageFormat::SCI2)
+        {
+            return std::make_unique<MapAndPackageSource<SCI1MapNavigator<RESOURCEMAPENTRY_SCI1>, _TFileDescriptor>>(version, MakeResourceHeaderReadWriter<RESOURCEHEADER_SCI2>(), gameFolder);
+        }
+        else
+        {
+            return std::make_unique<MapAndPackageSource<SCI1MapNavigator<RESOURCEMAPENTRY_SCI1>, _TFileDescriptor>>(version, MakeResourceHeaderReadWriter<RESOURCEHEADER_SCI1>(), gameFolder);
+        }
     }
     else if (version.MapFormat == ResourceMapFormat::SCI11)
     {
@@ -135,7 +142,7 @@ void DeleteResource(CResourceMap &resourceMap, const ResourceBlob &data)
                         }
                         if (volumeStream.getBytesRemaining() >= dataLength)
                         {
-                            if (0 == memcmp(data1, data2, header.cbCompressed))
+                            if (data1 && data2 && (0 == memcmp(data1, data2, header.cbCompressed)))
                             {
                                 // Finally yes, they are identical. We know which one to remove.
                                 mapEntryToRemove = std::make_unique<ResourceMapEntryAgnostic>(mapEntry);

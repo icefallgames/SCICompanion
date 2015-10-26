@@ -578,6 +578,7 @@
 #define IDC_CHECK_FOLLOWVIEW            1228
 #define IDC_RADIOSCI0_1                 1228
 #define IDC_STATICFINAL                 1229
+#define IDC_RADIOSCI10                  1229
 #define IDC_CHECKV2                     1230
 #define IDC_EXTRACT                     1230
 #define IDC_CHECKP2                     1231

@@ -779,12 +779,15 @@ ScopedFile::ScopedFile(const std::string &filename, DWORD desiredAccess, DWORD s
 
 void ScopedFile::Write(const uint8_t *data, uint32_t length)
 {
-    DWORD cbWritten;
-    if (!WriteFile(hFile, data, length, &cbWritten, nullptr) || (cbWritten != length))
+    DWORD cbWritten = 0;
+    if (length > 0)
     {
-        std::string details = "Writing to ";
-        details += filename;
-        throw std::exception(GetMessageFromLastError(details).c_str());
+        if (!WriteFile(hFile, data, length, &cbWritten, nullptr) || (cbWritten != length))
+        {
+            std::string details = "Writing to ";
+            details += filename;
+            throw std::exception(GetMessageFromLastError(details).c_str());
+        }
     }
 }
 

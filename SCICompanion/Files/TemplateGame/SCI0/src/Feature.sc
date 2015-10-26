@@ -326,7 +326,10 @@
 		)
 	)
 )
-/******************************************************************************/
+
+/**
+    The Act class is for actors in the game. These are the characters which bring your game to life.
+ */
 (class Act of Prop
 	(properties
 		y 0

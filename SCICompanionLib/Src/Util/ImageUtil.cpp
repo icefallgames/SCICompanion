@@ -685,3 +685,40 @@ void CutoutAlpha(DitherAlgorithm ditherAlgorithm, RGBQUAD *data, int cx, int cy,
             break;
     }
 }
+
+std::vector<std::string> g_gdiplusStatuses =
+{
+    "Ok",
+    "GenericError",
+    "InvalidParameter",
+    "OutOfMemory",
+    "ObjectBusy",
+    "InsufficientBuffer",
+    "NotImplemented",
+    "Win32Error",
+    "WrongState",
+    "Aborted",
+    "FileNotFound",
+    "ValueOverflow",
+    "AccessDenied",
+    "UnknownImageFormat",
+    "FontFamilyNotFound",
+    "FontStyleNotFound",
+    "NotTrueTypeFont",
+    "UnsupportedGdiplusVersion",
+    "GdiplusNotInitialized",
+    "PropertyNotFound",
+    "PropertyNotSupported"
+};
+
+
+std::string GetGdiplusStatusString(Gdiplus::Status status)
+{
+    std::string error;
+    size_t index = (size_t)status;
+    if (index < g_gdiplusStatuses.size())
+    {
+        error = g_gdiplusStatuses[index];
+    }
+    return error;
+}

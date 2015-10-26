@@ -1,110 +1,21 @@
 #include "stdafx.h"
 #include "Codec.h"
 #include "AppState.h"
+#include "CodecDecompressor.h"
 
 void debug(int number, PCTSTR pszMessage, ...)
 {
 
 }
 
-class ReadStream
-{
-public:
-    ReadStream(byte *data) : _data(data), _index(0) {}
-
-    byte readByte()
-    {
-        return _data[_index++];
-    }
-
-private:
-    int _index;
-    byte *_data;
-};
-
-class DecompressorDCL {
+class DecompressorDCL : public Decompressor {
 public:
     bool unpack(ReadStream *src, byte *dest, uint32_t nPacked, uint32_t nUnpacked);
 
 protected:
-    /**
-    * Initialize decompressor.
-    * @param src		source stream to read from
-    * @param dest		destination stream to write to
-    * @param nPacked	size of packed data
-    * @param nUnpacked	size of unpacked data
-    */
-    void init(ReadStream *src, byte *dest, uint32_t nPacked, uint32_t nUnpacked);
-
-    /**
-    * Get a number of bits from _src stream, starting with the least
-    * significant unread bit of the current four byte block.
-    * @param n		number of bits to get
-    * @return n-bits number
-    */
-    uint32_t getBitsLSB(int n);
-
-    /**
-    * Get one byte from _src stream.
-    * @return byte
-    */
-    byte getByteLSB();
-
-    void fetchBitsLSB();
-
-    /**
-    * Write one byte into _dest stream
-    * @param b byte to put
-    */
-    void putByte(byte b);
 
     int huffman_lookup(const int *tree);
-
-    uint32_t _dwBits;		///< bits buffer
-    byte _nBits;		///< number of unread bits in _dwBits
-    uint32_t _szPacked;	///< size of the compressed data
-    uint32_t _szUnpacked;	///< size of the decompressed data
-    uint32_t _dwRead;		///< number of bytes read from _src
-    uint32_t _dwWrote;	///< number of bytes written to _dest
-    ReadStream *_src;
-    byte *_dest;
 };
-
-void DecompressorDCL::init(ReadStream *src, byte *dest, uint32_t nPacked, uint32_t nUnpacked) {
-    _src = src;
-    _dest = dest;
-    _szPacked = nPacked;
-    _szUnpacked = nUnpacked;
-    _nBits = 0;
-    _dwRead = _dwWrote = 0;
-    _dwBits = 0;
-}
-
-void DecompressorDCL::fetchBitsLSB() {
-    while (_nBits <= 24) {
-        _dwBits |= ((uint32_t)_src->readByte()) << _nBits;
-        _nBits += 8;
-        _dwRead++;
-    }
-}
-
-uint32_t DecompressorDCL::getBitsLSB(int n) {
-    // fetching more data to buffer if needed
-    if (_nBits < n)
-        fetchBitsLSB();
-    uint32_t ret = (_dwBits & ~((~0) << n));
-    _dwBits >>= n;
-    _nBits -= n;
-    return ret;
-}
-
-byte DecompressorDCL::getByteLSB() {
-    return getBitsLSB(8);
-}
-
-void DecompressorDCL::putByte(byte b) {
-    _dest[_dwWrote++] = b;
-}
 
 #define HUFFMAN_LEAF 0x40000000
 // Branch node

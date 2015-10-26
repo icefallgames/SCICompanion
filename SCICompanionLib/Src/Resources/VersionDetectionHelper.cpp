@@ -117,12 +117,10 @@ ResourcePackageFormat CResourceMap::_DetectPackageFormat()
                 }
                 else
                 {
-                    // Nothing more to try. This is a bit of a defence mechanism, but
-                    // if the resource map format is SCI0, then assume the packge format is too, and it is just corrupted.
-                    // This seems reasonable, since we only support editing SCI0 currently.
-                    if (_gameFolderHelper.Version.MapFormat == ResourceMapFormat::SCI0)
+                    if (_gameFolderHelper.Version.MapFormat != ResourceMapFormat::SCI0)
                     {
-                        packageFormat = ResourcePackageFormat::SCI0;
+                        // Even though this is not supported yet...
+                        packageFormat = ResourcePackageFormat::SCI2;
                     }
                     break;
                 }
