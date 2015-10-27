@@ -589,7 +589,8 @@ void VariableOperand(CompileContext &context, WORD wIndex, BYTE bOpcode, const S
     // The SCI interpreter doesn't crash instanly if you access these out of bounds, so I think it may
     // silently corrupt.
     bOpcode |= 0x40; // bit6 is always 1  (bit 7 in the final result)
-    context.code().inst(static_cast<Opcode>(bOpcode), wIndex);
+    
+    context.code().inst(RawToOpcode(context.GetVersion(), bOpcode), wIndex);
 }
 
 void LoadEffectiveAddress(CompileContext &context, WORD wIndex, BYTE bVarType, const SingleStatement *pIndexer)
@@ -2763,14 +2764,8 @@ CodeResult Asm::OutputByteCode(CompileContext &context) const
 {
     // TODO: Prescan needs to track label
     // Look up the instruction.
-    Opcode opcode = Opcode::INDETERMINATE;
-    for (int i = 0; i < ARRAYSIZE(OpcodeNames); i++)
-    {
-        if (OpcodeNames[i] == _innerName)
-        {
-            opcode = (Opcode)i;
-        }
-    }
+    Opcode opcode = NameToOpcode(_innerName);
+
     if (opcode == Opcode::INDETERMINATE)
     {
         context.ReportError(this, "Unknown instruction '%s'", _innerName.c_str());

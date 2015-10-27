@@ -139,8 +139,8 @@ const BYTE *_ConvertToInstructions(DecompileLookups &lookups, std::list<scii> &c
         const BYTE *pThisInstruction = pCur;
         BYTE bRawOpcode = *pCur;
         bool bByte = (*pCur) & 1;
-        Opcode bOpcode = static_cast<Opcode>(bRawOpcode >> 1);
-        ASSERT(bOpcode <= Opcode::LastOne);
+        Opcode bOpcode = RawToOpcode(sciVersion, bRawOpcode);
+        assert(bOpcode <= Opcode::LastOne);
         ++pCur; // Advance past opcode.
         WORD wOperands[3];
         ZeroMemory(wOperands, sizeof(wOperands));
@@ -533,13 +533,14 @@ Consumption _GetInstructionConsumption(scii &inst, DecompileLookups *lookups)
         fPutsOnStack = true;
         break;
 
-    case Opcode::DEBUGINFO:
+    case Opcode::LineNumber:
+    case Opcode::Filename:
         // SCI2+ only.
         // File and line number info. Doesn't do anything.
         break;
 
     default:
-        assert((bOpcode >= Opcode::LAG) && (bOpcode <= Opcode::LastOne));
+        assert((bOpcode >= Opcode::FirstLoadStore) && (bOpcode <= Opcode::LastLoadStore));
         // TODO: use our defines/consts
         if (_IsVOStoreOperation(bOpcode))
         {
@@ -986,7 +987,7 @@ void _DetermineIfFunctionReturnsValue(std::list<scii> code, DecompileLookups &lo
                     break;
 
                 default:
-                    if ((opcode >= Opcode::LAG) && (opcode <= Opcode::LastOne))
+                    if ((opcode >= Opcode::LAG) && (opcode <= Opcode::LastLoadStore))
                     {
                         if (!_IsVOStoreOperation(opcode) && !_IsVOPureStack(opcode))
                         {
@@ -1044,7 +1045,7 @@ void _TrackExternalScriptUsage(std::list<scii> code, DecompileLookups &lookups)
 
             default:
             {
-                if ((opcode >= Opcode::LAG) && (opcode <= Opcode::LastOne))
+                if ((opcode >= Opcode::FirstLoadStore) && (opcode <= Opcode::LastLoadStore))
                 {
                     VarScope scope;
                     _GetVariableNameFromCodePos(*cur, lookups, &scope);

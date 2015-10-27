@@ -24,22 +24,6 @@
 using namespace sci;
 using namespace std;
 
-unordered_set<string> opcodeSet;
-unordered_set<string> &GetOpcodeSet()
-{
-    if (opcodeSet.empty())
-    {
-        opcodeSet.insert(OpcodeNames, OpcodeNames + ARRAYSIZE(OpcodeNames));
-    }
-    return opcodeSet;
-}
-
-bool IsOpcode(const std::string &theString)
-{
-    GetOpcodeSet();
-    return opcodeSet.find(theString) != opcodeSet.end();
-}
-
 const char *g_keywords[4] =
 {
     "if",

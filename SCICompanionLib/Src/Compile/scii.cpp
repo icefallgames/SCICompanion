@@ -13,20 +13,9 @@
 ***************************************************************************/
 #include "stdafx.h"
 #include "scii.h"
+#include "PMachine.h"
 
 #include <numeric>
-
-OperandType *GetOperandTypes(const SCIVersion &version, Opcode opcode)
-{
-    if (version.PackageFormat == ResourcePackageFormat::SCI2)
-    {
-        return OpArgTypes_SCI2[static_cast<BYTE>(opcode)];
-    }
-    else
-    {
-        return OpArgTypes_SCI0[static_cast<BYTE>(opcode)];
-    }
-}
 
 // Instructions that pop from the stack, and how many frames they pop
 int scii::is_stackpop_op()
@@ -151,15 +140,15 @@ bool scii::is_acc_op()
 
 uint16_t scii::GetInstructionSize(const SCIVersion &version, uint8_t rawOpcode)
 {
-    Opcode opcode = (Opcode)(rawOpcode >> 1);
+    Opcode opcode = RawToOpcode(version, rawOpcode);
     return _get_instruction_size(version, opcode, (rawOpcode & 1) ? Byte : Word);
 }
 
-WORD scii::_get_instruction_size(const SCIVersion &version, Opcode bOpcode, OPSIZE opSize)
+uint16_t scii::_get_instruction_size(const SCIVersion &version, Opcode bOpcode, OPSIZE opSize)
 {
-    ASSERT(opSize != Undefined);
-    OperandType *argTypes = ::GetOperandTypes(version, bOpcode);
-    WORD wSize = 1; // for the opcode
+    assert(opSize != Undefined);
+    const OperandType *argTypes = ::GetOperandTypes(version, bOpcode);
+    uint16_t wSize = 1; // for the opcode
     bool fDone = false;
     for (int i = 0; !fDone && i < 3; i++)
     {
@@ -197,10 +186,10 @@ WORD scii::_get_instruction_size(const SCIVersion &version, Opcode bOpcode, OPSI
 }
 
 
-WORD scii::size()
+uint16_t scii::size()
 {
-    ASSERT(_opSize != Undefined);
-    ASSERT(_wSize > 0);
+    assert(_opSize != Undefined);
+    assert(_wSize > 0);
     return _wSize;
 }
 
@@ -210,9 +199,9 @@ WORD scii::size()
 // this is a forward or backward branch.  However, that's hard to determine.
 // Backward jumps return negative numbers.
 //
-WORD distance(const SCIVersion &version, code_pos from, code_pos to, bool fForward, int *pfNeedToRedo)
+uint16_t distance(const SCIVersion &version, code_pos from, code_pos to, bool fForward, int *pfNeedToRedo)
 {
-    WORD wCodeDistance = 0;
+    uint16_t wCodeDistance = 0;
     int iDebug = 0;
     while (iDebug < 100 && (from != to))
     {
@@ -221,25 +210,25 @@ WORD distance(const SCIVersion &version, code_pos from, code_pos to, bool fForwa
     }
     if (!fForward)
     {
-        ASSERT(wCodeDistance > 0);
+        assert(wCodeDistance > 0);
         wCodeDistance = (~wCodeDistance) + 1; // 2's complement
     }
     return wCodeDistance;
 }
 
-OperandType *scii::GetOperandTypes()
+const OperandType *scii::GetOperandTypes() const
 {
     return ::GetOperandTypes(*_version, _bOpcode);
 }
 
 void scii::set_final_branch_operands(code_pos self)
 {
-    ASSERT(_opSize != Undefined);
-    ASSERT(_fUndetermined == false);
+    assert(_opSize != Undefined);
+    assert(_fUndetermined == false);
     if (_is_label_instruction())
     {
         assert(GetOperandTypes()[0] == otLABEL);
-        WORD wCodeDistance = 0;
+        uint16_t wCodeDistance = 0;
         int fRedoDummy = 0;
         if (_fForwardBranch)
         {
@@ -255,16 +244,16 @@ void scii::set_final_branch_operands(code_pos self)
             self++; // We're jumping back from *after* our current pos (reverse jmps are a little longer than fwds)
             _wOperands[0] = distance(*_version, _itOffset, self, _fForwardBranch, &fRedoDummy);
         }
-        ASSERT(!fRedoDummy);
+        assert(!fRedoDummy);
     }
 }
 
-WORD scii::calc_size(code_pos self, int *pfNeedToRedo)
+uint16_t scii::calc_size(code_pos self, int *pfNeedToRedo)
 {
-    ASSERT(_fUndetermined == false); // Better not have any undertermined branches
+    assert(_fUndetermined == false); // Better not have any undertermined branches
     if (_opSize == Undefined)
     {
-		OperandType *argTypes = GetOperandTypes();
+		const OperandType *argTypes = GetOperandTypes();
         bool fDone = false;
         OPSIZE opSizeCalculated = _fForceWord ? Word : Byte; // Optimistic - unless we already tried this.
         if (_is_label_instruction())
@@ -322,7 +311,7 @@ WORD scii::calc_size(code_pos self, int *pfNeedToRedo)
                     {
                         encounteredVariableSizeOperand = true;
                         assert(_is_label_instruction());
-                        WORD wCodeDistance = 0;
+                        uint16_t wCodeDistance = 0;
                         if (_fForwardBranch)
                         {
                             // Forward...
@@ -393,15 +382,12 @@ WORD scii::calc_size(code_pos self, int *pfNeedToRedo)
 
 
 
-void push_wordIt(std::vector<BYTE> &output, WORD w)
+void push_wordIt(std::vector<BYTE> &output, uint16_t w)
 {
     // big-endian
     output.push_back(w & 0xff);
     output.push_back(w >> 8);
 }
-
-#define WORD_OP(x) ((x)<<1)
-#define BYTE_OP(x) (((x)<<1) | 1)
 
 //
 // LOFSA and LOFSS instructions:
@@ -413,12 +399,11 @@ void push_wordIt(std::vector<BYTE> &output, WORD w)
 
 void scii::output_code(std::vector<BYTE> &output)
 {
-    _wFinalOffset = (WORD)output.size();
-    ASSERT(_bOpcode != Opcode::INDETERMINATE); // Any invalid instructions must be replaced before writing the code.
-	BYTE bOpcodeTemp = static_cast<BYTE>(_bOpcode);
-	output.push_back((_opSize == Byte) ? BYTE_OP(bOpcodeTemp) : WORD_OP(bOpcodeTemp));
+    _wFinalOffset = (uint16_t)output.size();
+    assert(_bOpcode != Opcode::INDETERMINATE); // Any invalid instructions must be replaced before writing the code.
+    output.push_back(OpcodeToRaw(*_version, _bOpcode, (_opSize != Byte)));
     bool fDone = false;
-	OperandType *argTypes = GetOperandTypes();
+	const OperandType *argTypes = GetOperandTypes();
     for (int i = 0; !fDone && i < 3; i++)
     {
         // Treat everything as signed...
@@ -453,14 +438,14 @@ void scii::output_code(std::vector<BYTE> &output)
             break;
         }
     
-        WORD wOperand = _wOperands[i];
+        uint16_t wOperand = _wOperands[i];
         if (argTypes[i] == otOFFS)
         {
             // Turn the absolute offset into a relative offset.
             assert(_opSize == Word); // For now...
             // This will be an absolute index.  We need to turn it into a relative one.
-            WORD wTo = _wOperands[i];
-            WORD wFrom = _wFinalOffset + _wSize; // post instruction PC
+            uint16_t wTo = _wOperands[i];
+            uint16_t wFrom = _wFinalOffset + _wSize; // post instruction PC
             wOperand = wTo - wFrom;
         }
 
@@ -469,7 +454,7 @@ void scii::output_code(std::vector<BYTE> &output)
             if (bByte)
             {
                 // Temporarily commented this out since we aren't resolving jmps properly yet.
-                //ASSERT(_wOperands[i] < 128);
+                //assert(_wOperands[i] < 128);
                 output.push_back((BYTE)wOperand);
             }
             else
@@ -482,9 +467,9 @@ void scii::output_code(std::vector<BYTE> &output)
 
 
 //
-// The size of the entire piece of code, guaranteed to return something with a WORD boundary.
+// The size of the entire piece of code, guaranteed to return something with a uint16_t boundary.
 //
-WORD scicode::calc_size()
+uint16_t scicode::calc_size()
 {
     for(scii &instruction : _code)
     {
@@ -496,7 +481,7 @@ WORD scicode::calc_size()
         }
     }
 
-    WORD wDistance = 0;
+    uint16_t wDistance = 0;
     int fNeedToRedo = false;
     do
     {
@@ -524,9 +509,9 @@ WORD scicode::calc_size()
     return wDistance;
 }
 
-WORD scicode::offset_of(code_pos target)
+uint16_t scicode::offset_of(code_pos target)
 {
-    WORD wDistance = 0;
+    uint16_t wDistance = 0;
     code_pos curPos = _code.begin();
     while (curPos != target)
     {
@@ -549,7 +534,7 @@ void scicode::write_code(std::vector<BYTE> &output)
 //
 // Go through the code, and for any LOFSS or LOFSA instruction, resolve its index.
 //
-void scicode::fixup_offsets(const std::unordered_map<WORD, WORD> &fixups)
+void scicode::fixup_offsets(const std::unordered_map<uint16_t, uint16_t> &fixups)
 {
     for(scii &instruction : _code)
     {
@@ -678,7 +663,7 @@ bool scicode::_areAllPriorInstructionsReturns(const fixup_todos &todos)
     for(code_pos pos : todos)
     {
         code_pos preceding = pos;
-        ASSERT(pos != _code.begin()); // Otherwise we deref invalid memory (we should never start a fnc with a branch instruction)
+        assert(pos != _code.begin()); // Otherwise we deref invalid memory (we should never start a fnc with a branch instruction)
         --preceding;
         if (preceding->get_opcode() != Opcode::RET)
         {
@@ -733,6 +718,137 @@ bool scicode::has_dangling_branches(bool &fAllBranchesPrecededByReturns)
     }
     return fDangle;
 }
+
+
+scii::scii(const SCIVersion &version, Opcode bOpcode) : scii(version, bOpcode, (uint16_t)0xffff) {}
+
+scii::scii(const SCIVersion &version, Opcode bOpcode, uint16_t w1) : scii(version, bOpcode, w1, (uint16_t)0xffff) {}
+
+scii::scii(const SCIVersion &version, Opcode bOpcode, uint16_t w1, uint16_t w2) : scii(version, bOpcode, w1, w2, (uint16_t)0xffff) {}
+
+scii::scii(const SCIVersion &version, Opcode bOpcode, uint16_t w1, uint16_t w2, uint16_t w3) : _version(&version)
+{
+    _opSize = Undefined;
+    _wSize = 0;
+    _fForceWord = false;
+    _fUndetermined = false;
+    _bOpcode = bOpcode;
+    assert(_bOpcode <= Opcode::LastOne);
+    _wOperands[0] = w1;
+    _wOperands[1] = w2;
+    _wOperands[2] = w3;
+    _wFinalOffset = 0xffff;
+    assert(!_is_branch_instruction());
+#ifdef DEBUG
+    _pDebug = 0;
+#endif
+}
+
+scii::scii(const SCIVersion &version, Opcode bOpcode, _code_pos branch, bool fUndetermined) : _version(&version)
+{
+    _opSize = Undefined;
+    _wSize = 0;
+    _fForceWord = false;
+    _fUndetermined = fUndetermined;
+    _bOpcode = bOpcode;
+    assert(_bOpcode <= Opcode::LastOne);
+    _itOffset = branch;
+    // Assume a backward branch for now...
+    // (if branch is .end(), then we'll need to fix it up later anyhow, via set_branch_target)
+    _fForwardBranch = false;
+    _wFinalOffset = 0xffff;
+#ifdef DEBUG
+    _pDebug = 0;
+#endif
+}
+
+void scii::reset_size() { _wSize = 0; _opSize = Undefined; }
+
+void scii::set_branch_target(_code_pos offset, bool fForward)
+{
+    _itOffset = offset;
+    _fForwardBranch = fForward;
+    _fUndetermined = false;
+    assert(_is_label_instruction());
+}
+
+bool scii::is_forward_branch()
+{
+    return _fForwardBranch;
+}
+
+scii::_code_pos scii::get_branch_target()
+{
+    assert(_is_label_instruction());
+    return _itOffset;
+}
+
+void scii::absolute_offset(uint16_t wAbsolute)
+{
+    assert((_bOpcode == Opcode::LOFSS) || (_bOpcode == Opcode::LOFSA) || (_bOpcode == Opcode::CALL));
+    // This is the absolute offset to a string or said (not yet the relative one, but it's progress)
+    _wOperands[0] = wAbsolute;
+    // When we actually write the instruction to a stream, we'll need to diff the current location
+    // with this one, and write the relative offset.
+}
+
+void scii::update_first_operand(uint16_t wValue)
+{
+    _wOperands[0] = wValue;
+}
+void scii::update_second_operand(uint16_t wValue)
+{
+    _wOperands[1] = wValue;
+}
+uint16_t scii::get_operand(int i)  const { assert(GetOperandTypes()[i] != otEMPTY); return _wOperands[i]; }
+uint16_t scii::get_first_operand() const
+{
+    return _wOperands[0];
+}
+uint16_t scii::get_second_operand() const
+{
+    return _wOperands[1];
+}
+uint16_t scii::get_third_operand() const
+{
+    return _wOperands[2];
+}
+
+Opcode scii::get_opcode() const { return _bOpcode; }
+Opcode scii::set_opcode(Opcode opcode) { return _bOpcode = opcode; }
+
+// Get the final offset at which the instruction was written.
+uint16_t scii::get_final_offset() const  { assert(_wFinalOffset != 0xffff); return _wFinalOffset; }
+uint16_t scii::get_final_postop_offset() const { return get_final_offset() + _wSize; }
+
+uint16_t scii::get_final_offset_dontcare() const  { return _wFinalOffset; }
+
+// Used for decompilation
+void scii::set_offset_and_size(uint16_t wOffset, uint16_t wSize) { _wFinalOffset = wOffset; _wSize = wSize; }
+
+#ifdef DEBUG
+void scii::set_debug_info(int p) { _pDebug = p; }
+#endif
+bool scii::is_branch_determined() { return !_fUndetermined; }
+
+void scii::mark() { }
+bool scii::is_marked() { return false; }
+
+bool scii::_is_branch_instruction()
+{
+    return (_bOpcode == Opcode::BNT) || (_bOpcode == Opcode::BT) || (_bOpcode == Opcode::JMP);
+}
+
+bool scii::is_conditional_branch_instruction()
+{
+    return (_bOpcode == Opcode::BNT) || (_bOpcode == Opcode::BT);
+}
+
+bool scii::_is_label_instruction()
+{
+    return (_bOpcode == Opcode::BNT) || (_bOpcode == Opcode::BT) || (_bOpcode == Opcode::JMP) || (_bOpcode == Opcode::CALL);
+}
+
 
 
 // This craziness is so that code_pos can be used in a multimap.

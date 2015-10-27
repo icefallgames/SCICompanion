@@ -14,152 +14,35 @@
 #include "stdafx.h"
 #include "PMachine.h"
 
-KernelInfo KrnlInfo[TOTAL_KERNELS] = {
-	{"number","Abs","number value"},
-	{"void","AddAfter","heapPtr pList, heapPtr afterNode, heapPtr pNode"},
-	{"void","AddMenu","string caption, string itemCaptions"},
-	{"void","AddToEnd","heapPtr pList, heapPtr pNode"},
-	{"void","AddToFront","heapPtr pList, heapPtr pNode"},
-	{"void","AddToPic","heapPtr viewList"},
-	{"void","Animate","[heapPtr cast, bool cycle]"},
-	{"void","BaseSetter","heapPtr viewObj"},
-	{"bool","CanBeHere","heapPtr viewObj[, heapPtr pList]"},
-	{"number","CelHigh","number view, number loop, number cel"},
-	{"number","CelWide","number view, number loop, number cel"},
-	{"bool","CheckFreeSpace","string directory"},
-	{"bool","CheckSaveGame","string gameName, number slotNumber[, string gameVersion]"},
-	{"heapPtr","Clone","heapPtr object"},
-	{"number","CoordPri","number y"},
-	{"number","CosDiv","number angle, number factor"},
-	{"number","CosMult","number angle, number factor"},
-	{"void","DeleteKey","heapPtr pList, number key"},
-	{"heapPtr","DeviceInfo","diGET_DEVICE, string thePath, string strBuf"},
-	{"void","DirLoop","heapPtr viewObj, number angle"},
-	{"[heapPtr]","Display","string text[, params]"},
-	{"void","DisposeClone","heapPtr object"},
-	{"void","DisposeList","heapPtr pList"},
-	{"void","DisposeScript","number scriptNum"},
-	{"void","DisposeWindow","heapPtr Window"},
-	{"void","DoAvoider","heapPtr moverObj"},
-	{"bool","DoBresen","heapPtr moverObj"},
-	{"void","DoSound","number subFunction, ..."},
-	{"void","DrawCel","number view, number loop, number cel, point position, number priority"},
-	{"void","DrawControl","heapPtr control"},
-	{"void","DrawMenuBar","bool mode"},
-	{"void","DrawPic","number picNum, [number animation, bool clear, number defaultPalette]"},
-	{"void","DrawStatus","string text"},
-	{"void","EditControl","heapPtr control, heapPtr event"},
-	{"bool","EmptyList","heapPtr pList"},
-	{"void","FClose","number handle"},
-	{"number","FGets","string buffer, number max, number handle"},
-	{"heapPtr","FindKey","heapPtr pList, number key"},
-	{"heapPtr","FirstNode","heapPtr pList"},
-	{"void","FlushResources",""},
-	{"number","FOpen","string name, number mode"},
-	{"string","Format","string destString, string fmtString[, parameters]"},
-	{"void","FPuts","number handle, string buffer"},
-	{"bool","GameIsRestarting",""},
-	{"number","GetAngle","point origin, point dest"},
-	{"string","GetCWD","string strBuf"},
-	{"number","GetDistance","point origin, point dest"},
-	{"bool","GetEvent","number types, heapPtr event"},
-	{"string","GetFarText","number rsNumber, number index, string aString"},
-	{"*","GetMenu","number menuItem, number subfunction, param"},
-	{"void","GetPort","heapPtr newPort"},
-	{"string","GetSaveDir",""},
-	{"number","GetSaveFiles","string gameName, strings descBuffer, @number descSlots[]"},
-	{"number","GetTime","[bool fTIME_OF_DAY]"},
-	{"void","GlobalToLocal","heapPtr event"},
-	{"*","Graph","number subFunction, ..."},
-	{"bool","HaveMouse",""},
-	{"void","HiliteControl","heapPtr control"},
-	{"void","InitBresen","heapPtr moverObj[, number stepMult]"},
-	{"void","InspectObj","heapPtr pObj"},
-	{"bool","IsObject","heapPtr obj"},
-	{"number","Joystick","number subfunction, number state"},
-	{"heapPtr","LastNode","heapPtr pList"},
-	{"heapPtr","Load","number type, number resNum"},
-	{"void","LocalToGlobal","heapPtr event"},
-	{"heapPtr","MapKeyToDir","heapPtr event"},
-	{"number","MemoryInfo","number type"},
-	{"number","MenuSelect","heapPtr event"},
-	{"heapPtr","NewList",""},
-	{"heapPtr","NewNode","number value, number key"},
-	{"heapPtr","NewWindow","rect bounds, string title, number flags, number priority, number forecolour, number backcolour"},
-	{"heapPtr","NextNode","heapPtr pNode"},
-	{"number","NodeValue","heapPtr pNode"},
-	{"number","NumCels","heapPtr obj"},
-	{"number","NumLoops","heapPtr obj"},
-	{"number","OnControl","number map, point xy or rect aRect "},
-	{"bool","Parse","heapPtr event, string text"},
-	{"number","PicNotValid","[number newFlag]"},
-	{"heapPtr","PrevNode","heapPtr pNode"},
-	{"void","Profiler",""},
-	{"number","Random","number min, number max"},
-	{"number","ReadNumber","string aString"},
-	{"bool","RespondsTo","heapPtr anObject, selector aSelector"},
-	{"*","RestartGame",""},
-	{"void","RestoreGame","string gameName, number slotNumber, string gameVersion"},
-	{"bool","Said","said saidString"},
-	{"bool","SaveGame","string gameName, number slotNumber, string description, string gameVersion"},
-	{"heapPtr","ScriptID","number scriptNum, number Index"},
-	{"void","SetCursor","number resNumber, bool visible[,point coords]"},
-	{"void","SetDebug",""},
-	{"void","SetJump","heapPtr moverObj, number dx, number dy, number gy"},
-	{"void","SetMenu","number menuItem, [number subfunction, params]"},
-	{"void","SetNowSeen","heapPtr viewObj"},
-	{"void","SetPort","heapPtr newPort"},
-	{"void","SetSynonyms","heapPtr scrListObj"},
-	{"void","ShakeScreen","number shakeCount, [number direction]"},
-	{"void","Show","[number screen]"},
-	{"void","ShowFree",""},
-	{"void","ShowObjs",""},
-	{"void","ShowSends",""},
-	{"number","SinDiv","number angle, number factor"},
-	{"number","SinMult","number angle, number factor"},
-	{"number","Sqrt","number value"},
-	{"number","StackUsage",""},
-	{"char","StrAt","string aString, number index[, char replacement]"},
-	{"string","StrCat","string destString, string srcString"},
-	{"number","StrCmp","string aString, string bString[, number max]"},
-	{"string","StrCpy","string destString, string srcString[, number max]"},
-	{"string","StrEnd","string aString"},
-	{"number","StrLen","string aString"},
-	{"void","TextSize","@rect sizeRect, string text, number font[, number maxWidth]"},
-	{"void","UnLoad","number type, number resNum"},
-	{"bool","ValidPath","string aDirectory"},
-	{"number","Wait","number ticks"},
+Opcode RawToOpcode(const SCIVersion &version, uint8_t rawOpcode)
+{
+    if (version.PackageFormat >= ResourcePackageFormat::SCI2)
+    {
+        switch (rawOpcode)
+        {
+            case 0x7d:
+                return Opcode::Filename;
+            case 0x7e:
+                return Opcode::LineNumber;
+        }
+    }
+    return (Opcode)(rawOpcode >> 1);
+}
 
-    // These are just stubs so far for SCI1+ stuff
-    {"void", "ShiftScreen", ""},
-    { "void", "Palette", "" },
-    { "void", "MemorySegment", "" },
-    { "void", "Intersections", "" },
-    { "void", "Memory", "" },
-    { "void", "ListOps", "" },
-    { "void", "FileIO", "" },
-    { "void", "DoAudio", "" },
-    { "void", "DoSync", "" },
-    { "void", "AvoidPath", "" },
-    { "void", "Sort", "" },
-    { "void", "ATan", "" },
-    { "void", "Lock", "" },
-    { "void", "StrSplit", "" },
-    { "void", "GetMessage", "" },
-    { "void", "IsItSkip", "" },
-    { "void", "MergePoly", "" },
-    { "void", "ResCheck", "" },
-    { "void", "AssertPalette", "" },
-    { "void", "TextColors", "" },
-    { "void", "TextFonts", "" },
-    { "void", "Record", "" },
-    { "void", "PlayBack", "" },
-    { "void", "ShowMovie", "" },
-    { "void", "SetVideoMode", "" },
-    { "void", "SetQuitStr", "" },
-    { "void", "DbugStr", "" },
-};
-
+uint8_t OpcodeToRaw(const SCIVersion &version, Opcode opcode, bool wide)
+{
+    if (version.PackageFormat >= ResourcePackageFormat::SCI2)
+    {
+        switch (opcode)
+        {
+            case Opcode::Filename:
+                return 0x7d;
+            case Opcode::LineNumber:
+                return 0x7e;
+        }
+    }
+    return (((uint8_t)opcode) << 1) | (wide ? 0 : 1);
+}
 
 /******************************************************************************/
 OperandType OpArgTypes_SCI0[TOTAL_OPCODES][3] = {
@@ -375,7 +258,7 @@ OperandType OpArgTypes_SCI2[TOTAL_OPCODES][3] = {
     /*push1*/{ otEMPTY, otEMPTY, otEMPTY },
     /*push2*/{ otEMPTY, otEMPTY, otEMPTY },
     /*pushSelf*/{ otEMPTY, otEMPTY, otEMPTY },
-    /*debuginfo*/{ otDEBUG, otEMPTY, otEMPTY },
+    /**/{ otEMPTY, otEMPTY, otEMPTY },
     /*lag*/{ otVAR, otEMPTY, otEMPTY },
     /*lal*/{ otVAR, otEMPTY, otEMPTY },
     /*lat*/{ otVAR, otEMPTY, otEMPTY },
@@ -448,8 +331,31 @@ OperandType OpArgTypes_SCI2[TOTAL_OPCODES][3] = {
     /*-spi*/{ otVAR, otEMPTY, otEMPTY },
 };
 
+OperandType filenameOperands[3] = { otDEBUGSTRING, otEMPTY, otEMPTY };
+OperandType lineNumberOperands[3] = { otUINT16, otEMPTY, otEMPTY };
 
-char *OpcodeNames[128]={
+const OperandType *GetOperandTypes(const SCIVersion &version, Opcode opcode)
+{
+    if (version.PackageFormat == ResourcePackageFormat::SCI2)
+    {
+        switch (opcode)
+        {
+            case Opcode::Filename:
+                return filenameOperands;
+            case Opcode::LineNumber:
+                return lineNumberOperands;
+        }
+    
+        return OpArgTypes_SCI2[static_cast<BYTE>(opcode)];
+    }
+    else
+    {
+        return OpArgTypes_SCI0[static_cast<BYTE>(opcode)];
+    }
+}
+
+// Corresponds to Opcode enum
+char *OpcodeNames[130]={
 	"bnot",
 	"add",
 	"sub",
@@ -580,9 +486,44 @@ char *OpcodeNames[128]={
 	"-sgi",
 	"-sli",
 	"-sti",
-	"-spi"
+	"-spi",
+    "_file_",
+    "_line_",
 };
 
+const char *OpcodeToName(Opcode opcode)
+{
+    return OpcodeNames[(int)opcode];
+}
+
+std::unordered_set<std::string> opcodeSet;
+std::unordered_set<std::string> &GetOpcodeSet()
+{
+    if (opcodeSet.empty())
+    {
+        opcodeSet.insert(OpcodeNames, OpcodeNames + ARRAYSIZE(OpcodeNames));
+    }
+    return opcodeSet;
+}
+
+Opcode NameToOpcode(const std::string &opcodeName)
+{
+    Opcode opcode = Opcode::INDETERMINATE;
+    for (int i = 0; i < ARRAYSIZE(OpcodeNames); i++)
+    {
+        if (OpcodeNames[i] == opcodeName)
+        {
+            opcode = (Opcode)i;
+        }
+    }
+    return opcode;
+}
+
+bool IsOpcode(const std::string &theString)
+{
+    GetOpcodeSet();
+    return opcodeSet.find(theString) != opcodeSet.end();
+}
 
 SaidToken SaidArgs[] = {
     {',', 0xF0}, /*"OR". Used to specify alternatives to words, such as "take , get".*/

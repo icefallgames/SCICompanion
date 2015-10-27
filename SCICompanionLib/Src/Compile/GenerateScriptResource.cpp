@@ -19,6 +19,7 @@
 #include "ScriptOMAll.h"
 #include "Text.h"
 #include "AppState.h"
+#include "PMachine.h"
 
 using namespace std;
 using namespace sci;

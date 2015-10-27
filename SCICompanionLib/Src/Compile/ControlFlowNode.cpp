@@ -15,8 +15,11 @@
 #include "ControlFlowNode.h"
 #include "format.h"
 #include "StlUtil.h"
+#include "PMachine.h"
 
 using namespace std;
+
+scii ControlFlowNode::getLastInstruction() { assert(false); return scii(sciVersion0, Opcode::INDETERMINATE); }
 
 // Safe to call on anything. If it doesn't apply, it returns null.
 ControlFlowNode *GetOtherBranch(ControlFlowNode *branchNode, ControlFlowNode *branch1)
@@ -191,7 +194,7 @@ void GetThenAndElseBranches(ControlFlowNode *node, ControlFlowNode **thenNode, C
 
 RawCodeNode::RawCodeNode(code_pos start) : ControlFlowNode(CFGNodeType::RawCode, {}), start(start)
 {
-    DebugId = fmt::format("{:04x}:{}", start->get_final_offset_dontcare(), OpcodeNames[static_cast<BYTE>(start->get_opcode())]);
+    DebugId = fmt::format("{:04x}:{}", start->get_final_offset_dontcare(), OpcodeToName(start->get_opcode()));
 }
 
 bool CompareCFGNodesByAddress::operator() (const ControlFlowNode* lhs, const ControlFlowNode* rhs) const

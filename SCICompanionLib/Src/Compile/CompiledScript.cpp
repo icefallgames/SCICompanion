@@ -19,6 +19,7 @@
 #include "scii.h"
 #include "ResourceContainer.h"
 #include "ResourceEntity.h"
+#include "PMachine.h"
 
 using namespace std;
 using namespace sci;
@@ -935,7 +936,8 @@ set<uint16_t> CompiledScript::FindInternalCallsTO() const
                 bool bByte = (bRawOpcode & 1);
                 pCur++;
                 wCurrentOffsetTO++;
-                if (static_cast<Opcode>((bRawOpcode >> 1)) == Opcode::CALL)
+                
+                if (RawToOpcode(_version, bRawOpcode) == Opcode::CALL)
                 {
                     // This is one. The first operand is a word or byte
                     wRelOffset = (bByte ? ((uint16_t)*pCur) : (uint16_t)*pCur + (((uint16_t)*(pCur + 1)) << 8));

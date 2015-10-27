@@ -179,6 +179,337 @@ static const char *const s_defaultKernelNames[] = {
     /*0x88*/ "DbugStr"          // for debugging
 };
 
+// NOTE: 0x72-0x79, 0x85-0x86, 0x88 are from the GK2 demo (which has debug support) and are
+// just Dummy in other SCI2 games.
+static const char *const sci2_default_knames[] = {
+    /*0x00*/ "Load",
+    /*0x01*/ "UnLoad",
+    /*0x02*/ "ScriptID",
+    /*0x03*/ "DisposeScript",
+    /*0x04*/ "Lock",
+    /*0x05*/ "ResCheck",
+    /*0x06*/ "Purge",
+    /*0x07*/ "Clone",
+    /*0x08*/ "DisposeClone",
+    /*0x09*/ "RespondsTo",
+    /*0x0a*/ "SetNowSeen",
+    /*0x0b*/ "NumLoops",
+    /*0x0c*/ "NumCels",
+    /*0x0d*/ "CelWide",
+    /*0x0e*/ "CelHigh",
+    /*0x0f*/ "GetHighPlanePri",
+    /*0x10*/ "GetHighItemPri",		// unused function
+    /*0x11*/ "ShakeScreen",
+    /*0x12*/ "OnMe",
+    /*0x13*/ "ShowMovie",
+    /*0x14*/ "SetVideoMode",
+    /*0x15*/ "AddScreenItem",
+    /*0x16*/ "DeleteScreenItem",
+    /*0x17*/ "UpdateScreenItem",
+    /*0x18*/ "FrameOut",
+    /*0x19*/ "AddPlane",
+    /*0x1a*/ "DeletePlane",
+    /*0x1b*/ "UpdatePlane",
+    /*0x1c*/ "RepaintPlane",		// unused function
+    /*0x1d*/ "SetShowStyle",
+    /*0x1e*/ "ShowStylePercent",	// unused function
+    /*0x1f*/ "SetScroll",
+    /*0x20*/ "AddMagnify",
+    /*0x21*/ "DeleteMagnify",
+    /*0x22*/ "IsHiRes",
+    /*0x23*/ "Graph",		// Robot in early SCI2.1 games with a SCI2 kernel table
+    /*0x24*/ "InvertRect",	// only in SCI2, not used in any SCI2 game
+    /*0x25*/ "TextSize",
+    /*0x26*/ "Message",
+    /*0x27*/ "TextColors",
+    /*0x28*/ "TextFonts",
+    /*0x29*/ "Dummy",
+    /*0x2a*/ "SetQuitStr",
+    /*0x2b*/ "EditText",
+    /*0x2c*/ "InputText",			// unused function
+    /*0x2d*/ "CreateTextBitmap",
+    /*0x2e*/ "DisposeTextBitmap",	// Priority in early SCI2.1 games with a SCI2 kernel table
+    /*0x2f*/ "GetEvent",
+    /*0x30*/ "GlobalToLocal",
+    /*0x31*/ "LocalToGlobal",
+    /*0x32*/ "MapKeyToDir",
+    /*0x33*/ "HaveMouse",
+    /*0x34*/ "SetCursor",
+    /*0x35*/ "VibrateMouse",
+    /*0x36*/ "SaveGame",
+    /*0x37*/ "RestoreGame",
+    /*0x38*/ "RestartGame",
+    /*0x39*/ "GameIsRestarting",
+    /*0x3a*/ "MakeSaveCatName",
+    /*0x3b*/ "MakeSaveFileName",
+    /*0x3c*/ "GetSaveFiles",
+    /*0x3d*/ "GetSaveDir",
+    /*0x3e*/ "CheckSaveGame",
+    /*0x3f*/ "CheckFreeSpace",
+    /*0x40*/ "DoSound",
+    /*0x41*/ "DoAudio",
+    /*0x42*/ "DoSync",
+    /*0x43*/ "NewList",
+    /*0x44*/ "DisposeList",
+    /*0x45*/ "NewNode",
+    /*0x46*/ "FirstNode",
+    /*0x47*/ "LastNode",
+    /*0x48*/ "EmptyList",
+    /*0x49*/ "NextNode",
+    /*0x4a*/ "PrevNode",
+    /*0x4b*/ "NodeValue",
+    /*0x4c*/ "AddAfter",
+    /*0x4d*/ "AddToFront",
+    /*0x4e*/ "AddToEnd",
+    /*0x4f*/ "Dummy",
+    /*0x50*/ "Dummy",
+    /*0x51*/ "FindKey",
+    /*0x52*/ "Dummy",
+    /*0x53*/ "Dummy",
+    /*0x54*/ "Dummy",
+    /*0x55*/ "DeleteKey",
+    /*0x56*/ "Dummy",
+    /*0x57*/ "Dummy",
+    /*0x58*/ "ListAt",
+    /*0x59*/ "ListIndexOf",
+    /*0x5a*/ "ListEachElementDo",
+    /*0x5b*/ "ListFirstTrue",
+    /*0x5c*/ "ListAllTrue",
+    /*0x5d*/ "Random",
+    /*0x5e*/ "Abs",
+    /*0x5f*/ "Sqrt",
+    /*0x60*/ "GetAngle",
+    /*0x61*/ "GetDistance",
+    /*0x62*/ "ATan",
+    /*0x63*/ "SinMult",
+    /*0x64*/ "CosMult",
+    /*0x65*/ "SinDiv",
+    /*0x66*/ "CosDiv",
+    /*0x67*/ "GetTime",
+    /*0x68*/ "Platform",
+    /*0x69*/ "BaseSetter",
+    /*0x6a*/ "DirLoop",
+    /*0x6b*/ "CantBeHere",
+    /*0x6c*/ "InitBresen",
+    /*0x6d*/ "DoBresen",
+    /*0x6e*/ "SetJump",
+    /*0x6f*/ "AvoidPath",
+    /*0x70*/ "InPolygon",
+    /*0x71*/ "MergePoly",
+    /*0x72*/ "SetDebug",
+    /*0x73*/ "InspectObject",     // for debugging
+    /*0x74*/ "MemoryInfo",
+    /*0x75*/ "Profiler",          // for debugging
+    /*0x76*/ "Record",            // for debugging
+    /*0x77*/ "PlayBack",          // for debugging
+    /*0x78*/ "MonoOut",           // for debugging
+    /*0x79*/ "SetFatalStr",       // for debugging
+    /*0x7a*/ "GetCWD",
+    /*0x7b*/ "ValidPath",
+    /*0x7c*/ "FileIO",
+    /*0x7d*/ "Dummy",
+    /*0x7e*/ "DeviceInfo",
+    /*0x7f*/ "Palette",
+    /*0x80*/ "PalVary",
+    /*0x81*/ "PalCycle",
+    /*0x82*/ "Array",
+    /*0x83*/ "String",
+    /*0x84*/ "RemapColors",
+    /*0x85*/ "IntegrityChecking", // for debugging
+    /*0x86*/ "CheckIntegrity",	  // for debugging
+    /*0x87*/ "ObjectIntersect",
+    /*0x88*/ "MarkMemory",	      // for debugging
+    /*0x89*/ "TextWidth",		  // for debugging(?), only in SCI2, not used in any SCI2 game
+    /*0x8a*/ "PointSize",	      // for debugging(?), only in SCI2, not used in any SCI2 game
+
+    // GK2 Demo (and similar) only kernel functions
+    /*0x8b*/ "AddLine",
+    /*0x8c*/ "DeleteLine",
+    /*0x8d*/ "UpdateLine",
+    /*0x8e*/ "AddPolygon",
+    /*0x8f*/ "DeletePolygon",
+    /*0x90*/ "UpdatePolygon",
+    /*0x91*/ "Bitmap",
+    /*0x92*/ "ScrollWindow",
+    /*0x93*/ "SetFontRes",
+    /*0x94*/ "MovePlaneItems",
+    /*0x95*/ "PreloadResource",
+    /*0x96*/ "Dummy",
+    /*0x97*/ "ResourceTrack",
+    /*0x98*/ "CheckCDisc",
+    /*0x99*/ "GetSaveCDisc",
+    /*0x9a*/ "TestPoly",
+    /*0x9b*/ "WinHelp",
+    /*0x9c*/ "LoadChunk",
+    /*0x9d*/ "SetPalStyleRange",
+    /*0x9e*/ "AddPicAt",
+    /*0x9f*/ "MessageBox"
+};
+
+static const char *const sci21_default_knames[] = {
+    /*0x00*/ "Load",
+    /*0x01*/ "UnLoad",
+    /*0x02*/ "ScriptID",
+    /*0x03*/ "DisposeScript",
+    /*0x04*/ "Lock",
+    /*0x05*/ "ResCheck",
+    /*0x06*/ "Purge",
+    /*0x07*/ "SetLanguage",
+    /*0x08*/ "Dummy",
+    /*0x09*/ "Dummy",
+    /*0x0a*/ "Clone",
+    /*0x0b*/ "DisposeClone",
+    /*0x0c*/ "RespondsTo",
+    /*0x0d*/ "FindSelector",
+    /*0x0e*/ "FindClass",
+    /*0x0f*/ "Dummy",
+    /*0x10*/ "Dummy",
+    /*0x11*/ "Dummy",
+    /*0x12*/ "Dummy",
+    /*0x13*/ "Dummy",
+    /*0x14*/ "SetNowSeen",
+    /*0x15*/ "NumLoops",
+    /*0x16*/ "NumCels",
+    /*0x17*/ "IsOnMe",
+    /*0x18*/ "AddMagnify",		// dummy in SCI3
+    /*0x19*/ "DeleteMagnify",	// dummy in SCI3
+    /*0x1a*/ "CelRect",
+    /*0x1b*/ "BaseLineSpan",
+    /*0x1c*/ "CelWide",
+    /*0x1d*/ "CelHigh",
+    /*0x1e*/ "AddScreenItem",
+    /*0x1f*/ "DeleteScreenItem",
+    /*0x20*/ "UpdateScreenItem",
+    /*0x21*/ "FrameOut",
+    /*0x22*/ "CelInfo",
+    /*0x23*/ "Bitmap",
+    /*0x24*/ "CelLink",
+    /*0x25*/ "Dummy",
+    /*0x26*/ "Dummy",
+    /*0x27*/ "Dummy",
+    /*0x28*/ "AddPlane",
+    /*0x29*/ "DeletePlane",
+    /*0x2a*/ "UpdatePlane",
+    /*0x2b*/ "RepaintPlane",
+    /*0x2c*/ "GetHighPlanePri",
+    /*0x2d*/ "GetHighItemPri",		// unused function
+    /*0x2e*/ "SetShowStyle",
+    /*0x2f*/ "ShowStylePercent",	// unused function
+    /*0x30*/ "SetScroll",			// dummy in SCI3
+    /*0x31*/ "MovePlaneItems",
+    /*0x32*/ "ShakeScreen",
+    /*0x33*/ "Dummy",
+    /*0x34*/ "Dummy",
+    /*0x35*/ "Dummy",
+    /*0x36*/ "Dummy",
+    /*0x37*/ "IsHiRes",
+    /*0x38*/ "SetVideoMode",
+    /*0x39*/ "ShowMovie",			// dummy in SCI3
+    /*0x3a*/ "Robot",
+    /*0x3b*/ "CreateTextBitmap",
+    /*0x3c*/ "Random",
+    /*0x3d*/ "Abs",
+    /*0x3e*/ "Sqrt",
+    /*0x3f*/ "GetAngle",
+    /*0x40*/ "GetDistance",
+    /*0x41*/ "ATan",
+    /*0x42*/ "SinMult",
+    /*0x43*/ "CosMult",
+    /*0x44*/ "SinDiv",
+    /*0x45*/ "CosDiv",
+    /*0x46*/ "Text",
+    /*0x47*/ "Dummy",
+    /*0x48*/ "Message",
+    /*0x49*/ "Font",
+    /*0x4a*/ "EditText",
+    /*0x4b*/ "InputText",		// unused function
+    /*0x4c*/ "ScrollWindow",	// Dummy in SCI3
+    /*0x4d*/ "Dummy",
+    /*0x4e*/ "Dummy",
+    /*0x4f*/ "Dummy",
+    /*0x50*/ "GetEvent",
+    /*0x51*/ "GlobalToLocal",
+    /*0x52*/ "LocalToGlobal",
+    /*0x53*/ "MapKeyToDir",
+    /*0x54*/ "HaveMouse",
+    /*0x55*/ "SetCursor",
+    /*0x56*/ "VibrateMouse",	// Dummy in SCI3
+    /*0x57*/ "Dummy",
+    /*0x58*/ "Dummy",
+    /*0x59*/ "Dummy",
+    /*0x5a*/ "List",
+    /*0x5b*/ "Array",
+    /*0x5c*/ "String",
+    /*0x5d*/ "FileIO",
+    /*0x5e*/ "BaseSetter",
+    /*0x5f*/ "DirLoop",
+    /*0x60*/ "CantBeHere",
+    /*0x61*/ "InitBresen",
+    /*0x62*/ "DoBresen",
+    /*0x63*/ "SetJump",
+    /*0x64*/ "AvoidPath",		// dummy in SCI3
+    /*0x65*/ "InPolygon",
+    /*0x66*/ "MergePoly",		// dummy in SCI3
+    /*0x67*/ "ObjectIntersect",
+    /*0x68*/ "Dummy",
+    /*0x69*/ "MemoryInfo",
+    /*0x6a*/ "DeviceInfo",
+    /*0x6b*/ "Palette",
+    /*0x6c*/ "PalVary",
+    /*0x6d*/ "PalCycle",
+    /*0x6e*/ "RemapColors",
+    /*0x6f*/ "AddLine",
+    /*0x70*/ "DeleteLine",
+    /*0x71*/ "UpdateLine",
+    /*0x72*/ "AddPolygon",
+    /*0x73*/ "DeletePolygon",
+    /*0x74*/ "UpdatePolygon",
+    /*0x75*/ "DoSound",
+    /*0x76*/ "DoAudio",
+    /*0x77*/ "DoSync",
+    /*0x78*/ "Save",
+    /*0x79*/ "GetTime",
+    /*0x7a*/ "Platform",
+    /*0x7b*/ "CD",
+    /*0x7c*/ "SetQuitStr",
+    /*0x7d*/ "GetConfig",
+    /*0x7e*/ "Table",
+    /*0x7f*/ "WinHelp",		// Windows only
+    /*0x80*/ "Dummy",
+    /*0x81*/ "Dummy",		// called when changing rooms in most SCI2.1 games (e.g. KQ7, GK2, MUMG deluxe, Phant1)
+    /*0x82*/ "Dummy",
+    /*0x83*/ "PrintDebug",	// debug function, used by Shivers (demo and full)
+    /*0x84*/ "Dummy",
+    /*0x85*/ "Dummy",
+    /*0x86*/ "Dummy",
+    /*0x87*/ "Dummy",
+    /*0x88*/ "Dummy",
+    /*0x89*/ "Dummy",
+    /*0x8a*/ "LoadChunk",
+    /*0x8b*/ "SetPalStyleRange",
+    /*0x8c*/ "AddPicAt",
+    /*0x8d*/ "Dummy",	// MessageBox in SCI3
+    /*0x8e*/ "NewRoom",		// debug function
+    /*0x8f*/ "Dummy",
+    /*0x90*/ "Priority",
+    /*0x91*/ "MorphOn",
+    /*0x92*/ "PlayVMD",
+    /*0x93*/ "SetHotRectangles",
+    /*0x94*/ "MulDiv",
+    /*0x95*/ "GetSierraProfileInt", // , Windows only
+    /*0x96*/ "GetSierraProfileString", // , Windows only
+    /*0x97*/ "SetWindowsOption", // Windows only
+    /*0x98*/ "GetWindowsOption", // Windows only
+    /*0x99*/ "WinDLL", // Windows only
+    /*0x9a*/ "Dummy",
+    /*0x9b*/ "Dummy",	// Minimize in SCI3
+    /*0x9c*/ "DeletePic",
+    // == SCI3 only ===============
+    /*0x9d*/ "Dummy",
+    /*0x9e*/ "WebConnect",
+    /*0x9f*/ "Dummy",
+    /*0xa0*/ "PlayDuck"
+};
  
 bool CVocabWithNames::_Create(sci::istream &byteStream, bool fTruncationOk)
 {
@@ -491,13 +822,25 @@ bool KernelTable::Load(const GameFolderHelper &helper)
     }
     else
     {
-        _names.clear();
-        _names.reserve(ARRAYSIZE(s_defaultKernelNames));
         // Kernel names not present. Use the hardcoded list (this is the case in later SCI versions)
-        assert(appState->GetVersion().MapFormat != ResourceMapFormat::SCI0); // Shouldn't happen for SCI0
-        for (size_t i = 0; i < ARRAYSIZE(s_defaultKernelNames); i++)
+        _names.clear();
+        size_t kernelCount;
+        const char * const * kernelNames;
+        if (helper.Version.PackageFormat == ResourcePackageFormat::SCI2)
         {
-            _names.push_back(s_defaultKernelNames[i]);
+            kernelCount = ARRAYSIZE(sci2_default_knames);
+            kernelNames = sci2_default_knames;
+        }
+        else
+        {
+            kernelCount = ARRAYSIZE(s_defaultKernelNames);
+            kernelNames = s_defaultKernelNames;
+        }
+        _names.reserve(kernelCount);
+        assert(appState->GetVersion().MapFormat != ResourceMapFormat::SCI0); // Shouldn't happen for SCI0
+        for (size_t i = 0; i < kernelCount; i++)
+        {
+            _names.push_back(kernelNames[i]);
         }
         fRet = true;
     }

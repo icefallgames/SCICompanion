@@ -14,6 +14,7 @@
 #include "stdafx.h"
 #include "ControlFlowNode.h"
 #include "TarjanAlgorithm.h"
+#include "PMachine.h"
 
 using namespace std;
 

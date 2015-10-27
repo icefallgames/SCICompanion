@@ -19,6 +19,7 @@
 #include "ResourceEntity.h"
 #include "AudioMap.h"
 #include "SoundUtil.h"
+#include "PMachine.h"
 
 using namespace std;
 

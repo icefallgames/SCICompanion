@@ -17,6 +17,7 @@
 #include "scii.h"
 #include "AppState.h"
 #include "OutputCodeHelper.h"
+#include "PMachine.h"
 
 using namespace std;
 
@@ -92,19 +93,12 @@ int GetOperandSize(BYTE bOpcode, OperandType operandType, const uint8_t *pNext)
     case otUINT8:
         cIncr = 1;
         break;
-    case otDEBUG:
-        if (bOpcode & 1)
-        {
-            // line number
-            cIncr += 2;
-        }
-        else
-        {
-            // file name
-            assert(*(pNext - 1) == 0x7d); // Should always immediately follow the opcode
-            const char *psz = reinterpret_cast<const char *>(pNext);
-            cIncr += lstrlen(psz) + 1;    // Bound this somehow
-        }
+    case otDEBUGSTRING:
+    {
+        // file name
+        const char *psz = reinterpret_cast<const char *>(pNext);
+        cIncr += lstrlen(psz) + 1;    // TODO: Bound this somehow
+    }
         break;
     default:
         assert(false && "Unknown operand type");
@@ -126,16 +120,16 @@ void DisassembleCode(SCIVersion version, std::ostream &out, ICompiledScriptLooku
             while (pCur < pEnd) // Possibility of read AVs here, but we catch exceptions.
             {
                 BYTE bRawOpcode = *pCur;
-                Opcode bOpcode = static_cast<Opcode>(bRawOpcode >> 1);
+                Opcode bOpcode = RawToOpcode(version, bRawOpcode);
 
-                ASSERT(bOpcode <= Opcode::LastOne);
-                const char *pszOpcode = OpcodeNames[static_cast<BYTE>(bOpcode)];
+                assert(bOpcode <= Opcode::LastOne);
+                const char *pszOpcode = OpcodeToName(bOpcode);
                 bool bByte = (*pCur) & 1; // Is this a "byte" opcode or a "word" opcode.
                 bool fDone = false;
 
                 char szBuf[50];
                 size_t cchBufLimit = 30;
-                ASSERT(cchBufLimit < ARRAYSIZE(szBuf));
+                assert(cchBufLimit < ARRAYSIZE(szBuf));
                 if (state == STATE_OUTPUT)
                 {
                     if ((currentLabelOffset != codeLabelOffsets.end()) && (*currentLabelOffset == wOffset))
@@ -163,7 +157,7 @@ void DisassembleCode(SCIVersion version, std::ostream &out, ICompiledScriptLooku
                             indent -= (cIncr == 1) ? 3 : 5; // How many chars were written...
                         }
                     }
-                    ASSERT(indent > 0);
+                    assert(indent > 0);
                     out << setw(indent) << setfill(' ') << pszOpcode << " "; // Indent x chars, and print opcode
                 }
 
@@ -262,6 +256,11 @@ void DisassembleCode(SCIVersion version, std::ostream &out, ICompiledScriptLooku
                         case otLABEL:
                             // This is a relative position from the post pc
                             out << ((bOpcode == Opcode::CALL) ? "proc" : "code") << "_" << setw(4) << setfill('0') << CalcOffset(wOperandStart, wOperands[i], bByte, bRawOpcode);
+                            break;
+
+                        case otDEBUGSTRING:
+                            // Filename
+                            out << "\"" << reinterpret_cast<const char *>(pCur) << "\"";
                             break;
 
                         default:
@@ -447,7 +446,7 @@ void DisassembleFunction(const CompiledScript &script, std::ostream &out, ICompi
     out << "(procedure proc_" << setw(4) << setfill('0') << wCodeOffsetTO << endl;
 
     set<uint16_t>::const_iterator codeStartIt = sortedCodePointersTO.find(wCodeOffsetTO);
-    ASSERT(codeStartIt != sortedCodePointersTO.end());
+    assert(codeStartIt != sortedCodePointersTO.end());
     CodeSection section;
     if (FindStartEndCode(codeStartIt, sortedCodePointersTO, script._codeSections, section))
     {

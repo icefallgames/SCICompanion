@@ -15,6 +15,7 @@
 #include "ControlFlowNode.h"
 #include "ControlFlowGraphViz.h"
 #include "format.h"
+#include "PMachine.h"
 
 using namespace std;
 
@@ -102,7 +103,7 @@ class GraphVisualizer
                 while (cur != rawCodeNode->end)
                 {
                     Opcode opcode = cur->get_opcode();
-                    const char *pszOpcode = OpcodeNames[static_cast<BYTE>(opcode)];
+                    const char *pszOpcode = OpcodeToName(opcode);
                     ss << pszOpcode << "\\n";
                     ++cur;
                 }

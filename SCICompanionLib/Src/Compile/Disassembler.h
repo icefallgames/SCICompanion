@@ -15,6 +15,8 @@
 
 #include "CompiledScript.h"
 
+enum class Opcode : uint8_t;
+
 //void AnalyzeInstruction(uint8_t opcode, const uint16_t *operands);
 typedef void(*AnalyzeInstructionPtr)(Opcode opcode, const uint16_t *operands, uint16_t currentPCOffset);
 

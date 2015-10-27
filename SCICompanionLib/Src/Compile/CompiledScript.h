@@ -14,10 +14,11 @@
 #pragma once
 #include "interfaces.h"
 #include "Vocab99x.h"
-#include "PMachine.h"
 #include "SCO.h"
 #include "DisassembleHelper.h"
 #include "CompileCommon.h"
+
+enum OperandType : uint8_t;
 
 namespace sci
 {

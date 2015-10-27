@@ -19,6 +19,7 @@
 #include "GameFolderHelper.h"
 #include "format.h"
 #include "DecompilerResults.h"
+#include "PMachine.h"
 
 using namespace std;
 using namespace sci;
@@ -194,7 +195,7 @@ struct ConsumptionNode
         os << _indent2(iIndent);
         if (_hasPos)
         {
-            os << OpcodeNames[static_cast<BYTE>(pos->get_opcode())] << "  [" << setw(4) << setfill('0') << pos->get_final_offset_dontcare() << "]";
+            os << OpcodeToName(pos->get_opcode()) << "  [" << setw(4) << setfill('0') << pos->get_final_offset_dontcare() << "]";
         }
         else
         {
@@ -1783,8 +1784,13 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
         }
         break;
 
+        case Opcode::Filename:
+        case Opcode::LineNumber:
+            // Empty comment...
+            return  unique_ptr<SyntaxNode>(std::make_unique<Comment>());
+
         default:
-            if ((bOpcode >= Opcode::LAG) && (bOpcode <= Opcode::LastOne))
+            if ((bOpcode >= Opcode::FirstLoadStore) && (bOpcode <= Opcode::LastLoadStore))
             {
                 // This could be a load or store operation.
                 if (_IsVOStoreOperation(bOpcode))
@@ -2641,6 +2647,26 @@ void _FixupSwitches(ConsumptionNode *root, DecompileLookups &lookups)
     }
 }
 
+// Remove any debug opcodes
+void _StripOutUneededInstructions(ConsumptionNode *chunk)
+{
+    for (int i = (int)chunk->GetChildCount() - 1; i >= 0; i--)
+    {
+        if (chunk->Child(i)->_hasPos)
+        {
+            Opcode opcode = chunk->Child(i)->GetCode()->get_opcode();
+            if ((opcode == Opcode::LineNumber) || (opcode == Opcode::Filename))
+            {
+                auto stolen = chunk->StealChild(i);
+            }
+        }
+    }
+    for (auto &child : chunk->Children())
+    {
+        _StripOutUneededInstructions(child.get());
+    }
+}
+
 void _RemoveDoubleInverts(ConsumptionNode *chunk)
 {
     for (size_t i = 0; i < chunk->GetChildCount(); i++)
@@ -2737,6 +2763,7 @@ bool OutputNewStructure(const std::string &messagePrefix, sci::FunctionBase &fun
             ShowTextFile(ss.str().c_str(), debugTrackName + "_chunks_raw.txt");
         }
 
+        _StripOutUneededInstructions(mainChunk.get());
         _RemoveDoubleInverts(mainChunk.get());
         _RemoveTOSS(mainChunk.get());
         _FixupSwitches(mainChunk.get(), lookups);

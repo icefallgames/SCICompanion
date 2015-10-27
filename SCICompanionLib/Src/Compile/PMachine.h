@@ -20,6 +20,8 @@
 
 #define TOTAL_SAID_ARGS 10
 
+enum class Opcode : uint8_t;
+
 struct SaidToken
 {
     char Character;
@@ -37,11 +39,10 @@ struct KernelInfo
     const char *GetName() { return Name; }
 };
 
-extern KernelInfo KrnlInfo[TOTAL_KERNELS];
+const char *OpcodeToName(Opcode opcode);
+Opcode NameToOpcode(const std::string &opcodeName);
 
-extern char *OpcodeNames[128];
-
-enum OperandType
+enum OperandType : uint8_t
 {
     otEMPTY =     0,
     otINT =       1,
@@ -60,75 +61,74 @@ enum OperandType
     otUINT =      14,
     otUINT8 =     15,
     otUINT16 =    16,
-    otDEBUG =     17,
+    otDEBUGSTRING = 17,
 };
-extern OperandType OpArgTypes_SCI0[TOTAL_OPCODES][3];
-extern OperandType OpArgTypes_SCI2[TOTAL_OPCODES][3];
 
-enum class Opcode : BYTE
+enum class Opcode : uint8_t
 {
 	// Opcodes
-	BNOT = 0,
-	ADD = 1,
-	SUB = 2,
-	MUL = 3,
-	DIV = 4,
-	MOD = 5,
-	SHR = 6,
-	SHL = 7,
-	XOR = 8,
-	AND = 9,
-	OR = 10,
-	NEG = 11,
-	NOT = 12,
-	EQ = 13,
-	NE = 14,
-	GT = 15,
-	GE = 16,
-	LT = 17,
-	LE = 18,
-	UGT = 19,
-	UGE = 20,
-	ULT = 21,
-	ULE = 22,
-	BT = 23,      // branch on true
-	BNT = 24,      // branch on not true
-	JMP = 25,      // jump
-	LDI = 26,      // load immediate data into accumulator
-	PUSH = 27,      // push accumulator onto stack (1 byte)
-	PUSHI = 28,          // push immediate onto stack
-	TOSS = 29,      // get rid of top of stack
-	DUP = 30,      // dupe stack top of stack
-	LINK = 31,      // add n frames to stack
-	CALL = 32,      // call local proc
-	CALLK = 33,          // call kernel
-	CALLB = 34,          // call public proc in main script
-	CALLE = 35,          // call public proc in external script
-	RET = 36,      // return (value goes in acc)
-	SEND = 37,      // send
-	CLASS = 40,          // load address of class # to accumulator
-	SELF = 42,      // send to self
-	SUPER = 43,          // send to super
-	REST = 44,
-	LEA = 45,  // load  address of a variable into the acc
-	SELFID = 46,  // puts address of self into acc
-	INDETERMINATE = 47,  // NOT A VALID OPCODE
-	PPREV = 48,
-	PTOA = 49,      // property index to acc
-	ATOP = 50,      // acc to property index
-	PTOS = 51,      // property index to stack
-	STOP = 52,      // Stack to property index
-	IPTOA = 53,          // Inc prop to acc
-	DPTOA = 54,          // Dec prop to acc
-	IPTOS = 55,          // Inc prop to stack
-	DPTOS = 56,          // Dec prop to stack
-	LOFSA = 57,      // Load offset (from pc) onto acc
-	LOFSS = 58,      // Load offset (from pc) onto stack
-	PUSH0 = 59,      // push 0 onto stack
-	PUSH1 = 60,      // push 1 onto stack
-	PUSH2 = 61,      // push 2 onto stack
-	PUSHSELF = 62,      // push self onto stack
-    DEBUGINFO = 63,     // Only on SCI2+
+    BNOT = 0,
+    ADD = 1,
+    SUB = 2,
+    MUL = 3,
+    DIV = 4,
+    MOD = 5,
+    SHR = 6,
+    SHL = 7,
+    XOR = 8,
+    AND = 9,
+    OR = 10,
+    NEG = 11,
+    NOT = 12,
+    EQ = 13,
+    NE = 14,
+    GT = 15,
+    GE = 16,
+    LT = 17,
+    LE = 18,
+    UGT = 19,
+    UGE = 20,
+    ULT = 21,
+    ULE = 22,
+    BT = 23,      // branch on true
+    BNT = 24,      // branch on not true
+    JMP = 25,      // jump
+    LDI = 26,      // load immediate data into accumulator
+    PUSH = 27,      // push accumulator onto stack (1 byte)
+    PUSHI = 28,          // push immediate onto stack
+    TOSS = 29,      // get rid of top of stack
+    DUP = 30,      // dupe stack top of stack
+    LINK = 31,      // add n frames to stack
+    CALL = 32,      // call local proc
+    CALLK = 33,          // call kernel
+    CALLB = 34,          // call public proc in main script
+    CALLE = 35,          // call public proc in external script
+    RET = 36,      // return (value goes in acc)
+    SEND = 37,      // send
+    CLASS = 40,          // load address of class # to accumulator
+    SELF = 42,      // send to self
+    SUPER = 43,          // send to super
+    REST = 44,
+    LEA = 45,  // load  address of a variable into the acc
+    SELFID = 46,  // puts address of self into acc
+    INDETERMINATE = 47,  // NOT A VALID OPCODE
+    PPREV = 48,
+    PTOA = 49,      // property index to acc
+    ATOP = 50,      // acc to property index
+    PTOS = 51,      // property index to stack
+    STOP = 52,      // Stack to property index
+    IPTOA = 53,          // Inc prop to acc
+    DPTOA = 54,          // Dec prop to acc
+    IPTOS = 55,          // Inc prop to stack
+    DPTOS = 56,          // Dec prop to stack
+    LOFSA = 57,      // Load offset (from pc) onto acc
+    LOFSS = 58,      // Load offset (from pc) onto stack
+    PUSH0 = 59,      // push 0 onto stack
+    PUSH1 = 60,      // push 1 onto stack
+    PUSH2 = 61,      // push 2 onto stack
+    PUSHSELF = 62,      // push self onto stack
+
+    FirstLoadStore = 64,
 	LAG = 64,  // load global to acc
 	LAL = 65,
 	LAT = 66,
@@ -193,10 +193,19 @@ enum class Opcode : BYTE
 	nSLI = 125,
 	nSTI = 126,
 	nSPI = 127,
-	LastOne = 127,
+    LastLoadStore = 127,
+
+    // Special opcodes (SCI2+):
+    Filename = 128,
+    LineNumber = 129,
+
+    LastOne = 129,
 };
 
-
+Opcode RawToOpcode(const SCIVersion &version, uint8_t rawOpcode);
+uint8_t OpcodeToRaw(const SCIVersion &version, Opcode opcode, bool wide);
+std::unordered_set<std::string> &GetOpcodeSet();
+bool IsOpcode(const std::string &theString);
 
 // Variable operands
 // bit "-1" is operand size

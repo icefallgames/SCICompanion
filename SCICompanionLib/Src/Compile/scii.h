@@ -17,9 +17,12 @@
 #pragma once
 
 #include <stack>
-#include "PMachine.h"
 
-OperandType *GetOperandTypes(const SCIVersion &version, Opcode opcode);
+// Fwd declaration
+enum OperandType : uint8_t;
+enum class Opcode : uint8_t;
+
+const OperandType *GetOperandTypes(const SCIVersion &version, Opcode opcode);
 
 class scii
 {
@@ -28,120 +31,45 @@ private:
 public:
     // WORK ITEM: need to assert if we specify a bad opcode (e.g. acLOFSS) with an inappropriate constructor
     // WORK ITEM: put in operand # verification
-    scii(const SCIVersion &version, Opcode bOpcode) : scii(version, bOpcode, (WORD)0xffff) {}
+    scii(const SCIVersion &version, Opcode bOpcode);
+    scii(const SCIVersion &version, Opcode bOpcode, uint16_t w1);
+    scii(const SCIVersion &version, Opcode bOpcode, uint16_t w1, uint16_t w2);
+    scii(const SCIVersion &version, Opcode bOpcode, uint16_t w1, uint16_t w2, uint16_t w3);
+    scii(const SCIVersion &version, Opcode bOpcode, _code_pos branch, bool fUndetermined);
 
-    scii(const SCIVersion &version, Opcode bOpcode, WORD w1) : scii(version, bOpcode, w1, (WORD)0xffff) {}
-
-    scii(const SCIVersion &version, Opcode bOpcode, WORD w1, WORD w2) : scii(version, bOpcode, w1, w2, (WORD)0xffff) {}
-
-    scii(const SCIVersion &version, Opcode bOpcode, WORD w1, WORD w2, WORD w3) : _version(&version)
-    {
-        _opSize = Undefined;
-        _wSize = 0;
-        _fForceWord = false;
-        _fUndetermined = false;
-        _bOpcode = bOpcode;
-        ASSERT(_bOpcode <= Opcode::LastOne);
-        _wOperands[0] = w1;
-        _wOperands[1] = w2;
-        _wOperands[2] = w3;
-        _wFinalOffset = 0xffff;
-        ASSERT(!_is_branch_instruction());
-#ifdef DEBUG
-		_pDebug = 0;
-#endif
-    }
-    scii(const SCIVersion &version, Opcode bOpcode, _code_pos branch, bool fUndetermined) : _version(&version)
-    {
-        _opSize = Undefined;
-        _wSize = 0;
-        _fForceWord = false;
-        _fUndetermined = fUndetermined;
-        _bOpcode = bOpcode;
-		ASSERT(_bOpcode <= Opcode::LastOne);
-        _itOffset = branch;
-        // Assume a backward branch for now...
-        // (if branch is .end(), then we'll need to fix it up later anyhow, via set_branch_target)
-        _fForwardBranch = false;
-        _wFinalOffset = 0xffff;
-#ifdef DEBUG
-		_pDebug = 0;
-#endif
-    }
-
-    WORD size();
-    WORD calc_size(_code_pos self, int *pfNeedToRedo);
+    uint16_t size();
+    uint16_t calc_size(_code_pos self, int *pfNeedToRedo);
     void set_final_branch_operands(_code_pos self);
-    void reset_size() { _wSize = 0; _opSize = Undefined; }
-
-    void set_branch_target(_code_pos offset, bool fForward)
-    {
-        _itOffset = offset;
-        _fForwardBranch = fForward;
-        _fUndetermined = false;
-        ASSERT(_is_label_instruction());
-    }
-
-    bool is_forward_branch()
-    {
-        return _fForwardBranch;
-    }
-
-    _code_pos get_branch_target()
-    {
-        ASSERT(_is_label_instruction());
-        return _itOffset;
-    }
-    
-    void absolute_offset(WORD wAbsolute)
-    {
-		ASSERT((_bOpcode == Opcode::LOFSS) || (_bOpcode == Opcode::LOFSA) || (_bOpcode == Opcode::CALL));
-        // This is the absolute offset to a string or said (not yet the relative one, but it's progress)
-        _wOperands[0] = wAbsolute;
-        // When we actually write the instruction to a stream, we'll need to diff the current location
-        // with this one, and write the relative offset.
-    }
-
-    void update_first_operand(WORD wValue)
-    {
-        _wOperands[0] = wValue;
-    }
-    void update_second_operand(WORD wValue)
-    {
-        _wOperands[1] = wValue;
-    }
-    WORD get_operand(int i)  const { assert(OpArgTypes_SCI0[static_cast<BYTE>(_bOpcode)][i] != otEMPTY); return _wOperands[i]; }
-    WORD get_first_operand() const
-    {
-        return _wOperands[0];
-    }
-    WORD get_second_operand() const
-    {
-        return _wOperands[1];
-    }
-    WORD get_third_operand() const
-    {
-        return _wOperands[2];
-    }
+    void reset_size();
+    void set_branch_target(_code_pos offset, bool fForward);
+    bool is_forward_branch();
+    _code_pos get_branch_target();
+    void absolute_offset(uint16_t wAbsolute);
+    void update_first_operand(uint16_t wValue);
+    void update_second_operand(uint16_t wValue);
+    uint16_t get_operand(int i)  const;
+    uint16_t get_first_operand() const;
+    uint16_t get_second_operand() const;
+    uint16_t get_third_operand() const;
 
     void output_code(std::vector<BYTE>&);
 
-    Opcode get_opcode() const { return _bOpcode; }
-    Opcode set_opcode(Opcode opcode) { return _bOpcode = opcode; }
+    Opcode get_opcode() const;
+    Opcode set_opcode(Opcode opcode);
 
     // Get the final offset at which the instruction was written.
-    WORD get_final_offset() const  { assert(_wFinalOffset != 0xffff); return _wFinalOffset; }
-    WORD get_final_postop_offset() const { return get_final_offset() + _wSize; }
+    uint16_t get_final_offset() const;
+    uint16_t get_final_postop_offset() const;
 
-    WORD get_final_offset_dontcare() const  { return _wFinalOffset; }
+    uint16_t get_final_offset_dontcare() const;
 
     // Used for decompilation
-    void set_offset_and_size(WORD wOffset, WORD wSize) { _wFinalOffset = wOffset; _wSize = wSize; }
+    void set_offset_and_size(uint16_t wOffset, uint16_t wSize);
 
 #ifdef DEBUG
-    void set_debug_info(int p) { _pDebug = p; }
+    void set_debug_info(int p);
 #endif
-    bool is_branch_determined() { return !_fUndetermined; }
+    bool is_branch_determined();
 
     //
     // For decompilation
@@ -149,38 +77,27 @@ public:
     int is_stackpop_op();
     bool is_stackpush_op();
     bool is_acc_op();
-    void mark() { }
-    bool is_marked() { return false; }
-
-    bool _is_branch_instruction()
-    {
-        return (_bOpcode == Opcode::BNT) || (_bOpcode == Opcode::BT) || (_bOpcode == Opcode::JMP);
-    }
-
-    bool is_conditional_branch_instruction()
-    {
-        return (_bOpcode == Opcode::BNT) || (_bOpcode == Opcode::BT);
-    }
+    void mark();
+    bool is_marked();
+    bool _is_branch_instruction();
+    bool is_conditional_branch_instruction();
 
     static uint16_t GetInstructionSize(const SCIVersion &version, uint8_t rawOpcode);
 
 private:
-    bool _is_label_instruction()
-    {
-		return (_bOpcode == Opcode::BNT) || (_bOpcode == Opcode::BT) || (_bOpcode == Opcode::JMP) || (_bOpcode == Opcode::CALL);
-    }
+    bool _is_label_instruction();
 
-	OperandType *GetOperandTypes();
-    WORD _wOperands[3];
-    WORD _wSize;
-    bool _fForceWord; // This instruction must be a WORD sized one on the next attempt at calculating size.
+	const OperandType *GetOperandTypes() const;
+    uint16_t _wOperands[3];
+    uint16_t _wSize;
+    bool _fForceWord; // This instruction must be a uint16_t sized one on the next attempt at calculating size.
     bool _fUndetermined;
     bool _fForwardBranch;
     Opcode _bOpcode;
     int _pDebug;      // Extra info for debugging.
 
     _code_pos _itOffset;
-    WORD _wFinalOffset;
+    uint16_t _wFinalOffset;
     const SCIVersion *_version; // pointer instead of reference between we need to support assignment op.
 
     enum OPSIZE
@@ -191,7 +108,7 @@ private:
     };
     OPSIZE _opSize;
 
-    static WORD _get_instruction_size(const SCIVersion &version, Opcode bOpcode, OPSIZE opSize);
+    static uint16_t _get_instruction_size(const SCIVersion &version, Opcode bOpcode, OPSIZE opSize);
 };
 
 //
@@ -233,17 +150,17 @@ public:
         _insertInstruction(scii(_version, bOpcode));
         _checkBranchResolution();
     }
-	void inst(Opcode bOpcode, WORD w1)
+	void inst(Opcode bOpcode, uint16_t w1)
     {
         _insertInstruction(scii(_version, bOpcode, w1));
         _checkBranchResolution();
     }
-	void inst(Opcode bOpcode, WORD w1, WORD w2)
+	void inst(Opcode bOpcode, uint16_t w1, uint16_t w2)
     {
         _insertInstruction(scii(_version, bOpcode, w1, w2));
         _checkBranchResolution();
     }
-	void inst(Opcode bOpcode, WORD w1, WORD w2, WORD w3)
+	void inst(Opcode bOpcode, uint16_t w1, uint16_t w2, uint16_t w3)
     {
         _insertInstruction(scii(_version, bOpcode, w1, w2, w3));
         _checkBranchResolution();
@@ -322,12 +239,12 @@ public:
     void leave_branch_block(int index = 0);
     bool in_branch_block(int index);
 
-    WORD calc_size();
-    WORD offset_of(code_pos target);
+    uint16_t calc_size();
+    uint16_t offset_of(code_pos target);
     void write_code(std::vector<BYTE> &output);
     bool has_dangling_branches(bool &fAllBranchesAreReturns);
     bool empty() { return _code.empty(); }
-	void fixup_offsets(const std::unordered_map<WORD, WORD> &fixups);
+	void fixup_offsets(const std::unordered_map<uint16_t, uint16_t> &fixups);
     
     // Insert new instructions here, instead of at the end.
     void push_code_insertion_point(code_pos pos)

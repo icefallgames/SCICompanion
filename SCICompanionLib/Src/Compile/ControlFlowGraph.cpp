@@ -21,6 +21,7 @@
 #include "StlUtil.h"
 #include "format.h"
 #include "SortedVector.h"
+#include "PMachine.h"
 
 using namespace sci;
 using namespace std;

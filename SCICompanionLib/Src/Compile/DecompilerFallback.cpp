@@ -18,6 +18,7 @@
 #include "DecompilerCore.h"
 #include "format.h"
 #include "AppState.h"
+#include "PMachine.h"
 
 using namespace std;
 using namespace sci;
@@ -368,7 +369,7 @@ void DisassembleFallback(FunctionBase &func, code_pos start, code_pos end, Decom
 
                 default:
                 {
-                    if ((opcode >= Opcode::LAG) && (opcode <= Opcode::LastOne))
+                    if ((opcode >= Opcode::FirstLoadStore) && (opcode <= Opcode::LastLoadStore))
                     {
                         VarScope varScope;
                         uint16_t varIndex;
@@ -380,7 +381,7 @@ void DisassembleFallback(FunctionBase &func, code_pos start, code_pos end, Decom
                     break;
                 }
             }
-            asmStatement->SetName(OpcodeNames[static_cast<BYTE>(opcode)]);  // Do if after the above, because we may have changed it.
+            asmStatement->SetName(OpcodeToName(opcode));  // Do if after the above, because we may have changed it.
             callFrames.MaybeReportValue(cur, valueWeak);
             _AddSyntaxNode(statements, move(asmStatement));
         }
