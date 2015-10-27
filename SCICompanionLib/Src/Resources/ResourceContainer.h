@@ -165,7 +165,7 @@ public:
         }
 
         // Strip out the 0x80 from the resource type.
-        entryOut.Type = (ResourceType)(lookupPointers[state.lookupTableIndex].bType - 0x80);
+        entryOut.Type = (ResourceType)(lookupPointers[state.lookupTableIndex].bType & 0x7f);
         entry.SetOffsetNumberAndPackage(entryOut);
 
         state.mapStreamOffset = mapStream.tellg();

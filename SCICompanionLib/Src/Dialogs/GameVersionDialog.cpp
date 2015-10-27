@@ -132,6 +132,7 @@ void CGameVersionDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_RADIOSCI0_1, m_wndRadioResourceMapSCI0_SCI1);
     DDX_Control(pDX, IDC_RADIOSCI1, m_wndRadioResourceMapSCI1);
     DDX_Control(pDX, IDC_RADIOSCI6, m_wndRadioResourceMapSCI11);
+    DDX_Control(pDX, IDC_RADIOSCI11, m_wndRadioResourceMapSCI2);
     DDX_Control(pDX, IDC_RADIOSCI7, m_wndRadioResourcePackSCI0);
     DDX_Control(pDX, IDC_RADIOSCI8, m_wndRadioResourcePackSCI1);
     DDX_Control(pDX, IDC_RADIOSCI9, m_wndRadioResourcePackSCI11);

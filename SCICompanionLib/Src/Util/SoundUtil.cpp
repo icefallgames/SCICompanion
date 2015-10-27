@@ -20,6 +20,7 @@
 #include "format.h"
 #include "CDSPResampler.h"
 #include "AudioProcessingSettings.h"
+#include "Stream.h"
 
 using namespace std;
 using namespace r8b;
@@ -142,6 +143,32 @@ void ReadAudioProcessingSettings(sci::istream stream, AudioProcessingSettings &s
 {
     // REVIEW: This might eventually be a more generic property bag.
     stream >> settings;
+}
+
+bool HasWaveHeader(const std::string &filename)
+{
+    try
+    { 
+        ScopedFile scoped(filename, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
+        sci::streamOwner streamOwner(scoped.hFile);
+        sci::istream stream = streamOwner.getReader();
+        uint32_t riff;
+        stream >> riff;
+        return riff == (*(uint32_t*)riffMarker);
+    }
+    catch (std::exception)
+    {
+        return false;
+    }
+}
+
+uint32_t GetWaveFileSizeIncludingHeader(sci::istream &stream)
+{
+    uint32_t riff, fileSize;
+    stream >> riff;
+    assert((riff == (*(uint32_t*)riffMarker)));
+    stream >> fileSize;
+    return fileSize + sizeof(uint32_t) * 2;
 }
 
 void AudioComponentFromWaveFile(sci::istream &stream, AudioComponent &audio, AudioProcessingSettings *audioProcessingSettings)
@@ -411,7 +438,6 @@ void WriteWaveFile(const std::string &filename, const AudioComponent &audio, con
     ScopedFile file(filename, GENERIC_WRITE, 0, CREATE_ALWAYS);
     file.Write(out.GetInternalPointer(), out.GetDataSize());
 }
-
 
 std::string GetAudioVolumePath(const std::string &gameFolder, bool bak, AudioVolumeName volumeToUse, ResourceSourceFlags *sourceFlags)
 {

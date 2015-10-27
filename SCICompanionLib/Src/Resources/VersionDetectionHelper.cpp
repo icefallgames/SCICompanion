@@ -18,6 +18,7 @@
 #include "ResourceContainer.h"
 #include "ResourceEntity.h"
 #include "AudioMap.h"
+#include "SoundUtil.h"
 
 using namespace std;
 
@@ -200,6 +201,7 @@ ResourceMapFormat CResourceMap::_DetectMapFormat()
 
     // To try to detect SCI1, read at least 7 RESOURCEMAPPREENTRY_SCI1's, or until we have a 0xff
     bool couldBeSCI1 = true;
+    bool couldBeSCI2 = false;
     int remainingEntries = 7;
     std::vector<uint16_t> offsets;
     while (byteStream.good() && couldBeSCI1 && (remainingEntries > 0))
@@ -209,6 +211,12 @@ ResourceMapFormat CResourceMap::_DetectMapFormat()
         offsets.push_back(sci1Header.wOffset);
         if (sci1Header.bType == 0xff)
         {
+            break;
+        }
+        if (sci1Header.bType < 0x80)
+        {
+            couldBeSCI1 = false;
+            couldBeSCI2 = true;
             break;
         }
         if ((sci1Header.bType < 0x80) || (sci1Header.bType > 0x91))
@@ -245,57 +253,64 @@ ResourceMapFormat CResourceMap::_DetectMapFormat()
     }
     else
     {
-        // It's SCI0, in that it doesn't have a list of "pre-entries". But the format of the entries themselves could be "SCI1".
-        // Check by interpreting them as SCI0 and seeing if we can open all the volume files we encounter.
-        sci::istream byteStreamSCI0 = streamHolder->getReader();
-        sci::istream byteStreamSCI1 = streamHolder->getReader();
-        std::set<int> volumesSCI0;
-        std::set<int> volumesSCI1;
-        static_assert(sizeof(RESOURCEMAPENTRY_SCI0) == sizeof(RESOURCEMAPENTRY_SCI0_SCI1LAYOUT), "Mismatched resource map entry size.");
-        while (byteStreamSCI0.good())
+        if (couldBeSCI2)
         {
-            RESOURCEMAPENTRY_SCI0 mapEntrySCI0;
-            byteStreamSCI0 >> mapEntrySCI0;
-            if (mapEntrySCI0.iType == 0x1f)
-            {
-                break; // EOF marker
-            }
-            volumesSCI0.insert(mapEntrySCI0.iPackageNumber);
-            RESOURCEMAPENTRY_SCI0_SCI1LAYOUT mapEntrySCI1;
-            byteStreamSCI1 >> mapEntrySCI1;
-            volumesSCI1.insert(mapEntrySCI1.iPackageNumber);
+            mapFormat = ResourceMapFormat::SCI2;
         }
-
-        // If any of these don't exist, assume that we have SCI1 layout
-        bool probablyNotSCI0 = false;
-        for (int volume : volumesSCI0)
+        else
         {
-            FileDescriptorResourceMap resourceMapFileDescriptor(_gameFolderHelper.GameFolder);
-            if (!PathFileExists(resourceMapFileDescriptor._GetVolumeFilename(volume).c_str()))
+            // It's SCI0, in that it doesn't have a list of "pre-entries". But the format of the entries themselves could be "SCI1".
+            // Check by interpreting them as SCI0 and seeing if we can open all the volume files we encounter.
+            sci::istream byteStreamSCI0 = streamHolder->getReader();
+            sci::istream byteStreamSCI1 = streamHolder->getReader();
+            std::set<int> volumesSCI0;
+            std::set<int> volumesSCI1;
+            static_assert(sizeof(RESOURCEMAPENTRY_SCI0) == sizeof(RESOURCEMAPENTRY_SCI0_SCI1LAYOUT), "Mismatched resource map entry size.");
+            while (byteStreamSCI0.good())
             {
-                probablyNotSCI0 = true;
-                break;
+                RESOURCEMAPENTRY_SCI0 mapEntrySCI0;
+                byteStreamSCI0 >> mapEntrySCI0;
+                if (mapEntrySCI0.iType == 0x1f)
+                {
+                    break; // EOF marker
+                }
+                volumesSCI0.insert(mapEntrySCI0.iPackageNumber);
+                RESOURCEMAPENTRY_SCI0_SCI1LAYOUT mapEntrySCI1;
+                byteStreamSCI1 >> mapEntrySCI1;
+                volumesSCI1.insert(mapEntrySCI1.iPackageNumber);
             }
-        }
 
-        // Let's verify first though (in case someone just deleted a package file)
-        if (probablyNotSCI0)
-        {
-            for (int volume : volumesSCI1)
+            // If any of these don't exist, assume that we have SCI1 layout
+            bool probablyNotSCI0 = false;
+            for (int volume : volumesSCI0)
             {
                 FileDescriptorResourceMap resourceMapFileDescriptor(_gameFolderHelper.GameFolder);
                 if (!PathFileExists(resourceMapFileDescriptor._GetVolumeFilename(volume).c_str()))
                 {
-                    // Game is corrupt...
-                    probablyNotSCI0 = false;
+                    probablyNotSCI0 = true;
                     break;
                 }
             }
-        }
 
-        if (probablyNotSCI0)
-        {
-            mapFormat = ResourceMapFormat::SCI0_LayoutSCI1;
+            // Let's verify first though (in case someone just deleted a package file)
+            if (probablyNotSCI0)
+            {
+                for (int volume : volumesSCI1)
+                {
+                    FileDescriptorResourceMap resourceMapFileDescriptor(_gameFolderHelper.GameFolder);
+                    if (!PathFileExists(resourceMapFileDescriptor._GetVolumeFilename(volume).c_str()))
+                    {
+                        // Game is corrupt...
+                        probablyNotSCI0 = false;
+                        break;
+                    }
+                }
+            }
+
+            if (probablyNotSCI0)
+            {
+                mapFormat = ResourceMapFormat::SCI0_LayoutSCI1;
+            }
         }
     }
 
@@ -417,6 +432,16 @@ void CResourceMap::_SniffSCIVersion()
             _gameFolderHelper.Version.AudioVolumeName = AudioVolumeName::Sfx;
         }
     }
+    // Some games (e.g. SQ6) have wave files as the audio format
+    if (_gameFolderHelper.Version.AudioVolumeName != AudioVolumeName::None)
+    {
+        AudioVolumeName volNameMain = GetVolumeToUse(_gameFolderHelper.Version, NoBase36);
+        std::string mainAudioVolumePath = GetAudioVolumePath(_gameFolderHelper.GameFolder, false, volNameMain);
+        if (HasWaveHeader(mainAudioVolumePath))
+        {
+            _gameFolderHelper.Version.AudioIsWav = true;
+        }
+    }
 
     // Is there a message file?
     std::string fullPathMessageMap = _gameFolderHelper.GameFolder + "\\" + "message.map";
@@ -524,14 +549,18 @@ void CResourceMap::_SniffSCIVersion()
     }
 
     // Let's get more specific on view formats.
-    // TODO: Also if old resource map format, but we find DCL compression (PQ4 demo, apparently)
-    //if (_gameFolderHelper.Version.MapFormat == ResourceMapFormat::SCI11)
-    //{
-    //  _gameFolderHelper.Version.ViewFormat = ViewFormat::VGA1_1;
-    //}
     if (_gameFolderHelper.Version.ViewFormat != ViewFormat::EGA)
     {
-        _gameFolderHelper.Version.ViewFormat = _DetectViewVGAVersion();
+        if (_gameFolderHelper.Version.PackageFormat == ResourcePackageFormat::SCI2)
+        {
+            // If we have an SCI2 package format, that's a good indication we have VGA2 views
+            // They are close to VGA1_1, but not quite.
+            _gameFolderHelper.Version.ViewFormat = ViewFormat::VGA2; 
+        }
+        else
+        {
+            _gameFolderHelper.Version.ViewFormat = _DetectViewVGAVersion();
+        }
 
         // A terrible place to put this....
         _gameFolderHelper.Version.SoundFormat = SoundFormat::SCI1;

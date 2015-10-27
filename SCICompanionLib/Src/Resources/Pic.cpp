@@ -691,7 +691,8 @@ struct PicHeader_VGA2
     uint8_t unknown1;
     uint16_t celHeaderSize;
     uint32_t paletteOffset;
-    uint32_t unknown2;
+    uint16_t width;
+    uint16_t height;
 };
 
 struct PicCelHeader_VGA2
@@ -814,7 +815,7 @@ void PicWriteToVGA11(const ResourceEntity &resource, sci::ostream &byteStream, s
 }
 
 
-void ReadPicCelFromVGA2(sci::istream &byteStream, Cel &cel, int16_t &priority)
+void ReadPicCelFromVGA2(sci::istream &byteStream, Cel &cel, int16_t &priority, bool is640)
 {
     PicCelHeader_VGA2 celHeader;
     byteStream >> celHeader;
@@ -822,6 +823,13 @@ void ReadPicCelFromVGA2(sci::istream &byteStream, Cel &cel, int16_t &priority)
     cel.size = celHeader.size;
     // Perhaps relativePlacement is affected by mirroring and placement is not?
     cel.placement = celHeader.placement + celHeader.relativePlacement;
+
+    // This appears to be needed for 640 wide pics?
+    if (is640)
+    {
+        cel.placement.x *= 2;
+    }
+
     cel.TransparentColor = celHeader.transparentColor;
     cel.Stride32 = false;   // Apparently the stride is simply the pixel width
     priority = celHeader.priority;
@@ -852,30 +860,31 @@ void PicReadFromVGA2(ResourceEntity &resource, sci::istream &byteStream, const s
     static_assert(sizeof(PicHeader_VGA2) == 0xe, "PicHeader wrong size");
     assert(header.celHeaderSize == sizeof(PicCelHeader_VGA2));
 
+    // This is defined for some games (SQ6, which is 640x480), but not others like Gabriel Knight.
+    // So in addition to this, we'll take into account the individual cels' widths.
+    pic.Size = size16(header.width, header.height);
     uint32_t base = byteStream.tellg();
-    uint16_t minWidth = 320;
-    uint16_t minHeight = 190;
     for (uint8_t cel = 0; cel < header.celCount; cel++)
     {
         byteStream.seekg(base + cel * header.celHeaderSize);
         Cel picCel;
         int16_t priority;
-        ReadPicCelFromVGA2(byteStream, picCel, priority);
-        minWidth = max(minWidth, picCel.size.cx);
-        minHeight = max(minHeight, picCel.size.cy);
+        ReadPicCelFromVGA2(byteStream, picCel, priority, pic.Size.cx == 640);
+
+        pic.Size.cx = max(pic.Size.cx, picCel.size.cx);
+        pic.Size.cy = max(pic.Size.cy, picCel.size.cy);
 
         // TODO: SCI32 appears to have arbitrary priority levels
-        // -1000 is the background, and others roughly correspond to the y value of object?
+        // -1000 is the background, 1000 is always in front, and others roughly correspond to the y value of object?
         // For now, we'll just round them down to SCI1 levels.
         priority = max(0, priority);
+        priority = min(255, priority);
         uint8_t sci1Priority = (uint8_t)((0xff & priority) / 16);
         pic.commands.push_back(PicCommand::CreateSetPriority(sci1Priority));
 
         pic.commands.push_back(PicCommand());
         pic.commands.back().CreateDrawVisualBitmap(picCel, true);
     }
-
-    pic.Size = size16(minWidth, minHeight);
 
     if (header.paletteOffset)
     {

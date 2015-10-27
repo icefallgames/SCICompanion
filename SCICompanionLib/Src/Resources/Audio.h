@@ -71,6 +71,7 @@ public:
 };
 
 ResourceEntity *CreateAudioResource(SCIVersion version);
+ResourceEntity *CreateWaveAudioResource(SCIVersion version);
 ResourceEntity *CreateDefaultAudioResource(SCIVersion version);
 uint32_t AudioEstimateSize(const ResourceEntity &resource);
 std::string GetAudioLength(const AudioComponent &audio);

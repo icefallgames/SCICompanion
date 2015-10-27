@@ -43,6 +43,7 @@ SCIVersion sciVersion0 =
     65535,
     AudioMapVersion::None,
     AudioMapVersion::None,
+    false
 };
 
 SCIVersion sciVersion1_Late =
@@ -70,6 +71,7 @@ SCIVersion sciVersion1_Late =
     65535,
     AudioMapVersion::None,
     AudioMapVersion::None,
+    false
 };
 
 SCIVersion sciVersion1_1 =
@@ -97,6 +99,7 @@ SCIVersion sciVersion1_1 =
     65535,
     AudioMapVersion::FiveBytes,
     AudioMapVersion::SyncMapEarly,
+    false
 };
 
 bool SCIVersion::operator == (const SCIVersion &src)

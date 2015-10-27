@@ -21,6 +21,7 @@ enum class ResourceMapFormat : uint8_t
     SCI0_LayoutSCI1 = 1,
     SCI1 = 2,
     SCI11 = 3,
+    SCI2 = 4,
 };
 
 enum class ResourcePackageFormat : uint8_t
@@ -48,6 +49,7 @@ enum class ViewFormat : uint8_t
     EGA = 0,
     VGA1 = 1,
     VGA1_1 = 2,
+    VGA2 = 3,
 };
 
 enum class PicFormat : uint8_t
@@ -93,6 +95,7 @@ struct SCIVersion
     int AudioMapResourceNumber;
     AudioMapVersion MainAudioMapVersion;
     AudioMapVersion Base36AudioMapVersion;
+    bool AudioIsWav;
 
     bool operator==(const SCIVersion &src);
     bool operator!=(const SCIVersion &src);

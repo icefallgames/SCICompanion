@@ -17,6 +17,7 @@
 #include "ResourceEntity.h"
 #include "Sync.h"
 #include "format.h"
+#include "SoundUtil.h"
 
 using namespace std;
 
@@ -186,7 +187,7 @@ void AudioWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, std:
     byteStream.WriteBytes(&audio.DigitalSamplePCM[0], (int)audio.DigitalSamplePCM.size());
 }
 
-void AudioReadFrom(ResourceEntity &resource, sci::istream &stream, const std::map<BlobKey, uint32_t> &propertyBag)
+void AudioReadFromHelper(ResourceEntity &resource, sci::istream &stream, const std::map<BlobKey, uint32_t> &propertyBag, bool isWave)
 {
     uint32_t offset = 0;
     auto itLipSyncDataSize = propertyBag.find(BlobKey::LipSyncDataSize);
@@ -229,52 +230,68 @@ void AudioReadFrom(ResourceEntity &resource, sci::istream &stream, const std::ma
 
     AudioComponent &audio = resource.GetComponent<AudioComponent>();
 
-    AudioHeader header;
-    stream >> header;
-
-    stream.seekg(offset + header.headerSize + 2);
-
-    audio.Frequency = header.sampleRate;
-    audio.Flags = header.flags;
-    
-    if (header.sizeExcludingHeader > 0)
+    if (isWave)
     {
-        if (IsFlagSet(audio.Flags, AudioFlags::SixteenBit))
+        AudioComponentFromWaveFile(stream, audio, nullptr);
+    }
+    else
+    {
+
+        AudioHeader header;
+        stream >> header;
+
+        stream.seekg(offset + header.headerSize + 2);
+
+        audio.Frequency = header.sampleRate;
+        audio.Flags = header.flags;
+
+        if (header.sizeExcludingHeader > 0)
         {
-            assert(IsFlagSet(audio.Flags, AudioFlags::Signed));
-            if (IsFlagSet(audio.Flags, AudioFlags::DPCM))
+            if (IsFlagSet(audio.Flags, AudioFlags::SixteenBit))
             {
-                uint32_t newSize = header.sizeExcludingHeader * 2;
-                audio.DigitalSamplePCM.assign(newSize, 0);
-                deDPCM16(&audio.DigitalSamplePCM[0], stream, header.sizeExcludingHeader);
+                assert(IsFlagSet(audio.Flags, AudioFlags::Signed));
+                if (IsFlagSet(audio.Flags, AudioFlags::DPCM))
+                {
+                    uint32_t newSize = header.sizeExcludingHeader * 2;
+                    audio.DigitalSamplePCM.assign(newSize, 0);
+                    deDPCM16(&audio.DigitalSamplePCM[0], stream, header.sizeExcludingHeader);
+                }
+                else
+                {
+                    // LSL6?
+                    audio.DigitalSamplePCM.assign(header.sizeExcludingHeader, 0);
+                    stream.read_data(&audio.DigitalSamplePCM[0], audio.DigitalSamplePCM.size());
+                }
             }
             else
             {
-                // LSL6?
-                audio.DigitalSamplePCM.assign(header.sizeExcludingHeader, 0);
-                stream.read_data(&audio.DigitalSamplePCM[0], audio.DigitalSamplePCM.size());
-            }
-        }
-        else
-        {
-            assert(!IsFlagSet(audio.Flags, AudioFlags::Signed));
-            if (IsFlagSet(audio.Flags, AudioFlags::DPCM))
-            {
-                // Decompress it - KQ6, ....
-                uint32_t newSize = header.sizeExcludingHeader * 2;
-                audio.DigitalSamplePCM.assign(newSize, 0);
-                deDPCM8(&audio.DigitalSamplePCM[0], stream, header.sizeExcludingHeader);
-            }
-            else
-            {
-                // Copy it directly over, uncompressed. SQ5, ....
-                audio.DigitalSamplePCM.assign(header.sizeExcludingHeader, 0);
-                stream.read_data(&audio.DigitalSamplePCM[0], audio.DigitalSamplePCM.size());
+                assert(!IsFlagSet(audio.Flags, AudioFlags::Signed));
+                if (IsFlagSet(audio.Flags, AudioFlags::DPCM))
+                {
+                    // Decompress it - KQ6, ....
+                    uint32_t newSize = header.sizeExcludingHeader * 2;
+                    audio.DigitalSamplePCM.assign(newSize, 0);
+                    deDPCM8(&audio.DigitalSamplePCM[0], stream, header.sizeExcludingHeader);
+                }
+                else
+                {
+                    // Copy it directly over, uncompressed. SQ5, ....
+                    audio.DigitalSamplePCM.assign(header.sizeExcludingHeader, 0);
+                    stream.read_data(&audio.DigitalSamplePCM[0], audio.DigitalSamplePCM.size());
+                }
             }
         }
     }
-
     audio.ScanForClipped();
+}
+
+void WaveAudioReadFrom(ResourceEntity &resource, sci::istream &stream, const std::map<BlobKey, uint32_t> &propertyBag)
+{
+    AudioReadFromHelper(resource, stream, propertyBag, true);
+}
+void AudioReadFrom(ResourceEntity &resource, sci::istream &stream, const std::map<BlobKey, uint32_t> &propertyBag)
+{
+    AudioReadFromHelper(resource, stream, propertyBag, false);
 }
 
 ResourceTraits audioTraits =
@@ -286,9 +303,25 @@ ResourceTraits audioTraits =
     nullptr
 };
 
+ResourceTraits waveAudioTraits =
+{
+    ResourceType::Audio,
+    &WaveAudioReadFrom,
+    nullptr,
+    &NoValidationFunc,
+    nullptr
+};
+
 ResourceEntity *CreateAudioResource(SCIVersion version)
 {
     std::unique_ptr<ResourceEntity> pResource = std::make_unique<ResourceEntity>(audioTraits);
+    pResource->AddComponent(move(make_unique<AudioComponent>()));
+    return pResource.release();
+}
+
+ResourceEntity *CreateWaveAudioResource(SCIVersion version)
+{
+    std::unique_ptr<ResourceEntity> pResource = std::make_unique<ResourceEntity>(waveAudioTraits);
     pResource->AddComponent(move(make_unique<AudioComponent>()));
     return pResource.release();
 }

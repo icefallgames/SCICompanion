@@ -259,7 +259,7 @@ struct RESOURCEMAPENTRY_SCI1_1
 bool DoesPackageFormatIncludeHeaderInCompressedSize(SCIVersion version);
 
 // header for each entry in resource.xxx
-template<typename _TDataSizeSize>
+template<typename _TDataSizeSize, uint8_t TypeAdornment>
 struct RESOURCEHEADERBASE
 {
     uint8_t bType;                     // type (0x80 ... 0x91)
@@ -271,7 +271,7 @@ struct RESOURCEHEADERBASE
     ResourceHeaderAgnostic ToAgnostic(SCIVersion version, ResourceSourceFlags sourceFlags, int packageHint)
     {
         ResourceHeaderAgnostic agnostic;
-        agnostic.Type = (ResourceType)(bType - 0x80);
+        agnostic.Type = (ResourceType)(bType & ~TypeAdornment);
         agnostic.cbCompressed = cbCompressed - (DoesPackageFormatIncludeHeaderInCompressedSize(version) ? 4 : 0);
         agnostic.cbDecompressed = cbDecompressed;
         agnostic.Number = iNumber;
@@ -284,7 +284,7 @@ struct RESOURCEHEADERBASE
 
     void FromAgnostic(const ResourceHeaderAgnostic &agnostic)
     {
-        bType = (uint8_t)agnostic.Type + 0x80;
+        bType = (uint8_t)agnostic.Type | TypeAdornment;
         iNumber = agnostic.Number;
         cbDecompressed = (_TDataSizeSize)agnostic.cbDecompressed;
         cbCompressed = (_TDataSizeSize)agnostic.cbCompressed + ((DoesPackageFormatIncludeHeaderInCompressedSize(agnostic.Version)) ? 4 : 0);
@@ -292,12 +292,17 @@ struct RESOURCEHEADERBASE
     }
 };
 
-struct RESOURCEHEADER_SCI1 : public RESOURCEHEADERBASE<uint16_t>
+struct RESOURCEHEADER_SCI1 : public RESOURCEHEADERBASE<uint16_t, 0x80>
 {
 
 };
 
-struct RESOURCEHEADER_SCI2 : public RESOURCEHEADERBASE<uint32_t>
+struct RESOURCEHEADER_SCI2 : public RESOURCEHEADERBASE<uint32_t, 0x80>
+{
+
+};
+
+struct RESOURCEHEADER_SCI2_1 : public RESOURCEHEADERBASE<uint32_t, 0x00>
 {
 
 };

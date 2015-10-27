@@ -680,7 +680,7 @@ void ReadCelFromVGA11(sci::istream &byteStream, Cel &cel, bool isPic)
     }
 }
 
-void ReadLoopFromVGA11(ResourceEntity &resource, sci::istream &byteStream, Loop &loop, int nLoop, uint8_t celHeaderSize)
+void ReadLoopFromVGA(ResourceEntity &resource, sci::istream &byteStream, Loop &loop, int nLoop, uint8_t celHeaderSize, bool isSCI2)
 {
     g_debugCelRLE = resource.ResourceNumber;
 
@@ -688,19 +688,27 @@ void ReadLoopFromVGA11(ResourceEntity &resource, sci::istream &byteStream, Loop 
     LoopHeader_VGA11 loopHeader;
     byteStream >> loopHeader;
 
-    if (loopHeader.mirrorInfo == 0xff)
+    if (isSCI2)
     {
-        assert(loopHeader.isMirror == 0);
+        // Trust loop.IsMirror?
     }
     else
     {
-        // Some games violate this assumption, but it's probably just a bug
-        // KQ6, 138, loop 4, it's a mirror of 1
-        // KQ6, 302, loop 1, it's a mirror of 0
-        //assert(loopHeader.isMirror == 1);
+        if (loopHeader.mirrorInfo == 0xff)
+        {
+            assert(loopHeader.isMirror == 0);
+        }
+        else
+        {
+            // Some games violate this assumption, but it's probably just a bug
+            // KQ6, 138, loop 4, it's a mirror of 1
+            // KQ6, 302, loop 1, it's a mirror of 0
+            //assert(loopHeader.isMirror == 1);
+        }
+
+        loop.IsMirror = (loopHeader.mirrorInfo != 0xff);
     }
 
-    loop.IsMirror = (loopHeader.mirrorInfo != 0xff);
     if (loop.IsMirror)
     {
         loop.MirrorOf = loopHeader.mirrorInfo;
@@ -851,7 +859,7 @@ void ViewWriteToVGA11(const ResourceEntity &resource, sci::ostream &byteStream, 
     // Done!
 }
 
-void ViewReadFromVGA11(ResourceEntity &resource, sci::istream &byteStream, const std::map<BlobKey, uint32_t> &propertyBag)
+void ViewReadFromVGA11Helper(ResourceEntity &resource, sci::istream &byteStream, const std::map<BlobKey, uint32_t> &propertyBag, bool isSCI2)
 {
     RasterComponent &raster = resource.GetComponent<RasterComponent>();
 
@@ -870,7 +878,8 @@ void ViewReadFromVGA11(ResourceEntity &resource, sci::istream &byteStream, const
     assert(header.loopHeaderSize >= sizeof(LoopHeader_VGA11));   // 16
     assert(header.celHeaderSize >= sizeof(CelHeader_VGA11));     // 32
 
-    assert(header.celHeaderSize == 36);
+    // 36 is common in SCI1.1, 52 is common in SCI2. But sometimes we'll see 36 in SCI2.
+    assert((header.celHeaderSize == 36) || (header.celHeaderSize == 52));
 
     if (header.paletteOffset)
     {
@@ -884,7 +893,7 @@ void ViewReadFromVGA11(ResourceEntity &resource, sci::istream &byteStream, const
     {
         sci::istream streamLoop(byteStream);
         streamLoop.seekg(header.headerSize + (header.loopHeaderSize * i));  // Start of this loop's data
-        ReadLoopFromVGA11(resource, streamLoop, raster.Loops[i], i, header.celHeaderSize);
+        ReadLoopFromVGA(resource, streamLoop, raster.Loops[i], i, header.celHeaderSize, isSCI2);
     }
 
     // Now fill in mirrors. They seem setup a little differently than in earlier versions of views,
@@ -905,6 +914,15 @@ void ViewReadFromVGA11(ResourceEntity &resource, sci::istream &byteStream, const
     }
 
     PostReadProcessing(resource, raster);
+}
+
+void ViewReadFromVGA11(ResourceEntity &resource, sci::istream &byteStream, const std::map<BlobKey, uint32_t> &propertyBag)
+{
+    ViewReadFromVGA11Helper(resource, byteStream, propertyBag, false);
+}
+void ViewReadFromVGA2(ResourceEntity &resource, sci::istream &byteStream, const std::map<BlobKey, uint32_t> &propertyBag)
+{
+    ViewReadFromVGA11Helper(resource, byteStream, propertyBag, true);
 }
 
 void ViewReadFromEGA(ResourceEntity &resource, sci::istream &byteStream, const std::map<BlobKey, uint32_t> &propertyBag)
@@ -1093,6 +1111,15 @@ ResourceTraits viewTraitsVGA11 =
     nullptr
 };
 
+ResourceTraits viewTraitsVGA2 =
+{
+    ResourceType::View,
+    &ViewReadFromVGA2,
+    nullptr,
+    &NoValidationFunc,
+    nullptr
+};
+
 ResourceEntity *CreateViewResource(SCIVersion version)
 {
     ResourceTraits *ptraits = &viewTraitsEGA;
@@ -1104,6 +1131,10 @@ ResourceEntity *CreateViewResource(SCIVersion version)
     {
         ptraits = &viewTraitsVGA11;
     }
+    else if (version.ViewFormat == ViewFormat::VGA2)
+    {
+        ptraits = &viewTraitsVGA2;
+    }
 
     RasterTraits *prasterTraits = &viewRasterTraits;
     if (version.ViewFormat == ViewFormat::VGA1)
@@ -1111,6 +1142,10 @@ ResourceEntity *CreateViewResource(SCIVersion version)
         prasterTraits = &viewRasterTraitsVGA1;
     }
     else if (version.ViewFormat == ViewFormat::VGA1_1)
+    {
+        prasterTraits = &viewRasterTraitsVGA1_1;
+    }
+    else if (version.ViewFormat == ViewFormat::VGA2)
     {
         prasterTraits = &viewRasterTraitsVGA1_1;
     }

@@ -71,6 +71,7 @@ private:
     CExtRadioButton m_wndRadioResourceMapSCI0_SCI1;
     CExtRadioButton m_wndRadioResourceMapSCI1;
     CExtRadioButton m_wndRadioResourceMapSCI11;
+    CExtRadioButton m_wndRadioResourceMapSCI2;
 
     CExtGroupBox m_wndGroupResourcePack;
     CExtRadioButton m_wndRadioResourcePackSCI0;

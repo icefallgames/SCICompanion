@@ -32,3 +32,5 @@ AudioVolumeName GetVolumeToUse(SCIVersion version, uint32_t base36Number);
 std::string GetAudioVolumePath(const std::string &gameFolder, bool bak, AudioVolumeName volumeToUse, ResourceSourceFlags *sourceFlags = nullptr);
 bool IsWaveFile(PCSTR pszFileName);
 void WriteWaveFile(const std::string &filename, const AudioComponent &audio, const AudioProcessingSettings *audioProcessingSettings = nullptr);
+bool HasWaveHeader(const std::string &filename);
+uint32_t GetWaveFileSizeIncludingHeader(sci::istream &stream);

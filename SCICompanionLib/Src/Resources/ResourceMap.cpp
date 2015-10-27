@@ -1371,7 +1371,14 @@ std::unique_ptr<ResourceEntity> CreateResourceFromResourceData(const ResourceBlo
         case ResourceType::Message:
             return CreateResourceHelper(data, CreateMessageResource, CreateDefaultMessageResource, fallbackOnException);
         case ResourceType::Audio:
-            return CreateResourceHelper(data, CreateAudioResource, CreateDefaultAudioResource, fallbackOnException);
+            if (data.GetVersion().AudioIsWav && (data.GetBase36() == NoBase36))
+            {
+                return CreateResourceHelper(data, CreateWaveAudioResource, CreateDefaultAudioResource, fallbackOnException);
+            }
+            else
+            {
+                return CreateResourceHelper(data, CreateAudioResource, CreateDefaultAudioResource, fallbackOnException);
+            }
         case ResourceType::AudioMap:
             return CreateResourceHelper(data, CreateMapResource, CreateMapResource, fallbackOnException);
         default:
