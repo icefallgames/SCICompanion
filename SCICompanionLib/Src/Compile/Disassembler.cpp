@@ -78,7 +78,6 @@ int GetOperandSize(BYTE bOpcode, OperandType operandType, const uint8_t *pNext)
     case otSAID:
     case otKERNEL:
     case otLABEL:
-    case otLABEL_P1:
     case otPUBPROC:
     case otINT:
     case otUINT:
@@ -86,6 +85,7 @@ int GetOperandSize(BYTE bOpcode, OperandType operandType, const uint8_t *pNext)
         cIncr = (bOpcode & 1) ? 1 : 2;
         break;
     case otINT16:
+    case otUINT16:
         cIncr = 2;
         break;
     case otINT8:
@@ -205,6 +205,7 @@ void DisassembleCode(SCIVersion version, std::ostream &out, ICompiledScriptLooku
                         case otINT16:
                         case otINT8:
                         case otUINT8:
+                        case otUINT16:
                         case otPVAR:
                             out << wOperands[i];
                             break;
@@ -261,10 +262,6 @@ void DisassembleCode(SCIVersion version, std::ostream &out, ICompiledScriptLooku
                         case otLABEL:
                             // This is a relative position from the post pc
                             out << ((bOpcode == Opcode::CALL) ? "proc" : "code") << "_" << setw(4) << setfill('0') << CalcOffset(wOperandStart, wOperands[i], bByte, bRawOpcode);
-                            break;
-
-                        case otLABEL_P1:
-                            out << ((bOpcode == Opcode::CALL) ? "proc" : "code") << "_" << setw(4) << setfill('0') << (CalcOffset(wOperandStart, wOperands[i], bByte, bRawOpcode) + 1);
                             break;
 
                         default:

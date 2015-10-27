@@ -59,8 +59,8 @@ enum OperandType
     otOFFS =      13,
     otUINT =      14,
     otUINT8 =     15,
-    otDEBUG =     16,
-    otLABEL_P1 =  17,
+    otUINT16 =    16,
+    otDEBUG =     17,
 };
 extern OperandType OpArgTypes_SCI0[TOTAL_OPCODES][3];
 extern OperandType OpArgTypes_SCI2[TOTAL_OPCODES][3];

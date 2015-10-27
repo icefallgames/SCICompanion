@@ -180,11 +180,11 @@ WORD scii::_get_instruction_size(const SCIVersion &version, Opcode bOpcode, OPSI
         case otUINT:
         case otOFFS:
         case otLABEL:
-        case otLABEL_P1:
             wSize += ((opSize == Word) ? 2 : 1);
             break;
 
         case otINT16:
+        case otUINT16:
             wSize += 2;
             break;
         case otINT8:
@@ -238,7 +238,7 @@ void scii::set_final_branch_operands(code_pos self)
     ASSERT(_fUndetermined == false);
     if (_is_label_instruction())
     {
-        assert(GetOperandTypes()[0] == otLABEL || GetOperandTypes()[0] == otLABEL_P1);
+        assert(GetOperandTypes()[0] == otLABEL);
         WORD wCodeDistance = 0;
         int fRedoDummy = 0;
         if (_fForwardBranch)
@@ -319,7 +319,6 @@ WORD scii::calc_size(code_pos self, int *pfNeedToRedo)
                     break;
 
                 case otLABEL:
-                case otLABEL_P1:
                     {
                         encounteredVariableSizeOperand = true;
                         assert(_is_label_instruction());
@@ -353,6 +352,7 @@ WORD scii::calc_size(code_pos self, int *pfNeedToRedo)
                     break;
 
                 case otINT16:
+                case otUINT16:
                     opSizeCalculated = Word;
                     break;
                 case otINT8:
@@ -440,11 +440,11 @@ void scii::output_code(std::vector<BYTE> &output)
         case otUINT:
         case otOFFS:
         case otLABEL:
-        case otLABEL_P1:
             bByte = (_opSize == Byte);
             break;
 
         case otINT16:
+        case otUINT16:
             bByte = false;
             break;
         case otINT8:

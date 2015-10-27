@@ -154,7 +154,7 @@ const BYTE *_ConvertToInstructions(DecompileLookups &lookups, std::list<scii> &c
             {
             case 1:
                 // We may need to sign-extend this.
-                if ((opType == otINT) || (opType == otINT8) || (opType == otLABEL) || (opType == otLABEL_P1))
+                if ((opType == otINT) || (opType == otINT8) || (opType == otLABEL))
                 {
                     wOperands[i] = (uint16_t)(int16_t)(int8_t)*pCur;
                 }

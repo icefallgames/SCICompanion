@@ -940,10 +940,6 @@ set<uint16_t> CompiledScript::FindInternalCallsTO() const
                     // This is one. The first operand is a word or byte
                     wRelOffset = (bByte ? ((uint16_t)*pCur) : (uint16_t)*pCur + (((uint16_t)*(pCur + 1)) << 8));
                     uint16_t theOffset = CalcOffset(wCurrentOffsetTO, wRelOffset, bByte, bRawOpcode);
-                    if (GetOperandTypes(this->_version, Opcode::CALL)[0] == otLABEL_P1)
-                    {
-                        theOffset++;
-                    }
                     wOffsets.insert(wOffsets.end(), theOffset);
                 }
                 // Skip past to the next instruction
