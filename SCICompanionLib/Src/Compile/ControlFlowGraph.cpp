@@ -236,7 +236,7 @@ ControlFlowNode *ControlFlowGraph::_ReplaceIfStatementInWorkingSet(ControlFlowNo
     exitPoint->AssignPredecessors(exitPredecessors);
     if (exitPoint->Predecessors().size() != 2)
     {
-        throw ControlFlowException(ifHeader, "Unable to insert if node. Exit needs to predecessors.");
+        throw ControlFlowException(ifHeader, "Unable to insert if node. Exit needs two predecessors.");
     }
 
     // Now remove the children from the parent structure
@@ -1845,16 +1845,14 @@ bool ControlFlowGraph::Generate(code_pos start, code_pos end)
             _ResolveBreaks();
         }
 
-        // TODO: Move back to after if
-        if (showFile)
-        {
-            CFGVisualize(_contextName + "_loop", discoveredControlStructures);
-        }
-
-
         if (!_decompilerResults.IsAborted())
         {
             _FindAllIfStatements();
+        }
+
+        if (showFile)
+        {
+            CFGVisualize(_contextName + "_loop", discoveredControlStructures);
         }
     }
     catch (ControlFlowException &e)

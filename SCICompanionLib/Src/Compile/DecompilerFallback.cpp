@@ -232,6 +232,7 @@ void DisassembleFallback(FunctionBase &func, code_pos start, code_pos end, Decom
 
                 case Opcode::LDI:
                 case Opcode::PUSHI:
+                case Opcode::LineNumber:
                 {
                     _AddNumber(*asmStatement, &valueWeak, cur->get_first_operand());
                 }
@@ -366,6 +367,12 @@ void DisassembleFallback(FunctionBase &func, code_pos start, code_pos end, Decom
                     _AddString(*asmStatement, name, _ScriptObjectTypeToPropertyValueType(type));
                     break;
                 }
+
+                case Opcode::Filename:
+                    // REVIEW: Is it worth making this correct? We'd need to stash the string in the scii?
+                    // Or else we'd need to pass in the raw data here.
+                    _AddString(*asmStatement, "filename", ValueType::String);
+                    break;
 
                 default:
                 {
