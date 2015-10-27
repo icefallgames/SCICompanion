@@ -50,7 +50,8 @@ enum class ResourceSourceFlags
     Aud = 0x0004,
     Sfx = 0x0008,
     AudioCache = 0x0010,    // Our special audio folder
-    AudioMapCache = 0x0020  // 
+    AudioMapCache = 0x0020, // 
+    AltMap = 0x0040
 };
 
 DEFINE_ENUM_FLAGS(ResourceSourceFlags, uint16_t)

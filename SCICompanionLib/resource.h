@@ -489,6 +489,7 @@
 #define IDC_LISTPOLYGONS                1165
 #define IDC_STATIC12                    1165
 #define IDC_STATICVISUAL                1166
+#define IDC_STATIC13                    1166
 #define IDC_STATICCONTROL               1167
 #define IDC_STATICPRIORITY              1168
 #define IDC_GROUPVISUAL                 1169
@@ -539,6 +540,7 @@
 #define IDC_COMBO5                      1199
 #define IDC_EDIT_VALUE                  1200
 #define IDC_COMBOTALKER                 1200
+#define IDC_COMBO7                      1200
 #define IDC_BUTTON_ADDCUE               1201
 #define IDC_BUTTON_DELETECUE            1202
 #define IDC_EDIT_TIME                   1203

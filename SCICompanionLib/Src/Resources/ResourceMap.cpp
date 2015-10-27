@@ -174,8 +174,9 @@ HRESULT RebuildResources(SCIVersion version, BOOL fShowUI)
         // Enumerate resources and write the ones we have not already encountered.
         std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(appState->GetResourceMap().GetGameFolder(), appState->GetVersion(), ResourceSourceFlags::ResourceMap);
         resourceSource->RebuildResources(true);
-        if (version.SeparateMessageMap)
+        if (version.MessageMapSource != MessageMapSource::Included)
         {
+            ResourceSourceFlags sourceFlags = (version.MessageMapSource == MessageMapSource::MessageMap) ? ResourceSourceFlags::MessageMap : ResourceSourceFlags::AltMap;
             std::unique_ptr<ResourceSource> messageSource = CreateResourceSource(appState->GetResourceMap().GetGameFolder(), appState->GetVersion(), ResourceSourceFlags::MessageMap);
             messageSource->RebuildResources(true);
         }

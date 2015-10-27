@@ -239,13 +239,23 @@ std::unique_ptr<ResourceContainer> GameFolderHelper::Resources(ResourceTypeFlags
             mapAndVolumes->push_back(move(std::make_unique<PatchFilesResourceSource>(Version, GameFolder, ResourceSourceFlags::PatchFile)));
         }
 
-        // Add readers for message map files, if requrested
-        if (IsFlagSet(types, ResourceTypeFlags::Message) && Version.SeparateMessageMap)
+        // Add readers for message map files, if requested
+        if (IsFlagSet(types, ResourceTypeFlags::Message))
         {
+            FileDescriptorBase *fd = nullptr;
             FileDescriptorMessageMap messageMap(GameFolder);
-            if (messageMap.DoesMapExist())
+            FileDescriptorAltMap altMap(GameFolder);
+            if (Version.MessageMapSource == MessageMapSource::MessageMap)
             {
-                mapAndVolumes->push_back(move(CreateResourceSource(GameFolder, Version, ResourceSourceFlags::MessageMap)));
+                fd = &messageMap;
+            }
+            else if (Version.MessageMapSource == MessageMapSource::AltResMap)
+            {
+                fd = &altMap;
+            }
+            if (fd && fd->DoesMapExist())
+            {
+                mapAndVolumes->push_back(move(CreateResourceSource(GameFolder, Version, fd->SourceFlags)));
             }
         }
         

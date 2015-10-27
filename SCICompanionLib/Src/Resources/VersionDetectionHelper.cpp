@@ -445,7 +445,16 @@ void CResourceMap::_SniffSCIVersion()
 
     // Is there a message file?
     std::string fullPathMessageMap = _gameFolderHelper.GameFolder + "\\" + "message.map";
-    _gameFolderHelper.Version.SeparateMessageMap = !!PathFileExists(fullPathMessageMap.c_str());
+    std::string fullPathAltMap = _gameFolderHelper.GameFolder + "\\" + "altres.map";
+    _gameFolderHelper.Version.MessageMapSource = MessageMapSource::Included;
+    if (PathFileExists(fullPathMessageMap.c_str()))
+    {
+        _gameFolderHelper.Version.MessageMapSource = MessageMapSource::MessageMap;
+    }
+    else if (PathFileExists(fullPathAltMap.c_str()))
+    {
+        _gameFolderHelper.Version.MessageMapSource = MessageMapSource::AltResMap;
+    }
 
     _gameFolderHelper.Version.MapFormat = _DetectMapFormat();
 
@@ -469,8 +478,8 @@ void CResourceMap::_SniffSCIVersion()
     }
 
     // More about messages...
-    _gameFolderHelper.Version.SupportsMessages = _gameFolderHelper.Version.SeparateMessageMap || _gameFolderHelper.Version.SeparateHeapResources;
-    if (!_gameFolderHelper.Version.SeparateMessageMap)
+    _gameFolderHelper.Version.SupportsMessages = (_gameFolderHelper.Version.MessageMapSource != MessageMapSource::Included) || _gameFolderHelper.Version.SeparateHeapResources;
+    if (_gameFolderHelper.Version.MessageMapSource == MessageMapSource::Included)
     {
         // Still might support messages... PQ1VGA... well actually, that has a separate message.map file. But... still possible.
         if (_gameFolderHelper.Version.MapFormat >= ResourceMapFormat::SCI1)

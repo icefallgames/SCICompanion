@@ -68,6 +68,13 @@ enum class AudioVolumeName : uint8_t
     Both = 3,   // In which case, base36 audio is in .aud.
 };
 
+enum class MessageMapSource : uint8_t
+{
+    Included = 0,
+    MessageMap = 1,
+    AltResMap = 2,
+};
+
 enum class AudioMapVersion;
 
 struct SCIVersion
@@ -88,7 +95,7 @@ struct SCIVersion
     bool sci11Palettes;
     AudioVolumeName AudioVolumeName;
     bool SupportsMessages;
-    bool SeparateMessageMap;
+    MessageMapSource MessageMapSource;
     bool FontExtendedChars;
     bool HasSaidVocab;
     bool HasSyncResources;

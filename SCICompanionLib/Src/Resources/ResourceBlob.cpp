@@ -394,13 +394,17 @@ void _AssignDefaultResourceSourceFlags(ResourceBlob &blob)
             break;
 
         case ResourceType::Message:
-            if (appState->GetVersion().SeparateMessageMap)
+            switch (appState->GetVersion().MessageMapSource)
             {
-                blob.GetHeader().SourceFlags = ResourceSourceFlags::MessageMap;
-            }
-            else
-            {
-                blob.GetHeader().SourceFlags = ResourceSourceFlags::ResourceMap;
+                case MessageMapSource::Included:
+                    blob.GetHeader().SourceFlags = ResourceSourceFlags::ResourceMap;
+                    break;
+                case MessageMapSource::MessageMap:
+                    blob.GetHeader().SourceFlags = ResourceSourceFlags::MessageMap;
+                    break;
+                case MessageMapSource::AltResMap:
+                    blob.GetHeader().SourceFlags = ResourceSourceFlags::AltMap;
+                    break;
             }
             break;
 

@@ -66,6 +66,10 @@ std::unique_ptr<ResourceSource> CreateResourceSource(const std::string &gameFold
     {
         return _CreateResourceSource<FileDescriptorMessageMap>(gameFolder, version, source);
     }
+    else if (source == ResourceSourceFlags::AltMap)
+    {
+        return _CreateResourceSource<FileDescriptorAltMap>(gameFolder, version, source);
+    }
     else if (source == ResourceSourceFlags::PatchFile)
     {
         return std::make_unique<PatchFilesResourceSource>(version, gameFolder, ResourceSourceFlags::PatchFile);

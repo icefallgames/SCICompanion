@@ -31,6 +31,11 @@ SourceTraits messageMapSourceTraits =
     "message.map",
     "resource.msg"
 };
+SourceTraits altMapSourceTraits =
+{
+    "altres.map",
+    "altres.{:03d}"
+};
 
 const char *folderFileFormat = "{0}\\{1}";
 const char *folderFileFormatBak = "{0}\\{1}.bak";

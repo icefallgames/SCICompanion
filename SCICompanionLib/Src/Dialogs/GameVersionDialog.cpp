@@ -43,7 +43,6 @@ void CGameVersionDialog::_Sync()
     _fSupportsMessages = _version.SupportsMessages ? 1 : 0;
     _fSupportsMessageAudio = _version.HasSyncResources ? 1 : 0;
     _fAudioIsWavFormat = _version.AudioIsWav ? 1 : 0;
-    _fSeparateMessageMap = _version.SeparateMessageMap ? 1 : 0;
 
     _resourceMapVersion = (int)_version.MapFormat;
     _resourcePackVersion = (int)_version.PackageFormat;
@@ -54,6 +53,7 @@ void CGameVersionDialog::_Sync()
     _mainAudioMapFormat = (int)_version.MainAudioMapVersion;
     _base36AudioMapFormat = (int)_version.Base36AudioMapVersion;
     _audioMapNumberIndex = (_version.AudioMapResourceNumber == 0) ? 0 : 1;
+    _messageMapSource = (int)_version.MessageMapSource;
 }
 
 SCIVersion CGameVersionDialog::_ReverseSync()
@@ -71,7 +71,6 @@ SCIVersion CGameVersionDialog::_ReverseSync()
     version.SupportsMessages = (_fSupportsMessages != 0);
     version.HasSyncResources = (_fSupportsMessageAudio != 0);
     version.AudioIsWav = (_fAudioIsWavFormat != 0);
-    version.SeparateMessageMap = (_fSeparateMessageMap != 0);
 
     version.MapFormat = (ResourceMapFormat)_resourceMapVersion;
     version.PackageFormat = (ResourcePackageFormat)_resourcePackVersion;
@@ -82,6 +81,7 @@ SCIVersion CGameVersionDialog::_ReverseSync()
     version.MainAudioMapVersion = (AudioMapVersion)_mainAudioMapFormat;
     version.Base36AudioMapVersion = (AudioMapVersion)_base36AudioMapFormat;
     version.AudioMapResourceNumber = (_audioMapNumberIndex == 0) ? 0 : 65535;
+    version.MessageMapSource = (MessageMapSource)_messageMapSource;
     return version;
 }
 
@@ -103,7 +103,6 @@ void CGameVersionDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_CHECK7, m_wndParserVocab900);
     DDX_Control(pDX, IDC_CHECK8, m_wndEarlySCI0Script);
     DDX_Control(pDX, IDC_CHECK9, m_wndSCI11Palettes);
-    DDX_Control(pDX, IDC_CHECK10, m_wndSeparateMessageMap);
     DDX_Control(pDX, IDC_CHECK11, m_wndSupportsMessages);
     DDX_Control(pDX, IDC_CHECK12, m_wndSupportsMessageAudio);
     DDX_Control(pDX, IDC_CHECK13, m_wndAudioIsWavFormat);
@@ -115,7 +114,6 @@ void CGameVersionDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Check(pDX, IDC_CHECK7, _fVocab900);
     DDX_Check(pDX, IDC_CHECK8, _fEarlySCI0Script);
     DDX_Check(pDX, IDC_CHECK9, _fSCI11Palettes);
-    DDX_Check(pDX, IDC_CHECK10, _fSeparateMessageMap);
     DDX_Check(pDX, IDC_CHECK11, _fSupportsMessages);
     DDX_Check(pDX, IDC_CHECK12, _fSupportsMessageAudio);
     DDX_Check(pDX, IDC_CHECK13, _fAudioIsWavFormat);
@@ -130,6 +128,7 @@ void CGameVersionDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_STATIC10, m_wndLabel10);
     DDX_Control(pDX, IDC_STATIC11, m_wndLabel11);
     DDX_Control(pDX, IDC_STATIC12, m_wndLabel12);
+    DDX_Control(pDX, IDC_STATIC13, m_wndLabel13);
 
     DDX_Control(pDX, IDC_RADIOSCI0, m_wndRadioResourceMapSCI0);
     DDX_Control(pDX, IDC_RADIOSCI0_1, m_wndRadioResourceMapSCI0_SCI1);
@@ -167,6 +166,9 @@ void CGameVersionDialog::DoDataExchange(CDataExchange* pDX)
 
     DDX_Control(pDX, IDC_COMBO6, m_wndAudioMapNumberCombo);
     DDX_CBIndex(pDX, IDC_COMBO6, _audioMapNumberIndex);
+
+    DDX_Control(pDX, IDC_COMBO7, m_wndMessageMapSourceCombo);
+    DDX_CBIndex(pDX, IDC_COMBO7, _messageMapSource);
 
     DDX_Control(pDX, IDOK, m_wndOk);
     DDX_Control(pDX, IDCANCEL, m_wndCancel);
@@ -248,6 +250,12 @@ void _OnViewResourceMap(const _TResourceSource &fileDescriptor, SCIVersion versi
     else if (versionTest.MapFormat == ResourceMapFormat::SCI11)
     {
         auto temp = std::make_unique<MapAndPackageSource<SCI1MapNavigator<RESOURCEMAPENTRY_SCI1_1>, _TResourceSource>>(versionTest, dummy, gameFolder);
+        lookupPointers = temp->GetLookupPointers(reader);
+        resourceSource = move(temp);
+    }
+    else if (versionTest.MapFormat == ResourceMapFormat::SCI2)
+    {
+        auto temp = std::make_unique<MapAndPackageSource<SCI1MapNavigator<RESOURCEMAPENTRY_SCI1>, _TResourceSource>>(versionTest, dummy, gameFolder);
         lookupPointers = temp->GetLookupPointers(reader);
         resourceSource = move(temp);
     }

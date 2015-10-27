@@ -17,7 +17,7 @@
 
 // This file describes various resource sources:
 // (1) resource.map/resource.xxx
-// (2) message.map/resource.msg
+// (2) message.map/resource.msg, or altres.map/altres.000
 // (3) solitary files (e.g. 017.p56)
 // (4) audio volumes (resource.aud, resource.sfx)
 
@@ -124,6 +124,7 @@ struct SourceTraits
 
 extern SourceTraits resourceMapSourceTraits;
 extern SourceTraits messageMapSourceTraits;
+extern SourceTraits altMapSourceTraits;
 
 struct FileDescriptorBase
 {
@@ -200,6 +201,10 @@ struct FileDescriptorResourceMap : public FileDescriptorBase
 struct FileDescriptorMessageMap : public FileDescriptorBase
 {
     FileDescriptorMessageMap(const std::string &gameFolder) : FileDescriptorBase(gameFolder, messageMapSourceTraits, ResourceSourceFlags::MessageMap) {}
+};
+struct FileDescriptorAltMap : public FileDescriptorBase
+{
+    FileDescriptorAltMap(const std::string &gameFolder) : FileDescriptorBase(gameFolder, altMapSourceTraits, ResourceSourceFlags::AltMap) {}
 };
 
 bool IsResourceCompatible(const ResourceBlob &blob);

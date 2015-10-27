@@ -48,7 +48,6 @@ private:
     int _fSCI11Palettes;
     int _fSupportsMessages;
     int _fSupportsMessageAudio;
-    int _fSeparateMessageMap;
     int _fAudioIsWavFormat;
 
     int _viewFormat;
@@ -61,6 +60,7 @@ private:
     int _mainAudioMapFormat;
     int _base36AudioMapFormat;
     int _audioMapNumberIndex;
+    int _messageMapSource;
 
     CExtButton m_wndOk;
     CExtButton m_wndCancel;
@@ -98,6 +98,8 @@ private:
     CExtComboBox m_wndBase36AudioMapCombo;
     CExtLabel m_wndLabel12;
     CExtComboBox m_wndAudioMapNumberCombo;
+    CExtLabel m_wndLabel13;
+    CExtComboBox m_wndMessageMapSourceCombo;
 
     CExtLabel m_wndLabel4;
     CExtLabel m_wndLabel5;
@@ -112,6 +114,5 @@ private:
     CExtCheckBox m_wndSCI11Palettes;
     CExtCheckBox m_wndSupportsMessages;
     CExtCheckBox m_wndSupportsMessageAudio;
-    CExtCheckBox m_wndSeparateMessageMap;
     CExtCheckBox m_wndAudioIsWavFormat;
 };
