@@ -92,6 +92,8 @@ public:
         _CategorizeSelectors();
     }
 
+    const SCIVersion &GetVersion();
+
     // ICompiledScriptLookups
     std::string LookupSelectorName(uint16_t wIndex);
     std::string LookupKernelName(uint16_t wIndex);

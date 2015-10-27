@@ -23,6 +23,7 @@
 #include "format.h"
 #include "DecompilerConfig.h"
 #include <iterator>
+#include "GameFolderHelper.h"
 
 #define DEBUG_DECOMPILER 1
 
@@ -127,6 +128,8 @@ const BYTE *_ConvertToInstructions(DecompileLookups &lookups, std::list<scii> &c
     std::vector<Fixup> branchTargetsToFixup;
     std::set<uint16_t> branchTargets;
 
+    SCIVersion sciVersion = lookups.GetVersion();
+
     code_pos undetermined = code.end();
 
     WORD wReferencePosition = 0;
@@ -145,13 +148,13 @@ const BYTE *_ConvertToInstructions(DecompileLookups &lookups, std::list<scii> &c
 
         for (int i = 0; i < 3; i++)
         {
-            OperandType opType = OpArgTypes[static_cast<BYTE>(bOpcode)][i];
-            cIncr = GetOperandSize(bRawOpcode, opType);
+            OperandType opType = GetOperandTypes(sciVersion, bOpcode)[i];
+            cIncr = GetOperandSize(bRawOpcode, opType, pCur);
             switch (cIncr)
             {
             case 1:
                 // We may need to sign-extend this.
-                if ((opType == otINT) || (opType == otINT8) || (opType == otLABEL))
+                if ((opType == otINT) || (opType == otINT8) || (opType == otLABEL) || (opType == otLABEL_P1))
                 {
                     wOperands[i] = (uint16_t)(int16_t)(int8_t)*pCur;
                 }
@@ -178,7 +181,7 @@ const BYTE *_ConvertToInstructions(DecompileLookups &lookups, std::list<scii> &c
         {
             // +1 because its the operand start pos.
             WORD wTarget = CalcOffset(wReferencePosition + 1, wOperands[0], bByte, bRawOpcode);
-            code.push_back(scii(bOpcode, undetermined, true));
+            code.push_back(scii(sciVersion, bOpcode, undetermined, true));
             bool fForward = (wTarget > wReferencePosition);
             Fixup fixup = { get_cur_pos(code), wTarget, fForward };
             branchTargetsToFixup.push_back(fixup);
@@ -186,7 +189,7 @@ const BYTE *_ConvertToInstructions(DecompileLookups &lookups, std::list<scii> &c
         }
         else
         {
-            code.push_back(scii(bOpcode, wOperands[0], wOperands[1], wOperands[2]));
+            code.push_back(scii(sciVersion, bOpcode, wOperands[0], wOperands[1], wOperands[2]));
         }
 
         // Store the position of the instruction we just added:
@@ -244,11 +247,11 @@ const BYTE *_ConvertToInstructions(DecompileLookups &lookups, std::list<scii> &c
     return pCur;
 }
 
-bool _IsVariableUse(code_pos pos, VarScope varScope, WORD &wIndex)
+bool _IsVariableUse(SCIVersion version, code_pos pos, VarScope varScope, WORD &wIndex)
 {
     bool fRet = false;
     Opcode bOpcode = pos->get_opcode();
-    if (OpArgTypes[static_cast<BYTE>(bOpcode)][0] == otVAR)
+    if (GetOperandTypes(version, bOpcode)[0] == otVAR)
     {
         // It's a variable opcode.
         wIndex = pos->get_first_operand();
@@ -267,13 +270,13 @@ bool _IsVariableUse(code_pos pos, VarScope varScope, WORD &wIndex)
     return fRet;
 }
 
-void _FigureOutParameters(FunctionBase &function, FunctionSignature &signature, std::list<scii> &code)
+void _FigureOutParameters(SCIVersion sciVersion, FunctionBase &function, FunctionSignature &signature, std::list<scii> &code)
 {
     WORD wBiggest = 0;
     for (code_pos pos = code.begin(); pos != code.end(); ++pos)
     {
         WORD wIndex;
-        if (_IsVariableUse(pos, VarScope::Param, wIndex)) // 3 -> param
+        if (_IsVariableUse(sciVersion, pos, VarScope::Param, wIndex)) // 3 -> param
         {
             wBiggest = max(wIndex, wBiggest);
         }
@@ -528,6 +531,11 @@ Consumption _GetInstructionConsumption(scii &inst, DecompileLookups *lookups)
 
     case Opcode::LOFSS:
         fPutsOnStack = true;
+        break;
+
+    case Opcode::DEBUGINFO:
+        // SCI2+ only.
+        // File and line number info. Doesn't do anything.
         break;
 
     default:
@@ -1067,14 +1075,14 @@ void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBe
     {
         success = false;
         // Insert a no-op at the beginning of code (so we can get an iterator to point to a spot before code)
-        code.insert(code.begin(), scii(Opcode::INDETERMINATE));
+        code.insert(code.begin(), scii(lookups.GetVersion(), Opcode::INDETERMINATE));
 
         // Do some early things
         _DetermineIfFunctionReturnsValue(code, lookups);
 
         // Construct the function -> for now use procedure, but really should be method or proc
         unique_ptr<FunctionSignature> pSignature = std::make_unique<FunctionSignature>();
-        _FigureOutParameters(func, *pSignature, code);
+        _FigureOutParameters(lookups.GetVersion(), func, *pSignature, code);
         func.AddSignature(std::move(pSignature));
 
         _TrackExternalScriptUsage(code, lookups);
@@ -1361,6 +1369,11 @@ const ILookupPropertyName *DecompileLookups::GetPossiblePropertiesForProc(uint16
         return it->second;
     }
     return nullptr;
+}
+
+const SCIVersion &DecompileLookups::GetVersion()
+{
+    return Helper.Version;
 }
 
 void DecompileLookups::EndowWithFunction(sci::FunctionBase *pFunc)

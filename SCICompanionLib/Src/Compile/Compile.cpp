@@ -482,16 +482,16 @@ void PushImmediateAt(CompileContext &context, WORD wValue, code_pos pos)
     switch (wValue)
     {
     case 0:
-        (*pos) = scii(Opcode::PUSH0);
+        (*pos) = scii(context.GetVersion(), Opcode::PUSH0);
         break;
     case 1:
-        (*pos) = scii(Opcode::PUSH1);
+        (*pos) = scii(context.GetVersion(), Opcode::PUSH1);
         break;
     case 2:
-        (*pos) = scii(Opcode::PUSH2);
+        (*pos) = scii(context.GetVersion(), Opcode::PUSH2);
         break;
     default:
-        (*pos) = scii(Opcode::PUSHI, wValue);
+        (*pos) = scii(context.GetVersion(), Opcode::PUSHI, wValue);
         break;
     }
 }
@@ -2899,7 +2899,7 @@ CodeResult Asm::OutputByteCode(CompileContext &context) const
                 uint16_t args[3] = {};
                 for (size_t i = 0; i < 3; i++)
                 {
-                    OperandType ot = OpArgTypes[(int)opcode][i];
+                    OperandType ot = GetOperandTypes(context.GetVersion(), opcode)[i];
                     if (ot != otEMPTY)
                     {
                         if (_segments.size() >= (i + 1))

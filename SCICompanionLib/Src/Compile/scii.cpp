@@ -16,9 +16,16 @@
 
 #include <numeric>
 
-OperandType *GetOperandTypes(Opcode opcode)
+OperandType *GetOperandTypes(const SCIVersion &version, Opcode opcode)
 {
-	return OpArgTypes[static_cast<BYTE>(opcode)];
+    if (version.PackageFormat == ResourcePackageFormat::SCI2)
+    {
+        return OpArgTypes_SCI2[static_cast<BYTE>(opcode)];
+    }
+    else
+    {
+        return OpArgTypes_SCI0[static_cast<BYTE>(opcode)];
+    }
 }
 
 // Instructions that pop from the stack, and how many frames they pop
@@ -142,16 +149,16 @@ bool scii::is_acc_op()
     }
 }
 
-uint16_t scii::GetInstructionSize(uint8_t rawOpcode)
+uint16_t scii::GetInstructionSize(const SCIVersion &version, uint8_t rawOpcode)
 {
     Opcode opcode = (Opcode)(rawOpcode >> 1);
-    return _get_instruction_size(opcode, (rawOpcode & 1) ? Byte : Word);
+    return _get_instruction_size(version, opcode, (rawOpcode & 1) ? Byte : Word);
 }
 
-WORD scii::_get_instruction_size(Opcode bOpcode, OPSIZE opSize)
+WORD scii::_get_instruction_size(const SCIVersion &version, Opcode bOpcode, OPSIZE opSize)
 {
     ASSERT(opSize != Undefined);
-	OperandType *argTypes = ::GetOperandTypes(bOpcode);
+    OperandType *argTypes = ::GetOperandTypes(version, bOpcode);
     WORD wSize = 1; // for the opcode
     bool fDone = false;
     for (int i = 0; !fDone && i < 3; i++)
@@ -173,6 +180,7 @@ WORD scii::_get_instruction_size(Opcode bOpcode, OPSIZE opSize)
         case otUINT:
         case otOFFS:
         case otLABEL:
+        case otLABEL_P1:
             wSize += ((opSize == Word) ? 2 : 1);
             break;
 
@@ -202,7 +210,7 @@ WORD scii::size()
 // this is a forward or backward branch.  However, that's hard to determine.
 // Backward jumps return negative numbers.
 //
-WORD distance(code_pos from, code_pos to, bool fForward, int *pfNeedToRedo)
+WORD distance(const SCIVersion &version, code_pos from, code_pos to, bool fForward, int *pfNeedToRedo)
 {
     WORD wCodeDistance = 0;
     int iDebug = 0;
@@ -221,7 +229,7 @@ WORD distance(code_pos from, code_pos to, bool fForward, int *pfNeedToRedo)
 
 OperandType *scii::GetOperandTypes()
 {
-	return ::GetOperandTypes(_bOpcode);
+    return ::GetOperandTypes(*_version, _bOpcode);
 }
 
 void scii::set_final_branch_operands(code_pos self)
@@ -230,7 +238,7 @@ void scii::set_final_branch_operands(code_pos self)
     ASSERT(_fUndetermined == false);
     if (_is_label_instruction())
     {
-		ASSERT(GetOperandTypes()[0] == otLABEL);
+        assert(GetOperandTypes()[0] == otLABEL || GetOperandTypes()[0] == otLABEL_P1);
         WORD wCodeDistance = 0;
         int fRedoDummy = 0;
         if (_fForwardBranch)
@@ -238,14 +246,14 @@ void scii::set_final_branch_operands(code_pos self)
             // Forward...
             code_pos curPos = self;
             curPos++;
-            _wOperands[0] = distance(curPos, _itOffset, _fForwardBranch, &fRedoDummy);
+            _wOperands[0] = distance(*_version, curPos, _itOffset, _fForwardBranch, &fRedoDummy);
         }
         else
         {
             // Backward...
             code_pos curPos = _itOffset;
             self++; // We're jumping back from *after* our current pos (reverse jmps are a little longer than fwds)
-            _wOperands[0] = distance(_itOffset, self, _fForwardBranch, &fRedoDummy);                            
+            _wOperands[0] = distance(*_version, _itOffset, self, _fForwardBranch, &fRedoDummy);
         }
         ASSERT(!fRedoDummy);
     }
@@ -266,7 +274,7 @@ WORD scii::calc_size(code_pos self, int *pfNeedToRedo)
             // right now, we could end up in an infinite loop.  So let's be optimistic and assume we're a
             // Byte-based instruction.
             _opSize = opSizeCalculated;
-            _wSize = _get_instruction_size(_bOpcode, _opSize);
+            _wSize = _get_instruction_size(*_version, _bOpcode, _opSize);
         }
         if (opSizeCalculated == Byte) // Only makes sense to do the expensive calculation if we don't know for sure that we're a Word
         {
@@ -311,6 +319,7 @@ WORD scii::calc_size(code_pos self, int *pfNeedToRedo)
                     break;
 
                 case otLABEL:
+                case otLABEL_P1:
                     {
                         encounteredVariableSizeOperand = true;
                         assert(_is_label_instruction());
@@ -320,14 +329,14 @@ WORD scii::calc_size(code_pos self, int *pfNeedToRedo)
                             // Forward...
                             code_pos curPos = self;
                             curPos++;
-                            wCodeDistance = distance(curPos, _itOffset, _fForwardBranch, pfNeedToRedo);
+                            wCodeDistance = distance(*_version, curPos, _itOffset, _fForwardBranch, pfNeedToRedo);
                         }
                         else
                         {
                             // Backward...
                             code_pos curPos = _itOffset;
                             self++; // We're jumping back from *after* our current pos (reverse jmps are a little longer than fwds)
-                            wCodeDistance = distance(_itOffset, self, _fForwardBranch, pfNeedToRedo);                            
+                            wCodeDistance = distance(*_version, _itOffset, self, _fForwardBranch, pfNeedToRedo);
                         }
                         
                         if ((wCodeDistance > 127) && (wCodeDistance <= 0xff80))
@@ -373,10 +382,10 @@ WORD scii::calc_size(code_pos self, int *pfNeedToRedo)
             }
             else
             {
-                ASSERT(_wSize == _get_instruction_size(_bOpcode, opSizeCalculated));
+                assert(_wSize == _get_instruction_size(*_version, _bOpcode, opSizeCalculated));
             }
         }
-        _wSize = _get_instruction_size(_bOpcode, opSizeCalculated);
+        _wSize = _get_instruction_size(*_version, _bOpcode, opSizeCalculated);
         _opSize = opSizeCalculated; 
     }
     return _wSize;
@@ -431,6 +440,7 @@ void scii::output_code(std::vector<BYTE> &output)
         case otUINT:
         case otOFFS:
         case otLABEL:
+        case otLABEL_P1:
             bByte = (_opSize == Byte);
             break;
 

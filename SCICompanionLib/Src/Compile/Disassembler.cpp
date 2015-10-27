@@ -62,7 +62,7 @@ void _GetVarType(std::ostream &out, Opcode bOpcode, uint16_t wIndex, IObjectFile
     }
 }
 
-int GetOperandSize(BYTE bOpcode, OperandType operandType)
+int GetOperandSize(BYTE bOpcode, OperandType operandType, const uint8_t *pNext)
 {
     int cIncr = 0;
     switch (operandType)
@@ -78,6 +78,7 @@ int GetOperandSize(BYTE bOpcode, OperandType operandType)
     case otSAID:
     case otKERNEL:
     case otLABEL:
+    case otLABEL_P1:
     case otPUBPROC:
     case otINT:
     case otUINT:
@@ -90,6 +91,20 @@ int GetOperandSize(BYTE bOpcode, OperandType operandType)
     case otINT8:
     case otUINT8:
         cIncr = 1;
+        break;
+    case otDEBUG:
+        if (bOpcode & 1)
+        {
+            // line number
+            cIncr += 2;
+        }
+        else
+        {
+            // file name
+            assert(*(pNext - 1) == 0x7d); // Should always immediately follow the opcode
+            const char *psz = reinterpret_cast<const char *>(pNext);
+            cIncr += lstrlen(psz) + 1;    // Bound this somehow
+        }
         break;
     default:
         assert(false && "Unknown operand type");
@@ -134,7 +149,7 @@ void DisassembleCode(SCIVersion version, std::ostream &out, ICompiledScriptLooku
                     const BYTE *pCurTemp = pCur; // skip past opcode
                     for (int i = -1; i < 3; i++)
                     {
-                        int cIncr = (i == -1) ? 1 : GetOperandSize(bRawOpcode, GetOperandTypes(bOpcode)[i]);
+                        int cIncr = (i == -1) ? 1 : GetOperandSize(bRawOpcode, GetOperandTypes(version, bOpcode)[i], pCur + 1);
                         if (cIncr == 0)
                         {
                             break;
@@ -174,7 +189,7 @@ void DisassembleCode(SCIVersion version, std::ostream &out, ICompiledScriptLooku
                 for (int i = 0; !fDone && i < 3; i++)
                 {
                     szBuf[0] = 0;
-                    int cIncr = GetOperandSize(bRawOpcode, GetOperandTypes(bOpcode)[i]);
+                    int cIncr = GetOperandSize(bRawOpcode, GetOperandTypes(version, bOpcode)[i], pCur);
                     if (cIncr == 0)
                     {
                         break;
@@ -183,7 +198,7 @@ void DisassembleCode(SCIVersion version, std::ostream &out, ICompiledScriptLooku
                     {
                         wOperandsRaw[i] = (cIncr == 2) ? *((uint16_t*)pCur) : *pCur;
                         wOperands[i] = wOperandsRaw[i];
-                        switch (GetOperandTypes(bOpcode)[i])
+                        switch (GetOperandTypes(version, bOpcode)[i])
                         {
                         case otINT:
                         case otUINT:
@@ -206,7 +221,7 @@ void DisassembleCode(SCIVersion version, std::ostream &out, ICompiledScriptLooku
                             // This is a bit of a hack here.  We're making the assumption that a otOFFS parameter
                             // is the one and only parameter for this opcode.  CalcOffset makes this assumption
                             // in order to calculate the offset.
-                            assert(GetOperandTypes(bOpcode)[i + 1] == otEMPTY);
+                            assert(GetOperandTypes(version, bOpcode)[i + 1] == otEMPTY);
                             if (version.lofsaOpcodeIsAbsolute)
                             {
                                 wOperands[i] = wOperandsRaw[i]; // Unnecessary, but reinforces the point.
@@ -246,6 +261,10 @@ void DisassembleCode(SCIVersion version, std::ostream &out, ICompiledScriptLooku
                         case otLABEL:
                             // This is a relative position from the post pc
                             out << ((bOpcode == Opcode::CALL) ? "proc" : "code") << "_" << setw(4) << setfill('0') << CalcOffset(wOperandStart, wOperands[i], bByte, bRawOpcode);
+                            break;
+
+                        case otLABEL_P1:
+                            out << ((bOpcode == Opcode::CALL) ? "proc" : "code") << "_" << setw(4) << setfill('0') << (CalcOffset(wOperandStart, wOperands[i], bByte, bRawOpcode) + 1);
                             break;
 
                         default:

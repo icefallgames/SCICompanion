@@ -131,7 +131,7 @@ struct ControlFlowNode
     virtual bool contains(Opcode opcode) { return false; }
     virtual bool startsWith(Opcode opcode) { return false; }
     virtual bool endsWith(Opcode opcode) { return false; }
-    virtual scii getLastInstruction() { assert(false); return scii(Opcode::INDETERMINATE); }
+    virtual scii getLastInstruction() { assert(false); return scii(sciVersion0, Opcode::INDETERMINATE); }
 
     int ArbitraryDebugIndex;
     std::string DebugId;

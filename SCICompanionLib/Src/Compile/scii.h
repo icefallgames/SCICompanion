@@ -19,7 +19,7 @@
 #include <stack>
 #include "PMachine.h"
 
-OperandType *GetOperandTypes(Opcode opcode);
+OperandType *GetOperandTypes(const SCIVersion &version, Opcode opcode);
 
 class scii
 {
@@ -28,13 +28,13 @@ private:
 public:
     // WORK ITEM: need to assert if we specify a bad opcode (e.g. acLOFSS) with an inappropriate constructor
     // WORK ITEM: put in operand # verification
-	scii(Opcode bOpcode) : scii(bOpcode, (WORD)0xffff) {}
+    scii(const SCIVersion &version, Opcode bOpcode) : scii(version, bOpcode, (WORD)0xffff) {}
 
-	scii(Opcode bOpcode, WORD w1) : scii(bOpcode, w1, (WORD)0xffff) {}
+    scii(const SCIVersion &version, Opcode bOpcode, WORD w1) : scii(version, bOpcode, w1, (WORD)0xffff) {}
 
-	scii(Opcode bOpcode, WORD w1, WORD w2) : scii(bOpcode, w1, w2, (WORD)0xffff) {}
+    scii(const SCIVersion &version, Opcode bOpcode, WORD w1, WORD w2) : scii(version, bOpcode, w1, w2, (WORD)0xffff) {}
 
-    scii(Opcode bOpcode, WORD w1, WORD w2, WORD w3)
+    scii(const SCIVersion &version, Opcode bOpcode, WORD w1, WORD w2, WORD w3) : _version(&version)
     {
         _opSize = Undefined;
         _wSize = 0;
@@ -51,7 +51,7 @@ public:
 		_pDebug = 0;
 #endif
     }
-	scii(Opcode bOpcode, _code_pos branch, bool fUndetermined)
+    scii(const SCIVersion &version, Opcode bOpcode, _code_pos branch, bool fUndetermined) : _version(&version)
     {
         _opSize = Undefined;
         _wSize = 0;
@@ -110,7 +110,7 @@ public:
     {
         _wOperands[1] = wValue;
     }
-    WORD get_operand(int i)  const { ASSERT(OpArgTypes[static_cast<BYTE>(_bOpcode)][i] != otEMPTY); return _wOperands[i]; }
+    WORD get_operand(int i)  const { assert(OpArgTypes_SCI0[static_cast<BYTE>(_bOpcode)][i] != otEMPTY); return _wOperands[i]; }
     WORD get_first_operand() const
     {
         return _wOperands[0];
@@ -162,7 +162,7 @@ public:
         return (_bOpcode == Opcode::BNT) || (_bOpcode == Opcode::BT);
     }
 
-    static uint16_t GetInstructionSize(uint8_t rawOpcode);
+    static uint16_t GetInstructionSize(const SCIVersion &version, uint8_t rawOpcode);
 
 private:
     bool _is_label_instruction()
@@ -181,6 +181,7 @@ private:
 
     _code_pos _itOffset;
     WORD _wFinalOffset;
+    const SCIVersion *_version; // pointer instead of reference between we need to support assignment op.
 
     enum OPSIZE
     {
@@ -190,7 +191,7 @@ private:
     };
     OPSIZE _opSize;
 
-    static WORD _get_instruction_size(Opcode bOpcode, OPSIZE opSize);
+    static WORD _get_instruction_size(const SCIVersion &version, Opcode bOpcode, OPSIZE opSize);
 };
 
 //
@@ -220,7 +221,7 @@ typedef std::multimap<code_pos, code_pos> code_pos_multimap;
 class scicode
 {
 public:
-    scicode() {}
+    scicode(const SCIVersion &version) : _version(version) {}
     ~scicode()
     {
         ASSERT(_insertionPoints.empty());
@@ -229,28 +230,28 @@ public:
     // Write instructions to the stream
 	void inst(Opcode bOpcode)
     {
-        _insertInstruction(scii(bOpcode));
+        _insertInstruction(scii(_version, bOpcode));
         _checkBranchResolution();
     }
 	void inst(Opcode bOpcode, WORD w1)
     {
-        _insertInstruction(scii(bOpcode, w1));
+        _insertInstruction(scii(_version, bOpcode, w1));
         _checkBranchResolution();
     }
 	void inst(Opcode bOpcode, WORD w1, WORD w2)
     {
-        _insertInstruction(scii(bOpcode, w1, w2));
+        _insertInstruction(scii(_version, bOpcode, w1, w2));
         _checkBranchResolution();
     }
 	void inst(Opcode bOpcode, WORD w1, WORD w2, WORD w3)
     {
-        _insertInstruction(scii(bOpcode, w1, w2, w3));
+        _insertInstruction(scii(_version, bOpcode, w1, w2, w3));
         _checkBranchResolution();
     }
 	bool inst(Opcode bOpcode, code_pos branch, int index = 0)
     {
         bool fUndetermined = (branch == get_undetermined());
-        _insertInstruction(scii(bOpcode, branch, fUndetermined));
+        _insertInstruction(scii(_version, bOpcode, branch, fUndetermined));
         // Check branch resolution now, before we possibly add ourselves to the resolution list.
         // Otherwise, *we'll* be counted!
         _checkBranchResolution();
@@ -356,6 +357,8 @@ private:
     bool _fInsertionPoint;
     std::stack<code_pos> _insertionPoints;
     code_pos_multimap _targetToSources;
+
+    const SCIVersion &_version;
 };
 
 // This craziness is so that code_pos can be used in a multimap.

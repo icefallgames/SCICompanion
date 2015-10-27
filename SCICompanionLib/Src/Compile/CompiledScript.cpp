@@ -913,7 +913,7 @@ set<uint16_t> CompiledScript::FindInternalCallsTO() const
     {
         for (int i = 0; i < 256; i++)
         {
-            int argumentByteCount = scii::GetInstructionSize((uint8_t)i) - 1;
+            int argumentByteCount = scii::GetInstructionSize(_version, (uint8_t)i) - 1;
             g_OpcodeArgByteCount[i] = (uint8_t)argumentByteCount;
         }
         g_OpArgsInitialized = true;
@@ -939,7 +939,12 @@ set<uint16_t> CompiledScript::FindInternalCallsTO() const
                 {
                     // This is one. The first operand is a word or byte
                     wRelOffset = (bByte ? ((uint16_t)*pCur) : (uint16_t)*pCur + (((uint16_t)*(pCur + 1)) << 8));
-                    wOffsets.insert(wOffsets.end(), CalcOffset(wCurrentOffsetTO, wRelOffset, bByte, bRawOpcode));
+                    uint16_t theOffset = CalcOffset(wCurrentOffsetTO, wRelOffset, bByte, bRawOpcode);
+                    if (GetOperandTypes(this->_version, Opcode::CALL)[0] == otLABEL_P1)
+                    {
+                        theOffset++;
+                    }
+                    wOffsets.insert(wOffsets.end(), theOffset);
                 }
                 // Skip past to the next instruction
                 pCur += g_OpcodeArgByteCount[bRawOpcode];

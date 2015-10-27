@@ -168,7 +168,8 @@ CompileContext::CompileContext(SCIVersion version, Script &script, PrecompiledHe
         _tables(tables),
         _headers(headers),
         _script(script),
-        _version(version)
+        _version(version),
+        _code(version)
 {
     _pErrorScript = &_script;
     _modifier = VM_None;
