@@ -822,6 +822,7 @@ void ReadPicCelFromVGA2(sci::istream &byteStream, Cel &cel, int16_t &priority, b
 
     cel.size = celHeader.size;
     // Perhaps relativePlacement is affected by mirroring and placement is not?
+    // NOTE: ScummVM ignores celHeader.placement, saying it's sometimes garbage.
     cel.placement = celHeader.placement + celHeader.relativePlacement;
 
     // This appears to be needed for 640 wide pics?
@@ -831,22 +832,21 @@ void ReadPicCelFromVGA2(sci::istream &byteStream, Cel &cel, int16_t &priority, b
     }
 
     cel.TransparentColor = celHeader.transparentColor;
-    cel.Stride32 = false;   // Apparently the stride is simply the pixel width
     priority = celHeader.priority;
 
-    // I'm not sure why both literal and RLE exist.
     byteStream.seekg(celHeader.offsetRLE);
-    if (celHeader.offsetLiteral == 0)
+    if ((celHeader.offsetLiteral == 0) || (celHeader.compressed == 0))
     {
-        // Just copy the bits directly. AFAIK this is only for LB_Dagger views 86, 456 and 527
         size_t dataSize = celHeader.size.cx * celHeader.size.cy; // Not sure if padding happens?
         cel.Data.allocate(max(1, dataSize));
         byteStream.read_data(&cel.Data[0], dataSize);
         FlipImageData(&cel.Data[0], celHeader.size.cx, celHeader.size.cy, celHeader.size.cx);
+        cel.Stride32 = false;
     }
     else
     {
         ReadImageData(byteStream, cel, true, sci::istream(byteStream, celHeader.offsetLiteral));
+        cel.Stride32 = true;
     }
 }
 
@@ -863,6 +863,9 @@ void PicReadFromVGA2(ResourceEntity &resource, sci::istream &byteStream, const s
     // This is defined for some games (SQ6, which is 640x480), but not others like Gabriel Knight.
     // So in addition to this, we'll take into account the individual cels' widths.
     pic.Size = size16(header.width, header.height);
+    pic.Size.cx = max(pic.Size.cx, 320);
+    pic.Size.cy = max(pic.Size.cy, 200);
+
     uint32_t base = byteStream.tellg();
     for (uint8_t cel = 0; cel < header.celCount; cel++)
     {

@@ -663,7 +663,7 @@ void ReadCelFromVGA11(sci::istream &byteStream, Cel &cel, bool isPic)
     cel.placement = celHeader.placement;
     cel.TransparentColor = celHeader.transparentColor;
 
-    // I'm not sure why both literal and RLE exist.
+    // RLE are the encoding "instructions", while Literal is the raw data it reads from
     assert(celHeader.offsetRLE != 0);
     byteStream.seekg(celHeader.offsetRLE);
     if (celHeader.offsetLiteral == 0)
