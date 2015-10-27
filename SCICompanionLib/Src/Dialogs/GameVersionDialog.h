@@ -49,6 +49,7 @@ private:
     int _fSupportsMessages;
     int _fSupportsMessageAudio;
     int _fSeparateMessageMap;
+    int _fAudioIsWavFormat;
 
     int _viewFormat;
     int _picFormat;
@@ -112,4 +113,5 @@ private:
     CExtCheckBox m_wndSupportsMessages;
     CExtCheckBox m_wndSupportsMessageAudio;
     CExtCheckBox m_wndSeparateMessageMap;
+    CExtCheckBox m_wndAudioIsWavFormat;
 };

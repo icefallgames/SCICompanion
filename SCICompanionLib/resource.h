@@ -647,6 +647,7 @@
 #define IDC_EDITNUMCHARS                1278
 #define IDC_CHECK12                     1278
 #define IDC_BUTTONCYCLELEFT             1279
+#define IDC_CHECK13                     1279
 #define IDC_CHECKPREVIEWCYCLING         1280
 #define IDC_BUTTONCYCLERIGHT            1281
 #define IDC_STATIC_DURATION             1281
