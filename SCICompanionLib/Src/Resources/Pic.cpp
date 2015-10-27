@@ -829,6 +829,7 @@ void ReadPicCelFromVGA2(sci::istream &byteStream, Cel &cel, int16_t &priority, b
     if (is640)
     {
         cel.placement.x *= 2;
+        cel.placement.y = (int16_t)((int)cel.placement.y * 12 / 5);
     }
 
     cel.TransparentColor = celHeader.transparentColor;
@@ -872,7 +873,7 @@ void PicReadFromVGA2(ResourceEntity &resource, sci::istream &byteStream, const s
         byteStream.seekg(base + cel * header.celHeaderSize);
         Cel picCel;
         int16_t priority;
-        ReadPicCelFromVGA2(byteStream, picCel, priority, pic.Size.cx == 640);
+        ReadPicCelFromVGA2(byteStream, picCel, priority, pic.Size.cx >= 640);
 
         pic.Size.cx = max(pic.Size.cx, picCel.size.cx);
         pic.Size.cy = max(pic.Size.cy, picCel.size.cy);
