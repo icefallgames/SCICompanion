@@ -722,3 +722,31 @@ std::string GetGdiplusStatusString(Gdiplus::Status status)
     }
     return error;
 }
+
+// Creates 32bpp version of a cel, with alpha = 0 in transparent pixels.
+HBITMAP Create32bbpBitmap(const Cel &cel, const RGBQUAD *palette, int paletteSize)
+{
+    std::unique_ptr<RGBQUAD[]> pixels = std::make_unique<RGBQUAD[]>(cel.size.cx * cel.size.cy);
+    RGBQUAD transparent = {};
+    for (int y = 0; y < cel.size.cy; y++)
+    {
+        int rowSource = cel.size.cy - y - 1;
+        for (int x = 0; x < cel.size.cx; x++)
+        {
+
+            uint8_t value = cel.Data[rowSource * cel.GetStride() + x];
+            if (value == cel.TransparentColor)
+            {
+                pixels[x + y * cel.size.cx] = transparent;
+            }
+            else
+            {
+                RGBQUAD color = palette[value % paletteSize];
+                color.rgbReserved = 0xff; // alpha 255
+                pixels[x + y * cel.size.cx] = color;
+            }
+        }
+    }
+
+    return CreateBitmap(cel.size.cx, cel.size.cy, 1, 32, &pixels[0]);
+}

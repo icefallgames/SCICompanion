@@ -54,3 +54,4 @@ std::unique_ptr<RGBQUAD[]> ConvertGdiplusToRaw(Gdiplus::Bitmap &bitmap);
 void RGBToPalettized(ColorMatching colorMatching, uint8_t *sciData, const RGBQUAD *dataOrig, int cx, int cy, bool performDither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *paletteColors, uint8_t transparentColor, bool excludeTransparentIndexFromMatch);
 void CutoutAlpha(DitherAlgorithm ditherAlgorithm, RGBQUAD *data, int cx, int cy, uint8_t alphaThreshold);
 std::string GetGdiplusStatusString(Gdiplus::Status status);
+HBITMAP Create32bbpBitmap(const Cel &cel, const RGBQUAD *palette, int paletteSize);

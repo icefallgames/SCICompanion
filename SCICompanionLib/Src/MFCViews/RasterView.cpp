@@ -973,67 +973,6 @@ void CRasterView::_OnBltResized(CDC *pDCDest, CDC *pDCSrc)
     pDCDest->SetBkColor(colorBKOld);
 }
 
-//
-// REVIEW: Failed attempt at providing a "real" transparent background (never bothered to get rid of flicker)
-//
-void CRasterView::_OnBltResized2(CDC *pDCDest, HBITMAP hbmp)
-{
-    // Hmm... the user may have shrunk the view smaller or larger than it actually is.
-    ASSERT(_sizeView.cx * _iZoomFactor == _cxViewZoom);
-    int cxSrc = _sizeView.cx;
-    int cySrc = _sizeView.cy;
-    int cxDest = _cxViewZoom;
-    int cyDest = _GetViewScreenHeight();
-    if (_sizeNew.cx < _sizeView.cx)
-    {
-        // It is not as wide.
-        cxSrc = _sizeNew.cx;
-        cxDest = cxSrc * _iZoomFactor;
-    }
-    if (_sizeNew.cy < _sizeView.cy)
-    {
-        // It is not as high.
-        cySrc = _sizeNew.cy;
-        cyDest = cySrc * _iZoomFactor;
-    }
-
-    {
-        CBrush brushTrans;
-        brushTrans.CreateHatchBrush(HS_DIAGCROSS, RGB(128, 128, 128));
-        COLORREF colorBKOld = pDCDest->SetBkColor(RGB(255, 255, 255));
-        CRect rect(-_xOrigin, -_yOrigin, cxDest, cyDest);
-        pDCDest->FillRect(&rect, &brushTrans);
-        pDCDest->SetBkColor(colorBKOld);
-    }
-
-    CExtBitmap bitmap;
-    if (bitmap.FromBitmap(hbmp, false, false))
-    {
-        BYTE bTransColor = _GetCurrentTransparentColor();
-        bitmap.AlphaColor(g_egaColorsCR[bTransColor], RGB(0, 0, 0), 50);
-        bitmap.AlphaBlend(*pDCDest, -_xOrigin, -_yOrigin, cxDest, cyDest, 0, 0, cxSrc, cySrc);
-    }
-
-    // If it has been made wider or higher, we need to fill the void with something.
-    // Use the transparent colour.
-    CBrush brush;
-    brush.CreateHatchBrush(HS_FDIAGONAL, RGB(0, 180, 128));
-    COLORREF colorBKOld = pDCDest->SetBkColor(RGB(0, 0, 0));
-    if (_sizeNew.cx > _sizeView.cx)
-    {
-        CRect rect(_cxViewZoom, 0, _sizeNew.cx * _iZoomFactor, _GetDragScreenHeight());
-        rect.OffsetRect(-_xOrigin, -_yOrigin);
-        pDCDest->FillRect(&rect, &brush);
-    }
-    if (_sizeNew.cy > _sizeView.cy)
-    {
-        CRect rect(0, _GetViewScreenHeight(), _sizeNew.cx * _iZoomFactor, _GetDragScreenHeight());
-        rect.OffsetRect(-_xOrigin, -_yOrigin);
-        pDCDest->FillRect(&rect, &brush);
-    }
-    pDCDest->SetBkColor(colorBKOld);
-}
-
 void CRasterView::OnDraw(CDC* pDC)
 {
     RECT rcClient;

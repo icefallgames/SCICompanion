@@ -17,6 +17,7 @@
 #include "Components.h"
 #include "RasterOperations.h"
 #include "PaletteOperations.h"
+#include "ImageUtil.h"
 
 using namespace std;
 
@@ -234,21 +235,22 @@ void ViewUIElement::_OnDraw(CDC *pDC, LPRECT prc)
         CDC dcMem;
         if (dcMem.CreateCompatibleDC(pDC))
         {
-            BITMAPV5HEADER bih = {};
-            bih.bV5Size = sizeof(bih);
-            bih.bV5Width = cel.size.cx;
-            bih.bV5Height = cel.size.cy;
-            bih.bV5Planes = 1;
-            bih.bV5BitCount = 8;
-            bih.bV5Compression = BI_RGB;
-            bih.bV5CSType = LCS_WINDOWS_COLOR_SPACE;
-            bih.bV5Intent = LCS_GM_BUSINESS;
-            HBITMAP hbmpTemp = CreateDIBitmap(*pDC, (BITMAPINFOHEADER *)&bih, CBM_INIT, viewData.get(), &bmi, DIB_RGB_COLORS);
-            if (hbmpTemp)
+            if (_fillArea)
             {
-                HGDIOBJ hOld = dcMem.SelectObject(hbmpTemp);
-                if (_fillArea)
+                BITMAPV5HEADER bih = {};
+                bih.bV5Size = sizeof(bih);
+                bih.bV5Width = cel.size.cx;
+                bih.bV5Height = cel.size.cy;
+                bih.bV5Planes = 1;
+                bih.bV5BitCount = 8;
+                bih.bV5Compression = BI_RGB;
+                bih.bV5CSType = LCS_WINDOWS_COLOR_SPACE;
+                bih.bV5Intent = LCS_GM_BUSINESS;
+                HBITMAP hbmpTemp = CreateDIBitmap(*pDC, (BITMAPINFOHEADER *)&bih, CBM_INIT, viewData.get(), &bmi, DIB_RGB_COLORS);
+                if (hbmpTemp)
                 {
+
+                    HGDIOBJ hOld = dcMem.SelectObject(hbmpTemp);
                     // Fills the entire area.
                     double xZoom = (double)RECTWIDTH(*prc) / (double)cxDest;
                     double yZoom = (double)RECTHEIGHT(*prc) / (double)cyDest;
@@ -258,15 +260,25 @@ void ViewUIElement::_OnDraw(CDC *pDC, LPRECT prc)
                     int xDest = upperLeftBounds.x - (newCXDest - cxDest) / 2;
                     int yDest = upperLeftBounds.y - (newCYDest - cyDest) / 2;
                     StretchBlt((HDC)*pDC, xDest, yDest, newCXDest, newCYDest, dcMem, 0, 0, cel.size.cx, cel.size.cy, SRCCOPY);
+                    dcMem.SelectObject(hOld);
+
+                    DeleteObject(hbmpTemp);
                 }
-                else
-                {
-                    // Pixel-perfect, supports transparency, but may not fill the entire area.
-                    // Note that we really want to use a transparent palette *index*, not an rgb color. Oh well, this will work for most cases.
-                    TransparentBlt((HDC)*pDC, upperLeftBounds.x, upperLeftBounds.y, cxDest, cyDest, dcMem, 0, 0, cel.size.cx, cel.size.cy, transparentColorRef);
-                }
+            }
+            else
+            {
+                HBITMAP hbmp32 = Create32bbpBitmap(cel, palette, paletteCount);
+                HGDIOBJ hOld = dcMem.SelectObject(hbmp32);
+
+                BLENDFUNCTION blend = {};
+                blend.AlphaFormat = AC_SRC_ALPHA;
+                blend.SourceConstantAlpha = 255;
+                blend.BlendFlags = 0;
+                blend.BlendOp = AC_SRC_OVER;
+                AlphaBlend(*pDC, upperLeftBounds.x, upperLeftBounds.y, cxDest, cyDest, dcMem, 0, 0, cel.size.cx, cel.size.cy, blend);
+
                 dcMem.SelectObject(hOld);
-                DeleteObject(hbmpTemp);
+                DeleteObject(hbmp32);
             }
         }
     }

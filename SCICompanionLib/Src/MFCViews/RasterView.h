@@ -291,7 +291,6 @@ private:
     void _OnDrawCommand(ViewToolType type);
     void _OnDraw(CDC* pDC);
     void _OnBltResized(CDC *pDCDest, CDC *pDCSrc);
-    void _OnBltResized2(CDC *pDCDest, HBITMAP hbmp);
     void _OnDrawSizers(CDC *pDC, CPoint &ptWhatsLeft);
     void _OnDrawSelectionRect(RECT *prc);
     void _OnDrawSelectionRectI(RECT *prc);
