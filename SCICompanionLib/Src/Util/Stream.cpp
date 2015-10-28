@@ -124,7 +124,7 @@ namespace sci
             {
                 throw std::exception("Attempt to seek outside stream.");
             }
-            seekp(_cbSizeValid - offset);
+            seekp(_cbSizeValid + offset);
             break;
         }
     }
@@ -190,7 +190,7 @@ namespace sci
             seekg(_iIndex + offset);
             break;
         case std::ios_base::end:
-            seekg(_cbSizeValid - offset);
+            seekg(_cbSizeValid + offset);
             break;
         }
     }
