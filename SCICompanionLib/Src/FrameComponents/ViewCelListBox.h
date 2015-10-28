@@ -17,6 +17,8 @@ class CNewRasterResourceDocument;
 union CelIndex;
 struct RasterComponent;
 
+#include "ScrollingThing.h"
+
 struct DirectionalityBase
 {
     virtual int A(const CSize &size) = 0;
@@ -39,7 +41,7 @@ struct DirectionalityBase
     virtual ~DirectionalityBase() {}
 };
 
-class ViewCelListBox : public CView
+class ViewCelListBox : public CScrollingThing<CView>
 {
     DECLARE_DYNCREATE(ViewCelListBox)
 
@@ -53,6 +55,7 @@ public:
 protected:
     DECLARE_MESSAGE_MAP()
 
+    void OnSize(UINT nType, int cx, int cy);
     void OnLButtonDown(UINT nFlags, CPoint point);
     void OnLButtonUp(UINT nFlags, CPoint point);
     void OnMouseMove(UINT nFlags, CPoint point);
@@ -61,6 +64,10 @@ protected:
 
     // temp
     void OnTimer(UINT_PTR nIDEvent);
+
+protected:
+    int _GetViewWidth() override;
+    int _GetViewHeight() override;
 
 private:
 
@@ -88,6 +95,8 @@ private:
     std::unique_ptr<CBitmap> _dragImage;
     int _dragItemIndex; // Set on mouse down, not drag start.
     int _insertIndex;
+
+    CSize _scrollSize;
 
     bool _useThemeBackground;
 };

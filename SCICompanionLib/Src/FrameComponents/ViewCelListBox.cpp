@@ -21,7 +21,7 @@
 
 using namespace std;
 
-const int ScaleOne = 4;
+const int ScaleOne = 2;
 const int CaptionHeight = 20;   // REVIEW: Really should be DPI-aware
 
 IMPLEMENT_DYNCREATE(ViewCelListBox, CView)
@@ -176,7 +176,8 @@ void ViewCelListBox::SetHorizontal(bool horizontal)
     _drawOffset.y = CaptionHeight;
 }
 
-BEGIN_MESSAGE_MAP(ViewCelListBox, CView)
+BEGIN_MESSAGE_MAP(ViewCelListBox, CScrollingThing<CView>)
+    ON_WM_SIZE()
     ON_WM_ERASEBKGND()
     ON_WM_SETCURSOR()
     ON_WM_LBUTTONDOWN()
@@ -184,6 +185,11 @@ BEGIN_MESSAGE_MAP(ViewCelListBox, CView)
     ON_WM_LBUTTONUP()
     ON_WM_KEYDOWN()
 END_MESSAGE_MAP()
+
+void ViewCelListBox::OnSize(UINT nType, int cx, int cy)
+{
+    __super::OnSize(nType, cx, cy);
+}
 
 BOOL ViewCelListBox::OnEraseBkgnd(CDC *pdc)
 {
@@ -375,6 +381,9 @@ void ViewCelListBox::OnMouseMove(UINT nFlags, CPoint point)
 
 bool ViewCelListBox::_HitTest(CPoint point, bool calcInsertIndex, int &index)
 {
+    // Take scrolling into account:
+    point.Offset(_xOrigin, _yOrigin);
+
     index = -1;
     CNewRasterResourceDocument *pDoc = _GetDoc();
     if (pDoc)
@@ -496,6 +505,9 @@ void ViewCelListBox::OnDraw(CDC* pDC)
                 CRect destRect(_drawOffset.x, _drawOffset.y, _drawOffset.x + itemSize.cx * _scale / ScaleOne, _drawOffset.y + _ScaleY(itemSize.cy) / ScaleOne);
                 destRect.OffsetRect(itemIndices.x * _individualImageSize.cx * _scale / ScaleOne, _ScaleY(itemIndices.y * _individualImageSize.cy) / ScaleOne);
                 destRect.OffsetRect(centMult.x * ((_individualImageSize.cx * _scale / ScaleOne) - (itemSize.cx * _scale / ScaleOne)) / 2, centMult.y * ((_ScaleY(_individualImageSize.cy) / ScaleOne) - (_ScaleY(itemSize.cy) / ScaleOne)) / 2);
+
+                destRect.OffsetRect(-_xOrigin, -_yOrigin);
+
                 StretchBlt(*pDC, destRect.left, destRect.top, destRect.Width(), destRect.Height(),
                     dcMem, srcPos.x, srcPos.y, itemSize.cx, itemSize.cy, SRCCOPY);
 
@@ -535,6 +547,7 @@ void ViewCelListBox::OnDraw(CDC* pDC)
             int offsetX = _individualImageSize.cx * _scale * _dir->ItemIndex(celIndex) * _dir->DimensionMultiplier().x / ScaleOne;
             int offsetY = _ScaleY(_individualImageSize.cy) * _dir->ItemIndex(celIndex) * _dir->DimensionMultiplier().y / ScaleOne;
             rectSelection.OffsetRect(offsetX, offsetY);
+            rectSelection.OffsetRect(-_xOrigin, -_yOrigin);
             pDC->FrameRect(&rectSelection, &solidBrush);
             rectSelection.InflateRect(-1, -1);
             pDC->FrameRect(&rectSelection, &solidBrush);
@@ -548,7 +561,7 @@ void ViewCelListBox::OnDraw(CDC* pDC)
                 insertRect.bottom += (_ScaleY(_individualImageSize.cy) / ScaleOne) * dimMul.x;
 
                 insertRect.OffsetRect(dimMul.x* _insertIndex * _individualImageSize.cx * _scale / ScaleOne, dimMul.y * _ScaleY(_insertIndex * _individualImageSize.cy) / ScaleOne);
-
+                insertRect.OffsetRect(-_xOrigin, -_yOrigin);
                 HGDIOBJ hOldBrush = pDC->SelectObject(GetStockObject(BLACK_BRUSH));
                 pDC->Rectangle(insertRect);
                 insertRect.InflateRect(_dir->DimensionMultiplier().x, _dir->DimensionMultiplier().y);
@@ -568,7 +581,8 @@ void ViewCelListBox::OnDraw(CDC* pDC)
 
 void ViewCelListBox::_TransferToBitmap()
 {
-    _EnsureSCIBitmap(_CalcRequiredBitmapSize());
+    CSize neededSize = _CalcRequiredBitmapSize();
+    _EnsureSCIBitmap(neededSize);
     _individualImageSize = CSize(1, 1);
     CNewRasterResourceDocument *pDoc = _GetDoc();
     CSize numberOfGuys(1, 1);
@@ -580,7 +594,6 @@ void ViewCelListBox::_TransferToBitmap()
         numberOfGuys = _dir->Bounds(_dir->ItemCount(celIndex, raster));
     }
 
-
     // Draw as large as we can while still fitting in the client bounds.
     CRect clientRect;
     GetClientRect(clientRect);
@@ -590,6 +603,26 @@ void ViewCelListBox::_TransferToBitmap()
     _scale = ScaleOne * clientRect.Width() / (numberOfGuys.cx * _individualImageSize.cx);
     _scale = min(_scale, ScaleOne * clientRect.Height() / appState->AspectRatioY(numberOfGuys.cy * _individualImageSize.cy));
     _scale = max(1, _scale);
+
+    int cxScroll = _individualImageSize.cx * numberOfGuys.cx;
+    int cyScroll = _individualImageSize.cy * numberOfGuys.cy;
+    CSize scrollSize(cxScroll, cyScroll);
+    scrollSize.cx = scrollSize.cx * _scale / ScaleOne;
+    scrollSize.cy = scrollSize.cy * _scale / ScaleOne;
+    if (scrollSize != _scrollSize)
+    {
+        _scrollSize = scrollSize;
+        _InvalidateScrollStuff();
+    }
+}
+
+int ViewCelListBox::_GetViewWidth()
+{
+    return _scrollSize.cx;
+}
+int ViewCelListBox::_GetViewHeight()
+{
+    return _scrollSize.cy;
 }
 
 CSize ViewCelListBox::_CalcRequiredBitmapSize()

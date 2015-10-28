@@ -39,8 +39,8 @@ protected:
     void _OnScroll(int iType, UINT nSBCode, UINT nPos);
 
     // Overridables:
-    virtual int _GetViewWidth() { return 0; }  // MFC won't let me make it virtual
-    virtual int _GetViewHeight() { return 0; }  // MFC won't let me make it virtual
+    virtual int _GetViewWidth() { return 0; }  // MFC won't let me make it pure virtual
+    virtual int _GetViewHeight() { return 0; }  // MFC won't let me make it pure virtual
     virtual void _OnMouseWheel(UINT nFlags, BOOL fForward, CPoint pt, short nNotches) {};
 
 public:
