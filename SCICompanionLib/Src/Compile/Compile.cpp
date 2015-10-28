@@ -589,7 +589,7 @@ void VariableOperand(CompileContext &context, WORD wIndex, BYTE bOpcode, const S
     // The SCI interpreter doesn't crash instanly if you access these out of bounds, so I think it may
     // silently corrupt.
     bOpcode |= 0x40; // bit6 is always 1  (bit 7 in the final result)
-    
+    bOpcode <<= 1; // Since we're calling RawToOpcode, need to turn it back to Raw.
     context.code().inst(RawToOpcode(context.GetVersion(), bOpcode), wIndex);
 }
 

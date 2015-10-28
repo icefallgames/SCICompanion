@@ -664,6 +664,19 @@ bool IsReadOnly(LPCTSTR pathName)
         (0 == lstrcmpi(PathFindFileName(pathName), "sci.sh"));
 }
 
+// Use this instead of OnOpenDocument in order to properly set scriptNumber
+BOOL CScriptDocument::OnOpenDocument(LPCTSTR lpszPathName, uint16_t scriptNumber)
+{
+    if (!__super::OnOpenDocument(lpszPathName))
+        return FALSE;
+    _scriptId = ScriptId(lpszPathName);
+    _scriptId.SetResourceNumber(scriptNumber);
+    _buffer.FreeAll();
+    BOOL result = _buffer.LoadFromFile(lpszPathName);
+    _buffer.SetReadOnly(IsReadOnly(lpszPathName));
+    return result;
+}
+
 BOOL CScriptDocument::OnOpenDocument(LPCTSTR lpszPathName) 
 {
 	if (!__super::OnOpenDocument(lpszPathName))

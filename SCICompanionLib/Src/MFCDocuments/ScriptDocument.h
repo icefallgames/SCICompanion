@@ -51,6 +51,8 @@ public:
     virtual BOOL OnOpenDocument(LPCTSTR lpszPathName);
     virtual BOOL OnSaveDocument(LPCTSTR lpszPathName);
 
+    BOOL OnOpenDocument(LPCTSTR lpszPathName, uint16_t scriptNumber);
+
     CCrystalTextBuffer *GetTextBuffer();
     
     void UpdateModified();

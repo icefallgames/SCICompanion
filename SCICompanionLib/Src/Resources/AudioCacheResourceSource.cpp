@@ -154,6 +154,11 @@ AudioCacheResourceSource::AudioCacheResourceSource(SCIVersion version, const std
     _access(access)
 {
     _cacheSubFolderForEnum = _cacheFolder + fmt::format("\\{0}", (mapContext == -1) ? version.AudioMapResourceNumber : mapContext);
+    if (IsFlagSet(access, ResourceSourceAccessFlags::ReadWrite))
+    {
+        // This is important we do this, for the delete case
+        _PrepareForAddOrRemove();
+    }
 }
 
 void AudioCacheResourceSource::Clear()

@@ -633,7 +633,7 @@ struct ViewHeader_VGA11
     uint32_t paletteOffset;
     uint8_t loopHeaderSize;
     uint8_t celHeaderSize;
-    uint32_t something;
+    uint32_t something;         // In SQ6, at least, these are the screen dimensions (640x480). Interesting.
 };
 #include <poppack.h>
 

@@ -455,7 +455,7 @@ void AppState::ReopenScriptDocument(uint16_t wNum)
     CScriptDocument *pDocAlready = pMainWnd->Tabs().GetOpenScriptDocument(wNum);
     if (pDocAlready)
     {
-        pDocAlready->OnOpenDocument(GetResourceMap().Helper().GetScriptFileName(wNum).c_str());
+        pDocAlready->OnOpenDocument(GetResourceMap().Helper().GetScriptFileName(wNum).c_str(), wNum);
     }
 }
 

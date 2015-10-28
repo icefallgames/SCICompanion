@@ -19,6 +19,7 @@
 #include <errno.h>
 #include "crc.h"
 #include "ResourceBlob.h"
+#include <atomic>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -628,12 +629,18 @@ HRESULT ResourceBlob::SaveToHandle(HANDLE hFile, BOOL fNoHeader, DWORD *pcbWritt
     return hr;
 }
 
+std::atomic<int> g_nextUniqueId = 0;
+
 int ResourceBlob::GetChecksum() const
 {
     if (!_fComputedChecksum)
     {
         size_t size = _pData.size();
-        _iChecksum = (size > 0) ? crcFast(&_pData[0], _pData.size()) : 0;
+        // Testing out just using an incrementing id instead of calculating the hash. crc is super slow
+        // for big resources. The "checksum" is used for determining if a resource is "most recent", for blob id
+        // for background threads. What else?
+        _iChecksum = g_nextUniqueId.fetch_add(1);
+        //_iChecksum = (size > 0) ? crcFast(&_pData[0], _pData.size()) : 0;
         _fComputedChecksum = true;
     }
     return _iChecksum;

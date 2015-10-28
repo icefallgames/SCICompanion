@@ -100,8 +100,19 @@ void DeleteResource(CResourceMap &resourceMap, const ResourceBlob &data)
     bool encounteredOne = false;
     bool isLastOne = true;
 
+    // Since our AudioResourceSource no longer supports removing or adding entries, we need to use the AudioCacheResourceSource instead.
+    // That will pull the audio resources out of resource.aud (or whatever), into the cache files directory. Then we'll use the cache
+    // files source to delete it.
+    // This is a big hacky. Appending resources doesn't have this problem, because we have no way to create new audio resources that
+    // don't have ResourceSourceFlags::AudioCache
+    ResourceSourceFlags sourcFlags = data.GetSourceFlags();
+    if ((sourcFlags == ResourceSourceFlags::Aud) || (sourcFlags == ResourceSourceFlags::Sfx))
+    {
+        sourcFlags = ResourceSourceFlags::AudioCache;
+    }
+
     // This is the thing that changes based on version and messagemap or blah.
-    std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(resourceMap.GetGameFolder(), data.GetVersion(), data.GetSourceFlags(), ResourceSourceAccessFlags::ReadWrite);
+    std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(resourceMap.GetGameFolder(), data.GetVersion(), sourcFlags, ResourceSourceAccessFlags::ReadWrite);
     if (resourceSource)
     {
         ResourceMapEntryAgnostic mapEntry;
