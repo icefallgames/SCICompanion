@@ -66,7 +66,7 @@ void CRasterResourceListCtrl::OnItemChanged(NMHDR* pNMHDR, LRESULT* pResult)
         {
             // Set the "global selected view"
             // (use for InsertObject dialog, or the fake ego in the pic editor)
-            auto resource = _GetResourceForItem(pnmlv->iItem);
+            auto resource = _GetResourceForItemMetadataOnly(pnmlv->iItem);
             if (resource->GetType() == ResourceType::View)
             {
                 appState->SetRecentlyInteractedView(resource->GetNumber());
@@ -141,7 +141,7 @@ void CRasterResourceListCtrl::OnGetDispInfo(NMHDR* pNMHDR, LRESULT* pResult)
             pItem->iImage = _iCorruptBitmapIndex;
             pItem->mask |= LVIF_DI_SETITEM; // So we don't ask for it again.
 
-            ResourceBlob *pData = (ResourceBlob*)pItem->lParam;
+            const ResourceBlob *pData = _GetResourceForItemRealized(pItem->lParam);
 
             ResourceLoadStatusFlags originalFlags = pData->GetStatusFlags();
 
@@ -249,7 +249,7 @@ void CRasterResourceListCtrl::_PrepareLVITEM(LVITEM *pItem)
     pItem->mask |= LVIF_IMAGE;
     pItem->iImage = I_IMAGECALLBACK;
 
-    const ResourceBlob *pData = (const ResourceBlob*)pItem->lParam;
+    const ResourceBlob *pData = _GetResourceForItemMetadataOnly(pItem->lParam);
     if (pData)
     {
         // Add an overlay that indicates it is not the most recent.

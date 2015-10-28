@@ -146,7 +146,17 @@ ResourceHeaderAgnostic ResourceContainer::ResourceIterator::GetResourceHeader() 
     return rh;
 }
 
+ResourceContainer::ResourceIterator::reference ResourceContainer::ResourceIterator::CreateButDelayDecompression() const
+{
+    return _CreateHelper(true);
+}
+
 ResourceContainer::ResourceIterator::reference ResourceContainer::ResourceIterator::operator*() const
+{
+    return _CreateHelper(false);
+}
+
+ResourceContainer::ResourceIterator::reference ResourceContainer::ResourceIterator::_CreateHelper(bool delayDecompression) const
 {
     ResourceHeaderAgnostic rh;
     sci::istream packageByteStream = _GetResourceHeaderAndPackage(rh);
@@ -167,8 +177,8 @@ ResourceContainer::ResourceIterator::reference ResourceContainer::ResourceIterat
     blob->CreateFromPackageBits(
         name,
         rh,
-//        _currentEntry.PackageNumber,
-        packageByteStream);
+        packageByteStream,
+        delayDecompression);
 
     if (_container->_pResourceRecency)
     {

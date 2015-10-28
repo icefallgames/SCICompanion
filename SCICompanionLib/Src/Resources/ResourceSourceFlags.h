@@ -31,6 +31,7 @@ enum class ResourceLoadStatusFlags : uint8_t
     DecompressionFailed = 0x01,
     ResourceCreationFailed = 0x02,
     Corrupted = 0x04,
+    Delayed = 0x08,
 };
 
 enum class BlobKey

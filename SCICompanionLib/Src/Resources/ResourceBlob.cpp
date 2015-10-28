@@ -269,7 +269,67 @@ bool _SanityCheckHeader(const ResourceHeaderAgnostic &header)
     return ((header.cbCompressed < 0x01000000) && (header.cbDecompressed < 0x01000000));
 }
 
-void ResourceBlob::_DecompressFromBits(sci::istream &byteStream)
+void ResourceBlob::_EnsureDecompressed()
+{
+    if (IsFlagSet(_resourceLoadStatus, ResourceLoadStatusFlags::Delayed) && !_pDataCompressed.empty())
+    {
+        uint32_t cbCompressedRemaining = _pDataCompressed.size();
+        ClearFlag(_resourceLoadStatus, ResourceLoadStatusFlags::Delayed);
+        int iResult = SCI_ERROR_UNKNOWN_COMPRESSION;
+        DecompressionAlgorithm algorithm = VersionAndCompressionNumberToAlgorithm(appState->GetVersion(), header.CompressionMethod);
+        switch (algorithm)
+        {
+            case DecompressionAlgorithm::Huffman:
+                iResult = decompressHuffman(&_pData[0], &_pDataCompressed[0], header.cbDecompressed, cbCompressedRemaining);
+                break;
+            case DecompressionAlgorithm::LZW:
+                iResult = decompressLZW(&_pData[0], &_pDataCompressed[0], header.cbDecompressed, cbCompressedRemaining);
+                break;
+            case DecompressionAlgorithm::LZW1:
+                iResult = decompressLZW_1(&_pData[0], &_pDataCompressed[0], header.cbDecompressed, cbCompressedRemaining);
+                break;
+            case DecompressionAlgorithm::LZW_View:
+            {
+                std::unique_ptr<uint8_t[]> pTemp(new uint8_t[header.cbDecompressed]);
+                iResult = decompressLZW_1(&pTemp[0], &_pDataCompressed[0], header.cbDecompressed, cbCompressedRemaining);
+                if (iResult == 0)
+                {
+                    BoundsCheckedArray<BYTE> dest(&_pData[0], (int)_pData.size());
+                    reorderView(&pTemp[0], dest);
+                }
+            }
+            break;
+            case DecompressionAlgorithm::LZW_Pic:
+            {
+                std::unique_ptr<uint8_t[]> pTemp(new uint8_t[header.cbDecompressed]);
+                iResult = decompressLZW_1(&pTemp[0], &_pDataCompressed[0], header.cbDecompressed, cbCompressedRemaining);
+                if (iResult == 0)
+                {
+                    reorderPic(&pTemp[0], &_pData[0], header.cbDecompressed);
+                }
+            }
+
+            break;
+            case DecompressionAlgorithm::DCL:
+                iResult =
+                    decompressDCL(&_pData[0], &_pDataCompressed[0], header.cbDecompressed, cbCompressedRemaining) ?
+                    0 : -1;
+                break;
+
+            case DecompressionAlgorithm::STACpack:
+                iResult =
+                    decompressLZS(&_pData[0], &_pDataCompressed[0], header.cbDecompressed, cbCompressedRemaining) ?
+                    0 : -1;
+                break;
+        }
+        if (iResult != 0)
+        {
+            _resourceLoadStatus |= ResourceLoadStatusFlags::DecompressionFailed;
+        }
+    }
+}
+
+void ResourceBlob::_DecompressFromBits(sci::istream &byteStream, bool delay)
 {
     uint32_t cbCompressedRemaining = header.cbCompressed; // Because cbCompressed includes 4 bytes of the header.
     assert(_pData.empty());
@@ -295,56 +355,11 @@ void ResourceBlob::_DecompressFromBits(sci::istream &byteStream)
             assert(_pDataCompressed.empty()); // Verify no leaks
             _pDataCompressed.resize(cbCompressedRemaining);
             byteStream.read_data(&_pDataCompressed[0], cbCompressedRemaining);
-            switch (algorithm)
+            _resourceLoadStatus |= ResourceLoadStatusFlags::Delayed;
+            if (!delay)
             {
-                case DecompressionAlgorithm::Huffman:
-                    iResult = decompressHuffman(&_pData[0], &_pDataCompressed[0], header.cbDecompressed, cbCompressedRemaining);
-                    break;
-                case DecompressionAlgorithm::LZW:
-                    iResult = decompressLZW(&_pData[0], &_pDataCompressed[0], header.cbDecompressed, cbCompressedRemaining);
-                    break;
-                case DecompressionAlgorithm::LZW1:
-                    iResult = decompressLZW_1(&_pData[0], &_pDataCompressed[0], header.cbDecompressed, cbCompressedRemaining);
-                    break;
-                case DecompressionAlgorithm::LZW_View:
-                {
-                    std::unique_ptr<uint8_t[]> pTemp(new uint8_t[header.cbDecompressed]);
-                    iResult = decompressLZW_1(&pTemp[0], &_pDataCompressed[0], header.cbDecompressed, cbCompressedRemaining);
-                    if (iResult == 0)
-                    {
-                        BoundsCheckedArray<BYTE> dest(&_pData[0], (int)_pData.size());
-                        reorderView(&pTemp[0], dest);
-                    }
-                }
-                break;
-                case DecompressionAlgorithm::LZW_Pic:
-                {
-                    std::unique_ptr<uint8_t[]> pTemp(new uint8_t[header.cbDecompressed]);
-                    iResult = decompressLZW_1(&pTemp[0], &_pDataCompressed[0], header.cbDecompressed, cbCompressedRemaining);
-                    if (iResult == 0)
-                    {
-                        reorderPic(&pTemp[0], &_pData[0], header.cbDecompressed);
-                    }
-                }
-
-                break;
-                case DecompressionAlgorithm::DCL:
-                    iResult =
-                        decompressDCL(&_pData[0], &_pDataCompressed[0], header.cbDecompressed, cbCompressedRemaining) ?
-                        0 : -1;
-                    break;
-
-                case DecompressionAlgorithm::STACpack:
-                    iResult =
-                        decompressLZS(&_pData[0], &_pDataCompressed[0], header.cbDecompressed, cbCompressedRemaining) ?
-                        0 : -1;
-                    break;
+                _EnsureDecompressed();
             }
-        }
-
-        if (iResult != 0)
-        {
-            _resourceLoadStatus |= ResourceLoadStatusFlags::DecompressionFailed;
         }
     }
     else
@@ -356,13 +371,13 @@ void ResourceBlob::_DecompressFromBits(sci::istream &byteStream)
     }
 }
 
-void ResourceBlob::CreateFromPackageBits(const std::string &name, const ResourceHeaderAgnostic &prh, sci::istream &byteStream)
+void ResourceBlob::CreateFromPackageBits(const std::string &name, const ResourceHeaderAgnostic &prh, sci::istream &byteStream, bool delay)
 {
     header = prh;
     _hasNumber = true;
     _strName = name;
 
-    _DecompressFromBits(byteStream);
+    _DecompressFromBits(byteStream, delay);
 }
 
 uint32_t GetResourceOffsetInFile(uint8_t secondHeaderByte)
@@ -482,10 +497,15 @@ HRESULT ResourceBlob::CreateFromHandle(PCTSTR pszName, HANDLE hFile, int iPackag
         // Now it is time to read in the bits.
         // We're already at the end of the header, so just start reading.
         sci::streamOwner streamOwner(hFile, header.cbCompressed);
-        _DecompressFromBits(streamOwner.getReader());
+        _DecompressFromBits(streamOwner.getReader(), false);
         _AssignDefaultResourceSourceFlags(*this);
     }    
     return hr;
+}
+
+void ResourceBlob::EnsureRealized()
+{
+    _EnsureDecompressed();
 }
 
 //

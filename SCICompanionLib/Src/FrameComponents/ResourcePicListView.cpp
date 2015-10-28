@@ -104,7 +104,7 @@ LRESULT CResourcePicListCtrl::OnPicReady(WPARAM wParam, LPARAM lParam)
         int cItems = GetItemCount();
         for (int i = 0; i < cItems; i++)
         {
-            const ResourceBlob *pData = _GetResourceForItem(i);
+            const ResourceBlob *pData = _GetResourceForItemMetadataOnly(i);
             if ((pData->GetChecksum() == pWorkResult->nID) &&
                 (pData->GetNumber() == pWorkResult->iResourceNumber) &&
                 (pData->GetPackageHint() == pWorkResult->iPackageNumber))
@@ -134,7 +134,7 @@ void CResourcePicListCtrl::OnGetDispInfo(NMHDR* pNMHDR, LRESULT* pResult)
         {
             if (_pQueue)
             {
-                ResourceBlob *pData = (ResourceBlob*)pItem->lParam;
+                ResourceBlob *pData = _GetResourceForItemRealized(pItem->lParam);
                 unique_ptr<PICWORKITEM> pWorkItem = make_unique<PICWORKITEM>();
                 pWorkItem->blob = *pData;
                 _pQueue->GiveWorkItem(move(pWorkItem));
@@ -220,7 +220,7 @@ void CResourcePicListCtrl::_PrepareLVITEM(LVITEM *pItem)
     pItem->mask |= LVIF_IMAGE;
     pItem->iImage = I_IMAGECALLBACK;
 
-    const ResourceBlob *pData = (const ResourceBlob*)pItem->lParam;
+    const ResourceBlob *pData = _GetResourceForItemMetadataOnly(pItem->lParam);
     if (pData)
     {
         // Add an overlay that indicates it is not the most recent.

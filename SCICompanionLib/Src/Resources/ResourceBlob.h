@@ -300,6 +300,7 @@ struct RESOURCEHEADER_SCI2_1 : public RESOURCEHEADERBASE<uint32_t, 0x00>
 
 #include <poppack.h>
 
+
 //
 // This represents the generic encoded resource.  From this object, we create the
 // type-specific resources.
@@ -315,11 +316,14 @@ public:
     HRESULT CreateFromBits(PCTSTR pszName, ResourceType iType, sci::istream *pStream, int iPackageHint, int iNumberHint, uint32_t base36Number, SCIVersion version, ResourceSourceFlags sourceFlags);
     HRESULT CreateFromHandle(PCTSTR pszName, HANDLE hFile, int iPackageHint, SCIVersion version);
     HRESULT CreateFromFile(PCTSTR pszName, std::string strFileName, SCIVersion version, int iPackage, int iNumber = -1);
-    void CreateFromPackageBits(const std::string &name, const ResourceHeaderAgnostic &prh, sci::istream &byteStream);
+    void CreateFromPackageBits(const std::string &name, const ResourceHeaderAgnostic &prh, sci::istream &byteStream, bool delay = false);
+
+    // In case we delayed decompression
+    void EnsureRealized();
 
     sci::istream GetReadStream() const;
 
-    HRESULT SaveToHandle(HANDLE hFile, BOOL fNoHeader, DWORD *pcbWritten = NULL) const;
+    HRESULT SaveToHandle(HANDLE hFile, BOOL fNoHeader, DWORD *pcbWritten = nullptr) const;
     int GetLengthOnDisk() const;
 
     // IResourceIdentifier
@@ -378,9 +382,10 @@ private:
         header.Number = iResourceNumber;
         _hasNumber = (iResourceNumber != -1);
     }
-    void _DecompressFromBits(sci::istream &byteStream);
+    void _DecompressFromBits(sci::istream &byteStream, bool delay);
     HRESULT _ReadBits(HANDLE hFile);
     void _SetName(PCTSTR pszName);
+    void _EnsureDecompressed();
 
     // Resource header information
     ResourceHeaderAgnostic header;

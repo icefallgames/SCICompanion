@@ -72,6 +72,8 @@ public:
 
         reference operator*() const;
 
+        reference CreateButDelayDecompression() const;
+
         ResourceHeaderAgnostic GetResourceHeader() const;
 
         ResourceIterator& operator++();
@@ -82,6 +84,7 @@ public:
     private:
         sci::istream _GetResourceHeaderAndPackage(ResourceHeaderAgnostic &rh) const;
         void _GetNextEntry();
+        reference _CreateHelper(bool delayDecompression) const;
 
         IteratorStatePrivate _state;
 

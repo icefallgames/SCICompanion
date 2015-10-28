@@ -27,6 +27,15 @@ typedef CDocument*(* PFNRESOURCEOPEN )(const ResourceBlob *pData);
 
 #define OVERLAYINDEX_UNUSED 1
 
+class ResourceBlobWrapper
+{
+public:
+    ResourceBlobWrapper(std::unique_ptr<ResourceBlob> blob);
+    ResourceBlob *GetBlob();
+private:
+    std::unique_ptr<ResourceBlob> _blob;
+};
+
 class CResourceListCtrl : public CListCtrl
 {
 	DECLARE_DYNCREATE(CResourceListCtrl)
@@ -78,14 +87,17 @@ protected:
     void _SortItemsHelper(int sortColumn, bool toggle);
     void _UpdateStatusIfFlagsChanged(const ResourceBlob &data, ResourceLoadStatusFlags originalFlags, int item);
     void _InitColumns();
-    void _InsertItem(ResourceBlob *pData);
+    void _InsertItem(std::unique_ptr<ResourceBlob> pData);
     void _DeleteItem(const ResourceBlob *pData);
     virtual void _PrepareLVITEM(LVITEM *pItem);
     virtual void _OnItemDoubleClick(const ResourceBlob *pData);
     virtual void _OnInitListView(int cItems);
     void _ReevaluateRecency(const ResourceBlob *pData);
     HRESULT _UpdateEntries();
-    ResourceBlob *_GetResourceForItem(int nItem) { return (ResourceBlob*)GetItemData(nItem); }
+    ResourceBlob *_GetResourceForItemMetadataOnly(int nItem);
+    ResourceBlob *_GetResourceForItemRealized(int nItem);
+    ResourceBlob *_GetResourceForItemMetadataOnly(LPARAM lParam);
+    ResourceBlob *_GetResourceForItemRealized(LPARAM lParam);
     int _GetItemForResource(const ResourceBlob *pData);
     void _DeleteMatchingItems(int resourceNumber, int packageNumber, ResourceSourceFlags sourceFlags);
 

@@ -64,6 +64,11 @@ void GetInfoString(const ResourceBlob &data, TCHAR *pszBuffer, size_t cchBuffer)
     *pszBuffer = 0;
 }
 
+ResourceBlobWrapper::ResourceBlobWrapper(std::unique_ptr<ResourceBlob> blob) : _blob(std::move(blob)) {}
+ResourceBlob *ResourceBlobWrapper::GetBlob()
+{
+    return _blob.get();
+}
 
 CResourceListCtrl::CResourceListCtrl()
 {
@@ -131,7 +136,7 @@ void CResourceListCtrl::OnItemClick(NMHDR* pNMHDR, LRESULT* pResult)
         CGameExplorerFrame *pFrame = static_cast<CGameExplorerFrame*>(GetParentFrame());
         if (pFrame)
         {
-            const ResourceBlob *pData = _GetResourceForItem(plv->iItem);
+            const ResourceBlob *pData = _GetResourceForItemRealized(plv->iItem);
             if (pData)
             {
                 ResourceLoadStatusFlags originalFlags = pData->GetStatusFlags();
@@ -149,8 +154,8 @@ int CALLBACK ColumnSort(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
     char sz2[100];
 
     int iColumn = static_cast<int>(lParamSort);
-    ResourceBlob *p1 = reinterpret_cast<ResourceBlob*>(lParam1);
-    ResourceBlob *p2 = reinterpret_cast<ResourceBlob*>(lParam2);
+    ResourceBlob *p1 = reinterpret_cast<ResourceBlobWrapper*>(lParam1)->GetBlob();
+    ResourceBlob *p2 = reinterpret_cast<ResourceBlobWrapper*>(lParam2)->GetBlob();
     int iRet = 0;
     switch (iColumn)
     {
@@ -219,7 +224,7 @@ void CResourceListCtrl::OnEndLabelEdit(NMHDR* pNMHDR, LRESULT* pResult)
         {
             // We have a new name.
             // Get the item.
-            ResourceBlob *pData = _GetResourceForItem(plvdi->item.iItem);
+            ResourceBlob *pData = _GetResourceForItemMetadataOnly(plvdi->item.iItem);
             assert(pData);
             // Put the name in game.ini
             pData->SetName(plvdi->item.pszText);
@@ -264,13 +269,13 @@ void CResourceListCtrl::OnNotifyDelete(NMHDR* pNMHDR, LRESULT* pResult)
 {
     // Free the ResourceBlob that was attached to the item.
     NMLISTVIEW *pnmlv = (NMLISTVIEW*)pNMHDR;
-    delete ((ResourceBlob*)pnmlv->lParam);
+    delete ((ResourceBlobWrapper*)pnmlv->lParam);
 }
 
 void CResourceListCtrl::OnGetInfoTip(NMHDR* pNMHDR, LRESULT* pResult)
 {
     NMLVGETINFOTIP *pGetInfoTip = reinterpret_cast<NMLVGETINFOTIP*>(pNMHDR);
-    const ResourceBlob *pData = reinterpret_cast<const ResourceBlob*>(GetItemData(pGetInfoTip->iItem));
+    const ResourceBlob *pData = reinterpret_cast<ResourceBlobWrapper*>(GetItemData(pGetInfoTip->iItem))->GetBlob();
     if (pData)
     {
         StringCchPrintf(pGetInfoTip->pszText, pGetInfoTip->cchTextMax, "%03d\n%d bytes.", pData->GetNumber(), pData->GetLength());
@@ -284,7 +289,7 @@ void CResourceListCtrl::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         int nItem = GetSelectedItem();
         if (nItem != -1)
         {
-            const ResourceBlob *pData = _GetResourceForItem(nItem);
+            const ResourceBlob *pData = _GetResourceForItemRealized(nItem);
             assert(pData);
             _OnItemDoubleClick(pData);
         }
@@ -312,7 +317,7 @@ void CResourceListCtrl::OnCustomDraw(NMHDR *pNMHDR, LRESULT *pResult)
         {
             // If this is not the most recent resource of this type/number/package, then
             // color the item grey.
-            const ResourceBlob *pData = (ResourceBlob*)pnmlv->nmcd.lItemlParam;
+            const ResourceBlob *pData = reinterpret_cast<ResourceBlobWrapper*>(pnmlv->nmcd.lItemlParam)->GetBlob();
             if (!appState->_resourceRecency.IsResourceMostRecent(pData))
             {
                 pnmlv->clrText = GetSysColor(COLOR_GRAYTEXT);
@@ -402,7 +407,7 @@ void CResourceListCtrl::OnItemDoubleClick(NMHDR* pNMHDR, LRESULT* pResult)
     int iViewIndex = pNMLV->iItem;
     if (iViewIndex != -1) // Could be -1 if user clicked on the background.
     {
-        const ResourceBlob *pData = _GetResourceForItem(iViewIndex);
+        const ResourceBlob *pData = _GetResourceForItemRealized(iViewIndex);
         assert(pData);
         _OnItemDoubleClick(pData);
     }
@@ -448,7 +453,7 @@ void CResourceListCtrl::OnViewRawData()
     while (SUCCEEDED(hr) && (pos != NULL))
     {
         int nItem = GetNextSelectedItem(pos);
-        const ResourceBlob *pData = _GetResourceForItem(nItem);
+        const ResourceBlob *pData = _GetResourceForItemRealized(nItem);
         if (pData)
         {
             std::string filename = GetFileNameFor(*pData);
@@ -488,7 +493,7 @@ void CResourceListCtrl::OnExtractResources()
                     while (SUCCEEDED(hr) && (pos != NULL))
                     {
                         int nItem = GetNextSelectedItem(pos);
-                        pData = _GetResourceForItem(nItem);
+                        pData = _GetResourceForItemRealized(nItem);
                         if (pData)
                         {
                             std::string filename = GetFileNameFor(*pData);
@@ -529,7 +534,7 @@ void CResourceListCtrl::OnExtractResources()
     }
     else if (cCount == 1)
     {
-        const ResourceBlob *pData = _GetResourceForItem(GetSelectedItem());
+        const ResourceBlob *pData = _GetResourceForItemRealized(GetSelectedItem());
         if (pData)
         {
             std::string filename = GetFileNameFor(*pData);
@@ -577,10 +582,10 @@ void CResourceListCtrl::OnDelete()
             // Grab all the selected ResourceBlob's, before we start deleting any items.
             vector<const ResourceBlob*> resourcesTempCopy;
             POSITION pos = GetFirstSelectedItemPosition();
-            while (pos != NULL)
+            while (pos != nullptr)
             {
                 int nItem = GetNextSelectedItem(pos);
-                resourcesTempCopy.push_back(_GetResourceForItem(nItem));
+                resourcesTempCopy.push_back(_GetResourceForItemMetadataOnly(nItem));
             }
 
             for (const ResourceBlob *pData : resourcesTempCopy)
@@ -600,7 +605,7 @@ void CResourceListCtrl::OnDelete()
         int nItem = GetSelectedItem();
         if (nItem != -1)
         {
-            const ResourceBlob *pData = _GetResourceForItem(nItem);
+            const ResourceBlob *pData = _GetResourceForItemMetadataOnly(nItem);
             assert(pData);
             TCHAR szBuffer[MAX_PATH];
             StringCchPrintf(szBuffer, ARRAYSIZE(szBuffer), TEXT("Delete %s?"), pData->GetName().c_str());
@@ -666,7 +671,7 @@ void CResourceListCtrl::_ReevaluateRecency(const ResourceBlob *pData)
     int cItems = GetItemCount();
     for (int i = 0; i < cItems; i++)
     {
-        const ResourceBlob *pDataCur = _GetResourceForItem(i);
+        const ResourceBlob *pDataCur = _GetResourceForItemMetadataOnly(i);
         if ((pDataCur->GetPackageHint() == pData->GetPackageHint()) &&
             (pDataCur->GetNumber() == pData->GetNumber()))
         {
@@ -712,7 +717,7 @@ void CResourceListCtrl::_DeleteMatchingItems(int resourceNumber, int packageNumb
     // Go backwards so that 
     for (int i = cItems - 1; (i >= 0); i--)
     {
-        const ResourceBlob *pData = _GetResourceForItem(i);
+        const ResourceBlob *pData = _GetResourceForItemMetadataOnly(i);
         if ((pData->GetNumber() == resourceNumber) && (pData->GetPackageHint() == packageNumber) && (pData->GetSourceFlags() == sourceFlags))
         {
             DeleteItem(i);
@@ -726,16 +731,19 @@ void CResourceListCtrl::_DeleteItem(const ResourceBlob *pData)
     DeleteItem(iIndex);
 }
 
-void CResourceListCtrl::_InsertItem(ResourceBlob *pData)
+void CResourceListCtrl::_InsertItem(std::unique_ptr<ResourceBlob> pData)
 {
+    ResourceBlob *blob = pData.get();
+    auto wrapper = std::make_unique<ResourceBlobWrapper>(std::move(pData));
+
     TCHAR szName[100];
-    StringCchCopy(szName, ARRAYSIZE(szName), pData->GetName().c_str()); // Copy, since pszText takes a non-const
+    StringCchCopy(szName, ARRAYSIZE(szName), blob->GetName().c_str()); // Copy, since pszText takes a non-const
     LVITEM item = { 0 };
     item.mask = LVIF_TEXT | LVIF_PARAM;
     item.iItem = 0;
     item.iSubItem = 0;
     item.pszText = szName;
-    item.lParam = (LPARAM)pData;
+    item.lParam = (LPARAM)wrapper.release();
     _PrepareLVITEM(&item);
     int iIndex = InsertItem(&item);
 
@@ -756,14 +764,14 @@ void CResourceListCtrl::_InsertItem(ResourceBlob *pData)
         switch (iSub)
         {
         case ColumnNumber:
-            StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%03d"), pData->GetNumber());
+            StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%03d"), blob->GetNumber());
             break;
         case ColumnPackage:
-            StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%03d"), pData->GetPackageHint());
+            StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%03d"), blob->GetPackageHint());
             break;
         case ColumnSize:
             {
-                int iLength = pData->GetLength();
+                int iLength = blob->GetLength();
                 int iThousandths = (iLength % 1024) * 1000 / 1024;
                 int kiloBytes = iLength / 1024;
                 int iRoundedHundredths = (iLength % 1024) * 100 / 1024;
@@ -782,17 +790,17 @@ void CResourceListCtrl::_InsertItem(ResourceBlob *pData)
 
         case ColumnEncoding:
             {
-                StringCchCopy(szBuf, ARRAYSIZE(szBuf), pData->GetEncodingString().c_str());
+                StringCchCopy(szBuf, ARRAYSIZE(szBuf), blob->GetEncodingString().c_str());
             }
             break;
         case ColumnStatus:
             szBuf[0] = 0;
-            GetStatusString(*pData, szBuf, ARRAYSIZE(szBuf), appState->_resourceRecency.IsResourceMostRecent(pData));
+            GetStatusString(*blob, szBuf, ARRAYSIZE(szBuf), appState->_resourceRecency.IsResourceMostRecent(blob));
             break;
 
         case ColumnSource:
         {
-            ResourceSourceFlags sourceFlags = pData->GetSourceFlags();
+            ResourceSourceFlags sourceFlags = blob->GetSourceFlags();
             if (IsFlagSet(sourceFlags, ResourceSourceFlags::PatchFile))
             {
                 item.pszText = "Patch";
@@ -823,7 +831,7 @@ void CResourceListCtrl::_InsertItem(ResourceBlob *pData)
         case ColumnInfo:
         {
             szBuf[0] = 0;
-            GetInfoString(*pData, szBuf, ARRAYSIZE(szBuf));
+            GetInfoString(*blob, szBuf, ARRAYSIZE(szBuf));
             break;
         }
 
@@ -877,15 +885,6 @@ void GetStatusString(const ResourceBlob &data, TCHAR *pszBuffer, size_t cchBuffe
         StringCchCat(pszBuffer, cchBuffer, (needsSeparator ? ", Corrupt" : "Corrupt"));
         needsSeparator = true;
     }
-
-    // temporary code to investigate message resources.
-    /*
-    if (data.GetType() == ResourceType::Message)
-    {
-        unique_ptr<ResourceEntity> resource = CreateResourceFromResourceData(data);
-        //StringCchPrintf(pszBuffer, cchBuffer, "v: %d", resource->GetComponent<TextComponent>().MysteryNumber);
-        StringCchPrintf(pszBuffer, cchBuffer, "v: %d", resource->GetComponent<TextComponent>().msgVersion);
-    }*/
 }
 
 void CResourceListCtrl::UpdateView()
@@ -914,9 +913,10 @@ void CResourceListCtrl::OnUpdate(LPARAM lHint, CObject *pHint)
         }
 
         // Make our own copy, since we're storing this away.
-        ResourceBlob *pDataClone = new ResourceBlob(*pData);
-        _InsertItem(pDataClone);
-        _ReevaluateRecency(pDataClone);
+        auto pDataClone = std::make_unique<ResourceBlob>(*pData);
+        ResourceBlob *pTemp = pDataClone.get();
+        _InsertItem(std::move(pDataClone));
+        _ReevaluateRecency(pTemp);
         // Sort
         _SortItemsHelper(_iSortColumn, false);
     }
@@ -928,6 +928,30 @@ void CResourceListCtrl::OnUpdate(LPARAM lHint, CObject *pHint)
         // This will free the memory for pData.
         _DeleteItem(pData);
     }
+}
+
+ResourceBlob *CResourceListCtrl::_GetResourceForItemMetadataOnly(LPARAM lParam)
+{
+    return reinterpret_cast<ResourceBlobWrapper*>(lParam)->GetBlob();
+}
+
+ResourceBlob *CResourceListCtrl::_GetResourceForItemRealized(LPARAM lParam)
+{
+    auto blob = reinterpret_cast<ResourceBlobWrapper*>(lParam)->GetBlob();
+    blob->EnsureRealized();
+    return blob;
+}
+
+ResourceBlob *CResourceListCtrl::_GetResourceForItemMetadataOnly(int nItem)
+{
+    return reinterpret_cast<ResourceBlobWrapper*>(GetItemData(nItem))->GetBlob();
+}
+
+ResourceBlob *CResourceListCtrl::_GetResourceForItemRealized(int nItem)
+{
+    auto blob = reinterpret_cast<ResourceBlobWrapper*>(GetItemData(nItem))->GetBlob();
+    blob->EnsureRealized();
+    return blob;
 }
 
 HRESULT CResourceListCtrl::_UpdateEntries()
@@ -951,7 +975,12 @@ HRESULT CResourceListCtrl::_UpdateEntries()
             // enumFlags &= ~ResourceEnumFlags::CalculateRecency;
         }
         auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeToFlag(GetType()), enumFlags);
-        copy(resourceContainer->begin(), resourceContainer->end(), back_inserter(resources));
+        // Copy the ResourceBlobs into resources, but delay decompression (for performance)
+        // REVIEW: We might want to have a wrapper.
+        for (auto it = resourceContainer->begin(); it != resourceContainer->end(); ++it)
+        {
+            resources.push_back(std::move(it.CreateButDelayDecompression()));
+        }
 
         if (!resources.empty())
         {
@@ -967,10 +996,10 @@ HRESULT CResourceListCtrl::_UpdateEntries()
 
             SetRedraw(FALSE);
 
-            for (unique_ptr<ResourceBlob> &blob : resources)
+            for (auto &blob : resources)
             {
                 // Ownership of prd is transfered to listview:
-                _InsertItem(blob.release());
+                _InsertItem(std::move(blob));
             }
 
             // Sort
@@ -994,7 +1023,7 @@ int CResourceListCtrl::_GetItemForResource(const ResourceBlob *pData)
     int i = 0;
     for (; !fFound && (i < cItems); i++)
     {
-        fFound = (_GetResourceForItem(i) == pData);
+        fFound = (_GetResourceForItemMetadataOnly(i) == pData);
     }
     assert(fFound); // Otherwise someone called us with a bad resource data.
     return i - 1;
