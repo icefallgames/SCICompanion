@@ -223,7 +223,7 @@ std::unique_ptr<ResourceContainer> GameFolderHelper::Resources(ResourceTypeFlags
             // Our audio cache files take precedence
             if (IsFlagSet(types, ResourceTypeFlags::Audio))
             {
-                mapAndVolumes->push_back(move(make_unique<AudioCacheResourceSource>(Version, GameFolder, mapContext, ResourceSourceAccessFlags::Read)));
+                mapAndVolumes->push_back(move(make_unique<AudioCacheResourceSource>(*this, mapContext, ResourceSourceAccessFlags::Read)));
             }
 
             // Audiomaps can come from the cache files folder too... but we can re-use PatchFilesResourceSource for this
@@ -255,17 +255,17 @@ std::unique_ptr<ResourceContainer> GameFolderHelper::Resources(ResourceTypeFlags
             }
             if (fd && fd->DoesMapExist())
             {
-                mapAndVolumes->push_back(move(CreateResourceSource(GameFolder, Version, fd->SourceFlags)));
+                mapAndVolumes->push_back(move(CreateResourceSource(*this, fd->SourceFlags)));
             }
         }
         
         if (IsFlagSet(types, ResourceTypeFlags::Audio))
         {
-            mapAndVolumes->push_back(move(make_unique<AudioResourceSource>(Version, GameFolder, mapContext, ResourceSourceAccessFlags::Read)));
+            mapAndVolumes->push_back(move(make_unique<AudioResourceSource>(*this, mapContext, ResourceSourceAccessFlags::Read)));
         }
 
         // Now the standard resource maps
-        mapAndVolumes->push_back(move(CreateResourceSource(GameFolder, Version, ResourceSourceFlags::ResourceMap)));
+        mapAndVolumes->push_back(move(CreateResourceSource(*this, ResourceSourceFlags::ResourceMap)));
     }
 
     std::unique_ptr<ResourceContainer> resourceContainer(

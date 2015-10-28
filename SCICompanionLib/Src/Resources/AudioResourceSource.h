@@ -14,6 +14,7 @@
 #pragma once
 
 #include "ResourceSources.h"
+#include "GameFolderHelper.h"
 
 struct AudioMapComponent;
 class ResourceBlob;
@@ -22,11 +23,12 @@ class ResourceBlob;
 class AudioResourceSource : public ResourceSource
 {
 public:
-    AudioResourceSource(SCIVersion version, const std::string &gameFolder, int mapContext, ResourceSourceAccessFlags access) :
-        _gameFolder(gameFolder),
-        _version(version),
+    AudioResourceSource(const GameFolderHelper &helper, int mapContext, ResourceSourceAccessFlags access) :
+        _gameFolder(helper.GameFolder),
+        _version(helper.Version),
         _mapContext(mapContext),
-        _access(access)
+        _access(access),
+        _helper(helper)
     {
         _EnsureAudioMaps();
     }
@@ -65,5 +67,7 @@ private:
     // Use memory mapped files, because these volumes tend to be large (several hundred MB)
     std::unique_ptr<sci::streamOwner> _volumeStreamOwnerSfx;
     std::unique_ptr<sci::streamOwner> _volumeStreamOwnerAud;
+
+    GameFolderHelper _helper;
 };
 

@@ -168,17 +168,17 @@ HRESULT RebuildResources(SCIVersion version, BOOL fShowUI)
         // (and RebuildResource should clean out the old ones)
         if (version.AudioVolumeName != AudioVolumeName::None)
         {
-            std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(appState->GetResourceMap().GetGameFolder(), appState->GetVersion(), ResourceSourceFlags::AudioCache);
+            std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(appState->GetResourceMap().Helper(), ResourceSourceFlags::AudioCache);
             resourceSource->RebuildResources(true);
         }
 
         // Enumerate resources and write the ones we have not already encountered.
-        std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(appState->GetResourceMap().GetGameFolder(), appState->GetVersion(), ResourceSourceFlags::ResourceMap);
+        std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(appState->GetResourceMap().Helper(), ResourceSourceFlags::ResourceMap);
         resourceSource->RebuildResources(true);
         if (version.MessageMapSource != MessageMapSource::Included)
         {
             ResourceSourceFlags sourceFlags = (version.MessageMapSource == MessageMapSource::MessageMap) ? ResourceSourceFlags::MessageMap : ResourceSourceFlags::AltMap;
-            std::unique_ptr<ResourceSource> messageSource = CreateResourceSource(appState->GetResourceMap().GetGameFolder(), appState->GetVersion(), ResourceSourceFlags::MessageMap);
+            std::unique_ptr<ResourceSource> messageSource = CreateResourceSource(appState->GetResourceMap().Helper(), ResourceSourceFlags::MessageMap);
             messageSource->RebuildResources(true);
         }
     }
@@ -292,7 +292,7 @@ HRESULT CResourceMap::EndDeferAppend()
 
                     int mapContext = (blobsForThisSource[0]->GetBase36() == NoBase36) ? -1 : blobsForThisSource[0]->GetNumber();
                     // Enumerate resources and write the ones we have not already encountered.
-                    std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(_gameFolderHelper.GameFolder, _gameFolderHelper.Version, sourceFlags, ResourceSourceAccessFlags::ReadWrite, mapContext);
+                    std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(_gameFolderHelper, sourceFlags, ResourceSourceAccessFlags::ReadWrite, mapContext);
 
                     try
                     {
@@ -404,7 +404,7 @@ void CResourceMap::RepackageAudio(bool force)
     // TODO: This could be slow, so provide some kind of UI feedback?
     if (GetSCIVersion().AudioVolumeName != AudioVolumeName::None)
     {
-        std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(GetGameFolder(), GetSCIVersion(), ResourceSourceFlags::AudioCache);
+        std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(Helper(), ResourceSourceFlags::AudioCache);
         resourceSource->RebuildResources(force);    // false -> don't force.
     }
 }
@@ -491,7 +491,7 @@ HRESULT CResourceMap::AppendResource(const ResourceBlob &resource)
 
         // Enumerate resources and write the ones we have not already encountered.
         int mapContext = (resource.GetBase36() == NoBase36) ? -1 : resource.GetNumber();
-        std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(_gameFolderHelper.GameFolder, _gameFolderHelper.Version, resource.GetSourceFlags(), ResourceSourceAccessFlags::ReadWrite, mapContext);
+        std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(_gameFolderHelper, resource.GetSourceFlags(), ResourceSourceAccessFlags::ReadWrite, mapContext);
         std::vector<const ResourceBlob*> blobs;
         blobs.push_back(&resource);
 

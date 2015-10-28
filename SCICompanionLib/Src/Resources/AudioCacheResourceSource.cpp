@@ -145,15 +145,16 @@ bool ExtractTupleFromFilename(const char *pszFilename, uint32_t &tuple)
 
 const char *pszAudioCacheFolder = "\\audiocache";
 
-AudioCacheResourceSource::AudioCacheResourceSource(SCIVersion version, const std::string &gameFolder, int mapContext, ResourceSourceAccessFlags access) :
-    _gameFolder(gameFolder),
-    _cacheFolder(gameFolder + pszAudioCacheFolder),
-    _version(version),
+AudioCacheResourceSource::AudioCacheResourceSource(const GameFolderHelper &helper, int mapContext, ResourceSourceAccessFlags access) :
+    _gameFolder(helper.GameFolder),
+    _cacheFolder(helper.GameFolder + pszAudioCacheFolder),
+    _version(helper.Version),
     _mapContext(mapContext),
     _enumInitialized(false),
-    _access(access)
+    _access(access),
+    _helper(helper)
 {
-    _cacheSubFolderForEnum = _cacheFolder + fmt::format("\\{0}", (mapContext == -1) ? version.AudioMapResourceNumber : mapContext);
+    _cacheSubFolderForEnum = _cacheFolder + fmt::format("\\{0}", (mapContext == -1) ? _version.AudioMapResourceNumber : mapContext);
     if (IsFlagSet(access, ResourceSourceAccessFlags::ReadWrite))
     {
         // This is important we do this, for the delete case
@@ -377,10 +378,10 @@ void SaveAudioBlobToFiles(const ResourceBlob &blob, const std::string &cacheSubF
     syncFile.Write(blob.GetData() + lipSyncDataSize, blob.GetDecompressedLength() - lipSyncDataSize);
 }
 
-void FirstTimeAudioExtraction(const std::string &cacheFolder, const std::string &cacheSubFolder, SCIVersion version, int mapContext)
+void FirstTimeAudioExtraction(const GameFolderHelper &helper, const std::string &cacheFolder, const std::string &cacheSubFolder, SCIVersion version, int mapContext)
 {
     int resourceNumber = (mapContext == -1) ? version.AudioMapResourceNumber : mapContext;
-    std::unique_ptr<ResourceBlob> audioMapBlob = appState->GetResourceMap().MostRecentResource(ResourceType::AudioMap, resourceNumber, false);
+    std::unique_ptr<ResourceBlob> audioMapBlob = helper.MostRecentResource(ResourceType::AudioMap, resourceNumber, ResourceEnumFlags::None);
     if (audioMapBlob)
     {
         // First the audio map.
@@ -389,7 +390,7 @@ void FirstTimeAudioExtraction(const std::string &cacheFolder, const std::string 
         audioMapBlob->SaveToHandle(file.hFile, TRUE);
 
         // Now all audio and sync resources.
-        auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Audio, ResourceEnumFlags::None, mapContext);
+        auto resourceContainer = helper.Resources(ResourceTypeFlags::Audio, ResourceEnumFlags::None, nullptr, mapContext);
         for (auto &blob : *resourceContainer)
         {
             SaveAudioBlobToFiles(*blob, cacheSubFolder, version);
@@ -409,13 +410,13 @@ std::unique_ptr<ResourceEntity> AudioCacheResourceSource::_PrepareForAddOrRemove
     // Now, we need to write the existing audio map. This audio map *could* come from us, or it could come from the original.
     // If it came from the original, we need to extract all the files for the first time.
     int resourceNumber = (_mapContext == -1) ? _version.AudioMapResourceNumber : _mapContext;
-    std::unique_ptr<ResourceBlob> audioMapBlobTest = appState->GetResourceMap().Helper().MostRecentResource(ResourceType::AudioMap, resourceNumber, ResourceEnumFlags::IncludeCacheFiles | ResourceEnumFlags::MostRecentOnly);
+    std::unique_ptr<ResourceBlob> audioMapBlobTest = _helper.MostRecentResource(ResourceType::AudioMap, resourceNumber, ResourceEnumFlags::IncludeCacheFiles | ResourceEnumFlags::MostRecentOnly);
     if (audioMapBlobTest)
     {
         if (!IsFlagSet(audioMapBlobTest->GetSourceFlags(), ResourceSourceFlags::AudioMapCache))
         {
-            FirstTimeAudioExtraction(_cacheFolder, _cacheSubFolderForEnum, _version, _mapContext);
-            audioMapBlobTest = appState->GetResourceMap().Helper().MostRecentResource(ResourceType::AudioMap, resourceNumber, ResourceEnumFlags::IncludeCacheFiles | ResourceEnumFlags::MostRecentOnly);
+            FirstTimeAudioExtraction(_helper, _cacheFolder, _cacheSubFolderForEnum, _version, _mapContext);
+            audioMapBlobTest = _helper.MostRecentResource(ResourceType::AudioMap, resourceNumber, ResourceEnumFlags::IncludeCacheFiles | ResourceEnumFlags::MostRecentOnly);
         }
 
         // Verify we're reading the one from the audio cache.

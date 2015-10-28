@@ -14,6 +14,7 @@
 #pragma once
 
 #include "ResourceSources.h"
+#include "GameFolderHelper.h"
 
 struct AudioMapComponent;
 class ResourceEntity;
@@ -25,7 +26,7 @@ extern const char *pszAudioCacheFolder;
 class AudioCacheResourceSource : public ResourceSource
 {
 public:
-    AudioCacheResourceSource(SCIVersion version, const std::string &gameFolder, int mapContext, ResourceSourceAccessFlags access);
+    AudioCacheResourceSource(const GameFolderHelper &helper, int mapContext, ResourceSourceAccessFlags access);
     ~AudioCacheResourceSource();
 
     AudioCacheResourceSource& operator=(AudioCacheResourceSource &src) = delete;
@@ -72,5 +73,9 @@ private:
     std::string _gameFolder;
     std::string _cacheFolder;
     std::string _cacheSubFolderForEnum;
+
+    // We go through this as much as possible. We create our own,
+    // because we may be enumerated on the background thread.
+    GameFolderHelper _helper;
 };
 

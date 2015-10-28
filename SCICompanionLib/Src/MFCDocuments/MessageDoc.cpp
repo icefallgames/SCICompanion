@@ -110,7 +110,7 @@ void CMessageDoc::_PreloadAudio()
     // Add the negatives in. NOTE: This might be slow, we could do this on demand. But we'd need to pull them in
     // whenever one was set to modified (or else we'd remove the negative upon save).
     int mapContext = GetResource()->ResourceNumber;
-    std::unique_ptr<AudioCacheResourceSource> resourceSource = std::make_unique<AudioCacheResourceSource>(map.GetSCIVersion(), map.GetGameFolder(), mapContext, ResourceSourceAccessFlags::Read);
+    std::unique_ptr<AudioCacheResourceSource> resourceSource = std::make_unique<AudioCacheResourceSource>(map.Helper(), mapContext, ResourceSourceAccessFlags::Read);
     for (auto &audioResource : _audioResources)
     {
         if (audioResource)
@@ -222,7 +222,7 @@ void CMessageDoc::PostSuccessfulSave(const ResourceEntity *pResource)
         if (!audioNegatives.empty())
         {
             int mapContext = pResource->ResourceNumber;
-            std::unique_ptr<AudioCacheResourceSource> resourceSource = std::make_unique<AudioCacheResourceSource>(map.GetSCIVersion(), map.GetGameFolder(), mapContext, ResourceSourceAccessFlags::ReadWrite);
+            std::unique_ptr<AudioCacheResourceSource> resourceSource = std::make_unique<AudioCacheResourceSource>(map.Helper(), mapContext, ResourceSourceAccessFlags::ReadWrite);
             resourceSource->SaveOrRemoveNegatives(audioNegatives);
         }
 
@@ -242,7 +242,7 @@ void CMessageDoc::PostSuccessfulSave(const ResourceEntity *pResource)
         if (!deletedTuples.empty())
         {
             int mapContext = pResource->ResourceNumber;
-            std::unique_ptr<AudioCacheResourceSource> resourceSource = std::make_unique<AudioCacheResourceSource>(map.GetSCIVersion(), map.GetGameFolder(), mapContext, ResourceSourceAccessFlags::ReadWrite);
+            std::unique_ptr<AudioCacheResourceSource> resourceSource = std::make_unique<AudioCacheResourceSource>(map.Helper(), mapContext, ResourceSourceAccessFlags::ReadWrite);
             resourceSource->RemoveEntries(mapContext, deletedTuples);
         }
 
