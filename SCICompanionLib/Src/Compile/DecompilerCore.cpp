@@ -619,7 +619,7 @@ Consumption _GetInstructionConsumption(scii &inst, DecompileLookups *lookups)
 // callk	kernel_63, $8       // I need 5 stacks
 //
 // We'd need to implement some kind of instruction borrowing system to get this to work.
-bool _ObtainInstructionSequence(code_pos endingInstruction, code_pos beginning, code_pos &beginningOfBranchInstructionSequence)
+bool _ObtainInstructionSequence(code_pos endingInstruction, code_pos beginning, code_pos &beginningOfBranchInstructionSequence, bool includeDebugOpcodes)
 {
     bool success = true;
 
@@ -663,7 +663,7 @@ bool _ObtainInstructionSequence(code_pos endingInstruction, code_pos beginning, 
             // Afterwards, if success is true, cur will point to the beginning of its thing
             // and we can keep going (if necessary)
             code_pos save = cur;
-            success = _ObtainInstructionSequence(cur, beginning, cur);
+            success = _ObtainInstructionSequence(cur, beginning, cur, false);
             if (!success && !consTemp.cStackConsume)
             {
                 // It's a "needs acc". Try to muddle through anyway... SQ5, localproc_0beb needs this.
@@ -676,6 +676,21 @@ bool _ObtainInstructionSequence(code_pos endingInstruction, code_pos beginning, 
 
         --cur;
     }
+    
+    if (includeDebugOpcodes)
+    {
+        // Add on any opcodes that don't do anything (debug opcodes) to complete our sequences.
+        while (success && (cur != beforeBeginning))
+        {
+            if ((cur->get_opcode() != Opcode::Filename) && (cur->get_opcode() != Opcode::LineNumber))
+            {
+                break;
+            }
+            beginningOfBranchInstructionSequence = cur;
+            --cur;
+        }
+    }
+
     return success;
 }
 

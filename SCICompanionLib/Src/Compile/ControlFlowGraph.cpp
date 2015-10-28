@@ -1603,10 +1603,12 @@ ControlFlowNode *ControlFlowGraph::_PartitionCode(code_pos start, code_pos end)
             // branch and those before.
             // REVIEW: Without doing this, two nested if statements with instructions in between would be mis-identified
             // as a compound condition.
+            // NOTE: We include debug opcodes (_file_ and _line_) as part of the sequence. If we don't do this, detection
+            // of compound conditions can fail (which is a BUG we should look into).
             if (cur->is_conditional_branch_instruction())
             {
                 code_pos beginningOfBranchInstructionSequence;
-                if (_ObtainInstructionSequence(cur, trueBeginning, beginningOfBranchInstructionSequence))
+                if (_ObtainInstructionSequence(cur, trueBeginning, beginningOfBranchInstructionSequence, true))
                 {
                     if (posToNode.find(beginningOfBranchInstructionSequence) == posToNode.end())
                     {
@@ -1845,14 +1847,14 @@ bool ControlFlowGraph::Generate(code_pos start, code_pos end)
             _ResolveBreaks();
         }
 
-        if (!_decompilerResults.IsAborted())
-        {
-            _FindAllIfStatements();
-        }
 
         if (showFile)
         {
             CFGVisualize(_contextName + "_loop", discoveredControlStructures);
+        }
+        if (!_decompilerResults.IsAborted())
+        {
+            _FindAllIfStatements();
         }
     }
     catch (ControlFlowException &e)

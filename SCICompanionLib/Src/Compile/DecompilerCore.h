@@ -205,7 +205,7 @@ void AddLocalVariablesToScript(sci::Script &script, const CompiledScript &compil
 
 std::string _GetProcNameFromScriptOffset(uint16_t wOffset);
 sci::ValueType _ScriptObjectTypeToPropertyValueType(ICompiledScriptSpecificLookups::ObjectType type);
-bool _ObtainInstructionSequence(code_pos branchInstruction, code_pos beginning, code_pos &beginningOfBranchInstructionSequence);
+bool _ObtainInstructionSequence(code_pos branchInstruction, code_pos beginning, code_pos &beginningOfBranchInstructionSequence, bool includeDebugOpcodes = false);
 
 
 
