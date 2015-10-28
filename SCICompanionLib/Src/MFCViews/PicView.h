@@ -27,20 +27,9 @@ class PicDrawManager;
 
 const int PriorityBarWidth = 30;
 
-struct CommandModifier
-{
-    PicCommand original;
-    PicCommand originalAlt;
-    ptrdiff_t index;
-    bool firstCoordSet;
-    PicCommand::CommandType type;
-
-    void Begin(const PicComponent &pic, PicCommand::CommandType type, ptrdiff_t bestIndex, bool first);
-    void ApplyDifference(PicComponent &pic, int dx, int dy);
-    void Reset();
-    void GetTransformCoord(const PicComponent &pic, int &x, int &y);
-    void Delete(PicComponent &pic);
-};
+struct CommandModifier;
+struct PicData;
+class ViewPort;
 
 class CPicView : public CScrollingThing<CView>, public IBitmapEditor, public IPicDrawPlugin, public IVGAPaletteDefinitionCallback, public IEGAPaletteDefinitionCallback
 {
@@ -341,7 +330,7 @@ private:
     BYTE _bRandomNR;
 
     bool _transformingCoords;
-    CommandModifier _transformCommandMod;
+    std::unique_ptr<CommandModifier> _transformCommandMod;
 
     // For command pasting.
     std::vector<PicCommand> _pastedCommands;

@@ -19,7 +19,7 @@
 
 #include "ResourceListView.h"
 #include "QueueItems.h"
-
+#include "ResourceBlob.h"
 
 // This is created by the UI thread, and deleted by the worker thread.
 class PICWORKITEM

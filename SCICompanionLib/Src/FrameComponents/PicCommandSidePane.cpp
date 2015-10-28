@@ -26,6 +26,7 @@
 #include "ImageUtil.h"
 #include "format.h"
 #include "WindowsUtil.h"
+#include "PicCommands.h"
 
 const int CommandTabIndex = 0;
 const int PolyTabIndex = 1;

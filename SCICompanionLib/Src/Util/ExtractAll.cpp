@@ -26,6 +26,7 @@
 #include "ResourceContainer.h"
 #include "Message.h"
 #include "Text.h"
+#include "ResourceBlob.h"
 
 void ExtractAllResources(SCIVersion version, const std::string &destinationFolderIn, bool extractPicImages, bool extractViewImages, bool disassembleScripts, bool extractMessages, IExtractProgress *progress)
 {

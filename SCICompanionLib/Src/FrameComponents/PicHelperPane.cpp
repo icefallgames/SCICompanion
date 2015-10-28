@@ -31,6 +31,8 @@ PicHelperPane::~PicHelperPane()
 {
 }
 
+void PicHelperPane::DrawOnPic(ViewPort &viewPort, PicData &picData, PicScreenFlags flags) {}
+
 void PicHelperPane::DoDataExchange(CDataExchange* pDX)
 {
     __super::DoDataExchange(pDX);

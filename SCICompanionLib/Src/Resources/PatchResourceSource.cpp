@@ -13,6 +13,7 @@
 ***************************************************************************/
 #include "stdafx.h"
 #include "PatchResourceSource.h"
+#include "ResourceBlob.h"
 
 bool PatchFilesResourceSource::ReadNextEntry(ResourceTypeFlags typeFlags, IteratorState &state, ResourceMapEntryAgnostic &entry, std::vector<uint8_t> *optionalRawData)
 {

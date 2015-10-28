@@ -15,6 +15,7 @@
 
 #include "ResourceUtil.h"
 #include "Version.h"
+#include "ResourceSourceFlags.h"
 
 enum class BlobKey;
 
@@ -41,18 +42,6 @@ struct ResourceMapEntryAgnostic
 };
 
 bool operator==(const ResourceMapEntryAgnostic &one, const ResourceMapEntryAgnostic &two);
-
-enum class ResourceSourceFlags
-{
-    ResourceMap = 0,
-    MessageMap = 0x0001,
-    PatchFile = 0x0002,
-    Aud = 0x0004,
-    Sfx = 0x0008,
-    AudioCache = 0x0010,    // Our special audio folder
-    AudioMapCache = 0x0020, // 
-    AltMap = 0x0040
-};
 
 DEFINE_ENUM_FLAGS(ResourceSourceFlags, uint16_t)
 
@@ -311,21 +300,6 @@ struct RESOURCEHEADER_SCI2_1 : public RESOURCEHEADERBASE<uint32_t, 0x00>
 
 #include <poppack.h>
 
-enum class ResourceLoadStatusFlags : uint8_t
-{
-    None = 0x00,
-    DecompressionFailed = 0x01,
-    ResourceCreationFailed = 0x02,
-    Corrupted = 0x04,
-};
-
-enum class BlobKey
-{
-    LipSyncDataSize,
-};
-
-DEFINE_ENUM_FLAGS(ResourceLoadStatusFlags, uint8_t)
-
 //
 // This represents the generic encoded resource.  From this object, we create the
 // type-specific resources.
@@ -340,54 +314,6 @@ public:
 
     HRESULT CreateFromBits(PCTSTR pszName, ResourceType iType, sci::istream *pStream, int iPackageHint, int iNumberHint, uint32_t base36Number, SCIVersion version, ResourceSourceFlags sourceFlags);
     HRESULT CreateFromHandle(PCTSTR pszName, HANDLE hFile, int iPackageHint, SCIVersion version);
-
-    //
-    // hFile is assumed to be offset to the beginning of a resource header.
-    //
-    template<typename _TReaderHeader>
-    HRESULT CreateFromHandleWithHeader(PCTSTR pszName, HANDLE hFile, int iPackageHint, ResourceSourceFlags sourceFlags)
-    {
-        HRESULT hr = E_FAIL;
-        DWORD cbRead;
-        // The normal case: just suck the resource header out of the current file position.
-        _TReaderHeader rh;
-        DWORD cbRequested = sizeof(rh);
-        BOOL fRead = ReadFile(hFile, &rh, cbRequested, &cbRead, NULL);
-        fRead = (cbRead == cbRequested);
-        if (fRead)
-        {
-            header = rh.ToAgnostic(appState->GetVersion(), sourceFlags, iPackageHint);
-        }
-
-        if (fRead)
-        {
-            // Figure out a name based on the number
-            if (!pszName || (*pszName == 0))
-            {
-                _strName = appState->GetResourceMap().FigureOutName(header.Type, header.Number, header.Base36Number);
-            }
-        }
-
-        if (fRead)
-        {
-            hr = S_OK;
-        }
-        else
-        {
-            hr = ResultFromLastError();
-        }
-
-        if (SUCCEEDED(hr))
-        {
-            // Now it is time to read in the bits.
-            // We're already at the end of the header, so just start reading.
-            sci::streamOwner streamOwner(hFile, header.cbCompressed);
-            _DecompressFromBits(streamOwner.getReader());
-        }
-        return hr;
-    }
-
-
     HRESULT CreateFromFile(PCTSTR pszName, std::string strFileName, SCIVersion version, int iPackage, int iNumber = -1);
     void CreateFromPackageBits(const std::string &name, const ResourceHeaderAgnostic &prh, sci::istream &byteStream);
 

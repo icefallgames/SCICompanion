@@ -20,6 +20,8 @@
 // FWD decl
 class CResourceListDoc;
 class ResourceBlob;
+enum class ResourceLoadStatusFlags : uint8_t;
+enum class ResourceSourceFlags;
 
 typedef CDocument*(* PFNRESOURCEOPEN )(const ResourceBlob *pData);
 

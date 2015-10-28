@@ -24,6 +24,7 @@
 #include "SoundUtil.h"
 #include <filesystem>
 #include "PerfTimer.h"
+#include "ResourceBlob.h"
 
 // The SCI Companion folder tree for audio cache files looks like this:
 //  gamefolder\

@@ -18,6 +18,7 @@
 #include "ResourceUtil.h"
 #include "format.h"
 #include <regex>
+#include "ResourceBlob.h"
 
 using namespace fmt;
 

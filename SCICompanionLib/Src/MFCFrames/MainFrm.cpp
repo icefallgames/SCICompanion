@@ -59,6 +59,7 @@
 #include "ResourceContainer.h"
 #include "AudioMap.h"
 #include <regex>
+#include "ResourceBlob.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

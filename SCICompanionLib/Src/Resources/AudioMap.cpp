@@ -15,6 +15,7 @@
 #include "AudioMap.h"
 #include "ResourceEntity.h"
 #include "format.h"
+#include "ResourceSourceFlags.h"
 
 using namespace std;
 

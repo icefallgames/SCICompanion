@@ -23,6 +23,7 @@
 #include "PicDrawManager.h"
 #include "PicDoc.h"
 #include <thread>
+#include "PicCommands.h"
 
 using namespace std;
 

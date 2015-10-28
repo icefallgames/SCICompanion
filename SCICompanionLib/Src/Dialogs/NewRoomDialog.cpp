@@ -29,6 +29,7 @@
 #include "Text.h"
 #include "Message.h"
 #include "Polygon.h"
+#include "ResourceBlob.h"
 
 using namespace sci;
 using namespace std;

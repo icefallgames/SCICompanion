@@ -37,6 +37,7 @@
 #include "SoundOperations.h"
 #include "ResourceUtil.h"
 #include "Font.h"
+#include "ResourceBlob.h"
 
 BOOL ResourcePreviewer::OnInitDialog()
 {

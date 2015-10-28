@@ -19,6 +19,7 @@
 #include "format.h"
 #include "GameFolderHelper.h"
 #include "ResourceContainer.h"
+#include "ResourceBlob.h"
 
 const static int VocabClassTable = 996;
 const static int VocabSelectorNames = 997;

@@ -75,6 +75,8 @@
 
 #include "AudioProcessingSettings.h"
 
+#include "ResourceBlob.h"
+
 // The one and only
 extern AppState *appState;
 

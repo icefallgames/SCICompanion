@@ -18,6 +18,7 @@ struct AudioComponent;
 struct SoundComponent;
 struct AudioProcessingSettings;
 class ResourceEntity;
+enum class ResourceSourceFlags;
 enum class AudioVolumeName : uint8_t;
 
 void PopulateComboWithDevicesHelper(SCIVersion version, CComboBox &combo);

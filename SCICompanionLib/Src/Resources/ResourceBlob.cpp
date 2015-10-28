@@ -18,6 +18,7 @@
 #include "AppState.h"
 #include <errno.h>
 #include "crc.h"
+#include "ResourceBlob.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

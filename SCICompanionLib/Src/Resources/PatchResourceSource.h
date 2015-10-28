@@ -14,6 +14,7 @@
 #pragma once
 
 #include "ResourceSources.h"
+class ResourceBlob;
 
 // ResourceSource for isolated patch files
 class PatchFilesResourceSource : public ResourceSource

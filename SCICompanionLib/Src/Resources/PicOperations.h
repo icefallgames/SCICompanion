@@ -15,6 +15,7 @@
 
 #include "Pic.h"
 struct PaletteComponent;
+class PicCommand;
 
 bool IsSame(const PicComponent &pic, const PicComponent *pPic);
 

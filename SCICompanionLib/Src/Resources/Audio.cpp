@@ -18,6 +18,7 @@
 #include "Sync.h"
 #include "format.h"
 #include "SoundUtil.h"
+#include "ResourceSourceFlags.h"
 
 using namespace std;
 

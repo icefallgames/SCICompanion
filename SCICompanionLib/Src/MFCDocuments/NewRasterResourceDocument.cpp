@@ -25,6 +25,7 @@
 #include "ImageUtil.h"
 #include "CustomMessageBox.h"
 #include "BitmapToVGADialog.h"
+#include "ResourceBlob.h"
 
 // A sort of workaround
 CHintWithObject<CelIndex> WrapRasterChange(RasterChange change) { return CHintWithObject<CelIndex>(static_cast<uint32_t>(change.hint), change.index); }

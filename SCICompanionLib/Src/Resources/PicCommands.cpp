@@ -19,6 +19,7 @@
 #include "RasterOperations.h"
 #include "View.h"
 #include <limits>
+#include "PicCommands.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

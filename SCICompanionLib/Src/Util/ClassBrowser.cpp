@@ -27,6 +27,7 @@
 #include "Task.h"
 #include "CCrystalTextBuffer.h"
 #include "CrystalScriptStream.h"
+#include "ResourceBlob.h"
 
 using namespace sci;
 using namespace std;

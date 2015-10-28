@@ -23,6 +23,7 @@
 #include "RasterOperations.h"
 #include "ResourceEntity.h"
 #include <errno.h>
+#include "ResourceBlob.h"
 
 // CResourceDocument
 

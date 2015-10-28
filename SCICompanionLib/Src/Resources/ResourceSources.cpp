@@ -18,6 +18,7 @@
 #include "ResourceEntity.h"
 #include "ResourceContainer.h"
 #include <limits>
+#include "ResourceBlob.h"
 
 using namespace std;
 

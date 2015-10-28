@@ -19,6 +19,7 @@
 #include "ScrollingThing.h"
 #include "ClassBrowser.h"
 #include "QueueItems.h"
+#include "ResourceBlob.h"
 
 struct PaletteComponent;
 class CRoomExplorerDoc;

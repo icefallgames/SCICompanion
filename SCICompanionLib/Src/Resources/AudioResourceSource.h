@@ -16,6 +16,7 @@
 #include "ResourceSources.h"
 
 struct AudioMapComponent;
+class ResourceBlob;
 
 // ResourceSource for SCI1.1 audio resources
 class AudioResourceSource : public ResourceSource

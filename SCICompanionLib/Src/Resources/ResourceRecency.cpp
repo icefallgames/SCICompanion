@@ -14,6 +14,7 @@
 #include "stdafx.h"
 
 #include "ResourceRecency.h"
+#include "ResourceBlob.h"
 
 uint64_t _GetLookupKey(const IResourceIdentifier *pData)
 {

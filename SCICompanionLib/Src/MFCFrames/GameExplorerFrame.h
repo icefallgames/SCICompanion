@@ -20,6 +20,7 @@
 #include "BarContainerDialog.h"
 
 class ResourcePreviewer;
+class ResourceBlob;
 
 class CGameExplorerFrame : public CMDITabChildWnd
 {

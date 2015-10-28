@@ -15,6 +15,7 @@
 #include "ResourceContainer.h"
 #include "AppState.h"
 #include "ResourceMap.h"
+#include "ResourceBlob.h"
 
 using namespace std;
 

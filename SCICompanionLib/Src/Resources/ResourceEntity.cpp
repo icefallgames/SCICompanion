@@ -15,6 +15,7 @@
 #include "ResourceEntity.h"
 #include "RasterOperations.h"
 #include "AppState.h"
+#include "ResourceBlob.h"
 
 bool NoValidationFunc(const ResourceEntity &resource)
 {
@@ -61,4 +62,35 @@ void ResourceEntity::WriteTo(sci::ostream &byteStream, bool fullWrite, int resou
 void ResourceEntity::ReadFrom(sci::istream byteStream, const std::map<BlobKey, uint32_t> &propertyBag)
 {
     (*Traits.ReadFromFunc)(*this, byteStream, propertyBag);
+}
+
+// TODO REVIEW: Redo this
+// We could trap exceptions and then create the default resource instead?
+// Or is the caller responsible?
+HRESULT ResourceEntity::InitFromResource(const ResourceBlob *prd)
+{
+    PackageNumber = prd->GetPackageHint();
+    ResourceNumber = prd->HasNumber() ? prd->GetNumber() : -1;
+    Base36Number = prd->GetHeader().Base36Number;
+    SourceFlags = prd->GetSourceFlags();
+    sci::istream byteStream = prd->GetReadStream();
+    byteStream.setThrowExceptions(true);
+    Traits.ReadFromFunc(*this, byteStream, prd->GetPropertyBag());
+    return S_OK;
+}
+
+std::unique_ptr<ResourceEntity> ResourceEntity::Clone() const
+{
+    std::unique_ptr<ResourceEntity> pClone = std::make_unique<ResourceEntity>(Traits);
+    pClone->ResourceNumber = ResourceNumber;
+    pClone->PackageNumber = PackageNumber;
+    pClone->Base36Number = Base36Number;
+    pClone->SourceFlags = SourceFlags;
+
+    for (auto &pair : components)
+    {
+        std::unique_ptr<ResourceComponent> pCopy(pair.second->Clone());
+        pClone->components[pair.first] = std::move(pCopy);
+    }
+    return pClone;
 }

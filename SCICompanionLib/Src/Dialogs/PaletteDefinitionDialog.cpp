@@ -19,6 +19,7 @@
 #include "ChooseColorDialog.h"
 #include "PaletteDefinitionDialog.h"
 #include "ChooseColorAdvancedDialog.h"
+#include "PicCommands.h"
 
 volatile int g_fChecked = 0;
 volatile int g_fPreview = 0;
@@ -144,7 +145,7 @@ void CPaletteDefinitionDialog::OnOK()
 void CPaletteDefinitionDialog::ApplyChanges()
 {
     _pic = _copy;
-    _changed = InsertPaletteCommands(&_pic, _position, _viewport.pPalettes, _palette, GetWriteEntirePalette());
+    _changed = InsertPaletteCommands(_pic, _position, _viewport.pPalettes, _palette, GetWriteEntirePalette());
 }
 
 void CPaletteDefinitionDialog::OnCheckClick()

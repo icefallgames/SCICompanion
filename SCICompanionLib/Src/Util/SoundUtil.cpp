@@ -21,6 +21,7 @@
 #include "CDSPResampler.h"
 #include "AudioProcessingSettings.h"
 #include "Stream.h"
+#include "ResourceSourceFlags.h"
 
 using namespace std;
 using namespace r8b;

@@ -40,6 +40,7 @@
 #include "GameFolderHelper.h"
 #include "DecompilerConfig.h"
 #include "format.h"
+#include "ResourceBlob.h"
 
 using namespace std;
 

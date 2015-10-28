@@ -147,7 +147,5 @@ struct delete_map_value
 #include "sci.h"
 #include "Version.h"
 #include "Stream.h"
-#include "ResourceBlob.h"
 #include "StlUtil.h"
-#include "PicCommands.h"
 #include "CObjectWrap.h"

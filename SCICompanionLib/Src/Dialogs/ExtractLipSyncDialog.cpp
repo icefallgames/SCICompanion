@@ -29,6 +29,7 @@
 #include "AudioNegative.h"
 #include "AudioProcessing.h"
 #include "PhonemeDialog.h"
+#include "ResourceBlob.h"
 
 #define LIPSYNC_TIMER 2345
 

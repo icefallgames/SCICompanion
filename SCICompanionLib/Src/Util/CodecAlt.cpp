@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "CodecAlt.h"
 #include "AppState.h"
+#include "PicCommands.h"
 
 #define VIEW_HEADER_COLORS_8BIT 0x80
 

@@ -19,7 +19,7 @@
 // CSamplesDialogBar dialog bar
 class CResourceListDoc;
 class CSamplesDialogBar;
-
+class ResourceBlob;
 
 //
 // Used to delay the calculation of the sample menu contents until the
@@ -66,7 +66,7 @@ private:
     void _PrepareViewMenu(int cItems);
 
     CExtDelayedButton m_wndButtonViews;
-    std::vector<ResourceBlob> _samples;
+    std::vector<std::unique_ptr<ResourceBlob>> _samples;
 
     bool _bFirstTime;
     CResourceListDoc *_pDoc;

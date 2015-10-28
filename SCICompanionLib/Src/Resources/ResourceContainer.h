@@ -15,6 +15,8 @@
 #include "ResourceRecency.h"
 #include "ResourceSources.h"
 
+class ResourceBlob;
+
 #define LSL6_FIX 1
 
 enum class ResourceEnumFlags : uint16_t

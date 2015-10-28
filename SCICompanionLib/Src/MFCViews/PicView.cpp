@@ -37,6 +37,7 @@
 #include "PaletteEditorDialog.h"
 #include "PicDimensionsDialog.h"
 #include "GotoDialog.h"
+#include "PicCommands.h"
 
 const int PicGutter = 5;
 using namespace Gdiplus;
@@ -70,6 +71,22 @@ const COLORREF PolygonColors[] =
     RGB(255, 255, 255),
     RGB(196, 255, 196)
 };
+
+struct CommandModifier
+{
+    PicCommand original;
+    PicCommand originalAlt;
+    ptrdiff_t index;
+    bool firstCoordSet;
+    PicCommand::CommandType type;
+
+    void Begin(const PicComponent &pic, PicCommand::CommandType type, ptrdiff_t bestIndex, bool first);
+    void ApplyDifference(PicComponent &pic, int dx, int dy);
+    void Reset();
+    void GetTransformCoord(const PicComponent &pic, int &x, int &y);
+    void Delete(PicComponent &pic);
+};
+
 
 void CPicView::_ClampPoint(CPoint &point)
 {
@@ -357,6 +374,7 @@ END_MESSAGE_MAP()
 
 CPicView::CPicView()
 {
+    _transformCommandMod = std::make_unique<CommandModifier>();
     _currentPolyPointIndexInEdit = -1;
     _currentHoverPolyPointIndex = -1;
     _currentHoverPolyEdgeIndex = -1;
@@ -565,11 +583,11 @@ void CPicView::OnDeletePoint()
     GetDocument()->ApplyChanges<PicComponent>(
         [this](PicComponent &pic)
     {
-        _transformCommandMod.Delete(pic);
+        _transformCommandMod->Delete(pic);
         return WrapHint(PicChangeHint::EditPicInvalid);
     }
     );
-    _transformCommandMod.Reset();
+    _transformCommandMod->Reset();
 }
 
 void CPicView::OnEnableFakeEgoCustom()
@@ -2460,7 +2478,7 @@ void CPicView::OnDraw(CDC *pDC)
             {
                 // Only draw the dragged one in this case
                 bestDistance = 0;
-                _transformCommandMod.GetTransformCoord(*_GetEditPic(), xBest, yBest);
+                _transformCommandMod->GetTransformCoord(*_GetEditPic(), xBest, yBest);
             }
             else
             {
@@ -3098,11 +3116,7 @@ ResourceEntity *CPicView::_GetFakeEgo()
     if (!_fakeEgo && GetDocument())
     {
         int viewNumber = GetDocument()->GetFakeEgo();
-        std::unique_ptr<ResourceBlob> blob = appState->GetResourceMap().MostRecentResource(ResourceType::View, viewNumber, false);
-        if (blob)
-        {
-            _fakeEgo = CreateResourceFromResourceData(*blob);
-        }
+        _fakeEgo = appState->GetResourceMap().CreateResourceFromNumber(ResourceType::View, viewNumber);
     }
     return _fakeEgo.get();
 }
@@ -3655,12 +3669,12 @@ void CPicView::_TransformPoint(bool commit, CPoint pt)
         // Apply changes works on a clone of the current resource, while the current resource
         // goes into the undo stack. Since we've been modifying the current resource, we
         // need to restore it before applying our final changes to the clone.
-        _transformCommandMod.ApplyDifference(const_cast<PicComponent&>(*GetDocument()->GetPic()), 0, 0);
+        _transformCommandMod->ApplyDifference(const_cast<PicComponent&>(*GetDocument()->GetPic()), 0, 0);
 
         GetDocument()->ApplyChanges<PicComponent>(
             [this, dx, dy](PicComponent &pic)
         {
-            _transformCommandMod.ApplyDifference(pic, dx, dy);
+            _transformCommandMod->ApplyDifference(pic, dx, dy);
             return WrapHint(PicChangeHint::EditPicInvalid);
         }
         );
@@ -3668,7 +3682,7 @@ void CPicView::_TransformPoint(bool commit, CPoint pt)
     else
     {
         // We have to go poking around in the resource directly
-        _transformCommandMod.ApplyDifference(const_cast<PicComponent&>(*GetDocument()->GetPic()), dx, dy);
+        _transformCommandMod->ApplyDifference(const_cast<PicComponent&>(*GetDocument()->GetPic()), dx, dy);
         // As a result we need to tell people manually to update
     }
 }
@@ -3746,7 +3760,7 @@ void CPicView::OnLButtonDown(UINT nFlags, CPoint point)
                     );
                     if (bestIndex != -1)
                     {
-                        _transformCommandMod.Begin(*_GetEditPic(), _currentCommand, bestIndex, firstSet);
+                        _transformCommandMod->Begin(*_GetEditPic(), _currentCommand, bestIndex, firstSet);
                         InvalidateOurselves();
                         _fCapturing = true;
                         _pointCapture = ptPic;
@@ -3933,7 +3947,7 @@ void CPicView::OnLButtonUp(UINT nFlags, CPoint point)
         {
             // Commit the change
             _TransformPoint(true, ptPic);
-            _transformCommandMod.Reset();
+            _transformCommandMod->Reset();
         }
         else if (_fShowPriorityLines && (_originalPriValue != -1))
         {
@@ -4057,7 +4071,7 @@ void CPicView::OnRButtonDown(UINT nFlags, CPoint point)
                 );
                 if (bestIndex != -1)
                 {
-                    _transformCommandMod.Begin(*_GetEditPic(), _currentCommand, bestIndex, firstSet);
+                    _transformCommandMod->Begin(*_GetEditPic(), _currentCommand, bestIndex, firstSet);
 
                     CMenu contextMenu;
                     contextMenu.LoadMenu(IDR_MENUDELETEPOINT);

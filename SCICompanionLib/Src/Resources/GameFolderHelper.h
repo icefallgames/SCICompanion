@@ -21,6 +21,7 @@ enum class ResourceEnumFlags : uint16_t;
 // interact with the ResourceMap object.
 
 class ResourceRecency;
+class ResourceBlob;
 
 class GameFolderHelper
 {

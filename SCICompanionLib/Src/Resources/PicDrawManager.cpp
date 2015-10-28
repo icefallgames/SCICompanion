@@ -18,6 +18,7 @@
 #include "PicOperations.h"
 #include "PaletteOperations.h"
 #include "format.h"
+#include "PicCommands.h"
 
 using namespace Gdiplus;
 
@@ -37,6 +38,7 @@ PicDrawManager::PicDrawManager(const PicComponent *pPic, const PaletteComponent 
     _isVGA(pPalette != nullptr),
     _screenBuffers{}
 {
+    _viewPorts = std::make_unique<ViewPort[]>(3);
     _Reset();
     _paletteVGA[255].rgbRed = 255;
     _paletteVGA[255].rgbGreen = 255;
@@ -299,7 +301,7 @@ void PicDrawManager::_RedrawBuffers(ViewPort *pState, PicScreenFlags screenFlags
     if (!IsFlagSet(_validPositions, PicPositionFlags::PrePlugin))
     {
         // Our initial viewport state.
-        _viewPort[0] = *pState;
+        _viewPorts[0] = *pState;
 
         // Default states
         if (IsFlagSet(screenFlags, PicScreenFlags::Priority))
@@ -328,7 +330,7 @@ void PicDrawManager::_RedrawBuffers(ViewPort *pState, PicScreenFlags screenFlags
         };
 
         // Now draw!
-        Draw(*_pPicWeak, data, _viewPort[0], 0, _iDrawPos);
+        Draw(*_pPicWeak, data, _viewPorts[0], 0, _iDrawPos);
     }
 
     // Perf optimization: if no one is drawing on the pic, then we can "skip" this step
@@ -362,7 +364,7 @@ void PicDrawManager::_RedrawBuffers(ViewPort *pState, PicScreenFlags screenFlags
 
             for (IPicDrawPlugin *plugin : _plugins)
             {
-                plugin->DrawOnPic(_viewPort[1], data, screenFlags);
+                plugin->DrawOnPic(_viewPorts[1], data, screenFlags);
             }
         }
     }
@@ -401,7 +403,7 @@ void PicDrawManager::_RedrawBuffers(ViewPort *pState, PicScreenFlags screenFlags
             };
 
             // Now draw!
-            Draw(*_pPicWeak, data, _viewPort[2], _iDrawPos, -1);
+            Draw(*_pPicWeak, data, _viewPorts[2], _iDrawPos, -1);
         }
     }
 
@@ -442,7 +444,7 @@ void PicDrawManager::_MoveToNextStep(PicPositionFlags requestedFlags, PicPositio
     PicPositionFlags posFlagsCompleted = PicPositionToFlags(posCompleted);
     PicPosition nextPos = (PicPosition)((int)posCompleted + 1);
 
-    _viewPort[(int)nextPos] = _viewPort[(int)posCompleted];
+    _viewPorts[(int)nextPos] = _viewPorts[(int)posCompleted];
 
     _ReturnOldBufferIfNotUsedAnywhere(nextPos);
     // If the next position has different buffers, copy from the previous position.
@@ -625,7 +627,7 @@ void PicDrawManager::RefreshAllScreens(PicScreenFlags picScreenFlags, PicPositio
 const ViewPort *PicDrawManager::GetViewPort(PicPosition pos)
 {
     _RedrawBuffers(nullptr, _fValidScreens, PicPositionToFlags(pos), true);
-    return &_viewPort[(int)pos];
+    return &_viewPorts[(int)pos];
 }
 
 //

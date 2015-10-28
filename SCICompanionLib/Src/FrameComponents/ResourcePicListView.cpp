@@ -25,6 +25,7 @@
 #include "ResourcePicListView.h"
 #include "QueueItems.h"
 #include "PaletteOperations.h"
+#include "ResourceBlob.h"
 
 using namespace std;
 

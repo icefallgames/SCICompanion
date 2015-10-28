@@ -17,6 +17,7 @@
 
 struct AudioMapComponent;
 class ResourceEntity;
+class ResourceBlob;
 
 extern const char *pszAudioCacheFolder;
 

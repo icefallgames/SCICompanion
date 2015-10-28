@@ -19,6 +19,7 @@
 // fwd decl
 class CPicDoc;
 struct THREADINFO;
+class PicCommand;
 // CBitmapToPicDialog dialog
 
 class CBitmapToPicDialog : public CExtNCW<CExtResizableDialog>, public PrepareBitmapBase

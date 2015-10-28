@@ -19,6 +19,7 @@
 #include "AppState.h"
 #include "GameExplorerFrame.h"
 #include "ResourcePreviewer.h"
+#include "ResourceBlob.h"
 
 // CResourceListChildFrame
 

@@ -24,6 +24,7 @@
 
 // fwd decl
 class PicDrawManager;
+class ResourceBlob;
 
 //
 // Common interface for previewers

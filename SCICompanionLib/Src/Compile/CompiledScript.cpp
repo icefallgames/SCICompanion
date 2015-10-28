@@ -20,6 +20,7 @@
 #include "ResourceContainer.h"
 #include "ResourceEntity.h"
 #include "PMachine.h"
+#include "ResourceBlob.h"
 
 using namespace std;
 using namespace sci;

@@ -24,6 +24,7 @@
 #include "Pic.h"
 #include "PaletteOperations.h"
 #include "ResourceContainer.h"
+#include "ResourceBlob.h"
 
 using namespace sci;
 using namespace std;

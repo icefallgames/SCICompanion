@@ -33,6 +33,7 @@
 #include "AudioMap.h"
 #include "AudioNegative.h"
 #include <numeric>
+#include "ResourceBlob.h"
 
 using namespace std;
 

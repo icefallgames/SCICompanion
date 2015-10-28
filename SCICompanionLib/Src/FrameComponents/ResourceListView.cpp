@@ -25,6 +25,7 @@
 #include "CObjectWrap.h"
 #include "Text.h"
 #include "View.h"
+#include "ResourceBlob.h"
 
 using namespace std;
 

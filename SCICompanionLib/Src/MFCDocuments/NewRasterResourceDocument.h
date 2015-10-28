@@ -21,12 +21,13 @@
 #include "RasterOperations.h"
 #include "ResourceMapEvents.h"
 #include "DocumentWithPaletteChoices.h"
+#include "PicCommandsCommon.h"
 
 // CNewRasterResourceDocument document
 
 // A sort of workaround
 CHintWithObject<CelIndex> WrapRasterChange(RasterChange change);
-
+class ResourceBlob;
 struct ImageSequenceItem;
 
 class CNewRasterResourceDocument : public ResourceEntityDocument, public IResourceMapEvents, public DocumentWithPaletteChoices

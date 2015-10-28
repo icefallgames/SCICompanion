@@ -44,6 +44,7 @@
 #include "ResourceMapEvents.h"
 #include "DebuggerThread.h"
 #include "RunLogic.h"
+#include "ResourceBlob.h"
 
 using namespace std;
 

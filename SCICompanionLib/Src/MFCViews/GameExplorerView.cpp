@@ -41,6 +41,7 @@
 #include "SoundUtil.h"
 #include "Audio.h"
 #include <regex>
+#include "ResourceBlob.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

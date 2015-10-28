@@ -20,6 +20,7 @@
 #include "ChooseColorStatic.h"
 #include "ChooseColorDialog.h"
 #include "format.h"
+#include "PicCommands.h"
 
 // CChooseColorStatic
 

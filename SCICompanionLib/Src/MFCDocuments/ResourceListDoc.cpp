@@ -20,6 +20,7 @@
 #include "ResourceListDoc.h"
 #include "CObjectWrap.h"
 #include "ResourceContainer.h"
+#include "ResourceBlob.h"
 
 // ResourceListDoc
 

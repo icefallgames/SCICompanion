@@ -37,7 +37,7 @@ public:
     };
 
     // IPicDrawPlugin
-    void DrawOnPic(ViewPort &viewPort, PicData &picData, PicScreenFlags flags) override {}
+    void DrawOnPic(ViewPort &viewPort, PicData &picData, PicScreenFlags flags) override;
     bool WillDrawOnPic() override { return false; }
     PicScreenFlags GetRequiredScreens() override;
     PicPositionFlags GetRequiredPicPosition() override {

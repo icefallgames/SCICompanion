@@ -18,8 +18,10 @@
 #include <typeinfo>
 #include <typeindex>
 
+class ResourceBlob;
 class ResourceEntity;
 enum class BlobKey;
+enum class ResourceSourceFlags;
 
 typedef void(*DeserializeFuncPtr)(ResourceEntity &resource, sci::istream &byteStream, const std::map<BlobKey, uint32_t> &propertyBag);
 typedef void(*SerializeFuncPtr)(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag);
@@ -58,33 +60,8 @@ public:
     // TODO REVIEW: Redo this
     // We could trap exceptions and then create the default resource instead?
     // Or is the caller responsible?
-    HRESULT InitFromResource(const ResourceBlob *prd)
-    {
-        PackageNumber = prd->GetPackageHint();
-        ResourceNumber = prd->HasNumber() ? prd->GetNumber() : -1;
-        Base36Number = prd->GetHeader().Base36Number;
-        SourceFlags = prd->GetSourceFlags();
-        sci::istream byteStream = prd->GetReadStream();
-        byteStream.setThrowExceptions(true);
-        Traits.ReadFromFunc(*this, byteStream, prd->GetPropertyBag());
-        return S_OK;
-    }
-
-    std::unique_ptr<ResourceEntity> Clone() const
-    {
-        std::unique_ptr<ResourceEntity> pClone = std::make_unique<ResourceEntity>(Traits);
-        pClone->ResourceNumber = ResourceNumber;
-        pClone->PackageNumber = PackageNumber;
-        pClone->Base36Number = Base36Number;
-        pClone->SourceFlags = SourceFlags;
-
-        for (auto &pair : components)
-        {
-            std::unique_ptr<ResourceComponent> pCopy(pair.second->Clone());
-            pClone->components[pair.first] = std::move(pCopy);
-        }
-        return pClone;
-    }
+    HRESULT InitFromResource(const ResourceBlob *prd);
+    std::unique_ptr<ResourceEntity> Clone() const;
     
     int ResourceNumber;
     int PackageNumber;

@@ -28,6 +28,8 @@
 #include "AppState.h"
 #include "Polygon.h"
 #include "ClassBrowser.h"
+#include "ResourceBlob.h"
+#include "PicCommands.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -517,3 +519,45 @@ void CPicDoc::PostSuccessfulSave(const ResourceEntity *pResource)
 }
 
 // CPicDoc commands
+
+
+
+bool InsertPaletteCommands(PicComponent &pepic, INT_PTR iPos, const EGACOLOR *pPaletteOrig, const EGACOLOR *pPaletteNew, BOOL fWriteEntire)
+{
+    bool fSomethingChanged = false;
+    if (fWriteEntire)
+    {
+        // Write the entire palette, for any palette that changed.
+        for (int i = 0; i < 4; i++)
+        {
+            if (0 != memcmp(&pPaletteOrig[40 * i], &pPaletteNew[40 * i], sizeof(EGACOLOR) * 40))
+            {
+                // This palette changed.  Write it.
+                PicCommand command = PicCommand::CreateSetPalette(i, &pPaletteNew[40 * i]);
+                InsertCommands(pepic, iPos, 1, &command);
+                fSomethingChanged = true;
+            }
+        }
+    }
+    else
+    {
+        // Cycle through each color, and see if it changed.
+        vector<PicCommand> commands;
+        for (int i = 0; i < 160; i++)
+        {
+            EGACOLOR oldColor = pPaletteOrig[i];
+            EGACOLOR newColor = pPaletteNew[i];
+            if ((oldColor.color1 != newColor.color1) || (oldColor.color2 != newColor.color2))
+            {
+                // This entry changed. Write it.
+                commands.push_back(PicCommand::CreateSetPaletteEntry(i / 40, i % 40, newColor));
+            }
+        }
+        if (commands.size() > 0)
+        {
+            InsertCommands(pepic, iPos, commands.size(), &commands[0]);
+            fSomethingChanged = true;
+        }
+    }
+    return fSomethingChanged;
+}

@@ -17,6 +17,7 @@
 #include "ChooseColorStatic.h"
 #include "ColorDialogCallback.h"
 // CChoosePenStyleDialog dialog
+struct PenStyle;
 
 class CChoosePenStyleDialog : public CBaseColorDialog, public IColorDialogCallback
 {

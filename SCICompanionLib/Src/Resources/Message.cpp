@@ -17,6 +17,7 @@
 #include "ResourceEntity.h"
 #include "format.h"
 #include "NounsAndCases.h"
+#include "ResourceSourceFlags.h"
 
 using namespace std;
 

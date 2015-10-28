@@ -16,6 +16,7 @@
 #include "BufferPool.h"
 
 // fwd decl
+struct PicData;
 struct PicComponent;
 struct PaletteComponent;
 
@@ -109,7 +110,7 @@ private:
     // will be the same.
     uint8_t* _screenBuffers[3][4];
     // Cached view port state for each of the 3 position buffers.
-    ViewPort _viewPort[3];
+    std::unique_ptr<ViewPort[]> _viewPorts;
 
     // Are the bitmaps valid? (note, if any of these are valid, then the aux is valid too)
     PicScreenFlags _fValidScreens;

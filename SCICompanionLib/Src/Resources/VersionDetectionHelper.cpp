@@ -20,6 +20,7 @@
 #include "AudioMap.h"
 #include "SoundUtil.h"
 #include "PMachine.h"
+#include "ResourceBlob.h"
 
 using namespace std;
 

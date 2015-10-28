@@ -13,14 +13,29 @@
 ***************************************************************************/
 #pragma once
 
-struct ResourceComponent
+enum class ResourceSourceFlags
 {
-    virtual ResourceComponent* Clone() const = 0;
-
-    // This is necessary, or else lists of ResourceComponents won't be properly destroyed.
-    virtual ~ResourceComponent() {}
+    ResourceMap = 0,
+    MessageMap = 0x0001,
+    PatchFile = 0x0002,
+    Aud = 0x0004,
+    Sfx = 0x0008,
+    AudioCache = 0x0010,    // Our special audio folder
+    AudioMapCache = 0x0020, // 
+    AltMap = 0x0040
 };
 
-typedef void(*GetItemLabelFuncPtr)(PTSTR  pszLabel, size_t cch, int nCel);
+enum class ResourceLoadStatusFlags : uint8_t
+{
+    None = 0x00,
+    DecompressionFailed = 0x01,
+    ResourceCreationFailed = 0x02,
+    Corrupted = 0x04,
+};
 
-extern uint8_t g_egaPaletteMapping[16];
+enum class BlobKey
+{
+    LipSyncDataSize,
+};
+
+DEFINE_ENUM_FLAGS(ResourceLoadStatusFlags, uint8_t)

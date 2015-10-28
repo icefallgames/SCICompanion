@@ -26,6 +26,7 @@
 #include "CObjectWrap.h"
 #include "RasterOperations.h"
 #include "PaletteOperations.h"
+#include "ResourceBlob.h"
 
 using namespace sci;
 using namespace std;
@@ -108,17 +109,17 @@ void CSamplesDialogBar::_PrepareSamples()
                 while (fOk)
                 {
                     std::string fileName = samplesFolder + "\\" + findData.cFileName;
-                    ResourceBlob blob;
+                    std::unique_ptr<ResourceBlob> blob = std::make_unique<ResourceBlob>();
                     // Use the filename minus the .bin:
                     TCHAR *pszExt = PathFindExtension(findData.cFileName);
                     *pszExt = 0; // Get rid of it.
-                    if (SUCCEEDED(blob.CreateFromFile(findData.cFileName, fileName.c_str(), sampleVersion, -1, -1)))
+                    if (SUCCEEDED(blob->CreateFromFile(findData.cFileName, fileName.c_str(), sampleVersion, -1, -1)))
                     {
-                        if (blob.GetType() == type)
+                        if (blob->GetType() == type)
                         {
-                            if (IsVersionCompatible(type, blob.GetVersion(), appState->GetVersion()))
+                            if (IsVersionCompatible(type, blob->GetVersion(), appState->GetVersion()))
                             {
-                                _samples.push_back(blob);
+                                _samples.push_back(std::move(blob));
                             }
                         }
                     }
@@ -143,7 +144,7 @@ void CSamplesDialogBar::_PrepareSamples()
                 {
                     // Try to get a bitmap.
                     CBitmap bitmap;
-                    unique_ptr<ResourceEntity> resource(CreateResourceFromResourceData(_samples[iIndex]));
+                    unique_ptr<ResourceEntity> resource(CreateResourceFromResourceData(*_samples[iIndex]));
                     assert(resource); // Since we succeeded CreateResource
                     CelIndex celIndex(0, 0); // Normally we'll use cel/loop 0
                     if (resource->GetType() == ResourceType::Font)
@@ -181,7 +182,7 @@ void CSamplesDialogBar::_PrepareSamples()
                     }
 
                     // The text:
-                    pCmdItem->m_sMenuText = _samples[iIndex].GetName().c_str();
+                    pCmdItem->m_sMenuText = _samples[iIndex]->GetName().c_str();
                     pCmdItem->m_sTipTool = pCmdItem->m_sMenuText;
                 }
             }
@@ -237,7 +238,7 @@ void CSamplesDialogBar::_ResetUI()
 
 void CSamplesDialogBar::OnGotoView(UINT nID)
 {
-    ResourceBlob &blob = _samples[nID - ID_GOTOVIEW1];
+    ResourceBlob &blob = *_samples[nID - ID_GOTOVIEW1];
     appState->GetResourceMap().AppendResourceAskForNumber(blob, true);
 }
 

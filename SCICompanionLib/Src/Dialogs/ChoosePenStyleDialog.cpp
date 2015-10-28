@@ -17,7 +17,7 @@
 #include "stdafx.h"
 #include "AppState.h"
 #include "ChoosePenStyleDialog.h"
-
+#include "PicCommandsCommon.h"
 
 // CChoosePenStyleDialog dialog
 

@@ -21,6 +21,7 @@
 #include "DontShowAgainDialog.h"
 #include "PaletteOperations.h"
 #include "View.h"
+#include "PicCommands.h"
 
 using namespace std;
 

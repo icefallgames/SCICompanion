@@ -17,6 +17,7 @@
 #include "AppState.h"
 #include "AudioProcessing.h"
 #include "AudioNegative.h"
+#include "ResourceSourceFlags.h"
 
 // Our global instance
 AudioRecording g_audioRecording;

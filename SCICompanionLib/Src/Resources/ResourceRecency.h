@@ -19,6 +19,7 @@
 
 // fwd decl
 class ResourceBlob;
+class IResourceIdentifier;
 
 class ResourceRecency
 {
