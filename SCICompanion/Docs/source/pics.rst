@@ -9,20 +9,20 @@
 .. image:: /images/PicEditor.jpg
 
 The picture editor shows the pic itself in the main window, and the picture command list on the right.
-SCI pics consist of a series of vector drawing commands, and the editor reflects that "limitation".
-Bitmaps can be converted into vector drawings, but the process is inefficient, so you need to get used to thinking like the editor.
+While SCI1 and above support bitmapped graphics, SCI0 pics are actually a series of vector drawing commands, and the editor reflects that "limitation".
+Bitmaps can be converted into vector drawings for SCI0, but the process is inefficient, so you need to get used to thinking like the editor.
 
 .. figure:: /images/DrawPic.gif
 
     An example of how a scene from Laura Bow is drawn in vector graphics
 
-    
-Pics consist of three "screens". The visual screen, which is what you see in the game,
-the priority screen, which controls which parts of the picture appear in front or behind the ego,
-and the control screen, which controls events that happen to characters in the game.
-You can view each of these screens by clicking on the appropriate button. 
+Pics consist of three "screens":
 
-You can also use the F2, F3 and F4 keys to switch between visual, priority and control screens. This is handy
+    - The visual screen, which is what you see in the game.
+    - The priority screen, which controls which parts of the picture appear in front or behind the ego. This gives the games their *3D* feel.
+    - The control screen, which controls events that happen to characters in the game.
+
+You can view each of these screens by clicking on the appropriate button. You can also use the F2, F3 and F4 keys to switch between visual, priority and control screens. This is handy
 when you're already in the middle of drawing something with the mouse and you need to check a different screen.
 
 .. figure:: /images/VPCScreens.jpg
@@ -37,6 +37,18 @@ In all cases, pics are just a series of drawing commands that are replayed when 
 .. figure:: /images/EGAVGA.png
 
     A comparison of vector EGA vs bitmapped VGA pic backgrounds (from the original Quest for Glory and its VGA remake).
+
+Drawing methods for the different screens for various SCI versions:
+
+========== ==================== ========== =========
+ Version    Visual               Priority   Control
+========== ==================== ========== =========
+ SCI0       Vector               Vector     Vector
+ SCI1       Bitmap and Vector    Vector     Vector
+ SCI1.1     Bitmap               Vector     Vector
+ SCI2       Bitmap               Bitmap     n/a
+========== ==================== ========== =========
+
 
 Moving around
 =============

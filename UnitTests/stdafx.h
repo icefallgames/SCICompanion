@@ -135,10 +135,9 @@ struct delete_map_value
 // Commonly included or large header files:
 #include "sci.h"
 #include "Stream.h"
-#include "ResourceBlob.h"
 #include "StlUtil.h"
+#include "ResourceBlob.h"
 #include "PicCommands.h"
-
 
 // Headers for CppUnitTest
 // This must come after all the AFX stuff, because:

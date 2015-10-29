@@ -100,7 +100,13 @@ ResourceBlob::ResourceBlob()
 ResourceBlob::ResourceBlob(PCTSTR pszName, ResourceType iType, const std::vector<BYTE> &data, int iPackageHint, int iNumber, uint32_t base36Number, SCIVersion version, ResourceSourceFlags sourceFlags)
 {
     _resourceLoadStatus = ResourceLoadStatusFlags::None;
-    _pData = data;
+
+    if (!data.empty())
+    {
+        _pData.allocate(data.size());
+        _pData.assign(&data[0], &data[0] + data.size()); // Yuck
+    }
+
     // REVIEW: do some validation
     header.Version = version;
     header.SourceFlags = sourceFlags;
@@ -139,8 +145,10 @@ HRESULT ResourceBlob::CreateFromBits(PCTSTR pszName, ResourceType iType, sci::is
     if (pStream)
     {
         hr = S_OK;
-        _pData.resize(pStream->GetDataSize());
+
+        _pData.allocate(pStream->GetDataSize());
         pStream->read_data(&_pData[0], pStream->GetDataSize());
+
         assert(pStream->good()); // It told us the size, so it should always succeed.
         // REVIEW: do some validation
         header.Type = iType;
@@ -338,7 +346,7 @@ void ResourceBlob::_DecompressFromBits(sci::istream &byteStream, bool delay)
     // If the sizes are ridiculous, catch the corruption here.
     if (_SanityCheckHeader(header))
     {
-        _pData.resize(header.cbDecompressed);
+        _pData.allocate(header.cbDecompressed);
         bool cantDecompress = false;
 
         int iResult = SCI_ERROR_UNKNOWN_COMPRESSION;
@@ -354,7 +362,7 @@ void ResourceBlob::_DecompressFromBits(sci::istream &byteStream, bool delay)
         else
         {
             assert(_pDataCompressed.empty()); // Verify no leaks
-            _pDataCompressed.resize(cbCompressedRemaining);
+            _pDataCompressed.allocate(cbCompressedRemaining);
             byteStream.read_data(&_pDataCompressed[0], cbCompressedRemaining);
             _resourceLoadStatus |= ResourceLoadStatusFlags::Delayed;
             if (!delay)
@@ -365,7 +373,7 @@ void ResourceBlob::_DecompressFromBits(sci::istream &byteStream, bool delay)
     }
     else
     {
-        _pData.resize(1);   // To avoid problems...
+        _pData.allocate(1);   // To avoid problems...
         _resourceLoadStatus |= ResourceLoadStatusFlags::Corrupted;
         header.cbCompressed = 0;
         header.cbDecompressed = 0;

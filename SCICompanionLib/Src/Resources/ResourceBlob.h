@@ -390,10 +390,12 @@ private:
     // Resource header information
     ResourceHeaderAgnostic header;
 
+    // PERF: Don't use vector since resizing does a memset, or using std::copy
+    // is much too slow in debug builds.
     // Uncompressed data.
-    std::vector<uint8_t> _pData;
+    sci::array<uint8_t> _pData;
     // Compressed data (optional, can be NULL)
-    std::vector<uint8_t> _pDataCompressed;
+    sci::array<uint8_t> _pDataCompressed;
 
     // Unique identifier for this resource.
     int _id;
