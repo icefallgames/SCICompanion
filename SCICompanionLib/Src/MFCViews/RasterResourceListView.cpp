@@ -35,6 +35,9 @@
 
 #define VIEW_IMAGE_SIZE 64
 
+// A private message that indicates to us that the worker thread has something ready.
+#define UWM_IMAGEREADY     (WM_APP + 0)
+
 // CResourceListListView
 
 IMPLEMENT_DYNCREATE(CRasterResourceListCtrl, CResourceListCtrl)
@@ -43,37 +46,101 @@ BEGIN_MESSAGE_MAP(CRasterResourceListCtrl, CResourceListCtrl)
     ON_NOTIFY_REFLECT(LVN_GETDISPINFO, OnGetDispInfo)
     ON_NOTIFY_REFLECT(LVN_ITEMCHANGED, OnItemChanged)
     ON_NOTIFY_REFLECT(NM_DBLCLK, OnItemDoubleClick)
+    ON_MESSAGE(UWM_IMAGEREADY, OnImageReady)
 END_MESSAGE_MAP()
 
 // CResourceListListView construction/destruction
 
 CRasterResourceListCtrl::CRasterResourceListCtrl()
 {
-    _himlPics = NULL;
+    _himlPics = nullptr;
     _iCorruptBitmapIndex = 0;
+    _iTokenImageIndex = 0;
+    _pQueue = nullptr;
+    _iLastImageReadyHint = -1;
 }
 
 CRasterResourceListCtrl::~CRasterResourceListCtrl()
 {
 }
 
-void CRasterResourceListCtrl::OnItemChanged(NMHDR* pNMHDR, LRESULT* pResult)
+
+void _StretchForAspectRatio(CWnd *pwnd, CBitmap &bitmap)
 {
-    NMLISTVIEW *pnmlv = (NMLISTVIEW*)pNMHDR;
-    if (pnmlv->uChanged & LVIF_STATE)
+    CDC *pDC = pwnd->GetDC();
+    if (pDC)
     {
-        if (pnmlv->uNewState & LVIS_SELECTED)
+        CDC dcMemDest, dcMemSource;
+        if (dcMemDest.CreateCompatibleDC(pDC) && dcMemSource.CreateCompatibleDC(pDC))
         {
-            // Set the "global selected view"
-            // (use for InsertObject dialog, or the fake ego in the pic editor)
-            auto resource = _GetResourceForItemMetadataOnly(pnmlv->iItem);
-            if (resource->GetType() == ResourceType::View)
+            CSize size = bitmap.GetBitmapDimension();
+            CBitmap stretchedBmp;
+            int cyNew = appState->AspectRatioY(size.cy);
+            if (stretchedBmp.CreateCompatibleBitmap(pDC, size.cx, cyNew))
             {
-                appState->SetRecentlyInteractedView(resource->GetNumber());
+                dcMemSource.SelectObject(&bitmap);
+                dcMemDest.SelectObject(&stretchedBmp);
+                dcMemDest.SetStretchBltMode(HALFTONE);
+                dcMemDest.StretchBlt(0, 0, size.cx, cyNew, &dcMemSource, 0, 0, size.cx, size.cy, SRCCOPY);
+                bitmap.DeleteObject();
+                bitmap.Attach(stretchedBmp.Detach());
+                bitmap.SetBitmapDimension(size.cx, cyNew);
             }
         }
+        pwnd->ReleaseDC(pDC);
     }
-    __super::OnItemClick(pNMHDR, pResult); // Our base class does some processing...
+}
+
+LRESULT CRasterResourceListCtrl::OnImageReady(WPARAM wParam, LPARAM lParam)
+{
+    VIEWWORKRESULT *pWorkResult;
+    while (_pQueue->TakeWorkResult(&pWorkResult))
+    {
+        LVFINDINFO findInfo = {};
+        findInfo.flags |= LVFI_PARAM | LVFI_WRAP;
+        findInfo.lParam = pWorkResult->lParam;
+        // REVIEW: might want to sync this with the way listview does things
+        int i = FindItem(&findInfo, _iLastImageReadyHint);
+        if (i != -1)
+        {
+            const ResourceBlob *pData = _GetResourceForItemMetadataOnly(i);
+            if ((pData->GetChecksum() == pWorkResult->nID) &&
+                (pData->GetNumber() == pWorkResult->iResourceNumber) &&
+                (pData->GetPackageHint() == pWorkResult->iPackageNumber))
+            {
+                CBitmap bitmap;
+                bitmap.Attach(pWorkResult->hbmp);
+                pWorkResult->hbmp = nullptr;    // Owned by CBitmap now
+
+                // Stretch the image if we're using the original aspect ratio.
+                if (appState->_fUseOriginalAspectRatio)
+                {
+                    bitmap.SetBitmapDimension(VIEW_IMAGE_SIZE, VIEW_IMAGE_SIZE);
+                    _StretchForAspectRatio(this, bitmap);
+                }
+
+                // this is a match
+                int iIndex = ImageList_Add(_himlPics, bitmap, nullptr);
+                if (iIndex != -1)
+                {
+                    SetItemImage(i, iIndex);
+                    _UpdateStatusIfFlagsChanged(*pData, ResourceLoadStatusFlags::None, i);
+                }
+            }
+        }
+        _iLastImageReadyHint = i;
+        delete pWorkResult;
+    }
+    return 0;
+}
+
+BOOL CRasterResourceListCtrl::SetItemImage(int nItem, int nImageIndex)
+{
+    LVITEM item = { 0 };
+    item.iItem = nItem;
+    item.mask = LVIF_IMAGE;
+    item.iImage = nImageIndex;
+    return SetItem(&item);
 }
 
 // Finds the smallest cel that is at least as big in each dimension as "dimensions".
@@ -103,30 +170,55 @@ CelIndex _FindBestPreviewCel(int dimensions, RasterComponent &raster)
     return bestCelIndex;
 }
 
-void _StretchForAspectRatio(CWnd *pwnd, CBitmap &bitmap)
+VIEWWORKRESULT *VIEWWORKRESULT::CreateFromWorkItem(VIEWWORKITEM *pWorkItem)
 {
-    CDC *pDC = pwnd->GetDC();
-    if (pDC)
+    HBITMAP hbmp = nullptr;
+
+    std::unique_ptr<ResourceEntity> pEntity = CreateResourceFromResourceData(pWorkItem->blob);
+    if (pEntity)
     {
-        CDC dcMemDest, dcMemSource;
-        if (dcMemDest.CreateCompatibleDC(pDC) && dcMemSource.CreateCompatibleDC(pDC))
+        RasterComponent &raster = pEntity->GetComponent<RasterComponent>();
+        CBitmap bitmap;
+        std::unique_ptr<PaletteComponent> palette;
+        if (raster.Traits.PaletteType == PaletteType::VGA_256)
         {
-            CSize size = bitmap.GetBitmapDimension();
-            CBitmap stretchedBmp;
-            int cyNew = appState->AspectRatioY(size.cy);
-            if (stretchedBmp.CreateCompatibleBitmap(pDC, size.cx, cyNew))
+            palette = appState->GetResourceMap().GetMergedPalette(*pEntity, 999);
+        }
+        CelIndex previewCel = CelIndex(0, raster.Traits.PreviewCel);
+        if (raster.Traits.PreviewCel == 0)
+        {
+            // Take 0 as an indication that we should use any cel
+            previewCel = _FindBestPreviewCel(VIEW_IMAGE_SIZE, raster);
+        }
+        hbmp = GetBitmap(raster, palette.get(), previewCel, VIEW_IMAGE_SIZE, VIEW_IMAGE_SIZE, BitmapScaleOptions::AllowMag | BitmapScaleOptions::AllowMin);
+    }
+
+    VIEWWORKRESULT *pResult = new VIEWWORKRESULT;
+    pResult->hbmp = hbmp;
+    pResult->nID = pWorkItem->blob.GetChecksum();
+    pResult->iResourceNumber = pWorkItem->blob.GetNumber();
+    pResult->iPackageNumber = pWorkItem->blob.GetPackageHint();
+    pResult->lParam = pWorkItem->lParam;
+    return pResult;
+}
+
+void CRasterResourceListCtrl::OnItemChanged(NMHDR* pNMHDR, LRESULT* pResult)
+{
+    NMLISTVIEW *pnmlv = (NMLISTVIEW*)pNMHDR;
+    if (pnmlv->uChanged & LVIF_STATE)
+    {
+        if (pnmlv->uNewState & LVIS_SELECTED)
+        {
+            // Set the "global selected view"
+            // (use for InsertObject dialog, or the fake ego in the pic editor)
+            auto resource = _GetResourceForItemMetadataOnly(pnmlv->iItem);
+            if (resource->GetType() == ResourceType::View)
             {
-                dcMemSource.SelectObject(&bitmap);
-                dcMemDest.SelectObject(&stretchedBmp);
-                dcMemDest.SetStretchBltMode(HALFTONE);
-                dcMemDest.StretchBlt(0, 0, size.cx, cyNew, &dcMemSource, 0, 0, size.cx, size.cy, SRCCOPY);
-                bitmap.DeleteObject();
-                bitmap.Attach(stretchedBmp.Detach());
-                bitmap.SetBitmapDimension(size.cx, cyNew);
+                appState->SetRecentlyInteractedView(resource->GetNumber());
             }
         }
-        pwnd->ReleaseDC(pDC);
     }
+    __super::OnItemClick(pNMHDR, pResult); // Our base class does some processing...
 }
 
 void CRasterResourceListCtrl::OnGetDispInfo(NMHDR* pNMHDR, LRESULT* pResult)
@@ -137,49 +229,16 @@ void CRasterResourceListCtrl::OnGetDispInfo(NMHDR* pNMHDR, LRESULT* pResult)
     { 
         if (_iView == LVS_ICON)
         {
-            // Just in case we can't get the view:
-            pItem->iImage = _iCorruptBitmapIndex;
-            pItem->mask |= LVIF_DI_SETITEM; // So we don't ask for it again.
-
-            const ResourceBlob *pData = _GetResourceForItemRealized(pItem->lParam);
-
-            ResourceLoadStatusFlags originalFlags = pData->GetStatusFlags();
-
-            std::unique_ptr<ResourceEntity> pEntity = CreateResourceFromResourceData(*pData);
-            if (pEntity)
+            if (_pQueue)
             {
-                RasterComponent &raster = pEntity->GetComponent<RasterComponent>();
-                CBitmap bitmap;
-                std::unique_ptr<PaletteComponent> palette;
-                if (raster.Traits.PaletteType == PaletteType::VGA_256)
-                {
-                    palette = appState->GetResourceMap().GetMergedPalette(*pEntity, 999);
-                }
-                CelIndex previewCel = CelIndex(0, raster.Traits.PreviewCel);
-                if (raster.Traits.PreviewCel == 0)
-                {
-                    // Take 0 as an indication that we should use any cel
-                    previewCel = _FindBestPreviewCel(VIEW_IMAGE_SIZE, raster);
-                }
-                bitmap.Attach(GetBitmap(raster, palette.get(), previewCel, VIEW_IMAGE_SIZE, VIEW_IMAGE_SIZE, BitmapScaleOptions::AllowMag | BitmapScaleOptions::AllowMin));
-                if ((HBITMAP)bitmap)
-                {
-                    // Stretch the image if we're using the original aspect ratio.
-                    if (appState->_fUseOriginalAspectRatio)
-                    {
-                        bitmap.SetBitmapDimension(VIEW_IMAGE_SIZE, VIEW_IMAGE_SIZE);
-                        _StretchForAspectRatio(this, bitmap);
-                    }
-
-                    int iIndex = ImageList_Add(_himlPics, (HBITMAP)bitmap, NULL);
-                    if (iIndex != -1)
-                    {
-                        pItem->iImage = iIndex; // Done!
-                    }
-                }
+                ResourceBlob *pData = _GetResourceForItemRealized(pItem->lParam);
+                std::unique_ptr<VIEWWORKITEM> pWorkItem = std::make_unique<VIEWWORKITEM>();
+                pWorkItem->blob = *pData;
+                pWorkItem->lParam = pItem->lParam;
+                _pQueue->GiveWorkItem(move(pWorkItem));
+                pItem->iImage = _iTokenImageIndex; // Done!
+                pItem->mask |= LVIF_DI_SETITEM; // So we don't ask for it again.
             }
-
-            _UpdateStatusIfFlagsChanged(*pData, originalFlags, pItem->iItem);
         }
         // Otherwise, in report view, we don't provide it.
     } 
@@ -214,6 +273,14 @@ void CRasterResourceListCtrl::_OnInitListView(int cItems)
         }
         // pTemp is a temporary object that we don't need to delete.
 
+        // Add a token image.  Create an 8bpp bitmap that is blank.
+        HBITMAP hbm = CreateBitmap(sizeImages.cx, sizeImages.cy, 1, 8, NULL);
+        if (hbm)
+        {
+            _iTokenImageIndex = ImageList_Add(_himlPics, hbm, NULL);
+            DeleteObject(hbm);
+        }
+
         // Load an overlay image to use for "unused" items
         HBITMAP hbmOverlay = LoadBitmap(AfxGetResourceHandle(), MAKEINTRESOURCE(IDB_OVERLAYOLD40));
         if (hbmOverlay)
@@ -228,6 +295,22 @@ void CRasterResourceListCtrl::_OnInitListView(int cItems)
         {
             _iCorruptBitmapIndex = ImageList_Add(_himlPics, hbmCorrupt, NULL);
             DeleteObject(hbmCorrupt);
+        }
+    }
+
+    // Prepare our worker thread.
+    if (_pQueue)
+    {
+        _pQueue->Abort();
+        _pQueue->Release();
+    }
+    _pQueue = std::make_unique<QueueItems<VIEWWORKITEM, VIEWWORKRESULT>>(GetSafeHwnd(), UWM_IMAGEREADY);
+    if (_pQueue)
+    {
+        if (!_pQueue->Init())
+        {
+            _pQueue->Release();
+            _pQueue = nullptr;
         }
     }
 

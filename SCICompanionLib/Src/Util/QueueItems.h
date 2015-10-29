@@ -190,7 +190,7 @@ private:
 
     static UINT s_ThreadWorker(void *pParam)
     {
-        QueueItems *pQueueItems = (QueueItems*)pParam;
+        QueueItems *pQueueItems = reinterpret_cast<QueueItems*>(pParam);
         pQueueItems->_ThreadWorker();
         pQueueItems->Release();
         return 0;

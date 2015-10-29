@@ -18,6 +18,34 @@
 #pragma once
 
 #include "ResourceListView.h"
+#include "QueueItems.h"
+#include "ResourceBlob.h"
+
+// This is created by the UI thread, and deleted by the worker thread.
+class VIEWWORKITEM
+{
+public:
+    ResourceBlob blob;
+    LPARAM lParam;
+};
+
+
+// This is created by the worker thread, posted to the UI thread.
+// Well, actually just the message "check for results" is posted to the 
+// UI thread.
+class VIEWWORKRESULT
+{
+public:
+    VIEWWORKRESULT() { hbmp = NULL; nID = 0; }
+    ~VIEWWORKRESULT() { DeleteObject(hbmp); }
+    HBITMAP hbmp;
+    UINT nID;
+    int iResourceNumber;
+    int iPackageNumber;
+    LPARAM lParam;
+
+    static VIEWWORKRESULT *CreateFromWorkItem(VIEWWORKITEM *pWorkItem);
+};
 
 class CRasterResourceListCtrl : public CResourceListCtrl
 {
@@ -48,9 +76,14 @@ private:
 
 // Generated message map functions
     afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
+    LRESULT OnImageReady(WPARAM wParam, LPARAM lParam);
+    BOOL SetItemImage(int nItem, int nImageIndex);
     DECLARE_MESSAGE_MAP()
 
     HIMAGELIST _himlPics;
     int _iCorruptBitmapIndex;
+    int _iTokenImageIndex;
+    std::unique_ptr<QueueItems<VIEWWORKITEM, VIEWWORKRESULT>> _pQueue;
+    int _iLastImageReadyHint;
 };
 

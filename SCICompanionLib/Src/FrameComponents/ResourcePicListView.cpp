@@ -55,9 +55,9 @@ int _GetPicBitmapHeight()
 
 CResourcePicListCtrl::CResourcePicListCtrl()
 {
-    _himlPics = NULL;
-    _pQueue = NULL;
-    //_bitmapHighlight.LoadBMP_Resource(MAKEINTRESOURCE(IDB_PICTHUMB_HIGHLIGHT));
+    _iTokenImageIndex = 0;
+    _himlPics = nullptr;
+    _pQueue = nullptr;
 }
 
 CResourcePicListCtrl::~CResourcePicListCtrl()
