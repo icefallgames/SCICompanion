@@ -18,9 +18,9 @@ Bitmaps can be converted into vector drawings for SCI0, but the process is ineff
 
 Pics consist of three "screens":
 
-    - The visual screen, which is what you see in the game.
-    - The priority screen, which controls which parts of the picture appear in front or behind the ego. This gives the games their *3D* feel.
-    - The control screen, which controls events that happen to characters in the game.
+    - The **visual** screen, which is what you see in the game.
+    - The **priority** screen, which controls which parts of the picture appear in front or behind the ego. This gives the games their *3D* feel.
+    - The **control** screen, which controls events that happen to characters in the game.
 
 You can view each of these screens by clicking on the appropriate button. You can also use the F2, F3 and F4 keys to switch between visual, priority and control screens. This is handy
 when you're already in the middle of drawing something with the mouse and you need to check a different screen.
@@ -49,6 +49,34 @@ Drawing methods for the different screens for various SCI versions:
  SCI2       Bitmap               Bitmap     n/a
 ========== ==================== ========== =========
 
+
+Priority screen
+================
+
+The priority screen defines depth layers to your background. As characters move around in your game, they are assigned
+a priority value (ranging from 0 to 15) by the game engine. Their priority depends on their current y coordinate (generally at their feet).
+If a character's priority is equal to or greater than the background pixel behind it, it will appear in front of the background.
+Otherwise, it will be oscured.
+
+.. figure:: /images/PriScreen.png
+
+    On the left, the box (pri 9, blue) is obscured by the waterfall and rock (pri 10, lime). On the right, the box has moved lower and changed
+    priority. It is now pri 11, and appears in front of the waterfall and rock.
+
+.. figure:: /images/ChoosePri.png
+
+    Choosing a priority value to draw with.
+
+
+Control screen
+==============
+
+The control screen is used to prevent (or permit) the ego (or any character) from moving in certains areas. It can also be used to trigger
+in-game events.
+
+In SCI0 and SCI1, characters are generally set up to treat control value 15 (ctlWHITE) as impassable. Use this to define boundaries for your
+charactrer (in SCI1+, polygons are generally used for this purpose). Other colors may be used to trigger doors and such, by checking in code
+if a character is standing on a control value of a certain color.
 
 Moving around
 =============

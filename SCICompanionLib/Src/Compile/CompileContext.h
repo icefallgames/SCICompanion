@@ -507,5 +507,5 @@ private:
 bool GenerateScriptResource(SCIVersion version, sci::Script &script, PrecompiledHeaders &headers, CompileTables &tables, CompileResults &results);
 void ErrorHelper(CompileContext &context, const ISourceCodePosition *pPos, const std::string &text, const std::string &identifier);
 bool NewCompileScript(CompileLog &log, CompileTables &tables, PrecompiledHeaders &headers, ScriptId &script);
-std::unique_ptr<sci::Script> SimpleCompile(CompileLog &log, ScriptId &scriptId);
+std::unique_ptr<sci::Script> SimpleCompile(CompileLog &log, ScriptId &scriptId, bool addCommentsToOM = false);
 void MergeScripts(sci::Script &mainScript, sci::Script &scriptToBeMerged);

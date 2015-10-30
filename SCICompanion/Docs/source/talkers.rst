@@ -5,9 +5,9 @@
 .. IMPORTANT::
     This section applies to SCI 1.1 only
 
-================
+=========================
  Talkers and Narrators
-================
+=========================
 
 Talkers and Narrators are responsible for delivering the in-game text and speech. They describe how
 in-game text (and possibly speech) is delivered: the font, text color, dialog shape, and so on.

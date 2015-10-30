@@ -211,11 +211,6 @@ private:
 // Some helpers.
 //
 
-//
-// Looks for the first Rm class in pScript, and tries to figure out a pic number.
-//
-WORD GetPicResourceFromScript(SCIClassBrowser *pBrowser, const sci::Script *pScript);
-
 class ClassBrowserLock
 {
 public:

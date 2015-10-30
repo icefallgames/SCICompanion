@@ -740,9 +740,6 @@ bool SCIClassBrowser::_AddFileName(const std::string &fullPath, bool fReplace)
         std::unique_ptr<Script> pScript = std::make_unique<Script>(fullPath.c_str());
         if (g_Parser.Parse(*pScript, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), this))
         {
-#ifdef DOCSUPPORT
-            // CompileDocs(*pScript);
-#endif
             Script *pWeakRef = pScript.get();
 
             bool fAdded = false;
@@ -1654,25 +1651,3 @@ void SCIClassBrowser::ResolveValue(WORD wScript, const PropertyValue &In, Proper
     }
 }
 
-
-//
-// Some public helpers
-//
-
-WORD GetPicResourceFromScript(SCIClassBrowser *pBrowser, const Script *pScript)
-{
-    WORD wPic = InvalidResourceNumber;
-	for (auto &classDef : pScript->GetClasses())
-	{
-		if (classDef->IsInstance())
-		{
-			if (pBrowser->IsSubClassOf(classDef->GetSuperClass().c_str(), "Rm"))
-			{
-				// Figure out the pic.
-				pBrowser->GetPropertyValue("picture", classDef.get(), &wPic);
-				break;
-			}
-		}
-	}
-    return wPic;
-}

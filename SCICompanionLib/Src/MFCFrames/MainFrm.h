@@ -30,6 +30,7 @@
 #include "MessageSidePane.h"
 
 class CNewScriptDialog;
+class GenerateDocsDialog;
 
 // wparam is the type, lparam is a vector<CompileResults> that needs to be deleted.
 #define UWM_RESULTS (WM_APP + 2)
@@ -220,6 +221,9 @@ private:
     afx_msg void OnClassBrowser();
     afx_msg void OnManageDecompilation();
     afx_msg void OnUpdateClassBrowser(CCmdUI *pCmdUI);
+#ifdef DOCSUPPORT
+    afx_msg void OnGenerateDocs();
+#endif
     // afx_msg void OnTimer(UINT_PTR nIDEvent);
     // afx_msg void OnSelfTest();
 
@@ -231,6 +235,10 @@ private:
     bool _fSelfTest;
 
     WINDOWPLACEMENT m_dataFrameWP;
+
+#ifdef DOCSUPPORT
+    std::unique_ptr<GenerateDocsDialog> _docsDialog;
+#endif
 };
 
 

@@ -473,14 +473,14 @@ private:
 //
 // Predicate for sorting syntax nodes by position.
 //
-bool SortByPosition(SyntaxNode *p1, SyntaxNode *p2)
+bool SortByPositionOld(SyntaxNode *p1, SyntaxNode *p2)
 {
     return p1->GetPosition() < p2->GetPosition();
 }
 
 
 
-struct CommentInfo
+struct CommentInfoOld
 {
     int startLine;
     int endLine;
@@ -700,7 +700,7 @@ std::string _TrimWhitespace(const std::string &line)
     }
 }
 
-std::vector<LineInfo> _ParseDocCommentIntoLines(SyntaxNode &node, const CommentInfo &comment)
+std::vector<LineInfo> _ParseDocCommentIntoLines(SyntaxNode &node, const CommentInfoOld &comment)
 {
     std::vector<LineInfo> lineInfos;
     char x = '\n';
@@ -1355,7 +1355,7 @@ private:
 
 void CompileDocs(Script &script)
 {
-    std::vector<CommentInfo> comments;
+    std::vector<CommentInfoOld> comments;
     comments.reserve(script.GetComments().size());
 
     // Coalesce adjacent comments and strip //, */.
@@ -1372,7 +1372,7 @@ void CompileDocs(Script &script)
 		}
 		else
 		{
-			CommentInfo commentInfo = { comment->GetLineNumber(), comment->GetEndLineNumber(), comment->GetSanitizedText() };
+			CommentInfoOld commentInfo = { comment->GetLineNumber(), comment->GetEndLineNumber(), comment->GetSanitizedText() };
 			comments.push_back(commentInfo);
 		}
 	}
@@ -1413,7 +1413,7 @@ void CompileDocs(Script &script)
     }
 
     // Now we'll sort by position.
-    sort(nodes.begin(), nodes.end(), SortByPosition);
+    sort(nodes.begin(), nodes.end(), SortByPositionOld);
 
     // Handy map of SyntaxNodes to the actual doc comments.
     NodeToCommentMap nodeToComment;
@@ -1421,7 +1421,7 @@ void CompileDocs(Script &script)
     vector<unique_ptr<DocGroup>> docComments;
     // Now both the SyntaxNodes and the comments are in order.
     // Let's look at end syntax node.
-    vector<CommentInfo>::const_iterator commentIt = comments.begin();
+    vector<CommentInfoOld>::const_iterator commentIt = comments.begin();
     // Special case: is there a comment right at the top of the file?  Assign it to the script.
     if ((commentIt != comments.end()) && (commentIt->startLine == 0))
     {

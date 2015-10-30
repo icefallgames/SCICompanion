@@ -76,7 +76,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NO_WARN_MBCS_MFC_DEPRECATION;_DEBUG;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)SCICompanionLib\;$(SolutionDir)SCICompanionLib\Src\Util;$(SolutionDir)SCICompanionLib\Src\Resources;$(SolutionDir)SCICompanionLib\Src\GIFLIB;$(SolutionDir)SCICompanionLib\Src\MFCViews;$(SolutionDir)SCICompanionLib\Src\MFCFrames;$(SolutionDir)SCICompanionLib\Src\MFCDocuments;$(SolutionDir)SCICompanionLib\Src\FrameComponents;$(SolutionDir)SCICompanionLib\Src\Dialogs;$(SolutionDir)SCICompanionLib\Src\CrystalEdit;$(SolutionDir)SCICompanionLib\Src\CRC32;$(SolutionDir)SCICompanionLib\Src\r8brain;$(SolutionDir)SCICompanionLib\Src\LipSync;$(SolutionDir)SCICompanionLib\Src\CppFormat;$(SolutionDir)SCICompanionLib\Src\Compile;$(SolutionDir)Prof-UIS.2.92\Include;$(SolutionDir)Prof-UIS.2.92\Src;$(SolutionDir)SCICompanionLib\Src\cpptoml;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)SCICompanionLib\;$(SolutionDir)SCICompanionLib\Src\Util;$(SolutionDir)SCICompanionLib\Src\Resources;$(SolutionDir)SCICompanionLib\Src\Docs;$(SolutionDir)SCICompanionLib\Src\GIFLIB;$(SolutionDir)SCICompanionLib\Src\MFCViews;$(SolutionDir)SCICompanionLib\Src\MFCFrames;$(SolutionDir)SCICompanionLib\Src\MFCDocuments;$(SolutionDir)SCICompanionLib\Src\FrameComponents;$(SolutionDir)SCICompanionLib\Src\Dialogs;$(SolutionDir)SCICompanionLib\Src\CrystalEdit;$(SolutionDir)SCICompanionLib\Src\CRC32;$(SolutionDir)SCICompanionLib\Src\r8brain;$(SolutionDir)SCICompanionLib\Src\LipSync;$(SolutionDir)SCICompanionLib\Src\CppFormat;$(SolutionDir)SCICompanionLib\Src\Compile;$(SolutionDir)Prof-UIS.2.92\Include;$(SolutionDir)Prof-UIS.2.92\Src;$(SolutionDir)SCICompanionLib\Src\cpptoml;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/Qpar %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <MinimalRebuild>true</MinimalRebuild>
@@ -113,7 +113,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NO_WARN_MBCS_MFC_DEPRECATION;_DEBUG;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)SCICompanionLib\;$(SolutionDir)SCICompanionLib\Src\Util;$(SolutionDir)SCICompanionLib\Src\Resources;$(SolutionDir)SCICompanionLib\Src\GIFLIB;$(SolutionDir)SCICompanionLib\Src\MFCViews;$(SolutionDir)SCICompanionLib\Src\MFCFrames;$(SolutionDir)SCICompanionLib\Src\MFCDocuments;$(SolutionDir)SCICompanionLib\Src\FrameComponents;$(SolutionDir)SCICompanionLib\Src\Dialogs;$(SolutionDir)SCICompanionLib\Src\CrystalEdit;$(SolutionDir)SCICompanionLib\Src\CRC32;$(SolutionDir)SCICompanionLib\Src\r8brain;$(SolutionDir)SCICompanionLib\Src\LipSync;$(SolutionDir)SCICompanionLib\Src\CppFormat;$(SolutionDir)SCICompanionLib\Src\Compile;$(SolutionDir)Prof-UIS.2.92\Include;$(SolutionDir)Prof-UIS.2.92\Src;$(SolutionDir)SCICompanionLib\Src\cpptoml;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)SCICompanionLib\;$(SolutionDir)SCICompanionLib\Src\Util;$(SolutionDir)SCICompanionLib\Src\Resources;$(SolutionDir)SCICompanionLib\Src\Docs;$(SolutionDir)SCICompanionLib\Src\GIFLIB;$(SolutionDir)SCICompanionLib\Src\MFCViews;$(SolutionDir)SCICompanionLib\Src\MFCFrames;$(SolutionDir)SCICompanionLib\Src\MFCDocuments;$(SolutionDir)SCICompanionLib\Src\FrameComponents;$(SolutionDir)SCICompanionLib\Src\Dialogs;$(SolutionDir)SCICompanionLib\Src\CrystalEdit;$(SolutionDir)SCICompanionLib\Src\CRC32;$(SolutionDir)SCICompanionLib\Src\r8brain;$(SolutionDir)SCICompanionLib\Src\LipSync;$(SolutionDir)SCICompanionLib\Src\CppFormat;$(SolutionDir)SCICompanionLib\Src\Compile;$(SolutionDir)Prof-UIS.2.92\Include;$(SolutionDir)Prof-UIS.2.92\Src;$(SolutionDir)SCICompanionLib\Src\cpptoml;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnablePREfast>true</EnablePREfast>
       <AdditionalOptions>/Qpar %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
@@ -154,7 +154,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;_WINDOWS;NO_WARN_MBCS_MFC_DEPRECATION;NDEBUG;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(SolutionDir)SCICompanionLib\;$(SolutionDir)SCICompanionLib\Src\Util;$(SolutionDir)SCICompanionLib\Src\Resources;$(SolutionDir)SCICompanionLib\Src\GIFLIB;$(SolutionDir)SCICompanionLib\Src\MFCViews;$(SolutionDir)SCICompanionLib\Src\MFCFrames;$(SolutionDir)SCICompanionLib\Src\MFCDocuments;$(SolutionDir)SCICompanionLib\Src\FrameComponents;$(SolutionDir)SCICompanionLib\Src\Dialogs;$(SolutionDir)SCICompanionLib\Src\CrystalEdit;$(SolutionDir)SCICompanionLib\Src\CRC32;$(SolutionDir)SCICompanionLib\Src\r8brain;$(SolutionDir)SCICompanionLib\Src\LipSync;$(SolutionDir)SCICompanionLib\Src\CppFormat;$(SolutionDir)SCICompanionLib\Src\Compile;$(SolutionDir)Prof-UIS.2.92\Include;$(SolutionDir)Prof-UIS.2.92\Src;$(SolutionDir)SCICompanionLib\Src\cpptoml;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)SCICompanionLib\;$(SolutionDir)SCICompanionLib\Src\Util;$(SolutionDir)SCICompanionLib\Src\Resources;$(SolutionDir)SCICompanionLib\Src\Docs;$(SolutionDir)SCICompanionLib\Src\GIFLIB;$(SolutionDir)SCICompanionLib\Src\MFCViews;$(SolutionDir)SCICompanionLib\Src\MFCFrames;$(SolutionDir)SCICompanionLib\Src\MFCDocuments;$(SolutionDir)SCICompanionLib\Src\FrameComponents;$(SolutionDir)SCICompanionLib\Src\Dialogs;$(SolutionDir)SCICompanionLib\Src\CrystalEdit;$(SolutionDir)SCICompanionLib\Src\CRC32;$(SolutionDir)SCICompanionLib\Src\r8brain;$(SolutionDir)SCICompanionLib\Src\LipSync;$(SolutionDir)SCICompanionLib\Src\CppFormat;$(SolutionDir)SCICompanionLib\Src\Compile;$(SolutionDir)Prof-UIS.2.92\Include;$(SolutionDir)Prof-UIS.2.92\Src;$(SolutionDir)SCICompanionLib\Src\cpptoml;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/Qpar %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <MinimalRebuild>true</MinimalRebuild>
@@ -221,12 +221,15 @@
     <ClCompile Include="Src\Dialogs\DecompileDialog.cpp" />
     <ClCompile Include="Src\Dialogs\ExtractAllDialog.cpp" />
     <ClCompile Include="Src\Dialogs\ExtractLipSyncDialog.cpp" />
+    <ClCompile Include="Src\Dialogs\GenerateDocsDialog.cpp" />
     <ClCompile Include="Src\Dialogs\GradientDialog.cpp" />
     <ClCompile Include="Src\Dialogs\PaletteEditorDialog.cpp" />
     <ClCompile Include="Src\Dialogs\PhonemeDialog.cpp" />
     <ClCompile Include="Src\Dialogs\PicDimensionsDialog.cpp" />
     <ClCompile Include="Src\Dialogs\PrepareBitmapBase.cpp" />
     <ClCompile Include="Src\Dialogs\ToolTipDialog.cpp" />
+    <ClCompile Include="Src\Docs\DocScript.cpp" />
+    <ClCompile Include="Src\Docs\OutputRST.cpp" />
     <ClCompile Include="Src\FrameComponents\AudioProcessingSettingsUI.cpp" />
     <ClCompile Include="Src\FrameComponents\AudioWaveformUI.cpp" />
     <ClCompile Include="Src\FrameComponents\ExtTabControl.cpp" />
@@ -298,12 +301,15 @@
     <ClInclude Include="Src\Dialogs\ConvertFromToPaletteDialog.h" />
     <ClInclude Include="Src\Dialogs\DecompileDialog.h" />
     <ClInclude Include="Src\Dialogs\ExtractLipSyncDialog.h" />
+    <ClInclude Include="Src\Dialogs\GenerateDocsDialog.h" />
     <ClInclude Include="Src\Dialogs\GradientDialog.h" />
     <ClInclude Include="Src\Dialogs\PhonemeDialog.h" />
     <ClInclude Include="Src\Dialogs\PaletteEditorCommon.h" />
     <ClInclude Include="Src\Dialogs\PaletteEditorDialog.h" />
     <ClInclude Include="Src\Dialogs\PicDimensionsDialog.h" />
     <ClInclude Include="Src\Dialogs\ToolTipDialog.h" />
+    <ClInclude Include="Src\Docs\DocScript.h" />
+    <ClInclude Include="Src\Docs\OutputRST.h" />
     <ClInclude Include="Src\FrameComponents\AudioPlaybackUI.h" />
     <ClInclude Include="Src\FrameComponents\AudioProcessingSettingsUI.h" />
     <ClInclude Include="Src\FrameComponents\AudioWaveformUI.h" />

@@ -60,6 +60,7 @@
 #include "AudioMap.h"
 #include <regex>
 #include "ResourceBlob.h"
+#include "GenerateDocsDialog.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -402,6 +403,9 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_UPDATE_COMMAND_UI(ID_BAR_OUTPUT, OnUpdateControlBarMenu)
     ON_MESSAGE(UWM_RESULTS, OnOutputPaneResults)
     ON_REGISTERED_MESSAGE(CExtPopupMenuWnd::g_nMsgPrepareMenu, OnExtMenuPrepare)
+#ifdef DOCSUPPORT
+    ON_COMMAND(ID_COMPILEDOCS, OnGenerateDocs)
+#endif
 END_MESSAGE_MAP()
 
 LRESULT CMainFrame::OnOutputPaneResults(WPARAM wParam, LPARAM lParam)
@@ -923,7 +927,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     }
     ShowControlBar(&m_wndScriptTools, FALSE, FALSE);
     _PrepareScriptCommands();
-#ifndef DOCSUPPORT
+#if !defined(DOCSUPPORT) || !defined(DEBUG)
     for (int i = 0; i < m_wndScriptTools.GetButtonsCount(); i++)
     {
         if (m_wndScriptTools.GetButtonID(i) == ID_COMPILEDOCS)
@@ -2322,6 +2326,15 @@ void CMainFrame::OnClassBrowser()
     CClassBrowserDialog dialog(appState->GetResourceMap().GetClassBrowser());
     dialog.DoModal();
 }
+
+#ifdef DOCSUPPORT
+void CMainFrame::OnGenerateDocs()
+{
+    _docsDialog = std::make_unique<GenerateDocsDialog>(appState->GetResourceMap().Helper());
+    _docsDialog->Create(GenerateDocsDialog::IDD);
+    _docsDialog->ShowWindow(SW_SHOW);
+}
+#endif
 
 void CMainFrame::OnManageDecompilation()
 {

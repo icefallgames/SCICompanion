@@ -160,6 +160,8 @@ public:
     BOOL _fShowToolTips;
     std::string _midiDeviceName;
     std::unique_ptr<AudioProcessingSettings> _audioProcessing;
+    std::string _docGenFolder;
+    std::string _docGenCommand;
 
     BOOL _fNoGdiPlus;   // GDI+ is not available
 

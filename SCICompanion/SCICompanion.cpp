@@ -532,6 +532,8 @@ void SCICompanionApp::_LoadSettings(BOOL fReset)
     appState->_fPlayCompileErrorSound = GetProfileInt(pszRegName, TEXT("CompileErrorSound"), TRUE);
     appState->_midiDeviceName = (PCSTR)GetProfileString(pszRegName, TEXT("DefaultMidiDevice"), "");
     appState->_fUseOriginalAspectRatio = GetProfileInt(pszRegName, TEXT("OriginalAspectRatio"), FALSE);
+    appState->_docGenFolder = (PCSTR)GetProfileString(pszRegName, TEXT("DocGenFolder"), "");
+    appState->_docGenCommand = (PCSTR)GetProfileString(pszRegName, TEXT("DocGenCommand"), "make html");
 }
 
 void SCICompanionApp::_SaveSettings()
@@ -567,6 +569,8 @@ void SCICompanionApp::_SaveSettings()
     WriteProfileInt(m_pszAppName, TEXT("CompileErrorSound"), appState->_fPlayCompileErrorSound);
     WriteProfileString(m_pszAppName, TEXT("DefaultMidiDevice"), appState->_midiDeviceName.c_str());
     WriteProfileInt(m_pszAppName, TEXT("OriginalAspectRatio"), appState->_fUseOriginalAspectRatio);
+    WriteProfileString(m_pszAppName, TEXT("DocGenFolder"), appState->_docGenFolder.c_str());
+    WriteProfileString(m_pszAppName, TEXT("DocGenCommand"), appState->_docGenCommand.c_str());
 }
 
 // CAboutDlg dialog used for App About

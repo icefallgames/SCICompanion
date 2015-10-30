@@ -117,6 +117,8 @@ void CScriptDocument::OnUpdateIsScript(CCmdUI *pCmdUI)
 #ifdef DOCSUPPORT
 void CScriptDocument::OnCompileDocs()
 {
+
+
     // Make a new buffer.
     CCrystalTextBuffer buffer;
     if (buffer.LoadFromFile(_scriptId.GetFullPath().c_str()))
@@ -202,16 +204,17 @@ void CScriptDocument::OnCompile()
     }
 }
 
-std::unique_ptr<sci::Script> SimpleCompile(CompileLog &log, ScriptId &scriptId)
+std::unique_ptr<sci::Script> SimpleCompile(CompileLog &log, ScriptId &scriptId, bool addCommentsToOM)
 {
     std::unique_ptr<sci::Script> script = make_unique<sci::Script>();
+    script->SetScriptId(scriptId);
     // Make a new buffer.
     CCrystalTextBuffer buffer;
     if (buffer.LoadFromFile(scriptId.GetFullPath().c_str()))
     {
         CScriptStreamLimiter limiter(&buffer);
         CCrystalScriptStream stream(&limiter);
-        if (g_Parser.Parse(*script, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log))
+        if (g_Parser.Parse(*script, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log, addCommentsToOM))
         {
 
         }
