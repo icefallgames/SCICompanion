@@ -1,3 +1,16 @@
+/***************************************************************************
+    Copyright (c) 2015 Philip Fortier
+
+    This program is free software; you can redistribute it and/or
+    modify it under the terms of the GNU General Public License
+    as published by the Free Software Foundation; either version 2
+    of the License, or (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+***************************************************************************/
 #include "stdafx.h"
 #include "OutputRST.h"
 
@@ -81,7 +94,7 @@ void OutputScriptRST(DocScript &docScript, const std::string &rstFolder, std::ve
         {
             if (proc->IsPublic())
             {
-                w << ":function:`" << proc->GetName() << "`\n\n";
+                w << ":func:`" << proc->GetName() << "`\n\n";
             }
         }
     }
@@ -143,11 +156,14 @@ void OutputProceduresRST(DocScript &docScript, const std::string &rstFolder, std
             OutputPreamble(w, proc->GetName(), fmt::format("Procedure: {0} ({1}{2})", proc->GetName(), script->GetTitle(), scriptFilenameSuffix));
 
             // TODO: Need :: function blah balh...
+            // Search for ".. function::" in the random text. If none found, then generate one.
 
             // Random text
             w << docScript.GetComment(proc.get()) << "\n\n";
 
             // TODO: If no random text, then produce a function definition.
+
+            MakeTextFile(w.str().c_str(), fullPath);
         }
     }
 }

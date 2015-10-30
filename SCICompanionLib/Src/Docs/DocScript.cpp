@@ -40,6 +40,69 @@ std::string DocScript::GetComment(const sci::SyntaxNode *node)
     return _nodeToComment[node];
 }
 
+// If all non-empty lines have a tab, removes the tab at the beginning of each line
+std::string Untabify(const std::string &in)
+{
+    // Find min number of tabs
+    auto it = in.begin();
+    int minTabCount = (std::numeric_limits<int>::max)();
+    do
+    {
+        // Skip empty lines.
+        while ((it != in.end()) && (*it == '\n'))
+        {
+            ++it;
+        }
+
+        if (it != in.end())
+        {
+            // Now we're at the beginning of a non-empty line
+            int tabCount = 0;
+            while ((it != in.end()) && (*it == '\t'))
+            {
+                tabCount++;
+                ++it;
+            }
+            minTabCount = min(minTabCount, tabCount);
+            // Move to next line...
+            while ((it != in.end()) && (*it != '\n'))
+            {
+                ++it;
+            }
+        }
+    } while ((minTabCount > 0) && (it != in.end()));
+
+    // Remove from each line!
+    std::string output;
+    if (minTabCount > 0)
+    {
+        it = in.begin();
+        while (it != in.end())
+        {
+            // Skip empty lines.
+            while ((it != in.end()) && (*it == '\n'))
+            {
+                ++it;
+            }
+
+            if (it != in.end())
+            {
+                it += minTabCount;
+                // Find the end of the line
+                auto itEndLine = it;
+                while ((itEndLine != in.end()) && (*itEndLine != '\n'))
+                {
+                    ++itEndLine;
+                }
+                std::copy(it, itEndLine, std::back_inserter(output));
+                output.push_back('\n');
+                it = itEndLine;
+            }
+        };
+    }
+    return output;
+}
+
 DocScript::DocScript(const sci::Script &script)
 {
     _script = &script;
@@ -60,7 +123,7 @@ DocScript::DocScript(const sci::Script &script)
         }
         else
         {
-            CommentInfo commentInfo = { comment->GetLineNumber(), comment->GetEndLineNumber(), comment->GetSanitizedText() };
+            CommentInfo commentInfo = { comment->GetLineNumber(), comment->GetEndLineNumber(), Untabify(comment->GetSanitizedText()) };
             comments.push_back(commentInfo);
         }
     }

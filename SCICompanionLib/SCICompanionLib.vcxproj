@@ -732,6 +732,7 @@
     <ClInclude Include="Src\Util\SCIDocs.h" />
     <ClInclude Include="Src\Util\StlUtil.h" />
     <ClInclude Include="Src\Util\Stream.h" />
+    <ClInclude Include="Src\Util\StringUtil.h" />
     <ClInclude Include="Src\Util\TalkerToViewMap.h" />
     <ClInclude Include="Src\Util\Task.h" />
     <ClInclude Include="Src\Util\TokenDatabase.h" />

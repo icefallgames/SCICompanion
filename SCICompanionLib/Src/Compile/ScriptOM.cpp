@@ -19,6 +19,7 @@
 #include "SCIProps.h"
 #include "CompiledScript.h"
 #include "CompileContext.h"
+#include "StringUtil.h"
 
 using namespace sci;
 using namespace std;
@@ -469,10 +470,14 @@ std::string Comment::GetSanitizedText() const
     }
     else
     {
-		ASSERT((_innerName[0] == '/') && (_innerName[1] == '*'));
-		size_t len = _innerName.length();
-        ASSERT(len >= 4);
-		return _innerName.substr(2, len - 4);
+        assert((_innerName[0] == '/') && (_innerName[1] == '*'));
+        size_t len = _innerName.length();
+        assert(len >= 4);
+        std::string temp = _innerName.substr(2, len - 4);
+        // Now trim any extra stars off the ends
+        temp = trim(temp, '*');
+        // And any space characters: REVIEW: This should really be anything up to the \n on both sides
+        return trim(temp, ' ');
     }
 }
 

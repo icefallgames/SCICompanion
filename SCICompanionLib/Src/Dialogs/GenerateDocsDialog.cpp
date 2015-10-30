@@ -153,6 +153,7 @@ void GenerateDocsDialog::OnBnClickedGeneratedoc()
             DocScript docScript(*script);
             OutputScriptRST(docScript, buildFolder, generatedFiles);
             OutputClassRST(docScript, buildFolder, generatedFiles);
+            OutputProceduresRST(docScript, buildFolder, generatedFiles);
         }
     }
 
