@@ -1443,13 +1443,16 @@ void CPicView::OnUpdateShowScreenControl(CCmdUI *pCmdUI)
 
     pCmdUI->SetCheck(fChecked ? 1 : 0);
 
-    // Always enabled
-    pCmdUI->Enable();
-}
-
-void CPicView::OnUpdateIsEGA(CCmdUI *pCmdUI)
-{
-    pCmdUI->Enable(!_GetEditPic()->Traits->IsVGA);
+    const PicComponent *pic = _GetEditPic();
+    if ((pCmdUI->m_nID == ID_SHOWCONTROLSCREEN) && pic && !pic->Traits->SupportsControlScreen)
+    {
+        pCmdUI->Enable(FALSE);
+    }
+    else
+    {
+        // Otherwise always enabled
+        pCmdUI->Enable();
+    }
 }
 
 void CPicView::OnUpdateShowPaletteControl(CCmdUI *pCmdUI)
@@ -1808,6 +1811,19 @@ void CPicView::OnUpdateAllPicCommands(CCmdUI *pCmdUI)
     if (pCmdUI->m_nID == ID_POLYPATH && _GetEditPic())
     {
         enabled = _GetEditPic()->Traits->IsVGA;
+    }
+
+    if (!_GetEditPic()->Traits->SupportsVectorCommands)
+    {
+        switch (pCmdUI->m_nID)
+        {
+            case ID_PENTOOL:
+            case ID_LINE:
+            case ID_FILL:
+            case ID_CIRCLE:
+                enabled = false;
+                break;
+        }
     }
         
     pCmdUI->Enable(enabled);

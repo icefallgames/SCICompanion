@@ -158,6 +158,12 @@ void PicHelperPane::UpdateNonView(CObject *pObject)
     if (IsFlagSet(hint, PicChangeHint::NewPic))
     {
         hint |= PicChangeHint::EditPicPos; // New pic, so we'll update pos changed too.
+
+        // Control screen doesn't exist sometimes.
+        const PicComponent *pic = _GetEditPic();
+        BOOL enableControl = pic && pic->Traits->SupportsControlScreen;
+        m_wndCheckC.EnableWindow(enableControl);
+        m_wndCheckC2.EnableWindow(enableControl);
     }
 
     if (IsFlagSet(hint, PicChangeHint::EditPicInvalid | PicChangeHint::NewPic))

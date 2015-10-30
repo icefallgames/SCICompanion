@@ -26,6 +26,9 @@ struct PicTraits
     bool CanChangePriorityLines;
     bool SixteenBitPri;
     bool SupportsPenCommands;
+    bool SupportsControlScreen;
+    bool SupportsVectorCommands;
+    bool ContinuousPriority;
 };
 
 struct PicComponent : ResourceComponent

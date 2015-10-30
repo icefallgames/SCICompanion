@@ -140,8 +140,10 @@ void PicPreviewer::_ResetVisualBitmap(const PicComponent &pic, PicDrawManager &p
 void PicPreviewer::SetResource(const ResourceBlob &blob)
 {
     _pic = CreateResourceFromResourceData(blob);
+    const PicComponent &pic = _pic->GetComponent<PicComponent>();
 
-    int showSCI0PaletteControls = (appState->GetVersion().PicFormat == PicFormat::EGA) ? SW_SHOW : SW_HIDE;
+    int showSCI0PaletteControls = pic.Traits->IsVGA ? SW_HIDE : SW_SHOW;
+    int showControlSCreen = pic.Traits->SupportsControlScreen ? SW_SHOW : SW_HIDE;
 
     m_wndButton1.ShowWindow(showSCI0PaletteControls);
     m_wndButton2.ShowWindow(showSCI0PaletteControls);
@@ -149,7 +151,6 @@ void PicPreviewer::SetResource(const ResourceBlob &blob)
     m_wndButton4.ShowWindow(showSCI0PaletteControls);
     m_wndStaticPalette.ShowWindow(showSCI0PaletteControls);
 
-    const PicComponent &pic = _pic->GetComponent<PicComponent>();
     PicDrawManager pdm(&pic, _pic->TryGetComponent<PaletteComponent>());
     pdm.SetPalette(_paletteNumber);
     pdm.RefreshAllScreens(PicScreenFlags::All, PicPositionFlags::Final); // Be efficient - we're going to get all 3 screens.
@@ -164,6 +165,8 @@ void PicPreviewer::SetResource(const ResourceBlob &blob)
     CBitmap bitmapC;
     bitmapC.Attach(pdm.CreateBitmap(PicScreen::Control, PicPosition::Final, pic.Size, rc.Width(), rc.Height()));
     m_wndControl.FromBitmap((HBITMAP)bitmapC, rc.Width(), rc.Height(), true);
+    m_wndControl.ShowWindow(showControlSCreen);
+    m_wndControlGroup.ShowWindow(showControlSCreen);
 }
 
 //

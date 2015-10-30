@@ -120,6 +120,9 @@ There are three main drawing tools: pen, fill and line. Unlike SCI Studio,
 Pen tool
 ---------
 
+.. IMPORTANT::
+    This section applies to SCI0 and SCI1 only
+
 The pen tool |pen| requires a bit more explanation, and offers more functionality than in SCI Studio.
 The 32 options of pen shape, size, and pattern are chosen from the Pen Style button on the toolbar.
 A preview of the pen (e.g. what will happen when you click) is shown as you move the mouse cursor over the image.
@@ -127,6 +130,8 @@ If you are using a "pattern", the pattern will change randomly with each click (
 functionality of pic resources). This should let you get more natural looking transitions between areas of different colours.
 You can disable random patterns in the Pen Style dialog.
 In either case, right clicking will cycle through the next pattern (128 different patterns for each size and shape).
+
+The Pen tool is not available on SCI1.1 and above.
 
 Fill tool
 ----------

@@ -814,6 +814,7 @@ void PicWriteToVGA11(const ResourceEntity &resource, sci::ostream &byteStream, s
     byteStream << header;
 }
 
+int gMAxPri = 0;
 
 void ReadPicCelFromVGA2(sci::istream &byteStream, Cel &cel, int16_t &priority, bool is640)
 {
@@ -834,6 +835,11 @@ void ReadPicCelFromVGA2(sci::istream &byteStream, Cel &cel, int16_t &priority, b
 
     cel.TransparentColor = celHeader.transparentColor;
     priority = celHeader.priority;
+
+    if (priority != 1000)
+    {
+        gMAxPri = max(priority, gMAxPri);
+    }
 
     byteStream.seekg(celHeader.offsetRLE);
     if ((celHeader.offsetLiteral == 0) || (celHeader.compressed == 0))
@@ -1028,11 +1034,14 @@ void PicWritePolygons(const ResourceEntity &resource, int resourceNumber)
 
 PicTraits picTraitsEGA =
 {
-    false,
-    false,
-    false,
-    false,
-    true,
+    false,  // IsVGA
+    false,  // AllowMultipleBitmaps
+    false,  // CanChangePriorityLines
+    false,  // SixBitPri
+    true,   // SupportsPenCommands
+    true,   // SupportsControlScreen
+    true,   // SupportsVectorCommands
+    false,  // ContinuousPriority
 };
 PicTraits picTraitsVGA_1_0 =
 {
@@ -1041,6 +1050,9 @@ PicTraits picTraitsVGA_1_0 =
     true,
     false,
     true,
+    true,
+    true,
+    false
 };
 PicTraits picTraitsVGA_1_1 =
 {
@@ -1049,15 +1061,22 @@ PicTraits picTraitsVGA_1_1 =
     true,
     true,
     false,
+    true,
+    true,
+    false
 };
 PicTraits picTraitsVGA_2 =
 {
     true,
-    false,
-    true,
     true,
     false,
+    true,
+    false,
+    false,
+    false,
+    true
 };
+// TODO: We'll need one for games with 640x480
 
 ResourceTraits picResourceTraitsEGA =
 {
