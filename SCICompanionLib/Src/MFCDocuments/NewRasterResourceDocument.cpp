@@ -55,7 +55,48 @@ BEGIN_MESSAGE_MAP(CNewRasterResourceDocument, TCLASS_2(CUndoResource, CResourceD
     ON_COMMAND(ID_EXPORT_CELASIMAGE, OnExportCelAsImage)
     ON_COMMAND(ID_EXPORT_LOOPASIMAGE, OnExportLoopAsImage)
     ON_COMMAND(ID_EXPORT_VIEWASIMAGE, OnExportViewAsImage)
+    ON_COMMAND_RANGE(ID_RESOLUTION_320X200, ID_RESOLUTION_640X480, OnSetResolution)
+    ON_UPDATE_COMMAND_UI_RANGE(ID_RESOLUTION_320X200, ID_RESOLUTION_640X480, OnUpdateResolution)
 END_MESSAGE_MAP()
+
+UINT NativeResolutionToID(NativeResolution resolution)
+{
+    return ID_RESOLUTION_320X200 + (UINT)resolution;
+}
+NativeResolution IDToNativeResolution(UINT id)
+{
+    return (NativeResolution)(id - ID_RESOLUTION_320X200);
+}
+
+void CNewRasterResourceDocument::OnUpdateResolution(CCmdUI *pCmdID)
+{
+    const RasterComponent &raster = GetComponent<RasterComponent>();
+    if (appState->GetVersion().DefaultResolution == NativeResolution::Res320x200)
+    {
+        pCmdID->Enable(FALSE);
+    }
+    else
+    {
+        pCmdID->Enable(TRUE);
+    }
+    pCmdID->SetRadio(pCmdID->m_nID == NativeResolutionToID(raster.Resolution));
+}
+
+void CNewRasterResourceDocument::OnSetResolution(UINT nID)
+{
+    NativeResolution newResolution = IDToNativeResolution(nID);
+    ApplyChanges<RasterComponent>(
+        [newResolution](RasterComponent &raster)
+    {
+        RasterChange chnage;
+        if (raster.Resolution != newResolution)
+        {
+            raster.Resolution = newResolution;
+            chnage.hint |= RasterChangeHint::NewView;
+        }
+        return WrapRasterChange(chnage);
+    });
+}
 
 CNewRasterResourceDocument::CNewRasterResourceDocument()
 {

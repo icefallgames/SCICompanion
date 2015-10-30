@@ -144,6 +144,8 @@ private:
     afx_msg void OnUpdateEGA(CCmdUI *pCmdUI);
     afx_msg void OnUpdateAnimate(CCmdUI *pCmdUI);
     afx_msg void OnUpdateFont(CCmdUI *pCmdUI);
+    afx_msg void OnUpdateResolution(CCmdUI *pCmdID);
+    afx_msg void OnSetResolution(UINT nID);
 
     bool _fLocked;
     PenStyle _penStyle;

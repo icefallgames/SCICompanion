@@ -43,7 +43,8 @@ SCIVersion sciVersion0 =
     65535,
     AudioMapVersion::None,
     AudioMapVersion::None,
-    false
+    false,
+    NativeResolution::Res320x200
 };
 
 SCIVersion sciVersion1_Late =
@@ -71,7 +72,8 @@ SCIVersion sciVersion1_Late =
     65535,
     AudioMapVersion::None,
     AudioMapVersion::None,
-    false
+    false,
+    NativeResolution::Res320x200
 };
 
 SCIVersion sciVersion1_1 =
@@ -99,7 +101,8 @@ SCIVersion sciVersion1_1 =
     65535,
     AudioMapVersion::FiveBytes,
     AudioMapVersion::SyncMapEarly,
-    false
+    false,
+    NativeResolution::Res320x200
 };
 
 bool SCIVersion::operator == (const SCIVersion &src)
@@ -140,4 +143,24 @@ bool IsVersionCompatible(ResourceType type, SCIVersion versionA, SCIVersion vers
             return versionA.ViewFormat == versionB.ViewFormat;
     }
     return false;
+}
+
+
+size16 NativeResolutionToStoredSize(NativeResolution resolution)
+{
+    if (resolution == NativeResolution::Res640x480)
+    {
+        return size16(640, 480);
+    }
+    else if (resolution == NativeResolution::Res640x400)
+    {
+        return size16(640, 400);
+    }
+    return size16(0, 0);    // Default
+}
+NativeResolution StoredSizeToNativeResolution(size16 storedSize)
+{
+    return storedSize.cx == 640 ?
+        (storedSize.cy == 480 ? NativeResolution::Res640x480 : NativeResolution::Res640x400) :
+        NativeResolution::Res320x200;
 }

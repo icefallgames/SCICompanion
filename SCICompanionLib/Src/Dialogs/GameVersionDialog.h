@@ -61,6 +61,7 @@ private:
     int _base36AudioMapFormat;
     int _audioMapNumberIndex;
     int _messageMapSource;
+    int _resolution;
 
     CExtButton m_wndOk;
     CExtButton m_wndCancel;
@@ -100,6 +101,8 @@ private:
     CExtComboBox m_wndAudioMapNumberCombo;
     CExtLabel m_wndLabel13;
     CExtComboBox m_wndMessageMapSourceCombo;
+    CExtLabel m_wndLabel14;
+    CExtComboBox m_wndResolution;
 
     CExtLabel m_wndLabel4;
     CExtLabel m_wndLabel5;

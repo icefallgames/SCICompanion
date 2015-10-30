@@ -623,17 +623,25 @@ struct LoopHeader_VGA11
     uint32_t celOffsetAbsolute;
 };
 
+enum Sci32ViewNativeResolution : uint8_t
+{
+    Res_320x200 = 0,
+    Res_640x480 = 1,
+    Res_640x400 = 2,
+};
+
 struct ViewHeader_VGA11
 {
     uint16_t headerSize;
     uint8_t loopCount;
     uint8_t scaleFlags;
-    uint16_t always1;
+    uint8_t always1;
+    uint8_t sci32ScaleRes;
     uint16_t totalNumberOfCels; // Number of cels for which there is data (e.g. excludes mirrored loops)
     uint32_t paletteOffset;
     uint8_t loopHeaderSize;
     uint8_t celHeaderSize;
-    uint32_t something;         // In SQ6, at least, these are the screen dimensions (640x480). Interesting.
+    size16 nativeResolution;    // In SQ6, at least, these are the screen dimensions (640x480). Interesting.
 };
 #include <poppack.h>
 
@@ -688,26 +696,21 @@ void ReadLoopFromVGA(ResourceEntity &resource, sci::istream &byteStream, Loop &l
     LoopHeader_VGA11 loopHeader;
     byteStream >> loopHeader;
 
-    if (isSCI2)
+    if (loopHeader.mirrorInfo == 0xff)
     {
-        // Trust loop.IsMirror?
+        // Some games violate this assumption, but it's probably just a bug
+        // Fails for SQ6, 2292, loop 1. Not much we can do, we'll just mark it as not a mirror. View is corrupt.
+        // assert(loopHeader.isMirror == 0);
     }
     else
     {
-        if (loopHeader.mirrorInfo == 0xff)
-        {
-            assert(loopHeader.isMirror == 0);
-        }
-        else
-        {
-            // Some games violate this assumption, but it's probably just a bug
-            // KQ6, 138, loop 4, it's a mirror of 1
-            // KQ6, 302, loop 1, it's a mirror of 0
-            //assert(loopHeader.isMirror == 1);
-        }
-
-        loop.IsMirror = (loopHeader.mirrorInfo != 0xff);
+        // Some games violate this assumption, but it's probably just a bug
+        // KQ6, 138, loop 4, it's a mirror of 1
+        // KQ6, 302, loop 1, it's a mirror of 0
+        //assert(loopHeader.isMirror == 1);
     }
+
+    loop.IsMirror = (loopHeader.mirrorInfo != 0xff);
 
     if (loop.IsMirror)
     {
@@ -796,10 +799,12 @@ void ViewWriteToVGA11(const ResourceEntity &resource, sci::ostream &byteStream, 
     header.loopCount = (uint8_t)raster.LoopCount();
     header.scaleFlags = raster.ScaleFlags;
     header.always1 = 1;
+    header.sci32ScaleRes = 0;
     header.totalNumberOfCels = celDataCount;
     header.paletteOffset = palette ? headersSize : 0;             // We will write this right after the headers.
     header.loopHeaderSize = (uint8_t)sizeof(LoopHeader_VGA11);
     header.celHeaderSize = (uint8_t)sizeof(CelHeader_VGA11);
+    header.nativeResolution = NativeResolutionToStoredSize(raster.Resolution);
     byteStream << header;
 
     // Now the loop headers
@@ -870,7 +875,7 @@ void ViewReadFromVGA11Helper(ResourceEntity &resource, sci::istream &byteStream,
     assert(header.headerSize >= 16);
     // Nope, it appears to be used to identify views with no image data encoding (just raw). e.g. LB_Dagger, view 86
     //assert(header.always1 == 0x1);
-
+    raster.Resolution = StoredSizeToNativeResolution(header.nativeResolution);
     raster.ScaleFlags = header.scaleFlags;
     bool isScaleable = (raster.ScaleFlags != 0x01);
 
@@ -1115,7 +1120,7 @@ ResourceTraits viewTraitsVGA2 =
 {
     ResourceType::View,
     &ViewReadFromVGA2,
-    nullptr,
+    &ViewWriteToVGA11,
     &NoValidationFunc,
     nullptr
 };
@@ -1160,6 +1165,7 @@ ResourceEntity *CreateDefaultViewResource(SCIVersion version)
     std::unique_ptr<ResourceEntity> pResource(CreateViewResource(version));
     // Make a view with one loop that has one cel.
     RasterComponent &raster = pResource->GetComponent<RasterComponent>();
+    raster.Resolution = version.DefaultResolution;
     Loop loop;
     Cel cel;
     cel.TransparentColor = 0x3;

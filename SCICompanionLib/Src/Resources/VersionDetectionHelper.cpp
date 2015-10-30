@@ -21,6 +21,7 @@
 #include "SoundUtil.h"
 #include "PMachine.h"
 #include "ResourceBlob.h"
+#include "View.h"
 
 using namespace std;
 
@@ -705,6 +706,29 @@ void CResourceMap::_SniffSCIVersion()
             {
                 std::unique_ptr<ResourceEntity> audioMap = CreateResourceFromResourceData(*audioMapBase36, false);
                 _gameFolderHelper.Version.Base36AudioMapVersion = audioMap->GetComponent<AudioMapComponent>().Version;
+            }
+        }
+        catch (...)
+        {
+
+        }
+    }
+
+    // Detect resolution (SCI2 and above only... this is an expensive test, since we need to decompress views)
+    if (_gameFolderHelper.Version.PackageFormat >= ResourcePackageFormat::SCI2)
+    {
+        // For SCI2 and above package formats.
+        try
+        {
+            auto viewContainer = Resources(ResourceTypeFlags::View, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
+            for (auto &viewBlob : *viewContainer)
+            {
+                // REVIEW: Could test a few instead of just one. The 2nd one from KQ7 would show 320x200, so if the first one were deleted
+                // we'd get the wrong result
+                std::unique_ptr<ResourceEntity> view = CreateResourceFromResourceData(*viewBlob, false);
+                RasterComponent &raster = view->GetComponent<RasterComponent>();
+                _gameFolderHelper.Version.DefaultResolution = raster.Resolution;
+                break;
             }
         }
         catch (...)

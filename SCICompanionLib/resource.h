@@ -492,6 +492,7 @@
 #define IDC_STATICVISUAL                1166
 #define IDC_STATIC13                    1166
 #define IDC_STATICCONTROL               1167
+#define IDC_STATIC14                    1167
 #define IDC_STATICPRIORITY              1168
 #define IDC_GROUPVISUAL                 1169
 #define IDC_STATICPALETTE               1170
@@ -543,6 +544,7 @@
 #define IDC_COMBOTALKER                 1200
 #define IDC_COMBO7                      1200
 #define IDC_BUTTON_ADDCUE               1201
+#define IDC_COMBO8                      1201
 #define IDC_BUTTON_DELETECUE            1202
 #define IDC_EDIT_TIME                   1203
 #define IDC_CHECK_CUMULATIVE            1204
@@ -1112,6 +1114,10 @@
 #define ID_IMPORT_IMAG                  33278
 #define ID_VIEW_PASTESPECIAL            33280
 #define ID_VIEW_PASTESPECIALTRANSPARENT 33281
+#define ID_VIEW_RESOLUTION              33282
+#define ID_RESOLUTION_320X200           33283
+#define ID_RESOLUTION_640X400           33284
+#define ID_RESOLUTION_640X480           33285
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -1120,7 +1126,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        400
-#define _APS_NEXT_COMMAND_VALUE         33282
+#define _APS_NEXT_COMMAND_VALUE         33286
 #define _APS_NEXT_CONTROL_VALUE         1380
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

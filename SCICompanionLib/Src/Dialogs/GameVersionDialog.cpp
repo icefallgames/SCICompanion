@@ -54,6 +54,7 @@ void CGameVersionDialog::_Sync()
     _base36AudioMapFormat = (int)_version.Base36AudioMapVersion;
     _audioMapNumberIndex = (_version.AudioMapResourceNumber == 0) ? 0 : 1;
     _messageMapSource = (int)_version.MessageMapSource;
+    _resolution = (int)_version.DefaultResolution;
 }
 
 SCIVersion CGameVersionDialog::_ReverseSync()
@@ -82,6 +83,7 @@ SCIVersion CGameVersionDialog::_ReverseSync()
     version.Base36AudioMapVersion = (AudioMapVersion)_base36AudioMapFormat;
     version.AudioMapResourceNumber = (_audioMapNumberIndex == 0) ? 0 : 65535;
     version.MessageMapSource = (MessageMapSource)_messageMapSource;
+    version.DefaultResolution = (NativeResolution)_resolution;
     return version;
 }
 
@@ -129,6 +131,7 @@ void CGameVersionDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_STATIC11, m_wndLabel11);
     DDX_Control(pDX, IDC_STATIC12, m_wndLabel12);
     DDX_Control(pDX, IDC_STATIC13, m_wndLabel13);
+    DDX_Control(pDX, IDC_STATIC14, m_wndLabel14);
 
     DDX_Control(pDX, IDC_RADIOSCI0, m_wndRadioResourceMapSCI0);
     DDX_Control(pDX, IDC_RADIOSCI0_1, m_wndRadioResourceMapSCI0_SCI1);
@@ -169,6 +172,9 @@ void CGameVersionDialog::DoDataExchange(CDataExchange* pDX)
 
     DDX_Control(pDX, IDC_COMBO7, m_wndMessageMapSourceCombo);
     DDX_CBIndex(pDX, IDC_COMBO7, _messageMapSource);
+
+    DDX_Control(pDX, IDC_COMBO8, m_wndResolution);
+    DDX_CBIndex(pDX, IDC_COMBO8, _resolution);
 
     DDX_Control(pDX, IDOK, m_wndOk);
     DDX_Control(pDX, IDCANCEL, m_wndCancel);

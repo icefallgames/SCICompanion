@@ -77,6 +77,16 @@ enum class MessageMapSource : uint8_t
 
 enum class AudioMapVersion;
 
+enum class NativeResolution : uint8_t
+{
+    Res320x200 = 0,
+    Res640x400 = 1,
+    Res640x480 = 2,
+};
+
+size16 NativeResolutionToStoredSize(NativeResolution resolution);
+NativeResolution StoredSizeToNativeResolution(size16 storedSize);
+
 struct SCIVersion
 {
     ResourceMapFormat MapFormat;
@@ -103,6 +113,7 @@ struct SCIVersion
     AudioMapVersion MainAudioMapVersion;
     AudioMapVersion Base36AudioMapVersion;
     bool AudioIsWav;
+    NativeResolution DefaultResolution;
 
     bool operator==(const SCIVersion &src);
     bool operator!=(const SCIVersion &src);
