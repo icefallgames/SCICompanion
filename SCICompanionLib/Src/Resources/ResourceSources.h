@@ -15,11 +15,12 @@
 
 #include "ResourceBlob.h"
 
-// This file describes various resource sources:
+// This file describes various resource sources and the base classes needed for:
 // (1) resource.map/resource.xxx
 // (2) message.map/resource.msg, or altres.map/altres.000
 // (3) solitary files (e.g. 017.p56)
 // (4) audio volumes (resource.aud, resource.sfx)
+// (4) audio cache files
 
 enum class AppendBehavior
 {
@@ -209,7 +210,7 @@ struct FileDescriptorAltMap : public FileDescriptorBase
 
 bool IsResourceCompatible(const ResourceBlob &blob);
 
-// Use for both resource.map and message.map
+// Use for resource.map, alt.map, message.map and such.
 template<typename _TNavigator, typename _FileDescriptor>
 class MapAndPackageSource : public ResourceSource, public _TNavigator, public _FileDescriptor
 {

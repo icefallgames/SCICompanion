@@ -26,20 +26,6 @@
 #include "PerfTimer.h"
 #include "ResourceBlob.h"
 
-// The SCI Companion folder tree for audio cache files looks like this:
-//  gamefolder\
-//      audiocache\\
-//          uptodate.bin        --> a list of resources that are up-to-date.
-//          4.map
-//          17.map
-//          65535.map
-//          4\
-//              individual sync36, audio36 under here.
-//          17\
-//              individual sync36, audio36 under here.
-//          65535\
-//              individual sync36, audio36 under here.
-
 using namespace std::tr2;
 
 // Tracks which cached audio files are currently up-to-date in the game's main resources.

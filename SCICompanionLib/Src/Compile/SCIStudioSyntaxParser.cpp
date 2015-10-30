@@ -580,6 +580,10 @@ void StartFunctionTempVarA(MatchResult &match, const Parser *pParser, SyntaxCont
 		pContext->PropertyValueWasSet = false;	// So we'll actually say it was not set.
         pContext->PropertyValue.Zero();
     }
+    else
+    {
+        pContext->ReportError("Expected variable name.", stream);
+    }
 }
 void FinishFunctionTempVarA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
@@ -1375,7 +1379,7 @@ void SCISyntaxParser::Load()
 
     method_base = oppar
         >> alphanum_p[{FunctionNameA, ParseAutoCompleteContext::Selector}]
-        >> *alphanum_p[FunctionParameterA]
+        >> *alphanum_p[{FunctionParameterA, ParseAutoCompleteContext::Block}]
         >> clpar[GeneralE]
         >> function_var_decl
         >> *statement[FunctionStatementA];
@@ -1422,7 +1426,7 @@ void SCISyntaxParser::Load()
 
     class_decl = keyword_p("class")[CreateClassA<false>] >> classbase_decl[ClassCloseA];
 
-    procedure_decl = keyword_p("procedure")[CreateProcedureA] >> -keyword_p("public")[ProcedurePublicA] >> procedure_base[FunctionCloseA];
+    procedure_decl = keyword_p("procedure")[CreateProcedureA] >> -keyword_p("public")[ProcedurePublicA] >> procedure_base[{FunctionCloseA, ParseAutoCompleteContext::Block}];
 
     synonyms = keyword_p("synonyms") >> *(squotedstring_p[CreateSynonymA] >> equalSign[GeneralE] >> squotedstring_p[FinishSynonymA]);
 

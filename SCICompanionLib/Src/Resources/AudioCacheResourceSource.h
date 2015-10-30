@@ -22,7 +22,21 @@ class ResourceBlob;
 
 extern const char *pszAudioCacheFolder;
 
-// ResourceSource for SCI1.1 audio resources
+// ResourceSource for the audio resources cached by SCI Companion
+//
+// The SCI Companion folder tree for audio cache files looks like this:
+//  gamefolder\
+//      audiocache\\
+//          uptodate.bin        --> a list of resources that are up-to-date.
+//          4.map
+//          17.map
+//          65535.map
+//          4\
+//              individual sync36, audio36 under here.
+//          17\
+//              individual sync36, audio36 under here.
+//          65535\
+//              individual sync36, audio36 under here.
 class AudioCacheResourceSource : public ResourceSource
 {
 public:

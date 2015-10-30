@@ -19,7 +19,9 @@
 struct AudioMapComponent;
 class ResourceBlob;
 
-// ResourceSource for SCI1.1 audio resources
+// ResourceSource for SCI1.1 audio resources. They are a special case, because the "map files" for these
+// are in a custom format, and may exist embedded in the main resource package, or as standalone files.
+// (we are agnostic to its location)
 class AudioResourceSource : public ResourceSource
 {
 public:
