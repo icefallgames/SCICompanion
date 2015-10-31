@@ -197,9 +197,9 @@ private:
     // Error reporting - protected by g_csErrorReport
     std::vector<CompileResult> _errors;
 
-    mutable CRITICAL_SECTION _csClassBrowser;
+    mutable std::recursive_mutex _mutexClassBrowser;
     mutable volatile int _fCBLocked;
-    mutable CRITICAL_SECTION _csErrorReport;
+    mutable std::mutex _mutexErrorReport;
     bool _fAbortBrowseInfoGeneration;
 
     IClassBrowserEvents *_pEvents;

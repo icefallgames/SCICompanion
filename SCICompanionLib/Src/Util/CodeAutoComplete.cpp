@@ -311,8 +311,6 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
 }
 AutoCompleteThread2::AutoCompleteThread2() : _nextId(0)
 {
-    InitializeCriticalSection(&_cs);
-    InitializeCriticalSection(&_csResult);
     _hStartWork = CreateEvent(nullptr, FALSE, FALSE, nullptr);
     _hWaitForMoreWork = CreateEvent(nullptr, FALSE, FALSE, nullptr);
     // ExitThread will be manual reset, since the background thread will wait on it multiple times:
@@ -330,9 +328,6 @@ AutoCompleteThread2::~AutoCompleteThread2()
     _thread.join();
 
     CloseHandle(_hExitThread);
-
-    DeleteCriticalSection(&_cs);
-    DeleteCriticalSection(&_csResult);
 }
 
 void AutoCompleteThread2::InitializeForScript(CCrystalTextBuffer *buffer)
@@ -349,7 +344,7 @@ void AutoCompleteThread2::StartAutoComplete(CPoint pt, HWND hwnd, UINT message, 
     // Take note if the background thread is potentially ready to continue parsing from where it left off.
     bool bgIsWaiting;
     {
-        CGuard guard(&_cs);
+        std::lock_guard<std::mutex> lock(_mutex);
         // It's ready if it hasn't begun yet (_limiterPending), or if the current parse hasn't been canceled.
         bgIsWaiting = _limiterPending || !_fCancelCurrentParse;
     }
@@ -361,7 +356,7 @@ void AutoCompleteThread2::StartAutoComplete(CPoint pt, HWND hwnd, UINT message, 
         _bufferUI->GetText(_lastPoint.y, _lastPoint.x, pt.y, pt.x, strText);
 
         {
-            CGuard guard(&_cs);
+            std::lock_guard<std::mutex> lock(_mutex);
             _additionalCharacters += (PCSTR)strText;
             SetEvent(_hWaitForMoreWork);
         }
@@ -371,7 +366,7 @@ void AutoCompleteThread2::StartAutoComplete(CPoint pt, HWND hwnd, UINT message, 
         // Start a new one
         // 1) If in parse, set the event getting out of it and indicate cancel.
         {
-            CGuard guard(&_cs);
+            std::lock_guard<std::mutex> lock(_mutex);
             _additionalCharacters = "";
             _fCancelCurrentParse = true;
             _idUpdate = _nextId;
@@ -386,7 +381,7 @@ void AutoCompleteThread2::StartAutoComplete(CPoint pt, HWND hwnd, UINT message, 
 
         // Give the work to the background thread
         {
-            CGuard guard(&_cs);
+            std::lock_guard<std::mutex> lock(_mutex);
             _limiterPending = move(limiter);
             _streamPending = move(stream);
             _scriptNumberPending = scriptNumber;
@@ -409,7 +404,7 @@ void AutoCompleteThread2::ResetPosition()
     _lastPoint = CPoint();
 
     // REVIEW this:
-    CGuard guard(&_cs);
+    std::lock_guard<std::mutex> lock(_mutex);
 
     _limiterPending.reset(nullptr);
     _streamPending.reset(nullptr);
@@ -431,7 +426,7 @@ std::unique_ptr<AutoCompleteResult> AutoCompleteThread2::GetResult(int id)
     std::unique_ptr<AutoCompleteResult> result;
 
     {
-        CGuard guard(&_csResult);
+        std::lock_guard<std::mutex> lock(_mutexResult);
         if (_resultId == id)
         {
             result = move(_result);
@@ -450,7 +445,7 @@ UINT AutoCompleteThread2::s_ThreadWorker(void *pParam)
 void AutoCompleteThread2::_SetResult(std::unique_ptr<AutoCompleteResult> result, AutoCompleteThread2::AutoCompleteId id)
 {
     {
-        CGuard guard(&_csResult);
+        std::lock_guard<std::mutex> lock(_mutexResult);
         _resultId = id.id;
         _result = move(result);
     }
@@ -468,7 +463,7 @@ void AutoCompleteThread2::_DoWork()
         AutoCompleteId id;
 
         {
-            CGuard guard(&_cs);
+            std::lock_guard<std::mutex> lock(_mutex);
             limiter = move(_limiterPending);
             stream = move(_streamPending);
             scriptNumber = _scriptNumberPending;
@@ -505,7 +500,7 @@ void AutoCompleteThread2::_DoWork()
                         continueParsing = true;
                         std::string additionalCharacters;
                         {
-                            CGuard guard(&_ac._cs);
+                            std::lock_guard<std::mutex> lock(_ac._mutex);
                             continueParsing = !_ac._fCancelCurrentParse;
                             _id.id = _ac._idUpdate;
                             additionalCharacters = _ac._additionalCharacters;

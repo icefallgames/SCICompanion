@@ -13,8 +13,6 @@
 ***************************************************************************/
 #pragma once
 
-#include <thread>
-#include <mutex>
 //
 // This template implements a worker thread that can be used to perform background tasks.
 //

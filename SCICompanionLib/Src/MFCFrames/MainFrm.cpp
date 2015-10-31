@@ -2433,7 +2433,8 @@ LRESULT CBrowseInfoStatusPane::_OnStatusReady(WPARAM wParam, LPARAM lParam)
     string textToPost;
     BrowseInfoStatus status;
     {
-        CGuard guard(&_csTextPosting);
+        
+        std::lock_guard<std::mutex> lock(_csTextPosting);
         textToPost = _textToPost;
         status = _status;
     }
@@ -2472,10 +2473,9 @@ void CBrowseInfoStatusPane::NotifyClassBrowserStatus(BrowseInfoStatus status, in
     // unless necessary.
     if ((_status != status) || ((status == InProgress) && (iPercent != _lastPercent)))
     {
-        CGuard guard(&_csTextPosting);
+        std::lock_guard<std::mutex> lock(_csTextPosting);
         _status = status;
         if (status == Ok)
-
         {
             _textToPost = "Browse info complete";
         }
@@ -2494,13 +2494,6 @@ void CBrowseInfoStatusPane::NotifyClassBrowserStatus(BrowseInfoStatus status, in
     }
 }
 
-CBrowseInfoStatusPane::CBrowseInfoStatusPane() : _lastPercent(-1)
-{
-    InitializeCriticalSection(&_csTextPosting);
-}
-
-CBrowseInfoStatusPane::~CBrowseInfoStatusPane()
-{
-    DeleteCriticalSection(&_csTextPosting);
-}
+CBrowseInfoStatusPane::CBrowseInfoStatusPane() : _lastPercent(-1) {}
+CBrowseInfoStatusPane::~CBrowseInfoStatusPane() {}
 

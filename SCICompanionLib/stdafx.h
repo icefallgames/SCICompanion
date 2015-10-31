@@ -87,6 +87,8 @@
 #include <cassert>
 #include <typeinfo>
 #include <typeindex>
+#include <thread>
+#include <mutex>
 
 
 // REVIEW: Things I need to add to make it compile with vs2013:

@@ -63,7 +63,7 @@ private:
 
     // Text to post back to the UI thread.
     std::string _textToPost;
-    mutable CRITICAL_SECTION _csTextPosting;
+    mutable std::mutex _csTextPosting;
 };
 
 class CMainFrame : public CExtNCW<CMDIFrameWnd>

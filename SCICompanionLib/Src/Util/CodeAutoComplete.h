@@ -13,8 +13,6 @@
 ***************************************************************************/
 #pragma once
 
-#include <thread>
-
 class CCrystalScriptStream;
 class CCrystalTextBuffer;
 class CScriptStreamLimiter;
@@ -110,7 +108,7 @@ private:
     std::unique_ptr<CScriptStreamLimiter> _limiterPending;
     std::unique_ptr<CCrystalScriptStream> _streamPending;
     uint16_t _scriptNumberPending;
-    CRITICAL_SECTION _cs;
+    std::mutex _mutex;
     HANDLE _hWaitForMoreWork;
     HANDLE _hExitThread;
 
@@ -121,7 +119,7 @@ private:
     // Both
     std::unique_ptr<AutoCompleteResult> _result;
     int _resultId;
-    CRITICAL_SECTION _csResult;
+    std::mutex _mutexResult;
 
     // UI
     int _nextId;

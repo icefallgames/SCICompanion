@@ -492,9 +492,6 @@ const uint8_t g_defaultPaletteInit[] =
 
 extern const EGACOLOR *g_defaultPalette;
 
-void InitDitherCritSec();
-void DeleteDitherCritSec();
-
 //
 // For the fake ego feature.
 //

@@ -91,33 +91,29 @@ SCIClassBrowser::SCIClassBrowser() : _kernelNames(_kernelNamesResource.GetNames(
 {
     _fPublicProceduresValid = false;
     _fPublicClassesValid = false;
-#pragma warning(suppress: 28125)
-    InitializeCriticalSection(&_csClassBrowser);
-    InitializeCriticalSection(&_csErrorReport);
     _fCBLocked = 0;
-    _pEvents = NULL;
+    _pEvents = nullptr;
     _scheduler = std::make_unique<BackgroundScheduler<ReloadScriptPayload>>();
 }
 
 SCIClassBrowser::~SCIClassBrowser()
 {
-    // ASSERT we've been reset.
-    ASSERT(_scripts.empty());
-    ASSERT(_pLKGScript == NULL);
-    DeleteCriticalSection(&_csClassBrowser);
-    DeleteCriticalSection(&_csErrorReport);
+    // assert we've been reset.
+    assert(_scripts.empty());
+    assert(_pLKGScript == nullptr);
     _scheduler->Exit();
 }
 
 void SCIClassBrowser::Lock() const
 {
-    EnterCriticalSection(&_csClassBrowser);
+    _mutexClassBrowser.lock();
     ++_fCBLocked;
 }
 
 bool SCIClassBrowser::TryLock() const
 {
-    bool fRet = (TryEnterCriticalSection(&_csClassBrowser) != 0);
+    
+    bool fRet = _mutexClassBrowser.try_lock();
     if (fRet)
     {
         ++_fCBLocked;
@@ -135,19 +131,19 @@ void SCIClassBrowser::Unlock() const
     // ref count this (and TryLock/Lock) to be more robust
     // (since we might have code that locks it twice on the same thread, which is ok)
     --_fCBLocked;
-    ASSERT(_fCBLocked >= 0);
-    LeaveCriticalSection(&_csClassBrowser);
+    assert(_fCBLocked >= 0);
+    _mutexClassBrowser.unlock();
 }
 
 void SCIClassBrowser::SetClassBrowserEvents(IClassBrowserEvents *pEvents)
 {
-    CGuard guard(&_csClassBrowser);
+    std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser);
     _pEvents = pEvents;
 }
 
 void SCIClassBrowser::OnOpenGame(SCIVersion version)
 {
-    CGuard guard(&_csClassBrowser);
+    std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser);
     _version = version;
     if (IsBrowseInfoEnabled() && appState->GetResourceMap().IsGameLoaded())
     {
@@ -170,15 +166,15 @@ void SCIClassBrowser::OnOpenGame(SCIVersion version)
 
 void SCIClassBrowser::ExitSchedulerAndReset()
 {
-    // Abort before we go into the critical section, which can block...
+    // Abort before we go into the mutex, which can block...
     if (_scheduler)
     {
         _scheduler->Exit();
     }
+    
+    std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser);
 
-    CGuard guard(&_csClassBrowser);
-
-    _pLKGScript = NULL;
+    _pLKGScript = nullptr;
     _wLKG = 1000; // out of bounds
 
     _scripts.clear();
@@ -209,7 +205,7 @@ void SCIClassBrowser::ExitSchedulerAndReset()
 
 void SCIClassBrowser::_AddInstanceToMap(Script& script, ClassDefinition *pClass)
 {
-    ASSERT(pClass->IsInstance());
+    assert(pClass->IsInstance());
 
     WORD wScript = GetScriptNumberHelper(&script);
     if (wScript == InvalidResourceNumber)
@@ -324,7 +320,7 @@ void SCIClassBrowser::_AddToClassTree(Script& script)
 
 bool SCIClassBrowser::ReLoadFromSources(ITaskStatus &task)
 {
-    CGuard guard(&_csClassBrowser);
+    std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser);
     if (IsBrowseInfoEnabled())
     {
         // Load the kernel and selector names
@@ -364,7 +360,7 @@ void LoadClassFromCompiled(sci::ClassDefinition *pClass, const CompiledScript &c
     const std::vector<CompiledVarValue> &propertyValues = pObject->GetPropertyValues();
     // Instances will have values, but no selector IDs - so that's ok that properties is smaller
     // than propertyValues.
-    ASSERT(properties.size() <= propertyValues.size());
+    assert(properties.size() <= propertyValues.size());
     if (pClass->IsInstance())
     {
         // Add the values anyway.... we'll resolve property selectors later.
@@ -435,7 +431,7 @@ void SCIClassBrowser::ReLoadFromCompiled(ITaskStatus &task)
         return;
     }
 
-    CGuard guard(&_csClassBrowser); 
+    std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser); 
 
 #ifdef REENABLE_COMPILEDSCRIPTS
 
@@ -622,12 +618,12 @@ void SCIClassBrowser::TriggerReloadScript(const std::string &fullPath)
 void SCIClassBrowser::ReloadScript(const std::string &fullPath)
 {
     ClearErrors();
-    CGuard guard(&_csClassBrowser); 
+    std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser); 
     if (!IsBrowseInfoEnabled())
     {
         return;
     }
-    if (StrRStrI(PathFindFileName(fullPath.c_str()), NULL, TEXT(".sh")))
+    if (StrRStrI(PathFindFileName(fullPath.c_str()), nullptr, TEXT(".sh")))
     {
         // It's a header file
         _AddHeader(fullPath.c_str());
@@ -672,7 +668,7 @@ void SCIClassBrowser::_RemoveAllRelatedData(Script *pScript)
             auto &node = _instances[i];
 			if (node->GetScript() == pScript)
             {
-				ASSERT(node->GetSubClasses().size() == 0); // since it's an instance
+				assert(node->GetSubClasses().empty()); // since it's an instance
 				// Remove ourself from our super's list of subclasses
                 if (node->GetSuperClass()) // REVIEW REVIEW: why was this null? sq5Narrator in main.
                 {
@@ -729,7 +725,7 @@ void SCIClassBrowser::_RemoveAllRelatedData(Script *pScript)
 
 bool SCIClassBrowser::_AddFileName(const std::string &fullPath, bool fReplace)
 {
-    _pLKGScript = NULL; // Clear cache.  Possible optimization: check LKG number, and if this is the same, then set _pLKGScript to this one.
+    _pLKGScript = nullptr; // Clear cache.  Possible optimization: check LKG number, and if this is the same, then set _pLKGScript to this one.
 
     bool fRet = false;
     CCrystalTextBuffer buffer;
@@ -748,7 +744,7 @@ bool SCIClassBrowser::_AddFileName(const std::string &fullPath, bool fReplace)
                 WORD wScriptNumber = GetScriptNumberHelper(pScript.get());
                 _filenameToScriptNumber[fullPath] = wScriptNumber;
 
-                ASSERT(wScriptNumber != InvalidResourceNumber); // Do something about this.
+                assert(wScriptNumber != InvalidResourceNumber); // Do something about this.
                 // Find matching script number and replace
 				for (auto &script : _scripts)
 				{
@@ -839,7 +835,7 @@ void SCIClassBrowser::_MaybeGenerateAutoCompleteTree()
 void SCIClassBrowser::GetAutoCompleteChoices(const std::string &prefixIn, AutoCompleteSourceType sourceTypes, std::vector<AutoCompleteChoice> &choices)
 {
     choices.clear();
-    CGuard guard(&_csClassBrowser);
+    std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser);
     std::string prefixLower = prefixIn;
     std::transform(prefixLower.begin(), prefixLower.end(), prefixLower.begin(), ::tolower);
     _aclist.GetAutoCompleteChoices(prefixLower, sourceTypes, choices);
@@ -871,11 +867,11 @@ void SCIClassBrowser::TriggerCustomIncludeCompile(std::string name)
     {
         bool needRecompile = false;
 
-        CGuard guard(&_csClassBrowser);
+        auto lock = std::make_unique<std::lock_guard<std::recursive_mutex>>(_mutexClassBrowser);
         auto it = _customHeaderMap.find(name);
         bool alreadyExists = (it != _customHeaderMap.end());
         needRecompile = !alreadyExists;
-        guard.Release();
+        lock = nullptr;
 
         // Get time stamp
         std::string path = appState->GetResourceMap().GetIncludePath(name);
@@ -916,7 +912,7 @@ void SCIClassBrowser::TriggerCustomIncludeCompile(std::string name)
                                 [](std::unique_ptr<sci::Define> &one, std::unique_ptr<sci::Define> &two) { return one->GetName() < two->GetName(); }
                                 );
 
-                            CGuard guard(&_csClassBrowser);
+                            std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser);
                             TimeAndHeader th { lastWriteTime, move(pNewHeader) };
                             _customHeaderMap[name] = move(th);
                         }
@@ -933,7 +929,7 @@ sci::Script *SCIClassBrowser::GetCustomHeader(std::string name)
     std::transform(name.begin(), name.end(), name.begin(), ::tolower);
 
     // Be careful. We don't want to lock the class browser while compiling.
-    CGuard guard(&_csClassBrowser);
+    std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser);
     assert(_fCBLocked);
 
     sci::Script *customHeader = nullptr;
@@ -1075,7 +1071,7 @@ void SCIClassBrowser::_AddHeaders()
 //
 RawMethodVector *SCIClassBrowser::CreateMethodArray(const std::string &strObject, Script *pScript) const
 {
-    CGuard guard(&_csClassBrowser); 
+    std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser); 
 	RawMethodVector *pMethods = new RawMethodVector();
     if (IsBrowseInfoEnabled())
     {
@@ -1123,7 +1119,7 @@ RawMethodVector *SCIClassBrowser::CreateMethodArray(const std::string &strObject
 //
 RawClassPropertyVector *SCIClassBrowser::CreatePropertyArray(const std::string &strObject, Script *pScript, PCTSTR pszSuper) const
 {
-    CGuard guard(&_csClassBrowser); 
+    std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser); 
     RawClassPropertyVector *pProperties = new RawClassPropertyVector();
     if (IsBrowseInfoEnabled())
     {
@@ -1175,7 +1171,7 @@ RawClassPropertyVector *SCIClassBrowser::CreatePropertyArray(const std::string &
 std::vector<std::string> *SCIClassBrowser::CreateSubSpeciesArray(PCTSTR pszSpecies)
 {
     // REVIEW: it might be faster to go through all classes, and ask if they are a subclass of pszSpecies.
-    CGuard guard(&_csClassBrowser); 
+    std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser); 
     std::vector<std::string> *pArray = new std::vector<std::string>;
     if (pArray)
     {
@@ -1193,7 +1189,7 @@ std::vector<std::string> *SCIClassBrowser::CreateSubSpeciesArray(PCTSTR pszSpeci
 //
 void SCIClassBrowser::_AddSubclassesToArray(std::vector<std::string> *pArray, SCIClassBrowserNode *pBrowserInfo)
 {
-    CGuard guard(&_csClassBrowser);
+    std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser);
     // Add the name of this class.
     pArray->push_back(pBrowserInfo->GetName());
     std::vector<SCIClassBrowserNode*> &subClasses = pBrowserInfo->GetSubClasses();
@@ -1217,9 +1213,9 @@ void SCIClassBrowser::_AddSubclassesToArray(std::vector<std::string> *pArray, SC
 //
 const SCIClassBrowserNode *SCIClassBrowser::GetRoot(size_t i) const
 {
-    CGuard guard(&_csClassBrowser); 
-    ASSERT(_fCBLocked);
-    SCIClassBrowserNode *pRootBrowserInfo = NULL;
+    std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser); 
+    assert(_fCBLocked);
+    SCIClassBrowserNode *pRootBrowserInfo = nullptr;
     if (IsBrowseInfoEnabled())
     {
         if (i < strRootNames.size())
@@ -1232,17 +1228,17 @@ const SCIClassBrowserNode *SCIClassBrowser::GetRoot(size_t i) const
 
 size_t SCIClassBrowser::GetNumRoots() const
 {
-    CGuard guard(&_csClassBrowser);
-    ASSERT(_fCBLocked);
+    std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser);
+    assert(_fCBLocked);
     return IsBrowseInfoEnabled() ? strRootNames.size() : 0;
 }
 
 const Script *SCIClassBrowser::GetLKGScript(std::string fullPath)
 {
     std::transform(fullPath.begin(), fullPath.end(), fullPath.begin(), ::tolower);
-    CGuard guard(&_csClassBrowser); 
-    ASSERT(_fCBLocked);
-    const Script *pScript = NULL;
+    std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser); 
+    assert(_fCBLocked);
+    const Script *pScript = nullptr;
     if (IsBrowseInfoEnabled())
     {
         word_map::iterator filenameIt = _filenameToScriptNumber.find(fullPath);
@@ -1256,8 +1252,8 @@ const Script *SCIClassBrowser::GetLKGScript(std::string fullPath)
 
 const Script *SCIClassBrowser::GetLKGScript(WORD wScriptNumber)
 {
-    CGuard guard(&_csClassBrowser); 
-    ASSERT(_fCBLocked);
+    std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser); 
+    assert(_fCBLocked);
     const Script *pScriptLKG = nullptr;
     if (IsBrowseInfoEnabled())
     {
@@ -1288,7 +1284,7 @@ const Script *SCIClassBrowser::GetLKGScript(WORD wScriptNumber)
 
 const VariableDeclVector *SCIClassBrowser::_GetMainGlobals() const
 {
-    CGuard guard(&_csClassBrowser); 
+    std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser); 
     const VariableDeclVector *pArray = nullptr;
     if (IsBrowseInfoEnabled())
     {
@@ -1302,21 +1298,21 @@ const VariableDeclVector *SCIClassBrowser::_GetMainGlobals() const
 
 const VariableDeclVector *SCIClassBrowser::GetMainGlobals() const
 {
-    CGuard guard(&_csClassBrowser);
+    std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser);
     assert(_fCBLocked);
     return _GetMainGlobals();
 }
 
 const std::vector<std::string> &SCIClassBrowser::GetKernelNames() const
 {
-    CGuard guard(&_csClassBrowser);
+    std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser);
     assert(_fCBLocked);
     return _kernelNames;
 }
 
 const RawProcedureVector &SCIClassBrowser::_GetPublicProcedures()
 {
-    CGuard guard(&_csClassBrowser);
+    std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser);
     if (!_fPublicProceduresValid)
     {
         _publicProcedures.clear();
@@ -1340,7 +1336,7 @@ const RawProcedureVector &SCIClassBrowser::_GetPublicProcedures()
 
 const RawProcedureVector &SCIClassBrowser::GetPublicProcedures()
 {
-    CGuard guard(&_csClassBrowser); 
+    std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser); 
     assert(_fCBLocked);
     return _GetPublicProcedures();
 }
@@ -1348,7 +1344,7 @@ const RawProcedureVector &SCIClassBrowser::GetPublicProcedures()
 
 const std::vector<ClassDefinition*> &SCIClassBrowser::GetAllClasses()
 {
-    CGuard guard(&_csClassBrowser); 
+    std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser); 
     assert(_fCBLocked);
     if (!_fPublicClassesValid)
     {
@@ -1373,7 +1369,7 @@ const std::vector<ClassDefinition*> &SCIClassBrowser::GetAllClasses()
 
 const std::vector<sci::Script*> &SCIClassBrowser::GetHeaders()
 {
-    CGuard guard(&_csClassBrowser);
+    std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser);
     assert(_fCBLocked);
     // REVIEW: why are we doing this every time?
     // Regenerate the _headers array.
@@ -1387,7 +1383,7 @@ const std::vector<sci::Script*> &SCIClassBrowser::GetHeaders()
 
 const SelectorTable &SCIClassBrowser::GetSelectorNames()
 {
-    CGuard guard(&_csClassBrowser); 
+    std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser); 
     assert(_fCBLocked);
     return _selectorNames;
 }
@@ -1397,7 +1393,7 @@ const SelectorTable &SCIClassBrowser::GetSelectorNames()
 //
 bool SCIClassBrowser::IsSubClassOf(PCTSTR pszClass, PCTSTR pszSuper)
 {
-    CGuard guard(&_csClassBrowser); 
+    std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser); 
     assert(_fCBLocked);
     bool fRet = false;
     SCIClassBrowserNode *pNode = nullptr;
@@ -1562,19 +1558,19 @@ bool SCIClassBrowser::GetPropertyValue(PCTSTR pszName, ISCIPropertyBag *pBag, co
 
 void SCIClassBrowser::ReportResult(const CompileResult &result)
 {
-    CGuard guard(&_csErrorReport); 
+    std::lock_guard<std::mutex> lock(_mutexErrorReport);
     _errors.push_back(result);
 }
 void SCIClassBrowser::ClearErrors()
 {
-    CGuard guard(&_csErrorReport); 
+    std::lock_guard<std::mutex> lock(_mutexErrorReport);
     _errors.clear();
 }
 
 // Passes back a copy...
 std::vector<CompileResult> SCIClassBrowser::GetErrors()
 {
-    CGuard guard(&_csErrorReport); 
+    std::lock_guard<std::mutex> lock(_mutexErrorReport);
     return _errors;
 }
 
@@ -1582,10 +1578,10 @@ int SCIClassBrowser::HasErrors()
 {
     int iHasErrors = -1; // Unknown
     // Don't want to block if we're just asking if errors are around
-    if (TryEnterCriticalSection(&_csErrorReport))
+    if (_mutexErrorReport.try_lock())
     {
         iHasErrors = _errors.empty() ? 0 : 1;
-        LeaveCriticalSection(&_csErrorReport);
+        _mutexErrorReport.unlock();
     }
     return iHasErrors;
 }
@@ -1593,7 +1589,7 @@ int SCIClassBrowser::HasErrors()
 
 bool SCIClassBrowser::ResolveValue(const Script *pScript, const std::string &strValue, PropertyValue &Out) const
 {
-    CGuard guard(&_csClassBrowser); 
+    std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser); 
     bool fFound = false;
     if (!strValue.empty())
     {
@@ -1638,8 +1634,8 @@ bool SCIClassBrowser::ResolveValue(const Script *pScript, const std::string &str
 //
 void SCIClassBrowser::ResolveValue(WORD wScript, const PropertyValue &In, PropertyValue &Out)
 {
-    CGuard guard(&_csClassBrowser); 
-    ASSERT(_fCBLocked);
+    std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser); 
+    assert(_fCBLocked);
     const Script *pScript = GetLKGScript(wScript);
     
     // Look through this script's defines first.

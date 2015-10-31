@@ -1001,7 +1001,6 @@ bool CreatePatternBitmap(CBitmap &bitmapOut, uint8_t patternSize, uint8_t patter
     return !!result;
 }
 
-
 //
 // REVIEW: This sucks - I had to make a full copy of this function, just to allow it to draw to something smaller
 // than 320 x 200.  (don't want to pass extra params to _PlotPix due to perf)
@@ -1464,24 +1463,8 @@ int g_commands = 0;
 #define MOVING_LEFT  0x00000002
 
 
-CRITICAL_SECTION g_csDither = { 0 };
-bool g_fDitherCritSecInited = FALSE;
-
-void InitDitherCritSec()
-{
-    assert(!g_fDitherCritSecInited);
-    InitializeCriticalSection(&g_csDither);
-    g_fDitherCritSecInited = TRUE;
-}
-
-void DeleteDitherCritSec()
-{
-    if (g_fDitherCritSecInited)
-    {
-        DeleteCriticalSection(&g_csDither);
-        g_fDitherCritSecInited = FALSE;
-    }
-}
+std::mutex g_mutexDither;
+bool g_fDitherCritSecInited = false;
 
 template<typename _TFormat>
 void _DitherFill(PicData *pdata, int16_t x, int16_t y, typename  _TFormat::PixelType color, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable)
@@ -1508,7 +1491,7 @@ void _DitherFill(PicData *pdata, int16_t x, int16_t y, typename  _TFormat::Pixel
     }
 
     // Guard access to the buffers we use for dithering.
-    CGuard guard(&g_csDither);
+    std::lock_guard<std::mutex> lock(g_mutexDither);
 
     g_commands =0;
 

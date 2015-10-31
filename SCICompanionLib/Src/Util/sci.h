@@ -306,22 +306,6 @@ private:
     DWORD _dwPos;
 };
 
-//
-// Since exceptions may be thrown, use a C++ class to
-// handle leaving the critical section.
-//
-class CGuard
-{
-public:
-    CGuard(CRITICAL_SECTION *pcs);
-    ~CGuard();
-    void Release();
-
-private:
-    CRITICAL_SECTION *_pcs;
-    bool _acquired;
-};
-
 struct GlobalAllocGuard
 {
     GlobalAllocGuard(HGLOBAL hGlobal)

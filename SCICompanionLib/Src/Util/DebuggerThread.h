@@ -13,8 +13,6 @@
 ***************************************************************************/
 #pragma once
 
-#include <thread>
-
 class DebuggerThread
 {
 public:

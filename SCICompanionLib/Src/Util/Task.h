@@ -14,8 +14,6 @@
 #pragma once
 
 #include <deque>
-#include <thread>
-#include <mutex>
 
 class ITaskStatus
 {
@@ -31,24 +29,20 @@ public:
 
     BackgroundScheduler(HWND hwndResponse, UINT msgResponse) : _exit(false), _nextId(0), _hwndResponse(hwndResponse), _msgResponse(msgResponse)
     {
-        InitializeCriticalSection(&_cs);
         _hWakeUp = CreateEvent(nullptr, FALSE, FALSE, nullptr);
         _thread = std::thread(s_ThreadWorker, this);
-        InitializeCriticalSection(&_csResponse);
     }
 
     ~BackgroundScheduler()
     {
         Exit();
-        DeleteCriticalSection(&_cs);
-        DeleteCriticalSection(&_csResponse);
     }
 
     int SubmitTask(std::unique_ptr<_TPayload> task, std::function<std::unique_ptr<_TResponse>(ITaskStatus&, _TPayload&)> func)
     {
         int id;
         {
-            CGuard guard(&_cs);
+            std::lock_guard<std::mutex> lock(_mutex);
             id = _nextId++;
             _queue.emplace_back(id, std::move(task), func);
         }
@@ -60,7 +54,7 @@ public:
     {
         // This allows us to keep the same scheduler around for different windows
         {
-            CGuard guard(&_cs);
+            std::lock_guard<std::mutex> lock(_mutex);
             _hwndResponse = hwnd;
             _msgResponse = msg;
         }
@@ -70,7 +64,8 @@ public:
 
     std::unique_ptr<_TResponse> RetrieveResponse(int id)
     {
-        CGuard guard(&_csResponse);
+
+        std::lock_guard<std::mutex> lock(_mutexResponse);
         // Pop off the front until we find the one we want.
         std::unique_ptr<_TResponse> response;
         while (!response && !_responseQueue.empty())
@@ -97,7 +92,7 @@ public:
 
     bool IsAborted() override
     {
-        CGuard guard(&_cs);
+        std::lock_guard<std::mutex> lock(_mutex);
         return _exit;
     }
 
@@ -107,7 +102,7 @@ public:
         bool deleteThings = false;
 
         {
-            CGuard guard(&_cs);
+            std::lock_guard<std::mutex> lock(_mutex);
             if (!_exit)
             {
                 deleteThings = true;
@@ -144,7 +139,7 @@ private:
                 int id;
 
                 {
-                    CGuard guard(&_cs);
+                    std::lock_guard<std::mutex> lock(_mutex);
                     if (!_exit && !_queue.empty())
                     {
                         payload = std::move(_queue.front().payload);
@@ -168,7 +163,7 @@ private:
                         HWND hwnd;
                         UINT msg;
                         {
-                            CGuard guard(&_csResponse);
+                            std::lock_guard<std::mutex> lock(_mutexResponse);
                             hwnd = _hwndResponse;
                             msg = _msgResponse;
                             if (_hwndResponse)
@@ -208,11 +203,11 @@ private:
         std::unique_ptr<_TResponse> response;
     };
 
-    CRITICAL_SECTION _cs;
+    std::mutex _mutex;
     int _nextId;
     std::deque<TaskInfo> _queue;
 
-    CRITICAL_SECTION _csResponse;
+    std::mutex _mutexResponse;
     HWND _hwndResponse;
     UINT _msgResponse;
     std::deque<TaskResponse> _responseQueue;

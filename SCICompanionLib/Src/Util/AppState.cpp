@@ -246,8 +246,6 @@ BOOL AppState::InitInstance()
     // visual styles.  Otherwise, any window creation will fail.
     InitCommonControls();
 
-    InitDitherCritSec();
-
     // Do this:
     const sci::Script &kernelScript = GetKernelSignaturesScript(nullptr);
 
@@ -625,8 +623,6 @@ int AppState::ExitInstance()
     _recentViews.clear();
 
     _pPicTemplate = nullptr; // Just in case someone asks us (note: don't need to free)
-
-    DeleteDitherCritSec();
 
     if (!_fNoGdiPlus)
     {
