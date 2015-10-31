@@ -168,6 +168,7 @@ bool CSCOFile::Load(sci::istream &stream)
                         dwSavePos = stream.tellg();
                         stream.seekg(_wOffsetVars);
                         bool fRet = stream.good();
+                        _vars.reserve(wTotalVars);
                         for (WORD i = 0; fRet && i < wTotalVars; i++)
                         {
                             CSCOLocalVariable var;

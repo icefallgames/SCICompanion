@@ -271,6 +271,8 @@ bool CompiledScript::_LoadSCI1_1(const GameFolderHelper &helper, int iScriptNumb
                 (*heapStream) >> terminator;
                 assert(terminator == 0x0000); // Just guessing.
                 std::string aString;
+                _strings.reserve(100);
+                _stringsOffset.reserve(100);
                 do
                 {
                     uint16_t offset = (uint16_t)heapStream->tellg();
@@ -548,6 +550,7 @@ bool CompiledObjectBase::Create_SCI1_1(const CompiledScript &compiledScript, SCI
     if (!_fInstance)
     {
         scriptStream.seekg(varOffset);
+        _propertySelectors.reserve(numVars);
         for (uint16_t i = 0; i < numVars; i++)
         {
             uint16_t propertySelector;
