@@ -127,4 +127,5 @@ private:
     std::vector<IPicDrawPlugin*> _plugins;
 
     bool _isVGA;
+    bool _isContinuousPri;
 };

@@ -23,6 +23,7 @@
 #include "View.h"
 #include "Polygon.h"
 #include "ImageUtil.h"
+#include "format.h"
 
 using namespace std;
 
@@ -393,7 +394,7 @@ void PicWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, std::m
     }
 
     const PicComponent &pic = resource.GetComponent<PicComponent>();
-    SerializeAllCommands(&byteStream, pic.commands, pic.commands.size());
+    SerializeAllCommands_SCI0_SCI1(&byteStream, pic.commands, pic.commands.size());
 }
 
 void AddSetPriorityBarsCommand(sci::istream &byteStream, PicComponent &pic, bool is16BitPri, bool isVGA)
@@ -565,7 +566,7 @@ void PicReadFromSCI0_SCI1(ResourceEntity &resource, sci::istream &byteStream, bo
 
             case PIC_OP_SET_PRIORITY:
                 byteStream >> bColorCode;
-                pic.commands.push_back(PicCommand::CreateSetPriority(bColorCode & 0xf));
+                pic.commands.push_back(PicCommand::CreateSetPriority((int16_t)(bColorCode & 0xf)));
                 break;
 
             case PIC_OP_DISABLE_PRIORITY:
@@ -806,7 +807,7 @@ void PicWriteToVGA11(const ResourceEntity &resource, sci::ostream &byteStream, s
             commands.push_back(command);
         }
     }
-    SerializeAllCommands(&byteStream, commands, commands.size());
+    SerializeAllCommands_SCI0_SCI1(&byteStream, commands, commands.size());
     header.vectorDataSize = byteStream.tellp() - header.vectorDataOffset;
 
     // Now write the actual header:
@@ -884,13 +885,11 @@ void PicReadFromVGA2(ResourceEntity &resource, sci::istream &byteStream, const s
         pic.Size.cx = max(pic.Size.cx, picCel.size.cx);
         pic.Size.cy = max(pic.Size.cy, picCel.size.cy);
 
-        // TODO: SCI32 appears to have arbitrary priority levels
-        // -1000 is the background, 1000 is always in front, and others roughly correspond to the y value of object?
-        // For now, we'll just round them down to SCI1 levels.
-        priority = max(0, priority);
-        priority = min(255, priority);
-        uint8_t sci1Priority = (uint8_t)((0xff & priority) / 16);
-        pic.commands.push_back(PicCommand::CreateSetPriority(sci1Priority));
+        // SCI32 games appear to have arbitrary priority levels
+        // KQ7, GK, QG4: -1000 is the background, 1000 is always in front, and others roughly correspond to the y value of objects, in the range 0-199
+        // SQ6: doesn't seem to have any -1000 or 1000. Question is: does it allow it?
+        // OutputDebugString(fmt::format("pri: {0}\n", priority).c_str());
+        pic.commands.push_back(PicCommand::CreateSetPriority(priority));
 
         pic.commands.push_back(PicCommand());
         pic.commands.back().CreateDrawVisualBitmap(picCel, true);
@@ -1141,6 +1140,37 @@ ResourceEntity *CreatePicResource(SCIVersion version)
     std::unique_ptr<ResourceEntity> pResource = std::make_unique<ResourceEntity>(*ptraits);
     pResource->AddComponent(move(make_unique<PicComponent>(picTraits)));
     return pResource.release();
+}
+
+point16 GameResolutionToScreenResolution(point16 point, NativeResolution resolution)
+{
+    switch (resolution)
+    {
+        case NativeResolution::Res640x400:
+            point.x *= 2;
+            point.y *= 2;
+            break;
+        case NativeResolution::Res640x480:
+            point.x *= 2;
+            point.y = point.y * 12 / 5;
+            break;
+    }
+    return point;
+}
+point16 ScreenResolutionToGameResolution(point16 point, NativeResolution resolution)
+{
+    switch (resolution)
+    {
+        case NativeResolution::Res640x400:
+            point.x /= 2;
+            point.y /= 2;
+            break;
+        case NativeResolution::Res640x480:
+            point.x /= 2;
+            point.y = point.y * 5 / 12;
+            break;
+    }
+    return point;
 }
 
 ResourceEntity *CreateDefaultPicResource(SCIVersion version)

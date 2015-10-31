@@ -36,6 +36,7 @@ PicDrawManager::PicDrawManager(const PicComponent *pPic, const PaletteComponent 
     : _pPicWeak(pPic),
     _paletteVGA{},
     _isVGA(pPalette != nullptr),
+    _isContinuousPri(pPic && pPic->Traits->ContinuousPriority),
     _screenBuffers{}
 {
     _viewPorts = std::make_unique<ViewPort[]>(3);
@@ -88,6 +89,7 @@ void PicDrawManager::_Reset()
 void PicDrawManager::SetPic(const PicComponent *pPic, const PaletteComponent *pPalette)
 {
     _isVGA = (pPalette != nullptr);
+    _isContinuousPri = pPic && pPic->Traits->ContinuousPriority;
     if (pPic != _pPicWeak)
     {
         _Reset();
@@ -115,8 +117,16 @@ HBITMAP PicDrawManager::CreateBitmap(PicScreen screen, PicPosition pos, size16 s
     }
     else
     {
-        colors = g_egaColors;
-        colorCount = ARRAYSIZE(g_egaColors);
+        if (_pPicWeak && _pPicWeak->Traits->ContinuousPriority)
+        {
+            colors = g_continuousPriorityColors;
+            colorCount = ARRAYSIZE(g_continuousPriorityColors);
+        }
+        else
+        {
+            colors = g_egaColors;
+            colorCount = ARRAYSIZE(g_egaColors);
+        }
     }
     return _CreateBitmap(GetScreenData(screen, pos), cx, cy, colors, colorCount, pbmi, pBitsDest);
 }
@@ -138,8 +148,15 @@ void PicDrawManager::GetBitmapInfo(PicScreen screen, BITMAPINFO **ppbmi)
     }
     else
     {
-        // These are always EGA bitmaps
-        *ppbmi = new SCIBitmapInfo(size.cx, size.cy);
+        if ((screen == PicScreen::Priority) && _pPicWeak && _pPicWeak->Traits->ContinuousPriority)
+        {
+            *ppbmi = new SCIBitmapInfo(size.cx, size.cy, g_continuousPriorityColors, ARRAYSIZE(g_continuousPriorityColors));
+        }
+        else
+        {
+            // These are always EGA bitmaps
+            *ppbmi = new SCIBitmapInfo(size.cx, size.cy);
+        }
     }
 }
 
@@ -327,6 +344,7 @@ void PicDrawManager::_RedrawBuffers(ViewPort *pState, PicScreenFlags screenFlags
             GetScreenData(PicScreen::Aux, PicPosition::PrePlugin),
             _isVGA,
             _GetPicSize(),
+            _isContinuousPri
         };
 
         // Now draw!
@@ -358,6 +376,7 @@ void PicDrawManager::_RedrawBuffers(ViewPort *pState, PicScreenFlags screenFlags
                 GetScreenData(PicScreen::Aux, PicPosition::PostPlugin),
                 _isVGA,
                 _GetPicSize(),
+                _isContinuousPri
             };
 
             // OutputDebugString("Drawing plguins\n");
@@ -400,6 +419,7 @@ void PicDrawManager::_RedrawBuffers(ViewPort *pState, PicScreenFlags screenFlags
                 GetScreenData(PicScreen::Aux, PicPosition::Final),
                 _isVGA,
                 _GetPicSize(),
+                _isContinuousPri
             };
 
             // Now draw!
@@ -654,7 +674,8 @@ ptrdiff_t PicDrawManager::PosFromPoint(int x, int y, ptrdiff_t iStart)
         nullptr,
         &pdataAux[0], // Aux always needs to be provided (for fill)
         _isVGA,
-        _GetPicSize()
+        _GetPicSize(),
+        _isContinuousPri
     };
 
     return GetLastChangedSpot(*_pPicWeak, data, state, x, y);

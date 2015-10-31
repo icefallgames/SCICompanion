@@ -48,5 +48,8 @@ struct PicComponent : ResourceComponent
     const PicTraits *Traits;
 };
 
+point16 GameResolutionToScreenResolution(point16 point, NativeResolution resolution);
+point16 ScreenResolutionToGameResolution(point16 point, NativeResolution resolution);
+
 ResourceEntity *CreatePicResource(SCIVersion version);
 ResourceEntity *CreateDefaultPicResource(SCIVersion version);

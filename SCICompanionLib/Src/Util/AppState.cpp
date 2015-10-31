@@ -168,6 +168,12 @@ AppState::AppState(CWinApp *pApp)
         g_vgaPaletteMapping[i] = (uint8_t)i;
     }
 
+    // A greenish palette for continuous priority
+    for (int i = 0; i < 256; i++)
+    {
+        g_continuousPriorityColors[i] = RGBQUADFromCOLORREF(RGB(0, i, 0));
+    }
+
     CelDataClipboardFormat = RegisterClipboardFormat("SCICompanionVGACelData");
 }
 

@@ -573,7 +573,7 @@ void Command_DrawWithOffset(const PicCommand *pCommandIn, PicData *pData, ViewPo
 //
 // Writes the picture out to a file
 // 
-void SerializeAllCommands(sci::ostream *pSerial, const std::vector<PicCommand> &commands, size_t cCommands)
+void SerializeAllCommands_SCI0_SCI1(sci::ostream *pSerial, const std::vector<PicCommand> &commands, size_t cCommands)
 {
     PicCommand commandPrev;
     DRAWSIZE ds = DS_SMALL; // Initial value doesn't matter.
@@ -963,7 +963,8 @@ bool CreatePatternBitmap(CBitmap &bitmapOut, uint8_t patternSize, uint8_t patter
         nullptr,
         aux.get(),
         true,
-        size16(actualSize, actualSize)
+        size16(actualSize, actualSize),
+        false
     };
 
     _DrawPattern<PlotVGA>(&data,
@@ -1980,18 +1981,57 @@ void SetVisualCommand_Serialize(sci::ostream *pSerial, const PicCommand *pComman
     }
 }
 
-
-
-void PicCommand::_CreateSetPriority(uint8_t bPriorityValue)
+void PicCommand::_CreateSetPriority(int16_t bPriorityValue)
 {
     assert(_IsEmpty());
     type = SetPriority;
     setPriority.bPriorityValue = bPriorityValue;
 }
 
+int16_t ColorIndexToContinuousPriorityValue(uint8_t colorIndex)
+{
+    if (colorIndex == 0)
+    {
+        return -1000;
+    }
+    else if (colorIndex == 255)
+    {
+        return 1000;
+    }
+    else
+    {
+        return colorIndex - (255 - 199) / 2;
+    }
+}
+
+uint8_t PriorityValueToColorIndex(bool continuousPriority, int16_t priorityValue)
+{
+    if (continuousPriority)
+    {
+        if (priorityValue < 0)
+        {
+            return 0;
+        }
+        else if (priorityValue >= 200)
+        {
+            return 255;
+        }
+        else
+        {
+            // Map 0 to 199 to a nice visible range.
+            return (uint8_t)(priorityValue + (255 - 199) / 2);
+        }
+    }
+    else
+    {
+        assert(priorityValue >= 0 && priorityValue <= 15);
+        return (uint8_t)priorityValue;
+    }
+}
+
 void SetPriorityCommand_Draw(const PicCommand *pCommand, PicData *pData, ViewPort *pState)
 {
-    pState->bPriorityValue = pCommand->setPriority.bPriorityValue;
+    pState->bPriorityValue = PriorityValueToColorIndex(pData->isContinuousPriority, pCommand->setPriority.bPriorityValue);
     pState->dwDrawEnable |= PicScreenFlags::Priority;
 }
 
@@ -2003,10 +2043,11 @@ void SetPriorityCommand_GetName(const PicCommand *pCommand, TCHAR *pszBuf, size_
 void SetPriorityCommand_Serialize(sci::ostream *pSerial, const PicCommand *pCommand, const PicCommand *pCommandPrev, const PicCommand *pCommandNext, DRAWSIZE dsPrev, DRAWSIZE *pds, SerializedPicState *pState)
 {
     pSerial->WriteByte(PIC_OP_SET_PRIORITY);
-    pSerial->WriteByte(pCommand->setPriority.bPriorityValue);
+    int16_t priValue = pCommand->setPriority.bPriorityValue;
+    // This should not be used for the continuous priority for VGA2 pics.
+    assert(priValue >= 0 && priValue <= 15);
+    pSerial->WriteByte((uint8_t)priValue);
 }
-
-
 
 
 void PicCommand::_CreateSetControl(uint8_t bControlValue)

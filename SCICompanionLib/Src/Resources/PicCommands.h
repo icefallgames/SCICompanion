@@ -103,6 +103,7 @@ struct PicData
     uint8_t *pdataAux;
     bool isVGA;
     size16 size;
+    bool isContinuousPriority;
 };
 
 //
@@ -170,8 +171,8 @@ struct SETVISUALCOMMAND
 
 struct SETPRIORITYCOMMAND
 {
-    uint8_t bPriorityValue;
-}; // 1 byte
+    int16_t bPriorityValue;
+}; // 2 bytes
 
 struct SETCONTROLCOMMAND
 {
@@ -320,7 +321,7 @@ public:
         command._CreateSetVisualVGA(bColor);
         return command;
     }
-    static PicCommand CreateSetPriority(uint8_t bPriorityValue)
+    static PicCommand CreateSetPriority(int16_t bPriorityValue)
     {
         PicCommand command;
         command._CreateSetPriority(bPriorityValue);
@@ -376,7 +377,7 @@ private:
     void _CreateFill(int16_t x, int16_t y);
     void _CreateSetVisual(uint8_t bPaletteNumber, uint8_t bPaletteIndex);
     void _CreateSetVisualVGA(uint8_t bColor);
-    void _CreateSetPriority(uint8_t bPriorityValue);
+    void _CreateSetPriority(int16_t bPriorityValue);
     void _CreateSetControl(uint8_t bControlValue);
     void _CreateDisableVisual();
     void _CreateDisablePriority();
@@ -452,7 +453,8 @@ void SetPriorityBarsCommand_Serialize(sci::ostream *pSerial, const PicCommand *p
 void DrawVisualBitmap_Serialize(sci::ostream *pSerial, const PicCommand *pCommand, const PicCommand *pCommandPrev, const PicCommand *pCommandNext, DRAWSIZE dsPrev, DRAWSIZE *pds, SerializedPicState *pState);
 void CircleCommand_Serialize(sci::ostream *pSerial, const PicCommand *pCommand, const PicCommand *pCommandPrev, const PicCommand *pCommandNext, DRAWSIZE dsPrev, DRAWSIZE *pds, SerializedPicState *pState);
 
-void SerializeAllCommands(sci::ostream *pSerial, const std::vector<PicCommand> &commands, size_t cCommands);
+// Not to be used for SCI2
+void SerializeAllCommands_SCI0_SCI1(sci::ostream *pSerial, const std::vector<PicCommand> &commands, size_t cCommands);
 
 //
 // Special one for post-processing in the image.
@@ -507,6 +509,9 @@ bool CanBeHere(size16 displaySize, const uint8_t *pdataPriority, const CRect &re
 void DrawPatternInRect(int cx, int cy, PicData *pData, int16_t x, int16_t y, EGACOLOR color, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable, const PenStyle *pPenStyle);
 
 bool CreatePatternBitmap(CBitmap &bitmapOut, uint8_t patternSize, uint8_t patternNR, bool rectangle, bool pattern);
+
+int16_t ColorIndexToContinuousPriorityValue(uint8_t colorIndex);
+uint8_t PriorityValueToColorIndex(bool continuousPriority, int16_t priorityValue);
 
 //
 // Each command shall have the following:

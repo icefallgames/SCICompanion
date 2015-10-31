@@ -1388,11 +1388,19 @@ void CPicView::OnCommandUIStatus(CCmdUI *pCmdUI)
     }
     else if (pCmdUI->m_nID == ID_INDICATOR_PRI)
     {
-        int y = min(_ptCurrentHover.y, picSize.cy - 1);
-        pCmdUI->Enable();
-        const ViewPort *pstate = _GetDrawManager().GetViewPort(PicPosition::PostPlugin);
-        StringCchPrintf(szText, ARRAYSIZE(szText), "Pri bar: %2d", PriorityFromY((uint16_t)y, *pstate));
-        pCmdUI->SetText(szText);
+        const PicComponent *pic = _GetEditPic();
+        if (pic && pic->Traits->ContinuousPriority)
+        {
+            pCmdUI->SetText("");
+        }
+        else
+        {
+            int y = min(_ptCurrentHover.y, picSize.cy - 1);
+            pCmdUI->Enable();
+            const ViewPort *pstate = _GetDrawManager().GetViewPort(PicPosition::PostPlugin);
+            StringCchPrintf(szText, ARRAYSIZE(szText), "Pri bar: %2d", PriorityFromY((uint16_t)y, *pstate));
+            pCmdUI->SetText(szText);
+        }
     }
     else if ((_ptCurrentHover.x >= 0) && (_ptCurrentHover.y >= 0) && (_ptCurrentHover.x < picSize.cx) && (_ptCurrentHover.y < picSize.cy))
     {
@@ -1405,7 +1413,15 @@ void CPicView::OnCommandUIStatus(CCmdUI *pCmdUI)
         }
         else if ((pCmdUI->m_nID == ID_INDICATOR_PRICOLOR) && (_mainViewScreen == PicScreen::Priority))
         {
-            StringCchPrintf(szText, ARRAYSIZE(szText), "Priority: %3d", bColor);
+            const PicComponent *pic = _GetEditPic();
+            if (pic && pic->Traits->ContinuousPriority)
+            {
+                StringCchPrintf(szText, ARRAYSIZE(szText), "Priority: %3d", ColorIndexToContinuousPriorityValue(bColor));
+            }
+            else
+            {
+                StringCchPrintf(szText, ARRAYSIZE(szText), "Priority: %3d", bColor);
+            }
         }
         else if ((pCmdUI->m_nID == ID_INDICATOR_PIXELCOLOR) && (_mainViewScreen == PicScreen::Visual))
         {
@@ -1931,7 +1947,7 @@ void CPicView::_DrawEgoCoordinates(CDC *pDC)
         TCHAR szCoords[20];
         if (appState->_fUseBoxEgo)
         {
-            ASSERT(_nFakePri != -1);
+            assert(_nFakePri != -1);
             // The only time we draw anything for "box" egos is if the user set a pri.
             StringCchPrintf(szCoords, ARRAYSIZE(szCoords), TEXT("pri %d"), _nFakePri);
         }
@@ -2537,7 +2553,17 @@ void CPicView::OnDraw(CDC *pDC)
 
 void CPicView::_DrawShowingEgoWorker(const ViewPort &viewPort, uint8_t *pdataVisual, const uint8_t *pdataPriority, PicScreenFlags flags)
 {
-    BYTE bEgoPriority = (_nFakePri) == -1 ? PriorityFromY((uint16_t)_pointEgo.y, viewPort) : (BYTE)_nFakePri;
+    int16_t egoPriority = PriorityFromY((uint16_t)_pointEgo.y, viewPort);
+    if (_GetEditPic() && _GetEditPic()->Traits->ContinuousPriority)
+    {
+        // TODO: Don't use global DefaultResolution, but instead pic resolution
+        point16 position = ScreenResolutionToGameResolution(CPointToPoint(_pointEgo), appState->GetVersion().DefaultResolution);
+        egoPriority = position.y;
+        // Now turn it into something we can compare with the priority screen
+        egoPriority = PriorityValueToColorIndex(true, egoPriority);
+    }
+    
+    uint8_t bEgoPriority = (_nFakePri) == -1 ? (uint8_t)egoPriority : (uint8_t)_nFakePri;
     // Now we need to draw a box (or whatever), but only where
     // the bEgoPriority is equal to or greater than the priority
     // of the priority screen.
