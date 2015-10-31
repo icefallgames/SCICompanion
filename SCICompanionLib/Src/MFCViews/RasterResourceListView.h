@@ -73,6 +73,7 @@ public:
 private:
     virtual void _PrepareLVITEM(LVITEM *pItem);
     virtual void _OnInitListView(int cItems);
+    void _RegenerateImages() override;
 
 // Generated message map functions
     afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);

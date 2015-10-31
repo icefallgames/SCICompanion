@@ -96,6 +96,7 @@ public:
     void OnResourceDeleted(const ResourceBlob *pData) {}
     void OnResourceMapReloaded(bool isInitialLoad) {}
     void OnResourceTypeReloaded(ResourceType iType) {}
+    void OnImagesInvalidated() {}
 
     bool v_IsVGA() override;
     void v_OnUpdatePaletteOptions() override;

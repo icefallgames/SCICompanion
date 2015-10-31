@@ -118,6 +118,11 @@ void CResourceListDoc::OnResourceTypeReloaded(ResourceType iType)
     UpdateAllViews(nullptr, 0, &WrapObject(ResourceMapChangeHint::Type, iType));
 }
 
+void CResourceListDoc::OnImagesInvalidated()
+{
+    UpdateAllViews(nullptr, 0, &WrapHint(ResourceMapChangeHint::Image));
+}
+
 void CResourceListDoc::ShowResourceType(ResourceType iType)
 {
     if (iType != _shownResourceType)

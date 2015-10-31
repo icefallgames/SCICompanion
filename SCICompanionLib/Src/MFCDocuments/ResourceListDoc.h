@@ -35,7 +35,9 @@ enum class ResourceMapChangeHint
     // A particular resource type was changed (outside our control), tell that type to reload. The Object is a ResourceType
     Type = 0x00000400,
     // Show a resource type. The Object is a ResourceType
-    ShowType = 0x00001000
+    ShowType = 0x00001000,
+    // Aspect ratio changed, update imageslist:
+    Image = 0x00002000
 };
 
 DEFINE_ENUM_FLAGS(ResourceMapChangeHint, uint32_t)
@@ -58,6 +60,7 @@ public:
     void OnResourceDeleted(const ResourceBlob *pData);
     void OnResourceMapReloaded(bool isInitialLoad);
     void OnResourceTypeReloaded(ResourceType iType);
+    void OnImagesInvalidated();
 
     void ShowResourceType(ResourceType iType);    
     ResourceType GetShownResourceType() { return _shownResourceType; }

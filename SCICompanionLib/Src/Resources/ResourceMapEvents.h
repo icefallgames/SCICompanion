@@ -27,4 +27,5 @@ public:
     virtual void OnResourceDeleted(const ResourceBlob *pData) = 0;
     virtual void OnResourceMapReloaded(bool isInitialLoad) = 0;
     virtual void OnResourceTypeReloaded(ResourceType iType) = 0;
+    virtual void OnImagesInvalidated() = 0;
 };

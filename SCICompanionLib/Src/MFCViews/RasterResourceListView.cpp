@@ -205,6 +205,17 @@ VIEWWORKRESULT *VIEWWORKRESULT::CreateFromWorkItem(VIEWWORKITEM *pWorkItem)
     return pResult;
 }
 
+void CRasterResourceListCtrl::_RegenerateImages()
+{
+    int count = this->GetItemCount();
+    _OnInitListView(count);
+    // Say that we want to be called back for images.
+    for (int i = 0; i < count; i++)
+    {
+        this->SetItemImage(i, I_IMAGECALLBACK);
+    }
+}
+
 void CRasterResourceListCtrl::OnItemChanged(NMHDR* pNMHDR, LRESULT* pResult)
 {
     NMLISTVIEW *pnmlv = (NMLISTVIEW*)pNMHDR;

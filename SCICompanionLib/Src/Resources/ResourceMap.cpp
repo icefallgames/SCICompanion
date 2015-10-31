@@ -644,6 +644,11 @@ void CResourceMap::PurgeUnnecessaryResources()
     }
 }
 
+void CResourceMap::NotifyToRegenerateImages()
+{
+    for_each(_syncs.begin(), _syncs.end(), mem_fun(&IResourceMapEvents::OnImagesInvalidated));
+}
+
 void CResourceMap::NotifyToReloadResourceType(ResourceType iType)
 {
 	for_each(_syncs.begin(), _syncs.end(), bind2nd(mem_fun(&IResourceMapEvents::OnResourceTypeReloaded), iType));

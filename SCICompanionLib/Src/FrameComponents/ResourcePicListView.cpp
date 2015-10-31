@@ -149,6 +149,16 @@ void CResourcePicListCtrl::OnGetDispInfo(NMHDR* pNMHDR, LRESULT* pResult)
     *pResult = 0; 
 }
 
+void CResourcePicListCtrl::_RegenerateImages()
+{
+    int count = this->GetItemCount();
+    _OnInitListView(count);
+    // Say that we want to be called back for images.
+    for (int i = 0; i < count; i++)
+    {
+        this->SetItemImage(i, I_IMAGECALLBACK);
+    }
+}
 
 void CResourcePicListCtrl::_OnInitListView(int cItems)
 {

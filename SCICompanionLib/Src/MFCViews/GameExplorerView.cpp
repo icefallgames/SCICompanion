@@ -568,7 +568,7 @@ void CGameExplorerView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
             _lists[iType]->OnUpdate(lHint, pHint);
         }
     }
-    else if (IsFlagSet(hint, ResourceMapChangeHint::Change))
+    else if (IsFlagSet(hint, ResourceMapChangeHint::Change | ResourceMapChangeHint::Image))
     {
         // Tell everyone.
         for (int i = 0; i < (int)ARRAYSIZE(_lists); i++)

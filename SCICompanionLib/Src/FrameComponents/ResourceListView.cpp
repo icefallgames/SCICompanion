@@ -928,6 +928,10 @@ void CResourceListCtrl::OnUpdate(LPARAM lHint, CObject *pHint)
         // This will free the memory for pData.
         _DeleteItem(pData);
     }
+    else if (IsFlagSet(hint, ResourceMapChangeHint::Image))
+    {
+        _RegenerateImages();
+    }
 }
 
 ResourceBlob *CResourceListCtrl::_GetResourceForItemMetadataOnly(LPARAM lParam)

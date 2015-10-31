@@ -117,6 +117,7 @@ public:
     void OnResourceDeleted(const ResourceBlob *pData) {}
     void OnResourceMapReloaded(bool isInitialLoad) {}
     void OnResourceTypeReloaded(ResourceType iType) {}
+    void OnImagesInvalidated() {}
 
 // Overrides
 public:

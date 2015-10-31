@@ -579,8 +579,7 @@ BOOL CALLBACK InvalidateChildProc(HWND hwnd, LPARAM lParam)
 void AppState::NotifyChangeAspectRatio()
 {
     // 1. Resource list view needs to regenerate its imagelists. Tell them that they need to reload resources.
-    GetResourceMap().NotifyToReloadResourceType(ResourceType::View);
-    GetResourceMap().NotifyToReloadResourceType(ResourceType::Pic);
+    GetResourceMap().NotifyToRegenerateImages();
     // 2. And then let's just refresh all windows
     CMainFrame *pMainWnd = static_cast<CMainFrame*>(_pApp->m_pMainWnd);
     if (pMainWnd)

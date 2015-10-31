@@ -89,6 +89,7 @@ protected:
     void _InitColumns();
     void _InsertItem(std::unique_ptr<ResourceBlob> pData);
     void _DeleteItem(const ResourceBlob *pData);
+    virtual void _RegenerateImages() {}
     virtual void _PrepareLVITEM(LVITEM *pItem);
     virtual void _OnItemDoubleClick(const ResourceBlob *pData);
     virtual void _OnInitListView(int cItems);

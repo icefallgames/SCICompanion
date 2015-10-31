@@ -72,6 +72,7 @@ public:
 protected:
     virtual void _PrepareLVITEM(LVITEM *pItem);
     virtual void _OnInitListView(int cItems);
+    void _RegenerateImages() override;
 
 // Generated message map functions
 protected:

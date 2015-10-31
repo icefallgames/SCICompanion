@@ -77,6 +77,7 @@ public:
     void AddSync(IResourceMapEvents *pSync);
     void RemoveSync(IResourceMapEvents *pSync);
     void NotifyToReloadResourceType(ResourceType iType);
+    void NotifyToRegenerateImages();
 
     void DeleteResource(const ResourceBlob *pResource);
 
