@@ -75,6 +75,7 @@ extern PaletteComponent g_egaDummyPalette;
 void ReadPalette(PaletteComponent &palette, sci::istream &byteStream);
 void WritePalette(sci::ostream &byteStream, const PaletteComponent &palette);
 void WritePaletteShortForm(sci::ostream &byteStream, const PaletteComponent &palette);
+void WritePaletteSCI2(sci::ostream &byteStream, const PaletteComponent &palette);
 
 HBITMAP CreateBitmapFromPaletteResource(const ResourceEntity *prb, SCIBitmapInfo *pbmi, uint8_t **ppBitsDest, COLORREF *transparentColor = nullptr, const std::vector<const Cel*> *imageCels = nullptr);
 HBITMAP CreateBitmapFromPaletteComponent(const PaletteComponent &palette, SCIBitmapInfo *pbmi, uint8_t **ppBitsDest, COLORREF *transparentColor = nullptr, const std::vector<const Cel*> *imageCels = nullptr);

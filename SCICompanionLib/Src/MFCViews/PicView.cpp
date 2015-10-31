@@ -1393,7 +1393,7 @@ void CPicView::OnCommandUIStatus(CCmdUI *pCmdUI)
         point16 position = ScreenResolutionToGameResolution(screenPosition);
         if (screenPosition != position)
         {
-            StringCchPrintf(szText, ARRAYSIZE(szText), "%3d,%3d (%3d, %3d))", position.x, position.y, screenPosition.x, screenPosition.y);
+            StringCchPrintf(szText, ARRAYSIZE(szText), "%3d,%3d (%3d, %3d)", position.x, position.y, screenPosition.x, screenPosition.y);
         }
         else
         {

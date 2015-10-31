@@ -688,8 +688,8 @@ struct PicCelHeader_VGA11
 struct PicHeader_VGA2
 {
     uint16_t headerSize;
-    uint8_t celCount; // Which screens are present? Unclear.
-    uint8_t unknown1;
+    uint8_t celCount;
+    uint8_t hasCompressedCels;
     uint16_t celHeaderSize;
     uint32_t paletteOffset;
     uint16_t width;
@@ -703,18 +703,78 @@ struct PicCelHeader_VGA2
     uint8_t transparentColor;
     uint8_t compressed;
     uint16_t unknown1;
-    uint32_t unknown2;
-    uint32_t unknown3;
+    uint32_t totalDataSize;
+    uint32_t rleDataSize;
     uint32_t unknown4;
     uint32_t offsetRLE;
     uint32_t offsetLiteral;
-    uint16_t unknown5;
+    uint16_t offsetMysteryData;
     uint16_t unknown6;
     int16_t priority;
     point16 relativePlacement;
 };
 
+struct Temp
+{
+    uint16_t a;
+    uint8_t  b;
+    uint8_t c;
+    uint16_t d;
+};
+
+
 #include <poppack.h>
+
+void PicReadFromVGA11(ResourceEntity &resource, sci::istream &byteStream, const std::map<BlobKey, uint32_t> &propertyBag)
+{
+    PicComponent &pic = resource.GetComponent<PicComponent>();
+    PicHeader_VGA11 header;
+    byteStream >> header;
+
+    assert(header.headerSize == 0x26);
+    static_assert(sizeof(PicHeader_VGA11) == 0x28, "PicHeader wrong size");
+
+    // Let's learn stuff:
+    assert(header.unknown1 == 0x10);
+    assert(header.unknown2 == 0x0);
+    assert(header.unkonwn3 == 0x00a0);
+    assert(header.unknown4 == 0x0046D8F0);  // Some kind of version marker?
+    assert(header.unknown6 == 0x0);
+    assert(header.unknown7 == 0x0);
+    assert(header.unknown8 == 0x0);
+
+    // Priority bands are at offset 40.
+    // Make a priority band set command
+    byteStream.seekg(40);
+    AddSetPriorityBarsCommand(byteStream, pic, true, true);
+
+    if (header.paletteOffset)
+    {
+        resource.AddComponent(move(make_unique<PaletteComponent>()));
+        byteStream.seekg(header.paletteOffset);
+        ReadPalette(resource.GetComponent<PaletteComponent>(), byteStream);
+    }
+
+    if (header.hasCel)
+    {
+        assert(header.paletteOffset != 0);
+        Cel celTemp;
+        byteStream.seekg(header.celHeaderOffset);
+        ReadCelFromVGA11(byteStream, celTemp, true);
+        // "plug it in" to our system by making a drawing command for it, just like SCI 1.0 VGA would do
+        // SCI 1.1 pics can be 200 pixels high:
+        pic.Size.cy = max(DEFAULT_PIC_HEIGHT, celTemp.size.cy);
+        pic.Size.cy = min(sPIC_HEIGHT_MAX, pic.Size.cy);
+        pic.Size.cx = max(DEFAULT_PIC_WIDTH, celTemp.size.cx);
+        pic.Size.cx = min(sPIC_WIDTH_MAX, pic.Size.cx);
+        pic.commands.push_back(PicCommand());
+        pic.commands.back().CreateDrawVisualBitmap(celTemp, true);
+    }
+
+    byteStream.seekg(header.vectorDataOffset);
+    PicReadFromSCI0_SCI1(resource, byteStream, true);
+}
+
 
 void PicWriteToVGA11(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag)
 {
@@ -822,6 +882,15 @@ void ReadPicCelFromVGA2(sci::istream &byteStream, Cel &cel, int16_t &priority, b
     PicCelHeader_VGA2 celHeader;
     byteStream >> celHeader;
 
+    assert(celHeader.transparentColor == 255);
+    assert(celHeader.placement == point16(0, 0));
+    assert(celHeader.compressed == 0 ||
+        (celHeader.compressed == 138 && celHeader.offsetLiteral != 0));
+    assert(celHeader.unknown1 == 0);
+    assert(celHeader.unknown4 == 0);
+    assert(celHeader.offsetMysteryData == 0 || (celHeader.offsetLiteral != 0));
+    assert(celHeader.unknown6 == 0);
+
     cel.size = celHeader.size;
     // Perhaps relativePlacement is affected by mirroring and placement is not?
     // NOTE: ScummVM ignores celHeader.placement, saying it's sometimes garbage.
@@ -867,7 +936,7 @@ void PicReadFromVGA2(ResourceEntity &resource, sci::istream &byteStream, const s
     assert(header.headerSize == 0xe);
     static_assert(sizeof(PicHeader_VGA2) == 0xe, "PicHeader wrong size");
     assert(header.celHeaderSize == sizeof(PicCelHeader_VGA2));
-    assert(header.unknown1 == 0);   // Investigation
+
     // This is defined for some games (SQ6, which is 640x480), but not others like Gabriel Knight.
     // So in addition to this, we'll take into account the individual cels' widths.
     pic.Size = size16(header.width, header.height);
@@ -875,6 +944,14 @@ void PicReadFromVGA2(ResourceEntity &resource, sci::istream &byteStream, const s
     pic.Size.cy = max(pic.Size.cy, 200);
 
     uint32_t base = byteStream.tellg();
+
+
+    // Investigation:
+    byteStream.seekg(base + header.celCount * header.celHeaderSize);
+    Temp temp;
+    byteStream >> temp;
+
+
     for (uint8_t cel = 0; cel < header.celCount; cel++)
     {
         byteStream.seekg(base + cel * header.celHeaderSize);
@@ -901,54 +978,134 @@ void PicReadFromVGA2(ResourceEntity &resource, sci::istream &byteStream, const s
     }
 }
 
-void PicReadFromVGA11(ResourceEntity &resource, sci::istream &byteStream, const std::map<BlobKey, uint32_t> &propertyBag)
+// SCI2 pics looks like:
+// [PicHeader]
+// [n * celHeaders]
+// 6 bytes I don't know
+// [PaletteData]
+// [RLE 0]  // (compressed only)
+// ...
+// [RLE n]
+// [Literal 0]
+// ...
+// [Literal n]
+// [Unknown data 0] // (compressed only) // 8 * number of rows
+// ...
+// [Unknown data n]
+const uint32_t UnknownByteCount = 6;
+const uint8_t CompressionTag = 138;
+void PicWriteToVGA2(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag)
 {
-    PicComponent &pic = resource.GetComponent<PicComponent>();
-    PicHeader_VGA11 header;
-    byteStream >> header;
+    const PicComponent &pic = resource.GetComponent<PicComponent>();
+    const auto &commands = pic.commands;
+    PicHeader_VGA2 header = {};
+    header.celCount = (uint8_t)std::count_if(commands.begin(), commands.end(), [](const PicCommand& command) { return command.type == PicCommand::CommandType::DrawBitmap; });
+    
+    // I can get compressed working ok to load images in SCICompanion or SV.exe, but not Sierra games. That mystery data at the
+    // end of the resource must be related to compression.
+    bool compressed = false;
 
-    assert(header.headerSize == 0x26);
-    static_assert(sizeof(PicHeader_VGA11) == 0x28, "PicHeader wrong size");
-
-    // Let's learn stuff:
-    assert(header.unknown1 == 0x10);
-    assert(header.unknown2 == 0x0);
-    assert(header.unkonwn3 == 0x00a0);
-    assert(header.unknown4 == 0x0046D8F0);  // Some kind of version marker?
-    assert(header.unknown6 == 0x0);
-    assert(header.unknown7 == 0x0);
-    assert(header.unknown8 == 0x0);
-
-    // Priority bands are at offset 40.
-    // Make a priority band set command
-    byteStream.seekg(40);
-    AddSetPriorityBarsCommand(byteStream, pic, true, true);
-
-    if (header.paletteOffset)
+    header.hasCompressedCels = compressed ? 1 : 0;
+    header.headerSize = sizeof(header);
+    header.celHeaderSize = sizeof(PicCelHeader_VGA2);
+    bool is640 = false;
+    if (pic.Size.cx > 320)
     {
-        resource.AddComponent(move(make_unique<PaletteComponent>()));
-        byteStream.seekg(header.paletteOffset);
-        ReadPalette(resource.GetComponent<PaletteComponent>(), byteStream);
+        is640 = true;
+        header.width = pic.Size.cx;
+        header.height = pic.Size.cy;
+    } // Otherwise we leave them at zero. I guess?
+    
+    const PaletteComponent *palette = resource.TryGetComponent<PaletteComponent>();
+    if (palette)
+    {
+        header.paletteOffset = sizeof(header) + (header.celCount * header.celHeaderSize) + UnknownByteCount;
     }
 
-    if (header.hasCel)
+    byteStream << header;
+
+    // We'll come back and write the actual cel headers. For now, just fill in gaps
+    uint32_t offsetOfCelHeaders = byteStream.tellp();
+    byteStream.FillByte(0, (header.celCount * header.celHeaderSize));
+    byteStream.FillByte(0, UnknownByteCount);
+
+    // Then the palette
+    if (palette)
     {
-        assert(header.paletteOffset != 0);
-        Cel celTemp;
-        byteStream.seekg(header.celHeaderOffset);
-        ReadCelFromVGA11(byteStream, celTemp, true);
-        // "plug it in" to our system by making a drawing command for it, just like SCI 1.0 VGA would do
-        // SCI 1.1 pics can be 200 pixels high:
-        pic.Size.cy = max(DEFAULT_PIC_HEIGHT, celTemp.size.cy);
-        pic.Size.cy = min(sPIC_HEIGHT_MAX, pic.Size.cy);
-        pic.Size.cx = max(DEFAULT_PIC_WIDTH, celTemp.size.cx);
-        pic.Size.cx = min(sPIC_WIDTH_MAX, pic.Size.cx);
-        pic.commands.push_back(PicCommand());
-        pic.commands.back().CreateDrawVisualBitmap(celTemp, true);
+        assert(header.paletteOffset == byteStream.tellp());
+        WritePaletteSCI2(byteStream, *palette);
     }
 
-    byteStream.seekg(header.vectorDataOffset);
-    PicReadFromSCI0_SCI1(resource, byteStream, true);
+    // Now write out the actual data. We can write the RLE directly to the byteStream, but we'll need to write the literal to another one temporarily
+    sci::ostream celLiteralData;
+    if (compressed)
+    {
+        celLiteralData.EnsureCapacity(100000); // Something fairly large.
+    }
+    std::vector<PicCelHeader_VGA2> celHeaders;
+    for (auto &command : commands)
+    {
+        if (command.type == PicCommand::CommandType::DrawBitmap)
+        {
+            PicCelHeader_VGA2 celHeader = {};
+            celHeader.compressed = compressed ? CompressionTag : 0;
+            Cel *pCel = command.drawVisualBitmap.pCel;
+            celHeader.size = pCel->size;
+            celHeader.relativePlacement = pCel->placement;
+
+            // TODO: Need to adjust by resolution properly.
+            if (is640)
+            {
+                celHeader.relativePlacement.x /= 2;
+                celHeader.relativePlacement.y = (int16_t)((int)celHeader.relativePlacement.y * 5 / 12);
+            }
+
+            celHeader.priority = command.drawVisualBitmap.priority;
+            celHeader.transparentColor = pCel->TransparentColor;
+            assert(celHeader.transparentColor == 255);          // Required for SCI2, I think
+
+            if (compressed)
+            {
+                celHeader.offsetLiteral = celLiteralData.tellp();   // This will need to be adjusted later
+                celHeader.offsetRLE = byteStream.tellp();
+                celHeader.offsetMysteryData = 0;                    // ? Do we need to write this?
+                WriteImageData(byteStream, *pCel, true, celLiteralData, false);
+                celHeader.rleDataSize = byteStream.tellp() - celHeader.offsetRLE;
+                celHeader.totalDataSize = celHeader.rleDataSize + (celLiteralData.tellp() - celHeader.offsetLiteral);
+            }
+            else
+            {
+                celHeader.offsetRLE = byteStream.tellp();
+                celHeader.totalDataSize = celHeader.size.cx * celHeader.size.cy;
+                // The image is flipped, and without any kind of padding (e.g. stride = size.cx).
+                for (int y = celHeader.size.cy - 1; y >= 0; y--)
+                {
+                    byteStream.WriteBytes(&pCel->Data[y * pCel->GetStride()], celHeader.size.cx);
+                }
+            }
+            celHeaders.push_back(celHeader);
+        }
+    }
+
+    // Offset the offsetLiteral to make it an absolute value
+    uint32_t baseOffsetForLiteral = byteStream.tellp();
+    byteStream.seekp(offsetOfCelHeaders);
+    for (auto &celHeader : celHeaders)
+    {
+        if (compressed)
+        {
+            celHeader.offsetLiteral += baseOffsetForLiteral;
+        }
+        byteStream << celHeader;
+    }
+
+    byteStream.seekp(baseOffsetForLiteral); // Back to the end
+    assert(byteStream.GetDataSize() == baseOffsetForLiteral);
+    if (compressed)
+    {
+        sci::transfer(sci::istream_from_ostream(celLiteralData), byteStream, celLiteralData.GetDataSize());
+    }
+    // Now just those pesky random mystery data.
 }
 
 bool PicValidateEGA(const ResourceEntity &resource)
@@ -1078,37 +1235,37 @@ PicTraits picTraitsVGA_2 =
 ResourceTraits picResourceTraitsEGA =
 {
     ResourceType::Pic,
-    &PicReadFromEGA,
-    &PicWriteTo,
-    &PicValidateEGA,
+    PicReadFromEGA,
+    PicWriteTo,
+    PicValidateEGA,
     nullptr
 };
 
 ResourceTraits picResourceTraitsVGA =
 {
     ResourceType::Pic,
-    &PicReadFromVGA,
-    &PicWriteTo,
-    &PicValidateVGA,
-    &PicWritePolygons,
+    PicReadFromVGA,
+    PicWriteTo,
+    PicValidateVGA,
+    PicWritePolygons,
 };
 
 ResourceTraits picResourceTraitsVGA11 =
 {
     ResourceType::Pic,
-    &PicReadFromVGA11,
+    PicReadFromVGA11,
     PicWriteToVGA11,
-    &PicValidateVGA,
-    &PicWritePolygons,
+    PicValidateVGA,
+    PicWritePolygons,
 };
 
 ResourceTraits picResourceTraitsVGA2 =
 {
     ResourceType::Pic,
-    &PicReadFromVGA2,
-    nullptr,
-    &NoValidationFunc,
-    &PicWritePolygons,
+    PicReadFromVGA2,
+    PicWriteToVGA2,
+    NoValidationFunc,
+    PicWritePolygons,
 };
 
 PicComponent::PicComponent() : PicComponent(&picTraitsEGA) {}
@@ -1172,6 +1329,24 @@ ResourceEntity *CreateDefaultPicResource(SCIVersion version)
         PicCommand setPriBarsCommand;
         setPriBarsCommand.CreateSetPriorityBars(g_defaultPriBands16Bit, pic.Traits->SixteenBitPri, pic.Traits->IsVGA);
         pic.commands.insert(pic.commands.begin(), setPriBarsCommand);
+    }
+    else if (version.PicFormat == PicFormat::VGA2)
+    {
+        switch (version.DefaultResolution)
+        {
+            case NativeResolution::Res320x200:
+                pic.Size = size16(320, 200);
+                break;
+            case NativeResolution::Res640x400:
+                pic.Size = size16(640, 400);
+                break;
+            case NativeResolution::Res640x480:
+                pic.Size = size16(640, 480);
+                break;
+            default:
+                assert(false);
+                break;
+        }
     }
 
     // Finally, turn off the screens.

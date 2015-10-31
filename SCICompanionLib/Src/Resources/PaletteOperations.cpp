@@ -330,6 +330,28 @@ void WritePaletteShortForm(sci::ostream &byteStream, const PaletteComponent &pal
     }
 }
 
+// REVIEW: This is still a work in process, and doesn't work yet.
+void WritePaletteSCI2(sci::ostream &byteStream, const PaletteComponent &palette)
+{
+    PaletteHeader header = { 0 };
+    header.marker = 0xe; // Not sure, but it seems to be.
+    header.always1 = 1;
+    header.palColorStart = 0;
+    header.palColorCount = 255;
+    header.unknown7 = 1;
+    header.palFormat = SCI_PAL_FORMAT_VARIABLE;
+    header.offsetToEndOfPaletteData = ((header.palFormat == SCI_PAL_FORMAT_VARIABLE) ? 4 : 3) * header.palColorCount + 22;
+    byteStream << header;
+
+    for (uint16_t i = header.palColorStart; i < header.palColorCount; i++)
+    {
+        byteStream.WriteByte(palette.Colors[i].rgbReserved);
+        byteStream.WriteByte(palette.Colors[i].rgbRed);
+        byteStream.WriteByte(palette.Colors[i].rgbGreen);
+        byteStream.WriteByte(palette.Colors[i].rgbBlue);
+    }
+}
+
 void ReadPalette(PaletteComponent &palette, sci::istream &byteStream)
 {
     uint32_t startPosition = byteStream.tellg();

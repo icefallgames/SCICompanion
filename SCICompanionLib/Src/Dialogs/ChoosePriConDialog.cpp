@@ -17,8 +17,7 @@
 #include "stdafx.h"
 #include "AppState.h"
 #include "ChoosePriConDialog.h"
-
-
+#include "PaletteOperations.h"
 
 // CChoosePriConDialog dialog
 

@@ -17,6 +17,7 @@
 #include "stdafx.h"
 #include "AppState.h"
 #include "ChooseColorDialogVGA.h"
+#include "PaletteOperations.h"
 
 // CChooseColorDialogVGA dialog
 

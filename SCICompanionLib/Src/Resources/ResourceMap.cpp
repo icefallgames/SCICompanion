@@ -205,7 +205,8 @@ CResourceMap::CResourceMap()
 	// This is a pointer because we don't want a dependency on it in the header file.
 	_classBrowser = std::make_unique<SCIClassBrowser>();
     _deferredResources.reserve(300);            // So we don't need to resize much it when adding
-    memset(_emptyPalette.Colors, 0, sizeof(_emptyPalette.Colors));
+    _emptyPalette = std::make_unique<PaletteComponent>();
+    memset(_emptyPalette->Colors, 0, sizeof(_emptyPalette->Colors));
 }
 
 CResourceMap::~CResourceMap()
@@ -1001,7 +1002,7 @@ std::unique_ptr<PaletteComponent> CResourceMap::GetMergedPalette(const ResourceE
     const PaletteComponent *paletteEmbedded = resource.TryGetComponent<PaletteComponent>();
     if (!paletteEmbedded)
     {
-        paletteEmbedded = &_emptyPalette;
+        paletteEmbedded = _emptyPalette.get();
     }
 
     // Clone the embedded palette first - REVIEW: make_unique arg forwarding doesn't work with copy constructor. No object copy happens.

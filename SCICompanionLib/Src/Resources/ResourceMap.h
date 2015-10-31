@@ -13,7 +13,6 @@
 ***************************************************************************/
 
 #pragma once
-#include "PaletteOperations.h"
 #include "GameFolderHelper.h"
 #include "CompiledScript.h"
 #include "ResourceEntity.h"
@@ -23,6 +22,7 @@ class RunLogic;
 class DebuggerThread;
 struct Vocab000;
 struct AudioMapComponent;
+struct PaletteComponent;
 class SCIClassBrowser;
 class MessageSource;
 class MessageHeaderFile;
@@ -154,7 +154,7 @@ private:
     // Useful resources to cache
     std::unique_ptr<ResourceEntity> _pVocab000;
     std::unique_ptr<ResourceEntity> _pPalette999;
-    PaletteComponent _emptyPalette;
+    std::unique_ptr<PaletteComponent> _emptyPalette;
     std::vector<int> _paletteList;
     bool _paletteListNeedsUpdate;
 

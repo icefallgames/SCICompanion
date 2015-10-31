@@ -19,6 +19,7 @@
 #include "PhonemeMap.h"
 #include "ExtPaintManager.h"
 #include "format.h"
+#include "PaletteOperations.h"
 
 using namespace std;
 
