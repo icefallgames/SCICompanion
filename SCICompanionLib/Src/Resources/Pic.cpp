@@ -867,7 +867,7 @@ void PicReadFromVGA2(ResourceEntity &resource, sci::istream &byteStream, const s
     assert(header.headerSize == 0xe);
     static_assert(sizeof(PicHeader_VGA2) == 0xe, "PicHeader wrong size");
     assert(header.celHeaderSize == sizeof(PicCelHeader_VGA2));
-
+    assert(header.unknown1 == 0);   // Investigation
     // This is defined for some games (SQ6, which is 640x480), but not others like Gabriel Knight.
     // So in addition to this, we'll take into account the individual cels' widths.
     pic.Size = size16(header.width, header.height);

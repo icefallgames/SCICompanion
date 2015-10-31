@@ -1466,16 +1466,10 @@ int g_commands = 0;
 
 
 std::mutex g_mutexDither;
-bool g_fDitherCritSecInited = false;
 
 template<typename _TFormat>
 void _DitherFill(PicData *pdata, int16_t x, int16_t y, typename  _TFormat::PixelType color, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable)
 {
-    if (!g_fDitherCritSecInited)
-    {
-        return;
-    }
-
     PicScreenFlags auxSet = _GetAuxSet<_TFormat>(color, bPriorityValue, bControlValue, dwDrawEnable);
     dwDrawEnable = auxSet;
 
