@@ -94,7 +94,7 @@ namespace sci
 
     void ostream::seekp(uint32_t newPosition)
     {
-        if (newPosition >= _cbSizeValid)
+        if (newPosition > _cbSizeValid)
         {
             throw std::exception("Attempt to seek past end of stream.");
         }
