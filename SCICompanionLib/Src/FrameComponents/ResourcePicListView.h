@@ -84,6 +84,6 @@ private:
     HIMAGELIST _himlPics;
 
     int _iTokenImageIndex;
-    QueueItems<PICWORKITEM, PICWORKRESULT> *_pQueue;
+    std::shared_ptr<QueueItems<PICWORKITEM, PICWORKRESULT>> _pQueue;
 };
 

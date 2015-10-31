@@ -118,13 +118,13 @@ struct SCIVersion
     bool operator==(const SCIVersion &src);
     bool operator!=(const SCIVersion &src);
 
-    bool IsExportWide()
+    bool IsExportWide() const
     {
         // SCI1 games had 32bit exports instead of 16bit.
         return lofsaOpcodeIsAbsolute && !SeparateHeapResources;
     }
 
-    int GetMaximumResourceNumber()
+    int GetMaximumResourceNumber() const
     {
         // REVIEW: Not sure about these numbers.
         return SeparateHeapResources ? 16384 : 999;

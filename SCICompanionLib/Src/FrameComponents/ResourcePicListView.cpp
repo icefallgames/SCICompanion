@@ -48,9 +48,12 @@ END_MESSAGE_MAP()
 
 // CResourcePicListCtrl construction/destruction
 
+const static int DefaultPicWidth = 320 / 2;
+
 int _GetPicBitmapHeight()
 {
-    return appState->AspectRatioY(DEFAULT_PIC_HEIGHT) / 2;
+    int defaultPicHeight = (appState->GetVersion().DefaultResolution == NativeResolution::Res640x480) ? 120 : 100;
+    return appState->AspectRatioY(defaultPicHeight);
 }
 
 CResourcePicListCtrl::CResourcePicListCtrl()
@@ -65,7 +68,6 @@ CResourcePicListCtrl::~CResourcePicListCtrl()
     if (_pQueue)
     {
         _pQueue->Abort();
-        _pQueue->Release();
     }
 }
 
@@ -74,7 +76,7 @@ PICWORKRESULT *PICWORKRESULT::CreateFromWorkItem(PICWORKITEM *pWorkItem)
     HBITMAP hbm = NULL;
     std::unique_ptr<ResourceEntity> picResource = CreateResourceFromResourceData(pWorkItem->blob);
     // Draw this pic!
-    hbm = GetPicBitmap(PicScreen::Visual, picResource->GetComponent<PicComponent>(), picResource->TryGetComponent<PaletteComponent>(), DEFAULT_PIC_WIDTH / 2, _GetPicBitmapHeight());
+    hbm = GetPicBitmap(PicScreen::Visual, picResource->GetComponent<PicComponent>(), picResource->TryGetComponent<PaletteComponent>(), DefaultPicWidth, _GetPicBitmapHeight());
 
     PICWORKRESULT *pResult = new PICWORKRESULT;
     if (pResult)
@@ -161,7 +163,7 @@ void CResourcePicListCtrl::_OnInitListView(int cItems)
 
     // Note: this color depth must match that which we get back from the pic resource 
     // Also: ILC_MASK must be specified, because of the overlay
-    _himlPics = ImageList_Create(DEFAULT_PIC_WIDTH / 2, _GetPicBitmapHeight(), ILC_COLOR24 | ILC_MASK, cItems, 30);
+    _himlPics = ImageList_Create(DefaultPicWidth, _GetPicBitmapHeight(), ILC_COLOR24 | ILC_MASK, cItems, 30);
     
     if (_himlPics)
     {
@@ -173,7 +175,7 @@ void CResourcePicListCtrl::_OnInitListView(int cItems)
         // pTemp is a temporary object that we don't need to delete.
 
         // Add a token image.  Create an 8bpp bitmap that is blank.
-        HBITMAP hbm = CreateBitmap(DEFAULT_PIC_WIDTH / 2, _GetPicBitmapHeight(), 1, 8, NULL);
+        HBITMAP hbm = CreateBitmap(DefaultPicWidth, _GetPicBitmapHeight(), 1, 8, NULL);
         if (hbm)
         {
             _iTokenImageIndex = ImageList_Add(_himlPics, hbm, NULL);
@@ -194,15 +196,13 @@ void CResourcePicListCtrl::_OnInitListView(int cItems)
     if (_pQueue)
     {
         _pQueue->Abort();
-        _pQueue->Release();
     }
-    _pQueue = new QueueItems<PICWORKITEM, PICWORKRESULT>(GetSafeHwnd(), UWM_PICREADY);
+    _pQueue = std::make_shared<QueueItems<PICWORKITEM, PICWORKRESULT>>(GetSafeHwnd(), UWM_PICREADY);
     if (_pQueue)
     {
         if (!_pQueue->Init())
         {
-            _pQueue->Release();
-            _pQueue = NULL;
+            _pQueue = nullptr;
         }
     }
 

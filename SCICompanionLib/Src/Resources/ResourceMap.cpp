@@ -887,9 +887,14 @@ HRESULT CResourceMap::GetGameIni(PTSTR pszBuf, size_t cchBuf)
     return hr;
 }
 
-SCIVersion &CResourceMap::GetSCIVersion()
+const SCIVersion &CResourceMap::GetSCIVersion() const
 {
     return _gameFolderHelper.Version;
+}
+
+void CResourceMap::SetVersion(const SCIVersion &version)
+{
+    _gameFolderHelper.Version = version;
 }
 
 //

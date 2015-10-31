@@ -14,7 +14,7 @@
 #pragma once
 
 #include <thread>
-
+#include <mutex>
 //
 // This template implements a worker thread that can be used to perform background tasks.
 //
@@ -25,30 +25,14 @@
 //
 
 //
-// Don't delete QueueItems.  Use Release.  The proper sequence for cleaning up QueueItems on
-// the UI thread is:
+// QueueItems should be held in a std::shared_ptr.
+// The UI thread should call Abort when done:
 //  _pQueue->Abort();
-//  _pQueue->Release();
 //
-
 template <class TITEM, class TRESULT>
-class QueueItems
+class QueueItems : public std::enable_shared_from_this<QueueItems<TITEM, TRESULT>>
 {
 public:
-    void AddRef()
-    {
-        InterlockedIncrement(&_cRef);
-    }
-
-    void Release()
-    {
-        LONG cRef = InterlockedDecrement(&_cRef);
-        if (cRef == 0)
-        {
-            delete this;
-        }
-    }
-
     //
     // uMessage is posted to hwndView when there are (potentially multiple) results ready.
     //
@@ -59,7 +43,6 @@ public:
         _cRef = 1;
         _fAbort = FALSE;
         _hEventWorkAvailable = NULL;
-        InitializeCriticalSection(&_cs);
     }
 
     ~QueueItems()
@@ -69,12 +52,11 @@ public:
         // Go through any items in workItems and delete them.
         // Go through any items in workResults and delete them
         {
-            CGuard guard(&this->_cs);
+            std::lock_guard<std::mutex> lock(_mutex);
             _workItems.clear();
             _workResults.clear();
         }
 
-        DeleteCriticalSection(&_cs);
         CloseHandle(_hEventWorkAvailable);
     }
 
@@ -84,16 +66,14 @@ public:
         _hEventWorkAvailable = CreateEvent(nullptr, TRUE, FALSE, nullptr);
         if (_hEventWorkAvailable)
         {
-            AddRef(); // For the worker thread.
             try
             {
-                _thread = std::thread(s_ThreadWorker, this);
+                _thread = std::thread(s_ThreadWorker, this->shared_from_this());
                 _thread.detach();
                 fRet = true;
             }
             catch (std::system_error)
             {
-                Release(); // (for worker thread)
             }
         }
         return fRet;
@@ -102,7 +82,7 @@ public:
     void GiveWorkItem(std::unique_ptr<TITEM> pWorkItem)
     {
         // Insert things at the beginning of the list.
-        CGuard guard(&this->_cs);
+        std::lock_guard<std::mutex> lock(_mutex);
         _workItems.push_front(std::move(pWorkItem));
         SetEvent(_hEventWorkAvailable);
     }
@@ -110,7 +90,7 @@ public:
     bool TakeWorkResult(TRESULT **ppWorkResult)
     {
         bool fRet = false;
-        CGuard guard(&this->_cs);
+        std::lock_guard<std::mutex> lock(_mutex);
         if (!_workResults.empty())
         {
             fRet = true;
@@ -122,14 +102,14 @@ public:
 
     void Abort()
     {
-        CGuard guard(&this->_cs);
+        std::lock_guard<std::mutex> lock(_mutex);
         _fAbort = TRUE;
         SetEvent(_hEventWorkAvailable);
     }
 
     bool HasAborted()
     {
-        CGuard guard(&this->_cs);
+        std::lock_guard<std::mutex> lock(_mutex);
         return _fAbort;
     }
 
@@ -137,7 +117,7 @@ private:
     bool _TakeWorkItem(TITEM **ppWorkItem)
     {
         bool fRet = false;
-        CGuard guard(&this->_cs);
+        std::lock_guard<std::mutex> lock(_mutex);
         if (!_workItems.empty())
         {
             fRet = true;
@@ -155,7 +135,7 @@ private:
     void _GiveWorkResult(std::unique_ptr<TRESULT> pWorkResult)
     {
         {
-            CGuard guard(&this->_cs);
+            std::lock_guard<std::mutex> lock(_mutex);
             _workResults.push_back(std::move(pWorkResult));
         }
         PostMessage(_hwndView, _uResultReadyMessage, 0, 0);
@@ -188,18 +168,16 @@ private:
         }
     }
 
-    static UINT s_ThreadWorker(void *pParam)
+    static UINT s_ThreadWorker(std::shared_ptr<QueueItems<TITEM, TRESULT>> me)
     {
-        QueueItems *pQueueItems = reinterpret_cast<QueueItems*>(pParam);
-        pQueueItems->_ThreadWorker();
-        pQueueItems->Release();
+        me->_ThreadWorker();
         return 0;
     }
 
     LONG _cRef;
     HWND _hwndView;
     UINT _uResultReadyMessage;
-    CRITICAL_SECTION _cs;
+    std::mutex _mutex;
     HANDLE _hEventWorkAvailable;
 
     std::thread _thread;

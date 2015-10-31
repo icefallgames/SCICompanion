@@ -179,9 +179,9 @@ AppState::AppState(CWinApp *pApp)
 
 int AppState::AspectRatioY(int value) const
 {
-    if (_fUseOriginalAspectRatio)
+    if (_fUseOriginalAspectRatio && (GetVersion().DefaultResolution != NativeResolution::Res640x480))
     {
-        // Multiply by 1.2 to achieve original Sierra aspect ratio
+        // If using one of the 8:5 aspect ratios (320x200, 640x400), multiply by 1.2 to achieve original Sierra aspect ratio
         return value * 12 / 10;
     }
     else

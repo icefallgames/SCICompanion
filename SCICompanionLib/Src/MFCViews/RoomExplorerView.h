@@ -114,7 +114,7 @@ public:
     virtual void OnLButtonDown(UINT nFlags, CPoint point);
     virtual void OnLButtonUp(UINT nFlags, CPoint point);
 
-    QueueItems<CRoomExplorerWorkItem, CRoomExplorerWorkResult> *GetQueue() { return _pQueue; }
+    std::shared_ptr<QueueItems<CRoomExplorerWorkItem, CRoomExplorerWorkResult>> GetQueue() { return _pQueue; }
 
     void InvalidateGridRect(LPRECT prc);
     int GetZoom() { return _iZoom; }
@@ -200,7 +200,7 @@ private:
     BOOL _fMouseButtonDown;
 
     CRoomExplorerGrid _grid;
-    QueueItems<CRoomExplorerWorkItem, CRoomExplorerWorkResult> *_pQueue;
+    std::shared_ptr<QueueItems<CRoomExplorerWorkItem, CRoomExplorerWorkResult>> _pQueue;
 
     int _iMoveDirection;
 };
@@ -209,7 +209,7 @@ class CRoomExplorerNode
 {
 public:
     CRoomExplorerNode();
-    void OnDraw(CDC *pDC, CRect *prc, QueueItems<CRoomExplorerWorkItem, CRoomExplorerWorkResult> *pQueue);
+    void OnDraw(CDC *pDC, CRect *prc, std::shared_ptr<QueueItems<CRoomExplorerWorkItem, CRoomExplorerWorkResult>> pQueue);
 
 #ifdef USE_COMPILED_INFO
     void Init(const CRoomExplorerView::CRoomExplorerGrid *pGrid, GlobalCompiledScriptLookups &globalLookups, CompiledScript &compiledScript, CompiledObjectBase &classDefinition, const ImportantSelectors &importantSelectors, uint16_t viewSpeciesIndex);

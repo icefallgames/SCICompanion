@@ -98,7 +98,8 @@ public:
     bool IsGameLoaded() { return !_gameFolderHelper.GameFolder.empty(); }
     HRESULT GetGameIni(PTSTR pszBuf, size_t cchBuf);
     HRESULT GetScriptNumber(ScriptId script, WORD &wScript);
-    SCIVersion &GetSCIVersion();
+    const SCIVersion &GetSCIVersion() const;
+    void SetVersion(const SCIVersion &version);
     const GameFolderHelper &Helper() { return _gameFolderHelper; }
     const Vocab000 *GetVocab000();
     const PaletteComponent *GetPalette999();

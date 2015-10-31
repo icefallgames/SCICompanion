@@ -19,7 +19,7 @@ Broadly, there are these versions of the SCI interpreter:
 - **SCI0** was used for games like King's Quest 4 and Space Quest 3. It supports 320x200 EGA graphics, MIDI sound/music, and the player enters text commands to control the game.
 - SCI1 was used for games such as King's Quest 5 and Space Quest 4. It supports 320x200 VGA graphics and a point-and-click interface, as well as digital sound effects.
 - **SCI1.1** was used for games such as Leisure Suit Larry 6, King's Quest 6 and Space Quest 5. It has some improvements over SCI1, including support for actor speech.
-- SCI2 was used for games such as Gabriel Knight and King's Quest 7. It is a 32-bit engine that supports 640x480. |scicomp| does not support this version of SCI.
+- SCI2 was used for games such as Gabriel Knight and King's Quest 7. It is a 32-bit engine that supports 640x480. |scicomp| offers some support for this version.
 
 The versions marked in bold above are those for which |scicomp| supports creating a new game.
 

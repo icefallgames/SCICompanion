@@ -128,11 +128,22 @@ void PicPreviewer::OnUpdatePaletteButton(CCmdUI *pCmdUI)
     pCmdUI->SetCheck(paletteNumber == _paletteNumber);
 }
 
+void AdjustPicRectBasedOnDefaultResolution(NativeResolution resolution, CRect &rc)
+{
+    if (resolution == NativeResolution::Res640x480)
+    {
+        int shrinkBy = rc.Width() - rc.Width() * 5 / 6;
+        rc.left += shrinkBy / 2;
+        rc.right -= shrinkBy - (shrinkBy / 2);
+    }
+}
+
 void PicPreviewer::_ResetVisualBitmap(const PicComponent &pic, PicDrawManager &pdm)
 {
     CRect rc;
     m_wndVisual.GetClientRect(&rc);
     CBitmap bitmap;
+    AdjustPicRectBasedOnDefaultResolution(appState->GetVersion().DefaultResolution, rc);
     bitmap.Attach(pdm.CreateBitmap(PicScreen::Visual, PicPosition::Final, pic.Size, rc.Width(), rc.Height()));
     m_wndVisual.FromBitmap((HBITMAP)bitmap, rc.Width(), rc.Height(), true);
 }
@@ -159,6 +170,7 @@ void PicPreviewer::SetResource(const ResourceBlob &blob)
     // Do the priority and controls too.
     CRect rc;
     m_wndVisual.GetClientRect(&rc);
+    AdjustPicRectBasedOnDefaultResolution(appState->GetVersion().DefaultResolution, rc);
     CBitmap bitmapP;
     bitmapP.Attach(pdm.CreateBitmap(PicScreen::Priority, PicPosition::Final, pic.Size, rc.Width(), rc.Height()));
     m_wndPriority.FromBitmap((HBITMAP)bitmapP, rc.Width(), rc.Height(), true);

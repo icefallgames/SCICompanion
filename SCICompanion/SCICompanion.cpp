@@ -719,9 +719,11 @@ void SCICompanionApp::OnCloseGame()
 
 void SCICompanionApp::OnGameVersionDetection()
 {
-    CGameVersionDialog dialog(appState->GetVersion());
+    SCIVersion version = appState->GetVersion();
+    CGameVersionDialog dialog(version);
     if (IDOK == dialog.DoModal())
     {
+        appState->GetResourceMap().SetVersion(version);
         // Close and re-open
         std::string gameFolder = appState->GetResourceMap().GetGameFolder();
         OnCloseGame();

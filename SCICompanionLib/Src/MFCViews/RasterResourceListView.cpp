@@ -62,8 +62,11 @@ CRasterResourceListCtrl::CRasterResourceListCtrl()
 
 CRasterResourceListCtrl::~CRasterResourceListCtrl()
 {
+    if (_pQueue)
+    {
+        _pQueue->Abort();
+    }
 }
-
 
 void _StretchForAspectRatio(CWnd *pwnd, CBitmap &bitmap)
 {
@@ -302,14 +305,12 @@ void CRasterResourceListCtrl::_OnInitListView(int cItems)
     if (_pQueue)
     {
         _pQueue->Abort();
-        _pQueue->Release();
     }
-    _pQueue = std::make_unique<QueueItems<VIEWWORKITEM, VIEWWORKRESULT>>(GetSafeHwnd(), UWM_IMAGEREADY);
+    _pQueue = std::make_shared<QueueItems<VIEWWORKITEM, VIEWWORKRESULT>>(GetSafeHwnd(), UWM_IMAGEREADY);
     if (_pQueue)
     {
         if (!_pQueue->Init())
         {
-            _pQueue->Release();
             _pQueue = nullptr;
         }
     }

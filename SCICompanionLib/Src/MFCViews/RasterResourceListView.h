@@ -83,7 +83,7 @@ private:
     HIMAGELIST _himlPics;
     int _iCorruptBitmapIndex;
     int _iTokenImageIndex;
-    std::unique_ptr<QueueItems<VIEWWORKITEM, VIEWWORKRESULT>> _pQueue;
+    std::shared_ptr<QueueItems<VIEWWORKITEM, VIEWWORKRESULT>> _pQueue;
     int _iLastImageReadyHint;
 };
 

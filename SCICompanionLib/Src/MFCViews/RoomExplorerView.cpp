@@ -399,7 +399,7 @@ void CRoomExplorerNode::_ResizeBitmap(CSize size)
     _sizeScaled = size;
 }
 
-void CRoomExplorerNode::OnDraw(CDC *pDC, CRect *prc, QueueItems<CRoomExplorerWorkItem, CRoomExplorerWorkResult> *pQueue)
+void CRoomExplorerNode::OnDraw(CDC *pDC, CRect *prc, std::shared_ptr<QueueItems<CRoomExplorerWorkItem, CRoomExplorerWorkResult>> pQueue)
 {
     CRect rcClip;
     pDC->GetClipBox(&rcClip);
@@ -927,8 +927,8 @@ CRoomExplorerView::CRoomExplorerView()
     _iZoom = 3;
 
     _fDoubleBuf = FALSE;
-    _pbitmapDoubleBuf = NULL;
-    _pQueue = NULL;
+    _pbitmapDoubleBuf = nullptr;
+    _pQueue = nullptr;
     _fMoveTimer = FALSE;
     _fInCapture = FALSE;
     _grid.SetRoomExplorer(this);
@@ -949,7 +949,6 @@ CRoomExplorerView::~CRoomExplorerView()
     if (_pQueue)
     {
         _pQueue->Abort();
-        _pQueue->Release();
     }
 }
 
@@ -987,12 +986,11 @@ void CRoomExplorerView::OnDraw(CDC *pDC)
 {
     if (_pQueue == nullptr)
     {
-        _pQueue = new QueueItems<CRoomExplorerWorkItem, CRoomExplorerWorkResult>(this->GetSafeHwnd(), UWM_ROOMBMPREADY);
+        _pQueue = std::make_shared<QueueItems<CRoomExplorerWorkItem, CRoomExplorerWorkResult>>(this->GetSafeHwnd(), UWM_ROOMBMPREADY);
         if (_pQueue)
         {
             if (!_pQueue->Init())
             {
-                _pQueue->Release();
                 _pQueue = nullptr;
             }
         }

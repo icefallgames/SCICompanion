@@ -86,7 +86,7 @@ public:
     void SetScriptFrame(CFrameWnd *pScriptFrame) { _pScriptFrame = pScriptFrame; }
     DWORD CreateUniqueRuntimeID();
     CResourceMap &GetResourceMap() { return _resourceMap; }
-    SCIVersion &GetVersion() { return _resourceMap.GetSCIVersion(); }
+    const SCIVersion &GetVersion() const { return _resourceMap.GetSCIVersion(); }
     UINT GetCommandClipboardFormat() { return _uClipboardFormat; }
     CDocument* OpenDocumentFile(PCTSTR lpszFileName);
     int GetSelectedViewResourceNumber();
