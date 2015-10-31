@@ -209,12 +209,14 @@ struct SETPRIORITYBARSCOMMAND_SCI1
 struct DRAWVISUALBITMAPCOMMAND_SCI1
 {
     Cel *pCel;
+    int16_t priority;   // for SCI2, otherwise it's 0xffff
     bool mirrored;
     bool isVGA;
 };  // 8 bytes
 
 #define SCI1_PALETTE_LENGTH 256
 
+extern const int16_t InvalidPri;
 
 //
 // PicCommand
@@ -364,7 +366,7 @@ public:
         return command;
     }
     void CreateSetPriorityBars(const uint16_t *pBars, bool is16Bit, bool isVGA);
-    void CreateDrawVisualBitmap(const Cel &cel, bool isVGA);
+    void CreateDrawVisualBitmap(const Cel &cel, bool isVGA, int16_t priority = InvalidPri);
     void CreateCircle(int16_t xFrom, int16_t yFrom, int16_t xTo, int16_t yTo);
 
     // Drawing functions, etc...

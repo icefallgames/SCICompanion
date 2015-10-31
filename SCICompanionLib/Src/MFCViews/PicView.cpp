@@ -1383,7 +1383,16 @@ void CPicView::OnCommandUIStatus(CCmdUI *pCmdUI)
         int x = min(_ptCurrentHover.x, picSize.cx - 1);
         int y = min(_ptCurrentHover.y, picSize.cy - 1);
         pCmdUI->Enable(); 
-        StringCchPrintf(szText, ARRAYSIZE(szText), "%3d,%3d", x, y);
+        point16 screenPosition = point16(x, y);
+        point16 position = ScreenResolutionToGameResolution(screenPosition, appState->GetVersion().DefaultResolution);
+        if (screenPosition != position)
+        {
+            StringCchPrintf(szText, ARRAYSIZE(szText), "%3d,%3d (%3d, %3d))", position.x, position.y, screenPosition.x, screenPosition.y);
+        }
+        else
+        {
+            StringCchPrintf(szText, ARRAYSIZE(szText), "%3d,%3d", screenPosition.x, screenPosition.y);
+        }
         pCmdUI->SetText(szText);
     }
     else if (pCmdUI->m_nID == ID_INDICATOR_PRI)
@@ -1506,7 +1515,7 @@ void CPicView::OnUpdateShowPaletteControl(CCmdUI *pCmdUI)
 void CPicView::OnUpdateTogglePriorityLines(CCmdUI *pCmdUI)
 {
     pCmdUI->SetCheck(_fShowPriorityLines);
-    pCmdUI->Enable();
+    pCmdUI->Enable(_GetEditPic() && !_GetEditPic()->Traits->ContinuousPriority);
 }
 
 void CPicView::OnUpdateToggleEgo(CCmdUI *pCmdUI)
@@ -1518,7 +1527,7 @@ void CPicView::OnUpdateToggleEgo(CCmdUI *pCmdUI)
 void CPicView::OnUpdateLightUpCoords(CCmdUI *pCmdUI)
 {
     pCmdUI->SetCheck(_transformingCoords);
-    pCmdUI->Enable();
+    pCmdUI->Enable(_GetEditPic() && _GetEditPic()->Traits->SupportsVectorCommands);
 }
 
 

@@ -889,10 +889,8 @@ void PicReadFromVGA2(ResourceEntity &resource, sci::istream &byteStream, const s
         // KQ7, GK, QG4: -1000 is the background, 1000 is always in front, and others roughly correspond to the y value of objects, in the range 0-199
         // SQ6: doesn't seem to have any -1000 or 1000. Question is: does it allow it?
         // OutputDebugString(fmt::format("pri: {0}\n", priority).c_str());
-        pic.commands.push_back(PicCommand::CreateSetPriority(priority));
-
         pic.commands.push_back(PicCommand());
-        pic.commands.back().CreateDrawVisualBitmap(picCel, true);
+        pic.commands.back().CreateDrawVisualBitmap(picCel, true, priority);
     }
 
     if (header.paletteOffset)

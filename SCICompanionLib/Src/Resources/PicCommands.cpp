@@ -47,6 +47,8 @@ extern SIZE_T cbDefaultPalette = sizeof(g_defaultPaletteInit);
 extern uint8_t g_defaultPriBands[14] = { 43, 53, 64, 74, 85, 96, 106, 117, 127, 138, 149, 159, 170, 180 };
 uint16_t g_defaultPriBands16Bit[14] = { 43, 53, 64, 74, 85, 96, 106, 117, 127, 138, 149, 159, 170, 180 };
 
+const int16_t InvalidPri = (std::numeric_limits<int16_t>::min)();
+
 //
 // Given a y-coordinate, returns the priority at that position.
 //
@@ -2277,15 +2279,13 @@ void SetPriorityBarsCommand_Serialize(sci::ostream *pSerial, const PicCommand *p
     }
 }
 
-//
-// REVIEW: This algorithm doesn't seem to work (or else our decompression is wrong)
-//
-void PicCommand::CreateDrawVisualBitmap(const Cel &cel, bool isVGA)
+void PicCommand::CreateDrawVisualBitmap(const Cel &cel, bool isVGA, int16_t priority)
 {
     assert(_IsEmpty());
     type = DrawBitmap;
     drawVisualBitmap.pCel = new Cel(cel);
     drawVisualBitmap.isVGA = isVGA;
+    drawVisualBitmap.priority = priority;   // SCI2 only
 }
 
 void DrawVisualBitmap_Draw(const PicCommand *pCommand, PicData *pData, ViewPort *pState)
@@ -2304,13 +2304,21 @@ void DrawVisualBitmap_Draw(const PicCommand *pCommand, PicData *pData, ViewPort 
         else
 #endif
         {
+            uint8_t priorityValue = pState->bPriorityValue;
+            if (pCommand->drawVisualBitmap.priority != InvalidPri)
+            {
+                // Handle SCI2 priority as part of bitmap.
+                assert(pData->isContinuousPriority);
+                priorityValue = PriorityValueToColorIndex(true, pCommand->drawVisualBitmap.priority);
+            }
+
             // Copy line by line.
             DrawImageWithPriority(
                 displaySize,
                 pData->pdataVisual,
                 pData->pdataPriority,
                 pData->pdataPriority,
-                pState->bPriorityValue,
+                priorityValue,
                 cel.placement.x,
                 cel.placement.y,
                 cel.size.cx,
@@ -2335,11 +2343,20 @@ void DrawVisualBitmap_Draw(const PicCommand *pCommand, PicData *pData, ViewPort 
 
 void DrawVisualBitmap_GetName(const PicCommand *pCommand, TCHAR *pszBuf, size_t cchBuf)
 {
-    StringCchPrintf(pszBuf, cchBuf, "Image (%dx%d),T:%d", pCommand->drawVisualBitmap.pCel->size.cx, pCommand->drawVisualBitmap.pCel->size.cy, pCommand->drawVisualBitmap.pCel->TransparentColor);
+    if (pCommand->drawVisualBitmap.priority == InvalidPri)
+    {
+        StringCchPrintf(pszBuf, cchBuf, "Image (%dx%d),T:%d", pCommand->drawVisualBitmap.pCel->size.cx, pCommand->drawVisualBitmap.pCel->size.cy, pCommand->drawVisualBitmap.pCel->TransparentColor);
+    }
+    else
+    {
+        StringCchPrintf(pszBuf, cchBuf, "Image (%dx%d),P:%d,T:%d", pCommand->drawVisualBitmap.pCel->size.cx, pCommand->drawVisualBitmap.pCel->size.cy, pCommand->drawVisualBitmap.priority, pCommand->drawVisualBitmap.pCel->TransparentColor);
+    }
 }
 
 void DrawVisualBitmap_Serialize(sci::ostream *pSerial, const PicCommand *pCommand, const PicCommand *pCommandPrev, const PicCommand *pCommandNext, DRAWSIZE dsPrev, DRAWSIZE *pds, SerializedPicState *pState)
 {
+    assert(pCommand->drawVisualBitmap.priority == InvalidPri);
+
     pSerial->WriteByte(0xfe); // Special opcode
     // The opcode is different in VGA vs EGA
     pSerial->WriteByte(pCommand->drawVisualBitmap.isVGA ? 0x1 : 0x7);
