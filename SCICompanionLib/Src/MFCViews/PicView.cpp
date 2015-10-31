@@ -72,6 +72,12 @@ const COLORREF PolygonColors[] =
     RGB(196, 255, 196)
 };
 
+template<typename _TPoint>
+_TPoint ScreenResolutionToGameResolution(_TPoint point)
+{
+    return ScreenResolutionToGameResolution(point, appState->GetVersion().DefaultResolution);
+}
+
 struct CommandModifier
 {
     PicCommand original;
@@ -1384,7 +1390,7 @@ void CPicView::OnCommandUIStatus(CCmdUI *pCmdUI)
         int y = min(_ptCurrentHover.y, picSize.cy - 1);
         pCmdUI->Enable(); 
         point16 screenPosition = point16(x, y);
-        point16 position = ScreenResolutionToGameResolution(screenPosition, appState->GetVersion().DefaultResolution);
+        point16 position = ScreenResolutionToGameResolution(screenPosition);
         if (screenPosition != position)
         {
             StringCchPrintf(szText, ARRAYSIZE(szText), "%3d,%3d (%3d, %3d))", position.x, position.y, screenPosition.x, screenPosition.y);
@@ -1713,6 +1719,7 @@ void CPicView::OnMouseMove(UINT nFlags, CPoint point)
             _currentDragPolyPoint.x += dx;
             _currentDragPolyPoint.y += dy;
             _ClampPoint(_currentDragPolyPoint);
+            _currentDragPolyPoint = ScreenResolutionToGameResolution(_currentDragPolyPoint);
             needsImmediateUpdate = true;
         }
         else if (_transformingCoords && (_currentTool != None))
@@ -1748,7 +1755,7 @@ void CPicView::OnMouseMove(UINT nFlags, CPoint point)
     {
         if (_currentTool == Polygons)
         {
-            _OnPolyMouseMove(_ptCurrentHover);
+            _OnPolyMouseMove(ScreenResolutionToGameResolution(_ptCurrentHover));
         }
 
         if (_fShowPriorityLines)
@@ -2015,6 +2022,15 @@ void CPicView::_DrawEgoCoordinates(CDC *pDC)
     }
 }
 
+void AdjustPolyPointsForScreen(std::vector<POINT> &points)
+{
+    NativeResolution resolution = appState->GetVersion().DefaultResolution;
+    for (auto &point : points)
+    {
+        point = GameResolutionToScreenResolution(point, resolution);
+    }
+}
+
 void CPicView::_DrawPolygon(CDC *pDC, const SCIPolygon *polygon, bool isActive)
 {
     COLORREF colorPoly = PolygonColors[(int)polygon->Type];
@@ -2056,6 +2072,7 @@ void CPicView::_DrawPolygon(CDC *pDC, const SCIPolygon *polygon, bool isActive)
         points.push_back({ _nextPolyPoint.x, _nextPolyPoint.y });
     }
 
+    AdjustPolyPointsForScreen(points);
     pDC->Polyline(&points[0], (int)points.size());
 
     if (isActive)
@@ -2070,6 +2087,7 @@ void CPicView::_DrawPolygon(CDC *pDC, const SCIPolygon *polygon, bool isActive)
             point16 b = polygon->Points()[(_currentHoverPolyEdgeIndex + 1) % polygon->Points().size()];
             points.push_back(PointToCPoint(a));
             points.push_back(PointToCPoint(b));
+            AdjustPolyPointsForScreen(points);
             pDC->Polyline(&points[0], (int)points.size());
         }
 
@@ -2078,6 +2096,7 @@ void CPicView::_DrawPolygon(CDC *pDC, const SCIPolygon *polygon, bool isActive)
             CBrush brush(RGB(255, 255, 255));
             HGDIOBJ hOldBrush = pDC->SelectObject(brush);
             point16 hoverPoint = (_currentHoverPolyPointIndex == _polyDragPointIndex) ? _currentDragPolyPoint : polygon->Points()[_currentHoverPolyPointIndex];
+            hoverPoint = GameResolutionToScreenResolution(hoverPoint, appState->GetVersion().DefaultResolution);
             CRect rectEllipse(hoverPoint.x, hoverPoint.y, hoverPoint.x, hoverPoint.y);
             rectEllipse.InflateRect(3, 3);
             pDC->Ellipse(&rectEllipse);
@@ -2566,7 +2585,7 @@ void CPicView::_DrawShowingEgoWorker(const ViewPort &viewPort, uint8_t *pdataVis
     if (_GetEditPic() && _GetEditPic()->Traits->ContinuousPriority)
     {
         // TODO: Don't use global DefaultResolution, but instead pic resolution
-        point16 position = ScreenResolutionToGameResolution(CPointToPoint(_pointEgo), appState->GetVersion().DefaultResolution);
+        point16 position = ScreenResolutionToGameResolution(CPointToPoint(_pointEgo));
         egoPriority = position.y;
         // Now turn it into something we can compare with the priority screen
         egoPriority = PriorityValueToColorIndex(true, egoPriority);
@@ -3326,6 +3345,10 @@ void CPicView::_OnPolygonRClick(CPoint point)
     }
     else
     {
+        CPoint ptScreen = GameResolutionToScreenResolution(point, appState->GetVersion().DefaultResolution);
+        ptScreen = _MapPicPointToClient(ptScreen);
+        ClientToScreen(&ptScreen);
+
         // Hit test a point and offer to delete.
         int pointUnderMouse = _HitTestCurrentPolyPoint(point);
         if (pointUnderMouse != -1)
@@ -3335,9 +3358,6 @@ void CPicView::_OnPolygonRClick(CPoint point)
             contextMenu.LoadMenu(IDR_MENUDELETEPOINT);
             CMenu* pTracker;
             pTracker = contextMenu.GetSubMenu(0);
-            CPoint ptScreen = point;
-            ptScreen = _MapPicPointToClient(point);
-            ClientToScreen(&ptScreen);
             if (pTracker)
             {
                 DWORD selection = pTracker->TrackPopupMenu(TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_RIGHTBUTTON | TPM_RETURNCMD,
@@ -3369,9 +3389,6 @@ void CPicView::_OnPolygonRClick(CPoint point)
                 contextMenu.LoadMenu(IDR_MENUSPLITEDGE);
                 CMenu* pTracker;
                 pTracker = contextMenu.GetSubMenu(0);
-                CPoint ptScreen = point;
-                ptScreen = _MapPicPointToClient(point);
-                ClientToScreen(&ptScreen);
                 if (pTracker)
                 {
                     DWORD selection = pTracker->TrackPopupMenu(TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_RIGHTBUTTON | TPM_RETURNCMD,
@@ -3874,7 +3891,7 @@ void CPicView::OnLButtonDown(UINT nFlags, CPoint point)
 
             case Polygons:
             {
-                _OnPolygonLClick(ptPic);
+                _OnPolygonLClick(ScreenResolutionToGameResolution(ptPic));
                 break;
             }
         }
@@ -4178,7 +4195,7 @@ void CPicView::OnRButtonDown(UINT nFlags, CPoint point)
 
     case Polygons:
     {
-        _OnPolygonRClick(ptPic);
+        _OnPolygonRClick(ScreenResolutionToGameResolution(ptPic));
         break;
     }
 

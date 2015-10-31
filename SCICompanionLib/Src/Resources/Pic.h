@@ -48,8 +48,40 @@ struct PicComponent : ResourceComponent
     const PicTraits *Traits;
 };
 
-point16 GameResolutionToScreenResolution(point16 point, NativeResolution resolution);
-point16 ScreenResolutionToGameResolution(point16 point, NativeResolution resolution);
+template<typename TPoint>
+TPoint GameResolutionToScreenResolution(TPoint point, NativeResolution resolution)
+{
+    switch (resolution)
+    {
+        case NativeResolution::Res640x400:
+            point.x *= 2;
+            point.y *= 2;
+            break;
+        case NativeResolution::Res640x480:
+            point.x *= 2;
+            point.y = point.y * 12 / 5;
+            break;
+    }
+    return point;
+}
+
+template<typename TPoint>
+TPoint ScreenResolutionToGameResolution(TPoint point, NativeResolution resolution)
+{
+    switch (resolution)
+    {
+        case NativeResolution::Res640x400:
+            point.x /= 2;
+            point.y /= 2;
+            break;
+        case NativeResolution::Res640x480:
+            point.x /= 2;
+            point.y = point.y * 5 / 12;
+            break;
+    }
+    return point;
+}
+
 
 ResourceEntity *CreatePicResource(SCIVersion version);
 ResourceEntity *CreateDefaultPicResource(SCIVersion version);

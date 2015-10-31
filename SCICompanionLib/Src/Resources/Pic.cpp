@@ -1140,37 +1140,6 @@ ResourceEntity *CreatePicResource(SCIVersion version)
     return pResource.release();
 }
 
-point16 GameResolutionToScreenResolution(point16 point, NativeResolution resolution)
-{
-    switch (resolution)
-    {
-        case NativeResolution::Res640x400:
-            point.x *= 2;
-            point.y *= 2;
-            break;
-        case NativeResolution::Res640x480:
-            point.x *= 2;
-            point.y = point.y * 12 / 5;
-            break;
-    }
-    return point;
-}
-point16 ScreenResolutionToGameResolution(point16 point, NativeResolution resolution)
-{
-    switch (resolution)
-    {
-        case NativeResolution::Res640x400:
-            point.x /= 2;
-            point.y /= 2;
-            break;
-        case NativeResolution::Res640x480:
-            point.x /= 2;
-            point.y = point.y * 5 / 12;
-            break;
-    }
-    return point;
-}
-
 ResourceEntity *CreateDefaultPicResource(SCIVersion version)
 {
     std::unique_ptr<ResourceEntity> pResource(CreatePicResource(version));
