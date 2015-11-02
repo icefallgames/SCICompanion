@@ -423,7 +423,7 @@ BEGIN
         MENUITEM "Open &resource",              ID_FILE_OPENRESOURCE
         MENUITEM "&Save\tCtrl+S",               ID_FILE_SAVE
         MENUITEM "Save &as",                    ID_FILE_SAVE_AS
-        MENUITEM "&Export as resource",         ID_FILE_EXPORTASRESOURCE
+        MENUITEM "&Export as patch file",       ID_FILE_EXPORTASRESOURCE
         MENUITEM SEPARATOR
         MENUITEM "&Close resource",             ID_FILE_CLOSE
         MENUITEM "Close game",                  ID_FILE_CLOSEGAME
@@ -633,7 +633,7 @@ BEGIN
         MENUITEM "&Delete",                     ID_EDIT_DELETE
         MENUITEM "&Rename",                     ID_EDIT_RENAME
         MENUITEM SEPARATOR
-        MENUITEM "&Export to file",             ID_FILE_EXPORTASRESOURCE
+        MENUITEM "&Export as patch file",       ID_FILE_EXPORTASRESOURCE
         MENUITEM "&View raw data",              ID_VIEWITEM_VIEWRAWDATA
     END
 END
