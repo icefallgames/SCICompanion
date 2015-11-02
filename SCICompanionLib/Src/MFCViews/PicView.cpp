@@ -2630,6 +2630,14 @@ void CPicView::_DrawShowingEgoVGA(CDC &dc, PicDrawManager &pdm)
         {
             // Prepare a pic-sized buffer to draw the ego into 
             const Cel &cel = GetCel(fakeEgo, _nFakeLoop, _nFakeCel);
+            const PaletteComponent *egoPalette = fakeEgo->TryGetComponent<PaletteComponent>();
+            PaletteComponent paletteCopy;
+            if (egoPalette)
+            {
+                paletteCopy = *egoPalette;
+                paletteCopy.MergeFromOther(palette);
+                palette = &paletteCopy;
+            }
 
             // VGA display screen uses a different palette than priority or control.
             // When drawing the ego, we don't want to be limited by the palette of the screen
