@@ -1332,7 +1332,7 @@ void DrawImageWithPriority(size16 displaySize, uint8_t *pdataDisplay, const uint
 //
 // Draws a view (represented by pvr) onto a pic (represented by pdataDisplay and pdataPriority)
 //
-void DrawViewWithPriority(size16 displaySize, uint8_t *pdataDisplay, const uint8_t *pdataPriority, uint8_t bEgoPriority, int16_t xIn, int16_t yIn, const ResourceEntity *pvr, int nLoop, int nCel, bool fShowOutline)
+CRect DrawViewWithPriority(size16 displaySize, uint8_t *pdataDisplay, const uint8_t *pdataPriority, uint8_t bEgoPriority, int16_t xIn, int16_t yIn, const ResourceEntity *pvr, int nLoop, int nCel, bool fShowOutline)
 {
     const Cel &cel = GetCel(pvr, nLoop, nCel);
     uint8_t bTransparent = cel.TransparentColor;
@@ -1347,6 +1347,17 @@ void DrawViewWithPriority(size16 displaySize, uint8_t *pdataDisplay, const uint8
     CopyBitmapData(pvr->GetComponent<RasterComponent>(), CelIndex(nLoop, nCel), data.get(), cel.size);
 
     DrawImageWithPriority(displaySize, pdataDisplay, pdataPriority, nullptr, bEgoPriority, xLeft, yTop, cel.size.cx, cel.size.cy, cel.GetStride(), &data[0], bTransparent, fShowOutline);
+
+    CRect rc(xLeft, yTop, xLeft + cel.size.cx, yTop + cel.size.cy);
+    if (fShowOutline)
+    {
+        rc.InflateRect(1, 1);
+    }
+    rc.left = max(0, rc.left);
+    rc.top = max(0, rc.top);
+    rc.right = max(rc.left, min(rc.right, displaySize.cx));
+    rc.bottom = max(rc.top, min(rc.bottom, displaySize.cy));
+    return rc;
 }
 
 

@@ -726,27 +726,32 @@ std::string GetGdiplusStatusString(Gdiplus::Status status)
 // Creates 32bpp version of a cel, with alpha = 0 in transparent pixels.
 HBITMAP Create32bbpBitmap(const Cel &cel, const RGBQUAD *palette, int paletteSize)
 {
-    std::unique_ptr<RGBQUAD[]> pixels = std::make_unique<RGBQUAD[]>(cel.size.cx * cel.size.cy);
+    return Create32bbpBitmap(&cel.Data[0], cel.GetStride(), cel.size.cx, cel.size.cy, cel.TransparentColor, palette, paletteSize);
+}
+
+HBITMAP Create32bbpBitmap(const uint8_t *pData, int cxStride, int cx, int cy, uint8_t transparentColor, const RGBQUAD *palette, int paletteSize)
+{
+    std::unique_ptr<RGBQUAD[]> pixels = std::make_unique<RGBQUAD[]>(cx * cy);
     RGBQUAD transparent = {};
-    for (int y = 0; y < cel.size.cy; y++)
+    for (int y = 0; y < cy; y++)
     {
-        int rowSource = cel.size.cy - y - 1;
-        for (int x = 0; x < cel.size.cx; x++)
+        int rowSource = cy - y - 1;
+        for (int x = 0; x < cx; x++)
         {
 
-            uint8_t value = cel.Data[rowSource * cel.GetStride() + x];
-            if (value == cel.TransparentColor)
+            uint8_t value = pData[rowSource * cxStride + x];
+            if (value == transparentColor)
             {
-                pixels[x + y * cel.size.cx] = transparent;
+                pixels[x + y * cx] = transparent;
             }
             else
             {
                 RGBQUAD color = palette[value % paletteSize];
                 color.rgbReserved = 0xff; // alpha 255
-                pixels[x + y * cel.size.cx] = color;
+                pixels[x + y * cx] = color;
             }
         }
     }
 
-    return CreateBitmap(cel.size.cx, cel.size.cy, 1, 32, &pixels[0]);
+    return CreateBitmap(cx, cy, 1, 32, &pixels[0]);
 }

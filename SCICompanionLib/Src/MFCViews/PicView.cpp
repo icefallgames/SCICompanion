@@ -2579,7 +2579,7 @@ void CPicView::OnDraw(CDC *pDC)
     __super::OnDraw(pDC);
 }
 
-void CPicView::_DrawShowingEgoWorker(const ViewPort &viewPort, uint8_t *pdataVisual, const uint8_t *pdataPriority, PicScreenFlags flags)
+CRect CPicView::_DrawShowingEgoWorker(const ViewPort &viewPort, uint8_t *pdataVisual, const uint8_t *pdataPriority, PicScreenFlags flags)
 {
     int16_t egoPriority = PriorityFromY((uint16_t)_pointEgo.y, viewPort);
     if (_GetEditPic() && _GetEditPic()->Traits->ContinuousPriority)
@@ -2595,20 +2595,22 @@ void CPicView::_DrawShowingEgoWorker(const ViewPort &viewPort, uint8_t *pdataVis
     // Now we need to draw a box (or whatever), but only where
     // the bEgoPriority is equal to or greater than the priority
     // of the priority screen.
+    CRect rc;
     if (pdataPriority)
     {
         // Alright, we're part way there.
         if (!appState->_fUseBoxEgo && _GetFakeEgo())
         {
             // Draw a view.
-            DrawViewWithPriority(_GetPicSize(), pdataVisual, pdataPriority, bEgoPriority, (uint16_t)_pointEgo.x, (uint16_t)_pointEgo.y, _GetFakeEgo(), _nFakeLoop, _nFakeCel, _HitTestFakeEgo(_ptCurrentHover));
+            rc = DrawViewWithPriority(_GetPicSize(), pdataVisual, pdataPriority, bEgoPriority, (uint16_t)_pointEgo.x, (uint16_t)_pointEgo.y, _GetFakeEgo(), _nFakeLoop, _nFakeCel, _HitTestFakeEgo(_ptCurrentHover));
         }
         else
         {
-            // Just draw a box
+            // Just draw a box.
             DrawBoxWithPriority(_GetPicSize(), pdataVisual, pdataPriority, bEgoPriority, (uint16_t)_pointEgo.x, (uint16_t)_pointEgo.y, appState->_cxFakeEgo, appState->_cyFakeEgo);
         }
     }
+    return rc;
 }
 
 void CPicView::_DrawShowingEgoEGA(ViewPort &viewPort, PicData &picData, PicScreenFlags flags)
@@ -2633,37 +2635,53 @@ void CPicView::_DrawShowingEgoVGA(CDC &dc, PicDrawManager &pdm)
             // When drawing the ego, we don't want to be limited by the palette of the screen
             // we're currently showing.
             
-            SCIBitmapInfo bmi(_GetPicSize().cx, _GetPicSize().cy, (appState->_fUseBoxEgo ? g_egaColorsPlusOne : palette->Colors), appState->_fUseBoxEgo ? ARRAYSIZE(g_egaColorsPlusOne) : ARRAYSIZE(palette->Colors));
             uint8_t transparentColor = cel.TransparentColor;
             RGBQUAD transparentRGB = palette->Colors[cel.TransparentColor];
+            SCIBitmapInfo bmi(_GetPicSize().cx, _GetPicSize().cy, (appState->_fUseBoxEgo ? g_egaColorsPlusOne : palette->Colors), appState->_fUseBoxEgo ? ARRAYSIZE(g_egaColorsPlusOne) : ARRAYSIZE(palette->Colors));
             if (appState->_fUseBoxEgo)
             {
                 transparentColor = 16;
                 transparentRGB = g_egaColorsPlusOne[transparentColor];
+
+                uint8_t *pBitsDest;
+                CBitmap bitmap;
+                bitmap.Attach(CreateDIBSection((HDC)dcMem, &bmi, DIB_RGB_COLORS, (void**)&pBitsDest, nullptr, 0));
+                if ((HBITMAP)bitmap)
+                {
+                    memset(pBitsDest, transparentColor, _GetPicSize().cx * _GetPicSize().cy);
+                    _DrawShowingEgoWorker(*_GetDrawManager().GetViewPort(PicPosition::PostPlugin), pBitsDest, _GetDrawManager().GetPicBits(PicScreen::Priority, PicPosition::PostPlugin, _GetPicSize()), PicScreenFlags::Visual);
+
+                    // Now blt it
+                    HGDIOBJ hold = dcMem.SelectObject(bitmap);
+                    COLORREF transparent = RGB(transparentRGB.rgbRed, transparentRGB.rgbGreen, transparentRGB.rgbBlue);
+                    TransparentBlt(dc, 0, 0, _GetPicSize().cx, _GetPicSize().cy, dcMem, 0, 0, _GetPicSize().cx, _GetPicSize().cy, transparent);
+                    dcMem.SelectObject(hold);
+                }
             }
             else
             {
                 // We have an issue when we have a palette with an RGB index identical to the transparent index's RGB value, but earlier in the palette.
                 // Even setting it to a random color doesn't make a difference though, so something else is up. The result is that the area surrounding the
-                // ego is opaque and the pic is no longer visible.
-                //transparentRGB = RGBQUADFromCOLORREF(RGB(255, 254, 253));
-                //bmi._colors[transparentColor] = transparentRGB;
+                // ego is opaque and the pic is no longer visible. Instead, we'll need to use AlphaBlend.
+                std::unique_ptr<uint8_t[]> bitsDest = std::make_unique<uint8_t[]>(_GetPicSize().cx * _GetPicSize().cy);
+                memset(bitsDest.get(), transparentColor, _GetPicSize().cx * _GetPicSize().cy);
+                CRect rcEgo = _DrawShowingEgoWorker(*_GetDrawManager().GetViewPort(PicPosition::PostPlugin), bitsDest.get(), _GetDrawManager().GetPicBits(PicScreen::Priority, PicPosition::PostPlugin, _GetPicSize()), PicScreenFlags::Visual);
+                if (!rcEgo.IsRectEmpty())
+                {
+                    CBitmap bitmap;
+                    uint8_t *start = bitsDest.get() + (_GetPicSize().cy - rcEgo.bottom) * _GetPicSize().cx + rcEgo.left;
+                    bitmap.Attach(Create32bbpBitmap(start, _GetPicSize().cx, rcEgo.Width(), rcEgo.Height(), cel.TransparentColor, bmi.bmiColors, bmi.bmiHeader.biClrUsed));
+                    HGDIOBJ hOld = dcMem.SelectObject(bitmap);
+                    BLENDFUNCTION blend = {};
+                    blend.AlphaFormat = AC_SRC_ALPHA;
+                    blend.SourceConstantAlpha = 255;
+                    blend.BlendFlags = 0;
+                    blend.BlendOp = AC_SRC_OVER;
+                    AlphaBlend(dc, rcEgo.left, rcEgo.top, rcEgo.Width(), rcEgo.Height(), dcMem, 0, 0, rcEgo.Width(), rcEgo.Height(), blend);
+                    dcMem.SelectObject(hOld);
+                }
             }
 
-            uint8_t *pBitsDest;
-            CBitmap bitmap;
-            bitmap.Attach(CreateDIBSection((HDC)dcMem, &bmi, DIB_RGB_COLORS, (void**)&pBitsDest, nullptr, 0));
-            if ((HBITMAP)bitmap)
-            {
-                memset(pBitsDest, transparentColor, _GetPicSize().cx * _GetPicSize().cy);
-                _DrawShowingEgoWorker(*_GetDrawManager().GetViewPort(PicPosition::PostPlugin), pBitsDest, _GetDrawManager().GetPicBits(PicScreen::Priority, PicPosition::PostPlugin, _GetPicSize()), PicScreenFlags::Visual);
-
-                // Now blt it
-                HGDIOBJ hold = dcMem.SelectObject(bitmap);
-                COLORREF transparent = RGB(transparentRGB.rgbRed, transparentRGB.rgbGreen, transparentRGB.rgbBlue);
-                TransparentBlt(dc, 0, 0, _GetPicSize().cx, _GetPicSize().cy, dcMem, 0, 0, _GetPicSize().cx, _GetPicSize().cy, transparent);
-                dcMem.SelectObject(hold);
-            }
         }
     }
 }

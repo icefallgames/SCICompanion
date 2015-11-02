@@ -55,3 +55,4 @@ void RGBToPalettized(ColorMatching colorMatching, uint8_t *sciData, const RGBQUA
 void CutoutAlpha(DitherAlgorithm ditherAlgorithm, RGBQUAD *data, int cx, int cy, uint8_t alphaThreshold);
 std::string GetGdiplusStatusString(Gdiplus::Status status);
 HBITMAP Create32bbpBitmap(const Cel &cel, const RGBQUAD *palette, int paletteSize);
+HBITMAP Create32bbpBitmap(const uint8_t *pData, int cxStride, int cx, int cy, uint8_t transparentColor, const RGBQUAD *palette, int paletteSize);

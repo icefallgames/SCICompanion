@@ -166,7 +166,7 @@ protected:
     void _DrawPolygon(CDC *pDC, const SCIPolygon *polygon, bool isActive);
     void _DrawShowingEgoEGA(ViewPort &viewPort, PicData &picData, PicScreenFlags flags);
     void _DrawShowingEgoVGA(CDC &dc, PicDrawManager &pdm);
-    void _DrawShowingEgoWorker(const ViewPort &viewPort, uint8_t *pdataVisual, const uint8_t *pdataPriority, PicScreenFlags flags);
+    CRect _DrawShowingEgoWorker(const ViewPort &viewPort, uint8_t *pdataVisual, const uint8_t *pdataPriority, PicScreenFlags flags);
     void _DrawLineDraw(const ViewPort &viewPort, PicData data, PicScreenFlags screenFlags);
     void _DrawCircleDraw(const ViewPort &viewPort, PicData data, PicScreenFlags screenFlags);
     void _DrawPenPreview(const ViewPort &viewPort, PicData data, PicScreenFlags screenFlags);

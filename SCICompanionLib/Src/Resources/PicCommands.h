@@ -498,7 +498,7 @@ extern const EGACOLOR *g_defaultPalette;
 // For the fake ego feature.
 //
 void DrawBoxWithPriority(size16 picSize, uint8_t *pdataDisplay, const uint8_t *pdataPriority, uint8_t bEgoPriority, int16_t x, int16_t y, uint16_t cx, uint16_t cy);
-void DrawViewWithPriority(size16 displaySize, uint8_t *pdataDisplay, const uint8_t *pdataPriority, uint8_t bEgoPriority, int16_t xIn, int16_t yIn, const ResourceEntity *pvr, int nLoop, int nCel, bool fShowOutline = FALSE);
+CRect DrawViewWithPriority(size16 displaySize, uint8_t *pdataDisplay, const uint8_t *pdataPriority, uint8_t bEgoPriority, int16_t xIn, int16_t yIn, const ResourceEntity *pvr, int nLoop, int nCel, bool fShowOutline = FALSE);
 bool HitTestEgoBox(int16_t xCursor, int16_t yCursor, int16_t xEgo, int16_t yEgo, uint16_t cx, uint16_t cy);
 bool HitTestView(int16_t xCursor, int16_t yCursor, int16_t xEgo, int16_t yEgo, const ResourceEntity *pvr, int nLoop, int nCel);
 void GetViewRect(CRect *prc, int16_t xEgo, int16_t yEgo, const ResourceEntity *pvr, int nLoop, int nCel);
