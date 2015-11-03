@@ -34,45 +34,26 @@ public:
     //
     // uMessage is posted to hwndView when there are (potentially multiple) results ready.
     //
-    QueueItems(HWND hwndView, UINT uMessage)
+    QueueItems(HWND hwndView, UINT uMessage) : _fAbort(false), _uResultReadyMessage(uMessage), _hwndView(hwndView)
     {
-        _hwndView = hwndView;
-        _uResultReadyMessage = uMessage;
-        _cRef = 1;
-        _fAbort = FALSE;
-        _hEventWorkAvailable = NULL;
     }
 
     ~QueueItems()
     {
         Abort();
-
-        // Go through any items in workItems and delete them.
-        // Go through any items in workResults and delete them
-        {
-            std::lock_guard<std::mutex> lock(_mutex);
-            _workItems.clear();
-            _workResults.clear();
-        }
-
-        CloseHandle(_hEventWorkAvailable);
     }
 
     bool Init()
     {
         bool fRet = false;
-        _hEventWorkAvailable = CreateEvent(nullptr, TRUE, FALSE, nullptr);
-        if (_hEventWorkAvailable)
+        try
         {
-            try
-            {
-                _thread = std::thread(s_ThreadWorker, this->shared_from_this());
-                _thread.detach();
-                fRet = true;
-            }
-            catch (std::system_error)
-            {
-            }
+            _thread = std::thread(s_ThreadWorker, this->shared_from_this());
+            _thread.detach();
+            fRet = true;
+        }
+        catch (std::system_error)
+        {
         }
         return fRet;
     }
@@ -80,15 +61,18 @@ public:
     void GiveWorkItem(std::unique_ptr<TITEM> pWorkItem)
     {
         // Insert things at the beginning of the list.
-        std::lock_guard<std::mutex> lock(_mutex);
-        _workItems.push_front(std::move(pWorkItem));
-        SetEvent(_hEventWorkAvailable);
+        {
+            std::lock_guard<std::mutex> lock(_mutex);
+            _workItems.push_front(std::move(pWorkItem));
+        }
+
+        _condition.notify_one();
     }
 
     bool TakeWorkResult(TRESULT **ppWorkResult)
     {
         bool fRet = false;
-        std::lock_guard<std::mutex> lock(_mutex);
+        std::lock_guard<std::mutex> lock(_mutexResponse);
         if (!_workResults.empty())
         {
             fRet = true;
@@ -100,9 +84,13 @@ public:
 
     void Abort()
     {
-        std::lock_guard<std::mutex> lock(_mutex);
-        _fAbort = TRUE;
-        SetEvent(_hEventWorkAvailable);
+        {
+            std::lock_guard<std::mutex> lock(_mutex);
+            _workItems.clear();
+            _fAbort = true;
+        }
+
+        _condition.notify_one();
     }
 
     bool HasAborted()
@@ -122,18 +110,14 @@ private:
             *ppWorkItem = _workItems.back().release();
             _workItems.pop_back();
         }
-        else
-        {
-            // No work items left.
-            ResetEvent(_hEventWorkAvailable);
-        }
+        // else No work items left.
         return fRet;
     }
 
     void _GiveWorkResult(std::unique_ptr<TRESULT> pWorkResult)
     {
         {
-            std::lock_guard<std::mutex> lock(_mutex);
+            std::lock_guard<std::mutex> lock(_mutexResponse);
             _workResults.push_back(std::move(pWorkResult));
         }
         PostMessage(_hwndView, _uResultReadyMessage, 0, 0);
@@ -141,27 +125,20 @@ private:
 
     void _ThreadWorker()
     {
-        while (WAIT_OBJECT_0 == WaitForSingleObject(_hEventWorkAvailable, INFINITE))
+        while (!_fAbort)
         {
-            if (_fAbort)
+            std::unique_lock<std::mutex> lock(_mutex);
+            _condition.wait(lock, [&]() { return _fAbort || !_workItems.empty(); });
+            if (!_fAbort)
             {
-                break;
-            }
-
-            TITEM *pWorkItem;
-            while (!_fAbort && _TakeWorkItem(&pWorkItem))
-            {
-                std::unique_ptr<TRESULT> pResult(TRESULT::CreateFromWorkItem(pWorkItem));
+                std::unique_ptr<TITEM> workItem = std::move(_workItems.back());
+                _workItems.pop_back();
+                lock.unlock(); // While we do heavy work
+                std::unique_ptr<TRESULT> pResult(TRESULT::CreateFromWorkItem(workItem.get()));
                 if (pResult)
                 {
                     _GiveWorkResult(std::move(pResult));
                 }
-                delete pWorkItem;
-            }
-
-            if (_fAbort)
-            {
-                break;
             }
         }
     }
@@ -172,11 +149,12 @@ private:
         return 0;
     }
 
-    LONG _cRef;
     HWND _hwndView;
     UINT _uResultReadyMessage;
     std::mutex _mutex;
-    HANDLE _hEventWorkAvailable;
+    std::mutex _mutexResponse;
+
+    std::condition_variable _condition;
 
     std::thread _thread;
     bool _fAbort;

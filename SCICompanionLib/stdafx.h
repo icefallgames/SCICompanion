@@ -89,6 +89,7 @@
 #include <typeindex>
 #include <thread>
 #include <mutex>
+#include <condition_variable>
 
 
 // REVIEW: Things I need to add to make it compile with vs2013:

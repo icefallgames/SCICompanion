@@ -29,7 +29,6 @@ public:
 
     BackgroundScheduler(HWND hwndResponse, UINT msgResponse) : _exit(false), _nextId(0), _hwndResponse(hwndResponse), _msgResponse(msgResponse)
     {
-        _hWakeUp = CreateEvent(nullptr, FALSE, FALSE, nullptr);
         _thread = std::thread(s_ThreadWorker, this);
     }
 
@@ -47,7 +46,7 @@ public:
             _queue.emplace_back(id, std::move(task), func);
         }
 
-        SetEvent(_hWakeUp);
+        _conditionWakeUp.notify_one();
         return id;
     }
     int SubmitTask(HWND hwnd, UINT msg, std::unique_ptr<_TPayload> task, std::function<std::unique_ptr<_TResponse>(ITaskStatus&, _TPayload&)> func)
@@ -112,7 +111,7 @@ public:
 
         if (deleteThings)
         {
-            SetEvent(_hWakeUp);
+            _conditionWakeUp.notify_one();
 
             // We need to wait until the background thread is done.
             _thread.join();
@@ -128,31 +127,20 @@ private:
 
     void _DoWork()
     {
-        bool exit = false;
-        while (!exit && (WAIT_OBJECT_0 == WaitForSingleObject(_hWakeUp, INFINITE)))
+        while (!_exit)
         {
-            bool lookForMoreWork = true;
-            while (lookForMoreWork)
+            std::unique_lock<std::mutex> lock(_mutex);
+            _conditionWakeUp.wait(lock, [&]() { return this->_exit || !this->_queue.empty(); });
+            if (!_exit)
             {
-                std::unique_ptr<_TPayload> payload;
-                std::function<std::unique_ptr<_TResponse>(ITaskStatus&, _TPayload&)> func;
-                int id;
-
-                {
-                    std::lock_guard<std::mutex> lock(_mutex);
-                    if (!_exit && !_queue.empty())
-                    {
-                        payload = std::move(_queue.front().payload);
-                        func = _queue.front().func;
-                        id = _queue.front().id;
-                        _queue.pop_front();
-                    }
-                    else
-                    {
-                        exit = _exit;
-                        lookForMoreWork = false;
-                    }
-                }
+                // Now the mutex is locked again.
+                assert(!this->_queue.empty());
+                std::unique_ptr<_TPayload> payload = std::move(_queue.front().payload);
+                std::function<std::unique_ptr<_TResponse>(ITaskStatus&, _TPayload&)> func = _queue.front().func;
+                int id = _queue.front().id;
+                _queue.pop_front();
+                // But we'll unlock it while we do our heavy work.
+                _mutex.unlock();
 
                 if (payload)
                 {
@@ -177,12 +165,16 @@ private:
                         }
                     }
                 }
+                // Now lock it again before we loop
+                _mutex.lock();
             }
         }
     }
 
     std::thread _thread;
-    HANDLE _hWakeUp;
+
+    // REVIEW: these were auto reset...
+    std::condition_variable _conditionWakeUp;
 
     bool _exit;
 
