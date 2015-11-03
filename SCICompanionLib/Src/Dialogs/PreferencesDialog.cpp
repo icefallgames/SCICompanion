@@ -35,7 +35,6 @@ void CPreferencesDialog::DoDataExchange(CDataExchange* pDX)
 {
 	__super::DoDataExchange(pDX);
     ShowSizeGrip(FALSE);
-    DDX_Check(pDX, IDC_DRAWGRIDLINES, appState->_fGridLines);
     DDX_Check(pDX, IDC_SCALETRACINGIMAGES, appState->_fScaleTracingImages);
     DDX_Check(pDX, IDC_CHECKAUTOSUGGEST, appState->_fUseAutoSuggest);
     DDX_Check(pDX, IDC_CHECKAUTOLOADGAME, appState->_fAutoLoadGame);
@@ -62,7 +61,6 @@ void CPreferencesDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_HOVERTIPS, m_wndHoverTips);
     DDX_Control(pDX, IDC_GROUP1, m_wndGroup1);
     DDX_Control(pDX, IDC_SCALETRACINGIMAGES, m_wndCheck1);
-    DDX_Control(pDX, IDC_DRAWGRIDLINES, m_wndCheck2);
     DDX_Control(pDX, IDC_CHECKAUTOSUGGEST, m_wndCheck3);
     DDX_Control(pDX, IDC_CHECKAUTOLOADGAME, m_wndCheck4);
     DDX_Control(pDX, IDC_CHECKDUPENEWCELS, m_wndCheck5);

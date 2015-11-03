@@ -517,7 +517,6 @@ void SCICompanionApp::_LoadSettings(BOOL fReset)
     appState->_audioProcessing->Noise.CloseThresholdDB = GetProfileInt(pszRegName, TEXT("NoiseCloseThresholdDB"), appState->_audioProcessing->Noise.CloseThresholdDB);
 
     appState->_fUseBoxEgo = GetProfileInt(pszRegName, TEXT("UseBoxEgo"), FALSE);
-    appState->_fGridLines = GetProfileInt(pszRegName, TEXT("GridLines"), FALSE);
     appState->_fScaleTracingImages = GetProfileInt(pszRegName, TEXT("ScaleTracingImages"), TRUE);
     appState->_fDontShowTraceScaleWarning = GetProfileInt(pszRegName, TEXT("DontShowTraceScaleWarning"), FALSE);
     appState->_fUseAutoSuggest = GetProfileInt(pszRegName, TEXT("UseAutoSuggest"), FALSE);
@@ -554,7 +553,6 @@ void SCICompanionApp::_SaveSettings()
     WriteProfileInt(m_pszAppName, TEXT("NoiseCloseThresholdDB"), appState->_audioProcessing->Noise.CloseThresholdDB);
 
     WriteProfileInt(m_pszAppName, TEXT("UseBoxEgo"), appState->_fUseBoxEgo);
-    WriteProfileInt(m_pszAppName, TEXT("GridLines"), appState->_fGridLines);
     WriteProfileInt(m_pszAppName, TEXT("ScaleTracingImages"), appState->_fScaleTracingImages);
     WriteProfileInt(m_pszAppName, TEXT("DontShowTraceScaleWarning"), appState->_fDontShowTraceScaleWarning);
     WriteProfileInt(m_pszAppName, TEXT("UseAutoSuggest"), appState->_fUseAutoSuggest);

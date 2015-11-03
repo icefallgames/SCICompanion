@@ -102,7 +102,6 @@ AppState::AppState(CWinApp *pApp)
     _audioProcessing = std::make_unique<AudioProcessingSettings>();
     // Place all significant initialization in InitInstance
     _pPicTemplate = NULL;
-    _fGridLines = FALSE;
     _fScaleTracingImages = TRUE;
     _fDontShowTraceScaleWarning = FALSE;
     _fUseAutoSuggest = FALSE;

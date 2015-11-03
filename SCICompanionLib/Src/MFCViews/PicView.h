@@ -221,6 +221,7 @@ protected:
     afx_msg void OnShowTraceImage();
     afx_msg void OnToggleVisual();
     afx_msg void OnTogglePriority();
+    afx_msg void OnToggleGridLines();
     afx_msg void OnToggleControl();
     afx_msg void OnShowVisual();
     afx_msg void OnShowPriority();
@@ -253,6 +254,7 @@ protected:
     afx_msg void OnUpdateShowScreenControl(CCmdUI *pCmdUI);
     afx_msg void OnUpdateShowPaletteControl(CCmdUI *pCmdUI);
     afx_msg void OnUpdateTogglePriorityLines(CCmdUI *pCmdUI);
+    afx_msg void OnUpdateToggleGridLines(CCmdUI *pCmdUI);
     afx_msg void OnUpdateToggleEgo(CCmdUI *pCmdUI);
     afx_msg void OnUpdateLightUpCoords(CCmdUI *pCmdUI);
     afx_msg void OnUpdateToggleScreen(CCmdUI *pCmdUI);
@@ -299,6 +301,7 @@ private:
     BOOL _fDrawingCircle;
     BOOL _fPreviewPen;
     BOOL _fMouseWithin;
+    bool _fGridLines;
 
     bool _fPriLineHover;
     int _priBarMoveIndex;

@@ -285,6 +285,7 @@ BEGIN_MESSAGE_MAP(CPicView, CScrollingThing<CView>)
     ON_COMMAND(ID_SHOWTRACEIMAGE, CPicView::OnShowTraceImage)
     ON_COMMAND(IDC_TOGGLEVISUAL, CPicView::OnToggleVisual)
     ON_COMMAND(IDC_TOGGLEPRIORITY, CPicView::OnTogglePriority)
+    ON_COMMAND(ID_TOGGLEGRIDLINES, CPicView::OnToggleGridLines)
     ON_COMMAND(IDC_TOGGLECONTROL, CPicView::OnToggleControl)
     ON_COMMAND(ID_SHOWVISUALSCREEN, CPicView::OnShowVisual)
     ON_COMMAND(ID_EDIT_RENAME, CPicView::OnShowVisual)  // A complete hack, but we use one accelerator list F2
@@ -335,6 +336,7 @@ BEGIN_MESSAGE_MAP(CPicView, CScrollingThing<CView>)
     ON_UPDATE_COMMAND_UI(ID_SHOWCONTROLSCREEN, CPicView::OnUpdateShowScreenControl)
     ON_UPDATE_COMMAND_UI(ID_POLYPATH, CPicView::OnUpdateAllPicCommands)
     ON_UPDATE_COMMAND_UI(ID_TOGGLEPRIORITYLINES, CPicView::OnUpdateTogglePriorityLines)
+    ON_UPDATE_COMMAND_UI(ID_TOGGLEGRIDLINES, CPicView::OnUpdateToggleGridLines)
     ON_UPDATE_COMMAND_UI(ID_SHOWPALETTE0, CPicView::OnUpdateShowPaletteControl)
     ON_UPDATE_COMMAND_UI(ID_SHOWPALETTE1, CPicView::OnUpdateShowPaletteControl)
     ON_UPDATE_COMMAND_UI(ID_SHOWPALETTE2, CPicView::OnUpdateShowPaletteControl)
@@ -380,6 +382,7 @@ END_MESSAGE_MAP()
 
 CPicView::CPicView()
 {
+    _fGridLines = false;
     _transformCommandMod = std::make_unique<CommandModifier>();
     _currentPolyPointIndexInEdit = -1;
     _currentHoverPolyPointIndex = -1;
@@ -808,6 +811,12 @@ void CPicView::OnToggleVisual()
         command = PicCommand::CreateSetVisual(pstate->bPaletteNumber, pstate->bPaletteOffset);
     }
     GetDocument()->InsertCommand(&command);
+}
+
+void CPicView::OnToggleGridLines()
+{
+    _fGridLines = !_fGridLines;
+    InvalidateOurselves();
 }
 
 void CPicView::OnTogglePriority()
@@ -1524,6 +1533,12 @@ void CPicView::OnUpdateTogglePriorityLines(CCmdUI *pCmdUI)
     pCmdUI->Enable(_GetEditPic() && !_GetEditPic()->Traits->ContinuousPriority);
 }
 
+void CPicView::OnUpdateToggleGridLines(CCmdUI *pCmdUI)
+{
+    pCmdUI->SetCheck(_fGridLines);
+    pCmdUI->Enable();
+}
+
 void CPicView::OnUpdateToggleEgo(CCmdUI *pCmdUI)
 {
     pCmdUI->SetCheck(_fShowingEgo);
@@ -1673,7 +1688,7 @@ void CPicView::OnMouseMove(UINT nFlags, CPoint point)
         needsImmediateUpdate = true;
     }
 
-    if ((_currentTool == Command) && (appState->_fGridLines))
+    if ((_currentTool == Command) && _fGridLines)
     {
         // Invalidate on every mouse move if we're showing gridlines.
         _GetDrawManager().InvalidatePlugins();
@@ -2465,7 +2480,7 @@ void CPicView::OnDraw(CDC *pDC)
                 }
             }
 
-            if (_fMouseWithin &&  appState->_fGridLines && (_currentTool == Command))
+            if (_fMouseWithin &&  _fGridLines && (_currentTool == Command))
             {
                 // The mouse is within the window, and we are currently drawing.
                 // If the user wants guide lines, give them to him.
@@ -2828,7 +2843,7 @@ bool CPicView::WillDrawOnPic()
     }
     if (_fMouseWithin && !_transformingCoords)
     {
-        if (_fPreviewPen || (appState->_fGridLines && (_currentTool == Command)))
+        if (_fPreviewPen || (_fGridLines && (_currentTool == Command)))
         {
             return true;
         }

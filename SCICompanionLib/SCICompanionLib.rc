@@ -484,6 +484,8 @@ BEGIN
         MENUITEM "Show &priority lines",        32799
         MENUITEM "Toggle fake &ego\tCtrl-E",    ID_TOGGLEEGO
         MENUITEM "&Transform coords\tCtrl-T",   ID_LIGHTUPCOORDS
+        MENUITEM "Toggle &grid lines\tCtrl-L",  ID_TOGGLEGRIDLINES
+        MENUITEM SEPARATOR
         MENUITEM "&Import bitmap to pic",       ID_EDIT_IMPORTPICBACKGROUND
         MENUITEM "&Export 8-bit pic bitmap",    ID_PIC_EXPORT8
         MENUITEM "Edit p&alette",               ID_PIC_EDITPALETTE
@@ -734,6 +736,8 @@ BEGIN
     "B",            ID_CLASSBROWSER,        VIRTKEY, ALT, NOINVERT
     VK_F8,          ID_COMPILE,             VIRTKEY, NOINVERT
     VK_F8,          ID_COMPILEALL,          VIRTKEY, CONTROL, ALT, NOINVERT
+    "D",            ID_COMPILEDOCS,         VIRTKEY, SHIFT, CONTROL, NOINVERT
+    VK_F6,          ID_DEBUGGAME,           VIRTKEY, NOINVERT
     "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
     VK_INSERT,      ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
     VK_DELETE,      ID_EDIT_CUT,            VIRTKEY, SHIFT, NOINVERT
@@ -745,8 +749,6 @@ BEGIN
     "V",            ID_EDIT_PASTE,          VIRTKEY, CONTROL, NOINVERT
     VK_INSERT,      ID_EDIT_PASTE,          VIRTKEY, SHIFT, NOINVERT
     "V",            ID_EDIT_PASTETRANSPARENT, VIRTKEY, SHIFT, CONTROL, NOINVERT
-    "B",            ID_VIEW_PASTESPECIAL,   VIRTKEY, CONTROL, NOINVERT
-    "B",            ID_VIEW_PASTESPECIALTRANSPARENT, VIRTKEY, SHIFT, CONTROL, NOINVERT
     "Y",            ID_EDIT_REDO,           VIRTKEY, CONTROL, NOINVERT
     VK_F2,          ID_EDIT_RENAME,         VIRTKEY, NOINVERT
     "A",            ID_EDIT_SELECT_ALL,     VIRTKEY, CONTROL, NOINVERT
@@ -757,18 +759,19 @@ BEGIN
     "P",            ID_FILE_PRINT,          VIRTKEY, CONTROL, NOINVERT
     "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
     "T",            ID_LIGHTUPCOORDS,       VIRTKEY, CONTROL, NOINVERT
+    VK_F10,         ID_PLAY,                VIRTKEY, NOINVERT
+    VK_F12,         ID_RECORD,              VIRTKEY, NOINVERT
     VK_F5,          ID_RUNGAME,             VIRTKEY, NOINVERT
-    VK_F6,          ID_DEBUGGAME,           VIRTKEY, NOINVERT
+    VK_F4,          ID_SHOWCONTROLSCREEN,   VIRTKEY, NOINVERT
+    VK_F3,          ID_SHOWPRIORITYSCREEN,  VIRTKEY, NOINVERT
+    VK_F11,         ID_STOP,                VIRTKEY, NOINVERT
     VK_F7,          ID_STOPDEBUG,           VIRTKEY, NOINVERT
     "E",            ID_TOGGLEEGO,           VIRTKEY, CONTROL, NOINVERT
+    "B",            ID_VIEW_PASTESPECIAL,   VIRTKEY, CONTROL, NOINVERT
+    "B",            ID_VIEW_PASTESPECIALTRANSPARENT, VIRTKEY, SHIFT, CONTROL, NOINVERT
     VK_OEM_PLUS,    ID_VIEW_ZOOMIN,         VIRTKEY, CONTROL, NOINVERT
     VK_OEM_MINUS,   ID_VIEW_ZOOMOUT,        VIRTKEY, CONTROL, NOINVERT
-    VK_F10,         ID_PLAY,                VIRTKEY, NOINVERT
-    VK_F11,         ID_STOP,                VIRTKEY, NOINVERT
-    VK_F12,         ID_RECORD,              VIRTKEY, NOINVERT
-    VK_F3,          ID_SHOWPRIORITYSCREEN,  VIRTKEY, NOINVERT
-    VK_F4,          ID_SHOWCONTROLSCREEN,   VIRTKEY, NOINVERT
-    "D",            ID_COMPILEDOCS,         VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "L",            ID_TOGGLEGRIDLINES,     VIRTKEY, CONTROL, NOINVERT
 END
 
 IDR_ACCELERATORPICCOMMANDS ACCELERATORS
@@ -867,24 +870,22 @@ BEGIN
     EDITTEXT        IDC_FAKEEGOX,97,6,22,14,ES_AUTOHSCROLL | ES_NUMBER
     LTEXT           "x",IDC_STATIC,126,10,8,8,SS_CENTERIMAGE
     EDITTEXT        IDC_FAKEEGOY,133,6,22,14,ES_AUTOHSCROLL | ES_NUMBER
-    CONTROL         "Drawing controls have grid lines",IDC_DRAWGRIDLINES,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,20,140,14
-    CONTROL         "Scale tracing images",IDC_SCALETRACINGIMAGES,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,36,95,10
+    CONTROL         "Scale tracing images",IDC_SCALETRACINGIMAGES,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,24,95,10
     CONTROL         "Use auto-suggest in vocab dialog",IDC_CHECKAUTOSUGGEST,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,50,119,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,38,119,10
     CONTROL         "Automatically load last game on open.",IDC_CHECKAUTOLOADGAME,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,64,137,10
-    CONTROL         "Views: dupe new cels",IDC_CHECKDUPENEWCELS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,78,97,10
-    CONTROL         "Draw pic polygons as dotted",IDC_CHECKSCI01,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,92,118,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,52,137,10
+    CONTROL         "Views: dupe new cels",IDC_CHECKDUPENEWCELS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,66,97,10
+    CONTROL         "Draw pic polygons as dotted",IDC_CHECKSCI01,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,80,118,10
     CONTROL         "Enable browse info",IDC_BROWSEINFO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,165,21,101,10
     CONTROL         "Auto code completion",IDC_CODECOMPLETION,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,179,34,89,10
     CONTROL         "Script navigation",IDC_SCRIPTNAV,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,179,46,89,10
     CONTROL         "Hover tips",IDC_HOVERTIPS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,179,59,88,10
     GROUPBOX        "Script editor",IDC_GROUP1,158,7,114,72
     CONTROL         "Play sound when compile fails",IDC_COMPILEERRORSOUND,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,106,116,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,94,116,10
     CONTROL         "Use original SCI aspect ratio",IDC_CHECK_ASPECTRATIO,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,120,106,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,108,106,10
 END
 
 IDD_VPC DIALOGEX 0, 0, 182, 20
@@ -3260,6 +3261,7 @@ BEGIN
     ID_VIEW_PASTESPECIAL    "Paste image from clipboard with options\nPaste image with options"
     ID_VIEW_PASTESPECIALTRANSPARENT 
                             "Paste transparent image from clipboard with options\nPaste transparent image with options"
+    ID_TOGGLEGRIDLINES      "Toggle grid lines for lining up things\nToggle grid lines"
 END
 
 #endif    // English (United States) resources

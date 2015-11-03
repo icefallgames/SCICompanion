@@ -143,7 +143,6 @@ public:
     int _cxFakeEgo;
     int _cyFakeEgo;
     BOOL _fUseBoxEgo;
-    int _fGridLines;
     int _fScaleTracingImages;
     BOOL _fDontShowTraceScaleWarning;
     BOOL _fUseAutoSuggest;
