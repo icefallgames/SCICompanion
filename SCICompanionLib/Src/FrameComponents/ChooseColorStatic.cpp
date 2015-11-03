@@ -64,6 +64,8 @@ END_MESSAGE_MAP()
 void CChooseColorStatic::SetSelection(BYTE bIndex)
 {
     _bSelectedColorIndex = bIndex;
+    std::fill(_multipleSelection, _multipleSelection + ARRAYSIZE(_multipleSelection), false);
+    _multipleSelection[_bSelectedColorIndex] = true;
     if (m_hWnd)
     {
         Invalidate(FALSE);
@@ -406,7 +408,7 @@ void CChooseColorStatic::_DrawActualUsedColors(CDC *pDC)
 
 void CChooseColorStatic::_DrawMultiSelection(CDC *pDC)
 {
-    if (_fShowSelection && _allowMultipleSelection)
+    if (_fShowSelection)
     {
         std::vector<CPoint> outerPoints;
         std::vector<CPoint> innerPoints;
