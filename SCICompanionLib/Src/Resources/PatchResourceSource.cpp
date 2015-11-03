@@ -123,7 +123,7 @@ AppendBehavior PatchFilesResourceSource::AppendResources(const std::vector<const
         // Write to the bak file
         {
             ScopedFile file(bakPath, GENERIC_WRITE, 0, CREATE_ALWAYS);
-            blob->SaveToHandle(file.hFile, TRUE);
+            blob->SaveToHandle(file.hFile, true);
         }
         // move it to the main guy
         deletefile(fullPath);

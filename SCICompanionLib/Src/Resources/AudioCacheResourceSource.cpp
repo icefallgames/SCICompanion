@@ -373,7 +373,7 @@ void FirstTimeAudioExtraction(const GameFolderHelper &helper, const std::string 
         // First the audio map.
         std::string audioMapPath = cacheFolder + "\\" + GetFileNameFor(*audioMapBlob);
         ScopedFile file(audioMapPath, GENERIC_WRITE, 0, CREATE_ALWAYS);
-        audioMapBlob->SaveToHandle(file.hFile, TRUE);
+        audioMapBlob->SaveToHandle(file.hFile, true);
 
         // Now all audio and sync resources.
         auto resourceContainer = helper.Resources(ResourceTypeFlags::Audio, ResourceEnumFlags::None, nullptr, mapContext);

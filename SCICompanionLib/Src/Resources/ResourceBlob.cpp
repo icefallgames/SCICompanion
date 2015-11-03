@@ -544,7 +544,7 @@ HRESULT ResourceBlob::SaveToFile(const std::string &strFileName) const
     if (hFile != INVALID_HANDLE_VALUE)
     {
         // Save it
-        hr = SaveToHandle(hFile, TRUE);
+        hr = SaveToHandle(hFile, true);
         CloseHandle(hFile);
     }
     else
@@ -565,7 +565,7 @@ BOOL _WriteHeaderToFile(HANDLE hFile, const ResourceHeaderAgnostic &header, DWOR
 //
 // Save into a resource file
 //
-HRESULT ResourceBlob::SaveToHandle(HANDLE hFile, BOOL fNoHeader, DWORD *pcbWritten) const
+HRESULT ResourceBlob::SaveToHandle(HANDLE hFile, bool fNoHeader, DWORD *pcbWritten) const
 {
     HRESULT hr;
     DWORD cbWrittenHeader;
@@ -581,9 +581,31 @@ HRESULT ResourceBlob::SaveToHandle(HANDLE hFile, BOOL fNoHeader, DWORD *pcbWritt
         if (fNoHeader)
         {
             // No resource header - this is in its own file.  It is just an indicator of what type it is.
-            WORD w = 0x80 | (int)header.Type;
-            ASSERT(sizeof(w) == 2);
-            fWrote = WriteFile(hFile, &w, sizeof(w), &cbWrittenHeader, NULL) && (cbWrittenHeader == sizeof(w));
+            uint16_t w = 0x80 | (int)header.Type;
+            // For SCI1.1 and above, views and pics appear to have 0x8? as the second byte. The high bit is a
+            // marker that extra data is there, and 0x00 indicates 24 bytes of extra data.
+            uint8_t secondByte = 0x00;
+            if (header.Version.PackageFormat >= ResourcePackageFormat::SCI11)
+            {
+                if (header.Type == ResourceType::View)
+                {
+                    secondByte = 0x80;
+                }
+                else if (header.Type == ResourceType::Pic)
+                {
+                    secondByte = 0x81;
+                }
+            }
+            w |= ((uint16_t)secondByte) << 8;
+            fWrote = WriteFile(hFile, &w, sizeof(w), &cbWrittenHeader, nullptr) && (cbWrittenHeader == sizeof(w));
+
+            uint32_t sizeOfExtraStuff = GetResourceOffsetInFile(secondByte);
+            if (fWrote && sizeOfExtraStuff)
+            {
+                std::vector<uint8_t> emptyData(sizeOfExtraStuff);
+                fWrote = WriteFile(hFile, &emptyData[0], emptyData.size(), &cbWrittenHeader, nullptr) && (cbWrittenHeader == emptyData.size());
+            }
+
             // When we're writing a resource to a separate file, we don't have a header, so we can't have any compression methods.
             fWriteCompressedIfPossible = FALSE;
         }

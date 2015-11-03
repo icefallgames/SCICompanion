@@ -323,7 +323,7 @@ public:
 
     sci::istream GetReadStream() const;
 
-    HRESULT SaveToHandle(HANDLE hFile, BOOL fNoHeader, DWORD *pcbWritten = nullptr) const;
+    HRESULT SaveToHandle(HANDLE hFile, bool fNoHeader, DWORD *pcbWritten = nullptr) const;
     int GetLengthOnDisk() const;
 
     // IResourceIdentifier

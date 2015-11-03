@@ -998,6 +998,7 @@ void PicReadFromVGA2(ResourceEntity &resource, sci::istream &byteStream, const s
 // [Unknown data n]
 const uint32_t UnknownByteCount = 6;
 const uint8_t CompressionTag = 138;
+const uint32_t UncompressedTag = 6;
 void PicWriteToVGA2(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag)
 {
     const PicComponent &pic = resource.GetComponent<PicComponent>();
@@ -1081,6 +1082,7 @@ void PicWriteToVGA2(const ResourceEntity &resource, sci::ostream &byteStream, st
             {
                 celHeader.offsetRLE = byteStream.tellp();
                 celHeader.totalDataSize = celHeader.size.cx * celHeader.size.cy;
+                celHeader.rleDataSize = UncompressedTag;
                 // The image is flipped, and without any kind of padding (e.g. stride = size.cx).
                 for (int y = celHeader.size.cy - 1; y >= 0; y--)
                 {
