@@ -100,21 +100,27 @@ private:
         UINT message;
     };
 
+    enum AutoCompleteInstruction
+    {
+        None,
+        Continue,   // Keep going from where we were
+        Restart,    // Start anew
+        Abort
+    };
+
     void _SetResult(std::unique_ptr<AutoCompleteResult> result, AutoCompleteId id);
 
     // Both
-    HANDLE _hStartWork;
     AutoCompleteId _id;
     std::unique_ptr<CScriptStreamLimiter> _limiterPending;
     std::unique_ptr<CCrystalScriptStream> _streamPending;
     uint16_t _scriptNumberPending;
     std::mutex _mutex;
-    HANDLE _hWaitForMoreWork;
-    HANDLE _hExitThread;
+    std::condition_variable _condition;
+    AutoCompleteInstruction _instruction;
 
     std::string _additionalCharacters;
     int _idUpdate;
-    bool _fCancelCurrentParse;
 
     // Both
     std::unique_ptr<AutoCompleteResult> _result;

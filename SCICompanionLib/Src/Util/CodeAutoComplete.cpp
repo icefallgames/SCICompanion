@@ -311,23 +311,17 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
 }
 AutoCompleteThread2::AutoCompleteThread2() : _nextId(0)
 {
-    _hStartWork = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-    _hWaitForMoreWork = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-    // ExitThread will be manual reset, since the background thread will wait on it multiple times:
-    _hExitThread = CreateEvent(nullptr, TRUE, FALSE, nullptr);
     _thread = std::thread(s_ThreadWorker, this);
 }
 
 AutoCompleteThread2::~AutoCompleteThread2()
 {
-    CloseHandle(_hStartWork);
-    CloseHandle(_hWaitForMoreWork);
-
-    SetEvent(_hExitThread);
-
+    {
+        std::lock_guard<std::mutex> lock(_mutex);
+        _instruction = AutoCompleteInstruction::Abort;
+    }
+    _condition.notify_one();
     _thread.join();
-
-    CloseHandle(_hExitThread);
 }
 
 void AutoCompleteThread2::InitializeForScript(CCrystalTextBuffer *buffer)
@@ -345,8 +339,8 @@ void AutoCompleteThread2::StartAutoComplete(CPoint pt, HWND hwnd, UINT message, 
     bool bgIsWaiting;
     {
         std::lock_guard<std::mutex> lock(_mutex);
-        // It's ready if it hasn't begun yet (_limiterPending), or if the current parse hasn't been canceled.
-        bgIsWaiting = _limiterPending || !_fCancelCurrentParse;
+        // It's ready if it hasn't begun yet (_limiterPending), or if the current parse hasn't been canceled. (??)
+        bgIsWaiting = _limiterPending || (_instruction == AutoCompleteInstruction::Continue);
     }
 
     if (bgIsWaiting && (_lastHWND == hwnd) && (pt.y == _lastPoint.y) && (pt.x > _lastPoint.x))
@@ -358,21 +352,12 @@ void AutoCompleteThread2::StartAutoComplete(CPoint pt, HWND hwnd, UINT message, 
         {
             std::lock_guard<std::mutex> lock(_mutex);
             _additionalCharacters += (PCSTR)strText;
-            SetEvent(_hWaitForMoreWork);
+            _instruction = AutoCompleteInstruction::Continue;
         }
+        _condition.notify_one();
     }
     else
     {
-        // Start a new one
-        // 1) If in parse, set the event getting out of it and indicate cancel.
-        {
-            std::lock_guard<std::mutex> lock(_mutex);
-            _additionalCharacters = "";
-            _fCancelCurrentParse = true;
-            _idUpdate = _nextId;
-            SetEvent(_hWaitForMoreWork);
-        }
-
         // Now start a fresh parse
         // Make a copy of the text buffer
         std::unique_ptr<CScriptStreamLimiter> limiter = std::make_unique<CScriptStreamLimiter>(_bufferUI, pt, EXTRA_AC_CHARS);
@@ -388,9 +373,10 @@ void AutoCompleteThread2::StartAutoComplete(CPoint pt, HWND hwnd, UINT message, 
             _id.hwnd = hwnd;
             _id.id = _nextId;
             _id.message = message;
-            ResetEvent(_hWaitForMoreWork);
-            SetEvent(_hStartWork);
+            _instruction = AutoCompleteInstruction::Restart;
         }
+
+        _condition.notify_one();
     }
 
     _nextId++;
@@ -403,17 +389,17 @@ void AutoCompleteThread2::ResetPosition()
     _lastHWND = nullptr;
     _lastPoint = CPoint();
 
-    // REVIEW this:
-    std::lock_guard<std::mutex> lock(_mutex);
+    {
+        std::lock_guard<std::mutex> lock(_mutex);
 
-    _limiterPending.reset(nullptr);
-    _streamPending.reset(nullptr);
-    _id.hwnd = nullptr;
-    _id.id = -1;
-
-    _additionalCharacters = "";
-    _fCancelCurrentParse = true;
-    SetEvent(_hWaitForMoreWork);
+        _limiterPending.reset(nullptr);
+        _streamPending.reset(nullptr);
+        _id.hwnd = nullptr;
+        _id.id = -1;
+        _additionalCharacters = "";
+        _instruction = AutoCompleteInstruction::Restart;
+    }
+    _condition.notify_one();
 }
 
 CPoint AutoCompleteThread2::GetCompletedPosition()
@@ -454,87 +440,82 @@ void AutoCompleteThread2::_SetResult(std::unique_ptr<AutoCompleteResult> result,
 
 void AutoCompleteThread2::_DoWork()
 {
-    HANDLE startWork[2] = { _hStartWork, _hExitThread };
-    while (WAIT_OBJECT_0 == WaitForMultipleObjects(ARRAYSIZE(startWork), startWork, FALSE, INFINITE))
+    while (_instruction != AutoCompleteInstruction::Abort)
     {
-        std::unique_ptr<CScriptStreamLimiter> limiter;
-        std::unique_ptr<CCrystalScriptStream> stream;
-        uint16_t scriptNumber;
-        AutoCompleteId id;
+        std::unique_lock<std::mutex> lock(_mutex);
+        _condition.wait(lock, [&]() { return this->_instruction != AutoCompleteInstruction::None; });
 
+        while (_instruction == AutoCompleteInstruction::Restart)
         {
-            std::lock_guard<std::mutex> lock(_mutex);
-            limiter = move(_limiterPending);
-            stream = move(_streamPending);
-            scriptNumber = _scriptNumberPending;
-            _fCancelCurrentParse = false;
-            id = _id;
-        }
+            _instruction = AutoCompleteInstruction::None;
 
-        if (limiter)
-        {
-            assert(id.hwnd);
-            class AutoCompleteParseCallback : public ISyntaxParserCallback
+            std::unique_ptr<CScriptStreamLimiter> limiter = move(_limiterPending);
+            std::unique_ptr<CCrystalScriptStream> stream = move(_streamPending);
+            uint16_t scriptNumber = _scriptNumberPending;
+            AutoCompleteId id = _id;
+
+            // Unlock before we do expensive stuff
+            lock.unlock();
+
+            if (limiter)
             {
-            public:
-                AutoCompleteParseCallback(uint16_t scriptNumber, SyntaxContext &context, AutoCompleteThread2 &ac, CScriptStreamLimiter &limiter, AutoCompleteId id) : _context(context), _id(id), _ac(ac), _limiter(limiter), _scriptNumber(scriptNumber) {}
-
-                bool Done()
+                assert(id.hwnd);
+                class AutoCompleteParseCallback : public ISyntaxParserCallback
                 {
-                    std::string word = _limiter.GetLastWord();
+                public:
+                    AutoCompleteParseCallback(uint16_t scriptNumber, SyntaxContext &context, AutoCompleteThread2 &ac, CScriptStreamLimiter &limiter, AutoCompleteId id) : _context(context), _id(id), _ac(ac), _limiter(limiter), _scriptNumber(scriptNumber) {}
 
-                    // Figure out the result
-                    std::unique_ptr<AutoCompleteResult> result = GetAutoCompleteResult(word, _scriptNumber, _context, _parsedCustomHeaders);
-                    result->OriginalLimit = _limiter.GetLimit();
-                    result->OriginalLimit.x -= word.length();
-                    result->OriginalLimit.x = max(result->OriginalLimit.x, 0);
-                    _ac._SetResult(move(result), _id);
-
-                    bool continueParsing = false;
-                    // Now wait in case we have more letters in sequence (so we don't have to reparse everything).
-                    // Now we block waiting for more characters, or to be "reset".
-                    HANDLE continueWork[2] = { _ac._hWaitForMoreWork, _ac._hExitThread };
-                    DWORD waitResult = WaitForMultipleObjects(ARRAYSIZE(continueWork), continueWork, FALSE, INFINITE);
-                    if (WAIT_OBJECT_0 == waitResult)
+                    bool Done()
                     {
-                        continueParsing = true;
+                        std::string word = _limiter.GetLastWord();
+
+                        // Figure out the result
+                        std::unique_ptr<AutoCompleteResult> result = GetAutoCompleteResult(word, _scriptNumber, _context, _parsedCustomHeaders);
+                        result->OriginalLimit = _limiter.GetLimit();
+                        result->OriginalLimit.x -= word.length();
+                        result->OriginalLimit.x = max(result->OriginalLimit.x, 0);
+                        _ac._SetResult(move(result), _id);
+
+                        std::unique_lock<std::mutex> lock(_ac._mutex);
+                        _ac._condition.wait(lock, [&]() { return this->_ac._instruction != AutoCompleteInstruction::None; });
+
+                        bool continueParsing = (_ac._instruction == AutoCompleteInstruction::Continue);
                         std::string additionalCharacters;
-                        {
-                            std::lock_guard<std::mutex> lock(_ac._mutex);
-                            continueParsing = !_ac._fCancelCurrentParse;
-                            _id.id = _ac._idUpdate;
-                            additionalCharacters = _ac._additionalCharacters;
-                            _ac._additionalCharacters = "";
-                        }
                         if (continueParsing)
                         {
+                            additionalCharacters = _ac._additionalCharacters;
+                            _ac._additionalCharacters = "";
                             _limiter.Extend(additionalCharacters);
                         }
+                        return continueParsing;   // false -> bail
                     }
+                private:
+                    uint16_t _scriptNumber;
+                    SyntaxContext &_context;
+                    AutoCompleteId _id;
+                    AutoCompleteThread2 &_ac;
+                    CScriptStreamLimiter &_limiter;
+                    std::unordered_set<std::string> _parsedCustomHeaders;
+                };
 
-                    return continueParsing;   // false -> bail
-                }
-            private:
-                uint16_t _scriptNumber;
-                SyntaxContext &_context;
-                AutoCompleteId _id;
-                AutoCompleteThread2 &_ac;
-                CScriptStreamLimiter &_limiter;
-                std::unordered_set<std::string> _parsedCustomHeaders;
-            };
-
-            sci::Script script;
-            CCrystalScriptStream::const_iterator it(limiter.get());
-            SyntaxContext context(it, script, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), false);
+                sci::Script script;
+                CCrystalScriptStream::const_iterator it(limiter.get());
+                SyntaxContext context(it, script, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), false);
 #ifdef PARSE_DEBUG
-            context.ParseDebug = true;
+                context.ParseDebug = true;
 #endif
 
-            AutoCompleteParseCallback callback(scriptNumber, context, *this, *limiter, id);
-            limiter->SetCallback(&callback);
+                AutoCompleteParseCallback callback(scriptNumber, context, *this, *limiter, id);
+                limiter->SetCallback(&callback);
 
-            // context.ForAutoComplete = true;
-            bool result = g_Parser.ParseAC(script, it, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &context);
+                bool result = g_Parser.ParseAC(script, it, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &context);
+            }
+            else
+            {
+                break; // Go back to waiting
+            }
+
+            lock.lock();
         }
     }
 }

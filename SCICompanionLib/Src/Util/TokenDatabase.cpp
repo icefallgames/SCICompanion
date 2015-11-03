@@ -14,6 +14,7 @@
 #include "stdafx.h"
 #include "TokenDatabase.h"
 #include "CodeAutoComplete.h"
+#include "format.h"
 
 const size_t MaxWordLength = 255;
 
@@ -107,9 +108,15 @@ void TokenDatabase::GetAutoCompleteChoices(const std::string &prefix, AutoComple
 
                 stream.read_data(reinterpret_cast<uint8_t*>(buffer + charsInCommon), additionalChars);
 
+                if (charsInCommon < matchingChars)
+                {
+                    // We're done, nothing more could match
+                    break;
+                }
+
                 // Figure out how many characters match the prefix.
                 size_t total = charsInCommon + additionalChars;
-                while (matchingChars < prefixLength)
+                while (matchingChars < prefixLength && matchingChars < total)
                 {
                     if (buffer[matchingChars] == prefix[matchingChars])
                     {
@@ -120,6 +127,7 @@ void TokenDatabase::GetAutoCompleteChoices(const std::string &prefix, AutoComple
                         break;
                     }
                 }
+
                 if (matchingChars == prefixLength)
                 {
                     // This is a match, unless we have less now
