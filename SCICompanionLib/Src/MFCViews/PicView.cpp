@@ -2713,9 +2713,6 @@ void CPicView::_DrawLineDraw(const ViewPort &viewPort, PicData data, PicScreenFl
 {
     // The user is drawing a line.  We'll draw it right into the bits, by asking
     // a line command to draw.
-    assert(_xOld != -1);
-    assert(_yOld != -1);
-
     PicCommand command = PicCommand::CreateLine((uint16_t)_xOld, (uint16_t)_yOld, (uint16_t)_ptCurrentHover.x, (uint16_t)_ptCurrentHover.y);
 
     if (IsFlagSet(viewPort.dwDrawEnable, screenFlags))
@@ -3819,19 +3816,18 @@ void CPicView::OnLButtonDown(UINT nFlags, CPoint point)
         InvalidateOurselves();
     }
 
-    if ((ptPic.x >= _GetPicSize().cx) || (ptPic.y >= _GetPicSize().cy))
+    if (_fShowPriorityLines && _HitTestPriorityBar(ptPic, &_priBarMoveIndex) && (_priBarMoveIndex != -1))
     {
-        if (_fShowPriorityLines && _HitTestPriorityBar(ptPic, &_priBarMoveIndex) && (_priBarMoveIndex != -1))
-        {
-            _originalPriValueCommand = _EnsurePriorityBarCommand();
-            _originalPriValue = _originalPriValueCommand.setPriorityBars.pPriorityLines[_priBarMoveIndex];
-            _fCapturing = TRUE;
-            _pointCapture = ptPic;
-            SetCapture();
-        }
+        _originalPriValueCommand = _EnsurePriorityBarCommand();
+        _originalPriValue = _originalPriValueCommand.setPriorityBars.pPriorityLines[_priBarMoveIndex];
+        _fCapturing = TRUE;
+        _pointCapture = ptPic;
+        SetCapture();
     }
     else
     {
+        // Ensure things are in-bounds. SCI doesn't like negative lines and such..
+        _ClampPoint(ptPic);
         switch (_currentTool)
         {
             case History:
@@ -4138,7 +4134,7 @@ void CPicView::OnRButtonDown(UINT nFlags, CPoint point)
     CPoint ptPic = _MapClientPointToPic(point);
 
     // Don't do anything if this is off the picture.
-    if ((ptPic.x >= _GetPicSize().cx) || (ptPic.y >= _GetPicSize().cy))
+    if ((ptPic.x >= _GetPicSize().cx) || (ptPic.y >= _GetPicSize().cy) || (ptPic.x < 0) || (ptPic.y < 0))
     {
         return;
     }

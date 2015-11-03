@@ -104,6 +104,8 @@ struct PicData
     bool isVGA;
     size16 size;
     bool isContinuousPriority;
+
+    void EnsureInBounds(int &x, int &y);
 };
 
 //

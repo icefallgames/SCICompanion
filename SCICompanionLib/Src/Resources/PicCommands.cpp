@@ -1599,11 +1599,6 @@ void LineCommand_Draw(const PicCommand *pCommand, PicData *pData, ViewPort *pSta
 //
 void LineCommand_DrawOnly(const PicCommand *pCommand, PicData *pData, const ViewPort *pState)
 {
-    assert(pCommand->drawLine.xFrom >= 0);
-    assert(pCommand->drawLine.yFrom >= 0);
-    assert(pCommand->drawLine.xTo >= 0);
-    assert(pCommand->drawLine.yTo >= 0);
-
     if (pData->isVGA)
     {
         _DitherLine<PlotVGA>(pData,
@@ -2654,4 +2649,12 @@ bool operator==(const PenStyle &one, const PenStyle &two)
 bool operator!=(const PenStyle &one, const PenStyle &two)
 {
     return !(one == two);
+}
+
+void PicData::EnsureInBounds(int &x, int &y)
+{
+    x = min(x, size.cx - 1);
+    y = min(y, size.cy - 1);
+    x = max(x, 0);
+    y = max(y, 0);
 }
