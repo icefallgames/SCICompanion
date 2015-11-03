@@ -128,7 +128,7 @@ HBITMAP PicDrawManager::CreateBitmap(PicScreen screen, PicPosition pos, size16 s
             colorCount = ARRAYSIZE(g_egaColors);
         }
     }
-    return _CreateBitmap(GetScreenData(screen, pos), cx, cy, colors, colorCount, pbmi, pBitsDest);
+    return _CreateBitmap(GetScreenData(screen, pos), size, cx, cy, colors, colorCount, pbmi, pBitsDest);
 }
 
 const uint8_t *PicDrawManager::GetPicBits(PicScreen screen, PicPosition pos, size16 size)
@@ -585,13 +585,13 @@ HBITMAP PicDrawManager::_GetBitmapGDIP(uint8_t *pData, int cx, int cy, const RGB
     return hbm;
 }
 
-HBITMAP PicDrawManager::_CreateBitmap(uint8_t *pData, int cx, int cy, const RGBQUAD *palette, int paletteCount, SCIBitmapInfo *pbmi, uint8_t **ppBitsDest) const
+HBITMAP PicDrawManager::_CreateBitmap(uint8_t *pData, size16 size, int cxRequested, int cyRequested, const RGBQUAD *palette, int paletteCount, SCIBitmapInfo *pbmi, uint8_t **ppBitsDest) const
 {
     HBITMAP hbm = nullptr;
     if (!appState->_fNoGdiPlus && (!pbmi || !ppBitsDest))
     {
         // Use GDI+ if we can - the images are much better.
-        hbm = _GetBitmapGDIP(pData, cx, cy, palette, paletteCount);
+        hbm = _GetBitmapGDIP(pData, cxRequested, cyRequested, palette, paletteCount);
     }
     else
     {
@@ -599,8 +599,8 @@ HBITMAP PicDrawManager::_CreateBitmap(uint8_t *pData, int cx, int cy, const RGBQ
         CDC dc;
         if (dc.CreateCompatibleDC(nullptr))
         {
-            int cxBmp = 320;
-            int cyBmp = 190;
+            int cxBmp = size.cx;
+            int cyBmp = size.cy;
             SCIBitmapInfo bmi;
             uint8_t *pBitsDest;
             if (!pbmi)
@@ -608,27 +608,27 @@ HBITMAP PicDrawManager::_CreateBitmap(uint8_t *pData, int cx, int cy, const RGBQ
                 ppBitsDest = &pBitsDest;
                 pbmi = &bmi;
             }
-            *pbmi = SCIBitmapInfo(cx, cy, palette, paletteCount);
+            *pbmi = SCIBitmapInfo(cxRequested, cyRequested, palette, paletteCount);
             CBitmap bitmap;
             if (bitmap.Attach(CreateDIBSection(dc, pbmi, DIB_RGB_COLORS, (void**)ppBitsDest, nullptr, 0)))
             {
                 SCIBitmapInfo bmiSrc(cxBmp, cyBmp, palette, paletteCount);
                 HGDIOBJ hObjOld = dc.SelectObject((HBITMAP)bitmap);
 
-                if ((cx != cxBmp) || (cy != cyBmp))
+                if ((cxRequested != cxBmp) || (cyRequested != cyBmp))
                 {
                     // NOTE: HALFTONE is not supported on Win 98/Me
                     // As a result, the images will be resized poorly for dithered colours.
                     SetStretchBltMode(dc, HALFTONE);
                     SetBrushOrgEx(dc, 0, 0, nullptr);
-                    StretchDIBits(dc, 0, 0, cx, cy,
+                    StretchDIBits(dc, 0, 0, cxRequested, cyRequested,
                         0, 0, cxBmp, cyBmp, pData, &bmiSrc, DIB_RGB_COLORS, SRCCOPY);
                 }
                 else
                 {
                     SetStretchBltMode(dc, COLORONCOLOR);
                     SetBrushOrgEx(dc, 0, 0, nullptr);
-                    StretchDIBits(dc, 0, 0, cx, cy,
+                    StretchDIBits(dc, 0, 0, cxRequested, cyRequested,
                         0, 0, cxBmp, cyBmp, pData, &bmiSrc, DIB_RGB_COLORS, SRCCOPY);
                 }
                 dc.SelectObject(hObjOld);

@@ -87,7 +87,7 @@ private:
     void _MoveToNextStep(PicPositionFlags requestedFlags, PicPosition posCompleted);
     ptrdiff_t _GetDrawPos() const { return _iDrawPos; }
     void _RedrawBuffers(ViewPort *pState, PicScreenFlags dwRequestedMaps, PicPositionFlags picPositionFlags, bool assertIfCausedRedraw = false);
-    HBITMAP _CreateBitmap(uint8_t *pData, int cx, int cy, const RGBQUAD *palette, int paletteCount, SCIBitmapInfo *pbmi = nullptr, uint8_t **pBitsDest = nullptr) const;
+    HBITMAP _CreateBitmap(uint8_t *pData, size16 sizePic, int cxRequest, int cyRequest, const RGBQUAD *palette, int paletteCount, SCIBitmapInfo *pbmi = nullptr, uint8_t **pBitsDest = nullptr) const;
     HBITMAP _GetBitmapGDIP(uint8_t *pData, int cx, int cy, const RGBQUAD *palette, int paletteCount) const;
     void _OnPosChanged(bool fNotify = true);
     size16 _GetPicSize() const;

@@ -27,8 +27,12 @@
 #include "Message.h"
 #include "Text.h"
 #include "ResourceBlob.h"
+#include "Audio.h"
+#include "SoundUtil.h"
+#include "format.h"
+#include "AudioCacheResourceSource.h"
 
-void ExtractAllResources(SCIVersion version, const std::string &destinationFolderIn, bool extractPicImages, bool extractViewImages, bool disassembleScripts, bool extractMessages, IExtractProgress *progress)
+void ExtractAllResources(SCIVersion version, const std::string &destinationFolderIn, bool extractResources, bool extractPicImages, bool extractViewImages, bool disassembleScripts, bool extractMessages, bool generateWavs, IExtractProgress *progress)
 {
     std::string destinationFolder = destinationFolderIn;
     if (destinationFolder.back() != '\\')
@@ -50,7 +54,10 @@ void ExtractAllResources(SCIVersion version, const std::string &destinationFolde
     auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::All, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
     for (auto &blob : *resourceContainer)
     {
-        totalCount++;
+        if (extractResources)
+        {
+            totalCount++;
+        }
         if (extractViewImages && (blob->GetType() == ResourceType::View))
         {
             totalCount++;
@@ -67,25 +74,50 @@ void ExtractAllResources(SCIVersion version, const std::string &destinationFolde
         {
             totalCount++;
         }
+        if (generateWavs && (blob->GetType() == ResourceType::Audio))
+        {
+            totalCount++;
+        }
+    }
+
+    // sync36/audio36
+    if (generateWavs || extractResources)
+    {
+        resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::AudioMap, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
+        for (auto &blob : *resourceContainer)
+        {
+            if (blob->GetNumber() != version.AudioMapResourceNumber)
+            {
+                totalCount++;
+                if (generateWavs)
+                {
+                    totalCount++;
+                }
+            }
+        }
     }
 
     int count = 0;
     // Get it again, because we don't supprot reset.
     resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::All, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
+    bool keepGoing = true;
     for (auto &blob : *resourceContainer)
     {
         std::string filename = GetFileNameFor(*blob);
         std::string fullPath = destinationFolder + filename;
-        bool keepGoing = true;
+        keepGoing = true;
         try
         {
-            count++;
             if (progress)
             {
                 keepGoing = progress->SetProgress(fullPath, count, totalCount);
             }
             // Just the resource
-            blob->SaveToFile(fullPath);
+            if (extractResources)
+            {
+                count++;
+                blob->SaveToFile(fullPath);
+            }
 
             if (keepGoing)
             {
@@ -161,16 +193,60 @@ void ExtractAllResources(SCIVersion version, const std::string &destinationFolde
                     std::unique_ptr<ResourceEntity> resource = CreateResourceFromResourceData(*blob);
                     ExportMessageToFile(resource->GetComponent<TextComponent>(), msgPath);
                 }
+
+                if (generateWavs && (blob->GetType() == ResourceType::Audio))
+                {
+                    count++;
+                    std::string wavPath = fullPath + ".wav";
+                    std::unique_ptr<ResourceEntity> resource = CreateResourceFromResourceData(*blob);
+                    WriteWaveFile(wavPath, resource->GetComponent<AudioComponent>());
+                }
             }
         }
         catch (std::exception)
         {
 
         }
+    }
 
-        if (!keepGoing)
+    // Finally, the sync36 and audio36 resources and the audio maps
+    if (keepGoing)
+    {
+        auto audioMapContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::AudioMap, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
+        for (auto &blob : *audioMapContainer)
         {
-            break;
+            if (extractResources)
+            {
+                count++;
+                std::string filename = GetFileNameFor(*blob);
+                std::string fullPath = destinationFolder + filename;
+                blob->SaveToFile(fullPath);
+            }
+
+            if ((blob->GetNumber() != version.AudioMapResourceNumber) && (extractResources || generateWavs))
+            {
+                count++;
+                auto subResourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Audio, ResourceEnumFlags::MostRecentOnly, blob->GetNumber());
+                keepGoing = progress->SetProgress(fmt::format("Files for audio map {0}", blob->GetNumber()).c_str(), count, totalCount);
+                if (keepGoing)
+                {
+                    for (auto &blobSubs : *subResourceContainer)
+                    {
+                        if (extractResources)
+                        {
+                            SaveAudioBlobToFiles(*blobSubs, destinationFolder);
+                        }
+
+                        if (generateWavs)
+                        {
+                            std::string filename = GetFileNameFor(*blobSubs);
+                            std::string wavPath = destinationFolder + filename + ".wav";
+                            std::unique_ptr<ResourceEntity> resource = CreateResourceFromResourceData(*blobSubs);
+                            WriteWaveFile(wavPath, resource->GetComponent<AudioComponent>());
+                        }
+                    }
+                }
+            }
         }
     }
 }

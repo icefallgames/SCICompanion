@@ -569,6 +569,7 @@
 #define IDC_CHECK4                      1219
 #define IDC_CHECK5                      1220
 #define IDC_RADIOSCI6                   1221
+#define IDC_CHECK14                     1221
 #define IDC_RADIOSCI8                   1222
 #define IDC_RADIOSCI9                   1223
 #define IDC_CHECKGLOBALPALETTE          1223

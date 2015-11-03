@@ -93,3 +93,4 @@ private:
     GameFolderHelper _helper;
 };
 
+void SaveAudioBlobToFiles(const ResourceBlob &blob, const std::string &cacheSubFolder);

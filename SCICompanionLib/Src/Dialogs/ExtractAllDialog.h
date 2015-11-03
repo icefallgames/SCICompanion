@@ -59,14 +59,17 @@ protected:
     CExtCheckBox m_wndExtractViewImage;
     CExtCheckBox m_wndDisassembleScripts;
     CExtCheckBox m_wndExportMessages;
+    CExtCheckBox m_wndGenerateWav;
 
     std::unique_ptr<std::future<void>> _future;
     CString _location;
     SCIVersion _version;
+    bool _extractResources;
     bool _extractPicImages;
     bool _extractViewImages;
     bool _disassembleScripts;
     bool _exportMessages;
+    bool _generateWavs;
 
     void OnTimer(UINT_PTR nIDEvent);
 

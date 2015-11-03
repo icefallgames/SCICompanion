@@ -234,13 +234,13 @@ std::unique_ptr<ResourceContainer> GameFolderHelper::Resources(ResourceTypeFlags
         }
 
         // First, any stray files...
-        if (!IsFlagSet(enumFlags, ResourceEnumFlags::ExcludePatchFiles))
+        if (!IsFlagSet(enumFlags, ResourceEnumFlags::ExcludePatchFiles) && (mapContext == -1))
         {
             mapAndVolumes->push_back(move(std::make_unique<PatchFilesResourceSource>(Version, GameFolder, ResourceSourceFlags::PatchFile)));
         }
 
         // Add readers for message map files, if requested
-        if (IsFlagSet(types, ResourceTypeFlags::Message))
+        if (IsFlagSet(types, ResourceTypeFlags::Message) && (mapContext == -1))
         {
             FileDescriptorBase *fd = nullptr;
             FileDescriptorMessageMap messageMap(GameFolder);
@@ -265,7 +265,10 @@ std::unique_ptr<ResourceContainer> GameFolderHelper::Resources(ResourceTypeFlags
         }
 
         // Now the standard resource maps
-        mapAndVolumes->push_back(move(CreateResourceSource(*this, ResourceSourceFlags::ResourceMap)));
+        if (mapContext == -1)
+        {
+            mapAndVolumes->push_back(move(CreateResourceSource(*this, ResourceSourceFlags::ResourceMap)));
+        }
     }
 
     std::unique_ptr<ResourceContainer> resourceContainer(

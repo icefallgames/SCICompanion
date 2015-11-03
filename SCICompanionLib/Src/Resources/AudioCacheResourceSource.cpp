@@ -337,7 +337,7 @@ sci::istream AudioCacheResourceSource::GetHeaderAndPositionedStream(const Resour
 }
 
 // Split a resource blob into audio and sync files (if appropriate)
-void SaveAudioBlobToFiles(const ResourceBlob &blob, const std::string &cacheSubFolder, SCIVersion version)
+void SaveAudioBlobToFiles(const ResourceBlob &blob, const std::string &cacheSubFolder)
 {
     uint32_t lipSyncDataSize = 0;
     auto it = blob.GetPropertyBag().find(BlobKey::LipSyncDataSize);
@@ -379,7 +379,7 @@ void FirstTimeAudioExtraction(const GameFolderHelper &helper, const std::string 
         auto resourceContainer = helper.Resources(ResourceTypeFlags::Audio, ResourceEnumFlags::None, nullptr, mapContext);
         for (auto &blob : *resourceContainer)
         {
-            SaveAudioBlobToFiles(*blob, cacheSubFolder, version);
+            SaveAudioBlobToFiles(*blob, cacheSubFolder);
         }
     }
 }
@@ -535,7 +535,7 @@ AppendBehavior AudioCacheResourceSource::AppendResources(const std::vector<const
             }
 
             // Meanwhile, save this blob to files
-            SaveAudioBlobToFiles(*blobToBeSaved, _cacheSubFolderForEnum, _version);
+            SaveAudioBlobToFiles(*blobToBeSaved, _cacheSubFolderForEnum);
         }
 
         // And finally, serialize the audiomap and save it. We *should* just be able to go through the resource map again,
