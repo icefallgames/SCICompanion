@@ -45,7 +45,9 @@ void CleanUpGame(const std::string &gameFolder)
 {
     appState->GetResourceMap().GetClassBrowser()->SetClassBrowserEvents(nullptr);
 
+    appState->ResetClassBrowser();
     delete appState;
+    appState = nullptr;
 
     char szPath[MAX_PATH];
     StringCchCopy(szPath, ARRAYSIZE(szPath), gameFolder.c_str());

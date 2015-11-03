@@ -42,11 +42,17 @@ namespace UnitTests
     public:
         TEST_CLASS_INITIALIZE(ClassSetup)
         {
+            appState = nullptr;
         }
 
         TEST_CLASS_CLEANUP(ClassCleanup)
         {
+            if (appState)
+            {
+                appState->ResetClassBrowser();
+            }
             delete appState;
+            appState = nullptr;
         }
 
         TEST_METHOD(TestAllGames)
@@ -134,6 +140,7 @@ namespace UnitTests
             message = fmt::format(L"Loaded {0} resources.", count);
             Logger::WriteMessage(message.c_str());
 
+            appState->ResetClassBrowser();
             delete appState;
             appState = nullptr;
         }
