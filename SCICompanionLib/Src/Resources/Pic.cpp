@@ -892,6 +892,10 @@ void ReadPicCelFromVGA2(sci::istream &byteStream, Cel &cel, int16_t &priority, b
     assert(celHeader.unknown6 == 0);
 
     cel.size = celHeader.size;
+
+    // REVIEW: SQ6 pic 545 renders incorrectly. The cel width is 650 (despite the pic being 640).
+    // There are 10 pixels of black between each line.
+
     // Perhaps relativePlacement is affected by mirroring and placement is not?
     // NOTE: ScummVM ignores celHeader.placement, saying it's sometimes garbage.
     cel.placement = celHeader.placement + celHeader.relativePlacement;

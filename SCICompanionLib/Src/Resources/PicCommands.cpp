@@ -1599,6 +1599,11 @@ void LineCommand_Draw(const PicCommand *pCommand, PicData *pData, ViewPort *pSta
 //
 void LineCommand_DrawOnly(const PicCommand *pCommand, PicData *pData, const ViewPort *pState)
 {
+    assert(pCommand->drawLine.xFrom >= 0);
+    assert(pCommand->drawLine.yFrom >= 0);
+    assert(pCommand->drawLine.xTo >= 0);
+    assert(pCommand->drawLine.yTo >= 0);
+
     if (pData->isVGA)
     {
         _DitherLine<PlotVGA>(pData,

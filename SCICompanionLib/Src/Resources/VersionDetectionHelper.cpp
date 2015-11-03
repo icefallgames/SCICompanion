@@ -215,120 +215,117 @@ ResourceMapFormat CResourceMap::_DetectMapFormat()
         }
     }
 
-    if (!mustBeSCI0)
+    // To try to detect SCI1, read at least 7 RESOURCEMAPPREENTRY_SCI1's, or until we have a 0xff
+    bool couldBeSCI1 = true;
+    bool couldBeSCI2 = false;
+    int remainingEntries = 7;
+    std::vector<uint16_t> offsets;
+    while (byteStream.good() && couldBeSCI1 && (remainingEntries > 0))
     {
-        // To try to detect SCI1, read at least 7 RESOURCEMAPPREENTRY_SCI1's, or until we have a 0xff
-        bool couldBeSCI1 = true;
-        bool couldBeSCI2 = false;
-        int remainingEntries = 7;
-        std::vector<uint16_t> offsets;
-        while (byteStream.good() && couldBeSCI1 && (remainingEntries > 0))
+        RESOURCEMAPPREENTRY_SCI1 sci1Header;
+        byteStream >> sci1Header;
+        offsets.push_back(sci1Header.wOffset);
+        if (sci1Header.bType == 0xff)
         {
-            RESOURCEMAPPREENTRY_SCI1 sci1Header;
-            byteStream >> sci1Header;
-            offsets.push_back(sci1Header.wOffset);
-            if (sci1Header.bType == 0xff)
-            {
-                break;
-            }
-            if (sci1Header.bType < 0x80)
-            {
-                couldBeSCI1 = false;
-                couldBeSCI2 = true;
-                break;
-            }
-            if ((sci1Header.bType < 0x80) || (sci1Header.bType > 0x91))
-            {
-                couldBeSCI1 = false;
-                break;
-            }
-            remainingEntries--;
+            break;
         }
-
-        if (couldBeSCI1 && (remainingEntries == 0))
+        if (sci1Header.bType < 0x80)
         {
-            // If nothing is conclusive below, just leave at sciVersion1_Late for now
-            mapFormat = ResourceMapFormat::SCI1;
+            couldBeSCI1 = false;
+            couldBeSCI2 = true;
+            break;
+        }
+        if ((sci1Header.bType < 0x80) || (sci1Header.bType > 0x91))
+        {
+            couldBeSCI1 = false;
+            break;
+        }
+        remainingEntries--;
+    }
 
-            // Check the spacing of resource map offsets. This can help us determine
-            // whether or not this SCI1 map is 5 or 6 byte entries
-            for (size_t i = 1; i < offsets.size(); i++)
+    if (couldBeSCI1 && (remainingEntries == 0))
+    {
+        // If nothing is conclusive below, just leave at sciVersion1_Late for now
+        mapFormat = ResourceMapFormat::SCI1;
+
+        // Check the spacing of resource map offsets. This can help us determine
+        // whether or not this SCI1 map is 5 or 6 byte entries
+        for (size_t i = 1; i < offsets.size(); i++)
+        {
+            int diff = offsets[i] - offsets[i - 1];
+            bool sci1Multiple = 0 == (diff % sizeof(RESOURCEMAPENTRY_SCI1));       // 6 bytes
+            bool sci11Multiple = 0 == (diff % sizeof(RESOURCEMAPENTRY_SCI1_1));    // 5 bytes
+            if (sci1Multiple && !sci11Multiple)
             {
-                int diff = offsets[i] - offsets[i - 1];
-                bool sci1Multiple = 0 == (diff % sizeof(RESOURCEMAPENTRY_SCI1));       // 6 bytes
-                bool sci11Multiple = 0 == (diff % sizeof(RESOURCEMAPENTRY_SCI1_1));    // 5 bytes
-                if (sci1Multiple && !sci11Multiple)
-                {
-                    mapFormat = ResourceMapFormat::SCI1;
-                    break;
-                }
-                else if (!sci1Multiple && sci11Multiple)
-                {
-                    mapFormat = ResourceMapFormat::SCI11;
-                    break;
-                }
+                mapFormat = ResourceMapFormat::SCI1;
+                break;
             }
+            else if (!sci1Multiple && sci11Multiple)
+            {
+                mapFormat = ResourceMapFormat::SCI11;
+                break;
+            }
+        }
+    }
+    else
+    {
+        if (couldBeSCI2 && !mustBeSCI0)
+        {
+            mapFormat = ResourceMapFormat::SCI2;
         }
         else
         {
-            if (couldBeSCI2)
+            // It's SCI0, in that it doesn't have a list of "pre-entries". But the format of the entries themselves could be "SCI1".
+            // Check by interpreting them as SCI0 and seeing if we can open all the volume files we encounter.
+            sci::istream byteStreamSCI0 = streamHolder->getReader();
+            sci::istream byteStreamSCI1 = streamHolder->getReader();
+            std::set<int> volumesSCI0;
+            std::set<int> volumesSCI1;
+            static_assert(sizeof(RESOURCEMAPENTRY_SCI0) == sizeof(RESOURCEMAPENTRY_SCI0_SCI1LAYOUT), "Mismatched resource map entry size.");
+            while (byteStreamSCI0.good())
             {
-                mapFormat = ResourceMapFormat::SCI2;
-            }
-            else
-            {
-                // It's SCI0, in that it doesn't have a list of "pre-entries". But the format of the entries themselves could be "SCI1".
-                // Check by interpreting them as SCI0 and seeing if we can open all the volume files we encounter.
-                sci::istream byteStreamSCI0 = streamHolder->getReader();
-                sci::istream byteStreamSCI1 = streamHolder->getReader();
-                std::set<int> volumesSCI0;
-                std::set<int> volumesSCI1;
-                static_assert(sizeof(RESOURCEMAPENTRY_SCI0) == sizeof(RESOURCEMAPENTRY_SCI0_SCI1LAYOUT), "Mismatched resource map entry size.");
-                while (byteStreamSCI0.good())
+                RESOURCEMAPENTRY_SCI0 mapEntrySCI0;
+                byteStreamSCI0 >> mapEntrySCI0;
+                if (mapEntrySCI0.iType == 0x1f)
                 {
-                    RESOURCEMAPENTRY_SCI0 mapEntrySCI0;
-                    byteStreamSCI0 >> mapEntrySCI0;
-                    if (mapEntrySCI0.iType == 0x1f)
-                    {
-                        break; // EOF marker
-                    }
-                    volumesSCI0.insert(mapEntrySCI0.iPackageNumber);
-                    RESOURCEMAPENTRY_SCI0_SCI1LAYOUT mapEntrySCI1;
-                    byteStreamSCI1 >> mapEntrySCI1;
-                    volumesSCI1.insert(mapEntrySCI1.iPackageNumber);
+                    break; // EOF marker
                 }
+                volumesSCI0.insert(mapEntrySCI0.iPackageNumber);
+                RESOURCEMAPENTRY_SCI0_SCI1LAYOUT mapEntrySCI1;
+                byteStreamSCI1 >> mapEntrySCI1;
+                volumesSCI1.insert(mapEntrySCI1.iPackageNumber);
+            }
 
-                // If any of these don't exist, assume that we have SCI1 layout
-                bool probablyNotSCI0 = false;
-                for (int volume : volumesSCI0)
+            // If any of these don't exist, assume that we have SCI1 layout
+            bool probablyNotSCI0 = false;
+            for (int volume : volumesSCI0)
+            {
+                FileDescriptorResourceMap resourceMapFileDescriptor(_gameFolderHelper.GameFolder);
+                if (!PathFileExists(resourceMapFileDescriptor._GetVolumeFilename(volume).c_str()))
+                {
+                    probablyNotSCI0 = true;
+                    break;
+                }
+            }
+
+            // Let's verify first though (in case someone just deleted a package file)
+            if (probablyNotSCI0)
+            {
+                for (int volume : volumesSCI1)
                 {
                     FileDescriptorResourceMap resourceMapFileDescriptor(_gameFolderHelper.GameFolder);
                     if (!PathFileExists(resourceMapFileDescriptor._GetVolumeFilename(volume).c_str()))
                     {
-                        probablyNotSCI0 = true;
+                        // Game is corrupt...
+                        probablyNotSCI0 = false;
                         break;
                     }
                 }
+            }
 
-                // Let's verify first though (in case someone just deleted a package file)
-                if (probablyNotSCI0)
-                {
-                    for (int volume : volumesSCI1)
-                    {
-                        FileDescriptorResourceMap resourceMapFileDescriptor(_gameFolderHelper.GameFolder);
-                        if (!PathFileExists(resourceMapFileDescriptor._GetVolumeFilename(volume).c_str()))
-                        {
-                            // Game is corrupt...
-                            probablyNotSCI0 = false;
-                            break;
-                        }
-                    }
-                }
-
-                if (probablyNotSCI0)
-                {
-                    mapFormat = ResourceMapFormat::SCI0_LayoutSCI1;
-                }
+            if (probablyNotSCI0)
+            {
+                mapFormat = ResourceMapFormat::SCI0_LayoutSCI1;
             }
         }
     }
