@@ -429,6 +429,9 @@ bool ViewCelListBox::_HitTest(CPoint point, bool calcInsertIndex, int &index)
     return false;
 }
 
+// phil test
+#include "PerfTimer.h"
+
 void ViewCelListBox::OnDraw(CDC* pDC)
 {
     CRect rect;
@@ -441,8 +444,6 @@ void ViewCelListBox::OnDraw(CDC* pDC)
     {
         // Each time we draw, we copy the cel data anew into our dibsection.
         // Then we StretchBlt the necessary areas to the screen.
-        // For palettized images, GDI always uses nearest neighbor
-        // interpolation, so we don't need to set StretchBltMode.
         _TransferToBitmap();
 
         CDC dcMem;
@@ -499,6 +500,10 @@ void ViewCelListBox::OnDraw(CDC* pDC)
 
             std::vector<CRect> clipRects;
             int itemCount = _dir->ItemCount(celIndex, raster);
+
+            // HALFTONE is about 4 times slower, but still not that bad (a handful of milliseconds).
+            int oldMode = pDC->SetStretchBltMode(HALFTONE);
+            pDC->SetBrushOrg(0, 0);
             for (int i = 0; i < itemCount; i++)
             {
                 CSize itemSize = _dir->GetItemSize(celIndex, raster, i);
@@ -508,6 +513,10 @@ void ViewCelListBox::OnDraw(CDC* pDC)
 
                 destRect.OffsetRect(-_xOrigin, -_yOrigin);
 
+                //BitBlt(*pDC, destRect.left, destRect.top, destRect.Width(), destRect.Height(),
+                //  dcMem, srcPos.x, srcPos.y, SRCCOPY);
+                // For palettized images, GDI always uses nearest neighbor
+                // interpolation, so we don't need to set StretchBltMode.
                 StretchBlt(*pDC, destRect.left, destRect.top, destRect.Width(), destRect.Height(),
                     dcMem, srcPos.x, srcPos.y, itemSize.cx, itemSize.cy, SRCCOPY);
 
@@ -517,6 +526,7 @@ void ViewCelListBox::OnDraw(CDC* pDC)
                 srcPos += _dir->IncrementSourcePos(itemSize);
                 itemIndices += _dir->DimensionMultiplier();
             }
+            pDC->SetStretchBltMode(oldMode);
 
             for (CRect &clipRect : clipRects)
             {
