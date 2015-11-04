@@ -568,7 +568,7 @@ bool CResourceMap::AppendResource(const ResourceEntity &resource, int packageNum
         ResourceBlob data;
         sci::ostream serial;
         resource.WriteTo(serial, true, resourceNumber, data.GetPropertyBag());
-        if (ValidateResourceSize(serial.tellp(), resource.GetType()))
+        if (ValidateResourceSize(Helper().Version, serial.tellp(), resource.GetType()))
         {
             sci::istream readStream = istream_from_ostream(serial);
             data.CreateFromBits(nullptr, resource.GetType(), &readStream, packageNumber, resourceNumber, base36Number, _gameFolderHelper.Version, resource.SourceFlags);

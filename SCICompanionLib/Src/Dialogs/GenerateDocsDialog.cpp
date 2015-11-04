@@ -177,60 +177,6 @@ void GenerateDocsDialog::OnBnClickedGeneratedoc()
 
 void GenerateDocsDialog::_RunBuild(const std::string &docGenFolder, const std::string &docGenCommand)
 {
-    /*
-    HANDLE hOut = INVALID_HANDLE_VALUE;
-    HANDLE hPipeRead, hPipeWrite;
-    // Set the bInheritHandle flag so pipe handles are inherited. 
-    SECURITY_ATTRIBUTES securityAttributes = {};
-    securityAttributes.nLength = sizeof(securityAttributes);
-    securityAttributes.bInheritHandle = TRUE;
-    if (CreatePipe(&hPipeRead, &hPipeWrite, &securityAttributes, 1024))
-    {
-        // Ensure the read handle to the pipe for STDOUT is not inherited.
-        if (SetHandleInformation(hPipeRead, HANDLE_FLAG_INHERIT, 0))
-        {
-            STARTUPINFO startupInfo = {};
-            startupInfo.cb = sizeof(STARTUPINFO);
-            startupInfo.dwFlags |= STARTF_USESTDHANDLES;
-            startupInfo.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
-            startupInfo.hStdOutput = hPipeWrite;
-            startupInfo.hStdError = hPipeWrite;
-
-            std::string commandLine = fmt::format("cmd.exe /C {0}", docGenCommand);
-            std::vector<char> szCommandLine(commandLine.begin(), commandLine.end());
-            szCommandLine.push_back('\0');
-
-            PROCESS_INFORMATION processInfo = {};
-            BOOL create = CreateProcess(nullptr, &szCommandLine[0], nullptr, nullptr, TRUE, 0, nullptr, docGenFolder.c_str(), &startupInfo, &processInfo);
-            if (create)
-            {
-                std::string output;
-                char szOut[1024];
-                DWORD cbRead = 0;
-                BOOL readStuff = FALSE;
-                do
-                {
-                    if (!PeekNamedPipe(hPipeRead, szOut, ARRAYSIZE(szOut), &cbRead, nullptr, nullptr) || (cbRead == 0))
-                    {
-                        break;
-                    }
-                    readStuff = ReadFile(hPipeRead, szOut, ARRAYSIZE(szOut), &cbRead, nullptr);
-                    std::copy(szOut, szOut + cbRead, std::back_inserter(output));
-                } while (readStuff || (cbRead == 0));
-
-                if (processInfo.hProcess)
-                {
-                    WaitForSingleObject(processInfo.hProcess, 5000);
-                }
-
-                CloseHandle(processInfo.hThread);
-                CloseHandle(processInfo.hProcess);
-            }
-        }
-        CloseHandle(hPipeWrite); // Close our end of the write pipe
-        CloseHandle(hPipeRead);
-    }*/
-
     std::string params = fmt::format("/C {0}", docGenCommand);
     SHELLEXECUTEINFO ei = {};
     ei.fMask = SEE_MASK_DEFAULT | SEE_MASK_NOCLOSEPROCESS;

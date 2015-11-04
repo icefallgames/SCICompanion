@@ -71,10 +71,15 @@ void DisplayInvalidResourceNameMessage(PCTSTR pszName)
     AfxMessageBox(szBuffer, MB_ERRORFLAGS);
 }
 
-bool ValidateResourceSize(DWORD cb, ResourceType type)
+bool ValidateResourceSize(const SCIVersion &version,DWORD cb, ResourceType type)
 {
+    // The maximum resource size increases with SCI versions, as the map and resource package header size/offset bit widths increased.
+    // Audio is special, because it was stored with a custom map format.
+    // There are probably actual values that are correct, but we'll use 64K for earlier SCI versions,
+    // and a much larger value for later SCI versions. If we wanted to be "perfect", we could base it off the
+    // bit-width of the map offsets/package resource size fields.
     bool fRet = true;
-    if (cb > ((type == ResourceType::Audio) ? MaxResourceSizeAud : MaxResourceSize))
+    if (cb > ((type == ResourceType::Audio) ? MaxResourceSizeLarge : ((version.MapFormat >= ResourceMapFormat::SCI1) ? MaxResourceSizeLarge : MaxResourceSize)))
     {
         TCHAR szBuffer[MAX_PATH];
         StringCchPrintf(szBuffer, ARRAYSIZE(szBuffer), TEXT("Resources can't be bigger than %d bytes.  This resource is %d bytes."), MaxResourceSize, cb);
@@ -572,7 +577,7 @@ HRESULT ResourceBlob::SaveToHandle(HANDLE hFile, bool fNoHeader, DWORD *pcbWritt
     BOOL fWrote = FALSE;
     bool fWriteCompressedIfPossible;
     DWORD checkSize = max(header.cbCompressed, header.cbDecompressed);
-    if (checkSize > ((header.Type == ResourceType::Audio) ? MaxResourceSizeAud : MaxResourceSize))
+    if (!ValidateResourceSize(header.Version, checkSize, header.Type))
     {
         SetLastError(ERROR_OUTOFMEMORY);  // Not the best, but it will do.
     }

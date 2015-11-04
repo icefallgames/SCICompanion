@@ -40,65 +40,63 @@ std::string DocScript::GetComment(const sci::SyntaxNode *node)
     return _nodeToComment[node];
 }
 
-// If all non-empty lines have a tab, removes the tab at the beginning of each line
-std::string Untabify(const std::string &in)
+std::vector<std::string> Lineify(const std::string &in)
 {
-    // Find min number of tabs
-    auto it = in.begin();
-    int minTabCount = (std::numeric_limits<int>::max)();
-    do
+    std::istringstream f(in);
+    std::string line;
+    std::vector<std::string> lines;
+    while (std::getline(f, line))
     {
-        // Skip empty lines.
-        while ((it != in.end()) && (*it == '\n'))
-        {
-            ++it;
-        }
+        lines.push_back(line);
+    }
+    return lines;
+}
 
-        if (it != in.end())
-        {
-            // Now we're at the beginning of a non-empty line
-            int tabCount = 0;
-            while ((it != in.end()) && (*it == '\t'))
-            {
-                tabCount++;
-                ++it;
-            }
-            minTabCount = min(minTabCount, tabCount);
-            // Move to next line...
-            while ((it != in.end()) && (*it != '\n'))
-            {
-                ++it;
-            }
-        }
-    } while ((minTabCount > 0) && (it != in.end()));
-
-    // Remove from each line!
+std::string Indent(const std::string &in)
+{
+    std::vector<std::string> lines = Lineify(in);
     std::string output;
-    if (minTabCount > 0)
+    for (auto &line : lines)
     {
-        it = in.begin();
-        while (it != in.end())
-        {
-            // Skip empty lines.
-            while ((it != in.end()) && (*it == '\n'))
-            {
-                ++it;
-            }
+        output += '\t';
+        output += line;
+        output += '\n';
+    }
+    return output;
+}
 
-            if (it != in.end())
+#include <algorithm>
+
+// If all non-empty lines have a tab, removes the tab at the beginning of each line
+std::string Unindent(const std::string &in)
+{
+    std::vector<std::string> lines = Lineify(in);
+    int minTabCount = (std::numeric_limits<int>::max)();
+    for (auto &line : lines)
+    {
+        if (!line.empty())
+        {
+            int tabCount = std::find_if(line.begin(), line.end(), [](char c) { return c != '\t';  }) - line.begin();
+            minTabCount = min(tabCount, minTabCount);
+        }
+    }
+
+    std::string output;
+    if ((minTabCount > 0) && (minTabCount != (std::numeric_limits<int>::max)()))
+    {
+        for (auto &line : lines)
+        {
+            if (!line.empty())
             {
-                it += minTabCount;
-                // Find the end of the line
-                auto itEndLine = it;
-                while ((itEndLine != in.end()) && (*itEndLine != '\n'))
-                {
-                    ++itEndLine;
-                }
-                std::copy(it, itEndLine, std::back_inserter(output));
-                output.push_back('\n');
-                it = itEndLine;
+                std::string lineUnindented(line.begin() + minTabCount, line.end());
+                output += lineUnindented;
             }
-        };
+            output += '\n';
+        }
+    }
+    else
+    {
+        output = in;
     }
     return output;
 }
@@ -123,7 +121,7 @@ DocScript::DocScript(const sci::Script &script)
         }
         else
         {
-            CommentInfo commentInfo = { comment->GetLineNumber(), comment->GetEndLineNumber(), Untabify(comment->GetSanitizedText()) };
+            CommentInfo commentInfo = { comment->GetLineNumber(), comment->GetEndLineNumber(), Unindent(comment->GetSanitizedText()) };
             comments.push_back(commentInfo);
         }
     }

@@ -18,6 +18,8 @@
 #include "ScriptOMAll.h"
 #include "format.h"
 
+// This uses reStructuredText's js domain, as it is most similar to SCI.
+
 std::string scriptFilenameSuffix = ".sc";
 
 std::string indent = "    ";
@@ -74,7 +76,11 @@ void OutputScriptRST(DocScript &docScript, const std::string &rstFolder, std::ve
         {
             if (!theClass->IsInstance())
             {
-                w << ":class:`" << theClass->GetName() << "` of " << theClass->GetSuperClass() << "\n\n";
+                w << ":class:`" << theClass->GetName();
+                if (!theClass->GetSuperClass().empty()) // Happens in one case, with Obj
+                {
+                   w << "` of " << theClass->GetSuperClass() << "\n\n";
+                }
             }
         }
     }
@@ -155,11 +161,30 @@ void OutputProceduresRST(DocScript &docScript, const std::string &rstFolder, std
 
             OutputPreamble(w, proc->GetName(), fmt::format("Procedure: {0} ({1}{2})", proc->GetName(), script->GetTitle(), scriptFilenameSuffix));
 
+            std::string randomText = docScript.GetComment(proc.get());
+            if (randomText.find(".. function::") == std::string::npos)
+            {
+                // No function definition provided. Make one up.
+                w << ".. function:: " << proc->GetName() << "(";
+                bool first = true;
+                for (auto &param : proc->GetSignatures()[0]->GetParams())
+                {
+                    if (!first)
+                    {
+                        w << " ";
+                    }
+                    w << param->GetName();
+                    first = false;
+                }
+                w << ")\n\n";
+                randomText = Indent(randomText);
+            }
+
             // TODO: Need :: function blah balh...
             // Search for ".. function::" in the random text. If none found, then generate one.
 
             // Random text
-            w << docScript.GetComment(proc.get()) << "\n\n";
+            w << randomText << "\n\n";
 
             // TODO: If no random text, then produce a function definition.
 
