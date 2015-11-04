@@ -13,7 +13,7 @@
 ***************************************************************************/
 #include "stdafx.h"
 #include "OutputRST.h"
-
+#include "ClassBrowser.h"
 #include "DocScript.h"
 #include "ScriptOMAll.h"
 #include "format.h"
@@ -76,11 +76,12 @@ void OutputScriptRST(DocScript &docScript, const std::string &rstFolder, std::ve
         {
             if (!theClass->IsInstance())
             {
-                w << ":class:`" << theClass->GetName();
+                w << ":class:`" << theClass->GetName() << "`";
                 if (!theClass->GetSuperClass().empty()) // Happens in one case, with Obj
                 {
-                   w << "` of " << theClass->GetSuperClass() << "\n\n";
+                    w << " of " << theClass->GetSuperClass();
                 }
+                w << "\n\n";
             }
         }
     }
@@ -108,9 +109,34 @@ void OutputScriptRST(DocScript &docScript, const std::string &rstFolder, std::ve
     MakeTextFile(w.str().c_str(), fullPath);
 }
 
-
-void OutputClassRST(DocScript &docScript, const std::string &rstFolder, std::vector<std::string> &generatedFiles)
+void OutputFunctionRSTHelper(DocScript &docScript, fmt::MemoryWriter &w, sci::FunctionBase &function)
 {
+    std::string randomText = docScript.GetComment(&function);
+    if (randomText.find(".. function::") == std::string::npos)
+    {
+        // No function definition provided. Make one up.
+        w << ".. function:: " << function.GetName() << "(";
+        bool first = true;
+        for (auto &param : function.GetSignatures()[0]->GetParams())
+        {
+            if (!first)
+            {
+                w << " ";
+            }
+            w << param->GetName();
+            first = false;
+        }
+        w << ")\n\n";
+        randomText = Indent(randomText);
+    }
+    w << randomText << "\n\n";
+}
+
+void OutputClassRST(SCIClassBrowser &browser, DocScript &docScript, const std::string &rstFolder, std::vector<std::string> &generatedFiles)
+{
+    ClassBrowserLock lock(browser);
+    lock.Lock();
+
     auto *script = docScript.GetScript();
     for (auto &theClass : script->GetClasses())
     {
@@ -119,19 +145,66 @@ void OutputClassRST(DocScript &docScript, const std::string &rstFolder, std::vec
             std::string fullPath = OutputRSTHelper(rstFolder, "Classes", theClass->GetName(), generatedFiles);
             fmt::MemoryWriter w;
 
-            OutputPreamble(w, theClass->GetName(), fmt::format("Class: {0} (of :class:`{1}`)", theClass->GetName(), theClass->GetSuperClass()));
+            if (theClass->GetSuperClass().empty())
+            {
+                OutputPreamble(w, theClass->GetName(), fmt::format("Class: {0}", theClass->GetName()));
+            }
+            else
+            {
+                OutputPreamble(w, theClass->GetName(), fmt::format("Class: {0} (of :class:`{1}`)", theClass->GetName(), theClass->GetSuperClass()));
+            }
 
             w << ".. class:: " << theClass->GetName() << "\n\n";
 
             // Random text
             w << docScript.GetComment(theClass.get()) << "\n\n";
 
+            // Are there any subclasses? List them.
+            std::vector<std::string> directSubclasses = browser.GetDirectSubclasses(theClass->GetName());
+            if (!directSubclasses.empty())
+            {
+                w << "Subclasses: ";
+                bool first = true;
+                for (auto &subClassName : directSubclasses)
+                {
+                    if (!first)
+                    {
+                        w << ", ";
+                    }
+                    w << ":class:`" << subClassName << "`";
+                    first = false;
+                }
+                w << ".\n\n";
+            }
+
+            // Find *all* the properties that are part of this class, and differentiate those that were newly
+            // defined vs those that were inherited.
+            std::vector<std::string> inheritedProperties;
+            std::vector<std::string> newProperties;
+            auto allProps = browser.CreatePropertyNameArray(theClass->GetName());
+            if (theClass->GetSuperClass().empty())
+            {
+                newProperties = *allProps;
+            }
+            else
+            {
+                std::set<std::string> setAllProps(allProps->begin(), allProps->end());
+                auto superProps = browser.CreatePropertyNameArray(theClass->GetSuperClass());
+                std::set<std::string> setSuperProps(superProps->begin(), superProps->end());
+                std::set_difference(setAllProps.begin(), setAllProps.end(), setSuperProps.begin(), setSuperProps.end(), std::back_inserter(newProperties));
+                inheritedProperties = *superProps;
+            }
+
             // Properties
             w << "Properties\n";
             w << "==========\n\n";
-            for (auto &property : theClass->GetProperties())
+            for (auto &property : inheritedProperties)
             {
-                w << indent << "- " << property->GetName() << "\n";
+                w << indent << "- " << property << " (inherited)\n";
+            }
+            for (auto &property : newProperties)
+            {
+                w << indent << "- **" << property << "**\n";
             }
 
             // Methods - we'll do these inline instead of making new documents for them.
@@ -140,8 +213,7 @@ void OutputClassRST(DocScript &docScript, const std::string &rstFolder, std::vec
             w << "==========\n\n";
             for (auto &method : theClass->GetMethods())
             {
-                // TODO: make this better
-                w << indent << "- " << method->GetName() << "\n";
+                OutputFunctionRSTHelper(docScript, w, *method);
             }
 
             MakeTextFile(w.str().c_str(), fullPath);
@@ -161,32 +233,7 @@ void OutputProceduresRST(DocScript &docScript, const std::string &rstFolder, std
 
             OutputPreamble(w, proc->GetName(), fmt::format("Procedure: {0} ({1}{2})", proc->GetName(), script->GetTitle(), scriptFilenameSuffix));
 
-            std::string randomText = docScript.GetComment(proc.get());
-            if (randomText.find(".. function::") == std::string::npos)
-            {
-                // No function definition provided. Make one up.
-                w << ".. function:: " << proc->GetName() << "(";
-                bool first = true;
-                for (auto &param : proc->GetSignatures()[0]->GetParams())
-                {
-                    if (!first)
-                    {
-                        w << " ";
-                    }
-                    w << param->GetName();
-                    first = false;
-                }
-                w << ")\n\n";
-                randomText = Indent(randomText);
-            }
-
-            // TODO: Need :: function blah balh...
-            // Search for ".. function::" in the random text. If none found, then generate one.
-
-            // Random text
-            w << randomText << "\n\n";
-
-            // TODO: If no random text, then produce a function definition.
+            OutputFunctionRSTHelper(docScript, w, *proc);
 
             MakeTextFile(w.str().c_str(), fullPath);
         }

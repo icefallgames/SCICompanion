@@ -243,7 +243,7 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                         else
                         {
                             // Maybe it's a property
-                            unique_ptr<RawClassPropertyVector> pProperties(browser.CreatePropertyArray(object, &pContext->Script()));
+                            auto pProperties = browser.CreatePropertyArray(object, &pContext->Script());
                             fFound = matches_name(pProperties->begin(), pProperties->end(), strText);
                             if (fFound)
                             {

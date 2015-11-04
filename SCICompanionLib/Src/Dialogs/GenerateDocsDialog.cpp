@@ -52,7 +52,7 @@ void GenerateDocsDialog::_PopulateScripts()
     for (auto &blob : *scriptResources)
     {
         std::string name = blob->GetName();
-        m_wndScripts.AddString(name.c_str());
+        m_wndScripts.InsertItem(-1, name.c_str());
     }
     m_wndScripts.SetRedraw(TRUE);
 }
@@ -136,24 +136,24 @@ void GenerateDocsDialog::OnBnClickedGeneratedoc()
 
     std::string buildFolder = docGenFolder + "\\" + docSourceFolder;
 
-    int cItems = m_wndScripts.GetCount();
-    std::unique_ptr<int[]> selectedItems = std::make_unique<int[]>(cItems);
-    int cSelItems = m_wndScripts.GetSelItems(cItems, selectedItems.get());
-    for (int i = 0; i < cSelItems; i++)
+    POSITION pos = m_wndScripts.GetFirstSelectedItemPosition();
+    while (pos != nullptr)
     {
-        CString strText;
-        m_wndScripts.GetText(selectedItems.get()[i], strText);
-        std::string scriptName = (PCSTR)strText;
-        std::string fullPath = _helper.GetScriptFileName(scriptName);
-
-        CompileLog log;
-        std::unique_ptr<sci::Script> script = SimpleCompile(log, ScriptId(fullPath), true);
-        if (script)
+        int item = m_wndScripts.GetNextSelectedItem(pos);
+        if (item != -1)
         {
-            DocScript docScript(*script);
-            OutputScriptRST(docScript, buildFolder, generatedFiles);
-            OutputClassRST(docScript, buildFolder, generatedFiles);
-            OutputProceduresRST(docScript, buildFolder, generatedFiles);
+            CString strText = m_wndScripts.GetItemText(item, 0);
+            std::string scriptName = (PCSTR)strText;
+            std::string fullPath = _helper.GetScriptFileName(scriptName);
+            CompileLog log;
+            std::unique_ptr<sci::Script> script = SimpleCompile(log, ScriptId(fullPath), true);
+            if (script)
+            {
+                DocScript docScript(*script);
+                OutputScriptRST(docScript, buildFolder, generatedFiles);
+                OutputClassRST(*appState->GetResourceMap().GetClassBrowser(), docScript, buildFolder, generatedFiles);
+                OutputProceduresRST(docScript, buildFolder, generatedFiles);
+            }
         }
     }
 
@@ -166,7 +166,7 @@ void GenerateDocsDialog::OnBnClickedGeneratedoc()
     }
     m_wndGeneratedFiles.SetRedraw(TRUE);
 
-    if (cSelItems)
+    if (!generatedFiles.empty())
     {
         // Build
         // Need to ShellExecute, then wait for process to come back. see debugger

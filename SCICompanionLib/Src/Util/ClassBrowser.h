@@ -57,8 +57,10 @@ public:
     // See my comments in the implementations
     // These functions do not require using the lock.
     std::vector<sci::MethodDefinition*> *CreateMethodArray(const std::string &strObject, sci::Script *pScript = nullptr) const;
-    std::vector<sci::ClassProperty*> *CreatePropertyArray(const std::string &strObject, sci::Script *pScript = nullptr, PCTSTR pszSuper = nullptr) const;
-    std::vector<std::string> *CreateSubSpeciesArray(PCTSTR pszSpecies);
+    std::unique_ptr<std::vector<sci::ClassProperty*>> CreatePropertyArray(const std::string &strObject, sci::Script *pScript = nullptr, PCTSTR pszSuper = nullptr) const;
+    std::unique_ptr<std::vector<std::string>> CreatePropertyNameArray(const std::string &strObject, sci::Script *pScript = nullptr, PCTSTR pszSuper = nullptr) const;
+    std::unique_ptr<std::vector<std::string>> CreateSubSpeciesArray(const std::string &species);
+    std::vector<std::string> GetDirectSubclasses(const std::string &species);
 
     //
     // This operators similarly to GlobalLock/Unlock. Before calling any functions here,
@@ -135,7 +137,7 @@ private:
     void _AddHeader(PCTSTR pszHeaderPath);
     void _CacheHeaderDefines();
     void _AddInstanceToMap(sci::Script& script, sci::ClassDefinition *pClass);
-    void _AddSubclassesToArray(std::vector<std::string> *pArray, SCIClassBrowserNode *pBrowserInfo);
+    void _AddSubclassesToArray(std::vector<std::string> &pArray, SCIClassBrowserNode *pBrowserInfo);
     void _MaybeGenerateAutoCompleteTree();
     const std::vector<sci::ProcedureDefinition*> &_GetPublicProcedures();
     const std::vector<std::unique_ptr<sci::VariableDecl>> *_GetMainGlobals() const;

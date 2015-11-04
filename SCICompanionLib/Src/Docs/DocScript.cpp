@@ -115,7 +115,7 @@ DocScript::DocScript(const sci::Script &script)
         if (!comments.empty() && (comments[lastIndex].endLine + 1 == start))
         {
             // Append to the last one.
-            comments[lastIndex].comment += "\r\n";
+            comments[lastIndex].comment += "\n";
             comments[lastIndex].comment += comment->GetSanitizedText();
             comments[lastIndex].endLine = comment->GetEndLineNumber();
         }

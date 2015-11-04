@@ -30,7 +30,7 @@ private:
     void _RunBuild(const std::string &docGenFolder, const std::string &docGenCommand);
 
 protected:
-    CListBox m_wndScripts;
+    CListCtrl m_wndScripts;
     CListBox m_wndGeneratedFiles;
     CEdit m_wndFolder;
     CEdit m_wndCommand;

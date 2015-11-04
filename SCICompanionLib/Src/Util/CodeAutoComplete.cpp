@@ -240,7 +240,7 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
             ClassBrowserLock browserLock(browser);
             browserLock.Lock();
             std::string species = context.ClassPtr->IsInstance() ? context.ClassPtr->GetSuperClass() : context.ClassPtr->GetName();
-            unique_ptr<RawClassPropertyVector> properties(browser.CreatePropertyArray(species, nullptr, nullptr));
+            auto properties = browser.CreatePropertyArray(species);
             MergeResults(result->choices, prefix, AutoCompleteIconIndex::Variable, *properties,
                 [](const ClassProperty *classProp)
             {

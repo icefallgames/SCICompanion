@@ -79,10 +79,6 @@ inline void _EatWhitespaceAndComments(TContext *pContext, _It &stream)
 
                 // Go until end of line
                 while ((ch = *(++stream)) && (ch != '\n')) {} // Look for \n or EOF
-                if (ch == '\n') // As opposed to EOF
-                {
-                    ++stream; // Move past \n
-                }
                 fDone = false; // Check for whitespace again
 
                 // Comment gathering.  This may be expensive, so only do this if pContext is non-NULL
@@ -90,6 +86,11 @@ inline void _EatWhitespaceAndComments(TContext *pContext, _It &stream)
                 {
                     pContext->PopParseAutoCompleteContext();
                     _DoComment(pContext, streamSave, stream);
+                }
+
+                if (ch == '\n') // As opposed to EOF
+                {
+                    ++stream; // Move past \n now that we've done _DoComment. Otherwise the comment will be tagged as ending on the next line.
                 }
             }
             else if (ch == '*')

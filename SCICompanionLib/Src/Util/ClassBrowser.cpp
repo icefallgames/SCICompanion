@@ -1113,14 +1113,24 @@ RawMethodVector *SCIClassBrowser::CreateMethodArray(const std::string &strObject
     return pMethods;
 }
 
+std::unique_ptr<std::vector<std::string>> SCIClassBrowser::CreatePropertyNameArray(const std::string &strObject, Script *pScript, PCTSTR pszSuper) const
+{
+    auto allProps = CreatePropertyArray(strObject, pScript, pszSuper);
+    auto stringProps = std::make_unique<std::vector<std::string>>();
+    std::transform(allProps->begin(), allProps->end(), std::back_inserter(*stringProps),
+        [](sci::ClassProperty *prop) { return prop->GetName(); }
+        );
+    return stringProps;
+}
+
 //
 // Allocates a method array, containing all the methods implemented by the
 // object strObject.
 //
-RawClassPropertyVector *SCIClassBrowser::CreatePropertyArray(const std::string &strObject, Script *pScript, PCTSTR pszSuper) const
+std::unique_ptr<RawClassPropertyVector> SCIClassBrowser::CreatePropertyArray(const std::string &strObject, Script *pScript, PCTSTR pszSuper) const
 {
     std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser); 
-    RawClassPropertyVector *pProperties = new RawClassPropertyVector();
+    auto pProperties = std::make_unique<RawClassPropertyVector>();
     if (IsBrowseInfoEnabled())
     {
         // Assume first that this is a class name (since this should be quick lookup)
@@ -1163,23 +1173,34 @@ RawClassPropertyVector *SCIClassBrowser::CreatePropertyArray(const std::string &
     return pProperties;
 }
 
+std::vector<std::string> SCIClassBrowser::GetDirectSubclasses(const std::string &species)
+{
+    std::vector<std::string> directSubclasses;
+    for (auto &aClass : _classMap)
+    {
+        auto superClass = aClass.second->GetSuperClass();
+        if (superClass && superClass->GetName() == species)
+        {
+            directSubclasses.push_back(aClass.second->GetName());
+        }
+    }
+    return directSubclasses;
+}
+
 //
 // Given a species, returns an array of all subclasses of that species (not instances, just classes),
 // including the original.
 // The caller must delete the std::vector<std::string>
 //
-std::vector<std::string> *SCIClassBrowser::CreateSubSpeciesArray(PCTSTR pszSpecies)
+std::unique_ptr<std::vector<std::string>> SCIClassBrowser::CreateSubSpeciesArray(const std::string &species)
 {
     // REVIEW: it might be faster to go through all classes, and ask if they are a subclass of pszSpecies.
     std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser); 
-    std::vector<std::string> *pArray = new std::vector<std::string>;
-    if (pArray)
+    auto pArray = std::make_unique<std::vector<std::string>>();
+    class_map::iterator nodeIt = _classMap.find(species);
+    if (nodeIt != _classMap.end())
     {
-        class_map::iterator nodeIt = _classMap.find(pszSpecies);
-        if (nodeIt != _classMap.end())
-        {
-            _AddSubclassesToArray(pArray, nodeIt->second.get());
-        }
+        _AddSubclassesToArray(*pArray, nodeIt->second.get());
     }
     return pArray;
 }
@@ -1187,11 +1208,11 @@ std::vector<std::string> *SCIClassBrowser::CreateSubSpeciesArray(PCTSTR pszSpeci
 //
 // Recursively adds subclasses to a string array
 //
-void SCIClassBrowser::_AddSubclassesToArray(std::vector<std::string> *pArray, SCIClassBrowserNode *pBrowserInfo)
+void SCIClassBrowser::_AddSubclassesToArray(std::vector<std::string> &pArray, SCIClassBrowserNode *pBrowserInfo)
 {
     std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser);
     // Add the name of this class.
-    pArray->push_back(pBrowserInfo->GetName());
+    pArray.push_back(pBrowserInfo->GetName());
     std::vector<SCIClassBrowserNode*> &subClasses = pBrowserInfo->GetSubClasses();
     for (size_t i = 0; i < subClasses.size(); i++)
     {
@@ -1203,10 +1224,6 @@ void SCIClassBrowser::_AddSubclassesToArray(std::vector<std::string> *pArray, SC
         }
     }
 }
-
-
-
-
 
 //
 // Returns the root node in the class tree, so you can enumerate everything from there.
