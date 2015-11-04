@@ -132,6 +132,86 @@ void OutputFunctionRSTHelper(DocScript &docScript, fmt::MemoryWriter &w, sci::Fu
     w << randomText << "\n\n";
 }
 
+void OutputPropertyTableRSTWorker(fmt::MemoryWriter &w, std::vector<std::pair<std::string, std::string>> properties, const std::string &title)
+{
+    std::string propertyHeader = "Property";
+    std::string descriptionHeader = "Description";
+    size_t maxPropLength = propertyHeader.length();
+    size_t maxDescriptionLength = descriptionHeader.length();
+    for (auto &property : properties)
+    {
+        maxPropLength = max(maxPropLength, property.first.length());
+        maxDescriptionLength = max(maxDescriptionLength, property.second.length());
+    }
+
+    size_t maxTotalLength = maxPropLength + maxDescriptionLength + 1;
+
+    w << title << ":\n\n";
+
+    std::string propertyLine(maxPropLength, '=');
+    std::string descriptionLine(maxDescriptionLength, '=');
+    w << propertyLine << " " << descriptionLine << "\n";
+
+    std::string propSpecifier = fmt::format("{{: <{}s}}", maxPropLength); // Generates someting like "{: <13s}", which is a 13-wide specifier, with space fill characters.
+    std::string descriptionSpecifier = fmt::format("{{: <{}s}}", maxDescriptionLength);
+    w << fmt::format(propSpecifier, propertyHeader) << " " << fmt::format(descriptionSpecifier, descriptionHeader) << "\n";
+    w << propertyLine << " " << descriptionLine << "\n";
+    for (auto &property : properties)
+    {
+        w << fmt::format(propSpecifier, property.first) << " " << fmt::format(descriptionSpecifier, property.second) << "\n";
+    }
+    w << propertyLine << " " << descriptionLine << "\n";
+    w << "\n";
+}
+
+// Must be a guarantee that name exists.
+const sci::ClassProperty *FindProperty(const sci::ClassPropertyVector &properties, const std::string &name)
+{
+    auto it = std::find_if(properties.begin(), properties.end(), [name](const std::unique_ptr<sci::ClassProperty> &property) { return property->GetName() == name;  });
+    return it->get();
+}
+
+void OutputPropertyTableRST(SCIClassBrowser &browser, DocScript &docScript, fmt::MemoryWriter &w, sci::ClassDefinition &theClass)
+{
+    // Find *all* the properties that are part of this class, and differentiate those that were newly
+    // defined vs those that were inherited.
+    std::vector<std::string> inheritedProperties;
+    std::vector<std::string> newProperties;
+    auto allProps = browser.CreatePropertyNameArray(theClass.GetName());
+    if (theClass.GetSuperClass().empty())
+    {
+        newProperties = *allProps;
+    }
+    else
+    {
+        std::set<std::string> setAllProps(allProps->begin(), allProps->end());
+        auto superProps = browser.CreatePropertyNameArray(theClass.GetSuperClass());
+        std::set<std::string> setSuperProps(superProps->begin(), superProps->end());
+        std::set_difference(setAllProps.begin(), setAllProps.end(), setSuperProps.begin(), setSuperProps.end(), std::back_inserter(newProperties));
+        inheritedProperties = *superProps;
+    }
+
+    // Properties
+    w << "Properties\n";
+    w << "==========\n\n";
+
+    if (!theClass.GetSuperClass().empty())
+    {
+        std::vector<std::pair<std::string, std::string>> inheritedPropertyPairs;
+        for (auto &property : inheritedProperties)
+        {
+            inheritedPropertyPairs.emplace_back(property, "test desc");
+        }
+        OutputPropertyTableRSTWorker(w, inheritedPropertyPairs, fmt::format("Inherited from :class:`{0}`", theClass.GetSuperClass()));
+    }
+    std::vector<std::pair<std::string, std::string>> newPropertyPairs;
+    for (auto &property : newProperties)
+    {
+        newPropertyPairs.emplace_back(property, docScript.GetComment(FindProperty(theClass.GetProperties(), property)));
+    }
+    OutputPropertyTableRSTWorker(w, newPropertyPairs, fmt::format("Defined in {0}", theClass.GetName()));
+}
+
 void OutputClassRST(SCIClassBrowser &browser, DocScript &docScript, const std::string &rstFolder, std::vector<std::string> &generatedFiles)
 {
     ClassBrowserLock lock(browser);
@@ -177,35 +257,7 @@ void OutputClassRST(SCIClassBrowser &browser, DocScript &docScript, const std::s
                 w << ".\n\n";
             }
 
-            // Find *all* the properties that are part of this class, and differentiate those that were newly
-            // defined vs those that were inherited.
-            std::vector<std::string> inheritedProperties;
-            std::vector<std::string> newProperties;
-            auto allProps = browser.CreatePropertyNameArray(theClass->GetName());
-            if (theClass->GetSuperClass().empty())
-            {
-                newProperties = *allProps;
-            }
-            else
-            {
-                std::set<std::string> setAllProps(allProps->begin(), allProps->end());
-                auto superProps = browser.CreatePropertyNameArray(theClass->GetSuperClass());
-                std::set<std::string> setSuperProps(superProps->begin(), superProps->end());
-                std::set_difference(setAllProps.begin(), setAllProps.end(), setSuperProps.begin(), setSuperProps.end(), std::back_inserter(newProperties));
-                inheritedProperties = *superProps;
-            }
-
-            // Properties
-            w << "Properties\n";
-            w << "==========\n\n";
-            for (auto &property : inheritedProperties)
-            {
-                w << indent << "- " << property << " (inherited)\n";
-            }
-            for (auto &property : newProperties)
-            {
-                w << indent << "- **" << property << "**\n";
-            }
+            OutputPropertyTableRST(browser, docScript, w, *theClass);
 
             // Methods - we'll do these inline instead of making new documents for them.
             w << "\n";

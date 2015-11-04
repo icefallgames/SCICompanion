@@ -351,7 +351,8 @@ uint16_t scii::calc_size(code_pos self, int *pfNeedToRedo)
             }
 
             // For guys with no variable size operands, use the word-sized versions.
-            // This is an attempt to make SCI1 work. The byte-sized pushSelf seems bogus.
+            // This is an attempt to make SCI1 work. The byte-sized pushSelf is a _file_ opcode in SCI1.
+            // http://sourceforge.net/p/scummvm/bugs/5113/
             if (!encounteredVariableSizeOperand)
             {
                 opSizeCalculated = Word;
