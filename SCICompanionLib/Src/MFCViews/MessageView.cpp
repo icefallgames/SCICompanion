@@ -28,7 +28,7 @@ using namespace std;
 
 IMPLEMENT_DYNCREATE(CMessageView, CListView)
 
-CMessageView::CMessageView() : _iSortColumn(-1), _iView(LVS_REPORT), _fInited(false)
+CMessageView::CMessageView() : _iSortColumn(-1), _iView(LVS_REPORT), _fInited(false), _contextMenuColumn(-1)
 {
 }
 
@@ -50,6 +50,8 @@ BEGIN_MESSAGE_MAP(CMessageView, CListView)
     ON_UPDATE_COMMAND_UI(IDC_BUTTONCLONE, OnUpdateIfSelection)
 	ON_UPDATE_COMMAND_UI(ID_EDIT_DELETE, OnUpdateIfSelection)
     ON_UPDATE_COMMAND_UI(ID_INDICATOR_AUDIOSIZE, OnCommandAudioSize)
+    ON_COMMAND_RANGE(ID_GOTOVIEW1, ID_GOTOVIEW28, OnChooseMessageDefine)
+    ON_WM_CONTEXTMENU()
 END_MESSAGE_MAP()
 
 void _EscapeString(CString &str);
@@ -375,6 +377,44 @@ int CMessageView::_GetSelectedItem()
     return nItem;
 }
 
+void CMessageView::OnChooseMessageDefine(UINT nID)
+{
+    CMessageDoc *pDoc = GetDocument();
+    if (pDoc)
+    {
+        // Get the message source again, and find the define that matches.
+        const MessageSource *messageSource = _GetMessageSource(_contextMenuColumn);
+        int index = (int)nID - ID_GOTOVIEW1;
+        if (messageSource && (index >= 0) && (index < (int)messageSource->GetDefines().size()))
+        {
+            // Apply the change
+            uint8_t newValue = (uint8_t)messageSource->GetDefines()[index].second;
+            const TextEntry *oldEntry = pDoc->GetEntry();
+            if (oldEntry)
+            {
+                TextEntry newEntry = *oldEntry;
+                switch (_contextMenuColumn)
+                {
+                    case COL_CONDITION:
+                        newEntry.Condition = newValue;
+                        break;
+                    case COL_NOUN:
+                        newEntry.Noun = newValue;
+                        break;
+                    case COL_VERB:
+                        newEntry.Verb = newValue;
+                        break;
+                    case COL_TALKER:
+                        newEntry.Talker = newValue;
+                        break;
+                }
+                pDoc->SetEntry(newEntry);
+            }
+        }
+    }
+    _contextMenuColumn = -1;
+}
+
 void CMessageView::OnItemChanged(NMHDR* pNMHDR, LRESULT* pResult)
 {
     // If an item was selected, select its corresponding cel.
@@ -469,6 +509,30 @@ void CMessageView::OnDelete()
     {
         pDoc->DeleteCurrentEntry();
     }
+}
+
+const MessageSource *CMessageView::_GetMessageSource(int column)
+{
+    const MessageSource *messageSource = nullptr;
+    const NounsAndCasesComponent &nounsAndCases = GetDocument()->GetResource()->GetComponent<NounsAndCasesComponent>();
+    switch (column)
+    {
+        case COL_NOUN:
+            messageSource = &nounsAndCases.GetNouns();
+            break;
+        case COL_CONDITION:
+            messageSource = &nounsAndCases.GetCases();
+            break;
+        case COL_TALKER:
+            messageSource = appState->GetResourceMap().GetTalkersMessageSource();
+            break;
+        case COL_VERB:
+            messageSource = appState->GetResourceMap().GetVerbsMessageSource();
+            break;
+        default:
+            break;
+    }
+    return messageSource;
 }
 
 int CMessageView::_GetViewIndex(int index)
@@ -629,6 +693,56 @@ void CMessageView::OnCommandAudioSize(CCmdUI *pCmdUI)
     else
     {
         pCmdUI->SetText("");
+    }
+}
+
+void CMessageView::OnContextMenu(CWnd *pWnd, CPoint point)
+{
+    CListCtrl& listCtl = GetListCtrl();
+    LVHITTESTINFO hitTest = {};
+    CPoint ptClient = point;
+    ScreenToClient(&ptClient);
+    hitTest.flags = LVHT_ONITEM;
+    hitTest.pt = ptClient;
+    int nItem =  listCtl.SubItemHitTest(&hitTest);
+    if (nItem != -1)
+    {
+        const MessageSource *messageSource = _GetMessageSource(hitTest.iSubItem);
+        if (messageSource)
+        {
+            CMenu menuOptions;
+            if (menuOptions.LoadMenu(IDR_MENUMESSAGEVALUES))
+            {
+                UINT nID;
+                if (_GetMenuItem("placeholder", &menuOptions, &nID))
+                {
+                    CMenu *pMenuSub = menuOptions.GetSubMenu(nID);
+
+                    // Clear the menu out first.
+                    UINT cItemsInMenu = pMenuSub->GetMenuItemCount();
+                    while (cItemsInMenu > 0)
+                    {
+                        pMenuSub->RemoveMenu(0, MF_BYPOSITION);
+                        cItemsInMenu--;
+                    }
+
+                    // And rebuild
+                    int maxItems = min(ID_GOTOVIEW28 - ID_GOTOVIEW1 + 1, (int)messageSource->GetDefines().size());
+                    for (int iIndex = 0; iIndex < maxItems; iIndex++)
+                    {
+                        MENUITEMINFO mii = { 0 };
+                        mii.cbSize = sizeof(mii);
+                        mii.fMask = MIIM_ID | MIIM_STRING;
+                        mii.wID = ID_GOTOVIEW1 + iIndex;
+                        mii.dwTypeData = const_cast<char *>(messageSource->GetDefines()[iIndex].first.c_str());
+                        pMenuSub->InsertMenuItem(ID_GOTOVIEW1 + iIndex, &mii, FALSE);
+                    }
+                    _contextMenuColumn = hitTest.iSubItem;
+                    pMenuSub->TrackPopupMenu(TPM_LEFTALIGN | TPM_LEFTBUTTON | TPM_RIGHTBUTTON,
+                        point.x, point.y, AfxGetMainWnd());
+                }
+            }
+        }
     }
 }
 

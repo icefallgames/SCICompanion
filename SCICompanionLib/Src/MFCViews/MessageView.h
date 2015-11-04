@@ -41,6 +41,7 @@ public:
 
 protected:
     void OnItemChanged(NMHDR* pNMHDR, LRESULT* pResult);
+    void OnChooseMessageDefine(UINT nID);
     void OnDelete();
     void OnAddNew();
     void OnCloneMessage();
@@ -50,6 +51,7 @@ protected:
     void OnExportMessage();
     void OnImportMessage();
     void OnCommandAudioSize(CCmdUI *pCmdUI);
+    void OnContextMenu(CWnd *pWnd, CPoint point);
 
     DECLARE_MESSAGE_MAP()
 
@@ -65,6 +67,7 @@ private:
     void OnColumnClicked(NMHDR* pNMHDR, LRESULT* pResult);
     void _SortItemsHelper(int sortColumn, bool toggle);
     int _GetViewIndex(int index);
+    const MessageSource *_GetMessageSource(int column);
 
     int _iView;
     bool _fInited;
@@ -72,6 +75,7 @@ private:
 
     std::unordered_map<int, bool> _sortOrder;
     int _iSortColumn;
+    int _contextMenuColumn;
 };
 
 #ifndef _DEBUG  // debug version in TextView.cpp

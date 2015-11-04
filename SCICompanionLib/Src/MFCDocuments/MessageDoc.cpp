@@ -391,6 +391,22 @@ ResourceEntity *CMessageDoc::GetAudioResource()
     return resource;
 }
 
+const TextEntry *CMessageDoc::GetEntry()
+{
+    const TextEntry *entry = nullptr;
+    const ResourceEntity *resource = GetResource();
+    if (resource)
+    {
+        const TextComponent &text = resource->GetComponent<TextComponent>();
+        int index = GetSelectedIndex();
+        if ((index != -1) && (index < (int)text.Texts.size()))
+        {
+            entry = &text.Texts[index];
+        }
+    }
+    return entry;
+}
+
 ResourceEntity *CMessageDoc::GetAudioResource(int index)
 {
     ResourceEntity *resource = nullptr;

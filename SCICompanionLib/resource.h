@@ -295,6 +295,8 @@
 #define IDD_AUDIOPREFERENCES            391
 #define IDI_RECORD                      392
 #define IDD_AUDIOEDIT                   392
+#define IDR_MENUVIEWS1                  392
+#define IDR_MENUMESSAGEVALUES           392
 #define IDI_MONITOR                     393
 #define ID_INDICATOR_AUDIOSIZE          394
 #define IDI_CD                          395
@@ -569,7 +571,6 @@
 #define IDC_CHECK4                      1219
 #define IDC_CHECK5                      1220
 #define IDC_RADIOSCI6                   1221
-#define IDC_CHECK14                     1221
 #define IDC_RADIOSCI8                   1222
 #define IDC_RADIOSCI9                   1223
 #define IDC_CHECKGLOBALPALETTE          1223

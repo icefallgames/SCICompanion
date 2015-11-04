@@ -513,10 +513,6 @@ void ViewCelListBox::OnDraw(CDC* pDC)
 
                 destRect.OffsetRect(-_xOrigin, -_yOrigin);
 
-                //BitBlt(*pDC, destRect.left, destRect.top, destRect.Width(), destRect.Height(),
-                //  dcMem, srcPos.x, srcPos.y, SRCCOPY);
-                // For palettized images, GDI always uses nearest neighbor
-                // interpolation, so we don't need to set StretchBltMode.
                 StretchBlt(*pDC, destRect.left, destRect.top, destRect.Width(), destRect.Height(),
                     dcMem, srcPos.x, srcPos.y, itemSize.cx, itemSize.cy, SRCCOPY);
 

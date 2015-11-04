@@ -45,6 +45,7 @@ public:
     int GetSelectedIndex() const { return _selectedIndex; }
     ResourceEntity *GetAudioResource();             // Can return null_ptr
     ResourceEntity *GetAudioResource(int index);    // Can return null_ptr
+    const TextEntry *GetEntry();
 
     void SetAudioResource(std::unique_ptr<ResourceEntity> audioResource);
     template<typename _TFunc>

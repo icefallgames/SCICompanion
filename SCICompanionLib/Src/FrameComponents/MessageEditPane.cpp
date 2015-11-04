@@ -284,42 +284,13 @@ void MessageEditPane::UpdateNonView(CObject *pObject)
     }
 }
 
-const TextComponent *MessageEditPane::_GetResource()
-{
-    const TextComponent *text = nullptr;
-    if (_pDoc)
-    {
-        const ResourceEntity *entity = _pDoc->GetResource();
-        if (entity)
-        {
-            text = entity->TryGetComponent<TextComponent>();
-        }
-    }
-    return text;
-}
-
 const TextEntry *MessageEditPane::_GetEntry()
 {
-    const TextEntry *entry = nullptr;
-    const TextComponent *text = _GetResource();
-    if (text)
-    {
-        int index = _GetSelectedIndex();
-        if ((index != -1) && (index < (int)text->Texts.size()))
-        {
-            entry = &text->Texts[index];
-        }
-    }
-    return entry;
-}
-
-int MessageEditPane::_GetSelectedIndex()
-{
     if (_pDoc)
     {
-        return _pDoc->GetSelectedIndex();
+        return _pDoc->GetEntry();
     }
-    return -1;
+    return nullptr;
 }
 
 void _UpdateComboFromValue(CExtComboBox &wndCombo, int value, const MessageSource *source)

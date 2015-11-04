@@ -725,6 +725,14 @@ BEGIN
     END
 END
 
+IDR_MENUMESSAGEVALUES MENU
+BEGIN
+    POPUP "placeholder"
+    BEGIN
+        MENUITEM "message values",              ID_PLACEHOLDER_VIEWS
+    END
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

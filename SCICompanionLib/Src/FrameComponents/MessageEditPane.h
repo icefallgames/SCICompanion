@@ -61,9 +61,6 @@ public:
 protected:
     void OnNewResourceCreated(std::unique_ptr<ResourceEntity> audioResource, const std::string &name, bool isRecording) override;
 
-    const TextComponent *_GetResource();
-    int _GetSelectedIndex();
-
     virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
     virtual BOOL OnInitDialog();
     afx_msg void OnPlayAudio();
