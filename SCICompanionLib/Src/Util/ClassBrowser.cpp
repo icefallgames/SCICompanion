@@ -746,16 +746,16 @@ bool SCIClassBrowser::_AddFileName(const std::string &fullPath, bool fReplace)
 
                 assert(wScriptNumber != InvalidResourceNumber); // Do something about this.
                 // Find matching script number and replace
-				for (auto &script : _scripts)
-				{
-					if (GetScriptNumberHelper(script.get()) == wScriptNumber)
-					{
-						_RemoveAllRelatedData(script.get());
-						fAdded = true;
-						// Replace
-						script = std::move(pScript); // Take ownership.
-					}
-				}
+                for (auto &script : _scripts)
+                {
+                    if (GetScriptNumberHelper(script.get()) == wScriptNumber)
+                    {
+                        _RemoveAllRelatedData(script.get());
+                        fAdded = true;
+                        // Replace
+                        script = std::move(pScript); // Take ownership.
+                    }
+                }
             }
             else
             {
@@ -832,6 +832,17 @@ void SCIClassBrowser::_MaybeGenerateAutoCompleteTree()
     }
 }
 
+const sci::ClassDefinition *SCIClassBrowser::LookUpClass(const std::string &className) const
+{
+    const sci::ClassDefinition *theClass = nullptr;
+    auto it = _classMap.find(className);
+    if (it != _classMap.end())
+    {
+        theClass = it->second->GetClassDefinition();
+    }
+    return theClass;
+}
+
 void SCIClassBrowser::GetAutoCompleteChoices(const std::string &prefixIn, AutoCompleteSourceType sourceTypes, std::vector<AutoCompleteChoice> &choices)
 {
     choices.clear();
@@ -893,11 +904,6 @@ void SCIClassBrowser::TriggerCustomIncludeCompile(std::string name)
                     // Time-stamp is different, or we haven't yet compiled this file
                     // It's a header we have not yet encountered. Parse it.
                     ScriptId scriptId(path);
-
-                    // phil temp
-                    OutputDebugString("compiling ");
-                    OutputDebugString(path.c_str());
-                    OutputDebugString("\n");
 
                     CCrystalTextBuffer buffer;
                     if (buffer.LoadFromFile(scriptId.GetFullPath().c_str()))
@@ -1069,10 +1075,10 @@ void SCIClassBrowser::_AddHeaders()
 // Allocates a method array, containing all the methods implemented by the
 // object strObject.
 //
-RawMethodVector *SCIClassBrowser::CreateMethodArray(const std::string &strObject, Script *pScript) const
+std::unique_ptr<RawMethodVector> SCIClassBrowser::CreateMethodArray(const std::string &strObject, Script *pScript) const
 {
     std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser); 
-	RawMethodVector *pMethods = new RawMethodVector();
+	auto pMethods = std::make_unique<RawMethodVector>();
     if (IsBrowseInfoEnabled())
     {
         bool fFound = false;
@@ -1368,16 +1374,16 @@ const std::vector<ClassDefinition*> &SCIClassBrowser::GetAllClasses()
         _allClasses.clear();
         if (IsBrowseInfoEnabled())
         {
-			for (auto &script : _scripts)
-			{
-				for (auto &classDef : script->GetClasses())
-				{
-					if (!classDef->IsInstance())
-					{
-						_allClasses.push_back(classDef.get());
-					}
-				}
-			}
+            for (auto &script : _scripts)
+            {
+                for (auto &classDef : script->GetClasses())
+                {
+                    if (!classDef->IsInstance())
+                    {
+                        _allClasses.push_back(classDef.get());
+                    }
+                }
+            }
             _fPublicClassesValid = true;
         }
     }
@@ -1618,16 +1624,13 @@ bool SCIClassBrowser::ResolveValue(const Script *pScript, const std::string &str
         }
         else
         {
-            // STLCLEANUP
             const DefineVector &defines = pScript->GetDefines();
-            for (DefineVector::const_iterator defineIt = defines.begin(); !fFound && (defineIt != defines.end()); defineIt++)
+            auto it = find_if(defines.begin(), defines.end(), [&strValue](const std::unique_ptr<sci::Define> &pDefine) { return strValue == pDefine->GetLabel(); });
+            if (it != defines.end())
             {
-                if (strValue == (*defineIt)->GetLabel())
-                {
-                    // found it
-                    Out.SetValue((*defineIt)->GetValue());
-                    fFound = true;
-                }
+                // found it
+                Out.SetValue((*it)->GetValue());
+                fFound = true;
             }
             if (!fFound)
             {

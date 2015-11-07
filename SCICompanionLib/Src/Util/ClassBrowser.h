@@ -56,7 +56,7 @@ public:
 
     // See my comments in the implementations
     // These functions do not require using the lock.
-    std::vector<sci::MethodDefinition*> *CreateMethodArray(const std::string &strObject, sci::Script *pScript = nullptr) const;
+    std::unique_ptr<std::vector<sci::MethodDefinition*>> CreateMethodArray(const std::string &strObject, sci::Script *pScript = nullptr) const;
     std::unique_ptr<std::vector<sci::ClassProperty*>> CreatePropertyArray(const std::string &strObject, sci::Script *pScript = nullptr, PCTSTR pszSuper = nullptr) const;
     std::unique_ptr<std::vector<std::string>> CreatePropertyNameArray(const std::string &strObject, sci::Script *pScript = nullptr, PCTSTR pszSuper = nullptr) const;
     std::unique_ptr<std::vector<std::string>> CreateSubSpeciesArray(const std::string &species);
@@ -99,6 +99,7 @@ public:
     bool GetProperty(PCTSTR pszName, const sci::ClassDefinition *pClass, sci::PropertyValue &Out);
     bool GetPropertyValue(PCTSTR pszName, ISCIPropertyBag *pBag, const sci::ClassDefinition *pClass, WORD *pw);
     void GetAutoCompleteChoices(const std::string &prefix, AutoCompleteSourceType sourceTypes, std::vector<AutoCompleteChoice> &choices);
+    const sci::ClassDefinition *LookUpClass(const std::string &className) const;
     std::unique_ptr<sci::Script> _LoadScript(PCTSTR pszPath);
     
     void TriggerCustomIncludeCompile(std::string name);

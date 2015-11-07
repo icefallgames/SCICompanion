@@ -65,8 +65,8 @@
 (define rsHEAP   $91)
 (define rsAUDIO36 $92)
 (define rsSYNC36 $93)
-// Hmm, but we have 92 and 93 also... are those AUDIO36 and SYNC36?
 #endif
+
 /*************************************************************************
  * SCREENS
  *************************************************************************/

@@ -17,8 +17,8 @@
 #include "NonViewClient.h"
 #include "PaletteEditorCommon.h"
 
-#define DEBUG_OUTPUT_CYCLE
-#define DEBUG_OUTPUT_CYCLE_PATH ""
+//#define DEBUG_OUTPUT_CYCLE
+//#define DEBUG_OUTPUT_CYCLE_PATH ""
 
 class CResourceDocument;
 struct PaletteComponent;

@@ -942,7 +942,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     // Class combo
     m_wndScriptTools.InsertButton(); // Separator
     if (!m_wndScriptToolComboBoxClass.Create(
-            WS_CHILD|WS_VISIBLE|WS_TABSTOP|CBS_DROPDOWNLIST|CBS_HASSTRINGS | CBS_OWNERDRAWFIXED,
+            WS_CHILD|WS_VISIBLE|WS_TABSTOP|CBS_DROPDOWNLIST|CBS_HASSTRINGS | CBS_OWNERDRAWFIXED | WS_VSCROLL,
             CRect(0, 0, 200, 100),
             &m_wndScriptTools,
             ID_SCRIPT_CLASSCOMBO))

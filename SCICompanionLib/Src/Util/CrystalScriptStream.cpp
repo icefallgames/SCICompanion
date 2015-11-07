@@ -135,7 +135,7 @@ std::string CScriptStreamLimiter::GetLastWord()
     std::string word;
     while (nChar > 0)
     {
-        char theChar = pszLine[nChar];
+        uint8_t theChar = (uint8_t)pszLine[nChar];
         if (isalnum(theChar) || (theChar == '_'))
         {
             word += theChar;

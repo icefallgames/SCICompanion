@@ -64,45 +64,53 @@ void OutputScriptRST(DocScript &docScript, const std::string &rstFolder, std::ve
     // Classes
     w << "Classes" << "\n";
     w << "==========" << "\n\n";
-    auto &classes = script->GetClasses();
-    size_t classCount = std::count_if(classes.begin(), classes.end(), [](const std::unique_ptr<sci::ClassDefinition> &theClass) { return !theClass->IsInstance(); });
-    if (classCount == 0)
+    auto &classesAndInstances = script->GetClasses();
+    sci::RawClassVector justClasses;
+    for (auto &maybeClass : classesAndInstances)
+    {
+        if (!maybeClass->IsInstance())
+        {
+            justClasses.push_back(maybeClass.get());
+        }
+    }
+    if (justClasses.empty())
     {
         w << "There are no classes defined in this script.\n\n";
     }
     else
     {
-        for (auto &theClass : classes)
+        for (auto &theClass : justClasses)
         {
-            if (!theClass->IsInstance())
+            w << ":class:`" << theClass->GetName() << "`";
+            if (!theClass->GetSuperClass().empty()) // Happens in one case, with Obj
             {
-                w << ":class:`" << theClass->GetName() << "`";
-                if (!theClass->GetSuperClass().empty()) // Happens in one case, with Obj
-                {
-                    w << " of " << theClass->GetSuperClass();
-                }
-                w << "\n\n";
+                w << " of " << theClass->GetSuperClass();
             }
+            w << "\n\n";
         }
     }
 
     // Procedures
     w << "Public Procedures" << "\n";
     w << "=================" << "\n\n";
-    auto &procs = script->GetProcedures();
-    size_t procCount = std::count_if(procs.begin(), procs.end(), [](const std::unique_ptr<sci::ProcedureDefinition> &proc) { return proc->IsPublic(); });
-    if (procCount == 0)
+    auto &allProcs = script->GetProcedures();
+    sci::RawProcedureVector publicProcs;
+    for (auto &maybePublicProc : allProcs)
+    {
+        if (maybePublicProc->IsPublic())
+        {
+            publicProcs.push_back(maybePublicProc.get());
+        }
+    }
+    if (publicProcs.empty())
     {
         w << "There are no public procedures in this script.\n\n";
     }
     else
     {
-        for (auto &proc : procs)
+        for (auto &proc : publicProcs)
         {
-            if (proc->IsPublic())
-            {
-                w << ":func:`" << proc->GetName() << "`\n\n";
-            }
+            w << ":func:`" << proc->GetName() << "`\n\n";
         }
     }
 
@@ -200,9 +208,12 @@ void OutputPropertyTableRST(SCIClassBrowser &browser, DocScript &docScript, fmt:
         std::vector<std::pair<std::string, std::string>> inheritedPropertyPairs;
         for (auto &property : inheritedProperties)
         {
-            inheritedPropertyPairs.emplace_back(property, "test desc");
+            inheritedPropertyPairs.emplace_back(property, docScript.GetComment(FindProperty(theClass.GetProperties(), property)));
         }
-        OutputPropertyTableRSTWorker(w, inheritedPropertyPairs, fmt::format("Inherited from :class:`{0}`", theClass.GetSuperClass()));
+        if (!inheritedProperties.empty())
+        {
+            OutputPropertyTableRSTWorker(w, inheritedPropertyPairs, fmt::format("Inherited from :class:`{0}`", theClass.GetSuperClass()));
+        }
     }
     std::vector<std::pair<std::string, std::string>> newPropertyPairs;
     for (auto &property : newProperties)

@@ -220,7 +220,7 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                     std::string object = _ClassFromObjectName(browser, pContext, pSendCall->GetObject());
                     if (!object.empty())
                     {
-                        unique_ptr<RawMethodVector> pMethods(browser.CreateMethodArray(object, &pContext->Script()));
+                        unique_ptr<RawMethodVector> pMethods = browser.CreateMethodArray(object, &pContext->Script());
                         const RawMethodVector::const_iterator methodIt = match_name(pMethods->begin(), pMethods->end(), strText);
                         fFound = (methodIt != pMethods->end());
                         if (fFound)
@@ -253,252 +253,276 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                         }
                     }
                 }
+                // All remaining things require certain conditions.
+                ParseAutoCompleteContext pacc = pContext->GetParseAutoCompleteContext();
+                bool isValue = (pacc == ParseAutoCompleteContext::Value) || (pacc == ParseAutoCompleteContext::LValue);
+                bool isDefineOnly = (pacc == ParseAutoCompleteContext::DefineValue);
+                bool isExport = (pacc == ParseAutoCompleteContext::Export);
                 if (!fFound)
                 {
                     // 3. Is it a define?
-
-                    // Check for defines.
-                    DefineVector::const_iterator defineIt;
-                    // Local ones.
-                    for (auto &script : scriptsToSearch)
+                    if (isValue || isDefineOnly)
                     {
-                        const DefineVector &defines = script->GetDefines();
-                        defineIt = match_name(defines.begin(), defines.end(), strText);
-                        fFound = (defineIt != defines.end());
-                        if (fFound)
-                        {
-                            break;
-                        }
-                    }
-                    if (!fFound)
-                    {
-                        // Global ones (even those not included by this script)
-                        const vector<sci::Script*> &headers = browser.GetHeaders();
-                        auto headerIt = headers.begin();
-                        for (; !fFound && (headerIt != headers.end()); ++headerIt)
-                        {
-                            const DefineVector &defines = (*headerIt)->GetDefines();
-                            defineIt = match_name(defines.begin(), defines.end(), strText);
-                            fFound = (defineIt != defines.end());
-                        }
-                    }
-                    if (!fFound)
-                    {
-                        // Custom includes
-                        auto headerIt = scriptsToSearch.begin();
-                        for (; !fFound && (headerIt != scriptsToSearch.end()); ++headerIt)
-                        {
-                            const DefineVector &defines = (*headerIt)->GetDefines();
-                            defineIt = match_name(defines.begin(), defines.end(), strText);
-                            fFound = (defineIt != defines.end());
-                        }
-                    }
-
-                    if (fFound)
-                    {
-                        // It was a define.
-                        bool isHex = IsFlagSet((*defineIt)->GetFlags(), IntegerFlags::Hex);
-                        bool isNeg = IsFlagSet((*defineIt)->GetFlags(), IntegerFlags::Negative);
-                        std::stringstream ss;
-                        _OutputNumber(ss, (*defineIt)->GetValue(), isHex, isNeg);
-                        result.strTip = fmt::format("(define {0} {1})", strText, ss.str());
-                        // Give location information for it.
-                        result.strBaseText = (*defineIt)->GetLabel().c_str();
-                        result.iLineNumber = (*defineIt)->GetLineNumber();
-                        result.scriptId = ScriptId((*defineIt)->GetOwnerScript()->GetPath().c_str());
-                    }
-                }
-                if (!fFound)
-                {
-                    // 4. Maybe it's a procedure
-                    const ProcedureDefinition *pProc = nullptr;
-                    // Check public procedures
-                    const RawProcedureVector &publicProcs = browser.GetPublicProcedures();
-                    auto procIt = match_name(publicProcs.begin(), publicProcs.end(), strText);
-                    fFound = (procIt != publicProcs.end());
-                    if (fFound)
-                    {
-                        pProc = *procIt;
-                    }
-                    if (!fFound)
-                    {
+                        // Check for defines.
+                        DefineVector::const_iterator defineIt;
+                        // Local ones.
                         for (auto &script : scriptsToSearch)
                         {
-                            const ProcedureVector &localProcs = script->GetProcedures();
-                            auto procIt2 = match_name(localProcs.begin(), localProcs.end(), strText);
-                            fFound = (procIt2 != localProcs.end());
+                            const DefineVector &defines = script->GetDefines();
+                            defineIt = match_name(defines.begin(), defines.end(), strText);
+                            fFound = (defineIt != defines.end());
                             if (fFound)
                             {
-                                pProc = (*procIt2).get();
                                 break;
                             }
                         }
-                    }
-                    if (fFound)
-                    {
-                        _GetMethodInfoHelper(szTip, ARRAYSIZE(szTip), pProc);
-                        result.strTip = szTip;
-                        // "goto definition" info
-                        result.iLineNumber = pProc->GetLineNumber();
-                        result.scriptId = ScriptId(pProc->GetOwnerScript()->GetPath().c_str());
-                        result.strBaseText = pProc->GetName();
-                    }
-                }
-                if (!fFound)
-                {
-                    // 5. Kernel function?
-                    const auto &kProcs = GetKernelSignaturesScript(nullptr).GetProcedures();
-                    auto itProc = match_name(kProcs.begin(), kProcs.end(), strText);
-                    if (itProc != kProcs.end())
-                    {
-                        _GetMethodInfoHelper(szTip, ARRAYSIZE(szTip), (*itProc).get());
-                        result.strTip = szTip;
-                        // TODO: goto could bring us to documentation (or just open webpage)
-                        fFound = true;
-                    }
-                }
-                if (!fFound)
-                {
-                    // 6. Local method variables
-                    const FunctionPtr pFunction = pContext->FunctionPtr.get();
-                    if (pFunction)
-                    {
-                        const VariableDeclVector &tempVars = pFunction->GetVariables();
-                        auto varIt = match_name(tempVars.begin(), tempVars.end(), strText);
-                        fFound = (varIt != tempVars.end());
+                        if (!fFound)
+                        {
+                            // Global ones (even those not included by this script)
+                            const vector<sci::Script*> &headers = browser.GetHeaders();
+                            auto headerIt = headers.begin();
+                            for (; !fFound && (headerIt != headers.end()); ++headerIt)
+                            {
+                                const DefineVector &defines = (*headerIt)->GetDefines();
+                                defineIt = match_name(defines.begin(), defines.end(), strText);
+                                fFound = (defineIt != defines.end());
+                            }
+                        }
+                        if (!fFound)
+                        {
+                            // Custom includes
+                            auto headerIt = scriptsToSearch.begin();
+                            for (; !fFound && (headerIt != scriptsToSearch.end()); ++headerIt)
+                            {
+                                const DefineVector &defines = (*headerIt)->GetDefines();
+                                defineIt = match_name(defines.begin(), defines.end(), strText);
+                                fFound = (defineIt != defines.end());
+                            }
+                        }
+
                         if (fFound)
                         {
-                            result.strTip = fmt::format("Temporary variable: {}", strText);
-                            // Add some goto info
-                            result.iLineNumber = (*varIt)->GetLineNumber();
-                            result.scriptId = ScriptId(pFunction->GetOwnerScript()->GetPath().c_str());
-                            result.strBaseText = (*varIt)->GetName().c_str();
+                            // It was a define.
+                            bool isHex = IsFlagSet((*defineIt)->GetFlags(), IntegerFlags::Hex);
+                            bool isNeg = IsFlagSet((*defineIt)->GetFlags(), IntegerFlags::Negative);
+                            std::stringstream ss;
+                            _OutputNumber(ss, (*defineIt)->GetValue(), isHex, isNeg);
+                            result.strTip = fmt::format("(define {0} {1})", strText, ss.str());
+                            // Give location information for it.
+                            result.strBaseText = (*defineIt)->GetLabel().c_str();
+                            result.iLineNumber = (*defineIt)->GetLineNumber();
+                            result.scriptId = ScriptId((*defineIt)->GetOwnerScript()->GetPath().c_str());
                         }
-                        if (!fFound && !pFunction->GetSignatures().empty())
+                    }
+
+                    if (!fFound && (isValue || isExport))
+                    {
+                        // 4. Maybe it's a procedure
+                        const ProcedureDefinition *pProc = nullptr;
+                        // Check public procedures
+                        const RawProcedureVector &publicProcs = browser.GetPublicProcedures();
+                        auto procIt = match_name(publicProcs.begin(), publicProcs.end(), strText);
+                        fFound = (procIt != publicProcs.end());
+                        if (fFound)
                         {
-                            const auto &functionParams = pFunction->GetSignatures()[0]->GetParams();
-                            auto procIt2 = match_name(functionParams.begin(), functionParams.end(), strText);
-                            fFound = (procIt2 != functionParams.end());
+                            pProc = *procIt;
+                        }
+                        if (!fFound)
+                        {
+                            for (auto &script : scriptsToSearch)
+                            {
+                                const ProcedureVector &localProcs = script->GetProcedures();
+                                auto procIt2 = match_name(localProcs.begin(), localProcs.end(), strText);
+                                fFound = (procIt2 != localProcs.end());
+                                if (fFound)
+                                {
+                                    pProc = (*procIt2).get();
+                                    break;
+                                }
+                            }
+                        }
+                        if (fFound)
+                        {
+                            _GetMethodInfoHelper(szTip, ARRAYSIZE(szTip), pProc);
+                            result.strTip = szTip;
+                            // "goto definition" info
+                            result.iLineNumber = pProc->GetLineNumber();
+                            result.scriptId = ScriptId(pProc->GetOwnerScript()->GetPath().c_str());
+                            result.strBaseText = pProc->GetName();
+                        }
+                    }
+
+                    if (!fFound && isValue)
+                    {
+                        // 5. Kernel function?
+                        const auto &kProcs = GetKernelSignaturesScript(nullptr).GetProcedures();
+                        auto itProc = match_name(kProcs.begin(), kProcs.end(), strText);
+                        if (itProc != kProcs.end())
+                        {
+                            _GetMethodInfoHelper(szTip, ARRAYSIZE(szTip), (*itProc).get());
+                            result.strTip = szTip;
+                            // TODO: goto could bring us to documentation (or just open webpage)
+                            fFound = true;
+                        }
+                    }
+
+                    if (!fFound && isValue)
+                    {
+                        // 6. Local method variables
+                        const FunctionPtr pFunction = pContext->FunctionPtr.get();
+                        if (pFunction)
+                        {
+                            const VariableDeclVector &tempVars = pFunction->GetVariables();
+                            auto varIt = match_name(tempVars.begin(), tempVars.end(), strText);
+                            fFound = (varIt != tempVars.end());
                             if (fFound)
                             {
-                                result.strTip = fmt::format("Parameter {}", strText);
+                                result.strTip = fmt::format("Temporary variable: {}", strText);
                                 // Add some goto info
-                                result.iLineNumber = (*procIt2)->GetLineNumber();
+                                result.iLineNumber = (*varIt)->GetLineNumber();
                                 result.scriptId = ScriptId(pFunction->GetOwnerScript()->GetPath().c_str());
-                                result.strBaseText = (*procIt2)->GetName().c_str();
+                                result.strBaseText = (*varIt)->GetName().c_str();
+                            }
+                            if (!fFound && !pFunction->GetSignatures().empty())
+                            {
+                                const auto &functionParams = pFunction->GetSignatures()[0]->GetParams();
+                                auto procIt2 = match_name(functionParams.begin(), functionParams.end(), strText);
+                                fFound = (procIt2 != functionParams.end());
+                                if (fFound)
+                                {
+                                    result.strTip = fmt::format("Parameter {}", strText);
+                                    // Add some goto info
+                                    result.iLineNumber = (*procIt2)->GetLineNumber();
+                                    result.scriptId = ScriptId(pFunction->GetOwnerScript()->GetPath().c_str());
+                                    result.strBaseText = (*procIt2)->GetName().c_str();
+                                }
                             }
                         }
                     }
-                }
-                if (!fFound)
-                {
-                    VariableDecl *pVar = nullptr; // Used for goto information
-
-                    // 7. Script variables
-                    for (auto &script : scriptsToSearch)
+                    if (!fFound && isValue)
                     {
-                        // Locals
-                        const VariableDeclVector &localVars = script->GetScriptVariables();
-                        auto varIt = match_name(localVars.begin(), localVars.end(), strText);
-                        fFound = (varIt != localVars.end());
-                        if (fFound)
+                        VariableDecl *pVar = nullptr; // Used for goto information
+
+                        // 7. Script variables
+                        for (auto &script : scriptsToSearch)
                         {
-                            pVar = (*varIt).get();
-                            result.strTip = fmt::format("Script variable: {}", strText);
-                            break;
+                            // Locals
+                            const VariableDeclVector &localVars = script->GetScriptVariables();
+                            auto varIt = match_name(localVars.begin(), localVars.end(), strText);
+                            fFound = (varIt != localVars.end());
+                            if (fFound)
+                            {
+                                pVar = (*varIt).get();
+                                result.strTip = fmt::format("Script variable: {}", strText);
+                                break;
+                            }
+                        }
+                        if (!fFound)
+                        {
+                            // Globals
+                            const VariableDeclVector *pVars = browser.GetMainGlobals();
+                            if (pVars)
+                            {
+                                VariableDeclVector::const_iterator varIt = match_name(pVars->begin(), pVars->end(), strText);
+                                fFound = (varIt != pVars->end());
+                                if (fFound)
+                                {
+                                    pVar = (*varIt).get();
+                                    result.strTip = fmt::format("Global variable: {}", strText);
+                                }
+                            }
+                        }
+                        if (fFound && pVar)
+                        {
+                            // Add some goto info
+                            result.iLineNumber = pVar->GetLineNumber();
+                            result.scriptId = ScriptId(pVar->GetOwnerScript()->GetPath().c_str());
+                            result.strBaseText = pVar->GetName().c_str();
+                        }
+                    }
+
+                    if (!fFound && isValue)
+                    {
+                        // 8. Class property
+                        const ClassPtr pClass = pContext->ClassPtr.get();
+                        if (pClass)
+                        {
+                            auto classAndProp = _FindClassProperty(browser, *pClass, strText);
+                            if (get<0>(classAndProp))
+                            {
+                                result.strTip = fmt::format("{}::{}", get<1>(classAndProp)->GetName(), strText);
+                                // Add some goto info
+                                result.iLineNumber = get<2>(classAndProp)->GetLineNumber();
+                                result.scriptId = ScriptId(get<0>(classAndProp)->GetOwnerScript()->GetPath().c_str());
+                                result.strBaseText = strText;
+                            }
+                        }
+                    }
+                    if (!fFound && isValue)
+                    {
+                        for (auto &script : scriptsToSearch)
+                        {
+                            // 9. Local instance (or class, but we would have already handled that in 8)
+                            // Find a class that it matches
+                            const sci::ClassVector &classes = script->GetClasses();
+                            auto classIt = match_name(classes.begin(), classes.end(), strText);
+                            fFound = (classIt != classes.end());
+                            if (fFound)
+                            {
+                                result.strTip = fmt::format("{} of {}", strText, (*classIt)->GetSuperClass());
+                                // "goto definition" info
+                                result.iLineNumber = (*classIt)->GetLineNumber();
+                                result.scriptId = ScriptId((*classIt)->GetOwnerScript()->GetPath().c_str());
+                                result.strBaseText = (*classIt)->GetName();
+                            }
+                        }
+                        if (!fFound)
+                        {
+                            // Global class?
+                            const sci::ClassDefinition *globalClass = browser.LookUpClass(strText);
+                            fFound = globalClass != nullptr;
+                            if (fFound)
+                            {
+                                result.strTip = fmt::format("{} of {}", globalClass->GetName(), globalClass->GetSuperClass());
+                                // "goto definition" info
+                                result.iLineNumber = globalClass->GetLineNumber();
+                                result.scriptId = ScriptId(globalClass->GetOwnerScript()->GetPath().c_str());
+                                result.strBaseText = globalClass->GetName();
+                            }
                         }
                     }
                     if (!fFound)
                     {
-                        // Globals
-                        const VariableDeclVector *pVars = browser.GetMainGlobals();
-                        if (pVars)
+                        // TODO - look up saids - could probably do this by having the
+                        // various parses set a bit indicating what kind of parsing they're doing (singleq, doubleq, etc...)
+                        // And checking if there is a pContext->PropertyValue, or a ComplexPropertyValue statement.
+                        /*
+                        PCTSTR pszWord = FindValidVocabStringFromRight(_strValueTurd.c_str());
+                        if (pszWord)
                         {
-                            VariableDeclVector::const_iterator varIt = match_name(pVars->begin(), pVars->end(), strText);
-                            fFound = (varIt != pVars->end());
-                            if (fFound)
-                            {
-                                pVar = (*varIt).get();
-                                result.strTip = fmt::format("Global variable: {}", strText);
-                            }
-                        }
-                    }
-                    if (fFound && pVar)
-                    {
-                        // Add some goto info
-                        result.iLineNumber = pVar->GetLineNumber();
-                        result.scriptId = ScriptId(pVar->GetOwnerScript()->GetPath().c_str());
-                        result.strBaseText = pVar->GetName().c_str();
-                    }
-                }
-
-                if (!fFound)
-                {
-                    // 8. Class property
-                    const ClassPtr pClass = pContext->ClassPtr.get();
-                    if (pClass)
-                    {
-                        auto classAndProp = _FindClassProperty(browser, *pClass, strText);
-                        if (get<0>(classAndProp))
-                        {
-                            result.strTip = fmt::format("{}::{}", get<1>(classAndProp)->GetName(), strText);
-                            // Add some goto info
-                            result.iLineNumber = get<2>(classAndProp)->GetLineNumber();
-                            result.scriptId = ScriptId(get<0>(classAndProp)->GetOwnerScript()->GetPath().c_str());
-                            result.strBaseText = strText;
-                        }
-                    }
-                }
-                if (!fFound)
-                {
-                    for (auto &script : scriptsToSearch)
-                    {
-                        // 9. Local instance (or class, but we would have already handled that in 8)
-                        // Find a class that it matches
-                        const sci::ClassVector &classes = script->GetClasses();
-                        auto classIt = match_name(classes.begin(), classes.end(), strText);
-                        fFound = (classIt != classes.end());
-                        if (fFound)
-                        {
-                            result.strTip = fmt::format("{} of {}", strText, (*classIt)->GetSuperClass());
-                            // "goto definition" info
-                            result.iLineNumber = (*classIt)->GetLineNumber();
-                            result.scriptId = ScriptId((*classIt)->GetOwnerScript()->GetPath().c_str());
-                            result.strBaseText = (*classIt)->GetName();
-                        }
-                    }
-                }
-                if (!fFound)
-                {
-                    // TODO - look up saids - could probably do this by having the
-                    // various parses set a bit indicating what kind of parsing they're doing (singleq, doubleq, etc...)
-                    // And checking if there is a pContext->PropertyValue, or a ComplexPropertyValue statement.
-                    /*
-                    PCTSTR pszWord = FindValidVocabStringFromRight(_strValueTurd.c_str());
-                    if (pszWord)
-                    {
                         // Part of a Said std::string?
                         Vocab000 *pVocab000 = appState->GetResourceMap().GetVocab000();
                         if (pVocab000)
                         {
-                            Vocab000::WordGroup dwGroup;
-                            if (pVocab000->LookupWord(pszWord, dwGroup))
-                            {
-                                WordClass dwClass;
-                                if (pVocab000->GetGroupClass(dwGroup, &dwClass))
-                                {
-                                    std::string strWordClass;
-                                    GetWordClassString(dwClass, strWordClass);
-                                    StringCchPrintf(szTip, ARRAYSIZE(szTip), TEXT("%s: %s"), pszWord, strWordClass.c_str());
-                                }
-                            }
-                            else
-                            {
-                                StringCchPrintf(szTip, ARRAYSIZE(szTip), TEXT("%s - not found"), pszWord);
-                            }
+                        Vocab000::WordGroup dwGroup;
+                        if (pVocab000->LookupWord(pszWord, dwGroup))
+                        {
+                        WordClass dwClass;
+                        if (pVocab000->GetGroupClass(dwGroup, &dwClass))
+                        {
+                        std::string strWordClass;
+                        GetWordClassString(dwClass, strWordClass);
+                        StringCchPrintf(szTip, ARRAYSIZE(szTip), TEXT("%s: %s"), pszWord, strWordClass.c_str());
                         }
+                        }
+                        else
+                        {
+                        StringCchPrintf(szTip, ARRAYSIZE(szTip), TEXT("%s - not found"), pszWord);
+                        }
+                        }
+                        }
+                        */
                     }
-                    */
                 }
             }
         }

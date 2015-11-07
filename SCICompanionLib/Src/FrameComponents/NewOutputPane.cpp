@@ -270,7 +270,8 @@ BOOL NewOutputPane::PreTranslateMessage(MSG* pMsg)
     }
     if (!fRet)
     {
-        fRet = __super::PreTranslateMessage(pMsg);
+        // Don't call this, it breaks CTRL-SHIFT-F
+        // fRet = __super::PreTranslateMessage(pMsg);
     }
     return fRet;
 }
