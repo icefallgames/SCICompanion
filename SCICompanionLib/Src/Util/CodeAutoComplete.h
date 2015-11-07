@@ -100,12 +100,20 @@ private:
         UINT message;
     };
 
-    enum AutoCompleteInstruction
+    enum class AutoCompleteInstruction
     {
         None,
         Continue,   // Keep going from where we were
         Restart,    // Start anew
         Abort
+    };
+
+    enum class AutoCompleteStatus
+    {
+        None,
+        Pending,
+        Parsing,
+        WaitingForMore,
     };
 
     void _SetResult(std::unique_ptr<AutoCompleteResult> result, AutoCompleteId id);
@@ -118,6 +126,7 @@ private:
     std::mutex _mutex;
     std::condition_variable _condition;
     AutoCompleteInstruction _instruction;
+    AutoCompleteStatus _bgStatus;
 
     std::string _additionalCharacters;
     int _idUpdate;

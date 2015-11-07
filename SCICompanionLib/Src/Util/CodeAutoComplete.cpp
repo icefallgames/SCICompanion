@@ -77,10 +77,18 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
     std::string prefix = prefixIn;
     std::transform(prefix.begin(), prefix.end(), prefix.begin(), ::tolower);
 
+    //OutputDebugString("Prefix is ");
+    //OutputDebugString(prefix.c_str());
+    //OutputDebugString("\n");
+
     std::unique_ptr<AutoCompleteResult> result = std::make_unique<AutoCompleteResult>();
     if (!prefix.empty())
     {
         ParseAutoCompleteContext acContext = context.GetParseAutoCompleteContext();
+
+
+        //OutputDebugString(fmt::format("ParseContext: {}\n", (int)acContext).c_str());
+
         AutoCompleteSourceType sourceTypes = AutoCompleteSourceType::None;
         switch (acContext)
         {
@@ -309,7 +317,7 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
     }
     return result;
 }
-AutoCompleteThread2::AutoCompleteThread2() : _nextId(0)
+AutoCompleteThread2::AutoCompleteThread2() : _nextId(0), _instruction(AutoCompleteInstruction::None), _bgStatus(AutoCompleteStatus::Pending)
 {
     _thread = std::thread(s_ThreadWorker, this);
 }
@@ -339,8 +347,7 @@ void AutoCompleteThread2::StartAutoComplete(CPoint pt, HWND hwnd, UINT message, 
     bool bgIsWaiting;
     {
         std::lock_guard<std::mutex> lock(_mutex);
-        // It's ready if it hasn't begun yet (_limiterPending), or if the current parse hasn't been canceled. (??)
-        bgIsWaiting = _limiterPending || (_instruction == AutoCompleteInstruction::Continue);
+        bgIsWaiting = (_bgStatus == AutoCompleteStatus::WaitingForMore) || (_bgStatus == AutoCompleteStatus::Parsing);
     }
 
     if (bgIsWaiting && (_lastHWND == hwnd) && (pt.y == _lastPoint.y) && (pt.x > _lastPoint.x))
@@ -352,6 +359,9 @@ void AutoCompleteThread2::StartAutoComplete(CPoint pt, HWND hwnd, UINT message, 
         {
             std::lock_guard<std::mutex> lock(_mutex);
             _additionalCharacters += (PCSTR)strText;
+
+            //OutputDebugString(fmt::format("UI: Continue parse with {0}\n", (PCSTR)strText).c_str());
+
             _instruction = AutoCompleteInstruction::Continue;
         }
         _condition.notify_one();
@@ -364,9 +374,12 @@ void AutoCompleteThread2::StartAutoComplete(CPoint pt, HWND hwnd, UINT message, 
         //limiter->Limit(LineCol(pt.y, pt.x));
         std::unique_ptr<CCrystalScriptStream> stream = std::make_unique<CCrystalScriptStream>(limiter.get());
 
+        //OutputDebugString(fmt::format("UI: Start new parse at {0},{1}\n", pt.x, pt.y).c_str());
+
         // Give the work to the background thread
         {
             std::lock_guard<std::mutex> lock(_mutex);
+            _additionalCharacters.clear();
             _limiterPending = move(limiter);
             _streamPending = move(stream);
             _scriptNumberPending = scriptNumber;
@@ -444,16 +457,26 @@ void AutoCompleteThread2::_DoWork()
     {
         std::unique_lock<std::mutex> lock(_mutex);
         _condition.wait(lock, [&]() { return this->_instruction != AutoCompleteInstruction::None; });
-
         while (_instruction == AutoCompleteInstruction::Restart)
         {
             _instruction = AutoCompleteInstruction::None;
 
             std::unique_ptr<CScriptStreamLimiter> limiter = move(_limiterPending);
             std::unique_ptr<CCrystalScriptStream> stream = move(_streamPending);
+            _bgStatus = AutoCompleteStatus::Parsing;
+            if (!this->_additionalCharacters.empty())
+            {
+                // It's possible the UI thread saw we were parsing, and so it
+                // just placed some additional characters in the buffer. But we then
+                // failed to parse, so we're restarting. There's no way that we'll
+                // succeed parsing though, so let's jus fail
+                limiter = nullptr;
+                stream = nullptr;
+                _bgStatus = AutoCompleteStatus::Pending;
+            }
+
             uint16_t scriptNumber = _scriptNumberPending;
             AutoCompleteId id = _id;
-
             // Unlock before we do expensive stuff
             lock.unlock();
 
@@ -477,16 +500,28 @@ void AutoCompleteThread2::_DoWork()
                         _ac._SetResult(move(result), _id);
 
                         std::unique_lock<std::mutex> lock(_ac._mutex);
+                        _ac._bgStatus = AutoCompleteStatus::WaitingForMore;
                         _ac._condition.wait(lock, [&]() { return this->_ac._instruction != AutoCompleteInstruction::None; });
-
+                        // There is a small race condition between here....
                         bool continueParsing = (_ac._instruction == AutoCompleteInstruction::Continue);
+                        // We need to set this to none now that we've received the orders:
+                        _ac._instruction = AutoCompleteInstruction::None;
                         std::string additionalCharacters;
                         if (continueParsing)
                         {
+                            _ac._bgStatus = AutoCompleteStatus::Parsing;
                             additionalCharacters = _ac._additionalCharacters;
                             _ac._additionalCharacters = "";
                             _limiter.Extend(additionalCharacters);
+
+                            //OutputDebugString(fmt::format("BG: Continuing parse with {0}\n", additionalCharacters).c_str());
+                        } 
+                        else
+                        {
+                            _ac._bgStatus = AutoCompleteStatus::Pending;
+                            //OutputDebugString(fmt::format("BG: Bailing out from parse\n").c_str());
                         }
+
                         return continueParsing;   // false -> bail
                     }
                 private:
@@ -516,6 +551,7 @@ void AutoCompleteThread2::_DoWork()
             }
 
             lock.lock();
+            _bgStatus = AutoCompleteStatus::Pending;
         }
     }
 }
