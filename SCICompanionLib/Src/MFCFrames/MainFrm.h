@@ -161,7 +161,7 @@ private:
     void _RefreshToolboxPanelOnDeactivate(CFrameWnd *pWnd);
     void _OnNewScriptDialog(CNewScriptDialog &dialog);
     void _HideTabIfNot(MDITabType iTabTypeCurrent, MDITabType iTabTypeCompare, CExtControlBar &bar);
-    void _FindInFilesOfType(ICompileLog &log, PCTSTR pszWildcard, PCTSTR pszWhat, BOOL fMatchCase, BOOL fWholeWord);
+    void _FindInFilesOfType(ICompileLog &log, const std::string &srcFolder, PCTSTR pszWildcard, PCTSTR pszWhat, BOOL fMatchCase, BOOL fWholeWord);
     void _FindInTexts(ICompileLog &log, PCTSTR pszWhat, BOOL fMatchCase, BOOL fWholeWord);
     void _FindInVocab000(ICompileLog &log, PCTSTR pszWhat, BOOL fMatchCase, BOOL fWholeWord);
     void _AddFindResults(std::vector<char> &buffer, ICompileLog &log, PCTSTR pszFullPath, PCTSTR pszFileName, PCTSTR pszWhat, BOOL fMatchCase, BOOL fWholeWord);

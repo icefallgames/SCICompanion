@@ -1777,11 +1777,9 @@ void CMainFrame::_AddFindResults(vector<char> &dummyBuffer, ICompileLog &log, PC
     buffer.FreeAll();
 }
 
-void CMainFrame::_FindInFilesOfType(ICompileLog &log, PCTSTR pszWildcard, PCTSTR pszWhat, BOOL fMatchCase, BOOL fWholeWord)
+void CMainFrame::_FindInFilesOfType(ICompileLog &log, const std::string &srcFolder, PCTSTR pszWildcard, PCTSTR pszWhat, BOOL fMatchCase, BOOL fWholeWord)
 {
     vector<char> worker(5000);
-
-    std::string srcFolder = appState->GetResourceMap().Helper().GetSrcFolder();
     std::string wildcard = (srcFolder + pszWildcard);
     WIN32_FIND_DATA findData = { 0 };
     HANDLE hFFF = FindFirstFile(wildcard.c_str(), &findData);
@@ -1902,10 +1900,19 @@ void CMainFrame::OnFindInFiles()
 
         if (_fFindInAll)
         {
-            _FindInFilesOfType(log, TEXT("\\*.sc"), strFindWhat, (_fMatchCase != 0), (_fMatchWholeWord != 0));
-            _FindInFilesOfType(log, TEXT("\\*.sh"), strFindWhat, (_fMatchCase != 0), (_fMatchWholeWord != 0));
-            _FindInFilesOfType(log, TEXT("\\*.scp"), strFindWhat, (_fMatchCase != 0), (_fMatchWholeWord != 0));
-            _FindInFilesOfType(log, TEXT("\\*.shp"), strFindWhat, (_fMatchCase != 0), (_fMatchWholeWord != 0));
+            std::string srcFolder = appState->GetResourceMap().Helper().GetSrcFolder();
+            std::string polyFolder = appState->GetResourceMap().Helper().GetPolyFolder();
+            std::string messageFolder = appState->GetResourceMap().Helper().GetMsgFolder();
+            std::string includeFolder = appState->GetResourceMap().Helper().GetIncludeFolder();
+
+            _FindInFilesOfType(log, srcFolder, TEXT("\\*.sc"), strFindWhat, (_fMatchCase != 0), (_fMatchWholeWord != 0));
+            _FindInFilesOfType(log, srcFolder, TEXT("\\*.sh"), strFindWhat, (_fMatchCase != 0), (_fMatchWholeWord != 0));
+            _FindInFilesOfType(log, polyFolder, TEXT("\\*.shp"), strFindWhat, (_fMatchCase != 0), (_fMatchWholeWord != 0));
+            _FindInFilesOfType(log, messageFolder, TEXT("\\*.shm"), strFindWhat, (_fMatchCase != 0), (_fMatchWholeWord != 0));
+            _FindInFilesOfType(log, includeFolder, TEXT("\\*.sh"), strFindWhat, (_fMatchCase != 0), (_fMatchWholeWord != 0));
+            // We don't support c++ syntax ATM
+            //_FindInFilesOfType(log, TEXT("\\*.scp"), strFindWhat, (_fMatchCase != 0), (_fMatchWholeWord != 0));
+            //_FindInFilesOfType(log, TEXT("\\*.shp"), strFindWhat, (_fMatchCase != 0), (_fMatchWholeWord != 0));
 
             CString stdFindWhat2 = strFindWhat;
             if (_fMatchCase == 0)
