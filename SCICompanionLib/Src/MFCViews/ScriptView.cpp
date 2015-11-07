@@ -198,6 +198,8 @@ void CScriptView::UpdateView(CCrystalTextView *pSource, CUpdateContext *pContext
             _pACThread->ResetPosition();
         }
     }
+    // If the document was modified, we should ignore any hover tip task result:
+    _lastHoverTipParse = -1;
     __super::UpdateView(pSource, pContext, dwFlags, nLineIndex);
 }
 
