@@ -145,6 +145,7 @@ CScriptView::CScriptView()
     _hoverTipScheduler = nullptr;
     _pMethodTip = nullptr;
     _lastHoverTipParse = -1;
+    SetViewTabs(appState->_fShowTabs);
 }
 
 void CScriptView::UpdateCaret()

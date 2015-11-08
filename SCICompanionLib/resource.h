@@ -295,7 +295,6 @@
 #define IDD_AUDIOPREFERENCES            391
 #define IDI_RECORD                      392
 #define IDD_AUDIOEDIT                   392
-#define IDR_MENUVIEWS1                  392
 #define IDR_MENUMESSAGEVALUES           392
 #define IDI_MONITOR                     393
 #define ID_INDICATOR_AUDIOSIZE          394
@@ -660,6 +659,8 @@
 #define IDC_STATIC_DURATION             1281
 #define IDC_CHECK_ASPECTRATIO           1282
 #define IDC_RADIOCOMMANDS               1283
+#define IDC_CHECK_ASPECTRATIO2          1283
+#define IDC_CHECK_SHOWTABS              1283
 #define IDC_RADIOPOLYGONS               1284
 #define IDC_COMBOPOLYTYPE               1285
 #define IDC_STATICPOLYTYPE              1286

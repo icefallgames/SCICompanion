@@ -103,6 +103,7 @@ public:
     void ResetClassBrowser();
     void ClearResourceManagerDoc() { _pResourceDoc = NULL; }
     void NotifyChangeAspectRatio();
+    void NotifyChangeShowTabs();
     void SetRecentlyInteractedView(int resourceNumber);
 
     void TerminateDebuggedProcess();
@@ -156,6 +157,7 @@ public:
     BOOL _fHoverTips;
     BOOL _fPlayCompileErrorSound;
     BOOL _fUseOriginalAspectRatio;
+    BOOL _fShowTabs;
     BOOL _fShowToolTips;
     std::string _midiDeviceName;
     std::unique_ptr<AudioProcessingSettings> _audioProcessing;

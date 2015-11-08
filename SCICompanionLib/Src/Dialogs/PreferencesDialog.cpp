@@ -25,6 +25,7 @@ CPreferencesDialog::CPreferencesDialog(CWnd* pParent /*=NULL*/)
 {
     _fBrowseInfoStart = appState->_fBrowseInfo;
     _fAspectRatioStart = appState->_fUseOriginalAspectRatio;
+    _fShowTabsStart = appState->_fShowTabs;
 }
 
 CPreferencesDialog::~CPreferencesDialog()
@@ -48,6 +49,7 @@ void CPreferencesDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Check(pDX, IDC_HOVERTIPS, appState->_fHoverTips);
     DDX_Check(pDX, IDC_COMPILEERRORSOUND, appState->_fPlayCompileErrorSound);
     DDX_Check(pDX, IDC_CHECK_ASPECTRATIO, appState->_fUseOriginalAspectRatio);
+    DDX_Check(pDX, IDC_CHECK_SHOWTABS, appState->_fShowTabs);
 
     DDX_Text(pDX, IDC_FAKEEGOX, appState->_cxFakeEgo);
     DDV_MinMaxInt(pDX, appState->_cxFakeEgo, 10, 80);
@@ -68,6 +70,7 @@ void CPreferencesDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_CHECKSCI01, m_wndCheck7);
     DDX_Control(pDX, IDC_COMPILEERRORSOUND, m_wndCheck8);
     DDX_Control(pDX, IDC_CHECK_ASPECTRATIO, m_wndCheck9);
+    DDX_Control(pDX, IDC_CHECK_SHOWTABS, m_wndCheck10);
     DDX_Control(pDX, IDOK, m_wndOk);
     DDX_Control(pDX, IDCANCEL, m_wndCancel);
 
@@ -109,5 +112,9 @@ void CPreferencesDialog::OnOK()
     if (_fAspectRatioStart != appState->_fUseOriginalAspectRatio)
     {
         appState->NotifyChangeAspectRatio();
+    }
+    if (_fShowTabsStart != appState->_fShowTabs)
+    {
+        appState->NotifyChangeShowTabs();
     }
 }

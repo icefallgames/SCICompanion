@@ -43,6 +43,29 @@ public:
     void GoForward();
     void OnUpdateTitles();
 
+
+    template<typename _TView, typename _TFunc>
+    void CallViews(const CRuntimeClass *runtimeClass, _TFunc f)
+    {
+        for (int i = 0; i < GetItemCount(); i++)
+        {
+            TCITEM tcitem = { 0 };
+            tcitem.mask = TCIF_PARAM;
+            if (GetItem(i, &tcitem))
+            {
+                CMDITabChildWnd *pChild = reinterpret_cast<CMDITabChildWnd*>(tcitem.lParam);
+                CView *pView = pChild->GetActiveView();
+                if (pView)
+                {
+                    if (pView->IsKindOf(runtimeClass))
+                    {
+                        f(static_cast<_TView*>(pView));
+                    }
+                }
+            }
+        }
+    }
+
 protected:
 	DECLARE_MESSAGE_MAP()
 

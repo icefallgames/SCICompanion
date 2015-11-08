@@ -116,6 +116,7 @@ AppState::AppState(CWinApp *pApp)
     _fHoverTips = TRUE;
     _fPlayCompileErrorSound = TRUE;
     _fUseOriginalAspectRatio = false;
+    _fShowTabs = FALSE;
     _fShowToolTips = TRUE;
 
     _pVocabTemplate = NULL;
@@ -573,6 +574,21 @@ BOOL CALLBACK InvalidateChildProc(HWND hwnd, LPARAM lParam)
         EnumChildWindows(hwnd, InvalidateChildProc, 0);
     }
     return TRUE;
+}
+
+void AppState::NotifyChangeShowTabs()
+{
+    CMainFrame *pMainWnd = static_cast<CMainFrame*>(_pApp->m_pMainWnd);
+    if (pMainWnd)
+    {
+        pMainWnd->Tabs().CallViews<CScriptView>(
+            RUNTIME_CLASS(CScriptView),
+            [&](CScriptView *pView)
+        {
+            pView->SetViewTabs(_fShowTabs);
+        }
+            );
+    }
 }
 
 void AppState::NotifyChangeAspectRatio()

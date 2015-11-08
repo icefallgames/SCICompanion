@@ -491,6 +491,7 @@ void CCrystalTextView::DrawLineHelperImpl(CDC *pdc, CPoint &ptOrigin, const CRec
 			//CSize sz = pdc->GetTextExtent(line, nCount);
 			//ASSERT(sz.cx == m_nCharWidth * nCount);
 #endif
+            // We clip off the edge of any previous letters.
 			VERIFY(pdc->ExtTextOut(ptOrigin.x, ptOrigin.y, ETO_CLIPPED, &rcClip, line, nCount, NULL));
 		}
 		ptOrigin.x += GetCharWidth() * line.GetLength();
@@ -2187,6 +2188,7 @@ int CCrystalTextView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	m_lfBaseFont.lfOutPrecision = OUT_DEFAULT_PRECIS;
 	m_lfBaseFont.lfClipPrecision = CLIP_DEFAULT_PRECIS;
 	m_lfBaseFont.lfQuality = DEFAULT_QUALITY;
+    //m_lfBaseFont.lfQuality = CLEARTYPE_QUALITY;
 	m_lfBaseFont.lfPitchAndFamily = FIXED_PITCH;
     ::ReleaseDC(NULL, hdc);
 	if (CView::OnCreate(lpCreateStruct) == -1)

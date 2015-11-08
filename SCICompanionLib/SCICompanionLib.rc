@@ -894,6 +894,7 @@ BEGIN
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,94,116,10
     CONTROL         "Use original SCI aspect ratio",IDC_CHECK_ASPECTRATIO,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,108,106,10
+    CONTROL         "Show tabs in script editor",IDC_CHECK_SHOWTABS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,9,123,97,10
 END
 
 IDD_VPC DIALOGEX 0, 0, 182, 20

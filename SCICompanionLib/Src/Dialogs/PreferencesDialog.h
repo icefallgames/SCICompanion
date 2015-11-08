@@ -38,6 +38,7 @@ private:
 
     BOOL _fBrowseInfoStart;
     BOOL _fAspectRatioStart;
+    BOOL _fShowTabsStart;
 
     // Visuals
     CExtCheckBox m_wndBrowserInfo;
@@ -54,6 +55,7 @@ private:
     CExtCheckBox m_wndCheck7;
     CExtCheckBox m_wndCheck8;
     CExtCheckBox m_wndCheck9;
+    CExtCheckBox m_wndCheck10;
     CExtButton m_wndOk;
     CExtButton m_wndCancel;
 
