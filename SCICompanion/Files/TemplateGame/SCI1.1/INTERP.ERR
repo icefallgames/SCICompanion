@@ -1,0 +1,376 @@
+\\; E_DISK_ERROR
+\\1
+DOS Error:
+%s
+ENTER to retry
+ESC to %s
+\\;
+\\; E_CANCEL
+\\2
+cancel
+\\;
+\\; E_QUIT
+\\3
+quit
+\\; E_DISK_ERROR_MSG
+\\4
+Disk is write protected
+\\5
+Unknown unit
+\\6
+Not ready
+\\7
+?
+\\8
+CRC error
+\\9
+?
+\\10
+Seek error
+\\11
+Stampver error
+\\12
+Sector not found
+\\13
+?
+\\14
+Write error
+\\15
+Read error
+\\16
+General failure
+\\; E_ARM_CHKSUM
+\\17
+Your extra memory has been found to be incompatible with this game.
+
+Please run INSTALL and choose NOT to use extra memory.
+
+[0x%x %d %d]
+\\; E_OOPS_TXT
+\\25
+You did something that we weren't expecting.
+Whatever it was, you don't need to do it to finish the game.
+Try taking a different approach to the situation.  
+Error %d.  SCI Version %s
+\\; E_OOPS
+\\26
+Oops!
+\\; E_NO_DEBUG
+\\27
+ Debug not available! error #%d 
+\\; E_NO_AUDIO_DRVR
+\\28
+Can't find audio driver '%s'!
+
+\\; E_NO_AUDIO
+\\29
+Unable to initialize your audio hardware.
+\\; E_NO_CD_MAP
+\\30
+Unable to locate the cd-language map file.
+\\; E_INSERT_DISK
+\\31
+Please insert
+Disk %d in drive %s
+and press ENTER.%s
+\\; E_NO_LANG_MAP	
+\\32
+Unable to locate the language map file.
+\\; E_INSERT_STARTUP
+\\33
+Please insert
+Startup Disk in drive %s
+and press ENTER.%s
+\\; E_NO_KBDDRV
+\\34
+No keyboard driver!
+\\; E_NO_HUNK
+\\35
+Out of hunk!
+\\; E_NO_HANDLES
+\\36
+Out of handles!
+\\; E_NO_VIDEO
+\\37
+Couldn't install video driver!
+\\; E_CANT_FIND
+\\38
+Couldn't find %s.
+\\; E_NO_PATCH
+\\39
+Couldn't find PatchBank.
+\\; E_NO_MUSIC
+\\40
+Unable to initialize your music hardware.
+\\; E_CANT_LOAD
+\\41
+Can't load %s!
+
+\\; E_NO_INSTALL
+\\42
+Can't find configuration file: %s
+Please run the Install program.
+
+\\; E_RESRC_MISMATCH
+\\43
+Resource type mismatch
+\\; E_NOT_FOUND
+\\44
+%s not found.
+\\; E_WRONG_RESRC
+\\45
+Wrong resource type!
+Looking for $%x #%d
+\\; E_LOAD_ERROR
+\\46
+Load error: %s
+RETURN continues
+ESC quits
+\\; E_MAX_SERVE
+\\47
+Maximum number of servers exceeded.
+
+\\; E_NO_DEBUGGER
+\\48
+No Dubugger Available.
+\\; E_NO_MINHUNK
+\\49
+Error: minHunk value is MISSING in your "%s" file.
+Example: minHunk = 100k
+
+\\; E_NO_MEMORY
+\\50
+You need %U more bytes of free memory available to run this game.
+If you have any resident software loaded please remove it and try again.
+\\; E_CONF_STORAGE
+\\51
+Out of configuration storage.
+\\; E_BAD_PIC
+\\52
+Bad picture code
+\\; E_NO_HUNK_RES
+\\53
+Out of hunk
+loading %s
+\\; E_NO_RES_USE
+\\54
+could not open resource use log file "%s"
+
+\\; E_NO_HUNK_USE
+\\55
+could not open hunk use log file "%s"
+
+\\; E_ARM_READ
+\\56
+ARM read error
+\\; E_ARM_HANDLE
+\\57
+ARM handle < 0
+\\; E_NO_WHERE
+\\58
+Can't find a 'where' file.
+\\; E_VIEW
+\\59
+%s View: %d  Loop: %d  Cel: %d
+
+\\; E_EXPLODE
+\\60
+Error on Explode
+\\; E_BUILD_LINE
+\\61
+Build Line Error 
+\\; E_MIRROR_BUILD
+\\62
+Mirror Line Error
+\\; E_EAT_LINE
+\\63
+Eat Line Error
+\\; E_LINE_LENGTH
+\\64
+Invalid Line Length
+\\; E_BAD_RECT
+\\65
+INVALID RECTANGLE!
+\\; E_AUDIOSIZE
+\\66
+
+Error: invalid value in your "%s" file:
+audioSize = %s
+
+\\; E_BAD_MINHUNK
+\\67
+Error: minHunk was not specified IN KILOBYTES in your "%s" file.
+Example: minHunk = 100k
+
+\\; E_EXT_MEM
+\\68
+ExtMem error %d
+\\; E_POLY_AVOID
+\\69
+Poly Avoider generated too large of path!
+\\; E_POLY_MERGE
+\\70
+Poly Merge generated too large of path!
+\\; E_MAX_PATCHES
+\\71
+Too many patches!
+\\; E_MAX_POINTS
+\\72
+Too many Points!
+\\; E_AVOID
+\\73
+Poly Avoider internal error!
+\\; E_DRAWPIC
+\\74
+DrawPic - Not Enough Hunk.
+\\; E_FILL
+\\75
+Overran stack in Fill.
+\\; E_SAVEBITS
+\\76
+SaveBits - Not Enough Hunk.
+\\; E_NO_NIGHT_PAL
+\\77
+Night Palette Not Found!
+\\; E_MAGNIFY_FACTOR
+\\78
+Magnification factor out of range
+\\; E_MAGNIFY_CEL
+\\79
+Invalid Magnification Cel Type
+\\; E_MAGNIFY_SIZE
+\\80
+Invalid Source view size or destination port size for magnification factor
+\\; E_BAD_LANG
+\\81
+%d is not a supported language code
+\\; E_NO_HEAP
+\\82
+Out of heap space.
+\\; E_HEAP_ALLOC
+\\83
+Zero Heap Allocation Request.
+\\; E_HUNK_ALLOC
+\\84
+Zero Hunk Allocation Request.
+\\; E_NO_HUNK_SPACE
+\\85
+Out of hunk space.
+\\; E_RET_HUNK
+\\86
+Returning free hunk!
+\\; E_ADDMENU
+\\87
+AddMenu not supported.
+\\; E_DRAWMENU
+\\88
+DrawMenuBar not supported.
+\\; E_SETMENU
+\\89
+SetMenu not supported.
+\\; E_GETMENU
+\\90
+GetMenu not supported.
+\\; E_MENUSELECT
+\\91
+MenuSelect not supported.
+\\; E_MESSAGE
+\\92
+Invalid Message() function: %d
+\\; E_BRESEN
+\\93
+bresen failed!
+\\; E_BAD_PALETTE
+\\94
+Invalid Palette
+\\; E_DISPOSED_SCRIPT
+\\95
+Executing in disposed script number %d.
+\\; E_SCALEFACTOR
+\\96
+Divide by zero in GetNewScaleFactors
+\\; E_NO_HEAP_MEM
+\\97
+Can't allocate heap.
+\\; E_TEXT_PARAM
+\\98
+Invalid parameter following text code: |%c%c
+\\; E_TEXT_COLOR
+\\99
+Color index out of range: |c%d|
+\\; E_TEXT_FONT
+\\100
+Font index out of range: |f%d|
+\\; E_TEXT_CODE
+\\101
+Invalid text code: |%c
+\\; E_ZERO_SIZE
+\\102
+Zero size received
+\\; E_FREE_PAGES
+\\103
+Free pages error (< 0)
+\\; E_BAD_HANDLE_OUT
+\\104
+Bad handle returned
+\\; E_BAD_HANDLE
+\\105
+Bad handle
+\\; E_MAX_PAGES
+\\106
+Too many pages free
+\\; E_OPEN_WINDOW
+\\107
+Can't open window.
+\\; E_XMM_READ
+\\108
+XMS read error: %x
+len %d src %d dst %d
+\\; E_XMM_WRITE
+\\109
+XMS write error: %x
+len %d src %d dst %d
+\\; E_PANIC_INFO
+\\110
+
+Script #: %d, IP: %x
+
+\\; E_CONFIG_STORAGE
+\\111
+Out of configuration storage.
+\\; E_CONFIG_ERROR
+\\112
+Config file error: no '%c' in '%s'
+\\; E_BADMSGVERSION
+\\113
+Message file has not been updated to version 4.
+\\; E_MSGSTACKOVERFLOW
+\\114
+Message stack overflow:  references are nested beyond %d levels
+\\; E_SAMPLE_IN_SND
+\\115
+Detected Sample data in *.SND file.
+\\; E_MSGSTACKSTACKOVERFLOW
+\\116
+Message stack stack overflow:  stacks are stacked beyond %d levels
+\\; E_MSGSTACKSTACKUNDERFLOW
+\\117
+Mismatched (Message MsgPop)
+\\;E_BAD_POLYGON
+\\118
+Not given enough points to make a polygon.
+\\;E_INVALID_PROPERTY
+\\119
+Invalid property accessed
+\\;E_VER_STAMP_MISMATCH
+\\120
+
+Stampver error: %U-%U
+\\900
+Suspend.
+\\901
+Pause.
+\\902
+Play.
+
+\\; E_

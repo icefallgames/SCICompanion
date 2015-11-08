@@ -1,0 +1,7 @@
+// 110.shp -- Produced by SCI Companion
+// This file should only be edited with the SCI Companion polygon editor
+
+(local
+    P_Default110[11] = (1 PContainedAccess 4 319 189 319 50 0 50 0 189 )
+
+)

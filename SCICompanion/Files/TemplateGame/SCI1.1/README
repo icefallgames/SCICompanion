@@ -1,0 +1,197 @@
+
+               Leisure Suit Larry 6: Shape Up or Slip Out!
+
+
+Thanks a lot for buying our game!  We appreciate your business and
+hope you have lots of laughs playing it!
+
+But before you barge in and start flailing away at all those beautiful
+babes, take a moment to scan through this file.  After you do, read the
+Larry 6 leaflet in the box.  We promise you'll learn something!
+
+
+This file covers the following topics:
+      1.  MINIMUM HARDWARE
+      2.  INSTALLING UNDER DOS
+      3.  INSTALLING UNDER WINDOWS
+      4.  TO WINDOWS OR NOT TO WINDOWS?
+      5.  BAD DIGITAL SOUND EFFECTS
+      6.  THE RIGHT MOUSE BUTTON
+      7.  GRAVIS ULTRASOUND CARD
+      8.  MICROSOFT SOUND SYSTEM
+      9.  FOR EXPERTS ONLY!  (DELETING UNNECESSARY FILES)
+
+
+
+                          1.  MINIMUM HARDWARE
+
+   286/16mhz MS-DOS compatible (386/16 recommended)
+   VGA card and monitor
+   Microsoft-compatible mouse
+   10.5 megs of free hard disk space
+   586,500 bytes of free low memory, if no sound card
+
+The more memory you free up, the better the game runs!  If you're having
+problems, let the DOS INSTALL program create a boot disk for you.  Signs
+of low memory or overtaxed hardware include slow animation and/or sound
+breakups.
+
+Some sound cards require additional free low memory, if you're in doubt,
+give us more memory!  Minimum memory requirements for some cards:
+   597,000 bytes for SoundBlaster
+   599,999 bytes for Pro Audio Spectrum card
+
+Performance improvers:
+   faster CPU (486/25 or better)
+   more low memory (630,000 bytes is nice)
+   more extended or expanded memory (8 megs is plenty)
+   a music card
+   a DAC card for sampled audio
+
+
+
+                        2.  INSTALLING UNDER DOS
+
+Place Disk #1 in your disk drive, change to that drive and type INSTALL.
+Follow the menus to choose your display, music device, sound effects
+device, memory setup, and where to write the game files.
+
+If you later change hardware or wish to change the game settings, return
+to that directory and run INSTALL again.  There's no need to re-install
+the game from the original floppies unless you delete a file or do
+something equally disastrous.
+
+
+
+                      3.  INSTALLING UNDER WINDOWS
+
+Larry 6 runs only in Windows' Enhanced Mode.  It will not run in Standard
+mode.  To run in Windows, you must install under Windows.  (The DOS
+version will NOT run in a Windows DOS shell.)
+
+Start Windows, turn off any screen savers you may have running, then in
+Program Manager, select File | Run.  Enter "A:\SETUP" at the prompt.
+Setup will copy the disks, then ask if you want BASE level or EXTENDED
+level sound.
+
+     WINDOWS SOUND
+
+Choose BASE level sound for sound cards like SoundBlaster, ProAudio,
+Adlib, or any FM Yamaha 3812-type card.
+
+Choose EXTENDED level sound for cards like the LAPC-I, MT-32, SCC-1,
+Sound Canvas, Turtle Beach MultiSound, or any General MIDI device.
+
+To hear sound from your sound card, you must configure it to work under
+Windows.  If you haven't, you may need to add drivers and/or change your
+"Midi mapping."  Consult your Windows manual, the sound card's manuals,
+and anyone you know who got their card to work!
+
+     MINIMUM WINDOWS HARDWARE
+
+You already know this, but if you want to run Windows, you need more than
+the minimum machine we describe above.  You can't run Enhanced Mode with
+a 286, so a 386 is required.  And you can't do anything if you have less
+than 2 megs of memory.
+
+
+
+                    4.  TO WINDOWS OR NOT TO WINDOWS?
+
+Try Windows first if you want, but understand there are trade-offs.  Read
+the Larry 6 leaflet that came with your game!
+
+     256-COLOR MODE ONLY!
+
+LARRY 6 runs only in 256-color mode.  If you are in a high-color mode, you
+must change before running the program.  To do this: in Program Manager,
+select the Windows Setup icon, then select OPTIONS.  Change DISPLAY to
+use 256-colors, then select "Restart Windows."
+
+
+
+                      5.  BAD DIGITAL SOUND EFFECTS
+
+If you are playing from DOS, try adding this line to the file
+"RESOURCE.CFG":
+     audioSize = 8k
+Experiment with the size.  Try 12k, or even 16k, to see what works best.
+Making this larger decreases the amount of memory available to the game.
+If you increase audioSize, you may need to free up more low memory to
+play the game.  (This does not apply to the Windows version.)
+
+If you still have problems in DOS (or you have problems running under
+Windows), your hard disk could be fragmented.  Delete the game from your
+hard disk, use a utility program to defragment and compact your drive,
+then reinstall the game.
+
+
+
+                       6.  THE RIGHT MOUSE BUTTON
+
+Click it to cycle through the available cursors.  But, if there is text
+on the screen, clicking it will skip through conversations or multiple
+text messages.  Be careful!  You may miss crucial dialogue, information
+or clues.
+
+
+
+                       7.  GRAVIS ULTRASOUND CARD
+
+If you have a GUS card and run the game from DOS, you may have better
+results by using a special TSR driver co-developed by Gravis and
+Sierra.  It is in your LSL6 directory in a self-extracting archive
+named GUSDRV.COM.  Run it by typing GUSDRV in the LSL6 directory. 
+Follow the instructions given in READIT.
+
+
+
+                       8.  MICROSOFT SOUND SYSTEM
+
+Ironically enough, MicroSoft's Sound System doesn't work very well under
+Windows.  If you have the MSS card, we recommend playing Larry 6 under
+DOS (which MicroSoft also wrote!).
+
+
+
+           9.  FOR EXPERTS ONLY!  (DELETING UNNECESSARY FILES)
+
+If you don't have DAC audio, you may delete the file "RESOURCE.SFX" to
+free up several megs of hard disk space.  If you later buy a DAC, you
+won't hear any sound effects until you reinstall the game from your
+original floppy disks.
+
+Once you have the game up and running correctly, you may delete any
+unused drivers to free up a little hard disk space.  But before you do,
+be sure you have good sound and video!  Remember:  if you later change
+your hardware setup, you'll have to reinstall the game from your
+original disks.  CONSIDER YOURSELF WARNED!
+
+
+      VIDEO DRIVERS:
+   VGA320.DRV     Provides beautiful 256-color VGA graphics.
+   VGA320BW.DRV   Provides "beautiful" 256-gray scale VGA graphics.
+
+      MUSIC DRIVERS:
+   MT32.DRV       Roland MT-32 and LAPC-1
+   ADL.DRV        AdLib and true compatibles
+                  (SoundBlaster, Thunderboard, etc)
+   SBPRO.DRV      SoundBlaster Pro
+   PROAUDIO.DRV   Pro Audio Spectrum
+   MICROSOF.DRV   Microsoft Sound System
+   GENMIDI.DRV    any card not mentioned above that supports
+                  the "General Midi" standard
+   GMGUS.DRV      Gravis UltraSound
+   GUSDRV.EXE     self-extracting archive containing Gravis TSR
+   STD.DRV        plain old PC internal speaker
+
+      DIGITIZED SOUND EFFECTS DRIVERS:
+   AUDBLAST.DRV   SoundBlaster
+   AUDDISNY.DRV   Disney Sound Source
+   AUDMSSYS.DRV   Microsoft Sound System
+   AUDPRO.DRV     Pro Audio Spectrum
+   AUDPRO16.DRV   Pro Audio Spectrum 16 (16-bit samples)
+   AUDPS1.DRV     IBM PS/1
+   AUDTHUND.DRV   Thunderboard
+   AUDGUS.DRV     Gravis UntraSound
+   AUDNONE.DRV    if you haven't yet bought a sound board with a DAC
