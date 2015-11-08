@@ -624,7 +624,7 @@ std::string ScriptId::GetFullPath() const
 {
     std::string fullPath = _strFolder;
     fullPath += "\\";
-    fullPath += _strFileName;
+    fullPath += _strFileNameOrig;
     return fullPath;
 }
 

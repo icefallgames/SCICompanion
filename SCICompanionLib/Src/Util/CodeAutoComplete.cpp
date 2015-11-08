@@ -456,6 +456,11 @@ void AutoCompleteThread2::_DoWork()
     while (_instruction != AutoCompleteInstruction::Abort)
     {
         std::unique_lock<std::mutex> lock(_mutex);
+        if (_instruction == AutoCompleteInstruction::Abort)
+        {
+            // Important to ask this in the lock.
+            break;
+        }
         _condition.wait(lock, [&]() { return this->_instruction != AutoCompleteInstruction::None; });
         while (_instruction == AutoCompleteInstruction::Restart)
         {

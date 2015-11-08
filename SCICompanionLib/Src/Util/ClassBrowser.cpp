@@ -723,7 +723,7 @@ void SCIClassBrowser::_RemoveAllRelatedData(Script *pScript)
     _fPublicClassesValid = false;
 }
 
-bool SCIClassBrowser::_AddFileName(const std::string &fullPath, bool fReplace)
+bool SCIClassBrowser::_AddFileName(std::string fullPath, bool fReplace)
 {
     _pLKGScript = nullptr; // Clear cache.  Possible optimization: check LKG number, and if this is the same, then set _pLKGScript to this one.
 
@@ -731,6 +731,9 @@ bool SCIClassBrowser::_AddFileName(const std::string &fullPath, bool fReplace)
     CCrystalTextBuffer buffer;
     if (buffer.LoadFromFile(fullPath.c_str()))
     {
+        // "normalize" it before we use it as a key.
+        std::transform(fullPath.begin(), fullPath.end(), fullPath.begin(), ::tolower);
+
         CScriptStreamLimiter limiter(&buffer);
         CCrystalScriptStream stream(&limiter);
         std::unique_ptr<Script> pScript = std::make_unique<Script>(fullPath.c_str());
@@ -1184,8 +1187,8 @@ std::vector<std::string> SCIClassBrowser::GetDirectSubclasses(const std::string 
     std::vector<std::string> directSubclasses;
     for (auto &aClass : _classMap)
     {
-        auto superClass = aClass.second->GetSuperClass();
-        if (superClass && superClass->GetName() == species)
+        auto classDef = aClass.second->GetClassDefinition();
+        if (classDef && classDef->GetSuperClass() == species)
         {
             directSubclasses.push_back(aClass.second->GetName());
         }

@@ -1420,7 +1420,7 @@ void SCISyntaxParser::Load()
 
     define = keyword_p("define")[CreateDefineA] >> alphanum_p[DefineLabelA] >> integer_p[DefineValueA];
 
-    scriptNum = keyword_p("script") >> immediateValue[ScriptNumberA];
+    scriptNum = keyword_p("script") >> immediateValue[{ScriptNumberA, ParseAutoCompleteContext::DefineValue }];
 
     instance_decl = keyword_p("instance")[CreateClassA<true>] >> instancebase_decl[ClassCloseA];
 
