@@ -25,6 +25,7 @@ Topics:
    views
    pics
    scripts
+   classlibrary
    texts
    messages
    sounds

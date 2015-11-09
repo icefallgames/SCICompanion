@@ -509,8 +509,11 @@ void AutoCompleteThread2::_DoWork()
                         _ac._condition.wait(lock, [&]() { return this->_ac._instruction != AutoCompleteInstruction::None; });
                         // There is a small race condition between here....
                         bool continueParsing = (_ac._instruction == AutoCompleteInstruction::Continue);
-                        // We need to set this to none now that we've received the orders:
-                        _ac._instruction = AutoCompleteInstruction::None;
+                        // We need to set this to none now that we've received the orders, assuming this wasn't an abort
+                        if (_ac._instruction != AutoCompleteInstruction::Abort)
+                        {
+                            _ac._instruction = AutoCompleteInstruction::None;
+                        }
                         std::string additionalCharacters;
                         if (continueParsing)
                         {

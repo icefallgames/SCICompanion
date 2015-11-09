@@ -157,6 +157,12 @@ void GenerateDocsDialog::OnBnClickedGeneratedoc()
         }
     }
 
+    if (!generatedFiles.empty())
+    {
+        // Update the indices.
+        OutputIndexRST(buildFolder, generatedFiles);
+    }
+
     // Display generated files
     m_wndGeneratedFiles.SetRedraw(FALSE);
     for (auto &file : generatedFiles)

@@ -17,6 +17,10 @@
 #include "DocScript.h"
 #include "ScriptOMAll.h"
 #include "format.h"
+#include <filesystem>
+#include <regex>
+
+using namespace std::tr2::sys;
 
 // This uses reStructuredText's js domain, as it is most similar to SCI.
 
@@ -24,11 +28,16 @@ std::string scriptFilenameSuffix = ".sc";
 
 std::string indent = "    ";
 
+std::string ClassesFolder = "Classes";
+std::string ScriptsFolder = "Scripts";
+std::string ProceduresFolder = "Procedures";
+std::string KernelsFolder = "Kernels";
+
 // Adds an entry to generated files, returns the absolute path to the generated file.
 std::string OutputRSTHelper(const std::string &rstFolder, const std::string &subFolder, const std::string &title, std::vector<std::string> &generatedFiles)
 {
-    std::string scriptsFolderPath = rstFolder + "\\" + subFolder;
-    std::string relativeScriptsPath = subFolder + "\\" + title;
+    std::string scriptsFolderPath = subFolder.empty() ? rstFolder : (rstFolder + "\\" + subFolder);
+    std::string relativeScriptsPath = subFolder.empty() ? title : (subFolder + "\\" + title);
     generatedFiles.push_back(relativeScriptsPath);
     std::string fullScriptsPath = rstFolder + "\\" + relativeScriptsPath + ".rst";
     EnsureFolderExists(scriptsFolderPath, false);
@@ -52,7 +61,7 @@ void OutputPreamble(fmt::MemoryWriter &w, const std::string &title, const std::s
 void OutputScriptRST(DocScript &docScript, const std::string &rstFolder, std::vector<std::string> &generatedFiles)
 {
     auto *script = docScript.GetScript();
-    std::string fullPath = OutputRSTHelper(rstFolder, "Scripts", script->GetTitle(), generatedFiles);
+    std::string fullPath = OutputRSTHelper(rstFolder, ScriptsFolder, script->GetTitle(), generatedFiles);
 
     fmt::MemoryWriter w;
 
@@ -176,7 +185,7 @@ void OutputPropertyTableRSTWorker(fmt::MemoryWriter &w, std::vector<std::pair<st
 const sci::ClassProperty *FindProperty(const sci::ClassPropertyVector &properties, const std::string &name)
 {
     auto it = std::find_if(properties.begin(), properties.end(), [name](const std::unique_ptr<sci::ClassProperty> &property) { return property->GetName() == name;  });
-    return it->get();
+    return (it != properties.end()) ? it->get() : nullptr;
 }
 
 void OutputPropertyTableRST(SCIClassBrowser &browser, DocScript &docScript, fmt::MemoryWriter &w, sci::ClassDefinition &theClass)
@@ -233,16 +242,16 @@ void OutputClassRST(SCIClassBrowser &browser, DocScript &docScript, const std::s
     {
         if (!theClass->IsInstance())
         {
-            std::string fullPath = OutputRSTHelper(rstFolder, "Classes", theClass->GetName(), generatedFiles);
+            std::string fullPath = OutputRSTHelper(rstFolder, ClassesFolder, theClass->GetName(), generatedFiles);
             fmt::MemoryWriter w;
 
             if (theClass->GetSuperClass().empty())
             {
-                OutputPreamble(w, theClass->GetName(), fmt::format("Class: {0}", theClass->GetName()));
+                OutputPreamble(w, theClass->GetName(), fmt::format("{0}", theClass->GetName()));
             }
             else
             {
-                OutputPreamble(w, theClass->GetName(), fmt::format("Class: {0} (of :class:`{1}`)", theClass->GetName(), theClass->GetSuperClass()));
+                OutputPreamble(w, theClass->GetName(), fmt::format("{0} (of :class:`{1}`)", theClass->GetName(), theClass->GetSuperClass()));
             }
 
             w << ".. class:: " << theClass->GetName() << "\n\n";
@@ -291,14 +300,55 @@ void OutputProceduresRST(DocScript &docScript, const std::string &rstFolder, std
     {
         if (proc->IsPublic())
         {
-            std::string fullPath = OutputRSTHelper(rstFolder, "Procedures", proc->GetName(), generatedFiles);
+            std::string fullPath = OutputRSTHelper(rstFolder, ProceduresFolder, proc->GetName(), generatedFiles);
             fmt::MemoryWriter w;
 
-            OutputPreamble(w, proc->GetName(), fmt::format("Procedure: {0} ({1}{2})", proc->GetName(), script->GetTitle(), scriptFilenameSuffix));
+            OutputPreamble(w, proc->GetName(), fmt::format("{0} ({1}{2})", proc->GetName(), script->GetTitle(), scriptFilenameSuffix));
 
             OutputFunctionRSTHelper(docScript, w, *proc);
 
             MakeTextFile(w.str().c_str(), fullPath);
         }
     }
+}
+
+void OutputIndexRSTHelper(const std::string &rstFolder, const std::string &indexFilename, const std::string &documentTitle, const std::string &subFolder, std::vector<std::string> &generatedFiles)
+{
+    std::string fullPath = OutputRSTHelper(rstFolder, "", indexFilename, generatedFiles);
+    fmt::MemoryWriter w;
+    OutputPreamble(w, documentTitle, documentTitle);
+
+    path rootPath = rstFolder;
+    path enumPath = rootPath / path(subFolder);
+    std::vector<std::string> filenames;
+    auto matchRSTRegex = std::regex("(\\w+)\\.rst");
+    for (auto it = directory_iterator(enumPath); it != directory_iterator(); ++it)
+    {
+        const auto &file = it->path();
+        std::smatch sm;
+        std::string temp = file.filename();
+        if (!is_directory(file) && std::regex_search(temp, sm, matchRSTRegex) && (sm.size() > 1))
+        {
+            std::string coreFilename = sm[1].str();
+            filenames.push_back(coreFilename);
+        }
+    }
+
+    w << ".. toctree::\n";
+    w << "\t:maxdepth: 1\n\n";
+    for (auto &filename : filenames)
+    {
+        w << "\t" << subFolder << "/" << filename << "\n";
+    }
+    w << "\n";
+
+    MakeTextFile(w.str().c_str(), fullPath);
+}
+
+// For now, just classes to test.
+void OutputIndexRST(const std::string &rstFolder, std::vector<std::string> &generatedFiles)
+{
+    OutputIndexRSTHelper(rstFolder, "sci11_classes", "Classes", ClassesFolder, generatedFiles);
+    OutputIndexRSTHelper(rstFolder, "sci11_scripts", "Script Files", ScriptsFolder, generatedFiles);
+    OutputIndexRSTHelper(rstFolder, "sci11_procedures", "Public Procedures", ProceduresFolder, generatedFiles);
 }
