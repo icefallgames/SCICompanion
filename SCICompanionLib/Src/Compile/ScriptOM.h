@@ -1120,7 +1120,7 @@ namespace sci
         void SetScriptNumberDefine(const std::string &define) { _scriptDefine = define; }
         const std::string &GetScriptNumberDefine() const { return _scriptDefine; }
         std::string GetTitle() const { return _scriptId.GetTitle(); }
-        std::string GetName() const { return _scriptId.GetFileName(); }
+        std::string GetName() const { return _scriptId.GetFileNameOrig(); }
         std::string GetPath() const { return _scriptId.GetFullPath(); }
         const VariableDeclVector &GetScriptVariables() const { return _scriptVariables; }
         const VariableDeclVector &GetScriptStringsDeclarations() const { return _scriptStringDeclarations; }

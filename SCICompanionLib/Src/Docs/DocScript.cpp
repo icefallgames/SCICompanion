@@ -134,9 +134,15 @@ DocScript::DocScript(const sci::Script &script)
         }
         else
         {
-            CommentInfo commentInfo = { comment->GetLineNumber(), comment->GetEndLineNumber(), Unindent<' '>(Unindent<'\t'>(comment->GetSanitizedText())) };
+            CommentInfo commentInfo = { comment->GetLineNumber(), comment->GetEndLineNumber(), comment->GetSanitizedText() };
             comments.push_back(commentInfo);
         }
+    }
+
+    // Get rid of extraneous tabs and spaces.
+    for (auto &comment : comments)
+    {
+        comment.comment = Unindent<' '>(Unindent<'\t'>(comment.comment));
     }
 
     // Assemble the list of syntax nodes

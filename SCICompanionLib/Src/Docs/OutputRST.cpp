@@ -66,6 +66,7 @@ std::string MarkFunctionAsNoIndex(const std::string &comment, bool skipFirst)
     std::string result;
     size_t offset = 0;
     size_t pos;
+    bool first = true;
     while ((pos = comment.find(rstFunction, offset)) != std::string::npos)
     {
         // Advance to the next line
@@ -80,8 +81,12 @@ std::string MarkFunctionAsNoIndex(const std::string &comment, bool skipFirst)
         }
         std::copy(comment.begin() + offset, comment.begin() + pos, std::back_inserter(result));
         // Now add in our :noindex:
-        result += "\t:noindex:\n";
+        if (!skipFirst || !first)
+        {
+            result += "\t:noindex:\n";
+        }
         offset = pos;
+        first = false;
     }
     // Copy the remainder:
     std::copy(comment.begin() + offset, comment.end(), std::back_inserter(result));
@@ -233,8 +238,8 @@ void OutputFunctionRSTHelper(DocScript &docScript, fmt::MemoryWriter &w, sci::Fu
                 sub = sub.substr(endPos);
             }
         }
+        randomText = MarkFunctionAsNoIndex(randomText, isProcedure);
     }
-    randomText = MarkFunctionAsNoIndex(randomText, isProcedure);
     w << randomText << "\n\n";
 }
 
@@ -358,10 +363,11 @@ void OutputClassRST(SCIClassBrowser &browser, DocScript &docScript, const std::s
 
                 w << ".. class:: " << theClass->GetName() << "\n\n";
 
-                w << "\tDefined in " << theClass->GetOwnerScript()->GetName() << ".sc.\n\n";
+                w << "\tDefined in " << theClass->GetOwnerScript()->GetName() << ".\n\n";
 
                 // Random text
-                w << "\t" << docScript.GetComment(theClass.get()) << "\n\n";
+                std::string indentedText = Indent(docScript.GetComment(theClass.get()));
+                w << indentedText  << "\n\n";
 
                 // Are there any subclasses? List them.
                 std::vector<std::string> directSubclasses = browser.GetDirectSubclasses(theClass->GetName());
