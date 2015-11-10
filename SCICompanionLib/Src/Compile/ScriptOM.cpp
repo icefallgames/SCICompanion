@@ -466,7 +466,8 @@ std::string Comment::GetSanitizedText() const
 {
 	if ((_innerName[0] == '/') && (_innerName[1] == '/'))
     {
-		return _innerName.substr(2);
+        // Remove the endline and any spaces
+        return trim(trim(_innerName.substr(2), '\n'), ' ');
     }
     else
     {

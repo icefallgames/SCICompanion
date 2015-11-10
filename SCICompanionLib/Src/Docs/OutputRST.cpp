@@ -19,6 +19,7 @@
 #include "format.h"
 #include <filesystem>
 #include <regex>
+#include "StringUtil.h"
 
 using namespace std::tr2::sys;
 
@@ -32,6 +33,8 @@ std::string ClassesFolder = "Classes";
 std::string ScriptsFolder = "Scripts";
 std::string ProceduresFolder = "Procedures";
 std::string KernelsFolder = "Kernels";
+std::string NoDocTag = "nodoc";
+std::string rstFunction = ".. function::";
 
 // Adds an entry to generated files, returns the absolute path to the generated file.
 std::string OutputRSTHelper(const std::string &rstFolder, const std::string &subFolder, const std::string &title, std::vector<std::string> &generatedFiles)
@@ -58,81 +61,139 @@ void OutputPreamble(fmt::MemoryWriter &w, const std::string &title, const std::s
     w << titleBar << "\n\n";
 }
 
+std::string MarkFunctionAsNoIndex(const std::string &comment, bool skipFirst)
+{
+    std::string result;
+    size_t offset = 0;
+    size_t pos;
+    while ((pos = comment.find(rstFunction, offset)) != std::string::npos)
+    {
+        // Advance to the next line
+        pos = comment.find('\n', pos);
+        if (pos != std::string::npos)
+        {
+            pos++; // Advance to after newline.
+        }
+        else
+        {
+            pos = comment.length();
+        }
+        std::copy(comment.begin() + offset, comment.begin() + pos, std::back_inserter(result));
+        // Now add in our :noindex:
+        result += "\t:noindex:\n";
+        offset = pos;
+    }
+    // Copy the remainder:
+    std::copy(comment.begin() + offset, comment.end(), std::back_inserter(result));
+    return result;
+}
+
+bool iStartsWith(const std::string& a, const std::string& prefix)
+{
+    if (prefix.length() > a.length())
+    {
+        return false;
+    }
+
+    for (size_t i = 0; i < prefix.length(); i++)
+    {
+        if (toupper(a[i]) != (toupper(prefix[i])))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool ShouldDocumentScript(DocScript &script)
+{
+    return !iStartsWith(script.GetComment(script.GetScript()), NoDocTag);
+}
+bool ShouldDocument(DocScript &script, const sci::SyntaxNode *node)
+{
+    return !iStartsWith(script.GetComment(node), NoDocTag);
+}
+
 void OutputScriptRST(DocScript &docScript, const std::string &rstFolder, std::vector<std::string> &generatedFiles)
 {
     auto *script = docScript.GetScript();
-    std::string fullPath = OutputRSTHelper(rstFolder, ScriptsFolder, script->GetTitle(), generatedFiles);
-
-    fmt::MemoryWriter w;
-
-    OutputPreamble(w, script->GetTitle() + scriptFilenameSuffix, script->GetTitle() + scriptFilenameSuffix);
-
-    // Random text
-    w << docScript.GetComment(script) << "\n\n";
 
     // Classes
-    w << "Classes" << "\n";
-    w << "==========" << "\n\n";
     auto &classesAndInstances = script->GetClasses();
     sci::RawClassVector justClasses;
     for (auto &maybeClass : classesAndInstances)
     {
-        if (!maybeClass->IsInstance())
+        if (!maybeClass->IsInstance() && ShouldDocument(docScript, maybeClass.get()))
         {
             justClasses.push_back(maybeClass.get());
         }
     }
-    if (justClasses.empty())
-    {
-        w << "There are no classes defined in this script.\n\n";
-    }
-    else
-    {
-        for (auto &theClass : justClasses)
-        {
-            w << ":class:`" << theClass->GetName() << "`";
-            if (!theClass->GetSuperClass().empty()) // Happens in one case, with Obj
-            {
-                w << " of " << theClass->GetSuperClass();
-            }
-            w << "\n\n";
-        }
-    }
 
     // Procedures
-    w << "Public Procedures" << "\n";
-    w << "=================" << "\n\n";
     auto &allProcs = script->GetProcedures();
     sci::RawProcedureVector publicProcs;
     for (auto &maybePublicProc : allProcs)
     {
-        if (maybePublicProc->IsPublic())
+        if (maybePublicProc->IsPublic() && ShouldDocument(docScript, maybePublicProc.get()))
         {
             publicProcs.push_back(maybePublicProc.get());
         }
     }
-    if (publicProcs.empty())
+
+    // If there are no classes or public procedures, don't bother outputting anything for this script.
+    // This filters out room scripts and such.
+    if (!publicProcs.empty() || !justClasses.empty())
     {
-        w << "There are no public procedures in this script.\n\n";
-    }
-    else
-    {
-        for (auto &proc : publicProcs)
+        if (ShouldDocumentScript(docScript))
         {
-            w << ":func:`" << proc->GetName() << "`\n\n";
+            std::string randomText = docScript.GetComment(script);
+
+            std::string fullPath = OutputRSTHelper(rstFolder, ScriptsFolder, script->GetTitle(), generatedFiles);
+
+            fmt::MemoryWriter w;
+
+            OutputPreamble(w, script->GetTitle() + scriptFilenameSuffix, script->GetTitle() + scriptFilenameSuffix);
+
+            // Random text
+            w << randomText << "\n\n";
+
+            if (!justClasses.empty())
+            {
+                w << "Classes" << "\n";
+                w << "==========" << "\n\n";
+                for (auto &theClass : justClasses)
+                {
+                    w << ":class:`" << theClass->GetName() << "`";
+                    if (!theClass->GetSuperClass().empty()) // Happens in one case, with Obj
+                    {
+                        w << " of " << theClass->GetSuperClass();
+                    }
+                    w << "\n\n";
+                }
+            }
+
+            if (!publicProcs.empty())
+            {
+                w << "Public Procedures" << "\n";
+                w << "=================" << "\n\n";
+                for (auto &proc : publicProcs)
+                {
+                    w << ":func:`" << proc->GetName() << "`\n\n";
+                }
+            }
+
+            MakeTextFile(w.str().c_str(), fullPath);
         }
     }
-
-    MakeTextFile(w.str().c_str(), fullPath);
 }
 
-void OutputFunctionRSTHelper(DocScript &docScript, fmt::MemoryWriter &w, sci::FunctionBase &function)
+void OutputFunctionRSTHelper(DocScript &docScript, fmt::MemoryWriter &w, sci::FunctionBase &function, bool isProcedure)
 {
     std::string randomText = docScript.GetComment(&function);
-    if (randomText.find(".. function::") == std::string::npos)
+    if (randomText.find(rstFunction) == std::string::npos)
     {
         // No function definition provided. Make one up.
-        w << ".. function:: " << function.GetName() << "(";
+        w << rstFunction << " "  << function.GetName() << "(";
         bool first = true;
         for (auto &param : function.GetSignatures()[0]->GetParams())
         {
@@ -143,9 +204,37 @@ void OutputFunctionRSTHelper(DocScript &docScript, fmt::MemoryWriter &w, sci::Fu
             w << param->GetName();
             first = false;
         }
-        w << ")\n\n";
+        w << ")\n";
+        if (!isProcedure)
+        {
+            // Methods are always :noindex: since their names may not be unique..
+            w << "\t:noindex:\n";
+        }
+        w << "\n";
         randomText = Indent(randomText);
     }
+    else
+    {
+        // Warning if the function doesn't match.
+        std::string sub = randomText;
+        uint32_t pos;
+        while ((pos = sub.find(rstFunction)) != std::string::npos)
+        {
+            sub = sub.substr(pos + rstFunction.length());
+            ltrim(sub);
+            uint32_t endPos = sub.find_first_not_of("0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_");
+            if (endPos != std::string::npos)
+            {
+                std::string functionName = sub.substr(0, endPos);
+                if (functionName != function.GetName())
+                {
+                    throw std::exception((functionName + " doesn't match " + function.GetName()).c_str());
+                }
+                sub = sub.substr(endPos);
+            }
+        }
+    }
+    randomText = MarkFunctionAsNoIndex(randomText, isProcedure);
     w << randomText << "\n\n";
 }
 
@@ -201,11 +290,19 @@ void OutputPropertyTableRST(SCIClassBrowser &browser, DocScript &docScript, fmt:
     }
     else
     {
-        std::set<std::string> setAllProps(allProps->begin(), allProps->end());
+        // It's important to preserve declaration order here.
         auto superProps = browser.CreatePropertyNameArray(theClass.GetSuperClass());
-        std::set<std::string> setSuperProps(superProps->begin(), superProps->end());
-        std::set_difference(setAllProps.begin(), setAllProps.end(), setSuperProps.begin(), setSuperProps.end(), std::back_inserter(newProperties));
-        inheritedProperties = *superProps;
+        for (auto &prop : *allProps)
+        {
+            if (std::find(superProps->begin(), superProps->end(), prop) == superProps->end())
+            {
+                newProperties.push_back(prop);
+            }
+            else
+            {
+                inheritedProperties.push_back(prop);
+            }
+        }
     }
 
     // Properties
@@ -229,85 +326,94 @@ void OutputPropertyTableRST(SCIClassBrowser &browser, DocScript &docScript, fmt:
     {
         newPropertyPairs.emplace_back(property, docScript.GetComment(FindProperty(theClass.GetProperties(), property)));
     }
-    OutputPropertyTableRSTWorker(w, newPropertyPairs, fmt::format("Defined in {0}", theClass.GetName()));
+    if (!newProperties.empty())
+    {
+        OutputPropertyTableRSTWorker(w, newPropertyPairs, fmt::format("Defined in {0}", theClass.GetName()));
+    }
 }
 
 void OutputClassRST(SCIClassBrowser &browser, DocScript &docScript, const std::string &rstFolder, std::vector<std::string> &generatedFiles)
 {
-    ClassBrowserLock lock(browser);
-    lock.Lock();
-
-    auto *script = docScript.GetScript();
-    for (auto &theClass : script->GetClasses())
+    if (ShouldDocumentScript(docScript))
     {
-        if (!theClass->IsInstance())
+        ClassBrowserLock lock(browser);
+        lock.Lock();
+
+        auto *script = docScript.GetScript();
+        for (auto &theClass : script->GetClasses())
         {
-            std::string fullPath = OutputRSTHelper(rstFolder, ClassesFolder, theClass->GetName(), generatedFiles);
-            fmt::MemoryWriter w;
-
-            if (theClass->GetSuperClass().empty())
+            if (!theClass->IsInstance() && ShouldDocument(docScript, theClass.get()))
             {
-                OutputPreamble(w, theClass->GetName(), fmt::format("{0}", theClass->GetName()));
-            }
-            else
-            {
-                OutputPreamble(w, theClass->GetName(), fmt::format("{0} (of :class:`{1}`)", theClass->GetName(), theClass->GetSuperClass()));
-            }
+                std::string fullPath = OutputRSTHelper(rstFolder, ClassesFolder, theClass->GetName(), generatedFiles);
+                fmt::MemoryWriter w;
 
-            w << ".. class:: " << theClass->GetName() << "\n\n";
-
-            // Random text
-            w << docScript.GetComment(theClass.get()) << "\n\n";
-
-            // Are there any subclasses? List them.
-            std::vector<std::string> directSubclasses = browser.GetDirectSubclasses(theClass->GetName());
-            if (!directSubclasses.empty())
-            {
-                w << "Subclasses: ";
-                bool first = true;
-                for (auto &subClassName : directSubclasses)
+                if (theClass->GetSuperClass().empty())
                 {
-                    if (!first)
-                    {
-                        w << ", ";
-                    }
-                    w << ":class:`" << subClassName << "`";
-                    first = false;
+                    OutputPreamble(w, theClass->GetName(), fmt::format("{0}", theClass->GetName()));
                 }
-                w << ".\n\n";
+                else
+                {
+                    OutputPreamble(w, theClass->GetName(), fmt::format("{0} (of :class:`{1}`)", theClass->GetName(), theClass->GetSuperClass()));
+                }
+
+                w << ".. class:: " << theClass->GetName() << "\n\n";
+
+                w << "\tDefined in " << theClass->GetOwnerScript()->GetName() << ".sc.\n\n";
+
+                // Random text
+                w << "\t" << docScript.GetComment(theClass.get()) << "\n\n";
+
+                // Are there any subclasses? List them.
+                std::vector<std::string> directSubclasses = browser.GetDirectSubclasses(theClass->GetName());
+                if (!directSubclasses.empty())
+                {
+                    w << "Subclasses: ";
+                    bool first = true;
+                    for (auto &subClassName : directSubclasses)
+                    {
+                        if (!first)
+                        {
+                            w << ", ";
+                        }
+                        w << ":class:`" << subClassName << "`";
+                        first = false;
+                    }
+                    w << ".\n\n";
+                }
+
+                OutputPropertyTableRST(browser, docScript, w, *theClass);
+
+                // Methods - we'll do these inline instead of making new documents for them.
+                w << "\n";
+                w << "Methods\n";
+                w << "==========\n\n";
+                for (auto &method : theClass->GetMethods())
+                {
+                    OutputFunctionRSTHelper(docScript, w, *method, false);
+                }
+
+                MakeTextFile(w.str().c_str(), fullPath);
             }
-
-            OutputPropertyTableRST(browser, docScript, w, *theClass);
-
-            // Methods - we'll do these inline instead of making new documents for them.
-            w << "\n";
-            w << "Methods\n";
-            w << "==========\n\n";
-            for (auto &method : theClass->GetMethods())
-            {
-                OutputFunctionRSTHelper(docScript, w, *method);
-            }
-
-            MakeTextFile(w.str().c_str(), fullPath);
         }
     }
 }
 
 void OutputProceduresRST(DocScript &docScript, const std::string &rstFolder, std::vector<std::string> &generatedFiles)
 {
-    auto *script = docScript.GetScript();
-    for (auto &proc : script->GetProcedures())
+    if (ShouldDocumentScript(docScript))
     {
-        if (proc->IsPublic())
+        auto *script = docScript.GetScript();
+        for (auto &proc : script->GetProcedures())
         {
-            std::string fullPath = OutputRSTHelper(rstFolder, ProceduresFolder, proc->GetName(), generatedFiles);
-            fmt::MemoryWriter w;
+            if (proc->IsPublic() && ShouldDocument(docScript, proc.get()))
+            {
+                fmt::MemoryWriter w;
+                OutputPreamble(w, proc->GetName(), fmt::format("{0} ({1}{2})", proc->GetName(), script->GetTitle(), scriptFilenameSuffix));
+                OutputFunctionRSTHelper(docScript, w, *proc, true);
 
-            OutputPreamble(w, proc->GetName(), fmt::format("{0} ({1}{2})", proc->GetName(), script->GetTitle(), scriptFilenameSuffix));
-
-            OutputFunctionRSTHelper(docScript, w, *proc);
-
-            MakeTextFile(w.str().c_str(), fullPath);
+                std::string fullPath = OutputRSTHelper(rstFolder, ProceduresFolder, proc->GetName(), generatedFiles);
+                MakeTextFile(w.str().c_str(), fullPath);
+            }
         }
     }
 }

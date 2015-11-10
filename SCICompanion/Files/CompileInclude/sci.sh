@@ -9,8 +9,10 @@
 (define TRUE		1)
 (define FALSE		0)
 
+#ifdef SCI_0
 (define ENABLED		1)
 (define DISABLED	0)
+#endif
 
 (define NULL		0)
 
@@ -110,7 +112,7 @@
 (define dpOPEN_CENTEREDGE 			7)   // open from center to edges 
 (define dpOPEN_CHECKBOARD			8)   // open random checkboard 
 
- #ifdef SCI_0
+#ifdef SCI_0
 (define dpCLOSEREOPEN_HCENTER		9)   // horizontally close to center, reopen from center 
 (define dpCLOSEREOPEN_VCENTER		10)  // vertically close to center, reopen from center 
 (define dpCLOSEREOPEN_RIGHT			11)  // close to right, reopen from right 
@@ -341,6 +343,12 @@
 (define icVISIBLE $0020)
 // Unkonwn:
 // $0040, $0010, $0002, $0080(inv icons have this)
+
+// control state
+(define csENABLED $0001)
+(define csFOCUSED $0002)
+(define csDISABLED $0004)
+(define csSELECTED $0008)
 
 #endif  // SCI_1_1
 

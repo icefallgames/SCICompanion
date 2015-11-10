@@ -14,6 +14,7 @@
 #include "stdafx.h"
 #include "DocScript.h"
 #include "ScriptOMAll.h"
+#include <algorithm>
 
 struct CommentInfo
 {
@@ -65,18 +66,30 @@ std::string Indent(const std::string &in)
     return output;
 }
 
-#include <algorithm>
+// Returns true if a line is empty or only whitespace.
+bool IsLineEmpty(const std::string &line)
+{
+    for (char c : line)
+    {
+        if (!isspace(c))
+        {
+            return false;
+        }
+    }
+    return true;
+}
 
 // If all non-empty lines have a tab, removes the tab at the beginning of each line
+template<char _TWhiteSpace>
 std::string Unindent(const std::string &in)
 {
     std::vector<std::string> lines = Lineify(in);
     int minTabCount = (std::numeric_limits<int>::max)();
     for (auto &line : lines)
     {
-        if (!line.empty())
+        if (!IsLineEmpty(line))
         {
-            int tabCount = std::find_if(line.begin(), line.end(), [](char c) { return c != '\t';  }) - line.begin();
+            int tabCount = std::find_if(line.begin(), line.end(), [](char c) { return c != _TWhiteSpace;  }) - line.begin();
             minTabCount = min(tabCount, minTabCount);
         }
     }
@@ -86,7 +99,7 @@ std::string Unindent(const std::string &in)
     {
         for (auto &line : lines)
         {
-            if (!line.empty())
+            if (!IsLineEmpty(line))
             {
                 std::string lineUnindented(line.begin() + minTabCount, line.end());
                 output += lineUnindented;
@@ -112,16 +125,16 @@ DocScript::DocScript(const sci::Script &script)
     {
         size_t lastIndex = comments.size() - 1;
         int start = comment->GetLineNumber();
-        if (!comments.empty() && (comments[lastIndex].endLine + 1 == start))
+        if (!comments.empty() && (comments[lastIndex].endLine + 1 == start) && (comment->GetColumnNumber() == 0))
         {
-            // Append to the last one.
+            // Append to the one on the previous line, iff the comment started at column 0.
             comments[lastIndex].comment += "\n";
             comments[lastIndex].comment += comment->GetSanitizedText();
             comments[lastIndex].endLine = comment->GetEndLineNumber();
         }
         else
         {
-            CommentInfo commentInfo = { comment->GetLineNumber(), comment->GetEndLineNumber(), Unindent(comment->GetSanitizedText()) };
+            CommentInfo commentInfo = { comment->GetLineNumber(), comment->GetEndLineNumber(), Unindent<' '>(Unindent<'\t'>(comment->GetSanitizedText())) };
             comments.push_back(commentInfo);
         }
     }

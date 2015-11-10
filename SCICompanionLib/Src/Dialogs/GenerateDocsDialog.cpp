@@ -149,10 +149,17 @@ void GenerateDocsDialog::OnBnClickedGeneratedoc()
             std::unique_ptr<sci::Script> script = SimpleCompile(log, ScriptId(fullPath), true);
             if (script)
             {
-                DocScript docScript(*script);
-                OutputScriptRST(docScript, buildFolder, generatedFiles);
-                OutputClassRST(*appState->GetResourceMap().GetClassBrowser(), docScript, buildFolder, generatedFiles);
-                OutputProceduresRST(docScript, buildFolder, generatedFiles);
+                try
+                {
+                    DocScript docScript(*script);
+                    OutputScriptRST(docScript, buildFolder, generatedFiles);
+                    OutputClassRST(*appState->GetResourceMap().GetClassBrowser(), docScript, buildFolder, generatedFiles);
+                    OutputProceduresRST(docScript, buildFolder, generatedFiles);
+                }
+                catch (std::exception &e)
+                {
+                    AfxMessageBox(fmt::format("Error generating docs for {}: {}", script->GetName(), e.what()).c_str(), MB_OK | MB_ICONERROR);
+                }
             }
         }
     }
