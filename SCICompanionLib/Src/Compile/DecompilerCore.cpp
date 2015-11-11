@@ -414,6 +414,8 @@ Consumption _GetInstructionConsumption(scii &inst, DecompileLookups *lookups)
 
     case Opcode::BT:
     case Opcode::BNT:
+        // These leave the accumulator intact. So we might want to put fChangesAcc here.
+        // Some stuff decompiles incorrect (see MergePoly usage in SQ5)
         fEatsAcc = true;
         break;
 

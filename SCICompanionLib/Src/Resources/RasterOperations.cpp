@@ -28,7 +28,7 @@
 // fForce says whether or not to do it even if the size didn't change.
 //
 
-bool IsValidLoopCel(RasterComponent &raster, CelIndex celIndex)
+bool IsValidLoopCel(const RasterComponent &raster, CelIndex celIndex)
 {
     return
         celIndex.loop < (int)raster.Loops.size() &&
@@ -265,10 +265,13 @@ HBITMAP GetBitmap(
     CelIndex celIndex,
     int cx, int cy, BitmapScaleOptions scaleOptions)
 {
-    return GetBitmap(raster.GetCel(celIndex), palette, cx, cy, scaleOptions,
-        (raster.Traits.PaletteType == PaletteType::VGA_256) ? 0xff : 0xf
-        );
-    
+    if (IsValidLoopCel(raster, celIndex))
+    {
+        return GetBitmap(raster.GetCel(celIndex), palette, cx, cy, scaleOptions,
+            (raster.Traits.PaletteType == PaletteType::VGA_256) ? 0xff : 0xf
+            );
+    }
+    return nullptr;
 }
 
 void CopyBitmapData(

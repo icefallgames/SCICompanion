@@ -116,7 +116,7 @@ static const char *const s_defaultKernelNames[] = {
     /*0x4a*/ "ReadNumber",
     /*0x4b*/ "BaseSetter",
     /*0x4c*/ "DirLoop",
-    /*0x4d*/ "CanBeHere",       // CantBeHere in newer SCI versions
+    /*0x4d*/ "CantBeHere",       // CanBeHere in older SCI versions
     /*0x4e*/ "OnControl",
     /*0x4f*/ "InitBresen",
     /*0x50*/ "DoBresen",

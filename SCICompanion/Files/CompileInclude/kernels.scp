@@ -134,7 +134,9 @@ public void BaseSetter(View view)
 
 
 /*
-	Checks the view to see if it is allows to be at it's current coordinates on the screen.
+	Checks the view to see if it is allowed to be at its current coordinates on the screen.
+
+	.. IMPORTANT:: SCI0 only. For SCI1.1, see :func:`CantBeHere`.
 
 	:param heapPtr view: An object that inherits from :class:`View`.
 	:param k_list cast: Optional cast list.
@@ -146,9 +148,28 @@ public void BaseSetter(View view)
 		If castList is specified, it checks the viewObj against the objects in the list
 		to see if it can be where it is. 
  */
-public
-bool CanBeHere(View view)
+public bool CanBeHere(View view)
 bool CanBeHere(View view, k_list castList)
+{
+}
+
+/*
+	Checks the view to see if it is not allowed to be at its current coordinates on the screen.
+
+	.. IMPORTANT:: SCI1.1 only. For SCI0, see :func:`CanBeHere`.
+
+	:param heapPtr view: An object that inherits from :class:`View`.
+	:param k_list cast: Optional cast list.
+	:returns: TRUE if it **cannot** be where it is, FALSE otherwise.
+	
+	.. NOTE::
+		This is used in the class system when the object moves.
+		If it can't be where it is, it sets it to it's previous coordinates.
+		If castList is specified, it checks the viewObj against the objects in the list
+		to see if it can be where it is. 
+ */
+public bool CantBeHere(View view)
+bool CantBeHere(View view, k_list castList)
 {
 }
 
@@ -447,14 +468,13 @@ public void DisposeWindow(k_window window)
 }
 
 /*
-	Sets the specified object's direction according to the angle and checks it's onControl() method.
+	Updates an avoider that is attached to an Actor. Sets the avoider's direction according to the angle and checks its onControl() method.
 	
-	.. IMPORTANT::
-		This does not exist in early or later versions of SCI, so should be used with caution. If the game is running on an incorrect interpreter, you'll have trouble.
+	.. IMPORTANT:: SCI0 only.
 
-	See Also: :func:`DoBresen`
+	:param heapPtr avoider: An instance of an :class:`Avoider`.
  */
-public void DoAvoider(Motion mover)
+public void DoAvoider(Avoider avoider)
 {
 }
 
@@ -471,6 +491,178 @@ public bool DoBresen(Motion mover)
 }
 
 /*
+	Do sound handles all sound related functions such as playing, loading, unloading, stopping, pausing, etc. It uses the first parameter to identify its subfunction, and the following parameters vary.
+
+.. function:: DoSound(sndINIT soundObj)
+
+	Sets up the specified sound object. It loads the sound resource specified by the sound object's number property and sets it's status property to ssINITIALIZED.
+
+	:param heapPtr soundObj: An instance of :class:`Sound`.
+
+	Example::
+
+		DoSound(sndINIT soundObj)
+
+.. function:: DoSound(sndPLAY soundObj)
+
+	Plays the sound specified by the given sound object and sets the object's status property to sndPLAYING.
+
+	:param heapPtr soundObj: An instance of :class:`Sound`.
+
+.. function:: DoSound(sndDISPOSE soundObj)
+
+	Disposes of the sound specified by the given object unloading it and removing it from the sound system.
+
+	:param heapPtr soundObj: An instance of :class:`Sound`.
+
+.. function:: DoSound(sndSET_SOUND [fTurnOn])
+
+	Determines if the sound system is muted or not, and optionally mutes or unmutes it.
+
+	:param boolean fTurnOn: Optional parameter to unmuted or mute the sound. If TRUE, the sound system is unmuted.
+	:returns: TRUE if the sound system is unmuted, FALSE otherwise.
+
+	Example::
+
+		// If the sound system is not muted, mute it.
+		(if(DoSound(sndSET_SOUND))
+		  DoSound(sndSET_SOUND FALSE)
+		)
+
+.. function:: DoSound(sndSTOP soundObj)
+
+	Stops playing the sound specified by the given sound object and sets the object's status property to sndSTOPPED.
+
+	:param heapPtr soundObj: An instance of :class:`Sound`.
+
+.. function:: DoSound(sndPAUSE soundObj)
+
+	Pauses the sound specified by the given sound object and sets the object's status property to ssPAUSED.
+
+	:param heapPtr soundObj: An instance of :class:`Sound`.
+
+.. function:: DoSound(sndRESUME)
+
+	.. IMPORTANT:: SCI0 only.
+
+	Resumes playing sounds after a game has been resotred.
+
+	:param heapPtr soundObj: An instance of :class:`Sound`.
+
+.. function:: DoSound(sndVOLUME [volume])		**SCI0**
+
+.. function:: DoSound(sndMASTER_VOLUME [volume])		**SCI1.1**
+
+	Returns the currently set master sound volume, which is a number ranging from 0 to 15. Optionally sets the master volume.
+
+	:param number volume: Optional new volume to set it to.
+	:returns: The current volume.
+
+.. function:: DoSound(sndUPDATE soundObj)
+
+	Tells the sound system to update the specified sound. It notifies it that the sound has changed so its priority and loop properties are re-evaluated.
+
+	:param heapPtr soundObj: An instance of :class:`Sound`.
+
+.. function:: DoSound(sndFADE soundObj)   SCI0
+
+	.. IMPORTANT:: SCI0 only.
+
+	Fades the specified sound for roughly two seconds, then stops it, setting it's status property to ssSTOPPED.
+
+	:param heapPtr soundObj: An instance of :class:`Sound`.
+
+.. function:: DoSound(sndFADE soundObj targetVolume fadeTicker fadeStep stopAfterFade)   SCI1.1
+
+	.. IMPORTANT:: SCI1.1 only.
+
+	Fades the sound. This provides more options than the SCI0 version.
+
+	:param heapPtr soundObj: An instance of :class:`Sound`.
+	:param number targetVolume: The target volume, ranging from 0 - 127.
+	:param number fadeTicker: Unknown (25 is a common value to specify).
+	:param number fadeStep: The volume increment to fade each game cycle (10 is a common value).
+	:param boolean stopAfterFade: If TRUE, the sound is stopped after the fade is complete.
+
+
+.. function:: DoSound(sndCHECK_DRIVER)
+
+	.. IMPORTANT:: SCI0 only.
+
+	Checks to see if the sound driver is installed. If it is, it returns TRUE, otherwise, it returns FALSE.
+
+	Example::
+
+		(if( not DoSound(sndCHECK_DRIVER) )
+			 Print("The sound driver is not installed!")
+		)
+
+.. function:: DoSound(sndSTOP_ALL)
+
+	.. IMPORTANT:: SCI0 only.
+
+	Stops all the sounds currently playing.
+
+.. function:: DoSound(sndGET_POLYPHONY)
+
+	.. IMPORTANT:: SCI1.1 only.
+
+	:returns: The number of voices the sound hardware is capable of playing.
+
+.. function:: DoSound(sndGET_AUDIO_CAPABILITY)
+
+	.. IMPORTANT:: SCI1.1 only.
+
+	Determines digital audio support.
+
+	:returns: TRUE if digital audio support is available, otherwise FALSE.
+
+.. function:: DoSound(sndSUSPEND)
+
+	.. IMPORTANT:: SCI1.1 only.
+
+	Unkonwn functionality. Not used in any Sierra games?
+
+.. function:: DoSound(sndSET_HOLD soundObj marker)
+
+	.. IMPORTANT:: SCI1.1 only.
+
+	Sets the hold spot where the sound should be looped at. This is commonly used
+	for engine sounds that want to loop at different spots for different pitches as
+	the engine is starting and stopping.
+
+	:param heapPtr soundObj: An instance of :class:`Sound`.
+	:param number marker: Index of a hold marker in the Sound resource.
+
+	.. NOTE:: SCI Companion doesn't currently support editing the hold markers in a sound resource.
+
+.. function:: DoSound(UPDATE_CUES soundObj)
+
+	.. IMPORTANT:: SCI1.1 only.
+
+	Updates the sound.
+
+	:param heapPtr soundObj: An instance of :class:`Sound`.
+
+.. function:: DoSound(sndSEND_MIDI soundObj channel command controller parameter)
+
+	.. IMPORTANT:: SCI1.1 only.
+
+	Sends MIDI information to the sound resource.
+
+	:param heapPtr soundObj: An instance of :class:`Sound`.
+	:param number channel: The MIDI channel (e.g. 0-15).
+	:param number command: The MIDI command.
+	:param number controller: The MIDI controller.
+	:param number parameter: A parameter for the command.
+
+.. function:: DoSound(sndGLOBAL_REVERB reverb)
+
+	.. IMPORTANT:: SCI1.1 only.
+
+	:param number reverb: A reverb level (0 - 10).
+	:returns: The previous reverb level.
+
 */
 public var DoSound(int subFunction, ...)
 {
@@ -489,7 +681,7 @@ public void DrawCel(int view, int loop, int cel, int x, int y, int priority)
 	Draws the specified control object to the screen.
 	Its properties tell where it should go and how it should behave.
 
-	:param heapPtr control: An object that inherits from :class:`GUIControl` (or Control in SCI0).
+	:param heapPtr control: An object that inherits from :class:`Control`.
 	
 	See Also: :func:`HiliteControl`, :func:`EditControl`
  */
@@ -1095,7 +1287,7 @@ public bool HaveMouse()
 /*
 	Highlights the specified control. It does not draw the control, it just inverts the colors. The control must be drawn first using :func:`DrawControl`.
 
-	:param heapPtr control: A control of type :class:`GUIControl`.
+	:param heapPtr control: A control of type :class:`Control`.
 
 	See also: :func:`DrawControl`, :func:`EditControl`.
 */
@@ -2945,4 +3137,27 @@ void PalVary(int pvCHANGE_TICKS, int ticks)
 void PalVary(int pvPAUSE_RESUME, bool pause)
 {}
 
+/*
+.. function:: Platform(subFunction)
+
+	.. IMPORTANT:: SCI1.1 only.
+
+	Retrieves platform information.
+
+	:param number subFunction: One of the sub functions listed below.
+	:returns: A value depending on the sub function.
+
+	============= ============== ================================================
+	SubFunction   Description    Returns
+	============= ============== ================================================
+	1             Get CD speed   Returns the CD speed
+	3             CD check       Unknown
+	4             Get platform   1 for DOS, 2 for Windows.
+	5             Is not hi-res? TRUE if not on a hi-res platform.
+	6             Is hi-res?     TRUE if on a hi-res platform, otherwise FALSE
+	7             Is windows?    TRUE if on Windows, otherwise FALSE.
+	============= ============== ================================================
+*/
+public void Platform(int subop)
+{}
 

@@ -244,7 +244,7 @@
 (define evHELPVERB  $6000)
 
 (define sndMASTER_VOLUME 0)
-(define sndMUTE 1)
+(define sndSET_SOUND 1)
 (define sndRESTORE 2)
 (define sndGET_POLYPHONY 3)
 (define sndGET_AUDIO_CAPABILITY 4)
