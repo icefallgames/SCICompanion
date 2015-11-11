@@ -151,6 +151,13 @@ Hello, |f8|this part is in font eight|f|, and this is not.
 </pre></div>
 </div>
 <p>The mapping for the font and color indices is provided by the calls to <em>TextColors</em> and <em>TextFonts</em> in your game&#8217;s init method in Main.sc.</p>
+<p>In addition, the message text can contain stage directions. These were instructions for Sierra&#8217;s voice actors, and they instructions do not appear when the
+text is printned (or when it&#8217;s used to generate lip-sync data in <strong>SCI</strong>Companion). For example:</p>
+<div class="highlight-python"><div class="highlight"><pre>Alexander, (ANGRY VOICE) come here right now!
+</pre></div>
+</div>
+<p>This will print the following on screen: &#8220;Alexander, come here right now!&#8221;. Anything within parentheses that does <em>not</em> contain lower case letters or digits will
+be counted as stage directions.</p>
 </div>
 </div>
 

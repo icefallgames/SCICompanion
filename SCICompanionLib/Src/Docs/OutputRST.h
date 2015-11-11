@@ -21,3 +21,4 @@ void OutputScriptRST(DocScript &docScript, const std::string &rstfolder, std::ve
 void OutputClassRST(SCIClassBrowser &browser, DocScript &docScript, const std::string &rstFolder, std::vector<std::string> &generatedFiles);
 void OutputProceduresRST(DocScript &docScript, const std::string &rstFolder, std::vector<std::string> &generatedFiles);
 void OutputIndexRST(const std::string &rstFolder, std::vector<std::string> &generatedFiles);
+void OutputKernelsRST(DocScript &docScript, const std::string &rstfolder, std::vector<std::string> &generatedFiles);

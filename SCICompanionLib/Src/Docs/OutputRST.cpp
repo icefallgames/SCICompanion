@@ -119,6 +119,38 @@ bool ShouldDocument(DocScript &script, const sci::SyntaxNode *node)
     return !iStartsWith(script.GetComment(node), NoDocTag);
 }
 
+void OutputPropertyTableRSTWorker(fmt::MemoryWriter &w, std::vector<std::pair<std::string, std::string>> properties, const std::string &title)
+{
+    std::string propertyHeader = "Property";
+    std::string descriptionHeader = "Description";
+    size_t maxPropLength = propertyHeader.length();
+    size_t maxDescriptionLength = descriptionHeader.length();
+    for (auto &property : properties)
+    {
+        maxPropLength = max(maxPropLength, property.first.length());
+        maxDescriptionLength = max(maxDescriptionLength, property.second.length());
+    }
+
+    size_t maxTotalLength = maxPropLength + maxDescriptionLength + 1;
+
+    w << title << ":\n\n";
+
+    std::string propertyLine(maxPropLength, '=');
+    std::string descriptionLine(maxDescriptionLength, '=');
+    w << propertyLine << " " << descriptionLine << "\n";
+
+    std::string propSpecifier = fmt::format("{{: <{}s}}", maxPropLength); // Generates someting like "{: <13s}", which is a 13-wide specifier, with space fill characters.
+    std::string descriptionSpecifier = fmt::format("{{: <{}s}}", maxDescriptionLength);
+    w << fmt::format(propSpecifier, propertyHeader) << " " << fmt::format(descriptionSpecifier, descriptionHeader) << "\n";
+    w << propertyLine << " " << descriptionLine << "\n";
+    for (auto &property : properties)
+    {
+        w << fmt::format(propSpecifier, property.first) << " " << fmt::format(descriptionSpecifier, property.second) << "\n";
+    }
+    w << propertyLine << " " << descriptionLine << "\n";
+    w << "\n";
+}
+
 void OutputScriptRST(DocScript &docScript, const std::string &rstFolder, std::vector<std::string> &generatedFiles)
 {
     auto *script = docScript.GetScript();
@@ -145,9 +177,11 @@ void OutputScriptRST(DocScript &docScript, const std::string &rstFolder, std::ve
         }
     }
 
+    bool isMain = (script->GetScriptNumber() == 0);
+
     // If there are no classes or public procedures, don't bother outputting anything for this script.
     // This filters out room scripts and such.
-    if (!publicProcs.empty() || !justClasses.empty())
+    if (!publicProcs.empty() || !justClasses.empty() || isMain)
     {
         if (ShouldDocumentScript(docScript))
         {
@@ -187,6 +221,19 @@ void OutputScriptRST(DocScript &docScript, const std::string &rstFolder, std::ve
                 }
             }
 
+            if (isMain)
+            {
+                w << "Global variables " << "\n";
+                w << "=================" << "\n\n";
+
+                std::vector<std::pair<std::string, std::string>> globalVaPairs;
+                for (auto &globalVar : script->GetScriptVariables())
+                {
+                    globalVaPairs.emplace_back(globalVar->GetName(), docScript.GetComment(globalVar.get()));
+                }
+                OutputPropertyTableRSTWorker(w, globalVaPairs, "");
+            }
+
             MakeTextFile(w.str().c_str(), fullPath);
         }
     }
@@ -197,25 +244,43 @@ void OutputFunctionRSTHelper(DocScript &docScript, fmt::MemoryWriter &w, sci::Fu
     std::string randomText = docScript.GetComment(&function);
     if (randomText.find(rstFunction) == std::string::npos)
     {
-        // No function definition provided. Make one up.
-        w << rstFunction << " "  << function.GetName() << "(";
-        bool first = true;
-        for (auto &param : function.GetSignatures()[0]->GetParams())
+        int signatureCount = 0;
+        for (auto &signature : function.GetSignatures())
         {
-            if (!first)
+            // No function definition provided. Make one up.
+            w << rstFunction << " " << function.GetName() << "(";
+            bool first = true;
+            bool startedOptional = false;
+            int requiredParams = (int)signature->GetRequiredParameterCount();
+            int paramCount = 0;
+            for (auto &param : signature->GetParams())
             {
-                w << " ";
+                if (!first)
+                {
+                    w << " ";
+                }
+                if (!startedOptional && (paramCount >= requiredParams))
+                {
+                    startedOptional = true;
+                    w << "[";
+                }
+                w << param->GetName();
+                first = false;
+                paramCount++;
             }
-            w << param->GetName();
-            first = false;
+            if (startedOptional)
+            {
+                w << "]";
+            }
+            w << ")\n";
+            if (!isProcedure || (signatureCount > 0))
+            {
+                // Methods are always :noindex: since their names may not be unique..
+                w << "\t:noindex:\n";
+            }
+            w << "\n";
+            signatureCount++;
         }
-        w << ")\n";
-        if (!isProcedure)
-        {
-            // Methods are always :noindex: since their names may not be unique..
-            w << "\t:noindex:\n";
-        }
-        w << "\n";
         randomText = Indent(randomText);
     }
     else
@@ -243,36 +308,18 @@ void OutputFunctionRSTHelper(DocScript &docScript, fmt::MemoryWriter &w, sci::Fu
     w << randomText << "\n\n";
 }
 
-void OutputPropertyTableRSTWorker(fmt::MemoryWriter &w, std::vector<std::pair<std::string, std::string>> properties, const std::string &title)
+void OutputKernelsRST(DocScript &docScript, const std::string &rstFolder, std::vector<std::string> &generatedFiles)
 {
-    std::string propertyHeader = "Property";
-    std::string descriptionHeader = "Description";
-    size_t maxPropLength = propertyHeader.length();
-    size_t maxDescriptionLength = descriptionHeader.length();
-    for (auto &property : properties)
+    auto *script = docScript.GetScript();
+    for (auto &proc : script->GetProcedures())
     {
-        maxPropLength = max(maxPropLength, property.first.length());
-        maxDescriptionLength = max(maxDescriptionLength, property.second.length());
+        fmt::MemoryWriter w;
+        OutputPreamble(w, proc->GetName(), fmt::format("{0} (Kernel)", proc->GetName()));
+        OutputFunctionRSTHelper(docScript, w, *proc, true);
+
+        std::string fullPath = OutputRSTHelper(rstFolder, KernelsFolder, proc->GetName(), generatedFiles);
+        MakeTextFile(w.str().c_str(), fullPath);
     }
-
-    size_t maxTotalLength = maxPropLength + maxDescriptionLength + 1;
-
-    w << title << ":\n\n";
-
-    std::string propertyLine(maxPropLength, '=');
-    std::string descriptionLine(maxDescriptionLength, '=');
-    w << propertyLine << " " << descriptionLine << "\n";
-
-    std::string propSpecifier = fmt::format("{{: <{}s}}", maxPropLength); // Generates someting like "{: <13s}", which is a 13-wide specifier, with space fill characters.
-    std::string descriptionSpecifier = fmt::format("{{: <{}s}}", maxDescriptionLength);
-    w << fmt::format(propSpecifier, propertyHeader) << " " << fmt::format(descriptionSpecifier, descriptionHeader) << "\n";
-    w << propertyLine << " " << descriptionLine << "\n";
-    for (auto &property : properties)
-    {
-        w << fmt::format(propSpecifier, property.first) << " " << fmt::format(descriptionSpecifier, property.second) << "\n";
-    }
-    w << propertyLine << " " << descriptionLine << "\n";
-    w << "\n";
 }
 
 // Must be a guarantee that name exists.

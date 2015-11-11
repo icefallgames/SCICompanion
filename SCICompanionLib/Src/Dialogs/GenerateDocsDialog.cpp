@@ -27,6 +27,7 @@ GNU General Public License for more details.
 #include "ScriptOM.h"
 #include "DocScript.h"
 #include "OutputRST.h"
+#include "Kernels.h"
 
 // TODO: customize
 std::string docSourceFolder = "source";
@@ -120,9 +121,12 @@ BEGIN_MESSAGE_MAP(GenerateDocsDialog, CDialog)
     ON_LBN_SELCHANGE(IDC_LISTGENERATED, &GenerateDocsDialog::OnLbnSelchangeListgenerated)
     ON_EN_CHANGE(IDC_EDITFOLDER, &GenerateDocsDialog::OnEnChangeEditfolder)
     ON_EN_CHANGE(IDC_EDITCOMMAND, &GenerateDocsDialog::OnEnChangeEditcommand)
+    ON_BN_CLICKED(IDC_GENERATEKERNELS, &GenerateDocsDialog::OnBnClickedGeneratekernels)
 END_MESSAGE_MAP()
 
-void GenerateDocsDialog::OnBnClickedGeneratedoc()
+
+template<typename _TFunc>
+void GenerateDocsDialog::_GenerateDocHelper(_TFunc f)
 {
     m_wndGeneratedFiles.ResetContent();
 
@@ -136,33 +140,7 @@ void GenerateDocsDialog::OnBnClickedGeneratedoc()
 
     std::string buildFolder = docGenFolder + "\\" + docSourceFolder;
 
-    POSITION pos = m_wndScripts.GetFirstSelectedItemPosition();
-    while (pos != nullptr)
-    {
-        int item = m_wndScripts.GetNextSelectedItem(pos);
-        if (item != -1)
-        {
-            CString strText = m_wndScripts.GetItemText(item, 0);
-            std::string scriptName = (PCSTR)strText;
-            std::string fullPath = _helper.GetScriptFileName(scriptName);
-            CompileLog log;
-            std::unique_ptr<sci::Script> script = SimpleCompile(log, ScriptId(fullPath), true);
-            if (script)
-            {
-                try
-                {
-                    DocScript docScript(*script);
-                    OutputScriptRST(docScript, buildFolder, generatedFiles);
-                    OutputClassRST(*appState->GetResourceMap().GetClassBrowser(), docScript, buildFolder, generatedFiles);
-                    OutputProceduresRST(docScript, buildFolder, generatedFiles);
-                }
-                catch (std::exception &e)
-                {
-                    AfxMessageBox(fmt::format("Error generating docs for {}: {}", script->GetName(), e.what()).c_str(), MB_OK | MB_ICONERROR);
-                }
-            }
-        }
-    }
+    f(buildFolder, generatedFiles);
 
     if (!generatedFiles.empty())
     {
@@ -257,4 +235,58 @@ void GenerateDocsDialog::OnEnChangeEditcommand()
     CString strText;
     m_wndCommand.GetWindowText(strText);
     appState->_docGenCommand = (PCSTR)strText;
+}
+
+void GenerateDocsDialog::OnBnClickedGeneratedoc()
+{
+    _GenerateDocHelper(
+        [&](const std::string &buildFolder, std::vector<std::string> &generatedFiles)
+    {
+        POSITION pos = m_wndScripts.GetFirstSelectedItemPosition();
+        while (pos != nullptr)
+        {
+            int item = m_wndScripts.GetNextSelectedItem(pos);
+            if (item != -1)
+            {
+                CString strText = m_wndScripts.GetItemText(item, 0);
+                std::string scriptName = (PCSTR)strText;
+                std::string fullPath = _helper.GetScriptFileName(scriptName);
+                CompileLog log;
+                std::unique_ptr<sci::Script> script = SimpleCompile(log, ScriptId(fullPath), true);
+                if (script)
+                {
+                    try
+                    {
+                        DocScript docScript(*script);
+                        OutputScriptRST(docScript, buildFolder, generatedFiles);
+                        OutputClassRST(*appState->GetResourceMap().GetClassBrowser(), docScript, buildFolder, generatedFiles);
+                        OutputProceduresRST(docScript, buildFolder, generatedFiles);
+                    }
+                    catch (std::exception &e)
+                    {
+                        AfxMessageBox(fmt::format("Error generating docs for {}: {}", script->GetName(), e.what()).c_str(), MB_OK | MB_ICONERROR);
+                    }
+                }
+            }
+        }
+
+    }
+        );
+}
+
+void GenerateDocsDialog::OnBnClickedGeneratekernels()
+{
+    _GenerateDocHelper(
+        [&](const std::string &buildFolder, std::vector<std::string> &generatedFiles)
+    {
+        ScriptId scriptId(appState->GetResourceMap().GetIncludePath("kernels.scp"));
+        CompileLog log;
+        std::unique_ptr<sci::Script> script = SimpleCompile(log, scriptId, true);
+        if (script)
+        {
+            DocScript docScript(*script);
+            OutputKernelsRST(docScript, buildFolder, generatedFiles);
+        }
+    }
+        );
 }

@@ -372,7 +372,7 @@ std::vector<std::string> codeLevelKeywordsCpp =
 {
 	_T("break"),
 	_T("case"),
-    _T("cast"),
+    _T("cast1234"),
     _T("default"),
     _T("do"),
     _T("else"),

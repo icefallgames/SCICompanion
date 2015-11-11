@@ -122,3 +122,11 @@ Message text can contain information about which fonts and colors to use. Here a
     |f5|This entire message is in font five.
 
 The mapping for the font and color indices is provided by the calls to *TextColors* and *TextFonts* in your game's init method in Main.sc.
+
+In addition, the message text can contain stage directions. These were instructions for Sierra's voice actors, and they instructions do not appear when the
+text is printned (or when it's used to generate lip-sync data in |scicomp|). For example::
+
+    Alexander, (ANGRY VOICE) come here right now!
+
+This will print the following on screen: "Alexander, come here right now!". Anything within parentheses that does *not* contain lower case letters or digits will
+be counted as stage directions.

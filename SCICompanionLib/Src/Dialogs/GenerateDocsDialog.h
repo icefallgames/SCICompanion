@@ -29,6 +29,9 @@ private:
     void _PopulateScripts();
     void _RunBuild(const std::string &docGenFolder, const std::string &docGenCommand);
 
+    template<typename _TFunc>
+    void _GenerateDocHelper(_TFunc f);
+
 protected:
     CListCtrl m_wndScripts;
     CListBox m_wndGeneratedFiles;
@@ -43,4 +46,5 @@ public:
     afx_msg void OnLbnSelchangeListgenerated();
     afx_msg void OnEnChangeEditfolder();
     afx_msg void OnEnChangeEditcommand();
+    afx_msg void OnBnClickedGeneratekernels();
 };

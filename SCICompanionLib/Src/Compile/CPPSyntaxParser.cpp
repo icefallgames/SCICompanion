@@ -535,7 +535,7 @@ void CPPSyntaxParser::Load()
 
     cast_operator =
             dot
-        >> token_p("cast")[RootA<ASTNode::Cast>]
+        >> token_p("cast1234")[RootA<ASTNode::Cast>]
         >> oppar[GeneralE2]
         >> alpha_p[NodeWithStringA<ASTNode::TypeSpecifier>]
         >> clpar[GeneralE2];

@@ -58,7 +58,7 @@ const key_value_pair<SyntaxToken, const char *> c_tokenMap[] =
     { TokenWhile, "while" },
     { TokenDefine, "define" },
     { TokenSynonym, "synonym" },
-    { TokenCast, "cast" },
+    { TokenCast, "cast1234" },
 
     // The order of these is very important.
     // e.g. 'xxy' needs to come before 'xx'

@@ -235,6 +235,8 @@ void NewOutputPane::OnCopy()
         GlobalLockGuard<PSTR> globalLock(globalAlloc);
         if (globalLock.Object)
         {
+            // We seem to have a problem with a maximum size of about 2048. Not sure why...
+            //memcpy(globalLock.Object, finalString.c_str(), cchBuffer);
             StringCchCopy(globalLock.Object, cchBuffer, finalString.c_str());
             globalLock.Unlock();
 

@@ -52,9 +52,12 @@ void AddSyncEntry(SyncComponent &sync, uint16_t ticks, uint16_t cel)
 
 std::string RemoveVocalCues(const std::string text)
 {
-    std::regex pattern1("\\([^)]+\\)");
+    // Stage directions (according to ScummVM: anything between parentheses that doesn't
+    // contain lower case letters or digits)
+    std::regex pattern1("\\([^)a-z0-9]+\\)");
     std::string temp = std::regex_replace(text, pattern1, "");
-    std::regex pattern2("\\|[^)]+\\|");
+    // Font and color markups (e.g. |f5| )
+    std::regex pattern2("\\|[^|]+\\|");
     return std::regex_replace(temp, pattern2, "");
 }
 

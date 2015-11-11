@@ -659,7 +659,6 @@
 #define IDC_STATIC_DURATION             1281
 #define IDC_CHECK_ASPECTRATIO           1282
 #define IDC_RADIOCOMMANDS               1283
-#define IDC_CHECK_ASPECTRATIO2          1283
 #define IDC_CHECK_SHOWTABS              1283
 #define IDC_RADIOPOLYGONS               1284
 #define IDC_COMBOPOLYTYPE               1285
@@ -774,6 +773,7 @@
 #define IDC_EDITFOLDER                  1378
 #define IDC_GENERATEDOC                 1379
 #define IDC_EDITCOMMAND                 1380
+#define IDC_GENERATEKERNELS             1381
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
