@@ -55,7 +55,7 @@ There are four polygon types in SCI. The type of a polygon is important when the
 - **Nearest Access** polygons (like Total Access polygons) are avoided during pathfinding unless the destination is in the polygon.
   When entering or leaving a Nearest Access polygon, the ego enters/leaves from the closest point on the polygon edge.
 
-Scripting
+In Code
 ===========
 
 When you save a pic resource, its polygons are also saved into an *nnn*.shp script header file (where nnn is the pic number). This file is automatically
@@ -125,3 +125,5 @@ If you need to remove the name of a polygon to set it back to being a "default p
 .. |polygon| image:: /images/PolygonTool.png
 .. |upload| image:: /images/Upload.png
 
+
+See :func:`AddPolygonsToRoom` and :func:`CreateNewPolygon`.

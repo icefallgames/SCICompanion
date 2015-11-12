@@ -243,3 +243,36 @@ walking off into the distance.
 .. |importfile| image:: /images/DrawingImportFile.png
 
 
+In Code
+============
+
+One place view resource numbers are used is when you declare :class`View`, :class:`Prop` or :class:`Actor` instances.
+
+.. code-block:: python
+    :emphasize-lines: 3
+
+    (instance electricPost of Prop
+        (properties
+            view 3
+            loop 2
+            x 136
+            y 137
+            signal ignAct
+            noun N_ELECTRICPOST
+        )
+    )
+
+Or when you add an icon to dialog::
+
+    (Print:
+        // Show view 234 (loop 1 and cel 0) at (0, 0):
+        addIcon(234 1 3 0 0)
+        init()
+    )
+
+Or when setting up the ego::
+
+    // Tell the ego to use view 53, loop 3.
+    SetUpEgo(53 3)
+
+See also: :func:`DrawCel`, :func:`SetUpEgo`.

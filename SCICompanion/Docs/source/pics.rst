@@ -410,6 +410,24 @@ in the main view. Showing different screens can be very useful when you're tryin
 something in the visual background.
 
 
+In Code
+=============
+
+The pic background is specified in your room instance's properties:
+
+.. code-block:: python
+    :emphasize-lines: 3
+
+    (instance public rm210 of Rm
+        (properties
+            picture 210
+            noun N_ROOM
+        )
+        ...
+    )
+
+You can also use the :func:`DrawPic` kernel, or the drawPic method on :class:`Rm`.
+
 
 .. |palette| image:: /images/PaletteButton.png
 .. |transform| image:: /images/TransformCoords.png

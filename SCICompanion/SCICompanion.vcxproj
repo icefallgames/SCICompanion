@@ -665,6 +665,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <ResourceCompile Include="SCICompanion.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="Docs\source\images\AddTalker.png" />
     <Image Include="Docs\source\images\AddWord.png" />
     <Image Include="Docs\source\images\All.png" />
     <Image Include="Docs\source\images\AspectRatio1610.png" />
@@ -673,6 +674,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <Image Include="Docs\source\images\AudioPreview.png" />
     <Image Include="Docs\source\images\AutoComplete.png" />
     <Image Include="Docs\source\images\Boom.gif" />
+    <Image Include="Docs\source\images\CharSpeak.jpg" />
     <Image Include="Docs\source\images\ChoosePri.png" />
     <Image Include="Docs\source\images\ColorShift.png" />
     <Image Include="Docs\source\images\CommandList_Example.png" />
@@ -686,6 +688,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <Image Include="Docs\source\images\DayNight.png" />
     <Image Include="Docs\source\images\Debug.png" />
     <Image Include="Docs\source\images\DebugRoom.png" />
+    <Image Include="Docs\source\images\DecompileDialog.jpg" />
     <Image Include="Docs\source\images\Dither.png" />
     <Image Include="Docs\source\images\DrawingAnimate.png" />
     <Image Include="Docs\source\images\DrawingDither.png" />
@@ -750,6 +753,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <Image Include="Docs\source\images\NewScript.png" />
     <Image Include="Docs\source\images\NewWord.png" />
     <Image Include="Docs\source\images\Nouns.PNG" />
+    <Image Include="Docs\source\images\OpenExplorerWindow.png" />
     <Image Include="Docs\source\images\OutputPane.png" />
     <Image Include="Docs\source\images\PaletteAdjust.png" />
     <Image Include="Docs\source\images\PaletteButton.png" />
@@ -784,6 +788,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <Image Include="Docs\source\images\SoundEditor.jpg" />
     <Image Include="Docs\source\images\SpeechLipSyncSection.png" />
     <Image Include="Docs\source\images\SQ5Polygon.png" />
+    <Image Include="Docs\source\images\TalkingComputer.png" />
     <Image Include="Docs\source\images\TemplateGameDebugger1.png" />
     <Image Include="Docs\source\images\TemplateGameDebugger2.png" />
     <Image Include="Docs\source\images\TextEditor.jpg" />
@@ -1411,6 +1416,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <None Include="Docs\source\sounds.rst" />
     <None Include="Docs\source\talkers.rst" />
     <None Include="Docs\source\texts.rst" />
+    <None Include="Docs\source\tips.rst" />
     <None Include="Docs\source\undo.rst" />
     <None Include="Docs\source\views.rst" />
     <None Include="Docs\source\vocabs.rst" />

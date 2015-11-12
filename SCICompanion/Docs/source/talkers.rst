@@ -62,3 +62,85 @@ When creating a view for a Talker, it will generally consist of three loops:
 Your Talker instance's *init* method is used to assign the mouth, bust and eye props. You'll need to position these three Props manually in order to align them with each other.
 You can do this either in
 the Talker's init method, or using the default property values in your mouth/bust/eye Props.
+
+
+In Code
+===========
+
+Here's sample code for a Talker:
+
+.. code-block:: python
+    :emphasize-lines: 3,8
+
+    (exports
+        0 rm210
+        1 talkingComputer
+    )
+
+    ...
+
+    (instance public talkingComputer of Talker
+        (properties
+            x 10
+            y 25
+            view 1004
+            loop 0
+            talkWidth 150
+            back 5
+            textX 120
+            textY 10
+        )
+
+        (method (init param1)
+            = font gFont
+            // For talkers, we can optionally set a cycler on the eyes.
+            // If there is no cycler, the Blink cycler will be used.
+            (computerEyes:setCycle(Rev))
+            (super:init(computerBust computerEyes computerMouth rest param1))
+        )
+    )
+
+    (instance computerBust of Prop
+        (properties
+            view 1004
+        )
+    )
+
+    (instance computerEyes of Prop
+        (properties
+            cycleSpeed 10
+            nsTop 0
+            nsLeft 0
+            view 1004
+            loop 1
+        )
+    )
+
+    (instance computerMouth of Prop
+        (properties
+            nsTop 59
+            nsLeft 18
+            view 1004
+            loop 2
+        )
+    )
+
+Then add a talker number:
+
+.. image:: /images/AddTalker.png
+
+Then in findTalker in Main.sc::
+
+    (switch (talkerNumber)
+        (case NARRATOR
+            gNarrator
+        )
+        (case COMPUTER
+            ScriptID(210 1) // Script 210, export 1
+        )
+        ...
+    )
+
+Now messages with talker number COMPUTER will result in the talkingComputer Talker being shown.
+
+.. image:: /images/TalkingComputer.png

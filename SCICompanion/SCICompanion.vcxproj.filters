@@ -1388,6 +1388,21 @@
     <Image Include="Help\_images\WordFind.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Docs\source\images\AddTalker.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\CharSpeak.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\DecompileDialog.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\OpenExplorerWindow.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\TalkingComputer.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\SCICompanion.rc2">
@@ -2878,6 +2893,7 @@
     <None Include="Help\_static\fonts\fontawesome-webfont.woff" />
     <None Include="Help\_static\css\badge_only.css" />
     <None Include="Help\_static\css\theme.css" />
+    <None Include="Docs\source\tips.rst" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />

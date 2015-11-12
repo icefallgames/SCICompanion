@@ -86,7 +86,7 @@ This is only available in the Palette Editor for pics and views. Since only one 
 want to show the pic with different palettes. For example, if you wanted to create a night scene for a pic background, you could "Add as resource" that pic's palette
 - that takes the palette embedded in the pic and saves it as a solitary palette resource.
 Then, you could edit that palette resource and adjust it to be darker and bluer. Then in script that palette resource could
-be applied to the current pic background.
+be applied to the current pic background. See the palSET_FROM_RESOURCE subfunction of :func:`Palette`, and also the :func:`PalVary` kernel.
 
 
 Palette cycling
@@ -113,4 +113,52 @@ You can use the *Used color* and *Fixed* checkboxes to control the first two opt
 
 .. |underlinedcolor| image:: /images/PaletteUnderline.PNG
 
+
+In Code
+==========
+
+Transitions
+----------------
+
+Unless you're specifically doing palette manipulations or effect, you probably won't need to worry about palettes too much in your scripts.
+
+If you specify a special transition between rooms, and the rooms have different palettes, you'll probably want to specify dpANIMATION_BLAKCOUT. Otherwise
+the new room's palette will be applied right away:
+
+.. code-block:: python
+    :emphasize-lines: 5
+
+    (instance public rm110 of Rm
+        (properties
+            north 106
+            picture 110
+            style (| dpANIMATION_BLACKOUT dpOPEN_PIXELATION)
+            horizon 50
+            vanishingX 130
+            vanishingY 50
+            noun N_ROOM
+        )
+    )
+
+Note that dpANIMATION_BLACKOUT is only supported for the following transition animations::
+
+    dpOPEN_HCENTER
+    dpOPEN_VCENTER
+    dpOPEN_RIGHT
+    dpOPEN_LEFT
+    dpOPEN_BOTTOM
+    dpOPEN_TOP
+    dpOPEN_EDGECENTER
+    dpOPEN_CENTEREDGE
+    dpOPEN_CHECKBOARD
+    dpOPEN_PIXELATION
+
+This brings up a larger point though. If you want to have direct smooth transitions from one screen to another (without blacking out first), you'll need to make sure
+that both pics use the same palette. This is easy to do if you "Save As" the first pic to a new resource, then import your second pic's background using "Map to current palette".
+
+
+Palette cycling and other manipulations
+-----------------------------------------
+
+Read the documentation for :func:`Palette` and :func:`PalVary` to learn how to perform palette cycling, smoothly transition to new palettes, or vary the intensity of color ranges.
 

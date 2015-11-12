@@ -51,6 +51,7 @@ Topics:
    decompiler
    preferences
    gameversion
+   tips
 
 Other
 ==================

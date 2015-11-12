@@ -16,6 +16,11 @@
     messageaudio
     talkers
 
+.. figure:: /images/CharSpeak.jpg
+    :align: center
+
+    A character in King's Quest 6 speaking a message resource.
+
 In SCI 1.1, message resources are used for nearly all in-game text. They have special features, however,
 to enable them to be easily associated with various actions on different objects. In contrast to SCI0, almost no
 code is needed to display text to the player in response to the player doing something with an object.
@@ -137,3 +142,72 @@ text is printned (or when it's used to generate lip-sync data in |scicomp|). For
 
 This will print the following on screen: "Alexander, come here right now!". Anything within parentheses that does *not* contain lower case letters or digits will
 be counted as stage directions.
+
+In Code
+=============
+
+In the simplest case, all that's needed to trigger messages are to have a :class:`Feature`, :class:`View`, :class:`Prop` or :class:`Actor` with a noun associated with it:
+
+.. code-block:: python
+    :emphasize-lines: 10
+
+    (instance mug of Prop
+        (properties
+            view 901
+            loop 2
+            x 262
+            y 165
+            approachX 242
+            approachY 162
+            signal ignAct
+            noun N_MUG
+        )
+    )
+
+Then when the player performs an action (V_DO, V_TALK, etc...) on the item, the associated message (or sequence of messages) will be displayed.
+
+Of course, you may need to trigger messages as part of a series of game events in a changeState or some other method. In that case, you can make a direct call to the messager:
+
+.. code-block:: python
+    :emphasize-lines: 13
+
+    (local numberTimesTalked = 0)
+        ...
+
+    (instance mug of Prop)
+        ...
+
+        (method (doVerb theVerb params)
+            (switch (theVerb)
+                (case V_TALK
+                    (if (< numberTimesTalked 3)
+                        // In this case, we'd have 3 messages for N_MUG/V_TALK, with cases 0 1 and 2.
+                        // Each time the player tried to talk to a mug, it would show a message with a successive case.
+                        (send gTestMessager:say(N_MUG V_TALK numberTimesTalked 1))
+                        (++numberTimesTalked)
+                    )(else
+                        // Until they talked to the mug too many times, they're crazy.
+                        Die(DEATH_REASON_CRAZY)
+                    )
+                )
+                (default
+                    (super:doVerb(theVerb rest params))
+                )
+            )
+        )
+    )
+
+When using gTestMessager:say(noun verb condition sequence), if the sequence number is 0, then all messages with the noun/verb/condition tuple will be shown in sequence.
+Otherwise, only the one with the specified sequence number will be shown.
+
+The noun/verb/condition/sequence tuple is used in many other places in the game too. So for instance, to show a button in a dialog, you can do::
+
+    (Print:
+        // message N_MYDIALOG/V_LOOK/0/1, at (60, 0), from message resource 101.
+        addText(N_MYDIALOG V_LOOK 0 1 60 0 101)
+        // Button value 0, message N_MYDIALOG/V_LOOK/0/2, at (70, 35), from message resource 101.
+        addButton(0 N_MYDIALOG V_LOOK 0 2 70 35 101)
+        init()
+    )
+
+

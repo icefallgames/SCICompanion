@@ -160,7 +160,7 @@ via the Debug Room |debugroom| button in the Script Editor toolbar. This of cour
 able to handle being transported directly to it without arriving there through gameplay.
 
 If you need to set up certain global flags or inventory items that are necessary for being in that room,
-you can do so in the DebugRoomInit procedure in the debugroominit.sc script. Add a case for your room number
+you can do so in the :func:`DebugRoomInit` procedure in the debugroominit.sc script. Add a case for your room number
 and set up additional state as necessary. This procedure is only called when the game is started with the Debug Room functionality.
 
 This functionality can be a real help when trying to iterate quickly on your game.

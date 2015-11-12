@@ -6,12 +6,18 @@
  Decompiler
 ================
 
-With |scicomp| you can decompile Sierra games to see how they work. This is a vast
-improvement over just disassembling scripts, as it reconstructs something close to the original source
-code - including conditional structures like if statements, while loops and more.
+With |scicomp| you can decompile Sierra games to see how they work! This is a vast
+improvement over just disassembling scripts, as it uses control flow analysis to reconstruct
+higher level structures like if statement, switch statements, while loops and more.
+The result is something fairly readable.
 
-Some information can't be recovered of course. The names of variables aren't in the script resources, but
+Sierra's script resources still contain a significant amount of original information. Class and instance
+names are preserved, as are property and method names. And of course, we can figure out the kernel function call names.
+The names of parameters, script and temp variables aren't available, but
 we can make some guesses based on how they are used, and what values are assigned to them.
+
+Decompilation was used as a base to generate the SCI 1.1 template game. It can also just be used to
+see how scripts worked, or to find easter eggs, or even to modify the logic to fix bugs in the original Sierra games.
 
 Here's an example of a decompiled **nextCel** method from Space Quest 4's **Cycle** class:
 
@@ -88,6 +94,8 @@ All decompilation starts with the Decompile dialog, accessed from *Script->Manag
 presents you with a list of scripts in the game, and whether or not there are source code (.sc) or .sco
 files for each of them.
 
+.. image:: /images/DecompileDialog.jpg
+
 Script filenames
 ----------------
 
@@ -101,7 +109,7 @@ scripts tab in the game explorer).
 Decompiling a script
 --------------------
 
-You can select one or more scripts on the left (using shift-click), and then press the *Decompile* button. Decompiling a script can be a fairly
+You can select one or more scripts on the left (using shift-click), and then press the *Decompile* button. Decompiling a script is complex and can be a fairly
 lengthy process, so if you're only curious about a few scripts, then just select those. As the decompilation takes place, status updates
 are given in the pane on the right.
 
@@ -109,7 +117,8 @@ If you want to decompile the entire game of course, then just select all scripts
 entire Sierra game should take about a minute or so.
 
 When a script is decompiled, we also generate the .sco file for it. This contains the "public" information in the script (such as the names of
-procedures that it exports) which is used by other scripts.
+procedures that it exports) which is used by other scripts. You'll need these .sco files if you want to then go in and make changes to the scripts
+and successfully recompile.
 
 Public procedure names and variable names
 -----------------------------------------
