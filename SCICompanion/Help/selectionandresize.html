@@ -1,0 +1,306 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Selection and Resizing &mdash; SCICompanion 3.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="SCICompanion 3.0 documentation" href="index.html"/>
+        <link rel="up" title="View Editor" href="views.html"/>
+        <link rel="next" title="Pic Editor" href="pics.html"/>
+        <link rel="prev" title="Drawing tools for views, fonts and cursors" href="rastertools.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> SCICompanion
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                3.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="views.html">View Editor</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="rastertools.html">Drawing tools for views, fonts and cursors</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="">Selection and Resizing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#selection">Selection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#paste">Paste</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#transparent-paste">Transparent Paste</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#resizing">Resizing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="views.html#the-view-editor-layout">The View Editor layout</a></li>
+<li class="toctree-l2"><a class="reference internal" href="views.html#drawing-on-the-main-view-pane">Drawing on the main view pane</a></li>
+<li class="toctree-l2"><a class="reference internal" href="views.html#selection-and-resizing">Selection and resizing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="views.html#palettes">Palettes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="views.html#adding-and-removing-cels-and-loops">Adding and removing cels and loops</a></li>
+<li class="toctree-l2"><a class="reference internal" href="views.html#importing-images-into-an-sci-view">Importing images into an SCI view</a></li>
+<li class="toctree-l2"><a class="reference internal" href="views.html#mirrors">Mirrors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="views.html#id2">Transparency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="views.html#offset">Offset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="views.html#affect-all-cels">Affect all cels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="views.html#color-shifting">Color shifting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="views.html#scaleable-views">Scaleable views</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pics.html">Pic Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">Script editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classlibrary.html">The SCI1.1 class library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sci_kernels.html">Kernel Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sci_compiler.html">The SCI Compiler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="texts.html">Text Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="messages.html">Message editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sounds.html">Sound Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vocabs.html">Vocabs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fonts.html">Font Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cursors.html">Cursor Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="palettes.html">VGA Palette Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="audio.html">Digital Audio</a></li>
+<li class="toctree-l1"><a class="reference internal" href="outputpane.html">Output Pane</a></li>
+<li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugger</a></li>
+<li class="toctree-l1"><a class="reference internal" href="undo.html">Undo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspectratio.html">Aspect Ratio</a></li>
+<li class="toctree-l1"><a class="reference internal" href="palettecycling.html">Palette cycling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="anatomy.html">Anatomy of an SCI game</a></li>
+<li class="toctree-l1"><a class="reference internal" href="decompiler.html">Decompiler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preferences.html">Preferences</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gameversion.html">Game/Interpreter Versions</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">SCICompanion</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="views.html">View Editor</a> &raquo;</li>
+      
+    <li>Selection and Resizing</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/selectionandresize.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="selection-and-resizing">
+<h1>Selection and Resizing<a class="headerlink" href="#selection-and-resizing" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="selection">
+<h2>Selection<a class="headerlink" href="#selection" title="Permalink to this headline">¶</a></h2>
+<div class="figure" id="id1">
+<img alt="_images/Selection_Example.png" src="_images/Selection_Example.png" />
+<p class="caption"><span class="caption-text">Manipulating selection in a cel</span></p>
+</div>
+<p>To select an area of the canvas, choose the selection tool <img alt="select" src="_images/DrawingSelect.png" />
+and left-click and drag on the area you wish to select.
+You can copy <em>(CTRL-C)</em> or cut <em>(CTRL-X)</em> the selection to the clipboard. You can also drag the selected area around to move it.</p>
+<p>The entire canvas may be selected with <em>(CTRL-A)</em>.</p>
+</div>
+<div class="section" id="paste">
+<h2>Paste<a class="headerlink" href="#paste" title="Permalink to this headline">¶</a></h2>
+<p>If you paste <em>(CTRL-V)</em> an image from the clipboard into the view,
+it will appear in the top left of the current cel, in a rubber band selection rectangle. You can position it as you desire. Double-clicking on the selection will commit it.
+If the image is a 24-bit image from another application, <strong>SCI</strong>Companion will attempt to map the colors to the current palette (more control over this can be obtained by using <em>View-&gt;Import image sequence</em>,
+or by using <em>CTRL-B</em> instead of <em>CTRL-V</em>).</p>
+</div>
+<div class="section" id="transparent-paste">
+<h2>Transparent Paste<a class="headerlink" href="#transparent-paste" title="Permalink to this headline">¶</a></h2>
+<p>Transparent pasting <em>(CTRL-SHIFT-V)</em> will paste an image, but not include the pixels that are transparent. Note that alpha transparency
+is not preserved in standard Windows clipboard formats, so this will only work if the source image is another view cel inside <strong>SCI</strong>Companion.</p>
+</div>
+<div class="section" id="resizing">
+<h2>Resizing<a class="headerlink" href="#resizing" title="Permalink to this headline">¶</a></h2>
+<div class="figure" id="id2">
+<img alt="_images/Resize_Example.png" src="_images/Resize_Example.png" />
+<p class="caption"><span class="caption-text">Resizing a cel</span></p>
+</div>
+<p>There are resize handles surrounding the bottom right edges of the canvas. You can drag them with the mouse to resize the image. Using different key combinations while dragging will affect how the image is resized.</p>
+<blockquote>
+<div><table border="1" class="docutils">
+<colgroup>
+<col width="14%" />
+<col width="86%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Keys</th>
+<th class="head">function</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>None</td>
+<td>anchor the image on the top left</td>
+</tr>
+<tr class="row-odd"><td>CTRL</td>
+<td>anchor the image on the bottom right</td>
+</tr>
+<tr class="row-even"><td>SHIFT</td>
+<td>stretch or shrink the image</td>
+</tr>
+</tbody>
+</table>
+</div></blockquote>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="pics.html" class="btn btn-neutral float-right" title="Pic Editor" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="rastertools.html" class="btn btn-neutral" title="Drawing tools for views, fonts and cursors" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Phil Fortier.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'3.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,366 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Script editor &mdash; SCICompanion 3.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="SCICompanion 3.0 documentation" href="index.html"/>
+        <link rel="next" title="The SCI1.1 class library" href="classlibrary.html"/>
+        <link rel="prev" title="Polygons" href="polygons.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> SCICompanion
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                3.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="views.html">View Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pics.html">Pic Editor</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Script editor</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#adding-a-new-room-and-other-scripts">Adding a new room and other scripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#compiling-a-script">Compiling a script</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#finding-text">Finding text</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#adding-words-to-the-vocabulary">Adding words to the vocabulary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#insert-object">Insert object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#insert-method">Insert method</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#script-browsing-information">Script browsing information</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#auto-code-completion">Auto code completion</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#goto-definition">Goto definition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#jump-to-method">Jump to method</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#quick-links-to-pics-and-views">Quick links to pics and views</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#debug-room">Debug room</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="classlibrary.html">The SCI1.1 class library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sci_kernels.html">Kernel Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sci_compiler.html">The SCI Compiler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="texts.html">Text Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="messages.html">Message editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sounds.html">Sound Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vocabs.html">Vocabs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fonts.html">Font Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cursors.html">Cursor Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="palettes.html">VGA Palette Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="audio.html">Digital Audio</a></li>
+<li class="toctree-l1"><a class="reference internal" href="outputpane.html">Output Pane</a></li>
+<li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugger</a></li>
+<li class="toctree-l1"><a class="reference internal" href="undo.html">Undo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspectratio.html">Aspect Ratio</a></li>
+<li class="toctree-l1"><a class="reference internal" href="palettecycling.html">Palette cycling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="anatomy.html">Anatomy of an SCI game</a></li>
+<li class="toctree-l1"><a class="reference internal" href="decompiler.html">Decompiler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preferences.html">Preferences</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gameversion.html">Game/Interpreter Versions</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">SCICompanion</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Script editor</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/scripts.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="script-editor">
+<h1>Script editor<a class="headerlink" href="#script-editor" title="Permalink to this headline">¶</a></h1>
+<img alt="_images/ScriptEditor.jpg" src="_images/ScriptEditor.jpg" />
+<p><strong>SCI</strong>Companion includes a script editor which provides a number of improvements over the one in SCI Studio:</p>
+<ul class="simple">
+<li>Automatic parenthesis highlighting as you type</li>
+<li>Add new words to the vocabulary directly from the script</li>
+<li>Find text across all script files</li>
+<li>Better tabbing support (indent blocks of text)</li>
+<li>Insert object wizards</li>
+<li>Open header files from code</li>
+<li>Autocomplete as you type</li>
+<li>Hover tips</li>
+<li>Quick navigation to the various methods and procedures in the script</li>
+</ul>
+<div class="section" id="adding-a-new-room-and-other-scripts">
+<h2>Adding a new room and other scripts<a class="headerlink" href="#adding-a-new-room-and-other-scripts" title="Permalink to this headline">¶</a></h2>
+<p>To add a room to your game, click on the New room <img alt="newroom" src="_images/NewRoom.png" /> button in the main toolbar. A dialog will come up offering various options for your new room.
+In SCI1.1, creating a new room automatically also creates the following:</p>
+<blockquote>
+<div><ul class="simple">
+<li>a polygon header file (<em>nnn</em>.shp)</li>
+<li>a message header file (<em>nnn</em>.shm)</li>
+<li>a message resource of the same number</li>
+</ul>
+</div></blockquote>
+<p>To create a new blank script, click the New empty script <img alt="newscript" src="_images/NewScript.png" /> button. A dialog asking for the script number and name will come up.</p>
+</div>
+<div class="section" id="compiling-a-script">
+<h2>Compiling a script<a class="headerlink" href="#compiling-a-script" title="Permalink to this headline">¶</a></h2>
+<p>To compile a single script, click on the Compile <img alt="compile" src="_images/Compile.png" /> button in the scripts toolbar, or press F8.
+If successful, a message will be displayed at the bottom of the editor.
+If the compilation fails, a list of errors will be displayed. Clicking on the errors will take you to the line of the script with the error.</p>
+<p>To recompile the entire game, click the Compile all <img alt="compileall" src="_images/CompileAll.png" /> button in the scripts toolbar. A progress dialog will come up, and you can cancel the compile operation if you wish.</p>
+</div>
+<div class="section" id="finding-text">
+<h2>Finding text<a class="headerlink" href="#finding-text" title="Permalink to this headline">¶</a></h2>
+<p>To find text within a particular script, click CTRL-F, or choose <em>Edit-&gt;Find</em>.
+Once a word is highlighted, pressing F3 or SHIFT-F3 will find the next or previous occurence in the file.</p>
+<p>To replace text, press CTRL-H or choose <em>Edit-&gt;Replace</em>.</p>
+<p>To find text across all script files press CTRL-SHIFT-F, or choose <em>Edit-&gt;Find in files</em>.
+The results are displayed at the bottom of the editor, and you can click on them to take you to that line of code.</p>
+<img alt="_images/FindInFiles.png" src="_images/FindInFiles.png" />
+</div>
+<div class="section" id="adding-words-to-the-vocabulary">
+<h2>Adding words to the vocabulary<a class="headerlink" href="#adding-words-to-the-vocabulary" title="Permalink to this headline">¶</a></h2>
+<div class="admonition important">
+<p class="first admonition-title">Important</p>
+<p class="last">This section only applies to SCI0</p>
+</div>
+<p>Since adding new words to the vocabulary is a frequent task (scripts won&#8217;t compile if words in their Said strings aren&#8217;t in the vocabulary),
+<strong>SCI</strong>Companion lets you right-click on any word in the script, and add it to the vocabulary.
+You can choose the word class to which to add it. You can even add it as a synonym of another word.</p>
+<img alt="_images/AddWord.png" src="_images/AddWord.png" />
+</div>
+<div class="section" id="insert-object">
+<h2>Insert object<a class="headerlink" href="#insert-object" title="Permalink to this headline">¶</a></h2>
+<p>To further streamline the scripting workflow, <strong>SCI</strong>Companion lets you insert entire objects (Props, Actors, Scripts, and more) in code via the right-click menu.</p>
+<img alt="_images/InsertObject.png" src="_images/InsertObject.png" />
+<p>Click on the location in the script where you want the new object, then choose <em>Insert object</em> from the right-click menu. This
+will open a list of objects to choose from, or you can choose <em>Custom ...</em> in order to have more control over which methods are included
+on the object.</p>
+<div class="figure" id="id1">
+<img alt="_images/InsertActor.png" src="_images/InsertActor.png" />
+<p class="caption"><span class="caption-text">An Actor class inserted via the Insert Object menu.</span></p>
+</div>
+</div>
+<div class="section" id="insert-method">
+<h2>Insert method<a class="headerlink" href="#insert-method" title="Permalink to this headline">¶</a></h2>
+<p>Similar to the <em>Insert object</em>, you can use the right-click menu to insert common methods at the current cursor position.</p>
+<div class="figure" id="id2">
+<img alt="_images/InsertMethod.png" src="_images/InsertMethod.png" />
+<p class="caption"><span class="caption-text">A doVerb method inserted via the Insert Method menu.</span></p>
+</div>
+</div>
+<div class="section" id="script-browsing-information">
+<h2>Script browsing information<a class="headerlink" href="#script-browsing-information" title="Permalink to this headline">¶</a></h2>
+<p>Script browsing information can be turned on or off (along with its related settings) in the <a class="reference internal" href="preferences.html"><em>Preferences dialog</em></a>. It is on by default.</p>
+<p>Script browsing is a powerful feature that analyzes the scripts and header files in your project,
+and will be able to provide auto code completion and contextual information about objects in your script.
+The browse information is compiled when you open the game, and its progress can be seen in the status bar. It will show you any errors. Until these errors are corrected,
+browse information may be incomplete and features which depend on it may not work.
+To force <strong>SCI</strong>Companion to recompile the browse information for a particular script after you fix errors, just save the script again.</p>
+<div class="section" id="auto-code-completion">
+<h3>Auto code completion<a class="headerlink" href="#auto-code-completion" title="Permalink to this headline">¶</a></h3>
+<p>As you type, <strong>SCI</strong>Companion will suggest words (methods, objects names, variable names, etc...) based on your current context.
+Hit Enter to accept the suggestion, or the up and down arrow keys to choose another suggestion.</p>
+<img alt="_images/AutoComplete.png" src="_images/AutoComplete.png" />
+</div>
+<div class="section" id="goto-definition">
+<h3>Goto definition<a class="headerlink" href="#goto-definition" title="Permalink to this headline">¶</a></h3>
+<p>Right clicking on a procedure, object or variable will offer the option of going to where it is defined.</p>
+<img alt="_images/GotoDefinition.png" src="_images/GotoDefinition.png" />
+<p>You can also right-click on an <em>include</em> statement header file name, or a <em>use</em> statement name and <strong>SCI</strong>Companion will open that script.</p>
+<img alt="_images/GotoHeader.png" src="_images/GotoHeader.png" />
+</div>
+<div class="section" id="jump-to-method">
+<h3>Jump to method<a class="headerlink" href="#jump-to-method" title="Permalink to this headline">¶</a></h3>
+<p>At the top of the script editor is a combobox that lists all the functions and objects in the current script file.
+It displays the name of the function or object where the cursor is currently located. You can use this list to quickly jump to another function in the script.</p>
+<img alt="_images/JumpToMethod.png" src="_images/JumpToMethod.png" />
+</div>
+<div class="section" id="quick-links-to-pics-and-views">
+<h3>Quick links to pics and views<a class="headerlink" href="#quick-links-to-pics-and-views" title="Permalink to this headline">¶</a></h3>
+<p>At the top of the script Toolbox pane are links to resources relevant to the current script.
+Here you will find the link to the pic resource (if this is a room), the views used in any Prop or Act instances,
+and links to the scripts of any rooms to the north/east/south/west. If the resource is already being edited,
+it will switch you to that resource. Otherwise, it will open the appropriate editor for that resource.</p>
+<img alt="_images/QuickLinks.png" src="_images/QuickLinks.png" />
+<p>In this section for SCI1.1 games, you&#8217;ll also find a link to the messages resource for this room.</p>
+</div>
+</div>
+<div class="section" id="debug-room">
+<span id="debugroom-label"></span><h2>Debug room<a class="headerlink" href="#debug-room" title="Permalink to this headline">¶</a></h2>
+<div class="admonition important">
+<p class="first admonition-title">Important</p>
+<p class="last">This section currently only applies to the SCI1.1 template game</p>
+</div>
+<p>Often when testing your game, you just want to jump right in to the room you&#8217;re currently creating. You can do so
+via the Debug Room <img alt="debugroom" src="_images/DebugRoom.png" /> button in the Script Editor toolbar. This of course requires that your room be
+able to handle being transported directly to it without arriving there through gameplay.</p>
+<p>If you need to set up certain global flags or inventory items that are necessary for being in that room,
+you can do so in the DebugRoomInit procedure in the debugroominit.sc script. Add a case for your room number
+and set up additional state as necessary. This procedure is only called when the game is started with the Debug Room functionality.</p>
+<p>This functionality can be a real help when trying to iterate quickly on your game.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="classlibrary.html" class="btn btn-neutral float-right" title="The SCI1.1 class library" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="polygons.html" class="btn btn-neutral" title="Polygons" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Phil Fortier.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'3.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

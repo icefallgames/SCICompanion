@@ -1,0 +1,304 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Inline assembly &mdash; SCICompanion 3.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="SCICompanion 3.0 documentation" href="../index.html"/>
+        <link rel="up" title="The SCI Compiler" href="../sci_compiler.html"/>
+        <link rel="next" title="Object files" href="objectfiles.html"/>
+        <link rel="prev" title="Rest" href="rest.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> SCICompanion
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                3.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../intro.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../views.html">View Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pics.html">Pic Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../scripts.html">Script editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../classlibrary.html">The SCI1.1 class library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sci_kernels.html">Kernel Functions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../sci_compiler.html">The SCI Compiler</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="version.html">Script version</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classes.html">Classes and instances</a></li>
+<li class="toctree-l2"><a class="reference internal" href="properties.html">Properties</a></li>
+<li class="toctree-l2"><a class="reference internal" href="procedures.html">Procedures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="variables.html">Variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="variabletypes.html">Variable types</a></li>
+<li class="toctree-l2"><a class="reference internal" href="comment.html">Comments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="define.html">Define</a></li>
+<li class="toctree-l2"><a class="reference internal" href="include.html">Include</a></li>
+<li class="toctree-l2"><a class="reference internal" href="use.html">Use</a></li>
+<li class="toctree-l2"><a class="reference internal" href="strings.html">Strings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="saids.html">Said</a></li>
+<li class="toctree-l2"><a class="reference internal" href="synonyms.html">Synonyms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="selectors.html">Selectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="sendselfsuper.html">Send, Self and Super</a></li>
+<li class="toctree-l2"><a class="reference internal" href="return.html">Return</a></li>
+<li class="toctree-l2"><a class="reference internal" href="codeblock.html">Code block</a></li>
+<li class="toctree-l2"><a class="reference internal" href="assignment.html">Assignment operators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="arithmetic.html">Arithmetic Operators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="bitwise.html">Bitwise operators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="relationaloperators.html">Relational operators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="otheroperators.html">Other operators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="conditionalexpressions.html">Conditional expressions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="if.html">If statements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="switch.html">Switch statement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="while.html">While statement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="do.html">Do loop</a></li>
+<li class="toctree-l2"><a class="reference internal" href="for.html">For loop</a></li>
+<li class="toctree-l2"><a class="reference internal" href="break.html">Break statement</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rest.html">Rest</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="">Inline assembly</a></li>
+<li class="toctree-l2"><a class="reference internal" href="objectfiles.html">Object files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="classheader.html">Accessing an object&#8217;s header</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../texts.html">Text Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../messages.html">Message editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sounds.html">Sound Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../vocabs.html">Vocabs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../fonts.html">Font Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cursors.html">Cursor Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../palettes.html">VGA Palette Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../audio.html">Digital Audio</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../outputpane.html">Output Pane</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../debugging.html">Debugger</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../undo.html">Undo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../aspectratio.html">Aspect Ratio</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../palettecycling.html">Palette cycling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../anatomy.html">Anatomy of an SCI game</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../decompiler.html">Decompiler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../preferences.html">Preferences</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gameversion.html">Game/Interpreter Versions</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">SCICompanion</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../sci_compiler.html">The SCI Compiler</a> &raquo;</li>
+      
+    <li>Inline assembly</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/Compiler/asm.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="inline-assembly">
+<h1>Inline assembly<a class="headerlink" href="#inline-assembly" title="Permalink to this headline">¶</a></h1>
+<p>To give you complete control over scripting your game, the ability to to inline assembly was implemented. With inline assembly, you can script SCI byte code within the highlevel code.
+You can refer to symbols such as class or instance names, or variables.</p>
+<p>Syntax:</p>
+<div class="highlight-python"><div class="highlight"><pre>(asm
+        &lt;asm code&gt;
+)
+</pre></div>
+</div>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre>(procedure (SomeProc)
+        (asm
+                 pushi #init
+                 push0
+                 lofsa {fWindow}
+                 send 4
+        )
+)
+
+        (method (doit param1)
+                (asm
+                        pushi   #isBlocked
+                        pushi   0
+                        lag     gEgo
+                        send    4
+                        bnt     code_3273
+                        ldi     1
+                        aTop    completed
+                        pushi   #motionCue
+                        pushi   0
+                        self    4
+                        jmp     code_327b
+code_3273:  pushi   #doit
+                        pushi   0
+                        &amp;rest   param1
+                        super   PolyPath, 4
+code_327b:  ret
+                )
+        )
+</pre></div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="objectfiles.html" class="btn btn-neutral float-right" title="Object files" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="rest.html" class="btn btn-neutral" title="Rest" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Phil Fortier.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'3.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

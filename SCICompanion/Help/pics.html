@@ -1,0 +1,630 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Pic Editor &mdash; SCICompanion 3.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="SCICompanion 3.0 documentation" href="index.html"/>
+        <link rel="next" title="Polygons" href="polygons.html"/>
+        <link rel="prev" title="Selection and Resizing" href="selectionandresize.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> SCICompanion
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                3.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="views.html">View Editor</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Pic Editor</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="polygons.html">Polygons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#priority-screen">Priority screen</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#control-screen">Control screen</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#moving-around">Moving around</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#slider-bar">Slider bar</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#command-list">Command list</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#history-tool">History tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#zooming">Zooming</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#drawing-tools">Drawing tools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pen-tool">Pen tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fill-tool">Fill tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#line-tool">Line tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#choosing-a-color">Choosing a color</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#the-command-list">The command list</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#deleting-commands">Deleting commands</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#copying-and-pasting-commands">Copying and pasting commands</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#the-fake-ego">The fake ego</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#priority-bands">Priority bands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#tracing-image">Tracing image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#transforming-coordinates">Transforming coordinates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ega-pic-palettes">EGA pic palettes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#write-entire-palette">Write entire palette</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#preview-palette">Preview palette</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#converting-a-bitmap-to-a-vector-drawing-sci0">Converting a bitmap to a vector drawing (SCI0)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#importing-a-vga-pic-background-sci1">Importing a VGA pic background (SCI1+)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#editing-a-vga-pic-palette">Editing a VGA pic palette</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#polygons">Polygons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#changing-a-pic-s-height">Changing a pic&#8217;s height</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pic-helper-pane">Pic helper pane</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">Script editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classlibrary.html">The SCI1.1 class library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sci_kernels.html">Kernel Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sci_compiler.html">The SCI Compiler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="texts.html">Text Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="messages.html">Message editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sounds.html">Sound Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vocabs.html">Vocabs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fonts.html">Font Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cursors.html">Cursor Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="palettes.html">VGA Palette Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="audio.html">Digital Audio</a></li>
+<li class="toctree-l1"><a class="reference internal" href="outputpane.html">Output Pane</a></li>
+<li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugger</a></li>
+<li class="toctree-l1"><a class="reference internal" href="undo.html">Undo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspectratio.html">Aspect Ratio</a></li>
+<li class="toctree-l1"><a class="reference internal" href="palettecycling.html">Palette cycling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="anatomy.html">Anatomy of an SCI game</a></li>
+<li class="toctree-l1"><a class="reference internal" href="decompiler.html">Decompiler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preferences.html">Preferences</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gameversion.html">Game/Interpreter Versions</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">SCICompanion</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Pic Editor</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/pics.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pic-editor">
+<h1>Pic Editor<a class="headerlink" href="#pic-editor" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<img alt="_images/PicEditor.jpg" src="_images/PicEditor.jpg" />
+<p>The picture editor shows the pic itself in the main window, and the picture command list on the right.
+While SCI1 and above support bitmapped graphics, SCI0 pics are actually a series of vector drawing commands, and the editor reflects that &#8220;limitation&#8221;.
+Bitmaps can be converted into vector drawings for SCI0, but the process is inefficient, so you need to get used to thinking like the editor.</p>
+<div class="figure" id="id1">
+<img alt="_images/DrawPic.gif" src="_images/DrawPic.gif" />
+<p class="caption"><span class="caption-text">An example of how a scene from Laura Bow is drawn in vector graphics</span></p>
+</div>
+<p>Pics consist of three &#8220;screens&#8221;:</p>
+<blockquote>
+<div><ul class="simple">
+<li>The <strong>visual</strong> screen, which is what you see in the game.</li>
+<li>The <strong>priority</strong> screen, which controls which parts of the picture appear in front or behind the ego. This gives the games their <em>3D</em> feel.</li>
+<li>The <strong>control</strong> screen, which controls events that happen to characters in the game.</li>
+</ul>
+</div></blockquote>
+<p>You can view each of these screens by clicking on the appropriate button. You can also use the F2, F3 and F4 keys to switch between visual, priority and control screens. This is handy
+when you&#8217;re already in the middle of drawing something with the mouse and you need to check a different screen.</p>
+<div class="figure" id="id2">
+<img alt="_images/VPCScreens.jpg" src="_images/VPCScreens.jpg" />
+<p class="caption"><span class="caption-text">This shows the three screens comprising a pic: The visual screen, the priority screen (depth layers) and the control screen (game interactions)</span></p>
+</div>
+<p>In all cases, pics are just a series of drawing commands that are replayed when the image is drawn in the game.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For SCI1 and above, SCI supports bitmaps for backgrounds, but the control and priority screens are still vector-based.</p>
+</div>
+<div class="figure" id="id3">
+<img alt="_images/EGAVGA.png" src="_images/EGAVGA.png" />
+<p class="caption"><span class="caption-text">A comparison of vector EGA vs bitmapped VGA pic backgrounds (from the original Quest for Glory and its VGA remake).</span></p>
+</div>
+<p>Drawing methods for the different screens for various SCI versions:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="20%" />
+<col width="41%" />
+<col width="20%" />
+<col width="18%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Version</th>
+<th class="head">Visual</th>
+<th class="head">Priority</th>
+<th class="head">Control</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>SCI0</td>
+<td>Vector</td>
+<td>Vector</td>
+<td>Vector</td>
+</tr>
+<tr class="row-odd"><td>SCI1</td>
+<td>Bitmap and Vector</td>
+<td>Vector</td>
+<td>Vector</td>
+</tr>
+<tr class="row-even"><td>SCI1.1</td>
+<td>Bitmap</td>
+<td>Vector</td>
+<td>Vector</td>
+</tr>
+<tr class="row-odd"><td>SCI2</td>
+<td>Bitmap</td>
+<td>Bitmap</td>
+<td>n/a</td>
+</tr>
+</tbody>
+</table>
+<div class="section" id="priority-screen">
+<h2>Priority screen<a class="headerlink" href="#priority-screen" title="Permalink to this headline">¶</a></h2>
+<p>The priority screen defines depth layers to your background. As characters move around in your game, they are assigned
+a priority value (ranging from 0 to 15) by the game engine. Their priority depends on their current y coordinate (generally at their feet).
+If a character&#8217;s priority is equal to or greater than the background pixel behind it, it will appear in front of the background.
+Otherwise, it will be oscured.</p>
+<div class="figure" id="id4">
+<img alt="_images/PriScreen.png" src="_images/PriScreen.png" />
+<p class="caption"><span class="caption-text">On the left, the box (pri 9, blue) is obscured by the waterfall and rock (pri 10, lime). On the right, the box has moved lower and changed
+priority. It is now pri 11, and appears in front of the waterfall and rock.</span></p>
+</div>
+<div class="figure" id="id5">
+<img alt="_images/ChoosePri.png" src="_images/ChoosePri.png" />
+<p class="caption"><span class="caption-text">Choosing a priority value to draw with.</span></p>
+</div>
+</div>
+<div class="section" id="control-screen">
+<h2>Control screen<a class="headerlink" href="#control-screen" title="Permalink to this headline">¶</a></h2>
+<p>The control screen is used to prevent (or permit) the ego (or any character) from moving in certains areas. It can also be used to trigger
+in-game events.</p>
+<p>In SCI0 and SCI1, characters are generally set up to treat control value 15 (ctlWHITE) as impassable. Use this to define boundaries for your
+charactrer (in SCI1+, polygons are generally used for this purpose). Other colors may be used to trigger doors and such, by checking in code
+if a character is standing on a control value of a certain color.</p>
+</div>
+<div class="section" id="moving-around">
+<h2>Moving around<a class="headerlink" href="#moving-around" title="Permalink to this headline">¶</a></h2>
+<p>Since the picture resource consists of a series of vector commands, you need a way to move around to different points.
+Any drawing commands you do are added to that particular spot in the picture.</p>
+<div class="section" id="slider-bar">
+<h3>Slider bar<a class="headerlink" href="#slider-bar" title="Permalink to this headline">¶</a></h3>
+<p>The quickest and most obvious way is to use the slider bar at the bottom of the screen. It shows the current position, and lets you instantly move to another position.</p>
+<img alt="_images/SliderBar.png" src="_images/SliderBar.png" />
+</div>
+<div class="section" id="command-list">
+<h3>Command list<a class="headerlink" href="#command-list" title="Permalink to this headline">¶</a></h3>
+<p>You can also click on a command in the Toolbox pane, and the picture will move to that point. A thin green line reminds you exactly where you are positioned.</p>
+<img alt="_images/CommandList_GreenLine.png" src="_images/CommandList_GreenLine.png" />
+</div>
+<div class="section" id="history-tool">
+<h3>History tool<a class="headerlink" href="#history-tool" title="Permalink to this headline">¶</a></h3>
+<p>When your picture gets big and complex, it can often be difficult to quickly narrow in to a particular position.
+If you need to go to the spot where a pixel last changed its colour, the history tool <img alt="history" src="_images/History.png" /> will do that.
+Left-clicking on a part of the pic will bring you to the point just before that pixel changed colour. Right-clicking will bring you just after.</p>
+</div>
+<div class="section" id="zooming">
+<h3>Zooming<a class="headerlink" href="#zooming" title="Permalink to this headline">¶</a></h3>
+<p>Use the zoom tool <img alt="zoom" src="_images/DrawingZoom.png" /> to zoom in (left-click) or zoom out (right-click) on the pic. You can also use <strong>CTRL-mouse wheel</strong>, or <strong>CTRL-minus</strong> and <strong>CTRL-plus</strong>.</p>
+</div>
+</div>
+<div class="section" id="drawing-tools">
+<h2>Drawing tools<a class="headerlink" href="#drawing-tools" title="Permalink to this headline">¶</a></h2>
+<p>There are three main drawing tools: pen, fill and line. Unlike SCI Studio,
+<strong>SCI</strong>Companion doesn&#8217;t make you choose between &#8220;short&#8221; and &#8220;long&#8221; versions of them. The editor will automatically use the most space-efficient commands when saving the pic to the game file.</p>
+<div class="section" id="pen-tool">
+<h3>Pen tool<a class="headerlink" href="#pen-tool" title="Permalink to this headline">¶</a></h3>
+<div class="admonition important">
+<p class="first admonition-title">Important</p>
+<p class="last">This section applies to SCI0 and SCI1 only</p>
+</div>
+<p>The pen tool <img alt="pen" src="_images/DrawingPen.png" /> requires a bit more explanation, and offers more functionality than in SCI Studio.
+The 32 options of pen shape, size, and pattern are chosen from the Pen Style button on the toolbar.
+A preview of the pen (e.g. what will happen when you click) is shown as you move the mouse cursor over the image.
+If you are using a &#8220;pattern&#8221;, the pattern will change randomly with each click (SCI Studio does not expose this
+functionality of pic resources). This should let you get more natural looking transitions between areas of different colours.
+You can disable random patterns in the Pen Style dialog.
+In either case, right clicking will cycle through the next pattern (128 different patterns for each size and shape).</p>
+<p>The Pen tool is not available on SCI1.1 and above.</p>
+</div>
+<div class="section" id="fill-tool">
+<h3>Fill tool<a class="headerlink" href="#fill-tool" title="Permalink to this headline">¶</a></h3>
+<p>The fill tool <img alt="fill" src="_images/DrawingFill.png" /> is one of the biggest sources of frustration with people drawing their own pics,
+because it only allows you to fill &#8220;blank&#8221; (previously unfilled) areas.
+I suppose Sierra did this so the artists would be forced to be space efficient.
+At any rate, it is an annoying but unavoidable feature. Design your pic with this in mind.</p>
+<p>Another important thing to mention about the fill tool concerns dithered colours where one of the colours is white.
+If you have, say palette 1 where color 5 is composed of yellow and black; and palette 2 where color 5 is
+composed of yellow and white; then you might have a problem. Fills will look different because often dithered
+colours that include white will let a fill leak through a spot where it would not if it didn&#8217;t include white.
+If your picture looks really messed up when viewing with a different palette, it may be due to this.</p>
+</div>
+<div class="section" id="line-tool">
+<h3>Line tool<a class="headerlink" href="#line-tool" title="Permalink to this headline">¶</a></h3>
+<p><img alt="line" src="_images/DrawingLine.png" /> This tool is fairly straightforward. Left click starts a line, right click ends a line.</p>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">Holding down <strong>SHIFT</strong> while drawing a line will snap it to horizontal or vertical</p>
+</div>
+</div>
+<div class="section" id="choosing-a-color">
+<h3>Choosing a color<a class="headerlink" href="#choosing-a-color" title="Permalink to this headline">¶</a></h3>
+<p><img alt="vpc" src="_images/VPC.png" /> At any one point, the drawing takes place on any of the three screens.
+The colour used on each screen, if any, is controlled by the &#8220;V&#8221;, &#8220;P&#8221; and &#8220;C&#8221; buttons on the toolbar.
+If nothing appears when you draw, it is because you are not drawing on the screen at which you are currently looking.</p>
+<p>To disable drawing on a particular screen, uncheck the checkbox next to the appropriate button.</p>
+</div>
+</div>
+<div class="section" id="the-command-list">
+<h2>The command list<a class="headerlink" href="#the-command-list" title="Permalink to this headline">¶</a></h2>
+<p>In the picture editor Toolbox is the command list. It shows the commands around the current position in the editor.
+It can be used to move to another position by clicking on a command.</p>
+<img alt="_images/CommandList_Example.png" src="_images/CommandList_Example.png" />
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">For SCI1.1 pics, the pic command list is hidden by default, and instead the polygon list is shown. You can
+click on the <strong>Polygons</strong> or <strong>Commands</strong> tabs to switch between the two.</p>
+</div>
+<div class="section" id="deleting-commands">
+<h3>Deleting commands<a class="headerlink" href="#deleting-commands" title="Permalink to this headline">¶</a></h3>
+<p>Here you can select multiple commands and delete them, or crop all commands after a particular point.</p>
+</div>
+<div class="section" id="copying-and-pasting-commands">
+<h3>Copying and pasting commands<a class="headerlink" href="#copying-and-pasting-commands" title="Permalink to this headline">¶</a></h3>
+<p>More interestingly, you can also copy commands from here, and paste them into other pics - even in other running instances of <strong>SCI</strong>Companion - so you
+can copy and paste commands from one game into another. It takes some practise to select the correct set of commands to copy.
+Generally it is best to click on the command you want to start with, and then progressively scroll
+down the list and use the SHIFT-click to find the end command. Then click <strong>Copy</strong> at the top of the command list.</p>
+<p>When you paste a series of commands, they will be added to the pic in a special mode that allows you to reposition them.
+You may see strange behaviour as you move the drawing commands around the screen, but that is due to the vector nature of the commands.</p>
+<img alt="_images/CommandPaste_Example.png" src="_images/CommandPaste_Example.png" />
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">You can stretch or shrink the pasted commands using the arrow keys, and you can rotate them by dragging on the corners.</p>
+</div>
+</div>
+</div>
+<div class="section" id="the-fake-ego">
+<h2>The fake ego<a class="headerlink" href="#the-fake-ego" title="Permalink to this headline">¶</a></h2>
+<p><img alt="fakeego" src="_images/FakeEgoTool.png" /> This feature lets you superimpose an image of the ego (or any view resource in the game) onto the pic, and drag it around.
+It interacts with the priority screens, control lines and polygons, and can help you size elements of the picture correctly.</p>
+<img alt="_images/FakeEgo_Example.png" src="_images/FakeEgo_Example.png" />
+<p>By default, the view resource used for the &#8220;ego&#8221; is the one that is currently selected in the resource explorer.
+In the preferences dialog, you can also specify that a simple box should be used instead.
+You can also choose recent views from a dropdown list, or enter a view resource number manually.</p>
+<img alt="_images/FakeEgoList.png" src="_images/FakeEgoList.png" />
+<p>If nothing shows up when you turn on the fake ego, it may just be hidden behind a higher priority object in the picture.
+In that case, right clicking on the picture will center the ego under your mouse cursor.</p>
+<p>Right clicking on the fake ego offers a number of options with regards to how the ego interacts with the pic.</p>
+</div>
+<div class="section" id="priority-bands">
+<h2>Priority bands<a class="headerlink" href="#priority-bands" title="Permalink to this headline">¶</a></h2>
+<p>The priority bands (corresponding to the &#8220;depth layers&#8221;) can be toggled on and off with the priority lines <img alt="priline" src="_images/PriLineTool.png" /> button.
+They show the boundaries of the priority zones.</p>
+<img alt="_images/PriBands.jpg" src="_images/PriBands.jpg" />
+<p>In SCI1 and above, these priority bands are adjustable. To do so, click on the boundary between to priority bands just outside
+the right edge of the pic, and drag the boundary.</p>
+</div>
+<div class="section" id="tracing-image">
+<h2>Tracing image<a class="headerlink" href="#tracing-image" title="Permalink to this headline">¶</a></h2>
+<p>You can paste a bitmap into the pic editor, and it will be used as a tracing image. You can also open an image from a file <img alt="loadtrace" src="_images/LoadTraceImage.png" />.</p>
+<img alt="_images/TracingImage.jpg" src="_images/TracingImage.jpg" />
+<p>The tracing image can be turned on or off <img alt="toggletrace" src="_images/ToggleTraceImage.png" />, and its opacity can be set:</p>
+<img alt="_images/TraceOpacity.png" src="_images/TraceOpacity.png" />
+</div>
+<div class="section" id="transforming-coordinates">
+<h2>Transforming coordinates<a class="headerlink" href="#transforming-coordinates" title="Permalink to this headline">¶</a></h2>
+<p>If you realize you need to make some changes to an earlier portion of the pic, it can be tedious to scroll back to the desired position
+to make those modifications. Instead, you can change your line, fill and pen commands instantly with the Transform Coords mode <img alt="transform" src="_images/TransformCoords.png" />.</p>
+<p>This mode works in combination with a drawing tool (line, pen, fill or ellipse). When it&#8217;s active, the points that comprise the drawing commands
+in the area of the mouse cursor will &#8220;light up&#8221;. You can then click on them and drag them around.</p>
+<div class="figure" id="id6">
+<img alt="_images/TransformCoords_Example.png" src="_images/TransformCoords_Example.png" />
+<p class="caption"><span class="caption-text">Dragging the point between two lines to change the image</span></p>
+</div>
+</div>
+<div class="section" id="ega-pic-palettes">
+<h2>EGA pic palettes<a class="headerlink" href="#ega-pic-palettes" title="Permalink to this headline">¶</a></h2>
+<div class="admonition important">
+<p class="first admonition-title">Important</p>
+<p class="last">This section applies to SCI0 only</p>
+</div>
+<p>EGA pics support a fixed palette of 16 colors. However, dithering can be used to mix any two colors together.
+So the visual screen of EGA pics is actually drawn with a 40 color, customizable palette.</p>
+<div class="figure" id="id7">
+<img alt="_images/Dither.png" src="_images/Dither.png" />
+<p class="caption"><span class="caption-text">Hero&#8217;s Quest used dithering extensively.</span></p>
+</div>
+<p>Each pic can have up to 4 palettes of 40 colours, which can be switched during gameplay.
+Using different EGA palettes can be useful if you
+need the same pic resource to be used for both day and night scenes, for instance.</p>
+<div class="figure" id="id8">
+<img alt="_images/PaletteChooser.png" src="_images/PaletteChooser.png" />
+<p class="caption"><span class="caption-text">The 16 natural EGA colors on the bottom, and the 40 customizable dithered colors on top.</span></p>
+</div>
+<p>The palettes are chosen using the palette button <img alt="palette" src="_images/PaletteButton.png" /> in the toolbar.
+This brings up a dialog where you can assign colours to each of the 40 positions of each palette by right
+and left clicking on the source colours at the bottom. When you close the dialog, the palette is set in the command stream,
+at the particular spot in the pic. So you can change the palette many times through the sequence of commands that makes up the pic.</p>
+<div class="figure" id="id9">
+<img alt="_images/DayNight.png" src="_images/DayNight.png" />
+<p class="caption"><span class="caption-text">Comparison of day vs night scene in Quest for Glory. This uses the same pic resource rendered with different palettes.</span></p>
+</div>
+<div class="section" id="write-entire-palette">
+<h3>Write entire palette<a class="headerlink" href="#write-entire-palette" title="Permalink to this headline">¶</a></h3>
+<p>If you check this box, then the entire 40 colours are written into the pic&#8217;s command stream. This may seem inefficient,
+but it is may be the right thing to do, as the alternative has some often undesirable effects. If you only write the colours
+you changed to the command stream, then these colours become &#8220;locked&#8221;. That is, no matter which palette the game uses to draw the pic,
+that colour index will always be drawn with palette 0&#8217;s colour.</p>
+</div>
+<div class="section" id="preview-palette">
+<h3>Preview palette<a class="headerlink" href="#preview-palette" title="Permalink to this headline">¶</a></h3>
+<p>Generally, you insert palette commands at a particular spot in the pic (e.g. near the beginning).
+If you want to see what the final result looks like as you try out different colours, you can check the preview palette box.
+It will temporarily move the position of the pic to the end, while you manipulate the colours.</p>
+</div>
+</div>
+<div class="section" id="converting-a-bitmap-to-a-vector-drawing-sci0">
+<h2>Converting a bitmap to a vector drawing (SCI0)<a class="headerlink" href="#converting-a-bitmap-to-a-vector-drawing-sci0" title="Permalink to this headline">¶</a></h2>
+<div class="admonition important">
+<p class="first admonition-title">Important</p>
+<p class="last">This section applies to SCI0 only</p>
+</div>
+<p><strong>SCI</strong>Companion has the ability to take an image file (or an image from the clipboard) and convert it into vector commands
+that can be added to your pic.</p>
+<div class="figure" id="id10">
+<img alt="_images/ConvertBitmap.jpg" src="_images/ConvertBitmap.jpg" />
+<p class="caption"><span class="caption-text">The Convert Bitmap dialog</span></p>
+</div>
+<p>The conversion process works as follows:</p>
+<ol class="arabic simple">
+<li>Choose <em>Pic-&gt;Import bitmap to pic</em>. This will open a dialog. If an image is on the clipboard, it will appear on the left. Otherwise, open an image using the Browse button.</li>
+<li>Adjust the picture using the Brightness, Contrast and Saturation controls.</li>
+<li>Click the <em>Convert</em> button. A progress bar will animate as the conversion takes place, and the resulting image will appear on the right.</li>
+<li>Check the image size - is it small enough to be a SCI0 pic resource? (less than 64000 bytes)</li>
+<li>The options on the right control the conversion process - which colours are allowed, and how many to use. Selecting different options can have a big effect on picture size.</li>
+<li>Once you are satisfied with the result, click <em>Accept</em>. The vector commands that make up the image will be added to your pic at the current location.</li>
+</ol>
+</div>
+<div class="section" id="importing-a-vga-pic-background-sci1">
+<h2>Importing a VGA pic background (SCI1+)<a class="headerlink" href="#importing-a-vga-pic-background-sci1" title="Permalink to this headline">¶</a></h2>
+<div class="admonition important">
+<p class="first admonition-title">Important</p>
+<p class="last">This section applies to SCI1 and up only</p>
+</div>
+<p>VGA pics can use bitmapped graphics for the visual screen. To set the background for a VGA pic, click on <em>Set background</em> in the Toolbox pane, or
+choose <em>Pic-&gt;Import bitmap to pic</em>.</p>
+<div class="figure" id="id11">
+<img alt="_images/ImportBackground.jpg" src="_images/ImportBackground.jpg" />
+<p class="caption"><span class="caption-text">The Import Background dialog</span></p>
+</div>
+<p>You&#8217;ll note that this looks fairly similar to <a class="reference internal" href="views.html#importimages-label"><span>Import Image</span></a> dialog for view resources. As in that case, you have
+three palette options:</p>
+<ol class="arabic simple">
+<li>You can have <strong>SCI</strong>Companion generate a palette automatically, replacing the selected colors of the existing palette of the pic</li>
+<li>You can try to map colors to selected colors of the existing palette (using either RGB or CCIR color matching)</li>
+<li>You can use the palette included in the image file, if available (for instance, .gif files may include a palette).</li>
+</ol>
+<p>You also have control over which palette indices are actually used. One difference is that by default, the &#8220;non-fixed&#8221; palette indices
+from palette 999 are used. This is generally what is desired for pic backgrounds.</p>
+<p>If you want to customize which indices are used, you can check or uncheck the <em>Only use x free palette entries</em> checkbox to quickly control which palette indices are used, or you can manually
+select them in the palette and press the refresh button.</p>
+<p>There is also an option to overlay an image onto an already existing background (this can be useful for things like <a class="reference internal" href="palettecycling.html"><em>palette cycling</em></a>),
+in addition to all the same dithering options available in the <a class="reference internal" href="views.html#importimages-label"><span>Import Image</span></a> dialog.</p>
+</div>
+<div class="section" id="editing-a-vga-pic-palette">
+<h2>Editing a VGA pic palette<a class="headerlink" href="#editing-a-vga-pic-palette" title="Permalink to this headline">¶</a></h2>
+<div class="admonition important">
+<p class="first admonition-title">Important</p>
+<p class="last">This section applies to SCI1 and up only</p>
+</div>
+<p>The current palette for VGA pics is shown at the bottom of the Toolbox pane, below the command and polygon lists.</p>
+<p>Choose <em>Pic-&gt;Edit palette</em> or click the palette button <img alt="palette" src="_images/PaletteButton.png" /> in the Toolbox pane to invoke the Palette Editor dialog.
+See the section on <a class="reference internal" href="palettes.html"><em>palettes</em></a> for more information on the Palette Editor dialog.</p>
+</div>
+<div class="section" id="polygons">
+<h2>Polygons<a class="headerlink" href="#polygons" title="Permalink to this headline">¶</a></h2>
+<div class="admonition important">
+<p class="first admonition-title">Important</p>
+<p class="last">This section applies to SCI1.1 only</p>
+</div>
+<p>Polygons are essential to SCI1.1 games, and there is a lot to discuss. Therefore, they get their own <a class="reference internal" href="polygons.html"><em>polygon page</em></a>.</p>
+</div>
+<div class="section" id="changing-a-pic-s-height">
+<h2>Changing a pic&#8217;s height<a class="headerlink" href="#changing-a-pic-s-height" title="Permalink to this headline">¶</a></h2>
+<div class="admonition important">
+<p class="first admonition-title">Important</p>
+<p class="last">This section applies to SCI1.1 only</p>
+</div>
+<p>Pics are generally 190 pixels tall. However, they can be extended to 200 pixels if you want to use them in a scene in the game
+where the icon bar won&#8217;t be shown. To do so, choose <em>Pic-&gt;Change height</em> and input the new height. After doing this, you will
+need to reimport a background image in order to officially set the height.</p>
+</div>
+<div class="section" id="pic-helper-pane">
+<h2>Pic helper pane<a class="headerlink" href="#pic-helper-pane" title="Permalink to this headline">¶</a></h2>
+<p>On the right side of the Pic Editor is a pane that shows two views.</p>
+<img alt="_images/PicHelper.jpg" src="_images/PicHelper.jpg" />
+<p>The top view (labelled <strong>Zoom</strong>) shows a zoomed in view of the region that the mouse cursor is currently in. This is useful
+when you need very careful pixel placement.</p>
+<p>The bottom view (labelled <strong>Final</strong>) shows what the completed pic looks like. If the pic position slider is already at the
+end of the pic command list, then this will be identical to the main view. However, if you&#8217;ve scrolled back to an earlier position
+in the list pic commands to change something or fix something, this can give you a preview of what the final result will look like.</p>
+<p>For both these views, you can set them to show the visual, priority or control screens, or to just follow whatever screen is showing
+in the main view. Showing different screens can be very useful when you&#8217;re trying to line something on the control screen up with
+something in the visual background.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="polygons.html" class="btn btn-neutral float-right" title="Polygons" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="selectionandresize.html" class="btn btn-neutral" title="Selection and Resizing" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Phil Fortier.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'3.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

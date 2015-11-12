@@ -1,0 +1,522 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Kernel Functions &mdash; SCICompanion 3.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="SCICompanion 3.0 documentation" href="index.html"/>
+        <link rel="next" title="Abs (Kernel)" href="Kernels/Abs.html"/>
+        <link rel="prev" title="TextPrint (Print.sc)" href="Procedures/TextPrint.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> SCICompanion
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                3.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="views.html">View Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pics.html">Pic Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">Script editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classlibrary.html">The SCI1.1 class library</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Kernel Functions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/Abs.html">Abs (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/AddAfter.html">AddAfter (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/AddMenu.html">AddMenu (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/AddToEnd.html">AddToEnd (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/AddToFront.html">AddToFront (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/AddToPic.html">AddToPic (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/Animate.html">Animate (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/AssertPalette.html">AssertPalette (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/ATan.html">ATan (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/AvoidPath.html">AvoidPath (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/BaseSetter.html">BaseSetter (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/CanBeHere.html">CanBeHere (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/CantBeHere.html">CantBeHere (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/CelHigh.html">CelHigh (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/CelWide.html">CelWide (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/CheckFreeSpace.html">CheckFreeSpace (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/CheckSaveGame.html">CheckSaveGame (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/Clone.html">Clone (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/CoordPri.html">CoordPri (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/CosDiv.html">CosDiv (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/CosMult.html">CosMult (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/DbugStr.html">DbugStr (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/DeleteKey.html">DeleteKey (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/DeviceInfo.html">DeviceInfo (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/DirLoop.html">DirLoop (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/Display.html">Display (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/DisposeClone.html">DisposeClone (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/DisposeList.html">DisposeList (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/DisposeScript.html">DisposeScript (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/DisposeWindow.html">DisposeWindow (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/DoAudio.html">DoAudio (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/DoAvoider.html">DoAvoider (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/DoBresen.html">DoBresen (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/DoSound.html">DoSound (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/DoSync.html">DoSync (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/DrawCel.html">DrawCel (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/DrawControl.html">DrawControl (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/DrawMenuBar.html">DrawMenuBar (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/DrawPic.html">DrawPic (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/DrawStatus.html">DrawStatus (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/EditControl.html">EditControl (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/EmptyList.html">EmptyList (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/FClose.html">FClose (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/FGets.html">FGets (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/FileIO.html">FileIO (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/FindKey.html">FindKey (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/FirstNode.html">FirstNode (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/FlushResources.html">FlushResources (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/FOpen.html">FOpen (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/Format.html">Format (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/FPuts.html">FPuts (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/GameIsRestarting.html">GameIsRestarting (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/GetAngle.html">GetAngle (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/GetCWD.html">GetCWD (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/GetDistance.html">GetDistance (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/GetEvent.html">GetEvent (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/GetFarText.html">GetFarText (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/GetMenu.html">GetMenu (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/GetPort.html">GetPort (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/GetSaveDir.html">GetSaveDir (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/GetSaveFiles.html">GetSaveFiles (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/GetTime.html">GetTime (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/GlobalToLocal.html">GlobalToLocal (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/Graph.html">Graph (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/HaveMouse.html">HaveMouse (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/HiliteControl.html">HiliteControl (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/InitBresen.html">InitBresen (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/InspectObj.html">InspectObj (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/IsItSkip.html">IsItSkip (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/IsObject.html">IsObject (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/Joystick.html">Joystick (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/LastNode.html">LastNode (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/ListOps.html">ListOps (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/Load.html">Load (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/LocalToGlobal.html">LocalToGlobal (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/Lock.html">Lock (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/MapKeyToDir.html">MapKeyToDir (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/Memory.html">Memory (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/MemoryInfo.html">MemoryInfo (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/MemorySegment.html">MemorySegment (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/MenuSelect.html">MenuSelect (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/MergePoly.html">MergePoly (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/Message.html">Message (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/NewList.html">NewList (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/NewNode.html">NewNode (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/NewWindow.html">NewWindow (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/NextNode.html">NextNode (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/NodeValue.html">NodeValue (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/NumCels.html">NumCels (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/NumLoops.html">NumLoops (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/OnControl.html">OnControl (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/Palette.html">Palette (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/PalVary.html">PalVary (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/Parse.html">Parse (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/PicNotValid.html">PicNotValid (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/Platform.html">Platform (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/PlayBack.html">PlayBack (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/PrevNode.html">PrevNode (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/Profiler.html">Profiler (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/Random.html">Random (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/ReadNumber.html">ReadNumber (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/Record.html">Record (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/ResCheck.html">ResCheck (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/RespondsTo.html">RespondsTo (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/RestartGame.html">RestartGame (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/RestoreGame.html">RestoreGame (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/Said.html">Said (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/SaveGame.html">SaveGame (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/ScriptID.html">ScriptID (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/SetCursor.html">SetCursor (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/SetDebug.html">SetDebug (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/SetJump.html">SetJump (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/SetMenu.html">SetMenu (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/SetNowSeen.html">SetNowSeen (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/SetPort.html">SetPort (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/SetQuitStr.html">SetQuitStr (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/SetSynonyms.html">SetSynonyms (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/SetVideoMode.html">SetVideoMode (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/ShakeScreen.html">ShakeScreen (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/ShiftScreen.html">ShiftScreen (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/Show.html">Show (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/ShowFree.html">ShowFree (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/ShowMovie.html">ShowMovie (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/ShowObjs.html">ShowObjs (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/ShowSends.html">ShowSends (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/SinDiv.html">SinDiv (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/SinMult.html">SinMult (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/Sort.html">Sort (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/Sqrt.html">Sqrt (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/StackUsage.html">StackUsage (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/StrAt.html">StrAt (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/StrCat.html">StrCat (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/StrCmp.html">StrCmp (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/StrCpy.html">StrCpy (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/StrEnd.html">StrEnd (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/StrLen.html">StrLen (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/StrSplit.html">StrSplit (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/TextColors.html">TextColors (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/TextFonts.html">TextFonts (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/TextSize.html">TextSize (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/UnLoad.html">UnLoad (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/ValidPath.html">ValidPath (Kernel)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="Kernels/Wait.html">Wait (Kernel)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="sci_compiler.html">The SCI Compiler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="texts.html">Text Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="messages.html">Message editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sounds.html">Sound Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vocabs.html">Vocabs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fonts.html">Font Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cursors.html">Cursor Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="palettes.html">VGA Palette Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="audio.html">Digital Audio</a></li>
+<li class="toctree-l1"><a class="reference internal" href="outputpane.html">Output Pane</a></li>
+<li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugger</a></li>
+<li class="toctree-l1"><a class="reference internal" href="undo.html">Undo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspectratio.html">Aspect Ratio</a></li>
+<li class="toctree-l1"><a class="reference internal" href="palettecycling.html">Palette cycling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="anatomy.html">Anatomy of an SCI game</a></li>
+<li class="toctree-l1"><a class="reference internal" href="decompiler.html">Decompiler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preferences.html">Preferences</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gameversion.html">Game/Interpreter Versions</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">SCICompanion</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Kernel Functions</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/sci_kernels.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="kernel-functions">
+<h1>Kernel Functions<a class="headerlink" href="#kernel-functions" title="Permalink to this headline">¶</a></h1>
+<p>Kernel functions are routines built into the interpreter that can be called from scripts.
+They are essential as they do the graphic drawing, window handling, text printing, file I / O, and everything else you need.
+The number of kernel functions vary from intepreter versions, but in the interpreter for the SCI0 template game, there are 114. In the SCI1.1
+interpreter there are 136.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/Abs.html">Abs (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/AddAfter.html">AddAfter (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/AddMenu.html">AddMenu (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/AddToEnd.html">AddToEnd (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/AddToFront.html">AddToFront (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/AddToPic.html">AddToPic (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/Animate.html">Animate (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/AssertPalette.html">AssertPalette (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/ATan.html">ATan (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/AvoidPath.html">AvoidPath (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/BaseSetter.html">BaseSetter (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/CanBeHere.html">CanBeHere (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/CantBeHere.html">CantBeHere (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/CelHigh.html">CelHigh (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/CelWide.html">CelWide (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/CheckFreeSpace.html">CheckFreeSpace (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/CheckSaveGame.html">CheckSaveGame (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/Clone.html">Clone (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/CoordPri.html">CoordPri (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/CosDiv.html">CosDiv (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/CosMult.html">CosMult (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/DbugStr.html">DbugStr (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/DeleteKey.html">DeleteKey (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/DeviceInfo.html">DeviceInfo (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/DirLoop.html">DirLoop (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/Display.html">Display (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/DisposeClone.html">DisposeClone (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/DisposeList.html">DisposeList (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/DisposeScript.html">DisposeScript (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/DisposeWindow.html">DisposeWindow (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/DoAudio.html">DoAudio (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/DoAvoider.html">DoAvoider (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/DoBresen.html">DoBresen (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/DoSound.html">DoSound (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/DoSync.html">DoSync (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/DrawCel.html">DrawCel (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/DrawControl.html">DrawControl (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/DrawMenuBar.html">DrawMenuBar (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/DrawPic.html">DrawPic (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/DrawStatus.html">DrawStatus (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/EditControl.html">EditControl (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/EmptyList.html">EmptyList (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/FClose.html">FClose (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/FGets.html">FGets (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/FileIO.html">FileIO (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/FindKey.html">FindKey (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/FirstNode.html">FirstNode (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/FlushResources.html">FlushResources (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/FOpen.html">FOpen (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/Format.html">Format (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/FPuts.html">FPuts (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/GameIsRestarting.html">GameIsRestarting (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/GetAngle.html">GetAngle (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/GetCWD.html">GetCWD (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/GetDistance.html">GetDistance (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/GetEvent.html">GetEvent (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/GetFarText.html">GetFarText (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/GetMenu.html">GetMenu (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/GetPort.html">GetPort (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/GetSaveDir.html">GetSaveDir (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/GetSaveFiles.html">GetSaveFiles (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/GetTime.html">GetTime (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/GlobalToLocal.html">GlobalToLocal (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/Graph.html">Graph (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/HaveMouse.html">HaveMouse (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/HiliteControl.html">HiliteControl (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/InitBresen.html">InitBresen (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/InspectObj.html">InspectObj (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/IsItSkip.html">IsItSkip (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/IsObject.html">IsObject (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/Joystick.html">Joystick (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/LastNode.html">LastNode (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/ListOps.html">ListOps (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/Load.html">Load (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/LocalToGlobal.html">LocalToGlobal (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/Lock.html">Lock (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/MapKeyToDir.html">MapKeyToDir (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/Memory.html">Memory (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/MemoryInfo.html">MemoryInfo (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/MemorySegment.html">MemorySegment (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/MenuSelect.html">MenuSelect (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/MergePoly.html">MergePoly (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/Message.html">Message (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/NewList.html">NewList (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/NewNode.html">NewNode (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/NewWindow.html">NewWindow (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/NextNode.html">NextNode (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/NodeValue.html">NodeValue (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/NumCels.html">NumCels (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/NumLoops.html">NumLoops (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/OnControl.html">OnControl (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/Palette.html">Palette (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/PalVary.html">PalVary (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/Parse.html">Parse (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/PicNotValid.html">PicNotValid (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/Platform.html">Platform (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/PlayBack.html">PlayBack (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/PrevNode.html">PrevNode (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/Profiler.html">Profiler (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/Random.html">Random (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/ReadNumber.html">ReadNumber (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/Record.html">Record (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/ResCheck.html">ResCheck (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/RespondsTo.html">RespondsTo (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/RestartGame.html">RestartGame (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/RestoreGame.html">RestoreGame (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/Said.html">Said (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/SaveGame.html">SaveGame (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/ScriptID.html">ScriptID (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/SetCursor.html">SetCursor (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/SetDebug.html">SetDebug (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/SetJump.html">SetJump (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/SetMenu.html">SetMenu (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/SetNowSeen.html">SetNowSeen (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/SetPort.html">SetPort (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/SetQuitStr.html">SetQuitStr (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/SetSynonyms.html">SetSynonyms (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/SetVideoMode.html">SetVideoMode (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/ShakeScreen.html">ShakeScreen (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/ShiftScreen.html">ShiftScreen (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/Show.html">Show (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/ShowFree.html">ShowFree (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/ShowMovie.html">ShowMovie (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/ShowObjs.html">ShowObjs (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/ShowSends.html">ShowSends (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/SinDiv.html">SinDiv (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/SinMult.html">SinMult (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/Sort.html">Sort (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/Sqrt.html">Sqrt (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/StackUsage.html">StackUsage (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/StrAt.html">StrAt (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/StrCat.html">StrCat (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/StrCmp.html">StrCmp (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/StrCpy.html">StrCpy (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/StrEnd.html">StrEnd (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/StrLen.html">StrLen (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/StrSplit.html">StrSplit (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/TextColors.html">TextColors (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/TextFonts.html">TextFonts (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/TextSize.html">TextSize (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/UnLoad.html">UnLoad (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/ValidPath.html">ValidPath (Kernel)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="Kernels/Wait.html">Wait (Kernel)</a></li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="Kernels/Abs.html" class="btn btn-neutral float-right" title="Abs (Kernel)" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="Procedures/TextPrint.html" class="btn btn-neutral" title="TextPrint (Print.sc)" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Phil Fortier.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'3.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

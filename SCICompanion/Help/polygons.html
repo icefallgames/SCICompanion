@@ -1,0 +1,359 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Polygons &mdash; SCICompanion 3.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="SCICompanion 3.0 documentation" href="index.html"/>
+        <link rel="up" title="Pic Editor" href="pics.html"/>
+        <link rel="next" title="Script editor" href="scripts.html"/>
+        <link rel="prev" title="Pic Editor" href="pics.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> SCICompanion
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                3.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="views.html">View Editor</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="pics.html">Pic Editor</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="">Polygons</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#drawing-polygons-in-the-pic-editor">Drawing polygons in the Pic Editor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#editing-polygons">Editing polygons</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#polygon-types">Polygon types</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scripting">Scripting</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#default-unanmed-polygons">Default (unanmed) polygons</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#named-polygons">Named polygons</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="pics.html#priority-screen">Priority screen</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pics.html#control-screen">Control screen</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pics.html#moving-around">Moving around</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pics.html#drawing-tools">Drawing tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pics.html#the-command-list">The command list</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pics.html#the-fake-ego">The fake ego</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pics.html#priority-bands">Priority bands</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pics.html#tracing-image">Tracing image</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pics.html#transforming-coordinates">Transforming coordinates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pics.html#ega-pic-palettes">EGA pic palettes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pics.html#converting-a-bitmap-to-a-vector-drawing-sci0">Converting a bitmap to a vector drawing (SCI0)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pics.html#importing-a-vga-pic-background-sci1">Importing a VGA pic background (SCI1+)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pics.html#editing-a-vga-pic-palette">Editing a VGA pic palette</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pics.html#polygons">Polygons</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pics.html#changing-a-pic-s-height">Changing a pic&#8217;s height</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pics.html#pic-helper-pane">Pic helper pane</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">Script editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classlibrary.html">The SCI1.1 class library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sci_kernels.html">Kernel Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sci_compiler.html">The SCI Compiler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="texts.html">Text Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="messages.html">Message editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sounds.html">Sound Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vocabs.html">Vocabs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fonts.html">Font Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cursors.html">Cursor Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="palettes.html">VGA Palette Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="audio.html">Digital Audio</a></li>
+<li class="toctree-l1"><a class="reference internal" href="outputpane.html">Output Pane</a></li>
+<li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugger</a></li>
+<li class="toctree-l1"><a class="reference internal" href="undo.html">Undo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspectratio.html">Aspect Ratio</a></li>
+<li class="toctree-l1"><a class="reference internal" href="palettecycling.html">Palette cycling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="anatomy.html">Anatomy of an SCI game</a></li>
+<li class="toctree-l1"><a class="reference internal" href="decompiler.html">Decompiler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preferences.html">Preferences</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gameversion.html">Game/Interpreter Versions</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">SCICompanion</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="pics.html">Pic Editor</a> &raquo;</li>
+      
+    <li>Polygons</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/polygons.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="polygons">
+<h1>Polygons<a class="headerlink" href="#polygons" title="Permalink to this headline">¶</a></h1>
+<blockquote>
+<div><div class="admonition important">
+<p class="first admonition-title">Important</p>
+<p class="last">This section applies to SCI1.1 only</p>
+</div>
+</div></blockquote>
+<p>Polygons are used for a several reasons in SCI1.1:</p>
+<ul class="simple">
+<li>Mainly, they are used for the pathfinding algorithms to delineate areas that the ego can&#8217;t enter (or to which it is constrained).</li>
+<li>For hit testing static objects in the game</li>
+<li>To move an actor along a path</li>
+</ul>
+<div class="figure" id="id1">
+<img alt="_images/SQ5Polygon.png" src="_images/SQ5Polygon.png" />
+<p class="caption"><span class="caption-text">A contained access polygon used in room 117 in Space Quest 5.</span></p>
+</div>
+<p>Polygons are not actually part of pic resource itself, they are added in code. <strong>SCI</strong>Companion, however, streamlines this
+workflow significantly for you so that it&#8217;s nearly transparent.</p>
+<div class="section" id="drawing-polygons-in-the-pic-editor">
+<h2>Drawing polygons in the Pic Editor<a class="headerlink" href="#drawing-polygons-in-the-pic-editor" title="Permalink to this headline">¶</a></h2>
+<p>To draw polygons, click on the polygon tool <img alt="polygon" src="_images/PolygonTool.png" />.</p>
+<p>The cursor will change, and you will be able to start drawing lines by left-clicking. Left-clicking on the first point of the polygon
+will complete that polygon. Alternatively, you can right-click anywhere to complete the polygon. Once a polygon is completed, it is added
+to the polygon list in the Toolbox pane.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The winding order (clockwise or counterclockwise) of polygon points <em>does</em> matter, but <strong>SCI</strong>Companion will automatically fix this up for you.</p>
+</div>
+</div>
+<div class="section" id="editing-polygons">
+<h2>Editing polygons<a class="headerlink" href="#editing-polygons" title="Permalink to this headline">¶</a></h2>
+<p>To select a polygon, select its name in the polygon list. You will then be able to drag the points of the polygon to modify its shape.
+You can also right-click on a point to delete it, or right-click on an edge to split that edge.</p>
+<p>The polygon points are shown in the edit box below the polygon list. You can copy and paste from this edit box. This is handy if you&#8217;re copying and pasting polygon points from scripts.
+When you change the points in the edit box, you need to press the upload button <img alt="upload" src="_images/Upload.png" /> to push them back to the selected polygon.</p>
+</div>
+<div class="section" id="polygon-types">
+<h2>Polygon types<a class="headerlink" href="#polygon-types" title="Permalink to this headline">¶</a></h2>
+<p>There are four polygon types in SCI. The type of a polygon is important when the polygon is used for pathfinding.</p>
+<ul class="simple">
+<li><strong>Barred Access</strong> polygons are avoided during pathfinding. They represent areas the ego can&#8217;t enter.</li>
+<li><strong>Contained Access</strong> polygons represent an area that the ego is confined to. It usually only makes sense to have a single Contained Access polygon in a room.</li>
+<li><strong>Total Access</strong> polygons are avoided during pathfinding, unless the destination lies inside the polygon. This is useful if a special game event would be triggered if the ego
+stepped into the Total Access polygon and you only want that to happen if the ego is <em>explicitly</em> sent to that location by the player.</li>
+<li><strong>Nearest Access</strong> polygons (like Total Access polygons) are avoided during pathfinding unless the destination is in the polygon.
+When entering or leaving a Nearest Access polygon, the ego enters/leaves from the closest point on the polygon edge.</li>
+</ul>
+</div>
+<div class="section" id="scripting">
+<h2>Scripting<a class="headerlink" href="#scripting" title="Permalink to this headline">¶</a></h2>
+<p>When you save a pic resource, its polygons are also saved into an <em>nnn</em>.shp script header file (where nnn is the pic number). This file is automatically
+written to and read from by the Pic Editor.</p>
+<div class="section" id="default-unanmed-polygons">
+<h3>Default (unanmed) polygons<a class="headerlink" href="#default-unanmed-polygons" title="Permalink to this headline">¶</a></h3>
+<p>The most common use case for polygons is to set up static pathfinding boundaries for a room. In that case, don&#8217;t give polygons a name. They will
+be added to the list of default polygons for a room, which will be contained in a P_Default<em>nnn</em> script variable in the .shp file for that room.
+When you create a new room in <strong>SCI</strong>Companion, the .shp file will be included from the room script, and follow code is added for you in the room&#8217;s init method
+(in this example the room number is 110):</p>
+<div class="highlight-python"><div class="highlight"><pre>AddPolygonsToRoom(@P_Default110)
+</pre></div>
+</div>
+<p>And if you look in 110.shp, you might see something like this:</p>
+<div class="highlight-python"><div class="highlight"><pre>// 110.shp -- Produced by SCI Companion
+// This file should only be edited with the SCI Companion polygon editor
+
+(local
+    P_Default110[15] = (1 PContainedAccess 21 171 137 180 137 179 128 113 136 23 142 3 149 )
+)
+</pre></div>
+</div>
+<p>The point being, after you have add or modified any default polygons in the pic, all you need to do is recompile the scripts that use the
+pic&#8217;s .shp file, and you&#8217;re good to go. You shouldn&#8217;t need to touch any code.</p>
+</div>
+<div class="section" id="named-polygons">
+<h3>Named polygons<a class="headerlink" href="#named-polygons" title="Permalink to this headline">¶</a></h3>
+<p>Sometimes you&#8217;ll need to give polygons names so you can refer to them directly in code. This is useful if the polygon defines
+the boundary of a clickable feature, say, or if you need to dynamically add pathfinding boundaries depending on some game state.</p>
+<p>To do so, select a polygon, type in its name in the Name edit box, and press the upload button <img alt="upload" src="_images/Upload.png" />. In that case, assuming you called one
+polygon &#8220;Waterfall&#8221; and another one &#8220;Lake&#8221;, you might end up with something like this
+in the .shp file:</p>
+<div class="highlight-python"><div class="highlight"><pre>// 110.shp -- Produced by SCI Companion
+// This file should only be edited with the SCI Companion polygon editor
+
+(local
+    P_Default110[15] = (1 PContainedAccess 21 171 137 180 137 179 128 113 136 23 142 3 149 )
+    P_Waterfall[13] = (1 PBarredAccess 5 163 145 181 46 193 27 226 21 230 146 )
+    P_Lake[19] = (1 PBarredAccess 8 310 152 313 161 254 172 128 169 35 160 36 152 94 148 157 147 )
+)
+</pre></div>
+</div>
+<p>In script, you can assign the polygon to a feature&#8217;s &#8220;onMeCheck&#8221; like this:</p>
+<div class="highlight-python"><div class="highlight"><pre>(lake:
+    setOnMeCheck(omcPOLYGON CreateNewPolygon(@P_Lake))
+    init()
+)
+</pre></div>
+</div>
+<p>Note that any named polygons will <em>not</em> appear in the default polygons for that room.</p>
+<p>If you need to remove the name of a polygon to set it back to being a &#8220;default polygon&#8221;, just give it a blank name.</p>
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="scripts.html" class="btn btn-neutral float-right" title="Script editor" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="pics.html" class="btn btn-neutral" title="Pic Editor" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Phil Fortier.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'3.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

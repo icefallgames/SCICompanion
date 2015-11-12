@@ -1,0 +1,294 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Talkers and Narrators &mdash; SCICompanion 3.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="SCICompanion 3.0 documentation" href="index.html"/>
+        <link rel="up" title="Message editor" href="messages.html"/>
+        <link rel="next" title="Sound Editor" href="sounds.html"/>
+        <link rel="prev" title="Audio file management." href="audiofiles.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> SCICompanion
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                3.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="views.html">View Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pics.html">Pic Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">Script editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classlibrary.html">The SCI1.1 class library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sci_kernels.html">Kernel Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sci_compiler.html">The SCI Compiler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="texts.html">Text Editor</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="messages.html">Message editor</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="messageaudio.html">Message Speech</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="">Talkers and Narrators</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#adding-a-talker">Adding a Talker</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#views-for-a-talker">Views for a Talker</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="messages.html#what-s-in-a-message">What&#8217;s in a message</a></li>
+<li class="toctree-l2"><a class="reference internal" href="messages.html#speech">Speech</a></li>
+<li class="toctree-l2"><a class="reference internal" href="messages.html#special-encodings">Special encodings</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="sounds.html">Sound Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vocabs.html">Vocabs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fonts.html">Font Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cursors.html">Cursor Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="palettes.html">VGA Palette Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="audio.html">Digital Audio</a></li>
+<li class="toctree-l1"><a class="reference internal" href="outputpane.html">Output Pane</a></li>
+<li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugger</a></li>
+<li class="toctree-l1"><a class="reference internal" href="undo.html">Undo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspectratio.html">Aspect Ratio</a></li>
+<li class="toctree-l1"><a class="reference internal" href="palettecycling.html">Palette cycling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="anatomy.html">Anatomy of an SCI game</a></li>
+<li class="toctree-l1"><a class="reference internal" href="decompiler.html">Decompiler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preferences.html">Preferences</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gameversion.html">Game/Interpreter Versions</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">SCICompanion</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="messages.html">Message editor</a> &raquo;</li>
+      
+    <li>Talkers and Narrators</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/talkers.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="admonition important">
+<p class="first admonition-title">Important</p>
+<p class="last">This section applies to SCI 1.1 only</p>
+</div>
+<div class="section" id="talkers-and-narrators">
+<h1>Talkers and Narrators<a class="headerlink" href="#talkers-and-narrators" title="Permalink to this headline">¶</a></h1>
+<p>Talkers and Narrators are responsible for delivering the in-game text and speech. They describe how
+in-game text (and possibly speech) is delivered: the font, text color, dialog shape, and so on.</p>
+<p>A Talker offers additional functionality over a Narrator: it shows a bust, blinking eyes and moving mouth
+to go along with the text and/or speech.</p>
+<div class="figure" id="id1">
+<img alt="_images/KQ6Narrator.png" src="_images/KQ6Narrator.png" />
+<p class="caption"><span class="caption-text">A Narrator from King&#8217;s Quest 6. This one customizes things by using gothic lettering for the first letter.</span></p>
+</div>
+<div class="figure" id="id2">
+<img alt="_images/KQ6Talker.png" src="_images/KQ6Talker.png" />
+<p class="caption"><span class="caption-text">The main character&#8217;s Talker from King&#8217;s Quest 6.</span></p>
+</div>
+<p>The SCI 1.1 template game comes with a default Narrator in the main.sc script. It is talker number 99, or N_NARRATOR.
+Talkers and Narrators are numbered from the same 0-99 namespace, defined in Talkers.sh and editable in the
+message editor. Throughout most of this documentation the term Talker is used to refer to both Talkers and Narrators,
+as they are both the same from the point of view of the message editor and most game code.</p>
+<div class="section" id="adding-a-talker">
+<h2>Adding a Talker<a class="headerlink" href="#adding-a-talker" title="Permalink to this headline">¶</a></h2>
+<p>To add a new Talker to your game, you&#8217;ll need to complete the following steps:</p>
+<ol class="arabic simple">
+<li>In the message editor (for any message resource), assign a new talker name to a new number in the <em>Global Talkers</em> pane. Once this is done, it will be in <strong>Talkers.sh</strong> and you will be able to create message entries with this Talker name.</li>
+<li>Choose a script in which to implement your Talker. If the Talker only ever appears in one room, you may as well just define it in that room. Otherwise, you can create a new empty script just for this Talker.</li>
+<li>In your chosen script, create the Talker (or Narrator) instance and customize as necessary. Then add the instance to the list of exports for that script (using the <code class="xref doc docutils literal"><span class="pre">exports</span></code> keyword).</li>
+<li>In the main.sc script, find the <em>findTalker</em> method in the <em>testMessager</em> instance, and insert a new case in the switch statement for <em>talkerNumber</em>. The case value should be the talker name you used in step 1. In this case statement, call ScriptID kernel with the script number you chose in step 2, and the export number you chose in step 3.</li>
+<li>Finally, <em>if</em> you chose a new script in step 2, you&#8217;ll need to add this script number to the list of scripts to dispose on a room change in <strong>dispose.sc</strong>.</li>
+</ol>
+<p>If this is a Talker and not a Narrator, now you will need to draw <a class="reference internal" href="views.html"><em>views</em></a> that comprise the bust, mouth and eyes. In the same script
+as your Talker instance, you&#8217;ll need to create <em>Props</em> for the bust, mouth and eyes that reference the view you created. Then you&#8217;ll need to assign them to the Talker in
+the Talker&#8217;s <em>init</em> method.</p>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">You can right-click in the script editor and choose <em>Insert Object -&gt; Talker</em></p>
+</div>
+</div>
+<div class="section" id="views-for-a-talker">
+<h2>Views for a Talker<a class="headerlink" href="#views-for-a-talker" title="Permalink to this headline">¶</a></h2>
+<p>When creating a view for a Talker, it will generally consist of three loops:</p>
+<ol class="arabic simple">
+<li>The bust (the overall Talker image, possibly including a frame).</li>
+<li>The mouth, which consists of a series of mouth shapes that are overlaid on the bust. This is especially important if your Talker uses speech and lip-syncing.</li>
+<li>The eyes, which consists of different eye movements overlaid on the bust.</li>
+</ol>
+<div class="figure" id="id3">
+<img alt="_images/EcoBoy.png" src="_images/EcoBoy.png" />
+<p class="caption"><span class="caption-text">An example of a view used for a Talker in EcoQuest.</span></p>
+</div>
+<p>Your Talker instance&#8217;s <em>init</em> method is used to assign the mouth, bust and eye props. You&#8217;ll need to position these three Props manually in order to align them with each other.
+You can do this either in
+the Talker&#8217;s init method, or using the default property values in your mouth/bust/eye Props.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="sounds.html" class="btn btn-neutral float-right" title="Sound Editor" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="audiofiles.html" class="btn btn-neutral" title="Audio file management." accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Phil Fortier.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'3.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,422 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>View Editor &mdash; SCICompanion 3.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="SCICompanion 3.0 documentation" href="index.html"/>
+        <link rel="next" title="Drawing tools for views, fonts and cursors" href="rastertools.html"/>
+        <link rel="prev" title="Getting Started" href="intro.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> SCICompanion
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                3.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">View Editor</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="rastertools.html">Drawing tools for views, fonts and cursors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="selectionandresize.html">Selection and Resizing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-view-editor-layout">The View Editor layout</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#drawing-on-the-main-view-pane">Drawing on the main view pane</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#selection-and-resizing">Selection and resizing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#palettes">Palettes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#adding-and-removing-cels-and-loops">Adding and removing cels and loops</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#importing-images-into-an-sci-view">Importing images into an SCI view</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id1">Palettes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#transparency">Transparency</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dithering">Dithering</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#image-adjustments">Image adjustments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pasting-an-image-into-a-view-cel">Pasting an image into a view cel</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#mirrors">Mirrors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id2">Transparency</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#offset">Offset</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#affect-all-cels">Affect all cels</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#color-shifting">Color shifting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scaleable-views">Scaleable views</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pics.html">Pic Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">Script editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classlibrary.html">The SCI1.1 class library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sci_kernels.html">Kernel Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sci_compiler.html">The SCI Compiler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="texts.html">Text Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="messages.html">Message editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sounds.html">Sound Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vocabs.html">Vocabs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fonts.html">Font Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cursors.html">Cursor Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="palettes.html">VGA Palette Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="audio.html">Digital Audio</a></li>
+<li class="toctree-l1"><a class="reference internal" href="outputpane.html">Output Pane</a></li>
+<li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugger</a></li>
+<li class="toctree-l1"><a class="reference internal" href="undo.html">Undo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspectratio.html">Aspect Ratio</a></li>
+<li class="toctree-l1"><a class="reference internal" href="palettecycling.html">Palette cycling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="anatomy.html">Anatomy of an SCI game</a></li>
+<li class="toctree-l1"><a class="reference internal" href="decompiler.html">Decompiler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preferences.html">Preferences</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gameversion.html">Game/Interpreter Versions</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">SCICompanion</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>View Editor</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/views.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="view-editor">
+<h1>View Editor<a class="headerlink" href="#view-editor" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<p>Views are used for all the graphical elements in the game: Actors, Props, icons, window borders and more.
+Because they are so important, there is a significant amount of functionality devoted to them in <strong>SCI</strong>Companion.</p>
+<p>A View consists of one or more <em>loops</em>, each with one or more <em>cels</em>.</p>
+<p>A loop is commonly used for an animation sequence, such as the following walking animation:</p>
+<img alt="_images/ViewLoop.png" src="_images/ViewLoop.png" />
+<img alt="_images/ViewLoopAnimated.gif" src="_images/ViewLoopAnimated.gif" />
+<p>In the case of a character, different loops within the same view are often used for different directions the character is facing.</p>
+<div class="section" id="the-view-editor-layout">
+<h2>The View Editor layout<a class="headerlink" href="#the-view-editor-layout" title="Permalink to this headline">¶</a></h2>
+<img alt="_images/ViewEditor.png" src="_images/ViewEditor.png" />
+<p>In the center is the currently selected cel on which you draw.</p>
+<p>On the bottom are the cels that are in the currently selected loop.
+To the right is a list of loops that are in the view. Clicking on any of these will set the currently selected loop or cel (you can also use the arrow keys to do this).
+You can rearrange loops and cels within the view by clicking and dragging them to a new position.</p>
+<p>The Toolbox pane shows the palette and other controls used to manage the view.
+Finally, on the top are the drawing controls common to views, fonts and cursors.</p>
+</div>
+<div class="section" id="drawing-on-the-main-view-pane">
+<h2>Drawing on the main view pane<a class="headerlink" href="#drawing-on-the-main-view-pane" title="Permalink to this headline">¶</a></h2>
+<p>Please read the section on <a class="reference internal" href="rastertools.html"><em>drawing tools</em></a> for a full description of what each tool does.</p>
+</div>
+<div class="section" id="selection-and-resizing">
+<h2>Selection and resizing<a class="headerlink" href="#selection-and-resizing" title="Permalink to this headline">¶</a></h2>
+<p>Please read the section on <a class="reference internal" href="selectionandresize.html"><em>selection and resizing</em></a>.</p>
+</div>
+<div class="section" id="palettes">
+<h2>Palettes<a class="headerlink" href="#palettes" title="Permalink to this headline">¶</a></h2>
+<p>The current foreground and background drawing colors are shown in the Toolbox pane. Left-clicking or Right-clicking on a color in
+the palette will set the foreground or background colors respectively. The currently selected colors are highlighted in the palette,
+along with a &#8216;T&#8217; marking this cel&#8217;s transparent color.</p>
+<div class="figure" id="id3">
+<img alt="_images/ViewPalettes.png" src="_images/ViewPalettes.png" />
+<p class="caption"><span class="caption-text">A VGA palette on the left, and the EGA palette on the right.</span></p>
+</div>
+<p>EGA views use a fixed 16-color palette.</p>
+<p>VGA views use a custom 256-color palette. When you create a new VGA view, there is no
+palette associated with it by default - it will just use palette 999 (the global palette). If you want a view to have a specific
+palette associated with it, you can do so by clicking on the edit palette button <img alt="palettebutton" src="_images/PaletteButton.png" />. You can remove an embedded palette
+using <em>View-&gt;Remove Embedded Palette</em>.</p>
+<p>Views most commonly just use the &#8220;fixed&#8221; colors of a palette. In the SCI1.1 template game, these are the lower 64 colors of palette 999.
+This lets several views be on screen at once without any palette conflicts.</p>
+<p>By default, the View Editor draws a view with its embedded palette or palette 999. You can use any palette in the game to render the view by
+choosing one from the dropdown list in the Toolbox pane.</p>
+<p>If you want a view to use a different palette, but attempt to keep its current colors as much as possible, you can use <em>View-&gt;Remap Palette</em>.</p>
+</div>
+<div class="section" id="adding-and-removing-cels-and-loops">
+<h2>Adding and removing cels and loops<a class="headerlink" href="#adding-and-removing-cels-and-loops" title="Permalink to this headline">¶</a></h2>
+<p>The Toolbox pane has buttons for adding and removing cels and loops to/from the current view. A newly-created cel will be a copy of the
+currently selected cel (you can change this so that it is filled with the transparent color by default in <em>Tools-&gt;Preferences</em>). You can also
+delete the current cel by pressing the DELETE key.</p>
+<p>If you remove all cels in a loop, that loop will be deleted. You can not remove all loops - a view must have at least one loop with one cel.</p>
+</div>
+<div class="section" id="importing-images-into-an-sci-view">
+<span id="importimages-label"></span><h2>Importing images into an SCI view<a class="headerlink" href="#importing-images-into-an-sci-view" title="Permalink to this headline">¶</a></h2>
+<p>Images and image sequences (or an animated .gif) can be imported into both EGA and VGA views (and cursors). Image formats supported include jpg, png, tiff, bmp and gif.</p>
+<p>To import a single image to replace the current cel, use the Import Image button on the drawing tool bar <img alt="importfile" src="_images/DrawingImportFile.png" />, or in the <em>View</em> menu. To import multiple images
+(or an animated .gif) and replace the entire current loop, use the Import Images button on the tool bar <img alt="importfiles" src="_images/DrawingImportFiles.png" />, or in the <em>View</em> menu.</p>
+<p>In either case, you are first shown a file dialog that lets you
+choose one or more images. Once you&#8217;ve made your selection, the Import Images dialog is presented:</p>
+<img alt="_images/ImportImage.jpg" src="_images/ImportImage.jpg" />
+<p>The Import Images dialog offers full control over how these images are converted to the restricted palette of SCI. In particular, this includes control over:</p>
+<ul class="simple">
+<li>Which palette indices to use</li>
+<li>Whether to map to the current palette or generate a new palette</li>
+<li>The type of color matching to use</li>
+<li>Optional dithering for limited color palettes or images with an alpha channel</li>
+<li>Modifications to brightness, contrast, saturation and hue of the input image</li>
+</ul>
+<p>If you&#8217;ve selected multiple images, they will be arranged in alphabetical order. The original image(s) are displayed on the left, and the processed
+image(s) on the right.</p>
+<div class="section" id="id1">
+<h3>Palettes<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>You have three options for palettes in the Import Images dialog:</p>
+<ol class="arabic simple">
+<li>You can have <strong>SCI</strong>Companion generate a palette automatically, replacing the selected colors of the existing palette of the view. This is only available for VGA views.</li>
+<li>You can try to map colors to selected colors of the existing palette (using either RGB or CCIR color matching)</li>
+<li>You can use the palette included in the image file, if available (for instance, .gif files may include a palette). This is only available for VGA views.</li>
+</ol>
+<p>In either of these cases, you have control over which indices are affected in the existing palette for this view. For VGA views, by default the &#8220;fixed&#8221; colors
+specified in palette 999 are selected, and option 2 above is the default. This is the most common use case, as most views generally only use the fixed colors in
+palette 999.</p>
+<p>If you want to customize which indices are used, you can check or uncheck the <em>Use global palette entries</em> checkbox to quickly control which palette indices are used, or you can manually
+select them in the palette and press the refresh button.</p>
+<p>Note that if you change the palette (any option other than mapping to the existing palette), it will change the palette for the entire view, not just the cel or loop you are replacing.</p>
+</div>
+<div class="section" id="transparency">
+<h3>Transparency<a class="headerlink" href="#transparency" title="Permalink to this headline">¶</a></h3>
+<p>By default, the current transparent color is used for transparent parts of the image, but you can change this. For images with 8-bit alpha, you can
+set the alpha threshold used to determine if a pixel is opaque or transparent (by default this is set to 128).</p>
+</div>
+<div class="section" id="dithering">
+<h3>Dithering<a class="headerlink" href="#dithering" title="Permalink to this headline">¶</a></h3>
+<p>Due to the limited SCI palettes (especially in EGA), you may want to enable dithering.</p>
+<div class="figure" id="id4">
+<img alt="_images/ImportImageDitherCompare.png" src="_images/ImportImageDitherCompare.png" />
+<p class="caption"><span class="caption-text">A comparison of an image imported into a view using the default VGA palette for the template game.</span></p>
+</div>
+<p>In addition to color dithering, you can also have the alpha channel dithered. If you choose to enable alpha dithering, you
+have a number of options for the dither algorithm. An ordered dither is recommended for moving images, as the dithering matrix will then be stable from frame to frame.</p>
+<div class="figure" id="id5">
+<img alt="_images/Boom.gif" src="_images/Boom.gif" />
+<p class="caption"><span class="caption-text">An image sequence from a particle effects software, rendered out to an image sequence and imported into a VGA view in <strong>SCI</strong>Companion using alpha dithering.</span></p>
+</div>
+<div class="figure" id="id6">
+<img alt="_images/Flame.gif" src="_images/Flame.gif" />
+<p class="caption"><span class="caption-text">A flame sequence imported into a 16-color EGA view using color dithering.</span></p>
+</div>
+</div>
+<div class="section" id="image-adjustments">
+<h3>Image adjustments<a class="headerlink" href="#image-adjustments" title="Permalink to this headline">¶</a></h3>
+<p>Adjustments for brightness, contrast, saturation and hue are provided. If the imported image is a tough match for the current palette, adjusting
+these parameters might help.</p>
+</div>
+<div class="section" id="pasting-an-image-into-a-view-cel">
+<h3>Pasting an image into a view cel<a class="headerlink" href="#pasting-an-image-into-a-view-cel" title="Permalink to this headline">¶</a></h3>
+<p>You can also just paste an image on the clipboard directly into a view cel, and it will appear in a selection rect that you can move around. Double-click to
+commit the selection. This offers little control
+on how the color mapping is done, however. If you are pasting within a view, or from one view to another, you can also use <em>Edit-&gt;Paste Transparent</em>, which
+will retain the transparency of the source view cel.</p>
+<div class="figure" id="id7">
+<img alt="_images/PasteRect.png" src="_images/PasteRect.png" />
+<p class="caption"><span class="caption-text">Pasting into a view</span></p>
+</div>
+<p>For more control, you can choose <em>View-&gt;Paste Special</em>, or <strong>CTRL-B</strong>. This will also paste the clipboard image into a selection rectangle. However,
+it will first bring up the Import Image dialog to give you more control over the final result.</p>
+</div>
+</div>
+<div class="section" id="mirrors">
+<h2>Mirrors<a class="headerlink" href="#mirrors" title="Permalink to this headline">¶</a></h2>
+<p>Often the loops for different directions a character faces are just mirror images of one another. In the Toolbox pane you can use the <em>Mirror of</em> combo box to indicate that the
+current loop is the mirror image of another. Any manipulation or editing of one loop will take immediate effect on the other loop.</p>
+</div>
+<div class="section" id="id2">
+<h2>Transparency<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
+<p>Each cel can have one palette index marked as its transparent color. When it is drawn in-game, this will let the background show through. The transparent color
+can be set with the transparent eyedropped tool <img alt="transparenteyedropper" src="_images/DrawingTransparentEyedropper.png" />, or by choosing a color explicitly in the Toolbox pane.</p>
+</div>
+<div class="section" id="offset">
+<h2>Offset<a class="headerlink" href="#offset" title="Permalink to this headline">¶</a></h2>
+<p>By default, the offset of a cel is (0, 0). Since views are commonly used to draw in-game characters, and the location of a character is most
+closely associated with his or her feet, an offset of (0, 0) corresponds to the bottom center of the cel. You can change a cel&#8217;s manually in
+the Toolbox pane, or using the placement <img alt="placement" src="_images/DrawingPlacement.png" /> drawing tool.</p>
+</div>
+<div class="section" id="affect-all-cels">
+<h2>Affect all cels<a class="headerlink" href="#affect-all-cels" title="Permalink to this headline">¶</a></h2>
+<p>At the bottom of the Toolbox pane is a checkbox for <em>Affect all cels in loop</em>. This lets you manipulate draw on all cels in the current loop
+at once (even though only the current cel is shown in the canvas). This makes it easy to flood fill an area common to all cels, resize
+all cels at once, or perform a mass replace of one color with another.</p>
+<p>To map the current pixel location to the pixel location in another cel, <strong>SCI</strong>Companion uses the offset (or placement) values for the cel. These form
+the origin.</p>
+</div>
+<div class="section" id="color-shifting">
+<h2>Color shifting<a class="headerlink" href="#color-shifting" title="Permalink to this headline">¶</a></h2>
+<p>Often you&#8217;ll want to make differently colored versions of a view (for example, to change the clothing colors of an character) using the same palette.
+<strong>SCI</strong>Companion makes this easy by allowing you to shift colors in the current cel, loop or entire view.</p>
+<p><em>View-&gt;Shift Colors</em> will bring up the Color Shifter dialog. Dots are shown on the palette indices that are used by the current cel, loop or view.</p>
+<p>You can select a range of colors in the palette and move them around as a group with the arrow keys.</p>
+<div class="figure" id="id8">
+<img alt="_images/ColorShift.png" src="_images/ColorShift.png" />
+<p class="caption"><span class="caption-text">Selecting the reddish pixels and &#8220;moving&#8221; them so they are in the yellow part of the palette.</span></p>
+</div>
+</div>
+<div class="section" id="scaleable-views">
+<h2>Scaleable views<a class="headerlink" href="#scaleable-views" title="Permalink to this headline">¶</a></h2>
+<div class="admonition important">
+<p class="first admonition-title">Important</p>
+<p class="last">This section applies to SCI 1.1 only</p>
+</div>
+<p>The Toolbox lets you specify whether a view is scaleable or not. A scaleable views can be reduced in size in-game to give the effect of a character
+walking off into the distance.</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="rastertools.html" class="btn btn-neutral float-right" title="Drawing tools for views, fonts and cursors" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="intro.html" class="btn btn-neutral" title="Getting Started" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Phil Fortier.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'3.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

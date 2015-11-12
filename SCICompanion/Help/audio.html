@@ -1,0 +1,276 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Digital Audio &mdash; SCICompanion 3.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="SCICompanion 3.0 documentation" href="index.html"/>
+        <link rel="next" title="Output Pane" href="outputpane.html"/>
+        <link rel="prev" title="VGA Palette Editor" href="palettes.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> SCICompanion
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                3.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="views.html">View Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pics.html">Pic Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">Script editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classlibrary.html">The SCI1.1 class library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sci_kernels.html">Kernel Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sci_compiler.html">The SCI Compiler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="texts.html">Text Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="messages.html">Message editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sounds.html">Sound Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vocabs.html">Vocabs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fonts.html">Font Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cursors.html">Cursor Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="palettes.html">VGA Palette Editor</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Digital Audio</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#relation-to-sound-resources">Relation to Sound resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sound-file-management-in-scicomp">Sound file management in <strong>SCI</strong>Companion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#importing">Importing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#exporting">Exporting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#recording">Recording</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="outputpane.html">Output Pane</a></li>
+<li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugger</a></li>
+<li class="toctree-l1"><a class="reference internal" href="undo.html">Undo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspectratio.html">Aspect Ratio</a></li>
+<li class="toctree-l1"><a class="reference internal" href="palettecycling.html">Palette cycling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="anatomy.html">Anatomy of an SCI game</a></li>
+<li class="toctree-l1"><a class="reference internal" href="decompiler.html">Decompiler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preferences.html">Preferences</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gameversion.html">Game/Interpreter Versions</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">SCICompanion</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Digital Audio</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/audio.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="admonition important">
+<p class="first admonition-title">Important</p>
+<p class="last">This section applies to SCI1 and up only</p>
+</div>
+<div class="section" id="digital-audio">
+<h1>Digital Audio<a class="headerlink" href="#digital-audio" title="Permalink to this headline">¶</a></h1>
+<p>The Audio tab in the Game Explorer shows the current audio resources in the game. Unlike the editor for most other resources,
+<strong>SCI</strong>Companion doesn&#8217;t have a document-centric Audio Editor. All the functionality is handled in the Preview pane.</p>
+<img alt="_images/AudioPreview.png" src="_images/AudioPreview.png" />
+<div class="section" id="relation-to-sound-resources">
+<h2>Relation to Sound resources<a class="headerlink" href="#relation-to-sound-resources" title="Permalink to this headline">¶</a></h2>
+<p>Audio and Sound resources share the same &#8220;namespace&#8221;. That is to say that from script there is no way to distinguish between Sound resource #146 and Audio resource #146.
+Both are controlled by the Sound object in script.</p>
+<p>If you look at the sound and audio resources in Sierra&#8217;s games, you&#8217;ll see the Audio resources are often digital audio versions of the Sound resource of the same number.
+This allowed Sierra to support low-spec sound cards that could only play MIDI, and still have digital sound effects for cards that could support it.</p>
+<p>In your game&#8217;s resource.cfg file, the following line will ensure that digital audio resources will be prefered over MIDI sound resources:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">prefer_digitalsfx</span> <span class="o">=</span> <span class="n">true</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="sound-file-management-in-scicomp">
+<h2>Sound file management in <strong>SCI</strong>Companion<a class="headerlink" href="#sound-file-management-in-scicomp" title="Permalink to this headline">¶</a></h2>
+<p>Please read the section on the <a class="reference internal" href="audiofiles.html"><em>audio file cache</em></a>.</p>
+</div>
+<div class="section" id="importing">
+<h2>Importing<a class="headerlink" href="#importing" title="Permalink to this headline">¶</a></h2>
+<p>You can import <em>.wav</em> files via the Preview pane. <strong>SCI</strong>Companion supports importing 8-bit or 16-bit audio files.
+The highest bitrate supported by SCI is 22050Hz. Anything higher than that
+will be automatically downsampled before it is added to the game.</p>
+<p>SCI does not support stereo digital audio, so when a <em>.wav</em> with two channels is imported, the left channel will be used.</p>
+<p>After you have chosen the <em>.wav</em> file to import, you will asked to enter a resource number (and optional name) for it.</p>
+</div>
+<div class="section" id="exporting">
+<h2>Exporting<a class="headerlink" href="#exporting" title="Permalink to this headline">¶</a></h2>
+<p>You can export the currently selected audio resource to a <em>.wav</em> file.</p>
+</div>
+<div class="section" id="recording">
+<h2>Recording<a class="headerlink" href="#recording" title="Permalink to this headline">¶</a></h2>
+<p>You can record from your computer&#8217;s microphone right in <strong>SCI</strong>Companion.
+This functionality is mainly intended for <a class="reference internal" href="messageaudio.html"><em>message audio</em></a>, but it is also present in the preview pane for regular audio resources.</p>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">You can just drag a <em>.wav</em> file into the Game Explorer to import it into the game.</p>
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="outputpane.html" class="btn btn-neutral float-right" title="Output Pane" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="palettes.html" class="btn btn-neutral" title="VGA Palette Editor" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Phil Fortier.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'3.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

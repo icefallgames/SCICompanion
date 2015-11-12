@@ -1,0 +1,310 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Palette cycling &mdash; SCICompanion 3.0 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="SCICompanion 3.0 documentation" href="index.html"/>
+        <link rel="next" title="Anatomy of an SCI game" href="anatomy.html"/>
+        <link rel="prev" title="Aspect Ratio" href="aspectratio.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> SCICompanion
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                3.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="views.html">View Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pics.html">Pic Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scripts.html">Script editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="classlibrary.html">The SCI1.1 class library</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sci_kernels.html">Kernel Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sci_compiler.html">The SCI Compiler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="texts.html">Text Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="messages.html">Message editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sounds.html">Sound Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vocabs.html">Vocabs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fonts.html">Font Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cursors.html">Cursor Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="palettes.html">VGA Palette Editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="audio.html">Digital Audio</a></li>
+<li class="toctree-l1"><a class="reference internal" href="outputpane.html">Output Pane</a></li>
+<li class="toctree-l1"><a class="reference internal" href="debugging.html">Debugger</a></li>
+<li class="toctree-l1"><a class="reference internal" href="undo.html">Undo</a></li>
+<li class="toctree-l1"><a class="reference internal" href="aspectratio.html">Aspect Ratio</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Palette cycling</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#example">Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#an-example-using-overlay">An example using overlay</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="anatomy.html">Anatomy of an SCI game</a></li>
+<li class="toctree-l1"><a class="reference internal" href="decompiler.html">Decompiler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="preferences.html">Preferences</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gameversion.html">Game/Interpreter Versions</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">SCICompanion</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Palette cycling</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/palettecycling.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="admonition important">
+<p class="first admonition-title">Important</p>
+<p class="last">This section applies to VGA games only</p>
+</div>
+<div class="section" id="palette-cycling">
+<h1>Palette cycling<a class="headerlink" href="#palette-cycling" title="Permalink to this headline">¶</a></h1>
+<p>Palette cycling is an animation effect that was popular during the days of palettized graphics. It involves
+rotating the palette colors to give the appearance of movement an otherwise static background. It can be
+seen most obviously in SCI games in the title screen with the Sierra logo, but also shows up in other
+places.</p>
+<div class="figure" id="id1">
+<img alt="_images/Waterfall.gif" src="_images/Waterfall.gif" />
+<p class="caption"><span class="caption-text">A palette cycling effect on a room with a waterfall in Quest for Glory.</span></p>
+</div>
+<p>Some especially impressive examples of what palette cycling can do can be found on this web page: <a class="reference external" href="http://www.effectgames.com/effect/article-Old_School_Color_Cycling_with_HTML5.html">http://www.effectgames.com/effect/article-Old_School_Color_Cycling_with_HTML5.html</a> .
+Those examples use a lot of dithering, however, which looks better in a 640x480 canvas than the relatively low 320x200 resolution of SCI1 games.</p>
+<p><strong>SCI</strong>Companion has some features available to streamline the workflow of generating backgrounds with shifting colors. This section will show how to
+generate a simple animation on a logo.</p>
+<div class="section" id="example">
+<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<p>Palette cycling is all about having smooth gradients of palette color <em>indices</em> across a region of your background. This can be accomplished by creating a source image
+with a color gradient, and then mapping it to an existing palette in <strong>SCI</strong>Companion that has that same color gradient across a range of palette indices.</p>
+<p>Here&#8217;s the <strong>SCI</strong>Companion logo with a red to blue color gradient:</p>
+<img alt="_images/LogoGradient.png" src="_images/LogoGradient.png" />
+<p>Next, create a new blank pic. Then, open the <a class="reference internal" href="palettes.html"><em>Palette Editor</em></a> for this pic, and select the non-fixed colors (64-254). Open the gradient
+dialog and create an A-B gradient that goes from red to blue. Mark those colors as &#8220;used&#8221;, then close the Palette Editor.</p>
+<img alt="_images/MakeRedBlueGrad.jpg" src="_images/MakeRedBlueGrad.jpg" />
+<p>The next step is to import the background image. Open the Import Background dialog and browse for the logo image. The key part here is that we&#8217;ll
+map the colors in the logi image to the currently palette for the background. Select the 64-254 color range again, and also black (0). Then click
+on <strong>Map to current palette</strong>. Click <strong>Accept</strong>.</p>
+<img alt="_images/ImportLogo.jpg" src="_images/ImportLogo.jpg" />
+<p>You should end up with something like this:</p>
+<img alt="_images/ImportedLogo.jpg" src="_images/ImportedLogo.jpg" />
+<p>Now we have an image with color indices that go from 64 to 254 gradually across the image - perfect for palette cycling. We can then
+assign the colors we want:</p>
+<img alt="_images/LogoSetColors.jpg" src="_images/LogoSetColors.jpg" />
+<p>And obtain a result like this:</p>
+<img alt="_images/LogoCycle.gif" src="_images/LogoCycle.gif" />
+</div>
+<div class="section" id="an-example-using-overlay">
+<h2>An example using overlay<a class="headerlink" href="#an-example-using-overlay" title="Permalink to this headline">¶</a></h2>
+<p>Let&#8217;s go through another example of how something like the following scene from Quest For Glory 1 (VGA remake) might work.</p>
+<img alt="_images/Waterfall.gif" src="_images/Waterfall.gif" />
+<p>If we inspect the decompiled code, we see that there are three palette cycling regions, 232-239, 240-247, and 248-254:</p>
+<blockquote>
+<div>Palette(palANIMATE 232 239 -1 240 247 -1 248 254 -1)</div></blockquote>
+<p>These roughly correspond to the three different shades (light, medium, and dark) of the waterfall and lake.
+Let&#8217;s just briefly visualize the three ranges of indices that cycle separately. They are highlighted in red, yellow and blue in this image:</p>
+<img alt="_images/PC2_Visualization.png" src="_images/PC2_Visualization.png" />
+<p>So suppose we now
+start with some artwork like this:</p>
+<div class="figure" id="id2">
+<img alt="_images/PC2_Base.jpg" src="_images/PC2_Base.jpg" />
+<p class="caption"><span class="caption-text">The base scene.</span></p>
+</div>
+<p>We create a new pic in <strong>SCI</strong>Companion, and set this image as the background. However, we want to reserve space in the palette for
+the ranges that cycle. So instead of using the default range of 64-254, we&#8217;ll tell the import background dialog to just
+use color indices in the range 64-231:</p>
+<img alt="_images/PC2_Import.jpg" src="_images/PC2_Import.jpg" />
+<p>Next, after this image is set as the background, we&#8217;ll want to define A-B white-to-black gradients for the three palette ranges we want to cycle.
+Open the Palette Editor, select each range, and click on the Gradient button to set the gradient. That would look like this:</p>
+<img alt="_images/PC2_DefineGradient.jpg" src="_images/PC2_DefineGradient.jpg" />
+<p>Now comes the <em>artistic</em> part. The artist needs to produce images that are mostly transparent, except for the regions of the
+image we want to cycle: one image for each of the three palette cycling ranges in this example.
+Let&#8217;s take the example of the cycling pixels in dark area of the waterfall.
+For those pixels there should be white-to-black gradients which will essentially define the direction that the water appears to move.</p>
+<div class="figure" id="id3">
+<img alt="_images/PC2_ZoomIn.png" src="_images/PC2_ZoomIn.png" />
+<p class="caption"><span class="caption-text">A zoomed in view of the pixels in the image that we want to cycle.</span></p>
+</div>
+<p>Next, import this into the pic background in <strong>SCI</strong>Companion, except we&#8217;ll want to <strong>overlay</strong> this mostly-transparent image. This looks like the following:</p>
+<div class="figure" id="id4">
+<img alt="_images/PC2_ImportOverlay.jpg" src="_images/PC2_ImportOverlay.jpg" />
+<p class="caption"><span class="caption-text">The source image is on the left (magenta parts are transparent). The <strong>overlay</strong> checkbox is checked, we <strong>Map to current palette</strong>, and we select the appropriate palette range, in this case 248-254.</span></p>
+</div>
+<p>Click <strong>Accept</strong>, and the waterfall streaks will be overlaid on the current background. What you&#8217;ve basically done is associate the
+streaks of water in the waterfall with increasing palette indices. So now, you can open the Palette Editor and replace the white-to-black
+gradient for 248-254 with an A-B-A gradient of the desired colors (or whatever custom color sequence you want):</p>
+<img alt="_images/PC2_SetRange.jpg" src="_images/PC2_SetRange.jpg" />
+<p>Finally, repeat the last few steps for the remaining two color ranges, and this will produce the final result:</p>
+<img alt="_images/Waterfall.gif" src="_images/Waterfall.gif" />
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="anatomy.html" class="btn btn-neutral float-right" title="Anatomy of an SCI game" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="aspectratio.html" class="btn btn-neutral" title="Aspect Ratio" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Phil Fortier.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'3.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
