@@ -1,0 +1,41 @@
+<html>
+<head>
+<title>Kernel: Clone</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<div align="center"> 
+  <table width="100%" border="0" cellspacing="0" cellpadding="4">
+    <tr bgcolor="#a0a0a0"> 
+      <td><font size="4" face="Tahoma"><b><font color="#FFFFFF">Clone</font></b></font></td>
+    </tr>
+    <tr> 
+      <td> 
+        <p align="left"><font size="2" face="Tahoma">heapPtr <b>Clone</b>(heapPtr 
+          object)</font></p>
+        <p align="left"><font size="2" face="Tahoma">Creates a new instance of 
+          a class or object and returns a pointer to it.</font><br>
+        </p>
+        <table border="0" cellpadding="2" align="center" width="100%">
+          <tr bgcolor="#CCCCCC"> 
+            <td bgcolor="#CCCCCC"><font size="2" face="Tahoma"><b>Example</b></font></td>
+          </tr>
+          <tr> 
+            <td bgcolor="#FFFFEE"> 
+              <p> <font size="2" face="Courier New, Courier, mono">(var newEvent)<br>
+                = newEvent Clone(Event) // create an instance of Event and store 
+                the pointer into newEvent<br>
+                GetEvent($7FFF newEvent) // use the instance<br>
+                DisposeClone(Event) // dispose of the instance</font></p>
+              </td>
+          </tr>
+        </table>
+        
+        <p><font face="Tahoma" size="2">see also: <a href="kernel_disposeclone.html">DisposeClone</a></font></p>
+      </td>
+    </tr>
+  </table>
+</div>
+</body>
+</html>

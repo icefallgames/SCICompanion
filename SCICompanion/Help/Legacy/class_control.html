@@ -1,0 +1,215 @@
+<html>
+<head>
+<title>Class: Control</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<table width="100%" border="0" cellspacing="0" cellpadding="4">
+  <tr bgcolor="#a0a0a0"> 
+    <td bgcolor="#a0a0a0"><font size="4" face="Tahoma" color="#FFFFFF"><b>Class: 
+      Control </b>(of <a href="class_obj.html">Obj</a>)</font></td>
+  </tr>
+  <tr> 
+    <td> 
+      <p><font face="Tahoma" size="2">The Control class is the base class for 
+        buttons, text, edits, selectors and icons.</font></p>
+      <p><font face="Tahoma" size="2"><b><font size="3">Properties</font></b></font></p>
+      <ul>
+        <li><font size="2" face="Tahoma"> type</font></li>
+        <li><font size="2" face="Tahoma">state</font></li>
+        <li><font size="2" face="Tahoma">nsTop</font></li>
+        <li><font size="2" face="Tahoma">nsLeft</font></li>
+        <li><font size="2" face="Tahoma">nsBottom</font></li>
+        <li><font size="2" face="Tahoma">nsRight</font></li>
+        <li><font size="2" face="Tahoma">key</font></li>
+        <li><font size="2" face="Tahoma">said</font></li>
+        <li><font size="2" face="Tahoma">value</font></li>
+      </ul>
+      <p><font face="Tahoma" size="2"><b><font size="3">Methods</font></b></font></p>
+      <ul>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">number <b>doit</b>()</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Returns the value property.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">void <b>enable</b>(bool 
+                fENABLE)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">If fENABLE is TRUE, it enables 
+                  the control. Otherwise, it disables it.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">void <b>select</b>(bool 
+                fSELECT)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">If fSELECT is TRUE, it selects 
+                  the control. Otherwise, it deselects it. It then draws the updated 
+                  control.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">bool <b>handleEvent</b>(heapPtr 
+                pEvent)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">If pEvent's claimed property is 
+                  FALSE, it returns FALSE. Otherwise, it tracks it and returns 
+                  whether it's tracked or not.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">bool <b>check</b>(heapPtr 
+                pEvent)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Returns TRUE s the mouse cursor 
+                  is over the control. FALSE otherwise.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">heapPtr <b>track</b>(heapPtr 
+                pEvent)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Tracks</font><font size="2" face="tahoma"> 
+                  the control, highlighting it if it's selected. It returns a 
+                  poiter to the control.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">void <b>setSize</b>()</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">In the base Control class, this 
+                  is just an empty place holder.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">void <b>move</b>(number 
+                theX, number theY)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Moves the control theX pixels 
+                  horizontally, and theY pixels vertically.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">void <b>moveTo</b>(number 
+                newX, number newY)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Moves the control to the newX 
+                  and newY positions.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">void <b>draw</b>()</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Draws the control.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">bool <b>isType</b>(number 
+                aType)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Returns TRUE if the control's 
+                  type is aType, otherwise, FALSE.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">bool <b>checkState</b>(number 
+                aState)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Returns TRUE if the control's 
+                  state is aState, otherwise, FALSE.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">void <b>cycle</b>()</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">In the base Control class, this 
+                  is just an empty place holder.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+      </ul>
+      </td>
+  </tr>
+</table>
+</body>
+</html>

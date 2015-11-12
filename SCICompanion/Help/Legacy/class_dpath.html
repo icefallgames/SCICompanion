@@ -1,0 +1,102 @@
+<html>
+<head>
+<title>Class: DPath</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<table width="100%" border="0" cellspacing="0" cellpadding="4">
+  <tr bgcolor="#a0a0a0"> 
+    <td bgcolor="#a0a0a0"><font size="4" face="Tahoma" color="#FFFFFF"><b>Class: 
+      DPath </b>(of <a href="class_obj.html">Obj</a>)</font></td>
+  </tr>
+  <tr> 
+    <td> 
+      <p><font face="Tahoma" size="2">The DPath class is a movement class which 
+        allows you to specify the paths which actors will move.</font></p>
+      <p><font face="Tahoma" size="2"><b><font size="3">Properties</font></b></font></p>
+      <ul>
+        <li><font size="2" face="tahoma">client</font></li>
+        <li><font size="2" face="tahoma">caller</font></li>
+        <li><font size="2" face="tahoma">x</font></li>
+        <li><font size="2" face="tahoma">y</font></li>
+        <li><font size="2" face="tahoma">dx</font></li>
+        <li><font size="2" face="tahoma">dy</font></li>
+        <li><font size="2" face="tahoma">b-moveCnt</font></li>
+        <li><font size="2" face="tahoma">b-i1</font></li>
+        <li><font size="2" face="tahoma">b-i2</font></li>
+        <li><font size="2" face="tahoma">b-di</font></li>
+        <li><font size="2" face="tahoma">b-xAxis</font></li>
+        <li><font size="2" face="tahoma">b-incr</font></li>
+        <li><font size="2" face="tahoma">completed</font></li>
+        <li><font size="2" face="tahoma">xLast</font></li>
+        <li><font size="2" face="tahoma">yLast</font></li>
+        <li><font size="2" face="tahoma">points</font></li>
+        <li><font face="tahoma" size="2">value</font></li>
+      </ul>
+      <p><font face="Tahoma" size="2"><b><font size="3">Methods</font></b></font></p>
+      <ul>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD" height="22"><font size="3" face="tahoma">void 
+                <b>init</b>(<i>[heapPtr theClient, point(s) pPoints]</i>)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Sets up the DPath class. </font></p>
+                <p><font size="2" face="tahoma">The client property is set to 
+                  theClient, and the specified points are added to the points 
+                  <a href="class_list.html">List</a>. </font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD" height="22"><font size="3" face="tahoma">void 
+                <b>dispose</b>()</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Disposes of the class and it's 
+                  points list.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD" height="22"><font size="3" face="tahoma">void 
+                <b>moveDone</b>()</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Occurs when the actor has reached 
+                  a target. If the last target is met, it disposes of the control. 
+                  Otherwise, it sets up the next target to move to.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD" height="22"><font size="3" face="tahoma">void 
+                <b>setTarget</b>()</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Sets up the target for the actor.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+      </ul>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

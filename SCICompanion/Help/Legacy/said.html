@@ -1,0 +1,239 @@
+<html>
+<head>
+<title>Said</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<div align="center"> 
+  <table width="100%" border="0" cellspacing="0" cellpadding="4">
+    <tr bgcolor="#a0a0a0"> 
+      <td><font size="4" face="Tahoma" color="#FFFFFF"><b>Said</b></font></td>
+    </tr>
+    <tr> 
+      <td> 
+        <p><font face="Tahoma" size="2">Said strings are used to parse the player's 
+          input in the game. They begin and end with single quote characters (<font face="Courier New, Courier, mono">'</font>). 
+          They consist of words, and a few special characters.</font></p>
+        <div
+class="INFORMALTABLE"
+>
+          <p
+></p
+>
+          <p
+></p
+>
+        </div
+>
+        <table border="0" cellpadding="2" align="center" width="100%">
+          <tr bgcolor="#CCCCCC"> 
+            <td><font size="2" face="Tahoma"><b>The Said Operators</b> - *Thanks 
+              to Lars Skovlund for the information</font></td>
+          </tr>
+          <tr> 
+            <td bgcolor="#FFFFEE"> 
+              <div
+class="INFORMALTABLE"
+>
+                <p
+></p
+>
+                <table
+class="CALSTABLE" width="100%"
+>
+                  <tr bgcolor="#CCCCCC"
+> 
+                    <th
+align="LEFT"
+valign="TOP"
+><font size="2" face="Tahoma">Operator</font></th
+>
+                    <th
+align="LEFT"
+valign="TOP"
+><font size="2" face="Tahoma">Meaning</font></th
+>
+                  </tr
+>
+                  <tr
+> 
+                    <td
+align="LEFT"
+valign="TOP"
+><font size="2" face="Tahoma">,</font></td
+>
+                    <td
+align="LEFT"
+valign="TOP"
+><font size="2" face="Tahoma">"OR". Used to specify alternatives to words, such 
+                      as "take , get".</font></td
+>
+                  </tr
+>
+                  <tr
+> 
+                    <td
+align="LEFT"
+valign="TOP"
+><font size="2" face="Tahoma">&#38;</font></td
+>
+                    <td
+align="LEFT"
+valign="TOP"
+><font size="2" face="Tahoma">Unknown. Probably used for debugging.</font></td
+>
+                  </tr
+>
+                  <tr
+> 
+                    <td
+align="LEFT"
+valign="TOP"
+><font size="2" face="Tahoma">/</font></td
+>
+                    <td
+align="LEFT"
+valign="TOP"
+><font size="2" face="Tahoma">Sentence part separator. Only two of these tokens 
+                      may be used, since sentences are split into a maximum of 
+                      three parts.</font></td
+>
+                  </tr
+>
+                  <tr
+> 
+                    <td
+align="LEFT"
+valign="TOP"
+><font size="2" face="Tahoma">(</font></td
+>
+                    <td
+align="LEFT"
+valign="TOP"
+><font size="2" face="Tahoma">Used together with ')' for grouping</font></td
+>
+                  </tr
+>
+                  <tr
+> 
+                    <td
+align="LEFT"
+valign="TOP"
+><font size="2" face="Tahoma">)</font></td
+>
+                    <td
+align="LEFT"
+valign="TOP"
+><font size="2" face="Tahoma">See '('</font></td
+>
+                  </tr
+>
+                  <tr
+> 
+                    <td
+align="LEFT"
+valign="TOP"
+><font size="2" face="Tahoma">[</font></td
+>
+                    <td
+align="LEFT"
+valign="TOP"
+><font size="2" face="Tahoma">Used together with '[' for optional grouping. "[ 
+                      a ]" means "either a or nothing"</font></td
+>
+                  </tr
+>
+                  <tr
+> 
+                    <td
+align="LEFT"
+valign="TOP"
+><font size="2" face="Tahoma">]</font></td
+>
+                    <td
+align="LEFT"
+valign="TOP"
+><font size="2" face="Tahoma">See '['.</font></td
+>
+                  </tr
+>
+                  <tr
+> 
+                    <td
+align="LEFT"
+valign="TOP"
+><font size="2" face="Tahoma">#</font></td
+>
+                    <td
+align="LEFT"
+valign="TOP"
+><font size="2" face="Tahoma">Unknown. Assumed to have been used exclusively for 
+                      debugging, if at all.</font></td
+>
+                  </tr
+>
+                  <tr
+> 
+                    <td
+align="LEFT"
+valign="TOP"
+><font size="2" face="Tahoma">&#60;</font></td
+>
+                    <td
+align="LEFT"
+valign="TOP"
+><font size="2" face="Tahoma">Semantic reference operator (as in 'get &#60; up').</font></td
+>
+                  </tr
+>
+                  <tr
+> 
+                    <td
+align="LEFT"
+valign="TOP"
+><font size="2" face="Tahoma">&#62;</font></td
+>
+                    <td
+align="LEFT"
+valign="TOP"
+><font size="2" face="Tahoma">Instructs Said() not to claim the event passed to 
+                      the previous Parse() call on a match. Used for successive 
+                      matching.</font></td
+>
+                  </tr
+>
+                </table
+>
+                
+              </div
+>
+            </td>
+          </tr>
+        </table>
+        
+        <p><font size="2" face="Tahoma">The said words must be defined in vocab.000. 
+          To create and edit vocab.000 resources in SCI Studio 3.0, use the <a href="../vocab0resources.creatingandediting.html">Vocabulary 
+          Editor</a>.</font></p>
+        <table border="0" cellpadding="2" align="center" width="100%">
+          <tr bgcolor="#CCCCCC"> 
+            <td><font size="2" face="Tahoma"><b>An example of using said strings</b></font></td>
+          </tr>
+          <tr> 
+            <td bgcolor="#FFFFEE"> 
+              <p><font color="#800080" face="Courier New, Courier, mono" size="2"><b>(</b></font><font color="#0000FF" face="Courier New, Courier, mono" size="2"><b>procedure 
+                </b></font><font color="#800080" face="Courier New, Courier, mono" size="2"><b>(</b></font><font face="Courier New, Courier, mono" size="2">SaidProc<font color="#800080"><b>) 
+                </b></font><br>
+                &nbsp; </font><font color="#800080" face="Courier New, Courier, mono" size="2"><b>(</b></font><font face="Courier New, Courier, mono" size="2" color="#0000FF"><b>if</b></font><font color="#800080" face="Courier New, Courier, mono" size="2"><b>(</b></font><font face="Courier New, Courier, mono" size="2">Said<font color="#800080" face="Courier New, Courier, mono" size="2"><b>(</b></font><font color="#008000">'open 
+                &lt; door'</font><font color="#800080"><b>)<br>
+                ) </b></font></font></p>
+              </td>
+          </tr>
+        </table>
+        
+      </td>
+    </tr>
+  </table>
+</div>
+</body>
+</html>

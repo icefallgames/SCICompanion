@@ -1,0 +1,69 @@
+<html>
+<head>
+<title>Send, Self and Super</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<div align="center"> 
+  <table width="100%" border="0" cellspacing="0" cellpadding="4">
+    <tr bgcolor="#a0a0a0"> 
+      <td><font size="4" face="Tahoma" color="#FFFFFF"><b>Send, Self and Super</b></font></td>
+    </tr>
+    <tr> 
+      <td> 
+        <p><font face="Tahoma" size="2">Send, self and super are used to call 
+          methods in <a href="classes.html">classes and instances</a>.</font></p>
+        <p><font face="Tahoma" size="2">send can call methods from any class or 
+          instance.</font></p>
+        <p><font face="Tahoma" size="2">self calls methods from it's own class 
+          or instance's method.</font></p>
+        <p><font face="Tahoma" size="2">super calls methods from it's superclass.</font></p>
+        <p><font face="Tahoma" size="2">syntax</font></p>
+        <blockquote> 
+          <p><font size="2" face="Courier New, Courier, mono">(send &lt;ClassName&gt;:<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;&lt;MethodName&gt;([params])<br>
+            &nbsp;&nbsp;&nbsp;&nbsp;...<br>
+            )</font></p>
+        </blockquote>
+        <table width="100%" border="0" cellpadding="2" bgcolor="FFFFEE">
+          <tr> 
+            <td bgcolor="#CCCCCC"><font size="2" face="Tahoma"><b>Example - Result 
+              will equal 40</b></font></td>
+          </tr>
+          <tr> 
+            <td> 
+              <p><font size="2" face="Courier New, Courier, mono"><code><font color="#000080"><i>// 
+                you can access classes like this... </i></font><font color="#800080"><b><br>
+                (</b></font>ClassX: <br>
+                &nbsp;&nbsp;init<font color="#800080"><b>() </b></font><br>
+                &nbsp;&nbsp;doit<font color="#800080"><b>() <br>
+                ) </b></font></code></font></p>
+              <p><font size="2" face="Courier New, Courier, mono"><code><font color="#000080"><i>// 
+                you can call it directly... </i></font><font color="#800080"><b><br>
+                (</b></font><font color="#0000FF"></font>SomeInstance:foo<font color="#800080"><b>()) 
+                </b></font></code></font></p>
+              <p><font size="2" face="Courier New, Courier, mono"><code><font color="#000080"><i>// 
+                or indirectly<b><font color="#800080">...</font></b></i></font><font color="#800080"><b><br>
+                = </b></font>InstancePtr SomeInstance <font color="#800080"><b><br>
+                (</b></font><font color="#0000FF"><b>send </b></font>InstancePtr:foo<font color="#800080"><b>()) 
+                </b></font></code></font></p>
+              <p><font size="2" face="Courier New, Courier, mono"><code><font color="#000080"><i>// 
+                or a shortcut to the indirect way<b><font color="#800080">...</font></b></i></font><font color="#800080"><b><br>
+                (</b></font><font color="#0000FF"><b>send </b></font><font color="#800080"><b>(= 
+                </b></font>InstancePtr SomeInstance<font color="#800080"><b>)</b></font>:foo<font color="#800080"><b>()) 
+                </b></font></code></font></p>
+              <p><font size="2" face="Courier New, Courier, mono"><code><font color="#800080"><b>(</b></font><font color="#0000FF"><b>self</b></font>:init<font color="#800080"><b>()) 
+                </b></font></code></font></p>
+              <p><font size="2" face="Courier New, Courier, mono"><code><font color="#800080"><b>(</b></font><font color="#0000FF"><b>super</b></font>:doit<font color="#800080"><b>()) 
+                </b></font></code></font></p>
+              </td>
+          </tr>
+        </table>
+        
+      </td>
+    </tr>
+  </table>
+</div>
+</body>
+</html>

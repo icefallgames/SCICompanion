@@ -1,0 +1,143 @@
+<html>
+<head>
+<title>Class: File</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<table width="100%" border="0" cellspacing="0" cellpadding="4">
+  <tr bgcolor="#a0a0a0"> 
+    <td bgcolor="#a0a0a0"><font size="4" face="Tahoma" color="#FFFFFF"><b>Class: 
+      File </b>(of <a href="class_obj.html">Obj</a>)</font></td>
+  </tr>
+  <tr> 
+    <td> 
+      <p><font face="Tahoma" size="2">The File class gives you the ability to 
+        open, close, read and write files. To use it, simply create an instance 
+        named the file name you wish to open and call it's open method.</font></p>
+      <p><font face="Tahoma" size="2"><b><font size="3">Properties</font></b></font></p>
+      <ul>
+        <li><font size="2" face="Tahoma"> handle</font></li>
+      </ul>
+      <p><font face="Tahoma" size="2"><b><font size="3">Methods</font></b></font></p>
+      <ul>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font face="Tahoma" size="3">void <b>dispose</b>()</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font face="Tahoma" size="2">Closes the file and disposes itself.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font face="Tahoma" size="3">void <b>showStr</b>(string 
+                strBuf)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font face="Tahoma" size="2">Prints the file name (object name) 
+                  to strBuf.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font face="Tahoma" size="3">heapPtr <b>open</b>(<i>[number 
+                mode]</i>)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font face="Tahoma" size="2">Opens the file.</font></p>
+                <p><font face="Tahoma" size="2">If mode is specified, it opens 
+                  it with mode as it's mode, otherwise, it uses fOPENFAIL as it's 
+                  mode. Upon success, it returns a pointer to the object, otherwise, 
+                  it returns NULL.</font></p>
+                <p><font face="Tahoma" size="2">The modes are as follows:</font></p>
+                <blockquote>
+<blockquote>
+                    <table border="0" cellspacing="2" cellpadding="1" width="100%">
+                      <tr> 
+                        <td bgcolor="#EFEFEF"><font face="Tahoma" size="2"> fOPENFAIL</font></td>
+                        <td bgcolor="#F9f9f9"><font face="Tahoma" size="2"> open 
+                          or fail: Try to open file, abort if not possible </font></td>
+                      </tr>
+                      <tr> 
+                        <td bgcolor="#EFEFEF"><font face="Tahoma" size="2"> fOPENCREATE</font></td>
+                        <td bgcolor="#F9f9f9"><font face="Tahoma" size="2"> open 
+                          or create: Try to open file, create it if it doesn't 
+                          exist </font></td>
+                      </tr>
+                      <tr> 
+                        <td bgcolor="#EFEFEF"><font face="Tahoma" size="2"> fCREATE</font></td>
+                        <td bgcolor="#F9f9f9"><font size="2" face="Tahoma"> create: 
+                          Create the file, destroying any content it might have 
+                          had</font></td>
+                      </tr>
+                    </table>
+                  </blockquote>
+                </blockquote>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font face="Tahoma" size="3">void <b>write</b>(string(s) 
+                putStrings)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font face="Tahoma" size="2">Writes the specified strings to 
+                  the file.</font></p>
+                <p><font face="Tahoma" size="2">If the file is not open, it opens 
+                  it with the default mode. It then writes all the strings given 
+                  as parameters to the it.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font face="Tahoma" size="3">number <b>read</b>(string 
+                strBuf, number maxSize)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font face="Tahoma" size="2">Reads a string from the file.</font></p>
+                <p><font face="Tahoma" size="2">If the file is not open, it creates 
+                  it. It then writes reads a string. If the string length exceeds 
+                  maxSize, only maxSize is read. It returns the number of bytes 
+                  read. </font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li>
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font face="Tahoma" size="3">void <b>close</b>()</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font face="Tahoma" size="2">Closes the file and sets it's 
+                  handle to NULL.</font></p>
+                </td>
+            </tr>
+          </table>
+        </li>
+      </ul>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

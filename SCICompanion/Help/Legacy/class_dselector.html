@@ -1,0 +1,126 @@
+<html>
+<head>
+<title>Class: DSelector</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<table width="100%" border="0" cellspacing="0" cellpadding="4">
+  <tr bgcolor="#a0a0a0"> 
+    <td bgcolor="#a0a0a0"><font size="4" face="Tahoma" color="#FFFFFF"><b>Class: 
+      DSelector </b>(of <a href="class_control.html">Control</a>)</font></td>
+  </tr>
+  <tr> 
+    <td> 
+      <p><font face="Tahoma" size="2">The DSelector class is the control class 
+        for selector controls. These allow the user to select an item from a list.</font></p>
+      <p><font face="Tahoma" size="2"><b><font size="3">Properties</font></b></font></p>
+      <ul>
+        <li><font size="2" face="Tahoma"> type</font></li>
+        <li><font size="2" face="Tahoma">state</font></li>
+        <li><font size="2" face="Tahoma">nsTop</font></li>
+        <li><font size="2" face="Tahoma">nsLeft</font></li>
+        <li><font size="2" face="Tahoma">nsBottom</font></li>
+        <li><font size="2" face="Tahoma">nsRight</font></li>
+        <li><font size="2" face="Tahoma">key</font></li>
+        <li><font size="2" face="Tahoma">said</font></li>
+        <li><font size="2" face="Tahoma">value</font></li>
+        <li><font size="2" face="Tahoma">font</font></li>
+        <li><font size="2" face="Tahoma">x</font></li>
+        <li><font size="2" face="Tahoma">y</font></li>
+        <li><font size="2" face="Tahoma">text</font></li>
+        <li><font size="2" face="Tahoma">cursor</font></li>
+        <li><font size="2" face="Tahoma">lsTop</font></li>
+        <li><font size="2" face="Tahoma">mark</font></li>
+      </ul>
+      <p><font face="Tahoma" size="2"><b><font size="3">Methods</font></b></font></p>
+      <ul>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">bool <b>handleEvent</b>(heapPtr 
+                pEvent)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Handles the selector's input, 
+                  allowing the user to select items in the list.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">void <b>setSize</b>()</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Sets up the control's size.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">number <b>indexOf</b>(string 
+                aString)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Returns the index of specified 
+                  string in the list of items. If the string is not an item in 
+                  the list, it returns -1.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">string<b> at</b>(number 
+                position)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Returns string at the specified 
+                  position in the list.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">void <b>advance</b>(number 
+                amount)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Increments the selected item's 
+                  index by amount.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li>
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">void <b>retreat</b>(number 
+                amount)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Decrements the selected item's 
+                  index by amount.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+      </ul>
+      </td>
+  </tr>
+</table>
+</body>
+</html>

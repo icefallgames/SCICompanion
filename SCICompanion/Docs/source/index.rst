@@ -31,6 +31,7 @@ Topics:
    views
    pics
    scripts
+   legacy
    classlibrary
    sci_kernels
    sci_compiler

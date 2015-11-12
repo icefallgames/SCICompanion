@@ -1,0 +1,117 @@
+<html>
+<head>
+<title>Class: Wander</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<table width="100%" border="0" cellspacing="0" cellpadding="4">
+  <tr bgcolor="#a0a0a0"> 
+    <td bgcolor="#a0a0a0"><font size="4" face="Tahoma" color="#FFFFFF"><b>Class: 
+      Wander </b>(of <a href="class_obj.html">Obj</a>)</font></td>
+  </tr>
+  <tr> 
+    <td> 
+      <p><font face="Tahoma" size="2">The Wander class is a movement class which 
+        allows actors to wander around aimlessly.</font></p>
+      <p><font face="Tahoma" size="2"><b><font size="3">Properties</font></b></font></p>
+      <ul>
+        <li><font size="2" face="tahoma">client</font></li>
+        <li><font size="2" face="tahoma">caller</font></li>
+        <li><font size="2" face="tahoma">x</font></li>
+        <li><font size="2" face="tahoma">y</font></li>
+        <li><font size="2" face="tahoma">dx</font></li>
+        <li><font size="2" face="tahoma">dy</font></li>
+        <li><font size="2" face="tahoma">b-moveCnt</font></li>
+        <li><font size="2" face="tahoma">b-i1</font></li>
+        <li><font size="2" face="tahoma">b-i2</font></li>
+        <li><font size="2" face="tahoma">b-di</font></li>
+        <li><font size="2" face="tahoma">b-xAxis</font></li>
+        <li><font size="2" face="tahoma">b-incr</font></li>
+        <li><font size="2" face="tahoma">completed</font></li>
+        <li><font size="2" face="tahoma">xLast</font></li>
+        <li><font size="2" face="tahoma">yLast</font></li>
+        <li><font size="2" face="tahoma">distance</font></li>
+      </ul>
+      <p><font face="Tahoma" size="2"><b><font size="3">Methods</font></b></font></p>
+      <ul>
+        <li> </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD" height="22"><font size="3" face="tahoma">void 
+                <b>init</b>(<i>[heapPtr theClient, number theDistance]</i>)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Sets up the Wander class. </font></p>
+                <p><font size="2" face="tahoma">If specified, it assigns the parameters 
+                  to their corresponding properties. It sets up it's target to 
+                  a random point and calls it's super's init() method.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD" height="22"><font size="3" face="tahoma">void 
+                <b>doit</b>()</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Moves the client actor towards 
+                  it's random target.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD" height="22"><font size="3" face="tahoma">void 
+                <b>moveDone</b>()</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Occurs when the actor has reached 
+                  it's target. It simply sets up a new random target.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD" height="22"><font size="3" face="tahoma">void 
+                <b>setTarget</b>()</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Sets up a random target for the 
+                  actor.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD" height="22"> 
+                <p><font size="3" face="tahoma">bool <b>onTarget</b>()</font><font size="2" face="tahoma"></font></p>
+              </td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">It returns FALSE since there will 
+                  never actually be a real target.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+      </ul>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

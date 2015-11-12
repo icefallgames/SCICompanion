@@ -1,0 +1,77 @@
+<html>
+<head>
+<title>Kernel: AddMenu</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<div align="center"> 
+  <table width="100%" border="0" cellspacing="0" cellpadding="4">
+    <tr bgcolor="#a0a0a0"> 
+      <td><font size="4" face="Tahoma"><b><font color="#FFFFFF">AddMenu</font></b></font></td>
+    </tr>
+    <tr> 
+      <td> 
+        <p align="left"><font size="2" face="tahoma">void <b>AddMenu</b>(string 
+          caption, string itemCaptions)</font></p>
+        <p align="left"><font size="2" face="tahoma">AddMenu adds a new menu item 
+          with the specified caption to the menubar. The string itemCaptions specifies 
+          the submenu items. The itemCaptions string can contain format characters 
+          to seperate items and format the text.</font></p>
+        <p align="left"><font size="2" face="tahoma">The format characters are 
+          as follows</font></p>
+        <blockquote> 
+          <table border="0" cellspacing="2" cellpadding="1" width="100%">
+            <tr> 
+              <td bgcolor="#EFEFEF" width="5%"><font size="4" face="tahoma"><b>`</b></font></td>
+              <td bgcolor="#F9f9f9" width="95%"><font size="2" face="tahoma">Tells 
+                the interpreter to right justify the following text</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#EFEFEF" width="22"><font size="4" face="tahoma">:</font></td>
+              <td bgcolor="#F9f9f9" width="919"><font size="2" face="tahoma">Specifies 
+                the end of current item, the following will be the next item.</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#EFEFEF" width="22"><font size="4" face="tahoma">--!</font></td>
+              <td bgcolor="#F9f9f9" width="919"><font size="2" face="tahoma">Specifies 
+                that the menu item will just be a seperator.</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#EFEFEF" width="22"><font size="4" face="tahoma">#</font></td>
+              <td bgcolor="#F9f9f9" width="919"><font size="2" face="tahoma">Specifies 
+                the item's function key</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#EFEFEF" width="22"><font size="4" face="tahoma"><b>^</b></font></td>
+              <td bgcolor="#F9f9f9" width="919"><font size="2" face="tahoma">Specifies 
+                the item's control+key combination</font></td>
+            </tr>
+          </table>
+        </blockquote>
+        <table border="0" cellpadding="2" align="center" width="100%">
+          <tr bgcolor="#CCCCCC"> 
+            <td bgcolor="#CCCCCC"><font size="2" face="Tahoma"><b>Example</b></font></td>
+          </tr>
+          <tr> 
+            <td bgcolor="#FFFFEE"> 
+              <p> <font size="2" face="Courier New, Courier, mono">AddMenu(<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&quot; File &quot;<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;Restart 
+                Game`#9:&quot;+<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;Save Game`#5:&quot;+<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;Restore 
+                Game`#7:&quot;+<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;--! :&quot;+<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&quot;Quit`^q&quot;<br>
+                )</font></p>
+            </td>
+          </tr>
+        </table>
+        
+      </td>
+    </tr>
+  </table>
+</div>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<html>
+<head>
+<title>Kernel: GetMenu</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<div align="center"> 
+  <table width="100%" border="0" cellspacing="0" cellpadding="4">
+    <tr bgcolor="#a0a0a0"> 
+      <td> 
+        <p><font size="4" face="Tahoma" color="#FFFFFF"><b>GetMenu</b></font></p>
+        </td>
+    </tr>
+    <tr> 
+      <td> 
+        <p align="left"><font size="2" face="tahoma">* <b>GetMenu</b>(number menuItem, 
+          number subfunction, param)</font></p>
+        <p><font face="Tahoma" size="2"> Get a menu item's properties. </font><font size="2" face="tahoma">Following 
+          the menuItem, you can specify what property you would like to obtain 
+          with a parameter. Each parameter has a type ID, specified in <a href="header_sci.html">SCI.SH</a>.</font></p>
+        <p align="left"><font size="2" face="tahoma">The parameters are as follows:</font></p>
+        <blockquote> 
+          <table border="0" cellspacing="2" cellpadding="1" width="100%">
+            <tr> 
+              <td bgcolor="#EFEFEF" width="10%"> 
+                <div align="center"><b><font size="2" face="Tahoma">smMENU_SAID</font></b></div>
+              </td>
+              <td bgcolor="#F9f9f9" width="90%"> 
+                <p><font face="Tahoma" size="2">1 parameter, a said string.</font></p>
+                <p><font face="Tahoma" size="2">Retreives the menu item's said 
+                  property. </font></p>
+                <blockquote> 
+                  <table border="0" cellpadding="2" align="center" width="100%">
+                    <tr bgcolor="#CCCCCC"> 
+                      <td bgcolor="#CCCCCC"><font size="2" face="Tahoma"><b>Example</b></font></td>
+                    </tr>
+                    <tr> 
+                      <td bgcolor="#FFFFEE"> 
+                        <p> <font face="Courier New, Courier, mono" size="2">(var 
+                          theSaid) <br>
+                          = theSaid GetMenu($202 smMENU_SAID)</font></p>
+                      </td>
+                    </tr>
+                  </table>
+                </blockquote>
+              </td>
+            </tr>
+            <tr> 
+              <td bgcolor="#EFEFEF"> 
+                <div align="center"><b><font size="2" face="Tahoma">smMENU_TEXT</font></b></div>
+              </td>
+              <td bgcolor="#F9f9f9"> 
+                <p><font face="Tahoma" size="2">1 parameter, a string.</font></p>
+                <p><font face="Tahoma" size="2">Returns the menu item's text.</font></p>
+                <blockquote> 
+                  <table border="0" cellpadding="2" align="center" width="100%">
+                    <tr bgcolor="#CCCCCC"> 
+                      <td bgcolor="#CCCCCC"><font size="2" face="Tahoma"><b>Example</b></font></td>
+                    </tr>
+                    <tr> 
+                      <td bgcolor="#FFFFEE"> 
+                        <p> <font face="Courier New, Courier, mono" size="2">Print(GetMenu($202 
+                          smMENU_TEXT))</font></p>
+                      </td>
+                    </tr>
+                  </table>
+                  
+                </blockquote>
+              </td>
+            </tr>
+            <tr> 
+              <td bgcolor="#EFEFEF"> 
+                <div align="center"><b><font size="2" face="Tahoma">smMENU_SHORTCUTKEY</font></b></div>
+              </td>
+              <td bgcolor="#F9f9f9"><font size="2" face="Tahoma"> </font> 
+                <p><font face="Tahoma" size="2">1 parameter, a number.</font></p>
+                <p><font face="Tahoma" size="2">Returns the menu item's shortcut 
+                  key. See <a href="header_keys.html">KEYS.SH</a> for the keycodes.</font></p>
+                <blockquote> 
+                  <table border="0" cellpadding="2" align="center" width="100%">
+                    <tr bgcolor="#CCCCCC"> 
+                      <td bgcolor="#CCCCCC"><font size="2" face="Tahoma"><b>Example</b></font></td>
+                    </tr>
+                    <tr> 
+                      <td bgcolor="#FFFFEE"> 
+                        <p> <font face="Courier New, Courier, mono" size="2">(var 
+                          theKey) <br>
+                          = theKey GetMenu($202 smMENU_SHORTCUTKEY)</font></p>
+                        </td>
+                    </tr>
+                  </table>
+                </blockquote>
+              </td>
+            </tr>
+            <tr> 
+              <td bgcolor="#EFEFEF"> 
+                <div align="center"><b><font size="2" face="Tahoma">smMENU_ENABLE</font></b></div>
+              </td>
+              <td bgcolor="#F9f9f9"><font size="2" face="Tahoma"> </font> 
+                <p><font face="Tahoma" size="2">1 parameter, a bool.</font></p>
+                <p><font face="Tahoma" size="2">Returns whether the item is enabled 
+                  or not.</font></p>
+                <blockquote> 
+                  <table border="0" cellpadding="2" align="center" width="100%">
+                    <tr bgcolor="#CCCCCC"> 
+                      <td bgcolor="#CCCCCC"><font size="2" face="Tahoma"><b>Example</b></font></td>
+                    </tr>
+                    <tr> 
+                      <td bgcolor="#FFFFEE"> 
+                        <p> <font face="Courier New, Courier, mono" size="2">(if(SetMenu($202 
+                          smMENU_ENABLE))<br>
+                          &nbsp;&nbsp;&nbsp;&nbsp;Print(&quot;The item is enabled!&quot;)<br>
+                          ) </font></p>
+                      </td>
+                    </tr>
+                  </table>
+                </blockquote>
+              </td>
+            </tr>
+          </table>
+        </blockquote>
+        <p><font size="2" face="Tahoma">see also: <a href="kernel_setmenu.html">SetMenu</a>, 
+          <a href="kernel_addmenu.html">AddMenu</a></font></p>
+      </td>
+    </tr>
+  </table>
+</div>
+</body>
+</html>

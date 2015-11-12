@@ -1,0 +1,489 @@
+<html>
+<head>
+<title>Kernel Functions</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<div align="center"> 
+  <table width="100%" border="0" cellspacing="0" cellpadding="4">
+    <tr bgcolor="#a0a0a0"> 
+      <td><font size="4" face="Tahoma" color="#FFFFFF"><b>Kernel Functions</b></font></td>
+    </tr>
+    <tr> 
+      <td> 
+        <p><font face="Tahoma" size="2">Kernel functions are routines built into 
+          the interpreter that can be called from scripts. They are essential 
+          as they do the graphic drawing, window handling, text printing, file 
+          I/O, and everything else you need. The number of kernel functions vary 
+          from intepreter versions, but in SCI Studio's interpreter, there are 114.</font></p>
+        <p><font face="Tahoma" size="2">To fully understand these, you must be 
+          farmilliar with the <a href="variable_types.html">Variable Types</a>. 
+          </font></p>
+        <p align="left"><font face="Tahoma" size="3"><b>SCI0 Kernel functions</b></font></p>
+
+<table width=100% border=0>
+<tr>
+<td width=8%><font face=Tahoma size=2>number </font></td>
+<td width=92%><font face=Tahoma size=2><a href="kernel_abs.html">Abs</a>(number           value)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_addafter.html">AddAfter</a>(heapPtr           pList, heapPtr afterNode, heapPtr pNode)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_addmenu.html">AddMenu</a>(string           caption, string itemCaptions)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_addtoend.html">AddToEnd</a>(heapPtr           pList, heapPtr pNode)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_addtofront.html">AddToFront</a>(heapPtr           pList, heapPtr pNode)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_addtopic.html">AddToPic</a>(heapPtr           viewList)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_animate.html">Animate</a>(<i>[heapPtr           cast, bool cycle]</i>)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_basesetter.html">BaseSetter</a>(heapPtr           viewObj)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>bool </font></td>
+<td><font face=Tahoma size=2><a href="kernel_canbehere.html">CanBeHere</a>(heapPtr           viewObj<i>[, heapPtr pList]</i>)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>number </font></td>
+<td><font face=Tahoma size=2><a href="kernel_celhigh.html">CelHigh</a>(number           view, number loop, number cel)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>number </font></td>
+<td><font face=Tahoma size=2><a href="kernel_celwide.html">CelWide</a>(number           view, number loop, number cel)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>bool </font></td>
+<td><font face=Tahoma size=2><a href="kernel_checkfreespace.html">CheckFreeSpace</a>(string           directory)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>bool </font></td>
+<td><font face=Tahoma size=2><a href="kernel_checksavegame.html">CheckSaveGame</a>(string           gameName, number slotNumber<i>[, string gameVersion]</i>)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>heapPtr </font></td>
+<td><font face=Tahoma size=2><a href="kernel_clone.html">Clone</a>(heapPtr           object)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>number </font></td>
+<td><font face=Tahoma size=2><a href="kernel_coordpri.html">CoordPri</a>(number           y)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>number </font></td>
+<td><font face=Tahoma size=2><a href="kernel_cosdiv.html">CosDiv</a>(number           angle, number factor)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>number </font></td>
+<td><font face=Tahoma size=2><a href="kernel_cosmult.html">CosMult</a>(number           angle, number factor)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_deletekey.html">DeleteKey</a>(heapPtr           pList, number key)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>heapPtr </font></td>
+<td><font face=Tahoma size=2><a href="kernel_deviceinfo.html">DeviceInfo</a>(diGET_DEVICE,           string thePath, string strBuf)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_dirloop.html">DirLoop</a>(heapPtr           viewObj, number angle)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>[heapPtr] </font></td>
+<td><font face=Tahoma size=2><a href="kernel_display.html">Display</a>(string           text<i>[, params]</i>)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_disposeclone.html">DisposeClone</a>(heapPtr           object)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_disposelist.html">DisposeList</a>(heapPtr           pList)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_disposescript.html">DisposeScript</a>(number           scriptNum)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_disposewindow.html">DisposeWindow</a>(heapPtr           Window)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_doavoider.html">DoAvoider</a>(heapPtr           moverObj)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>bool </font></td>
+<td><font face=Tahoma size=2><a href="kernel_dobresen.html">DoBresen</a>(heapPtr           moverObj)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_dosound.html">DoSound</a>(number           subFunction, ...)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_drawcel.html">DrawCel</a>(number           view, number loop, number cel, point position, number priority)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_drawcontrol.html">DrawControl</a>(heapPtr           control)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_drawmenubar.html">DrawMenuBar</a>(bool           mode)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_drawpic.html">DrawPic</a>(number picNum,           [number animation, bool clear, number defaultPalette])</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_drawstatus.html">DrawStatus</a>(string           text)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_editcontrol.html">EditControl</a>(heapPtr           control, heapPtr event)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>bool </font></td>
+<td><font face=Tahoma size=2><a href="kernel_emptylist.html">EmptyList</a>(heapPtr           pList)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_fclose.html">FClose</a>(number           handle)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>number </font></td>
+<td><font face=Tahoma size=2><a href="kernel_fgets.html">FGets</a>(string           buffer, number max, number handle)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>heapPtr </font></td>
+<td><font face=Tahoma size=2><a href="kernel_findkey.html">FindKey</a>(heapPtr           pList, number key)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>heapPtr </font></td>
+<td><font face=Tahoma size=2><a href="kernel_firstnode.html">FirstNode</a>(heapPtr           pList)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_flushresources.html">FlushResources</a>()</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>number </font></td>
+<td><font face=Tahoma size=2><a href="kernel_fopen.html">FOpen</a>(string           name, number mode)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>string </font></td>
+<td><font face=Tahoma size=2><a href="kernel_format.html">Format</a>(string           destString, string fmtString<i>[, parameters]</i>)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_fputs.html">FPuts</a>(number           handle, string buffer)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>bool </font></td>
+<td><font face=Tahoma size=2><a href="kernel_gameisrestarting.html">GameIsRestarting</a>()</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>number </font></td>
+<td><font face=Tahoma size=2><a href="kernel_getangle.html">GetAngle</a>(point           origin, point dest)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>string </font></td>
+<td><font face=Tahoma size=2><a href="kernel_getcwd.html">GetCWD</a>(string           strBuf)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>number </font></td>
+<td><font face=Tahoma size=2><a href="kernel_getdistance.html">GetDistance</a>(point           origin, point dest)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>bool </font></td>
+<td><font face=Tahoma size=2><a href="kernel_getevent.html">GetEvent</a>(number           types, heapPtr event)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>string </font></td>
+<td><font face=Tahoma size=2><a href="kernel_getfartext.html">GetFarText</a>(number           rsNumber, number index, string aString)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>* </font></td>
+<td><font face=Tahoma size=2><a href="kernel_getmenu.html">GetMenu</a>(number menuItem,           number subfunction, param)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_getport.html">GetPort</a>(heapPtr           newPort)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>string </font></td>
+<td><font face=Tahoma size=2><a href="kernel_getsavedir.html">GetSaveDir</a>()</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>number </font></td>
+<td><font face=Tahoma size=2><a href="kernel_getsavefiles.html">GetSaveFiles</a>(string           gameName, strings descBuffer, @number descSlots[])</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>number </font></td>
+<td><font face=Tahoma size=2><a href="kernel_gettime.html">GetTime</a>(<i>[bool           fTIME_OF_DAY]</i>)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_globaltolocal.html">GlobalToLocal</a>(heapPtr           event)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>* </font></td>
+<td><font face=Tahoma size=2><a href="kernel_graph.html">Graph</a>(number subFunction,           ...)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>bool </font></td>
+<td><font face=Tahoma size=2><a href="kernel_havemouse.html">HaveMouse</a>()</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_hilitecontrol.html">HiliteControl</a>(heapPtr           control)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_initbresen.html">InitBresen</a>(heapPtr           moverObj<i>[, number stepMult]</i>)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_inspectobj.html">InspectObj</a>(heapPtr           pObj)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>bool </font></td>
+<td><font face=Tahoma size=2><a href="kernel_isobject.html">IsObject</a>(heapPtr           obj)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>number </font></td>
+<td><font face=Tahoma size=2><a href="kernel_joystick.html">Joystick</a>(number           subfunction, number state)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>heapPtr </font></td>
+<td><font face=Tahoma size=2><a href="kernel_lastnode.html">LastNode</a>(heapPtr           pList)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>heapPtr </font></td>
+<td><font face=Tahoma size=2><a href="kernel_load.html">Load</a>(number           type, number resNum)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_localtoglobal.html">LocalToGlobal</a>(heapPtr           event)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>heapPtr </font></td>
+<td><font face=Tahoma size=2><a href="kernel_mapkeytodir.html">MapKeyToDir</a>(heapPtr           event)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>number </font></td>
+<td><font face=Tahoma size=2><a href="kernel_memoryinfo.html">MemoryInfo</a>(number           type)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>number </font></td>
+<td><font face=Tahoma size=2><a href="kernel_menuselect.html">MenuSelect</a>(heapPtr           event)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>heapPtr </font></td>
+<td><font face=Tahoma size=2><a href="kernel_newlist.html">NewList</a>()</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>heapPtr </font></td>
+<td><font face=Tahoma size=2><a href="kernel_newnode.html">NewNode</a>(number           value, number key)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>heapPtr </font></td>
+<td><font face=Tahoma size=2><a href="kernel_newwindow.html">NewWindow</a>(rect           bounds, string title, number flags, number priority, number forecolour,           number backcolour)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>heapPtr </font></td>
+<td><font face=Tahoma size=2><a href="kernel_nextnode.html">NextNode</a>(heapPtr           pNode)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>number </font></td>
+<td><font face=Tahoma size=2><a href="kernel_nodevalue.html">NodeValue</a>(heapPtr           pNode)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>number </font></td>
+<td><font face=Tahoma size=2><a href="kernel_numcels.html">NumCels</a>(heapPtr           obj)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>number </font></td>
+<td><font face=Tahoma size=2><a href="kernel_numloops.html">NumLoops</a>(heapPtr           obj)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>number </font></td>
+<td><font face=Tahoma size=2><a href="kernel_oncontrol.html">OnControl</a>(number           map, point xy <b>or</b> rect aRect )</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>bool </font></td>
+<td><font face=Tahoma size=2><a href="kernel_parse.html">Parse</a>(heapPtr           event, string text)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>number </font></td>
+<td><font face=Tahoma size=2><a href="kernel_picnotvalid.html">PicNotValid</a>(<i>[number           newFlag]</i>)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>heapPtr </font></td>
+<td><font face=Tahoma size=2><a href="kernel_prevnode.html">PrevNode</a>(heapPtr           pNode)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_profiler.html">Profiler</a>()</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>number </font></td>
+<td><font face=Tahoma size=2><a href="kernel_random.html">Random</a>(number           min, number max)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>number </font></td>
+<td><font face=Tahoma size=2><a href="kernel_readnumber.html">ReadNumber</a>(string           aString)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>bool </font></td>
+<td><font face=Tahoma size=2><a href="kernel_respondsto.html">RespondsTo</a>(heapPtr           anObject, selector aSelector)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>* </font></td>
+<td><font face=Tahoma size=2><a href="kernel_restartgame.html">RestartGame</a>()</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_restoregame.html">RestoreGame</a>(string           gameName, number slotNumber, string gameVersion)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>bool </font></td>
+<td><font face=Tahoma size=2><a href="kernel_said.html">Said</a>(said saidString)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>bool </font></td>
+<td><font face=Tahoma size=2><a href="kernel_savegame.html">SaveGame</a>(string           gameName, number slotNumber, string description, string gameVersion)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>heapPtr </font></td>
+<td><font face=Tahoma size=2><a href="kernel_scriptid.html">ScriptID</a>(number           scriptNum, number Index)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_setcursor.html">SetCursor</a>(number           resNumber, bool visible<i>[,point coords]</i>)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_setdebug.html">SetDebug</a>()</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_setjump.html">SetJump</a>(heapPtr           moverObj, number dx, number dy, number gy)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_setmenu.html">SetMenu</a>(number           menuItem, <i>[number subfunction, params]</i>)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_setnowseen.html">SetNowSeen</a>(heapPtr           viewObj)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_setport.html">SetPort</a>(heapPtr           newPort)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_setsynonyms.html">SetSynonyms</a>(heapPtr           scrListObj)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_shakescreen.html">ShakeScreen</a>(number shakeCount,         <i>[number direction]</i>)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_show.html">Show</a>()</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_showfree.html">ShowFree</a>()</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_showobjs.html">ShowObjs</a>()</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_showsends.html">ShowSends</a>()</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>number </font></td>
+<td><font face=Tahoma size=2><a href="kernel_sindiv.html">SinDiv</a>(number           angle, number factor)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>number </font></td>
+<td><font face=Tahoma size=2><a href="kernel_sinmult.html">SinMult</a>(number           angle, number factor)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>number </font></td>
+<td><font face=Tahoma size=2><a href="kernel_sqrt.html">Sqrt</a>(number           value)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>number </font></td>
+<td><font face=Tahoma size=2><a href="kernel_stackusage.html">StackUsage</a>()</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>char </font></td>
+<td><font face=Tahoma size=2><a href="kernel_strat.html">StrAt</a>(string           aString, number index<i>[, char replacement]</i>)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>string </font></td>
+<td><font face=Tahoma size=2><a href="kernel_strcat.html">StrCat</a>(string           destString, string srcString)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>number </font></td>
+<td><font face=Tahoma size=2><a href="kernel_strcmp.html">StrCmp</a>(string           aString, string bString<i>[, number max]</i>)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>string </font></td>
+<td><font face=Tahoma size=2><a href="kernel_strcpy.html">StrCpy</a>(string           destString, string srcString<i>[, number max]</i>)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>string </font></td>
+<td><font face=Tahoma size=2><a href="kernel_strend.html">StrEnd</a>(string           aString)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>number </font></td>
+<td><font face=Tahoma size=2><a href="kernel_strlen.html">StrLen</a>(string           aString)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_textsize.html">TextSize</a>(@rect           sizeRect, string text, number font<i>[, number maxWidth]</i>)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>void </font></td>
+<td><font face=Tahoma size=2><a href="kernel_unload.html">UnLoad</a>(number           type, number resNum)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>bool </font></td>
+<td><font face=Tahoma size=2><a href="kernel_validpath.html">ValidPath</a>(string           aDirectory)</font></td>
+</tr>
+<tr>
+<td><font face=Tahoma size=2>number </font></td>
+<td><font face=Tahoma size=2><a href="kernel_wait.html">Wait</a>(number           ticks)</font></td>
+</tr>
+</table>
+
+      </td>
+    </tr>
+  </table>
+</div>
+</body>
+</html>

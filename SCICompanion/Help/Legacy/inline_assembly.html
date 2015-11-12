@@ -1,0 +1,55 @@
+<html>
+<head>
+<title>Inline Assembly</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<div align="center"> 
+  <table width="100%" border="0" cellspacing="0" cellpadding="4">
+    <tr bgcolor="#a0a0a0"> 
+      <td><font size="4" face="Tahoma" color="#FFFFFF"><b>Inline Assembly</b></font></td>
+    </tr>
+    <tr> 
+      <td> 
+        <p><font face="Tahoma" size="2">To give you complete control over scripting
+            your game, the ability to to inline assembly was implemented. With
+            inline assembly, you can script SCI byte code within the highlevel
+            code.</font></p>
+        <p><font face="Tahoma" size="2">Syntax</font></p>
+        <blockquote> 
+          <p><font size="2" face="Courier New, Courier, mono">(asm<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<font color="#000080">&lt;asm code&gt;<br>
+</font>)</font></p>
+        </blockquote>
+        <table border="0" cellpadding="2" align="center" width="100%">
+          <tr bgcolor="#CCCCCC"> 
+            <td><font size="2" face="Tahoma"><b>Example</b></font></td>
+          </tr>
+          <tr> 
+            <td bgcolor="#FFFFEE"> 
+              <p><code><font color="#800080"><b>(</b></font><font color="#0000FF"><b>procedure 
+                </b></font><font color="#800080"><b>(</b></font>SomeProc<font color="#800080"><b>)                <br>
+&nbsp;&nbsp;(</b></font><font color="#0000FF"><b>asm </b></font><br>
+&nbsp;&nbsp;&nbsp;&nbsp; pushi <strong>#</strong>init<br>
+&nbsp;&nbsp;&nbsp;&nbsp; push0<br>
+&nbsp;&nbsp;&nbsp;&nbsp; lofsa {fWindow}<br>
+&nbsp;&nbsp;&nbsp;&nbsp; </code><code>send <font color="#0000FF">4</font><br>
+&nbsp;  <font color="#800080"><b>)</b></font><font color="#800080"><b></b></font></code><code><font color="#800080"><b><br>
+            )</b></font></code></p>
+            <p><code><font color="#000099"><em>// the inline assembly is quite
+                    versatile. Here's a crafty example:</em></font><font color="#800080"><b><br>
+(</b></font><font color="#0000FF"><b>if</b></font><font color="#800080"><b>(</b></font>something<font color="#800080"><b>)<br>
+&nbsp;&nbsp;</b></font></code><code><font color="#800080"><b>(</b></font><font color="#0000FF"><b>asm </b></font><font color="#800080"></font>jmp
+_a_goto_label<font color="#800080"><b>)</b></font><font color="#800080"><b><br>
+)<br>
+(</b></font><font color="#0000FF"><b>asm </b></font><font color="#800080"></font>_a_goto_label: <font color="#800080"><b>)</b></font><font color="#800080"><b> </b></font></code></p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</div>
+</body>
+</html>

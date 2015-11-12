@@ -1,0 +1,254 @@
+<html>
+<head>
+<title>Scripts: Main</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<table width="100%" border="0" cellspacing="0" cellpadding="4">
+  <tr bgcolor="#a0a0a0"> 
+    <td bgcolor="#a0a0a0"><font size="4" face="Tahoma" color="#FFFFFF"><b>Scripts: 
+      Main</b></font></td>
+  </tr>
+  <tr> 
+    <td> 
+      <p><font face="Tahoma" size="2">The Main script is where the game execution 
+        begins. It contains your start up code, ego instance, status code instance, 
+        and inventory items. It also contains the <a href="global_variables.html">global 
+        variables</a>.</font></p>
+      <p><font face="Tahoma" size="2"><b><font size="3">Classes</font></b></font></p>
+      <ul>
+        <li><font size="2" face="Tahoma"><a href="class_iitem.html">Iitem</a></font></li>
+        <li> 
+          <p><font face="Tahoma" size="2"><b><font size="3"></font></b></font><font face="tahoma"><i><font size="2">There's 
+            only one class in this script, but it contains important instances.</font></i></font></p>
+          </li>
+      </ul>
+      <p><font face="Tahoma" size="2"><b><font size="3">Public Procedures</font></b></font></p>
+      <ul>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD" height="21"><font face="Tahoma" size="3">void 
+                SetUpEgo(<i>[number theLoop, number theView]</i>)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font face="Tahoma" size="2">Sets up the ego.</font></p>
+                <p><font face="Tahoma" size="2">It enables the player control 
+                  and sets the ego's edgeHit to EDGE_NONE. It then sets up it's 
+                  view/loop. If theLoop is specified, it sets the ego's loop to 
+                  theLoop. If theView is specified, it sets the ego's view to 
+                  theView. If neither are specified, the ego's view is set to 
+                  the global gEgoView.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font face="Tahoma" size="3">void SetUpActor(heapPtr 
+                theActor<i>[, number theLoop, number theView]</i>) </font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font face="Tahoma" size="2">Initializes an actor, setting 
+                  it's properties to the defaults, and if specified, the loop/view.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font face="Tahoma" size="3">void ProgramControl() 
+                </font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font face="Tahoma" size="2">Disables user control and input, 
+                  and sets the ego's motion to NULL.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font face="Tahoma" size="3">void PlayerControl() 
+                </font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font face="Tahoma" size="2">Enables user control and input, 
+                  and sets the ego's motion to NULL.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font face="Tahoma" size="3">void DisposePrintDlg() 
+                </font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font face="Tahoma" size="2">If a print dialog is still on 
+                  the screen (ie. the user set it up with a timer), it disposes 
+                  it. </font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font face="Tahoma" size="3">void PrintOK() 
+                </font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font face="Tahoma" size="2">Prints the default &quot;OK&quot; 
+                  message. </font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font face="Tahoma" size="3">void PrintItIs() 
+                </font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font face="Tahoma" size="2">Prints the default &quot;it is&quot; 
+                  message. </font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font face="Tahoma" size="3">void PrintYouAre() 
+                </font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font face="Tahoma" size="2">Prints the default &quot;You are.&quot; 
+                  message. </font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font face="Tahoma" size="3">void PrintGoodIdea() 
+                </font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font face="Tahoma" size="2">Prints the default &quot;Good 
+                  idea. You might try that again later.&quot; message. </font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font face="Tahoma" size="3">void PrintNotCloseEnough() 
+                </font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font face="Tahoma" size="2">Prints the default &quot;You're 
+                  not close enough.&quot; message. </font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font face="Tahoma" size="3">void PrintAlreadyTookIt() 
+                </font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font face="Tahoma" size="2">Prints the default &quot;You already 
+                  took it.&quot; message. </font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font face="Tahoma" size="3">void PrintDontHaveIt() 
+                </font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font face="Tahoma" size="2">Prints the default &quot;You don't 
+                  have it.&quot; message. </font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font face="Tahoma" size="3">bool PrintCantDoThat(number 
+                mem) </font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font face="Tahoma" size="2">If MemoryInfo(miFREEHEAP) is greater 
+                  than mem, it returns TRUE. Otherwise, it prints the default 
+                  &quot;You can't do that here; at least, not now.&quot; message 
+                  and returns FALSE.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font face="Tahoma" size="3">void AddViewToPic(heapPtr 
+                pView) </font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font face="Tahoma" size="2">Creates an instance of pView and 
+                  adds it to the picture. It then hides the original pView.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font face="Tahoma" size="3">void SetInvIOwner(number 
+                index<i>[, heapPtr owner]</i>) </font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font face="Tahoma" size="2">Sets the specified inventory item's 
+                  owner. If owner is specified, it sets the item's owner to it. 
+                  Otherwise, it sets the owner to gRoomNumberExit.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+      </ul>
+      
+    </td>
+  </tr>
+</table>
+</body>
+</html>

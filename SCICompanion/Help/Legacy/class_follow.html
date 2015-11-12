@@ -1,0 +1,117 @@
+<html>
+<head>
+<title>Class: Follow</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<table width="100%" border="0" cellspacing="0" cellpadding="4">
+  <tr bgcolor="#a0a0a0"> 
+    <td bgcolor="#a0a0a0"><font size="4" face="Tahoma" color="#FFFFFF"><b>Class: 
+      Follow </b>(of <a href="class_motion.html">Motion</a>)</font></td>
+  </tr>
+  <tr> 
+    <td> 
+      <p><font face="Tahoma" size="2">The Follow class is a motion class which 
+        allows actors to follow other actors.</font></p>
+      <p><font face="Tahoma" size="2"><b><font size="3">Properties</font></b></font></p>
+      <ul>
+        <li><font size="2" face="Tahoma"> client</font></li>
+        <li><font size="2" face="Tahoma">caller</font></li>
+        <li><font size="2" face="Tahoma">x</font></li>
+        <li><font size="2" face="Tahoma">y</font></li>
+        <li><font size="2" face="Tahoma">dx</font></li>
+        <li><font size="2" face="Tahoma">dy</font></li>
+        <li><font size="2" face="Tahoma">b-moveCnt</font></li>
+        <li><font size="2" face="Tahoma">b-i1</font></li>
+        <li><font size="2" face="Tahoma">b-i2</font></li>
+        <li><font size="2" face="Tahoma">b-di</font></li>
+        <li><font size="2" face="Tahoma">b-xAxis</font></li>
+        <li><font size="2" face="Tahoma">b-incr</font></li>
+        <li><font size="2" face="Tahoma">completed</font></li>
+        <li><font size="2" face="Tahoma">xLast</font></li>
+        <li><font size="2" face="Tahoma">yLast</font></li>
+        <li><font size="2" face="Tahoma">who</font></li>
+        <li><font size="2" face="Tahoma">distance</font></li>
+      </ul>
+      <p><font face="Tahoma" size="2"><b><font size="3">Methods</font></b></font></p>
+      <ul>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD" height="22"><font size="3" face="tahoma">void 
+                <b>init</b>(<i>[heapPtr theClient, heapPtr theWho, number theDistance]</i>)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Sets up the Follow class. If specified, 
+                  it assigns the parameters to their corresponding properties.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD" height="22"><font size="3" face="tahoma">void 
+                <b>doit</b>()</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Moves the client actor towards 
+                  the who actor.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD" height="22"><font size="3" face="tahoma">void 
+                <b>moveDone</b>()</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Just an empty place holder method 
+                  in Follow.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD" height="22"><font size="3" face="tahoma">void 
+                <b>setTarget</b>(<i>[number newX, number newY]</i>)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">If specified, it sets the x and 
+                  y properties to newX and newY. Otherwise, it sets the x and 
+                  y properties to the who's coordinates.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD" height="22"> 
+                <p><font size="3" face="tahoma">bool <b>onTarget</b>()</font><font size="2" face="tahoma"></font></p>
+              </td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Returns TRUE if distance to the 
+                  who is less than or equal to the distance property. Otherwise, 
+                  it returns FALSE.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+      </ul>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

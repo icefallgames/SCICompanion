@@ -1,0 +1,54 @@
+<html>
+<head>
+<title>Kernel: FGets</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<div align="center"> 
+  <table width="100%" border="0" cellspacing="0" cellpadding="4">
+    <tr bgcolor="#a0a0a0"> 
+      <td><font size="4" face="Tahoma"><b><font color="#FFFFFF">FGets</font></b></font></td>
+    </tr>
+    <tr> 
+      <td> 
+        <p align="left"><font size="2" face="tahoma">number <b>FGets</b>(string 
+          buffer, number max, number handle)</font></p>
+        <p><font face="Tahoma" size="2">Reads a string from the file pointed to 
+          by handle and stores it in buffer. If the string's length is greater 
+          than max, only max bytes are read.</font></p>
+        <p><font face="Tahoma" size="2">It returns the number of bytes read.</font></p>
+        <table border="0" cellpadding="2" align="center" width="100%">
+          <tr bgcolor="#CCCCCC"> 
+            <td bgcolor="#CCCCCC"><font size="2" face="Tahoma"><b>Example</b></font></td>
+          </tr>
+          <tr> 
+            <td bgcolor="#FFFFEE"> 
+              <p> <font size="2" face="Courier New, Courier, mono"> (var hFile, 
+                buffer[41])</font></p>
+              <p><font face="Courier New, Courier, mono" size="2">// Open the 
+                file and write to it<br>
+                (if( &lt;&gt; NULL (= hFile FOpen(&quot;somefile.txt&quot; fCREATE)) 
+                )<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;FPuts(hFile &quot;Hello World!&quot;)<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;FClose(hFile)<br>
+                ) </font></p>
+              <p><font face="Courier New, Courier, mono" size="2">// Open the 
+                file, read it's first string, and print it to the screen<br>
+                (if( &lt;&gt; NULL (= hFile FOpen(&quot;somefile.txt&quot; fOPENFAIL)) 
+                )<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;FGets(buffer 40 hFile)<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;FClose(hFile)</font></p>
+              <p><font face="Courier New, Courier, mono" size="2">&nbsp;&nbsp;&nbsp;&nbsp;Print(buffer)<br>
+                ) </font></p>
+              </td>
+          </tr>
+        </table>
+        <p><font face="Tahoma" size="2">see also: <a href="kernel_fopen.html">FOpen</a>, 
+          <a href="kernel_fclose.html">FClose</a>, <a href="kernel_fputs.html">FPuts</a></font></p>
+      </td>
+    </tr>
+  </table>
+</div>
+</body>
+</html>

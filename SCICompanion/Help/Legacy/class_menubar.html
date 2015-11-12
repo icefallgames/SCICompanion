@@ -1,0 +1,86 @@
+<html>
+<head>
+<title>Class: MenuBar</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<table width="100%" border="0" cellspacing="0" cellpadding="4">
+  <tr bgcolor="#a0a0a0"> 
+    <td bgcolor="#a0a0a0"><font size="4" face="Tahoma" color="#FFFFFF"><b>Class: 
+      MenuBar </b>(of <a href="class_obj.html">Obj</a>)</font></td>
+  </tr>
+  <tr> 
+    <td> 
+      <p><font face="Tahoma" size="2">The MenuBar class is the base class for 
+        the game's menu.</font></p>
+      <p><font face="Tahoma" size="2"><b><font size="3">Properties</font></b></font></p>
+      <ul>
+        <li><font face="Tahoma" size="2">state</font></li>
+        </ul>
+      <p><font face="Tahoma" size="2"><b><font size="3">Methods</font></b></font></p>
+      <ul>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font face="Tahoma" size="3">void<b> draw</b>() 
+                </font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font face="Tahoma" size="2">Sets the state property to ENABLED 
+                  and draws the menubar.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font face="Tahoma" size="3">void <b>hide</b>() 
+                </font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font face="Tahoma" size="2">Hides the menubar.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font face="Tahoma" size="3">bool<b> handleEvent</b>(heapPtr 
+                pEvent<i>[, selectParams]</i>) </font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"><font face="Tahoma" size="2">If the user selects 
+                the menu, it allows the user to select an item and returns it's 
+                ID. If no item is selected, it return NULL.</font></td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font face="Tahoma" size="3">void <b>add</b>(string 
+                caption, str itemCaptions) </font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">AddMenu adds a new menu item with 
+                  the specified caption to the menubar. The string itemCaptions 
+                  specifies the submenu items. The itemCaptions string can contain 
+                  format characters to seperate items and format the text.</font></p>
+                <p><font face="Tahoma" size="2">See kernel <a href="kernel_addmenu.html">AddMenu()</a> 
+                  for more information. </font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+      </ul>
+      </td>
+  </tr>
+</table>
+</body>
+</html>

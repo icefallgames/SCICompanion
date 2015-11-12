@@ -1,0 +1,423 @@
+<html>
+<head>
+<title>Kernel: Graph</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<div align="center"> 
+  <table width="100%" border="0" cellspacing="0" cellpadding="4">
+    <tr bgcolor="#a0a0a0"> 
+      <td><font size="4" face="Tahoma"><b><font color="#FFFFFF">Graph</font></b></font></td>
+    </tr>
+    <tr> 
+      <td> 
+        <p align="left"><font size="2" face="Tahoma">* <b>Graph</b>(number subFunction, 
+          ...)</font></p>
+        <p align="left"><font size="2" face="Tahoma">Graph performs a number of 
+          operations with the screen and background picture. It contains a number 
+          of sub functions, listed below.</font></p>
+        <blockquote> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="3">
+            <tr> 
+              <td bgcolor="#CCCCCC"><font size="2" face="Tahoma">number <b>Graph</b>(grGET_COLOURS)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#f0f0f0"> 
+                <p><font size="2" face="Tahoma">Obtains the colour resolution 
+                  which the interpreter is running in. </font></p>
+                <p><font size="2" face="Tahoma">The values are as follows:</font></p>
+                <blockquote> 
+                  <table width="100%" border="0" cellspacing="1" cellpadding="3">
+                    <tr> 
+                      <td><b><font size="2" face="Tahoma">16</font></b></td>
+                      <td><font size="2" face="Tahoma">EGA</font></td>
+                    </tr>
+                    <tr> 
+                      <td><b><font size="2" face="Tahoma">-1</font></b></td>
+                      <td><font size="2" face="Tahoma"> CGA (doesn't matter if 
+                        the driver is a mono CGA or four colour CGA)</font></td>
+                    </tr>
+                  </table>
+                  <br>
+                  <table border="0" cellpadding="2" align="center" width="100%">
+                    <tr bgcolor="#CCCCCC"> 
+                      <td bgcolor="#CCCCCC"><font size="2" face="Tahoma"><b>Example</b></font></td>
+                    </tr>
+                    <tr> 
+                      <td bgcolor="#FFFFEE"> 
+                        <p> <font face="Courier New, Courier, mono" size="2">(var 
+                          colours) <br>
+                          = colours Graph(grGET_COLOURS) <br>
+                          (if( == colours 16)<br>
+                          &nbsp;&nbsp;Print(&quot;You are running in EGA mode&quot;)<br>
+                          )(else<br>
+                          &nbsp;&nbsp;(if( == colours -1)<br>
+                          &nbsp;&nbsp;&nbsp;&nbsp;Print(&quot;You are running 
+                          in CGA mode&quot;)<br>
+                          &nbsp;&nbsp;) <br>
+                          ) </font></p>
+                      </td>
+                    </tr>
+                  </table>
+                </blockquote>
+              </td>
+            </tr>
+          </table>
+          <table width="100%" border="0" cellspacing="1" cellpadding="3">
+            <tr> 
+              <td bgcolor="#CCCCCC"><font size="2" face="Tahoma">void <b>Graph</b>(grDRAW_LINE, 
+                number y1, number x1, number y2, number x2<i>[, number visColour, 
+                number priColour, number ctlColour]</i>)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#f0f0f0"> 
+                <p><font size="2" face="Tahoma">Draws a line on the specified 
+                  screen(s) with the specified colour. </font></p>
+                <p><font size="2" face="Tahoma">If you specify visColour, then 
+                  the line is drawn on the visual screen with that colour. If 
+                  visColour is -1, no line is drawn. Use -1 if you, for example, 
+                  want to draw a line on the control screen, but not the visual 
+                  or priority screens.</font></p>
+                <p><font size="2" face="Tahoma">If you specify priColour, then 
+                  the line is drawn on the priority screen with that colour. If 
+                  priColour is -1, no line is drawn. </font></p>
+                <p><font size="2" face="Tahoma">If you specify ctlColour, then 
+                  the line is drawn on the control screen with that colour. If 
+                  ctlColour is -1, no line is drawn.</font><br>
+                </p>
+                <blockquote> 
+                  <table border="0" cellpadding="2" align="center" width="100%">
+                    <tr bgcolor="#CCCCCC"> 
+                      <td bgcolor="#CCCCCC"><font size="2" face="Tahoma"><b>Example</b></font></td>
+                    </tr>
+                    <tr> 
+                      <td bgcolor="#FFFFEE"> 
+                        <p> <font face="Courier New, Courier, mono" size="2">// 
+                          Draw a line from (30,20) to (200,100) on the visual 
+                          screen in yellow, the priority screen in red, and the 
+                          control screen in blue.<br>
+                          Graph(grDRAW_LINE 20 30 100 200 clYELLOW clRED clBLUE)</font></p>
+                        <p><font face="Courier New, Courier, mono" size="2">// 
+                          Draw a line from (60,40) to (160,130) on the visual 
+                          screen in white, and the control screen in brown.<br>
+                          Graph(grDRAW_LINE 40 60 130 160 clWHITE -1 clBROWN)</font></p>
+                        <p><font face="Courier New, Courier, mono" size="2">// 
+                          Draw a line from (10,20) to (40,50) on the visual screen 
+                          in red.<br>
+                          Graph(grDRAW_LINE 20 10 50 40 clRED)</font></p>
+                      </td>
+                    </tr>
+                  </table>
+                </blockquote>
+              </td>
+            </tr>
+          </table>
+          <table width="100%" border="0" cellspacing="1" cellpadding="3">
+            <tr> 
+              <td bgcolor="#CCCCCC"><font size="2" face="Tahoma">number <b>Graph</b>(grSAVE_BOX, 
+                number y1, number x1, number y2, number x2<i>[, number screen]</i>)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#f0f0f0"> 
+                <p><font size="2" face="Tahoma">Saves the screen pixels in the 
+                  specified area and returns a handle to them. If screen is specified, 
+                  it saves the pixels of that screen (VISUAL,PRIORITY,CONTROL). 
+                  Otherwise, it uses the VISUAL screen.</font><br>
+                </p>
+                <blockquote> 
+                  <table border="0" cellpadding="2" align="center" width="100%">
+                    <tr bgcolor="#CCCCCC"> 
+                      <td bgcolor="#CCCCCC"><font size="2" face="Tahoma"><b>Example</b></font></td>
+                    </tr>
+                    <tr> 
+                      <td bgcolor="#FFFFEE"> 
+                        <p> <font face="Courier New, Courier, mono" size="2">/* 
+                          this saves the center of the screen, draws a line, then 
+                          restores the area leaving only the line's edges */<br>
+                          (var handle)<br>
+                          = handle Graph(grSAVE_BOX 50 80 150 240)</font><br>
+                          <font face="Courier New, Courier, mono" size="2">Graph(grDRAW_LINE 
+                          10 10 180 310 clYELLOW)</font> <br>
+                          <font face="Courier New, Courier, mono" size="2">Graph(grRESTORE_BOX 
+                          handle)</font> </p>
+                      </td>
+                    </tr>
+                  </table>
+                </blockquote>
+              </td>
+            </tr>
+          </table>
+          <table width="100%" border="0" cellspacing="1" cellpadding="3">
+            <tr> 
+              <td bgcolor="#CCCCCC"><font size="2" face="Tahoma">number <b>Graph</b>(grRESTORE_BOX, 
+                number handle)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#f0f0f0"> 
+                <p><font size="2" face="Tahoma">Restores the pixels saved with 
+                  grSAVE_BOX.</font><br>
+                </p>
+                <blockquote> 
+                  <table border="0" cellpadding="2" align="center" width="100%">
+                    <tr bgcolor="#CCCCCC"> 
+                      <td bgcolor="#CCCCCC"><font size="2" face="Tahoma"><b>Example</b></font></td>
+                    </tr>
+                    <tr> 
+                      <td bgcolor="#FFFFEE"> 
+                        <p> <font face="Courier New, Courier, mono" size="2">/* 
+                          this saves the center of the screen, draws a line, then 
+                          restores the area leaving only the line's edges */<br>
+                          (var handle)<br>
+                          = handle Graph(grSAVE_BOX 50 80 150 240)</font><br>
+                          <font face="Courier New, Courier, mono" size="2">Graph(grDRAW_LINE 
+                          10 10 180 310 clYELLOW)</font> <br>
+                          <font face="Courier New, Courier, mono" size="2">Graph(grRESTORE_BOX 
+                          handle)</font> </p>
+                      </td>
+                    </tr>
+                  </table>
+                </blockquote>
+              </td>
+            </tr>
+          </table>
+          <table width="100%" border="0" cellspacing="1" cellpadding="3">
+            <tr> 
+              <td bgcolor="#CCCCCC"><font size="2" face="Tahoma">void <b>Graph</b>(grFILL_BOX, 
+                number y1, number x1, number y2, number x2, number screens<i>[, 
+                number visColour, number priColour, number ctlColour]</i>)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#f0f0f0"> 
+                <p><font size="2" face="Tahoma">Fills the specified rectangular 
+                  region with the specified colour(s). The screens parameter specifies 
+                  which screens to drawn to.</font></p>
+                <p><font face="Tahoma" size="2">The screens parameter can be any 
+                  of the following...</font></p>
+                <blockquote> 
+                  <table width="100%" border="0" cellspacing="1" cellpadding="3">
+                    <tr> 
+                      <td><b><font face="Tahoma" size="2">VISUAL</font></b></td>
+                      <td><font size="2" face="Tahoma">The visual screen</font></td>
+                    </tr>
+                    <tr> 
+                      <td><b><font face="Tahoma" size="2">PRIORITY</font></b></td>
+                      <td><font size="2" face="Tahoma"> The priority screen</font></td>
+                    </tr>
+                    <tr> 
+                      <td><b><font face="Tahoma" size="2">CONTROL</font></b></td>
+                      <td><font size="2" face="Tahoma"> The control screen</font></td>
+                    </tr>
+                    <tr> 
+                      <td><b><font face="Tahoma" size="2">VISUAL_PRIORITY</font></b></td>
+                      <td><font size="2" face="Tahoma"> The visual and priority 
+                        screens</font></td>
+                    </tr>
+                    <tr> 
+                      <td><b><font face="Tahoma" size="2">VISUAL_CONTROL</font></b></td>
+                      <td><font size="2" face="Tahoma"> The visual and control 
+                        screens</font></td>
+                    </tr>
+                    <tr> 
+                      <td><b><font face="Tahoma" size="2">PRIORITY_CONTROL</font></b></td>
+                      <td><font size="2" face="Tahoma"> The priority and control 
+                        screens</font></td>
+                    </tr>
+                    <tr> 
+                      <td><b><font face="Tahoma" size="2">ALL_SCREENS</font></b></td>
+                      <td><font size="2" face="Tahoma"> All three screens.</font></td>
+                    </tr>
+                  </table>
+                </blockquote>
+                <p><font size="2" face="Tahoma">If you specify visColour, then 
+                  the box is drawn on the visual screen with that colour. If visColour 
+                  is -1, no box is drawn. Use -1 if you, for example, want to 
+                  draw a box on the control screen, but not the visual or priority 
+                  screens.</font></p>
+                <p><font size="2" face="Tahoma">If you specify priColour, then 
+                  the box is drawn on the priority screen with that colour. If 
+                  priColour is -1, no box is drawn. </font></p>
+                <p><font size="2" face="Tahoma">If you specify ctlColour, then 
+                  the box is drawn on the control screen with that colour. If 
+                  ctlColour is -1, no box is drawn.</font></p>
+                <blockquote> 
+                  <table border="0" cellpadding="2" align="center" width="100%">
+                    <tr bgcolor="#CCCCCC"> 
+                      <td bgcolor="#CCCCCC"><font size="2" face="Tahoma"><b>Example</b></font></td>
+                    </tr>
+                    <tr> 
+                      <td bgcolor="#FFFFEE"> 
+                        <p> <font face="Courier New, Courier, mono" size="2">// 
+                          Draws a box with the bounds of (30,20) and (200,100) 
+                          on the visual screen in yellow, the priority screen 
+                          in red, and the control screen in blue.<br>
+                          Graph(grDRAW_BOX 20 30 100 200 ALL_SCREENS clYELLOW 
+                          clRED clBLUE)</font></p>
+                        <p><font face="Courier New, Courier, mono" size="2">// 
+                          Doesn't draw anything though the colours are specified, 
+                          no screens are<br>
+                          Graph(grDRAW_BOX 20 30 100 200 0 clYELLOW clRED clBLUE)</font></p>
+                        <p><font face="Courier New, Courier, mono" size="2">// 
+                          Draws a box with the bounds of (60,40) and (160,130) 
+                          on the visual screen in white, and the control screen 
+                          in brown.<br>
+                          Graph(grDRAW_BOX 40 60 130 160 VISUAL_CONTROL clWHITE 
+                          -1 clBROWN)</font></p>
+                      </td>
+                    </tr>
+                  </table>
+                </blockquote>
+              </td>
+            </tr>
+          </table>
+          <table width="100%" border="0" cellspacing="1" cellpadding="3">
+            <tr> 
+              <td bgcolor="#CCCCCC"><font size="2" face="Tahoma">void <b>Graph</b>(grFILL_BOX_BACKGROUND, 
+                number y1, number x1, number y2, number x2)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#f0f0f0"> 
+                <p><font size="2" face="Tahoma">Operates just like grFILL_BOX, 
+                  but draws a box on the visual screen with the current port's 
+                  background colour.</font></p>
+                <blockquote> 
+                  <table border="0" cellpadding="2" align="center" width="100%">
+                    <tr bgcolor="#CCCCCC"> 
+                      <td bgcolor="#CCCCCC"><font size="2" face="Tahoma"><b>Example</b></font></td>
+                    </tr>
+                    <tr> 
+                      <td bgcolor="#FFFFEE"> 
+                        <p> <font face="Courier New, Courier, mono" size="2">Graph(grFILL_BOX_BACKGROUND 
+                          40 40 99 119)</font></p>
+                      </td>
+                    </tr>
+                  </table>
+                  
+                </blockquote>
+              </td>
+            </tr>
+          </table>
+          <table width="100%" border="0" cellspacing="1" cellpadding="3">
+            <tr> 
+              <td bgcolor="#CCCCCC"><font size="2" face="Tahoma">void <b>Graph</b>(grFILL_BOX_FOREGROUND, 
+                number y1, number x1, number y2, number x2)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#f0f0f0"> 
+                <p><font size="2" face="Tahoma">Operates just like grFILL_BOX, 
+                  but draws a box on the visual screen with the current port's 
+                  foreground colour.</font></p>
+                <blockquote> 
+                  <table border="0" cellpadding="2" align="center" width="100%">
+                    <tr bgcolor="#CCCCCC"> 
+                      <td bgcolor="#CCCCCC"><font size="2" face="Tahoma"><b>Example</b></font></td>
+                    </tr>
+                    <tr> 
+                      <td bgcolor="#FFFFEE"> 
+                        <p> <font face="Courier New, Courier, mono" size="2">Graph(grFILL_BOX_FOREGROUND 
+                          40 40 99 119)</font></p>
+                      </td>
+                    </tr>
+                  </table>
+                  
+                </blockquote>
+              </td>
+            </tr>
+          </table>
+          <table width="100%" border="0" cellspacing="1" cellpadding="3">
+            <tr> 
+              <td bgcolor="#CCCCCC"><font size="2" face="Tahoma">void <b>Graph</b>(grUPDATE_BOX, 
+                number y1, number x1, number y2, number x2, number screen)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#f0f0f0"> 
+                <p><font face="Tahoma" size="2">Draws the specified area of the 
+                  screen's screen to the screen (whew!). You can use this to redraw 
+                  the background picture, and also to view the priority/control 
+                  screens. </font><br>
+                </p>
+                <blockquote> 
+                  <table border="0" cellpadding="2" align="center" width="100%">
+                    <tr bgcolor="#CCCCCC"> 
+                      <td bgcolor="#CCCCCC"><font size="2" face="Tahoma"><b>Example</b></font></td>
+                    </tr>
+                    <tr> 
+                      <td bgcolor="#FFFFEE"> 
+                        <p> <font face="Courier New, Courier, mono" size="2">/* 
+                          Shows the priority screen for two seconds */<br>
+                          Graph(grUPDATE_BOX 0 0 199 319 PRIORITY)<br>
+                          Wait(120)</font></p>
+                        <p><font face="Courier New, Courier, mono" size="2">/* 
+                          Shows the control screen for two seconds */<br>
+                          Graph(grUPDATE_BOX 0 0 199 319 CONTROL)<br>
+                          Wait(120)</font></p>
+                        <p><font face="Courier New, Courier, mono" size="2">/* 
+                          Shows the visual screen*/<br>
+                          Graph(grUPDATE_BOX 0 0 199 319 VISUAL)</font></p>
+                      </td>
+                    </tr>
+                  </table>
+                </blockquote>
+              </td>
+            </tr>
+          </table>
+          <table width="100%" border="0" cellspacing="1" cellpadding="3">
+            <tr> 
+              <td bgcolor="#CCCCCC"><font size="2" face="Tahoma">void <b>Graph</b>(grREDRAW_BOX, 
+                number y1, number x1, number y2, number x2)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#f0f0f0"> 
+                <p><font face="Tahoma" size="2">Redraws the specified area of 
+                  visual screen to the screen.</font><br>
+                </p>
+                <blockquote> 
+                  <table border="0" cellpadding="2" align="center" width="100%">
+                    <tr bgcolor="#CCCCCC"> 
+                      <td bgcolor="#CCCCCC"><font size="2" face="Tahoma"><b>Example</b></font></td>
+                    </tr>
+                    <tr> 
+                      <td bgcolor="#FFFFEE"> 
+                        <p> <font face="Courier New, Courier, mono" size="2">Graph(grREDRAW_BOX 
+                          0 0 199 319)</font></p>
+                      </td>
+                    </tr>
+                  </table>
+                </blockquote>
+              </td>
+            </tr>
+          </table>
+          <table width="100%" border="0" cellspacing="1" cellpadding="3">
+            <tr> 
+              <td bgcolor="#CCCCCC"><font size="2" face="Tahoma">number <b>Graph</b>(grADJUST_PRIORITY, 
+                number min, number max)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#f0f0f0"> 
+                <p><font face="Tahoma" size="2">Sets the minimum and maximum bounds 
+                  for the priority. By default, these values are 42 and 190.</font><br>
+                </p>
+                <blockquote> 
+                  <table border="0" cellpadding="2" align="center" width="100%">
+                    <tr bgcolor="#CCCCCC"> 
+                      <td bgcolor="#CCCCCC"><font size="2" face="Tahoma"><b>Example</b></font></td>
+                    </tr>
+                    <tr> 
+                      <td bgcolor="#FFFFEE"> 
+                        <p> <font face="Courier New, Courier, mono" size="2">Graph(grADJUST_PRIORITY 
+                          20 150)</font></p>
+                      </td>
+                    </tr>
+                  </table>
+                </blockquote>
+              </td>
+            </tr>
+          </table>
+          
+        </blockquote>
+        </td>
+    </tr>
+  </table>
+</div>
+</body>
+</html>

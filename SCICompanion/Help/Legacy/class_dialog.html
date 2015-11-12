@@ -1,0 +1,211 @@
+<html>
+<head>
+<title>Class: Dialog</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<table width="100%" border="0" cellspacing="0" cellpadding="4">
+  <tr bgcolor="#a0a0a0"> 
+    <td bgcolor="#a0a0a0"><font size="4" face="Tahoma" color="#FFFFFF"><b>Class: 
+      Dialog </b>(of <a href="class_list.html">List</a>)</font></td>
+  </tr>
+  <tr> 
+    <td> 
+      <p><font face="Tahoma" size="2">The Dialog class is the class for dialog 
+        windows. In these windows, you can set up a graphical user interface for 
+        your game.</font></p>
+      <p><font face="Tahoma" size="2"><b><font size="3">Properties</font></b></font></p>
+      <ul>
+        <li><font size="2" face="Tahoma"> elements</font></li>
+        <li><font size="2" face="Tahoma">size</font></li>
+        <li><font size="2" face="Tahoma">text</font></li>
+        <li><font size="2" face="Tahoma">window</font></li>
+        <li><font size="2" face="Tahoma">theItem</font></li>
+        <li><font size="2" face="Tahoma">nsTop</font></li>
+        <li><font size="2" face="Tahoma">nsLeft</font></li>
+        <li><font size="2" face="Tahoma">nsBottom</font></li>
+        <li><font size="2" face="Tahoma">nsRight</font></li>
+        <li><font size="2" face="Tahoma">time</font></li>
+        <li><font size="2" face="Tahoma">busy</font></li>
+        <li><font size="2" face="Tahoma">seconds</font></li>
+        <li><font size="2" face="Tahoma">lastSeconds</font></li>
+      </ul>
+      <p><font face="Tahoma" size="2"><b><font size="3">Methods</font></b></font></p>
+      <ul>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">bool <b>doit</b>(heapPtr 
+                pItem)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Performs the dialog's actions. 
+                  Initalizes, the controls, selects the control, and checks itself. 
+                  If pItem is specified, that control will be the default selected 
+                  control. Otherwise, the first preset selected one is selected. 
+                  It returns TRUE is the event is claimed, FALSE if otherwise.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">void <b>open</b>(number 
+                theType, number thePriority)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Opens the window with theType 
+                  as it's type and thePriority as it's priority. See kernel <a href="kernel_newwindow.html">NewWindow()</a> 
+                  for more information.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">void<b> draw</b>()</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Draws the dialog's controls.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">void <b>cue</b>()</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">If the busy property is FALSE, 
+                  it disposes of itself. Otherwise, it sets the busy property 
+                  to FALSE.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">void <b>advance</b>(number 
+                amount)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Selects the next control in the 
+                  dialog (ie. when the user presses the tab key).</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">void <b>retreat</b>(number 
+                amount)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Selects the previous control in 
+                  the dialog.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">void <b>move</b>(number 
+                theX, number theY)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Moves the control theX pixels 
+                  horizontally, and theY pixels vertically.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">void <b>moveTo</b>(number 
+                newX, number newY)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Moves the control to the newX 
+                  and newY positions.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">void <b>center</b>()</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Sets the dialog to the center 
+                  of the screen (or it's parent window).</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">void <b>setSize</b>()</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Sets the dialog's size based on 
+                  the controls in it.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">heapPtr <b>handleEvent</b>(heapPtr 
+                pEvent)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Handles the dialogs input. It 
+                  returns a pointer to the object (control) selected. If none 
+                  is selected, it returns NULL.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li>
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD" height="19"><font size="3" face="tahoma">void 
+                <b>check</b>()</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Checks and sets the lastSeconds 
+                  and seconds properties. It then cues the Dialog if seconds is 
+                  0. </font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+      </ul>
+      </td>
+  </tr>
+</table>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<html>
+<head>
+<title>Kernel: GetPort</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<div align="center"> 
+  <table width="100%" border="0" cellspacing="0" cellpadding="4">
+    <tr bgcolor="#a0a0a0"> 
+      <td><font size="4" face="Tahoma"><b><font color="#FFFFFF">GetPort</font></b></font></td>
+    </tr>
+    <tr> 
+      <td> 
+        <p align="left"><font size="2" face="Tahoma">void <b>GetPort</b>(heapPtr 
+          newPort)</font></p>
+        <p align="left"><font size="2" face="Tahoma">Retreives the currently active 
+          port and returns it.</font><br>
+        </p>
+        <table border="0" cellpadding="2" align="center" width="100%">
+          <tr bgcolor="#CCCCCC"> 
+            <td bgcolor="#CCCCCC"><font size="2" face="Tahoma"><b>Example</b></font></td>
+          </tr>
+          <tr> 
+            <td bgcolor="#FFFFEE"> 
+              <p> <font size="2" face="Courier New, Courier, mono"> (var hWnd, 
+                oldPort)<br>
+                = oldPort GetPort()</font></p>
+              <p><font size="2" face="Courier New, Courier, mono">// Draw a white 
+                window at 50, 20 with a width of 200 100, a title, and a black 
+                foreground.<br>
+                = hWnd NewWindow(<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;50 20 250 120<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&quot;Test Window&quot;<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;nwTITLE<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;nwON_TOP<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;clBLACK<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;clWHITE<br>
+                </font><font size="2" face="Courier New, Courier, mono">)</font></p>
+              <p><font size="2" face="Courier New, Courier, mono">SetPort(hWnd)<br>
+                Display(&quot;Hello in the hWnd window!&quot;)<br>
+                SetPort(oldPort)<br>
+                Display(&quot;Hello in the oldPort!&quot;)<br>
+                DisposeWindow(hWnd)</font></p>
+            </td>
+          </tr>
+        </table>
+        <p><font face="Tahoma" size="2">see also: <a href="kernel_setport.html">SetPort</a></font></p>
+      </td>
+    </tr>
+  </table>
+</div>
+</body>
+</html>

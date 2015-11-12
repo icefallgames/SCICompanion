@@ -1,0 +1,153 @@
+<html>
+<head>
+<title>Class: Extra</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<table width="100%" border="0" cellspacing="0" cellpadding="4">
+  <tr bgcolor="#a0a0a0"> 
+    <td bgcolor="#a0a0a0"><font size="4" face="Tahoma" color="#FFFFFF"><b>Class: 
+      Extra</b> (of <a href="class_sound.html">Prop</a>)</font></td>
+  </tr>
+  <tr> 
+    <td> 
+      <p><font face="Tahoma" size="2">The Extra class is a prop used for extras 
+        (background characters).</font></p>
+      <p><font face="Tahoma" size="2"><b><font size="3">Properties</font></b></font></p>
+      <ul>
+        <li><font face="tahoma" size="2">y</font></li>
+        <li><font face="tahoma" size="2">x</font></li>
+        <li><font face="tahoma" size="2">z</font></li>
+        <li><font face="tahoma" size="2">heading</font></li>
+        <li><font face="tahoma" size="2">yStep</font></li>
+        <li><font face="tahoma" size="2">view</font></li>
+        <li><font face="tahoma" size="2">loop</font></li>
+        <li><font face="tahoma" size="2">cel</font></li>
+        <li><font face="tahoma" size="2">priority</font></li>
+        <li><font face="tahoma" size="2">underBits</font></li>
+        <li><font face="tahoma" size="2">signal</font></li>
+        <li><font face="tahoma" size="2">nsTop</font></li>
+        <li><font face="tahoma" size="2">nsLeft</font></li>
+        <li><font face="tahoma" size="2">nsBottom</font></li>
+        <li><font face="tahoma" size="2">nsRight</font></li>
+        <li><font face="tahoma" size="2">lsTop</font></li>
+        <li><font face="tahoma" size="2">lsLeft</font></li>
+        <li><font face="tahoma" size="2">lsBottom</font></li>
+        <li><font face="tahoma" size="2">lsRight</font></li>
+        <li><font face="tahoma" size="2">brTop</font></li>
+        <li><font face="tahoma" size="2">brLeft</font></li>
+        <li><font face="tahoma" size="2">brBottom</font></li>
+        <li><font face="tahoma" size="2">brRight</font></li>
+        <li><font face="tahoma" size="2">cycleSpeed</font></li>
+        <li><font face="tahoma" size="2">script</font></li>
+        <li><font face="tahoma" size="2">cycler</font></li>
+        <li><font face="tahoma" size="2">timer</font></li>
+        <li><font face="tahoma" size="2">cycleType</font></li>
+        <li><font face="tahoma" size="2">hesitation</font></li>
+        <li><font face="tahoma" size="2">pauseCel</font></li>
+        <li><font face="tahoma" size="2">minPause</font></li>
+        <li><font face="tahoma" size="2">maxPause</font></li>
+        <li><font face="tahoma" size="2">minCycles</font></li>
+        <li><font face="tahoma" size="2">maxCycles</font></li>
+        <li><font face="tahoma" size="2">counter</font></li>
+        <li><font face="tahoma" size="2">state</font></li>
+        <li><font face="tahoma" size="2">cycles</font></li>
+      </ul>
+      <p><font face="Tahoma" size="2"><b><font size="3">Methods</font></b></font></p>
+      <ul>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">void <b>init</b>()</font><font size="2" face="tahoma"></font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Sets up the Extra object.</font></p>
+                <p><font size="2" face="tahoma">If the pauseCel property is -1, 
+                  the cel is set to a random number. If it is -2, the cel is set 
+                  to the last cel. If the pauseCel is equal to the cycleType, 
+                  the cel is set to the the pauseCel. Otherwise, the cel is set 
+                  to the first cel. </font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">void <b>doit</b>()</font><font size="2" face="tahoma"></font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Adjusts the cycles property and 
+                  calls the super's doit() method.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">void <b>cue</b>()</font><font size="2" face="tahoma"></font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Calls the changeState() method 
+                  with state+1 as it's parameter if bit 0 and 2 of signal are 
+                  not set.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">void <b>stopExtra</b>()</font><font size="2" face="tahoma"></font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Stops the Extra.</font></p>
+                <p><font size="2" face="tahoma">Sets the cel accordingly from 
+                  pauseCel (see init), and they stops updating on it.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">void <b>startExtra</b>()</font><font size="2" face="tahoma"></font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Starts the Extra.</font></p>
+                <p><font size="2" face="tahoma">Sets the state property to 1.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">void <b>changeState</b>(number 
+                newState)</font><font size="2" face="tahoma"></font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Sets the state property to newState 
+                  and parses it from 0-4, performing different actions for each 
+                  value. State 0 adjusts the counter, state 1 adjusts/sets the 
+                  cycle, state 2 adjusts/cues the cycle, state 3 sets/cues the 
+                  cycle and state 4 sets the cel according to the pauseCel and 
+                  then sets the state to 0.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+      </ul>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

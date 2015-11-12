@@ -1,0 +1,82 @@
+<html>
+<head>
+<title>Class: MoveTo</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<table width="100%" border="0" cellspacing="0" cellpadding="4">
+  <tr bgcolor="#a0a0a0"> 
+    <td bgcolor="#a0a0a0"><font size="4" face="Tahoma" color="#FFFFFF"><b>Class: 
+      </b>MoveTo (of <a href="class_motion.html">Motion</a>)</font></td>
+  </tr>
+  <tr> 
+    <td> 
+      <p><font face="Tahoma" size="2">The Motion class is the base class for motion. 
+        Objects such as actors use this to move.</font></p>
+      <p><font face="Tahoma" size="2"><b><font size="3">Properties</font></b></font></p>
+      <ul>
+        <li><font face="tahoma" size="2">client</font></li>
+        <li><font face="tahoma" size="2">caller</font></li>
+        <li><font face="tahoma" size="2">x</font></li>
+        <li><font face="tahoma" size="2">y</font></li>
+        <li><font face="tahoma" size="2">dx</font></li>
+        <li><font face="tahoma" size="2">dy</font></li>
+        <li><font face="tahoma" size="2">b-moveCnt</font></li>
+        <li><font face="tahoma" size="2">b-i1</font></li>
+        <li><font face="tahoma" size="2">b-i2</font></li>
+        <li><font face="tahoma" size="2">b-di</font></li>
+        <li><font face="tahoma" size="2">b-xAxis</font></li>
+        <li><font face="tahoma" size="2">b-incr</font></li>
+        <li><font face="tahoma" size="2">completed</font></li>
+        <li><font face="tahoma" size="2">xLast</font></li>
+        <li><font face="tahoma" size="2">yLast<br>
+          </font></li>
+      </ul>
+      <p><font face="Tahoma" size="2"><b><font size="3">Methods</font></b></font></p>
+      <ul>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">void <b>init</b>(<i>[heapPtr 
+                theClient, heapPtr theX, heapPtr theY, heapPtr theCaller]</i>)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font face="tahoma" size="2">Sets up the Motion object. </font></p>
+                <p><font face="tahoma" size="2">If specified, it sets the client 
+                  property to theClient, x property to theX, y property to theY 
+                  and caller property to theCaller. It sets b-moveCnt to 0, completed 
+                  to FALSE and xLast and yLast to 0. It the client's cycler property 
+                  is set, it sets the client's cycler's cyclerCnt to 0. It sets 
+                  up the client's looper, then calls InitBresen().</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD" height="22"> 
+                <p><font size="3" face="tahoma">bool <b>onTarget</b>()</font><font size="2" face="tahoma"></font></p>
+              </td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Returns TRUE if the client is 
+                  on target with the mover. This is similar to Motion's method, 
+                  but more advanced. It returns TRUE is the difference between 
+                  it's x property and the client's x property is less than or 
+                  equal to the client's xStep property and it's y property and 
+                  the client's y property is less than or equal to the client's 
+                  yStep property. Otherwise, it returns FALSE.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+      </ul>
+      </td>
+  </tr>
+</table>
+</body>
+</html>

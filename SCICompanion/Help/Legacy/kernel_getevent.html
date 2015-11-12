@@ -1,0 +1,76 @@
+<html>
+<head>
+<title>Kernel: GetEvent</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<div align="center"> 
+  <table width="100%" border="0" cellspacing="0" cellpadding="4">
+    <tr bgcolor="#a0a0a0"> 
+      <td><font size="4" face="Tahoma"><b><font color="#FFFFFF">GetEvent</font></b></font></td>
+    </tr>
+    <tr> 
+      <td> 
+        <p align="left"><font size="2" face="Tahoma">bool <b>GetEvent</b>(number 
+          types, heapPtr event)</font></p>
+        <p align="left"><font size="2" face="Tahoma">GetEvent retreives the event 
+          type(s) and places them in the specified event object's properties. 
+          It returns TRUE if the event was created, FALSE if not.<br>
+          The event types, specified in SCI.SH can be any of the following:</font></p>
+        <blockquote> 
+          <table border="0" cellspacing="2" cellpadding="1">
+            <tr> 
+              <td bgcolor="#EFEFEF">evNULL</td>
+              <td bgcolor="#F9f9f9"><font face="Tahoma" size="2">A null event</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#EFEFEF">evMOUSEBUTTON</td>
+              <td bgcolor="#F9f9f9"><font face="Tahoma" size="2">A mouse button 
+                press event</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#EFEFEF">evMOUSERELEASE</td>
+              <td bgcolor="#F9f9f9">A mouse button press event</td>
+            </tr>
+            <tr> 
+              <td bgcolor="#EFEFEF">evKEYBOARD</td>
+              <td bgcolor="#F9f9f9">A keyboard event</td>
+            </tr>
+            <tr> 
+              <td bgcolor="#EFEFEF">evJOYSTICK</td>
+              <td bgcolor="#F9f9f9">A joystick event</td>
+            </tr>
+            <tr> 
+              <td bgcolor="#EFEFEF">evMOUSEKEYBOARD</td>
+              <td bgcolor="#F9f9f9">A mouse button press or keyboard event</td>
+            </tr>
+            <tr> 
+              <td bgcolor="#EFEFEF">evALL_EVENTS</td>
+              <td bgcolor="#F9f9f9">Check for all events</td>
+            </tr>
+          </table>
+        </blockquote>
+        <table border="0" cellpadding="2" align="center" width="100%">
+          <tr bgcolor="#CCCCCC"> 
+            <td bgcolor="#CCCCCC"><font size="2" face="Tahoma"><b>Example</b></font></td>
+          </tr>
+          <tr> 
+            <td bgcolor="#FFFFEE"> 
+              <p> <font size="2" face="Courier New, Courier, mono">(var celWidth, 
+                celHeight)<br>
+                = celWidth CelWide(100 1 3) // Looks up the width of loop 1, cel 
+                3 in VIEW.100<br>
+                = celHeight CelHigh(100 1 3) // Looks up the width of loop 1, 
+                cel 3 in VIEW.100</font></p>
+            </td>
+          </tr>
+        </table>
+        <p><font face="Tahoma" size="2">see also: <a href="kernel_globaltolocal.html">GlobalToLocal</a>, 
+          <a href="kernel_localtoglobal.html">LocalToGlobal</a> </font></p>
+      </td>
+    </tr>
+  </table>
+</div>
+</body>
+</html>

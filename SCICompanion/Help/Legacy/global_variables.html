@@ -1,0 +1,339 @@
+<html>
+<head>
+<title>Scripts: Global Variable</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<table width="100%" border="0" cellspacing="0" cellpadding="4">
+  <tr bgcolor="#a0a0a0"> 
+    <td bgcolor="#a0a0a0"><font size="4" face="Tahoma" color="#FFFFFF"><b>Global 
+      Variables</b></font></td>
+  </tr>
+  <tr> 
+    <td> 
+      <p><font face="Tahoma" size="2">The Main script contains the game's global 
+        variables. These are the local variables of <a href="script_main.html">Main.sc</a>, 
+        but the interpreter considers them to be global. The difference between 
+        these variables, and locals of the other scripts, is that any script which 
+        &quot;use&quot;es Main can read/manipulate them. You can think of them 
+        as public variables. If you need a variable to be accessed by more than 
+        one script, the simpliest solution would be to put it in Main.sc's local 
+        segment.</font></p>
+      <p><font face="Tahoma" size="2">The global variables of the template game 
+        are as follows:</font></p>
+      <table width="100%" border="0" cellspacing="1" cellpadding="2">
+        <tr> 
+          <td bgcolor="#a0a0a0"><b><font face="tahoma" size="2" color="#FFFFFF">Main</font></b></td>
+        </tr>
+      </table>
+      <table width="100%" border="0" cellspacing="1" cellpadding="2">
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD" width="20%"><b><font face="Tahoma" size="2">gEgo</font></b></td>
+          <td width="80%"><font face="Tahoma" size="2">points to the ego's class</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD" width="20%"><b><font face="Tahoma" size="2">gGame</font></b></td>
+          <td width="80%"><font face="Tahoma" size="2">points to the game instance</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD" width="20%"><b><font face="Tahoma" size="2">gSpeed</font></b></td>
+          <td width="80%"><font face="Tahoma" size="2">the game speed (delay each 
+            interpreter cycle)</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD" width="20%"><b><font face="Tahoma" size="2">gQuitGame</font></b></td>
+          <td width="80%"><font face="Tahoma" size="2">if set to TRUE, the game 
+            will exit</font></td>
+        </tr>
+      </table>
+      <br>
+      <table width="100%" border="0" cellspacing="1" cellpadding="2">
+        <tr> 
+          <td bgcolor="#a0a0a0"><b><font face="tahoma" size="2" color="#FFFFFF">Event 
+            Handlers </font></b></td>
+        </tr>
+      </table>
+      <table width="100%" border="0" cellspacing="1" cellpadding="2">
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD" width="20%"><b><font face="Tahoma" size="2">gCast</font></b></td>
+          <td width="80%"><font face="Tahoma" size="2">points to the cast class 
+            (list of actors)</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gRegions</font></b></td>
+          <td><font face="Tahoma" size="2">points to the regions class (list of 
+            regions)</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gLocales</font></b></td>
+          <td><font face="Tahoma" size="2">points to the locales class (list of 
+            locales)</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gTimers</font></b></td>
+          <td><font face="Tahoma" size="2">points to the timers class (list of 
+            timers)</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gSounds</font></b></td>
+          <td><font face="Tahoma" size="2">points to the sounds class (list of 
+            sounds)</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gInv</font></b></td>
+          <td><font face="Tahoma" size="2">points to the inventory class</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gAddToPics</font></b></td>
+          <td><font face="Tahoma" size="2">points to the add to pics class</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gFeatures</font></b></td>
+          <td><font face="Tahoma" size="2">points to the add to features class</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gSFeatures</font></b></td>
+          <td><font face="Tahoma" size="2">points to the add to sfeatures class</font></td>
+        </tr>
+      </table>
+      <br>
+      <table width="100%" border="0" cellspacing="1" cellpadding="2">
+        <tr>
+          <td bgcolor="#a0a0a0"><b><font face="tahoma" size="2" color="#FFFFFF">Rooms</font></b></td>
+        </tr>
+      </table>
+      <table width="100%" border="0" cellspacing="1" cellpadding="2">
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD" width="20%"><b><font face="Tahoma" size="2">gRoom</font></b></td>
+          <td width="80%"><font face="Tahoma" size="2">points to the current room 
+            instance</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD" width="20%"><b><font face="Tahoma" size="2">gRoomNumberExit</font></b></td>
+          <td width="80%"><font face="Tahoma" size="2">room number exit </font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gPreviousRoomNumber</font></b></td>
+          <td><font face="Tahoma" size="2">the number of the previous room</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gRoomNumber</font></b></td>
+          <td><font face="Tahoma" size="2">the number of the current room</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gDebugOnExit</font></b></td>
+          <td><font face="Tahoma" size="2">enter debug mode on room exit</font></td>
+        </tr>
+      </table>
+      <br>
+      <table width="100%" border="0" cellspacing="1" cellpadding="2">
+        <tr> 
+          <td bgcolor="#a0a0a0"><b><font face="tahoma" size="2" color="#FFFFFF">Score</font></b></td>
+        </tr>
+      </table>
+      <table width="100%" border="0" cellspacing="1" cellpadding="2">
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD" width="20%"><b><font face="Tahoma" size="2">gScore</font></b></td>
+          <td width="80%"><font face="Tahoma" size="2">the game score</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gMaxScore</font></b></td>
+          <td><font face="Tahoma" size="2">the maximum game score</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gOldScore</font></b></td>
+          <td><font face="Tahoma" size="2">previous score</font></td>
+        </tr>
+      </table>
+      <br>
+      <table width="100%" border="0" cellspacing="1" cellpadding="2">
+        <tr> 
+          <td bgcolor="#a0a0a0" width="80%"><b><font face="tahoma" size="2" color="#FFFFFF">Resources</font></b></td>
+        </tr>
+      </table>
+      <table width="100%" border="0" cellspacing="1" cellpadding="2">
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD" width="20%"><b><font face="Tahoma" size="2">gCurrentCursor</font></b></td>
+          <td><font face="Tahoma" size="2">the number of the current cursor</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gNormalCursor</font></b></td>
+          <td><font face="Tahoma" size="2">the number of the normal cursor (ie. 
+            arrow)</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gLoadingCursor</font></b></td>
+          <td><font face="Tahoma" size="2">the number of the loading cursor (ie. 
+            hand)</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gDefaultFont</font></b></td>
+          <td><font face="Tahoma" size="2">the number of the default font </font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gSaveRestoreFont</font></b></td>
+          <td><font face="Tahoma" size="2">the number of the font for the save/restore 
+            dialogs</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gDeadFont</font></b></td>
+          <td><font face="Tahoma" size="2">the number of the font for the dialog 
+            when ego dies</font></td>
+        </tr>
+      </table>
+      <br>
+      <table width="100%" border="0" cellspacing="1" cellpadding="2">
+        <tr>
+          <td bgcolor="#a0a0a0" width="80%"><b><font face="tahoma" size="2" color="#FFFFFF">Time</font></b></td>
+        </tr>
+        <tr> 
+          <td bgcolor="#e0e0e0"><font size="2" face="tahoma">The following three 
+            variables indicate the time elapsed since the game was started.<br>
+            Format: hh:mm:ss | gTimeHours:gTimeMinutes:gTimeSeconds</font></td>
+        </tr>
+      </table>
+      <table width="100%" border="0" cellspacing="1" cellpadding="2">
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD" width="20%"><b><font face="Tahoma" size="2">gTimeSeconds</font></b></td>
+          <td width="80%"><font face="Tahoma" size="2">the seconds</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gTimeMinutes</font></b></td>
+          <td><font face="Tahoma" size="2">the minutes</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gTimeHours</font></b></td>
+          <td><font face="Tahoma" size="2">the hours</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gCurrentTime</font></b></td>
+          <td><font face="Tahoma" size="2">the current time in seconds</font></td>
+        </tr>
+      </table>
+      <br>
+      <table width="100%" border="0" cellspacing="1" cellpadding="2">
+        <tr> 
+          <td bgcolor="#a0a0a0" width="80%"><b><font face="tahoma" size="2" color="#FFFFFF">Pictures</font></b></td>
+        </tr>
+      </table>
+      <table width="100%" border="0" cellspacing="1" cellpadding="2">
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD" width="20%"><b><font face="Tahoma" size="2">gCheckAniWait</font></b></td>
+          <td width="80%"><font face="Tahoma" size="2">the checkAni delay</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gPicAngle</font></b></td>
+          <td><font face="Tahoma" size="2">the room's pic angle</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gSetRegions</font></b></td>
+          <td><font face="Tahoma" size="2">a flag -- see User:doit()</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gOverlay</font></b></td>
+          <td><font face="Tahoma" size="2">whether to overlay the picture when 
+            drawing</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gDefaultPalette</font></b></td>
+          <td><font face="Tahoma" size="2">the default palette to use for the 
+            pictures (0-3)</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gDefaultPicAni</font></b></td>
+          <td><font face="Tahoma" size="2">the default pic animation </font></td>
+        </tr>
+      </table>
+      <br>
+      <table width="100%" border="0" cellspacing="1" cellpadding="2">
+        <tr> 
+          <td bgcolor="#a0a0a0" width="80%"><b><font face="tahoma" size="2" color="#FFFFFF">Windows</font></b></td>
+        </tr>
+      </table>
+      <table width="100%" border="0" cellspacing="1" cellpadding="2">
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD" width="20%"><b><font face="Tahoma" size="2">gPrintDlg</font></b></td>
+          <td width="80%"><font face="Tahoma" size="2">points to the current Print() 
+            window</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gTheWindow</font></b></td>
+          <td><font face="Tahoma" size="2">points to the window class</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gWndColor</font></b></td>
+          <td><font face="Tahoma" size="2">the colour of the game's windows foreground 
+            (ie. text)</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gWndBack</font></b></td>
+          <td><font face="Tahoma" size="2">the colour of the game's windows background</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gOldPort</font></b></td>
+          <td><font face="Tahoma" size="2">the previous port</font></td>
+        </tr>
+      </table>
+      <br>
+      <table width="100%" border="0" cellspacing="1" cellpadding="2">
+        <tr> 
+          <td bgcolor="#a0a0a0" width="80%"><b><font face="tahoma" size="2" color="#FFFFFF">Sound</font></b></td>
+        </tr>
+      </table>
+      <table width="100%" border="0" cellspacing="1" cellpadding="2">
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD" width="20%"><b><font face="Tahoma" size="2">gVolume</font></b></td>
+          <td width="80%"><font face="Tahoma" size="2">the sound volume</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gTheMusic</font></b></td>
+          <td><font face="Tahoma" size="2">points to the music class</font></td>
+        </tr>
+        <tr bgcolor="#F8F8F8"> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gTheSoundFX</font></b></td>
+          <td><font face="Tahoma" size="2">points to the sound fx class</font></td>
+        </tr>
+      </table>
+      <br>
+      <table width="100%" border="0" cellspacing="1" cellpadding="2">
+        <tr> 
+          <td bgcolor="#a0a0a0" width="80%"><b><font face="tahoma" size="2" color="#FFFFFF">Misc</font></b></td>
+        </tr>
+      </table>
+      <table width="100%" border="0" cellspacing="1" cellpadding="2" bgcolor="#F8F8F8">
+        <tr> 
+          <td bgcolor="#DDDDDD" width="20%"><b><font face="Tahoma" size="2">gUserEvent</font></b></td>
+          <td width="80%"><font face="Tahoma" size="2">points to the user's event 
+            object</font></td>
+        </tr>
+        <tr> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gVersion</font></b></td>
+          <td><font face="Tahoma" size="2">the version string</font></td>
+        </tr>
+        <tr> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gSaveDirPtr</font></b></td>
+          <td><font face="Tahoma" size="2">points to the save directory string</font></td>
+        </tr>
+        <tr> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gCastMotionCue</font></b></td>
+          <td><font face="Tahoma" size="2">if set, the cast's motionCue() is called</font></td>
+        </tr>
+        <tr> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gEgoView</font></b></td>
+          <td><font face="Tahoma" size="2">ego's current view number</font></td>
+        </tr>
+        /* hh:mm:ss | gTimeHours:gTimeMinutes:gTimeSeconds */ /* the time elapsed 
+        since the game started */ 
+        <tr> 
+          <td bgcolor="#DDDDDD"><b><font face="Tahoma" size="2">gProgramControl</font></b></td>
+          <td><font face="Tahoma" size="2">states whether the program has control 
+            or the user</font></td>
+        </tr>
+      </table>
+      
+    </td>
+  </tr>
+</table>
+</body>
+</html>

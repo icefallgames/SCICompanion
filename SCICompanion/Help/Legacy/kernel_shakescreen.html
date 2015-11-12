@@ -1,0 +1,58 @@
+<html>
+<head>
+<title>Kernel: ShakeScreen</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000">
+<table width="100%" border="0" cellspacing="0" cellpadding="4">
+  <tr bgcolor="#a0a0a0"> 
+    <td bgcolor="#a0a0a0"><font size="4" face="Tahoma"><b><font color="#FFFFFF">ShakeScreen</font></b></font></td>
+  </tr>
+  <tr> 
+    <td> 
+      <p align="left"><font size="2" face="Tahoma">void <b>ShakeScreen</b>(number shakeCount, 
+        <i>[number direction]</i>)</font></p>
+      <p align="left"><font size="2" face="Tahoma">Shakes the screen shakeCount 
+        number of times. If the direction parameter is given, it shakes the specified 
+        direction. If it is not, it shakes from left to right.</font></p>
+      <ul>
+        <li><font face="Tahoma" size="2">The direction can be one of the following 
+          values defined in SCI.SH as follows:</font> 
+          <table border="0" cellspacing="2" cellpadding="1">
+            <tr> 
+              <td bgcolor="#EFEFEF"><font face="Tahoma" size="2">ssLEFTRIGHT</font></td>
+              <td bgcolor="#F9f9f9"><font face="Tahoma" size="2">Shakes the screen 
+                from left to right</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#EFEFEF"><font face="Tahoma" size="2">ssUPDOWN</font></td>
+              <td bgcolor="#F9f9f9"><font face="Tahoma" size="2">Shakes the screen 
+                up and down</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#EFEFEF"><font face="Tahoma" size="2">ssFULL_SHAKE</font></td>
+              <td bgcolor="#F9f9f9"><font face="Tahoma" size="2">Shakes the screen 
+                diagonally from the top left corner to the bottom right</font></td>
+            </tr>
+          </table>
+        </li>
+      </ul>
+      <table border="0" cellpadding="2" align="center" width="100%">
+        <tr bgcolor="#CCCCCC"> 
+          <td bgcolor="#CCCCCC"><font size="2" face="Tahoma"><b>Example</b></font></td>
+        </tr>
+        <tr> 
+          <td bgcolor="#FFFFEE"> 
+            <p> <font size="2" face="Courier New, Courier, mono">ShakeScreen(8) 
+              /* Does a left to right shake screen eight times */</font></p>
+            <p><font size="2" face="Courier New, Courier, mono">ShakeScreen(20 
+              ssFULL_SHAKE) /* Does a complete shake screen twenty times */</font></p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

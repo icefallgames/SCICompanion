@@ -1,0 +1,105 @@
+<html>
+<head>
+<title>Class: InvI</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<table width="100%" border="0" cellspacing="0" cellpadding="4">
+  <tr bgcolor="#a0a0a0"> 
+    <td bgcolor="#a0a0a0"><font size="4" face="Tahoma" color="#FFFFFF"><b>Class: 
+      InvI</b> (of <a href="class_obj.html">Obj</a>)</font></td>
+  </tr>
+  <tr> 
+    <td> 
+      <p><font face="Tahoma" size="2">The InvI class is used for inventory items. 
+        </font></p>
+      <p><font face="Tahoma" size="2"><b><font size="3">Properties</font></b></font></p>
+      <ul>
+        <li><font face="tahoma" size="2">said</font> </li>
+        <li><font face="tahoma" size="2">description</font></li>
+        <li><font face="tahoma" size="2">owner</font></li>
+        <li><font face="tahoma" size="2">view</font></li>
+        <li><font face="tahoma" size="2">loop</font></li>
+        <li><font face="tahoma" size="2">cel</font></li>
+        <li><font face="tahoma" size="2">script</font></li>
+      </ul>
+      <p><font face="Tahoma" size="2"><b><font size="3">Methods</font></b></font></p>
+      <ul>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font face="Tahoma" size="3">void <b>showSelf</b>()</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font face="Tahoma" size="2">Prints the inventory item's name 
+                  and view in a dialog window. If the description property is 
+                  set, it displays that as well.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD" height="22"><font face="Tahoma" size="3">bool 
+                <b>saidMe</b>()</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font face="Tahoma" size="2">Returns TRUE is the user's input 
+                  &quot;Said&quot; the name of the inventory item. Otherwise, 
+                  FALSE. </font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font face="Tahoma" size="3">bool <b>ownedBy</b>(heapPtr 
+                anObject)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font face="Tahoma" size="2">Returns TRUE if the inventory 
+                  item is owned by anObject. Otherwise, FALSE.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font face="Tahoma" size="3">heapPtr<b> moveTo</b>(heapPtr 
+                newOwner)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font face="Tahoma" size="2">Sets the inventory item's owner 
+                  to newOwner and returns a pointer to itself.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font face="Tahoma" size="3">void <b>changeState</b>(number 
+                newState)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font face="Tahoma" size="2">If the script property is set, 
+                  it changes the script's state to newState.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+      </ul>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

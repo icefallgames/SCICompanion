@@ -1,0 +1,74 @@
+<html>
+<head>
+<title>Class: SRDialog</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000" leftmargin="0" topmargin="0" marginwidth="0" marginheight="0">
+<table width="100%" border="0" cellspacing="0" cellpadding="4">
+  <tr bgcolor="#a0a0a0"> 
+    <td bgcolor="#a0a0a0"><font size="4" face="Tahoma" color="#FFFFFF"><b>Class: 
+      SRDialog</b> (of <a href="class_dialog.html">Dialog</a>)</font></td>
+  </tr>
+  <tr> 
+    <td> 
+      <p><font face="Tahoma" size="2">The SRDialog class is a dialog for saving/restoring 
+        games. </font></p>
+      <p><font face="Tahoma" size="2"><b><font size="3">Properties</font></b></font></p>
+      <ul>
+        <li><font size="2" face="Tahoma"> elements</font></li>
+        <li><font size="2" face="Tahoma">size</font></li>
+        <li><font size="2" face="Tahoma">text</font></li>
+        <li><font size="2" face="Tahoma">window</font></li>
+        <li><font size="2" face="Tahoma">theItem</font></li>
+        <li><font size="2" face="Tahoma">nsTop</font></li>
+        <li><font size="2" face="Tahoma">nsLeft</font></li>
+        <li><font size="2" face="Tahoma">nsBottom</font></li>
+        <li><font size="2" face="Tahoma">nsRight</font></li>
+        <li><font size="2" face="Tahoma">time</font></li>
+        <li><font size="2" face="Tahoma">busy</font></li>
+        <li><font size="2" face="Tahoma">seconds</font></li>
+        <li><font size="2" face="Tahoma">lastSeconds</font></li>
+      </ul>
+      <p><font size="2" face="Tahoma"><b><font size="3">Methods</font></b></font></p>
+      <ul>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">bool <b>init</b>(string 
+                strDescription, string strBuf, heapPtr strPtrs)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Initializes the Save/Restore dialog 
+                  box. strDescription is name of the selected save game. It is 
+                  set up to be the last used one. strBuf is an array of strings 
+                  containing the names of the saved games. strPtrs is an array 
+                  of pointers to the strings inn strBuf.</font></p>
+                <p><font face="tahoma" size="2">It returns TRUE is successful, 
+                  FALSE if not.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+        <li> 
+          <table width="100%" border="0" cellspacing="1" cellpadding="2">
+            <tr> 
+              <td bgcolor="#DDDDDD"><font size="3" face="tahoma">number <b>doit</b>(string 
+                strDescription)</font></td>
+            </tr>
+            <tr> 
+              <td bgcolor="#F8F8F8"> 
+                <p><font size="2" face="tahoma">Executes the Save/Restore dialog. 
+                  It returns the number of the save game if successful, otherwise, 
+                  -1. The name of the saved game is stored in strDescription.</font></p>
+              </td>
+            </tr>
+          </table>
+        </li>
+      </ul>
+    </td>
+  </tr>
+</table>
+</body>
+</html>
