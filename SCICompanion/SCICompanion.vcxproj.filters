@@ -450,6 +450,51 @@
     <Image Include="Docs\source\images\RightClickMenu.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Docs\source\images\All.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\ChoosePri.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\Dither.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\Logo.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\LogoComplete.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\PC2_Base.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\PC2_DarkRange.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\PC2_DefineGradient.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\PC2_Import.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\PC2_ImportOverlay.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\PC2_SetRange.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\PC2_Visualization.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\PC2_ZoomIn.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\PriScreen.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\images\VocabEditor.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\SCICompanion.rc2">
@@ -1051,6 +1096,43 @@
     <None Include="Files\TemplateGame\SCI1.1\msg\15.shm" />
     <None Include="Files\TemplateGame\SCI1.1\msg\20.shm" />
     <None Include="Files\TemplateGame\SCI1.1\msg\110.shm" />
+    <None Include="Docs\source\classlibrary.rst" />
+    <None Include="Docs\source\gameversion.rst" />
+    <None Include="Docs\source\overview.rst" />
+    <None Include="Docs\source\sci_compiler.rst" />
+    <None Include="Docs\source\Compiler\arithmetic.rst" />
+    <None Include="Docs\source\Compiler\asm.rst" />
+    <None Include="Docs\source\Compiler\assignment.rst" />
+    <None Include="Docs\source\Compiler\bitwise.rst" />
+    <None Include="Docs\source\Compiler\break.rst" />
+    <None Include="Docs\source\Compiler\classes.rst" />
+    <None Include="Docs\source\Compiler\classheader.rst" />
+    <None Include="Docs\source\Compiler\codeblock.rst" />
+    <None Include="Docs\source\Compiler\comment.rst" />
+    <None Include="Docs\source\Compiler\conditionalexpressions.rst" />
+    <None Include="Docs\source\Compiler\define.rst" />
+    <None Include="Docs\source\Compiler\do.rst" />
+    <None Include="Docs\source\Compiler\for.rst" />
+    <None Include="Docs\source\Compiler\if.rst" />
+    <None Include="Docs\source\Compiler\include.rst" />
+    <None Include="Docs\source\Compiler\objectfiles.rst" />
+    <None Include="Docs\source\Compiler\otheroperators.rst" />
+    <None Include="Docs\source\Compiler\procedures.rst" />
+    <None Include="Docs\source\Compiler\properties.rst" />
+    <None Include="Docs\source\Compiler\relationaloperators.rst" />
+    <None Include="Docs\source\Compiler\rest.rst" />
+    <None Include="Docs\source\Compiler\return.rst" />
+    <None Include="Docs\source\Compiler\saids.rst" />
+    <None Include="Docs\source\Compiler\selectors.rst" />
+    <None Include="Docs\source\Compiler\sendselfsuper.rst" />
+    <None Include="Docs\source\Compiler\strings.rst" />
+    <None Include="Docs\source\Compiler\switch.rst" />
+    <None Include="Docs\source\Compiler\synonyms.rst" />
+    <None Include="Docs\source\Compiler\use.rst" />
+    <None Include="Docs\source\Compiler\variables.rst" />
+    <None Include="Docs\source\Compiler\variabletypes.rst" />
+    <None Include="Docs\source\Compiler\version.rst" />
+    <None Include="Docs\source\Compiler\while.rst" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />
