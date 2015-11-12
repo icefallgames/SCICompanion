@@ -12,7 +12,7 @@ The simple assignment operator is =. It assigns the result of code block to vari
 
 	= variable code block
 
-The complex assignment operators are +=, -=, \*=, /=, %=, &=, |=, ^=, >>= and <<=. These operators . These operators use the result of code block and apply the variable to it using the specified operator::
+The complex assignment operators are +=, -=, \*=, /=, %=, &=, \|=, ^=, >>= and <<=. These operators . These operators use the result of code block and apply the variable to it using the specified operator::
 
 	operator variable code block
 
