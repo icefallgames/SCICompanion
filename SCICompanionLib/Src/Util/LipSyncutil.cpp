@@ -125,7 +125,7 @@ void CreateLipSyncDataFromWav(const std::string &wavePath, const std::string &op
             std::wstring wfilename = converter.from_bytes(wavePath);
             std::string optionalTextTemp = RemoveVocalCues(optionalTextIn);
             std::wstring optionalText = converter.from_bytes(optionalTextTemp);
-
+            
             // 2. declare the sapi lipsync object and call the lipsync method to
             // start the lipsync process
             std::unique_ptr<sapi_textless_lipsync> lipSyncTextless;

@@ -352,8 +352,7 @@ public bool DeleteKey(k_list list, int key)
 
 		DeviceInfo(4);
  */
-public
-var DeviceInfo(int command, string thePath, string outBuffer)
+public var DeviceInfo(int command, string thePath, string outBuffer)
 bool DeviceInfo(int command, string thePath)
 void DeviceInfo(int command)
 void DeviceInfo(string outBuffer)
@@ -2102,8 +2101,7 @@ public int StackUsage()
 	:param number replacement: The optional character place at that index.
 	:returns: The character at the index specified.
 */
-public
-char StrAt(string aString, int index)
+public char StrAt(string aString, int index)
 char StrAt(string aString, int index, char replacement)
 {
 }
@@ -2139,8 +2137,7 @@ public string StrCat(string dest, string src)
 			Print("The string says Hello World")
 		)
 */
-public
-int StrCmp(string a, string b)
+public int StrCmp(string a, string b)
 int StrCmp(string a, string b, int maxChars)
 {
 }
@@ -2833,7 +2830,7 @@ public int StrSplit(string outBuffer, string inString [,string separator])
 {}
 
 /*
-	Retrieves message resource information. Messages are what is spoken by in-game characters.
+	Retrieves message resource information. Messages are what is spoken by in-game characters. See :doc:`/messages`.
 
 	.. IMPORTANT:: SCI1.1 only.
 

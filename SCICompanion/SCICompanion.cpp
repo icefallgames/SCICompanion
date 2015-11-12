@@ -665,7 +665,7 @@ void SCICompanionApp::OnEmail()
 void SCICompanionApp::OnSCICompHelp()
 {
     std::string helpFolder = GetExeSubFolder("Help");
-    helpFolder += "\\Introduction.html";
+    helpFolder += "\\index.html";
     ShellExecute(NULL, "open", helpFolder.c_str(), "", "", SW_SHOWNORMAL);
 }
 

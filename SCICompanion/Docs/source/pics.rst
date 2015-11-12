@@ -6,6 +6,13 @@
  Pic Editor
 ================
 
+.. toctree::
+    :maxdepth: 1
+    :hidden:
+
+    polygons
+
+
 .. image:: /images/PicEditor.jpg
 
 The picture editor shows the pic itself in the main window, and the picture command list on the right.

@@ -5,7 +5,12 @@
 
 .. include:: /includes/standard.rst
 
-|scicomp| - an IDE for Sierra's SCI engine
+
+.. image:: /images/LogoComplete.png
+    :align: center
+
+===========================================
+An IDE for Sierra's SCI engine
 ===========================================
 
 |scicomp| is a fully-featured development environment that lets you view, modify, and create
@@ -16,16 +21,19 @@ This is the documentation for version 3 of |scicomp|. Version 3 adds support for
 among many other features.
 
 Topics:
-----------
+==========
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
+   overview
    intro
    views
    pics
    scripts
    classlibrary
+   sci_kernels
+   sci_compiler
    texts
    messages
    sounds
@@ -42,6 +50,7 @@ Topics:
    anatomy
    decompiler
    preferences
+   gameversion
 
 Other
 ==================

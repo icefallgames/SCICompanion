@@ -9,9 +9,8 @@
  Cursor Editor
 ================
 
-Cursor resources are used in SCI0 and SCI1 for the mouse cursor (in SCI1.1 and above, views are used for mouse cursors). In SCI0 they can have white, black and transparent pixels,
+Cursor resources are 16x16 2-bit bitmaps used in SCI0 and SCI1 for the mouse cursor (in SCI1.1 and above, views are used for mouse cursors). In SCI0 they can have white, black and transparent pixels,
 while in SCI1 they can have white, black, gray or transparent pixels.
-
 
 
 .. figure:: /images/CursorExample.png

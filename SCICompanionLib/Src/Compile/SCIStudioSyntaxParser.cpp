@@ -1121,13 +1121,10 @@ void SCISyntaxParser::Load()
         simple_value
         | alphanum_p2[{PropValueStringA<ValueType::Token>, ParseAutoCompleteContext::DefineValue}];
 
-    // moveSpeed 5
-    // phil
     property_decl = general_token[{CreateClassPropertyA, ParseAutoCompleteContext::ClassSelector}] >>
          (property_value[FinishClassPropertyA]
          | property_value_expanded[FinishClassPropertyStatementA])[ExpectedProperyValueE]
         ;
-
 
     // The properties thing in a class or instance
     properties_decl = oppar >> keyword_p("properties")[{nullptr, ParseAutoCompleteContext::ClassLevelKeyword}] >> *property_decl >> clpar;

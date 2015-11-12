@@ -9,6 +9,13 @@
  Message editor
 ================
 
+.. toctree::
+    :maxdepth: 1
+    :hidden:
+
+    messageaudio
+    talkers
+
 In SCI 1.1, message resources are used for nearly all in-game text. They have special features, however,
 to enable them to be easily associated with various actions on different objects. In contrast to SCI0, almost no
 code is needed to display text to the player in response to the player doing something with an object.

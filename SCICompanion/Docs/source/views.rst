@@ -6,6 +6,14 @@
  View Editor
 ================
 
+.. toctree::
+    :maxdepth: 1
+    :hidden:
+
+    rastertools
+    selectionandresize
+
+
 Views are used for all the graphical elements in the game: Actors, Props, icons, window borders and more.
 Because they are so important, there is a significant amount of functionality devoted to them in |scicomp|.
 
