@@ -219,6 +219,7 @@
     <ClCompile Include="Src\Dialogs\ColorShifterDialog.cpp" />
     <ClCompile Include="Src\Dialogs\ConvertFromToPaletteDialog.cpp" />
     <ClCompile Include="Src\Dialogs\DecompileDialog.cpp" />
+    <ClCompile Include="Src\Dialogs\EditCelDataDialog.cpp" />
     <ClCompile Include="Src\Dialogs\ExtractAllDialog.cpp" />
     <ClCompile Include="Src\Dialogs\ExtractLipSyncDialog.cpp" />
     <ClCompile Include="Src\Dialogs\GenerateDocsDialog.cpp" />
@@ -301,6 +302,7 @@
     <ClInclude Include="Src\Dialogs\ColorShifterDialog.h" />
     <ClInclude Include="Src\Dialogs\ConvertFromToPaletteDialog.h" />
     <ClInclude Include="Src\Dialogs\DecompileDialog.h" />
+    <ClInclude Include="Src\Dialogs\EditCelDataDialog.h" />
     <ClInclude Include="Src\Dialogs\ExtractLipSyncDialog.h" />
     <ClInclude Include="Src\Dialogs\GenerateDocsDialog.h" />
     <ClInclude Include="Src\Dialogs\GradientDialog.h" />

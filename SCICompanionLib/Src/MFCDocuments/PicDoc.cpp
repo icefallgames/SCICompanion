@@ -323,6 +323,11 @@ INT_PTR _PrevPicPos(INT_PTR iPos, INT_PTR delta)
     return iPos;
 }
 
+ptrdiff_t CPicDoc::GetPosition()
+{
+    return _pdm.GetPos();
+}
+
 void CPicDoc::InsertCommand(PicCommand *pCommand)
 {
     ptrdiff_t delta = 0;

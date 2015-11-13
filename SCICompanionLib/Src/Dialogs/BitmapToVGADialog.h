@@ -51,6 +51,7 @@ public:
         PaletteAlgorithm defaultAlgorithm,
         DefaultPaletteUsage defaultColorUsage,
         const char *pszTitle = nullptr,
+        bool insertAtCurrentDefault = false,
         CWnd* pParent = NULL);   // standard constructor
     virtual ~CBitmapToVGADialog();
 

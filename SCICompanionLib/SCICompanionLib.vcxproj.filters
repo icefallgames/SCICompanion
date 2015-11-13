@@ -780,6 +780,9 @@
     <ClCompile Include="Src\Docs\OutputRST.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Dialogs\EditCelDataDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCICompanionLib.h">
@@ -1659,6 +1662,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\Compile\CodeInspector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Dialogs\EditCelDataDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

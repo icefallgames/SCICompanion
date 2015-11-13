@@ -38,6 +38,7 @@
 #include "PicDimensionsDialog.h"
 #include "GotoDialog.h"
 #include "PicCommands.h"
+#include "EditCelDataDialog.h"
 
 const int PicGutter = 5;
 using namespace Gdiplus;
@@ -312,6 +313,7 @@ BEGIN_MESSAGE_MAP(CPicView, CScrollingThing<CView>)
     ON_COMMAND(ID_PIC_DELETEPOINT, CPicView::OnDeletePoint)
     ON_COMMAND(ID_PIC_CHANGEDIMENSIONS, CPicView::ChangeDimensions)
     ON_COMMAND(ID_PIC_REMOVESETVISUAL, CPicView::RemoveSetVisual)
+    ON_COMMAND(ID_PIC_EDITCELDATA, CPicView::EditCelData)
     ON_COMMAND_RANGE(ID_DEFAULTPRIORITY, ID_MAIN_PRI15, CPicView::OnSetEgoPriority)
     ON_COMMAND_RANGE(ID_FAKEEGO0, ID_FAKEEGO12, CPicView::OnEnableFakeEgo)
     ON_COMMAND(ID_FAKEEGONUMBER, CPicView::OnEnableFakeEgoCustom)
@@ -362,6 +364,7 @@ BEGIN_MESSAGE_MAP(CPicView, CScrollingThing<CView>)
     ON_UPDATE_COMMAND_UI(ID_PIC_DELETEPOINT, CPicView::OnCommandUIAlwaysValid)  // Since it's in a context menu we only bring up when it's available.
     ON_UPDATE_COMMAND_UI(ID_PIC_SPLITEDGE, CPicView::OnCommandUIAlwaysValid)  // Since it's in a context menu we only bring up when it's available.
     ON_UPDATE_COMMAND_UI(ID_FAKEEGONUMBER, CPicView::OnCommandUIAlwaysValid)
+    ON_UPDATE_COMMAND_UI(ID_PIC_EDITCELDATA, CPicView::OnUpdateEditCelData)
     ON_WM_ERASEBKGND()
     ON_WM_RBUTTONDOWN()
     ON_WM_LBUTTONDOWN()
@@ -1050,6 +1053,54 @@ bool _AllowCommand(bool supportsPen, bool isVGA, bool canChangePriLines, const P
     return true;
 }
 
+// This is some very basic SCI2 support for moving pic layers around.
+void CPicView::OnUpdateEditCelData(CCmdUI *pCmdUI)
+{
+    const PicComponent *pic = _GetEditPic();
+    BOOL enable = FALSE;
+    if (pic->Traits->AllowMultipleBitmaps)
+    {
+        // A drawvisual command must be selected
+        ptrdiff_t position = GetDocument()->GetPosition() - 1;
+        if ((position >= 0) && (position < (ptrdiff_t)pic->commands.size()))
+        {
+            enable = pic->commands[position].type == PicCommand::CommandType::DrawBitmap;
+        }
+    }
+    pCmdUI->Enable(enable);
+}
+
+// This is some very basic SCI2 support for moving pic layers around.
+void CPicView::EditCelData()
+{
+    const PicComponent *pPic = _GetEditPic();
+    BOOL enable = FALSE;
+    if (pPic->Traits->AllowMultipleBitmaps)
+    {
+        // And a drawvisual command must be selected
+        ptrdiff_t position = GetDocument()->GetPosition() - 1;
+        if ((position >= 0) && (position < (ptrdiff_t)pPic->commands.size()))
+        {
+            GetDocument()->ApplyChanges<PicComponent>(
+                [position](PicComponent &pic)
+            {
+                PicChangeHint hint = PicChangeHint::None;
+                PicCommand &command = pic.commands[position];
+                if (command.type == PicCommand::CommandType::DrawBitmap)
+                {
+                    EditCelDataDialog dialog(command.drawVisualBitmap.priority, *command.drawVisualBitmap.pCel);
+                    if (dialog.DoModal() == IDOK)
+                    {
+                        hint = PicChangeHint::EditPicInvalid;
+                    }
+                }
+                return WrapHint(hint);
+            }
+                );
+        }
+    }
+}
+
 // Useful for importing EGA pics into a VGA game.
 void CPicView::RemoveSetVisual()
 {
@@ -1227,7 +1278,8 @@ void CPicView::OnPasteIntoPic()
             }
         }
 
-        CBitmapToVGADialog dialog(nullptr, backgroundCurrent, _GetPalette(), false, 256, _GetEditPic()->Traits->AllowMultipleBitmaps, _GetEditPic()->Size, 255, PaletteAlgorithm::Quantize, DefaultPaletteUsage::UnusedColors);
+        bool defaultInsertAtCurrent = _GetEditPic()->Traits->AllowMultipleBitmaps;
+        CBitmapToVGADialog dialog(nullptr, backgroundCurrent, _GetPalette(), false, 256, _GetEditPic()->Traits->AllowMultipleBitmaps, _GetEditPic()->Size, 255, PaletteAlgorithm::Quantize, DefaultPaletteUsage::UnusedColors, nullptr, defaultInsertAtCurrent);
         if (IDOK == dialog.DoModal())
         {
             std::unique_ptr<Cel> result = dialog.GetFinalResult();
@@ -1252,6 +1304,14 @@ void CPicView::OnPasteIntoPic()
                     _ReplaceDrawVisual(pic, *result);
 
                     return WrapHint(PicChangeHint::EditPicInvalid | PicChangeHint::Palette);
+                },
+                    [&paletteResult](ResourceEntity &resource)
+                {
+                    // Ensure we actually have a palette.
+                    if (!resource.TryGetComponent<PaletteComponent>())
+                    {
+                        resource.AddComponent<PaletteComponent>(std::make_unique<PaletteComponent>(*paletteResult));
+                    }
                 }
                 );
             }

@@ -303,6 +303,7 @@
 #define IDI_WAVEFORM                    398
 #define IDD_DOCGENERATOR                398
 #define IDI_IMAGE                       399
+#define IDD_EDITCELDATA                 399
 #define IDC_CHOOSECOLORSTATIC           1001
 #define IDC_BUTTON1                     1003
 #define IDC_BUTTONDOWN                  1003
@@ -775,7 +776,10 @@
 #define IDC_EDITFOLDER                  1378
 #define IDC_GENERATEDOC                 1379
 #define IDC_EDITCOMMAND                 1380
+#define IDC_EDITX                       1380
 #define IDC_GENERATEKERNELS             1381
+#define IDC_EDITY                       1381
+#define IDC_EDITPRI                     1382
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -1125,6 +1129,7 @@
 #define ID_RESOLUTION_640X480           33285
 #define ID_PIC_TOGGLEGRIDLINES          33286
 #define ID_TOGGLEGRIDLINES              33287
+#define ID_PIC_EDITCELDATA              33289
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -1132,9 +1137,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        400
-#define _APS_NEXT_COMMAND_VALUE         33289
-#define _APS_NEXT_CONTROL_VALUE         1380
+#define _APS_NEXT_RESOURCE_VALUE        401
+#define _APS_NEXT_COMMAND_VALUE         33290
+#define _APS_NEXT_CONTROL_VALUE         1383
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

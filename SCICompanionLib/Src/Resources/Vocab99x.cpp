@@ -842,7 +842,8 @@ bool KernelTable::Load(const GameFolderHelper &helper)
                 kernelNames = sci21_default_knames;
                 break;
             default:
-                assert(false); // Catch any games like this...
+                // We get here when our KernelSet hasn't been set yet, during version detection.
+                // Just provide some defaults:
                 kernelCount = ARRAYSIZE(s_defaultKernelNames);
                 kernelNames = s_defaultKernelNames;
                 break;

@@ -1272,7 +1272,7 @@ void CMainFrame::OnFileNewPic()
         if (pDocument)
         {
             unique_ptr<ResourceEntity> pEditPic(CreateDefaultPicResource(appState->GetVersion()));
-            if (appState->GetVersion().PicFormat == PicFormat::VGA1_1)
+            if (appState->GetVersion().PicFormat >= PicFormat::VGA1_1)
             {
                 // Let's add a palette. 
                 const PaletteComponent *globalPalette = appState->GetResourceMap().GetPalette999();

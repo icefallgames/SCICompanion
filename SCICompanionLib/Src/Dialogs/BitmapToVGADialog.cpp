@@ -47,6 +47,7 @@ CBitmapToVGADialog::CBitmapToVGADialog(
     PaletteAlgorithm defaultAlgorithm,
     DefaultPaletteUsage defaultColorUsage,
     const char *pszTitle,
+    bool insertAtCurrentDefault,
     CWnd* pParent /*=nullptr*/)
     : CExtNCW<CExtResizableDialog>(CBitmapToVGADialog::IDD, pParent),
     PrepareBitmapBase(-1, IDC_STATICORIG, picDimensions),
@@ -59,12 +60,12 @@ CBitmapToVGADialog::CBitmapToVGADialog(
     _manuallyModifiedColors(false),
     _fixedPalette(fixedPalette),
     _paletteSize(colorCount),
-    _colorMatching(ColorMatching::RGB)
+    _colorMatching(ColorMatching::RGB),
+    _insertAtCurrentPosition(insertAtCurrentDefault ? 1 : 0)
 {
     _alphaThreshold = 128;
     _allowInsertAtCurrentPosition = allowInsertAtCurrentPosition;
     _needsUpdate = true;
-    _insertAtCurrentPosition = 0;
 
     if (fixedPalette)
     {

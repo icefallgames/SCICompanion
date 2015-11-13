@@ -101,6 +101,7 @@ public:
     void RemoveCommand(INT_PTR iCommandIndex);
     void RemoveCommandRange(INT_PTR iStart, INT_PTR iEnd);
     void ExplicitNotify(PicChangeHint hint);
+    ptrdiff_t GetPosition();
 
     const PolygonComponent *GetPolygonComponent();
     int GetCurrentPolygonIndex() const { return _currentPolyIndex; }

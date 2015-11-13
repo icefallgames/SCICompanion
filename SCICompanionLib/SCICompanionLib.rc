@@ -491,6 +491,7 @@ BEGIN
         MENUITEM "Edit p&alette",               ID_PIC_EDITPALETTE
         MENUITEM "Change &height",              ID_PIC_CHANGEDIMENSIONS
         MENUITEM "Remove set &visual",          ID_PIC_REMOVESETVISUAL
+        MENUITEM "Edit cel data",               ID_PIC_EDITCELDATA
     END
     POPUP "Fo&nt"
     BEGIN
@@ -2041,6 +2042,21 @@ BEGIN
     PUSHBUTTON      "&Kernels",IDC_GENERATEKERNELS,92,282,74,14
 END
 
+IDD_EDITCELDATA DIALOGEX 0, 0, 149, 87
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Edit cel data"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    CONTROL         "y:",IDC_STATIC2,"Static",SS_SIMPLE | SS_CENTERIMAGE | WS_GROUP,9,32,61,10,WS_EX_RIGHT
+    EDITTEXT        IDC_EDITY,74,29,68,14,ES_AUTOHSCROLL | ES_NUMBER
+    CONTROL         "Priority:",IDC_STATIC3,"Static",SS_SIMPLE | SS_CENTERIMAGE | WS_GROUP,9,52,61,10,WS_EX_RIGHT
+    EDITTEXT        IDC_EDITPRI,74,49,68,14,ES_AUTOHSCROLL | ES_NUMBER
+    DEFPUSHBUTTON   "OK",IDOK,7,66,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,74,66,68,14
+    CONTROL         "x:",IDC_STATIC1,"Static",SS_SIMPLE | SS_CENTERIMAGE | WS_GROUP,9,11,61,10,WS_EX_RIGHT
+    EDITTEXT        IDC_EDITX,74,8,68,14,ES_AUTOHSCROLL | ES_NUMBER
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2740,6 +2756,15 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 296
     END
+
+    IDD_EDITCELDATA, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 142
+        VERTGUIDE, 74
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 80
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -3283,6 +3308,7 @@ BEGIN
     ID_VIEW_PASTESPECIALTRANSPARENT 
                             "Paste transparent image from clipboard with options\nPaste transparent image with options"
     ID_TOGGLEGRIDLINES      "Toggle grid lines for lining up things\nToggle grid lines"
+    ID_PIC_EDITCELDATA      "Edit the cel position and priority"
 END
 
 #endif    // English (United States) resources
