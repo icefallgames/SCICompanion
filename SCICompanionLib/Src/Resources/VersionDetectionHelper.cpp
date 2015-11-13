@@ -22,6 +22,7 @@
 #include "PMachine.h"
 #include "ResourceBlob.h"
 #include "View.h"
+#include "CodeInspector.h"
 
 using namespace std;
 
@@ -194,6 +195,83 @@ bool CResourceMap::_HasEarlySCI0Scripts()
     return hasEarly;
 }
 
+KernelSet CResourceMap::_DetectKernelSet()
+{
+    KernelSet kernelSet = KernelSet::Provided;
+    if (_gameFolderHelper.Version.PackageFormat >= ResourcePackageFormat::SCI2)
+    {
+        // Set it to something reasonable in case something goes wrong.
+        kernelSet = KernelSet::SCI2;
+
+        // Figure out SCI2 kernel is being used. We'll mirror what ScummVM does here, which
+        // is to look for the kernel call in Sound::play().
+        // First, we need to find where the Sound object lives.
+        try
+        {
+            GlobalCompiledScriptLookups scriptLookups;
+            if (scriptLookups.Load(_gameFolderHelper))
+            {
+                uint16_t species;
+                if (scriptLookups.GetGlobalClassTable().LookupSpecies("Sound", species))
+                {
+                    uint16_t soundScript;
+                    if (scriptLookups.GetGlobalClassTable().GetSpeciesScriptNumber(species, soundScript))
+                    {
+                        std::vector<CompiledScript*> allScripts = scriptLookups.GetGlobalClassTable().GetAllScripts();
+                        for (auto compiledScript : allScripts)
+                        {
+                            if (compiledScript->GetScriptNumber() == soundScript)
+                            {
+                                InspectScriptCode(*compiledScript,
+                                    &scriptLookups,
+                                    "Sound",
+                                    "play",
+                                    [&kernelSet](Opcode opcode, const uint16_t *operands, uint16_t currentPCOffset)
+                                {
+                                    if (opcode == Opcode::CALLK)
+                                    {
+                                        if (operands[0] == 0x40)
+                                        {
+                                            kernelSet = KernelSet::SCI2;
+                                            return false;
+                                        }
+                                        else if (operands[0] == 0x75)
+                                        {
+                                            kernelSet = KernelSet::SCI21;
+                                            return false;
+                                        }
+                                    }
+                                    return true;
+                                }
+                                    );
+
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        catch (std::exception)
+        { }
+    }
+    else
+    {
+        if (DoesResourceExist(ResourceType::Vocab, VocabKernelNames))
+        {
+            // The kernels are listed in a vocab resource (typical for SCI0).
+            kernelSet = KernelSet::Provided;
+        }
+        else
+        {
+            // SCI0 and SCI1 use roughly the same kernel functions, except that
+            // SCI1 has more.
+            kernelSet = KernelSet::SCI0SCI1;
+        }
+    }
+    return kernelSet;
+}
+
 ResourceMapFormat CResourceMap::_DetectMapFormat()
 {
     ResourceMapFormat mapFormat = ResourceMapFormat::SCI0;
@@ -332,86 +410,51 @@ ResourceMapFormat CResourceMap::_DetectMapFormat()
     return mapFormat;
 }
 
-class DummyLookupNames : public ILookupNames
-{
-public:
-    std::string Lookup(WORD wName) const override {
-        return empty;
-    }
-private:
-    std::string empty;
-};
-
-CompiledScript *g_compiledScriptAnalyze;
-bool g_discovered;
-bool g_lofsaAbsolute;
-
-void AnalyzeLofsa(Opcode opcode, const uint16_t *operands, uint16_t currentPCOffset)
-{
-    if (!g_discovered)
-    {
-        if ((opcode == Opcode::LOFSA) || (opcode == Opcode::LOFSS))
-        {
-            uint16_t absoluteOffset = operands[0];
-            int16_t finalRelativeOffset = (int16_t)currentPCOffset + (int16_t)operands[0];
-
-            if (absoluteOffset > (uint16_t)(g_compiledScriptAnalyze->GetRawBytes().size()))
-            {
-                // Out of bounds as an absolute offset, so it must be a relative signed offset.
-                g_discovered = true;
-                g_lofsaAbsolute = false;
-            }
-            else
-            {
-                if ((finalRelativeOffset < 0) || (finalRelativeOffset >= (int16_t)(g_compiledScriptAnalyze->GetRawBytes().size())))
-                {
-                    // Interpreting it as a relative signed offset put us outside the script.
-                    g_discovered = true;
-                    g_lofsaAbsolute = true;
-                }
-            }
-        }
-    }
-}
-
 bool CResourceMap::_DetectLofsaFormat()
 {
     bool lofsaAbsolute = true; // By default?
     // Don't load exports, because loading the export table depends on lofsaAbsolute being correct (IsExportWide).
-    g_discovered = false;
+    GlobalCompiledScriptLookups scriptLookups;
 
     auto scriptContainer = Resources(ResourceTypeFlags::Script, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
-    for (auto &blobIt = scriptContainer->begin(); !g_discovered && (blobIt != scriptContainer->end()); ++blobIt)
+    bool continueSearch = true;
+    for (auto &blobIt = scriptContainer->begin(); continueSearch && (blobIt != scriptContainer->end()); ++blobIt)
     {
         CompiledScript compiledScript(blobIt.GetResourceNumber(), CompiledScriptFlags::DontLoadExports);
         if (compiledScript.Load(Helper(), _gameFolderHelper.Version, blobIt.GetResourceNumber(), (*blobIt)->GetReadStream()))
         {
-            g_compiledScriptAnalyze = &compiledScript;
-            g_discovered = false;
-            g_lofsaAbsolute = false;
-
-            // Leverage the code we already have, even though it's doing more than we need.
-            std::stringstream dummyStream;
-            DummyLookupNames lookupNames;
-            // Don't bother loading either of these.
-            GlobalCompiledScriptLookups scriptLookups;
-            ObjectFileScriptLookups objectFileLookups(Helper());
-            DisassembleScript(compiledScript,
-                dummyStream,
+            continueSearch = InspectScriptCode(
+                compiledScript,
                 &scriptLookups,
-                &objectFileLookups,
-                &lookupNames,
-                nullptr,
-                &AnalyzeLofsa);
+                "",
+                "",
+                [&compiledScript, &lofsaAbsolute](Opcode opcode, const uint16_t *operands, uint16_t currentPCOffset)
+            {
+                if ((opcode == Opcode::LOFSA) || (opcode == Opcode::LOFSS))
+                {
+                    uint16_t absoluteOffset = operands[0];
+                    int16_t finalRelativeOffset = (int16_t)currentPCOffset + (int16_t)operands[0];
 
+                    if (absoluteOffset > (uint16_t)(compiledScript.GetRawBytes().size()))
+                    {
+                        // Out of bounds as an absolute offset, so it must be a relative signed offset.
+                        lofsaAbsolute = false;
+                        return false;
+                    }
+                    else
+                    {
+                        if ((finalRelativeOffset < 0) || (finalRelativeOffset >= (int16_t)(compiledScript.GetRawBytes().size())))
+                        {
+                            // Interpreting it as a relative signed offset put us outside the script.
+                            lofsaAbsolute = true;
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            });
         }
     }
-
-    if (g_discovered)
-    {
-        lofsaAbsolute = g_lofsaAbsolute;
-    }
-
     return lofsaAbsolute;
 }
 
@@ -733,4 +776,6 @@ void CResourceMap::_SniffSCIVersion()
 
         }
     }
+
+    _gameFolderHelper.Version.Kernels = _DetectKernelSet();
 }

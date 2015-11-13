@@ -285,6 +285,7 @@
     <ClCompile Include="Src\Util\AudioPlayback.cpp" />
     <ClInclude Include="Src\Compile\AutoCompleteContext.h" />
     <ClInclude Include="Src\Compile\AutoDetectVariableNames.h" />
+    <ClInclude Include="Src\Compile\CodeInspector.h" />
     <ClInclude Include="Src\Compile\CompileCommon.h" />
     <ClInclude Include="Src\Compile\DecompilerConfig.h" />
     <ClInclude Include="Src\Compile\DecompilerFallback.h" />

@@ -225,7 +225,7 @@ extern COLORREF g_egaColorsCR[16];
 RGBQUAD _Combine(RGBQUAD color1, RGBQUAD color2);
 RGBQUAD _Darker(RGBQUAD color);
 RGBQUAD _Lighter(RGBQUAD color);
-
+extern const int VocabKernelNames;
 
 EGACOLOR g_egaColorChooserPalette[];
 

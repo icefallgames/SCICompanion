@@ -84,6 +84,14 @@ enum class NativeResolution : uint8_t
     Res640x480 = 2,
 };
 
+enum class KernelSet : uint8_t
+{
+    Provided = 0,   // e.g. in vocab.999
+    SCI0SCI1 = 1,
+    SCI2 = 2,
+    SCI21 = 3,
+};
+
 size16 NativeResolutionToStoredSize(NativeResolution resolution);
 NativeResolution StoredSizeToNativeResolution(size16 storedSize);
 
@@ -114,6 +122,7 @@ struct SCIVersion
     AudioMapVersion Base36AudioMapVersion;
     bool AudioIsWav;
     NativeResolution DefaultResolution;
+    KernelSet Kernels;
 
     bool operator==(const SCIVersion &src);
     bool operator!=(const SCIVersion &src);

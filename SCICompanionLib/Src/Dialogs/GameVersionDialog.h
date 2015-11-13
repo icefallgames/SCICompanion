@@ -62,6 +62,7 @@ private:
     int _audioMapNumberIndex;
     int _messageMapSource;
     int _resolution;
+    int _kernelSet;
 
     CExtButton m_wndOk;
     CExtButton m_wndCancel;
@@ -103,6 +104,8 @@ private:
     CExtComboBox m_wndMessageMapSourceCombo;
     CExtLabel m_wndLabel14;
     CExtComboBox m_wndResolution;
+    CExtLabel m_wndLabel15;
+    CExtComboBox m_wndKernelSet;
 
     CExtLabel m_wndLabel4;
     CExtLabel m_wndLabel5;

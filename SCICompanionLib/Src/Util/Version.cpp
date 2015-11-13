@@ -44,7 +44,8 @@ SCIVersion sciVersion0 =
     AudioMapVersion::None,
     AudioMapVersion::None,
     false,
-    NativeResolution::Res320x200
+    NativeResolution::Res320x200,
+    KernelSet::Provided,
 };
 
 SCIVersion sciVersion1_Late =
@@ -73,7 +74,8 @@ SCIVersion sciVersion1_Late =
     AudioMapVersion::None,
     AudioMapVersion::None,
     false,
-    NativeResolution::Res320x200
+    NativeResolution::Res320x200,
+    KernelSet::SCI0SCI1,
 };
 
 SCIVersion sciVersion1_1 =
@@ -102,7 +104,8 @@ SCIVersion sciVersion1_1 =
     AudioMapVersion::FiveBytes,
     AudioMapVersion::SyncMapEarly,
     false,
-    NativeResolution::Res320x200
+    NativeResolution::Res320x200,
+    KernelSet::SCI0SCI1,
 };
 
 bool SCIVersion::operator == (const SCIVersion &src)

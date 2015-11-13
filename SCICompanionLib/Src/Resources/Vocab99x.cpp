@@ -23,7 +23,7 @@
 
 const static int VocabClassTable = 996;
 const static int VocabSelectorNames = 997;
-const static int VocabKernelNames = 999;
+const int VocabKernelNames = 999;
 
 using namespace std;
 
@@ -827,15 +827,25 @@ bool KernelTable::Load(const GameFolderHelper &helper)
         _names.clear();
         size_t kernelCount;
         const char * const * kernelNames;
-        if (helper.Version.PackageFormat == ResourcePackageFormat::SCI2)
+        switch (helper.Version.Kernels)
         {
-            kernelCount = ARRAYSIZE(sci2_default_knames);
-            kernelNames = sci2_default_knames;
-        }
-        else
-        {
-            kernelCount = ARRAYSIZE(s_defaultKernelNames);
-            kernelNames = s_defaultKernelNames;
+            case KernelSet::SCI0SCI1:
+                kernelCount = ARRAYSIZE(s_defaultKernelNames);
+                kernelNames = s_defaultKernelNames;
+                break;
+            case KernelSet::SCI2:
+                kernelCount = ARRAYSIZE(sci2_default_knames);
+                kernelNames = sci2_default_knames;
+                break;
+            case KernelSet::SCI21:
+                kernelCount = ARRAYSIZE(sci21_default_knames);
+                kernelNames = sci21_default_knames;
+                break;
+            default:
+                assert(false); // Catch any games like this...
+                kernelCount = ARRAYSIZE(s_defaultKernelNames);
+                kernelNames = s_defaultKernelNames;
+                break;
         }
         _names.reserve(kernelCount);
         assert(appState->GetVersion().MapFormat != ResourceMapFormat::SCI0); // Shouldn't happen for SCI0

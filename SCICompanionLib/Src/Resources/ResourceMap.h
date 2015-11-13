@@ -137,6 +137,7 @@ private:
     ViewFormat _DetectViewVGAVersion();
     ResourcePackageFormat _DetectPackageFormat();
     ResourceMapFormat _DetectMapFormat();
+    KernelSet _DetectKernelSet();
     bool _HasEarlySCI0Scripts();
     bool _DetectLofsaFormat();
     void _SniffSCIVersion();

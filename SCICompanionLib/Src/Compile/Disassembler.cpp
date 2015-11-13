@@ -107,6 +107,7 @@ int GetOperandSize(BYTE bOpcode, OperandType operandType, const uint8_t *pNext)
     return cIncr;
 }
 
+// This really needs a re-working, it should not be responsible for outputting text.
 void DisassembleCode(SCIVersion version, std::ostream &out, ICompiledScriptLookups *pLookups, IObjectFileScriptLookups *pOFLookups, const ICompiledScriptSpecificLookups *pScriptThings, const ILookupPropertyName *pPropertyNames, const BYTE *pBegin, const BYTE *pEnd, uint16_t wBaseOffset, AnalyzeInstructionPtr analyzeInstruction)
 {
     try
@@ -440,7 +441,6 @@ void DisassembleObject(const CompiledScript &script,
 
 const char c_indent[] = "    ";
 
-
 void DisassembleFunction(const CompiledScript &script, std::ostream &out, ICompiledScriptLookups *pLookups, IObjectFileScriptLookups *pOFLookups, uint16_t wCodeOffsetTO, set<uint16_t> &sortedCodePointersTO)
 {
     out << "(procedure proc_" << setw(4) << setfill('0') << wCodeOffsetTO << endl;
@@ -460,7 +460,6 @@ void DisassembleFunction(const CompiledScript &script, std::ostream &out, ICompi
     }
     out << ')' << endl << endl;
 }
-
 
 void DisassembleScript(const CompiledScript &script, std::ostream &out, ICompiledScriptLookups *pLookups, IObjectFileScriptLookups *pOFLookups, const ILookupNames *pWords, const std::string *pMessage, AnalyzeInstructionPtr analyzeInstruction)
 {

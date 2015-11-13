@@ -495,6 +495,7 @@
 #define IDC_STATICCONTROL               1167
 #define IDC_STATIC14                    1167
 #define IDC_STATICPRIORITY              1168
+#define IDC_STATIC15                    1168
 #define IDC_GROUPVISUAL                 1169
 #define IDC_STATICPALETTE               1170
 #define IDC_GROUPPRIORITY               1171
@@ -547,6 +548,7 @@
 #define IDC_BUTTON_ADDCUE               1201
 #define IDC_COMBO8                      1201
 #define IDC_BUTTON_DELETECUE            1202
+#define IDC_COMBO9                      1202
 #define IDC_EDIT_TIME                   1203
 #define IDC_CHECK_CUMULATIVE            1204
 #define IDC_CHECK_AUTOPREV              1205

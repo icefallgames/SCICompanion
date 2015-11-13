@@ -1658,6 +1658,9 @@
     <ClInclude Include="Src\Util\StringUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Compile\CodeInspector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="SCICompanionLib.def">
