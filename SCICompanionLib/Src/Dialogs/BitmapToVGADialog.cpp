@@ -424,6 +424,8 @@ void CBitmapToVGADialog::_SyncControlState()
         if (_paletteAlgorithm != PaletteAlgorithm::MatchExisting)
         {
             m_wndRadio2.SetCheck(1);
+            m_wndRadio1.SetCheck(0);
+            m_wndRadio3.SetCheck(0);
             _paletteAlgorithm = PaletteAlgorithm::MatchExisting;
             optionsChanged = true;
         }
