@@ -303,9 +303,6 @@ BEGIN
     BUTTON      ID_INSERTOBJECT
     SEPARATOR
     BUTTON      ID_DEBUGROOM
-    SEPARATOR
-    BUTTON      ID_CONVERTSCRIPT
-    BUTTON      ID_COMPILEDOCS
 END
 
 IDR_TOOLBARDRAWVIEW TOOLBAR 24, 24
@@ -556,14 +553,15 @@ BEGIN
     END
     POPUP "&Help"
     BEGIN
-        MENUITEM "SCI Companion Help",          ID_HELP_SCICOMPANION
+        MENUITEM "SCI Companion &Help",         ID_HELP_SCICOMPANION
         MENUITEM SEPARATOR
-        MENUITEM "Online SCI &documentation",   ID_HELP_ONLINESCIDOCUMENTATION
+        MENUITEM "SCI programmer's &wiki",      ID_HELP_ONLINESCIDOCUMENTATION
         MENUITEM "Online &tutorials",           ID_HELP_ONLINETUTORIALS
-        MENUITEM "SCI Community",               ID_HELP_FORUMS
+        MENUITEM "SCI &Community",              ID_HELP_FORUMS
         MENUITEM "Get latest &updates",         ID_HELP_GETLATESTUPDATES
+        MENUITEM "Get &games",                  ID_HELP_GETGAMES
         MENUITEM SEPARATOR
-        MENUITEM "&Email suggestions or bug reports", ID_HELP_EMAIL
+        MENUITEM "Report a &bug or issue",      ID_HELP_EMAIL
         MENUITEM "&About SCI Companion...",     ID_APP_ABOUT
     END
     POPUP "&Window"

@@ -118,18 +118,22 @@ void TextReadFrom(ResourceEntity &resource, sci::istream &byteStream, const std:
     TextComponent &text = resource.GetComponent<TextComponent>();
     assert(text.Texts.empty());
     text.Flags = MessagePropertyFlags::None;
-
-    while (byteStream.has_more_data())
+    // Catch our own exceptions.
+    try
     {
-        string str;
-        byteStream >> str;
-        if (byteStream.good())
+        while (byteStream.has_more_data())
         {
-            TextEntry entry = { 0 };
-            entry.Text = str;
-            text.Texts.push_back(entry);
+            string str;
+            byteStream >> str;
+            if (byteStream.good())
+            {
+                TextEntry entry = { 0 };
+                entry.Text = str;
+                text.Texts.push_back(entry);
+            }
         }
     }
+    catch (...) {}
 }
 
 ResourceTraits textTraits =

@@ -228,6 +228,10 @@ DecompressionAlgorithm VersionAndCompressionNumberToAlgorithm(SCIVersion version
         return DecompressionAlgorithm::LZW_View;
     case 4:
         return DecompressionAlgorithm::LZW_Pic;
+
+    case 8:
+        // Testing for Imagination Network
+        return DecompressionAlgorithm::DCL;
     case 18:
     case 19:
     case 20:

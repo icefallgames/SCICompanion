@@ -142,6 +142,7 @@ BEGIN_MESSAGE_MAP(SCICompanionApp, CWinApp)
     ON_COMMAND(ID_HELP_ONLINESCIDOCUMENTATION, OnDocumentation)
     ON_COMMAND(ID_HELP_GETLATESTUPDATES, OnUpdates)
     ON_COMMAND(ID_HELP_EMAIL, OnEmail)
+    ON_COMMAND(ID_HELP_GETGAMES, GetGames)
     ON_COMMAND(ID_HELP_SCICOMPANION, OnSCICompHelp)
     // Standard file based document commands
     ON_COMMAND(ID_FILE_OPEN, CWinApp::OnFileOpen)
@@ -654,12 +655,17 @@ void SCICompanionApp::OnDocumentation()
 
 void SCICompanionApp::OnUpdates()
 {
-    ShellExecute(NULL, "open", "http://www.mtnphil.com/Games/SCIPicEditor.html", "", "", SW_SHOWNORMAL);
+    ShellExecute(NULL, "open", "http://www.icefallgames.com/SCICompanion", "", "", SW_SHOWNORMAL);
 }
 
 void SCICompanionApp::OnEmail()
 {
-    ShellExecute(NULL, "open", "mailto:SCIComp@mtnphil.com", "", "", SW_SHOWNORMAL);
+    ShellExecute(NULL, "open", "https://github.com/icefallgames/SCICompanion", "", "", SW_SHOWNORMAL);
+}
+
+void SCICompanionApp::GetGames()
+{
+    ShellExecute(NULL, "open", "http://www.gog.com/games##search=Sierra", "", "", SW_SHOWNORMAL);
 }
 
 void SCICompanionApp::OnSCICompHelp()

@@ -64,6 +64,7 @@ public:
     afx_msg void OnWindowsExplorer();
     afx_msg void OnDocumentation();
     afx_msg void OnEmail();
+    afx_msg void GetGames();
     afx_msg void OnSCICompHelp();
     afx_msg void OnUpdates();
     afx_msg void OnRunGame();
