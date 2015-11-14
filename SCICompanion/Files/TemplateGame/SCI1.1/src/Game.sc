@@ -7,7 +7,8 @@
 (use "Sound")
 (use "SRDialog")
 (use "Cycle")
-(use "InvI")
+(use "InventoryItem")
+(use "ScrollableInventory")
 (use "User")
 (use "Obj")
 (script 994)
@@ -71,16 +72,25 @@
 (instance theDoits of EventHandler
     (properties)
 )
+
+/*
+	This is a static class used to contain all sounds in the game.
+	It is accessed through gSounds and allows pausing or unpausing all game sounds at once.
+	
+	Example usage::
+	
+		(send gSounds:pause(TRUE))
+*/
 (class Sounds of EventHandler
     (properties
         elements 0
         size 0
     )
 
-    (method (pause param1)
+    (method (pause fPause)
         (self:eachElementDo(#perform mayPause 
             (if (paramTotal)
-                param1
+                fPause
             )(else
                 1
             )
@@ -128,6 +138,9 @@
     (properties)
 )
 
+/*
+	This class is used internally by :class:`Messager`.
+*/
 (class Cue of Obj
     (properties
         cuee 0
@@ -213,7 +226,7 @@
         (send gOldWH:add())
         = gNewEventHandler 0
         = gSaveDir GetSaveDir()
-        (Inv:init())
+        (InventoryBase:init())
         (if (not gUser)
             = gUser User
         )
@@ -283,7 +296,7 @@
             (self:newRoom(gRoomNumber))
         )
         (send gTimers:eachElementDo(#delete))
-        GameIsRestarting(0)
+        GameIsRestarting(FALSE)
     )
 
 
@@ -333,7 +346,7 @@
         )
         (SL:doit())
         DoSound(sndRESTORE)
-        (send gSounds:pause(0))
+        (send gSounds:pause(FALSE))
         = global86 (- gLastTicks GetTime())
         (while (not gQuitGame)
             (self:doit())
@@ -418,7 +431,7 @@
         Load(rsFONT gSmallFont)
         ScriptID(SAVERESTORE_SCRIPT)
         = temp21 (self:setCursor(gCursor))
-        (send gSounds:pause(1))
+        (send gSounds:pause(TRUE))
         (if (localproc_0e32(1))
             (if (gDialog)
                 (send gDialog:dispose())
@@ -442,7 +455,7 @@
             )
             localproc_0e32(0)
         )
-        (send gSounds:pause(0))
+        (send gSounds:pause(FALSE))
     )
 
 
@@ -461,7 +474,7 @@
         Load(rsFONT gSmallFont)
         ScriptID(SAVERESTORE_SCRIPT)
         = temp21 (self:setCursor(gCursor))
-        (send gSounds:pause(1))
+        (send gSounds:pause(TRUE))
         (if (localproc_0e32(1))
             (if (gDialog)
                 (send gDialog:dispose())
@@ -483,7 +496,7 @@
             )
             localproc_0e32(0)
         )
-        (send gSounds:pause(0))
+        (send gSounds:pause(FALSE))
     )
 
 
@@ -767,21 +780,21 @@
 */
 (class Rm of Rgn
     (properties
-        script 0
+        script 0		// Room script, generally set with setScript in the init() method.
         number 0
         modNum -1
-        noun 0
+        noun 0			// Noun associated with the room background.
         timer 0
         keep 0
         initialized 0
-        picture 0
-        style $ffff
+        picture 0		// The number of the pic resource for the room background.
+        style $ffff		// The dp\* animation flags that control room opening animation.
         horizon 0
         controls 0
-        north 0
-        east 0
-        south 0
-        west 0
+        north 0			// The room to the north (if appropriate)
+        east 0			// The room to the east (if appropriate)
+        south 0			// The room to the south (if appropriate)
+        west 0			// The room to the west (if appropriate)
         curPic 0
         picAngle 0
         vanishingX 160
@@ -854,7 +867,19 @@
         (super:newRoom(newRoomNumber))
     )
 
-
+	/*
+		Lets you indicate which regions this room is part of.
+		
+		:param number ScriptNumbers: One or more script numbers for scripts that contain a public :class:`Rgn` instance.
+		
+		Example usage::
+		
+			(method (init)
+				(self:setRegions(SNOW_REGION MOUNTAIN_REGION))
+				// etc, do more room initialization...
+				(super:init())
+			)
+	*/
     (method (setRegions scriptNumbers)
         (var temp0, theScriptNumbers, temp2)
         = temp0 0
@@ -870,7 +895,16 @@
         )
     )
 
-
+	/*
+	.. function:: drawPic(picNumber [picAnimation])
+	
+		Draws a pic background.
+		
+		:param number picNumber: The number of the pic resource.
+		:param number picAnimation: An optional dp\* enum value (e.g. dpOPEN_INSTANTLY).
+		
+		See the :func:`DrawPic` kernel for more information on animation flags.
+	*/
     (method (drawPic picNumber picAnimation)
         (if (gOldATPs)
             (send gOldATPs:
@@ -890,11 +924,16 @@
                     100
                 )
             )
- dpCLEAR)
+ 			dpCLEAR)
     )
 
 	/*
+	.. function:: overlay(picNumber [picAnimation])
+	
 		Overlays an additional pic on top of the current background.
+		
+		:param number picNumber: The number of the pic resource.
+		:param number picAnimation: An optional dp\* enum value (e.g. dpOPEN_INSTANTLY).
 	*/
     (method (overlay picNumber picAnimation)
         = gPicNumber picNumber
@@ -908,7 +947,7 @@
                     100
                 )
             )
- dpNO_CLEAR)
+ 			dpNO_CLEAR)
     )
 
 	/*
@@ -925,62 +964,71 @@
         (send obstacles:add(polygon rest sendParams))
     )
 
-
-    (method (reflectPosn param1 param2)
-        (switch (param2)
-            (case 1
-                (send param1:y(188))
+	/*
+		Assigns the actor a new position based on the edge that it left from
+		in the previous room.
+	*/
+    (method (reflectPosn theActor theEdgeHit)
+        (switch (theEdgeHit)
+            (case EDGE_TOP
+                (send theActor:y(188))
             )
-            (case 4
-                (send param1:x((- 319 (send param1:xStep))))
+            (case EDGE_LEFT
+                (send theActor:x((- 319 (send theActor:xStep))))
             )
-            (case 3
-                (send param1:y((+ horizon (send param1:yStep))))
+            (case EDGE_BOTTOM
+                (send theActor:y((+ horizon (send theActor:yStep))))
             )
-            (case 2
-                (send param1:x(1))
-            )
-        )
-    )
-
-
-    (method (edgeToRoom param1)
-        (switch (param1)
-            (case 1
-                north
-            )
-            (case 2
-                east
-            )
-            (case 3
-                south
-            )
-            (case 4
-                west
-            )
-        )
-    )
-
-
-    (method (roomToEdge param1)
-        (switch (param1)
-            (case north
-                1
-            )
-            (case south
-                3
-            )
-            (case east
-                2
-            )
-            (case west
-                4
+            (case EDGE_RIGHT
+                (send theActor:x(1))
             )
         )
     )
 
 	/*
-	.. function:: setnset([theInset theCaller theRegister])
+		:param number theEdgeHit: EDGE_TOP, EDGE_LEFT, EDGE_RIGHT or EDGE_BOTTOM.
+		:returns: The room number associated with that edge.
+	*/
+    (method (edgeToRoom theEdgeHit)
+        (switch (theEdgeHit)
+            (case EDGE_TOP
+                north
+            )
+            (case EDGE_RIGHT
+                east
+            )
+            (case EDGE_BOTTOM
+                south
+            )
+            (case EDGE_LEFT
+                west
+            )
+        )
+    )
+
+	/*
+		:param number roomNumber: A room number.
+		:returns: The edge associated with that room number (or the room number if no edge associated).
+	*/
+    (method (roomToEdge roomNumber)
+        (switch (roomNumber)
+            (case north
+                EDGE_TOP
+            )
+            (case south
+                EDGE_BOTTOM
+            )
+            (case east
+                EDGE_RIGHT
+            )
+            (case west
+                EDGE_LEFT
+            )
+        )
+    )
+
+	/*
+	.. function:: setInset([theInset theCaller theRegister])
 	
 		Sets an :class:`Inset` on this room. To clear the inset, pass no parameters.
 		

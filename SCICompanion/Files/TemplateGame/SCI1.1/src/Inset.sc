@@ -194,11 +194,11 @@
             )(else
                 (if (& (send pEvent:type) evVERB)
                     (if ((self:onMe(pEvent)))
-                        (send pEvent:claimed(1))
+                        (send pEvent:claimed(TRUE))
                         (self:doVerb((send pEvent:message)))
                     )(else
                         (if (disposeNotOnMe)
-                            (send pEvent:claimed(1))
+                            (send pEvent:claimed(TRUE))
                             (self:dispose())
                         )(else
                             return 0
@@ -292,29 +292,52 @@
         )
     )
 
-
-    (method (setInset param1 param2 param3)
+	/*
+	.. function:: setInset([theInset theCaller theRegister])
+	
+		Sets an :class:`Inset` on this Inset! To clear the inset, pass no parameters.
+		
+		:param heapPtr theInset: The Inset instance.
+		:param heapPtr theCaller: An object that will get cue()'d when the Inset is disposed.
+		
+		Example usage::
+		
+			(send myInset:setInset(anotherSubInset))
+	*/
+    (method (setInset theInset theCaller theRegister)
         (if (inset)
             (send inset:dispose())
         )
-        (if (paramTotal and param1)
-            (send param1:init(
+        (if (paramTotal and theInset)
+            (send theInset:init(
                 (if (>= paramTotal 2)
-                    param2
+                    theCaller
                 )(else
                     0
                 )
- self 
+ 				self 
                 (if (>= paramTotal 3)
-                    param3
+                    theRegister
                 )(else
                     0
                 )
-))
+							 )
+			)
         )
     )
 
-
+	/*
+	.. function:: onMe(theObj)
+	
+	.. function:: onMe(x y)
+	
+	If the Inset has a view, return true if the object is on that view.
+	
+		:param heapPtr theObj: An object with x and y properties.
+		:param number x: The x coordinate.
+		:param number y: The y coordinate.
+		:returns: TRUE if the object is on the Inset's view. If there is no view, returns TRUE.
+	*/
     (method (onMe param1 param2)
         (var temp0, temp1)
         (if (IsObject(param1))
@@ -328,11 +351,11 @@
             (if (view)
                 return (send insetView:onMe(param1 param2))
             )(else
-                return 1
+                return TRUE
             )
     )
-
 )
+
 (instance inView of View
     (properties)
 

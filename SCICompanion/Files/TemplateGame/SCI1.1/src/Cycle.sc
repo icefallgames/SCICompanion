@@ -1,7 +1,9 @@
-// The Cycle.sc script contains the most commonly used cyclers. Cyclers define
-// different ways that animation cels are shown over time (e.g. forward, reverse, repeating, random, etc...).
-//
-// It also contains the Motion base class, and the MoveTo motion.
+/*
+	The Cycle.sc script contains the most commonly used cyclers. Cyclers define
+	different ways that animation cels are shown over time (e.g. forward, reverse, repeating, random, etc...).
+
+	It also contains the Motion base class, and the MoveTo motion.
+*/
 (version 2)
 (include "sci.sh")
 (use "Main")
@@ -10,13 +12,14 @@
 
 
 /*
-	The base class for all cyclers.
+	The base class for all cyclers. Cyclers are responsible for changing the cel
+	of a :class:`Prop` or :class:`Actor` over time, giving the illusion of animation.
 */
 (class Cycle of Obj
     (properties
-        client 0
-        caller 0
-        cycleDir cdFORWARD
+        client 0					// The object to which this is attached.
+        caller 0					// The object that is cue()'d when the cycle is complete.
+        cycleDir cdFORWARD			// cdFORWARD or cdBACKWARD.
         cycleCnt 0
         completed 0
     )
@@ -66,9 +69,9 @@
 */
 (class Fwd of Cycle
     (properties
-        client 0
-        caller 0
-        cycleDir cdFORWARD
+        client 0					// The object to which this is attached.
+        caller 0					// The object that is cue()'d when the cycle is complete.
+        cycleDir cdFORWARD			// cdFORWARD or cdBACKWARD.
         cycleCnt 0
         completed 0
     )
@@ -95,9 +98,9 @@
 */
 (class Walk of Fwd
     (properties
-        client 0
-        caller 0
-        cycleDir cdFORWARD
+        client 0					// The object to which this is attached.
+        caller 0					// The object that is cue()'d when the cycle is complete.
+        cycleDir cdFORWARD			// cdFORWARD or cdBACKWARD.
         cycleCnt 0
         completed 0
     )
@@ -120,9 +123,9 @@
 */
 (class CT of Cycle
     (properties
-        client 0
-        caller 0
-        cycleDir cdFORWARD
+        client 0					// The object to which this is attached.
+        caller 0					// The object that is cue()'d when the cycle is complete.
+        cycleDir cdFORWARD			// cdFORWARD or cdBACKWARD.
         cycleCnt 0
         completed 0
         endCel 0
@@ -197,16 +200,16 @@
 */
 (class End of CT
     (properties
-        client 0
-        caller 0
-        cycleDir cdFORWARD
+        client 0					// The object to which this is attached.
+        caller 0					// The object that is cue()'d when the cycle is complete.
+        cycleDir cdFORWARD			// cdFORWARD or cdBACKWARD.
         cycleCnt 0
         completed 0
         endCel 0
     )
 
 	/*
-	.. function:: init(theClient theEndCel theCycleDir [theCaller])
+	.. function:: init(theClient [theCaller])
 	
 		:param heapPtr theClient: The :class:`Prop` to which this is attached.
 		:param heapPtr theCaller: Optional object on which we call cue() when the cycle is finished.
@@ -227,16 +230,16 @@
 */
 (class Beg of CT
     (properties
-        client 0
-        caller 0
-        cycleDir cdFORWARD
+        client 0					// The object to which this is attached.
+        caller 0					// The object that is cue()'d when the cycle is complete.
+        cycleDir cdFORWARD			// cdFORWARD or cdBACKWARD.
         cycleCnt 0
         completed 0
         endCel 0
     )
 
 	/*
-	.. function:: init(theClient theEndCel theCycleDir [theCaller])
+	.. function:: init(theClient [theCaller])
 	
 		:param heapPtr theClient: The :class:`Prop` to which this is attached.
 		:param heapPtr theCaller: Optional object on which we call cue() when the cycle is finished.
@@ -257,8 +260,8 @@
 */
 (class Motion of Obj
     (properties
-        client 0
-        caller 0
+        client 0			// The :class:`Actor` to which this is attached.
+        caller 0			// The object that will get cue()'d when the motion is complete.
         x 0
         y 0
         dx 0
@@ -359,6 +362,7 @@
 
 /*
 	MoveTo is the simplest of movers. It moves an Actor to a destination, then stops.
+	If the Actor needs to maneuver around room obstacles, :class:`PolyPath` should be used instead.
 	
 	Example usage::
 
@@ -367,8 +371,8 @@
 */
 (class MoveTo of Motion
     (properties
-        client 0
-        caller 0
+        client 0			// The :class:`Actor` to which this is attached.
+        caller 0			// The object that will get cue()'d when the motion is complete.
         x 0
         y 0
         dx 0

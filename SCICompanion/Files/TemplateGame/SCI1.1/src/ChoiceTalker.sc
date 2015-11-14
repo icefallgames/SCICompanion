@@ -38,13 +38,13 @@
         = temp2 0
         (self:eachElementDo(#init))
         (if (theItem)
-            (send theItem:select(0))
+            (send theItem:select(FALSE))
         )
         = theItem 
             (if (paramTotal and param1)
                 param1
             )(else
-                (self:firstTrue(#checkState 1))
+                (self:firstTrue(#checkState csENABLED))
             )
         (if (theItem)
             (send theItem:select(1))
@@ -94,11 +94,11 @@
 (instance checkHiliteCode of Code
     (properties)
 
-    (method (doit param1 param2 param3)
-        (if (((& (send param1:state) $0001) and (send param1:check(param3))) and not (& (send param1:state) $0008))
-            (send ((send param2:theItem)):select(0))
-            (send param2:theItem(param1))
-            (send param1:select(1))
+    (method (doit theControl theDialog pEvent)
+        (if (((& (send theControl:state) csENABLED) and (send theControl:check(pEvent))) and not (& (send theControl:state) csSELECTED))
+            (send ((send theDialog:theItem)):select(0))
+            (send theDialog:theItem(theControl))
+            (send theControl:select(1))
         )
     )
 )
@@ -109,15 +109,21 @@
 	the title, and the following sequences will be the options. The number of the option
 	chosen will be the sequence number of that choice minus one.
 	
-	To put a ChoiceNarrator in *choice mode* do::
+	To put a ChoiceNarrator in *choice mode* do and specify the noun/verb/condition, do::
 	
-		(myChoiceNarrator:normal(FALSE))
+		(myChoiceNarrator:
+			normal(FALSE)
+			curNoun(noun)
+			curVerb(verb)
+			curCase(condition)
+		)
 		
-	Then have it say something, going through the gTestMessager like usual::
+	Then have it say something, going through the gTestMessager like usual, and passing the
+	same noun/verb/condition, and 0 for the sequence::
 	
-		(send gTestMessager:say(noun verb condition 1 self))
+		(send gTestMessager:say(noun verb condition 0))
 		
-	When you are cue()'d that it's done, you can check the whichSelect property::
+	Then you can check the whichSelect property::
 	
 		(switch (myChoiceNarrator:whichSelect)
 			(case 1
@@ -135,6 +141,7 @@
         z 0
         heading 0
         noun 0
+        _case 0
         modNum -1
         nsTop 0
         nsLeft 0
@@ -255,13 +262,19 @@
 	
 	To put a ChoiceTalker in *choice mode* do::
 	
-		(myChoiceTalker:normal(FALSE))
+		(myChoiceTalker:
+			normal(FALSE)
+			curNoun(noun)
+			curVerb(verb)
+			curCase(condition)
+		)
 		
-	Then have it say something, going through the gTestMessager like usual::
+	Then have it say something, going through the gTestMessager like usual, and passing the
+	same noun/verb/condition and 0 for the sequence::
 	
-		(send gTestMessager:say(noun verb condition 1 self))
+		(send gTestMessager:say(noun verb condition 0))
 		
-	When you are cue()'d that it's done, you can check the whichSelect property::
+	Then you can check the whichSelect property::
 	
 		(switch (myChoiceTalker:whichSelect)
 			(case 1
@@ -279,6 +292,7 @@
         z 0
         heading 0
         noun 0
+        _case 0
         modNum -1
         nsTop 0
         nsLeft 0

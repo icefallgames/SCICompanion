@@ -13,7 +13,7 @@
 (use "Print")
 (use "Slider")
 (use "BorderWindow")
-(use "IconI")
+(use "IconItem")
 (use "GameControls")
 (use "Obj")
 (script GAMECONTROLS_SCRIPT)
@@ -135,42 +135,45 @@
     (method (doit)
         = gGameControls gameControls
         (send gGameControls:
-            add(detailSlider (volumeSlider:
+            add(detailSlider
+            	(volumeSlider:
                     theObj(gGame)
                     selector(#masterVolume)
                     yourself()
                 )
- (speedSlider:
+ 				(speedSlider:
                     theObj(gEgo)
                     selector(#setSpeed)
                     yourself()
                 )
- (iconSave:
+ 				(iconSave:
                     theObj(gGame)
                     selector(#save)
                     yourself()
                 )
- (iconRestore:
+ 				(iconRestore:
                     theObj(gGame)
                     selector(#restore)
                     yourself()
                 )
- (iconRestart:
+ 				(iconRestart:
                     theObj(gGame)
                     selector(#restart)
                     yourself()
                 )
- (iconQuit:
+ 				(iconQuit:
                     theObj(gGame)
                     selector(#quitGame)
                     yourself()
                 )
- iconOk (iconAbout:
+ 				iconOk
+ 				(iconAbout:
                     theObj(gGame)
                     selector(#showAbout)
                     yourself()
                 )
- iconHelp)
+                iconMessageMode
+ 				iconHelp)
             eachElementDo(#highlightColor 0)
             eachElementDo(#lowlightColor 4)
             eachElementDo(#modNum 0)
@@ -205,11 +208,7 @@
         DrawCel(995 0 4 63 (- 37 (+ CelHigh(995 0 4) 3)) temp51)
         DrawCel(995 0 3 101 (- 37 (+ CelHigh(995 0 4) 3)) temp51)
         DrawCel(995 0 2 146 (- 37 (+ CelHigh(995 0 4) 3)) temp51)
-        DrawCel(995 9 0 + 5 CelWide(995 1 1) + 38 CelHigh(995 0 1) temp51)
-        Graph(grUPDATE_BOX 12 1 15 + 151 CelWide(995 0 1) 1)
-        Message(msgGET 0 18 0 1 1 @temp1)
-        Format(@temp26 "%d %s %d" gScore @temp1 gMaxScore)
-        Display(@temp26 dsFONT gFont dsCOORD (+ (+ 5 CelWide(995 1 1)) 6) (+ (+ 38 CelHigh(995 0 1)) 15))
+        Graph(grUPDATE_BOX 12 1 15 (+ 151 CelWide(995 0 1)) 1)
         SetPort(0)
     )
 )
@@ -365,7 +364,7 @@
     )
 )
 
-(instance iconHelp of IconI
+(instance iconHelp of IconItem
     (properties
         view 995
         loop 7
@@ -380,7 +379,7 @@
     )
 )
 
-(instance iconOk of IconI
+(instance iconOk of IconItem
     (properties
         view 995
         loop 8
@@ -394,3 +393,54 @@
         helpVerb V_HELP
     )
 )
+
+(instance iconMessageMode of IconItem
+    (properties
+        view 995
+        loop 9
+        cel 0
+        nsLeft 137
+        nsTop 143
+        cursor 989
+        message 8
+        signal $0183
+        noun N_MSGMODE
+        helpVerb V_HELP
+    )
+    
+    (method (doit)
+        (switch (global90)
+            (case 1
+                = global90 2
+            )
+            (case 2
+                = global90 3
+            )
+            (case 3
+                = global90 1
+            )
+        )
+        (self:show())
+    )
+
+    (method (show param1)
+        (switch (global90)
+            (case 1
+                = global83 0
+                DrawCel(995 10 0 188 141 -1)
+            )
+            (case 2
+                = global83 1
+                DrawCel(995 10 1 188 141 -1)
+            )
+            (case 3
+                = global83 1
+                DrawCel(995 10 2 188 141 -1)
+            )
+        )
+        Graph(grUPDATE_BOX 141 188 (+ 141 CelHigh(995 10))( + 188 CelWide(995 10)) 1)
+        (super:show(rest param1))
+    )    
+)
+
+

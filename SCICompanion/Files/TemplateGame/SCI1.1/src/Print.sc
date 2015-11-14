@@ -158,8 +158,8 @@
     (properties
         dialog 0
         window 0
-        title 0
-        mode 0
+        title 0				// The dialog title.
+        mode alLEFT			// Default alignment: alLEFT, alCENTER or alRIGHT.
         font -1
         width 0
         x -1
@@ -167,7 +167,7 @@
         ticks 0
         caller 0
         retValue 0
-        modeless 0
+        modeless FALSE
         first 0
         saveCursor 0
     )
@@ -216,7 +216,7 @@
         = width (= mode (= title (= first (= saveCursor (= window 0)))))
         = x (= y -1)
         = modeless 0
-        (send gSounds:pause(0))
+        (send gSounds:pause(FALSE))
         (super:dispose())
     )
 
@@ -266,12 +266,12 @@
                 SetPort(temp1)
                 = gDialog dialog
             )(else
-                (send gSounds:pause(1))
+                (send gSounds:pause(TRUE))
                 = theFirst first
                 (if (not theFirst)
-                    = theFirst (send dialog:firstTrue(#checkState 1))
-                    (if (theFirst and not (send dialog:firstTrue(#checkState 2)))
-                        (send theFirst:state((| (send theFirst:state) $0002)))
+                    = theFirst (send dialog:firstTrue(#checkState csENABLED))
+                    (if (theFirst and not (send dialog:firstTrue(#checkState csFOCUSED)))
+                        (send theFirst:state((| (send theFirst:state) csFOCUSED)))
                     )
                 )(else
                     (if (not IsObject(theFirst))

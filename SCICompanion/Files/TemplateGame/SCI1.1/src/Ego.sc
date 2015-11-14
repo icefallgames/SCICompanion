@@ -104,7 +104,7 @@
             )
     )
 
-
+	// Handles moving the ego around.
     (method (handleEvent pEvent)
         (var temp0, temp1, temp2)
         = temp1 (send pEvent:type)
@@ -123,7 +123,7 @@
                 )
                 (send gUser:prevDir(temp0))
                 (self:setDirection(temp0))
-                (send pEvent:claimed(1))
+                (send pEvent:claimed(TRUE))
             )(else
                 (if (& temp1 evVERB)
                     (if (& temp1 evMOVE)
@@ -139,7 +139,7 @@
                             )
                         )
                         (send gUser:prevDir(0))
-                        (send pEvent:claimed(1))
+                        (send pEvent:claimed(TRUE))
                     )(else
                         (super:handleEvent(pEvent))
                     )
@@ -151,9 +151,9 @@
         (send pEvent:claimed)
     )
 
-
+	// Always returns TRUE. You **are** me!
     (method (facingMe)
-        return 1
+        return TRUE
     )
 
 	/*
@@ -178,7 +178,7 @@
     )
 
 	/*
-	.. function:: get(invNumber [newOwner])
+	.. function:: put(invNumber [newOwner])
 	
 		Removes an inventory item from the ego, and optionally gives it to a new owner.
 		

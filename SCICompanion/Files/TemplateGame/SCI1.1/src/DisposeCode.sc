@@ -1,6 +1,8 @@
-// A place to put script numbers that are rarely used and should be unloaded
-// on each room change to free up heap space. If you add a new script with a motion class, or a cycler,
-// you should probably add your script number here.
+/*
+	A place to put script numbers that are rarely used and should be unloaded
+	on each room change to free up heap space. If you add a new script with a motion class, or a cycler,
+	you should probably add your script number here.
+*/
 (version 2)
 (include "sci.sh")
 (include "game.sh")

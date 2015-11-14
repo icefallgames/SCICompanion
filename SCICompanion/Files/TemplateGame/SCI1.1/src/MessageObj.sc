@@ -1,5 +1,7 @@
-// This script contains :class:`Conversation`, which lets you assemble multiple messages together
-// in a sequence, even if they have separate noun/verb/cond/seq tuples.
+/*
+	This script contains :class:`Conversation`, which lets you assemble multiple messages together
+	in a sequence, even if they have separate noun/verb/cond/seq tuples.
+*/
 (version 2)
 (include "sci.sh")
 (include "game.sh")
@@ -9,7 +11,10 @@
 (script MESSAGEOBJ_SCRIPT)
 
 
-// This class works in conjunction with :class:`Conversation`.
+/*
+	This class works in
+	conjunction with :class:`Conversation`.
+*/
 (class MessageObj of Obj
     (properties
         modNum -1
@@ -55,9 +60,11 @@
 
 )
 
-// This seems to be a class to which you can add a series of messages that will be displayed one
-// after another. :class:`Messager` does this automatically, but only if messages have the same noun/verb/cond tuple
-// and sequentially increasing sequence numbers.
+/*
+	This seems to be a class to which you can add a series of messages that will be displayed one
+	after another. :class:`Messager` does this automatically, but only if messages have the same noun/verb/cond tuple
+	and sequentially increasing sequence numbers.
+*/
 (class Conversation of List
     (properties
         elements 0
@@ -101,36 +108,49 @@
         )
     )
 
-
-    (method (add theTheGModNum_2 param2)
-        (var theGModNum, theTheGModNum, theTheTheGModNum, theTheTheGModNum_2, theTheTheGModNum_2_2, theTheTheGModNum_2_3, theTheTheGModNum_2_4, theTheTheGModNum_2_5)
-        = theTheTheGModNum_2_2 0
-        = theTheTheGModNum_2 theTheTheGModNum_2_2
-        = theTheTheGModNum theTheTheGModNum_2
-        = theTheGModNum theTheTheGModNum
-        = theGModNum theTheGModNum
-        = theTheTheGModNum_2_5 0
-        = theTheTheGModNum_2_4 theTheTheGModNum_2_5
-        = theTheTheGModNum_2_3 theTheTheGModNum_2_4
-        (if (paramTotal and not IsObject(theTheGModNum_2[0]))
-            = theGModNum theTheGModNum_2[0]
+	/*
+	.. function:: add([moduleNumber noun verb condition sequence x y font)
+	
+		Adds a new message to the conversation.
+		
+		:param number moduleNumber: Room number, or -1 for the current room.
+		:param number noun: The message noun.
+		:param number verb: The message verb.
+		:param number condition: The message condition.
+		:param number sequence: The message sequence.
+		:param number x: The message x position.
+		:param number y: The message y position.
+		:param number font: The message font.
+	*/
+    (method (add param param2)
+        (var theGModNum, theNoun, theVerb, theCase, theSeq, theX, theY, theFont)
+        = theSeq 0
+        = theCase theSeq
+        = theVerb theCase
+        = theNoun theVerb
+        = theGModNum theNoun
+        = theFont 0
+        = theY theFont
+        = theX theY
+        (if (paramTotal and not IsObject(param[0]))
+            = theGModNum param[0]
             (if (== theGModNum -1)
                 = theGModNum gModNum
             )
             (if (> paramTotal 1)
-                = theTheGModNum theTheGModNum_2[1]
+                = theNoun param[1]
                 (if (> paramTotal 2)
-                    = theTheTheGModNum theTheGModNum_2[2]
+                    = theVerb param[2]
                     (if (> paramTotal 3)
-                        = theTheTheGModNum_2 theTheGModNum_2[3]
+                        = theCase param[3]
                         (if (> paramTotal 4)
-                            = theTheTheGModNum_2_2 theTheGModNum_2[4]
+                            = theSeq param[4]
                             (if (> paramTotal 5)
-                                = theTheTheGModNum_2_3 theTheGModNum_2[5]
+                                = theX param[5]
                                 (if (> paramTotal 6)
-                                    = theTheTheGModNum_2_4 theTheGModNum_2[6]
+                                    = theY param[6]
                                     (if (> paramTotal 7)
-                                        = theTheTheGModNum_2_5 theTheGModNum_2[7]
+                                        = theFont param[7]
                                     )
                                 )
                             )
@@ -138,22 +158,23 @@
                     )
                 )
             )
-            (if (not IsObject(theTheGModNum_2[0]))
+            (if (not IsObject(param[0]))
                 (super:add((send ((MessageObj:new())):
                         modNum(theGModNum)
-                        noun(theTheGModNum)
-                        verb(theTheTheGModNum)
-                        case(theTheTheGModNum_2)
-                        sequence(theTheTheGModNum_2_2)
-                        x(theTheTheGModNum_2_3)
-                        y(theTheTheGModNum_2_4)
-                        font(theTheTheGModNum_2_5)
+                        noun(theNoun)
+                        verb(theVerb)
+                        cond(theCase)
+                        sequence(theSeq)
+                        x(theX)
+                        y(theY)
+                        font(theFont)
                         yourself()
                     )
-))
+						  )
+				)
             )
         )(else
-            (super:add(theTheGModNum_2 rest param2))
+            (super:add(param rest param2))
         )
     )
 
@@ -220,8 +241,8 @@
             = temp7 GetValueAt(param1 ++temp8)
         )
     )
-
 )
+
 (instance cleanCode of Code
     (properties)
 
@@ -234,5 +255,4 @@
             (send temp0:dispose(1))
         )
     )
-
 )

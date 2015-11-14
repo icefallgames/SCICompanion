@@ -24,7 +24,7 @@
     local65[25]
 )
 
-// This is of unknown purpose.
+// nodoc
 (procedure public (proc990_0 param1)
     (var temp0, temp1[33], temp34[100], temp134[50])
     (asm
@@ -264,14 +264,14 @@ code_09d1:pushi   7
             text(@local35)
             setSize()
             moveTo(local1 + (deleteI:nsBottom) 4)
-            state(& (changeDirI:state) $fff7)
+            state(& (changeDirI:state) (bnot csSELECTED))
         )
         Message(msgGET 990 22 0 0 1 @local50)
         (cancelI:
             text(@local50)
             setSize()
             moveTo(local1 + (changeDirI:nsBottom) 4)
-            state(& (cancelI:state) $fff7)
+            state(& (cancelI:state) (bnot csSELECTED))
         )
         (self:
             add(selectorI okI deleteI changeDirI cancelI)

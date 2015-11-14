@@ -8,20 +8,20 @@
 
 
 // An icon control.
-(class DIcon of GUIControl
+(class DIcon of Control
     (properties
-        type $0004
+        type ctlICON
         state $0000
         nsTop 0
         nsLeft 0
         nsBottom 0
         nsRight 0
-        key 0
+        key 0			// The keyboard key associated with this control.
         said 0
-        value 0
-        view 0
-        loop 0
-        cel 0
+        value 0			// Arbitrary value associated with this control.
+        view 0			// The icon view
+        loop 0			// The icon loop
+        cel 0			// The icon cel
     )
 
     (method (setSize)
@@ -32,19 +32,19 @@
 )
 
 // A button control.
-(class DButton of GUIControl
+(class DButton of Control
     (properties
-        type $0001
+        type ctlBUTTON
         state $0003
         nsTop 0
         nsLeft 0
         nsBottom 0
         nsRight 0
-        key 0
-        said 0			// Unused.
-        value 0			// A numerical valur for the button.
-        text 0
-        font 0
+        key 0			// The keyboard key associated with this control.
+        said 0
+        value 0			// Arbitrary value associated with this control.
+        text 0			// The button text.
+        font 0			// The button font.
     )
 
     (method (dispose param1)
@@ -68,20 +68,20 @@
 )
 
 // An edit control.
-(class DEdit of GUIControl
+(class DEdit of Control
     (properties
-        type $0003
+        type ctlEDIT
         state $0001
         nsTop 0
         nsLeft 0
         nsBottom 0
         nsRight 0
-        key 0
+        key 0			// The keyboard key associated with this control.
         said 0
-        value 0
+        value 0			// Arbitrary value associated with this control.
         text 0
-        font 0
-        max 0
+        font 0			// The edit control font.
+        max 0			// The maximum number of characters allowed.
         cursor 0
     )
 
@@ -101,18 +101,18 @@
     )
 )
 
-// A selector control.
-(class DSelector of GUIControl
+// A selector control that lets the player choose from a list of text strings.
+(class DSelector of Control
     (properties
-        type $0006
+        type ctlSELECTOR
         state $0000
         nsTop 0
         nsLeft 0
         nsBottom 0
         nsRight 0
-        key 0
+        key 0			// The keyboard key associated with this control.
         said 0
-        value 0
+        value 0			// Arbitrary value associated with this control.
         font 0
         x 20
         y 6
@@ -151,14 +151,14 @@
                             (self:retreat(1))
                         )
                         (default 
-                            0
+                            FALSE
                         )
                     )
 ))
             )
             (case evMOUSEBUTTON
                 (if ((self:check(pEvent)))
-                    (send pEvent:claimed(1))
+                    (send pEvent:claimed(TRUE))
                     (if (< (send pEvent:y) (+ nsTop 10))
                         (do 
                             (self:retreat(1))
@@ -182,7 +182,7 @@
             )
         )
         return 
-            (if ((send pEvent:claimed) and (& state $0002))
+            (if ((send pEvent:claimed) and (& state csFOCUSED))
                 self
             )(else
                 0
@@ -286,18 +286,20 @@
         size 0
     )
 
+	// Updates the size of each control and tells it to draw.
     (method (draw)
         (self:eachElementDo(#setSize))
         (self:eachElementDo(#draw))
     )
 
+	// Directs the event to the first focused control.
     (method (handleEvent pEvent)
         (var temp0)
         (if ((send pEvent:claimed))
             return 0
         )
         = temp0 (self:firstTrue(#handleEvent pEvent))
-        (if (temp0 and not (send ((= temp0 (self:firstTrue(#handleEvent pEvent)))):checkState(2)))
+        (if (temp0 and not (send ((= temp0 (self:firstTrue(#handleEvent pEvent)))):checkState(csFOCUSED)))
             (send temp0:doit())
             = temp0 0
         )

@@ -23,6 +23,13 @@
         lastC 0
     )
 
+	/*
+		:param heapPtr theClient: The :class:`Prop` to which this is attached.
+		:param number theCycles: The number of times to cycle, or -1 to cycle indefinitely.
+		:param number theFirstC: The cel at which to start.
+		:param number theLastC: The cel at which to end.
+		:param heapPtr theCaller: Optional object to be cue()'d when the cycle is complete.
+	*/
     (method (init theClient theCycles theFirstC theLastC theCaller)
         (if (>= paramTotal 2)
             = cycles theCycles

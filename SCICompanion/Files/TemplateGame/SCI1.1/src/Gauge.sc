@@ -208,11 +208,11 @@ code_0292:  pushi   #dispose
             (case evKEYBOARD
                 (switch ((send pEvent:message))
                     (case KEY_NUMPAD4
-                        (send pEvent:claimed(1))
+                        (send pEvent:claimed(TRUE))
                         return newDButton
                     )
                     (case KEY_RIGHT
-                        (send pEvent:claimed(1))
+                        (send pEvent:claimed(TRUE))
                         return newDButton_2
                     )
                 )
@@ -220,11 +220,11 @@ code_0292:  pushi   #dispose
             (case evJOYSTICK
                 (switch ((send pEvent:message))
                     (case JOY_LEFT
-                        (send pEvent:claimed(1))
+                        (send pEvent:claimed(TRUE))
                         return newDButton
                     )
                     (case JOY_RIGHT
-                        (send pEvent:claimed(1))
+                        (send pEvent:claimed(TRUE))
                         return newDButton_2
                     )
                 )

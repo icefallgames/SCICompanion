@@ -40,7 +40,7 @@
 (use "PseudoMouse")
 (use "Scaler")
 (use "BorderWindow")
-(use "IconI")
+(use "IconItem")
 (use "RandCycle")
 (use "PolyPath")
 (use "Polygon")
@@ -57,34 +57,34 @@
 (define STARTING_ROOM 100)
 
 (local
-    gEgo
-    gGame
-    gRoom
+    gEgo				// The object for the player's ego.
+    gGame				// The game object.
+    gRoom				// The current room object.
     global3		// Unused
     gQuitGame = FALSE
     gOldCast
-    gRegions
-    gTimers
-    gSounds
-    gInv
+    gRegions			// The current regions.
+    gTimers				// The current timers.
+    gSounds				// The current sounds.
+    gInv				// The inventory.
     gOldATPs
     gModNum				// In the SCI0 game this was called gRoomNumberExit. It's what gets set to move to the next room, which will then be gRoomNumber
     					// It's used everywhere in place of gRoomNumber here though.
     gPreviousRoomNumber
     gRoomNumber
     gDebugOnNextRoom
-    gScore
-    gMaxScore
+    gScore				// The player's current score.
+    gMaxScore			// The maximum score.
     global17
     gNewSet
     gCursorNumber
     gCursor =     999
     gInvisibleCursor =     997
-    gFont =     1
-    gSmallFont =     4
-    gPEvent
-    gDialog
-    gBigFont =     1
+    gFont =     1		// Main font number.
+    gSmallFont =     4	// Small font number.
+    gPEvent				// The current event.
+    gDialog				// The current Print dialog.
+    gBigFont =     1	// Big font number.
     gVersion
     gSaveDir
     gPicAngle
@@ -93,18 +93,18 @@
     gPicNumber =     -1
     gCastMotionCue
     gWindow
-    global39	// Unused	(foreground text?)
-    global40	// Unused	(window background color?)
+    global39	// Unused
+    global40	// Unused
     gOldPort
-    global42[21] // debug filename
-    gGameControls
-    gFeatureInit
+    gDebugFilename[21] // debug filename
+    gGameControls		// The main GameControls class.
+    gFeatureInit		// Code that initializes all features.
     gDoVerbCode
     gApproachCode
-    global67 =     1		// Has something to do with default Motion for ego (0: MoveTo, 1: PolyPath, 2: PolyPath...)
+    global67 =     1	// Default Motion type for ego (0: MoveTo, 1: PolyPath, ...)
     gIconBar
-    gPEventX
-    gPEventY
+    gPEventX			// Current event's x value.
+    gPEventY			// Current event's y value.
     gOldKH
     gOldMH
     gOldDH
@@ -112,15 +112,15 @@
     gTheDoits
     gEatTheMice =     60
     gUser
-    global81				// Something to do with Sync
+    global81				// Something to do with lip-sync.
     gNewSync
-    global83				// Something to do with audio narration
+    global83				// Something to do with audio narration.
     gNewEventHandler
     gFont_2
     global86				// Something to do with time (ticks per frame?)
     gLastTicks
-    gNarrator
-    global90 =     $0001	// Seems to be a flag for talker: 0x1 (text) and 0x2 (audio)
+    gNarrator				// Default Narrator.
+    global90 =     $0001	// Talker flags: 0x1 (text) and 0x2 (audio).
     gTestMessager
     gPrintEventHandler
     gOldWH
@@ -148,8 +148,8 @@
     gLowlightColor
     gDefaultEgoView =     0		// The default view resource for the ego
     gRegister
-    gFlags[14]					// Start of bit set. Room for 14x16 = 224 flags.
-    gEdgeDistance = 10			// Margin around screen to make it easier to walk the ego to the edge
+    gFlags[14]					// Start of bit set. Room for 14 x 16 = 224 flags.
+    gEdgeDistance = 10			// Margin around screen to make it easier to walk the ego to the edge.
     gDebugOut
 )
 
@@ -406,7 +406,21 @@
 )
 
 /*
-	Prints a debug message that can be displayed in SCI Companion.
+.. function:: DebugPrint(theText [params ...])
+
+	Prints a debug message that can be displayed in SCI Companion. The text may contain the following formatting
+	characters:
+	
+	%d
+		Formats a number in decimal.
+		
+	%x
+		Formats a number in hexadecimal.
+
+	%s
+		Formats a string.
+
+	:param string theText: A string of text containing formatting characters.
 	
 	Example usage::
 	
@@ -456,7 +470,9 @@
 		
 	Example::
 	
-		P_ThePolygons[19] = (2 PContainedAccess 4 319 189 319 50 0 50 0 189 PBarredAccess 3 319 189 319 50 0 50)	
+		P_ThePolygons[19] = (2 PContainedAccess 4 319 189 319 50 0 50 0 189 PBarredAccess 3 319 189 319 50 0 50)
+		
+	See also: :doc:`/polygons`.		
 */
 (procedure public (AddPolygonsToRoom polyBuffer)
 	(var polyCount)
@@ -499,7 +515,9 @@
 		
 	Example::
 	
-		P_Rock[10] = (PContainedAccess 4 319 189 319 50 0 50 0 189 )	
+		P_Rock[10] = (PContainedAccess 4 319 189 319 50 0 50 0 189 )
+		
+	See also: :doc:`/polygons`.
 */
 (procedure public (CreateNewPolygon polyBuffer nextPolyOptional)
 	(var polyCount)
@@ -633,7 +651,7 @@
 // be a known one (e.g. SQ5)
 
 /*
-	The main game class.
+	The main game class. This subclasses :class:`Game` and adds game-specific functionality.
 */
 (class public SQ5 of Game
     (properties
@@ -864,13 +882,13 @@
                                 = theGCursorNumber gCursorNumber
                                 (send gInv:showSelf(gEgo))
                                 (send gGame:setCursor(theGCursorNumber 1))
-                                (send pEvent:claimed(1))
+                                (send pEvent:claimed(TRUE))
                             )
                         )
                         (case KEY_CONTROL
                             (if (not & (send ((send gIconBar:at(7))):signal) icDISABLED)
                                 (send gGame:quitGame())
-                                (send pEvent:claimed(1))
+                                (send pEvent:claimed(TRUE))
                             )
                         )
                         (case JOY_RIGHT
@@ -891,7 +909,7 @@
                                     (send gGame:masterVolume(1))
                                 )
                             )
-                            (send pEvent:claimed(1))
+                            (send pEvent:claimed(TRUE))
                         )
                         (case KEY_F5
                             (if (not & (send ((send gIconBar:at(7))):signal) icDISABLED)
@@ -901,7 +919,7 @@
                                 = theGCursorNumber gCursorNumber
                                 (send gGame:save())
                                 (send gGame:setCursor(theGCursorNumber 1))
-                                (send pEvent:claimed(1))
+                                (send pEvent:claimed(TRUE))
                             )
                         )
                         (case KEY_F7
@@ -912,7 +930,7 @@
                                 = theGCursorNumber gCursorNumber
                                 (send gGame:restore())
                                 (send gGame:setCursor(theGCursorNumber 1))
-                                (send pEvent:claimed(1))
+                                (send pEvent:claimed(TRUE))
                             )
                         )
                         (case KEY_EXECUTE
@@ -945,7 +963,7 @@
                         	(send (ScriptID(INGAME_DEBUG_SCRIPT 0)):init())
                         )
                         (default 
-                            (send pEvent:claimed(0))
+                            (send pEvent:claimed(FALSE))
                         )
                     )
                 )
@@ -1110,7 +1128,7 @@
 
 )
 
-(instance icon0 of IconI
+(instance icon0 of IconItem
     (properties
         view 990
         loop 0
@@ -1142,7 +1160,7 @@
     )
 
 )
-(instance icon1 of IconI
+(instance icon1 of IconItem
     (properties
         view 990
         loop 1
@@ -1162,7 +1180,7 @@
     )
 )
 
-(instance icon2 of IconI
+(instance icon2 of IconItem
     (properties
         view 990
         loop 2
@@ -1182,7 +1200,7 @@
     )
 )
 
-(instance icon3 of IconI
+(instance icon3 of IconItem
     (properties
         view 990
         loop 3
@@ -1205,7 +1223,7 @@
 )
 
 // Use this icon for whatever action you want
-(instance icon4 of IconI
+(instance icon4 of IconItem
     (properties
         view 990
         loop 10			// This is currently a loop with "empty" cels
@@ -1226,7 +1244,7 @@
     )
 
 )
-(instance icon6 of IconI
+(instance icon6 of IconItem
     (properties
         view 990
         loop 4
@@ -1308,7 +1326,7 @@
     )
 
 )
-(instance icon7 of IconI
+(instance icon7 of IconItem
     (properties
         view 990
         loop 5
@@ -1344,7 +1362,7 @@
     )
 
 )
-(instance icon8 of IconI
+(instance icon8 of IconItem
     (properties
         view 990
         loop 7
@@ -1376,7 +1394,7 @@
     )
 
 )
-(instance icon9 of IconI
+(instance icon9 of IconItem
     (properties
         view 990
         loop 9
@@ -1404,7 +1422,7 @@
     (properties)
 
     (method (doit param1)
-        (if ((send param1:isKindOf(IconI)) and (& (send param1:signal) $0004))
+        (if ((send param1:isKindOf(IconItem)) and (& (send param1:signal) $0004))
             = gCheckedIcons (| gCheckedIcons (>> $8000 (send gIconBar:indexOf(param1))))
         )
     )

@@ -50,17 +50,18 @@
         )
 )
 
-(class GUIControl of Obj
+// A common base class for GUI controls.
+(class Control of Obj
     (properties
-        type $0000
+        type 0
         state $0000
         nsTop 0
         nsLeft 0
         nsBottom 0
         nsRight 0
-        key 0
+        key 0			// The keyboard key associated with this control.
         said 0
-        value 0
+        value 0			// Arbitrary value associated with this control.
     )
 
     (method (doit)
@@ -68,20 +69,20 @@
     )
 
 
-    (method (enable param1)
-        (if (param1)
-            = state (| state $0001)
+    (method (enable fEnable)
+        (if (fEnable)
+            = state (| state csENABLED)
         )(else
-            = state (& state $fffe)
+            = state (& state (bnot csENABLED))
         )
     )
 
 
-    (method (select param1)
-        (if (param1)
-            = state (| state $0008)
+    (method (select fSelect)
+        (if (fSelect)
+            = state (| state csSELECTED)
         )(else
-            = state (& state $fff7)
+            = state (& state (bnot csSELECTED))
         )
         (self:draw())
     )
@@ -93,38 +94,38 @@
             return 0
         )
         = temp0 0
-        (if ((& state $0001) and (((== (= pEventType (send pEvent:type)) 4) and (== (send pEvent:message) key)) or ((== pEventType evMOUSEBUTTON) and (self:check(pEvent)))))
-            (send pEvent:claimed(1))
+        (if ((& state csENABLED) and (((== (= pEventType (send pEvent:type)) 4) and (== (send pEvent:message) key)) or ((== pEventType evMOUSEBUTTON) and (self:check(pEvent)))))
+            (send pEvent:claimed(TRUE))
             = temp0 (self:track(pEvent))
         )
         return temp0
     )
 
-
-    (method (check param1)
+	// Returns TRUE if the x and y of the event lie inside the control.
+    (method (check pEvent)
         return 
-            (if (((>= (send param1:x) nsLeft) and (>= (send param1:y) nsTop)) and (< (send param1:x) nsRight))
-                < (send param1:y) nsBottom
+            (if (((>= (send pEvent:x) nsLeft) and (>= (send pEvent:y) nsTop)) and (< (send pEvent:x) nsRight))
+                < (send pEvent:y) nsBottom
             )(else
                 0
             )
     )
 
-
-    (method (track param1)
+	// Highlights the control if the mouse is over it.
+    (method (track pEvent)
         (var temp0, temp1)
         return 
-            (if (== 1 (send param1:type))
+            (if (== evMOUSEBUTTON (send pEvent:type))
                 = temp1 0
                 (do 
-                    = param1 (Event:new(-32768))
-                    (send param1:localize())
-                    = temp0 (self:check(param1))
+                    = pEvent (Event:new(evPEEK))
+                    (send pEvent:localize())
+                    = temp0 (self:check(pEvent))
                     (if (<> temp0 temp1)
                         HiliteControl(self)
                         = temp1 temp0
                     )
-                    (send param1:dispose())
+                    (send pEvent:dispose())
                 ) while (not not GetMouseRelease())
                 (if (temp0)
                     HiliteControl(self)
@@ -152,40 +153,47 @@
         (self:move((- param1 nsLeft) (- param2 nsTop)))
     )
 
-
+	// Draws the control.
     (method (draw)
         DrawControl(self)
     )
 
-
-    (method (isType param1)
-        return == type param1
+	/*
+		:param number theType: ctlBUTTON, ctlTEXT, ctlEDIT, ctlICON or ctlSELETOR.
+		:returns: TRUE if this control is of the type specified.
+	*/
+    (method (isType theType)
+        return == type theType
     )
 
-
-    (method (checkState param1)
-        return & state param1
+	/*
+		:param number stateFlags: Any combination of csENABLED, csFOCUSED, csDISABLED or csSELECTED.
+		:returns: A non-zero value if the control has this state.
+	*/
+    (method (checkState stateFlags)
+        return & state stateFlags
     )
 
 
     (method (cycle)
     )
-
 )
-(class DText of GUIControl
+
+// A control that simply displays text.
+(class DText of Control
     (properties
-        type $0002
+        type ctlTEXT
         state $0000
         nsTop 0
         nsLeft 0
         nsBottom 0
         nsRight 0
-        key 0
+        key 0			// The keyboard key associated with this control.
         said 0
-        value 0
-        text 0
-        font 1
-        mode 0
+        value 0			// Arbitrary value associated with this control.
+        text 0			// The text.
+        font 1			// The font.
+        mode alLEFT		// alLEFT, alCENTER or alRIGHT.
         rects 0
     )
 
@@ -329,7 +337,7 @@ code_03c6:  pushi   2
 code_0455:  pushi   #handleEvent
             pushi   1
             lsp     pEvent
-            super   GUIControl, 6
+            super   Control, 6
             ret     
         )
     )
@@ -352,8 +360,8 @@ code_0455:  pushi   #handleEvent
     (method (draw)
         = rects DrawControl(self)
     )
-
 )
+
 (class Dialog of List
     (properties
         elements 0
@@ -380,16 +388,16 @@ code_0455:  pushi   #handleEvent
         = temp2 0
         (self:eachElementDo(#init))
         (if (theItem)
-            (send theItem:select(0))
+            (send theItem:select(FALSE))
         )
         = theItem 
             (if (paramTotal and param1)
                 param1
             )(else
-                (self:firstTrue(#checkState 1))
+                (self:firstTrue(#checkState csENABLED))
             )
         (if (theItem)
-            (send theItem:select(1))
+            (send theItem:select(TRUE))
         )
         (if (not theItem)
             = eatTheMice gEatTheMice
@@ -481,7 +489,7 @@ code_0455:  pushi   #handleEvent
     (method (advance)
         (var temp0, dialogFirst)
         (if (theItem)
-            (send theItem:select(0))
+            (send theItem:select(FALSE))
             = dialogFirst (self:contains(theItem))
             (while (TRUE)
                 = dialogFirst (self:next(dialogFirst))
@@ -489,11 +497,11 @@ code_0455:  pushi   #handleEvent
                     = dialogFirst (self:first())
                 )
                 = theItem NodeValue(dialogFirst)
-                (if (& (send theItem:state) $0001)
+                (if (& (send theItem:state) csENABLED)
                     break
                 )
             )
-            (send theItem:select(1))
+            (send theItem:select(TRUE))
             (send gGame:setCursor(gCursorNumber 1 (+ (send theItem:nsLeft) (/ (- (send theItem:nsRight) (send theItem:nsLeft)) 2)) (- (send theItem:nsBottom) 3)))
         )
     )
@@ -502,7 +510,7 @@ code_0455:  pushi   #handleEvent
     (method (retreat)
         (var temp0, dialogLast)
         (if (theItem)
-            (send theItem:select(0))
+            (send theItem:select(FALSE))
             = dialogLast (self:contains(theItem))
             (while (TRUE)
                 = dialogLast (self:prev(dialogLast))
@@ -510,11 +518,11 @@ code_0455:  pushi   #handleEvent
                     = dialogLast (self:last())
                 )
                 = theItem NodeValue(dialogLast)
-                (if (& (send theItem:state) $0001)
+                (if (& (send theItem:state) csENABLED)
                     break
                 )
             )
-            (send theItem:select(1))
+            (send theItem:select(TRUE))
             (send gGame:setCursor(gCursorNumber 1 (+ (send theItem:nsLeft) (/ (- (send theItem:nsRight) (send theItem:nsLeft)) 2)) (- (send theItem:nsBottom) 3)))
         )
     )
@@ -579,26 +587,26 @@ code_0455:  pushi   #handleEvent
             (switch ((send pEvent:message))
                 (case JOY_DOWN
                     (send pEvent:
-                        type(4)
-                        message(20480)
+                        type(evKEYBOARD)
+                        message(KEY_DOWN)
                     )
                 )
                 (case JOY_UP
                     (send pEvent:
-                        type(4)
-                        message(18432)
+                        type(evKEYBOARD)
+                        message(KEY_UP)
                     )
                 )
                 (case JOY_LEFT
                     (send pEvent:
-                        type(4)
-                        message(19200)
+                        type(evKEYBOARD)
+                        message(KEY_LEFT)
                     )
                 )
                 (case JOY_RIGHT
                     (send pEvent:
-                        type(4)
-                        message(19712)
+                        type(evKEYBOARD)
+                        message(KEY_RIGHT)
                     )
                 )
             )
@@ -608,11 +616,11 @@ code_0455:  pushi   #handleEvent
         = theTheItem (self:firstTrue(#handleEvent pEvent))
         (if (theTheItem)
             EditControl(theItem 0)
-            (if (not (send theTheItem:checkState(2)))
+            (if (not (send theTheItem:checkState(csFOCUSED)))
                 (if (theItem)
-                    (send theItem:select(0))
+                    (send theItem:select(FALSE))
                 )
-                (send (= theItem theTheItem):select(1))
+                (send (= theItem theTheItem):select(TRUE))
                 (send theTheItem:doit())
                 = theTheItem 0
             )(else
@@ -622,27 +630,27 @@ code_0455:  pushi   #handleEvent
             = pEventType (send pEvent:type)
             = pEventMessage (send pEvent:message)
             = theTheItem 0
-            (if ((((== pEventType 256) or ((== pEventType evKEYBOARD) and (== pEventMessage KEY_RETURN))) and theItem) and (send theItem:checkState(1)))
+            (if ((((== pEventType 256) or ((== pEventType evKEYBOARD) and (== pEventMessage KEY_RETURN))) and theItem) and (send theItem:checkState(csENABLED)))
                 = theTheItem theItem
                 EditControl(theItem 0)
-                (send pEvent:claimed(1))
+                (send pEvent:claimed(TRUE))
             )(else
                 (if ((== pEventType evKEYBOARD) and (== pEventMessage KEY_ESCAPE))
-                    (send pEvent:claimed(1))
+                    (send pEvent:claimed(TRUE))
                     = theTheItem -1
                 )(else
-                    (if (not (self:firstTrue(#checkState 1)) and (((== pEventType evKEYBOARD) and (== pEventMessage KEY_RETURN)) or IsOneOf(pEventType 1 256)))
-                        (send pEvent:claimed(1))
+                    (if (not (self:firstTrue(#checkState csENABLED)) and (((== pEventType evKEYBOARD) and (== pEventMessage KEY_RETURN)) or IsOneOf(pEventType evMOUSEBUTTON 256)))
+                        (send pEvent:claimed(TRUE))
                         = theTheItem -2
                     )(else
-                        (if (((IsObject(theItem) and (send theItem:isType(3))) and (== pEventType evKEYBOARD)) and (== pEventMessage KEY_RIGHT))
+                        (if (((IsObject(theItem) and (send theItem:isType(ctlEDIT))) and (== pEventType evKEYBOARD)) and (== pEventMessage KEY_RIGHT))
                             (if (>= (send theItem:cursor) StrLen((send theItem:text)))
                                 (self:advance())
                             )(else
                                 EditControl(theItem pEvent)
                             )
                         )(else
-                            (if (((IsObject(theItem) and (send theItem:isType(3))) and (== pEventType evKEYBOARD)) and (== pEventMessage KEY_NUMPAD4))
+                            (if (((IsObject(theItem) and (send theItem:isType(ctlEDIT))) and (== pEventType evKEYBOARD)) and (== pEventMessage KEY_NUMPAD4))
                                 (if (<= (send theItem:cursor) 0)
                                     (self:retreat())
                                 )(else
@@ -650,11 +658,11 @@ code_0455:  pushi   #handleEvent
                                 )
                             )(else
                                 (if ((== pEventType evKEYBOARD) and IsOneOf(pEventMessage 9 19712 20480))
-                                    (send pEvent:claimed(1))
+                                    (send pEvent:claimed(TRUE))
                                     (self:advance())
                                 )(else
                                     (if ((== pEventType evKEYBOARD) and IsOneOf(pEventMessage 3840 19200 18432))
-                                        (send pEvent:claimed(1))
+                                        (send pEvent:claimed(TRUE))
                                         (self:retreat())
                                     )(else
                                         EditControl(theItem pEvent)
@@ -685,11 +693,11 @@ code_0455:  pushi   #handleEvent
 (instance checkHiliteCode of Code
     (properties)
 
-    (method (doit param1 param2 param3)
-        (if (((& (send param1:state) $0001) and (send param1:check(param3))) and not (& (send param1:state) $0008))
-            (send ((send param2:theItem)):select(0))
-            (send param2:theItem(param1))
-            (send param1:select(1))
+    (method (doit theControl theDialog pEvent)
+        (if (((& (send theControl:state) csENABLED) and (send theControl:check(pEvent))) and not (& (send theControl:state) csSELECTED))
+            (send ((send theDialog:theItem)):select(FALSE))
+            (send theDialog:theItem(theControl))
+            (send theControl:select(TRUE))
         )
     )
 

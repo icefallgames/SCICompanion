@@ -8,7 +8,7 @@
 	Polygon is a fundamental SCI1.1 class. One of its main uses is to create room obstacles. As a workflow aid, these can be created
 	in SCI Companion's polygon editor, which will generate a list of points that can be included in a header file.
 	
-	There are four types of polgyons::
+	There are four types of polgyons:
 	
 	PBarredAccess
 		These bar access to the interior of the polygon.
@@ -34,17 +34,18 @@
 
 	/*
 	.. function:: init([thePoints ...])
+	
 		Initializes the Polygon with a list of points.
 		
 		:param number thePoints: An even number of parameters consisting of x and y coordinates.
 		
 		Example usage::
 		
-	        (send global2:addObstacle((send ((Polygon:new())):
-                type(PBarredAccess)
-                init(185 137 181 149 135 148 128 137)	// Four points, defined by x and y coordinates.
-                yourself()
-            )
+			(send global2:addObstacle((send ((Polygon:new())):
+				type(PBarredAccess)
+				init(185 137 181 149 135 148 128 137)	// Four points, defined by x and y coordinates.
+				yourself()
+			)
 
 	*/
     (method (init thePoints)

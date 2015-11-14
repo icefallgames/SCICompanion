@@ -9,7 +9,7 @@
 
     (method (new)
         = type (= message (= modifiers (= y (= x (= claimed (= port 0))))))
-        GetEvent(32767 self)
+        GetEvent(evALL_EVENTS self)
         return self
     )
 )
@@ -55,7 +55,7 @@
 		:param boolean shouldControl: TRUE if the user should be in control, otherwise FALSE.
 		
 		.. IMPORTANT::
-			Generally, Game::handsOff() and Game::handsOn() should be used to give and take away user control of the game.
+			Generally, (send gGame::handsOff()) and (send gGame::handsOn()) should be used to give and take away user control of the game.
 	*/
     (method (canControl shouldControl)
         (if (paramTotal)
@@ -81,9 +81,9 @@
                 = pEventType 4
                 = pEventMessage 
                     (if (& pEventModifiers emSHIFT)
-                        27
+                        KEY_ESCAPE
                     )(else
-                        13
+                        KEY_RETURN
                     )
                 = pEventModifiers 0
                 (send pEvent:

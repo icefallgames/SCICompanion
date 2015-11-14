@@ -26,7 +26,6 @@
 		// This is how we detect when the game exits.
 		name "ndebug.log"
 	)
-	
 	(method (init initDebugFilename)
 		(var tempHandle, numberBuffer[10], startRoom, tempRoom, heapPointer)
 		(= startRoom -1)

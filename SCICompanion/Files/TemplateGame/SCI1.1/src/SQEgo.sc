@@ -148,7 +148,7 @@
         oldCycSpeed 0
     )
 
-    (method (doit param1)
+    (method (doit sendParams)
         (var temp0[2])
         (if ((send client:isStopped()))
             (if (<> (send gEgo:loop) 8)
@@ -172,11 +172,11 @@
                 )(else
                     = vSlow 0
                 )
-                (super:doit(rest param1))
+                (super:doit(rest sendParams))
             )(else
                 (if (((== (send gEgo:loop) 8) and (<> curTicks -1)) and (<= (= curTicks (- curTicks Abs((- gLastTicks lastTicks)))) 0))
                     = curTicks -1
-                    (super:doit(rest param1))
+                    (super:doit(rest sendParams))
                 )(else
                     (if ((((((== curTicks -1) and not (send gRoom:script)) and not (send gEgo:script)) and (send gUser:canControl())) and (== (send gEgo:view) 0)) and (== (send gEgo:loop) (- NumLoops(gEgo) 1)))
                         = curTicks ticks
@@ -201,12 +201,12 @@
                             setCycle(End self)
                         )
                     )(else
-                        (super:doit(rest param1))
+                        (super:doit(rest sendParams))
                     )
                 )
             )
         )(else
-            (super:doit(rest param1))
+            (super:doit(rest sendParams))
         )
         = lastTicks gLastTicks
     )

@@ -22,6 +22,11 @@
         howManyCycles -1
     )
 
+	/*
+		:param heapPtr theClient: The :class:`Prop` to which this is attached.
+		:param number theHowManyCycles: The number of times to cycle, or -1 to cycle indefinitely.
+		:param heapPtr theCaller: Optional object to be cue()'d when the cycle is complete.
+	*/
     (method (init theClient theHowManyCycles theCaller)
         (if (>= paramTotal 2)
             = howManyCycles theHowManyCycles

@@ -8,7 +8,7 @@
 
 
 /*
-	This class is used by :class:`ScriptSync` and :class:`MouthSync`.
+	This class is involved with lip-syncing and is used internally by and :class:`MouthSync`.
 */
 (class Sync of Obj
     (properties
@@ -18,8 +18,8 @@
         syncNum -1
     )
 
-    (method (syncStart param1 param2 param3 param4 param5)
-        DoSync(syncSTART self param1 param2 param3 param4 param5)
+    (method (syncStart modNum noun verb cond seq)
+        DoSync(syncSTART self modNum noun verb cond seq)
         (if (<> syncCue -1)
             = prevCue syncCue
             = syncTime 0
@@ -43,63 +43,6 @@
         = prevCue -1
         DoSync(syncSTOP)
     )
-
-)
-
-(class ScriptSync of Obj
-    (properties
-        prevSignal -1
-        playing 0
-    )
-
-    (method (init param1 param2 param3 param4 param5)
-        (if (gNewSync)
-            (self:cue())
-        )
-        = gNewSync (Sync:new())
-        (send gNewSync:
-            init()
-            syncStart(param1 param2 param3 param4 param5)
-        )
-        (if (<> (send gNewSync:prevCue) -1)
-            = playing 1
-            (send gRegions:add(self))
-        )
-        (Timer:setTicks(self DoAudio(audWPLAY param1 param2 param3 param4 param5)))
-    )
-
-
-    (method (doit)
-        (var gNewSyncSyncTime)
-        (if (<> (send gNewSync:prevCue) -1)
-            (while (TRUE)
-                (if (== (send gNewSync:prevCue) -1)
-                    break
-                )
-                = gNewSyncSyncTime (send gNewSync:syncTime)
-                (send gNewSync:syncCheck())
-                (if (== gNewSyncSyncTime (send gNewSync:syncTime))
-                    break
-                )
-            )
-            = prevSignal (send gNewSync:prevCue)
-        )
-    )
-
-
-    (method (cue)
-        Animate((send gOldCast:elements) 0)
-        = playing 0
-        = prevSignal 32767
-        (send gRegions:delete(self))
-        (if (gNewSync)
-            (send gNewSync:
-                syncStop()
-                dispose()
-            )
-            = gNewSync 0
-        )
-    )
 )
 
 /*
@@ -115,8 +58,8 @@
         completed 0
     )
 
-    (method (init param1 param2 param3 param4 param5 param6)
-        (super:init(param1))
+    (method (init theClient modNum noun verb cond seq)
+        (super:init(theClient))
         (if (IsObject(gNewSync))
             (send gNewSync:
                 syncStop()
@@ -124,7 +67,7 @@
             )
         )
         = gNewSync (Sync:new())
-        (send gNewSync:syncStart(param2 param3 param4 param5 param6))
+        (send gNewSync:syncStart(modNum noun verb cond seq))
     )
 
 

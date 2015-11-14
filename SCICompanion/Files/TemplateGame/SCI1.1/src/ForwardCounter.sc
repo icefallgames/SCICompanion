@@ -5,7 +5,7 @@
 (script FORWARDCOUNT_SCRIPT)
 
 /*
-	This extends the :class:`Fwd` cycler by cycling forward through the cels in a loop
+	This extends the functionality of the :class:`Fwd` cycler by allowing for cycling forward through the cels in a loop
 	a specified number of times and then stopping.
 	
 	Example usage::

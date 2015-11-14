@@ -82,7 +82,13 @@
 	
 	.. function:: DoesRectContain(left top right bottom obj)
 	
-		:param obj: An object with x and y properties
+		:param number left: The left side of the rectangle.
+		:param number top: The top of the rectangle.
+		:param number right: The right side of the rectangle.
+		:param number bottom: The bottom of the rectangle.
+		:param number x: An x coordinate.
+		:param number y: A y coordinate.
+		:param heapPtr obj: An object with x and y properties
 	
 		:returns: TRUE if the rectangle contains the (x, y) coordinate or the object, FALSE otherwise.
 */
@@ -243,12 +249,22 @@
 		return FALSE
     )
 
-    (method (isMemberOf param1)
-    	(if (== param1 self)
+	/*
+		:param class theClass: A class, like MoveTo or Feature.
+		:returns: TRUE if this object is an instance of this exact class, otherwise FALSE.
+		
+		Example usage::
+		
+			(if (send gThing:isMemberOf(MoveTo))
+				// Do something...
+			)
+	*/
+    (method (isMemberOf theClass)
+    	(if (== theClass self)
     		return TRUE
 		)
-		(if ( (& (send param1:{-info-}) $8000) and (not (& {-info-} $8000)))
-			return (== {-propDict-} (send param1:{-propDict-}))
+		(if ( (& (send theClass:{-info-}) $8000) and (not (& {-info-} $8000)))
+			return (== {-propDict-} (send theClass:{-propDict-}))
 		)
 		return FALSE
     )
@@ -257,18 +273,41 @@
 		:param selector selectorName: A property or method selector.
 	
 		:returns: TRUE if this object has selectorName as a property or method.
+		
+		Example usage::
+		
+			(if (send theThing:respondTo(#doit))
+				(send theThing:doit())
+			)
 	*/
     (method (respondsTo selectorName)
         RespondsTo(self selectorName)
     )
 
+	/*
+		Returns the object itself. This is a convenient shortcut when you want to call a series of selectors on
+		a new object and then pass that object directly to a function::
 
+			// Create a new polygon and add it to the room obstacles.		
+			(send gRoom:addObstacle((send ((Polygon:new())):
+					type(PBarredAccess)
+					points(somePoints)
+					size(4)
+					dynamic(TRUE)
+					yourself()
+									)))
+	*/
     (method (yourself)
         return self
     )
 
 )
 
+/*
+	Code is just a convenient base class to inherit from when
+	creating classes that simply have a doit() method that performs some
+	functionality.
+*/
 (class Code of Obj
     (properties)
 
@@ -314,7 +353,15 @@
         (self:eachElementDo(#showSelf))
     )
 
-	// Adds the given nodes to the collection of elements. It returns a pointer to itself.
+	/*
+	.. function:: add([node ...])
+	
+		Adds the given nodes to the collection of elements. It returns a pointer to itself.
+		If no nodes are supplied, it is simply ensured that the list is initialized.
+		
+		:param node: An object to add to the collection.
+		:returns: Itself.
+	*/
     (method (add nodes)
         (var temp0, temp1, temp2)
         (if (not elements)
@@ -331,7 +378,14 @@
         return self
     )
 
-	// Deletes the specified nodes from the collection of elements. It returns a pointer to the object.
+	/*
+	.. function:: delete([node ...])
+	
+		Deletes the specified nodes from the collection of elements. It returns a pointer to the object.
+		
+		:param node: An object to delete from the collection.
+		:returns: Itself.
+	*/
     (method (delete nodes)
         (var temp0)
         = temp0 0
@@ -348,6 +402,12 @@
 	.. function:: eachElementDo(aSelector [...])
 	
 		For each element, this calls aSelector (a method or property), forwarding any other given parameters to it.
+		
+		:param selector aSelector: A selector (e.g. #doit, or #moveSpeed).
+		
+		Example usage::
+		
+			(myPolyList:eachElementDo(#perform drawPoly))
 	*/
     (method (eachElementDo aSelector params)
         (var temp0, temp1, temp2)
@@ -369,6 +429,10 @@
 		For each element, this calls aSelector (a method or property), and if given, the rest of the parameters.
 		The first send to an element to return TRUE will cause firstTrue to return a pointer to that object.
 		If no send returns TRUE, firstTrue will return NULL.
+		
+		:param selector aSelector: A selector (e.g. #doit, or #moveSpeed).
+		:returns: The first object that returned TRUE, or NULL if no objects returned TRUE.
+		
 	*/
     (method (firstTrue aSelector params)
         (var temp0, temp1, temp2)
@@ -388,7 +452,10 @@
 	.. function:: allTrue(aSelector [...])	
 	
 		For each element, this calls aSelector (a method or property), and if given, the rest of the parameters.
-		If any send to an element returns FALSE, allTrue will return FALSE as well. Otherwise, if all sends have returned TRUE, so will allTRUE.	
+		If any send to an element returns FALSE, allTrue will return FALSE as well. Otherwise, if all sends have returned TRUE, so will allTrue.	
+		
+		:param selector aSelector: A selector (e.g. #doit, or #moveSpeed).
+		:returns: TRUE if all objects returned TRUE, otherwise FALSE.
 	*/
     (method (allTrue aSelector params)
         (var temp0, temp1, temp2)
@@ -397,11 +464,11 @@
             = temp1 NextNode(temp0)
             = temp2 NodeValue(temp0)
             (if (not (send temp2:aSelector(rest params)))
-                return 0
+                return FALSE
             )
             = temp0 temp1
         )
-        return 1
+        return TRUE
     )
 
 	// :returns: TRUE if the object contains node in its collection of elements.
@@ -456,12 +523,12 @@
         Format(buffer 999 1 name size)
     )
 
-	// Returns a pointer to the node at the specified position.
-    (method (at param1)
+	// Returns a pointer to the node at the specified index.
+    (method (at theIndex)
         (var temp0)
         = temp0 FirstNode(elements)
-        (while (param1 and temp0)
-            --param1
+        (while (theIndex and temp0)
+            --theIndex
             = temp0 NextNode(temp0)
         )
         return 
@@ -606,9 +673,11 @@
     )
 )
 
-// The Script class (different than a script file) is a very important part of the game. A Script instance can be attached
-// to most game objects, including Props, Actors, and room objects. They allow you to attach pluggable behavior to an object.
-// In fact, Script instances can themselves have Scripts attached to them.
+/*
+	The Script class (different than a script file) is a very important part of the game. A Script instance can be attached
+	to most game objects, including Props, Actors, and room objects. They allow you to attach pluggable behavior to an object.
+	In fact, Script instances can themselves have Scripts attached to them.
+*/
 (class Script of Obj
     (properties
         client 0
@@ -626,8 +695,10 @@
         next 0
     )
 
-	// Sets the client property to theClient. If the other parameters are specified, it sets the caller property to theCaller,
-	// and the register property to theRegister. Finally, it calls the changeState method with the start property as its parameter.
+	/*
+		Sets the client property to theClient. If the other parameters are specified, it sets the caller property to theCaller,
+		and the register property to theRegister. Finally, it calls the changeState method with the start property as its parameter.
+	*/
     (method (init theClient theCaller theRegister)
         = lastTicks gLastTicks
         (if (>= paramTotal 1)
@@ -714,8 +785,10 @@
         (super:dispose())
     )
 
-	// Sets the state property to the newState. This method is commonly overridden by
-	// Script instances to implement custom behavior.
+	/*
+		Sets the state property to the newState. This method is commonly overridden by
+		Script instances to implement custom behavior.
+	*/
     (method (changeState newState)
         = state newState
     )
@@ -727,8 +800,10 @@
         )
     )
 
-	// If the script property is not null, it calls the script's handleEvent() method with pEvent has its parameter.
-	// It then returns whether of not the pEvent object has been claimed.
+	/*
+		If the script property is not null, it calls the script's handleEvent() method with pEvent has its parameter.
+		It then returns whether of not the pEvent object has been claimed.
+	*/
     (method (handleEvent pEvent)
         (if (script)
             (send script:handleEvent(pEvent))
@@ -750,8 +825,7 @@
 /*
 	The Event class is one of the most widely used classes in SCI games. It is used to find out if the user has given input.
 	
-	Event types
-	------------
+	Event types:
 	
 	================= =========================================
 	Event type          Description
@@ -773,13 +847,11 @@
 	- evHELP
 	- evHELPVERB
 	
-	Event message
-	---------------
+	Event message:
 	
-	The event message property has multiple uses. For a keyboard event, it returns contains the keycode.
-	For a mouse, it specifies the button pressed.
+	The event **message** property is used mainly for keyboard events, where it contains the keycode.
 	
-	In addition to the keycode, the message for keyboard events may also contain these flags:
+	The event **modifiers** property can contain any of the following flags for keyboard events:
 	
 	- emRIGHT_SHIFT
 	- emLEFT_SHIFT
@@ -791,19 +863,19 @@
 	- emCAPS_LOCK
 	- emINSERT
 	
-	For mouse events, the following flags may be set:
+	For mouse events, the following flags may be set in **modifiers**:
 	
 	- emLEFT_BUTTON
 	- emRIGHT_BUTTON
 */
 (class Event of Obj
     (properties
-        type $0000
-        message 0
-        modifiers $0000
-        y 0
-        x 0
-        claimed 0
+        type $0000			// evKEYBOARD, evMOUSEBUTTON, etc...
+        message 0			// The key or mouse button that was pressed.
+        modifiers $0000		// emSHIFT, emCTRL or any of the other em\* defines.
+        y 0					// The x for mouse events.
+        x 0					// The y for mouse events.
+        claimed FALSE		// Has the event been claimed?
         port 0
     )
 
@@ -822,7 +894,7 @@
             )(else
                 evALL_EVENTS
             )
- newSuper)
+ 			newSuper)
  
         return newSuper
     )

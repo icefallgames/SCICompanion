@@ -94,16 +94,3 @@
         )
     )
 )
-
-
-(class RTRandCycle of RandCycle
-    (properties
-        client 0
-        caller 0
-        cycleDir 1
-        cycleCnt 0
-        completed 0
-        count -1
-        reset 0
-    )
-)

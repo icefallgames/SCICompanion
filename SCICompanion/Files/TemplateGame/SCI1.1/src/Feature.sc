@@ -10,6 +10,8 @@
 	This is a static Script object that works in conjunction with :class:`Feature` when making the
 	ego move close to the Feature in response to interacting with the Feature. When the ego is in range, the
 	action is then repeated.
+	
+	Generally, you shouldn't need to bother with this class.
 */
 (class CueObj of Script
     (properties
@@ -62,24 +64,32 @@
 	
 	Example usage::
 	
-		// Define a red planet that displays messages associated with the noun N_PLANET
+		// Define a red plant that displays messages associated with the noun N_PLANT
 		// when the use clicks on the white control color on the pic background.
 		// The (x, y) coordinates are used to identify the "center of interest" of the feature,
 		// which determines the direction in which the ego should face when interacting with it.
-		(instance redPlanet of Feature
-		    (properties
-		        x 217
-		        y 121
-		        noun N_PLANET
-		        onMeCheck ctlWHITE
-		    )
+		(instance redPlant of Feature
+			(properties
+				x 217
+				y 121
+				noun N_PLANT
+				onMeCheck ctlWHITE
+			)
 		)
 		
-	There are two main ways to identify the bounds of a feature: control colors, and polygons. This
-	needs to be done with the setOnMeCheck() method.
+	There are two main ways to identify the bounds of a feature: control colors, and polygons. Even if onMeCheck
+	has been set in the Feature declaration, this needs to be done with the setOnMeCheck() method.
 	
 	You can also indicate for which verbs the ego should approach the feature (as opposed to
 	just facing it). This is done with the approachVerbs() method.
+	
+	Example initialization::
+	
+		(redPlanet:
+			approachVerbs(V_DO V_LOOK)
+			setOnMeCheck(omcCOLORS ctlWHITE)
+			init()
+		)
 */
 (class Feature of Obj
     (properties
@@ -97,10 +107,10 @@
         actions 0
         onMeCheck omcDISABLE	// omcDISABLE, omcCOLORS or omcPOLYGON. See setOnMeCheck().
         state $0000
-        approachX 0
-        approachY 0
-        approachDist 0
-        _approachVerbs 0		// Verbs that cause the ego to approach the Feature.
+        approachX 0				// The approach spot x.
+        approachY 0				// The approach spot y.
+        approachDist 0			// The approach distance.
+        _approachVerbs 0		// Bitmask for verbs that cause the ego to approach the Feature.
     )
 
 	/*
@@ -167,7 +177,7 @@
                     client(self)
                     theVerb((send pEvent:message))
                 )
-                (send pEvent:claimed(1))
+                (send pEvent:claimed(TRUE))
                 (if (((((send gUser:canControl()) and (& (send gEgo:state) $0002)) and (> GetDistance((send gEgo:x) (send gEgo:y) approachX approachY) approachDist)) and gApproachCode) and (& _approachVerbs (send gApproachCode:doit((send pEvent:message)))))
                     (send gEgo:setMotion(PolyPath approachX (+ (send gEgo:z) approachY) CueObj))
                 )(else

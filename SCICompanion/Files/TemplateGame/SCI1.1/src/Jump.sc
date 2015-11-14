@@ -9,8 +9,8 @@
 */
 (class Jump of Motion
     (properties
-        client 0
-        caller 0
+        client 0			// The :class:`Actor` to which this is attached.
+        caller 0			// The object that will get cue()'d when the motion is complete.
         x 20000
         y 20000
         dx 0

@@ -91,9 +91,7 @@
     )
 )
 
-/*
-	A helper class used with the polygon editor.
-*/
+// Nodoc
 (class ClickMenu of Obj
     (properties
         text 0
@@ -158,7 +156,7 @@
             ++temp1
             = theArray (+ theArray 6)
         )
-        return (send pEvent:claimed(1))
+        return (send pEvent:claimed(TRUE))
     )
 
 )
@@ -176,8 +174,9 @@
     (method (init)
         (super:init(@local71))
     )
-
 )
+
+// nodoc
 (class Class_943_3
     (properties
     	x 0
@@ -237,8 +236,9 @@
             = underBits 0
         )
     )
-
 )
+
+// nodoc
 (class _EditablePolygon of List
     (properties
         elements 0

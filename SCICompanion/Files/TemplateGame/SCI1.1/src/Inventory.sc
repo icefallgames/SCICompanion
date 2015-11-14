@@ -1,9 +1,9 @@
 /*
-	This is the script that you modify to add additional inventory item instances that inherit from :class:`InvItem`.
+	This is the script that you modify to add additional inventory item instances that inherit from :class:`InventoryItem`.
 	
 	An example might be::
 	
-		(instance Hammer of InvItem
+		(instance Hammer of InventoryItem
 			(properties
 				view 900
 				loop 1
@@ -29,97 +29,10 @@
 (use "ScrollableInventory")
 (use "ScrollInsetWindow")
 (use "Print")
-(use "IconI")
-(use "InvI")
+(use "IconItem")
+(use "InventoryItem")
 (use "Obj")
 (script INVENTORY_SCRIPT)
-
-/*
-	This extends class:`InvI` and adds the ability to automatically print messages (for the *look* and *do* verbs) that include a visual representation of the inventoy item.
-*/
-(class InvItem of InvI
-    (properties
-        view 0
-        loop 0
-        cel 0
-        nsLeft 0
-        nsTop 0
-        nsRight 0
-        nsBottom 0
-        state $0000
-        cursor 999
-        type evVERB
-        message 0
-        modifiers $0000
-        signal $0000
-        maskView 0
-        maskLoop 0
-        maskCel 0
-        highlightColor 0
-        lowlightColor 0
-        noun 0
-        modNum 0
-        helpVerb 0
-        owner 0
-        script 0
-        value 0
-    )
-
-    (method (doVerb theVerb)
-        (var temp0, temp1)
-        (if (not modNum)
-            = modNum gModNum
-        )
-        (switch (theVerb)
-            (case V_LOOK
-                (if (Message(msgSIZE modNum noun V_LOOK 0 1))
-                    = temp1 CelWide(view loop cel)
-                    = temp0 GetPort()
-                    (Print:
-                        addIcon(view loop cel 0 0)
-                        addText(noun V_LOOK 0 1 (+ temp1 4) 0 modNum)
-                        init()
-                    )
-                    SetPort(temp0)
-                )
-            )
-            (case V_DO
-                (if (Message(msgSIZE modNum noun V_DO 0 1))
-                    = temp0 GetPort()
-                    (Print:
-                        addText(noun V_DO 0 0 0 0 modNum)
-                        init()
-                    )
-                    SetPort(temp0)
-                )(else
-                    = temp0 GetPort()
-                    (Print:
-                        addText(0 V_DO 0 0 0 0 modNum)
-                        init()
-                    )
-                    SetPort(temp0)
-                )
-            )
-            (default 
-                (if (Message(msgSIZE modNum noun theVerb 0 1))
-                    = temp0 GetPort()
-                    (Print:
-                        addText(noun theVerb 0 0 0 0 modNum)
-                        init()
-                    )
-                    SetPort(temp0)
-                )(else
-                    = temp0 GetPort()
-                    (Print:
-                        addText(0 7 0 0 0 0 modNum)
-                        init()
-                    )
-                    SetPort(temp0)
-                )
-            )
-        )
-    )
-)
 
 (instance templateInventory of ScrollableInventory
     (properties)
@@ -188,7 +101,7 @@
     )
 
 )
-(instance invUp of IconI
+(instance invUp of IconItem
     (properties
         view 991
         loop 5
@@ -210,7 +123,7 @@
     )
 
 )
-(instance invDown of IconI
+(instance invDown of IconItem
     (properties
         view 991
         loop 6
@@ -232,7 +145,7 @@
     )
 
 )
-(instance ok of IconI
+(instance ok of IconItem
     (properties
         view 991
         loop 3
@@ -244,7 +157,7 @@
         helpVerb V_HELP
     )
 )
-(instance invLook of IconI
+(instance invLook of IconItem
     (properties
         view 991
         loop 2
@@ -257,7 +170,7 @@
         helpVerb V_HELP
     )
 )
-(instance invHand of IconI
+(instance invHand of IconItem
     (properties
         view 991
         loop 0
@@ -269,7 +182,7 @@
         helpVerb V_HELP
     )
 )
-(instance invHelp of IconI
+(instance invHelp of IconItem
     (properties
         view 991
         loop 1
@@ -281,7 +194,7 @@
         helpVerb V_HELP
     )
 )
-(instance invSelect of IconI
+(instance invSelect of IconItem
     (properties
         view 991
         loop 4
@@ -295,7 +208,7 @@
 
 // Declare inventory items here.
 /*
-(instance Money of InvItem
+(instance Money of InventoryItem
     (properties
         view 900
         loop 1

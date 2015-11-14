@@ -1,3 +1,4 @@
+// Contains the Smopper cycler, which is used if you need to specify stopped, slowing and starting views in addition to in-motion views.
 (version 2)
 (include "sci.sh")
 (exports

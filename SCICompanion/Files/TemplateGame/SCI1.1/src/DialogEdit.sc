@@ -176,8 +176,9 @@
     (method (init)
         (super:init(@local200))
     )
-
 )
+
+// Nodoc
 (class DlgWindow of SysWindow
     (properties
         top 0
@@ -331,9 +332,10 @@
         )
         (self:create())
     )
-
 )
-(class _DItem of GUIControl
+
+// Nodoc
+(class _DItem of Control
     (properties
         type $0000
         state $0000
@@ -356,9 +358,9 @@
     (method (select param1)
         (self:hide())
         (if (param1)
-            = state (| state $0008)
+            = state (| state csSELECTED)
         )(else
-            = state (& state $fff7)
+            = state (& state (bnot csSELECTED))
         )
         (self:draw())
     )
@@ -367,7 +369,7 @@
     (method (handleEvent pEvent)
         (var temp0)
         = temp0 0
-        (send pEvent:claimed(1))
+        (send pEvent:claimed(TRUE))
         = temp0 (self:track(pEvent))
     )
 
@@ -454,8 +456,9 @@
             )
         )
     )
-
 )
+
+// Nodoc
 (class _DText of _DItem
     (properties
         type $0002
@@ -641,8 +644,9 @@
             )
         )
     )
-
 )
+
+// Nodoc
 (class _DIcon of _DItem
     (properties
         type $0004
@@ -749,8 +753,9 @@
             draw()
         )
     )
-
 )
+
+// Nodoc
 (class _DButton of _DItem
     (properties
         type $0001
@@ -884,8 +889,9 @@
             = value theValue
         )
     )
-
 )
+
+// Nodoc
 (class _DEdit of _DItem
     (properties
         type $0003
@@ -990,8 +996,9 @@
             draw()
         )
     )
-
 )
+
+// Nodoc
 (class _DSelector of _DItem
     (properties
         type $0006
@@ -1079,6 +1086,8 @@
 )
 
 /*
+	Invokes the in-game Dialog Editor.
+	
 	Example usage::
 	
 		(DialogEditor:doit())
@@ -1144,7 +1153,7 @@
             (case evMOUSEBUTTON
                 = theCurItem (self:firstTrue(#check pEvent))
                 (if (theCurItem)
-                    (send pEvent:claimed(1))
+                    (send pEvent:claimed(TRUE))
                     (if (== (send pEvent:modifiers) emSHIFT)
                         (send theCurItem:handleEvent(pEvent))
                     )(else

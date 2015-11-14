@@ -25,19 +25,28 @@
         )
 )
 
+/*
+.. function:: IsFacing(targetObj [lookerObj theAngle theDistance])
 
-(procedure public (IsFacing theObj theTheGEgo param3 param4)
-    (var theGEgo, temp1, temp2, objX, objY, theGEgoX, theGEgoY)
+	Determines if an object is facing another.
+	
+	:param heapPtr targetObj: The object in question.
+	:param heapPtr lookerObj: The object we are asking, or the ego if not specified.
+	:param number theAngle: The angle the looker object is looking, or lookerObj:sightAngle if not supplied.
+	:param number theDistance: An optional distance limit.
+*/
+(procedure public (IsFacing theObj theTheGEgo theAngle theDistance)
+    (var theGEgo, angleTemp, distanceTemp, objX, objY, theGEgoX, theGEgoY)
     = theGEgo theTheGEgo
-    = temp1 param3
-    = temp2 param4
+    = angleTemp theAngle
+    = distanceTemp theDistance
     (if (< paramTotal 4)
-        = temp2 32767
+        = distanceTemp 32767
         (if (< paramTotal 3)
             (if (< paramTotal 2)
                 = theGEgo gEgo
             )
-            = temp1 (- 360 
+            = angleTemp (- 360 
                 (if (== theGEgo gEgo)
                     (* 2 (send theGEgo:sightAngle))
                 )(else
@@ -51,9 +60,9 @@
     = theGEgoX (send theGEgo:x)
     = theGEgoY (send theGEgo:y)
     return 
-        (if (not (<> theObj theGEgo) or (< (/ temp1 2) Abs(AngleDiff(GetAngle(theGEgoX theGEgoY objX objY) (send theGEgo:heading)))))
+        (if (not (<> theObj theGEgo) or (< (/ angleTemp 2) Abs(AngleDiff(GetAngle(theGEgoX theGEgoY objX objY) (send theGEgo:heading)))))
         )(else
-            < temp2 GetDistance(theGEgoX theGEgoY objX objY gPicAngle)
+            < distanceTemp GetDistance(theGEgoX theGEgoY objX objY gPicAngle)
         )
 )
 

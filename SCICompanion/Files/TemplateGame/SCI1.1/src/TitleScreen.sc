@@ -59,7 +59,7 @@
         (if ((<> (rmScript:state) 1) and (& (send pEvent:type) (| evVERB (| (| evMOUSEBUTTON evMOUSERELEASE) evKEYBOARD))) )
         	// Skip to state 4 if the keyboard or mouse is used
             (rmScript:changeState(1))
-            (send pEvent:claimed(1))
+            (send pEvent:claimed(TRUE))
             return 
         )(else
             (super:handleEvent(pEvent))
@@ -84,7 +84,7 @@
                     dialog(myDialog)
                     font(gFont)
                     width(150)
-                    mode(1)
+                    mode(alCENTER)
                     addText(N_TITLEMENU V_LOOK 0 4 0 0 0)
                     addText(N_TITLEMENU V_LOOK 0 5 0 10 0)
                     addColorButton(0 N_TITLEMENU V_LOOK 0 1 0 20 0 0 15 23 5 5 5)

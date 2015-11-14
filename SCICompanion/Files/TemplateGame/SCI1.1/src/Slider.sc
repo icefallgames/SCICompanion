@@ -1,14 +1,14 @@
 (version 2)
 (include "sci.sh")
 (include "game.sh")
-(use "IconI")
+(use "IconItem")
 (use "Obj")
 (script SLIDER_SCRIPT)
 
 /*
 	This is used for slider controls in the GUI, such as a volume slider or game speed slider.
 */
-(class Slider of IconI
+(class Slider of IconItem
     (properties
         view -1
         loop -1
@@ -47,15 +47,20 @@
         topValue 0
     )
 
-    (method (doit param1)
+    (method (doit sendParams)
         (if (theObj)
-            Perform(theObj selector rest param1)
+            Perform(theObj selector rest sendParams)
         )
     )
 
-
-    (method (show param1)
-        (super:show(rest param1))
+	/*
+	.. function:: show([left top])
+	
+		:param number left: Optional parameter to set left position of slider.
+		:param number top: Optional parameter to set top position of slider.
+	*/
+    (method (show sendParams)
+        (super:show(rest sendParams))
         (if (not sRight)
             = sLeft nsLeft
             = sRight nsRight
@@ -68,10 +73,10 @@
     )
 
 
-    (method (select param1)
+    (method (select fSelect)
         (var newEvent)
         return 
-            (if (paramTotal and param1)
+            (if (paramTotal and fSelect)
                 (while (<> (send ((= newEvent (Event:new()))):type) 2)
                     (send newEvent:localize())
                     (if (< (send newEvent:y) (- sTop yStep))
@@ -113,15 +118,15 @@
     )
 
 
-    (method (move param1 param2)
+    (method (move delta passValue)
         (var temp0, temp1, temp2, temp3, temp4, temp5, temp6, temp7)
         = temp7 
             (if (not paramTotal)
             )(else
-                param2
+                passValue
             )
-        = temp5 Sign(param1)
-        = temp4 param1
+        = temp5 Sign(delta)
+        = temp4 delta
         (while (<= yStep Abs(temp4))
             = temp0 (- sTop (* temp5 yStep))
             = temp1 CelHigh(sliderView sliderLoop sliderCel)
@@ -154,11 +159,11 @@
     )
 
 
-    (method (valueToPosn param1)
+    (method (valueToPosn theValue)
         (var temp0)
         = temp0 
             (if (paramTotal)
-                param1
+                theValue
             )(else
                 (self:doit())
             )
@@ -183,8 +188,8 @@
     )
 
 
-    (method (posnToValue param1)
-        return + bottomValue (/ (* (- maxY param1) (- topValue bottomValue)) (- maxY minY))
+    (method (posnToValue position)
+        return + bottomValue (/ (* (- maxY position) (- topValue bottomValue)) (- maxY minY))
     )
 
 )

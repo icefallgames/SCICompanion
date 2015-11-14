@@ -4,7 +4,29 @@
 (script 993)
 
 
-// This class encapsulates reading and writing to a file.
+/*
+	This class encapsulates reading and writing to a file.
+	
+	Example usage::
+	
+		(var myFile)
+
+		= myFile (File:new())
+		(if ((send newFile:
+			name("myfile.txt")
+			open(fOPENFAIL)
+			 ))
+			 
+			 // Read stuff from file, etc...
+		)
+
+		// Close the file.
+		(send newFile:
+			close()
+			dispose()
+		)
+			
+*/
 (class File of Obj
     (properties
         handle 0

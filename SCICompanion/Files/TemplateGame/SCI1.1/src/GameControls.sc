@@ -3,7 +3,7 @@
 (include "game.sh")
 (use "Main")
 (use "Print")
-(use "IconI")
+(use "IconItem")
 (script CONTROLSBASE_SCRIPT)
 
 /*
@@ -88,7 +88,7 @@
             = window 0
         )
         (if (& state $0020)
-            (send gSounds:pause(0))
+            (send gSounds:pause(FALSE))
             = state (& state $ffdf)
         )
     )
@@ -186,9 +186,9 @@
 )
 
 /*
-	Extends :class:`IconI` by having a object and selector.
+	Extends :class:`IconItem` by having a object and selector.
 */
-(class ControlIcon of IconI
+(class ControlIcon of IconItem
     (properties
         view -1
         loop -1

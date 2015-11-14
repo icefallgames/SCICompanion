@@ -6,7 +6,7 @@
 
 /*
 	Provides a way to compactly store a bunch of boolean flags, in the same
-	manner as :func:`Btest`, :func:`Bset` and func:`Bclear`.
+	manner as :func:`Btest`, :func:`Bset` and :func:`Bclear`.
 */
 (class Flags of Obj
     (properties
@@ -29,7 +29,7 @@
         (super:dispose())
     )
 
-
+	// Sets the maximum number of flags.
     (method (setSize param1)
         (var temp0, temp1)
         = temp0 (/ param1 16)
@@ -45,34 +45,34 @@
         )
     )
 
-
-    (method (set param1)
+	// Sets a flag (or multiple flags).
+    (method (set theFlag)
         (var temp0, temp1)
         (while (paramTotal)
-            = temp1 (* (/ param1[--paramTotal] 16) 2)
+            = temp1 (* (/ theFlag[--paramTotal] 16) 2)
             = temp0 Memory(memPEEK (+ array temp1))
-            = temp0 (| temp0 (>> $8000 (% param1[paramTotal] 16)))
+            = temp0 (| temp0 (>> $8000 (% theFlag[paramTotal] 16)))
             Memory(memPOKE + array temp1 temp0)
         )
     )
 
-
-    (method (clear param1)
+	// Clears a flag (or multiple flags).
+    (method (clear theFlag)
         (var temp0, temp1)
         (while (paramTotal)
-            = temp1 (* (/ param1[--paramTotal] 16) 2)
+            = temp1 (* (/ theFlag[--paramTotal] 16) 2)
             = temp0 Memory(memPEEK (+ array temp1))
-            = temp0 (& temp0 bnot (>> $8000 (% param1[paramTotal] 16)))
+            = temp0 (& temp0 bnot (>> $8000 (% theFlag[paramTotal] 16)))
             Memory(memPOKE + array temp1 temp0)
         )
     )
 
-
-    (method (test param1)
+	// Returns TRUE if the flag is set.
+    (method (test theFlag)
         (var temp0, temp1)
-        = temp1 (* (/ param1 16) 2)
+        = temp1 (* (/ theFlag 16) 2)
         = temp0 Memory(memPEEK (+ array temp1))
-        return & temp0 (>> $8000 (% param1 16))
+        return & temp0 (>> $8000 (% theFlag 16))
     )
 
 )

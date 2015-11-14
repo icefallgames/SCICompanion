@@ -76,7 +76,7 @@
                 (if (prevDir)
                     (self:doit())
                 )(else
-                    (send pEvent:claimed(0))
+                    (send pEvent:claimed(FALSE))
                     return 
                 )
             )(else
@@ -86,7 +86,7 @@
                     (self:stop())
                 )
             )
-            (send pEvent:claimed(1))
+            (send pEvent:claimed(TRUE))
             return 
         )
     )

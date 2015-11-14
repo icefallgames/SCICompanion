@@ -13,7 +13,7 @@
 	Door offers support for automatically managing the open and close state of the door, and optionally
 	offering access to another room.
 	
-	Example usage::
+	Example definition::
 	
 		(instance frontDoor of Door
 			(properties
@@ -76,13 +76,13 @@
         timer 0
         detailLevel 0
         scaler 0
-        entranceTo 0
-        locked 0
-        lockedCase 0
-        openSnd 0
-        closeSnd 0
-        openVerb 0
-        listenVerb 0
+        entranceTo 0			// Entrance to which room?
+        locked 0				// Is the door locked?
+        lockedCase 0			// The message condition to use when displaying a "locked" message.
+        openSnd 0				// Open sound number.
+        closeSnd 0				// Close sound number.
+        openVerb 0				// The verb to use for opening and closing the door.
+        listenVerb 0			// The verb to use for listening.
         doubleDoor 0
         forceOpen 0
         forceClose 1
@@ -94,7 +94,7 @@
         closeScript 0
         openScript 0
         doorPoly 0
-        polyAdjust 5
+        polyAdjust 5			// Amount to inflate base rect when creating a polygon.
     )
 
     (method (init)
@@ -264,7 +264,7 @@
         )
     )
 
-
+	// Opens the door if it's not locked.
     (method (open)
         (if (locked)
             (if (== modNum -1)
@@ -289,7 +289,7 @@
         )
     )
 
-
+	// Closes the door.
     (method (close)
         = state 3
         (self:setCycle(Beg self))
@@ -304,25 +304,31 @@
         )
     )
 
-
+	// Override this method in your door instance to provide logic for listening.
     (method (listen)
     )
 
-
-    (method (createPoly param1)
+	/*
+	.. function:: createPoly([polyPoints])
+	
+		Adds a :class:`Polygon` for the door to the gAltPolyList.
+		
+		:param number polyPoints: A list of points for the polygon. If none are provided, the Door's base rect is used.
+	*/
+    (method (createPoly polyPoints)
         = doorPoly (send ((Polygon:new())):
                 type(PBarredAccess)
                 yourself()
             )
         (if (paramTotal)
-            (send doorPoly:init(rest param1))
+            (send doorPoly:init(rest polyPoints))
         )(else
             (send doorPoly:init((- brLeft polyAdjust) (+ brBottom polyAdjust) (- brLeft polyAdjust) (- brTop polyAdjust) (+ brRight polyAdjust) (- brTop polyAdjust) (+ brRight polyAdjust) (+ brBottom polyAdjust)))
         )
         (send gAltPolyList:add(doorPoly))
     )
-
 )
+
 (instance doorSound of Sound
     (properties
         flags $0001

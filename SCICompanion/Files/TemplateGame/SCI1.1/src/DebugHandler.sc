@@ -18,7 +18,7 @@
 (use "User")
 (use "Actor")
 (use "Obj")
-(use "InvI")
+(use "InventoryItem")
 (use "DialogControls")
 (script INGAME_DEBUG_SCRIPT)
 
@@ -60,7 +60,7 @@
         return 
             (switch ((send pEvent:type))
                 (case evKEYBOARD
-                    (send pEvent:claimed(1))
+                    (send pEvent:claimed(TRUE))
                     (switch ((send pEvent:message))
                         (case KEY_ALT_a
                         	// Show cast
@@ -343,7 +343,7 @@
                             TextPrint("Debug options:      (Page 5 of 5)\n\n  A=Alt, C=Ctrl, L=Left shift, R=Right shift\n\n  Left click:\n    A       Move ego\n    CL      Show ego\n    CR      Show room\n    CA      Show position\n")
                         )
                         (default 
-                            (send pEvent:claimed(0))
+                            (send pEvent:claimed(FALSE))
                         )
                     )
                 )
@@ -351,7 +351,7 @@
                     (switch ((send pEvent:modifiers))
                         (case (| emCTRL emALT)
 	                    	// Show mouse pos?
-                            (send pEvent:claimed(1))
+                            (send pEvent:claimed(TRUE))
                             Format(@temp0 10 4 (send pEvent:x) (send pEvent:y))
                             = temp160 (Print:
                                     posn(160 10)
@@ -381,7 +381,7 @@
                             (self:handleEvent(pEvent))
                         )
                         (case emALT
-                            (send pEvent:claimed(1))
+                            (send pEvent:claimed(TRUE))
                             = temp178 (send gGame:setCursor(996))
                             = userAlterEgo (User:alterEgo)
                             = gOldCastFirst (send userAlterEgo:signal)
@@ -439,7 +439,7 @@
         (while (curInvItem)
             = temp6 NodeValue(curInvItem)
             ++temp3
-            (if ((send temp6:isKindOf(InvI)))
+            (if ((send temp6:isKindOf(InventoryItem)))
                 = newDText (DText:new())
                 (self:add((send newDText:
                         value(temp6)

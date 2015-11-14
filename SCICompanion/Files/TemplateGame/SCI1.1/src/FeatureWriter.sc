@@ -176,7 +176,7 @@
 
 (procedure (localproc_0714 param1)
     (send newFile:
-        name(@global42)
+        name(@gDebugFilename)
         writeString(param1)
         close()
     )
@@ -201,7 +201,7 @@
             (if (not EditPrint(@temp0 30 "Enter path and filename"))
                 return 
             )(else
-                Format(@global42 @temp0)
+                Format(@gDebugFilename @temp0)
                 = local388 (Print:
                         addText("Outline Features?")
                         addTitle("Feature Write V1.0")
@@ -268,15 +268,16 @@
         (FeatureSaver:doit(temp15))
         = gWindow theWindow
     )
-
 )
+
+// Nodoc
 (class FeatureSaver
     (properties)
 
     (method (doit param1)
         (var temp0[400], temp400[40], temp440[50], temp490, temp491, temp492[60], temp552[40], temp592[12], temp604, temp605, temp606, temp607[20], newFeature, temp628)
-        (if (FileIO(fiEXISTS @global42))
-            Format(@temp492 "The file '%s' already exists" @global42)
+        (if (FileIO(fiEXISTS @gDebugFilename))
+            Format(@temp492 "The file '%s' already exists" @gDebugFilename)
             = temp491 (Print:
                     addText(@temp492)
                     addButton(1 "Replace" 0 20)
@@ -296,11 +297,11 @@
             )
         = newFile (File:new())
         (if (not (send newFile:
-            name(@global42)
+            name(@gDebugFilename)
             open(temp490)
         )
-)
-            Format(@temp0 "Error opening '%s'" @global42)
+			)
+            Format(@temp0 "Error opening '%s'" @gDebugFilename)
             TextPrint(@temp0)
             (send newFile:dispose())
             return 0
@@ -470,7 +471,7 @@
                 StrAt(cursor 0 62)
             )
             (self:draw())
-            (send pEvent:claimed(1))
+            (send pEvent:claimed(TRUE))
         )
         (send pEvent:claimed)
     )

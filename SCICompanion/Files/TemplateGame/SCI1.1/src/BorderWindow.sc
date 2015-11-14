@@ -86,6 +86,9 @@
     )
 )
 
+/*
+	Inset window extends :class:`BorderWindow` by providing an inner border in addition to and outer border.
+*/
 (class InsetWindow of BorderWindow
     (properties
         top 0

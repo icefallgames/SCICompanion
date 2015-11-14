@@ -111,10 +111,16 @@
         )
     )
 
-	// Pauses the sound.
-    (method (pause param1)
+	/*
+	.. function:: pause([fPause])
+	
+		Pauses or unpauses the sound.
+		
+		:param boolean fPause: If TRUE or unspecified, the sound is paused. Otherwise it is unpaused.
+	*/
+    (method (pause fPause)
         (if (not paramTotal)
-            = param1 1
+            = fPause 1
         )
         DoSound(sndPAUSE 
             (if ((self:isMemberOf(Sound)))
@@ -122,15 +128,15 @@
             )(else
                 0
             )
- 			param1)
+ 			fPause)
     )
 
 
-    (method (hold param1)
+    (method (hold fHold)
         (if (not paramTotal)
-            = param1 1
+            = fHold 1
         )
-        DoSound(sndSET_HOLD self param1)
+        DoSound(sndSET_HOLD self fHold)
     )
 
 
@@ -182,14 +188,14 @@
         )
     )
 
-
-    (method (setVol param1)
-        DoSound(sndSET_VOLUME self param1)
+	// Sets the sound volume (0 - 127).
+    (method (setVol theVolume)
+        DoSound(sndSET_VOLUME self theVolume)
     )
 
-
-    (method (setPri param1)
-        DoSound(sndSET_PRIORITY self param1)
+	// Sets the sound priority.
+    (method (setPri thePri)
+        DoSound(sndSET_PRIORITY self thePri)
     )
 
 	/*
@@ -225,12 +231,11 @@
     )
 
 
-    (method (clean param1)
-        (if (not owner or (== owner param1))
+    (method (clean theOwner)
+        (if (not owner or (== owner theOwner))
             (self:dispose())
         )
     )
-
 
     (method (playBed theClient)
         (var theParamTotal)

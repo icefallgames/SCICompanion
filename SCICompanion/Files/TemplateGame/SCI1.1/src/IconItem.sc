@@ -2,7 +2,6 @@
 (include "sci.sh")
 (use "Main")
 (use "Print")
-(use "Tutorial")
 (use "Obj")
 (script 937)
 
@@ -10,7 +9,7 @@
 /*
 	An icon that represents an action. These are used, for instance, in the main icon bar, or in the inventory dialog.
 */
-(class IconI of Obj
+(class IconItem of Obj
     (properties
         view -1					// The view for the icon
         loop -1					// The loop for the icon
@@ -35,6 +34,12 @@
         helpVerb 0
     )
 
+	/*
+	.. function:: show([left top])
+	
+		:param number left: Optional parameter to set left position of icon.
+		:param number top: Optional parameter to set top position of icon.
+	*/
     (method (show theNsLeft theNsTop)
         (var temp0[7])
         = signal (| signal icVISIBLE)
@@ -88,29 +93,9 @@
                         Graph(grUPDATE_BOX nsTop nsLeft nsBottom nsRight 1)
                     )
                     = gGameScript (send gGame:script)
-                    (if (gGameScript and (send gGameScript:isKindOf(Tutorial)))
-                        (if ((== (send gGameScript:nextItem) self) and (<> (send gGameScript:nextAction) (send ((send gIconBar:helpIconItem)):message)))
-                            (send gGameScript:cue())
-                        )(else
-                            (if (not temp1)
-                                return 0
-                            )(else
-                                (send gGameScript:report())
-                                return 0
-                            )
-                        )
-                    )
                     temp1
                 )(else
                     = gGameScript (send gGame:script)
-                    (if (gGameScript and (send gGameScript:isKindOf(Tutorial)))
-                        (if ((== (send gGameScript:nextItem) self) and (<> (send gGameScript:nextAction) (send ((send gIconBar:helpIconItem)):message)))
-                            (send gGameScript:cue())
-                        )(else
-                            (send gGameScript:report())
-                            return 0
-                        )
-                    )
                     1
                 )
             )
@@ -193,9 +178,6 @@
                 (send gNewSet:eachElementDo(#doit))
             )
             = gGameScript (send gGame:script)
-            (if (gGameScript and (send gGameScript:isKindOf(Tutorial)))
-                (send gGameScript:doit())
-            )
             (if (== temp1 256)
                 = temp1 evKEYBOARD
                 = temp2 
@@ -283,12 +265,12 @@
                             (if ((send gUser:canControl()))
                                 (self:swapCurIcon())
                             )
-                            (send pEvent:claimed(1))
+                            (send pEvent:claimed(TRUE))
                         )
                         (case JOY_NULL
                             (if (& (send pEvent:type) evJOYSTICK)
                                 (self:advanceCurIcon())
-                                (send pEvent:claimed(1))
+                                (send pEvent:claimed(TRUE))
                             )
                         )
                     )
@@ -296,13 +278,13 @@
                     (if (& pEventType evMOUSEBUTTON)
                         (if (& (send pEvent:modifiers) emSHIFT)
                             (self:advanceCurIcon())
-                            (send pEvent:claimed(1))
+                            (send pEvent:claimed(TRUE))
                         )(else
                             (if (& (send pEvent:modifiers) emCTRL)
                                 (if ((send gUser:canControl()))
                                     (self:swapCurIcon())
                                 )
-                                (send pEvent:claimed(1))
+                                (send pEvent:claimed(TRUE))
                             )(else
                                 (if (IsObject(curIcon))
                                     (send pEvent:
@@ -375,7 +357,7 @@
     (method (hide)
         (var temp0, temp1, temp2)
         (if (& state $0020)
-            (send gSounds:pause(0))
+            (send gSounds:pause(FALSE))
             = state (& state $ffdf)
             = temp0 FirstNode(elements)
             (while (temp0)

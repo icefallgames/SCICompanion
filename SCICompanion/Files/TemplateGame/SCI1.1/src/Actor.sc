@@ -13,49 +13,69 @@
 
 
 /*
-	The View class is an essential part of SCI games. It is the base for the sprite, animation, and character handlers in your game.
+	The View class is an essential part of SCI games. It is the base class for :class:`Prop`, class:`Actor` and the like.
 	It extends :class:`Feature` by providing the ability to be dynamically positioned at different places, and by automatically setting
-	its bounds based on its view, loop and cel.
+	its bounds based on its view, loop and cel. It is often (though not exclusively) used to add static views to the background, via
+	its addToPic method.
+	
+	Example definition::
+	
+		(instance ship of View
+			(properties
+				x 6
+				y 92
+				noun N_SHIP
+				view 113
+				loop 2
+				cel 1
+				signal ignAct	// Don't interact with Actors
+			)
+		)
+	
+	Example initialization::
+	
+		(ship:init())
+
 */
 (class View of Feature
     (properties
-        x 0					// Use :func:`posn` to set the position.
-        y 0
-        z 0
-        heading 0
-        noun 0
-        modNum -1
-        nsTop 0
+        x 0					// x position. See posn().
+        y 0					// y position. See posn().
+        z 0					// z position. See posn().
+        heading 0			// The angle direction the View faces.
+        noun 0				// The noun for the View (for messages).
+        modNum -1			// Module number (for messages)
+        nsTop 0				// "Now seen" rect. The visual bounds of the View.
         nsLeft 0
         nsBottom 0
         nsRight 0
         sightAngle $6789
         actions 0
-        onMeCheck omcDISABLE
+        onMeCheck omcDISABLE	// The type of onMe checks that are done.
         state $0000
-        approachX 0
-        approachY 0
-        approachDist 0
-        _approachVerbs 0
-        yStep 2				// The amount the view moves vertically each step.
-        view -1
-        loop 0
-        cel 0
-        priority 0
+        approachX 0			// The approach spot x.
+        approachY 0			// The approach spot y.
+        approachDist 0		// The approach distance.
+        _approachVerbs 0	// Bitmask indicating which verbs cause the ego to approach.
+        yStep 2				
+        view -1				// The view number for View.
+        loop 0				// The loop of the View.
+        cel 0				// The cel of the View.
+        priority 0			// The priority of the View.
         underBits 0
         signal $0101
-        lsTop 0
+        lsTop 0				// The "last seen" rect.
         lsLeft 0
         lsBottom 0
         lsRight 0
-        brTop 0
+        brTop 0				// The "base rect".
         brLeft 0
         brBottom 0
         brRight 0
         scaleSignal $0000
-        scaleX 128
-        scaleY 128
-        maxScale 128
+        scaleX 128			// Current x scale.
+        scaleY 128			// Current y scale.
+        maxScale 128		// Max scale.
     )
 
     (method (init)
@@ -146,7 +166,11 @@
         )
     )
 
-	// Sets the position of the View and updates its base rectangle.
+	/*
+	.. function:: posn(theX theY [theZ])
+	
+		Sets the position of the View and updates its base rectangle.
+	*/
     (method (posn theX theY theZ)
         (if (>= paramTotal 1)
             = x theX
@@ -211,18 +235,18 @@
     )
 
 	// Sets the cel of the View.
-    (method (setCel param1)
+    (method (setCel theCel)
         (if (== paramTotal 0)
             0
         )(else
-            (if (== param1 -1)
+            (if (== theCel -1)
                 0
             )(else
                 = cel 
-                    (if (>= param1 (self:lastCel()))
+                    (if (>= theCel (self:lastCel()))
                         (self:lastCel())
                     )(else
-                        param1
+                        theCel
                     )
             )
         )
@@ -334,52 +358,74 @@
 		- attach Scripts
 		- attach a Scaler
 
+	Example definition::
+	
+		(instance monitor of Prop
+			(properties
+				x 13
+				y 161
+				noun N_MONITOR
+				view 1142
+				loop 1
+				priority 15
+				signal fixPriOn
+				cycleSpeed 14
+			)
+		)
+		
+	Example initialization::
+	
+		(monitor:
+			init()
+			setCycle(Fwd)
+			setScript(sPlayMC)
+		)
 */
 (class Prop of View
     (properties
-        x 0
-        y 0
-        z 0
-        heading 0
-        noun 0
-        modNum -1
-        nsTop 0
+        x 0								// x position. See posn().
+        y 0								// y position. See posn().
+        z 0								// z position. See posn().
+        heading 0						// The angle direction the Prop faces.
+        noun 0							// The noun for the Prop (for messages).
+        modNum -1						// Module number (for messages)
+        nsTop 0							// "Now seen" rect. The visual bounds of the Prop.
         nsLeft 0
         nsBottom 0
         nsRight 0
         sightAngle $6789
         actions 0
-        onMeCheck omcDISABLE
+        onMeCheck omcDISABLE			// The type of onMe checks that are done.
         state $0000
-        approachX 0
-        approachY 0
-        approachDist 0
-        _approachVerbs 0
+        approachX 0						// The approach spot x.
+        approachY 0						// The approach spot y.
+        approachDist 0					// The approach distance.
+        _approachVerbs 0				// Bitmask indicating which verbs cause the ego to approach.
         yStep 2
-        view -1
-        loop 0
-        cel 0
-        priority 0
+        view -1							// The view for Prop.
+        loop 0							// Loop for the Prop.
+        cel 0							// Current cel of the Prop.
+        priority 0						// Priority screen value of the Prop.
         underBits 0
         signal $0000
-        lsTop 0
+        lsTop 0							// The "last seen" rect...
         lsLeft 0
         lsBottom 0
         lsRight 0
-        brTop 0
+        brTop 0							// The "base rect", used for collison detection.
         brLeft 0
         brBottom 0
         brRight 0
         scaleSignal $0000
-        scaleX 128
-        scaleY 128
-        maxScale 128
-        cycleSpeed 6
-        script 0
-        cycler 0
+        scaleX 128						// Current x scale.
+        scaleY 128						// Current y scale.
+        maxScale 128					// Max scale.
+        cycleSpeed 6					// How quickly the Prop animation cycles.
+        script 0						// Arbitrary :class:`Script` object.
+        cycler 0						// :class:`Cycle` attached to the Prop.
         timer 0
         detailLevel 0
-        scaler 0
+        scaler 0						// :class:`Scaler` object attached to the Prop.
     )
 
     (method (doit)
@@ -462,7 +508,7 @@
 	
 	.. function:: setScale(scale)
 	
-		Provides various ways to control the scaling of a Prop. See :class:`Scale` and :class:`ScaleTo`.
+		Provides various ways to control the scaling of a Prop. See :class:`Scaler` and :class:`ScaleTo`.
 	
 		Example usage for attaching a dynamic scaler::
 		
@@ -573,65 +619,86 @@
 /*
 	Actor is the base class for moving objects in your game. It extends :class:`Prop` by providing the following additional capabilities:
 	
-		- A mover property that is responsible for controlling how the Actor moves.
+		- A mover property that is responsible for controlling how the Actor moves. This is assigned with setMotion().
 		- An optional Avoider that makes the Actor avoid objects.
 		- Optional "blocks" that indicate areas the Actor can or can't be.
+		
+	Example definition::
+	
+		(instance wd40 of Actor
+			(properties
+				x 20
+				y 20
+				noun N_ROBOT
+				view 400
+				loop 8
+				signal ignAct
+			)
+		)
+
+	Example initialization::
+	
+		(wd40:
+			init()
+			setMotion(PolyPath 127 128)
+		)
+
 */
 (class Actor of Prop
     (properties
-        x 0
-        y 0
-        z 0
-        heading 0
-        noun 0
-        modNum -1
-        nsTop 0
+        x 0						// x position. See posn().
+        y 0						// y position. See posn().
+        z 0						// z position. See posn().
+        heading 0				// The angle direction the Actor faces.
+        noun 0					// The noun for the Actor (for messages).
+        modNum -1				// Module number (for messages)
+        nsTop 0					// "Now seen" rect. The visual bounds of the Actor.
         nsLeft 0
         nsBottom 0
         nsRight 0
         sightAngle $6789
         actions 0
-        onMeCheck omcDISABLE
+        onMeCheck omcDISABLE	// The type of onMe checks that are done.
         state $0000
-        approachX 0
-        approachY 0
-        approachDist 0
-        _approachVerbs 0
-        yStep 2
-        view -1
+        approachX 0				// The approach spot x.
+        approachY 0				// The approach spot y.
+        approachDist 0			// The approach distance.
+        _approachVerbs 0		// Bitmask indicating which verbs cause the ego to approach.
+        yStep 2					// The number of pixels moved in the y direction each cycle.
+        view -1					// The view for Actor.
         loop 0
         cel 0
         priority 0
         underBits 0
         signal $0000
-        lsTop 0
+        lsTop 0					// The "last seen" rect...
         lsLeft 0
         lsBottom 0
         lsRight 0
-        brTop 0
+        brTop 0					// The "bounds rect" (near the feet of the Actor).
         brLeft 0
         brBottom 0
         brRight 0
         scaleSignal $0000
-        scaleX 128
-        scaleY 128
-        maxScale 128
-        cycleSpeed 6
-        script 0
-        cycler 0
+        scaleX 128				// Current x scale.
+        scaleY 128				// Current y scale.
+        maxScale 128			// Max scale.
+        cycleSpeed 6			// How quickly the Actor animation cycles.
+        script 0				// Arbitrary :class:`Script` object.
+        cycler 0				// :class:`Cycle` attached to the Actor.
         timer 0
         detailLevel 0
-        scaler 0
+        scaler 0				// :class:`Scaler` object attached to the Actor.
         illegalBits $8000
         xLast 0
         yLast 0
         xStep 3
         origStep 770
-        moveSpeed 6
+        moveSpeed 6				// How quickly the Actor moves.
         blocks 0
         baseSetter 0
-        mover 0
-        looper 0
+        mover 0					// The :class:`Motion` object attached to the Actor.
+        looper 0				// Optional looper code.
         viewer 0
         avoider 0
         code 0
@@ -705,11 +772,15 @@
         = yLast y
     )
 
-	// Sets the position of the Actor.
-    (method (posn theXLast theYLast param3)
-        (super:posn(theXLast theYLast rest param3))
-        = xLast theXLast
-        = yLast theYLast
+	/*
+	.. function:: posn(theX theY [theZ])
+		
+		Sets the position of the Actor.
+	*/
+    (method (posn theX theY theZ)
+        (super:posn(theX theY rest theZ))
+        = xLast theX
+        = yLast theY
     )
 
 	/*
@@ -815,10 +886,14 @@
     )
 
 	/*
-		Assigns a mover object to the Actor. Movers control the Actor's motion, whether it be via
+		Assigns a mover object to the Actor. The mover is initialized with the Actor and any
+		sendParams that have been provided.
+		
+		:param theMover: A class name, or an instance that inherits from :class:`Motion`.
+		:param sendParams: Any params that should be forwarded to the mover's init() method.
+
+		Movers control the Actor's motion, whether it be via
 		mouse or keyboard input, or some in-game logic.
-	
-		:param theMover: A class or instance that inherits from :class:`Motion`.
 		
 		Example usage for moving a ball to a particular position, and cueing the caller when it's done::
 		
@@ -943,7 +1018,7 @@
 	
 		Provides a bitmask of the control colors on which an Actor is located.
 		
-		:param boolean fUsePoint: If TRUE, the Actor's location is used. If FALSE (or not specified), the Actor's bounding rectangle (near its feet) is used.
+		:param boolean fUsePoint: If TRUE, the Actor's location is used. If FALSE (or not specified), the Actor's base rectangle (near its feet) is used.
 		:returns: A bitmask of ctl flags. These should usually be tested with the & operator.
 		
 		Example usage::
@@ -977,12 +1052,12 @@
             BaseSetter(self)
         )
         = temp0 
-            (if (CanBeHere(self (send gOldCast:elements)))
+            (if (CantBeHere(self (send gOldCast:elements)))
             )(else
                 (if ((not (& signal ignoreHorizon) and IsObject(gRoom)) and (< y (send gRoom:horizon)))
                     -1
                 )(else
-                    (if (blocks and not (send blocks:allTrue(57 self)))
+                    (if (blocks and not (send blocks:allTrue(#doit self)))
                         -2
                     )
                 )
@@ -990,13 +1065,16 @@
     )
 
 	/*
+	.. function:: setStep(newX newY [fDontSetOrigStep])
+	
 		Sets the pixel increments in which the Actor moves. Bigger increments means the Actor will cover
 		larger distances in each frame.
 		
 		:param number newX: The xStep, or -1 if not provided.
 		:param number newY: The yStep, or -1 if not provided.
+		:param boolean fDontSetOrigStep: Optional flag telling us not to set origStep.
 	*/
-    (method (setStep newX newY param3)
+    (method (setStep newX newY fDontSetOrigStep)
         (var theXStep, theYStep)
         = theXStep (>> origStep $0008)
         = theYStep (& origStep $00ff)
@@ -1006,7 +1084,7 @@
         (if ((>= paramTotal 2) and (<> newY -1))
             = theYStep newY
         )
-        (if ((< paramTotal 3) or not param3)
+        (if ((< paramTotal 3) or not fDontSetOrigStep)
             = origStep (+ (<< theXStep $0008) theYStep)
         )
         = xStep theXStep

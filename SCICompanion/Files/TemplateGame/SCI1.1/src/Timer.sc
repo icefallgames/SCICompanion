@@ -198,8 +198,11 @@
         )
         return temp0
     )
-
 )
+
+/*
+	TO is simply a class that counts down a time.
+*/
 (class TO of Obj
     (properties
         timeLeft 0
@@ -211,9 +214,7 @@
         )
     )
 
-
-    (method (set theTimeLeft)
-        = timeLeft theTimeLeft
+    (method (set newTime)
+        = timeLeft newTime
     )
-
 )

@@ -25,11 +25,11 @@
         waitMax 0
     )
 
-    (method (init param1 param2)
+    (method (init theClient averageWaitTicks)
         (if (paramTotal)
-            = waitMin (/ param2 2)
-            = waitMax (+ param2 waitMin)
-            (super:init(param1))
+            = waitMin (/ averageWaitTicks 2)
+            = waitMax (+ averageWaitTicks waitMin)
+            (super:init(theClient))
         )(else
             (super:init())
         )
@@ -226,8 +226,8 @@
                             )
                         )
                     )
-                    (if ((& (send pEvent:type) $4101) or ((& (send pEvent:type) evKEYBOARD) and IsOneOf((send pEvent:message) 13 27)))
-                        (send pEvent:claimed(1))
+                    (if ((& (send pEvent:type) $4101) or ((& (send pEvent:type) evKEYBOARD) and IsOneOf((send pEvent:message) KEY_RETURN KEY_ESCAPE)))
+                        (send pEvent:claimed(TRUE))
                         (self:dispose(disposeWhenDone))
                     )
                 )
@@ -235,7 +235,7 @@
     )
 
 
-    (method (say param1 param2)
+    (method (say buffer theCaller)
         (if (gIconBar)
             (send gIconBar:disable())
         )
@@ -243,16 +243,16 @@
             (self:init())
         )
         = caller 
-            (if ((> paramTotal 1) and param2)
-                param2
+            (if ((> paramTotal 1) and theCaller)
+                theCaller
             )(else
                 0
             )
         (if (& global90 $0001)
-            (self:startText(param1))
+            (self:startText(buffer))
         )
         (if (& global90 $0002)
-            (self:startAudio(param1))
+            (self:startAudio(buffer))
         )
         (if (modeless)
             (send gOldMH:addToFront(self))
@@ -274,18 +274,18 @@
     )
 
 
-    (method (startText param1)
+    (method (startText buffer)
         (var temp0)
         // No need to check this. If we did the check, then if there's no audio, the ticks would be 0
         // startAudio is always called after this, and it sets ticks.
         //(if (not & global90 $0002)
-            = temp0 StrLen(param1)
+            = temp0 StrLen(buffer)
             = ticks Max(240 (* (* gTextReadSpeed 2) temp0))
         //)
         (if (gDialog)
             (send gDialog:dispose())
         )
-        (self:display(param1))
+        (self:display(buffer))
         return temp0
     )
 
@@ -325,13 +325,13 @@
     )
 
 
-    (method (startAudio param1)
+    (method (startAudio buffer)
         (var temp0, temp1, temp2, temp3, temp4)
-        = temp0 GetValueAt(param1 0)
-        = temp1 GetValueAt(param1 1)
-        = temp2 GetValueAt(param1 2)
-        = temp3 GetValueAt(param1 3)
-        = temp4 GetValueAt(param1 4)
+        = temp0 GetValueAt(buffer 0)
+        = temp1 GetValueAt(buffer 1)
+        = temp2 GetValueAt(buffer 2)
+        = temp3 GetValueAt(buffer 3)
+        = temp4 GetValueAt(buffer 4)
         (if (ResCheck(rsAUDIO36 temp0 temp1 temp2 temp3 temp4))
         	= ticks DoAudio(audPLAY temp0 temp1 temp2 temp3 temp4)
 		)
@@ -425,7 +425,7 @@
 		
 		:param heapPtr theBust: A :class:`Prop` instance for the overall face (bust) of the talker.
 		:param heapPtr theEyes: A :class:`Prop` instance for the eyes.
-		:param heapPtr theMouth: A :class:`Prop' instance for the talker's mouth.
+		:param heapPtr theMouth: A :class:`Prop` instance for the talker's mouth.
 	*/
     (method (init theBust theEyes theMouth)
    	
@@ -510,23 +510,21 @@
     )
 
 
-    (method (say param1)
+    (method (say buffer)
         (if ((> view 0) and not underBits)
             (self:init())
         )
-        (super:say(rest param1))
+        (super:say(rest buffer))
     )
 
 
-    (method (startText param1)
+    (method (startText buffer)
         (var temp0)
         (if (not viewInPrint)
             (self:show())
         )
-        = temp0 (super:startText(rest param1))
-        DebugPrint("starting mouth")
+        = temp0 (super:startText(rest buffer))
         (if (mouth)
-        	DebugPrint("yup, have mouth, setting rand cycle")
             (send mouth:setCycle(RandCycle (* 4 temp0) 0 1))
         )
         (if (eyes and not (send eyes:cycler))
@@ -594,28 +592,26 @@
     )
 
 
-    (method (startAudio param1)
+    (method (startAudio buffer)
         (var temp0, temp1, temp2, temp3, temp4, temp5)
         (self:show())
         (if (mouth)
-            = temp0 GetValueAt(param1 0)
-            = temp1 GetValueAt(param1 1)
-            = temp2 GetValueAt(param1 2)
-            = temp3 GetValueAt(param1 3)
-            = temp4 GetValueAt(param1 4)
+            = temp0 GetValueAt(buffer 0)
+            = temp1 GetValueAt(buffer 1)
+            = temp2 GetValueAt(buffer 2)
+            = temp3 GetValueAt(buffer 3)
+            = temp4 GetValueAt(buffer 4)
             
             (if (ResCheck(rsSYNC36 temp0 temp1 temp2 temp3 temp4))
-            	DebugPrint("yup, have mouth, setting sync 36 cycle")
                 (send mouth:setCycle(MouthSync temp0 temp1 temp2 temp3 temp4))
-                = temp5 (super:startAudio(param1))
+                = temp5 (super:startAudio(buffer))
             )(else
-                = temp5 (super:startAudio(param1))
-                DebugPrint("yup, have mouth, setting rand")
+                = temp5 (super:startAudio(buffer))
                 (send mouth:setCycle(RandCycle temp5 0))
             )
         )
         (else
-        	= temp5 (super:startAudio(param1))
+        	= temp5 (super:startAudio(buffer))
 		)
         (if (eyes and not (send eyes:cycler))
             (send eyes:setCycle(Blink blinkSpeed))
@@ -623,16 +619,16 @@
     )
 
 
-    (method (cycle param1)
+    (method (cycle theProp)
         (var temp0, temp1[100])
-        (if (param1 and (send param1:cycler))
-            = temp0 (send param1:cel)
-            (send ((send param1:cycler)):doit())
-            (if (<> temp0 (send param1:cel))
-                DrawCel((send param1:view) (send param1:loop) (send param1:cel) + (send param1:nsLeft) nsLeft + (send param1:nsTop) nsTop -1)
-                (send param1:nsRight((+ (send param1:nsLeft) CelWide((send param1:view) (send param1:loop) (send param1:cel)))))
-                (send param1:nsBottom((+ (send param1:nsTop) CelHigh((send param1:view) (send param1:loop) (send param1:cel)))))
-                Graph(grUPDATE_BOX + (send param1:nsTop) nsTop + (send param1:nsLeft) nsLeft + (send param1:nsBottom) nsTop + (send param1:nsRight) nsLeft 1)
+        (if (theProp and (send theProp:cycler))
+            = temp0 (send theProp:cel)
+            (send ((send theProp:cycler)):doit())
+            (if (<> temp0 (send theProp:cel))
+                DrawCel((send theProp:view) (send theProp:loop) (send theProp:cel) + (send theProp:nsLeft) nsLeft + (send theProp:nsTop) nsTop -1)
+                (send theProp:nsRight((+ (send theProp:nsLeft) CelWide((send theProp:view) (send theProp:loop) (send theProp:cel)))))
+                (send theProp:nsBottom((+ (send theProp:nsTop) CelHigh((send theProp:view) (send theProp:loop) (send theProp:cel)))))
+                Graph(grUPDATE_BOX + (send theProp:nsTop) nsTop + (send theProp:nsLeft) nsLeft + (send theProp:nsBottom) nsTop + (send theProp:nsRight) nsLeft 1)
             )
         )
     )

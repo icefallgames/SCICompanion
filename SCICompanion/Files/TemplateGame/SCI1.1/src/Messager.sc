@@ -99,7 +99,7 @@
 		
 	.. function:: say(-1 [caller])
 	
-		This version of say does the same thing as sayNext, but lets you specify a new caller.
+		This version of say does the same thing as the parameterless sayNext(), but lets you specify a new caller.
 		
 	*/
     (method (say params)
@@ -179,7 +179,13 @@
         Memory(memFREE buffer)
     )
 
-	// This displays the next message in a sequence. It should generally only be called by the framework.
+	/*
+	.. function:: sayNext()
+	
+	.. function:: sayNext(theModNum noun verb cond seq)
+	
+		This displays the next message in a sequence. It should generally only be called by the framework.
+	*/
     (method (sayNext theModNum noun verb cond seq)
         (var theTalker, buffer[200], temp201)
         (if (paramTotal)

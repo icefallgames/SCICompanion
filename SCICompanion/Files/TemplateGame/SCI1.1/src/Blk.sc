@@ -10,13 +10,13 @@
 	
 	Example usage::
 	
-        (theFrog:observeBlocks((send ((Blk:new())):
-        	left(150)
-            top(140)
-            right(170)
-            bottom(160)
-            yourself()
-        )
+		(theFrog:observeBlocks((send ((Blk:new())):
+			left(150)
+			top(140)
+			right(170)
+			bottom(160)
+			yourself()
+		)
 */
 (class Blk of Obj
     (properties
@@ -41,13 +41,13 @@
 	
 	Example usage::
 	
-        (theFrog:observeBlocks((send ((Blk:new())):
-        	left(150)
-            top(140)
-            right(170)
-            bottom(160)
-            yourself()
-        )
+		(theFrog:observeBlocks((send ((Blk:new())):
+			left(150)
+			top(140)
+			right(170)
+			bottom(160)
+			yourself()
+		)
 */
 (class Cage of Blk
     (properties

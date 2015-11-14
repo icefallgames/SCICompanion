@@ -7,7 +7,7 @@
 (use "Obj")
 (script PATHAVOIDER_SCRIPT)
 
-(procedure (localproc_042b param1)
+(procedure (CountPoints param1)
     (var temp0, temp1[2], temp3, temp4)
     = temp3 -100
     = temp0 0
@@ -34,7 +34,7 @@
 )
 
 /*
-	In contrast to the Avoider in SCI0 that make an Actor avoid certain control colors, this
+	In contrast to the Avoider in SCI0 that makes an Actor avoid certain control colors, this
 	avoider has been adjusted to use polygons for SCI1.1.
 	
 	Example usage::
@@ -152,10 +152,10 @@
             (if (temp16)
                 = newPolygon (Polygon:new())
                 (send newPolygon:
-                    points(newPolygon)
-                    size(localproc_042b(newPolygon))
+                    points(temp16)
+                    size(CountPoints(temp16))
                     type(PBarredAccess)
-                    dynamic(1)
+                    dynamic(TRUE)
                 )
             )
             (send ((send clientMover:obstacles)):add(newPolygon))

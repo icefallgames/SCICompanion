@@ -22,7 +22,7 @@
         value 0
         text 0
         font 0
-        mode 0
+        mode alLEFT		// alLEFT, alCENTER or alRIGHT.
         nfc 0			// Normal foreground color.
         nbc 7			// Normal background color.
         hfc 15			// Highlight foreground color.
@@ -41,7 +41,7 @@
                     (send param1:localize())
                     = temp0 (self:check(param1))
                     (if (<> temp0 temp1)
-                        (if (& state $0008)
+                        (if (& state csSELECTED)
                             = theSfc sfc
                             = theSbc sbc
                         )(else
@@ -54,7 +54,7 @@
                     (send param1:dispose())
                 ) while (not not GetMouseRelease())
                 (if (temp0)
-                    (if (& state $0008)
+                    (if (& state csSELECTED)
                         = theSfc sfc
                         = theSbc sbc
                     )(else
@@ -89,7 +89,7 @@
 
     (method (draw)
         (var theHfc, theHbc)
-        (if (& state $0008)
+        (if (& state csSELECTED)
             = theHfc hfc
             = theHbc hbc
         )(else

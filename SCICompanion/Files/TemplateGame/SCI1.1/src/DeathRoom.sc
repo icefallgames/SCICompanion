@@ -1,6 +1,8 @@
-// This is a room for handling death scenes. In the sGeneric Script, you can switch off of the
-// gDeathReason global variable to display custom scenes depending on the type of death.
-// The death room is triggered by calling the :func:`Die` procedure with a number corresponding to a death reason.
+/*
+	This is a room for handling death scenes. In the sGeneric Script, you can switch based on of the
+	gDeathReason global variable to display custom scenes depending on the type of death.
+	The death room is triggered by calling the :func:`Die` procedure with a number corresponding to a death reason.
+*/
 (version 2)
 (include "sci.sh")
 (include "Verbs.sh")
