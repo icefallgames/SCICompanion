@@ -61,15 +61,17 @@ template<typename _TInspect>
 bool InspectFunction(const CompiledScript &script, uint16_t wCodeOffsetTO, std::set<uint16_t> &sortedCodePointersTO, _TInspect analyzeInstruction)
 {
     std::set<uint16_t>::const_iterator codeStartIt = sortedCodePointersTO.find(wCodeOffsetTO);
-    assert(codeStartIt != sortedCodePointersTO.end());
-    CodeSection section;
-    if (FindStartEndCode(codeStartIt, sortedCodePointersTO, script._codeSections, section))
+    if (codeStartIt != sortedCodePointersTO.end()) // Shouldn't happen, but this is a sensitive code path in version detection, needs to be robust.
     {
-        const BYTE *pBegin = &script.GetRawBytes()[section.begin];
-        const BYTE *pEnd = &script.GetRawBytes()[section.end];
-        if (!InspectCode(script.GetVersion(), pBegin, pEnd, wCodeOffsetTO, analyzeInstruction))
+        CodeSection section;
+        if (FindStartEndCode(codeStartIt, sortedCodePointersTO, script._codeSections, section))
         {
-            return false;
+            const BYTE *pBegin = &script.GetRawBytes()[section.begin];
+            const BYTE *pEnd = &script.GetRawBytes()[section.end];
+            if (!InspectCode(script.GetVersion(), pBegin, pEnd, wCodeOffsetTO, analyzeInstruction))
+            {
+                return false;
+            }
         }
     }
     return true;
@@ -84,6 +86,19 @@ bool InspectScriptCode(const CompiledScript &script, ICompiledScriptLookups *pLo
     {
         const std::vector<uint16_t> &methodPointersTO = object->GetMethodCodePointersTO();
         codePointersTO.insert(methodPointersTO.begin(), methodPointersTO.end());
+    }
+
+
+    // and the exports
+    for (size_t i = 0; i < script._exportsTO.size(); i++)
+    {
+        uint16_t wCodeOffset = script._exportsTO[i];
+        // Export offsets could point to objects too - we're only interested in code pointers, so
+        // check that it's within bounds.
+        if (script.IsExportAProcedure(wCodeOffset))
+        {
+            codePointersTO.insert(wCodeOffset);
+        }
     }
 
     // and finally, the most difficult of all, we'll need to scan though for any call calls...

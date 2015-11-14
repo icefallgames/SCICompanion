@@ -201,7 +201,7 @@ struct CelHeader_VGA11
     uint32_t paletteOffset;     // Used for pic cels only, apparently.
     uint32_t offsetRLE;
     uint32_t offsetLiteral;
-    uint32_t something;
+    uint32_t perRowOffsets;     // SCI2 needs this.
 };
 #include <poppack.h>
 

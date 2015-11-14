@@ -732,7 +732,8 @@ bool SCIClassBrowser::_AddFileName(std::string fullPath, bool fReplace)
     if (buffer.LoadFromFile(fullPath.c_str()))
     {
         // "normalize" it before we use it as a key.
-        std::transform(fullPath.begin(), fullPath.end(), fullPath.begin(), ::tolower);
+        std::string fullPathLower = fullPath;
+        std::transform(fullPathLower.begin(), fullPathLower.end(), fullPathLower.begin(), ::tolower);
 
         CScriptStreamLimiter limiter(&buffer);
         CCrystalScriptStream stream(&limiter);
@@ -745,7 +746,7 @@ bool SCIClassBrowser::_AddFileName(std::string fullPath, bool fReplace)
             if (fReplace)
             {
                 WORD wScriptNumber = GetScriptNumberHelper(pScript.get());
-                _filenameToScriptNumber[fullPath] = wScriptNumber;
+                _filenameToScriptNumber[fullPathLower] = wScriptNumber;
 
                 assert(wScriptNumber != InvalidResourceNumber); // Do something about this.
                 // Find matching script number and replace
@@ -763,7 +764,7 @@ bool SCIClassBrowser::_AddFileName(std::string fullPath, bool fReplace)
             else
             {
                 WORD wScriptNumber = GetScriptNumberHelper(pScript.get());
-                _filenameToScriptNumber[fullPath] = wScriptNumber;
+                _filenameToScriptNumber[fullPathLower] = wScriptNumber;
             }
 
             _AddToClassTree(*pWeakRef);

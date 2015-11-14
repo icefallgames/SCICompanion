@@ -50,7 +50,8 @@ void ReadImageData(sci::istream &byteStream, Cel &cel, bool isVGA)
 
 const size_t ReasonableLimit = 640 * 480;
 
-void ReadImageData(sci::istream &byteStreamRLE, Cel &cel, bool isVGA, sci::istream &byteStreamLiteral)
+template<typename _TCalcFunc>
+void ReadImageDataWorker(sci::istream &byteStreamRLE, Cel &cel, bool isVGA, sci::istream &byteStreamLiteral, _TCalcFunc calcFunc)
 {
     uint8_t scratchBuffer[128];
     uint8_t *scratchPointer = nullptr;
@@ -73,9 +74,11 @@ void ReadImageData(sci::istream &byteStreamRLE, Cel &cel, bool isVGA, sci::istre
     // The image starts from the bottom left, not the top left:
     int y = cel.size.cy - 1;
     int x = 0;
+
+    calcFunc(y, byteStreamRLE, byteStreamLiteral);
+
     // Create our buffer
     cel.Data.allocate(max(1, dataSize));
-    uint8_t *pImageDataCur = &cel.Data[0];
     int cCount = 0;
     int cxRemainingForThisCommand = 0;
     while (byteStreamRLE.good() && (cBufferSizeRemaining > 0))
@@ -154,6 +157,9 @@ void ReadImageData(sci::istream &byteStreamRLE, Cel &cel, bool isVGA, sci::istre
             // Move to the next line:
             x = 0;
             y -= 1;
+
+            calcFunc(y, byteStreamRLE, byteStreamLiteral);
+
             cxRemainingForThisCommand = cxRemainingForThisCommand - cxRemainingOnThisLine;
 
             // This hits for Laura Bow 2
@@ -161,6 +167,49 @@ void ReadImageData(sci::istream &byteStreamRLE, Cel &cel, bool isVGA, sci::istre
             cxRemainingOnThisLine = cel.size.cx;
         }
     }
+}
+
+void CalcNothing(int y, sci::istream &byteStreamRLE, sci::istream &byteStreamLiteral) {}
+
+void ReadImageData(sci::istream &byteStreamRLE, Cel &cel, bool isVGA, sci::istream &byteStreamLiteral)
+{
+    ReadImageDataWorker(byteStreamRLE, cel, isVGA, byteStreamLiteral, CalcNothing);
+}
+
+// RLE, followed by Literal
+void CalculateSCI2RowOffsets(Cel &cel, sci::istream byteStreamRLE, sci::istream byteStreamLiteral, sci::ostream &byteStreamOffsets)
+{
+    uint32_t orig = byteStreamOffsets.tellp();
+
+    uint32_t baseRLE = byteStreamRLE.tellg();
+    uint32_t baseLiteral = byteStreamLiteral.tellg();
+
+    sci::istream byteStreamRLE1 = byteStreamRLE;
+    sci::istream byteStreamLiteral1 = byteStreamLiteral;
+    ReadImageDataWorker(byteStreamRLE1, cel, true, byteStreamLiteral1,
+        [&cel, baseRLE, &byteStreamOffsets](int y, sci::istream &byteStreamRLE, sci::istream &byteStreamLiteral)
+    {
+        if (y >= 0)
+        {
+            byteStreamOffsets << (byteStreamRLE.tellg() - baseRLE);
+        }
+    }
+    );
+
+    sci::istream byteStreamRLE2 = byteStreamRLE;
+    sci::istream byteStreamLiteral2 = byteStreamLiteral;
+    ReadImageDataWorker(byteStreamRLE2, cel, true, byteStreamLiteral2,
+        [&cel, baseLiteral, &byteStreamOffsets](int y, sci::istream &byteStreamRLE, sci::istream &byteStreamLiteral)
+    {
+        if (y >= 0)
+        {
+            byteStreamOffsets << (byteStreamLiteral.tellg() - baseLiteral);
+        }
+    }
+    );
+
+    // Assert we write the correct amount of row offsets.
+    assert((byteStreamOffsets.tellp() - orig) == (cel.size.cy * 2 * 4));
 }
 
 const uint16_t ReasonableCelWidth = 320;
@@ -650,21 +699,34 @@ void ReadCelFromVGA11(sci::istream &byteStream, Cel &cel, bool isPic)
     CelHeader_VGA11 celHeader;
     byteStream >> celHeader;
 
-
     // Investigation
-    // OutputDebugString(fmt::format("bytes between rleoffset + rleSize and liter offset:{}\n", celHeader.offsetLiteral - (celHeader.offsetRLE + celHeader.rleCelDataSize)).c_str());
+    /*
+    OutputDebugString(fmt::format("something:{:x}\n", celHeader.perRowOffsets).c_str());
+    {
+        sci::istream moo(byteStream);
+        moo.seekg(celHeader.perRowOffsets);
+        int count = 20;
+        while (count && moo.getBytesRemaining() > 0)
+        {
+            uint32_t byte;
+            moo >> byte;
+            OutputDebugString(fmt::format(" 0x{0:x}", byte).c_str());
+            count--;
+        }
+        OutputDebugString("\n");
+    }*/
 
     // LB_Dagger, view 86 has zero here. It's corrupted. All others have 0xa
     // assert(celHeader.always_0xa == 0xa);
-    bool hasSplitRLEAndLiteral = (celHeader.always_0xa == 0xa);
+
+    bool hasSplitRLEAndLiteral = (celHeader.always_0xa == 0xa) || (celHeader.always_0xa == 0x8a);
     if (hasSplitRLEAndLiteral)
     {
         assert(celHeader.offsetLiteral && celHeader.offsetRLE);
     }
     else
     {
-        // This hits in SCI2.
-        //assert(celHeader.offsetRLE && !celHeader.offsetLiteral);
+        assert(celHeader.offsetRLE && !celHeader.offsetLiteral);
     }
 
     cel.size = celHeader.size;
@@ -729,7 +791,7 @@ void ReadLoopFromVGA(ResourceEntity &resource, sci::istream &byteStream, Loop &l
     }
 }
 
-void ViewWriteToVGA11(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag)
+void ViewWriteToVGA11_2_Helper(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag, bool isVGA2)
 {
     const RasterComponent &raster = resource.GetComponent<RasterComponent>();
 
@@ -770,6 +832,9 @@ void ViewWriteToVGA11(const ResourceEntity &resource, sci::ostream &byteStream, 
     // Now we write the actual data. In VGA1.1, this is split into two separate sections
     sci::ostream celRLEData;
     sci::ostream celRawData;
+
+    std::unique_ptr<sci::ostream> celRowOffsets = isVGA2 ? std::make_unique<sci::ostream>() : nullptr;
+
     uint16_t celDataCount = 0;
     for (int nLoop = 0; nLoop < raster.LoopCount(); nLoop++)
     {
@@ -827,9 +892,16 @@ void ViewWriteToVGA11(const ResourceEntity &resource, sci::ostream &byteStream, 
     }
     assert(byteStream.tellp() == celHeaderStart);   // Assuming our calculations were correct
 
+    std::unique_ptr<sci::ostream> rowOffsetStream;
+    if (isVGA2)
+    {
+        rowOffsetStream = std::make_unique<sci::ostream>();
+    }
+
     // Now the cel headers
     uint32_t rleImageDataBaseOffset = headersSize + paletteSize;
     uint32_t literalImageDataBaseOffset = rleImageDataBaseOffset + celRLEData.tellp();
+    uint32_t rowOffsetOffsetBase = literalImageDataBaseOffset + celRawData.tellp();
     int realLoopIndex = 0;
     for (const Loop &loop : raster.Loops)
     {
@@ -840,9 +912,27 @@ void ViewWriteToVGA11(const ResourceEntity &resource, sci::ostream &byteStream, 
                 const Cel &cel = loop.Cels[i];
                 CelHeader_VGA11 celHeader = prelimCelHeaders[realLoopIndex][i];
                 celHeader.size = cel.size;
-                celHeader.always_0xa = 0xa;
+                celHeader.always_0xa = isVGA2 ? 0x8a : 0xa;
                 celHeader.placement = cel.placement;
                 celHeader.transparentColor = cel.TransparentColor;
+
+                if (isVGA2)
+                {
+                    // Read our cel data back and calculate offsets to the rows.
+                    sci::istream rleData = sci::istream_from_ostream(celRLEData);
+                    rleData.seekg(celHeader.offsetRLE);
+                    sci::istream literalData = sci::istream_from_ostream(celRawData);
+                    literalData.seekg(celHeader.offsetLiteral);
+                    uint32_t rowOffsetOffset = rowOffsetStream->tellp();
+                    // Terrible hack, copying cel.
+                    Cel celTemp = {};
+                    celTemp.size = cel.size;
+                    celTemp.placement = cel.placement;
+                    celTemp.TransparentColor = cel.TransparentColor;
+                    CalculateSCI2RowOffsets(celTemp, rleData, literalData, *rowOffsetStream);
+                    celHeader.perRowOffsets = rowOffsetOffset + rowOffsetOffsetBase;
+                }
+
                 celHeader.offsetRLE += rleImageDataBaseOffset;
                 celHeader.offsetLiteral += literalImageDataBaseOffset;
                 byteStream << celHeader;
@@ -861,7 +951,22 @@ void ViewWriteToVGA11(const ResourceEntity &resource, sci::ostream &byteStream, 
     assert(literalImageDataBaseOffset == byteStream.tellp());
     sci::transfer(sci::istream_from_ostream(celRawData), byteStream, celRawData.GetDataSize());
 
+    if (isVGA2)
+    {
+        sci::transfer(sci::istream_from_ostream(*rowOffsetStream), byteStream, celRawData.GetDataSize());
+    }
+
     // Done!
+}
+
+void ViewWriteToVGA11(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag)
+{
+    ViewWriteToVGA11_2_Helper(resource, byteStream, propertyBag, false);
+}
+
+void ViewWriteToVGA2(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag)
+{
+    ViewWriteToVGA11_2_Helper(resource, byteStream, propertyBag, true);
 }
 
 void ViewReadFromVGA11Helper(ResourceEntity &resource, sci::istream &byteStream, const std::map<BlobKey, uint32_t> &propertyBag, bool isSCI2)
@@ -1120,7 +1225,7 @@ ResourceTraits viewTraitsVGA2 =
 {
     ResourceType::View,
     &ViewReadFromVGA2,
-    &ViewWriteToVGA11,
+    &ViewWriteToVGA2,
     &NoValidationFunc,
     nullptr
 };
