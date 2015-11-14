@@ -729,9 +729,6 @@
     <ClCompile Include="Src\FrameComponents\LevelMeter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Resources\AudioResourceSource.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Src\Resources\PatchResourceSource.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -781,6 +778,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\Dialogs\EditCelDataDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Resources\AudioResourceSource.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -2210,9 +2210,6 @@
     <Image Include="res\RightArrow.ico">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="res\bitmapob.bmp">
-      <Filter>Resource Files</Filter>
-    </Image>
     <Image Include="res\record.ico">
       <Filter>Resource Files</Filter>
     </Image>
@@ -2226,6 +2223,9 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\image.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\bitmapob.bmp">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
