@@ -1770,6 +1770,9 @@
     <ResourceCompile Include="SCICompanionLib.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+    <ResourceCompile Include="Src\CrystalEdit\editres.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\1_216.ico">

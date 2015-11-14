@@ -790,6 +790,7 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="SCICompanionLib.rc" />
+    <ResourceCompile Include="Src\CrystalEdit\editres.rc" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\1_216.ico" />
