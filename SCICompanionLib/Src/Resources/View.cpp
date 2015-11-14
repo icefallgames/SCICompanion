@@ -916,15 +916,30 @@ void ViewWriteToVGA11_2_Helper(const ResourceEntity &resource, sci::ostream &byt
                 celHeader.placement = cel.placement;
                 celHeader.transparentColor = cel.TransparentColor;
 
+                // SCI2 views contain a section at the end of the view that lists,
+                // for each row of each cel in the view, the (32-bit) relative offsets in
+                // the rle data and the literal data where this data begins.
+                //
+                // For example, if there were two cels, the data would look like:
+                // offsetA:[C0_R0_offsetRLE][C0_R1_offsetRLE] ... [C0_Rn_offsetRLE]
+                //         [C0_R0_offsetLiteral][C0_R1_offsetLiteral] ... [C0_Rn_offsetLiteral]
+                // offsetB:[C1_R0_offsetRLE][C1_R1_offsetRLE] ... [C1_Rn_offsetRLE]
+                //         [C1_R0_offsetLiteral][C1_R1_offsetLiteral] ... [C1_Rn_offsetLiteral]
+                //
+                // Cel #0's header's perRowOffset field would point to OffsetA, and Cel#1's would 
+                // point to offsetB
+                //
+                // For each cel, therefore, there will this extra (celHeight * 4 * 2) bytes of data.
+
                 if (isVGA2)
                 {
-                    // Read our cel data back and calculate offsets to the rows.
+                    // Read our cel data back so as to calculate offsets to the rows.
                     sci::istream rleData = sci::istream_from_ostream(celRLEData);
                     rleData.seekg(celHeader.offsetRLE);
                     sci::istream literalData = sci::istream_from_ostream(celRawData);
                     literalData.seekg(celHeader.offsetLiteral);
                     uint32_t rowOffsetOffset = rowOffsetStream->tellp();
-                    // Terrible hack, copying cel.
+                    // Terrible hack, copying cel!
                     Cel celTemp = {};
                     celTemp.size = cel.size;
                     celTemp.placement = cel.placement;
