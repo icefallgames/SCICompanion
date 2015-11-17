@@ -106,10 +106,12 @@
 <li class="toctree-l2"><a class="reference internal" href="#affect-all-cels">Affect all cels</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#color-shifting">Color shifting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#scaleable-views">Scaleable views</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#in-code">In Code</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="pics.html">Pic Editor</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Script editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="legacy.html">The SCI0 class library</a></li>
 <li class="toctree-l1"><a class="reference internal" href="classlibrary.html">The SCI1.1 class library</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sci_kernels.html">Kernel Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sci_compiler.html">The SCI Compiler</a></li>
@@ -130,6 +132,9 @@
 <li class="toctree-l1"><a class="reference internal" href="decompiler.html">Decompiler</a></li>
 <li class="toctree-l1"><a class="reference internal" href="preferences.html">Preferences</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gameversion.html">Game/Interpreter Versions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="importexport.html">Importing and exporting resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extractall.html">Extract All</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tips.html">Handy tips</a></li>
 </ul>
 
             
@@ -348,6 +353,36 @@ the origin.</p>
 </div>
 <p>The Toolbox lets you specify whether a view is scaleable or not. A scaleable views can be reduced in size in-game to give the effect of a character
 walking off into the distance.</p>
+</div>
+<div class="section" id="in-code">
+<h2>In Code<a class="headerlink" href="#in-code" title="Permalink to this headline">¶</a></h2>
+<p>One place view resource numbers are used is when you declare :class`View`, <a class="reference internal" href="Classes/Prop.html#Prop" title="Prop"><code class="xref py py-class docutils literal"><span class="pre">Prop</span></code></a> or <a class="reference internal" href="Classes/Actor.html#Actor" title="Actor"><code class="xref py py-class docutils literal"><span class="pre">Actor</span></code></a> instances.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">(</span><span class="n">instance</span> <span class="n">electricPost</span> <span class="n">of</span> <span class="n">Prop</span>
+    <span class="p">(</span><span class="n">properties</span>
+<span class="hll">        <span class="n">view</span> <span class="mi">3</span>
+</span>        <span class="n">loop</span> <span class="mi">2</span>
+        <span class="n">x</span> <span class="mi">136</span>
+        <span class="n">y</span> <span class="mi">137</span>
+        <span class="n">signal</span> <span class="n">ignAct</span>
+        <span class="n">noun</span> <span class="n">N_ELECTRICPOST</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Or when you add an icon to dialog:</p>
+<div class="highlight-python"><div class="highlight"><pre>(Print:
+    // Show view 234 (loop 1 and cel 0) at (0, 0):
+    addIcon(234 1 3 0 0)
+    init()
+)
+</pre></div>
+</div>
+<p>Or when setting up the ego:</p>
+<div class="highlight-python"><div class="highlight"><pre>// Tell the ego to use view 53, loop 3.
+SetUpEgo(53 3)
+</pre></div>
+</div>
+<p>See also: <a class="reference internal" href="Kernels/DrawCel.html#DrawCel" title="DrawCel"><code class="xref py py-func docutils literal"><span class="pre">DrawCel()</span></code></a>, <a class="reference internal" href="Procedures/SetUpEgo.html#SetUpEgo" title="SetUpEgo"><code class="xref py py-func docutils literal"><span class="pre">SetUpEgo()</span></code></a>.</p>
 </div>
 </div>
 

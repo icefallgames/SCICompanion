@@ -18,6 +18,31 @@ Jump (of :class:`Motion`)
 
 Subclasses: :class:`JumpTo`.
 
+.. blockdiag::
+	:alt: class diagram
+	:width: 600
+
+	diagram {
+		default_fontsize = 16
+		Motion -> Wander
+		Motion -> DPath
+		Motion -> MoveTo
+		Motion -> Approach
+		Motion -> Orbit
+		Motion -> Follow
+		Motion -> PolyPath
+		Motion -> Track
+		Motion -> Chase
+		Motion -> Jump
+		Jump -> JumpTo
+		PolyPath -> PChase
+		PolyPath -> PFollow
+		PolyPath -> MoveFwd
+		MoveTo -> RegionPath
+		DPath -> RelDPath
+		Jump [color=greenyellow]
+	}
+
 Properties
 ==========
 

@@ -49,6 +49,8 @@ Resource numbers are very important - this is how resources are accessed in game
 A resource is uniquely identified by its type and its number (0-999 in SCI0, and 0-65535 in SCI1+). When you save a newly-created view or other resource,
 you'll be asked to give it a number (and optional name). If it conflicts with an existing resource of that type and number, you'll be asked if you wish to overwrite.
 
+You can save an existing resource under a new number by opening the resource in the appropriate editor and then using *File->Save As*.
+
 Resources can be given names when you save them, or by renaming them in the resource view. The names are used only in |scicomp| as a convenient way to identify resources
 (especially useful for those resources without visual representations, like sounds).
 

@@ -35,7 +35,7 @@ To add a new Talker to your game, you'll need to complete the following steps:
 
 1. In the message editor (for any message resource), assign a new talker name to a new number in the *Global Talkers* pane. Once this is done, it will be in **Talkers.sh** and you will be able to create message entries with this Talker name.
 2. Choose a script in which to implement your Talker. If the Talker only ever appears in one room, you may as well just define it in that room. Otherwise, you can create a new empty script just for this Talker.
-3. In your chosen script, create the Talker (or Narrator) instance and customize as necessary. Then add the instance to the list of exports for that script (using the :doc:`exports <exports>` keyword).
+3. In your chosen script, create the Talker (or Narrator) instance and customize as necessary. Then add the instance to the list of exports for that script (using the :doc:`exports <Compiler/version>` keyword).
 4. In the main.sc script, find the *findTalker* method in the *testMessager* instance, and insert a new case in the switch statement for *talkerNumber*. The case value should be the talker name you used in step 1. In this case statement, call ScriptID kernel with the script number you chose in step 2, and the export number you chose in step 3.
 5. Finally, *if* you chose a new script in step 2, you'll need to add this script number to the list of scripts to dispose on a room change in **dispose.sc**.
 
@@ -62,3 +62,85 @@ When creating a view for a Talker, it will generally consist of three loops:
 Your Talker instance's *init* method is used to assign the mouth, bust and eye props. You'll need to position these three Props manually in order to align them with each other.
 You can do this either in
 the Talker's init method, or using the default property values in your mouth/bust/eye Props.
+
+
+In Code
+===========
+
+Here's sample code for a Talker:
+
+.. code-block:: python
+    :emphasize-lines: 3,8
+
+    (exports
+        0 rm210
+        1 talkingComputer
+    )
+
+    ...
+
+    (instance public talkingComputer of Talker
+        (properties
+            x 10
+            y 25
+            view 1004
+            loop 0
+            talkWidth 150
+            back 5
+            textX 120
+            textY 10
+        )
+
+        (method (init param1)
+            = font gFont
+            // For talkers, we can optionally set a cycler on the eyes.
+            // If there is no cycler, the Blink cycler will be used.
+            (computerEyes:setCycle(Rev))
+            (super:init(computerBust computerEyes computerMouth rest param1))
+        )
+    )
+
+    (instance computerBust of Prop
+        (properties
+            view 1004
+        )
+    )
+
+    (instance computerEyes of Prop
+        (properties
+            cycleSpeed 10
+            nsTop 0
+            nsLeft 0
+            view 1004
+            loop 1
+        )
+    )
+
+    (instance computerMouth of Prop
+        (properties
+            nsTop 59
+            nsLeft 18
+            view 1004
+            loop 2
+        )
+    )
+
+Then add a talker number:
+
+.. image:: /images/AddTalker.png
+
+Then in findTalker in Main.sc::
+
+    (switch (talkerNumber)
+        (case NARRATOR
+            gNarrator
+        )
+        (case COMPUTER
+            ScriptID(210 1) // Script 210, export 1
+        )
+        ...
+    )
+
+Now messages with talker number COMPUTER will result in the talkingComputer Talker being shown.
+
+.. image:: /images/TalkingComputer.png

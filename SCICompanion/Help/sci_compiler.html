@@ -87,6 +87,7 @@
 <li class="toctree-l1"><a class="reference internal" href="views.html">View Editor</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pics.html">Pic Editor</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Script editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="legacy.html">The SCI0 class library</a></li>
 <li class="toctree-l1"><a class="reference internal" href="classlibrary.html">The SCI1.1 class library</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sci_kernels.html">Kernel Functions</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="">The SCI Compiler</a><ul>
@@ -142,6 +143,9 @@
 <li class="toctree-l1"><a class="reference internal" href="decompiler.html">Decompiler</a></li>
 <li class="toctree-l1"><a class="reference internal" href="preferences.html">Preferences</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gameversion.html">Game/Interpreter Versions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="importexport.html">Importing and exporting resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extractall.html">Extract All</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tips.html">Handy tips</a></li>
 </ul>
 
             
@@ -188,6 +192,24 @@
             
   <div class="section" id="the-sci-compiler">
 <h1>The SCI Compiler<a class="headerlink" href="#the-sci-compiler" title="Permalink to this headline">¶</a></h1>
+<p>The script compiler in <strong>SCI</strong>Companion uses a syntax that is nearly identical to the compiler in SCI Studio. It is more strict, so
+some things that compile in SCI Studio may not compile in <strong>SCI</strong>Companion, or may give warnings (this is a good thing). It also
+generates slightly smaller code than SCI Studio.</p>
+<p>SCI is an object-oriented language with message passing semantics (like Objective-C or SmallTalk). Syntactically, it also looks
+a lot like LISP (due to the plethora of parentheses).</p>
+<p>One difference that will be programmers familiar with C++, C# or java, is that expressions use Prefix notation instead of Infix notation.
+For instance, to add two numbers together and assign them to a variable in C#, might look like this:</p>
+<div class="highlight-python"><div class="highlight"><pre>// C#
+int i = 5 + 6;
+</pre></div>
+</div>
+<p>But in SCI script it looks like:</p>
+<div class="highlight-python"><div class="highlight"><pre>// SCI
+(var i)
+(= i (+ 5 6))
+</pre></div>
+</div>
+<p>The topics below describe all the various language features and syntax.</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="Compiler/version.html">Script version</a><ul>

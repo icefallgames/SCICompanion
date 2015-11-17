@@ -22,7 +22,7 @@ Some especially impressive examples of what palette cycling can do can be found 
 Those examples use a lot of dithering, however, which looks better in a 640x480 canvas than the relatively low 320x200 resolution of SCI1 games.
 
 |scicomp| has some features available to streamline the workflow of generating backgrounds with shifting colors. This section will show how to
-generate a simple animation on a logo.
+generate a simple animation on a logo. See the :func:`Palette` palANIMATE subfunction to learn how to cycle palettes in script.
 
 Example
 ================================
@@ -66,9 +66,7 @@ Let's go through another example of how something like the following scene from 
 
 .. image:: /images/Waterfall.gif
 
-If we inspect the decompiled code, we see that there are three palette cycling regions, 232-239, 240-247, and 248-254:
-
-..
+If we inspect the decompiled code, we see that there are three palette cycling regions, 232-239, 240-247, and 248-254::
 
     Palette(palANIMATE 232 239 -1 240 247 -1 248 254 -1)
 

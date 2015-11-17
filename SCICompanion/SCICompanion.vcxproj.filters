@@ -478,6 +478,10 @@
     <Text Include="Help\_sources\Classes\Wander.txt" />
     <Text Include="Help\_sources\Classes\Window.txt" />
     <Text Include="Docs\ReadMe.txt" />
+    <Text Include="Help\_sources\extractall.txt" />
+    <Text Include="Help\_sources\importexport.txt" />
+    <Text Include="Help\_sources\legacy.txt" />
+    <Text Include="Help\_sources\tips.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCICompanion.h">
@@ -1402,6 +1406,207 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="Docs\source\images\TalkingComputer.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\AddTalker.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-0a1edfc407a16525d35f1dbfebffb3c2a5264101.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-0bb898650a248a8b23e988d445eeda363c0e4e8f.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-0dd22fcea626a32f5606a0d4b23e428980f25c30.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-0feee9957757df696496a6dccffe2e00ea58cbaf.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-1e98aab92158f0b50432acc8c1ac15d29a496458.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-1f34d5eafa25041e855b344b026ed13694a0f58e.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-2de8bad717e90b32144e73f71e057da2c3019eb7.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-2ef395df04e6238c54a7d33431dc0c26fd8af0d4.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-3cbd09b101bd7a05f66167c13303645afaf1c0f0.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-3f192c8988fb8a1453c3d2d949c215bca7b424ad.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-3f6462c33ce7542408888cff9a2a4437e99ea608.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-4c073e3b3d3ce2a5100c680823c8099054119b1e.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-4e4f7611fd421d60e8dc268904e582a384c70fed.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-4e40cb7698e2df982a5ebaaa5da099c4fa06107f.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-5a501dd9d9234fcb0c2cbb2bfcef9bd6945c8b85.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-6bc203f44dee68b4b2008f903c5b1ed184524165.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-7b36c19fe2ce692979b64e6bd45988ce57e5592d.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-9d2c07e11237c9effd29bbc1d8346b228deafe1a.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-32bfc0c039101d7fc7b9344213b9bcc0b1d194fd.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-35f4d097e956d94002c1073d799ca83b5f507357.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-57af58aaea2fc566ba922667ad79ecffc7d34b33.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-61a8655261040fe9f94575f11ba491e546ad5f3b.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-72ab1747c03dd2eec380fb90d9f10a572a23cce1.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-75f0a0ea53f9c4f8f180f40f8e1304f0ddf99fe8.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-84c4605f74e79de4f04de1af04dacf83c4ff4039.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-245ce0b97ab1874427ce14d6da39d825fa105dd6.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-402c04d7140221132cd69531a1ccaa3c01ce0996.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-552d7181bf00e67508fd4810a44c6a36f1bc62ac.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-610a39e2d75b2a68cfdd8d67cb5ca1b1e6c882e8.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-648c0f89cadd2f07f5d651c32490e0a827126776.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-765c634a70ca747cff4e49167a2e3c4110cbca52.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-904a27f0358da12c836445c4eedf4e0a09d15c0f.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-943d472831c10cdffe8e797b5703883eeafeb8df.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-3110a4f3aa15e78b0a45b7d09b3bfbc20d655b62.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-5040f6453363d46528423830df9ea26fdbeb33e4.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-5338b0ba7f5d38025df8baab95e1c9a5bc02ac60.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-6769c3e7d80833e27da12ad6d44f632c454a0ca4.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-7594ae2defc09872faffd55f7bba9e06b8918777.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-8931e2319310c6007c49936e1d7af1dca65554e8.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-11799a3c51d3fab5ae4f1a51d7d8de897d5fe193.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-47218b4d2c555f87966e9b5042a2dc52160435ac.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-64614b81678fd49db0eaddd7683cc3ac7b641d34.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-176796b88553bb64cda5c6b119b75a44c735e70e.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-283822f4f4ada62124863a00cefb073558f39e04.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-394100831c134332c9c7c1ed71fccf085ef6a8e5.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-954847130be5377660a85d6f96f70f91e50a4188.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-aa465476afec2906c674a882cc528770fa8a4575.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-afe19afeaf565ecf55172356ed61cc65ab0fabfb.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-b28b99b95122756fe91b93090e84d0f527cf5709.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-b914a1b7b0b9ea3eafefa77b1b6aa32241a93fd0.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-b97290511f72f4a3009375fb0d1c185db555247e.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-cb7087e6c31ccbd6b013edef0fc286ff8c7d0c5b.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-d7d10971e9ee00bd46e6ff5b3d37447fcd3c3be5.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-d51b55f7d305de21d1cf6c3ad2fe06fcd1eb4979.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-dadd1adaae4408c0e026cfa2006a5202a12334e6.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-dd8b525407eb933c352517d12e1deabf435b6f23.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-e0c3e1ebb44a77facd6c4c30b84c5f2dea8f4744.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-f3ead23f5addf42311400146d90f3a497b6fc668.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-f32d2425caa09c4c0d3a99d32a2b06cdb39d4359.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-fa50294a3beeeb8d87a8023b452b08c085ff5469.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-fd9123773b212f7a5bad6344479de9dc3f86956d.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\blockdiag-ffc2873f145f57c346ad868daaec34a83306b7bc.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\CharSpeak.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\DecompileDialog.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\OpenExplorerWindow.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Help\_images\TalkingComputer.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
@@ -3166,6 +3371,17 @@
     <None Include="Docs\source\Classes\IconItem.rst" />
     <None Include="Docs\source\Classes\InventoryBase.rst" />
     <None Include="Docs\source\Classes\InventoryItem.rst" />
+    <None Include="Help\extractall.html" />
+    <None Include="Help\importexport.html" />
+    <None Include="Help\legacy.html" />
+    <None Include="Help\tips.html" />
+    <None Include="Docs\source\extractall.rst" />
+    <None Include="Docs\source\importexport.rst" />
+    <None Include="Help\Scripts\IconItem.html" />
+    <None Include="Help\Scripts\InventoryItem.html" />
+    <None Include="Help\Classes\IconItem.html" />
+    <None Include="Help\Classes\InventoryBase.html" />
+    <None Include="Help\Classes\InventoryItem.html" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />

@@ -87,6 +87,7 @@
 <li class="toctree-l1"><a class="reference internal" href="views.html">View Editor</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pics.html">Pic Editor</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Script editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="legacy.html">The SCI0 class library</a></li>
 <li class="toctree-l1"><a class="reference internal" href="classlibrary.html">The SCI1.1 class library</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sci_kernels.html">Kernel Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sci_compiler.html">The SCI Compiler</a></li>
@@ -111,6 +112,9 @@
 <li class="toctree-l1"><a class="reference internal" href="decompiler.html">Decompiler</a></li>
 <li class="toctree-l1"><a class="reference internal" href="preferences.html">Preferences</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gameversion.html">Game/Interpreter Versions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="importexport.html">Importing and exporting resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extractall.html">Extract All</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tips.html">Handy tips</a></li>
 </ul>
 
             
@@ -172,7 +176,7 @@ places.</p>
 <p>Some especially impressive examples of what palette cycling can do can be found on this web page: <a class="reference external" href="http://www.effectgames.com/effect/article-Old_School_Color_Cycling_with_HTML5.html">http://www.effectgames.com/effect/article-Old_School_Color_Cycling_with_HTML5.html</a> .
 Those examples use a lot of dithering, however, which looks better in a 640x480 canvas than the relatively low 320x200 resolution of SCI1 games.</p>
 <p><strong>SCI</strong>Companion has some features available to streamline the workflow of generating backgrounds with shifting colors. This section will show how to
-generate a simple animation on a logo.</p>
+generate a simple animation on a logo. See the <a class="reference internal" href="Kernels/Palette.html#Palette" title="Palette"><code class="xref py py-func docutils literal"><span class="pre">Palette()</span></code></a> palANIMATE subfunction to learn how to cycle palettes in script.</p>
 <div class="section" id="example">
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
 <p>Palette cycling is all about having smooth gradients of palette color <em>indices</em> across a region of your background. This can be accomplished by creating a source image
@@ -199,8 +203,9 @@ assign the colors we want:</p>
 <p>Let&#8217;s go through another example of how something like the following scene from Quest For Glory 1 (VGA remake) might work.</p>
 <img alt="_images/Waterfall.gif" src="_images/Waterfall.gif" />
 <p>If we inspect the decompiled code, we see that there are three palette cycling regions, 232-239, 240-247, and 248-254:</p>
-<blockquote>
-<div>Palette(palANIMATE 232 239 -1 240 247 -1 248 254 -1)</div></blockquote>
+<div class="highlight-python"><div class="highlight"><pre>Palette(palANIMATE 232 239 -1 240 247 -1 248 254 -1)
+</pre></div>
+</div>
 <p>These roughly correspond to the three different shades (light, medium, and dark) of the waterfall and lake.
 Let&#8217;s just briefly visualize the three ranges of indices that cycle separately. They are highlighted in red, yellow and blue in this image:</p>
 <img alt="_images/PC2_Visualization.png" src="_images/PC2_Visualization.png" />

@@ -18,6 +18,27 @@ PriorityTalker (of :class:`Talker`)
 	This could be useful, for instance, if the talker was an image on a tv screen in a game.
 
 
+.. blockdiag::
+	:alt: class diagram
+	:width: 600
+
+	diagram {
+		default_fontsize = 16
+		orientation = portrait;
+		Feature -> View
+		View -> Prop
+		Prop -> Narrator
+		Prop -> Actor
+		Prop -> Door
+		Actor -> Ego
+		Ego -> SQEgo
+		Narrator -> Talker
+		Narrator -> ChoiceNarrator
+		Talker -> PriorityTalker
+		Talker -> ChoiceTalker
+		PriorityTalker [color=greenyellow]
+	}
+
 Properties
 ==========
 

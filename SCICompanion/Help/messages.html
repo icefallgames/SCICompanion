@@ -87,6 +87,7 @@
 <li class="toctree-l1"><a class="reference internal" href="views.html">View Editor</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pics.html">Pic Editor</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Script editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="legacy.html">The SCI0 class library</a></li>
 <li class="toctree-l1"><a class="reference internal" href="classlibrary.html">The SCI1.1 class library</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sci_kernels.html">Kernel Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sci_compiler.html">The SCI Compiler</a></li>
@@ -103,6 +104,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#speech">Speech</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#special-encodings">Special encodings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#in-code">In Code</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="sounds.html">Sound Editor</a></li>
@@ -120,6 +122,9 @@
 <li class="toctree-l1"><a class="reference internal" href="decompiler.html">Decompiler</a></li>
 <li class="toctree-l1"><a class="reference internal" href="preferences.html">Preferences</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gameversion.html">Game/Interpreter Versions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="importexport.html">Importing and exporting resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extractall.html">Extract All</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tips.html">Handy tips</a></li>
 </ul>
 
             
@@ -172,10 +177,14 @@
 <h1>Message editor<a class="headerlink" href="#message-editor" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 </div>
+<div class="figure align-center" id="id1">
+<img alt="_images/CharSpeak.jpg" src="_images/CharSpeak.jpg" />
+<p class="caption"><span class="caption-text">A character in King&#8217;s Quest 6 speaking a message resource.</span></p>
+</div>
 <p>In SCI 1.1, message resources are used for nearly all in-game text. They have special features, however,
 to enable them to be easily associated with various actions on different objects. In contrast to SCI0, almost no
 code is needed to display text to the player in response to the player doing something with an object.</p>
-<div class="figure" id="id1">
+<div class="figure" id="id2">
 <img alt="_images/MessageEditor.png" src="_images/MessageEditor.png" />
 <p class="caption"><span class="caption-text">The message editor consists of the main list of messages, a <em>message details</em> pane to edit properties of a particular message entry, and an optional speech and lip-sync section. In addition, there are
 panes to edit the global verbs and talkers, and the nouns and conditions for this room.</span></p>
@@ -201,18 +210,18 @@ Verbs are numbers, but they are associated with a text label in order to make yo
 in the Verbs.sh header file, and are also shown in the message editor. Verbs are global in scope. There is a single Verbs.sh for the entire game,
 which contains all the label to number mappings. You don&#8217;t edit the Verbs.sh header file directly - instead, you can add, edit and remove verbs in
 the pane on the lefthand side of the message editor.</p>
-<div class="figure" id="id2">
+<div class="figure" id="id3">
 <img alt="_images/Verbs.PNG" src="_images/Verbs.PNG" />
 <p class="caption"><span class="caption-text">The global verbs list</span></p>
 </div>
 <p>Nouns, in contrast, are scoped to the particular room you are in. When you create a new room in your game, a header file (nnn.shm, which nnn is the room number) is already set up for
 you that will contain one noun: N_ROOM. You can add as many as you which, corresponding to objects in the room. The ego (main character) is a bit special. It is
 associated with module 0 (the main script), which by default has a N_EGO noun defined in its message header file (0.shm).</p>
-<div class="figure" id="id3">
+<div class="figure" id="id4">
 <img alt="_images/MessageHeaderInclude.PNG" src="_images/MessageHeaderInclude.PNG" />
 <p class="caption"><span class="caption-text">The message header is included by default in a new room script</span></p>
 </div>
-<div class="figure" id="id4">
+<div class="figure" id="id5">
 <img alt="_images/Nouns.PNG" src="_images/Nouns.PNG" />
 <p class="caption"><span class="caption-text">The room&#8217;s nouns list in the message editor, which corresponds to the values defined in the .shm header</span></p>
 </div>
@@ -220,11 +229,11 @@ associated with module 0 (the main script), which by default has a N_EGO noun de
 That means when the player clicks on the room background with the &#8220;look&#8221; icon, they will see this message in response.</p>
 <p>When adding objects to the room, you can add a noun in the message editor, and then set the object&#8217;s <em>noun</em> property to that noun. Then, in the message editor it is a simple matter to add
 message entries corresponding to various actions taken on that noun (e.g. V_LOOK, V_TALK, V_DO).</p>
-<div class="figure" id="id5">
+<div class="figure" id="id6">
 <img alt="_images/MessageLightSwitchCode.PNG" src="_images/MessageLightSwitchCode.PNG" />
 <p class="caption"><span class="caption-text">Set the noun in the object&#8217;s declaration in script</span></p>
 </div>
-<div class="figure" id="id6">
+<div class="figure" id="id7">
 <img alt="_images/MessageLightSwitch.PNG" src="_images/MessageLightSwitch.PNG" />
 <p class="caption"><span class="caption-text">Then add message entries for it</span></p>
 </div>
@@ -275,6 +284,65 @@ text is printned (or when it&#8217;s used to generate lip-sync data in <strong>S
 </div>
 <p>This will print the following on screen: &#8220;Alexander, come here right now!&#8221;. Anything within parentheses that does <em>not</em> contain lower case letters or digits will
 be counted as stage directions.</p>
+</div>
+<div class="section" id="in-code">
+<h2>In Code<a class="headerlink" href="#in-code" title="Permalink to this headline">¶</a></h2>
+<p>In the simplest case, all that&#8217;s needed to trigger messages are to have a <a class="reference internal" href="Classes/Feature.html#Feature" title="Feature"><code class="xref py py-class docutils literal"><span class="pre">Feature</span></code></a>, <a class="reference internal" href="Classes/View.html#View" title="View"><code class="xref py py-class docutils literal"><span class="pre">View</span></code></a>, <a class="reference internal" href="Classes/Prop.html#Prop" title="Prop"><code class="xref py py-class docutils literal"><span class="pre">Prop</span></code></a> or <a class="reference internal" href="Classes/Actor.html#Actor" title="Actor"><code class="xref py py-class docutils literal"><span class="pre">Actor</span></code></a> with a noun associated with it:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">(</span><span class="n">instance</span> <span class="n">mug</span> <span class="n">of</span> <span class="n">Prop</span>
+    <span class="p">(</span><span class="n">properties</span>
+        <span class="n">view</span> <span class="mi">901</span>
+        <span class="n">loop</span> <span class="mi">2</span>
+        <span class="n">x</span> <span class="mi">262</span>
+        <span class="n">y</span> <span class="mi">165</span>
+        <span class="n">approachX</span> <span class="mi">242</span>
+        <span class="n">approachY</span> <span class="mi">162</span>
+        <span class="n">signal</span> <span class="n">ignAct</span>
+<span class="hll">        <span class="n">noun</span> <span class="n">N_MUG</span>
+</span>    <span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Then when the player performs an action (V_DO, V_TALK, etc...) on the item, the associated message (or sequence of messages) will be displayed.</p>
+<p>Of course, you may need to trigger messages as part of a series of game events in a changeState or some other method. In that case, you can make a direct call to the messager:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">(</span><span class="n">local</span> <span class="n">numberTimesTalked</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="o">...</span>
+
+<span class="p">(</span><span class="n">instance</span> <span class="n">mug</span> <span class="n">of</span> <span class="n">Prop</span><span class="p">)</span>
+    <span class="o">...</span>
+
+    <span class="p">(</span><span class="n">method</span> <span class="p">(</span><span class="n">doVerb</span> <span class="n">theVerb</span> <span class="n">params</span><span class="p">)</span>
+        <span class="p">(</span><span class="n">switch</span> <span class="p">(</span><span class="n">theVerb</span><span class="p">)</span>
+            <span class="p">(</span><span class="n">case</span> <span class="n">V_TALK</span>
+                <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="o">&lt;</span> <span class="n">numberTimesTalked</span> <span class="mi">3</span><span class="p">)</span>
+                    <span class="o">//</span> <span class="n">In</span> <span class="n">this</span> <span class="n">case</span><span class="p">,</span> <span class="n">we</span><span class="s">&#39;d have 3 messages for N_MUG/V_TALK, with cases 0 1 and 2.</span>
+                    <span class="o">//</span> <span class="n">Each</span> <span class="n">time</span> <span class="n">the</span> <span class="n">player</span> <span class="n">tried</span> <span class="n">to</span> <span class="n">talk</span> <span class="n">to</span> <span class="n">a</span> <span class="n">mug</span><span class="p">,</span> <span class="n">it</span> <span class="n">would</span> <span class="n">show</span> <span class="n">a</span> <span class="n">message</span> <span class="k">with</span> <span class="n">a</span> <span class="n">successive</span> <span class="n">case</span><span class="o">.</span>
+<span class="hll">                    <span class="p">(</span><span class="n">send</span> <span class="n">gTestMessager</span><span class="p">:</span><span class="n">say</span><span class="p">(</span><span class="n">N_MUG</span> <span class="n">V_TALK</span> <span class="n">numberTimesTalked</span> <span class="mi">1</span><span class="p">))</span>
+</span>                    <span class="p">(</span><span class="o">++</span><span class="n">numberTimesTalked</span><span class="p">)</span>
+                <span class="p">)(</span><span class="k">else</span>
+                    <span class="o">//</span> <span class="n">Until</span> <span class="n">they</span> <span class="n">talked</span> <span class="n">to</span> <span class="n">the</span> <span class="n">mug</span> <span class="n">too</span> <span class="n">many</span> <span class="n">times</span><span class="p">,</span> <span class="n">they</span><span class="s">&#39;re crazy.</span>
+                    <span class="n">Die</span><span class="p">(</span><span class="n">DEATH_REASON_CRAZY</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+            <span class="p">(</span><span class="n">default</span>
+                <span class="p">(</span><span class="nb">super</span><span class="p">:</span><span class="n">doVerb</span><span class="p">(</span><span class="n">theVerb</span> <span class="n">rest</span> <span class="n">params</span><span class="p">))</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>When using gTestMessager:say(noun verb condition sequence), if the sequence number is 0, then all messages with the noun/verb/condition tuple will be shown in sequence.
+Otherwise, only the one with the specified sequence number will be shown.</p>
+<p>The noun/verb/condition/sequence tuple is used in many other places in the game too. So for instance, to show a button in a dialog, you can do:</p>
+<div class="highlight-python"><div class="highlight"><pre>(Print:
+    // message N_MYDIALOG/V_LOOK/0/1, at (60, 0), from message resource 101.
+    addText(N_MYDIALOG V_LOOK 0 1 60 0 101)
+    // Button value 0, message N_MYDIALOG/V_LOOK/0/2, at (70, 35), from message resource 101.
+    addButton(0 N_MYDIALOG V_LOOK 0 2 70 35 101)
+    init()
+)
+</pre></div>
+</div>
 </div>
 </div>
 

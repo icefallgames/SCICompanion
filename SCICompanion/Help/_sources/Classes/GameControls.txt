@@ -66,7 +66,7 @@ Methods
 
 
 
-.. function:: select(param1 param2)
+.. function:: select(theControl fSelect)
 	:noindex:
 
 

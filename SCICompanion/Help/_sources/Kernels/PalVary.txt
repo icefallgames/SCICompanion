@@ -23,6 +23,10 @@ PalVary (Kernel)
 	:param number stepStop: How far along the transition to go, ranging from 0-64, where 64 is the complete transition. The default is 64.
 	:param number direction: 1 for forward, -1 for reverse.
 
+	Example::
+
+		PalVary(pvINIT targetPalette 1 64 3)
+
 .. function:: PalVary(pvUNINIT)
 	:noindex:
 

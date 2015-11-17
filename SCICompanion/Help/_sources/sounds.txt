@@ -65,6 +65,39 @@ is anything other than -1. A loop point simply controls where the sound loops ba
 If a sound has a loop point specified, cue points won't work. Instead, the Sound object's client will be cued when the sound loops.
 
 
+In Code
+==========
+
+You might reference a sound resource number when you tell the game to play some music::
+
+    // Set the game's music to sound resource 101:
+    (send gMusic1:
+        number(101)
+        loop(1)
+        play()
+        hold()
+    )
+
+Or to declare a sound effect in your room::
+
+    (instance openDoorSound of Sound
+        (properties
+            number 103 // Resource number 103
+            priority 15
+            flags 1
+        )
+    )
+
+    // Then elsewhere ...
+
+    (openDoorSound:play())
+
+
+
+See :class:`Sound` and :func:`DoSound`.
+
 .. |midiimport| image:: /images/MIDIImport.png
 .. |cuepoint| image:: /images/CuePoint.png
 .. |looppoint| image:: /images/LoopPoint.png
+
+

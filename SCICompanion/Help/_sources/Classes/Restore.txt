@@ -12,7 +12,7 @@ Restore (of :class:`SRDialog`)
 
 	Defined in SRDialog.sc.
 
-	The Restore dialog.
+	The Restore Game dialog.
 
 
 Properties

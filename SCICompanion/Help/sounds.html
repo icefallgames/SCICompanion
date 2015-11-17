@@ -87,6 +87,7 @@
 <li class="toctree-l1"><a class="reference internal" href="views.html">View Editor</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pics.html">Pic Editor</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Script editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="legacy.html">The SCI0 class library</a></li>
 <li class="toctree-l1"><a class="reference internal" href="classlibrary.html">The SCI1.1 class library</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sci_kernels.html">Kernel Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sci_compiler.html">The SCI Compiler</a></li>
@@ -98,6 +99,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#tracks">Tracks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#cue-points">Cue points</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#loop-point">Loop point</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#in-code">In Code</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="vocabs.html">Vocabs</a></li>
@@ -114,6 +116,9 @@
 <li class="toctree-l1"><a class="reference internal" href="decompiler.html">Decompiler</a></li>
 <li class="toctree-l1"><a class="reference internal" href="preferences.html">Preferences</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gameversion.html">Game/Interpreter Versions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="importexport.html">Importing and exporting resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extractall.html">Extract All</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tips.html">Handy tips</a></li>
 </ul>
 
             
@@ -200,6 +205,34 @@ it is a Script object, will cause its changeState to be called). This lets you t
 object&#8217;s loop value to -1. A sound can loop even if there is no loop point specified. Likewise, a sound with a loop point won&#8217;t loop if the loop value of the Sound object
 is anything other than -1. A loop point simply controls where the sound loops back to.</p>
 <p>If a sound has a loop point specified, cue points won&#8217;t work. Instead, the Sound object&#8217;s client will be cued when the sound loops.</p>
+</div>
+<div class="section" id="in-code">
+<h2>In Code<a class="headerlink" href="#in-code" title="Permalink to this headline">¶</a></h2>
+<p>You might reference a sound resource number when you tell the game to play some music:</p>
+<div class="highlight-python"><div class="highlight"><pre>// Set the game&#39;s music to sound resource 101:
+(send gMusic1:
+    number(101)
+    loop(1)
+    play()
+    hold()
+)
+</pre></div>
+</div>
+<p>Or to declare a sound effect in your room:</p>
+<div class="highlight-python"><div class="highlight"><pre>(instance openDoorSound of Sound
+    (properties
+        number 103 // Resource number 103
+        priority 15
+        flags 1
+    )
+)
+
+// Then elsewhere ...
+
+(openDoorSound:play())
+</pre></div>
+</div>
+<p>See <a class="reference internal" href="Classes/Sound.html#Sound" title="Sound"><code class="xref py py-class docutils literal"><span class="pre">Sound</span></code></a> and <a class="reference internal" href="Kernels/DoSound.html#DoSound" title="DoSound"><code class="xref py py-func docutils literal"><span class="pre">DoSound()</span></code></a>.</p>
 </div>
 </div>
 

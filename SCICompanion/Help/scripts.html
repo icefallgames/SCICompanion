@@ -31,7 +31,7 @@
 
   
     <link rel="top" title="SCICompanion 3.0 documentation" href="index.html"/>
-        <link rel="next" title="The SCI1.1 class library" href="classlibrary.html"/>
+        <link rel="next" title="The SCI0 class library" href="legacy.html"/>
         <link rel="prev" title="Polygons" href="polygons.html"/> 
 
   
@@ -88,6 +88,7 @@
 <li class="toctree-l1"><a class="reference internal" href="pics.html">Pic Editor</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="">Script editor</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#adding-a-new-room-and-other-scripts">Adding a new room and other scripts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sci-script">SCI Script</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#compiling-a-script">Compiling a script</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#finding-text">Finding text</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#adding-words-to-the-vocabulary">Adding words to the vocabulary</a></li>
@@ -103,6 +104,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#debug-room">Debug room</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="legacy.html">The SCI0 class library</a></li>
 <li class="toctree-l1"><a class="reference internal" href="classlibrary.html">The SCI1.1 class library</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sci_kernels.html">Kernel Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sci_compiler.html">The SCI Compiler</a></li>
@@ -123,6 +125,9 @@
 <li class="toctree-l1"><a class="reference internal" href="decompiler.html">Decompiler</a></li>
 <li class="toctree-l1"><a class="reference internal" href="preferences.html">Preferences</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gameversion.html">Game/Interpreter Versions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="importexport.html">Importing and exporting resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extractall.html">Extract All</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tips.html">Handy tips</a></li>
 </ul>
 
             
@@ -194,6 +199,15 @@ In SCI1.1, creating a new room automatically also creates the following:</p>
 </ul>
 </div></blockquote>
 <p>To create a new blank script, click the New empty script <img alt="newscript" src="_images/NewScript.png" /> button. A dialog asking for the script number and name will come up.</p>
+</div>
+<div class="section" id="sci-script">
+<h2>SCI Script<a class="headerlink" href="#sci-script" title="Permalink to this headline">¶</a></h2>
+<p>The syntax used for source code in <strong>SCI</strong>Companion is nearly identical to that used in SCI Studio. It uses a syntax that is a cross between LISP and SmallTalk. Its design
+was probably based on an attempt to recreate the language that was used by Sierra&#8217;s programmers. Since that time however, the community has discovered more original
+code samples that give better clues as to the exact syntax used by Sierra (it was closer to SmallTalk than the current syntax).
+It&#8217;s possible that a future version of <strong>SCI</strong>Companion may offer a more historically accurate
+syntax as an option, but for now it was deemed that compatiblity with SCI Studio (to ensure backwards compatiblity for SCI0 fan games) was more important.</p>
+<p>For more information on the syntax, see <a class="reference internal" href="sci_compiler.html"><em>The SCI Compiler</em></a>.</p>
 </div>
 <div class="section" id="compiling-a-script">
 <h2>Compiling a script<a class="headerlink" href="#compiling-a-script" title="Permalink to this headline">¶</a></h2>
@@ -289,7 +303,7 @@ it will switch you to that resource. Otherwise, it will open the appropriate edi
 via the Debug Room <img alt="debugroom" src="_images/DebugRoom.png" /> button in the Script Editor toolbar. This of course requires that your room be
 able to handle being transported directly to it without arriving there through gameplay.</p>
 <p>If you need to set up certain global flags or inventory items that are necessary for being in that room,
-you can do so in the DebugRoomInit procedure in the debugroominit.sc script. Add a case for your room number
+you can do so in the <a class="reference internal" href="Procedures/DebugRoomInit.html#DebugRoomInit" title="DebugRoomInit"><code class="xref py py-func docutils literal"><span class="pre">DebugRoomInit()</span></code></a> procedure in the debugroominit.sc script. Add a case for your room number
 and set up additional state as necessary. This procedure is only called when the game is started with the Debug Room functionality.</p>
 <p>This functionality can be a real help when trying to iterate quickly on your game.</p>
 </div>
@@ -302,7 +316,7 @@ and set up additional state as necessary. This procedure is only called when the
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="classlibrary.html" class="btn btn-neutral float-right" title="The SCI1.1 class library" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="legacy.html" class="btn btn-neutral float-right" title="The SCI0 class library" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="polygons.html" class="btn btn-neutral" title="Polygons" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>

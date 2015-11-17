@@ -13,6 +13,9 @@ PolyEdit (of :class:`List`)
 	Defined in PolygonEdit.sc.
 
 	
+	This is an in-game polygon editor. It is not essential for the template
+	game, but it is included for historical purposes.
+	
 	Usage::
 	
 		(PolyEdit:doit())

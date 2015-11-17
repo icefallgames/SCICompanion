@@ -13,7 +13,7 @@ View (of :class:`Feature`)
 	Defined in Actor.sc.
 
 	
-	The View class is an essential part of SCI games. It is the base class for :class:`Prop`, class:`Actor` and the like.
+	The View class is an essential part of SCI games. It is the base class for :class:`Prop`, :class:`Actor` and the like.
 	It extends :class:`Feature` by providing the ability to be dynamically positioned at different places, and by automatically setting
 	its bounds based on its view, loop and cel. It is often (though not exclusively) used to add static views to the background, via
 	its addToPic method.
@@ -39,6 +39,27 @@ View (of :class:`Feature`)
 
 
 Subclasses: :class:`Prop`.
+
+.. blockdiag::
+	:alt: class diagram
+	:width: 600
+
+	diagram {
+		default_fontsize = 16
+		orientation = portrait;
+		Feature -> View
+		View -> Prop
+		Prop -> Narrator
+		Prop -> Actor
+		Prop -> Door
+		Actor -> Ego
+		Ego -> SQEgo
+		Narrator -> Talker
+		Narrator -> ChoiceNarrator
+		Talker -> PriorityTalker
+		Talker -> ChoiceTalker
+		View [color=greenyellow]
+	}
 
 Properties
 ==========

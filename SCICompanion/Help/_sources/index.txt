@@ -31,6 +31,7 @@ Topics:
    views
    pics
    scripts
+   legacy
    classlibrary
    sci_kernels
    sci_compiler
@@ -51,6 +52,9 @@ Topics:
    decompiler
    preferences
    gameversion
+   importexport
+   extractall
+   tips
 
 Other
 ==================

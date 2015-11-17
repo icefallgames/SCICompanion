@@ -33,7 +33,6 @@ To view the classes and procedures by their scripts, see :doc:`sci11_scripts`
 	Classes/Collect
 	Classes/Control
 	Classes/ControlIcon
-	Classes/ControlItem
 	Classes/Controls
 	Classes/Conversation
 	Classes/CT
@@ -72,12 +71,11 @@ To view the classes and procedures by their scripts, see :doc:`sci11_scripts`
 	Classes/Grooper
 	Classes/Grycler
 	Classes/IconBar
-	Classes/IconI
+	Classes/IconItem
 	Classes/Inset
 	Classes/InsetWindow
-	Classes/Inv
-	Classes/InvI
-	Classes/InvItem
+	Classes/InventoryBase
+	Classes/InventoryItem
 	Classes/Jump
 	Classes/JumpTo
 	Classes/List

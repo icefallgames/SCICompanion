@@ -15,6 +15,23 @@ DText (of :class:`Control`)
 	A control that simply displays text.
 
 
+.. blockdiag::
+	:alt: class diagram
+	:width: 600
+
+	diagram {
+		default_fontsize = 16
+		Control -> DText
+		Control -> DSelector
+		Control -> DButton
+		Control -> DEdit
+		Control -> DIcon
+		DIcon -> DCIcon
+		DButton -> DColorButton
+		DSelector -> FileSelector
+		DText [color=greenyellow]
+	}
+
 Properties
 ==========
 

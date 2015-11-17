@@ -15,7 +15,7 @@ List (of :class:`Collect`)
 	The List class is an extension of the Collect class. It is used to handle a list of elements such as objects that can be accessed by index.
 
 
-Subclasses: :class:`Dialog`, :class:`Controls`, :class:`Set`, :class:`Conversation`, :class:`_EditablePolygon`, :class:`PolyEdit`, :class:`DialogEditor`.
+Subclasses: :class:`Controls`, :class:`Dialog`, :class:`Set`, :class:`Conversation`, :class:`_EditablePolygon`, :class:`PolyEdit`, :class:`DialogEditor`.
 
 Properties
 ==========

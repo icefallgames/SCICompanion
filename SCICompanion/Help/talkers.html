@@ -88,6 +88,7 @@
 <li class="toctree-l1"><a class="reference internal" href="views.html">View Editor</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pics.html">Pic Editor</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Script editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="legacy.html">The SCI0 class library</a></li>
 <li class="toctree-l1"><a class="reference internal" href="classlibrary.html">The SCI1.1 class library</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sci_kernels.html">Kernel Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sci_compiler.html">The SCI Compiler</a></li>
@@ -97,11 +98,13 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="">Talkers and Narrators</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#adding-a-talker">Adding a Talker</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#views-for-a-talker">Views for a Talker</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#in-code">In Code</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="messages.html#what-s-in-a-message">What&#8217;s in a message</a></li>
 <li class="toctree-l2"><a class="reference internal" href="messages.html#speech">Speech</a></li>
 <li class="toctree-l2"><a class="reference internal" href="messages.html#special-encodings">Special encodings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="messages.html#in-code">In Code</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="sounds.html">Sound Editor</a></li>
@@ -119,6 +122,9 @@
 <li class="toctree-l1"><a class="reference internal" href="decompiler.html">Decompiler</a></li>
 <li class="toctree-l1"><a class="reference internal" href="preferences.html">Preferences</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gameversion.html">Game/Interpreter Versions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="importexport.html">Importing and exporting resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extractall.html">Extract All</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tips.html">Handy tips</a></li>
 </ul>
 
             
@@ -193,7 +199,7 @@ as they are both the same from the point of view of the message editor and most 
 <ol class="arabic simple">
 <li>In the message editor (for any message resource), assign a new talker name to a new number in the <em>Global Talkers</em> pane. Once this is done, it will be in <strong>Talkers.sh</strong> and you will be able to create message entries with this Talker name.</li>
 <li>Choose a script in which to implement your Talker. If the Talker only ever appears in one room, you may as well just define it in that room. Otherwise, you can create a new empty script just for this Talker.</li>
-<li>In your chosen script, create the Talker (or Narrator) instance and customize as necessary. Then add the instance to the list of exports for that script (using the <code class="xref doc docutils literal"><span class="pre">exports</span></code> keyword).</li>
+<li>In your chosen script, create the Talker (or Narrator) instance and customize as necessary. Then add the instance to the list of exports for that script (using the <a class="reference internal" href="Compiler/version.html"><em>exports</em></a> keyword).</li>
 <li>In the main.sc script, find the <em>findTalker</em> method in the <em>testMessager</em> instance, and insert a new case in the switch statement for <em>talkerNumber</em>. The case value should be the talker name you used in step 1. In this case statement, call ScriptID kernel with the script number you chose in step 2, and the export number you chose in step 3.</li>
 <li>Finally, <em>if</em> you chose a new script in step 2, you&#8217;ll need to add this script number to the list of scripts to dispose on a room change in <strong>dispose.sc</strong>.</li>
 </ol>
@@ -220,6 +226,80 @@ the Talker&#8217;s <em>init</em> method.</p>
 <p>Your Talker instance&#8217;s <em>init</em> method is used to assign the mouth, bust and eye props. You&#8217;ll need to position these three Props manually in order to align them with each other.
 You can do this either in
 the Talker&#8217;s init method, or using the default property values in your mouth/bust/eye Props.</p>
+</div>
+<div class="section" id="in-code">
+<h2>In Code<a class="headerlink" href="#in-code" title="Permalink to this headline">¶</a></h2>
+<p>Here&#8217;s sample code for a Talker:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">(</span><span class="n">exports</span>
+    <span class="mi">0</span> <span class="n">rm210</span>
+<span class="hll">    <span class="mi">1</span> <span class="n">talkingComputer</span>
+</span><span class="p">)</span>
+
+<span class="o">...</span>
+
+<span class="hll"><span class="p">(</span><span class="n">instance</span> <span class="n">public</span> <span class="n">talkingComputer</span> <span class="n">of</span> <span class="n">Talker</span>
+</span>    <span class="p">(</span><span class="n">properties</span>
+        <span class="n">x</span> <span class="mi">10</span>
+        <span class="n">y</span> <span class="mi">25</span>
+        <span class="n">view</span> <span class="mi">1004</span>
+        <span class="n">loop</span> <span class="mi">0</span>
+        <span class="n">talkWidth</span> <span class="mi">150</span>
+        <span class="n">back</span> <span class="mi">5</span>
+        <span class="n">textX</span> <span class="mi">120</span>
+        <span class="n">textY</span> <span class="mi">10</span>
+    <span class="p">)</span>
+
+    <span class="p">(</span><span class="n">method</span> <span class="p">(</span><span class="n">init</span> <span class="n">param1</span><span class="p">)</span>
+        <span class="o">=</span> <span class="n">font</span> <span class="n">gFont</span>
+        <span class="o">//</span> <span class="n">For</span> <span class="n">talkers</span><span class="p">,</span> <span class="n">we</span> <span class="n">can</span> <span class="n">optionally</span> <span class="nb">set</span> <span class="n">a</span> <span class="n">cycler</span> <span class="n">on</span> <span class="n">the</span> <span class="n">eyes</span><span class="o">.</span>
+        <span class="o">//</span> <span class="n">If</span> <span class="n">there</span> <span class="ow">is</span> <span class="n">no</span> <span class="n">cycler</span><span class="p">,</span> <span class="n">the</span> <span class="n">Blink</span> <span class="n">cycler</span> <span class="n">will</span> <span class="n">be</span> <span class="n">used</span><span class="o">.</span>
+        <span class="p">(</span><span class="n">computerEyes</span><span class="p">:</span><span class="n">setCycle</span><span class="p">(</span><span class="n">Rev</span><span class="p">))</span>
+        <span class="p">(</span><span class="nb">super</span><span class="p">:</span><span class="n">init</span><span class="p">(</span><span class="n">computerBust</span> <span class="n">computerEyes</span> <span class="n">computerMouth</span> <span class="n">rest</span> <span class="n">param1</span><span class="p">))</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+
+<span class="p">(</span><span class="n">instance</span> <span class="n">computerBust</span> <span class="n">of</span> <span class="n">Prop</span>
+    <span class="p">(</span><span class="n">properties</span>
+        <span class="n">view</span> <span class="mi">1004</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+
+<span class="p">(</span><span class="n">instance</span> <span class="n">computerEyes</span> <span class="n">of</span> <span class="n">Prop</span>
+    <span class="p">(</span><span class="n">properties</span>
+        <span class="n">cycleSpeed</span> <span class="mi">10</span>
+        <span class="n">nsTop</span> <span class="mi">0</span>
+        <span class="n">nsLeft</span> <span class="mi">0</span>
+        <span class="n">view</span> <span class="mi">1004</span>
+        <span class="n">loop</span> <span class="mi">1</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+
+<span class="p">(</span><span class="n">instance</span> <span class="n">computerMouth</span> <span class="n">of</span> <span class="n">Prop</span>
+    <span class="p">(</span><span class="n">properties</span>
+        <span class="n">nsTop</span> <span class="mi">59</span>
+        <span class="n">nsLeft</span> <span class="mi">18</span>
+        <span class="n">view</span> <span class="mi">1004</span>
+        <span class="n">loop</span> <span class="mi">2</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Then add a talker number:</p>
+<img alt="_images/AddTalker.png" src="_images/AddTalker.png" />
+<p>Then in findTalker in Main.sc:</p>
+<div class="highlight-python"><div class="highlight"><pre>(switch (talkerNumber)
+    (case NARRATOR
+        gNarrator
+    )
+    (case COMPUTER
+        ScriptID(210 1) // Script 210, export 1
+    )
+    ...
+)
+</pre></div>
+</div>
+<p>Now messages with talker number COMPUTER will result in the talkingComputer Talker being shown.</p>
+<img alt="_images/TalkingComputer.png" src="_images/TalkingComputer.png" />
 </div>
 </div>
 

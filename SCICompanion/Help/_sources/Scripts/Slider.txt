@@ -13,5 +13,5 @@ Slider.sc
 Classes
 ==========
 
-:class:`Slider` of IconI
+:class:`Slider` of IconItem
 

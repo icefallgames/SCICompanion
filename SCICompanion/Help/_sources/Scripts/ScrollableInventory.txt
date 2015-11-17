@@ -13,5 +13,7 @@ ScrollableInventory.sc
 Classes
 ==========
 
-:class:`ScrollableInventory` of Inv
+:class:`InventoryBase` of IconBar
+
+:class:`ScrollableInventory` of InventoryBase
 

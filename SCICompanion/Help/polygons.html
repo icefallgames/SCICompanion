@@ -91,7 +91,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#drawing-polygons-in-the-pic-editor">Drawing polygons in the Pic Editor</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#editing-polygons">Editing polygons</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#polygon-types">Polygon types</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#scripting">Scripting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#in-code">In Code</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#default-unanmed-polygons">Default (unanmed) polygons</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#named-polygons">Named polygons</a></li>
 </ul>
@@ -114,9 +114,11 @@
 <li class="toctree-l2"><a class="reference internal" href="pics.html#polygons">Polygons</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pics.html#changing-a-pic-s-height">Changing a pic&#8217;s height</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pics.html#pic-helper-pane">Pic helper pane</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pics.html#in-code">In Code</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Script editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="legacy.html">The SCI0 class library</a></li>
 <li class="toctree-l1"><a class="reference internal" href="classlibrary.html">The SCI1.1 class library</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sci_kernels.html">Kernel Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sci_compiler.html">The SCI Compiler</a></li>
@@ -137,6 +139,9 @@
 <li class="toctree-l1"><a class="reference internal" href="decompiler.html">Decompiler</a></li>
 <li class="toctree-l1"><a class="reference internal" href="preferences.html">Preferences</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gameversion.html">Game/Interpreter Versions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="importexport.html">Importing and exporting resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extractall.html">Extract All</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tips.html">Handy tips</a></li>
 </ul>
 
             
@@ -233,8 +238,8 @@ stepped into the Total Access polygon and you only want that to happen if the eg
 When entering or leaving a Nearest Access polygon, the ego enters/leaves from the closest point on the polygon edge.</li>
 </ul>
 </div>
-<div class="section" id="scripting">
-<h2>Scripting<a class="headerlink" href="#scripting" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="in-code">
+<h2>In Code<a class="headerlink" href="#in-code" title="Permalink to this headline">¶</a></h2>
 <p>When you save a pic resource, its polygons are also saved into an <em>nnn</em>.shp script header file (where nnn is the pic number). This file is automatically
 written to and read from by the Pic Editor.</p>
 <div class="section" id="default-unanmed-polygons">
@@ -284,6 +289,7 @@ in the .shp file:</p>
 </div>
 <p>Note that any named polygons will <em>not</em> appear in the default polygons for that room.</p>
 <p>If you need to remove the name of a polygon to set it back to being a &#8220;default polygon&#8221;, just give it a blank name.</p>
+<p>See <a class="reference internal" href="Procedures/AddPolygonsToRoom.html#AddPolygonsToRoom" title="AddPolygonsToRoom"><code class="xref py py-func docutils literal"><span class="pre">AddPolygonsToRoom()</span></code></a> and <a class="reference internal" href="Procedures/CreateNewPolygon.html#CreateNewPolygon" title="CreateNewPolygon"><code class="xref py py-func docutils literal"><span class="pre">CreateNewPolygon()</span></code></a>.</p>
 </div>
 </div>
 </div>

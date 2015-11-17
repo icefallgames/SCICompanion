@@ -23,6 +23,31 @@ Wander (of :class:`Motion`)
 	Note that this class won't intelligently direct an Actor around polygon obstacles.
 
 
+.. blockdiag::
+	:alt: class diagram
+	:width: 600
+
+	diagram {
+		default_fontsize = 16
+		Motion -> Wander
+		Motion -> DPath
+		Motion -> MoveTo
+		Motion -> Approach
+		Motion -> Orbit
+		Motion -> Follow
+		Motion -> PolyPath
+		Motion -> Track
+		Motion -> Chase
+		Motion -> Jump
+		Jump -> JumpTo
+		PolyPath -> PChase
+		PolyPath -> PFollow
+		PolyPath -> MoveFwd
+		MoveTo -> RegionPath
+		DPath -> RelDPath
+		Wander [color=greenyellow]
+	}
+
 Properties
 ==========
 

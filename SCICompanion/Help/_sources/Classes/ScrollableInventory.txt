@@ -4,9 +4,9 @@
 
 .. include:: /includes/standard.rst
 
-=====================================
-ScrollableInventory (of :class:`Inv`)
-=====================================
+===============================================
+ScrollableInventory (of :class:`InventoryBase`)
+===============================================
 
 .. class:: ScrollableInventory
 
@@ -20,7 +20,7 @@ ScrollableInventory (of :class:`Inv`)
 Properties
 ==========
 
-Inherited from :class:`Inv`:
+Inherited from :class:`InventoryBase`:
 
 =============== ===========
 Property        Description

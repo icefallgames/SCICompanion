@@ -87,6 +87,7 @@
 <li class="toctree-l1"><a class="reference internal" href="views.html">View Editor</a></li>
 <li class="toctree-l1"><a class="reference internal" href="pics.html">Pic Editor</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Script editor</a></li>
+<li class="toctree-l1"><a class="reference internal" href="legacy.html">The SCI0 class library</a></li>
 <li class="toctree-l1"><a class="reference internal" href="classlibrary.html">The SCI1.1 class library</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sci_kernels.html">Kernel Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sci_compiler.html">The SCI Compiler</a></li>
@@ -110,6 +111,11 @@
 <li class="toctree-l3"><a class="reference internal" href="#markings-on-the-colors">Markings on the colors</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#in-code">In Code</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#transitions">Transitions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#palette-cycling-and-other-manipulations">Palette cycling and other manipulations</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="audio.html">Digital Audio</a></li>
@@ -122,6 +128,9 @@
 <li class="toctree-l1"><a class="reference internal" href="decompiler.html">Decompiler</a></li>
 <li class="toctree-l1"><a class="reference internal" href="preferences.html">Preferences</a></li>
 <li class="toctree-l1"><a class="reference internal" href="gameversion.html">Game/Interpreter Versions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="importexport.html">Importing and exporting resources</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extractall.html">Extract All</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tips.html">Handy tips</a></li>
 </ul>
 
             
@@ -234,7 +243,7 @@ editor. You can also export just the currently selected range, or you can import
 want to show the pic with different palettes. For example, if you wanted to create a night scene for a pic background, you could &#8220;Add as resource&#8221; that pic&#8217;s palette
 - that takes the palette embedded in the pic and saves it as a solitary palette resource.
 Then, you could edit that palette resource and adjust it to be darker and bluer. Then in script that palette resource could
-be applied to the current pic background.</p>
+be applied to the current pic background. See the palSET_FROM_RESOURCE subfunction of <a class="reference internal" href="Kernels/Palette.html#Palette" title="Palette"><code class="xref py py-func docutils literal"><span class="pre">Palette()</span></code></a>, and also the <a class="reference internal" href="Kernels/PalVary.html#PalVary" title="PalVary"><code class="xref py py-func docutils literal"><span class="pre">PalVary()</span></code></a> kernel.</p>
 </div>
 <div class="section" id="palette-cycling">
 <h3>Palette cycling<a class="headerlink" href="#palette-cycling" title="Permalink to this headline">¶</a></h3>
@@ -250,6 +259,47 @@ cycling the selected range of colors on the current view or pic. The cycling wou
 <li>A dot in the middle of a color <img alt="usedcolor" src="_images/PaletteUsedInResource.PNG" /> means that this color index actually appears in the view or pic to which this palette is attached (you won&#8217;t see this when looking at solitary palettes obviously).</li>
 </ul>
 <p>You can use the <em>Used color</em> and <em>Fixed</em> checkboxes to control the first two options.</p>
+</div>
+</div>
+<div class="section" id="in-code">
+<h2>In Code<a class="headerlink" href="#in-code" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="transitions">
+<h3>Transitions<a class="headerlink" href="#transitions" title="Permalink to this headline">¶</a></h3>
+<p>Unless you&#8217;re specifically doing palette manipulations or effect, you probably won&#8217;t need to worry about palettes too much in your scripts.</p>
+<p>If you specify a special transition between rooms, and the rooms have different palettes, you&#8217;ll probably want to specify dpANIMATION_BLAKCOUT. Otherwise
+the new room&#8217;s palette will be applied right away:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">(</span><span class="n">instance</span> <span class="n">public</span> <span class="n">rm110</span> <span class="n">of</span> <span class="n">Rm</span>
+    <span class="p">(</span><span class="n">properties</span>
+        <span class="n">north</span> <span class="mi">106</span>
+        <span class="n">picture</span> <span class="mi">110</span>
+<span class="hll">        <span class="n">style</span> <span class="p">(</span><span class="o">|</span> <span class="n">dpANIMATION_BLACKOUT</span> <span class="n">dpOPEN_PIXELATION</span><span class="p">)</span>
+</span>        <span class="n">horizon</span> <span class="mi">50</span>
+        <span class="n">vanishingX</span> <span class="mi">130</span>
+        <span class="n">vanishingY</span> <span class="mi">50</span>
+        <span class="n">noun</span> <span class="n">N_ROOM</span>
+    <span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Note that dpANIMATION_BLACKOUT is only supported for the following transition animations:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">dpOPEN_HCENTER</span>
+<span class="n">dpOPEN_VCENTER</span>
+<span class="n">dpOPEN_RIGHT</span>
+<span class="n">dpOPEN_LEFT</span>
+<span class="n">dpOPEN_BOTTOM</span>
+<span class="n">dpOPEN_TOP</span>
+<span class="n">dpOPEN_EDGECENTER</span>
+<span class="n">dpOPEN_CENTEREDGE</span>
+<span class="n">dpOPEN_CHECKBOARD</span>
+<span class="n">dpOPEN_PIXELATION</span>
+</pre></div>
+</div>
+<p>This brings up a larger point though. If you want to have direct smooth transitions from one screen to another (without blacking out first), you&#8217;ll need to make sure
+that both pics use the same palette. This is easy to do if you &#8220;Save As&#8221; the first pic to a new resource, then import your second pic&#8217;s background using &#8220;Map to current palette&#8221;.</p>
+</div>
+<div class="section" id="palette-cycling-and-other-manipulations">
+<h3>Palette cycling and other manipulations<a class="headerlink" href="#palette-cycling-and-other-manipulations" title="Permalink to this headline">¶</a></h3>
+<p>Read the documentation for <a class="reference internal" href="Kernels/Palette.html#Palette" title="Palette"><code class="xref py py-func docutils literal"><span class="pre">Palette()</span></code></a> and <a class="reference internal" href="Kernels/PalVary.html#PalVary" title="PalVary"><code class="xref py py-func docutils literal"><span class="pre">PalVary()</span></code></a> to learn how to perform palette cycling, smoothly transition to new palettes, or vary the intensity of color ranges.</p>
 </div>
 </div>
 </div>

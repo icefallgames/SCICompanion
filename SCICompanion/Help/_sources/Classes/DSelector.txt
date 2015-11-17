@@ -17,6 +17,23 @@ DSelector (of :class:`Control`)
 
 Subclasses: :class:`FileSelector`.
 
+.. blockdiag::
+	:alt: class diagram
+	:width: 600
+
+	diagram {
+		default_fontsize = 16
+		Control -> DText
+		Control -> DSelector
+		Control -> DButton
+		Control -> DEdit
+		Control -> DIcon
+		DIcon -> DCIcon
+		DButton -> DColorButton
+		DSelector -> FileSelector
+		DSelector [color=greenyellow]
+	}
+
 Properties
 ==========
 

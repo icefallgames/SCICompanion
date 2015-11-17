@@ -108,7 +108,7 @@ FileIO (Kernel)
 	Begins a file enumeration in the current directory. Continue the enumeration
 	using FileIO(fiFIND_NEXT).
 
-	:param string filenameMask: A file name filter string, like "*.txt".
+	:param string filenameMask: A file name filter string, like "\*.txt".
 	:param string outBuffer: The buffer that receives the first filename.
 	:param number fileAttributes: Attributes of the file. Pass 0 for regular files.
 	:returns: TRUE if the first file was found, otherwise FALSE.
