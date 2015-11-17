@@ -1028,9 +1028,12 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <None Include="Docs\source\Classes\Grycler.rst" />
     <None Include="Docs\source\Classes\IconBar.rst" />
     <None Include="Docs\source\Classes\IconI.rst" />
+    <None Include="Docs\source\Classes\IconItem.rst" />
     <None Include="Docs\source\Classes\Inset.rst" />
     <None Include="Docs\source\Classes\InsetWindow.rst" />
     <None Include="Docs\source\Classes\Inv.rst" />
+    <None Include="Docs\source\Classes\InventoryBase.rst" />
+    <None Include="Docs\source\Classes\InventoryItem.rst" />
     <None Include="Docs\source\Classes\InvI.rst" />
     <None Include="Docs\source\Classes\InvItem.rst" />
     <None Include="Docs\source\Classes\Jump.rst" />
@@ -1368,7 +1371,9 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <None Include="Docs\source\Scripts\Grooper.rst" />
     <None Include="Docs\source\Scripts\Helpers.rst" />
     <None Include="Docs\source\Scripts\IconI.rst" />
+    <None Include="Docs\source\Scripts\IconItem.rst" />
     <None Include="Docs\source\Scripts\Inset.rst" />
+    <None Include="Docs\source\Scripts\InventoryItem.rst" />
     <None Include="Docs\source\Scripts\InvI.rst" />
     <None Include="Docs\source\Scripts\InvItem.rst" />
     <None Include="Docs\source\Scripts\Jump.rst" />

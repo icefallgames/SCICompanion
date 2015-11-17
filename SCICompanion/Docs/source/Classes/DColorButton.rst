@@ -16,6 +16,23 @@ DColorButton (of :class:`DButton`)
 	A Button control that lets you set various colors for different states.
 
 
+.. blockdiag::
+	:alt: class diagram
+	:width: 600
+
+	diagram {
+		default_fontsize = 16
+		Control -> DText
+		Control -> DSelector
+		Control -> DButton
+		Control -> DEdit
+		Control -> DIcon
+		DIcon -> DCIcon
+		DButton -> DColorButton
+		DSelector -> FileSelector
+		DColorButton [color=greenyellow]
+	}
+
 Properties
 ==========
 

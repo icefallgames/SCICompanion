@@ -15,8 +15,7 @@ Event (of :class:`Obj`)
 	
 	The Event class is one of the most widely used classes in SCI games. It is used to find out if the user has given input.
 	
-	Event types
-	------------
+	Event types:
 	
 	================= =========================================
 	Event type          Description
@@ -38,8 +37,7 @@ Event (of :class:`Obj`)
 	- evHELP
 	- evHELPVERB
 	
-	Event message
-	---------------
+	Event message:
 	
 	The event **message** property is used mainly for keyboard events, where it contains the keycode.
 	

@@ -946,7 +946,7 @@ void ComplexValueStringA(MatchResult &match, const Parser *pParser, SyntaxContex
         ComplexPropertyValue *pValue = pContext->GetSyntaxNode<ComplexPropertyValue>();
         if (pValue->GetType() == ValueType::Pointer)
         {
-            ASSERT(typeToUse == ValueType::Token);
+            assert(typeToUse == ValueType::Token);
             typeToUse = ValueType::Pointer; // It was already decided it was a pointer.
         }
         pValue->SetValue(pContext->ScratchString(), typeToUse);

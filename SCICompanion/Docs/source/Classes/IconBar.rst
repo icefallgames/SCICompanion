@@ -10,13 +10,13 @@ IconBar (of :class:`Set`)
 
 .. class:: IconBar
 
-	Defined in IconI.sc.
+	Defined in IconItem.sc.
 
 	
 	A class that manages the icon bar at the top of the screen in the template game.
 
 
-Subclasses: :class:`GameControls`, :class:`Inv`.
+Subclasses: :class:`InventoryBase`, :class:`GameControls`.
 
 Properties
 ==========
@@ -87,7 +87,8 @@ Methods
 
 
 
-.. function:: select(theCurIcon param2)
+
+.. function:: select(theCurIcon [fProcessEvents])
 	:noindex:
 
 

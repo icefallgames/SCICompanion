@@ -46,10 +46,9 @@ The SCI 1.1 template game consists of about 80 scripts.
 	Scripts/Gauge
 	Scripts/Grooper
 	Scripts/Helpers
-	Scripts/IconI
+	Scripts/IconItem
 	Scripts/Inset
-	Scripts/InvI
-	Scripts/InvItem
+	Scripts/InventoryItem
 	Scripts/Jump
 	Scripts/Main
 	Scripts/MCyc
@@ -77,7 +76,6 @@ The SCI 1.1 template game consists of about 80 scripts.
 	Scripts/ScaleTo
 	Scripts/ScrollableInventory
 	Scripts/ScrollInsetWindow
-	Scripts/SettingsPane
 	Scripts/Slider
 	Scripts/SmoothLooper
 	Scripts/Smopper

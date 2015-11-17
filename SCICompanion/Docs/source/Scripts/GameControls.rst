@@ -15,5 +15,5 @@ Classes
 
 :class:`GameControls` of IconBar
 
-:class:`ControlIcon` of IconI
+:class:`ControlIcon` of IconItem
 

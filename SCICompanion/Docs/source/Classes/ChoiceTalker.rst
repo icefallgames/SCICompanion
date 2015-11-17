@@ -44,6 +44,27 @@ ChoiceTalker (of :class:`Talker`)
 		)
 
 
+.. blockdiag::
+	:alt: class diagram
+	:width: 600
+
+	diagram {
+		default_fontsize = 16
+		orientation = portrait;
+		Feature -> View
+		View -> Prop
+		Prop -> Narrator
+		Prop -> Actor
+		Prop -> Door
+		Actor -> Ego
+		Ego -> SQEgo
+		Narrator -> Talker
+		Narrator -> ChoiceNarrator
+		Talker -> PriorityTalker
+		Talker -> ChoiceTalker
+		ChoiceTalker [color=greenyellow]
+	}
+
 Properties
 ==========
 

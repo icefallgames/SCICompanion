@@ -18,7 +18,7 @@ Obj
 	subclass of a given class.
 
 
-Subclasses: :class:`Sound`, :class:`Code`, :class:`Cycle`, :class:`Game`, :class:`IconI`, :class:`Blk`, :class:`Messager`, :class:`Control`, :class:`Feature`, :class:`Motion`, :class:`SysWindow`, :class:`Script`, :class:`Print`, :class:`Sync`, :class:`MessageObj`, :class:`ClickMenu`, :class:`Polygon`, :class:`File`, :class:`Timer`, :class:`TO`, :class:`Flags`, :class:`Cue`, :class:`Rgn`, :class:`SL`, :class:`Event`, :class:`User`, :class:`Collect`, :class:`Cursor`.
+Subclasses: :class:`Sound`, :class:`Code`, :class:`Cycle`, :class:`IconItem`, :class:`Game`, :class:`Blk`, :class:`Messager`, :class:`Control`, :class:`Feature`, :class:`SysWindow`, :class:`Script`, :class:`Print`, :class:`Motion`, :class:`Sync`, :class:`MessageObj`, :class:`ClickMenu`, :class:`Polygon`, :class:`File`, :class:`Timer`, :class:`TO`, :class:`Flags`, :class:`Cue`, :class:`Rgn`, :class:`SL`, :class:`Event`, :class:`User`, :class:`Collect`, :class:`Cursor`.
 
 Properties
 ==========

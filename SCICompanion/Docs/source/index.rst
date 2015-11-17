@@ -52,6 +52,8 @@ Topics:
    decompiler
    preferences
    gameversion
+   importexport
+   extractall
    tips
 
 Other

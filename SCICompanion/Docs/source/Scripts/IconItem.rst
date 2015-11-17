@@ -1,19 +1,19 @@
-.. IconI.sc
+.. IconItem.sc
 
 .. default - domain::js
 
 .. include:: /includes/standard.rst
 
-========
-IconI.sc
-========
+===========
+IconItem.sc
+===========
 
 
 
 Classes
 ==========
 
-:class:`IconI` of Obj
+:class:`IconItem` of Obj
 
 :class:`IconBar` of Set
 

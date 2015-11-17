@@ -12,7 +12,8 @@ Save (of :class:`SRDialog`)
 
 	Defined in SRDialog.sc.
 
-	The Save dialog.
+	
+		The Save Game dialog.
 
 
 Properties

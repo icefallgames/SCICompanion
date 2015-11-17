@@ -33,6 +33,17 @@ In SCI1.1, creating a new room automatically also creates the following:
 
 To create a new blank script, click the New empty script |newscript| button. A dialog asking for the script number and name will come up.
 
+SCI Script
+===========
+
+The syntax used for source code in |scicomp| is nearly identical to that used in SCI Studio. It uses a syntax that is a cross between LISP and SmallTalk. Its design
+was probably based on an attempt to recreate the language that was used by Sierra's programmers. Since that time however, the community has discovered more original
+code samples that give better clues as to the exact syntax used by Sierra (it was closer to SmallTalk than the current syntax).
+It's possible that a future version of |scicomp| may offer a more historically accurate
+syntax as an option, but for now it was deemed that compatiblity with SCI Studio (to ensure backwards compatiblity for SCI0 fan games) was more important.
+
+For more information on the syntax, see :doc:`sci_compiler`. 
+
 Compiling a script
 ====================
 

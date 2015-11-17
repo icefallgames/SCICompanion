@@ -1660,8 +1660,6 @@ LRESULT CScriptView::OnHoverTipReady(WPARAM wParam, LPARAM lParam)
 
 LRESULT CScriptView::OnAutoCompleteReady(WPARAM wParam, LPARAM lParam)
 {
-    OutputDebugString("Auto complete is ready\n");
-
     std::unique_ptr<AutoCompleteResult> result = _pACThread->GetResult(wParam);
     if (result)
     {

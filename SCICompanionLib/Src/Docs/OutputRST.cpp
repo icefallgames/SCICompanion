@@ -23,6 +23,9 @@
 
 using namespace std::tr2::sys;
 
+// The code in this file is responsible for generating .rst documentation based on compiling the source code
+// and reading comments in the source dode.
+//
 // This uses reStructuredText's js domain, as it is most similar to SCI.
 
 std::string scriptFilenameSuffix = ".sc";
@@ -35,6 +38,91 @@ std::string ProceduresFolder = "Procedures";
 std::string KernelsFolder = "Kernels";
 std::string NoDocTag = "nodoc";
 std::string rstFunction = ".. function::";
+
+// Temporary:
+std::set<std::string> ImportantRootClasses =
+{
+    "Motion",
+    "IconItem",
+    "Cycle",
+    "Feature",
+    "Control",
+    // "Collect" // Not that interesting.
+};
+
+// Because their hierarchy is deep
+std::set<std::string> PortraitRootClasses =
+{
+    "Feature",
+};
+
+const int BlockDiagramFontSize = 16;
+const int BlockDiagramMaxWidth = 600;
+
+void MaybeOutputBlockDiagram(fmt::MemoryWriter &w, SCIClassBrowser &browser, const std::string &theClassInQuestion)
+{
+    // Find the root, and see if this is an important class
+    std::string currentClass = theClassInQuestion;
+    std::string rootClass;
+    bool important = ImportantRootClasses.find(currentClass) != ImportantRootClasses.end();
+    if (important)
+    {
+        rootClass = currentClass;
+    }
+    const sci::ClassDefinition *classDef = nullptr;
+    while ((classDef = browser.LookUpClass(currentClass)) != nullptr)
+    {
+        currentClass = classDef->GetSuperClass();
+        if (!important)
+        {
+            important = ImportantRootClasses.find(currentClass) != ImportantRootClasses.end();
+            if (important)
+            {
+                rootClass = currentClass;
+            }
+        }
+    }
+
+    // Print out a tree of all classes that inherit from the root class of this guy,
+    // and then highlight the guy in color.
+    if (important)
+    {
+        w << ".. blockdiag::\n";
+        w << "\t:alt: class diagram\n";
+        w << "\t:width: " << BlockDiagramMaxWidth << "\n";
+
+        w << "\n";
+        w << "\tdiagram {\n";
+
+        w << "\t\tdefault_fontsize = "<< BlockDiagramFontSize << "\n";
+
+        if (PortraitRootClasses.find(rootClass) != PortraitRootClasses.end())
+        {
+            w << "\t\torientation = portrait;\n";
+        }
+
+        std::vector<std::string> todo = { rootClass };
+        // Now follow all subclasses.
+        while (!todo.empty())
+        {
+            std::string someClass = todo.back();
+            todo.pop_back();
+            for (auto &subClass : browser.GetDirectSubclasses(someClass))
+            {
+                // Some of the Sierra debug classes are prepended with _. Exclude those.
+                if (!subClass.empty() && subClass[0] != '_')
+                {
+                    todo.push_back(subClass);
+                    w << "\t\t" << someClass << " -> " << subClass << "\n";
+                }
+            }
+        }
+        w << "\t\t" << theClassInQuestion << " [color=greenyellow]\n";
+
+        w << "\t}\n\n";
+    }
+    
+}
 
 // Adds an entry to generated files, returns the absolute path to the generated file.
 std::string OutputRSTHelper(const std::string &rstFolder, const std::string &subFolder, const std::string &title, std::vector<std::string> &generatedFiles)
@@ -433,6 +521,8 @@ void OutputClassRST(SCIClassBrowser &browser, DocScript &docScript, const std::s
                     }
                     w << ".\n\n";
                 }
+
+                MaybeOutputBlockDiagram(w, browser, theClass->GetName());
 
                 OutputPropertyTableRST(browser, docScript, w, *theClass);
 

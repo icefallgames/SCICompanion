@@ -421,7 +421,8 @@ namespace sci
         void SetStringValue(const std::string &value) { assert(value != "rest"); _stringValue = value; _type = sci::ValueType::String;  _fNegate = false; }
         void SetValue(const std::string &value, ValueType type)
         {
-            assert(value != "rest");
+            // This hits when doing hover tips...
+            // assert(value != "rest");
             _stringValue = value; _type = type; _fNegate = false;
         }
         WORD GetNumberValue() const { return _numberValue; }

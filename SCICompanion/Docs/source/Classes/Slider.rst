@@ -4,9 +4,9 @@
 
 .. include:: /includes/standard.rst
 
-==========================
-Slider (of :class:`IconI`)
-==========================
+=============================
+Slider (of :class:`IconItem`)
+=============================
 
 .. class:: Slider
 
@@ -16,10 +16,22 @@ Slider (of :class:`IconI`)
 	This is used for slider controls in the GUI, such as a volume slider or game speed slider.
 
 
+.. blockdiag::
+	:alt: class diagram
+	:width: 600
+
+	diagram {
+		default_fontsize = 16
+		IconItem -> ControlIcon
+		IconItem -> Slider
+		IconItem -> InventoryItem
+		Slider [color=greenyellow]
+	}
+
 Properties
 ==========
 
-Inherited from :class:`IconI`:
+Inherited from :class:`IconItem`:
 
 ============== ===========
 Property       Description

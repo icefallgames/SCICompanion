@@ -16,6 +16,31 @@ Track (of :class:`Motion`)
 	This Motion class appears to simply make the :class:`Actor` face in the direction of a target.
 
 
+.. blockdiag::
+	:alt: class diagram
+	:width: 600
+
+	diagram {
+		default_fontsize = 16
+		Motion -> Wander
+		Motion -> DPath
+		Motion -> MoveTo
+		Motion -> Approach
+		Motion -> Orbit
+		Motion -> Follow
+		Motion -> PolyPath
+		Motion -> Track
+		Motion -> Chase
+		Motion -> Jump
+		Jump -> JumpTo
+		PolyPath -> PChase
+		PolyPath -> PFollow
+		PolyPath -> MoveFwd
+		MoveTo -> RegionPath
+		DPath -> RelDPath
+		Track [color=greenyellow]
+	}
+
 Properties
 ==========
 

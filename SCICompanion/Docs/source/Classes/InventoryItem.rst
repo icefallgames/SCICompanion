@@ -1,27 +1,50 @@
-.. InvI
+.. InventoryItem
 
 .. default - domain::js
 
 .. include:: /includes/standard.rst
 
-========================
-InvI (of :class:`IconI`)
-========================
+====================================
+InventoryItem (of :class:`IconItem`)
+====================================
 
-.. class:: InvI
+.. class:: InventoryItem
 
-	Defined in InvI.sc.
+	Defined in InventoryItem.sc.
 
 	
-	Base class for an inventory item (see :class:`InvItem`).
+	This extends :class:`IconItem` and adds the ability to automatically print messages (for the *look* and *do* verbs) that include a visual representation of the inventory item.
+	
+	An example inventory item might look like::
+	
+		(instance Hammer of InventoryItem
+			(properties
+				view 900
+				loop 1
+				cursor 900			// Optional cursor when using this item.
+				message V_HAMMER	// Optional verb associated with the item.
+				signal $0002
+				noun N_HAMMER		// noun from message resource 0
+			)
+		)
 
 
-Subclasses: :class:`InvItem`.
+.. blockdiag::
+	:alt: class diagram
+	:width: 600
+
+	diagram {
+		default_fontsize = 16
+		IconItem -> ControlIcon
+		IconItem -> Slider
+		IconItem -> InventoryItem
+		InventoryItem [color=greenyellow]
+	}
 
 Properties
 ==========
 
-Inherited from :class:`IconI`:
+Inherited from :class:`IconItem`:
 
 ============== ===========
 Property       Description
@@ -49,7 +72,7 @@ modNum
 helpVerb                  
 ============== ===========
 
-Defined in InvI:
+Defined in InventoryItem:
 
 ======== ===========
 Property Description

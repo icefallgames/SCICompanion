@@ -17,6 +17,27 @@ SQEgo (of :class:`Ego`)
 	looking, talking and performing actions on yourself.
 
 
+.. blockdiag::
+	:alt: class diagram
+	:width: 600
+
+	diagram {
+		default_fontsize = 16
+		orientation = portrait;
+		Feature -> View
+		View -> Prop
+		Prop -> Narrator
+		Prop -> Actor
+		Prop -> Door
+		Actor -> Ego
+		Ego -> SQEgo
+		Narrator -> Talker
+		Narrator -> ChoiceNarrator
+		Talker -> PriorityTalker
+		Talker -> ChoiceTalker
+		SQEgo [color=greenyellow]
+	}
+
 Properties
 ==========
 

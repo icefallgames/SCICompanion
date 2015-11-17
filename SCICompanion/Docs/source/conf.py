@@ -29,7 +29,14 @@ import shlex
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['blockdiag']
+extensions = ['sphinxcontrib.blockdiag']
+
+# fontpath for blockdialog (ttf font)
+# I can't find any way to use a relative path here :-(
+blockdiag_fontpath = 'C:/Python27/Lib/site-packages/sphinx_rtd_theme/static/fonts/Lato-Bold.ttf'
+blockdiag_antialias = True
+blockdiag_debug = True
+blockdiag_html_image_format = "PNG"
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

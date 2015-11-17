@@ -67,10 +67,6 @@ void ReadOnlyTextBuffer::Extend(const std::string &extraChars)
 {
     if ((int)extraChars.length() < _extraSpace)
     {
-        OutputDebugString("extending with '");
-        OutputDebugString(extraChars.c_str());
-        OutputDebugString("'\n");
-
         std::copy(extraChars.begin(), extraChars.end(), std::back_inserter(_text));
         _lineStartsAndLengths[_lineCount - 1].Length += extraChars.length();
         _extraSpace -= extraChars.length();

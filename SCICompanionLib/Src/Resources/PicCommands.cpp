@@ -654,6 +654,7 @@ struct PlotEGA
 
     // Guard against someone doing a fill with pure white, since this algorithm will hang in that case.
     // Hero's quest does this, when some pictures are drawn with some palettes.
+    // REVIEW: This appears to not be the case anymore.
     static bool EarlyBail(PicScreenFlags dwDrawEnable, EGACOLOR color, uint8_t priValue, uint8_t controlValue)
     {
         return (IsFlagSet(dwDrawEnable, PicScreenFlags::Visual) && ((color.color1 == 0xf) && (color.color2 == 0xf)));

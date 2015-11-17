@@ -190,6 +190,8 @@ sci::istream AudioResourceSource::GetHeaderAndPositionedStream(const ResourceMap
     return sci::istream(nullptr, 0);
 }
 
+// Appending and removing entries is done through AudioCacheResourceSource, which will then
+// repackage files on demand into the audio resource packages.
 void AudioResourceSource::RemoveEntry(const ResourceMapEntryAgnostic &mapEntry)
 {
     throw std::exception("not implemented");

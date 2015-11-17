@@ -1,16 +1,16 @@
-.. Inv
+.. InventoryBase
 
 .. default - domain::js
 
 .. include:: /includes/standard.rst
 
-=========================
-Inv (of :class:`IconBar`)
-=========================
+===================================
+InventoryBase (of :class:`IconBar`)
+===================================
 
-.. class:: Inv
+.. class:: InventoryBase
 
-	Defined in InvI.sc.
+	Defined in ScrollableInventory.sc.
 
 	
 	Base class for :class:`ScrollableInventory`.
@@ -46,7 +46,7 @@ activateHeight
 y                          
 =============== ===========
 
-Defined in Inv:
+Defined in InventoryBase:
 
 ============== ===========
 Property       Description

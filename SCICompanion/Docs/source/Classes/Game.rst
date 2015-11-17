@@ -33,17 +33,17 @@ Properties
 
 Defined in Game:
 
-============= ===========
-Property      Description
-============= ===========
-script                   
-printLang                
-_detailLevel             
-panelObj                 
-panelSelector            
-handsOffCode             
-handsOnCode              
-============= ===========
+============= =====================================
+Property      Description                          
+============= =====================================
+script                                             
+printLang                                          
+_detailLevel                                       
+panelObj      Current object target of a UI control
+panelSelector Selector for the object target.      
+handsOffCode                                       
+handsOnCode                                        
+============= =====================================
 
 
 Methods

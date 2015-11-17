@@ -19,9 +19,32 @@ Talker (of :class:`Narrator`)
 	
 	If you add a new Talker instance, you must assign it some talker number, and then add code in the
 	findTalker method of testMessage in Main.sc to direct that talker number to the right script and export.
+	
+	See :doc:`/talkers` for more information Talkers.
 
 
 Subclasses: :class:`PriorityTalker`, :class:`ChoiceTalker`.
+
+.. blockdiag::
+	:alt: class diagram
+	:width: 600
+
+	diagram {
+		default_fontsize = 16
+		orientation = portrait;
+		Feature -> View
+		View -> Prop
+		Prop -> Narrator
+		Prop -> Actor
+		Prop -> Door
+		Actor -> Ego
+		Ego -> SQEgo
+		Narrator -> Talker
+		Narrator -> ChoiceNarrator
+		Talker -> PriorityTalker
+		Talker -> ChoiceTalker
+		Talker [color=greenyellow]
+	}
 
 Properties
 ==========

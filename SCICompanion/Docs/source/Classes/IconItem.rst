@@ -1,27 +1,48 @@
-.. IconI
+.. IconItem
 
 .. default - domain::js
 
 .. include:: /includes/standard.rst
 
-=======================
-IconI (of :class:`Obj`)
-=======================
+==========================
+IconItem (of :class:`Obj`)
+==========================
 
-.. class:: IconI
+.. class:: IconItem
 
-	Defined in IconI.sc.
+	Defined in IconItem.sc.
 
 	
 	An icon that represents an action. These are used, for instance, in the main icon bar, or in the inventory dialog.
+	
+	If you wish to do something in response to the icon being clicked, override the select(params) method in your IconItem instance like so::
+	
+	    (method (select params)
+	        (if ((super:select(rest params)))
+	            // Do something here....
+	        )
+	        return 0
+	    )
 
 
-Subclasses: :class:`ControlIcon`, :class:`InvI`, :class:`Slider`.
+Subclasses: :class:`ControlIcon`, :class:`Slider`, :class:`InventoryItem`.
+
+.. blockdiag::
+	:alt: class diagram
+	:width: 600
+
+	diagram {
+		default_fontsize = 16
+		IconItem -> ControlIcon
+		IconItem -> Slider
+		IconItem -> InventoryItem
+		IconItem [color=greenyellow]
+	}
 
 Properties
 ==========
 
-Defined in IconI:
+Defined in IconItem:
 
 ============== =======================================
 Property       Description                            
@@ -62,8 +83,12 @@ Methods
 
 
 
-.. function:: select(param1)
+
+.. function:: select([fProcessEvents])
 	:noindex:
+
+	:param boolean fProcessEvents: If TRUE, sets its state based on consuming mouse release events. If unspecified, just selects the control.
+	:returns: TRUE if the icon was selected, FALSE otherwise.
 
 
 
