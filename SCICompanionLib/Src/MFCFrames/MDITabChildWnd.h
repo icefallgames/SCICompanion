@@ -30,6 +30,7 @@ public:
     virtual MDITabType GetTabType() { return TAB_NONE; }
 
 protected:
+
 	CMDITabChildWnd();           // protected constructor used by dynamic creation
 	virtual ~CMDITabChildWnd();
     void _UpdateFrameTitle(CDocument *pDocument);

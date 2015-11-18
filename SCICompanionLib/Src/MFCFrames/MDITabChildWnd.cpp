@@ -45,6 +45,7 @@ BEGIN_MESSAGE_MAP(CMDITabChildWnd, CMDIChildWnd)
     ON_WM_MDIACTIVATE()
 END_MESSAGE_MAP()
 
+
 BOOL CMDITabChildWnd::PreCreateWindow(CREATESTRUCT &cs)
 {
     cs.style |= WS_VISIBLE | WS_MAXIMIZE;

@@ -25,7 +25,7 @@
 
 IMPLEMENT_DYNCREATE(CEditViewChildFrame, CMDITabChildWnd)
 
-CEditViewChildFrame::CEditViewChildFrame() : _splitterCreated(false), _pViewMainView(nullptr)
+CEditViewChildFrame::CEditViewChildFrame() : _splitterCreated(false), _pViewMainView(nullptr), m_wndSplitter(true), m_wndSplitterLeft(false)
 {
 }
 
@@ -55,31 +55,16 @@ int CEditViewChildFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 void CEditViewChildFrame::OnSize(UINT nType, int cx, int cy)
 {
     __super::OnSize(nType, cx, cy);
-
     CRect rect;
     GetClientRect(&rect);
     if (_splitterCreated)
     {
-        CRect leftRectCurrent;
-        m_wndSplitterLeft.GetClientRect(&leftRectCurrent);
-        float leftPercentage = (float)leftRectCurrent.Width() / (float)_lastSize.cx;
+        m_wndSplitter.SetSizes();
+        m_wndSplitterLeft.SetSizes();
 
-        CRect topRectCurrent;
-        _pViewMainView->GetClientRect(&topRectCurrent);
-        float topPercentage = (float)topRectCurrent.Height() / (float)_lastSize.cy;
-
-        int newLeftSize = (int)(leftPercentage * (float)cx);
-        m_wndSplitter.SetColumnInfo(0, newLeftSize, 5);
-        m_wndSplitter.SetColumnInfo(1, cx - newLeftSize, 5);
         m_wndSplitter.RecalcLayout();
-
-        int newTopSize = (int)(topPercentage * (float)cy);
-        m_wndSplitterLeft.SetRowInfo(0, newTopSize, 5);
-        m_wndSplitterLeft.SetRowInfo(1, cy - newTopSize, 5);
         m_wndSplitterLeft.RecalcLayout();
     }
-
-    _lastSize = CSize(cx, cy);
 }
 
 BOOL CEditViewChildFrame::OnCreateClient(LPCREATESTRUCT /*lpcs*/, CCreateContext* pContext)
@@ -124,12 +109,12 @@ BOOL CEditViewChildFrame::OnCreateClient(LPCREATESTRUCT /*lpcs*/, CCreateContext
 
     m_wndSplitter.SetColumnInfo(0, widthUnit * 3, 5);
     m_wndSplitter.SetColumnInfo(1, widthUnit * 2, 5);
+    m_wndSplitter.Initialize(widthUnit * 3, widthUnit * 2);
     m_wndSplitterLeft.SetRowInfo(0, heightUnit * 2, 5);
     m_wndSplitterLeft.SetRowInfo(1, heightUnit * 1, 5);
+    m_wndSplitterLeft.Initialize(heightUnit * 2, heightUnit * 1);
     m_wndSplitter.RecalcLayout();
     m_wndSplitterLeft.RecalcLayout();
-
-    _lastSize = cr.Size();
 
     _splitterCreated = true;
 
@@ -160,3 +145,51 @@ BOOL CEditViewChildFrame::OnCmdMsg(UINT nID, int nCode, void *pExtra, AFX_CMDHAN
 
 
 // CEditViewChildFrame message handlers
+
+void CRatioSplitter::StopTracking(BOOL bAccept)
+{
+    __super::StopTracking(bAccept);
+    // We should be laid out by now.
+    int cxMin;
+    if (_hasColumns)
+    {
+        GetColumnInfo(0, _first, cxMin);
+        GetColumnInfo(1, _second, cxMin);
+    }
+    else
+    {
+        GetRowInfo(0, _first, cxMin);
+        GetRowInfo(1, _second, cxMin);
+    }
+}
+
+void CRatioSplitter::Initialize(int first, int second)
+{
+    _first = first;
+    _second = second;
+}
+
+void CRatioSplitter::SetSizes()
+{
+    CRect rcInside;
+    GetInsideRect(rcInside);
+    if (_hasColumns)
+    {
+        int width = rcInside.Width();
+        int total = _first + _second;
+        int leftHeight = _first * width / total;
+        int rightHeight = width - leftHeight;
+        SetColumnInfo(0, leftHeight, 5);
+        SetColumnInfo(1, rightHeight, 5);
+    }
+    else
+    {
+        int height = rcInside.Height();
+        int total = _first + _second;
+        int upperHeight = _first * height / total;
+        int lowerHeight = height - upperHeight;
+        SetRowInfo(0, upperHeight, 5);
+        SetRowInfo(1, lowerHeight, 5);
+    }
+}
+

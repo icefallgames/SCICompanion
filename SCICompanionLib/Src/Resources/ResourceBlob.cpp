@@ -675,11 +675,18 @@ int ResourceBlob::GetChecksum() const
     if (!_fComputedChecksum)
     {
         size_t size = _pData.size();
-        // Testing out just using an incrementing id instead of calculating the hash. crc is super slow
-        // for big resources. The "checksum" is used for determining if a resource is "most recent", for blob id
-        // for background threads. What else?
-        _iChecksum = g_nextUniqueId.fetch_add(1);
-        //_iChecksum = (size > 0) ? crcFast(&_pData[0], _pData.size()) : 0;
+        if (header.Version.IsMapAppend())
+        {
+            _iChecksum = (size > 0) ? crcFast(&_pData[0], _pData.size()) : 0;
+        }
+        else
+        {
+            // Testing out just using an incrementing id instead of calculating the hash. crc is super slow
+            // for big resources. The "checksum" is used for determining if a resource is "most recent", for blob id
+            // for background threads. What else?
+            // There are issues with doing this... so for SCI0 (above) we'll still calculate the hash.
+            _iChecksum = g_nextUniqueId.fetch_add(1);
+        }
         _fComputedChecksum = true;
     }
     return _iChecksum;

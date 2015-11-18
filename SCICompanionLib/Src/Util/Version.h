@@ -133,6 +133,13 @@ struct SCIVersion
         return lofsaOpcodeIsAbsolute && !SeparateHeapResources;
     }
 
+    bool IsMapAppend() const
+    {
+        // In SCI0, we can append resources and have many versions of a single resource.
+        // This is not possible in SCI1 due to the way the map is structured.
+        return MapFormat < ResourceMapFormat::SCI1;
+    }
+
     int GetMaximumResourceNumber() const
     {
         // REVIEW: Not sure about these numbers.

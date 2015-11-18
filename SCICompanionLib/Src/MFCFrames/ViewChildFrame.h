@@ -21,6 +21,23 @@ class CRasterView;
 
 // CEditViewChildFrame frame with splitter
 
+class CRatioSplitter : public CExtSplitterWnd
+{
+public:
+    CRatioSplitter(bool hasColumns) : _hasColumns(hasColumns) {}
+    void SetSizes();
+    void Initialize(int first, int second);
+
+protected:
+    void StopTracking(BOOL bAccept) override;
+
+private:
+    bool _hasColumns;
+    int _first;
+    int _second;
+};
+
+
 class CEditViewChildFrame : public CMDITabChildWnd
 {
 	DECLARE_DYNCREATE(CEditViewChildFrame)
@@ -40,12 +57,11 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 
-	CExtSplitterWnd m_wndSplitter;
-    CExtSplitterWnd m_wndSplitterLeft;
+    CRatioSplitter m_wndSplitter;
+    CRatioSplitter m_wndSplitterLeft;
 
     CRasterView *_pViewMainView;
     bool _splitterCreated;
-    CSize _lastSize;
 };
 
 
