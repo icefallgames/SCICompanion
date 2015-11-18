@@ -177,6 +177,7 @@ AppState::AppState(CWinApp *pApp) : _resourceMap(*this)
     }
 
     CelDataClipboardFormat = RegisterClipboardFormat("SCICompanionVGACelData");
+    ViewAttributesClipboardFormat = RegisterClipboardFormat("SCICompanionViewAttributes");
 }
 
 int AppState::AspectRatioY(int value) const

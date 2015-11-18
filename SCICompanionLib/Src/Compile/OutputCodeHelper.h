@@ -174,7 +174,7 @@ private:
 template<typename _TStream>
 void _OutputNumber(_TStream &out, WORD wNum, bool fHex, bool fNegate)
 {
-    if (fNegate)
+    if (fNegate && (wNum > (std::numeric_limits<int16_t>::max)()))
     {
         assert(!fHex);
         wNum = (~wNum) + 1; // two's complement

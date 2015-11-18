@@ -456,7 +456,6 @@
 #define IDC_LISTMETHODS                 1133
 #define IDC_COMPILEDIRTYSCRIPTS         1133
 #define IDC_STATICVIEW                  1134
-#define IDC_HEADERFILESDIRTY            1134
 #define IDC_TRACKHEADERFILES            1134
 #define IDC_TREEOBJECTS                 1136
 #define IDC_OBJECTNAME                  1137
@@ -1135,6 +1134,8 @@
 #define ID_TOGGLEGRIDLINES              33287
 #define ID_PIC_EDITCELDATA              33289
 #define ID_HELP_GETGAMES                33290
+#define ID_MAIN_COPY                    33291
+#define ID_EGO_COPY                     33292
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -1143,7 +1144,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        401
-#define _APS_NEXT_COMMAND_VALUE         33291
+#define _APS_NEXT_COMMAND_VALUE         33293
 #define _APS_NEXT_CONTROL_VALUE         1383
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

@@ -30,7 +30,7 @@ namespace sci
         void FillByte(uint8_t value, int cCount);
 
         void reset();
-        uint32_t tellp() { return _cbSizeValid; }
+        uint32_t tellp() const { return _cbSizeValid; }
 
         void seekp(uint32_t newPosition);
         void seekp(int32_t offset, std::ios_base::seekdir way);

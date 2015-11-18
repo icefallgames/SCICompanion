@@ -331,6 +331,7 @@
     <ClInclude Include="Src\LipSync\sapi_lipsync.h" />
     <ClInclude Include="Src\LipSync\sapi_util.h" />
     <ClInclude Include="Src\MFCDocuments\DocumentWithPaletteChoices.h" />
+    <ClInclude Include="Src\MFCViews\FakeEgo.h" />
     <ClInclude Include="Src\r8brain\CDSPBlockConvolver.h" />
     <ClInclude Include="Src\r8brain\CDSPFIRFilter.h" />
     <ClInclude Include="Src\r8brain\CDSPFracInterpolator.h" />
@@ -375,6 +376,7 @@
     </ClInclude>
     <ClCompile Include="Src\Util\AudioProcessing.cpp" />
     <ClCompile Include="Src\Util\AudioRecording.cpp" />
+    <ClCompile Include="Src\Util\ClipboardUtil.cpp" />
     <ClCompile Include="Src\Util\CodecAlt.cpp" />
     <ClCompile Include="Src\Resources\Sound.cpp" />
     <ClCompile Include="SCICompanionLib.cpp" />
@@ -568,6 +570,7 @@
     <ClInclude Include="Src\Resources\PaletteOperations.h" />
     <ClInclude Include="Src\Resources\SoundOperations.h" />
     <ClInclude Include="Src\Util\AudioPlayback.h" />
+    <ClInclude Include="Src\Util\ClipboardUtil.h" />
     <ClInclude Include="Src\Util\CodecAlt.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="Src\Resources\Sound.h" />

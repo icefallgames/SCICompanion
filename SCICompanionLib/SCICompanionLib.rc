@@ -658,9 +658,11 @@ IDR_MENUFAKEEGO MENU
 BEGIN
     POPUP "main"
     BEGIN
+        MENUITEM SEPARATOR
+        MENUITEM "Copy",                        ID_EGO_COPY
+        MENUITEM SEPARATOR
         MENUITEM "Observe control lines",       ID_OBSERVECONTROLLINES
         MENUITEM "Observe polygons",            ID_OBSERVEPOLYGONS
-        MENUITEM SEPARATOR
         MENUITEM "Default priority",            ID_DEFAULTPRIORITY
         MENUITEM SEPARATOR
         MENUITEM "Pri 0",                       ID_MAIN_PRI0
@@ -3312,6 +3314,7 @@ BEGIN
                             "Paste transparent image from clipboard with options\nPaste transparent image with options"
     ID_TOGGLEGRIDLINES      "Toggle grid lines for lining up things\nToggle grid lines"
     ID_PIC_EDITCELDATA      "Edit the cel position and priority"
+    ID_EGO_COPY             "Copy fake ego attributes to clipboard"
 END
 
 #endif    // English (United States) resources

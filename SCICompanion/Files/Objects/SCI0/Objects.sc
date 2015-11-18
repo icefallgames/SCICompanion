@@ -6,9 +6,9 @@
 		x 150
 		y 100
 		z_ 0
-		loop_ 0
-		cel_ 0
-		priority_ 0
+		loop 0
+		cel 0
+		priority 0
 	)
 	
 	(method (init_ params)
@@ -26,9 +26,9 @@
 		x 150
 		y 100
 		z_ 0
-		loop_ 0
-		cel_ 0
-		priority_ 0
+		loop 0
+		cel 0
+		priority 0
 		cycleSpeed_ 3
 	)
 	
@@ -36,7 +36,6 @@
 		(super:init(rest params))
 	)
 )
-
 
 
 (instance {name} of Act
@@ -47,7 +46,6 @@
 		z_ 0
 		loop_ 0
 		cel_ 0
-		noun N_NOUN
 		priority_ 0
 		cycleSpeed_ 3
 	)

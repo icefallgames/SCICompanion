@@ -43,8 +43,8 @@
 		y 100
 		signal ignAct
 		z_ 0
-		loop_ 0
-		cel_ 0
+		loop 0
+		cel 0
 		noun N_NOUN
 		nsTop_ 0
 		nsLeft_ 0
@@ -54,7 +54,7 @@
 		approachX_ 130
 		approachY_ 120
 		approachDist_ 10
-		priority_ 0
+		priority 0
 	)
 	
 	(method (init_ params)
@@ -81,8 +81,8 @@
 		y 100
 		signal ignAct
 		z_ 0
-		loop_ 0
-		cel_ 0
+		loop 0
+		cel 0
 		noun N_NOUN
 		nsTop_ 0
 		nsLeft_ 0
@@ -92,7 +92,7 @@
 		approachX_ 130
 		approachY_ 120
 		approachDist_ 10
-		priority_ 0
+		priority 0
 		cycleSpeed_ 3
 	)
 	

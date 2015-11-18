@@ -23,6 +23,8 @@
 #include "SyntaxParser.h"
 #include "CrystalScriptStream.h"
 #include "OutputCodeHelper.h"
+#include "ClipboardUtil.h"
+#include "FakeEgo.h"
 
 using namespace sci;
 using namespace std;
@@ -156,6 +158,16 @@ AvailableObjects::AvailableObjects()
 
 void AvailableObjects::PrepareBuffer(sci::ClassDefinition *theClass, CString &buffer, CListBox *pListProps, CListBox *pListMethods)
 {
+    // Grab any properties from the "fake ego"
+    std::unique_ptr<FakeEgo> fakeEgo;
+    ProcessClipboardDataIfAvailable(appState->ViewAttributesClipboardFormat, AfxGetMainWnd(),
+        [&fakeEgo](sci::istream &data)
+    {
+        fakeEgo = std::make_unique<FakeEgo>();
+        data >> *fakeEgo;
+    }
+        );
+
     // Remove props that aren't selected.
     auto &props = theClass->GetPropertiesNC();
     int propCount = props.size();
@@ -175,6 +187,34 @@ void AvailableObjects::PrepareBuffer(sci::ClassDefinition *theClass, CString &bu
         if (erase)
         {
             props.erase(props.begin() + i);
+        }
+        else if (fakeEgo)
+        {
+            auto &prop = props[i];
+            if (prop->GetName() == "view")
+            {
+                prop->SetValue(sci::PropertyValue((uint16_t)fakeEgo->View));
+            }
+            else if (prop->GetName() == "x")
+            {
+                prop->SetValue(sci::PropertyValue((uint16_t)fakeEgo->Location.x, true));
+            }
+            else if (prop->GetName() == "y")
+            {
+                prop->SetValue(sci::PropertyValue((uint16_t)fakeEgo->Location.y, true));
+            }
+            else if (prop->GetName() == "priority")
+            {
+                prop->SetValue(sci::PropertyValue((uint16_t)fakeEgo->Pri, true));
+            }
+            else if (prop->GetName() == "loop")
+            {
+                prop->SetValue(sci::PropertyValue((uint16_t)fakeEgo->Loop));
+            }
+            else if (prop->GetName() == "cel")
+            {
+                prop->SetValue(sci::PropertyValue((uint16_t)fakeEgo->Cel));
+            }
         }
     }
 

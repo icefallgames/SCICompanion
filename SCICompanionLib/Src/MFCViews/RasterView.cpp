@@ -12,9 +12,6 @@
     GNU General Public License for more details.
 ***************************************************************************/
 
-// EditViewView.cpp : implementation file
-//
-
 #include "stdafx.h"
 #include "AppState.h"
 #include "RasterView.h"
@@ -34,6 +31,7 @@
 #include "BayerMatrix.h"
 #include "BitmapToVGADialog.h"
 #include "ImageUtil.h"
+#include "ClipboardUtil.h"
 
 // Thickness of the sizers around the image:
 #define SIZER_SIZE 6
@@ -1998,26 +1996,8 @@ void CRasterView::_CopyCelDataToClipboard(const Cel *cel)
         {
             serial << _palette[i];
         }
-        GlobalAllocGuard globalAlloc(GMEM_MOVEABLE, serial.tellp());
-        if (globalAlloc.Global)
-        {
-            GlobalLockGuard<uint8_t*> globalLock(globalAlloc);
-            if (globalLock.Object)
-            {
-                memcpy(globalLock.Object, serial.GetInternalPointer(), serial.tellp());
-                globalLock.Unlock();
-            }
-            else
-            {
-                // Didn't work
-                globalAlloc.Free();
-            }
-            if (SetClipboardData(appState->CelDataClipboardFormat, globalAlloc.Global))
-            {
-                // Success. Clipboard now owns the data.
-                globalAlloc.RelinquishOwnership();
-            }
-        }
+
+        SetClipboardDataFromStream(appState->CelDataClipboardFormat, serial);
     }
 }
 
@@ -2026,54 +2006,44 @@ void CRasterView::_CopyCelDataToClipboard(const Cel *cel)
 std::unique_ptr<Cel> CRasterView::_GetClipboardDataIfPaletteMatches()
 {
     std::unique_ptr<Cel> celReturn;
-    if (IsClipboardFormatAvailable(appState->CelDataClipboardFormat))
+    ProcessClipboardDataIfAvailable(
+        appState->CelDataClipboardFormat,
+        this,
+        [&celReturn, this](sci::istream &byteStream)
     {
-        OpenClipboardGuard clipBoard(this);
-        if (clipBoard.IsOpen())
+        std::unique_ptr<Cel> cel = std::make_unique<Cel>();
+        DeserializeCelRuntime(byteStream, *cel);
+        int paletteCount;
+        byteStream >> paletteCount;
+        std::unique_ptr<bool[]> usedEntries = std::make_unique<bool[]>(paletteCount);
+        // Only check against palette entries that are actually used. So if a view has the first 64
+        // colors in common with another view, and only entries from those 64 colors are used, we
+        // will still succeed.
+        for (int i = 0; i < paletteCount; i++)
         {
-            HGLOBAL hMem = GetClipboardData(appState->CelDataClipboardFormat);
-            if (hMem)   // No need to free?
+            byteStream >> usedEntries[i];
+        }
+        if (paletteCount == _paletteCount)
+        {
+            bool match = true;
+            for (int i = 0; match && (i < paletteCount); i++)
             {
-                GlobalLockGuard<uint8_t*> globalLock(hMem);
-                uint8_t *data = globalLock.Object;
-                if (data)
+                RGBQUAD paletteValue;
+                byteStream >> paletteValue;
+                if (usedEntries[i])
                 {
-                    sci::istream byteStream(data, GlobalSize(hMem));
-                    std::unique_ptr<Cel> cel  = std::make_unique<Cel>();
-                    DeserializeCelRuntime(byteStream, *cel);
-                    int paletteCount;
-                    byteStream >> paletteCount;
-                    std::unique_ptr<bool[]> usedEntries = std::make_unique<bool[]>(paletteCount);
-                    // Only check against palette entries that are actually used. So if a view has the first 64
-                    // colors in common with another view, and only entries from those 64 colors are used, we
-                    // will still succeed.
-                    for (int i = 0; i < paletteCount; i++)
-                    {
-                        byteStream >> usedEntries[i];
-                    }
-                    if (paletteCount == _paletteCount)
-                    {
-                        bool match = true;
-                        for (int i = 0; match && (i < paletteCount); i++)
-                        {
-                            RGBQUAD paletteValue;
-                            byteStream >> paletteValue;
-                            if (usedEntries[i])
-                            {
-                                match = (paletteValue.rgbBlue == _palette[i].rgbBlue) &&
-                                    (paletteValue.rgbGreen == _palette[i].rgbGreen) &&
-                                    (paletteValue.rgbRed == _palette[i].rgbRed);
-                            }
-                        }
-                        if (match)
-                        {
-                            celReturn = move(cel);
-                        }
-                    }
+                    match = (paletteValue.rgbBlue == _palette[i].rgbBlue) &&
+                        (paletteValue.rgbGreen == _palette[i].rgbGreen) &&
+                        (paletteValue.rgbRed == _palette[i].rgbRed);
                 }
+            }
+            if (match)
+            {
+                celReturn = move(cel);
             }
         }
     }
+    );
     return celReturn;
 }
 

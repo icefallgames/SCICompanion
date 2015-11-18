@@ -187,6 +187,7 @@ public:
     ResourceRecency _resourceRecency;
 
     UINT CelDataClipboardFormat;
+    UINT ViewAttributesClipboardFormat;
 
 public: // TODO for now
     HRESULT _GetGameStringProperty(PCTSTR pszProp, PTSTR pszValue, size_t cchValue);

@@ -22,6 +22,7 @@
 #include "PaletteDefinitionCallback.h"
 #include "Pic.h"
 #include "PaletteOperations.h"
+#include "FakeEgo.h"
 
 class PicDrawManager;
 
@@ -240,6 +241,7 @@ protected:
     afx_msg void OnPasteIntoPic();
     afx_msg void OnObserveControlLines();
     afx_msg void OnObservePolygons();
+    afx_msg void OnCopyFakeEgoAttributes();
     afx_msg void OnExportPalettizedBitmap();
     afx_msg void EditVGAPalette();
     afx_msg void ChangeDimensions();
@@ -288,11 +290,10 @@ private:
     BOOL _fShowPriorityLines;
 
     BOOL _fShowingEgo;
-    int _nFakeCel;
-    int _nFakeLoop;
-    int _nFakePri;
+
+    FakeEgo _fakeEgoAttributes;
+    std::unique_ptr<ResourceEntity> _fakeEgo;
     BOOL _fCapturing;
-    CPoint _pointEgo;
     CPoint _pointEgoOrig;
     CPoint _pointCapture;
     bool _fCanBeHere;   // Can the fake ego be here?
@@ -376,9 +377,6 @@ private:
     int _polyDragPointIndex;
     point16 _startDragPolyPoint;
     point16 _currentDragPolyPoint;
-
-    std::unique_ptr<ResourceEntity> _fakeEgo;
-
 };
 
 #ifndef _DEBUG  // debug version in PicEditorView.cpp
