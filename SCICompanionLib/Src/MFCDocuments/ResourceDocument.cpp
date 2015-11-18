@@ -24,6 +24,7 @@
 #include "ResourceEntity.h"
 #include <errno.h>
 #include "ResourceBlob.h"
+#include "ImageUtil.h"
 
 // CResourceDocument
 

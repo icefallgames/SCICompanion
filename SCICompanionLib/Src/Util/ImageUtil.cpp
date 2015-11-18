@@ -18,6 +18,7 @@
 #include "gif_lib.h"
 #include "VGADither.h"
 #include "RGBOctree.h"
+#include "ResourceBlob.h"
 
 using namespace Gdiplus;
 
@@ -754,4 +755,167 @@ HBITMAP Create32bbpBitmap(const uint8_t *pData, int cxStride, int cx, int cy, ui
     }
 
     return CreateBitmap(cx, cy, 1, 32, &pixels[0]);
+}
+
+
+
+
+
+
+//
+// What follows is code that allows us to stash a resource in a windows .bmp file.
+//
+
+//
+// data: data to be encoded
+// pBits: where it is put
+// pBitsEnd: check to avoid overflow -> points to just past the end of the buffer at pBits
+//
+BYTE *_EncodeByteInHighNibble(BYTE *pBits, BYTE data, const BYTE *pBitsEnd)
+{
+    BYTE *pBitsReturn = NULL;
+    if (pBits < pBitsEnd)
+    {
+        ASSERT((*pBits & 0xf0) == 0);
+        *pBits |= (data & 0xf0);
+
+        pBits++;
+        if (pBits < pBitsEnd)
+        {
+            ASSERT((*pBits & 0xf0) == 0);
+            *pBits |= ((data & 0x0f) << 4);
+            pBitsReturn = pBits + 1;
+        }
+    }
+    return pBitsReturn;
+}
+
+
+struct BMP_ENCODEDRESOURCE_HEADER
+{
+    WORD wSize; // Excluding header...
+    WORD wType; // 0x80 | type
+};
+
+//
+// Encodes a resource in bitmap by using the unused high nibble in each byte.
+//
+bool EncodeResourceInBitmap(const ResourceBlob &blob, const BITMAPINFO &info, BYTE *pBits)
+{
+    const BYTE *pResourceByte = blob.GetData();
+    DWORD cb = blob.GetLength();
+    BMP_ENCODEDRESOURCE_HEADER header = { (WORD)cb, 0x80 | (int)blob.GetType() };
+    cb += sizeof(header);
+
+    DWORD dwSizeBmp = (info.bmiHeader.biBitCount / 8) * CX_ACTUAL(info.bmiHeader.biWidth) * info.bmiHeader.biHeight;
+    if (dwSizeBmp / 2 >= cb)
+    {
+        BYTE *pBitmapByte = pBits;
+        BYTE *pBitmapByteEnd = pBits + dwSizeBmp;
+
+        // Yucky way to do header.
+        BYTE *pHeader = (BYTE*)&header;
+        pBitmapByte = _EncodeByteInHighNibble(pBitmapByte, (*pHeader), pBitmapByteEnd);
+        pHeader++;
+        pBitmapByte = _EncodeByteInHighNibble(pBitmapByte, (*pHeader), pBitmapByteEnd);
+        pHeader++;
+        pBitmapByte = _EncodeByteInHighNibble(pBitmapByte, (*pHeader), pBitmapByteEnd);
+        pHeader++;
+        pBitmapByte = _EncodeByteInHighNibble(pBitmapByte, (*pHeader), pBitmapByteEnd);
+
+        cb = blob.GetLength();
+        while (pBitmapByte && cb)
+        {
+            pBitmapByte = _EncodeByteInHighNibble(pBitmapByte, (*pResourceByte), pBitmapByteEnd);
+            pResourceByte++;
+            cb--;
+        }
+        return true;
+    }
+    else
+    {
+        // It won't fit!
+        return false;
+    }
+}
+
+
+
+const BYTE *_DecodeByteInHighNibble(const BYTE *pBits, BYTE *pByte, DWORD cbToRead, const BYTE *pBitsEnd)
+{
+    const BYTE *pBitsReturn = NULL;
+    while (cbToRead)
+    {
+        if (pBits < pBitsEnd)
+        {
+            *pByte = *pBits & 0xf0;
+            pBits++;
+            if (pBits < pBitsEnd)
+            {
+                *pByte |= ((*pBits & 0xf0) >> 4);
+                pBits++;
+                pBitsReturn = pBits;
+            }
+        }
+        pByte++;
+        cbToRead--;
+    }
+    return pBitsReturn;
+}
+
+//
+// Try to load a resource from a bitmap
+// 
+std::unique_ptr<ResourceBlob> Load8BitBmp(SCIVersion version, const std::string &filename)
+{
+    std::unique_ptr<ResourceBlob> pBlob;
+    std::ifstream bmpFile(filename.c_str(), std::ios::in | std::ios::binary);
+    if (bmpFile.is_open())
+    {
+        BITMAPFILEHEADER bmfh;
+        bmpFile.read((char *)&bmfh, sizeof(bmfh));
+
+        DWORD dwId = bmfh.bfReserved1;
+        dwId |= (bmfh.bfReserved2 << 16);
+
+        if (dwId == SCIResourceBitmapMarker)
+        {
+            // It's one of our secret resources!
+            bmpFile.seekg(bmfh.bfOffBits, std::ios_base::beg);
+
+            DWORD cbBitmap = (bmfh.bfSize - (bmfh.bfOffBits - sizeof(bmfh)));
+
+            if (cbBitmap < 0xffffff) // Check to make sure we don't allocate anything crazy
+            {
+                std::unique_ptr<BYTE[]> data = std::make_unique<BYTE[]>(cbBitmap);
+                bmpFile.read((char*)data.get(), cbBitmap);
+
+                BMP_ENCODEDRESOURCE_HEADER header;
+                const BYTE *pData = data.get();
+                const BYTE *pDataEnd = pData + cbBitmap;
+                pData = _DecodeByteInHighNibble(pData, (BYTE*)&header, sizeof(header), pDataEnd);
+
+                if (header.wSize <= (cbBitmap - sizeof(header))) // Sanity check
+                {
+                    ResourceType type = static_cast<ResourceType>(header.wType & ~0x0080);
+
+                    // This is the buffer that contains our extracted data.
+                    std::unique_ptr<BYTE[]> extractedData = std::make_unique<BYTE[]>(header.wSize);
+
+                    // Read it.
+                    pData = _DecodeByteInHighNibble(pData, extractedData.get(), header.wSize, pDataEnd);
+                    if (pData)
+                    {
+                        sci::istream stream(extractedData.get(), header.wSize);
+                        pBlob = std::make_unique<ResourceBlob>();
+                        if (FAILED(pBlob->CreateFromBits(nullptr, type, &stream, -1, -1, NoBase36, version, ResourceSourceFlags::ResourceMap)))
+                        {
+                            pBlob.reset(nullptr);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return pBlob;
 }

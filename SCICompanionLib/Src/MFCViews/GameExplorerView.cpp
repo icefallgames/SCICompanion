@@ -42,6 +42,7 @@
 #include "Audio.h"
 #include <regex>
 #include "ResourceBlob.h"
+#include "ImageUtil.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -629,7 +630,7 @@ void DropResourceFiles(CArray<CString, CString&> *pDropFiles)
         if (_IsBitmapFile(pDropFiles->GetAt(i)))
         {
             // It's a bmp file... it might have a resource encoded in it.
-            std::unique_ptr<ResourceBlob> data(Load8BitBmp((PCSTR)pDropFiles->GetAt(i)));
+            std::unique_ptr<ResourceBlob> data = Load8BitBmp(appState->GetVersion(), (PCSTR)pDropFiles->GetAt(i));
             if (data)
             {
                 char szName[MAX_PATH];

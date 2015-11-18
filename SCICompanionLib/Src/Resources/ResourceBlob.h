@@ -417,9 +417,3 @@ private:
     mutable bool _fComputedChecksum;
     mutable int _iChecksum;
 };
-
-//
-// Methods for encoding an SCI resource inside a windows .bmp file.
-//
-bool EncodeResourceInBitmap(const ResourceBlob &blob, const BITMAPINFO &info, uint8_t *pBits);
-ResourceBlob *Load8BitBmp(const std::string &filename);

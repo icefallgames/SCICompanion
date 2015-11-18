@@ -139,7 +139,7 @@ key_value_pair<PCSTR, Opcode> c_rgOperatorToOpcode[] =
 };
 Opcode GetInstructionForBinaryOperator(const string &name)
 {
-	return LookupStringValue(c_rgOperatorToOpcode, ARRAYSIZE(c_rgOperatorToOpcode), name, Opcode::INDETERMINATE);
+    return LookupStringValue(c_rgOperatorToOpcode, ARRAYSIZE(c_rgOperatorToOpcode), name, Opcode::INDETERMINATE);
 }
 std::string GetBinaryOperatorForInstruction(Opcode b, LangSyntax lang)
 {
@@ -147,7 +147,7 @@ std::string GetBinaryOperatorForInstruction(Opcode b, LangSyntax lang)
     {
         return (lang == LangSyntaxCpp) ? "!=" : "<>";
     }
-	return LookupKey<PCSTR, Opcode>(c_rgOperatorToOpcode, ARRAYSIZE(c_rgOperatorToOpcode), b, "");
+    return LookupKey<PCSTR, Opcode>(c_rgOperatorToOpcode, ARRAYSIZE(c_rgOperatorToOpcode), b, "");
 }
 
 void WriteSimple(CompileContext &context, Opcode bOpcode)
@@ -192,34 +192,20 @@ template<typename T>
 class PerformPreScan2
 {
 public:
-	PerformPreScan2(CompileContext &context) : _context(context) {}
-	void operator()(const unique_ptr<T> &proc) const
-	{
-		proc->PreScan(_context);
-	}
+    PerformPreScan2(CompileContext &context) : _context(context) {}
+    void operator()(const unique_ptr<T> &proc) const
+    {
+        proc->PreScan(_context);
+    }
 private:
-	CompileContext &_context;
+    CompileContext &_context;
 };
 
 template<typename T>
 void ForwardPreScan2(const vector<unique_ptr<T>> &container, CompileContext &context)
 {
-	for_each(container.begin(), container.end(), PerformPreScan2<T>(context));
+    for_each(container.begin(), container.end(), PerformPreScan2<T>(context));
 }
-
-
-template<typename T>
-class PerformPreScan3
-{
-public:
-	PerformPreScan3(CompileContext &context) : _context(context) {}
-	void operator()(T &proc) const
-	{
-		proc.PreScan(_context);
-	}
-private:
-	CompileContext &_context;
-};
 
 //
 // Helper class to ensure we leave a branch block that we enter.
@@ -698,8 +684,8 @@ void WriteInstanceOrClass(CompileContext &context, ResolvedToken tokenType, WORD
 
 void _AddParameter(ProcedureCall &proc, WORD wValue)
 {
-	unique_ptr<SingleStatement> one = std::make_unique<SingleStatement>();
-	unique_ptr<PropertyValue> pv1 = std::make_unique<PropertyValue>();
+    unique_ptr<SingleStatement> one = std::make_unique<SingleStatement>();
+    unique_ptr<PropertyValue> pv1 = std::make_unique<PropertyValue>();
     pv1->SetValue(wValue);
     one->SetSyntaxNode(std::move(pv1));
     proc.AddStatement(std::move(one));
@@ -1178,7 +1164,7 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
         putParameterCodeBeforeHere = context.code().get_cur_pos();
     }
 
-	if (GetTargetName() == "super")
+    if (GetTargetName() == "super")
     {
         if (context.GetSuperClassName().empty())
         {
@@ -1190,7 +1176,7 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
         // also lets this compile outside of a class, albeit with garbage.
         wObjectSpecies = context.LookupTypeSpeciesIndex(context.GetSuperClassName(), this);
     }
-	else if (GetTargetName() == "self")
+    else if (GetTargetName() == "self")
     {
         // We don't need wObjectSpecies to output actual byte code in the case of self.
         string classNameToLookup = context.IsInstance() ? context.GetSuperClassName() : context.GetClassName();
@@ -1218,20 +1204,20 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
         // to which we're sending into the accumulator.
         if (bOpSend == Opcode::SEND)
         {
-			if (!GetTargetName().empty())
+            if (!GetTargetName().empty())
             {
                 // A straightforward send (e.g. aMan:init())
                 // This can only be an instance or class
                 WORD wNumber;
                 WORD wInstanceScript;
-				ResolvedToken tokenType = context.LookupToken(this, GetTargetName(), wNumber, wObjectSpecies, &wInstanceScript);
+                ResolvedToken tokenType = context.LookupToken(this, GetTargetName(), wNumber, wObjectSpecies, &wInstanceScript);
                 switch (tokenType)
                 {
                 case ResolvedToken::Instance:
                 case ResolvedToken::Class:
                     {
                         COutputContext accContext(context, OC_Accumulator);
-						WriteInstanceOrClass(context, tokenType, wNumber, GetTargetName());
+                        WriteInstanceOrClass(context, tokenType, wNumber, GetTargetName());
                     }
                     break;
                 case ResolvedToken::ExportInstance:
@@ -1255,35 +1241,35 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
                             break;
                         default:
                             wObjectSpecies = DataTypeAny; // Just so we can continue
-							ErrorHelper(context, this, "Unknown identifier:", GetTargetName());
+                            ErrorHelper(context, this, "Unknown identifier:", GetTargetName());
                             break;
                         }
                     }
                     else
                     {
                         wObjectSpecies = DataTypeAny; // Just so we can continue
-						context.ReportError(this, "%s must be an instance or class.", GetTargetName().c_str());
+                        context.ReportError(this, "%s must be an instance or class.", GetTargetName().c_str());
                     }
                     break;
                 }
             }
-			else if (_object3 && !_object3->GetName().empty())
+            else if (_object3 && !_object3->GetName().empty())
             {
                 // An LValue send (e.g. (send flakes[i]:x(4))
                 // This is really just here for SCIStudio compatibility, for having array indexers.  Otherwise,
                 // we could just always use _object or _object2.  We'll get here for any simple send statement that has
                 // "send" though.  So it's possible the indexer is not there.
-				const SingleStatement *pIndexer = _object3->GetIndexer();
-				if (pIndexer && (pIndexer->GetType() == NodeTypeUnknown))
+                const SingleStatement *pIndexer = _object3->GetIndexer();
+                if (pIndexer && (pIndexer->GetType() == NodeTypeUnknown))
                 {
                     pIndexer = nullptr;
                     // A straightforward send (e.g. (send gMan:init())
                 }
-				// Note: pIndexer will probably just be nullptr in this case anyway
+                // Note: pIndexer will probably just be nullptr in this case anyway
 
                 BYTE bOpcodeMod = VO_LOAD | VO_ACC;
                 WORD wNumber;
-				ResolvedToken tokenType = context.LookupToken(this, _object3->GetName(), wNumber, wObjectSpecies);
+                ResolvedToken tokenType = context.LookupToken(this, _object3->GetName(), wNumber, wObjectSpecies);
                 switch (tokenType)
                 {
                 case ResolvedToken::GlobalVariable:
@@ -1297,12 +1283,12 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
                     LoadProperty(context, wNumber, false);
                     if (pIndexer)
                     {
-						context.ReportError(this, "Properties cannot be indexed: %s.", _object3->GetName().c_str());
+                        context.ReportError(this, "Properties cannot be indexed: %s.", _object3->GetName().c_str());
                     }
                     break;
                 default:
                     wObjectSpecies = DataTypeAny; // Just so we can continue
-					ErrorHelper(context, this, "Unknown identifier: can not send to", _object3->GetName());
+                    ErrorHelper(context, this, "Unknown identifier: can not send to", _object3->GetName());
                     break;
                 }
                 // Good to go...
@@ -1363,7 +1349,7 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
         SendTargetSpeciesIndex objectSpecies(context, wObjectSpecies); // Let the sendparams know whom they're calling.
         COutputContext stackContext(context, OC_Stack); // Ensure parameters are pushed on the stack.
 
-		GenericOutputByteCode2<SendParam> gobcResult = for_each(_params.begin(), _params.end(), GenericOutputByteCode2<SendParam>(context));
+        GenericOutputByteCode2<SendParam> gobcResult = for_each(_params.begin(), _params.end(), GenericOutputByteCode2<SendParam>(context));
         wSendPushes = gobcResult.GetByteCount();
         returnType = gobcResult.GetLastType();
 
@@ -1379,9 +1365,9 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
     }
 
     if (updateOperand && (sendPushInstruction != context.code().get_undetermined()))
-	{
-		(*updateOperand)(sendPushInstruction, wSendPushes);
-	}
+    {
+        (*updateOperand)(sendPushInstruction, wSendPushes);
+    }
 
     return CodeResult(PushToStackIfAppropriate(context), returnType);
 }
@@ -1389,13 +1375,13 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
 CodeResult Cast::OutputByteCode(CompileContext &context) const
 {
     CodeResult result = _statement1->OutputByteCode(context);
-	SpeciesIndex si = context.LookupTypeSpeciesIndex(_innerType, this);
+    SpeciesIndex si = context.LookupTypeSpeciesIndex(_innerType, this);
     return CodeResult(result.GetBytes(), si);
 }
 
 void SendParam::PreScan(CompileContext &context) 
 {
-	ForwardPreScan2(_segments, context);
+    ForwardPreScan2(_segments, context);
 }
 
 CodeResult SendParam::OutputByteCode(CompileContext &context) const
@@ -1410,7 +1396,7 @@ CodeResult SendParam::OutputByteCode(CompileContext &context) const
     WORD wBytes = 0;
     WORD wSelector;
     bool fApplyTypeChecking = false;
-	if (context.LookupSelector(GetSelectorName(), wSelector))
+    if (context.LookupSelector(GetSelectorName(), wSelector))
     {
         // The selector
         PushImmediate(context, wSelector);
@@ -1428,7 +1414,7 @@ CodeResult SendParam::OutputByteCode(CompileContext &context) const
         // Quick and dirty approach is to make a temporary property value to do the code generation.
         {
             PropertyValue value;
-			value.SetValue(GetSelectorName(), ValueType::Token);
+            value.SetValue(GetSelectorName(), ValueType::Token);
             value.SetPosition(GetPosition()); // For error reporting.
             COutputContext stackContext(context, OC_Stack); // We want the value pushed to the stack
             SpeciesIndex si = value.OutputByteCode(context).GetType(); // We'll rely on it to generate errors...
@@ -1438,11 +1424,11 @@ CodeResult SendParam::OutputByteCode(CompileContext &context) const
             // is indeed a selector (or var)
             if (si == DataTypeInvalid)
             {
-				context.ReportError(this, "Unknown property or method: '%s'.", GetSelectorName().c_str());
+                context.ReportError(this, "Unknown property or method: '%s'.", GetSelectorName().c_str());
             }
             else if (!DoesTypeMatch(context, DataTypeSelector, si, nullptr, nullptr))
             {
-				context.ReportError(this, "'%s' must be of type 'selector' to be used here.", GetSelectorName().c_str());
+                context.ReportError(this, "'%s' must be of type 'selector' to be used here.", GetSelectorName().c_str());
             }
         }
     }
@@ -1457,7 +1443,7 @@ CodeResult SendParam::OutputByteCode(CompileContext &context) const
 
     // Note: the parameters will indicate to themselves how many (since it could vary - one parameter could end up pushing two things)
     COutputContext stackContext(context, OC_Stack);
-	GenericOutputByteCode2<SingleStatement> gobc = for_each(_segments.begin(), _segments.end(), GenericOutputByteCode2<SingleStatement>(context));
+    GenericOutputByteCode2<SingleStatement> gobc = for_each(_segments.begin(), _segments.end(), GenericOutputByteCode2<SingleStatement>(context));
     WORD wBytesOfParams = gobc.GetByteCount();
     std::vector<SpeciesIndex> parameterTypes = gobc.GetTypes();
    
@@ -1494,9 +1480,9 @@ CodeResult SendParam::OutputByteCode(CompileContext &context) const
                 returnType = MatchParameters(GetSelectorName(), context, this, signatures, parameterTypes, _segments);
 
                 if (!_fIsMethodCall &&
-	                (context.GetLanguage() == LangSyntaxCpp))
+                    (context.GetLanguage() == LangSyntaxCpp))
                 {
-	                context.ReportError(this, "%s is a method.  Did you mean %s()?", GetSelectorName().c_str(), GetSelectorName().c_str());
+                    context.ReportError(this, "%s is a method.  Did you mean %s()?", GetSelectorName().c_str(), GetSelectorName().c_str());
                 }
             }
             else
@@ -1514,10 +1500,10 @@ CodeResult SendParam::OutputByteCode(CompileContext &context) const
                 else
                 {
                     // Produce an error if the property type does not match what the caller is passing.
-					if (!DoesTypeMatch(context, propertyType, parameterTypes[0], nullptr, _segments[0].get()))
+                    if (!DoesTypeMatch(context, propertyType, parameterTypes[0], nullptr, _segments[0].get()))
                     {
                         std::stringstream ss;
-						ss << "Type '%s' does not match property '" << GetSelectorName() << "' of type '%s'.";
+                        ss << "Type '%s' does not match property '" << GetSelectorName() << "' of type '%s'.";
                         context.ReportTypeError(this, parameterTypes[0], propertyType, ss.str().c_str());
                     }
                     // Assigning a property has no data type.
@@ -1532,7 +1518,7 @@ CodeResult SendParam::OutputByteCode(CompileContext &context) const
             // (e.g. by casting to var).
             // REVIEW: a strongly-typed alternative would be support for interfaces.
             std::string objectTypeString = context.SpeciesIndexToDataTypeString(calleeSpecies);
-			context.ReportError(this, "%s is not a property or method on type '%s'.", GetSelectorName().c_str(), objectTypeString.c_str());
+            context.ReportError(this, "%s is not a property or method on type '%s'.", GetSelectorName().c_str(), objectTypeString.c_str());
         }
     }
 
@@ -1552,14 +1538,7 @@ void SingleStatement::PreScan(CompileContext &context)
 
 CodeResult SingleStatement::OutputByteCode(CompileContext &context) const
 {
-    if (_pThing)
-    {
-        return _pThing->OutputByteCode(context);
-    }
-    else
-    {
-        return 0;
-    }
+    return _pThing ? _pThing->OutputByteCode(context) : 0;
 }
 
 CodeResult CodeBlock::OutputByteCode(CompileContext &context) const
@@ -1575,7 +1554,7 @@ CodeResult CodeBlock::OutputByteCode(CompileContext &context) const
     // I've decided this is a bad thing.  We should not remove meaning.
     // e.g. switch (a, b)
 
-	CodeResult result = SingleStatementVectorOutputHelper(_segments, context, &wBytes);
+    CodeResult result = SingleStatementVectorOutputHelper(_segments, context, &wBytes);
     return CodeResult(wBytes, result.GetType());
 }
 
@@ -1603,7 +1582,7 @@ CodeResult ProcedureCall::OutputByteCode(CompileContext &context) const
     {
         COutputContext stackContext(context, OC_Stack);
         // Collect parameter type information here, in addition to the number of bytes pushed.
-		GenericOutputByteCode2<SingleStatement> gobc = for_each(_segments.begin(), _segments.end(), GenericOutputByteCode2<SingleStatement>(context));
+        GenericOutputByteCode2<SingleStatement> gobc = for_each(_segments.begin(), _segments.end(), GenericOutputByteCode2<SingleStatement>(context));
         wCallBytes = gobc.GetByteCount();
         parameterTypes = gobc.GetTypes();
     }
@@ -1630,11 +1609,11 @@ CodeResult ProcedureCall::OutputByteCode(CompileContext &context) const
         // Something in the current script "call"
         if (!classOwner.empty() && (context.GetClassName() != classOwner))
         {
-			context.ReportError(this, "'%s' can only be called from class '%s'.", _innerName.c_str(), classOwner.c_str());
+            context.ReportError(this, "'%s' can only be called from class '%s'.", _innerName.c_str(), classOwner.c_str());
         }
         context.code().inst(Opcode::CALL, wIndex, wCallBytes); // wIndex is temporary
         DEBUG_BRANCH(context.code(), DEBUG_LOCAL_PROC_CALL);
-		context.TrackLocalProcCall(_innerName);
+        context.TrackLocalProcCall(_innerName);
         break;
     case ProcedureKernel:
         // A kernel function
@@ -1642,12 +1621,12 @@ CodeResult ProcedureCall::OutputByteCode(CompileContext &context) const
         break;
 
     case ProcedureUnknown:
-		ErrorHelper(context, this, "Unknown procedure", _innerName);
+        ErrorHelper(context, this, "Unknown procedure", _innerName);
         break;
     }
 
     // Type checking
-	SpeciesIndex returnType = MatchParameters(_innerName, context, this, signatures, parameterTypes, _segments);
+    SpeciesIndex returnType = MatchParameters(_innerName, context, this, signatures, parameterTypes, _segments);
 
     return CodeResult(PushToStackIfAppropriate(context), returnType);
 }
@@ -1661,17 +1640,17 @@ CodeResult ConditionalExpression::OutputByteCode(CompileContext &context) const
     declare_conditional isCondition(context, true);
     change_meaning meaning(context, true);
     {
-		assert(_segments.size() >= 1);
+        assert(_segments.size() >= 1);
         // Put things into the accumulator, in general
         COutputContext ocContext(context, OC_Accumulator);
 
         // We should never have been created if we don't have at least one term
-		assert(!_segments.empty());
+        assert(!_segments.empty());
 
         // A, B, C
         // Output the first 0 to n-2 terms as if they were not in a condition.  In the above
         // example, this would be A and B.
-		auto it = _segments.begin();
+        auto it = _segments.begin();
         auto itEnd = _segments.end();
         --itEnd;
         CodeResult result;
@@ -1707,29 +1686,29 @@ CodeResult ReturnStatement::OutputByteCode(CompileContext &context) const
     change_meaning meaning(context, true);
     SpeciesIndex returnValueType = DataTypeVoid;
     // Put the result from the statement (if we have one) into the accumulator
-	if (_statement1 && _statement1->GetSyntaxNode())
+    if (_statement1 && _statement1->GetSyntaxNode())
     {
         COutputContext accContext(context, OC_Accumulator);
-		returnValueType = _statement1->OutputByteCode(context).GetType();
+        returnValueType = _statement1->OutputByteCode(context).GetType();
     }
 
     // Type checking
     std::vector<SpeciesIndex> returnTypes = context.GetReturnValueTypes();
     bool fMatch = false;
-	for (SpeciesIndex si : returnTypes)
+    for (SpeciesIndex si : returnTypes)
     {
-		if (DoesTypeMatch(context, si, returnValueType, nullptr, _statement1.get()))
+        if (DoesTypeMatch(context, si, returnValueType, nullptr, _statement1.get()))
         {
             fMatch = true;
         }
     }
     if (!fMatch &&
-		(context.GetLanguage() == LangSyntaxCpp))
+        (context.GetLanguage() == LangSyntaxCpp))
     {
         // Go through again and make errors if nothing matched
-		for (SpeciesIndex si : returnTypes)
+        for (SpeciesIndex si : returnTypes)
         {
-			if (!DoesTypeMatch(context, si, returnValueType, nullptr, _statement1.get()))
+            if (!DoesTypeMatch(context, si, returnValueType, nullptr, _statement1.get()))
             {
                 context.ReportTypeError(this, returnValueType, si, "type '%s' does not match return type '%s'.");
             }
@@ -1770,7 +1749,7 @@ CodeResult Assignment::OutputByteCode(CompileContext &context) const
     ResolvedToken tokenType = context.LookupToken(this, strVarName, wIndex, wType);
 
     // Catch some errors
-	const SingleStatement *pIndexer = _variable->HasIndexer() ? _variable->GetIndexer() : nullptr;
+    const SingleStatement *pIndexer = _variable->HasIndexer() ? _variable->GetIndexer() : nullptr;
     switch(tokenType)
     {
     case ResolvedToken::GlobalVariable:
@@ -1793,7 +1772,7 @@ CodeResult Assignment::OutputByteCode(CompileContext &context) const
         break;
     }
 
-	string assignment = GetAssignmentOp();
+    string assignment = GetAssignmentOp();
     if (GetBinaryOpFromAssignment(assignment))
     {
         // This is something like +=, *=, etc...
@@ -1825,7 +1804,7 @@ CodeResult Assignment::OutputByteCode(CompileContext &context) const
                 // We'll load the variable onto the stack, and say to use the acc as an index:
                 VariableOperand(context, wIndex, TokenTypeToVOType(tokenType) | VO_STACK | VO_LOAD | VO_ACC_AS_INDEX_MOD);
                 // And put the value into the accumulator
-				OutputByteCodeToAccumulator(context, *_statement1);
+                OutputByteCodeToAccumulator(context, *_statement1);
                 // Perform the operation (adding the value to the thing on the stack)
                 WriteSimple(context, GetInstructionForBinaryOperator(assignment));
                 // The result is now in the accumulator.  We actually want it in the stack, since
@@ -1845,7 +1824,7 @@ CodeResult Assignment::OutputByteCode(CompileContext &context) const
                 // Easy!  Load the variable onto the stack.
                 VariableOperand(context, wIndex, TokenTypeToVOType(tokenType) | VO_STACK | VO_LOAD);
                 // And the value into the accumulator
-				OutputByteCodeToAccumulator(context, *_statement1);
+                OutputByteCodeToAccumulator(context, *_statement1);
                 // Perform the operation
                 WriteSimple(context, GetInstructionForBinaryOperator(assignment));
                 // And now it goes back in the variable
@@ -1857,7 +1836,7 @@ CodeResult Assignment::OutputByteCode(CompileContext &context) const
             // Load the property onto the stack
             LoadProperty(context, wIndex, true);
             // And the value into the accumulator
-			OutputByteCodeToAccumulator(context, *_statement1);
+            OutputByteCodeToAccumulator(context, *_statement1);
             // Perform the operation
             WriteSimple(context, GetInstructionForBinaryOperator(assignment));
             // And put the value (now in the accumulator) back into the property
@@ -1882,19 +1861,19 @@ CodeResult Assignment::OutputByteCode(CompileContext &context) const
         {
             // Scope the context
             COutputContext accContext(context, ocWhereWePutValue);
-			wValueType = _statement1->OutputByteCode(context).GetType();
+            wValueType = _statement1->OutputByteCode(context).GetType();
         }
 
         // If we put the value on the stack, we'll need to make a copy of it if it is used by the caller
         // (since we'll use it up)
         // We'll make an assumption that the caller wants it if the output context is the stack.
-		if (context.GetOutputContext() == OC_Stack) // This if had been commented out, causing this problem: http://sciprogramming.com/community/index.php?topic=1063.0
-		{
-			if (ocWhereWePutValue == OC_Stack)
-			{
-				WriteSimple(context, Opcode::DUP);
-			}
-		}
+        if (context.GetOutputContext() == OC_Stack) // This if had been commented out, causing this problem: http://sciprogramming.com/community/index.php?topic=1063.0
+        {
+            if (ocWhereWePutValue == OC_Stack)
+            {
+                WriteSimple(context, Opcode::DUP);
+            }
+        }
         // REVIEW: So this won't work if the caller wants the value, but wants it on the accumulator.  That
         // means this doesn't work:  (= foo (= myVar[send gEgo:x] 6))
         // Rare scenario, but worth noting.
@@ -1919,7 +1898,7 @@ CodeResult Assignment::OutputByteCode(CompileContext &context) const
         }
 
         // Ensure the types are the same.
-		if (!DoesTypeMatch(context, wType, wValueType, nullptr, _statement1.get()))
+        if (!DoesTypeMatch(context, wType, wValueType, nullptr, _statement1.get()))
         {
             context.ReportTypeError(this, wValueType, wType, "type '%s' cannot be assigned to type '%s'.");
         }
@@ -1956,7 +1935,7 @@ CodeResult LValue::OutputByteCode(CompileContext &context) const
 }
 void LValue::PreScan(CompileContext &context)
 {
-	if (_indexer) _indexer->PreScan(context);
+    if (_indexer) _indexer->PreScan(context);
 }
 
 const char* c_szBooleanOps[] =
@@ -1970,7 +1949,7 @@ CodeResult BinaryOp::_OutputByteCodeAnd(CompileContext &context) const
     // Output the left operand.
     {
         COutputContext stackContext(context, OC_Accumulator);
-		_statement1->OutputByteCode(context).GetType();
+        _statement1->OutputByteCode(context).GetType();
     }
 
     context.code().inst(Opcode::BNT, context.code().get_undetermined(), BB_Failure);
@@ -1994,7 +1973,7 @@ CodeResult BinaryOp::_OutputByteCodeOr(CompileContext &context) const
     // Output the left operand.
     {
         COutputContext stackContext(context, OC_Accumulator);
-		_statement1->OutputByteCode(context);
+        _statement1->OutputByteCode(context);
     }
 
     context.code().inst(Opcode::BT, context.code().get_undetermined(), BB_Success);
@@ -2004,7 +1983,7 @@ CodeResult BinaryOp::_OutputByteCodeOr(CompileContext &context) const
     // Then the right operand.
     {
         COutputContext stackContext(context, OC_Accumulator);
-		_statement2->OutputByteCode(context);
+        _statement2->OutputByteCode(context);
     }
 
     WORD wBytesUsed = 0;
@@ -2063,17 +2042,17 @@ CodeResult BinaryOp::OutputByteCode(CompileContext &context) const
     {
         return _OutputByteCodeAnd(context);
     }
-	else if (context.InConditional() && (GetOpName() == "||"))
+    else if (context.InConditional() && (GetOpName() == "||"))
     {
         return _OutputByteCodeOr(context);
     }
     else
     {
-		if (GetOpName() == "&&" || GetOpName() == "||")
+        if (GetOpName() == "&&" || GetOpName() == "||")
         {
             // Handle && and || when not used in a condition.
             // Basically, we write an "if statement" that evaluates to 1 or 0
-			return _WriteFakeIfStatement(context, *this, GetOpName());
+            return _WriteFakeIfStatement(context, *this, GetOpName());
         }
         else
         {
@@ -2083,18 +2062,18 @@ CodeResult BinaryOp::OutputByteCode(CompileContext &context) const
             // Make a stack context and spit out the left operand code.
             {
                 COutputContext stackContext(context, OC_Stack);
-				wTypeLeft = _statement1->OutputByteCode(context).GetType();
+                wTypeLeft = _statement1->OutputByteCode(context).GetType();
             }
 
             // Then make an acc context and spit out the right operand code.
             {
                 COutputContext accContext(context, OC_Accumulator);
-				wTypeRight = _statement2->OutputByteCode(context).GetType();
+                wTypeRight = _statement2->OutputByteCode(context).GetType();
             }
             
             // Then spit out the correct instruction
             // The result will go into the accumulator, and we may need to push it to the stack.
-			std::string actualOperator = _MaybeChangeToUnsigned(context, wTypeLeft, GetOpName());
+            std::string actualOperator = _MaybeChangeToUnsigned(context, wTypeLeft, GetOpName());
             WriteSimple(context, GetInstructionForBinaryOperator(actualOperator));
 
             // Type checking
@@ -2163,23 +2142,23 @@ CodeResult UnaryOp::OutputByteCode(CompileContext &context) const
     if (GetOpName() == "++")
     {
         change_meaning meaning(context, true);
-		if (_statement1->GetType() == NodeTypeComplexValue)
+        if (_statement1->GetType() == NodeTypeComplexValue)
         {
             variable_opcode_modifier modifier(this, context, VM_PreIncrement);
-			result = _statement1->OutputByteCode(context);
+            result = _statement1->OutputByteCode(context);
         }
         else
         {
             context.ReportError(this, "Can only increment simple values.");
         }
     }
-	else if (GetOpName() == "--")
+    else if (GetOpName() == "--")
     {
         change_meaning meaning(context, true);
-		if (_statement1->GetType() == NodeTypeComplexValue)
+        if (_statement1->GetType() == NodeTypeComplexValue)
         {
             variable_opcode_modifier modifier(this, context, VM_PreDecrement);
-			result = _statement1->OutputByteCode(context);
+            result = _statement1->OutputByteCode(context);
         }
         else
         {
@@ -2204,7 +2183,7 @@ CodeResult ForLoop::OutputByteCode(CompileContext &context) const
 {
     declare_conditional isCondition(context, false);
     change_meaning meaning(context, false);
-	GetInitializer()->OutputByteCode(context);
+    GetInitializer()->OutputByteCode(context);
 
     // Store the code pos of the beginning of the condition - we'll increment it to the first instruction later
     code_pos forStart = context.code().get_cur_pos();
@@ -2215,7 +2194,7 @@ CodeResult ForLoop::OutputByteCode(CompileContext &context) const
     // Put the condition into the accumulator
     {
         COutputContext accContext(context, OC_Accumulator);
-		_innerCondition->OutputByteCode(context);
+        _innerCondition->OutputByteCode(context);
     }
 
     // Make this correct:
@@ -2224,7 +2203,7 @@ CodeResult ForLoop::OutputByteCode(CompileContext &context) const
 
     // Time for the bulk of the code
     blockSuccess.leave(); // successful condition jump to here.
-	SingleStatementVectorOutputHelper(_segments, context);
+    SingleStatementVectorOutputHelper(_segments, context);
 
     // And finally the looper.
     _looper->OutputByteCode(context);
@@ -2250,7 +2229,7 @@ CodeResult WhileLoop::OutputByteCode(CompileContext &context) const
     // Spit out the condition
     {
         COutputContext accContext(context, OC_Accumulator);
-		_innerCondition->OutputByteCode(context);
+        _innerCondition->OutputByteCode(context);
     }
 
     // Increment this so it points to the first instruction
@@ -2259,7 +2238,7 @@ CodeResult WhileLoop::OutputByteCode(CompileContext &context) const
 
     // Now spit out the code
     blockSuccess.leave(); // We're starting the success part of the while loop.
-	SingleStatementVectorOutputHelper(_segments, context);
+    SingleStatementVectorOutputHelper(_segments, context);
 
     // Finally, jmp back to the beginning of the while.
     context.code().inst(Opcode::JMP, whileStart);
@@ -2277,7 +2256,7 @@ CodeResult DoLoop::OutputByteCode(CompileContext &context) const
     bool wasEmpty = context.code().empty();
 
     // Now spit out the code
-	SingleStatementVectorOutputHelper(_segments, context);
+    SingleStatementVectorOutputHelper(_segments, context);
 
     branch_block blockSuccess(context, BB_Success);
     branch_block blockFailure(context, BB_Failure);
@@ -2285,7 +2264,7 @@ CodeResult DoLoop::OutputByteCode(CompileContext &context) const
     // Now do the test, with result in the acc
     {
         COutputContext accContext(context, OC_Accumulator);
-		_innerCondition->OutputByteCode(context);
+        _innerCondition->OutputByteCode(context);
     }
 
     // If it's true, then branch back to the beginning
@@ -2320,22 +2299,21 @@ CodeResult DoLoop::OutputByteCode(CompileContext &context) const
 
 void CppIfStatement::PreScan(CompileContext &context)
 {
-	_innerCondition->PreScan(context);
-	_statement1->PreScan(context);
-	if (_statement2 && _statement2->GetSyntaxNode())
+    _innerCondition->PreScan(context);
+    _statement1->PreScan(context);
+    if (_statement2 && _statement2->GetSyntaxNode())
     {
-		_statement2->PreScan(context);
+        _statement2->PreScan(context);
     }
 }
 
 CodeResult CppIfStatement::OutputByteCode(CompileContext &context) const
 {
-    // Imbue meaning.
     CodeResult result;
     // Put result in accumulator.
     {
         COutputContext accContext(context, OC_Accumulator);
-		result = _OutputCodeForIfStatement(context, *_innerCondition.get(), *_statement1, (_statement2) ? _statement2->GetSyntaxNode() : nullptr, true);
+        result = _OutputCodeForIfStatement(context, *_innerCondition.get(), *_statement1, (_statement2) ? _statement2->GetSyntaxNode() : nullptr, true);
     }
     WORD wBytes = PushToStackIfAppropriate(context);
     return CodeResult(wBytes, result.GetType());
@@ -2345,9 +2323,9 @@ void CaseStatement::PreScan(CompileContext &context)
 {
     if (!_fDefault)
     {
-		_statement1->PreScan(context);
+        _statement1->PreScan(context);
     }
-	ForwardPreScan2(_segments, context);
+    ForwardPreScan2(_segments, context);
 }
 
 CodeResult CaseStatement::OutputByteCode(CompileContext &context) const
@@ -2503,8 +2481,6 @@ CodeResult SwitchStatement::OutputByteCode(CompileContext &context) const
     }
     WORD wBytes = PushToStackIfAppropriate(context);
     return CodeResult(wBytes, DataTypeNone);
-
-//    return 0; // void
 }
 
 //
@@ -2521,10 +2497,10 @@ code_pos FunctionOutputByteCodeHelper(const FunctionBase &function, CompileConte
 
     // Supply the return values that are currently allowed
     std::vector<SpeciesIndex> returnTypes;
-	for (auto &signature : function.GetSignatures())
+    for (auto &signature : function.GetSignatures())
     {
         SpeciesIndex si = DataTypeAny;
-		context.LookupTypeSpeciesIndex(signature->GetDataType(), si); // 'Ok' if it fails - we would have already recorded the error.
+        context.LookupTypeSpeciesIndex(signature->GetDataType(), si); // 'Ok' if it fails - we would have already recorded the error.
         returnTypes.push_back(si);
     }
     context.SetReturnValueTypes(returnTypes);
@@ -2533,9 +2509,9 @@ code_pos FunctionOutputByteCodeHelper(const FunctionBase &function, CompileConte
     // This is the link instruction.
     WORD wWords = 0;
     const VariableDeclVector &tempVars = function.GetVariables();
-	for (auto &varDecl : tempVars)
+    for (auto &varDecl : tempVars)
     {
-		wWords += varDecl->GetSize();
+        wWords += varDecl->GetSize();
     }
     if (wWords > 0)
     {
@@ -2546,24 +2522,24 @@ code_pos FunctionOutputByteCodeHelper(const FunctionBase &function, CompileConte
     {
         change_meaning meaning(context, true);
         WORD wIndex = 0;
-		for (auto &varDecl : tempVars)
+        for (auto &varDecl : tempVars)
         {
-			WORD cInitializers = static_cast<WORD>(varDecl->GetInitializers().size());
+            WORD cInitializers = static_cast<WORD>(varDecl->GetInitializers().size());
             assert((cInitializers <= 1) && "Shoudln't hit this because only single var initializers allowed in function");
-			if (cInitializers > (size_t)varDecl->GetSize())
+            if (cInitializers > (size_t)varDecl->GetSize())
             {
-				context.ReportError(varDecl.get(), "Too many initializers (%d) for variable '%s'[%d].", cInitializers, varDecl->GetName().c_str(), varDecl->GetSize());
+                context.ReportError(varDecl.get(), "Too many initializers (%d) for variable '%s'[%d].", cInitializers, varDecl->GetName().c_str(), varDecl->GetSize());
             }
             WORD wIndexWithinThisVar = wIndex;
-			for (auto &initializer : varDecl->GetInitializers())
+            for (auto &initializer : varDecl->GetInitializers())
             {
                 // Note: originally, I thought all vars with zero-inited, so we could optimize out
                 // zero inits, but this is not the case.
-				OutputByteCodeToAccumulator(context, *initializer);
+                OutputByteCodeToAccumulator(context, *initializer);
                 VariableOperand(context, wIndexWithinThisVar, VO_STORE | VO_ACC | VO_TEMP); // Store acc in temp var
                 wIndexWithinThisVar++;
             }
-			wIndex += varDecl->GetSize();
+            wIndex += varDecl->GetSize();
         }
     }
 
@@ -2590,13 +2566,13 @@ code_pos FunctionOutputByteCodeHelper(const FunctionBase &function, CompileConte
             std::vector<SpeciesIndex> returnTypes = context.GetReturnValueTypes();
             if (find(returnTypes.begin(), returnTypes.end(), DataTypeVoid) == returnTypes.end())
             {
-				// REVIEW: This error message is not supported for SCI syntax. I would need code that tracks all return statements
-				// in this function. And if there are any that return something, then all paths need to return something.
-				if (context.GetLanguage() == LangSyntaxCpp)
-				{
-					// 'void' is not one of the return types of this function.
-					context.ReportError(&function, "%s: Not all control paths return a value.", function.GetName().c_str());
-				}
+                // REVIEW: This error message is not supported for SCI syntax. I would need code that tracks all return statements
+                // in this function. And if there are any that return something, then all paths need to return something.
+                if (context.GetLanguage() == LangSyntaxCpp)
+                {
+                    // 'void' is not one of the return types of this function.
+                    context.ReportError(&function, "%s: Not all control paths return a value.", function.GetName().c_str());
+                }
             }
         }
     }
@@ -2639,7 +2615,7 @@ std::string GetMethodTrackingName(const ClassDefinition *pClass, const FunctionB
     }
     else
     {
-		return method.GetName();
+        return method.GetName();
     }
 }
 
@@ -2717,7 +2693,7 @@ void VariableDecl::PreScan(CompileContext &context)
     {
         context.ReportError(this, "Array size is not a constant expression: %s", _size.GetStringValue().c_str());
     }
-	ForwardPreScan2(_segments, context);
+    ForwardPreScan2(_segments, context);
 }
 
 CodeResult VariableDecl::OutputByteCode(CompileContext &context) const
@@ -3111,15 +3087,11 @@ void ClassDefinition::PreScan(CompileContext &context)
     if (IsSCIKeyword(context.GetLanguage(), _innerName))
     {
         // Can't use keywords as procedure names.
-		ReportKeywordError(context, this, _innerName, "procedure name");
+        ReportKeywordError(context, this, _innerName, "procedure name");
     }
 
     // Our name
-    // TODO - allow the name property to override the real name.  In code, it will be referenced as
-    // the not-name name (so the not-name name needs to be tracked), but the name property will be this thing,
-    // and we don't need to add the not-name property to the script resource strings.
-	context.PreScanStringAndUnescape(_innerName, this);
-
+    context.PreScanStringAndUnescape(_innerName, this);
 
     ForwardPreScan2(_properties, context);
     ForwardPreScan2(_methods, context);
@@ -3147,13 +3119,13 @@ CodeResult ClassDefinition::OutputByteCode(CompileContext &context) const
     // Output the code of the methods, in order.
     ClassContext classContext(context, this);
     for_each(_methods.begin(), _methods.end(), GenericOutputByteCode2<MethodDefinition>(context));
-    return 0; // void
+    return 0;
 }
 
 ResolvedToken ClassDefinition::LookupVariableName(CompileContext &context, const std::string &str, WORD &wIndex, SpeciesIndex &dataType) const
 {
     ResolvedToken token = ResolvedToken::Unknown;
-	std::vector<species_property> speciesProps = context.GetSpeciesProperties(_fInstance ? _superClass : _innerName);
+    std::vector<species_property> speciesProps = context.GetSpeciesProperties(_fInstance ? _superClass : _innerName);
     WORD wSelectorIndex;
     if (context.LookupSelector(str, wSelectorIndex))
     {
@@ -3181,12 +3153,12 @@ ResolvedToken ClassDefinition::LookupVariableName(CompileContext &context, const
 vector<uint16_t> VariableDecl::GetSimpleValues() const
 {
     vector<uint16_t> result;
-	for (auto &value : _segments)
-	{
-		const PropertyValue *pValue = SafeSyntaxNode<PropertyValue>(value->GetSyntaxNode());
-		assert(pValue); // Must be a property value if we're calling this.
-		result.push_back(pValue->GetNumberValue());
-	}
+    for (auto &value : _segments)
+    {
+        const PropertyValue *pValue = SafeSyntaxNode<PropertyValue>(value->GetSyntaxNode());
+        assert(pValue); // Must be a property value if we're calling this.
+        result.push_back(pValue->GetNumberValue());
+    }
     return result;
 }
 
@@ -3194,15 +3166,15 @@ void FunctionSignature::PreScan(CompileContext &context)
 {
     // Ensure none of the parameters have the same name.
     std::set<std::string> _paramNames;
-	for (auto &param : _params)
+    for (auto &param : _params)
     {
-		if (_paramNames.find(param->GetName()) != _paramNames.end())
+        if (_paramNames.find(param->GetName()) != _paramNames.end())
         {
-			context.ReportError(param.get(), "%s %s: duplicate parameter names.", param->GetDataType().c_str(), param->GetName().c_str());
+            context.ReportError(param.get(), "%s %s: duplicate parameter names.", param->GetDataType().c_str(), param->GetName().c_str());
         }
         else
         {
-			_paramNames.insert(param->GetName());
+            _paramNames.insert(param->GetName());
         }
     }
 }
@@ -3216,57 +3188,57 @@ void FunctionBase::PreScan(CompileContext &context)
     }
 
     std::set<std::string> parameterCollection; // Collect parameters
-	for (auto &signature : _signatures)
+    for (auto &signature : _signatures)
     {
-		for (auto &param : signature->GetParams())
+        for (auto &param : signature->GetParams())
         {
-			parameterCollection.insert(param->GetName());
+            parameterCollection.insert(param->GetName());
         }
     }
 
     std::set<std::string> tempVarCollection; // Collect temp variables
     const VariableDeclVector &scriptVars = GetOwnerScript()->GetScriptVariables();
-	for (auto &variable : _tempVars)
+    for (auto &variable : _tempVars)
     {
         // Find the script.
-		if (matches_name(scriptVars.begin(), scriptVars.end(), variable->GetName()))
+        if (matches_name(scriptVars.begin(), scriptVars.end(), variable->GetName()))
         {
-			context.ReportError(variable.get(), "Function variables cannot have the same name as script variables: %s", variable->GetName().c_str());
+            context.ReportError(variable.get(), "Function variables cannot have the same name as script variables: %s", variable->GetName().c_str());
         }
-		if (parameterCollection.find(variable->GetName()) != parameterCollection.end())
+        if (parameterCollection.find(variable->GetName()) != parameterCollection.end())
         {
-			context.ReportError(variable.get(), "Function variables cannot have the same name as a function parameter: %s", variable->GetName().c_str());
+            context.ReportError(variable.get(), "Function variables cannot have the same name as a function parameter: %s", variable->GetName().c_str());
         }
-		if (tempVarCollection.find(variable->GetName()) != tempVarCollection.end())
+        if (tempVarCollection.find(variable->GetName()) != tempVarCollection.end())
         {
-			context.ReportError(variable.get(), "There is already a variable called '%s'", variable->GetName().c_str());
+            context.ReportError(variable.get(), "There is already a variable called '%s'", variable->GetName().c_str());
         }
-		tempVarCollection.insert(variable->GetName());
+        tempVarCollection.insert(variable->GetName());
     }
     ForwardPreScan2(_tempVars, context);
-	ForwardPreScan2(_segments, context);
+    ForwardPreScan2(_segments, context);
     ForwardPreScan2(_signatures, context);
 
     // TODO: emit warning when a local variable hides a class member.
 }
 void CodeBlock::PreScan(CompileContext &context)
 {
-	ForwardPreScan2(_segments, context);
+    ForwardPreScan2(_segments, context);
 }
 
 void SendCall::PreScan(CompileContext &context)
 {
     // One of three forms of send params.
     ForwardPreScan2(_params, context);
-	if (GetTargetName().empty())
+    if (GetTargetName().empty())
     {
-		if (!_object3 || _object3->GetName().empty())
+        if (!_object3 || _object3->GetName().empty())
         {
-			_statement1->PreScan(context);
+            _statement1->PreScan(context);
         }
         else
         {
-			_object3->PreScan(context);
+            _object3->PreScan(context);
         }
     }
 }
@@ -3277,45 +3249,44 @@ void ProcedureCall::PreScan(CompileContext &context)
         // Can't use keywords as procedure calls.
         ReportKeywordError(context, this, _innerName, "procedure call");
     }
-	ForwardPreScan2(_segments, context);
+    ForwardPreScan2(_segments, context);
 }
 void ConditionalExpression::PreScan(CompileContext &context)
 {
-	ForwardPreScan2(_segments, context);
+    ForwardPreScan2(_segments, context);
 }
 void SwitchStatement::PreScan(CompileContext &context)
 {
-	_statement1->PreScan(context);
+    _statement1->PreScan(context);
     ForwardPreScan2(_cases, context);
 }
 void ForLoop::PreScan(CompileContext &context) 
 {
-	GetInitializer()->PreScan(context);
-	_innerCondition->PreScan(context);
+    GetInitializer()->PreScan(context);
+    _innerCondition->PreScan(context);
     _looper->PreScan(context);
-	ForwardPreScan2(_segments, context);
+    ForwardPreScan2(_segments, context);
 }
 void WhileLoop::PreScan(CompileContext &context) 
 {
-	_innerCondition->PreScan(context);
-	ForwardPreScan2(_segments, context);
+    _innerCondition->PreScan(context);
+    ForwardPreScan2(_segments, context);
 }
 
 void ExportEntry::PreScan(CompileContext &context) {}
 
 void Script::PreScan(CompileContext &context)
 {
-    DefineVector::const_iterator defineIt = _defines.begin();
-    for (; defineIt != _defines.end(); ++defineIt)
+    for (auto &theDefine : _defines)
     {
-        const string &defineName = (*defineIt)->GetName();
+        const string &defineName = theDefine->GetName();
         if (IsSCIKeyword(context.GetLanguage(), defineName))
         {
-            ReportKeywordError(context, (*defineIt).get(), defineName, "define");
+            ReportKeywordError(context, theDefine.get(), defineName, "define");
         }
         else
         {
-            context.AddDefine((*defineIt).get());
+            context.AddDefine(theDefine.get());
         }
     }
     ForwardPreScan2(_defines, context);
@@ -3455,13 +3426,13 @@ void Script::_PreScanStringDeclaration(CompileContext &context, VariableDecl &st
 
 void DoLoop::PreScan(CompileContext &context) 
 {
-	_innerCondition->PreScan(context);
-	ForwardPreScan2(_segments, context);
+    _innerCondition->PreScan(context);
+    ForwardPreScan2(_segments, context);
 }
 void Assignment::PreScan(CompileContext &context)
 {
-	_variable->PreScan(context);
-	_statement1->PreScan(context);
+    _variable->PreScan(context);
+    _statement1->PreScan(context);
 }
 
 void AsmBlock::PreScan(CompileContext &context)
