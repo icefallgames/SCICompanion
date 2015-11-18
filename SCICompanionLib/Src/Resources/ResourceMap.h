@@ -118,7 +118,6 @@ public:
     void GetAllScripts(std::vector<ScriptId> &scripts);
 	void GetNumberToNameMap(std::unordered_map<WORD, std::string> &scos);
     void SetScriptLanguage(ScriptId script, LangSyntax language);
-    LangSyntax GetGameLanguage();
     void SetGameLanguage(LangSyntax language);
     void RemoveScriptFromGame(WORD wScript);
     void SetIncludeFolderForTest(const std::string &folder) { _includeFolderOverride = folder; }
@@ -138,6 +137,7 @@ public:
     DependencyTracker &GetDependencyTracker();
 
 private:
+    void _SetGameLanguage();
     ViewFormat _DetectViewVGAVersion();
     ResourcePackageFormat _DetectPackageFormat();
     ResourceMapFormat _DetectMapFormat();

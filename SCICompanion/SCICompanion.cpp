@@ -749,7 +749,7 @@ void SCICompanionApp::OnGameProperties()
 {
     CGamePropertiesDialog dialog(appState->GetResourceMap().GetRunLogic());
     dialog._strGameName = appState->GetGameName().c_str();
-    LangSyntax lang = appState->_resourceMap.GetGameLanguage();
+    LangSyntax lang = appState->_resourceMap.Helper().GetGameLanguage();
     if (IDOK == dialog.DoModal())
     {
         appState->SetGameName(dialog._strGameName);

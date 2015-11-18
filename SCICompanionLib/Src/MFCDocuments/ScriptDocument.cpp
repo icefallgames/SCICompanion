@@ -489,9 +489,9 @@ void CScriptDocument::OnDebugRoom()
 
 void CScriptDocument::OnConvertScript()
 {
-    if (appState->GetResourceMap().GetGameLanguage() != _scriptId.Language())
+    if (appState->GetResourceMap().Helper().GetGameLanguage() != _scriptId.Language())
     {
-        if (LangSyntaxCpp == appState->GetResourceMap().GetGameLanguage())
+        if (LangSyntaxCpp == appState->GetResourceMap().Helper().GetGameLanguage())
         {
             // What we do
             // 1) Parse this script and generate a syntax tree.
@@ -622,7 +622,7 @@ void CScriptDocument::OnConvertScript()
 void CScriptDocument::OnUpdateConvertScript(CCmdUI *pCmdUI)
 {
     // Enable conversion if this script's language is different than the game's language.
-    pCmdUI->Enable(appState->GetResourceMap().GetGameLanguage() != _scriptId.Language());
+    pCmdUI->Enable(appState->GetResourceMap().Helper().GetGameLanguage() != _scriptId.Language());
 }
 
 void CScriptDocument::OnUpdateLineCount(CCmdUI *pCmdUI)

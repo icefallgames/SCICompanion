@@ -748,7 +748,7 @@ std::string CResourceMap::GetGameFolder() const
     return _gameFolderHelper.GameFolder;
 }
 
-LangSyntax CResourceMap::GetGameLanguage()
+void CResourceMap::_SetGameLanguage()
 {
     if (_gameFolderHelper.Language == LangSyntaxUnknown)
     {
@@ -761,7 +761,6 @@ LangSyntax CResourceMap::GetGameLanguage()
             _gameFolderHelper.Language = LangSyntaxSCIStudio;
         }
     }
-    return _gameFolderHelper.Language;
 }
 
 //
@@ -1300,6 +1299,8 @@ void CResourceMap::SetGameFolder(const string &gameFolder)
     {
         try
         {
+            _SetGameLanguage();
+
             // We get here when we close documents.
             _SniffSCIVersion();
             // Send initial load notification
@@ -1412,5 +1413,5 @@ std::unique_ptr<ResourceEntity> CreateResourceFromResourceData(const ResourceBlo
 void CResourceMap::SetGameLanguage(LangSyntax lang)
 {
     Helper().SetIniString("Game", "Language", (lang == LangSyntaxCpp) ? "scp" : "sc");
-    _gameFolderHelper.Language = GetGameLanguage();
+    _SetGameLanguage();
 }

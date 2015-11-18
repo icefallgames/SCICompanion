@@ -116,7 +116,7 @@ void _GetClassInfoHelper(PTSTR szBuf, size_t cchBuf, const ClassDefinition *pCla
     StringCchPrintf(szBuf, cchBuf, TEXT("(class %s%s\n    (properties\n"), pClass->GetName().c_str(), szTemp);
 
     std::stringstream ss;
-    SourceCodeWriter out(ss, appState->GetResourceMap().GetGameLanguage());
+    SourceCodeWriter out(ss, appState->GetResourceMap().Helper().GetGameLanguage());
     DebugIndent indent1(out);
     DebugIndent indent2(out);
     out.pszNewLine = "\r\n";
