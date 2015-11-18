@@ -45,6 +45,7 @@
 #include "DebuggerThread.h"
 #include "RunLogic.h"
 #include "ResourceBlob.h"
+#include "DependencyTracker.h"
 
 using namespace std;
 
@@ -193,7 +194,7 @@ HRESULT RebuildResources(SCIVersion version, BOOL fShowUI)
 // CResourceMap
 // Helper class for managing resources.
 //
-CResourceMap::CResourceMap()
+CResourceMap::CResourceMap(AppState &appState) : _appState(appState)
 {
     _runLogic = std::make_unique<RunLogic>();
     _paletteListNeedsUpdate = true;
@@ -202,8 +203,9 @@ CResourceMap::CResourceMap()
     _cDeferAppend = 0;
     _gameFolderHelper.Language = LangSyntaxUnknown;
     _gameFolderHelper.Version = sciVersion0;    // By default
+    _dependencyTracker = std::make_unique<DependencyTracker>(_appState._fTrackHeaderFiles);
 	// This is a pointer because we don't want a dependency on it in the header file.
-	_classBrowser = std::make_unique<SCIClassBrowser>();
+	_classBrowser = std::make_unique<SCIClassBrowser>(*_dependencyTracker);
     _deferredResources.reserve(300);            // So we don't need to resize much it when adding
     _emptyPalette = std::make_unique<PaletteComponent>();
     memset(_emptyPalette->Colors, 0, sizeof(_emptyPalette->Colors));
@@ -410,6 +412,11 @@ void CResourceMap::RepackageAudio(bool force)
     }
 }
 
+DependencyTracker &CResourceMap::GetDependencyTracker()
+{
+    return *_dependencyTracker;
+}
+
 void CResourceMap::AbortDebuggerThread()
 {
     if (_debuggerThread)
@@ -487,7 +494,7 @@ HRESULT CResourceMap::AppendResource(const ResourceBlob &resource)
     {
         if (resource.GetType() == ResourceType::View)
         {
-            appState->SetRecentlyInteractedView(resource.GetNumber());
+            _appState.SetRecentlyInteractedView(resource.GetNumber());
         }
 
         // Enumerate resources and write the ones we have not already encountered.
@@ -587,7 +594,7 @@ std::unique_ptr<ResourceContainer> CResourceMap::Resources(ResourceTypeFlags typ
     ResourceRecency *pRecency = nullptr;
     if ((enumFlags & ResourceEnumFlags::CalculateRecency) != ResourceEnumFlags::None)
     {
-        pRecency = &appState->_resourceRecency;
+        pRecency = &_appState._resourceRecency;
         for (int i = 0; i < NumResourceTypes; i++)
         {
             if ((int)types & (1 << i))
@@ -1252,7 +1259,7 @@ MessageSource *CResourceMap::GetVerbsMessageSource(bool reload)
     if (!_verbsHeaderFile || reload)
     {
         string messageFilename = "Verbs.sh";
-        string messageFilePath = fmt::format("{0}\\{1}", appState->GetResourceMap().Helper().GetSrcFolder(), messageFilename);
+        string messageFilePath = fmt::format("{0}\\{1}", _appState.GetResourceMap().Helper().GetSrcFolder(), messageFilename);
         _verbsHeaderFile = make_unique<MessageHeaderFile>(messageFilePath, messageFilename, initializer_list<string>({ "VERBS" }));
     }
     return _verbsHeaderFile->GetMessageSource();
@@ -1263,7 +1270,7 @@ MessageSource *CResourceMap::GetTalkersMessageSource(bool reload)
     if (!_talkersHeaderFile || reload)
     {
         string messageFilename = "Talkers.sh";
-        string messageFilePath = fmt::format("{0}\\{1}", appState->GetResourceMap().Helper().GetSrcFolder(), messageFilename);
+        string messageFilePath = fmt::format("{0}\\{1}", _appState.GetResourceMap().Helper().GetSrcFolder(), messageFilename);
         _talkersHeaderFile = make_unique<MessageHeaderFile>(messageFilePath, messageFilename, initializer_list<string>({}));
     }
     return _talkersHeaderFile->GetMessageSource();
@@ -1279,6 +1286,7 @@ RunLogic &CResourceMap::GetRunLogic()
 //
 void CResourceMap::SetGameFolder(const string &gameFolder)
 {
+    _dependencyTracker->Clear();
     _runLogic->SetGameFolder(gameFolder);
     _gameFolderHelper.GameFolder = gameFolder;
     _talkerToView = TalkerToViewMap(Helper().GetLipSyncFolder());
@@ -1309,7 +1317,7 @@ void CResourceMap::SetGameFolder(const string &gameFolder)
 
     AbortDebuggerThread();
 
-    appState->OnGameFolderUpdate();
+    _appState.OnGameFolderUpdate();
 }
 
 TalkerToViewMap &CResourceMap::GetTalkerToViewMap()

@@ -619,6 +619,14 @@ std::string ScriptId::GetTitle() const
     *pszExt = 0; // Chop off file extension
     return szFileName;
 }
+std::string ScriptId::GetTitleLower() const
+{
+    TCHAR szFileName[MAX_PATH];
+    StringCchCopy(szFileName, ARRAYSIZE(szFileName), _strFileName.c_str());
+    PTSTR pszExt = PathFindExtension(szFileName);
+    *pszExt = 0; // Chop off file extension
+    return szFileName;
+}
 
 std::string ScriptId::GetFullPath() const
 {

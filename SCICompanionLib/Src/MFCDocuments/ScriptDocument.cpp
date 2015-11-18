@@ -41,9 +41,14 @@
 #include "DecompilerConfig.h"
 #include "format.h"
 #include "ResourceBlob.h"
+#include "DependencyTracker.h"
 
 using namespace std;
 
+bool CompileLog::HasErrors()
+{
+    return _cErrors > 0;
+}
 
 void CompileLog::CalculateErrors()
 {
@@ -70,7 +75,7 @@ void CompileLog::SummarizeAndReportErrors()
 
 IMPLEMENT_DYNCREATE(CScriptDocument, CDocument)
 
-CScriptDocument::CScriptDocument() : _buffer(*this)
+CScriptDocument::CScriptDocument() : _buffer(*this), _dependencyTracker(nullptr)
 {
 }
 
@@ -79,6 +84,10 @@ CScriptDocument::~CScriptDocument()
     _buffer.FreeAll();
 }
 
+void CScriptDocument::SetDependencyTracker(DependencyTracker &tracker)
+{
+    _dependencyTracker = &tracker;
+}
 
 BEGIN_MESSAGE_MAP(CScriptDocument, CDocument)
     ON_COMMAND(ID_FILE_SAVE, OnFileSave)
@@ -279,6 +288,8 @@ bool NewCompileScript(CompileLog &log, CompileTables &tables, PrecompiledHeaders
                 {
                     appState->GetResourceMap().AppendResource(ResourceBlob(nullptr, ResourceType::Heap, outputHep, appState->GetVersion().DefaultVolumeFile, wNum, NoBase36, appState->GetVersion(), ResourceSourceFlags::ResourceMap));
                 }
+
+                appState->GetResourceMap().GetDependencyTracker().ClearScript(pScript->GetScriptId());
 
                 // Save the corresponding sco file.
                 CSCOFile &sco = results.GetSCO();
@@ -702,6 +713,13 @@ BOOL CScriptDocument::OnNewDocument()
 		return FALSE;
     return _buffer.InitNew();
 }
+void CScriptDocument::SaveIfModified()
+{
+    if (IsModified())
+    {
+        OnFileSave();
+    }
+}
 void CScriptDocument::SetNameAndContent(ScriptId scriptId, int iResourceNumber, std::string &text)
 {
     _scriptId = scriptId;
@@ -722,6 +740,11 @@ void CScriptDocument::OnFileSave()
     // Update the classbrowser...
 	SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser();
     browser.TriggerReloadScript(path.c_str());
+
+    if (_dependencyTracker)
+    {
+        _dependencyTracker->NotifyScriptFileChanged(_scriptId);
+    }
 
     // Notify clients *after* we have updated the class browser.
     UpdateAllViewsAndNonViews(nullptr, 0, &WrapObject(ScriptChangeHint::Saved, this));

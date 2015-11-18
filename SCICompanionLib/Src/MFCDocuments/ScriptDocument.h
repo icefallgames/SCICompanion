@@ -19,6 +19,7 @@
 class CompileTables;
 class PrecompiledHeaders;
 class ICompileLog;
+class DependencyTracker;
 
 // CScriptDocument document
 
@@ -65,6 +66,10 @@ public:
 
     void Compile() { OnCompile(); }
 
+    void SaveIfModified();
+
+    void SetDependencyTracker(DependencyTracker &tracker);
+
 protected:
 	virtual BOOL OnNewDocument();
 	DECLARE_MESSAGE_MAP()
@@ -110,6 +115,7 @@ private:
 
     CSCITextBuffer _buffer;
     ScriptId _scriptId;
+    DependencyTracker *_dependencyTracker;
 };
 
 void DisassembleScript(WORD wScript);

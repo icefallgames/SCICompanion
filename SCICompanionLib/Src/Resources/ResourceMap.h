@@ -26,6 +26,8 @@ struct PaletteComponent;
 class SCIClassBrowser;
 class MessageSource;
 class MessageHeaderFile;
+class DependencyTracker;
+class AppState;
 
 // FWD declaration
 class ResourceContainer;
@@ -49,7 +51,7 @@ HRESULT RebuildResources(BOOL fShowUI);
 class CResourceMap
 {
 public:
-    CResourceMap();
+    CResourceMap(AppState &appState);
     ~CResourceMap();
 
     RunLogic &GetRunLogic();
@@ -133,6 +135,8 @@ public:
 
     void RepackageAudio(bool force = false);
 
+    DependencyTracker &GetDependencyTracker();
+
 private:
     ViewFormat _DetectViewVGAVersion();
     ResourcePackageFormat _DetectPackageFormat();
@@ -181,6 +185,10 @@ private:
     std::shared_ptr<DebuggerThread> _debuggerThread;
 
     std::unique_ptr<RunLogic> _runLogic;
+
+    std::unique_ptr<DependencyTracker> _dependencyTracker;
+
+    AppState &_appState;
 };
 
 // TODO REVIEW: Remove this from header file

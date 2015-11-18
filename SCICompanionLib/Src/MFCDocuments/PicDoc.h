@@ -34,6 +34,8 @@ using namespace std;
 struct PicComponent;
 struct PaletteComponent;
 class ResourceBlob;
+class DependencyTracker;
+class PolygonComponent;
 
 extern const char *c_rgControlColourNames[16];
 
@@ -135,7 +137,7 @@ public:
     PicDrawManager &GetDrawManager();
 
     // This transfers ownership of pic resource to this class.
-    void SetEditPic(std::unique_ptr<ResourceEntity> pEditPic, int id = -1);
+    void SetEditPic(DependencyTracker &tracker, std::unique_ptr<ResourceEntity> pEditPic, int id = -1);
     
     const PicComponent *GetPic() const { return _GetPic(); }
 
@@ -180,6 +182,9 @@ private:
     // For resources with PolygonComponent
     int _currentPolyIndex;
     bool _showPolygons;
+
+    DependencyTracker *_dependencyTracker;
+    std::unique_ptr<PolygonComponent> _lastPoly;
 };
 
 bool InsertPaletteCommands(PicComponent &pepic, INT_PTR iPos, const EGACOLOR *pPaletteOrig, const EGACOLOR *pPaletteNew, BOOL fWriteEntire);

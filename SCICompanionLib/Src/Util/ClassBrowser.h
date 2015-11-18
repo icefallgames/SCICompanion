@@ -39,6 +39,8 @@ namespace sci
 	class VariableDecl;
 }
 
+class DependencyTracker;
+
 //
 // SCIClassBrowser
 //
@@ -49,7 +51,7 @@ namespace sci
 class SCIClassBrowser : public ICompileLog
 {
 public:
-    SCIClassBrowser();
+    SCIClassBrowser(DependencyTracker &dependencyTracker);
     ~SCIClassBrowser();
 
     void SetClassBrowserEvents(IClassBrowserEvents *pEvents);
@@ -208,6 +210,8 @@ private:
     IClassBrowserEvents *_pEvents;
 
     std::unique_ptr<BackgroundScheduler<ReloadScriptPayload>> _scheduler;
+
+    DependencyTracker &_dependencyTracker;
 };
 
 //

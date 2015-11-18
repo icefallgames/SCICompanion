@@ -492,6 +492,7 @@ public:
     void Clear() { _compileResults.clear(); }
     std::vector<CompileResult> &Results() { return _compileResults; }
     void CalculateErrors();
+    bool HasErrors();
 
 private:
     std::vector<CompileResult> _compileResults;

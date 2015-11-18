@@ -20,9 +20,9 @@
 class CNewCompileDialog : public CExtResizableDialog
 {
 public:
-	CNewCompileDialog(CWnd* pParent = NULL);   // standard constructor
+    CNewCompileDialog(const std::unordered_set<std::string> &scriptsToRecompile, CWnd* pParent = NULL);   // standard constructor
 	virtual ~CNewCompileDialog();
-    bool GetResult() { return _fResult; }
+    bool HasErrors();
     bool GetAborted() { return _fAbort; }
     virtual void OnCancel();
 
@@ -46,6 +46,8 @@ protected:
     CompileTables _tables;
     PrecompiledHeaders _headers;
     CompileLog _log;
+
+    std::unordered_set<std::string> _scriptsToRecompile;
 
     // Visuals
     CExtButton m_wndCancel;

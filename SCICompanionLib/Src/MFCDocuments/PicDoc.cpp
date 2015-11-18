@@ -30,6 +30,7 @@
 #include "ClassBrowser.h"
 #include "ResourceBlob.h"
 #include "PicCommands.h"
+#include "DependencyTracker.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -49,7 +50,7 @@ END_MESSAGE_MAP()
 
 // CPicDoc construction/destruction
 
-CPicDoc::CPicDoc() : _previewPalette(nullptr), _showPolygons(false), _currentPolyIndex(-1), _fakeEgoResourceNumber(-1)
+CPicDoc::CPicDoc() : _previewPalette(nullptr), _showPolygons(false), _currentPolyIndex(-1), _fakeEgoResourceNumber(-1), _dependencyTracker(nullptr)
 {
     // Add ourselves as a sync
     CResourceMap &map = appState->GetResourceMap();
@@ -242,14 +243,16 @@ void CPicDoc::OnResourceAdded(const ResourceBlob *pData, AppendBehavior appendBe
     }
 }
 
-void CPicDoc::SetEditPic(std::unique_ptr<ResourceEntity> pEditPic, int id)
+void CPicDoc::SetEditPic(DependencyTracker &tracker, std::unique_ptr<ResourceEntity> pEditPic, int id)
 {
+    _dependencyTracker = &tracker;
     _checksum = id;
 
     if (pEditPic && pEditPic->GetComponent<PicComponent>().Traits->IsVGA)
     {
         // Add a polygon component
         pEditPic->AddComponent<PolygonComponent>(CreatePolygonComponent(appState->GetResourceMap().Helper().GetPolyFolder(), pEditPic->ResourceNumber));
+        _lastPoly = std::make_unique<PolygonComponent>(pEditPic->GetComponent<PolygonComponent>());
     }
 
     AddFirstResource(move(pEditPic));
@@ -520,12 +523,20 @@ PicDrawManager &CPicDoc::GetDrawManager()
 
 void CPicDoc::PostSuccessfulSave(const ResourceEntity *pResource)
 {
-
+    // Ideally we only want to do this if the polygons change.
+    const PolygonComponent *poly = pResource->TryGetComponent<PolygonComponent>();
+    if (_dependencyTracker && poly)
+    {
+        if (!_lastPoly || (*poly != *_lastPoly))
+        {
+            _lastPoly = std::make_unique<PolygonComponent>(*poly);
+            std::string polyFile = poly->GetPolyFilename();
+            _dependencyTracker->NotifyHeaderFileChanged(polyFile);
+        }
+    }
 }
 
 // CPicDoc commands
-
-
 
 bool InsertPaletteCommands(PicComponent &pepic, INT_PTR iPos, const EGACOLOR *pPaletteOrig, const EGACOLOR *pPaletteNew, BOOL fWriteEntire)
 {

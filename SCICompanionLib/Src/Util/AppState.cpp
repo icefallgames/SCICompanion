@@ -96,12 +96,12 @@ void CMultiDocTemplateWithNonViews::InitialUpdateFrame(CFrameWnd *pFrame, CDocum
     __super::InitialUpdateFrame(pFrame, pDoc, bMakeVisible);
 }
 
-AppState::AppState(CWinApp *pApp)
+AppState::AppState(CWinApp *pApp) : _resourceMap(*this)
 {
     _pApp = pApp;
     _audioProcessing = std::make_unique<AudioProcessingSettings>();
     // Place all significant initialization in InitInstance
-    _pPicTemplate = NULL;
+    _pPicTemplate = nullptr;
     _fScaleTracingImages = TRUE;
     _fDontShowTraceScaleWarning = FALSE;
     _fUseAutoSuggest = FALSE;
@@ -118,9 +118,11 @@ AppState::AppState(CWinApp *pApp)
     _fUseOriginalAspectRatio = false;
     _fShowTabs = FALSE;
     _fShowToolTips = TRUE;
+    _fSaveScriptsBeforeRun = TRUE;
+    _fTrackHeaderFiles = TRUE;
+    _fCompileDirtyScriptsBeforeRun = TRUE;
 
-    _pVocabTemplate = NULL;
-    _pPicTemplate = NULL;
+    _pVocabTemplate = nullptr;
 
     _cxFakeEgo = 30;
     _cyFakeEgo = 48;
@@ -142,10 +144,10 @@ AppState::AppState(CWinApp *pApp)
     _fObserveControlLines = false;
     _fObservePolygons = false;
     _fDontCheckPic = FALSE;
-    _pidlFolder = NULL;
+    _pidlFolder = nullptr;
     _fNoGdiPlus = FALSE;
 
-    _pResourceDoc = NULL;
+    _pResourceDoc = nullptr;
     _shownType = ResourceType::View;
 
     _pACThread = nullptr;
@@ -290,7 +292,7 @@ void AppState::OpenScriptHeader(std::string strName)
             // If it's already open, just activate it.
             CMainFrame *pMainWnd = static_cast<CMainFrame*>(_pApp->m_pMainWnd);
             CScriptDocument *pDocAlready = pMainWnd->Tabs().ActivateScript(scriptId);
-            if (pDocAlready == NULL)
+            if (pDocAlready == nullptr)
             {
                 CScriptDocument *pDocument =
                     static_cast<CScriptDocument*>(_pScriptTemplate->OpenDocumentFile(scriptId.GetFullPath().c_str(), TRUE));
@@ -298,6 +300,7 @@ void AppState::OpenScriptHeader(std::string strName)
                 {
                     pDocument->SetTitle(scriptId.GetFileNameOrig().c_str());
                     // Initialize the document somehow.
+                    pDocument->SetDependencyTracker(GetResourceMap().GetDependencyTracker());
                 }
             }
         }
@@ -349,7 +352,7 @@ void AppState::OpenScript(std::string strName, const ResourceBlob *pData, WORD w
             // If it's already open, just activate it.
             CMainFrame *pMainWnd = static_cast<CMainFrame*>(_pApp->m_pMainWnd);
             CScriptDocument *pDocAlready = pMainWnd->Tabs().ActivateScript(scriptId);
-            if (pDocAlready == NULL)
+            if (pDocAlready == nullptr)
             {
                 std::string fullPath = scriptId.GetFullPath();
                 bool fOpened = false;
@@ -359,10 +362,11 @@ void AppState::OpenScript(std::string strName, const ResourceBlob *pData, WORD w
                 {
                     CScriptDocument *pDocument =
                         static_cast<CScriptDocument*>(_pScriptTemplate->OpenDocumentFile(fullPath.c_str(), TRUE));
-                    fOpened = (pDocument != NULL);
+                    fOpened = (pDocument != nullptr);
                     if (pDocument)
                     {
                         pDocument->SetTitle(scriptId.GetFileNameOrig().c_str());
+                        pDocument->SetDependencyTracker(GetResourceMap().GetDependencyTracker());
                         // We lost context...
                         pDocument->SetScriptNumber(scriptId.GetResourceNumber());
                     }
@@ -400,13 +404,14 @@ void AppState::OpenScriptAtLine(ScriptId script, int iLine)
         script.SetResourceNumber(wScriptNumber);
     }
     CScriptDocument *pDoc = pMainWnd->Tabs().ActivateScript(script);
-    if (pDoc == NULL)
+    if (pDoc == nullptr)
     {
         // Make an new one.
         pDoc = static_cast<CScriptDocument*>(_pScriptTemplate->OpenDocumentFile(script.GetFullPath().c_str(), TRUE));
         if (pDoc)
         {
             pDoc->SetTitle(script.GetFileNameOrig().c_str());
+            pDoc->SetDependencyTracker(GetResourceMap().GetDependencyTracker());
         }
     }
     if (pDoc)
@@ -576,6 +581,28 @@ BOOL CALLBACK InvalidateChildProc(HWND hwnd, LPARAM lParam)
     return TRUE;
 }
 
+void AppState::TellScriptsToSave()
+{
+    if (_pApp && _fSaveScriptsBeforeRun)
+    {
+        POSITION posDocTemplate = _pApp->GetFirstDocTemplatePosition();
+        while (posDocTemplate)
+        {
+            CDocTemplate* pDocTemplate = _pApp->GetNextDocTemplate(posDocTemplate);
+            // get each document open in given document template
+            POSITION posDoc = pDocTemplate->GetFirstDocPosition();
+            while (posDoc)
+            {
+                CDocument* pDoc = pDocTemplate->GetNextDoc(posDoc);
+                if (pDoc->GetRuntimeClass() == RUNTIME_CLASS(CScriptDocument))
+                {
+                    static_cast<CScriptDocument*>(pDoc)->SaveIfModified();
+                }
+            }
+        }
+    }
+}
+
 void AppState::NotifyChangeShowTabs()
 {
     CMainFrame *pMainWnd = static_cast<CMainFrame*>(_pApp->m_pMainWnd);
@@ -673,23 +700,36 @@ void AppState::RunGame(bool debug, int optionalResourceNumber)
     {
         GetResourceMap().RepackageAudio();
 
-        if (debug)
+        TellScriptsToSave();
+        bool goAhead = true;
+        if (_fCompileDirtyScriptsBeforeRun)
         {
-            GetResourceMap().StartDebuggerThread(optionalResourceNumber);
+            if (!CompileABunchOfScripts(this, &GetResourceMap().GetDependencyTracker()))
+            {
+                goAhead = (IDYES == AfxMessageBox("There were errors compiling the scripts. Run game anyway?", MB_ICONWARNING | MB_YESNO));
+            }
         }
 
-        BOOL fShellEx = FALSE;
-        std::string errors;
-        HANDLE hProcess;
-        if (!GetResourceMap().GetRunLogic().RunGame(errors, hProcess))
+        if (goAhead)
         {
-            AfxMessageBox(errors.c_str(), MB_OK | MB_APPLMODAL | MB_ICONEXCLAMATION);
-            GetResourceMap().AbortDebuggerThread();
-        }
-        else
-        {
-            _hProcessDebugged.Close();
-            _hProcessDebugged.hFile = hProcess;
+            if (debug)
+            {
+                GetResourceMap().StartDebuggerThread(optionalResourceNumber);
+            }
+
+            BOOL fShellEx = FALSE;
+            std::string errors;
+            HANDLE hProcess;
+            if (!GetResourceMap().GetRunLogic().RunGame(errors, hProcess))
+            {
+                AfxMessageBox(errors.c_str(), MB_OK | MB_APPLMODAL | MB_ICONEXCLAMATION);
+                GetResourceMap().AbortDebuggerThread();
+            }
+            else
+            {
+                _hProcessDebugged.Close();
+                _hProcessDebugged.hFile = hProcess;
+            }
         }
     }
     else

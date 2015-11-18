@@ -56,6 +56,9 @@ private:
     CExtCheckBox m_wndCheck8;
     CExtCheckBox m_wndCheck9;
     CExtCheckBox m_wndCheck10;
+    CExtCheckBox m_wndCheck11;
+    CExtCheckBox m_wndCheck12;
+    CExtCheckBox m_wndCheck13;
     CExtButton m_wndOk;
     CExtButton m_wndCancel;
 

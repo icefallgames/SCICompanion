@@ -51,6 +51,10 @@ void CPreferencesDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Check(pDX, IDC_CHECK_ASPECTRATIO, appState->_fUseOriginalAspectRatio);
     DDX_Check(pDX, IDC_CHECK_SHOWTABS, appState->_fShowTabs);
 
+    DDX_Check(pDX, IDC_SAVESCRIPTS, appState->_fSaveScriptsBeforeRun);
+    DDX_Check(pDX, IDC_TRACKHEADERFILES, appState->_fTrackHeaderFiles);
+    DDX_Check(pDX, IDC_COMPILEDIRTYSCRIPTS, appState->_fCompileDirtyScriptsBeforeRun);
+
     DDX_Text(pDX, IDC_FAKEEGOX, appState->_cxFakeEgo);
     DDV_MinMaxInt(pDX, appState->_cxFakeEgo, 10, 80);
     DDX_Text(pDX, IDC_FAKEEGOY, appState->_cyFakeEgo);
@@ -71,6 +75,11 @@ void CPreferencesDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_COMPILEERRORSOUND, m_wndCheck8);
     DDX_Control(pDX, IDC_CHECK_ASPECTRATIO, m_wndCheck9);
     DDX_Control(pDX, IDC_CHECK_SHOWTABS, m_wndCheck10);
+
+    DDX_Control(pDX, IDC_COMPILEDIRTYSCRIPTS, m_wndCheck11);
+    DDX_Control(pDX, IDC_TRACKHEADERFILES, m_wndCheck12);
+    DDX_Control(pDX, IDC_SAVESCRIPTS, m_wndCheck13);
+
     DDX_Control(pDX, IDOK, m_wndOk);
     DDX_Control(pDX, IDCANCEL, m_wndCancel);
 
@@ -84,6 +93,7 @@ void CPreferencesDialog::_SyncBrowseInfo()
     GetDlgItem(IDC_SCRIPTNAV)->EnableWindow(iChecked);
     GetDlgItem(IDC_CODECOMPLETION)->EnableWindow(iChecked);
     GetDlgItem(IDC_HOVERTIPS)->EnableWindow(iChecked);
+    GetDlgItem(IDC_TRACKHEADERFILES)->EnableWindow(iChecked);
 }
 
 

@@ -452,8 +452,12 @@
 #define IDC_CODECOMPLETION              1130
 #define IDC_HOVERTIPS                   1131
 #define IDC_LISTPROPS                   1132
+#define IDC_SAVESCRIPTS                 1132
 #define IDC_LISTMETHODS                 1133
+#define IDC_COMPILEDIRTYSCRIPTS         1133
 #define IDC_STATICVIEW                  1134
+#define IDC_HEADERFILESDIRTY            1134
+#define IDC_TRACKHEADERFILES            1134
 #define IDC_TREEOBJECTS                 1136
 #define IDC_OBJECTNAME                  1137
 #define IDC_PROPDESCRIPTION             1138

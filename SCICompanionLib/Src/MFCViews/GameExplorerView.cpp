@@ -156,7 +156,7 @@ CDocument* g_OpenPic(const ResourceBlob *pData)
         if (pDocument)
         {
             unique_ptr<ResourceEntity> resource = CreateResourceFromResourceData(*pData);
-            pDocument->SetEditPic(move(resource), pData->GetChecksum());
+            pDocument->SetEditPic(appState->GetResourceMap().GetDependencyTracker(), move(resource), pData->GetChecksum());
             return pDocument;
         }
     }

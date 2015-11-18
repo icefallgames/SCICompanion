@@ -104,6 +104,7 @@ public:
     void ClearResourceManagerDoc() { _pResourceDoc = NULL; }
     void NotifyChangeAspectRatio();
     void NotifyChangeShowTabs();
+    void TellScriptsToSave();
     void SetRecentlyInteractedView(int resourceNumber);
 
     void TerminateDebuggedProcess();
@@ -159,6 +160,10 @@ public:
     BOOL _fUseOriginalAspectRatio;
     BOOL _fShowTabs;
     BOOL _fShowToolTips;
+    BOOL _fSaveScriptsBeforeRun;
+    BOOL _fTrackHeaderFiles;
+    BOOL _fCompileDirtyScriptsBeforeRun;
+
     std::string _midiDeviceName;
     std::unique_ptr<AudioProcessingSettings> _audioProcessing;
     std::string _docGenFolder;

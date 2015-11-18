@@ -48,6 +48,9 @@ private:
     std::vector<point16> _points;
 };
 
+bool operator==(const SCIPolygon &one, const SCIPolygon &two);
+bool operator!=(const SCIPolygon &one, const SCIPolygon &two);
+
 class PolygonComponent : public ResourceComponent
 {
 public:
@@ -65,7 +68,8 @@ public:
     SCIPolygon *GetBack();
     void AppendPolygon(const SCIPolygon &polygon);
     void DeletePolygon(size_t index);
-    std::string GetPolyFile() const;
+    std::string GetPolyFilePath() const;
+    std::string GetPolyFilename() const;
 
 private:
 
@@ -73,6 +77,9 @@ private:
     std::string _polyFolder;
     int _picNumber;
 };
+
+bool operator==(const PolygonComponent &one, const PolygonComponent &two);
+bool operator!=(const PolygonComponent &one, const PolygonComponent &two);
 
 std::unique_ptr<PolygonComponent> CreatePolygonComponent(const std::string &polyFolder, int picNumber);
 std::unique_ptr<sci::ProcedureCall> GetSetUpPolyProcedureCall(int picResource);

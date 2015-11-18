@@ -482,6 +482,8 @@ public:
 
     // e.g. for Main.sc, it returns Main.  For keys.sh, it returns keys
     std::string GetTitle() const;
+    // e.g. for Main.sc, it returns main.  For keys.sh, it returns keys
+    std::string GetTitleLower() const;
     
     // Returns the complete path, for loading/saving, etc...
     std::string GetFullPath() const;

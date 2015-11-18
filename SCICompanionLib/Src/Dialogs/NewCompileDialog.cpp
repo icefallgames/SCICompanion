@@ -30,8 +30,8 @@ static char THIS_FILE[] = __FILE__;
 
 // CNewCompileDialog dialog
 
-CNewCompileDialog::CNewCompileDialog(CWnd* pParent /*=NULL*/)
-    : CExtResizableDialog(CNewCompileDialog::IDD, pParent), _headers(appState->GetResourceMap())
+CNewCompileDialog::CNewCompileDialog(const std::unordered_set<std::string> &scriptsToRecompile, CWnd* pParent /*=NULL*/)
+    : CExtResizableDialog(CNewCompileDialog::IDD, pParent), _headers(appState->GetResourceMap()), _scriptsToRecompile(scriptsToRecompile)
 {
     _fResult = false;
     _fAbort = false;
@@ -40,6 +40,11 @@ CNewCompileDialog::CNewCompileDialog(CWnd* pParent /*=NULL*/)
 
 CNewCompileDialog::~CNewCompileDialog()
 {
+}
+
+bool CNewCompileDialog::HasErrors()
+{
+    return _log.HasErrors();
 }
 
 
@@ -90,7 +95,7 @@ LRESULT CNewCompileDialog::CompileAll(WPARAM wParam, LPARAM lParam)
     if (!_fAbort)
     {
         _nScript++;
-        if (_nScript < (((int)_scripts.size()) - 1))
+        if (_nScript < (int)_scripts.size())
         {
             PostMessage(UWM_STARTCOMPILE, 0, 0); // Start another compile
         }
@@ -122,7 +127,26 @@ BOOL CNewCompileDialog::OnInitDialog()
     BOOL fRet = __super::OnInitDialog();
     ShowSizeGrip(FALSE);
     _tables.Load(appState->GetVersion()); // REVIEW: clean up
-    appState->GetResourceMap().GetAllScripts(_scripts);
+
+    if (_scriptsToRecompile.empty())
+    {
+        // Everything
+        appState->GetResourceMap().GetAllScripts(_scripts);
+    }
+    else
+    {
+        // Filtered
+        std::vector<ScriptId> scriptsTemp;
+        appState->GetResourceMap().GetAllScripts(scriptsTemp);
+        std::copy_if(scriptsTemp.begin(), scriptsTemp.end(), std::back_inserter(_scripts),
+            [&](const ScriptId &scriptId)
+        {
+            return _scriptsToRecompile.find(scriptId.GetTitleLower()) != _scriptsToRecompile.end();
+        }
+            );
+    }
+
+
 	_nScript = 0;
 	if (_scripts.size() > 0)
 	{
@@ -147,6 +171,8 @@ void CNewCompileDialog::OnDestroy()
     str << _nScript << " scripts compiled.";
     _log.ReportResult(str.str());
     appState->OutputAddBatch(OutputPaneType::Compile, _log.Results());
+
+    _log.CalculateErrors();
 
     // Save any tables...
     _tables.Save();

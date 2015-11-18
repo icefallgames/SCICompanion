@@ -61,6 +61,7 @@
 #include <regex>
 #include "ResourceBlob.h"
 #include "GenerateDocsDialog.h"
+#include "DependencyTracker.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -1297,7 +1298,7 @@ void CMainFrame::OnFileNewPic()
                 }
             }
 
-            pDocument->SetEditPic(move(pEditPic));
+            pDocument->SetEditPic(appState->GetResourceMap().GetDependencyTracker(), move(pEditPic));
             pDocument->SetModifiedFlag(TRUE);
         }
     }
@@ -1305,8 +1306,6 @@ void CMainFrame::OnFileNewPic()
 
 void CMainFrame::OnFileNewGame()
 {
-    // Get the document template, so we can create a new CPicDoc.
-    CDocTemplate *pDocTemplate = appState->GetPicTemplate();
     NewGameDialog dialog;
     dialog.DoModal();
 }
@@ -1656,6 +1655,7 @@ void CMainFrame::_OnNewScriptDialog(CNewScriptDialog &dialog)
             CScriptDocument *pDoc = static_cast<CScriptDocument*>(pScriptTemplate->OpenDocumentFile(nullptr));
             if (pDoc)
             {
+                pDoc->SetDependencyTracker(appState->GetResourceMap().GetDependencyTracker());
                 pDoc->SetNameAndContent(script, dialog.GetNumber(), strBuffer);
                 // Compile it so it is added to the resource map.
                 pDoc->Compile();
@@ -1678,19 +1678,32 @@ void CMainFrame::OnNewScript()
     _OnNewScriptDialog(dialog);
 }
 
-void CMainFrame::OnCompileAll()
+// If dependencyTracker is null, all are compiled.
+bool CompileABunchOfScripts(AppState *appState, DependencyTracker *dependencyTracker)
 {
+    std::unordered_set<std::string> scriptsToRecompile;
+    if (dependencyTracker)
+    {
+        dependencyTracker->GetScriptsToRecompile(scriptsToRecompile, true);
+    }
+    if (dependencyTracker && scriptsToRecompile.empty())
+    {
+        // Nothing to do...
+        return true;
+    }
+
     CPrecisionTimer timer;
     timer.Start();
+    bool result = true;
 
     // Clear out results
     appState->ShowOutputPane(OutputPaneType::Compile);
     appState->OutputClearResults(OutputPaneType::Compile);
     {
         DeferResourceAppend defer(appState->GetResourceMap());
-        CNewCompileDialog dialog;
+        CNewCompileDialog dialog(scriptsToRecompile);
         dialog.DoModal();
-        dialog.GetResult();
+        result = !dialog.HasErrors();
         defer.Commit();
     }
 
@@ -1710,6 +1723,13 @@ void CMainFrame::OnCompileAll()
     // Get the final success/fail message up there:
     appState->OutputAddBatch(OutputPaneType::Compile, log.Results());
     appState->OutputFinishAdd(OutputPaneType::Compile);
+
+    return result;
+}
+
+void CMainFrame::OnCompileAll()
+{
+    CompileABunchOfScripts(appState, nullptr);
 }
 
 // TODO: Attempt at making Find in Files faster. regex was way too slow. Just need to mimic line endings of crystal text buffer.

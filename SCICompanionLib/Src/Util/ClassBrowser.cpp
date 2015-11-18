@@ -28,6 +28,7 @@
 #include "CCrystalTextBuffer.h"
 #include "CrystalScriptStream.h"
 #include "ResourceBlob.h"
+#include "DependencyTracker.h"
 
 using namespace sci;
 using namespace std;
@@ -87,7 +88,7 @@ public:
     virtual void ReportResult(const CompileResult &result) {};
 };
 
-SCIClassBrowser::SCIClassBrowser() : _kernelNames(_kernelNamesResource.GetNames()), _invalidAutoCompleteSources(AutoCompleteSourceType::None)
+SCIClassBrowser::SCIClassBrowser(DependencyTracker &dependencyTracker) : _kernelNames(_kernelNamesResource.GetNames()), _invalidAutoCompleteSources(AutoCompleteSourceType::None), _dependencyTracker(dependencyTracker)
 {
     _fPublicProceduresValid = false;
     _fPublicClassesValid = false;
@@ -766,6 +767,8 @@ bool SCIClassBrowser::_AddFileName(std::string fullPath, bool fReplace)
                 WORD wScriptNumber = GetScriptNumberHelper(pScript.get());
                 _filenameToScriptNumber[fullPathLower] = wScriptNumber;
             }
+
+            _dependencyTracker.ProcessScript(*pWeakRef);
 
             _AddToClassTree(*pWeakRef);
             if (!fAdded)

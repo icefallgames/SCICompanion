@@ -535,6 +535,9 @@ void SCICompanionApp::_LoadSettings(BOOL fReset)
     appState->_fShowTabs = GetProfileInt(pszRegName, TEXT("ShowTabs"), FALSE);
     appState->_docGenFolder = (PCSTR)GetProfileString(pszRegName, TEXT("DocGenFolder"), "");
     appState->_docGenCommand = (PCSTR)GetProfileString(pszRegName, TEXT("DocGenCommand"), "make html");
+    appState->_fSaveScriptsBeforeRun = GetProfileInt(pszRegName, TEXT("SaveScriptsBeforeRun"), TRUE);
+    appState->_fTrackHeaderFiles = GetProfileInt(pszRegName, TEXT("TrackHeaderFiles"), TRUE);
+    appState->_fCompileDirtyScriptsBeforeRun = GetProfileInt(pszRegName, TEXT("CompileModifiedScriptsBeforeRun"), TRUE);
 }
 
 void SCICompanionApp::_SaveSettings()
@@ -572,6 +575,10 @@ void SCICompanionApp::_SaveSettings()
     WriteProfileInt(m_pszAppName, TEXT("ShowTabs"), appState->_fShowTabs);
     WriteProfileString(m_pszAppName, TEXT("DocGenFolder"), appState->_docGenFolder.c_str());
     WriteProfileString(m_pszAppName, TEXT("DocGenCommand"), appState->_docGenCommand.c_str());
+
+    WriteProfileInt(m_pszAppName, TEXT("SaveScriptsBeforeRun"), appState->_fSaveScriptsBeforeRun);
+    WriteProfileInt(m_pszAppName, TEXT("TrackHeaderFiles"), appState->_fTrackHeaderFiles);
+    WriteProfileInt(m_pszAppName, TEXT("CompileModifiedScriptsBeforeRun"), appState->_fCompileDirtyScriptsBeforeRun);
 }
 
 // CAboutDlg dialog used for App About
