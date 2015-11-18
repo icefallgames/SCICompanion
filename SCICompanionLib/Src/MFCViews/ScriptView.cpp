@@ -342,7 +342,7 @@ const std::vector<std::string> &GetTopLevelKeywords(LangSyntax lang)
 }
 
 std::vector<std::string> codeLevelKeywordsSCI =
-{
+{ 
     // Sorted
     _T("and"),
     _T("asm"),
@@ -366,6 +366,7 @@ std::vector<std::string> codeLevelKeywordsSCI =
     _T("switch"),
     _T("var"),
 	_T("while"),
+    _T("paramTotal")
 };
 
 std::vector<std::string> codeLevelKeywordsCpp =
