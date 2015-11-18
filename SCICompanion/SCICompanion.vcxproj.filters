@@ -3382,6 +3382,7 @@
     <None Include="Help\Classes\IconItem.html" />
     <None Include="Help\Classes\InventoryBase.html" />
     <None Include="Help\Classes\InventoryItem.html" />
+    <None Include="Tools\dosbox.conf" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />

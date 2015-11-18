@@ -2669,6 +2669,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
       <SubType>Designer</SubType>
     </None>
     <None Include="SCICompanion.licenseheader" />
+    <None Include="Tools\dosbox.conf" />
     <None Include="Tools\DOSBox\DOSBox 0.74 Options.bat" />
     <None Include="Tools\DOSBox\DOSBox.exe" />
     <None Include="Tools\DOSBox\Reset KeyMapper.bat" />

@@ -47,6 +47,8 @@ static const char* c_szCommonGameExes[] =
     "SIERRA.EXE", "SCIV.EXE", "SCIDHUV.EXE", "SCIDUV.EXE", "SCIDHV.EXE", "SCIWV.EXE"
 };
 
+static const char c_szDOSBoxConfig[] = "dosbox.conf";
+
 RunLogic::RunLogic() :
 _profileToExeKey({ { c_szDOSBox, c_szDOSBoxExecutableString }, { c_szScummVM, c_szScummVMExecutableString }, { c_szOther, c_szOtherExecutableString } }),
 _profileToParamsKey({ { c_szDOSBox, c_szDOSBoxExeParametersString }, { c_szScummVM, c_szScummVMExeParametersString }, { c_szOther, c_szOtherExeParametersString } })
@@ -92,7 +94,23 @@ void RunLogic::SetGameFolder(const std::string &folder)
     }
     if (!foundExe.empty())
     {
-        _profileToDefaultParams[c_szDOSBox] = fmt::format("{0} -exit -conf dosbox.conf -noconsole", foundExe);
+        // If we find dosbox.conf, use it. Otherwise use SCI Companion's default one.
+        // std::string ToolsFolder = GetExeSubFolder("Tools");
+        std::string configFile;
+        std::string checkDosBoxConf = _gameFolder + "\\" + c_szDOSBoxConfig;
+        if (PathFileExists(checkDosBoxConf.c_str()))
+        {
+            configFile = c_szDOSBoxConfig;
+        }
+        else
+        {
+            // The location of our default dosbox.conf
+            std::string toolsFolder = GetExeSubFolder("Tools");
+            // Put it in quotes in case of spaces.
+            configFile = fmt::format("\"{0}\\{1}\"", toolsFolder, c_szDOSBoxConfig);
+        }
+
+        _profileToDefaultParams[c_szDOSBox] = fmt::format("{0} -exit -conf {1} -noconsole", foundExe, configFile);
     }
 
     std::string scummId = _ReadProfileString(c_szScummIdKey, "");
