@@ -19,6 +19,7 @@
 struct PicData;
 struct PicComponent;
 struct PaletteComponent;
+struct Cel;
 
 enum class PicPosition
 {
@@ -61,6 +62,7 @@ public:
     const uint8_t *GetPicBits(PicScreen screen, PicPosition position, size16 size);
     void CopyBitmap(PicScreen screen, PicPosition position, size16 size, uint8_t *pdataDisplay, uint8_t *pdataAux, BITMAPINFO **ppbmi);
     void GetBitmapInfo(PicScreen screen, BITMAPINFO **ppbmi);
+    std::unique_ptr<Cel> MakeCelFromPic(PicScreen screen, PicPosition position);
 
     void SetPalette(uint8_t bPaletteNumber);
     uint8_t GetPalette() { return _bPaletteNumber; }

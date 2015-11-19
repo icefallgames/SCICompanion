@@ -123,9 +123,9 @@ std::unique_ptr<Bitmap> CelAndPaletteToBitmap(const Cel &cel, const PaletteCompo
 }
 
 // TODO: mark unused colors and squash the bits
-bool Save8BitBmpGdiP(const char *filename, const Cel &cel, const PaletteComponent &palette)
+bool Save8BitBmpGdiP(const char *filename, const Cel &cel, const PaletteComponent &palette, bool squishPalette)
 {
-    std::unique_ptr<Bitmap> bitmap = CelAndPaletteToBitmap(cel, palette, true);
+    std::unique_ptr<Bitmap> bitmap = CelAndPaletteToBitmap(cel, palette, squishPalette);
 
     // Find the encoder we want
     const char *extension = PathFindExtension(filename);

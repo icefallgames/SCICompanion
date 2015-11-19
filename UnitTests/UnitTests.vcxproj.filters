@@ -47,8 +47,214 @@
     <ClCompile Include="TestClassBrowser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TestPicDraw.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="UnitTests.licenseheader" />
+    <None Include="Files\Pics\SCI0\pic.006" />
+    <None Include="Files\Pics\SCI0\pic.028" />
+    <None Include="Files\Pics\SCI0\pic.029" />
+    <None Include="Files\Pics\SCI0\pic.500" />
+    <None Include="Files\Pics\SCI1.0\33.p56" />
+    <None Include="Files\Pics\SCI1.0\pic.011" />
+    <None Include="Files\Pics\SCI1.0\pic.030" />
+    <None Include="Files\Pics\SCI1.0\pic.531" />
+    <None Include="Files\Pics\SCI1.1\100.p56" />
+    <None Include="Files\Pics\SCI1.1\320.p56" />
+    <None Include="Files\Pics\SCI1.1\630.p56" />
+    <None Include="Files\Pics\SCI1.1\860.p56" />
+    <None Include="Files\Pics\SCI2\220.p56" />
+    <None Include="Files\Pics\SCI2\901.p56" />
+    <None Include="Files\Pics\SCI2\1150.p56" />
+    <None Include="Files\Pics\SCI1.0\Early\pic.011" />
+    <None Include="Files\Pics\SCI1.0\Early\pic.030" />
+    <None Include="Files\Pics\SCI1.0\Early\pic.531" />
+    <None Include="Files\Pics\SCI1.0\EGA\pic.570" />
+    <None Include="Files\Pics\SCI1.0\Mid\33.p56" />
+    <None Include="Files\Pics\SCI1.0\Mid\160.p56" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Files\Pics\SCI0\pic.006-ctl.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI0\pic.006-pri.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI0\pic.006-vis.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI0\pic.028-ctl.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI0\pic.028-pri.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI0\pic.028-vis.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI0\pic.029-ctl.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI0\pic.029-pri.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI0\pic.029-vis.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI0\pic.500-ctl.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI0\pic.500-pri.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI0\pic.500-vis.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.0\33.p56-ctl.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.0\33.p56-pri.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.0\33.p56-vis.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.0\pic.011-ctl.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.0\pic.011-pri.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.0\pic.011-vis.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.0\pic.030-ctl.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.0\pic.030-pri.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.0\pic.030-vis.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.0\pic.531-ctl.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.0\pic.531-pri.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.0\pic.531-vis.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.1\100.p56-ctl.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.1\100.p56-pri.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.1\100.p56-vis.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.1\320.p56-ctl.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.1\320.p56-pri.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.1\320.p56-vis.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.1\630.p56-ctl.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.1\630.p56-pri.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.1\630.p56-vis.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.1\860.p56-ctl.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.1\860.p56-pri.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.1\860.p56-vis.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI2\220.p56-pri.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI2\220.p56-vis.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI2\901.p56-pri.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI2\901.p56-vis.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI2\1150.p56-pri.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI2\1150.p56-vis.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.0\Early\pic.011-ctl.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.0\Early\pic.011-pri.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.0\Early\pic.011-vis.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.0\Early\pic.030-ctl.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.0\Early\pic.030-pri.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.0\Early\pic.030-vis.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.0\Early\pic.531-ctl.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.0\Early\pic.531-pri.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.0\Early\pic.531-vis.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.0\EGA\pic.570-ctl.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.0\EGA\pic.570-pri.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.0\EGA\pic.570-vis.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.0\Mid\33.p56-ctl.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.0\Mid\33.p56-pri.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.0\Mid\33.p56-vis.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.0\Mid\160.p56-ctl.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.0\Mid\160.p56-pri.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Files\Pics\SCI1.0\Mid\160.p56-vis.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

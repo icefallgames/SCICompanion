@@ -2310,12 +2310,14 @@ void DrawVisualBitmap_Draw(const PicCommand *pCommand, PicData *pData, ViewPort 
         else
 #endif
         {
+            bool writeToPriorityScreen = false;
             uint8_t priorityValue = pState->bPriorityValue;
             if (pCommand->drawVisualBitmap.priority != InvalidPri)
             {
                 // Handle SCI2 priority as part of bitmap.
                 assert(pData->isContinuousPriority);
                 priorityValue = PriorityValueToColorIndex(true, pCommand->drawVisualBitmap.priority);
+                writeToPriorityScreen = true;
             }
 
             // Copy line by line.
@@ -2323,7 +2325,7 @@ void DrawVisualBitmap_Draw(const PicCommand *pCommand, PicData *pData, ViewPort 
                 displaySize,
                 pData->pdataVisual,
                 pData->pdataPriority,
-                pData->pdataPriority,
+                writeToPriorityScreen ? pData->pdataPriority : nullptr,
                 priorityValue,
                 cel.placement.x,
                 cel.placement.y,

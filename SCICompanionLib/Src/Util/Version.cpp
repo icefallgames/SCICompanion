@@ -48,6 +48,100 @@ SCIVersion sciVersion0 =
     KernelSet::Provided,
 };
 
+// e.g. QFG2 EGA. Not checked for accuracy yet. Only used in pic unit tests.
+SCIVersion sciVersion1_EarlyEGA =
+{
+    ResourceMapFormat::SCI0,
+    ResourcePackageFormat::SCI0,
+    SoundFormat::SCI0,
+    CompressionFormat::SCI1,
+    true,
+    ViewFormat::EGA,
+    PicFormat::EGA,
+    false,
+    true,
+    false,
+    900,
+    0,
+    false,
+    false,
+    AudioVolumeName::None,
+    false,
+    MessageMapSource::Included,
+    true,
+    true,
+    false,
+    65535,
+    AudioMapVersion::None,
+    AudioMapVersion::None,
+    false,
+    NativeResolution::Res320x200,
+    KernelSet::Provided,
+};
+
+
+SCIVersion sciVersion1_Early =
+{
+    ResourceMapFormat::SCI0,
+    ResourcePackageFormat::SCI0,
+    SoundFormat::SCI1,
+    CompressionFormat::SCI1,
+    true,
+    ViewFormat::VGA1,
+    PicFormat::VGA1,
+    false,
+    true,
+    false,
+    900,
+    0,
+    false,
+    false,
+    AudioVolumeName::None,
+    false,
+    MessageMapSource::Included,
+    true,
+    true,
+    false,
+    65535,
+    AudioMapVersion::None,
+    AudioMapVersion::None,
+    false,
+    NativeResolution::Res320x200,
+    KernelSet::SCI0SCI1,
+};
+
+// Not tested, but used for Longbow pics in unittests,
+SCIVersion sciVersion1_Mid =
+{
+    ResourceMapFormat::SCI1,
+    ResourcePackageFormat::SCI1,
+    SoundFormat::SCI1,
+    CompressionFormat::SCI1,
+    true,
+    ViewFormat::VGA1,
+    PicFormat::VGA1,
+    false,
+    true,
+    false,
+    900,
+    0,
+    false,
+    false,
+    AudioVolumeName::None,
+    false,
+    MessageMapSource::Included,
+    true,
+    true,
+    false,
+    65535,
+    AudioMapVersion::None,
+    AudioMapVersion::None,
+    false,
+    NativeResolution::Res320x200,
+    KernelSet::SCI0SCI1,
+};
+
+// Note sure what game this is for (VGA1_1???)
 SCIVersion sciVersion1_Late =
 {
     ResourceMapFormat::SCI1,
@@ -106,6 +200,36 @@ SCIVersion sciVersion1_1 =
     false,
     NativeResolution::Res320x200,
     KernelSet::SCI0SCI1,
+};
+
+SCIVersion sciVersion2 =
+{
+    ResourceMapFormat::SCI2,
+    ResourcePackageFormat::SCI2,
+    SoundFormat::SCI1,
+    CompressionFormat::SCI1,
+    true,
+    ViewFormat::VGA2,
+    PicFormat::VGA2,
+    false,
+    true,
+    true,
+    900,
+    0,
+    false,
+    true,
+    AudioVolumeName::Aud,
+    true,
+    MessageMapSource::Included,
+    true,
+    false,
+    false,
+    65535,
+    AudioMapVersion::FiveBytes,
+    AudioMapVersion::SyncMapLate,
+    false,
+    NativeResolution::Res640x480,
+    KernelSet::SCI21,
 };
 
 bool SCIVersion::operator == (const SCIVersion &src)

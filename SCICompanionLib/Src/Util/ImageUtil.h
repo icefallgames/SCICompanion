@@ -39,7 +39,7 @@ enum class DitherAlgorithm
 };
 
 CRect GetCelRect(const Cel &cel);
-bool Save8BitBmpGdiP(const char *filename, const Cel &cel, const PaletteComponent &palette);
+bool Save8BitBmpGdiP(const char *filename, const Cel &cel, const PaletteComponent &palette, bool squishPalette = true);
 std::unique_ptr<Gdiplus::Bitmap> CelAndPaletteToBitmap(const Cel &cel, const PaletteComponent &palette, bool squishPalette);
 void FlipImageData(uint8_t *data, int cx, int cy, int stride);
 int SquishPalette(uint8_t *data, size_t dataSize, const PaletteComponent &palette, RGBQUAD *results);

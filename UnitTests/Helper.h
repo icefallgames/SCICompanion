@@ -14,6 +14,7 @@
 #pragma once
 
 std::string SetUpGame(const std::string &name);
+std::string GetTestFileDirectory(const std::string &subDirectory);
 void CleanUpGame(const std::string &gameFolder);
 std::string SetUpGameSCI0();
 std::string SetUpGameSCI11();

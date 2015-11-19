@@ -359,7 +359,7 @@ void ResourceBlob::_DecompressFromBits(sci::istream &byteStream, bool delay)
         bool cantDecompress = false;
 
         int iResult = SCI_ERROR_UNKNOWN_COMPRESSION;
-        DecompressionAlgorithm algorithm = VersionAndCompressionNumberToAlgorithm(appState->GetVersion(), header.CompressionMethod);
+        DecompressionAlgorithm algorithm = VersionAndCompressionNumberToAlgorithm(header.Version, header.CompressionMethod);
         if (algorithm == DecompressionAlgorithm::None)
         {
             iResult = 0;
@@ -428,7 +428,7 @@ void _AssignDefaultResourceSourceFlags(ResourceBlob &blob)
             break;
 
         case ResourceType::Message:
-            switch (appState->GetVersion().MessageMapSource)
+            switch (blob.GetHeader().Version.MessageMapSource)
             {
                 case MessageMapSource::Included:
                     blob.GetHeader().SourceFlags = ResourceSourceFlags::ResourceMap;

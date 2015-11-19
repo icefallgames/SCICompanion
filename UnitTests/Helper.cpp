@@ -19,6 +19,15 @@
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
+std::string GetTestFileDirectory(const std::string &subDirectory)
+{
+    char szPath[MAX_PATH];
+    GetCurrentDirectory(MAX_PATH, szPath);
+    std::string folder = szPath;
+    folder += "\\TestFiles\\" + subDirectory;
+    return folder;
+}
+
 std::string SetUpGame(const std::string &name)
 {
     char szPath[MAX_PATH];

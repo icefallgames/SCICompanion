@@ -72,6 +72,7 @@ std::string GetFileNameFor(ResourceType type, int number, uint32_t base36Number,
     SCI_RESOURCE_INFO &resInfo = GetResourceInfo(type);
     if (base36Number == NoBase36)
     {
+        // Interestingly, SV.exe gets the patch file naming incorrect for early SCI1 (which uses ResourceMapFormat::SCI0). We do it right.
         std::string formatString = (version.MapFormat > ResourceMapFormat::SCI0) ? resInfo.pszFileFilter_SCI1 : resInfo.pszFileFilter_SCI0;
         std::string numberFormatString = (version.MapFormat > ResourceMapFormat::SCI0) ? "{:d}" : "{:03d}";
         std::string numberString = format(numberFormatString, number);

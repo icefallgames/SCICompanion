@@ -148,9 +148,12 @@ struct SCIVersion
 };
 
 // Detection possibilities:
-// - resource map is easy. Once figured out, then test for palette? If so, then VGA
 extern SCIVersion sciVersion0;
+extern SCIVersion sciVersion1_EarlyEGA;
+extern SCIVersion sciVersion1_Early;
+extern SCIVersion sciVersion1_Mid;
 extern SCIVersion sciVersion1_Late;
 extern SCIVersion sciVersion1_1;
+extern SCIVersion sciVersion2;
 
 bool IsVersionCompatible(ResourceType type, SCIVersion versionA, SCIVersion versionB);

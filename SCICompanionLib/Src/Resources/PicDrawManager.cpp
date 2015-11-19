@@ -19,6 +19,7 @@
 #include "PaletteOperations.h"
 #include "format.h"
 #include "PicCommands.h"
+#include "View.h"
 
 using namespace Gdiplus;
 
@@ -583,6 +584,19 @@ HBITMAP PicDrawManager::_GetBitmapGDIP(uint8_t *pData, int cx, int cy, const RGB
         }
     }
     return hbm;
+}
+
+std::unique_ptr<Cel> PicDrawManager::MakeCelFromPic(PicScreen screen, PicPosition position)
+{
+    _EnsureBufferPool(_pPicWeak->Size);
+    _RedrawBuffers(nullptr, PicScreenToFlags(screen), PicPositionToFlags(position));
+    std::unique_ptr<Cel> cel = std::make_unique<Cel>();
+    cel->size = _pPicWeak->Size;
+    cel->Stride32 = true;
+    const uint8_t *data = GetScreenData(screen, position);
+    cel->Data.allocate(cel->GetStride() * cel->size.cy);
+    cel->Data.assign(data, data + cel->Data.size());
+    return cel;
 }
 
 HBITMAP PicDrawManager::_CreateBitmap(uint8_t *pData, size16 size, int cxRequested, int cyRequested, const RGBQUAD *palette, int paletteCount, SCIBitmapInfo *pbmi, uint8_t **ppBitsDest) const

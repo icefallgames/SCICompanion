@@ -15,6 +15,8 @@
 // ResourceListView.cpp : implementation file
 //
 
+//#define MAKE_UNITTEST_FILES 1
+
 #include "stdafx.h"
 #include "AppState.h"
 #include "ResourceListView.h"
@@ -467,13 +469,60 @@ void CResourceListCtrl::OnViewRawData()
     }
 }
 
+#ifdef MAKE_UNITTEST_FILES
+// Quickly generate patch files and bitmaps for unit-testing...
+
+#include "PicDrawManager.h"
+#include "Pic.h"
+#include "ImageUtil.h"
+#include "PaletteOperations.h"
+
+void TempPhil2(const std::string &filename, PicDrawManager &pdm, PicScreen screen, const PaletteComponent *paletteIn)
+{
+    std::unique_ptr<Cel> cel = pdm.MakeCelFromPic(screen, PicPosition::Final);
+    std::unique_ptr<PaletteComponent> palette;
+    if (paletteIn && (screen == PicScreen::Visual))
+    {
+        palette = std::make_unique<PaletteComponent>(*paletteIn);
+    }
+    else
+    {
+        // EGA
+        palette = std::make_unique<PaletteComponent>();
+        memcpy(palette->Colors, g_egaColors, sizeof(g_egaColors));
+    }
+    Save8BitBmpGdiP(filename.c_str(), *cel, *palette, false);
+}
+
+// Temporary stuff to create things for unit tests
+void TempPhil(const ResourceBlob &blob, const std::string &patchFileName)
+{
+    if (blob.GetType() == ResourceType::Pic)
+    {
+        std::unique_ptr<ResourceEntity> resource = CreateResourceFromResourceData(blob);
+        PicDrawManager pdm(resource->TryGetComponent<PicComponent>(), resource->TryGetComponent<PaletteComponent>());
+        const PicComponent &pic = resource->GetComponent<PicComponent>();
+        const PaletteComponent *palette = resource->TryGetComponent<PaletteComponent>();
+        std::string filename = patchFileName + "-vis.bmp";
+        TempPhil2(filename, pdm, PicScreen::Visual, palette);
+        filename = patchFileName + "-pri.bmp";
+        TempPhil2(filename, pdm, PicScreen::Priority, palette);
+        filename = patchFileName + "-ctl.bmp";
+        TempPhil2(filename, pdm, PicScreen::Control, palette);
+    }
+    else if(blob.GetType() == ResourceType::View)
+    {
+        std::unique_ptr<ResourceEntity> resource = CreateResourceFromResourceData(blob);
+    }
+}
+#endif
 
 void CResourceListCtrl::OnExtractResources()
 {
     UINT cCount = GetSelectedCount();
     if (cCount > 1)
     {
-        if (SUCCEEDED(CoInitialize(NULL)))
+        if (SUCCEEDED(CoInitialize(nullptr)))
         {
             BROWSEINFO browseInfo = { 0 };
             browseInfo.hwndOwner = AfxGetMainWnd()->GetSafeHwnd();
@@ -489,14 +538,15 @@ void CResourceListCtrl::OnExtractResources()
                     DWORD dwCount = 0;
                     HRESULT hr = S_OK;
                     POSITION pos = GetFirstSelectedItemPosition();
-                    const ResourceBlob *pData = NULL; // keep this in scope for below
-                    while (SUCCEEDED(hr) && (pos != NULL))
+                    const ResourceBlob *pData = nullptr; // keep this in scope for below
+                    while (SUCCEEDED(hr) && (pos != nullptr))
                     {
                         int nItem = GetNextSelectedItem(pos);
                         pData = _GetResourceForItemRealized(nItem);
                         if (pData)
                         {
-                            std::string filename = GetFileNameFor(*pData);
+                            std::string filename = szFolder;
+                            filename = filename + "\\" + GetFileNameFor(*pData);
                             if (SUCCEEDED(hr))
                             {
                                 hr = pData->SaveToFile(filename.c_str());
@@ -548,6 +598,12 @@ void CResourceListCtrl::OnExtractResources()
                 {
                     DisplayFileError(hr, FALSE, strFileName);
                 }
+#ifdef MAKE_UNITTEST_FILES
+                else
+                {
+                    TempPhil(*pData, (PCSTR)strFileName);
+                }
+#endif
             }
         }
     }
