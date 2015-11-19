@@ -988,7 +988,7 @@ bool GlobalClassTable::GetSpeciesPropertySelector(uint16_t wSpeciesIndex, std::v
     bool success = (it != _speciesToCompiledObjectWeak.end());
     if (success)
     {
-        CompiledObjectBase *object = it->second;
+        CompiledObject *object = it->second;
         values = object->GetPropertyValues();
         props = object->GetProperties();
         assert(values.size() == props.size());
@@ -1003,7 +1003,7 @@ std::vector<uint16_t> GlobalClassTable::GetSubclassesOf(uint16_t baseClass)
     {
         std::vector<uint16_t> potentialChildChain;
         potentialChildChain.reserve(15);
-        CompiledObjectBase *object = speciesObjectPair.second;
+        CompiledObject *object = speciesObjectPair.second;
         potentialChildChain.push_back(object->GetSpecies());
         // Follow the chain up 
         while (object->GetSuperClass() != 0xffff)
@@ -1078,7 +1078,7 @@ void SpeciesTable::PurgeOldClasses(const GameFolderHelper &helper)
             {
                 // Are there that many classes in it?
                 int classCount = count_if(it->second->GetObjects().begin(), it->second->GetObjects().end(),
-                    [](unique_ptr<CompiledObjectBase> &object) { return !object->IsInstance(); });
+                    [](unique_ptr<CompiledObject> &object) { return !object->IsInstance(); });
                 if (currentIndexInScript < classCount)
                 {
                     newTable.push_back(scriptNum);

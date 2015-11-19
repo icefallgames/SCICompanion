@@ -28,7 +28,7 @@ using namespace std;
 
 const char InvalidLookupError[] = "LOOKUP_ERROR";
 
-void DecompileObject(const CompiledObjectBase &object,
+void DecompileObject(const CompiledObject &object,
     sci::Script &script,
     DecompileLookups &lookups,
     const std::vector<BYTE> &scriptResource,
@@ -150,7 +150,7 @@ void DecompileFunction(const CompiledScript &compiledScript, ProcedureDefinition
         DecompileRaw(func, lookups, pBegin, pEnd, wCodeOffsetTO);
         if (lookups.WasPropertyRequested() && lookups.GetPossiblePropertiesForProc(wCodeOffsetTO))
         {
-            const CompiledObjectBase *object = static_cast<const CompiledObjectBase *>(lookups.GetPossiblePropertiesForProc(wCodeOffsetTO));
+            const CompiledObject *object = static_cast<const CompiledObject *>(lookups.GetPossiblePropertiesForProc(wCodeOffsetTO));
             // This procedure is "of" this object
             func.SetClass(object->GetName());
         }
@@ -461,7 +461,7 @@ Script *Decompile(const GameFolderHelper &helper, const CompiledScript &compiled
         else 
         {
             // It should be an object
-            CompiledObjectBase *object = compiledScript.GetObjectForExport(exportPointer);
+            CompiledObject *object = compiledScript.GetObjectForExport(exportPointer);
             if (object)
             {
                 exportSlotToName[i] = object->GetName();

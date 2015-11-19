@@ -745,8 +745,8 @@ unique_ptr<CSCOFile> SCOFromScriptAndCompiledScript(const Script &script, const 
 
     // Classes
     std::vector<CSCOObjectClass> &scoObjects = sco->GetObjects();
-    const vector<unique_ptr<CompiledObjectBase>> &compiledObjects = compiledScript.GetObjects();
-    unordered_map<string, CompiledObjectBase*> nameToCompiledObject;
+    const vector<unique_ptr<CompiledObject>> &compiledObjects = compiledScript.GetObjects();
+    unordered_map<string, CompiledObject*> nameToCompiledObject;
     for (const auto &compiledObject : compiledObjects)
     {
         nameToCompiledObject[compiledObject->GetName()] = compiledObject.get();
@@ -757,7 +757,7 @@ unique_ptr<CSCOFile> SCOFromScriptAndCompiledScript(const Script &script, const 
         if (!object->IsInstance())
         {
             CSCOObjectClass newSCOObject;
-            CompiledObjectBase *compiledObject = nameToCompiledObject[object->GetName()];
+            CompiledObject *compiledObject = nameToCompiledObject[object->GetName()];
             // With object and compiledObject, we should have everything we need?
             newSCOObject.SetName(object->GetName());
             newSCOObject.SetPublic(compiledObject->IsPublic);   // REVIEW: When is a class not public?

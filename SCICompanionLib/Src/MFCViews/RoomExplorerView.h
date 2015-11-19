@@ -23,7 +23,7 @@
 
 struct PaletteComponent;
 class CRoomExplorerDoc;
-class CompiledObjectBase;
+class CompiledObject;
 class GlobalCompiledScriptLookups;
 
 class CRoomView
@@ -151,7 +151,7 @@ public:
         void SetRoomExplorer(CRoomExplorerView *pExplorer) { _pExplorer = pExplorer; }
 
 #ifdef USE_COMPILED_INFO
-        void AddRoom(GlobalCompiledScriptLookups &globalLookups, CompiledScript &compiledScript, CompiledObjectBase &classDefinition, const ImportantSelectors &importantSelectors, uint16_t viewSpeciesIndex);
+        void AddRoom(GlobalCompiledScriptLookups &globalLookups, CompiledScript &compiledScript, CompiledObject &classDefinition, const ImportantSelectors &importantSelectors, uint16_t viewSpeciesIndex);
 #else
 		void AddRoom(SCIClassBrowser &browser, uint16_t wScript, const sci::ClassDefinition *pClass, const std::vector<std::unique_ptr<sci::ClassDefinition>> &classes);
 #endif
@@ -212,8 +212,8 @@ public:
     void OnDraw(CDC *pDC, CRect *prc, std::shared_ptr<QueueItems<CRoomExplorerWorkItem, CRoomExplorerWorkResult>> pQueue);
 
 #ifdef USE_COMPILED_INFO
-    void Init(const CRoomExplorerView::CRoomExplorerGrid *pGrid, GlobalCompiledScriptLookups &globalLookups, CompiledScript &compiledScript, CompiledObjectBase &classDefinition, const ImportantSelectors &importantSelectors, uint16_t viewSpeciesIndex);
-    void _AddView(CompiledObjectBase &classDefinition, GlobalCompiledScriptLookups &globalLookups, const ImportantSelectors &importantSelectors);
+    void Init(const CRoomExplorerView::CRoomExplorerGrid *pGrid, GlobalCompiledScriptLookups &globalLookups, CompiledScript &compiledScript, CompiledObject &classDefinition, const ImportantSelectors &importantSelectors, uint16_t viewSpeciesIndex);
+    void _AddView(CompiledObject &classDefinition, GlobalCompiledScriptLookups &globalLookups, const ImportantSelectors &importantSelectors);
 #else
 	void Init(SCIClassBrowser &browser, const CRoomExplorerView::CRoomExplorerGrid *pGrid, uint16_t wScript, const sci::ClassDefinition *pClass, const std::vector<std::unique_ptr<sci::ClassDefinition>> &classes);
     void _AddView(const CRoomExplorerView::CRoomExplorerGrid *pGrid, SCIClassBrowser &browser, uint16_t wScript, const sci::ClassDefinition *pClass);

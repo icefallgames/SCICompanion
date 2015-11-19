@@ -24,7 +24,7 @@ const char c_szDivider[] = "------------------------------";
 const uint16_t bytesPerLine = 16;
 
 
-void DebugOut(const CompiledObjectBase &object, std::ostream &out, bool fRN)
+void DebugOut(const CompiledObject &object, std::ostream &out, bool fRN)
 {
     if (object.IsPublic)
     {

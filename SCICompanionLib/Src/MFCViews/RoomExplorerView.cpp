@@ -452,7 +452,7 @@ void CRoomExplorerNode::OnDraw(CDC *pDC, CRect *prc, std::shared_ptr<QueueItems<
     }
 }
 
-void CRoomExplorerNode::Init(const CRoomExplorerView::CRoomExplorerGrid *pGrid, GlobalCompiledScriptLookups &globalLookups, CompiledScript &compiledScript, CompiledObjectBase &classDefinition, const ImportantSelectors &importantSelectors, uint16_t viewSpeciesIndex)
+void CRoomExplorerNode::Init(const CRoomExplorerView::CRoomExplorerGrid *pGrid, GlobalCompiledScriptLookups &globalLookups, CompiledScript &compiledScript, CompiledObject &classDefinition, const ImportantSelectors &importantSelectors, uint16_t viewSpeciesIndex)
 {
     _pGrid = pGrid;
     assert(_pWorkItem.get() == nullptr);
@@ -502,7 +502,7 @@ void CRoomExplorerNode::Init(const CRoomExplorerView::CRoomExplorerGrid *pGrid, 
     }
 }
 
-void CRoomExplorerNode::_AddView(CompiledObjectBase &classDefinition, GlobalCompiledScriptLookups &globalLookups, const ImportantSelectors &importantSelectors)
+void CRoomExplorerNode::_AddView(CompiledObject &classDefinition, GlobalCompiledScriptLookups &globalLookups, const ImportantSelectors &importantSelectors)
 {
     unique_ptr<CRoomView> pView = make_unique<CRoomView>();
 
@@ -556,7 +556,7 @@ CRoomExplorerView::CRoomExplorerGrid::CRoomExplorerGrid()
     _wSelectedScript = 0;
 }
 
-void CRoomExplorerView::CRoomExplorerGrid::AddRoom(GlobalCompiledScriptLookups &globalLookups, CompiledScript &compiledScript, CompiledObjectBase &classDefinition, const ImportantSelectors &importantSelectors, uint16_t viewSpeciesIndex)
+void CRoomExplorerView::CRoomExplorerGrid::AddRoom(GlobalCompiledScriptLookups &globalLookups, CompiledScript &compiledScript, CompiledObject &classDefinition, const ImportantSelectors &importantSelectors, uint16_t viewSpeciesIndex)
 {
     // It's a room class!
     unique_ptr<CRoomExplorerNode> pNode = make_unique<CRoomExplorerNode>();

@@ -75,7 +75,7 @@ bool CompiledScript::IsExportAProcedure(uint16_t wOffset, int *exportIndex) cons
     return result;
 }
 
-CompiledObjectBase *CompiledScript::GetObjectForExport(uint16_t exportPointer) const
+CompiledObject *CompiledScript::GetObjectForExport(uint16_t exportPointer) const
 {
     if (!_version.SeparateHeapResources)
     {
@@ -246,7 +246,7 @@ bool CompiledScript::_LoadSCI1_1(const GameFolderHelper &helper, int iScriptNumb
                 int classIndex = 0;
                 while (isSuccess && heapStream->peek(magic) && (magic == 0x1234))
                 {
-                    unique_ptr<CompiledObjectBase> pObject = make_unique<CompiledObjectBase>();
+                    unique_ptr<CompiledObject> pObject = make_unique<CompiledObject>();
                     // Is the current position of the heapstream (which points to an object) in the list of public instance exports?
                     pObject->IsPublic = (find(_exportedObjectInstances.begin(), _exportedObjectInstances.end(), (uint16_t)heapStream->tellg()) != _exportedObjectInstances.end());
                     uint16_t wInstanceOffsetTO, endOfObjectInScript;
@@ -349,7 +349,7 @@ bool CompiledScript::_LoadSCI0_SCI1(sci::istream &byteStream)
                     case 1:
                     {
                         // instance
-                        unique_ptr<CompiledObjectBase> pObject = make_unique<CompiledObjectBase>();
+                        unique_ptr<CompiledObject> pObject = make_unique<CompiledObject>();
                         uint16_t wInstanceOffsetTO;
                         fRet = pObject->Create_SCI0(this->_wScript, _version, byteStream, FALSE, &wInstanceOffsetTO, classIndex);
                         if (fRet)
@@ -406,7 +406,7 @@ bool CompiledScript::_LoadSCI0_SCI1(sci::istream &byteStream)
                     case 6:
                     {
                         // class
-                        unique_ptr<CompiledObjectBase> pObject = make_unique<CompiledObjectBase>();
+                        unique_ptr<CompiledObject> pObject = make_unique<CompiledObject>();
                         uint16_t wClassOffset;
                         fRet = pObject->Create_SCI0(this->_wScript, _version, byteStream, TRUE, &wClassOffset, classIndex);
                         if (fRet)
@@ -524,7 +524,7 @@ std::string _GenerateClassName(uint16_t scriptNumber, int &index)
 }
 
 // Very important: scriptStream is passed by value. Heapstream is not.
-bool CompiledObjectBase::Create_SCI1_1(const CompiledScript &compiledScript, SCIVersion version, sci::istream scriptStream, sci::istream &heapStream, uint16_t *pwOffset, int classIndex, uint16_t *endOfObjectInScript)
+bool CompiledObject::Create_SCI1_1(const CompiledScript &compiledScript, SCIVersion version, sci::istream scriptStream, sci::istream &heapStream, uint16_t *pwOffset, int classIndex, uint16_t *endOfObjectInScript)
 {
     uint16_t scriptNum = compiledScript.GetScriptNumber();
     *pwOffset = heapStream.tellg();
@@ -629,7 +629,7 @@ bool CompiledObjectBase::Create_SCI1_1(const CompiledScript &compiledScript, SCI
     return true;
 }
 
-bool CompiledObjectBase::Create_SCI0(uint16_t scriptNum, SCIVersion version, sci::istream &stream, BOOL fClass, uint16_t *pwOffset, int classIndex)
+bool CompiledObject::Create_SCI0(uint16_t scriptNum, SCIVersion version, sci::istream &stream, BOOL fClass, uint16_t *pwOffset, int classIndex)
 {
     _version = version;
     *pwOffset = static_cast<uint16_t>(stream.tellg());
@@ -957,7 +957,7 @@ set<uint16_t> CompiledScript::FindInternalCallsTO() const
     return wOffsets;
 }
 
-std::string CompiledObjectBase::LookupPropertyName(ICompiledScriptLookups *pLookup, uint16_t wPropertyIndex) const
+std::string CompiledObject::LookupPropertyName(ICompiledScriptLookups *pLookup, uint16_t wPropertyIndex) const
 {
     // PERF: vector copy that is used frequently.
     std::vector<uint16_t> propertySelectorList;
@@ -1024,7 +1024,7 @@ bool CompiledScript::LookupObjectName(uint16_t wOffset, ObjectType &type, std::s
     return false;
 }
 
-CompiledObjectBase *CompiledScript::_FindObjectWithSpecies(uint16_t wIndex)
+CompiledObject *CompiledScript::_FindObjectWithSpecies(uint16_t wIndex)
 {
     for (auto &object : _objects)
     {
@@ -1040,7 +1040,7 @@ std::string CompiledScript::LookupClassName(uint16_t wIndex)
 {
     std::string ret;
     // Look for a class with this species index.
-    CompiledObjectBase *pObject = _FindObjectWithSpecies(wIndex);
+    CompiledObject *pObject = _FindObjectWithSpecies(wIndex);
     if (pObject)
     {
         ret = pObject->GetName();
@@ -1051,7 +1051,7 @@ std::string CompiledScript::LookupClassName(uint16_t wIndex)
 bool CompiledScript::LookupSpeciesPropertyList(uint16_t wIndex, std::vector<uint16_t> &props)
 {
     bool fRet = false;
-    CompiledObjectBase *pObject = _FindObjectWithSpecies(wIndex);
+    CompiledObject *pObject = _FindObjectWithSpecies(wIndex);
     if (pObject)
     {
         props = pObject->GetProperties();
@@ -1063,7 +1063,7 @@ bool CompiledScript::LookupSpeciesPropertyList(uint16_t wIndex, std::vector<uint
 bool CompiledScript::LookupSpeciesPropertyListAndValues(uint16_t wIndex, std::vector<uint16_t> &props, std::vector<CompiledVarValue> &values)
 {
     bool fRet = false;
-    CompiledObjectBase *pObject = _FindObjectWithSpecies(wIndex);
+    CompiledObject *pObject = _FindObjectWithSpecies(wIndex);
     if (pObject)
     {
         props = pObject->GetProperties();

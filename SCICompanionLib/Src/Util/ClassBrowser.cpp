@@ -340,7 +340,7 @@ bool SCIClassBrowser::ReLoadFromSources(ITaskStatus &task)
     }
 }
 
-void LoadClassFromCompiled(sci::ClassDefinition *pClass, const CompiledScript &compiledScript, CompiledObjectBase *pObject, SelectorTable *pNames, const std::unordered_map<uint16_t, std::string> &speciesToName)
+void LoadClassFromCompiled(sci::ClassDefinition *pClass, const CompiledScript &compiledScript, CompiledObject *pObject, SelectorTable *pNames, const std::unordered_map<uint16_t, std::string> &speciesToName)
 {
     pClass->SetInstance(pObject->IsInstance());
     pClass->SetName(pObject->GetName());
@@ -516,7 +516,7 @@ void SCIClassBrowser::ReLoadFromCompiled(ITaskStatus &task)
         {
             for (auto &object : (*it).second->GetObjects())
             {
-                CompiledObjectBase *pObject = object.get();
+                CompiledObject *pObject = object.get();
                 if (!pObject->IsInstance())
                 {
                     // This is a class.  Ask for its species, and record the info

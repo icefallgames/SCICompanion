@@ -168,7 +168,7 @@ public:
     const_iterator begin() { return const_iterator(_pLimiter); }
     const_iterator get_at(LineCol dwPos) { return const_iterator(_pLimiter, dwPos); }
 
-protected:
+private:
     CScriptStreamLimiter *_pLimiter;
 };
 

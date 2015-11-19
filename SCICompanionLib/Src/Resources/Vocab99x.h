@@ -17,7 +17,7 @@
 #include "CompileCommon.h"
 
 class SpeciesIndex;
-class CompiledObjectBase;
+class CompiledObject;
 class GameFolderHelper;
 
 //
@@ -120,7 +120,7 @@ private:
 
     std::unordered_map<std::string, uint16_t> _nameToSpecies;
     std::unordered_map<uint16_t, uint16_t> _speciesToScriptNumber;
-    std::unordered_map<uint16_t, CompiledObjectBase*> _speciesToCompiledObjectWeak;
+    std::unordered_map<uint16_t, CompiledObject*> _speciesToCompiledObjectWeak;
     std::vector<std::unique_ptr<CompiledScript>> _scripts;
     std::vector<uint16_t> _scriptNums; // ClassBrowser uses this, but I'm not sure what it's doing with it.
 };

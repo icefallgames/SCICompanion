@@ -22,7 +22,7 @@ typedef void(*AnalyzeInstructionPtr)(Opcode opcode, const uint16_t *operands, ui
 
 
 void DisassembleObject(const CompiledScript &script, 
-    const CompiledObjectBase &object,
+    const CompiledObject &object,
     std::ostream &out,
     ICompiledScriptLookups *pLookups,
     IObjectFileScriptLookups *pOFLookups,

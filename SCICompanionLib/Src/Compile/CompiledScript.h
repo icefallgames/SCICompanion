@@ -118,11 +118,11 @@ public:
 
 class CompiledScript;
 
-// CompiledObjectBase includes all properties, including the 4 (SCI0-1) or 9 (SCI1.1) reserved ones.
-class CompiledObjectBase : public ILookupPropertyName
+// CompiledObject includes all properties, including the 4 (SCI0-1) or 9 (SCI1.1) reserved ones.
+class CompiledObject : public ILookupPropertyName
 {
 public:
-    CompiledObjectBase() { _fInstance = false; IsPublic = false; }
+    CompiledObject() { _fInstance = false; IsPublic = false; }
     bool IsInstance() const { return _fInstance; }
     bool Create_SCI0(uint16_t scriptNumber, SCIVersion version, sci::istream &stream, BOOL fClass, uint16_t *pwOffset, int classIndex);
     bool Create_SCI1_1(const CompiledScript &compiledScript, SCIVersion version, sci::istream scriptStream, sci::istream &heapStream, uint16_t *pwOffset, int classIndex, uint16_t *endOfObjectInScript);
@@ -156,7 +156,7 @@ public:
 
     bool IsPublic;
 
-protected:
+private:
     uint16_t _wSpeciesIfClass;
     uint16_t _wSuperClass;
     std::string _strName;
@@ -195,8 +195,8 @@ public:
     CompiledScript(uint16_t wScript, CompiledScriptFlags flags = CompiledScriptFlags::None) { _wScript = wScript; _flags = flags; }
     bool Load(const GameFolderHelper &helper, SCIVersion version, int iScriptNumber, bool quick);
     bool Load(const GameFolderHelper &helper, SCIVersion version, int iScriptNumber, sci::istream &byteStream, sci::istream *heapStream = nullptr);
-    std::vector<std::unique_ptr<CompiledObjectBase>> &GetObjects() { return _objects; }
-    const std::vector<std::unique_ptr<CompiledObjectBase>> &GetObjects() const { return _objects; }
+    std::vector<std::unique_ptr<CompiledObject>> &GetObjects() { return _objects; }
+    const std::vector<std::unique_ptr<CompiledObject>> &GetObjects() const { return _objects; }
     uint16_t GetScriptNumber() const { return _wScript; }
 
     // ICompiledScriptSpecificLookups
@@ -211,7 +211,7 @@ public:
     const uint8_t *GetEndOfRawBytes() const { return &_scriptResource[0] + _scriptResource.size(); }
     bool IsExportAnObject(uint16_t wOffset) const;
     bool IsExportAProcedure(uint16_t wOffset, int *exportIndex = nullptr) const;
-    CompiledObjectBase *GetObjectForExport(uint16_t exportPointer) const;
+    CompiledObject *GetObjectForExport(uint16_t exportPointer) const;
     std::set<uint16_t> FindInternalCallsTO() const;
 
     void PopulateSaidStrings(const ILookupNames *pWords) const;
@@ -221,7 +221,7 @@ public:
 
     // TODO: Make these have public names
     std::vector<CompiledVarValue> _localVars;
-    std::vector<std::unique_ptr<CompiledObjectBase>> _objects;
+    std::vector<std::unique_ptr<CompiledObject>> _objects;
     std::vector<uint16_t> _objectsOffsetTO;
     // When loading, we'll also just provide the raw data for stuff. Size, etc...
     std::vector<ScriptSection> _rawScriptSections;
@@ -243,7 +243,7 @@ private:
     bool _ReadExports(sci::istream &stream);
     bool _ReadStrings(sci::istream &stream, uint16_t wDataSize);
     bool _ReadSaids(sci::istream &stream, uint16_t wDataSize);
-    CompiledObjectBase *_FindObjectWithSpecies(uint16_t wIndex);
+    CompiledObject *_FindObjectWithSpecies(uint16_t wIndex);
 
     uint16_t _wScript;
     BOOL _fPreloadText;

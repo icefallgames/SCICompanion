@@ -355,7 +355,7 @@ void DisassembleCode(SCIVersion version, std::ostream &out, ICompiledScriptLooku
 }
 
 void DisassembleObject(const CompiledScript &script, 
-    const CompiledObjectBase &object,
+    const CompiledObject &object,
     std::ostream &out,
     ICompiledScriptLookups *pLookups,
     IObjectFileScriptLookups *pOFLookups,

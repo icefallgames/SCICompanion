@@ -24,10 +24,14 @@
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
-// Place Sierra game folders under the following folder (or change based on your needs):
+// This test enumerates all the resources of games in a folder. The games can't be checked in
+// to source code, so it's up to you to place your legitimately-owned Sierra games here:
+// (or change based on your needs):
 const char SierraGameFolder[] = "e:\\SierraGames\\";
+// Each subfolder of this folder will be analyzed to find a resource.map.
 
 // We can't easily identify the game, so just identify type/number pairs that are known to fail.
+// These are the known problems out of about 35 games from SCI0 to SCI1.1
 std::pair<ResourceType, int> KnownFailures[]
 {
     { ResourceType::View, 111 },        // LSL6
