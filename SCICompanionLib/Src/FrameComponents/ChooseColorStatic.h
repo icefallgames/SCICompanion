@@ -49,6 +49,8 @@ public:
     void SetShowTransparentIndex(bool showTransparent) { _showTransparent = showTransparent; }
     void SetTransparentIndex(uint8_t transparent);
 
+    int GetColorCount();
+
 protected:
 	DECLARE_MESSAGE_MAP()
 

@@ -72,6 +72,8 @@ void CChooseColorStatic::SetSelection(BYTE bIndex)
     }
 }
 
+int CChooseColorStatic::GetColorCount() { return _cRows * _cColumns; }
+
 void CChooseColorStatic::SetTransparentIndex(uint8_t transparent)
 {
     if (_transparentIndex != transparent)
@@ -789,7 +791,7 @@ std::vector<std::pair<uint8_t, uint8_t>> GetSelectedRanges(CChooseColorStatic &w
     // Calculate the ranges
     bool on = false;
     int startRange = 0;
-    for (int i = 0; i < 256; i++)
+    for (int i = 0; i < wndStatic.GetColorCount(); i++)
     {
         if (multipleSelection[i] && !on)
         {
@@ -804,7 +806,7 @@ std::vector<std::pair<uint8_t, uint8_t>> GetSelectedRanges(CChooseColorStatic &w
     }
     if (on)
     {
-        ranges.emplace_back((uint8_t)startRange, 255);
+        ranges.emplace_back((uint8_t)startRange, wndStatic.GetColorCount() - 1);
     }
     return ranges;
 }

@@ -20,11 +20,25 @@
 
 using namespace std;
 
-ColorShifterDialog::ColorShifterDialog(const PaletteComponent &palette, RasterComponent &raster, CelIndex celIndex, IColorShiftCallback &callback, CWnd* pParent /*=NULL*/)
+ColorShifterDialog::ColorShifterDialog(const PaletteComponent &palette, int colorCount, RasterComponent &raster, CelIndex celIndex, IColorShiftCallback &callback, CWnd* pParent /*=NULL*/)
     : CExtResizableDialog(ColorShifterDialog::IDD, pParent), _palette(palette), _rasterActual(raster), _shiftExtent(ShiftExtent::Cel), _celIndex(celIndex), _callback(callback)
 {
     // This is the path used for dialog-based guys.
     // CountActualUsedColors(cels, _actualUsedColors);
+    if (colorCount == 256)
+    {
+        _rows = 16;
+        _columns = 16;
+    }
+    else if (colorCount == 16)
+    {
+        _rows = 4;
+        _columns = 4;
+    }
+    else
+    {
+        assert(false);
+    }
 }
 
 BEGIN_MESSAGE_MAP(ColorShifterDialog, CDialog)
@@ -44,7 +58,7 @@ void ColorShifterDialog::DoDataExchange(CDataExchange* pDX)
 
     DDX_Control(pDX, IDC_STATIC1, m_wndStatic);
     bool initialSelection[256] = {};
-    m_wndStatic.SetPalette(16, 16, reinterpret_cast<const EGACOLOR *>(_palette.Mapping), 256, _palette.Colors, false);
+    m_wndStatic.SetPalette(_rows, _columns, reinterpret_cast<const EGACOLOR *>(_palette.Mapping), _rows * _columns, _palette.Colors, false);
     m_wndStatic.SetShowHover(false);
     m_wndStatic.SetSelection(initialSelection);
     m_wndStatic.ShowSelection(TRUE);
@@ -109,6 +123,7 @@ void ColorShifterDialog::_UpdateView()
                     Cel &celActual = _rasterActual.Loops[nLoop].Cels[nCel];
                     const Cel &celStart = _rasterSnapshot->Loops[nLoop].Cels[nCel];
                     // Adjust this cel.
+                    int colorCount = _rows * _columns;
                     for (int y = 0; y < celActual.size.cy; y++)
                     {
                         int index = y * CX_ACTUAL(celActual.size.cx);
@@ -117,7 +132,7 @@ void ColorShifterDialog::_UpdateView()
                             uint8_t value = celStart.Data[index];
                             if (_startingSelection[value])
                             {
-                                celActual.Data[index] = value + _totalShift; // Wrap is ok. Desired.
+                                celActual.Data[index] = (value + _totalShift) % colorCount;
                             }
                             index++;
                         }
@@ -175,19 +190,20 @@ void ColorShifterDialog::_Shift(int offset)
     _totalShift += offset;
     if (_totalShift < 0)
     {
-        _totalShift += 256;
+        _totalShift += (_rows * _columns);
     }
-    _totalShift %= 256;
+    _totalShift %= (_rows * _columns);
     // This is the tricky part.
     // 1) Get the selection indices. The *original* ones from the last selection change (we'll need to stash it)
     // 2) Calculate the total shift
     // 3) Go through the cels' data and adjust all the indices.
     // 4) Update the selection in the palette. Also update the used indices.
 
+    int colorCount = _rows * _columns;
     bool newSelection[256];
-    for (int i = 0; i < ARRAYSIZE(newSelection); i++)
+    for (int i = 0; i < colorCount; i++)
     {
-        newSelection[(i + _totalShift) % ARRAYSIZE(newSelection)] = _startingSelection[i];
+        newSelection[(i + _totalShift) % colorCount] = _startingSelection[i];
     }
     m_wndStatic.SetSelection(newSelection);
     m_wndStatic.Invalidate();
@@ -204,10 +220,10 @@ BOOL ColorShifterDialog::PreTranslateMessage(MSG* pMsg)
         switch (pMsg->wParam)
         {
             case VK_UP:
-                _Shift(-16);
+                _Shift(-_columns);
                 break;
             case VK_DOWN:
-                _Shift(16);
+                _Shift(_columns);
                 break;
             case VK_RIGHT:
                 _Shift(1);
@@ -228,13 +244,13 @@ BOOL ColorShifterDialog::PreTranslateMessage(MSG* pMsg)
 
 void ColorShifterDialog::OnBnClickedButtonup()
 {
-    _Shift(-16);
+    _Shift(-_columns);
 }
 
 
 void ColorShifterDialog::OnBnClickedButtondown()
 {
-    _Shift(16);
+    _Shift(_columns);
 }
 
 

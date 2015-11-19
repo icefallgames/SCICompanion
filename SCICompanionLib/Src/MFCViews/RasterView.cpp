@@ -458,7 +458,7 @@ BEGIN_MESSAGE_MAP(CRasterView, CScrollingThing<CView>)
     ON_UPDATE_COMMAND_UI(ID_VIEW_EDITPALETTE, OnUpdateIsVGA)
     ON_UPDATE_COMMAND_UI(ID_VIEW_REMOVEEMBEDDEDPALETTE, OnUpdateHasVGAPalette)
     ON_UPDATE_COMMAND_UI(ID_VIEW_REMAPPALETTE, OnUpdateIsVGA)
-    ON_UPDATE_COMMAND_UI(ID_VIEW_SHIFTCOLORS, OnUpdateIsVGA)
+    ON_UPDATE_COMMAND_UI(ID_VIEW_SHIFTCOLORS, OnUpdateAlwaysOn)
 END_MESSAGE_MAP()
 
 
@@ -2423,6 +2423,11 @@ void CRasterView::OnUpdateIsVGA(CCmdUI *pCmdUI)
     pCmdUI->Enable(raster && (raster->Traits.PaletteType == PaletteType::VGA_256));
 }
 
+void CRasterView::OnUpdateAlwaysOn(CCmdUI *pCmdUI)
+{
+    pCmdUI->Enable(TRUE);
+}
+
 void CRasterView::OnUpdateHasVGAPalette(CCmdUI *pCmdUI)
 {
     BOOL enable = FALSE;
@@ -3251,21 +3256,26 @@ void CRasterView::ShiftColors()
     if (pDoc)
     {
         const PaletteComponent *paletteComponent = pDoc->GetCurrentPaletteComponent();
-        if (paletteComponent)
+        std::unique_ptr<PaletteComponent> egaPalette;
+        int paletteCount = _paletteCount;
+        if (!paletteComponent)
         {
-            pDoc->PreviewChanges<RasterComponent>(
-                [paletteComponent, pDoc, this](RasterComponent &raster)
-            {
-                RasterChangeHint hint = RasterChangeHint::None;
-                ColorShifterDialog dialog(*paletteComponent, raster, pDoc->GetSelectedIndex(), *this);
-                if (IDOK == dialog.DoModal())
-                {
-                    hint |= RasterChangeHint::NewView;
-                }
-                return WrapHint(hint);
-            }
-                );
+            egaPalette = std::make_unique<PaletteComponent>();
+            memcpy(egaPalette->Colors, _palette, _paletteCount * sizeof(*_palette));
+            paletteComponent = egaPalette.get();
         }
+        pDoc->PreviewChanges<RasterComponent>(
+            [paletteComponent, pDoc, paletteCount, this](RasterComponent &raster)
+        {
+            RasterChangeHint hint = RasterChangeHint::None;
+            ColorShifterDialog dialog(*paletteComponent, paletteCount, raster, pDoc->GetSelectedIndex(), *this);
+            if (IDOK == dialog.DoModal())
+            {
+                hint |= RasterChangeHint::NewView;
+            }
+            return WrapHint(hint);
+        }
+            );
     }
 }
 

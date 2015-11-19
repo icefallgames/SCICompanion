@@ -79,6 +79,11 @@ Import, Export, Import At, Export Range
 You can export and import the palette to/from a *.pal* file (this is a common palette file format used on Windows). This lets you edit it in an external
 editor. You can also export just the currently selected range, or you can import the colors in a *.pal* file starting from the currently selected color.
 
+Copy and Paste
+---------------------
+
+You can use the CTRL-C and CTRL-V copy and paste shortcuts to copy and paste color ranges from one palette to another.
+
 Add as resource
 ---------------
 

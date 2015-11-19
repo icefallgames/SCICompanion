@@ -273,6 +273,7 @@ private:
     afx_msg void OnUpdateDither(CCmdUI *pCmdUI);
     afx_msg void OnUpdateEGAOnly(CCmdUI *pCmdUI);
     afx_msg void OnUpdateIsVGA(CCmdUI *pCmdUI);
+    afx_msg void OnUpdateAlwaysOn(CCmdUI *pCmdUI);
     afx_msg void OnUpdateHasVGAPalette(CCmdUI *pCmdUI);
     afx_msg void OnUpdateDelete(CCmdUI *pCmdUI);
     afx_msg void OnIndicatorCoords(CCmdUI *pCmdUI);

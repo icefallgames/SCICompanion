@@ -31,7 +31,7 @@ enum class ShiftExtent
 class ColorShifterDialog : public CExtResizableDialog, public IColorDialogCallback
 {
 public:
-    ColorShifterDialog(const PaletteComponent &palette, RasterComponent &raster, CelIndex celIndex, IColorShiftCallback &callback, CWnd* pParent = NULL);   // standard constructor
+    ColorShifterDialog(const PaletteComponent &palette, int colorCount, RasterComponent &raster, CelIndex celIndex, IColorShiftCallback &callback, CWnd* pParent = NULL);   // standard constructor
 
     BOOL PreTranslateMessage(MSG* pMsg) override;
 
@@ -63,6 +63,8 @@ private:
 
     int _totalShift;
     bool _startingSelection[256];
+
+    int _rows, _columns;
 
     CChooseColorStatic m_wndStatic;
     CExtEdit m_wndEditRange;
