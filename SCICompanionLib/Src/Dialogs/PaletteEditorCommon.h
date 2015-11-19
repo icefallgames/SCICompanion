@@ -22,6 +22,7 @@
 #include "GradientDialog.h"
 #include "ColorAdjustDialog.h"
 #include "PaletteDefinitionCallback.h"
+#include "ClipboardUtil.h"
 
 template<class T>
 class PaletteEditorCommon : public T, public IColorDialogCallback, public IVGAPaletteDefinitionCallback
@@ -241,6 +242,7 @@ protected:
         }
     }
 
+
     void _SyncPalette()
     {
         if (_palette && m_wndStatic.GetSafeHwnd())
@@ -304,6 +306,10 @@ public:
     afx_msg void OnExportPalette();
     afx_msg void OnImportPaletteAt();
     afx_msg void OnExportPaletteRange();
+    afx_msg void OnCopy();
+    afx_msg void OnPaste();
+
+    void OnUpdateCopyPaste(CCmdUI* pCmdUI);
 };
 
 BEGIN_TEMPLATE_MESSAGE_MAP(PaletteEditorCommon, T, T)
@@ -317,6 +323,10 @@ BEGIN_TEMPLATE_MESSAGE_MAP(PaletteEditorCommon, T, T)
     ON_BN_CLICKED(IDC_BUTTON_SAVE, OnExportPalette)
     ON_BN_CLICKED(IDC_BUTTON_LOADAT, OnImportPaletteAt)
     ON_BN_CLICKED(IDC_BUTTON_SAVERANGE, OnExportPaletteRange)
+    ON_COMMAND(ID_EDIT_COPY, OnCopy)
+    ON_COMMAND(ID_EDIT_PASTE, OnPaste)
+    ON_UPDATE_COMMAND_UI(ID_EDIT_PASTE, OnUpdateCopyPaste)
+    ON_UPDATE_COMMAND_UI(ID_EDIT_COPY, OnUpdateCopyPaste)
     END_MESSAGE_MAP()
 
 template<class T>
@@ -325,6 +335,12 @@ void PaletteEditorCommon<T>::OnBnClickedButtonrevert()
     memcpy(_palette->Colors, _originalColors, sizeof(_originalColors));
     _SyncPalette();
     m_wndStatic.Invalidate(FALSE);
+}
+
+template<class T>
+void PaletteEditorCommon<T>::OnUpdateCopyPaste(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(TRUE);
 }
 
 template<class T>
@@ -536,4 +552,56 @@ void PaletteEditorCommon<T>::OnExportPaletteRange()
             }
         }
     }
+}
+
+template<class T>
+void PaletteEditorCommon<T>::OnCopy()
+{
+    sci::ostream stream;
+    bool multipleSelection[256];
+    m_wndStatic.GetMultipleSelection(multipleSelection);
+    stream << multipleSelection;
+    for (int i = 0; i < ARRAYSIZE(multipleSelection); i++)
+    {
+        stream << _palette->Colors[i];
+    }
+    OpenAndSetClipboardDataFromStream(this, appState->PaletteColorsClipboardFormat, stream);
+}
+
+template<class T>
+void PaletteEditorCommon<T>::OnPaste()
+{
+    std::vector<std::pair<uint8_t, uint8_t>> ranges = GetSelectedRanges(m_wndStatic);
+    int startIndex = 0;
+    if (!ranges.empty())
+    {
+        startIndex = ranges[0].first;
+    }
+
+    ProcessClipboardDataIfAvailable(appState->PaletteColorsClipboardFormat, this,
+        [this, startIndex](sci::istream &stream)
+    {
+        bool multipleSelection[256];
+        stream >> multipleSelection;
+        RGBQUAD colors[ARRAYSIZE(multipleSelection)];
+        stream >> colors;
+
+        // Find the first selected guy
+        int firstSelected = 0;
+        while ((firstSelected < ARRAYSIZE(multipleSelection)) && !multipleSelection[firstSelected])
+        {
+            firstSelected++;
+        }
+
+        for (int i = 0; ((i + firstSelected) < ARRAYSIZE(multipleSelection)) && ((i + startIndex) < ARRAYSIZE(multipleSelection)); i++)
+        {
+            if (multipleSelection[i + firstSelected])
+            {
+                _palette->Colors[i + startIndex] = colors[i + firstSelected];
+            }
+        }
+        _UpdateDocument();
+        _SyncPalette();
+    }
+    );
 }

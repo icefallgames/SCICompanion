@@ -809,6 +809,12 @@ BEGIN
     "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
 END
 
+IDR_ACCELERATORPALETTE ACCELERATORS
+BEGIN
+    "V",            ID_EDIT_PASTE,          VIRTKEY, CONTROL, NOINVERT
+    "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL, NOINVERT
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

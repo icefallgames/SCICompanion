@@ -40,6 +40,8 @@ public:
     DECLARE_MESSAGE_MAP()
     afx_msg void OnBnClickedButtonSaverange();
 
+    BOOL PreTranslateMessage(MSG* pMsg) override;
+
     // IColorDialogCallback
     void OnColorClick(BYTE bIndex, int nID, BOOL fLeftClick) override;
 
@@ -65,6 +67,7 @@ private:
     bool _cycling;
     bool _initialized;
     std::unique_ptr<PaletteComponent> _cyclePaletteCopy;
+    HACCEL _hAccel;
 
 #ifdef DEBUG_OUTPUT_CYCLE
     std::unique_ptr<Cel> _celTemp;

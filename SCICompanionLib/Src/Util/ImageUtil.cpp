@@ -230,6 +230,9 @@ int CountActualUsedColors(const std::vector<const Cel*> &cels, bool *used)
     return std::count(used, used + 256, true);
 }
 
+// Note that GDI+ doesn't support RLE bitmaps files.
+// By default, SV.exe exports RLE bitmaps, but you can tell it in Preferences to output
+// them uncompressed.
 std::unique_ptr<PaletteComponent> GetPaletteFromImage(Gdiplus::Bitmap &bitmap, int *numberOfUsedEntriesOut)
 {
     std::unique_ptr<PaletteComponent> originalPalette;

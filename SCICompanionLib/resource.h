@@ -304,6 +304,8 @@
 #define IDD_DOCGENERATOR                398
 #define IDI_IMAGE                       399
 #define IDD_EDITCELDATA                 399
+#define IDR_ACCELERATOR1                401
+#define IDR_ACCELERATORPALETTE          401
 #define IDC_CHOOSECOLORSTATIC           1001
 #define IDC_BUTTON1                     1003
 #define IDC_BUTTONDOWN                  1003
@@ -1143,8 +1145,8 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        401
-#define _APS_NEXT_COMMAND_VALUE         33293
+#define _APS_NEXT_RESOURCE_VALUE        402
+#define _APS_NEXT_COMMAND_VALUE         33296
 #define _APS_NEXT_CONTROL_VALUE         1383
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

@@ -27,6 +27,9 @@ PaletteEditorDialog::PaletteEditorDialog(IVGAPaletteDefinitionCallback *callback
 {
     Init(palette, cels);
 
+    HINSTANCE hInst = AfxFindResourceHandle(MAKEINTRESOURCE(IDR_ACCELERATORPALETTE), RT_ACCELERATOR);
+    _hAccel = ::LoadAccelerators(hInst, MAKEINTRESOURCE(IDR_ACCELERATORPALETTE));
+
 #ifdef DEBUG_OUTPUT_CYCLE
     _celTemp = std::make_unique<Cel>(*cels.back());
 #endif
@@ -238,4 +241,18 @@ void PaletteEditorDialog::OnSaveAsResource()
     std::unique_ptr<ResourceEntity> newPalette(CreatePaletteResource(appState->GetVersion()));
     newPalette->GetComponent<PaletteComponent>() = *this->_palette;
     appState->GetResourceMap().AppendResourceAskForNumber(*newPalette, "", true);
+}
+
+BOOL PaletteEditorDialog::PreTranslateMessage(MSG* pMsg)
+{
+    BOOL fRet = FALSE;
+    if (_hAccel && (pMsg->message >= WM_KEYFIRST && pMsg->message <= WM_KEYLAST))
+    {
+        fRet = ::TranslateAccelerator(GetSafeHwnd(), _hAccel, pMsg);
+    }
+    if (!fRet)
+    {
+        fRet = __super::PreTranslateMessage(pMsg);
+    }
+    return fRet;
 }

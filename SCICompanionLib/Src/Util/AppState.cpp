@@ -178,6 +178,7 @@ AppState::AppState(CWinApp *pApp) : _resourceMap(*this)
 
     CelDataClipboardFormat = RegisterClipboardFormat("SCICompanionVGACelData");
     ViewAttributesClipboardFormat = RegisterClipboardFormat("SCICompanionViewAttributes");
+    PaletteColorsClipboardFormat = RegisterClipboardFormat("SCICompanionPaletteColors");
 }
 
 int AppState::AspectRatioY(int value) const
