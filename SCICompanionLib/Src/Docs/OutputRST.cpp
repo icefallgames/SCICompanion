@@ -209,6 +209,9 @@ bool ShouldDocument(DocScript &script, const sci::SyntaxNode *node)
 
 void OutputPropertyTableRSTWorker(fmt::MemoryWriter &w, std::vector<std::pair<std::string, std::string>> properties, const std::string &title)
 {
+    // Remove the name property
+    properties.erase(std::remove_if(properties.begin(), properties.end(), [](std::pair<std::string, std::string> &entry) { return entry.second == "name"; }), properties.end());
+
     std::string propertyHeader = "Property";
     std::string descriptionHeader = "Description";
     size_t maxPropLength = propertyHeader.length();

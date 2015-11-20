@@ -2,7 +2,7 @@
 (include "sci.sh")
 (use "Main")
 (use "Cycle")
-(use "Obj")
+(use "Object")
 (script 945)
 
 /*
@@ -104,7 +104,7 @@
 
 
     (method (moveDone)
-        (if (== GetValueAt(points value) $7777)
+        (if (== WordAt(points value) $7777)
             (super:moveDone())
         )(else
             (self:
@@ -117,14 +117,14 @@
 
     (method (setTarget)
         (var pathResult, theX, theY, polyCount, temp4[30])
-        (if (<> GetValueAt(points value) $7777)
-            = x GetValueAt(points value)
-            = y GetValueAt(points ++value)
+        (if (<> WordAt(points value) $7777)
+            = x WordAt(points value)
+            = y WordAt(points ++value)
             ++value
             (if (IsObject(gAltPolyList) and (= polyCount (send gAltPolyList:size)))
                 = pathResult AvoidPath((send client:x) (send client:y) x y (send gAltPolyList:elements) polyCount 0)
-                = theX GetValueAt(pathResult 2)
-                = theY GetValueAt(pathResult 3)
+                = theX WordAt(pathResult 2)
+                = theY WordAt(pathResult 3)
                 (if ((<> x theX) or (<> y theY))
                     = x theX
                     = y theY

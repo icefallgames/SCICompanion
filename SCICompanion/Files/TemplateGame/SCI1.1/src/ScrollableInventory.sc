@@ -5,7 +5,7 @@
 (use "InventoryItem")
 (use "IconItem")
 (use "SysWindow")
-(use "Obj")
+(use "Object")
 (script 26)
 
 

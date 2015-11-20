@@ -4,7 +4,7 @@
     0 SmoothLooper
 )
 (use "Cycle")
-(use "Obj")
+(use "Object")
 (script 968)
 
 
@@ -168,7 +168,7 @@
                 cycler(0)
                 loop(clientLoop)
                 cel(0)
-                setCycle(End self)
+                setCycle(EndLoop self)
             )
         )(else
             = inProgress 0
@@ -216,7 +216,7 @@
             (send client:
                 loop(nextLoop)
                 cel(0)
-                setCycle(End self)
+                setCycle(EndLoop self)
             )
             = nextLoop 
                 (switch (nextLoop)

@@ -15,7 +15,7 @@
 	
 		(john:setCycle(StopWalk -1))
 */
-(class public StopWalk of Fwd
+(class public StopWalk of Forward
     (properties
         client 0
         caller 0

@@ -4,14 +4,14 @@
 (exports
     0 TextPrint
     1 FormatPrint
-    2 EditPrint
-    3 GetTotalLength
+    2 GetInput
+    3 FindFormatLen
 )
 (use "Main")
 (use "DColorButton")
 (use "Controls")
 (use "DialogControls")
-(use "Obj")
+(use "Object")
 (script 921)
 
 /*
@@ -56,7 +56,7 @@
 )
 
 /*
-.. function:: EditPrint(buffer maxLength [title font])
+.. function:: GetInput(buffer maxLength [title font])
 
 	Displays an edit box so the player can enter text.
 	
@@ -70,12 +70,12 @@
 		
 		(var buffer[10])
 		(= buffer NULL)	// Set the first character to NULL to create an empty string
-		EditPrint(buffer 10 "Enter your name")
+		GetInput(buffer 10 "Enter your name")
 	
 .. IMPORTANT::
 	The buffer is also used to initialize the edit field, so it should contain an empty string if you don't want any text there to start with.
 */
-(procedure public (EditPrint buffer maxLength title theFont)
+(procedure public (GetInput buffer maxLength title theFont)
     (if (
         (Print:
             font(
@@ -101,7 +101,7 @@
 )
 
 /*
-.. function:: GetTotalLength(theText [params ...])
+.. function:: FindFormatLen(theText [params ...])
 
 	Gets the maximum possible length of a formatted string.
 	
@@ -109,7 +109,7 @@
 	:param params: Optional parameters that correspond to format specifiers.
 	:returns: The maximum length the resulting formatted string could be.
 */
-(procedure public (GetTotalLength theText params)
+(procedure public (FindFormatLen theText params)
     (var temp0, temp1, temp2, temp3)
     = temp1 StrLen(theText)
     = temp0 temp1
@@ -154,7 +154,7 @@
 		)
 
 */
-(class Print of Obj
+(class Print of Object
     (properties
         dialog 0
         window 0
@@ -689,7 +689,7 @@
 	// Adds formatted text to the dialog. There are no options for positioning or getting the text from a message resource.
     (method (addTextF params)
         (var temp0, temp1)
-        = temp0 GetTotalLength(rest params)
+        = temp0 FindFormatLen(rest params)
         = temp1 Memory(memALLOC_CRIT temp0)
         Format(temp1 rest params)
         (self:addText(temp1))

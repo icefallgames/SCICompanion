@@ -1,11 +1,11 @@
 (version 2)
 (include "sci.sh")
-(use "Obj")
+(use "Object")
 (script 981)
 
 
 // The SysWindow class is a basic window class.
-(class SysWindow of Obj
+(class SysWindow of Object
     (properties
         top 0
         left 0

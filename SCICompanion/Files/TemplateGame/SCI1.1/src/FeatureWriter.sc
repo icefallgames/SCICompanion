@@ -13,7 +13,7 @@
 (use "SysWindow")
 (use "File")
 (use "Actor")
-(use "Obj")
+(use "Object")
 (script FEATUREWRITER_SCRIPT)
 
 
@@ -200,7 +200,7 @@
         (if (not local389)
             = temp0 0
             Format(@temp0 "%d.fea" (send gRoom:curPic))
-            (if (not EditPrint(@temp0 30 "Enter path and filename"))
+            (if (not GetInput(@temp0 30 "Enter path and filename"))
                 return 
             )(else
                 Format(@gDebugFilename @temp0)
@@ -235,9 +235,9 @@
         )
         = temp15 (send local390:new())
         = local0 0
-        EditPrint(@local0 30 "Name?")
+        GetInput(@local0 30 "Name?")
         = local50 0
-        EditPrint(@local50 16 "Noun?")
+        GetInput(@local50 16 "Noun?")
         localproc_0286(temp15)
         (if (== local390 Feature)
             localproc_029b(temp15)

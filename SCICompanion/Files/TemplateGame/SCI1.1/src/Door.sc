@@ -276,7 +276,7 @@
                 (send gGame:handsOff())
             )
             = state 1
-            (self:setCycle(End self))
+            (self:setCycle(EndLoop self))
             (if (openSnd)
                 (doorSound:
                     number(openSnd)
@@ -284,7 +284,7 @@
                 )
             )
             (if (doubleDoor)
-                (send doubleDoor:setCycle(End))
+                (send doubleDoor:setCycle(EndLoop))
             )
         )
     )
@@ -292,7 +292,7 @@
 	// Closes the door.
     (method (close)
         = state 3
-        (self:setCycle(Beg self))
+        (self:setCycle(BegLoop self))
         (if (closeSnd)
             (doorSound:
                 number(closeSnd)
@@ -300,7 +300,7 @@
             )
         )
         (if (doubleDoor)
-            (send doubleDoor:setCycle(Beg))
+            (send doubleDoor:setCycle(BegLoop))
         )
     )
 

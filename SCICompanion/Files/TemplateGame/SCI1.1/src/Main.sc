@@ -18,9 +18,10 @@
     4 RestorePreviousHandsOn
     5 IsObjectOnControl
     6 SetUpEgo
+    7 AddToScore
     8 AimToward
     9 Die
-    10 AddToScore
+    10 ScoreFlag
     11 HideStatus
     12 DebugPrint
     13 AddPolygonsToRoom
@@ -28,7 +29,7 @@
 )
 (use "ColorInit")
 (use "Smopper")
-(use "SQEgo")
+(use "GameEgo")
 (use "ScrollableInventory")
 (use "ScrollInsetWindow")
 (use "DColorButton")
@@ -50,7 +51,7 @@
 (use "Sound")
 (use "Game")
 (use "User")
-(use "Obj")
+(use "Object")
 (use "File")
 (script 0)
 
@@ -371,6 +372,23 @@
 )
 
 /*
+	Adds an amount to the player's current score.
+	
+	:param number amount: The amount to add to the score (can be negative).
+*/
+(procedure public (AddToScore amount)
+    = gScore (+ gScore amount)
+    (statusLineCode:doit())
+    (rm0Sound:
+        priority(15)
+        number(1000)
+        loop(1)
+        flags(1)
+        play()
+    )
+)
+
+/*
 	Adds an amount to the player's current score. A flag (one used with
 	:func:`BSet`, :func:`BClear` or :func:`BTest`) must be provided. This
 	ensures that a score is only added once.
@@ -378,18 +396,10 @@
 	:param number flag: A flag indicating what this score is for.
 	:param number amount: The amount to add to the score.
 */
-(procedure public (AddToScore flag amount)
+(procedure public (ScoreFlag flag amount)
     (if (not Btest(flag))
-        = gScore (+ gScore amount)
-        (statusLineCode:doit())
+    	AddToScore(amount)
         Bset(flag)
-        (rm0Sound:
-            priority(15)
-            number(1000)
-            loop(1)
-            flags(1)
-            play()
-        )
     )
 )
 
@@ -552,7 +562,7 @@
 (instance egoStopWalk of FiddleStopWalk
     (properties)
 )
-(instance ego of SQEgo
+(instance ego of GameEgo
     (properties)
 )
 (instance statusLineCode of Code

@@ -2,7 +2,7 @@
 (include "sci.sh")
 (use "Main")
 (use "Print")
-(use "Obj")
+(use "Object")
 (script 937)
 
 
@@ -18,7 +18,7 @@
 	        return 0
 	    )
 */
-(class IconItem of Obj
+(class IconItem of Object
     (properties
         view -1					// The view for the icon
         loop -1					// The loop for the icon

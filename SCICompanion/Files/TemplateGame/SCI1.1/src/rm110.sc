@@ -13,14 +13,14 @@
 (use "Cycle")
 (use "Game")
 (use "Actor")
-(use "Obj")
+(use "Object")
 (use "Print")
 (use "Polygon")
 
 (script 110)
 
 
-(instance public rm110 of Rm
+(instance public rm110 of Room
     (properties
         picture 110
         style (| dpANIMATION_BLACKOUT dpOPEN_FADEPALETTE)

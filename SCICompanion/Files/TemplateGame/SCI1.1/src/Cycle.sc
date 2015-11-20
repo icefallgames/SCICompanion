@@ -7,7 +7,7 @@
 (version 2)
 (include "sci.sh")
 (use "Main")
-(use "Obj")
+(use "Object")
 (script 992)
 
 
@@ -18,9 +18,9 @@
 	Example usage::
 	
 		// Cycle the cels of myProp forward.
-		(myProp:setCycle(Fwd))
+		(myProp:setCycle(Forward))
 */
-(class Cycle of Obj
+(class Cycle of Object
     (properties
         client 0					// The object to which this is attached.
         caller 0					// The object that is cue()'d when the cycle is complete.
@@ -64,16 +64,17 @@
 )
 
 /*
-	Fwd is a cycler that cycles through cels forward.
+	Forward is a cycler that cycles through cels forward.
 	
 	Example usage::
 	
-		(bird:setCycle(Fwd))
+		(bird:setCycle(Forward))
 		
-	See also: :class:`Rev`.
+	See also: :class:`Reverse`.
 */
-(class Fwd of Cycle
+(class Forward of Cycle
     (properties
+    	name "Fwd"
         client 0					// The object to which this is attached.
         caller 0					// The object that is cue()'d when the cycle is complete.
         cycleDir cdFORWARD			// cdFORWARD or cdBACKWARD.
@@ -101,7 +102,7 @@
 	Walk is a cycler used on Actors. It stops the cel cycling when
 	the Actor is not moving.
 */
-(class Walk of Fwd
+(class Walk of Forward
     (properties
         client 0					// The object to which this is attached.
         caller 0					// The object that is cue()'d when the cycle is complete.
@@ -119,15 +120,16 @@
 )
 
 /*
-	CT (or "cycle to") is a cycler that cycles to a specific cel, then stops.
+	CycleTo is a cycler that cycles to a specific cel, then stops.
 	
 	Example usage::
 	
 		// Cycle the door forward to cel 4, then stop.
-		(door:setCycle(CT 4 cdFORWARD))
+		(door:setCycle(CycleTo 4 cdFORWARD))
 */
-(class CT of Cycle
+(class CycleTo of Cycle
     (properties
+        name "CT"
         client 0					// The object to which this is attached.
         caller 0					// The object that is cue()'d when the cycle is complete.
         cycleDir cdFORWARD			// cdFORWARD or cdBACKWARD.
@@ -201,10 +203,11 @@
 	Example usage::
 	
 		// Tell the door to cycle to its last cel and notify us when done.
-		(aDoor:setCycle(End self))
+		(aDoor:setCycle(EndLoop self))
 */
-(class End of CT
+(class EndLoop of CycleTo
     (properties
+    	name "End"
         client 0					// The object to which this is attached.
         caller 0					// The object that is cue()'d when the cycle is complete.
         cycleDir cdFORWARD			// cdFORWARD or cdBACKWARD.
@@ -231,10 +234,11 @@
 )
 
 /*
-	Beg cycles from the last cel backward to the first cel in a loop and stops.
+	BegLoop cycles from the last cel backward to the first cel in a loop and stops.
 */
-(class Beg of CT
+(class BegLoop of CycleTo
     (properties
+    	name "Beg"
         client 0					// The object to which this is attached.
         caller 0					// The object that is cue()'d when the cycle is complete.
         cycleDir cdFORWARD			// cdFORWARD or cdBACKWARD.
@@ -263,7 +267,7 @@
 /*
 	Motion is the base class for movers: objects that are responsible for moving Actors around the screen.
 */
-(class Motion of Obj
+(class Motion of Object
     (properties
         client 0			// The :class:`Actor` to which this is attached.
         caller 0			// The object that will get cue()'d when the motion is complete.

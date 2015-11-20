@@ -12,13 +12,13 @@
 (use "Cycle")
 (use "Game")
 (use "Actor")
-(use "Obj")
+(use "Object")
 (script TITLEROOM_SCRIPT)
 
 (instance myDialog of Dialog
     (properties)
 )
-(instance public rm100 of Rm
+(instance public rm100 of Room
     (properties
         picture 100
     )

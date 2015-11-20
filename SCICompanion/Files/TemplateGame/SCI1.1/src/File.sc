@@ -1,6 +1,6 @@
 (version 2)
 (include "sci.sh")
-(use "Obj")
+(use "Object")
 (script 993)
 
 
@@ -27,7 +27,7 @@
 		)
 			
 */
-(class File of Obj
+(class File of Object
     (properties
         handle 0
     )

@@ -3,11 +3,11 @@
 (include "game.sh")
 (use "Main")
 (use "Cycle")
-(use "Obj")
-(script MANUALCYCLE_SCRIPT)
+(use "Object")
+(script MOVECYCLE_SCRIPT)
 
 /*
-	A cycler that progresses through an explicit set of cels. See the init() method for more information about parameters. "MoveCycle".
+	A cycler that progresses through an explicit set of cels. See the init() method for more information about parameters.
 	
 	Example usage::
 	
@@ -15,11 +15,12 @@
 		(local celList[5] = (3 6 2 1 $8000)) // $8000 indicates the end of the cel list.
 		
 		// Then in code:
-		(aStar:setCycle(MCyc celList)) // cycle through 3, 6, 2, 1 then stop.
+		(aStar:setCycle(MoveCycle celList)) // cycle through 3, 6, 2, 1 then stop.
 
 */
-(class MCyc of Cycle
+(class MoveCycle of Cycle
     (properties
+    	name "MCyc"
         client 0
         caller 0
         cycleDir 1
@@ -55,7 +56,7 @@
             )
         )
         = size 0
-        (while (<> GetValueAt(points size) -32768)
+        (while (<> WordAt(points size) -32768)
             ++size
         )
         (if (== cycleDir 1)
@@ -77,10 +78,10 @@
 
     (method (nextCel)
         (send client:
-            loop(GetValueAt(points value))
-            cel(GetValueAt(points (+ value 1)))
-            x(GetValueAt(points (+ value 2)))
-            y(GetValueAt(points (+ value 3)))
+            loop(WordAt(points value))
+            cel(WordAt(points (+ value 1)))
+            x(WordAt(points (+ value 2)))
+            y(WordAt(points (+ value 3)))
         )
         = value (+ value (* cycleDir 4))
         (if (((== cycleDir 1) and (>= value size)) or ((== cycleDir -1) and (< value 0)))

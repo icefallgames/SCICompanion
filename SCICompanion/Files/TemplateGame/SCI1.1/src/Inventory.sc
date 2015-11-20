@@ -31,7 +31,7 @@
 (use "Print")
 (use "IconItem")
 (use "InventoryItem")
-(use "Obj")
+(use "Object")
 (script INVENTORY_SCRIPT)
 
 (instance templateInventory of ScrollableInventory

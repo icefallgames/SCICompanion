@@ -2,7 +2,7 @@
 (include "sci.sh")
 (include "game.sh")
 (use "IconItem")
-(use "Obj")
+(use "Object")
 (script SLIDER_SCRIPT)
 
 /*
@@ -49,7 +49,7 @@
 
     (method (doit sendParams)
         (if (theObj)
-            Perform(theObj selector rest sendParams)
+            Eval(theObj selector rest sendParams)
         )
     )
 

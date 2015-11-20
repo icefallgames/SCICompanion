@@ -17,7 +17,7 @@
 (use "SysWindow")
 (use "User")
 (use "Actor")
-(use "Obj")
+(use "Object")
 (use "InventoryItem")
 (use "DialogControls")
 (script INGAME_DEBUG_SCRIPT)
@@ -116,10 +116,10 @@
                         (case KEY_ALT_g
                         	// Set global
                             = temp0 0
-                            EditPrint(@temp0 6 "Variable No.")
+                            GetInput(@temp0 6 "Variable No.")
                             = gOldCastFirst ReadNumber(@temp0)
                             = temp0 0
-                            EditPrint(@temp0 6 "Value")
+                            GetInput(@temp0 6 "Value")
                             = gEgo[gOldCastFirst] ReadNumber(@temp0)
                             = temp0 0
                         )
@@ -265,7 +265,7 @@
                                 = temp177 GetNumber("Sequence?" 0)
                                 Message(msgGET temp174 temp175 temp176 temp177 @temp0)
                             )(else
-                                EditPrint(@temp0 50 "String to display?")
+                                GetInput(@temp0 50 "String to display?")
                             )
                             = temp167 GetNumber("Y Parameter?" 0)
                             = temp168 GetNumber("X Parameter?" 0)

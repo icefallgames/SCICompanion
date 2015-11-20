@@ -2,7 +2,7 @@
 (version 2)
 (include "sci.sh")
 (use "Main")
-(use "Obj")
+(use "Object")
 (script 973)
 
 
@@ -29,7 +29,7 @@
 		// Make a timer to cue() the current object in 3 seconds
 		(send ((Timer:new())):set(self 3))
 */
-(class Timer of Obj
+(class Timer of Object
     (properties
         cycleCnt -1
         seconds -1
@@ -201,10 +201,11 @@
 )
 
 /*
-	TO is simply a class that counts down a time.
+	TimeOut is simply a class that counts down a time.
 */
-(class TO of Obj
+(class TimeOut of Object
     (properties
+    	name "TO"
         timeLeft 0
     )
 

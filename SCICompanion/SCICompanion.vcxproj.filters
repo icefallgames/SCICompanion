@@ -2120,8 +2120,6 @@
     <None Include="Files\TemplateGame\SCI1.1\src\Actor.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\Approach.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\Approach.sco" />
-    <None Include="Files\TemplateGame\SCI1.1\src\Blk.sc" />
-    <None Include="Files\TemplateGame\SCI1.1\src\Blk.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\BorderWindow.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\BorderWindow.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\Chase.sc" />
@@ -2195,20 +2193,14 @@
     <None Include="Files\TemplateGame\SCI1.1\src\Jump.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\Main.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\Main.sco" />
-    <None Include="Files\TemplateGame\SCI1.1\src\MCyc.sc" />
-    <None Include="Files\TemplateGame\SCI1.1\src\MCyc.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\MessageObj.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\MessageObj.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\Messager.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\Messager.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\MoveFwd.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\MoveFwd.sco" />
-    <None Include="Files\TemplateGame\SCI1.1\src\Obj.sc" />
-    <None Include="Files\TemplateGame\SCI1.1\src\Obj.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\Orbit.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\Orbit.sco" />
-    <None Include="Files\TemplateGame\SCI1.1\src\Osc.sc" />
-    <None Include="Files\TemplateGame\SCI1.1\src\Osc.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\PAvoider.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\PAvoider.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\PChase.sc" />
@@ -2233,12 +2225,8 @@
     <None Include="Files\TemplateGame\SCI1.1\src\RegionPath.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\RelDPath.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\RelDPath.sco" />
-    <None Include="Files\TemplateGame\SCI1.1\src\Rev.sc" />
-    <None Include="Files\TemplateGame\SCI1.1\src\Rev.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\rm110.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\rm110.sco" />
-    <None Include="Files\TemplateGame\SCI1.1\src\ROsc.sc" />
-    <None Include="Files\TemplateGame\SCI1.1\src\ROsc.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\Scaler.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\Scaler.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\ScaleTo.sc" />
@@ -2259,10 +2247,6 @@
     <None Include="Files\TemplateGame\SCI1.1\src\Sound.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\SpeakWindow.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\SpeakWindow.sco" />
-    <None Include="Files\TemplateGame\SCI1.1\src\SQEgo.sc" />
-    <None Include="Files\TemplateGame\SCI1.1\src\SQEgo.sco" />
-    <None Include="Files\TemplateGame\SCI1.1\src\SRDialog.sc" />
-    <None Include="Files\TemplateGame\SCI1.1\src\SRDialog.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\StopWalk.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\StopWalk.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\Sync.sc" />
@@ -3484,6 +3468,22 @@
     <None Include="Docs\source\Tutorial\RoomBackground.rst" />
     <None Include="Docs\source\Tutorial\TitleScreen.rst" />
     <None Include="Docs\source\Tutorial\UseInventory.rst" />
+    <None Include="Files\TemplateGame\SCI1.1\src\Block.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\Block.sco" />
+    <None Include="Files\TemplateGame\SCI1.1\src\GameEgo.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\GameEgo.sco" />
+    <None Include="Files\TemplateGame\SCI1.1\src\MoveCycle.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\MoveCycle.sco" />
+    <None Include="Files\TemplateGame\SCI1.1\src\Object.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\Object.sco" />
+    <None Include="Files\TemplateGame\SCI1.1\src\Oscillate.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\Oscillate.sco" />
+    <None Include="Files\TemplateGame\SCI1.1\src\RangeOscillate.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\RangeOscillate.sco" />
+    <None Include="Files\TemplateGame\SCI1.1\src\Reverse.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\Reverse.sco" />
+    <None Include="Files\TemplateGame\SCI1.1\src\SaveRestoreDialog.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\SaveRestoreDialog.sco" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />

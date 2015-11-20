@@ -2,7 +2,7 @@
 (include "sci.sh")
 (use "Main")
 (use "PolyPath")
-(use "Obj")
+(use "Object")
 (script 930)
 
 /*
@@ -109,7 +109,7 @@
         (if (<= temp0 distance)
             (super:moveDone())
         )(else
-            (if (== GetValueAt(points value) $7777)
+            (if (== WordAt(points value) $7777)
                 (if (points)
                     Memory(memFREE points)
                 )

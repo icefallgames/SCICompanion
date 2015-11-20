@@ -5,12 +5,12 @@
 (use "Print")
 (use "Polygon")
 (use "Sound")
-(use "SRDialog")
+(use "SaveRestoreDialog")
 (use "Cycle")
 (use "InventoryItem")
 (use "ScrollableInventory")
 (use "User")
-(use "Obj")
+(use "Object")
 (script 994)
 
 
@@ -141,7 +141,7 @@
 /*
 	This class is used internally by :class:`Messager`.
 */
-(class Cue of Obj
+(class Cue of Object
     (properties
         cuee 0
         cuer 0
@@ -190,7 +190,7 @@
 	setCursor()
 		Sets the current game cursor.
 */
-(class Game of Obj
+(class Game of Object
     (properties
         script 0
         printLang 1
@@ -240,7 +240,7 @@
             = thePanelObj panelObj
             = thePanelSelector panelSelector
             = panelObj (= panelSelector 0)
-            Perform(thePanelObj thePanelSelector)
+            Eval(thePanelObj thePanelSelector)
         )
         = gLastTicks (+ global86 GetTime())
         (if (gNewEventHandler)
@@ -344,7 +344,6 @@
                 (send gGame:setCursor(gCursor))
             )
         )
-        (SL:doit())
         DoSound(sndRESTORE)
         (send gSounds:pause(FALSE))
         = global86 (- gLastTicks GetTime())
@@ -381,7 +380,7 @@
         )
         (send gTimers:eachElementDo(#delete))
         (send gRegions:
-            eachElementDo(#perform DNKR)
+            eachElementDo(#perform DisposeNonKeptRegion)
             release()
         )
         (send gTheDoits:release())
@@ -498,13 +497,6 @@
         )
         (send gSounds:pause(FALSE))
     )
-
-
-    (method (changeScore param1)
-        = gScore (+ gScore param1)
-        (SL:doit())
-    )
-
 
     (method (handleEvent pEvent)
         (if ((send pEvent:claimed))
@@ -645,7 +637,7 @@
 )
 
 /*
-	Rgn ("region") serves as a base class for :class:`Rm`. It can also be used on its own, to contain
+	Region serves as a base class for :class:`Rm`. It can also be used on its own, to contain
 	common logic that applies to several rooms.
 	
 	To make a region part of a room, put the following code in the room's init() method::
@@ -653,8 +645,9 @@
 		(self:setRegions(MY_REGION))
 		// Where MY_REGION would be a script number for a script that contains a public Rgn instance.
 */
-(class Rgn of Obj
+(class Region of Object
     (properties
+    	name "Rgn"
         script 0
         number 0
         modNum -1
@@ -776,10 +769,11 @@
 )
 
 /*
-	Rm (or "room") is the class that your room instances should inherit from.
+	Room is the class that your room instances should inherit from.
 */
-(class Rm of Rgn
+(class Room of Region
     (properties
+    	name "Rm"
         script 0		// Room script, generally set with setScript in the init() method.
         number 0
         modNum -1
@@ -1062,42 +1056,6 @@
     )
 )
 
-// This class represents the status line.
-(class SL of Obj
-    (properties
-        state $0000
-        code 0
-    )
-
-    (method (doit)
-        (var temp0)
-        (if (code)
-            = temp0 Memory(memALLOC_CRIT 150)
-            (send code:doit(temp0))
-            DrawStatus(
-                (if (state)
-                    temp0
-                )(else
-                    0
-                )
-					  )
-            Memory(memFREE temp0)
-        )
-    )
-
-
-    (method (enable)
-        = state 1
-        (self:doit())
-    )
-
-
-    (method (disable)
-        = state 0
-        (self:doit())
-    )
-)
-
 (instance RU of Code
     (properties)
 
@@ -1115,7 +1073,7 @@
     )
 )
 
-(instance DNKR of Code
+(instance DisposeNonKeptRegion of Code
     (properties)
 
     (method (doit param1)

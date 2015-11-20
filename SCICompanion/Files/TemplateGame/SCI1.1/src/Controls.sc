@@ -9,7 +9,7 @@
 )
 (use "Main")
 (use "Print")
-(use "Obj")
+(use "Object")
 (script 255)
 
 
@@ -43,7 +43,7 @@
         Format(@temp0 "%d" defaultNumber)
     )
     return 
-        (if (EditPrint(@temp0 5 title))
+        (if (GetInput(@temp0 5 title))
             ReadNumber(@temp0)
         )(else
             -1
@@ -51,7 +51,7 @@
 )
 
 // A common base class for GUI controls.
-(class Control of Obj
+(class Control of Object
     (properties
         type 0
         state $0000
@@ -265,7 +265,7 @@ code_03c6:  pushi   2
             ldi     1
             add     
             push    
-            calle   GetValueAt, 4
+            calle   WordAt, 4
             push    
             ldi     $7777
             ne?     
@@ -274,25 +274,25 @@ code_03c6:  pushi   2
             pTos    rects
             +at     temp0
             push    
-            calle   GetValueAt, 4
+            calle   WordAt, 4
             sat     temp2
             pushi   2
             pTos    rects
             +at     temp0
             push    
-            calle   GetValueAt, 4
+            calle   WordAt, 4
             sat     temp1
             pushi   2
             pTos    rects
             +at     temp0
             push    
-            calle   GetValueAt, 4
+            calle   WordAt, 4
             sat     temp4
             pushi   2
             pTos    rects
             +at     temp0
             push    
-            calle   GetValueAt, 4
+            calle   WordAt, 4
             sat     temp3
             lst     temp2
             pushi   #x

@@ -5,7 +5,7 @@
 (script FORWARDCOUNT_SCRIPT)
 
 /*
-	This extends the functionality of the :class:`Fwd` cycler by allowing for cycling forward through the cels in a loop
+	This extends the functionality of the :class:`Forward` cycler by allowing for cycling forward through the cels in a loop
 	a specified number of times and then stopping.
 	
 	Example usage::
@@ -13,7 +13,7 @@
 		// Cycle through the diamond's cels three times
 		(diamond:setCycle(ForwardCounter 3))
 */
-(class ForwardCounter of Fwd
+(class ForwardCounter of Forward
     (properties
         client 0
         caller 0

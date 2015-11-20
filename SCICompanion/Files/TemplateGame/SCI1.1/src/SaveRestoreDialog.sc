@@ -174,8 +174,9 @@ code_09d1:pushi   7
 /*
 	The save/restore dialog base class.
 */
-(class SRDialog of Dialog
+(class SaveRestoreDialog of Dialog
     (properties
+    	name "SRDialog"
         elements 0
         size 0
         text 0
@@ -781,7 +782,7 @@ code_072e:  pushi   1
 )
 
 // The Restore Game dialog.
-(class Restore of SRDialog
+(class Restore of SaveRestoreDialog
     (properties
         elements 0
         size 0
@@ -811,7 +812,7 @@ code_072e:  pushi   1
 /*
  	The Save Game dialog.
 */
-(class Save of SRDialog
+(class Save of SaveRestoreDialog
     (properties
         elements 0
         size 0

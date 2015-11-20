@@ -7,7 +7,7 @@
     0 aboutCode
 )
 (use "Main")
-(use "Obj")
+(use "Object")
 (script ABOUT_SCRIPT)
 
 

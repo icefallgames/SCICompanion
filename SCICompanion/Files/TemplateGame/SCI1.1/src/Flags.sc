@@ -1,6 +1,6 @@
 (version 2)
 (include "sci.sh")
-(use "Obj")
+(use "Object")
 (script 985)
 
 
@@ -8,7 +8,7 @@
 	Provides a way to compactly store a bunch of boolean flags, in the same
 	manner as :func:`Btest`, :func:`Bset` and :func:`Bclear`.
 */
-(class Flags of Obj
+(class Flags of Object
     (properties
         size 0
         array 0

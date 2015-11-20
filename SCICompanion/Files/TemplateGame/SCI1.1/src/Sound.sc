@@ -1,7 +1,7 @@
 (version 2)
 (include "sci.sh")
 (use "Main")
-(use "Obj")
+(use "Object")
 (script 989)
 
 /*
@@ -24,7 +24,7 @@
 		(rainSound:play())
 		
 */
-(class Sound of Obj
+(class Sound of Object
     (properties
         nodePtr 0
         handle 0

@@ -4,15 +4,16 @@
 (script 938)
 
 /*
-	This cycler is similar to :class:`Osc`, but lets you specify specific first and last cels between which to oscillate (range oscillate).
+	This cycler is similar to :class:`Oscillate`, but lets you specify specific first and last cels between which to oscillate (range oscillate).
 	
 	Sample usage::
 	
 		// Make the star cycle 5 times between cel 2 and 7.
-		(star:setCycle(Osc 5 2 7))
+		(star:setCycle(RangeOscillate 5 2 7))
 */
-(class ROsc of Cycle
+(class RangeOscillate of Cycle
     (properties
+    	name "ROsc"
         client 0
         caller 0
         cycleDir 1

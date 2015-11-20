@@ -28,7 +28,7 @@
     )
 
     (method (init)
-        (send (= cycler (Fwd:new())):init(self))
+        (send (= cycler (Forward:new())):init(self))
     )
 
 

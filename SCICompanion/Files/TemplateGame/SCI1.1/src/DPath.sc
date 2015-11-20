@@ -2,7 +2,7 @@
 (include "sci.sh")
 (include "game.sh")
 (use "Cycle")
-(use "Obj")
+(use "Object")
 (script DIRECTPATH_SCRIPT)
 
 

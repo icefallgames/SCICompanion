@@ -1,7 +1,7 @@
 (version 2)
 (include "sci.sh")
 (use "Main")
-(use "Obj")
+(use "Object")
 (script 933)
 
 

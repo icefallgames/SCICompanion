@@ -2,7 +2,7 @@
 (include "sci.sh")
 (use "Main")
 (use "PolyPath")
-(use "Obj")
+(use "Object")
 (script 950)
 
 
@@ -91,7 +91,7 @@
 			init()
 		)
 */
-(class Feature of Obj
+(class Feature of Object
     (properties
         x 0						// "center of interest" for the Feature.
         y 0

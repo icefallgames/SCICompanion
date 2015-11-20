@@ -8,7 +8,7 @@
 (use "PolyPath")
 (use "Feature")
 (use "Cycle")
-(use "Obj")
+(use "Object")
 (script 998)
 
 
@@ -377,7 +377,7 @@
 	
 		(monitor:
 			init()
-			setCycle(Fwd)
+			setCycle(Forward)
 			setScript(sPlayMC)
 		)
 */
@@ -563,11 +563,11 @@
 		
 		Example usage for telling a Prop to cycle forward::
 		
-			(theFrog:setCycle(Fwd))
+			(theFrog:setCycle(Forward))
 			
 		Example usage for telling a Prop to cycle to the end, then cue its caller::
 		
-			(theFrog:setCycle(End self))
+			(theFrog:setCycle(EndLoop self))
 		
 		:param class theCycler: A class derived from :class:`Cycle`, or NULL to remove the current cycler.
 		
@@ -1151,8 +1151,8 @@
         = temp7 (send gRoom:obstacles)
         (if (temp7 and global67)
             = temp6 AvoidPath(x y (+ x temp2) (+ y temp3) (send temp7:elements) (send temp7:size) 0)
-            = temp2 (- GetValueAt(temp6 2) x)
-            = temp3 (- GetValueAt(temp6 3) y)
+            = temp2 (- WordAt(temp6 2) x)
+            = temp3 (- WordAt(temp6 3) y)
             Memory(memFREE temp6)
         )
         (if (temp2 or temp3)

@@ -5,13 +5,13 @@
 (include "sci.sh")
 (exports
     0 Sign
-    1 Modulo
+    1 UModulo
     2 Min
     3 Max
-    4 DoesRectContain
+    4 InRect
     5 IsOneOf
-    6 GetValueAt
-    7 Perform
+    6 WordAt
+    7 Eval
 )
 (use "Main")
 (use "Print")
@@ -35,7 +35,7 @@
 	
 	:returns: The remainder of the division of dividend by divisor.
 */
-(procedure public (Modulo dividend divisor)
+(procedure public (UModulo dividend divisor)
     = dividend (- dividend (* divisor (/ dividend divisor)))
     (if (< dividend 0)
         = dividend (+ dividend divisor)
@@ -78,9 +78,9 @@
 )
 
 /*
-	.. function:: DoesRectContain(left top right bottom x y)
+	.. function:: InRect(left top right bottom x y)
 	
-	.. function:: DoesRectContain(left top right bottom obj)
+	.. function:: InRect(left top right bottom obj)
 	
 		:param number left: The left side of the rectangle.
 		:param number top: The top of the rectangle.
@@ -92,7 +92,7 @@
 	
 		:returns: TRUE if the rectangle contains the (x, y) coordinate or the object, FALSE otherwise.
 */
-(procedure public (DoesRectContain left top right bottom param5 param6)
+(procedure public (InRect left top right bottom param5 param6)
     return 
         (if ((<= left 
         (if (< paramTotal 6)
@@ -154,7 +154,7 @@
 )
 
 /*
-	Retrieves a value at a specified offset in a buffer. This might be used for
+	Retrieves a 16-bit value (word) at a specified offset in a buffer. This might be used for
 	retrieving the a point in a buffer containing a sequence of points, for instance.
 
 	:param heapPtr buffer: A block of memory containing 16-bit values. 
@@ -162,12 +162,12 @@
 	
 	:returns: The item at an offset in a buffer.
 */
-(procedure public (GetValueAt buffer offset)
+(procedure public (WordAt buffer offset)
     return Memory(memPEEK (+ buffer (* 2 offset)))
 )
 
 /*
-.. function:: Perform(object methodSelector [...])
+.. function:: Eval(object methodSelector [...])
 	
 	Invokes the method on the object, passing in any parameters.
 	
@@ -175,7 +175,7 @@
 	:param selector methodSelector: The name of a method on the object.
 	:param ...: Zero or more parameters to be passed to the method.
 */
-(procedure public (Perform object methodSelector params)
+(procedure public (Eval object methodSelector params)
     (send object:methodSelector(rest params))
 )
 
@@ -184,8 +184,10 @@
 	like asking if an object supports a particular selector, or if an object is
 	subclass of a given class.
 */
-(class Obj
-    (properties)
+(class Object
+    (properties
+    	name "Obj"
+    )
 
 	// Returns a clone of itself
     (method (new)
@@ -230,7 +232,7 @@
 	/*
 		Determines if this object is a particular class, or inherits from that class.
 		
-		:param class className: A class name, such as Actor or Rm
+		:param class className: A class name, such as Actor or Room
 		
 		:returns: TRUE is this object is of type className, or inherits from className.
 	*/
@@ -308,16 +310,17 @@
 	creating classes that simply have a doit() method that performs some
 	functionality.
 */
-(class Code of Obj
+(class Code of Object
     (properties)
 
     (method (doit)
     )
 )
 
-// The Collect class is used to handle a collection of elements, such as objects.
-(class Collect of Obj
+// The Collection class is used to handle a collection of elements, such as objects.
+(class Collection of Object
     (properties
+    	name "Collect"
         elements 0
         size 0
     )
@@ -512,8 +515,8 @@
 
 )
 
-// The List class is an extension of the Collect class. It is used to handle a list of elements such as objects that can be accessed by index.
-(class List of Collect
+// The List class is an extension of the Collection class. It is used to handle a list of elements such as objects that can be accessed by index.
+(class List of Collection
     (properties
         elements 0
         size 0
@@ -678,7 +681,7 @@
 	to most game objects, including Props, Actors, and room objects. They allow you to attach pluggable behavior to an object.
 	In fact, Script instances can themselves have Scripts attached to them.
 */
-(class Script of Obj
+(class Script of Object
     (properties
         client 0
         state $ffff
@@ -868,7 +871,7 @@
 	- emLEFT_BUTTON
 	- emRIGHT_BUTTON
 */
-(class Event of Obj
+(class Event of Object
     (properties
         type $0000			// evKEYBOARD, evMOUSEBUTTON, etc...
         message 0			// The key or mouse button that was pressed.
@@ -940,7 +943,7 @@
 )
 
 // The Cursor class represents an onscreen mouse cursor.
-(class Cursor of Obj
+(class Cursor of Object
     (properties
         view 0
         loop 0

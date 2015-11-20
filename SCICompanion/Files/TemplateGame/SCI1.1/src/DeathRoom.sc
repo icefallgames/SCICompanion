@@ -15,7 +15,7 @@
 (use "Cycle")
 (use "Game")
 (use "Actor")
-(use "Obj")
+(use "Object")
 (script DEATH_SCRIPT)
 
 (local
@@ -35,7 +35,7 @@
     (send gGame:setCursor(999))
 )
 
-(instance public deathRoom of Rm
+(instance public deathRoom of Room
     (properties
         picture 200
     )
@@ -80,7 +80,7 @@
                     cel(0)
                     init()
                     posn(42 101)
-                    setCycle(Fwd)
+                    setCycle(Forward)
                 )
                 = seconds 2
             )

@@ -1,4 +1,6 @@
-// Contains the Smopper cycler, which is used if you need to specify stopped, slowing and starting views in addition to in-motion views.
+/*
+	Contains the Smopper cycler, which is used if you need to specify stopped, slowing and starting views in addition to in-motion views.
+*/
 (version 2)
 (include "sci.sh")
 (exports
@@ -7,7 +9,7 @@
 (use "Main")
 (use "PFollow")
 (use "Cycle")
-(use "Obj")
+(use "Object")
 (script 17)
 
 (local
@@ -25,7 +27,7 @@
 (define SMOP_INMOTION_PENDING 	7)
 
 /*
-	Smopper (or "smooth stopper") is a complex cycler similar to :class:`StopWalk`, but allowing the use
+	Smopper is a complex cycler similar to :class:`StopWalk`, but allowing the use
 	of separate starting and stopping views. This can be used to allow for more realistic
 	movement when starting and stopping.
 	

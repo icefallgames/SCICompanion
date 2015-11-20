@@ -3,14 +3,14 @@
 (use "Main")
 (use "Timer")
 (use "Cycle")
-(use "Obj")
+(use "Object")
 (script 929)
 
 
 /*
 	This class is involved with lip-syncing and is used internally by and :class:`MouthSync`.
 */
-(class Sync of Obj
+(class Sync of Object
     (properties
         syncTime -1
         syncCue $ffff

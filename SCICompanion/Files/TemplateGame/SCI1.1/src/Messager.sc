@@ -7,7 +7,7 @@
 (use "Main")
 (use "Print")
 (use "Game")
-(use "Obj")
+(use "Object")
 (script 924)
 
 /*
@@ -25,7 +25,7 @@
 		(send gTestMessager:say(noun verb condition seqeuence caller roomNumber))	
 
 */
-(class Messager of Obj
+(class Messager of Object
     (properties
         caller 0
         disposeWhenDone 1
@@ -168,7 +168,7 @@
             = oldIconBarState (send gIconBar:state)
         )
         = theTalker (self:findTalker(talkerNumber))
-        = temp0 GetTotalLength(formatString theCaller rest params)
+        = temp0 FindFormatLen(formatString theCaller rest params)
         (if (IsObject(theCaller[- paramTotal 2]))
             = caller theCaller[(- paramTotal 2)]
         )

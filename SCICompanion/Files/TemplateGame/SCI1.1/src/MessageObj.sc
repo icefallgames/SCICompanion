@@ -7,7 +7,7 @@
 (include "game.sh")
 (use "Main")
 (use "Print")
-(use "Obj")
+(use "Object")
 (script MESSAGEOBJ_SCRIPT)
 
 
@@ -15,7 +15,7 @@
 	This class works in
 	conjunction with :class:`Conversation`.
 */
-(class MessageObj of Obj
+(class MessageObj of Object
     (properties
         modNum -1
         noun 0
@@ -217,28 +217,28 @@
 
     (method (load param1)
         (var theGModNum, temp1, temp2, temp3, temp4, temp5, temp6, temp7, temp8)
-        = theGModNum GetValueAt(param1 0)
-        = temp1 GetValueAt(param1 1)
-        = temp2 GetValueAt(param1 2)
-        = temp3 GetValueAt(param1 3)
-        = temp4 GetValueAt(param1 4)
-        = temp5 GetValueAt(param1 5)
-        = temp6 GetValueAt(param1 6)
-        = temp7 GetValueAt(param1 7)
+        = theGModNum WordAt(param1 0)
+        = temp1 WordAt(param1 1)
+        = temp2 WordAt(param1 2)
+        = temp3 WordAt(param1 3)
+        = temp4 WordAt(param1 4)
+        = temp5 WordAt(param1 5)
+        = temp6 WordAt(param1 6)
+        = temp7 WordAt(param1 7)
         = temp8 7
         (while (theGModNum)
             (if (== theGModNum -1)
                 = theGModNum gModNum
             )
             (self:add(theGModNum temp1 temp2 temp3 temp4 temp5 temp6 temp7))
-            = theGModNum GetValueAt(param1 ++temp8)
-            = temp1 GetValueAt(param1 ++temp8)
-            = temp2 GetValueAt(param1 ++temp8)
-            = temp3 GetValueAt(param1 ++temp8)
-            = temp4 GetValueAt(param1 ++temp8)
-            = temp5 GetValueAt(param1 ++temp8)
-            = temp6 GetValueAt(param1 ++temp8)
-            = temp7 GetValueAt(param1 ++temp8)
+            = theGModNum WordAt(param1 ++temp8)
+            = temp1 WordAt(param1 ++temp8)
+            = temp2 WordAt(param1 ++temp8)
+            = temp3 WordAt(param1 ++temp8)
+            = temp4 WordAt(param1 ++temp8)
+            = temp5 WordAt(param1 ++temp8)
+            = temp6 WordAt(param1 ++temp8)
+            = temp7 WordAt(param1 ++temp8)
         )
     )
 )

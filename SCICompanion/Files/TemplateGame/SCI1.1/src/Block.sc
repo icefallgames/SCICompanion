@@ -1,6 +1,6 @@
 (version 2)
 (include "sci.sh")
-(use "Obj")
+(use "Object")
 (script 949)
 
 
@@ -18,8 +18,9 @@
 			yourself()
 		)
 */
-(class Blk of Obj
+(class Block of Object
     (properties
+    	name "Blk"
         top 0
         left 0
         bottom 0
@@ -49,7 +50,7 @@
 			yourself()
 		)
 */
-(class Cage of Blk
+(class Cage of Block
     (properties
         top 0
         left 0

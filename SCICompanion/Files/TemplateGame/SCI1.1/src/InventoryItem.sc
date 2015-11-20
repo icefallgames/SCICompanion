@@ -5,7 +5,7 @@
 (use "Print")
 (use "IconItem")
 (use "SysWindow")
-(use "Obj")
+(use "Object")
 (script 995)
 
 
@@ -101,7 +101,7 @@
     (method (moveTo theOwner)
         = owner theOwner
         (if (value and (== theOwner gEgo))
-            (send gGame:changeScore(value))
+        	AddToScore(value)
             = value 0
         )
         return self

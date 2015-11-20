@@ -6,7 +6,7 @@
 (use "Print")
 (use "Talker")
 (use "RandCycle")
-(use "Obj")
+(use "Object")
 (script CHOICETALKER_SCRIPT)
 
 /*

@@ -1,7 +1,7 @@
 (version 2)
 (include "sci.sh")
 (use "Main")
-(use "Obj")
+(use "Object")
 (script 996)
 
 (instance uEvt of Event
@@ -23,7 +23,7 @@
 			// The user is in control...
 		)
 */
-(class User of Obj
+(class User of Object
     (properties
         alterEgo 0
         input 0

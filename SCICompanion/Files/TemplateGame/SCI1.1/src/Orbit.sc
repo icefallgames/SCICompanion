@@ -2,7 +2,7 @@
 (include "sci.sh")
 (use "Main")
 (use "Cycle")
-(use "Obj")
+(use "Object")
 (script 986)
 
 
@@ -76,7 +76,7 @@
         )
         = x (+ centerObjX temp2)
         = y (- centerObjY temp3)
-        = curAngle Modulo((+ curAngle (* winding angleStep)) 360)
+        = curAngle UModulo((+ curAngle (* winding angleStep)) 360)
         (super:init(client x y))
     )
 

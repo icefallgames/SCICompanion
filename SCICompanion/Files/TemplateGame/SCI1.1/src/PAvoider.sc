@@ -4,7 +4,7 @@
 (include "game.sh")
 (use "PolyPath")
 (use "Polygon")
-(use "Obj")
+(use "Object")
 (script PATHAVOIDER_SCRIPT)
 
 (procedure (CountPoints param1)
@@ -12,7 +12,7 @@
     = temp3 -100
     = temp0 0
     (while (<> temp3 $7777)
-        = temp3 GetValueAt(param1 (* 2 temp0))
+        = temp3 WordAt(param1 (* 2 temp0))
         ++temp0
     )
     return --temp0

@@ -6,15 +6,15 @@
 (use "Smopper")
 (use "Ego")
 (use "Cycle")
-(use "Obj")
+(use "Object")
 (script 18)
 
 
 /*
-	SQEgo is a game-specific subclass of :class:`Ego`. Here, you can put default answers for
+	GameEgo is a game-specific subclass of :class:`Ego`. Here, you can put default answers for
 	looking, talking and performing actions on yourself.
 */
-(class SQEgo of Ego
+(class GameEgo of Ego
     (properties
         x 0
         y 0
@@ -198,7 +198,7 @@
                             loop(lCel)
                             cel(0)
                             cycleSpeed(15)
-                            setCycle(End self)
+                            setCycle(EndLoop self)
                         )
                     )(else
                         (super:doit(rest sendParams))

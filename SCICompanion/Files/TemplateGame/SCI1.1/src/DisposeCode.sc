@@ -11,7 +11,7 @@
 )
 (use "Main")
 (use "DisposeLoad")
-(use "Obj")
+(use "Object")
 (script DISPOSECODE_SCRIPT)
 
 (instance public disposeCode of Code
@@ -31,7 +31,7 @@
         	MOVEFORWARD_SCRIPT
         	OSCILLATE_SCRIPT
         	FORWARDCOUNT_SCRIPT
-        	MANUALCYCLE_SCRIPT
+        	MOVECYCLE_SCRIPT
         	REVERSECYCLE_SCRIPT
         	DIRECTPATH_SCRIPT
         	PRITALKER_SCRIPT

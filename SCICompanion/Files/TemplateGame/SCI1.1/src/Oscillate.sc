@@ -10,10 +10,11 @@
 	Sample usage::
 	
 		// Make the star cycle its animation back and forth.
-		(star:setCycle(Osc -1))
+		(star:setCycle(Oscillate -1))
 */
-(class Osc of Cycle
+(class Oscillate of Cycle
     (properties
+    	name "Osc"
         client 0
         caller 0
         cycleDir 1

@@ -4,7 +4,7 @@
 (use "StopWalk")
 (use "Helpers")
 (use "Cycle")
-(use "Obj")
+(use "Object")
 (script 977)
 
 
@@ -53,7 +53,7 @@
                 )(else
                     1
                 )
- (/ Modulo((+ (send client:heading) (/ 180 temp1)) 360) (/ 360 temp1)))]))
+ (/ UModulo((+ (send client:heading) (/ 180 temp1)) 360) (/ 360 temp1)))]))
             (if (caller)
                 (send caller:cue())
             )
@@ -170,7 +170,7 @@
             )(else
                 = cycleCnt gLastTicks
                 = loopIndex (+ loopIndex (* cycleDir (/ 8 numOfLoops)))
-                = loopIndex Modulo(loopIndex 8)
+                = loopIndex UModulo(loopIndex 8)
                 local8[loopIndex]
             )
     )

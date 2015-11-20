@@ -11,7 +11,7 @@
 (use "Polygon")
 (use "SysWindow")
 (use "File")
-(use "Obj")
+(use "Object")
 (script POLYGONEDIT_SCRIPT)
 
 
@@ -92,7 +92,7 @@
 )
 
 // Nodoc
-(class ClickMenu of Obj
+(class ClickMenu of Object
     (properties
         text 0
         array 0

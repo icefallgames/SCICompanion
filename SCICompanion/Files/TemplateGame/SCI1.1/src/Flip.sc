@@ -6,7 +6,7 @@
     1 FlipFeature
 )
 (use "Main")
-(use "Obj")
+(use "Object")
 (script FLIPPOLY_SCRIPT)
 
 /*
@@ -25,7 +25,7 @@
     (if (not paramTotal)
         = temp0 (send gRoom:obstacles)
     )(else
-        (if ((send param1:isKindOf(Collect)))
+        (if ((send param1:isKindOf(Collection)))
             = temp0 param1
         )(else
             (send param1:perform(flipPoly))
@@ -54,7 +54,7 @@
     )(else
         = temp0 0
         (while (< temp0 paramTotal)
-            (if ((send param1[temp0]:isKindOf(Collect)))
+            (if ((send param1[temp0]:isKindOf(Collection)))
                 (send param1[temp0]:eachElementDo(#perform flipFeature))
             )(else
                 (send param1[temp0]:perform(flipFeature))

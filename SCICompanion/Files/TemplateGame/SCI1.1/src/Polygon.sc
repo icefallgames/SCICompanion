@@ -1,6 +1,6 @@
 (version 2)
 (include "sci.sh")
-(use "Obj")
+(use "Object")
 (script 946)
 
 
@@ -24,7 +24,7 @@
 	
 	
 */
-(class Polygon of Obj
+(class Polygon of Object
     (properties
         size 0
         points 0

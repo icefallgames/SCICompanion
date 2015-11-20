@@ -5,16 +5,17 @@
 (script REVERSECYCLE_SCRIPT)
 
 /*
-	Rev is a cycler that cycles through cels backward.
+	Reverse is a cycler that cycles through cels backward.
 	
 	Example usage::
 	
-		(bird:setCycle(Rev))
+		(bird:setCycle(Reverse))
 		
-	See also: :class:`Fwd`.
+	See also: :class:`Forward`.
 */
-(class Rev of Cycle
+(class Reverse of Cycle
     (properties
+    	name "Rev"
         client 0
         caller 0
         cycleDir cdBACKWARD

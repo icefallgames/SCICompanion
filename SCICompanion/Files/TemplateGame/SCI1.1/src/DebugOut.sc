@@ -9,10 +9,10 @@
 (exports
     0 debugOut
 )
-(use "main")
-(use "controls")
-(use "obj")
-(use "user")
+(use "Main")
+(use "Controls")
+(use "Object")
+(use "User")
 (use "File")
 (use "Print")
 (use "Game")
@@ -38,7 +38,7 @@
 					// Check to see if export #0 of this script id
 					(= heapPointer ScriptID(tempRoom 0))
 					(if (IsObject(heapPointer))
-						(if (send heapPointer:isKindOf(Rm))
+						(if (send heapPointer:isKindOf(Room))
 							(= startRoom tempRoom)
 							// Set up any initialization required if we're going right to that room:
 							DebugRoomInit(startRoom)
@@ -65,7 +65,7 @@
 		// We open and close the file for each write, since that appears to be the only way to flush.
 		(= tempHandle FileIO(fiOPEN "debug.log" fOPENCREATE))
 		(if (tempHandle)
-	        = temp0 GetTotalLength(rest params)
+	        = temp0 FindFormatLen(rest params)
 	        = temp1 Memory(memALLOC_CRIT temp0)
 	        Format(temp1 rest params)
 			
