@@ -13,7 +13,7 @@ Rgn (of :class:`Obj`)
 	Defined in Game.sc.
 
 	
-	Rgn ("region") serves as a base class for :class:`Rm`. It can also be used on its own, to contain
+	Region serves as a base class for :class:`Room`. It can also be used on its own, to contain
 	common logic that applies to several rooms.
 	
 	To make a region part of a room, put the following code in the room's init() method::

@@ -226,6 +226,11 @@ void SCIClassBrowser::_AddToClassTree(Script& script)
         ClassDefinition *pTheClass = classes[i].get();
         SCIClassBrowserNode *pBrowserInfo;
 
+        if ((pTheClass->GetName() == "Rm") || (pTheClass->GetName() == "Room"))
+        {
+            _roomClassName = pTheClass->GetName();
+        }
+
         if (pTheClass->IsInstance())
         {
             // We only encounter instances once each... so make a new SCIClassBrowserNode for each.
@@ -1278,6 +1283,13 @@ const Script *SCIClassBrowser::GetLKGScript(std::string fullPath)
         }
     }
     return pScript;
+}
+
+std::string SCIClassBrowser::GetRoomClassName()
+{
+    std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser);
+    assert(_fCBLocked);
+    return _roomClassName;
 }
 
 const Script *SCIClassBrowser::GetLKGScript(WORD wScriptNumber)

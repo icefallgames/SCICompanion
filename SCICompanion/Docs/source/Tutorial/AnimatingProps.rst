@@ -25,11 +25,11 @@ Go to your script file, and add at a setCycle method call to the box's initializ
 
     (theBox:
         approachVerbs(V_DO)
-        setCycle(Fwd)
+        setCycle(Forward)
         init()
     )
 
-This uses the :class:`Fwd` cycler to cycle forward through the loops cels. So when you run the game, the blue box will now cycle between
+This uses the :class:`Forward` cycler to cycle forward through the loops cels. So when you run the game, the blue box will now cycle between
 blue, red and yellow. Easy!
 
 To adjust the speed, you can set a different cycleSpeed on the object:
@@ -70,7 +70,7 @@ Click on the third cel and make it even smaller, and so on. You should end up wi
 Now we'll write code that triggers off the ego performing the V_DO verb on the N_BOX. In that, we'll make the box cels cycle from beginning to end. To do that, we'll
 need to do a few things:
 
-- **Remove** the (theBox:setCycle(Fwd)) we added in the previous section (in the room's init()).
+- **Remove** the (theBox:setCycle(Forward)) we added in the previous section (in the room's init()).
 - Make *theBox* use loop 1 by default (since that's where our shrinking box is).
 - Add a doVerb method to *theBox*, and tell the box to cycle from beginning to end.
 
@@ -95,7 +95,7 @@ need to do a few things:
         (method (doVerb theVerb params)
             (switch (theVerb)
                 (case V_DO
-                    (self:setCycle(End))
+                    (self:setCycle(EndLoop))
                 )
                 (default 
                     (super:doVerb(theVerb rest params))
@@ -153,8 +153,8 @@ Now add some meat to the shrinkBoxScript.
             (switch (state)
                 (case 0
                     (send gGame:handsOff())
-                    // We could also say (theBox:setCycle(End self))
-                    (send client:setCycle(End self))
+                    // We could also say (theBox:setCycle(EndLoop self))
+                    (send client:setCycle(EndLoop self))
                 )
                 (case 1
                     (= seconds 2)

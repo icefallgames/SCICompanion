@@ -133,7 +133,7 @@ the new room's palette will be applied right away:
 .. code-block:: python
     :emphasize-lines: 5
 
-    (instance public rm110 of Rm
+    (instance public rm110 of Room
         (properties
             north 106
             picture 110

@@ -562,7 +562,7 @@ void DisassembleScript(const CompiledScript &script, std::ostream &out, ICompile
     for (size_t i = 0; i < script._exportsTO.size(); i++)
     {
         // _exportsTO, in addition to containing code pointers for public procedures, also
-        // contain the Rm class.  Filter these out by ignoring code pointers which point outside
+        // contains the Rm/Room class.  Filter these out by ignoring code pointers which point outside
         // the codesegment.
         if (script.IsExportAProcedure(script._exportsTO[i]))
         {

@@ -68,11 +68,10 @@ const TCHAR* g_UsedByDefaultSCI11[] =
     TEXT("Cycle"),
     TEXT("Door"),
     TEXT("Feature"),
-    TEXT("View"),
+    TEXT("Actor"),
     TEXT("Game"),
-    TEXT("Inv"),
     TEXT("Main"),
-    TEXT("Obj"),
+    TEXT("Object"),
     TEXT("Polygon"),
 };
 
@@ -275,6 +274,7 @@ int CNewRoomDialog::_GetMinSuggestedScriptNumber()
 void CNewRoomDialog::_PrepareBuffer()
 {
     NewRoomProfile profile = GetProfile(appState->GetVersion());
+    std::string roomName = (profile == NewRoomProfile::SCI11) ? "Room" : "Rm";
     sci::Script script(_scriptId);
     bool includePolys = (appState->GetVersion().PicFormat != PicFormat::EGA) && (m_wndCheckPolys.GetCheck() == BST_CHECKED);
 
@@ -313,7 +313,7 @@ void CNewRoomDialog::_PrepareBuffer()
         ss << format("rm{0:0>3}", _scriptId.GetResourceNumber());
         pClass->SetName(ss.str());
         pClass->SetPublic(true);
-        pClass->SetSuperClass("Rm");
+        pClass->SetSuperClass(roomName);
 
         // Export it, if we're using syntax version 2
         if (script.SyntaxVersion >= 2)

@@ -24,7 +24,7 @@ Constant expressions
 In |scicomp| syntax version 2, a small subset of constant expressions are allowed to be used in class property declarations. This is useful for
 OR'ing together flags for property selectors that are bitmasks::
 
-	(instance public rm110 of Rm
+	(instance public rm110 of Room
 		(properties
 			picture 110
 			// Style will be a combination of these two flags:

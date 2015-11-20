@@ -116,6 +116,8 @@ public:
     void ExitSchedulerAndReset();
     void OnOpenGame(SCIVersion version);
 
+    std::string GetRoomClassName();
+
 private:
 
     struct DefineValueCache
@@ -212,6 +214,9 @@ private:
     std::unique_ptr<BackgroundScheduler<ReloadScriptPayload>> _scheduler;
 
     DependencyTracker &_dependencyTracker;
+
+    // A bit of a hack
+    std::string _roomClassName;
 };
 
 //

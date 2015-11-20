@@ -441,7 +441,7 @@ Script *Decompile(const GameFolderHelper &helper, const CompiledScript &compiled
     for (size_t i = 0; i < compiledScript._exportsTO.size() && !lookups.DecompileResults().IsAborted(); i++)
     {
         // _exportsTO, in addition to containing code pointers for public procedures, also
-        // contain the Rm class.  Filter these out by ignoring code pointers which point outside
+        // contains the Rm/Room class.  Filter these out by ignoring code pointers which point outside
         // the codesegment.
         uint16_t exportPointer = compiledScript._exportsTO[i];
         if (compiledScript.IsExportAProcedure(exportPointer))

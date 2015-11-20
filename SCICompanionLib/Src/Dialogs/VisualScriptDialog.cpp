@@ -188,7 +188,8 @@ void CVisualScriptDialog::DoDataExchange(CDataExchange* pDX)
                             }
                         }
                     }
-                    else if (_pBrowser->IsSubClassOf(pClass->GetSuperClass().c_str(), "Rm"))
+                    else if (_pBrowser->IsSubClassOf(pClass->GetSuperClass().c_str(), "Rm") ||
+                            _pBrowser->IsSubClassOf(pClass->GetSuperClass().c_str(), "Room"))
                     {
                         // Figure out the pic.
                         WORD wPic;

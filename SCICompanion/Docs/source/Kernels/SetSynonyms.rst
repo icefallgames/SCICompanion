@@ -17,7 +17,7 @@ SetSynonyms (Kernel)
 	.. IMPORTANT::
 		SCI0 only.
 	
-	This is handled automatically by the :func:`Rm` and :func:`Rgn` classes.
+	This is handled automatically by the :func:`Room` and :func:`Region` classes.
 	
 	Example::
 	

@@ -1303,6 +1303,7 @@ void CResourceMap::SetGameFolder(const string &gameFolder)
 
             // We get here when we close documents.
             _SniffSCIVersion();
+
             // Send initial load notification
             for_each(_syncs.begin(), _syncs.end(), bind2nd(mem_fun(&IResourceMapEvents::OnResourceMapReloaded), true));
 

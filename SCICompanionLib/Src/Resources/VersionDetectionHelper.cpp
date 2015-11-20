@@ -212,7 +212,7 @@ KernelSet CResourceMap::_DetectKernelSet()
             if (scriptLookups.Load(_gameFolderHelper))
             {
                 uint16_t species;
-                if (scriptLookups.GetGlobalClassTable().LookupSpecies("Sound", species))
+                if (scriptLookups.GetGlobalClassTable().LookupSpeciesCompiledName("Sound", species))
                 {
                     uint16_t soundScript;
                     if (scriptLookups.GetGlobalClassTable().GetSpeciesScriptNumber(species, soundScript))

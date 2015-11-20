@@ -23,7 +23,7 @@
 const key_value_pair<PCSTR, PCSTR> c_szVarToClass[] =
 {
     { TEXT("gEgo"), TEXT("Ego") },
-    { TEXT("gRoom"), TEXT("Rm") },
+    //{ TEXT("gRoom"), TEXT("Rm") },
     { TEXT("gGame"), TEXT("Game") },
     { TEXT("gWindow"), TEXT("Window") },
 };
@@ -99,6 +99,14 @@ std::string _ClassFromObjectName(SCIClassBrowser &browser, _TContext *pContext, 
             // Ideally, they should be mapped to instances, but we really only know
             // how to deal with instances in the current script.
             className = LookupStringValue(c_szVarToClass, ARRAYSIZE(c_szVarToClass), strObject, "");
+            // Special case for gRoom, since it could be Rm or Room depending on the game.
+            if (className.empty())
+            {
+                if (strObject == "gRoom")
+                {
+                    className = browser.GetRoomClassName();
+                }
+            }
         }
         if (className.empty())
         {

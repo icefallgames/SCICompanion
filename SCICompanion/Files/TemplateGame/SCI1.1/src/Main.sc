@@ -47,7 +47,7 @@
 (use "Polygon")
 (use "StopWalk")
 (use "Timer")
-(use "GradualLooper")
+(use "Grooper")
 (use "Sound")
 (use "Game")
 (use "User")

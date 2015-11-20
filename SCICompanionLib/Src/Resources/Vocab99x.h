@@ -104,7 +104,7 @@ public:
     bool Load(const GameFolderHelper &helper);
     const std::vector<uint16_t> &GetScriptNums() { return _scriptNums; } // REVIEW: remove this
 
-    bool LookupSpecies(const std::string &className, uint16_t &species);
+    bool LookupSpeciesCompiledName(const std::string &className, uint16_t &species);
     std::vector<uint16_t> GetSubclassesOf(uint16_t species);
 
     // ILookupNames

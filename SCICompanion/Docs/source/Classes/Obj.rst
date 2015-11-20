@@ -76,7 +76,7 @@ Methods
 	
 	Determines if this object is a particular class, or inherits from that class.
 	
-	:param class className: A class name, such as Actor or Rm
+	:param class className: A class name, such as Actor or Room
 	
 	:returns: TRUE is this object is of type className, or inherits from className.
 	

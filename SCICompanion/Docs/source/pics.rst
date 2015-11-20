@@ -424,7 +424,7 @@ The pic background is specified in your room instance's properties:
 .. code-block:: python
     :emphasize-lines: 3
 
-    (instance public rm210 of Rm
+    (instance public rm210 of Room
         (properties
             picture 210
             noun N_ROOM
@@ -432,7 +432,7 @@ The pic background is specified in your room instance's properties:
         ...
     )
 
-You can also use the :func:`DrawPic` kernel, or the drawPic method on :class:`Rm`.
+You can also use the :func:`DrawPic` kernel, or the drawPic method on :class:`Room`.
 
 
 .. |palette| image:: /images/PaletteButton.png

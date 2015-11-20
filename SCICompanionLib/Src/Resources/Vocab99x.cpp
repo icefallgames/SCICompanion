@@ -937,7 +937,7 @@ bool GlobalClassTable::_Create(sci::istream &byteStream)
     return true; // We're done when we run out of stuff to read... it's not failure.
 }
 
-bool GlobalClassTable::LookupSpecies(const std::string &className, uint16_t &species)
+bool GlobalClassTable::LookupSpeciesCompiledName(const std::string &className, uint16_t &species)
 {
     
     auto it = _nameToSpecies.find(className);
