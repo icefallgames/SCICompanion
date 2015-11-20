@@ -56,6 +56,7 @@ Drawing methods for the different screens for various SCI versions:
  SCI2       Bitmap               Bitmap     n/a
 ========== ==================== ========== =========
 
+.. _priority-screen:
 
 Priority screen
 ================
@@ -205,6 +206,8 @@ You may see strange behaviour as you move the drawing commands around the screen
 .. TIP::
     You can stretch or shrink the pasted commands using the arrow keys, and you can rotate them by dragging on the corners.
 
+.. _fake-ego:
+
 The fake ego
 =============
 
@@ -330,6 +333,7 @@ The conversion process works as follows:
 5) The options on the right control the conversion process - which colours are allowed, and how many to use. Selecting different options can have a big effect on picture size.
 6) Once you are satisfied with the result, click *Accept*. The vector commands that make up the image will be added to your pic at the current location.
 
+.. _import-vga-background:
 
 Importing a VGA pic background (SCI1+)
 =========================================
@@ -356,6 +360,8 @@ from palette 999 are used. This is generally what is desired for pic backgrounds
 
 If you want to customize which indices are used, you can check or uncheck the *Only use x free palette entries* checkbox to quickly control which palette indices are used, or you can manually
 select them in the palette and press the refresh button.
+
+.. _import-vga-overlay:
 
 There is also an option to overlay an image onto an already existing background (this can be useful for things like :doc:`palette cycling <palettecycling>`),
 in addition to all the same dithering options available in the :ref:`Import Image <importimages-label>` dialog.

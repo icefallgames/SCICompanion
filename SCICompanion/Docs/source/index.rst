@@ -55,6 +55,7 @@ Topics:
    importexport
    extractall
    tips
+   sci11_tutorial
 
 Other
 ==================

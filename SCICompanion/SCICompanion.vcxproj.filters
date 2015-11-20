@@ -1609,6 +1609,96 @@
     <Image Include="Help\_images\TalkingComputer.png">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\Box.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\BoxInInventory.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\BoxInRoom.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\BoxMessageGame.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\BoxMessageLook.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\ChooseWhitePri.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\DragPolygon.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\EgoMoved.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\EgoPainting.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\EvilEgo.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\EvilEgoMessages.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\EvilEgoRoom.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\FakeEgoBadPri.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\FakeEgoGoodPri.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\FillPri.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\InvBoxLook.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\MessageTitleScreen.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\OverlayBackground.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\PaintingPolygon.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\PriorityOverlay.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\PriScreen.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\RedBox.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\RedBoxInGame.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\RedBoxMessages.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\RedBoxPlaced.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\RoomBackground.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\ShrinkingBox.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\TitleChange.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\TitleChangeImage.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\TitleScreenBackground.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\SCICompanion.rc2">
@@ -3383,6 +3473,17 @@
     <None Include="Help\Classes\InventoryBase.html" />
     <None Include="Help\Classes\InventoryItem.html" />
     <None Include="Tools\dosbox.conf" />
+    <None Include="Docs\source\sci11_tutorial.rst" />
+    <None Include="Docs\source\Tutorial\Actors.rst" />
+    <None Include="Docs\source\Tutorial\AddingObjects.rst" />
+    <None Include="Docs\source\Tutorial\AnimatingProps.rst" />
+    <None Include="Docs\source\Tutorial\Dying.rst" />
+    <None Include="Docs\source\Tutorial\FirstRoom.rst" />
+    <None Include="Docs\source\Tutorial\ManagingInventory.rst" />
+    <None Include="Docs\source\Tutorial\PriorityScreen.rst" />
+    <None Include="Docs\source\Tutorial\RoomBackground.rst" />
+    <None Include="Docs\source\Tutorial\TitleScreen.rst" />
+    <None Include="Docs\source\Tutorial\UseInventory.rst" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />

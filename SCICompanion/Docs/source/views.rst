@@ -211,6 +211,8 @@ all cels at once, or perform a mass replace of one color with another.
 To map the current pixel location to the pixel location in another cel, |scicomp| uses the offset (or placement) values for the cel. These form
 the origin.
 
+.. _color-shifting:
+
 Color shifting
 ==============================
 

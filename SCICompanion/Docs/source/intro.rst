@@ -133,3 +133,5 @@ To create a new game, choose *File->Create new game*. From there, you can choose
     Though the scripting is very similar, the two template games are not compatible. They use different resource formats, so porting from one to the other would be tedious.
 
 Once you create the game, you are ready to run it, compile it, or start adding content!
+
+Follow :doc:`this guide <sci11_tutorial>` for a step-by-step SCI 1.1 tutorial.
