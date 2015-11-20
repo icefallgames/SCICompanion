@@ -1293,7 +1293,7 @@ void CRoomExplorerView::_RecalcHeight()
             selectorTable.ReverseLookup("y", importantSelectors.Y) &&
             selectorTable.ReverseLookup("loop", importantSelectors.Loop) &&
             selectorTable.ReverseLookup("cel", importantSelectors.Cel) &&
-            globalClassTable.LookupSpecies("Rm", roomSpeciesIndex) &&
+            (globalClassTable.LookupSpecies("Rm", roomSpeciesIndex) || globalClassTable.LookupSpecies("Room", roomSpeciesIndex)) &&
             globalClassTable.LookupSpecies("View", viewSpeciesIndex))
         {
             // Add any room subclasses

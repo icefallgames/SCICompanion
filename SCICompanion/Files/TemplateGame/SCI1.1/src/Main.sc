@@ -47,7 +47,7 @@
 (use "Polygon")
 (use "StopWalk")
 (use "Timer")
-(use "Grooper")
+(use "GradualLooper")
 (use "Sound")
 (use "Game")
 (use "User")
@@ -556,7 +556,7 @@
         flags $0001
     )
 )
-(instance stopGroop of Grooper
+(instance stopGroop of GradualLooper
     (properties)
 )
 (instance egoStopWalk of FiddleStopWalk

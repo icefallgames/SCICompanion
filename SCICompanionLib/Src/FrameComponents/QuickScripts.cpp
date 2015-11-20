@@ -445,7 +445,7 @@ void QuickScriptsSidePane::_ResetUI()
                 {
 					if (!fFoundRoom &&
                         (browser.IsSubClassOf(classDef->GetSuperClass().c_str(), "Rm") ||   // SCI0-SCI1.1
-                        browser.IsSubClassOf(classDef->GetSuperClass().c_str(), "Room")))   // SCI2
+                        browser.IsSubClassOf(classDef->GetSuperClass().c_str(), "Room")))   // SCI2, SCI1.1 template game
                     {
                         if (_wPic == InvalidResourceNumber)
                         {

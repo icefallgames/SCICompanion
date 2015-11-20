@@ -2,7 +2,7 @@
 (include "sci.sh")
 (use "Main")
 (use "StopWalk")
-(use "Helpers")
+(use "Sight")
 (use "Cycle")
 (use "Object")
 (script 977)
@@ -15,10 +15,11 @@
 
 /*
 	This code is responsible for determining the correct view loop to use
-	based on an object's heading.
+	based on an object's heading. It works for 4 and 8 loop actors.
 */
-(class Grooper of Code
+(class GradualLooper of Code
     (properties
+    	name "Grooper"
         client 0
         oldCycler 0
         oldMover 0
@@ -70,14 +71,14 @@
             (send oldMover:dispose())
             = oldMover 0
         )
-        (if (IsObject(oldCycler) and ((send oldCycler:isMemberOf(Grycler)) or not (send ((send client:cycler)):isMemberOf(Grycler))))
+        (if (IsObject(oldCycler) and ((send oldCycler:isMemberOf(GradualCycler)) or not (send ((send client:cycler)):isMemberOf(GradualCycler))))
             (send oldCycler:dispose())
             = oldCycler 0
         )
         (if (not oldCycler)
             = oldCycler (send client:cycler)
         )
-        (if ((send client:cycler) and (send ((send client:cycler)):isMemberOf(Grycler)))
+        (if ((send client:cycler) and (send ((send client:cycler)):isMemberOf(GradualCycler)))
             (send ((send client:cycler)):dispose())
         )
         = oldMover (send client:mover)
@@ -85,7 +86,7 @@
             cycler(0)
             mover(0)
             setMotion(0)
-            setCycle(Grycler self temp0)
+            setCycle(GradualCycler self temp0)
         )
     )
 
@@ -122,10 +123,11 @@
 )
 
 /*
-	This class is used internally by :class:`Grooper`.
+	This class is used internally by :class:`GradualLooper`.
 */
-(class Grycler of Cycle
+(class GradualCycler of Cycle
     (properties
+    	name "Grycler"
         client 0
         caller 0
         cycleDir 1

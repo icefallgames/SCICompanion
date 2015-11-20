@@ -1819,8 +1819,6 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <None Include="Files\TemplateGame\SCI1.1\src\gravmover.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\Grooper.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\Grooper.sco" />
-    <None Include="Files\TemplateGame\SCI1.1\src\Helpers.sc" />
-    <None Include="Files\TemplateGame\SCI1.1\src\Helpers.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\IconItem.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\IconItem.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\Inset.sc" />
@@ -1908,6 +1906,8 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <None Include="Files\TemplateGame\SCI1.1\src\SettingsPane.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\seurekablobbed.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\shipchunk.sco" />
+    <None Include="Files\TemplateGame\SCI1.1\src\Sight.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\Sight.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\sintheasteroids.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\Slider.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\Slider.sco" />
