@@ -74,6 +74,7 @@
         (var temp0, temp1[10])
         (switch (= state newState)
             (case 0
+            	// Wait 4 seconds before going to the next state.
                 = seconds 4
             )
             (case 1
@@ -87,12 +88,12 @@
                     mode(alCENTER)
                     addText(N_TITLEMENU V_LOOK 0 4 0 0 0)
                     addText(N_TITLEMENU V_LOOK 0 5 0 10 0)
-                    addColorButton(0 N_TITLEMENU V_LOOK 0 1 0 20 0 0 15 23 5 5 5)
-                    addColorButton(1 N_TITLEMENU V_LOOK 0 2 0 30 0 0 15 23 5 5 5)
+                    addColorButton(0 N_TITLEMENU V_LOOK 0 1 0 20 0 0 11 23 5 5 5)
+                    addColorButton(1 N_TITLEMENU V_LOOK 0 2 0 30 0 0 11 23 5 5 5)
                 )
                 
                 (= temp0 (Print:
-                        addColorButton(2 N_TITLEMENU V_LOOK 0 3 0 40 0 0 15 23 5 5 5)
+                        addColorButton(2 N_TITLEMENU V_LOOK 0 3 0 40 0 0 11 23 5 5 5)
                         init()
 								 ))
                 

@@ -37,7 +37,7 @@
 
 (instance public deathRoom of Rm
     (properties
-        picture 100
+        picture 200
     )
 
     (method (init)

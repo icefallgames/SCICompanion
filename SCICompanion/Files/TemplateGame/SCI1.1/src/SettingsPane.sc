@@ -18,44 +18,6 @@
 (use "Obj")
 (script GAMECONTROLS_SCRIPT)
 
-/*
-	Represents an icon with functionality that can be used in a GUI.
-	
-	When pressed, the *selector* property will be invoked on *theObj*.
-*/
-(class ControlItem of ControlIcon
-    (properties
-        view -1
-        loop -1
-        cel -1
-        nsLeft 0
-        nsTop -1
-        nsRight 0
-        nsBottom 0
-        state $0000
-        cursor -1
-        type evVERB
-        message -1
-        modifiers $0000
-        signal $0001
-        maskView 0
-        maskLoop 0
-        maskCel 0
-        highlightColor 0
-        lowlightColor 0
-        noun 0
-        modNum 0
-        helpVerb 0
-        theObj 0				// An object that gets notified when this icon is pressed.
-        selector 0				// A method selector (e.g. #doit) on theObj.
-    )
-
-    (method (select param1)
-        (super:select(rest param1))
-        (self:doit())
-    )
-)
-
 (instance gameControls of GameControls
     (properties)
 
@@ -294,7 +256,7 @@
     )
 )
 
-(instance iconSave of ControlItem
+(instance iconSave of ControlIcon
     (properties
         view 995
         loop 2
@@ -308,7 +270,7 @@
     )
 )
 
-(instance iconRestore of ControlItem
+(instance iconRestore of ControlIcon
     (properties
         view 995
         loop 3
@@ -322,7 +284,7 @@
     )
 )
 
-(instance iconRestart of ControlItem
+(instance iconRestart of ControlIcon
     (properties
         view 995
         loop 4
@@ -336,7 +298,7 @@
     )
 )
 
-(instance iconQuit of ControlItem
+(instance iconQuit of ControlIcon
     (properties
         view 995
         loop 5
@@ -350,7 +312,7 @@
     )
 )
 
-(instance iconAbout of ControlItem
+(instance iconAbout of ControlIcon
     (properties
         view 995
         loop 6

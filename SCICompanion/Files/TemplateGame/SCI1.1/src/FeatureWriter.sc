@@ -183,6 +183,8 @@
 )
 
 /*
+	This is Sierra's FeatureWriter debug functionality. It is included for historical purposes and is not essential to the template game.
+
 	Example usage::
 	
 		(FeatureWriter:doit())

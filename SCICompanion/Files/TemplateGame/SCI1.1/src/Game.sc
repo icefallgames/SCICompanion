@@ -14,7 +14,7 @@
 (script 994)
 
 
-
+// PromptForDiskChange
 (procedure (localproc_0e32 param1)
     (var temp0, temp1[40], temp41[40], temp81, temp82[40], temp122[10], temp132[5])
     = temp81 Memory(memALLOC_CRIT 150)
@@ -195,8 +195,8 @@
         script 0
         printLang 1
         _detailLevel 3
-        panelObj 0
-        panelSelector 0
+        panelObj 0			// Current object target of a UI control
+        panelSelector 0		// Selector for the object target.
         handsOffCode 0
         handsOnCode 0
     )
@@ -789,14 +789,14 @@
         initialized 0
         picture 0		// The number of the pic resource for the room background.
         style $ffff		// The dp\* animation flags that control room opening animation.
-        horizon 0
+        horizon 0		// y coordinate of room's horizon.
         controls 0
         north 0			// The room to the north (if appropriate)
         east 0			// The room to the east (if appropriate)
         south 0			// The room to the south (if appropriate)
         west 0			// The room to the west (if appropriate)
         curPic 0
-        picAngle 0
+        picAngle 0		// How far from vertical is the view? 0-89
         vanishingX 160
         vanishingY 0
         obstacles 0

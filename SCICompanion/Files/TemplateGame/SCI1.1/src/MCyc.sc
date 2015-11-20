@@ -7,7 +7,7 @@
 (script MANUALCYCLE_SCRIPT)
 
 /*
-	A cycler that progresses through an explicit set of cels. See the init() method for more information about parameters.
+	A cycler that progresses through an explicit set of cels. See the init() method for more information about parameters. "MoveCycle".
 	
 	Example usage::
 	
@@ -15,7 +15,7 @@
 		(local celList[5] = (3 6 2 1 $8000)) // $8000 indicates the end of the cel list.
 		
 		// Then in code:
-		(aStar:setCycle(celList)) // cycle through 3, 6, 2, 1 then stop.
+		(aStar:setCycle(MCyc celList)) // cycle through 3, 6, 2, 1 then stop.
 
 */
 (class MCyc of Cycle

@@ -8,6 +8,15 @@
 
 /*
 	An icon that represents an action. These are used, for instance, in the main icon bar, or in the inventory dialog.
+	
+	If you wish to do something in response to the icon being clicked, override the select(params) method in your IconItem instance like so::
+	
+	    (method (select params)
+	        (if ((super:select(rest params)))
+	            // Do something here....
+	        )
+	        return 0
+	    )
 */
 (class IconItem of Obj
     (properties
@@ -59,18 +68,23 @@
         )
     )
 
-
-    (method (select param1)
+	/*
+	.. function:: select([fProcessEvents])
+	
+		:param boolean fProcessEvents: If TRUE, sets its state based on consuming mouse release events. If unspecified, just selects the control.
+		:returns: TRUE if the icon was selected, FALSE otherwise.
+	*/
+    (method (select fProcessEvents)
         (var newEvent, temp1, gGameScript)
         return 
             (if (& signal icDISABLED)
                 0
             )(else
-                (if ((paramTotal and param1) and (& signal notUpd))
+                (if ((paramTotal and fProcessEvents) and (& signal notUpd))
                     = temp1 1
                     DrawCel(view loop temp1 nsLeft nsTop -1)
                     Graph(grUPDATE_BOX nsTop nsLeft nsBottom nsRight 1)
-                    (while (<> (send ((= newEvent (Event:new()))):type) 2)
+                    (while (<> (send ((= newEvent (Event:new()))):type) evMOUSERELEASE)
                         (send newEvent:localize())
                         (if ((self:onMe(newEvent)))
                             (if (not temp1)
@@ -415,14 +429,17 @@
         (self:highlight(temp0 (& state $0020)))
     )
 
-
-    (method (select theCurIcon param2)
+	/*
+	.. function:: select(theCurIcon [fProcessEvents])
+	*/
+    (method (select theCurIcon fProcessEvents)
         return 
             (if ((send theCurIcon:select(
                 (if (>= paramTotal 2)
-                    param2
+                    fProcessEvents
                 )
-)))
+										)
+				))
                 (if (not & (send theCurIcon:signal) $0002)
                     = curIcon theCurIcon
                 )
@@ -527,7 +544,7 @@
                     )
                 )
                 (case evMOUSEBUTTON
-                    (if (theHighlightedIcon and (self:select(theHighlightedIcon 1)))
+                    (if (theHighlightedIcon and (self:select(theHighlightedIcon TRUE)))
                         (if (temp59)
                             (if (temp57)
                                 (send gGame:setCursor(temp57))

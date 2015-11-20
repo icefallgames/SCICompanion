@@ -780,7 +780,7 @@ code_072e:  pushi   1
     )
 )
 
-// The Restore dialog.
+// The Restore Game dialog.
 (class Restore of SRDialog
     (properties
         elements 0
@@ -808,7 +808,9 @@ code_072e:  pushi   1
     )
 )
 
-// The Save dialog.
+/*
+ 	The Save Game dialog.
+*/
 (class Save of SRDialog
     (properties
         elements 0

@@ -47,7 +47,7 @@
                 (self:firstTrue(#checkState csENABLED))
             )
         (if (theItem)
-            (send theItem:select(1))
+            (send theItem:select(TRUE))
         )
         (if (not theItem)
             = eatTheMice gEatTheMice
@@ -98,7 +98,7 @@
         (if (((& (send theControl:state) csENABLED) and (send theControl:check(pEvent))) and not (& (send theControl:state) csSELECTED))
             (send ((send theDialog:theItem)):select(0))
             (send theDialog:theItem(theControl))
-            (send theControl:select(1))
+            (send theControl:select(TRUE))
         )
     )
 )

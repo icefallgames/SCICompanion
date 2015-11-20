@@ -72,6 +72,8 @@
 	
 	If you add a new Narrator instance, you must assign it some talker number, and then add code in the
 	findTalker method of testMessage in Main.sc to direct that talker number to the right script and export.
+	
+	See :doc:`/talkers` for more information Talkers.	
 */
 (class Narrator of Prop
     (properties
@@ -345,6 +347,8 @@
 	
 	If you add a new Talker instance, you must assign it some talker number, and then add code in the
 	findTalker method of testMessage in Main.sc to direct that talker number to the right script and export.
+	
+	See :doc:`/talkers` for more information Talkers.
 */
 (class Talker of Narrator
     (properties

@@ -1148,10 +1148,10 @@
         (super:init())
     )
 
-    (method (select param1)
+    (method (select params)
         (var temp0)
         return 
-            (if ((super:select(rest param1)))
+            (if ((super:select(rest params)))
                 (send gIconBar:hide())
                 return 1
             )(else
@@ -1347,10 +1347,10 @@
     )
 
 
-    (method (select param1)
+    (method (select params)
         (var theGCursorNumber)
         return 
-            (if ((super:select(rest param1)))
+            (if ((super:select(rest params)))
                 (send gIconBar:hide())
                 = theGCursorNumber gCursorNumber
                 (send gInv:showSelf(gEgo))
@@ -1382,9 +1382,9 @@
     )
 
 
-    (method (select param1)
+    (method (select params)
         return 
-            (if ((super:select(rest param1)))
+            (if ((super:select(rest params)))
                 (send gIconBar:hide())
                 (send gGame:showControls())
                 return 1

@@ -94,10 +94,10 @@
     )
 
 
-    (method (select param1 param2)
-        (send param1:select(
+    (method (select theControl fSelect)
+        (send theControl:select(
             (if (>= paramTotal 2)
-                param2
+                fSelect
             )(else
                 0
             )
@@ -187,6 +187,32 @@
 
 /*
 	Extends :class:`IconItem` by having a object and selector.
+	
+	When clicked (selected), the *selector* property will be invoked on *theObj*.
+	
+	Example::
+	
+		(instance iconRestart of ControlIcon
+			(properties
+				view 995
+				loop 4
+				cel 0
+				nsLeft 80
+				nsTop 82
+				message 8
+				signal $01c3
+				noun N_RESTART
+				helpVerb V_HELP
+			)
+		)
+
+		// then later...
+	
+		(iconRestart:
+			theObj(gGame)
+			selector(#restart)
+		)
+
 */
 (class ControlIcon of IconItem
     (properties
@@ -211,8 +237,8 @@
         noun 0
         modNum 0
         helpVerb 0
-        theObj 0
-        selector 0
+        theObj 0				// An object that gets notified when this icon is pressed.
+        selector 0				// A method selector (e.g. #doit) on theObj.
     )
 
     (method (doit)
@@ -230,5 +256,11 @@
                 panelSelector(selector)
             )
         )
+    )
+    
+
+    (method (select fSelect)
+        (super:select(rest fSelect))
+        (self:doit())
     )
 )

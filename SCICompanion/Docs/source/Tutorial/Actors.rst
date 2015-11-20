@@ -88,8 +88,8 @@ Compile and run the game, and now he'll be following the ego around!! That's a b
             y 131
             signal ignAct
             noun N_EVILEGO
-            moveSpeed 15
-            cycleSpeed 15
+            moveSpeed 30
+            cycleSpeed 30
         )
     )
 

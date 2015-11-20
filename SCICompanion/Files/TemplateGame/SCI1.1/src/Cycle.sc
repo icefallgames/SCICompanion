@@ -14,6 +14,11 @@
 /*
 	The base class for all cyclers. Cyclers are responsible for changing the cel
 	of a :class:`Prop` or :class:`Actor` over time, giving the illusion of animation.
+	
+	Example usage::
+	
+		// Cycle the cels of myProp forward.
+		(myProp:setCycle(Fwd))
 */
 (class Cycle of Obj
     (properties
@@ -191,7 +196,7 @@
 )
 
 /*
-	End cycles to the last cel in a loop and stops.
+	End cycles from the first cel to the last cel in a loop and stops.
 	
 	Example usage::
 	
@@ -226,7 +231,7 @@
 )
 
 /*
-	Beg cycles backward to the first cel in a loop and stops.
+	Beg cycles from the last cel backward to the first cel in a loop and stops.
 */
 (class Beg of CT
     (properties
@@ -264,14 +269,14 @@
         caller 0			// The object that will get cue()'d when the motion is complete.
         x 0
         y 0
-        dx 0
+        dx 0				// Step size.
         dy 0
         {b-moveCnt} 0
         {b-i1} 0
         {b-i2} 0
         {b-di} 0
-        {b-xAxis} 0
-        {b-incr} 0
+        {b-xAxis} 0			// Which axis is the motion along?
+        {b-incr} 0			// Bresenham adjustment.
         completed 0
         xLast 0
         yLast 0

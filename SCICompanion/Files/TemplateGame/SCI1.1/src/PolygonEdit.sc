@@ -898,6 +898,9 @@ code_06d6:  ret
 )
 
 /*
+	This is an in-game polygon editor. It is not essential for the template
+	game, but it is included for historical purposes.
+
 	Usage::
 
 		(PolyEdit:doit())

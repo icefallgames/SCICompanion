@@ -16,6 +16,328 @@
 #include "OutputCodeHelper.h"
 #include "OutputSourceCodeBase.h"
 
+// Still a WIP.
+
+/*
+    ; Information about the original SCI Syntax
+    ; headers.. they can pretty much contain anything.
+
+    ; A comment
+
+    (include    game.sh)    // No quotes
+    (define ID_GAME   1)
+    (define ID_FOO    $01)
+
+    (enum 1                 // Starts at 1. If ommitted, starts at 0. Can be any number, even -ve
+        FOO                 // 1
+        BAR                 // 2
+        BLAH                // 3
+    )
+
+    (extern
+        Print   PRINT_SCRIPT 0      // Name, script, export. We could use use for this.
+    )
+
+    (define	Bloo	(ModuleID SOMETHING_SCRIPT 4))
+
+    (define	SOME_MASK		(~             %111100))
+
+    ; defines seem like macros
+    (define viewTHING		(if isAThing vThing1 else vThing2))
+
+
+    ; Variable types
+    (global
+        int bloop 100
+        id blarg 105
+    )
+
+    ; locals
+    (local
+        int bloop = 4
+        int balh
+        id bam
+        id fooo
+    )
+
+    ; procedures
+    (procedure (MyProc aParam)
+    )
+
+*/
+
+/*
+    ; Script declaration? ACTOR is a define?
+    (script# ACTOR)
+    (module# BLOOP) ; what's the diff with above?
+
+    ; of
+    (instance bloop of Game
+    )
+
+    ; kindof for classes
+    (class Moop kindof BaseClass
+        (properties
+            prop1 2
+            prop2 (| stopUpdOn staticView)
+        )
+        ; props could be pre-pended by int or id? Maybe that's only later versions.
+
+        ; Explicit declaration of methods before use, weird
+        (methods
+            method1
+            method2
+        )
+
+        (method (methodName param1 param2 &tmp var1 var2)
+            (= var1
+                5
+            )
+            (&= bloop (~blap)) ; ~ instead of bnot
+
+            (KernelFunc someParam1 someParam2)
+
+            (object selector: someParam1 somePAram2)
+            (self 
+                selector1:,
+                selector2:,
+                selector3:
+            )
+        )
+
+        ; binary ops:
+        ; ==        equal       (this can have multiple args)
+        ; !=        not equal
+        ; ~         binary not
+
+        ; Some contants:
+        TRUE
+        FALSE
+        NULL
+
+        (method (varParamsMethod param1 param2)
+            (if (>= argc 1)
+                (= myProp param1)
+                (if (>= argc 2)
+                    (= someOtherProp param2)
+                )
+            )
+
+            ; Takes the place of if,else if, else if, else:
+            (cond
+                (someExpression stuff stuff stuff stuff
+                )
+                (someExpression stuff stuff stuff
+                )
+                (else stuff stuff stuff
+                )
+            )
+
+            (return)
+        )
+
+        (method (someStuff arg)
+
+            ; rest takes no parameters. just passes remaining stuff
+            (object aMethod: aparam &rest) 
+
+            ; boolean not
+            (if (not something)
+            )
+
+            (if (& (theOBj -info-?) CLASS)
+                ; do something
+            )
+
+            ; keywords: or, and. Take multiple args.
+            (if (or (anObject prop1?) (anObject prop2?))
+                stuff
+                stuff
+                (return 0)
+            else ; Note, no starting paren before else
+                stuff
+                stuff
+                (return 1)
+            )   
+        )
+
+        ; lots of tmp vars. what do array look like?
+        (method (doit aParam &tmp thing1 thing2 thing3 [arrayDecl 100])
+            ; indexing an array (or rather, parameter)
+            (= foo [aParam thing1])
+
+            ; for loop
+            (for ('init') ('condition') ('post')
+                stuff stuff stuff stuff
+            )
+
+            (= ret
+                (cond
+                    ((expression1)) ; value would be expression1
+
+                    ((expression2)
+                        -1          ; value would be -1
+                    )
+
+                    ((expression3)
+                        -2          ; value would be -2
+                    )
+                    ; not sure what happens in else case, I guess 0
+            )
+        )
+
+        ; Value of an expression is the last guy in the list of guys
+
+
+        (method (doSomeText &tmp [buffer 100])
+            (SomeProcedure @[buffer 0] blah blah balh)
+            ; or...
+            (SomeProcedure @buffer blah blah balh)
+
+            (define SHIFT_AMOUNT 8) ; defines can be declared in methods
+
+            ; while loops
+
+            (while expr stuff stuff stuff stuff)
+
+            ; selector literals end in ':'
+            (self eachElementDo: #setSize:)
+            ; but not always...
+            (gameStr boop: #right)
+            ; it might be for disambiguating:
+            (cast
+                eachElementDo: #dispose:,
+                eachElementDo: #delete
+            )
+            ; but...
+            (timers eachElementDo: #delete:)
+
+            
+            ; switches
+            (switch value
+                (value
+                    stuff
+                    stuff
+                )
+                (value2
+                    stuff
+                    stggg
+                )
+                (else
+                    stuff
+                    stuff
+                )
+            )
+
+            ; switchto
+            (switchto value
+                (stuff stuff stuff)
+                (stuff stuff stuff)
+                (stuff stuff stuff)
+            )
+
+        )
+
+    )
+
+    ; how about exports?
+    (public
+        ExportName      0
+        AnotherProcName 1
+    )
+
+
+
+    ; UNSURE ABOUT
+    ; {} ??? Literal strings.
+*/
+
+/*
+    ; some contants
+    ; ignrHrz
+    ; CMAP, VMAP, PMAP
+*/
+
+
+/*
+    ; Some long names
+    (class Room kindof Region
+        (properties
+            id		name "Rm"
+            ; etc...
+
+
+*/
+
+/*
+    Some kernels
+
+    KSound
+        (enum
+            MasterVol
+            SoundOn
+            RestoreSound
+            NumVoices
+            ChangeSndState
+            InitSound
+            KillSound
+            PlaySound
+            StopSound
+            PauseSound
+            FadeSound
+            UpdateCues
+            MidiSend
+            SetReverb
+            HoldSound
+        )
+
+    ;File handling.
+        FileSystem
+            (enum
+                FSOpen
+                FSClose
+                FSPuts
+                FSGets
+                FSGetCWD
+                FSPutByte
+                FSGetByte
+                FSFreeSpace
+                FSValidPath
+                FSSeek
+                FSUnlink
+                FSAsArray
+                FSFromArray
+                FSFileLength
+                FSDirFirst
+                FSDirNext
+            )
+            (enum
+                FSFromStart
+                FSFromCur
+                FSFromEnd
+            )
+
+    Graph
+        (enum					; ARGS								RETURNS
+            GLoadBits		; bitmap number
+            GDetect			; none 								# of colors available
+            GSetPalette		; Palette number
+            GDrawLine  		; yStart/xStart/yEnd/xEnd mapSet colors...
+            GFillArea  		; x/y/ mapSet colors...
+            GDrawBrush 		; x/y/ size randomSeed mapSet colors...
+            GSaveBits		; rectangle mapset             saveID of area
+            GRestoreBits	; saveID from SaveBits
+            GEraseRect		; top/left/bottom/right (draws visual in background color)
+            GPaintRect		; top/left/bottom/right (draws visual in foreground color)
+            GFillRect  		; rectangle mapSet colors...
+            GShowBits		; rectangle mapSet
+            GReAnimate		; rectangle
+            GInitPri			; horizon/base Rebuild priority tables
+        )
+
+
+*/
+
 using namespace sci;
 using namespace std;
 

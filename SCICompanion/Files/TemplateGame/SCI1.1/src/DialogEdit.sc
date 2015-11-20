@@ -1086,7 +1086,7 @@
 )
 
 /*
-	Invokes the in-game Dialog Editor.
+	Invokes the in-game Dialog Editor. This can be considered debug functionality, and is not essential to the template game.
 	
 	Example usage::
 	

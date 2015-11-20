@@ -22,8 +22,8 @@ and just use doit(). Furthermore, we can override init() in the evilEgo and set 
             y 131
             signal ignAct
             noun N_EVILEGO
-            moveSpeed 15
-            cycleSpeed 15
+            moveSpeed 30
+            cycleSpeed 30
         )
     
         (method (init params)

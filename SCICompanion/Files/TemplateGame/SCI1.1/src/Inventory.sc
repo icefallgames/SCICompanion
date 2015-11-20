@@ -115,8 +115,8 @@
         helpVerb V_HELP
     )
 
-    (method (select param1)
-        (if ((super:select(rest param1)))
+    (method (select params)
+        (if ((super:select(rest params)))
             (send gInv:scroll(-1))
         )
         return 0
@@ -137,8 +137,8 @@
         helpVerb V_HELP
     )
 
-    (method (select param1)
-        (if ((super:select(rest param1)))
+    (method (select params)
+        (if ((super:select(rest params)))
             (send gInv:scroll(1))
         )
         return 0

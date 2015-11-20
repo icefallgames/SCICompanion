@@ -4,7 +4,7 @@
 (script 938)
 
 /*
-	This cycler is similar to :class:`Osc`, but lets you specify specific first and last cels between which to oscillate.
+	This cycler is similar to :class:`Osc`, but lets you specify specific first and last cels between which to oscillate (range oscillate).
 	
 	Sample usage::
 	
