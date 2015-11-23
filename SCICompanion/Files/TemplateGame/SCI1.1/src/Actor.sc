@@ -151,7 +151,7 @@
         (if (& signal $0080)
             0
         )(else
-            (if (not IsObject(onMeCheck) and (& signal noCycler))
+            (if (not IsObject(onMeCheck) and (& signal skipCheck))
                 (if (not 
                 (if ((nsLeft or nsRight) or nsTop)
                 )(else

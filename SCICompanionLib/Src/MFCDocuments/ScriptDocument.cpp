@@ -42,6 +42,7 @@
 #include "format.h"
 #include "ResourceBlob.h"
 #include "DependencyTracker.h"
+#include "OutputCodeHelper.h"
 
 using namespace std;
 
@@ -450,6 +451,7 @@ void CScriptDocument::OnViewSyntaxTree()
     }
 #endif
 
+#if NOT_NEEDED
     // Repurposing it for something else: calculating the dependency tree
     set<string> complete;
     stack<ScriptId> toProcess;
@@ -475,7 +477,10 @@ void CScriptDocument::OnViewSyntaxTree()
             }
         }
     }
+#endif
 
+    // temp
+    OnConvertScript();
 }
 
 void CScriptDocument::OnDebugRoom()
@@ -489,9 +494,11 @@ void CScriptDocument::OnDebugRoom()
 
 void CScriptDocument::OnConvertScript()
 {
-    if (appState->GetResourceMap().Helper().GetGameLanguage() != _scriptId.Language())
+    if (true)
+    //if (appState->GetResourceMap().Helper().GetGameLanguage() != _scriptId.Language())
     {
-        if (LangSyntaxCpp == appState->GetResourceMap().Helper().GetGameLanguage())
+        if (true)
+        //if (LangSyntaxCpp == appState->GetResourceMap().Helper().GetGameLanguage())
         {
             // What we do
             // 1) Parse this script and generate a syntax tree.
@@ -500,14 +507,25 @@ void CScriptDocument::OnConvertScript()
             // 4) Reload
             CScriptStreamLimiter limiter(&_buffer);
             CCrystalScriptStream stream(&limiter);
-            SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser(); 
-            browser.Lock();
+            //SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser(); 
+            //browser.Lock();
             // 1)
             sci::Script script(_scriptId);
             CompileLog log;
             bool fCompile = g_Parser.Parse(script, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log);;
             if (fCompile)
             {
+                ConvertToSCISyntaxHelper(script);
+
+				std::stringstream out;
+				sci::SourceCodeWriter debugOut(out, LangSyntaxSCI, &script);
+				script.OutputSourceCode(debugOut);
+
+                ShowTextFile(out.str().c_str(), _scriptId.GetFileNameOrig() + ".txt");
+
+#ifdef DISABLED
+
+
                 // 1.5 Make some substitutions for properties that have minus signs in them.
                 // e.g. convert b-moveCnt to b_moveCnt, since c-style syntax can't handle - in a variable name.
                 class PropertyAliasConvert : public sci::IExploreNode
@@ -607,6 +625,7 @@ void CScriptDocument::OnConvertScript()
                     // Update our title
                     _OnUpdateTitle();
                 }
+#endif
             }
             else
             {
@@ -622,7 +641,8 @@ void CScriptDocument::OnConvertScript()
 void CScriptDocument::OnUpdateConvertScript(CCmdUI *pCmdUI)
 {
     // Enable conversion if this script's language is different than the game's language.
-    pCmdUI->Enable(appState->GetResourceMap().Helper().GetGameLanguage() != _scriptId.Language());
+    // pCmdUI->Enable(appState->GetResourceMap().Helper().GetGameLanguage() != _scriptId.Language());
+    pCmdUI->Enable(TRUE);
 }
 
 void CScriptDocument::OnUpdateLineCount(CCmdUI *pCmdUI)

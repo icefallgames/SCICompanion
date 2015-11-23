@@ -96,6 +96,8 @@ public:
     virtual ~IOutputByteCode() {}
 };
 
+class DetectIfWentNonInline;
+
 namespace sci
 {
     // fwd decl
@@ -200,7 +202,17 @@ namespace sci
     {
     public:
         CommentTracker(Script &script);
-        void Sync(const sci::SyntaxNode *pNode, SourceCodeWriter &out);
+        // Returns true if comment output
+        bool Sync(const sci::SyntaxNode *pNode, SourceCodeWriter &out, int incrementLine = 0);
+
+        template<typename _Tx>
+        void Transform(_Tx tx)
+        {
+            for (auto &comment : _comments)
+            {
+                tx(*comment);
+            }
+        }
     private:
         size_t _commentIndex;
         const std::vector<std::unique_ptr<Comment>> &_comments;
@@ -223,21 +235,14 @@ namespace sci
 
 	};
 
-
     //
     // Used for generating a text representation of a script from its SyntaxNodes
 	// I also use it to track variable indexing usage so we know what's an array and what's not.
     //
     struct SourceCodeWriter
     {
-        SourceCodeWriter(std::stringstream &ss, LangSyntax syntax, Script *pScript = nullptr) : out(ss), lang(syntax),
-            iIndent(0), fInline(false), fLast(false), fUseBrackets(false), fExpandCodeBlock(false), pszNewLine("\n"), lastNewLineLength(0), disallowedTokens(nullptr), fAlwaysExpandCodeBlocks(false)
-        { 
-			if (pScript)
-			{
-				pComments = std::make_unique<CommentTracker>(*pScript);
-			}
-		}
+        SourceCodeWriter(std::stringstream &ss, LangSyntax syntax, Script *pScript = nullptr);
+
         void SyncComments(const sci::SyntaxNode *pNode)
         {
             if (pComments)
@@ -256,18 +261,23 @@ namespace sci
         {
             return fInline ? "" : pszNewLine;
         }
-        void EnsureNewLine()
+        void NewLine()
         {
-            if (!fInline)
+            out << pszNewLine;
+        }
+        void EnsureNewLine(const sci::SyntaxNode *lastNodeWritten = nullptr);
+
+        template<typename _Tx>
+        void TransformComments(_Tx tx)
+        {
+            if (pComments)
             {
-                if (out.tellp() > lastNewLineLength)
-                {
-                    out << pszNewLine;
-                    lastNewLineLength = out.tellp();
-                }
-                // Otherwise we had just added a line.
+                pComments->Transform(tx);
             }
         }
+
+        void IndentToCommentColumn();
+
         std::stringstream::pos_type lastNewLineLength;
         LangSyntax lang;
         std::stringstream &out;
@@ -279,6 +289,8 @@ namespace sci
         bool fAlwaysExpandCodeBlocks;
         std::unique_ptr<CommentTracker> pComments;
         std::unordered_set<std::string> *disallowedTokens;
+        std::vector<DetectIfWentNonInline*> detectNonInLine;
+        int defaultInlineCommentColumn;
 
         const char *pszNewLine;
     };
@@ -983,11 +995,11 @@ namespace sci
     {
         DECLARE_NODE_TYPE(NodeTypeCodeBlock)
     public:
-		CodeBlock() {}
-		CodeBlock(const CodeBlock &src) = delete;
-		CodeBlock& operator=(const CodeBlock& src) = delete;
+        CodeBlock() {}
+        CodeBlock(const CodeBlock &src) = delete;
+        CodeBlock& operator=(const CodeBlock& src) = delete;
 
-		const SingleStatementVector &GetList() const { return _segments; }
+        const SingleStatementVector &GetList() const { return _segments; }
         
 
         // IOutputByteCode
@@ -1000,9 +1012,9 @@ namespace sci
         _T *ReduceBlock()
         {
             _T *pReduced = nullptr;
-			if ((_segments.size() == 1) && (_segments[0]->CastSyntaxNode<_T>()))
+            if ((_segments.size() == 1) && (_segments[0]->CastSyntaxNode<_T>()))
             {
-				pReduced = static_cast<_T*>(_segments[0]->ReleaseSyntaxNode());
+                pReduced = static_cast<_T*>(_segments[0]->ReleaseSyntaxNode());
             }
             return pReduced;
         }
@@ -1070,9 +1082,7 @@ namespace sci
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 
-        bool IsMultiline() const;
-    private:
-        //std::string _comment;
+        bool IsInline() const;
     };
     typedef Comment* CommentPtr;
     typedef std::vector<std::unique_ptr<Comment>> CommentVector;

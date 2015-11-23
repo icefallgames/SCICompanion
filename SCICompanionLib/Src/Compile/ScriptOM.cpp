@@ -462,6 +462,12 @@ ScriptSite::ScriptSite()
     _pScript = nullptr;
 }
 
+bool Comment::IsInline() const
+{
+    return GetPosition().Column() > 0;
+}
+
+// REVIEW: Only works with cpp style comments.
 std::string Comment::GetSanitizedText() const
 {
 	if ((_innerName[0] == '/') && (_innerName[1] == '/'))
@@ -482,6 +488,52 @@ std::string Comment::GetSanitizedText() const
     }
 }
 
+void SourceCodeWriter::IndentToCommentColumn()
+{
+    ptrdiff_t origPosition = (ptrdiff_t)out.tellp();
+    ptrdiff_t origPositionG = (ptrdiff_t)out.tellg();
+    ptrdiff_t position  = origPosition - 1;
+    ptrdiff_t currentCharCount = 0;
+    out.seekg(position);
+    while ((position >= 0) && (out.peek() != '\n'))
+    {
+        currentCharCount++;
+        position--;
+        out.seekg(position);
+    }
+
+    ptrdiff_t numSpacesToIndex = max(1, defaultInlineCommentColumn - currentCharCount);
+
+    // Restore
+    out.seekg(origPositionG);
+
+    std::string spaces;
+    spaces.append(numSpacesToIndex, ' ');
+    out << spaces;
+}
+
+void SourceCodeWriter::EnsureNewLine(const sci::SyntaxNode *lastNodeWritten)
+{
+    if (!fInline)
+    {
+        if (out.tellp() > lastNewLineLength)
+        {
+            // If we're going to a new line, check to see if we have comments we need to output
+            bool needNewLine = true;
+            if (lastNodeWritten && pComments)
+            {
+                // TODO: Need some whitespace. Do we tab out to a certain point?
+                needNewLine = !pComments->Sync(lastNodeWritten, *this, 1);
+            }
+            if (needNewLine)
+            {
+                out << pszNewLine;
+            }
+            lastNewLineLength = out.tellp();
+        }
+        // Otherwise we had just added a line.
+    }
+}
 
 // Visitor pattern
 void Script::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }

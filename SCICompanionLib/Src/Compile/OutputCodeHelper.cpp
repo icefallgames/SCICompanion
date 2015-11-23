@@ -85,7 +85,7 @@ void NewLine(sci::SourceCodeWriter &out)
 {
     if (!out.fInline)
     {
-        out.out << out.NewLineString();
+        out.NewLine();
         Indent(out);
     }
 }
@@ -146,4 +146,24 @@ std::string CleanToken(const std::string &src, std::unordered_set<std::string> *
     {
         return src;
     }
+}
+
+DetectIfWentNonInline::DetectIfWentNonInline(sci::SourceCodeWriter &out) : _out(out), WentInline(false) { out.detectNonInLine.push_back(this); }
+DetectIfWentNonInline::~DetectIfWentNonInline() { _out.detectNonInLine.pop_back(); }
+
+Inline::Inline(sci::SourceCodeWriter &out, bool fInline) : _out(out)
+{
+    _fOld = _out.fInline;
+    _out.fInline = fInline;
+    if (!fInline)
+    {
+        for (auto &detect : out.detectNonInLine)
+        {
+            detect->WentInline = true;
+        }
+    }
+}
+Inline::~Inline()
+{
+    _out.fInline = _fOld;
 }

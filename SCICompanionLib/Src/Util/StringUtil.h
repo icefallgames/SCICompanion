@@ -51,3 +51,5 @@ static inline std::string &rtrim(std::string &s, char c) {
 static inline std::string &trim(std::string &s, char c) {
     return ltrim(rtrim(s, c), c);
 }
+
+std::vector<std::string> Lineify(const std::string &in);

@@ -53,6 +53,21 @@ protected:
     }
 
     template<typename _T>
+    void ForwardAlwaysSeparate(_T &things, const char *pszSeparator)
+    {
+        bool first = true;
+        for (const auto &thing : things)
+        {
+            if (!first)
+            {
+                out.out << pszSeparator;
+            }
+            thing->Accept(*this);
+            first = false;
+        }
+    }
+
+    template<typename _T>
     void ForwardOptionalSection(const char *sectionName, _T &things)
     {
         if (!things.empty())

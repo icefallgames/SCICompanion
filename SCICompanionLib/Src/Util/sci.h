@@ -415,6 +415,7 @@ enum LangSyntax
     LangSyntaxUnknown,
     LangSyntaxSCIStudio,
     LangSyntaxCpp,
+	LangSyntaxSCI,
 };
 
 bool IsSCIKeyword(LangSyntax lang, const std::string &word);

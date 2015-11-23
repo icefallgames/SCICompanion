@@ -81,6 +81,16 @@ private:
     sci::SourceCodeWriter &_out;
 };
 
+class DetectIfWentNonInline
+{
+public:
+    DetectIfWentNonInline(sci::SourceCodeWriter &out);
+    ~DetectIfWentNonInline();
+
+    bool WentInline;
+private:
+    sci::SourceCodeWriter &_out;
+};
 
 //
 // Handles an "inline" scope (don't put statements on new lines)
@@ -88,15 +98,9 @@ private:
 class Inline
 {
 public:
-    Inline(sci::SourceCodeWriter &out, bool fInline) : _out(out)
-    {
-        _fOld = _out.fInline;
-        _out.fInline = fInline;
-    }
-    ~Inline()
-    {
-        _out.fInline = _fOld;
-    }
+    Inline(sci::SourceCodeWriter &out, bool fInline);
+    ~Inline();
+
 private:
     bool _fOld;
     sci::SourceCodeWriter &_out;
@@ -153,7 +157,14 @@ private:
 class DebugLine
 {
 public:
-    DebugLine(sci::SourceCodeWriter &out) : _out(out)
+    DebugLine(sci::SourceCodeWriter &out, const sci::SyntaxNode &node) : _out(out), _node(&node)
+    {
+        if (!_out.fInline)
+        {
+            Indent(_out);
+        }
+    }
+    DebugLine(sci::SourceCodeWriter &out) : _out(out), _node(nullptr)
     {
         if (!_out.fInline)
         {
@@ -164,10 +175,11 @@ public:
     {
         if (!_out.fInline)
         {
-            _out.EnsureNewLine();
+            _out.EnsureNewLine(_node);
         }
     }
 private:
+    const sci::SyntaxNode *_node;
     sci::SourceCodeWriter &_out;
 };
 
@@ -222,3 +234,5 @@ private:
 std::string _DeduceReturnType(sci::FunctionBase &function);
 
 void EndStatement(sci::SourceCodeWriter &out);
+
+void ConvertToSCISyntaxHelper(sci::Script &script);

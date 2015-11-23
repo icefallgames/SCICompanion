@@ -175,8 +175,13 @@
 (define evMOUSERELEASE				$0002) // Mouse button release event
 (define evMOUSE				        $0003) // Mouse button event
 (define evKEYBOARD					$0004) // Keyboard event 
+(define evKEYUP						$0008) // key up event
+(define evMENUSTART					$0010)
+(define evMENUHIT					$0020)
 (define evJOYSTICK					$0040) // Movement (joystick) event 
 (define evSAID						$0080) // Said event 
+(define evJOYDOWN					$0100)
+(define evJOYUP						$0200)
 (define evNOJOYSTICK				$8000) // no joystick event 
 
 (define evMOUSEKEYBOARD				$0005) // Mouse/Keyboard event
@@ -346,8 +351,8 @@
 
 // control state
 (define csENABLED $0001)
-(define csFOCUSED $0002)
-(define csDISABLED $0004)
+(define csEXIT $0002)
+(define csFILTER $0004)
 (define csSELECTED $0008)
 
 #endif  // SCI_1_1
@@ -478,7 +483,7 @@
  (define fixPriOn                   $0010)
  (define isExtra                    $0200)
  (define noTurn                     $0800)
- (define noCycler                   $1000)
+ (define skipCheck                  $1000)
  (define ignoreHorizon              $2000)
  (define ignAct                     $4000)
 

@@ -15,331 +15,224 @@
 #include "ScriptOMAll.h"
 #include "OutputCodeHelper.h"
 #include "OutputSourceCodeBase.h"
+#include "PMachine.h"
+#include "StringUtil.h"
 
 // Still a WIP.
 
 /*
-    ; Information about the original SCI Syntax
-    ; headers.. they can pretty much contain anything.
+    Suggested syntax:
+    
+    classes: same as SCIStudio 
 
-    ; A comment
+    define:
+        (define name const-exp) ; can be declared in methods too.
 
-    (include    game.sh)    // No quotes
-    (define ID_GAME   1)
-    (define ID_FOO    $01)
+    Procedure call:
+        (ProcName param0 param1 param2)
 
-    (enum 1                 // Starts at 1. If ommitted, starts at 0. Can be any number, even -ve
-        FOO                 // 1
-        BAR                 // 2
-        BLAH                // 3
-    )
+    send call:
+        (object selector: param0 pararm1, selector2: param0 param1)
 
-    (extern
-        Print   PRINT_SCRIPT 0      // Name, script, export. We could use use for this.
-    )
+    prop retrieval:
+        (object prop?)
 
-    (define	Bloo	(ModuleID SOMETHING_SCRIPT 4))
+    procedure/method definition:
+        (method (methodName param0 param1 &tmp temp0 temp1 temp2)
+            statement0
+            statement1
+            statement2
+        )
 
-    (define	SOME_MASK		(~             %111100))
+        ; procedures can be defined inside a class too... (e.g. see Timer.sc)
+        (procedure (procName param0 param2)
+            statement0
+            statement1
+            statement2
+        )
 
-    ; defines seem like macros
-    (define viewTHING		(if isAThing vThing1 else vThing2))
+    if/else:
+        (if expression statement0 statement1 statement2 else statement0 statement1 statement2)
 
+    cond:
+        (cond (expression0 statement0 statement1) (expression1 statement0 statement1) (else statement90 statement1))
 
-    ; Variable types
-    (global
-        int bloop 100
-        id blarg 105
-    )
+    repeat:
+        (repeat statement0 statement1 statement2)
 
-    ; locals
-    (local
-        int bloop = 4
-        int balh
-        id bam
-        id fooo
-    )
+    while:
+        (while expression statement1 statement2 statement3)
 
-    ; procedures
-    (procedure (MyProc aParam)
-    )
+    breakif:
+        (breakif expression)
 
-*/
+    break:
+        (break optionalNumberOfLevels)
 
-/*
-    ; Script declaration? ACTOR is a define?
-    (script# ACTOR)
-    (module# BLOOP) ; what's the diff with above?
+    return:
+        (return optionalexpression)
 
-    ; of
-    (instance bloop of Game
-    )
+    for:
+        // Unsure about parens here:
+        (for (pre0 pre1 pre2) expression (post0 post1 post2) statement0 statement1 statement2)
 
-    ; kindof for classes
-    (class Moop kindof BaseClass
+    operators:
+        same as c++
+
+    switch:
+        (switch expression (value statement0 statement2) (value2 statement0 statement1) (else statement0 statement1))
+
+        switchto:
+        (switch expression (statement0 statement2) (statement0 statement1) (statement0 statement1))
+
+    arrays:
+        [variableName index]
+
+    array declaration (e.g. in parameter list):
+        [variableName const-exp]
+
+    property declaration:
         (properties
-            prop1 2
-            prop2 (| stopUpdOn staticView)
-        )
-        ; props could be pre-pended by int or id? Maybe that's only later versions.
-
-        ; Explicit declaration of methods before use, weird
-        (methods
-            method1
-            method2
+            propName const-exp
+            // or possibly (both are used):
+            propName: const-exp
         )
 
-        (method (methodName param1 param2 &tmp var1 var2)
-            (= var1
-                5
-            )
-            (&= bloop (~blap)) ; ~ instead of bnot
+    number literals:
+        $0440   ; hex
+        440     ; dec
+        %010111 ; binary
+        `c      ; character
+        `@C     ; alt-c
+        `^C     ; ctrl-c
+        `+      ; plus sign
+        `#4     ; not sure
 
-            (KernelFunc someParam1 someParam2)
+    assignment, etc:
+        (assignmentOp lValue rValue)
 
-            (object selector: someParam1 somePAram2)
-            (self 
-                selector1:,
-                selector2:,
-                selector3:
-            )
+    expression
+        // pretty much all operators operate on n values
+        (operator value0 value1 value2 value3)
+
+    local variables:
+        (local
+            var1
+            var2 = [2 4 19 23 2 4]
+            [buffer 100]
+            [buffer 20] = [1 2 3 4 5 6 7 8]
         )
 
-        ; binary ops:
-        ; ==        equal       (this can have multiple args)
-        ; !=        not equal
-        ; ~         binary not
-
-        ; Some contants:
-        TRUE
-        FALSE
-        NULL
-
-        (method (varParamsMethod param1 param2)
-            (if (>= argc 1)
-                (= myProp param1)
-                (if (>= argc 2)
-                    (= someOtherProp param2)
-                )
-            )
-
-            ; Takes the place of if,else if, else if, else:
-            (cond
-                (someExpression stuff stuff stuff stuff
-                )
-                (someExpression stuff stuff stuff
-                )
-                (else stuff stuff stuff
-                )
-            )
-
-            (return)
+    exports
+        (public
+            instancename0 optionalExportNumber
+            procname0 optionalExportNumber
+            procname2 optionalExportNumber
         )
 
-        (method (someStuff arg)
+    rest:
+        &rest   ; no parameters...
 
-            ; rest takes no parameters. just passes remaining stuff
-            (object aMethod: aparam &rest) 
-
-            ; boolean not
-            (if (not something)
-            )
-
-            (if (& (theOBj -info-?) CLASS)
-                ; do something
-            )
-
-            ; keywords: or, and. Take multiple args.
-            (if (or (anObject prop1?) (anObject prop2?))
-                stuff
-                stuff
-                (return 0)
-            else ; Note, no starting paren before else
-                stuff
-                stuff
-                (return 1)
-            )   
+    enum:
+        ; exactly like defines, they can get converted into them.
+        (enum optionalNumber ; starts at 0 if not specified
+            NAME1
+            NAME2
+            NAME3
+            anotherOptionalNumber
+            NAME4
+            NAME6
+            NAME7
         )
 
-        ; lots of tmp vars. what do array look like?
-        (method (doit aParam &tmp thing1 thing2 thing3 [arrayDecl 100])
-            ; indexing an array (or rather, parameter)
-            (= foo [aParam thing1])
+    selector literals:
+        #name
+        ;sometimes, the following. Seems completely optional. We should error out on it.
+        #name:
 
-            ; for loop
-            (for ('init') ('condition') ('post')
-                stuff stuff stuff stuff
-            )
+    Other:
+        operators must be separated by whitespace from their arguments, e.g.
+            (++i) is not allowed.
 
-            (= ret
-                (cond
-                    ((expression1)) ; value would be expression1
-
-                    ((expression2)
-                        -1          ; value would be -1
-                    )
-
-                    ((expression3)
-                        -2          ; value would be -2
-                    )
-                    ; not sure what happens in else case, I guess 0
-            )
+    Calling a selector given by a variable. This is a bit weird, parses like a procedure, will need to be resolved later? Or it doesn't matter.
+        (procedure (Eval obj sel)
+            (return (obj sel &rest))
         )
-
-        ; Value of an expression is the last guy in the list of guys
-
-
-        (method (doSomeText &tmp [buffer 100])
-            (SomeProcedure @[buffer 0] blah blah balh)
-            ; or...
-            (SomeProcedure @buffer blah blah balh)
-
-            (define SHIFT_AMOUNT 8) ; defines can be declared in methods
-
-            ; while loops
-
-            (while expr stuff stuff stuff stuff)
-
-            ; selector literals end in ':'
-            (self eachElementDo: #setSize:)
-            ; but not always...
-            (gameStr boop: #right)
-            ; it might be for disambiguating:
-            (cast
-                eachElementDo: #dispose:,
-                eachElementDo: #delete
-            )
-            ; but...
-            (timers eachElementDo: #delete:)
-
-            
-            ; switches
-            (switch value
-                (value
-                    stuff
-                    stuff
-                )
-                (value2
-                    stuff
-                    stggg
-                )
-                (else
-                    stuff
-                    stuff
-                )
-            )
-
-            ; switchto
-            (switchto value
-                (stuff stuff stuff)
-                (stuff stuff stuff)
-                (stuff stuff stuff)
-            )
-
-        )
-
-    )
-
-    ; how about exports?
-    (public
-        ExportName      0
-        AnotherProcName 1
-    )
-
-
-
-    ; UNSURE ABOUT
-    ; {} ??? Literal strings.
-*/
-
-/*
-    ; some contants
-    ; ignrHrz
-    ; CMAP, VMAP, PMAP
-*/
-
-
-/*
-    ; Some long names
-    (class Room kindof Region
-        (properties
-            id		name "Rm"
-            ; etc...
-
-
-*/
-
-/*
-    Some kernels
-
-    KSound
-        (enum
-            MasterVol
-            SoundOn
-            RestoreSound
-            NumVoices
-            ChangeSndState
-            InitSound
-            KillSound
-            PlaySound
-            StopSound
-            PauseSound
-            FadeSound
-            UpdateCues
-            MidiSend
-            SetReverb
-            HoldSound
-        )
-
-    ;File handling.
-        FileSystem
-            (enum
-                FSOpen
-                FSClose
-                FSPuts
-                FSGets
-                FSGetCWD
-                FSPutByte
-                FSGetByte
-                FSFreeSpace
-                FSValidPath
-                FSSeek
-                FSUnlink
-                FSAsArray
-                FSFromArray
-                FSFileLength
-                FSDirFirst
-                FSDirNext
-            )
-            (enum
-                FSFromStart
-                FSFromCur
-                FSFromEnd
-            )
-
-    Graph
-        (enum					; ARGS								RETURNS
-            GLoadBits		; bitmap number
-            GDetect			; none 								# of colors available
-            GSetPalette		; Palette number
-            GDrawLine  		; yStart/xStart/yEnd/xEnd mapSet colors...
-            GFillArea  		; x/y/ mapSet colors...
-            GDrawBrush 		; x/y/ size randomSeed mapSet colors...
-            GSaveBits		; rectangle mapset             saveID of area
-            GRestoreBits	; saveID from SaveBits
-            GEraseRect		; top/left/bottom/right (draws visual in background color)
-            GPaintRect		; top/left/bottom/right (draws visual in foreground color)
-            GFillRect  		; rectangle mapSet colors...
-            GShowBits		; rectangle mapSet
-            GReAnimate		; rectangle
-            GInitPri			; horizon/base Rebuild priority tables
-        )
-
-
 */
 
 using namespace sci;
 using namespace std;
+
+class TransformParamTotalToArgc : public IExploreNodeContext, public IExploreNode
+{
+public:
+    TransformParamTotalToArgc(sci::Script &script) { script.Traverse(this, *this); }
+
+    void ExploreNode(IExploreNodeContext *pContext, SyntaxNode &node, ExploreNodeState state) override
+    {
+        if (state == ExploreNodeState::Pre)
+        {
+            PropertyValueBase *value = SafeSyntaxNode<PropertyValue>(&node);
+            if (!value)
+            {
+                value = SafeSyntaxNode<ComplexPropertyValue>(&node);
+            }
+            
+            if (value && (value->GetStringValue() == "paramTotal"))
+            {
+                value->SetValue("argc", ValueType::Token);
+            }
+        }
+    }
+};
+
+std::vector<std::pair<std::string, std::string>> binOpConvert =
+{
+    { "<>", "!=" },
+    { "&&", "and" },
+    { "||", "or" },
+};
+
+std::vector<std::pair<std::string, std::string>> unaryOpConvert =
+{
+    { "bnot", "~" },
+};
+
+std::string GetOperatorName(const sci::NamedNode &namedNode, const std::vector<std::pair<std::string, std::string>> &conversions)
+{
+    for (auto &conversion : conversions)
+    {
+        if (namedNode.GetName() == conversion.first)
+        {
+            return conversion.second;
+        }
+    }
+    return namedNode.GetName();
+}
+
+void ConvertToSCISyntaxHelper(Script &script)
+{
+    for (auto &comment : script.GetComments())
+    {
+        std::string text = comment->GetSanitizedText();
+        std::vector<std::string> lines = Lineify(text);
+        std::string newComment;
+        bool first = true;
+        for (std::string &line : lines)
+        {
+            if (!first)
+            {
+                newComment += "\n";
+            }
+            newComment += "; ";
+            newComment += line;
+            first = false;
+        }
+        comment->SetName(newComment);
+    }
+
+    TransformParamTotalToArgc txParamTotal(script);
+}
 
 class OutputSCISourceCode : public OutputSourceCodeBase
 {
@@ -348,40 +241,60 @@ public:
 
     void Visit(const Script &script) override
     {
-        for (const auto &include : script.GetIncludes())
-        {
-            out.out << "(include \"" << include << "\")" << out.NewLineString();
-        }
-        for (const auto &uses : script.GetUses())
-        {
-            out.out << "(use \"" << uses << "\")" << out.NewLineString();
-        }
+        out.SyncComments(script);
+
         ScriptId scriptId = script.GetScriptId();
-        if (scriptId.GetResourceNumber() == InvalidResourceNumber)
+        if (!script.GetScriptNumberDefine().empty())
         {
-            if (!script.GetScriptNumberDefine().empty())
-            {
-                out.out << "(script " << script.GetScriptNumberDefine() << ")" << out.NewLineString();
-            }
-            // else, this is a legit (e.g. for outputting header files)
+            out.out << "(script# " << script.GetScriptNumberDefine() << ")" << out.NewLineString();
         }
         else
         {
-            out.out << "(script " << scriptId.GetResourceNumber() << ")" << out.NewLineString();
+            if (scriptId.GetResourceNumber() == InvalidResourceNumber)
+            {
+                // This is a legit (e.g. for outputting header files)
+            }
+            else
+            {
+                out.out << "(script# " << scriptId.GetResourceNumber() << ")" << out.NewLineString();
+            }
+        }
+
+        for (const auto &include : script.GetIncludes())
+        {
+            out.out << "(include " << include << ")" << out.NewLineString();
+        }
+        for (const auto &uses : script.GetUses())
+        {
+            out.out << "(use " << uses << ")" << out.NewLineString();
+        }
+
+        ForwardOptionalSection("public", script.GetExports());
+        if (!script.GetExports().empty())
+        {
+            out.out << "(public" << out.NewLineString();
+            {
+                DebugIndent indent(out);
+                for (const auto &exports : script.GetExports())
+                {
+                    exports->Accept(*this);
+                }
+            }
+            out.out << ")" << out.NewLineString();
         }
 
         Forward(script.GetSynonyms());
-        out.out << endl;
+        out.EnsureNewLine();
 
         Forward(script.GetDefines());
-        out.out << endl;
+        out.EnsureNewLine();
 
         ForwardOptionalSection("local", script.GetScriptVariables());
 
         ForwardOptionalSection("string", script.GetScriptStringsDeclarations());
 
         Forward(script.GetProcedures());
-        out.out << endl;
+        out.EnsureNewLine();
         Forward(script.GetClasses());
     }
 
@@ -474,11 +387,15 @@ public:
 
     void Visit(const ComplexPropertyValue &prop) override
     {
+        if (prop.GetIndexer())
+        {
+            out.out << "[";
+        }
         _VisitPropertyValue(prop);
         if (prop.GetIndexer())
         {
+            out.out << " ";
             Inline inln(out, true);
-            out.out << "[";
             prop.GetIndexer()->Accept(*this);
             out.out << "]";
         }
@@ -497,7 +414,7 @@ public:
     void Visit(const ClassProperty &classProp) override
     {
         out.SyncComments(classProp);
-        DebugLine line(out);
+        DebugLine line(out, classProp);
         out.out << CleanToken(classProp.GetName()) << " ";
         Inline inln(out, true);
         classProp.GetStatement1()->Accept(*this);
@@ -505,7 +422,8 @@ public:
 
     void Visit(const SingleStatement &statement) override
     {
-        out.SyncComments(statement);
+        // Let the actual node handle this.
+        // out.SyncComments(statement);
         if (statement.GetSegment())
         {
             statement.GetSegment()->Accept(*this);
@@ -520,7 +438,6 @@ public:
     {
         out.SyncComments(varDecl);
         DebugLine line(out);
-        // TODO: in caller, put a local block around things if these are script variables.
         _OutputVariableAndSize(*this, out, varDecl.GetDataType(), varDecl.GetName(), varDecl.GetSize(), varDecl.GetStatements());
     }
 
@@ -537,37 +454,28 @@ public:
             out.out << "(" << function.GetName();
             const FunctionParameterVector &params = function.GetSignatures()[0]->GetParams();
 
-            bool fFirst = false;
             for (auto &functionParam : params)
             {
-                if (!fFirst)
-                {
-                    out.out << " ";
-                }
-                out.out << functionParam->GetName();
+                out.out << " " << functionParam->GetName();
             }
-            out.out << ")" << out.NewLineString();
+            if (!function.GetVariables().empty())
+            {
+                Inline inln(out, true);
+                out.out <<  " &tmp ";
+                Forward(function.GetVariables(), " ");
+            }
+            out.out << ")";
+            out.EnsureNewLine();
 
             // Body of function
             {
                 DebugIndent indent(out);
-                {
-                    Inline inln(out, true);
-                    if (!function.GetVariables().empty())
-                    {
-                        Indent(out);
-                        out.out << "(";
-                        Forward(function.GetVariables(), ", ");
-                        out.out << ")" << out.NewLineString();
-                    }
-                    // TODO: spit out the values here too.  _tempVarValues
-                    // And somehow coalesce variables types? Or Maybe not...
-                }
                 Forward(function.GetCodeSegments());
             }
 
             DebugLine line(out);
-            out.out << ")" << out.NewLineString();
+            out.out << ")";
+            out.EnsureNewLine();
         }
     }
 
@@ -582,6 +490,8 @@ public:
     void Visit(const ProcedureDefinition &function) override
     {
         out.SyncComments(function);
+        NewLine(out);
+        out.out << "(procedure ";
         _VisitFunctionBase(function);
     }
 
@@ -590,18 +500,16 @@ public:
     void Visit(const CodeBlock &block) override
     {
         out.SyncComments(block);
-        if (out.fExpandCodeBlock || out.fAlwaysExpandCodeBlocks)
+        if (block.GetList().size() > 1)
         {
-            Inline inln(out, true);
+            // Don't add this, messes up if statements.
+            // DebugLine debugLine(out);
+            Inline inln(out, false);
             Forward(block.GetList());
         }
         else
         {
-            DebugLine debugLine(out);
-            out.out << "(";
-            Inline inln(out, true);
             Forward(block.GetList());
-            out.out << ")";
         }
     }
 
@@ -609,40 +517,48 @@ public:
     {
         out.SyncComments(conditional);
         DebugLine debugLine(out);
-        out.out << "(";
         Inline inln(out, true);
         Forward(conditional.GetStatements());
-        out.out << ")";
     }
 
     void Visit(const Comment &comment) override
     {
-        // TODO: convert to ;
-        /*
-        DebugLine line(out);
-        out.out << comment.GetName();*/
+        // Handled elsewhere.
     }
 
     void Visit(const SendParam &sendParam) override
     {
         out.SyncComments(sendParam);
         DebugLine debugLine(out);
-        out.out << CleanToken(sendParam.GetSelectorName()) << ": ";
+        out.out << CleanToken(sendParam.GetSelectorName()) << ":";
+        DetectIfWentNonInline detect(out);
         if (!sendParam.GetSelectorParams().empty())
         {
+            out.out << " ";
             // Space-separated values
             Inline inln(out, true);
+            DebugIndent indent(out);    // In case we have inline false in here:
             Forward(sendParam.GetSelectorParams(), " ");
         }
+        if (detect.WentInline)
+        {
+            out.EnsureNewLine();
+            Indent(out);
+        }
+
     }
 
     void Visit(const LValue &lValue) override
     {
         out.SyncComments(lValue);
-        out.out << lValue.GetName();
         if (lValue.HasIndexer())
         {
             out.out << "[";
+        }
+        out.out << lValue.GetName();
+        if (lValue.HasIndexer())
+        {
+            out.out << " ";
             Inline inln(out, true);
             lValue.GetIndexer()->Accept(*this);
             out.out << "]";
@@ -653,7 +569,8 @@ public:
     {
         out.SyncComments(rest);
         DebugLine line(out);
-        out.out << "rest " << rest.GetName();
+        // TODO: Assert that the param for rest is always the last function parameter.
+        out.out << "&rest";
     }
 
     void Visit(const Cast &cast) override {}
@@ -684,6 +601,8 @@ public:
             }
         }
 
+        out.out << " ";
+
         size_t count = sendCall.GetParams().size() + (sendCall._rest ? 1 : 0);
         // Now the params.
         // If there is more than one, then indent, because we'll do one on each line.
@@ -693,7 +612,7 @@ public:
             {
                 DebugIndent indent(out);
                 out.out << out.NewLineString();	// newline to start it out
-                Forward(sendCall.GetParams(), ",");
+                ForwardAlwaysSeparate(sendCall.GetParams(), ",");
                 if (sendCall._rest)
                 {
                     sendCall._rest->Accept(*this);
@@ -714,37 +633,50 @@ public:
     {
         out.SyncComments(procCall);
         DebugLine line(out);
-        out.out << procCall.GetName() << " ";
+        out.out << "(" << procCall.GetName() << " ";
         Inline inln(out, true);
         Forward(procCall.GetStatements());
+        out.out << ")";
     }
 
     void Visit(const ReturnStatement &ret) override
     {
         out.SyncComments(ret);
+
         DebugLine line(out);
-        out.out << "return ";
-        Inline inln(out, true);
-        if (ret.GetStatement1() && (ret.GetStatement1()->GetType() != NodeTypeUnknown))
+        out.out << "(return ";
+        DetectIfWentNonInline detect(out);
         {
-            ret.GetStatement1()->Accept(*this);
+            Inline inln(out, true);
+            DebugIndent indent(out);    // In case we have inline false in here:
+            if (ret.GetStatement1() && (ret.GetStatement1()->GetType() != NodeTypeUnknown))
+            {
+                ret.GetStatement1()->Accept(*this);
+            }
         }
+        if (detect.WentInline)
+        {
+            out.EnsureNewLine();
+            Indent(out);
+        }
+        out.out << ")";
     }
 
     void Visit(const ForLoop &forLoop) override
     {
         out.SyncComments(forLoop);
         // CodeBlocks are just used in for loops for now I think. And perhaps random enclosures ().
-        ExpandNextCodeBlock expandCB(out, false);
         {
             DebugLine line(out);
-            out.out << "(for ";
+            out.out << "(for (";
             Inline inln(out, true);
             forLoop.GetInitializer()->Accept(*this);
-            out.out << " (";
-            forLoop.GetCondition()->Accept(*this);
             out.out << ") ";
+            // Condition is not contained in ()
+            forLoop.GetCondition()->Accept(*this);
+            out.out << " (";
             forLoop._looper->Accept(*this);
+            out.out << ")";
         }
         // Now the code
         {
@@ -762,10 +694,9 @@ public:
         out.SyncComments(whileLoop);
         {
             DebugLine line(out);
-            out.out << "(while (";
+            out.out << "(while ";
             Inline inln(out, true);
             whileLoop.GetCondition()->Accept(*this);
-            out.out << ")";
         }
         // Now the code, indented.
         {
@@ -780,36 +711,17 @@ public:
 
     void Visit(const DoLoop &doLoop) override
     {
-        // TODO: Switch to do-until?
-        out.SyncComments(doLoop);
-        {
-            DebugLine line(out);
-            out.out << "(do ";
-        }
-        // Now the code, indented.
-        {
-            DebugIndent indent(out);
-            Forward(doLoop.GetStatements());
-        }
-        {
-            DebugLine line(out);
-            {
-                Inline inln(out, true);
-                out.out << ") while (";
-                doLoop.GetCondition()->Accept(*this);
-                out.out << ")";
-            }
-        }
+        // Should be transformed into something else.
+        out.out << "DO LOOP NYI";
     }
 
     void Visit(const BreakStatement &breakStatement) override
     {
         out.SyncComments(breakStatement);
         DebugLine line(out);
-        out.out << "break";
+        out.out << "(break)";
     }
 
-    // TODO: get rid of numbers if they are in order.
     void Visit(const CaseStatement &caseStatement) override
     {
         out.SyncComments(caseStatement);
@@ -821,7 +733,7 @@ public:
             }
             else
             {
-                out.out << "(case ";
+                out.out << "(";
                 Inline inln(out, true);
                 caseStatement.GetStatement1()->Accept(*this);
             }
@@ -842,10 +754,9 @@ public:
         out.SyncComments(switchStatement);
         {
             DebugLine line(out);
-            out.out << "(switchto (";
+            out.out << "(switch ";
             Inline inln(out, true);
             switchStatement.GetStatement1()->Accept(*this);
-            out.out << ")";
         }
         // Now the cases, indented.
         {
@@ -862,24 +773,36 @@ public:
     {
         DebugLine line(out);
         Inline inln(out, true);
-        out.out << assignment.GetAssignmentOp() << " ";
+        out.out << "(" << assignment.GetAssignmentOp() << " ";
         assignment._variable->Accept(*this);
         out.out << " ";
-        assignment.GetStatement1()->Accept(*this);
+        DetectIfWentNonInline detect(out);
+        {
+            DebugIndent indent(out);    // In case we have inline false in here:
+            assignment.GetStatement1()->Accept(*this);
+        }
+        if (detect.WentInline)
+        {
+            out.EnsureNewLine();
+            Indent(out);
+        }
+
+        out.out << ")";
     }
 
     void Visit(const BinaryOp &binaryOp) override
     {
         out.SyncComments(binaryOp);
         DebugLine line(out);
-        OutputBrackets brackets(out);
-        {
-            Inline inln(out, true);
-            out.out << binaryOp.GetOpName() << " ";
-            binaryOp.GetStatement1()->Accept(*this);
-            out.out << " ";
-            binaryOp.GetStatement2()->Accept(*this);
-        }
+        Inline inln(out, true);
+
+        std::string name = GetOperatorName(binaryOp, binOpConvert);
+
+        out.out << "(" + name << " ";
+        binaryOp.GetStatement1()->Accept(*this);
+        out.out << " ";
+        binaryOp.GetStatement2()->Accept(*this);
+        out.out << ")";
     }
 
     void Visit(const UnaryOp &unaryOp) override
@@ -887,76 +810,104 @@ public:
         out.SyncComments(unaryOp);
         DebugLine line(out);
         Inline inln(out, true);
-        BracketScope bracketScope(out, true);
-        out.out << unaryOp.GetOpName();
+        out.out << "(" << GetOperatorName(unaryOp, unaryOpConvert);
         out.out << " ";
         unaryOp.GetStatement1()->Accept(*this);
+        out.out << ")";
     }
 
     void Visit(const CppIfStatement &ifStatement) override
     {
-        // When decompiling, we always create CppIfStatements, even if we're outputting SCI syntax
-        if (ifStatement._fTernary)
+        Inline inln(out, false);	// Line by line now, overall
         {
-            Inline inln(out, true);
+            out.EnsureNewLine();
             {
-                out.out << "? (";
+                DebugLine ifLine(out);
+                out.out << "(if ";
+                Inline inlineCondition(out, true); // But the condition is inline
                 ifStatement.GetCondition()->Accept(*this);
-                out.out << ") ";
-                ifStatement.GetStatement1()->Accept(*this);
-                out.out << " ";
-                ifStatement.GetStatement2()->Accept(*this);
+                out.out << "";
             }
-        }
-        else
-        {
-            Inline inln(out, false);	// Line by line now, overall
             {
-                {
-                    DebugLine ifLine(out);
-                    out.out << "(if (";
-                    Inline inlineCondition(out, true); // But the condition is inline
-                    ifStatement.GetCondition()->Accept(*this);
-                    out.out << ")";
-                }
+                DebugIndent indent(out);
+                Inline inlineCondition(out, false);
+                ifStatement.GetStatement1()->Accept(*this);
+            }
+            {
+                DebugLine closeLine(out);
+                out.out << (ifStatement.HasElse() ? "else" : ")");
+            }
+            if (ifStatement.HasElse())
+            {
                 {
                     DebugIndent indent(out);
-                    ExpandNextCodeBlock expandCB(out, true);
                     Inline inlineCondition(out, false);
-                    ifStatement.GetStatement1()->Accept(*this);
+                    ifStatement.GetStatement2()->Accept(*this);
                 }
-                {
-                    DebugLine closeLine(out);
-                    out.out << (ifStatement.HasElse() ? ")(else" : ")");
-                }
-                if (ifStatement.HasElse())
-                {
-                    {
-                        DebugIndent indent(out);
-                        ExpandNextCodeBlock expandCB(out, true);
-                        Inline inlineCondition(out, false);
-                        ifStatement.GetStatement2()->Accept(*this);
-                    }
-                    DebugLine closeLine(out);
-                    out.out << ")";
-                }
+                DebugLine closeLine(out);
+                out.out << ")";
             }
         }
     }
 
 
-    void Visit(const Asm &asmSection) override
+    void Visit(const Asm &asmStatement) override
     {
-        DebugLine line(out);
-//        out.out << asmSection.GetInstructionName() << " " << asmSection._arguments;
+        // Let's use a more custom text formatting.
+        out.EnsureNewLine();
+
+        Inline inlineAsm(out, true);
+
+        int labelSize = 0;
+        if (!asmStatement.GetLabel().empty())
+        {
+            out.out << asmStatement.GetLabel() << ":";
+            labelSize = (int)asmStatement.GetLabel().size() + 1;
+        }
+
+        // Move forward to the current indent level.
+        std::string spaces;
+        spaces.append(max(0, out.iIndent - labelSize), ' ');
+        out.out << spaces;
+
+        // output the instruction
+        out.out << asmStatement.GetName();
+
+        // Move forward to a common column
+        spaces.clear();
+        spaces.append(max(0, 8 - asmStatement.GetName().size()), ' ');
+        out.out << spaces;
+
+        Forward(asmStatement.GetStatements(), ", ");
     }
 
     void Visit(const AsmBlock &asmSection) override
     {
+        out.disallowedTokens = &GetOpcodeSet();
 
+        {
+            DebugLine asmLine(out);
+            out.out << "(asm";
+            {
+                DebugIndent indent(out);
+                Forward(asmSection.GetStatements());
+            }
+        }
+        {
+            out.EnsureNewLine();
+            DebugLine asmLine(out);
+            out.out << ")";
+        }
+
+        // Can't have asmblock inside another, so it's ok to not have a stack here, and just force values.
+        out.disallowedTokens = nullptr;
     }
 
-    void Visit(const ExportEntry &exportEntry) override {}
+    void Visit(const ExportEntry &exportEntry) override
+    {
+        DebugLine exportLine(out);
+        out.out << CleanToken(exportEntry.Name) << " " << exportEntry.Slot;
+    }
 };
 
 void OutputSourceCode_SCI(const sci::Script &script, sci::SourceCodeWriter &out)
@@ -969,4 +920,16 @@ void OutputSourceCode_SCI(const sci::ClassDefinition &classDef, sci::SourceCodeW
 {
     OutputSCISourceCode output(out);
     output.Visit(classDef);
+}
+
+void OutputSourceCode_SCI(const sci::MethodDefinition &method, sci::SourceCodeWriter &out)
+{
+    OutputSCISourceCode output(out);
+    output.Visit(method);
+}
+
+void OutputSourceCode_SCI(const sci::ClassProperty &classProp, sci::SourceCodeWriter &out)
+{
+    OutputSCISourceCode output(out);
+    output.Visit(classProp);
 }

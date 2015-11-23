@@ -17,6 +17,8 @@
 #include "OutputCodeHelper.h"
 #include "OutputSCIStudioSourceCode.h"
 #include "OutputCPPSourceCode.h"
+#include "OutputSCISourceCode.h"
+#include "StringUtil.h"
 
 using namespace sci;
 using namespace std;
@@ -47,23 +49,50 @@ CommentTracker::CommentTracker(Script &script) : _comments(script.GetComments())
 {
 }
 
-void CommentTracker::Sync(const sci::SyntaxNode *pNode, SourceCodeWriter &out)
+bool CommentTracker::Sync(const sci::SyntaxNode *pNode, SourceCodeWriter &out, int incrementLine)
 {
+    bool outputComment = false;
     if (_commentIndex < _comments.size())
     {
         LineCol commentPosition = _comments[_commentIndex]->GetEndPosition();
         LineCol nodePosition = pNode->GetPosition(); // Note: can't use end position, it's not consistently set.
+        nodePosition = LineCol(nodePosition.Line() + incrementLine, nodePosition.Column());
         while ((_commentIndex < _comments.size()) && (commentPosition < nodePosition))
         {
+            if (_comments[_commentIndex]->IsInline())
+            {
+                out.IndentToCommentColumn();
+            }
             out.out << _comments[_commentIndex]->GetName();
-            NewLine(out);
+            out.EnsureNewLine();
+            outputComment = true;
             ++_commentIndex;
             if (_commentIndex < _comments.size())
             {
                 commentPosition = _comments[_commentIndex]->GetEndPosition();
-                nodePosition = pNode->GetPosition();
             }
         }
+    }
+    return outputComment;
+}
+
+SourceCodeWriter::SourceCodeWriter(std::stringstream &ss, LangSyntax syntax, Script *pScript) :
+    out(ss),
+    lang(syntax),
+    iIndent(0),
+    fInline(false),
+    fLast(false),
+    fUseBrackets(false),
+    fExpandCodeBlock(false),
+    pszNewLine("\n"),
+    lastNewLineLength(0),
+    disallowedTokens(nullptr),
+    fAlwaysExpandCodeBlocks(false),
+    defaultInlineCommentColumn(40)
+{
+    if (pScript)
+    {
+        pComments = std::make_unique<CommentTracker>(*pScript);
     }
 }
 
@@ -77,6 +106,10 @@ void Script::OutputSourceCode(SourceCodeWriter &out) const
     {
         OutputSourceCode_CPP(*this, out);
     }
+    else if (out.lang == LangSyntaxSCI)
+    {
+        OutputSourceCode_SCI(*this, out);
+    }
 }
 
 void ClassDefinition::OutputSourceCode(SourceCodeWriter &out) const
@@ -88,6 +121,10 @@ void ClassDefinition::OutputSourceCode(SourceCodeWriter &out) const
     else if (out.lang == LangSyntaxCpp)
     {
         OutputSourceCode_CPP(*this, out);
+    }
+    else if (out.lang == LangSyntaxSCI)
+    {
+        OutputSourceCode_SCI(*this, out);
     }
 }
 
@@ -101,6 +138,10 @@ void MethodDefinition::OutputSourceCode(SourceCodeWriter &out) const
     {
         OutputSourceCode_CPP(*this, out);
     }
+    else if (out.lang == LangSyntaxSCI)
+    {
+        OutputSourceCode_SCI(*this, out);
+    }
 }
 
 void ClassProperty::OutputSourceCode(SourceCodeWriter &out) const
@@ -112,5 +153,9 @@ void ClassProperty::OutputSourceCode(SourceCodeWriter &out) const
     else if (out.lang == LangSyntaxCpp)
     {
         OutputSourceCode_CPP(*this, out);
+    }
+    else if (out.lang == LangSyntaxSCI)
+    {
+        OutputSourceCode_SCI(*this, out);
     }
 }
