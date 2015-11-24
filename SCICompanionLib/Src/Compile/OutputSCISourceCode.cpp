@@ -166,12 +166,12 @@
 using namespace sci;
 using namespace std;
 
-class TransformParamTotalToArgc : public IExploreNodeContext, public IExploreNode
+class TransformParamTotalToArgc : public IExploreNode
 {
 public:
-    TransformParamTotalToArgc(sci::Script &script) { script.Traverse(this, *this); }
+    TransformParamTotalToArgc(sci::Script &script) { script.Traverse(*this); }
 
-    void ExploreNode(IExploreNodeContext *pContext, SyntaxNode &node, ExploreNodeState state) override
+    void ExploreNode(SyntaxNode &node, ExploreNodeState state) override
     {
         if (state == ExploreNodeState::Pre)
         {
@@ -189,7 +189,7 @@ public:
     }
 };
 
-class TransformDeterminePropSelectors : public IExploreNodeContext, public IExploreNode
+class TransformDeterminePropSelectors : public IExploreNode
 {
 public:
     TransformDeterminePropSelectors(sci::Script &script)
@@ -213,10 +213,10 @@ public:
             }
         }
 
-        script.Traverse(this, *this);
+        script.Traverse(*this);
     }
 
-    void ExploreNode(IExploreNodeContext *pContext, SyntaxNode &node, ExploreNodeState state) override
+    void ExploreNode(SyntaxNode &node, ExploreNodeState state) override
     {
         if (state == ExploreNodeState::Pre)
         {

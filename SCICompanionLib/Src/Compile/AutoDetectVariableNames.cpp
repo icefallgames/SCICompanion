@@ -462,12 +462,12 @@ private:
 
 // This class is responsible for identifying areas where we can deduce variable names, getting the suggested
 // variable name, and then tracking that data.
-class DetectVariableNames : public IExploreNodeContext, public IExploreNode
+class DetectVariableNames : public IExploreNode
 {
 public:
     DetectVariableNames(RenameContext &renameContext) : trackVarNames(renameContext) {  }
 
-    void ExploreNode(IExploreNodeContext *pContext, SyntaxNode &node, ExploreNodeState state) override
+    void ExploreNode(SyntaxNode &node, ExploreNodeState state) override
     {
         if (state == ExploreNodeState::Pre)
         {
@@ -530,12 +530,12 @@ private:
     TrackVariablesNames trackVarNames;
 };
 
-class ApplyVariableNames : public IExploreNodeContext, public IExploreNode
+class ApplyVariableNames : public IExploreNode
 {
 public:
     ApplyVariableNames(RenameContext &renameContext) : _renameContext(renameContext) {  }
 
-    void ExploreNode(IExploreNodeContext *pContext, SyntaxNode &node, ExploreNodeState state) override
+    void ExploreNode(SyntaxNode &node, ExploreNodeState state) override
     {
         if (state == ExploreNodeState::Pre)
         {
@@ -626,9 +626,9 @@ void AutoDetectVariableNames(Script &script, const IDecompilerConfig *config, CS
     {
         renameContext.ClearDirty();
         DetectVariableNames detectVarNames(renameContext);
-        script.Traverse(&detectVarNames, detectVarNames);
+        script.Traverse(detectVarNames);
         ApplyVariableNames applyVarNames(renameContext);
-        script.Traverse(&applyVarNames, applyVarNames);
+        script.Traverse(applyVarNames);
     } while (renameContext.IsDirty());
 
     mainDirty = renameContext.IsMainDirty();

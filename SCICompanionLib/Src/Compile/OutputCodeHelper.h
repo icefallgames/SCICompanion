@@ -211,7 +211,7 @@ public:
     std::string GetSugggestReturnValue() const { return _retValue.empty() ? "void" : _retValue; }
 
 private:
-    void ExploreNode(sci::IExploreNodeContext *pContext, sci::SyntaxNode &node, sci::ExploreNodeState state)
+    void ExploreNode(sci::SyntaxNode &node, sci::ExploreNodeState state)
     {
         if (state == sci::ExploreNodeState::Pre)
         {

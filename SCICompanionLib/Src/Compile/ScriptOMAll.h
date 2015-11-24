@@ -48,7 +48,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;
         void PreScan(CompileContext &context);
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+        void Traverse(IExploreNode &en);
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 
@@ -76,7 +76,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;
         void PreScan(CompileContext &context);
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+        void Traverse(IExploreNode &en);
 
         void SetIndexer(std::unique_ptr<SyntaxNode> indexer) { _indexer = std::move(indexer); }
         
@@ -100,7 +100,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;
         
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+        void Traverse(IExploreNode &en);
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 
     };
@@ -119,7 +119,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;
         void PreScan(CompileContext &context) { _statement1->PreScan(context); }
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+        void Traverse(IExploreNode &en);
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 
     };
@@ -147,7 +147,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;
         void PreScan(CompileContext &context);
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+        void Traverse(IExploreNode &en);
 
         void SetLValue(std::unique_ptr<LValue> var) { _object3 = std::move(var); }
 		void AddSendParam(std::unique_ptr<SendParam> pParam) { _params.push_back(std::move(pParam)); }
@@ -184,7 +184,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;
         void PreScan(CompileContext &context);
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+        void Traverse(IExploreNode &en);
         
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
@@ -204,7 +204,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;
         void PreScan(CompileContext &context) { if (_statement1) _statement1->PreScan(context); }
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+        void Traverse(IExploreNode &en);
         
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
@@ -224,7 +224,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;
         void PreScan(CompileContext &context); 
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+        void Traverse(IExploreNode &en);
         
         void SetLooper(std::unique_ptr<CodeBlock> block) { _looper = std::move(block); }
 		CodeBlock *GetInitializer() const { return _list.get(); }
@@ -246,7 +246,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;
         void PreScan(CompileContext &context);
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+        void Traverse(IExploreNode &en);
         
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
@@ -264,7 +264,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;
         void PreScan(CompileContext &context);
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+        void Traverse(IExploreNode &en);
         
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
@@ -277,7 +277,7 @@ namespace sci
     public:
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+        void Traverse(IExploreNode &en);
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 
@@ -296,7 +296,7 @@ namespace sci
         bool IsDefault() const { return _fDefault; }
 
         // IOutputByteCode
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+        void Traverse(IExploreNode &en);
         void PreScan(CompileContext &context);
 
         void SetDefault(bool fDefault) { _fDefault = fDefault; }
@@ -327,7 +327,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;
         void PreScan(CompileContext &context);
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+        void Traverse(IExploreNode &en);
 
         
 		void AddCase(std::unique_ptr<CaseStatement> pCase) { _cases.push_back(std::move(pCase)); }
@@ -357,7 +357,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;
         void PreScan(CompileContext &context);
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+        void Traverse(IExploreNode &en);
 
         void SetVariable(std::unique_ptr<LValue> var) { _variable = std::move(var); }
         
@@ -388,7 +388,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const override;
         void PreScan(CompileContext &context)  override { _statement1->PreScan(context); _statement2->PreScan(context); }
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en) override;
+        void Traverse(IExploreNode &en) override;
         bool Evaluate(CompileContext &context, uint16_t &result) override;
         virtual std::string ToString() const;
 
@@ -416,7 +416,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;
         void PreScan(CompileContext &context) { _statement1->PreScan(context); }
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+        void Traverse(IExploreNode &en);
         
         virtual std::string ToString() const;
 
@@ -436,7 +436,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;
         void PreScan(CompileContext &context) ;
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+        void Traverse(IExploreNode &en);
         
 
         // Causes output to be of the form _condition ? _if : _else
@@ -468,7 +468,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;
         void PreScan(CompileContext &context);
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+        void Traverse(IExploreNode &en);
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
     };
@@ -485,7 +485,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;
         void PreScan(CompileContext &context);
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+        void Traverse(IExploreNode &en);
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 
@@ -520,7 +520,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;
         void PreScan(CompileContext &context);
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+        void Traverse(IExploreNode &en);
 
         void AddClause(std::unique_ptr<CondClauseStatement> pCase) { _clauses.push_back(std::move(pCase)); }
 
@@ -540,7 +540,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;
         void PreScan(CompileContext &context);
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+        void Traverse(IExploreNode &en);
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
     };
@@ -552,7 +552,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;
         void PreScan(CompileContext &context);
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+        void Traverse(IExploreNode &en);
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
     };

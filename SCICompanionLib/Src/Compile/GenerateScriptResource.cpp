@@ -797,7 +797,7 @@ private:
     // Problems with parsing the SCIStudio syntax means we may need to make some adjustments in the
     // syntax tree.
     //
-    void ExploreNode(IExploreNodeContext *pContext, SyntaxNode &node, ExploreNodeState state)
+    void ExploreNode(SyntaxNode &node, ExploreNodeState state)
     {
         if (state == ExploreNodeState::Pre)
         {
@@ -1307,7 +1307,7 @@ void CommonScriptPrep(Script &script, CompileContext &context, CompileResults &r
     {
         // Fix up case statements we may have mis-interpreted.
         FixCaseStatements hack(context);
-        script.Traverse(nullptr, hack);
+        script.Traverse(hack);
     }
 }
 

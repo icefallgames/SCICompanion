@@ -98,7 +98,7 @@ public:
     // IOutputByteCode
     CodeResult OutputByteCode(CompileContext &context) const { throw std::exception("Not Implemented"); }
     void PreScan(CompileContext &context)  { throw std::exception("Not Implemented"); }
-    void Traverse(IExploreNodeContext *pContext, IExploreNode &en)  { throw std::exception("Not Implemented"); }
+    void Traverse(IExploreNode &en)  { throw std::exception("Not Implemented"); }
 
     void AddAndOr(bool fAnd) { _andOrs.push_back(fAnd); }
 

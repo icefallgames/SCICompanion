@@ -222,12 +222,12 @@ bool _IsUndeterminedPublicProc(const CompiledScript &compiledScript, const std::
     return false;
 }
 
-class ResolveProcedureCalls : public IExploreNodeContext, public IExploreNode
+class ResolveProcedureCalls : public IExploreNode
 {
 public:
     ResolveProcedureCalls(const GameFolderHelper &helper, const CompiledScript &compiledScript, unordered_map<int, unique_ptr<CSCOFile>> &scoMap) : _scoMap(scoMap), _compiledScript(compiledScript), _helper(helper) {}
 
-    void ExploreNode(IExploreNodeContext *pContext, SyntaxNode &node, ExploreNodeState state) override
+    void ExploreNode(SyntaxNode &node, ExploreNodeState state) override
     {
         if (state == ExploreNodeState::Pre)
         {
@@ -332,15 +332,15 @@ void ResolvePublicProcedureCalls(const GameFolderHelper &helper, Script &script,
 
     // Now the actual calls, which could be to any script
     ResolveProcedureCalls resolveProcCalls(helper, compiledScript, scoMap);
-    script.Traverse(&resolveProcCalls, resolveProcCalls);
+    script.Traverse(resolveProcCalls);
 }
 
-class ResolveVariableValues : public IExploreNodeContext, public IExploreNode
+class ResolveVariableValues : public IExploreNode
 {
 public:
     ResolveVariableValues(const IDecompilerConfig &config) : _config(config) {}
 
-    void ExploreNode(IExploreNodeContext *pContext, SyntaxNode &node, ExploreNodeState state) override
+    void ExploreNode(SyntaxNode &node, ExploreNodeState state) override
     {
         if (state == ExploreNodeState::Pre)
         {
@@ -507,7 +507,7 @@ Script *Decompile(const GameFolderHelper &helper, const CompiledScript &compiled
         if (lookups.GetDecompilerConfig())
         {
             ResolveVariableValues resolveVariableValues(*lookups.GetDecompilerConfig());
-            pScript->Traverse(&resolveVariableValues, resolveVariableValues);
+            pScript->Traverse(resolveVariableValues);
         }
 
         InsertHeaders(*pScript);

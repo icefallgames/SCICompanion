@@ -156,12 +156,12 @@ void _MassageProcedureCall(ProcedureCall &proc, DecompileLookups &lookups)
     }
 }
 
-class MassageProcedureCallsWorker : public IExploreNodeContext, public IExploreNode
+class MassageProcedureCallsWorker : public IExploreNode
 {
 public:
     MassageProcedureCallsWorker(DecompileLookups &lookups) : _lookups(lookups) {}
 
-    void ExploreNode(IExploreNodeContext *pContext, SyntaxNode &node, ExploreNodeState state) override
+    void ExploreNode(SyntaxNode &node, ExploreNodeState state) override
     {
         if (state == ExploreNodeState::Pre)
         {
@@ -181,12 +181,12 @@ private:
 int g_goodRest = 0;
 int g_badRest = 0;
 
-class TestForRestWorker : public IExploreNodeContext, public IExploreNode
+class TestForRestWorker : public IExploreNode
 {
 public:
     TestForRestWorker(DecompileLookups &lookups) : _lookups(lookups) {}
 
-    void ExploreNode(IExploreNodeContext *pContext, SyntaxNode &node, ExploreNodeState state) override
+    void ExploreNode(SyntaxNode &node, ExploreNodeState state) override
     {
         if (state == ExploreNodeState::Pre)
         {
@@ -240,7 +240,7 @@ void MassageProcedureCalls(DecompileLookups &lookups, sci::Script &script)
 {
     // Now the actual calls, which could be to any script
     MassageProcedureCallsWorker massageProcCalls(lookups);
-    script.Traverse(&massageProcCalls, massageProcCalls);
+    script.Traverse(massageProcCalls);
 }
 
 #if TEST_REST_USAGE
@@ -248,6 +248,6 @@ void TestForRest(DecompileLookups &lookups, sci::Script &script)
 {
     // Now the actual calls, which could be to any script
     TestForRestWorker massageProcCalls(lookups);
-    script.Traverse(&massageProcCalls, massageProcCalls);
+    script.Traverse( massageProcCalls);
 }
 #endif

@@ -531,7 +531,7 @@ void CScriptDocument::OnConvertScript()
                 class PropertyAliasConvert : public sci::IExploreNode
                 {
                 public:
-                    void ExploreNode(sci::IExploreNodeContext *pContext, sci::SyntaxNode &node, sci::ExploreNodeState state)
+                    void ExploreNode(sci::SyntaxNode &node, sci::ExploreNodeState state)
                     {
 						if (state == sci::ExploreNodeState::Pre)
 						{
@@ -573,7 +573,7 @@ void CScriptDocument::OnConvertScript()
                     }
                 };
                 PropertyAliasConvert propertyAliasConvert;
-                script.Traverse(NULL, propertyAliasConvert);
+                script.Traverse(propertyAliasConvert);
 
                 std::stringstream out;
 				sci::SourceCodeWriter debugOut(out, LangSyntaxCpp, &script);

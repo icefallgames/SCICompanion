@@ -139,12 +139,12 @@ bool startsWith(const std::string &text, const std::string &prefix)
     return text.length() > prefix.length() && std::equal(prefix.begin(), prefix.end(), text.begin());
 }
 
-class ExtractPolygonsFromHeader : public IExploreNode, public IExploreNodeContext
+class ExtractPolygonsFromHeader : public IExploreNode
 {
 public:
     ExtractPolygonsFromHeader(PolygonComponent &polySource) : _polySource(polySource) {}
 
-    void ExploreNode(IExploreNodeContext *pContext, SyntaxNode &node, ExploreNodeState state) override
+    void ExploreNode(SyntaxNode &node, ExploreNodeState state) override
     {
         if (state == ExploreNodeState::Pre)
         {
@@ -207,7 +207,7 @@ PolygonComponent::PolygonComponent(const string &polyFolder, int picNumber) : _p
         CompileLog log;
         unique_ptr<Script> script = SimpleCompile(log, ScriptId(GetPolyFilePath().c_str()));
         ExtractPolygonsFromHeader extractPolygons(*this);
-        script->Traverse(&extractPolygons, extractPolygons);
+        script->Traverse(extractPolygons);
     }
 }
 

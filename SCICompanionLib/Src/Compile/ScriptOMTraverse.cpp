@@ -17,265 +17,262 @@
 using namespace sci;
 using namespace std;
 
-class PerformTraverse : public std::binary_function<SyntaxNode*, IExploreNodeContext*, void>
+class PerformTraverse : public std::unary_function<SyntaxNode*, void>
 {
 public:
-    PerformTraverse(IExploreNodeContext *pContext, IExploreNode &en) : _pContext(pContext), _en(en) {}
+    PerformTraverse(IExploreNode &en) : _en(en) {}
     void operator()(SyntaxNode* pNode) const
     {
-        pNode->Traverse(_pContext, _en);
+        pNode->Traverse(_en);
     }
 private:
-    IExploreNodeContext *_pContext;
     IExploreNode &_en;
 };
 
 template<typename T>
-void ForwardTraverse(const T &container, IExploreNodeContext *pContext, IExploreNode &en)
+void ForwardTraverse(const T &container, IExploreNode &en)
 {
-    for_each(container.begin(), container.end(), PerformTraverse(pContext, en));
+    for_each(container.begin(), container.end(), PerformTraverse(en));
 }
 
 template<typename T>
 class PerformTraverse2
 {
 public:
-	PerformTraverse2(IExploreNodeContext *pContext, IExploreNode &en) : _pContext(pContext), _en(en) {}
+	PerformTraverse2(IExploreNode &en) : _en(en) {}
 	void operator()(const unique_ptr<T>& pNode) const
 	{
-		pNode->Traverse(_pContext, _en);
+		pNode->Traverse(_en);
 	}
 private:
-	IExploreNodeContext *_pContext;
 	IExploreNode &_en;
 };
 
 template<typename T>
-void ForwardTraverse2(const vector<unique_ptr<T>> &container, IExploreNodeContext *pContext, IExploreNode &en)
+void ForwardTraverse2(const vector<unique_ptr<T>> &container, IExploreNode &en)
 {
-	for_each(container.begin(), container.end(), PerformTraverse2<T>(pContext, en));
+	for_each(container.begin(), container.end(), PerformTraverse2<T>(en));
 }
 
 
-class PerformTraverse3 : public std::binary_function<SyntaxNode*, IExploreNodeContext*, void>
+class PerformTraverse3 : public std::unary_function<SyntaxNode*, void>
 {
 public:
-	PerformTraverse3(IExploreNodeContext *pContext, IExploreNode &en) : _pContext(pContext), _en(en) {}
+	PerformTraverse3(IExploreNode &en) : _en(en) {}
 	void operator()(SyntaxNode &node) const
 	{
-		node.Traverse(_pContext, _en);
+		node.Traverse(_en);
 	}
 private:
-	IExploreNodeContext *_pContext;
 	IExploreNode &_en;
 };
 
 template<typename T>
-void ForwardTraverse3(T &container, IExploreNodeContext *pContext, IExploreNode &en)
+void ForwardTraverse3(T &container, IExploreNode &en)
 {
-	for_each(container.begin(), container.end(), PerformTraverse3(pContext, en));
+	for_each(container.begin(), container.end(), PerformTraverse3( en));
 }
 
 
-void FunctionBase::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+void FunctionBase::Traverse(IExploreNode &en)
 {
-	ExploreNodeBlock enb(en, pContext, *this);
-    ForwardTraverse2(_signatures, pContext, en);
-    ForwardTraverse2(_tempVars, pContext, en);
-	ForwardTraverse2(_segments, pContext, en);
+	ExploreNodeBlock enb(en, *this);
+    ForwardTraverse2(_signatures, en);
+    ForwardTraverse2(_tempVars, en);
+	ForwardTraverse2(_segments, en);
 }
 
-void FunctionSignature::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+void FunctionSignature::Traverse(IExploreNode &en)
 {
-    ExploreNodeBlock enb(en, pContext, *this);
-    ForwardTraverse2(_params, pContext, en);
+    ExploreNodeBlock enb(en, *this);
+    ForwardTraverse2(_params, en);
 }
 
-void FunctionParameter::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+void FunctionParameter::Traverse(IExploreNode &en)
 {
-    ExploreNodeBlock enb(en, pContext, *this);
+    ExploreNodeBlock enb(en, *this);
 }
 
-void CodeBlock::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+void CodeBlock::Traverse(IExploreNode &en)
 {
-	ExploreNodeBlock enb(en, pContext, *this);
-	ForwardTraverse2(_segments, pContext, en);
+	ExploreNodeBlock enb(en, *this);
+	ForwardTraverse2(_segments, en);
 }
-void Cast::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+void Cast::Traverse(IExploreNode &en)
 {
-	ExploreNodeBlock enb(en, pContext, *this);
-	_statement1->Traverse(pContext, en);
+	ExploreNodeBlock enb(en, *this);
+	_statement1->Traverse(en);
 }
-void SendCall::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+void SendCall::Traverse(IExploreNode &en)
 {
-	ExploreNodeBlock enb(en, pContext, *this);
+	ExploreNodeBlock enb(en, *this);
     // One of three forms of send params.
-    ForwardTraverse2(_params, pContext, en);
+    ForwardTraverse2(_params, en);
 	if (GetTargetName().empty())
     {
         if (!_object3 || _object3->GetName().empty())
         {
-			_statement1->Traverse(pContext, en);
+			_statement1->Traverse(en);
         }
         else
         {
-			_object3->Traverse(pContext, en);
+			_object3->Traverse(en);
         }
     }
 }
-void ProcedureCall::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+void ProcedureCall::Traverse(IExploreNode &en)
 {
-	ExploreNodeBlock enb(en, pContext, *this);
-	ForwardTraverse2(_segments, pContext, en);
+	ExploreNodeBlock enb(en, *this);
+	ForwardTraverse2(_segments, en);
 }
-void ConditionalExpression::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+void ConditionalExpression::Traverse(IExploreNode &en)
 {
-	ExploreNodeBlock enb(en, pContext, *this);
-	ForwardTraverse2(_segments, pContext, en);
+	ExploreNodeBlock enb(en, *this);
+	ForwardTraverse2(_segments, en);
 }
-void SwitchStatement::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+void SwitchStatement::Traverse(IExploreNode &en)
 {
-	ExploreNodeBlock enb(en, pContext, *this);
-	_statement1->Traverse(pContext, en);
-    ForwardTraverse2(_cases, pContext, en);
+	ExploreNodeBlock enb(en, *this);
+	_statement1->Traverse(en);
+    ForwardTraverse2(_cases, en);
 }
-void ForLoop::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+void ForLoop::Traverse(IExploreNode &en)
 {
-	ExploreNodeBlock enb(en, pContext, *this);
-	GetInitializer()->Traverse(pContext, en);
-	_innerCondition->Traverse(pContext, en);
-    _looper->Traverse(pContext, en);
-	ForwardTraverse2(_segments, pContext, en);
+	ExploreNodeBlock enb(en, *this);
+	GetInitializer()->Traverse(en);
+	_innerCondition->Traverse(en);
+    _looper->Traverse(en);
+	ForwardTraverse2(_segments, en);
 }
-void WhileLoop::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+void WhileLoop::Traverse(IExploreNode &en)
 {
-	ExploreNodeBlock enb(en, pContext, *this);
-	_innerCondition->Traverse(pContext, en);
-	ForwardTraverse2(_segments, pContext, en);
+	ExploreNodeBlock enb(en, *this);
+	_innerCondition->Traverse(en);
+	ForwardTraverse2(_segments, en);
 }
-void Script::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+void Script::Traverse(IExploreNode &en)
 {
-	ExploreNodeBlock enb(en, pContext, *this);
-    ForwardTraverse2(_procedures, pContext, en);
-    ForwardTraverse2(_classes, pContext, en);
-    ForwardTraverse2(_scriptVariables, pContext, en);
-    ForwardTraverse2(_scriptStringDeclarations, pContext, en);
-}
-
-void VariableDecl::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
-{
-    ExploreNodeBlock enb(en, pContext, *this);
+	ExploreNodeBlock enb(en, *this);
+    ForwardTraverse2(_procedures, en);
+    ForwardTraverse2(_classes, en);
+    ForwardTraverse2(_scriptVariables, en);
+    ForwardTraverse2(_scriptStringDeclarations, en);
 }
 
-void DoLoop::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+void VariableDecl::Traverse(IExploreNode &en)
 {
-	ExploreNodeBlock enb(en, pContext, *this);
-	_innerCondition->Traverse(pContext, en);
-	ForwardTraverse2(_segments, pContext, en);
+    ExploreNodeBlock enb(en, *this);
 }
-void Assignment::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+
+void DoLoop::Traverse(IExploreNode &en)
 {
-	ExploreNodeBlock enb(en, pContext, *this);
-	_variable->Traverse(pContext, en);
-	_statement1->Traverse(pContext, en);
+	ExploreNodeBlock enb(en, *this);
+	_innerCondition->Traverse(en);
+	ForwardTraverse2(_segments, en);
 }
-void ClassProperty::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+void Assignment::Traverse(IExploreNode &en)
 {
-	ExploreNodeBlock enb(en, pContext, *this);
+	ExploreNodeBlock enb(en, *this);
+	_variable->Traverse(en);
+	_statement1->Traverse(en);
 }
-void ClassDefinition::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+void ClassProperty::Traverse(IExploreNode &en)
 {
-	ExploreNodeBlock enb(en, pContext, *this);
-    ForwardTraverse2(_methods, pContext, en);
-    ForwardTraverse2(_properties, pContext, en);
+	ExploreNodeBlock enb(en, *this);
 }
-void SendParam::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+void ClassDefinition::Traverse(IExploreNode &en)
 {
-	ExploreNodeBlock enb(en, pContext, *this);
-	ForwardTraverse2(_segments, pContext, en);
+	ExploreNodeBlock enb(en, *this);
+    ForwardTraverse2(_methods, en);
+    ForwardTraverse2(_properties, en);
 }
-void LValue::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+void SendParam::Traverse(IExploreNode &en)
 {
-	ExploreNodeBlock enb(en, pContext, *this);
+	ExploreNodeBlock enb(en, *this);
+	ForwardTraverse2(_segments, en);
+}
+void LValue::Traverse(IExploreNode &en)
+{
+	ExploreNodeBlock enb(en, *this);
     if (HasIndexer())
     {
-		_indexer->Traverse(pContext, en);
+		_indexer->Traverse(en);
     }
 }
-void ReturnStatement::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+void ReturnStatement::Traverse(IExploreNode &en)
 {
-	ExploreNodeBlock enb(en, pContext, *this);
-	if (_statement1) _statement1->Traverse(pContext, en);
+	ExploreNodeBlock enb(en, *this);
+	if (_statement1) _statement1->Traverse(en);
 }
-void CaseStatementBase::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+void CaseStatementBase::Traverse(IExploreNode &en)
 {
-	ExploreNodeBlock enb(en, pContext, *this);
-	if (!IsDefault()) _statement1->Traverse(pContext, en);
-	ForwardTraverse2(_segments, pContext, en);
+	ExploreNodeBlock enb(en, *this);
+	if (!IsDefault()) _statement1->Traverse(en);
+	ForwardTraverse2(_segments, en);
 }
-void UnaryOp::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+void UnaryOp::Traverse(IExploreNode &en)
 {
-	ExploreNodeBlock enb(en, pContext, *this);
-	_statement1->Traverse(pContext, en);
+	ExploreNodeBlock enb(en, *this);
+	_statement1->Traverse(en);
 }
-void BinaryOp::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+void BinaryOp::Traverse(IExploreNode &en)
 {
-	ExploreNodeBlock enb(en, pContext, *this);
-	_statement1->Traverse(pContext, en);
-	_statement2->Traverse(pContext, en);
+	ExploreNodeBlock enb(en, *this);
+	_statement1->Traverse(en);
+	_statement2->Traverse(en);
 }
-void CppIfStatement::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+void CppIfStatement::Traverse(IExploreNode &en)
 {
-	ExploreNodeBlock enb(en, pContext, *this);
-	_innerCondition->Traverse(pContext, en);
-	_statement1->Traverse(pContext, en);
+	ExploreNodeBlock enb(en, *this);
+	_innerCondition->Traverse(en);
+	_statement1->Traverse(en);
     if (_statement2)
     {
-        _statement2->Traverse(pContext, en);
+        _statement2->Traverse(en);
     }
 }
-void ComplexPropertyValue::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+void ComplexPropertyValue::Traverse(IExploreNode &en)
 {
-	ExploreNodeBlock enb(en, pContext, *this);
+	ExploreNodeBlock enb(en, *this);
     if (_pArrayInternal)
     {
-        _pArrayInternal->Traverse(pContext, en);
+        _pArrayInternal->Traverse(en);
     }
 }
-void PropertyValue::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+void PropertyValue::Traverse(IExploreNode &en)
 {
-	ExploreNodeBlock enb(en, pContext, *this);
+	ExploreNodeBlock enb(en, *this);
 }
-void BreakStatement::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+void BreakStatement::Traverse(IExploreNode &en)
 {
-	ExploreNodeBlock enb(en, pContext, *this);
+	ExploreNodeBlock enb(en, *this);
 }
-void RestStatement::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+void RestStatement::Traverse(IExploreNode &en)
 {
-	ExploreNodeBlock enb(en, pContext, *this);
+	ExploreNodeBlock enb(en, *this);
 }
-void Asm::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+void Asm::Traverse(IExploreNode &en)
 {
-    ExploreNodeBlock enb(en, pContext, *this);
-    ForwardTraverse2(_segments, pContext, en);
+    ExploreNodeBlock enb(en, *this);
+    ForwardTraverse2(_segments, en);
 }
-void AsmBlock::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+void AsmBlock::Traverse(IExploreNode &en)
 {
-    ExploreNodeBlock enb(en, pContext, *this);
-    ForwardTraverse2(_segments, pContext, en);
+    ExploreNodeBlock enb(en, *this);
+    ForwardTraverse2(_segments, en);
 }
-void CondStatement::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+void CondStatement::Traverse(IExploreNode &en)
 {
-    ExploreNodeBlock enb(en, pContext, *this);
-    ForwardTraverse2(_clauses, pContext, en);
+    ExploreNodeBlock enb(en, *this);
+    ForwardTraverse2(_clauses, en);
 }
-void BreakIfStatement::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+void BreakIfStatement::Traverse(IExploreNode &en)
 {
-    ExploreNodeBlock enb(en, pContext, *this);
-    if (_statement1) _statement1->Traverse(pContext, en);
+    ExploreNodeBlock enb(en, *this);
+    if (_statement1) _statement1->Traverse(en);
 }
-void RepeatStatement::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+void RepeatStatement::Traverse(IExploreNode &en)
 {
-    ExploreNodeBlock enb(en, pContext, *this);
-    ForwardTraverse2(_segments, pContext, en);
+    ExploreNodeBlock enb(en, *this);
+    ForwardTraverse2(_segments, en);
 }

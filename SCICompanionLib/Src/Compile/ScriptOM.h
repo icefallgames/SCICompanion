@@ -303,34 +303,29 @@ namespace sci
 
     class SyntaxNode;
 
-    class IExploreNodeContext
-    {
-    };
-
 	enum class ExploreNodeState { Pre, Post };
 
     class IExploreNode
     {
     public:
-		virtual void ExploreNode(IExploreNodeContext *pContext, SyntaxNode &node, ExploreNodeState state) = 0;
+		virtual void ExploreNode(SyntaxNode &node, ExploreNodeState state) = 0;
     };
 
 	class ExploreNodeBlock
 	{
 	public:
-		ExploreNodeBlock(IExploreNode &en, IExploreNodeContext *pContext, SyntaxNode &node) :
-			_en(en), _pContext(pContext), _node(node)
+		ExploreNodeBlock(IExploreNode &en, SyntaxNode &node) :
+			_en(en), _node(node)
 		{
-			_en.ExploreNode(_pContext, _node, ExploreNodeState::Pre);
+			_en.ExploreNode(_node, ExploreNodeState::Pre);
 		}
 
 		~ExploreNodeBlock()
 		{
-			_en.ExploreNode(_pContext, _node, ExploreNodeState::Post);
+			_en.ExploreNode(_node, ExploreNodeState::Post);
 		}
 	private:
 		IExploreNode &_en;
-		IExploreNodeContext *_pContext;
 		SyntaxNode &_node;
 	};
 
@@ -348,7 +343,7 @@ namespace sci
         // A simple string describing the node, for error reporting.
         virtual std::string ToString() const { return ""; }
 
-        virtual void Traverse(IExploreNodeContext *pContext, IExploreNode &en) {}
+        virtual void Traverse(IExploreNode &en) {}
 
         // Determines whether or not one syntax node is equal to another.
         // Used for comparing two generated trees to make sure they are the same.
@@ -495,7 +490,7 @@ namespace sci
             }
         }
 
-		void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+		void Traverse(IExploreNode &en);
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 	};
 
@@ -519,7 +514,7 @@ namespace sci
         
         bool Evaluate(CompileContext &context, uint16_t &result) override;
 
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+        void Traverse(IExploreNode &en);
         void Accept(ISyntaxNodeVisitor &visitor) const override;
     private:
         std::unique_ptr<SyntaxNode> _pArrayInternal;
@@ -640,7 +635,7 @@ namespace sci
         // IOutputByteCode
         void PreScan(CompileContext &context);
 
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+        void Traverse(IExploreNode &en);
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 
@@ -676,7 +671,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const override;
         void PreScan(CompileContext &context) override;
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en) override;
+        void Traverse(IExploreNode &en) override;
         
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
@@ -705,7 +700,7 @@ namespace sci
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 
         // IOutputByteCode
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en) override;
+        void Traverse(IExploreNode &en) override;
     };
     typedef FunctionParameter* FunctionParameterPtr;
     typedef std::vector<std::unique_ptr<FunctionParameter>> FunctionParameterVector;
@@ -729,7 +724,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const  override { assert(false); return CodeResult(); }
         void PreScan(CompileContext &context) override;
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en) override;
+        void Traverse(IExploreNode &en) override;
 
         // IVariableLookupContext
         ResolvedToken LookupVariableName(CompileContext &context, const std::string &str, WORD &wIndex, SpeciesIndex &dataType) const;
@@ -772,7 +767,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;
         void PreScan(CompileContext &context);
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+        void Traverse(IExploreNode &en);
 
         // IVariableLookupContext
         ResolvedToken LookupVariableName(CompileContext &context, const std::string &str, WORD &wIndex, SpeciesIndex &dataType) const;
@@ -890,7 +885,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;
         void PreScan(CompileContext &context);
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+        void Traverse(IExploreNode &en);
 
         // IVariableLookupContext
         virtual ResolvedToken LookupVariableName(CompileContext &context, const std::string &str, WORD &wIndex, SpeciesIndex &dataType) const;
@@ -944,7 +939,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const override;
         void PreScan(CompileContext &context) override;
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en) override;
+        void Traverse(IExploreNode &en) override;
         bool Evaluate(CompileContext &context, uint16_t &result) override;
 
         template<typename _T>
@@ -983,7 +978,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;
         void PreScan(CompileContext &context);
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+        void Traverse(IExploreNode &en);
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
     };
@@ -1015,7 +1010,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const { return CodeResult(); }
         void PreScan(CompileContext &context) {}
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en) {}
+        void Traverse(IExploreNode &en) {}
         
         std::string GetSanitizedText() const;
 
@@ -1039,7 +1034,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const { return CodeResult(); }
         void PreScan(CompileContext &context);
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en) {}
+        void Traverse(IExploreNode &en) {}
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 
         std::string Name;
@@ -1087,7 +1082,7 @@ namespace sci
         ResolvedToken LookupVariableName(CompileContext &context, const std::string &str, WORD &wIndex, SpeciesIndex &dataType) const;
 
         void PreScan(CompileContext &context);
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+        void Traverse(IExploreNode &en);
 
         void AddUse(const std::string &use) { _uses.push_back(use); }
         void AddInclude(const std::string &include) { _includes.push_back(include); }

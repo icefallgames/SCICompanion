@@ -93,7 +93,7 @@ void NewLine(sci::SourceCodeWriter &out)
 std::string _DeduceReturnType(sci::FunctionBase &function)
 {
     CheckForReturnValue en;
-    function.Traverse(nullptr, en);
+    function.Traverse(en);
     return en.GetSugggestReturnValue();
 }
 

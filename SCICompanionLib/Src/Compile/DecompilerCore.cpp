@@ -702,16 +702,16 @@ ControlFlowNode *GetFirstSuccessorOrNull(ControlFlowNode *node)
     return node->Successors().empty() ? nullptr : *node->Successors().begin();
 }
 
-class DetermineHexValues : public IExploreNode, public IExploreNodeContext
+class DetermineHexValues : public IExploreNode
 {
 public:
     DetermineHexValues(FunctionBase &func)
     {
         useHex.push(true);
-        func.Traverse(this, *this);
+        func.Traverse(*this);
     }
 
-    void ExploreNode(IExploreNodeContext *pContext, SyntaxNode &node, ExploreNodeState state) override
+    void ExploreNode(SyntaxNode &node, ExploreNodeState state) override
     {
         // Set property values to hex if we should:
         if (state == ExploreNodeState::Pre)
@@ -772,15 +772,15 @@ private:
     stack<bool> useHex;
 };
 
-class CollapseNots : public IExploreNode, public IExploreNodeContext
+class CollapseNots : public IExploreNode
 {
 public:
     CollapseNots(FunctionBase &func)
     {
-        func.Traverse(this, *this);
+        func.Traverse(*this);
     }
 
-    void ExploreNode(IExploreNodeContext *pContext, SyntaxNode &node, ExploreNodeState state) override
+    void ExploreNode(SyntaxNode &node, ExploreNodeState state) override
     {
         if (state == ExploreNodeState::Pre)
         {
@@ -846,15 +846,15 @@ private:
     }
 };
 
-class ResolveCallSiteParameters : public IExploreNode, public IExploreNodeContext
+class ResolveCallSiteParameters : public IExploreNode
 {
 public:
     ResolveCallSiteParameters(DecompileLookups &decompileLookups, FunctionBase &func) : _lookups(decompileLookups)
     {
-        func.Traverse(this, *this);
+        func.Traverse(*this);
     }
 
-    void ExploreNode(IExploreNodeContext *pContext, SyntaxNode &node, ExploreNodeState state) override
+    void ExploreNode(SyntaxNode &node, ExploreNodeState state) override
     {
         if (state == ExploreNodeState::Pre)
         {
@@ -875,16 +875,16 @@ private:
     DecompileLookups &_lookups;
 };
 
-class DetermineNegativeValues : public IExploreNode, public IExploreNodeContext
+class DetermineNegativeValues : public IExploreNode
 {
 public:
     DetermineNegativeValues(FunctionBase &func)
     {
         useNeg.push(true);
-        func.Traverse(this, *this);
+        func.Traverse(*this);
     }
 
-    void ExploreNode(IExploreNodeContext *pContext, SyntaxNode &node, ExploreNodeState state) override
+    void ExploreNode(SyntaxNode &node, ExploreNodeState state) override
     {
         // Set property values to hex if we should:
         if (state == ExploreNodeState::Pre)
