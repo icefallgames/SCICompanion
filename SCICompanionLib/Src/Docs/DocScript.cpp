@@ -15,6 +15,7 @@
 #include "DocScript.h"
 #include "ScriptOMAll.h"
 #include <algorithm>
+#include "StringUtil.h"
 
 struct CommentInfo
 {
@@ -79,40 +80,6 @@ bool IsLineEmpty(const std::string &line)
     return true;
 }
 
-// If all non-empty lines have a tab, removes the tab at the beginning of each line
-template<char _TWhiteSpace>
-std::string Unindent(const std::string &in)
-{
-    std::vector<std::string> lines = Lineify(in);
-    int minTabCount = (std::numeric_limits<int>::max)();
-    for (auto &line : lines)
-    {
-        if (!IsLineEmpty(line))
-        {
-            int tabCount = std::find_if(line.begin(), line.end(), [](char c) { return c != _TWhiteSpace;  }) - line.begin();
-            minTabCount = min(tabCount, minTabCount);
-        }
-    }
-
-    std::string output;
-    if ((minTabCount > 0) && (minTabCount != (std::numeric_limits<int>::max)()))
-    {
-        for (auto &line : lines)
-        {
-            if (!IsLineEmpty(line))
-            {
-                std::string lineUnindented(line.begin() + minTabCount, line.end());
-                output += lineUnindented;
-            }
-            output += '\n';
-        }
-    }
-    else
-    {
-        output = in;
-    }
-    return output;
-}
 
 DocScript::DocScript(const sci::Script &script)
 {

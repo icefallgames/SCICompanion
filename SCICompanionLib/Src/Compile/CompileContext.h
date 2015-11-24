@@ -100,8 +100,7 @@ private:
     SCIVersion _versionCompiled;
 };
 
-
-class CompileContext : public ICompileLog
+class CompileContext : public ICompileLog, public ILookupDefine
 {
 public:
     CompileContext(SCIVersion version, sci::Script &script, PrecompiledHeaders &headers, CompileTables &tables, ICompileLog &results);

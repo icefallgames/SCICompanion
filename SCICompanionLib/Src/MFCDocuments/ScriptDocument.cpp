@@ -517,9 +517,11 @@ void CScriptDocument::OnConvertScript()
             {
                 ConvertToSCISyntaxHelper(script);
 
-				std::stringstream out;
-				sci::SourceCodeWriter debugOut(out, LangSyntaxSCI, &script);
-				script.OutputSourceCode(debugOut);
+                std::stringstream out;
+                sci::SourceCodeWriter debugOut(out, LangSyntaxSCI, &script);
+                debugOut.indentChar = '\t';
+                debugOut.indentAmount = 1;
+                script.OutputSourceCode(debugOut);
 
                 ShowTextFile(out.str().c_str(), _scriptId.GetFileNameOrig() + ".txt");
 

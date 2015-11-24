@@ -134,7 +134,8 @@
         )
 
     rest:
-        &rest   ; no parameters...
+        &rest   ; no parameters... means after the last named parameter
+        &rest p ; this is ok too. It can be any parameter.
 
     enum:
         ; exactly like defines, they can get converted into them.
@@ -166,27 +167,101 @@
 using namespace sci;
 using namespace std;
 
-class TransformParamTotalToArgc : public IExploreNode
+class SimpleDefineLookup : public ILookupDefine
 {
 public:
-    TransformParamTotalToArgc(sci::Script &script) { script.Traverse(*this); }
+    bool LookupDefine(const std::string &str, uint16_t &wValue) override
+    {
+        if (str == "TRUE")
+        {
+            wValue = 1;
+            return true;
+        }
+        else if (str == "FALSE")
+        {
+            wValue = 0;
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+};
+
+SimpleDefineLookup simpleDefineLookup;
+
+// Attemps to remove any explicit &rest parameters, and possibly a function parameter.
+class TransformCleanRests : public IExploreNode
+{
+public:
+    TransformCleanRests(sci::Script &script) { script.Traverse(*this); }
 
     void ExploreNode(SyntaxNode &node, ExploreNodeState state) override
     {
-        if (state == ExploreNodeState::Pre)
+        if (node.GetNodeType() == NodeType::NodeTypeFunction)
         {
-            PropertyValueBase *value = SafeSyntaxNode<PropertyValue>(&node);
-            if (!value)
+            if (state == ExploreNodeState::Pre)
             {
-                value = SafeSyntaxNode<ComplexPropertyValue>(&node);
+                _functionSig = (static_cast<FunctionBase*>(&node))->GetSignaturesNC()[0].get();
+                _rests.clear();
+                _explicitVarUsage.clear();
             }
-            
-            if (value && (value->GetStringValue() == "paramTotal"))
+            else
             {
-                value->SetValue("argc", ValueType::Token);
+                // Is the last function parameter only used by rest?
+                if (!_functionSig->GetParams().empty())
+                {
+                    std::string lastParamName = _functionSig->GetParams().back()->GetName();
+                    if (_explicitVarUsage.find(lastParamName) == _explicitVarUsage.end())
+                    {
+                        // Last parameter is never used, other than possibly in rests. Remove it:
+                        _functionSig->GetParams().pop_back();
+
+                        // And find any &rest statements that used it, and remove it:
+                        for (auto &rest : _rests)
+                        {
+                            if (rest->GetName() == lastParamName)
+                            {
+                                rest->SetName("");
+                            }
+                        }
+                    }
+                }
+
+                _functionSig = nullptr;
+            }
+        }
+        else
+        {
+            if (state == ExploreNodeState::Pre)
+            {
+                switch (node.GetNodeType())
+                {
+                    // Keep track of all rests.
+                    case NodeType::NodeTypeRest:
+                        {
+                            _rests.push_back(SafeSyntaxNode<RestStatement>(&node));
+                        }
+                        break;
+
+                    case NodeType::NodeTypeValue:
+                    case NodeType::NodeTypeComplexValue:
+                        PropertyValueBase *value = static_cast<PropertyValueBase*>(&node);
+                        if (value->GetType() == ValueType::Token)
+                        {
+                            _explicitVarUsage.insert(value->GetStringValue());
+                        }
+                        break;
+                }
             }
         }
     }
+
+private:
+    FunctionSignature *_functionSig;
+    std::vector<RestStatement*> _rests;
+    std::set<std::string> _explicitVarUsage;
 };
 
 class TransformDeterminePropSelectors : public IExploreNode
@@ -248,6 +323,7 @@ std::vector<std::pair<std::string, std::string>> binOpConvert =
 std::vector<std::pair<std::string, std::string>> unaryOpConvert =
 {
     { "bnot", "~" },
+    { "neg", "-" },
 };
 
 std::string GetOperatorName(const sci::NamedNode &namedNode, const std::vector<std::pair<std::string, std::string>> &conversions)
@@ -270,6 +346,18 @@ void ConvertToSCISyntaxHelper(Script &script)
     for (auto &comment : script.GetComments())
     {
         std::string text = comment->GetSanitizedText();
+
+        int minTabCount;
+        text = Unindent<'\t'>(text, &minTabCount);
+
+        // If the first line of a comment isn't indented, we should indent the rest either.
+        int innerCommentTab = 0;
+        if (comment->GetPosition().Column() < minTabCount)
+        {
+            innerCommentTab = minTabCount - comment->GetPosition().Column();
+            minTabCount = comment->GetPosition().Column();
+        }
+
         std::vector<std::string> lines = Lineify(text);
         std::string newComment;
         bool first = true;
@@ -279,14 +367,21 @@ void ConvertToSCISyntaxHelper(Script &script)
             {
                 newComment += "\n";
             }
-            newComment += "; ";
+            // "indent" each line.
+            std::fill_n(std::back_inserter(newComment), minTabCount, '\t');
+            newComment += ";";
+            std::fill_n(std::back_inserter(newComment), innerCommentTab, '\t');
+            if (!line.empty() && line[0] != ' ')
+            {
+                newComment += " ";
+            }
             newComment += line;
             first = false;
         }
         comment->SetName(newComment);
     }
 
-    TransformParamTotalToArgc txParamTotal(script);
+    TransformCleanRests txCleanRests(script);
 }
 
 class OutputSCISourceCode : public OutputSourceCodeBase
@@ -296,7 +391,7 @@ public:
 
     void Visit(const Script &script) override
     {
-        out.SyncComments(script);
+        out.OutputInitialComment();
 
         ScriptId scriptId = script.GetScriptId();
         if (!script.GetScriptNumberDefine().empty())
@@ -421,10 +516,15 @@ public:
             _OutputNumber(out.out, prop.GetNumberValue(), prop._fHex, prop._fNegate);
             break;
         case ValueType::Token:
-            // Surround in braces if there are spaces in the string.
-            out.out << CleanToken(prop.GetStringValue());
-            // REVIEW: When this is C++ syntax, we should strip them out... and if it's -info-, use the replacement!
-            // (objectSpecies)
+            if (prop.GetStringValue() == "paramTotal")
+            {
+                out.out << "argc";
+            }
+            else
+            {
+                // Surround in braces if there are spaces in the string.
+                out.out << CleanToken(prop.GetStringValue());
+            }
             break;
         case ValueType::Selector:
             out.out << "#" << prop.GetStringValue();
@@ -503,6 +603,11 @@ public:
             {
                 Inline inln(out, true);
                 out.out <<  " &tmp ";
+                for (auto &variable : function.GetVariables())
+                {
+                    // REVIEW: We don't handle variable initialization here. For now, assert we don't have this
+                    assert(variable->GetInitializers().empty());
+                }
                 Forward(function.GetVariables(), " ");
             }
             out.out << ")";
@@ -569,24 +674,7 @@ public:
 
     void Visit(const SendParam &sendParam) override
     {
-        out.SyncComments(sendParam);
-        DebugLine debugLine(out);
-        out.out << CleanToken(sendParam.GetSelectorName()) << ":";
-        DetectIfWentNonInline detect(out);
-        if (!sendParam.GetSelectorParams().empty())
-        {
-            out.out << " ";
-            // Space-separated values
-            Inline inln(out, true);
-            DebugIndent indent(out);    // In case we have inline false in here:
-            Forward(sendParam.GetSelectorParams(), " ");
-        }
-        if (detect.WentInline)
-        {
-            out.EnsureNewLine();
-            Indent(out);
-        }
-
+        // Handled in SendCall
     }
 
     void Visit(const LValue &lValue) override
@@ -610,11 +698,40 @@ public:
     {
         out.SyncComments(rest);
         DebugLine line(out);
-        // TODO: Assert that the param for rest is always the last function parameter.
         out.out << "&rest";
+        if (!rest.GetName().empty())
+        {
+            out.out << " " << rest.GetName();
+        }
     }
 
     void Visit(const Cast &cast) override {}
+
+
+    void _VisitSendParam(SourceCodeWriter &out, const SendParam &sendParam, bool addComma)
+    {
+        out.SyncComments(sendParam);
+        DebugLine debugLine(out);
+        out.out << CleanToken(sendParam.GetSelectorName()) << ":";
+        DetectIfWentNonInline detect(out);
+        if (!sendParam.GetSelectorParams().empty())
+        {
+            out.out << " ";
+            // Space-separated values
+            Inline inln(out, true);
+            DebugIndent indent(out);    // In case we have inline false in here:
+            Forward(sendParam.GetSelectorParams(), " ");
+            if (addComma)
+            {
+                out.out << ",";
+            }
+        }
+        if (detect.WentInline)
+        {
+            out.EnsureNewLine();
+            Indent(out);
+        }
+    }
 
     void Visit(const SendCall &sendCall) override
     {
@@ -653,7 +770,11 @@ public:
             {
                 DebugIndent indent(out);
                 out.out << out.NewLineString();	// newline to start it out
-                ForwardAlwaysSeparate(sendCall.GetParams(), ",");
+
+                for (size_t i = 0; i < sendCall.GetParams().size(); i++)
+                {
+                    _VisitSendParam(out, *sendCall.GetParams()[i], (i < (sendCall.GetParams().size() - 1)));
+                }
                 if (sendCall._rest)
                 {
                     sendCall._rest->Accept(*this);
@@ -673,7 +794,10 @@ public:
             }
             else
             {
-                Forward(sendCall.GetParams());
+                for (auto &sendParam : sendCall.GetParams())
+                {
+                    _VisitSendParam(out, *sendParam, false);
+                }
             }
             out.out << ")";
         }
@@ -684,8 +808,17 @@ public:
         out.SyncComments(procCall);
         DebugLine line(out);
         out.out << "(" << procCall.GetName() << " ";
-        Inline inln(out, true);
-        Forward(procCall.GetStatements());
+        DetectIfWentNonInline detect(out);
+        {
+            Inline inln(out, true);
+            DebugIndent indent(out);    // In case we have inline false in here:
+            Forward(procCall.GetStatements());
+        }
+        if (detect.WentInline)
+        {
+            out.EnsureNewLine();
+            Indent(out);
+        }
         out.out << ")";
     }
 
@@ -739,14 +872,27 @@ public:
         }
     }
 
+    bool _IsConditionalExpressionTRUE(const ConditionalExpression &condExp)
+    {
+        uint16_t result;
+        return condExp.Evaluate(simpleDefineLookup, result) && (result == 1);
+    }
+
     void Visit(const WhileLoop &whileLoop) override
     {
         out.SyncComments(whileLoop);
         {
             DebugLine line(out);
-            out.out << "(while ";
-            Inline inln(out, true);
-            whileLoop.GetCondition()->Accept(*this);
+            if (_IsConditionalExpressionTRUE(*whileLoop.GetCondition()))
+            {
+                out.out << "(repeat";
+            }
+            else
+            {
+                out.out << "(while ";
+                Inline inln(out, true);
+                whileLoop.GetCondition()->Accept(*this);
+            }
         }
         // Now the code, indented.
         {
@@ -866,36 +1012,154 @@ public:
         out.out << ")";
     }
 
+    const IfStatement *_GetSingleIfStatementInElseBlock(const IfStatement &ifStatement)
+    {
+        const CodeBlock *elseBlock = SafeSyntaxNode<CodeBlock>(ifStatement.GetStatement2());
+        if (elseBlock &&
+            (elseBlock->GetStatements().size() == 1))
+        {
+            return SafeSyntaxNode<IfStatement>(elseBlock->GetStatements()[0].get());
+        }
+        return nullptr;
+    }
+
+    const BreakStatement *_GetSingleBreakStatementInThenBlock(const IfStatement &ifStatement)
+    {
+        const CodeBlock *thenBlock = SafeSyntaxNode<CodeBlock>(ifStatement.GetStatement1());
+        const CodeBlock *elseBlock = SafeSyntaxNode<CodeBlock>(ifStatement.GetStatement2());
+        if ((!elseBlock || elseBlock->GetStatements().empty()) &&
+            thenBlock &&
+            (thenBlock->GetStatements().size() == 1))
+        {
+            return SafeSyntaxNode<BreakStatement>(thenBlock->GetStatements()[0].get());
+        }
+        return nullptr;
+    }
+
     void Visit(const IfStatement &ifStatement) override
     {
         Inline inln(out, false);	// Line by line now, overall
         {
-            out.EnsureNewLine();
+            // Detect the cond pattern
+            const IfStatement *singleIf = _GetSingleIfStatementInElseBlock(ifStatement);
+            if (singleIf)
             {
-                DebugLine ifLine(out);
-                out.out << "(if ";
-                Inline inlineCondition(out, true); // But the condition is inline
-                ifStatement.GetCondition()->Accept(*this);
-                out.out << "";
+                // If with an else with a single if inside it. That's good enough to create a cond clause.
+                // Let's collect cond clauses.
+                std::vector<std::pair<const SyntaxNode*, const SyntaxNode*>> conditionAndCodes;
+                std::vector<const SyntaxNode*> code;
+                const SyntaxNode *finalElse = nullptr;
+                conditionAndCodes.push_back({ ifStatement.GetCondition().get(), ifStatement.GetStatement1() });
+                while (singleIf)
+                {
+                    conditionAndCodes.push_back({ singleIf->GetCondition().get(), singleIf->GetStatement1() });
+                    const IfStatement *nextSingleIf = _GetSingleIfStatementInElseBlock(*singleIf);
+                    if (!nextSingleIf)
+                    {
+                        // That's the end of it. Stick in any else clause. Cond does not require an else clause
+                        finalElse = singleIf->GetStatement2();
+                    }
+                    singleIf = nextSingleIf;
+                }
+
+                // Now we're ready to output a cond statement
+                out.EnsureNewLine();
+                {
+                    DebugLine condLine(out);
+                    out.out << "(cond ";
+
+                    {
+                        DebugIndent indentClauses(out);
+                        for (auto &conditionAndCode : conditionAndCodes)
+                        {
+                            out.EnsureNewLine();
+                            DebugLine expLine(out);
+                            out.out << "(";
+                            {
+                                Inline inlineCondition(out, true); // But the condition is inline
+                                conditionAndCode.first->Accept(*this);
+                            }
+                            {
+                                // Code is indented
+                                Inline inlineCondition(out, false);
+                                DebugIndent indentCode(out);
+                                out.EnsureNewLine();
+                                //DebugLine codeLine(out);
+                                conditionAndCode.second->Accept(*this);
+                            }
+                            DebugLine closeLine(out);
+                            out.out << ")";
+                        }
+
+                        if (finalElse)
+                        {
+                            out.EnsureNewLine();
+                            DebugLine expLine(out);
+                            out.out << "(else";
+                            {
+                                // Code is indented
+                                Inline inlineCondition(out, false);
+                                DebugIndent indent(out);
+                                out.EnsureNewLine();
+                                //DebugLine codeLine(out);
+                                finalElse->Accept(*this);
+                            }
+                            DebugLine closeLine(out);
+                            out.out << ")";
+                        }
+                        out.EnsureNewLine();
+                    }
+                    DebugLine closeLine(out);
+                    out.out << ")";
+                }
             }
+            else if (_GetSingleBreakStatementInThenBlock(ifStatement))
             {
-                DebugIndent indent(out);
-                Inline inlineCondition(out, false);
-                ifStatement.GetStatement1()->Accept(*this);
+                // This is:
+                //      (if (...) break)
+                //
+                // We change it to
+                //      (breakif (...))
+                out.EnsureNewLine();
+                {
+                    DebugLine ifLine(out);
+                    out.out << "(breakif ";
+                    Inline inlineCondition(out, true); // But the condition is inline
+                    ifStatement.GetCondition()->Accept(*this);
+                    DebugLine closeLine(out);
+                    out.out << ")";
+                }
             }
+            else
             {
-                DebugLine closeLine(out);
-                out.out << (ifStatement.HasElse() ? "else" : ")");
-            }
-            if (ifStatement.HasElse())
-            {
+                // Keep the if format.
+                out.EnsureNewLine();
+                {
+                    DebugLine ifLine(out);
+                    out.out << "(if ";
+                    Inline inlineCondition(out, true); // But the condition is inline
+                    ifStatement.GetCondition()->Accept(*this);
+                    out.out << "";
+                }
                 {
                     DebugIndent indent(out);
                     Inline inlineCondition(out, false);
-                    ifStatement.GetStatement2()->Accept(*this);
+                    ifStatement.GetStatement1()->Accept(*this);
                 }
-                DebugLine closeLine(out);
-                out.out << ")";
+                {
+                    DebugLine closeLine(out);
+                    out.out << (ifStatement.HasElse() ? "else" : ")");
+                }
+                if (ifStatement.HasElse())
+                {
+                    {
+                        DebugIndent indent(out);
+                        Inline inlineCondition(out, false);
+                        ifStatement.GetStatement2()->Accept(*this);
+                    }
+                    DebugLine closeLine(out);
+                    out.out << ")";
+                }
             }
         }
     }

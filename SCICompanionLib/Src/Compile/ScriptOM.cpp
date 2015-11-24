@@ -440,7 +440,7 @@ ScriptSite::ScriptSite()
 
 bool Comment::IsInline() const
 {
-    return GetPosition().Column() > 0;
+    return (GetPosition().Column() > 0);
 }
 
 // REVIEW: Only works with cpp style comments.

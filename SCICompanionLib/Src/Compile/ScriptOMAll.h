@@ -389,7 +389,7 @@ namespace sci
         CodeResult OutputByteCode(CompileContext &context) const override;
         void PreScan(CompileContext &context)  override { _statement1->PreScan(context); _statement2->PreScan(context); }
         void Traverse(IExploreNode &en) override;
-        bool Evaluate(CompileContext &context, uint16_t &result) override;
+        bool Evaluate(ILookupDefine &context, uint16_t &result) const override;
         virtual std::string ToString() const;
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;

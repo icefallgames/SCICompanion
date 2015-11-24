@@ -92,7 +92,7 @@ public:
     // A prescan, used generally for "preprocessor" substitutions, and adding items to the symbol table
     virtual void PreScan(CompileContext &context) {}
     // Evaluate an expression at compile-time. Returns true if it can be evaluated.
-    virtual bool Evaluate(CompileContext &context, uint16_t &result) { result = 0; return false; }
+    virtual bool Evaluate(ILookupDefine &context, uint16_t &result) const { result = 0; return false; }
     virtual ~IOutputByteCode() {}
 };
 
@@ -210,6 +210,8 @@ namespace sci
         CommentTracker(Script &script);
         // Returns true if comment output
         bool Sync(const sci::SyntaxNode *pNode, SourceCodeWriter &out, int incrementLine = 0);
+        void OutputInitialComment(SourceCodeWriter &out);
+        bool _OutputCommentHelper(const Comment &comment, SourceCodeWriter &out);
 
         template<typename _Tx>
         void Transform(_Tx tx)
@@ -263,6 +265,13 @@ namespace sci
                 pComments->Sync(&node, *this);
             }
         }
+        void OutputInitialComment()
+        {
+            if (pComments)
+            {
+                pComments->OutputInitialComment(*this);
+            }
+        }
         const char *NewLineString() const
         {
             return fInline ? "" : pszNewLine;
@@ -287,6 +296,8 @@ namespace sci
         std::stringstream::pos_type lastNewLineLength;
         LangSyntax lang;
         std::stringstream &out;
+        char indentChar;
+        int indentAmount;
         int iIndent;
         bool fInline;
         bool fLast;
@@ -448,7 +459,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const override;
         void PreScan(CompileContext &context) override;
-        bool Evaluate(CompileContext &context, uint16_t &result) override;
+        bool Evaluate(ILookupDefine &context, uint16_t &result) const override;
 
         bool _fHex;     // Indicates that _numberValue was expressed in hex in the script.
         bool _fNegate;  // Indicates that _numberValue was the result of a negation.  _numberValue doesn't change.
@@ -512,7 +523,7 @@ namespace sci
         virtual SyntaxNode *GetIndexer() const { return _pArrayInternal.get(); }
         std::unique_ptr<SyntaxNode> StealIndexer() { return move(_pArrayInternal); }
         
-        bool Evaluate(CompileContext &context, uint16_t &result) override;
+        bool Evaluate(ILookupDefine &context, uint16_t &result) const override;
 
         void Traverse(IExploreNode &en);
         void Accept(ISyntaxNodeVisitor &visitor) const override;
@@ -940,7 +951,7 @@ namespace sci
         CodeResult OutputByteCode(CompileContext &context) const override;
         void PreScan(CompileContext &context) override;
         void Traverse(IExploreNode &en) override;
-        bool Evaluate(CompileContext &context, uint16_t &result) override;
+        bool Evaluate(ILookupDefine &context, uint16_t &result) const override;
 
         template<typename _T>
         _T *ReduceBlock()
@@ -979,6 +990,7 @@ namespace sci
         CodeResult OutputByteCode(CompileContext &context) const;
         void PreScan(CompileContext &context);
         void Traverse(IExploreNode &en);
+        bool Evaluate(ILookupDefine &context, uint16_t &result) const override;
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
     };

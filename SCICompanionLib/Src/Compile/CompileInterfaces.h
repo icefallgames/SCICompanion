@@ -175,3 +175,9 @@ public:
     virtual void ReportResult(const CompileResult &result) = 0;
     virtual void SummarizeAndReportErrors() {}; // Optional to implement
 };
+
+class ILookupDefine
+{
+public:
+    virtual bool LookupDefine(const std::string &str, uint16_t &wValue) = 0;
+};

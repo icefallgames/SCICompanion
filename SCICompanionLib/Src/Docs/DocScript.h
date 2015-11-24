@@ -33,5 +33,3 @@ private:
     const sci::Script *_script;
     std::unordered_map<const sci::SyntaxNode*, std::string> _nodeToComment;
 };
-
-std::string Indent(const std::string &in);

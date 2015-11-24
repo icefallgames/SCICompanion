@@ -23,7 +23,7 @@ Opcode GetInstructionForBinaryOperator(const std::string &name);
 using namespace sci;
 using namespace std;
 
-bool PropertyValueBase::Evaluate(CompileContext &context, uint16_t &result)
+bool PropertyValueBase::Evaluate(ILookupDefine &context, uint16_t &result) const
 {
     bool isSimpleValue = false;
     if (GetType() == ValueType::Number)
@@ -38,7 +38,7 @@ bool PropertyValueBase::Evaluate(CompileContext &context, uint16_t &result)
     return isSimpleValue;
 }
 
-bool ComplexPropertyValue::Evaluate(CompileContext &context, uint16_t &result)
+bool ComplexPropertyValue::Evaluate(ILookupDefine &context, uint16_t &result) const
 {
     bool isSimpleValue = false;
     if (!_pArrayInternal)
@@ -124,7 +124,7 @@ bool EvalBinaryOp(Opcode opcode, uint16_t aUnsigned, uint16_t bUnsigned, uint16_
     return success;
 }
 
-bool BinaryOp::Evaluate(CompileContext &context, uint16_t &result)
+bool BinaryOp::Evaluate(ILookupDefine &context, uint16_t &result) const
 {
     uint16_t valueA;
     bool good = _statement1->Evaluate(context, valueA);
@@ -140,12 +140,22 @@ bool BinaryOp::Evaluate(CompileContext &context, uint16_t &result)
     return good;
 }
 
-bool CodeBlock::Evaluate(CompileContext &context, uint16_t &result)
+bool CodeBlock::Evaluate(ILookupDefine &context, uint16_t &result) const
 {
     bool good = false;
     if (!GetStatements().empty())
     {
         good = GetStatements().back()->Evaluate(context, result);
+    }
+    return good;
+}
+
+bool ConditionalExpression::Evaluate(ILookupDefine &context, uint16_t &result) const
+{
+    bool good = false;
+    if (_segments.size() == 1)
+    {
+        good = _segments[0]->Evaluate(context, result);
     }
     return good;
 }

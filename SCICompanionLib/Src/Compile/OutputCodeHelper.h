@@ -18,17 +18,16 @@
 //
 // Handles an indentation scope
 //
-const int cIndent = 4;
 class DebugIndent
 {
 public:
     DebugIndent(sci::SourceCodeWriter &out) : _out(out)
     {
-        _out.iIndent += cIndent;
+        _out.iIndent += _out.indentAmount;
     }
     ~DebugIndent()
     {
-        _out.iIndent -= cIndent;
+        _out.iIndent -= _out.indentAmount;
     }
 private:
     sci::SourceCodeWriter &_out;

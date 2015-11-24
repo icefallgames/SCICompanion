@@ -1237,9 +1237,7 @@ void SCISyntaxParser::Load()
 
     switch_statement = oppar
         >> keyword_p("switch")[SetStatementA<SwitchStatement>]
-        //>> oppar
         >> statement[StatementBindTo1stA<SwitchStatement, errSwitchArg>]
-        //>> clpar
         >> *syntaxnode_d[case_statement[FinishCaseA]]
         >> clpar;
 

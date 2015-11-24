@@ -53,3 +53,47 @@ static inline std::string &trim(std::string &s, char c) {
 }
 
 std::vector<std::string> Lineify(const std::string &in);
+bool IsLineEmpty(const std::string &line);
+
+// If all non-empty lines have a tab, removes the tab at the beginning of each line
+template<char _TWhiteSpace>
+std::string Unindent(const std::string &in, int *minTabCountOut = nullptr)
+{
+    std::vector<std::string> lines = Lineify(in);
+    int minTabCount = (std::numeric_limits<int>::max)();
+    for (auto &line : lines)
+    {
+        if (!IsLineEmpty(line))
+        {
+            int tabCount = std::find_if(line.begin(), line.end(), [](char c) { return c != _TWhiteSpace;  }) - line.begin();
+            minTabCount = min(tabCount, minTabCount);
+        }
+    }
+
+    std::string output;
+    if ((minTabCount > 0) && (minTabCount != (std::numeric_limits<int>::max)()))
+    {
+        for (auto &line : lines)
+        {
+            if (!IsLineEmpty(line))
+            {
+                std::string lineUnindented(line.begin() + minTabCount, line.end());
+                output += lineUnindented;
+            }
+            output += '\n';
+        }
+    }
+    else
+    {
+        output = in;
+    }
+
+    if (minTabCountOut)
+    {
+        *minTabCountOut = minTabCount;
+    }
+
+    return output;
+}
+
+std::string Indent(const std::string &in);

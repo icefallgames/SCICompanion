@@ -77,7 +77,7 @@ bool IsNonAlphaOperator(const std::string &op)
 void Indent(sci::SourceCodeWriter &out)
 {
     std::string spaces;
-    spaces.append(out.iIndent, ' ');
+    spaces.append(out.iIndent, out.indentChar);
     out.out << spaces;
 }
 

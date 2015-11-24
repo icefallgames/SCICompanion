@@ -49,6 +49,34 @@ CommentTracker::CommentTracker(Script &script) : _comments(script.GetComments())
 {
 }
 
+bool CommentTracker::_OutputCommentHelper(const Comment &comment, SourceCodeWriter &out)
+{
+    if (comment.IsInline())
+    {
+        out.IndentToCommentColumn();
+    }
+    else
+    {
+        // Just our standard indent.
+        Indent(out);
+    }
+    out.out << comment.GetName();
+    out.EnsureNewLine();
+    ++_commentIndex;
+    return true;
+}
+
+void CommentTracker::OutputInitialComment(SourceCodeWriter &out)
+{
+    if (_commentIndex < _comments.size())
+    {
+        if (_comments[_commentIndex]->GetPosition().Line() == 0)
+        {
+            _OutputCommentHelper(*_comments[_commentIndex], out);
+        }
+    }
+}
+
 bool CommentTracker::Sync(const sci::SyntaxNode *pNode, SourceCodeWriter &out, int incrementLine)
 {
     bool outputComment = false;
@@ -59,14 +87,8 @@ bool CommentTracker::Sync(const sci::SyntaxNode *pNode, SourceCodeWriter &out, i
         nodePosition = LineCol(nodePosition.Line() + incrementLine, nodePosition.Column());
         while ((_commentIndex < _comments.size()) && (commentPosition < nodePosition))
         {
-            if (_comments[_commentIndex]->IsInline())
-            {
-                out.IndentToCommentColumn();
-            }
-            out.out << _comments[_commentIndex]->GetName();
-            out.EnsureNewLine();
-            outputComment = true;
-            ++_commentIndex;
+            outputComment = _OutputCommentHelper(*_comments[_commentIndex], out);
+
             if (_commentIndex < _comments.size())
             {
                 commentPosition = _comments[_commentIndex]->GetEndPosition();
@@ -88,7 +110,9 @@ SourceCodeWriter::SourceCodeWriter(std::stringstream &ss, LangSyntax syntax, Scr
     lastNewLineLength(0),
     disallowedTokens(nullptr),
     fAlwaysExpandCodeBlocks(false),
-    defaultInlineCommentColumn(40)
+    defaultInlineCommentColumn(40),
+    indentChar(' '),
+    indentAmount(4)
 {
     if (pScript)
     {
