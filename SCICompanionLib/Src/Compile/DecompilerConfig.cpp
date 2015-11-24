@@ -136,7 +136,7 @@ public:
 
     void ResolveSwitchStatementValues(sci::SwitchStatement &switchStatement) const
     {
-        vector<SingleStatement*> destinations;
+        vector<SyntaxNode*> destinations;
         for (auto &caseStatement : switchStatement._cases)
         {
             if (!caseStatement->IsDefault())
@@ -155,22 +155,22 @@ public:
 
 private:
 
-    void _ResolveValuesHelper(SingleStatement *source, const vector<SingleStatement*> &destinations) const
+    void _ResolveValuesHelper(SyntaxNode *source, const vector<SyntaxNode*> &destinations) const
     {
         if (source)
         {
             auto itType = _switchValueTypes.end();
-            PropertyValue *pv = SafeSyntaxNode<PropertyValue>(source->GetSyntaxNode());
+            PropertyValue *pv = SafeSyntaxNode<PropertyValue>(source);
             if ((pv != nullptr) && (pv->GetType() == ValueType::Token))
             {
                 itType = _switchValueTypes.find(pv->GetStringValue());
             }
-            LValue *lValue = SafeSyntaxNode<LValue>(source->GetSyntaxNode());
+            LValue *lValue = SafeSyntaxNode<LValue>(source);
             if (lValue)
             {
                 itType = _switchValueTypes.find(lValue->GetName());
             }
-            SendCall *sendCall = SafeSyntaxNode<SendCall>(source->GetSyntaxNode());
+            SendCall *sendCall = SafeSyntaxNode<SendCall>(source);
             if (sendCall && (sendCall->GetParams().size() == 1) && !sendCall->GetObjectA().empty())
             {
                 auto &sendParam = sendCall->GetParams()[0];
@@ -188,7 +188,7 @@ private:
                 // Now go through the case statements, and see if we can resolve values
                 for (auto &destination : destinations)
                 {
-                    PropertyValue *pvCase = SafeSyntaxNode<PropertyValue>(destination->GetSyntaxNode());
+                    PropertyValue *pvCase = SafeSyntaxNode<PropertyValue>(destination);
                     if ((pvCase != nullptr) && (pvCase->GetType() == ValueType::Number))
                     {
                         auto itValue = enumList.find(pvCase->GetNumberValue());
@@ -207,7 +207,7 @@ private:
         size_t index = 0;
         for (auto &param : statementNode.GetStatements())
         {
-            PropertyValue *value = SafeSyntaxNode<PropertyValue>(param->GetSyntaxNode());
+            PropertyValue *value = SafeSyntaxNode<PropertyValue>(param.get());
             if (value && (value->GetType() == ValueType::Number) && (index < types.size()))
             {
                 const string &type = types[index];

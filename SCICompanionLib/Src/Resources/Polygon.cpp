@@ -73,12 +73,12 @@ unique_ptr<ProcedureCall> GetSetUpPolyProcedureCall(int picResource)
     return procCall;
 }
 
-void _ExtractPolygonsFromStatements(const string &name, PolygonComponent &polySource, const SingleStatementVector &statements)
+void _ExtractPolygonsFromStatements(const string &name, PolygonComponent &polySource, const SyntaxNodeVector &statements)
 {
     auto it = statements.begin();
     if (it != statements.end())
     {
-        const PropertyValue *pValue = SafeSyntaxNode<PropertyValue>((*it)->GetSyntaxNode());
+        const PropertyValue *pValue = SafeSyntaxNode<PropertyValue>((*it).get());
         int polyCount = 0;
         if (pValue->GetType() == ValueType::Number)
         {
@@ -87,7 +87,7 @@ void _ExtractPolygonsFromStatements(const string &name, PolygonComponent &polySo
         }
         for (int i = 0; (it != statements.end()) && (i < polyCount); i++)
         {
-            pValue = SafeSyntaxNode<PropertyValue>((*it)->GetSyntaxNode());
+            pValue = SafeSyntaxNode<PropertyValue>((*it).get());
             ++it;
             if (pValue)
             {
@@ -98,7 +98,7 @@ void _ExtractPolygonsFromStatements(const string &name, PolygonComponent &polySo
                     polygon.Name = name;
                     polygon.Type = (PolygonType)(itType - begin(AccessType));
 
-                    pValue = SafeSyntaxNode<PropertyValue>((*it)->GetSyntaxNode());
+                    pValue = SafeSyntaxNode<PropertyValue>((*it).get());
                     ++it;
                     if (pValue)
                     {
@@ -107,14 +107,14 @@ void _ExtractPolygonsFromStatements(const string &name, PolygonComponent &polySo
                         // Now the points
                         while (pointCount && (it != statements.end()))
                         {
-                            pValue = SafeSyntaxNode<PropertyValue>((*it)->GetSyntaxNode());
+                            pValue = SafeSyntaxNode<PropertyValue>((*it).get());
                             ++it;
                             if (pValue)
                             {
                                 int16_t x = (int16_t)pValue->GetNumberValue();
                                 if (it != statements.end())
                                 {
-                                    pValue = SafeSyntaxNode<PropertyValue>((*it)->GetSyntaxNode());
+                                    pValue = SafeSyntaxNode<PropertyValue>((*it).get());
                                     ++it;
                                     if (pValue)
                                     {
@@ -212,16 +212,12 @@ PolygonComponent::PolygonComponent(const string &polyFolder, int picNumber) : _p
 }
 
 // The Polygon:new
-unique_ptr<SingleStatement> _MakeNewPolygon()
+unique_ptr<SyntaxNode> _MakeNewPolygon()
 {
-    unique_ptr<SingleStatement> statement = make_unique<SingleStatement>();
-
     unique_ptr<SendCall> polygonnew = make_unique<SendCall>();
     polygonnew->SetName("Polygon");
     polygonnew->AddSendParam(make_unique<SendParam>("new", true));
-
-    statement->SetSyntaxNode(move(polygonnew));
-    return statement;
+    return std::unique_ptr<SyntaxNode>(std::move(polygonnew));
 }
 
 std::string PolygonComponent::GetPolyFilename() const

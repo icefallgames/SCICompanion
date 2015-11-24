@@ -14,6 +14,7 @@
 #include "stdafx.h"
 #include "AppState.h"
 #include "Types.h"
+#include "ScriptOM.h"
 #include "ScriptOMAll.h"
 #include "CompileContext.h"
 
@@ -33,16 +34,16 @@ const std::string TypeStringKWindow = "k_window";
 const std::string TypeStringKList = "k_list";
 const std::string TypeStringKNode = "k_node";
 
-bool IsZero(const sci::SingleStatement *pStatement)
+bool IsZero(const sci::SyntaxNode *pStatement)
 {
-    const sci::PropertyValue *pValue = pStatement->CastSyntaxNode<sci::PropertyValue>();
+    const sci::PropertyValue *pValue = sci::SafeSyntaxNode<sci::PropertyValue>(pStatement);
     if (pValue)
     {
         return pValue->IsZero();
     }
     else
     {
-        const sci::ComplexPropertyValue *pValue = pStatement->CastSyntaxNode<sci::ComplexPropertyValue>();
+        const sci::ComplexPropertyValue *pValue = sci::SafeSyntaxNode<sci::ComplexPropertyValue>(pStatement);
         if (pValue)
         {
             return pValue->IsZero();
@@ -80,7 +81,7 @@ bool IsOperatorAddSubtract(const std::string &op)
     return (op == "+") || (op == "-") || (op == "+=") || (op == "-=");
 }
 
-bool DoesTypeMatch(CompileContext &context, SpeciesIndex destType, SpeciesIndex sourceType, const std::string *pOperator, const sci::SingleStatement *pStatement)
+bool DoesTypeMatch(CompileContext &context, SpeciesIndex destType, SpeciesIndex sourceType, const std::string *pOperator, const sci::SyntaxNode *pStatement)
 {
     // Guard against uninitialized memory
     ASSERT(destType != 0xcccc);

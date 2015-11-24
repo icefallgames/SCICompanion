@@ -1010,7 +1010,7 @@ void CPPSyntaxContext::DebugOutputAST()
 //
 
 // FWD decl
-unique_ptr<SingleStatement> _EvaluateStatement3(CPPSyntaxContext &context, Script &script, ASTNode *pActual);
+unique_ptr<SyntaxNode> _EvaluateStatement3(CPPSyntaxContext &context, Script &script, ASTNode *pActual);
 unique_ptr<SyntaxNode> _EvaluateExpressionRoot(CPPSyntaxContext &context, Script &script, ASTNode *pParent, size_t endIndex);
 unique_ptr<ComplexPropertyValue> _EvaluateIndexedVariable(CPPSyntaxContext &context, Script &script, ASTNode *pParent, size_t endIndex);
 
@@ -1171,13 +1171,13 @@ void _EvaluateStatementList(CPPSyntaxContext &context, Script &script, Statement
     sci::SendCall *pSend = nullptr;
     for (auto &child : pParent->Children())
     {
-        unique_ptr<SingleStatement> pStatement = _EvaluateStatement3(context, script, child.get());
+        unique_ptr<SyntaxNode> pStatement = _EvaluateStatement3(context, script, child.get());
         // Possibly coalesce a send.
         bool fCoalesce = false;
-        if (pSend && (pStatement->GetType() == NodeTypeSendCall) && fAllowCoalesce)
+        if (pSend && (pStatement->GetNodeType() == NodeTypeSendCall) && fAllowCoalesce)
         {
             // The last one was a send and so is this
-            sci::SendCall *pNewSend = static_cast<sci::SendCall*>(pStatement->GetSyntaxNode());
+            sci::SendCall *pNewSend = static_cast<sci::SendCall*>(pStatement.get());
             // Are they sending to the same thing?  Note: we need to check that name isn't empty,
             // since there are other ways to express send objects.
             // REVIEW: we could expand this a little
@@ -1193,7 +1193,7 @@ void _EvaluateStatementList(CPPSyntaxContext &context, Script &script, Statement
         if (!fCoalesce)
         {
             // For next time:
-            pSend = (pStatement->GetType() == NodeTypeSendCall) ? static_cast<sci::SendCall*>(pStatement->GetSyntaxNode()) : nullptr;
+            pSend = (pStatement->GetNodeType() == NodeTypeSendCall) ? static_cast<sci::SendCall*>(pStatement.get()) : nullptr;
             pStatementsHost->AddStatement(std::move(pStatement));
         }
     }
@@ -1524,24 +1524,17 @@ unique_ptr<SyntaxNode> _EvaluateCast(CPPSyntaxContext &context, Script &script, 
         // This functionality is a little different.  This is a special case for sends.
         // We need to treat it specially here too because the code we have that packages up
         // a property value into a statement doesn't recognize just a bare "alphanumeric".
-		unique_ptr<SyntaxNode> newPV = std::make_unique<PropertyValue>(_GetPropertyValue(context, pOriginalObject));
-		unique_ptr<SingleStatement> temp = make_unique<SingleStatement>();
-		temp->SetSyntaxNode(move(newPV));
-        pCast->SetStatement1(move(temp));
+        pCast->SetStatement1(std::make_unique<PropertyValue>(_GetPropertyValue(context, pOriginalObject)));
     }
     else
     {
-        ASSERT(endIndex >= 2);
+        assert(endIndex >= 2);
         // It must be sequence of things.  Recursively evaluate the ones before us (endIndex - 1).
-        unique_ptr<SyntaxNode> pNode(_EvaluateExpressionRoot(context, script, pParent, endIndex - 1));
-        // And use this as our statement.
-		unique_ptr<SingleStatement> temp = make_unique<SingleStatement>();
-		temp->SetSyntaxNode(move(pNode));
-		pCast->SetStatement1(move(temp)); // pNode will we tranfered from statement here.
+        pCast->SetStatement1(_EvaluateExpressionRoot(context, script, pParent, endIndex - 1));
     }
 
     // Set the type
-    ASSERT(pCastNode->Children().size() == 1);
+    assert(pCastNode->Children().size() == 1);
     pCast->SetDataType(pCastNode->Children()[0]->GetText());
 
 	return unique_ptr<SyntaxNode>(pCast.release());
@@ -1560,7 +1553,7 @@ class FinishOffMethod
     //     ParameterList
     //
 public:
-    static void FinishOff(CPPSyntaxContext &context, Script &script, SendCall *pSend, ASTNode *pMethodCall, unique_ptr<SingleStatement> pAssignment)
+    static void FinishOff(CPPSyntaxContext &context, Script &script, SendCall *pSend, ASTNode *pMethodCall, unique_ptr<SyntaxNode> pAssignment)
     {
         // In c-syntax, we just have a single "send param"
 		unique_ptr<SendParam> pSendParam = std::make_unique<SendParam>();
@@ -1593,7 +1586,7 @@ class FinishOffProperty
     //     ParameterList
     //
 public:
-    static void FinishOff(CPPSyntaxContext &context, Script &script, SendCall *pSend, ASTNode *pProperty, unique_ptr<SingleStatement> pAssignment)
+    static void FinishOff(CPPSyntaxContext &context, Script &script, SendCall *pSend, ASTNode *pProperty, unique_ptr<SyntaxNode> pAssignment)
     {
         // In c-syntax, we just have a single "send param"
 		unique_ptr<SendParam> pSendParam = std::make_unique<SendParam>();
@@ -1625,7 +1618,7 @@ public:
 
 
 template<typename _TFinisher>
-unique_ptr<SyntaxNode> _EvaluateSendCall(CPPSyntaxContext &context, Script &script, ASTNode *pParent, size_t endIndex, unique_ptr<SingleStatement> pAssignment)
+unique_ptr<SyntaxNode> _EvaluateSendCall(CPPSyntaxContext &context, Script &script, ASTNode *pParent, size_t endIndex, unique_ptr<SyntaxNode> pAssignment)
 {
     ASSERT(pParent->GetType() == ASTNode::ExpressionRoot);
     ASSERT(pParent->Children().size() >= 2);
@@ -1641,23 +1634,20 @@ unique_ptr<SyntaxNode> _EvaluateSendCall(CPPSyntaxContext &context, Script &scri
     // First, figure out what object we're calling.
     if (pSendObjectNode->GetType() == ASTNode::AlphaNumeric)
     {
-        ASSERT(endIndex == 2); // This must be the beginning of the "expression"
+        assert(endIndex == 2); // This must be the beginning of the "expression"
         pSend->SetName(pSendObjectNode->GetText());
     }
     else if (pSendObjectNode->GetType() == ASTNode::Block)
     {
-        ASSERT(endIndex == 2); // This must be the beginning of the "expression"
+        assert(endIndex == 2); // This must be the beginning of the "expression"
 		pSend->SetStatement1(move(_EvaluateStatement3(context, script, pSendObjectNode)));
     }
     else
     {
-        ASSERT(endIndex > 2);
+        assert(endIndex > 2);
         // It must be sequence of things.  Recursively evaluate the ones before us (endIndex - 1).
-        unique_ptr<SyntaxNode> pNode = _EvaluateExpressionRoot(context, script, pParent, endIndex - 1);
         // And use this as our statement.
-		unique_ptr<SingleStatement> temp = make_unique<SingleStatement>();
-		temp->SetSyntaxNode(move(pNode));
-		pSend->SetStatement1(move(temp));
+        pSend->SetStatement1(_EvaluateExpressionRoot(context, script, pParent, endIndex - 1));
     }
 
     _TFinisher::FinishOff(context, script, pSend.get(), pSendCallNode, move(pAssignment));
@@ -1850,16 +1840,19 @@ unique_ptr<SyntaxNode> _EvaluateExpressionRoot(CPPSyntaxContext &context, Script
             {
                 // Special one.
                 unique_ptr<CodeBlock> pBlock(_EvaluateBlock(context, script, pNode));
-                pValue.reset(pBlock->ReduceBlock<ComplexPropertyValue>());
+                if ((pBlock->GetStatements().size() == 1) && (pBlock->GetStatements()[0]->GetNodeType() == NodeType::NodeTypeComplexValue))
+                {
+                    pValue.reset(static_cast<ComplexPropertyValue*>(pBlock->GetStatements()[0].release()));
+                }
                 if (!pValue)
                 {
                     // It couldn't be reduced.  Just return the block.
-					return unique_ptr<SyntaxNode>(pBlock.release());
+                    return unique_ptr<SyntaxNode>(pBlock.release());
                 }
             }
             break;
         default:
-            ASSERT(FALSE); // Nothing else is allowed.
+            assert(false); // Nothing else is allowed.
             break;
         }
 		return unique_ptr<SyntaxNode>(pValue.release());
@@ -1948,11 +1941,9 @@ unique_ptr<ComplexPropertyValue> _EvaluateIndexedVariable(CPPSyntaxContext &cont
     return pValue;
 }
 
-unique_ptr<SingleStatement> _EvaluateStatement3(CPPSyntaxContext &context, Script &script, ASTNode *pActual)
+unique_ptr<SyntaxNode> _EvaluateStatement3(CPPSyntaxContext &context, Script &script, ASTNode *pActual)
 {
-	unique_ptr<SingleStatement> pStatement = std::make_unique<SingleStatement>();
-    _SyncPosition(pStatement.get(), pActual);
-    SyntaxNode *pSyntaxNode = nullptr;
+    std::unique_ptr<SyntaxNode> pSyntaxNode;
 
     // No sense in having a statement inside a statement.
     while (pActual->GetType() == ASTNode::Statement)
@@ -1964,46 +1955,46 @@ unique_ptr<SingleStatement> _EvaluateStatement3(CPPSyntaxContext &context, Scrip
     switch (pActual->GetType())
     {
     case ASTNode::Assignment:
-        pSyntaxNode = _EvaluateAssignment(context, script, pActual).release();
+        pSyntaxNode = _EvaluateAssignment(context, script, pActual);
         break;
     case ASTNode::Binary:
-        pSyntaxNode = _EvaluateBinary(context, script, pActual);
+        pSyntaxNode.reset(_EvaluateBinary(context, script, pActual));
         break;
     case ASTNode::Unary:
-        pSyntaxNode = _EvaluateUnary(context, script, pActual);
+        pSyntaxNode.reset(_EvaluateUnary(context, script, pActual));
         break;
     case ASTNode::Block:
-        pSyntaxNode = _EvaluateBlock(context, script, pActual);
+        pSyntaxNode.reset(_EvaluateBlock(context, script, pActual));
         break;
     case ASTNode::If:
-        pSyntaxNode = _EvaluateIf(context, script, pActual);
+        pSyntaxNode.reset(_EvaluateIf(context, script, pActual));
         break;
     case ASTNode::Ternary:
-        pSyntaxNode = _EvaluateIf(context, script, pActual);
+        pSyntaxNode.reset(_EvaluateIf(context, script, pActual));
         break;
     case ASTNode::Switch:
-        pSyntaxNode = _EvaluateSwitch(context, script, pActual);
+        pSyntaxNode.reset(_EvaluateSwitch(context, script, pActual));
         break;
     case ASTNode::Do:
-        pSyntaxNode = _EvaluateDoLoop(context, script, pActual);
+        pSyntaxNode.reset(_EvaluateDoLoop(context, script, pActual));
         break;
     case ASTNode::While:
-        pSyntaxNode = _EvaluateWhileLoop(context, script, pActual);
+        pSyntaxNode.reset(_EvaluateWhileLoop(context, script, pActual));
         break;
     case ASTNode::For:
-        pSyntaxNode = _EvaluateForLoop(context, script, pActual);
+        pSyntaxNode.reset(_EvaluateForLoop(context, script, pActual));
         break;
     case ASTNode::Break:
-        pSyntaxNode = _EvaluateBreak(context, script, pActual);
+        pSyntaxNode.reset(_EvaluateBreak(context, script, pActual));
         break;
     case ASTNode::Rest:
-        pSyntaxNode = _EvaluateRest(context, script, pActual);
+        pSyntaxNode.reset(_EvaluateRest(context, script, pActual));
         break;
     case ASTNode::Return:
-        pSyntaxNode = _EvaluateReturn(context, script, pActual);
+        pSyntaxNode.reset(_EvaluateReturn(context, script, pActual));
         break;
     case ASTNode::ExpressionRoot:
-        pSyntaxNode = _EvaluateExpressionRoot(context, script, pActual, pActual->Children().size()).release();
+        pSyntaxNode = _EvaluateExpressionRoot(context, script, pActual, pActual->Children().size());
         break;
     default:
         ASSERT(FALSE);
@@ -2011,12 +2002,9 @@ unique_ptr<SingleStatement> _EvaluateStatement3(CPPSyntaxContext &context, Scrip
     }
     if (pSyntaxNode)
     {
-        unique_ptr<SyntaxNode> pSafe(pSyntaxNode);
-        // REVIEW: we really need start and end position... this is end position as start position
-        pSafe->SetPosition(pActual->GetPosition());
-        pStatement->SetSyntaxNode(std::move(pSafe));
+        _SyncPosition(pSyntaxNode.get(), pActual);
     }
-    return pStatement;
+    return pSyntaxNode;
 }
 
 void _EvaluateFunctionSignature(CPPSyntaxContext &context, Script &script, FunctionBase *pFunc, ASTNode *pParent)

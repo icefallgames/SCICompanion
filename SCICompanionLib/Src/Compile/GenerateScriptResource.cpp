@@ -477,7 +477,7 @@ void _ResolveLocalVariables(Script &script, CompileContext &context, bool resolv
     {
         for (auto &segment : scriptVar->GetStatements())
         {
-            PropertyValue *pValue = SafeSyntaxNode<PropertyValue>(segment->GetSyntaxNode());
+            PropertyValue *pValue = SafeSyntaxNode<PropertyValue>(segment.get());
             if (pValue && pValue->GetType() == ValueType::String)
             {
                 uint16_t temp = context.GetStringTempOffset(pValue->GetStringValue());
@@ -514,7 +514,7 @@ void _Section10_LocalVariables(Script &script, CompileContext &context, vector<B
             int size = 0;
             for (auto &value : var->GetStatements())
             {
-                const PropertyValue *pValue = SafeSyntaxNode<PropertyValue>(value->GetSyntaxNode());
+                const PropertyValue *pValue = SafeSyntaxNode<PropertyValue>(value.get());
                 assert(pValue); // Must be a property value.
                 if (context.ScriptVariableValueNeedsReloc.find(pValue) != context.ScriptVariableValueNeedsReloc.end())
                 {
@@ -809,25 +809,25 @@ private:
             if (node.GetNodeType() == NodeTypeCase)
             {
                 CaseStatement &caseStatement = static_cast<CaseStatement&>(node);
-                SingleStatement *caseValue = caseStatement.GetCaseValue();
-                if (caseValue && (caseValue->GetType() == NodeTypeProcedureCall))
+                SyntaxNode *caseValue = caseStatement.GetCaseValue();
+                ProcedureCall *maybeProcedureCall = SafeSyntaxNode<ProcedureCall>(caseValue);
+                if (caseValue && (caseValue->GetNodeType() == NodeTypeProcedureCall))
                 {
-                    ProcedureCall *pProc = static_cast<ProcedureCall*>(caseValue->GetSegment());
-                    if (ProcedureUnknown == _context.LookupProc(pProc->GetName()))
+                    if (ProcedureUnknown == _context.LookupProc(maybeProcedureCall->GetName()))
                     {
                         // This isn't a procedure call.  "Undo it"
                         // The name becomes a simple token value - let's construct that.
                         unique_ptr<ComplexPropertyValue> pTokenValue = std::make_unique<ComplexPropertyValue>();
-                        pTokenValue->SetValue(pProc->GetName(), ValueType::Token);
+                        pTokenValue->SetValue(maybeProcedureCall->GetName(), ValueType::Token);
                         // ...and the parameters become the code statements. So steal the procedures parameters.
-                        SingleStatementVector formerParams;
-                        pProc->StealParams(formerParams);
+                        SyntaxNodeVector formerParams;
+                        maybeProcedureCall->StealParams(formerParams);
                         // Replace the casevalue's procedure, with our "simple token value"
                         // whose parameters we have now stolen.
-                        caseValue->SetSyntaxNode(std::move(pTokenValue)); // This will delete pProc.
+                        caseStatement.SetCaseValue(std::move(pTokenValue));
                         // Finally, add back the statements.  In case there is already some code in the
                         // case statement, we'll make sure to insert ours at the beginning.
-                        SingleStatementVector &existingCode = caseStatement.GetCodeSegments();
+                        SyntaxNodeVector &existingCode = caseStatement.GetCodeSegments();
                         existingCode.insert(existingCode.begin(), std::make_move_iterator(formerParams.begin()), std::make_move_iterator(formerParams.end()));
                     }
                 }

@@ -26,7 +26,7 @@ void _SetSendVariableTarget(SendCall &send, const std::string &target)
     send.SetLValue(move(lValue));
 }
 
-unique_ptr<SingleStatement> _MakeNumberStatement(int16_t w)
+unique_ptr<SyntaxNode> _MakeNumberStatement(int16_t w)
 {
     unique_ptr<ComplexPropertyValue> pValue = std::make_unique<ComplexPropertyValue>();
     pValue->SetValue((uint16_t)w);
@@ -34,18 +34,14 @@ unique_ptr<SingleStatement> _MakeNumberStatement(int16_t w)
     {
         pValue->Negate();
     }
-    unique_ptr<SingleStatement> temp = make_unique<SingleStatement>();
-    temp->SetSyntaxNode(move(pValue));
-    return temp;
+    return unique_ptr<SyntaxNode>(move(pValue));
 }
 
-unique_ptr<SingleStatement> _MakeTokenStatement(const string &token)
+unique_ptr<SyntaxNode> _MakeTokenStatement(const string &token)
 {
     unique_ptr<ComplexPropertyValue> pValue = std::make_unique<ComplexPropertyValue>();
     pValue->SetValue(token, ValueType::Token);
-    unique_ptr<SingleStatement> temp = make_unique<SingleStatement>();
-    temp->SetSyntaxNode(std::move(pValue));
-    return temp;
+    return unique_ptr<SyntaxNode>(move(pValue));
 }
 
 void _AddAssignment(MethodDefinition &method, const string &lvalueName, const string &assigned)

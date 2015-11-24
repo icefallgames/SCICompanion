@@ -50,9 +50,7 @@ string _GetLabelName(uint16_t offset)
 
 void _AddSyntaxNode(StatementsNode &statementsNode, unique_ptr<SyntaxNode> syntaxNode)
 {
-    unique_ptr<SingleStatement> pStatement = std::make_unique<SingleStatement>();
-    pStatement->SetSyntaxNode(move(syntaxNode));
-    statementsNode.AddStatement(std::move(pStatement));
+    statementsNode.AddStatement(std::move(syntaxNode));
 }
 
 void _AddString(StatementsNode &statementsNode, const string &token, ValueType type)

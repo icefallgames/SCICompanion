@@ -40,7 +40,7 @@ namespace sci
 
 		bool HasValue() const { return !_segments.empty(); }
 		std::string GetSelectorName() const { return _innerName; }
-		const SingleStatementVector &GetSelectorParams() const { return _segments; }
+		const SyntaxNodeVector &GetSelectorParams() const { return _segments; }
         
         void SetIsMethod(bool fMethod) { _fIsMethodCall = fMethod; }
         bool IsMethod() const { return _fIsMethodCall; }
@@ -70,7 +70,7 @@ namespace sci
 		LValue(LValue &src) = delete;
 		LValue& operator=(const LValue& src) = delete;
 
-        const SingleStatement *GetIndexer() const { return _indexer.get(); }
+        const SyntaxNode *GetIndexer() const { return _indexer.get(); }
         bool HasIndexer() const { return _indexer.get() != nullptr; }
 
         // IOutputByteCode
@@ -78,12 +78,12 @@ namespace sci
         void PreScan(CompileContext &context);
         void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
 
-        void SetIndexer(std::unique_ptr<SingleStatement> indexer) { _indexer = std::move(indexer); }
+        void SetIndexer(std::unique_ptr<SyntaxNode> indexer) { _indexer = std::move(indexer); }
         
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 
     private:
-        std::unique_ptr<SingleStatement> _indexer;
+        std::unique_ptr<SyntaxNode> _indexer;
     };
 
     //
@@ -179,7 +179,7 @@ namespace sci
 		ProcedureCall& operator=(const ProcedureCall& src) = delete;
 
         // Needed for syntax tree adjustment.
-        void StealParams(SingleStatementVector &stolen) { stolen.swap(_segments); }
+        void StealParams(SyntaxNodeVector &stolen) { stolen.swap(_segments); }
 
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;
@@ -189,7 +189,7 @@ namespace sci
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 
-		SingleStatementPtr GetParameter(size_t i) { return (i < _segments.size()) ? _segments[i].get() : nullptr; }
+		SyntaxNode *GetParameter(size_t i) { return (i < _segments.size()) ? _segments[i].get() : nullptr; }
     };
 
     class ReturnStatement : public SyntaxNode, public OneStatementNode
@@ -209,7 +209,7 @@ namespace sci
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 
-		const SingleStatement *GetValue() const { return _statement1.get(); }
+        const SyntaxNode *GetValue() const { return _statement1.get(); }
 
     };
 
@@ -289,10 +289,11 @@ namespace sci
     public:
         CaseStatement() { _fDefault = false; }
 
-		const SingleStatement *GetCaseValue() const { return _statement1.get(); }
-        SingleStatement *GetCaseValue() { return _statement1.get(); }
-        const SingleStatementVector &GetCodeSegments() const { return _segments; }
-		SingleStatementVector &GetCodeSegments() { return _segments; }
+        const SyntaxNode *GetCaseValue() const { return _statement1.get(); }
+        void SetCaseValue(std::unique_ptr<SyntaxNode> caseValue) { SetStatement1(std::move(caseValue)); }
+        SyntaxNode *GetCaseValue() { return _statement1.get(); }
+        const SyntaxNodeVector &GetCodeSegments() const { return _segments; }
+		SyntaxNodeVector &GetCodeSegments() { return _segments; }
         bool IsDefault() const { return _fDefault; }
 
         // IOutputByteCode
@@ -435,7 +436,7 @@ namespace sci
 
         // Causes output to be of the form _condition ? _if : _else
         void MakeTernary() { _fTernary = true; }
-		bool HasElse() const { return _statement2.get() && _statement2->GetSyntaxNode(); }
+        bool HasElse() const { return !!_statement2; }
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 
@@ -457,7 +458,7 @@ namespace sci
         AsmBlock(const CodeBlock &src) = delete;
         AsmBlock& operator=(const CodeBlock& src) = delete;
 
-        const SingleStatementVector &GetList() const { return _segments; }
+        const SyntaxNodeVector &GetList() const { return _segments; }
 
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;
@@ -498,4 +499,4 @@ namespace sci
 
 }; //namespace sci
 
-void ConvertAndOrSequenceIntoTree(sci::SingleStatementVector &statements, std::vector<bool> andOrs);
+void ConvertAndOrSequenceIntoTree(sci::SyntaxNodeVector &statements, std::vector<bool> andOrs);

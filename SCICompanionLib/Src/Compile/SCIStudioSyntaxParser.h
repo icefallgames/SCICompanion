@@ -883,23 +883,20 @@ public:
             }
             else if (FunctionPtr)
             {
-                std::unique_ptr<sci::SingleStatement> statement = std::make_unique<sci::SingleStatement>();
-                statement->SetSyntaxNode(move(comment));
-                FunctionPtr->AddStatement(move(statement));
+                FunctionPtr->AddStatement(move(comment));
             }
         }
     }
 
     // This is the "return value" from a generic statement
-    std::unique_ptr<sci::SingleStatement> StatementPtrReturn;
+    std::unique_ptr<sci::SyntaxNode> StatementPtrReturn;
 
     void FinishStatement(bool fSuccess)
     {
         if (fSuccess)
         {
             // The statement is moved to the "return value"
-			StatementPtrReturn = std::make_unique<sci::SingleStatement>();
-			StatementPtrReturn->SetSyntaxNode(std::move(_statements.top()));
+            StatementPtrReturn = std::move(_statements.top());
         }
         else
         {

@@ -30,57 +30,57 @@ class CompileContext;
 //              PropertyValue
 //          MethodDefinition
 //              VariableDecl[]
-//              SingleStatement[]
+//              SyntaxNode[]
 //      VariableDecl[]
 //          VariableDecl
 //          PropertyValue[]
 //      ProcedureDefinition[]
 //          VariableDecl[]
-//          SingleStatement[]
+//          SyntaxNode[]
 //      Synonym[]
 //      Define[]
 //
-// SingleStatement
+// SyntaxNode
 //      CodeBlock
-//          SingleStatement[]
+//          SyntaxNode[]
 //      SendCall
-//          LValue/SingleStatement
+//          LValue/SyntaxNode
 //          SendParam[]
 //      ProcedureCall
-//          SingleStatement[]
+//          SyntaxNode[]
 //      SwitchStatement
-//          SingleStatement[]
+//          SyntaxNode[]
 //          CaseStatement[]
-//              SingleStatement
-//              SingleStatement[]
+//              SyntaxNode
+//              SyntaxNode[]
 //      ReturnStatement
-//          SingleStatement
+//          SyntaxNode
 //      Assignment
 //          LValue
-//          SingleStatement
+//          SyntaxNode
 //      BinaryOp
-//          SingleStatement
-//          SingleStatement
+//          SyntaxNode
+//          SyntaxNode
 //      UnaryOp
-//          SingleStatement
+//          SyntaxNode
 //      ForLoop
-//          SingleStatement
+//          SyntaxNode
 //          ConditionalExpression
-//          SingleStatement
-//          SingleStatement[]
+//          SyntaxNode
+//          SyntaxNode[]
 //      WhileLoop
 //          ConditionalExpression
-//          SingleStatement
+//          SyntaxNode
 //      DoLoop
 //          CodeBlock
-//          SingleStatement - ???
+//          SyntaxNode - ???
 //      BreakStatement
 //      RestStatement
 //          PropertyValue
 //          
 //      
 // ConditionExpression
-//      SingleStatement[]
+//      SyntaxNode[]
 //      
 //      
 
@@ -109,7 +109,6 @@ namespace sci
     class ComplexPropertyValue;
     class Define;
     class ClassProperty;
-    class SingleStatement;
     class VariableDecl;
     class FunctionParameter;
     class MethodDefinition;
@@ -150,7 +149,6 @@ namespace sci
         virtual void Visit(const ComplexPropertyValue &prop) = 0;
         virtual void Visit(const Define &define) = 0;
         virtual void Visit(const ClassProperty &classProp) = 0;
-        virtual void Visit(const SingleStatement &statement) = 0;
         virtual void Visit(const VariableDecl &varDecl) = 0;
         virtual void Visit(const MethodDefinition &function) = 0;
         virtual void Visit(const ProcedureDefinition &function) = 0;
@@ -365,7 +363,7 @@ namespace sci
     template <typename _T>
     const _T *SafeSyntaxNode(const SyntaxNode *pNode)
     {
-        if (pNode->GetNodeType() == _T::MyNodeType)
+        if (pNode && pNode->GetNodeType() == _T::MyNodeType)
         {
             return static_cast<const _T *>(pNode);
         }
@@ -378,7 +376,7 @@ namespace sci
     template <typename _T>
     _T *SafeSyntaxNode(SyntaxNode *pNode)
     {
-        if (pNode->GetNodeType() == _T::MyNodeType)
+        if (pNode && pNode->GetNodeType() == _T::MyNodeType)
         {
             return static_cast<_T *>(pNode);
         }
@@ -415,8 +413,6 @@ namespace sci
         std::string _innerType;
     };
 	
-    class SingleStatement; // fwd decl
-
     class PropertyValueBase : public SyntaxNode
     {
     public:
@@ -456,7 +452,7 @@ namespace sci
 
         
     protected:
-        virtual SingleStatement *GetIndexer() const { return nullptr; }
+        virtual SyntaxNode *GetIndexer() const { return nullptr; }
         // No one should construct this directly.
         PropertyValueBase()
         {
@@ -508,17 +504,17 @@ namespace sci
 		ComplexPropertyValue() : PropertyValueBase() {}
         ComplexPropertyValue(ComplexPropertyValue& src);
         ComplexPropertyValue& operator=(ComplexPropertyValue& src);
-        void SetIndexer(SingleStatement *pIndexer) { _pArrayInternal.reset(pIndexer); }
-		void SetIndexer(std::unique_ptr<SingleStatement> pIndexer) { _pArrayInternal = std::move(pIndexer); }
-        virtual SingleStatement *GetIndexer() const { return _pArrayInternal.get(); }
-        std::unique_ptr<SingleStatement> StealIndexer() { return move(_pArrayInternal); }
+        void SetIndexer(SyntaxNode *pIndexer) { _pArrayInternal.reset(pIndexer); }
+        void SetIndexer(std::unique_ptr<SyntaxNode> pIndexer) { _pArrayInternal = std::move(pIndexer); }
+        virtual SyntaxNode *GetIndexer() const { return _pArrayInternal.get(); }
+        std::unique_ptr<SyntaxNode> StealIndexer() { return move(_pArrayInternal); }
         
         bool Evaluate(CompileContext &context, uint16_t &result) override;
 
         void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
         void Accept(ISyntaxNodeVisitor &visitor) const override;
     private:
-        std::unique_ptr<SingleStatement> _pArrayInternal;
+        std::unique_ptr<SyntaxNode> _pArrayInternal;
     };
 
     class Define : public SyntaxNode, public ScriptSite
@@ -558,73 +554,8 @@ namespace sci
 
 namespace sci
 {
-    //
-    // Code segments
-    //
-    class SingleStatement : public SyntaxNode
-    {
-        DECLARE_NODE_TYPE(NodeTypeStatement)
-    public:
-        SingleStatement() { _type = NodeTypeUnknown; }
-
-        SingleStatement(const SingleStatement &src) = delete;
-		SingleStatement& operator=(const SingleStatement& src) = delete;
-
-        const SyntaxNode *GetSegment() const { return _pThing.get(); }
-        SyntaxNode *GetSegment() { return _pThing.get(); }
-        NodeType GetType() const { return _type; }
-
-        // IOutputByteCode
-        CodeResult OutputByteCode(CompileContext &context) const override;
-        void PreScan(CompileContext &context) override;
-        void Traverse(IExploreNodeContext *pContext, IExploreNode &en) override;
-        bool Evaluate(CompileContext &context, uint16_t &result) override;
-
-        template<typename _statementT>
-        const typename _statementT *CastSyntaxNode() const
-        {
-            if (_statementT::MyNodeType == _type)
-            {
-                return static_cast<const _statementT*>(_pThing.get());
-            }
-            else
-            {
-                return nullptr;
-            }
-        }
-        template<typename _statementT>
-        typename _statementT *CastSyntaxNode()
-        {
-            if (_statementT::MyNodeType == _type)
-            {
-                return static_cast<_statementT*>(_pThing.get());
-            }
-            else
-            {
-                return nullptr;
-            }
-        }
-
-        void SetSyntaxNode(std::unique_ptr<SyntaxNode> pThing)
-		{
-			_pThing = std::move(pThing);
-			_type = _pThing->GetNodeType();
-		}
-        const SyntaxNode *GetSyntaxNode() const { return _pThing.get(); }
-        SyntaxNode *GetSyntaxNode() { return _pThing.get(); }
-        SyntaxNode *ReleaseSyntaxNode() { return _pThing.release(); }
-
-        void Accept(ISyntaxNodeVisitor &visitor) const override;
-
-    private:
-        bool _ContainsStatement(NodeType) const;
-        std::unique_ptr<SyntaxNode> _pThing;
-        NodeType _type;
-    };
-
-    typedef SingleStatement* SingleStatementPtr;
-    typedef std::vector<std::unique_ptr<SingleStatement>> SingleStatementVector;
-	typedef std::vector<SingleStatementPtr> RawSingleStatementVector;
+    typedef std::vector<std::unique_ptr<SyntaxNode>> SyntaxNodeVector;
+    typedef std::vector<SyntaxNode*> RawSingleStatementVector;
 
     //
     // Composition class for nodes that have a series of statements
@@ -638,11 +569,11 @@ namespace sci
 		StatementsNode(const StatementsNode &src) = delete;
 		StatementsNode& operator=(StatementsNode& src) = delete;
 
-		void AddStatement(std::unique_ptr<SingleStatement> pStatement) { _segments.push_back(std::move(pStatement)); }
-        const SingleStatementVector &GetStatements() const { return _segments; }
-        SingleStatementVector &GetStatements() { return _segments; }
+		void AddStatement(std::unique_ptr<SyntaxNode> pStatement) { _segments.push_back(std::move(pStatement)); }
+        const SyntaxNodeVector &GetStatements() const { return _segments; }
+        SyntaxNodeVector &GetStatements() { return _segments; }
     protected:
-		SingleStatementVector _segments;
+		SyntaxNodeVector _segments;
 	};
 
     //
@@ -655,13 +586,13 @@ namespace sci
 		OneStatementNode(const OneStatementNode &src) = delete;
 		OneStatementNode& operator=(OneStatementNode& src) = delete;
 
-		void SetStatement1(std::unique_ptr<SingleStatement> statement) { _statement1 = std::move(statement); }
-        const SingleStatement* GetStatement1() const { return _statement1.get(); }
-        SingleStatement* GetStatement1() { return _statement1.get(); }
+		void SetStatement1(std::unique_ptr<SyntaxNode> statement) { _statement1 = std::move(statement); }
+        const SyntaxNode* GetStatement1() const { return _statement1.get(); }
+        SyntaxNode* GetStatement1() { return _statement1.get(); }
 
-        std::unique_ptr<SingleStatement> &GetStatement1Internal() { return _statement1; }
+        std::unique_ptr<SyntaxNode> &GetStatement1Internal() { return _statement1; }
     protected:
-        std::unique_ptr<SingleStatement> _statement1;
+        std::unique_ptr<SyntaxNode> _statement1;
     };
 
     //
@@ -674,13 +605,13 @@ namespace sci
 		TwoStatementNode(const TwoStatementNode &src) = delete;
 		TwoStatementNode& operator=(TwoStatementNode& src) = delete;
 
-		void SetStatement2(std::unique_ptr<SingleStatement> statement) { _statement2 = std::move(statement); }
-        const SingleStatement* GetStatement2() const { return _statement2.get(); }
-        SingleStatement* GetStatement2() { return _statement2.get(); }
+		void SetStatement2(std::unique_ptr<SyntaxNode> statement) { _statement2 = std::move(statement); }
+        const SyntaxNode* GetStatement2() const { return _statement2.get(); }
+        SyntaxNode* GetStatement2() { return _statement2.get(); }
 
-        std::unique_ptr<SingleStatement> &GetStatement2Internal() { return _statement2; }
+        std::unique_ptr<SyntaxNode> &GetStatement2Internal() { return _statement2; }
     protected:
-        std::unique_ptr<SingleStatement> _statement2;
+        std::unique_ptr<SyntaxNode> _statement2;
     };
 
     // A class or instance property declaration and value. The value can be complex in version 2 of the syntax.
@@ -724,7 +655,7 @@ namespace sci
 
         const std::string &GetName() const { return _name; }
         uint16_t GetSize() const { assert(_size.GetType() == ValueType::Number); return _size.GetNumberValue(); }
-        const SingleStatementVector &GetInitializers() const { return _segments; }
+        const SyntaxNodeVector &GetInitializers() const { return _segments; }
 
         void AddSimpleInitializer(const PropertyValue &value);
         std::vector<uint16_t> GetSimpleValues() const;
@@ -826,7 +757,7 @@ namespace sci
         const VariableDeclVector &GetVariables() const { return _tempVars; }
         const ClassDefinition *GetOwnerClass() const { return _pOwnerClass; }
         void SetOwnerClass(const ClassDefinition *pOwnerClass) { _pOwnerClass = pOwnerClass; }
-        const SingleStatementVector &GetCodeSegments() const { return _segments; }
+        const SyntaxNodeVector &GetCodeSegments() const { return _segments; }
 
         void AddParam(const std::string &param);
 
@@ -999,7 +930,7 @@ namespace sci
         CodeBlock(const CodeBlock &src) = delete;
         CodeBlock& operator=(const CodeBlock& src) = delete;
 
-        const SingleStatementVector &GetList() const { return _segments; }
+        const SyntaxNodeVector &GetList() const { return _segments; }
         
 
         // IOutputByteCode
@@ -1215,4 +1146,4 @@ SpeciesIndex MatchParameters(const std::string &name,
                              const ISourceCodePosition *pPos,
                              const std::vector<CSCOFunctionSignature> &signatures, 
                              const std::vector<SpeciesIndex> &parameterTypes, 
-                             const sci::SingleStatementVector &parameterStatements);
+                             const sci::SyntaxNodeVector &parameterStatements);

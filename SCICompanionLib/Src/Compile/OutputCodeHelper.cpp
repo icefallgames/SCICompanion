@@ -15,7 +15,7 @@
 #include "ScriptOM.h"
 #include "OutputCodeHelper.h"
 
-void _OutputVariableAndSize(sci::ISyntaxNodeVisitor &visitor, sci::SourceCodeWriter &out, const std::string &type, const std::string &name, WORD wSize, const sci::SingleStatementVector &initValues)
+void _OutputVariableAndSize(sci::ISyntaxNodeVisitor &visitor, sci::SourceCodeWriter &out, const std::string &type, const std::string &name, WORD wSize, const sci::SyntaxNodeVector &initValues)
 {
     out.out << name;
     if (wSize > 1)

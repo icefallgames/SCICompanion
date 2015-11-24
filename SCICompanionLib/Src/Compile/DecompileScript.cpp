@@ -267,7 +267,7 @@ public:
                 string instruction = asmStatement->GetName();
                 if (instruction == "call" || instruction == "callb" || instruction == "calle")
                 {
-                    SyntaxNode *procNameNode = asmStatement->GetStatements()[0]->GetSyntaxNode();
+                    SyntaxNode *procNameNode = asmStatement->GetStatements()[0].get();
                     PropertyValue *value = SafeSyntaxNode<PropertyValue>(procNameNode);
                     uint16_t scriptNumber, index;
                     assert(value->GetType() == ValueType::Token);

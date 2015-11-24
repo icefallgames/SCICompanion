@@ -20,9 +20,9 @@ using namespace std;
 using namespace sci;
 
 
-bool IsStatementImmediateValue(const SingleStatement &statement, WORD &wValue)
+bool IsStatementImmediateValue(const SyntaxNode &statement, WORD &wValue)
 {
-    const PropertyValue *pValue = statement.CastSyntaxNode<PropertyValue>();
+    const PropertyValue *pValue = SafeSyntaxNode<PropertyValue>(&statement);
     bool fRet = (pValue && (pValue->GetType() == ValueType::Number));
     if (fRet)
     {
@@ -32,9 +32,9 @@ bool IsStatementImmediateValue(const SingleStatement &statement, WORD &wValue)
 }
 
 // If the statement is an immediate value that maps to a selector, returns the PropertyValue for the immediate.
-PropertyValue *GetPropertyValueMaybeSelector(SingleStatement &statement, DecompileLookups &lookups, string &selector)
+PropertyValue *GetPropertyValueMaybeSelector(SyntaxNode &statement, DecompileLookups &lookups, string &selector)
 {
-    PropertyValue *pValue = statement.CastSyntaxNode<PropertyValue>();
+    PropertyValue *pValue = SafeSyntaxNode<PropertyValue>(&statement);
     bool fRet = (pValue && (pValue->GetType() == ValueType::Number));
     if (fRet)
     {
@@ -74,8 +74,8 @@ PrintParamInfo c_PrintParams[] =
 
 void _MassagePrint(ProcedureCall &proc, DecompileLookups &lookups)
 {
-    const SingleStatement *pOne = proc.GetParameter(0);
-    const SingleStatement *pTwo = proc.GetParameter(1);
+    const SyntaxNode *pOne = proc.GetParameter(0);
+    const SyntaxNode *pTwo = proc.GetParameter(1);
     WORD wOne;
     WORD wTwo;
     size_t parameterIndex = 1;
@@ -90,12 +90,10 @@ void _MassagePrint(ProcedureCall &proc, DecompileLookups &lookups)
             std::string text = lookups.LookupTextResource(wTwo);
             if (!text.empty())
             {
-                unique_ptr<SingleStatement> pNewStatement = std::make_unique<SingleStatement>();
                 unique_ptr<PropertyValue> pNewValue = std::make_unique<PropertyValue>();
                 pNewValue->SetValue(text, ValueType::String);
-                pNewStatement->SetSyntaxNode(std::move(pNewValue));
-                SingleStatementVector parameters;
-                parameters.push_back(std::move(pNewStatement));
+                SyntaxNodeVector parameters;
+                parameters.push_back(std::move(pNewValue));
                 proc.StealParams(parameters); // Do the swap
             }
             parameterIndex++;
@@ -105,7 +103,7 @@ void _MassagePrint(ProcedureCall &proc, DecompileLookups &lookups)
     // Now go through and look for immediate values that we can turn into selectors
     while (parameterIndex < proc.GetStatements().size())
     {
-        SingleStatement *param = proc.GetParameter(parameterIndex);
+        SyntaxNode *param = proc.GetParameter(parameterIndex);
         string selectorName;
         PropertyValue *maybeSelector = GetPropertyValueMaybeSelector(*param, lookups, selectorName);
         if (maybeSelector)
@@ -121,7 +119,7 @@ void _MassagePrint(ProcedureCall &proc, DecompileLookups &lookups)
             {
                 parameterIndex++;
                 // Is the next parameter an object?
-                SingleStatement *maybeAnObject = proc.GetParameter(parameterIndex);
+                SyntaxNode *maybeAnObject = proc.GetParameter(parameterIndex);
                 uint16_t immValue;
                 bool nextParamIsObject = (maybeAnObject && IsStatementImmediateValue(*maybeAnObject, immValue) && IsValueAnObject(immValue));
                 if (selectorName == "icon")

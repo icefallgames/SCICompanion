@@ -102,7 +102,7 @@ public:
 
     void AddAndOr(bool fAnd) { _andOrs.push_back(fAnd); }
 
-    SingleStatementVector &GetItems() { return _segments; }
+    SyntaxNodeVector &GetItems() { return _segments; }
     std::vector<bool> &GetAndOrs() { return _andOrs; }
 
     void Accept(ISyntaxNodeVisitor &visitor) const override  { throw std::exception("Not Implemented"); }

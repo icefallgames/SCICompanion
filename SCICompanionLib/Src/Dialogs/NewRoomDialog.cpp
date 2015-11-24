@@ -175,7 +175,6 @@ void _AddPrevRoomNumSwitch(MethodDefinition &method, NewRoomProfile profile)
     
     // Make the case statement and add it to the switch
 	unique_ptr<sci::CaseStatement> pCase = std::make_unique<sci::CaseStatement>();
-    SingleStatement statementZero;
     pCase->SetDefault(true);
 
     if (profile == NewRoomProfile::SCI11)

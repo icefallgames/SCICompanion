@@ -226,24 +226,6 @@ std::string FunctionBase::ToString() const
     return szDesc;
 }
 
-
-//
-// Returns true if there is a statement of type type within this statement.
-//
-bool SingleStatement::_ContainsStatement(NodeType type) const
-{
-    if (_type == NodeTypeCodeBlock)
-    {
-        CodeBlock *pBlock = static_cast<CodeBlock*>(_pThing.get());
-        const SingleStatementVector &statements = pBlock->GetList();
-		if (!statements.empty())
-        {
-			return (statements[0]->GetType() == type);
-        }
-    }
-    return false;
-}
-
 Script::Script(PCTSTR pszFilePath, PCTSTR pszFileName) : SyntaxVersion(1)
 {
     _scriptId = ScriptId(pszFileName, pszFilePath);
@@ -274,7 +256,7 @@ void SendCall::SimplifySendObject()
 	if (_statement1 != nullptr)
 	{
 		// Attempt to turn a complex object into a simple name.
-		const PropertyValue *pValue = _statement1->CastSyntaxNode<PropertyValue>();
+        const PropertyValue *pValue = SafeSyntaxNode<PropertyValue>(_statement1.get());
 		if (pValue && (pValue->GetType() == ValueType::Token))
 		{
 			_innerName = pValue->GetStringValue();
@@ -355,9 +337,7 @@ VariableDecl::VariableDecl() : StatementsNode(), TypedNode(), _size(1), _unspeci
 void VariableDecl::AddSimpleInitializer(const PropertyValue &value)
 {
     // Add a copy of the property value
-	unique_ptr<SingleStatement> sValue = std::make_unique<SingleStatement>();
-	sValue->SetSyntaxNode(std::move(make_unique<PropertyValue>(value)));
-    AddStatement(std::move(sValue));
+    AddStatement(make_unique<PropertyValue>(value));
 }
 ClassProperty::ClassProperty(const std::string &str, WORD wValue) : NamedNode(), TypedNode()
 {
@@ -383,9 +363,7 @@ ClassProperty::ClassProperty(const std::string &str, const PropertyValue &value)
 
 void ClassProperty::SetValue(const PropertyValue &value)
 {
-    _statement1 = make_unique<SingleStatement>();
-    unique_ptr<PropertyValue> propValue = make_unique<PropertyValue>(value);
-    _statement1->SetSyntaxNode(move(propValue));
+    _statement1 = make_unique<PropertyValue>(value);
 }
 
 const PropertyValue *ClassProperty::TryGetValue() const
@@ -393,7 +371,7 @@ const PropertyValue *ClassProperty::TryGetValue() const
     PropertyValue *value = nullptr;
     if (_statement1)
     {
-        value = SafeSyntaxNode<PropertyValue>(_statement1->GetSyntaxNode());
+        value = SafeSyntaxNode<PropertyValue>(_statement1.get());
     }
     return value;
 }
@@ -436,10 +414,8 @@ void FunctionBase::AddParam(const std::string &param)
 }
 void FunctionBase::AddVariable(unique_ptr<VariableDecl> pVar, PropertyValue value)
 {
-	std::unique_ptr<SingleStatement> pTemp = std::make_unique<SingleStatement>();
 	std::unique_ptr<PropertyValue> pValue = std::make_unique<PropertyValue>(value);
-    pTemp->SetSyntaxNode(std::move(pValue));
-    pVar->AddStatement(std::move(pTemp));
+    pVar->AddStatement(std::move(pValue));
     _tempVars.push_back(move(pVar));
 }
 
@@ -544,7 +520,6 @@ void PropertyValue::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*t
 void ComplexPropertyValue::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
 void Define::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
 void ClassProperty::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void SingleStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
 void VariableDecl::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
 void MethodDefinition::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
 void ProcedureDefinition::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }

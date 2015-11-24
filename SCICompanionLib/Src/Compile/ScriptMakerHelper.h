@@ -16,12 +16,10 @@
 template<typename _T>
 void _AddStatement(_T &method, std::unique_ptr<sci::SyntaxNode> pNode)
 {
-	unique_ptr<sci::SingleStatement> pStatement = std::make_unique<sci::SingleStatement>();
-    pStatement->SetSyntaxNode(std::move(pNode));
-    method.AddStatement(std::move(pStatement));
+    method.AddStatement(std::move(pNode));
 }
 
-std::unique_ptr<sci::SingleStatement> _MakeTokenStatement(const std::string &token);
+std::unique_ptr<sci::SyntaxNode> _MakeTokenStatement(const std::string &token);
 
 void _AddAssignment(sci::MethodDefinition &method, const std::string &lvalueName, const std::string &assigned);
 
@@ -39,5 +37,4 @@ void _AddSendCall(sci::MethodDefinition &method, const std::string &objectName, 
 
 void _SetSendVariableTarget(sci::SendCall &send, const std::string &target);
 
-std::unique_ptr<sci::SingleStatement> _MakeTokenStatement(const std::string &token);
-std::unique_ptr<sci::SingleStatement> _MakeNumberStatement(int16_t w);
+std::unique_ptr<sci::SyntaxNode> _MakeNumberStatement(int16_t w);

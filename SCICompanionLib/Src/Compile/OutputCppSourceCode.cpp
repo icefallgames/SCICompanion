@@ -199,19 +199,6 @@ public:
         out.out << ";";
     }
 
-    void Visit(const SingleStatement &statement) override
-    {
-        out.SyncComments(statement);
-        if (statement.GetSegment())
-        {
-            statement.GetSegment()->Accept(*this);
-        }
-        else
-        {
-            out.out << "ERROR - EMPTY STATEMENT";
-        }
-    }
-
     void Visit(const VariableDecl &varDecl) override
     {
         out.SyncComments(varDecl);
@@ -369,7 +356,7 @@ public:
     void Visit(const ConditionalExpression &conditional) override
     {
         out.SyncComments(conditional);
-        SingleStatementVector::const_iterator stateIt = conditional.GetStatements().begin();
+        SyntaxNodeVector::const_iterator stateIt = conditional.GetStatements().begin();
         bool fLastOld = out.fLast;
         out.fLast = true; // Treat all items like "last items" - we don't want spaces around them.
         ExplicitOrder order(out, conditional.GetStatements().size() > 1);// Enclose terms in () if there are more than one.
@@ -436,7 +423,7 @@ public:
             {
                 out.out << sendCall.GetTargetName();
             }
-            else if (sendCall.GetStatement1() && (sendCall.GetStatement1()->GetType() != NodeTypeUnknown))
+            else if (sendCall.GetStatement1() && (sendCall.GetStatement1()->GetNodeType() != NodeTypeUnknown))
             {
                 Inline inln(out, true);
                 out.out << "(";
@@ -475,7 +462,7 @@ public:
         out.out << "return";
         {
             Inline inln(out, true);
-            if (ret.GetStatement1() && (ret.GetStatement1()->GetType() != NodeTypeUnknown))
+            if (ret.GetStatement1() && (ret.GetStatement1()->GetNodeType() != NodeTypeUnknown))
             {
                 out.out << " ";
                 ret.GetStatement1()->Accept(*this);
@@ -679,7 +666,7 @@ public:
             }
             NewLine(out);
 
-            if (ifStatement.GetStatement2() && ifStatement.GetStatement2()->GetSyntaxNode())
+            if (ifStatement.GetStatement2())
             {
                 NewLine(out);
                 out.out << "else";

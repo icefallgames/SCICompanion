@@ -309,10 +309,6 @@ public:
     }
     void Visit(const Define &define) override {}
     void Visit(const ClassProperty &classProp) override {}
-    void Visit(const SingleStatement &statement) override
-    {
-        statement.GetSyntaxNode()->Accept(*this);
-    }
     void Visit(const VariableDecl &varDecl) override {}
     void Visit(const MethodDefinition &function) override {}
     void Visit(const ProcedureDefinition &function) override {}
@@ -393,10 +389,6 @@ public:
     }
     void Visit(const Define &define) override {}
     void Visit(const ClassProperty &classProp) override {}
-    void Visit(const SingleStatement &statement) override
-    {
-        statement.GetSyntaxNode()->Accept(*this);
-    }
     void Visit(const VariableDecl &varDecl) override {}
     void Visit(const MethodDefinition &function) override {}
     void Visit(const ProcedureDefinition &function) override {}

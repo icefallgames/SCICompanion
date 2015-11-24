@@ -1338,7 +1338,7 @@ bool PrecompiledHeaders::LookupDefine(const std::string &str, WORD &wValue)
 // Helper for ensuring that parameters to a function (or method) call match.
 // Returns: the return type of the function that was called.
 //
-SpeciesIndex MatchParameters(const std::string &name, CompileContext &context, const ISourceCodePosition *pPos, const std::vector<CSCOFunctionSignature> &signatures, const std::vector<SpeciesIndex> &parametersCaller, const SingleStatementVector &parameterStatements)
+SpeciesIndex MatchParameters(const std::string &name, CompileContext &context, const ISourceCodePosition *pPos, const std::vector<CSCOFunctionSignature> &signatures, const std::vector<SpeciesIndex> &parametersCaller, const SyntaxNodeVector &parameterStatements)
 {
     // NOTE: there may be multiple matches.  In which case, we might have multiple return types.
     // The easiest thing to do is to return DataTypeAny in that case.  Otherwise we would have to payload

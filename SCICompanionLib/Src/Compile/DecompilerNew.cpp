@@ -863,23 +863,17 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
 
 void _ApplySyntaxNodeToCodeNode(ConsumptionNode &node, StatementsNode &statementsNode, DecompileLookups &lookups)
 {
-    unique_ptr<SingleStatement> pStatement = std::make_unique<SingleStatement>();
-    pStatement->SetSyntaxNode(std::move(_CodeNodeToSyntaxNode(node, lookups)));
-    statementsNode.AddStatement(std::move(pStatement));
+    statementsNode.AddStatement(_CodeNodeToSyntaxNode(node, lookups));
 }
 
 void _ApplySyntaxNodeToCodeNode1(ConsumptionNode &node, OneStatementNode &statementsNode, DecompileLookups &lookups)
 {
-    unique_ptr<SingleStatement> pStatement = std::make_unique<SingleStatement>();
-    pStatement->SetSyntaxNode(std::move(_CodeNodeToSyntaxNode(node, lookups)));
-    statementsNode.SetStatement1(move(pStatement));
+    statementsNode.SetStatement1(_CodeNodeToSyntaxNode(node, lookups));
 }
 
 void _ApplySyntaxNodeToCodeNode2(ConsumptionNode &node, TwoStatementNode &statementsNode, DecompileLookups &lookups)
 {
-    unique_ptr<SingleStatement> pStatement = std::make_unique<SingleStatement>();
-    pStatement->SetSyntaxNode(std::move(_CodeNodeToSyntaxNode(node, lookups)));
-    statementsNode.SetStatement2(move(pStatement));
+    statementsNode.SetStatement2(_CodeNodeToSyntaxNode(node, lookups));
 }
 
 void _ApplySyntaxNodeToCodeNodeConditionNode(ConsumptionNode &node, ConditionNode &conditionNode, DecompileLookups &lookups)
@@ -937,12 +931,10 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode2(ConsumptionNode &node, Decomp
 
 
                 assert(node.GetChild(ChunkType::FirstNegated)->GetChildCount() == 1);
-                unique_ptr<SingleStatement> negated = make_unique<SingleStatement>();
                 unique_ptr<UnaryOp> unaryOp = make_unique<UnaryOp>();
                 unaryOp->SetName("not");
                 _ApplySyntaxNodeToCodeNode1(*node.GetChild(ChunkType::FirstNegated)->Child(0), *unaryOp, lookups);
-                negated->SetSyntaxNode(move(unaryOp));
-                binaryOp->SetStatement1(move(negated));
+                binaryOp->SetStatement1(move(unaryOp));
             }
             else
             {
@@ -1163,9 +1155,7 @@ bool _MaybeConsumeRestInstruction(SendParam *pSendParam, int index, ConsumptionN
         // The rest statement will take on its name if so. Otherwise we'll use "params"
         lookups.TrackRestStatement(rest.get(), parameterIndex);
 
-        unique_ptr<SingleStatement> pStatement = std::make_unique<SingleStatement>();
-        pStatement->SetSyntaxNode(std::move(rest));
-        pSendParam->AddStatement(std::move(pStatement));
+        pSendParam->AddStatement(std::move(rest));
     }
     return foundRest;
 }
@@ -1394,9 +1384,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
                         }
                         else
                         {
-                            unique_ptr<SingleStatement> temp = make_unique<SingleStatement>();
-                            temp->SetSyntaxNode(move(pSendObject));
-                            sendCall->SetStatement1(move(temp));
+                            sendCall->SetStatement1(move(pSendObject));
                         }
                         --cAccLeft;
                     }
@@ -1561,10 +1549,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
                 unique_ptr<ComplexPropertyValue> pValue = std::make_unique<ComplexPropertyValue>();
 
                 assert(node.GetChildCount() == 1);
-                unique_ptr<SyntaxNode> pIndexerNode = _CodeNodeToSyntaxNode(*node.Child(0), lookups);
-                unique_ptr<SingleStatement> temp = make_unique<SingleStatement>();
-                temp->SetSyntaxNode(move(pIndexerNode));
-                pValue->SetIndexer(move(temp));
+                pValue->SetIndexer(_CodeNodeToSyntaxNode(*node.Child(0), lookups));
 
                 _ProcessLEA(*pValue, inst, lookups);
                 return unique_ptr<SyntaxNode>(move(pValue));
@@ -1647,9 +1632,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
                 // Phil - TODO - copied code with below..
                 unique_ptr<UnaryOp> pUnary = std::make_unique<UnaryOp>();
                 pUnary->SetName(fIncrement ? "++" : "--");
-                unique_ptr<SingleStatement> temp = make_unique<SingleStatement>();
-                temp->SetSyntaxNode(std::move(pValue));
-                pUnary->SetStatement1(std::move(temp));
+                pUnary->SetStatement1(std::move(pValue));
                 return unique_ptr<SyntaxNode>(move(pUnary));
             }
             else
@@ -1813,10 +1796,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
                             Consumption cons = _GetInstructionConsumption(*node.Child(i), lookups);
                             if (cons.cAccGenerate)
                             {
-                                unique_ptr<SyntaxNode> pIndexerNode = _CodeNodeToSyntaxNode(*node.Child(i), lookups);
-                                unique_ptr<SingleStatement> temp = make_unique<SingleStatement>();
-                                temp->SetSyntaxNode(move(pIndexerNode));
-                                lValue->SetIndexer(move(temp));
+                                lValue->SetIndexer(_CodeNodeToSyntaxNode(*node.Child(i), lookups));
                                 break;
                             }
                         }
@@ -1848,13 +1828,11 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
                         // Then it should have a child
                         if (node.GetChildCount() >= 1)
                         {
-                            unique_ptr<SingleStatement> pStatement = std::make_unique<SingleStatement>();
-                            pStatement->SetSyntaxNode(std::move(_CodeNodeToSyntaxNode(*node.Child(0), lookups)));
-                            static_cast<ComplexPropertyValue*>(pValue.get())->SetIndexer(std::move(pStatement));
+                            static_cast<ComplexPropertyValue*>(pValue.get())->SetIndexer(_CodeNodeToSyntaxNode(*node.Child(0), lookups));
                         }
                         else
                         {
-                            ASSERT(FALSE); // REVIEW, TODO 
+                            assert(false); // REVIEW, TODO 
                         }
                     }
                     else
@@ -1874,9 +1852,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
                     {
                         unique_ptr<UnaryOp> pUnary = std::make_unique<UnaryOp>();
                         pUnary->SetName(fIncrement ? "++" : "--");
-                        unique_ptr<SingleStatement> temp = make_unique<SingleStatement>();
-                        temp->SetSyntaxNode(move(pValue));
-                        pUnary->SetStatement1(std::move(temp));
+                        pUnary->SetStatement1(std::move(pValue));
                         return unique_ptr<SyntaxNode>(move(pUnary));
                     }
                     else

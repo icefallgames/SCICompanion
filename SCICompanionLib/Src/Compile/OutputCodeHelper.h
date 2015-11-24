@@ -35,7 +35,7 @@ private:
 };
 
 bool IsNonAlphaOperator(const std::string &op);
-void _OutputVariableAndSize(sci::ISyntaxNodeVisitor &visitor, sci::SourceCodeWriter &out, const std::string &type, const std::string &name, WORD wSize, const sci::SingleStatementVector &initValues);
+void _OutputVariableAndSize(sci::ISyntaxNodeVisitor &visitor, sci::SourceCodeWriter &out, const std::string &type, const std::string &name, WORD wSize, const sci::SyntaxNodeVector &initValues);
 std::string UnescapeString(std::string src);
 
 std::string CleanToken(const std::string &src, std::unordered_set<std::string> *disallowedList = nullptr);
@@ -218,8 +218,7 @@ private:
             if (_retValue.empty() && (node.GetNodeType() == sci::NodeTypeReturn))
             {
                 sci::ReturnStatement &returnStatement = static_cast<sci::ReturnStatement&>(node);
-                const sci::SingleStatement *pRetValue = returnStatement.GetValue();
-                if (pRetValue && (pRetValue->GetSyntaxNode() != nullptr))
+                if (returnStatement.GetValue())
                 {
                     // TODO: we could do a little more deduction and determine the actual type.
                     _retValue = "var";

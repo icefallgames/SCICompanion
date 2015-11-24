@@ -179,15 +179,6 @@ void Assignment::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
 	_variable->Traverse(pContext, en);
 	_statement1->Traverse(pContext, en);
 }
-
-void SingleStatement::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
-{
-	ExploreNodeBlock enb(en, pContext, *this);
-    if (_pThing.get() && (GetType() != NodeTypeUnknown))
-    {
-        _pThing->Traverse(pContext, en);
-    }
-}
 void ClassProperty::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
 {
 	ExploreNodeBlock enb(en, pContext, *this);

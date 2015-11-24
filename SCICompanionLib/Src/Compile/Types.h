@@ -21,7 +21,7 @@
 namespace sci
 {
     class PropertyValueBase;
-    class SingleStatement;
+    class SyntaxNode;
 }
 class CompileContext;
 
@@ -135,7 +135,7 @@ std::string GetBuiltInDataTypeString(SpeciesIndex wSpecies);
 // A statement may be supplied.  This will be used for places where there are some default conversions
 // (e.g. int can be converted to string if the int is a zero value)
 //
-bool DoesTypeMatch(CompileContext &context, SpeciesIndex destType, const SpeciesIndex sourceType, const std::string *pOperator = nullptr, const sci::SingleStatement *pStatement = NULL);
+bool DoesTypeMatch(CompileContext &context, SpeciesIndex destType, const SpeciesIndex sourceType, const std::string *pOperator = nullptr, const sci::SyntaxNode *pStatement = NULL);
 
 
 

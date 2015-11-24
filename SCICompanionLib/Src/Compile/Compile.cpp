@@ -396,7 +396,7 @@ private:
 };
 
 // Helper
-void OutputByteCodeToAccumulator(CompileContext &context, const SingleStatement &statement)
+void OutputByteCodeToAccumulator(CompileContext &context, const SyntaxNode &statement)
 {
     COutputContext accContext(context, OC_Accumulator);
     statement.OutputByteCode(context);
@@ -485,12 +485,12 @@ void PushImmediateAt(CompileContext &context, WORD wValue, code_pos pos)
 //
 // We can do optimizations if the indexer is actually just an immediate value
 //
-bool CanDoIndexOptimization(const SingleStatement *pIndexer, WORD &wIndex)
+bool CanDoIndexOptimization(const SyntaxNode *pIndexer, WORD &wIndex)
 {
     bool fIndexerOptimize = false;
-    if (pIndexer->GetType() == ComplexPropertyValue::MyNodeType)
+    if (pIndexer->GetNodeType() == ComplexPropertyValue::MyNodeType)
     {
-        const ComplexPropertyValue *pValue = static_cast<const ComplexPropertyValue*>(pIndexer->GetSyntaxNode());
+        const ComplexPropertyValue *pValue = static_cast<const ComplexPropertyValue*>(pIndexer);
         if (pValue->GetType() == ValueType::Number)
         {
             // Instead of using a fancy instruction, just add to the index of the thing we have.
@@ -554,7 +554,7 @@ BYTE GetVarOpcodeModifier(VariableModifier modifier)
     return 0;
 }
 
-void VariableOperand(CompileContext &context, WORD wIndex, BYTE bOpcode, const SingleStatement *pIndexer = nullptr)
+void VariableOperand(CompileContext &context, WORD wIndex, BYTE bOpcode, const SyntaxNode *pIndexer = nullptr)
 {
     if (pIndexer)
     {
@@ -579,7 +579,7 @@ void VariableOperand(CompileContext &context, WORD wIndex, BYTE bOpcode, const S
     context.code().inst(RawToOpcode(context.GetVersion(), bOpcode), wIndex);
 }
 
-void LoadEffectiveAddress(CompileContext &context, WORD wIndex, BYTE bVarType, const SingleStatement *pIndexer)
+void LoadEffectiveAddress(CompileContext &context, WORD wIndex, BYTE bVarType, const SyntaxNode *pIndexer)
 {
     if (pIndexer)
     {
@@ -605,7 +605,7 @@ void LoadEffectiveAddress(CompileContext &context, WORD wIndex, BYTE bVarType, c
 // (= someVar gEgo)
 //
 //
-void LookupTokenAndPlacePtrInAccumulator(const std::string &objectName, CompileContext &context, const SingleStatement *pIndexer, const SyntaxNode *pNode, SpeciesIndex &si)
+void LookupTokenAndPlacePtrInAccumulator(const std::string &objectName, CompileContext &context, const SyntaxNode *pIndexer, const SyntaxNode *pNode, SpeciesIndex &si)
 {
     WORD wIndex;
     ResolvedToken tokenType = context.LookupToken(pNode, objectName, wIndex, si);
@@ -684,11 +684,7 @@ void WriteInstanceOrClass(CompileContext &context, ResolvedToken tokenType, WORD
 
 void _AddParameter(ProcedureCall &proc, WORD wValue)
 {
-    unique_ptr<SingleStatement> one = std::make_unique<SingleStatement>();
-    unique_ptr<PropertyValue> pv1 = std::make_unique<PropertyValue>();
-    pv1->SetValue(wValue);
-    one->SetSyntaxNode(std::move(pv1));
-    proc.AddStatement(std::move(one));
+    proc.AddStatement(std::make_unique<PropertyValue>(wValue));
 }
 
 void WriteScriptID(CompileContext &context, WORD wInstanceScript, WORD wIndex)
@@ -728,14 +724,14 @@ void ValidateVariableDeclaration(CompileContext &context, const ISourceCodePosit
 // pwBytesLastStatement returns the number of bytes returned by the final statement.
 // The CodeResult returns the type of the last thing.
 //
-CodeResult SingleStatementVectorOutputHelper(const SingleStatementVector &statements, CompileContext &context, WORD *pwBytesLastStatement = nullptr)
+CodeResult SingleStatementVectorOutputHelper(const SyntaxNodeVector &statements, CompileContext &context, WORD *pwBytesLastStatement = nullptr)
 {
     WORD wBytes = 0;
     WORD wBytesLastStatement = 0;
     SpeciesIndex returnType = DataTypeVoid;
 
     // Handle ifs
-    SingleStatementVector::const_iterator statementIt = statements.begin();
+    SyntaxNodeVector::const_iterator statementIt = statements.begin();
     while (statementIt != statements.end())
     {
         CodeResult result = (*statementIt)->OutputByteCode(context);
@@ -1259,13 +1255,7 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
                 // This is really just here for SCIStudio compatibility, for having array indexers.  Otherwise,
                 // we could just always use _object or _object2.  We'll get here for any simple send statement that has
                 // "send" though.  So it's possible the indexer is not there.
-                const SingleStatement *pIndexer = _object3->GetIndexer();
-                if (pIndexer && (pIndexer->GetType() == NodeTypeUnknown))
-                {
-                    pIndexer = nullptr;
-                    // A straightforward send (e.g. (send gMan:init())
-                }
-                // Note: pIndexer will probably just be nullptr in this case anyway
+                const SyntaxNode *pIndexer = _object3->GetIndexer();
 
                 BYTE bOpcodeMod = VO_LOAD | VO_ACC;
                 WORD wNumber;
@@ -1443,7 +1433,7 @@ CodeResult SendParam::OutputByteCode(CompileContext &context) const
 
     // Note: the parameters will indicate to themselves how many (since it could vary - one parameter could end up pushing two things)
     COutputContext stackContext(context, OC_Stack);
-    GenericOutputByteCode2<SingleStatement> gobc = for_each(_segments.begin(), _segments.end(), GenericOutputByteCode2<SingleStatement>(context));
+    GenericOutputByteCode2<SyntaxNode> gobc = for_each(_segments.begin(), _segments.end(), GenericOutputByteCode2<SyntaxNode>(context));
     WORD wBytesOfParams = gobc.GetByteCount();
     std::vector<SpeciesIndex> parameterTypes = gobc.GetTypes();
    
@@ -1528,19 +1518,6 @@ CodeResult SendParam::OutputByteCode(CompileContext &context) const
     return CodeResult(wBytesOfParams + 4, returnType);
 }
 
-void SingleStatement::PreScan(CompileContext &context) 
-{
-    if (_pThing)
-    {
-        _pThing->PreScan(context);
-    }
-}
-
-CodeResult SingleStatement::OutputByteCode(CompileContext &context) const
-{
-    return _pThing ? _pThing->OutputByteCode(context) : 0;
-}
-
 CodeResult CodeBlock::OutputByteCode(CompileContext &context) const
 {
     WORD wBytes = 0;
@@ -1582,7 +1559,7 @@ CodeResult ProcedureCall::OutputByteCode(CompileContext &context) const
     {
         COutputContext stackContext(context, OC_Stack);
         // Collect parameter type information here, in addition to the number of bytes pushed.
-        GenericOutputByteCode2<SingleStatement> gobc = for_each(_segments.begin(), _segments.end(), GenericOutputByteCode2<SingleStatement>(context));
+        GenericOutputByteCode2<SyntaxNode> gobc = for_each(_segments.begin(), _segments.end(), GenericOutputByteCode2<SyntaxNode>(context));
         wCallBytes = gobc.GetByteCount();
         parameterTypes = gobc.GetTypes();
     }
@@ -1686,7 +1663,7 @@ CodeResult ReturnStatement::OutputByteCode(CompileContext &context) const
     change_meaning meaning(context, true);
     SpeciesIndex returnValueType = DataTypeVoid;
     // Put the result from the statement (if we have one) into the accumulator
-    if (_statement1 && _statement1->GetSyntaxNode())
+    if (_statement1)
     {
         COutputContext accContext(context, OC_Accumulator);
         returnValueType = _statement1->OutputByteCode(context).GetType();
@@ -1749,7 +1726,7 @@ CodeResult Assignment::OutputByteCode(CompileContext &context) const
     ResolvedToken tokenType = context.LookupToken(this, strVarName, wIndex, wType);
 
     // Catch some errors
-    const SingleStatement *pIndexer = _variable->HasIndexer() ? _variable->GetIndexer() : nullptr;
+    const SyntaxNode *pIndexer = _variable->HasIndexer() ? _variable->GetIndexer() : nullptr;
     switch(tokenType)
     {
     case ResolvedToken::GlobalVariable:
@@ -2142,7 +2119,7 @@ CodeResult UnaryOp::OutputByteCode(CompileContext &context) const
     if (GetOpName() == "++")
     {
         change_meaning meaning(context, true);
-        if (_statement1->GetType() == NodeTypeComplexValue)
+        if (_statement1->GetNodeType() == NodeTypeComplexValue)
         {
             variable_opcode_modifier modifier(this, context, VM_PreIncrement);
             result = _statement1->OutputByteCode(context);
@@ -2155,7 +2132,7 @@ CodeResult UnaryOp::OutputByteCode(CompileContext &context) const
     else if (GetOpName() == "--")
     {
         change_meaning meaning(context, true);
-        if (_statement1->GetType() == NodeTypeComplexValue)
+        if (_statement1->GetNodeType() == NodeTypeComplexValue)
         {
             variable_opcode_modifier modifier(this, context, VM_PreDecrement);
             result = _statement1->OutputByteCode(context);
@@ -2301,7 +2278,7 @@ void CppIfStatement::PreScan(CompileContext &context)
 {
     _innerCondition->PreScan(context);
     _statement1->PreScan(context);
-    if (_statement2 && _statement2->GetSyntaxNode())
+    if (_statement2)
     {
         _statement2->PreScan(context);
     }
@@ -2313,7 +2290,7 @@ CodeResult CppIfStatement::OutputByteCode(CompileContext &context) const
     // Put result in accumulator.
     {
         COutputContext accContext(context, OC_Accumulator);
-        result = _OutputCodeForIfStatement(context, *_innerCondition.get(), *_statement1, (_statement2) ? _statement2->GetSyntaxNode() : nullptr, true);
+        result = _OutputCodeForIfStatement(context, *_innerCondition.get(), *_statement1, _statement2.get(), true);
     }
     WORD wBytes = PushToStackIfAppropriate(context);
     return CodeResult(wBytes, result.GetType());
@@ -2414,7 +2391,7 @@ CodeResult SwitchStatement::OutputByteCode(CompileContext &context) const
                         }
 
                         // Put the case value into the accumulator
-                        const SingleStatement *caseValue = pCase->GetCaseValue();
+                        const SyntaxNode *caseValue = pCase->GetCaseValue();
                         {
                             change_meaning meaning(context, true); // this does have meaning
                             COutputContext stackContext(context, OC_Accumulator);
@@ -2624,7 +2601,7 @@ void FunctionBase::PruneExtraneousReturn()
     if (!_segments.empty())
     {
         auto &lastStatement = _segments.back();
-        sci::ReturnStatement *pReturn = lastStatement->CastSyntaxNode<ReturnStatement>();
+        ReturnStatement *pReturn = SafeSyntaxNode<ReturnStatement>(lastStatement.get());
         if (pReturn)
         {
             if (!pReturn->GetValue())
@@ -2759,7 +2736,7 @@ CodeResult Asm::OutputByteCode(CompileContext &context) const
                 ComplexPropertyValue *pValue = nullptr;
                 if (_segments.size() == 1)
                 {
-                    pValue = _segments[0]->CastSyntaxNode<ComplexPropertyValue>();
+                    pValue = SafeSyntaxNode<ComplexPropertyValue>(_segments[0].get());
                 }
 
                 if (pValue)
@@ -2797,11 +2774,11 @@ CodeResult Asm::OutputByteCode(CompileContext &context) const
                 // Let's assume symbols for now.
                 if (_segments.size() == 2)
                 {
-                    ComplexPropertyValue *pNumParams = _segments[1]->CastSyntaxNode<ComplexPropertyValue>();
+                    ComplexPropertyValue *pNumParams = SafeSyntaxNode<ComplexPropertyValue>(_segments[1].get());
                     if (pNumParams->GetType() == ValueType::Number)
                     {
                         // The first argument should be a name
-                        ComplexPropertyValue *pValue = _segments[0]->CastSyntaxNode<ComplexPropertyValue>();
+                        ComplexPropertyValue *pValue = SafeSyntaxNode<ComplexPropertyValue>(_segments[0].get());
                         if (pValue->GetType() == ValueType::Token)
                         {
                             uint16_t wScript, wIndex;
@@ -2851,7 +2828,7 @@ CodeResult Asm::OutputByteCode(CompileContext &context) const
             case Opcode::LEA:
                 if (!_segments.empty())
                 {
-                    ComplexPropertyValue *pValue = _segments[0]->CastSyntaxNode<ComplexPropertyValue>();
+                    ComplexPropertyValue *pValue = SafeSyntaxNode<ComplexPropertyValue>(_segments[0].get());
                     SpeciesIndex wType;
                     LookupTokenAndPlacePtrInAccumulator(pValue->GetStringValue(), context, pValue->GetIndexer(), pValue, wType);
                 }
@@ -2876,7 +2853,7 @@ CodeResult Asm::OutputByteCode(CompileContext &context) const
                         if (_segments.size() >= (i + 1))
                         {
                             // Special cases: jmp, bnt, bt. lofsa, call*
-                            ComplexPropertyValue *pValue = _segments[i]->CastSyntaxNode<ComplexPropertyValue>();
+                            ComplexPropertyValue *pValue = SafeSyntaxNode<ComplexPropertyValue>(_segments[i].get());
                             if (pValue)
                             {
                                 switch (pValue->GetType())
@@ -3155,7 +3132,7 @@ vector<uint16_t> VariableDecl::GetSimpleValues() const
     vector<uint16_t> result;
     for (auto &value : _segments)
     {
-        const PropertyValue *pValue = SafeSyntaxNode<PropertyValue>(value->GetSyntaxNode());
+        const PropertyValue *pValue = SafeSyntaxNode<PropertyValue>(value.get());
         assert(pValue); // Must be a property value if we're calling this.
         result.push_back(pValue->GetNumberValue());
     }
@@ -3366,7 +3343,7 @@ void Script::_PreScanStringDeclaration(CompileContext &context, VariableDecl &st
     // Build the string up from any initializers.
     for (auto &initializer : stringDecl.GetInitializers())
     {
-        PropertyValue *pValue = initializer->CastSyntaxNode<PropertyValue>();
+        PropertyValue *pValue = SafeSyntaxNode<PropertyValue>(initializer.get());
         assert(pValue); // Must be a property value if we're calling this.
 
         // We can't just "PreScan" the variable declaration, because it will add any strings it finds to the "in code strings",
@@ -3449,7 +3426,7 @@ void Asm::PreScan(CompileContext &context)
 }
 
 // Converts a flat list of statements and andOrs into a tree of binary operations.
-void ConvertAndOrSequenceIntoTree(sci::SingleStatementVector &statements, std::vector<bool> andOrs)
+void ConvertAndOrSequenceIntoTree(sci::SyntaxNodeVector &statements, std::vector<bool> andOrs)
 {
     assert((andOrs.size() + 1) == statements.size());
 
@@ -3462,12 +3439,10 @@ void ConvertAndOrSequenceIntoTree(sci::SingleStatementVector &statements, std::v
             binaryOp->SetName("&&");
             binaryOp->SetStatement1(move(statements[i]));
             binaryOp->SetStatement2(move(statements[i + 1]));
-            unique_ptr<SingleStatement> newCombined = make_unique<SingleStatement>();
-            newCombined->SetSyntaxNode(move(binaryOp));
             statements.erase(statements.begin() + i);
             andOrs.erase(andOrs.begin() + i);
             assert(!statements[i]);
-            statements[i] = move(newCombined);
+            statements[i] = move(binaryOp);
         }
         else
         {
@@ -3483,12 +3458,10 @@ void ConvertAndOrSequenceIntoTree(sci::SingleStatementVector &statements, std::v
         binaryOp->SetName("||");
         binaryOp->SetStatement1(move(statements[i]));
         binaryOp->SetStatement2(move(statements[i + 1]));
-        unique_ptr<SingleStatement> newCombined = make_unique<SingleStatement>();
-        newCombined->SetSyntaxNode(move(binaryOp));
         statements.erase(statements.begin() + i);
         andOrs.erase(andOrs.begin() + i);
         assert(!statements[i]);
-        statements[i] = move(newCombined);
+        statements[i] = move(binaryOp);
     }
 
     assert(statements.size() == 1);

@@ -149,12 +149,3 @@ bool CodeBlock::Evaluate(CompileContext &context, uint16_t &result)
     }
     return good;
 }
-
-bool SingleStatement::Evaluate(CompileContext &context, uint16_t &result)
-{
-    if (_pThing)
-    {
-        return _pThing->Evaluate(context, result);
-    }
-    return false;
-}

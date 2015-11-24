@@ -420,20 +420,6 @@ public:
         classProp.GetStatement1()->Accept(*this);
     }
 
-    void Visit(const SingleStatement &statement) override
-    {
-        // Let the actual node handle this.
-        // out.SyncComments(statement);
-        if (statement.GetSegment())
-        {
-            statement.GetSegment()->Accept(*this);
-        }
-        else
-        {
-            out.out << "ERROR - EMPTY STATEMENT";
-        }
-    }
-
     void Visit(const VariableDecl &varDecl) override
     {
         out.SyncComments(varDecl);
@@ -585,7 +571,7 @@ public:
         {
             out.out << CleanToken(sendCall.GetTargetName()); 
         }
-        else if (sendCall.GetStatement1() && (sendCall.GetStatement1()->GetType() != NodeTypeUnknown))
+        else if (sendCall.GetStatement1())
         {
             sendCall.GetStatement1()->Accept(*this);
         }
@@ -649,7 +635,7 @@ public:
         {
             Inline inln(out, true);
             DebugIndent indent(out);    // In case we have inline false in here:
-            if (ret.GetStatement1() && (ret.GetStatement1()->GetType() != NodeTypeUnknown))
+            if (ret.GetStatement1())
             {
                 ret.GetStatement1()->Accept(*this);
             }

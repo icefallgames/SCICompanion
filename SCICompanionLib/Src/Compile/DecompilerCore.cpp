@@ -757,16 +757,13 @@ public:
         else
         {
             // Ignore certain "insignificant" syntax nodes
-            if (node.GetNodeType() != NodeTypeStatement)
+            if (state == ExploreNodeState::Pre)
             {
-                if (state == ExploreNodeState::Pre)
-                {
-                    useHex.push(false);
-                }
-                else if (state == ExploreNodeState::Post)
-                {
-                    useHex.pop();
-                }
+                useHex.push(false);
+            }
+            else if (state == ExploreNodeState::Post)
+            {
+                useHex.pop();
             }
         }
     }
@@ -796,21 +793,19 @@ public:
     }
 
 private:
-    unique_ptr<SingleStatement> _PutInNot(unique_ptr<SingleStatement> other)
+    unique_ptr<SyntaxNode> _PutInNot(unique_ptr<SyntaxNode> other)
     {
-        unique_ptr<SingleStatement> notStatement = make_unique<SingleStatement>();
         unique_ptr<UnaryOp> unaryOp = make_unique<UnaryOp>();
         unaryOp->SetName("not");
         unaryOp->SetStatement1(move(other));
-        notStatement->SetSyntaxNode(move(unaryOp));
-        return notStatement;
+        return unique_ptr<SyntaxNode>(move(unaryOp));
     }
 
-    void _Process(unique_ptr<SingleStatement> &statement)
+    void _Process(unique_ptr<SyntaxNode> &statement)
     {
         // If this is a binary op of and or or, then procede onward with each one
         // See if we have a binary operation underneath us for an and/or
-        BinaryOp *binOp = SafeSyntaxNode<BinaryOp>(statement->GetSyntaxNode());
+        BinaryOp *binOp = SafeSyntaxNode<BinaryOp>(statement.get());
         if (binOp && ((binOp->GetName() == "&&") || (binOp->GetName() == "||")))
         {
             _Process(binOp->GetStatement1Internal());
@@ -819,15 +814,15 @@ private:
         else
         {
             // If this is a not
-            UnaryOp *unary = SafeSyntaxNode<UnaryOp>(statement->GetSyntaxNode());
+            UnaryOp *unary = SafeSyntaxNode<UnaryOp>(statement.get());
             if (unary && (unary->GetName() == "not"))
             {
                 // Then let's see if it contains a binary op, in which case, we'll apply DeMorgan's theorem.
-                BinaryOp *child = SafeSyntaxNode<BinaryOp>(unary->GetStatement1()->GetSyntaxNode());
+                BinaryOp *child = SafeSyntaxNode<BinaryOp>(unary->GetStatement1());
                 if (child && ((child->GetName() == "&&") || (child->GetName() == "||")))
                 {
                     // Ok. We need to replace the unary op with its child.
-                    unique_ptr<SingleStatement> binaryOpStatement = move(unary->GetStatement1Internal());
+                    unique_ptr<SyntaxNode> binaryOpStatement = move(unary->GetStatement1Internal());
                     statement = move(binaryOpStatement);
                     // That should do it.
                     // Now we need to switch the operator
@@ -841,9 +836,9 @@ private:
                     }
                     
                     // Then we need to go insert unary nots in front of both statements of the binary operator.
-                    unique_ptr<SingleStatement> binOpStatement1 = move(child->GetStatement1Internal());
+                    unique_ptr<SyntaxNode> binOpStatement1 = move(child->GetStatement1Internal());
                     child->SetStatement1(_PutInNot(move(binOpStatement1)));
-                    unique_ptr<SingleStatement> binOpStatement2 = move(child->GetStatement2Internal());
+                    unique_ptr<SyntaxNode> binOpStatement2 = move(child->GetStatement2Internal());
                     child->SetStatement2(_PutInNot(move(binOpStatement2)));
                 }
             }
@@ -931,17 +926,13 @@ public:
         }
         else
         {
-            // Ignore certain "insignificant" syntax nodes
-            if (node.GetNodeType() != NodeTypeStatement)
+            if (state == ExploreNodeState::Pre)
             {
-                if (state == ExploreNodeState::Pre)
-                {
-                    useNeg.push(false);
-                }
-                else if (state == ExploreNodeState::Post)
-                {
-                    useNeg.pop();
-                }
+                useNeg.push(false);
+            }
+            else if (state == ExploreNodeState::Post)
+            {
+                useNeg.pop();
             }
         }
     }

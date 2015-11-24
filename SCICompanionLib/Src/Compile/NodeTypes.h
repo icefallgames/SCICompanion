@@ -27,7 +27,6 @@ namespace sci
         NodeTypeVariableDeclaration,
         NodeTypeDefine,
         NodeTypeClassProperty,
-        NodeTypeStatement,
         NodeTypeFunction,
         NodeTypeClassDefinition,
         NodeTypeSynonym,                // 10

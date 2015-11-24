@@ -27,21 +27,21 @@ typedef bool(CALLBACK *PFNFOUNDSENDCALLBACK )(PCTSTR pszMethodSelector, const Se
 //
 // Recursively enumerates all send calls in a segment.
 //
-bool _EnumSendCallsInSegments(const std::vector<std::unique_ptr<SingleStatement>> *pSegments, PFNFOUNDSENDCALLBACK pfnSend, PCTSTR pszMethodSelector, const SendCall **ppSendCall, const SendParam **ppSendParam)
+bool _EnumSendCallsInSegments(const std::vector<std::unique_ptr<SyntaxNode>> *pSegments, PFNFOUNDSENDCALLBACK pfnSend, PCTSTR pszMethodSelector, const SendCall **ppSendCall, const SendParam **ppSendParam)
 {
     bool fFound = false;
     for (size_t i = 0; !fFound && i < pSegments->size(); i++)
     {
-        const SingleStatement *pSegment = (*pSegments)[i].get();
-        if (NodeTypeCodeBlock == pSegment->GetType())
+        const SyntaxNode *pSegment = (*pSegments)[i].get();
+        if (NodeTypeCodeBlock == pSegment->GetNodeType())
         {
-            const CodeBlock *pSegmentList = static_cast<const CodeBlock*>((*pSegments)[i]->GetSegment());
+            const CodeBlock *pSegmentList = static_cast<const CodeBlock*>((*pSegments)[i].get());
             auto &segments = pSegmentList->GetList();
             fFound = _EnumSendCallsInSegments(&segments, pfnSend, pszMethodSelector, ppSendCall, ppSendParam);
         }
-        else if (NodeTypeSendCall == pSegment->GetType())
+        else if (NodeTypeSendCall == pSegment->GetNodeType())
         {
-            const SendCall *pSendProposed = static_cast<const SendCall*>((*pSegments)[i]->GetSegment());
+            const SendCall *pSendProposed = static_cast<const SendCall*>((*pSegments)[i].get());
             fFound = (*pfnSend)(pszMethodSelector, pSendProposed, ppSendParam);
             if (fFound)
             {
@@ -98,7 +98,7 @@ bool _FindSelfSendParamInInit(const ClassDefinition *pClass, PCTSTR pszSelector,
 //
 // Used to obtain the first parameter for a selector in a send call
 // 
-bool _GetFirstSimpleValueInCodeSegmentArray(const SingleStatementVector &segments, PropertyValue &value)
+bool _GetFirstSimpleValueInCodeSegmentArray(const SyntaxNodeVector &segments, PropertyValue &value)
 {
     bool fRet = false;
     // Reimplement this.
