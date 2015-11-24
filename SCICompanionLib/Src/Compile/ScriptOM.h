@@ -137,6 +137,10 @@ namespace sci
     class Asm;
     class AsmBlock;
     class ExportEntry;
+    class CondClauseStatement;
+    class CondStatement;
+    class RepeatStatement;
+    class BreakIfStatement;
 
     class ISyntaxNodeVisitor
     {
@@ -176,6 +180,10 @@ namespace sci
         virtual void Visit(const Asm &asmSection) = 0;
         virtual void Visit(const AsmBlock &asmBlock) = 0;
         virtual void Visit(const ExportEntry &exportEntry) = 0;
+        virtual void Visit(const CondClauseStatement &condClause) = 0;
+        virtual void Visit(const CondStatement &cond) = 0;
+        virtual void Visit(const RepeatStatement &repeat) = 0;
+        virtual void Visit(const BreakIfStatement &breakIf) = 0;
     };
 
     class ScriptSite

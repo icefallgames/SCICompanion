@@ -345,6 +345,10 @@ public:
     void Visit(const Asm &asmSection) override {}
     void Visit(const AsmBlock &asmBlock) override {}
     void Visit(const ExportEntry &exportEntry) override {}
+    void Visit(const CondClauseStatement &condClause) override {}
+    void Visit(const CondStatement &cond) override {}
+    void Visit(const RepeatStatement &repeat) override {}
+    void Visit(const BreakIfStatement &breakIf) override {}
 
     void SetSuggestion(const Suggestion &suggestion)
     {
@@ -441,6 +445,10 @@ public:
     void Visit(const Asm &asmSection) override {}
     void Visit(const AsmBlock &asmBlock) override {}
     void Visit(const ExportEntry &exportEntry) override {}
+    void Visit(const CondClauseStatement &condClause) override {}
+    void Visit(const CondStatement &cond) override {}
+    void Visit(const RepeatStatement &repeat) override {}
+    void Visit(const BreakIfStatement &breakIf) override {}
 
     void Clear() { CurrentSuggestion.clear(); }
     Suggestion CurrentSuggestion;

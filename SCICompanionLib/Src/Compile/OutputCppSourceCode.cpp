@@ -695,6 +695,10 @@ public:
 
     }
 
+    void Visit(const CondStatement &cond) override { assert(false); }
+    void Visit(const CondClauseStatement &cond) override { assert(false); }
+    void Visit(const BreakIfStatement &cond) override { assert(false); }
+    void Visit(const RepeatStatement &cond) override { assert(false); }
 };
 
 void OutputSourceCode_CPP(const sci::Script &script, sci::SourceCodeWriter &out)

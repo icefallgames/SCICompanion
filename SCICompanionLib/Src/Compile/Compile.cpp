@@ -2296,7 +2296,7 @@ CodeResult CppIfStatement::OutputByteCode(CompileContext &context) const
     return CodeResult(wBytes, result.GetType());
 }
 
-void CaseStatement::PreScan(CompileContext &context)
+void CaseStatementBase::PreScan(CompileContext &context)
 {
     if (!_fDefault)
     {
@@ -2310,6 +2310,12 @@ CodeResult CaseStatement::OutputByteCode(CompileContext &context) const
     declare_conditional isCondition(context, false);
     change_meaning meaning(context, false);
     assert(false); // Handled in switch.
+    return 0;
+}
+
+CodeResult CondClauseStatement::OutputByteCode(CompileContext &context) const
+{
+    assert(false); // Not a compiled object.
     return 0;
 }
 
@@ -2458,6 +2464,17 @@ CodeResult SwitchStatement::OutputByteCode(CompileContext &context) const
     }
     WORD wBytes = PushToStackIfAppropriate(context);
     return CodeResult(wBytes, DataTypeNone);
+}
+
+CodeResult CondStatement::OutputByteCode(CompileContext &context) const
+{
+    assert(false); // Not a compiled statement.
+    return 0;
+}
+
+void CondStatement::PreScan(CompileContext &context)
+{
+    ForwardPreScan2(_clauses, context);
 }
 
 //

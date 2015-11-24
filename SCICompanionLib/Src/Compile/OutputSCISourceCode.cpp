@@ -17,6 +17,8 @@
 #include "OutputSourceCodeBase.h"
 #include "PMachine.h"
 #include "StringUtil.h"
+#include "CompiledScript.h"
+#include "AppState.h"
 
 // Still a WIP.
 
@@ -55,6 +57,7 @@
         (if expression statement0 statement1 statement2 else statement0 statement1 statement2)
 
     cond:
+        ; else is actually optional
         (cond (expression0 statement0 statement1) (expression1 statement0 statement1) (else statement90 statement1))
 
     repeat:
@@ -186,6 +189,55 @@ public:
     }
 };
 
+class TransformDeterminePropSelectors : public IExploreNodeContext, public IExploreNode
+{
+public:
+    TransformDeterminePropSelectors(sci::Script &script)
+    {
+        // We need to determine what is a property and what is a method
+        if (_lookups.Load(appState->GetResourceMap().Helper()))
+        {
+            for (auto &script : _lookups.GetGlobalClassTable().GetAllScripts())
+            {
+                for (auto &object : script->GetObjects())
+                {
+                    for (uint16_t propSelector : object->GetProperties())
+                    {
+                        _propSelectors.insert(propSelector);
+                    }
+                    for (uint16_t methodSelector : object->GetMethods())
+                    {
+                        _methodSelectors.insert(methodSelector);
+                    }
+                }
+            }
+        }
+
+        script.Traverse(this, *this);
+    }
+
+    void ExploreNode(IExploreNodeContext *pContext, SyntaxNode &node, ExploreNodeState state) override
+    {
+        if (state == ExploreNodeState::Pre)
+        {
+            SendParam *sendParam = SafeSyntaxNode<SendParam>(&node);
+            if (sendParam)
+            {
+                uint16_t selector;
+                if (_lookups.GetSelectorTable().ReverseLookup(sendParam->GetName(), selector))
+                {
+                    sendParam->SetIsMethod((_propSelectors.find(selector) == _propSelectors.end()) ||
+                        (_methodSelectors.find(selector) != _methodSelectors.end()));
+                }
+            }
+        }
+    }
+private:
+    std::set<uint16_t> _propSelectors;
+    std::set<uint16_t> _methodSelectors;
+    GlobalCompiledScriptLookups _lookups;
+};
+
 std::vector<std::pair<std::string, std::string>> binOpConvert =
 {
     { "<>", "!=" },
@@ -212,6 +264,9 @@ std::string GetOperatorName(const sci::NamedNode &namedNode, const std::vector<s
 
 void ConvertToSCISyntaxHelper(Script &script)
 {
+    TransformDeterminePropSelectors txDeterminePropSelectors(script);
+
+    // Transform comments
     for (auto &comment : script.GetComments())
     {
         std::string text = comment->GetSanitizedText();
@@ -610,7 +665,16 @@ public:
         else
         {
             Inline goInline(out, true);
-            Forward(sendCall.GetParams());
+            // We want ? instead of : when IsMethod is not true.
+            if ((sendCall.GetParams().size() == 1) && !sendCall.GetParams()[0]->IsMethod() && sendCall.GetParams()[0]->GetSelectorParams().empty())
+            {
+                // Property retrieval.
+                out.out << sendCall.GetParams()[0]->GetName() << "?";
+            }
+            else
+            {
+                Forward(sendCall.GetParams());
+            }
             out.out << ")";
         }
     }
@@ -893,6 +957,23 @@ public:
     {
         DebugLine exportLine(out);
         out.out << CleanToken(exportEntry.Name) << " " << exportEntry.Slot;
+    }
+
+    void Visit(const CondStatement &cond) override
+    {
+        // TODO
+    }
+    void Visit(const CondClauseStatement &cond) override
+    {
+        // TODO
+    }
+    void Visit(const BreakIfStatement &cond) override
+    {
+        // TODO
+    }
+    void Visit(const RepeatStatement &cond) override
+    {
+        // TODO
     }
 };
 

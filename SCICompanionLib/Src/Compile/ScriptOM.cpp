@@ -547,3 +547,7 @@ void CppIfStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*
 void Asm::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
 void AsmBlock::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
 void ExportEntry::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
+void CondStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
+void CondClauseStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
+void BreakIfStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
+void RepeatStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }

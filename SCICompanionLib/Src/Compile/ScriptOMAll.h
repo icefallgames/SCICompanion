@@ -283,11 +283,10 @@ namespace sci
 
     };
 
-    class CaseStatement : public SyntaxNode, public StatementsNode, public OneStatementNode
+    class CaseStatementBase : public SyntaxNode, public StatementsNode, public OneStatementNode
     {
-        DECLARE_NODE_TYPE(NodeTypeCase)
     public:
-        CaseStatement() { _fDefault = false; }
+        CaseStatementBase() { _fDefault = false; }
 
         const SyntaxNode *GetCaseValue() const { return _statement1.get(); }
         void SetCaseValue(std::unique_ptr<SyntaxNode> caseValue) { SetStatement1(std::move(caseValue)); }
@@ -297,20 +296,26 @@ namespace sci
         bool IsDefault() const { return _fDefault; }
 
         // IOutputByteCode
-        CodeResult OutputByteCode(CompileContext &context) const;
-        void PreScan(CompileContext &context);
         void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
-        
+        void PreScan(CompileContext &context);
+
         void SetDefault(bool fDefault) { _fDefault = fDefault; }
-
-        void Accept(ISyntaxNodeVisitor &visitor) const override;
-
-
     private:
-		CaseStatement(const CaseStatement &src) = delete;
-		CaseStatement& operator=(const CaseStatement& src) = delete;
+        CaseStatementBase(const CaseStatementBase &src) = delete;
+        CaseStatementBase& operator=(const CaseStatementBase& src) = delete;
 
         bool _fDefault;
+    };
+
+    class CaseStatement : public CaseStatementBase
+    {
+        DECLARE_NODE_TYPE(NodeTypeCase)
+
+    public:
+        // IOutputByteCode
+        CodeResult OutputByteCode(CompileContext &context) const;
+
+        void Accept(ISyntaxNodeVisitor &visitor) const override;
     };
 
     class SwitchStatement : public SyntaxNode, public OneStatementNode
@@ -496,6 +501,62 @@ namespace sci
 		Asm& operator=(const Asm &src) = delete;
 
     };
+
+    class CondClauseStatement : public CaseStatementBase
+    {
+        DECLARE_NODE_TYPE(NodeTypeCondClause)
+
+    public:
+        // IOutputByteCode
+        CodeResult OutputByteCode(CompileContext &context) const;
+
+        void Accept(ISyntaxNodeVisitor &visitor) const override;
+    };
+
+    class CondStatement : public SyntaxNode, public OneStatementNode
+    {
+        DECLARE_NODE_TYPE(NodeTypeCond)
+    public:
+        // IOutputByteCode
+        CodeResult OutputByteCode(CompileContext &context) const;
+        void PreScan(CompileContext &context);
+        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+
+        void AddClause(std::unique_ptr<CondClauseStatement> pCase) { _clauses.push_back(std::move(pCase)); }
+
+        void Accept(ISyntaxNodeVisitor &visitor) const override;
+
+        std::vector<std::unique_ptr<CondClauseStatement>> _clauses;
+
+    private:
+        CondStatement(const CondStatement &src) = delete;
+        CondStatement& operator=(const CondStatement& src) = delete;
+    };
+
+    class BreakIfStatement : public SyntaxNode, public OneStatementNode
+    {
+        DECLARE_NODE_TYPE(NodeTypeBreakIf)
+    public:
+        // IOutputByteCode
+        CodeResult OutputByteCode(CompileContext &context) const;
+        void PreScan(CompileContext &context);
+        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+
+        void Accept(ISyntaxNodeVisitor &visitor) const override;
+    };
+
+    class RepeatStatement : public SyntaxNode, public StatementsNode
+    {
+        DECLARE_NODE_TYPE(NodeTypeRepeat)
+    public:
+        // IOutputByteCode
+        CodeResult OutputByteCode(CompileContext &context) const;
+        void PreScan(CompileContext &context);
+        void Traverse(IExploreNodeContext *pContext, IExploreNode &en);
+
+        void Accept(ISyntaxNodeVisitor &visitor) const override;
+    };
+
 
 }; //namespace sci
 

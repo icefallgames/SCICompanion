@@ -207,10 +207,10 @@ void ReturnStatement::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
 	ExploreNodeBlock enb(en, pContext, *this);
 	if (_statement1) _statement1->Traverse(pContext, en);
 }
-void CaseStatement::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+void CaseStatementBase::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
 {
 	ExploreNodeBlock enb(en, pContext, *this);
-	if (!_fDefault) _statement1->Traverse(pContext, en);
+	if (!IsDefault()) _statement1->Traverse(pContext, en);
 	ForwardTraverse2(_segments, pContext, en);
 }
 void UnaryOp::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
@@ -260,6 +260,21 @@ void Asm::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
     ForwardTraverse2(_segments, pContext, en);
 }
 void AsmBlock::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+{
+    ExploreNodeBlock enb(en, pContext, *this);
+    ForwardTraverse2(_segments, pContext, en);
+}
+void CondStatement::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+{
+    ExploreNodeBlock enb(en, pContext, *this);
+    ForwardTraverse2(_clauses, pContext, en);
+}
+void BreakIfStatement::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
+{
+    ExploreNodeBlock enb(en, pContext, *this);
+    if (_statement1) _statement1->Traverse(pContext, en);
+}
+void RepeatStatement::Traverse(IExploreNodeContext *pContext, IExploreNode &en)
 {
     ExploreNodeBlock enb(en, pContext, *this);
     ForwardTraverse2(_segments, pContext, en);
