@@ -1205,17 +1205,17 @@ void SCISyntaxParser::Load()
        
     
     if_statement = oppar
-        >> keyword_p("if")[SetStatementA<CppIfStatement>]
+        >> keyword_p("if")[SetStatementA<IfStatement>]
         >> oppar[GeneralE]
-        >> syntaxnode_d[conditional[FinishConditionA<CppIfStatement>]]
+        >> syntaxnode_d[conditional[FinishConditionA<IfStatement>]]
         >> clpar
-        >> code_block_no_paren[StatementBindTo1stA<CppIfStatement, errArgument>]
+        >> code_block_no_paren[StatementBindTo1stA<IfStatement, errArgument>]
         >> clpar
         >> -
             (
             oppar
             >> keyword_p("else")
-            >> code_block_no_paren[StatementBindTo2ndA<CppIfStatement, errBinaryOp>]
+            >> code_block_no_paren[StatementBindTo2ndA<IfStatement, errBinaryOp>]
             >> clpar
             );
     
@@ -1305,10 +1305,10 @@ void SCISyntaxParser::Load()
     ternary_expression = 
             question[StartTernary]
             >> oppar[GeneralE]
-            >> syntaxnode_d[conditional[FinishConditionA<CppIfStatement>]]
+            >> syntaxnode_d[conditional[FinishConditionA<IfStatement>]]
             >> clpar[GeneralE]
-            >> statement[StatementBindTo1stA<CppIfStatement, errArgument>]
-            >> statement[StatementBindTo2ndA<CppIfStatement, errBinaryOp>];
+            >> statement[StatementBindTo1stA<IfStatement, errArgument>]
+            >> statement[StatementBindTo2ndA<IfStatement, errBinaryOp>];
             */
 
     // bnot done

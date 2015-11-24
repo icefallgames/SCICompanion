@@ -641,7 +641,7 @@ public:
         EndStatement(out);
     }
 
-    void Visit(const CppIfStatement &ifStatement) override
+    void Visit(const IfStatement &ifStatement) override
     {
         out.SyncComments(ifStatement);
         if (ifStatement._fTernary)

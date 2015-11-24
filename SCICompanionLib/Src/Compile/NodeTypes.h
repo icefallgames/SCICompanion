@@ -52,7 +52,7 @@ namespace sci
         NodeTypeComment,
         NodeTypeFunctionParameter,
         NodeTypeFunctionSignature,
-        NodeTypeCppIf,
+        NodeTypeIf,
         NodeTypeCast,
         NodeTypeConditionalExpressionSCIStudio,
         NodeTypeExport,

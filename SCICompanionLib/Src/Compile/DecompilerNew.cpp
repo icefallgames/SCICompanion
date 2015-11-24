@@ -904,7 +904,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode2(ConsumptionNode &node, Decomp
 
         case ChunkType::If:
         {
-            unique_ptr<CppIfStatement> ifStatement = make_unique<CppIfStatement>();
+            unique_ptr<IfStatement> ifStatement = make_unique<IfStatement>();
             _ApplySyntaxNodeToCodeNodeConditionNode(*node.GetChild(ChunkType::Condition), *ifStatement, lookups);
             _ApplySyntaxNodeToCodeNode1(*node.GetChild(ChunkType::Then), *ifStatement, lookups);
             if (node.GetChild(ChunkType::Else))

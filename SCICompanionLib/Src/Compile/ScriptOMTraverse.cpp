@@ -221,7 +221,7 @@ void BinaryOp::Traverse(IExploreNode &en)
 	_statement1->Traverse(en);
 	_statement2->Traverse(en);
 }
-void CppIfStatement::Traverse(IExploreNode &en)
+void IfStatement::Traverse(IExploreNode &en)
 {
 	ExploreNodeBlock enb(en, *this);
 	_innerCondition->Traverse(en);

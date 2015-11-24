@@ -427,11 +427,11 @@ namespace sci
     //
     // If statement (SCI only)
     //
-    class CppIfStatement : public SyntaxNode, public ConditionNode, public OneStatementNode, public TwoStatementNode
+    class IfStatement : public SyntaxNode, public ConditionNode, public OneStatementNode, public TwoStatementNode
     {
-        DECLARE_NODE_TYPE(NodeTypeCppIf)
+        DECLARE_NODE_TYPE(NodeTypeIf)
     public:
-        CppIfStatement() : OneStatementNode(), TwoStatementNode(), ConditionNode(), _fTernary(false) {}
+        IfStatement() : OneStatementNode(), TwoStatementNode(), ConditionNode(), _fTernary(false) {}
 
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;
@@ -448,8 +448,8 @@ namespace sci
         bool _fTernary;             // Currently for decompilation only - never used for compilation.
 
     private:
-		CppIfStatement(const CppIfStatement &src) = delete;
-		CppIfStatement& operator=(const CppIfStatement& src) = delete;
+		IfStatement(const IfStatement &src) = delete;
+		IfStatement& operator=(const IfStatement& src) = delete;
     };
 
     //

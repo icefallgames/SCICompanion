@@ -2274,7 +2274,7 @@ CodeResult DoLoop::OutputByteCode(CompileContext &context) const
     return 0; // void
 }
 
-void CppIfStatement::PreScan(CompileContext &context)
+void IfStatement::PreScan(CompileContext &context)
 {
     _innerCondition->PreScan(context);
     _statement1->PreScan(context);
@@ -2284,7 +2284,7 @@ void CppIfStatement::PreScan(CompileContext &context)
     }
 }
 
-CodeResult CppIfStatement::OutputByteCode(CompileContext &context) const
+CodeResult IfStatement::OutputByteCode(CompileContext &context) const
 {
     CodeResult result;
     // Put result in accumulator.

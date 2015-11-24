@@ -341,7 +341,7 @@ public:
     void Visit(const Assignment &assignment) override {}
     void Visit(const BinaryOp &binaryOp) override {}
     void Visit(const UnaryOp &unaryOp) override {}
-    void Visit(const CppIfStatement &ifStatement) override {}
+    void Visit(const IfStatement &ifStatement) override {}
     void Visit(const Asm &asmSection) override {}
     void Visit(const AsmBlock &asmBlock) override {}
     void Visit(const ExportEntry &exportEntry) override {}
@@ -441,7 +441,7 @@ public:
     void Visit(const Assignment &assignment) override {}
     void Visit(const BinaryOp &binaryOp) override {}
     void Visit(const UnaryOp &unaryOp) override {}
-    void Visit(const CppIfStatement &ifStatement) override {}
+    void Visit(const IfStatement &ifStatement) override {}
     void Visit(const Asm &asmSection) override {}
     void Visit(const AsmBlock &asmBlock) override {}
     void Visit(const ExportEntry &exportEntry) override {}

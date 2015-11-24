@@ -1281,7 +1281,7 @@ SyntaxNode *_EvaluateIf(CPPSyntaxContext &context, Script &script, ASTNode *pPar
     //   Else           - opt
     //   Statement      - opt
     ASSERT((pParent->GetType() == ASTNode::If) || ((pParent->GetType() == ASTNode::Ternary)));
-	unique_ptr<CppIfStatement> pIf = std::make_unique<CppIfStatement>();
+	unique_ptr<IfStatement> pIf = std::make_unique<IfStatement>();
     _SyncPosition(pIf.get(), pParent);
     //ASSERT(pParent->Children().size() >= 2);    
     ASSERT((pParent->Children().size() == 2) || (pParent->Children().size() == 4));

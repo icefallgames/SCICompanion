@@ -866,7 +866,7 @@ public:
         out.out << ")";
     }
 
-    void Visit(const CppIfStatement &ifStatement) override
+    void Visit(const IfStatement &ifStatement) override
     {
         Inline inln(out, false);	// Line by line now, overall
         {

@@ -638,7 +638,7 @@ public:
         unaryOp.GetStatement1()->Accept(*this);
     }
 
-    void Visit(const CppIfStatement &ifStatement) override
+    void Visit(const IfStatement &ifStatement) override
     {
         // When decompiling, we always create CppIfStatements, even if we're outputting SCI syntax
         if (ifStatement._fTernary)
