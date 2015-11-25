@@ -17,6 +17,7 @@
 #include "ScriptOM.h"
 #include "ScriptOMAll.h"
 #include "CompileContext.h"
+#include "Operators.h"
 
 // Some predefined data types
 const std::string TypeStringString = "string";
@@ -76,12 +77,12 @@ bool IsPointerType(SpeciesIndex type)
     return false;
 }
 
-bool IsOperatorAddSubtract(const std::string &op)
+bool IsOperatorAddSubtract(BinaryOperator op)
 {
-    return (op == "+") || (op == "-") || (op == "+=") || (op == "-=");
+    return op == BinaryOperator::Add || op == BinaryOperator::Subtract;
 }
 
-bool DoesTypeMatch(CompileContext &context, SpeciesIndex destType, SpeciesIndex sourceType, const std::string *pOperator, const sci::SyntaxNode *pStatement)
+bool DoesTypeMatch(CompileContext &context, SpeciesIndex destType, SpeciesIndex sourceType, const BinaryOperator *binOp, const sci::SyntaxNode *pStatement)
 {
     // Guard against uninitialized memory
     ASSERT(destType != 0xcccc);
@@ -89,7 +90,7 @@ bool DoesTypeMatch(CompileContext &context, SpeciesIndex destType, SpeciesIndex 
 
     if (sourceType == destType)
     {
-        if (IsPointerType(sourceType) && pOperator && IsOperatorAddSubtract(*pOperator))
+        if (IsPointerType(sourceType) && binOp && IsOperatorAddSubtract(*binOp))
         {
             // You shouldn't be able to add two pointers together, etc...
             return false;
@@ -125,12 +126,12 @@ bool DoesTypeMatch(CompileContext &context, SpeciesIndex destType, SpeciesIndex 
         return (sourceType != DataTypeVoid); // Anything can be cast to bool except void
     }
 
-    if (pOperator)
+    if (binOp)
     {
         // e.g. adding a number to a pointer.
         if (IsPointerType(destType) && IsNumberType(sourceType))
         {
-            return IsOperatorAddSubtract(*pOperator);
+            return IsOperatorAddSubtract(*binOp);
         }
     }
 

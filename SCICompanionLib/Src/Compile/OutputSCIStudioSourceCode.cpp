@@ -16,6 +16,7 @@
 #include "OutputCodeHelper.h"
 #include "OutputSourceCodeBase.h"
 #include "PMachine.h"
+#include "OperatorTables.h"
 
 using namespace sci;
 using namespace std;
@@ -586,7 +587,7 @@ public:
             BracketScope bracketScope(out, true);
             Inline inln(out, true);
             DebugIndent indent(out);
-            out.out << assignment.GetAssignmentOp() << " ";
+            out.out << OperatorToName(assignment.Operator, studioNameToAssignmentOp) << " ";
             assignment._variable->Accept(*this);
             out.out << " ";
             if (assignment.GetStatement1())
@@ -608,11 +609,11 @@ public:
         {
             Inline inln(out, true);
             BracketScope bracketScope(out, true);
-            string name = binaryOp.GetOpName();
-            if (name == "&&" || name == "||")
+            string name = OperatorToName(binaryOp.Operator, studioNameToBinaryOp);
+            if (binaryOp.Operator == BinaryOperator::LogicalAnd || binaryOp.Operator == BinaryOperator::LogicalOr)
             {
                 binaryOp.GetStatement1()->Accept(*this);
-                out.out << ((name == "&&") ? " and " : " or ");
+                out.out << name;
                 binaryOp.GetStatement2()->Accept(*this);
             }
             else
@@ -630,8 +631,9 @@ public:
         out.SyncComments(unaryOp);
         DebugLine line(out);
         Inline inln(out, true);
-        out.out << unaryOp.GetOpName();
-        if (!IsNonAlphaOperator(unaryOp.GetOpName()))
+        std::string name = OperatorToName(unaryOp.Operator, studioNameToUnaryOp);
+        out.out << name;
+        if (!IsNonAlphaOperator(name))
         {
             out.out << " ";
         }

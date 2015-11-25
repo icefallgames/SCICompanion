@@ -575,6 +575,7 @@ bool OperatorP(const ParserBase<_TContext, _It> *pParser, _TContext *pContext, _
     if (*psz == 0)
     {
         pContext->ScratchString() = pParser->_psz;
+
         char chNext = *stream;
         // REVIEW: we're relying on careful ordering of rules to have this parser work.
         // The "operator" parser needs to make sure there isn't another "operator char" following

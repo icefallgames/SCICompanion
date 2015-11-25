@@ -20,6 +20,8 @@
 #include "ScriptOMAll.h"
 #include "StudioSyntaxParser.h"
 #include "PMachine.h"
+#include "Operators.h"
+#include "OperatorTables.h"
 
 using namespace sci;
 using namespace std;
@@ -317,6 +319,39 @@ void SetStatementA(MatchResult &match, const Parser *pParser, SyntaxContext *pCo
     {
         pContext->CreateSyntaxNode<_T>(stream);
         pContext->GetSyntaxNode<_T>()->SetPosition(stream.GetPosition());
+    }
+}
+
+template<typename _TOpType>
+_TOpType StudioNameToOperator(const std::string &name);
+
+template<>
+BinaryOperator StudioNameToOperator<BinaryOperator>(const std::string &name)
+{
+    return NameToOperator(name, studioNameToBinaryOp);
+}
+
+template<>
+AssignmentOperator StudioNameToOperator<AssignmentOperator>(const std::string &name)
+{
+    return NameToOperator(name, studioNameToAssignmentOp);
+}
+
+template<>
+UnaryOperator StudioNameToOperator<UnaryOperator>(const std::string &name)
+{
+    return NameToOperator(name, studioNameToUnaryOp);
+}
+
+template<typename _T, typename _TOperator>
+void SetOperatorA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->CreateSyntaxNode<_T>(stream);
+        _TOperator op = StudioNameToOperator<_TOperator>(pContext->ScratchString());
+        assert(op != _TOperator::None);
+        pContext->GetSyntaxNode<_T>()->Operator = op;
     }
 }
 
@@ -1288,13 +1323,13 @@ void StudioSyntaxParser::Load()
 
     // = view 1
     assignment =
-            assignment_operator[SetStatementNameA<Assignment>]
+            assignment_operator[SetOperatorA<Assignment, AssignmentOperator>]
         >>  syntaxnode_d[variable[AssignmentVariableA]]
         >>  statement[StatementBindTo1stA<Assignment, errArgument>];
 
     // + 5 view
     binary_operation =
-            binary_operator[SetStatementNameA<BinaryOp>]
+            binary_operator[SetOperatorA<BinaryOp, BinaryOperator>]
         >>  statement[StatementBindTo1stA<BinaryOp, errArgument>]
         >>  statement[StatementBindTo2ndA<BinaryOp, errBinaryOp>];
 
@@ -1311,7 +1346,7 @@ void StudioSyntaxParser::Load()
 
     // bnot done
     unary_operation =
-            unary_operator[SetStatementNameA<UnaryOp>]
+            unary_operator[SetOperatorA<UnaryOp, UnaryOperator>]
         >>  statement[StatementBindTo1stA<UnaryOp, errArgument>];
 
     asm_arg =

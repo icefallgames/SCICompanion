@@ -15,24 +15,10 @@
 #include "ScriptOMAll.h"
 #include "OutputCodeHelper.h"
 #include "OutputSourceCodeBase.h"
+#include "OperatorTables.h"
 
 using namespace sci;
 using namespace std;
-
-//
-// Convert some operators between SCIStudio and CPP syntax.
-//
-key_value_pair<PCSTR, PCSTR> c_rgSCIStudio2CPP[] =
-{
-    { "bnot", "~" },
-    { "not", "!" },
-    { "<>", "!=" },
-    { "neg", "-" },
-};
-PCSTR ToCPP(const string &name)
-{
-    return LookupStringValue(c_rgSCIStudio2CPP, ARRAYSIZE(c_rgSCIStudio2CPP), name, name.c_str());
-}
 
 // This is for a potential new language more accurately based on the original SCI syntax.
 class OutputCPPSourceCode : public OutputSourceCodeBase
@@ -596,7 +582,7 @@ public:
             Inline inln(out, true);
             OutputBrackets brackets(out);
             assignment._variable->Accept(*this);
-            out.out << " " << assignment.GetAssignmentOp() << " ";
+            out.out << " " << OperatorToName(assignment.Operator, cppNameToAssignmentOp) << " ";
             assignment.GetStatement1()->Accept(*this);
         }
         EndStatement(out);
@@ -611,7 +597,7 @@ public:
             {
                 ExplicitOrder order(out, true);
                 binaryOp.GetStatement1()->Accept(*this);
-                out.out << " " << ToCPP(binaryOp.GetOpName()) << " ";
+                out.out << " " << OperatorToName(binaryOp.Operator, cppNameToBinaryOp) << " ";
                 binaryOp.GetStatement2()->Accept(*this);
             }
         }
@@ -624,7 +610,7 @@ public:
         {
             Inline inln(out, true);
             OutputBrackets brackets(out);
-            std::string newOp = ToCPP(unaryOp.GetOpName());
+            std::string newOp = OperatorToName(unaryOp.Operator, cppNameToUnaryOp);
             out.out << newOp;
             if (!IsNonAlphaOperator(newOp))
             {

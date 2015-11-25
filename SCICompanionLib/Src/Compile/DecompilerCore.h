@@ -55,8 +55,11 @@ struct Consumption
 
 Consumption _GetInstructionConsumption(scii &inst, DecompileLookups *lookups = nullptr);
 
-std::string GetBinaryOperatorForInstruction(Opcode b, LangSyntax lang);
-std::string GetUnaryOperatorForInstruction(Opcode b, LangSyntax lang);
+enum class BinaryOperator;
+enum class UnaryOperator;
+
+BinaryOperator GetBinaryOperatorForInstruction(Opcode b);
+UnaryOperator GetUnaryOperatorForInstruction(Opcode b);
 
 enum class VarScope : std::uint8_t
 {

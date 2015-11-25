@@ -15,8 +15,9 @@
 #include "ScriptOMAll.h"
 #include "CompileContext.h"
 #include "PMachine.h"
+#include "Operators.h"
 
-Opcode GetInstructionForBinaryOperator(const std::string &name);
+Opcode GetInstructionForBinaryOperator(BinaryOperator op);
 
 // For evaluating compile time constants
 
@@ -134,7 +135,7 @@ bool BinaryOp::Evaluate(ILookupDefine &context, uint16_t &result) const
         good = _statement2->Evaluate(context, valueB);
         if (good)
         {
-            good = EvalBinaryOp(GetInstructionForBinaryOperator(GetName()), valueA, valueB, result);
+            good = EvalBinaryOp(GetInstructionForBinaryOperator(Operator), valueA, valueB, result);
         }
     }
     return good;

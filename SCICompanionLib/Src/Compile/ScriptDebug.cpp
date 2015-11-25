@@ -19,6 +19,7 @@
 #include "OutputCPPSourceCode.h"
 #include "OutputSCISourceCode.h"
 #include "StringUtil.h"
+#include "OperatorTables.h"
 
 using namespace sci;
 using namespace std;
@@ -33,12 +34,14 @@ std::string OperatorToString(const std::string &op)
 
 std::string BinaryOp::ToString() const
 {
-    return OperatorToString(GetOpName());
+    // REVIEW: This is really language specific, but we're using the SCIStudio names.
+    return OperatorToString(OperatorToName(Operator, studioNameToBinaryOp));
 }
 
 std::string UnaryOp::ToString() const
 {
-    return OperatorToString(GetOpName());
+    // REVIEW: This is really language specific, but we're using the SCIStudio names.
+    return OperatorToString(OperatorToName(Operator, studioNameToUnaryOp));
 }
 
 

@@ -15,6 +15,7 @@
 #include "ScriptOM.h"
 #include "ScriptOMAll.h"
 #include "ScriptMakerHelper.h"
+#include "Operators.h"
 
 using namespace sci;
 using namespace std;
@@ -47,7 +48,7 @@ unique_ptr<SyntaxNode> _MakeTokenStatement(const string &token)
 void _AddAssignment(MethodDefinition &method, const string &lvalueName, const string &assigned)
 {
     unique_ptr<Assignment> pEquals = std::make_unique<Assignment>();
-    pEquals->SetName("=");
+    pEquals->Operator = AssignmentOperator::Assign;
     unique_ptr<LValue> lvalue = make_unique<LValue>();
     lvalue->SetName(lvalueName);
     pEquals->SetVariable(move(lvalue));

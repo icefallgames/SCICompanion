@@ -126,6 +126,8 @@ bool IsUnsignedType(SpeciesIndex si);
 
 std::string GetBuiltInDataTypeString(SpeciesIndex wSpecies);
 
+enum class BinaryOperator;
+
 //
 // The principal function to call to determine if two types match.  There are different rules
 // depending on which is the source and which is the destination type.
@@ -135,7 +137,7 @@ std::string GetBuiltInDataTypeString(SpeciesIndex wSpecies);
 // A statement may be supplied.  This will be used for places where there are some default conversions
 // (e.g. int can be converted to string if the int is a zero value)
 //
-bool DoesTypeMatch(CompileContext &context, SpeciesIndex destType, const SpeciesIndex sourceType, const std::string *pOperator = nullptr, const sci::SyntaxNode *pStatement = NULL);
+bool DoesTypeMatch(CompileContext &context, SpeciesIndex destType, const SpeciesIndex sourceType, const BinaryOperator *binOp = nullptr, const sci::SyntaxNode *pStatement = NULL);
 
 
 

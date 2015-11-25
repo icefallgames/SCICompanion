@@ -792,6 +792,9 @@
     <ClCompile Include="Src\Compile\StudioSyntaxParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Compile\OperatorTables.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCICompanionLib.h">
@@ -1683,6 +1686,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\Compile\StudioSyntaxParser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Compile\Operators.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Compile\OperatorTables.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

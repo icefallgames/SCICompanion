@@ -15,6 +15,7 @@
 #include "ScriptOMAll.h"
 #include "StudioSyntaxParser.h"
 #include "CPPSyntaxParser.h"
+#include "OperatorTables.h"
 
 /*
 #ifdef _DEBUG
@@ -1470,7 +1471,7 @@ SyntaxNode *_EvaluateUnary(CPPSyntaxContext &context, Script &script, ASTNode *p
     ASSERT(pParent->GetType() == ASTNode::Unary);
     unique_ptr<UnaryOp> pUnary = std::make_unique<UnaryOp>();
     _SyncPosition(pUnary.get(), pParent);
-    pUnary->SetName(pParent->GetText());
+    pUnary->Operator = NameToOperator(pParent->GetText(), cppNameToUnaryOp);
     ASSERT(pParent->Children().size() == 1);
     pUnary->SetStatement1(move(_EvaluateStatement3(context, script, pParent->Children()[0].get())));
     return pUnary.release();
@@ -1482,7 +1483,7 @@ SyntaxNode *_EvaluateBinary(CPPSyntaxContext &context, Script &script, ASTNode *
     ASSERT(pParent->GetType() == ASTNode::Binary);
 	unique_ptr<BinaryOp> pBinary = std::make_unique<BinaryOp>();
     _SyncPosition(pBinary.get(), pParent);
-    pBinary->SetName(pParent->GetText());
+    pBinary->Operator = NameToOperator(pParent->GetText(), cppNameToBinaryOp);
     ASSERT(pParent->Children().size() == 2);
     pBinary->SetStatement1(move(_EvaluateStatement3(context, script, pParent->Children()[0].get())));
     pBinary->SetStatement2(move(_EvaluateStatement3(context, script, pParent->Children()[1].get())));
@@ -1785,7 +1786,7 @@ unique_ptr<SyntaxNode>  _EvaluateAssignment(CPPSyntaxContext &context, Script &s
         _SyncPosition(pAssignment.get(), pParent);
         pAssignment->SetStatement1(move(_EvaluateStatement3(context, script, pRValue)));
         pAssignment->SetVariable(move(_EvaluateLValue(context, script, pLValue)));
-        pAssignment->SetName(pParent->GetText());
+        pAssignment->Operator = NameToOperator(pParent->GetText(), cppNameToAssignmentOp);
 		return unique_ptr<SyntaxNode>(pAssignment.release());
     }
 }

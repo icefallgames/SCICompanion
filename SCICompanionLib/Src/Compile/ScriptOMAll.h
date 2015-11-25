@@ -14,6 +14,7 @@
 #pragma once
 
 #include "ScriptOM.h"
+#include "Operators.h"
 
 //
 // This file contains less commonly used script objects that aren't
@@ -347,11 +348,11 @@ namespace sci
     //
     // Assignment statement (e.g. += foo 1)
     //
-    class Assignment : public SyntaxNode, public NamedNode, public OneStatementNode
+    class Assignment : public SyntaxNode, public OneStatementNode
     {
         DECLARE_NODE_TYPE(NodeTypeAssignment)
     public:
-        Assignment() : NamedNode(), OneStatementNode() {}
+        Assignment() : OneStatementNode(), Operator(AssignmentOperator::None) {}
 
 		Assignment(const Assignment &src) = delete;
 		Assignment& operator=(const Assignment& src) = delete;
@@ -362,30 +363,26 @@ namespace sci
         void Traverse(IExploreNode &en);
 
         void SetVariable(std::unique_ptr<LValue> var) { _variable = std::move(var); }
-        
-
-		const std::string GetAssignmentOp() const { return _innerName; }
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 
         std::unique_ptr<LValue> _variable;
 
+        AssignmentOperator Operator;
     private:
     };
 
     //
     // A binary operation (e.g. + x 6)
     //
-    class BinaryOp : public SyntaxNode, public NamedNode, public OneStatementNode, public TwoStatementNode
+    class BinaryOp : public SyntaxNode, public OneStatementNode, public TwoStatementNode
     {
         DECLARE_NODE_TYPE(NodeTypeBinaryOperation)
     public:
-        BinaryOp() : NamedNode(), OneStatementNode(), TwoStatementNode() {}
+        BinaryOp() : OneStatementNode(), TwoStatementNode(), Operator(BinaryOperator::None) {}
 
 		BinaryOp(const BinaryOp &src) = delete;
 		BinaryOp& operator=(const BinaryOp& src) = delete;
-
-		const std::string &GetOpName() const { return _innerName; }
 
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const override;
@@ -396,6 +393,8 @@ namespace sci
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 
+        BinaryOperator Operator;
+
     private:
         CodeResult _OutputByteCodeAnd(CompileContext &context) const;
         CodeResult _OutputByteCodeOr(CompileContext &context) const;
@@ -404,16 +403,14 @@ namespace sci
     //
     // A unary operation (e.g. ++x)
     //
-    class UnaryOp : public SyntaxNode, public NamedNode, public OneStatementNode
+    class UnaryOp : public SyntaxNode, public OneStatementNode
     {
         DECLARE_NODE_TYPE(NodeTypeUnaryOperation)
     public:
-        UnaryOp() : NamedNode(), OneStatementNode() {}
+        UnaryOp() : OneStatementNode(), Operator(UnaryOperator::None) {}
 
-		UnaryOp(const UnaryOp &src) = delete;
-		UnaryOp& operator=(const UnaryOp& src) = delete;
-
-		const std::string &GetOpName() const { return _innerName; }
+        UnaryOp(const UnaryOp &src) = delete;
+        UnaryOp& operator=(const UnaryOp& src) = delete;
 
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;
@@ -424,6 +421,7 @@ namespace sci
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 
+        UnaryOperator Operator;
     };
 
     //

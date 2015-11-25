@@ -24,6 +24,7 @@
 #include "DecompilerConfig.h"
 #include <iterator>
 #include "GameFolderHelper.h"
+#include "Operators.h"
 
 #define DEBUG_DECOMPILER 1
 
@@ -36,7 +37,7 @@ using namespace std;
 static char THIS_FILE[] = __FILE__;
 #endif
 
-bool GetBinaryOpFromAssignment(std::string &strOp);
+BinaryOperator GetBinaryOpFromAssignment(AssignmentOperator assignment);
 
 const char InvalidLookupError[] = "LOOKUP_ERROR";
 const char RestParamName[] = "params";
@@ -726,24 +727,30 @@ public:
 
         // Push a "hex context" if we are in a bitwise operation.
         string operation;
+        BinaryOperator binaryoperation = BinaryOperator::None;
+        UnaryOperator unaryOperator = UnaryOperator::None;
         BinaryOp *binaryOp = SafeSyntaxNode<BinaryOp>(&node);
         if (binaryOp)
         {
-            operation = binaryOp->GetName();
+            binaryoperation = binaryOp->Operator;
         }
         UnaryOp *unaryOp = SafeSyntaxNode<UnaryOp>(&node);
         if (unaryOp)
         {
-            operation = unaryOp->GetName();
+            unaryOperator = unaryOp->Operator;
         }
         Assignment *assignment = SafeSyntaxNode<Assignment>(&node);
         if (assignment)
         {
-            operation = assignment->GetName();
-            GetBinaryOpFromAssignment(operation);
+            binaryoperation = GetBinaryOpFromAssignment(assignment->Operator);
         }
 
-        if (operation == "|" || operation == "&" || operation == "^" || operation == "bnot" || operation == ">>" || operation == "<<")
+        if (binaryoperation == BinaryOperator::BinaryOr ||
+            binaryoperation == BinaryOperator::BinaryAnd ||
+            binaryoperation == BinaryOperator::ExclusiveOr ||
+            unaryOperator == UnaryOperator::BinaryNot ||
+            binaryoperation == BinaryOperator::ShiftRight ||
+            binaryoperation == BinaryOperator::ShiftLeft)
         {
             if (state == ExploreNodeState::Pre)
             {
@@ -796,7 +803,7 @@ private:
     unique_ptr<SyntaxNode> _PutInNot(unique_ptr<SyntaxNode> other)
     {
         unique_ptr<UnaryOp> unaryOp = make_unique<UnaryOp>();
-        unaryOp->SetName("not");
+        unaryOp->Operator = UnaryOperator::LogicalNot;
         unaryOp->SetStatement1(move(other));
         return unique_ptr<SyntaxNode>(move(unaryOp));
     }
@@ -806,7 +813,7 @@ private:
         // If this is a binary op of and or or, then procede onward with each one
         // See if we have a binary operation underneath us for an and/or
         BinaryOp *binOp = SafeSyntaxNode<BinaryOp>(statement.get());
-        if (binOp && ((binOp->GetName() == "&&") || (binOp->GetName() == "||")))
+        if (binOp && ((binOp->Operator == BinaryOperator::LogicalAnd) || (binOp->Operator == BinaryOperator::LogicalOr)))
         {
             _Process(binOp->GetStatement1Internal());
             _Process(binOp->GetStatement2Internal());
@@ -815,24 +822,24 @@ private:
         {
             // If this is a not
             UnaryOp *unary = SafeSyntaxNode<UnaryOp>(statement.get());
-            if (unary && (unary->GetName() == "not"))
+            if (unary && (unary->Operator == UnaryOperator::LogicalNot))
             {
                 // Then let's see if it contains a binary op, in which case, we'll apply DeMorgan's theorem.
                 BinaryOp *child = SafeSyntaxNode<BinaryOp>(unary->GetStatement1());
-                if (child && ((child->GetName() == "&&") || (child->GetName() == "||")))
+                if (child && ((child->Operator == BinaryOperator::LogicalAnd) || (child->Operator == BinaryOperator::LogicalOr)))
                 {
                     // Ok. We need to replace the unary op with its child.
                     unique_ptr<SyntaxNode> binaryOpStatement = move(unary->GetStatement1Internal());
                     statement = move(binaryOpStatement);
                     // That should do it.
                     // Now we need to switch the operator
-                    if (child->GetName() == "&&")
+                    if (child->Operator == BinaryOperator::LogicalAnd)
                     {
-                        child->SetName("||");
+                        child->Operator = BinaryOperator::LogicalOr;
                     }
                     else
                     {
-                        child->SetName("&&");
+                        child->Operator = BinaryOperator::LogicalAnd;
                     }
                     
                     // Then we need to go insert unary nots in front of both statements of the binary operator.
@@ -900,20 +907,25 @@ public:
         }
 
         // Push a "neg context" if we are in a signed comparison
-        string operation;
+
+        BinaryOperator binaryOperation = BinaryOperator::None;
         BinaryOp *binaryOp = SafeSyntaxNode<BinaryOp>(&node);
         if (binaryOp)
         {
-            operation = binaryOp->GetName();
+            binaryOperation = binaryOp->Operator;
         }
         Assignment *assignment = SafeSyntaxNode<Assignment>(&node);
         if (assignment)
         {
-            operation = assignment->GetName();
-            GetBinaryOpFromAssignment(operation);
+            binaryOperation = GetBinaryOpFromAssignment(assignment->Operator);
         }
 
-        if (operation == "+" || operation == "-" || operation == "<" || operation == ">" || operation == "<=" || operation == ">=")
+        if (binaryOperation == BinaryOperator::Add ||
+            binaryOperation == BinaryOperator::Subtract ||
+            binaryOperation == BinaryOperator::LessThan ||
+            binaryOperation == BinaryOperator::GreaterThan ||
+            binaryOperation == BinaryOperator::LessEqual ||
+            binaryOperation == BinaryOperator::GreaterEqual)
         {
             if (state == ExploreNodeState::Pre)
             {

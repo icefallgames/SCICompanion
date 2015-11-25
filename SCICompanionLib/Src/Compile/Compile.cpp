@@ -23,6 +23,7 @@
 #include "CompileContext.h"
 #include "PMachine.h"
 #include "Kernels.h"
+#include "Operators.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -113,41 +114,51 @@ enum
     BB_PostElse = 4,    // block for the end of an if statement jumping to after the else.
 } BranchBlockIndex;
 
-key_value_pair<PCSTR, Opcode> c_rgOperatorToOpcode[] =
+std::vector<std::pair<BinaryOperator, Opcode>> c_rgOperatorToOpcode =
 {
-    { "==", Opcode::EQ },
-    { "!=", Opcode::NE },     // C++ only
-    { "<>", Opcode::NE },     // SCIStudio only
-    { ">=u", Opcode::UGE },
-    { ">=", Opcode::GE },
-    { ">u", Opcode::UGT },
-    { ">>", Opcode::SHR },
-    { ">", Opcode::GT },
-    { "<=u", Opcode::ULE },
-    { "<=", Opcode::LE },
-    { "<u", Opcode::ULT },
-    { "<<", Opcode::SHL },
-    { "<", Opcode::LT },
-    { "+", Opcode::ADD },
-    { "-", Opcode::SUB },
-    { "*", Opcode::MUL },
-    { "/", Opcode::DIV },
-    { "%", Opcode::MOD },
-    { "&", Opcode::AND },
-    { "|", Opcode::OR },
-    { "^", Opcode::XOR },
+    { BinaryOperator::Equal, Opcode::EQ },
+    { BinaryOperator::NotEqual, Opcode::NE },
+    { BinaryOperator::UnsignedGreaterEqual, Opcode::UGE },
+    { BinaryOperator::GreaterEqual, Opcode::GE },
+    { BinaryOperator::UnsignedGreaterThan, Opcode::UGT },
+    { BinaryOperator::ShiftRight, Opcode::SHR },
+    { BinaryOperator::GreaterThan, Opcode::GT },
+    { BinaryOperator::UnsignedLessEqual, Opcode::ULE },
+    { BinaryOperator::LessEqual, Opcode::LE },
+    { BinaryOperator::UnsignedLessThan, Opcode::ULT },
+    { BinaryOperator::ShiftLeft, Opcode::SHL },
+    { BinaryOperator::LessThan, Opcode::LT },
+    { BinaryOperator::Add, Opcode::ADD },
+    { BinaryOperator::Subtract, Opcode::SUB },
+    { BinaryOperator::Multiply, Opcode::MUL },
+    { BinaryOperator::Divide, Opcode::DIV },
+    { BinaryOperator::Mod, Opcode::MOD },
+    { BinaryOperator::BinaryAnd, Opcode::AND },
+    { BinaryOperator::BinaryOr, Opcode::OR },
+    { BinaryOperator::ExclusiveOr, Opcode::XOR },
 };
-Opcode GetInstructionForBinaryOperator(const string &name)
+Opcode GetInstructionForBinaryOperator(BinaryOperator op)
 {
-    return LookupStringValue(c_rgOperatorToOpcode, ARRAYSIZE(c_rgOperatorToOpcode), name, Opcode::INDETERMINATE);
-}
-std::string GetBinaryOperatorForInstruction(Opcode b, LangSyntax lang)
-{
-    if (b == Opcode::NE)
+    auto findIt = std::find_if(c_rgOperatorToOpcode.begin(), c_rgOperatorToOpcode.end(),
+        [op](std::pair<BinaryOperator, Opcode> &entry) { return entry.first == op; }
+        );
+    if (findIt != c_rgOperatorToOpcode.end())
     {
-        return (lang == LangSyntaxCpp) ? "!=" : "<>";
+        return findIt->second;
     }
-    return LookupKey<PCSTR, Opcode>(c_rgOperatorToOpcode, ARRAYSIZE(c_rgOperatorToOpcode), b, "");
+    assert(false);
+    return Opcode::INDETERMINATE;
+}
+BinaryOperator GetBinaryOperatorForInstruction(Opcode opcode)
+{
+    auto findIt = std::find_if(c_rgOperatorToOpcode.begin(), c_rgOperatorToOpcode.end(),
+        [opcode](std::pair<BinaryOperator, Opcode> &entry) { return entry.second == opcode; }
+    );
+    if (findIt != c_rgOperatorToOpcode.end())
+    {
+        return findIt->first;
+    }
+    return BinaryOperator::None;
 }
 
 void WriteSimple(CompileContext &context, Opcode bOpcode)
@@ -1697,19 +1708,37 @@ CodeResult ReturnStatement::OutputByteCode(CompileContext &context) const
     return 0; // void
 }
 
-//
-// Turns "+=" into "+", and returns true if it did a transformation
-//
-bool GetBinaryOpFromAssignment(std::string &strOp)
+vector<pair<BinaryOperator, AssignmentOperator>> binaryAssignmentMapping =
 {
-    char szOp[4];
-    StringCchCopy(szOp, ARRAYSIZE(szOp), strOp.c_str());
-    // Find the =
-    char *pszEqual = strchr(szOp, '=');
-    assert(pszEqual); // We should never have an assignment that doesn't have = in it.
-    *pszEqual = 0;
-    strOp = szOp;
-    return !strOp.empty();
+    { BinaryOperator::None, AssignmentOperator::Assign },
+    { BinaryOperator::Add, AssignmentOperator::Add },
+    { BinaryOperator::Subtract, AssignmentOperator::Subtract },
+    { BinaryOperator::Multiply, AssignmentOperator::Multiply },
+    { BinaryOperator::Divide, AssignmentOperator::Divide },
+    { BinaryOperator::Mod, AssignmentOperator::Mod },
+    { BinaryOperator::BinaryAnd, AssignmentOperator::BinaryAnd },
+    { BinaryOperator::BinaryOr, AssignmentOperator::BinaryOr },
+    { BinaryOperator::ExclusiveOr, AssignmentOperator::ExclusiveOr },
+    { BinaryOperator::ShiftRight, AssignmentOperator::ShiftRight },
+    { BinaryOperator::ShiftLeft, AssignmentOperator::ShiftLeft },
+};
+
+//
+// Turns "+=" into "+".
+// Returns BinaryOperator::None if there was no equivalent.
+BinaryOperator GetBinaryOpFromAssignment(AssignmentOperator assignment)
+{
+    auto itFind = find_if(binaryAssignmentMapping.begin(), binaryAssignmentMapping.end(),
+        [assignment](pair<BinaryOperator, AssignmentOperator> &entry)
+    {
+        return entry.second == assignment;
+    }
+        );
+    if (itFind != binaryAssignmentMapping.end())
+    {
+        return itFind->first;
+    }
+    return BinaryOperator::None;
 }
 
 CodeResult Assignment::OutputByteCode(CompileContext &context) const
@@ -1749,8 +1778,8 @@ CodeResult Assignment::OutputByteCode(CompileContext &context) const
         break;
     }
 
-    string assignment = GetAssignmentOp();
-    if (GetBinaryOpFromAssignment(assignment))
+    BinaryOperator theBinaryOperator = GetBinaryOpFromAssignment(Operator);
+    if (theBinaryOperator != BinaryOperator::None)
     {
         // This is something like +=, *=, etc...
 
@@ -1783,7 +1812,7 @@ CodeResult Assignment::OutputByteCode(CompileContext &context) const
                 // And put the value into the accumulator
                 OutputByteCodeToAccumulator(context, *_statement1);
                 // Perform the operation (adding the value to the thing on the stack)
-                WriteSimple(context, GetInstructionForBinaryOperator(assignment));
+                WriteSimple(context, GetInstructionForBinaryOperator(theBinaryOperator));
                 // The result is now in the accumulator.  We actually want it in the stack, since
                 // we want to use the variable index (currently on the stack) in the accumulator
                 // Do a little trick:
@@ -1803,7 +1832,7 @@ CodeResult Assignment::OutputByteCode(CompileContext &context) const
                 // And the value into the accumulator
                 OutputByteCodeToAccumulator(context, *_statement1);
                 // Perform the operation
-                WriteSimple(context, GetInstructionForBinaryOperator(assignment));
+                WriteSimple(context, GetInstructionForBinaryOperator(theBinaryOperator));
                 // And now it goes back in the variable
                 VariableOperand(context, wIndex, TokenTypeToVOType(tokenType) | VO_ACC | VO_STORE);
                 ocWhereWePutValue = OC_Accumulator; // It's sitting in the accumulator
@@ -1815,7 +1844,7 @@ CodeResult Assignment::OutputByteCode(CompileContext &context) const
             // And the value into the accumulator
             OutputByteCodeToAccumulator(context, *_statement1);
             // Perform the operation
-            WriteSimple(context, GetInstructionForBinaryOperator(assignment));
+            WriteSimple(context, GetInstructionForBinaryOperator(theBinaryOperator));
             // And put the value (now in the accumulator) back into the property
             StoreProperty(context, wIndex, false);
             ocWhereWePutValue = OC_Accumulator; // It's sitting in the accumulator
@@ -1915,9 +1944,20 @@ void LValue::PreScan(CompileContext &context)
     if (_indexer) _indexer->PreScan(context);
 }
 
-const char* c_szBooleanOps[] =
+vector<BinaryOperator> BooleanOps =
 {
-    ">=u", ">=", ">u", ">", "<=u", "<=", "<u", "<>", "!=", "<", "==", "&&", "||"
+    BinaryOperator::UnsignedGreaterEqual,
+    BinaryOperator::GreaterEqual,
+    BinaryOperator::UnsignedGreaterThan,
+    BinaryOperator::GreaterThan,
+    BinaryOperator::UnsignedLessEqual,
+    BinaryOperator::LessEqual,
+    BinaryOperator::UnsignedLessThan,
+    BinaryOperator::LessThan,
+    BinaryOperator::NotEqual,
+    BinaryOperator::Equal,
+    BinaryOperator::LogicalAnd,
+    BinaryOperator::LogicalOr,
 };
 
 CodeResult BinaryOp::_OutputByteCodeAnd(CompileContext &context) const
@@ -1968,29 +2008,32 @@ CodeResult BinaryOp::_OutputByteCodeOr(CompileContext &context) const
 }
 
 // Mapping of signed to unsigned equivalents.
-const key_value_pair<const char*, const char*> c_unsignedOps[] =
+vector<pair<BinaryOperator, BinaryOperator>> c_unsignedOps =
 {
-    { ">=", ">=u" },
-    { "<=", "<=u" },
-    { ">", ">u" },
-    { "<", "<u" },
+    { BinaryOperator::GreaterEqual, BinaryOperator::UnsignedGreaterEqual },
+    { BinaryOperator::LessEqual, BinaryOperator::UnsignedLessEqual },
+    { BinaryOperator::GreaterThan, BinaryOperator::UnsignedGreaterThan },
+    { BinaryOperator::LessThan, BinaryOperator::UnsignedLessThan },
 };
 
-std::string _MaybeChangeToUnsigned(CompileContext &context, SpeciesIndex siLeft, const std::string &op)
+BinaryOperator _MaybeChangeToUnsigned(CompileContext &context, SpeciesIndex siLeft, BinaryOperator op)
 {
     if ((context.GetLanguage() == LangSyntaxCpp) && IsUnsignedType(siLeft))
     {
         // The 'u' operators aren't allowed in Cpp syntax.  Here we'll use them when the
         // left hand side of a comparison is unsigned.
-        return LookupStringValue(c_unsignedOps, ARRAYSIZE(c_unsignedOps), op, op.c_str());
+        auto itFind = find_if(c_unsignedOps.begin(), c_unsignedOps.end(),
+            [op](pair<BinaryOperator, BinaryOperator> &entry) { return op == entry.first; }
+            );
+        if (itFind != c_unsignedOps.end())
+        {
+            return itFind->second;
+        }
     }
-    else
-    {
-        return op;
-    }
+    return op;
 }
 
-CodeResult _WriteFakeIfStatement(CompileContext &context, const BinaryOp &binary, const std::string &op)
+CodeResult _WriteFakeIfStatement(CompileContext &context, const BinaryOp &binary)
 {
     // When the user writes:
     // x = (a && b)
@@ -2015,21 +2058,21 @@ CodeResult _WriteFakeIfStatement(CompileContext &context, const BinaryOp &binary
 
 CodeResult BinaryOp::OutputByteCode(CompileContext &context) const
 {
-    if (context.InConditional() && (GetOpName() == "&&"))
+    if (context.InConditional() && (Operator == BinaryOperator::LogicalAnd))
     {
         return _OutputByteCodeAnd(context);
     }
-    else if (context.InConditional() && (GetOpName() == "||"))
+    else if (context.InConditional() && (Operator == BinaryOperator::LogicalOr))
     {
         return _OutputByteCodeOr(context);
     }
     else
     {
-        if (GetOpName() == "&&" || GetOpName() == "||")
+        if (Operator == BinaryOperator::LogicalAnd || Operator == BinaryOperator::LogicalOr)
         {
             // Handle && and || when not used in a condition.
             // Basically, we write an "if statement" that evaluates to 1 or 0
-            return _WriteFakeIfStatement(context, *this, GetOpName());
+            return _WriteFakeIfStatement(context, *this);
         }
         else
         {
@@ -2050,13 +2093,13 @@ CodeResult BinaryOp::OutputByteCode(CompileContext &context) const
             
             // Then spit out the correct instruction
             // The result will go into the accumulator, and we may need to push it to the stack.
-            std::string actualOperator = _MaybeChangeToUnsigned(context, wTypeLeft, GetOpName());
+            BinaryOperator actualOperator = _MaybeChangeToUnsigned(context, wTypeLeft, Operator);
             WriteSimple(context, GetInstructionForBinaryOperator(actualOperator));
 
             // Type checking
             SpeciesIndex wType = wTypeLeft;
             // Unless this is a boolean operation...
-            if (find(c_szBooleanOps, &c_szBooleanOps[ARRAYSIZE(c_szBooleanOps)], actualOperator) != &c_szBooleanOps[ARRAYSIZE(c_szBooleanOps)])
+            if (find(BooleanOps.begin(), BooleanOps.end(), actualOperator) != BooleanOps.end())
             {
                 wType = DataTypeBool;
             }
@@ -2075,48 +2118,42 @@ CodeResult BinaryOp::OutputByteCode(CompileContext &context) const
     }
 }
 
-// ++ and -- are handled separately.
-key_value_pair<PCSTR, Opcode> c_rgUOperatorToOpcode[] = 
+std::vector<std::pair<UnaryOperator, Opcode>> UnaryOperatorToOpcode =
 {
-    { "~", Opcode::BNOT },        // C++ only
-    { "bnot", Opcode::BNOT },     // SCIStudio only
-    { "!", Opcode::NOT },         // C++ only
-    { "not", Opcode::NOT },       // SCIStudio only
-    { "-", Opcode::NEG },         // C++ only
-    { "neg", Opcode::NEG },       // SCIStudio only
+    { UnaryOperator::BinaryNot, Opcode::BNOT },
+    { UnaryOperator::LogicalNot, Opcode::NOT },
+    { UnaryOperator::Negate, Opcode::NEG },
 };
-key_value_pair<PCSTR, Opcode> c_rgUOperatorToOpcode_SCI[] =
+
+Opcode GetInstructionForUnaryOperator(UnaryOperator op)
 {
-    { "bnot", Opcode::BNOT },     // SCIStudio only
-    { "not", Opcode::NOT },       // SCIStudio only
-    { "neg", Opcode::NEG },       // SCIStudio only
-};
-key_value_pair<PCSTR, Opcode> c_rgUOperatorToOpcode_CPP[] =
-{
-    { "~", Opcode::BNOT },        // C++ only
-    { "!", Opcode::NOT },         // C++ only
-    { "-", Opcode::NEG },         // C++ only
-};
-Opcode GetInstructionForUnaryOperator(const string &name)
-{
-    return LookupStringValue(c_rgUOperatorToOpcode, ARRAYSIZE(c_rgUOperatorToOpcode), name, Opcode::INDETERMINATE);
+    auto findIt = std::find_if(UnaryOperatorToOpcode.begin(), UnaryOperatorToOpcode.end(),
+        [op](std::pair<UnaryOperator, Opcode> &entry) { return entry.first == op; }
+    );
+    if (findIt != UnaryOperatorToOpcode.end())
+    {
+        return findIt->second;
+    }
+    assert(false);
+    return Opcode::INDETERMINATE;
 }
-std::string GetUnaryOperatorForInstruction(Opcode b, LangSyntax lang)
+
+UnaryOperator GetUnaryOperatorForInstruction(Opcode opcode)
 {
-    if (lang == LangSyntaxCpp)
+    auto findIt = std::find_if(UnaryOperatorToOpcode.begin(), UnaryOperatorToOpcode.end(),
+        [opcode](std::pair<UnaryOperator, Opcode> &entry) { return entry.second == opcode; }
+    );
+    if (findIt != UnaryOperatorToOpcode.end())
     {
-        return LookupKey<PCSTR, Opcode>(c_rgUOperatorToOpcode_CPP, ARRAYSIZE(c_rgUOperatorToOpcode_CPP), b, "");
+        return findIt->first;
     }
-    else
-    {
-        return LookupKey<PCSTR, Opcode>(c_rgUOperatorToOpcode_SCI, ARRAYSIZE(c_rgUOperatorToOpcode_SCI), b, "");
-    }
+    return UnaryOperator::None;
 }
 
 CodeResult UnaryOp::OutputByteCode(CompileContext &context) const
 {
     CodeResult result;
-    if (GetOpName() == "++")
+    if (Operator == UnaryOperator::Increment)
     {
         change_meaning meaning(context, true);
         if (_statement1->GetNodeType() == NodeTypeComplexValue)
@@ -2129,7 +2166,7 @@ CodeResult UnaryOp::OutputByteCode(CompileContext &context) const
             context.ReportError(this, "Can only increment simple values.");
         }
     }
-    else if (GetOpName() == "--")
+    else if (Operator == UnaryOperator::Decrement)
     {
         change_meaning meaning(context, true);
         if (_statement1->GetNodeType() == NodeTypeComplexValue)
@@ -2148,7 +2185,7 @@ CodeResult UnaryOp::OutputByteCode(CompileContext &context) const
         {
             COutputContext accContext(context, OC_Accumulator);
             result = _statement1->OutputByteCode(context);
-            WriteSimple(context, GetInstructionForUnaryOperator(GetOpName()));
+            WriteSimple(context, GetInstructionForUnaryOperator(Operator));
         }
         // Push the acc onto the stack if necessary.
         result = CodeResult(PushToStackIfAppropriate(context), result.GetType()); // Repackage the result with the # of bytes written to the stack
@@ -3437,7 +3474,7 @@ void ConvertAndOrSequenceIntoTree(sci::SyntaxNodeVector &statements, std::vector
         if (andOrs[i])
         {
             unique_ptr<BinaryOp> binaryOp = make_unique<BinaryOp>();
-            binaryOp->SetName("&&");
+            binaryOp->Operator = BinaryOperator::LogicalAnd;
             binaryOp->SetStatement1(move(statements[i]));
             binaryOp->SetStatement2(move(statements[i + 1]));
             statements.erase(statements.begin() + i);
@@ -3456,7 +3493,7 @@ void ConvertAndOrSequenceIntoTree(sci::SyntaxNodeVector &statements, std::vector
     {
         assert(!andOrs[i]);
         unique_ptr<BinaryOp> binaryOp = make_unique<BinaryOp>();
-        binaryOp->SetName("||");
+        binaryOp->Operator = BinaryOperator::LogicalOr;
         binaryOp->SetStatement1(move(statements[i]));
         binaryOp->SetStatement2(move(statements[i + 1]));
         statements.erase(statements.begin() + i);

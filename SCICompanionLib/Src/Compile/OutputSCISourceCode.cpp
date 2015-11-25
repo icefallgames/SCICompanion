@@ -19,6 +19,7 @@
 #include "StringUtil.h"
 #include "CompiledScript.h"
 #include "AppState.h"
+#include "OperatorTables.h"
 
 // Still a WIP.
 
@@ -313,18 +314,6 @@ private:
     GlobalCompiledScriptLookups _lookups;
 };
 
-vector<pair<string, string>> binOpConvert =
-{
-    // core, sci
-    { "<>", "!=" },
-    { "&&", "and" },
-    { "||", "or" },
-    { "<u", "u<" },
-    { "<=u", "u<=" },
-    { ">u", "u>" },
-    { ">=u", "u>=" },
-    { "%", "mod" },
-};
 
 vector<pair<string, string>> unaryOpConvert =
 {
@@ -334,27 +323,15 @@ vector<pair<string, string>> unaryOpConvert =
 
 // Others can be coalesced too (e.g. the less-than/greater-than), but we'd need
 // to re-arrange code.
-std::set<string> coalesceBinaryOps =
+std::set<BinaryOperator> coalesceBinaryOps =
 {
-    "&&",
-    "||",
-    "|",
-    "&",
-    "+",
-    "*",
+    BinaryOperator::LogicalAnd,
+    BinaryOperator::LogicalOr,
+    BinaryOperator::BinaryOr,
+    BinaryOperator::BinaryAnd,
+    BinaryOperator::Add,
+    BinaryOperator::Multiply,
 };
-
-string GetOperatorName(const sci::NamedNode &namedNode, const vector<pair<string, string>> &conversions)
-{
-    for (auto &conversion : conversions)
-    {
-        if (namedNode.GetName() == conversion.first)
-        {
-            return conversion.second;
-        }
-    }
-    return namedNode.GetName();
-}
 
 void ConvertToSCISyntaxHelper(Script &script)
 {
@@ -908,7 +885,7 @@ public:
         if (condExp.GetStatements().size() == 1)
         {
             const UnaryOp *unary = SafeSyntaxNode<UnaryOp>(condExp.GetStatements()[0].get());
-            if (unary && (unary->GetName() == "not"))
+            if (unary && (unary->Operator == UnaryOperator::LogicalNot))
             {
                 inner = unary->GetStatement1();
             }
@@ -1061,7 +1038,7 @@ public:
     {
         DebugLine line(out);
         Inline inln(out, true);
-        out.out << "(" << assignment.GetAssignmentOp() << " ";
+        out.out << "(" << OperatorToName(assignment.Operator, sciNameToAssignmentOp) << " ";
         assignment._variable->Accept(*this);
         out.out << " ";
         DetectIfWentNonInline detect(out);
@@ -1078,10 +1055,10 @@ public:
         out.out << ")";
     }
 
-    void _CoalesceBinaryOps(const string &operatorName, const SyntaxNode *operand, vector<const SyntaxNode*> &terms)
+    void _CoalesceBinaryOps(const BinaryOperator &operatorName, const SyntaxNode *operand, vector<const SyntaxNode*> &terms)
     {
         const BinaryOp *subOp = SafeSyntaxNode<BinaryOp>(operand);
-        if (subOp && (subOp->GetName() == operatorName))
+        if (subOp && (subOp->Operator == operatorName))
         {
             // Go deeper
             _CoalesceBinaryOps(operatorName, subOp->GetStatement1(), terms);
@@ -1100,11 +1077,11 @@ public:
         Inline inln(out, true);
 
         vector<const SyntaxNode*> terms;
-        bool canCoalesce = coalesceBinaryOps.find(binaryOp.GetName()) != coalesceBinaryOps.end();
+        bool canCoalesce = coalesceBinaryOps.find(binaryOp.Operator) != coalesceBinaryOps.end();
         if (canCoalesce)
         {
-            _CoalesceBinaryOps(binaryOp.GetName(), binaryOp.GetStatement1(), terms);
-            _CoalesceBinaryOps(binaryOp.GetName(), binaryOp.GetStatement2(), terms);
+            _CoalesceBinaryOps(binaryOp.Operator, binaryOp.GetStatement1(), terms);
+            _CoalesceBinaryOps(binaryOp.Operator, binaryOp.GetStatement2(), terms);
         }
         else
         {
@@ -1113,7 +1090,7 @@ public:
         }
 
         // TODO: Maybe more than two and we should do non-inline?
-        string name = GetOperatorName(binaryOp, binOpConvert);
+        string name = OperatorToName(binaryOp.Operator, sciNameToBinaryOp);
         out.out << "(" + name << " ";
         Forward(terms, " ");
         out.out << ")";
@@ -1124,7 +1101,7 @@ public:
         out.SyncComments(unaryOp);
         DebugLine line(out);
         Inline inln(out, true);
-        out.out << "(" << GetOperatorName(unaryOp, unaryOpConvert);
+        out.out << "(" << OperatorToName(unaryOp.Operator, sciNameToUnaryOp);
         out.out << " ";
         unaryOp.GetStatement1()->Accept(*this);
         out.out << ")";

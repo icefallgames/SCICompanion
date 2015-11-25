@@ -20,6 +20,7 @@
 #include "format.h"
 #include "DecompilerResults.h"
 #include "PMachine.h"
+#include "Operators.h"
 
 using namespace std;
 using namespace sci;
@@ -932,7 +933,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode2(ConsumptionNode &node, Decomp
 
                 assert(node.GetChild(ChunkType::FirstNegated)->GetChildCount() == 1);
                 unique_ptr<UnaryOp> unaryOp = make_unique<UnaryOp>();
-                unaryOp->SetName("not");
+                unaryOp->Operator = UnaryOperator::LogicalNot;
                 _ApplySyntaxNodeToCodeNode1(*node.GetChild(ChunkType::FirstNegated)->Child(0), *unaryOp, lookups);
                 binaryOp->SetStatement1(move(unaryOp));
             }
@@ -950,7 +951,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode2(ConsumptionNode &node, Decomp
                 throw ConsumptionNodeException(node.GetChild(ChunkType::Second), "Too many children for condition node.");
             }
             _ApplySyntaxNodeToCodeNode2(*node.GetChild(ChunkType::Second)->Child(0), *binaryOp, lookups);
-            binaryOp->SetName((node._chunkType == ChunkType::And) ? "&&" : "||");
+            binaryOp->Operator = ((node._chunkType == ChunkType::And) ? BinaryOperator::LogicalAnd : BinaryOperator::LogicalOr);
             return unique_ptr<SyntaxNode>(move(binaryOp));
         }
         
@@ -982,7 +983,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode2(ConsumptionNode &node, Decomp
         case ChunkType::Invert:
         {
             unique_ptr<UnaryOp> unaryOp = make_unique<UnaryOp>();
-            unaryOp->SetName("not");
+            unaryOp->Operator = UnaryOperator::LogicalNot;
             if (node.GetChildCount() != 1)
             {
                 throw ConsumptionNodeException(&node, "Too many children for Invert node.");
@@ -1507,7 +1508,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
                 }
                 _ApplySyntaxNodeToCodeNode1(*pCodeNodeStack, *binaryOp, lookups);
                 _ApplySyntaxNodeToCodeNode2(*pCodeNodeAcc, *binaryOp, lookups);
-                binaryOp->SetName(GetBinaryOperatorForInstruction(bOpcode, LangSyntaxSCIStudio));
+                binaryOp->Operator = GetBinaryOperatorForInstruction(bOpcode);
                 return unique_ptr<SyntaxNode>(move(binaryOp));
             }
             break;
@@ -1522,7 +1523,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
                 Consumption cons = _GetInstructionConsumption(*pCodeNodeAcc, lookups);
                 assert(cons.cAccGenerate);
                 _ApplySyntaxNodeToCodeNode1(*pCodeNodeAcc, *unaryOp, lookups);
-                unaryOp->SetName(GetUnaryOperatorForInstruction(bOpcode, LangSyntaxSCIStudio));
+                unaryOp->Operator = GetUnaryOperatorForInstruction(bOpcode);
                 return unique_ptr<SyntaxNode>(move(unaryOp));
             }
             break;
@@ -1609,7 +1610,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
             unique_ptr<LValue> lValue = make_unique<LValue>();
             lValue->SetName(lookups.LookupPropertyName(wPropertyIndex));
             pAssignment->SetVariable(move(lValue));
-            pAssignment->SetName("=");
+            pAssignment->Operator = AssignmentOperator::Assign;
             return unique_ptr<SyntaxNode>(move(pAssignment));
         }
         break;
@@ -1629,9 +1630,8 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
             bool fDecrement = (bOpcode == Opcode::DPTOA) || (bOpcode == Opcode::DPTOS);
             if (fIncrement || fDecrement)
             {
-                // Phil - TODO - copied code with below..
                 unique_ptr<UnaryOp> pUnary = std::make_unique<UnaryOp>();
-                pUnary->SetName(fIncrement ? "++" : "--");
+                pUnary->Operator = fIncrement ? UnaryOperator::Increment : UnaryOperator::Decrement;
                 pUnary->SetStatement1(std::move(pValue));
                 return unique_ptr<SyntaxNode>(move(pUnary));
             }
@@ -1780,7 +1780,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
                 {
                     // Store operation: Assignment (LValue/PropertyValue)
                     unique_ptr<Assignment> pAssignment = std::make_unique<Assignment>();
-                    pAssignment->SetName("=");
+                    pAssignment->Operator = AssignmentOperator::Assign;
 
                     // The variable name
                     unique_ptr<LValue> lValue = make_unique<LValue>();
@@ -1851,7 +1851,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
                     if (fIncrement || fDecrement)
                     {
                         unique_ptr<UnaryOp> pUnary = std::make_unique<UnaryOp>();
-                        pUnary->SetName(fIncrement ? "++" : "--");
+                        pUnary->Operator = (fIncrement ? UnaryOperator::Increment : UnaryOperator::Decrement);
                         pUnary->SetStatement1(std::move(pValue));
                         return unique_ptr<SyntaxNode>(move(pUnary));
                     }

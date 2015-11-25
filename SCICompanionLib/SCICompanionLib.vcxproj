@@ -203,6 +203,7 @@
     <ClCompile Include="Src\Compile\Evaluate.cpp" />
     <ClCompile Include="Src\Compile\GenerateScriptResource.cpp" />
     <ClCompile Include="Src\Compile\DecompilerConfig.cpp" />
+    <ClCompile Include="Src\Compile\OperatorTables.cpp" />
     <ClCompile Include="Src\Compile\OutputCodeHelper.cpp" />
     <ClCompile Include="Src\Compile\OutputCppSourceCode.cpp" />
     <ClCompile Include="Src\Compile\OutputSCISourceCode.cpp" />
@@ -294,6 +295,8 @@
     <ClInclude Include="Src\Compile\DecompilerNew.h" />
     <ClInclude Include="Src\Compile\DecompilerResults.h" />
     <ClInclude Include="Src\Compile\NodeTypes.h" />
+    <ClInclude Include="Src\Compile\Operators.h" />
+    <ClInclude Include="Src\Compile\OperatorTables.h" />
     <ClInclude Include="Src\cpptoml\cpptoml.h" />
     <ClInclude Include="Src\Dialogs\AudioEditDialog.h" />
     <ClInclude Include="Src\Dialogs\AudioPreferencesDialog.h" />
