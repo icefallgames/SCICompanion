@@ -2547,7 +2547,7 @@ code_pos FunctionOutputByteCodeHelper(const FunctionBase &function, CompileConte
             WORD wIndexWithinThisVar = wIndex;
             for (auto &initializer : varDecl->GetInitializers())
             {
-                // Note: originally, I thought all vars with zero-inited, so we could optimize out
+                // Note: originally, I thought all vars were zero-inited, so we could optimize out
                 // zero inits, but this is not the case.
                 OutputByteCodeToAccumulator(context, *initializer);
                 VariableOperand(context, wIndexWithinThisVar, VO_STORE | VO_ACC | VO_TEMP); // Store acc in temp var

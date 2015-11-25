@@ -58,7 +58,7 @@
         (if expression statement0 statement1 statement2 else statement0 statement1 statement2)
 
     cond:
-        ; else is actually optional
+        ; else is optional
         (cond (expression0 statement0 statement1) (expression1 statement0 statement1) (else statement90 statement1))
 
     repeat:
@@ -438,7 +438,15 @@ public:
 
         ForwardOptionalSection("string", script.GetScriptStringsDeclarations());
 
-        Forward(script.GetProcedures());
+        for (auto &proc : script.GetProcedures())
+        {
+            if (proc->GetClass().empty())
+            {
+                proc->Accept(*this);
+            }
+            // else Procs that "belong" to a class are handled in the class...
+        }
+
         out.EnsureNewLine();
         Forward(script.GetClasses());
     }
@@ -486,8 +494,23 @@ public:
                 }
             }
 
+            // Any class procedures (rare, but used by Timer.sc for instance)
+            // In the OM, these are stored at the top level, but we want to print them
+            // out as if they were contained in the class.
+            const Script *script = classDef.GetOwnerScript();
+            // Find any procedures that are *of* this class
+            for (auto &proc : script->GetProcedures())
+            {
+                if (proc->GetClass() == classDef.GetName())
+                {
+                    proc->Accept(*this);
+                }
+            }
+
             // Body (methods)
             Forward(classDef.GetMethods());
+
+
         }
         out.out << ")" << out.NewLineString();
     }
@@ -594,16 +617,26 @@ public:
             {
                 out.out << " " << functionParam->GetName();
             }
+
+            std::map<std::string, SyntaxNode*> varNameToInitializer;
+
             if (!function.GetVariables().empty())
             {
                 Inline inln(out, true);
-                out.out <<  " &tmp ";
+                out.out <<  " &tmp";
+                // We don't want initializers to be spit out here, so don't just blindly forward to GetVariables()
+                // Forward(function.GetVariables(), " ");
+                SyntaxNodeVector emptyInitializer;
                 for (auto &variable : function.GetVariables())
                 {
-                    // REVIEW: We don't handle variable initialization here. For now, assert we don't have this
-                    assert(variable->GetInitializers().empty());
+                    out.out << " ";
+                    assert(variable->GetInitializers().size() <= 1); // Max 1 initializer value permitted in temp vars (per our parsing).
+                    if (!variable->GetInitializers().empty())
+                    {
+                        varNameToInitializer[variable->GetName()] = variable->GetInitializers()[0].get();
+                    }
+                    _OutputVariableAndSize(*this, out, variable->GetDataType(), variable->GetName(), variable->GetSize(), emptyInitializer);
                 }
-                Forward(function.GetVariables(), " ");
             }
             out.out << ")";
             out.EnsureNewLine();
@@ -611,6 +644,20 @@ public:
             // Body of function
             {
                 DebugIndent indent(out);
+
+                // Deal with any initializers
+                for (auto &initializer : varNameToInitializer)
+                {
+                    DebugLine line(out);
+                    {
+                        Inline inln(out, true);
+                        out.out << "(= " << initializer.first << " ";
+                        initializer.second->Accept(*this);
+                        out.out << ")";
+                    }
+                    out.EnsureNewLine();
+                }
+
                 Forward(function.GetCodeSegments());
             }
 

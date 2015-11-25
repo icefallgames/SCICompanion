@@ -28,11 +28,16 @@ void _OutputVariableAndSize(sci::ISyntaxNodeVisitor &visitor, sci::SourceCodeWri
         if (wSize > 1)
         {
             out.out << " = (";
+            bool first = true;
             for (auto &initValue : initValues)
             {
+                if (!first)
+                {
+                    out.out << " ";
+                }
                 Inline inln(out, true);
                 initValue->Accept(visitor);
-                out.out << " ";
+                first = false;
             }
             out.out << ")";
         }
