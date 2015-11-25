@@ -50,7 +50,7 @@
 (procedure public (FlipFeature param1)
     (var temp0)
     (if (not paramTotal)
-        (send gOldFeatures:eachElementDo(#perform flipFeature))
+        (send gFeatures:eachElementDo(#perform flipFeature))
     )(else
         = temp0 0
         (while (< temp0 paramTotal)

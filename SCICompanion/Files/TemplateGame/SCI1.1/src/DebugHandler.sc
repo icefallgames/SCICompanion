@@ -64,7 +64,7 @@
                     (switch ((send pEvent:message))
                         (case KEY_ALT_a
                         	// Show cast
-                            = gOldCastFirst (send gOldCast:first())
+                            = gOldCastFirst (send gCast:first())
                             (while (gOldCastFirst)
                                 = temp164 NodeValue(gOldCastFirst)
                                 Format(@temp0 10 1 (send ((send temp164:{-super-})):name) (send temp164:view) (send temp164:loop) (send temp164:cel) (send temp164:x) (send temp164:y) (send temp164:z) (send temp164:heading) (send temp164:priority) (send temp164:signal) 
@@ -84,7 +84,7 @@
 									)
                                     break
                                 )
-                                = gOldCastFirst (send gOldCast:next(gOldCastFirst))
+                                = gOldCastFirst (send gCast:next(gOldCastFirst))
                             )
                         )
                         (case KEY_ALT_b
@@ -146,8 +146,8 @@
                         (case KEY_ALT_j
                         	// Show cast
                             = gOldCastFirst 0
-                            (while (< gOldCastFirst (send gOldCast:size))
-                                = temp164 (send gOldCast:at(gOldCastFirst))
+                            (while (< gOldCastFirst (send gCast:size))
+                                = temp164 (send gCast:at(gOldCastFirst))
                                 (if (not & (send temp164:signal) $0004)
                                     Format(@temp0 10 1 (send ((send temp164:{-super-})):name) (send temp164:view) (send temp164:loop) (send temp164:cel) (send temp164:x) (send temp164:y) (send temp164:z) (send temp164:heading) (send temp164:priority) (send temp164:signal) 
                                         (if ((send temp164:isKindOf(Actor)))
@@ -235,7 +235,7 @@
                         )
                         (case KEY_ALT_r
                         	// Show room info
-                            Format(@temp0 10 3 (send gRoom:name) gModNum (send gRoom:curPic) (send gRoom:style) (send gRoom:horizon) (send gRoom:north) (send gRoom:south) (send gRoom:east) (send gRoom:west) 
+                            Format(@temp0 10 3 (send gRoom:name) gRoomNumber (send gRoom:curPic) (send gRoom:style) (send gRoom:horizon) (send gRoom:north) (send gRoom:south) (send gRoom:east) (send gRoom:west) 
                                 (if (IsObject((send gRoom:script)))
                                     (send ((send gRoom:script)):name)
                                 )(else
@@ -327,8 +327,8 @@
                         (case KEY_ALT_f
                         	// Feature outlines
                             = temp167 0
-                            (while (< temp167 (send gOldCast:size))
-                                Graph(grFILL_BOX (send ((send gOldCast:at(temp167))):brTop) (send ((send gOldCast:at(temp167))):brLeft) (send ((send gOldCast:at(temp167))):brBottom) (send ((send gOldCast:at(temp167))):brRight) 1 gColorWindowForeground -1 -1)
+                            (while (< temp167 (send gCast:size))
+                                Graph(grFILL_BOX (send ((send gCast:at(temp167))):brTop) (send ((send gCast:at(temp167))):brLeft) (send ((send gCast:at(temp167))):brBottom) (send ((send gCast:at(temp167))):brRight) 1 gColorWindowForeground -1 -1)
                                 ++temp167
                             )
                         )
@@ -391,7 +391,7 @@
                                     x((send newEvent:x))
                                     y(- (send newEvent:y) 10)
                                 )
-                                Animate((send gOldCast:elements) 0)
+                                Animate((send gCast:elements) 0)
                                 (send newEvent:dispose())
                             )
                             (send newEvent:dispose())

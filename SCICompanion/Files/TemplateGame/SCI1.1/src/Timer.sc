@@ -7,7 +7,7 @@
 
 
 
-(procedure (localproc_0068) of Timer
+(procedure (CueClient) of Timer
     (var theClient)
     = theClient client
     = client 0
@@ -64,7 +64,7 @@
         (var theLastTime)
         (if (<> cycleCnt -1)
             (if (not --cycleCnt)
-                localproc_0068()
+                CueClient()
             )
         )(else
             (if (<> seconds -1)
@@ -72,12 +72,12 @@
                 (if (<> lastTime theLastTime)
                     = lastTime theLastTime
                     (if (not --seconds)
-                        localproc_0068()
+                        CueClient()
                     )
                 )
             )(else
-                (if (> (- gLastTicks ticks) 0)
-                    localproc_0068()
+                (if (> (- gGameTime ticks) 0)
+                    CueClient()
                 )
             )
         )
@@ -193,7 +193,7 @@
                 self
             )
         (send temp0:
-            ticks(+ gLastTicks param1)
+            ticks(+ gGameTime param1)
             init(param2)
         )
         return temp0

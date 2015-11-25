@@ -69,8 +69,8 @@
 
 
     (method (doit)
-        (if (>= Abs((- gLastTicks cycleCnt)) (send client:cycleSpeed))
-            = cycleCnt gLastTicks
+        (if (>= Abs((- gGameTime cycleCnt)) (send client:cycleSpeed))
+            = cycleCnt gGameTime
             (self:nextCel())
         )
     )
@@ -94,7 +94,7 @@
         = completed 1
         = value 0
         (if (caller)
-            = gCastMotionCue TRUE
+            = gDoMotionCue TRUE
         )(else
             (self:motionCue())
         )

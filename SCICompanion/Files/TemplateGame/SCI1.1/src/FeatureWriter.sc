@@ -93,7 +93,7 @@
     (while (<> (send ((= newEvent (Event:new()))):type) 1)
         GlobalToLocal(newEvent)
         (send param1:posn((send newEvent:x) (send newEvent:y)))
-        Animate((send gOldCast:elements) 0)
+        Animate((send gCast:elements) 0)
         (send newEvent:dispose())
     )
     (send newEvent:dispose())

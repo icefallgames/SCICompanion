@@ -95,13 +95,13 @@
     (method (doVerb theVerb params)
         (switch (theVerb)
             (case V_LOOK
-                (send gTestMessager:say(N_EGO V_LOOK 0 Random(1 2) 0 0))
+                (send gMessager:say(N_EGO V_LOOK 0 Random(1 2) 0 0))
             )
             (case V_DO
-                (send gTestMessager:say(N_EGO V_DO 0 Random(1 2) 0 0))
+                (send gMessager:say(N_EGO V_DO 0 Random(1 2) 0 0))
             )
             (case V_TALK
-                (send gTestMessager:say(N_EGO V_TALK 0 Random(1 2) 0 0))
+                (send gMessager:say(N_EGO V_TALK 0 Random(1 2) 0 0))
             )
             (default 
                 (super:doVerb(theVerb rest params))
@@ -174,7 +174,7 @@
                 )
                 (super:doit(rest sendParams))
             )(else
-                (if (((== (send gEgo:loop) 8) and (<> curTicks -1)) and (<= (= curTicks (- curTicks Abs((- gLastTicks lastTicks)))) 0))
+                (if (((== (send gEgo:loop) 8) and (<> curTicks -1)) and (<= (= curTicks (- curTicks Abs((- gGameTime lastTicks)))) 0))
                     = curTicks -1
                     (super:doit(rest sendParams))
                 )(else
@@ -208,7 +208,7 @@
         )(else
             (super:doit(rest sendParams))
         )
-        = lastTicks gLastTicks
+        = lastTicks gGameTime
     )
 
 

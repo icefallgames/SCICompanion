@@ -57,31 +57,31 @@
         (if (hideTheCast)
             (self:hideCast(1))
         )
-        = oldCast gOldCast
-        = oldFeatures gOldFeatures
-        = oldATPs gOldATPs
+        = oldCast gCast
+        = oldFeatures gFeatures
+        = oldATPs gAddToPics
         = oldMH gOldMH
         = oldKH gOldKH
         = oldDH gOldDH
-        = oldWH gOldWH
+        = oldWH gWalkHandler
         = oldObstacles (send gRoom:obstacles)
         (send gRoom:obstacles((send ((List:new())):
                 add()
                 yourself()
             )
 ))
-        = gOldCast (EventHandler:new())
-        (send gOldCast:
+        = gCast (EventHandler:new())
+        (send gCast:
             name("newCast")
             add()
         )
-        = gOldFeatures (EventHandler:new())
-        (send gOldFeatures:
+        = gFeatures (EventHandler:new())
+        (send gFeatures:
             name("newFeatures")
             add(self)
         )
-        = gOldATPs (EventHandler:new())
-        (send gOldATPs:
+        = gAddToPics (EventHandler:new())
+        (send gAddToPics:
             name("newATPs")
             add()
         )
@@ -100,8 +100,8 @@
             name("newDH")
             add(self)
         )
-        = gOldWH (EventHandler:new())
-        (send gOldWH:
+        = gWalkHandler (EventHandler:new())
+        (send gWalkHandler:
             name("newWH")
             add()
         )
@@ -122,43 +122,43 @@
 
     (method (dispose param1)
         (var theCaller)
-        (send gOldFeatures:delete(self))
+        (send gFeatures:delete(self))
         (send gOldMH:delete(self))
         (send gOldKH:delete(self))
         (send gOldDH:delete(self))
-        (send gOldWH:delete(self))
+        (send gWalkHandler:delete(self))
         (send gTheDoits:delete(self))
         (if (inset)
             (send inset:dispose(0))
         )
-        (send gOldCast:
+        (send gCast:
             eachElementDo(#dispose)
             eachElementDo(#delete)
             release()
             dispose()
         )
-        (send gOldATPs:dispose())
-        (send gOldFeatures:dispose())
+        (send gAddToPics:dispose())
+        (send gFeatures:dispose())
         (send gOldMH:dispose())
         (send gOldKH:dispose())
         (send gOldDH:dispose())
-        (send gOldWH:dispose())
+        (send gWalkHandler:dispose())
         (send ((send gRoom:obstacles)):dispose())
         (send owner:inset(0))
         (if (not paramTotal or param1)
             (self:refresh())
         )
         (if (not paramTotal or param1)
-            = gOldATPs oldATPs
-            (send gOldATPs:doit())
+            = gAddToPics oldATPs
+            (send gAddToPics:doit())
         )
         (send gRoom:obstacles(oldObstacles))
-        = gOldCast oldCast
-        = gOldFeatures oldFeatures
+        = gCast oldCast
+        = gFeatures oldFeatures
         = gOldMH oldMH
         = gOldKH oldKH
         = gOldDH oldDH
-        = gOldWH oldWH
+        = gWalkHandler oldWH
         (if (hideTheCast)
             (self:hideCast(0))
         )
@@ -211,10 +211,10 @@
 
     (method (doVerb theVerb)
         (if (== modNum -1)
-            = modNum gModNum
+            = modNum gRoomNumber
         )
         (if (gMessageType and Message(msgGET modNum noun theVerb 0 1))
-            (send gTestMessager:say(noun theVerb 0 0 0 modNum))
+            (send gMessager:say(noun theVerb 0 0 0 modNum))
         )
     )
 
@@ -228,11 +228,11 @@
             )(else
                 -1000
             )
-        (while (< temp0 (send gOldCast:size))
-            (send ((send gOldCast:at(temp0))):z((+ (send ((send gOldCast:at(temp0))):z) temp1)))
+        (while (< temp0 (send gCast:size))
+            (send ((send gCast:at(temp0))):z((+ (send ((send gCast:at(temp0))):z) temp1)))
             ++temp0
         )
-        Animate((send gOldCast:elements) 0)
+        Animate((send gCast:elements) 0)
     )
 
 

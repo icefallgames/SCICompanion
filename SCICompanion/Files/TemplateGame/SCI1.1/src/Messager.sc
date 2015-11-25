@@ -14,7 +14,7 @@
 	Messager is responsible for automatically showing sequences of messages,
 	including invoking the appropriate :class:`Talker` instances to display the messages.
 	
-	In general, only one instance of Messager exists in the game, gTestMessager in the main.sc script.
+	In general, only one instance of Messager exists in the game, gMessager in the main.sc script.
 	
 	Messager is mostly commonly triggered automatically by the player performing an action on an object (e.g. a verb on a noun).
 	However, sometimes you will want to invoke it directly if you have more complex logic to deal with certain situations.
@@ -22,7 +22,7 @@
 	
 	Example usage::
 	
-		(send gTestMessager:say(noun verb condition seqeuence caller roomNumber))	
+		(send gMessager:say(noun verb condition seqeuence caller roomNumber))	
 
 */
 (class Messager of Object
@@ -46,10 +46,10 @@
         )
 
         (if (caller)
-            (if (not gNewSet)
-                = gNewSet (Set:new())
+            (if (not gCuees)
+                = gCuees (Set:new())
             )
-            (send gNewSet:add((send ((Cue:new())):
+            (send gCuees:add((send ((Cue:new())):
                     cuee(caller)
                     cuer(self)
                     register(killed)
@@ -68,12 +68,12 @@
             = killed 1
         )
         (if (oneOnly or killed)
-            (if (gNewEventHandler)
-                (send gNewEventHandler:
+            (if (gFastCast)
+                (send gFastCast:
                     release()
                     dispose()
                 )
-                = gNewEventHandler 0
+                = gFastCast 0
             )
             (self:dispose())
         )(else
@@ -147,7 +147,7 @@
                 (if (> paramTotal ++temp24)
                     params[temp24]
                 )(else
-                    gModNum
+                    gRoomNumber
                 )
             (if (gMessageType and Message(msgGET modNum noun verb cond curSequence))
                 (self:sayNext(modNum noun verb cond curSequence))
@@ -223,22 +223,22 @@
                 )
                 ++curSequence
             )(else
-                (if (gNewEventHandler)
-                    (send gNewEventHandler:
+                (if (gFastCast)
+                    (send gFastCast:
                         release()
                         dispose()
                     )
-                    = gNewEventHandler 0
+                    = gFastCast 0
                 )
                 (self:dispose())
             )
         )(else
-            (if (gNewEventHandler)
-                (send gNewEventHandler:
+            (if (gFastCast)
+                (send gFastCast:
                     release()
                     dispose()
                 )
-                = gNewEventHandler 0
+                = gFastCast 0
             )
             (self:dispose())
         )
@@ -268,7 +268,7 @@
     (method (dispose)
         (self:
             eachElementDo(#caller 0)
-            eachElementDo(#dispose (send gTestMessager:disposeWhenDone))
+            eachElementDo(#dispose (send gMessager:disposeWhenDone))
             release()
         )
         (super:dispose())

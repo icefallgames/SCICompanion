@@ -98,7 +98,7 @@
                 )
                 = xLast (send client:x)
                 = yLast (send client:y)
-                = {b-moveCnt} gLastTicks
+                = {b-moveCnt} gGameTime
                 0
             )(else
                 (super:doit())

@@ -73,15 +73,15 @@
 )
             = waitApogeeY 0
         )
-        = {b-moveCnt} gLastTicks
+        = {b-moveCnt} gGameTime
         (self:setTest())
     )
 
 
     (method (doit)
         (var theXStep, theYStep)
-        (if (>= Abs((- gLastTicks {b-moveCnt})) (send client:moveSpeed))
-            = {b-moveCnt} gLastTicks
+        (if (>= Abs((- gGameTime {b-moveCnt})) (send client:moveSpeed))
+            = {b-moveCnt} gGameTime
             = xLast (send client:x)
             = yLast (send client:y)
             (send client:
@@ -120,7 +120,7 @@
             signal(signal)
         )
         (if (caller)
-            = gCastMotionCue TRUE
+            = gDoMotionCue TRUE
             = completed TRUE
         )
     )

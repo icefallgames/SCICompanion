@@ -15,7 +15,7 @@
 (instance public aboutCode of Code
     (properties)
     (method (doit)
-        (send gTestMessager:say(N_MAIN 0 0 0 0 13))
+        (send gMessager:say(N_MAIN 0 0 0 0 13))
     )
 
 )

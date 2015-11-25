@@ -60,31 +60,31 @@
 
     (method (init theClient modNum noun verb cond seq)
         (super:init(theClient))
-        (if (IsObject(gNewSync))
-            (send gNewSync:
+        (if (IsObject(gTheSync))
+            (send gTheSync:
                 syncStop()
                 dispose()
             )
         )
-        = gNewSync (Sync:new())
-        (send gNewSync:syncStart(modNum noun verb cond seq))
+        = gTheSync (Sync:new())
+        (send gTheSync:syncStart(modNum noun verb cond seq))
     )
 
 
     (method (doit)
         (var temp0, gNewSyncSyncTime_2, gNewSyncSyncTime, temp3)
         (super:doit())
-        (if (<> (send gNewSync:prevCue) -1)
-            = gNewSyncSyncTime (send gNewSync:syncTime)
+        (if (<> (send gTheSync:prevCue) -1)
+            = gNewSyncSyncTime (send gTheSync:syncTime)
             = temp3 0
             (while (TRUE)
-                = gNewSyncSyncTime_2 (send gNewSync:syncTime)
-                (send gNewSync:syncCheck())
-                (if (== gNewSyncSyncTime_2 (send gNewSync:syncTime))
+                = gNewSyncSyncTime_2 (send gTheSync:syncTime)
+                (send gTheSync:syncCheck())
+                (if (== gNewSyncSyncTime_2 (send gTheSync:syncTime))
                     break
                 )
             )
-            (if ((<> gNewSyncSyncTime (send gNewSync:syncTime)) and (<> (send client:cel) (= temp0 (& $000f (send gNewSync:prevCue)))))
+            (if ((<> gNewSyncSyncTime (send gTheSync:syncTime)) and (<> (send client:cel) (= temp0 (& $000f (send gTheSync:prevCue)))))
                 (send client:cel(temp0))
             )
         )(else
@@ -96,20 +96,20 @@
 
     (method (dispose)
         (super:dispose())
-        (if (gNewSync)
-            (send gNewSync:dispose())
-            = gNewSync 0
+        (if (gTheSync)
+            (send gTheSync:dispose())
+            = gTheSync 0
         )
     )
 
 
     (method (cue)
-        (if (gNewSync)
-            (send gNewSync:
+        (if (gTheSync)
+            (send gTheSync:
                 syncStop()
                 dispose()
             )
-            = gNewSync 0
+            = gTheSync 0
             (if (caller)
                 (send caller:cue())
                 = caller 0

@@ -268,9 +268,9 @@
     (method (open)
         (if (locked)
             (if (== modNum -1)
-                = modNum gModNum
+                = modNum gRoomNumber
             )
-            (send gTestMessager:say(noun 0 lockedCase 0 0 modNum))
+            (send gMessager:say(noun 0 lockedCase 0 0 modNum))
         )(else
             (if ((send gUser:controls))
                 (send gGame:handsOff())

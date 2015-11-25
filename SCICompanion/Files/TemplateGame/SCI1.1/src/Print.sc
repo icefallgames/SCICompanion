@@ -190,10 +190,10 @@
             (self:addText(rest theText))
         )
         (if (not modeless)
-            (if (not IsObject(gPrintEventHandler))
-                = gPrintEventHandler (send ((EventHandler:new())):name("prints"))
+            (if (not IsObject(gPrints))
+                = gPrints (send ((EventHandler:new())):name("prints"))
             )
-            (send gPrintEventHandler:add(self))
+            (send gPrints:add(self))
         )
         (self:showSelf())
     )
@@ -203,11 +203,11 @@
     )
 
     (method (dispose)
-        (if (gPrintEventHandler and (send gPrintEventHandler:contains(self)))
-            (send gPrintEventHandler:delete(self))
-            (if ((send gPrintEventHandler:isEmpty()))
-                (send gPrintEventHandler:dispose())
-                = gPrintEventHandler NULL
+        (if (gPrints and (send gPrints:contains(self)))
+            (send gPrints:delete(self))
+            (if ((send gPrints:isEmpty()))
+                (send gPrints:dispose())
+                = gPrints NULL
             )
         )
         (if (title)
@@ -336,7 +336,7 @@
                 )
             = x 0
             = y 0
-            = modNum gModNum
+            = modNum gRoomNumber
             (if (> paramTotal 5)
                 = x params[4]
                 (if (> paramTotal 6)
@@ -423,7 +423,7 @@
                 )
             = x 0
             = y 0
-            = modNum gModNum
+            = modNum gRoomNumber
             (if (> paramTotal 5)
                 = x params[4]
                 (if (> paramTotal 6)
@@ -632,7 +632,7 @@
                 )
             = x 0
             = y 0
-            = modNum gModNum
+            = modNum gRoomNumber
             (if (>= paramTotal 5)
                 = x params[4]
                 (if (>= paramTotal 6)

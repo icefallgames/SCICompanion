@@ -928,9 +928,9 @@ code_06d6:  ret
         (if (<> gPicNumber -1)
             DrawPic(gPicNumber 100 dpNO_CLEAR)
         )
-        (send gOldATPs:doit())
-        (send gOldCast:eachElementDo(#stopUpd))
-        Animate((send gOldCast:elements) 0)
+        (send gAddToPics:doit())
+        (send gCast:eachElementDo(#stopUpd))
+        Animate((send gCast:elements) 0)
         = theMainWin gWindow
         = gWindow SysWindow
         = local0 1
@@ -981,8 +981,8 @@ code_06d6:  ret
         )
         DrawStatus(" " 0 0)
         DrawStatus(0)
-        (send gOldCast:eachElementDo(#startUpd))
-        Animate((send gOldCast:elements) 0)
+        (send gCast:eachElementDo(#startUpd))
+        Animate((send gCast:elements) 0)
         (self:eachElementDo(#draw))
         (if ((Print:
             addText("Erase polygon outlines?")
@@ -995,7 +995,7 @@ code_06d6:  ret
             (if (<> gPicNumber -1)
                 DrawPic(gPicNumber 100 dpNO_CLEAR)
             )
-            (send gOldATPs:doit())
+            (send gAddToPics:doit())
         )
         = gWindow theMainWin
         DisposeScript(FILE_SCRIPT)

@@ -703,7 +703,7 @@
 		and the register property to theRegister. Finally, it calls the changeState method with the start property as its parameter.
 	*/
     (method (init theClient theCaller theRegister)
-        = lastTicks gLastTicks
+        = lastTicks gGameTime
         (if (>= paramTotal 1)
             (send (= client theClient):script(self))
             (if (>= paramTotal 2)
@@ -743,13 +743,13 @@
                     )
                 )
             )(else
-                (if (ticks and (<= (= ticks (- ticks Abs((- gLastTicks lastTicks)))) 0))
+                (if (ticks and (<= (= ticks (- ticks Abs((- gGameTime lastTicks)))) 0))
                     = ticks 0
                     (self:cue())
                 )
             )
         )
-        = lastTicks gLastTicks
+        = lastTicks gGameTime
     )
 
 
@@ -774,14 +774,14 @@
             (if (not temp0)
                 0
             )(else
-                (if (== gRoomNumber gModNum)
+                (if (== gNewRoomNumber gRoomNumber)
                     (send temp0:init(client))
                 )(else
                     (send temp0:dispose())
                 )
             )
         )
-        (if (IsObject(caller) and (== gRoomNumber gModNum))
+        (if (IsObject(caller) and (== gNewRoomNumber gRoomNumber))
             (send caller:cue(register))
         )
         = script (= timer (= client (= next (= caller 0))))

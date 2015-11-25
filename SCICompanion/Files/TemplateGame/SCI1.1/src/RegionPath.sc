@@ -210,7 +210,7 @@
     (method (curRoomCheck)
         (var clientZ)
         = clientZ (send client:z)
-        (if (== currentRoom gModNum)
+        (if (== currentRoom gRoomNumber)
             (send client:
                 z(
                     (if (>= clientZ 1000)

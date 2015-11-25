@@ -111,7 +111,7 @@
     (method (doVerb theVerb)
         (var temp0, temp1)
         (if (not modNum)
-            = modNum gModNum
+            = modNum gRoomNumber
         )
         (switch (theVerb)
             (case V_LOOK

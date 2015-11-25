@@ -23,12 +23,12 @@
 
 
     (method (nextCel)
-        (if (< Abs((- gLastTicks cycleCnt)) cycleSpeed)
+        (if (< Abs((- gGameTime cycleCnt)) cycleSpeed)
             (send client:cel)
         )(else
             = cycleSpeed Random(5 30)
             (send client:cel)
-            = cycleCnt gLastTicks
+            = cycleCnt gGameTime
             (if ((send client:isNotHidden()))
                 (send client:hide())
             )(else

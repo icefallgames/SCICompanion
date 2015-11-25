@@ -63,24 +63,23 @@
     gRoom				// The current room object.
     global3		// Unused
     gQuitGame = FALSE
-    gOldCast
+    gCast
     gRegions			// The current regions.
     gTimers				// The current timers.
     gSounds				// The current sounds.
     gInv				// The inventory.
-    gOldATPs
-    gModNum				// In the SCI0 game this was called gRoomNumberExit. It's what gets set to move to the next room, which will then be gRoomNumber
-    					// It's used everywhere in place of gRoomNumber here though.
+    gAddToPics
+    gRoomNumber			// The current room number
     gPreviousRoomNumber
-    gRoomNumber
+    gNewRoomNumber
     gDebugOnNextRoom
     gScore				// The player's current score.
     gMaxScore			// The maximum score.
     gTextCode
-    gNewSet
+    gCuees
     gCursorNumber
-    gCursor =     999
-    gInvisibleCursor =     997
+    gNormalCursor =     999
+    gWaitCursor =     997
     gFont =     1		// Main font number.
     gSmallFont =     4	// Small font number.
     gPEvent				// The current event.
@@ -89,42 +88,42 @@
     gVersion
     gSaveDir
     gPicAngle
-    gOldFeatures
+    gFeatures
     gUseSortedFeatures
     gPicNumber =     -1
-    gCastMotionCue
+    gDoMotionCue
     gWindow
     global39	// Unused
     global40	// Unused
     gOldPort
-    gDebugFilename[21] // debug filename
-    gGameControls		// The main GameControls class.
-    gFeatureInit		// Code that initializes all features.
+    gDebugFilename[21] 		// debug filename
+    gGameControls			// The main GameControls class.
+    gFeatureInit			// Code that initializes all features.
     gDoVerbCode
     gApproachCode
     gEgoUseObstacles = 1	// Default Motion type for ego (0: MoveTo, 1: PolyPath, ...)
     gIconBar
-    gPEventX			// Current event's x value.
-    gPEventY			// Current event's y value.
+    gPEventX				// Current event's x value.
+    gPEventY				// Current event's y value.
     gOldKH
     gOldMH
     gOldDH
     gPseudoMouse
     gTheDoits
-    gEatTheMice =     60
+    gEatTheMice =     60	// Number of ticks before we mouse
     gUser
     gSyncBias				// Something to do with lip-sync.
-    gNewSync
+    gTheSync
     global83				// Something to do with audio narration.
-    gNewEventHandler
+    gFastCast
     gInputFont
     gTickOffset 			// Something to do with time (ticks per frame?)
-    gLastTicks
+    gGameTime
     gNarrator				// Default Narrator.
     gMessageType =    $0001	// Talker flags: 0x1 (text) and 0x2 (audio).
-    gTestMessager
-    gPrintEventHandler
-    gOldWH
+    gMessager
+    gPrints
+    gWalkHandler
     gTextReadSpeed =     2
     gAltPolyList
     gColorDepth
@@ -434,7 +433,7 @@
 	
 	Example usage::
 	
-		DebugPrint("You are in room %d" gRoomNumber)
+		DebugPrint("You are in room %d" gNewRoomNumber)
 */
 (procedure public (DebugPrint params)
 	(if (gDebugOut)
@@ -631,13 +630,13 @@
                         modeless(1)
                         init()
                     )
-                    Animate((send gOldCast:elements) 0)
+                    Animate((send gCast:elements) 0)
                     SetPort(temp3)
                 )
             )(else
                 (if (gDialog)
                     (send gDialog:dispose())
-                    Animate((send gOldCast:elements) 0)
+                    Animate((send gCast:elements) 0)
                 )(else
                     = temp1 0
                 )
@@ -648,7 +647,7 @@
         (send gGame:setCursor(999 1))
         (if (gDialog)
             (send gDialog:dispose())
-            Animate((send gOldCast:elements) 0)
+            Animate((send gCast:elements) 0)
         )
         SetPort(temp3)
         (if (not (send helpIconItem:onMe(temp0)))
@@ -722,7 +721,7 @@
         = gNarrator templateNarrator
         = gWindow mainWindow
         = gWindow2 mainWindow
-        = gTestMessager testMessager
+        = gMessager testMessager
         = gNewSpeakWindow (SpeakWindow:new())
         (send gWindow:
             color(gColorWindowForeground)
@@ -761,8 +760,8 @@
             state(3072)
             disable()
         )
-        = gCursor 999
-        = gInvisibleCursor 996
+        = gNormalCursor 999
+        = gWaitCursor 996
         = gDoVerbCode lb2DoVerbCode
         = gFeatureInit lb2FtrInit
         = gApproachCode lb2ApproachCode
@@ -770,7 +769,7 @@
 
     (method (doit param1)
         (if (GameIsRestarting())
-            (if (IsOneOf(gModNum TITLEROOM_SCRIPT))
+            (if (IsOneOf(gRoomNumber TITLEROOM_SCRIPT))
                 HideStatus()
             )(else
                 (statusLineCode:doit())
@@ -793,7 +792,7 @@
             GetCWD(gSaveDir)
         )
         (self:
-            setCursor(gInvisibleCursor 1)
+            setCursor(gWaitCursor 1)
             init()
         )
 
@@ -886,8 +885,8 @@
                     (switch ((send pEvent:message))
                         (case KEY_TAB
                             (if (not & (send ((send gIconBar:at(6))):signal) icDISABLED)
-                                (if (gNewEventHandler)
-                                    return gNewEventHandler
+                                (if (gFastCast)
+                                    return gFastCast
                                 )
                                 = theGCursorNumber gCursorNumber
                                 (send gInv:showSelf(gEgo))
@@ -923,8 +922,8 @@
                         )
                         (case KEY_F5
                             (if (not & (send ((send gIconBar:at(7))):signal) icDISABLED)
-                                (if (gNewEventHandler)
-                                    return gNewEventHandler
+                                (if (gFastCast)
+                                    return gFastCast
                                 )
                                 = theGCursorNumber gCursorNumber
                                 (send gGame:save())
@@ -934,8 +933,8 @@
                         )
                         (case KEY_F7
                             (if (not & (send ((send gIconBar:at(7))):signal) icDISABLED)
-                                (if (gNewEventHandler)
-                                    return gNewEventHandler
+                                (if (gFastCast)
+                                    return gFastCast
                                 )
                                 = theGCursorNumber gCursorNumber
                                 (send gGame:restore())
@@ -1034,14 +1033,14 @@
         (if ((User:canControl()))
             (switch ((send ((send gUser:curEvent)):message))
                 (case V_DO
-                    (send gTestMessager:say(0 V_DO 0 Random(1 2) 0 0))
+                    (send gMessager:say(0 V_DO 0 Random(1 2) 0 0))
                 )
                 (case V_TALK
-                    (send gTestMessager:say(0 V_TALK 0 Random(1 2) 0 0))
+                    (send gMessager:say(0 V_TALK 0 Random(1 2) 0 0))
                 )
                 (default 
                     (if (not IsOneOf((send ((send gUser:curEvent)):message) V_LOOK))
-                        (send gTestMessager:say(0 V_COMBINE 0 Random(2 3) 0 0))
+                        (send gMessager:say(0 V_COMBINE 0 Random(2 3) 0 0))
                     )
                 )
             )
@@ -1445,21 +1444,21 @@
         (if ((User:canControl()))
             (if (== param2 gEgo)
                 (if (Message(msgSIZE 0 N_EGO theVerb 0 1))
-                    (send gTestMessager:say(N_EGO theVerb 0 0 0 0))
+                    (send gMessager:say(N_EGO theVerb 0 0 0 0))
                 )(else
-                    (send gTestMessager:say(N_EGO 0 0 Random(1 2) 0 0))
+                    (send gMessager:say(N_EGO 0 0 Random(1 2) 0 0))
                 )
             )(else
                 (switch (theVerb)
                     (case V_DO
-                        (send gTestMessager:say(0 V_DO 0 Random(1 2) 0 0))
+                        (send gMessager:say(0 V_DO 0 Random(1 2) 0 0))
                     )
                     (case V_TALK
-                        (send gTestMessager:say(0 V_TALK 0 Random(1 2) 0 0))
+                        (send gMessager:say(0 V_TALK 0 Random(1 2) 0 0))
                     )
                     (default 
                         (if (not IsOneOf(theVerb V_LOOK))
-                            (send gTestMessager:say(0 V_COMBINE 0 Random(2 3) 0 0))
+                            (send gMessager:say(0 V_COMBINE 0 Random(2 3) 0 0))
                         )
                     )
                 )

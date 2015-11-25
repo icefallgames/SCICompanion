@@ -48,7 +48,7 @@
             hide()
             enable()
         )
-        = gCursor 999
+        = gNormalCursor 999
         (send gGame:setCursor(996 1))
         (send gOldKH:delete(self))
         (send gOldMH:delete(self))
@@ -79,7 +79,7 @@
             )
             (case 1
                 = seconds 0
-                = gCursor 999
+                = gNormalCursor 999
                 (send gGame:setCursor(999 1))
                 (Print:
                     dialog(myDialog)

@@ -149,10 +149,10 @@
     )
 
     (method (doit)
-        (send gNewSet:delete(self))
-        (if ((send gNewSet:isEmpty()))
-            (send gNewSet:dispose())
-            = gNewSet 0
+        (send gCuees:delete(self))
+        (if ((send gCuees:isEmpty()))
+            (send gCuees:dispose())
+            = gCuees 0
         )
         (send cuee:cue(register cuer))
         (self:dispose())
@@ -202,16 +202,16 @@
     )
 
     (method (init)
-        = gOldCast cast
-        (send gOldCast:add())
-        = gOldFeatures features
-        (send gOldFeatures:add())
+        = gCast cast
+        (send gCast:add())
+        = gFeatures features
+        (send gFeatures:add())
         = gSounds Sounds
         (send gSounds:add())
         = gRegions regions
         (send gRegions:add())
-        = gOldATPs addToPics
-        (send gOldATPs:add())
+        = gAddToPics addToPics
+        (send gAddToPics:add())
         = gTimers timers
         (send gTimers:add())
         = gTheDoits theDoits
@@ -222,9 +222,9 @@
         (send gOldKH:add())
         = gOldDH directionHandler
         (send gOldDH:add())
-        = gOldWH walkHandler
-        (send gOldWH:add())
-        = gNewEventHandler 0
+        = gWalkHandler walkHandler
+        (send gWalkHandler:add())
+        = gFastCast 0
         = gSaveDir GetSaveDir()
         (InventoryBase:init())
         (if (not gUser)
@@ -242,29 +242,29 @@
             = panelObj (= panelSelector 0)
             Eval(thePanelObj thePanelSelector)
         )
-        = gLastTicks (+ gTickOffset GetTime())
-        (if (gNewEventHandler)
-            (while (gNewEventHandler)
-                (send gNewEventHandler:eachElementDo(#doit))
+        = gGameTime (+ gTickOffset GetTime())
+        (if (gFastCast)
+            (while (gFastCast)
+                (send gFastCast:eachElementDo(#doit))
                 = newEvent (Event:new())
                
-                (if ((send newEvent:type) and gNewEventHandler)
-                    (send gNewEventHandler:firstTrue(#handleEvent newEvent))
+                (if ((send newEvent:type) and gFastCast)
+                    (send gFastCast:firstTrue(#handleEvent newEvent))
                 )
                 (send newEvent:dispose())
-                = gLastTicks (+ gTickOffset GetTime())
+                = gGameTime (+ gTickOffset GetTime())
                 (send gSounds:eachElementDo(#check))
             )
         )
-        (if (gPrintEventHandler)
-            (send gPrintEventHandler:eachElementDo(#doit))
+        (if (gPrints)
+            (send gPrints:eachElementDo(#doit))
             (if (not gDialog)
                 = newEvent (Event:new())
-                (if ((send newEvent:type) and gPrintEventHandler)
-                    (send gPrintEventHandler:firstTrue(#handleEvent newEvent))
+                (if ((send newEvent:type) and gPrints)
+                    (send gPrints:firstTrue(#handleEvent newEvent))
                 )
                 (send newEvent:dispose())
-                = gLastTicks (+ gTickOffset GetTime())
+                = gGameTime (+ gTickOffset GetTime())
                 return 
             )
         )
@@ -273,27 +273,27 @@
         (if (gDialog and (send gDialog:check()))
             (send gDialog:dispose())
         )
-        Animate((send gOldCast:elements) 1)
-        (if (gCastMotionCue)
-            = gCastMotionCue FALSE
-            (send gOldCast:eachElementDo(#motionCue))
+        Animate((send gCast:elements) 1)
+        (if (gDoMotionCue)
+            = gDoMotionCue FALSE
+            (send gCast:eachElementDo(#motionCue))
         )
-        (if (gNewSet)
-            (send gNewSet:eachElementDo(#doit))
+        (if (gCuees)
+            (send gCuees:eachElementDo(#doit))
         )
         (if (script)
             (send script:doit())
         )
         (send gRegions:eachElementDo(#doit))
-        (if (gNewEventHandler)
+        (if (gFastCast)
             return 
         )
-        (if (== gRoomNumber gModNum)
+        (if (== gNewRoomNumber gRoomNumber)
             (send gUser:doit())
         )
         (send gTheDoits:doit())
-        (if (<> gRoomNumber gModNum)
-            (self:newRoom(gRoomNumber))
+        (if (<> gNewRoomNumber gRoomNumber)
+            (self:newRoom(gNewRoomNumber))
         )
         (send gTimers:eachElementDo(#delete))
         GameIsRestarting(FALSE)
@@ -304,10 +304,10 @@
         = gGame self
         = gSaveDir GetSaveDir()
         (self:
-            setCursor(gInvisibleCursor 1)
+            setCursor(gWaitCursor 1)
             init()
         )
-        (self:setCursor(gCursor 1))
+        (self:setCursor(gNormalCursor 1))
         (while (not gQuitGame)
             (self:doit())
         )
@@ -322,8 +322,8 @@
         (if (gDialog)
             (send gDialog:dispose())
         )
-        (send gOldCast:eachElementDo(#perform RU))
-        (send gGame:setCursor(gInvisibleCursor 1))
+        (send gCast:eachElementDo(#perform RU))
+        (send gGame:setCursor(gWaitCursor 1))
         = temp0 
             (if (not IsOneOf((send gRoom:style) -1 dpOPEN_SCROLL_RIGHT dpOPEN_SCROLL_LEFT dpOPEN_SCROLL_UP dpOPEN_SCROLL_DOWN))
                 (send gRoom:style)
@@ -334,19 +334,19 @@
         (if (<> gPicNumber -1)
             DrawPic(gPicNumber 100 dpNO_CLEAR)
         )
-        (send gOldATPs:doit())
+        (send gAddToPics:doit())
         (if (not (send gUser:canControl()) and not (send gUser:canInput()))
-            (send gGame:setCursor(gInvisibleCursor))
+            (send gGame:setCursor(gWaitCursor))
         )(else
             (if (gIconBar and (send gIconBar:curIcon))
                 (send gGame:setCursor((send ((send gIconBar:curIcon)):cursor)))
             )(else
-                (send gGame:setCursor(gCursor))
+                (send gGame:setCursor(gNormalCursor))
             )
         )
         DoSound(sndRESTORE)
         (send gSounds:pause(FALSE))
-        = gTickOffset (- gLastTicks GetTime())
+        = gTickOffset (- gGameTime GetTime())
         (while (not gQuitGame)
             (self:doit())
         )
@@ -365,16 +365,16 @@
         
         DebugPrint("Switching to room %d" newRoomNumber)
         
-        (send gOldATPs:
+        (send gAddToPics:
             eachElementDo(#dispose)
             eachElementDo(#delete)
             release()
         )
-        (send gOldFeatures:
+        (send gFeatures:
             eachElementDo(#perform fDC)
             release()
         )
-        (send gOldCast:
+        (send gCast:
             eachElementDo(#dispose)
             eachElementDo(#delete)
         )
@@ -385,11 +385,11 @@
         )
         (send gTheDoits:release())
         Animate(0)
-        = gPreviousRoomNumber gModNum
-        = gModNum newRoomNumber
+        = gPreviousRoomNumber gRoomNumber
         = gRoomNumber newRoomNumber
+        = gNewRoomNumber newRoomNumber
         FlushResources(newRoomNumber)
-        (self:startRoom(gModNum))
+        (self:startRoom(gRoomNumber))
         (while ((send (= temp5 (Event:new(3))):type))
             (send temp5:dispose())
         )
@@ -429,7 +429,7 @@
         )
         Load(rsFONT gSmallFont)
         ScriptID(SAVERESTORE_SCRIPT)
-        = temp21 (self:setCursor(gCursor))
+        = temp21 (self:setCursor(gNormalCursor))
         (send gSounds:pause(TRUE))
         (if (localproc_0e32(1))
             (if (gDialog)
@@ -437,7 +437,7 @@
             )
             = temp20 (Restore:doit(rest param1))
             (if (<> temp20 -1)
-                (self:setCursor(gInvisibleCursor 1))
+                (self:setCursor(gWaitCursor 1))
                 (if (CheckSaveGame(name temp20 gVersion))
                     RestoreGame(name temp20 gVersion)
                 )(else
@@ -472,7 +472,7 @@
         )
         Load(rsFONT gSmallFont)
         ScriptID(SAVERESTORE_SCRIPT)
-        = temp21 (self:setCursor(gCursor))
+        = temp21 (self:setCursor(gNormalCursor))
         (send gSounds:pause(TRUE))
         (if (localproc_0e32(1))
             (if (gDialog)
@@ -480,7 +480,7 @@
             )
             = temp20 (Save:doit(@temp0))
             (if (<> temp20 -1)
-                = temp21 (self:setCursor(gInvisibleCursor 1))
+                = temp21 (self:setCursor(gWaitCursor 1))
                 (if (not SaveGame(name temp20 @temp0 gVersion))
                     Message(msgGET 994 1 0 0 1 @temp22)
                     Message(msgGET 994 2 0 0 1 @temp122)
@@ -586,7 +586,7 @@
     (method (detailLevel the_detailLevel)
         (if (paramTotal)
             = _detailLevel the_detailLevel
-            (send gOldCast:eachElementDo(#checkDetail))
+            (send gCast:eachElementDo(#checkDetail))
         )
         return _detailLevel
     )
@@ -724,12 +724,12 @@
     (method (doVerb theVerb)
         (var temp0)
         (if (== modNum -1)
-            = modNum gModNum
+            = modNum gRoomNumber
         )
         
         return 
             (if (Message(msgGET modNum noun theVerb 0 1))
-                (send gTestMessager:say(noun theVerb 0 0 0 modNum))
+                (send gMessager:say(noun theVerb 0 0 0 modNum))
                 1
             )(else
                 0
@@ -801,7 +801,7 @@
 		Override this method to provide the needed initialization for your room. Make sure to call (super:init()).
 	*/
     (method (init)
-        = number gModNum
+        = number gRoomNumber
         = gPicAngle picAngle
         (if (picture)
             (self:drawPic(picture))
@@ -857,7 +857,7 @@
             eachElementDo(#newRoom newRoomNumber)
             addToFront(self)
         )
-        = gRoomNumber newRoomNumber
+        = gNewRoomNumber newRoomNumber
         (super:newRoom(newRoomNumber))
     )
 
@@ -900,8 +900,8 @@
 		See the :func:`DrawPic` kernel for more information on animation flags.
 	*/
     (method (drawPic picNumber picAnimation)
-        (if (gOldATPs)
-            (send gOldATPs:
+        (if (gAddToPics)
+            (send gAddToPics:
                 eachElementDo(#dispose)
                 release()
             )

@@ -34,7 +34,7 @@
 
     (method (doit param1)
         (var temp0, temp1, temp2)
-        = gLastTicks (+ gTickOffset GetTime())
+        = gGameTime (+ gTickOffset GetTime())
         = temp2 0
         (self:eachElementDo(#init))
         (if (theItem)
@@ -57,14 +57,14 @@
         )
         = temp1 0
         (while (not temp1)
-            (if (IsObject(gNewEventHandler))
-                (send gNewEventHandler:eachElementDo(#doit))
+            (if (IsObject(gFastCast))
+                (send gFastCast:eachElementDo(#doit))
             )(else
                 (if (IsObject(gTheDoits))
                     (send gTheDoits:eachElementDo(#doit))
                 )
             )
-            = gLastTicks (+ gTickOffset GetTime())
+            = gGameTime (+ gTickOffset GetTime())
             (self:eachElementDo(#cycle))
             = temp0 (send ((Event:new())):localize())
             (if (eatTheMice)
@@ -118,10 +118,10 @@
 			curCase(condition)
 		)
 		
-	Then have it say something, going through the gTestMessager like usual, and passing the
+	Then have it say something, going through the gMessager like usual, and passing the
 	same noun/verb/condition, and 0 for the sequence::
 	
-		(send gTestMessager:say(noun verb condition 0))
+		(send gMessager:say(noun verb condition 0))
 		
 	Then you can check the whichSelect property::
 	
@@ -269,10 +269,10 @@
 			curCase(condition)
 		)
 		
-	Then have it say something, going through the gTestMessager like usual, and passing the
+	Then have it say something, going through the gMessager like usual, and passing the
 	same noun/verb/condition and 0 for the sequence::
 	
-		(send gTestMessager:say(noun verb condition 0))
+		(send gMessager:say(noun verb condition 0))
 		
 	Then you can check the whichSelect property::
 	
@@ -410,11 +410,11 @@
                     )(else
                         0
                     )
-                (if (IsObject(gNewEventHandler))
-                    (send gNewEventHandler:add(self))
+                (if (IsObject(gFastCast))
+                    (send gFastCast:add(self))
                 )(else
-                    = gNewEventHandler (EventHandler:new())
-                    (send gNewEventHandler:
+                    = gFastCast (EventHandler:new())
+                    (send gFastCast:
                         name("fastCast")
                         add(self)
                     )
@@ -425,7 +425,7 @@
                 (if (& gMessageType $0001)
                     (self:startText(param1))
                 )
-                = ticks (+ (+ ticks 60) gLastTicks)
+                = ticks (+ (+ ticks 60) gGameTime)
                 return 1
             )
     )

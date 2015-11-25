@@ -32,7 +32,7 @@
 
     (method (showSelf)
         (var temp0[40])
-        = whoSays (send gTestMessager:findTalker(Message(msgGET modNum noun verb cond 
+        = whoSays (send gMessager:findTalker(Message(msgGET modNum noun verb cond 
                     (if (sequence)
                     )(else
                         1
@@ -54,7 +54,7 @@
                     y(y)
                 )
             )
-            (send gTestMessager:say(noun verb cond sequence caller modNum))
+            (send gMessager:say(noun verb cond sequence caller modNum))
         )
     )
 
@@ -135,7 +135,7 @@
         (if (paramTotal and not IsObject(param[0]))
             = theGModNum param[0]
             (if (== theGModNum -1)
-                = theGModNum gModNum
+                = theGModNum gRoomNumber
             )
             (if (> paramTotal 1)
                 = theNoun param[1]
@@ -228,7 +228,7 @@
         = temp8 7
         (while (theGModNum)
             (if (== theGModNum -1)
-                = theGModNum gModNum
+                = theGModNum gRoomNumber
             )
             (self:add(theGModNum temp1 temp2 temp3 temp4 temp5 temp6 temp7))
             = theGModNum WordAt(param1 ++temp8)

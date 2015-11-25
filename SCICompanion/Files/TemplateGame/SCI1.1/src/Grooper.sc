@@ -47,7 +47,7 @@
             )(else
                 8
             )
-        (if (not (send gOldCast:contains(client)) or ((>= paramTotal 4) and param4))
+        (if (not (send gCast:contains(client)) or ((>= paramTotal 4) and param4))
             (send client:loop(local8[(* 
                 (if (== temp1 4)
                     2
@@ -167,10 +167,10 @@
 
     (method (nextCel)
         return 
-            (if ((< Abs((- gLastTicks cycleCnt)) (send client:cycleSpeed)) or (self:loopIsCorrect()))
+            (if ((< Abs((- gGameTime cycleCnt)) (send client:cycleSpeed)) or (self:loopIsCorrect()))
                 (send client:loop)
             )(else
-                = cycleCnt gLastTicks
+                = cycleCnt gGameTime
                 = loopIndex (+ loopIndex (* cycleDir (/ 8 numOfLoops)))
                 = loopIndex UModulo(loopIndex 8)
                 local8[loopIndex]
@@ -179,7 +179,7 @@
 
 
     (method (cycleDone)
-        = gCastMotionCue (= completed TRUE)
+        = gDoMotionCue (= completed TRUE)
     )
 
 

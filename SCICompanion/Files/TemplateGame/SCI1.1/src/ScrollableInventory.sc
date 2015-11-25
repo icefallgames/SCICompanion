@@ -198,13 +198,13 @@ code_0956:  pushi   1
             lat     temp1
             send    4
             sat     temp3
-            lag     gNewSet
+            lag     gCuees
             bnt     code_0998
             pushi   #eachElementDo
             pushi   1
             pushi   57
             send    6
-code_0998:  lag     gNewEventHandler
+code_0998:  lag     gFastCast
             bnt     code_09a7
             pushi   #handleEvent
             pushi   1

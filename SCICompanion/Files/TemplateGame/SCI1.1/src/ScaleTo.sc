@@ -70,7 +70,7 @@
                 )
             )
         )
-        = waitCount (+ (= saveWaitCount waitCount) gLastTicks)
+        = waitCount (+ (= saveWaitCount waitCount) gGameTime)
         = scaleDir 
             (if (<= (send client:maxScale) endScale)
                 1
@@ -82,7 +82,7 @@
 
     (method (doit)
         (var temp0)
-        (if (> (- gLastTicks waitCount) 0)
+        (if (> (- gGameTime waitCount) 0)
             = temp0 
                 (if (scaleDir)
                     (+ (send client:maxScale) step)
@@ -103,7 +103,7 @@
                     (self:dispose())
                 )
             )
-            = waitCount (+ saveWaitCount gLastTicks)
+            = waitCount (+ saveWaitCount gGameTime)
         )
     )
 

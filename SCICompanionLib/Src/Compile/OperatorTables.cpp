@@ -14,6 +14,8 @@
 #include "stdafx.h"
 #include "OperatorTables.h"
 
+// Mappings for strings <-> operators for various languages.
+
 using namespace std;
 
 vector<pair<string, BinaryOperator>> studioNameToBinaryOp =

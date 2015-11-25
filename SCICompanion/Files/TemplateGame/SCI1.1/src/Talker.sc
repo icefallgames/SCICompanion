@@ -39,7 +39,7 @@
     (method (doit)
         (var blinkNextCel)
         (if (waitCount)
-            (if (> (- gLastTicks waitCount) 0)
+            (if (> (- gGameTime waitCount) 0)
                 = waitCount 0
                 (self:init())
             )
@@ -59,7 +59,7 @@
         (if (== cycleDir -1)
             (self:init())
         )(else
-            = waitCount (+ Random(waitMin waitMax) gLastTicks)
+            = waitCount (+ Random(waitMin waitMax) gGameTime)
         )
     )
 )
@@ -142,17 +142,17 @@
     	
         (if (((& gMessageType $0002) and not modeless) or not HaveMouse())
             = saveCursor gCursorNumber
-            (send gGame:setCursor(gInvisibleCursor 1))
+            (send gGame:setCursor(gWaitCursor 1))
         )
         
-        = gLastTicks (+ gTickOffset GetTime())
+        = gGameTime (+ gTickOffset GetTime())
         
         = initialized 1
     )
 
 
     (method (doit)
-        (if ((<> ticks -1) and (> (- gLastTicks ticks) 0))
+        (if ((<> ticks -1) and (> (- gGameTime ticks) 0))
             (if (
             (if (& gMessageType $0002)
                 (== DoAudio(audPOSITION) -1)
@@ -176,11 +176,11 @@
                 (send gOldMH:delete(self))
                 (send gTheDoits:delete(self))
             )(else
-                (if (gNewEventHandler and (send gNewEventHandler:contains(self)))
-                    (send gNewEventHandler:delete(self))
-                    (if ((send gNewEventHandler:isEmpty()))
-                        (send gNewEventHandler:dispose())
-                        = gNewEventHandler 0
+                (if (gFastCast and (send gFastCast:contains(self)))
+                    (send gFastCast:delete(self))
+                    (if ((send gFastCast:isEmpty()))
+                        (send gFastCast:dispose())
+                        = gFastCast 0
                     )
                 )
             )
@@ -261,17 +261,17 @@
             (send gOldKH:addToFront(self))
             (send gTheDoits:add(self))
         )(else
-            (if (IsObject(gNewEventHandler))
-                (send gNewEventHandler:add(self))
+            (if (IsObject(gFastCast))
+                (send gFastCast:add(self))
             )(else
-                = gNewEventHandler (EventHandler:new())
-                (send gNewEventHandler:
+                = gFastCast (EventHandler:new())
+                (send gFastCast:
                     name("fastCast")
                     add(self)
                 )
             )
         )
-        = ticks (+ (+ ticks 60) gLastTicks)
+        = ticks (+ (+ ticks 60) gGameTime)
         return 1
     )
 

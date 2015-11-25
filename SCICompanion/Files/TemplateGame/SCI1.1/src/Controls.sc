@@ -384,7 +384,7 @@ code_0455:  pushi   #handleEvent
 
     (method (doit param1)
         (var temp0, temp1, temp2)
-        = gLastTicks (+ gTickOffset GetTime())
+        = gGameTime (+ gTickOffset GetTime())
         = temp2 0
         (self:eachElementDo(#init))
         (if (theItem)
@@ -409,7 +409,7 @@ code_0455:  pushi   #handleEvent
         
        
         (while (not temp1)
-            = gLastTicks (+ gTickOffset GetTime())
+            = gGameTime (+ gTickOffset GetTime())
             (self:eachElementDo(#cycle))
             = temp0 (send ((Event:new())):localize())
             (if (eatTheMice)
@@ -462,8 +462,8 @@ code_0455:  pushi   #handleEvent
 
 
     (method (open param1 param2)
-        (if (PicNotValid() and gOldCast)
-            Animate((send gOldCast:elements) 0)
+        (if (PicNotValid() and gCast)
+            Animate((send gCast:elements) 0)
         )
         = window (send window:new())
         (send window:

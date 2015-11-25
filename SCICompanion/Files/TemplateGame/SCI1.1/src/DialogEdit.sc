@@ -1558,7 +1558,7 @@
             (DlgWindow:create())
         )
         (if (not local2)
-            Format(@local2 "%d.dlg" gModNum)
+            Format(@local2 "%d.dlg" gRoomNumber)
         )
         = temp100 (Print:
                 addTitle(@local42)

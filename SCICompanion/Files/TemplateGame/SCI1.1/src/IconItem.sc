@@ -187,9 +187,9 @@
             = temp2 (send temp0:message)
             = temp3 (send temp0:modifiers)
             Wait(1)
-            = gLastTicks (+ gTickOffset GetTime())
-            (if (gNewSet)
-                (send gNewSet:eachElementDo(#doit))
+            = gGameTime (+ gTickOffset GetTime())
+            (if (gCuees)
+                (send gCuees:eachElementDo(#doit))
             )
             = gGameScript (send gGame:script)
             (if (== temp1 256)
@@ -245,7 +245,7 @@
                     (if ((send gUser:canControl()) or (send gUser:canInput()))
                         (send curIcon:cursor)
                     )(else
-                        gInvisibleCursor
+                        gWaitCursor
                     )
                 (if (temp0)
                     (send gGame:setCursor(temp3 1 oldMouseX oldMouseY))

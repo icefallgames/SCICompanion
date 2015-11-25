@@ -130,9 +130,9 @@
 						)
 		)
         (if ((self:respondsTo(#underBits)))
-            (send gOldCast:add(self))
+            (send gCast:add(self))
         )(else
-            (send gOldFeatures:add(self))
+            (send gFeatures:add(self))
         )
     )
 
@@ -146,7 +146,7 @@
             (send onMeCheck:dispose())
             = onMeCheck 0
         )
-        (send gOldFeatures:delete(self))
+        (send gFeatures:delete(self))
         (if (& state $0001)
             Memory(memFREE name)
             = name 0
@@ -204,10 +204,10 @@
                 dftDoVerb
             )
         (if (== modNum -1)
-            = modNum gModNum
+            = modNum gRoomNumber
         )
         (if (gMessageType and Message(msgGET modNum noun theVerb 0 1))
-            (send gTestMessager:say(noun theVerb 0 0 0 modNum))
+            (send gMessager:say(noun theVerb 0 0 0 modNum))
         )(else
             (send temp0:doit(theVerb self))
         )
@@ -237,7 +237,7 @@
         (if (paramTotal)
             = theGEgo theTheGEgo
         )(else
-            (if ((send gOldCast:contains(gEgo)))
+            (if ((send gCast:contains(gEgo)))
                 = theGEgo gEgo
             )(else
                 return 1

@@ -33,17 +33,17 @@
         (if (paramTotal)
             = client theClient
         )
-        = cycleCnt gLastTicks
+        = cycleCnt gGameTime
         = completed 0
     )
 
 
     (method (nextCel)
         return 
-            (if (< Abs((- gLastTicks cycleCnt)) (send client:cycleSpeed))
+            (if (< Abs((- gGameTime cycleCnt)) (send client:cycleSpeed))
                 (send client:cel)
             )(else
-                = cycleCnt gLastTicks
+                = cycleCnt gGameTime
                 + (send client:cel) cycleDir
             )
     )
@@ -181,7 +181,7 @@
                 )
             )
 ))
-        (if ((== gLastTicks cycleCnt) and (== endCel (send client:cel)))
+        (if ((== gGameTime cycleCnt) and (== endCel (send client:cel)))
             (self:cycleDone())
         )
     )
@@ -190,7 +190,7 @@
     (method (cycleDone)
         = completed 1
         (if (caller)
-            = gCastMotionCue TRUE
+            = gDoMotionCue TRUE
         )(else
             (self:motionCue())
         )
@@ -309,7 +309,7 @@
             )
         )
         = yLast (= xLast (= completed 0))
-        = {b-moveCnt} (+ (+ 1 (send client:moveSpeed)) gLastTicks)
+        = {b-moveCnt} (+ (+ 1 (send client:moveSpeed)) gGameTime)
         = clientCycler (send client:cycler)
         (if (clientCycler)
             (send (= clientCycler (send client:cycler)):cycleCnt({b-moveCnt}))
@@ -325,8 +325,8 @@
 
     (method (doit)
         (var temp0[6])
-        (if (>= Abs((- gLastTicks {b-moveCnt})) (send client:moveSpeed))
-            = {b-moveCnt} gLastTicks
+        (if (>= Abs((- gGameTime {b-moveCnt})) (send client:moveSpeed))
+            = {b-moveCnt} gGameTime
             DoBresen(self)
         )
     )
@@ -335,7 +335,7 @@
     (method (moveDone)
         = completed 1
         (if (caller)
-            = gCastMotionCue TRUE
+            = gDoMotionCue TRUE
         )(else
             (self:motionCue())
         )

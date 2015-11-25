@@ -92,14 +92,14 @@
                     modifiers(pEventModifiers)
                 )
             )
-            (if (gPrintEventHandler and (send gPrintEventHandler:handleEvent(pEvent)))
+            (if (gPrints and (send gPrints:handleEvent(pEvent)))
                 return 1
             )
             (send pEvent:localize())
             = pEventType (send pEvent:type)
             = pEventMessage (send pEvent:message)
             (if (& pEventType evSAID)
-                (if ((== pEventMessage JOY_UP) and (((= temp4 (send gOldCast:firstTrue(#perform findNoun))) or (= temp4 (send gOldFeatures:firstTrue(#perform findNoun)))) or (= temp4 (send gOldATPs:firstTrue(#perform findNoun)))))
+                (if ((== pEventMessage JOY_UP) and (((= temp4 (send gCast:firstTrue(#perform findNoun))) or (= temp4 (send gFeatures:firstTrue(#perform findNoun)))) or (= temp4 (send gAddToPics:firstTrue(#perform findNoun)))))
                     (send temp4:doVerb((send ((send gIconBar:curIcon)):message)))
                 )(else
                     = temp4 (send gIconBar:findIcon(pEventMessage))
@@ -113,7 +113,7 @@
                     (if (gOldDH and (send gOldDH:handleEvent(pEvent)))
                         return 1
                     )(else
-                        (if ((((((gIconBar and (== (send gIconBar:curIcon) (send gIconBar:walkIconItem))) or not gIconBar) and alterEgo) and controls) and (send gOldCast:contains(alterEgo))) and (send alterEgo:handleEvent(pEvent)))
+                        (if ((((((gIconBar and (== (send gIconBar:curIcon) (send gIconBar:walkIconItem))) or not gIconBar) and alterEgo) and controls) and (send gCast:contains(alterEgo))) and (send alterEgo:handleEvent(pEvent)))
                             return 1
                         )(else
                             (if ((gPseudoMouse and (not (& pEventType evKEYBOARD) or (<> pEventMessage JOY_NULL))) and (send gPseudoMouse:handleEvent(pEvent)))
@@ -138,28 +138,28 @@
         = pEventType (send pEvent:type)
         = pEventMessage (send pEvent:message)
         (if (input and (& pEventType evVERB))
-            (if (((& pEventType evMOVE) and gOldWH) and (send gOldWH:handleEvent(pEvent)))
+            (if (((& pEventType evMOVE) and gWalkHandler) and (send gWalkHandler:handleEvent(pEvent)))
                 return 1
             )(else
-                (if ((((& pEventType evMOVE) and (send gOldCast:contains(alterEgo))) and controls) and (send alterEgo:handleEvent(pEvent)))
+                (if ((((& pEventType evMOVE) and (send gCast:contains(alterEgo))) and controls) and (send alterEgo:handleEvent(pEvent)))
                     return 1
                 )(else
                     (if (gUseSortedFeatures)
                         (OnMeAndLowY:init())
-                        (send gOldCast:eachElementDo(#perform OnMeAndLowY pEvent))
-                        (send gOldFeatures:eachElementDo(#perform OnMeAndLowY pEvent))
-                        (send gOldATPs:eachElementDo(#perform OnMeAndLowY pEvent))
+                        (send gCast:eachElementDo(#perform OnMeAndLowY pEvent))
+                        (send gFeatures:eachElementDo(#perform OnMeAndLowY pEvent))
+                        (send gAddToPics:eachElementDo(#perform OnMeAndLowY pEvent))
                         (if ((OnMeAndLowY:theObj) and (send ((OnMeAndLowY:theObj)):handleEvent(pEvent)))
                             return 1
                         )
                     )(else
-                        (if ((send gOldCast:handleEvent(pEvent)))
+                        (if ((send gCast:handleEvent(pEvent)))
                             return 1
                         )(else
-                            (if ((send gOldFeatures:handleEvent(pEvent)))
+                            (if ((send gFeatures:handleEvent(pEvent)))
                                 return 1
                             )(else
-                                (if ((send gOldATPs:handleEvent(pEvent)))
+                                (if ((send gAddToPics:handleEvent(pEvent)))
                                     return 1
                                 )
                             )
@@ -175,7 +175,7 @@
             (if ((send gGame:handleEvent(pEvent)))
                 return 1
             )(else
-                (if (gPrintEventHandler and (send gPrintEventHandler:handleEvent(pEvent)))
+                (if (gPrints and (send gPrints:handleEvent(pEvent)))
                     return 1
                 )
             )

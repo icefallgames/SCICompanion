@@ -82,9 +82,9 @@
         (var temp0)
         = temp0 
             (if (& signal $0020)
-                gOldATPs
+                gAddToPics
             )(else
-                gOldCast
+                gCast
             )
         = signal (& signal $7fff)
         (if (not (send temp0:contains(self)))
@@ -93,7 +93,7 @@
         )
         BaseSetter(self)
         (send temp0:add(self))
-        (if (== temp0 gOldATPs)
+        (if (== temp0 gAddToPics)
             (if (not & signal fixPriOn)
                 = priority CoordPri(y)
             )
@@ -280,16 +280,16 @@
     (method (delete)
         (if (& signal $8000)
             = signal (& signal $7fff)
-            (if ((send gOldATPs:contains(self)))
-                (send gOldATPs:delete(self))
+            (if ((send gAddToPics:contains(self)))
+                (send gAddToPics:delete(self))
                 = signal (& signal $ffdf)
             )(else
                 (if (& signal $0020)
-                    (send gOldCast:delete(self))
-                    (send gOldATPs:add(self))
+                    (send gCast:delete(self))
+                    (send gAddToPics:add(self))
                     return 
                 )(else
-                    (send gOldCast:delete(self))
+                    (send gCast:delete(self))
                 )
             )
             (if (underBits)
@@ -306,7 +306,7 @@
 
 	// Draws the View permanently on the background.
     (method (addToPic)
-        (if ((send gOldCast:contains(self)))
+        (if ((send gCast:contains(self)))
             = signal (| signal $8021)
         )(else
             = signal (| signal $0020)
@@ -1052,7 +1052,7 @@
             BaseSetter(self)
         )
         = temp0 
-            (if (CantBeHere(self (send gOldCast:elements)))
+            (if (CantBeHere(self (send gCast:elements)))
             )(else
                 (if ((not (& signal ignoreHorizon) and IsObject(gRoom)) and (< y (send gRoom:horizon)))
                     -1

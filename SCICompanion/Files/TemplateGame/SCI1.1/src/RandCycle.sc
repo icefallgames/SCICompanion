@@ -88,7 +88,7 @@
     (method (cycleDone)
         = completed 1
         (if (caller)
-            = gCastMotionCue TRUE
+            = gDoMotionCue TRUE
         )(else
             (self:motionCue())
         )
