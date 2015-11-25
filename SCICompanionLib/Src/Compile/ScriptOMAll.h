@@ -21,6 +21,8 @@
 // (speeds up compile time for those that include "ScriptOM.h")
 //
 
+extern std::string g_restLastParamSentinel;
+
 namespace sci
 {
 

@@ -30,6 +30,8 @@ using namespace std;
 static char THIS_FILE[] = __FILE__;
 #endif
 
+std::string g_restLastParamSentinel = "REST_LAST_PARAM_SENTINEL";
+
 ResolvedToken Script::LookupVariableName(CompileContext &context, const std::string &str, WORD &wIndex, SpeciesIndex &dataType) const
 {
     ResolvedToken tokenType = ResolvedToken::Unknown;
@@ -142,6 +144,14 @@ ResolvedToken FunctionSignature::LookupVariableName(CompileContext &context, con
         }
         wIndex++;
     }
+
+    if (str == g_restLastParamSentinel)
+    {
+        wIndex++;
+        dataType = DataTypeAny;
+        return ResolvedToken::Parameter;
+    }
+
     return ResolvedToken::Unknown;
 }
 

@@ -170,7 +170,7 @@ using namespace std;
 class SimpleDefineLookup : public ILookupDefine
 {
 public:
-    bool LookupDefine(const std::string &str, uint16_t &wValue) override
+    bool LookupDefine(const string &str, uint16_t &wValue) override
     {
         if (str == "TRUE")
         {
@@ -212,7 +212,7 @@ public:
                 // Is the last function parameter only used by rest?
                 if (!_functionSig->GetParams().empty())
                 {
-                    std::string lastParamName = _functionSig->GetParams().back()->GetName();
+                    string lastParamName = _functionSig->GetParams().back()->GetName();
                     if (_explicitVarUsage.find(lastParamName) == _explicitVarUsage.end())
                     {
                         // Last parameter is never used, other than possibly in rests. Remove it:
@@ -260,8 +260,8 @@ public:
 
 private:
     FunctionSignature *_functionSig;
-    std::vector<RestStatement*> _rests;
-    std::set<std::string> _explicitVarUsage;
+    vector<RestStatement*> _rests;
+    std::set<string> _explicitVarUsage;
 };
 
 class TransformDeterminePropSelectors : public IExploreNode
@@ -313,20 +313,32 @@ private:
     GlobalCompiledScriptLookups _lookups;
 };
 
-std::vector<std::pair<std::string, std::string>> binOpConvert =
+vector<pair<string, string>> binOpConvert =
 {
     { "<>", "!=" },
     { "&&", "and" },
     { "||", "or" },
 };
 
-std::vector<std::pair<std::string, std::string>> unaryOpConvert =
+vector<pair<string, string>> unaryOpConvert =
 {
     { "bnot", "~" },
     { "neg", "-" },
 };
 
-std::string GetOperatorName(const sci::NamedNode &namedNode, const std::vector<std::pair<std::string, std::string>> &conversions)
+// Others can be coalesced too (e.g. the less-than/greater-than), but we'd need
+// to re-arrange code.
+std::set<string> coalesceBinaryOps =
+{
+    "&&",
+    "||",
+    "|",
+    "&",
+    "+",
+    "*",
+};
+
+string GetOperatorName(const sci::NamedNode &namedNode, const vector<pair<string, string>> &conversions)
 {
     for (auto &conversion : conversions)
     {
@@ -345,7 +357,7 @@ void ConvertToSCISyntaxHelper(Script &script)
     // Transform comments
     for (auto &comment : script.GetComments())
     {
-        std::string text = comment->GetSanitizedText();
+        string text = comment->GetSanitizedText();
 
         int minTabCount;
         text = Unindent<'\t'>(text, &minTabCount);
@@ -358,10 +370,10 @@ void ConvertToSCISyntaxHelper(Script &script)
             minTabCount = comment->GetPosition().Column();
         }
 
-        std::vector<std::string> lines = Lineify(text);
-        std::string newComment;
+        vector<string> lines = Lineify(text);
+        string newComment;
         bool first = true;
-        for (std::string &line : lines)
+        for (string &line : lines)
         {
             if (!first)
             {
@@ -807,7 +819,11 @@ public:
     {
         out.SyncComments(procCall);
         DebugLine line(out);
-        out.out << "(" << procCall.GetName() << " ";
+        out.out << "(" << procCall.GetName();
+        if (!procCall.GetStatements().empty())
+        {
+            out.out << " ";
+        }
         DetectIfWentNonInline detect(out);
         {
             Inline inln(out, true);
@@ -827,13 +843,14 @@ public:
         out.SyncComments(ret);
 
         DebugLine line(out);
-        out.out << "(return ";
+        out.out << "(return";
         DetectIfWentNonInline detect(out);
         {
             Inline inln(out, true);
             DebugIndent indent(out);    // In case we have inline false in here:
             if (ret.GetStatement1())
             {
+                out.out << " ";
                 ret.GetStatement1()->Accept(*this);
             }
         }
@@ -878,6 +895,21 @@ public:
         return condExp.Evaluate(simpleDefineLookup, result) && (result == 1);
     }
 
+    // Returns the inside of the negation
+    const SyntaxNode *_IsConditionalExpressionLogicallyNegated(const ConditionalExpression &condExp)
+    {
+        const SyntaxNode *inner = nullptr;
+        if (condExp.GetStatements().size() == 1)
+        {
+            const UnaryOp *unary = SafeSyntaxNode<UnaryOp>(condExp.GetStatements()[0].get());
+            if (unary && (unary->GetName() == "not"))
+            {
+                inner = unary->GetStatement1();
+            }
+        }
+        return inner;
+    }
+
     void Visit(const WhileLoop &whileLoop) override
     {
         out.SyncComments(whileLoop);
@@ -907,8 +939,62 @@ public:
 
     void Visit(const DoLoop &doLoop) override
     {
-        // Should be transformed into something else.
-        out.out << "DO LOOP NYI";
+        // No do-loops in SCI. So the following:
+        // (do
+        //     code
+        // ) while (blah)
+        //
+        // will get transformed into
+        //
+        // (repeat
+        //     code
+        //     (breakif (not blah))
+        // )
+
+        out.SyncComments(doLoop);
+        {
+            DebugLine line(out);
+            out.out << "(repeat";
+        }
+        // Now the code, indented.
+        {
+            DebugIndent indent(out);
+            Forward(doLoop.GetStatements());
+
+            // Now the condition (assuming it's not always TRUE).
+            if (!_IsConditionalExpressionTRUE(*doLoop.GetCondition()))
+            {
+                out.EnsureNewLine();
+                {
+                    DebugLine ifLine(out);
+                    out.out << "(breakif ";
+                    Inline inlineCondition(out, true); // But the condition is inline
+
+                    // We need to negate this condition. It's likely already negated though. So we can:
+                    //  - Check to see if the condition is a negation, and just visit the inner.
+                    //  - Otherwise, write a (not ...) 
+                    const SyntaxNode *inner = _IsConditionalExpressionLogicallyNegated(*doLoop.GetCondition());
+                    if (inner)
+                    {
+                        inner->Accept(*this);
+                    }
+                    else
+                    { 
+                        // Negate
+                        out.out << "(not ";
+                        doLoop.GetCondition()->Accept(*this);
+                        out.out << ")";
+                    }
+
+                    DebugLine closeLine(out);
+                    out.out << ")";
+                }
+            }
+        }
+        {
+            DebugLine line(out);
+            out.out << ")";
+        }
     }
 
     void Visit(const BreakStatement &breakStatement) override
@@ -986,18 +1072,44 @@ public:
         out.out << ")";
     }
 
+    void _CoalesceBinaryOps(const string &operatorName, const SyntaxNode *operand, vector<const SyntaxNode*> &terms)
+    {
+        const BinaryOp *subOp = SafeSyntaxNode<BinaryOp>(operand);
+        if (subOp && (subOp->GetName() == operatorName))
+        {
+            // Go deeper
+            _CoalesceBinaryOps(operatorName, subOp->GetStatement1(), terms);
+            _CoalesceBinaryOps(operatorName, subOp->GetStatement2(), terms);
+        }
+        else
+        {
+            terms.push_back(operand);
+        }
+    }
+
     void Visit(const BinaryOp &binaryOp) override
     {
         out.SyncComments(binaryOp);
         DebugLine line(out);
         Inline inln(out, true);
 
-        std::string name = GetOperatorName(binaryOp, binOpConvert);
+        vector<const SyntaxNode*> terms;
+        bool canCoalesce = coalesceBinaryOps.find(binaryOp.GetName()) != coalesceBinaryOps.end();
+        if (canCoalesce)
+        {
+            _CoalesceBinaryOps(binaryOp.GetName(), binaryOp.GetStatement1(), terms);
+            _CoalesceBinaryOps(binaryOp.GetName(), binaryOp.GetStatement2(), terms);
+        }
+        else
+        {
+            terms.push_back(binaryOp.GetStatement1());
+            terms.push_back(binaryOp.GetStatement2());
+        }
 
+        // TODO: Maybe more than two and we should do non-inline?
+        string name = GetOperatorName(binaryOp, binOpConvert);
         out.out << "(" + name << " ";
-        binaryOp.GetStatement1()->Accept(*this);
-        out.out << " ";
-        binaryOp.GetStatement2()->Accept(*this);
+        Forward(terms, " ");
         out.out << ")";
     }
 
@@ -1046,8 +1158,8 @@ public:
             {
                 // If with an else with a single if inside it. That's good enough to create a cond clause.
                 // Let's collect cond clauses.
-                std::vector<std::pair<const SyntaxNode*, const SyntaxNode*>> conditionAndCodes;
-                std::vector<const SyntaxNode*> code;
+                vector<pair<const SyntaxNode*, const SyntaxNode*>> conditionAndCodes;
+                vector<const SyntaxNode*> code;
                 const SyntaxNode *finalElse = nullptr;
                 conditionAndCodes.push_back({ ifStatement.GetCondition().get(), ifStatement.GetStatement1() });
                 while (singleIf)
@@ -1180,7 +1292,7 @@ public:
         }
 
         // Move forward to the current indent level.
-        std::string spaces;
+        string spaces;
         spaces.append(max(0, out.iIndent - labelSize), ' ');
         out.out << spaces;
 

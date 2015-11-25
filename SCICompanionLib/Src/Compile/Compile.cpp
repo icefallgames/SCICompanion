@@ -3060,7 +3060,8 @@ CodeResult RestStatement::OutputByteCode(CompileContext &context) const
     {
         WORD wNumber;
         SpeciesIndex wType;
-        ResolvedToken tokenType = context.LookupToken(this, _innerName, wNumber, wType);
+        std::string lookupName = _innerName.empty() ? g_restLastParamSentinel : _innerName;
+        ResolvedToken tokenType = context.LookupToken(this, lookupName, wNumber, wType);
         if (tokenType == ResolvedToken::Parameter)
         {
             context.code().inst(Opcode::REST, wNumber);
