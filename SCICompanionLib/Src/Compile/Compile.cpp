@@ -2313,12 +2313,6 @@ CodeResult CaseStatement::OutputByteCode(CompileContext &context) const
     return 0;
 }
 
-CodeResult CondClauseStatement::OutputByteCode(CompileContext &context) const
-{
-    assert(false); // Not a compiled object.
-    return 0;
-}
-
 CodeResult SwitchStatement::OutputByteCode(CompileContext &context) const
 {
     {
@@ -2464,17 +2458,6 @@ CodeResult SwitchStatement::OutputByteCode(CompileContext &context) const
     }
     WORD wBytes = PushToStackIfAppropriate(context);
     return CodeResult(wBytes, DataTypeNone);
-}
-
-CodeResult CondStatement::OutputByteCode(CompileContext &context) const
-{
-    assert(false); // Not a compiled statement.
-    return 0;
-}
-
-void CondStatement::PreScan(CompileContext &context)
-{
-    ForwardPreScan2(_clauses, context);
 }
 
 //

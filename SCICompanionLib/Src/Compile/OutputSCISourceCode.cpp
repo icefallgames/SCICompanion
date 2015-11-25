@@ -109,7 +109,7 @@
         `@C     ; alt-c
         `^C     ; ctrl-c
         `+      ; plus sign
-        `#4     ; not sure
+        `#4     ; Function key
 
     assignment, etc:
         (assignmentOp lValue rValue)
@@ -315,9 +315,15 @@ private:
 
 vector<pair<string, string>> binOpConvert =
 {
+    // core, sci
     { "<>", "!=" },
     { "&&", "and" },
     { "||", "or" },
+    { "<u", "u<" },
+    { "<=u", "u<=" },
+    { ">u", "u>" },
+    { ">=u", "u>=" },
+    { "%", "mod" },
 };
 
 vector<pair<string, string>> unaryOpConvert =
@@ -1333,23 +1339,6 @@ public:
     {
         DebugLine exportLine(out);
         out.out << CleanToken(exportEntry.Name) << " " << exportEntry.Slot;
-    }
-
-    void Visit(const CondStatement &cond) override
-    {
-        // TODO
-    }
-    void Visit(const CondClauseStatement &cond) override
-    {
-        // TODO
-    }
-    void Visit(const BreakIfStatement &cond) override
-    {
-        // TODO
-    }
-    void Visit(const RepeatStatement &cond) override
-    {
-        // TODO
     }
 };
 

@@ -261,18 +261,3 @@ void AsmBlock::Traverse(IExploreNode &en)
     ExploreNodeBlock enb(en, *this);
     ForwardTraverse2(_segments, en);
 }
-void CondStatement::Traverse(IExploreNode &en)
-{
-    ExploreNodeBlock enb(en, *this);
-    ForwardTraverse2(_clauses, en);
-}
-void BreakIfStatement::Traverse(IExploreNode &en)
-{
-    ExploreNodeBlock enb(en, *this);
-    if (_statement1) _statement1->Traverse(en);
-}
-void RepeatStatement::Traverse(IExploreNode &en)
-{
-    ExploreNodeBlock enb(en, *this);
-    ForwardTraverse2(_segments, en);
-}
