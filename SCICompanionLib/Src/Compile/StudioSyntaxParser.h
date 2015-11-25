@@ -1030,7 +1030,7 @@ public:
     virtual void ReportError(PCTSTR pszError) = 0;
 };
 
-class SCISyntaxParser
+class StudioSyntaxParser
 {
 public:
     bool Parse(sci::Script &script, CCrystalScriptStream::const_iterator &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pError, bool addCommentsToOM);

@@ -11,12 +11,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 ***************************************************************************/
-//
-// SCISyntaxParser implementation
-//
 #include "stdafx.h"
 #include "ScriptOMAll.h"
-#include "SCIStudioSyntaxParser.h"
+#include "StudioSyntaxParser.h"
 #include "CPPSyntaxParser.h"
 
 /*

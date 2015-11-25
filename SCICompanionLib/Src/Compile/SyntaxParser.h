@@ -13,7 +13,7 @@
 ***************************************************************************/
 #pragma once
 
-#include "SCIStudioSyntaxParser.h"
+#include "StudioSyntaxParser.h"
 #include "CPPSyntaxParser.h"
 
 class SyntaxParser
@@ -23,7 +23,7 @@ public:
     bool ParseAC(sci::Script &script, CCrystalScriptStream::const_iterator &streamIt, std::unordered_set<std::string> preProcessorDefines, SyntaxContext *pContext);
 
 private:
-    SCISyntaxParser _sci;
+    StudioSyntaxParser _sci;
     CPPSyntaxParser _cpp;
 };
 

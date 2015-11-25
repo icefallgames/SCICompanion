@@ -14,11 +14,11 @@
 
 
 //
-// SCISyntaxParser implementation
+// StudioSyntaxParser implementation
 //
 #include "stdafx.h"
 #include "ScriptOMAll.h"
-#include "SCIStudioSyntaxParser.h"
+#include "StudioSyntaxParser.h"
 #include "PMachine.h"
 
 using namespace sci;
@@ -1076,7 +1076,7 @@ extern char const errInteger[] = "Expected integer value.";
 //
 // The constructor sets up the parse tree
 //
-void SCISyntaxParser::Load()
+void StudioSyntaxParser::Load()
 {
     if (_fLoaded)
     {
@@ -1478,7 +1478,7 @@ void SyntaxContext::ReportError(std::string error, streamIt pos)
 //
 // This does the parsing.
 //
-bool SCISyntaxParser::Parse(Script &script, streamIt &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pError, bool addCommentsToOM)
+bool StudioSyntaxParser::Parse(Script &script, streamIt &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pError, bool addCommentsToOM)
 {
     SyntaxContext context(stream, script, preProcessorDefines, addCommentsToOM);
     bool fRet = false;
@@ -1503,7 +1503,7 @@ bool SCISyntaxParser::Parse(Script &script, streamIt &stream, std::unordered_set
     return fRet;
 }
 
-bool SCISyntaxParser::Parse(Script &script, streamIt &stream, std::unordered_set<std::string> preProcessorDefines, SyntaxContext &context)
+bool StudioSyntaxParser::Parse(Script &script, streamIt &stream, std::unordered_set<std::string> preProcessorDefines, SyntaxContext &context)
 {
     bool fRet = false;
 	if (entire_script.Match(&context, stream).Result() && (*stream == 0)) // Needs a full match
@@ -1513,7 +1513,7 @@ bool SCISyntaxParser::Parse(Script &script, streamIt &stream, std::unordered_set
     return fRet;
 }
 
-bool SCISyntaxParser::ParseHeader(Script &script, streamIt &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pError)
+bool StudioSyntaxParser::ParseHeader(Script &script, streamIt &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pError)
 {
     SyntaxContext context(stream, script, preProcessorDefines, false);
 	bool fRet = entire_header.Match(&context, stream).Result() && (*stream == 0);

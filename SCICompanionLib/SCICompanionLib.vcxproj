@@ -409,7 +409,7 @@
     <ClCompile Include="Src\Compile\ParserCommon.cpp" />
     <ClCompile Include="Src\Compile\PMachine.cpp" />
     <ClCompile Include="Src\Compile\scii.cpp" />
-    <ClCompile Include="Src\Compile\SCIStudioSyntaxParser.cpp" />
+    <ClCompile Include="Src\Compile\StudioSyntaxParser.cpp" />
     <ClCompile Include="Src\Compile\SCO.cpp" />
     <ClCompile Include="Src\Compile\ScriptDebug.cpp" />
     <ClCompile Include="Src\Compile\ScriptOM.cpp" />
@@ -603,7 +603,7 @@
     <ClInclude Include="Src\Compile\ParserCommon.h" />
     <ClInclude Include="Src\Compile\PMachine.h" />
     <ClInclude Include="Src\Compile\scii.h" />
-    <ClInclude Include="Src\Compile\SCIStudioSyntaxParser.h" />
+    <ClInclude Include="Src\Compile\StudioSyntaxParser.h" />
     <ClInclude Include="Src\Compile\SCO.h" />
     <ClInclude Include="Src\Compile\ScriptMakerHelper.h" />
     <ClInclude Include="Src\Compile\ScriptOM.h" />

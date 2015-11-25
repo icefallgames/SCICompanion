@@ -15,7 +15,7 @@
 #include "MessageEditorListCtrl.h"
 #include "MessageSource.h"
 #include "format.h"
-#include "SCIStudioSyntaxParser.h"
+#include "StudioSyntaxParser.h"
 #include "AppState.h"
 #include "MessageDoc.h"
 #include "WindowsUtil.h"

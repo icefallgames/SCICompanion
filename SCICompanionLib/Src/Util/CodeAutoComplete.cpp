@@ -14,7 +14,7 @@
 #include "stdafx.h"
 #include "ClassBrowser.h"
 #include "ScriptOMAll.h"
-#include "SCIStudioSyntaxParser.h"
+#include "StudioSyntaxParser.h"
 #include "CodeAutoComplete.h"
 #include "AppState.h"
 #include "SyntaxParser.h"
