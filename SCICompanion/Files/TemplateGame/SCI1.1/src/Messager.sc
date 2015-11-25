@@ -149,7 +149,7 @@
                 )(else
                     gModNum
                 )
-            (if (global90 and Message(msgGET modNum noun verb cond curSequence))
+            (if (gMessageType and Message(msgGET modNum noun verb cond curSequence))
                 (self:sayNext(modNum noun verb cond curSequence))
             )(else
                 (Print:
@@ -193,7 +193,7 @@
         )(else
             = theTalker Message(msgNEXT @buffer)
         )
-        (if (& global90 $0002)
+        (if (& gMessageType $0002)
             = temp201 Memory(memALLOC_CRIT 12)
             Message(msgLAST_MESSAGE temp201)
         )
@@ -210,7 +210,7 @@
             (= talker theTalker)
             (if (<> theTalker -1)
                 (talkerSet:add(theTalker))
-                (if (& global90 $0002)
+                (if (& gMessageType $0002)
                     (send theTalker:
                         modNum(theModNum)
                         say(temp201 self)
@@ -242,7 +242,7 @@
             )
             (self:dispose())
         )
-        (if (& global90 $0002)
+        (if (& gMessageType $0002)
             Memory(memFREE temp201)
         )
     )

@@ -371,22 +371,22 @@
     )
     
     (method (doit)
-        (switch (global90)
+        (switch (gMessageType)
             (case 1
-                = global90 2
+                = gMessageType 2
             )
             (case 2
-                = global90 3
+                = gMessageType 3
             )
             (case 3
-                = global90 1
+                = gMessageType 1
             )
         )
         (self:show())
     )
 
     (method (show param1)
-        (switch (global90)
+        (switch (gMessageType)
             (case 1
                 = global83 0
                 DrawCel(995 10 0 188 141 -1)

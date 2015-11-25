@@ -41,7 +41,7 @@
 
 (procedure (localproc_029b param1)
     (var newEvent, temp1, temp2, newEventY, newEventX, newEventY_2, newEventX_2)
-    TextPrint("Click left mouse button on top left corner")
+    Prints("Click left mouse button on top left corner")
     (while (<> (send ((= newEvent (Event:new()))):type) 1)
         (send newEvent:dispose())
     )
@@ -49,7 +49,7 @@
     = newEventY (send newEvent:y)
     = newEventX (send newEvent:x)
     (send newEvent:dispose())
-    TextPrint("Click left mouse button on bottom right corner")
+    Prints("Click left mouse button on bottom right corner")
     (while (<> (send ((= newEvent (Event:new()))):type) 1)
         (send newEvent:dispose())
     )
@@ -304,7 +304,7 @@
         )
 			)
             Format(@temp0 "Error opening '%s'" @gDebugFilename)
-            TextPrint(@temp0)
+            Prints(@temp0)
             (send newFile:dispose())
             return 0
         )

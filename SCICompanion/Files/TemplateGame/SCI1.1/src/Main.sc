@@ -76,7 +76,7 @@
     gDebugOnNextRoom
     gScore				// The player's current score.
     gMaxScore			// The maximum score.
-    global17
+    gTextCode
     gNewSet
     gCursorNumber
     gCursor =     999
@@ -90,7 +90,7 @@
     gSaveDir
     gPicAngle
     gOldFeatures
-    global34
+    gUseSortedFeatures
     gPicNumber =     -1
     gCastMotionCue
     gWindow
@@ -102,7 +102,7 @@
     gFeatureInit		// Code that initializes all features.
     gDoVerbCode
     gApproachCode
-    global67 =     1	// Default Motion type for ego (0: MoveTo, 1: PolyPath, ...)
+    gEgoUseObstacles = 1	// Default Motion type for ego (0: MoveTo, 1: PolyPath, ...)
     gIconBar
     gPEventX			// Current event's x value.
     gPEventY			// Current event's y value.
@@ -113,15 +113,15 @@
     gTheDoits
     gEatTheMice =     60
     gUser
-    global81				// Something to do with lip-sync.
+    gSyncBias				// Something to do with lip-sync.
     gNewSync
     global83				// Something to do with audio narration.
     gNewEventHandler
-    gFont_2
-    global86				// Something to do with time (ticks per frame?)
+    gInputFont
+    gTickOffset 			// Something to do with time (ticks per frame?)
     gLastTicks
     gNarrator				// Default Narrator.
-    global90 =     $0001	// Talker flags: 0x1 (text) and 0x2 (audio).
+    gMessageType =    $0001	// Talker flags: 0x1 (text) and 0x2 (audio).
     gTestMessager
     gPrintEventHandler
     gOldWH
@@ -163,7 +163,7 @@
 	Example usage::
 	
 		(if (not Btest(FLAG_OpenedSewer))
-			TextPrint("You can't enter, the sewer is closed.")
+			Prints("You can't enter, the sewer is closed.")
 		)
 */
 (procedure public (Btest flag)
@@ -487,7 +487,7 @@
 (procedure public (AddPolygonsToRoom polyBuffer)
 	(var polyCount)
 	(if (< polyBuffer 100)
-		TextPrint("polyBuffer is not a pointer. Polygon ignored.")
+		Prints("polyBuffer is not a pointer. Polygon ignored.")
 	)(else
 		(= polyCount Memory(memPEEK polyBuffer))
 		(+= polyBuffer 2)
@@ -532,7 +532,7 @@
 (procedure public (CreateNewPolygon polyBuffer nextPolyOptional)
 	(var polyCount)
 	(if (< polyBuffer 100)
-		TextPrint("polyBuffer is not a pointer. Polygon ignored.")
+		Prints("polyBuffer is not a pointer. Polygon ignored.")
 		return NULL
 	)(else
 		(= polyCount Memory(memPEEK polyBuffer))
@@ -694,8 +694,8 @@
             canControl(0)
             canInput(0)
         )
-        = global90 $0001
-        = global34 1
+        = gMessageType $0001
+        = gUseSortedFeatures TRUE
         = gPolyphony DoSound(sndGET_POLYPHONY)
         = gMaxScore 5000
         = gFont 1605
@@ -1555,7 +1555,7 @@
             
         (if (temp0)
         	(if (not (send temp0:isKindOf(Narrator)))
-        		TextPrint("Invalid talker.")
+        		Prints("Invalid talker.")
 			)
             return temp0
         )(else

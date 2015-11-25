@@ -523,7 +523,7 @@ code_0b7a:  lst     temp2
             pushi   1
             lea     @temp10
             push    
-            calle   TextPrint, 2
+            calle   Prints, 2
             pushi   #eraseOnly
             pushi   1
             lst     temp7
@@ -533,7 +533,7 @@ code_0b7a:  lst     temp2
 code_0c0a:  pushi   1
             lea     @temp10
             push    
-            calle   TextPrint, 2
+            calle   Prints, 2
 code_0c15:  pushi   14
             pushi   #x
             pushi   #signal
@@ -1197,7 +1197,7 @@ code_0162:  pushi   #highlight
                     init()
                 )
             )(else
-                TextPrint("You'll get nothing and like it!")
+                Prints("You'll get nothing and like it!")
             )
             (if (IsObject(items))
                 (send items:dispose())

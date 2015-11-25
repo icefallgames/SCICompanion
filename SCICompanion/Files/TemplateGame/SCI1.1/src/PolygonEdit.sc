@@ -870,7 +870,7 @@ code_06b2:  lst     temp7
             pushi   1
             lea     @temp17
             push    
-            calle   TextPrint, 2
+            calle   Prints, 2
 code_06d6:  ret     
         )
     )
@@ -1344,7 +1344,7 @@ code_06d6:  ret
     (method (undo)
         (var temp0, theUndoPoly, theUndoPrvPoly, theUndoPolyBuf, theUndoX, theUndoY, theUndoState)
         (if (not undoPoly)
-            TextPrint("Nothing to undo")
+            Prints("Nothing to undo")
             return 
         )
         = theUndoPoly undoPoly
@@ -1505,7 +1505,7 @@ code_06d6:  ret
 				 )
 			)
             Format(@temp0 943 5 (send newFile:name))
-            TextPrint(@temp0)
+            Prints(@temp0)
             (send newFile:dispose())
             return 0
         )

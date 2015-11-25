@@ -144,7 +144,7 @@
                 (if ((((& pEventType evMOVE) and (send gOldCast:contains(alterEgo))) and controls) and (send alterEgo:handleEvent(pEvent)))
                     return 1
                 )(else
-                    (if (global34)
+                    (if (gUseSortedFeatures)
                         (OnMeAndLowY:init())
                         (send gOldCast:eachElementDo(#perform OnMeAndLowY pEvent))
                         (send gOldFeatures:eachElementDo(#perform OnMeAndLowY pEvent))

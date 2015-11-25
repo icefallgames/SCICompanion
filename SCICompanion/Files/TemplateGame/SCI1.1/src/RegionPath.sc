@@ -105,7 +105,7 @@
                 (super:dispose())
             )
         )(else
-            FormatPrint("%s theRegion: not defined." name)
+            Printf("%s theRegion: not defined." name)
         )
     )
 
@@ -167,7 +167,7 @@
 
 
     (method (at)
-        FormatPrint("%s needs an 'at:' method." name)
+        Printf("%s needs an 'at:' method." name)
         return 0
     )
 

@@ -7,7 +7,7 @@
 
 
 /*
-	DPath (or "directed path") uses a list of locations to direct the :class:`Actor` towards its destination.
+	DPath (or "dynamic path") uses a list of locations to direct the :class:`Actor` towards its destination.
 	
 	Example usage::
 	

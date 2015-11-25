@@ -52,7 +52,7 @@
                         = temp1 temp0
                     )
                     (send param1:dispose())
-                ) while (not not GetMouseRelease())
+                ) while (not not MouseStillDown())
                 (if (temp0)
                     (if (& state csSELECTED)
                         = theSfc sfc

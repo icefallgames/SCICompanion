@@ -4,7 +4,7 @@
 (version 2)
 (include "sci.sh")
 (exports
-    0 GetMouseRelease
+    0 MouseStillDown
     1 GetNumber
 )
 (use "Main")
@@ -16,12 +16,12 @@
 /*
 	Determines if there is a mouse release event.
 	
-	:returns: TRUE if there is a mouse release event, FALSE otherwise.
+	:returns: FALSE if there is a mouse release event, TRUE otherwise.
 */
-(procedure public (GetMouseRelease)
+(procedure public (MouseStillDown)
     (var newEvent, temp1)
     = newEvent (Event:new())
-    = temp1 (<> (send newEvent:type) 2)
+    = temp1 (<> (send newEvent:type) evMOUSERELEASE)
     (send newEvent:dispose())
     return temp1
 )
@@ -126,7 +126,7 @@
                         = temp1 temp0
                     )
                     (send pEvent:dispose())
-                ) while (not not GetMouseRelease())
+                ) while (not not MouseStillDown())
                 (if (temp0)
                     HiliteControl(self)
                 )
@@ -167,7 +167,7 @@
     )
 
 	/*
-		:param number stateFlags: Any combination of csENABLED, csFOCUSED, csDISABLED or csSELECTED.
+		:param number stateFlags: Any combination of csENABLED, csEXIT, csFILTER or csSELECTED.
 		:returns: A non-zero value if the control has this state.
 	*/
     (method (checkState stateFlags)
@@ -220,7 +220,7 @@
     (method (handleEvent pEvent)
         (var temp0, temp1, temp2, temp3, temp4)
         (asm
-            lag     global17
+            lag     gTextCode
             bnt     code_0455
             pToa    rects
             bnt     code_0455
@@ -322,7 +322,7 @@ code_03c6:  pushi   2
             ldi     4
             div     
             push    
-            lag     global17
+            lag     gTextCode
             send    6
             pushi   #type
             pushi   1
@@ -384,7 +384,7 @@ code_0455:  pushi   #handleEvent
 
     (method (doit param1)
         (var temp0, temp1, temp2)
-        = gLastTicks (+ global86 GetTime())
+        = gLastTicks (+ gTickOffset GetTime())
         = temp2 0
         (self:eachElementDo(#init))
         (if (theItem)
@@ -409,7 +409,7 @@ code_0455:  pushi   #handleEvent
         
        
         (while (not temp1)
-            = gLastTicks (+ global86 GetTime())
+            = gLastTicks (+ gTickOffset GetTime())
             (self:eachElementDo(#cycle))
             = temp0 (send ((Event:new())):localize())
             (if (eatTheMice)
@@ -616,7 +616,7 @@ code_0455:  pushi   #handleEvent
         = theTheItem (self:firstTrue(#handleEvent pEvent))
         (if (theTheItem)
             EditControl(theItem 0)
-            (if (not (send theTheItem:checkState(csFOCUSED)))
+            (if (not (send theTheItem:checkState(csEXIT)))
                 (if (theItem)
                     (send theItem:select(FALSE))
                 )

@@ -338,7 +338,7 @@
                 = scaleSignal (& scaleSignal $fffc)
             )(else
                 (if (< theScale (send gRoom:vanishingY))
-                    FormatPrint("<%s setScale:> y value less than vanishingY" name)
+                    Printf("<%s setScale:> y value less than vanishingY" name)
                 )(else
                     = temp0 (- theScale (send gRoom:vanishingY))
                     = temp1 (- 190 theScale)
@@ -1149,7 +1149,7 @@
             = temp3 (* temp3 5)
         )
         = temp7 (send gRoom:obstacles)
-        (if (temp7 and global67)
+        (if (temp7 and gEgoUseObstacles)
             = temp6 AvoidPath(x y (+ x temp2) (+ y temp3) (send temp7:elements) (send temp7:size) 0)
             = temp2 (- WordAt(temp6 2) x)
             = temp3 (- WordAt(temp6 3) y)

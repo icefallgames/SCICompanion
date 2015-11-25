@@ -206,7 +206,7 @@
         (if (== modNum -1)
             = modNum gModNum
         )
-        (if (global90 and Message(msgGET modNum noun theVerb 0 1))
+        (if (gMessageType and Message(msgGET modNum noun theVerb 0 1))
             (send gTestMessager:say(noun theVerb 0 0 0 modNum))
         )(else
             (send temp0:doit(theVerb self))

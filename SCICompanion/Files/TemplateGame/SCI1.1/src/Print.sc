@@ -2,8 +2,8 @@
 (version 2)
 (include "sci.sh")
 (exports
-    0 TextPrint
-    1 FormatPrint
+    0 Prints
+    1 Printf
     2 GetInput
     3 FindFormatLen
 )
@@ -19,7 +19,7 @@
 	
 	:param string theText: A string of text to print.
 */
-(procedure public (TextPrint theText)
+(procedure public (Prints theText)
     (Print:
         addText(rest theText)
         init()
@@ -27,7 +27,7 @@
 )
 
 /*
-.. function:: FormatPrint(theText [params ...])
+.. function:: Printf(theText [params ...])
 
 	Prints text on the screen using. The text may contain the following formatting
 	characters:
@@ -45,10 +45,10 @@
 	
 	Example usage::
 	
-		FormatPrint("Your name is %s, and you have %d hit points" name hitPoints)
+		Printf("Your name is %s, and you have %d hit points" name hitPoints)
 	
 */
-(procedure public (FormatPrint theText)
+(procedure public (Printf theText)
     (Print:
         addTextF(rest theText)
         init()
@@ -270,8 +270,8 @@
                 = theFirst first
                 (if (not theFirst)
                     = theFirst (send dialog:firstTrue(#checkState csENABLED))
-                    (if (theFirst and not (send dialog:firstTrue(#checkState csFOCUSED)))
-                        (send theFirst:state((| (send theFirst:state) csFOCUSED)))
+                    (if (theFirst and not (send dialog:firstTrue(#checkState csEXIT)))
+                        (send theFirst:state((| (send theFirst:state) csEXIT)))
                     )
                 )(else
                     (if (not IsObject(theFirst))

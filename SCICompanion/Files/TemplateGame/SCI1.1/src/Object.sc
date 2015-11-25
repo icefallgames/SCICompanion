@@ -215,7 +215,7 @@
 	// Prints the object's name on the screen.
     (method (showSelf)
         (var temp0[200])
-        TextPrint((self:showStr(@temp0)))
+        Prints((self:showStr(@temp0)))
     )
 
 	/*
@@ -352,7 +352,7 @@
 	// For the object and each of its elements, this prints the object's name and collection size on the screen in a dialog box.
     (method (showSelf)
         (var temp0[40])
-        TextPrint((self:showStr(@temp0)))
+        Prints((self:showStr(@temp0)))
         (self:eachElementDo(#showSelf))
     )
 

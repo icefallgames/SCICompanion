@@ -28,7 +28,7 @@
 
 
     (method (syncCheck)
-        (if ((<> syncCue -1) and ((<=u syncTime global81) or (<= syncTime DoAudio(audPOSITION))))
+        (if ((<> syncCue -1) and ((<=u syncTime gSyncBias) or (<= syncTime DoAudio(audPOSITION))))
             (if (== (& $fff0 syncCue) 0)
                 = prevCue (| (& prevCue $fff0) syncCue)
             )(else

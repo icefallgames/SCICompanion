@@ -77,8 +77,8 @@
 */
 (class Narrator of Prop
     (properties
-        x -1
-        y -1
+        x -1				// -1 means center
+        y -1				// -1 means center
         z 0
         heading 0
         noun 0
@@ -140,12 +140,12 @@
     (method (init)
     	(var theCurVolume_2, temp1, theCurVolume)
     	
-        (if (((& global90 $0002) and not modeless) or not HaveMouse())
+        (if (((& gMessageType $0002) and not modeless) or not HaveMouse())
             = saveCursor gCursorNumber
             (send gGame:setCursor(gInvisibleCursor 1))
         )
         
-        = gLastTicks (+ global86 GetTime())
+        = gLastTicks (+ gTickOffset GetTime())
         
         = initialized 1
     )
@@ -154,12 +154,12 @@
     (method (doit)
         (if ((<> ticks -1) and (> (- gLastTicks ticks) 0))
             (if (
-            (if (& global90 $0002)
+            (if (& gMessageType $0002)
                 (== DoAudio(audPOSITION) -1)
             )(else
                 1
             )
- 			and (not keepWindow or (& global90 $0002)))
+ 			and (not keepWindow or (& gMessageType $0002)))
                 (self:dispose(disposeWhenDone))
                 return 0
             )
@@ -184,7 +184,7 @@
                     )
                 )
             )
-            (if (& global90 $0002)
+            (if (& gMessageType $0002)
                 DoAudio(audSTOP)
             )
             = modNum -1
@@ -194,7 +194,7 @@
             (send gDialog:dispose())
         )
         (if (saveCursor)
-            (if (((& global90 $0002) and not modeless) or not HaveMouse())
+            (if (((& gMessageType $0002) and not modeless) or not HaveMouse())
                 (send gGame:setCursor(saveCursor))
 			)
         )(else
@@ -250,10 +250,10 @@
             )(else
                 0
             )
-        (if (& global90 $0001)
+        (if (& gMessageType $0001)
             (self:startText(buffer))
         )
-        (if (& global90 $0002)
+        (if (& gMessageType $0002)
             (self:startAudio(buffer))
         )
         (if (modeless)
@@ -280,7 +280,7 @@
         (var temp0)
         // No need to check this. If we did the check, then if there's no audio, the ticks would be 0
         // startAudio is always called after this, and it sets ticks.
-        //(if (not & global90 $0002)
+        //(if (not & gMessageType $0002)
             = temp0 StrLen(buffer)
             = ticks Max(240 (* (* gTextReadSpeed 2) temp0))
         //)
@@ -314,7 +314,7 @@
             width(theTalkWidth)
             modeless(1)
 		)
-		(if (& global90 $0002)
+		(if (& gMessageType $0002)
             Message(msgGET WordAt(theText 0) WordAt(theText 1) WordAt(theText 2) WordAt(theText 3) WordAt(theText 4) @textBuffer)
             (Print:addText(@textBuffer))
 		)
@@ -583,7 +583,7 @@
                 font(font)
                 width(theTalkWidth)
             )
-			(if (& global90 $0002)
+			(if (& gMessageType $0002)
 	            Message(msgGET WordAt(theText 0) WordAt(theText 1) WordAt(theText 2) WordAt(theText 3) WordAt(theText 4) @textBuffer)
 	            (Print:addText(@textBuffer))
 			)

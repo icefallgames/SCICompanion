@@ -93,7 +93,7 @@
 
     (method (setSize)
         (var temp0[4])
-        = font gFont_2
+        = font gInputFont
         TextSize(@temp0[0] "M" font 0 0)
         = nsBottom (+ nsTop temp0[2])
         = nsRight (+ nsLeft (/ (* (* temp0[3] max) 3) 4))
@@ -162,12 +162,12 @@
                     (if (< (send pEvent:y) (+ nsTop 10))
                         (do 
                             (self:retreat(1))
-                        ) while (not not GetMouseRelease())
+                        ) while (not not MouseStillDown())
                     )(else
                         (if (> (send pEvent:y) (- nsBottom 10))
                             (do 
                                 (self:advance(1))
-                            ) while (not not GetMouseRelease())
+                            ) while (not not MouseStillDown())
                         )(else
                             TextSize(@temp5[0] "M" font 0 0)
                             = temp4 (/ (- (send pEvent:y) (+ nsTop 10)) temp5[2])
@@ -182,7 +182,7 @@
             )
         )
         return 
-            (if ((send pEvent:claimed) and (& state csFOCUSED))
+            (if ((send pEvent:claimed) and (& state csEXIT))
                 self
             )(else
                 0
@@ -299,7 +299,7 @@
             return 0
         )
         = temp0 (self:firstTrue(#handleEvent pEvent))
-        (if (temp0 and not (send ((= temp0 (self:firstTrue(#handleEvent pEvent)))):checkState(csFOCUSED)))
+        (if (temp0 and not (send ((= temp0 (self:firstTrue(#handleEvent pEvent)))):checkState(csEXIT)))
             (send temp0:doit())
             = temp0 0
         )

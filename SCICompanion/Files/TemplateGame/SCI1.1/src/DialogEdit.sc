@@ -78,11 +78,11 @@
             = temp3 ReadNumber(@temp35)
             = temp4 ReadNumber(@temp45)
             (if (not Message(msgGET temp4 temp0 temp1 temp2 temp3))
-                TextPrint("Can't find message!")
+                Prints("Can't find message!")
                 return 0
             )(else
                 (if (not Message(msgSIZE temp4 temp0 temp1 temp2 temp3))
-                    TextPrint("Message contains no text!")
+                    Prints("Message contains no text!")
                     return 0
                 )(else
                     (send param1:
@@ -288,7 +288,7 @@
     (method (editPosn)
         (var newEvent, newEventX, temp2, temp3, temp4)
         (if (local1)
-            TextPrint("Click to where the top left of the window should be")
+            Prints("Click to where the top left of the window should be")
             (while (<> (send ((= newEvent (Event:new()))):type) 1)
                 (send newEvent:dispose())
             )
@@ -301,7 +301,7 @@
             = temp2 Max(0 Min(temp2 (- 190 temp3)))
             (self:moveTo(newEventX temp2))
         )(else
-            TextPrint("No window to position!")
+            Prints("No window to position!")
         )
     )
 
@@ -386,7 +386,7 @@
                 DrawStatus(Format(@temp2 "DRAGGING: %d, %d" temp0 temp1))
                 (self:moveTo(temp0 temp1))
                 (send param1:dispose())
-            ) while (not not GetMouseRelease())
+            ) while (not not MouseStillDown())
             DrawStatus(" " 0 0)
             DrawStatus(0)
             (if ((DialogEditor:curMenu))
@@ -1219,7 +1219,7 @@
                                 (if (size)
                                     (DlgWindow:create())
                                 )(else
-                                    TextPrint("Can't create window: no items!")
+                                    Prints("Can't create window: no items!")
                                 )
                             )
                         )
@@ -1234,7 +1234,7 @@
                                     (DlgWindow:dispose())
                                     (self:eachElementDo(#draw))
                                 )(else
-                                    TextPrint("No window to delete!")
+                                    Prints("No window to delete!")
                                 )
                             )
                         )
@@ -1261,7 +1261,7 @@
                                 )
 ))
                         )(else
-                            TextPrint("No items to edit!")
+                            Prints("No items to edit!")
                         )
                     )
                     (case KEY_f
@@ -1458,7 +1458,7 @@
                                         (DlgWindow:create())
                                     )
                                 )(else
-                                    TextPrint("No item to look at!")
+                                    Prints("No item to look at!")
                                 )
                             )
                             (case 4
@@ -1547,7 +1547,7 @@
                 )
             )
         )(else
-            TextPrint("Nothing to delete!")
+            Prints("Nothing to delete!")
         )
     )
 
@@ -1603,7 +1603,7 @@
             open(openMode)
 				 )
 			)
-            FormatPrint("Error opening '%s'" (send newFile:name))
+            Printf("Error opening '%s'" (send newFile:name))
             (send newFile:dispose())
             return 0
         )

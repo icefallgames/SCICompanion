@@ -5,7 +5,7 @@
 
 
 /*
-	This Motion class appears to simply make the :class:`Actor` face in the direction of a target.
+	This Motion class lets you have an :class:`Actor` follow another at a given (x, y, z) offset.
 */
 (class Track of Motion
     (properties

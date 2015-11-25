@@ -42,7 +42,7 @@
         )
         = slopeNum (- frontSize backSize)
         (if (not = slopeDen (- frontY backY))
-            TextPrint("<Scaler> frontY cannot be equal to backY")
+            Prints("<Scaler> frontY cannot be equal to backY")
             return 0
         )
         = const (- backSize (/ (* slopeNum backY) slopeDen))

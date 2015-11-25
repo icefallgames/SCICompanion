@@ -187,7 +187,7 @@
             = temp2 (send temp0:message)
             = temp3 (send temp0:modifiers)
             Wait(1)
-            = gLastTicks (+ global86 GetTime())
+            = gLastTicks (+ gTickOffset GetTime())
             (if (gNewSet)
                 (send gNewSet:eachElementDo(#doit))
             )

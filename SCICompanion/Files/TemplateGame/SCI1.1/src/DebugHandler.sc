@@ -137,7 +137,7 @@
                             )(else
                                 Format(@temp0 " Global %d: %d " gOldCastFirst gEgo[gOldCastFirst])
                             )
-                            TextPrint(@temp0)
+                            Prints(@temp0)
                         )
                         (case KEY_ALT_i
                         	// Inventory selector
@@ -219,9 +219,9 @@
                             = temp0 0
                             = gOldCastFirst GetNumber("Flag No.")
                             (if (Btest(gOldCastFirst))
-                                TextPrint("TRUE")
+                                Prints("TRUE")
                             )(else
-                                TextPrint("FALSE")
+                                Prints("FALSE")
                             )
                         )
                         (case KEY_ALT_p
@@ -336,11 +336,11 @@
                             = gQuitGame 1
                         )
                         (case KEY_QUESTION
-                            TextPrint("Debug options:      (Page 1 of 5)\n\n   A - Show cast\n   B - Polygon editor\n   C - Show control map\n   D - Dialog editor\n   E - Show ego info\n   F - Show feature outlines\n   G - Set global\n")
-                            TextPrint("Debug options:      (Page 2 of 5)\n\n   H - Show global\n   I - Get inventory item\n   J - Justify text on screen\n   K - Show palette\n   L - Set flag\n   M - Clear flag\n   N - Show flag\n")
-                            TextPrint("Debug options:      (Page 3 of 5)\n\n   P - Show priority map\n   Q - Set Detail to 1\n   R - Show room info/free memory\n   S - Show a string or message\n   T - Teleport\n   U - Give HandsOn\n")
-                            TextPrint("Debug options:      (Page 4 of 5)\n\n   V - Show visual map\n   W - Feature writer\n   Y - View obstacles\n   X,Z - Quick quit\n")
-                            TextPrint("Debug options:      (Page 5 of 5)\n\n  A=Alt, C=Ctrl, L=Left shift, R=Right shift\n\n  Left click:\n    A       Move ego\n    CL      Show ego\n    CR      Show room\n    CA      Show position\n")
+                            Prints("Debug options:      (Page 1 of 5)\n\n   A - Show cast\n   B - Polygon editor\n   C - Show control map\n   D - Dialog editor\n   E - Show ego info\n   F - Show feature outlines\n   G - Set global\n")
+                            Prints("Debug options:      (Page 2 of 5)\n\n   H - Show global\n   I - Get inventory item\n   J - Justify text on screen\n   K - Show palette\n   L - Set flag\n   M - Clear flag\n   N - Show flag\n")
+                            Prints("Debug options:      (Page 3 of 5)\n\n   P - Show priority map\n   Q - Set Detail to 1\n   R - Show room info/free memory\n   S - Show a string or message\n   T - Teleport\n   U - Give HandsOn\n")
+                            Prints("Debug options:      (Page 4 of 5)\n\n   V - Show visual map\n   W - Feature writer\n   Y - View obstacles\n   X,Z - Quick quit\n")
+                            Prints("Debug options:      (Page 5 of 5)\n\n  A=Alt, C=Ctrl, L=Left shift, R=Right shift\n\n  Left click:\n    A       Move ego\n    CL      Show ego\n    CR      Show room\n    CA      Show position\n")
                         )
                         (default 
                             (send pEvent:claimed(FALSE))

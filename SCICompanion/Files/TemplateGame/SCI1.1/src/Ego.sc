@@ -127,7 +127,7 @@
             )(else
                 (if (& temp1 evVERB)
                     (if (& temp1 evMOVE)
-                        (switch (global67)
+                        (switch (gEgoUseObstacles)
                             (case 0
                                 (self:setMotion(MoveTo (send pEvent:x) (+ (send pEvent:y) z)))
                             )
