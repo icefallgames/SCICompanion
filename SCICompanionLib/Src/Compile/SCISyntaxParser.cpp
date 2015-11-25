@@ -1,5 +1,7 @@
 #include "stdafx.h"
 #include "ScriptOMAll.h"
+#include "StudioSyntaxParser.h"
+#include "SCISyntaxParser.h"
 
 using namespace sci;
 
@@ -58,3 +60,5 @@ public:
 
     void Accept(ISyntaxNodeVisitor &visitor) const override;
 };
+
+

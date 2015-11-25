@@ -52,24 +52,128 @@ inline void _DoComment(TContext *pContext, const _It &streamBegin, const _It &st
     }
 }
 
-template<typename TContext, typename _It>
-inline void _EatWhitespaceAndComments(TContext *pContext, _It &stream)
+class EatCommentCpp
 {
-    bool fDone = false;
-    while (!fDone)
+public:
+    // c++ style comments:
+    // // and /***/
+    template<typename TContext, typename _It>
+    static void EatWhitespaceAndComments(TContext *pContext, _It &stream)
     {
-        fDone = true;
-        // Eat whitespace
-        while (isspace(*stream))
+        bool fDone = false;
+        while (!fDone)
         {
-            fDone = false;
-            ++stream;
+            fDone = true;
+            // Eat whitespace
+            while (isspace(*stream))
+            {
+                fDone = false;
+                ++stream;
+            }
+            _It streamSave(stream);
+            if (*stream == '/')
+            {
+                char ch = *(++stream);
+                if (ch == '/')
+                {
+                    // Indicate we're in a comment for autocomplete's sake
+                    if (pContext)
+                    {
+                        pContext->PushParseAutoCompleteContext(ParseAutoCompleteContext::Block);
+                    }
+
+                    // Go until end of line
+                    while ((ch = *(++stream)) && (ch != '\n')) {} // Look for \n or EOF
+                    fDone = false; // Check for whitespace again
+
+                    // Comment gathering.  This may be expensive, so only do this if pContext is non-NULL
+                    if (pContext)
+                    {
+                        pContext->PopParseAutoCompleteContext();
+                        _DoComment(pContext, streamSave, stream);
+                    }
+
+                    if (ch == '\n') // As opposed to EOF
+                    {
+                        ++stream; // Move past \n now that we've done _DoComment. Otherwise the comment will be tagged as ending on the next line.
+                    }
+                }
+                else if (ch == '*')
+                {
+                    // Indicate we're in a comment for autocomplete's sake
+                    if (pContext)
+                    {
+                        pContext->PushParseAutoCompleteContext(ParseAutoCompleteContext::Block);
+                    }
+
+                    // Go until */
+                    bool fLookingForSlash = false;
+                    while (TRUE)
+                    {
+                        ch = *(++stream);
+                        if (ch == 0)
+                        {
+                            break;
+                        }
+                        else if (ch == '*')
+                        {
+                            fLookingForSlash = true;
+                        }
+                        else if (fLookingForSlash)
+                        {
+                            if (ch == '/')
+                            {
+                                break; // We found a */
+                            }
+                            else
+                            {
+                                fLookingForSlash = false;
+                            }
+                        }
+                    }
+                    if (ch == '/') // As opposed to 0
+                    {
+                        ++stream; // Move past '/'
+                    }
+
+                    if (pContext)
+                    {
+                        pContext->PopParseAutoCompleteContext();
+                        _DoComment(pContext, streamSave, stream);
+                    }
+                    fDone = false; // Check for whitespace again
+                }
+                else
+                {
+                    // We're done.
+                    stream = streamSave;
+                    fDone = true;
+                }
+            }
         }
-        _It streamSave(stream);
-        if (*stream == '/')
+    }
+};
+
+class EatCommentSemi
+{
+public:
+    // Semi-colon style comments:
+    // ;
+    template<typename TContext, typename _It>
+    static void EatWhitespaceAndComments(TContext *pContext, _It &stream)
+    {
+        bool fDone = false;
+        while (!fDone)
         {
-            char ch = *(++stream);
-            if (ch == '/')
+            fDone = true;
+            // Eat whitespace
+            while (isspace(*stream))
+            {
+                fDone = false;
+                ++stream;
+            }
+            _It streamSave(stream);
+            if (*stream == ';')
             {
                 // Indicate we're in a comment for autocomplete's sake
                 if (pContext)
@@ -93,65 +197,14 @@ inline void _EatWhitespaceAndComments(TContext *pContext, _It &stream)
                     ++stream; // Move past \n now that we've done _DoComment. Otherwise the comment will be tagged as ending on the next line.
                 }
             }
-            else if (ch == '*')
-            {
-                // Indicate we're in a comment for autocomplete's sake
-                if (pContext)
-                {
-                    pContext->PushParseAutoCompleteContext(ParseAutoCompleteContext::Block);
-                }
-
-                // Go until */
-                bool fLookingForSlash = false;
-                while (TRUE)
-                {
-                    ch = *(++stream);
-                    if (ch == 0)
-                    {
-                        break;
-                    }
-                    else if (ch == '*')
-                    {
-                        fLookingForSlash = true;
-                    }
-                    else if (fLookingForSlash)
-                    {
-                        if (ch == '/')
-                        {
-                            break; // We found a */
-                        }
-                        else
-                        {
-                            fLookingForSlash = false;
-                        }
-                    }
-                }
-                if (ch == '/') // As opposed to 0
-                {
-                    ++stream; // Move past '/'
-                }
-
-                if (pContext)
-                {
-                    pContext->PopParseAutoCompleteContext();
-                    _DoComment(pContext, streamSave, stream);
-                }
-                fDone = false; // Check for whitespace again
-            }
-            else
-            {
-                // We're done.
-                stream = streamSave;
-                fDone = true;
-            }
         }
     }
-}
+};
 
 //
 // Optimized delimiter reader
 //
-template<typename _TContext, typename _It, char Q1, char Q2>
+template<typename _TContext, typename _CommentPolicy, typename _It, char Q1, char Q2>
 bool _ReadString(_It &stream, std::string &str)
 {
     str.clear();
@@ -204,7 +257,7 @@ bool _ReadString(_It &stream, std::string &str)
                 // If we encountered a '+', then skip whitespace until we hit another open quote
                 // "huwehuierger"+   "gejriger"
                 ++stream;
-                _EatWhitespaceAndComments<_TContext, _It>(NULL, stream);
+                _CommentPolicy::EatWhitespaceAndComments<_TContext, _It>(nullptr, stream);
                 // ... and continue...
             }
             else
