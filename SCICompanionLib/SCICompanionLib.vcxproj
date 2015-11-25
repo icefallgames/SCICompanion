@@ -207,7 +207,7 @@
     <ClCompile Include="Src\Compile\OutputCodeHelper.cpp" />
     <ClCompile Include="Src\Compile\OutputCppSourceCode.cpp" />
     <ClCompile Include="Src\Compile\OutputSCISourceCode.cpp" />
-    <ClCompile Include="Src\Compile\OutputSCIStudioSourceCode.cpp" />
+    <ClCompile Include="Src\Compile\OutputStudioSourceCode.cpp" />
     <ClCompile Include="Src\Compile\SCISyntaxParser.cpp" />
     <ClCompile Include="Src\Compile\ScriptMakerHelper.cpp" />
     <ClCompile Include="Src\Compile\SummarizeScript.cpp" />
@@ -556,7 +556,7 @@
     <ClInclude Include="Src\Compile\OutputCodeHelper.h" />
     <ClInclude Include="Src\Compile\OutputCppSourceCode.h" />
     <ClInclude Include="Src\Compile\OutputSCISourceCode.h" />
-    <ClInclude Include="Src\Compile\OutputSCIStudioSourceCode.h" />
+    <ClInclude Include="Src\Compile\OutputStudioSourceCode.h" />
     <ClInclude Include="Src\Compile\OutputSourceCodeBase.h" />
     <ClInclude Include="Src\Compile\SummarizeScript.h" />
     <ClInclude Include="Src\Compile\TarjanAlgorithm.h" />

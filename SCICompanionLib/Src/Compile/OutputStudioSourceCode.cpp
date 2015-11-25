@@ -21,10 +21,10 @@
 using namespace sci;
 using namespace std;
 
-class OutputSCIStudioSourceCode : public OutputSourceCodeBase
+class OutputStudioSourceCode : public OutputSourceCodeBase
 {
 public:
-    OutputSCIStudioSourceCode(SourceCodeWriter &out) : OutputSourceCodeBase(out) {}
+    OutputStudioSourceCode(SourceCodeWriter &out) : OutputSourceCodeBase(out) {}
 
     void Visit(const Script &script) override
     {
@@ -760,24 +760,24 @@ public:
 
 void OutputSourceCode_SCIStudio(const sci::Script &script, sci::SourceCodeWriter &out)
 {
-    OutputSCIStudioSourceCode output(out);
+    OutputStudioSourceCode output(out);
     output.Visit(script);
 }
 
 void OutputSourceCode_SCIStudio(const sci::ClassDefinition &classDef, sci::SourceCodeWriter &out)
 {
-    OutputSCIStudioSourceCode output(out);
+    OutputStudioSourceCode output(out);
     output.Visit(classDef);
 }
 
 void OutputSourceCode_SCIStudio(const sci::MethodDefinition &classDef, sci::SourceCodeWriter &out)
 {
-    OutputSCIStudioSourceCode output(out);
+    OutputStudioSourceCode output(out);
     output.Visit(classDef);
 }
 
 void OutputSourceCode_SCIStudio(const sci::ClassProperty &classDef, sci::SourceCodeWriter &out)
 {
-    OutputSCIStudioSourceCode output(out);
+    OutputStudioSourceCode output(out);
     output.Visit(classDef);
 }

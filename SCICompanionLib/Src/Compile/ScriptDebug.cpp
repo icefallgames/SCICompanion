@@ -15,7 +15,7 @@
 #include "ScriptOMAll.h"
 #include "AppState.h"
 #include "OutputCodeHelper.h"
-#include "OutputSCIStudioSourceCode.h"
+#include "OutputStudioSourceCode.h"
 #include "OutputCPPSourceCode.h"
 #include "OutputSCISourceCode.h"
 #include "StringUtil.h"
