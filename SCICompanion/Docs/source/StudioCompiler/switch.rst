@@ -10,70 +10,59 @@ Use the switch statement to pass control to a case which matches the result of t
 
 syntax::
 
-	(switch switch_expression
-		(case1
-			code_block_1
+	(switch (switch_expression)
+		(case (number)
 			code_block_2
-			...
-		)
-		(case2
-			code_block_1
-			code_block_2
-			...
 		)
 		. 
 		. 
 		. 
-		(else
-			code_block_1
-			code_block_2
-			...
+		(default
+			code_block_3
 		)
 	)
 
 Example using the switch statement - prints "01.....7....C........" to the screen::
 
-	(for ((= i 0)) (< i 20) ((++ i))
-		(switch i
-			(0 
-				(Display "0" dsCOLOR clLIME) 
+	(for (= i 0) (< i 20) (++i) 
+		(switch (i)
+			(case 0 
+				Display("0" dsCOLOR clLIME) 
 			) 
-			(1 
-				(Display "1" dsCOLOR clBLUE) 
+			(case 1 
+				Display("1" dsCOLOR clBLUE) 
 			) 
-			(7 
-				(Display "7" dsCOLOR clYELLOW) 
+			(case 7 
+				Display("7" dsCOLOR clYELLOW) 
 			) 
-			(12 
-				(Display "C" dsCOLOR clCYAN) 
+			(case 12 
+				Display("C" dsCOLOR clCYAN) 
 			) 
-			(else
-				(Display "." dsCOLOR clWHITE) 
+			(default 
+				Display("." dsCOLOR clWHITE) 
 			) 
 		) 
 	)
 
 Switch statements can also be evaluated as expressions::
 
-	; Set direction based on the key pressed.
+	// Set direction based on the key pressed.
 	(= direction
-		(switch (pEvent message?)
-			(KEY_W
+		(switch (pEvent:message))
+			(case KEY_W
 				UP
 			)
-			(KEY_S
+			(case KEY_S
 				DOWN
 			)
-			(KEY_D
+			(case KEY_D
 				RIGHT
 			)
-			(KEY_A
+			(case KEY_A
 				LEFT
 			)
-			(else
+			(default
 				CENTER
 			)
 		)
 	)
-
-See also: :doc:`if`, :doc:`switchto`, :doc:`cond`.

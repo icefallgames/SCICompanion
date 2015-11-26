@@ -8,16 +8,11 @@
 
 Comments are parts of your code that get ignored by the compiler. They allow you to remove parts of your code without deleting it, and place information in the script.
 
-To comment a line out, just place two forward slashes ("//") before it. The rest of the line will be ignored.
-
-To comment out multiple lines, start the comment with "/\*", and end it with "\*/".
+To create comment, use a semi-colon. The rest of the line will be ignored.
 
 Examples of comments::
 
-	/* This is
-	* a BIG
-	* Comment */
-	// this is ignored
-	(class MyClass of // Obj (this is ignored as well)
+	; this is a full line comment
+	(class MyClass of Object ; the rest of the line is ignored
 
    

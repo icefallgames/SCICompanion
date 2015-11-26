@@ -10,20 +10,23 @@ Return exits from a method or procedure.
 
 Syntax::
 
-	return
+	(return)
 
 or::
 
-	return(code block)
+	(return [optionalExpression])
 
 Example::
 
 	(procedure (CheckMouse)
-		return(HaveMouse())
+		(return (HaveMouse))
 	)
 
 	(procedure (AnotherProc) 
-		(if(CheckMouse())
-			Display("There's a mouse!")
+		(if (CheckMouse)
+			(Display "There's a mouse!")
+			(return) ; return immediately from procedure here
 		) 
+		(Display "No mouse, gonna do other stuff")
+		; do other stuff...
 	)

@@ -744,7 +744,7 @@ bool SCIClassBrowser::_AddFileName(std::string fullPath, bool fReplace)
         CScriptStreamLimiter limiter(&buffer);
         CCrystalScriptStream stream(&limiter);
         std::unique_ptr<Script> pScript = std::make_unique<Script>(fullPath.c_str());
-        if (g_Parser.Parse(*pScript, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), this))
+        if (SyntaxParser_Parse(*pScript, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), this))
         {
             Script *pWeakRef = pScript.get();
 
@@ -923,7 +923,7 @@ void SCIClassBrowser::TriggerCustomIncludeCompile(std::string name)
                         CScriptStreamLimiter limiter(&buffer);
                         CCrystalScriptStream stream(&limiter);
                         unique_ptr<Script> pNewHeader = std::make_unique<Script>(scriptId);
-                        if (g_Parser.Parse(*pNewHeader, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), nullptr))
+                        if (SyntaxParser_Parse(*pNewHeader, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), nullptr))
                         {
                             // For performance, let's pre-sort the defines.
                             std::sort(pNewHeader->GetDefines().begin(), pNewHeader->GetDefines().end(), 
@@ -1024,7 +1024,7 @@ std::unique_ptr<sci::Script> SCIClassBrowser::_LoadScript(PCTSTR pszPath)
         CScriptStreamLimiter limiter(&buffer);
         CCrystalScriptStream stream(&limiter);
         std::unique_ptr<Script> pScriptT = std::make_unique<Script>(pszPath);
-        if (g_Parser.Parse(*pScriptT, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), this))
+        if (SyntaxParser_Parse(*pScriptT, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), this))
         {
             pScript = move(pScriptT);
         }

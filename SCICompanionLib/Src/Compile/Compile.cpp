@@ -104,16 +104,6 @@ void ReportKeywordError(CompileContext &context, const ISourceCodePosition *pPos
     context.ReportError(pPos, strError.c_str());
 }
 
-enum
-{
-    BB_Default = 0,
-    BB_Success = 0,     // block for succeeded conditions
-    BB_Failure = 1,     // block for failed conditions
-    BB_Or = 2,          // For conditional expressions
-    BB_Break = 3,       // block for break statements
-    BB_PostElse = 4,    // block for the end of an if statement jumping to after the else.
-} BranchBlockIndex;
-
 std::vector<std::pair<BinaryOperator, Opcode>> c_rgOperatorToOpcode =
 {
     { BinaryOperator::Equal, Opcode::EQ },
@@ -224,7 +214,7 @@ void ForwardPreScan2(const vector<unique_ptr<T>> &container, CompileContext &con
 class branch_block_base
 {
 public:
-    branch_block_base(CompileContext &context, int index = 0) : _code(context.code())
+	branch_block_base(CompileContext &context, BranchBlockIndex index = BranchBlockIndex::Default) : _code(context.code())
     {
         _fActive = false;
         _index = index;
@@ -248,11 +238,11 @@ public:
         }
     }
     bool active() { return _fActive; }
-    int index() { return _index; }
+	BranchBlockIndex index() { return _index; }
 private:
     scicode &_code;
     bool _fActive;
-    int _index;
+	BranchBlockIndex _index;
 };
 
 //
@@ -262,7 +252,7 @@ private:
 class branch_block : public branch_block_base
 {
 public:
-    branch_block(CompileContext &context, int index = 0) : branch_block_base(context, index)
+	branch_block(CompileContext &context, BranchBlockIndex index = BranchBlockIndex::Default) : branch_block_base(context, index)
     {
         enter();
     }
@@ -765,8 +755,8 @@ CodeResult _OutputCodeForIfStatement(CompileContext &context, const SyntaxNode &
     declare_conditional isCondition(context, false);
     change_meaning meaning(context, fMeaning);
     // Begin two branch blocks.
-    branch_block blockTrue(context, BB_Success);
-    branch_block blockFalse(context, BB_Failure);
+    branch_block blockTrue(context, BranchBlockIndex::Success);
+    branch_block blockFalse(context, BranchBlockIndex::Failure);
     // Apply the condition, with result in accumulator.
     {
         declare_conditional isCondition(context, true);
@@ -783,8 +773,8 @@ CodeResult _OutputCodeForIfStatement(CompileContext &context, const SyntaxNode &
     {
         // There is an else clause.  Before writing it, we need to write in a jump instruction here so the if clause
         // jumps to after the else.
-        branch_block blockPostElse(context, BB_PostElse); // -> this is where we'll jump to
-        context.code().inst(Opcode::JMP, context.code().get_undetermined(), BB_PostElse);
+        branch_block blockPostElse(context, BranchBlockIndex::PostElse); // -> this is where we'll jump to
+        context.code().inst(Opcode::JMP, context.code().get_undetermined(), BranchBlockIndex::PostElse);
         // Leave the 'false' block, so the false will jump right here...
         blockFalse.leave();
         pFailure->OutputByteCode(context);
@@ -1621,7 +1611,7 @@ CodeResult ProcedureCall::OutputByteCode(CompileContext &context) const
 
 //
 // This function assumes that two branch block frames have been declared:
-// BB_Success and BB_Failure
+// BranchBlockIndex::Success and BranchBlockIndex::Failure
 //
 CodeResult ConditionalExpression::OutputByteCode(CompileContext &context) const
 {
@@ -1651,9 +1641,9 @@ CodeResult ConditionalExpression::OutputByteCode(CompileContext &context) const
         // We care about the result of the final term.
         // Enclose the final one in an OR branch block (above example, this would be C)
         {
-            branch_block_base orBlock(context, BB_Or);
+            branch_block_base orBlock(context, BranchBlockIndex::Or);
             result = (*it)->OutputByteCode(context);
-            context.code().inst(Opcode::BNT, context.code().get_undetermined(), BB_Failure);
+            context.code().inst(Opcode::BNT, context.code().get_undetermined(), BranchBlockIndex::Failure);
             assert(!orBlock.active());
         }
 
@@ -1962,14 +1952,14 @@ vector<BinaryOperator> BooleanOps =
 
 CodeResult BinaryOp::_OutputByteCodeAnd(CompileContext &context) const
 {
-    branch_block blockSuccess(context, BB_Success);
+    branch_block blockSuccess(context, BranchBlockIndex::Success);
     // Output the left operand.
     {
         COutputContext stackContext(context, OC_Accumulator);
         _statement1->OutputByteCode(context).GetType();
     }
 
-    context.code().inst(Opcode::BNT, context.code().get_undetermined(), BB_Failure);
+    context.code().inst(Opcode::BNT, context.code().get_undetermined(), BranchBlockIndex::Failure);
 
     blockSuccess.leave(); // Successes in the left operand, branch to here.
 
@@ -1985,7 +1975,7 @@ CodeResult BinaryOp::_OutputByteCodeAnd(CompileContext &context) const
 
 CodeResult BinaryOp::_OutputByteCodeOr(CompileContext &context) const
 {
-    branch_block blockFailure(context, BB_Failure);
+    branch_block blockFailure(context, BranchBlockIndex::Failure);
 
     // Output the left operand.
     {
@@ -1993,7 +1983,7 @@ CodeResult BinaryOp::_OutputByteCodeOr(CompileContext &context) const
         _statement1->OutputByteCode(context);
     }
 
-    context.code().inst(Opcode::BT, context.code().get_undetermined(), BB_Success);
+    context.code().inst(Opcode::BT, context.code().get_undetermined(), BranchBlockIndex::Success);
 
     blockFailure.leave(); // failure in the left operand, branch to here.
 
@@ -2202,9 +2192,9 @@ CodeResult ForLoop::OutputByteCode(CompileContext &context) const
     // Store the code pos of the beginning of the condition - we'll increment it to the first instruction later
     code_pos forStart = context.code().get_cur_pos();
 
-    branch_block blockSuccess(context, BB_Success);
-    branch_block blockFailure(context, BB_Failure);
-    branch_block blockBreak(context, BB_Break);
+    branch_block blockSuccess(context, BranchBlockIndex::Success);
+    branch_block blockFailure(context, BranchBlockIndex::Failure);
+    branch_block blockBreak(context, BranchBlockIndex::Break);
     // Put the condition into the accumulator
     {
         COutputContext accContext(context, OC_Accumulator);
@@ -2237,9 +2227,9 @@ CodeResult WhileLoop::OutputByteCode(CompileContext &context) const
     // Store the code pos of the beginning of the loop - we'll increment it to the first instruction later
     code_pos whileStart = context.code().get_cur_pos();
 
-    branch_block blockSuccess(context, BB_Success);
-    branch_block blockFailure(context, BB_Failure);
-    branch_block blockbreak(context, BB_Break);
+    branch_block blockSuccess(context, BranchBlockIndex::Success);
+    branch_block blockFailure(context, BranchBlockIndex::Failure);
+    branch_block blockbreak(context, BranchBlockIndex::Break);
     // Spit out the condition
     {
         COutputContext accContext(context, OC_Accumulator);
@@ -2272,9 +2262,9 @@ CodeResult DoLoop::OutputByteCode(CompileContext &context) const
     // Now spit out the code
     SingleStatementVectorOutputHelper(_segments, context);
 
-    branch_block blockSuccess(context, BB_Success);
-    branch_block blockFailure(context, BB_Failure);
-    branch_block blockBreak(context, BB_Break);
+    branch_block blockSuccess(context, BranchBlockIndex::Success);
+    branch_block blockFailure(context, BranchBlockIndex::Failure);
+    branch_block blockBreak(context, BranchBlockIndex::Break);
     // Now do the test, with result in the acc
     {
         COutputContext accContext(context, OC_Accumulator);
@@ -2723,9 +2713,9 @@ CodeResult BreakStatement::OutputByteCode(CompileContext &context) const
 {
     // jmp to the end of the current break block.
     // Report an error if there is none.
-    if (context.code().in_branch_block(BB_Break))
+    if (context.code().in_branch_block(BranchBlockIndex::Break))
     {
-        context.code().inst(Opcode::JMP, context.code().get_undetermined(), BB_Break);
+        context.code().inst(Opcode::JMP, context.code().get_undetermined(), BranchBlockIndex::Break);
         DEBUG_BRANCH(context.code(), DEBUG_BREAK);
     }
     else

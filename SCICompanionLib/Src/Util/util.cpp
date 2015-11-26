@@ -664,15 +664,19 @@ bool IsCodeFile(const std::string &text)
 
 LangSyntax ScriptId::Language() const
 {
-    if ((0 == strcmp(".scp", PathFindExtension(_strFileName.c_str()))))
-       // (0 == strcmp(".shp", PathFindExtension(_strFileName.c_str()))))
+    if (_language == LangSyntaxUnknown)
     {
-        return LangSyntaxCpp;
+        if ((0 == strcmp(".scp", PathFindExtension(_strFileName.c_str()))))
+            // (0 == strcmp(".shp", PathFindExtension(_strFileName.c_str()))))
+        {
+            return LangSyntaxCpp;
+        }
+        else
+        {
+            return LangSyntaxSCIStudio;
+        }
     }
-    else
-    {
-        return LangSyntaxSCIStudio;
-    }
+    return _language;
 }
 
 void ScriptId::_MakeLower()

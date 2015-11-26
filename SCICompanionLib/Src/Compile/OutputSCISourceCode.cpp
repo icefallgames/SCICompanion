@@ -122,7 +122,8 @@
     local variables:
         (local
             var1
-            var2 = [2 4 19 23 2 4]
+            var2 = 4
+            var3 = [2 4 19 23 2 4]
             [buffer 100]
             [buffer 20] = [1 2 3 4 5 6 7 8]
         )

@@ -40,9 +40,9 @@ objectType
 
 Examples::
 
-	FormatPrint("This object: %s is %d bytes large, has %d properties and $%04x as it's -info-." objectName objectSize objectTotalProperties objectInfo)
+	(Printf "This object: %s is %d bytes large, has %d properties and $%04x as it's -info-." objectName objectSize objectTotalProperties objectInfo)
 
-	FormatPrint(
+	(Printf
 		"%s\n"+
 		"object at $%04x of $%04x\n"+
 		"Methods at: $%04x\n"+

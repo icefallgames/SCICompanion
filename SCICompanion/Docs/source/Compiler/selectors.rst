@@ -6,31 +6,45 @@
  Selectors
 ================
 
-Selectors are identifiers for properties and methods of classes and instances.
-Each property and method has a selector index, which points to its name in vocab.997.
+Selectors are identifiers for *properties* and *methods* of classes and instances.
+Each property and method has a numerical selector index, which points to its name in vocab.997. Normally you don't need to worry about the numerical selector indices.
 
 Examples of selectors are: x, y, doit, init, dispose, changeState.
 
-Example::
+To retrieve a property for an object, use the object's name, followed by a space, then selector name with a question mark (?) appended.
 
-	// Using the x selector to retrieve a property:
-	FormatPrint("The x is %d" (send gEgo:x))
+Setting a property takes the same form as a method call: Use the object's name, followed by a space, then the selector name with a colon (:) appended.
+Following that come the arguments passed to the selector (the value to set the property to, or the parameters for the method).
 
-	// Using the z selector to set a property:
-	(myView:z(10))
+You can invoke multiple selectors on an object by separating the selector calls with commas (,).
 
-	// Calling a method selector:
-	(myView:init())
+Examples::
 
-However, you are also able to retrieve the numerical selector index of a property or method selector. To do this, you can use the # character::
+	; Using the x selector to retrieve a property:
+	(Printf "The ego's x is %d" (gEgo x?))
 
-	FormatPrint("The init selector index is %d" #init)
+	; Using the z selector to set a property on the myView object:
+	(myView z: 10)
+
+	; Calling a method selector on the myView object:
+	(myView init:)
+
+	; Calling multiple selectors on the myActor object:
+	(myActor
+		setCycle: Forward,
+		setMotion: MoveTo 100 30,
+		init:
+	)
+
+You are also able to retrieve the numerical selector index of a property or method selector. To do this, you can use the # character::
+
+	(Printf "The init selector index is %d" #init)
 
 One place this is useful is when you want to test if an object supports a particular property or method::
 
-	// Test if the object has a cue method before calling that cue method:
-	(if (send theObject:respondsTo(#cue))
-		(send theObject:cue())
+	; Test if the object has a cue method before calling that cue method:
+	(if (theObject respondsTo: #cue)
+		(theObject cue:)
 	)
 
 

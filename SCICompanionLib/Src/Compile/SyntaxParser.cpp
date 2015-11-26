@@ -13,71 +13,110 @@
 ***************************************************************************/
 #include "stdafx.h"
 #include "SyntaxParser.h"
+#include "StudioSyntaxParser.h"
+#include "CPPSyntaxParser.h"
+#include "SCISyntaxParser.h"
 
-// Our parser global variable
-SyntaxParser g_Parser;
+// Our parser global variables
+StudioSyntaxParser g_studio;
+CPPSyntaxParser g_cpp;
+SCISyntaxParser g_sci;
 
-bool SyntaxParser::ParseAC(sci::Script &script, CCrystalScriptStream::const_iterator &streamIt, std::unordered_set<std::string> preProcessorDefines, SyntaxContext *pContext)
+bool SyntaxParser_ParseAC(sci::Script &script, CCrystalScriptStream::const_iterator &streamIt, std::unordered_set<std::string> preProcessorDefines, SyntaxContext *pContext)
 {
     bool fRet = false;
+
     if (script.Language() == LangSyntaxSCIStudio)
     {
-        _sci.Load();
+        g_studio.Load();
         if (script.IsHeader())
         {
         }
         else
         {
-            fRet = _sci.Parse(script, streamIt, preProcessorDefines, *pContext);
+            fRet = g_studio.Parse(script, streamIt, preProcessorDefines, *pContext);
+        }
+    }
+    else if (script.Language() == LangSyntaxSCI)
+    {
+        g_sci.Load();
+        if (script.IsHeader())
+        {
+        }
+        else
+        {
+            fRet = g_sci.Parse(script, streamIt, preProcessorDefines, *pContext);
         }
     }
     return fRet;
 }
 
-bool SyntaxParser::Parse(sci::Script &script, CCrystalScriptStream &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pLog, bool fParseComments, SyntaxContext *pContext, bool addCommentsToOM)
+bool SyntaxParser_Parse(sci::Script &script, CCrystalScriptStream &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pLog, bool fParseComments, SyntaxContext *pContext, bool addCommentsToOM)
 {
     bool fRet = false;
     if (script.Language() == LangSyntaxSCIStudio)
     {
-        _sci.Load();
+        g_studio.Load();
         if (script.IsHeader())
         {
-            fRet = _sci.ParseHeader(script, stream.begin(), preProcessorDefines, pLog);
+            fRet = g_studio.ParseHeader(script, stream.begin(), preProcessorDefines, pLog);
         }
         else
         {
             if (pContext)
             {
                 // Someone is doing a partial compile (e.g. tooltips) and supply their own context.
-                fRet = _sci.Parse(script, stream.begin(), preProcessorDefines, *pContext);
+                fRet = g_studio.Parse(script, stream.begin(), preProcessorDefines, *pContext);
             }
             else
             {
                 // Or maybe someone either wants error logs:
-                fRet = _sci.Parse(script, stream.begin(), preProcessorDefines, pLog, addCommentsToOM);
+                fRet = g_studio.Parse(script, stream.begin(), preProcessorDefines, pLog, addCommentsToOM);
             }
         }
     }
     else if (script.Language() == LangSyntaxCpp)
     {
         // This code path is only used for the kernels. CPP-based syntax is not currently supported in SCI Companion.
-        _cpp.Load();
+        g_cpp.Load();
 
         // Tokenize it first.
         CrystalScriptTokenStream tokenStream(stream);
         tokenStream.Tokenize(fParseComments ? &script : nullptr);
         if (script.IsHeader())
         {
-            fRet = _cpp.ParseHeader(script, tokenStream.begin(), pLog);
+            fRet = g_cpp.ParseHeader(script, tokenStream.begin(), pLog);
         }
         else
         {
-            fRet = _cpp.Parse(script, tokenStream.begin(), pLog);
+            fRet = g_cpp.Parse(script, tokenStream.begin(), pLog);
         }
+    }
+    else if (script.Language() == LangSyntaxSCI)
+    {
+        g_sci.Load();
+        if (script.IsHeader())
+        {
+            fRet = g_sci.ParseHeader(script, stream.begin(), preProcessorDefines, pLog);
+        }
+        else
+        {
+            if (pContext)
+            {
+                // Someone is doing a partial compile (e.g. tooltips) and supply their own context.
+                fRet = g_sci.Parse(script, stream.begin(), preProcessorDefines, *pContext);
+            }
+            else
+            {
+                // Or maybe someone either wants error logs:
+                fRet = g_sci.Parse(script, stream.begin(), preProcessorDefines, pLog, addCommentsToOM);
+            }
+        }
+
     }
     else
     {
-        ASSERT(FALSE);
+        assert(false);
     }
     return fRet;
 }

@@ -94,6 +94,7 @@ BEGIN_MESSAGE_MAP(CScriptDocument, CDocument)
     ON_COMMAND(ID_FILE_SAVE, OnFileSave)
     ON_COMMAND(ID_FILE_SAVE_AS, OnFileSaveAs)
     ON_COMMAND(ID_COMPILE, OnCompile)
+	ON_COMMAND(ID_COMPILE_SCCTEMP, OnCompileAsSCI)
 #ifdef DOCSUPPORT
     ON_COMMAND(ID_COMPILEDOCS, OnCompileDocs)
 #endif
@@ -137,7 +138,7 @@ void CScriptDocument::OnCompileDocs()
         CCrystalScriptStream stream(&limiter);
 		std::unique_ptr<sci::Script> pScript(new sci::Script(_scriptId));
         CompileLog log;
-        if (g_Parser.Parse(*pScript, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log, true))
+        if (SyntaxParser_Parse(*pScript, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log, true))
         {
             CompileDocs(*pScript);
         }
@@ -214,6 +215,12 @@ void CScriptDocument::OnCompile()
     }
 }
 
+void CScriptDocument::OnCompileAsSCI()
+{
+    _scriptId.SetLanguage(LangSyntaxSCI);
+    OnCompile();
+}
+
 std::unique_ptr<sci::Script> SimpleCompile(CompileLog &log, ScriptId &scriptId, bool addCommentsToOM)
 {
     std::unique_ptr<sci::Script> script = make_unique<sci::Script>();
@@ -224,7 +231,7 @@ std::unique_ptr<sci::Script> SimpleCompile(CompileLog &log, ScriptId &scriptId, 
     {
         CScriptStreamLimiter limiter(&buffer);
         CCrystalScriptStream stream(&limiter);
-        if (g_Parser.Parse(*script, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log, addCommentsToOM))
+        if (SyntaxParser_Parse(*script, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log, addCommentsToOM))
         {
 
         }
@@ -249,7 +256,7 @@ bool NewCompileScript(CompileLog &log, CompileTables &tables, PrecompiledHeaders
 
 		std::unique_ptr<sci::Script> pScript = std::make_unique<sci::Script>(script);
 
-        if (g_Parser.Parse(*pScript, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log))
+        if (SyntaxParser_Parse(*pScript, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log))
         {
             if (script.GetResourceNumber() != pScript->GetScriptNumber())
             {
@@ -423,7 +430,7 @@ unique_ptr<sci::Script> _ParseScript(ScriptId id)
 
         std::unique_ptr<sci::Script> pScript = std::make_unique<sci::Script>(id);
         CompileLog log;
-        bool result = g_Parser.Parse(*pScript, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log);
+        bool result = SyntaxParser_Parse(*pScript, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log);
         buffer.FreeAll();
         if (result)
         {
@@ -512,7 +519,7 @@ void CScriptDocument::OnConvertScript()
             // 1)
             sci::Script script(_scriptId);
             CompileLog log;
-            bool fCompile = g_Parser.Parse(script, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log);;
+            bool fCompile = SyntaxParser_Parse(script, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log);;
             if (fCompile)
             {
                 ConvertToSCISyntaxHelper(script);

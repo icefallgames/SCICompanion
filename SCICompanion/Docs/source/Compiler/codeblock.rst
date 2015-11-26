@@ -10,9 +10,8 @@ A code block is a single piece of code such as variables and assignment operatio
 
 Examples of Code Blocks::
 
-	HaveMouse() // a code block
-	SomeVar // a code block
-	+ SomeVar 10 // a code block
+	(HaveMouse)		// a code block
+	(+ SomeVar 10)	// a code block
 	(+ SomeVar (& SomeOtherVar AnotherVar)) // a code block
 
 

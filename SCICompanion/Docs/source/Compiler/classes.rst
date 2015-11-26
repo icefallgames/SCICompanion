@@ -35,7 +35,7 @@ Class syntax::
 			<PropertyName> <PropertyValue>
 			...
 		)
-		(method (<MethodName> [<ParamName1> <ParamName2> ... (optional)])
+		(method (<MethodName> [<ParamName1> <ParamName2> ... &tmp <tempvar1> <tempvar2> ...])
 			<code>
 		)
 	)
@@ -47,7 +47,7 @@ Instance syntax::
 			<PropertyName> <PropertyValue>
 			...
 		)
-		(method (<MethodName> [<ParamName1> <ParamName2> ... (optional)])
+		(method (<MethodName> [<ParamName1> <ParamName2> ... &tmp <tempvar1> <tempvar2> ...])
 			<code>
 		)
 	)	
@@ -64,11 +64,11 @@ Examples::
 			priority 0
 		) 
 		(method (draw) 
-			DrawCel(view loop cel x y priority) 
+			(DrawCel view loop cel x y priority) 
 		) 
 		(method (setCoords newX newY) 
-			= x newX 
-			= y newY
+			(= x newX )
+			(= y newY)
 		)
 	)
 
@@ -83,11 +83,11 @@ Examples::
 			anotherProperty 200
 		) 
 		(method (getCelWidth) 
-			return(CelWide(view loop cel)) 
+			(return (CelWide view loop cel)) 
 		) 
 	)
 
-	(instance public Larry of LarryClass 
+	(instance Larry of LarryClass 
 		(properties 
 			x 80 
 			y 60 

@@ -44,7 +44,7 @@ unique_ptr<Script> GetDefinesScript(const GameFolderHelper &helper, const std::s
     {
         CScriptStreamLimiter limiter(&buffer);
         CCrystalScriptStream stream(&limiter);
-        if (!g_Parser.Parse(*script, stream, PreProcessorDefinesFromSCIVersion(helper.Version), &log))
+        if (!SyntaxParser_Parse(*script, stream, PreProcessorDefinesFromSCIVersion(helper.Version), &log))
         {
             assert(false);
         }

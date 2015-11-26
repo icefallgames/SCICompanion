@@ -24,6 +24,16 @@ enum class Opcode : uint8_t;
 
 const OperandType *GetOperandTypes(const SCIVersion &version, Opcode opcode);
 
+enum class BranchBlockIndex
+{
+    Default = 0,
+    Success = 0,     // block for succeeded conditions
+    Failure = 1,     // block for failed conditions
+    Or = 2,          // For conditional expressions
+    Break = 3,       // block for break statements
+    PostElse = 4,    // block for the end of an if statement jumping to after the else.
+};
+
 class scii
 {
 private:
@@ -125,12 +135,12 @@ typedef std::list<scii>::iterator code_pos;
 
 // Imminent fixups to be done when the next instruction is written
 typedef std::vector<code_pos> fixup_todos;
-typedef std::unordered_map<int, fixup_todos> fixup_todos_map;
+typedef std::unordered_map<BranchBlockIndex, fixup_todos> fixup_todos_map;
 
 // Record keeping of code_pos's that need to be moved to the above "todo" list when we leave a branch block
 
 typedef std::stack<fixup_todos> fixup_frames;
-typedef std::unordered_map<int, fixup_frames> fixup_frames_map;
+typedef std::unordered_map<BranchBlockIndex, fixup_frames> fixup_frames_map;
 
 // Is a map of "this target" was pointed at by "these sources"
 typedef std::multimap<code_pos, code_pos> code_pos_multimap;
@@ -165,7 +175,7 @@ public:
         _insertInstruction(scii(_version, bOpcode, w1, w2, w3));
         _checkBranchResolution();
     }
-	bool inst(Opcode bOpcode, code_pos branch, int index = 0)
+	bool inst(Opcode bOpcode, code_pos branch, BranchBlockIndex index = BranchBlockIndex::Default)
     {
         bool fUndetermined = (branch == get_undetermined());
         _insertInstruction(scii(_version, bOpcode, branch, fUndetermined));
@@ -235,9 +245,9 @@ public:
 
     // Put these around any code blocks that may generate branches.
     // Supplemental is needed when we have overlapping branch blocks.
-    void enter_branch_block(int index = 0);
-    void leave_branch_block(int index = 0);
-    bool in_branch_block(int index);
+	void enter_branch_block(BranchBlockIndex index = BranchBlockIndex::Default);
+	void leave_branch_block(BranchBlockIndex index = BranchBlockIndex::Default);
+	bool in_branch_block(BranchBlockIndex index);
 
     uint16_t calc_size();
     uint16_t offset_of(code_pos target);

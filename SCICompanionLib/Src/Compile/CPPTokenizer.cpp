@@ -18,7 +18,10 @@
 #include "CrystalScriptStream.h"
 #include "SyntaxParser.h"
 #include "ScriptOM.h"
+#include "SyntaxContext.h"
 #include "CompileInterfaces.h"
+#include "ParseAutoCompleteContext.h"
+#include "ParserCommon.h"
 
 using namespace std;
 

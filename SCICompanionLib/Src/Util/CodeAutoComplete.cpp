@@ -14,13 +14,17 @@
 #include "stdafx.h"
 #include "ClassBrowser.h"
 #include "ScriptOMAll.h"
-#include "StudioSyntaxParser.h"
+#include "CrystalScriptStream.h"
+#include "SyntaxParser.h"
+#include "SyntaxContext.h"
 #include "CodeAutoComplete.h"
 #include "AppState.h"
-#include "SyntaxParser.h"
 #include "format.h"
+
 using namespace sci;
 using namespace std;
+
+bool SyntaxParser_ParseAC(sci::Script &script, CCrystalScriptStream::const_iterator &streamIt, std::unordered_set<std::string> preProcessorDefines, SyntaxContext *pContext);
 
 AutoCompleteChoice::AutoCompleteChoice() { _iIcon = AutoCompleteIconIndex::Unknown; }
 AutoCompleteChoice::AutoCompleteChoice(const std::string &text, AutoCompleteIconIndex iIcon)
@@ -551,7 +555,7 @@ void AutoCompleteThread2::_DoWork()
                 AutoCompleteParseCallback callback(scriptNumber, context, *this, *limiter, id);
                 limiter->SetCallback(&callback);
 
-                bool result = g_Parser.ParseAC(script, it, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &context);
+                bool result = SyntaxParser_ParseAC(script, it, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &context);
             }
             else
             {

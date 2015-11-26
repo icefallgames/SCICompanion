@@ -12,8 +12,8 @@ When a script is compiled, an object file is created. Object files contain infor
 
 If other scripts need to use the classes, procedures, and/or variables of it, they use the "use" keyword, and the object file is read in to validate against the code the user has entered.
 
-For example, if you compiled a file myscript.sc, myscript.sco (the ojbect file) would be created.
+For example, if you compiled a file MyScript.sc, MyScript.sco (the object file) would be created.
 You could then use that script in other scripts. Below is an example::
 
-	(use "myscript")
+	(use MyScript)
 

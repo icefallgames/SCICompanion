@@ -13,14 +13,18 @@
 ***************************************************************************/
 #pragma once
 
-namespace sci
+enum class ParseAutoCompleteContext
 {
-    class Script;
-}
-class CCrystalScriptStream;
-class ICompileLog;
-class SyntaxContext;
-
-bool SyntaxParser_Parse(sci::Script &script, CCrystalScriptStream &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pLog = nullptr, bool fParseComments = false, SyntaxContext *pContext = nullptr, bool addCommentsToOM = false);
-
-std::unordered_set<std::string> PreProcessorDefinesFromSCIVersion(SCIVersion version);
+    None,
+    Selector,
+    ClassSelector,
+    Value,
+    TopLevelKeyword,
+    ClassLevelKeyword,
+    SuperClass,
+    ScriptName,
+    DefineValue,        // Only define constants allowed (not variables, methods, etc...)
+    Export,
+    LValue,
+    Block               // Use this in parsing in order to block searching up the context stack.
+};

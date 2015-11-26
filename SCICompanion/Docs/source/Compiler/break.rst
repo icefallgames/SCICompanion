@@ -1,25 +1,36 @@
-.. Break statement
+.. Break and Breakif statement
 
 .. include:: /includes/standard.rst
 
-=================
- Break statement
-=================
+================================
+ break and breakif statement
+================================
 
-Use break to exit from a loop.
+Use break to exit from a **for**, **while** or **repeat** loop, or breakif to exit from the loop conditionally.
 
 syntax::
 
-	break
+	(break)
+
+	(breakif conditional_expression)
 
 Example using the break statement::
 
 	(= GAME_RUNNING TRUE) 
-	(while (TRUE) // while(TRUE) causes an infinite loop
-		(self:doit()) 
-		(if( not GAME_RUNNING)
-			break // if GAME_RUNNING == FALSE, the loop will stop
-		) 
+	(repeat
+		(self doit:) 
+		(if (not GAME_RUNNING)
+			(break) ; if GAME_RUNNING == FALSE, the loop will stop
+		)
 	)
 
-See also: :doc:`for`, :doc:`while`, :doc:`if`, :doc:`do`.
+Example using the breakif statement::
+
+	(= GAME_RUNNING TRUE) 
+	(repeat
+		(self doit:) 
+		(breakif (not GAME_RUNNING)) ; if GAME_RUNNING == FALSE, the loop will stop
+	)
+
+
+See also: :doc:`for`, :doc:`while`, :doc:`repeat`.

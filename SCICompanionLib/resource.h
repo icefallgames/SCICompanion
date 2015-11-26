@@ -1138,6 +1138,7 @@
 #define ID_MAIN_COPY                    33291
 #define ID_EGO_COPY                     33292
 #define ID_CONVERT_SCRIPT               33296
+#define ID_COMPILE_SCCTEMP              33297
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -1146,7 +1147,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        402
-#define _APS_NEXT_COMMAND_VALUE         33297
+#define _APS_NEXT_COMMAND_VALUE         33298
 #define _APS_NEXT_CONTROL_VALUE         1383
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

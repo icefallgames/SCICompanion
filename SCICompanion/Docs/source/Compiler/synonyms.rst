@@ -14,10 +14,10 @@ Synonyms are used to assign word groups to other word groups::
 		'grab' = 'get'
 	) 
 	...
-	(if(Said('get')
-	   Print("Hello")
+	(if (Said 'get')
+	   (Print "Hello")
 	) 
-	// so now if they type get or grab it will print "Hello"
+	; so now if they type get or grab it will print "Hello"
 
 
 The synonyms are activated when the :func:`SetSynonyms` kernel is called. The template game automatically calls it, so you don't need to worry about it.

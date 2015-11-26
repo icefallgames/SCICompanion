@@ -93,6 +93,7 @@ private:
 
     // Msg handlers
     afx_msg void OnCompile();
+	afx_msg void OnCompileAsSCI();
 #ifdef DOCSUPPORT
     afx_msg void OnCompileDocs();
 #endif

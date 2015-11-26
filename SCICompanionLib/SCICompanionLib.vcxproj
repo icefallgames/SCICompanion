@@ -297,7 +297,10 @@
     <ClInclude Include="Src\Compile\NodeTypes.h" />
     <ClInclude Include="Src\Compile\Operators.h" />
     <ClInclude Include="Src\Compile\OperatorTables.h" />
+    <ClInclude Include="Src\Compile\ParseAutoCompleteContext.h" />
+    <ClInclude Include="Src\Compile\ParserActions.h" />
     <ClInclude Include="Src\Compile\SCISyntaxParser.h" />
+    <ClInclude Include="Src\Compile\SyntaxContext.h" />
     <ClInclude Include="Src\cpptoml\cpptoml.h" />
     <ClInclude Include="Src\Dialogs\AudioEditDialog.h" />
     <ClInclude Include="Src\Dialogs\AudioPreferencesDialog.h" />

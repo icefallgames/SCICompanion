@@ -10,10 +10,12 @@ Use while to implement a conditional loop.
 
 syntax::
 
-	(while (conditional_expression)
+	(while conditional_expression
 		code_block_1
+		code_block_2
+		...
 	)
 
-code_block_1 is continually executed until conditional expression evaluates to be FALSE (zero).
+The code blocks are continually executed until conditional_expression evaluates to be FALSE (zero).
 
-See also: :doc:`if`, :doc:`for`, :doc:`do`, :doc:`break`.
+See also: :doc:`repeat`, :doc:`for`, :doc:`break`.

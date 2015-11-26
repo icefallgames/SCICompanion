@@ -22,6 +22,7 @@
 #include "PMachine.h"
 #include "Operators.h"
 #include "OperatorTables.h"
+#include "ParserActions.h"
 
 using namespace sci;
 using namespace std;
@@ -257,22 +258,6 @@ Parser rootnode_d = generateRootNodeD();
 //
 // Actions
 //
-
-// Uses/Includes
-void AddUseA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->Script().AddUse(pContext->ScratchString());
-    }
-}
-void AddIncludeA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->Script().AddInclude(pContext->ScratchString());
-    }
-}
 
 void SetVersionA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
@@ -683,13 +668,7 @@ void FunctionParameterA(MatchResult &match, const Parser *pParser, SyntaxContext
         pContext->FunctionPtr->GetSignaturesNC()[0]->AddParam(std::move(param), false);
     }
 }
-void FunctionStatementA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->FunctionPtr->AddStatement(move(pContext->StatementPtrReturn));
-    }
-}
+
 void FunctionCloseA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
     pContext->FunctionPtr->SetEndPosition(stream.GetPosition());
@@ -724,7 +703,6 @@ void NoCaseE(MatchResult &match, const Parser *pParser, SyntaxContext *pContext,
         pContext->ReportError("Expected 'case' or 'default' keyword.", stream);
     }
 }
-
 
 template<typename _It>
 void IdentifierE(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const _It &stream)

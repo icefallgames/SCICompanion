@@ -41,7 +41,7 @@ inline void _DoComment(TContext *pContext, const _It &streamBegin, const _It &st
     // Transfer to string:
     copy(streamBegin, streamEnd, back_inserter(comment));
     // Create a new Comment syntax node and add it to the script
-	unique_ptr<sci::Comment> pComment = make_unique<sci::Comment>();
+    std::unique_ptr<sci::Comment> pComment = std::make_unique<sci::Comment>();
     pComment->SetPosition(streamBegin.GetPosition());
     pComment->SetEndPosition(streamEnd.GetPosition());
     pComment->SetName(comment); // The comment text
@@ -274,19 +274,4 @@ bool _ReadString(_It &stream, std::string &str)
     return false;
 }
 
-enum class ParseAutoCompleteContext
-{
-    None,
-    Selector,
-    ClassSelector,
-    Value,
-    TopLevelKeyword,
-    ClassLevelKeyword,
-    SuperClass,
-    ScriptName,
-    DefineValue,        // Only define constants allowed (not variables, methods, etc...)
-    Export,
-    LValue,
-    Block               // Use this in parsing in order to block searching up the context stack.
-};
-
+int charToI(char ch);

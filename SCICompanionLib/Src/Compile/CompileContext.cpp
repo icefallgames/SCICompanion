@@ -27,6 +27,8 @@
 #include <unordered_map>
 #include "Text.h"
 #include "ResourceEntity.h"
+#include "CCrystalTextBuffer.h"
+#include "CrystalScriptStream.h"
 
 using namespace sci;
 using namespace std;
@@ -1232,7 +1234,7 @@ void PrecompiledHeaders::Update(CompileContext &context, Script &script)
                         CScriptStreamLimiter limiter(&buffer);
                         CCrystalScriptStream stream(&limiter);
                         unique_ptr<Script> pNewHeader = std::make_unique<Script>(scriptId);
-                        if (g_Parser.Parse(*pNewHeader, stream, PreProcessorDefinesFromSCIVersion(context.GetVersion()), &context))
+                        if (SyntaxParser_Parse(*pNewHeader, stream, PreProcessorDefinesFromSCIVersion(context.GetVersion()), &context))
                         {
                             if (pNewHeader->IsHeader())
                             {

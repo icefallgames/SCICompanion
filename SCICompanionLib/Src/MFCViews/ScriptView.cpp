@@ -41,6 +41,7 @@
 #include "CObjectWrap.h"
 #include "ResourceEntity.h"
 #include "Task.h"
+#include "SyntaxContext.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -81,7 +82,7 @@ void DoToolTipParse(ScriptId scriptId, CCrystalScriptStream &stream, CScriptStre
     SyntaxContext context(stream.begin(), script, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), false);
     CToolTipSyntaxParserCallback callback(context, result);
     limiter.SetCallback(&callback);
-    g_Parser.Parse(script, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), nullptr, false, &context);
+    SyntaxParser_Parse(script, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), nullptr, false, &context);
 }
 
 // CScriptView

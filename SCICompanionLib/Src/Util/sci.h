@@ -438,19 +438,19 @@ static const WORD InvalidResourceNumber = 0xffff;
 class ScriptId
 {
 public:
-    ScriptId() { _wScriptNum = InvalidResourceNumber; };
+    ScriptId() : _language(LangSyntaxUnknown) { _wScriptNum = InvalidResourceNumber; };
 
-    ScriptId(const std::string &fullPath)
+    ScriptId(const std::string &fullPath) : _language(LangSyntaxUnknown)
     {
         _Init(fullPath.c_str());
     }
-    ScriptId(PCTSTR pszFullFileName)
+    ScriptId(PCTSTR pszFullFileName) : _language(LangSyntaxUnknown)
     {
         _Init(pszFullFileName);
     }
-    ScriptId(PCTSTR pszFileName, PCTSTR pszFolder)
+    ScriptId(PCTSTR pszFileName, PCTSTR pszFolder) : _language(LangSyntaxUnknown)
     {
-        ASSERT(StrChr(pszFileName, '\\') == NULL); // Ensure file and path are not mixed up.
+        assert(StrChr(pszFileName, '\\') == nullptr); // Ensure file and path are not mixed up.
         _strFileName = pszFileName;
         _strFolder = pszFolder;
         _MakeLower();
@@ -464,6 +464,7 @@ public:
         _strFileNameOrig = src._strFileNameOrig;
         _MakeLower();
         _wScriptNum = src.GetResourceNumber();
+        _language = src._language;
     }
 
     ScriptId& operator=( const ScriptId& src )
@@ -473,8 +474,11 @@ public:
         _strFileNameOrig = src._strFileNameOrig;
         _MakeLower();
         _wScriptNum = src.GetResourceNumber();
+        _language = src._language;
 		return( *this );
 	}
+
+    void SetLanguage(LangSyntax lang) { _language = lang; }
 
     BOOL IsNone() const { return _strFileName.empty(); }
     const std::string &GetFileName() const { return _strFileName; }
@@ -525,6 +529,7 @@ private:
     std::string _strFileName;
     std::string _strFileNameOrig;   // Not lower-cased
     WORD _wScriptNum;
+    LangSyntax _language;
 };
 
 //

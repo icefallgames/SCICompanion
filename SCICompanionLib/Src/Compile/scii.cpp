@@ -551,19 +551,19 @@ void scicode::fixup_offsets(const std::unordered_map<uint16_t, uint16_t> &fixups
     }
 }
 
-void scicode::enter_branch_block(int index)
+void scicode::enter_branch_block(BranchBlockIndex index)
 {
     fixup_todos emptyList;
     _fixupFrames[index].push(emptyList);
 }
-void scicode::leave_branch_block(int index)
+void scicode::leave_branch_block(BranchBlockIndex index)
 {
     fixup_todos &todos = _fixupTodos[index];
     fixup_frames &frames = _fixupFrames[index];
     todos.insert(todos.end(), frames.top().begin(), frames.top().end());
     frames.pop(); // We're done with this frame - it's been moved to the todo list
 }
-bool scicode::in_branch_block(int index)
+bool scicode::in_branch_block(BranchBlockIndex index)
 {
     // Ask if there is a block frame of this type
     return !_fixupFrames[index].empty();

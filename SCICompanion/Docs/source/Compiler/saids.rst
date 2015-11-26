@@ -30,8 +30,8 @@ The said words must be defined in vocab.000. Use the :doc:`vocabulary editor </v
 An example::
 
 	(method (handleEvent pEvent) 
-		(if (Said('open<door'))
-			// you open the door
+		(if (Said 'open<door')
+			; you open the door
 		)
 	)
 
@@ -41,38 +41,38 @@ Some more examples
 
 Often, you might want to enclose all your "look" handlers in one if statement, but still support just "look" all by itself::
 
-	(if (Said('look>'))
-		(if (Said('/wall'))
-			Print("The wall is covered in paint.")
+	(if (Said 'look>')
+		(if (Said '/wall')
+			(Print "The wall is covered in paint.")
 		)
-		(if (Said('/floor'))
-			Print("The floor is covered in dust.")
+		(if (Said '/floor')
+			(Print "The floor is covered in dust.")
 		)
-		(if (Said('[/!*]'))
+		(if (Said '[/!*]')
 			// this will handle just "look" by itself
-			Print("You are in a room with a floor and a wall.")
+			(Print "You are in a room with a floor and a wall.")
 		)
-		(if (Said('/*'))
+		(if (Said '/*')
 			// this will handle "look anyword"
-			Print("You don't see anything interesting about it.")
+			(Print "You don't see anything interesting about it.")
 		)
 	)
 
 If you wanted to handle "look around" just like look, you could do::
 
-	(if (Said('look>'))
-		(if (Said('/wall'))
-			Print("The wall is covered in paint.")
+	(if (Said 'look>')
+		(if (Said '/wall')
+			(Print "The wall is covered in paint.")
 		)
-		(if (Said('/floor'))
-			Print("The floor is covered in dust.")
+		(if (Said '/floor')
+			(Print "The floor is covered in dust.")
 		)
-		(if (Said('[/around]'))
-			// this will handle just "look" by itself, and also "look around"
-			Print("You are in a room with a floor and a wall.")
+		(if (Said '[/around]')
+			; this will handle just "look" by itself, and also "look around"
+			(Print "You are in a room with a floor and a wall.")
 		)
-		(if (Said('/*'))
-			Print("You don't see anything interesting about it.")
+		(if (Said '/*')
+			(Print "You don't see anything interesting about it.")
 		)
 	)
 
@@ -80,14 +80,14 @@ One thing to note is that the order of words in the Said string doesn't necessar
 There is more meaning to the Said string than that.  The below clause will respond positively to the user typing "Give food to the dog", or even "Give dog the food".
 However, surprisingly (and fortunately), it will not match "Give food the dog".  Rather than the particular word order in a sentence, the three parts of the follwing clause correspond to sentence parts::
 
-	(if (Said('give/food/dog'))
-		Print("You give the food to the dog.")
+	(if (Said 'give/food/dog')
+		(Print "You give the food to the dog.")
 	)
 
 Similarly::
 
-	(if (Said('point<up/flashlight'))
-		Print("You point the flashlight up, and see something curious.")
+	(if (Said 'point<up/flashlight')
+		(Print "You point the flashlight up, and see something curious.")
 	)
 
 The above will respond to "point flashlight up", but not "point up flashlight".

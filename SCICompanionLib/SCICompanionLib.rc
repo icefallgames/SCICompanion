@@ -303,6 +303,7 @@ BEGIN
     BUTTON      ID_INSERTOBJECT
     SEPARATOR
     BUTTON      ID_DEBUGROOM
+    BUTTON      ID_COMPILE_SCCTEMP
 END
 
 IDR_TOOLBARDRAWVIEW TOOLBAR 24, 24
@@ -3322,6 +3323,11 @@ BEGIN
     ID_TOGGLEGRIDLINES      "Toggle grid lines for lining up things\nToggle grid lines"
     ID_PIC_EDITCELDATA      "Edit the cel position and priority"
     ID_EGO_COPY             "Copy fake ego attributes to clipboard"
+END
+
+STRINGTABLE
+BEGIN
+    ID_COMPILE_SCCTEMP      "Compile as SCI"
 END
 
 #endif    // English (United States) resources
