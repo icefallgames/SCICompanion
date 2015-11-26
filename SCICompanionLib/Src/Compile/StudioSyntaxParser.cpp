@@ -206,24 +206,6 @@ void SendParamIsMethod(MatchResult &match, const Parser *pParser, SyntaxContext 
     }
 }
 
-
-
-//
-// Syntax node
-//
-// REVIEW: need to move this to SyntaxParser.h/.cpp, but I had trouble.
-bool SyntaxNodeD(const Parser *pParser, SyntaxContext *pContext, streamIt &stream)
-{
-    // Make room on the stack for a statement
-    pContext->PushSyntaxNode();
-    // Then call our sub parser
-    return pParser->_pa->Match(pContext, stream).Result();
-}
-void EndSyntaxNodeA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    // No matter what the state, pop a node off the stack.
-    pContext->DeleteAndPopSyntaxNode();
-}
 Parser generateSyntaxNodeD()
 {
     Parser syntaxnode(SyntaxNodeD);
@@ -296,16 +278,6 @@ void StatementA(MatchResult &match, const Parser *pParser, SyntaxContext *pConte
     }
 }
 
-template<typename _T>
-void SetStatementA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->CreateSyntaxNode<_T>(stream);
-        pContext->GetSyntaxNode<_T>()->SetPosition(stream.GetPosition());
-    }
-}
-
 template<typename _TOpType>
 _TOpType StudioNameToOperator(const std::string &name);
 
@@ -336,35 +308,6 @@ void SetOperatorA(MatchResult &match, const Parser *pParser, SyntaxContext *pCon
         _TOperator op = StudioNameToOperator<_TOperator>(pContext->ScratchString());
         assert(op != _TOperator::None);
         pContext->GetSyntaxNode<_T>()->Operator = op;
-    }
-}
-
-// Set the name of a SyntaxNode
-template<typename _T>
-void SetStatementNameA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->CreateSyntaxNode<_T>(stream);
-        pContext->GetSyntaxNode<_T>()->SetName(pContext->ScratchString());
-    }
-}
-template<typename _T>
-void SetSelectorNameA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->CreateSyntaxNode<_T>(stream);
-        pContext->GetSyntaxNode<_T>()->SetName(pContext->ScratchString());
-    }
-}
-
-template<typename _T>
-void SetNameA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->GetSyntaxNode<_T>()->SetName(pContext->ScratchString());
     }
 }
 
@@ -555,92 +498,6 @@ void FinishClassPropertyStatementA(MatchResult &match, const Parser *pParser, Sy
     }
 }
 
-// l-value
-void LValueIndexerA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-		pContext->GetSyntaxNode<LValue>()->SetIndexer(move(pContext->StatementPtrReturn));
-    }
-    else
-    {
-        pContext->ReportError("Expected array index.", stream);
-    }
-}
-
-// Assignments
-void AssignmentVariableA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        // This is the variable description we need to add to the assignment thing:
-		pContext->GetPrevSyntaxNode<Assignment>()->SetVariable(move(pContext->StealSyntaxNode<LValue>()));
-    }
-    else
-    {
-        pContext->ReportError("Expected variable.", stream);
-    }
-}
-
-template<typename _T, char const* error>
-void StatementBindTo1stA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-		pContext->GetSyntaxNode<_T>()->SetStatement1(move(pContext->StatementPtrReturn));
-    }
-    else if (error)
-    {
-        pContext->ReportError(error, stream);
-    }
-}
-template<typename _T, char const* error>
-void StatementBindTo2ndA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-		pContext->GetSyntaxNode<_T>()->SetStatement2(move(pContext->StatementPtrReturn));
-    }
-    else
-    {
-        std::string statementName = pContext->GetSyntaxNode<_T>()->ToString();
-        statementName += ":";
-        statementName += error;
-        pContext->ReportError(statementName.c_str(), stream);
-    }
-}
-
-// Add a statement to a SyntaxNode
-template<typename _T>
-void AddStatementA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->GetSyntaxNode<_T>()->AddStatement(move(pContext->StatementPtrReturn));
-    }
-}
-
-void StartStatementA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->PushSyntaxNode();
-    }
-}
-void FinishStatementA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->FinishStatement(true);
-        assert(pContext->StatementPtrReturn); // This is our "return value"
-        pContext->StatementPtrReturn->SetPosition(stream.GetPosition()); // Not the most accurate position, but good enough.
-    }
-    else
-    {
-        pContext->FinishStatement(false);
-    }
-}
-
 // asm
 void SetOpcodesExtraKeywordsA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
@@ -649,53 +506,6 @@ void SetOpcodesExtraKeywordsA(MatchResult &match, const Parser *pParser, SyntaxC
 void RemoveExtraKeywordsA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
     pContext->extraKeywords = nullptr;
-}
-
-// Complex properties
-void ComplexValueIntA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        ComplexPropertyValue *pValue = pContext->GetSyntaxNode<ComplexPropertyValue>();
-        pValue->SetValue(pContext->Integer, pContext->HexInt);
-        if (pContext->NegInt)
-        {
-            pValue->Negate();
-        }
-    }
-}
-void ComplexValuePointerA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->GetSyntaxNode<ComplexPropertyValue>()->SetType(ValueType::Pointer);
-    }
-}
-template<ValueType type>
-void ComplexValueStringA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        ValueType typeToUse = type;
-        ComplexPropertyValue *pValue = pContext->GetSyntaxNode<ComplexPropertyValue>();
-        if (pValue->GetType() == ValueType::Pointer)
-        {
-            assert(typeToUse == ValueType::Token);
-            typeToUse = ValueType::Pointer; // It was already decided it was a pointer.
-        }
-        pValue->SetValue(pContext->ScratchString(), typeToUse);
-    }
-}
-void ComplexValueIndexerA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->GetSyntaxNode<ComplexPropertyValue>()->SetIndexer(move(pContext->StatementPtrReturn));
-    }
-    else
-    {
-        pContext->ReportError("Expected array index.", stream);
-    }
 }
 
 //
@@ -799,13 +609,12 @@ void ErrorA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, 
     }
 }
 
-// Denoted as extern, so they can be used as function template parameters.
-extern char const errBinaryOp[] = "Expected second argument.";
-extern char const errCaseArg[] = "Expected case argument.";
-extern char const errSwitchArg[] = "Expected switch argument.";
-extern char const errSendObject[] = "Expected send object.";
-extern char const errArgument[] = "Expected argument.";
-extern char const errInteger[] = "Expected integer value.";
+char const errBinaryOp[] = "Expected second argument.";
+char const errCaseArg[] = "Expected case argument.";
+char const errSwitchArg[] = "Expected switch argument.";
+char const errSendObject[] = "Expected send object.";
+char const errArgument[] = "Expected argument.";
+char const errInteger[] = "Expected integer value.";
 
 //
 // The constructor sets up the parse tree
@@ -1031,17 +840,6 @@ void StudioSyntaxParser::Load()
             binary_operator[SetOperatorA<BinaryOp, BinaryOperator>]
         >>  statement[StatementBindTo1stA<BinaryOp, errArgument>]
         >>  statement[StatementBindTo2ndA<BinaryOp, errBinaryOp>];
-
-    // ? (exp) a b
-    /*
-    ternary_expression = 
-            question[StartTernary]
-            >> oppar[GeneralE]
-            >> syntaxnode_d[conditional[FinishConditionA<IfStatement>]]
-            >> clpar[GeneralE]
-            >> statement[StatementBindTo1stA<IfStatement, errArgument>]
-            >> statement[StatementBindTo2ndA<IfStatement, errBinaryOp>];
-            */
 
     // bnot done
     unary_operation =

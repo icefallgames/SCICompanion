@@ -496,7 +496,7 @@ public:
 #endif
         return newOne;
     }
-
+    
     // This is for wrapping a parser in another, such as when we want its
     // Match function to always match and act as a pre-action.
     // e.g. syntaxnode_d[value[FinishValueA]]

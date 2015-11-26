@@ -32,6 +32,9 @@ private:
     ParserSCI string_immediateValue;
     ParserSCI string_immediateValue2;
     ParserSCI array_init;
+    ParserSCI pointer;
+    ParserSCI general_token;
+    ParserSCI selector_literal;
 
     // Top level constructs
     ParserSCI include;
@@ -44,6 +47,23 @@ private:
     ParserSCI procedure_base;
     ParserSCI function_var_decl;
 
+    // Statements
+    ParserSCI statement;
+    ParserSCI return_statement;
+    ParserSCI value;
+    ParserSCI assignment;
+    ParserSCI assignment_operator;
+    ParserSCI binary_operation;
+    ParserSCI binary_operator;
+    ParserSCI unary_operator;
+    ParserSCI unary_operation;
+    ParserSCI lvalue;
+    ParserSCI rvalue_variable;
+    ParserSCI code_block;
+    ParserSCI rest_statement;
+    ParserSCI break_statement;
+    ParserSCI breakif_statement;
+    ParserSCI repeat_statement;
 
     // TODO:
     ParserSCI entire_header;
@@ -52,8 +72,13 @@ private:
     static ParserSCI char_p(const char *psz);
     static ParserSCI keyword_p(const char *psz);
     static ParserSCI operator_p(const char *psz);
+    static ParserSCI generateSyntaxNodeD();
 
+    ParserSCI syntaxnode_d;
     ParserSCI alphanum_p;
+    ParserSCI selector_p;
+    ParserSCI selector_send_p;
+    ParserSCI propget_p;
     ParserSCI filename_p;
     ParserSCI asmInstruction_p;
     ParserSCI alphanum_p2;// (AlphanumPNoKeyword);

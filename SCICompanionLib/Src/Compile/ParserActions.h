@@ -375,7 +375,210 @@ void ProcedureClassA(MatchResult &match, const _TParser *pParser, SyntaxContext 
 }
 
 
+// Add a statement to a SyntaxNode
+template<typename _T, typename _TParser>
+void AddStatementA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->GetSyntaxNode<_T>()->AddStatement(move(pContext->StatementPtrReturn));
+    }
+}
 
+template<typename _TParser>
+void StartStatementA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->PushSyntaxNode();
+    }
+}
+
+template<typename _TParser>
+void FinishStatementA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->FinishStatement(true);
+        assert(pContext->StatementPtrReturn); // This is our "return value"
+        pContext->StatementPtrReturn->SetPosition(stream.GetPosition()); // Not the most accurate position, but good enough.
+    }
+    else
+    {
+        pContext->FinishStatement(false);
+    }
+}
+
+template<typename _T, typename _TParser>
+void SetStatementA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->CreateSyntaxNode<_T>(stream);
+        pContext->GetSyntaxNode<_T>()->SetPosition(stream.GetPosition());
+    }
+}
+
+template<typename _T, char const* error, typename _TParser>
+void StatementBindTo1stA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->GetSyntaxNode<_T>()->SetStatement1(move(pContext->StatementPtrReturn));
+    }
+    else if (error)
+    {
+        pContext->ReportError(error, stream);
+    }
+}
+
+template<typename _T, char const* error, typename _TParser>
+void StatementBindTo2ndA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->GetSyntaxNode<_T>()->SetStatement2(move(pContext->StatementPtrReturn));
+    }
+    else
+    {
+        std::string statementName = pContext->GetSyntaxNode<_T>()->ToString();
+        statementName += ":";
+        statementName += error;
+        pContext->ReportError(statementName.c_str(), stream);
+    }
+}
+
+// Property values
+
+// Complex properties
+template<typename _TParser>
+void ComplexValueIntA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        ComplexPropertyValue *pValue = pContext->GetSyntaxNode<ComplexPropertyValue>();
+        pValue->SetValue(pContext->Integer, pContext->HexInt);
+        if (pContext->NegInt)
+        {
+            pValue->Negate();
+        }
+    }
+}
+
+template<typename _TParser>
+void ComplexValuePointerA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->GetSyntaxNode<ComplexPropertyValue>()->SetType(ValueType::Pointer);
+    }
+}
+
+template<sci::ValueType type, typename _TParser>
+void ComplexValueStringA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        ValueType typeToUse = type;
+        ComplexPropertyValue *pValue = pContext->GetSyntaxNode<ComplexPropertyValue>();
+        if (pValue->GetType() == ValueType::Pointer)
+        {
+            assert(typeToUse == ValueType::Token);
+            typeToUse = ValueType::Pointer; // It was already decided it was a pointer.
+        }
+        pValue->SetValue(pContext->ScratchString(), typeToUse);
+    }
+}
+
+template<typename _TParser>
+void ComplexValueIndexerA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->GetSyntaxNode<ComplexPropertyValue>()->SetIndexer(move(pContext->StatementPtrReturn));
+    }
+    else
+    {
+        pContext->ReportError("Expected array index.", stream);
+    }
+}
+
+//
+// Syntax node
+//
+template<typename _TParser>
+bool SyntaxNodeD(const _TParser *pParser, SyntaxContext *pContext, streamIt &stream)
+{
+    // Make room on the stack for a statement
+    pContext->PushSyntaxNode();
+    // Then call our sub parser
+    return pParser->_pa->Match(pContext, stream).Result();
+}
+template<typename _TParser>
+void EndSyntaxNodeA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    // No matter what the state, pop a node off the stack.
+    pContext->DeleteAndPopSyntaxNode();
+}
+
+// l-value
+template<typename _TParser>
+void LValueIndexerA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->GetSyntaxNode<LValue>()->SetIndexer(move(pContext->StatementPtrReturn));
+    }
+    else
+    {
+        pContext->ReportError("Expected array index.", stream);
+    }
+}
+
+// Assignments
+template<typename _TParser>
+void AssignmentVariableA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        // This is the variable description we need to add to the assignment thing:
+        pContext->GetPrevSyntaxNode<Assignment>()->SetVariable(move(pContext->StealSyntaxNode<LValue>()));
+    }
+    else
+    {
+        pContext->ReportError("Expected variable.", stream);
+    }
+}
+
+
+// Set the name of a SyntaxNode
+template<typename _T, typename _TParser>
+void SetStatementNameA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->CreateSyntaxNode<_T>(stream);
+        pContext->GetSyntaxNode<_T>()->SetName(pContext->ScratchString());
+    }
+}
+template<typename _T, typename _TParser>
+void SetSelectorNameA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->CreateSyntaxNode<_T>(stream);
+        pContext->GetSyntaxNode<_T>()->SetName(pContext->ScratchString());
+    }
+}
+
+template<typename _T, typename _TParser>
+void SetNameA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->GetSyntaxNode<_T>()->SetName(pContext->ScratchString());
+    }
+}
 
 // Errors
 template<typename _It, typename _TParser>
@@ -386,3 +589,12 @@ void IdentifierE(MatchResult &match, const _TParser *pParser, SyntaxContext *pCo
         pContext->ReportError("Expected keyword.", stream);
     }
 }
+
+// Denoted as extern, so they can be used as function template parameters.
+extern char const errBinaryOp[];
+extern char const errCaseArg[];
+extern char const errSwitchArg[];
+extern char const errSendObject[];
+extern char const errArgument[];
+extern char const errInteger[];
+

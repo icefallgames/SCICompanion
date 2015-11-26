@@ -252,6 +252,11 @@ void Script::SetScriptNumber(WORD wNumber)
     _scriptId.SetResourceNumber(wNumber);
 }
 
+ConditionalExpression::ConditionalExpression(std::unique_ptr<SyntaxNode> statement)
+{
+    AddStatement(std::move(statement));
+}
+
 //
 // Destructors for script objects.
 //

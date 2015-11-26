@@ -975,6 +975,7 @@ namespace sci
         DECLARE_NODE_TYPE(NodeTypeConditionalExpression)
     public:
         ConditionalExpression() {}
+        ConditionalExpression(std::unique_ptr<SyntaxNode> statement);
 		ConditionalExpression(const ConditionalExpression &src) = delete;
 		ConditionalExpression& operator=(const ConditionalExpression& src) = delete;
 
