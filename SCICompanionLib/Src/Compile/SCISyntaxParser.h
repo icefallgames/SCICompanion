@@ -9,7 +9,7 @@
 #include <deque>
 
 // Our parser...
-typedef ParserBase<SyntaxContext, streamIt, EatCommentCpp> ParserSCI;
+typedef ParserBase<SyntaxContext, streamIt, EatCommentSemi> ParserSCI;
 
 class SCISyntaxParser
 {
@@ -27,9 +27,22 @@ private:
 
     ParserSCI entire_script;
 
-    ParserSCI include;
-    ParserSCI scriptNum;
+    // Basics
+    ParserSCI immediateValue;
+    ParserSCI string_immediateValue;
+    ParserSCI string_immediateValue2;
+    ParserSCI array_init;
 
+    // Top level constructs
+    ParserSCI include;
+    ParserSCI use;
+    ParserSCI scriptNum;
+    ParserSCI define;
+    ParserSCI var_decl;
+    ParserSCI script_var;
+    ParserSCI procedure_decl;
+    ParserSCI procedure_base;
+    ParserSCI function_var_decl;
 
 
     // TODO:
@@ -41,14 +54,23 @@ private:
     static ParserSCI operator_p(const char *psz);
 
     ParserSCI alphanum_p;
+    ParserSCI filename_p;
     ParserSCI asmInstruction_p;
     ParserSCI alphanum_p2;// (AlphanumPNoKeyword);
     ParserSCI alwaysmatch_p;
-    ParserSCI alphanumopen_p;
     ParserSCI bracestring_p;
     ParserSCI squotedstring_p;
     ParserSCI quotedstring_p;
     ParserSCI oppar;
     ParserSCI clpar;
+    ParserSCI integer_p;
+    ParserSCI opbracket;
+    ParserSCI clbracket;
+    ParserSCI pound;
+    ParserSCI atsign;
+    ParserSCI comma;
+    ParserSCI colon;
+    ParserSCI equalSign;
+    ParserSCI question;
 };
 

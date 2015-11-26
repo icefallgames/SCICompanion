@@ -86,7 +86,6 @@ Parser atsign(CharP, "@");
 Parser comma(CharP, ",");
 Parser colon(CharP, ":");
 Parser equalSign(CharP, "=");
-Parser dot(CharP, ".");
 Parser question(CharP, "?");
 
 // SCIStudio syntax has a weird way to form conditional expressions that we don't want to pollute our object model.
@@ -397,76 +396,6 @@ void FinishSynonymA(MatchResult &match, const Parser *pParser, SyntaxContext *pC
     }
 }
 
-void ScriptNumberA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        if (pContext->PropertyValue.GetType() == ValueType::Number)
-        {
-			pContext->Script().SetScriptNumber(pContext->PropertyValue.GetNumberValue());
-        }
-        else
-        {
-			pContext->Script().SetScriptNumberDefine(pContext->PropertyValue.GetStringValue());
-        }
-    }
-}
-
-//
-// Defines
-//
-void CreateDefineA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->CreateDefine();
-        pContext->DefinePtr->SetScript(&pContext->Script());
-    }
-}
-void DefineLabelA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->DefinePtr->SetLabel(pContext->ScratchString());
-        pContext->DefinePtr->SetPosition(stream.GetPosition());
-    }
-    else
-    {
-        pContext->ReportError("Expected define label.", stream);
-    }
-}
-
-void DefineValueA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        IntegerFlags flags = IntegerFlags::None;
-        if (pContext->HexInt)
-        {
-            flags |= IntegerFlags::Hex;
-        }
-        if (pContext->NegInt)
-        {
-            flags |= IntegerFlags::Negative;
-        }
-        pContext->DefinePtr->SetValue(pContext->Integer, flags);
-    }
-    else
-    {
-        pContext->ReportError("Expected integer value.", stream);
-    }
-}
-void FinishDefineA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        if (pContext->ifDefDefineState != IfDefDefineState::False)
-        {
-            pContext->Script().AddDefine(move(pContext->DefinePtr));
-        }
-    }
-}
-
 void EvaluateIfDefA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
     if (match.Result())
@@ -482,77 +411,11 @@ void EvaluateEndIfA(MatchResult &match, const Parser *pParser, SyntaxContext *pC
     }
 }
 
-// Variable Declaration (e.g. foo[5])
-void CreateVarDeclA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->StartVariableDecl(pContext->ScratchString());
-        pContext->VariableDecl->SetPosition(stream.GetPosition());
-    }
-}
-void VarDeclSizeA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->VariableDecl->SetSize(pContext->Integer);
-    }
-}
-
-void VarDeclSizeConstantA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->VariableDecl->SetSize(pContext->ScratchString());
-    }
-}
-
-void VarDeclSizeErrorA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (!match.Result())
-    {
-        pContext->ReportError("Expected array size.", stream);
-    }
-}
-
 void ExpectedProperyValueE(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
     if (!match.Result())
     {
         pContext->ReportError("Expected a property value. Are you missing a property value in the list of properties?", stream);
-    }
-}
-
-// Script variable
-void CreateScriptVarA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->TransferScriptVariable();
-    }
-    else
-    {
-        pContext->ReportError("Expected variable declaration.", stream);
-    }
-}
-void ScriptVarInitA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        // Add a value to the script variable.
-        pContext->VariableDeclPtr->AddSimpleInitializer(pContext->PropertyValue);
-    }
-    else
-    {
-        pContext->ReportError("Script variables cannot be initialized with this type of value.", stream);
-    }
-}
-void FinishScriptVarA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->VariableDeclPtr->SetScript(&pContext->Script());
-        pContext->Script().AddVariable(move(pContext->VariableDeclPtr));
     }
 }
 
@@ -587,153 +450,11 @@ void FinishScriptStringA(MatchResult &match, const Parser *pParser, SyntaxContex
     }
 }
 
-// Function temp vars
-void StartFunctionTempVarA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        // Just make sure we clear out any value (in case its used for initialization).
-		// Actually this is no longer true. Variables aren't zero-initialized.
-		// We actually need to track whether or not the variable has an initial value. Temp variables (i.e. in functions)
-		// can only have initial values if they are not arrays (and the initial values are set explicitly by assignments in byte code)
-		// I guess this is an SCIStudio limitation, but we'll keep the same syntax.
-		pContext->PropertyValueWasSet = false;	// So we'll actually say it was not set.
-        pContext->PropertyValue.Zero();
-    }
-    else
-    {
-        pContext->ReportError("Expected variable name.", stream);
-    }
-}
-void FinishFunctionTempVarA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-		pContext->VariableDecl->SetPosition(stream.GetPosition());
-		// REVIEW
-        // Use the current PropertyValue for initialization (it not used, it was zero'd out in StartFunctionTempVarA)
-		if (pContext->PropertyValueWasSet)
-		{
-			pContext->FunctionPtr->AddVariable(move(pContext->VariableDecl), pContext->PropertyValue);
-		}
-		else
-		{
-			pContext->FunctionPtr->AddVariable(move(pContext->VariableDecl));
-		}
-    }
-}
-
-// Function
-void CreateProcedureA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->CreateProcedure();
-    }
-}
-void CreateMethodA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->CreateMethod();
-        pContext->FunctionPtr->SetOwnerClass(pContext->ClassPtr.get());
-    }
-}
-void ProcedurePublicA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        static_cast<ProcedurePtr>(pContext->FunctionPtr.get())->SetPublic(true);
-    }
-}
-void FunctionNameA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->FunctionPtr->SetName(pContext->ScratchString());
-        pContext->FunctionPtr->SetScript(&pContext->Script());
-        pContext->FunctionPtr->SetPosition(stream.GetPosition());
-    }
-    else
-    {
-        pContext->ReportError("Expected function name.", stream);
-    }
-}
-void FunctionParameterA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        std::unique_ptr<FunctionParameter> param = std::make_unique<FunctionParameter>(pContext->ScratchString());
-        param->SetPosition(stream.GetPosition());
-        pContext->FunctionPtr->GetSignaturesNC()[0]->AddParam(std::move(param), false);
-    }
-}
-
-void FunctionCloseA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    pContext->FunctionPtr->SetEndPosition(stream.GetPosition());
-    if (!match.Result() && pParser->_psz) // Check for _psz here... might have ')', or nothing.
-    {
-        GeneralE(match, pParser, pContext, stream);
-    }
-}
-void FinishProcedureA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-		pContext->Script().AddProcedure(move(pContext->GetFunctionAsProcedure()));
-    }
-}
-void ProcedureClassA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        static_cast<ProcedurePtr>(pContext->FunctionPtr.get())->SetClass(pContext->ScratchString());
-    }
-    else
-    {
-        pContext->ReportError("Expected class name.", stream);
-    }
-}
-
 void NoCaseE(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
     if (!match.Result())
     {
         pContext->ReportError("Expected 'case' or 'default' keyword.", stream);
-    }
-}
-
-template<typename _It>
-void IdentifierE(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const _It &stream)
-{
-    if (!match.Result())
-    {
-        pContext->ReportError("Expected keyword.", stream);
-    }
-}
-
-void PropValueIntA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-		pContext->PropertyValueWasSet = true;
-        pContext->PropertyValue.SetValue(pContext->Integer, pContext->HexInt);
-        if (pContext->NegInt)
-        {
-			pContext->PropertyValue.Negate();
-        }
-		pContext->PropertyValue.SetPosition(stream.GetPosition());
-    }
-}
-template<ValueType type>
-void PropValueStringA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-		pContext->PropertyValueWasSet = true;
-        pContext->PropertyValue.SetValue(pContext->ScratchString(), type);
-        pContext->PropertyValue.SetPosition(stream.GetPosition());
     }
 }
 

@@ -62,15 +62,6 @@ public:
     void Accept(ISyntaxNodeVisitor &visitor) const override;
 };
 
-template<typename _It>
-void IdentifierE(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const _It &stream)
-{
-    if (!match.Result())
-    {
-        pContext->ReportError("Expected keyword.", stream);
-    }
-}
-
 ParserSCI SCISyntaxParser::char_p(const char *psz) { return ParserSCI(CharP, psz); }
 ParserSCI SCISyntaxParser::operator_p(const char *psz) { return ParserSCI(OperatorP, psz); }
 ParserSCI SCISyntaxParser::keyword_p(const char *psz) { return ParserSCI(KeywordP, psz); }
@@ -78,14 +69,23 @@ ParserSCI SCISyntaxParser::keyword_p(const char *psz) { return ParserSCI(Keyword
 SCISyntaxParser::SCISyntaxParser() :
     oppar(char_p("(")),
     clpar(char_p(")")),
+    opbracket(char_p("[")),
+    clbracket(char_p("]")),
+    pound(char_p("#")),
+    atsign(char_p("@")),
+    comma(char_p(",")),
+    colon(char_p(":")),
+    equalSign(char_p("=")),
+    question(char_p("?")),
     alphanum_p(AlphanumP),
+    filename_p(FilenameP),
     asmInstruction_p(AsmInstructionP),
     alphanum_p2(AlphanumPNoKeyword),
     alwaysmatch_p(AlwaysMatchP),
-    alphanumopen_p(AlphanumOpenP),
     bracestring_p(BraceStringP),
     squotedstring_p(SQuotedStringP),
-    quotedstring_p(QuotedStringP)
+    quotedstring_p(QuotedStringP),
+    integer_p(IntegerExpandedP)
 {
 }
 
@@ -100,12 +100,51 @@ void SCISyntaxParser::Load()
     }
     _fLoaded = true;
 
-    include = keyword_p("include") >> quotedstring_p[{AddIncludeA, ParseAutoCompleteContext::Block}];
+    // An integer or plain alphanumeric token
+    immediateValue = integer_p[PropValueIntA] | alphanum_p[PropValueStringA<ValueType::Token>] | bracestring_p[PropValueStringA<ValueType::Token>];
+    string_immediateValue = integer_p[PropValueIntA] | alphanum_p[PropValueStringA<ValueType::Token>] | quotedstring_p[{ PropValueStringA<ValueType::String>, ParseAutoCompleteContext::Block}];
+    string_immediateValue2 = integer_p[PropValueIntA] | alphanum_p[PropValueStringA<ValueType::Token>] | quotedstring_p[{PropValueStringA<ValueType::String>, ParseAutoCompleteContext::Block}] | bracestring_p[PropValueStringA<ValueType::Token>];
+
+    // Top level constructs
+    include = keyword_p("include") >> (quotedstring_p | filename_p)[{AddIncludeA, ParseAutoCompleteContext::Block}];
+    use = keyword_p("use") >> (quotedstring_p | filename_p)[{AddUseA, ParseAutoCompleteContext::ScriptName}];
+    scriptNum = keyword_p("script") >> immediateValue[{ScriptNumberA, ParseAutoCompleteContext::DefineValue }];
+
+    define = keyword_p("define")[CreateDefineA] >> alphanum_p[DefineLabelA] >> integer_p[DefineValueA];
+
+    // An array initializer
+    array_init = opbracket >> *(string_immediateValue2[ScriptVarInitAutoExpandA]) >> clbracket;  // [0 0 $4c VIEW_EGO]
+
+    // Variable declaration, with optional array size (array size must be numeric!)
+    // A   or  [A 6]   or [A MY_ARRAY_SIZE]
+    var_decl =
+        (opbracket >> alphanum_p[CreateVarDeclA] >> (integer_p[VarDeclSizeA] | alphanum_p2[VarDeclSizeConstantA])[VarDeclSizeErrorA] >> clbracket) |
+        alphanum_p[CreateVarDeclA];
+
+    script_var = keyword_p("local")
+        >> *((var_decl[CreateScriptVarA] >> -(equalSign[GeneralE] >> (string_immediateValue2[ScriptVarInitA] | array_init)))[FinishScriptVarA]);
+
+    // StartFunctionTempVarA is needed to reset "was initializer value set". There are no initializer values for function variables in this syntax.
+    function_var_decl = keyword_p("&tmp")[StartFunctionTempVarA] >> +(var_decl[FinishFunctionTempVarA]);
+
+    // (procname param param &tmp tmp tmp tmp)
+    procedure_base = oppar
+        >> alphanum_p[FunctionNameA]
+        >> *alphanum_p[FunctionParameterA]
+        >> *function_var_decl
+        >> clpar[GeneralE];
+        //>> *statement[FunctionStatementA];
+
+    procedure_decl = keyword_p("procedure")[CreateProcedureA] >> procedure_base[{FunctionCloseA, ParseAutoCompleteContext::Block}];
 
     // TODO:
     entire_script = *(oppar[GeneralE]
     >> (include
-        | scriptNum)[{IdentifierE, ParseAutoCompleteContext::TopLevelKeyword}]
+        | use
+        | define[FinishDefineA]
+        | procedure_decl[FinishProcedureA]
+        | scriptNum
+        | script_var)[{IdentifierE, ParseAutoCompleteContext::TopLevelKeyword}]
         >> clpar[GeneralE]);
     }
 
