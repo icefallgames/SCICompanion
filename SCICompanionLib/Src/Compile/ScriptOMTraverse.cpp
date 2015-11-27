@@ -253,6 +253,10 @@ void BreakStatement::Traverse(IExploreNode &en)
 {
 	ExploreNodeBlock enb(en, *this);
 }
+void ContinueStatement::Traverse(IExploreNode &en)
+{
+    ExploreNodeBlock enb(en, *this);
+}
 void RestStatement::Traverse(IExploreNode &en)
 {
 	ExploreNodeBlock enb(en, *this);

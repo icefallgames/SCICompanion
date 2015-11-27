@@ -573,6 +573,7 @@ void ForLoop::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); 
 void WhileLoop::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
 void DoLoop::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
 void BreakStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
+void ContinueStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
 void CaseStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
 void SwitchStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
 void CondStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }

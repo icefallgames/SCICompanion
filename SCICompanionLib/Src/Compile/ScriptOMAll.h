@@ -278,12 +278,29 @@ namespace sci
     {
         DECLARE_NODE_TYPE(NodeTypeBreak)
     public:
+        BreakStatement() : Levels(1) {}
+
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const;
         void Traverse(IExploreNode &en);
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 
+        uint16_t Levels;
+    };
+
+    class ContinueStatement : public SyntaxNode
+    {
+        DECLARE_NODE_TYPE(NodeTypeContinue)
+    public:
+        ContinueStatement() : Levels(1) {}
+        // IOutputByteCode
+        CodeResult OutputByteCode(CompileContext &context) const;
+        void Traverse(IExploreNode &en);
+
+        void Accept(ISyntaxNodeVisitor &visitor) const override;
+
+        uint16_t Levels;
     };
 
     class CaseStatementBase : public SyntaxNode, public StatementsNode, public OneStatementNode

@@ -75,6 +75,7 @@ class CompileContext;
 //          CodeBlock
 //          SyntaxNode - ???
 //      BreakStatement
+//      ContinueStatement
 //      RestStatement
 //          PropertyValue
 //          
@@ -128,6 +129,7 @@ namespace sci
     class WhileLoop;
     class DoLoop;
     class BreakStatement;
+    class ContinueStatement;
     class CaseStatement;
     class SwitchStatement;
     class CondStatement;
@@ -168,6 +170,7 @@ namespace sci
         virtual void Visit(const WhileLoop &whileLoop) = 0;
         virtual void Visit(const DoLoop &doLoop) = 0;
         virtual void Visit(const BreakStatement &breakStatement) = 0;
+        virtual void Visit(const ContinueStatement &breakStatement) = 0;
         virtual void Visit(const CaseStatement &caseStatement) = 0;
         virtual void Visit(const SwitchStatement &switchStatement) = 0;
         virtual void Visit(const CondStatement &condStatement) = 0;

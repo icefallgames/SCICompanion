@@ -47,6 +47,7 @@ namespace sci
         NodeTypeWhileLoop,
         NodeTypeDoLoop,
         NodeTypeBreak,
+        NodeTypeContinue,
         NodeTypeRest,
         NodeTypeScript,
         NodeTypeComment,

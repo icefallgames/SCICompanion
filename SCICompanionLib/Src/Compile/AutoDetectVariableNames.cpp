@@ -336,6 +336,7 @@ public:
     void Visit(const WhileLoop &whileLoop) override {}
     void Visit(const DoLoop &doLoop) override {}
     void Visit(const BreakStatement &breakStatement) override {}
+    void Visit(const ContinueStatement &breakStatement) override {}
     void Visit(const CaseStatement &caseStatement) override {}
     void Visit(const SwitchStatement &switchStatement) override {}
     void Visit(const CondStatement &switchStatement) override{}
@@ -433,6 +434,7 @@ public:
     void Visit(const WhileLoop &whileLoop) override {}
     void Visit(const DoLoop &doLoop) override {}
     void Visit(const BreakStatement &breakStatement) override {}
+    void Visit(const ContinueStatement &breakStatement) override {}
     void Visit(const CaseStatement &caseStatement) override {}
     void Visit(const SwitchStatement &switchStatement) override {}
     void Visit(const CondStatement &switchStatement) override {}

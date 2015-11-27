@@ -528,6 +528,13 @@ public:
         EndStatement(out);
     }
 
+    void Visit(const ContinueStatement &breakStatement) override
+    {
+        out.SyncComments(breakStatement);
+        out.out << "continue /* NOT SUPPORTED */";
+        EndStatement(out);
+    }
+
     void Visit(const CaseStatement &caseStatement) override
     {
         out.SyncComments(caseStatement);

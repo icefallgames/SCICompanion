@@ -527,6 +527,13 @@ public:
         out.out << "break";
     }
 
+    void Visit(const ContinueStatement &breakStatement) override
+    {
+        out.SyncComments(breakStatement);
+        DebugLine line(out);
+        out.out << "continue /* continue is not supported, code restructure is needed */";
+    }
+
     void Visit(const CaseStatement &caseStatement) override
     {
         out.SyncComments(caseStatement);

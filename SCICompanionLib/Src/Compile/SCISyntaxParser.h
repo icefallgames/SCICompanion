@@ -72,6 +72,8 @@ private:
     ParserSCI rest_statement;
     ParserSCI break_statement;
     ParserSCI breakif_statement;
+    ParserSCI continue_statement;
+    ParserSCI contif_statement;
     ParserSCI repeat_statement;
     ParserSCI procedure_call;
     ParserSCI send_call;

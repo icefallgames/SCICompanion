@@ -52,7 +52,7 @@ vector<string> SCIKeywords =
     "if",
     "asm",
     "break",
-    "breakof",
+    "breakif",
     "continue",
     "contif",
     "repeat",
@@ -209,15 +209,16 @@ void SetRepeatStatementA(MatchResult &match, const ParserSCI *pParser, SyntaxCon
     }
 }
 
-void FinishBreakIfA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+template<typename _TBreakContinue>
+void FinishBreakContinueIfA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
     if (match.Result())
     {
         // We should have an If statement. Add the current thing to its conditional.
         pContext->GetSyntaxNode<IfStatement>()->SetCondition(make_unique<ConditionalExpression>(move(pContext->StatementPtrReturn)));
-        // And its contents should be a CodeBlock with a single Break statement.
+        // And its contents should be a CodeBlock with a single Break/Continue statement.
         auto codeBlock = make_unique<CodeBlock>();
-        codeBlock->AddStatement(make_unique<BreakStatement>());
+        codeBlock->AddStatement(make_unique<_TBreakContinue>());
         pContext->GetSyntaxNode<IfStatement>()->SetStatement1(move(codeBlock));
     }
 }
@@ -369,7 +370,14 @@ void SCISyntaxParser::Load()
 
     breakif_statement =
         keyword_p("breakif")[SetStatementA<IfStatement>]
-        >> statement[FinishBreakIfA];
+        >> statement[FinishBreakContinueIfA<BreakStatement>];
+
+    continue_statement =
+        keyword_p("continue")[SetStatementA<ContinueStatement>];
+
+    contif_statement =
+        keyword_p("contif")[SetStatementA<IfStatement>]
+        >> statement[FinishBreakContinueIfA<ContinueStatement>];
 
     bare_code_block =
         alwaysmatch_p[StartStatementA]
@@ -432,13 +440,14 @@ void SCISyntaxParser::Load()
         >> statement[StatementBindTo1stA<SwitchStatement, errSwitchArg>]
         >> *switchto_case_statement[SetCaseA<SwitchStatement>];
 
-    // BUG: The problem is that statement matches even if there were nothing. I think send calls need to come
-    // first.
+    // (SomeProc param1 param2 param3)
     procedure_call = alphanumNK_p[SetStatementNameA<ProcedureCall>] >> *statement[AddStatementA<ProcedureCall>];
 
     // posn: x y z
     send_param_call = selector_send_p[SetStatementNameA<SendParam>] >> alwaysmatch_p[SendParamIsMethod] >> *statement[AddStatementA<SendParam>];
 
+    // expression selectorA: one two three, selectorB: one two
+    // expression selectorA?
     send_call = (alwaysmatch_p[SetStatementA<SendCall>] // Simple form, e.g. gEgo
         >> ((alphanumSendToken_p[SetNameA<SendCall>]) | statement[StatementBindTo1stA<SendCall, errSendObject>])) // Expression, e.g. [clients 4], or (GetTheGuy)
         >>
@@ -536,6 +545,8 @@ void SCISyntaxParser::Load()
         switch_statement |
         breakif_statement |
         break_statement |
+        continue_statement |
+        contif_statement |
         code_block |
         send_call |             // Send has to come before procedure. Because procedure will match (foo sel:)
         procedure_call |

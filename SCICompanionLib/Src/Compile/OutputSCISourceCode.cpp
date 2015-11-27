@@ -1043,6 +1043,13 @@ public:
         out.out << "(break)";
     }
 
+    void Visit(const ContinueStatement &breakStatement) override
+    {
+        out.SyncComments(breakStatement);
+        DebugLine line(out);
+        out.out << "(continue)";
+    }
+
     void Visit(const CaseStatement &caseStatement) override
     {
         out.SyncComments(caseStatement);
@@ -1179,7 +1186,7 @@ public:
         return nullptr;
     }
 
-    const BreakStatement *_GetSingleBreakStatementInThenBlock(const IfStatement &ifStatement)
+    const bool _GetSingleBreakContinueStatementInThenBlock(const IfStatement &ifStatement, std::string &breakOrContinueIf)
     {
         const CodeBlock *thenBlock = SafeSyntaxNode<CodeBlock>(ifStatement.GetStatement1());
         const CodeBlock *elseBlock = SafeSyntaxNode<CodeBlock>(ifStatement.GetStatement2());
@@ -1187,15 +1194,25 @@ public:
             thenBlock &&
             (thenBlock->GetStatements().size() == 1))
         {
-            return SafeSyntaxNode<BreakStatement>(thenBlock->GetStatements()[0].get());
+            if (SafeSyntaxNode<BreakStatement>(thenBlock->GetStatements()[0].get()))
+            {
+                breakOrContinueIf = "breakif";
+                return true;
+            }
+            else if (SafeSyntaxNode<ContinueStatement>(thenBlock->GetStatements()[0].get()))
+            {
+                breakOrContinueIf = "contif";
+                return true;
+            }
         }
-        return nullptr;
+        return false;
     }
 
     void Visit(const IfStatement &ifStatement) override
     {
         Inline inln(out, false);	// Line by line now, overall
         {
+            std::string breakOrContinueIf;
             // Detect the cond pattern
             const IfStatement *singleIf = _GetSingleIfStatementInElseBlock(ifStatement);
             if (singleIf)
@@ -1269,17 +1286,17 @@ public:
                     out.out << ")";
                 }
             }
-            else if (_GetSingleBreakStatementInThenBlock(ifStatement))
+            else if (_GetSingleBreakContinueStatementInThenBlock(ifStatement, breakOrContinueIf))
             {
                 // This is:
-                //      (if (...) break)
+                //      (if (...) break)    ; or continue
                 //
                 // We change it to
-                //      (breakif (...))
+                //      (breakif (...))     ; or contif
                 out.EnsureNewLine();
                 {
                     DebugLine ifLine(out);
-                    out.out << "(breakif ";
+                    out.out << "(" << breakOrContinueIf << " ";
                     Inline inlineCondition(out, true); // But the condition is inline
                     ifStatement.GetCondition()->Accept(*this);
                     DebugLine closeLine(out);

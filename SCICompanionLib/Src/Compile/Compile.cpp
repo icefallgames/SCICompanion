@@ -66,6 +66,7 @@ using namespace std;
 #define DEBUG_SWITCH_NEXT       11
 #define DEBUG_SWITCH_END        12
 #define DEBUG_BREAK             13
+#define DEBUG_CONTINUE          14
 #define DEBUG_BRANCH(code, info) (code).set_debug_info(info)
 #else
 #define DEBUG_BRANCH(code, info)
@@ -257,6 +258,49 @@ public:
         enter();
     }
 };
+
+// Helper class to ensure we leave a continue frame.
+// A continue frame with an undetermine code_pos means we should have a branch_block for it too.
+// This is confusing, so let's list out the loops:
+//  - while loop: continue jumps to start of condition. Always jumping back.
+//  - for loop: continue jumps to the post-loop code. Always jumping forward to an unknown spot (needs branch_block)
+//  - do loop: continue jumps to the start of the code. Always jumping back, but to an unknown spot. Don't currently
+//             have the infrastructure to handle this, but that's ok, because there are no syntaxes where both continue
+//             and do-loops are supported.
+class continue_frame_guard
+{
+public:
+    // For when we already know the continue target.
+    continue_frame_guard(CompileContext &context, code_pos knownContinuePos) : _code(context.code()), _active(true)
+    {
+        _code.enter_continue_frame(knownContinuePos);
+    }
+    // For when the continue target will be written later.
+    continue_frame_guard(CompileContext &context) : _code(context.code()), _active(true)
+    {
+        _code.enter_continue_frame(_code.get_undetermined());
+        _branchBlock = std::make_unique<branch_block>(context, BranchBlockIndex::Continue);
+    }
+    ~continue_frame_guard() { leave(); }
+    void leave()
+    {
+        if (_active)
+        {
+            _code.leave_continue_frame();
+            if (_branchBlock)
+            {
+                _branchBlock->leave();
+            }
+            _active = false;
+        }
+    }
+private:
+    scicode &_code;
+    bool _active;
+    // Used in case when we don't know the target.
+    std::unique_ptr<branch_block> _branchBlock;
+};
+
 
 //
 // RAII for variable lookups
@@ -2204,12 +2248,19 @@ CodeResult ForLoop::OutputByteCode(CompileContext &context) const
     // Make this correct:
     ++forStart;
     assert(forStart != context.code().get_undetermined()); // Make sure Condition wrote something!
+    // From here on, continues should work. But we don't know our continue destination yet,
+    // so we need to use a branch_block:
+    continue_frame_guard blockContinue(context);
 
     // Time for the bulk of the code
     blockSuccess.leave(); // successful condition jump to here.
     SingleStatementVectorOutputHelper(_segments, context);
 
     // And finally the looper.
+    // First though, leave the continue block. The continue frame will be remove (no more continues allowed),
+    // and the next instruction written will end up being the target of any continues encountered while
+    // the continue block was active.
+    blockContinue.leave();
     _looper->OutputByteCode(context);
 
     // Now jump back to the test
@@ -2239,6 +2290,7 @@ CodeResult WhileLoop::OutputByteCode(CompileContext &context) const
     // Increment this so it points to the first instruction
     whileStart++;
     assert(whileStart != context.code().get_undetermined()); // Make sure Condition wrote something!
+    continue_frame_guard continueFrame(context, whileStart); // This is where continues will jump
 
     // Now spit out the code
     blockSuccess.leave(); // We're starting the success part of the while loop.
@@ -2263,6 +2315,7 @@ CodeResult DoLoop::OutputByteCode(CompileContext &context) const
     SingleStatementVectorOutputHelper(_segments, context);
 
     branch_block blockSuccess(context, BranchBlockIndex::Success);
+    branch_block blockContinue(context, BranchBlockIndex::Continue);
     branch_block blockFailure(context, BranchBlockIndex::Failure);
     branch_block blockBreak(context, BranchBlockIndex::Break);
     // Now do the test, with result in the acc
@@ -2275,6 +2328,7 @@ CodeResult DoLoop::OutputByteCode(CompileContext &context) const
     // Not the most efficient - ideally a condition would be able to jump backward
     // But instead we'll have it jump here, upon which we'll jump back to the start.
     blockSuccess.leave();
+    blockContinue.leave();
 
     if (wasEmpty)
     {
@@ -2736,6 +2790,41 @@ CodeResult BreakStatement::OutputByteCode(CompileContext &context) const
     else
     {
         context.ReportError(this, "A break statement can only be used within a loop.");
+    }
+    return 0; // void
+}
+
+CodeResult ContinueStatement::OutputByteCode(CompileContext &context) const
+{
+    // Continues may jump backwards or forwards.
+    code_pos continueTarget;
+    if (context.code().get_continue_target(1, continueTarget))
+    {
+        if (continueTarget == context.code().get_undetermined())
+        {
+            // This is a jump forward whose target has not yet been determined. This means there
+            // should be a branch block for us.
+            if (context.code().in_branch_block(BranchBlockIndex::Continue))
+            {
+                context.code().inst(Opcode::JMP, context.code().get_undetermined(), BranchBlockIndex::Continue);
+                DEBUG_BRANCH(context.code(), DEBUG_CONTINUE);
+            }
+            else
+            {
+                assert(false && "internal compiler error");
+            }
+        }
+        else
+        {
+            // Easy... jump to the backwards target:
+            context.code().inst(Opcode::JMP, continueTarget, BranchBlockIndex::Continue);
+        }
+    }
+    else
+    {
+        // NOTE: We could get here if there is a continue in a do-loop also, since that is not supported.
+        // That should never happen though, since no syntax supports both do-loops and continues.
+        context.ReportError(this, "A continue statement can only be used within a loop.");
     }
     return 0; // void
 }

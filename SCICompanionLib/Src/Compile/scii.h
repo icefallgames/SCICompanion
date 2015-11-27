@@ -32,6 +32,7 @@ enum class BranchBlockIndex
     Or = 2,          // For conditional expressions
     Break = 3,       // block for break statements
     PostElse = 4,    // block for the end of an if statement jumping to after the else.
+    Continue = 5,    // block for continue statements
 };
 
 class scii
@@ -269,6 +270,18 @@ public:
     // Helper function for scii.set_branch_target, which automatically figures out the branch direction.
     void set_call_target(code_pos thisInstruction, code_pos callsHere);
 
+    void enter_continue_frame(code_pos pos) { _continueFrames.push_back(pos); }
+    void leave_continue_frame() { _continueFrames.pop_back(); }
+    bool get_continue_target(uint16_t levels, code_pos &target)
+    {
+        if (levels <= _continueFrames.size())
+        {
+            target = _continueFrames[_continueFrames.size() - levels];
+            return true;
+        }
+        return false;
+    }
+
 private:
 
     void _insertInstruction(const scii &inst);
@@ -284,6 +297,8 @@ private:
     bool _fInsertionPoint;
     std::stack<code_pos> _insertionPoints;
     code_pos_multimap _targetToSources;
+
+    std::vector<code_pos> _continueFrames;
 
     const SCIVersion &_version;
 };
