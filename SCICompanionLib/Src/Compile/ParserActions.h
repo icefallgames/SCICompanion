@@ -721,6 +721,14 @@ void RemoveExtraKeywordsA(MatchResult &match, const _TParser *pParser, SyntaxCon
 {
     pContext->extraKeywords = nullptr;
 }
+template<typename _TParser>
+void SetLabelA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->GetSyntaxNode<Asm>()->SetLabel(pContext->ScratchString());
+    }
+}
 
 // switch/case
 template<typename _TParser>

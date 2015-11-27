@@ -87,6 +87,11 @@ private:
     ParserSCI case_statement;
     ParserSCI switchto_statement;
     ParserSCI switchto_case_statement;
+    ParserSCI asm_statement;
+    ParserSCI asm_block;
+    ParserSCI asm_label;
+    ParserSCI asm_arg;
+    ParserSCI cond_statement;
 
     // TODO:
     ParserSCI entire_header;
@@ -98,7 +103,7 @@ private:
     static ParserSCI generateSyntaxNodeD();
 
     ParserSCI syntaxnode_d;
-    //ParserSCI alphanum_p;
+    ParserSCI alphanumAsmLabel_p;
     ParserSCI selector_p;
     ParserSCI selector_send_p;
     ParserSCI propget_p;

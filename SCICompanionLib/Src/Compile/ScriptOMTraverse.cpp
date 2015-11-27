@@ -136,6 +136,12 @@ void SwitchStatement::Traverse(IExploreNode &en)
 	_statement1->Traverse(en);
     ForwardTraverse2(_cases, en);
 }
+void CondStatement::Traverse(IExploreNode &en)
+{
+    ExploreNodeBlock enb(en, *this);
+    if (_statement1) { _statement1->Traverse(en); }
+    ForwardTraverse2(_clausesTemp, en);
+}
 void ForLoop::Traverse(IExploreNode &en)
 {
 	ExploreNodeBlock enb(en, *this);

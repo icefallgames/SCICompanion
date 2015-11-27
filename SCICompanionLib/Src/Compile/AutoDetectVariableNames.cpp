@@ -338,6 +338,7 @@ public:
     void Visit(const BreakStatement &breakStatement) override {}
     void Visit(const CaseStatement &caseStatement) override {}
     void Visit(const SwitchStatement &switchStatement) override {}
+    void Visit(const CondStatement &switchStatement) override{}
     void Visit(const Assignment &assignment) override {}
     void Visit(const BinaryOp &binaryOp) override {}
     void Visit(const UnaryOp &unaryOp) override {}
@@ -434,6 +435,7 @@ public:
     void Visit(const BreakStatement &breakStatement) override {}
     void Visit(const CaseStatement &caseStatement) override {}
     void Visit(const SwitchStatement &switchStatement) override {}
+    void Visit(const CondStatement &switchStatement) override {}
     void Visit(const Assignment &assignment) override {}
     void Visit(const BinaryOp &binaryOp) override {}
     void Visit(const UnaryOp &unaryOp) override {}

@@ -484,6 +484,15 @@ std::string Comment::GetSanitizedText() const
     }
 }
 
+CodeBlock::CodeBlock(SyntaxNodeVector statements) : StatementsNode(std::move(statements)) {}
+
+CodeBlock::CodeBlock(std::unique_ptr<SyntaxNode> statement) { _segments.push_back(std::move(statement)); }
+
+StatementsNode::StatementsNode(SyntaxNodeVector statements) : _segments(std::move(statements))
+{
+
+}
+
 void SourceCodeWriter::IndentToCommentColumn()
 {
     ptrdiff_t origPosition = (ptrdiff_t)out.tellp();
@@ -560,6 +569,7 @@ void DoLoop::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
 void BreakStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
 void CaseStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
 void SwitchStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
+void CondStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
 void Assignment::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
 void BinaryOp::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
 void UnaryOp::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }

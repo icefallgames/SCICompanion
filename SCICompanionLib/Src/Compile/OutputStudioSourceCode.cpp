@@ -555,6 +555,11 @@ public:
         }
     }
 
+    void Visit(const CondStatement &condStatement) override
+    {
+        if (condStatement.GetStatement1()) { condStatement.GetStatement1()->Accept(*this); }
+    }
+
     void Visit(const SwitchStatement &switchStatement) override
     {
         Inline inln(out, false);

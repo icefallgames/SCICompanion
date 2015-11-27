@@ -130,6 +130,7 @@ namespace sci
     class BreakStatement;
     class CaseStatement;
     class SwitchStatement;
+    class CondStatement;
     class Assignment;
     class BinaryOp;
     class UnaryOp;
@@ -169,6 +170,7 @@ namespace sci
         virtual void Visit(const BreakStatement &breakStatement) = 0;
         virtual void Visit(const CaseStatement &caseStatement) = 0;
         virtual void Visit(const SwitchStatement &switchStatement) = 0;
+        virtual void Visit(const CondStatement &condStatement) = 0;
         virtual void Visit(const Assignment &assignment) = 0;
         virtual void Visit(const BinaryOp &binaryOp) = 0;
         virtual void Visit(const UnaryOp &unaryOp) = 0;
@@ -596,6 +598,7 @@ namespace sci
     {
     public:
 		StatementsNode() {} 
+        StatementsNode(SyntaxNodeVector statements);
 		StatementsNode(const StatementsNode &src) = delete;
 		StatementsNode& operator=(StatementsNode& src) = delete;
 
@@ -957,6 +960,8 @@ namespace sci
         DECLARE_NODE_TYPE(NodeTypeCodeBlock)
     public:
         CodeBlock() {}
+        CodeBlock(std::unique_ptr<SyntaxNode> statement);
+        CodeBlock(SyntaxNodeVector statements);
         CodeBlock(const CodeBlock &src) = delete;
         CodeBlock& operator=(const CodeBlock& src) = delete;
 

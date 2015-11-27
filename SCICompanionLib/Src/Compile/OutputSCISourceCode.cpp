@@ -166,6 +166,14 @@
         )
 */
 
+// In Studio syntax, we need to wrap some class names and tokens in {} to identify them as tokens.
+// For instance b-moveCnt, or -info-. However, in the original syntax, I don't think this is needed.
+// For now, however, we'll keep track of the places that need this by having this dummy function:
+std::string CleanTokenSCI(const std::string &src)
+{
+    return src;
+}
+
 using namespace sci;
 using namespace std;
 
@@ -468,10 +476,10 @@ public:
         {
             out.out << "(class ";
         }
-        out.out << CleanToken(classDef.GetName());
+        out.out << CleanTokenSCI(classDef.GetName());
         if (!classDef.GetSuperClass().empty())
         {
-            out.out << " of " << CleanToken(classDef.GetSuperClass());
+            out.out << " of " << CleanTokenSCI(classDef.GetSuperClass());
         }
         out.out << out.NewLineString();
 
@@ -542,7 +550,7 @@ public:
             else
             {
                 // Surround in braces if there are spaces in the string.
-                out.out << CleanToken(prop.GetStringValue());
+                out.out << CleanTokenSCI(prop.GetStringValue());
             }
             break;
         case ValueType::Selector:
@@ -589,7 +597,7 @@ public:
     {
         out.SyncComments(classProp);
         DebugLine line(out, classProp);
-        out.out << CleanToken(classProp.GetName()) << " ";
+        out.out << CleanTokenSCI(classProp.GetName()) << " ";
         Inline inln(out, true);
         classProp.GetStatement1()->Accept(*this);
     }
@@ -755,7 +763,7 @@ public:
     {
         out.SyncComments(sendParam);
         DebugLine debugLine(out);
-        out.out << CleanToken(sendParam.GetSelectorName()) << ":";
+        out.out << CleanTokenSCI(sendParam.GetSelectorName()) << ":";
         DetectIfWentNonInline detect(out);
         if (!sendParam.GetSelectorParams().empty())
         {
@@ -784,7 +792,7 @@ public:
         // This sucks because of all the different forms we have.
         if (!sendCall.GetTargetName().empty())
         {
-            out.out << CleanToken(sendCall.GetTargetName()); 
+            out.out << CleanTokenSCI(sendCall.GetTargetName()); 
         }
         else if (sendCall.GetStatement1())
         {
@@ -1060,6 +1068,11 @@ public:
             DebugLine line(out);
             out.out << ")";
         }
+    }
+
+    void Visit(const CondStatement &condStatement) override
+    {
+        if (condStatement.GetStatement1()) { condStatement.GetStatement1()->Accept(*this); }
     }
 
     void Visit(const SwitchStatement &switchStatement) override
@@ -1363,7 +1376,7 @@ public:
     void Visit(const ExportEntry &exportEntry) override
     {
         DebugLine exportLine(out);
-        out.out << CleanToken(exportEntry.Name) << " " << exportEntry.Slot;
+        out.out << CleanTokenSCI(exportEntry.Name) << " " << exportEntry.Slot;
     }
 };
 

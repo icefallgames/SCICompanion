@@ -2487,6 +2487,21 @@ CodeResult SwitchStatement::OutputByteCode(CompileContext &context) const
     return CodeResult(wBytes, DataTypeNone);
 }
 
+CodeResult CondStatement::OutputByteCode(CompileContext &context) const
+{
+    // Pass through
+    assert(_clausesTemp.empty());
+    if (_statement1) { return _statement1->OutputByteCode(context); }
+    return 0;
+}
+
+void CondStatement::PreScan(CompileContext &context)
+{
+    // Pass through
+    assert(_clausesTemp.empty());
+    if (_statement1) {_statement1->PreScan(context); }
+}
+
 //
 // Returns the code_pos of the begining of the function.
 //

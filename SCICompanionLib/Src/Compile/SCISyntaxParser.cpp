@@ -9,62 +9,6 @@
 using namespace sci;
 using namespace std;
 
-// Remains to be seen if we actually need these.
-class CondClauseStatement : public CaseStatementBase
-{
-    DECLARE_NODE_TYPE(NodeTypeCondClause)
-
-public:
-    // IOutputByteCode
-    CodeResult OutputByteCode(CompileContext &context) const;
-
-    void Accept(ISyntaxNodeVisitor &visitor) const override;
-};
-
-class CondStatement : public SyntaxNode, public OneStatementNode
-{
-    DECLARE_NODE_TYPE(NodeTypeCond)
-public:
-    // IOutputByteCode
-    CodeResult OutputByteCode(CompileContext &context) const;
-    void PreScan(CompileContext &context);
-    void Traverse(IExploreNode &en);
-
-    void AddClause(std::unique_ptr<CondClauseStatement> pCase) { _clauses.push_back(std::move(pCase)); }
-
-    void Accept(ISyntaxNodeVisitor &visitor) const override;
-
-    std::vector<std::unique_ptr<CondClauseStatement>> _clauses;
-
-private:
-    CondStatement(const CondStatement &src) = delete;
-    CondStatement& operator=(const CondStatement& src) = delete;
-};
-
-class BreakIfStatement : public SyntaxNode, public OneStatementNode
-{
-    DECLARE_NODE_TYPE(NodeTypeBreakIf)
-public:
-    // IOutputByteCode
-    CodeResult OutputByteCode(CompileContext &context) const;
-    void PreScan(CompileContext &context);
-    void Traverse(IExploreNode &en);
-
-    void Accept(ISyntaxNodeVisitor &visitor) const override;
-};
-
-class RepeatStatement : public SyntaxNode, public StatementsNode
-{
-    DECLARE_NODE_TYPE(NodeTypeRepeat)
-public:
-    // IOutputByteCode
-    CodeResult OutputByteCode(CompileContext &context) const;
-    void PreScan(CompileContext &context);
-    void Traverse(IExploreNode &en);
-
-    void Accept(ISyntaxNodeVisitor &visitor) const override;
-};
-
 void NoCaseE(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
     if (!match.Result())
@@ -133,14 +77,15 @@ vector<string> SCIKeywords =
     "public",
     "define",
     "&tmp",
-    "&rest"
+    "&rest",
+    "script#"
     // neg, send, case, do, default, export are also keywords, but for the Studio language.
 };
 
 template<typename _It, typename _TContext>
 bool AlphanumPNoKeywordOrTerm(const ParserSCI *pParser, _TContext *pContext, _It &stream)
 {
-    bool fRet = AlphanumP(pParser, pContext, stream);
+    bool fRet = SelectorP(pParser, pContext, stream);
     if (fRet)
     {
         char chTerm = *stream;
@@ -161,7 +106,7 @@ bool AlphanumPNoKeywordOrTerm(const ParserSCI *pParser, _TContext *pContext, _It
 template<typename _It, typename _TContext>
 bool AlphanumPSendTokenOrTerm(const ParserSCI *pParser, _TContext *pContext, _It &stream)
 {
-    bool fRet = AlphanumP(pParser, pContext, stream);
+    bool fRet = SelectorP(pParser, pContext, stream);
     if (fRet)
     {
         char chTerm = *stream;
@@ -320,12 +265,13 @@ void AddLooperCodeBlockA(MatchResult &match, const ParserSCI *pParser, SyntaxCon
     }
 }
 
+template<typename _T>
 void SetCaseA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
     if (match.Result())
     {
         // This is the variable description we need to add to the assignment thing:
-        pContext->GetSyntaxNode<SwitchStatement>()->AddCase(pContext->StealStatementReturn<CaseStatement>());
+        pContext->GetSyntaxNode<_T>()->AddCase(pContext->StealStatementReturn<CaseStatement>());
     }
 }
 
@@ -349,8 +295,8 @@ SCISyntaxParser::SCISyntaxParser() :
     colon(char_p(":")),
     equalSign(char_p("=")),
     question(char_p("?")),
-    //alphanum_p(AlphanumP),
-    selector_p(SelectorP),
+    alphanumAsmLabel_p(AlphanumP),
+    //selector_p(SelectorP),
     selector_send_p(SelectorP_Term<':'>),
     propget_p(SelectorP_Term<'?'>),
     filename_p(FilenameP),
@@ -385,13 +331,13 @@ void SCISyntaxParser::Load()
     // Top level constructs
     include = keyword_p("include") >> (quotedstring_p | filename_p)[{AddIncludeA, ParseAutoCompleteContext::Block}];
     use = keyword_p("use") >> (quotedstring_p | filename_p)[{AddUseA, ParseAutoCompleteContext::ScriptName}];
-    scriptNum = keyword_p("script") >> immediateValue[{ScriptNumberA, ParseAutoCompleteContext::DefineValue }];
+    scriptNum = keyword_p("script#") >> immediateValue[{ScriptNumberA, ParseAutoCompleteContext::DefineValue }];
 
     define = keyword_p("define")[CreateDefineA] >> alphanumNK_p[DefineLabelA] >> integer_p[DefineValueA];
 
     general_token = (alphanumNK_p | bracestring_p)[{nullptr, ParseAutoCompleteContext::None, "TOKEN"}];
 
-    selector_literal = pound >> selector_p[{nullptr, ParseAutoCompleteContext::Selector}];
+    selector_literal = pound >> alphanumNK_p[{nullptr, ParseAutoCompleteContext::Selector}];
 
     pointer = atsign;
 
@@ -467,7 +413,12 @@ void SCISyntaxParser::Load()
     switch_statement =
         keyword_p("switch")[SetStatementA<SwitchStatement>]
         >> statement[StatementBindTo1stA<SwitchStatement, errSwitchArg>]
-        >> *case_statement[SetCaseA];
+        >> *case_statement[SetCaseA<SwitchStatement>];
+
+    // Nearly identical parsing to a switch statement. We re-work it to ifs in post-processing.
+    cond_statement =
+        keyword_p("cond")[SetStatementA<CondStatement>]
+        >> *case_statement[SetCaseA<CondStatement>];
 
     switchto_case_statement =
         alwaysmatch_p[StartStatementA]
@@ -479,7 +430,7 @@ void SCISyntaxParser::Load()
     switchto_statement =
         keyword_p("switchto")[SetStatementA<SwitchStatement>]
         >> statement[StatementBindTo1stA<SwitchStatement, errSwitchArg>]
-        >> *switchto_case_statement[SetCaseA];
+        >> *switchto_case_statement[SetCaseA<SwitchStatement>];
 
     // BUG: The problem is that statement matches even if there were nothing. I think send calls need to come
     // first.
@@ -542,6 +493,29 @@ void SCISyntaxParser::Load()
         unary_operator[SetOperatorA<UnaryOp, UnaryOperator>]
         >> statement[StatementBindTo1stA<UnaryOp, errArgument>];
 
+    asm_arg =
+        alwaysmatch_p[StartStatementA]
+        >> value[FinishStatementA]
+        >> !(colon | question);    // If colon, then it's the next line's label, if question it's actaully an opcode (e.g. le? ne?)
+
+    asm_label =
+        alphanumAsmLabel_p
+        >> colon[SetLabelA];
+
+    asm_statement =
+        alwaysmatch_p[StartStatementA]
+        >> (alwaysmatch_p[SetStatementA<Asm>]
+        >> -asm_label                                               // Optional label
+        >> asmInstruction_p[SetNameA<Asm>]                                // Instruction name
+        >> -(asm_arg[AddStatementA<Asm>] % comma[GeneralE]))[FinishStatementA];         // command separated values
+
+    asm_block = oppar
+        >> keyword_p("asm")[SetStatementA<AsmBlock>]
+        >> alwaysmatch_p[SetOpcodesExtraKeywordsA]
+        >> *asm_statement[AddStatementA<AsmBlock>]
+        >> alwaysmatch_p[RemoveExtraKeywordsA]
+        >> clpar[GeneralE];
+
     // All possible statements.
     statement = alwaysmatch_p[StartStatementA]
         >>
@@ -557,13 +531,15 @@ void SCISyntaxParser::Load()
         if_statement |
         while_loop |
         for_loop |
+        cond_statement |
         switchto_statement |
         switch_statement |
         breakif_statement |
         break_statement |
         code_block |
         send_call |             // Send has to come before procedure. Because procedure will match (foo sel:)
-        procedure_call
+        procedure_call |
+        asm_block
         ) >>
         clpar)
         | rest_statement
@@ -638,8 +614,17 @@ void SCISyntaxParser::Load()
         >> clpar[GeneralE]);
 }
 
-void PostProcessScript(Script &script)
+// 
+// Fix up scripts so that they conform to standards. Differences in the SCI syntax make
+// it difficult to get the script OM in its final state just in the parsing phase.
+//
+// - Propagate "public" from exports section to the individual procedures/instances
+// - Identify switchtos and auto-number their cases
+// - Transform cond into if-elseif-else
+//
+void PostProcessScript(ICompileLog *pLog, Script &script)
 {
+    // Push public down to instances and procedures
     EnumScriptElements<ProcedureDefinition>(script,
         [&script](ProcedureDefinition &proc)
     {
@@ -657,11 +642,72 @@ void PostProcessScript(Script &script)
     }
         );
 
+    // Re-work conds into if-elses.
+    EnumScriptElements<CondStatement>(script,
+        [pLog, &script](CondStatement &cond)
+    {
+        // TODO: Enforce that else needs to be last.
+        // TODO: What if only one else?
+        assert(!cond.GetStatement1());
+        if (!cond._clausesTemp.empty())
+        {
+            std::unique_ptr<CodeBlock> elseCodeBlock;
+            auto it = cond._clausesTemp.rbegin();
+            if ((*it)->IsDefault())
+            {
+                elseCodeBlock = make_unique<CodeBlock>(move((*it)->GetStatements()));
+                ++it;
+            }
+            std::unique_ptr<IfStatement> currentIf;
+            while (it != cond._clausesTemp.rend())
+            {
+                auto &clause = *it;
+                if (clause->IsDefault())
+                {
+                    pLog->ReportResult(CompileResult("The else clause must be the last clause in a cond.", script.GetScriptId(), clause->GetPosition().Line()));
+                    break;
+                }
+                std::unique_ptr<IfStatement> newIf = make_unique<IfStatement>();
+                if (currentIf)
+                {
+                    // Put this in our new if's else block.
+                    newIf->SetStatement2(make_unique<CodeBlock>(move(currentIf)));
+                }
+                currentIf = move(newIf);
+                // Grab the statement1 of the CaseStatement and put it in the if condition.
+                currentIf->SetCondition(make_unique<ConditionalExpression>(move(clause->GetStatement1Internal())));
+                // Then transfer all the statements into a CodeBlock for the if.
+                currentIf->SetStatement1(make_unique<CodeBlock>(move(clause->GetStatements())));
+                if (elseCodeBlock)
+                {
+                    // This goes into the final if.
+                    currentIf->SetStatement2(move(elseCodeBlock));
+                }
+                ++it;
+            }
+
+            // Case where there is just a single else, just copy statements into a codeblock.
+            if (elseCodeBlock)
+            {
+                assert(!currentIf);
+                cond.SetStatement1(move(elseCodeBlock));
+            }
+            else
+            {
+                assert(!elseCodeBlock);
+                cond.SetStatement1(move(currentIf));
+            }
+        }
+
+        cond._clausesTemp.clear();
+    }
+    );
+
+    // Identify switchto statements and auto-enumerate the cases. If no case statements have values and none are default,
+    // it's a switchto
     EnumScriptElements<SwitchStatement>(script,
         [](SwitchStatement &switchStatement)
     {
-        // Identify switchto statements and auto-enumerate the cases. If no case statements have values and none are default,
-        // it's a switchto
         if (all_of(switchStatement._cases.begin(), switchStatement._cases.end(),
             [](std::unique_ptr<CaseStatement> &caseStatement) { return !caseStatement->IsDefault() && (caseStatement->GetCaseValue() == nullptr); }))
         {
@@ -685,7 +731,7 @@ bool SCISyntaxParser::Parse(Script &script, streamIt &stream, std::unordered_set
     bool fRet = false;
     if (entire_script.Match(&context, stream).Result() && (*stream == 0)) // Needs a full match
     {
-        PostProcessScript(script);
+        PostProcessScript(pError, script);
         fRet = true;
     }
     else
@@ -710,7 +756,7 @@ bool SCISyntaxParser::Parse(Script &script, streamIt &stream, std::unordered_set
     bool fRet = false;
     if (entire_script.Match(&context, stream).Result() && (*stream == 0)) // Needs a full match
     {
-        PostProcessScript(script);
+        PostProcessScript(nullptr, script);
         fRet = true;
     }
     return fRet;
@@ -732,7 +778,7 @@ bool SCISyntaxParser::ParseHeader(Script &script, streamIt &stream, std::unorder
     }
     else
     {
-        PostProcessScript(script);
+        PostProcessScript(pError, script);
     }
     return fRet;
 }

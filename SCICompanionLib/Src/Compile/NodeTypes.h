@@ -56,9 +56,6 @@ namespace sci
         NodeTypeCast,
         NodeTypeConditionalExpressionSCIStudio,
         NodeTypeExport,
-        NodeTypeCondClause,
         NodeTypeCond,
-        NodeTypeBreakIf,
-        NodeTypeRepeat,
     };
 }

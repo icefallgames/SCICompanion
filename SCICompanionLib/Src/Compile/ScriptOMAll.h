@@ -345,6 +345,35 @@ namespace sci
 
     };
 
+
+    // CondStatement is a special case. cond's just degenerate to if's. But during parsing,
+    // it's easier to treat them similar to switch statements. In fact, the parsing is almost identical.
+    // In script post-processing, we'll convert the internal like of CaseStatements into an if
+    // structure.
+    class CondStatement : public SyntaxNode, public OneStatementNode
+    {
+        DECLARE_NODE_TYPE(NodeTypeCond)
+    public:
+        CondStatement() {}
+
+        // IOutputByteCode
+        CodeResult OutputByteCode(CompileContext &context) const;
+        void PreScan(CompileContext &context);
+        void Traverse(IExploreNode &en);
+
+        void AddCase(std::unique_ptr<CaseStatement> pCase) { _clausesTemp.push_back(std::move(pCase)); }
+
+        void Accept(ISyntaxNodeVisitor &visitor) const override;
+
+        std::vector<std::unique_ptr<CaseStatement>> _clausesTemp;
+        // The if goes in the OneStatementNode
+
+    private:
+        CondStatement(const CondStatement &src) = delete;
+        CondStatement& operator=(const CondStatement& src) = delete;
+    };
+
+
     //
     // Assignment statement (e.g. += foo 1)
     //
