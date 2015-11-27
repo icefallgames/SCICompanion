@@ -207,6 +207,30 @@ UnaryOperator SCINameToOperator<UnaryOperator>(const std::string &name)
     return NameToOperator(name, sciNameToUnaryOp);
 }
 
+// Different from Studio syntax, since the operator must be followed by whitespace.
+// That is, ++i is not allowed. It must be (++ i)
+template<typename _It, typename _TContext, typename _CommentPolicy>
+bool SCIOperatorP(const ParserBase<_TContext, _It, _CommentPolicy> *pParser, _TContext *pContext, _It &stream)
+{
+    bool fRet = false;
+    const char *psz = pParser->_psz;
+    while (*psz && (*stream == *psz))
+    {
+        ++stream;
+        ++psz;
+    }
+    if (*psz == 0)
+    {
+        pContext->ScratchString() = pParser->_psz;
+        return !!isspace(*stream);
+    }
+    else
+    {
+        return false;
+    }
+}
+
+
 template<typename _T, typename _TOperator>
 void SetOperatorA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
@@ -269,9 +293,27 @@ void SetStatementAsConditionA(MatchResult &match, const ParserSCI *pParser, Synt
     }
 }
 
+template<typename _T>
+void AddCodeBlockA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        // Time to add a code block.  First, get it.
+        pContext->GetSyntaxNode<_T>()->SetCodeBlock(pContext->StealStatementReturn<CodeBlock>());
+    }
+}
+void AddLooperCodeBlockA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        // Time to add a code block.  First, get it.
+        pContext->GetSyntaxNode<ForLoop>()->SetLooper(pContext->StealStatementReturn<CodeBlock>());
+    }
+}
+
 
 ParserSCI SCISyntaxParser::char_p(const char *psz) { return ParserSCI(CharP, psz); }
-ParserSCI SCISyntaxParser::operator_p(const char *psz) { return ParserSCI(OperatorP, psz); }
+ParserSCI SCISyntaxParser::operator_p(const char *psz) { return ParserSCI(SCIOperatorP, psz); }
 ParserSCI SCISyntaxParser::keyword_p(const char *psz) { return ParserSCI(KeywordP, psz); }
 ParserSCI SCISyntaxParser::generateSyntaxNodeD()
 {
@@ -371,12 +413,29 @@ void SCISyntaxParser::Load()
         >> (alwaysmatch_p[SetStatementA<CodeBlock>]
         >> *statement[AddStatementA<CodeBlock>])[FinishStatementA];
 
+    wrapped_code_block =
+        oppar[StartStatementA]
+        >> (alwaysmatch_p[SetStatementA<CodeBlock>]
+        >> *statement[AddStatementA<CodeBlock>] >> clpar)[FinishStatementA];
+
     if_statement =
         keyword_p("if")[SetStatementA<IfStatement>]
         >> statement[SetStatementAsConditionA<IfStatement>] // Condition
         >> bare_code_block[StatementBindTo1stA<IfStatement, errThen>]          // Code
         >> -(keyword_p("else")      // Optional else, followed by more code
         >> bare_code_block[StatementBindTo2ndA<IfStatement, errElse>]);
+
+    while_loop =
+        keyword_p("while")[SetStatementA<WhileLoop>]
+        >> statement[SetStatementAsConditionA<WhileLoop>]
+        >> *statement[AddStatementA<WhileLoop>];
+
+    for_loop =
+        keyword_p("for")[SetStatementA<ForLoop>]
+        >> wrapped_code_block[AddCodeBlockA<ForLoop>]
+        >> statement[SetStatementAsConditionA<ForLoop>]
+        >> wrapped_code_block[AddLooperCodeBlockA]
+        >> *statement[AddStatementA<ForLoop>];
 
     // BUG: The problem is that statement matches even if there were nothing. I think send calls need to come
     // first.
@@ -402,7 +461,7 @@ void SCISyntaxParser::Load()
         operator_p("mod") | operator_p("&") | operator_p("|") |
         operator_p("^");
 
-    unary_operator = keyword_p("~") | keyword_p("not") | keyword_p("-") |
+    unary_operator = operator_p("~") | operator_p("not") | operator_p("-") |
         operator_p("++") | operator_p("--");
 
     assignment_operator = operator_p("+=") | operator_p("-=") | operator_p("*=") |
@@ -452,6 +511,8 @@ void SCISyntaxParser::Load()
         binary_operation |
         return_statement |
         if_statement |
+        while_loop |
+        for_loop |
         breakif_statement |
         break_statement |
         code_block |

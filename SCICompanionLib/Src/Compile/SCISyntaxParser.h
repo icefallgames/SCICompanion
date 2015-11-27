@@ -79,7 +79,10 @@ private:
     ParserSCI prop_get_call;
     ParserSCI if_statement;
     ParserSCI bare_code_block;
+    ParserSCI wrapped_code_block;
     ParserSCI conditional;
+    ParserSCI while_loop;
+    ParserSCI for_loop;
 
     // TODO:
     ParserSCI entire_header;
