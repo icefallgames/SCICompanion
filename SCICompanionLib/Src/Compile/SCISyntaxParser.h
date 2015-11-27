@@ -83,6 +83,10 @@ private:
     ParserSCI conditional;
     ParserSCI while_loop;
     ParserSCI for_loop;
+    ParserSCI switch_statement;
+    ParserSCI case_statement;
+    ParserSCI switchto_statement;
+    ParserSCI switchto_case_statement;
 
     // TODO:
     ParserSCI entire_header;

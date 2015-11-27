@@ -139,7 +139,7 @@ sci::NodeType SyntaxContext::GetTopKnownNode() const
 {
     sci::NodeType type = sci::NodeTypeUnknown;
     auto it = _statements._Get_container().rbegin();
-	while (it != _statements._Get_container().rend())
+    while (it != _statements._Get_container().rend())
     {
         if (*it)
         {
@@ -159,7 +159,7 @@ void AddSendRestA(MatchResult &match, const Parser *pParser, SyntaxContext *pCon
 {
     if (match.Result())
     {
-		pContext->GetPrevSyntaxNode<SendCall>()->SetSendRestHack(std::move(pContext->StealSyntaxNode<RestStatement>()));
+        pContext->GetPrevSyntaxNode<SendCall>()->SetSendRestHack(std::move(pContext->StealSyntaxNode<RestStatement>()));
     }
 }
 template<typename _T>
@@ -167,7 +167,7 @@ void SetLValueA(MatchResult &match, const Parser *pParser, SyntaxContext *pConte
 {
     if (match.Result())
     {
-		pContext->GetPrevSyntaxNode<SendCall>()->SetLValue(move(pContext->StealSyntaxNode<LValue>()));
+        pContext->GetPrevSyntaxNode<SendCall>()->SetLValue(move(pContext->StealSyntaxNode<LValue>()));
     }
 }
 void AddSingleSendParamA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
@@ -176,7 +176,7 @@ void AddSingleSendParamA(MatchResult &match, const Parser *pParser, SyntaxContex
     {
         // We have a SendCall to which we need to add a SendParam that has no parameters (e.g. just the selector)
         // e.g. the 'x' in  "(send gEgo:y(5)x)"
-		unique_ptr<SendParam> pParam = std::make_unique<SendParam>();
+        unique_ptr<SendParam> pParam = std::make_unique<SendParam>();
         pParam->SetPosition(stream.GetPosition());
         pParam->SetName(pContext->ScratchString());
         // Now add this to the SendCall
@@ -456,7 +456,7 @@ void AddCodeBlockA(MatchResult &match, const Parser *pParser, SyntaxContext *pCo
     if (match.Result())
     {
         // Time to add a code block.  First, get it.
-		pContext->GetPrevSyntaxNode<_T>()->SetCodeBlock(move(pContext->StealSyntaxNode<CodeBlock>()));
+        pContext->GetPrevSyntaxNode<_T>()->SetCodeBlock(move(pContext->StealSyntaxNode<CodeBlock>()));
     }
 }
 void AddLooperCodeBlockA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
@@ -464,24 +464,16 @@ void AddLooperCodeBlockA(MatchResult &match, const Parser *pParser, SyntaxContex
     if (match.Result())
     {
         // Time to add a code block.  First, get it.
-		pContext->GetPrevSyntaxNode<ForLoop>()->SetLooper(move(pContext->StealSyntaxNode<CodeBlock>()));
+        pContext->GetPrevSyntaxNode<ForLoop>()->SetLooper(move(pContext->StealSyntaxNode<CodeBlock>()));
     }
 }
 
-// switch/case
-void SetDefaultCaseA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->GetSyntaxNode<CaseStatement>()->SetDefault(true);
-    }
-}
 void FinishCaseA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
     if (match.Result())
     {
         // This is the variable description we need to add to the assignment thing:
-		pContext->GetPrevSyntaxNode<SwitchStatement>()->AddCase(std::move(pContext->StealSyntaxNode<CaseStatement>()));
+        pContext->GetPrevSyntaxNode<SwitchStatement>()->AddCase(std::move(pContext->StealSyntaxNode<CaseStatement>()));
     }
 }
 
@@ -495,7 +487,7 @@ void ErrorA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, 
 }
 
 char const errBinaryOp[] = "Expected second argument.";
-char const errCaseArg[] = "Expected case argument.";
+char const errCaseArg[] = "Expected case value.";
 char const errSwitchArg[] = "Expected switch argument.";
 char const errSendObject[] = "Expected send object.";
 char const errArgument[] = "Expected argument.";
@@ -925,7 +917,7 @@ bool StudioSyntaxParser::Parse(Script &script, streamIt &stream, std::unordered_
 bool StudioSyntaxParser::Parse(Script &script, streamIt &stream, std::unordered_set<std::string> preProcessorDefines, SyntaxContext &context)
 {
     bool fRet = false;
-	if (entire_script.Match(&context, stream).Result() && (*stream == 0)) // Needs a full match
+    if (entire_script.Match(&context, stream).Result() && (*stream == 0)) // Needs a full match
     {
         fRet = true;
     }
@@ -935,7 +927,7 @@ bool StudioSyntaxParser::Parse(Script &script, streamIt &stream, std::unordered_
 bool StudioSyntaxParser::ParseHeader(Script &script, streamIt &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pError)
 {
     SyntaxContext context(stream, script, preProcessorDefines, false);
-	bool fRet = entire_header.Match(&context, stream).Result() && (*stream == 0);
+    bool fRet = entire_header.Match(&context, stream).Result() && (*stream == 0);
     if (!fRet)
     {
         std::string strError = context.GetErrorText();

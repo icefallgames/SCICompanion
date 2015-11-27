@@ -722,6 +722,16 @@ void RemoveExtraKeywordsA(MatchResult &match, const _TParser *pParser, SyntaxCon
     pContext->extraKeywords = nullptr;
 }
 
+// switch/case
+template<typename _TParser>
+void SetDefaultCaseA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->GetSyntaxNode<CaseStatement>()->SetDefault(true);
+    }
+}
+
 // Errors
 template<typename _It, typename _TParser>
 void IdentifierE(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const _It &stream)

@@ -207,7 +207,7 @@ void ReturnStatement::Traverse(IExploreNode &en)
 void CaseStatementBase::Traverse(IExploreNode &en)
 {
 	ExploreNodeBlock enb(en, *this);
-	if (!IsDefault()) _statement1->Traverse(en);
+    if (!IsDefault() && _statement1) _statement1->Traverse(en);
 	ForwardTraverse2(_segments, en);
 }
 void UnaryOp::Traverse(IExploreNode &en)

@@ -65,6 +65,15 @@ public:
     void Accept(ISyntaxNodeVisitor &visitor) const override;
 };
 
+void NoCaseE(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (!match.Result())
+    {
+        pContext->ReportError("Expected case value or 'else' keyword.", stream);
+    }
+}
+
+
 // Selectors, as far as I can tell, look like this:
 // A-Za-z0-9_-
 // But they must have at least one letter and not start with a number
@@ -311,6 +320,14 @@ void AddLooperCodeBlockA(MatchResult &match, const ParserSCI *pParser, SyntaxCon
     }
 }
 
+void SetCaseA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        // This is the variable description we need to add to the assignment thing:
+        pContext->GetSyntaxNode<SwitchStatement>()->AddCase(pContext->StealStatementReturn<CaseStatement>());
+    }
+}
 
 ParserSCI SCISyntaxParser::char_p(const char *psz) { return ParserSCI(CharP, psz); }
 ParserSCI SCISyntaxParser::operator_p(const char *psz) { return ParserSCI(SCIOperatorP, psz); }
@@ -437,6 +454,33 @@ void SCISyntaxParser::Load()
         >> wrapped_code_block[AddLooperCodeBlockA]
         >> *statement[AddStatementA<ForLoop>];
 
+    case_statement =
+        alwaysmatch_p[StartStatementA]
+        >> (oppar[SetStatementA<CaseStatement>]
+        >> 
+            (keyword_p("else")[SetDefaultCaseA] |
+            statement[StatementBindTo1stA<CaseStatement, errCaseArg>])[NoCaseE]    // REVIEW: does this need to be constant?
+        >> *statement[AddStatementA<CaseStatement>]
+        >> clpar[GeneralE]
+        )[FinishStatementA];
+
+    switch_statement =
+        keyword_p("switch")[SetStatementA<SwitchStatement>]
+        >> statement[StatementBindTo1stA<SwitchStatement, errSwitchArg>]
+        >> *case_statement[SetCaseA];
+
+    switchto_case_statement =
+        alwaysmatch_p[StartStatementA]
+        >> (oppar[SetStatementA<CaseStatement>]
+        >> *statement[AddStatementA<CaseStatement>]
+        >> clpar[GeneralE]
+        )[FinishStatementA];
+
+    switchto_statement =
+        keyword_p("switchto")[SetStatementA<SwitchStatement>]
+        >> statement[StatementBindTo1stA<SwitchStatement, errSwitchArg>]
+        >> *switchto_case_statement[SetCaseA];
+
     // BUG: The problem is that statement matches even if there were nothing. I think send calls need to come
     // first.
     procedure_call = alphanumNK_p[SetStatementNameA<ProcedureCall>] >> *statement[AddStatementA<ProcedureCall>];
@@ -513,6 +557,8 @@ void SCISyntaxParser::Load()
         if_statement |
         while_loop |
         for_loop |
+        switchto_statement |
+        switch_statement |
         breakif_statement |
         break_statement |
         code_block |
@@ -609,7 +655,25 @@ void PostProcessScript(Script &script)
             instance.SetPublic(script.IsExport(instance.GetName()));
         }
     }
-    );
+        );
+
+    EnumScriptElements<SwitchStatement>(script,
+        [](SwitchStatement &switchStatement)
+    {
+        // Identify switchto statements and auto-enumerate the cases. If no case statements have values and none are default,
+        // it's a switchto
+        if (all_of(switchStatement._cases.begin(), switchStatement._cases.end(),
+            [](std::unique_ptr<CaseStatement> &caseStatement) { return !caseStatement->IsDefault() && (caseStatement->GetCaseValue() == nullptr); }))
+        {
+            uint16_t value = 0;
+            for (auto &caseStatement : switchStatement._cases)
+            {
+                caseStatement->SetCaseValue(std::make_unique<PropertyValue>(value));
+                value++;
+            }
+        }
+    }
+        );
 }
 
 //
