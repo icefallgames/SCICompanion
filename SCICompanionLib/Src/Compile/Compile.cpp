@@ -2782,9 +2782,9 @@ CodeResult BreakStatement::OutputByteCode(CompileContext &context) const
 {
     // jmp to the end of the current break block.
     // Report an error if there is none.
-    if (context.code().in_branch_block(BranchBlockIndex::Break))
+    if (context.code().in_branch_block(BranchBlockIndex::Break, Levels))
     {
-        context.code().inst(Opcode::JMP, context.code().get_undetermined(), BranchBlockIndex::Break);
+        context.code().inst(Opcode::JMP, context.code().get_undetermined(), BranchBlockIndex::Break, Levels);
         DEBUG_BRANCH(context.code(), DEBUG_BREAK);
     }
     else
@@ -2798,13 +2798,13 @@ CodeResult ContinueStatement::OutputByteCode(CompileContext &context) const
 {
     // Continues may jump backwards or forwards.
     code_pos continueTarget;
-    if (context.code().get_continue_target(1, continueTarget))
+    if (context.code().get_continue_target(Levels, continueTarget))
     {
         if (continueTarget == context.code().get_undetermined())
         {
             // This is a jump forward whose target has not yet been determined. This means there
             // should be a branch block for us.
-            if (context.code().in_branch_block(BranchBlockIndex::Continue))
+            if (context.code().in_branch_block(BranchBlockIndex::Continue, Levels))
             {
                 context.code().inst(Opcode::JMP, context.code().get_undetermined(), BranchBlockIndex::Continue);
                 DEBUG_BRANCH(context.code(), DEBUG_CONTINUE);
@@ -2817,7 +2817,7 @@ CodeResult ContinueStatement::OutputByteCode(CompileContext &context) const
         else
         {
             // Easy... jump to the backwards target:
-            context.code().inst(Opcode::JMP, continueTarget, BranchBlockIndex::Continue);
+            context.code().inst(Opcode::JMP, continueTarget, BranchBlockIndex::Continue, Levels);
         }
     }
     else

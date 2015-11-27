@@ -120,6 +120,7 @@ private:
     ParserSCI oppar;
     ParserSCI clpar;
     ParserSCI integer_p;
+    ParserSCI integerNonZero_p;
     ParserSCI opbracket;
     ParserSCI clbracket;
     ParserSCI pound;

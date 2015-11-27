@@ -18,6 +18,22 @@ void NoCaseE(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pConte
 }
 
 
+
+template<typename _It>
+bool IntegerNonZeroP(const ParserSCI *pParser, SyntaxContext *pContext, _It &stream)
+{
+    bool fRet = IntegerExpandedP(pParser, pContext, stream);
+    if (fRet)
+    {
+        fRet = (pContext->Integer != 0);
+        if (!fRet)
+        {
+            pContext->ReportError("Expected non-zero integer.", stream);
+        }
+    }
+    return fRet;
+}
+
 // Selectors, as far as I can tell, look like this:
 // A-Za-z0-9_-
 // But they must have at least one letter and not start with a number
@@ -218,8 +234,33 @@ void FinishBreakContinueIfA(MatchResult &match, const ParserSCI *pParser, Syntax
         pContext->GetSyntaxNode<IfStatement>()->SetCondition(make_unique<ConditionalExpression>(move(pContext->StatementPtrReturn)));
         // And its contents should be a CodeBlock with a single Break/Continue statement.
         auto codeBlock = make_unique<CodeBlock>();
-        codeBlock->AddStatement(make_unique<_TBreakContinue>());
+        auto breakOrContinue = make_unique<_TBreakContinue>();
+        breakOrContinue->SetPosition(stream.GetPosition());
+        codeBlock->AddStatement(move(breakOrContinue));
         pContext->GetSyntaxNode<IfStatement>()->SetStatement1(move(codeBlock));
+    }
+}
+
+template<typename _TBreakContinue>
+_TBreakContinue *GetBreakContinueInIf(SyntaxContext *pContext)
+{
+    // Get a break inside an if then clause
+    auto codeBlock = SafeSyntaxNode<CodeBlock>(pContext->GetSyntaxNode<IfStatement>()->GetStatement1());
+    return SafeSyntaxNode<_TBreakContinue>(codeBlock->GetStatements()[0].get());
+}
+
+template<typename _TBreakContinue>
+_TBreakContinue *GetBreakContinue(SyntaxContext *pContext)
+{
+    return pContext->GetSyntaxNode<_TBreakContinue>();
+}
+
+template<typename _TBreakContinue, _TBreakContinue *(*_TGetFunc)(SyntaxContext *)>
+void SetLevelsA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        _TGetFunc(pContext)->Levels = pContext->Integer;
     }
 }
 
@@ -309,6 +350,7 @@ SCISyntaxParser::SCISyntaxParser() :
     squotedstring_p(SQuotedStringP),
     quotedstring_p(QuotedStringP),
     integer_p(IntegerExpandedP),
+    integerNonZero_p(IntegerNonZeroP),
     syntaxnode_d(generateSyntaxNodeD())
 {
 }
@@ -366,18 +408,22 @@ void SCISyntaxParser::Load()
         >> -statement[StatementBindTo1stA<ReturnStatement, nullptr>];
 
     break_statement =
-        keyword_p("break")[SetStatementA<BreakStatement>];
+        keyword_p("break")[SetStatementA<BreakStatement>] >>
+        -integerNonZero_p[SetLevelsA<BreakStatement, GetBreakContinue<BreakStatement>>];
 
     breakif_statement =
         keyword_p("breakif")[SetStatementA<IfStatement>]
-        >> statement[FinishBreakContinueIfA<BreakStatement>];
+        >> statement[FinishBreakContinueIfA<BreakStatement>] >>
+        -integerNonZero_p[SetLevelsA<BreakStatement, GetBreakContinueInIf<BreakStatement>>];
 
     continue_statement =
-        keyword_p("continue")[SetStatementA<ContinueStatement>];
+        keyword_p("continue")[SetStatementA<ContinueStatement>] >>
+        -integerNonZero_p[SetLevelsA<ContinueStatement, GetBreakContinue<ContinueStatement>>];
 
     contif_statement =
         keyword_p("contif")[SetStatementA<IfStatement>]
-        >> statement[FinishBreakContinueIfA<ContinueStatement>];
+        >> statement[FinishBreakContinueIfA<ContinueStatement>] >>
+        -integerNonZero_p[SetLevelsA<ContinueStatement, GetBreakContinueInIf<ContinueStatement>>];
 
     bare_code_block =
         alwaysmatch_p[StartStatementA]

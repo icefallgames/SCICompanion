@@ -554,19 +554,20 @@ void scicode::fixup_offsets(const std::unordered_map<uint16_t, uint16_t> &fixups
 void scicode::enter_branch_block(BranchBlockIndex index)
 {
     fixup_todos emptyList;
-    _fixupFrames[index].push(emptyList);
+    _fixupFrames[index].push_back(emptyList);
 }
 void scicode::leave_branch_block(BranchBlockIndex index)
 {
     fixup_todos &todos = _fixupTodos[index];
     fixup_frames &frames = _fixupFrames[index];
-    todos.insert(todos.end(), frames.top().begin(), frames.top().end());
-    frames.pop(); // We're done with this frame - it's been moved to the todo list
+    todos.insert(todos.end(), frames.back().begin(), frames.back().end());
+    frames.pop_back(); // We're done with this frame - it's been moved to the todo list
 }
-bool scicode::in_branch_block(BranchBlockIndex index)
+bool scicode::in_branch_block(BranchBlockIndex index, uint16_t levels)
 {
     // Ask if there is a block frame of this type
-    return !_fixupFrames[index].empty();
+    auto &frames = _fixupFrames[index];
+    return frames.size() >= levels;
 }
 
 void scicode::set_call_target(code_pos thisInstruction, code_pos callsHere)

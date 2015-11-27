@@ -140,7 +140,7 @@ typedef std::unordered_map<BranchBlockIndex, fixup_todos> fixup_todos_map;
 
 // Record keeping of code_pos's that need to be moved to the above "todo" list when we leave a branch block
 
-typedef std::stack<fixup_todos> fixup_frames;
+typedef std::vector<fixup_todos> fixup_frames;
 typedef std::unordered_map<BranchBlockIndex, fixup_frames> fixup_frames_map;
 
 // Is a map of "this target" was pointed at by "these sources"
@@ -176,7 +176,7 @@ public:
         _insertInstruction(scii(_version, bOpcode, w1, w2, w3));
         _checkBranchResolution();
     }
-	bool inst(Opcode bOpcode, code_pos branch, BranchBlockIndex index = BranchBlockIndex::Default)
+	bool inst(Opcode bOpcode, code_pos branch, BranchBlockIndex index = BranchBlockIndex::Default, uint16_t levels = 1)
     {
         bool fUndetermined = (branch == get_undetermined());
         _insertInstruction(scii(_version, bOpcode, branch, fUndetermined));
@@ -185,12 +185,12 @@ public:
         _checkBranchResolution();
         if (fUndetermined)
         {
-            //ASSERT(_branchFixupFrames.size() > 0); // If we have branch instruction, better have a branch frame.
             // Track this by placing the current instruction in our list of branch fixups
             // (so we can come back to it)
-            if (_fixupFrames[index].size() > 0)
+            auto &frames = _fixupFrames[index];
+            if (frames.size() >= levels)
             {
-                _fixupFrames[index].top().push_back(get_cur_pos());
+                frames[frames.size() - levels].push_back(get_cur_pos());
             }
             else
             {
@@ -248,7 +248,7 @@ public:
     // Supplemental is needed when we have overlapping branch blocks.
 	void enter_branch_block(BranchBlockIndex index = BranchBlockIndex::Default);
 	void leave_branch_block(BranchBlockIndex index = BranchBlockIndex::Default);
-	bool in_branch_block(BranchBlockIndex index);
+	bool in_branch_block(BranchBlockIndex index, uint16_t levels = 1);
 
     uint16_t calc_size();
     uint16_t offset_of(code_pos target);
