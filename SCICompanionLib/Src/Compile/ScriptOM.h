@@ -332,6 +332,30 @@ namespace sci
 		SyntaxNode &_node;
 	};
 
+
+    template<typename _T, typename _TFunc>
+    class EnumAll : public IExploreNode
+    {
+    public:
+        EnumAll(sci::Script &script, _TFunc func) : _func(func) { script.Traverse(*this); }
+
+        void ExploreNode(SyntaxNode &node, ExploreNodeState state) override
+        {
+            if ((state == ExploreNodeState::Pre) && (node.GetNodeType() == _T::MyNodeType))
+            {
+                _func(static_cast<_T&>(node));
+            }
+        }
+    private:
+        _TFunc _func;
+    };
+
+    template<typename _T, typename _TFunc>
+    void EnumScriptElements(Script &script, _TFunc func)
+    {
+        EnumAll<_T, _TFunc> enumIt(script, func);
+    }
+
     //
     // Base class for all script objects
     //
@@ -1082,6 +1106,7 @@ namespace sci
         const CommentVector &GetComments() const { return _comments; }
         const std::vector<std::string> &GetUses() const { return _uses; }
         const std::vector<std::string> &GetIncludes() const { return _includes; }
+        bool IsExport(const std::string &name) const;
 
         // IVariableLookupContext
         ResolvedToken LookupVariableName(CompileContext &context, const std::string &str, WORD &wIndex, SpeciesIndex &dataType) const;

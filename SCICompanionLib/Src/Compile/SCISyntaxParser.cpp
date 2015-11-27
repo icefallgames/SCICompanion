@@ -75,7 +75,7 @@ bool SelectorP(const ParserSCI *pParser, SyntaxContext *pContext, _It &stream)
     std::string &str = pContext->ScratchString();
     str.clear();
     char ch = *stream;
-    bool hadAlpha = isalpha(ch);
+    bool hadAlpha = !!isalpha(ch);
     if (hadAlpha || (ch == '_') || (ch == '-'))     // First character must be a letter or _ or -
     {
         fRet = true;
@@ -92,12 +92,98 @@ bool SelectorP(const ParserSCI *pParser, SyntaxContext *pContext, _It &stream)
     return fRet && hadAlpha;
 }
 
+// TODO: Replace our other alphanum things...
+
+vector<string> SCIKeywords =
+{
+    "if",
+    "asm",
+    "break",
+    "breakof",
+    "continue",
+    "contif",
+    "repeat",
+    "switch",
+    "switchto",
+    "properties",
+    "procedure",
+    "method",
+    "for",
+    "return",
+    "cond",
+    "while",
+    "else",
+    "rest",
+    "super",
+    "mod",
+    "or",
+    "and",
+    "not",
+    "of",
+    "scriptNumber",
+    "public",
+    "define",
+    "&tmp",
+    "&rest"
+    // neg, send, case, do, default, export are also keywords, but for the Studio language.
+};
+
+template<typename _It, typename _TContext>
+bool AlphanumPNoKeywordOrTerm(const ParserSCI *pParser, _TContext *pContext, _It &stream)
+{
+    bool fRet = AlphanumP(pParser, pContext, stream);
+    if (fRet)
+    {
+        char chTerm = *stream;
+        fRet = (chTerm != ':') && (chTerm != '?');
+        if (fRet)
+        {
+            std::string &str = pContext->ScratchString();
+            fRet = std::find(SCIKeywords.begin(), SCIKeywords.end(), str) == SCIKeywords.end();
+            if (fRet && pContext->extraKeywords)
+            {
+                fRet = pContext->extraKeywords->find(str) == pContext->extraKeywords->end();
+            }
+        }
+    }
+    return fRet;
+}
+
+template<typename _It, typename _TContext>
+bool AlphanumPSendTokenOrTerm(const ParserSCI *pParser, _TContext *pContext, _It &stream)
+{
+    bool fRet = AlphanumP(pParser, pContext, stream);
+    if (fRet)
+    {
+        char chTerm = *stream;
+        fRet = (chTerm != ':') && (chTerm != '?');
+        if (fRet)
+        {
+            std::string &str = pContext->ScratchString();
+            if (str != "send" && str != "super")
+            {
+                fRet = std::find(SCIKeywords.begin(), SCIKeywords.end(), str) == SCIKeywords.end();
+                if (fRet && pContext->extraKeywords)
+                {
+                    fRet = pContext->extraKeywords->find(str) == pContext->extraKeywords->end();
+                }
+            }
+        }
+    }
+    return fRet;
+}
+
 // foo: or foo?, no whitespace allowed.
 template<char terminator, typename _It>
 bool SelectorP_Term(const ParserSCI *pParser, SyntaxContext *pContext, _It &stream)
 {
     bool fRet = SelectorP(pParser, pContext, stream);
-    return fRet && (*(++stream) == terminator);
+    fRet = fRet && (*(stream) == terminator);
+    if (fRet)
+    {
+        ++stream; // Skip over our terminator
+    }
+    return fRet;
 }
 
 template<typename _TOpType>
@@ -158,6 +244,32 @@ void FinishBreakIfA(MatchResult &match, const ParserSCI *pParser, SyntaxContext 
     }
 }
 
+void FinishClassProcedureA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        // Add it to the script's procedures, not the class' methods.
+        auto proc = pContext->GetFunctionAsProcedure();
+        proc->SetOwnerClass(pContext->ClassPtr.get());
+        pContext->Script().AddProcedure(move(proc));
+    }
+    else
+    {
+        pContext->ReportError("Expected method declaration.", stream);
+    }
+}
+
+template<typename _T>
+void SetStatementAsConditionA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        // Take the current statement, and put into the next statements conditional expression
+        pContext->GetSyntaxNode<_T>()->SetCondition(make_unique<ConditionalExpression>(move(pContext->StatementPtrReturn)));
+    }
+}
+
+
 ParserSCI SCISyntaxParser::char_p(const char *psz) { return ParserSCI(CharP, psz); }
 ParserSCI SCISyntaxParser::operator_p(const char *psz) { return ParserSCI(OperatorP, psz); }
 ParserSCI SCISyntaxParser::keyword_p(const char *psz) { return ParserSCI(KeywordP, psz); }
@@ -178,13 +290,14 @@ SCISyntaxParser::SCISyntaxParser() :
     colon(char_p(":")),
     equalSign(char_p("=")),
     question(char_p("?")),
-    alphanum_p(AlphanumP),
+    //alphanum_p(AlphanumP),
     selector_p(SelectorP),
     selector_send_p(SelectorP_Term<':'>),
     propget_p(SelectorP_Term<'?'>),
     filename_p(FilenameP),
     asmInstruction_p(AsmInstructionP),
-    alphanum_p2(AlphanumPNoKeyword),
+    alphanumNK_p(AlphanumPNoKeywordOrTerm),
+    alphanumSendToken_p(AlphanumPSendTokenOrTerm),
     alwaysmatch_p(AlwaysMatchP),
     bracestring_p(BraceStringP),
     squotedstring_p(SQuotedStringP),
@@ -206,23 +319,26 @@ void SCISyntaxParser::Load()
     _fLoaded = true;
 
     // An integer or plain alphanumeric token
-    immediateValue = integer_p[PropValueIntA] | alphanum_p[PropValueStringA<ValueType::Token>] | bracestring_p[PropValueStringA<ValueType::Token>];
-    string_immediateValue = integer_p[PropValueIntA] | alphanum_p[PropValueStringA<ValueType::Token>] | quotedstring_p[{ PropValueStringA<ValueType::String>, ParseAutoCompleteContext::Block}];
-    string_immediateValue2 = integer_p[PropValueIntA] | alphanum_p[PropValueStringA<ValueType::Token>] | quotedstring_p[{PropValueStringA<ValueType::String>, ParseAutoCompleteContext::Block}] | bracestring_p[PropValueStringA<ValueType::Token>];
+    immediateValue = integer_p[PropValueIntA] | alphanumNK_p[PropValueStringA<ValueType::Token>] | bracestring_p[PropValueStringA<ValueType::Token>];
+    string_immediateValue = integer_p[PropValueIntA] | alphanumNK_p[PropValueStringA<ValueType::Token>] | quotedstring_p[{ PropValueStringA<ValueType::String>, ParseAutoCompleteContext::Block}];
+    string_immediateValue2 = integer_p[PropValueIntA] | alphanumNK_p[PropValueStringA<ValueType::Token>] | quotedstring_p[{PropValueStringA<ValueType::String>, ParseAutoCompleteContext::Block}] | bracestring_p[PropValueStringA<ValueType::Token>];
 
     // Top level constructs
     include = keyword_p("include") >> (quotedstring_p | filename_p)[{AddIncludeA, ParseAutoCompleteContext::Block}];
     use = keyword_p("use") >> (quotedstring_p | filename_p)[{AddUseA, ParseAutoCompleteContext::ScriptName}];
     scriptNum = keyword_p("script") >> immediateValue[{ScriptNumberA, ParseAutoCompleteContext::DefineValue }];
 
-    define = keyword_p("define")[CreateDefineA] >> alphanum_p[DefineLabelA] >> integer_p[DefineValueA];
+    define = keyword_p("define")[CreateDefineA] >> alphanumNK_p[DefineLabelA] >> integer_p[DefineValueA];
 
-    general_token = (alphanum_p2 | bracestring_p)[{nullptr, ParseAutoCompleteContext::None, "TOKEN"}];
+    general_token = (alphanumNK_p | bracestring_p)[{nullptr, ParseAutoCompleteContext::None, "TOKEN"}];
 
     selector_literal = pound >> selector_p[{nullptr, ParseAutoCompleteContext::Selector}];
 
     pointer = atsign;
-    
+
+    export_entry = general_token[{AddExportA, ParseAutoCompleteContext::Export}] >> integer_p;
+    exports = keyword_p("public") >> *export_entry;
+
     rvalue_variable =
         (opbracket >> general_token[ComplexValueStringA<ValueType::Token>] >> statement[ComplexValueIndexerA] >> clbracket) |
         general_token[ComplexValueStringA<ValueType::Token>];
@@ -247,8 +363,35 @@ void SCISyntaxParser::Load()
         keyword_p("break")[SetStatementA<BreakStatement>];
 
     breakif_statement =
-        keyword_p("breakif")[SetStatementA<IfStatement>] 
+        keyword_p("breakif")[SetStatementA<IfStatement>]
         >> statement[FinishBreakIfA];
+
+    bare_code_block =
+        alwaysmatch_p[StartStatementA]
+        >> (alwaysmatch_p[SetStatementA<CodeBlock>]
+        >> *statement[AddStatementA<CodeBlock>])[FinishStatementA];
+
+    if_statement =
+        keyword_p("if")[SetStatementA<IfStatement>]
+        >> statement[SetStatementAsConditionA<IfStatement>] // Condition
+        >> bare_code_block[StatementBindTo1stA<IfStatement, errThen>]          // Code
+        >> -(keyword_p("else")      // Optional else, followed by more code
+        >> bare_code_block[StatementBindTo2ndA<IfStatement, errElse>]);
+
+    // BUG: The problem is that statement matches even if there were nothing. I think send calls need to come
+    // first.
+    procedure_call = alphanumNK_p[SetStatementNameA<ProcedureCall>] >> *statement[AddStatementA<ProcedureCall>];
+
+    // posn: x y z
+    send_param_call = selector_send_p[SetStatementNameA<SendParam>] >> *statement[AddStatementA<SendParam>];
+
+    send_call = (alwaysmatch_p[SetStatementA<SendCall>] // Simple form, e.g. gEgo
+        >> ((alphanumSendToken_p[SetNameA<SendCall>]) | statement[StatementBindTo1stA<SendCall, errSendObject>])) // Expression, e.g. [clients 4], or (GetTheGuy)
+        >>
+        (propget_p[AddSimpleSendParamA] |             // Single prop get
+        (syntaxnode_d[send_param_call[AddSendParamA]] % comma)      // Or a series regular ones separated by comma
+        )
+        ;
 
     // Operators
     binary_operator = operator_p("u>=") | operator_p(">=") | operator_p("u>") | operator_p(">>") |
@@ -266,14 +409,14 @@ void SCISyntaxParser::Load()
         operator_p("/=") | operator_p("mod=") | operator_p("&=") |
         operator_p("|=") | operator_p("^=") | operator_p(">>=") |
         operator_p("<<=") | operator_p("=");
-    
+
     // blarg    or   [blarg statement]
     lvalue = (opbracket >> general_token[{SetStatementNameA<LValue>, ParseAutoCompleteContext::LValue}] >> statement[LValueIndexerA] >> clbracket) |
         general_token[{SetStatementNameA<LValue>, ParseAutoCompleteContext::LValue}];
 
     rest_statement =
         keyword_p("&rest")[SetStatementA<RestStatement>]
-        >> -alphanum_p[SetStatementNameA<RestStatement>];
+        >> -alphanumNK_p[SetStatementNameA<RestStatement>];
 
     code_block =
         oppar[SetStatementA<CodeBlock>]
@@ -295,25 +438,28 @@ void SCISyntaxParser::Load()
     unary_operation =
         unary_operator[SetOperatorA<UnaryOp, UnaryOperator>]
         >> statement[StatementBindTo1stA<UnaryOp, errArgument>];
-    
+
     // All possible statements.
     statement = alwaysmatch_p[StartStatementA]
         >>
         (
-            (oppar >>
-            // Add more here
-            (
-            repeat_statement |
-            assignment |
-            unary_operation |       // REVIEW: Must come before proc call?
-            binary_operation |
-            return_statement |
-            rest_statement |
-            breakif_statement |
-            break_statement |
-            code_block
-            ) >>
-            clpar)
+        (oppar >>
+        // Add more here
+        (
+        repeat_statement |
+        assignment |
+        unary_operation |       // REVIEW: Must come before proc call?
+        binary_operation |
+        return_statement |
+        if_statement |
+        breakif_statement |
+        break_statement |
+        code_block |
+        send_call |             // Send has to come before procedure. Because procedure will match (foo sel:)
+        procedure_call
+        ) >>
+        clpar)
+        | rest_statement
         | value
         )[{FinishStatementA, ParseAutoCompleteContext::Value}];
 
@@ -324,8 +470,8 @@ void SCISyntaxParser::Load()
     // Variable declaration, with optional array size (array size must be numeric!)
     // A   or  [A 6]   or [A MY_ARRAY_SIZE]
     var_decl =
-        (opbracket >> alphanum_p[CreateVarDeclA] >> (integer_p[VarDeclSizeA] | alphanum_p2[VarDeclSizeConstantA])[VarDeclSizeErrorA] >> clbracket) |
-        alphanum_p[CreateVarDeclA];
+        (opbracket >> alphanumNK_p[CreateVarDeclA] >> (integer_p[VarDeclSizeA] | alphanumNK_p[VarDeclSizeConstantA])[VarDeclSizeErrorA] >> clbracket) |
+        alphanumNK_p[CreateVarDeclA];
 
     script_var = keyword_p("local")
         >> *((var_decl[CreateScriptVarA] >> -(equalSign[GeneralE] >> (string_immediateValue2[ScriptVarInitA] | array_init)))[FinishScriptVarA]);
@@ -333,26 +479,77 @@ void SCISyntaxParser::Load()
     // StartFunctionTempVarA is needed to reset "was initializer value set". There are no initializer values for function variables in this syntax.
     function_var_decl = keyword_p("&tmp")[StartFunctionTempVarA] >> +(var_decl[FinishFunctionTempVarA]);
 
+    property_decl = alphanumNK_p[{CreateClassPropertyA, ParseAutoCompleteContext::ClassSelector}]
+        >> statement[FinishClassPropertyStatementA];
+
     // (procname param param &tmp tmp tmp tmp)
     procedure_base = oppar
-        >> alphanum_p[FunctionNameA]
-        >> *alphanum_p[FunctionParameterA]
+        >> alphanumNK_p[FunctionNameA]
+        >> *alphanumNK_p[FunctionParameterA]
         >> *function_var_decl
         >> clpar[GeneralE]
         >> *statement[FunctionStatementA];
 
     procedure_decl = keyword_p("procedure")[CreateProcedureA] >> procedure_base[{FunctionCloseA, ParseAutoCompleteContext::Block}];
 
+    // Very similar to procedure_base, but with some autocomplete differences:
+    method_base = oppar
+        >> alphanumNK_p[{FunctionNameA, ParseAutoCompleteContext::Selector}]
+        >> *alphanumNK_p[{FunctionParameterA, ParseAutoCompleteContext::Block}]
+        >> *function_var_decl
+        >> clpar[GeneralE]
+        >> *statement[FunctionStatementA];
+
+    method_decl = keyword_p("method")[{CreateMethodA, ParseAutoCompleteContext::ClassLevelKeyword}] >> method_base[FunctionCloseA];
+
+    // The properties thing in a class or instance
+    properties_decl = oppar >> keyword_p("properties")[{nullptr, ParseAutoCompleteContext::ClassLevelKeyword}] >> *property_decl >> clpar;
+
+    classbase_decl =
+        alphanumNK_p[ClassNameA]
+        >> -(keyword_p("of")[GeneralE] >> alphanumNK_p[{ClassSuperA, ParseAutoCompleteContext::SuperClass}])
+        >> -properties_decl
+        >> *(oppar >> 
+            (method_decl[FinishClassMethodA] |
+            procedure_decl[FinishClassProcedureA]) >> clpar);
+
+    instance_decl = keyword_p("instance")[CreateClassA<true>] >> classbase_decl[ClassCloseA];
+
+    class_decl = keyword_p("class")[CreateClassA<false>] >> classbase_decl[ClassCloseA];
+
     // TODO:
     entire_script = *(oppar[GeneralE]
-    >> (include
+        >> (include
         | use
         | define[FinishDefineA]
+        | instance_decl[FinishClassA]
+        | class_decl[FinishClassA]
         | procedure_decl[FinishProcedureA]
+        | exports
         | scriptNum
         | script_var)[{IdentifierE, ParseAutoCompleteContext::TopLevelKeyword}]
         >> clpar[GeneralE]);
+}
+
+void PostProcessScript(Script &script)
+{
+    EnumScriptElements<ProcedureDefinition>(script,
+        [&script](ProcedureDefinition &proc)
+    {
+        proc.SetPublic(script.IsExport(proc.GetName()));
     }
+        );
+
+    EnumScriptElements<ClassDefinition>(script,
+        [&script](ClassDefinition &instance)
+    {
+        if (instance.IsInstance())
+        {
+            instance.SetPublic(script.IsExport(instance.GetName()));
+        }
+    }
+    );
+}
 
 //
 // This does the parsing.
@@ -363,6 +560,7 @@ bool SCISyntaxParser::Parse(Script &script, streamIt &stream, std::unordered_set
     bool fRet = false;
     if (entire_script.Match(&context, stream).Result() && (*stream == 0)) // Needs a full match
     {
+        PostProcessScript(script);
         fRet = true;
     }
     else
@@ -387,6 +585,7 @@ bool SCISyntaxParser::Parse(Script &script, streamIt &stream, std::unordered_set
     bool fRet = false;
     if (entire_script.Match(&context, stream).Result() && (*stream == 0)) // Needs a full match
     {
+        PostProcessScript(script);
         fRet = true;
     }
     return fRet;
@@ -405,6 +604,10 @@ bool SCISyntaxParser::ParseHeader(Script &script, streamIt &stream, std::unorder
         {
             pError->ReportResult(CompileResult(strError, scriptId, errorPos.GetLineNumber() + 1, errorPos.GetColumnNumber(), CompileResult::CRT_Error));
         }
+    }
+    else
+    {
+        PostProcessScript(script);
     }
     return fRet;
 }

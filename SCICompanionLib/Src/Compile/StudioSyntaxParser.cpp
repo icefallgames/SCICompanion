@@ -154,13 +154,7 @@ sci::NodeType SyntaxContext::GetTopKnownNode() const
 //
 // send call
 //
-void AddSendParamA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-		pContext->GetPrevSyntaxNode<SendCall>()->AddSendParam(pContext->StealSyntaxNode<SendParam>());
-    }
-}
+
 void AddSendRestA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
     if (match.Result())
@@ -253,18 +247,6 @@ void SetVersionA(MatchResult &match, const Parser *pParser, SyntaxContext *pCont
     }
 }
 
-void AddExportA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        unique_ptr<ExportEntry> entry = make_unique<ExportEntry>();
-        entry->SetPosition(stream.GetPosition());
-        entry->Slot = pContext->Integer;
-        entry->Name = pContext->ScratchString();
-        pContext->Script().GetExports().push_back(move(entry));
-    }
-}
-
 // Statements
 void StatementA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
@@ -354,14 +336,6 @@ void EvaluateEndIfA(MatchResult &match, const Parser *pParser, SyntaxContext *pC
     }
 }
 
-void ExpectedProperyValueE(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (!match.Result())
-    {
-        pContext->ReportError("Expected a property value. Are you missing a property value in the list of properties?", stream);
-    }
-}
-
 void FailedVarDecl(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
     if (!match.Result())
@@ -411,101 +385,12 @@ void EnableScriptVersionA(MatchResult &match, const Parser *pParser, SyntaxConte
     }
 }
 
-// Classes
-template<bool fInstance>
-void CreateClassA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->CreateClass();
-        pContext->ClassPtr->SetInstance(fInstance);
-        pContext->ClassPtr->SetScript(&pContext->Script());
-        pContext->ClassPtr->SetPosition(stream.GetPosition());
-    }
-}
-void FinishClassA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->Script().AddClass(move(pContext->ClassPtr));
-    }
-}
 void ClassPublicA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
     if (match.Result())
     {
         pContext->ClassPtr->SetPublic(true);
     }
-}
-void ClassNameA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->ClassPtr->SetName(pContext->ScratchString().c_str());
-    }
-}
-void ClassSuperA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->ClassPtr->SetSuperClass(pContext->ScratchString());
-    }
-}
-void ClassCloseA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    pContext->ClassPtr->SetEndPosition(stream.GetPosition()); // set the closing position no matter what
-    if (!match.Result() && pParser->_psz)
-    {
-        GeneralE(match, pParser, pContext, stream);
-    }
-}
-void FinishClassMethodA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-		pContext->ClassPtr->AddMethod(move(pContext->GetFunctionAsMethod()));
-    }
-    else
-    {
-        pContext->ReportError("Expected method declaration.", stream);
-    }
-}
-
-// Class properties
-void CreateClassPropertyA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->CreateClassProperty();
-		pContext->ClassProp->SetName(pContext->ScratchString());
-        pContext->ClassProp->SetPosition(stream.GetPosition());
-    }
-}
-void FinishClassPropertyA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->ClassProp->SetValue(pContext->PropertyValue);
-		pContext->ClassPtr->AddProperty(move(pContext->ClassProp));
-    }
-}
-void FinishClassPropertyStatementA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->ClassProp->SetStatement1(move(pContext->StatementPtrReturn));
-        pContext->ClassPtr->AddProperty(move(pContext->ClassProp));
-    }
-}
-
-// asm
-void SetOpcodesExtraKeywordsA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    pContext->extraKeywords = &GetOpcodeSet();
-}
-void RemoveExtraKeywordsA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    pContext->extraKeywords = nullptr;
 }
 
 //
@@ -615,6 +500,8 @@ char const errSwitchArg[] = "Expected switch argument.";
 char const errSendObject[] = "Expected send object.";
 char const errArgument[] = "Expected argument.";
 char const errInteger[] = "Expected integer value.";
+char const errThen[] = "Expected then clause.";
+char const errElse[] = "Expected else clause.";
 
 //
 // The constructor sets up the parse tree

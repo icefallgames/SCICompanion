@@ -130,9 +130,9 @@
 
     exports
         (public
-            instancename0 optionalExportNumber
-            procname0 optionalExportNumber
-            procname2 optionalExportNumber
+            instancename0 exportNumber
+            procname0 exportNumber
+            procname2 exportNumber
         )
 
     rest:

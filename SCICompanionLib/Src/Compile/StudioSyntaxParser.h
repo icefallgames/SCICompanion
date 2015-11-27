@@ -103,8 +103,6 @@ bool AsmInstructionP(const ParserBase<_TContext, _It, _CommentPolicy> *pParser, 
     return fRet;
 }
 
-
-
 extern const char *g_keywords[4];
 
 // TODO: Refactor with above

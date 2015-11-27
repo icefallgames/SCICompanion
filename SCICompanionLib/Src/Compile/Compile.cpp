@@ -1221,7 +1221,7 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
                     WriteScriptID(context, wInstanceScript, wNumber);
                     break;
                 default:
-                    if (context.GetLanguage() == LangSyntaxCpp)
+                    if (context.GetLanguage() != LangSyntaxSCIStudio)
                     {
                         BYTE bOpcodeMod = VO_LOAD | VO_ACC;
                         switch (tokenType)

@@ -32,6 +32,11 @@ static char THIS_FILE[] = __FILE__;
 
 std::string g_restLastParamSentinel = "REST_LAST_PARAM_SENTINEL";
 
+bool Script::IsExport(const std::string &name) const
+{
+    return find_if(_exports.begin(), _exports.end(), [&name](const std::unique_ptr<ExportEntry> &entry) { return entry->Name == name; }) != _exports.end();
+}
+
 ResolvedToken Script::LookupVariableName(CompileContext &context, const std::string &str, WORD &wIndex, SpeciesIndex &dataType) const
 {
     ResolvedToken tokenType = ResolvedToken::Unknown;

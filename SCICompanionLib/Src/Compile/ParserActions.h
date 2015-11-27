@@ -550,6 +550,23 @@ void AssignmentVariableA(MatchResult &match, const _TParser *pParser, SyntaxCont
     }
 }
 
+template<typename _TParser>
+void AddSendParamA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->GetPrevSyntaxNode<SendCall>()->AddSendParam(pContext->StealSyntaxNode<SendParam>());
+    }
+}
+
+template<typename _TParser>
+void AddSimpleSendParamA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->GetSyntaxNode<SendCall>()->AddSendParam(std::make_unique<SendParam>(pContext->ScratchString(), false));
+    }
+}
 
 // Set the name of a SyntaxNode
 template<typename _T, typename _TParser>
@@ -580,6 +597,131 @@ void SetNameA(MatchResult &match, const _TParser *pParser, SyntaxContext *pConte
     }
 }
 
+template<typename _TParser>
+void AddExportA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        unique_ptr<ExportEntry> entry = make_unique<ExportEntry>();
+        entry->SetPosition(stream.GetPosition());
+        entry->Slot = pContext->Integer;
+        entry->Name = pContext->ScratchString();
+        pContext->Script().GetExports().push_back(move(entry));
+    }
+}
+
+
+// Classes
+template<bool fInstance, typename _TParser>
+void CreateClassA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->CreateClass();
+        pContext->ClassPtr->SetInstance(fInstance);
+        pContext->ClassPtr->SetScript(&pContext->Script());
+        pContext->ClassPtr->SetPosition(stream.GetPosition());
+    }
+}
+
+template<typename _TParser>
+void FinishClassA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->Script().AddClass(move(pContext->ClassPtr));
+    }
+}
+
+template<typename _TParser>
+void ClassNameA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->ClassPtr->SetName(pContext->ScratchString().c_str());
+    }
+}
+
+template<typename _TParser>
+void ClassSuperA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->ClassPtr->SetSuperClass(pContext->ScratchString());
+    }
+}
+
+template<typename _TParser>
+void ClassCloseA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    pContext->ClassPtr->SetEndPosition(stream.GetPosition()); // set the closing position no matter what
+    if (!match.Result() && pParser->_psz)
+    {
+        GeneralE(match, pParser, pContext, stream);
+    }
+}
+
+template<typename _TParser>
+void FinishClassMethodA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->ClassPtr->AddMethod(move(pContext->GetFunctionAsMethod()));
+    }
+    else
+    {
+        pContext->ReportError("Expected method declaration.", stream);
+    }
+}
+
+// Class properties
+template<typename _TParser>
+void CreateClassPropertyA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->CreateClassProperty();
+        pContext->ClassProp->SetName(pContext->ScratchString());
+        pContext->ClassProp->SetPosition(stream.GetPosition());
+    }
+}
+
+template<typename _TParser>
+void FinishClassPropertyA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->ClassProp->SetValue(pContext->PropertyValue);
+        pContext->ClassPtr->AddProperty(move(pContext->ClassProp));
+    }
+}
+
+template<typename _TParser>
+void FinishClassPropertyStatementA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->ClassProp->SetStatement1(move(pContext->StatementPtrReturn));
+        pContext->ClassPtr->AddProperty(move(pContext->ClassProp));
+    }
+    else
+    {
+        pContext->ReportError("Expected a property value. Are you missing a property value in the list of properties?", stream);
+    }
+}
+
+// asm
+template<typename _TParser>
+void SetOpcodesExtraKeywordsA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    pContext->extraKeywords = &GetOpcodeSet();
+}
+template<typename _TParser>
+void RemoveExtraKeywordsA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    pContext->extraKeywords = nullptr;
+}
+
 // Errors
 template<typename _It, typename _TParser>
 void IdentifierE(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const _It &stream)
@@ -590,6 +732,16 @@ void IdentifierE(MatchResult &match, const _TParser *pParser, SyntaxContext *pCo
     }
 }
 
+template<typename _TParser>
+void ExpectedProperyValueE(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (!match.Result())
+    {
+        pContext->ReportError("Expected a property value. Are you missing a property value in the list of properties?", stream);
+    }
+}
+
+
 // Denoted as extern, so they can be used as function template parameters.
 extern char const errBinaryOp[];
 extern char const errCaseArg[];
@@ -597,4 +749,6 @@ extern char const errSwitchArg[];
 extern char const errSendObject[];
 extern char const errArgument[];
 extern char const errInteger[];
+extern char const errThen[];
+extern char const errElse[];
 

@@ -46,6 +46,15 @@ private:
     ParserSCI procedure_decl;
     ParserSCI procedure_base;
     ParserSCI function_var_decl;
+    ParserSCI exports;
+    ParserSCI export_entry;
+    ParserSCI class_decl;
+    ParserSCI instance_decl;
+    ParserSCI classbase_decl;
+    ParserSCI properties_decl;
+    ParserSCI property_decl;
+    ParserSCI method_decl;
+    ParserSCI method_base;
 
     // Statements
     ParserSCI statement;
@@ -64,6 +73,13 @@ private:
     ParserSCI break_statement;
     ParserSCI breakif_statement;
     ParserSCI repeat_statement;
+    ParserSCI procedure_call;
+    ParserSCI send_call;
+    ParserSCI send_param_call;
+    ParserSCI prop_get_call;
+    ParserSCI if_statement;
+    ParserSCI bare_code_block;
+    ParserSCI conditional;
 
     // TODO:
     ParserSCI entire_header;
@@ -75,13 +91,14 @@ private:
     static ParserSCI generateSyntaxNodeD();
 
     ParserSCI syntaxnode_d;
-    ParserSCI alphanum_p;
+    //ParserSCI alphanum_p;
     ParserSCI selector_p;
     ParserSCI selector_send_p;
     ParserSCI propget_p;
     ParserSCI filename_p;
     ParserSCI asmInstruction_p;
-    ParserSCI alphanum_p2;// (AlphanumPNoKeyword);
+    ParserSCI alphanumNK_p;
+    ParserSCI alphanumSendToken_p;
     ParserSCI alwaysmatch_p;
     ParserSCI bracestring_p;
     ParserSCI squotedstring_p;
