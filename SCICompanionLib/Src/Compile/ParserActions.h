@@ -466,6 +466,16 @@ void ComplexValueIntA(MatchResult &match, const _TParser *pParser, SyntaxContext
 }
 
 template<typename _TParser>
+void ComplexValueParamTotalA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        ComplexPropertyValue *pValue = pContext->GetSyntaxNode<ComplexPropertyValue>();
+        pValue->SetValue("paramTotal", ValueType::Token);
+    }
+}
+
+template<typename _TParser>
 void ComplexValuePointerA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
     if (match.Result())

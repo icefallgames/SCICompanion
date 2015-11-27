@@ -168,7 +168,7 @@ ResolvedToken FunctionBase::LookupVariableName(CompileContext &context, const st
     // Is it a temp variable?
     wIndex = 0;
     // Temporary hack
-    if ((str == "paramTotal") || (str == "argc"))
+    if (str == "paramTotal")
     {
         dataType = DataTypeInt; // paramTotal is a numerical value
         return ResolvedToken::Parameter;

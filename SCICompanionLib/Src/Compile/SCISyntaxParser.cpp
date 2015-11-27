@@ -394,6 +394,7 @@ void SCISyntaxParser::Load()
     value =
         alwaysmatch_p[SetStatementA<ComplexPropertyValue>]
         >> (integer_p[ComplexValueIntA]
+        | keyword_p("argc")[ComplexValueParamTotalA]
         | quotedstring_p[{ComplexValueStringA<ValueType::String>, ParseAutoCompleteContext::Block}]
         | squotedstring_p[{ComplexValueStringA<ValueType::Said>, ParseAutoCompleteContext::Block}]
         | (-pointer[ComplexValuePointerA] >> rvalue_variable)

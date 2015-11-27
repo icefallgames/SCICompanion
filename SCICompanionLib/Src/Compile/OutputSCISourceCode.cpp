@@ -168,9 +168,14 @@
 
 // In Studio syntax, we need to wrap some class names and tokens in {} to identify them as tokens.
 // For instance b-moveCnt, or -info-. However, in the original syntax, I don't think this is needed.
-// For now, however, we'll keep track of the places that need this by having this dummy function:
+// For now, however, we'll keep track of the places that need this by having this dummy function.
+// Actually, we can use it to convert paramTotal to argc.
 std::string CleanTokenSCI(const std::string &src)
 {
+    if (src == "paramTotal")
+    {
+        return "argc";
+    }
     return src;
 }
 
@@ -543,15 +548,7 @@ public:
             _OutputNumber(out.out, prop.GetNumberValue(), prop._fHex, prop._fNegate);
             break;
         case ValueType::Token:
-            if (prop.GetStringValue() == "paramTotal")
-            {
-                out.out << "argc";
-            }
-            else
-            {
-                // Surround in braces if there are spaces in the string.
-                out.out << CleanTokenSCI(prop.GetStringValue());
-            }
+            out.out << CleanTokenSCI(prop.GetStringValue());
             break;
         case ValueType::Selector:
             out.out << "#" << prop.GetStringValue();
