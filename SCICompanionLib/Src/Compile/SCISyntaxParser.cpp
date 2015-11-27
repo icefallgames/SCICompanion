@@ -437,7 +437,7 @@ void SCISyntaxParser::Load()
     procedure_call = alphanumNK_p[SetStatementNameA<ProcedureCall>] >> *statement[AddStatementA<ProcedureCall>];
 
     // posn: x y z
-    send_param_call = selector_send_p[SetStatementNameA<SendParam>] >> *statement[AddStatementA<SendParam>];
+    send_param_call = selector_send_p[SetStatementNameA<SendParam>] >> alwaysmatch_p[SendParamIsMethod] >> *statement[AddStatementA<SendParam>];
 
     send_call = (alwaysmatch_p[SetStatementA<SendCall>] // Simple form, e.g. gEgo
         >> ((alphanumSendToken_p[SetNameA<SendCall>]) | statement[StatementBindTo1stA<SendCall, errSendObject>])) // Expression, e.g. [clients 4], or (GetTheGuy)

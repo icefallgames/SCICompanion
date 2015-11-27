@@ -184,14 +184,6 @@ void AddSingleSendParamA(MatchResult &match, const Parser *pParser, SyntaxContex
     }
 }
 
-void SendParamIsMethod(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->GetSyntaxNode<SendParam>()->SetIsMethod(true);
-    }
-}
-
 Parser generateSyntaxNodeD()
 {
     Parser syntaxnode(SyntaxNodeD);

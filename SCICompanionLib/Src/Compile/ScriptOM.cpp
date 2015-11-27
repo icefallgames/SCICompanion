@@ -167,7 +167,8 @@ ResolvedToken FunctionBase::LookupVariableName(CompileContext &context, const st
 {
     // Is it a temp variable?
     wIndex = 0;
-    if (str == "paramTotal")
+    // Temporary hack
+    if ((str == "paramTotal") || (str == "argc"))
     {
         dataType = DataTypeInt; // paramTotal is a numerical value
         return ResolvedToken::Parameter;
@@ -470,6 +471,11 @@ std::string Comment::GetSanitizedText() const
     {
         // Remove the endline and any spaces
         return trim(trim(_innerName.substr(2), '\n'), ' ');
+    }
+    else if (_innerName[0] == ';')
+    {
+        // Remove the endline and any spaces
+        return trim(trim(_innerName.substr(1), '\n'), ' ');
     }
     else
     {

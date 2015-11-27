@@ -588,6 +588,17 @@ void SetSelectorNameA(MatchResult &match, const _TParser *pParser, SyntaxContext
     }
 }
 
+template<typename _TParser>
+void SendParamIsMethod(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->GetSyntaxNode<SendParam>()->SetIsMethod(true);
+    }
+}
+
+
+
 template<typename _T, typename _TParser>
 void SetNameA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {

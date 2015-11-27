@@ -88,6 +88,11 @@ std::string Unindent(const std::string &in, int *minTabCountOut = nullptr)
         output = in;
     }
 
+    if (minTabCount == (std::numeric_limits<int>::max)())
+    {
+        minTabCount = 0;
+    }
+
     if (minTabCountOut)
     {
         *minTabCountOut = minTabCount;
