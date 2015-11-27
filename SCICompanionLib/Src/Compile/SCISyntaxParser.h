@@ -41,6 +41,7 @@ private:
     ParserSCI use;
     ParserSCI scriptNum;
     ParserSCI define;
+    ParserSCI enumStatement;
     ParserSCI var_decl;
     ParserSCI script_var;
     ParserSCI procedure_decl;

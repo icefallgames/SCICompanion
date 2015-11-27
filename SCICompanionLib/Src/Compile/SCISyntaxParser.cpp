@@ -317,6 +317,21 @@ void SetCaseA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pCont
     }
 }
 
+void InitEnumStartA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result()) { pContext->Integer = 0; }
+}
+void CreateEnumDefineA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        if (pContext->ifDefDefineState != IfDefDefineState::False)
+        {
+            pContext->Script().AddDefine(make_unique<Define>(pContext->ScratchString(), pContext->Integer++));
+        }
+    }
+}
+
 ParserSCI SCISyntaxParser::char_p(const char *psz) { return ParserSCI(CharP, psz); }
 ParserSCI SCISyntaxParser::operator_p(const char *psz) { return ParserSCI(SCIOperatorP, psz); }
 ParserSCI SCISyntaxParser::keyword_p(const char *psz) { return ParserSCI(KeywordP, psz); }
@@ -377,6 +392,8 @@ void SCISyntaxParser::Load()
     scriptNum = keyword_p("script#") >> immediateValue[{ScriptNumberA, ParseAutoCompleteContext::DefineValue }];
 
     define = keyword_p("define")[CreateDefineA] >> alphanumNK_p[DefineLabelA] >> integer_p[DefineValueA];
+
+    enumStatement = keyword_p("enum")[InitEnumStartA] >> -integer_p >> *alphanumNK_p[CreateEnumDefineA];
 
     general_token = (alphanumNK_p | bracestring_p)[{nullptr, ParseAutoCompleteContext::None, "TOKEN"}];
 
@@ -663,6 +680,7 @@ void SCISyntaxParser::Load()
         >> (include
         | use
         | define[FinishDefineA]
+        | enumStatement
         | instance_decl[FinishClassA]
         | class_decl[FinishClassA]
         | procedure_decl[FinishProcedureA]

@@ -556,6 +556,8 @@ namespace sci
     {
         DECLARE_NODE_TYPE(NodeTypeDefine)
     public:
+        Define() : _flags(IntegerFlags::None), _wValue(0) {}
+        Define(const std::string &label, uint16_t w) : _label(label), _flags(IntegerFlags::None), _wValue(w) {}
         const std::string &GetLabel() const { return _label; }
         const std::string &GetName() const { return _label; }
         uint16_t GetValue() const { ASSERT(_strValue.empty()); return _wValue; }
