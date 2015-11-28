@@ -347,6 +347,7 @@ public:
     void Visit(const Asm &asmSection) override {}
     void Visit(const AsmBlock &asmBlock) override {}
     void Visit(const ExportEntry &exportEntry) override {}
+    void Visit(const WeakSyntaxNode &weakNode) override {}
 
     void SetSuggestion(const Suggestion &suggestion)
     {
@@ -445,6 +446,7 @@ public:
     void Visit(const Asm &asmSection) override {}
     void Visit(const AsmBlock &asmBlock) override {}
     void Visit(const ExportEntry &exportEntry) override {}
+    void Visit(const WeakSyntaxNode &weakNode) override {}
 
     void Clear() { CurrentSuggestion.clear(); }
     Suggestion CurrentSuggestion;

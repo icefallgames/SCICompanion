@@ -271,3 +271,7 @@ void AsmBlock::Traverse(IExploreNode &en)
     ExploreNodeBlock enb(en, *this);
     ForwardTraverse2(_segments, en);
 }
+void WeakSyntaxNode::Traverse(IExploreNode &en)
+{
+    assert(false);
+}

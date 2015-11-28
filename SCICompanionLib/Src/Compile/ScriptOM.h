@@ -140,6 +140,7 @@ namespace sci
     class Asm;
     class AsmBlock;
     class ExportEntry;
+    class WeakSyntaxNode;
 
     class ISyntaxNodeVisitor
     {
@@ -181,6 +182,7 @@ namespace sci
         virtual void Visit(const Asm &asmSection) = 0;
         virtual void Visit(const AsmBlock &asmBlock) = 0;
         virtual void Visit(const ExportEntry &exportEntry) = 0;
+        virtual void Visit(const WeakSyntaxNode &weakNode) = 0;
     };
 
     class ScriptSite

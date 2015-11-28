@@ -519,6 +519,26 @@ namespace sci
         void Accept(ISyntaxNodeVisitor &visitor) const override;
     };
 
+    // This can be used to substitute or inject new nodes into a tree temporarily.
+    // Each node tends to have unique ownership of its children, so normally this
+    // can't be done.
+    class WeakSyntaxNode : public SyntaxNode
+    {
+        DECLARE_NODE_TYPE(NodeTypeWeak)
+    public:
+        WeakSyntaxNode() : WeakNode(nullptr) {}
+        WeakSyntaxNode(const SyntaxNode *node) : WeakNode(node) {}
+
+        // IOutputByteCode
+        CodeResult OutputByteCode(CompileContext &context) const;
+        void PreScan(CompileContext &context);
+        void Traverse(IExploreNode &en);
+
+        void Accept(ISyntaxNodeVisitor &visitor) const override;
+
+        const SyntaxNode *WeakNode;
+    };
+
     // Label: optional label
     // Name: instruction
     // Statements: arguments

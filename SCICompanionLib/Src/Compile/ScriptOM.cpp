@@ -584,3 +584,4 @@ void IfStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*thi
 void Asm::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
 void AsmBlock::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
 void ExportEntry::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
+void WeakSyntaxNode::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }

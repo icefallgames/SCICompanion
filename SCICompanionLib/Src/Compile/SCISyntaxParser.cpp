@@ -521,13 +521,15 @@ void SCISyntaxParser::Load()
         ;
 
     // Operators
+    // (I bet this would be a lot faster if we packed them)
     binary_operator = operator_p("u>=") | operator_p(">=") | operator_p("u>") | operator_p(">>") |
         operator_p(">") | operator_p("u<=") | operator_p("<=") |
         operator_p("u<") | operator_p("!=") | operator_p("<<") |
         operator_p("<") | operator_p("==") | operator_p("+") |
         operator_p("-") | operator_p("*") | operator_p("/") |
         operator_p("mod") | operator_p("&") | operator_p("|") |
-        operator_p("^");
+        operator_p("^") |
+        operator_p("and") | operator_p("or");
 
     unary_operator = operator_p("~") | operator_p("not") | operator_p("-") |
         operator_p("++") | operator_p("--");

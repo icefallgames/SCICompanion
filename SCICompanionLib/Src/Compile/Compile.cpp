@@ -2082,9 +2082,13 @@ CodeResult _WriteFakeIfStatement(CompileContext &context, const BinaryOp &binary
     {
         // Put the result of the if into the accumulator - we'll push to stack as necessary.
         COutputContext accContext(context, OC_Accumulator);
+        // We need to put this inside a ConditionalExpression for the code output to work.
+        // We can't move the BinaryOp into another syntax node, so we'll use WeakSyntaxNode as
+        // the bridge.
+        ConditionalExpression expression(make_unique<WeakSyntaxNode>(&binary));
         // true -> give this meaning, otherwise the compiler will complain that the '1' value
         // has no effect on code.  It actually does, because we're playing tricks.
-        _OutputCodeForIfStatement(context, binary, success, nullptr, true);
+        _OutputCodeForIfStatement(context, expression, success, nullptr, true);
     }
     return CodeResult(PushToStackIfAppropriate(context), DataTypeBool);
 }
@@ -3555,6 +3559,16 @@ void Asm::PreScan(CompileContext &context)
         context.ReportLabelName(this, _label);
     }
     ForwardPreScan2(_segments, context);
+}
+
+void WeakSyntaxNode::PreScan(CompileContext &context)
+{
+    assert(false);
+}
+CodeResult WeakSyntaxNode::OutputByteCode(CompileContext &context) const
+{
+    if (WeakNode) { return WeakNode->OutputByteCode(context); }
+    return 0;
 }
 
 // Converts a flat list of statements and andOrs into a tree of binary operations.

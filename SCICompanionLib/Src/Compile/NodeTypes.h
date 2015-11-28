@@ -58,5 +58,6 @@ namespace sci
         NodeTypeConditionalExpressionSCIStudio,
         NodeTypeExport,
         NodeTypeCond,
+        NodeTypeWeak,
     };
 }
