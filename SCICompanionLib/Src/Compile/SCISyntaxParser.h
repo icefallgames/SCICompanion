@@ -63,8 +63,10 @@ private:
     ParserSCI value;
     ParserSCI assignment;
     ParserSCI assignment_operator;
-    ParserSCI binary_operation;
     ParserSCI binary_operator;
+    ParserSCI binary_operation;
+    ParserSCI naryassoc_operator;
+    ParserSCI naryassoc_operation;
     ParserSCI unary_operator;
     ParserSCI unary_operation;
     ParserSCI lvalue;

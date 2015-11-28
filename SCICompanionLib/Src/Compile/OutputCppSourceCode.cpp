@@ -600,6 +600,19 @@ public:
         EndStatement(out);
     }
 
+    void Visit(const NaryOp &naryOp) override
+    {
+        out.SyncComments(naryOp);
+        {
+            Inline inln(out, true);
+            OutputBrackets brackets(out);
+            {
+                out.out << "/* n-ary operators are not supported in this syntax */";
+            }
+        }
+        EndStatement(out);
+    }
+
     void Visit(const BinaryOp &binaryOp) override 
     {
         out.SyncComments(binaryOp);

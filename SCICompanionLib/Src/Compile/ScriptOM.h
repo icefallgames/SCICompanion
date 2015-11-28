@@ -141,6 +141,7 @@ namespace sci
     class AsmBlock;
     class ExportEntry;
     class WeakSyntaxNode;
+    class NaryOp;
 
     class ISyntaxNodeVisitor
     {
@@ -177,6 +178,7 @@ namespace sci
         virtual void Visit(const CondStatement &condStatement) = 0;
         virtual void Visit(const Assignment &assignment) = 0;
         virtual void Visit(const BinaryOp &binaryOp) = 0;
+        virtual void Visit(const NaryOp &binaryOp) = 0;
         virtual void Visit(const UnaryOp &unaryOp) = 0;
         virtual void Visit(const IfStatement &ifStatement) = 0;
         virtual void Visit(const Asm &asmSection) = 0;

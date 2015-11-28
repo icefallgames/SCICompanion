@@ -150,6 +150,11 @@ bool CodeBlock::Evaluate(ILookupDefine &context, uint16_t &result) const
     }
     return good;
 }
+bool NaryOp::Evaluate(ILookupDefine &context, uint16_t &result) const
+{
+    assert(false); // Need to implement.
+    return false;
+}
 
 bool ConditionalExpression::Evaluate(ILookupDefine &context, uint16_t &result) const
 {

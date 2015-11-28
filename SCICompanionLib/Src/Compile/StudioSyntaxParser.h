@@ -497,12 +497,12 @@ inline ParserBase<_TContext, _It, _CommentPolicy> operator-(const ParserBase<_TC
 }
 
 //
-// +a
+// ++a
 // 
 // Matches one or more instances of a
 //
 template<typename _It, typename _TContext, typename _CommentPolicy>
-inline ParserBase<_TContext, _It, _CommentPolicy> operator+(const ParserBase<_TContext, _It, _CommentPolicy> &a)
+inline ParserBase<_TContext, _It, _CommentPolicy> operator++(const ParserBase<_TContext, _It, _CommentPolicy> &a)
 {
     return ParserBase<_TContext, _It, _CommentPolicy>(OneOrMoreP<_It, _TContext, _CommentPolicy>, a);
 }

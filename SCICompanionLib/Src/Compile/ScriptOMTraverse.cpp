@@ -98,6 +98,11 @@ void CodeBlock::Traverse(IExploreNode &en)
 	ExploreNodeBlock enb(en, *this);
 	ForwardTraverse2(_segments, en);
 }
+void NaryOp::Traverse(IExploreNode &en)
+{
+    ExploreNodeBlock enb(en, *this);
+    ForwardTraverse2(_segments, en);
+}
 void Cast::Traverse(IExploreNode &en)
 {
 	ExploreNodeBlock enb(en, *this);

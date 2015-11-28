@@ -331,6 +331,43 @@ void CreateEnumDefineA(MatchResult &match, const ParserSCI *pParser, SyntaxConte
         }
     }
 }
+void RestructureNaryAssociativeOpA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        // Restructure (a b c d e) into (a (b (c (d e))))
+        // We want evaluation to procede left to right
+        auto naryOp = pContext->StealSyntaxNode<NaryOp>();
+        auto &statements = naryOp->GetStatements();
+        size_t operandCount = statements.size();
+        assert(operandCount >= 2);
+        auto binaryOp = make_unique<BinaryOp>(naryOp->Operator);
+        binaryOp->SetPosition(naryOp->GetPosition());
+        auto it = statements.rbegin();
+        binaryOp->SetStatement2(move(*it));
+        ++it;
+        for (; it != statements.rend(); ++it)
+        {
+            if (!binaryOp->GetStatement1())
+            {
+                binaryOp->SetStatement1(move(*it));
+            }
+            else
+            {
+                // Make a new op.
+                auto newBinaryOp = make_unique<BinaryOp>(naryOp->Operator);
+                newBinaryOp->SetStatement2(move(binaryOp));
+                binaryOp = move(newBinaryOp);
+                binaryOp->SetPosition(naryOp->GetPosition());
+                binaryOp->SetStatement1(move(*it));
+            }
+        }
+        
+        // Now set this back in as the current syntax node.
+        pContext->ReplaceSyntaxNode(move(binaryOp));
+    }
+}
+
 
 ParserSCI SCISyntaxParser::char_p(const char *psz) { return ParserSCI(CharP, psz); }
 ParserSCI SCISyntaxParser::operator_p(const char *psz) { return ParserSCI(SCIOperatorP, psz); }
@@ -525,11 +562,12 @@ void SCISyntaxParser::Load()
     binary_operator = operator_p("u>=") | operator_p(">=") | operator_p("u>") | operator_p(">>") |
         operator_p(">") | operator_p("u<=") | operator_p("<=") |
         operator_p("u<") | operator_p("!=") | operator_p("<<") |
-        operator_p("<") | operator_p("==") | operator_p("+") |
-        operator_p("-") | operator_p("*") | operator_p("/") |
-        operator_p("mod") | operator_p("&") | operator_p("|") |
-        operator_p("^") |
-        operator_p("and") | operator_p("or");
+        operator_p("<") | operator_p("==") | 
+        operator_p("-") | operator_p("/") |
+        operator_p("mod");
+
+    // n-ary operators that are associative
+    naryassoc_operator = operator_p("*") | operator_p("+") | operator_p("&") | operator_p("|") | operator_p("^") | operator_p("and") | operator_p("or");
 
     unary_operator = operator_p("~") | operator_p("not") | operator_p("-") |
         operator_p("++") | operator_p("--");
@@ -562,6 +600,18 @@ void SCISyntaxParser::Load()
         binary_operator[SetOperatorA<BinaryOp, BinaryOperator>]
         >> statement[StatementBindTo1stA<BinaryOp, errArgument>]
         >> statement[StatementBindTo2ndA<BinaryOp, errBinaryOp>];
+
+    // (+ 1 2 3 4 5)
+    // These are parsed temporarily into a NaryOp node, then restructured into next BinaryOp nodes for maximum re-usability.
+    // At least two parameters are required.
+    naryassoc_operation =
+        (naryassoc_operator[SetOperatorA<NaryOp, BinaryOperator>]
+        >> statement[AddStatementA<NaryOp>]
+        >> ++statement[AddStatementA<NaryOp>])[RestructureNaryAssociativeOpA];
+
+//    ParserSCI naryassoc_operator;
+  //  ParserSCI naryassoc_operation;
+
 
     // ~ signal
     unary_operation =
@@ -602,6 +652,7 @@ void SCISyntaxParser::Load()
         assignment |
         unary_operation |       // REVIEW: Must come before proc call?
         binary_operation |
+        naryassoc_operation |
         return_statement |
         if_statement |
         while_loop |
@@ -637,7 +688,7 @@ void SCISyntaxParser::Load()
         >> *((var_decl[CreateScriptVarA] >> -(equalSign[GeneralE] >> (string_immediateValue2[ScriptVarInitA] | array_init)))[FinishScriptVarA]);
 
     // StartFunctionTempVarA is needed to reset "was initializer value set". There are no initializer values for function variables in this syntax.
-    function_var_decl = keyword_p("&tmp")[StartFunctionTempVarA] >> +(var_decl[FinishFunctionTempVarA]);
+    function_var_decl = keyword_p("&tmp")[StartFunctionTempVarA] >> ++(var_decl[FinishFunctionTempVarA]);
 
     property_decl = alphanumNK_p[{CreateClassPropertyA, ParseAutoCompleteContext::ClassSelector}]
         >> statement[FinishClassPropertyStatementA];

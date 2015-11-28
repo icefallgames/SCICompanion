@@ -42,6 +42,7 @@ namespace sci
         NodeTypeAsmBlock,               // 20
         NodeTypeReturn,
         NodeTypeBinaryOperation,
+        NodeTypeNaryOperation,
         NodeTypeUnaryOperation,
         NodeTypeForLoop,
         NodeTypeWhileLoop,

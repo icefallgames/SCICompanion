@@ -1161,6 +1161,17 @@ public:
         out.out << ")";
     }
 
+    void Visit(const NaryOp &naryOp) override
+    {
+        out.SyncComments(naryOp);
+        DebugLine line(out);
+        Inline inln(out, true);
+        out.out << "(" << OperatorToName(naryOp.Operator, sciNameToBinaryOp);
+        out.out << " ";
+        Forward(naryOp.GetStatements(), " ");
+        out.out << ")";
+    }
+
     void Visit(const UnaryOp &unaryOp) override
     {
         out.SyncComments(unaryOp);

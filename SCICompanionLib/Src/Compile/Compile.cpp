@@ -2093,6 +2093,11 @@ CodeResult _WriteFakeIfStatement(CompileContext &context, const BinaryOp &binary
     return CodeResult(PushToStackIfAppropriate(context), DataTypeBool);
 }
 
+CodeResult NaryOp::OutputByteCode(CompileContext &context) const
+{
+    // TODO
+    return 0;
+}
 
 CodeResult BinaryOp::OutputByteCode(CompileContext &context) const
 {

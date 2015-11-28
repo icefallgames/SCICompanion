@@ -91,3 +91,5 @@ std::string OperatorToName(_TOperator op, const std::vector<std::pair<std::strin
     }
     return "INVALID_OPERATOR";
 }
+
+bool IsRelational(BinaryOperator op);

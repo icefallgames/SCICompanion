@@ -425,7 +425,8 @@ namespace sci
     {
         DECLARE_NODE_TYPE(NodeTypeBinaryOperation)
     public:
-        BinaryOp() : OneStatementNode(), TwoStatementNode(), Operator(BinaryOperator::None) {}
+        BinaryOp() : Operator(BinaryOperator::None) {}
+        BinaryOp(BinaryOperator op) : Operator(op) {}
 
 		BinaryOp(const BinaryOp &src) = delete;
 		BinaryOp& operator=(const BinaryOp& src) = delete;
@@ -444,6 +445,28 @@ namespace sci
     private:
         CodeResult _OutputByteCodeAnd(CompileContext &context) const;
         CodeResult _OutputByteCodeOr(CompileContext &context) const;
+    };
+
+    // N-ary operation.
+    // (+ 1 2 3 4 5)    -> This is actually converted to a BinaryOperation before compilation.
+    // (< 1 2 3 4 5)    -> This is kept as an N-ary operation, as there is no easy conversion to binary.
+    class NaryOp : public SyntaxNode, public StatementsNode
+    {
+        DECLARE_NODE_TYPE(NodeTypeNaryOperation)
+    public:
+        NaryOp() : Operator(BinaryOperator::None) {}
+
+        NaryOp(const BinaryOp &src) = delete;
+        NaryOp& operator=(const BinaryOp& src) = delete;
+
+        // IOutputByteCode
+        CodeResult OutputByteCode(CompileContext &context) const override;
+        void Traverse(IExploreNode &en) override;
+        bool Evaluate(ILookupDefine &context, uint16_t &result) const override;
+
+        void Accept(ISyntaxNodeVisitor &visitor) const override;
+
+        BinaryOperator Operator;
     };
 
     //

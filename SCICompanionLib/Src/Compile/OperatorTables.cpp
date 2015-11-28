@@ -18,10 +18,51 @@
 
 using namespace std;
 
+// These all obey the associative property, so an n-ary set of these
+// can be constructed using a tree of binary operations.
+// e.g. (+ 1 2 3)  is equivalent to (+ 1 (+ 2 3))
+vector<BinaryOperator> allowMultiple =
+{
+    BinaryOperator::LogicalAnd,
+    BinaryOperator::LogicalOr,
+    BinaryOperator::Add,
+    BinaryOperator::Multiply,
+    BinaryOperator::ExclusiveOr,
+    BinaryOperator::BinaryAnd,
+    BinaryOperator::BinaryOr,
+};
+
+// These are more complicated.
+vector<BinaryOperator> relational =
+{
+    BinaryOperator::Equal,
+    BinaryOperator::NotEqual,
+    BinaryOperator::UnsignedGreaterEqual,
+    BinaryOperator::GreaterEqual,
+    BinaryOperator::UnsignedGreaterThan,
+    BinaryOperator::ShiftRight,
+    BinaryOperator::GreaterThan,
+    BinaryOperator::UnsignedLessEqual,
+    BinaryOperator::LessEqual,
+    BinaryOperator::UnsignedLessThan,
+    BinaryOperator::LessThan,
+};
+
+bool IsRelational(BinaryOperator op)
+{
+    return find(relational.begin(), relational.end(), op) != relational.end();
+}
+
+bool AllowMultiple(BinaryOperator op)
+{
+    return find(allowMultiple.begin(), allowMultiple.end(), op) != allowMultiple.end();
+}
+
+// SCI Studio syntax operators
 vector<pair<string, BinaryOperator>> studioNameToBinaryOp =
 {
     { "==", BinaryOperator::Equal },
-    { "<>", BinaryOperator::NotEqual },     // SCIStudio only
+    { "<>", BinaryOperator::NotEqual },
     { ">=u", BinaryOperator::UnsignedGreaterEqual },
     { ">=", BinaryOperator::GreaterEqual },
     { ">u", BinaryOperator::UnsignedGreaterThan },
@@ -44,6 +85,7 @@ vector<pair<string, BinaryOperator>> studioNameToBinaryOp =
     { "or", BinaryOperator::LogicalOr },
 };
 
+// Sierra syntax operators
 vector<pair<string, BinaryOperator>> sciNameToBinaryOp =
 {
     { "==", BinaryOperator::Equal },
@@ -71,6 +113,7 @@ vector<pair<string, BinaryOperator>> sciNameToBinaryOp =
 };
 
 // THIS NEEDS REVIEW
+// c++ style operators
 vector<pair<string, BinaryOperator>> cppNameToBinaryOp =
 {
     { "==", BinaryOperator::Equal },

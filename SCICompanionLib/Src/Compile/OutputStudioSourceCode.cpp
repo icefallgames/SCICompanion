@@ -613,6 +613,16 @@ public:
         }
     }
 
+    void Visit(const NaryOp &naryOp) override
+    {
+        out.SyncComments(naryOp);
+        DebugLine line(out);
+        OutputBrackets brackets(out);
+        {
+            out.out << "/* n-ary operators are not supported in this syntax */";
+        }
+    }
+
     void Visit(const BinaryOp &binaryOp) override
     {
         out.SyncComments(binaryOp);

@@ -579,6 +579,7 @@ void SwitchStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(
 void CondStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
 void Assignment::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
 void BinaryOp::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
+void NaryOp::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
 void UnaryOp::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
 void IfStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
 void Asm::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
