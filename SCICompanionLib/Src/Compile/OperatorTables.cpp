@@ -40,7 +40,6 @@ vector<BinaryOperator> relational =
     BinaryOperator::UnsignedGreaterEqual,
     BinaryOperator::GreaterEqual,
     BinaryOperator::UnsignedGreaterThan,
-    BinaryOperator::ShiftRight,
     BinaryOperator::GreaterThan,
     BinaryOperator::UnsignedLessEqual,
     BinaryOperator::LessEqual,

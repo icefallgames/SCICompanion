@@ -67,6 +67,8 @@ private:
     ParserSCI binary_operation;
     ParserSCI naryassoc_operator;
     ParserSCI naryassoc_operation;
+    ParserSCI narycompare_operator;
+    ParserSCI narycompare_operation;
     ParserSCI unary_operator;
     ParserSCI unary_operation;
     ParserSCI lvalue;

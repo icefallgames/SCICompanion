@@ -558,16 +558,16 @@ void SCISyntaxParser::Load()
         ;
 
     // Operators
-    // (I bet this would be a lot faster if we packed them)
-    binary_operator = operator_p("u>=") | operator_p(">=") | operator_p("u>") | operator_p(">>") |
-        operator_p(">") | operator_p("u<=") | operator_p("<=") |
-        operator_p("u<") | operator_p("!=") | operator_p("<<") |
-        operator_p("<") | operator_p("==") | 
-        operator_p("-") | operator_p("/") |
-        operator_p("mod");
+    // These are binary-only operators
+    binary_operator =  operator_p(">>") | operator_p("<<") | operator_p("-") | operator_p("/") | operator_p("mod");
 
     // n-ary operators that are associative
     naryassoc_operator = operator_p("*") | operator_p("+") | operator_p("&") | operator_p("|") | operator_p("^") | operator_p("and") | operator_p("or");
+
+    // n-ary comparison operators
+    narycompare_operator = operator_p("u>=") | operator_p(">=") | operator_p("u>") | operator_p(">") |
+        operator_p("u<=") | operator_p("<=") | operator_p("u<") | operator_p("!=") |
+        operator_p("<") | operator_p("==");
 
     unary_operator = operator_p("~") | operator_p("not") | operator_p("-") |
         operator_p("++") | operator_p("--");
@@ -609,9 +609,11 @@ void SCISyntaxParser::Load()
         >> statement[AddStatementA<NaryOp>]
         >> ++statement[AddStatementA<NaryOp>])[RestructureNaryAssociativeOpA];
 
-//    ParserSCI naryassoc_operator;
-  //  ParserSCI naryassoc_operation;
-
+    // (< 3 5 9 10)
+    narycompare_operation =
+        (narycompare_operator[SetOperatorA<NaryOp, BinaryOperator>]
+        >> statement[AddStatementA<NaryOp>]
+        >> ++statement[AddStatementA<NaryOp>]);
 
     // ~ signal
     unary_operation =
@@ -653,6 +655,7 @@ void SCISyntaxParser::Load()
         unary_operation |       // REVIEW: Must come before proc call?
         binary_operation |
         naryassoc_operation |
+        narycompare_operation |
         return_statement |
         if_statement |
         while_loop |

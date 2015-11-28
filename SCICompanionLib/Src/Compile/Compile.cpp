@@ -2093,10 +2093,56 @@ CodeResult _WriteFakeIfStatement(CompileContext &context, const BinaryOp &binary
     return CodeResult(PushToStackIfAppropriate(context), DataTypeBool);
 }
 
+// An n-ary operation is any operator that takes n operands.
+// Technically +, *, |, ^ and & all do this, but those are converted to nested
+// BinaryOp's before compilation. So all we deal with here are the comparison operators
 CodeResult NaryOp::OutputByteCode(CompileContext &context) const
 {
-    // TODO
-    return 0;
+    assert(IsRelational(Operator) && "NaryOp operator must be a comparison operator");
+    // The byte code format for these operators will be:
+    // 0:   push on stack
+    // 1:   load in acc
+    // [operator]
+    // bnt end
+    // 1:   pprev (puts 1 on stack)
+    // 2:   load in acc
+    // bnt end
+    // 2:   pprev (puts 2 on stack)
+    // 3:   load in acc
+
+    branch_block blockSuccess(context, BranchBlockIndex::Failure);
+    for (size_t i = 1; i < _segments.size(); i++)
+    {
+        if (i < 2)
+        {
+            // First guy on stack
+            COutputContext stackContext(context, OC_Stack);
+            _segments[0]->OutputByteCode(context);
+        }
+        else
+        {
+            // Add a branch based on the previous 2 operands. This branches to the future failure path
+            context.code().inst(Opcode::BNT, context.code().get_undetermined(), BranchBlockIndex::Failure);
+            // Subsequent ones use the pprev (the value of the accumulator prior to the previous comparison opcode)
+            context.code().inst(Opcode::PPREV);
+        }
+        
+        // Second operand
+        {
+            COutputContext accContext(context, OC_Accumulator);
+            _segments[i]->OutputByteCode(context);
+        }
+
+        // The operator
+        context.code().inst(GetInstructionForBinaryOperator(Operator));
+    }
+
+    // Leave before the possible push
+    blockSuccess.leave(); 
+
+    WORD wBytesUsed = PushToStackIfAppropriate(context);
+    // TODO: We have ignored data type completely
+    return CodeResult(wBytesUsed, DataTypeAny);
 }
 
 CodeResult BinaryOp::OutputByteCode(CompileContext &context) const
@@ -3340,6 +3386,10 @@ void FunctionBase::PreScan(CompileContext &context)
     // TODO: emit warning when a local variable hides a class member.
 }
 void CodeBlock::PreScan(CompileContext &context)
+{
+    ForwardPreScan2(_segments, context);
+}
+void NaryOp::PreScan(CompileContext &context)
 {
     ForwardPreScan2(_segments, context);
 }

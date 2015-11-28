@@ -461,6 +461,7 @@ namespace sci
 
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const override;
+        void PreScan(CompileContext &context);
         void Traverse(IExploreNode &en) override;
         bool Evaluate(ILookupDefine &context, uint16_t &result) const override;
 
