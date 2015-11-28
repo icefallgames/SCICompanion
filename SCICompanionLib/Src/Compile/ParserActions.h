@@ -484,7 +484,7 @@ void ComplexValuePointerA(MatchResult &match, const _TParser *pParser, SyntaxCon
     }
 }
 
-template<sci::ValueType type, typename _TParser>
+template<sci::ValueType type, char const* error = nullptr, typename _TParser>
 void ComplexValueStringA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
     if (match.Result())
@@ -497,6 +497,10 @@ void ComplexValueStringA(MatchResult &match, const _TParser *pParser, SyntaxCont
             typeToUse = ValueType::Pointer; // It was already decided it was a pointer.
         }
         pValue->SetValue(pContext->ScratchString(), typeToUse);
+    }
+    else if (error)
+    {
+        pContext->ReportError(error, stream);
     }
 }
 
@@ -787,4 +791,5 @@ extern char const errArgument[];
 extern char const errInteger[];
 extern char const errThen[];
 extern char const errElse[];
+extern char const errVarName[];
 

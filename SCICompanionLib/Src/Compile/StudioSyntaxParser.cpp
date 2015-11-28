@@ -477,6 +477,7 @@ char const errSendObject[] = "Expected send object.";
 char const errArgument[] = "Expected argument.";
 char const errInteger[] = "Expected integer value.";
 char const errThen[] = "Expected then clause.";
+char const errVarName[] = "Expected variable name.";
 char const errElse[] = "Expected else clause.";
 
 //

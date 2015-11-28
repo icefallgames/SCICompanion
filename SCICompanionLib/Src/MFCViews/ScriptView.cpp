@@ -375,7 +375,7 @@ std::vector<std::string> codeLevelKeywordsSCI =
     _T("&rest"),
     _T("&tmp"),
     _T("and"),
-    _T("argc")
+    _T("argc"),
     _T("asm"),
     _T("break"),
     _T("breakif"),

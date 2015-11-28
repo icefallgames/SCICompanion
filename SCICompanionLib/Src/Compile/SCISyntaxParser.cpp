@@ -442,8 +442,8 @@ void SCISyntaxParser::Load()
     exports = keyword_p("public") >> *export_entry;
 
     rvalue_variable =
-        (opbracket >> general_token[ComplexValueStringA<ValueType::Token>] >> statement[ComplexValueIndexerA] >> clbracket) |
-        general_token[ComplexValueStringA<ValueType::Token>];
+        (opbracket >> general_token[ComplexValueStringA<ValueType::Token, errVarName>] >> statement[ComplexValueIndexerA] >> clbracket) |
+        general_token[ComplexValueStringA<ValueType::Token, errVarName>];
 
     value =
         alwaysmatch_p[SetStatementA<ComplexPropertyValue>]
@@ -636,12 +636,10 @@ void SCISyntaxParser::Load()
         >> asmInstruction_p[SetNameA<Asm>]                                // Instruction name
         >> -(asm_arg[AddStatementA<Asm>] % comma[GeneralE]))[FinishStatementA];         // command separated values
 
-    asm_block = oppar
-        >> keyword_p("asm")[SetStatementA<AsmBlock>]
+    asm_block = keyword_p("asm")[SetStatementA<AsmBlock>]
         >> alwaysmatch_p[SetOpcodesExtraKeywordsA]
         >> *asm_statement[AddStatementA<AsmBlock>]
-        >> alwaysmatch_p[RemoveExtraKeywordsA]
-        >> clpar[GeneralE];
+        >> alwaysmatch_p[RemoveExtraKeywordsA];
 
     // All possible statements.
     statement = alwaysmatch_p[StartStatementA]
@@ -667,10 +665,10 @@ void SCISyntaxParser::Load()
         break_statement |
         continue_statement |
         contif_statement |
+        asm_block |
         code_block |
         send_call |             // Send has to come before procedure. Because procedure will match (foo sel:)
-        procedure_call |
-        asm_block
+        procedure_call
         ) >>
         clpar)
         | rest_statement

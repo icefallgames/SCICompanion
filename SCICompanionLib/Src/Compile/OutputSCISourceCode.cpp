@@ -564,7 +564,7 @@ public:
             out.out << "#" << prop.GetStringValue();
             break;
         case ValueType::Pointer:
-            out.out << "@" << prop.GetStringValue();
+            out.out << "@" << CleanTokenSCI(prop.GetStringValue());
             break;
         }
     }
@@ -578,15 +578,21 @@ public:
     {
         if (prop.GetIndexer())
         {
+            if (prop.GetType() == ValueType::Pointer)
+            {
+                out.out << "@";
+            }
             out.out << "[";
-        }
-        _VisitPropertyValue(prop);
-        if (prop.GetIndexer())
-        {
+            assert((prop.GetType() == ValueType::Pointer) || (prop.GetType() == ValueType::Token));
+            out.out << prop.GetStringValue();
             out.out << " ";
             Inline inln(out, true);
             prop.GetIndexer()->Accept(*this);
             out.out << "]";
+        }
+        else
+        {
+            _VisitPropertyValue(prop);
         }
     }
 
