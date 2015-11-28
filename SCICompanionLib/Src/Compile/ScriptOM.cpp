@@ -387,6 +387,24 @@ void ClassProperty::SetValue(const PropertyValue &value)
     _statement1 = make_unique<PropertyValue>(value);
 }
 
+const PropertyValueBase *ClassProperty::TryGetValue2() const
+{
+    const PropertyValueBase *value = TryGetValue();
+    if (!value)
+    {
+        if (!value)
+        {
+            ComplexPropertyValue *cValue = SafeSyntaxNode<ComplexPropertyValue>(_statement1.get());
+            if (cValue && !cValue->GetIndexer())
+            {
+
+                value = cValue;
+            }
+        }
+    }
+    return value;
+}
+
 const PropertyValue *ClassProperty::TryGetValue() const
 {
     PropertyValue *value = nullptr;

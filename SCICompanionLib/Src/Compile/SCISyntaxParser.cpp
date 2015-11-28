@@ -438,7 +438,7 @@ void SCISyntaxParser::Load()
 
     pointer = atsign;
 
-    export_entry = general_token[{AddExportA, ParseAutoCompleteContext::Export}] >> integer_p;
+    export_entry = general_token[{nullptr, ParseAutoCompleteContext::Export}] >> integer_p[AddExportA];
     exports = keyword_p("public") >> *export_entry;
 
     rvalue_variable =

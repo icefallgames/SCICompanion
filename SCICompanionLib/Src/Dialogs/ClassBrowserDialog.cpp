@@ -263,7 +263,7 @@ void CClassBrowserDialog::OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT pDrawItemStruc
             // Put the prop value a little after.
             dc.SetTextColor(RGB(0, 0, 255));
             rcProp.left += rcName.Width() + 6;
-            const sci::PropertyValue *pValue = pProperty->TryGetValue();
+            const sci::PropertyValueBase *pValue = pProperty->TryGetValue();
             CString strProp = "[complex value]";
             if (pValue)
             {

@@ -1002,7 +1002,7 @@ std::vector<species_property> GetOverriddenProperties(CompileContext &context, c
         }
         // Then the value - defines should already be resolved.
         bool fTrackRelocation = false;
-        const PropertyValue *value = classProperty->TryGetValue();
+        const PropertyValueBase *value = classProperty->TryGetValue2();
         if (value)
         {
             switch (value->GetType())

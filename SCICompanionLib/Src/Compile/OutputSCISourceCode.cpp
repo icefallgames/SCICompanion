@@ -477,10 +477,6 @@ public:
         if (classDef.IsInstance())
         {
             out.out << "(instance ";
-            if (classDef.IsPublic())
-            {
-                out.out << "public ";
-            }
         }
         else
         {

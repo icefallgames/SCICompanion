@@ -669,6 +669,7 @@ namespace sci
         ClassProperty(const std::string &str, const std::string &value);
         ClassProperty(const std::string &str, const PropertyValue &value);
         const PropertyValue *TryGetValue() const;
+        const PropertyValueBase *TryGetValue2() const;
         void SetValue(const PropertyValue &value);
 
         // IOutputByteCode
