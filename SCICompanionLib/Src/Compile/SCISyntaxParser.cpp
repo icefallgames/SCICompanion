@@ -652,8 +652,8 @@ void SCISyntaxParser::Load()
         (
         repeat_statement |
         assignment |
-        unary_operation |       // REVIEW: Must come before proc call?
         binary_operation |
+        unary_operation |       // Due to -, unary must come after binary.
         naryassoc_operation |
         narycompare_operation |
         return_statement |
