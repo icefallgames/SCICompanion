@@ -795,6 +795,9 @@
     <ClCompile Include="Src\Compile\OutputStudioSourceCode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Compile\OutputSourceCodeBase.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCICompanionLib.h">

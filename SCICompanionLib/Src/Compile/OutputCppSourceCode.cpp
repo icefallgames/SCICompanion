@@ -692,11 +692,6 @@ public:
     {
 
     }
-    void Visit(const WeakSyntaxNode &weakNode)
-    {
-        if (weakNode.WeakNode) { weakNode.WeakNode->Accept(*this); }
-    }
-
 };
 
 void OutputSourceCode_CPP(const sci::Script &script, sci::SourceCodeWriter &out)

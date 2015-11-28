@@ -207,6 +207,7 @@
     <ClCompile Include="Src\Compile\OutputCodeHelper.cpp" />
     <ClCompile Include="Src\Compile\OutputCppSourceCode.cpp" />
     <ClCompile Include="Src\Compile\OutputSCISourceCode.cpp" />
+    <ClCompile Include="Src\Compile\OutputSourceCodeBase.cpp" />
     <ClCompile Include="Src\Compile\OutputStudioSourceCode.cpp" />
     <ClCompile Include="Src\Compile\SCISyntaxParser.cpp" />
     <ClCompile Include="Src\Compile\ScriptMakerHelper.cpp" />

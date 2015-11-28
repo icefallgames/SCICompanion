@@ -1392,10 +1392,6 @@ public:
         DebugLine exportLine(out);
         out.out << CleanTokenSCI(exportEntry.Name) << " " << exportEntry.Slot;
     }
-    void Visit(const WeakSyntaxNode &weakNode)
-    {
-        if (weakNode.WeakNode) { weakNode.WeakNode->Accept(*this); }
-    }
 };
 
 void OutputSourceCode_SCI(const sci::Script &script, sci::SourceCodeWriter &out)

@@ -768,11 +768,6 @@ public:
         DebugLine exportLine(out);
         out.out << exportEntry.Slot << " " << CleanToken(exportEntry.Name);
     }
-
-    void Visit(const WeakSyntaxNode &weakNode)
-    {
-        if (weakNode.WeakNode) { weakNode.WeakNode->Accept(*this); }
-    }
 };
 
 void OutputSourceCode_SCIStudio(const sci::Script &script, sci::SourceCodeWriter &out)
