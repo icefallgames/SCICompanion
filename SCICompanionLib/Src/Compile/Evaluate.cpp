@@ -152,8 +152,25 @@ bool CodeBlock::Evaluate(ILookupDefine &context, uint16_t &result) const
 }
 bool NaryOp::Evaluate(ILookupDefine &context, uint16_t &result) const
 {
-    assert(false); // Need to implement.
-    return false;
+    // Result will be TRUE or FALSE
+    assert(IsRelational(Operator));
+    bool good = true;
+    result = 1;
+    for (size_t i = 1; result && good && (i < _segments.size()); i++)
+    {
+        uint16_t valueA;
+        bool good = _segments[i - 1]->Evaluate(context, valueA);
+        if (good)
+        {
+            uint16_t valueB;
+            good = _segments[i]->Evaluate(context, valueB);
+            if (good)
+            {
+                good = EvalBinaryOp(GetInstructionForBinaryOperator(Operator), valueA, valueB, result);
+            }
+        }
+    }
+    return good;
 }
 
 bool ConditionalExpression::Evaluate(ILookupDefine &context, uint16_t &result) const

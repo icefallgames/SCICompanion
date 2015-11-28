@@ -408,6 +408,15 @@ void ConvertToSCISyntaxHelper(Script &script)
     }
 
     TransformCleanRests txCleanRests(script);
+
+    // Remove some keywords that might be present as variable names in other syntaxes.
+    vector<pair<string, string>> fromToMapping =
+    {
+        { "cond", "case" },
+        { "continue", "continue_" },
+        { "repeat", "repeat_" },
+    };
+    CleanVariableNames(script, fromToMapping);
 }
 
 class OutputSCISourceCode : public OutputSourceCodeBase

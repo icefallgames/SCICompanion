@@ -299,7 +299,25 @@ bool _IsKeyword(const std::string &word, std::vector<std::string> &sortedVector,
     return binary_search(sortedVector.begin(), sortedVector.end(), word);
 }
 
+std::vector<std::string> emptyList;
+
 std::vector<std::string> topLevelKeywordsSCI =
+{
+    // Keep this alphabetically sorted.
+    _T("class"),
+    _T("define"),
+    _T("include"),
+    _T("instance"),
+    _T("local"),
+    _T("procedure"),
+    _T("public"),
+    _T("script#"),
+    _T("string"),
+    _T("synonyms"),
+    _T("use"),
+};
+
+std::vector<std::string> topLevelKeywordsStudio =
 {
     // Keep this alphabetically sorted.
     _T("class"),
@@ -339,10 +357,51 @@ bool IsTopLevelKeyword(LangSyntax lang, const std::string &word)
 
 const std::vector<std::string> &GetTopLevelKeywords(LangSyntax lang)
 {
-    return (lang == LangSyntaxCpp) ? topLevelKeywordCPP : topLevelKeywordsSCI;
+    switch (lang)
+    {
+        case LangSyntaxCpp:
+            return topLevelKeywordCPP;
+        case LangSyntaxSCI:
+            return topLevelKeywordsSCI;
+        case LangSyntaxSCIStudio:
+            return topLevelKeywordsStudio;
+    }
+    return emptyList;
 }
 
 std::vector<std::string> codeLevelKeywordsSCI =
+{
+    // Sorted
+    _T("&rest"),
+    _T("&tmp"),
+    _T("and"),
+    _T("argc")
+    _T("asm"),
+    _T("break"),
+    _T("breakif"),
+    _T("cond"),
+    _T("contif"),
+    _T("continue"),
+    _T("else"),
+    _T("for"),
+    _T("if"),
+    _T("mod"),
+    _T("not"),
+    _T("of"),
+    _T("or"),
+    _T("repeat"),
+    _T("return"),
+    _T("scriptNumber"),
+    _T("self"),
+    _T("send"),
+    _T("super"),
+    _T("switch"),
+    _T("switchto"),
+    _T("while"),
+};
+
+
+std::vector<std::string> codeLevelKeywordsStudio =
 { 
     // Sorted
     _T("and"),
@@ -435,20 +494,32 @@ LPTSTR s_apszSCIValueKeywordList[] =
     _T("objectSuperclass"),
     _T("objectTotalProperties"),
     _T("objectType"),
-    _T("paramTotal"),
     _T("self"),
     _T("super"),
 	nullptr
 };
 std::vector<std::string> g_ValueKeywords;
-bool IsValueKeyword(const std::string &word)
+bool IsValueKeyword(LangSyntax lang, const std::string &word)
 {
     // -1 since it ends with nullptr.
-    return _IsKeyword(word, g_ValueKeywords, s_apszSCIValueKeywordList, ARRAYSIZE(s_apszSCIValueKeywordList) - 1);
+    bool isKeyword = _IsKeyword(word, g_ValueKeywords, s_apszSCIValueKeywordList, ARRAYSIZE(s_apszSCIValueKeywordList) - 1);
+    if (!isKeyword)
+    {
+        if (lang == LangSyntaxSCI)
+        {
+            isKeyword = (word == "argc");
+        }
+        else
+        {
+            isKeyword = (word == "paramTotal");
+        }
+    }
+    return isKeyword;
 }
 
 std::vector<std::string> classLevelKeywordsCpp = {};
-std::vector<std::string> classLevelKeywordsSCI = {  "method", "properties" };
+std::vector<std::string> classLevelKeywordsStudio = {  "method", "properties" };
+std::vector<std::string> classLevelKeywordsSCI = { "method", "properties", "procedure" };
 bool IsClassLevelKeyword(LangSyntax lang, const std::string &word)
 {
     auto &list = GetClassLevelKeywords(lang);
@@ -457,18 +528,36 @@ bool IsClassLevelKeyword(LangSyntax lang, const std::string &word)
 
 bool IsSCIKeyword(LangSyntax lang, const std::string &word)
 {
-    return (IsValueKeyword(word) || IsCodeLevelKeyword(lang, word) || IsTopLevelKeyword(lang, word) || IsClassLevelKeyword(lang, word) ||
+    return (IsValueKeyword(lang, word) || IsCodeLevelKeyword(lang, word) || IsTopLevelKeyword(lang, word) || IsClassLevelKeyword(lang, word) ||
             ((lang == LangSyntaxCpp) && IsCPPTypeKeyword(word)));
 }
 
 const std::vector<std::string> &GetCodeLevelKeywords(LangSyntax lang)
 {
-    return (lang == LangSyntaxCpp) ? codeLevelKeywordsCpp : codeLevelKeywordsSCI;
+    switch (lang)
+    {
+        case LangSyntaxCpp:
+            return codeLevelKeywordsCpp;
+        case LangSyntaxSCI:
+            return codeLevelKeywordsSCI;
+        case LangSyntaxSCIStudio:
+            return codeLevelKeywordsStudio;
+    }
+    return emptyList;
 }
 
 const std::vector<std::string> &GetClassLevelKeywords(LangSyntax lang)
 {
-    return (lang == LangSyntaxCpp) ? classLevelKeywordsCpp : classLevelKeywordsSCI;
+    switch (lang)
+    {
+        case LangSyntaxCpp:
+            return classLevelKeywordsCpp;
+        case LangSyntaxSCI:
+            return classLevelKeywordsSCI;
+        case LangSyntaxSCIStudio:
+            return classLevelKeywordsStudio;
+    }
+    return emptyList;
 }
 
 static BOOL IsSCISelector(LPCTSTR pszChars, int nLength)

@@ -15,6 +15,9 @@
 #include "ScriptOM.h"
 #include "OutputCodeHelper.h"
 
+using namespace sci;
+using namespace std;
+
 void _OutputVariableAndSizeSCI(sci::ISyntaxNodeVisitor &visitor, sci::SourceCodeWriter &out, const std::string &type, const std::string &name, WORD wSize, const sci::SyntaxNodeVector &initValues)
 {
     if (wSize > 1)
@@ -210,4 +213,79 @@ Inline::Inline(sci::SourceCodeWriter &out, bool fInline) : _out(out)
 Inline::~Inline()
 {
     _out.fInline = _fOld;
+}
+
+// Ensure there are no variable names that are keywords.
+class CleanVariableNamesWorker : public IExploreNode
+{
+public:
+    CleanVariableNamesWorker(sci::Script &script, const vector<pair<string, string>> &fromToMapping) : _fromToMapping(fromToMapping) { script.Traverse(*this); }
+
+    void ExploreNode(SyntaxNode &node, ExploreNodeState state) override
+    {
+        if (state == ExploreNodeState::Pre)
+        {
+            _Transform(SafeSyntaxNode<RestStatement>(&node));
+            _Transform(SafeSyntaxNode<SendCall>(&node));
+            _Transform(SafeSyntaxNode<LValue>(&node));
+            _Transform(SafeSyntaxNode<FunctionParameter>(&node));
+
+            switch (node.GetNodeType())
+            {
+                case NodeType::NodeTypeValue:
+                case NodeType::NodeTypeComplexValue:
+                {
+                    PropertyValueBase *value = static_cast<PropertyValueBase*>(&node);
+                    if (value->GetType() == ValueType::Token)
+                    {
+                        std::string name = value->GetStringValue();
+                        if (_Transform(name))
+                        {
+                            value->SetValue(name, value->GetType());
+                        }
+                    }
+                    break;
+                }
+                case NodeType::NodeTypeVariableDeclaration:
+                {
+                    VariableDecl *value = static_cast<VariableDecl*>(&node);
+                    std::string name = value->GetName();
+                    if (_Transform(name))
+                    {
+                        value->SetName(name);
+                    }
+                }
+            }
+        }
+    }
+
+private:
+    bool _Transform(std::string &name)
+    {
+        auto it = find_if(_fromToMapping.begin(), _fromToMapping.end(), [&name](const pair<string, string> &entry) { return entry.first == name; });
+        if (it != _fromToMapping.end())
+        {
+            name = it->second;
+            return true;
+        }
+        return false;
+    }
+    void _Transform(NamedNode *node)
+    {
+        if (node)
+        {
+            std::string name = node->GetName();
+            if (_Transform(name))
+            {
+                node->SetName(name);
+            }
+        }
+    }
+
+    const vector<pair<string, string>> &_fromToMapping;
+};
+
+void CleanVariableNames(sci::Script &script, const vector<pair<string, string>> &fromToMapping)
+{
+    CleanVariableNamesWorker worker(script, fromToMapping);
 }

@@ -607,8 +607,6 @@ void SendParamIsMethod(MatchResult &match, const _TParser *pParser, SyntaxContex
     }
 }
 
-
-
 template<typename _T, typename _TParser>
 void SetNameA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
@@ -630,7 +628,6 @@ void AddExportA(MatchResult &match, const _TParser *pParser, SyntaxContext *pCon
         pContext->Script().GetExports().push_back(move(entry));
     }
 }
-
 
 // Classes
 template<bool fInstance, typename _TParser>
