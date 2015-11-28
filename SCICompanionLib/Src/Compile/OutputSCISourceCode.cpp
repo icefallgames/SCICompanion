@@ -262,12 +262,29 @@ public:
 
                     case NodeType::NodeTypeValue:
                     case NodeType::NodeTypeComplexValue:
+                    {
                         PropertyValueBase *value = static_cast<PropertyValueBase*>(&node);
                         if (value->GetType() == ValueType::Token)
                         {
                             _explicitVarUsage.insert(value->GetStringValue());
                         }
                         break;
+                    }
+                    case NodeType::NodeTypeLValue:
+                    {
+                        _explicitVarUsage.insert(static_cast<LValue*>(&node)->GetName());
+                        break;
+                    }
+                    case NodeType::NodeTypeSendCall:
+                    {
+                        SendCall *send = static_cast<SendCall*>(&node);
+                        if (!send->GetName().empty())
+                        {
+                            _explicitVarUsage.insert(send->GetName());
+                        }
+                        break;
+                    }
+                    // Are there any other cases where variable names appear?
                 }
             }
         }
@@ -429,18 +446,6 @@ public:
         }
 
         ForwardOptionalSection("public", script.GetExports());
-        if (!script.GetExports().empty())
-        {
-            out.out << "(public" << out.NewLineString();
-            {
-                DebugIndent indent(out);
-                for (const auto &exports : script.GetExports())
-                {
-                    exports->Accept(*this);
-                }
-            }
-            out.out << ")" << out.NewLineString();
-        }
 
         Forward(script.GetSynonyms());
         out.EnsureNewLine();
@@ -603,7 +608,7 @@ public:
     {
         out.SyncComments(varDecl);
         DebugLine line(out);
-        _OutputVariableAndSize(*this, out, varDecl.GetDataType(), varDecl.GetName(), varDecl.GetSize(), varDecl.GetStatements());
+        _OutputVariableAndSizeSCI(*this, out, varDecl.GetDataType(), varDecl.GetName(), varDecl.GetSize(), varDecl.GetStatements());
     }
 
     void _VisitFunctionBase(const FunctionBase &function)
@@ -641,7 +646,7 @@ public:
                     {
                         varNameToInitializer[variable->GetName()] = variable->GetInitializers()[0].get();
                     }
-                    _OutputVariableAndSize(*this, out, variable->GetDataType(), variable->GetName(), variable->GetSize(), emptyInitializer);
+                    _OutputVariableAndSizeSCI(*this, out, variable->GetDataType(), variable->GetName(), variable->GetSize(), emptyInitializer);
                 }
             }
             out.out << ")";
@@ -769,10 +774,10 @@ public:
             Inline inln(out, true);
             DebugIndent indent(out);    // In case we have inline false in here:
             Forward(sendParam.GetSelectorParams(), " ");
-            if (addComma)
-            {
-                out.out << ",";
-            }
+        }
+        if (addComma)
+        {
+            out.out << ",";
         }
         if (detect.WentInline)
         {

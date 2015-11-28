@@ -553,7 +553,7 @@ void SCISyntaxParser::Load()
         >> ((alphanumSendToken_p[SetNameA<SendCall>]) | statement[StatementBindTo1stA<SendCall, errSendObject>])) // Expression, e.g. [clients 4], or (GetTheGuy)
         >>
         (propget_p[AddSimpleSendParamA] |             // Single prop get
-        (syntaxnode_d[send_param_call[AddSendParamA]] % comma)      // Or a series regular ones separated by comma
+        (syntaxnode_d[send_param_call[AddSendParamA]] % comma[GeneralE])      // Or a series regular ones separated by comma
         )
         ;
 
