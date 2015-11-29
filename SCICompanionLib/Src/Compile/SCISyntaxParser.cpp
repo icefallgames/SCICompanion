@@ -583,11 +583,6 @@ void SCISyntaxParser::Load()
         keyword_p("&rest")[SetStatementA<RestStatement>]
         >> -alphanumNK_p[SetStatementNameA<RestStatement>];
 
-    code_block =
-        oppar[SetStatementA<CodeBlock>]
-        >> *statement[AddStatementA<CodeBlock>]
-        >> clpar[GeneralE];
-
     assignment =
         assignment_operator[SetOperatorA<Assignment, AssignmentOperator>]
         >> syntaxnode_d[lvalue[AssignmentVariableA]]
