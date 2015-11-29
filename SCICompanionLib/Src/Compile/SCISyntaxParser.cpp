@@ -419,9 +419,8 @@ void SCISyntaxParser::Load()
     _fLoaded = true;
 
     // An integer or plain alphanumeric token
-    immediateValue = integer_p[PropValueIntA] | alphanumNK_p[PropValueStringA<ValueType::Token>] | bracestring_p[PropValueStringA<ValueType::Token>];
-    string_immediateValue = integer_p[PropValueIntA] | alphanumNK_p[PropValueStringA<ValueType::Token>] | quotedstring_p[{ PropValueStringA<ValueType::String>, ParseAutoCompleteContext::Block}];
-    string_immediateValue2 = integer_p[PropValueIntA] | alphanumNK_p[PropValueStringA<ValueType::Token>] | quotedstring_p[{PropValueStringA<ValueType::String>, ParseAutoCompleteContext::Block}] | bracestring_p[PropValueStringA<ValueType::Token>];
+    immediateValue = integer_p[PropValueIntA<errInteger>] | alphanumNK_p[PropValueStringA<ValueType::Token>] | bracestring_p[PropValueStringA<ValueType::String>];
+    string_immediateValue = integer_p[PropValueIntA<errInteger>] | alphanumNK_p[PropValueStringA<ValueType::Token>] | quotedstring_p[{PropValueStringA<ValueType::ResourceString>, ParseAutoCompleteContext::Block}] | bracestring_p[PropValueStringA<ValueType::String>];
 
     // Top level constructs
     include = keyword_p("include") >> (quotedstring_p | filename_p)[{AddIncludeA, ParseAutoCompleteContext::Block}];
@@ -430,9 +429,9 @@ void SCISyntaxParser::Load()
 
     define = keyword_p("define")[CreateDefineA] >> alphanumNK_p[DefineLabelA] >> integer_p[DefineValueA];
 
-    enumStatement = keyword_p("enum")[InitEnumStartA] >> -integer_p >> *alphanumNK_p[CreateEnumDefineA];
+    enumStatement = keyword_p("enum")[InitEnumStartA] >> -integer_p[ErrorA<errInteger>] >> *alphanumNK_p[CreateEnumDefineA];
 
-    general_token = (alphanumNK_p | bracestring_p)[{nullptr, ParseAutoCompleteContext::None, "TOKEN"}];
+    general_token = (alphanumNK_p)[{nullptr, ParseAutoCompleteContext::None, "TOKEN"}];
 
     selector_literal = pound >> alphanumNK_p[{nullptr, ParseAutoCompleteContext::Selector}];
 
@@ -447,9 +446,9 @@ void SCISyntaxParser::Load()
 
     value =
         alwaysmatch_p[SetStatementA<ComplexPropertyValue>]
-        >> (integer_p[ComplexValueIntA]
+        >> (integer_p[ComplexValueIntA<errInteger>]
         | keyword_p("argc")[ComplexValueParamTotalA]
-        | quotedstring_p[{ComplexValueStringA<ValueType::String>, ParseAutoCompleteContext::Block}]
+        | quotedstring_p[{ComplexValueStringA<ValueType::ResourceString>, ParseAutoCompleteContext::Block}]
         | squotedstring_p[{ComplexValueStringA<ValueType::Said>, ParseAutoCompleteContext::Block}]
         | (-pointer[ComplexValuePointerA] >> rvalue_variable)
         | selector_literal[ComplexValueStringA<ValueType::Selector>]);
@@ -677,7 +676,7 @@ void SCISyntaxParser::Load()
 
 
     // An array initializer
-    array_init = opbracket >> *(string_immediateValue2[ScriptVarInitAutoExpandA]) >> clbracket;  // [0 0 $4c VIEW_EGO]
+    array_init = opbracket >> *(string_immediateValue[ScriptVarInitAutoExpandA]) >> clbracket;  // [0 0 $4c VIEW_EGO]
 
     // Variable declaration, with optional array size (array size must be numeric!)
     // A   or  [A 6]   or [A MY_ARRAY_SIZE]
@@ -686,7 +685,7 @@ void SCISyntaxParser::Load()
         alphanumNK_p[CreateVarDeclA];
 
     script_var = keyword_p("local")
-        >> *((var_decl[CreateScriptVarA] >> -(equalSign[GeneralE] >> (string_immediateValue2[ScriptVarInitA] | array_init)))[FinishScriptVarA]);
+        >> *((var_decl[CreateScriptVarA] >> -(equalSign[GeneralE] >> (string_immediateValue[ScriptVarInitA] | array_init)))[FinishScriptVarA]);
 
     // StartFunctionTempVarA is needed to reset "was initializer value set". There are no initializer values for function variables in this syntax.
     function_var_decl = keyword_p("&tmp")[StartFunctionTempVarA] >> ++(var_decl[FinishFunctionTempVarA]);

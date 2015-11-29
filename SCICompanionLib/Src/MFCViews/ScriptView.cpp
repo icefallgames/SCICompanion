@@ -383,6 +383,7 @@ std::vector<std::string> codeLevelKeywordsSCI =
     _T("contif"),
     _T("continue"),
     _T("else"),
+    _T("enum"),
     _T("for"),
     _T("if"),
     _T("mod"),
@@ -560,7 +561,7 @@ const std::vector<std::string> &GetClassLevelKeywords(LangSyntax lang)
     return emptyList;
 }
 
-static BOOL IsSCISelector(LPCTSTR pszChars, int nLength)
+static BOOL IsSCISelectorLiteral(LPCTSTR pszChars, int nLength)
 {
     BOOL bRet = FALSE;
     if (pszChars[0] == '#')
@@ -583,12 +584,11 @@ static BOOL IsSCIKeyword(LangSyntax lang, LPCTSTR pszChars, int nLength)
     return IsSCIKeyword(lang, std::string(pszChars, nLength));
 }
 
-static BOOL IsSCINumber(LPCTSTR pszChars, int nLength)
+BOOL IsStudioNumber(LPCTSTR pszChars, int nLength)
 {
+    // Hex
     if (nLength > 1 && pszChars[0] == '$')
-	//if (nLength > 2 && pszChars[0] == '0' && pszChars[1] == 'x')
 	{
-		//for (int I = 2; I < nLength; I++)
         for (int I = 1; I < nLength; I++)
 		{
 			if (isdigit(pszChars[I]) || (pszChars[I] >= 'A' && pszChars[I] <= 'F') ||
@@ -610,6 +610,41 @@ static BOOL IsSCINumber(LPCTSTR pszChars, int nLength)
 	return TRUE;
 }
 
+BOOL IsSCISelectorCall(LPCTSTR pszChars, int nLength)
+{
+    char ch = pszChars[nLength - 1];
+    return ch == ':' || ch == '?';
+}
+
+BOOL IsSCINumber(LPCTSTR pszChars, int nLength)
+{
+    if (nLength > 1)
+    {
+        // Binary
+        if (pszChars[0] == '%')
+        {
+            for (int i = 1; i < nLength; i++)
+            {
+                if ((pszChars[i] == '1') || (pszChars[i] == '0'))
+                    continue;
+                return FALSE;
+            }
+            return TRUE;
+        }
+        // Character literal
+        else if (pszChars[0] == '`')
+        {
+            int lengthRequired = 2;
+            if ((pszChars[1] == '^') || (pszChars[1] == '@') || (pszChars[1] == '#'))
+            {
+                lengthRequired++;
+            }
+            return (lengthRequired == nLength);
+        }
+    }
+    return IsStudioNumber(pszChars, nLength);
+}
+
 #define DEFINE_BLOCK(pos, colorindex)	\
 	ASSERT((pos) >= 0 && (pos) <= nLength);\
 	if (pBuf != nullptr)\
@@ -627,81 +662,283 @@ static BOOL IsSCINumber(LPCTSTR pszChars, int nLength)
 #define COOKIE_CHAR				0x0010
 #define COOKIE_INTERNALSTRING   0x0020
 
-//
-// SCI syntax highlighting
-//
+DWORD CScriptView::_ParseLineSCI(DWORD dwCookie, int nLineIndex, TEXTBLOCK *pBuf, int &nActualItems)
+{
+    int nLength = GetLineLength(nLineIndex);
+    if (nLength <= 0)
+        return dwCookie & COOKIE_EXT_COMMENT;
+
+    LPCTSTR pszChars = GetLineChars(nLineIndex);
+    BOOL bFirstChar = (dwCookie & ~COOKIE_EXT_COMMENT) == 0;
+    BOOL bRedefineBlock = TRUE;
+    BOOL bDecIndex = FALSE;
+    int nIdentBegin = -1;
+    int I = 0;
+    for (;; I++)
+    {
+        if (bRedefineBlock)
+        {
+            int nPos = I;
+            if (bDecIndex)
+                nPos--;
+            if (dwCookie & (COOKIE_COMMENT | COOKIE_EXT_COMMENT))
+            {
+                DEFINE_BLOCK(nPos, COLORINDEX_COMMENT);
+            }
+            else
+                if (dwCookie & (COOKIE_STRING))
+                {
+                    DEFINE_BLOCK(nPos, COLORINDEX_STRING);
+                }
+                else
+                    if (dwCookie & (COOKIE_CHAR))
+                    {
+                        DEFINE_BLOCK(nPos, COLORINDEX_SAID);
+                    }
+                    else
+                        if (dwCookie & COOKIE_SELECTOR)
+                        {
+                            DEFINE_BLOCK(nPos, COLORINDEX_PREPROCESSOR);
+                        }
+                        else
+                            if (dwCookie & COOKIE_INTERNALSTRING)
+                            {
+                                DEFINE_BLOCK(nPos, COLORINDEX_INTERNALSTRING);
+                            }
+                            else
+                            {
+                                DEFINE_BLOCK(nPos, COLORINDEX_NORMALTEXT);
+                            }
+            bRedefineBlock = FALSE;
+            bDecIndex = FALSE;
+        }
+
+        if (I == nLength)
+            break;
+
+        // Turning off things...
+        if (dwCookie & COOKIE_COMMENT)
+        {
+            DEFINE_BLOCK(I, COLORINDEX_COMMENT);
+            dwCookie |= COOKIE_COMMENT;
+            break;
+        }
+
+        //	String constant "...."
+        if (dwCookie & COOKIE_STRING)
+        {
+            if (pszChars[I] == '"' && (I == 0 || pszChars[I - 1] != '\\'))
+            {
+                dwCookie &= ~COOKIE_STRING;
+                bRedefineBlock = TRUE;
+            }
+            continue;
+        }
+
+        // Internal string {....}
+        if (dwCookie & COOKIE_INTERNALSTRING)
+        {
+            if (pszChars[I] == '}' && (I == 0 || pszChars[I - 1] != '\\'))
+            {
+                dwCookie &= ~COOKIE_INTERNALSTRING;
+                bRedefineBlock = TRUE;
+            }
+            continue;
+        }
+
+        //	Said spec '..'
+        if (dwCookie & COOKIE_CHAR)
+        {
+            if (pszChars[I] == '\'' && (I == 0 || pszChars[I - 1] != '\\'))
+            {
+                dwCookie &= ~COOKIE_CHAR;
+                bRedefineBlock = TRUE;
+            }
+            continue;
+        }
+
+        ///////////////////////
+        // Starting things
+        // REVIEW: This should only be true if it's not in a string
+        if (pszChars[I] == ';')
+        {
+            DEFINE_BLOCK(I, COLORINDEX_COMMENT);
+            dwCookie |= COOKIE_COMMENT;
+            break;
+        }
+
+        //	Normal text
+        if (pszChars[I] == '"')
+        {
+            DEFINE_BLOCK(I, COLORINDEX_STRING);
+            dwCookie |= COOKIE_STRING;
+            continue;
+        }
+        if (pszChars[I] == '{')
+        {
+            DEFINE_BLOCK(I, COLORINDEX_INTERNALSTRING);
+            dwCookie |= COOKIE_INTERNALSTRING;
+            continue;
+        }
+        if (pszChars[I] == '\'')
+        {
+            DEFINE_BLOCK(I, COLORINDEX_SAID);
+            dwCookie |= COOKIE_CHAR;
+            continue;
+        }
+
+        if (bFirstChar)
+        {
+            if (!isspace(pszChars[I]))
+                bFirstChar = FALSE;
+        }
+
+        if (pBuf == nullptr)
+            continue;	//	We don't need to extract keywords,
+        //	for faster parsing skip the rest of loop
+
+        if (isalnum(pszChars[I]) || pszChars[I] == '_' || pszChars[I] == '$' || pszChars[I] == '#' || pszChars[I] == '&' ||
+            pszChars[I] == '%' ||   // Needed for binary literals
+            pszChars[I] == '?' || pszChars[I] == ':' ||   // Needed for selectors
+            pszChars[I] == '`' || pszChars[I] == '^' || pszChars[I] == '@') // These are all needed for character literal
+        {
+            if (nIdentBegin == -1)
+                nIdentBegin = I;
+        }
+        else
+        {
+            if (nIdentBegin >= 0)
+            {
+                if (IsSCISelectorCall(pszChars + nIdentBegin, I - nIdentBegin))
+                {
+                    DEFINE_BLOCK(nIdentBegin, COLORINDEX_OPERATOR);
+                }
+                else if (IsSCIKeyword(LangSyntaxSCI, pszChars + nIdentBegin, I - nIdentBegin))
+                {
+                    DEFINE_BLOCK(nIdentBegin, COLORINDEX_KEYWORD);
+                }
+                // REVIEW: We'll need more things, for back-quote
+                else if (IsSCINumber(pszChars + nIdentBegin, I - nIdentBegin))
+                {
+                    DEFINE_BLOCK(nIdentBegin, COLORINDEX_NUMBER);
+                }
+                else if (IsSCISelectorLiteral(pszChars + nIdentBegin, I - nIdentBegin))
+                {
+                    DEFINE_BLOCK(nIdentBegin, COLORINDEX_PREPROCESSOR);
+                }
+                bRedefineBlock = TRUE;
+                bDecIndex = TRUE;
+                nIdentBegin = -1;
+            }
+        }
+    }
+
+    if (nIdentBegin >= 0)
+    {
+        if (IsSCIKeyword(LangSyntaxSCI, pszChars + nIdentBegin, I - nIdentBegin))
+        {
+            DEFINE_BLOCK(nIdentBegin, COLORINDEX_KEYWORD);
+        }
+        else
+            if (IsSCINumber(pszChars + nIdentBegin, I - nIdentBegin))
+            {
+                DEFINE_BLOCK(nIdentBegin, COLORINDEX_NUMBER);
+            }
+    }
+
+    // REVIEW: What's this for?
+    if (pszChars[nLength - 1] != '\\')
+        dwCookie &= COOKIE_EXT_COMMENT;
+    return dwCookie;
+}
+
 DWORD CScriptView::ParseLine(DWORD dwCookie, int nLineIndex, TEXTBLOCK *pBuf, int &nActualItems)
 {
     LangSyntax lang = GetDocument()->GetScriptId().Language();
-	int nLength = GetLineLength(nLineIndex);
-	if (nLength <= 0)
-		return dwCookie & COOKIE_EXT_COMMENT;
+    switch (lang)
+    {
+        case LangSyntaxSCI:
+            return _ParseLineSCI(dwCookie, nLineIndex, pBuf, nActualItems);
+        case LangSyntaxSCIStudio:
+            return _ParseLineStudio(dwCookie, nLineIndex, pBuf, nActualItems);
+    }
+    return 0;
+}
 
-	LPCTSTR pszChars    = GetLineChars(nLineIndex);
-	BOOL bFirstChar     = (dwCookie & ~COOKIE_EXT_COMMENT) == 0;
-	BOOL bRedefineBlock = TRUE;
-	BOOL bDecIndex  = FALSE;
-	int nIdentBegin = -1;
+//
+// SCI syntax highlighting
+//
+DWORD CScriptView::_ParseLineStudio(DWORD dwCookie, int nLineIndex, TEXTBLOCK *pBuf, int &nActualItems)
+{
+    int nLength = GetLineLength(nLineIndex);
+    if (nLength <= 0)
+        return dwCookie & COOKIE_EXT_COMMENT;
+
+    LPCTSTR pszChars    = GetLineChars(nLineIndex);
+    BOOL bFirstChar     = (dwCookie & ~COOKIE_EXT_COMMENT) == 0;
+    BOOL bRedefineBlock = TRUE;
+    BOOL bDecIndex  = FALSE;
+    int nIdentBegin = -1;
     int I = 0;
-	for (; ; I++)
-	{
-		if (bRedefineBlock)
-		{
-			int nPos = I;
-			if (bDecIndex)
-				nPos--;
-			if (dwCookie & (COOKIE_COMMENT | COOKIE_EXT_COMMENT))
-			{
-				DEFINE_BLOCK(nPos, COLORINDEX_COMMENT);
-			}
-			else
-			if (dwCookie & (COOKIE_STRING))
-			{
-				DEFINE_BLOCK(nPos, COLORINDEX_STRING);
-			}
-			else
-			if (dwCookie & (COOKIE_CHAR))
-			{
-				DEFINE_BLOCK(nPos, COLORINDEX_SAID);
-			}
-			else
-			if (dwCookie & COOKIE_SELECTOR)
-			{
-				DEFINE_BLOCK(nPos, COLORINDEX_PREPROCESSOR);
-			}
+    for (; ; I++)
+    {
+        if (bRedefineBlock)
+        {
+            int nPos = I;
+            if (bDecIndex)
+                nPos--;
+            if (dwCookie & (COOKIE_COMMENT | COOKIE_EXT_COMMENT))
+            {
+                DEFINE_BLOCK(nPos, COLORINDEX_COMMENT);
+            }
+            else
+            if (dwCookie & (COOKIE_STRING))
+            {
+                DEFINE_BLOCK(nPos, COLORINDEX_STRING);
+            }
+            else
+            if (dwCookie & (COOKIE_CHAR))
+            {
+                DEFINE_BLOCK(nPos, COLORINDEX_SAID);
+            }
+            else
+            if (dwCookie & COOKIE_SELECTOR)
+            {
+                DEFINE_BLOCK(nPos, COLORINDEX_PREPROCESSOR);
+            }
             else
             if (dwCookie & COOKIE_INTERNALSTRING)
             {
                 DEFINE_BLOCK(nPos, COLORINDEX_INTERNALSTRING);
             }
-			else
-			{
-				DEFINE_BLOCK(nPos, COLORINDEX_NORMALTEXT);
-			}
-			bRedefineBlock = FALSE;
-			bDecIndex      = FALSE;
-		}
+            else
+            {
+                DEFINE_BLOCK(nPos, COLORINDEX_NORMALTEXT);
+            }
+            bRedefineBlock = FALSE;
+            bDecIndex      = FALSE;
+        }
 
-		if (I == nLength)
-			break;
+        if (I == nLength)
+            break;
 
-		if (dwCookie & COOKIE_COMMENT)
-		{
-			DEFINE_BLOCK(I, COLORINDEX_COMMENT);
-			dwCookie |= COOKIE_COMMENT;
-			break;
-		}
+        if (dwCookie & COOKIE_COMMENT)
+        {
+            DEFINE_BLOCK(I, COLORINDEX_COMMENT);
+            dwCookie |= COOKIE_COMMENT;
+            break;
+        }
 
-		//	String constant "...."
-		if (dwCookie & COOKIE_STRING)
-		{
-			if (pszChars[I] == '"' && (I == 0 || pszChars[I - 1] != '\\'))
-			{
-				dwCookie &= ~COOKIE_STRING;
-				bRedefineBlock = TRUE;
-			}
-			continue;
-		}
+        //	String constant "...."
+        if (dwCookie & COOKIE_STRING)
+        {
+            if (pszChars[I] == '"' && (I == 0 || pszChars[I - 1] != '\\'))
+            {
+                dwCookie &= ~COOKIE_STRING;
+                bRedefineBlock = TRUE;
+            }
+            continue;
+        }
 
         // Internal string {....}
         if (appState->_fAllowBraceSyntax)
@@ -709,123 +946,123 @@ DWORD CScriptView::ParseLine(DWORD dwCookie, int nLineIndex, TEXTBLOCK *pBuf, in
             if (dwCookie & COOKIE_INTERNALSTRING)
             {
                 if (pszChars[I] == '}' && (I == 0 || pszChars[I - 1] != '\\'))
-			    {
-				    dwCookie &= ~COOKIE_INTERNALSTRING;
-				    bRedefineBlock = TRUE;
-			    }
-			    continue;
+                {
+                    dwCookie &= ~COOKIE_INTERNALSTRING;
+                    bRedefineBlock = TRUE;
+                }
+                continue;
             }
         }
 
-		//	Said spec '..'
-		if (dwCookie & COOKIE_CHAR)
-		{
-			if (pszChars[I] == '\'' && (I == 0 || pszChars[I - 1] != '\\'))
-			{
-				dwCookie &= ~COOKIE_CHAR;
-				bRedefineBlock = TRUE;
-			}
-			continue;
-		}
+        //	Said spec '..'
+        if (dwCookie & COOKIE_CHAR)
+        {
+            if (pszChars[I] == '\'' && (I == 0 || pszChars[I - 1] != '\\'))
+            {
+                dwCookie &= ~COOKIE_CHAR;
+                bRedefineBlock = TRUE;
+            }
+            continue;
+        }
 
-		//	Extended comment /*....*/
-		if (dwCookie & COOKIE_EXT_COMMENT)
-		{
-			if (I > 0 && pszChars[I] == '/' && pszChars[I - 1] == '*')
-			{
-				dwCookie &= ~COOKIE_EXT_COMMENT;
-				bRedefineBlock = TRUE;
-			}
-			continue;
-		}
+        //	Extended comment /*....*/
+        if (dwCookie & COOKIE_EXT_COMMENT)
+        {
+            if (I > 0 && pszChars[I] == '/' && pszChars[I - 1] == '*')
+            {
+                dwCookie &= ~COOKIE_EXT_COMMENT;
+                bRedefineBlock = TRUE;
+            }
+            continue;
+        }
 
-		if (I > 0 && pszChars[I] == '/' && pszChars[I - 1] == '/')
-		{
-			DEFINE_BLOCK(I - 1, COLORINDEX_COMMENT);
-			dwCookie |= COOKIE_COMMENT;
-			break;
-		}
+        if (I > 0 && pszChars[I] == '/' && pszChars[I - 1] == '/')
+        {
+            DEFINE_BLOCK(I - 1, COLORINDEX_COMMENT);
+            dwCookie |= COOKIE_COMMENT;
+            break;
+        }
 
-		//	Normal text
-		if (pszChars[I] == '"')
-		{
-			DEFINE_BLOCK(I, COLORINDEX_STRING);
-			dwCookie |= COOKIE_STRING;
-			continue;
-		}
+        //	Normal text
+        if (pszChars[I] == '"')
+        {
+            DEFINE_BLOCK(I, COLORINDEX_STRING);
+            dwCookie |= COOKIE_STRING;
+            continue;
+        }
         if (appState->_fAllowBraceSyntax && pszChars[I] == '{')
         {
             DEFINE_BLOCK(I, COLORINDEX_INTERNALSTRING);
             dwCookie |= COOKIE_INTERNALSTRING;
             continue;
         }
-		if (pszChars[I] == '\'')
-		{
-			DEFINE_BLOCK(I, COLORINDEX_SAID);
-			dwCookie |= COOKIE_CHAR;
-			continue;
-		}
-		if (I > 0 && pszChars[I] == '*' && pszChars[I - 1] == '/')
-		{
-			DEFINE_BLOCK(I - 1, COLORINDEX_COMMENT);
-			dwCookie |= COOKIE_EXT_COMMENT;
-			continue;
-		}
+        if (pszChars[I] == '\'')
+        {
+            DEFINE_BLOCK(I, COLORINDEX_SAID);
+            dwCookie |= COOKIE_CHAR;
+            continue;
+        }
+        if (I > 0 && pszChars[I] == '*' && pszChars[I - 1] == '/')
+        {
+            DEFINE_BLOCK(I - 1, COLORINDEX_COMMENT);
+            dwCookie |= COOKIE_EXT_COMMENT;
+            continue;
+        }
 
-		if (bFirstChar)
-		{
-			if (! isspace(pszChars[I]))
-				bFirstChar = FALSE;
-		}
+        if (bFirstChar)
+        {
+            if (! isspace(pszChars[I]))
+                bFirstChar = FALSE;
+        }
 
-		if (pBuf == nullptr)
-			continue;	//	We don't need to extract keywords,
-						//	for faster parsing skip the rest of loop
+        if (pBuf == nullptr)
+            continue;	//	We don't need to extract keywords,
+                        //	for faster parsing skip the rest of loop
 
         if (isalnum(pszChars[I]) || pszChars[I] == '_' || pszChars[I] == '$' || pszChars[I] == '#')
-		{
-			if (nIdentBegin == -1)
-				nIdentBegin = I;
-		}
-		else
-		{
-			if (nIdentBegin >= 0)
-			{
-				if (IsSCIKeyword(lang,  pszChars + nIdentBegin, I - nIdentBegin))
-				{
-					DEFINE_BLOCK(nIdentBegin, COLORINDEX_KEYWORD);
-				}
-				else if (IsSCINumber(pszChars + nIdentBegin, I - nIdentBegin))
-				{
-					DEFINE_BLOCK(nIdentBegin, COLORINDEX_NUMBER);
-				}
-                else if (IsSCISelector(pszChars + nIdentBegin, I - nIdentBegin))
+        {
+            if (nIdentBegin == -1)
+                nIdentBegin = I;
+        }
+        else
+        {
+            if (nIdentBegin >= 0)
+            {
+                if (IsSCIKeyword(LangSyntaxSCIStudio,  pszChars + nIdentBegin, I - nIdentBegin))
                 {
-	                DEFINE_BLOCK(nIdentBegin, COLORINDEX_PREPROCESSOR);
+                    DEFINE_BLOCK(nIdentBegin, COLORINDEX_KEYWORD);
                 }
-				bRedefineBlock = TRUE;
-				bDecIndex = TRUE;
-				nIdentBegin = -1;
-			}
-		}
-	}
+                else if (IsStudioNumber(pszChars + nIdentBegin, I - nIdentBegin))
+                {
+                    DEFINE_BLOCK(nIdentBegin, COLORINDEX_NUMBER);
+                }
+                else if (IsSCISelectorLiteral(pszChars + nIdentBegin, I - nIdentBegin))
+                {
+                    DEFINE_BLOCK(nIdentBegin, COLORINDEX_PREPROCESSOR);
+                }
+                bRedefineBlock = TRUE;
+                bDecIndex = TRUE;
+                nIdentBegin = -1;
+            }
+        }
+    }
 
-	if (nIdentBegin >= 0)
-	{
-		if (IsSCIKeyword(lang, pszChars + nIdentBegin, I - nIdentBegin))
-		{
-			DEFINE_BLOCK(nIdentBegin, COLORINDEX_KEYWORD);
-		}
-		else
-		if (IsSCINumber(pszChars + nIdentBegin, I - nIdentBegin))
-		{
-			DEFINE_BLOCK(nIdentBegin, COLORINDEX_NUMBER);
-		}
-	}
+    if (nIdentBegin >= 0)
+    {
+        if (IsSCIKeyword(LangSyntaxSCIStudio, pszChars + nIdentBegin, I - nIdentBegin))
+        {
+            DEFINE_BLOCK(nIdentBegin, COLORINDEX_KEYWORD);
+        }
+        else
+        if (IsStudioNumber(pszChars + nIdentBegin, I - nIdentBegin))
+        {
+            DEFINE_BLOCK(nIdentBegin, COLORINDEX_NUMBER);
+        }
+    }
 
-	if (pszChars[nLength - 1] != '\\')
-		dwCookie &= COOKIE_EXT_COMMENT;
-	return dwCookie;
+    if (pszChars[nLength - 1] != '\\')
+        dwCookie &= COOKIE_EXT_COMMENT;
+    return dwCookie;
 }
 
 

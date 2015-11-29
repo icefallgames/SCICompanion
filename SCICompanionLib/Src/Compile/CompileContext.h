@@ -195,6 +195,7 @@ public:
     void ReportTypeError(const ISourceCodePosition *pPos, SpeciesIndex w1, SpeciesIndex w2, const char *pszFormat);
     void _ReportThing(bool fError, const ISourceCodePosition *pPos, const char *pszFormat, va_list argList);
     bool HasErrors();
+    bool IsAutoText() const { return false; } // Auto-gen text resources.
 
     // Try to figure out which script, if any, this identifier is exported from.
     // This is just used for error reporting.

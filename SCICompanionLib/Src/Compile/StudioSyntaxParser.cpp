@@ -461,21 +461,12 @@ void FinishCaseA(MatchResult &match, const Parser *pParser, SyntaxContext *pCont
     }
 }
 
-template<char const* error>
-void ErrorA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (!match.Result())
-    {
-        pContext->ReportError(error, stream);
-    }
-}
-
 char const errBinaryOp[] = "Expected second argument.";
 char const errCaseArg[] = "Expected case value.";
 char const errSwitchArg[] = "Expected switch argument.";
 char const errSendObject[] = "Expected send object.";
 char const errArgument[] = "Expected argument.";
-char const errInteger[] = "Expected integer value.";
+char const errInteger[] = "Expected integer literal.";
 char const errThen[] = "Expected then clause.";
 char const errVarName[] = "Expected variable name.";
 char const errElse[] = "Expected else clause.";

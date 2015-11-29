@@ -737,7 +737,7 @@ COLORREF CCrystalTextView::GetColor(int nColorIndex)
 	case COLORINDEX_SELMARGIN:
 		return ::GetSysColor(COLOR_SCROLLBAR);
 	case COLORINDEX_PREPROCESSOR:
-		return RGB(128, 128, 128);
+		return RGB(64, 64, 64);
 	case COLORINDEX_COMMENT:
 		return RGB(64, 128, 64);
 	//	[JRT]: Enabled Support For Numbers...
@@ -745,7 +745,7 @@ COLORREF CCrystalTextView::GetColor(int nColorIndex)
 		return RGB(0x80, 0x00, 0x00);
 	//	[JRT]: Support For C/C++ Operators
 	case COLORINDEX_OPERATOR:
-		return RGB(0x00, 0x00, 0x00);
+		return RGB(70, 55, 13);
 	case COLORINDEX_KEYWORD:
 		return RGB(0, 0, 255);
 	case COLORINDEX_SELBKGND:

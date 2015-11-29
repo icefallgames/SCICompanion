@@ -101,6 +101,8 @@ public:
 
 protected:
     virtual DWORD ParseLine(DWORD dwCookie, int nLineIndex, TEXTBLOCK *pBuf, int &nActualItems);
+    DWORD _ParseLineStudio(DWORD dwCookie, int nLineIndex, TEXTBLOCK *pBuf, int &nActualItems);
+    DWORD _ParseLineSCI(DWORD dwCookie, int nLineIndex, TEXTBLOCK *pBuf, int &nActualItems);
     virtual void UpdateCaret();
     virtual void ScrollPosChanged();
 

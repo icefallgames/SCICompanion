@@ -900,6 +900,7 @@ void PropertyValueBase::PreScan(CompileContext &context)
     switch(_type)
     {
     case ValueType::String:
+    case ValueType::ResourceString:
         context.PreScanStringAndUnescape(_stringValue, this);
         break;
     case ValueType::Said:
@@ -979,25 +980,18 @@ CodeResult PropertyValueBase::OutputByteCode(CompileContext &context) const
         }
         break;
 
-    case ValueType::String:
-        context.code().inst((oc == OC_Stack) ? Opcode::LOFSS : Opcode::LOFSA, context.GetStringTempOffset(_stringValue));
-        context.TrackStringReference(_stringValue);
-        wType = DataTypeString;
-        break;
-
     case ValueType::ResourceString:
-        // Add ourselves as a resource tuple, and get the number.
-        wNumber = context.AddStringResourceTuple(_stringValue);
-        if (wNumber == InvalidResourceNumber)
+        // Not implemented yet.
+        // TODO: We need to know we're in a procedure call. This isn't supported for selector calls (per Sierra compat)
+        //if (oc != OC_Accumulator)
+        if (context.IsAutoText())
         {
-            // Report error.
-        }
-        else
-        {
-            if (oc == OC_Accumulator)
+            // Add ourselves as a resource tuple, and get the number.
+            wNumber = context.AddStringResourceTuple(_stringValue);
+            if (wNumber == InvalidResourceNumber)
             {
-                // Report error, since this is a tuple - can't go in acc
-                context.ReportError(this, "'%s': A resource string is not valid here.  Use an internal string instead.", _stringValue.c_str());
+                assert(false); // Should never happen.
+                break;
             }
             else
             {
@@ -1005,9 +999,21 @@ CodeResult PropertyValueBase::OutputByteCode(CompileContext &context) const
                 PushImmediate(context, context.GetScriptNumber());
                 PushImmediate(context, wNumber);
                 wNumSendParams++; // One more than normal.
+                wType = DataTypeResourceString;
             }
+            break;
         }
-        wType = DataTypeResourceString;
+        else
+        {
+            // Report error, since this is a tuple - can't go in acc
+            // context.ReportError(this, "'%s': A resource string is not valid here.  Use an internal string instead.", _stringValue.c_str());
+            // Just fall through to String, actually.
+        }
+
+    case ValueType::String:
+        context.code().inst((oc == OC_Stack) ? Opcode::LOFSS : Opcode::LOFSA, context.GetStringTempOffset(_stringValue));
+        context.TrackStringReference(_stringValue);
+        wType = DataTypeString;
         break;
 
     case ValueType::Said:
@@ -3049,6 +3055,7 @@ CodeResult Asm::OutputByteCode(CompileContext &context) const
                                         break;
 
                                     case ValueType::String:
+                                    case ValueType::ResourceString:
                                         args[i] = context.GetStringTempOffset(pValue->GetStringValue());
                                         stringRefs.push_back(pValue->GetStringValue());
                                         break;
@@ -3540,7 +3547,7 @@ void Script::_PreScanStringDeclaration(CompileContext &context, VariableDecl &st
         // We can't just "PreScan" the variable declaration, because it will add any strings it finds to the "in code strings",
         // which we don't want. So we emulate a bit of PropertyValueBase::PreScan here.
         ValueType type = pValue->GetType();
-        if (type == ValueType::String)
+        if ((type == ValueType::String) || (type == ValueType::ResourceString))
         {
             for (auto &character : pValue->GetStringValue())
             {

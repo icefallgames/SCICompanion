@@ -63,7 +63,7 @@ void ScriptNumberA(MatchResult &match, const _TParser *pParser, SyntaxContext *p
     }
 }
 
-template<typename _TParser>
+template<char const* error = nullptr, typename _TParser>
 void PropValueIntA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
     if (match.Result())
@@ -75,6 +75,10 @@ void PropValueIntA(MatchResult &match, const _TParser *pParser, SyntaxContext *p
             pContext->PropertyValue.Negate();
         }
         pContext->PropertyValue.SetPosition(stream.GetPosition());
+    }
+    else if (error)
+    {
+        pContext->ReportError(error, stream);
     }
 }
 
@@ -451,7 +455,7 @@ void StatementBindTo2ndA(MatchResult &match, const _TParser *pParser, SyntaxCont
 // Property values
 
 // Complex properties
-template<typename _TParser>
+template<char const* error = nullptr, typename _TParser>
 void ComplexValueIntA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
     if (match.Result())
@@ -462,6 +466,10 @@ void ComplexValueIntA(MatchResult &match, const _TParser *pParser, SyntaxContext
         {
             pValue->Negate();
         }
+    }
+    else if (error)
+    {
+        pContext->ReportError(error, stream);
     }
 }
 
@@ -780,7 +788,14 @@ void ExpectedProperyValueE(MatchResult &match, const _TParser *pParser, SyntaxCo
         pContext->ReportError("Expected a property value. Are you missing a property value in the list of properties?", stream);
     }
 }
-
+template<char const* error, typename _TParser>
+void ErrorA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (!match.Result())
+    {
+        pContext->ReportError(error, stream);
+    }
+}
 
 // Denoted as extern, so they can be used as function template parameters.
 extern char const errBinaryOp[];

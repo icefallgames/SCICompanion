@@ -276,15 +276,8 @@ bool NewCompileScript(CompileLog &log, CompileTables &tables, PrecompiledHeaders
                 // Save the text resource.
                 if (!results.GetTextComponent().Texts.empty())
                 {
-                    assert(script.Language() == LangSyntaxCpp);
-#ifdef IS_IMPLEMENTED
-                    // Needs an implementation. We're just trying to save a text resource that was automatically
-                    // generated.
-                    results.GetTextResource().SetResourceNumber(wNum);
-                    sci::istream serial;
-                    results.GetTextResource()->WriteTo(serial);
-                    appState->GetResourceMap().AppendResource(blob);
-#endif
+                    assert(script.Language() != LangSyntaxSCIStudio);
+                    appState->GetResourceMap().AppendResource(results.GetTextResource(), appState->GetVersion().DefaultVolumeFile, wNum);
                 }
 
                 // Save the script resource
