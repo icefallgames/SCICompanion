@@ -478,7 +478,7 @@ void _ResolveLocalVariables(Script &script, CompileContext &context, bool resolv
         for (auto &segment : scriptVar->GetStatements())
         {
             PropertyValue *pValue = SafeSyntaxNode<PropertyValue>(segment.get());
-            if (pValue && pValue->GetType() == ValueType::String)
+            if (pValue && ((pValue->GetType() == ValueType::String) || (pValue->GetType() == ValueType::ResourceString)))
             {
                 uint16_t temp = context.GetStringTempOffset(pValue->GetStringValue());
                 if (resolveNow)
@@ -1011,6 +1011,7 @@ std::vector<species_property> GetOverriddenProperties(CompileContext &context, c
                     wValue = value->GetNumberValue();
                     break;
                 case ValueType::String: // For now, strings are ok in property lists
+                case ValueType::ResourceString: // For now, strings are ok in property lists
                     wValue = context.GetStringTempOffset(value->GetStringValue());
                     fTrackRelocation = true;
                     break;

@@ -73,7 +73,6 @@ private:
     ParserSCI unary_operation;
     ParserSCI lvalue;
     ParserSCI rvalue_variable;
-    ParserSCI code_block;
     ParserSCI rest_statement;
     ParserSCI break_statement;
     ParserSCI breakif_statement;

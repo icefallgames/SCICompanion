@@ -390,7 +390,6 @@ SCISyntaxParser::SCISyntaxParser() :
     equalSign(char_p("=")),
     question(char_p("?")),
     alphanumAsmLabel_p(AlphanumP),
-    //selector_p(SelectorP),
     selector_send_p(SelectorP_Term<':'>),
     propget_p(SelectorP_Term<'?'>),
     filename_p(FilenameP),
@@ -665,7 +664,6 @@ void SCISyntaxParser::Load()
         continue_statement |
         contif_statement |
         asm_block |
-        code_block |
         send_call |             // Send has to come before procedure. Because procedure will match (foo sel:)
         procedure_call
         ) >>
@@ -858,6 +856,11 @@ bool SCISyntaxParser::Parse(Script &script, streamIt &stream, std::unordered_set
 {
     SyntaxContext context(stream, script, preProcessorDefines, addCommentsToOM);
     bool fRet = false;
+
+#ifdef PARSE_DEBUG
+    context.ParseDebug = true;
+#endif
+
     if (entire_script.Match(&context, stream).Result() && (*stream == 0)) // Needs a full match
     {
         PostProcessScript(pError, script);

@@ -59,7 +59,7 @@ bool FilenameP(const ParserBase<_TContext, _It, _CommentPolicy> *pParser, _TCont
     std::string &str = pContext->ScratchString();
     str.clear();
     char ch = *stream;
-    if (isalpha(ch) || (ch == '_'))
+    if (isalnum(ch) || (ch == '_'))
     {
         fRet = true;
         str += ch;
