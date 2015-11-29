@@ -64,7 +64,13 @@ bool CommentTracker::_OutputCommentHelper(const Comment &comment, SourceCodeWrit
         Indent(out);
     }
     out.out << comment.GetName();
-    out.EnsureNewLine();
+
+    // Always go non-inline here, since a comment may comment out everything to the end of the line.
+    {
+        Inline outline(out, false);
+        out.EnsureNewLine();
+    }
+
     ++_commentIndex;
     return true;
 }

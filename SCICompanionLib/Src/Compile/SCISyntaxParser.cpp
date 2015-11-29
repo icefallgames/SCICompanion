@@ -757,10 +757,8 @@ void PostProcessScript(ICompileLog *pLog, Script &script)
     EnumScriptElements<ClassDefinition>(script,
         [&script](ClassDefinition &instance)
     {
-        if (instance.IsInstance())
-        {
-            instance.SetPublic(script.IsExport(instance.GetName()));
-        }
+        // This could be a class too (not just instance). The main game class is public.
+        instance.SetPublic(script.IsExport(instance.GetName()));
     }
         );
 

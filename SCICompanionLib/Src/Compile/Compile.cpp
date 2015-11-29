@@ -3508,7 +3508,7 @@ void Script::PreScan(CompileContext &context)
 
         if (notPublicError)
         {
-            context.ReportError(notPublicError, "%s needs to be marked public in ordered to be exported.", theExport->Name.c_str());
+            context.ReportError(notPublicError, "%s needs to be marked public in order to be exported.", theExport->Name.c_str());
         }
     }
 

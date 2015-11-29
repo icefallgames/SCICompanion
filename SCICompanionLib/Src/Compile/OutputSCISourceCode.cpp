@@ -1098,7 +1098,11 @@ public:
     void Visit(const SwitchStatement &switchStatement) override
     {
         out.SyncComments(switchStatement);
+
+        Inline notInline(out, false);
+
         {
+            out.EnsureNewLine();
             DebugLine line(out);
             out.out << "(switch ";
             Inline inln(out, true);
@@ -1234,6 +1238,8 @@ public:
 
     void Visit(const IfStatement &ifStatement) override
     {
+        out.SyncComments(ifStatement);
+
         Inline inln(out, false);	// Line by line now, overall
         {
             std::string breakOrContinueIf;

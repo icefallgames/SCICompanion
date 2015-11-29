@@ -405,7 +405,7 @@ void FinishStatementA(MatchResult &match, const _TParser *pParser, SyntaxContext
     {
         pContext->FinishStatement(true);
         assert(pContext->StatementPtrReturn); // This is our "return value"
-        pContext->StatementPtrReturn->SetPosition(stream.GetPosition()); // Not the most accurate position, but good enough.
+        pContext->StatementPtrReturn->SetEndPosition(stream.GetPosition()); // Not the most accurate position, but good enough.
     }
     else
     {
