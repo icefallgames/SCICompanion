@@ -127,6 +127,7 @@ protected:
     afx_msg void OnAddAsArticle();
     afx_msg void OnAddAsSynonymOf();
     afx_msg void OnGotoScriptHeader();
+    afx_msg void OnReloadSyntaxColors();
     afx_msg void OnGotoDefinition();
     afx_msg void OnIntellisense();
     afx_msg void OnGoto();

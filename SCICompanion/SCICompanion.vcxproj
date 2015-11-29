@@ -1613,6 +1613,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <None Include="Files\Samples\views\Ego.bin" />
     <None Include="Files\Samples\views\Inv - Key.bin" />
     <None Include="Files\Samples\views\Key.bin" />
+    <None Include="Files\syntaxcolor.ini" />
     <None Include="Files\TemplateGame\SCI0\ADL.DRV" />
     <None Include="Files\TemplateGame\SCI0\dosbox.conf" />
     <None Include="Files\TemplateGame\SCI0\EGA320.DRV" />

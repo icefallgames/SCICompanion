@@ -113,6 +113,7 @@ BEGIN_MESSAGE_MAP(CScriptView, CCrystalEditView)
     ON_COMMAND(ID_ADDAS_ADVERB, OnAddAsAdverb)
     ON_COMMAND(ID_ADDAS_ARTICLE, OnAddAsArticle)
     ON_COMMAND(ID_GOTOSCRIPT, OnGotoScriptHeader)
+    ON_COMMAND(ID_MAIN_RELOADSYNTAXCOLORS, OnReloadSyntaxColors)
     ON_COMMAND(ID_EDIT_GOTO, OnGoto)
     ON_COMMAND(ID_SCRIPT_GOTODEFINITION, OnGotoDefinition)
     ON_COMMAND(ID_INTELLISENSE, OnIntellisense)
@@ -698,7 +699,7 @@ DWORD CScriptView::_ParseLineSCI(DWORD dwCookie, int nLineIndex, TEXTBLOCK *pBuf
                     else
                         if (dwCookie & COOKIE_SELECTOR)
                         {
-                            DEFINE_BLOCK(nPos, COLORINDEX_PREPROCESSOR);
+                            DEFINE_BLOCK(nPos, COLORINDEX_SELECTORLITERAL);
                         }
                         else
                             if (dwCookie & COOKIE_INTERNALSTRING)
@@ -811,7 +812,7 @@ DWORD CScriptView::_ParseLineSCI(DWORD dwCookie, int nLineIndex, TEXTBLOCK *pBuf
             {
                 if (IsSCISelectorCall(pszChars + nIdentBegin, I - nIdentBegin))
                 {
-                    DEFINE_BLOCK(nIdentBegin, COLORINDEX_OPERATOR);
+                    DEFINE_BLOCK(nIdentBegin, COLORINDEX_SELECTORCALL);
                 }
                 else if (IsSCIKeyword(LangSyntaxSCI, pszChars + nIdentBegin, I - nIdentBegin))
                 {
@@ -824,7 +825,7 @@ DWORD CScriptView::_ParseLineSCI(DWORD dwCookie, int nLineIndex, TEXTBLOCK *pBuf
                 }
                 else if (IsSCISelectorLiteral(pszChars + nIdentBegin, I - nIdentBegin))
                 {
-                    DEFINE_BLOCK(nIdentBegin, COLORINDEX_PREPROCESSOR);
+                    DEFINE_BLOCK(nIdentBegin, COLORINDEX_SELECTORLITERAL);
                 }
                 bRedefineBlock = TRUE;
                 bDecIndex = TRUE;
@@ -835,15 +836,23 @@ DWORD CScriptView::_ParseLineSCI(DWORD dwCookie, int nLineIndex, TEXTBLOCK *pBuf
 
     if (nIdentBegin >= 0)
     {
-        if (IsSCIKeyword(LangSyntaxSCI, pszChars + nIdentBegin, I - nIdentBegin))
+        if (IsSCISelectorCall(pszChars + nIdentBegin, I - nIdentBegin))
+        {
+            DEFINE_BLOCK(nIdentBegin, COLORINDEX_SELECTORCALL);
+        }
+        else if (IsSCIKeyword(LangSyntaxSCI, pszChars + nIdentBegin, I - nIdentBegin))
         {
             DEFINE_BLOCK(nIdentBegin, COLORINDEX_KEYWORD);
         }
-        else
-            if (IsSCINumber(pszChars + nIdentBegin, I - nIdentBegin))
-            {
-                DEFINE_BLOCK(nIdentBegin, COLORINDEX_NUMBER);
-            }
+        // REVIEW: We'll need more things, for back-quote
+        else if (IsSCINumber(pszChars + nIdentBegin, I - nIdentBegin))
+        {
+            DEFINE_BLOCK(nIdentBegin, COLORINDEX_NUMBER);
+        }
+        else if (IsSCISelectorLiteral(pszChars + nIdentBegin, I - nIdentBegin))
+        {
+            DEFINE_BLOCK(nIdentBegin, COLORINDEX_SELECTORLITERAL);
+        }
     }
 
     // REVIEW: What's this for?
@@ -904,7 +913,7 @@ DWORD CScriptView::_ParseLineStudio(DWORD dwCookie, int nLineIndex, TEXTBLOCK *p
             else
             if (dwCookie & COOKIE_SELECTOR)
             {
-                DEFINE_BLOCK(nPos, COLORINDEX_PREPROCESSOR);
+                DEFINE_BLOCK(nPos, COLORINDEX_SELECTORLITERAL);
             }
             else
             if (dwCookie & COOKIE_INTERNALSTRING)
@@ -1038,7 +1047,7 @@ DWORD CScriptView::_ParseLineStudio(DWORD dwCookie, int nLineIndex, TEXTBLOCK *p
                 }
                 else if (IsSCISelectorLiteral(pszChars + nIdentBegin, I - nIdentBegin))
                 {
-                    DEFINE_BLOCK(nIdentBegin, COLORINDEX_PREPROCESSOR);
+                    DEFINE_BLOCK(nIdentBegin, COLORINDEX_SELECTORLITERAL);
                 }
                 bRedefineBlock = TRUE;
                 bDecIndex = TRUE;
@@ -1545,6 +1554,12 @@ void CScriptView::OnAddAsSynonymOf()
 void CScriptView::OnUpdateAddAs(CCmdUI *pCmdUI)
 {
     pCmdUI->Enable(!_contextMenuText.IsEmpty());
+}
+
+void CScriptView::OnReloadSyntaxColors()
+{
+    LoadSyntaxHighlightingColors();
+    Invalidate();
 }
 
 void CScriptView::OnGotoScriptHeader()

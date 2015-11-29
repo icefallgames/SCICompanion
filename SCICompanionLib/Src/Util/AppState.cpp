@@ -62,6 +62,7 @@
 
 #include "CrystalScriptStream.h"
 #include "CodeAutoComplete.h"
+#include "CCrystalTextView.h"
 
 #include "View.h"
 #include "NewRasterResourceDocument.h"
@@ -179,6 +180,8 @@ AppState::AppState(CWinApp *pApp) : _resourceMap(*this)
     CelDataClipboardFormat = RegisterClipboardFormat("SCICompanionVGACelData");
     ViewAttributesClipboardFormat = RegisterClipboardFormat("SCICompanionViewAttributes");
     PaletteColorsClipboardFormat = RegisterClipboardFormat("SCICompanionPaletteColors");
+
+    LoadSyntaxHighlightingColors();
 }
 
 int AppState::AspectRatioY(int value) const

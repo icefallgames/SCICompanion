@@ -586,7 +586,7 @@ BEGIN
         END
         POPUP "Insert Method"
         BEGIN
-            MENUITEM "deleteme",                    65535
+            MENUITEM "deleteme",                    0
         END
         POPUP "Add as"
         BEGIN
@@ -605,6 +605,8 @@ BEGIN
         MENUITEM "Go to definition",            33021
         MENUITEM SEPARATOR
         MENUITEM "Goto",                        ID_GOTOSCRIPT
+        MENUITEM SEPARATOR
+        MENUITEM "Reload syntax colors",        ID_MAIN_RELOADSYNTAXCOLORS
     END
 END
 
@@ -3328,6 +3330,7 @@ END
 STRINGTABLE
 BEGIN
     ID_COMPILE_SCCTEMP      "Compile as SCI"
+    ID_MAIN_RELOADSYNTAXCOLORS "Reload colors from syntaxcolor.ini"
 END
 
 #endif    // English (United States) resources

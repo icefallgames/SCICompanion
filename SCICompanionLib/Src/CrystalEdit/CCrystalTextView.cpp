@@ -725,8 +725,69 @@ void CCrystalTextView::DrawSingleLine(CDC *pdc, const CRect &rc, int nLineIndex)
 	}
 }
 
+std::vector<std::pair<int, std::string>> syntaxHighlightMapping =
+{
+    { CCrystalTextView::COLORINDEX_WHITESPACE, "Whitespace" },
+    { CCrystalTextView::COLORINDEX_BKGND, "Background" },
+    { CCrystalTextView::COLORINDEX_NORMALTEXT, "NormalText" },
+    { CCrystalTextView::COLORINDEX_SELMARGIN, "SelMargin" },
+    { CCrystalTextView::COLORINDEX_SELBKGND, "SelBackground" },
+    { CCrystalTextView::COLORINDEX_SELTEXT, "SelText" },
+    { CCrystalTextView::COLORINDEX_KEYWORD, "Keyword" },
+    { CCrystalTextView::COLORINDEX_COMMENT, "Comment" },
+    { CCrystalTextView::COLORINDEX_NUMBER, "Number" },
+    { CCrystalTextView::COLORINDEX_SELECTORCALL, "SelectorCall" },
+    { CCrystalTextView::COLORINDEX_STRING, "String" },
+    { CCrystalTextView::COLORINDEX_INTERNALSTRING, "InternalString" },
+    { CCrystalTextView::COLORINDEX_SELECTORLITERAL, "SelectorLiteral" },
+    { CCrystalTextView::COLORINDEX_SAID, "SaidString" },
+};
+
+COLORREF CCrystalTextView::syntaxHighlightColors[COLORINDEX_MAX];
+
+void LoadSyntaxHighlightingColors()
+{
+    char szPath[MAX_PATH];
+    if (GetModuleFileName(nullptr, szPath, ARRAYSIZE(szPath)))
+    {
+        PSTR pszFileName = PathFindFileName(szPath);
+        *pszFileName = 0; // null it
+        std::string filename = szPath;
+        filename += "Files\\syntaxcolor.ini";
+
+        for (size_t i = 0; i < syntaxHighlightMapping.size(); i++)
+        {
+            char sz[100];
+            DWORD cChars = GetPrivateProfileString("Colors", syntaxHighlightMapping[i].second.c_str(), nullptr, sz, (DWORD)ARRAYSIZE(sz), filename.c_str());
+            if (cChars >= 6)
+            {
+                // Format: RRGGBB in hex.
+                int r = std::stoi(std::string(sz, 2), 0, 16);
+                int g = std::stoi(std::string(sz + 2, 2), 0, 16);
+                int b = std::stoi(std::string(sz + 4, 2), 0, 16);
+                CCrystalTextView::syntaxHighlightColors[i] = RGB(r, g, b);
+            }
+            else
+            {
+                CCrystalTextView::syntaxHighlightColors[i] = 0xffffffff;
+            }
+        }
+    }
+}
+
+
 COLORREF CCrystalTextView::GetColor(int nColorIndex)
 {
+    // Grab it from ini file if possible.
+    if (nColorIndex < ARRAYSIZE(syntaxHighlightColors))
+    {
+        COLORREF iniValue = syntaxHighlightColors[nColorIndex];
+        if (iniValue != 0xffffffff)
+        {
+            return iniValue;
+        }
+    }
+
 	switch (nColorIndex)
 	{
 	case COLORINDEX_WHITESPACE:
@@ -736,15 +797,13 @@ COLORREF CCrystalTextView::GetColor(int nColorIndex)
 		return ::GetSysColor(COLOR_WINDOWTEXT);
 	case COLORINDEX_SELMARGIN:
 		return ::GetSysColor(COLOR_SCROLLBAR);
-	case COLORINDEX_PREPROCESSOR:
+    case COLORINDEX_SELECTORLITERAL:
 		return RGB(64, 64, 64);
 	case COLORINDEX_COMMENT:
 		return RGB(64, 128, 64);
-	//	[JRT]: Enabled Support For Numbers...
 	case COLORINDEX_NUMBER:
 		return RGB(0x80, 0x00, 0x00);
-	//	[JRT]: Support For C/C++ Operators
-	case COLORINDEX_OPERATOR:
+	case COLORINDEX_SELECTORCALL:
 		return RGB(70, 55, 13);
 	case COLORINDEX_KEYWORD:
 		return RGB(0, 0, 255);

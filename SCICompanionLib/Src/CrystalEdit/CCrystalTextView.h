@@ -298,21 +298,17 @@ public:
 		COLORINDEX_KEYWORD,
 		COLORINDEX_COMMENT,
 		COLORINDEX_NUMBER,
-		COLORINDEX_OPERATOR,      // [JRT]:
+        COLORINDEX_SELECTORCALL,      // [JRT]:
 		COLORINDEX_STRING,
         COLORINDEX_INTERNALSTRING,
-		COLORINDEX_PREPROCESSOR,
-		//	Compiler/debugger colors
-		COLORINDEX_ERRORBKGND,
-		COLORINDEX_ERRORTEXT,
-		COLORINDEX_EXECUTIONBKGND,
-		COLORINDEX_EXECUTIONTEXT,
-		COLORINDEX_BREAKPOINTBKGND,
-		COLORINDEX_BREAKPOINTTEXT,
+        COLORINDEX_SELECTORLITERAL,
 		//	...
 		//	Expandable: custom elements are allowed.
-        COLORINDEX_SAID
+        COLORINDEX_SAID,
+
+        COLORINDEX_MAX,
 	};
+    static COLORREF syntaxHighlightColors[COLORINDEX_MAX];
 
 // Operations
 public:
@@ -447,6 +443,8 @@ protected:
 	afx_msg void ScrollRight();
 	DECLARE_MESSAGE_MAP()
 };
+
+void LoadSyntaxHighlightingColors();
 
 #ifdef _DEBUG
 #define ASSERT_VALIDTEXTPOS(pt)		AssertValidTextPos(pt);
