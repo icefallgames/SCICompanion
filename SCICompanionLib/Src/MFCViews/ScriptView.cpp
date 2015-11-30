@@ -666,11 +666,11 @@ BOOL IsSCINumber(LPCTSTR pszChars, int nLength)
 DWORD CScriptView::_ParseLineSCI(DWORD dwCookie, int nLineIndex, TEXTBLOCK *pBuf, int &nActualItems)
 {
     int nLength = GetLineLength(nLineIndex);
-    if (nLength <= 0)
-        return dwCookie & COOKIE_EXT_COMMENT;
+    //if (nLength <= 0)
+        //return dwCookie & COOKIE_EXT_COMMENT;
 
     LPCTSTR pszChars = GetLineChars(nLineIndex);
-    BOOL bFirstChar = (dwCookie & ~COOKIE_EXT_COMMENT) == 0;
+    BOOL bFirstChar = TRUE;
     BOOL bRedefineBlock = TRUE;
     BOOL bDecIndex = FALSE;
     int nIdentBegin = -1;
@@ -854,6 +854,8 @@ DWORD CScriptView::_ParseLineSCI(DWORD dwCookie, int nLineIndex, TEXTBLOCK *pBuf
             DEFINE_BLOCK(nIdentBegin, COLORINDEX_SELECTORLITERAL);
         }
     }
+
+    dwCookie &= ~COOKIE_COMMENT;
 
     return dwCookie;
 }
@@ -1291,7 +1293,7 @@ void CScriptView::OnSetFocus(CWnd *pNewWnd)
     appState->GiveMeAutoComplete(this);
     if (_pACThread)
     {
-        _pACThread->InitializeForScript(LocateTextBuffer());
+        _pACThread->InitializeForScript(LocateTextBuffer(), GetDocument()->GetScriptId().Language());
     }
 
     if (_pAutoComp && _pAutoComp->IsWindowVisible())
@@ -1584,7 +1586,7 @@ void CScriptView::OnInitialUpdate()
 
     if (_pACThread)
     {
-        _pACThread->InitializeForScript(LocateTextBuffer());
+        _pACThread->InitializeForScript(LocateTextBuffer(), GetDocument()->GetScriptId().Language());
     }
 }
 

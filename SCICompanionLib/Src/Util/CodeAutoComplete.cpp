@@ -321,7 +321,7 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
     }
     return result;
 }
-AutoCompleteThread2::AutoCompleteThread2() : _nextId(0), _instruction(AutoCompleteInstruction::None), _bgStatus(AutoCompleteStatus::Pending)
+AutoCompleteThread2::AutoCompleteThread2() : _nextId(0), _instruction(AutoCompleteInstruction::None), _bgStatus(AutoCompleteStatus::Pending), _lang(LangSyntaxUnknown), _bufferUI(nullptr)
 {
     _thread = std::thread(s_ThreadWorker, this);
 }
@@ -336,9 +336,10 @@ AutoCompleteThread2::~AutoCompleteThread2()
     _thread.join();
 }
 
-void AutoCompleteThread2::InitializeForScript(CCrystalTextBuffer *buffer)
+void AutoCompleteThread2::InitializeForScript(CCrystalTextBuffer *buffer, LangSyntax lang)
 {
     _bufferUI = buffer;
+    _lang = lang;
 
     // TODO: Cancel any parsing? Or I guess it really doesn't matter. Except that if a script is closed, we want to know, so we don't send message to non-existent hwnd.
 }
@@ -545,7 +546,10 @@ void AutoCompleteThread2::_DoWork()
                     std::unordered_set<std::string> _parsedCustomHeaders;
                 };
 
-                sci::Script script;
+                ScriptId scriptId;
+                scriptId.SetLanguage(_lang);
+                sci::Script script(scriptId);
+                // Needed to get the language right.
                 CCrystalScriptStream::const_iterator it(limiter.get());
                 SyntaxContext context(it, script, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), false);
 #ifdef PARSE_DEBUG
