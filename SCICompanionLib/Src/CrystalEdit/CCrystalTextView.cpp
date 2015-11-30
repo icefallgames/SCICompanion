@@ -753,7 +753,7 @@ void LoadSyntaxHighlightingColors()
         PSTR pszFileName = PathFindFileName(szPath);
         *pszFileName = 0; // null it
         std::string filename = szPath;
-        filename += "Files\\syntaxcolor.ini";
+        filename += "Customization\\syntaxcolor.ini";
 
         for (size_t i = 0; i < syntaxHighlightMapping.size(); i++)
         {

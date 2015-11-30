@@ -204,11 +204,126 @@ public:
     }
 };
 
+
+//
+// Optimized delimiter reader for SCI Script
+//
+// Unlike for SCI Studio script, this continues until the closing quote (instead of dealing with '+')
+//
+// Forced spaces are indicated by underscores.
+// Underscores are indicated by \_
+//
+template<typename _TContext, typename _It, char Q1, char Q2>
+bool _ReadStringSCI(_It &stream, std::string &str)
+{
+    str.clear();
+    if (Q1 == *stream)
+    {
+        char chPrev = 0;
+        char ch;
+        // Continue while no EOF, and while the character isn't the closing quote
+        // (unless the previous character was an escape char)
+        bool fEscape = false;
+        bool addedSpace = false;
+        bool lookingForSecondHex = false;
+        int chHex = 0;
+        while ((ch = *(++stream)) && ((ch != Q2) || (chPrev == '\\')))
+        {
+            chPrev = ch;
+            bool processCharNormally = true;
+            if (lookingForSecondHex)
+            {
+                if (isxdigit(ch))
+                {
+                    chHex *= 16;
+                    chHex += charToI(ch);
+                    str += (char)chHex;
+                } // Otherwise, just ignore the whole thing
+                processCharNormally = false;
+            }
+            lookingForSecondHex = false;
+            if (fEscape)
+            {
+                processCharNormally = false;
+                // Last char was an escape
+                switch (ch)
+                {
+                    case 'n':
+                        str += '\n';
+                        break;
+                    case 't':
+                        str += '\t';
+                        break;
+                    case '_':
+                        // \_ is an underscore.
+                        str += "_";
+                        break;
+                        // TODO: HExes
+                    default:
+                        if (isxdigit(ch))
+                        {
+                            chHex = charToI(ch);
+                            lookingForSecondHex = true;
+                        }
+                        else
+                        {
+                            str += "\\"; // Add it, the following char was not an escape char
+                            processCharNormally = true; // Add the current char too
+                        }
+                }
+            }
+            fEscape = false;
+            if (processCharNormally)
+            {
+                if (isspace(ch))
+                {
+                    // Add one space for all continguous whitespace
+                    if (!addedSpace)
+                    {
+                        str += ' ';
+                    }
+                    addedSpace = true;
+                }
+                else
+                {
+                    addedSpace = false; // Reset this
+                    if (ch == '\\')
+                    {
+                        // Escape char, don't add to string.
+                        fEscape = true;
+                    }
+                    else if (ch == '_')
+                    {
+                        // Underscores are forced spaces
+                        str += ' ';
+                    }
+                    else
+                    {
+                        str += ch;
+                    }
+                }
+            }
+        }
+        if (ch == Q2)
+        {
+            ++stream;
+            return true; // We're done
+        }
+        else
+        {
+            assert(ch == 0); // EOF
+            return false;
+        }
+    }
+    return false;
+}
+
+
 //
 // Optimized delimiter reader
 //
 template<typename _TContext, typename _CommentPolicy, typename _It, char Q1, char Q2>
-bool _ReadString(_It &stream, std::string &str)
+bool _ReadStringStudio(_It &stream, std::string &str)
 {
     str.clear();
     while (Q1 == *stream)
@@ -532,11 +647,10 @@ public:
     }
 
     template<typename _TContext, typename _It, char Q1, char Q2>
-    bool ReadString(_It &stream, std::string &str) const
+    bool ReadStringStudio(_It &stream, std::string &str) const
     {
-        return _ReadString<_TContext, _CommentPolicy, _It, Q1, Q2>(stream, str);
+        return _ReadStringStudio<_TContext, _CommentPolicy, _It, Q1, Q2>(stream, str);
     }
-
 
     std::unique_ptr<ParserBase> _pa;
     std::vector<std::unique_ptr<ParserBase>> _parsers;

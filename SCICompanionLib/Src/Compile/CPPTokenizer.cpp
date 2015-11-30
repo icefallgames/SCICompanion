@@ -293,13 +293,13 @@ void CrystalScriptTokenStream::Tokenize(sci::Script *pScriptForComments)
         {
             TokenInfo info;
             info.start = it.GetPosition();
-            if (_ReadString<SyntaxContext, EatCommentCpp, CCrystalScriptStream::const_iterator, '"', '"'>(it, info.string))
+            if (_ReadStringStudio<SyntaxContext, EatCommentCpp, CCrystalScriptStream::const_iterator, '"', '"'>(it, info.string))
             {
                 info.type = TokenQuotedString;
                 info.end = it.GetPosition();
                 _tokens.push_back(info);
             }
-            else if (_ReadString<SyntaxContext, EatCommentCpp, CCrystalScriptStream::const_iterator, '\'', '\''>(it, info.string))
+            else if (_ReadStringStudio<SyntaxContext, EatCommentCpp, CCrystalScriptStream::const_iterator, '\'', '\''>(it, info.string))
             {
                 info.type = TokenSingleQuotedString;
                 info.end = it.GetPosition();

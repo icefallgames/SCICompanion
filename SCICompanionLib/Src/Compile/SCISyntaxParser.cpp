@@ -378,6 +378,19 @@ ParserSCI SCISyntaxParser::generateSyntaxNodeD()
     return syntaxnode[EndSyntaxNodeA];
 }
 
+
+template<typename _It, typename _TContext, typename _CommentPolicy>
+bool QuotedStringSCIP(const ParserBase<_TContext, _It, _CommentPolicy> *pParser, _TContext *pContext, _It &stream)
+{
+    return _ReadStringSCI<_TContext, _It, '"', '"'>(stream, pContext->ScratchString());
+}
+
+template<typename _It, typename _TContext, typename _CommentPolicy>
+bool BraceStringSCIP(const ParserBase<_TContext, _It, _CommentPolicy> *pParser, _TContext *pContext, _It &stream)
+{
+    return _ReadStringSCI<_TContext, _It, '{', '}'>(stream, pContext->ScratchString());
+}
+
 SCISyntaxParser::SCISyntaxParser() :
     oppar(char_p("(")),
     clpar(char_p(")")),
@@ -397,9 +410,9 @@ SCISyntaxParser::SCISyntaxParser() :
     alphanumNK_p(AlphanumPNoKeywordOrTerm),
     alphanumSendToken_p(AlphanumPSendTokenOrTerm),
     alwaysmatch_p(AlwaysMatchP),
-    bracestring_p(BraceStringP),
+    bracestring_p(BraceStringSCIP),
     squotedstring_p(SQuotedStringP),
-    quotedstring_p(QuotedStringP),
+    quotedstring_p(QuotedStringSCIP),
     integer_p(IntegerExpandedP),
     integerNonZero_p(IntegerNonZeroP),
     syntaxnode_d(generateSyntaxNodeD())

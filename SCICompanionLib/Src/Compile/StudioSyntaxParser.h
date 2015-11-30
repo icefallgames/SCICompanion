@@ -196,19 +196,19 @@ bool NotP(const ParserBase<_TContext, _It, _CommentPolicy> *pParser, _TContext *
 template<typename _It, typename _TContext, typename _CommentPolicy>
 bool QuotedStringP(const ParserBase<_TContext, _It, _CommentPolicy> *pParser, _TContext *pContext, _It &stream)
 {
-    return pParser->ReadString<_TContext, _It, '"', '"'>(stream, pContext->ScratchString());
+    return pParser->ReadStringStudio<_TContext, _It, '"', '"'>(stream, pContext->ScratchString());
 }
 
 template<typename _It, typename _TContext, typename _CommentPolicy>
 bool SQuotedStringP(const ParserBase<_TContext, _It, _CommentPolicy> *pParser, _TContext *pContext, _It &stream)
 {
-    return pParser->ReadString<_TContext, _It, '\'', '\''>(stream, pContext->ScratchString());
+    return pParser->ReadStringStudio<_TContext, _It, '\'', '\''>(stream, pContext->ScratchString());
 }
 
 template<typename _It, typename _TContext, typename _CommentPolicy>
 bool BraceStringP(const ParserBase<_TContext, _It, _CommentPolicy> *pParser, _TContext *pContext, _It &stream)
 {
-    return pParser->ReadString<_TContext, _It, '{', '}'>(stream, pContext->ScratchString());
+    return pParser->ReadStringStudio<_TContext, _It, '{', '}'>(stream, pContext->ScratchString());
 }
 
 //

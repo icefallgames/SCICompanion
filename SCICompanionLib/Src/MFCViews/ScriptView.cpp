@@ -855,9 +855,6 @@ DWORD CScriptView::_ParseLineSCI(DWORD dwCookie, int nLineIndex, TEXTBLOCK *pBuf
         }
     }
 
-    // REVIEW: What's this for?
-    if (pszChars[nLength - 1] != '\\')
-        dwCookie &= COOKIE_EXT_COMMENT;
     return dwCookie;
 }
 
