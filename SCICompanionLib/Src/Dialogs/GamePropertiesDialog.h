@@ -45,6 +45,8 @@ private:
     CExtLabel m_wndExe;
     CExtLabel m_wndExeParam;
     CExtLabel m_wndStaticProfile;
+    CExtLabel m_wndStatic4;
+    CExtComboBox m_wndComboLanguage;
     CExtComboBox m_wndComboProfile;
     CExtEdit m_wndEditParams;
     CExtEdit m_wndEditExe;

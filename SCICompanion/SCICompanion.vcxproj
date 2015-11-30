@@ -1543,9 +1543,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <None Include="Docs\source\vocabs.rst" />
     <None Include="Files\CompileInclude\kernels.scp" />
     <None Include="Files\CompileInclude\keys.sh" />
-    <None Include="Files\CompileInclude\keys.shp" />
     <None Include="Files\CompileInclude\sci.sh" />
-    <None Include="Files\CompileInclude\sci.shp" />
     <None Include="Files\Decompiler\Decompiler.ini" />
     <None Include="Files\Decompiler\game.sh" />
     <None Include="Files\Licenses\cppformat_README.rst" />

@@ -50,7 +50,7 @@ using sci::FunctionBase;
 
 
 void _GetMethodInfoHelper(PTSTR szBuf, size_t cchBuf, const sci::FunctionBase *pMethod);
-void _GetClassInfoHelper(PTSTR szBuf, size_t cchBuf, const sci::ClassDefinition *pClass);
+void _GetClassInfoHelper(LangSyntax lang, PTSTR szBuf, size_t cchBuf, const sci::ClassDefinition *pClass);
 std::tuple<const sci::ClassDefinition *, const sci::ClassDefinition *, const sci::ClassProperty *> _FindClassProperty(SCIClassBrowser &browser, const sci::ClassDefinition &leafClass, const std::string &propertyName);
 
 template<typename _TContext>
@@ -167,7 +167,7 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
             auto classIt = match_name(classes.begin(), classes.end(), strText);
             if (classIt != classes.end())
             {
-                _GetClassInfoHelper(szTip, ARRAYSIZE(szTip), (*classIt));
+                _GetClassInfoHelper(pContext->Script().Language(), szTip, ARRAYSIZE(szTip), (*classIt));
 
                 result.strTip = szTip;
                 // Give location information for it.

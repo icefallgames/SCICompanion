@@ -299,7 +299,7 @@ private:
 class TransformDeterminePropSelectors : public IExploreNode
 {
 public:
-    TransformDeterminePropSelectors(sci::Script &script)
+    TransformDeterminePropSelectors(sci::SyntaxNode &node)
     {
         // We need to determine what is a property and what is a method
         if (_lookups.Load(appState->GetResourceMap().Helper()))
@@ -320,7 +320,7 @@ public:
             }
         }
 
-        script.Traverse(*this);
+        node.Traverse(*this);
     }
 
     void ExploreNode(SyntaxNode &node, ExploreNodeState state) override
@@ -426,6 +426,7 @@ public:
 
     void Visit(const Script &script) override
     {
+        out.out << "; " << SCILanguageMarker << " 1.0 - (do not remove this comment)\n";
         out.OutputInitialComment();
 
         ScriptId scriptId = script.GetScriptId();

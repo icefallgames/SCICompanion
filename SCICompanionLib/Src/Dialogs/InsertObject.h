@@ -26,7 +26,7 @@ extern const char c_szUnnamedObject[];
 class AvailableMethods
 {
 public:
-    AvailableMethods();
+    AvailableMethods(LangSyntax language);
 
     std::vector<const sci::MethodDefinition*> &GetMethods() {
         return _methods;
@@ -37,13 +37,14 @@ public:
 private:
     std::vector<const sci::MethodDefinition*> _methods;
     std::unique_ptr<sci::Script> _script;
+    LangSyntax _targetLanguage;
 };
     
 
 class AvailableObjects
 {
 public:
-    AvailableObjects();
+    AvailableObjects(LangSyntax language);
     
     std::vector<sci::ClassDefinition*> &GetObjects() {
         return _objects;
@@ -55,6 +56,7 @@ private:
     std::vector<sci::ClassDefinition*> _objects;
     std::vector<std::unique_ptr<sci::Script>> _scripts;
     std::unordered_map<sci::ClassDefinition*, sci::Script*> _objectToScript;
+    LangSyntax _targetLanguage;
 };
 
 class CInsertObject : public CExtResizableDialog
@@ -92,8 +94,6 @@ private:
     CListBox m_wndListMethods;
 
     AvailableObjects _availableObjects;
-
-    LangSyntax _lang;
 public:
     afx_msg void OnCbnSelchangeObjecttype();
 };

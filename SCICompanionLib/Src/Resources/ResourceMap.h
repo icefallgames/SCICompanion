@@ -117,7 +117,6 @@ public:
     std::unique_ptr<ResourceEntity> CreateResourceFromNumber(ResourceType type, int wNumber, uint32_t base36Number = NoBase36, int mapContext = -1);
     void GetAllScripts(std::vector<ScriptId> &scripts);
 	void GetNumberToNameMap(std::unordered_map<WORD, std::string> &scos);
-    void SetScriptLanguage(ScriptId script, LangSyntax language);
     void SetGameLanguage(LangSyntax language);
     void RemoveScriptFromGame(WORD wScript);
     void SetIncludeFolderForTest(const std::string &folder) { _includeFolderOverride = folder; }

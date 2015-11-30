@@ -18,6 +18,14 @@
 using namespace sci;
 using namespace std;
 
+void PrepForLanguage(LangSyntax langSyntax, sci::Script &script)
+{
+    if (langSyntax == LangSyntaxSCI)
+    {
+        ConvertToSCISyntaxHelper(script);
+    }
+}
+
 void _OutputVariableAndSizeSCI(sci::ISyntaxNodeVisitor &visitor, sci::SourceCodeWriter &out, const std::string &type, const std::string &name, WORD wSize, const sci::SyntaxNodeVector &initValues)
 {
     if (wSize > 1)

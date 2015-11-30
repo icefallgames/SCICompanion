@@ -20,6 +20,7 @@
 //#include <shfolder.h>
 #include <shlobj.h>
 #include "atlimage.h"
+#include "GameFolderHelper.h"
 
 // NewGameDialog dialog
 
@@ -102,6 +103,10 @@ void NewGameDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_EDIT_DESCRIPTION, m_wndDescription);
     DDX_Control(pDX, IDC_STATIC_IMAGE, m_wndImage);
 
+    DDX_Control(pDX, IDC_STATIC4, m_wndStatic4);
+    DDX_Control(pDX, IDC_COMBOLANGUAGE, m_wndComboLanguage);
+    m_wndComboLanguage.SetCurSel(0);
+
     DDX_Control(pDX, IDC_COMBOTEMPLATE, m_wndComboTemplate);
     _PopulateTemplates();
 }
@@ -157,6 +162,7 @@ void NewGameDialog::OnBnClickedOk()
     if (fContinue)
     {
         // 2) Copy the files over
+        // TODO: Need to deal with language.
         std::string templateCoreFolder = appState->GetResourceMap().GetTemplateFolder();
         CString strText;
         m_wndComboTemplate.GetWindowTextA(strText);
@@ -180,6 +186,18 @@ void NewGameDialog::OnBnClickedOk()
         char szGameIni[MAX_PATH];
         PathCombine(szGameIni, szPath, "game.ini");
         fContinue = (0 != WritePrivateProfileString("Game", "Name", szName, szGameIni));
+        if (fContinue)
+        {
+            // Set the game language.
+            int curSel = m_wndComboLanguage.GetCurSel();
+            if (curSel != CB_ERR)
+            {
+                LangSyntax lang = (LangSyntax)curSel;
+                GameFolderHelper helper;
+                helper.GameFolder = szPath;
+                helper.SetIniString(GameSection, LanguageKey, (lang == LangSyntaxSCI) ? LanguageValueSCI : LanguageValueCpp);
+            }
+        }
         if (!fContinue)
         {
             char szMessage[MAX_PATH * 2];

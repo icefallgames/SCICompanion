@@ -105,7 +105,7 @@ tuple<const ClassDefinition *, const sci::ClassDefinition *, const ClassProperty
     return make_tuple(classDef, sourceClassDef, classProp);
 }
 
-void _GetClassInfoHelper(PTSTR szBuf, size_t cchBuf, const ClassDefinition *pClass)
+void _GetClassInfoHelper(LangSyntax lang, PTSTR szBuf, size_t cchBuf, const ClassDefinition *pClass)
 {
     TCHAR szTemp[100];
     szTemp[0] = 0;
@@ -116,7 +116,7 @@ void _GetClassInfoHelper(PTSTR szBuf, size_t cchBuf, const ClassDefinition *pCla
     StringCchPrintf(szBuf, cchBuf, TEXT("(class %s%s\n    (properties\n"), pClass->GetName().c_str(), szTemp);
 
     std::stringstream ss;
-    SourceCodeWriter out(ss, appState->GetResourceMap().Helper().GetGameLanguage());
+    SourceCodeWriter out(ss, lang);
     DebugIndent indent1(out);
     DebugIndent indent2(out);
     out.pszNewLine = "\r\n";

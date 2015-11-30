@@ -64,7 +64,7 @@ class DummyLog : public ICompileLog
     void ReportResult(const CompileResult &result) override {}
 };
 
-AvailableMethods::AvailableMethods()
+AvailableMethods::AvailableMethods(LangSyntax language) : _targetLanguage(language)
 {
     string fullPath = appState->GetResourceMap().GetObjectsFolder() + "\\Methods.sc";
     DummyLog log;
@@ -74,9 +74,10 @@ AvailableMethods::AvailableMethods()
     {
         CScriptStreamLimiter limiter(&buffer);
         CCrystalScriptStream stream(&limiter);
-        _script = std::make_unique<sci::Script>();
+        _script = std::make_unique<sci::Script>(ScriptId(fullPath));
         if (SyntaxParser_Parse(*_script, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log, false, nullptr, true))
         {
+            PrepForLanguage(_targetLanguage, *_script);
             for (const auto &theClass : _script->GetClassesNC())
             {
                 transform(theClass->GetMethods().begin(), theClass->GetMethods().end(), back_inserter(_methods),
@@ -91,10 +92,10 @@ AvailableMethods::AvailableMethods()
 void AvailableMethods::PrepareBuffer(const sci::MethodDefinition *methodDef, CString &buffer)
 {
     std::stringstream ss;
-    //sci::SourceCodeWriter out(ss, appState->GetResourceMap().Helper().GetGameLanguage(), _objectToScript[theClass]);
+    //sci::SourceCodeWriter out(ss, _targetLanguage, _objectToScript[theClass]);
     // Providing the script lets us sync comments, but it is not working properly. They merge with newlines, and comments in
     // unused functions are included. Really, we need an option to parse comments inline.
-    sci::SourceCodeWriter out(ss, appState->GetResourceMap().Helper().GetGameLanguage(), nullptr);
+    sci::SourceCodeWriter out(ss, _targetLanguage, nullptr);
     DebugIndent indent(out);
     out.pszNewLine = "\r\n";
     out.fAlwaysExpandCodeBlocks = true;
@@ -103,7 +104,7 @@ void AvailableMethods::PrepareBuffer(const sci::MethodDefinition *methodDef, CSt
     buffer = ss.str().c_str();
 }
 
-AvailableObjects::AvailableObjects()
+AvailableObjects::AvailableObjects(LangSyntax language) : _targetLanguage(language)
 {
     vector<string> filenames;
 
@@ -137,9 +138,11 @@ AvailableObjects::AvailableObjects()
         {
             CScriptStreamLimiter limiter(&buffer);
             CCrystalScriptStream stream(&limiter);
-            std::unique_ptr<sci::Script> pScript = std::make_unique<sci::Script>();
+            std::unique_ptr<sci::Script> pScript = std::make_unique<sci::Script>(ScriptId(fullPath));
             if (SyntaxParser_Parse(*pScript, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log, false, nullptr, true))
             {
+                PrepForLanguage(_targetLanguage, *pScript);
+
                 transform(pScript->GetClassesNC().begin(), pScript->GetClassesNC().end(), back_inserter(_objects),
                     [](unique_ptr<ClassDefinition> &theClass) { return theClass.get(); }
                 );
@@ -241,10 +244,10 @@ void AvailableObjects::PrepareBuffer(sci::ClassDefinition *theClass, CString &bu
     }
 
     std::stringstream ss;
-    //sci::SourceCodeWriter out(ss, appState->GetResourceMap().Helper().GetGameLanguage(), _objectToScript[theClass]);
+    //sci::SourceCodeWriter out(ss, _targetLanguage, _objectToScript[theClass]);
     // Providing the script lets us sync comments, but it is not working properly. They merge with newlines, and comments in
     // unused functions are included. Really, we need an option to parse comments inline.
-    sci::SourceCodeWriter out(ss, appState->GetResourceMap().Helper().GetGameLanguage(), nullptr);
+    sci::SourceCodeWriter out(ss, _targetLanguage, nullptr);
     out.pszNewLine = "\r\n";
     out.fAlwaysExpandCodeBlocks = true;
     ss << out.pszNewLine;
@@ -254,7 +257,7 @@ void AvailableObjects::PrepareBuffer(sci::ClassDefinition *theClass, CString &bu
 
 // CInsertObject dialog
 CInsertObject::CInsertObject(LangSyntax lang, CWnd* pParent /*=NULL*/)
-	: CExtResizableDialog(CInsertObject::IDD, pParent), _lang(lang)
+    : CExtResizableDialog(CInsertObject::IDD, pParent), _availableObjects(lang)
 {
 }
 

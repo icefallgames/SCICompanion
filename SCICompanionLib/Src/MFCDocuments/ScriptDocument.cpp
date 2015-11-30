@@ -43,7 +43,9 @@
 #include "ResourceBlob.h"
 #include "DependencyTracker.h"
 #include "OutputCodeHelper.h"
+#include <filesystem>
 
+using namespace std::tr2::sys;
 using namespace std;
 
 bool CompileLog::HasErrors()
@@ -94,7 +96,6 @@ BEGIN_MESSAGE_MAP(CScriptDocument, CDocument)
     ON_COMMAND(ID_FILE_SAVE, OnFileSave)
     ON_COMMAND(ID_FILE_SAVE_AS, OnFileSaveAs)
     ON_COMMAND(ID_COMPILE, OnCompile)
-	ON_COMMAND(ID_COMPILE_SCCTEMP, OnCompileAsSCI)
 #ifdef DOCSUPPORT
     ON_COMMAND(ID_COMPILEDOCS, OnCompileDocs)
 #endif
@@ -215,12 +216,6 @@ void CScriptDocument::OnCompile()
     }
 }
 
-void CScriptDocument::OnCompileAsSCI()
-{
-    _scriptId.SetLanguage(LangSyntaxSCI);
-    OnCompile();
-}
-
 std::unique_ptr<sci::Script> SimpleCompile(CompileLog &log, ScriptId &scriptId, bool addCommentsToOM)
 {
     std::unique_ptr<sci::Script> script = make_unique<sci::Script>();
@@ -276,7 +271,7 @@ bool NewCompileScript(CompileLog &log, CompileTables &tables, PrecompiledHeaders
                 // Save the text resource.
                 if (!results.GetTextComponent().Texts.empty())
                 {
-                    assert(script.Language() != LangSyntaxSCIStudio);
+                    assert(script.Language() != LangSyntaxStudio);
                     appState->GetResourceMap().AppendResource(results.GetTextResource(), appState->GetVersion().DefaultVolumeFile, wNum);
                 }
 
@@ -340,7 +335,7 @@ void DecompileScript(const GameFolderHelper &helper, WORD wScript, IDecompilerRe
     {
         unique_ptr<sci::Script> pScript = DecompileScript(nullptr, *appState->GetResourceMap().GetCompiledScriptLookups(), helper, wScript, compiledScript, results);
         std::stringstream ss;
-        sci::SourceCodeWriter out(ss, helper.GetGameLanguage(), pScript.get());
+        sci::SourceCodeWriter out(ss, helper.GetDefaultGameLanguage(), pScript.get());
         pScript->OutputSourceCode(out);
         ShowTextFile(ss.str().c_str(), "script.scp.txt");
     }
@@ -478,9 +473,6 @@ void CScriptDocument::OnViewSyntaxTree()
         }
     }
 #endif
-
-    // temp
-    OnConvertScript();
 }
 
 void CScriptDocument::OnDebugRoom()
@@ -492,149 +484,150 @@ void CScriptDocument::OnDebugRoom()
     }
 }
 
+// Converts to the default game language.
 void CScriptDocument::OnConvertScript()
 {
-    if (true)
-    //if (appState->GetResourceMap().Helper().GetGameLanguage() != _scriptId.Language())
+    if (appState->GetResourceMap().Helper().GetDefaultGameLanguage() != _scriptId.Language())
     {
-        if (true)
-        //if (LangSyntaxCpp == appState->GetResourceMap().Helper().GetGameLanguage())
+        // What we do
+        // 1) Parse this script and generate a syntax tree.
+        // 2) If successful, write to the file.
+        // 3) Reload
+        CScriptStreamLimiter limiter(&_buffer);
+        CCrystalScriptStream stream(&limiter);
+        //SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser(); 
+        //browser.Lock();
+        // 1)
+        sci::Script script(_scriptId);
+        CompileLog log;
+        bool fCompile = SyntaxParser_Parse(script, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log);;
+        if (fCompile)
         {
-            // What we do
-            // 1) Parse this script and generate a syntax tree.
-            // 2) Create a new file of the same name, but with a different file extension.
-            // 3) Officially mark the script as being in a new language.
-            // 4) Reload
-            CScriptStreamLimiter limiter(&_buffer);
-            CCrystalScriptStream stream(&limiter);
-            //SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser(); 
-            //browser.Lock();
-            // 1)
-            sci::Script script(_scriptId);
-            CompileLog log;
-            bool fCompile = SyntaxParser_Parse(script, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log);;
-            if (fCompile)
+            PrepForLanguage(appState->GetResourceMap().Helper().GetDefaultGameLanguage(), script);
+
+            std::stringstream out;
+            sci::SourceCodeWriter theCode(out, appState->GetResourceMap().Helper().GetDefaultGameLanguage(), &script);
+            theCode.indentChar = '\t';
+            theCode.indentAmount = 1;
+            script.OutputSourceCode(theCode);
+
+            // Copy the old file to .bak
+            std::string bakPath = _scriptId.GetFullPath() + ".bak";
+            copy_file(path(_scriptId.GetFullPath()), path(bakPath), copy_option::overwrite_if_exists);
+
+            // Now save it
+            ofstream newFile(_scriptId.GetFullPath());
+            newFile << out.str();
+            if (newFile.good())
             {
-                ConvertToSCISyntaxHelper(script);
+                // All went well
+                newFile.close();
 
-                std::stringstream out;
-                sci::SourceCodeWriter debugOut(out, LangSyntaxSCI, &script);
-                debugOut.indentChar = '\t';
-                debugOut.indentAmount = 1;
-                script.OutputSourceCode(debugOut);
+                std::stringstream ss;
+                ss << _scriptId.GetFileName() << " was successfully converted. Old file backed up to " + bakPath;
+                log.ReportResult(CompileResult(ss.str()));
+                appState->OutputResults(OutputPaneType::Compile, log.Results());
 
-                ShowTextFile(out.str().c_str(), _scriptId.GetFileNameOrig() + ".txt");
+                // 3) Switch to the new script
+                uint16_t scriptNumber = _scriptId.GetResourceNumber();
+                _scriptId = ScriptId(_scriptId.GetFullPath());
+                _scriptId.SetResourceNumber(scriptNumber);
+                
+                // Should be the new language now
+                assert(_scriptId.Language() == appState->GetResourceMap().Helper().GetDefaultGameLanguage());
+                _buffer.FreeAll();
+                _buffer.LoadFromFile(_scriptId.GetFullPath().c_str());
 
-#ifdef DISABLED
+                // Play a sound and rejoice!
+                // Nah, don't.
+                // PlaySound((LPCSTR)SND_ALIAS_SYSTEMHAND, NULL, SND_ALIAS_ID | SND_ASYNC);
 
+                // Tell the view.
+                UpdateAllViewsAndNonViews(nullptr, 0, &WrapObject(ScriptChangeHint::Converted | ScriptChangeHint::Pos, this));
 
-                // 1.5 Make some substitutions for properties that have minus signs in them.
-                // e.g. convert b-moveCnt to b_moveCnt, since c-style syntax can't handle - in a variable name.
-                class PropertyAliasConvert : public sci::IExploreNode
-                {
-                public:
-                    void ExploreNode(sci::SyntaxNode &node, sci::ExploreNodeState state)
-                    {
-						if (state == sci::ExploreNodeState::Pre)
-						{
-							switch (node.GetNodeType())
-							{
-							case sci::NodeTypeValue:
-							case sci::NodeTypeComplexValue:
-							{
-								sci::PropertyValueBase &base = static_cast<sci::PropertyValueBase&>(node);
-								if ((base.GetType() == sci::ValueType::Token) ||
-									(base.GetType() == sci::ValueType::Selector) ||
-									(base.GetType() == sci::ValueType::Pointer))
-								{
-									base.SetValue(GetTokenAlias(base.GetStringValue()), base.GetType());
-								}
-							}
-							break;
-							case sci::NodeTypeClassProperty:
-							{
-								sci::ClassProperty &classProp = static_cast<sci::ClassProperty&>(node);
-								classProp.SetName(GetTokenAlias(classProp.GetName()));
-							}
-							break;
-
-							case sci::NodeTypeLValue:
-							{
-								sci::LValue &lvalue = static_cast<sci::LValue&>(node);
-								lvalue.SetName(GetTokenAlias(lvalue.GetName()));
-							}
-							break;
-							case sci::NodeTypeSendParam:
-							{
-								sci::SendParam &sendParam = static_cast<sci::SendParam&>(node);
-								sendParam.SetName(GetTokenAlias(sendParam.GetName()));
-							}
-							break;
-							}
-						}
-                    }
-                };
-                PropertyAliasConvert propertyAliasConvert;
-                script.Traverse(propertyAliasConvert);
-
-                std::stringstream out;
-				sci::SourceCodeWriter debugOut(out, LangSyntaxCpp, &script);
-                script.OutputSourceCode(debugOut);
-
-                // 2)
-                // Can't use CResourceMap::GetScriptFileName just yet, since we haven't offically converted the script
-                std::string fullPath = _scriptId.GetFullPath();
-                if (_scriptId.IsHeader())
-                {
-                    fullPath.replace(fullPath.find(".sh"), strlen(".sh"), ".shp");
-                }
-                else
-                {
-                    fullPath.replace(fullPath.find(".sc"), strlen(".sc"), ".scp");
-                }
-                ScriptId newScriptId(fullPath);
-                newScriptId.SetResourceNumber(_scriptId.GetResourceNumber()); // Transfer resource num
-                // Headers don't have resource numbers:
-                ASSERT(!newScriptId.IsHeader() || (newScriptId.GetResourceNumber() == InvalidResourceNumber));
-                ofstream newFile(fullPath.c_str());
-                newFile << out.str();
-                if (newFile.good())
-                {
-                    // All went well
-                    newFile.close();
-
-                    // 3)
-                    if (!newScriptId.IsHeader())
-                    {
-                        appState->GetResourceMap().SetScriptLanguage(newScriptId, LangSyntaxCpp);
-                    }
-
-                    std::stringstream ss;
-                    ss << _scriptId.GetFileName() << " was successfully converted to " << newScriptId.GetFileName();
-                    log.ReportResult(CompileResult(ss.str()));
-                    appState->OutputResults(OutputPaneType::Compile, log.Results());
-
-                    // 4) Switch to the new script
-                    _scriptId = newScriptId;
-                    _buffer.FreeAll();
-                    _buffer.LoadFromFile(_scriptId.GetFullPath().c_str());
-
-                    // Play a sound and rejoice!
-                    PlaySound((LPCSTR)SND_ALIAS_SYSTEMHAND, NULL, SND_ALIAS_ID | SND_ASYNC);
-                    // Tell the view.
-                    UpdateAllViewsAndNonViews(nullptr, 0, &WrapObject(ScriptChangeHint::Converted | ScriptChangeHint::Pos, this));
-
-                    // Update our title
-                    _OnUpdateTitle();
-                }
-#endif
+                // Update our title
+                _OnUpdateTitle();
             }
             else
             {
-                log.SummarizeAndReportErrors();
-                appState->OutputResults(OutputPaneType::Compile, log.Results());
-                AfxMessageBox("The original script has compile errors. They must be fixed before conversion can take place.", MB_ERRORFLAGS);
+                AfxMessageBox("There was an error write out the new script file.", MB_OK | MB_ICONERROR);
             }
+
+#ifdef DISABLED_NO_CPP_SUPPORT
+
+
+            // 1.5 Make some substitutions for properties that have minus signs in them.
+            // e.g. convert b-moveCnt to b_moveCnt, since c-style syntax can't handle - in a variable name.
+            class PropertyAliasConvert : public sci::IExploreNode
+            {
+            public:
+                void ExploreNode(sci::SyntaxNode &node, sci::ExploreNodeState state)
+                {
+					if (state == sci::ExploreNodeState::Pre)
+					{
+						switch (node.GetNodeType())
+						{
+						case sci::NodeTypeValue:
+						case sci::NodeTypeComplexValue:
+						{
+							sci::PropertyValueBase &base = static_cast<sci::PropertyValueBase&>(node);
+							if ((base.GetType() == sci::ValueType::Token) ||
+								(base.GetType() == sci::ValueType::Selector) ||
+								(base.GetType() == sci::ValueType::Pointer))
+							{
+								base.SetValue(GetTokenAlias(base.GetStringValue()), base.GetType());
+							}
+						}
+						break;
+						case sci::NodeTypeClassProperty:
+						{
+							sci::ClassProperty &classProp = static_cast<sci::ClassProperty&>(node);
+							classProp.SetName(GetTokenAlias(classProp.GetName()));
+						}
+						break;
+
+						case sci::NodeTypeLValue:
+						{
+							sci::LValue &lvalue = static_cast<sci::LValue&>(node);
+							lvalue.SetName(GetTokenAlias(lvalue.GetName()));
+						}
+						break;
+						case sci::NodeTypeSendParam:
+						{
+							sci::SendParam &sendParam = static_cast<sci::SendParam&>(node);
+							sendParam.SetName(GetTokenAlias(sendParam.GetName()));
+						}
+						break;
+						}
+					}
+                }
+            };
+            PropertyAliasConvert propertyAliasConvert;
+            script.Traverse(propertyAliasConvert);
+
+            std::stringstream out;
+			sci::SourceCodeWriter debugOut(out, LangSyntaxCpp, &script);
+            script.OutputSourceCode(debugOut);
+
+            // 2)
+            // Can't use CResourceMap::GetScriptFileName just yet, since we haven't offically converted the script
+            std::string fullPath = _scriptId.GetFullPath();
+            if (_scriptId.IsHeader())
+            {
+                fullPath.replace(fullPath.find(".sh"), strlen(".sh"), ".shp");
+            }
+            else
+            {
+                fullPath.replace(fullPath.find(".sc"), strlen(".sc"), ".scp");
+            }
+
+#endif
+        }
+        else
+        {
+            log.SummarizeAndReportErrors();
+            appState->OutputResults(OutputPaneType::Compile, log.Results());
+            AfxMessageBox("The original script has compile errors. They must be fixed before conversion can take place.", MB_ERRORFLAGS);
         }
     }
 }
@@ -643,8 +636,7 @@ void CScriptDocument::OnConvertScript()
 void CScriptDocument::OnUpdateConvertScript(CCmdUI *pCmdUI)
 {
     // Enable conversion if this script's language is different than the game's language.
-    // pCmdUI->Enable(appState->GetResourceMap().Helper().GetGameLanguage() != _scriptId.Language());
-    pCmdUI->Enable(TRUE);
+    pCmdUI->Enable(appState->GetResourceMap().Helper().GetDefaultGameLanguage() != _scriptId.Language());
 }
 
 void CScriptDocument::OnUpdateLineCount(CCmdUI *pCmdUI)

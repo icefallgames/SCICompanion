@@ -843,6 +843,7 @@
     <Image Include="res\clonemessageentry.ico" />
     <Image Include="res\CloseActive.bmp" />
     <Image Include="res\CloseInactive.bmp" />
+    <Image Include="res\convert.ico" />
     <Image Include="res\cursor.ico" />
     <Image Include="res\debug.ico" />
     <Image Include="res\debug_room.ico" />

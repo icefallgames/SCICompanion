@@ -1304,7 +1304,7 @@ void CommonScriptPrep(Script &script, CompileContext &context, CompileResults &r
     // Do some prescans (script number must already be set!)
     script.PreScan(context);
     // Ok, now we should have been told about all the saids and strings.
-    if (script.Language() == LangSyntaxSCIStudio)
+    if (script.Language() == LangSyntaxStudio)
     {
         // Fix up case statements we may have mis-interpreted.
         FixCaseStatements hack(context);

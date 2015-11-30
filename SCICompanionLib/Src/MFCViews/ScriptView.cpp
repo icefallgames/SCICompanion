@@ -364,7 +364,7 @@ const std::vector<std::string> &GetTopLevelKeywords(LangSyntax lang)
             return topLevelKeywordCPP;
         case LangSyntaxSCI:
             return topLevelKeywordsSCI;
-        case LangSyntaxSCIStudio:
+        case LangSyntaxStudio:
             return topLevelKeywordsStudio;
     }
     return emptyList;
@@ -542,7 +542,7 @@ const std::vector<std::string> &GetCodeLevelKeywords(LangSyntax lang)
             return codeLevelKeywordsCpp;
         case LangSyntaxSCI:
             return codeLevelKeywordsSCI;
-        case LangSyntaxSCIStudio:
+        case LangSyntaxStudio:
             return codeLevelKeywordsStudio;
     }
     return emptyList;
@@ -556,7 +556,7 @@ const std::vector<std::string> &GetClassLevelKeywords(LangSyntax lang)
             return classLevelKeywordsCpp;
         case LangSyntaxSCI:
             return classLevelKeywordsSCI;
-        case LangSyntaxSCIStudio:
+        case LangSyntaxStudio:
             return classLevelKeywordsStudio;
     }
     return emptyList;
@@ -868,7 +868,7 @@ DWORD CScriptView::ParseLine(DWORD dwCookie, int nLineIndex, TEXTBLOCK *pBuf, in
     {
         case LangSyntaxSCI:
             return _ParseLineSCI(dwCookie, nLineIndex, pBuf, nActualItems);
-        case LangSyntaxSCIStudio:
+        case LangSyntaxStudio:
             return _ParseLineStudio(dwCookie, nLineIndex, pBuf, nActualItems);
     }
     return 0;
@@ -1037,7 +1037,7 @@ DWORD CScriptView::_ParseLineStudio(DWORD dwCookie, int nLineIndex, TEXTBLOCK *p
         {
             if (nIdentBegin >= 0)
             {
-                if (IsSCIKeyword(LangSyntaxSCIStudio,  pszChars + nIdentBegin, I - nIdentBegin))
+                if (IsSCIKeyword(LangSyntaxStudio,  pszChars + nIdentBegin, I - nIdentBegin))
                 {
                     DEFINE_BLOCK(nIdentBegin, COLORINDEX_KEYWORD);
                 }
@@ -1058,7 +1058,7 @@ DWORD CScriptView::_ParseLineStudio(DWORD dwCookie, int nLineIndex, TEXTBLOCK *p
 
     if (nIdentBegin >= 0)
     {
-        if (IsSCIKeyword(LangSyntaxSCIStudio, pszChars + nIdentBegin, I - nIdentBegin))
+        if (IsSCIKeyword(LangSyntaxStudio, pszChars + nIdentBegin, I - nIdentBegin))
         {
             DEFINE_BLOCK(nIdentBegin, COLORINDEX_KEYWORD);
         }
@@ -1215,7 +1215,7 @@ void CScriptView::OnContextMenu(CWnd *pWnd, CPoint point)
             CMenu *subMenu = pTracker->GetSubMenu(insertObjectIndex);
             if (subMenu)
             {
-                _availableObjects = make_unique<AvailableObjects>();
+                _availableObjects = make_unique<AvailableObjects>(GetDocument()->GetScriptId().Language());
                 for (size_t i = 0; i < _availableObjects->GetObjects().size(); i++)
                 {
                     int iIndex = 0;
@@ -1238,7 +1238,7 @@ void CScriptView::OnContextMenu(CWnd *pWnd, CPoint point)
             if (subMenu)
             {
                 subMenu->RemoveMenu(0, MF_BYPOSITION);
-                _availableMethods = make_unique<AvailableMethods>();
+                _availableMethods = make_unique<AvailableMethods>(GetDocument()->GetScriptId().Language());
                 for (size_t i = 0; i < _availableMethods->GetMethods().size(); i++)
                 {
                     int iIndex = 0;

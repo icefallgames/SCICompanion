@@ -235,3 +235,5 @@ std::string _DeduceReturnType(sci::FunctionBase &function);
 void EndStatement(sci::SourceCodeWriter &out);
 
 void ConvertToSCISyntaxHelper(sci::Script &script);
+
+void PrepForLanguage(LangSyntax langSyntax, sci::Script &script);

@@ -295,7 +295,7 @@ void ScriptPreviewer::SetResource(const ResourceBlob &blob)
     if (scriptFile.is_open())
     {
         ScriptId scriptId(scriptFileName);
-        if (scriptId.Language() == LangSyntaxSCIStudio)
+        if (scriptId.Language() == LangSyntaxStudio)
         {
             m_wndHeader.SetWindowText("Language: SCI Studio");
         }

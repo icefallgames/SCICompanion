@@ -131,7 +131,7 @@ SourceCodeWriter::SourceCodeWriter(std::stringstream &ss, LangSyntax syntax, Scr
 
 void Script::OutputSourceCode(SourceCodeWriter &out) const
 {
-    if (out.lang == LangSyntaxSCIStudio)
+    if (out.lang == LangSyntaxStudio)
     {
         OutputSourceCode_SCIStudio(*this, out);
     }
@@ -147,7 +147,7 @@ void Script::OutputSourceCode(SourceCodeWriter &out) const
 
 void ClassDefinition::OutputSourceCode(SourceCodeWriter &out) const
 {
-    if (out.lang == LangSyntaxSCIStudio)
+    if (out.lang == LangSyntaxStudio)
     {
         OutputSourceCode_SCIStudio(*this, out);
     }
@@ -163,7 +163,7 @@ void ClassDefinition::OutputSourceCode(SourceCodeWriter &out) const
 
 void MethodDefinition::OutputSourceCode(SourceCodeWriter &out) const
 {
-    if (out.lang == LangSyntaxSCIStudio)
+    if (out.lang == LangSyntaxStudio)
     {
         OutputSourceCode_SCIStudio(*this, out);
     }
@@ -179,7 +179,7 @@ void MethodDefinition::OutputSourceCode(SourceCodeWriter &out) const
 
 void ClassProperty::OutputSourceCode(SourceCodeWriter &out) const
 {
-    if (out.lang == LangSyntaxSCIStudio)
+    if (out.lang == LangSyntaxStudio)
     {
         OutputSourceCode_SCIStudio(*this, out);
     }

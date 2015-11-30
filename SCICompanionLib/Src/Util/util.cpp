@@ -662,20 +662,47 @@ bool IsCodeFile(const std::string &text)
     return false;
 }
 
-LangSyntax ScriptId::Language() const
+const std::string SCILanguageMarker = "SCI Script";
+
+void ScriptId::_DetermineLanguage()
 {
     if (_language == LangSyntaxUnknown)
     {
         if ((0 == strcmp(".scp", PathFindExtension(_strFileName.c_str()))))
             // (0 == strcmp(".shp", PathFindExtension(_strFileName.c_str()))))
         {
-            return LangSyntaxCpp;
+            _language = LangSyntaxCpp;
         }
         else
         {
-            return LangSyntaxSCIStudio;
+            // Sniff the file
+            LangSyntax langSniff = LangSyntaxUnknown;
+            std::ifstream file(GetFullPath());
+            std::string line;
+            if (std::getline(file, line))
+            {
+                langSniff = LangSyntaxStudio;
+                size_t pos = line.find(';');
+                if (pos != std::string::npos)
+                {
+                    if (line.find(SCILanguageMarker) != std::string::npos)
+                    {
+                        langSniff = LangSyntaxSCI;
+                    }
+                }
+            }
+            else
+            {
+                assert(false);
+            }
+            _language = langSniff;
         }
     }
+}
+
+LangSyntax ScriptId::Language() const
+{
+    assert(_language != LangSyntaxUnknown);
     return _language;
 }
 

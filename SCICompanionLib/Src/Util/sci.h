@@ -412,10 +412,11 @@ WORD _HexToWord(PCTSTR psz);
 
 enum LangSyntax
 {
-    LangSyntaxUnknown,
-    LangSyntaxSCIStudio,
-    LangSyntaxCpp,
-	LangSyntaxSCI,
+    // Don't change these values, they are used to index into comboboxes.
+    LangSyntaxUnknown = 3,
+    LangSyntaxStudio = 1,
+    LangSyntaxCpp = 2,
+    LangSyntaxSCI = 0,
 };
 
 bool IsSCIKeyword(LangSyntax lang, const std::string &word);
@@ -523,14 +524,20 @@ private:
             _strFileName = str.Right(str.GetLength() - iIndexBS - 1);
             _strFileNameOrig = _strFileName;
             _MakeLower();
+            _DetermineLanguage();
         }
     }
+
+    void _DetermineLanguage();
+
     std::string _strFolder;
     std::string _strFileName;
     std::string _strFileNameOrig;   // Not lower-cased
     WORD _wScriptNum;
     LangSyntax _language;
 };
+
+extern const std::string SCILanguageMarker;
 
 //
 // equality operator for ScriptId

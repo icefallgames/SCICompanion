@@ -35,11 +35,14 @@ protected:
     CExtEdit m_wndPath;
     CExtEdit m_wndName;
     CExtComboBox m_wndComboTemplate;
+    CExtComboBox m_wndComboLanguage;
 
     // Visuals
     CExtLabel m_wndStatic1;
     CExtLabel m_wndStatic2;
     CExtLabel m_wndStatic3;
+    CExtLabel m_wndStatic4;
+
     CExtButton m_wndOK;
     CExtButton m_wndCancel;
     CExtButton m_wndBrowse;

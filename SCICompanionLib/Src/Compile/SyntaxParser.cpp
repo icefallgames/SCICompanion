@@ -26,7 +26,7 @@ bool SyntaxParser_ParseAC(sci::Script &script, CCrystalScriptStream::const_itera
 {
     bool fRet = false;
 
-    if (script.Language() == LangSyntaxSCIStudio)
+    if (script.Language() == LangSyntaxStudio)
     {
         g_studio.Load();
         if (script.IsHeader())
@@ -54,7 +54,7 @@ bool SyntaxParser_ParseAC(sci::Script &script, CCrystalScriptStream::const_itera
 bool SyntaxParser_Parse(sci::Script &script, CCrystalScriptStream &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pLog, bool fParseComments, SyntaxContext *pContext, bool addCommentsToOM)
 {
     bool fRet = false;
-    if (script.Language() == LangSyntaxSCIStudio)
+    if (script.Language() == LangSyntaxStudio)
     {
         g_studio.Load();
         if (script.IsHeader())

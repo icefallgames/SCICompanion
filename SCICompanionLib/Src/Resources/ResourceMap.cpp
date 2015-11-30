@@ -752,13 +752,20 @@ void CResourceMap::_SetGameLanguage()
 {
     if (_gameFolderHelper.Language == LangSyntaxUnknown)
     {
-        if (_gameFolderHelper.GetIniString("Game", "Language", "sc") == "scp")
+        std::string languageValue = _gameFolderHelper.GetIniString(GameSection, LanguageKey, LanguageValueStudio.c_str());
+        if (languageValue == LanguageValueCpp)
         {
-            _gameFolderHelper.Language = LangSyntaxCpp;
+            // We have left this turd in from old game.inis. We don't support cpp as a default game language,
+            // so let's just convert it to Studio.
+            _gameFolderHelper.Language = LangSyntaxStudio;
+        }
+        else if (languageValue == LanguageValueSCI)
+        {
+            _gameFolderHelper.Language = LangSyntaxSCI;
         }
         else
         {
-            _gameFolderHelper.Language = LangSyntaxSCIStudio;
+            _gameFolderHelper.Language = LangSyntaxStudio;
         }
     }
 }
@@ -1172,11 +1179,6 @@ HRESULT GetResourceMapType(HANDLE hFile, DWORD *pdwType)
     return hr;
 }
 
-void CResourceMap::SetScriptLanguage(ScriptId script, LangSyntax language)
-{
-    Helper().SetIniString("Language", script.GetTitle(), (language == LangSyntaxCpp) ? "scp" : "sc");
-}
-
 void CResourceMap::GetAllScripts(std::vector<ScriptId> &scripts)
 {
     TCHAR szIniFile[MAX_PATH];
@@ -1413,6 +1415,8 @@ std::unique_ptr<ResourceEntity> CreateResourceFromResourceData(const ResourceBlo
 
 void CResourceMap::SetGameLanguage(LangSyntax lang)
 {
-    Helper().SetIniString("Game", "Language", (lang == LangSyntaxCpp) ? "scp" : "sc");
+    assert(lang != LangSyntaxCpp);  // Not supported.
+    Helper().SetIniString(GameSection, LanguageKey, (lang == LangSyntaxSCI) ? LanguageValueSCI : LanguageValueCpp);
+    _gameFolderHelper.Language = lang;
     _SetGameLanguage();
 }

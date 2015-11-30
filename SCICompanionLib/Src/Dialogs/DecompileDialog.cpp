@@ -36,9 +36,9 @@ using namespace std;
 DecompileDialog::DecompileDialog(CWnd* pParent /*=NULL*/)
     : CExtResizableDialog(DecompileDialog::IDD, pParent), previousSelection(-1), _inScriptListLabelEdit(false), _inSCOLabelEdit(false), initialized(false), _helper(appState->GetResourceMap().Helper())
 {
-    if (_helper.GetGameLanguage() == LangSyntaxUnknown)
+    if (_helper.GetDefaultGameLanguage() == LangSyntaxUnknown)
     {
-        _helper.Language = LangSyntaxSCIStudio;
+        _helper.Language = LangSyntaxStudio;
     }
 }
 
@@ -712,7 +712,7 @@ void DecompileDialog::s_DecompileThreadWorker(DecompileDialog *pThis)
                         // Dump it to the .sc file
                         // TODO: If it already exists, we might want to ask for confirmation.
                         std::stringstream ss;
-                        sci::SourceCodeWriter out(ss, helper.GetGameLanguage(), pScript.get());
+                        sci::SourceCodeWriter out(ss, helper.GetDefaultGameLanguage(), pScript.get());
                         pScript->OutputSourceCode(out);
                         string sourceFilename = helper.GetScriptFileName(scriptNum);
                         MakeTextFile(ss.str().c_str(), sourceFilename);

@@ -1271,7 +1271,7 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
                     WriteScriptID(context, wInstanceScript, wNumber);
                     break;
                 default:
-                    if (context.GetLanguage() != LangSyntaxSCIStudio)
+                    if (context.GetLanguage() != LangSyntaxStudio)
                     {
                         BYTE bOpcodeMod = VO_LOAD | VO_ACC;
                         switch (tokenType)
@@ -1400,7 +1400,7 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
         // (send gEgo:init(rest params))
         if (_fRestHack)
         {
-            assert(context.GetLanguage() == LangSyntaxSCIStudio);
+            assert(context.GetLanguage() == LangSyntaxStudio);
             wSendPushes += _rest->OutputByteCode(context).GetBytes();
         }
     }

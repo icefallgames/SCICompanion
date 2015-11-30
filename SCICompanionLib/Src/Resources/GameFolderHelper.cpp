@@ -24,7 +24,11 @@
 
 using namespace std;
 
-
+const std::string GameSection = "Game";
+const std::string LanguageKey = "Language";
+const std::string LanguageValueCpp = "scp";
+const std::string LanguageValueStudio = "sc";
+const std::string LanguageValueSCI = "sci";
 
 // Returns "n004" for input of 4
 std::string default_reskey(int iNumber, uint32_t base36Number)
@@ -69,7 +73,7 @@ std::string GameFolderHelper::GetScriptFileName(const std::string &name, LangSyn
     filename += name;
     if (lang == LangSyntaxUnknown)
     {
-        lang = (GetIniString("Language", name, "sc") == "scp") ? LangSyntaxCpp : LangSyntaxSCIStudio;
+        lang = (GetIniString(LanguageKey, name, LanguageValueStudio.c_str()) == LanguageValueCpp.c_str()) ? LangSyntaxCpp : LangSyntaxStudio;
     }
     // Figure out what language the script is in (default is .sc), and append the default extension
     if (lang == LangSyntaxCpp)

@@ -110,7 +110,7 @@ void CompileContext::_LoadSCO(const std::string &name, LangSyntax langPref, bool
         // Try to open the "other" kind of object file.
         if (langPref == LangSyntaxCpp)
         {
-            langPref = LangSyntaxSCIStudio;
+            langPref = LangSyntaxStudio;
         }
         else
         {
@@ -1182,12 +1182,7 @@ std::vector<std::string> &GetDefaultHeaders(Script &script)
 {
     if (script.Language() == LangSyntaxCpp)
     {
-        if (g_defaultCPPHeaders.empty())
-        {
-            g_defaultCPPHeaders.push_back("sci.shp");
-            g_defaultCPPHeaders.push_back("keys.shp");
-            g_defaultCPPHeaders.push_back("game.shp");
-        }
+        // We don't really support cpp syntax anymore, it's only used for the kernel signature parsing.
         return g_defaultCPPHeaders;
     }
     else

@@ -1209,7 +1209,8 @@ void CMainFrame::_PrepareMainCommands()
         { ID_FILE_NEWCURSOR, IDI_NEWCURSOR },
         { ID_PREFERENCES, IDI_PREFERENCES },
         { ID_NEW_MESSAGE, IDI_NEWMESSAGE },
-        { ID_NEW_PALETTE, IDI_NEWPALETTE }
+        { ID_NEW_PALETTE, IDI_NEWPALETTE },
+        { ID_CONVERTSCRIPT, IDI_CONVERT }
     };
     _AssignIcons(c_mainIcons, ARRAYSIZE(c_mainIcons));
 }

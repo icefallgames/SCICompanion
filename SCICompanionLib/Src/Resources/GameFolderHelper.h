@@ -23,6 +23,12 @@ enum class ResourceEnumFlags : uint16_t;
 class ResourceRecency;
 class ResourceBlob;
 
+extern const std::string GameSection;
+extern const std::string LanguageKey;
+extern const std::string LanguageValueCpp;
+extern const std::string LanguageValueStudio;
+extern const std::string LanguageValueSCI;
+
 class GameFolderHelper
 {
 public:
@@ -42,7 +48,7 @@ public:
     std::string GetIniString(const std::string &sectionName, const std::string &keyName, PCSTR pszDefault = "") const;
     std::string GetIncludeFolder() const;
     void SetIniString(const std::string &sectionName, const std::string &keyName, const std::string &value) const;
-    LangSyntax GetGameLanguage() const { return Language; }
+    LangSyntax GetDefaultGameLanguage() const { return Language; }
     ScriptId GetScriptId(const std::string &name) const;
     std::string FigureOutName(ResourceType type, int iResourceNum, uint32_t base36Number) const;
     std::unique_ptr<ResourceContainer> Resources(ResourceTypeFlags types, ResourceEnumFlags enumFlags, ResourceRecency *pRecency = nullptr, int mapContext = -1) const;
