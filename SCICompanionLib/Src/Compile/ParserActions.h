@@ -82,7 +82,7 @@ void PropValueIntA(MatchResult &match, const _TParser *pParser, SyntaxContext *p
     }
 }
 
-template<sci::ValueType type, typename _TParser>
+template<sci::ValueType type, const char *error = nullptr, typename _TParser>
 void PropValueStringA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
     if (match.Result())
@@ -90,6 +90,10 @@ void PropValueStringA(MatchResult &match, const _TParser *pParser, SyntaxContext
         pContext->PropertyValueWasSet = true;
         pContext->PropertyValue.SetValue(pContext->ScratchString(), type);
         pContext->PropertyValue.SetPosition(stream.GetPosition());
+    }
+    else if (error)
+    {
+        pContext->ReportError(error, stream);
     }
 }
 
@@ -806,5 +810,6 @@ extern char const errArgument[];
 extern char const errInteger[];
 extern char const errThen[];
 extern char const errElse[];
+extern char const errNoKeywordOrSelector[];
 extern char const errVarName[];
 

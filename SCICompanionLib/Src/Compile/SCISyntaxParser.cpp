@@ -5,6 +5,7 @@
 #include "ParserActions.h"
 #include "Operators.h"
 #include "OperatorTables.h"
+#include "format.h"
 
 using namespace sci;
 using namespace std;
@@ -61,7 +62,24 @@ bool SelectorP(const ParserSCI *pParser, SyntaxContext *pContext, _It &stream)
     return fRet && hadAlpha;
 }
 
-// TODO: Replace our other alphanum things...
+// For better error reports:
+vector<string> SCIStatementKeywords =
+{
+    "if",
+    "asm",
+    "break",
+    "breakif",
+    "continue",
+    "contif",
+    "repeat",
+    "switch",
+    "switchto",
+    "for",
+    "return",
+    "cond",
+    "while",
+    "define",
+};
 
 vector<string> SCIKeywords =
 {
@@ -82,7 +100,6 @@ vector<string> SCIKeywords =
     "cond",
     "while",
     "else",
-    "rest",
     "super",
     "mod",
     "or",
@@ -391,6 +408,15 @@ bool BraceStringSCIP(const ParserBase<_TContext, _It, _CommentPolicy> *pParser, 
     return _ReadStringSCI<_TContext, _It, '{', '}'>(stream, pContext->ScratchString());
 }
 
+template<typename _It, typename _TContext, typename _CommentPolicy>
+void ValueErrorE(MatchResult &match, const ParserBase<_TContext, _It, _CommentPolicy> *pParser, _TContext *pContext, const _It &stream)
+{
+    if (!match.Result())
+    {
+        pContext->ReportError("Expected an expression.", stream);
+    }
+}
+
 SCISyntaxParser::SCISyntaxParser() :
     oppar(char_p("(")),
     clpar(char_p(")")),
@@ -431,8 +457,8 @@ void SCISyntaxParser::Load()
     _fLoaded = true;
 
     // An integer or plain alphanumeric token
-    immediateValue = integer_p[PropValueIntA<errInteger>] | alphanumNK_p[PropValueStringA<ValueType::Token>] | bracestring_p[PropValueStringA<ValueType::String>];
-    string_immediateValue = integer_p[PropValueIntA<errInteger>] | alphanumNK_p[PropValueStringA<ValueType::Token>] | quotedstring_p[{PropValueStringA<ValueType::ResourceString>, ParseAutoCompleteContext::Block}] | bracestring_p[PropValueStringA<ValueType::String>];
+    immediateValue = integer_p[PropValueIntA<errInteger>] | alphanumNK_p[PropValueStringA<ValueType::Token, errNoKeywordOrSelector>] | bracestring_p[PropValueStringA<ValueType::String>];
+    string_immediateValue = integer_p[PropValueIntA<errInteger>] | alphanumNK_p[PropValueStringA<ValueType::Token, errNoKeywordOrSelector>] | quotedstring_p[{PropValueStringA<ValueType::ResourceString>, ParseAutoCompleteContext::Block}] | bracestring_p[PropValueStringA<ValueType::String>];
 
     // Top level constructs
     include = keyword_p("include") >> (quotedstring_p | filename_p)[{AddIncludeA, ParseAutoCompleteContext::Block}];
@@ -454,11 +480,11 @@ void SCISyntaxParser::Load()
 
     rvalue_variable =
         (opbracket >> general_token[ComplexValueStringA<ValueType::Token, errVarName>] >> statement[ComplexValueIndexerA] >> clbracket) |
-        general_token[ComplexValueStringA<ValueType::Token, errVarName>];
+        general_token[ComplexValueStringA<ValueType::Token>];
 
     value =
         alwaysmatch_p[SetStatementA<ComplexPropertyValue>]
-        >> (integer_p[ComplexValueIntA<errInteger>]
+        >> (integer_p[ComplexValueIntA]
         | keyword_p("argc")[ComplexValueParamTotalA]
         | quotedstring_p[{ComplexValueStringA<ValueType::ResourceString>, ParseAutoCompleteContext::Block}]
         | squotedstring_p[{ComplexValueStringA<ValueType::Said>, ParseAutoCompleteContext::Block}]
@@ -677,7 +703,7 @@ void SCISyntaxParser::Load()
         ) >>
         clpar)
         | rest_statement
-        | value
+        | value[ValueErrorE]
         )[{FinishStatementA, ParseAutoCompleteContext::Value}];
 
 
@@ -855,6 +881,20 @@ void PostProcessScript(ICompileLog *pLog, Script &script)
         );
 }
 
+
+// For error reporting:
+template<typename _It>
+void ExtractSomeToken(std::string &str, _It &stream)
+{
+    char ch = *stream;
+    while (ch && !isspace(ch) && (ch != '(') && (ch != ')'))
+    {
+        str += ch;
+        ch = *(++stream);
+    }
+}
+
+
 //
 // This does the parsing.
 //
@@ -879,6 +919,24 @@ bool SCISyntaxParser::Parse(Script &script, streamIt &stream, std::unordered_set
         std::string strError = "  [Error]: ";
         strError += context.GetErrorText();
         streamIt errorPos = context.GetErrorPosition();
+
+        // We can maybe improve the error by extracting a token here and seeing if it's a keyword.
+        std::string maybeKeyword;
+        streamIt errorPosCopy = errorPos;
+        ExtractSomeToken(maybeKeyword, errorPosCopy);
+        if (!maybeKeyword.empty())
+        {
+            if (std::find(SCIStatementKeywords.begin(), SCIStatementKeywords.end(), maybeKeyword) != SCIStatementKeywords.end())
+            {
+                strError += fmt::format(" (Statements must being with a parenthesis: \"({0}\").", maybeKeyword);
+            }
+            else if (IsOperator(maybeKeyword, sciNameToBinaryOp) || IsOperator(maybeKeyword, sciNameToAssignmentOp) || IsOperator(maybeKeyword, sciNameToUnaryOp))
+            {
+                strError += fmt::format(" (Operator expressions must begin with a parenthesis: \"({0}\").", maybeKeyword);
+            }
+            // Maybe more?
+        }
+
         ScriptId scriptId(script.GetPath().c_str());
         if (pError)
         {

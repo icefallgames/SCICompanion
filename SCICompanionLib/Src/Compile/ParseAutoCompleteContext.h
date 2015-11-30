@@ -19,6 +19,7 @@ enum class ParseAutoCompleteContext
     Selector,
     ClassSelector,
     Value,
+    ValueOrSelector,
     TopLevelKeyword,
     ClassLevelKeyword,
     SuperClass,

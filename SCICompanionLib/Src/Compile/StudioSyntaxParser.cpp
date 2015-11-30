@@ -470,6 +470,7 @@ char const errInteger[] = "Expected integer literal.";
 char const errThen[] = "Expected then clause.";
 char const errVarName[] = "Expected variable name.";
 char const errElse[] = "Expected else clause.";
+char const errNoKeywordOrSelector[] = "No keyword or selector permitted here.";
 
 //
 // The constructor sets up the parse tree

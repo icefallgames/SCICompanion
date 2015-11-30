@@ -67,6 +67,15 @@ enum class UnaryOperator
 };
 
 template<typename _TOperator>
+bool IsOperator(const std::string &name, const std::vector<std::pair<std::string, _TOperator>> &table)
+{
+    auto itFind = find_if(table.begin(), table.end(),
+        [&name](const std::pair<std::string, _TOperator> &entry) { return name == entry.first; }
+    );
+    return itFind != table.end();
+}
+
+template<typename _TOperator>
 _TOperator NameToOperator(const std::string &name, const std::vector<std::pair<std::string, _TOperator>> &table)
 {
     auto itFind = find_if(table.begin(), table.end(),

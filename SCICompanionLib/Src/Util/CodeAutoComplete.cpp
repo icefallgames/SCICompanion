@@ -108,6 +108,9 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
                 sourceTypes |= AutoCompleteSourceType::TopLevelKeyword;
                 break;
 
+            case ParseAutoCompleteContext::ValueOrSelector:
+                sourceTypes |= AutoCompleteSourceType::Selector;
+                // fall through...
             case ParseAutoCompleteContext::Value:
                 sourceTypes |= AutoCompleteSourceType::ClassName | AutoCompleteSourceType::Variable | AutoCompleteSourceType::Define | AutoCompleteSourceType::Kernel | AutoCompleteSourceType::Procedure | AutoCompleteSourceType::ClassSelector | AutoCompleteSourceType::Instance;
                 break;

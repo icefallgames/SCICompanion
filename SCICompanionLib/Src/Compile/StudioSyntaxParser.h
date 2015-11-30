@@ -23,14 +23,10 @@
 #include <stack>
 #include <deque>
 
-//
-// Common parsing primitives
-//
-template<typename _It, typename _TContext, typename _CommentPolicy>
-bool AlphanumP(const ParserBase<_TContext, _It, _CommentPolicy> *pParser, _TContext *pContext, _It &stream)
+template<typename _It>
+bool ExtractToken(std::string &str, _It &stream)
 {
     bool fRet = false;
-    std::string &str = pContext->ScratchString();
     str.clear();
     char ch = *stream;
     if (isalpha(ch) || (ch == '_'))     // First character must be a letter or _
@@ -46,6 +42,16 @@ bool AlphanumP(const ParserBase<_TContext, _It, _CommentPolicy> *pParser, _TCont
         }
     }
     return fRet;
+}
+
+
+//
+// Common parsing primitives
+//
+template<typename _It, typename _TContext, typename _CommentPolicy>
+bool AlphanumP(const ParserBase<_TContext, _It, _CommentPolicy> *pParser, _TContext *pContext, _It &stream)
+{
+    return ExtractToken(pContext->ScratchString(), stream);
 }
 
 

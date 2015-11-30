@@ -263,7 +263,7 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                 }
                 // All remaining things require certain conditions.
                 ParseAutoCompleteContext pacc = pContext->GetParseAutoCompleteContext();
-                bool isValue = (pacc == ParseAutoCompleteContext::Value) || (pacc == ParseAutoCompleteContext::LValue);
+                bool isValue = (pacc == ParseAutoCompleteContext::Value) || (pacc == ParseAutoCompleteContext::LValue) || (pacc == ParseAutoCompleteContext::ValueOrSelector);
                 bool isDefineOnly = (pacc == ParseAutoCompleteContext::DefineValue);
                 bool isExport = (pacc == ParseAutoCompleteContext::Export);
                 if (!fFound)
