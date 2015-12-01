@@ -17,6 +17,7 @@
 #include "ScriptOMAll.h"
 #include "CompileContext.h"
 #include "ScriptMakerHelper.h"
+#include "AppState.h"
 
 using namespace std;
 using namespace sci;
@@ -289,12 +290,15 @@ void PolygonComponent::Commit(int picNumber)
         Script script(ScriptId(polyFile.c_str()));
 
         std::stringstream ss;
-        SourceCodeWriter out(ss, script.Language());
+        // Output in the current game language, regardless of the previous version of the file.
+        LangSyntax lang = appState->GetResourceMap().Helper().GetDefaultGameLanguage();
+        SourceCodeWriter out(ss, lang);
         out.pszNewLine = "\n";
+        PCSTR pszComment = (lang == LangSyntaxSCI) ? ";;;" : "//";
 
         PCSTR pszFilename = PathFindFileName(polyFile.c_str());
-        ss << fmt::format("// {0} -- Produced by SCI Companion{1}", pszFilename, out.pszNewLine);
-        ss << fmt::format("// This file should only be edited with the SCI Companion polygon editor{0}", out.pszNewLine);
+        ss << fmt::format("{2} {0} -- Produced by SCI Companion{1}", pszFilename, out.pszNewLine, pszComment);
+        ss << fmt::format("{1} This file should only be edited with the SCI Companion polygon editor{0}", out.pszNewLine, pszComment);
 
         _ApplyPolygonsToScript(picNumber, script, _polygons);
 

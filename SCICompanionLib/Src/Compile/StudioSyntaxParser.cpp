@@ -305,21 +305,6 @@ void FinishSynonymA(MatchResult &match, const Parser *pParser, SyntaxContext *pC
     }
 }
 
-void EvaluateIfDefA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->EvaluateIfDefScratch(stream, pContext->ScratchString());
-    }
-}
-void EvaluateEndIfA(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
-{
-    if (match.Result())
-    {
-        pContext->EndIf(stream);
-    }
-}
-
 void FailedVarDecl(MatchResult &match, const Parser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
     if (!match.Result())

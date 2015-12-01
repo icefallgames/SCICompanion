@@ -553,6 +553,22 @@ private:
             thing->Accept(*this);
         }
     }
+
+    void _SyncComments(SyntaxNode *node)
+    {
+        // For positioned comments, if we're going to a new line, and the comment was
+        // *after* the node we last output, then we should output it now (positioned as appropriate)
+        //
+        // Other comments take up full lines. And we kind of need to know the next node that's going to be
+        // supplied, so we can know whether or not to output it. Alternatively, perhaps we can know that there
+        // are no other nodes in between the last node and the next, so we should output it. That's more automatic.
+        // We also don't set the end position very accurately, so that might be best.
+
+
+        // For left justified comments, if the node we're about to go to
+        // has
+    }
+
     void _MaybeNewLineIndent()
     {
         if (out.fInline)
@@ -599,14 +615,14 @@ private:
                 bool first = true;
                 for (auto &initValue : initValues)
                 {
-                    if (!first)
+                    if (first)
                     {
-                        out.out << " ";
+                        _SkipNextSpace();
                     }
                     _MaybeIndentAccept(*initValue);
                     first = false;
                 }
-                out.out << "[";
+                out.out << "]";
             }
             else
             {
@@ -621,7 +637,17 @@ public:
 
     void Visit(const Script &script) override
     {
-        out.out << ";;; " << SCILanguageMarker << " 1.0 - (do not remove this comment)\n";
+        // Place the language marker if it isn't there already.
+        std::string firstComment;
+        if (out.pComments)
+        {
+            firstComment = out.pComments->GetFirstComment();
+        }
+        if (firstComment.find(SCILanguageMarker) == std::string::npos)
+        {
+            out.out << ";;; " << SCILanguageMarker << " 1.0 - (do not remove this comment)\n";
+        }
+
         out.OutputInitialComment();
 
         ScriptId scriptId = script.GetScriptId();

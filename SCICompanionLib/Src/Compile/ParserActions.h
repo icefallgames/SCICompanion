@@ -801,6 +801,24 @@ void ErrorA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext
     }
 }
 
+template<typename _TParser>
+void EvaluateIfDefA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->EvaluateIfDefScratch(stream, pContext->ScratchString());
+    }
+}
+
+template<typename _TParser>
+void EvaluateEndIfA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->EndIf(stream);
+    }
+}
+
 // Denoted as extern, so they can be used as function template parameters.
 extern char const errBinaryOp[];
 extern char const errCaseArg[];

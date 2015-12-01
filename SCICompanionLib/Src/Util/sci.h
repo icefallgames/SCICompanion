@@ -537,6 +537,8 @@ private:
     LangSyntax _language;
 };
 
+LangSyntax _DetermineLanguage(const std::string &firstLine);
+
 extern const std::string SCILanguageMarker;
 
 //

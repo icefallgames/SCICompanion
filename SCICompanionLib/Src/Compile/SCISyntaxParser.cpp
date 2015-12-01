@@ -762,7 +762,6 @@ void SCISyntaxParser::Load()
 
     class_decl = keyword_p("class")[CreateClassA<false>] >> classbase_decl[ClassCloseA];
 
-    // TODO:
     entire_script = *(oppar[GeneralE]
         >> (include
         | use
@@ -775,6 +774,16 @@ void SCISyntaxParser::Load()
         | scriptNum
         | script_var)[{IdentifierE, ParseAutoCompleteContext::TopLevelKeyword}]
         >> clpar[GeneralE]);
+
+    // And for headers, only defines, includes are allowed. And also #ifdef!
+    // REVIEW: This is kind of a hack.
+    entire_header = *
+        (
+        (keyword_p("#ifdef") >> alphanumNK_p[EvaluateIfDefA])
+        | keyword_p("#endif")[EvaluateEndIfA]
+        | (oppar[GeneralE] >> (include | define[FinishDefineA])[IdentifierE] >> clpar[GeneralE])
+        );
+
 }
 
 // 

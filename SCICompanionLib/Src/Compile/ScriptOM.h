@@ -215,6 +215,7 @@ namespace sci
         // Returns true if comment output
         bool Sync(const sci::SyntaxNode *pNode, SourceCodeWriter &out, int incrementLine = 0);
         void OutputInitialComment(SourceCodeWriter &out);
+        std::string GetFirstComment() const;
         bool _OutputCommentHelper(const Comment &comment, SourceCodeWriter &out);
 
         template<typename _Tx>

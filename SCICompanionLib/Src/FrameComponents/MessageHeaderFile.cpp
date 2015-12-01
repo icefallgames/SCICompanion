@@ -14,8 +14,13 @@
 #include "stdafx.h"
 #include "MessageHeaderFile.h"
 #include "format.h"
+#include "AppState.h"
 
 using namespace std;
+
+// REVIEW: Currently message header files do their own parsing. As long as the performance
+// is ok, it would be better to leverage the script parser to do loading and saving (at least saving), as then we don't
+// need to bother with language differences (SCI Script vs Studio) here.
 
 MessageHeaderFile::MessageHeaderFile(const std::string &filepath, const std::string &title, const std::vector<std::string> &sourcesOptional) : _filePath(filepath), _title(title), _resourceNumber(-1)
 {
@@ -29,7 +34,8 @@ MessageHeaderFile::MessageHeaderFile(const std::string &folderPath, int resource
     _Load(sourcesOptional);
 }
 
-const char c_szComment[] = "//";
+const char c_szCommentStudio[] = "//";
+const char c_szCommentSCI[] = ";;;";
 const char c_szDefine[] = "(define";
 
 void AdvancePastWhitespace(const std::string &line, size_t &offset)
@@ -69,6 +75,10 @@ void MessageHeaderFile::_Load(const std::vector<std::string> &sourcesOptional)
         messageSource->MandatoryPrefix = source.substr(0, 1) + "_";
     }
 
+    LangSyntax lang = LangSyntaxUnknown;
+    size_t commentSize = 1;
+    PCSTR commentText = nullptr;
+
     MessageSource *currentSource = nullptr;
     // For speed, we won't bother with our standard parser here. Also, we need comments.
     ifstream file;
@@ -76,10 +86,17 @@ void MessageHeaderFile::_Load(const std::vector<std::string> &sourcesOptional)
     string line;
     while (std::getline(file, line))
     {
-        if (line.compare(0, ARRAYSIZE(c_szComment) - 1, c_szComment) == 0)
+        if (lang == LangSyntaxUnknown)
+        {
+            lang = _DetermineLanguage(line);
+            commentSize = (lang == LangSyntaxSCI) ? ARRAYSIZE(c_szCommentSCI) : ARRAYSIZE(c_szCommentStudio);
+            commentText = (lang == LangSyntaxSCI) ? c_szCommentSCI : c_szCommentStudio;
+        }
+
+        if (line.compare(0, commentSize - 1, commentText) == 0)
         {
             // Read tokens like CASES and NOUNS
-            size_t offset = ARRAYSIZE(c_szComment);
+            size_t offset = commentSize;
             AdvancePastWhitespace(line, offset);
             size_t afterName = offset;
             AdvanceToWhitespace(line, afterName);
@@ -163,17 +180,25 @@ void MessageHeaderFile::Commit(int resourceNumber)
     // Ensure _folderPath exists.
     EnsureFolderExists(_folderPath, false);
 
+    LangSyntax lang = appState->GetResourceMap().Helper().GetDefaultGameLanguage();
+    PCSTR commentText = (lang == LangSyntaxSCI) ? c_szCommentSCI : c_szCommentStudio;
+
     ofstream file;
     string bakFile = _filePath + ".bak";
     file.open(bakFile, ios_base::out | ios_base::trunc);
     if (file.is_open())
     {
-        file << c_szComment << " " << _title << " -- Produced by SCI Companion\n";
-        file << c_szComment << " This file should only be edited with the SCI Companion message editor\n";
+        if (lang == LangSyntaxSCI)
+        {
+            file << commentText << " " << SCILanguageMarker << "\n";
+        }
+
+        file << commentText << " " << _title << " -- Produced by SCI Companion\n";
+        file << commentText << " This file should only be edited with the SCI Companion message editor\n";
         file << "\n";
         for (auto &source : _sources)
         {
-            file << c_szComment << " " << source.first << "\n";
+            file << commentText << " " << source.first << "\n";
             file << "\n";
             for (auto &define : source.second.GetDefines())
             {

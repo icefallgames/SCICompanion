@@ -75,6 +75,15 @@ bool CommentTracker::_OutputCommentHelper(const Comment &comment, SourceCodeWrit
     return true;
 }
 
+std::string CommentTracker::GetFirstComment() const
+{
+    if (!_comments.empty() && _comments[0]->GetPosition().Line() == 0)
+    {
+        return _comments[0]->GetSanitizedText();
+    }
+    return "";
+}
+
 void CommentTracker::OutputInitialComment(SourceCodeWriter &out)
 {
     if (_commentIndex < _comments.size())

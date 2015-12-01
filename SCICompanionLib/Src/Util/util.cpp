@@ -664,6 +664,20 @@ bool IsCodeFile(const std::string &text)
 
 const std::string SCILanguageMarker = "SCI Script";
 
+LangSyntax _DetermineLanguage(const std::string &firstLine)
+{
+    LangSyntax langSniff = LangSyntaxStudio;
+    size_t pos = firstLine.find(';');
+    if (pos != std::string::npos)
+    {
+        if (firstLine.find(SCILanguageMarker) != std::string::npos)
+        {
+            langSniff = LangSyntaxSCI;
+        }
+    }
+    return langSniff;
+}
+
 void ScriptId::_DetermineLanguage()
 {
     if (_language == LangSyntaxUnknown)
@@ -681,15 +695,7 @@ void ScriptId::_DetermineLanguage()
             std::string line;
             if (std::getline(file, line))
             {
-                langSniff = LangSyntaxStudio;
-                size_t pos = line.find(';');
-                if (pos != std::string::npos)
-                {
-                    if (line.find(SCILanguageMarker) != std::string::npos)
-                    {
-                        langSniff = LangSyntaxSCI;
-                    }
-                }
+                langSniff = ::_DetermineLanguage(line);
             }
             else
             {
