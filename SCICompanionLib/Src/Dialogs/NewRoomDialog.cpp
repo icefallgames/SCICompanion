@@ -181,7 +181,7 @@ void _AddPrevRoomNumSwitch(MethodDefinition &method, NewRoomProfile profile)
     {
         unique_ptr<ProcedureCall> pSetUpEgo = std::make_unique<ProcedureCall>();
         pSetUpEgo->SetName("SetUpEgo");
-        _AddStatement(*pCase, std::make_unique<Comment>("// Set up ego view and loop (direction)"));
+        _AddStatement(*pCase, std::make_unique<Comment>("// Set up ego view and loop (direction)", CommentType::Indented));
         _AddStatement(*pSetUpEgo, std::make_unique<PropertyValue>(-1, true)); // view = -1
         _AddStatement(*pSetUpEgo, std::make_unique<PropertyValue>(0));  // loop = 0
         _AddStatement(*pCase, std::move(pSetUpEgo));
@@ -394,7 +394,7 @@ void CNewRoomDialog::_PrepareBuffer()
             }
                 
             _AddSendCall(*pDoit, "super", "doit", "");
-            _AddComment(*pDoit, "// code executed each game cycle");
+            _AddComment(*pDoit, "// code executed each game cycle", CommentType::Indented);
 			pClass->AddMethod(std::move(pDoit));
         }
 
@@ -414,7 +414,7 @@ void CNewRoomDialog::_PrepareBuffer()
             }
                 
             _AddSendCall(*pHE, "super", "handleEvent", "pEvent");
-            _AddComment(*pHE, "// handle Said's, etc...");
+            _AddComment(*pHE, "// handle Said's, etc...", CommentType::Indented);
 
 			pClass->AddMethod(std::move(pHE));
         }

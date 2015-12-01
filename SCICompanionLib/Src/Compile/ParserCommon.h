@@ -33,20 +33,24 @@
 #define _DEBUG_PARSER(x)
 #endif
 
+namespace sci
+{
+    enum class CommentType;
+}
+
 //
 // A comment was detected - add it (text and endpoints) to the script.
 //
 template<typename TContext, typename _It>
-inline void _DoComment(TContext *pContext, const _It &streamBegin, const _It &streamEnd)
+inline void _DoComment(TContext *pContext, const _It &streamBegin, const _It &streamEnd, sci::CommentType type)
 {
     std::string comment;
     // Transfer to string:
     copy(streamBegin, streamEnd, back_inserter(comment));
     // Create a new Comment syntax node and add it to the script
-    std::unique_ptr<sci::Comment> pComment = std::make_unique<sci::Comment>();
+    std::unique_ptr<sci::Comment> pComment = std::make_unique<sci::Comment>(comment, type); // TODO
     pComment->SetPosition(streamBegin.GetPosition());
     pComment->SetEndPosition(streamEnd.GetPosition());
-    pComment->SetName(comment); // The comment text
     pContext->TryAddCommentDirectly(pComment);
     if (pComment)
     {
@@ -92,7 +96,17 @@ public:
                     if (pContext)
                     {
                         pContext->PopParseAutoCompleteContext();
-                        _DoComment(pContext, streamSave, stream);
+                        // If there were previous non-whitespace chars on this line, consider this comment "positioned".
+                        bool foundNonWhitespace = false;
+                        _It streamLineBegin(streamSave);
+                        streamLineBegin.ResetLine();
+                        while (!foundNonWhitespace && (streamLineBegin != streamSave))
+                        {
+                            foundNonWhitespace = !isspace(*streamLineBegin);
+                            ++streamLineBegin;
+                        }
+                        sci::CommentType type = foundNonWhitespace ? sci::CommentType::Positioned : sci::CommentType::Indented;
+                        _DoComment(pContext, streamSave, stream, type);
                     }
 
                     if (ch == '\n') // As opposed to EOF
@@ -141,7 +155,7 @@ public:
                     if (pContext)
                     {
                         pContext->PopParseAutoCompleteContext();
-                        _DoComment(pContext, streamSave, stream);
+                        _DoComment(pContext, streamSave, stream, sci::CommentType::LeftJustified);
                     }
                     fDone = false; // Check for whitespace again
                 }
@@ -184,7 +198,12 @@ public:
                 }
 
                 char ch;
-                // Go until end of line
+                // Go until end of line, after counting the number of semicolons
+                int semiCount = 1;
+                while ((ch = *(++stream)) && (ch == ';'))
+                {
+                    semiCount++;
+                }
                 while ((ch = *(++stream)) && (ch != '\n')) {} // Look for \n or EOF
                 fDone = false; // Check for whitespace again
 
@@ -192,7 +211,11 @@ public:
                 if (pContext)
                 {
                     pContext->PopParseAutoCompleteContext();
-                    _DoComment(pContext, streamSave, stream);
+                    // ;    -> positinoed
+                    // ;;   -> indented to code level
+                    // ;;;  -> left-justified
+                    sci::CommentType type = (semiCount == 1) ? sci::CommentType::Positioned : ((semiCount == 2) ? sci::CommentType::Indented : sci::CommentType::LeftJustified);
+                    _DoComment(pContext, streamSave, stream, type);
                 }
 
                 if (ch == '\n') // As opposed to EOF

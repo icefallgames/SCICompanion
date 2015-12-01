@@ -621,7 +621,7 @@ public:
 
     void Visit(const Script &script) override
     {
-        out.out << "; " << SCILanguageMarker << " 1.0 - (do not remove this comment)\n";
+        out.out << ";;; " << SCILanguageMarker << " 1.0 - (do not remove this comment)\n";
         out.OutputInitialComment();
 
         ScriptId scriptId = script.GetScriptId();

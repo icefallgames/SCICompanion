@@ -268,6 +268,11 @@ bool CCrystalScriptStream::const_iterator::operator!=(const const_iterator& valu
     return (_nChar != value._nChar) || (_nLine != value._nLine);
 }
 
+void CCrystalScriptStream::const_iterator::ResetLine()
+{
+    _nChar = 0;
+}
+
 void CCrystalScriptStream::const_iterator::Restore(const const_iterator &prev)
 {
     // This is a hack for autocomplete. Ideally, we should retrieve line length each time.

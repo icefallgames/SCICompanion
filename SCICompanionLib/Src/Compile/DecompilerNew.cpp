@@ -1056,7 +1056,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode2(ConsumptionNode &node, Decomp
     }
 
     assert(false);
-    std::unique_ptr<Comment> comment = std::make_unique<Comment>();
+    std::unique_ptr<Comment> comment = std::make_unique<Comment>(CommentType::None);
     comment->SetName("UNIMPLEMENTED CONTROL STRUCTURE");
     return unique_ptr<SyntaxNode>(comment.release());
 }
@@ -1671,7 +1671,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
 
         case Opcode::JMP:
             // Return empty comment.
-            return unique_ptr<SyntaxNode>(new Comment());
+            return unique_ptr<SyntaxNode>(new Comment(CommentType::None));
             // Already handled by branching code
             // OH BUT IS IT
             // I don't think this is needed anymore
@@ -1699,7 +1699,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
             break;
 
         case Opcode::LINK:
-            return unique_ptr<SyntaxNode>(new Comment());
+            return unique_ptr<SyntaxNode>(new Comment(CommentType::None));
             break;
 
         case Opcode::RET:
@@ -1770,7 +1770,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
         case Opcode::Filename:
         case Opcode::LineNumber:
             // Empty comment...
-            return  unique_ptr<SyntaxNode>(std::make_unique<Comment>());
+            return  unique_ptr<SyntaxNode>(std::make_unique<Comment>(CommentType::None));
 
         default:
             if ((bOpcode >= Opcode::FirstLoadStore) && (bOpcode <= Opcode::LastLoadStore))

@@ -24,11 +24,9 @@ std::unique_ptr<sci::SyntaxNode> _MakeTokenStatement(const std::string &token);
 void _AddAssignment(sci::MethodDefinition &method, const std::string &lvalueName, const std::string &assigned);
 
 template<typename _T>
-void _AddComment(_T &method, const std::string &comment)
+void _AddComment(_T &method, const std::string &comment, sci::CommentType type)
 {
-	std::unique_ptr<Comment> pComment = std::make_unique<sci::Comment>();
-    pComment->SetName(comment);
-    _AddStatement(method, std::move(pComment));
+    _AddStatement(method, std::make_unique<sci::Comment>(comment, type));
 }
 
 void _AddBasicSwitch(sci::MethodDefinition &method, const std::string &switchValue, const std::string &case0Comments);

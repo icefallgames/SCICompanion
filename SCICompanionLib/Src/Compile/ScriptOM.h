@@ -1042,6 +1042,14 @@ namespace sci
         std::unique_ptr<ConditionalExpression> _innerCondition;
     };
 
+    enum class CommentType
+    {
+        None,
+        LeftJustified,      // i.e. at the beginning of a line
+        Indented,           // Takes up its own line, but is indented with code
+        Positioned,         // Comes at the end of a line of other stuff
+    };
+
     //
     // This represents a comment.
     // Currently, it can be used just as any other syntax node, OR
@@ -1051,8 +1059,8 @@ namespace sci
     {
         DECLARE_NODE_TYPE(NodeTypeComment)
     public:
-        Comment() : NamedNode() {}
-        Comment(const std::string &comment) : NamedNode(comment) {}
+        Comment(CommentType type) : CommentType(type), NamedNode() {}
+        Comment(const std::string &comment, CommentType type) : NamedNode(comment), CommentType(type) {}
 
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const { return CodeResult(); }
@@ -1063,7 +1071,7 @@ namespace sci
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 
-        bool IsInline() const;
+        CommentType CommentType;
     };
     typedef Comment* CommentPtr;
     typedef std::vector<std::unique_ptr<Comment>> CommentVector;

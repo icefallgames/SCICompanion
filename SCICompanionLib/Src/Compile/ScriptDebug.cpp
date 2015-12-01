@@ -54,7 +54,7 @@ CommentTracker::CommentTracker(Script &script) : _comments(script.GetComments())
 
 bool CommentTracker::_OutputCommentHelper(const Comment &comment, SourceCodeWriter &out)
 {
-    if (comment.IsInline())
+    if (comment.CommentType == CommentType::Positioned)
     {
         out.IndentToCommentColumn();
     }

@@ -477,11 +477,6 @@ ScriptSite::ScriptSite()
     _pScript = nullptr;
 }
 
-bool Comment::IsInline() const
-{
-    return (GetPosition().Column() > 0);
-}
-
 // REVIEW: Only works with cpp style comments.
 std::string Comment::GetSanitizedText() const
 {

@@ -66,7 +66,7 @@ void _AddBasicSwitch(MethodDefinition &method, const string &switchValue, const 
     // Make the case statement and add it to the switch
     unique_ptr<CaseStatement> pCase = std::make_unique<CaseStatement>();
     pCase->SetStatement1(move(_MakeNumberStatement(0)));
-    _AddComment(*pCase, case0Comments);
+    _AddComment(*pCase, case0Comments, CommentType::Indented);
     pSwitch->AddCase(move(pCase));
     pCase.release();
 
