@@ -778,6 +778,9 @@ public:
         DebugLine exportLine(out);
         out.out << exportEntry.Slot << " " << CleanToken(exportEntry.Name);
     }
+
+    void Enter(const SyntaxNode &node) override {}
+    void Leave(const SyntaxNode &node) override {}
 };
 
 void OutputSourceCode_SCIStudio(const sci::Script &script, sci::SourceCodeWriter &out)

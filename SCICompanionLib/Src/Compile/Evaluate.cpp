@@ -159,7 +159,7 @@ bool NaryOp::Evaluate(ILookupDefine &context, uint16_t &result) const
     for (size_t i = 1; result && good && (i < _segments.size()); i++)
     {
         uint16_t valueA;
-        bool good = _segments[i - 1]->Evaluate(context, valueA);
+        good = _segments[i - 1]->Evaluate(context, valueA);
         if (good)
         {
             uint16_t valueB;

@@ -20,6 +20,7 @@
 #include "CompiledScript.h"
 #include "AppState.h"
 #include "OperatorTables.h"
+#include <numeric>
 
 // Still a WIP.
 
@@ -166,6 +167,10 @@
         )
 */
 
+
+using namespace sci;
+using namespace std;
+
 // In Studio syntax, we need to wrap some class names and tokens in {} to identify them as tokens.
 // For instance b-moveCnt, or -info-. However, in the original syntax, I don't think this is needed.
 // For now, however, we'll keep track of the places that need this by having this dummy function.
@@ -179,8 +184,35 @@ std::string CleanTokenSCI(const std::string &src)
     return src;
 }
 
-using namespace sci;
-using namespace std;
+std::string GetPropertyText(const PropertyValueBase &prop)
+{
+    std::stringstream mw;
+    switch (prop.GetType())
+    {
+        case ValueType::String:
+            mw << "{" << UnescapeString(prop.GetStringValue()) << "}";
+        case ValueType::ResourceString:
+            mw << "\"" << UnescapeString(prop.GetStringValue()) << "\"";
+            break;
+        case ValueType::Said:
+            mw << "'" << prop.GetStringValue() << "'";
+            break;
+        case ValueType::Number:
+            _OutputNumber(mw, prop.GetNumberValue(), prop._fHex, prop._fNegate);
+            break;
+        case ValueType::Token:
+            mw << CleanTokenSCI(prop.GetStringValue());
+            break;
+        case ValueType::Selector:
+            mw << "#" << prop.GetStringValue();
+            break;
+        case ValueType::Pointer:
+            mw << "@" << CleanTokenSCI(prop.GetStringValue());
+            break;
+    }
+    return mw.str();
+}
+
 
 class SimpleDefineLookup : public ILookupDefine
 {
@@ -419,10 +451,116 @@ void ConvertToSCISyntaxHelper(Script &script)
     CleanVariableNames(script, fromToMapping);
 }
 
+// Configure output
+const size_t MaxColumnWidth = 100;
+//const size_t 
+
+// Macros yuck!
+#define GO_INLINE auto line = _GoInline()
+#define GO_MULTILINE auto line = _GoMultiline()
+#define INDENT_BLOCK DebugIndent indent(out)
+#define MAYBE_INDENT_BLOCK DebugIndent indent(out, out.fInline ? 0 : -1)
+#define SET_MULTILINEMODE(x) Inline line(out, !(x));
+
+
 class OutputSCISourceCode : public OutputSourceCodeBase
 {
 public:
-    OutputSCISourceCode(SourceCodeWriter &out) : OutputSourceCodeBase(out) {}
+    OutputSCISourceCode(SourceCodeWriter &out) : OutputSourceCodeBase(out) , _isCalculateSizePass(false) {}
+
+    template<typename _T>
+    void DoTheThing(_T &node)
+    {
+        _isCalculateSizePass = true;
+        // Configure our output so it write the least amount possible.
+        int oldIndentAmount = out.indentAmount;
+        out.indentAmount = 0; // Should now just be newline or space between things.
+        auto tempComments = move(out.pComments);    // Remove comments for the time being.
+        Visit(node);
+
+        // Now try again with the real deal.
+        _isCalculateSizePass = false;
+        std::stringstream ss;
+        std::swap(out.out, ss);
+        out.indentAmount = oldIndentAmount;
+        out.pComments = move(tempComments);
+        Visit(node);
+    }
+
+private:
+    bool _ShouldBeMultiline(const SyntaxNode *node)
+    {
+        return _nodeSize[node] > 50;
+    }
+
+    _Check_return_
+    Inline _GoMultiline()
+    {
+        return Inline(out, false);
+    }
+
+    _Check_return_
+    Inline _GoInline()
+    {
+        return Inline(out, true);
+    }
+    void _IndentAccept(const SyntaxNode &node)
+    {
+        DebugIndent indent(out);
+        node.Accept(*this);
+    }
+    void _MaybeIndentAccept(const SyntaxNode &node)
+    {
+        DebugIndent indent(out, out.fInline ? 0 : -1);
+        node.Accept(*this);
+    }
+    template<typename _TCollection>
+    void _IndentAcceptChildren(const _TCollection &things)
+    {
+        DebugIndent indent(out);
+        for (auto &thing : things)
+        {
+            thing->Accept(*this);
+        }
+    }
+    template<typename _TCollection>
+    void _MaybeIndentAcceptChildren(const _TCollection &things)
+    {
+        DebugIndent indent(out, out.fInline ? 0 : -1);
+        for (auto &thing : things)
+        {
+            thing->Accept(*this);
+        }
+    }
+    template<typename _TCollection>
+    void _NoIndentAcceptChildren(const _TCollection &things)
+    {
+        for (auto &thing : things)
+        {
+            thing->Accept(*this);
+        }
+    }
+    void _MaybeNewLineIndent()
+    {
+        if (out.fInline)
+        {
+            out.out << " ";
+        }
+        else
+        {
+            out.NewLine();
+            Indent(out);
+        }
+    }
+    void _MaybeNewLineIndentNoSpace()
+    {
+        if (!out.fInline)
+        {
+            out.NewLine();
+            Indent(out);
+        }
+    }
+public:
 
     void Visit(const Script &script) override
     {
@@ -484,40 +622,42 @@ public:
     {
         out.SyncComments(classDef);
 
-        if (classDef.IsInstance())
-        {
-            out.out << "(instance ";
-        }
-        else
-        {
-            out.out << "(class ";
-        }
-        out.out << CleanTokenSCI(classDef.GetName());
-        if (!classDef.GetSuperClass().empty())
-        {
-            out.out << " of " << CleanTokenSCI(classDef.GetSuperClass());
-        }
-        out.out << out.NewLineString();
+        _MaybeNewLineIndent();
 
         {
-            DebugIndent indent(out);
+            GO_INLINE;
+            if (classDef.IsInstance())
             {
-                DebugLine line(out);
-                if (classDef.GetProperties().empty())
-                {
-                    out.out << "(properties)";
-                }
-                else
-                {
-                    out.out << "(properties" << out.NewLineString();
-                    {
-                        DebugIndent indent2(out);
-                        Forward(classDef.GetProperties());
-                    }
-                    Indent(out);
-                    out.out << ")";
-                }
+                out.out << "(instance ";
             }
+            else
+            {
+                out.out << "(class ";
+            }
+            out.out << CleanTokenSCI(classDef.GetName());
+            if (!classDef.GetSuperClass().empty())
+            {
+                out.out << " of " << CleanTokenSCI(classDef.GetSuperClass());
+            }
+        }
+
+        GO_MULTILINE;
+        {
+            INDENT_BLOCK;
+            _MaybeNewLineIndent();
+            if (classDef.GetProperties().empty())
+            {
+                out.out << "(properties)";
+            }
+            else
+            {
+                out.out << "(properties";
+                _IndentAcceptChildren(classDef.GetProperties());
+                _MaybeNewLineIndent();
+                out.out << ")";
+            }
+
+            _MaybeNewLineIndent();
 
             // Any class procedures (rare, but used by Timer.sc for instance)
             // In the OM, these are stored at the top level, but we want to print them
@@ -529,45 +669,31 @@ public:
                 if (proc->GetClass() == classDef.GetName())
                 {
                     proc->Accept(*this);
+                    _MaybeNewLineIndent();
                 }
             }
 
             // Body (methods)
-            Forward(classDef.GetMethods());
-
-
+            _NoIndentAcceptChildren(classDef.GetMethods());
         }
-        out.out << ")" << out.NewLineString();
+
+        _MaybeNewLineIndent();
+        out.out << ")";
     }
 
-    void Visit(const FunctionParameter &param) override {}
+    void Visit(const FunctionParameter &param) override
+    {
+        _MaybeNewLineIndent();
+        out.out << param.GetName();
+    }
+
     void Visit(const FunctionSignature &sig) override {}
 
     void _VisitPropertyValue(const PropertyValueBase &prop)
     {
         out.SyncComments(prop);
-        DebugLine line(out);
-        switch (prop.GetType())
-        {
-        case ValueType::String:
-            out.out << "\"" << UnescapeString(prop.GetStringValue()) << "\"";
-            break;
-        case ValueType::Said:
-            out.out << "'" << prop.GetStringValue() << "'";
-            break;
-        case ValueType::Number:
-            _OutputNumber(out.out, prop.GetNumberValue(), prop._fHex, prop._fNegate);
-            break;
-        case ValueType::Token:
-            out.out << CleanTokenSCI(prop.GetStringValue());
-            break;
-        case ValueType::Selector:
-            out.out << "#" << prop.GetStringValue();
-            break;
-        case ValueType::Pointer:
-            out.out << "@" << CleanTokenSCI(prop.GetStringValue());
-            break;
-        }
+        _MaybeNewLineIndent();
+        out.out << GetPropertyText(prop);
     }
 
     void Visit(const PropertyValue &prop) override
@@ -579,6 +705,7 @@ public:
     {
         if (prop.GetIndexer())
         {
+            _MaybeNewLineIndent();
             if (prop.GetType() == ValueType::Pointer)
             {
                 out.out << "@";
@@ -587,7 +714,6 @@ public:
             assert((prop.GetType() == ValueType::Pointer) || (prop.GetType() == ValueType::Token));
             out.out << prop.GetStringValue();
             out.out << " ";
-            Inline inln(out, true);
             prop.GetIndexer()->Accept(*this);
             out.out << "]";
         }
@@ -610,18 +736,21 @@ public:
     void Visit(const ClassProperty &classProp) override
     {
         out.SyncComments(classProp);
-        DebugLine line(out, classProp);
+        _MaybeNewLineIndent();
+        // Always inline
+        GO_INLINE;
         out.out << CleanTokenSCI(classProp.GetName()) << " ";
-        Inline inln(out, true);
         classProp.GetStatement1()->Accept(*this);
     }
 
     void Visit(const VariableDecl &varDecl) override
     {
         out.SyncComments(varDecl);
-        DebugLine line(out);
+        _MaybeNewLineIndent();
         _OutputVariableAndSizeSCI(*this, out, varDecl.GetDataType(), varDecl.GetName(), varDecl.GetSize(), varDecl.GetStatements());
     }
+
+    const size_t FunctionParamMultilineThreshold = 40;
 
     void _VisitFunctionBase(const FunctionBase &function)
     {
@@ -633,67 +762,70 @@ public:
         }
         else
         {
-            out.out << "(" << function.GetName();
-            const FunctionParameterVector &params = function.GetSignatures()[0]->GetParams();
-
-            for (auto &functionParam : params)
+            // Function signatures can go multiline if there are a lot of parameters.
+            auto &signature = function.GetSignatures()[0];
+            size_t totalSize = _nodeSize[signature.get()];
+            for (auto &varDecl : function.GetVariables())
             {
-                out.out << " " << functionParam->GetName();
+                totalSize += _nodeSize[varDecl.get()];
             }
-
             std::map<std::string, SyntaxNode*> varNameToInitializer;
-
-            if (!function.GetVariables().empty())
+            bool signatureMultiline = totalSize > FunctionParamMultilineThreshold;
             {
-                Inline inln(out, true);
-                out.out <<  " &tmp";
-                // We don't want initializers to be spit out here, so don't just blindly forward to GetVariables()
-                // Forward(function.GetVariables(), " ");
-                SyntaxNodeVector emptyInitializer;
-                for (auto &variable : function.GetVariables())
+                SET_MULTILINEMODE(signatureMultiline);
+                out.out << "(" << function.GetName();
+                _IndentAcceptChildren(signature->GetParams());
+                if (!function.GetVariables().empty())
                 {
-                    out.out << " ";
-                    assert(variable->GetInitializers().size() <= 1); // Max 1 initializer value permitted in temp vars (per our parsing).
-                    if (!variable->GetInitializers().empty())
-                    {
-                        varNameToInitializer[variable->GetName()] = variable->GetInitializers()[0].get();
-                    }
-                    _OutputVariableAndSizeSCI(*this, out, variable->GetDataType(), variable->GetName(), variable->GetSize(), emptyInitializer);
+                    _MaybeNewLineIndent();
+                    out.out << "&tmp";
+                    // We don't want initializers to be spit out here, so don't just blindly forward to GetVariables()
                 }
+
+                {
+                    SyntaxNodeVector emptyInitializer;
+                    INDENT_BLOCK;
+                    for (auto &variable : function.GetVariables())
+                    {
+                        assert(variable->GetInitializers().size() <= 1); // Max 1 initializer value permitted in temp vars (per our parsing).
+                        if (!variable->GetInitializers().empty())
+                        {
+                            varNameToInitializer[variable->GetName()] = variable->GetInitializers()[0].get();
+                        }
+                        _MaybeNewLineIndent();
+                        _OutputVariableAndSizeSCI(*this, out, variable->GetDataType(), variable->GetName(), variable->GetSize(), emptyInitializer);
+                    }
+                }
+                _MaybeNewLineIndentNoSpace();
+                out.out << ")";
             }
-            out.out << ")";
-            out.EnsureNewLine();
+
 
             // Body of function
             {
-                DebugIndent indent(out);
-
+                INDENT_BLOCK;
                 // Deal with any initializers
                 for (auto &initializer : varNameToInitializer)
                 {
-                    DebugLine line(out);
-                    {
-                        Inline inln(out, true);
-                        out.out << "(= " << initializer.first << " ";
-                        initializer.second->Accept(*this);
-                        out.out << ")";
-                    }
-                    out.EnsureNewLine();
+                    _MaybeNewLineIndent();
+                    GO_INLINE;
+                    out.out << "(= " << initializer.first << " ";
+                    initializer.second->Accept(*this);
+                    out.out << ")";
                 }
 
-                Forward(function.GetCodeSegments());
+                // We already indented above.
+                _NoIndentAcceptChildren(function.GetCodeSegments());
             }
-
-            DebugLine line(out);
+            _MaybeNewLineIndent();
             out.out << ")";
-            out.EnsureNewLine();
         }
     }
 
     void Visit(const MethodDefinition &function) override
     {
         out.SyncComments(function);
-        NewLine(out);
+        _MaybeNewLineIndent();
         out.out << "(method ";
         _VisitFunctionBase(function);
     }
@@ -701,7 +833,7 @@ public:
     void Visit(const ProcedureDefinition &function) override
     {
         out.SyncComments(function);
-        NewLine(out);
+        _MaybeNewLineIndent();
         out.out << "(procedure ";
         _VisitFunctionBase(function);
     }
@@ -711,25 +843,19 @@ public:
     void Visit(const CodeBlock &block) override
     {
         out.SyncComments(block);
-        if (block.GetList().size() > 1)
-        {
-            // Don't add this, messes up if statements.
-            // DebugLine debugLine(out);
-            Inline inln(out, false);
-            Forward(block.GetList());
-        }
-        else
-        {
-            Forward(block.GetList());
-        }
+        // The parent should have set is multiline (e.g. if statements, etc...)
+        // SET_MULTILINEMODE(_ShouldBeMultiline(&block));
+        // No indent, because the parent will already have indented (e.g. if statements, etc...)
+        _NoIndentAcceptChildren(block.GetList());
     }
 
     void Visit(const ConditionalExpression &conditional) override
     {
         out.SyncComments(conditional);
-        DebugLine debugLine(out);
-        Inline inln(out, true);
-        Forward(conditional.GetStatements());
+        // This happens in the caller. ConditionalExpression just pushes through.
+        // _MaybeNewLineIndent();
+        SET_MULTILINEMODE(_ShouldBeMultiline(&conditional));
+        _NoIndentAcceptChildren(conditional.GetStatements());
     }
 
     void Visit(const Comment &comment) override
@@ -739,12 +865,26 @@ public:
 
     void Visit(const SendParam &sendParam) override
     {
-        // Handled in SendCall
+        out.SyncComments(sendParam);
+
+        _MaybeNewLineIndent();
+
+        out.out << CleanTokenSCI(sendParam.GetSelectorName()) << ":";
+
+        if (!sendParam.GetSelectorParams().empty())
+        {
+            bool isMultiline = _ShouldBeMultiline(&sendParam);
+            SET_MULTILINEMODE(isMultiline);
+            _MaybeIndentAcceptChildren(sendParam.GetSelectorParams());
+        }
     }
 
     void Visit(const LValue &lValue) override
     {
         out.SyncComments(lValue);
+        // Going on a limb and saying this is always inline
+        GO_INLINE;
+        _MaybeNewLineIndent();
         if (lValue.HasIndexer())
         {
             out.out << "[";
@@ -753,7 +893,6 @@ public:
         if (lValue.HasIndexer())
         {
             out.out << " ";
-            Inline inln(out, true);
             lValue.GetIndexer()->Accept(*this);
             out.out << "]";
         }
@@ -762,7 +901,8 @@ public:
     void Visit(const RestStatement &rest) override
     {
         out.SyncComments(rest);
-        DebugLine line(out);
+        _MaybeNewLineIndent();
+        GO_INLINE;
         out.out << "&rest";
         if (!rest.GetName().empty())
         {
@@ -772,174 +912,148 @@ public:
 
     void Visit(const Cast &cast) override {}
 
-
-    void _VisitSendParam(SourceCodeWriter &out, const SendParam &sendParam, bool addComma)
-    {
-        out.SyncComments(sendParam);
-        DebugLine debugLine(out);
-        out.out << CleanTokenSCI(sendParam.GetSelectorName()) << ":";
-        DetectIfWentNonInline detect(out);
-        if (!sendParam.GetSelectorParams().empty())
-        {
-            out.out << " ";
-            // Space-separated values
-            Inline inln(out, true);
-            DebugIndent indent(out);    // In case we have inline false in here:
-            Forward(sendParam.GetSelectorParams(), " ");
-        }
-        if (addComma)
-        {
-            out.out << ",";
-        }
-        if (detect.WentInline)
-        {
-            out.EnsureNewLine();
-            Indent(out);
-        }
-    }
-
     void Visit(const SendCall &sendCall) override
     {
         out.SyncComments(sendCall);
-        DebugLine debugLine(out);
+
+        _MaybeNewLineIndent();
         out.out << "(";
-        // This sucks because of all the different forms we have.
-        if (!sendCall.GetTargetName().empty())
+
         {
-            out.out << CleanTokenSCI(sendCall.GetTargetName()); 
-        }
-        else if (sendCall.GetStatement1())
-        {
-            sendCall.GetStatement1()->Accept(*this);
-        }
-        else
-        {
-            if (sendCall._object3)
+            // For now we'll go inline. Large send target expressions could look bad though.
+            GO_INLINE;
+            MAYBE_INDENT_BLOCK;
+            // This sucks because of all the different forms we have.
+            if (!sendCall.GetTargetName().empty())
             {
-                sendCall._object3->Accept(*this);
+                _MaybeNewLineIndentNoSpace();
+                out.out << CleanTokenSCI(sendCall.GetTargetName());
+            }
+            else if (sendCall.GetStatement1())
+            {
+                _MaybeIndentAccept(*sendCall.GetStatement1());
             }
             else
             {
-                out.out << "WARNING_UNKNOWN_OBJECT";
+                if (sendCall._object3)
+                {
+                    _MaybeIndentAccept(*sendCall._object3);
+                }
+                else
+                {
+                    out.out << "WARNING_UNKNOWN_OBJECT";
+                }
             }
         }
 
-        out.out << " ";
+        bool isMultiLine = _ShouldBeMultiline(&sendCall);
+        SET_MULTILINEMODE(isMultiLine);
 
-        size_t count = sendCall.GetParams().size() + (sendCall._rest ? 1 : 0);
-        // Now the params.
-        // If there is more than one, then indent, because we'll do one on each line.
-        if (count > 1)
+        // If we're multilineing, we should indent.
         {
-            Inline goInline(out, false);
-            {
-                DebugIndent indent(out);
-                out.out << out.NewLineString();	// newline to start it out
-
-                for (size_t i = 0; i < sendCall.GetParams().size(); i++)
-                {
-                    _VisitSendParam(out, *sendCall.GetParams()[i], (i < (sendCall.GetParams().size() - 1)));
-                }
-                if (sendCall._rest)
-                {
-                    sendCall._rest->Accept(*this);
-                }
-            }
-            DebugLine line(out);
-            out.out << ")";
-        }
-        else
-        {
-            Inline goInline(out, true);
-            // We want ? instead of : when IsMethod is not true.
             if ((sendCall.GetParams().size() == 1) && !sendCall.GetParams()[0]->IsMethod() && sendCall.GetParams()[0]->GetSelectorParams().empty())
             {
                 // Property retrieval.
+                MAYBE_INDENT_BLOCK;
+                _MaybeNewLineIndent();
                 out.out << sendCall.GetParams()[0]->GetName() << "?";
             }
             else
             {
-                for (auto &sendParam : sendCall.GetParams())
+                _MaybeIndentAcceptChildren(sendCall.GetParams());
+                if (sendCall._rest)
                 {
-                    _VisitSendParam(out, *sendParam, false);
+                    MAYBE_INDENT_BLOCK;
+                    _IndentAccept(*sendCall._rest);
                 }
             }
-            out.out << ")";
         }
+
+        _MaybeNewLineIndentNoSpace();
+        out.out << ")";
     }
 
     void Visit(const ProcedureCall &procCall) override
     {
         out.SyncComments(procCall);
-        DebugLine line(out);
+        bool multiLine = _ShouldBeMultiline(&procCall);
+        _MaybeNewLineIndent();
         out.out << "(" << procCall.GetName();
-        if (!procCall.GetStatements().empty())
+        if (multiLine)
         {
-            out.out << " ";
+            GO_MULTILINE;
+            _IndentAcceptChildren(procCall.GetStatements());
+            _MaybeNewLineIndent();
+            out.out << ")";
         }
-        DetectIfWentNonInline detect(out);
+        else
         {
-            Inline inln(out, true);
-            DebugIndent indent(out);    // In case we have inline false in here:
-            Forward(procCall.GetStatements());
+            GO_INLINE;
+            _IndentAcceptChildren(procCall.GetStatements());
+            out.out << ")";
         }
-        if (detect.WentInline)
-        {
-            out.EnsureNewLine();
-            Indent(out);
-        }
-        out.out << ")";
     }
 
     void Visit(const ReturnStatement &ret) override
     {
         out.SyncComments(ret);
 
-        DebugLine line(out);
+        bool multiLine = ret.GetStatement1() && _ShouldBeMultiline(ret.GetStatement1());
+        _MaybeNewLineIndent(); // Space, or newline and tab.
         out.out << "(return";
-        DetectIfWentNonInline detect(out);
+        if (multiLine)
         {
-            Inline inln(out, true);
-            DebugIndent indent(out);    // In case we have inline false in here:
+            GO_MULTILINE;
+            _IndentAccept(*ret.GetStatement1());
+            _MaybeNewLineIndent();
+            out.out << ")";
+        }
+        else
+        {
+            GO_INLINE;
             if (ret.GetStatement1())
             {
-                out.out << " ";
                 ret.GetStatement1()->Accept(*this);
             }
+            out.out << ")";
         }
-        if (detect.WentInline)
-        {
-            out.EnsureNewLine();
-            Indent(out);
-        }
-        out.out << ")";
     }
 
     void Visit(const ForLoop &forLoop) override
     {
         out.SyncComments(forLoop);
-        // CodeBlocks are just used in for loops for now I think. And perhaps random enclosures ().
+        _MaybeNewLineIndent();
+
+        out.out << "(for (";
+
+        bool firstBlobMultiline = _ShouldBeMultiline(forLoop.GetInitializer()) || _ShouldBeMultiline(forLoop.GetCondition().get()) || _ShouldBeMultiline(forLoop._looper.get());
+
         {
-            DebugLine line(out);
-            out.out << "(for (";
-            Inline inln(out, true);
-            forLoop.GetInitializer()->Accept(*this);
-            out.out << ") ";
-            // Condition is not contained in ()
-            forLoop.GetCondition()->Accept(*this);
-            out.out << " (";
-            forLoop._looper->Accept(*this);
+            SET_MULTILINEMODE(firstBlobMultiline);
+            if (forLoop.GetInitializer())
+            {
+                _MaybeIndentAccept(*forLoop.GetInitializer());
+                _MaybeNewLineIndentNoSpace();
+            }
             out.out << ")";
+
+            _MaybeIndentAccept(*forLoop.GetCondition());
+
+            if (forLoop._looper)
+            {
+                _MaybeNewLineIndent();
+                out.out << " (";
+                _MaybeIndentAccept(*forLoop._looper);
+                _MaybeNewLineIndentNoSpace();
+                out.out << ")";
+            }
         }
+
         // Now the code
-        {
-            DebugIndent indent(out);
-            Forward(forLoop.GetStatements());
-        }
-        {
-            DebugLine line(out);
-            out.out << ")";
-        }
+        SET_MULTILINEMODE(firstBlobMultiline);
+        _MaybeIndentAcceptChildren(forLoop.GetStatements());
+        _MaybeNewLineIndentNoSpace();
+        out.out << ")";
     }
 
     bool _IsConditionalExpressionTRUE(const ConditionalExpression &condExp)
@@ -966,28 +1080,28 @@ public:
     void Visit(const WhileLoop &whileLoop) override
     {
         out.SyncComments(whileLoop);
+        _MaybeNewLineIndent();
+
+        if (_IsConditionalExpressionTRUE(*whileLoop.GetCondition()))
         {
-            DebugLine line(out);
-            if (_IsConditionalExpressionTRUE(*whileLoop.GetCondition()))
-            {
-                out.out << "(repeat";
-            }
-            else
-            {
-                out.out << "(while ";
-                Inline inln(out, true);
-                whileLoop.GetCondition()->Accept(*this);
-            }
+            out.out << "(repeat";
         }
+        else
+        {
+            out.out << "(while ";
+            bool isConditionMultiline = _ShouldBeMultiline(whileLoop.GetCondition().get());
+            SET_MULTILINEMODE(isConditionMultiline);
+            _MaybeIndentAccept(*whileLoop.GetCondition());
+        }
+
+        bool isMultiline = _ShouldBeMultiline(&whileLoop);
+        assert(isMultiline); // It's important that this returns true so that parents are multiline too.
+        SET_MULTILINEMODE(isMultiline);
+
         // Now the code, indented.
-        {
-            DebugIndent indent(out);
-            Forward(whileLoop.GetStatements());
-        }
-        {
-            DebugLine line(out);
-            out.out << ")";
-        }
+        _MaybeIndentAcceptChildren(whileLoop.GetStatements());
+        _MaybeNewLineIndentNoSpace();
+        out.out << ")";
     }
 
     void Visit(const DoLoop &doLoop) override
@@ -1005,70 +1119,76 @@ public:
         // )
 
         out.SyncComments(doLoop);
-        {
-            DebugLine line(out);
-            out.out << "(repeat";
-        }
+        _MaybeNewLineIndent();
+        out.out << "(repeat";
+
+        bool isMultiline = _ShouldBeMultiline(&doLoop);
+        assert(isMultiline); // It's important that this returns true so that parents are multiline too.
+        SET_MULTILINEMODE(isMultiline);
+
         // Now the code, indented.
-        {
-            DebugIndent indent(out);
-            Forward(doLoop.GetStatements());
+        _MaybeIndentAcceptChildren(doLoop.GetStatements());
 
-            // Now the condition (assuming it's not always TRUE).
-            if (!_IsConditionalExpressionTRUE(*doLoop.GetCondition()))
+        // Apply the condition as a breakif, if necessary.
+        if (!_IsConditionalExpressionTRUE(*doLoop.GetCondition()))
+        {
+            INDENT_BLOCK;
+
+            bool isConditionMultiline = _ShouldBeMultiline(doLoop.GetCondition().get());
+            SET_MULTILINEMODE(isConditionMultiline);
+
+            out.out << "(breakif";
+
+            // We need to negate this condition. It's likely already negated though. So we can:
+            //  - Check to see if the condition is a negation, and just visit the inner.
+            //  - Otherwise, write a (not ...) 
+            const SyntaxNode *inner = _IsConditionalExpressionLogicallyNegated(*doLoop.GetCondition());
+            if (inner)
             {
-                out.EnsureNewLine();
-                {
-                    DebugLine ifLine(out);
-                    out.out << "(breakif ";
-                    Inline inlineCondition(out, true); // But the condition is inline
-
-                    // We need to negate this condition. It's likely already negated though. So we can:
-                    //  - Check to see if the condition is a negation, and just visit the inner.
-                    //  - Otherwise, write a (not ...) 
-                    const SyntaxNode *inner = _IsConditionalExpressionLogicallyNegated(*doLoop.GetCondition());
-                    if (inner)
-                    {
-                        inner->Accept(*this);
-                    }
-                    else
-                    { 
-                        // Negate
-                        out.out << "(not ";
-                        doLoop.GetCondition()->Accept(*this);
-                        out.out << ")";
-                    }
-
-                    DebugLine closeLine(out);
-                    out.out << ")";
-                }
+                _MaybeIndentAccept(*inner);
             }
-        }
-        {
-            DebugLine line(out);
+            else
+            {
+                // Negate
+                _MaybeNewLineIndentNoSpace();
+                out.out << "(not";
+                _MaybeIndentAccept(*doLoop.GetCondition());
+                _MaybeNewLineIndentNoSpace();
+                out.out << ")";
+            }
+
+            _MaybeNewLineIndentNoSpace();
             out.out << ")";
         }
+
+        _MaybeNewLineIndentNoSpace();
+        out.out << ")";
     }
 
     void Visit(const BreakStatement &breakStatement) override
     {
         out.SyncComments(breakStatement);
-        DebugLine line(out);
+        _MaybeNewLineIndent();
         out.out << "(break)";
     }
 
     void Visit(const ContinueStatement &breakStatement) override
     {
         out.SyncComments(breakStatement);
-        DebugLine line(out);
+        _MaybeNewLineIndent();
         out.out << "(continue)";
     }
 
     void Visit(const CaseStatement &caseStatement) override
     {
         out.SyncComments(caseStatement);
+
+        bool isMultiline = _ShouldBeMultiline(&caseStatement);
+        assert(isMultiline); // It's important that this returns true so that parents are multiline too.
+        SET_MULTILINEMODE(isMultiline);
+
+        _MaybeNewLineIndent();
         {
-            DebugLine line(out);
             if (caseStatement.IsDefault())
             {
                 out.out << "(else ";
@@ -1076,19 +1196,15 @@ public:
             else
             {
                 out.out << "(";
-                Inline inln(out, true);
-                caseStatement.GetStatement1()->Accept(*this);
+                bool isCaseConditionMultiline = _ShouldBeMultiline(caseStatement.GetStatement1());
+                SET_MULTILINEMODE(isCaseConditionMultiline);
+                _MaybeIndentAccept(*caseStatement.GetStatement1());
             }
         }
-        // Now the code, indented.
-        {
-            DebugIndent indent(out);
-            Forward(caseStatement.GetCodeSegments());
-        }
-        {
-            DebugLine line(out);
-            out.out << ")";
-        }
+
+        _MaybeIndentAcceptChildren(caseStatement.GetCodeSegments());
+        _MaybeNewLineIndentNoSpace();
+        out.out << ")";
     }
 
     void Visit(const CondStatement &condStatement) override
@@ -1100,44 +1216,39 @@ public:
     {
         out.SyncComments(switchStatement);
 
-        Inline notInline(out, false);
+        bool isMultiline = _ShouldBeMultiline(&switchStatement);
+        assert(isMultiline); // It's important that this returns true so that parents are multiline too.
+        SET_MULTILINEMODE(isMultiline);
+
+        _MaybeNewLineIndent();
 
         {
-            out.EnsureNewLine();
-            DebugLine line(out);
             out.out << "(switch ";
-            Inline inln(out, true);
-            switchStatement.GetStatement1()->Accept(*this);
+            bool isValueMultiline = _ShouldBeMultiline(switchStatement.GetStatement1());
+            SET_MULTILINEMODE(isValueMultiline);
+            _MaybeIndentAccept(*switchStatement.GetStatement1());
         }
+
         // Now the cases, indented.
-        {
-            DebugIndent indent(out);
-            Forward(switchStatement._cases);
-        }
-        {
-            DebugLine line(out);
-            out.out << ")";
-        }
+        _MaybeIndentAcceptChildren(switchStatement._cases);
+
+        _MaybeNewLineIndentNoSpace();
+        out.out << ")";
     }
 
     void Visit(const Assignment &assignment) override
     {
-        DebugLine line(out);
-        Inline inln(out, true);
-        out.out << "(" << OperatorToName(assignment.Operator, sciNameToAssignmentOp) << " ";
-        assignment._variable->Accept(*this);
-        out.out << " ";
-        DetectIfWentNonInline detect(out);
+        out.SyncComments(assignment);
+        _MaybeNewLineIndent();
+        bool isMultiline = _ShouldBeMultiline(&assignment);
+        out.out << "(" << OperatorToName(assignment.Operator, sciNameToAssignmentOp);
         {
-            DebugIndent indent(out);    // In case we have inline false in here:
-            assignment.GetStatement1()->Accept(*this);
+            GO_INLINE;
+            assignment._variable->Accept(*this);
         }
-        if (detect.WentInline)
-        {
-            out.EnsureNewLine();
-            Indent(out);
-        }
-
+        SET_MULTILINEMODE(isMultiline);
+        _IndentAccept(*assignment.GetStatement1());
+        _MaybeNewLineIndentNoSpace();
         out.out << ")";
     }
 
@@ -1159,8 +1270,8 @@ public:
     void Visit(const BinaryOp &binaryOp) override
     {
         out.SyncComments(binaryOp);
-        DebugLine line(out);
-        Inline inln(out, true);
+
+        _MaybeNewLineIndent();
 
         vector<const SyntaxNode*> terms;
         bool canCoalesce = coalesceBinaryOps.find(binaryOp.Operator) != coalesceBinaryOps.end();
@@ -1175,32 +1286,34 @@ public:
             terms.push_back(binaryOp.GetStatement2());
         }
 
-        // TODO: Maybe more than two and we should do non-inline?
         string name = OperatorToName(binaryOp.Operator, sciNameToBinaryOp);
-        out.out << "(" + name << " ";
-        Forward(terms, " ");
+        out.out << "(" + name;
+
+        SET_MULTILINEMODE(_ShouldBeMultiline(&binaryOp));
+        _IndentAcceptChildren(terms);
+        _MaybeNewLineIndentNoSpace();
         out.out << ")";
     }
 
     void Visit(const NaryOp &naryOp) override
     {
         out.SyncComments(naryOp);
-        DebugLine line(out);
-        Inline inln(out, true);
+        _MaybeNewLineIndent();
         out.out << "(" << OperatorToName(naryOp.Operator, sciNameToBinaryOp);
-        out.out << " ";
-        Forward(naryOp.GetStatements(), " ");
+        SET_MULTILINEMODE(_ShouldBeMultiline(&naryOp));
+        _IndentAcceptChildren(naryOp.GetStatements());
+        _MaybeNewLineIndentNoSpace();
         out.out << ")";
     }
 
     void Visit(const UnaryOp &unaryOp) override
     {
         out.SyncComments(unaryOp);
-        DebugLine line(out);
-        Inline inln(out, true);
+        _MaybeNewLineIndent();
         out.out << "(" << OperatorToName(unaryOp.Operator, sciNameToUnaryOp);
-        out.out << " ";
-        unaryOp.GetStatement1()->Accept(*this);
+        SET_MULTILINEMODE(_ShouldBeMultiline(&unaryOp));
+        _IndentAccept(*unaryOp.GetStatement1());
+        _MaybeNewLineIndentNoSpace();
         out.out << ")";
     }
 
@@ -1240,134 +1353,122 @@ public:
     void Visit(const IfStatement &ifStatement) override
     {
         out.SyncComments(ifStatement);
+        _MaybeNewLineIndent();
+        bool isMultiline = _ShouldBeMultiline(&ifStatement);
 
-        Inline inln(out, false);	// Line by line now, overall
+        std::string breakOrContinueIf;
+        // Detect the cond pattern
+        const IfStatement *singleIf = _GetSingleIfStatementInElseBlock(ifStatement);
+        if (singleIf)
         {
-            std::string breakOrContinueIf;
-            // Detect the cond pattern
-            const IfStatement *singleIf = _GetSingleIfStatementInElseBlock(ifStatement);
-            if (singleIf)
+            // If with an else with a single if inside it. That's good enough to create a cond clause.
+            // Let's collect cond clauses.
+            vector<pair<const SyntaxNode*, const SyntaxNode*>> conditionAndCodes;
+            vector<const SyntaxNode*> code;
+            const SyntaxNode *finalElse = nullptr;
+            conditionAndCodes.push_back({ ifStatement.GetCondition().get(), ifStatement.GetStatement1() });
+            while (singleIf)
             {
-                // If with an else with a single if inside it. That's good enough to create a cond clause.
-                // Let's collect cond clauses.
-                vector<pair<const SyntaxNode*, const SyntaxNode*>> conditionAndCodes;
-                vector<const SyntaxNode*> code;
-                const SyntaxNode *finalElse = nullptr;
-                conditionAndCodes.push_back({ ifStatement.GetCondition().get(), ifStatement.GetStatement1() });
-                while (singleIf)
+                conditionAndCodes.push_back({ singleIf->GetCondition().get(), singleIf->GetStatement1() });
+                const IfStatement *nextSingleIf = _GetSingleIfStatementInElseBlock(*singleIf);
+                if (!nextSingleIf)
                 {
-                    conditionAndCodes.push_back({ singleIf->GetCondition().get(), singleIf->GetStatement1() });
-                    const IfStatement *nextSingleIf = _GetSingleIfStatementInElseBlock(*singleIf);
-                    if (!nextSingleIf)
-                    {
-                        // That's the end of it. Stick in any else clause. Cond does not require an else clause
-                        finalElse = singleIf->GetStatement2();
-                    }
-                    singleIf = nextSingleIf;
+                    // That's the end of it. Stick in any else clause. Cond does not require an else clause
+                    finalElse = singleIf->GetStatement2();
                 }
+                singleIf = nextSingleIf;
+            }
 
-                // Now we're ready to output a cond statement
-                out.EnsureNewLine();
+            // Now we're ready to output a cond statement
+            {
+                out.out << "(cond ";
+
+                // Now the main part
+                SET_MULTILINEMODE(isMultiline);
+
                 {
-                    DebugLine condLine(out);
-                    out.out << "(cond ";
-
+                    INDENT_BLOCK;
+                    for (auto &conditionAndCode : conditionAndCodes)
                     {
-                        DebugIndent indentClauses(out);
-                        for (auto &conditionAndCode : conditionAndCodes)
+                        _MaybeNewLineIndent();
+                        out.out << "(";
+                        // Condition value
                         {
-                            out.EnsureNewLine();
-                            DebugLine expLine(out);
-                            out.out << "(";
-                            {
-                                Inline inlineCondition(out, true); // But the condition is inline
-                                conditionAndCode.first->Accept(*this);
-                            }
-                            {
-                                // Code is indented
-                                Inline inlineCondition(out, false);
-                                DebugIndent indentCode(out);
-                                out.EnsureNewLine();
-                                //DebugLine codeLine(out);
-                                conditionAndCode.second->Accept(*this);
-                            }
-                            DebugLine closeLine(out);
-                            out.out << ")";
+                            SET_MULTILINEMODE(_ShouldBeMultiline(conditionAndCode.first)); // Generally not multiline
+                            _MaybeIndentAccept(*conditionAndCode.first);
                         }
 
-                        if (finalElse)
+                        // This is generally multiline
                         {
-                            out.EnsureNewLine();
-                            DebugLine expLine(out);
-                            out.out << "(else";
-                            {
-                                // Code is indented
-                                Inline inlineCondition(out, false);
-                                DebugIndent indent(out);
-                                out.EnsureNewLine();
-                                //DebugLine codeLine(out);
-                                finalElse->Accept(*this);
-                            }
-                            DebugLine closeLine(out);
-                            out.out << ")";
+                            SET_MULTILINEMODE(_ShouldBeMultiline(conditionAndCode.second)); // Generally not multiline
+                            _MaybeIndentAccept(*conditionAndCode.second);
                         }
-                        out.EnsureNewLine();
+                        _MaybeNewLineIndentNoSpace();
+                        out.out << ")";
                     }
-                    DebugLine closeLine(out);
-                    out.out << ")";
-                }
-            }
-            else if (_GetSingleBreakContinueStatementInThenBlock(ifStatement, breakOrContinueIf))
-            {
-                // This is:
-                //      (if (...) break)    ; or continue
-                //
-                // We change it to
-                //      (breakif (...))     ; or contif
-                out.EnsureNewLine();
-                {
-                    DebugLine ifLine(out);
-                    out.out << "(" << breakOrContinueIf << " ";
-                    Inline inlineCondition(out, true); // But the condition is inline
-                    ifStatement.GetCondition()->Accept(*this);
-                    DebugLine closeLine(out);
-                    out.out << ")";
-                }
-            }
-            else
-            {
-                // Keep the if format.
-                out.EnsureNewLine();
-                {
-                    DebugLine ifLine(out);
-                    out.out << "(if ";
-                    Inline inlineCondition(out, true); // But the condition is inline
-                    ifStatement.GetCondition()->Accept(*this);
-                    out.out << "";
-                }
-                {
-                    DebugIndent indent(out);
-                    Inline inlineCondition(out, false);
-                    ifStatement.GetStatement1()->Accept(*this);
-                }
-                {
-                    DebugLine closeLine(out);
-                    out.out << (ifStatement.HasElse() ? "else" : ")");
-                }
-                if (ifStatement.HasElse())
-                {
+
+                    if (finalElse)
                     {
-                        DebugIndent indent(out);
-                        Inline inlineCondition(out, false);
-                        ifStatement.GetStatement2()->Accept(*this);
+                        _MaybeNewLineIndent();
+                        out.out << "(else";
+                        {
+                            // This is generally multiline
+                            {
+                                SET_MULTILINEMODE(_ShouldBeMultiline(finalElse));
+                                _MaybeIndentAccept(*finalElse);
+                            }
+                        }
+                        _MaybeNewLineIndentNoSpace();
+                        out.out << ")";
                     }
-                    DebugLine closeLine(out);
-                    out.out << ")";
                 }
+
+                _MaybeNewLineIndentNoSpace();
+                out.out << ")";
             }
         }
-    }
+        else if (_GetSingleBreakContinueStatementInThenBlock(ifStatement, breakOrContinueIf))
+        {
+            // This is:
+            //      (if (...) break)    ; or continue
+            //
+            // We change it to
+            //      (breakif (...))     ; or contif
+            out.out << "(" << breakOrContinueIf;
 
+            SET_MULTILINEMODE(isMultiline);
+            _MaybeIndentAccept(*ifStatement.GetCondition());
+            _MaybeNewLineIndentNoSpace();
+            out.out << ")";
+        }
+        else
+        {
+            out.out << "(if";
+
+            {
+                bool isConditionMultiline = _ShouldBeMultiline(ifStatement.GetCondition().get());
+                SET_MULTILINEMODE(isConditionMultiline);
+                _MaybeIndentAccept(*ifStatement.GetCondition());
+            }
+
+            // Now the main part
+            SET_MULTILINEMODE(isMultiline);
+
+            {
+                _MaybeIndentAccept(*ifStatement.GetStatement1());
+            }
+
+            // Is there an else?
+            if (ifStatement.HasElse())
+            {
+                _MaybeNewLineIndent();
+                out.out << "else";
+                _MaybeIndentAccept(*ifStatement.GetStatement2());
+            }
+            _MaybeNewLineIndentNoSpace();
+            out.out << ")";
+        }
+    }
 
     void Visit(const Asm &asmStatement) override
     {
@@ -1403,19 +1504,12 @@ public:
     {
         out.disallowedTokens = &GetOpcodeSet();
 
-        {
-            DebugLine asmLine(out);
-            out.out << "(asm";
-            {
-                DebugIndent indent(out);
-                Forward(asmSection.GetStatements());
-            }
-        }
-        {
-            out.EnsureNewLine();
-            DebugLine asmLine(out);
-            out.out << ")";
-        }
+        GO_MULTILINE;
+        _MaybeNewLineIndent();
+        out.out << "(asm";
+        _MaybeIndentAcceptChildren(asmSection.GetStatements());
+        _MaybeNewLineIndent();
+        out.out << ")";
 
         // Can't have asmblock inside another, so it's ok to not have a stack here, and just force values.
         out.disallowedTokens = nullptr;
@@ -1423,31 +1517,85 @@ public:
 
     void Visit(const ExportEntry &exportEntry) override
     {
-        DebugLine exportLine(out);
+        _MaybeNewLineIndent();
         out.out << CleanTokenSCI(exportEntry.Name) << " " << exportEntry.Slot;
     }
+
+
+    // Measure the size of code output in a first pass, so we can better
+
+    void Enter(const SyntaxNode &node) override
+    {
+        if (_isCalculateSizePass)
+        {
+            _nodeSize[&node] = (size_t)out.out.tellp();
+        }
+    }
+    void Leave(const SyntaxNode &node) override
+    {
+        if (_isCalculateSizePass)
+        {
+            bool forceNonInline = false;
+            switch (node.GetNodeType())
+            {
+                // For things that are always non-inline, put a large number here.
+                // This will make it so that, for instance, a procedure call that contains
+                // a switch statement for a parameter will automatically go non-inline.
+                case NodeTypeSwitch:
+                case NodeTypeWhileLoop:
+                case NodeTypeDoLoop:
+                case NodeTypeForLoop:
+                    forceNonInline = true;
+                    break;
+                default:
+                    bool doDefault = true;
+                    if (node.GetNodeType() == NodeTypeIf)
+                    {
+                        // This will turn into a cond statement, which is always non-inline
+                        if (_GetSingleIfStatementInElseBlock(static_cast<const IfStatement&>(node)))
+                        {
+                            forceNonInline = true;
+                        }
+                    }
+            }
+
+            if (forceNonInline)
+            {
+                _nodeSize[&node] = 1000;
+            }
+            else
+            {
+                _nodeSize[&node] = (size_t)out.out.tellp() - _nodeSize[&node];
+            }
+
+        }
+    }
+
+private:
+    bool _isCalculateSizePass;
+    std::unordered_map<const SyntaxNode*, size_t> _nodeSize;
 };
 
 void OutputSourceCode_SCI(const sci::Script &script, sci::SourceCodeWriter &out)
 {
     OutputSCISourceCode output(out);
-    output.Visit(script);
+    output.DoTheThing(script);
 }
 
 void OutputSourceCode_SCI(const sci::ClassDefinition &classDef, sci::SourceCodeWriter &out)
 {
     OutputSCISourceCode output(out);
-    output.Visit(classDef);
+    output.DoTheThing(classDef);
 }
 
 void OutputSourceCode_SCI(const sci::MethodDefinition &method, sci::SourceCodeWriter &out)
 {
     OutputSCISourceCode output(out);
-    output.Visit(method);
+    output.DoTheThing(method);
 }
 
 void OutputSourceCode_SCI(const sci::ClassProperty &classProp, sci::SourceCodeWriter &out)
 {
     OutputSCISourceCode output(out);
-    output.Visit(classProp);
+    output.DoTheThing(classProp);
 }

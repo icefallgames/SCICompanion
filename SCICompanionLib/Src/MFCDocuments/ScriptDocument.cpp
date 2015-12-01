@@ -430,21 +430,31 @@ unique_ptr<sci::Script> _ParseScript(ScriptId id)
 
 void CScriptDocument::OnViewSyntaxTree()
 {
-#if DONT_KNOW_WHAT_THIS_DID
+    // What we do
+    // 1) Parse this script and generate a syntax tree.
+    // 2) If successful, write to the file.
+    // 3) Reload
     CScriptStreamLimiter limiter(&_buffer);
     CCrystalScriptStream stream(&limiter);
-	SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser();
-    browser.Lock();
-
+    //SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser(); 
+    //browser.Lock();
+    // 1)
     sci::Script script(_scriptId);
-    if (g_Parser.Parse(script, stream, NULL))
+    CompileLog log;
+    bool fCompile = SyntaxParser_Parse(script, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log);;
+    if (fCompile)
     {
+        PrepForLanguage(appState->GetResourceMap().Helper().GetDefaultGameLanguage(), script);
+
         std::stringstream out;
-		sci::SourceCodeWriter debugOut(out, appState->GetResourceMap().GetGameLanguage());
-        script.OutputSourceCode(debugOut);
+        sci::SourceCodeWriter theCode(out, appState->GetResourceMap().Helper().GetDefaultGameLanguage(), &script);
+        theCode.indentChar = '\t';
+        theCode.indentAmount = 1;
+        script.OutputSourceCode(theCode);
+
         ShowTextFile(out.str().c_str(), "syntaxtree.txt");
     }
-#endif
+
 
 #if NOT_NEEDED
     // Repurposing it for something else: calculating the dependency tree

@@ -185,6 +185,9 @@ namespace sci
         virtual void Visit(const AsmBlock &asmBlock) = 0;
         virtual void Visit(const ExportEntry &exportEntry) = 0;
         virtual void Visit(const WeakSyntaxNode &weakNode) = 0;
+
+        virtual void Enter(const SyntaxNode &node) = 0;
+        virtual void Leave(const SyntaxNode &node) = 0;
     };
 
     class ScriptSite

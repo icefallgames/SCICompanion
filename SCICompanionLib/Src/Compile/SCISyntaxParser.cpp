@@ -471,7 +471,9 @@ void SCISyntaxParser::Load()
 
     general_token = (alphanumNK_p)[{nullptr, ParseAutoCompleteContext::None, "TOKEN"}];
 
-    selector_literal = pound >> alphanumNK_p[{nullptr, ParseAutoCompleteContext::Selector}];
+    // Matches #posn
+    // Also matches #posn? or #posn: for backwards compatibility.
+    selector_literal = pound >> (alphanumNK_p[{nullptr, ParseAutoCompleteContext::Selector}] | selector_send_p);
 
     pointer = atsign;
 

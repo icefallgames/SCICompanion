@@ -350,6 +350,9 @@ public:
     void Visit(const WeakSyntaxNode &weakNode) override {}
     void Visit(const NaryOp &weakNode) override {}
 
+    void Enter(const SyntaxNode &node) override {}
+    void Leave(const SyntaxNode &node) override {}
+
     void SetSuggestion(const Suggestion &suggestion)
     {
         _suggestion = suggestion;
@@ -449,6 +452,9 @@ public:
     void Visit(const ExportEntry &exportEntry) override {}
     void Visit(const WeakSyntaxNode &weakNode) override {}
     void Visit(const NaryOp &weakNode) override {}
+
+    void Enter(const SyntaxNode &node) override {}
+    void Leave(const SyntaxNode &node) override {}
 
     void Clear() { CurrentSuggestion.clear(); }
     Suggestion CurrentSuggestion;

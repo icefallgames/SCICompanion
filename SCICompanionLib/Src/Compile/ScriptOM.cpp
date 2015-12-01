@@ -564,43 +564,43 @@ void SourceCodeWriter::EnsureNewLine(const sci::SyntaxNode *lastNodeWritten)
     }
 }
 
-// Visitor pattern
-void Script::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void ClassDefinition::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void FunctionParameter::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void FunctionSignature::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void PropertyValue::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void ComplexPropertyValue::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void Define::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void ClassProperty::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void VariableDecl::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void MethodDefinition::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void ProcedureDefinition::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void Synonym::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void CodeBlock::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void ConditionalExpression::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void Comment::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void SendParam::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void LValue::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void RestStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void Cast::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void SendCall::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void ProcedureCall::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void ReturnStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void ForLoop::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void WhileLoop::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void DoLoop::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void BreakStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void ContinueStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void CaseStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void SwitchStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void CondStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void Assignment::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void BinaryOp::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void NaryOp::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void UnaryOp::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void IfStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void Asm::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void AsmBlock::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void ExportEntry::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
-void WeakSyntaxNode::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Visit(*this); }
+// Visitor pattern, with enter/leave wrapper.
+void Script::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void ClassDefinition::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void FunctionParameter::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void FunctionSignature::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void PropertyValue::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void ComplexPropertyValue::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void Define::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void ClassProperty::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void VariableDecl::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void MethodDefinition::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void ProcedureDefinition::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void Synonym::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void CodeBlock::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void ConditionalExpression::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void Comment::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void SendParam::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void LValue::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void RestStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void Cast::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void SendCall::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void ProcedureCall::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void ReturnStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void ForLoop::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void WhileLoop::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void DoLoop::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void BreakStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void ContinueStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void CaseStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void SwitchStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void CondStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void Assignment::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void BinaryOp::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void NaryOp::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void UnaryOp::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void IfStatement::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void Asm::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void AsmBlock::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void ExportEntry::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void WeakSyntaxNode::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }

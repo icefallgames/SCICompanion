@@ -21,15 +21,17 @@
 class DebugIndent
 {
 public:
-    DebugIndent(sci::SourceCodeWriter &out) : _out(out)
+    DebugIndent(sci::SourceCodeWriter &out, int amount = -1) : _out(out)
     {
-        _out.iIndent += _out.indentAmount;
+        _amount = (amount == -1) ? _out.indentAmount : amount;
+        _out.iIndent += _amount;
     }
     ~DebugIndent()
     {
-        _out.iIndent -= _out.indentAmount;
+        _out.iIndent -= _amount;
     }
 private:
+    int _amount;
     sci::SourceCodeWriter &_out;
 };
 

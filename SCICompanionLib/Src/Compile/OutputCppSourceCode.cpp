@@ -705,6 +705,9 @@ public:
     {
 
     }
+
+    void Enter(const SyntaxNode &node) override {}
+    void Leave(const SyntaxNode &node) override {}
 };
 
 void OutputSourceCode_CPP(const sci::Script &script, sci::SourceCodeWriter &out)
