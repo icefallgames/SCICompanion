@@ -452,8 +452,7 @@ void ConvertToSCISyntaxHelper(Script &script)
 }
 
 // Configure output
-const size_t MaxColumnWidth = 100;
-//const size_t 
+const size_t MaxColumnWidth = 60;
 
 // Macros yuck!
 #define GO_INLINE auto line = _GoInline()
@@ -466,11 +465,12 @@ const size_t MaxColumnWidth = 100;
 class OutputSCISourceCode : public OutputSourceCodeBase
 {
 public:
-    OutputSCISourceCode(SourceCodeWriter &out) : OutputSourceCodeBase(out) , _isCalculateSizePass(false) {}
+    OutputSCISourceCode(SourceCodeWriter &out) : OutputSourceCodeBase(out), _isCalculateSizePass(false), _skipNextSpace(false) {}
 
     template<typename _T>
     void DoTheThing(_T &node)
     {
+        _skipNextSpace = false;
         _isCalculateSizePass = true;
         // Configure our output so it write the least amount possible.
         int oldIndentAmount = out.indentAmount;
@@ -479,6 +479,7 @@ public:
         Visit(node);
 
         // Now try again with the real deal.
+        _skipNextSpace = false;
         _isCalculateSizePass = false;
         std::stringstream ss;
         std::swap(out.out, ss);
@@ -488,9 +489,21 @@ public:
     }
 
 private:
+
+    bool _skipNextSpace;
+
+    // Avoids the extra space here:
+    // (cond
+    //      ( (IsObject foo) ...
+    //
+    // (switch
+    //      ( 1
+    //
+    void _SkipNextSpace() { _skipNextSpace = true; }
+
     bool _ShouldBeMultiline(const SyntaxNode *node)
     {
-        return _nodeSize[node] > 50;
+        return _nodeSize[node] > MaxColumnWidth;
     }
 
     _Check_return_
@@ -544,13 +557,17 @@ private:
     {
         if (out.fInline)
         {
-            out.out << " ";
+            if (!_skipNextSpace)
+            {
+                out.out << " ";
+            }
         }
         else
         {
             out.NewLine();
             Indent(out);
         }
+        _skipNextSpace = false;
     }
     void _MaybeNewLineIndentNoSpace()
     {
@@ -560,6 +577,46 @@ private:
             Indent(out);
         }
     }
+
+    void _OutputVariableAndSizeSCI(sci::SourceCodeWriter &out, const std::string &type, const std::string &name, WORD wSize, const sci::SyntaxNodeVector &initValues)
+    {
+        if (wSize > 1)
+        {
+            out.out << "[";
+        }
+        out.out << name;
+        if (wSize > 1)
+        {
+            out.out << " " << wSize << "]"; // array
+        }
+
+        if (!initValues.empty())
+        {
+            GO_INLINE;
+            if (wSize > 1)
+            {
+                out.out << " = [";
+                bool first = true;
+                for (auto &initValue : initValues)
+                {
+                    if (!first)
+                    {
+                        out.out << " ";
+                    }
+                    _MaybeIndentAccept(*initValue);
+                    first = false;
+                }
+                out.out << "[";
+            }
+            else
+            {
+                out.out << " = ";
+                _MaybeIndentAccept(*initValues[0]);
+            }
+        }
+    }
+
+
 public:
 
     void Visit(const Script &script) override
@@ -593,17 +650,33 @@ public:
             out.out << "(use " << uses << ")" << out.NewLineString();
         }
 
-        ForwardOptionalSection("public", script.GetExports());
+        if (!script.GetExports().empty())
+        {
+            out.out << "(public";
+            _IndentAcceptChildren(script.GetExports());
+            _MaybeNewLineIndent();
+            out.out << ")";
+        }
+
 
         Forward(script.GetSynonyms());
         out.EnsureNewLine();
 
         Forward(script.GetDefines());
-        out.EnsureNewLine();
+        
 
-        ForwardOptionalSection("local", script.GetScriptVariables());
+        _MaybeNewLineIndent();
 
-        ForwardOptionalSection("string", script.GetScriptStringsDeclarations());
+        if (!script.GetScriptVariables().empty())
+        {
+            out.out << "(local";
+            _IndentAcceptChildren(script.GetScriptVariables());
+            _MaybeNewLineIndent();
+            out.out << ")";
+        }
+
+        // These are not supported. Need to transform them into something else.
+        // ForwardOptionalSection("string", script.GetScriptStringsDeclarations());
 
         for (auto &proc : script.GetProcedures())
         {
@@ -614,12 +687,13 @@ public:
             // else Procs that "belong" to a class are handled in the class...
         }
 
-        out.EnsureNewLine();
         Forward(script.GetClasses());
     }
 
     void Visit(const ClassDefinition &classDef) override
     {
+        _MaybeNewLineIndent();
+
         out.SyncComments(classDef);
 
         _MaybeNewLineIndent();
@@ -657,8 +731,6 @@ public:
                 out.out << ")";
             }
 
-            _MaybeNewLineIndent();
-
             // Any class procedures (rare, but used by Timer.sc for instance)
             // In the OM, these are stored at the top level, but we want to print them
             // out as if they were contained in the class.
@@ -668,13 +740,17 @@ public:
             {
                 if (proc->GetClass() == classDef.GetName())
                 {
-                    proc->Accept(*this);
                     _MaybeNewLineIndent();
+                    proc->Accept(*this);
                 }
             }
 
             // Body (methods)
-            _NoIndentAcceptChildren(classDef.GetMethods());
+            for (auto &method : classDef.GetMethods())
+            {
+                _MaybeNewLineIndent();
+                method->Accept(*this);
+            }
         }
 
         _MaybeNewLineIndent();
@@ -747,7 +823,7 @@ public:
     {
         out.SyncComments(varDecl);
         _MaybeNewLineIndent();
-        _OutputVariableAndSizeSCI(*this, out, varDecl.GetDataType(), varDecl.GetName(), varDecl.GetSize(), varDecl.GetStatements());
+        _OutputVariableAndSizeSCI(out, varDecl.GetDataType(), varDecl.GetName(), varDecl.GetSize(), varDecl.GetStatements());
     }
 
     const size_t FunctionParamMultilineThreshold = 40;
@@ -793,7 +869,7 @@ public:
                             varNameToInitializer[variable->GetName()] = variable->GetInitializers()[0].get();
                         }
                         _MaybeNewLineIndent();
-                        _OutputVariableAndSizeSCI(*this, out, variable->GetDataType(), variable->GetName(), variable->GetSize(), emptyInitializer);
+                        _OutputVariableAndSizeSCI(out, variable->GetDataType(), variable->GetName(), variable->GetSize(), emptyInitializer);
                     }
                 }
                 _MaybeNewLineIndentNoSpace();
@@ -832,6 +908,8 @@ public:
 
     void Visit(const ProcedureDefinition &function) override
     {
+        _MaybeNewLineIndent();
+
         out.SyncComments(function);
         _MaybeNewLineIndent();
         out.out << "(procedure ";
@@ -1182,12 +1260,10 @@ public:
     void Visit(const CaseStatement &caseStatement) override
     {
         out.SyncComments(caseStatement);
+        _MaybeNewLineIndent();
 
         bool isMultiline = _ShouldBeMultiline(&caseStatement);
-        assert(isMultiline); // It's important that this returns true so that parents are multiline too.
         SET_MULTILINEMODE(isMultiline);
-
-        _MaybeNewLineIndent();
         {
             if (caseStatement.IsDefault())
             {
@@ -1198,6 +1274,7 @@ public:
                 out.out << "(";
                 bool isCaseConditionMultiline = _ShouldBeMultiline(caseStatement.GetStatement1());
                 SET_MULTILINEMODE(isCaseConditionMultiline);
+                _SkipNextSpace();
                 _MaybeIndentAccept(*caseStatement.GetStatement1());
             }
         }
@@ -1223,7 +1300,7 @@ public:
         _MaybeNewLineIndent();
 
         {
-            out.out << "(switch ";
+            out.out << "(switch";
             bool isValueMultiline = _ShouldBeMultiline(switchStatement.GetStatement1());
             SET_MULTILINEMODE(isValueMultiline);
             _MaybeIndentAccept(*switchStatement.GetStatement1());
@@ -1394,6 +1471,7 @@ public:
                         out.out << "(";
                         // Condition value
                         {
+                            _SkipNextSpace();
                             SET_MULTILINEMODE(_ShouldBeMultiline(conditionAndCode.first)); // Generally not multiline
                             _MaybeIndentAccept(*conditionAndCode.first);
                         }
@@ -1410,11 +1488,11 @@ public:
                     if (finalElse)
                     {
                         _MaybeNewLineIndent();
+                        SET_MULTILINEMODE(_ShouldBeMultiline(finalElse));
                         out.out << "(else";
                         {
                             // This is generally multiline
                             {
-                                SET_MULTILINEMODE(_ShouldBeMultiline(finalElse));
                                 _MaybeIndentAccept(*finalElse);
                             }
                         }
@@ -1473,31 +1551,28 @@ public:
     void Visit(const Asm &asmStatement) override
     {
         // Let's use a more custom text formatting.
-        out.EnsureNewLine();
-
-        Inline inlineAsm(out, true);
-
         int labelSize = 0;
         if (!asmStatement.GetLabel().empty())
         {
+            out.EnsureNewLine();
             out.out << asmStatement.GetLabel() << ":";
-            labelSize = (int)asmStatement.GetLabel().size() + 1;
         }
 
         // Move forward to the current indent level.
-        string spaces;
-        spaces.append(max(0, out.iIndent - labelSize), ' ');
-        out.out << spaces;
+        _MaybeNewLineIndent();
 
         // output the instruction
         out.out << asmStatement.GetName();
 
         // Move forward to a common column
-        spaces.clear();
+        string spaces;
         spaces.append(max(0, 8 - asmStatement.GetName().size()), ' ');
         out.out << spaces;
 
-        Forward(asmStatement.GetStatements(), ", ");
+        {
+            GO_INLINE;
+            Forward(asmStatement.GetStatements(), ", ");
+        }
     }
 
     void Visit(const AsmBlock &asmSection) override

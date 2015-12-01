@@ -26,45 +26,6 @@ void PrepForLanguage(LangSyntax langSyntax, sci::Script &script)
     }
 }
 
-void _OutputVariableAndSizeSCI(sci::ISyntaxNodeVisitor &visitor, sci::SourceCodeWriter &out, const std::string &type, const std::string &name, WORD wSize, const sci::SyntaxNodeVector &initValues)
-{
-    if (wSize > 1)
-    {
-        out.out << "[";
-    }
-    out.out << name;
-    if (wSize > 1)
-    {
-        out.out << " " << wSize << "]"; // array
-    }
-
-    if (!initValues.empty())
-    {
-        if (wSize > 1)
-        {
-            out.out << " = [";
-            bool first = true;
-            for (auto &initValue : initValues)
-            {
-                if (!first)
-                {
-                    out.out << " ";
-                }
-                Inline inln(out, true);
-                initValue->Accept(visitor);
-                first = false;
-            }
-            out.out << "[";
-        }
-        else
-        {
-            out.out << " = ";
-            initValues[0]->Accept(visitor);
-
-        }
-    }
-}
-
 void _OutputVariableAndSizeStudio(sci::ISyntaxNodeVisitor &visitor, sci::SourceCodeWriter &out, const std::string &type, const std::string &name, WORD wSize, const sci::SyntaxNodeVector &initValues)
 {
     out.out << name;
