@@ -86,9 +86,9 @@ public:
 
     // IAutoCompleteClient
     BOOL OnACDoubleClick();
-
-    void AttachToAutoComp();
+#if 0
     void OnVisualScript();
+#endif
 
 protected:
 
@@ -131,7 +131,9 @@ protected:
     afx_msg void OnGotoDefinition();
     afx_msg void OnIntellisense();
     afx_msg void OnGoto();
+    afx_msg void OnToggleComment();
     afx_msg void OnUpdateAddAs(CCmdUI *pCmdUI);
+    afx_msg void OnUpdateIsSCI(CCmdUI *pCmdUI);
     afx_msg void OnUpdateGotoScriptHeader(CCmdUI *pCmdUI);
     afx_msg void OnUpdateGotoDefinition(CCmdUI *pCmdUI);
     afx_msg void OnLButtonDown(UINT nFlags, CPoint point);

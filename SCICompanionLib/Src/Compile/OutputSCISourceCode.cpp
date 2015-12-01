@@ -675,8 +675,13 @@ public:
             out.out << ")";
         }
 
-        // These are not supported. Need to transform them into something else.
-        // ForwardOptionalSection("string", script.GetScriptStringsDeclarations());
+        // These are not supported. They aren't used by the SCI0 or SCI1.1 template games,
+        // and only a few fan-made games declare them (but don't use them).
+        if (!script.GetScriptStringsDeclarations().empty())
+        {
+            _MaybeNewLineIndent();
+            out.out << "; WARNING: This script contained a string section, which is not supported. It may not compile.";
+        }
 
         for (auto &proc : script.GetProcedures())
         {

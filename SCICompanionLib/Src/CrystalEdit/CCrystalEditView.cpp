@@ -1137,6 +1137,31 @@ void CCrystalEditView::PasteTextAtCursorAndHightlightWord(LPCTSTR pszNewText, LP
     EnsureVisible(ptEndOfBlock);
 }
 
+void CCrystalEditView::PrependToLines(int start, int inclusiveEnd, PCSTR pszPrefix)
+{
+    m_pTextBuffer->BeginUndoGroup();
+    for (int line = start; line <= inclusiveEnd; line++)
+    {
+        int nEndLine, nEndChar;
+        m_pTextBuffer->InsertText(this, line, 0, pszPrefix, nEndLine, nEndChar, CE_ACTION_PASTE);
+    }
+    m_pTextBuffer->FlushUndoGroup(this);
+}
+void CCrystalEditView::RemoveFromLines(int start, int inclusiveEnd, char ch)
+{
+    for (int line = start; line <= inclusiveEnd; line++)
+    {
+        PCSTR pszChars = GetLineChars(line);
+        int count = 0;
+        while (pszChars && (pszChars[count] == ch)) { count++; }
+        if (count)
+        {
+            m_pTextBuffer->DeleteText(this, line, 0, line, count, CE_ACTION_DELETE);
+        }
+    }
+}
+
+
 void CCrystalEditView::OnUpdateEditUndo(CCmdUI* pCmdUI) 
 {
 	BOOL bCanUndo = m_pTextBuffer != NULL && m_pTextBuffer->CanUndo();

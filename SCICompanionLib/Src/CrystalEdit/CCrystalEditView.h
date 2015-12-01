@@ -88,9 +88,12 @@ public:
 	virtual BOOL QueryEditable();
 	virtual void UpdateView(CCrystalTextView *pSource, CUpdateContext *pContext, DWORD dwFlags, int nLineIndex = -1);
 
+    // Added:
 	BOOL ReplaceSelection(LPCTSTR pszNewText);
     void PasteTextAtCursor(LPCTSTR pszNewText);
     void PasteTextAtCursorAndHightlightWord(LPCTSTR pszNewText, LPCSTR pszWord);
+    void PrependToLines(int start, int inclusiveEnd, PCSTR pszPrefix);
+    void RemoveFromLines(int start, int inclusiveEnd, char ch);
 
 	virtual void OnEditOperation(int nAction, LPCTSTR pszText);
 

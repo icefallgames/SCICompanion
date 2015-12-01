@@ -77,7 +77,6 @@ AvailableMethods::AvailableMethods(LangSyntax language) : _targetLanguage(langua
         _script = std::make_unique<sci::Script>(ScriptId(fullPath));
         if (SyntaxParser_Parse(*_script, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log, false, nullptr, true))
         {
-            PrepForLanguage(_targetLanguage, *_script);
             for (const auto &theClass : _script->GetClassesNC())
             {
                 transform(theClass->GetMethods().begin(), theClass->GetMethods().end(), back_inserter(_methods),
@@ -91,6 +90,7 @@ AvailableMethods::AvailableMethods(LangSyntax language) : _targetLanguage(langua
 
 void AvailableMethods::PrepareBuffer(const sci::MethodDefinition *methodDef, CString &buffer)
 {
+    PrepForLanguage(_targetLanguage, *_script);
     std::stringstream ss;
     //sci::SourceCodeWriter out(ss, _targetLanguage, _objectToScript[theClass]);
     // Providing the script lets us sync comments, but it is not working properly. They merge with newlines, and comments in
@@ -141,8 +141,6 @@ AvailableObjects::AvailableObjects(LangSyntax language) : _targetLanguage(langua
             std::unique_ptr<sci::Script> pScript = std::make_unique<sci::Script>(ScriptId(fullPath));
             if (SyntaxParser_Parse(*pScript, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log, false, nullptr, true))
             {
-                PrepForLanguage(_targetLanguage, *pScript);
-
                 transform(pScript->GetClassesNC().begin(), pScript->GetClassesNC().end(), back_inserter(_objects),
                     [](unique_ptr<ClassDefinition> &theClass) { return theClass.get(); }
                 );
@@ -161,6 +159,11 @@ AvailableObjects::AvailableObjects(LangSyntax language) : _targetLanguage(langua
 
 void AvailableObjects::PrepareBuffer(sci::ClassDefinition *theClass, CString &buffer, CListBox *pListProps, CListBox *pListMethods)
 {
+    for (auto &script : _scripts)
+    {
+        PrepForLanguage(_targetLanguage, *script);
+    }
+
     // Grab any properties from the "fake ego"
     std::unique_ptr<FakeEgo> fakeEgo;
     ProcessClipboardDataIfAvailable(appState->ViewAttributesClipboardFormat, AfxGetMainWnd(),

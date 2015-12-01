@@ -1143,6 +1143,7 @@
 #define ID_CONVERT_SCRIPT               33296
 #define ID_COMPILE_SCCTEMP              33297
 #define ID_MAIN_RELOADSYNTAXCOLORS      33298
+#define ID_MAIN_TOGGLEBLOCKCOMMENT      33299
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -1151,7 +1152,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        403
-#define _APS_NEXT_COMMAND_VALUE         33299
+#define _APS_NEXT_COMMAND_VALUE         33301
 #define _APS_NEXT_CONTROL_VALUE         1383
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

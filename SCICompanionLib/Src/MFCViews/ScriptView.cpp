@@ -128,9 +128,11 @@ BEGIN_MESSAGE_MAP(CScriptView, CCrystalEditView)
     ON_UPDATE_COMMAND_UI(ID_ADDAS_ARTICLE, OnUpdateAddAs)
     ON_UPDATE_COMMAND_UI(ID_GOTOSCRIPT, OnUpdateGotoScriptHeader)
     ON_UPDATE_COMMAND_UI(ID_SCRIPT_GOTODEFINITION, OnUpdateGotoDefinition)
-    ON_COMMAND(ID_VISUALSCRIPT, OnVisualScript)
+    // ON_COMMAND(ID_VISUALSCRIPT, OnVisualScript)
     ON_MESSAGE(UWM_AUTOCOMPLETEREADY, OnAutoCompleteReady)
     ON_MESSAGE(UWM_HOVERTIPREADY, OnHoverTipReady)
+    ON_COMMAND(ID_MAIN_TOGGLEBLOCKCOMMENT, OnToggleComment)
+    ON_UPDATE_COMMAND_UI(ID_MAIN_TOGGLEBLOCKCOMMENT, OnUpdateIsSCI)
     //ON_UPDATE_COMMAND_UI(ID_VISUALSCRIPT, OnUpdateAlwaysOn)
 END_MESSAGE_MAP()
 
@@ -1549,6 +1551,10 @@ void CScriptView::OnAddAsSynonymOf()
     }
 }
 
+void CScriptView::OnUpdateIsSCI(CCmdUI *pCmdUI)
+{
+    pCmdUI->Enable(GetDocument() && (GetDocument()->GetScriptId().Language() == LangSyntaxSCI));
+}
 
 void CScriptView::OnUpdateAddAs(CCmdUI *pCmdUI)
 {
@@ -1754,15 +1760,46 @@ BOOL CScriptView::OnACDoubleClick()
     return fSomethingWasSelected;
 }
 
-
-void CScriptView::AttachToAutoComp()
+void CScriptView::OnToggleComment()
 {
-//    _pParseContext->InitializeAutoComplete(_pStream, _pLimiter, &_hEventDoAC, &_hEventACDone);
+    if (GetDocument() && GetDocument()->GetScriptId().Language() == LangSyntaxSCI)
+    {
+        // This is for SCI Script only. There are no multiline comments, so this helps with that.
+        // Get the current block of code. See if the lines predominatly have comments or not.
+        // Then toggle that.
+        CPoint ptStart, ptEnd;
+        GetSelection(ptStart, ptEnd);
+
+        // Possibly start at the *next* line so used doesn't have to be exact when selecting text.
+        if ((ptStart.y < ptEnd.y) && (ptStart.x > 0))
+        {
+            ptStart.y++;
+            ptStart.x = 0;
+        }
+
+        int isComment = 0;
+        for (int line = ptStart.y; line <= ptEnd.y; line++)
+        {
+            PCSTR pszChars = GetLineChars(line);
+            isComment += (pszChars && pszChars[0] == ';') ? 1 : -1;
+        }
+        
+        if (isComment >= 0)
+        {
+            // Uncomment
+            RemoveFromLines(ptStart.y, ptEnd.y, ';');
+        }
+        else
+        {
+            // Comment
+            PrependToLines(ptStart.y, ptEnd.y, ";;;");
+        }
+    }
 }
 
+#if 0
 void CScriptView::OnVisualScript()
 {
-#if 0
 	SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser();
     ClassBrowserLock lock(browser);
     lock.Lock();
@@ -1770,8 +1807,8 @@ void CScriptView::OnVisualScript()
     const sci::Script *pScript = browser.GetLKGScript(fullPath);
     CVisualScriptDialog dialog(const_cast<sci::Script *>(pScript), &browser);
     dialog.DoModal();
-#endif
 }
+#endif
 
 void CScriptView::OnUpdateGotoScriptHeader(CCmdUI *pCmdUI)
 {
