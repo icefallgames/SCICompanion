@@ -106,7 +106,7 @@ vector<string> SCIKeywords =
     "and",
     "not",
     "of",
-    "scriptNumber",
+    // "scriptNumber",  // This is special, because it's a value. So don't count it as a banned keyword.
     "public",
     "define",
     "&tmp",
@@ -491,7 +491,7 @@ void SCISyntaxParser::Load()
     _fLoaded = true;
 
     // An integer or plain alphanumeric token
-    immediateValue = integer_p[PropValueIntA<errInteger>] | alphanumNK_p[PropValueStringA<ValueType::Token, errNoKeywordOrSelector>] | bracestring_p[PropValueStringA<ValueType::String>];
+    immediateValue = integer_p[PropValueIntA<errInteger>] | alphanumNK_p[PropValueStringA<ValueType::Token, errNoKeywordOrSelector>];
     string_immediateValue = integer_p[PropValueIntA<errInteger>] | alphanumNK_p[PropValueStringA<ValueType::Token, errNoKeywordOrSelector>] | quotedstring_p[{PropValueStringA<ValueType::ResourceString>, ParseAutoCompleteContext::Block}] | bracestring_p[PropValueStringA<ValueType::String>];
 
     // Top level constructs
@@ -527,6 +527,7 @@ void SCISyntaxParser::Load()
         | keyword_p("argc")[ComplexValueParamTotalA]
         | quotedstring_p[{ComplexValueStringA<ValueType::ResourceString>, ParseAutoCompleteContext::Block}]
         | squotedstring_p[{ComplexValueStringA<ValueType::Said>, ParseAutoCompleteContext::Block}]
+        | bracestring_p[{ComplexValueStringA<ValueType::String>, ParseAutoCompleteContext::Block}]
         | (-pointer[ComplexValuePointerA] >> rvalue_variable)
         | selector_literal[ComplexValueStringA<ValueType::Selector>]);
 
@@ -629,7 +630,7 @@ void SCISyntaxParser::Load()
         >> ((alphanumSendToken_p[SetNameA<SendCall>]) | statement[StatementBindTo1stA<SendCall, errSendObject>])) // Expression, e.g. [clients 4], or (GetTheGuy)
         >>
         (propget_p[AddSimpleSendParamA] |             // Single prop get
-        (syntaxnode_d[send_param_call[AddSendParamA]] % comma[GeneralE])      // Or a series regular ones separated by comma
+        (syntaxnode_d[send_param_call[AddSendParamA]] % -comma[GeneralE])      // Or a series regular ones separated by optional comma
         )
         ;
 

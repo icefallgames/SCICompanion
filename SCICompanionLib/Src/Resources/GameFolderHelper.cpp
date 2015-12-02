@@ -155,20 +155,30 @@ std::string GameFolderHelper::GetGameIniFileName() const
     return filename;
 }
 
-std::string GameFolderHelper::_GetSubfolder(const char *key) const
+std::string GameFolderHelper::GetSubFolder(const std::string &subFolder) const
+{
+    return _GetSubfolder(subFolder.c_str());
+}
+
+std::string GameFolderHelper::_GetSubfolder(const char *key, const std::string *prefix) const
 {
     std::string srcFolder = this->GameFolder;
     if (!srcFolder.empty())
     {
         srcFolder += "\\";
+        if (prefix)
+        {
+            srcFolder += *prefix;
+            srcFolder += "\\";
+        }
         srcFolder += key;
     }
     return srcFolder;
 }
 
-std::string GameFolderHelper::GetSrcFolder() const
+std::string GameFolderHelper::GetSrcFolder(const std::string *prefix) const
 {
-    return _GetSubfolder("src");
+    return _GetSubfolder("src", prefix);
 }
 
 std::string GameFolderHelper::GetLipSyncFolder() const
@@ -176,14 +186,14 @@ std::string GameFolderHelper::GetLipSyncFolder() const
     return _GetSubfolder("lipsync");
 }
 
-std::string GameFolderHelper::GetMsgFolder() const
+std::string GameFolderHelper::GetMsgFolder(const std::string *prefix) const
 {
-    return _GetSubfolder("msg");
+    return _GetSubfolder("msg", prefix);
 }
 
-std::string GameFolderHelper::GetPolyFolder() const
+std::string GameFolderHelper::GetPolyFolder(const std::string *prefix) const
 {
-    return _GetSubfolder("poly");
+    return _GetSubfolder("poly", prefix);
 }
 
 //

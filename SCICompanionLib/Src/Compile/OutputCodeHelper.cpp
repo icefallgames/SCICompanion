@@ -124,6 +124,34 @@ void EndStatement(sci::SourceCodeWriter &out)
     }
 }
 
+// Scripts compiled with v1 of the SCI Studio syntax don't support explicit export lists.
+// When outputting source code, we need to list these.
+// We should follow the same order as GetExportTableOrder
+void EnsurePublicsInExports(sci::Script &script)
+{
+    if (script.GetExports().empty())
+    {
+        int exportSlot = 0;
+        // public instances, followed by procedures
+        for (auto &classDef : script.GetClassesNC())
+        {
+            if (classDef->IsPublic())
+            {
+                script.GetExports().push_back(std::make_unique<ExportEntry>(exportSlot, classDef->GetName()));
+                exportSlot++;
+            }
+        }
+        for (auto &proc : script.GetProcedures())
+        {
+            if (proc->IsPublic())
+            {
+                script.GetExports().push_back(std::make_unique<ExportEntry>(exportSlot, proc->GetName()));
+                exportSlot++;
+            }
+        }
+    }
+}
+
 // Wrap the string in braces if it doesn't start with A-Za-z_ and stuff...
 std::string CleanToken(const std::string &src, std::unordered_set<std::string> *disallowedList)
 {

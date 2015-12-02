@@ -591,18 +591,8 @@ string CompileContext::GetSuperClassName()
 const ClassDefinition *CompileContext::LookupClassDefinition(const std::string &name)
 {
 	return match_name(_script.GetClasses(), name);
-	/*
-    const ClassVector &classes = _script.GetClasses();
-    ClassVector::const_iterator classIt = match_name(classes.begin(), classes.end(), name);
-    if (classIt != classes.end())
-    {
-        return (*classIt).get();
-    }
-    else
-    {
-        return nullptr;
-    }*/
 }
+
 // Look up a string and map it to a procedure.  Return the script and index of the procedure, where appropraite
 // Script are looked up in this order:
 // ProcedureKernel:     wIndex
@@ -1191,6 +1181,8 @@ std::vector<std::string> &GetDefaultHeaders(Script &script)
         return g_defaultSCIStudioHeaders; // empty
     }
 }
+
+PrecompiledHeaders::~PrecompiledHeaders() {}
 
 void PrecompiledHeaders::Update(CompileContext &context, Script &script)
 {

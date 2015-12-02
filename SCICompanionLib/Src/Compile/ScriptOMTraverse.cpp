@@ -124,6 +124,10 @@ void SendCall::Traverse(IExploreNode &en)
 			_object3->Traverse(en);
         }
     }
+    if (_rest)
+    {
+        _rest->Traverse(en);
+    }
 }
 void ProcedureCall::Traverse(IExploreNode &en)
 {

@@ -406,6 +406,7 @@
     <ClCompile Include="Src\Util\PhonemeMap.cpp" />
     <ClCompile Include="Src\Util\RGBOctree.cpp" />
     <ClCompile Include="Src\Util\RunLogic.cpp" />
+    <ClCompile Include="Src\Util\ScriptConvert.cpp" />
     <ClCompile Include="Src\Util\SoundUtil.cpp" />
     <ClCompile Include="Src\Compile\Compile.cpp" />
     <ClCompile Include="Src\Compile\CompileContext.cpp" />
@@ -801,6 +802,7 @@
     <None Include="Src\GIFLIB\AUTHORS" />
     <None Include="Src\GIFLIB\COPYING" />
     <None Include="Src\r8brain\README.md" />
+    <None Include="Src\Util\ScriptConvert.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="SCICompanionLib.rc" />

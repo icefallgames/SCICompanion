@@ -480,6 +480,10 @@ ScriptSite::ScriptSite()
 // REVIEW: Only works with cpp style comments.
 std::string Comment::GetSanitizedText() const
 {
+    if (_innerName.empty())
+    {
+        return _innerName;
+    }
 	if ((_innerName[0] == '/') && (_innerName[1] == '/'))
     {
         // Remove the endline and any spaces

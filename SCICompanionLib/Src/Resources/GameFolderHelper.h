@@ -40,10 +40,11 @@ public:
     std::string GetScriptFileName(WORD wScript, LangSyntax lang = LangSyntaxUnknown) const;
     std::string GetScriptObjectFileName(const std::string &title, LangSyntax lang = LangSyntaxUnknown) const;
     std::string GetScriptObjectFileName(WORD wScript, LangSyntax lang = LangSyntaxUnknown) const;
-    std::string GameFolderHelper::GetSrcFolder() const;
-    std::string GameFolderHelper::GetMsgFolder() const;
+    std::string GameFolderHelper::GetSrcFolder(const std::string *prefix = nullptr) const;
+    std::string GameFolderHelper::GetMsgFolder(const std::string *prefix = nullptr) const;
+    std::string GameFolderHelper::GetSubFolder(const std::string &subFolder) const;
     std::string GameFolderHelper::GetLipSyncFolder() const;
-    std::string GameFolderHelper::GetPolyFolder() const;
+    std::string GameFolderHelper::GetPolyFolder(const std::string *prefix = nullptr) const;
     std::string GetGameIniFileName() const;
     std::string GetIniString(const std::string &sectionName, const std::string &keyName, PCSTR pszDefault = "") const;
     std::string GetIncludeFolder() const;
@@ -60,6 +61,6 @@ public:
     LangSyntax Language;
 
 private:
-    std::string _GetSubfolder(const char *key) const;
+    std::string _GetSubfolder(const char *key, const std::string *prefix = nullptr) const;
 };
 

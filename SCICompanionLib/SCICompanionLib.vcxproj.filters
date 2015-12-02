@@ -798,6 +798,9 @@
     <ClCompile Include="Src\Compile\OutputSourceCodeBase.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Util\ScriptConvert.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCICompanionLib.h">
@@ -1807,6 +1810,7 @@
     <None Include="Src\GIFLIB\COPYING" />
     <None Include="Src\CppFormat\README.rst" />
     <None Include="SCICompanionLib.licenseheader" />
+    <None Include="Src\Util\ScriptConvert.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="SCICompanionLib.rc">

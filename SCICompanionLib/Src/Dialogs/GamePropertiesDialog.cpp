@@ -17,7 +17,8 @@
 #include "stdafx.h"
 #include "AppState.h"
 #include "GamePropertiesDialog.h"
-
+#include "ScriptConvert.h"
+#include "CompileContext.h"
 
 // CGamePropertiesDialog dialog
 
@@ -139,7 +140,12 @@ void CGamePropertiesDialog::OnOK()
     {
         appState->GetResourceMap().SetGameLanguage((LangSyntax)curSel);
 
-        // TODO: Offer to change everything over.
+        if (IDYES == AfxMessageBox("You've changed the default script language of the game. You can convert scripts one-by-one, or all at once right now. Do you want to try to convert all the scripts and headers now?", MB_YESNO | MB_ICONINFORMATION))
+        {
+            CompileLog log;
+            ConvertGame(appState->GetResourceMap(), (LangSyntax)curSel, log);
+            appState->OutputResults(OutputPaneType::Compile, log.Results());
+        }
     }
 
     __super::OnOK();

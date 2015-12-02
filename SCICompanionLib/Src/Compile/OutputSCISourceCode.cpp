@@ -175,13 +175,24 @@ using namespace std;
 // For instance b-moveCnt, or -info-. However, in the original syntax, I don't think this is needed.
 // For now, however, we'll keep track of the places that need this by having this dummy function.
 // Actually, we can use it to convert paramTotal to argc.
+// Oh... in the SCI0 template game there is an object with a space in its name. Let's replace though with _
 std::string CleanTokenSCI(const std::string &src)
 {
     if (src == "paramTotal")
     {
         return "argc";
     }
-    return src;
+    std::string output;
+    std::transform(src.begin(), src.end(), std::back_inserter(output), [](char ch)
+    {
+        if (std::isspace(ch))
+        {
+            ch = '_';
+        }
+        return ch;
+    }
+    );
+    return output;
 }
 
 std::string GetPropertyText(const PropertyValueBase &prop)
@@ -191,6 +202,7 @@ std::string GetPropertyText(const PropertyValueBase &prop)
     {
         case ValueType::String:
             mw << "{" << UnescapeString(prop.GetStringValue()) << "}";
+            break;
         case ValueType::ResourceString:
             mw << "\"" << UnescapeString(prop.GetStringValue()) << "\"";
             break;
@@ -851,7 +863,7 @@ public:
         _MaybeNewLineIndent();
         // Always inline
         GO_INLINE;
-        out.out << CleanTokenSCI(classProp.GetName()) << " ";
+        out.out << CleanTokenSCI(classProp.GetName());
         classProp.GetStatement1()->Accept(*this);
     }
 
@@ -1054,12 +1066,14 @@ public:
             }
             else if (sendCall.GetStatement1())
             {
+                _SkipNextSpace();
                 _MaybeIndentAccept(*sendCall.GetStatement1());
             }
             else
             {
                 if (sendCall._object3)
                 {
+                    _SkipNextSpace();
                     _MaybeIndentAccept(*sendCall._object3);
                 }
                 else
@@ -1211,7 +1225,7 @@ public:
         }
         else
         {
-            out.out << "(while ";
+            out.out << "(while";
             bool isConditionMultiline = _ShouldBeMultiline(whileLoop.GetCondition().get());
             SET_MULTILINEMODE(isConditionMultiline);
             _MaybeIndentAccept(*whileLoop.GetCondition());
@@ -1514,20 +1528,23 @@ public:
                     {
                         _MaybeNewLineIndent();
                         out.out << "(";
+                        bool isConditionMultiline = _ShouldBeMultiline(conditionAndCode.first);
                         // Condition value
                         {
                             _SkipNextSpace();
-                            SET_MULTILINEMODE(_ShouldBeMultiline(conditionAndCode.first)); // Generally not multiline
+                            SET_MULTILINEMODE(isConditionMultiline); // Generally not multiline
                             _MaybeIndentAccept(*conditionAndCode.first);
                         }
 
-                        // This is generally multiline
+                        // This is generally multiline. It definitely is if the condition is though.
                         {
-                            SET_MULTILINEMODE(_ShouldBeMultiline(conditionAndCode.second)); // Generally not multiline
+                            SET_MULTILINEMODE(isConditionMultiline || _ShouldBeMultiline(conditionAndCode.second)); // Generally not multiline
                             _MaybeIndentAccept(*conditionAndCode.second);
+
+                            // Move the closing paren in here, since we want it to be inline if everything was inline.
+                            _MaybeNewLineIndentNoSpace();
+                            out.out << ")";
                         }
-                        _MaybeNewLineIndentNoSpace();
-                        out.out << ")";
                     }
 
                     if (finalElse)

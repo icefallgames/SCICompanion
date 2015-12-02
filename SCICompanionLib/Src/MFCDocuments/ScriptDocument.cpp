@@ -43,9 +43,9 @@
 #include "ResourceBlob.h"
 #include "DependencyTracker.h"
 #include "OutputCodeHelper.h"
+#include "ScriptConvert.h"
 #include <filesystem>
 
-using namespace std::tr2::sys;
 using namespace std;
 
 bool CompileLog::HasErrors()
@@ -497,151 +497,30 @@ void CScriptDocument::OnDebugRoom()
 // Converts to the default game language.
 void CScriptDocument::OnConvertScript()
 {
-    if (appState->GetResourceMap().Helper().GetDefaultGameLanguage() != _scriptId.Language())
+    CompileLog log;
+
+    if (ConvertScript(appState->GetVersion(), appState->GetResourceMap().Helper().GetDefaultGameLanguage(), _scriptId, log, true))
     {
-        // What we do
-        // 1) Parse this script and generate a syntax tree.
-        // 2) If successful, write to the file.
-        // 3) Reload
-        CScriptStreamLimiter limiter(&_buffer);
-        CCrystalScriptStream stream(&limiter);
-        //SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser(); 
-        //browser.Lock();
-        // 1)
-        sci::Script script(_scriptId);
-        CompileLog log;
-        bool fCompile = SyntaxParser_Parse(script, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log);;
-        if (fCompile)
-        {
-            PrepForLanguage(appState->GetResourceMap().Helper().GetDefaultGameLanguage(), script);
+        _buffer.FreeAll();
+        _buffer.LoadFromFile(_scriptId.GetFullPath().c_str());
 
-            std::stringstream out;
-            sci::SourceCodeWriter theCode(out, appState->GetResourceMap().Helper().GetDefaultGameLanguage(), &script);
-            theCode.indentChar = '\t';
-            theCode.indentAmount = 1;
-            script.OutputSourceCode(theCode);
+        // Play a sound and rejoice!
+        // Nah, don't.
+        // PlaySound((LPCSTR)SND_ALIAS_SYSTEMHAND, NULL, SND_ALIAS_ID | SND_ASYNC);
 
-            // Copy the old file to .bak
-            std::string bakPath = _scriptId.GetFullPath() + ".bak";
-            copy_file(path(_scriptId.GetFullPath()), path(bakPath), copy_option::overwrite_if_exists);
+        // Tell the view.
+        UpdateAllViewsAndNonViews(nullptr, 0, &WrapObject(ScriptChangeHint::Converted | ScriptChangeHint::Pos, this));
 
-            // Now save it
-            ofstream newFile(_scriptId.GetFullPath());
-            newFile << out.str();
-            if (newFile.good())
-            {
-                // All went well
-                newFile.close();
-
-                std::stringstream ss;
-                ss << _scriptId.GetFileName() << " was successfully converted. Old file backed up to " + bakPath;
-                log.ReportResult(CompileResult(ss.str()));
-                appState->OutputResults(OutputPaneType::Compile, log.Results());
-
-                // 3) Switch to the new script
-                uint16_t scriptNumber = _scriptId.GetResourceNumber();
-                _scriptId = ScriptId(_scriptId.GetFullPath());
-                _scriptId.SetResourceNumber(scriptNumber);
-                
-                // Should be the new language now
-                assert(_scriptId.Language() == appState->GetResourceMap().Helper().GetDefaultGameLanguage());
-                _buffer.FreeAll();
-                _buffer.LoadFromFile(_scriptId.GetFullPath().c_str());
-
-                // Play a sound and rejoice!
-                // Nah, don't.
-                // PlaySound((LPCSTR)SND_ALIAS_SYSTEMHAND, NULL, SND_ALIAS_ID | SND_ASYNC);
-
-                // Tell the view.
-                UpdateAllViewsAndNonViews(nullptr, 0, &WrapObject(ScriptChangeHint::Converted | ScriptChangeHint::Pos, this));
-
-                // Update our title
-                _OnUpdateTitle();
-            }
-            else
-            {
-                AfxMessageBox("There was an error write out the new script file.", MB_OK | MB_ICONERROR);
-            }
-
-#ifdef DISABLED_NO_CPP_SUPPORT
-
-
-            // 1.5 Make some substitutions for properties that have minus signs in them.
-            // e.g. convert b-moveCnt to b_moveCnt, since c-style syntax can't handle - in a variable name.
-            class PropertyAliasConvert : public sci::IExploreNode
-            {
-            public:
-                void ExploreNode(sci::SyntaxNode &node, sci::ExploreNodeState state)
-                {
-					if (state == sci::ExploreNodeState::Pre)
-					{
-						switch (node.GetNodeType())
-						{
-						case sci::NodeTypeValue:
-						case sci::NodeTypeComplexValue:
-						{
-							sci::PropertyValueBase &base = static_cast<sci::PropertyValueBase&>(node);
-							if ((base.GetType() == sci::ValueType::Token) ||
-								(base.GetType() == sci::ValueType::Selector) ||
-								(base.GetType() == sci::ValueType::Pointer))
-							{
-								base.SetValue(GetTokenAlias(base.GetStringValue()), base.GetType());
-							}
-						}
-						break;
-						case sci::NodeTypeClassProperty:
-						{
-							sci::ClassProperty &classProp = static_cast<sci::ClassProperty&>(node);
-							classProp.SetName(GetTokenAlias(classProp.GetName()));
-						}
-						break;
-
-						case sci::NodeTypeLValue:
-						{
-							sci::LValue &lvalue = static_cast<sci::LValue&>(node);
-							lvalue.SetName(GetTokenAlias(lvalue.GetName()));
-						}
-						break;
-						case sci::NodeTypeSendParam:
-						{
-							sci::SendParam &sendParam = static_cast<sci::SendParam&>(node);
-							sendParam.SetName(GetTokenAlias(sendParam.GetName()));
-						}
-						break;
-						}
-					}
-                }
-            };
-            PropertyAliasConvert propertyAliasConvert;
-            script.Traverse(propertyAliasConvert);
-
-            std::stringstream out;
-			sci::SourceCodeWriter debugOut(out, LangSyntaxCpp, &script);
-            script.OutputSourceCode(debugOut);
-
-            // 2)
-            // Can't use CResourceMap::GetScriptFileName just yet, since we haven't offically converted the script
-            std::string fullPath = _scriptId.GetFullPath();
-            if (_scriptId.IsHeader())
-            {
-                fullPath.replace(fullPath.find(".sh"), strlen(".sh"), ".shp");
-            }
-            else
-            {
-                fullPath.replace(fullPath.find(".sc"), strlen(".sc"), ".scp");
-            }
-
-#endif
-        }
-        else
-        {
-            log.SummarizeAndReportErrors();
-            appState->OutputResults(OutputPaneType::Compile, log.Results());
-            AfxMessageBox("The original script has compile errors. They must be fixed before conversion can take place.", MB_ERRORFLAGS);
-        }
+        // Update our title
+        _OnUpdateTitle();
     }
+    else
+    {
+        log.SummarizeAndReportErrors();
+        AfxMessageBox("The original script has compile errors. They must be fixed before conversion can take place.", MB_ERRORFLAGS);
+    }
+    appState->OutputResults(OutputPaneType::Compile, log.Results());
 }
-
 
 void CScriptDocument::OnUpdateConvertScript(CCmdUI *pCmdUI)
 {

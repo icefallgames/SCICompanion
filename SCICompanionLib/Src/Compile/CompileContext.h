@@ -74,7 +74,7 @@ public:
     PrecompiledHeaders(CResourceMap &resourceMap);
     PrecompiledHeaders(const PrecompiledHeaders &src) = delete;
     PrecompiledHeaders operator=(const PrecompiledHeaders &src) = delete;
-    ~PrecompiledHeaders() = default;
+    ~PrecompiledHeaders();
 
     // Call this each time you compile a new script
     void Update(CompileContext &context, sci::Script &script);

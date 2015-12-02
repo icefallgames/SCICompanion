@@ -41,6 +41,7 @@ void _OutputVariableAndSizeSCI(sci::ISyntaxNodeVisitor &visitor, sci::SourceCode
 std::string UnescapeString(std::string src);
 void CleanVariableNames(sci::Script &script, const std::vector<std::pair<std::string, std::string>> &fromToMapping);
 std::string CleanToken(const std::string &src, std::unordered_set<std::string> *disallowedList = nullptr);
+void EnsurePublicsInExports(sci::Script &script);
 
 class BracketScope
 {

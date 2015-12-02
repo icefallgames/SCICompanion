@@ -439,52 +439,19 @@ static const WORD InvalidResourceNumber = 0xffff;
 class ScriptId
 {
 public:
-    ScriptId() : _language(LangSyntaxUnknown) { _wScriptNum = InvalidResourceNumber; };
+    ScriptId();
+    ScriptId(const std::string &fullPath);
+    ScriptId(PCTSTR pszFullFileName);
+    ScriptId(PCTSTR pszFileName, PCTSTR pszFolder);
+    ScriptId(const ScriptId &src);
+    ScriptId& operator=(const ScriptId& src);
 
-    ScriptId(const std::string &fullPath) : _language(LangSyntaxUnknown)
-    {
-        _Init(fullPath.c_str());
-    }
-    ScriptId(PCTSTR pszFullFileName) : _language(LangSyntaxUnknown)
-    {
-        _Init(pszFullFileName);
-    }
-    ScriptId(PCTSTR pszFileName, PCTSTR pszFolder) : _language(LangSyntaxUnknown)
-    {
-        assert(StrChr(pszFileName, '\\') == nullptr); // Ensure file and path are not mixed up.
-        _strFileName = pszFileName;
-        _strFolder = pszFolder;
-        _MakeLower();
-        _wScriptNum = InvalidResourceNumber;
-    }
+    void SetLanguage(LangSyntax lang);
 
-    ScriptId(const ScriptId &src)
-    {
-        _strFolder = src.GetFolder();
-        _strFileName = src.GetFileName();
-        _strFileNameOrig = src._strFileNameOrig;
-        _MakeLower();
-        _wScriptNum = src.GetResourceNumber();
-        _language = src._language;
-    }
-
-    ScriptId& operator=( const ScriptId& src )
-	{
-        _strFolder = src.GetFolder();
-        _strFileName = src.GetFileName();
-        _strFileNameOrig = src._strFileNameOrig;
-        _MakeLower();
-        _wScriptNum = src.GetResourceNumber();
-        _language = src._language;
-		return( *this );
-	}
-
-    void SetLanguage(LangSyntax lang) { _language = lang; }
-
-    BOOL IsNone() const { return _strFileName.empty(); }
-    const std::string &GetFileName() const { return _strFileName; }
-    const std::string &GetFolder() const { return _strFolder; } 
-    const std::string &GetFileNameOrig() const { return _strFileNameOrig; }
+    BOOL IsNone() const;
+    const std::string &GetFileName() const;
+    const std::string &GetFolder() const;
+    const std::string &GetFileNameOrig() const;
 
     // e.g. for Main.sc, it returns Main.  For keys.sh, it returns keys
     std::string GetTitle() const;
@@ -495,10 +462,7 @@ public:
     std::string GetFullPath() const;
 
     // Set the path w/o changing the resource number.
-    void SetFullPath(const std::string &fullPath)
-    {
-        _Init(fullPath.c_str(), GetResourceNumber());
-    }
+    void SetFullPath(const std::string &fullPath);
 
     // Script resource number
     WORD GetResourceNumber() const { return _wScriptNum; }
@@ -512,22 +476,7 @@ public:
 
 private:
     void _MakeLower();
-
-    void _Init(PCTSTR pszFullFileName, WORD wScriptNum = InvalidResourceNumber)
-    {
-        _wScriptNum = wScriptNum;
-        if (pszFullFileName)
-        {
-            CString str = pszFullFileName;
-            int iIndexBS = str.ReverseFind('\\');
-            _strFolder = str.Left(iIndexBS);
-            _strFileName = str.Right(str.GetLength() - iIndexBS - 1);
-            _strFileNameOrig = _strFileName;
-            _MakeLower();
-            _DetermineLanguage();
-        }
-    }
-
+    void _Init(PCTSTR pszFullFileName, WORD wScriptNum = InvalidResourceNumber);
     void _DetermineLanguage();
 
     std::string _strFolder;

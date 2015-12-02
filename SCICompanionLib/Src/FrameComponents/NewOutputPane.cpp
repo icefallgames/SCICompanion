@@ -202,12 +202,6 @@ void NewOutputPane::OnLbnDblclkList1()
     }
 }
 
-/*
-void NewOutputPane::OnUpdateCopy(CCmdUI *pCmdUI)
-{
-    pCmdUI->Enable(m_wndListBox.GetSelCount() > 0);
-}*/
-
 void NewOutputPane::OnCopy()
 {
     std::stringstream output;

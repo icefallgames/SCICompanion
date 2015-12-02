@@ -908,7 +908,6 @@ void CompiledScript::PopulateSaidStrings(const ILookupNames *pWords) const
 }
 
 
-
 //
 // Scan all the code in the script, looking for call instructions
 //

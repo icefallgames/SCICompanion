@@ -17,7 +17,9 @@
 #include "format.h"
 #include "WindowsUtil.h"
 #include "TlHelp32.h"
+#include <filesystem>
 
+using namespace std::tr2::sys;
 using namespace fmt;
 
 __declspec(dllexport) void _cdecl DummyFunctionSoWeBuildALib()
@@ -638,9 +640,84 @@ std::string ScriptId::GetFullPath() const
 
 bool ScriptId::IsHeader() const
 {
-    return (strcmp(TEXT(".sh"), PathFindExtension(_strFileName.c_str())) == 0) ||
-        (strcmp(TEXT(".shm"), PathFindExtension(_strFileName.c_str())) == 0);
+    PCSTR pszExt = PathFindExtension(_strFileName.c_str());
+    return (strcmp(TEXT(".sh"), pszExt) == 0) ||
+        (strcmp(TEXT(".shm"), pszExt) == 0) ||
+        (strcmp(TEXT(".shp"), pszExt) == 0);
 }
+
+void ScriptId::_Init(PCTSTR pszFullFileName, WORD wScriptNum)
+{
+    _wScriptNum = wScriptNum;
+    if (pszFullFileName)
+    {
+        path fullPath(pszFullFileName);
+        _strFileName = fullPath.filename();
+        _strFolder = fullPath.parent_path();
+        /*
+        CString str = pszFullFileName;
+        int iIndexBS = str.ReverseFind('\\');
+        _strFolder = str.Left(iIndexBS);
+        _strFileName = str.Right(str.GetLength() - iIndexBS - 1);*/
+        _strFileNameOrig = _strFileName;
+        _MakeLower();
+        _DetermineLanguage();
+    }
+}
+
+ScriptId::ScriptId() : _language(LangSyntaxUnknown) { _wScriptNum = InvalidResourceNumber; };
+
+ScriptId::ScriptId(const std::string &fullPath) : _language(LangSyntaxUnknown)
+{
+    _Init(fullPath.c_str());
+}
+ScriptId::ScriptId(PCTSTR pszFullFileName) : _language(LangSyntaxUnknown)
+{
+    _Init(pszFullFileName);
+}
+ScriptId::ScriptId(PCTSTR pszFileName, PCTSTR pszFolder) : _language(LangSyntaxUnknown)
+{
+    assert(StrChr(pszFileName, '\\') == nullptr); // Ensure file and path are not mixed up.
+    _strFileName = pszFileName;
+    _strFolder = pszFolder;
+    _MakeLower();
+    _wScriptNum = InvalidResourceNumber;
+}
+
+ScriptId::ScriptId(const ScriptId &src)
+{
+    _strFolder = src.GetFolder();
+    _strFileName = src.GetFileName();
+    _strFileNameOrig = src._strFileNameOrig;
+    _MakeLower();
+    _wScriptNum = src.GetResourceNumber();
+    _language = src._language;
+}
+
+ScriptId& ScriptId::operator=(const ScriptId& src)
+{
+    _strFolder = src.GetFolder();
+    _strFileName = src.GetFileName();
+    _strFileNameOrig = src._strFileNameOrig;
+    _MakeLower();
+    _wScriptNum = src.GetResourceNumber();
+    _language = src._language;
+    return(*this);
+}
+
+// Set the path w/o changing the resource number.
+void ScriptId::SetFullPath(const std::string &fullPath)
+{
+    _Init(fullPath.c_str(), GetResourceNumber());
+}
+
+
+void ScriptId::SetLanguage(LangSyntax lang) { _language = lang; }
+
+BOOL ScriptId::IsNone() const { return _strFileName.empty(); }
+const std::string &ScriptId::GetFileName() const { return _strFileName; }
+const std::string &ScriptId::GetFolder() const { return _strFolder; }
+const std::string &ScriptId::GetFileNameOrig() const { return _strFileNameOrig; }
 
 PCSTR g_codeFileEndings[] =
 {
