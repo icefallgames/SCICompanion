@@ -417,6 +417,39 @@ void ValueErrorE(MatchResult &match, const ParserBase<_TContext, _It, _CommentPo
     }
 }
 
+void CreateSynA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->CreateSynonym();
+        pContext->SynonymPtr->MainWord = pContext->ScratchString();
+    }
+    else
+    {
+        pContext->ReportError("Expected word.", stream);
+    }
+}
+void AddSynA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->CreateSynonym();
+        pContext->SynonymPtr->Synonyms.push_back(pContext->ScratchString());
+    }
+    else
+    {
+        pContext->ReportError("Expected word.", stream);
+    }
+}
+void FinishSynA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->Script().AddSynonym(std::move(pContext->SynonymPtr));
+    }
+}
+
+
 SCISyntaxParser::SCISyntaxParser() :
     oppar(char_p("(")),
     clpar(char_p(")")),
@@ -435,6 +468,7 @@ SCISyntaxParser::SCISyntaxParser() :
     asmInstruction_p(AsmInstructionP),
     alphanumNK_p(AlphanumPNoKeywordOrTerm),
     alphanumSendToken_p(AlphanumPSendTokenOrTerm),
+    alphanum_p(AlphanumP),
     alwaysmatch_p(AlwaysMatchP),
     bracestring_p(BraceStringSCIP),
     squotedstring_p(SQuotedStringP),
@@ -479,6 +513,9 @@ void SCISyntaxParser::Load()
 
     export_entry = general_token[{nullptr, ParseAutoCompleteContext::Export}] >> integer_p[AddExportA];
     exports = keyword_p("public") >> *export_entry;
+
+    synonym_entry = alphanum_p[CreateSynA] >> *alphanum_p[AddSynA];
+    synonyms = keyword_p("synonyms") >> *synonym_entry[FinishSynA];
 
     rvalue_variable =
         (opbracket >> general_token[ComplexValueStringA<ValueType::Token, errVarName>] >> statement[ComplexValueIndexerA] >> clbracket) |
@@ -770,6 +807,7 @@ void SCISyntaxParser::Load()
         | instance_decl[FinishClassA]
         | class_decl[FinishClassA]
         | procedure_decl[FinishProcedureA]
+        | synonyms
         | exports
         | scriptNum
         | script_var)[{IdentifierE, ParseAutoCompleteContext::TopLevelKeyword}]

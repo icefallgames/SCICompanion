@@ -374,8 +374,8 @@ bool CompiledScript::_LoadSCI0_SCI1(sci::istream &byteStream)
                     case 3:
                     {
                         // Synonym word lists.
-                        // uint16_t A - wordgroup,
-                        // uint16_t B - wordgroup, replacement for a
+                        // uint16_t A - wordgroup, i.e. the synonym of main word.
+                        // uint16_t B - wordgroup, replacement for a. i.e the main word.
                         uint16_t wNumPairs = ((wSectionSize - 4) / 4);
                         for (uint16_t i = 0; fRet && i < wNumPairs; i++)
                         {
@@ -383,7 +383,7 @@ bool CompiledScript::_LoadSCI0_SCI1(sci::istream &byteStream)
                             byteStream >> wA;
                             uint16_t wB;
                             byteStream >> wB;
-                            _synonyms[wA] = wB;
+                            _synonyms[wB].push_back(wA);
                             fRet = byteStream.good();
                         }
                     }

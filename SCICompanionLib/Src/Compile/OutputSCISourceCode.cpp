@@ -684,9 +684,14 @@ public:
             out.out << ")";
         }
 
-
-        Forward(script.GetSynonyms());
-        out.EnsureNewLine();
+        if (!script.GetSynonyms().empty())
+        {
+            _MaybeNewLineIndent();
+            out.out << "(synonyms";
+            _IndentAcceptChildren(script.GetSynonyms());
+            _MaybeNewLineIndent();
+            out.out << ")";
+        }
 
         Forward(script.GetDefines());
         
@@ -947,7 +952,16 @@ public:
         _VisitFunctionBase(function);
     }
 
-    void Visit(const Synonym &syn) override {}
+    void Visit(const Synonym &syn) override
+    {
+        _MaybeNewLineIndent();
+        out.out << "(" << syn.MainWord;
+        for (auto &synonym : syn.Synonyms)
+        {
+            out.out << " " << synonym;
+        }
+        out.out << ")";
+    }
 
     void Visit(const CodeBlock &block) override
     {

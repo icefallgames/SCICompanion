@@ -597,19 +597,22 @@ void _Section3_Synonyms(Script &script, CompileContext &context, vector<BYTE> &o
         push_word(output, 3); // 3 = synonyms
         push_word(output, (WORD)(synonyms.size() * 4) + 4); // 4 bytes per synonym entry
 
-        for (auto &synonym : synonyms)
+        for (auto &synonymClause : synonyms)
         {
-            WORD wGroup = 0;
-            if (!context.LookupWord(synonym->MainWord, wGroup))
+            for (auto &synonym : synonymClause->Synonyms)
             {
-                context.ReportError(synonym.get(), "'%s' is not in the vocabulary.", synonym->MainWord.c_str());
+                WORD wGroup = 0;
+                if (!context.LookupWord(synonym, wGroup))
+                {
+                    context.ReportError(synonymClause.get(), "'%s' is not in the vocabulary.", synonym.c_str());
+                }
+                push_word(output, wGroup); // Write anyway, so we can continue...
+                if (!context.LookupWord(synonymClause->MainWord, wGroup))
+                {
+                    context.ReportError(synonymClause.get(), "'%s' is not in the vocabulary.", synonymClause->MainWord.c_str());
+                }
+                push_word(output, wGroup);
             }
-            push_word(output, wGroup); // Write anyway, so we can continue...
-            if (!context.LookupWord(synonym->Replacement, wGroup))
-            {
-                context.ReportError(synonym.get(), "'%s' is not in the vocabulary.", synonym->Replacement.c_str());
-            }
-            push_word(output, wGroup);
         }
     }
 }

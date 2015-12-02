@@ -29,3 +29,4 @@ struct CodeSection
 bool FindStartEndCode(std::set<uint16_t>::const_iterator codeStart, const std::set<uint16_t> &codePointersTO, const std::vector<CodeSection> &codeSections, CodeSection &sectionOut);
 
 std::string SaidSequenceToString(std::vector<uint16_t> saidSequence, const ILookupNames *pWords);
+std::string _FindPreferredWord(const std::string &words);

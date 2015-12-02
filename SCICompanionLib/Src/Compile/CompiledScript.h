@@ -231,7 +231,8 @@ public:
     std::vector<std::string> _strings;
     std::vector<uint16_t> _stringsOffset;
     std::vector<uint16_t> _saidsOffset;
-    std::unordered_map<uint16_t, uint16_t> _synonyms;
+    // Mapping of mainword to its synonyms
+    std::unordered_map<uint16_t, std::vector<uint16_t>> _synonyms;
     std::vector<CodeSection> _codeSections;
     std::vector<uint16_t> _exportedObjectInstances;
     SCIVersion GetVersion() const { return _version; }

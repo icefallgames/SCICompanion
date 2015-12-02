@@ -285,7 +285,7 @@ void CreateSynonymA(MatchResult &match, const Parser *pParser, SyntaxContext *pC
     if (match.Result())
     {
         pContext->CreateSynonym();
-        pContext->SynonymPtr->MainWord = pContext->ScratchString();
+        pContext->SynonymPtr->Synonyms.push_back(pContext->ScratchString());
     }
     else
     {
@@ -296,7 +296,7 @@ void FinishSynonymA(MatchResult &match, const Parser *pParser, SyntaxContext *pC
 {
     if (match.Result())
     {
-        pContext->SynonymPtr->Replacement = pContext->ScratchString();
+        pContext->SynonymPtr->MainWord = pContext->ScratchString();
         pContext->Script().AddSynonym(std::move(pContext->SynonymPtr));
     }
     else

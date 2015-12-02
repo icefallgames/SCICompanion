@@ -955,7 +955,7 @@ namespace sci
         DECLARE_NODE_TYPE(NodeTypeSynonym)
     public:
         std::string MainWord;
-        std::string Replacement;
+        std::vector<std::string> Synonyms;
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
     };

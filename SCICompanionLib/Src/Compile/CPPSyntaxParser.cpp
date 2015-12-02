@@ -2211,7 +2211,7 @@ void _EvaluateSynonym(CPPSyntaxContext &context, Script &script, ASTNode *pParen
 	unique_ptr<Synonym> pSynonym = std::make_unique<Synonym>();
     _SyncPosition(pSynonym.get(), pParent);
     pSynonym->MainWord = pParent->GetText();
-    pSynonym->Replacement = pParent->Children()[0]->GetText();
+    pSynonym->Synonyms.push_back(pParent->Children()[0]->GetText());
     script.AddSynonym(std::move(pSynonym));
 }
 

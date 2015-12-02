@@ -553,7 +553,9 @@ void SCIClassBrowser::ReLoadFromCompiled(ITaskStatus &task)
         // There was a script of this number...
         TCHAR szScriptNum[20];
         StringCchPrintf(szScriptNum, ARRAYSIZE(szScriptNum), TEXT("script %03d"), compiledScript.first);
-        std::unique_ptr<sci::Script> pScript = std::make_unique<sci::Script>(szScriptNum);
+        ScriptId scriptId(szScriptNum);
+        scriptId.SetLanguage(LangSyntaxSCI); // A good default
+        std::unique_ptr<sci::Script> pScript = std::make_unique<sci::Script>(scriptId);
         LoadScriptFromCompiled(pScript.get(), compiledScript.second.get(), &_selectorNames, speciesToName);
 		_AddToClassTree(*pScript);
 		_scripts.push_back(std::move(pScript)); // Takes ownership

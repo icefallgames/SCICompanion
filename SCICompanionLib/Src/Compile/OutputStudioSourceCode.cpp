@@ -63,7 +63,7 @@ public:
             out.out << "(script " << scriptId.GetResourceNumber() << ")" << out.NewLineString();
         }
 
-        Forward(script.GetSynonyms());
+        ForwardOptionalSection("synonyms", script.GetSynonyms());
         out.EnsureNewLine();
 
         Forward(script.GetDefines());
@@ -281,7 +281,15 @@ public:
         _VisitFunctionBase(function, function.GetClass());
     }
     
-    void Visit(const Synonym &syn) override {}
+    void Visit(const Synonym &syn) override
+    {
+        out.SyncComments(syn);
+        for (auto &synonym : syn.Synonyms)
+        {
+            NewLine(out);
+            out.out << "'" << synonym << "' = '" << syn.MainWord << "'";
+        }
+    }
 
     void Visit(const CodeBlock &block) override
     {

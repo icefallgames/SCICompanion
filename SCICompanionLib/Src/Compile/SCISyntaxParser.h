@@ -48,6 +48,8 @@ private:
     ParserSCI procedure_base;
     ParserSCI function_var_decl;
     ParserSCI exports;
+    ParserSCI synonyms;
+    ParserSCI synonym_entry;
     ParserSCI export_entry;
     ParserSCI class_decl;
     ParserSCI instance_decl;
@@ -117,6 +119,7 @@ private:
     ParserSCI asmInstruction_p;
     ParserSCI alphanumNK_p;
     ParserSCI alphanumSendToken_p;
+    ParserSCI alphanum_p;
     ParserSCI alwaysmatch_p;
     ParserSCI bracestring_p;
     ParserSCI squotedstring_p;

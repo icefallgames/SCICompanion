@@ -377,11 +377,11 @@ Script *Decompile(const GameFolderHelper &helper, const CompiledScript &compiled
         for (const auto &syn : compiledScript._synonyms)
         {
             unique_ptr<Synonym> pSynonym = std::make_unique<Synonym>();
-            ICompiledScriptSpecificLookups::ObjectType type;
-            pSynonym->MainWord = InvalidLookupError;
-            lookups.LookupScriptThing(syn.first, type, pSynonym->MainWord);
-            pSynonym->Replacement = InvalidLookupError;
-            lookups.LookupScriptThing(syn.second, type, pSynonym->Replacement);
+            pSynonym->MainWord = _FindPreferredWord(pWords->Lookup(syn.first));
+            for (auto &theSyn : syn.second)
+            {
+                pSynonym->Synonyms.push_back(_FindPreferredWord(pWords->Lookup(theSyn)));
+            }
             pScript->AddSynonym(std::move(pSynonym));
         }
     }

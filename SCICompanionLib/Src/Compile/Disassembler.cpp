@@ -498,7 +498,10 @@ void DisassembleScript(const CompiledScript &script, std::ostream &out, ICompile
         out << "(synonym" << endl;
         for (const auto &syn : script._synonyms)
         {
-            out << c_indent << pWords->Lookup(syn.first) << " = " << pWords->Lookup(syn.second).c_str() << endl;
+            for (auto &theSyn : syn.second)
+            {
+                out << c_indent << pWords->Lookup(syn.first) << " = " << pWords->Lookup(theSyn).c_str() << endl;
+            }
         }
         out << ")" << endl << endl;
     }
