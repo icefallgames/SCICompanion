@@ -138,7 +138,7 @@ public:
         switch (prop.GetType())
         {
         case ValueType::String:
-            out.out << "\"" << UnescapeString(prop.GetStringValue()) << "\"";
+            out.out << "\"" << EscapeQuotedString(prop.GetStringValue()) << "\"";
             break;
         case ValueType::Said:
             out.out << "'" << prop.GetStringValue() << "'";

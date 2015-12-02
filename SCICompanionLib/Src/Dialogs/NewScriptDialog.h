@@ -27,7 +27,7 @@ class CNewScriptDialog : public CExtResizableDialog
 	DECLARE_DYNAMIC(CNewScriptDialog)
 
 public:
-	CNewScriptDialog(CWnd* pParent = NULL);   // standard constructor
+	CNewScriptDialog(CWnd* pParent = nullptr);   // standard constructor
     CNewScriptDialog(UINT nID, CWnd* pParent);
 
     std::string &GetScriptBuffer() { return _strBuffer; }

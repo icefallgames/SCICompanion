@@ -25,11 +25,13 @@ IMPLEMENT_DYNAMIC(CNewScriptDialog, CDialog)
 
 CNewScriptDialog::CNewScriptDialog(UINT nID, CWnd* pParent) : CExtResizableDialog(nID, pParent)
 {
+    _scriptId.SetLanguage(appState->GetResourceMap().Helper().GetDefaultGameLanguage());
 }
 
 CNewScriptDialog::CNewScriptDialog(CWnd* pParent /*=NULL*/)
 	: CExtResizableDialog(CNewScriptDialog::IDD, pParent)
 {
+    _scriptId.SetLanguage(appState->GetResourceMap().Helper().GetDefaultGameLanguage());
 }
 
 void CNewScriptDialog::_DiscoveredScriptName(PCTSTR pszName)
@@ -168,6 +170,7 @@ BOOL CNewScriptDialog::_ValidateScriptNumber()
     CString strNumber;
     m_wndEditScriptNumber.GetWindowText(strNumber);
     _scriptId = ScriptId(); // Reset, or else it asserts if we already set a number on it.
+    _scriptId.SetLanguage(appState->GetResourceMap().Helper().GetDefaultGameLanguage());
     _scriptId.SetResourceNumber(StrToInt(strNumber));
     int value = _scriptId.GetResourceNumber();
     if (contains(_usedScriptNumbers, value))

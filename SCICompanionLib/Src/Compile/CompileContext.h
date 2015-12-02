@@ -229,7 +229,7 @@ public:
     void PreScanSaid(const std::string &theSaid, const ISourceCodePosition *pPos);
     WORD GetSaidTempOffset(const std::string &theSaid);
     void SpecifyFinalSaidOffset(const std::string &theString, WORD wFinalOffset);
-    void PreScanStringAndUnescape(std::string &theString, const ISourceCodePosition *pPos);
+    void PreScanString(std::string &theString, const ISourceCodePosition *pPos);
     void AddStringToken(const std::string &token, const std::string &theString);
     WORD GetStringTempOffset(const std::string &theString);
     WORD GetStringTokenTempOffset(const std::string &theString);

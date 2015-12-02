@@ -61,27 +61,93 @@ void _OutputVariableAndSizeStudio(sci::ISyntaxNodeVisitor &visitor, sci::SourceC
     }
 }
 
-std::string UnescapeString(std::string src)
+template<char Q1, char Q2>
+std::string EscapeString(const std::string &src)
 {
-    size_t thePos;
-    while ((thePos = src.find('\n')) != std::string::npos)
+    std::string result;
+    for (char ch : src)
     {
-        src.replace(thePos, 1, "\\n");
+        char escaped = 0;
+        switch (ch)
+        {
+            case '\n':
+                escaped = 'n';
+                break;
+            case '\t':
+                escaped = 't';
+                break;
+            case '\\':
+                escaped = '\\';
+                break;
+            case Q1:
+                escaped = Q1;
+                break;
+            case Q2:
+                escaped = Q2;
+                break;
+        }
+        if (escaped)
+        {
+            result.push_back('\\');
+            result.push_back(escaped);
+        }
+        else
+        {
+            result.push_back(ch);
+        }
     }
-    while ((thePos = src.find('\t')) != std::string::npos)
-    {
-        src.replace(thePos, 1, "\\t");
-    }
+    return result;
+}
 
-    // Escape double-quote characters.
-    size_t i = 0;
-    while ((thePos = src.find('"', i)) != std::string::npos)
+// Turn spaces to underscores and escape underscores.
+std::string EscapeSpaces(const std::string &src)
+{
+    // If there is more than one space in a row, replace them with underscores.
+    std::string result;
+    int spaceCount = 0;
+    for (char ch : src)
     {
-
-        src.replace(thePos, 1, "\\\"");
-        i = thePos + 2;
+        if (ch == ' ')
+        {
+            spaceCount++; // Take note, but don't output anything.
+        }
+        else
+        {
+            if (spaceCount > 1)
+            {
+                std::fill_n(std::back_inserter(result), spaceCount, '_');
+            }
+            else if (spaceCount == 1)
+            {
+                result.push_back(' '); // Just a single space
+            }
+            spaceCount = 0;
+            if (ch == '_')
+            {
+                // Escape the underscore
+                result.push_back('\\');
+                result.push_back('_');
+            }
+            else
+            {
+                result.push_back(ch);
+            }
+        }
     }
-    return src;
+    if (spaceCount > 0)
+    {
+        std::fill_n(std::back_inserter(result), spaceCount, '_');
+    }
+    return result;
+}
+
+std::string EscapeQuotedString(const std::string &src)
+{
+    return EscapeString<'"', '\0'>(src);
+}
+std::string EscapeBraceString(const std::string &src)
+{
+    return EscapeString<'{', '}'>(src);
 }
 
 bool IsNonAlphaOperator(const std::string &op)

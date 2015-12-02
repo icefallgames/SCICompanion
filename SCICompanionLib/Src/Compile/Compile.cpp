@@ -901,7 +901,7 @@ void PropertyValueBase::PreScan(CompileContext &context)
     {
     case ValueType::String:
     case ValueType::ResourceString:
-        context.PreScanStringAndUnescape(_stringValue, this);
+        context.PreScanString(_stringValue, this);
         break;
     case ValueType::Said:
         SanitizeSaid(_stringValue);
@@ -3262,7 +3262,7 @@ void ClassDefinition::PreScan(CompileContext &context)
     }
 
     // Our name
-    context.PreScanStringAndUnescape(_innerName, this);
+    context.PreScanString(_innerName, this);
 
     ForwardPreScan2(_properties, context);
     ForwardPreScan2(_methods, context);

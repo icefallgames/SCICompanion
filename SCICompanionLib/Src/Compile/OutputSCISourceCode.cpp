@@ -201,10 +201,10 @@ std::string GetPropertyText(const PropertyValueBase &prop)
     switch (prop.GetType())
     {
         case ValueType::String:
-            mw << "{" << UnescapeString(prop.GetStringValue()) << "}";
+            mw << "{" << EscapeSpaces(EscapeBraceString(prop.GetStringValue())) << "}";
             break;
         case ValueType::ResourceString:
-            mw << "\"" << UnescapeString(prop.GetStringValue()) << "\"";
+            mw << "\"" << EscapeSpaces(EscapeQuotedString(prop.GetStringValue())) << "\"";
             break;
         case ValueType::Said:
             mw << "'" << prop.GetStringValue() << "'";
@@ -244,6 +244,38 @@ public:
         else
         {
             return false;
+        }
+    }
+};
+
+// If we need to transform a class name to remove spaces, we need to set its original name in the props listd.
+class TransformCleanClassName : public IExploreNode
+{
+public:
+    TransformCleanClassName(sci::Script &script) { script.Traverse(*this); }
+
+    void ExploreNode(SyntaxNode &node, ExploreNodeState state) override
+    {
+        if ((state == ExploreNodeState::Pre) && (node.GetNodeType() == NodeType::NodeTypeClassDefinition))
+        {
+            ClassDefinition *classDef = SafeSyntaxNode<ClassDefinition>(&node);
+            if (CleanTokenSCI(classDef->GetName()) != classDef->GetName())
+            {
+                bool nameAlreadySpecified = false;
+                for (auto &prop : classDef->GetProperties())
+                {
+                    if (prop->GetName() == "name")
+                    {
+                        nameAlreadySpecified = true;
+                        break;
+                    }
+                }
+                if (!nameAlreadySpecified)
+                {
+                    classDef->GetPropertiesNC().push_back(std::make_unique<ClassProperty>("name", PropertyValue(classDef->GetName(), ValueType::ResourceString)));
+                }
+            }
+
         }
     }
 };
@@ -452,6 +484,8 @@ void ConvertToSCISyntaxHelper(Script &script)
     }
 
     TransformCleanRests txCleanRests(script);
+
+    TransformCleanClassName txCleanClassName(script);
 
     // Remove some keywords that might be present as variable names in other syntaxes.
     vector<pair<string, string>> fromToMapping =
@@ -837,7 +871,6 @@ public:
             out.out << "[";
             assert((prop.GetType() == ValueType::Pointer) || (prop.GetType() == ValueType::Token));
             out.out << prop.GetStringValue();
-            out.out << " ";
             prop.GetIndexer()->Accept(*this);
             out.out << "]";
         }

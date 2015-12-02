@@ -118,7 +118,7 @@ public:
             break;
             // fall through to ValueType::String
         case ValueType::String:
-            out.out << "\"" << UnescapeString(prop.GetStringValue()) << "\"";
+            out.out << "\"" << EscapeQuotedString(prop.GetStringValue()) << "\"";
             break;
         case ValueType::Said:
             out.out << "'" << prop.GetStringValue() << "'";

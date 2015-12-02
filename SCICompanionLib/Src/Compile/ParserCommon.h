@@ -383,7 +383,6 @@ bool _ReadStringStudio(_It &stream, std::string &str)
                 case 't':
                     str += '\t';
                     break;
-                    // Any others we should handle?
                 default:
                     str += ch;
                     break;

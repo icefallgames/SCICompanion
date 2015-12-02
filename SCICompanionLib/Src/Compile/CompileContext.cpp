@@ -973,7 +973,7 @@ void CompileContext::SpecifyFinalSaidOffset(const string &theString, WORD wFinal
     WORD wTempOffset = GetSaidTempOffset(theString);
     _finalSaidOffsets[wTempOffset] = wFinalOffset;
 }
-void CompileContext::PreScanStringAndUnescape(string &theString, const ISourceCodePosition *pPos)
+void CompileContext::PreScanString(string &theString, const ISourceCodePosition *pPos)
 {
     // Strings are unescaped during parsing.
     _allInCodeStrings[theString] = pPos;
