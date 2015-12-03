@@ -728,37 +728,23 @@ void SCISyntaxParser::Load()
         )
         ;
 
-    binaryOps = GenerateOperatorString({ ">>", "<<", "-", "/", "mod" });
-
     // Operators
     // These are binary-only operators
-    //binary_operator =  operator_p(">>") | operator_p("<<") | operator_p("-") | operator_p("/") | operator_p("mod");
+    binaryOps = GenerateOperatorString({ ">>", "<<", "-", "/", "mod" });
     binary_operator = operator_p(binaryOps.c_str());
 
-    naryAssocOps = GenerateOperatorString({ "*", "+", "&", "|", "^", "and", "or" });
     // n-ary operators that are associative
-    //naryassoc_operator = operator_p("*") | operator_p("+") | operator_p("&") | operator_p("|") | operator_p("^") | operator_p("and") | operator_p("or");
+    naryAssocOps = GenerateOperatorString({ "*", "+", "&", "|", "^", "and", "or" });
     naryassoc_operator = operator_p(naryAssocOps.c_str());
 
     // n-ary comparison operators
     naryCompareOps = GenerateOperatorString({ "u>=", ">=", "u>", ">", "u<=", "<=", "u<", "!=", "<", "==" });
-    /*
-    narycompare_operator = operator_p("u>=") | operator_p(">=") | operator_p("u>") | operator_p(">") |
-        operator_p("u<=") | operator_p("<=") | operator_p("u<") | operator_p("!=") |
-        operator_p("<") | operator_p("==");*/
     narycompare_operator = operator_p(naryCompareOps.c_str());
 
     unaryOps = GenerateOperatorString({"~", "not", "-", "++", "--" });
-    //unary_operator = operator_p("~") | operator_p("not") | operator_p("-") |
-        //operator_p("++") | operator_p("--");
     unary_operator = operator_p(unaryOps.c_str());
 
     assignmentOps = GenerateOperatorString({ "+=", "-=", "*=", "/=", "mod=", "&=", "|=", "^=", ">>=", "<<=", "=" });
-    /*
-    assignment_operator = operator_p("+=") | operator_p("-=") | operator_p("*=") |
-        operator_p("/=") | operator_p("mod=") | operator_p("&=") |
-        operator_p("|=") | operator_p("^=") | operator_p(">>=") |
-        operator_p("<<=") | operator_p("=");*/
     assignment_operator = operator_p(assignmentOps.c_str());
 
     // blarg    or   [blarg statement]

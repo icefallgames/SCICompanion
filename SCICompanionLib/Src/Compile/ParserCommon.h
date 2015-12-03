@@ -344,7 +344,6 @@ bool _ReadStringSCI(_It &stream, std::string &str)
     return false;
 }
 
-
 //
 // Optimized delimiter reader
 //
