@@ -665,8 +665,25 @@ BOOL IsSCINumber(LPCTSTR pszChars, int nLength)
 #define COOKIE_CHAR				0x0010
 #define COOKIE_INTERNALSTRING   0x0020
 
+// Various states we can be in:
+// % bin digit
+enum class HighlightState
+{
+    None,
+    Number,
+    Hex,
+    BinaryLiteral,
+    CharLiteral,
+    SelectorLiteral,
+    RegularToken,
+    SelectorCall,
+};
+
 DWORD CScriptView::_ParseLineSCI(DWORD dwCookie, int nLineIndex, TEXTBLOCK *pBuf, int &nActualItems)
 {
+    HighlightState state = HighlightState::None;
+
+
     int nLength = GetLineLength(nLineIndex);
     //if (nLength <= 0)
         //return dwCookie & COOKIE_EXT_COMMENT;
@@ -800,15 +817,85 @@ DWORD CScriptView::_ParseLineSCI(DWORD dwCookie, int nLineIndex, TEXTBLOCK *pBuf
             continue;	//	We don't need to extract keywords,
         //	for faster parsing skip the rest of loop
 
-        if (isalnum(pszChars[I]) || pszChars[I] == '_' || pszChars[I] == '$' || pszChars[I] == '#' || pszChars[I] == '&' ||
-            pszChars[I] == '%' ||   // Needed for binary literals
-            pszChars[I] == '?' || pszChars[I] == ':' ||   // Needed for selectors
-            pszChars[I] == '`' || pszChars[I] == '^' || pszChars[I] == '@') // These are all needed for character literal
+        bool sumup = false;
+        char ch = pszChars[I];
+        switch (state)
         {
-            if (nIdentBegin == -1)
-                nIdentBegin = I;
+            case HighlightState::None:
+                if (isalpha(ch) || ch == '_')
+                {
+                    state = HighlightState::RegularToken;
+                }
+                else if (isdigit(ch))
+                {
+                    state = HighlightState::Number;
+                }
+                else if (ch == '$')
+                {
+                    state = HighlightState::Hex;
+                }
+                else if (ch == '#')
+                {
+                    state = HighlightState::SelectorLiteral;
+                }
+                else if (ch == '%')
+                {
+                    state = HighlightState::BinaryLiteral;
+                }
+                else if (ch == '`')
+                {
+                    state = HighlightState::CharLiteral;
+                }
+
+                if (state != HighlightState::None)
+                {
+                    // Beginning a token
+                    if (nIdentBegin == -1)
+                        nIdentBegin = I;
+                }
+                break;
+
+            case HighlightState::RegularToken:
+                if (isalnum(ch) || ch == '_' || ch == '-')
+                {
+                    // good, keep going
+                }
+                else if (ch == '?' || ch == ':')
+                {
+                    state = HighlightState::SelectorCall;
+                }
+                else
+                {
+                    sumup = true;
+                }
+                break;
+
+            case HighlightState::SelectorCall:
+                sumup = true; // We're done
+                break;
+
+            case HighlightState::CharLiteral:
+                sumup = (!isalnum(ch) && ch != '^' || ch != '@');
+
+            case HighlightState::BinaryLiteral:
+                sumup = (ch != '0' & ch != '1');
+                break;
+
+            case HighlightState::Hex:
+                sumup = !isxdigit(ch);
+                break;
+
+            case HighlightState::Number:
+                sumup = !isdigit(ch);
+                break;
+
+            case HighlightState::SelectorLiteral:
+                sumup = !isalnum(ch) && ch != '_' && ch != '-';
+                break;
+                    
         }
-        else
+
+        if (sumup)
         {
             if (nIdentBegin >= 0)
             {
@@ -833,6 +920,7 @@ DWORD CScriptView::_ParseLineSCI(DWORD dwCookie, int nLineIndex, TEXTBLOCK *pBuf
                 bDecIndex = TRUE;
                 nIdentBegin = -1;
             }
+            state = HighlightState::None;
         }
     }
 
