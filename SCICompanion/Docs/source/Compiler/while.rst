@@ -16,6 +16,13 @@ syntax::
 		...
 	)
 
-The code blocks are continually executed until conditional_expression evaluates to be FALSE (zero).
+The code blocks are continually executed until conditional_expression evaluates to be FALSE (zero)::
+
+	(= counter 10)
+	; This loop will execute ten times, unless counter is 0:
+	(while counter
+		(Printf "Counting down: %d" counter)
+		(-- counter)
+	)
 
 See also: :doc:`repeat`, :doc:`for`, :doc:`break`.

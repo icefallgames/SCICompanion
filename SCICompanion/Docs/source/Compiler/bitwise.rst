@@ -14,8 +14,10 @@ Bitwise AND: &
 
 Compares two bits and generates a 1 result if both bits are 1, otherwise it returns 0::
 
-	; Result will equal 5.
+	; Result will equal $5:
 	(= Result (& $85 $0F))
+	; Result will equal $1:
+	(= Result (& $FF $0F $01))
 
 Often used to set for things like control colors, since onControl() returns a bit mask::
 
@@ -28,10 +30,12 @@ Bitwise OR: |
 
 Compares two bits and generates a 1 result if either or both bits are 1, otherwise it returns 0::
 
-	; Result will equal $8F.
+	; Result will equal $8F:
 	(= Result (| $85 $0F))
+	; Result will equal $07:
+	(= Result (| $01 $02 $04))
 
-Often used to OR two flags together
+Often used to OR two or more flags together
 
 	(theActor signal: (| ignAct fixPriOn))
 

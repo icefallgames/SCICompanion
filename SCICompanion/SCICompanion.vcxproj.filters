@@ -2305,7 +2305,6 @@
     <None Include="Docs\source\Compiler\use.rst" />
     <None Include="Docs\source\Compiler\variables.rst" />
     <None Include="Docs\source\Compiler\variabletypes.rst" />
-    <None Include="Docs\source\Compiler\version.rst" />
     <None Include="Docs\source\Compiler\while.rst" />
     <None Include="Docs\source\Scripts\Actor.rst" />
     <None Include="Docs\source\Scripts\Approach.rst" />

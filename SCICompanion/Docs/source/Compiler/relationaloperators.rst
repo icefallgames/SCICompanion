@@ -6,7 +6,7 @@
  Relational operators
 ================================
 
-Use the arithmetic operators to compare to values to each other. These can be used in :doc:`conditionalexpressions` or just in general expressions.
+Use the relational operators to compare to values to each other. These can be used in :doc:`conditionalexpressions` or just in general expressions.
 
 Equal: ==
 ============
@@ -17,6 +17,9 @@ Example::
 
 	(if (== someNumber 5)
 		; Do something if someNumber is 5
+	)
+	(if (== someNumber anotherNumber 5))
+		; Do something if someNumber and anotherNumber are 5
 	)
 
 
@@ -29,7 +32,7 @@ Example::
 
 	(if (!= someNumber 5)
 		; Do something if someNumber is not 5
-	)	
+	)
 
 Less than and greater than operators
 =====================================
@@ -59,6 +62,13 @@ Example::
 		; This branch will be taken, since 10 is greater than or equal to 10.
 	else
 		; This won't.
+	)
+
+	(if (< 10 a 20)
+		; TRUE if 10 is less than A and a is less than 20.
+	)
+	(if (<= `a myChar `z))
+		; TRUE if myChar is a lowercase letter between a and z.
 	)
 
 The unsigned operators are useful if you are dealing with large numbers. By default, SCI treats numbers

@@ -3,7 +3,7 @@
 .. include:: /includes/standard.rst
 
 ================================
- break and breakif statement
+ break and breakif statements
 ================================
 
 Use break to exit from a **for**, **while** or **repeat** loop, or breakif to exit from the loop conditionally.
@@ -33,4 +33,4 @@ Example using the breakif statement::
 	)
 
 
-See also: :doc:`for`, :doc:`while`, :doc:`repeat`.
+See also: :doc:`for`, :doc:`while`, :doc:`repeat`, :doc:`continue`.

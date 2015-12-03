@@ -9,7 +9,8 @@ Classes and instances
 SCI games are object oriented. The objects in SCI are called "classes" and "instances".
 
 Classes can be created from scratch, or based on other classes. Instances, however, must be derived from a class.
-You can think of a class as the blueprint for creating a building, and an instance as a building itself.
+You can think of a class as the blueprint for creating a building, and an instance as a building itself. Instances can
+be created dynamically by calling **new:** on a class, or by explicitly declaring an instance.
 
 Classes can be accessed globally, while instances can only be directly accessed locally (within the same script).
 To globally access instances, you would have to store it's address in a global variable, and reference it from the variable.
@@ -20,7 +21,7 @@ Properties are 16 bit integers. They work just like other variables, but are att
 
 Methods are functions containing code which can be executed by the interpreter. They are declared just like :doc:`procedures`.
 
-Of note, instances can declare new methods on themselves. But they cannot delcare new properties. An instance may only have the 
+Of note, explicitly-declared instances can declare new methods on themselves. But they cannot delcare new properties. An instance may only have the 
 properties that were defined on the Class from which it is derived. Though instances cannot add properties, they can change the
 default values of properties.
 
@@ -42,7 +43,7 @@ Class syntax::
 
 Instance syntax::
 
-	(instance [public] <InstanceName> of <SuperClassName>
+	(instance <InstanceName> of <SuperClassName>
 		(properties
 			<PropertyName> <PropertyValue>
 			...
@@ -97,4 +98,12 @@ Examples::
 			priority 0 
 			anotherProperty 9900 
 		)
+	)
+
+	(procedure (MyProc &tmp anEvent)
+		; create a new instance of the Event class dynamically
+		(= anEvent (Event new:))
+		; .... do stuff
+		; delete it
+		(anEvent dispose:)
 	)

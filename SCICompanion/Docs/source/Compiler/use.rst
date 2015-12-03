@@ -17,3 +17,7 @@ You could then use that script in other scripts. Below is an example::
 
 	(use MyScript)
 
+You may also enclose the script name in quotes if you want::
+
+	(use "MyScript")
+

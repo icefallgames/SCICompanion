@@ -42,8 +42,6 @@ bool ConvertScript(SCIVersion version, LangSyntax targetLanguage, ScriptId &scri
         {
             CScriptStreamLimiter limiter(&buffer);
             CCrystalScriptStream stream(&limiter);
-            //SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser(); 
-            //browser.Lock();
             // 1)
             sci::Script script(scriptId);
             success = SyntaxParser_Parse(script, stream, PreProcessorDefinesFromSCIVersion(version), &log);;
@@ -127,7 +125,7 @@ void ConvertGame(CResourceMap &map, LangSyntax targetLanguage, CompileLog &log)
     const GameFolderHelper &helper = map.Helper();
     std::string convertBak = "convert-bak";
 
-    // Delete conversion bak folder. See how the audio cache stuff does it.
+    // Delete conversion bak folder.
     DeleteDirectory(AfxGetMainWnd()->GetSafeHwnd(), helper.GetSubFolder(convertBak));
 
     CopyFilesOver(AfxGetMainWnd()->GetSafeHwnd(), helper.GetPolyFolder(), helper.GetPolyFolder(&convertBak));

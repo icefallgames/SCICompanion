@@ -28,6 +28,10 @@ Including it::
 
 	(include myheader.sh)
 
+You can also enclose the filename in quotes if you want::
+
+	(include "myheader.sh")
+
 
 Message files and polygon files
 ==================================

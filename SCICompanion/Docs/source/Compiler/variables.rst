@@ -48,7 +48,7 @@ An example of declaring and using local or global variables::
 
 
 **Temporary variables** can only be used in the method or procedure they are defined in.
-To declare temporary variables, you add a **&tmp** marker to the parameter list, and declare the temporary variables
+To declare temporary variables, you add a **&tmp** token to the parameter list, and declare the temporary variables
 following that. Just like local variables, temporary variables can be arrays. However, no initial values may be supplied.
 
 An example of declaring temporary variables::
@@ -67,7 +67,7 @@ An example of declaring parameters::
 		(Display theString dsCOORD X Y) 
 	)
 
-	// Calling this procedure:
+	// Calling the above procedure:
 	(procedure (SomeProc)
 		(PrintingProc "Hello World" 60 80)
 	)

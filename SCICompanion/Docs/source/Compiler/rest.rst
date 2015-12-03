@@ -26,10 +26,10 @@ init method requires::
 
 	(method (setMotion theMover))
 		...
-		= mover (send theMover:new())
+		= mover (theMover new:)
 		; Call the mover's init method with myself (the Actor), followed
 		; by whatever additional parameters were passed.
-		(send mover:init(self &rest))
+		(send mover init: self &rest))
 	)
 
 So now to set a Mover on an Actor, you can do::

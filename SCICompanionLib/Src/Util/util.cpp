@@ -739,7 +739,7 @@ bool IsCodeFile(const std::string &text)
     return false;
 }
 
-const std::string SCILanguageMarker = "SCI Script";
+const std::string SCILanguageMarker = "Sierra Script";
 
 LangSyntax _DetermineLanguage(const std::string &firstLine)
 {

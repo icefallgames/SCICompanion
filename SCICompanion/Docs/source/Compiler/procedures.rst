@@ -12,6 +12,8 @@ and can reference class properties and class-specific tokens like *self* and *su
 
 You can make a procedure public (usable by other scripts) by listing it in the :doc:`public <public>` section of a script and giving it an export index.
 
+You can declare temporary variables (local to the procedure) by including a &tmp token after the procedure parameters, and following it with
+a list of temp variable declarations.
 
 Syntax::
 
@@ -29,7 +31,8 @@ Examples::
 	(public
 		PrintingProc 0
 	)
-	(procedure (PrintingProc String X Y) 
+	(procedure (PrintingProc String X Y &tmp result) 
+		(= result (+ 1 2 3))
 		(Display String dsCOORD X Y) 
 	)
 

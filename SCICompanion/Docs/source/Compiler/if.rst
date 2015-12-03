@@ -26,16 +26,21 @@ If an else clause is present, the code after the *else* will be excuted if condi
 
 Examples of using the if statement::
 
-	(if (HaveMouse) 
-		DrawStatus("Mouse is available!") 
+	(if (HaveMouse)		; HaveMouse is a procedure call
+		(DrawStatus "Mouse is available!") 
 	else 
-		DrawStatus("Mouse is NOT available!") 
+		(DrawStatus "Mouse is NOT available!") 
 	)
 
 	(if (or SomeVar (and SomeOtherVar (not AnotherVar)) )
 		; do something
 	)
 
+Note that the if condition is *not* enclosed in parentheses unless it is itself an expression. If it's just a plain value, then it looks like::
+
+	(if someVariable
+		(Prints "someVariable is TRUE")
+	)
  
  Ternary operator
  ===================

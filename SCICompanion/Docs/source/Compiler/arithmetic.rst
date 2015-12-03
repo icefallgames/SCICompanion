@@ -6,13 +6,22 @@
  Arithmetic Operators
 =======================
 
+
+Syntax::
+
+	(operator operand)							; Unary operators
+	(operator operand1 operand2)				; Binary operators
+	(operator operand1 operand2 ... operandn)	; N-ary operators
+
 Addition +
 ============
 
-Adds two values together::
+Adds two or more values together::
 
 	; Result will be 40.
 	(= Result (+ 30 10))
+	; Result will be 60
+	(= Result (+ 30 10 20))
 
 
 Subtraction -
@@ -27,10 +36,12 @@ Subtracts two values from each other::
 Multiplication \*
 ====================
 
-Multiplies two values together::
+Multiplies two or more values together::
 
 	; Result will be 300
 	(= Result (* 30 10))
+	; Result will be 6000
+	(= Result (* 30 10 20))
 
 Division \
 ==============
@@ -57,7 +68,7 @@ Increment ++
 Increments a variable or property::
 
 	(= Result 10)
-	(++ Result)
+	(++ Result)	; Result is now 11
 
 Decrement --
 =============
@@ -65,5 +76,5 @@ Decrement --
 Decrements a variable or property::
 
 	(= Result 10)
-	(-- Result)
+	(-- Result)	; Result is now 9
 

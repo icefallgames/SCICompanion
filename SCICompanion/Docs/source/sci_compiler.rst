@@ -6,9 +6,9 @@
  The SCI Compiler
 ==========================
 
-New with |scicomp| version 3, the compiler supports a syntax that is nearly identical to the original script that was used by Sierra.
+New with |scicomp| version 3, the compiler supports a syntax (which we'll call *Sierra Script*) that is nearly identical to the original script that was used by Sierra.
 
-SCI is an object-oriented language with message passing semantics (like Objective-C or SmallTalk). Syntactically, it also looks
+SCI is an object-oriented language with message passing semantics (like Objective-C or SmallTalk). Syntactically, it looks
 a lot like LISP (due to the plethora of parentheses).
 
 One difference that will be programmers familiar with C++, C# or java, is that expressions use Prefix notation instead of Infix notation.
@@ -28,7 +28,7 @@ The topics below describe all the various language features and syntax.
 .. toctree::
    :maxdepth: 2
 
-   Compiler/version
+   Compiler/differences
    Compiler/classes
    Compiler/properties
    Compiler/procedures
@@ -45,7 +45,6 @@ The topics below describe all the various language features and syntax.
    Compiler/selectors
    Compiler/selfsuper
    Compiler/return
-   Compiler/codeblock
    Compiler/assignment
    Compiler/arithmetic
    Compiler/bitwise
@@ -60,6 +59,7 @@ The topics below describe all the various language features and syntax.
    Compiler/repeat
    Compiler/for
    Compiler/break
+   Compiler/continue
    Compiler/rest
    Compiler/asm
    Compiler/objectfiles

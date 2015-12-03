@@ -6,6 +6,9 @@
  Variable types
 ================
 
+At their core, all variables in Sierra Script are 16-bit values. They are untyped, meaning you can assign a number, an object, or a pointer
+to a buffer to the same variable. That said, it is useful to note the kinds of things that can be assigned to variables.
+
 Number
 ==========
 
