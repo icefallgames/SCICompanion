@@ -16,6 +16,7 @@
 #include "CompileContext.h"
 #include "PMachine.h"
 #include "Operators.h"
+#include "format.h"
 
 Opcode GetInstructionForBinaryOperator(BinaryOperator op);
 
@@ -24,7 +25,7 @@ Opcode GetInstructionForBinaryOperator(BinaryOperator op);
 using namespace sci;
 using namespace std;
 
-bool PropertyValueBase::Evaluate(ILookupDefine &context, uint16_t &result) const
+bool PropertyValueBase::Evaluate(ILookupDefine &context, uint16_t &result, CompileContext *reportError) const
 {
     bool isSimpleValue = false;
     if (GetType() == ValueType::Number)
@@ -35,16 +36,20 @@ bool PropertyValueBase::Evaluate(ILookupDefine &context, uint16_t &result) const
     else if (GetType() == ValueType::Token)
     {
         isSimpleValue = context.LookupDefine(_stringValue, result);
+        if (!isSimpleValue && reportError)
+        {
+            reportError->ReportError(this, fmt::format("Unknown token {}", _stringValue).c_str());
+        }
     }
     return isSimpleValue;
 }
 
-bool ComplexPropertyValue::Evaluate(ILookupDefine &context, uint16_t &result) const
+bool ComplexPropertyValue::Evaluate(ILookupDefine &context, uint16_t &result, CompileContext *reportError) const
 {
     bool isSimpleValue = false;
     if (!_pArrayInternal)
     {
-        isSimpleValue = __super::Evaluate(context, result);
+        isSimpleValue = __super::Evaluate(context, result, reportError);
     }
     return isSimpleValue;
 }
@@ -125,14 +130,14 @@ bool EvalBinaryOp(Opcode opcode, uint16_t aUnsigned, uint16_t bUnsigned, uint16_
     return success;
 }
 
-bool BinaryOp::Evaluate(ILookupDefine &context, uint16_t &result) const
+bool BinaryOp::Evaluate(ILookupDefine &context, uint16_t &result, CompileContext *reportError) const
 {
     uint16_t valueA;
-    bool good = _statement1->Evaluate(context, valueA);
+    bool good = _statement1->Evaluate(context, valueA, reportError);
     if (good)
     {
         uint16_t valueB;
-        good = _statement2->Evaluate(context, valueB);
+        good = _statement2->Evaluate(context, valueB, reportError);
         if (good)
         {
             good = EvalBinaryOp(GetInstructionForBinaryOperator(Operator), valueA, valueB, result);
@@ -141,16 +146,16 @@ bool BinaryOp::Evaluate(ILookupDefine &context, uint16_t &result) const
     return good;
 }
 
-bool CodeBlock::Evaluate(ILookupDefine &context, uint16_t &result) const
+bool CodeBlock::Evaluate(ILookupDefine &context, uint16_t &result, CompileContext *reportError) const
 {
     bool good = false;
     if (!GetStatements().empty())
     {
-        good = GetStatements().back()->Evaluate(context, result);
+        good = GetStatements().back()->Evaluate(context, result, reportError);
     }
     return good;
 }
-bool NaryOp::Evaluate(ILookupDefine &context, uint16_t &result) const
+bool NaryOp::Evaluate(ILookupDefine &context, uint16_t &result, CompileContext *reportError) const
 {
     // Result will be TRUE or FALSE
     assert(IsRelational(Operator));
@@ -159,11 +164,11 @@ bool NaryOp::Evaluate(ILookupDefine &context, uint16_t &result) const
     for (size_t i = 1; result && good && (i < _segments.size()); i++)
     {
         uint16_t valueA;
-        good = _segments[i - 1]->Evaluate(context, valueA);
+        good = _segments[i - 1]->Evaluate(context, valueA, reportError);
         if (good)
         {
             uint16_t valueB;
-            good = _segments[i]->Evaluate(context, valueB);
+            good = _segments[i]->Evaluate(context, valueB, reportError);
             if (good)
             {
                 good = EvalBinaryOp(GetInstructionForBinaryOperator(Operator), valueA, valueB, result);
@@ -173,12 +178,12 @@ bool NaryOp::Evaluate(ILookupDefine &context, uint16_t &result) const
     return good;
 }
 
-bool ConditionalExpression::Evaluate(ILookupDefine &context, uint16_t &result) const
+bool ConditionalExpression::Evaluate(ILookupDefine &context, uint16_t &result, CompileContext *reportError) const
 {
     bool good = false;
     if (_segments.size() == 1)
     {
-        good = _segments[0]->Evaluate(context, result);
+        good = _segments[0]->Evaluate(context, result, reportError);
     }
     return good;
 }

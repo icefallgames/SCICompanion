@@ -1292,7 +1292,7 @@ public:
     bool _IsConditionalExpressionTRUE(const ConditionalExpression &condExp)
     {
         uint16_t result;
-        return condExp.Evaluate(simpleDefineLookup, result) && (result == 1);
+        return condExp.Evaluate(simpleDefineLookup, result, false) && (result == 1);
     }
 
     // Returns the inside of the negation

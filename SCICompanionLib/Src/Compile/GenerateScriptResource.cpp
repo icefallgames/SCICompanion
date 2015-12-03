@@ -1037,7 +1037,7 @@ std::vector<species_property> GetOverriddenProperties(CompileContext &context, c
         }
         else
         {
-            if (classProperty->GetStatement1()->Evaluate(context, wValue))
+            if (classProperty->GetStatement1()->Evaluate(context, wValue, &context))    // report errors
             {
                 // We evaluated an expression
             }

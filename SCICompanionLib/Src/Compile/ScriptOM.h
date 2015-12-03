@@ -93,7 +93,7 @@ public:
     // A prescan, used generally for "preprocessor" substitutions, and adding items to the symbol table
     virtual void PreScan(CompileContext &context) {}
     // Evaluate an expression at compile-time. Returns true if it can be evaluated.
-    virtual bool Evaluate(ILookupDefine &context, uint16_t &result) const { result = 0; return false; }
+    virtual bool Evaluate(ILookupDefine &context, uint16_t &result, CompileContext *reportError) const { result = 0; return false; }
     virtual ~IOutputByteCode() {}
 };
 
@@ -501,7 +501,7 @@ namespace sci
         // IOutputByteCode
         CodeResult OutputByteCode(CompileContext &context) const override;
         void PreScan(CompileContext &context) override;
-        bool Evaluate(ILookupDefine &context, uint16_t &result) const override;
+        bool Evaluate(ILookupDefine &context, uint16_t &result, CompileContext *reportError) const override;
 
         bool _fHex;     // Indicates that _numberValue was expressed in hex in the script.
         bool _fNegate;  // Indicates that _numberValue was the result of a negation.  _numberValue doesn't change.
@@ -566,7 +566,7 @@ namespace sci
         virtual SyntaxNode *GetIndexer() const { return _pArrayInternal.get(); }
         std::unique_ptr<SyntaxNode> StealIndexer() { return move(_pArrayInternal); }
         
-        bool Evaluate(ILookupDefine &context, uint16_t &result) const override;
+        bool Evaluate(ILookupDefine &context, uint16_t &result, CompileContext *reportError) const override;
 
         void Traverse(IExploreNode &en);
         void Accept(ISyntaxNodeVisitor &visitor) const override;
@@ -1000,7 +1000,7 @@ namespace sci
         CodeResult OutputByteCode(CompileContext &context) const override;
         void PreScan(CompileContext &context) override;
         void Traverse(IExploreNode &en) override;
-        bool Evaluate(ILookupDefine &context, uint16_t &result) const override;
+        bool Evaluate(ILookupDefine &context, uint16_t &result, CompileContext *reportError) const override;
 
         template<typename _T>
         _T *ReduceBlock()
@@ -1040,7 +1040,7 @@ namespace sci
         CodeResult OutputByteCode(CompileContext &context) const;
         void PreScan(CompileContext &context);
         void Traverse(IExploreNode &en);
-        bool Evaluate(ILookupDefine &context, uint16_t &result) const override;
+        bool Evaluate(ILookupDefine &context, uint16_t &result, CompileContext *reportError) const override;
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
     };

@@ -2510,7 +2510,7 @@ CodeResult SwitchStatement::OutputByteCode(CompileContext &context) const
 
                     // For simple values, catch duplication
                     uint16_t numberValue;
-                    if (pCase->GetCaseValue()->Evaluate(context, numberValue))
+                    if (pCase->GetCaseValue()->Evaluate(context, numberValue, nullptr))
                     {
                         if (caseValues.find(numberValue) != caseValues.end())
                         {
