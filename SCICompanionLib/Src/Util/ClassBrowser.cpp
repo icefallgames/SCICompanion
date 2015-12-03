@@ -1533,7 +1533,7 @@ bool SCIClassBrowser::GetProperty(PCTSTR pszName, const ClassDefinition *pClass,
 // Gets a numeric property from a class.  Returns true if found.
 // Check the superclass via GetProperty
 //
-bool  SCIClassBrowser::GetPropertyValue(PCTSTR pszName, const ClassDefinition *pClass, WORD *pw)
+bool SCIClassBrowser::GetPropertyValue(PCTSTR pszName, const ClassDefinition *pClass, WORD *pw)
 {
     *pw = 0;
     bool fRet = false;

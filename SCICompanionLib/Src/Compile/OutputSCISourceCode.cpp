@@ -340,7 +340,7 @@ public:
                     case NodeType::NodeTypeComplexValue:
                     {
                         PropertyValueBase *value = static_cast<PropertyValueBase*>(&node);
-                        if (value->GetType() == ValueType::Token)
+                        if ((value->GetType() == ValueType::Token) || (value->GetType() == ValueType::Pointer))
                         {
                             _explicitVarUsage.insert(value->GetStringValue());
                         }
@@ -360,6 +360,12 @@ public:
                         }
                         break;
                     }
+                    case NodeType::NodeTypeSendParam:
+                    {
+                        // Technically, a send selector can be a variable.
+                        SendParam *sendParam = static_cast<SendParam*>(&node);
+                        _explicitVarUsage.insert(sendParam->GetName());
+                    }
                     // Are there any other cases where variable names appear?
                 }
             }
@@ -371,56 +377,6 @@ private:
     vector<RestStatement*> _rests;
     std::set<string> _explicitVarUsage;
 };
-
-class TransformDeterminePropSelectors : public IExploreNode
-{
-public:
-    TransformDeterminePropSelectors(sci::SyntaxNode &node)
-    {
-        // We need to determine what is a property and what is a method
-        if (_lookups.Load(appState->GetResourceMap().Helper()))
-        {
-            for (auto &script : _lookups.GetGlobalClassTable().GetAllScripts())
-            {
-                for (auto &object : script->GetObjects())
-                {
-                    for (uint16_t propSelector : object->GetProperties())
-                    {
-                        _propSelectors.insert(propSelector);
-                    }
-                    for (uint16_t methodSelector : object->GetMethods())
-                    {
-                        _methodSelectors.insert(methodSelector);
-                    }
-                }
-            }
-        }
-
-        node.Traverse(*this);
-    }
-
-    void ExploreNode(SyntaxNode &node, ExploreNodeState state) override
-    {
-        if (state == ExploreNodeState::Pre)
-        {
-            SendParam *sendParam = SafeSyntaxNode<SendParam>(&node);
-            if (sendParam)
-            {
-                uint16_t selector;
-                if (_lookups.GetSelectorTable().ReverseLookup(sendParam->GetName(), selector))
-                {
-                    sendParam->SetIsMethod((_propSelectors.find(selector) == _propSelectors.end()) ||
-                        (_methodSelectors.find(selector) != _methodSelectors.end()));
-                }
-            }
-        }
-    }
-private:
-    std::set<uint16_t> _propSelectors;
-    std::set<uint16_t> _methodSelectors;
-    GlobalCompiledScriptLookups _lookups;
-};
-
 
 vector<pair<string, string>> unaryOpConvert =
 {
@@ -440,9 +396,65 @@ std::set<BinaryOperator> coalesceBinaryOps =
     BinaryOperator::Multiply,
 };
 
-void ConvertToSCISyntaxHelper(Script &script)
+
+class TransformDeterminePropSelectors : public IExploreNode
 {
-    TransformDeterminePropSelectors txDeterminePropSelectors(script);
+public:
+    TransformDeterminePropSelectors(sci::Script &script, GlobalCompiledScriptLookups *lookups) : _lookups(lookups)
+    {
+        // We need to determine what is a property and what is a method
+        if (!_lookups && _lookupsOwned.Load(appState->GetResourceMap().Helper()))
+        {
+            _lookups = &_lookupsOwned;
+        }
+        if (_lookups)
+        {
+            for (auto &script : _lookups->GetGlobalClassTable().GetAllScripts())
+            {
+                for (auto &object : script->GetObjects())
+                {
+                    for (uint16_t propSelector : object->GetProperties())
+                    {
+                        _propSelectors.insert(propSelector);
+                    }
+                    for (uint16_t methodSelector : object->GetMethods())
+                    {
+                        _methodSelectors.insert(methodSelector);
+                    }
+                }
+            }
+
+            script.Traverse(*this);
+        }
+    }
+
+    void ExploreNode(SyntaxNode &node, ExploreNodeState state) override
+    {
+        if (state == ExploreNodeState::Pre)
+        {
+            SendParam *sendParam = SafeSyntaxNode<SendParam>(&node);
+            if (sendParam)
+            {
+                uint16_t selector;
+                if (_lookups->GetSelectorTable().ReverseLookup(sendParam->GetName(), selector))
+                {
+                    sendParam->SetIsMethod((_propSelectors.find(selector) == _propSelectors.end()) ||
+                        (_methodSelectors.find(selector) != _methodSelectors.end()));
+                }
+            }
+        }
+    }
+private:
+    std::set<uint16_t> _propSelectors;
+    std::set<uint16_t> _methodSelectors;
+    GlobalCompiledScriptLookups *_lookups;
+    GlobalCompiledScriptLookups _lookupsOwned;
+};
+
+
+void ConvertToSCISyntaxHelper(Script &script, GlobalCompiledScriptLookups *lookups)
+{
+    TransformDeterminePropSelectors txPropSelectors(script, lookups);
 
     // Transform comments
     for (auto &comment : script.GetComments())
@@ -577,6 +589,14 @@ private:
         node.Accept(*this);
     }
     template<typename _TCollection>
+    void _AcceptChildren(const _TCollection &things)
+    {
+        for (auto &thing : things)
+        {
+            thing->Accept(*this);
+        }
+    }
+    template<typename _TCollection>
     void _IndentAcceptChildren(const _TCollection &things)
     {
         DebugIndent indent(out);
@@ -651,6 +671,23 @@ private:
                 }
             }
         }
+    }
+
+    void _MaybeNewLineNoIndent()
+    {
+        if (out.fInline)
+        {
+            if (!_skipNextSpace)
+            {
+                out.out << " ";
+            }
+        }
+        else
+        {
+            _AboutToGoToNextLine();
+            out.NewLine();
+        }
+        _skipNextSpace = false;
     }
 
     void _MaybeNewLineIndent()
@@ -739,7 +776,8 @@ public:
         ScriptId scriptId = script.GetScriptId();
         if (!script.GetScriptNumberDefine().empty())
         {
-            out.out << "(script# " << script.GetScriptNumberDefine() << ")" << out.NewLineString();
+            out.out << "(script# " << script.GetScriptNumberDefine() << ")";
+            _MaybeNewLineIndent();
         }
         else
         {
@@ -749,17 +787,20 @@ public:
             }
             else
             {
-                out.out << "(script# " << scriptId.GetResourceNumber() << ")" << out.NewLineString();
+                out.out << "(script# " << scriptId.GetResourceNumber() << ")";
+                _MaybeNewLineIndent();
             }
         }
 
         for (const auto &include : script.GetIncludes())
         {
-            out.out << "(include " << include << ")" << out.NewLineString();
+            out.out << "(include " << include << ")";
+            _MaybeNewLineIndent();
         }
         for (const auto &uses : script.GetUses())
         {
-            out.out << "(use " << uses << ")" << out.NewLineString();
+            out.out << "(use " << uses << ")";
+            _MaybeNewLineIndent();
         }
 
         if (!script.GetExports().empty())
@@ -779,8 +820,7 @@ public:
             out.out << ")";
         }
 
-        Forward(script.GetDefines());
-        
+        _AcceptChildren(script.GetDefines());
 
         _MaybeNewLineIndent();
 
@@ -919,11 +959,12 @@ public:
 
     void Visit(const Define &define) override
     {
+        _MaybeNewLineIndent();
         bool fHex = IsFlagSet(define.GetFlags(), IntegerFlags::Hex);
         bool fNegate = IsFlagSet(define.GetFlags(), IntegerFlags::Negative);
         out.out << "(define " << define.GetLabel() << " ";
         _OutputNumber(out.out, define.GetValue(), fHex, fNegate);
-        out.out << ")" << out.NewLineString();
+        out.out << ")";
     }
 
     void Visit(const ClassProperty &classProp) override
@@ -947,7 +988,8 @@ public:
     {
         if (function.GetSignatures().empty())
         {
-            out.out << "CORRUPT FUNCTION " << function.GetName() << out.NewLineString();
+            out.out << "CORRUPT FUNCTION " << function.GetName();
+            _MaybeNewLineIndent();
         }
         else
         {
@@ -1653,7 +1695,7 @@ public:
         int labelSize = 0;
         if (!asmStatement.GetLabel().empty())
         {
-            out.EnsureNewLine();
+            _MaybeNewLineNoIndent();
             out.out << asmStatement.GetLabel() << ":";
         }
 

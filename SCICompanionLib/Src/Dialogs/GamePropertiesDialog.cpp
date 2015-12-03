@@ -142,10 +142,10 @@ void CGamePropertiesDialog::OnOK()
 
         if (IDYES == AfxMessageBox("You've changed the default script language of the game. You can convert scripts one-by-one, or all at once right now. Do you want to try to convert all the scripts and headers now?", MB_YESNO | MB_ICONINFORMATION))
         {
-            if (IDYES == AfxMessageBox("SCI Companion will convert all .sh and .sc files in the src directory, and all .shp and .shm files in the poly and msg directories.\nThe old code will be backed up to the convert-bak directory. Go ahead with this?", MB_YESNO | MB_ICONWARNING))
+            if (IDYES == AfxMessageBox("SCI Companion will convert all .sh and .sc files in the src directory, and all .shp and .shm files in the poly and msg directories. This may take several minutes.\nThe old code will be backed up to the convert-bak directory. Go ahead with this?", MB_YESNO | MB_ICONWARNING))
             {
                 // Mainly intended to convert to Sierra syntax, so warn one more time if we're converting to Studio syntax.
-                if ((lang != LangSyntaxStudio) || (IDYES == AfxMessageBox("Converting back to SCI Studio syntax is not a well-tested scenario. Continue anyway?", MB_YESNO | MB_ICONWARNING)))
+                if ((lang != LangSyntaxSCI) || (IDYES == AfxMessageBox("Converting back to SCI Studio syntax is not a well-tested scenario. Continue anyway?", MB_YESNO | MB_ICONWARNING)))
                 {
                     CompileLog log;
                     ConvertGame(appState->GetResourceMap(), (LangSyntax)curSel, log);

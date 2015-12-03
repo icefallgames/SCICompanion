@@ -15,6 +15,7 @@
 
 class CompileLog;
 class CResourceMap;
+class GlobalCompiledScriptLookups;
 
-bool ConvertScript(SCIVersion version, LangSyntax targetLanguage, ScriptId &scriptId, CompileLog &log, bool makeBak);
+bool ConvertScript(SCIVersion version, LangSyntax targetLanguage, ScriptId &scriptId, CompileLog &log, bool makeBak, GlobalCompiledScriptLookups *lookups = nullptr);
 void ConvertGame(CResourceMap &resMap, LangSyntax targetLanguage, CompileLog &log);

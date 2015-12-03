@@ -116,6 +116,15 @@ bool ClassDefinition::GetPropertyConst(PCTSTR pszName, PropertyValue &value) con
             {
                 value = *valueTemp;
             }
+            else
+            {
+                const PropertyValueBase *valueBaseTemp = _properties[i]->TryGetValue2();
+                if (valueBaseTemp)
+                {
+                    fFound = true;
+                    value = *valueBaseTemp;
+                }
+            }
         }
     }
     if (!fFound)
@@ -392,14 +401,11 @@ const PropertyValueBase *ClassProperty::TryGetValue2() const
     const PropertyValueBase *value = TryGetValue();
     if (!value)
     {
-        if (!value)
+        ComplexPropertyValue *cValue = SafeSyntaxNode<ComplexPropertyValue>(_statement1.get());
+        if (cValue && !cValue->GetIndexer())
         {
-            ComplexPropertyValue *cValue = SafeSyntaxNode<ComplexPropertyValue>(_statement1.get());
-            if (cValue && !cValue->GetIndexer())
-            {
 
-                value = cValue;
-            }
+            value = cValue;
         }
     }
     return value;

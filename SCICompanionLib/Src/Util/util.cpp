@@ -642,8 +642,9 @@ bool ScriptId::IsHeader() const
 {
     PCSTR pszExt = PathFindExtension(_strFileName.c_str());
     return (strcmp(TEXT(".sh"), pszExt) == 0) ||
-        (strcmp(TEXT(".shm"), pszExt) == 0) ||
-        (strcmp(TEXT(".shp"), pszExt) == 0);
+        (strcmp(TEXT(".shm"), pszExt) == 0);
+        // shp not technically a header, since we support having stuff other than defines in it.
+        //(strcmp(TEXT(".shp"), pszExt) == 0);
 }
 
 void ScriptId::_Init(PCTSTR pszFullFileName, WORD wScriptNum)

@@ -18,11 +18,11 @@
 using namespace sci;
 using namespace std;
 
-void PrepForLanguage(LangSyntax langSyntax, sci::Script &script)
+void PrepForLanguage(LangSyntax langSyntax, sci::Script &script, GlobalCompiledScriptLookups *lookups)
 {
     if (langSyntax == LangSyntaxSCI)
     {
-        ConvertToSCISyntaxHelper(script);
+        ConvertToSCISyntaxHelper(script, lookups);
     }
 }
 
@@ -292,6 +292,9 @@ public:
             _Transform(SafeSyntaxNode<SendCall>(&node));
             _Transform(SafeSyntaxNode<LValue>(&node));
             _Transform(SafeSyntaxNode<FunctionParameter>(&node));
+            // Note: if one script is converted but not others, this won't compile properly:
+            _Transform(SafeSyntaxNode<SendParam>(&node));
+            _Transform(SafeSyntaxNode<ClassProperty>(&node));
 
             switch (node.GetNodeType())
             {
@@ -317,6 +320,7 @@ public:
                     {
                         value->SetName(name);
                     }
+                    break;
                 }
             }
         }

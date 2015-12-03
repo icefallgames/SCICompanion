@@ -15,6 +15,8 @@
 
 #include "ScriptOMAll.h"
 
+class GlobalCompiledScriptLookups;
+
 //
 // Handles an indentation scope
 //
@@ -239,6 +241,6 @@ std::string _DeduceReturnType(sci::FunctionBase &function);
 
 void EndStatement(sci::SourceCodeWriter &out);
 
-void ConvertToSCISyntaxHelper(sci::Script &script);
+void ConvertToSCISyntaxHelper(sci::Script &script, GlobalCompiledScriptLookups *lookups = nullptr);
 
-void PrepForLanguage(LangSyntax langSyntax, sci::Script &script);
+void PrepForLanguage(LangSyntax langSyntax, sci::Script &script, GlobalCompiledScriptLookups *lookups = nullptr);

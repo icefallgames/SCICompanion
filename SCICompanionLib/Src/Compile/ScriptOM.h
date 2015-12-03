@@ -525,6 +525,7 @@ namespace sci
     {
         DECLARE_NODE_TYPE(NodeTypeValue)
     public:
+        PropertyValue(const PropertyValueBase& src) : PropertyValueBase(src) {}
         PropertyValue() : PropertyValueBase() {}
         PropertyValue(const std::string &label, ValueType type) : PropertyValueBase()
         {

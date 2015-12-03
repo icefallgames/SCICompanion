@@ -856,7 +856,7 @@ DWORD CScriptView::_ParseLineSCI(DWORD dwCookie, int nLineIndex, TEXTBLOCK *pBuf
                 break;
 
             case HighlightState::RegularToken:
-                if (isalnum(ch) || ch == '_' || ch == '-')
+                if (isalnum(ch) || ch == '_' || ch == '-' || ch == '#') // # for "script#"
                 {
                     // good, keep going
                 }

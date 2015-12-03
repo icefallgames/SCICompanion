@@ -75,28 +75,35 @@ void MessageHeaderFile::_Load(const std::vector<std::string> &sourcesOptional)
         messageSource->MandatoryPrefix = source.substr(0, 1) + "_";
     }
 
-    LangSyntax lang = LangSyntaxUnknown;
-    size_t commentSize = 1;
-    PCSTR commentText = nullptr;
-
     MessageSource *currentSource = nullptr;
     // For speed, we won't bother with our standard parser here. Also, we need comments.
     ifstream file;
     file.open(_filePath);
     string line;
+    LangSyntax lang = LangSyntaxUnknown;
     while (std::getline(file, line))
     {
         if (lang == LangSyntaxUnknown)
         {
             lang = _DetermineLanguage(line);
-            commentSize = (lang == LangSyntaxSCI) ? ARRAYSIZE(c_szCommentSCI) : ARRAYSIZE(c_szCommentStudio);
-            commentText = (lang == LangSyntaxSCI) ? c_szCommentSCI : c_szCommentStudio;
+        }
+        char commentChar = lang == LangSyntaxSCI ? ';' : '/';
+        int minChars = lang == LangSyntaxSCI ? 1 : 2;
+        size_t offset = 0;
+        AdvancePastWhitespace(line, offset);
+        bool wasComment = false;
+        for (; offset < line.length(); offset++)
+        {
+            if (line[offset] != commentChar)
+            {
+                break;
+            }
+            wasComment = true;
         }
 
-        if (line.compare(0, commentSize - 1, commentText) == 0)
+        if (wasComment)
         {
             // Read tokens like CASES and NOUNS
-            size_t offset = commentSize;
             AdvancePastWhitespace(line, offset);
             size_t afterName = offset;
             AdvanceToWhitespace(line, afterName);
@@ -111,28 +118,32 @@ void MessageHeaderFile::_Load(const std::vector<std::string> &sourcesOptional)
                 currentSource = nullptr;
             }
         }
-        else if (line.compare(0, ARRAYSIZE(c_szDefine) - 1, c_szDefine) == 0)
+        else
         {
-            if (currentSource == nullptr)
-            {
-                auto itPair = _sources.emplace(std::make_pair("", MessageSource(this)));
-                currentSource = &itPair.first->second;
-                currentSource->Name = "";
-            }
-
-            size_t offset = ARRAYSIZE(c_szDefine);
             AdvancePastWhitespace(line, offset);
-            size_t afterName = offset;
-            AdvanceToWhitespace(line, afterName);
-            string name = line.substr(offset, afterName - offset);
-            AdvancePastWhitespace(line, afterName);
-            // This should be a number
-            string number = line.substr(afterName);
-            size_t afterNumber;
-            uint16_t value = (uint16_t)stoi(number, &afterNumber);
-            // TODO: We could assert we find a closing bracket.
+            if (line.compare(offset, ARRAYSIZE(c_szDefine) - 1, c_szDefine) == 0)
+            {
+                if (currentSource == nullptr)
+                {
+                    auto itPair = _sources.emplace(std::make_pair("", MessageSource(this)));
+                    currentSource = &itPair.first->second;
+                    currentSource->Name = "";
+                }
 
-            currentSource->AddDefine(name, value);
+                size_t offset = ARRAYSIZE(c_szDefine);
+                AdvancePastWhitespace(line, offset);
+                size_t afterName = offset;
+                AdvanceToWhitespace(line, afterName);
+                string name = line.substr(offset, afterName - offset);
+                AdvancePastWhitespace(line, afterName);
+                // This should be a number
+                string number = line.substr(afterName);
+                size_t afterNumber;
+                uint16_t value = (uint16_t)stoi(number, &afterNumber);
+                // TODO: We could assert we find a closing bracket.
+
+                currentSource->AddDefine(name, value);
+            }
         }
     }
 }
