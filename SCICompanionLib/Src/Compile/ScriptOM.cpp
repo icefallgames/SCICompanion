@@ -483,7 +483,6 @@ ScriptSite::ScriptSite()
     _pScript = nullptr;
 }
 
-// REVIEW: Only works with cpp style comments.
 std::string Comment::GetSanitizedText() const
 {
     if (_innerName.empty())
@@ -500,9 +499,8 @@ std::string Comment::GetSanitizedText() const
         // Remove the endline and any spaces
         return trim(trim(_innerName.substr(1), '\n'), ' ');
     }
-    else
+    else if ((_innerName[0] == '/') && (_innerName[1] == '*'))
     {
-        assert((_innerName[0] == '/') && (_innerName[1] == '*'));
         size_t len = _innerName.length();
         assert(len >= 4);
         std::string temp = _innerName.substr(2, len - 4);
@@ -510,6 +508,11 @@ std::string Comment::GetSanitizedText() const
         temp = trim(temp, '*');
         // And any space characters: REVIEW: This should really be anything up to the \n on both sides
         return trim(temp, ' ');
+    }
+    else
+    {
+        // Maybe it's alreayd sanitized (e.g. the polygon headers we output)
+        return _innerName;
     }
 }
 

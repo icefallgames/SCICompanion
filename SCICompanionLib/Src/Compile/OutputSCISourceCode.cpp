@@ -528,6 +528,10 @@ public:
     template<typename _T>
     void DoTheThing(_T &node)
     {
+        // Switch out a temporary stringstream to use while we calculate size.
+        std::stringstream ssTemp;
+        std::swap(out.out, ssTemp);
+
         _currentPosition = LineCol();
         _skipNextSpace = false;
         _isCalculateSizePass = true;
@@ -541,8 +545,8 @@ public:
         _currentPosition = LineCol();
         _skipNextSpace = false;
         _isCalculateSizePass = false;
-        std::stringstream ss;
-        std::swap(out.out, ss);
+        // Restore the original stream.
+        std::swap(out.out, ssTemp);
         out.indentAmount = oldIndentAmount;
         out.pComments = move(tempComments);
         Visit(node);
@@ -630,7 +634,7 @@ private:
             // Here we need to decide if we should output a comment.
             const Comment *pComment;
             LineCol nextLine(_currentPosition.Line() + 1, 0);
-            while (pComment = out.pComments->GetCurrentComment())
+            while (out.pComments && (pComment = out.pComments->GetCurrentComment()))
             {
                 if (pComment->GetPosition() <= _currentPosition)
                 {

@@ -28,6 +28,8 @@ public:
 
     void Visit(const Script &script) override
     {
+        out.OutputInitialComment();
+
         if (script.SyntaxVersion != 1)
         {
             out.out << "(version " << script.SyntaxVersion <<  ")" << out.NewLineString();
