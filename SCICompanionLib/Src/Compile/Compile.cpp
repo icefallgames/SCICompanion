@@ -3675,4 +3675,3 @@ void ConvertAndOrSequenceIntoTree(sci::SyntaxNodeVector &statements, std::vector
     assert(statements.size() == 1);
     assert(andOrs.empty());
 }
-

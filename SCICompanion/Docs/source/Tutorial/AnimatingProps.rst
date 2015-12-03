@@ -23,10 +23,10 @@ Go to your script file, and add at a setCycle method call to the box's initializ
 .. code-block:: python
     :emphasize-lines: 3
 
-    (theBox:
-        approachVerbs(V_DO)
-        setCycle(Forward)
-        init()
+    (theBox
+        approachVerbs: V_DO
+        setCycle: Forward
+        init:
     )
 
 This uses the :class:`Forward` cycler to cycle forward through the loops cels. So when you run the game, the blue box will now cycle between
@@ -91,14 +91,14 @@ need to do a few things:
             approachY 110
             cycleSpeed 15
         )
-    
-        (method (doVerb theVerb params)
-            (switch (theVerb)
-                (case V_DO
-                    (self:setCycle(EndLoop))
+
+        (method (doVerb theVerb)
+            (switch theVerb
+                (V_DO
+                    (self setCycle: EndLoop)
                 )
-                (default 
-                    (super:doVerb(theVerb rest params))
+                (else
+                    (super doVerb: theVerb &rest)
                 )
             )
         )
@@ -114,12 +114,11 @@ First, create a new Script object (you can use *Insert Object->Script* for conve
 
     (instance shrinkBoxScript of Script
         (properties)
-
+    
         (method (changeState newState)
-            = state newState
-            (switch (state)
-                (case 0
-                )
+            (= state newState)
+            (switch state
+                (0)
             )
         )
     )
@@ -129,13 +128,13 @@ Then, replace our previous handling of *theBox* doVerb with a call to set the Sc
 .. code-block:: python
     :emphasize-lines: 4
 
-    (method (doVerb theVerb params)
-        (switch (theVerb)
-            (case V_DO
-                (self:setScript(shrinkBoxScript))
+    (method (doVerb theVerb)
+        (switch theVerb
+            (V_DO
+                (self setScript: shrinkBoxScript)
             )
-            (default 
-                (super:doVerb(theVerb rest params))
+            (else
+                (super doVerb: theVerb &rest)
             )
         )
     )
@@ -147,25 +146,26 @@ Now add some meat to the shrinkBoxScript.
 
     (instance shrinkBoxScript of Script
         (properties)
-
+    
         (method (changeState newState)
-            = state newState
-            (switch (state)
-                (case 0
-                    (send gGame:handsOff())
-                    // We could also say (theBox:setCycle(EndLoop self))
-                    (send client:setCycle(EndLoop self))
+            (= state newState)
+            (switch state
+                (0
+                    (gGame handsOff:)
+                    ; We could also say (theBox setCycle: EndLoop self)
+                    (client setCycle: EndLoop self)
                 )
-                (case 1
+                (1
                     (= seconds 2)
                 )
-                (case 2
-                    TextPrint("The box shrunk!")
-                    (send gGame:handsOn())
+                (2
+                    (Prints {The box shrunk!})
+                    (gGame handsOn:)
                 )
             )
         )
     )
+
 
 Ok, what is all that? First of all, *case 0* will be executed as soon as the Script is set on the box. So that will start the cycle to shrink the box. Note
 that we added a **self** parameter to the setCycle call. This is a common thing for setCycle (and setMotion). It means that **self** will be *cued()* when
@@ -192,22 +192,49 @@ Then modify theBox:doVerb() like so:
 .. code-block:: python
     :emphasize-lines: 4-10
 
-    (method (doVerb theVerb params)
-        (switch (theVerb)
-            (case V_DO
+    (method (doVerb theVerb)
+        (switch theVerb
+            (V_DO
                 (if (not hasBoxShrunk)
                     (= hasBoxShrunk TRUE)
-                    (self:setScript(shrinkBoxScript))
-                )
-                (else
-                    TextPrint("What a small box!")
+                    (self setScript: shrinkBoxScript)
+                else
+                    (Prints {What a small box!})
                 )
             )
-            (default 
-                (super:doVerb(theVerb rest params))
+            (else
+                (super doVerb: theVerb &rest)
             )
         )
     )
 
+
 Now the box can only shrink once, and we can respond to V_DO with something else when the box is already shrunk.
 
+switchto
+-----------------
+
+This might be a good time to introduce the switchto statement. It's just like a switch statement, except the cases are
+implicitly number from 0 upwards. This can be useful if you're adding and removing lots of cases as you create your room scripts.
+
+This is what shrinkBoxScript's changeState method looks like if we use a switchto::
+
+    (method (changeState newState)
+        (= state newState)
+        (switchto state
+            (
+                (gGame handsOff:)
+                ; We could also say (theBox setCycle: EndLoop self)
+                (client setCycle: EndLoop self)
+            )
+            (
+                (= seconds 2)
+            )
+            (
+                (Prints {The box shrunk!})
+                (gGame handsOn:)
+            )
+        )
+    )
+
+It doesn't look much different, but there's no chance we miss a state number when we're adding and removing states.

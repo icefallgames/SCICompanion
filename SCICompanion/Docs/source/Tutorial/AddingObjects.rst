@@ -21,7 +21,7 @@ First, go to the Game Explorer, and add the Box sample from the Toolbox's *Inser
 .. image:: tutimages/Box.jpg
 
 Next, go back to the rm110.sc script and place the cursor at the bottom. Right-click *InsertObject->Prop*. Give it a name *theBox*, and
-set its view property to 123 (this is the Box view). It should look like this:
+set its view property to 123 (this is the Box view included in the template game). It should look like this:
 
 .. code-block:: python
     :emphasize-lines: 3
@@ -62,7 +62,7 @@ noun, and call it N_BOX (see :doc:`/messages` to learn how to do this). Save the
 We're not quite done yet! In addition to declaring a Prop, you need to initialize it. This makes sense, since you might not always want Props to appear right away in a room.
 So go to the room's init() method and add this to the end::
 
-    (theBox:init())
+    (theBox init:)
 
 Now compile and run, and you should see the box in the center of the room:
 
@@ -96,9 +96,9 @@ First, make sure you have a message for the **DO** verb on the box. Next, go to 
 .. code-block:: python
     :emphasize-lines: 2
 
-    (theBox:
-        approachVerbs(V_DO)
-        init()
+    (theBox
+        approachVerbs: V_DO
+        init:
     )
 
 The approachVerbs method lets you list the verbs for which the ego will approach the object. You can specify multiple. Compile, run the game, and see that your ego will walk over to the box before the message appears. You also note, however, that
@@ -187,19 +187,20 @@ but add a case for **V_DO**, where we'll change the *cel* of the redBox. Cel 1 w
             approachX 109
             approachY 130
         )
-    
-        (method (doVerb theVerb params)
-            (switch (theVerb)
-                (case V_DO
-                    // Set it back to cel 0 to turn it blue.
-                    (self:setCel(0))
+
+        (method (doVerb theVerb)
+            (switch theVerb
+                (V_DO
+                    ; Set it back to cel 0 to turn it blue
+                    (self setCel: 0)
                 )
-                (default 
-                    (super:doVerb(theVerb rest params))
+                (else
+                    (super doVerb: theVerb &rest)
                 )
             )
         )
     )
+
 
 Compile and run. Now when the ego *touches* the red box, he'll walk over there and it will turn blue.
 
@@ -214,19 +215,18 @@ Then change the doVerb method to look like this:
 .. code-block:: python
     :emphasize-lines: 4-10
 
-    (method (doVerb theVerb params)
-        (switch (theVerb)
-            (case V_DO
-                (if (== 1 (self:cel))
-                    (self:setCel(0))
-                    (send gTestMessager:say(N_REDBOX V_DO 0 0))
-                )
-                (else
-                    (send gTestMessager:say(N_REDBOX V_DO 1 0))
+    (method (doVerb theVerb)
+        (switch theVerb
+            (V_DO
+                (if (== 1 (self cel?))
+                    (self setCel: 0)
+                    (gMessager say: N_REDBOX V_DO 0 0)
+                else
+                    (gMessager say: N_REDBOX V_DO 1 0)
                 )
             )
-            (default 
-                (super:doVerb(theVerb rest params))
+            (else
+                (super doVerb: theVerb &rest)
             )
         )
     )

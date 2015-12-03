@@ -19,7 +19,7 @@ Changing the game name
 Let's put the name of your game in the title screen. If you go to the *changeState* method of the *rmScript* class, you'll see
 a call to :class:`Print` that adds two lines of text and three buttons. We want to change what the *addText* calls point to::
 
-    addText(N_TITLEMENU V_LOOK 0 4 0 0 0)
+    addText: N_TITLEMENU V_LOOK 0 4 0 0 0
 
 The parameters passed to addText are: noun, verb, condition, sequence, x, y and module number. Module number indicates which message
 resource the text is contained in.
@@ -41,10 +41,10 @@ Click on the entries for Seq: 4 and 5 (which were the values passed to addText),
 
 Of course, if you really want, you can also put the text directly in the call to addText::
 
-    //addText(N_TITLEMENU V_LOOK 0 4 0 0 0)
-    addText("Direct Quest" 0 0)
-    //addText(N_TITLEMENU V_LOOK 0 5 0 10 0)
-    addText("A subtitle" 0 10)
+    ; addText: N_TITLEMENU V_LOOK 0 4 0 0 0
+    addText: "Direct Quest" 0 0
+    ; addText: N_TITLEMENU V_LOOK 0 5 0 10 0
+    addText: "A subtitle" 0 10
 
 
 Changing the background image:

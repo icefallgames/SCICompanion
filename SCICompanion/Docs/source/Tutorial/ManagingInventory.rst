@@ -16,7 +16,7 @@ Open the :doc:`/Scripts/Inventory` script and scroll to the end. Here, create an
 
     (instance BlueBox of InventoryItem
         (properties
-            view 123        // This is our box view, we'll re-use it
+            view 123        ; This is our box view, we'll re-use it
             loop 0
             signal $0002
             noun N_BOX
@@ -37,11 +37,11 @@ out stub there in the template game:
     :emphasize-lines: 4
 
         (self:
-        	// Add inventory items here.
-            // add(Money AThing AnotherThing)
-            add(BlueBox)
-            eachElementDo(#lowlightColor 2)
-            add(invLook invSelect invHelp invUp invDown ok)
+        	; Add inventory items here.
+            ; add: Money AThing AnotherThing
+            add: BlueBox
+			eachElementDo: #lowlightColor 2
+			add: invLook invSelect invHelp invUp invDown ok
         )
 
 This doesn't actually add the item to the player's inventory. It just adds it to the master inventory list.
@@ -62,26 +62,25 @@ This will give the ego the item.
 .. code-block:: python
     :emphasize-lines: 10-11
 
-    (method (doVerb theVerb params)
-        (switch (theVerb)
-            (case V_DO
+    (method (doVerb theVerb)
+        (switch theVerb
+            (V_DO
                 (if (not hasBoxShrunk)
                     (= hasBoxShrunk TRUE)
-                    (self:setScript(shrinkBoxScript))
-                )
-                (else
-                    TextPrint("The box is small now, so you can pick it up!")
-                    (send gEgo:get(INV_BOX))
-                    (theBox:hide())
+                    (self setScript: shrinkBoxScript)
+                else
+                    (Prints {The box is small now, so you can pick it up!})
+                    (gEgo get: INV_BOX)
+                    (theBox hide:)
                 )
             )
-            (default 
-                (super:doVerb(theVerb rest params))
+            (else
+                (super doVerb: theVerb &rest)
             )
         )
     )
 
-Note that we also added a call to **(theBox:hide())**. theBox Prop is a completely different thing than the box inventory item, even if it
+Note that we also added a call to **(theBox hide:)**. theBox Prop is a completely different thing than the box inventory item, even if it
 doesn't seem like it to the player. So we need to hide it from view when the player takes the box.
 
 Compile and run the game. Now when you player touches the box, it should shrink. The next time they touch it, it will be placed in the player's inventory!
@@ -93,7 +92,7 @@ Open your inventory from the icon bar on top and you'll see it. You can then loo
 Note that for completeness, we'd want to modify the code in the room's init() so that the box is never initialized in the first place if the player
 has already taken it. That way if we re-enter the room the box won't be shown. You can check if the player has an item by doing::
 
-    (if (not (send gEgo:has(INV_BOX)))
+    (if (not (gEgo has: INV_BOX))
         // initialize it here (if the player doesn't have it)
     )
 

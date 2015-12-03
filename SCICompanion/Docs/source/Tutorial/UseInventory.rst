@@ -48,18 +48,17 @@ Compile and run the game. Now when you have the blue box in your inventory, you 
 
 Let's say throwing the box on the evil ego will kill him. Go the the evilEgo instance in your room and add a doVerb method::
 
-    (method (doVerb theVerb params)
-        (switch (theVerb)
-            (case V_BOX
-                TextPrint("You kill the evil ego with the box!")
-                (self:hide())
+    (method (doVerb theVerb)
+        (switch theVerb
+            (V_BOX
+                (Prints {You kill the evil ego with the box!})
+                (self hide:)
             )
-            (default 
-                (super:doVerb(theVerb rest params))
+            (else
+                (super doVerb: theVerb &rest)
             )
         )
     )
-
 
 Well, that explains how to use an inventory object (try to go to the message resource and add more messages for what happens if you attempt to
 use the box on yourself, the room or the other box), but it's not too visually impressive. For extra points, what about if we actually showed the box being thrown?
@@ -73,14 +72,14 @@ That's not too difficult. There is a :class:`JumpTo` Motion that is useful for t
         (properties
         // etc...
 
-Next, as we did once before, we'll replace our V_BOX handler with a call to set a script on the evil ego.
+Next, as we did once before, we'll replace the evilEgo's V_BOX handler with a call to set a script on the evil ego.
 
 .. code-block:: python
     :emphasize-lines: 4
 
     (method (doVerb theVerb params)
         (switch (theVerb)
-            (case V_BOX
+            (V_BOX
                 (self:setScript(throwBoxScript))
             )
             (default 
@@ -93,32 +92,28 @@ And the script we'll make looks like this::
 
     (instance throwBoxScript of Script
         (properties)
-
+    
         (method (changeState newState)
-            = state newState
-            (switch (state)
-                (case 0
-                    (send gGame:handsOff())
-                    (send gEgo:put(INV_BOX))    // Remove from inventory.
-                    (theBox:
-                        posn((send gEgo:x) (send gEgo:y) 30)
-                        show()
-                        setMotion(JumpTo (evilEgo:x) (evilEgo:y) self)
+            (= state newState)
+            (switchto state
+                (
+                    (gGame handsOff:)
+                    (gEgo put: INV_BOX) ; Remove from inventory
+                    (theBox
+                            posn: (gEgo x?) (gEgo y?) 30
+                            show:
+                            setMotion: JumpTo (evilEgo x?) (evilEgo y?) self
                     )
                 )
-                (case 1
-                    (evilEgo:hide())
-                    (send gGame:handsOn())
-                    // Box hangs in the air for a couple of seconds for comedic effect
+                (
+                    (evilEgo hide:)
+                    (gGame handsOn:)
+                    ; Box hangs in the air for a couple of seconds for comedic effect
                     (= seconds 2)
-                    (theBox:
-                        posn((theBox:x) (- (theBox:y) 30) 0)
-                    )            	
+                    (theBox posn: (theBox x?) (- (theBox y?) 30) 0)
                 )
-                (case 2
-                    (theBox:
-                        setMotion(JumpTo (theBox:x) (+ (theBox:y) 30) self)
-                    )
+                (
+                    (theBox setMotion: JumpTo (theBox x?) (+ (theBox y?) 30) self)
                 )
             )
         )
@@ -127,7 +122,7 @@ And the script we'll make looks like this::
 What does this do? In state 0, it removes control of the game from the player. Second, the box is removed from his inventory.
 
 Next, the box is positioned at the player's location and is shown (we made it invisible when it was picked up, remember?). Now, for extra effect, the box is raised
-up 30 pixels in the air so it's roughly at the ego's hands. The third parameter to **posn()** is the z-coordinate. The z-coordinate makes it like stuff is floating in the
+up 30 pixels in the air so it's roughly at the ego's hands. The third parameter to **posn:** is the z-coordinate. The z-coordinate makes it like stuff is floating in the
 air. The y-coordinate could be changed instead, but that would mess up hit detection. We want the box's (x, y) position to be the ground 30 pixels below where it appears.
 
 We then invoke the JumpTo motion on *theBox*, passing **self** so that this Script's changedState is triggered when the JumpTo motion finishes. That brings us to state 1.

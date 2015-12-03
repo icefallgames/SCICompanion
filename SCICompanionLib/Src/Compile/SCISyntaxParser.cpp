@@ -787,7 +787,7 @@ void SCISyntaxParser::Load()
 
     // The properties thing in a class or instance
     properties_decl = oppar >> keyword_p("properties")[{nullptr, ParseAutoCompleteContext::ClassLevelKeyword}] >> *property_decl >> clpar;
-
+    
     classbase_decl =
         alphanumNK_p[ClassNameA]
         >> -(keyword_p("of")[GeneralE] >> alphanumNK_p[{ClassSuperA, ParseAutoCompleteContext::SuperClass}])
@@ -969,6 +969,8 @@ bool SCISyntaxParser::Parse(Script &script, streamIt &stream, std::unordered_set
         std::string strError = "  [Error]: ";
         strError += context.GetErrorText();
         streamIt errorPos = context.GetErrorPosition();
+
+        strError += fmt::format(" ({}, {})", errorPos.GetLineNumber(), errorPos.GetColumnNumber());
 
         // We can maybe improve the error by extracting a token here and seeing if it's a keyword.
         std::string maybeKeyword;

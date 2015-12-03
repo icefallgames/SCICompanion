@@ -199,12 +199,15 @@ public:
 
                 char ch;
                 // Go until end of line, after counting the number of semicolons
-                int semiCount = 1;
-                while ((ch = *(++stream)) && (ch == ';'))
+                int semiCount = 0;
+                while ((ch = *stream) && (ch == ';'))
                 {
                     semiCount++;
+                    ++stream;
                 }
-                while ((ch = *(++stream)) && (ch != '\n')) {} // Look for \n or EOF
+                // Now stream points to after the semicolons
+                while ((ch = *stream) && (ch != '\n')) { ++stream; } // Look for \n or EOF
+                // Now stream points to after the newline
                 fDone = false; // Check for whitespace again
 
                 // Comment gathering.  This may be expensive, so only do this if pContext is non-NULL

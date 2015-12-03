@@ -74,7 +74,7 @@ Now in the message editor, add some messages for N_PAINTING, say for the V_LOOK 
 If you compile now, you might get an error that you need to use "Feature". The **use** statements at the top of the script list other scripts that contain
 classes we reference. The :class:`Feature` class is in the Feature.sc script. So add this::
 
-    (use "Feature")
+    (use Feature)
 
 Now compile and run, and the ego should display the messages you added when interacting with the painting.
 

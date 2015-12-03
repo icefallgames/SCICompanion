@@ -26,19 +26,20 @@ and just use doit(). Furthermore, we can override init() in the evilEgo and set 
             cycleSpeed 30
         )
     
-        (method (init params)
-            (super:init(rest params))
-            (self:setScript(evilEgoScript))
+        (method (init)
+            (super init: &rest)
+            (self setScript: evilEgoScript)
         )
     )
 
     (instance evilEgoScript of Script
         (properties)
-
+    
         (method (doit)
-            (super:doit())
+            (super doit:)
         )
     )
+
 
 
 Now in our doit() method we need to see how close the evilEgo is to the player, and kill them if evilEgo is too close:
@@ -48,11 +49,11 @@ Now in our doit() method we need to see how close the evilEgo is to the player, 
 
     (instance evilEgoScript of Script
         (properties)
-
+    
         (method (doit)
-            (super:doit())
-            (if (<= (send client:distanceTo(gEgo)) 25)
-                Die()
+            (super doit:)
+            (if (<= (client distanceTo: gEgo) 25)
+                (Die)
             )
         )
     )

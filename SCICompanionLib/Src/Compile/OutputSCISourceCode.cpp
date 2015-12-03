@@ -1442,7 +1442,7 @@ public:
     void Visit(const SwitchStatement &switchStatement) override
     {
         bool isMultiline = _ShouldBeMultiline(&switchStatement);
-        assert(isMultiline); // It's important that this returns true so that parents are multiline too.
+        assert(isMultiline || _isCalculateSizePass); // It's important that this returns true so that parents are multiline too.
         SET_MULTILINEMODE(isMultiline);
 
         _MaybeNewLineIndent();

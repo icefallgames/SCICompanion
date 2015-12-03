@@ -13,19 +13,12 @@ The first room
 By default, the TitleScreen.sc script takes you to room 110 when you click on the color button number 0:
 
 .. code-block:: python
-    :emphasize-lines: 3
+    :emphasize-lines: 2
 
-    (switch (temp0)
-        (case 0
-            (send gRoom:newRoom(110))
-        )
-        (case 1
-            (send gGame:restore())
-            (self:changeState(state))
-        )
-        (case 2
-            (= gQuitGame TRUE)
-        )
+    (switch temp0
+        (0 (gRoom newRoom: 110))
+        (1 (gGame restore:) (self changeState: state))
+        (2 (= gQuitGame TRUE))
     )
 
 Room 110 is already set up for you. Find *rm110.sc* in the Quick links in the script editor, or open it from the Game Explorer.
@@ -38,7 +31,7 @@ The init() method
 
 Let's go through each of the pieces of code in init()::
 
-    AddPolygonsToRoom(@P_Default110)
+    (AddPolygonsToRoom @P_Default110)
 
 The above line adds the polygons defined with the pic resource to the room. Polygons define the boundaries of where the ego can go. (If you click
 on the *pic 110* link in the Toolbox, pic 110 will open. Then click on *Show polygons* in the pic Toolbox, and you'll see a green rectangle outlined
@@ -46,33 +39,32 @@ on the pic. This is the single default polygon for this room). In subsequent tut
 
 Next, we have::
 
-    (super:init())
+    (super init:)
 
-Always remember to call (super:init()). It's responsible for drawing the background, among other things. Next, we have::
+Always remember to call (super init:). It's responsible for drawing the background, among other things. Next, we have::
 
-    (switch (gPreviousRoomNumber)
-        // Add room numbers here to set up the ego when coming from different directions.
-        (default
-            SetUpEgo(-1 1)
-            (send gEgo:
-                posn(150 130)
-            )
+    (switch gPreviousRoomNumber
+        ; Add room numbers here to set up the ego when coming from different directions.
+        (else
+            (SetUpEgo -1 1)
+            (gEgo posn: 150 130)
         )
     )
-    (send gEgo:init())
+    (gEgo init:)
+
 
 This is responsible for placing the ego in different locations depending on what room they entered from. For now, we just have it set up
 so that when the ego enters from any room to room 110, he'll be placed at (150, 130). SetUpEgo says to use the default view (-1), and loop 1 (facing west).
 
-Try changing posn(150 130) to posn(20 130), and you'll see the ego appears at a different spot:
+Try changing **posn: 150 130** to **posn: 20 130**, and you'll see the ego appears at a different spot:
 
 .. image:: tutimages/EgoMoved.png
 
 Finally, we have::
 
-    // We just came from the title screen, so we need to call this to give control
-    // to the player.
-    (send gGame:handsOn())
+    ; We just came from the title screen, so we need to call this to give control
+    ; to the player.
+    (gGame handsOn:)
 
 Normally you wouldn't need to put this in your room's init(). But since we came from the TitleScreen where player input was disabled, we need to do this.
 
@@ -88,12 +80,11 @@ script file, right-click and choose *Insert Object->Script*. Name your script **
 
     (instance RoomScript of Script
         (properties)
-
+    
         (method (changeState newState)
-            = state newState
-            (switch (state)
-                (case 0
-                )
+            (= state newState)
+            (switch state
+                (0)
             )
         )
     )
@@ -104,11 +95,11 @@ Go to your room's init method, and assign the script to the room:
     :emphasize-lines: 4
     
     (method (init)
-        AddPolygonsToRoom(@P_Default110)
-        (super:init())
-        (self:setScript(RoomScript))
+        (AddPolygonsToRoom @P_Default110)
+        (super init:)
+        (self setScript: RoomScript)
 
-changeState(newState)
+(changeState newState)
 -----------------------
 
 By default, when a script is assigned to a room, the *changeState* method will be called with newState equal to zero. So whatever code you put in in case 0 will
@@ -119,12 +110,12 @@ be executed. Try this, then compile and run:
 
     (instance RoomScript of Script
         (properties)
-
+    
         (method (changeState newState)
-            = state newState
-            (switch (state)
-                (case 0
-                    TextPrint("Case 0!")
+            (= state newState)
+            (switch state
+                (0
+            		    (Prints {Case 0!})
                 )
             )
         )
@@ -138,15 +129,15 @@ by making it wait four seconds:
 
     (instance RoomScript of Script
         (properties)
-
+    
         (method (changeState newState)
-            = state newState
-            (switch (state)
-                (case 0
-                    = seconds 4
+            (= state newState)
+            (switch state
+                (0
+                        (= seconds 4)
                 )
-                (case 1
-                    TextPrint("This is now case 1")
+                (1
+                        (Prints {Case 0!})
                 )
             )
         )
@@ -157,38 +148,38 @@ more fine-grained time.
 
 In other tutorials we'll see other ways to trigger the next state (like when a certain game event happens), and you could also set a state directly using::
 
-    (RoomScript:cue(5)) // Sets state 5
+    (RoomScript cue: 5) // Sets state 5
 
-doit()
+doit:
 --------
 
-Scripts also have a *doit()* method which is useful. This is called on every game cycle. To add this, position your cursor inside the *RoomScript* instance,
+Scripts also have a *doit:* method which is useful. This is called on every game cycle. To add this, position your cursor inside the *RoomScript* instance,
 after the *changeState* method. Then right-click, *Insert Method->doit*::
 
     (method (doit)
-        (super:doit())
+        (super doit:)
     )
-
 
 Now, suppose we wanted the ego to be magically transported back to the left side of the screen whenever they tried to walk past the center of the screen.
 To do so, each game cycle we'd check to see if the ego's x position was large than 150. If so, we would position the ego back on the left side of the screen.
 It would look like this::
 
-
-    (method (doit)
-        (var x, y)
-        (super:doit())
-        (= x (send gEgo:x))
-        (= y (send gEgo:y))
+    (method (doit &tmp x y)
+        (super doit:)
+        ; Grab the ego's x and y and put them in temp variables
+        (= x (gEgo x?))
+        (= y (gEgo y?))
         
-        // If the ego is past 150
+        ; If the ego is past 150
         (if (> x 150)
-            // Then put him back at 20
-            (send gEgo:posn(20 y))
+            ; Then put him back at 20
+            (gEgo posn: 20 y)
         )
     )
 
 Now compile and run, and try to walk the ego to the right side of the screen.
+
+Note that this example introduced temporary variables (following the &tmp token). They are scoped to the method or procedure they are declared in.
 
 Title bar
 ----------------
