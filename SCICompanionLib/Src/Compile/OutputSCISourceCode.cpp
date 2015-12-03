@@ -516,6 +516,7 @@ public:
     template<typename _T>
     void DoTheThing(_T &node)
     {
+        _currentPosition = LineCol();
         _skipNextSpace = false;
         _isCalculateSizePass = true;
         // Configure our output so it write the least amount possible.
@@ -525,6 +526,7 @@ public:
         Visit(node);
 
         // Now try again with the real deal.
+        _currentPosition = LineCol();
         _skipNextSpace = false;
         _isCalculateSizePass = false;
         std::stringstream ss;
@@ -536,6 +538,7 @@ public:
 
 private:
 
+    LineCol _currentPosition;
     bool _skipNextSpace;
 
     // Avoids the extra space here:
@@ -600,19 +603,54 @@ private:
         }
     }
 
-    void _SyncComments(SyntaxNode *node)
+    void _AboutToGoToNextLine()
     {
-        // For positioned comments, if we're going to a new line, and the comment was
-        // *after* the node we last output, then we should output it now (positioned as appropriate)
-        //
-        // Other comments take up full lines. And we kind of need to know the next node that's going to be
-        // supplied, so we can know whether or not to output it. Alternatively, perhaps we can know that there
-        // are no other nodes in between the last node and the next, so we should output it. That's more automatic.
-        // We also don't set the end position very accurately, so that might be best.
+        if (!_isCalculateSizePass)
+        {
+            // Here we need to decide if we should output a comment.
+            const Comment *pComment;
+            LineCol nextLine(_currentPosition.Line() + 1, 0);
+            while (pComment = out.pComments->GetCurrentComment())
+            {
+                if (pComment->GetPosition() <= _currentPosition)
+                {
+                    switch (pComment->CommentType)
+                    {
+                        case CommentType::Positioned:
+                        {
+                            // Append it to this line.
+                            int numberOfSpaces = 1;
+                            numberOfSpaces = max(numberOfSpaces, pComment->GetColumnNumber() - _currentPosition.Column());
+                            std::string spaces;
+                            spaces.append(numberOfSpaces, ' ');
+                            out.out << spaces;
+                            out.out << pComment->GetName();
+                            break;
+                        }
+                        case CommentType::Indented:
+                            // Put it on a new line, indented.
+                            out.NewLine();
+                            Indent(out);
+                            out.out << pComment->GetName();
+                            break;
 
+                        case CommentType::LeftJustified:
+                            // Put it on a new line, un-indented.
+                            out.NewLine();
+                            out.out << pComment->GetName();
+                            break;
 
-        // For left justified comments, if the node we're about to go to
-        // has
+                        default:
+                            assert(false);
+                    }
+                    out.pComments->MoveToNextComment();
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
     }
 
     void _MaybeNewLineIndent()
@@ -626,6 +664,7 @@ private:
         }
         else
         {
+            _AboutToGoToNextLine();
             out.NewLine();
             Indent(out);
         }
@@ -635,6 +674,7 @@ private:
     {
         if (!out.fInline)
         {
+            _AboutToGoToNextLine();
             out.NewLine();
             Indent(out);
         }
@@ -776,10 +816,6 @@ public:
     {
         _MaybeNewLineIndent();
 
-        out.SyncComments(classDef);
-
-        _MaybeNewLineIndent();
-
         {
             GO_INLINE;
             if (classDef.IsInstance())
@@ -837,6 +873,8 @@ public:
 
         _MaybeNewLineIndent();
         out.out << ")";
+
+        _MaybeNewLineIndent();
     }
 
     void Visit(const FunctionParameter &param) override
@@ -849,7 +887,6 @@ public:
 
     void _VisitPropertyValue(const PropertyValueBase &prop)
     {
-        out.SyncComments(prop);
         _MaybeNewLineIndent();
         out.out << GetPropertyText(prop);
     }
@@ -882,7 +919,6 @@ public:
 
     void Visit(const Define &define) override
     {
-        out.SyncComments(define);
         bool fHex = IsFlagSet(define.GetFlags(), IntegerFlags::Hex);
         bool fNegate = IsFlagSet(define.GetFlags(), IntegerFlags::Negative);
         out.out << "(define " << define.GetLabel() << " ";
@@ -892,7 +928,6 @@ public:
 
     void Visit(const ClassProperty &classProp) override
     {
-        out.SyncComments(classProp);
         _MaybeNewLineIndent();
         // Always inline
         GO_INLINE;
@@ -902,7 +937,6 @@ public:
 
     void Visit(const VariableDecl &varDecl) override
     {
-        out.SyncComments(varDecl);
         _MaybeNewLineIndent();
         _OutputVariableAndSizeSCI(out, varDecl.GetDataType(), varDecl.GetName(), varDecl.GetSize(), varDecl.GetStatements());
     }
@@ -911,8 +945,6 @@ public:
 
     void _VisitFunctionBase(const FunctionBase &function)
     {
-        out.SyncComments(function);
-
         if (function.GetSignatures().empty())
         {
             out.out << "CORRUPT FUNCTION " << function.GetName() << out.NewLineString();
@@ -981,7 +1013,6 @@ public:
 
     void Visit(const MethodDefinition &function) override
     {
-        out.SyncComments(function);
         _MaybeNewLineIndent();
         out.out << "(method ";
         _VisitFunctionBase(function);
@@ -990,11 +1021,9 @@ public:
     void Visit(const ProcedureDefinition &function) override
     {
         _MaybeNewLineIndent();
-
-        out.SyncComments(function);
-        _MaybeNewLineIndent();
         out.out << "(procedure ";
         _VisitFunctionBase(function);
+        _MaybeNewLineIndent();
     }
 
     void Visit(const Synonym &syn) override
@@ -1010,7 +1039,6 @@ public:
 
     void Visit(const CodeBlock &block) override
     {
-        out.SyncComments(block);
         // The parent should have set is multiline (e.g. if statements, etc...)
         // SET_MULTILINEMODE(_ShouldBeMultiline(&block));
         // No indent, because the parent will already have indented (e.g. if statements, etc...)
@@ -1019,7 +1047,6 @@ public:
 
     void Visit(const ConditionalExpression &conditional) override
     {
-        out.SyncComments(conditional);
         // This happens in the caller. ConditionalExpression just pushes through.
         // _MaybeNewLineIndent();
         SET_MULTILINEMODE(_ShouldBeMultiline(&conditional));
@@ -1033,8 +1060,6 @@ public:
 
     void Visit(const SendParam &sendParam) override
     {
-        out.SyncComments(sendParam);
-
         _MaybeNewLineIndent();
 
         out.out << CleanTokenSCI(sendParam.GetSelectorName()) << ":";
@@ -1049,7 +1074,6 @@ public:
 
     void Visit(const LValue &lValue) override
     {
-        out.SyncComments(lValue);
         // Going on a limb and saying this is always inline
         GO_INLINE;
         _MaybeNewLineIndent();
@@ -1068,7 +1092,6 @@ public:
 
     void Visit(const RestStatement &rest) override
     {
-        out.SyncComments(rest);
         _MaybeNewLineIndent();
         GO_INLINE;
         out.out << "&rest";
@@ -1082,8 +1105,6 @@ public:
 
     void Visit(const SendCall &sendCall) override
     {
-        out.SyncComments(sendCall);
-
         _MaybeNewLineIndent();
         out.out << "(";
 
@@ -1145,7 +1166,6 @@ public:
 
     void Visit(const ProcedureCall &procCall) override
     {
-        out.SyncComments(procCall);
         bool multiLine = _ShouldBeMultiline(&procCall);
         _MaybeNewLineIndent();
         out.out << "(" << procCall.GetName();
@@ -1166,8 +1186,6 @@ public:
 
     void Visit(const ReturnStatement &ret) override
     {
-        out.SyncComments(ret);
-
         bool multiLine = ret.GetStatement1() && _ShouldBeMultiline(ret.GetStatement1());
         _MaybeNewLineIndent(); // Space, or newline and tab.
         out.out << "(return";
@@ -1191,7 +1209,6 @@ public:
 
     void Visit(const ForLoop &forLoop) override
     {
-        out.SyncComments(forLoop);
         _MaybeNewLineIndent();
 
         out.out << "(for (";
@@ -1249,7 +1266,6 @@ public:
 
     void Visit(const WhileLoop &whileLoop) override
     {
-        out.SyncComments(whileLoop);
         _MaybeNewLineIndent();
 
         if (_IsConditionalExpressionTRUE(*whileLoop.GetCondition()))
@@ -1288,7 +1304,6 @@ public:
         //     (breakif (not blah))
         // )
 
-        out.SyncComments(doLoop);
         _MaybeNewLineIndent();
         out.out << "(repeat";
 
@@ -1337,21 +1352,18 @@ public:
 
     void Visit(const BreakStatement &breakStatement) override
     {
-        out.SyncComments(breakStatement);
         _MaybeNewLineIndent();
         out.out << "(break)";
     }
 
     void Visit(const ContinueStatement &breakStatement) override
     {
-        out.SyncComments(breakStatement);
         _MaybeNewLineIndent();
         out.out << "(continue)";
     }
 
     void Visit(const CaseStatement &caseStatement) override
     {
-        out.SyncComments(caseStatement);
         _MaybeNewLineIndent();
 
         bool isMultiline = _ShouldBeMultiline(&caseStatement);
@@ -1383,8 +1395,6 @@ public:
 
     void Visit(const SwitchStatement &switchStatement) override
     {
-        out.SyncComments(switchStatement);
-
         bool isMultiline = _ShouldBeMultiline(&switchStatement);
         assert(isMultiline); // It's important that this returns true so that parents are multiline too.
         SET_MULTILINEMODE(isMultiline);
@@ -1407,7 +1417,6 @@ public:
 
     void Visit(const Assignment &assignment) override
     {
-        out.SyncComments(assignment);
         _MaybeNewLineIndent();
         bool isMultiline = _ShouldBeMultiline(&assignment);
         out.out << "(" << OperatorToName(assignment.Operator, sciNameToAssignmentOp);
@@ -1438,8 +1447,6 @@ public:
 
     void Visit(const BinaryOp &binaryOp) override
     {
-        out.SyncComments(binaryOp);
-
         _MaybeNewLineIndent();
 
         vector<const SyntaxNode*> terms;
@@ -1466,7 +1473,6 @@ public:
 
     void Visit(const NaryOp &naryOp) override
     {
-        out.SyncComments(naryOp);
         _MaybeNewLineIndent();
         out.out << "(" << OperatorToName(naryOp.Operator, sciNameToBinaryOp);
         SET_MULTILINEMODE(_ShouldBeMultiline(&naryOp));
@@ -1477,7 +1483,6 @@ public:
 
     void Visit(const UnaryOp &unaryOp) override
     {
-        out.SyncComments(unaryOp);
         _MaybeNewLineIndent();
         out.out << "(" << OperatorToName(unaryOp.Operator, sciNameToUnaryOp);
         SET_MULTILINEMODE(_ShouldBeMultiline(&unaryOp));
@@ -1521,7 +1526,6 @@ public:
 
     void Visit(const IfStatement &ifStatement) override
     {
-        out.SyncComments(ifStatement);
         _MaybeNewLineIndent();
         bool isMultiline = _ShouldBeMultiline(&ifStatement);
 
@@ -1700,6 +1704,14 @@ public:
         {
             _nodeSize[&node] = (size_t)out.out.tellp();
         }
+        else
+        {
+            // Keep position updated
+            if (_currentPosition < node.GetPosition())
+            {
+                _currentPosition = node.GetPosition();
+            }
+        }
     }
     void Leave(const SyntaxNode &node) override
     {
@@ -1738,6 +1750,14 @@ public:
                 _nodeSize[&node] = (size_t)out.out.tellp() - _nodeSize[&node];
             }
 
+        }
+        else
+        {
+            // Keep position updated
+            if (_currentPosition < node.GetPosition())
+            {
+                _currentPosition = node.GetPosition();
+            }
         }
     }
 

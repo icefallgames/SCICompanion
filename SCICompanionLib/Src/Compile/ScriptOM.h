@@ -218,6 +218,19 @@ namespace sci
         std::string GetFirstComment() const;
         bool _OutputCommentHelper(const Comment &comment, SourceCodeWriter &out);
 
+        const Comment *GetCurrentComment()
+        {
+            if (_commentIndex < _comments.size())
+            {
+                return _comments[_commentIndex].get();
+            }
+            return nullptr;
+        }
+        void MoveToNextComment()
+        {
+            _commentIndex++;
+        }
+
         template<typename _Tx>
         void Transform(_Tx tx)
         {

@@ -878,7 +878,7 @@ DWORD CScriptView::_ParseLineSCI(DWORD dwCookie, int nLineIndex, TEXTBLOCK *pBuf
                 sumup = (!isalnum(ch) && ch != '^' || ch != '@');
 
             case HighlightState::BinaryLiteral:
-                sumup = (ch != '0' & ch != '1');
+                sumup = (ch != '0' && ch != '1');
                 break;
 
             case HighlightState::Hex:
