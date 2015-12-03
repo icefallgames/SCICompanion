@@ -19,9 +19,9 @@ These operators use the result of explression and apply the variable to it using
 
 Example::
 
-	(= SomeVar 10)			; SomeVar is now 10
-	(+= SomeVar 40)			; SomeVar is now 50
-	(/= SomeVar (+ 2 2))	; SomeVar is now 10 (40 / 4)
+    (= SomeVar 10)          ; SomeVar is now 10
+    (+= SomeVar 40)         ; SomeVar is now 50
+    (/= SomeVar (+ 2 2))    ; SomeVar is now 10 (40 / 4)
 
 The value of an assignment expression is the value of the resulting variable. So these can be used in conditional expressions too::
 

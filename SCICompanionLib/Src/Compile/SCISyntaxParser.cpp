@@ -385,9 +385,103 @@ void RestructureNaryAssociativeOpA(MatchResult &match, const ParserSCI *pParser,
     }
 }
 
+const size_t MaxOpLength = 4;
+
+// Takes the operators, sorts them, puts them into a double-null terminated string.
+std::vector<char> GenerateOperatorStringWorker(const set<std::string> &ops)
+{
+    std::vector<char> result;
+    // Organize these by group
+    std::map<char, std::set<std::string>> temp;
+    bool hasEmpty = false;
+    for (auto op : ops)
+    {
+        assert(op.length() <= MaxOpLength);
+        // TODO: Deal with empties
+        hasEmpty = hasEmpty || !op[0];
+        if (op[0])
+        {
+            temp[op[0]].insert(op.substr(1));
+        }
+    }
+    // The size of our current level, plus an extra for "empty" (op that terminates at this level) and a sentinel indicating the end of this level.
+    size_t relativeOffsetToNext = (temp.size() + (hasEmpty ? 1 : 0)) * 2 + 1;
+    std::vector<std::vector<char>> subEntries;
+    for (auto &entry : temp)
+    {
+        std::vector<char> subEntry = GenerateOperatorStringWorker(entry.second);
+        result.push_back(entry.first);  // The char
+        assert(relativeOffsetToNext < 128);
+        result.push_back((char)relativeOffsetToNext);
+        relativeOffsetToNext += subEntry.size();
+        subEntries.push_back(subEntry);
+    }
+    if (hasEmpty)
+    {
+        // Deal with it last.
+        result.push_back(' ');  // A space, indicating the end
+        result.push_back(0);    // Zero, indicating no offset to next char list.
+    }
+    // Finally, the sentinel value indicating the end:
+    result.push_back(0);
+    // Now copy the sub entries
+    for (auto &subEntry : subEntries)
+    {
+        copy(subEntry.begin(), subEntry.end(), back_inserter(result));
+    }
+    return result;
+}
+
+std::string GenerateOperatorString(const set<std::string> &ops)
+{
+    auto result = GenerateOperatorStringWorker(ops);
+    return std::string(result.begin(), result.end());
+}
+
+template<typename _TContext>
+bool SCIOptimizedOperatorP(const ParserSCI *pParser, _TContext *pContext, streamIt &stream)
+{
+    const char *currentdb = pParser->_psz;
+    char finalOperator[MaxOpLength + 1];
+    char *buildOperator = finalOperator;
+    char ch;
+    while (ch = *stream)
+    {
+        const char *currentDbStart = currentdb;
+
+        //    not at end     not equal to char      and isn't end of op 
+        while (*currentdb && (ch != *currentdb) && (*currentdb != ' ' || !isspace(ch)))
+        {
+            currentdb += 2;
+        }
+        if (*currentdb)
+        {
+            if (*currentdb == ' ')
+            {
+                *buildOperator = 0;
+                pContext->ScratchString() = finalOperator;
+                return true;
+            }
+            *buildOperator++ = ch;
+            assert((buildOperator - finalOperator) <= MaxOpLength);
+            // Adjust offset and continue with the next character
+            int offset = *(currentdb + 1);
+            assert(offset);
+            currentdb = currentDbStart + offset;
+        }
+        else
+        {
+            // Not a match
+            return false;
+        }
+        ++stream;
+    }
+    return false;
+}
+
 
 ParserSCI SCISyntaxParser::char_p(const char *psz) { return ParserSCI(CharP, psz); }
-ParserSCI SCISyntaxParser::operator_p(const char *psz) { return ParserSCI(SCIOperatorP, psz); }
+ParserSCI SCISyntaxParser::operator_p(const char *psz) { return ParserSCI(SCIOptimizedOperatorP, psz); }
 ParserSCI SCISyntaxParser::keyword_p(const char *psz) { return ParserSCI(KeywordP, psz); }
 ParserSCI SCISyntaxParser::generateSyntaxNodeD()
 {
@@ -634,25 +728,38 @@ void SCISyntaxParser::Load()
         )
         ;
 
+    binaryOps = GenerateOperatorString({ ">>", "<<", "-", "/", "mod" });
+
     // Operators
     // These are binary-only operators
-    binary_operator =  operator_p(">>") | operator_p("<<") | operator_p("-") | operator_p("/") | operator_p("mod");
+    //binary_operator =  operator_p(">>") | operator_p("<<") | operator_p("-") | operator_p("/") | operator_p("mod");
+    binary_operator = operator_p(binaryOps.c_str());
 
+    naryAssocOps = GenerateOperatorString({ "*", "+", "&", "|", "^", "and", "or" });
     // n-ary operators that are associative
-    naryassoc_operator = operator_p("*") | operator_p("+") | operator_p("&") | operator_p("|") | operator_p("^") | operator_p("and") | operator_p("or");
+    //naryassoc_operator = operator_p("*") | operator_p("+") | operator_p("&") | operator_p("|") | operator_p("^") | operator_p("and") | operator_p("or");
+    naryassoc_operator = operator_p(naryAssocOps.c_str());
 
     // n-ary comparison operators
+    naryCompareOps = GenerateOperatorString({ "u>=", ">=", "u>", ">", "u<=", "<=", "u<", "!=", "<", "==" });
+    /*
     narycompare_operator = operator_p("u>=") | operator_p(">=") | operator_p("u>") | operator_p(">") |
         operator_p("u<=") | operator_p("<=") | operator_p("u<") | operator_p("!=") |
-        operator_p("<") | operator_p("==");
+        operator_p("<") | operator_p("==");*/
+    narycompare_operator = operator_p(naryCompareOps.c_str());
 
-    unary_operator = operator_p("~") | operator_p("not") | operator_p("-") |
-        operator_p("++") | operator_p("--");
+    unaryOps = GenerateOperatorString({"~", "not", "-", "++", "--" });
+    //unary_operator = operator_p("~") | operator_p("not") | operator_p("-") |
+        //operator_p("++") | operator_p("--");
+    unary_operator = operator_p(unaryOps.c_str());
 
+    assignmentOps = GenerateOperatorString({ "+=", "-=", "*=", "/=", "mod=", "&=", "|=", "^=", ">>=", "<<=", "=" });
+    /*
     assignment_operator = operator_p("+=") | operator_p("-=") | operator_p("*=") |
         operator_p("/=") | operator_p("mod=") | operator_p("&=") |
         operator_p("|=") | operator_p("^=") | operator_p(">>=") |
-        operator_p("<<=") | operator_p("=");
+        operator_p("<<=") | operator_p("=");*/
+    assignment_operator = operator_p(assignmentOps.c_str());
 
     // blarg    or   [blarg statement]
     lvalue = (opbracket >> general_token[{SetStatementNameA<LValue>, ParseAutoCompleteContext::LValue}] >> statement[LValueIndexerA] >> clbracket) |
@@ -792,7 +899,7 @@ void SCISyntaxParser::Load()
         alphanumNK_p[ClassNameA]
         >> -(keyword_p("of")[GeneralE] >> alphanumNK_p[{ClassSuperA, ParseAutoCompleteContext::SuperClass}])
         >> -properties_decl
-        >> *(oppar >> 
+        >> *(oppar[GeneralE] >> 
             (method_decl[FinishClassMethodA] |
             procedure_decl[FinishClassProcedureA]) >> clpar);
 

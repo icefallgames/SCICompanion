@@ -14,14 +14,14 @@ address is used.
 
 Example::
 
-	(instance {Glowing Gem} of InventoryItem 
-		(properties 
-			; said will be a pointer to the said string
-			said '~ gem [ AND glowing ] ~'
-			; description will be a point to the string
-			description "You are still carrying the piece of orium"
-			view 242
-			someVarAddr @SomeVar
-			signal (| fixPriOn ignAct) ; fixPriOn and ignAct are constant defines.
-		)
-	)
+    (instance {Glowing Gem} of InventoryItem 
+        (properties 
+            ; said will be a pointer to the said string
+            said '~ gem [ AND glowing ] ~'
+            ; description will be a point to the string
+            description "You are still carrying the piece of orium"
+            view 242
+            someVarAddr @SomeVar
+            signal (| fixPriOn ignAct) ; fixPriOn and ignAct are constant defines.
+        )
+    )

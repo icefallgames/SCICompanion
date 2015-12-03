@@ -65,13 +65,18 @@ private:
     ParserSCI value;
     ParserSCI assignment;
     ParserSCI assignment_operator;
+    std::string assignmentOps;
     ParserSCI binary_operator;
+    std::string binaryOps;
     ParserSCI binary_operation;
     ParserSCI naryassoc_operator;
+    std::string naryAssocOps;
     ParserSCI naryassoc_operation;
     ParserSCI narycompare_operator;
+    std::string naryCompareOps;
     ParserSCI narycompare_operation;
     ParserSCI unary_operator;
+    std::string unaryOps;
     ParserSCI unary_operation;
     ParserSCI lvalue;
     ParserSCI rvalue_variable;

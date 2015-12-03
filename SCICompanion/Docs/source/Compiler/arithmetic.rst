@@ -9,9 +9,9 @@
 
 Syntax::
 
-	(operator operand)							; Unary operators
-	(operator operand1 operand2)				; Binary operators
-	(operator operand1 operand2 ... operandn)	; N-ary operators
+    (operator operand)                          ; Unary operators
+    (operator operand1 operand2)                ; Binary operators
+    (operator operand1 operand2 ... operandn)   ; N-ary operators
 
 Addition +
 ============
