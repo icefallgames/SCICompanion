@@ -206,6 +206,7 @@
     <ClCompile Include="Src\Compile\OperatorTables.cpp" />
     <ClCompile Include="Src\Compile\OutputCodeHelper.cpp" />
     <ClCompile Include="Src\Compile\CppSourceCodeFormatter.cpp" />
+    <ClCompile Include="Src\Compile\ParseAutoCompleteContext.cpp" />
     <ClCompile Include="Src\Compile\SCISourceCodeFormatter.cpp" />
     <ClCompile Include="Src\Compile\StudioSourceCodeFormatter.cpp" />
     <ClCompile Include="Src\Compile\SCISyntaxParser.cpp" />

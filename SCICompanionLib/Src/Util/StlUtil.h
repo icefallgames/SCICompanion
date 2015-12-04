@@ -309,3 +309,9 @@ bool contains(const T& container, const typename T::reference value)
 {
     return container.find(value) != container.end();
 }
+
+template<class T> inline
+bool containsV(const T& container, const typename T::value_type value)
+{
+    return container.find(value) != container.end();
+}

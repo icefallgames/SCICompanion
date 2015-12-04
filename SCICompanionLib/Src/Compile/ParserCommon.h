@@ -85,7 +85,7 @@ public:
                     // Indicate we're in a comment for autocomplete's sake
                     if (pContext)
                     {
-                        pContext->PushParseAutoCompleteContext(ParseAutoCompleteContext::Block);
+                        pContext->PushParseAutoCompleteContext(BlockAllChannels);
                     }
 
                     // Go until end of line
@@ -119,7 +119,7 @@ public:
                     // Indicate we're in a comment for autocomplete's sake
                     if (pContext)
                     {
-                        pContext->PushParseAutoCompleteContext(ParseAutoCompleteContext::Block);
+                        pContext->PushParseAutoCompleteContext(BlockAllChannels);
                     }
 
                     // Go until */
@@ -194,7 +194,7 @@ public:
                 // Indicate we're in a comment for autocomplete's sake
                 if (pContext)
                 {
-                    pContext->PushParseAutoCompleteContext(ParseAutoCompleteContext::Block);
+                    pContext->PushParseAutoCompleteContext(BlockAllChannels);
                 }
 
                 char ch;
@@ -491,7 +491,7 @@ public:
             _pRef = &src;
             _pfn = ReferenceForwarderP<_It>;
             _pfnA = nullptr;
-            _pacc = ParseAutoCompleteContext::None;
+            _pacc = NoChannels;
             _pfnDebug = nullptr;
             _fLiteral = false; // Doesn't matter
             _fOnlyRef = false; // We're a ref, so people can copy us.
@@ -556,10 +556,10 @@ public:
 
     // The default constructor will create an object that can only be copied by reference (see the copy constructor
     // and == operator, and _pRef)
-    ParserBase() : _pfn(nullptr), _pfnA(nullptr), _pfnDebug(nullptr), _pRef(nullptr), _fLiteral(false), _fOnlyRef(true), _psz(nullptr), _pacc(ParseAutoCompleteContext::None) {}
-    ParserBase(MATCHINGFUNCTION pfn) : _pfn(pfn), _pfnA(nullptr), _pfnDebug(nullptr), _pRef(nullptr), _fLiteral(false), _fOnlyRef(false), _psz(nullptr), _pacc(ParseAutoCompleteContext::None)  {}
-    ParserBase(MATCHINGFUNCTION pfn, const ParserBase &a) : _pfn(pfn), _pa(new ParserBase(a)), _pfnA(nullptr), _pfnDebug(nullptr), _pRef(nullptr), _fLiteral(false), _fOnlyRef(false), _psz(nullptr), _pacc(ParseAutoCompleteContext::None)  {}
-    ParserBase(MATCHINGFUNCTION pfn, const char *psz) : _pfn(pfn), _psz(psz), _pfnA(nullptr), _pfnDebug(nullptr), _pRef(nullptr), _fLiteral(false), _fOnlyRef(false), _pacc(ParseAutoCompleteContext::None)
+    ParserBase() : _pfn(nullptr), _pfnA(nullptr), _pfnDebug(nullptr), _pRef(nullptr), _fLiteral(false), _fOnlyRef(true), _psz(nullptr), _pacc(NoChannels) {}
+    ParserBase(MATCHINGFUNCTION pfn) : _pfn(pfn), _pfnA(nullptr), _pfnDebug(nullptr), _pRef(nullptr), _fLiteral(false), _fOnlyRef(false), _psz(nullptr), _pacc(NoChannels)  {}
+    ParserBase(MATCHINGFUNCTION pfn, const ParserBase &a) : _pfn(pfn), _pa(new ParserBase(a)), _pfnA(nullptr), _pfnDebug(nullptr), _pRef(nullptr), _fLiteral(false), _fOnlyRef(false), _psz(nullptr), _pacc(NoChannels)  {}
+    ParserBase(MATCHINGFUNCTION pfn, const char *psz) : _pfn(pfn), _psz(psz), _pfnA(nullptr), _pfnDebug(nullptr), _pRef(nullptr), _fLiteral(false), _fOnlyRef(false), _pacc(NoChannels)
     {
     }
     MatchResult Match(_TContext *pContext, _It &stream) const
@@ -626,7 +626,7 @@ public:
         assert(_pfnA == nullptr); // Ensure we're not overwriting any action.
         ParserBase newOne(*this);
         newOne._pfnA = aac.pfn;
-        newOne._pacc = aac.pacc;
+        newOne._pacc = SetChannel(newOne._pacc, ParseAutoCompleteChannel::One, aac.pacc);
 #ifdef PARSE_DEBUG
         if (aac.pszDebugName)
         {
@@ -682,7 +682,7 @@ public:
     // PERF: perhaps we could optimize for some cases here, and not have a matching functino (e.g. char)
     MATCHINGFUNCTION _pfn;
     ACTION _pfnA;
-    ParseAutoCompleteContext _pacc;
+    ParseACChannels _pacc;
     DEBUGFUNCTION _pfnDebug;
     const ParserBase *_pRef;
     bool _fLiteral; // Don't skip whitespace

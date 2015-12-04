@@ -133,6 +133,8 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
         browser.TriggerCustomIncludeCompile(include);
     }
 
+    auto acContexts = pContext->GetParseAutoCompleteContext();
+
     ClassBrowserLock lock(browser);
     // REVIEW: TryLock may fail. For tooltips (which are extracted in the background), we may want to just Lock. But for the context menu
     // (which is extracted in the foreground), we probably want to TryLock. Alternatively, we could implement "Lock" with a short timeout.
@@ -161,7 +163,7 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
         // Try to figure out where we are.
         // 1. A classname in a class definition?
         if (pContext->ClassPtr &&
-            pContext->GetParseAutoCompleteContext() == ParseAutoCompleteContext::SuperClass)
+            containsV(acContexts, ParseAutoCompleteContext::SuperClass))
         {
             const std::vector<ClassDefinition*> &classes = browser.GetAllClasses();
             auto classIt = match_name(classes.begin(), classes.end(), strText);
@@ -178,7 +180,7 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
             }
         }
 
-        if (!fFound && !strText.empty() && (pContext->GetParseAutoCompleteContext() == ParseAutoCompleteContext::ScriptName))
+        if (!fFound && !strText.empty() && containsV(acContexts, ParseAutoCompleteContext::ScriptName))
         {
             std::string filename =  appState->GetResourceMap().Helper().GetScriptFileName(strText, pContext->Script().Language());
             const sci::Script *useScript = browser.GetLKGScript(filename);
@@ -262,10 +264,9 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                     }
                 }
                 // All remaining things require certain conditions.
-                ParseAutoCompleteContext pacc = pContext->GetParseAutoCompleteContext();
-                bool isValue = (pacc == ParseAutoCompleteContext::Value) || (pacc == ParseAutoCompleteContext::LValue) || (pacc == ParseAutoCompleteContext::ValueOrSelector);
-                bool isDefineOnly = (pacc == ParseAutoCompleteContext::DefineValue);
-                bool isExport = (pacc == ParseAutoCompleteContext::Export);
+                bool isValue = containsV(acContexts, ParseAutoCompleteContext::Value) || containsV(acContexts, ParseAutoCompleteContext::LValue);
+                bool isDefineOnly = containsV(acContexts, ParseAutoCompleteContext::DefineValue);
+                bool isExport = containsV(acContexts, ParseAutoCompleteContext::Export);
                 if (!fFound)
                 {
                     // 3. Is it a define?

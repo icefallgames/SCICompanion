@@ -394,7 +394,7 @@ public:
 
     void TryAddCommentDirectly(std::unique_ptr<sci::Comment> &comment) {}
 
-    void PushParseAutoCompleteContext(ParseAutoCompleteContext pacc) {}
+    void PushParseAutoCompleteContext(ParseACChannels pacc) {}
     void PopParseAutoCompleteContext() {}
 
     // PERF: doing a new and delete here at every level is very expensive, so ParseLevel uses

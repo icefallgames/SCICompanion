@@ -88,52 +88,53 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
     std::unique_ptr<AutoCompleteResult> result = std::make_unique<AutoCompleteResult>();
     if (!prefix.empty())
     {
-        ParseAutoCompleteContext acContext = context.GetParseAutoCompleteContext();
-
+        auto acContexts = context.GetParseAutoCompleteContext();
 
         //OutputDebugString(fmt::format("ParseContext: {}\n", (int)acContext).c_str());
-
         AutoCompleteSourceType sourceTypes = AutoCompleteSourceType::None;
-        switch (acContext)
+        for (auto acContext : acContexts)
         {
-            case ParseAutoCompleteContext::Selector:
-                sourceTypes |= AutoCompleteSourceType::Selector;
-                break;
+            switch (acContext)
+            {
+                case ParseAutoCompleteContext::Selector:
+                    sourceTypes |= AutoCompleteSourceType::Selector;
+                    break;
 
-            case ParseAutoCompleteContext::ClassSelector:
-                sourceTypes |= AutoCompleteSourceType::ClassSelector;
-                break;
+                case ParseAutoCompleteContext::ClassSelector:
+                    sourceTypes |= AutoCompleteSourceType::ClassSelector;
+                    break;
 
-            case ParseAutoCompleteContext::TopLevelKeyword:
-                sourceTypes |= AutoCompleteSourceType::TopLevelKeyword;
-                break;
+                case ParseAutoCompleteContext::TopLevelKeyword:
+                    sourceTypes |= AutoCompleteSourceType::TopLevelKeyword;
+                    break;
 
-            case ParseAutoCompleteContext::ValueOrSelector:
-                sourceTypes |= AutoCompleteSourceType::Selector;
-                // fall through...
-            case ParseAutoCompleteContext::Value:
-                sourceTypes |= AutoCompleteSourceType::ClassName | AutoCompleteSourceType::Variable | AutoCompleteSourceType::Define | AutoCompleteSourceType::Kernel | AutoCompleteSourceType::Procedure | AutoCompleteSourceType::ClassSelector | AutoCompleteSourceType::Instance;
-                break;
+                case ParseAutoCompleteContext::ValueOrSelector:
+                    sourceTypes |= AutoCompleteSourceType::Selector;
+                    // fall through...
+                case ParseAutoCompleteContext::Value:
+                    sourceTypes |= AutoCompleteSourceType::ClassName | AutoCompleteSourceType::Variable | AutoCompleteSourceType::Define | AutoCompleteSourceType::Kernel | AutoCompleteSourceType::Procedure | AutoCompleteSourceType::ClassSelector | AutoCompleteSourceType::Instance;
+                    break;
 
-            case ParseAutoCompleteContext::LValue:
-                sourceTypes |= AutoCompleteSourceType::Variable | AutoCompleteSourceType::ClassSelector;
-                break;
+                case ParseAutoCompleteContext::LValue:
+                    sourceTypes |= AutoCompleteSourceType::Variable | AutoCompleteSourceType::ClassSelector;
+                    break;
 
-            case ParseAutoCompleteContext::DefineValue:
-                sourceTypes |= AutoCompleteSourceType::Define;
-                break;
+                case ParseAutoCompleteContext::DefineValue:
+                    sourceTypes |= AutoCompleteSourceType::Define;
+                    break;
 
-            case ParseAutoCompleteContext::SuperClass:
-                sourceTypes |= AutoCompleteSourceType::ClassName;
-                break;
+                case ParseAutoCompleteContext::SuperClass:
+                    sourceTypes |= AutoCompleteSourceType::ClassName;
+                    break;
 
-            case ParseAutoCompleteContext::ScriptName:
-                sourceTypes |= AutoCompleteSourceType::ScriptName;
-                break;
+                case ParseAutoCompleteContext::ScriptName:
+                    sourceTypes |= AutoCompleteSourceType::ScriptName;
+                    break;
 
-            default:
-                // Other things handled below
-                break;
+                default:
+                    // Other things handled below
+                    break;
+            }
         }
 
         // Get things from the big global list
@@ -281,7 +282,7 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
             }
         }
 
-        if (acContext == ParseAutoCompleteContext::Export)
+        if (containsV(acContexts, ParseAutoCompleteContext::Export))
         {
             ClassBrowserLock browserLock(browser);
             browserLock.Lock();
@@ -304,15 +305,15 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
         }
 
         LangSyntax lang = context.Script().Language();
-        if (acContext == ParseAutoCompleteContext::TopLevelKeyword)
+        if (containsV(acContexts, ParseAutoCompleteContext::TopLevelKeyword))
         {
             MergeResults(result->choices, prefix, AutoCompleteIconIndex::Keyword, GetTopLevelKeywords(lang));
         }
-        if (acContext == ParseAutoCompleteContext::ClassLevelKeyword)
+        if (containsV(acContexts, ParseAutoCompleteContext::ClassLevelKeyword))
         {
             MergeResults(result->choices, prefix, AutoCompleteIconIndex::Keyword, GetClassLevelKeywords(lang));
         }
-        if (acContext == ParseAutoCompleteContext::Value)
+        if (containsV(acContexts, ParseAutoCompleteContext::Value))
         {
             MergeResults(result->choices, prefix, AutoCompleteIconIndex::Keyword, GetCodeLevelKeywords(lang));
         }

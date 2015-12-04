@@ -13,9 +13,10 @@
 ***************************************************************************/
 #pragma once
 
-enum class ParseAutoCompleteContext
+// We allow 4 channels of simultaneous ParseAutoCompleteContext, the results of which are combined.
+enum class ParseAutoCompleteContext : uint8_t
 {
-    None,
+    None = 0,
     Selector,
     ClassSelector,
     Value,
@@ -29,3 +30,20 @@ enum class ParseAutoCompleteContext
     LValue,
     Block               // Use this in parsing in order to block searching up the context stack.
 };
+
+enum class ParseAutoCompleteChannel
+{
+    One = 0,
+    Two = 1,
+    Three = 2,
+    Four = 3,
+    All = 7,
+};
+
+typedef uint32_t ParseACChannels;
+
+extern const ParseACChannels BlockAllChannels;
+extern const ParseACChannels NoChannels;
+
+ParseAutoCompleteContext ExtractChannel(ParseACChannels data, ParseAutoCompleteChannel channel);
+ParseACChannels SetChannel(ParseACChannels existing, ParseAutoCompleteChannel channel, ParseAutoCompleteContext ac);
