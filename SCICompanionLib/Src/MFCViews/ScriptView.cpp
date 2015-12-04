@@ -1238,7 +1238,7 @@ void CScriptView::OnContextMenu(CWnd *pWnd, CPoint point)
 
     if (pTracker)
     {
-        if (fPossiblyOnWord )
+        if (fPossiblyOnWord)
         {
             BOOL fIsHeaderLabel = GetHeaderFile(ptText, _gotoScriptText);
             if (!fIsHeaderLabel)
@@ -2009,10 +2009,14 @@ int CScriptView::GetParenBalance(int nLineIndex)
     return nBraceCount;
 }
 
+bool _IsFileChar(char ch)
+{
+    return isalnum(ch) || ch == '.' || ch == '_';
+}
 
 
 //
-// Puts the name of the header file under the cursor, in strHeader.
+// Puts the name of the header file under the cursor in strHeader.
 // Returns true if it's a header file.
 //
 BOOL CScriptView::GetHeaderFile(CPoint pt, CString &strHeader)
@@ -2021,47 +2025,31 @@ BOOL CScriptView::GetHeaderFile(CPoint pt, CString &strHeader)
     BOOL fRet = FALSE;
 	int nLength = GetLineLength(pt.y);
 	LPCTSTR pszChars = GetLineChars(pt.y);
-    int iPos = pt.x;
-    while ((iPos > 0) && (iPos < nLength))
+    int iEnd = pt.x;
+    if ((iEnd >= 0) && (iEnd < nLength))
     {
-        if (! isalnum(pszChars[iPos]) && pszChars[iPos] != _T('_') && pszChars[iPos] != _T('.'))
+        // Forward
+        while ((iEnd < nLength) && _IsFileChar(pszChars[iEnd]))
         {
-            break;
+            iEnd++;
         }
-        iPos --;
-    }
 
-    int iPosStart = iPos + 1;
-    if (iPos > 0 && pszChars[iPos] == _T('"'))
-    {
-        iPos ++;
-        // We're good so far.
-	    while (iPos < nLength)
-	    {
-		    if (! isalnum(pszChars[iPos]) && pszChars[iPos] != _T('_'))
-			    break;
-		    iPos ++;
-	    }
-
-        if (pszChars[iPos] == '.')
+        int iStart = pt.x;
+        // Backward
+        while ((iStart >= 0) && _IsFileChar(pszChars[iStart]))
         {
-            iPos++;
-            // Go until not alnum
-            while (iPos < nLength)
-            {
-                if (!isalnum(pszChars[iPos]) && pszChars[iPos] != _T('_'))
-                {
-                    break;
-                }
-                iPos++;
-            }
+            iStart--;
+        }
+        iStart++;
 
-            std::string potentialHeaderName(&pszChars[iPosStart], iPos - iPosStart);
+        if (iEnd > iStart)
+        {
+            std::string potentialHeaderName(&pszChars[iStart], iEnd - iStart);
             if (IsCodeFile(potentialHeaderName))
             {
                 // We have a header file.
                 TCHAR szBuf[MAX_PATH];
-                StringCchCopyN(szBuf, ARRAYSIZE(szBuf), &pszChars[iPosStart], iPos - iPosStart);
+                StringCchCopyN(szBuf, ARRAYSIZE(szBuf), &pszChars[iStart], iEnd - iStart);
                 strHeader = szBuf;
                 fRet = TRUE;
             }

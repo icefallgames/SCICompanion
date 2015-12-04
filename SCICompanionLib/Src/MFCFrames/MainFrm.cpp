@@ -1713,7 +1713,7 @@ bool CompileABunchOfScripts(AppState *appState, DependencyTracker *dependencyTra
     CompileLog log;
     log.ReportResult(CompileResult("--------------------------------"));
     std::stringstream strMessage;
-    strMessage << "Time elapsed: " << (int)timer.Stop() << " seconds.";
+    strMessage << "Time elapsed: " << fmt::format("{0:.2f}", (float)timer.Stop()) << " seconds.";
     log.ReportResult(CompileResult(strMessage.str()));
     log.CalculateErrors();
 
