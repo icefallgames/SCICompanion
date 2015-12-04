@@ -10,7 +10,7 @@
 	Example usage::
 	
 		// Move the ego forward 50 pixels, and cue the calling script when done.
-		(send gEgo:setMotion(MoveFwd 50 self))
+		(gEgo setMotion: MoveFwd 50 self)
 */
 (class MoveFwd of PolyPath
     (properties

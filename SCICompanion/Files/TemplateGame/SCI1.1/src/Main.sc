@@ -161,8 +161,8 @@
 	
 	Example usage::
 	
-		(if (not Btest(FLAG_OpenedSewer))
-			Prints("You can't enter, the sewer is closed.")
+		(if (not (Btest FLAG_OpenedSewer))
+			(Prints {You can't enter, the sewer is closed.})
 		)
 */
 (procedure public (Btest flag)
@@ -177,9 +177,9 @@
 	
 	Example usage::
 	
-		(case V_DO
-			Bset(FLAG_OpenedSewer)
-			(sewer:setCel(3))
+		(V_DO
+			(Bset FLAG_OpenedSewer)
+			(sewer setCel: 3)
 		)
 */
 (procedure public (Bset flag)
@@ -433,7 +433,7 @@
 	
 	Example usage::
 	
-		DebugPrint("You are in room %d" gNewRoomNumber)
+		(DebugPrint {You are in room %d} gNewRoomNumber)
 */
 (procedure public (DebugPrint params)
 	(if (gDebugOut)
@@ -468,7 +468,7 @@
 	
 	Example usage::
 	
-		AddPolygonsToRoom(@P_ThePolygons)
+		(AddPolygonsToRoom @P_ThePolygons)
 	
 	The array begins with a number indicating how many polygons there are. This is followed
 	by the following information for each polygon:
@@ -479,7 +479,7 @@
 		
 	Example::
 	
-		P_ThePolygons[19] = (2 PContainedAccess 4 319 189 319 50 0 50 0 189 PBarredAccess 3 319 189 319 50 0 50)
+		[P_ThePolygons 19] = [2 PContainedAccess 4 319 189 319 50 0 50 0 189 PBarredAccess 3 319 189 319 50 0 50]
 		
 	See also: :doc:`/polygons`.		
 */
@@ -514,7 +514,7 @@
 	
 	Example usage::
 	
-		(aRock:setOnMeCheck(omcPOLYGON CreateNewPolygon(@P_Rock)))
+		(aRock setOnMeCheck: omcPOLYGON (CreateNewPolygon @P_Rock))
 
 	The array consists of the following:	
 	
@@ -524,7 +524,7 @@
 		
 	Example::
 	
-		P_Rock[10] = (PContainedAccess 4 319 189 319 50 0 50 0 189 )
+		[P_Rock 10] = [PContainedAccess 4 319 189 319 50 0 50 0 189]
 		
 	See also: :doc:`/polygons`.
 */
@@ -1506,13 +1506,13 @@
             )
             // Add other verbs here, with doubling numbers.
             /*
-            (case 31
+            (31
                 16
             )
-            (case 29
+            (29
                 64
             )
-            (case 25
+            (25
                 128
             )*/
             (default 
@@ -1547,8 +1547,8 @@
                     gNarrator
                 )
                 // Add more cases here for different narrators
-                // (case 8
-                    //ScriptID(109 7)
+                // (8
+                    // (ScriptID 109 7)
                 //)
             )
             

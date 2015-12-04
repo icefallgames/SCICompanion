@@ -22,7 +22,7 @@
 	
 	Example usage::
 	
-		(send gMessager:say(noun verb condition seqeuence caller roomNumber))	
+		(gMessager say: noun verb condition seqeuence caller roomNumber)	
 
 */
 (class Messager of Object

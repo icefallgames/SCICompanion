@@ -14,7 +14,7 @@
 			)
 		)
 		
-	Then in templateInventory::init(), add the inventory item to the add() call.
+	Then in templateInventory::init(), add the inventory item to the add: call.
 	
 */
 (version 2)
@@ -54,7 +54,7 @@
         )
         (self:
         	// Add inventory items here.
-            // add(Money AThing AnotherThing)
+            // add: Money AThing AnotherThing
             eachElementDo(#lowlightColor 2)
             add(invLook invSelect invHelp invUp invDown ok)
         )

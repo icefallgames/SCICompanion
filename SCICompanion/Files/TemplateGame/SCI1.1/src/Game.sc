@@ -13,9 +13,7 @@
 (use "System")
 (script 994)
 
-
-// PromptForDiskChange
-(procedure (localproc_0e32 param1)
+(procedure (PromptForDiskChange param1)
     (var temp0, temp1[40], temp41[40], temp81, temp82[40], temp122[10], temp132[5])
     = temp81 Memory(memALLOC_CRIT 150)
     = temp0 1
@@ -79,7 +77,7 @@
 	
 	Example usage::
 	
-		(send gSounds:pause(TRUE))
+		(gSounds pause: TRUE)
 */
 (class Sounds of EventHandler
     (properties
@@ -358,7 +356,7 @@
 	.. IMPORTANT::
 	    To change to a new room, you should *not* use this method. Instead, use the newRoom method on the current room, e.g::
 	    
-	    	(send gRoom:newRoom(105))
+	    	(gRoom newRoom: 105)
 	*/
     (method (newRoom newRoomNumber)
         (var temp0[5], temp5)
@@ -431,7 +429,7 @@
         ScriptID(SAVERESTORE_SCRIPT)
         = temp21 (self:setCursor(gNormalCursor))
         (send gSounds:pause(TRUE))
-        (if (localproc_0e32(1))
+        (if (PromptForDiskChange(1))
             (if (gDialog)
                 (send gDialog:dispose())
             )
@@ -452,7 +450,7 @@
                     (self:setCursor(temp21 HaveMouse()))
                 )
             )
-            localproc_0e32(0)
+            PromptForDiskChange(0)
         )
         (send gSounds:pause(FALSE))
     )
@@ -474,7 +472,7 @@
         ScriptID(SAVERESTORE_SCRIPT)
         = temp21 (self:setCursor(gNormalCursor))
         (send gSounds:pause(TRUE))
-        (if (localproc_0e32(1))
+        (if (PromptForDiskChange(1))
             (if (gDialog)
                 (send gDialog:dispose())
             )
@@ -493,7 +491,7 @@
                 )
                 (self:setCursor(temp21 HaveMouse()))
             )
-            localproc_0e32(0)
+            PromptForDiskChange(0)
         )
         (send gSounds:pause(FALSE))
     )
@@ -601,7 +599,7 @@
 		
 		Example usage::
 		
-			(send gGame:handsOff())
+			(gGame handsOff:)
 	*/
     (method (handsOff param1)
         (if (handsOffCode)
@@ -622,7 +620,7 @@
 		
 		Example usage::
 		
-			(send gGame:handsOn())
+			(gGame handsOn:)
 	*/
     (method (handsOn param1)
         (if (handsOnCode)
@@ -849,7 +847,7 @@
 		
 		Example usage::
 		
-			(send gRoom:newRoom(145))
+			(gRoom newRoom: 145)
 	*/
     (method (newRoom newRoomNumber)
         (send gRegions:
@@ -869,9 +867,9 @@
 		Example usage::
 		
 			(method (init)
-				(self:setRegions(SNOW_REGION MOUNTAIN_REGION))
-				// etc, do more room initialization...
-				(super:init())
+				(self setRegions: SNOW_REGION MOUNTAIN_REGION)
+				; etc, do more room initialization...
+				(super init:)
 			)
 	*/
     (method (setRegions scriptNumbers)
@@ -949,7 +947,7 @@
 		
 		Example usage::
 		
-			(send gRoom:addObstacle(CreateNewPolygon(@P_Flower)))
+			(gRoom addObstacle: (CreateNewPolygon @P_Flower))
 	*/
     (method (addObstacle polygon sendParams)
         (if (not IsObject(obstacles))
@@ -1031,7 +1029,7 @@
 		
 		Example usage::
 		
-			(send gRoom:setInset(cageCloseUp self))
+			(gRoom setInset: cageCloseUp self)
 	*/
     (method (setInset theInset theCaller theRegister)
         (if (inset)

@@ -133,7 +133,7 @@
 	::
 	
 		(= roomNumber 100)
-		(= thisWillBeTRUE IsOneOf(roomNumber 50 100 150 200))
+		(= thisWillBeTRUE (IsOneOf roomNumber 50 100 150 200))
 	
 	:returns: TRUE if thing is equal to one of the parameters that follows it.
 */
@@ -257,7 +257,7 @@
 		
 		Example usage::
 		
-			(if (send gThing:isMemberOf(MoveTo))
+			(if (gThing isMemberOf: MoveTo)
 				// Do something...
 			)
 	*/
@@ -278,8 +278,8 @@
 		
 		Example usage::
 		
-			(if (send theThing:respondTo(#doit))
-				(send theThing:doit())
+			(if (theThing respondsTo: #doit)
+				(theThing doit:)
 			)
 	*/
     (method (respondsTo selectorName)
@@ -291,13 +291,13 @@
 		a new object and then pass that object directly to a function::
 
 			// Create a new polygon and add it to the room obstacles.		
-			(send gRoom:addObstacle((send ((Polygon:new())):
-					type(PBarredAccess)
-					points(somePoints)
-					size(4)
-					dynamic(TRUE)
-					yourself()
-									)))
+			(gRoom addObstacle: ((Polygon new:):
+					type: PBarredAccess
+					points: somePoints
+					size: 4
+					dynamic: TRUE
+					yourself:
+									))
 	*/
     (method (yourself)
         return self
@@ -410,7 +410,7 @@
 		
 		Example usage::
 		
-			(myPolyList:eachElementDo(#perform drawPoly))
+			(myPolyList eachElementDo: #perform drawPoly)
 	*/
     (method (eachElementDo aSelector params)
         (var temp0, temp1, temp2)

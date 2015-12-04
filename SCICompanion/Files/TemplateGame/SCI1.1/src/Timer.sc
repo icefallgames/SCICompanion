@@ -26,8 +26,8 @@
 	
 	Example usage::
 	
-		// Make a timer to cue() the current object in 3 seconds
-		(send ((Timer:new())):set(self 3))
+		; Make a timer to cue() the current object in 3 seconds
+		((Timer new:) set: self 3)
 */
 (class Timer of Object
     (properties

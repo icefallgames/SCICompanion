@@ -34,7 +34,7 @@
 	
 	Example initialization::
 	
-		(ship:init())
+		(ship init:)
 
 */
 (class View of Feature
@@ -376,9 +376,9 @@
 	Example initialization::
 	
 		(monitor:
-			init()
-			setCycle(Forward)
-			setScript(sPlayMC)
+			init:
+			setCycle: Forward
+			setScript: sPlayMC
 		)
 */
 (class Prop of View
@@ -512,11 +512,11 @@
 	
 		Example usage for attaching a dynamic scaler::
 		
-			(send gEgo:setScale(Scaler frontSize backSize frontY backY))
+			(gEgo setScale: Scaler frontSize backSize frontY backY)
 
 		Example usage for setting an explicit scale::
 		
-			(send gEgo:setScale(50)) // 50 percent size.
+			(gEgo setScale: 50) // 50 percent size.
 	
 		:param class class: A scaler class, such as Scaler.
 		:param heapPtr obj: An instance of a scaler class.
@@ -563,11 +563,11 @@
 		
 		Example usage for telling a Prop to cycle forward::
 		
-			(theFrog:setCycle(Forward))
+			(theFrog setCycle: Forward)
 			
 		Example usage for telling a Prop to cycle to the end, then cue its caller::
 		
-			(theFrog:setCycle(EndLoop self))
+			(theFrog setCycle: EndLoop self)
 		
 		:param class theCycler: A class derived from :class:`Cycle`, or NULL to remove the current cycler.
 		
@@ -595,7 +595,7 @@
 		
 		Example usage::
 
-			(self:setScript(theRoomScript))
+			(self setScript: theRoomScript)
 
 	*/
     (method (setScript theScript sendParams)
@@ -638,9 +638,9 @@
 
 	Example initialization::
 	
-		(wd40:
-			init()
-			setMotion(PolyPath 127 128)
+		(wd40
+			init:
+			setMotion: PolyPath 127 128
 		)
 
 */
@@ -897,7 +897,7 @@
 		
 		Example usage for moving a ball to a particular position, and cueing the caller when it's done::
 		
-			(myBall:setMotion(MoveTo 123 100 self))
+			(myBall setMotion: MoveTo 123 100 self)
 	*/
     (method (setMotion theMover sendParams)
         (if (mover and (<> mover -1))
@@ -1023,8 +1023,8 @@
 		
 		Example usage::
 		
-			(if (& ctlGREEN (send gEgo:onControl()))
-				Print("The ego is on Green")
+			(if (& ctlGREEN (gEgo onControl:))
+				(Prints {The ego is on Green})
 			)
 	*/
     (method (onControl fUsePoint)

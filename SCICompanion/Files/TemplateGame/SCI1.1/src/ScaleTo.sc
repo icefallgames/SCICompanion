@@ -11,7 +11,7 @@
 	Example usage::
 	
 		// Scale the portal down to 50% of its normal size.
-		(portal:setScale(ScaleTo 50))
+		(portal setScale: ScaleTo 50)
 */
 (class ScaleTo of Scaler
     (properties

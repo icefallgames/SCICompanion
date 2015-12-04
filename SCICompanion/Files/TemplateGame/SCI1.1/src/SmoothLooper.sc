@@ -23,7 +23,7 @@
 		)
 		
 		// Then in code:
-		(theGuy:looper(mySmooper))
+		(theGuy looper: mySmooper)
 		
 */
 (class public SmoothLooper of Code

@@ -10,7 +10,7 @@
 	Sample usage::
 	
 		// Make the star cycle between random cels 5 times.
-		(star:setCycle(RandCycle 5))
+		(star setCycle: RandCycle 5)
 */
 (class RandCycle of Cycle
     (properties

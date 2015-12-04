@@ -41,10 +41,10 @@
 		
 		Example usage::
 		
-			(send global2:addObstacle((send ((Polygon:new())):
-				type(PBarredAccess)
-				init(185 137 181 149 135 148 128 137)	// Four points, defined by x and y coordinates.
-				yourself()
+			(gRoom:addObstacle(((Polygon new:):
+				type: PBarredAccess
+				init: 185 137 181 149 135 148 128 137	// Four points, defined by x and y coordinates.
+				yourself:)
 			)
 
 	*/

@@ -9,7 +9,7 @@
 	Sample usage::
 	
 		// Make the star cycle 5 times between cel 2 and 7.
-		(star:setCycle(RangeOscillate 5 2 7))
+		(star setCycle: RangeOscillate 5 2 7)
 */
 (class RangeOscillate of Cycle
     (properties

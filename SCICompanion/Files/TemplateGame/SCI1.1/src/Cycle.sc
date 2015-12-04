@@ -18,7 +18,7 @@
 	Example usage::
 	
 		// Cycle the cels of myProp forward.
-		(myProp:setCycle(Forward))
+		(myProp setCycle: Forward)
 */
 (class Cycle of Object
     (properties
@@ -68,7 +68,7 @@
 	
 	Example usage::
 	
-		(bird:setCycle(Forward))
+		(bird setCycle: Forward)
 		
 	See also: :class:`Reverse`.
 */
@@ -125,7 +125,7 @@
 	Example usage::
 	
 		// Cycle the door forward to cel 4, then stop.
-		(door:setCycle(CycleTo 4 cdFORWARD))
+		(door setCycle: CycleTo 4 cdFORWARD)
 */
 (class CycleTo of Cycle
     (properties
@@ -203,7 +203,7 @@
 	Example usage::
 	
 		// Tell the door to cycle to its last cel and notify us when done.
-		(aDoor:setCycle(EndLoop self))
+		(aDoor setCycle: EndLoop self)
 */
 (class EndLoop of CycleTo
     (properties
@@ -376,7 +376,7 @@
 	Example usage::
 
 		// Move a bird to (200, 37), then call the cue() method on us.	
-		(bird:setMotion(MoveTo 200 37 self))
+		(bird setMotion: MoveTo 200 37 self)
 */
 (class MoveTo of Motion
     (properties

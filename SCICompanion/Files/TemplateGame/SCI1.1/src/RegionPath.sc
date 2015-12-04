@@ -14,7 +14,7 @@
 	The region points are provided in a buffer that looks like the following::
 	
 		(local
-			localPathPoints[15] = ($7fff room1 x1 y1 x2 y2 x3 y3 $7fff room2 x1 y1 x2 y2 $8000)
+			[localPathPoints 15] = [$7fff room1 x1 y1 x2 y2 x3 y3 $7fff room2 x1 y1 x2 y2 $8000]
 		)
 
 	$7fff signals a new room, and $8000 signals the end of the buffer.		

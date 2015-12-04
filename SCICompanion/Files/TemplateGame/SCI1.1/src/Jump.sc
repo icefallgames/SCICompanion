@@ -156,7 +156,7 @@
 	
 	Example usage::
 	
-		(theRobot:setMotion(JumpTo 240 150))
+		(theRobot setMotion: JumpTo 240 150)
 */
 (class JumpTo of Jump
     (properties

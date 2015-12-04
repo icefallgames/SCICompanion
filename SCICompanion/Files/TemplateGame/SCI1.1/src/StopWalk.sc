@@ -13,7 +13,7 @@
 	
 	Example usage::
 	
-		(john:setCycle(StopWalk -1))
+		(john setCycle: StopWalk -1)
 */
 (class public StopWalk of Forward
     (properties

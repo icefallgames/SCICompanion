@@ -10,12 +10,12 @@
 	
 	Example usage::
 	
-		(theFrog:observeBlocks((send ((Blk:new())):
-			left(150)
-			top(140)
-			right(170)
-			bottom(160)
-			yourself()
+		(theFrog observeBlocks: ((Blk new:)
+			left: 150
+			top: 140
+			right: 170
+			bottom: 160
+			yourself: )
 		)
 */
 (class Block of Object
@@ -42,12 +42,12 @@
 	
 	Example usage::
 	
-		(theFrog:observeBlocks((send ((Blk:new())):
-			left(150)
-			top(140)
-			right(170)
-			bottom(160)
-			yourself()
+		(theFrog observeBlocks: ((Cage new:)
+			left: 150
+			top: 140
+			right: 170
+			bottom: 160
+			yourself: )
 		)
 */
 (class Cage of Block

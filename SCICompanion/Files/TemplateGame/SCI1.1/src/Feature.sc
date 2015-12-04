@@ -85,10 +85,10 @@
 	
 	Example initialization::
 	
-		(redPlanet:
-			approachVerbs(V_DO V_LOOK)
-			setOnMeCheck(omcCOLORS ctlWHITE)
-			init()
+		(redPlanet
+			approachVerbs: V_DO V_LOOK
+			setOnMeCheck: omcCOLORS ctlWHITE
+			init:
 		)
 */
 (class Feature of Object
@@ -321,7 +321,7 @@
 		
 		Example usage::
 		
-			(theToy:approachVerbs(V_DO V_EAT))
+			(theToy approachVerbs: V_DO V_EAT)
 	*/
     (method (approachVerbs param1)
         (var temp0, temp1)
@@ -357,9 +357,9 @@
 		
 		Example usage::
 		
-			(theTable:setOnMeCheck(omcCOLORS ctlWHITE ctlGREY))
+			(theTable setOnMeCheck: omcCOLORS ctlWHITE ctlGREY)
 			
-			(theRock:setOnMeCheck(omcPOLYGON CreateNewPolygon(@P_TheRock))
+			(theRock setOnMeCheck: omcPOLYGON (CreateNewPolygon @P_TheRock))
 	*/
     (method (setOnMeCheck checkStyle params)
         (var temp0)

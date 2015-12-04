@@ -9,7 +9,7 @@
 	
 	Example usage::
 	
-		(bird:setCycle(Reverse))
+		(bird setCycle: Reverse)
 		
 	See also: :class:`Forward`.
 */

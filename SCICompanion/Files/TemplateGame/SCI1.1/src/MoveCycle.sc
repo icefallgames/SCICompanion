@@ -12,10 +12,10 @@
 	Example usage::
 	
 		// Defined at the top of the script:
-		(local celList[5] = (3 6 2 1 $8000)) // $8000 indicates the end of the cel list.
+		(local [celList 5] = [3 6 2 1 $8000]) // $8000 indicates the end of the cel list.
 		
 		// Then in code:
-		(aStar:setCycle(MoveCycle celList)) // cycle through 3, 6, 2, 1 then stop.
+		(aStar setCycle: MoveCycle celList) // cycle through 3, 6, 2, 1 then stop.
 
 */
 (class MoveCycle of Cycle

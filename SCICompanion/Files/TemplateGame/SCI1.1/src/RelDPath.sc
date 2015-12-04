@@ -9,7 +9,7 @@
 	Example usage::
 	
 		// Move the turtle 10 down, 10 to the right, and then 10 up.
-		(turtle:setMotion(RelDPath 0 10 10 0 0 -10 self))
+		(turtle setMotion: RelDPath 0 10 10 0 0 -10 self)
 */
 (class RelDPath of DPath
     (properties

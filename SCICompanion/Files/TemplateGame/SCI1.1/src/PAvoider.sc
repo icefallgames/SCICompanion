@@ -39,7 +39,7 @@
 	
 	Example usage::
 	
-		(send gEgo:setAvoider(PAvoider))
+		(gEgo setAvoider: PAvoider)
 */
 (class PAvoider of Code
     (properties

@@ -19,8 +19,8 @@
 	
 	Example usage::
 	
-		(if (send gUser:canControl())
-			// The user is in control...
+		(if (gUser canControl:)
+			; The user is in control...
 		)
 */
 (class User of Object
@@ -55,7 +55,7 @@
 		:param boolean shouldControl: TRUE if the user should be in control, otherwise FALSE.
 		
 		.. IMPORTANT::
-			Generally, (send gGame::handsOff()) and (send gGame::handsOn()) should be used to give and take away user control of the game.
+			Generally, (gGame handsOff:) and (gGame handsOn:) should be used to give and take away user control of the game.
 	*/
     (method (canControl shouldControl)
         (if (paramTotal)

@@ -111,25 +111,25 @@
 	
 	To put a ChoiceNarrator in *choice mode* do and specify the noun/verb/condition, do::
 	
-		(myChoiceNarrator:
-			normal(FALSE)
-			curNoun(noun)
-			curVerb(verb)
-			curCase(condition)
+		(myChoiceNarrator
+			normal: FALSE
+			curNoun: noun
+			curVerb: verb
+			curCase: condition
 		)
 		
 	Then have it say something, going through the gMessager like usual, and passing the
 	same noun/verb/condition, and 0 for the sequence::
 	
-		(send gMessager:say(noun verb condition 0))
+		(gMessager say: noun verb condition 0)
 		
 	Then you can check the whichSelect property::
 	
-		(switch (myChoiceNarrator:whichSelect)
-			(case 1
+		(switch (myChoiceNarrator whichSelect?)
+			(1
 				// Do something
 			)
-			(case 2
+			(2
 				// Do something else
 			)
 		)
@@ -262,25 +262,25 @@
 	
 	To put a ChoiceTalker in *choice mode* do::
 	
-		(myChoiceTalker:
-			normal(FALSE)
-			curNoun(noun)
-			curVerb(verb)
-			curCase(condition)
+		(myChoiceTalker
+			normal: FALSE
+			curNoun: noun
+			curVerb: verb
+			curCase: condition
 		)
 		
 	Then have it say something, going through the gMessager like usual, and passing the
 	same noun/verb/condition and 0 for the sequence::
 	
-		(send gMessager:say(noun verb condition 0))
+		(gMessager say: noun verb condition 0)
 		
 	Then you can check the whichSelect property::
 	
-		(switch (myChoiceTalker:whichSelect)
-			(case 1
+		(switch (myChoiceTalker whichSelect?)
+			(1
 				// Do something
 			)
-			(case 2
+			(2
 				// Do something else
 			)
 		)

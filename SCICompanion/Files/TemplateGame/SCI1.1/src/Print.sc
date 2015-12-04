@@ -45,7 +45,7 @@
 	
 	Example usage::
 	
-		Printf("Your name is %s, and you have %d hit points" name hitPoints)
+		(Printf "Your name is %s, and you have %d hit points" name hitPoints)
 	
 */
 (procedure public (Printf theText)
@@ -68,9 +68,10 @@
 	
 	Example usage::
 		
-		(var buffer[10])
-		(= buffer NULL)	// Set the first character to NULL to create an empty string
-		GetInput(buffer 10 "Enter your name")
+		(method (SomeMethod &tmp [buffer 10])
+			(= buffer NULL)	// Set the first character to NULL to create an empty string
+			(GetInput buffer 10 "Enter your name")
+		)
 	
 .. IMPORTANT::
 	The buffer is also used to initialize the edit field, so it should contain an empty string if you don't want any text there to start with.
@@ -139,18 +140,18 @@
 	The Print class lets you show text, buttons and images in a GUI on screen.
 	
 	It is generally used as a static class, in the sense that you call methods on Print
-	directly without making an instance of it. The init() method then displays the dialog.
+	directly without making an instance of it. The init: method then displays the dialog.
 	
 	Example usage::
 		
-		(Print:
-			addTitle("This is the title")
-			font(0)
-			width(90)
-			addText("Enter new font number:")
-			addEdit(@temp0 6 0 24)
-			addButton(0 "A button!" 0 12)
-			init()
+		(Print
+			addTitle: "This is the title"
+			font: 0
+			width: 90
+			addText: "Enter new font number:"
+			addEdit: @temp0 6 0 24
+			addButton: 0 "A button!" 0 12
+			init:
 		)
 
 */

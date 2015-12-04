@@ -21,7 +21,7 @@
 		)
 		
 		// Then in script at some point:
-		(rainSound:play())
+		(rainSound play:)
 		
 */
 (class Sound of Object

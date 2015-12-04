@@ -12,7 +12,7 @@
 	Example usage::
 	
 		// Send the hoverGuys along 3 points to the destination, then cue() the caller.
-		(hoverGuys:setMotion(DPath 255 137 154 138 140 137 self))
+		(hoverGuys setMotion: DPath 255 137 154 138 140 137 self)
 */
 (class DPath of Motion
     (properties

@@ -11,9 +11,9 @@
 	
 	If you wish to do something in response to the icon being clicked, override the select(params) method in your IconItem instance like so::
 	
-	    (method (select params)
-	        (if ((super:select(rest params)))
-	            // Do something here....
+	    (method (select)
+	        (if (super select: &rest)
+	            ; Do something here....
 	        )
 	        return 0
 	    )

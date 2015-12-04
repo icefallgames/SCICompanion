@@ -9,22 +9,13 @@
 	
 	Example usage::
 	
-		(var myFile)
-
-		= myFile (File:new())
-		(if ((send newFile:
-			name("myfile.txt")
-			open(fOPENFAIL)
-			 ))
-			 
-			 // Read stuff from file, etc...
+		= myFile (File new:)
+		(if (newFile name: "myfile.txt" open: fOPENFAIL)
+			 ; Read stuff from file, etc...
 		)
 
-		// Close the file.
-		(send newFile:
-			close()
-			dispose()
-		)
+		; Close the file.
+		(newFile close: dispose:)
 			
 */
 (class File of Object

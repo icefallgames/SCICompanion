@@ -10,8 +10,8 @@
 	
 	Example usage::
 	
-		// Cycle through the diamond's cels three times
-		(diamond:setCycle(ForwardCounter 3))
+		; Cycle through the diamond's cels three times
+		(diamond setCycle: ForwardCounter 3)
 */
 (class ForwardCounter of Forward
     (properties
