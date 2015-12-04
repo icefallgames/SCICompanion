@@ -376,7 +376,7 @@ std::vector<std::string> codeLevelKeywordsSCI =
 {
     // Sorted
     _T("&rest"),
-    _T("&tmp"),
+    // _T("&tmp"),   // This is special
     _T("and"),
     _T("argc"),
     _T("asm"),
@@ -533,7 +533,8 @@ bool IsClassLevelKeyword(LangSyntax lang, const std::string &word)
 bool IsSCIKeyword(LangSyntax lang, const std::string &word)
 {
     return (IsValueKeyword(lang, word) || IsCodeLevelKeyword(lang, word) || IsTopLevelKeyword(lang, word) || IsClassLevelKeyword(lang, word) ||
-            ((lang == LangSyntaxCpp) && IsCPPTypeKeyword(word)));
+        ((lang == LangSyntaxCpp) && IsCPPTypeKeyword(word)) ||
+        ((lang == LangSyntaxSCI) && (word == "&tmp")));
 }
 
 const std::vector<std::string> &GetCodeLevelKeywords(LangSyntax lang)

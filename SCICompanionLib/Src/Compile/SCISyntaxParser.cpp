@@ -853,7 +853,7 @@ void SCISyntaxParser::Load()
         >> *((var_decl[CreateScriptVarA] >> -(equalSign[GeneralE] >> (string_immediateValue[ScriptVarInitA] | array_init)))[FinishScriptVarA]);
 
     // StartFunctionTempVarA is needed to reset "was initializer value set". There are no initializer values for function variables in this syntax.
-    function_var_decl = keyword_p("&tmp")[StartFunctionTempVarA] >> ++(var_decl[FinishFunctionTempVarA]);
+    function_var_decl = keyword_p("&tmp")[{ StartFunctionTempVarA, ParseAutoCompleteContext::Temp }] >> ++(var_decl[FinishFunctionTempVarA]);
 
     property_decl = alphanumNK_p[{CreateClassPropertyA, ParseAutoCompleteContext::ClassSelector}]
         >> statement[FinishClassPropertyStatementA];

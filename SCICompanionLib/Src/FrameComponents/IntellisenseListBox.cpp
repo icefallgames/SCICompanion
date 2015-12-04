@@ -259,7 +259,7 @@ void CIntellisenseListBox::DrawItem(LPDRAWITEMSTRUCT pDrawItemStruct)
     }
 
     rc.left += 3; // Offset a little more.
-    dc.DrawText(str, &rc, DT_SINGLELINE);
+    dc.DrawText(str, &rc, DT_SINGLELINE | DT_NOPREFIX);
 
     dc.SetTextColor(crOldTextColor);
     dc.SetBkColor(crOldBkColor);

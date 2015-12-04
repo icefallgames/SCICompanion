@@ -20,7 +20,6 @@ enum class ParseAutoCompleteContext : uint8_t
     Selector,
     ClassSelector,
     Value,
-    ValueOrSelector,
     TopLevelKeyword,
     ClassLevelKeyword,
     SuperClass,
@@ -28,6 +27,10 @@ enum class ParseAutoCompleteContext : uint8_t
     DefineValue,        // Only define constants allowed (not variables, methods, etc...)
     Export,
     LValue,
+
+    // SCI1.1:
+    Temp,               // &tmp keyword!
+
     Block               // Use this in parsing in order to block searching up the context stack.
 };
 

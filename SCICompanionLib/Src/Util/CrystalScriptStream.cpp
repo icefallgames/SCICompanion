@@ -132,7 +132,8 @@ std::string CScriptStreamLimiter::GetLastWord()
     while (nChar > 0)
     {
         uint8_t theChar = (uint8_t)pszLine[nChar];
-        if (isalnum(theChar) || (theChar == '_'))
+        // & and - are included for Sierra syntax (&tmp, &rest, -info-). Hopefully this doesn't mess up Studio autocomplete.
+        if (isalnum(theChar) || (theChar == '_') || (theChar == '&') || (theChar == '-'))
         {
             word += theChar;
         }

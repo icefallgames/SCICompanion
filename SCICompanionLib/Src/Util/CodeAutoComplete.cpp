@@ -108,9 +108,6 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
                     sourceTypes |= AutoCompleteSourceType::TopLevelKeyword;
                     break;
 
-                case ParseAutoCompleteContext::ValueOrSelector:
-                    sourceTypes |= AutoCompleteSourceType::Selector;
-                    // fall through...
                 case ParseAutoCompleteContext::Value:
                     sourceTypes |= AutoCompleteSourceType::ClassName | AutoCompleteSourceType::Variable | AutoCompleteSourceType::Define | AutoCompleteSourceType::Kernel | AutoCompleteSourceType::Procedure | AutoCompleteSourceType::ClassSelector | AutoCompleteSourceType::Instance;
                     break;
@@ -302,6 +299,12 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
                 }
                 );
             }
+        }
+
+        if (containsV(acContexts, ParseAutoCompleteContext::Temp))
+        {
+            // This is a bit too bad, & isn't included in the prefix.
+            MergeResults(result->choices, prefix, AutoCompleteIconIndex::Keyword, { "&tmp" } );
         }
 
         LangSyntax lang = context.Script().Language();
