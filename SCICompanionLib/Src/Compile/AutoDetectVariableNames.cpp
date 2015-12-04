@@ -22,20 +22,25 @@ using namespace sci;
 using namespace std;
 using namespace fmt;
 
+bool _IsUndeterminedHelper(const std::string &suggestion, const std::string &varType)
+{
+    return (0 == suggestion.compare(0, varType.length(), varType)) && isdigit(suggestion[varType.length()]);
+}
+
 bool _IsUndeterminedFunctionScope(const std::string &suggestion)
 {
-    return (0 == suggestion.compare(0, 4, "temp")) || ((0 == suggestion.compare(0, 5, "param")) && (suggestion != "paramTotal"));
+    return _IsUndeterminedHelper(suggestion, "temp") || _IsUndeterminedHelper(suggestion, "param");
 }
 
 bool _IsUndeterminedGlobalScope(const std::string &suggestion)
 {
-    return (0 == suggestion.compare(0, 6, "global"));
+    return _IsUndeterminedHelper(suggestion, "global");
 }
 
 bool _IsUndetermined(const std::string &suggestion)
 {
     return _IsUndeterminedGlobalScope(suggestion) ||
-        (0 == suggestion.compare(0, 5, "local")) ||
+        _IsUndeterminedHelper(suggestion, "local") ||
         _IsUndeterminedFunctionScope(suggestion);
 }
 

@@ -511,8 +511,11 @@ void ConvertToSCISyntaxHelper(Script &script, GlobalCompiledScriptLookups *looku
 
 // Configure output
 const size_t MaxColumnWidth = 60;
+const size_t MaxSendParamWidth = 75;
+const size_t MaxConditionWidth = 50;
+const size_t MaxCaseWidth = 35;
 
-// Macros yuck!
+// Macros yuck! But they get the job done.
 #define GO_INLINE auto line = _GoInline()
 #define GO_MULTILINE auto line = _GoMultiline()
 #define INDENT_BLOCK DebugIndent indent(out)
@@ -566,9 +569,9 @@ private:
     //
     void _SkipNextSpace() { _skipNextSpace = true; }
 
-    bool _ShouldBeMultiline(const SyntaxNode *node)
+    bool _ShouldBeMultiline(const SyntaxNode *node, size_t maxInlineWidth = MaxColumnWidth)
     {
-        return _nodeSize[node] > MaxColumnWidth;
+        return _nodeSize[node] > maxInlineWidth;
     }
 
     _Check_return_
@@ -1095,7 +1098,7 @@ public:
     {
         // This happens in the caller. ConditionalExpression just pushes through.
         // _MaybeNewLineIndent();
-        SET_MULTILINEMODE(_ShouldBeMultiline(&conditional));
+        SET_MULTILINEMODE(_ShouldBeMultiline(&conditional, MaxConditionWidth));
         _NoIndentAcceptChildren(conditional.GetStatements());
     }
 
@@ -1112,7 +1115,7 @@ public:
 
         if (!sendParam.GetSelectorParams().empty())
         {
-            bool isMultiline = _ShouldBeMultiline(&sendParam);
+            bool isMultiline = _ShouldBeMultiline(&sendParam, MaxSendParamWidth);
             SET_MULTILINEMODE(isMultiline);
             _MaybeIndentAcceptChildren(sendParam.GetSelectorParams());
         }
@@ -1412,7 +1415,7 @@ public:
     {
         _MaybeNewLineIndent();
 
-        bool isMultiline = _ShouldBeMultiline(&caseStatement);
+        bool isMultiline = _ShouldBeMultiline(&caseStatement, MaxCaseWidth);
         SET_MULTILINEMODE(isMultiline);
         {
             if (caseStatement.IsDefault())
@@ -1476,9 +1479,24 @@ public:
         out.out << ")";
     }
 
+    // Returns thing, or if thing is a CodeBlock and has only one internal
+    // statement, then returns that statement.
+    const SyntaxNode *_GetSingleItemInCodeBlock(const SyntaxNode *thing)
+    {
+        if (thing && thing->GetNodeType() == NodeTypeCodeBlock)
+        {
+            const CodeBlock *block = SafeSyntaxNode<CodeBlock>(thing);
+            if (block->GetStatements().size() == 1)
+            {
+                return block->GetStatements()[0].get();
+            }
+        }
+        return thing;
+    }
+
     void _CoalesceBinaryOps(const BinaryOperator &operatorName, const SyntaxNode *operand, vector<const SyntaxNode*> &terms)
     {
-        const BinaryOp *subOp = SafeSyntaxNode<BinaryOp>(operand);
+        const BinaryOp *subOp = SafeSyntaxNode<BinaryOp>(_GetSingleItemInCodeBlock(operand));
         if (subOp && (subOp->Operator == operatorName))
         {
             // Go deeper
