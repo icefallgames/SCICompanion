@@ -3,7 +3,7 @@
 (include "sci.sh")
 (use "Main")
 (use "Controls")
-(use "Object")
+(use "System")
 (script 922)
 
 

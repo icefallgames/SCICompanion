@@ -2,7 +2,7 @@
 (include "sci.sh")
 (use "Main")
 (use "Cycle")
-(use "Object")
+(use "System")
 (script 945)
 
 /*

@@ -7,7 +7,7 @@
 (use "Main")
 (use "Print")
 (use "Game")
-(use "Object")
+(use "System")
 (script 924)
 
 /*

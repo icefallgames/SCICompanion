@@ -13,7 +13,7 @@
 (use "Cycle")
 (use "Game")
 (use "Actor")
-(use "Object")
+(use "System")
 (use "Print")
 (use "Polygon")
 

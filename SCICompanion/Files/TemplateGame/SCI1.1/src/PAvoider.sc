@@ -4,7 +4,7 @@
 (include "game.sh")
 (use "PolyPath")
 (use "Polygon")
-(use "Object")
+(use "System")
 (script PATHAVOIDER_SCRIPT)
 
 (procedure (CountPoints param1)

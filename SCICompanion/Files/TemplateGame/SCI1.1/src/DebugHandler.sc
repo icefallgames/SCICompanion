@@ -17,7 +17,7 @@
 (use "SysWindow")
 (use "User")
 (use "Actor")
-(use "Object")
+(use "System")
 (use "InventoryItem")
 (use "DialogControls")
 (script INGAME_DEBUG_SCRIPT)

@@ -4,7 +4,7 @@
     0 SmoothLooper
 )
 (use "Cycle")
-(use "Object")
+(use "System")
 (script 968)
 
 

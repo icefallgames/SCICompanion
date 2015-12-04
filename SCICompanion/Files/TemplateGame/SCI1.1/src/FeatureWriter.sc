@@ -13,7 +13,7 @@
 (use "SysWindow")
 (use "File")
 (use "Actor")
-(use "Object")
+(use "System")
 (script FEATUREWRITER_SCRIPT)
 
 

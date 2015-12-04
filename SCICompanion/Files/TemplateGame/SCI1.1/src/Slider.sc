@@ -2,7 +2,7 @@
 (include "sci.sh")
 (include "game.sh")
 (use "IconItem")
-(use "Object")
+(use "System")
 (script SLIDER_SCRIPT)
 
 /*

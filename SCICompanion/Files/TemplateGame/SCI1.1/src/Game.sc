@@ -10,7 +10,7 @@
 (use "InventoryItem")
 (use "ScrollableInventory")
 (use "User")
-(use "Object")
+(use "System")
 (script 994)
 
 

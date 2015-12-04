@@ -9,7 +9,7 @@
 )
 (use "Main")
 (use "Print")
-(use "Object")
+(use "System")
 (script 255)
 
 

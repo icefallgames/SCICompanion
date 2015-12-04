@@ -24,8 +24,6 @@
 
 using namespace std;
 using namespace sci;
-// Can we make a ConsumptionNode that pretends like it's a tree?
-
 
 std::string _indent2(int iIndent)
 {

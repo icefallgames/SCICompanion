@@ -11,7 +11,7 @@
 (use "Polygon")
 (use "SysWindow")
 (use "File")
-(use "Object")
+(use "System")
 (script POLYGONEDIT_SCRIPT)
 
 

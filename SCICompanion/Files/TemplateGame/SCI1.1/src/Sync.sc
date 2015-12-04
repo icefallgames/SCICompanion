@@ -3,7 +3,7 @@
 (use "Main")
 (use "Timer")
 (use "Cycle")
-(use "Object")
+(use "System")
 (script 929)
 
 

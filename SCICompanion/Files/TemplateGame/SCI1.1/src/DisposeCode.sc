@@ -11,7 +11,7 @@
 )
 (use "Main")
 (use "DisposeLoad")
-(use "Object")
+(use "System")
 (script DISPOSECODE_SCRIPT)
 
 (instance public disposeCode of Code
@@ -24,7 +24,7 @@
         	DOOR_SCRIPT
         	INSET_SCRIPT
         	FILE_SCRIPT
-        	MESSAGEOBJ_SCRIPT
+        	CONVERSATION_SCRIPT
         	SLIDER_SCRIPT
         	SCALETO_SRIPT
         	PATHAVOIDER_SCRIPT

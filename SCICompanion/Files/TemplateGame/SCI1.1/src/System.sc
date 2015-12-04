@@ -1,5 +1,5 @@
 /*
-	The Obj script contains a number of vital base classes, as well as handy procedures.
+	The System script contains a number of vital base classes, as well as handy procedures.
 */
 (version 2)
 (include "sci.sh")

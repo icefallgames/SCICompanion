@@ -12,7 +12,7 @@
 (use "Cycle")
 (use "Game")
 (use "Actor")
-(use "Object")
+(use "System")
 (script TITLEROOM_SCRIPT)
 
 (instance myDialog of Dialog

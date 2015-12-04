@@ -3,7 +3,7 @@
 (include "game.sh")
 (use "Main")
 (use "Cycle")
-(use "Object")
+(use "System")
 (script MOVECYCLE_SCRIPT)
 
 /*

@@ -15,7 +15,7 @@
 (use "BorderWindow")
 (use "IconItem")
 (use "GameControls")
-(use "Object")
+(use "System")
 (script GAMECONTROLS_SCRIPT)
 
 (instance gameControls of GameControls

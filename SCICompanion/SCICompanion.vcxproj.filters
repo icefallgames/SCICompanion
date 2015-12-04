@@ -2189,8 +2189,6 @@
     <None Include="Files\TemplateGame\SCI1.1\src\Jump.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\Main.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\Main.sco" />
-    <None Include="Files\TemplateGame\SCI1.1\src\MessageObj.sc" />
-    <None Include="Files\TemplateGame\SCI1.1\src\MessageObj.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\Messager.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\Messager.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\MoveFwd.sc" />
@@ -3469,8 +3467,6 @@
     <None Include="Files\TemplateGame\SCI1.1\src\GameEgo.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\MoveCycle.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\MoveCycle.sco" />
-    <None Include="Files\TemplateGame\SCI1.1\src\Object.sc" />
-    <None Include="Files\TemplateGame\SCI1.1\src\Object.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\Oscillate.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\Oscillate.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\RangeOscillate.sc" />
@@ -3482,6 +3478,10 @@
     <None Include="Files\TemplateGame\SCI1.1\src\Sight.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\Sight.sco" />
     <None Include="Files\Customization\syntaxcolor.ini" />
+    <None Include="Files\TemplateGame\SCI1.1\src\Conversation.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\Conversation.sco" />
+    <None Include="Files\TemplateGame\SCI1.1\src\System.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\System.sco" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />

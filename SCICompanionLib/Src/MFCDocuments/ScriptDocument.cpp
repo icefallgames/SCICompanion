@@ -672,12 +672,11 @@ void CScriptDocument::OnFileSaveAs()
     {
         // We have a new filename.
         CString strFileName = fileDialog.GetPathName();
-        ScriptId scriptNew(strFileName);
         // But save it under the new name.
         if (_buffer.SaveToFile(strFileName))
         {
             // We have a new identity
-            _scriptId = scriptNew;
+            _scriptId = ScriptId(strFileName);
         }
     }
 }

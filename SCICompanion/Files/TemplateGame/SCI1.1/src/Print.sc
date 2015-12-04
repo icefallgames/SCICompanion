@@ -11,7 +11,7 @@
 (use "DColorButton")
 (use "Controls")
 (use "DialogControls")
-(use "Object")
+(use "System")
 (script 921)
 
 /*

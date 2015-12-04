@@ -7,8 +7,8 @@
 (include "game.sh")
 (use "Main")
 (use "Print")
-(use "Object")
-(script MESSAGEOBJ_SCRIPT)
+(use "System")
+(script CONVERSATION_SCRIPT)
 
 
 /*

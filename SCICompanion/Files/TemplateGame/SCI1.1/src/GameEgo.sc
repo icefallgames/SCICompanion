@@ -6,7 +6,7 @@
 (use "Smopper")
 (use "Ego")
 (use "Cycle")
-(use "Object")
+(use "System")
 (script 18)
 
 

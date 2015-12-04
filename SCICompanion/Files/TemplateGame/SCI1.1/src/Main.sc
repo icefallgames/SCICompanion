@@ -51,7 +51,7 @@
 (use "Sound")
 (use "Game")
 (use "User")
-(use "Object")
+(use "System")
 (use "File")
 (script 0)
 
@@ -485,7 +485,7 @@
 */
 (procedure public (AddPolygonsToRoom polyBuffer)
 	(var polyCount)
-	(if (< polyBuffer 100)
+	(if (<u polyBuffer 100)
 		Prints("polyBuffer is not a pointer. Polygon ignored.")
 	)(else
 		(= polyCount Memory(memPEEK polyBuffer))
@@ -530,7 +530,7 @@
 */
 (procedure public (CreateNewPolygon polyBuffer nextPolyOptional)
 	(var polyCount)
-	(if (< polyBuffer 100)
+	(if (<u polyBuffer 100)
 		Prints("polyBuffer is not a pointer. Polygon ignored.")
 		return NULL
 	)(else

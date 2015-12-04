@@ -15,7 +15,7 @@
 (use "Cycle")
 (use "Game")
 (use "Actor")
-(use "Object")
+(use "System")
 (script DEATH_SCRIPT)
 
 (local

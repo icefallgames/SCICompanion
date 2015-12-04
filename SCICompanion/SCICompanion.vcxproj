@@ -1751,6 +1751,8 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <None Include="Files\TemplateGame\SCI1.1\src\ColorInit.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\Controls.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\Controls.sco" />
+    <None Include="Files\TemplateGame\SCI1.1\src\Conversation.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\Conversation.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\crestpiece.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\Cycle.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\Cycle.sco" />
@@ -1838,8 +1840,6 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <None Include="Files\TemplateGame\SCI1.1\src\logevent.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\Main.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\Main.sco" />
-    <None Include="Files\TemplateGame\SCI1.1\src\MessageObj.sc" />
-    <None Include="Files\TemplateGame\SCI1.1\src\MessageObj.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\Messager.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\Messager.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\MoveCycle.sc" />
@@ -1848,8 +1848,6 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <None Include="Files\TemplateGame\SCI1.1\src\MoveFwd.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\multiprop.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\mypuke.sco" />
-    <None Include="Files\TemplateGame\SCI1.1\src\Object.sc" />
-    <None Include="Files\TemplateGame\SCI1.1\src\Object.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\Orbit.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\Orbit.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\Oscillate.sc" />
@@ -1935,6 +1933,8 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <None Include="Files\TemplateGame\SCI1.1\src\Sync.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\Sync.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\syslogger.sco" />
+    <None Include="Files\TemplateGame\SCI1.1\src\System.sc" />
+    <None Include="Files\TemplateGame\SCI1.1\src\System.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\SysWindow.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\SysWindow.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\Talker.sc" />

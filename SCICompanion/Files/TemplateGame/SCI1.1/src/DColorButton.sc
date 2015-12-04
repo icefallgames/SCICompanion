@@ -2,7 +2,7 @@
 (include "sci.sh")
 (use "Controls")
 (use "DialogControls")
-(use "Object")
+(use "System")
 (script 32)
 
 

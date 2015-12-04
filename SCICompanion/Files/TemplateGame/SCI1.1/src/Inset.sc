@@ -3,7 +3,7 @@
 (include "game.sh")
 (use "Main")
 (use "Actor")
-(use "Object")
+(use "System")
 (script INSET_SCRIPT)
 
 /*

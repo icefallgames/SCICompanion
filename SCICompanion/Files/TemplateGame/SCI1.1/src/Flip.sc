@@ -6,7 +6,7 @@
     1 FlipFeature
 )
 (use "Main")
-(use "Object")
+(use "System")
 (script FLIPPOLY_SCRIPT)
 
 /*

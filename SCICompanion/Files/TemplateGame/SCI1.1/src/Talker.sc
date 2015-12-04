@@ -6,7 +6,7 @@
 (use "RandCycle")
 (use "Cycle")
 (use "Actor")
-(use "Object")
+(use "System")
 (script 928)
 
 /*

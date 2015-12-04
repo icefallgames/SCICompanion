@@ -12,7 +12,7 @@
 (use "PolygonEdit")
 (use "SysWindow")
 (use "File")
-(use "Object")
+(use "System")
 (script DIALOGEDIT_SCRIPT)
 
 (local

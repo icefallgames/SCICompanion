@@ -5,7 +5,7 @@
 (use "Print")
 (use "IconItem")
 (use "SysWindow")
-(use "Object")
+(use "System")
 (script 995)
 
 
