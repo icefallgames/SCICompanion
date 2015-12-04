@@ -787,7 +787,8 @@ void ScriptId::_DetermineLanguage()
 
 LangSyntax ScriptId::Language() const
 {
-    assert(_language != LangSyntaxUnknown);
+    // It's ok if language is unknown if the filename is empty.
+    assert(_language != LangSyntaxUnknown || _strFileNameOrig.empty());
     return _language;
 }
 

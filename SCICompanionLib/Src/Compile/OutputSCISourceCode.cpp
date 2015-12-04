@@ -451,6 +451,43 @@ private:
     GlobalCompiledScriptLookups _lookupsOwned;
 };
 
+std::string _GetCommentText(const Comment &comment)
+{
+    string text = comment.GetSanitizedText();
+
+    int minTabCount;
+    text = Unindent<'\t'>(text, &minTabCount);
+
+    // If the first line of a comment isn't indented, we should indent the rest either.
+    int innerCommentTab = 0;
+    if (comment.GetPosition().Column() < minTabCount)
+    {
+        innerCommentTab = minTabCount - comment.GetPosition().Column();
+        minTabCount = comment.GetPosition().Column();
+    }
+
+    vector<string> lines = Lineify(text);
+    string newComment;
+    bool first = true;
+    for (string &line : lines)
+    {
+        if (!first)
+        {
+            newComment += "\n";
+        }
+        // "indent" each line.
+        std::fill_n(std::back_inserter(newComment), minTabCount, '\t');
+        newComment += ";";
+        std::fill_n(std::back_inserter(newComment), innerCommentTab, '\t');
+        if (!line.empty() && line[0] != ' ')
+        {
+            newComment += " ";
+        }
+        newComment += line;
+        first = false;
+    }
+    return newComment;
+}
 
 void ConvertToSCISyntaxHelper(Script &script, GlobalCompiledScriptLookups *lookups)
 {
@@ -459,40 +496,8 @@ void ConvertToSCISyntaxHelper(Script &script, GlobalCompiledScriptLookups *looku
     // Transform comments
     for (auto &comment : script.GetComments())
     {
-        string text = comment->GetSanitizedText();
-
-        int minTabCount;
-        text = Unindent<'\t'>(text, &minTabCount);
-
-        // If the first line of a comment isn't indented, we should indent the rest either.
-        int innerCommentTab = 0;
-        if (comment->GetPosition().Column() < minTabCount)
-        {
-            innerCommentTab = minTabCount - comment->GetPosition().Column();
-            minTabCount = comment->GetPosition().Column();
-        }
-
-        vector<string> lines = Lineify(text);
-        string newComment;
-        bool first = true;
-        for (string &line : lines)
-        {
-            if (!first)
-            {
-                newComment += "\n";
-            }
-            // "indent" each line.
-            std::fill_n(std::back_inserter(newComment), minTabCount, '\t');
-            newComment += ";";
-            std::fill_n(std::back_inserter(newComment), innerCommentTab, '\t');
-            if (!line.empty() && line[0] != ' ')
-            {
-                newComment += " ";
-            }
-            newComment += line;
-            first = false;
-        }
-        comment->SetName(newComment);
+        std::string newText = _GetCommentText(*comment);
+        comment->SetName(newText);
     }
 
     TransformCleanRests txCleanRests(script);
@@ -775,7 +780,7 @@ public:
         }
         if (firstComment.find(SCILanguageMarker) == std::string::npos)
         {
-            out.out << ";;; " << SCILanguageMarker << " 1.0 - (do not remove this comment)\n";
+            out.out << ";;; " << SCILanguageMarker << " 1.0 - (do not remove this comment)" << out.pszNewLine;
         }
 
         out.OutputInitialComment();
@@ -900,13 +905,16 @@ public:
             // In the OM, these are stored at the top level, but we want to print them
             // out as if they were contained in the class.
             const Script *script = classDef.GetOwnerScript();
-            // Find any procedures that are *of* this class
-            for (auto &proc : script->GetProcedures())
+            if (script)
             {
-                if (proc->GetClass() == classDef.GetName())
+                // Find any procedures that are *of* this class
+                for (auto &proc : script->GetProcedures())
                 {
-                    _MaybeNewLineIndent();
-                    proc->Accept(*this);
+                    if (proc->GetClass() == classDef.GetName())
+                    {
+                        _MaybeNewLineIndent();
+                        proc->Accept(*this);
+                    }
                 }
             }
 
@@ -1104,7 +1112,14 @@ public:
 
     void Visit(const Comment &comment) override
     {
-        // Handled elsewhere.
+        // Generally handled elsewhere, but when constructing scripts "manually" we do put comments directly in code.
+        _MaybeNewLineIndent();
+        out.out << _GetCommentText(comment);
+        if (out.fInline)
+        {
+            GO_MULTILINE;
+            _MaybeNewLineIndent();
+        }
     }
 
     void Visit(const SendParam &sendParam) override

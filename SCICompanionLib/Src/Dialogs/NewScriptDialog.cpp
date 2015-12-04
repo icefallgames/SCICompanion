@@ -18,6 +18,7 @@
 #include "AppState.h"
 #include "NewScriptDialog.h"
 #include "resource.h"
+#include "ScriptOM.h"
 
 // CNewScriptDialog dialog
 
@@ -140,20 +141,18 @@ void CNewScriptDialog::DoDataExchange(CDataExchange* pDX)
 
 void CNewScriptDialog::_PrepareBuffer()
 {
-    _strBuffer += 
-    TEXT("/******************************************************************************/\r\n");
-
+    sci::Script script(_scriptId);
     if (appState->GetVersion().SeparateHeapResources)
     {
         // e.g. for SCI0, keep SCIStudio compatible. Otherwise, use version 2
-        _strBuffer += "(version 2)\r\n";
+        script.SyntaxVersion = 2;
     }
 
-    // The script number
-    TCHAR szTemp[MAX_PATH];
-    StringCchPrintf(szTemp, ARRAYSIZE(szTemp), TEXT("(script %d)\r\n"), _scriptId.GetResourceNumber());
-    _strBuffer += szTemp;
-    _strBuffer += TEXT("/******************************************************************************/\r\n");
+    std::stringstream ss;
+    sci::SourceCodeWriter out(ss, script.Language());
+    out.pszNewLine = "\r\n";
+    script.OutputSourceCode(out);
+    _strBuffer = ss.str();
 }
 
 
