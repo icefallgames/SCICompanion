@@ -3,7 +3,7 @@
 (use "DialogControls")
 (script 944)
 
-(procedure (localproc_0151 param1 param2)
+(procedure (SortFileNames param1 param2)
     (var temp0, temp1, temp2[13], temp15, temp16, temp17)
     = temp0 (- param2 1)
     (while (> temp0 0)
@@ -100,7 +100,7 @@
         )
         StrAt(text * nFiles 13 0)
         (if (sort)
-            localproc_0151(text nFiles)
+            SortFileNames(text nFiles)
         )
         return 1
     )

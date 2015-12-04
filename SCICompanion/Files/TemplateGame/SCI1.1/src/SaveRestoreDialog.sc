@@ -2,7 +2,7 @@
 (version 2)
 (include "sci.sh")
 (exports
-    0 proc990_0
+    0 GetDirectory
 )
 (use "Main")
 (use "Controls")
@@ -24,8 +24,7 @@
     local65[25]
 )
 
-// nodoc
-(procedure public (proc990_0 param1)
+(procedure public (GetDirectory param1)
     (var temp0, temp1[33], temp34[100], temp134[50])
     (asm
 code_0949:pushi   #font
@@ -138,12 +137,12 @@ code_09d1:pushi   7
     )
 )
 
-(procedure (localproc_0744)
+(procedure (GetStatus)
     return 
         (if (== self Restore)
             0
         )(else
-            (if (localproc_0a0b())
+            (if (HaveSpace())
                 1
             )(else
                 (if (local2)
@@ -156,14 +155,14 @@ code_09d1:pushi   7
 )
 
 
-(procedure (localproc_0a0b)
+(procedure (HaveSpace)
     (if (< local2 20)
         CheckFreeSpace(gSaveDir)
     )
 )
 
 
-(procedure (localproc_0a19)
+(procedure (NeedDescription)
     (Print:
         font(0)
         addText(3 0 0 1 0 0 990)
@@ -203,7 +202,7 @@ code_09d1:pushi   7
         (if (== local2 -1)
             return 0
         )
-        = local4 localproc_0744()
+        = local4 GetStatus()
         (if (== local4 1)
             (editI:
                 text(StrCpy(param1 param2))
@@ -408,7 +407,7 @@ code_0433:  toss
             self    4
             pushi   1
             lsg     gSaveDir
-            call    proc990_0, 2
+            call    GetDirectory, 2
             bnt     code_0495
             pushi   3
             pushi   #name
@@ -497,7 +496,7 @@ code_050d:  pushi   1
             pushi   0
             self    4
             pushi   0
-            call    localproc_0a19, 0
+            call    NeedDescription, 0
             pushi   #init
             pushi   3
             lsp     param1
@@ -910,7 +909,7 @@ code_072e:  pushi   1
         = temp0 (super:doit(newName))
         (self:dispose())
         (if (not StrLen(param1))
-            localproc_0a19()
+            NeedDescription()
             = temp0 0
         )
         return 

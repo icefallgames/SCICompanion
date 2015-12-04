@@ -19,7 +19,7 @@
 )
 
 
-(procedure (localproc_0454 param1)
+(procedure (RestoreMergedGons param1)
     (var temp0, temp1, temp2, temp3)
     = temp3 (send param1:size)
     = temp0 0
@@ -166,7 +166,7 @@
             (send ((send clientMover:obstacles)):delete(newPolygon))
             (send ((send clientMover:obstacles)):delete(temp17))
             (if (IsObject((send clientMover:obstacles)))
-                localproc_0454((send clientMover:obstacles))
+                RestoreMergedGons((send clientMover:obstacles))
             )
             (send temp17:dispose())
             (send newPolygon:dispose())
