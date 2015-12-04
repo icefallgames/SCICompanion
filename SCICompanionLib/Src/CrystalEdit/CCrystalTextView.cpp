@@ -1482,11 +1482,19 @@ int CCrystalTextView::GetScreenLines()
 
 BOOL CCrystalTextView::GetItalic(int nColorIndex)
 {
+    if (nColorIndex == COLORINDEX_COMMENT)
+    {
+        return TRUE;
+    }
 	return FALSE;
 }
 
 BOOL CCrystalTextView::GetBold(int nColorIndex)
 {
+    if (nColorIndex == COLORINDEX_KEYWORD)
+    {
+        return TRUE;
+    }
 	return FALSE;
 }
 
@@ -2241,8 +2249,10 @@ int CCrystalTextView::OnCreate(LPCREATESTRUCT lpCreateStruct)
     HDC hdc = ::GetDC(NULL);
     m_lfBaseFont.lfHeight = -MulDiv(10, GetDeviceCaps(hdc, LOGPIXELSY), 72);
 
+    // The below is ignored, since bold and italic can be adjusted per color index:
 	m_lfBaseFont.lfWeight = FW_NORMAL;
 	m_lfBaseFont.lfItalic = FALSE;
+
 	m_lfBaseFont.lfCharSet = DEFAULT_CHARSET;
 	m_lfBaseFont.lfOutPrecision = OUT_DEFAULT_PRECIS;
 	m_lfBaseFont.lfClipPrecision = CLIP_DEFAULT_PRECIS;

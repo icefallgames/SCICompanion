@@ -601,7 +601,7 @@ BOOL IsStudioNumber(LPCTSTR pszChars, int nLength)
 		}
 		return TRUE;
 	}
-	if (! isdigit(pszChars[0]))
+	if (!isdigit(pszChars[0]) && ((nLength <= 1) || (pszChars[0] != '-') || !isdigit(pszChars[1])))
 		return FALSE;
 	for (int I = 1; I < nLength; I++)
 	{
@@ -676,6 +676,7 @@ enum class HighlightState
     CharLiteral,
     SelectorLiteral,
     RegularToken,
+    RegularTokenOrNumber,
     SelectorCall,
 };
 
@@ -683,10 +684,7 @@ DWORD CScriptView::_ParseLineSCI(DWORD dwCookie, int nLineIndex, TEXTBLOCK *pBuf
 {
     HighlightState state = HighlightState::None;
 
-
     int nLength = GetLineLength(nLineIndex);
-    //if (nLength <= 0)
-        //return dwCookie & COOKIE_EXT_COMMENT;
 
     LPCTSTR pszChars = GetLineChars(nLineIndex);
     BOOL bFirstChar = TRUE;
@@ -822,9 +820,13 @@ DWORD CScriptView::_ParseLineSCI(DWORD dwCookie, int nLineIndex, TEXTBLOCK *pBuf
         switch (state)
         {
             case HighlightState::None:
-                if (isalpha(ch) || ch == '_')
+                if (isalpha(ch) || ch == '_' || ch == '&')  // & to support &rest and &temp
                 {
                     state = HighlightState::RegularToken;
+                }
+                else if (ch == '-') // - to support -info-, or it could be a number
+                {
+                    state = HighlightState::RegularTokenOrNumber;
                 }
                 else if (isdigit(ch))
                 {
@@ -852,6 +854,21 @@ DWORD CScriptView::_ParseLineSCI(DWORD dwCookie, int nLineIndex, TEXTBLOCK *pBuf
                     // Beginning a token
                     if (nIdentBegin == -1)
                         nIdentBegin = I;
+                }
+                break;
+
+            case HighlightState::RegularTokenOrNumber:
+                if (isdigit(ch))
+                {
+                    state = HighlightState::Number; // Now we know...
+                }
+                else if (isalpha(ch))
+                {
+                    state = HighlightState::RegularToken; // Now we know...
+                }
+                else
+                {
+                    sumup = true;
                 }
                 break;
 
