@@ -14,17 +14,17 @@
 #include "stdafx.h"
 #include "ScriptOMAll.h"
 #include "OutputCodeHelper.h"
-#include "OutputSourceCodeBase.h"
+#include "SourceCodeFormatter.h"
 #include "OperatorTables.h"
 
 using namespace sci;
 using namespace std;
 
 // This is for a potential new language more accurately based on the original SCI syntax.
-class OutputCPPSourceCode : public OutputSourceCodeBase
+class CppSourceCodeFormatter : public SourceCodeFormatter
 {
 public:
-    OutputCPPSourceCode(SourceCodeWriter &out) : OutputSourceCodeBase(out) {}
+    CppSourceCodeFormatter(SourceCodeWriter &out) : SourceCodeFormatter(out) {}
 
     void Visit(const Script &script) override
     {
@@ -712,22 +712,22 @@ public:
 
 void OutputSourceCode_CPP(const sci::Script &script, sci::SourceCodeWriter &out)
 {
-    OutputCPPSourceCode output(out);
+    CppSourceCodeFormatter output(out);
     output.Visit(script);
 }
 void OutputSourceCode_CPP(const sci::ClassDefinition &classDef, sci::SourceCodeWriter &out)
 {
-    OutputCPPSourceCode output(out);
+    CppSourceCodeFormatter output(out);
     output.Visit(classDef);
 }
 void OutputSourceCode_CPP(const sci::MethodDefinition &classDef, sci::SourceCodeWriter &out)
 {
-    OutputCPPSourceCode output(out);
+    CppSourceCodeFormatter output(out);
     output.Visit(classDef);
 }
 void OutputSourceCode_CPP(const sci::ClassProperty &classDef, sci::SourceCodeWriter &out)
 {
-    OutputCPPSourceCode output(out);
+    CppSourceCodeFormatter output(out);
     output.Visit(classDef);
 }
 

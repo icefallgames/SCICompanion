@@ -14,17 +14,17 @@
 #include "stdafx.h"
 #include "ScriptOMAll.h"
 #include "OutputCodeHelper.h"
-#include "OutputSourceCodeBase.h"
+#include "SourceCodeFormatter.h"
 #include "PMachine.h"
 #include "OperatorTables.h"
 
 using namespace sci;
 using namespace std;
 
-class OutputStudioSourceCode : public OutputSourceCodeBase
+class StudioSourceCodeFormatter : public SourceCodeFormatter
 {
 public:
-    OutputStudioSourceCode(SourceCodeWriter &out) : OutputSourceCodeBase(out) {}
+    StudioSourceCodeFormatter(SourceCodeWriter &out) : SourceCodeFormatter(out) {}
 
     void Visit(const Script &script) override
     {
@@ -795,24 +795,24 @@ public:
 
 void OutputSourceCode_SCIStudio(const sci::Script &script, sci::SourceCodeWriter &out)
 {
-    OutputStudioSourceCode output(out);
+    StudioSourceCodeFormatter output(out);
     output.Visit(script);
 }
 
 void OutputSourceCode_SCIStudio(const sci::ClassDefinition &classDef, sci::SourceCodeWriter &out)
 {
-    OutputStudioSourceCode output(out);
+    StudioSourceCodeFormatter output(out);
     output.Visit(classDef);
 }
 
 void OutputSourceCode_SCIStudio(const sci::MethodDefinition &classDef, sci::SourceCodeWriter &out)
 {
-    OutputStudioSourceCode output(out);
+    StudioSourceCodeFormatter output(out);
     output.Visit(classDef);
 }
 
 void OutputSourceCode_SCIStudio(const sci::ClassProperty &classDef, sci::SourceCodeWriter &out)
 {
-    OutputStudioSourceCode output(out);
+    StudioSourceCodeFormatter output(out);
     output.Visit(classDef);
 }

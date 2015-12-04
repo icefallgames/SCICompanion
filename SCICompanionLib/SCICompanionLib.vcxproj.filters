@@ -375,9 +375,6 @@
     <ClCompile Include="Src\Compile\SCO.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Compile\ScriptDebug.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Src\Compile\ScriptOM.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -463,12 +460,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\Util\ImageUtil.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Compile\OutputCppSourceCode.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Compile\OutputSCISourceCode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Src\Compile\OutputCodeHelper.cpp">
@@ -792,13 +783,19 @@
     <ClCompile Include="Src\Compile\OperatorTables.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Compile\OutputStudioSourceCode.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Compile\OutputSourceCodeBase.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Src\Util\ScriptConvert.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Compile\SourceCodeFormatter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Compile\StudioSourceCodeFormatter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Compile\SCISourceCodeFormatter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Compile\CppSourceCodeFormatter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1310,12 +1307,6 @@
     <ClInclude Include="Src\Compile\OutputCodeHelper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Compile\OutputSourceCodeBase.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Compile\OutputCppSourceCode.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Src\Resources\ResourceMapOperations.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1326,9 +1317,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\FrameComponents\PicCommandSidePane.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Compile\OutputSCISourceCode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\Resources\Font.h">
@@ -1697,9 +1685,6 @@
     <ClInclude Include="Src\Compile\OperatorTables.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Compile\OutputStudioSourceCode.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Src\Compile\SCISyntaxParser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1710,6 +1695,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\Compile\ParseAutoCompleteContext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Compile\SourceCodeFormatter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Compile\StudioSourceCodeFormatter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Compile\SCISourceCodeFormatter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Compile\CppSourceCodeFormatter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

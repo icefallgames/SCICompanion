@@ -205,10 +205,9 @@
     <ClCompile Include="Src\Compile\DecompilerConfig.cpp" />
     <ClCompile Include="Src\Compile\OperatorTables.cpp" />
     <ClCompile Include="Src\Compile\OutputCodeHelper.cpp" />
-    <ClCompile Include="Src\Compile\OutputCppSourceCode.cpp" />
-    <ClCompile Include="Src\Compile\OutputSCISourceCode.cpp" />
-    <ClCompile Include="Src\Compile\OutputSourceCodeBase.cpp" />
-    <ClCompile Include="Src\Compile\OutputStudioSourceCode.cpp" />
+    <ClCompile Include="Src\Compile\CppSourceCodeFormatter.cpp" />
+    <ClCompile Include="Src\Compile\SCISourceCodeFormatter.cpp" />
+    <ClCompile Include="Src\Compile\StudioSourceCodeFormatter.cpp" />
     <ClCompile Include="Src\Compile\SCISyntaxParser.cpp" />
     <ClCompile Include="Src\Compile\ScriptMakerHelper.cpp" />
     <ClCompile Include="Src\Compile\SummarizeScript.cpp" />
@@ -420,7 +419,7 @@
     <ClCompile Include="Src\Compile\scii.cpp" />
     <ClCompile Include="Src\Compile\StudioSyntaxParser.cpp" />
     <ClCompile Include="Src\Compile\SCO.cpp" />
-    <ClCompile Include="Src\Compile\ScriptDebug.cpp" />
+    <ClCompile Include="Src\Compile\SourceCodeFormatter.cpp" />
     <ClCompile Include="Src\Compile\ScriptOM.cpp" />
     <ClCompile Include="Src\Compile\ScriptOMTraverse.cpp" />
     <ClCompile Include="Src\Compile\SyntaxParser.cpp" />
@@ -560,10 +559,10 @@
     <ClInclude Include="Src\Compile\Disassembler.h" />
     <ClInclude Include="Src\Compile\ControlFlowGraph.h" />
     <ClInclude Include="Src\Compile\OutputCodeHelper.h" />
-    <ClInclude Include="Src\Compile\OutputCppSourceCode.h" />
-    <ClInclude Include="Src\Compile\OutputSCISourceCode.h" />
-    <ClInclude Include="Src\Compile\OutputStudioSourceCode.h" />
-    <ClInclude Include="Src\Compile\OutputSourceCodeBase.h" />
+    <ClInclude Include="Src\Compile\CppSourceCodeFormatter.h" />
+    <ClInclude Include="Src\Compile\SCISourceCodeFormatter.h" />
+    <ClInclude Include="Src\Compile\StudioSourceCodeFormatter.h" />
+    <ClInclude Include="Src\Compile\SourceCodeFormatter.h" />
     <ClInclude Include="Src\Compile\SummarizeScript.h" />
     <ClInclude Include="Src\Compile\TarjanAlgorithm.h" />
     <ClInclude Include="Src\Dialogs\BitmapToVGADialog.h" />

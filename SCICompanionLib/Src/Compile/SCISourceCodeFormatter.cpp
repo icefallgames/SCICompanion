@@ -14,7 +14,7 @@
 #include "stdafx.h"
 #include "ScriptOMAll.h"
 #include "OutputCodeHelper.h"
-#include "OutputSourceCodeBase.h"
+#include "SourceCodeFormatter.h"
 #include "PMachine.h"
 #include "StringUtil.h"
 #include "CompiledScript.h"
@@ -528,10 +528,10 @@ const size_t MaxCaseWidth = 35;
 #define SET_MULTILINEMODE(x) Inline line(out, !(x));
 
 
-class OutputSCISourceCode : public OutputSourceCodeBase
+class SCISourceCodeFormatter : public SourceCodeFormatter
 {
 public:
-    OutputSCISourceCode(SourceCodeWriter &out) : OutputSourceCodeBase(out), _isCalculateSizePass(false), _skipNextSpace(false) {}
+    SCISourceCodeFormatter(SourceCodeWriter &out) : SourceCodeFormatter(out), _isCalculateSizePass(false), _skipNextSpace(false) {}
 
     template<typename _T>
     void DoTheThing(_T &node)
@@ -1847,24 +1847,24 @@ private:
 
 void OutputSourceCode_SCI(const sci::Script &script, sci::SourceCodeWriter &out)
 {
-    OutputSCISourceCode output(out);
+    SCISourceCodeFormatter output(out);
     output.DoTheThing(script);
 }
 
 void OutputSourceCode_SCI(const sci::ClassDefinition &classDef, sci::SourceCodeWriter &out)
 {
-    OutputSCISourceCode output(out);
+    SCISourceCodeFormatter output(out);
     output.DoTheThing(classDef);
 }
 
 void OutputSourceCode_SCI(const sci::MethodDefinition &method, sci::SourceCodeWriter &out)
 {
-    OutputSCISourceCode output(out);
+    SCISourceCodeFormatter output(out);
     output.DoTheThing(method);
 }
 
 void OutputSourceCode_SCI(const sci::ClassProperty &classProp, sci::SourceCodeWriter &out)
 {
-    OutputSCISourceCode output(out);
+    SCISourceCodeFormatter output(out);
     output.DoTheThing(classProp);
 }

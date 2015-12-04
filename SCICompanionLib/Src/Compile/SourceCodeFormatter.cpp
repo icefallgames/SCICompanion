@@ -15,11 +15,12 @@
 #include "ScriptOMAll.h"
 #include "AppState.h"
 #include "OutputCodeHelper.h"
-#include "OutputStudioSourceCode.h"
-#include "OutputCPPSourceCode.h"
-#include "OutputSCISourceCode.h"
+#include "StudioSourceCodeFormatter.h"
+#include "CPPSourceCodeFormatter.h"
+#include "SCISourceCodeFormatter.h"
 #include "StringUtil.h"
 #include "OperatorTables.h"
+#include "SourceCodeFormatter.h"
 
 using namespace sci;
 using namespace std;
@@ -201,4 +202,9 @@ void ClassProperty::OutputSourceCode(SourceCodeWriter &out) const
     {
         OutputSourceCode_SCI(*this, out);
     }
+}
+
+void SourceCodeFormatter::Visit(const sci::WeakSyntaxNode &weakNode)
+{
+    if (weakNode.WeakNode) { weakNode.WeakNode->Accept(*this); }
 }

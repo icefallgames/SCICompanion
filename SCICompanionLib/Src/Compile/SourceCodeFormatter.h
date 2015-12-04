@@ -18,10 +18,10 @@ namespace sci
     class WeakSyntaxNode;
 }
 
-class OutputSourceCodeBase : public sci::ISyntaxNodeVisitor
+class SourceCodeFormatter : public sci::ISyntaxNodeVisitor
 {
 public:
-    OutputSourceCodeBase(sci::SourceCodeWriter &out) : out(out) {}
+    SourceCodeFormatter(sci::SourceCodeWriter &out) : out(out) {}
 
 protected:
     sci::SourceCodeWriter &out;
