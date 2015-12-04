@@ -129,8 +129,9 @@ SourceCodeWriter::SourceCodeWriter(std::stringstream &ss, LangSyntax syntax, Scr
     disallowedTokens(nullptr),
     fAlwaysExpandCodeBlocks(false),
     defaultInlineCommentColumn(40),
-    indentChar(' '),
-    indentAmount(4)
+    // We'll use tabs now. Ideally this would be customizable, but it matches the way the script editor is set up.
+    indentChar('\t'),
+    indentAmount(1)
 {
     if (pScript)
     {
