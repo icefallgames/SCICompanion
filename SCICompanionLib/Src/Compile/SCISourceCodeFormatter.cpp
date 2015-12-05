@@ -852,16 +852,30 @@ public:
             out.out << "; WARNING: This script contained a string section, which is not supported. It may not compile.";
         }
 
+        // In order to properly sync up with comments in scripts that were converted from Studio syntax,
+        // we need to sort procedures and classes.
+        std::vector<SyntaxNode*> procsAndClasses;
         for (auto &proc : script.GetProcedures())
         {
             if (proc->GetClass().empty())
             {
-                proc->Accept(*this);
+                procsAndClasses.push_back(proc.get());
             }
             // else Procs that "belong" to a class are handled in the class...
         }
-
-        Forward(script.GetClasses());
+        for (auto &theClass : script.GetClasses())
+        {
+            procsAndClasses.push_back(theClass.get());
+        }
+        // Now sort them
+        std::sort(procsAndClasses.begin(), procsAndClasses.end(),
+            [](SyntaxNode *one, SyntaxNode *two) { return one->GetPosition() < two->GetPosition(); }
+            );
+        // And spit them out.
+        for (auto procOrClass : procsAndClasses)
+        {
+            procOrClass->Accept(*this);
+        }
     }
 
     void Visit(const ClassDefinition &classDef) override
