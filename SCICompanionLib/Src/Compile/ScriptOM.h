@@ -1158,7 +1158,7 @@ namespace sci
         void AddUse(const std::string &use) { _uses.push_back(use); }
         void AddInclude(const std::string &include) { _includes.push_back(include); }
 		void AddSynonym(std::unique_ptr<Synonym> pSynonym) { _synonyms.push_back(std::move(pSynonym)); }
-		void AddDefine(std::unique_ptr<Define> pDefine) { _defines.push_back(std::move(pDefine)); }
+        void AddDefine(std::unique_ptr<Define> pDefine);
 		void AddClass(std::unique_ptr<ClassDefinition> pClass) { _classes.push_back(std::move(pClass)); }
 		void AddVariable(std::unique_ptr<VariableDecl> pVar) { _scriptVariables.push_back(std::move(pVar)); }
         void AddStringDeclaration(std::unique_ptr<VariableDecl> pVar) { _scriptStringDeclarations.push_back(std::move(pVar)); }

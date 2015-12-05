@@ -344,7 +344,10 @@ void CreateEnumDefineA(MatchResult &match, const ParserSCI *pParser, SyntaxConte
     {
         if (pContext->ifDefDefineState != IfDefDefineState::False)
         {
-            pContext->Script().AddDefine(make_unique<Define>(pContext->ScratchString(), pContext->Integer++));
+            auto define = make_unique<Define>(pContext->ScratchString(), pContext->Integer++);
+            define->SetScript(&pContext->Script());
+            define->SetPosition(stream.GetPosition());
+            pContext->Script().AddDefine(move(define));
         }
     }
 }

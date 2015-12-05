@@ -262,6 +262,12 @@ Script::Script() : SyntaxVersion(1)
 {
 }
 
+void Script::AddDefine(std::unique_ptr<Define> pDefine)
+{
+    assert(pDefine->GetOwnerScript());  // Caller needs to set this (I guess we could)
+    _defines.push_back(std::move(pDefine));
+}
+
 void Script::SetScriptNumber(WORD wNumber)
 {
     _scriptId.SetResourceNumber(wNumber);
