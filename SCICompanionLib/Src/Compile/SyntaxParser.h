@@ -24,3 +24,5 @@ class SyntaxContext;
 bool SyntaxParser_Parse(sci::Script &script, CCrystalScriptStream &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pLog = nullptr, bool fParseComments = false, SyntaxContext *pContext = nullptr, bool addCommentsToOM = false);
 
 std::unordered_set<std::string> PreProcessorDefinesFromSCIVersion(SCIVersion version);
+
+void InitializeSyntaxParsers();

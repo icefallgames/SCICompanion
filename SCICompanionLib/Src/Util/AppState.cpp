@@ -13,70 +13,49 @@
 ***************************************************************************/
 #include "stdafx.h"
 #include "AppState.h"
-
 #include "MainFrm.h"
 #include "PicChildFrame.h"
-
 #include "PicDoc.h"
 #include "PicView.h"
-
 #include "Kernels.h"
-
 #include "VocabDoc.h"
 #include "VocabChildFrame.h"
 #include "VocabView.h"
-
 #include "ResourceListDoc.h"
 #include "GameExplorerFrame.h"
 #include "GameExplorerView.h"
-
 #include "ScriptFrame.h"
 #include "ScriptDocument.h"
 #include "ScriptView.h"
-
 #include "ViewChildFrame.h"
 #include "RasterView.h"
-
 #include "TextChildFrame.h"
 #include "MessageChildFrame.h"
 #include "TextDoc.h"
 #include "TextView.h"
-
 #include "SoundChildFrame.h"
 #include "SoundDoc.h"
 #include "SoundView.h"
-
 #include "CursorChildFrame.h"
-
 #include "FontChildFrame.h"
-
 #include "RoomExplorerFrame.h"
 #include "RoomExplorerDoc.h"
 #include "RoomExplorerView.h"
-
 #include "ResourceEntity.h"
-
 #include "GamePropertiesDialog.h"
-
 #include "ColoredToolTip.h"
-
 #include "CrystalScriptStream.h"
 #include "CodeAutoComplete.h"
 #include "CCrystalTextView.h"
-
 #include "View.h"
 #include "NewRasterResourceDocument.h"
-
 #include "Task.h"
-
 #include "crc.h"
-
 #include "ResourceSources.h"
 #include "ResourceMapOperations.h"
-
 #include "AudioProcessingSettings.h"
-
 #include "ResourceBlob.h"
+#include "SyntaxParser.h"
 
 // The one and only
 extern AppState *appState;
@@ -182,6 +161,8 @@ AppState::AppState(CWinApp *pApp) : _resourceMap(*this)
     PaletteColorsClipboardFormat = RegisterClipboardFormat("SCICompanionPaletteColors");
 
     LoadSyntaxHighlightingColors();
+
+    InitializeSyntaxParsers();
 }
 
 int AppState::AspectRatioY(int value) const

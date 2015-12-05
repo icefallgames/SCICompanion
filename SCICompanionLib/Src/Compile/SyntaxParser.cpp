@@ -22,13 +22,19 @@ StudioSyntaxParser g_studio;
 CPPSyntaxParser g_cpp;
 SCISyntaxParser g_sci;
 
+void InitializeSyntaxParsers()
+{
+    g_sci.Load();
+    g_studio.Load();
+    g_cpp.Load();
+}
+
 bool SyntaxParser_ParseAC(sci::Script &script, CCrystalScriptStream::const_iterator &streamIt, std::unordered_set<std::string> preProcessorDefines, SyntaxContext *pContext)
 {
     bool fRet = false;
 
     if (script.Language() == LangSyntaxStudio)
     {
-        g_studio.Load();
         if (script.IsHeader())
         {
         }
@@ -39,7 +45,6 @@ bool SyntaxParser_ParseAC(sci::Script &script, CCrystalScriptStream::const_itera
     }
     else if (script.Language() == LangSyntaxSCI)
     {
-        g_sci.Load();
         if (script.IsHeader())
         {
         }
@@ -56,7 +61,6 @@ bool SyntaxParser_Parse(sci::Script &script, CCrystalScriptStream &stream, std::
     bool fRet = false;
     if (script.Language() == LangSyntaxStudio)
     {
-        g_studio.Load();
         if (script.IsHeader())
         {
             fRet = g_studio.ParseHeader(script, stream.begin(), preProcessorDefines, pLog);
@@ -78,8 +82,6 @@ bool SyntaxParser_Parse(sci::Script &script, CCrystalScriptStream &stream, std::
     else if (script.Language() == LangSyntaxCpp)
     {
         // This code path is only used for the kernels. CPP-based syntax is not currently supported in SCI Companion.
-        g_cpp.Load();
-
         // Tokenize it first.
         CrystalScriptTokenStream tokenStream(stream);
         tokenStream.Tokenize(fParseComments ? &script : nullptr);
@@ -94,7 +96,6 @@ bool SyntaxParser_Parse(sci::Script &script, CCrystalScriptStream &stream, std::
     }
     else if (script.Language() == LangSyntaxSCI)
     {
-        g_sci.Load();
         if (script.IsHeader())
         {
             fRet = g_sci.ParseHeader(script, stream.begin(), preProcessorDefines, pLog);
