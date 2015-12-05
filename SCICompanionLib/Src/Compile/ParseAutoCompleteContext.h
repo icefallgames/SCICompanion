@@ -18,8 +18,8 @@ enum class ParseAutoCompleteContext : uint8_t
 {
     None = 0,
     Selector,
-    ClassSelector,
-    Value,
+    ClassSelector,      // Selectors for current class
+    StudioValue,        // Any value, code keyword, procedure name, etc...
     TopLevelKeyword,
     ClassLevelKeyword,
     SuperClass,
@@ -28,8 +28,12 @@ enum class ParseAutoCompleteContext : uint8_t
     Export,
     LValue,
 
-    // SCI1.1:
+    // We can get more specific for SCI1.1:
     Temp,               // &tmp keyword!
+    PureValue,          // defines, variables, class names, instance names, etc. Not selectors or keywords or procedure names.
+    StartStatementExtras, // If, cond, repeat, while, etc.... Also procedure and kernel names.
+    Rest,               // Special: &rest is ok.
+    Else,
 
     Block               // Use this in parsing in order to block searching up the context stack.
 };

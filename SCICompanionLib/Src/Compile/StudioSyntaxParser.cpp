@@ -730,9 +730,9 @@ void StudioSyntaxParser::Load()
         | binary_operation
         | asm_block
         //| ternary_expression
-        | code_block)[{FinishStatementA, ParseAutoCompleteContext::Value}];
+        | code_block)[{FinishStatementA, ParseAutoCompleteContext::StudioValue}];
 
-    function_var_decl_begin = oppar >> keyword_p("var")[{nullptr, ParseAutoCompleteContext::Value}];
+    function_var_decl_begin = oppar >> keyword_p("var")[{nullptr, ParseAutoCompleteContext::StudioValue}];
 
     function_var_decl_inner =
         ((var_decl[StartFunctionTempVarA] >> -(equalSign >> immediateValue[ErrorA<errInteger>]))[FinishFunctionTempVarA] % comma[GeneralE])
@@ -757,7 +757,7 @@ void StudioSyntaxParser::Load()
         >> *alphanum_p[FunctionParameterA]
         >> clpar[GeneralE]
         // ::Value for autocomplete context, since it will stick around until the functino body
-        >> -(keyword_p("of")[{nullptr, ParseAutoCompleteContext::Value}] >> alphanum_p[{ProcedureClassA, ParseAutoCompleteContext::SuperClass}])
+        >> -(keyword_p("of")[{nullptr, ParseAutoCompleteContext::StudioValue}] >> alphanum_p[{ProcedureClassA, ParseAutoCompleteContext::SuperClass}])
         >> function_var_decl
         >> *statement[FunctionStatementA];
 

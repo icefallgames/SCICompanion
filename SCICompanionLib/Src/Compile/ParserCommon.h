@@ -460,6 +460,13 @@ public:
         PCSTR pszDebugName;
     };
 
+    struct ActionAndContexts
+    {
+        ACTION pfn;
+        ParseACChannels paccs;
+        PCSTR pszDebugName;
+    };
+
     // Fwd decl (Used for circular references in grammer descriptions)
     // If an empty Parser is created (since you need to refer to it subsequently, but you can't
     // define it yet), it will be endowed with this matching function.
@@ -635,7 +642,22 @@ public:
 #endif
         return newOne;
     }
-    
+
+    ParserBase operator[](ActionAndContexts aac)
+    {
+        assert(_pfnA == nullptr); // Ensure we're not overwriting any action.
+        ParserBase newOne(*this);
+        newOne._pfnA = aac.pfn;
+        newOne._pacc = aac.paccs;
+#ifdef PARSE_DEBUG
+        if (aac.pszDebugName)
+        {
+            newOne.Name = aac.pszDebugName;
+        }
+#endif
+        return newOne;
+    }
+
     // This is for wrapping a parser in another, such as when we want its
     // Match function to always match and act as a pre-action.
     // e.g. syntaxnode_d[value[FinishValueA]]

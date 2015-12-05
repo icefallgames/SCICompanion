@@ -264,7 +264,7 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                     }
                 }
                 // All remaining things require certain conditions.
-                bool isValue = containsV(acContexts, ParseAutoCompleteContext::Value) || containsV(acContexts, ParseAutoCompleteContext::LValue);
+                bool isValue = containsV(acContexts, ParseAutoCompleteContext::StudioValue) || containsV(acContexts, ParseAutoCompleteContext::LValue);
                 bool isDefineOnly = containsV(acContexts, ParseAutoCompleteContext::DefineValue);
                 bool isExport = containsV(acContexts, ParseAutoCompleteContext::Export);
                 if (!fFound)

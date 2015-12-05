@@ -81,10 +81,6 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
     std::string prefix = prefixIn;
     std::transform(prefix.begin(), prefix.end(), prefix.begin(), ::tolower);
 
-    //OutputDebugString("Prefix is ");
-    //OutputDebugString(prefix.c_str());
-    //OutputDebugString("\n");
-
     std::unique_ptr<AutoCompleteResult> result = std::make_unique<AutoCompleteResult>();
     if (!prefix.empty())
     {
@@ -108,7 +104,16 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
                     sourceTypes |= AutoCompleteSourceType::TopLevelKeyword;
                     break;
 
-                case ParseAutoCompleteContext::Value:
+                case ParseAutoCompleteContext::PureValue:
+                    sourceTypes |= AutoCompleteSourceType::ClassName | AutoCompleteSourceType::Variable | AutoCompleteSourceType::Define | AutoCompleteSourceType::ClassSelector | AutoCompleteSourceType::Instance;
+                    break;
+
+                case ParseAutoCompleteContext::StartStatementExtras:
+                    // Also keywords, but we add those later.
+                    sourceTypes |= AutoCompleteSourceType::Kernel | AutoCompleteSourceType::Procedure;
+                    break;
+
+                case ParseAutoCompleteContext::StudioValue:
                     sourceTypes |= AutoCompleteSourceType::ClassName | AutoCompleteSourceType::Variable | AutoCompleteSourceType::Define | AutoCompleteSourceType::Kernel | AutoCompleteSourceType::Procedure | AutoCompleteSourceType::ClassSelector | AutoCompleteSourceType::Instance;
                     break;
 
@@ -301,10 +306,18 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
             }
         }
 
+        // Some weird special cases.
         if (containsV(acContexts, ParseAutoCompleteContext::Temp))
         {
-            // This is a bit too bad, & isn't included in the prefix.
             MergeResults(result->choices, prefix, AutoCompleteIconIndex::Keyword, { "&tmp" } );
+        }
+        if (containsV(acContexts, ParseAutoCompleteContext::Rest))
+        {
+            MergeResults(result->choices, prefix, AutoCompleteIconIndex::Keyword, { "&rest" });
+        }
+        if (containsV(acContexts, ParseAutoCompleteContext::Else))
+        {
+            MergeResults(result->choices, prefix, AutoCompleteIconIndex::Keyword, { "else" });
         }
 
         LangSyntax lang = context.Script().Language();
@@ -316,7 +329,11 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
         {
             MergeResults(result->choices, prefix, AutoCompleteIconIndex::Keyword, GetClassLevelKeywords(lang));
         }
-        if (containsV(acContexts, ParseAutoCompleteContext::Value))
+        if (containsV(acContexts, ParseAutoCompleteContext::StudioValue))
+        {
+            MergeResults(result->choices, prefix, AutoCompleteIconIndex::Keyword, GetCodeLevelKeywords(lang));
+        }
+        if (containsV(acContexts, ParseAutoCompleteContext::StartStatementExtras))
         {
             MergeResults(result->choices, prefix, AutoCompleteIconIndex::Keyword, GetCodeLevelKeywords(lang));
         }

@@ -21,12 +21,12 @@ ParseACChannels SetChannel(ParseACChannels existing, ParseAutoCompleteChannel ch
     {
         for (int i = 0; i < 4; i++)
         {
-            existing |= (((uint32_t)ac) << i);
+            existing |= (((uint32_t)ac) << (8 * i));
         }
     }
     else
     {
-        existing |= (((uint32_t)ac) << (uint32_t)channel);
+        existing |= (((uint32_t)ac) << (8 * (uint32_t)channel));
     }
     return existing;
 }

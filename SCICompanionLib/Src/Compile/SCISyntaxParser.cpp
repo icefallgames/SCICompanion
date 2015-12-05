@@ -584,6 +584,28 @@ void SCISyntaxParser::Load()
     }
     _fLoaded = true;
 
+    // Some defaults.
+    ParseACChannels ch1StartStatement = SetChannel(NoChannels, ParseAutoCompleteChannel::One, ParseAutoCompleteContext::StartStatementExtras);
+    ParseACChannels ch1Block = SetChannel(NoChannels, ParseAutoCompleteChannel::One, ParseAutoCompleteContext::Block);
+    ParseACChannels ch2PureValue = SetChannel(NoChannels, ParseAutoCompleteChannel::Two, ParseAutoCompleteContext::PureValue);
+    ParseACChannels ch2Block = SetChannel(NoChannels, ParseAutoCompleteChannel::Two, ParseAutoCompleteContext::Block);
+    ParseACChannels ch3Selector = SetChannel(NoChannels, ParseAutoCompleteChannel::Three, ParseAutoCompleteContext::Selector);
+    ParseACChannels ch3Keyword = SetChannel(NoChannels, ParseAutoCompleteChannel::Three, ParseAutoCompleteContext::ClassLevelKeyword);
+    ParseACChannels ch3Block = SetChannel(NoChannels, ParseAutoCompleteChannel::Three, ParseAutoCompleteContext::Block);
+    ParseACChannels ch4Rest = SetChannel(NoChannels, ParseAutoCompleteChannel::Four, ParseAutoCompleteContext::Rest);
+    ParseACChannels ch4Else = SetChannel(NoChannels, ParseAutoCompleteChannel::Four, ParseAutoCompleteContext::Else);
+    ParseACChannels ch4Block = SetChannel(NoChannels, ParseAutoCompleteChannel::Four, ParseAutoCompleteContext::Block);
+
+    // (xxx             -> procname, pure value or keyword
+    // (something xxx   -> pure value or selector name 
+    ParseACChannels acStartStatement = ch1StartStatement | ch2PureValue | ch3Keyword | ch4Block;
+    ParseACChannels acJustAValue = ch1Block | ch2PureValue; // Don't block channel 3, because parent parser might want to add in selectors, not sure about ch4
+    ParseACChannels acInSendOrProcCall = ch1Block | ch2PureValue | ch3Selector | ch4Rest;
+    // The else in an if statement is special because it doesn't need to be enclosed in ()
+    ParseACChannels acElseAddin = ch4Else;
+    // We could do more for else here, like removing it from the keywords list, and then manually adding
+    // it back for case statements in switch or cond statements.
+
     // An integer or plain alphanumeric token
     immediateValue = integer_p[PropValueIntA<errInteger>] | alphanumNK_p[PropValueStringA<ValueType::Token, errNoKeywordOrSelector>];
     string_immediateValue = integer_p[PropValueIntA<errInteger>] | alphanumNK_p[PropValueStringA<ValueType::Token, errNoKeywordOrSelector>] | quotedstring_p[{PropValueStringA<ValueType::ResourceString>, ParseAutoCompleteContext::Block}] | bracestring_p[PropValueStringA<ValueType::String>];
@@ -664,7 +686,7 @@ void SCISyntaxParser::Load()
     if_statement =
         keyword_p("if")[SetStatementA<IfStatement>]
         >> statement[SetStatementAsConditionA<IfStatement>] // Condition
-        >> bare_code_block[StatementBindTo1stA<IfStatement, errThen>]          // Code
+        >> bare_code_block[{StatementBindTo1stA<IfStatement, errThen>, acElseAddin }]          // Code
         >> -(keyword_p("else")      // Optional else, followed by more code
         >> bare_code_block[StatementBindTo2ndA<IfStatement, errElse>]);
 
@@ -713,7 +735,7 @@ void SCISyntaxParser::Load()
         >> *switchto_case_statement[SetCaseA<SwitchStatement>];
 
     // (SomeProc param1 param2 param3)
-    procedure_call = alphanumNK_p[SetStatementNameA<ProcedureCall>] >> *statement[AddStatementA<ProcedureCall>];
+    procedure_call = alphanumNK_p[SetStatementNameA<ProcedureCall>] >> (*statement[AddStatementA<ProcedureCall>])[{nullptr, acInSendOrProcCall}];
 
     // posn: x y z
     send_param_call = selector_send_p[SetStatementNameA<SendParam>] >> alwaysmatch_p[SendParamIsMethod] >> *statement[AddStatementA<SendParam>];
@@ -725,7 +747,7 @@ void SCISyntaxParser::Load()
         >>
         (propget_p[AddSimpleSendParamA] |             // Single prop get
         (syntaxnode_d[send_param_call[AddSendParamA]] % -comma[GeneralE])      // Or a series regular ones separated by optional comma
-        )
+        )[{nullptr, acInSendOrProcCall}]              // AC stuff that's inside a send call
         ;
 
     // Operators
@@ -833,11 +855,11 @@ void SCISyntaxParser::Load()
         asm_block |
         send_call |             // Send has to come before procedure. Because procedure will match (foo sel:)
         procedure_call
-        ) >>
+        )[{nullptr, acStartStatement}] >>
         clpar)
-        | rest_statement
-        | value[ValueErrorE]
-        )[{FinishStatementA, ParseAutoCompleteContext::Value}];
+        | (rest_statement
+        | value)[{ValueErrorE, acJustAValue }]
+        )[FinishStatementA];
 
 
     // An array initializer
@@ -858,7 +880,7 @@ void SCISyntaxParser::Load()
     property_decl = alphanumNK_p[{CreateClassPropertyA, ParseAutoCompleteContext::ClassSelector}]
         >> statement[FinishClassPropertyStatementA];
 
-    // (procname param param &tmp tmp tmp tmp)
+    // (procname param0 param1 &tmp tmp0 tmp1 tmp2)
     procedure_base = oppar
         >> alphanumNK_p[FunctionNameA]
         >> *alphanumNK_p[FunctionParameterA]
