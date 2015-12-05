@@ -180,6 +180,7 @@ private:
     LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam);
     LRESULT OnOutputPaneResults(WPARAM wParam, LPARAM lParam);
     LRESULT OnExtMenuPrepare(WPARAM wParam, LPARAM);
+    void _EnumeratePlugins(CExtPopupMenuWnd &menu);
 
     afx_msg void OnWindowPosChanged(WINDOWPOS *wp);
     afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
@@ -222,6 +223,7 @@ private:
     afx_msg void OnClassBrowser();
     afx_msg void OnManageDecompilation();
     afx_msg void OnUpdateClassBrowser(CCmdUI *pCmdUI);
+    afx_msg void OnRunPlugin(UINT nID);
 #ifdef DOCSUPPORT
     afx_msg void OnGenerateDocs();
 #endif
@@ -240,6 +242,8 @@ private:
 #ifdef DOCSUPPORT
     std::unique_ptr<GenerateDocsDialog> _docsDialog;
 #endif
+
+    std::vector<std::string> _pluginExes;
 };
 
 bool CompileABunchOfScripts(AppState *appState, DependencyTracker *dependencyTracker);

@@ -153,6 +153,7 @@ BEGIN_MESSAGE_MAP(SCICompanionApp, CWinApp)
     ON_COMMAND(ID_GAME_PROPERTIES, OnGameProperties)
     ON_COMMAND(ID_GAME_VERSIONDETECTION, OnGameVersionDetection)
     ON_COMMAND(ID_OPEN_EXPLORERWINDOW, OnWindowsExplorer)
+    ON_COMMAND(ID_PLUGINS_OPENPLUGINSFOLDER, OnOpenPluginsFolder)
     ON_UPDATE_COMMAND_UI(ID_FILE_CLOSEGAME, OnUpdateGameLoaded)
     ON_UPDATE_COMMAND_UI(ID_OPEN_EXPLORERWINDOW, OnUpdateGameLoaded)
     ON_UPDATE_COMMAND_UI(ID_GAME_PROPERTIES, OnUpdateGameLoaded)
@@ -634,6 +635,15 @@ void SCICompanionApp::OnAppAbout()
 {
     CAboutDlg aboutDlg;
     aboutDlg.DoModal();
+}
+
+void SCICompanionApp::OnOpenPluginsFolder()
+{
+    std::string pluginsFolder = GetExeSubFolder("Plugins");
+    if (!pluginsFolder.empty())
+    {
+        ShellExecute(NULL, "open", pluginsFolder.c_str(), "", "", SW_SHOWNORMAL);
+    }
 }
 
 void SCICompanionApp::OnWindowsExplorer()

@@ -482,6 +482,7 @@
     <Text Include="Help\_sources\importexport.txt" />
     <Text Include="Help\_sources\legacy.txt" />
     <Text Include="Help\_sources\tips.txt" />
+    <Text Include="Files\Plugins\Readme.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SCICompanion.h">

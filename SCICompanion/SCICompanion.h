@@ -62,6 +62,7 @@ public:
     afx_msg void OnTutorials();
     afx_msg void OnForums();
     afx_msg void OnWindowsExplorer();
+    afx_msg void OnOpenPluginsFolder();
     afx_msg void OnDocumentation();
     afx_msg void OnEmail();
     afx_msg void GetGames();

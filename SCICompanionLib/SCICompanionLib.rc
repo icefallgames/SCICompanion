@@ -570,6 +570,12 @@ BEGIN
     BEGIN
         MENUITEM "Preview",                     33123
     END
+    POPUP "Pl&ugins"
+    BEGIN
+        MENUITEM "Plugin1",                     ID_PLUGINS_PLUGIN1
+        MENUITEM SEPARATOR
+        MENUITEM "Open Plugins folder",         ID_PLUGINS_OPENPLUGINSFOLDER
+    END
 END
 
 IDR_MENUSCRIPT MENU

@@ -62,6 +62,10 @@
 #include "ResourceBlob.h"
 #include "GenerateDocsDialog.h"
 #include "DependencyTracker.h"
+#include <filesystem>
+#include <regex>
+
+using namespace std::tr2::sys;
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -404,6 +408,8 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_UPDATE_COMMAND_UI(ID_BAR_OUTPUT, OnUpdateControlBarMenu)
     ON_MESSAGE(UWM_RESULTS, OnOutputPaneResults)
     ON_REGISTERED_MESSAGE(CExtPopupMenuWnd::g_nMsgPrepareMenu, OnExtMenuPrepare)
+
+    ON_COMMAND_RANGE(ID_PLUGINS_PLUGIN1, ID_PLUGINS_PLUGIN10, OnRunPlugin)
 #ifdef DOCSUPPORT
     ON_COMMAND(ID_COMPILEDOCS, OnGenerateDocs)
 #endif
@@ -660,7 +666,149 @@ void CMainFrame::RefreshExplorerTools()
     }
 }
 
-// Prepare fake ego menu
+
+void CMainFrame::OnRunPlugin(UINT nID)
+{
+    UINT index = nID - ID_PLUGINS_PLUGIN1;
+    if (index < _pluginExes.size())
+    {
+        std::string exePath = _pluginExes[index];
+        ShellExecute(nullptr, "open", exePath.c_str(), appState->GetResourceMap().GetGameFolder().c_str(), "", SW_SHOWNORMAL);
+    }
+}
+
+// From the MSDN sample.
+// Win32 API is such a tragedy. All this to get a file description.
+std::string GetFileDescription(uint8_t *pBlock)
+{
+    std::string result;
+
+    // Structure used to store enumerated languages and code pages.
+
+    HRESULT hr;
+
+    struct LANGANDCODEPAGE {
+        WORD wLanguage;
+        WORD wCodePage;
+    } *lpTranslate;
+
+    // Read the list of languages and code pages.
+
+    UINT cbTranslate;
+    VerQueryValue(pBlock,
+        TEXT("\\VarFileInfo\\Translation"),
+        (LPVOID*)&lpTranslate,
+        &cbTranslate);
+
+    // Read the file description for each language and code page.
+    char SubBlock[200];
+    for (UINT i = 0; i < (cbTranslate / sizeof(struct LANGANDCODEPAGE)); i++)
+    {
+        hr = StringCchPrintf(SubBlock, 50,
+            TEXT("\\StringFileInfo\\%04x%04x\\FileDescription"),
+            lpTranslate[i].wLanguage,
+            lpTranslate[i].wCodePage);
+        if (FAILED(hr))
+        {
+            // TODO: write error handler.
+        }
+
+        DWORD_PTR pointerToString;
+        UINT stringSizeInBytes;
+        // Retrieve file description for language and code page "i". 
+        if (VerQueryValue(pBlock,
+            SubBlock,
+            (LPVOID*)&pointerToString,
+            &stringSizeInBytes
+            ))
+        {
+            result = std::string((PCSTR)pointerToString, stringSizeInBytes);
+            // First language is good enough, I can't be bothered...
+            break;
+        }
+    }
+
+    return result;
+}
+
+void CMainFrame::_EnumeratePlugins(CExtPopupMenuWnd &menu)
+{
+    // Clear out the plugin list and remove any old menu items
+    _pluginExes.clear();
+    for (UINT id = ID_PLUGINS_PLUGIN1; id <= ID_PLUGINS_PLUGIN10; id++)
+    {
+        INT itemPos = menu.ItemFindPosForCmdID(id);
+        if (itemPos != -1)
+        {
+            menu.ItemRemove(itemPos);
+        }
+    }
+
+    std::vector<path> pluginDirectories;
+    // First get the plugin folders.
+    path pluginFolder = GetExeSubFolder("Plugins");
+    for (auto it = directory_iterator(pluginFolder); it != directory_iterator(); ++it)
+    {
+        const auto &folder = it->path();
+        if (is_directory(folder))
+        {
+            pluginDirectories.push_back(folder);
+        }
+    }
+
+    UINT maxItems = ID_PLUGINS_PLUGIN10 - ID_PLUGINS_PLUGIN1 + 1;
+
+    // Then look for exes in each of those. This isn't recursive, we only look at top level folder
+    auto matchEXERegex = std::regex("(\\w+)\\.exe", std::regex_constants::icase);
+    for (path pluginSubDirectory : pluginDirectories)
+    {
+        for (auto it = directory_iterator(pluginSubDirectory); it != directory_iterator(); ++it)
+        {
+            const auto &file = it->path();
+            std::smatch sm;
+            std::string temp = file.filename();
+            if (!is_directory(file) && std::regex_search(temp, sm, matchEXERegex) && (sm.size() > 1))
+            {
+                _pluginExes.push_back(file.string());
+            }
+            if (_pluginExes.size() >= maxItems)
+            {
+                break;
+            }
+        }
+        if (_pluginExes.size() >= maxItems)
+        {
+            break;
+        }
+    }
+
+    // Done. Now make menu items for each of those.
+    UINT idToAdd = ID_PLUGINS_PLUGIN1;
+    int index = 0;
+    for (path exePath : _pluginExes)
+    {
+        // Default to the exe name
+        std::string description = exePath.stem();
+        // But try to get a better one:
+        DWORD size = GetFileVersionInfoSize(exePath.string().c_str(), nullptr);
+        if (size)
+        {
+            std::unique_ptr<uint8_t[]> data = std::make_unique<uint8_t[]>(size);
+            if (GetFileVersionInfo(exePath.string().c_str(), 0, size, data.get()))
+            {
+                description = GetFileDescription(data.get());
+            }
+        }
+
+        CExtCmdItem *pCmdItem = g_CmdManager->CmdGetPtr(appState->_pszCommandProfile, idToAdd);
+        pCmdItem->m_sMenuText = description.c_str();
+        menu.ItemInsert(idToAdd, index);
+        index++;
+        idToAdd++;
+    }
+}
+
+// Prepare fake ego menu, or the plugins menu
 LRESULT CMainFrame::OnExtMenuPrepare(WPARAM wParam, LPARAM)
 {
     CExtPopupMenuWnd::MsgPrepareMenuData_t *pData =
@@ -714,8 +862,17 @@ LRESULT CMainFrame::OnExtMenuPrepare(WPARAM wParam, LPARAM)
             index++;
         }
     }
+
+    nItemPos = pPopup->ItemFindPosForCmdID(ID_PLUGINS_OPENPLUGINSFOLDER);
+    if (nItemPos >= 0)
+    {
+        // Found the plugins menu
+        _EnumeratePlugins(*pPopup);
+    }
+
     return 0;
 }
+
 
 void CMainFrame::OnWindowPosChanged(WINDOWPOS *wp)
 {

@@ -101,7 +101,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Decompiler" "$(OutDir)Decompiler"
 xcopy /S /Y /I /D "$(ProjectDir)Files\Customization" "$(OutDir)Customization"
 xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
  xcopy /S /Y /I /D "$(ProjectDir)Tools" "$(OutDir)Tools"
-</Command>
+xcopy /S /Y /I /D "$(ProjectDir)Files\Plugins" "$(OutDir)Plugins"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DeadCodeAnalysis|Win32'">
@@ -140,7 +140,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Decompiler" "$(OutDir)Decompiler"
 xcopy /S /Y /I /D "$(ProjectDir)Files\Customization" "$(OutDir)Customization"
 xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
  xcopy /S /Y /I /D "$(ProjectDir)Tools" "$(OutDir)Tools"
-</Command>
+xcopy /S /Y /I /D "$(ProjectDir)Files\Plugins" "$(OutDir)Plugins"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -183,7 +183,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Decompiler" "$(OutDir)Decompiler"
 xcopy /S /Y /I /D "$(ProjectDir)Files\Customization" "$(OutDir)Customization"
 xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
  xcopy /S /Y /I /D "$(ProjectDir)Tools" "$(OutDir)Tools"
-</Command>
+xcopy /S /Y /I /D "$(ProjectDir)Files\Plugins" "$(OutDir)Plugins"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -192,6 +192,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
     <Text Include="Files\COPYING2" />
     <Text Include="Files\Licenses\giflib-AUTHORS.txt" />
     <Text Include="Files\Licenses\r8brain-License.txt" />
+    <Text Include="Files\Plugins\Readme.txt" />
     <Text Include="Files\Samples\PhonemeSentence.txt" />
     <Text Include="Files\Samples\sample_phoneme_map.ini" />
     <Text Include="Files\TemplateGame\SCI0.txt" />

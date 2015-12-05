@@ -1144,6 +1144,17 @@
 #define ID_COMPILE_SCCTEMP              33297
 #define ID_MAIN_RELOADSYNTAXCOLORS      33298
 #define ID_MAIN_TOGGLEBLOCKCOMMENT      33299
+#define ID_PLUGINS_OPENPLUGINSFOLDER    33301
+#define ID_PLUGINS_PLUGIN1              33302
+#define ID_PLUGINS_PLUGIN2              33303
+#define ID_PLUGINS_PLUGIN3              33304
+#define ID_PLUGINS_PLUGIN4              33305
+#define ID_PLUGINS_PLUGIN5              33306
+#define ID_PLUGINS_PLUGIN6              33307
+#define ID_PLUGINS_PLUGIN7              33308
+#define ID_PLUGINS_PLUGIN8              33309
+#define ID_PLUGINS_PLUGIN9              33310
+#define ID_PLUGINS_PLUGIN10             33311
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -1152,7 +1163,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        403
-#define _APS_NEXT_COMMAND_VALUE         33301
+#define _APS_NEXT_COMMAND_VALUE         33312
 #define _APS_NEXT_CONTROL_VALUE         1383
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
