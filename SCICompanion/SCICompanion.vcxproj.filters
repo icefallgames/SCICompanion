@@ -3467,7 +3467,6 @@
     <None Include="Files\TemplateGame\SCI1.1\src\SaveRestoreDialog.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\Sight.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\Sight.sco" />
-    <None Include="Files\Customization\syntaxcolor.ini" />
     <None Include="Files\TemplateGame\SCI1.1\src\Conversation.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\Conversation.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\System.sc" />
@@ -3508,6 +3507,7 @@
     <None Include="Docs\source\StudioCompiler\while.rst" />
     <None Include="Files\TemplateGame\SCI0.ini" />
     <None Include="Files\TemplateGame\SCI1.1.ini" />
+    <None Include="Files\Customization\syntaxcolor.ini" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />

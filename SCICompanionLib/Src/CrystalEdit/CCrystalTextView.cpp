@@ -50,6 +50,9 @@
 #include "CCrystalTextBuffer.h"
 #include "CFindTextDlg.h"
 
+// Don't clip off ends of letters at syntax highlighting boundaries.
+#define BETTER_FONTS 1
+
 #ifndef __AFXPRIV_H__
 #pragma message("Include <afxpriv.h> in your stdafx.h to avoid this message")
 #include <afxpriv.h>
@@ -445,11 +448,17 @@ void CCrystalTextView::DrawLineHelperImplPre(CDC *pdc, CPoint &ptOrigin, const C
             // Draw the brace
             if (nBraceOffset < (nOffset + nCount))
             {
+#ifdef BETTER_FONTS
+				pdc->SetBkMode(OPAQUE);
+#endif
 			    COLORREF crOldBk = pdc->SetBkColor(GetColor(COLORINDEX_SELBKGND));
 			    COLORREF crOldText = pdc->SetTextColor(GetColor(COLORINDEX_SELTEXT));
 			    DrawLineHelperImpl(pdc, ptOrigin, rcClip, pszChars, nBraceOffset, 1);
 			    pdc->SetBkColor(crOldBk);
 			    pdc->SetTextColor(crOldText);
+#ifdef BETTER_FONTS
+				pdc->SetBkMode(TRANSPARENT);
+#endif
             }
             // And the part after
             if ((nBraceOffset + 1) < (nOffset + nCount))
@@ -492,7 +501,7 @@ void CCrystalTextView::DrawLineHelperImpl(CDC *pdc, CPoint &ptOrigin, const CRec
 			//ASSERT(sz.cx == m_nCharWidth * nCount);
 #endif
             // We clip off the edge of any previous letters.
-			VERIFY(pdc->ExtTextOut(ptOrigin.x, ptOrigin.y, ETO_CLIPPED, &rcClip, line, nCount, NULL));
+            VERIFY(pdc->ExtTextOut(ptOrigin.x, ptOrigin.y, ETO_CLIPPED, &rcClip, line, nCount, NULL));
 		}
 		ptOrigin.x += GetCharWidth() * line.GetLength();
 	}
@@ -546,11 +555,17 @@ void CCrystalTextView::DrawLineHelper(CDC *pdc, CPoint &ptOrigin, const CRect &r
 
 			if (nSelBegin < nSelEnd)
 			{
+#ifdef BETTER_FONTS
+				pdc->SetBkMode(OPAQUE);		// For the selection
+#endif
 				COLORREF crOldBk = pdc->SetBkColor(GetColor(COLORINDEX_SELBKGND));
 				COLORREF crOldText = pdc->SetTextColor(GetColor(COLORINDEX_SELTEXT));
 				DrawLineHelperImplPre(pdc, ptOrigin, rcClip, pszChars, nOffset + nSelBegin, nSelEnd - nSelBegin, ptTextPos, nCount);
 				pdc->SetBkColor(crOldBk);
 				pdc->SetTextColor(crOldText);
+#ifdef BETTER_FONTS
+				pdc->SetBkMode(TRANSPARENT); // Back to normal text
+#endif
 			}
 			if (nSelEnd < nCount)
 			{
@@ -658,6 +673,12 @@ void CCrystalTextView::DrawSingleLine(CDC *pdc, const CRect &rc, int nLineIndex)
 		pdc->FillSolidRect(rect, bDrawWhitespace ? crBkgnd : GetColor(COLORINDEX_WHITESPACE));
 		return;
 	}
+#ifdef BETTER_FONTS
+	else
+	{
+		pdc->FillSolidRect(rc, GetColor(COLORINDEX_WHITESPACE));
+	}
+#endif
 
 	//	Parse the line
 	LPCTSTR pszChars = GetLineChars(nLineIndex);
@@ -676,6 +697,14 @@ void CCrystalTextView::DrawSingleLine(CDC *pdc, const CRect &rc, int nLineIndex)
 
 	if (nBlocks > 0)
 	{
+		// phil temp
+		//pdc->FillSolidRect(rc, GetColor(COLORINDEX_WHITESPACE));
+#ifdef BETTER_FONTS
+		pdc->SetBkMode(TRANSPARENT);
+#endif
+
+
+		// Draws the text before the blocks:
 		ASSERT(pBuf[0].m_nCharPos >= 0 && pBuf[0].m_nCharPos <= nLength);
 		if (crText == CLR_NONE)
 			pdc->SetTextColor(GetColor(COLORINDEX_NORMALTEXT));
@@ -702,6 +731,11 @@ void CCrystalTextView::DrawSingleLine(CDC *pdc, const CRect &rc, int nLineIndex)
 	}
 	else
 	{
+#ifdef BETTER_FONTS
+		pdc->SetBkMode(OPAQUE);
+#endif
+
+		// When line is entirely one color (or no color, rather)
 		if (crText == CLR_NONE)
 			pdc->SetTextColor(GetColor(COLORINDEX_NORMALTEXT));
 		pdc->SelectObject(GetFont(GetItalic(COLORINDEX_NORMALTEXT), GetBold(COLORINDEX_NORMALTEXT)));
@@ -709,19 +743,24 @@ void CCrystalTextView::DrawSingleLine(CDC *pdc, const CRect &rc, int nLineIndex)
 	}
 
 	//	Draw whitespaces to the left of the text
+	// REVIEW: This looks like it's to the right of the text.
 	CRect frect = rc;
 	if (origin.x > frect.left)
 		frect.left = origin.x;
 	if (frect.right > frect.left)
 	{
+		// This looks like it draws a little selected turd at the end of the line.
 		if ((m_bFocused || m_bShowInactiveSelection) && IsInsideSelBlock(CPoint(nLength, nLineIndex)))
 		{
 			pdc->FillSolidRect(frect.left, frect.top, GetCharWidth(), frect.Height(),
 												GetColor(COLORINDEX_SELBKGND));
 			frect.left += GetCharWidth();
 		}
+#ifndef BETTER_FONTS
+		// We don't need this if we drew a big whitespace line across the screen
 		if (frect.right > frect.left)
 			pdc->FillSolidRect(frect, bDrawWhitespace ? crBkgnd : GetColor(COLORINDEX_WHITESPACE));
+#endif
 	}
 }
 
@@ -930,6 +969,10 @@ void CCrystalTextView::OnDraw(CDC *pdc)
 	int nLineHeight = GetLineHeight();
 	PrepareSelBounds();
 
+#ifdef BETTER_FONTS
+	int oldMode = pdc->GetBkMode();
+#endif
+
 	CDC cacheDC;
 	VERIFY(cacheDC.CreateCompatibleDC(pdc));
 	if (m_pCacheBitmap == NULL)
@@ -964,6 +1007,10 @@ void CCrystalTextView::OnDraw(CDC *pdc)
 		nCurrentLine ++;
 		rcLine.OffsetRect(0, nLineHeight);
 	}
+
+#ifdef BETTER_FONTS
+	pdc->SetBkMode(oldMode);
+#endif
 
 	cacheDC.SelectObject(pOldBitmap);
 	cacheDC.DeleteDC();
