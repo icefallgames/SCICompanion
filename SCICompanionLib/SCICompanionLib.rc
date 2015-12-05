@@ -605,9 +605,9 @@ BEGIN
         END
         MENUITEM "Go to definition",            33021
         MENUITEM SEPARATOR
-        MENUITEM "Toggle block comment",        ID_MAIN_TOGGLEBLOCKCOMMENT
         MENUITEM "Goto",                        ID_GOTOSCRIPT
         MENUITEM SEPARATOR
+        MENUITEM "Toggle block comment",        ID_MAIN_TOGGLEBLOCKCOMMENT
         MENUITEM "Reload syntax colors",        ID_MAIN_RELOADSYNTAXCOLORS
     END
 END

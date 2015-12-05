@@ -54,6 +54,8 @@ Scripts
 .. TIP::
     Open a header file directly from script by right-clicking on its text in the *include* directive.
 
+.. TIP::
+    Press CTRL-Q to comment or uncomment a block of code in Sierra Script.
 
 General
 =========
