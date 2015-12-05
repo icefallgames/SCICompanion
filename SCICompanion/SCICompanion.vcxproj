@@ -1649,6 +1649,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Plugins" "$(OutDir)Plugins"</Command>
     <None Include="Files\Samples\views\Ego.bin" />
     <None Include="Files\Samples\views\Inv - Key.bin" />
     <None Include="Files\Samples\views\Key.bin" />
+    <None Include="Files\TemplateGame\SCI0.ini" />
     <None Include="Files\TemplateGame\SCI0\ADL.DRV" />
     <None Include="Files\TemplateGame\SCI0\dosbox.conf" />
     <None Include="Files\TemplateGame\SCI0\EGA320.DRV" />
@@ -1721,6 +1722,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Plugins" "$(OutDir)Plugins"</Command>
     <None Include="Files\TemplateGame\SCI0\src\window.sc" />
     <None Include="Files\TemplateGame\SCI0\src\window.sco" />
     <None Include="Files\TemplateGame\SCI0\STD.DRV" />
+    <None Include="Files\TemplateGame\SCI1.1.ini" />
     <None Include="Files\TemplateGame\SCI1.1\ADL.DRV" />
     <None Include="Files\TemplateGame\SCI1.1\AUDBLAST.DRV" />
     <None Include="Files\TemplateGame\SCI1.1\AUDDISNY.DRV" />

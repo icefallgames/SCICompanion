@@ -33,6 +33,8 @@ NewGameDialog::~NewGameDialog()
 {
 }
 
+PCSTR ConfigSectionName = "Config";
+
 void NewGameDialog::_PopulateTemplates()
 {
     std::string templateFolder = appState->GetResourceMap().GetTemplateFolder() + "\\";
@@ -72,6 +74,13 @@ void NewGameDialog::_PopulateTemplates()
                         _bitmaps[key] = std::move(bitmap);
                     }
                 }
+                else if (0 == strncmp(pszExt, ".ini", 4))
+                {
+                    if (GetPrivateProfileInt(ConfigSectionName, "IsDefault", 0, (templateFolder + findData.cFileName).c_str()))
+                    {
+                        _defaultTemplate = key;
+                    }
+                }
             }
 
             ok = FindNextFile(hFolder, &findData);
@@ -81,7 +90,15 @@ void NewGameDialog::_PopulateTemplates()
 
     if (m_wndComboTemplate.GetCount() > 0)
     {
-        m_wndComboTemplate.SetCurSel(0);
+        int defaultIndex = m_wndComboTemplate.FindString(-1, _defaultTemplate.c_str());
+        if (defaultIndex != -1)
+        {
+            m_wndComboTemplate.SetCurSel(defaultIndex);
+        }
+        else
+        {
+            m_wndComboTemplate.SetCurSel(0);
+        }
         OnCbnSelchangeCombotemplate();
     }
 }
@@ -136,7 +153,6 @@ BEGIN_MESSAGE_MAP(NewGameDialog, CExtResizableDialog)
     ON_CBN_SELCHANGE(IDC_COMBOTEMPLATE, &NewGameDialog::OnCbnSelchangeCombotemplate)
 END_MESSAGE_MAP()
 
-
 // NewGameDialog message handlers
 
 void NewGameDialog::OnBnClickedOk()
@@ -159,6 +175,7 @@ void NewGameDialog::OnBnClickedOk()
         fContinue = (IDYES == AfxMessageBox(szMessage, MB_YESNO | MB_ICONQUESTION | MB_APPLMODAL));
     }
 
+    uint16_t openToRoom = 0;
     if (fContinue)
     {
         // 2) Copy the files over
@@ -168,6 +185,10 @@ void NewGameDialog::OnBnClickedOk()
         m_wndComboTemplate.GetWindowTextA(strText);
         std::string templateSubFolder = (PCSTR)strText;
         std::string templateFolder = templateCoreFolder + "\\" + templateSubFolder;
+
+        std::string iniConfigName = templateFolder + ".ini";
+        openToRoom = (uint16_t)GetPrivateProfileInt(ConfigSectionName, "OpenTo", 0, iniConfigName.c_str());
+
         fContinue = !templateCoreFolder.empty() && !templateSubFolder.empty();
         if (fContinue)
         {
@@ -212,15 +233,7 @@ void NewGameDialog::OnBnClickedOk()
     {
         // Open the new game, and then open the script editor to rm001 of the template game
         appState->OpenDocumentFile(szPath);
-        if (appState->GetResourceMap().DoesResourceExist(ResourceType::Script, 1))
-        {
-            appState->OpenScript("rm001");
-        }
-        else if (appState->GetResourceMap().DoesResourceExist(ResourceType::Script, 100))
-        {
-            // REVIEW: Temp hack. We might want a config file that says which resources to open by default.
-            appState->OpenScript("titlescreen");
-        }
+        appState->OpenScript(openToRoom);
         OnOK();
     }
 }

@@ -51,6 +51,7 @@ protected:
 
     std::map<std::string, std::string> _descriptions;
     std::map<std::string, std::unique_ptr<CBitmap>> _bitmaps;
+    std::string _defaultTemplate;
 
 public:
     afx_msg void OnBnClickedOk();

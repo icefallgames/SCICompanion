@@ -3517,6 +3517,8 @@
     <None Include="Docs\source\StudioCompiler\variabletypes.rst" />
     <None Include="Docs\source\StudioCompiler\version.rst" />
     <None Include="Docs\source\StudioCompiler\while.rst" />
+    <None Include="Files\TemplateGame\SCI0.ini" />
+    <None Include="Files\TemplateGame\SCI1.1.ini" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />
