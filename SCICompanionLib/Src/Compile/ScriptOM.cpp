@@ -570,13 +570,35 @@ void SourceCodeWriter::EnsureNewLine(const sci::SyntaxNode *lastNodeWritten)
             }
             if (needNewLine)
             {
-                out << pszNewLine;
+                NewLine();
             }
             lastNewLineLength = out.tellp();
         }
         // Otherwise we had just added a line.
     }
 }
+
+int SourceCodeWriter::VisualCharsSinceLastNewLine(int tabSize)
+{
+    out.seekg(lastNewLineLength);
+    int visualPosition = 0;
+    while (out.tellg() < out.tellp())
+    {
+        char ch;
+        out >> ch;
+        if (ch == '\t')
+        {
+            int nextStop = (visualPosition + tabSize) / tabSize * tabSize;
+            visualPosition = nextStop;
+        }
+        else
+        {
+            visualPosition++;
+        }
+    }
+    return visualPosition;
+}
+
 
 // Visitor pattern, with enter/leave wrapper.
 void Script::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }

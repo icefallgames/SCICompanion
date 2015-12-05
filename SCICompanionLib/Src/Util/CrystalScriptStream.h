@@ -155,6 +155,7 @@ public:
 
         // For debugging
         std::string GetLookAhead(int nChars);
+		int CountPosition(int tabSize) const;
 
     private:
         CScriptStreamLimiter *_limiter;

@@ -297,6 +297,7 @@ namespace sci
         void NewLine()
         {
             out << pszNewLine;
+            lastNewLineLength = out.tellp();
         }
         void EnsureNewLine(const sci::SyntaxNode *lastNodeWritten = nullptr);
 
@@ -308,6 +309,8 @@ namespace sci
                 pComments->Transform(tx);
             }
         }
+
+        int VisualCharsSinceLastNewLine(int tabSize);
 
         void IndentToCommentColumn();
 

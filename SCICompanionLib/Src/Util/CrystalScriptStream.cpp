@@ -235,6 +235,27 @@ std::string CCrystalScriptStream::const_iterator::GetLookAhead(int nChars)
    return  _limiter->GetLookAhead(_nLine, _nChar, nChars);
 }
 
+int CCrystalScriptStream::const_iterator::CountPosition(int tabSize) const
+{
+    int visualPosition = 0;
+    int charPos = 0;
+    while (charPos < _nChar)
+    {
+        if (_pszLine[charPos] == '\t')
+        {
+            // Go to the next tab stop
+            int nextStop = (visualPosition + tabSize) / tabSize * tabSize;
+            visualPosition = nextStop;
+        }
+        else
+        {
+            visualPosition++;
+        }
+        charPos++;
+    }
+    return visualPosition;
+}
+
 CCrystalScriptStream::const_iterator& CCrystalScriptStream::const_iterator::operator++()
 {
     assert((_pszLine == nullptr) || (*_pszLine != 0)); // EOF

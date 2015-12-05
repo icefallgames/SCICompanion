@@ -49,8 +49,23 @@ inline void _DoComment(TContext *pContext, const _It &streamBegin, const _It &st
     copy(streamBegin, streamEnd, back_inserter(comment));
     // Create a new Comment syntax node and add it to the script
     std::unique_ptr<sci::Comment> pComment = std::make_unique<sci::Comment>(comment, type); // TODO
-    pComment->SetPosition(streamBegin.GetPosition());
-    pComment->SetEndPosition(streamEnd.GetPosition());
+    if (type == sci::CommentType::Positioned)
+    {
+        // Positioned comments look bad if they are preceded by tabs, which they commonly are (e.g. after class properties)
+        // The find screen positioned based on an estimated tab size. This is a hack, but helps with the conversion of old games to the new syntax.
+        LineCol begin = streamBegin.GetPosition();
+        LineCol end = streamEnd.GetPosition();
+        int actualStart = streamBegin.CountPosition(4);
+        int length = end.Column() - begin.Column();
+        assert(begin.Line() == end.Line()); // Otherwise it shouldn't be positioned.
+        pComment->SetPosition(LineCol(begin.Line(), actualStart));
+        pComment->SetEndPosition(LineCol(end.Line(), actualStart + length));
+    }
+    else
+    {
+        pComment->SetPosition(streamBegin.GetPosition());
+        pComment->SetEndPosition(streamEnd.GetPosition());
+    }
     pContext->TryAddCommentDirectly(pComment);
     if (pComment)
     {

@@ -650,9 +650,10 @@ private:
                     {
                         case CommentType::Positioned:
                         {
-                            // Append it to this line.
+                            // Append it to this line. But first we need to figure out
+                            // our "visual" position
                             int numberOfSpaces = 1;
-                            numberOfSpaces = max(numberOfSpaces, pComment->GetColumnNumber() - _currentPosition.Column());
+                            numberOfSpaces = max(numberOfSpaces, pComment->GetColumnNumber() - out.VisualCharsSinceLastNewLine(4));
                             std::string spaces;
                             spaces.append(numberOfSpaces, ' ');
                             out.out << spaces;
