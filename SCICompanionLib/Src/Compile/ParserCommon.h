@@ -120,8 +120,11 @@ public:
                             foundNonWhitespace = !isspace(*streamLineBegin);
                             ++streamLineBegin;
                         }
-                        sci::CommentType type = foundNonWhitespace ? sci::CommentType::Positioned : sci::CommentType::Indented;
-                        _DoComment(pContext, streamSave, stream, type);
+                        if (pContext->CollectComments())
+                        {
+                            sci::CommentType type = foundNonWhitespace ? sci::CommentType::Positioned : sci::CommentType::Indented;
+                            _DoComment(pContext, streamSave, stream, type);
+                        }
                     }
 
                     if (ch == '\n') // As opposed to EOF
@@ -170,7 +173,10 @@ public:
                     if (pContext)
                     {
                         pContext->PopParseAutoCompleteContext();
-                        _DoComment(pContext, streamSave, stream, sci::CommentType::LeftJustified);
+                        if (pContext->CollectComments())
+                        {
+                            _DoComment(pContext, streamSave, stream, sci::CommentType::LeftJustified);
+                        }
                     }
                     fDone = false; // Check for whitespace again
                 }
@@ -232,8 +238,11 @@ public:
                     // ;    -> positinoed
                     // ;;   -> indented to code level
                     // ;;;  -> left-justified
-                    sci::CommentType type = (semiCount == 1) ? sci::CommentType::Positioned : ((semiCount == 2) ? sci::CommentType::Indented : sci::CommentType::LeftJustified);
-                    _DoComment(pContext, streamSave, stream, type);
+                    if (pContext->CollectComments())
+                    {
+                        sci::CommentType type = (semiCount == 1) ? sci::CommentType::Positioned : ((semiCount == 2) ? sci::CommentType::Indented : sci::CommentType::LeftJustified);
+                        _DoComment(pContext, streamSave, stream, type);
+                    }
                 }
 
                 if (ch == '\n') // As opposed to EOF

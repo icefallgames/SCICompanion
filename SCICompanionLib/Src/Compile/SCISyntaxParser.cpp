@@ -1066,9 +1066,9 @@ void ExtractSomeToken(std::string &str, _It &stream)
 //
 // This does the parsing.
 //
-bool SCISyntaxParser::Parse(Script &script, streamIt &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pError, bool addCommentsToOM)
+bool SCISyntaxParser::Parse(Script &script, streamIt &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pError, bool addCommentsToOM, bool collectComments)
 {
-    SyntaxContext context(stream, script, preProcessorDefines, addCommentsToOM);
+    SyntaxContext context(stream, script, preProcessorDefines, addCommentsToOM, collectComments);
     bool fRet = false;
 
 #ifdef PARSE_DEBUG
@@ -1128,9 +1128,9 @@ bool SCISyntaxParser::Parse(Script &script, streamIt &stream, std::unordered_set
     return fRet;
 }
 
-bool SCISyntaxParser::ParseHeader(Script &script, streamIt &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pError)
+bool SCISyntaxParser::ParseHeader(Script &script, streamIt &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pError, bool collectComments)
 {
-    SyntaxContext context(stream, script, preProcessorDefines, false);
+    SyntaxContext context(stream, script, preProcessorDefines, false, collectComments);
     bool fRet = entire_header.Match(&context, stream).Result() && (*stream == 0);
     if (!fRet)
     {

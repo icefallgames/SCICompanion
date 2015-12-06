@@ -79,7 +79,7 @@ void DoToolTipParse(ScriptId scriptId, CCrystalScriptStream &stream, CScriptStre
     };
 
     Script script(scriptId);
-    SyntaxContext context(stream.begin(), script, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), false);
+    SyntaxContext context(stream.begin(), script, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), false, false);
     CToolTipSyntaxParserCallback callback(context, result);
     limiter.SetCallback(&callback);
     SyntaxParser_Parse(script, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), nullptr, false, &context);

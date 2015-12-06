@@ -46,7 +46,7 @@ bool ConvertScript(SCIVersion version, LangSyntax targetLanguage, ScriptId &scri
             CCrystalScriptStream stream(&limiter);
             // 1)
             sci::Script script(scriptId);
-            success = SyntaxParser_Parse(script, stream, PreProcessorDefinesFromSCIVersion(version), &log);;
+            success = SyntaxParser_Parse(script, stream, PreProcessorDefinesFromSCIVersion(version), &log, true); // true: Parse comments
             if (success)
             {
                 EnsurePublicsInExports(script);

@@ -575,7 +575,7 @@ void AutoCompleteThread2::_DoWork()
                 sci::Script script(scriptId);
                 // Needed to get the language right.
                 CCrystalScriptStream::const_iterator it(limiter.get());
-                SyntaxContext context(it, script, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), false);
+                SyntaxContext context(it, script, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), false, false);
 #ifdef PARSE_DEBUG
                 context.ParseDebug = true;
 #endif

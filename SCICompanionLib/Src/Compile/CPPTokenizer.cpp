@@ -267,6 +267,7 @@ public:
     void TryAddCommentDirectly(std::unique_ptr<sci::Comment> &comment) {}
     void PushParseAutoCompleteContext(ParseACChannels pacc) {}
     void PopParseAutoCompleteContext() {}
+    bool CollectComments() { return false; }
 
 private:
     sci::Script *_pScript;

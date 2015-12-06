@@ -851,9 +851,9 @@ void SyntaxContext::ReportError(std::string error, streamIt pos)
 //
 // This does the parsing.
 //
-bool StudioSyntaxParser::Parse(Script &script, streamIt &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pError, bool addCommentsToOM)
+bool StudioSyntaxParser::Parse(Script &script, streamIt &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pError, bool addCommentsToOM, bool collectComments)
 {
-    SyntaxContext context(stream, script, preProcessorDefines, addCommentsToOM);
+    SyntaxContext context(stream, script, preProcessorDefines, addCommentsToOM, collectComments);
     bool fRet = false;
     if (entire_script.Match(&context, stream).Result() && (*stream == 0)) // Needs a full match
     {
@@ -886,9 +886,9 @@ bool StudioSyntaxParser::Parse(Script &script, streamIt &stream, std::unordered_
     return fRet;
 }
 
-bool StudioSyntaxParser::ParseHeader(Script &script, streamIt &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pError)
+bool StudioSyntaxParser::ParseHeader(Script &script, streamIt &stream, std::unordered_set<std::string> preProcessorDefines, ICompileLog *pError, bool collectComments)
 {
-    SyntaxContext context(stream, script, preProcessorDefines, false);
+    SyntaxContext context(stream, script, preProcessorDefines, false, collectComments);
     bool fRet = entire_header.Match(&context, stream).Result() && (*stream == 0);
     if (!fRet)
     {

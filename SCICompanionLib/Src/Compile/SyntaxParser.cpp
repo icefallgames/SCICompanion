@@ -63,7 +63,7 @@ bool SyntaxParser_Parse(sci::Script &script, CCrystalScriptStream &stream, std::
     {
         if (script.IsHeader())
         {
-            fRet = g_studio.ParseHeader(script, stream.begin(), preProcessorDefines, pLog);
+            fRet = g_studio.ParseHeader(script, stream.begin(), preProcessorDefines, pLog, fParseComments);
         }
         else
         {
@@ -75,7 +75,7 @@ bool SyntaxParser_Parse(sci::Script &script, CCrystalScriptStream &stream, std::
             else
             {
                 // Or maybe someone either wants error logs:
-                fRet = g_studio.Parse(script, stream.begin(), preProcessorDefines, pLog, addCommentsToOM);
+                fRet = g_studio.Parse(script, stream.begin(), preProcessorDefines, pLog, addCommentsToOM, fParseComments);
             }
         }
     }
@@ -98,7 +98,7 @@ bool SyntaxParser_Parse(sci::Script &script, CCrystalScriptStream &stream, std::
     {
         if (script.IsHeader())
         {
-            fRet = g_sci.ParseHeader(script, stream.begin(), preProcessorDefines, pLog);
+            fRet = g_sci.ParseHeader(script, stream.begin(), preProcessorDefines, pLog, fParseComments);
         }
         else
         {
@@ -110,7 +110,7 @@ bool SyntaxParser_Parse(sci::Script &script, CCrystalScriptStream &stream, std::
             else
             {
                 // Or maybe someone either wants error logs:
-                fRet = g_sci.Parse(script, stream.begin(), preProcessorDefines, pLog, addCommentsToOM);
+                fRet = g_sci.Parse(script, stream.begin(), preProcessorDefines, pLog, addCommentsToOM, fParseComments);
             }
         }
 
