@@ -908,7 +908,8 @@ void SCISyntaxParser::Load()
     
     classbase_decl =
         alphanumNK_p[ClassNameA]
-        >> -(keyword_p("of")[GeneralE] >> alphanumNK_p[{ClassSuperA, ParseAutoCompleteContext::SuperClass}])
+        // Though our official syntax is "of", we'll also support kindof for Sierra compatibility.
+        >> -((keyword_p("of")[GeneralE] | keyword_p("kindof")[GeneralE]) >> alphanumNK_p[{ClassSuperA, ParseAutoCompleteContext::SuperClass}])
         >> -properties_decl
         >> *(oppar[GeneralE] >> 
             (method_decl[FinishClassMethodA] |

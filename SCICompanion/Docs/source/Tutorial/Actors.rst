@@ -51,7 +51,6 @@ Maybe give him some messages so you can look at him or talk to him:
 Now let's make him wander around:
 
 .. code-block:: python
-    :emphasize-lines: 4
 
    (evilEgo
         init:
