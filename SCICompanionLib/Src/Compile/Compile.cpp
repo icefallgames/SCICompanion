@@ -74,14 +74,14 @@ using namespace std;
 
 static const WORD NumberOfSendPushesSentinel = 0x5390; // 'send'
 
-void ErrorHelper(CompileContext &context, const ISourceCodePosition *pPos, const string &text, const string &identifier)
+void ErrorHelper(CompileContext &context, const ISourceCodePosition *pPos, const string &text, const string &identifier, bool checkUse)
 {
     string strError = text;
     strError += " '";
     strError += identifier;
     strError += "' ";
     // Do a little more error checking... suggest a file to "use"
-    string strUse = context.ScanForIdentifiersScriptName(identifier);
+    string strUse = checkUse ? context.ScanForIdentifiersScriptName(identifier) : "";
     if (strUse.empty())
     {
         strError += ".";
@@ -1649,8 +1649,24 @@ CodeResult ProcedureCall::OutputByteCode(CompileContext &context) const
         break;
 
     case ProcedureUnknown:
-        ErrorHelper(context, this, "Unknown procedure", _innerName);
-        break;
+        {
+            std::string message = "Unknown procedure";
+            bool checkUse = true;
+            if (context.GetLanguage() == LangSyntaxSCI)
+            {
+                // It could have been accidentally enclosed in parentheses.
+                uint16_t index;
+                SpeciesIndex dataType;
+                if ((ResolvedToken::Unknown != context.LookupToken(nullptr, _innerName, index, dataType)) ||
+                    context.LookupDefine(_innerName, index))
+                {
+                    message += " -- (solitary values don't need to be enclosed in parentheses). ";
+                    checkUse = false;
+                }
+            }
+            ErrorHelper(context, this, message, _innerName, checkUse);
+            break;
+        }
     }
 
     // Type checking

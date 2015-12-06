@@ -1029,9 +1029,11 @@ std::vector<species_property> GetOverriddenProperties(CompileContext &context, c
                         context.ReportError(value, "Unknown selector '%s'.", value->GetStringValue().c_str());
                     }
                     break;
-                    // FEATURE: possibly support pointers here.
+                case ValueType::Pointer:
+                    context.ReportError(value, "Pointers are not allowed as property values.", value->ToString().c_str());
+                    break;
                 default:
-                    context.ReportError(value, "%s is not allowed as a property value.", value->ToString().c_str());
+                    context.ReportError(value, "Uknown token %s is not allowed as a property value.", value->ToString().c_str());
                     break;
             }
         }

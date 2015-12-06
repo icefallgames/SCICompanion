@@ -290,7 +290,7 @@ void CompileContext::AddDefine(Define *pDefine)
 // wIndex - index of the item.  Valid for all.
 // pwScript - script of the item.  Only valid for ResolvedToken::ExportInstance (wIndex and wScript)
 //
-ResolvedToken CompileContext::LookupToken(const SyntaxNode *pNode, const string &str, WORD &wIndex, SpeciesIndex &dataType, WORD *pwScript)
+ResolvedToken CompileContext::LookupToken(const SyntaxNode *pNodeForError, const string &str, WORD &wIndex, SpeciesIndex &dataType, WORD *pwScript)
 {
     // Figure out what this thing is.
     // This is the order in which we should proceed:
@@ -308,7 +308,7 @@ ResolvedToken CompileContext::LookupToken(const SyntaxNode *pNode, const string 
         //{
         //    ReportError(pNode, "self can only be used within a class or instance method.");
         //}
-        dataType = LookupTypeSpeciesIndex(_fInstance ? _superClassName : _className, pNode);
+        dataType = LookupTypeSpeciesIndex(_fInstance ? _superClassName : _className, pNodeForError);
     }
     else if (str == "super")
     {
@@ -316,12 +316,18 @@ ResolvedToken CompileContext::LookupToken(const SyntaxNode *pNode, const string 
         // This is only valid from within a class.
         if (_className.empty())
         {
-            ReportError(pNode, "super can only be used within a class or instance method.");
+            if (pNodeForError)
+            {
+                ReportError(pNodeForError, "super can only be used within a class or instance method.");
+            }
         }
         else if (_superClassName.empty())
         {
-            // Possible to have no super.
-            ReportError(pNode, "super can only be used within a class that has a super class.");
+            if (pNodeForError)
+            {
+                // Possible to have no super.
+                ReportError(pNodeForError, "super can only be used within a class that has a super class.");
+            }
         }
         else
         {
@@ -381,7 +387,7 @@ ResolvedToken CompileContext::LookupToken(const SyntaxNode *pNode, const string 
                     wIndex = c_TempIndex;
                     // Then, the caller should call TrackInstanceReference(name, code_pos), and we'll
                     // track his code_pos, and fix it up later when we write the code!
-					dataType = LookupTypeSpeciesIndex(classDef->GetSuperClass(), pNode); // Data type of an instance is its super class. REVIEW: we could change this to be the instance itself.
+                    dataType = LookupTypeSpeciesIndex(classDef->GetSuperClass(), pNodeForError); // Data type of an instance is its super class. REVIEW: we could change this to be the instance itself.
                     tokenType = ResolvedToken::Instance;
                     break;
                 }
@@ -465,13 +471,16 @@ bool CompileContext::LookupTypeSpeciesIndex(const string &str, SpeciesIndex &wSp
     }
     return fRet;
 }
-SpeciesIndex CompileContext::LookupTypeSpeciesIndex(const string &str, const ISourceCodePosition *pPos)
+SpeciesIndex CompileContext::LookupTypeSpeciesIndex(const string &str, const ISourceCodePosition *pNodeForError)
 {
     // Call this one when it's an error if the type doesn't match something.
     SpeciesIndex wType = DataTypeAny;
     if (!str.empty() && !LookupTypeSpeciesIndex(str, wType))
     {
-        ReportError(pPos, "Unknown type '%s'", str.c_str());
+        if (pNodeForError)
+        {
+            ReportError(pNodeForError, "Unknown type '%s'", str.c_str());
+        }
     }
     return wType;
 }

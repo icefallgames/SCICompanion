@@ -1104,7 +1104,15 @@ bool SCISyntaxParser::Parse(Script &script, streamIt &stream, std::unordered_set
             {
                 strError += fmt::format(" (Operator expressions must begin with a parenthesis: \"({0}\").", maybeKeyword);
             }
+            else if (maybeKeyword == "else")
+            {
+                strError += ": \"else\" cannot appear here.";
+            }
             // Maybe more?
+            else
+            {
+                strError += fmt::format(": \"{0}\"", maybeKeyword);
+            }
         }
 
         ScriptId scriptId(script.GetPath().c_str());
