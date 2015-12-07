@@ -18,6 +18,10 @@
 //
 #pragma once
 
+#ifdef DEBUG
+#define DOCSUPPORT
+#endif
+
 //
 // Resource types
 // The numbers here are important, they map to the

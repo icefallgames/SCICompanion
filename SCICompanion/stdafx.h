@@ -123,11 +123,6 @@ struct delete_map_value
 #endif
 #endif
 
-
-#ifdef DEBUG
-#define DOCSUPPORT
-#endif
-
 // Commonly included or large header files:
 #include "sci.h"
 #include "Stream.h"

@@ -142,8 +142,6 @@ struct delete_map_value
 
 #include <Prof-UIS.h>
 
-#define DOCSUPPORT
-
 // Commonly included or large header files:
 #include "sci.h"
 #include "Version.h"
