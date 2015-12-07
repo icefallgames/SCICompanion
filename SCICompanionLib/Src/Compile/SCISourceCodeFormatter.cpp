@@ -550,9 +550,11 @@ public:
         Visit(node);
 
         // Now try again with the real deal.
+        // This is very hacky, we should create a temporary SourceCodeWriter...
         _currentPosition = LineCol();
         _skipNextSpace = false;
         _isCalculateSizePass = false;
+        out.lastNewLineLength = 0;
         // Restore the original stream.
         std::swap(out.out, ssTemp);
         out.indentAmount = oldIndentAmount;
@@ -701,6 +703,15 @@ private:
             out.NewLine();
         }
         _skipNextSpace = false;
+    }
+
+    void _FakeGoToNextLine()
+    {
+        // _currentPosition is used for determining where to output comments,
+        // and is generally set when we enter/leave ScriptOM nodes. However, sometimes
+        // we output text that isn't part of any node. This is a way to pretend that we've
+        // moved to a new line, so that any comment on the previous line is output.
+        _currentPosition = LineCol(_currentPosition.Line() + 1, 0);
     }
 
     void _MaybeNewLineIndent()
@@ -912,6 +923,7 @@ public:
             {
                 out.out << "(properties";
                 _IndentAcceptChildren(classDef.GetProperties());
+                _FakeGoToNextLine();
                 _MaybeNewLineIndent();
                 out.out << ")";
             }

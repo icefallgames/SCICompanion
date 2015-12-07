@@ -578,14 +578,18 @@ void SourceCodeWriter::EnsureNewLine(const sci::SyntaxNode *lastNodeWritten)
     }
 }
 
+// Rather hacky way to determine how many "visual" characters there have been since
+// the last new line. This is used for trying to output comments in the right place.
 int SourceCodeWriter::VisualCharsSinceLastNewLine(int tabSize)
 {
-    out.seekg(lastNewLineLength);
+    std::streamoff savePosG = out.tellg();
+    std::streamoff savePosP = out.tellp();
+    std::streamoff tempG = lastNewLineLength;
+    out.seekg(tempG);
     int visualPosition = 0;
     while (out.tellg() < out.tellp())
     {
-        char ch;
-        out >> ch;
+        char ch = out.peek();
         if (ch == '\t')
         {
             int nextStop = (visualPosition + tabSize) / tabSize * tabSize;
@@ -595,7 +599,10 @@ int SourceCodeWriter::VisualCharsSinceLastNewLine(int tabSize)
         {
             visualPosition++;
         }
+        out.seekg(++tempG);
     }
+    out.seekg(savePosG);
+    out.seekp(savePosP);
     return visualPosition;
 }
 
