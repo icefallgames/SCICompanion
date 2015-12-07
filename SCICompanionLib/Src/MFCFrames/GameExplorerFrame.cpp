@@ -153,6 +153,7 @@ BEGIN_MESSAGE_MAP(CGameExplorerFrame, CMDITabChildWnd)
 
     ON_COMMAND_EX(ID_BAR_PREVIEW, OnBarCheck)
     ON_UPDATE_COMMAND_UI(ID_BAR_PREVIEW, OnUpdateControlBarMenu)
+    ON_WM_SYSCOMMAND()
 END_MESSAGE_MAP()
 
 BOOL CGameExplorerFrame::PreCreateWindow(CREATESTRUCT &cs)
@@ -169,6 +170,17 @@ BOOL CGameExplorerFrame::OnShowResource(UINT nId)
     appState->ShowResourceType(ResourceCommandToType(nId));
     return TRUE;
 }
+
+void CGameExplorerFrame::OnSysCommand(UINT nID, LPARAM param)
+{
+    // Prevent ourselves from being closed. The user can choose the "Close Game" command instead.
+    if (nID == SC_CLOSE)
+    {
+        return;
+    }
+    __super::OnSysCommand(nID, param);
+}
+
 void CGameExplorerFrame::OnUpdateResourceTypeCommand(CCmdUI *pCmdUI)
 {
     pCmdUI->Enable();

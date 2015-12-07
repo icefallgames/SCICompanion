@@ -40,6 +40,8 @@ protected:
 	DECLARE_MESSAGE_MAP()
     afx_msg BOOL OnShowResource(UINT nId);
     afx_msg void OnUpdateResourceTypeCommand(CCmdUI *pCmdUI);
+    afx_msg void OnSysCommand(UINT nID, LPARAM param);
+
 
 private:
     ResourcePreviewer *_GetPreviewer(ResourceType iType);

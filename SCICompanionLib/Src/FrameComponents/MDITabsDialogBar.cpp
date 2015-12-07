@@ -448,6 +448,7 @@ void CMDITabsDialogBar::DrawItem(LPDRAWITEMSTRUCT pdis)
         CDC dc;
         dc.Attach(pdis->hDC);
 
+        bool drawCloseX = pActive->GetTabType() != MDITabType::TAB_GAME;
         int iIndex = _GetBitmapIndex(pActive->GetTabType());
         CExtBitmap &bitmapToUse = fSelected ? _tabBitmap[iIndex] : _tabBitmapNS[iIndex];
         CRect rcSrc(CPoint(0, 0), bitmapToUse.GetSize());
@@ -522,7 +523,7 @@ void CMDITabsDialogBar::DrawItem(LPDRAWITEMSTRUCT pdis)
         }
 
         // Draw a close icon
-        if ((pActive == _pActiveTab) || (_hoverIndex == nTabIndex))
+        if (drawCloseX && ((pActive == _pActiveTab) || (_hoverIndex == nTabIndex)))
         {
             int top = (rc.Height() - 16) / 2 + 1;
             RECT rcClose = { rc.right - 18, top, rc.right - 2, top + 16 };
@@ -808,7 +809,10 @@ void CMDITabsDialogBar::OnLButtonUp(UINT nFlags, CPoint point)
             if (GetItem(index, &tcitem))
             {
                 CMDITabChildWnd *pActive = reinterpret_cast<CMDITabChildWnd*>(tcitem.lParam);
-                pActive->PostMessageA(WM_CLOSE);
+                if (pActive->GetTabType() != MDITabType::TAB_GAME)
+                {
+                    pActive->PostMessageA(WM_CLOSE);
+                }
             }
         }
         _capturing = false;
