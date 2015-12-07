@@ -829,7 +829,7 @@ void StudioSyntaxParser::Load()
         );
 }
 
-void SyntaxContext::ReportError(std::string error, streamIt pos)
+void SyntaxContext::ReportError(const std::string &error, streamIt pos)
 {
 #ifdef PARSE_DEBUG
     if (ParseDebug)

@@ -1442,18 +1442,32 @@ void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream, const st
                     sci::istream channelStream = stream;
                     channelStream.seekg(dataOffset);
                     channelStream >> channelInfo.Number;
-                    uint8_t polyAndPrio;
-                    channelStream >> polyAndPrio;
-                    channelInfo.Poly = ((polyAndPrio & 0xf) != 0);
-                    channelInfo.Priority = polyAndPrio >> 4;
-
-                    if (channelInfo.Number == 0xfe)
+                    if (channelInfo.Number == 0xfe) // Digital channel
                     {
-                        channelInfo.Flags = 0;
-                        // Digital chanenl 
+                        resource.AddComponent(move(make_unique<AudioComponent>()));
+                        AudioComponent &audio = resource.GetComponent<AudioComponent>();
+
+                        channelStream >> audio.Frequency;
+                        uint16_t sampleSize, offset, end;
+                        channelStream >> sampleSize;
+                        channelStream >> offset;
+                        channelStream >> end;
+                        // TODO: Somehow indicate a digital channel.
+
+                        if (sampleSize)
+                        {
+                            audio.DigitalSamplePCM.assign(sampleSize, 0);
+                            channelStream.read_data(&audio.DigitalSamplePCM[0], audio.DigitalSamplePCM.size());
+                        }
                     }
                     else
                     {
+
+                        uint8_t polyAndPrio;
+                        channelStream >> polyAndPrio;
+                        channelInfo.Poly = ((polyAndPrio & 0xf) != 0);
+                        channelInfo.Priority = polyAndPrio >> 4;
+
                         channelInfo.Flags = channelInfo.Number >> 4;
                         channelInfo.Number = channelInfo.Number & 0xf;
 
