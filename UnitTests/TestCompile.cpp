@@ -18,6 +18,7 @@
 #include "ScriptOM.h"
 #include "CompileContext.h"
 #include "Helper.h"
+#include "ScriptConvert.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
@@ -51,7 +52,7 @@ namespace UnitTests
             CleanUpGame(_gameFolder);
         }
 
-        void _DoIt()
+        void _DoItHelper()
         {
             std::vector<ScriptId> scripts;
             appState->GetResourceMap().GetAllScripts(scripts);
@@ -64,6 +65,18 @@ namespace UnitTests
             {
                 NewCompileScript(log, tables, headers, script);
             }
+            Assert::IsFalse(log.HasErrors());
+        }
+
+        void _DoIt()
+        {
+            _DoItHelper();
+
+            // BONUS: Now convert these to Sierra syntax and compile again
+            CompileLog log;
+            ConvertGame(appState->GetResourceMap(), LangSyntaxSCI, log);
+            Assert::IsFalse(log.HasErrors());
+            _DoItHelper();
         }
 
     private:
