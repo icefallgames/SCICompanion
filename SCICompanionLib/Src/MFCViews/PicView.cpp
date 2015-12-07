@@ -66,13 +66,22 @@ CExtAlphaSlider *g_pPicAlphaSlider = NULL;
 const int PolygonPointHitTestMargin = 5;
 const COLORREF ColorPolyHighlight = RGB(255, 64, 64);
 
+const COLORREF PolygonColorsAlt[] =
+{
+    RGB(98, 128, 128),
+    RGB(98, 128, 128),
+    RGB(128, 128, 128),
+    RGB(98, 128, 98)
+};
+
 const COLORREF PolygonColors[] =
 {
-    RGB(196, 255, 255),
-    RGB(196, 255, 255),
-    RGB(255, 255, 255),
-    RGB(196, 255, 196)
+    RGB(162, 214, 214),
+    RGB(162, 214, 214),
+    RGB(214, 214, 214),
+    RGB(162, 214, 162)
 };
+
 
 template<typename _TPoint>
 _TPoint ScreenResolutionToGameResolution(_TPoint point)
@@ -1137,7 +1146,6 @@ void CPicView::RemoveSetVisual()
                     case PicCommand::CommandType::SetPriority:
                         drawEnable |= PicScreenFlags::Priority;
                         break;
-
                     case PicCommand::CommandType::DisableControl:
                         ClearFlag(drawEnable, PicScreenFlags::Control);
                         break;
@@ -2121,6 +2129,7 @@ void AdjustPolyPointsForScreen(std::vector<POINT> &points)
 void CPicView::_DrawPolygon(CDC *pDC, const SCIPolygon *polygon, bool isActive)
 {
     COLORREF colorPoly = PolygonColors[(int)polygon->Type];
+    COLORREF colorPolyAlt = PolygonColorsAlt[(int)polygon->Type];
     if (!isActive)
     {
         colorPoly = CExtBitmap::stat_HLS_Adjust(colorPoly, 0.0, -0.5, -0.8);
@@ -2131,7 +2140,7 @@ void CPicView::_DrawPolygon(CDC *pDC, const SCIPolygon *polygon, bool isActive)
     CPen penPoly(penStyle, 1, colorPoly);
     HGDIOBJ hOldPen = pDC->SelectObject(penPoly);
     int oldBkMode = pDC->SetBkMode(OPAQUE);
-    COLORREF oldBkColor = pDC->SetBkColor(RGB(0, 0, 0));
+    COLORREF oldBkColor = pDC->SetBkColor(colorPolyAlt);
 
     std::vector<POINT> points;
     int index = 0;
@@ -2180,7 +2189,7 @@ void CPicView::_DrawPolygon(CDC *pDC, const SCIPolygon *polygon, bool isActive)
 
         if ((_currentHoverPolyPointIndex != -1) && (_currentHoverPolyPointIndex < (int)polygon->Points().size()))
         {
-            CBrush brush(RGB(255, 255, 255));
+            CBrush brush(RGB(222, 222, 222));   // Mitigation: Pure white doesn't show up against white backgrounds, which is the default pic background.
             HGDIOBJ hOldBrush = pDC->SelectObject(brush);
             point16 hoverPoint = (_currentHoverPolyPointIndex == _polyDragPointIndex) ? _currentDragPolyPoint : polygon->Points()[_currentHoverPolyPointIndex];
             hoverPoint = GameResolutionToScreenResolution(hoverPoint, appState->GetVersion().DefaultResolution);
