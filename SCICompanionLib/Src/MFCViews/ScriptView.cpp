@@ -1952,6 +1952,7 @@ void CScriptView::HighlightLine(CPoint pt)
     CPoint ptStart(0, pt.y);
     CPoint ptEnd(cChars, pt.y);
     SetSelection(ptStart, ptEnd);
+    SetAnchor(ptStart);
 }
 
 
