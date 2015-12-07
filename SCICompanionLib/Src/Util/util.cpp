@@ -760,28 +760,20 @@ void ScriptId::_DetermineLanguage()
 {
     if (_language == LangSyntaxUnknown)
     {
-        if ((0 == strcmp(".scp", PathFindExtension(_strFileName.c_str()))))
-            // (0 == strcmp(".shp", PathFindExtension(_strFileName.c_str()))))
+        // Sniff the file
+        LangSyntax langSniff = LangSyntaxUnknown;
+        std::ifstream file(GetFullPath());
+        std::string line;
+        if (std::getline(file, line))
         {
-            _language = LangSyntaxCpp;
+            langSniff = ::_DetermineLanguage(line);
         }
         else
         {
-            // Sniff the file
-            LangSyntax langSniff = LangSyntaxUnknown;
-            std::ifstream file(GetFullPath());
-            std::string line;
-            if (std::getline(file, line))
-            {
-                langSniff = ::_DetermineLanguage(line);
-            }
-            else
-            {
-                // This can happen if the file doesn't exist.
-                _language = LangSyntaxStudio; // For compat reasons.
-            }
-            _language = langSniff;
+            // This can happen if the file doesn't exist.
+            _language = LangSyntaxStudio; // For compat reasons.
         }
+        _language = langSniff;
     }
 }
 

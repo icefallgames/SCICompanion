@@ -18,7 +18,6 @@
 #include "AppState.h"
 #include "OutputCodeHelper.h"
 #include "format.h"
-#include "Kernels.h"
 
 const key_value_pair<PCSTR, PCSTR> c_szVarToClass[] =
 {
@@ -182,7 +181,7 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
 
         if (!fFound && !strText.empty() && containsV(acContexts, ParseAutoCompleteContext::ScriptName))
         {
-            std::string filename =  appState->GetResourceMap().Helper().GetScriptFileName(strText, pContext->Script().Language());
+            std::string filename =  appState->GetResourceMap().Helper().GetScriptFileName(strText);
             const sci::Script *useScript = browser.GetLKGScript(filename);
             if (useScript)
             {
@@ -364,6 +363,8 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                     if (!fFound && isValue)
                     {
                         // 5. Kernel function?
+                        // TODO: Re-implement
+                        /*
                         const auto &kProcs = GetKernelSignaturesScript(nullptr).GetProcedures();
                         auto itProc = match_name(kProcs.begin(), kProcs.end(), strText);
                         if (itProc != kProcs.end())
@@ -372,7 +373,7 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                             result.strTip = szTip;
                             // TODO: goto could bring us to documentation (or just open webpage)
                             fFound = true;
-                        }
+                        }*/
                     }
 
                     if (!fFound && isValue)

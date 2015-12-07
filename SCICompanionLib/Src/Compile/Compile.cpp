@@ -22,7 +22,6 @@
 #include "CompileInterfaces.h"
 #include "CompileContext.h"
 #include "PMachine.h"
-#include "Kernels.h"
 #include "Operators.h"
 
 #ifdef _DEBUG
@@ -1271,6 +1270,7 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
                     WriteScriptID(context, wInstanceScript, wNumber);
                     break;
                 default:
+                    // Studio requires a "send" keyword for these things, so it won't hit this path.
                     if (context.GetLanguage() != LangSyntaxStudio)
                     {
                         BYTE bOpcodeMod = VO_LOAD | VO_ACC;
@@ -1518,13 +1518,7 @@ CodeResult SendParam::OutputByteCode(CompileContext &context) const
         {
             if (fMethod)
             {
-                returnType = MatchParameters(GetSelectorName(), context, this, signatures, parameterTypes, _segments);
-
-                if (!_fIsMethodCall &&
-                    (context.GetLanguage() == LangSyntaxCpp))
-                {
-                    context.ReportError(this, "%s is a method.  Did you mean %s()?", GetSelectorName().c_str(), GetSelectorName().c_str());
-                }
+                returnType = DataTypeAny;
             }
             else
             {
@@ -1620,8 +1614,7 @@ CodeResult ProcedureCall::OutputByteCode(CompileContext &context) const
 
     WORD wScript, wIndex;
     string classOwner;
-    std::vector<CSCOFunctionSignature> signatures;
-    ProcedureType procType = context.LookupProc(_innerName, wScript, wIndex, classOwner, &signatures);
+    ProcedureType procType = context.LookupProc(_innerName, wScript, wIndex, classOwner);
     switch (procType)
     {
     case ProcedureMain:
@@ -1669,10 +1662,7 @@ CodeResult ProcedureCall::OutputByteCode(CompileContext &context) const
         }
     }
 
-    // Type checking
-    SpeciesIndex returnType = MatchParameters(_innerName, context, this, signatures, parameterTypes, _segments);
-
-    return CodeResult(PushToStackIfAppropriate(context), returnType);
+    return CodeResult(PushToStackIfAppropriate(context), DataTypeAny);
 }
 
 //
@@ -1744,18 +1734,6 @@ CodeResult ReturnStatement::OutputByteCode(CompileContext &context) const
         if (DoesTypeMatch(context, si, returnValueType, nullptr, _statement1.get()))
         {
             fMatch = true;
-        }
-    }
-    if (!fMatch &&
-        (context.GetLanguage() == LangSyntaxCpp))
-    {
-        // Go through again and make errors if nothing matched
-        for (SpeciesIndex si : returnTypes)
-        {
-            if (!DoesTypeMatch(context, si, returnValueType, nullptr, _statement1.get()))
-            {
-                context.ReportTypeError(this, returnValueType, si, "type '%s' does not match return type '%s'.");
-            }
         }
     }
 
@@ -2072,23 +2050,6 @@ vector<pair<BinaryOperator, BinaryOperator>> c_unsignedOps =
     { BinaryOperator::LessThan, BinaryOperator::UnsignedLessThan },
 };
 
-BinaryOperator _MaybeChangeToUnsigned(CompileContext &context, SpeciesIndex siLeft, BinaryOperator op)
-{
-    if ((context.GetLanguage() == LangSyntaxCpp) && IsUnsignedType(siLeft))
-    {
-        // The 'u' operators aren't allowed in Cpp syntax.  Here we'll use them when the
-        // left hand side of a comparison is unsigned.
-        auto itFind = find_if(c_unsignedOps.begin(), c_unsignedOps.end(),
-            [op](pair<BinaryOperator, BinaryOperator> &entry) { return op == entry.first; }
-            );
-        if (itFind != c_unsignedOps.end())
-        {
-            return itFind->second;
-        }
-    }
-    return op;
-}
-
 CodeResult _WriteFakeIfStatement(CompileContext &context, const BinaryOp &binary)
 {
     // When the user writes:
@@ -2204,20 +2165,19 @@ CodeResult BinaryOp::OutputByteCode(CompileContext &context) const
             
             // Then spit out the correct instruction
             // The result will go into the accumulator, and we may need to push it to the stack.
-            BinaryOperator actualOperator = _MaybeChangeToUnsigned(context, wTypeLeft, Operator);
-            WriteSimple(context, GetInstructionForBinaryOperator(actualOperator));
+            WriteSimple(context, GetInstructionForBinaryOperator(Operator));
 
             // Type checking
             SpeciesIndex wType = wTypeLeft;
             // Unless this is a boolean operation...
-            if (find(BooleanOps.begin(), BooleanOps.end(), actualOperator) != BooleanOps.end())
+            if (find(BooleanOps.begin(), BooleanOps.end(), Operator) != BooleanOps.end())
             {
                 wType = DataTypeBool;
             }
             else
             {
                 // If this is not a boolean operation, then the types should match.
-                if (!DoesTypeMatch(context, wTypeLeft, wTypeRight, &actualOperator))
+                if (!DoesTypeMatch(context, wTypeLeft, wTypeRight, &Operator))
                 {
                     context.ReportTypeError(this, wTypeLeft, wTypeRight, "'%s' cannot be compared with '%s'.");
                 }
@@ -2707,24 +2667,6 @@ code_pos FunctionOutputByteCodeHelper(const FunctionBase &function, CompileConte
     {
         // Stick in a ret statement.
         WriteSimple(context, Opcode::RET);
-
-        // If we have dangling branches that aren't preceded by return statements,
-        // and this function is supposed to return a value, this is an error!
-        if (fHasDanglingBranches && !fAllDanglingPrecededByReturn &&
-            (context.GetScriptNumber() != KernelScriptNumber)) // (Don't enforce for the kernel signatures script)
-        {
-            std::vector<SpeciesIndex> returnTypes = context.GetReturnValueTypes();
-            if (find(returnTypes.begin(), returnTypes.end(), DataTypeVoid) == returnTypes.end())
-            {
-                // REVIEW: This error message is not supported for SCI syntax. I would need code that tracks all return statements
-                // in this function. And if there are any that return something, then all paths need to return something.
-                if (context.GetLanguage() == LangSyntaxCpp)
-                {
-                    // 'void' is not one of the return types of this function.
-                    context.ReportError(&function, "%s: Not all control paths return a value.", function.GetName().c_str());
-                }
-            }
-        }
     }
 
     // Ensure no one is waiting for a branch (should have been handled by the ret instruction
@@ -2991,8 +2933,7 @@ CodeResult Asm::OutputByteCode(CompileContext &context) const
                         {
                             uint16_t wScript, wIndex;
                             std::string classOwner;
-                            std::vector<CSCOFunctionSignature> signatures;
-                            ProcedureType procType = context.LookupProc(pValue->GetStringValue(), wScript, wIndex, classOwner, &signatures);
+                            ProcedureType procType = context.LookupProc(pValue->GetStringValue(), wScript, wIndex, classOwner);
                             if ((procType == ProcedureKernel) && (opcode == Opcode::CALLK))
                             {
                                 context.code().inst(opcode, wIndex, pNumParams->GetNumberValue());

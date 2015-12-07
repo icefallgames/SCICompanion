@@ -130,7 +130,7 @@ private:
     SCIVersion _version;
 
     // e.g. Name is "Feature"
-    void _LoadSCO(const std::string &name, LangSyntax langPref, bool fErrorIfNotFound = false);
+    void _LoadSCO(const std::string &name, bool fErrorIfNotFound = false);
     // Loads an SCOFile if we don't already have one for this script.
     // Doesn't produce an error if we can't get one.  (Maybe it should?)
     void _LoadSCOIfNone(WORD wScript);
@@ -174,7 +174,7 @@ public:
     // ProcedureExternal:   wScript, wIndex
     //
     // pSignatures - optional: accepts the list of function signatures for this call.
-    ProcedureType LookupProc(const std::string &str, WORD &wScript, WORD &wIndex, std::string &classOwner, std::vector<CSCOFunctionSignature> *pSignatures = nullptr);
+    ProcedureType LookupProc(const std::string &str, WORD &wScript, WORD &wIndex, std::string &classOwner);
     ProcedureType LookupProc(const std::string &str);
     bool _GetSCOObject(SpeciesIndex wSpecies, CSCOObjectClass &scoObject);
     bool LookupSpeciesMethodOrProperty(SpeciesIndex wCallee, WORD wSelector, std::vector<CSCOFunctionSignature> &signatures, SpeciesIndex &propertyType, bool &fMethod);

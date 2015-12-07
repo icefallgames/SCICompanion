@@ -216,7 +216,7 @@ void NewGameDialog::OnBnClickedOk()
                 LangSyntax lang = (LangSyntax)curSel;
                 GameFolderHelper helper;
                 helper.GameFolder = szPath;
-                helper.SetIniString(GameSection, LanguageKey, (lang == LangSyntaxSCI) ? LanguageValueSCI : LanguageValueCpp);
+                helper.SetIniString(GameSection, LanguageKey, (lang == LangSyntaxSCI) ? LanguageValueSCI : LanguageValueStudio);
             }
         }
         if (!fContinue)

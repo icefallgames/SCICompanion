@@ -26,7 +26,6 @@ using namespace std;
 
 const std::string GameSection = "Game";
 const std::string LanguageKey = "Language";
-const std::string LanguageValueCpp = "scp";
 const std::string LanguageValueStudio = "sc";
 const std::string LanguageValueSCI = "sci";
 
@@ -52,13 +51,13 @@ std::string default_reskey(int iNumber, uint32_t base36Number)
     }
 }
 
-std::string GameFolderHelper::GetScriptFileName(WORD wScript, LangSyntax lang) const
+std::string GameFolderHelper::GetScriptFileName(WORD wScript) const
 {
     std::string filename;
     std::string scriptTitle = GetIniString("Script", default_reskey(wScript, NoBase36), default_reskey(wScript, NoBase36).c_str());
     if (!scriptTitle.empty())
     {
-        filename = GetScriptFileName(scriptTitle, lang);
+        filename = GetScriptFileName(scriptTitle);
     }
     return filename;
 }
@@ -66,28 +65,17 @@ std::string GameFolderHelper::GetScriptFileName(WORD wScript, LangSyntax lang) c
 //
 // Given something like "main", returns "c:\foobar\mygame\src\main.sc"
 //
-std::string GameFolderHelper::GetScriptFileName(const std::string &name, LangSyntax lang) const
+std::string GameFolderHelper::GetScriptFileName(const std::string &name) const
 {
     string filename = this->GameFolder;
     filename += "\\src\\";
     filename += name;
-    if (lang == LangSyntaxUnknown)
-    {
-        lang = (GetIniString(LanguageKey, name, LanguageValueStudio.c_str()) == LanguageValueCpp.c_str()) ? LangSyntaxCpp : LangSyntaxStudio;
-    }
-    // Figure out what language the script is in (default is .sc), and append the default extension
-    if (lang == LangSyntaxCpp)
-    {
-        filename += ".scp";
-    }
-    else
-    {
-        filename += ".sc";
-    }
+    // Append the default extension
+    filename += ".sc";
     return filename;
 }
 
-std::string GameFolderHelper::GetScriptObjectFileName(const std::string &title, LangSyntax lang) const
+std::string GameFolderHelper::GetScriptObjectFileName(const std::string &title) const
 {
     std::string filename = this->GameFolder;
     if (!filename.empty())
@@ -99,13 +87,13 @@ std::string GameFolderHelper::GetScriptObjectFileName(const std::string &title, 
     return filename;
 }
 
-std::string GameFolderHelper::GetScriptObjectFileName(WORD wScript, LangSyntax lang) const
+std::string GameFolderHelper::GetScriptObjectFileName(WORD wScript) const
 {
     std::string filename;
     std::string scriptTitle = GetIniString("Script", default_reskey(wScript, NoBase36), default_reskey(wScript, NoBase36).c_str());
     if (!scriptTitle.empty())
     {
-        filename = GetScriptObjectFileName(scriptTitle, lang);
+        filename = GetScriptObjectFileName(scriptTitle);
     }
     return filename;
 }

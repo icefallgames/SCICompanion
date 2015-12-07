@@ -753,7 +753,7 @@ void CResourceMap::_SetGameLanguage()
     if (_gameFolderHelper.Language == LangSyntaxUnknown)
     {
         std::string languageValue = _gameFolderHelper.GetIniString(GameSection, LanguageKey, LanguageValueStudio.c_str());
-        if (languageValue == LanguageValueCpp)
+        if (languageValue == "scp")
         {
             // We have left this turd in from old game.inis. We don't support cpp as a default game language,
             // so let's just convert it to Studio.
@@ -1415,8 +1415,7 @@ std::unique_ptr<ResourceEntity> CreateResourceFromResourceData(const ResourceBlo
 
 void CResourceMap::SetGameLanguage(LangSyntax lang)
 {
-    assert(lang != LangSyntaxCpp);  // Not supported.
-    Helper().SetIniString(GameSection, LanguageKey, (lang == LangSyntaxSCI) ? LanguageValueSCI : LanguageValueCpp);
+    Helper().SetIniString(GameSection, LanguageKey, (lang == LangSyntaxSCI) ? LanguageValueSCI : LanguageValueStudio);
     _gameFolderHelper.Language = lang;
     _SetGameLanguage();
 }

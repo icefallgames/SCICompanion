@@ -25,7 +25,6 @@ class ResourceBlob;
 
 extern const std::string GameSection;
 extern const std::string LanguageKey;
-extern const std::string LanguageValueCpp;
 extern const std::string LanguageValueStudio;
 extern const std::string LanguageValueSCI;
 
@@ -36,10 +35,10 @@ public:
     GameFolderHelper(const GameFolderHelper &orig) = default;
     GameFolderHelper &operator=(const GameFolderHelper &other) = default;
 
-    std::string GetScriptFileName(const std::string &name, LangSyntax lang = LangSyntaxUnknown) const;
-    std::string GetScriptFileName(WORD wScript, LangSyntax lang = LangSyntaxUnknown) const;
-    std::string GetScriptObjectFileName(const std::string &title, LangSyntax lang = LangSyntaxUnknown) const;
-    std::string GetScriptObjectFileName(WORD wScript, LangSyntax lang = LangSyntaxUnknown) const;
+    std::string GetScriptFileName(const std::string &name) const;
+    std::string GetScriptFileName(WORD wScript) const;
+    std::string GetScriptObjectFileName(const std::string &title) const;
+    std::string GetScriptObjectFileName(WORD wScript) const;
     std::string GameFolderHelper::GetSrcFolder(const std::string *prefix = nullptr) const;
     std::string GameFolderHelper::GetMsgFolder(const std::string *prefix = nullptr) const;
     std::string GameFolderHelper::GetSubFolder(const std::string &subFolder) const;

@@ -16,7 +16,6 @@
 #include "AppState.h"
 #include "OutputCodeHelper.h"
 #include "StudioSourceCodeFormatter.h"
-#include "CPPSourceCodeFormatter.h"
 #include "SCISourceCodeFormatter.h"
 #include "StringUtil.h"
 #include "OperatorTables.h"
@@ -146,10 +145,6 @@ void Script::OutputSourceCode(SourceCodeWriter &out) const
     {
         OutputSourceCode_SCIStudio(*this, out);
     }
-    else if (out.lang == LangSyntaxCpp)
-    {
-        OutputSourceCode_CPP(*this, out);
-    }
     else if (out.lang == LangSyntaxSCI)
     {
         OutputSourceCode_SCI(*this, out);
@@ -161,10 +156,6 @@ void ClassDefinition::OutputSourceCode(SourceCodeWriter &out) const
     if (out.lang == LangSyntaxStudio)
     {
         OutputSourceCode_SCIStudio(*this, out);
-    }
-    else if (out.lang == LangSyntaxCpp)
-    {
-        OutputSourceCode_CPP(*this, out);
     }
     else if (out.lang == LangSyntaxSCI)
     {
@@ -178,10 +169,6 @@ void MethodDefinition::OutputSourceCode(SourceCodeWriter &out) const
     {
         OutputSourceCode_SCIStudio(*this, out);
     }
-    else if (out.lang == LangSyntaxCpp)
-    {
-        OutputSourceCode_CPP(*this, out);
-    }
     else if (out.lang == LangSyntaxSCI)
     {
         OutputSourceCode_SCI(*this, out);
@@ -193,10 +180,6 @@ void ClassProperty::OutputSourceCode(SourceCodeWriter &out) const
     if (out.lang == LangSyntaxStudio)
     {
         OutputSourceCode_SCIStudio(*this, out);
-    }
-    else if (out.lang == LangSyntaxCpp)
-    {
-        OutputSourceCode_CPP(*this, out);
     }
     else if (out.lang == LangSyntaxSCI)
     {

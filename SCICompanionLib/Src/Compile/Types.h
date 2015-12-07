@@ -14,7 +14,7 @@
 #pragma once
 
 //
-// Manages the type system for Cpp syntax
+// Manages the type system for the (now-unused) Cpp syntax
 //
 
 // Fwd decl

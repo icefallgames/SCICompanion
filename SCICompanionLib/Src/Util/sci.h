@@ -417,9 +417,8 @@ WORD _HexToWord(PCTSTR psz);
 enum LangSyntax
 {
     // Don't change these values, they are used to index into comboboxes.
-    LangSyntaxUnknown = 3,
+    LangSyntaxUnknown = 2,
     LangSyntaxStudio = 1,
-    LangSyntaxCpp = 2,
     LangSyntaxSCI = 0,
 };
 

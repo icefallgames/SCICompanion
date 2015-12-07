@@ -1204,18 +1204,6 @@ void GenerateSCOObjects(CompileContext &context, const Script &script)
                 wValue = overriddenIt->wValue;
                 fTrackRelocation = overriddenIt->fTrackRelocation;
                 // We overrode it... class property syntax allows specifying a type.
-
-                // REVIEW: we could also avoid the error if DataTypeAny, perhaps? Is DataTypeAny ever used in cpp?
-                if (context.GetLanguage() == LangSyntaxCpp)
-                {
-                    // Make sure the user didn't do this, since the base class already specified the type.
-                    if (overriddenIt->wType != DataTypeNone) // (Assumed that it's always DataTypeNone for instances.)
-                    {
-                        assert(!classDef->IsInstance()); // Had better be a class if the user specified a data type.
-                        string propName = context.LookupSelectorName(overriddenIt->wSelector);
-                        context.ReportError(classDef.get(), "The base class '%s' already has a type for '%s'.", classDef->GetSuperClass().c_str(), propName.c_str());
-                    }
-                }
             }
 
             if (classDef->IsInstance())

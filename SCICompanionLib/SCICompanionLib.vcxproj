@@ -205,7 +205,6 @@
     <ClCompile Include="Src\Compile\DecompilerConfig.cpp" />
     <ClCompile Include="Src\Compile\OperatorTables.cpp" />
     <ClCompile Include="Src\Compile\OutputCodeHelper.cpp" />
-    <ClCompile Include="Src\Compile\CppSourceCodeFormatter.cpp" />
     <ClCompile Include="Src\Compile\ParseAutoCompleteContext.cpp" />
     <ClCompile Include="Src\Compile\SCISourceCodeFormatter.cpp" />
     <ClCompile Include="Src\Compile\StudioSourceCodeFormatter.cpp" />
@@ -411,10 +410,7 @@
     <ClCompile Include="Src\Compile\Compile.cpp" />
     <ClCompile Include="Src\Compile\CompileContext.cpp" />
     <ClCompile Include="Src\Compile\CompiledScript.cpp" />
-    <ClCompile Include="Src\Compile\CPPSyntaxParser.cpp" />
-    <ClCompile Include="Src\Compile\CPPTokenizer.cpp" />
     <ClCompile Include="Src\Compile\DecompilerCore.cpp" />
-    <ClCompile Include="Src\Compile\Kernels.cpp" />
     <ClCompile Include="Src\Compile\ParserCommon.cpp" />
     <ClCompile Include="Src\Compile\PMachine.cpp" />
     <ClCompile Include="Src\Compile\scii.cpp" />
@@ -560,7 +556,6 @@
     <ClInclude Include="Src\Compile\Disassembler.h" />
     <ClInclude Include="Src\Compile\ControlFlowGraph.h" />
     <ClInclude Include="Src\Compile\OutputCodeHelper.h" />
-    <ClInclude Include="Src\Compile\CppSourceCodeFormatter.h" />
     <ClInclude Include="Src\Compile\SCISourceCodeFormatter.h" />
     <ClInclude Include="Src\Compile\StudioSourceCodeFormatter.h" />
     <ClInclude Include="Src\Compile\SourceCodeFormatter.h" />
@@ -606,9 +601,7 @@
     <ClInclude Include="Src\Compile\CompileContext.h" />
     <ClInclude Include="Src\Compile\CompiledScript.h" />
     <ClInclude Include="Src\Compile\CompileInterfaces.h" />
-    <ClInclude Include="Src\Compile\CPPSyntaxParser.h" />
     <ClInclude Include="Src\Compile\DecompilerCore.h" />
-    <ClInclude Include="Src\Compile\Kernels.h" />
     <ClInclude Include="Src\Compile\ParserCommon.h" />
     <ClInclude Include="Src\Compile\PMachine.h" />
     <ClInclude Include="Src\Compile\scii.h" />

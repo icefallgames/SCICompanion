@@ -354,15 +354,6 @@
     <ClCompile Include="Src\Compile\CompiledScript.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Compile\CPPSyntaxParser.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Compile\CPPTokenizer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Src\Compile\Kernels.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Src\Compile\ParserCommon.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -795,9 +786,6 @@
     <ClCompile Include="Src\Compile\SCISourceCodeFormatter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Compile\CppSourceCodeFormatter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Src\Compile\ParseAutoCompleteContext.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -1191,12 +1179,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\Compile\CompileInterfaces.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Compile\CPPSyntaxParser.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Compile\Kernels.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\Compile\ParserCommon.h">
@@ -1707,9 +1689,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\Compile\SCISourceCodeFormatter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Src\Compile\CppSourceCodeFormatter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

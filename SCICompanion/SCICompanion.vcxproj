@@ -1577,7 +1577,6 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Plugins" "$(OutDir)Plugins"</Command>
     <None Include="Docs\source\undo.rst" />
     <None Include="Docs\source\views.rst" />
     <None Include="Docs\source\vocabs.rst" />
-    <None Include="Files\CompileInclude\kernels.scp" />
     <None Include="Files\CompileInclude\keys.sh" />
     <None Include="Files\CompileInclude\sci.sh" />
     <None Include="Files\Customization\syntaxcolor.ini" />

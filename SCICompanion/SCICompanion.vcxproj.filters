@@ -1704,7 +1704,6 @@
     <None Include="res\SCICompanion.rc2">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="Files\CompileInclude\kernels.scp" />
     <None Include="Files\CompileInclude\keys.sh" />
     <None Include="Files\CompileInclude\sci.sh" />
     <None Include="Files\Licenses\cppformat_README.rst" />

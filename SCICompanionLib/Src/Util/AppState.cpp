@@ -17,7 +17,6 @@
 #include "PicChildFrame.h"
 #include "PicDoc.h"
 #include "PicView.h"
-#include "Kernels.h"
 #include "VocabDoc.h"
 #include "VocabChildFrame.h"
 #include "VocabView.h"
@@ -233,9 +232,6 @@ BOOL AppState::InitInstance()
     // manifest specifies use of ComCtl32.dll version 6 or later to enable
     // visual styles.  Otherwise, any window creation will fail.
     InitCommonControls();
-
-    // Do this:
-    const sci::Script &kernelScript = GetKernelSignaturesScript(nullptr);
 
     HMODULE hinstGdiPlus = LoadLibrary("gdiplus.dll");
     if (hinstGdiPlus)

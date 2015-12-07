@@ -199,7 +199,7 @@ void CNewScriptDialog::OnOK()
         if (!strName.IsEmpty())
         {
             StringCchCopy(_szScriptName, ARRAYSIZE(_szScriptName), (PCTSTR)strName);
-            _scriptId.SetFullPath(appState->GetResourceMap().Helper().GetScriptFileName(_szScriptName, appState->GetResourceMap().Helper().GetDefaultGameLanguage()));
+            _scriptId.SetFullPath(appState->GetResourceMap().Helper().GetScriptFileName(_szScriptName));
         }
         else
         {

@@ -338,20 +338,6 @@ std::vector<std::string> topLevelKeywordsStudio =
     _T("version"),
 };
 
-std::vector<std::string> topLevelKeywordCPP =
-{
-    // Keep this alphabetically sorted.
-    _T("class"),
-    _T("define"),
-    _T("include"),
-    _T("instance"),
-    _T("private"),
-    _T("public"),
-    _T("synonyms"),
-    _T("use"),
-};
-std::vector<std::string> g_TopLevelKeywordsCpp;
-
 bool IsTopLevelKeyword(LangSyntax lang, const std::string &word)
 {
     auto &list = GetTopLevelKeywords(lang);
@@ -362,8 +348,6 @@ const std::vector<std::string> &GetTopLevelKeywords(LangSyntax lang)
 {
     switch (lang)
     {
-        case LangSyntaxCpp:
-            return topLevelKeywordCPP;
         case LangSyntaxSCI:
             return topLevelKeywordsSCI;
         case LangSyntaxStudio:
@@ -433,59 +417,11 @@ std::vector<std::string> codeLevelKeywordsStudio =
     _T("paramTotal")
 };
 
-std::vector<std::string> codeLevelKeywordsCpp =
-{
-	_T("break"),
-	_T("case"),
-    _T("cast1234"),
-    _T("default"),
-    _T("do"),
-    _T("else"),
-    _T("false"),
-    _T("for"),
-    _T("if"),
-    _T("null"),
-    _T("res"),
-    _T("rest"),
-    _T("return"),
-    _T("scriptNumber"),
-    _T("super"),
-    _T("switch"),
-    _T("true"),
-    _T("while"),
-};
-
 bool IsCodeLevelKeyword(LangSyntax lang, const std::string &word)
 {
     auto &list = GetCodeLevelKeywords(lang);
     return binary_search(list.begin(), list.end(), word);
 }
-
-LPTSTR s_apszCPPTypeKeywordList[] =
-{
-	_T("var"),
-	_T("int"),
-	_T("uint"),
-	_T("bool"),
-	_T("void"),
-	_T("string"),
-	_T("char"),
-	_T("said_string"),
-	_T("selector"),
-	_T("pointer"),
-	_T("char"),
-	_T("k_window"),
-	_T("k_list"),
-	_T("k_node"),
-    nullptr,
-};
-std::vector<std::string> g_CPPTypeKeywords;
-bool IsCPPTypeKeyword(const std::string &word)
-{
-    // -1 since it ends with nullptr.
-    return _IsKeyword(word, g_CPPTypeKeywords, s_apszCPPTypeKeywordList, ARRAYSIZE(s_apszCPPTypeKeywordList) - 1);
-}
-
 
 LPTSTR s_apszSCIValueKeywordList[] =
 {
@@ -521,7 +457,6 @@ bool IsValueKeyword(LangSyntax lang, const std::string &word)
     return isKeyword;
 }
 
-std::vector<std::string> classLevelKeywordsCpp = {};
 std::vector<std::string> classLevelKeywordsStudio = {  "method", "properties" };
 std::vector<std::string> classLevelKeywordsSCI = { "method", "properties", "procedure" };
 bool IsClassLevelKeyword(LangSyntax lang, const std::string &word)
@@ -533,7 +468,6 @@ bool IsClassLevelKeyword(LangSyntax lang, const std::string &word)
 bool IsSCIKeyword(LangSyntax lang, const std::string &word)
 {
     return (IsValueKeyword(lang, word) || IsCodeLevelKeyword(lang, word) || IsTopLevelKeyword(lang, word) || IsClassLevelKeyword(lang, word) ||
-        ((lang == LangSyntaxCpp) && IsCPPTypeKeyword(word)) ||
         ((lang == LangSyntaxSCI) && (word == "&tmp")));
 }
 
@@ -541,8 +475,6 @@ const std::vector<std::string> &GetCodeLevelKeywords(LangSyntax lang)
 {
     switch (lang)
     {
-        case LangSyntaxCpp:
-            return codeLevelKeywordsCpp;
         case LangSyntaxSCI:
             return codeLevelKeywordsSCI;
         case LangSyntaxStudio:
@@ -555,8 +487,6 @@ const std::vector<std::string> &GetClassLevelKeywords(LangSyntax lang)
 {
     switch (lang)
     {
-        case LangSyntaxCpp:
-            return classLevelKeywordsCpp;
         case LangSyntaxSCI:
             return classLevelKeywordsSCI;
         case LangSyntaxStudio:
@@ -1962,8 +1892,7 @@ void CScriptView::HighlightLine(CPoint pt)
 //
 int CScriptView::GetParenBalance(int nLineIndex)
 {
-    bool fCpp = (GetDocument()->GetScriptId().Language() == LangSyntaxCpp);
-    ASSERT(nLineIndex >= 0);
+    assert(nLineIndex >= 0);
     LPCTSTR pszChars = GetLineChars(nLineIndex);
     int nLength = GetLineLength(nLineIndex);
     int nPos = 0;
@@ -1972,55 +1901,34 @@ int CScriptView::GetParenBalance(int nLineIndex)
     int nDontCountCurly = 0;
     while (nPos < nLength)
     {
-        if (!fCpp)
+        switch (pszChars[nPos])
         {
-            switch (pszChars[nPos])
-            {
-                // Attempt to not count ( ) that are in { } or "
-                // Not quite exact, but good enough.
-            case '{':
-                nDontCountCurly++;
-                break;
-            case '}':
-                nDontCountCurly--;
-                break;
-            case '"':
-                // Not quite exact, but should be good enough.
-                break;
-            }
+            // Attempt to not count ( ) that are in { } or "
+            // Not quite exact, but good enough.
+        case '{':
+            nDontCountCurly++;
+            break;
+        case '}':
+            nDontCountCurly--;
+            break;
+        case '"':
+            // Not quite exact, but should be good enough.
+            break;
         }
 
         if ((nDontCountCurly == 0) && !fDontCountQuote)
         {
-            if (fCpp)
+            switch (pszChars[nPos])
             {
-                switch (pszChars[nPos])
+            case '(':
+                nBraceCount++;
+                break;
+            case ')':
+                if (nBraceCount > 0)
                 {
-                case '{':
-                    nBraceCount++;
-                    break;
-                case '}':
-                    if (nBraceCount > 0)
-                    {
-                        nBraceCount--;
-                    }
-                    break;
+                    nBraceCount--;
                 }
-            }
-            else
-            {
-                switch (pszChars[nPos])
-                {
-                case '(':
-                    nBraceCount++;
-                    break;
-                case ')':
-                    if (nBraceCount > 0)
-                    {
-                        nBraceCount--;
-                    }
-                    break;
-                }
+                break;
             }
         }
         nPos++;

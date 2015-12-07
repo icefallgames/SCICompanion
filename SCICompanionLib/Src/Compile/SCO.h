@@ -84,7 +84,7 @@ private:
     std::string _strName;   // Name
     WORD _wProcIndex;       // Index
 
-    // Cpp only
+    // Cpp only - it's possible we can now remove this.
     // Applies to procedures
     // Also applies to instances.  In that case there is one signature whose return type is the instance species,
     // and the function name is empty.

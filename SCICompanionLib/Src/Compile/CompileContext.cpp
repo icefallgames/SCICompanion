@@ -22,7 +22,6 @@
 #include "CompileContext.h"
 #include "AppState.h"
 #include "SyntaxParser.h"
-#include "Kernels.h"
 #include "ClassBrowser.h"
 #include <unordered_map>
 #include "Text.h"
@@ -100,23 +99,14 @@ TextComponent &CompileResults::GetTextComponent()
 }
 
 // e.g. Name is "Feature"
-void CompileContext::_LoadSCO(const std::string &name, LangSyntax langPref, bool fErrorIfNotFound)
+void CompileContext::_LoadSCO(const std::string &name, bool fErrorIfNotFound)
 {
     assert(!name.empty());
-    string scoFileName = appState->GetResourceMap().Helper().GetScriptObjectFileName(name, langPref);
+    string scoFileName = appState->GetResourceMap().Helper().GetScriptObjectFileName(name);
     HANDLE hFile = CreateFile(scoFileName.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
     if (hFile == INVALID_HANDLE_VALUE)
     {
-        // Try to open the "other" kind of object file.
-        if (langPref == LangSyntaxCpp)
-        {
-            langPref = LangSyntaxStudio;
-        }
-        else
-        {
-            langPref = LangSyntaxCpp;
-        }
-        scoFileName = appState->GetResourceMap().Helper().GetScriptObjectFileName(name, langPref);
+        scoFileName = appState->GetResourceMap().Helper().GetScriptObjectFileName(name);
         hFile = CreateFile(scoFileName.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, 0, nullptr);
     }
     if (hFile != INVALID_HANDLE_VALUE)
@@ -158,7 +148,7 @@ void CompileContext::_LoadSCOIfNone(WORD wScript)
         }
         else
         {
-            _LoadSCO(scriptName, LangSyntaxCpp);
+            _LoadSCO(scriptName);
         }
     }
 }
@@ -185,8 +175,7 @@ CompileContext::CompileContext(SCIVersion version, Script &script, PrecompiledHe
     const vector<string> &uses = _script.GetUses();
 	for (const string &use : uses)
     {
-        LangSyntax lang = script.Language();
-        _LoadSCO(use, lang, true);
+        _LoadSCO(use, true);
     }
 
     // Get a map of script numbers to script names.  We use this when looking up a species index in the
@@ -415,27 +404,6 @@ ResolvedToken CompileContext::LookupToken(const SyntaxNode *pNodeForError, const
                 // implementation of IVariableLookupContext.
             }
         }
-
-        // ResolvedToken::ExportInstance in other scripts (e.g. dyingscript)
-        if ((tokenType == ResolvedToken::Unknown) && (GetLanguage() == LangSyntaxCpp) && pwScript)
-        {
-            // Then other sco files.
-			for (auto &p : _scos)
-            {
-                CSCOFile &scoFile = p.second;
-                if (scoFile.GetExportIndex(str, wIndex))
-                {
-                    *pwScript = scoFile.GetScriptNumber();
-                    // Found it.
-                    const CSCOPublicExport &theExport = scoFile.GetExports()[wIndex];
-					if (theExport.GetInstanceSpecies(dataType))
-                    {
-                        tokenType = ResolvedToken::ExportInstance;
-                    }
-                    break;
-                }
-            }
-        }
     }
     return tokenType;
 }
@@ -610,15 +578,13 @@ const ClassDefinition *CompileContext::LookupClassDefinition(const std::string &
 // ProcedureExternal:   wScript, wIndex
 //
 // pSignatures - optional: accepts the list of function signatures for this call.
-ProcedureType CompileContext::LookupProc(const string &str, WORD &wScript, WORD &wIndex, string &classOwner, std::vector<CSCOFunctionSignature> *pSignatures)
+ProcedureType CompileContext::LookupProc(const string &str, WORD &wScript, WORD &wIndex, string &classOwner)
 {
-    std::vector<CSCOFunctionSignature> signatures;
     ProcedureType type = ProcedureUnknown;
     // First try kernel.
     if (_tables.Kernels().ReverseLookup(str, wIndex))
     {
         type = ProcedureKernel;
-        signatures = GetKernelSCO(_version, *this, str).GetSignatures();
     }
     else
     {
@@ -630,7 +596,6 @@ ProcedureType CompileContext::LookupProc(const string &str, WORD &wScript, WORD 
             classOwner = _localProcClassOwner[str];
             wIndex = c_TempIndex; // A temporary index
             assert(_localProcs2.find(str) != _localProcs2.end());
-            signatures = _localProcs2[str].GetSignatures();
         }
         else
         {
@@ -640,12 +605,11 @@ ProcedureType CompileContext::LookupProc(const string &str, WORD &wScript, WORD 
                 // Found a proc in main.
                 type = ProcedureMain;
                 wScript = 0x3419; // Sentinel, to ensure no one uses the wScript value.
-                signatures = _scos[0].GetExportSignatures(wIndex);
             }
             else
             {
                 // Then other sco files.
-				for (WordSCOMap::value_type &p : _scos)
+                for (WordSCOMap::value_type &p : _scos)
                 {
                     CSCOFile &scoFile = p.second;
                     if (scoFile.GetExportIndex(str, wIndex))
@@ -659,10 +623,6 @@ ProcedureType CompileContext::LookupProc(const string &str, WORD &wScript, WORD 
             }
         }
     }
-    if (pSignatures)
-    {
-        *pSignatures = signatures;
-    }
     return type;
 }
 ProcedureType CompileContext::LookupProc(const std::string &str)
@@ -670,7 +630,7 @@ ProcedureType CompileContext::LookupProc(const std::string &str)
     // Version where caller doesn't care about the information... just wants to know if its a proc
     WORD wScript, wIndex;
     string classOwner;
-    return LookupProc(str, wScript, wIndex, classOwner, nullptr);
+    return LookupProc(str, wScript, wIndex, classOwner);
 }
 bool CompileContext::_GetSCOObject(SpeciesIndex wSpecies, CSCOObjectClass &scoObject)
 {
@@ -739,7 +699,8 @@ void CompileContext::PushConditional(bool fConditional) { _conditional.push(fCon
 void CompileContext::PopConditional() { _conditional.pop(); }
 bool CompileContext::SupportTypeChecking()
 {
-    return GetLanguage() == LangSyntaxCpp;
+    // Used to be used for experimental cpp syntax.
+    return false;
 }
 bool CompileContext::LookupWord(const string word, WORD &wWordGroup)
 {
@@ -1091,20 +1052,17 @@ const unordered_map<WORD, WORD> &CompileContext::GetOffsetFixups()
 void CompileContext::SetScriptNumber()
 {
     _wScriptNumber = _script.GetScriptNumber();
-    if (KernelScriptNumber != _wScriptNumber) // Special case for the "kernel" script
+    if (_wScriptNumber == InvalidResourceNumber)
     {
-        if (_wScriptNumber == InvalidResourceNumber)
+        _wScriptNumber = 0; // Safe, because we'll report an error if we leave it at zero.
+        if (!LookupDefine(_script.GetScriptNumberDefine(), _wScriptNumber))
         {
-            _wScriptNumber = 0; // Safe, because we'll report an error if we leave it at zero.
-            if (!LookupDefine(_script.GetScriptNumberDefine(), _wScriptNumber))
-            {
-                ReportError(&_script, "Couldn't determine script number: '%s' is undefined.", _script.GetScriptNumberDefine().c_str());
-            }
+            ReportError(&_script, "Couldn't determine script number: '%s' is undefined.", _script.GetScriptNumberDefine().c_str());
         }
-        if (_wScriptNumber > _version.GetMaximumResourceNumber())
-        {
-            ReportError(&_script, "Script number must be less than %d: %d", _version.GetMaximumResourceNumber(), _wScriptNumber);
-        }
+    }
+    if (_wScriptNumber > _version.GetMaximumResourceNumber())
+    {
+        ReportError(&_script, "Script number must be less than %d: %d", _version.GetMaximumResourceNumber(), _wScriptNumber);
     }
     _scos[_wScriptNumber].SetScriptNumber(_wScriptNumber);
 }
@@ -1179,16 +1137,8 @@ std::vector<std::string> g_defaultCPPHeaders;
 std::vector<std::string> g_defaultSCIStudioHeaders;
 std::vector<std::string> &GetDefaultHeaders(Script &script)
 {
-    if (script.Language() == LangSyntaxCpp)
-    {
-        // We don't really support cpp syntax anymore, it's only used for the kernel signature parsing.
-        return g_defaultCPPHeaders;
-    }
-    else
-    {
-        // No default headers for SCI Studio syntax, sorry!
-        return g_defaultSCIStudioHeaders; // empty
-    }
+    // No default headers for SCI Studio syntax, sorry!
+    return g_defaultSCIStudioHeaders; // empty
 }
 
 PrecompiledHeaders::~PrecompiledHeaders() {}
@@ -1331,77 +1281,6 @@ bool PrecompiledHeaders::LookupDefine(const std::string &str, WORD &wValue)
     }
     return fRet;
 }
-
-//
-// Helper for ensuring that parameters to a function (or method) call match.
-// Returns: the return type of the function that was called.
-//
-SpeciesIndex MatchParameters(const std::string &name, CompileContext &context, const ISourceCodePosition *pPos, const std::vector<CSCOFunctionSignature> &signatures, const std::vector<SpeciesIndex> &parametersCaller, const SyntaxNodeVector &parameterStatements)
-{
-    // NOTE: there may be multiple matches.  In which case, we might have multiple return types.
-    // The easiest thing to do is to return DataTypeAny in that case.  Otherwise we would have to payload
-    // multiple return types into one.
-
-    SpeciesIndex returnType = DataTypeAny;
-    if ((context.GetLanguage() == LangSyntaxCpp) && !signatures.empty())
-    {
-        bool fMatch = false;
-		for (auto &signature : signatures)
-        {
-            // Quick check:
-            size_t cRequiredParams = static_cast<size_t>(signature.GetRequiredParameterCount());
-            size_t cParams = static_cast<size_t>(signature.GetParameterCount());
-            if (parametersCaller.size() >= cRequiredParams)
-            {
-                // They provided at least the required parameters.
-                if ((parametersCaller.size() <= cParams) ||
-                    ((parametersCaller.size() > cParams) && signature.GetAdditionalParametersOk()))
-                {
-                    // Now check each parameter.
-                    size_t calleeIndex = 0;
-                    size_t callerIndex = 0;
-                    fMatch = true; // Optimistic
-                    while (fMatch && (callerIndex < parametersCaller.size()))
-                    {
-                        if (callerIndex < cParams)
-                        {
-                            fMatch = DoesTypeMatch(context, signature.GetParameters()[callerIndex], parametersCaller[callerIndex], nullptr, parameterStatements[callerIndex].get());
-                        }
-                        else
-                        {
-                            fMatch = signature.GetAdditionalParametersOk();
-                        }
-                        ++callerIndex;
-                    }
-                    if (fMatch)
-                    {
-                        returnType = signature.GetReturnType();
-                        break;
-                    }
-                }
-            }
-        }
-        if (!fMatch)
-        {
-            std::stringstream ss;
-            ss << "No overload matches '" << name << "(";
-            bool fFirst = true;
-            for(SpeciesIndex si : parametersCaller)
-            {
-                if (!fFirst)
-                {
-                    ss << ", ";
-                }
-                ss << context.SpeciesIndexToDataTypeString(si);
-                fFirst = false;
-            }
-            ss << ").";
-            context.ReportError(pPos, ss.str().c_str());
-        }
-    }
-    return returnType;
-}
-
 
 void GenericOutputByteCode::operator()(const IOutputByteCode* proc)
 {

@@ -720,7 +720,7 @@ void SaveSCOFile(const GameFolderHelper &helper, const CSCOFile &sco, ScriptId s
     // First save the .sco file
     sco.Save(scoOutput);
     // Copy these bytes to a stream...
-    std::string scoFileName = helper.GetScriptObjectFileName(script.GetTitle(), LangSyntaxStudio);
+    std::string scoFileName = helper.GetScriptObjectFileName(script.GetTitle());
     ofstream scoFile(scoFileName.c_str(), ios::out | ios::binary);
     // REVIEW: yucky
     scoFile.write((const char *)&scoOutput[0], (std::streamsize)scoOutput.size());

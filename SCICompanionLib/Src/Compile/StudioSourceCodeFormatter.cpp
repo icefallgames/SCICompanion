@@ -674,7 +674,7 @@ public:
 
     void Visit(const IfStatement &ifStatement) override
     {
-        // When decompiling, we always create CppIfStatements, even if we're outputting SCI syntax
+        // When decompiling, we always create IfStatements, even if we're outputting SCI syntax
         if (ifStatement._fTernary)
         {
             Inline inln(out, true);

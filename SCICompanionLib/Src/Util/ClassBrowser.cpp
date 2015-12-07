@@ -1472,21 +1472,11 @@ bool SCIClassBrowser::IsSubClassOf(PCTSTR pszClass, PCTSTR pszSuper)
 //
 WORD SCIClassBrowser::GetScriptNumberHelper(Script *pScript) const
 {
-    WORD w = InvalidResourceNumber;
-    if (pScript->Language() == LangSyntaxCpp)
+    WORD w = GetScriptNumberHelperConst(pScript);
+    if (w != InvalidResourceNumber)
     {
-        appState->GetResourceMap().GetScriptNumber(pScript->GetScriptId(), w);
-    }
-    else
-    {
-        w = GetScriptNumberHelperConst(pScript);
-        if (w != InvalidResourceNumber)
-        {
-            // Cache it in the script for future use.
-            pScript->SetScriptNumber(w);
-        }
-        // This could be a header file, in which case we don't have a script number.
-        // assert(w != InvalidResourceNumber);
+        // Cache it in the script for future use.
+        pScript->SetScriptNumber(w);
     }
     return w;
 }

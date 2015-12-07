@@ -27,7 +27,6 @@ GNU General Public License for more details.
 #include "ScriptOM.h"
 #include "DocScript.h"
 #include "OutputRST.h"
-#include "Kernels.h"
 
 // TODO: customize
 std::string docSourceFolder = "source";
