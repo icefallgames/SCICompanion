@@ -382,7 +382,8 @@ BOOL PicCommandSidePane::OnInitDialog()
 
     // Set up anchoring for resize
     AddAnchor(IDC_LISTCOMMANDS, CPoint(0, 0), CPoint(100, 100));
-    AddAnchor(IDC_GOTOSCRIPT, CPoint(0, 0), CPoint(100, 0));        // This doesn't seem to work
+    // This doesn't seem to work for this control, and causes weird resizing.
+    //AddAnchor(IDC_GOTOSCRIPT, CPoint(100, 0), CPoint(100, 0));        
     if (GetDlgItem(IDC_LISTPOLYGONS))
     {
         AddAnchor(IDC_LISTPOLYGONS, CPoint(0, 0), CPoint(100, 100));

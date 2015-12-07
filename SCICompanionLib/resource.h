@@ -241,7 +241,6 @@
 #define IDB_CLOSE_INACTIVE              353
 #define IDI_PALETTEVGA                  354
 #define IDB_MESSAGEAUDIOICONS           354
-#define IDD_PICCOMMANDS_VGA             355
 #define IDD_DIALOGCHOOSECOLORVGA        356
 #define IDI_ICON3                       357
 #define IDD_DIALOGCOLOR1                357

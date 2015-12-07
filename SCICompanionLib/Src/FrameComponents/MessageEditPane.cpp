@@ -45,7 +45,7 @@ MessageEditPane::MessageEditPane(CWnd* pParent /*=NULL*/)
     _lipSyncTaskSink(this, UM_LIPSYNCDONE)
 
 {
-    // Load our accelerators
+    // Load our accelerators. Makes ctrl-s work.
     HINSTANCE hInst = AfxFindResourceHandle(MAKEINTRESOURCE(IDR_ACCELERATORMESSAGEEDIT), RT_ACCELERATOR);
     _hAccel = ::LoadAccelerators(hInst, MAKEINTRESOURCE(IDR_ACCELERATORMESSAGEEDIT));
 }

@@ -3541,6 +3541,17 @@ void Script::PreScan(CompileContext &context)
 
     ForwardPreScan2(_procedures, context);
     ForwardPreScan2(_classes, context);
+
+    // Check for duplicate local variable names.
+    std::set<std::string> scriptVarNames;
+    for (auto &scriptVar : _scriptVariables)
+    {
+        if (scriptVarNames.find(scriptVar->GetName()) != scriptVarNames.end())
+        {
+            context.ReportError(scriptVar.get(), "There is already a local variable called '%s' in this script.", scriptVar->GetName().c_str());
+        }
+        scriptVarNames.insert(scriptVar->GetName());
+    }
     ForwardPreScan2(_scriptVariables, context);
 
     // We need to do special stuff with these, we can't just forward.

@@ -24,9 +24,9 @@
 MessageNounConditionPane::MessageNounConditionPane(CWnd* pParent /*=NULL*/)
     : CExtDialogFwdCmd(IDD, pParent), _hAccel(nullptr)
 {
-    // Load our accelerators
-    // HINSTANCE hInst = AfxFindResourceHandle(MAKEINTRESOURCE(IDR_ACCELERATORPICCOMMANDS), RT_ACCELERATOR);
-    // _hAccel = ::LoadAccelerators(hInst, MAKEINTRESOURCE(IDR_ACCELERATORPICCOMMANDS));
+    // Load our accelerators. Makes ctrl-s work.
+    HINSTANCE hInst = AfxFindResourceHandle(MAKEINTRESOURCE(IDR_ACCELERATORMESSAGEEDIT), RT_ACCELERATOR);
+    _hAccel = ::LoadAccelerators(hInst, MAKEINTRESOURCE(IDR_ACCELERATORMESSAGEEDIT));
 }
 
 MessageNounConditionPane::~MessageNounConditionPane()
