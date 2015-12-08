@@ -122,6 +122,8 @@ You can use the *Used color* and *Fixed* checkboxes to control the first two opt
 In Code
 ==========
 
+.. _room-transitions-label:
+
 Transitions
 ----------------
 

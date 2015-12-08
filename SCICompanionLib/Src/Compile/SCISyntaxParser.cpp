@@ -939,7 +939,7 @@ void SCISyntaxParser::Load()
         (
         (keyword_p("#ifdef") >> alphanumNK_p[EvaluateIfDefA])
         | keyword_p("#endif")[EvaluateEndIfA]
-        | (oppar[GeneralE] >> (include | define[FinishDefineA])[IdentifierE] >> clpar[GeneralE])
+        | (oppar[GeneralE] >> (include | define[FinishDefineA] | enumStatement)[IdentifierE] >> clpar[GeneralE])
         );
 
 }

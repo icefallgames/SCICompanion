@@ -23,4 +23,7 @@ To get started with SCI1.1, follow the basic tutorial outlined below.
     Tutorial/Actors
     Tutorial/Dying
     Tutorial/UseInventory
+    Tutorial/Score
+    Tutorial/Rooms
+
 

@@ -1699,6 +1699,27 @@
     <Image Include="Docs\source\Tutorial\tutimages\TitleScreenBackground.jpg">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\BlueBoxInv.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\ControlScreenPenState.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\DoorControl.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\ExtendPoly.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\Room2.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\ThrowBox.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Docs\source\Tutorial\tutimages\UseBox.png">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include="res\SCICompanion.rc2">
@@ -3507,6 +3528,15 @@
     <None Include="Files\TemplateGame\SCI0.ini" />
     <None Include="Files\TemplateGame\SCI1.1.ini" />
     <None Include="Files\Customization\syntaxcolor.ini" />
+    <None Include="Docs\source\Compiler\cond.rst" />
+    <None Include="Docs\source\Compiler\continue.rst" />
+    <None Include="Docs\source\Compiler\differences.rst" />
+    <None Include="Docs\source\Compiler\public.rst" />
+    <None Include="Docs\source\Compiler\repeat.rst" />
+    <None Include="Docs\source\Compiler\selfsuper.rst" />
+    <None Include="Docs\source\Compiler\switchto.rst" />
+    <None Include="Docs\source\Tutorial\Rooms.rst" />
+    <None Include="Docs\source\Tutorial\Score.rst" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />
