@@ -111,34 +111,6 @@ vector<pair<string, BinaryOperator>> sciNameToBinaryOp =
     { "or", BinaryOperator::LogicalOr },
 };
 
-// THIS NEEDS REVIEW
-// c++ style operators
-vector<pair<string, BinaryOperator>> cppNameToBinaryOp =
-{
-    { "==", BinaryOperator::Equal },
-    { "!=", BinaryOperator::NotEqual },
-    { ">=u", BinaryOperator::UnsignedGreaterEqual },
-    { ">=", BinaryOperator::GreaterEqual },
-    { ">u", BinaryOperator::UnsignedGreaterThan },
-    { ">>", BinaryOperator::ShiftRight },
-    { ">", BinaryOperator::GreaterThan },
-    { "<=u", BinaryOperator::UnsignedLessEqual },
-    { "<=", BinaryOperator::LessEqual },
-    { "<u", BinaryOperator::UnsignedLessThan },
-    { "<<", BinaryOperator::ShiftLeft },
-    { "<", BinaryOperator::LessThan },
-    { "+", BinaryOperator::Add },
-    { "-", BinaryOperator::Subtract },
-    { "*", BinaryOperator::Multiply },
-    { "/", BinaryOperator::Divide },
-    { "%", BinaryOperator::Mod },
-    { "&", BinaryOperator::BinaryAnd },
-    { "|", BinaryOperator::BinaryOr },
-    { "^", BinaryOperator::ExclusiveOr },
-    { "&&", BinaryOperator::LogicalAnd },
-    { "||", BinaryOperator::LogicalOr },
-};
-
 vector<pair<string, AssignmentOperator>> studioNameToAssignmentOp =
 {
     { "=", AssignmentOperator::Assign },
@@ -169,21 +141,6 @@ vector<pair<string, AssignmentOperator>> sciNameToAssignmentOp =
     { "<<=", AssignmentOperator::ShiftLeft },
 };
 
-vector<pair<string, AssignmentOperator>> cppNameToAssignmentOp =
-{
-    { "=", AssignmentOperator::Assign },
-    { "+=", AssignmentOperator::Add },
-    { "-=", AssignmentOperator::Subtract },
-    { "*=", AssignmentOperator::Multiply },
-    { "/=", AssignmentOperator::Divide },
-    { "%=", AssignmentOperator::Mod },
-    { "&=", AssignmentOperator::BinaryAnd },
-    { "|=", AssignmentOperator::BinaryOr },
-    { "^=", AssignmentOperator::ExclusiveOr },
-    { ">>=", AssignmentOperator::ShiftRight },
-    { "<<=", AssignmentOperator::ShiftLeft },
-};
-
 vector<pair<string, UnaryOperator>> studioNameToUnaryOp =
 {
     { "not", UnaryOperator::LogicalNot },
@@ -196,14 +153,6 @@ vector<pair<string, UnaryOperator>> sciNameToUnaryOp =
 {
     { "not", UnaryOperator::LogicalNot },
     { "~", UnaryOperator::BinaryNot },
-    { "++", UnaryOperator::Increment },
-    { "--", UnaryOperator::Decrement },
-    { "-", UnaryOperator::Negate },
-};
-vector<pair<string, UnaryOperator>> cppNameToUnaryOp =
-{
-    { "!", UnaryOperator::LogicalNot },
-    { "~ ", UnaryOperator::BinaryNot },
     { "++", UnaryOperator::Increment },
     { "--", UnaryOperator::Decrement },
     { "-", UnaryOperator::Negate },
