@@ -71,7 +71,7 @@ const TCHAR* g_UsedByDefaultSCI11[] =
     TEXT("Actor"),
     TEXT("Game"),
     TEXT("Main"),
-    TEXT("Object"),
+    TEXT("System"),
     TEXT("Polygon"),
 };
 

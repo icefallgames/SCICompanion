@@ -2,9 +2,9 @@
 #include "ParseAutoCompleteContext.h"
 
 const ParseACChannels BlockAllChannels =
-    ((uint32_t)ParseAutoCompleteContext::Block) ||
-    ((uint32_t)ParseAutoCompleteContext::Block << 8) || 
-    ((uint32_t)ParseAutoCompleteContext::Block << 16) || 
+    ((uint32_t)ParseAutoCompleteContext::Block) |
+    ((uint32_t)ParseAutoCompleteContext::Block << 8) |
+    ((uint32_t)ParseAutoCompleteContext::Block << 16) | 
     ((uint32_t)ParseAutoCompleteContext::Block << 24);
 
 const ParseACChannels NoChannels = 0;

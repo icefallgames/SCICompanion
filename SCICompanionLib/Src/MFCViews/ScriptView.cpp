@@ -318,6 +318,8 @@ std::vector<std::string> topLevelKeywordsSCI =
     _T("string"),
     _T("synonyms"),
     _T("use"),
+    _T("enum"),
+    _T("extern"),
 };
 
 std::vector<std::string> topLevelKeywordsStudio =

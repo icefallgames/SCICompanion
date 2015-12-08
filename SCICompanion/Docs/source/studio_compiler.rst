@@ -6,6 +6,9 @@
  SCI Studio compatible compiler
 =================================
 
+.. NOTE::
+    This is provided for compatibility with SCI Studio (and earlier versions of |scicomp|. For new games, it is recommended you use the original Sierra syntax: :doc:`sci_compiler`.
+
 The script compiler in |scicomp| can use a syntax that is nearly identical to the compiler in SCI Studio. It is more strict, so
 some things that compile in SCI Studio may not compile in |scicomp|, or may give warnings (this is a good thing). It also
 generates slightly smaller code than SCI Studio.
