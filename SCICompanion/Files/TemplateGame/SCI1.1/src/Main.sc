@@ -705,9 +705,6 @@
         = gStopGroop stopGroop
         = gPseudoMouse PseudoMouse
         (send gEgo:setLoop(gStopGroop))
-        (if (== gColorDepth 256)
-            Bset(0)
-        )
         // The position of these font resource numbers correspond to font codes used in messages:
         TextFonts(1605 1605 1605 1605 1605 0)
         // These correspond to color codes used in messages (values into global palette):
@@ -775,9 +772,6 @@
                 (statusLineCode:doit())
             )
             = gColorDepth Graph(grGET_COLOURS)
-            (if (== gColorDepth 256)
-                Bset(0)
-            )
         )
         (super:doit(rest param1))
     )
