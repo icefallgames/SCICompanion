@@ -20,4 +20,5 @@ namespace sci
 class CSCOFile;
 class IDecompilerConfig;
 
+// For the decompiler.
 void AutoDetectVariableNames(sci::Script &script, const IDecompilerConfig *config, CSCOFile *mainSCO, CSCOFile *scriptSCO, bool &mainDirty);

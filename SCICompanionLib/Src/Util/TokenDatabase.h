@@ -12,7 +12,9 @@
     GNU General Public License for more details.
 ***************************************************************************/
 #pragma once
-#include "AutoCompleteContext.h"
+#include "AutoCompleteSourceTypes.h"
+
+// Implements a compressed database of tokens for autocompletion.
 
 class AutoCompleteChoice;
 

@@ -93,9 +93,6 @@ private:
 
     // Msg handlers
     afx_msg void OnCompile();
-#ifdef DOCSUPPORT
-    afx_msg void OnCompileDocs();
-#endif
     afx_msg void OnDisassemble();
     afx_msg void OnDebugRoom();
     afx_msg void OnViewObjectFile();

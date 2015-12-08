@@ -286,7 +286,7 @@
     <ClCompile Include="Src\Resources\VersionDetectionHelper.cpp" />
     <ClCompile Include="Src\Resources\View.cpp" />
     <ClCompile Include="Src\Util\AudioPlayback.cpp" />
-    <ClInclude Include="Src\Compile\AutoCompleteContext.h" />
+    <ClInclude Include="Src\Compile\AutoCompleteSourceTypes.h" />
     <ClInclude Include="Src\Compile\AutoDetectVariableNames.h" />
     <ClInclude Include="Src\Compile\CodeInspector.h" />
     <ClInclude Include="Src\Compile\CompileCommon.h" />
@@ -532,7 +532,6 @@
     <ClCompile Include="Src\Util\Codec.cpp" />
     <ClCompile Include="Src\Util\CrystalScriptStream.cpp" />
     <ClCompile Include="Src\Util\DrawHelper.cpp" />
-    <ClCompile Include="Src\Util\SCIDocs.cpp" />
     <ClCompile Include="Src\Util\Stream.cpp" />
     <ClCompile Include="Src\Util\TalkerToViewMap.cpp" />
     <ClCompile Include="Src\Util\Task.cpp" />
@@ -740,7 +739,6 @@
     <ClInclude Include="Src\Util\NonViewClient.h" />
     <ClInclude Include="Src\Util\QueueItems.h" />
     <ClInclude Include="Src\Util\sci.h" />
-    <ClInclude Include="Src\Util\SCIDocs.h" />
     <ClInclude Include="Src\Util\StlUtil.h" />
     <ClInclude Include="Src\Util\Stream.h" />
     <ClInclude Include="Src\Util\StringUtil.h" />

@@ -78,9 +78,6 @@
     <ClCompile Include="Src\Util\DrawHelper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Src\Util\SCIDocs.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Src\Util\Stream.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -878,9 +875,6 @@
     <ClInclude Include="Src\Util\sci.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Util\SCIDocs.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Src\Util\StlUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1526,9 +1520,6 @@
     <ClInclude Include="Src\Resources\NounsAndCases.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Compile\AutoCompleteContext.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Src\Compile\NodeTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1689,6 +1680,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\Compile\SCISourceCodeFormatter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Compile\AutoCompleteSourceTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

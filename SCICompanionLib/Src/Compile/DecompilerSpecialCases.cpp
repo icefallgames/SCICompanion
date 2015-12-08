@@ -19,7 +19,6 @@
 using namespace std;
 using namespace sci;
 
-
 bool IsStatementImmediateValue(const SyntaxNode &statement, WORD &wValue)
 {
     const PropertyValue *pValue = SafeSyntaxNode<PropertyValue>(&statement);
@@ -177,77 +176,9 @@ private:
     DecompileLookups &_lookups;
 };
 
-#if TEST_REST_USAGE
-int g_goodRest = 0;
-int g_badRest = 0;
-
-class TestForRestWorker : public IExploreNode
-{
-public:
-    TestForRestWorker(DecompileLookups &lookups) : _lookups(lookups) {}
-
-    void ExploreNode(SyntaxNode &node, ExploreNodeState state) override
-    {
-        if (state == ExploreNodeState::Pre)
-        {
-            switch (node.GetNodeType())
-            {
-                case NodeTypeRest:
-                {
-                    RestStatement &rest = static_cast<RestStatement&>(node);
-                    // temp test is rest.GetName always the last of the func params?
-                    size_t size = _functionContext->GetSignatures()[0]->GetParams().size();
-                    if (_functionContext->GetSignatures()[0]->GetParams()[size - 1]->GetName() != rest.GetName())
-                    {
-                        g_goodRest++;
-                    }
-                    else
-                    {
-                        g_badRest++;
-                    }
-
-                }
-                break;
-
-                case NodeTypeFunction:
-                {
-                    _functionContext = static_cast<FunctionBase*>(&node);
-                }
-                break;
-            }
-        }
-        else if (state == ExploreNodeState::Post)
-        {
-            switch (node.GetNodeType())
-            {
-                case NodeTypeFunction:
-                {
-                    _functionContext = nullptr;
-                }
-                break;
-            }
-        }
-    }
-
-private:
-    FunctionBase *_functionContext;
-    DecompileLookups &_lookups;
-};
-#endif
-
-
 void MassageProcedureCalls(DecompileLookups &lookups, sci::Script &script)
 {
     // Now the actual calls, which could be to any script
     MassageProcedureCallsWorker massageProcCalls(lookups);
     script.Traverse(massageProcCalls);
 }
-
-#if TEST_REST_USAGE
-void TestForRest(DecompileLookups &lookups, sci::Script &script)
-{
-    // Now the actual calls, which could be to any script
-    TestForRestWorker massageProcCalls(lookups);
-    script.Traverse( massageProcCalls);
-}
-#endif

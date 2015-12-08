@@ -22,7 +22,7 @@
 #include "ScriptOM.h"
 #include "ScriptView.h"
 #include "CObjectWrap.h"
-#include "AutoCompleteContext.h"
+#include "AutoCompleteSourceTypes.h"
 #include "Task.h"
 #include "CrystalScriptStream.h"
 #include "SyntaxParser.h"

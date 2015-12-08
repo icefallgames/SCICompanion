@@ -90,9 +90,6 @@ public:
     std::string GetGameFolder() const;
     std::string GetIncludeFolder();
     std::string GetIncludePath(const std::string &includeFileName);
-#ifdef DOCSUPPORT
-    std::string GetDocPath(const std::string &fileName);
-#endif
     std::string GetTemplateFolder();
     std::string GetSamplesFolder();
     std::string GetTopLevelSamplesFolder();

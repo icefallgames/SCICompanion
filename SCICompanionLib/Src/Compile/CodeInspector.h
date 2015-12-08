@@ -19,6 +19,9 @@
 #include "PMachine.h"
 #include "scii.h"
 
+// Enumerates the VM instructions within a section of script resource, and calls the supplied
+// analyzeInstruction function. Used for inspecting script resources to determine version information.
+
 template<typename _TInspect>
 bool InspectCode(SCIVersion version, const uint8_t *pBegin, const uint8_t *pEnd, uint16_t wBaseOffset, _TInspect analyzeInstruction)
 {

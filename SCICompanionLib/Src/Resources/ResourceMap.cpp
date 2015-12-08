@@ -879,22 +879,6 @@ std::string CResourceMap::GetIncludePath(const std::string &includeFileName)
     }
 }
 
-#ifdef DOCSUPPORT
-std::string CResourceMap::GetDocPath(const std::string &fileName)
-{
-    std::string docPath;
-    TCHAR szPath[MAX_PATH];
-    if (GetModuleFileName(nullptr, szPath, ARRAYSIZE(szPath)))
-    {
-        PSTR pszFileName = PathFindFileName(szPath);
-        *pszFileName = 0; // null it
-        docPath = szPath;
-        docPath += "docs\\";
-        docPath += fileName;
-    }
-    return docPath;
-}
-#endif
 
 HRESULT CResourceMap::GetGameIni(PTSTR pszBuf, size_t cchBuf)
 {

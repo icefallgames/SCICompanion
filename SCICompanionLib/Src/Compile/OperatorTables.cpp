@@ -32,7 +32,9 @@ vector<BinaryOperator> allowMultiple =
     BinaryOperator::BinaryOr,
 };
 
-// These are more complicated.
+// These are n-ary operators that are more complicated to implement (i.e. they can't
+// be constructed from nested binary operations and require special treatment by the
+// compiler).
 vector<BinaryOperator> relational =
 {
     BinaryOperator::Equal,
@@ -84,7 +86,32 @@ vector<pair<string, BinaryOperator>> studioNameToBinaryOp =
     { "or", BinaryOperator::LogicalOr },
 };
 
-// Sierra syntax operators
+vector<pair<string, AssignmentOperator>> studioNameToAssignmentOp =
+{
+    { "=", AssignmentOperator::Assign },
+    { "+=", AssignmentOperator::Add },
+    { "-=", AssignmentOperator::Subtract },
+    { "*=", AssignmentOperator::Multiply },
+    { "/=", AssignmentOperator::Divide },
+    { "%=", AssignmentOperator::Mod },
+    { "&=", AssignmentOperator::BinaryAnd },
+    { "|=", AssignmentOperator::BinaryOr },
+    { "^=", AssignmentOperator::ExclusiveOr },
+    { ">>=", AssignmentOperator::ShiftRight },
+    { "<<=", AssignmentOperator::ShiftLeft },
+};
+
+vector<pair<string, UnaryOperator>> studioNameToUnaryOp =
+{
+    { "not", UnaryOperator::LogicalNot },
+    { "bnot", UnaryOperator::BinaryNot },
+    { "++", UnaryOperator::Increment },
+    { "--", UnaryOperator::Decrement },
+    { "neg", UnaryOperator::Negate },
+};
+
+
+// Sierra Script syntax operators
 vector<pair<string, BinaryOperator>> sciNameToBinaryOp =
 {
     { "==", BinaryOperator::Equal },
@@ -111,21 +138,6 @@ vector<pair<string, BinaryOperator>> sciNameToBinaryOp =
     { "or", BinaryOperator::LogicalOr },
 };
 
-vector<pair<string, AssignmentOperator>> studioNameToAssignmentOp =
-{
-    { "=", AssignmentOperator::Assign },
-    { "+=", AssignmentOperator::Add },
-    { "-=", AssignmentOperator::Subtract },
-    { "*=", AssignmentOperator::Multiply },
-    { "/=", AssignmentOperator::Divide },
-    { "%=", AssignmentOperator::Mod },
-    { "&=", AssignmentOperator::BinaryAnd },
-    { "|=", AssignmentOperator::BinaryOr },
-    { "^=", AssignmentOperator::ExclusiveOr },
-    { ">>=", AssignmentOperator::ShiftRight },
-    { "<<=", AssignmentOperator::ShiftLeft },
-};
-
 vector<pair<string, AssignmentOperator>> sciNameToAssignmentOp =
 {
     { "=", AssignmentOperator::Assign },
@@ -141,14 +153,6 @@ vector<pair<string, AssignmentOperator>> sciNameToAssignmentOp =
     { "<<=", AssignmentOperator::ShiftLeft },
 };
 
-vector<pair<string, UnaryOperator>> studioNameToUnaryOp =
-{
-    { "not", UnaryOperator::LogicalNot },
-    { "bnot", UnaryOperator::BinaryNot },
-    { "++", UnaryOperator::Increment },
-    { "--", UnaryOperator::Decrement },
-    { "neg", UnaryOperator::Negate },
-};
 vector<pair<string, UnaryOperator>> sciNameToUnaryOp =
 {
     { "not", UnaryOperator::LogicalNot },

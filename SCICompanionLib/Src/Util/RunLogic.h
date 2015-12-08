@@ -13,6 +13,9 @@
 ***************************************************************************/
 #pragma once
 
+// Manages our different profiles for running the game from within SCI Companion.
+// (e.g. DOSBox, ScummVM, custom).
+
 class RunLogic
 {
 public:

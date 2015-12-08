@@ -13,6 +13,11 @@
 ***************************************************************************/
 #pragma once
 
+//
+// Manages the thread that interfaces with the "printf" style "debugger" that works with
+// the SCI1.1 template game.
+//
+
 class DebuggerThread
 {
 public:

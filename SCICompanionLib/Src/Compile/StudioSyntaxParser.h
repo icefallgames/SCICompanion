@@ -17,7 +17,7 @@
 #include "ScriptOM.h"
 #include "CrystalScriptStream.h"
 #include "ParserCommon.h"
-#include "AutoCompleteContext.h"
+#include "AutoCompleteSourceTypes.h"
 #include "PMachine.h"
 #include "SyntaxContext.h"
 #include <stack>

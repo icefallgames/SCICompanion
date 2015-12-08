@@ -27,7 +27,6 @@
 #include "SyntaxParser.h"
 #include "CompileContext.h"
 #include "ScriptOMAll.h"
-#include "SCIDocs.h"
 #include "DecompilerCore.h"
 #include <ctime>
 #include "CObjectWrap.h"
@@ -96,9 +95,6 @@ BEGIN_MESSAGE_MAP(CScriptDocument, CDocument)
     ON_COMMAND(ID_FILE_SAVE, OnFileSave)
     ON_COMMAND(ID_FILE_SAVE_AS, OnFileSaveAs)
     ON_COMMAND(ID_COMPILE, OnCompile)
-#ifdef DOCSUPPORT
-    ON_COMMAND(ID_COMPILEDOCS, OnCompileDocs)
-#endif
     ON_COMMAND(ID_SCRIPT_DISASSEMBLE, OnDisassemble)
     ON_COMMAND(ID_SCRIPT_VIEWOBJECTFILE, OnViewObjectFile)
     ON_COMMAND(ID_SCRIPT_VIEWSCRIPTRESOURCE, OnViewScriptResource)
@@ -125,34 +121,6 @@ void CScriptDocument::OnUpdateIsScript(CCmdUI *pCmdUI)
 {
     pCmdUI->Enable(!_scriptId.IsHeader());
 }
-
-#ifdef DOCSUPPORT
-void CScriptDocument::OnCompileDocs()
-{
-
-
-    // Make a new buffer.
-    CCrystalTextBuffer buffer;
-    if (buffer.LoadFromFile(_scriptId.GetFullPath().c_str()))
-    {
-        CScriptStreamLimiter limiter(&buffer);
-        CCrystalScriptStream stream(&limiter);
-		std::unique_ptr<sci::Script> pScript(new sci::Script(_scriptId));
-        CompileLog log;
-        if (SyntaxParser_Parse(*pScript, stream, PreProcessorDefinesFromSCIVersion(appState->GetVersion()), &log, true))
-        {
-            CompileDocs(*pScript);
-        }
-        else
-        {
-            // An error while compiling.
-            log.SummarizeAndReportErrors();
-            appState->OutputResults(OutputPaneType::Compile, log.Results());
-        }
-        buffer.FreeAll();
-    }
-}
-#endif
 
 const char c_szLine[] = "--------------------------------------------------------";
 void CScriptDocument::OnCompile()

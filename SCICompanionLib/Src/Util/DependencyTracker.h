@@ -13,6 +13,10 @@
 ***************************************************************************/
 #pragma once
 
+// Simple dependency tracker so we know which files to recompile when another one
+// has changed. For instance, when a polygon header (.shp) file is compiled, we
+// want to know that files that include this need to be recompiled.
+
 namespace sci
 {
     class Script;

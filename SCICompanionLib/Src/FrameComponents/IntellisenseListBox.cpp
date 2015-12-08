@@ -24,7 +24,7 @@
 #include "AppState.h"
 #include "IntellisenseListBox.h"
 #include "ScriptView.h"
-#include "AutoCompleteContext.h"
+#include "AutoCompleteSourceTypes.h"
 #include "CodeAutoComplete.h"
 
 const int IntellisenseMRUSize = 30;
