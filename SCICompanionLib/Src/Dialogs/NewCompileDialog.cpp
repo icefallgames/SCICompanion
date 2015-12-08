@@ -126,41 +126,47 @@ BOOL CNewCompileDialog::OnInitDialog()
 {
     BOOL fRet = __super::OnInitDialog();
     ShowSizeGrip(FALSE);
-    _tables.Load(appState->GetVersion()); // REVIEW: clean up
+    try
+    {
+        _tables.Load(appState->GetVersion()); // REVIEW: clean up
 
-    if (_scriptsToRecompile.empty())
-    {
-        // Everything
-        appState->GetResourceMap().GetAllScripts(_scripts);
-    }
-    else
-    {
-        // Filtered
-        std::vector<ScriptId> scriptsTemp;
-        appState->GetResourceMap().GetAllScripts(scriptsTemp);
-        std::copy_if(scriptsTemp.begin(), scriptsTemp.end(), std::back_inserter(_scripts),
-            [&](const ScriptId &scriptId)
+        if (_scriptsToRecompile.empty())
         {
-            return _scriptsToRecompile.find(scriptId.GetTitleLower()) != _scriptsToRecompile.end();
+            // Everything
+            appState->GetResourceMap().GetAllScripts(_scripts);
         }
+        else
+        {
+            // Filtered
+            std::vector<ScriptId> scriptsTemp;
+            appState->GetResourceMap().GetAllScripts(scriptsTemp);
+            std::copy_if(scriptsTemp.begin(), scriptsTemp.end(), std::back_inserter(_scripts),
+                [&](const ScriptId &scriptId)
+            {
+                return _scriptsToRecompile.find(scriptId.GetTitleLower()) != _scriptsToRecompile.end();
+            }
             );
+        }
+
+
+        _nScript = 0;
+        if (_scripts.size() > 0)
+        {
+            // Set the range of the progress control.
+            m_wndProgress.SetRange32(0, (int)_scripts.size());
+            PostMessage(UWM_STARTCOMPILE, 0, 0);
+        }
+        else
+        {
+            AfxMessageBox("Error finding scripts to compile.", MB_OK | MB_APPLMODAL | MB_ICONEXCLAMATION);
+        }
     }
-
-
-	_nScript = 0;
-	if (_scripts.size() > 0)
-	{
-		// Set the range of the progress control.
-		m_wndProgress.SetRange32(0, (int)_scripts.size());
-		PostMessage(UWM_STARTCOMPILE, 0, 0);
-	}
-	else
-	{
-		AfxMessageBox("Error finding scripts to compile.", MB_OK | MB_APPLMODAL | MB_ICONEXCLAMATION);
-		_fDone = true;
-		// Actually, just close ourselves
-		PostMessage(WM_CLOSE, 0, 0);
-	}
+    catch (std::exception)
+    {
+        _fDone = true;
+        // Actually, just close ourselves
+        PostMessage(WM_CLOSE, 0, 0);
+    }
     return fRet;
 }
 

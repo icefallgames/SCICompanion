@@ -28,6 +28,7 @@
 #include "Text.h"
 #include "View.h"
 #include "ResourceBlob.h"
+#include "format.h"
 
 using namespace std;
 
@@ -1020,58 +1021,65 @@ HRESULT CResourceListCtrl::_UpdateEntries()
     // Clear out old items.
     DeleteAllItems();
 
-    if (!appState->GetResourceMap().GetGameFolder().empty()) // else no game loaded. We get here during initialization, as frames are created prior to the document.
+    try
     {
+        if (!appState->GetResourceMap().GetGameFolder().empty()) // else no game loaded. We get here during initialization, as frames are created prior to the document.
+        {
 
-        // Temporary cache of ResourceBlob's from the resource map enumerator
-        vector<unique_ptr<ResourceBlob>> resources;
-        ResourceEnumFlags enumFlags = ResourceEnumFlags::NameLookups | ResourceEnumFlags::CalculateRecency;
-        if (GetType() == ResourceType::Audio)
-        {
-            // This is special. We want to prioritize cache files, and if they are present, NOT fallback to the game's resources.
-            // SCI 1.1 doesn't allow dupes in general anyway, so we can say "most recent only"
-            enumFlags |= ResourceEnumFlags::IncludeCacheFiles | ResourceEnumFlags::MostRecentOnly;
-            // And we don't need to bother calculating recency.
-            // enumFlags &= ~ResourceEnumFlags::CalculateRecency;
-        }
-        auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeToFlag(GetType()), enumFlags);
-        // Copy the ResourceBlobs into resources, but delay decompression (for performance)
-        // REVIEW: We might want to have a wrapper.
-        for (auto it = resourceContainer->begin(); it != resourceContainer->end(); ++it)
-        {
-            resources.push_back(std::move(it.CreateButDelayDecompression()));
-        }
-
-        if (!resources.empty())
-        {
-            appState->LogInfo("Found %d resources for type %x", resources.size(), GetType());
-            if (_bFirstTime)
+            // Temporary cache of ResourceBlob's from the resource map enumerator
+            vector<unique_ptr<ResourceBlob>> resources;
+            ResourceEnumFlags enumFlags = ResourceEnumFlags::NameLookups | ResourceEnumFlags::CalculateRecency;
+            if (GetType() == ResourceType::Audio)
             {
-                _InitColumns();
-                ChangeViewMode(GetDefaultViewMode());
-                _bFirstTime = FALSE;
+                // This is special. We want to prioritize cache files, and if they are present, NOT fallback to the game's resources.
+                // SCI 1.1 doesn't allow dupes in general anyway, so we can say "most recent only"
+                enumFlags |= ResourceEnumFlags::IncludeCacheFiles | ResourceEnumFlags::MostRecentOnly;
+                // And we don't need to bother calculating recency.
+                // enumFlags &= ~ResourceEnumFlags::CalculateRecency;
             }
-            _OnInitListView((int)resources.size());
-            _bDidInitialUpdate = TRUE;
-
-            SetRedraw(FALSE);
-
-            for (auto &blob : resources)
+            auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeToFlag(GetType()), enumFlags);
+            // Copy the ResourceBlobs into resources, but delay decompression (for performance)
+            // REVIEW: We might want to have a wrapper.
+            for (auto it = resourceContainer->begin(); it != resourceContainer->end(); ++it)
             {
-                // Ownership of prd is transfered to listview:
-                _InsertItem(std::move(blob));
+                resources.push_back(std::move(it.CreateButDelayDecompression()));
             }
 
-            // Sort
-            _iSortColumn = ColumnNumber;
-            _SortItemsHelper(_iSortColumn, false);
-            SetRedraw(TRUE);
-            hr = S_OK;
+            if (!resources.empty())
+            {
+                appState->LogInfo("Found %d resources for type %x", resources.size(), GetType());
+                if (_bFirstTime)
+                {
+                    _InitColumns();
+                    ChangeViewMode(GetDefaultViewMode());
+                    _bFirstTime = FALSE;
+                }
+                _OnInitListView((int)resources.size());
+                _bDidInitialUpdate = TRUE;
+
+                SetRedraw(FALSE);
+
+                for (auto &blob : resources)
+                {
+                    // Ownership of prd is transfered to listview:
+                    _InsertItem(std::move(blob));
+                }
+
+                // Sort
+                _iSortColumn = ColumnNumber;
+                _SortItemsHelper(_iSortColumn, false);
+                SetRedraw(TRUE);
+                hr = S_OK;
+            }
+            else
+            {
+                appState->LogInfo("Found zero resources for type %x", GetType());
+            }
         }
-        else
-        {
-            appState->LogInfo("Found zero resources for type %x", GetType());
-        }
+    }
+    catch (std::exception &e)
+    {
+        AfxMessageBox(fmt::format("Error enumerating items: {}", e.what()).c_str(), MB_OK | MB_ICONERROR);
     }
     return hr;
 }
