@@ -33,16 +33,21 @@ In SCI1.1, creating a new room automatically also creates the following:
 
 To create a new blank script, click the New empty script |newscript| button. A dialog asking for the script number and name will come up.
 
-SCI Script
-===========
+Sierra Script
+===============
 
-The syntax used for source code in |scicomp| is nearly identical to that used in SCI Studio. It uses a syntax that is a cross between LISP and SmallTalk. Its design
-was probably based on an attempt to recreate the language that was used by Sierra's programmers. Since that time however, the community has discovered more original
-code samples that give better clues as to the exact syntax used by Sierra (it was closer to SmallTalk than the current syntax).
-It's possible that a future version of |scicomp| may offer a more historically accurate
-syntax as an option, but for now it was deemed that compatiblity with SCI Studio (to ensure backwards compatiblity for SCI0 fan games) was more important.
+For scripts, |scicomp| uses a syntax very similar to that used by Sierra, which is sort of a cross between LISP and SmallTalk.
+It also supports the syntax that was used in SCI Studio, which was developed prior to more detailed knowledge about Sierra's original syntax
+came into light.
 
-For more information on the syntax, see :doc:`sci_compiler`. 
+For more information on the syntax, see :doc:`sci_compiler`. For information on the SCI Studio-compatible syntax, see :doc:`studio_compiler`.
+
+The syntax used for new scripts in a game is determined by the default language specifed when you create a game. This can also be changed by
+invoking the Game Properties dialog.
+
+A game can actually use a mix of the two syntaxes - however, this is not recommended, and would normally only happen if you were converting
+an old game to the new Sierra Script syntax script-by-script. |scicomp| uses a comment marker at the beginning of the file to determine the
+language used for a particular script. Don't remove that comment.
 
 Compiling a script
 ====================
@@ -105,6 +110,11 @@ Similar to the *Insert object*, you can use the right-click menu to insert commo
 
     A doVerb method inserted via the Insert Method menu.
 
+Comments
+==============
+
+Sierra Script uses semi colon comments. Since these are single line, it makes it difficult to quickly comment and uncomment large sections of text.
+Therefore, a shortcut is provided for this. Select a block of script, then on the right-click menu, choose Toggle Block Comment (or press Ctrl-Q).
 
 
 Script browsing information

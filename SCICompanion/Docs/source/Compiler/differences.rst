@@ -6,7 +6,7 @@
  Differences from SCI Studio syntax
 =====================================
 
-The script syntax used SCI Studio (and previous versions of |scicomp|) was an educated guess at what the original
+The script syntax used by SCI Studio (and previous versions of |scicomp|) was an educated guess at what the original
 Sierra Script syntax looked like. It's similar in many ways, but also has some important differences.
 
 Sierra Script is more faithful to its roots in LISP, and more rigorous and strict about parentheses. You can think
