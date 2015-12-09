@@ -31,7 +31,7 @@ PriorityTalker (of :class:`Talker`)
 		Prop -> Actor
 		Prop -> Door
 		Actor -> Ego
-		Ego -> SQEgo
+		Ego -> GameEgo
 		Narrator -> Talker
 		Narrator -> ChoiceNarrator
 		Talker -> PriorityTalker
@@ -113,6 +113,7 @@ textX
 textY                      
 useFrame                   
 blinkSpeed                 
+name                       
 =============== ===========
 
 Defined in PriorityTalker:

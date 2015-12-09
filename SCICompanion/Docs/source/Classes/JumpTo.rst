@@ -17,7 +17,7 @@ JumpTo (of :class:`Jump`)
 	
 	Example usage::
 	
-		(theRobot:setMotion(JumpTo 240 150))
+		(theRobot setMotion: JumpTo 240 150)
 
 
 .. blockdiag::
@@ -76,6 +76,7 @@ signal
 illegalBits            
 waitApogeeX            
 waitApogeeY            
+name                   
 =========== ===========
 
 

@@ -4,22 +4,22 @@
 
 .. include:: /includes/standard.rst
 
-================================
-ForwardCounter (of :class:`Fwd`)
-================================
+====================================
+ForwardCounter (of :class:`Forward`)
+====================================
 
 .. class:: ForwardCounter
 
 	Defined in ForwardCounter.sc.
 
 	
-	This extends the functionality of the :class:`Fwd` cycler by allowing for cycling forward through the cels in a loop
+	This extends the functionality of the :class:`Forward` cycler by allowing for cycling forward through the cels in a loop
 	a specified number of times and then stopping.
 	
 	Example usage::
 	
-		// Cycle through the diamond's cels three times
-		(diamond:setCycle(ForwardCounter 3))
+		; Cycle through the diamond's cels three times
+		(diamond setCycle: ForwardCounter 3)
 
 
 .. blockdiag::
@@ -28,23 +28,23 @@ ForwardCounter (of :class:`Fwd`)
 
 	diagram {
 		default_fontsize = 16
-		Cycle -> Smopper
 		Cycle -> MouthSync
+		Cycle -> Smopper
+		Cycle -> MoveCycle
 		Cycle -> FlickerCycler
-		Cycle -> Fwd
-		Cycle -> Rev
+		Cycle -> Forward
 		Cycle -> Blink
-		Cycle -> CT
-		Cycle -> ROsc
-		Cycle -> Osc
+		Cycle -> RangeOscillate
+		Cycle -> Oscillate
 		Cycle -> RandCycle
-		Cycle -> MCyc
-		Cycle -> Grycler
-		CT -> End
-		CT -> Beg
-		Fwd -> ForwardCounter
-		Fwd -> StopWalk
-		Fwd -> Walk
+		Cycle -> Reverse
+		Cycle -> GradualCycler
+		Cycle -> CycleTo
+		CycleTo -> EndLoop
+		CycleTo -> BegLoop
+		Forward -> ForwardCounter
+		Forward -> StopWalk
+		Forward -> Walk
 		Smopper -> FiddleStopWalk
 		ForwardCounter [color=greenyellow]
 	}
@@ -52,7 +52,7 @@ ForwardCounter (of :class:`Fwd`)
 Properties
 ==========
 
-Inherited from :class:`Fwd`:
+Inherited from :class:`Forward`:
 
 ========= ===========
 Property  Description
@@ -62,6 +62,7 @@ caller
 cycleDir             
 cycleCnt             
 completed            
+name                 
 ========= ===========
 
 Defined in ForwardCounter:

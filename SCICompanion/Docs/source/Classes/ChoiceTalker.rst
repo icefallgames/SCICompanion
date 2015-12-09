@@ -20,25 +20,25 @@ ChoiceTalker (of :class:`Talker`)
 	
 	To put a ChoiceTalker in *choice mode* do::
 	
-		(myChoiceTalker:
-			normal(FALSE)
-			curNoun(noun)
-			curVerb(verb)
-			curCase(condition)
+		(myChoiceTalker
+			normal: FALSE
+			curNoun: noun
+			curVerb: verb
+			curCase: condition
 		)
 	
-	Then have it say something, going through the gTestMessager like usual, and passing the
+	Then have it say something, going through the gMessager like usual, and passing the
 	same noun/verb/condition and 0 for the sequence::
 	
-		(send gTestMessager:say(noun verb condition 0))
+		(gMessager say: noun verb condition 0)
 	
 	Then you can check the whichSelect property::
 	
-		(switch (myChoiceTalker:whichSelect)
-			(case 1
+		(switch (myChoiceTalker whichSelect?)
+			(1
 				// Do something
 			)
-			(case 2
+			(2
 				// Do something else
 			)
 		)
@@ -57,7 +57,7 @@ ChoiceTalker (of :class:`Talker`)
 		Prop -> Actor
 		Prop -> Door
 		Actor -> Ego
-		Ego -> SQEgo
+		Ego -> GameEgo
 		Narrator -> Talker
 		Narrator -> ChoiceNarrator
 		Talker -> PriorityTalker
@@ -139,6 +139,7 @@ textX
 textY                      
 useFrame                   
 blinkSpeed                 
+name                       
 =============== ===========
 
 Defined in ChoiceTalker:

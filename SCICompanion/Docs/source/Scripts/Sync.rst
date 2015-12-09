@@ -13,7 +13,7 @@ Sync.sc
 Classes
 ==========
 
-:class:`Sync` of Obj
+:class:`Sync` of Object
 
 :class:`MouthSync` of Cycle
 

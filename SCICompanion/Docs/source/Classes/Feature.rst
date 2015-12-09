@@ -4,9 +4,9 @@
 
 .. include:: /includes/standard.rst
 
-=========================
-Feature (of :class:`Obj`)
-=========================
+============================
+Feature (of :class:`Object`)
+============================
 
 .. class:: Feature
 
@@ -42,10 +42,10 @@ Feature (of :class:`Obj`)
 	
 	Example initialization::
 	
-		(redPlanet:
-			approachVerbs(V_DO V_LOOK)
-			setOnMeCheck(omcCOLORS ctlWHITE)
-			init()
+		(redPlanet
+			approachVerbs: V_DO V_LOOK
+			setOnMeCheck: omcCOLORS ctlWHITE
+			init:
 		)
 
 
@@ -64,7 +64,7 @@ Subclasses: :class:`View`.
 		Prop -> Actor
 		Prop -> Door
 		Actor -> Ego
-		Ego -> SQEgo
+		Ego -> GameEgo
 		Narrator -> Talker
 		Narrator -> ChoiceNarrator
 		Talker -> PriorityTalker
@@ -74,6 +74,14 @@ Subclasses: :class:`View`.
 
 Properties
 ==========
+
+Inherited from :class:`Object`:
+
+======== ===========
+Property Description
+======== ===========
+name                
+======== ===========
 
 Defined in Feature:
 
@@ -183,7 +191,7 @@ Methods
 
 	Example usage::
 
-		(theToy:approachVerbs(V_DO V_EAT))
+		(theToy approachVerbs: V_DO V_EAT)
 
 
 
@@ -209,9 +217,9 @@ Methods
 
 	Example usage::
 
-		(theTable:setOnMeCheck(omcCOLORS ctlWHITE ctlGREY))
+		(theTable setOnMeCheck: omcCOLORS ctlWHITE ctlGREY)
 
-		(theRock:setOnMeCheck(omcPOLYGON CreateNewPolygon(@P_TheRock))
+		(theRock setOnMeCheck: omcPOLYGON (CreateNewPolygon @P_TheRock))
 
 
 

@@ -34,7 +34,7 @@ View (of :class:`Feature`)
 	
 	Example initialization::
 	
-		(ship:init())
+		(ship init:)
 	
 
 
@@ -53,7 +53,7 @@ Subclasses: :class:`Prop`.
 		Prop -> Actor
 		Prop -> Door
 		Actor -> Ego
-		Ego -> SQEgo
+		Ego -> GameEgo
 		Narrator -> Talker
 		Narrator -> ChoiceNarrator
 		Talker -> PriorityTalker
@@ -87,6 +87,7 @@ approachX      The approach spot x.
 approachY      The approach spot y.                                     
 approachDist   The approach distance.                                   
 _approachVerbs Bitmask indicating which verbs cause the ego to approach.
+name                                                                    
 ============== =========================================================
 
 Defined in View:

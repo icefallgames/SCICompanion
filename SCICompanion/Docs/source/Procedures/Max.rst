@@ -4,9 +4,9 @@
 
 .. include:: /includes/standard.rst
 
-============
-Max (Obj.sc)
-============
+===============
+Max (System.sc)
+===============
 
 
 .. function:: Max(param1 [...])

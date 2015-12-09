@@ -18,7 +18,7 @@ Sounds (of :class:`EventHandler`)
 	
 	Example usage::
 	
-		(send gSounds:pause(TRUE))
+		(gSounds pause: TRUE)
 
 
 Properties
@@ -31,6 +31,7 @@ Property Description
 ======== ===========
 elements            
 size                
+name                
 ======== ===========
 
 

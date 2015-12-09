@@ -10,7 +10,7 @@ EventHandler (of :class:`Set`)
 
 .. class:: EventHandler
 
-	Defined in Obj.sc.
+	Defined in System.sc.
 
 	The EventHandler class is an extension of the Set class. Is used as a multi event handler.
 
@@ -27,6 +27,7 @@ Property Description
 ======== ===========
 elements            
 size                
+name                
 ======== ===========
 
 

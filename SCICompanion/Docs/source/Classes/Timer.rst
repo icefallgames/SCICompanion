@@ -4,9 +4,9 @@
 
 .. include:: /includes/standard.rst
 
-=======================
-Timer (of :class:`Obj`)
-=======================
+==========================
+Timer (of :class:`Object`)
+==========================
 
 .. class:: Timer
 
@@ -17,12 +17,20 @@ Timer (of :class:`Obj`)
 	
 	Example usage::
 	
-		// Make a timer to cue() the current object in 3 seconds
-		(send ((Timer:new())):set(self 3))
+		; Make a timer to cue() the current object in 3 seconds
+		((Timer new:) set: self 3)
 
 
 Properties
 ==========
+
+Inherited from :class:`Object`:
+
+======== ===========
+Property Description
+======== ===========
+name                
+======== ===========
 
 Defined in Timer:
 

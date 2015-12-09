@@ -10,7 +10,7 @@ Conversation (of :class:`List`)
 
 .. class:: Conversation
 
-	Defined in MessageObj.sc.
+	Defined in Conversation.sc.
 
 	
 	This seems to be a class to which you can add a series of messages that will be displayed one
@@ -28,6 +28,7 @@ Property Description
 ======== ===========
 elements            
 size                
+name                
 ======== ===========
 
 Defined in Conversation:

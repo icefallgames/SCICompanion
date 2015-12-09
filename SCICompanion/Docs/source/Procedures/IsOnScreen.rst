@@ -4,9 +4,9 @@
 
 .. include:: /includes/standard.rst
 
-=======================
-IsOnScreen (Helpers.sc)
-=======================
+=====================
+IsOnScreen (Sight.sc)
+=====================
 
 .. function:: IsOnScreen(theObj)
 

@@ -4,13 +4,13 @@
 
 .. include:: /includes/standard.rst
 
-========================
-Script (of :class:`Obj`)
-========================
+===========================
+Script (of :class:`Object`)
+===========================
 
 .. class:: Script
 
-	Defined in Obj.sc.
+	Defined in System.sc.
 
 	
 	The Script class (different than a script file) is a very important part of the game. A Script instance can be attached
@@ -22,6 +22,14 @@ Subclasses: :class:`CueObj`.
 
 Properties
 ==========
+
+Inherited from :class:`Object`:
+
+======== ===========
+Property Description
+======== ===========
+name                
+======== ===========
 
 Defined in Script:
 

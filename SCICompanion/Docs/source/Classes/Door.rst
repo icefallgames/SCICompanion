@@ -48,7 +48,7 @@ Door (of :class:`Prop`)
 		Prop -> Actor
 		Prop -> Door
 		Actor -> Ego
-		Ego -> SQEgo
+		Ego -> GameEgo
 		Narrator -> Talker
 		Narrator -> ChoiceNarrator
 		Talker -> PriorityTalker
@@ -107,6 +107,7 @@ cycler
 timer                     
 detailLevel               
 scaler                    
+name                      
 ============== ===========
 
 Defined in Door:

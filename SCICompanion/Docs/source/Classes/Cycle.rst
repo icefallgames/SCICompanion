@@ -4,9 +4,9 @@
 
 .. include:: /includes/standard.rst
 
-=======================
-Cycle (of :class:`Obj`)
-=======================
+==========================
+Cycle (of :class:`Object`)
+==========================
 
 .. class:: Cycle
 
@@ -19,10 +19,10 @@ Cycle (of :class:`Obj`)
 	Example usage::
 	
 		// Cycle the cels of myProp forward.
-		(myProp:setCycle(Fwd))
+		(myProp setCycle: Forward)
 
 
-Subclasses: :class:`Smopper`, :class:`MouthSync`, :class:`FlickerCycler`, :class:`Fwd`, :class:`Rev`, :class:`Blink`, :class:`CT`, :class:`ROsc`, :class:`Osc`, :class:`RandCycle`, :class:`MCyc`, :class:`Grycler`.
+Subclasses: :class:`MouthSync`, :class:`Smopper`, :class:`MoveCycle`, :class:`FlickerCycler`, :class:`Forward`, :class:`Blink`, :class:`RangeOscillate`, :class:`Oscillate`, :class:`RandCycle`, :class:`Reverse`, :class:`GradualCycler`, :class:`CycleTo`.
 
 .. blockdiag::
 	:alt: class diagram
@@ -30,29 +30,37 @@ Subclasses: :class:`Smopper`, :class:`MouthSync`, :class:`FlickerCycler`, :class
 
 	diagram {
 		default_fontsize = 16
-		Cycle -> Smopper
 		Cycle -> MouthSync
+		Cycle -> Smopper
+		Cycle -> MoveCycle
 		Cycle -> FlickerCycler
-		Cycle -> Fwd
-		Cycle -> Rev
+		Cycle -> Forward
 		Cycle -> Blink
-		Cycle -> CT
-		Cycle -> ROsc
-		Cycle -> Osc
+		Cycle -> RangeOscillate
+		Cycle -> Oscillate
 		Cycle -> RandCycle
-		Cycle -> MCyc
-		Cycle -> Grycler
-		CT -> End
-		CT -> Beg
-		Fwd -> ForwardCounter
-		Fwd -> StopWalk
-		Fwd -> Walk
+		Cycle -> Reverse
+		Cycle -> GradualCycler
+		Cycle -> CycleTo
+		CycleTo -> EndLoop
+		CycleTo -> BegLoop
+		Forward -> ForwardCounter
+		Forward -> StopWalk
+		Forward -> Walk
 		Smopper -> FiddleStopWalk
 		Cycle [color=greenyellow]
 	}
 
 Properties
 ==========
+
+Inherited from :class:`Object`:
+
+======== ===========
+Property Description
+======== ===========
+name                
+======== ===========
 
 Defined in Cycle:
 

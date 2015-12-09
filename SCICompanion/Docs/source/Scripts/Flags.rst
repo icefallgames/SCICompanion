@@ -13,5 +13,5 @@ Flags.sc
 Classes
 ==========
 
-:class:`Flags` of Obj
+:class:`Flags` of Object
 

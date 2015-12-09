@@ -21,32 +21,34 @@ The SCI 1.1 template game consists of about 35 public procedures.
 	Procedures/Bclear
 	Procedures/Bset
 	Procedures/Btest
+	Procedures/CantBeSeen
 	Procedures/ColorInit
 	Procedures/CreateNewPolygon
 	Procedures/DebugPrint
 	Procedures/DebugRoomInit
 	Procedures/Die
 	Procedures/DisposeLoad
-	Procedures/DoesRectContain
-	Procedures/EditPrint
+	Procedures/Eval
+	Procedures/FindFormatLen
 	Procedures/FlipFeature
 	Procedures/FlipPolygons
-	Procedures/FormatPrint
-	Procedures/GetMouseRelease
+	Procedures/GetDirectory
+	Procedures/GetInput
 	Procedures/GetNumber
-	Procedures/GetTotalLength
-	Procedures/GetValueAt
 	Procedures/HideStatus
-	Procedures/IsFacing
+	Procedures/InRect
 	Procedures/IsObjectOnControl
 	Procedures/IsOneOf
 	Procedures/IsOnScreen
 	Procedures/Max
 	Procedures/Min
-	Procedures/Modulo
-	Procedures/Perform
+	Procedures/MouseStillDown
+	Procedures/Printf
+	Procedures/Prints
 	Procedures/RestorePreviousHandsOn
+	Procedures/ScoreFlag
 	Procedures/SetUpEgo
 	Procedures/Sign
-	Procedures/TextPrint
+	Procedures/UModulo
+	Procedures/WordAt
 

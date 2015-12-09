@@ -18,7 +18,7 @@ AddPolygonsToRoom (Main.sc)
 	
 	Example usage::
 	
-		AddPolygonsToRoom(@P_ThePolygons)
+		(AddPolygonsToRoom @P_ThePolygons)
 	
 	The array begins with a number indicating how many polygons there are. This is followed
 	by the following information for each polygon:
@@ -29,7 +29,7 @@ AddPolygonsToRoom (Main.sc)
 	
 	Example::
 	
-		P_ThePolygons[19] = (2 PContainedAccess 4 319 189 319 50 0 50 0 189 PBarredAccess 3 319 189 319 50 0 50)
+		[P_ThePolygons 19] = [2 PContainedAccess 4 319 189 319 50 0 50 0 189 PBarredAccess 3 319 189 319 50 0 50]
 	
 	See also: :doc:`/polygons`.		
 

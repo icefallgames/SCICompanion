@@ -26,6 +26,14 @@ Subclasses: :class:`ScaleTo`.
 Properties
 ==========
 
+Inherited from :class:`Code`:
+
+======== ===========
+Property Description
+======== ===========
+name                
+======== ===========
+
 Defined in Scaler:
 
 ========= ===========

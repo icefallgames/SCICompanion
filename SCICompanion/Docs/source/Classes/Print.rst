@@ -4,9 +4,9 @@
 
 .. include:: /includes/standard.rst
 
-=======================
-Print (of :class:`Obj`)
-=======================
+==========================
+Print (of :class:`Object`)
+==========================
 
 .. class:: Print
 
@@ -16,24 +16,32 @@ Print (of :class:`Obj`)
 	The Print class lets you show text, buttons and images in a GUI on screen.
 	
 	It is generally used as a static class, in the sense that you call methods on Print
-	directly without making an instance of it. The init() method then displays the dialog.
+	directly without making an instance of it. The init: method then displays the dialog.
 	
 	Example usage::
 	
-		(Print:
-			addTitle("This is the title")
-			font(0)
-			width(90)
-			addText("Enter new font number:")
-			addEdit(@temp0 6 0 24)
-			addButton(0 "A button!" 0 12)
-			init()
+		(Print
+			addTitle: "This is the title"
+			font: 0
+			width: 90
+			addText: "Enter new font number:"
+			addEdit: @temp0 6 0 24
+			addButton: 0 "A button!" 0 12
+			init:
 		)
 	
 
 
 Properties
 ==========
+
+Inherited from :class:`Object`:
+
+======== ===========
+Property Description
+======== ===========
+name                
+======== ===========
 
 Defined in Print:
 

@@ -13,5 +13,5 @@ Polygon.sc
 Classes
 ==========
 
-:class:`Polygon` of Obj
+:class:`Polygon` of Object
 

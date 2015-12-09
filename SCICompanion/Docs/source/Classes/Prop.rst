@@ -37,9 +37,9 @@ Prop (of :class:`View`)
 	Example initialization::
 	
 		(monitor:
-			init()
-			setCycle(Fwd)
-			setScript(sPlayMC)
+			init:
+			setCycle: Forward
+			setScript: sPlayMC
 		)
 
 
@@ -58,7 +58,7 @@ Subclasses: :class:`Narrator`, :class:`Actor`, :class:`Door`.
 		Prop -> Actor
 		Prop -> Door
 		Actor -> Ego
-		Ego -> SQEgo
+		Ego -> GameEgo
 		Narrator -> Talker
 		Narrator -> ChoiceNarrator
 		Talker -> PriorityTalker
@@ -111,6 +111,7 @@ scaleSignal
 scaleX         Current x scale.                                         
 scaleY         Current y scale.                                         
 maxScale       Max scale.                                               
+name                                                                    
 ============== =========================================================
 
 Defined in Prop:
@@ -173,11 +174,11 @@ Methods
 
 	Example usage for attaching a dynamic scaler::
 
-		(send gEgo:setScale(Scaler frontSize backSize frontY backY))
+		(gEgo setScale: Scaler frontSize backSize frontY backY)
 
 	Example usage for setting an explicit scale::
 
-		(send gEgo:setScale(50)) // 50 percent size.
+		(gEgo setScale: 50) // 50 percent size.
 
 	:param class class: A scaler class, such as Scaler.
 	:param heapPtr obj: An instance of a scaler class.
@@ -195,11 +196,11 @@ Methods
 	
 	Example usage for telling a Prop to cycle forward::
 	
-		(theFrog:setCycle(Fwd))
+		(theFrog setCycle: Forward)
 	
 	Example usage for telling a Prop to cycle to the end, then cue its caller::
 	
-		(theFrog:setCycle(End self))
+		(theFrog setCycle: EndLoop self)
 	
 	:param class theCycler: A class derived from :class:`Cycle`, or NULL to remove the current cycler.
 	
@@ -214,7 +215,7 @@ Methods
 	
 	Example usage::
 	
-		(self:setScript(theRoomScript))
+		(self setScript: theRoomScript)
 	
 	
 

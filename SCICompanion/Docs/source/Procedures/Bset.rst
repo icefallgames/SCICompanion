@@ -18,9 +18,9 @@ Bset (Main.sc)
 	
 	Example usage::
 	
-		(case V_DO
-			Bset(FLAG_OpenedSewer)
-			(sewer:setCel(3))
+		(V_DO
+			(Bset FLAG_OpenedSewer)
+			(sewer setCel: 3)
 		)
 
 

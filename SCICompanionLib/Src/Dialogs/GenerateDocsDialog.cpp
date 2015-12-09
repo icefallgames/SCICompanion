@@ -128,7 +128,7 @@ template<typename _TFunc>
 void GenerateDocsDialog::_GenerateDocHelper(_TFunc f)
 {
     m_wndGeneratedFiles.ResetContent();
-
+    
     CString strText;
     m_wndFolder.GetWindowText(strText);
     std::string docGenFolder = (PCSTR)strText;

@@ -4,13 +4,13 @@
 
 .. include:: /includes/standard.rst
 
-============================
-MessageObj (of :class:`Obj`)
-============================
+===============================
+MessageObj (of :class:`Object`)
+===============================
 
 .. class:: MessageObj
 
-	Defined in MessageObj.sc.
+	Defined in Conversation.sc.
 
 	
 	This class works in
@@ -19,6 +19,14 @@ MessageObj (of :class:`Obj`)
 
 Properties
 ==========
+
+Inherited from :class:`Object`:
+
+======== ===========
+Property Description
+======== ===========
+name                
+======== ===========
 
 Defined in MessageObj:
 

@@ -27,6 +27,6 @@ DebugPrint (Main.sc)
 	
 	Example usage::
 	
-		DebugPrint("You are in room %d" gRoomNumber)
+		(DebugPrint {You are in room %d} gNewRoomNumber)
 
 

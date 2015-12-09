@@ -19,7 +19,7 @@ PFollow (of :class:`PolyPath`)
 	PFollow is generally used as an argument for setMotion::
 	
 		// Make the dog follow the ego at a distance of 20
-		(aDog:setMotion(PFollow gEgo 20))
+		(aDog setMotion: PFollow gEgo 20)
 
 
 .. blockdiag::
@@ -75,6 +75,7 @@ points
 finalX               
 finalY               
 obstacles            
+name                 
 ========= ===========
 
 Defined in PFollow:

@@ -16,5 +16,5 @@ including invoking the appropriate :class:`Talker` instances to display the mess
 Classes
 ==========
 
-:class:`Messager` of Obj
+:class:`Messager` of Object
 

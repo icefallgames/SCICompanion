@@ -13,5 +13,5 @@ File.sc
 Classes
 ==========
 
-:class:`File` of Obj
+:class:`File` of Object
 

@@ -4,15 +4,15 @@
 
 .. include:: /includes/standard.rst
 
-==========================
-List (of :class:`Collect`)
-==========================
+=============================
+List (of :class:`Collection`)
+=============================
 
 .. class:: List
 
-	Defined in Obj.sc.
+	Defined in System.sc.
 
-	The List class is an extension of the Collect class. It is used to handle a list of elements such as objects that can be accessed by index.
+	The List class is an extension of the Collection class. It is used to handle a list of elements such as objects that can be accessed by index.
 
 
 Subclasses: :class:`Controls`, :class:`Dialog`, :class:`Set`, :class:`Conversation`, :class:`_EditablePolygon`, :class:`PolyEdit`, :class:`DialogEditor`.
@@ -20,13 +20,14 @@ Subclasses: :class:`Controls`, :class:`Dialog`, :class:`Set`, :class:`Conversati
 Properties
 ==========
 
-Inherited from :class:`Collect`:
+Inherited from :class:`Collection`:
 
 ======== ===========
 Property Description
 ======== ===========
 elements            
 size                
+name                
 ======== ===========
 
 

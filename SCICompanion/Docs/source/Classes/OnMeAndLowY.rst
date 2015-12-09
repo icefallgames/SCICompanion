@@ -19,6 +19,14 @@ OnMeAndLowY (of :class:`Code`)
 Properties
 ==========
 
+Inherited from :class:`Code`:
+
+======== ===========
+Property Description
+======== ===========
+name                
+======== ===========
+
 Defined in OnMeAndLowY:
 
 ======== ===========

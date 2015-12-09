@@ -13,7 +13,7 @@ Grooper.sc
 Classes
 ==========
 
-:class:`Grooper` of Code
+:class:`GradualLooper` of Code
 
-:class:`Grycler` of Cycle
+:class:`GradualCycler` of Cycle
 

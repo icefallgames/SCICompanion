@@ -38,7 +38,7 @@ Subclasses: :class:`PriorityTalker`, :class:`ChoiceTalker`.
 		Prop -> Actor
 		Prop -> Door
 		Actor -> Ego
-		Ego -> SQEgo
+		Ego -> GameEgo
 		Narrator -> Talker
 		Narrator -> ChoiceNarrator
 		Talker -> PriorityTalker
@@ -112,6 +112,7 @@ color
 back                       
 curVolume                  
 saveCursor                 
+name                       
 =============== ===========
 
 Defined in Talker:

@@ -13,5 +13,5 @@ Sound.sc
 Classes
 ==========
 
-:class:`Sound` of Obj
+:class:`Sound` of Object
 

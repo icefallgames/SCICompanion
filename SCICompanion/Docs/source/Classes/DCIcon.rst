@@ -23,13 +23,13 @@ DCIcon (of :class:`DIcon`)
 	diagram {
 		default_fontsize = 16
 		Control -> DText
-		Control -> DSelector
 		Control -> DButton
+		Control -> DSelector
 		Control -> DEdit
 		Control -> DIcon
 		DIcon -> DCIcon
-		DButton -> DColorButton
 		DSelector -> FileSelector
+		DButton -> DColorButton
 		DCIcon [color=greenyellow]
 	}
 
@@ -53,6 +53,7 @@ value
 view                
 loop                
 cel                 
+name                
 ======== ===========
 
 Defined in DCIcon:

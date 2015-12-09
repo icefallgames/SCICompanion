@@ -16,12 +16,13 @@ The SCI 1.1 template game consists of about 80 scripts.
 
 	Scripts/Actor
 	Scripts/Approach
-	Scripts/Blk
+	Scripts/Block
 	Scripts/BorderWindow
 	Scripts/Chase
 	Scripts/ChoiceTalker
 	Scripts/ColorInit
 	Scripts/Controls
+	Scripts/Conversation
 	Scripts/Cycle
 	Scripts/DCIcon
 	Scripts/DColorButton
@@ -43,21 +44,19 @@ The SCI 1.1 template game consists of about 80 scripts.
 	Scripts/ForwardCounter
 	Scripts/Game
 	Scripts/GameControls
+	Scripts/GameEgo
 	Scripts/Gauge
 	Scripts/Grooper
-	Scripts/Helpers
 	Scripts/IconItem
 	Scripts/Inset
 	Scripts/InventoryItem
 	Scripts/Jump
 	Scripts/Main
-	Scripts/MCyc
-	Scripts/MessageObj
 	Scripts/Messager
+	Scripts/MoveCycle
 	Scripts/MoveFwd
-	Scripts/Obj
 	Scripts/Orbit
-	Scripts/Osc
+	Scripts/Oscillate
 	Scripts/PAvoider
 	Scripts/PChase
 	Scripts/PFollow
@@ -68,23 +67,24 @@ The SCI 1.1 template game consists of about 80 scripts.
 	Scripts/PriorityTalker
 	Scripts/PseudoMouse
 	Scripts/RandCycle
+	Scripts/RangeOscillate
 	Scripts/RegionPath
 	Scripts/RelDPath
-	Scripts/Rev
-	Scripts/ROsc
+	Scripts/Reverse
+	Scripts/SaveRestoreDialog
 	Scripts/Scaler
 	Scripts/ScaleTo
 	Scripts/ScrollableInventory
 	Scripts/ScrollInsetWindow
+	Scripts/Sight
 	Scripts/Slider
 	Scripts/SmoothLooper
 	Scripts/Smopper
 	Scripts/Sound
 	Scripts/SpeakWindow
-	Scripts/SQEgo
-	Scripts/SRDialog
 	Scripts/StopWalk
 	Scripts/Sync
+	Scripts/System
 	Scripts/SysWindow
 	Scripts/Talker
 	Scripts/Timer

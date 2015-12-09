@@ -20,7 +20,7 @@ Ego (of :class:`Actor`)
 	- Handles getting and losing inventory items.
 
 
-Subclasses: :class:`SQEgo`.
+Subclasses: :class:`GameEgo`.
 
 .. blockdiag::
 	:alt: class diagram
@@ -35,7 +35,7 @@ Subclasses: :class:`SQEgo`.
 		Prop -> Actor
 		Prop -> Door
 		Actor -> Ego
-		Ego -> SQEgo
+		Ego -> GameEgo
 		Narrator -> Talker
 		Narrator -> ChoiceNarrator
 		Talker -> PriorityTalker
@@ -107,6 +107,7 @@ looper
 viewer                    
 avoider                   
 code                      
+name                      
 ============== ===========
 
 Defined in Ego:
@@ -154,7 +155,7 @@ Methods
 	Example usage::
 
 		// Give the ego the crystal and the lizard tail.
-		(send gEgo:get(INV_CRYSTAL INV_LIZARDTAIL))
+		( gEgo get: INV_CRYSTAL INV_LIZARDTAIL)
 
 
 
@@ -170,7 +171,7 @@ Methods
 	Example usage::
 
 		// The ego used lizard tail, so remove it from the inventory:
-		(send gEgo:put(INV_LIZARDTAIL))
+		(gEgo put: INV_LIZARDTAIL)
 
 
 
@@ -184,7 +185,7 @@ Methods
 	
 	Example usage::
 	
-		(if (send gEgo:has(INV_LIZARDTAIL))
+		(if (gEgo has: INV_LIZARDTAIL)
 			// Do something...
 		)
 	

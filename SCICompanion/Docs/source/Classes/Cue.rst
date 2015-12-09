@@ -4,9 +4,9 @@
 
 .. include:: /includes/standard.rst
 
-=====================
-Cue (of :class:`Obj`)
-=====================
+========================
+Cue (of :class:`Object`)
+========================
 
 .. class:: Cue
 
@@ -18,6 +18,14 @@ Cue (of :class:`Obj`)
 
 Properties
 ==========
+
+Inherited from :class:`Object`:
+
+======== ===========
+Property Description
+======== ===========
+name                
+======== ===========
 
 Defined in Cue:
 

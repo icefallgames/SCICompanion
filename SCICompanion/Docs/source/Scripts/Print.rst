@@ -13,16 +13,16 @@ This script contains a number of useful procedures for printing text on the scre
 Classes
 ==========
 
-:class:`Print` of Obj
+:class:`Print` of Object
 
 Public Procedures
 =================
 
-:func:`TextPrint`
+:func:`Prints`
 
-:func:`FormatPrint`
+:func:`Printf`
 
-:func:`EditPrint`
+:func:`GetInput`
 
-:func:`GetTotalLength`
+:func:`FindFormatLen`
 

@@ -23,13 +23,13 @@ DColorButton (of :class:`DButton`)
 	diagram {
 		default_fontsize = 16
 		Control -> DText
-		Control -> DSelector
 		Control -> DButton
+		Control -> DSelector
 		Control -> DEdit
 		Control -> DIcon
 		DIcon -> DCIcon
-		DButton -> DColorButton
 		DSelector -> FileSelector
+		DButton -> DColorButton
 		DColorButton [color=greenyellow]
 	}
 
@@ -52,6 +52,7 @@ said     Unused
 value               
 text                
 font                
+name                
 ======== ===========
 
 Defined in DColorButton:

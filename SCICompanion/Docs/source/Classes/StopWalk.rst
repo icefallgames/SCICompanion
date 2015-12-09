@@ -4,9 +4,9 @@
 
 .. include:: /includes/standard.rst
 
-==========================
-StopWalk (of :class:`Fwd`)
-==========================
+==============================
+StopWalk (of :class:`Forward`)
+==============================
 
 .. class:: StopWalk
 
@@ -19,7 +19,7 @@ StopWalk (of :class:`Fwd`)
 	
 	Example usage::
 	
-		(john:setCycle(StopWalk -1))
+		(john setCycle: StopWalk -1)
 
 
 .. blockdiag::
@@ -28,23 +28,23 @@ StopWalk (of :class:`Fwd`)
 
 	diagram {
 		default_fontsize = 16
-		Cycle -> Smopper
 		Cycle -> MouthSync
+		Cycle -> Smopper
+		Cycle -> MoveCycle
 		Cycle -> FlickerCycler
-		Cycle -> Fwd
-		Cycle -> Rev
+		Cycle -> Forward
 		Cycle -> Blink
-		Cycle -> CT
-		Cycle -> ROsc
-		Cycle -> Osc
+		Cycle -> RangeOscillate
+		Cycle -> Oscillate
 		Cycle -> RandCycle
-		Cycle -> MCyc
-		Cycle -> Grycler
-		CT -> End
-		CT -> Beg
-		Fwd -> ForwardCounter
-		Fwd -> StopWalk
-		Fwd -> Walk
+		Cycle -> Reverse
+		Cycle -> GradualCycler
+		Cycle -> CycleTo
+		CycleTo -> EndLoop
+		CycleTo -> BegLoop
+		Forward -> ForwardCounter
+		Forward -> StopWalk
+		Forward -> Walk
 		Smopper -> FiddleStopWalk
 		StopWalk [color=greenyellow]
 	}
@@ -52,7 +52,7 @@ StopWalk (of :class:`Fwd`)
 Properties
 ==========
 
-Inherited from :class:`Fwd`:
+Inherited from :class:`Forward`:
 
 ========= ===========
 Property  Description
@@ -62,6 +62,7 @@ caller
 cycleDir             
 cycleCnt             
 completed            
+name                 
 ========= ===========
 
 Defined in StopWalk:

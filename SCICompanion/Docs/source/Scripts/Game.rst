@@ -15,13 +15,11 @@ Classes
 
 :class:`Sounds` of EventHandler
 
-:class:`Cue` of Obj
+:class:`Cue` of Object
 
-:class:`Game` of Obj
+:class:`Game` of Object
 
-:class:`Rgn` of Obj
+:class:`Region` of Object
 
-:class:`Rm` of Rgn
-
-:class:`SL` of Obj
+:class:`Room` of Region
 

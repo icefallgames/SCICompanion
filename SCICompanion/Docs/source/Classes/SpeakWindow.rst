@@ -44,6 +44,7 @@ lsLeft
 lsBottom             
 lsRight              
 eraseOnly            
+name                 
 ========= ===========
 
 Defined in SpeakWindow:

@@ -13,5 +13,5 @@ StopWalk.sc
 Classes
 ==========
 
-:class:`StopWalk` of Fwd
+:class:`StopWalk` of Forward
 

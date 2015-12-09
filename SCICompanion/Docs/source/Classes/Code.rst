@@ -4,13 +4,13 @@
 
 .. include:: /includes/standard.rst
 
-======================
-Code (of :class:`Obj`)
-======================
+=========================
+Code (of :class:`Object`)
+=========================
 
 .. class:: Code
 
-	Defined in Obj.sc.
+	Defined in System.sc.
 
 	
 	Code is just a convenient base class to inherit from when
@@ -18,10 +18,18 @@ Code (of :class:`Obj`)
 	functionality.
 
 
-Subclasses: :class:`Grooper`, :class:`OnMeAndLowY`, :class:`PseudoMouse`, :class:`Inset`, :class:`PAvoider`, :class:`Scaler`, :class:`SmoothLooper`.
+Subclasses: :class:`GradualLooper`, :class:`PseudoMouse`, :class:`Inset`, :class:`PAvoider`, :class:`Scaler`, :class:`SmoothLooper`, :class:`OnMeAndLowY`.
 
 Properties
 ==========
+
+Inherited from :class:`Object`:
+
+======== ===========
+Property Description
+======== ===========
+name                
+======== ===========
 
 
 Methods

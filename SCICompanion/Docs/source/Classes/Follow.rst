@@ -18,7 +18,7 @@ Follow (of :class:`Motion`)
 	Example usage::	
 	
 		// Make the dog follow the ego at a distance of 20
-		(aDog:setMotion(Follow gEgo 20))
+		(aDog setMotion: Follow gEgo 20)
 	
 	Note that this class doesn't intelligently move the Actor around polygon obstacles. For that, use :class:`PFollow`.
 
@@ -71,6 +71,7 @@ b-incr
 completed                                                              
 xLast                                                                  
 yLast                                                                  
+name                                                                   
 ========= =============================================================
 
 Defined in Follow:

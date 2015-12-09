@@ -4,9 +4,9 @@
 
 .. include:: /includes/standard.rst
 
-===========================
-SysWindow (of :class:`Obj`)
-===========================
+==============================
+SysWindow (of :class:`Object`)
+==============================
 
 .. class:: SysWindow
 
@@ -19,6 +19,14 @@ Subclasses: :class:`BorderWindow`, :class:`SpeakWindow`, :class:`DlgWindow`, :cl
 
 Properties
 ==========
+
+Inherited from :class:`Object`:
+
+======== ===========
+Property Description
+======== ===========
+name                
+======== ===========
 
 Defined in SysWindow:
 

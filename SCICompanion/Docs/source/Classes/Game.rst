@@ -4,9 +4,9 @@
 
 .. include:: /includes/standard.rst
 
-======================
-Game (of :class:`Obj`)
-======================
+=========================
+Game (of :class:`Object`)
+=========================
 
 .. class:: Game
 
@@ -30,6 +30,14 @@ Subclasses: :class:`SQ5`.
 
 Properties
 ==========
+
+Inherited from :class:`Object`:
+
+======== ===========
+Property Description
+======== ===========
+name                
+======== ===========
 
 Defined in Game:
 
@@ -78,7 +86,7 @@ Methods
 	.. IMPORTANT::
 	    To change to a new room, you should *not* use this method. Instead, use the newRoom method on the current room, e.g::
 	
-	    	(send gRoom:newRoom(105))
+	    	(gRoom newRoom: 105)
 	
 
 
@@ -98,11 +106,6 @@ Methods
 
 
 .. function:: save()
-	:noindex:
-
-
-
-.. function:: changeScore(param1)
 	:noindex:
 
 
@@ -165,7 +168,7 @@ Methods
 	
 	Example usage::
 	
-		(send gGame:handsOff())
+		(gGame handsOff:)
 	
 
 
@@ -177,7 +180,7 @@ Methods
 	
 	Example usage::
 	
-		(send gGame:handsOn())
+		(gGame handsOn:)
 	
 
 

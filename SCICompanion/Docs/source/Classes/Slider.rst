@@ -57,6 +57,7 @@ lowlightColor
 noun                      
 modNum                    
 helpVerb                  
+name                      
 ============== ===========
 
 Defined in Slider:

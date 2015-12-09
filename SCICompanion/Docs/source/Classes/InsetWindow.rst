@@ -49,6 +49,7 @@ rgtBordColor
 botBordColor            
 bevelWid                
 shadowWid               
+name                    
 ============ ===========
 
 Defined in InsetWindow:

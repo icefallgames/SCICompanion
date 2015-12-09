@@ -4,13 +4,13 @@
 
 .. include:: /includes/standard.rst
 
-======================
-Cage (of :class:`Blk`)
-======================
+========================
+Cage (of :class:`Block`)
+========================
 
 .. class:: Cage
 
-	Defined in Blk.sc.
+	Defined in Block.sc.
 
 	
 	This class defines a rectangular area to which an Actor is constrained. In SCI1.1, this has mostly been
@@ -18,19 +18,19 @@ Cage (of :class:`Blk`)
 	
 	Example usage::
 	
-		(theFrog:observeBlocks((send ((Blk:new())):
-			left(150)
-			top(140)
-			right(170)
-			bottom(160)
-			yourself()
+		(theFrog observeBlocks: ((Cage new:)
+			left: 150
+			top: 140
+			right: 170
+			bottom: 160
+			yourself: )
 		)
 
 
 Properties
 ==========
 
-Inherited from :class:`Blk`:
+Inherited from :class:`Block`:
 
 ======== ===========
 Property Description
@@ -39,6 +39,7 @@ top
 left                
 bottom              
 right               
+name                
 ======== ===========
 
 

@@ -19,7 +19,7 @@ MoveTo (of :class:`Motion`)
 	Example usage::
 	
 		// Move a bird to (200, 37), then call the cue() method on us.	
-		(bird:setMotion(MoveTo 200 37 self))
+		(bird setMotion: MoveTo 200 37 self)
 
 
 Subclasses: :class:`RegionPath`.
@@ -72,6 +72,7 @@ b-incr
 completed                                                              
 xLast                                                                  
 yLast                                                                  
+name                                                                   
 ========= =============================================================
 
 

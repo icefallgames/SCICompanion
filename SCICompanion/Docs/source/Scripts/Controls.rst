@@ -15,7 +15,7 @@ This script has a number of important general purpose classes and public procedu
 Classes
 ==========
 
-:class:`Control` of Obj
+:class:`Control` of Object
 
 :class:`DText` of Control
 
@@ -24,7 +24,7 @@ Classes
 Public Procedures
 =================
 
-:func:`GetMouseRelease`
+:func:`MouseStillDown`
 
 :func:`GetNumber`
 

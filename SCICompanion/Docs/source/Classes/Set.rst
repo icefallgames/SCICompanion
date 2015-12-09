@@ -10,7 +10,7 @@ Set (of :class:`List`)
 
 .. class:: Set
 
-	Defined in Obj.sc.
+	Defined in System.sc.
 
 	The Set class extends the List class by ensuring there can be no duplicate objects in the set.
 
@@ -27,6 +27,7 @@ Property Description
 ======== ===========
 elements            
 size                
+name                
 ======== ===========
 
 

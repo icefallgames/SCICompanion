@@ -4,9 +4,9 @@
 
 .. include:: /includes/standard.rst
 
-=======================
-Sound (of :class:`Obj`)
-=======================
+==========================
+Sound (of :class:`Object`)
+==========================
 
 .. class:: Sound
 
@@ -29,12 +29,20 @@ Sound (of :class:`Obj`)
 		)
 	
 		// Then in script at some point:
-		(rainSound:play())
+		(rainSound play:)
 	
 
 
 Properties
 ==========
+
+Inherited from :class:`Object`:
+
+======== ===========
+Property Description
+======== ===========
+name                
+======== ===========
 
 Defined in Sound:
 

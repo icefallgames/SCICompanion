@@ -13,7 +13,7 @@ Smopper (of :class:`Cycle`)
 	Defined in Smopper.sc.
 
 	
-	Smopper (or "smooth stopper") is a complex cycler similar to :class:`StopWalk`, but allowing the use
+	Smopper is a complex cycler similar to :class:`StopWalk`, but allowing the use
 	of separate starting and stopping views. This can be used to allow for more realistic
 	movement when starting and stopping.
 	
@@ -31,23 +31,23 @@ Subclasses: :class:`FiddleStopWalk`.
 
 	diagram {
 		default_fontsize = 16
-		Cycle -> Smopper
 		Cycle -> MouthSync
+		Cycle -> Smopper
+		Cycle -> MoveCycle
 		Cycle -> FlickerCycler
-		Cycle -> Fwd
-		Cycle -> Rev
+		Cycle -> Forward
 		Cycle -> Blink
-		Cycle -> CT
-		Cycle -> ROsc
-		Cycle -> Osc
+		Cycle -> RangeOscillate
+		Cycle -> Oscillate
 		Cycle -> RandCycle
-		Cycle -> MCyc
-		Cycle -> Grycler
-		CT -> End
-		CT -> Beg
-		Fwd -> ForwardCounter
-		Fwd -> StopWalk
-		Fwd -> Walk
+		Cycle -> Reverse
+		Cycle -> GradualCycler
+		Cycle -> CycleTo
+		CycleTo -> EndLoop
+		CycleTo -> BegLoop
+		Forward -> ForwardCounter
+		Forward -> StopWalk
+		Forward -> Walk
 		Smopper -> FiddleStopWalk
 		Smopper [color=greenyellow]
 	}
@@ -65,6 +65,7 @@ caller
 cycleDir             
 cycleCnt             
 completed            
+name                 
 ========= ===========
 
 Defined in Smopper:

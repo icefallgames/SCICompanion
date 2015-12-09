@@ -39,6 +39,7 @@ seconds
 lastSeconds            
 eatTheMice             
 lastTicks              
+name                   
 =========== ===========
 
 Defined in Gauge:

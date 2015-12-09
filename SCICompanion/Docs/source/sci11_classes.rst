@@ -21,25 +21,25 @@ To view the classes and procedures by their scripts, see :doc:`sci11_scripts`
 	Classes/Actor
 	Classes/AnimDialog
 	Classes/Approach
-	Classes/Beg
+	Classes/BegLoop
 	Classes/Blink
-	Classes/Blk
+	Classes/Block
 	Classes/BorderWindow
 	Classes/Cage
 	Classes/Chase
 	Classes/ChoiceNarrator
 	Classes/ChoiceTalker
 	Classes/Code
-	Classes/Collect
+	Classes/Collection
 	Classes/Control
 	Classes/ControlIcon
 	Classes/Controls
 	Classes/Conversation
-	Classes/CT
 	Classes/Cue
 	Classes/CueObj
 	Classes/Cursor
 	Classes/Cycle
+	Classes/CycleTo
 	Classes/DButton
 	Classes/DCIcon
 	Classes/DColorButton
@@ -52,7 +52,7 @@ To view the classes and procedures by their scripts, see :doc:`sci11_scripts`
 	Classes/DSelector
 	Classes/DText
 	Classes/Ego
-	Classes/End
+	Classes/EndLoop
 	Classes/Event
 	Classes/EventHandler
 	Classes/Feature
@@ -63,13 +63,14 @@ To view the classes and procedures by their scripts, see :doc:`sci11_scripts`
 	Classes/Flags
 	Classes/FlickerCycler
 	Classes/Follow
+	Classes/Forward
 	Classes/ForwardCounter
-	Classes/Fwd
 	Classes/Game
 	Classes/GameControls
+	Classes/GameEgo
 	Classes/Gauge
-	Classes/Grooper
-	Classes/Grycler
+	Classes/GradualCycler
+	Classes/GradualLooper
 	Classes/IconBar
 	Classes/IconItem
 	Classes/Inset
@@ -79,18 +80,18 @@ To view the classes and procedures by their scripts, see :doc:`sci11_scripts`
 	Classes/Jump
 	Classes/JumpTo
 	Classes/List
-	Classes/MCyc
 	Classes/MessageObj
 	Classes/Messager
 	Classes/Motion
 	Classes/MouthSync
+	Classes/MoveCycle
 	Classes/MoveFwd
 	Classes/MoveTo
 	Classes/Narrator
-	Classes/Obj
+	Classes/Object
 	Classes/OnMeAndLowY
 	Classes/Orbit
-	Classes/Osc
+	Classes/Oscillate
 	Classes/PAvoider
 	Classes/PChase
 	Classes/PFollow
@@ -102,21 +103,21 @@ To view the classes and procedures by their scripts, see :doc:`sci11_scripts`
 	Classes/Prop
 	Classes/PseudoMouse
 	Classes/RandCycle
+	Classes/RangeOscillate
+	Classes/Region
 	Classes/RegionPath
 	Classes/RelDPath
 	Classes/Restore
-	Classes/Rev
-	Classes/Rgn
-	Classes/Rm
-	Classes/ROsc
+	Classes/Reverse
+	Classes/Room
 	Classes/Save
+	Classes/SaveRestoreDialog
 	Classes/Scaler
 	Classes/ScaleTo
 	Classes/Script
 	Classes/ScrollableInventory
 	Classes/ScrollInsetWindow
 	Classes/Set
-	Classes/SL
 	Classes/Slider
 	Classes/SmoothLooper
 	Classes/Smopper
@@ -124,14 +125,12 @@ To view the classes and procedures by their scripts, see :doc:`sci11_scripts`
 	Classes/Sounds
 	Classes/SpeakWindow
 	Classes/SQ5
-	Classes/SQEgo
-	Classes/SRDialog
 	Classes/StopWalk
 	Classes/Sync
 	Classes/SysWindow
 	Classes/Talker
+	Classes/TimeOut
 	Classes/Timer
-	Classes/TO
 	Classes/Track
 	Classes/User
 	Classes/View

@@ -49,6 +49,7 @@ empty
 iconBarInvItem             
 okButton                   
 selectIcon                 
+name                       
 =============== ===========
 
 Defined in ScrollableInventory:

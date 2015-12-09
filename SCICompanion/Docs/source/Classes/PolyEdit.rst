@@ -31,6 +31,7 @@ Property Description
 ======== ===========
 elements            
 size                
+name                
 ======== ===========
 
 Defined in PolyEdit:

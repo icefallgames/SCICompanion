@@ -22,23 +22,23 @@ Blink (of :class:`Cycle`)
 
 	diagram {
 		default_fontsize = 16
-		Cycle -> Smopper
 		Cycle -> MouthSync
+		Cycle -> Smopper
+		Cycle -> MoveCycle
 		Cycle -> FlickerCycler
-		Cycle -> Fwd
-		Cycle -> Rev
+		Cycle -> Forward
 		Cycle -> Blink
-		Cycle -> CT
-		Cycle -> ROsc
-		Cycle -> Osc
+		Cycle -> RangeOscillate
+		Cycle -> Oscillate
 		Cycle -> RandCycle
-		Cycle -> MCyc
-		Cycle -> Grycler
-		CT -> End
-		CT -> Beg
-		Fwd -> ForwardCounter
-		Fwd -> StopWalk
-		Fwd -> Walk
+		Cycle -> Reverse
+		Cycle -> GradualCycler
+		Cycle -> CycleTo
+		CycleTo -> EndLoop
+		CycleTo -> BegLoop
+		Forward -> ForwardCounter
+		Forward -> StopWalk
+		Forward -> Walk
 		Smopper -> FiddleStopWalk
 		Blink [color=greenyellow]
 	}
@@ -56,6 +56,7 @@ caller
 cycleDir             
 cycleCnt             
 completed            
+name                 
 ========= ===========
 
 Defined in Blink:

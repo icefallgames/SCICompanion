@@ -18,19 +18,19 @@ It also contains the Motion base class, and the MoveTo motion.
 Classes
 ==========
 
-:class:`Cycle` of Obj
+:class:`Cycle` of Object
 
-:class:`Fwd` of Cycle
+:class:`Forward` of Cycle
 
-:class:`Walk` of Fwd
+:class:`Walk` of Forward
 
-:class:`CT` of Cycle
+:class:`CycleTo` of Cycle
 
-:class:`End` of CT
+:class:`EndLoop` of CycleTo
 
-:class:`Beg` of CT
+:class:`BegLoop` of CycleTo
 
-:class:`Motion` of Obj
+:class:`Motion` of Object
 
 :class:`MoveTo` of Motion
 

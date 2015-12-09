@@ -13,12 +13,12 @@ DPath (of :class:`Motion`)
 	Defined in DPath.sc.
 
 	
-	DPath (or "directed path") uses a list of locations to direct the :class:`Actor` towards its destination.
+	DPath (or "dynamic path") uses a list of locations to direct the :class:`Actor` towards its destination.
 	
 	Example usage::
 	
 		// Send the hoverGuys along 3 points to the destination, then cue() the caller.
-		(hoverGuys:setMotion(DPath 255 137 154 138 140 137 self))
+		(hoverGuys setMotion: DPath 255 137 154 138 140 137 self)
 
 
 Subclasses: :class:`RelDPath`.
@@ -71,6 +71,7 @@ b-incr
 completed                                                              
 xLast                                                                  
 yLast                                                                  
+name                                                                   
 ========= =============================================================
 
 Defined in DPath:

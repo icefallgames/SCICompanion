@@ -39,7 +39,7 @@ Subclasses: :class:`Talker`, :class:`ChoiceNarrator`.
 		Prop -> Actor
 		Prop -> Door
 		Actor -> Ego
-		Ego -> SQEgo
+		Ego -> GameEgo
 		Narrator -> Talker
 		Narrator -> ChoiceNarrator
 		Talker -> PriorityTalker
@@ -52,53 +52,54 @@ Properties
 
 Inherited from :class:`Prop`:
 
-============== ===========
-Property       Description
-============== ===========
-x                         
-y                         
-z                         
-heading                   
-noun                      
-modNum                    
-nsTop                     
-nsLeft                    
-nsBottom                  
-nsRight                   
-sightAngle                
-actions                   
-onMeCheck                 
-state                     
-approachX                 
-approachY                 
-approachDist              
-_approachVerbs            
-yStep                     
-view                      
-loop                      
-cel                       
-priority                  
-underBits                 
-signal                    
-lsTop                     
-lsLeft                    
-lsBottom                  
-lsRight                   
-brTop                     
-brLeft                    
-brBottom                  
-brRight                   
-scaleSignal               
-scaleX                    
-scaleY                    
-maxScale                  
-cycleSpeed                
-script                    
-cycler                    
-timer                     
-detailLevel               
-scaler                    
-============== ===========
+============== ===============
+Property       Description    
+============== ===============
+x              -1 means center
+y              -1 means center
+z                             
+heading                       
+noun                          
+modNum                        
+nsTop                         
+nsLeft                        
+nsBottom                      
+nsRight                       
+sightAngle                    
+actions                       
+onMeCheck                     
+state                         
+approachX                     
+approachY                     
+approachDist                  
+_approachVerbs                
+yStep                         
+view                          
+loop                          
+cel                           
+priority                      
+underBits                     
+signal                        
+lsTop                         
+lsLeft                        
+lsBottom                      
+lsRight                       
+brTop                         
+brLeft                        
+brBottom                      
+brRight                       
+scaleSignal                   
+scaleX                        
+scaleY                        
+maxScale                      
+cycleSpeed                    
+script                        
+cycler                        
+timer                         
+detailLevel                   
+scaler                        
+name                          
+============== ===============
 
 Defined in Narrator:
 

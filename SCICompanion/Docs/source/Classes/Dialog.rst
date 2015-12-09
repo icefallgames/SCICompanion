@@ -14,7 +14,7 @@ Dialog (of :class:`List`)
 
 
 
-Subclasses: :class:`AnimDialog`, :class:`SRDialog`, :class:`Gauge`.
+Subclasses: :class:`AnimDialog`, :class:`SaveRestoreDialog`, :class:`Gauge`.
 
 Properties
 ==========
@@ -26,6 +26,7 @@ Property Description
 ======== ===========
 elements            
 size                
+name                
 ======== ===========
 
 Defined in Dialog:

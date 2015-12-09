@@ -4,9 +4,9 @@
 
 .. include:: /includes/standard.rst
 
-========================
-Motion (of :class:`Obj`)
-========================
+===========================
+Motion (of :class:`Object`)
+===========================
 
 .. class:: Motion
 
@@ -46,6 +46,14 @@ Subclasses: :class:`Wander`, :class:`DPath`, :class:`MoveTo`, :class:`Approach`,
 Properties
 ==========
 
+Inherited from :class:`Object`:
+
+======== ===========
+Property Description
+======== ===========
+name                
+======== ===========
+
 Defined in Motion:
 
 ========= =============================================================
@@ -55,14 +63,14 @@ client    The :class:`Actor` to which this is attached.
 caller    The object that will get cue()'d when the motion is complete.
 x                                                                      
 y                                                                      
-dx                                                                     
+dx        Step size.                                                   
 dy                                                                     
 b-moveCnt                                                              
 b-i1                                                                   
 b-i2                                                                   
 b-di                                                                   
-b-xAxis                                                                
-b-incr                                                                 
+b-xAxis   Which axis is the motion along?                              
+b-incr    Bresenham adjustment.                                        
 completed                                                              
 xLast                                                                  
 yLast                                                                  

@@ -4,9 +4,9 @@
 
 .. include:: /includes/standard.rst
 
-================
-IsOneOf (Obj.sc)
-================
+===================
+IsOneOf (System.sc)
+===================
 
 
 .. function:: IsOneOf(thing [...])
@@ -14,7 +14,7 @@ IsOneOf (Obj.sc)
 ::
 
 	(= roomNumber 100)
-	(= thisWillBeTRUE IsOneOf(roomNumber 50 100 150 200))
+	(= thisWillBeTRUE (IsOneOf roomNumber 50 100 150 200))
 
 :returns: TRUE if thing is equal to one of the parameters that follows it.
 

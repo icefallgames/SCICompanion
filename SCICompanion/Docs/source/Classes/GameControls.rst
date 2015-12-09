@@ -42,6 +42,7 @@ window
 state                      
 activateHeight             
 y                          
+name                       
 =============== ===========
 
 Defined in GameControls:

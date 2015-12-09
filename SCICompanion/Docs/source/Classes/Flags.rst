@@ -4,9 +4,9 @@
 
 .. include:: /includes/standard.rst
 
-=======================
-Flags (of :class:`Obj`)
-=======================
+==========================
+Flags (of :class:`Object`)
+==========================
 
 .. class:: Flags
 
@@ -19,6 +19,14 @@ Flags (of :class:`Obj`)
 
 Properties
 ==========
+
+Inherited from :class:`Object`:
+
+======== ===========
+Property Description
+======== ===========
+name                
+======== ===========
 
 Defined in Flags:
 

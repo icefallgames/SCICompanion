@@ -4,19 +4,27 @@
 
 .. include:: /includes/standard.rst
 
-========================
-Cursor (of :class:`Obj`)
-========================
+===========================
+Cursor (of :class:`Object`)
+===========================
 
 .. class:: Cursor
 
-	Defined in Obj.sc.
+	Defined in System.sc.
 
 	The Cursor class represents an onscreen mouse cursor.
 
 
 Properties
 ==========
+
+Inherited from :class:`Object`:
+
+======== ===========
+Property Description
+======== ===========
+name                
+======== ===========
 
 Defined in Cursor:
 

@@ -18,8 +18,8 @@ Btest (Main.sc)
 	
 	Example usage::
 	
-		(if (not Btest(FLAG_OpenedSewer))
-			TextPrint("You can't enter, the sewer is closed.")
+		(if (not (Btest FLAG_OpenedSewer))
+			(Prints {You can't enter, the sewer is closed.})
 		)
 
 

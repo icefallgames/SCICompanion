@@ -4,9 +4,9 @@
 
 .. include:: /includes/standard.rst
 
-======================
-File (of :class:`Obj`)
-======================
+=========================
+File (of :class:`Object`)
+=========================
 
 .. class:: File
 
@@ -17,27 +17,26 @@ File (of :class:`Obj`)
 	
 	Example usage::
 	
-		(var myFile)
-	
-		= myFile (File:new())
-		(if ((send newFile:
-			name("myfile.txt")
-			open(fOPENFAIL)
-			 ))
-	
-			 // Read stuff from file, etc...
+		= myFile (File new:)
+		(if (newFile name: "myfile.txt" open: fOPENFAIL)
+			 ; Read stuff from file, etc...
 		)
 	
-		// Close the file.
-		(send newFile:
-			close()
-			dispose()
-		)
+		; Close the file.
+		(newFile close: dispose:)
 	
 
 
 Properties
 ==========
+
+Inherited from :class:`Object`:
+
+======== ===========
+Property Description
+======== ===========
+name                
+======== ===========
 
 Defined in File:
 

@@ -27,12 +27,20 @@ SmoothLooper (of :class:`Code`)
 		)
 	
 		// Then in code:
-		(theGuy:looper(mySmooper))
+		(theGuy looper: mySmooper)
 	
 
 
 Properties
 ==========
+
+Inherited from :class:`Code`:
+
+======== ===========
+Property Description
+======== ===========
+name                
+======== ===========
 
 Defined in SmoothLooper:
 

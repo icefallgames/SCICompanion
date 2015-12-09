@@ -18,7 +18,7 @@ PChase (of :class:`PolyPath`)
 	PChase is generally used as an argument for setMotion::
 	
 		// Make the peasant approach the merchant, within 20 pixels.
-		(peasant:setMotion(PChase theMerchant 20))
+		(peasant setMotion: PChase theMerchant 20)
 
 
 .. blockdiag::
@@ -74,6 +74,7 @@ points
 finalX               
 finalY               
 obstacles            
+name                 
 ========= ===========
 
 Defined in PChase:

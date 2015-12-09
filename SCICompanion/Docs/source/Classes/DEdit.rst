@@ -22,13 +22,13 @@ DEdit (of :class:`Control`)
 	diagram {
 		default_fontsize = 16
 		Control -> DText
-		Control -> DSelector
 		Control -> DButton
+		Control -> DSelector
 		Control -> DEdit
 		Control -> DIcon
 		DIcon -> DCIcon
-		DButton -> DColorButton
 		DSelector -> FileSelector
+		DButton -> DColorButton
 		DEdit [color=greenyellow]
 	}
 
@@ -49,6 +49,7 @@ nsRight
 key      The keyboard key associated with this control.
 said                                                   
 value    Arbitrary value associated with this control. 
+name                                                   
 ======== ==============================================
 
 Defined in DEdit:

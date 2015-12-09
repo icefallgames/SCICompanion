@@ -34,9 +34,9 @@ Actor (of :class:`Prop`)
 	
 	Example initialization::
 	
-		(wd40:
-			init()
-			setMotion(PolyPath 127 128)
+		(wd40
+			init:
+			setMotion: PolyPath 127 128
 		)
 	
 
@@ -56,7 +56,7 @@ Subclasses: :class:`Ego`.
 		Prop -> Actor
 		Prop -> Door
 		Actor -> Ego
-		Ego -> SQEgo
+		Ego -> GameEgo
 		Narrator -> Talker
 		Narrator -> ChoiceNarrator
 		Talker -> PriorityTalker
@@ -115,6 +115,7 @@ cycler         :class:`Cycle` attached to the Actor.
 timer                                                                   
 detailLevel                                                             
 scaler         :class:`Scaler` object attached to the Actor.            
+name                                                                    
 ============== =========================================================
 
 Defined in Actor:
@@ -207,7 +208,7 @@ Methods
 	
 	Example usage for moving a ball to a particular position, and cueing the caller when it's done::
 	
-		(myBall:setMotion(MoveTo 123 100 self))
+		(myBall setMotion: MoveTo 123 100 self)
 	
 
 
@@ -281,8 +282,8 @@ Methods
 
 	Example usage::
 
-		(if (& ctlGREEN (send gEgo:onControl()))
-			Print("The ego is on Green")
+		(if (& ctlGREEN (gEgo onControl:))
+			(Prints {The ego is on Green})
 		)
 
 

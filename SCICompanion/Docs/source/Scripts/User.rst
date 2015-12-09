@@ -13,7 +13,7 @@ User.sc
 Classes
 ==========
 
-:class:`User` of Obj
+:class:`User` of Object
 
 :class:`OnMeAndLowY` of Code
 

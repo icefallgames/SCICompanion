@@ -15,5 +15,5 @@ Classes
 
 :class:`CueObj` of Script
 
-:class:`Feature` of Obj
+:class:`Feature` of Object
 

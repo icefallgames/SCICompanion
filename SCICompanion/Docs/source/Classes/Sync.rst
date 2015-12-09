@@ -4,9 +4,9 @@
 
 .. include:: /includes/standard.rst
 
-======================
-Sync (of :class:`Obj`)
-======================
+=========================
+Sync (of :class:`Object`)
+=========================
 
 .. class:: Sync
 
@@ -18,6 +18,14 @@ Sync (of :class:`Obj`)
 
 Properties
 ==========
+
+Inherited from :class:`Object`:
+
+======== ===========
+Property Description
+======== ===========
+name                
+======== ===========
 
 Defined in Sync:
 

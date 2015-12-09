@@ -4,9 +4,9 @@
 
 .. include:: /includes/standard.rst
 
-======================
-AngleDiff (Helpers.sc)
-======================
+====================
+AngleDiff (Sight.sc)
+====================
 
 .. function:: AngleDiff(angle1 angle2)
 

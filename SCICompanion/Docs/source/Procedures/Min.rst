@@ -4,9 +4,9 @@
 
 .. include:: /includes/standard.rst
 
-============
-Min (Obj.sc)
-============
+===============
+Min (System.sc)
+===============
 
 
 .. function:: Min(param1 [...])

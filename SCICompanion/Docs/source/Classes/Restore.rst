@@ -4,13 +4,13 @@
 
 .. include:: /includes/standard.rst
 
-==============================
-Restore (of :class:`SRDialog`)
-==============================
+=======================================
+Restore (of :class:`SaveRestoreDialog`)
+=======================================
 
 .. class:: Restore
 
-	Defined in SRDialog.sc.
+	Defined in SaveRestoreDialog.sc.
 
 	The Restore Game dialog.
 
@@ -18,7 +18,7 @@ Restore (of :class:`SRDialog`)
 Properties
 ==========
 
-Inherited from :class:`SRDialog`:
+Inherited from :class:`SaveRestoreDialog`:
 
 =========== ===========
 Property    Description
@@ -39,6 +39,7 @@ seconds
 lastSeconds            
 eatTheMice             
 lastTicks              
+name                   
 =========== ===========
 
 

@@ -4,9 +4,9 @@
 
 .. include:: /includes/standard.rst
 
-==========================
-IconItem (of :class:`Obj`)
-==========================
+=============================
+IconItem (of :class:`Object`)
+=============================
 
 .. class:: IconItem
 
@@ -17,9 +17,9 @@ IconItem (of :class:`Obj`)
 	
 	If you wish to do something in response to the icon being clicked, override the select(params) method in your IconItem instance like so::
 	
-	    (method (select params)
-	        (if ((super:select(rest params)))
-	            // Do something here....
+	    (method (select)
+	        (if (super select: &rest)
+	            ; Do something here....
 	        )
 	        return 0
 	    )
@@ -41,6 +41,14 @@ Subclasses: :class:`ControlIcon`, :class:`Slider`, :class:`InventoryItem`.
 
 Properties
 ==========
+
+Inherited from :class:`Object`:
+
+======== ===========
+Property Description
+======== ===========
+name                
+======== ===========
 
 Defined in IconItem:
 

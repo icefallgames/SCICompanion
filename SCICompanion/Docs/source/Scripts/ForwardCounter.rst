@@ -13,5 +13,5 @@ ForwardCounter.sc
 Classes
 ==========
 
-:class:`ForwardCounter` of Fwd
+:class:`ForwardCounter` of Forward
 

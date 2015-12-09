@@ -4,9 +4,9 @@
 
 .. include:: /includes/standard.rst
 
-======================
-User (of :class:`Obj`)
-======================
+=========================
+User (of :class:`Object`)
+=========================
 
 .. class:: User
 
@@ -17,13 +17,21 @@ User (of :class:`Obj`)
 	
 	Example usage::
 	
-		(if (send gUser:canControl())
-			// The user is in control...
+		(if (gUser canControl:)
+			; The user is in control...
 		)
 
 
 Properties
 ==========
+
+Inherited from :class:`Object`:
+
+======== ===========
+Property Description
+======== ===========
+name                
+======== ===========
 
 Defined in User:
 
@@ -66,7 +74,7 @@ Methods
 	:param boolean shouldControl: TRUE if the user should be in control, otherwise FALSE.
 
 	.. IMPORTANT::
-		Generally, (send gGame::handsOff()) and (send gGame::handsOn()) should be used to give and take away user control of the game.
+		Generally, (gGame handsOff:) and (gGame handsOn:) should be used to give and take away user control of the game.
 
 
 

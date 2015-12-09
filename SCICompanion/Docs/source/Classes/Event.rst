@@ -4,13 +4,13 @@
 
 .. include:: /includes/standard.rst
 
-=======================
-Event (of :class:`Obj`)
-=======================
+==========================
+Event (of :class:`Object`)
+==========================
 
 .. class:: Event
 
-	Defined in Obj.sc.
+	Defined in System.sc.
 
 	
 	The Event class is one of the most widely used classes in SCI games. It is used to find out if the user has given input.
@@ -61,6 +61,14 @@ Event (of :class:`Obj`)
 
 Properties
 ==========
+
+Inherited from :class:`Object`:
+
+======== ===========
+Property Description
+======== ===========
+name                
+======== ===========
 
 Defined in Event:
 

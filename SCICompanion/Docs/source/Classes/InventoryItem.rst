@@ -14,6 +14,7 @@ InventoryItem (of :class:`IconItem`)
 
 	
 	This extends :class:`IconItem` and adds the ability to automatically print messages (for the *look* and *do* verbs) that include a visual representation of the inventory item.
+	It also provides an owner property that indicates who owns the item.
 	
 	An example inventory item might look like::
 	
@@ -70,6 +71,7 @@ lowlightColor
 noun                      
 modNum                    
 helpVerb                  
+name                      
 ============== ===========
 
 Defined in InventoryItem:

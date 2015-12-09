@@ -4,9 +4,9 @@
 
 .. include:: /includes/standard.rst
 
-=============
-Sign (Obj.sc)
-=============
+================
+Sign (System.sc)
+================
 
 .. function:: Sign(number)
 

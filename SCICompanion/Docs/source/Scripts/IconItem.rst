@@ -13,7 +13,7 @@ IconItem.sc
 Classes
 ==========
 
-:class:`IconItem` of Obj
+:class:`IconItem` of Object
 
 :class:`IconBar` of Set
 

@@ -13,7 +13,7 @@ SysWindow.sc
 Classes
 ==========
 
-:class:`SysWindow` of Obj
+:class:`SysWindow` of Object
 
 :class:`Window` of SysWindow
 

@@ -4,9 +4,9 @@
 
 .. include:: /includes/standard.rst
 
-=========================
-Control (of :class:`Obj`)
-=========================
+============================
+Control (of :class:`Object`)
+============================
 
 .. class:: Control
 
@@ -15,7 +15,7 @@ Control (of :class:`Obj`)
 	A common base class for GUI controls.
 
 
-Subclasses: :class:`DText`, :class:`DSelector`, :class:`DButton`, :class:`DEdit`, :class:`DIcon`, :class:`_DItem`.
+Subclasses: :class:`DText`, :class:`DButton`, :class:`DSelector`, :class:`DEdit`, :class:`DIcon`, :class:`_DItem`.
 
 .. blockdiag::
 	:alt: class diagram
@@ -24,18 +24,26 @@ Subclasses: :class:`DText`, :class:`DSelector`, :class:`DButton`, :class:`DEdit`
 	diagram {
 		default_fontsize = 16
 		Control -> DText
-		Control -> DSelector
 		Control -> DButton
+		Control -> DSelector
 		Control -> DEdit
 		Control -> DIcon
 		DIcon -> DCIcon
-		DButton -> DColorButton
 		DSelector -> FileSelector
+		DButton -> DColorButton
 		Control [color=greenyellow]
 	}
 
 Properties
 ==========
+
+Inherited from :class:`Object`:
+
+======== ===========
+Property Description
+======== ===========
+name                
+======== ===========
 
 Defined in Control:
 
@@ -123,7 +131,7 @@ Methods
 	:noindex:
 
 	
-	:param number stateFlags: Any combination of csENABLED, csFOCUSED, csDISABLED or csSELECTED.
+	:param number stateFlags: Any combination of csENABLED, csEXIT, csFILTER or csSELECTED.
 	:returns: A non-zero value if the control has this state.
 	
 

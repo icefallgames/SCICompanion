@@ -4,9 +4,9 @@
 
 .. include:: /includes/standard.rst
 
-==========================
-Messager (of :class:`Obj`)
-==========================
+=============================
+Messager (of :class:`Object`)
+=============================
 
 .. class:: Messager
 
@@ -16,7 +16,7 @@ Messager (of :class:`Obj`)
 	Messager is responsible for automatically showing sequences of messages,
 	including invoking the appropriate :class:`Talker` instances to display the messages.
 	
-	In general, only one instance of Messager exists in the game, gTestMessager in the main.sc script.
+	In general, only one instance of Messager exists in the game, gMessager in the main.sc script.
 	
 	Messager is mostly commonly triggered automatically by the player performing an action on an object (e.g. a verb on a noun).
 	However, sometimes you will want to invoke it directly if you have more complex logic to deal with certain situations.
@@ -24,12 +24,20 @@ Messager (of :class:`Obj`)
 	
 	Example usage::
 	
-		(send gTestMessager:say(noun verb condition seqeuence caller roomNumber))	
+		(gMessager say: noun verb condition seqeuence caller roomNumber)	
 	
 
 
 Properties
 ==========
+
+Inherited from :class:`Object`:
+
+======== ===========
+Property Description
+======== ===========
+name                
+======== ===========
 
 Defined in Messager:
 

@@ -13,7 +13,7 @@ The Timer script contains the classes for timers, allowing the user to set up ti
 Classes
 ==========
 
-:class:`Timer` of Obj
+:class:`Timer` of Object
 
-:class:`TO` of Obj
+:class:`TimeOut` of Object
 

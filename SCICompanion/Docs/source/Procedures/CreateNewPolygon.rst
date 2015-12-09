@@ -18,7 +18,7 @@ CreateNewPolygon (Main.sc)
 	
 	Example usage::
 	
-		(aRock:setOnMeCheck(omcPOLYGON CreateNewPolygon(@P_Rock)))
+		(aRock setOnMeCheck: omcPOLYGON (CreateNewPolygon @P_Rock))
 
 	The array consists of the following:	
 	
@@ -28,7 +28,7 @@ CreateNewPolygon (Main.sc)
 		
 	Example::
 	
-		P_Rock[10] = (PContainedAccess 4 319 189 319 50 0 50 0 189 )
+		[P_Rock 10] = [PContainedAccess 4 319 189 319 50 0 50 0 189]
 		
 	See also: :doc:`/polygons`.
 

@@ -18,11 +18,19 @@ PAvoider (of :class:`Code`)
 	
 	Example usage::
 	
-		(send gEgo:setAvoider(PAvoider))
+		(gEgo setAvoider: PAvoider)
 
 
 Properties
 ==========
+
+Inherited from :class:`Code`:
+
+======== ===========
+Property Description
+======== ===========
+name                
+======== ===========
 
 Defined in PAvoider:
 

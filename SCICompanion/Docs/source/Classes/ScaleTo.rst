@@ -18,7 +18,7 @@ ScaleTo (of :class:`Scaler`)
 	Example usage::
 	
 		// Scale the portal down to 50% of its normal size.
-		(portal:setScale(ScaleTo 50))
+		(portal setScale: ScaleTo 50)
 
 
 Properties
@@ -37,6 +37,7 @@ backSize
 slopeNum             
 slopeDen             
 const                
+name                 
 ========= ===========
 
 Defined in ScaleTo:
