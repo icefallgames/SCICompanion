@@ -72,18 +72,6 @@ private:
     vector<BYTE> &_output;
 };
 
-struct PushWord : unary_function<WORD, void>
-{
-public:
-    PushWord(vector<BYTE> &output) : _output(output) {}
-    void operator()(const WORD w)
-    {
-        push_word(_output, w);
-    }
-private:
-    vector<BYTE> &_output;
-};
-
 
 bool CSCOFile::Load(sci::istream &stream)
 {
@@ -294,14 +282,9 @@ bool GetItemIndex(const vector<_T> &container, const string &name, WORD &wIndex)
     }
 }
 
-bool CSCOFile::GetVariableIndex(const std::string &variableName, WORD &wIndex, WORD &wType) const
+bool CSCOFile::GetVariableIndex(const std::string &variableName, WORD &wIndex) const
 {
-    bool fRet = GetItemIndex(_vars, variableName, wIndex);
-    if (fRet)
-    {
-        wType = _vars[wIndex].GetType();
-    }
-    return fRet;
+    return GetItemIndex(_vars, variableName, wIndex);
 }
 
 bool CSCOFile::GetExportIndex(const std::string &exportName, WORD &wIndex) const
@@ -554,12 +537,9 @@ bool CSCOObjectClass::Load(sci::istream &stream, SCOVersion version)
     {
         for (WORD i = 0; stream.good() && i < wNumMethods; i++)
         {
-            CSCOMethod method;
-            fRet = method.Create(stream);
-            if (fRet)
-            {
-                _methods.push_back(method);
-            }
+            uint16_t selector;
+            stream >> selector;
+            _methods.push_back(selector);
         }
     }
     return stream.good();
@@ -590,9 +570,9 @@ void CSCOObjectClass::DebugOut(std::ostream &out) const
     out << endl;
 
     out << (WORD)_methods.size() << " methods:" << endl;
-    for (const CSCOMethod &method : _methods)
+    for (auto method : _methods)
     {
-        method.DebugOut(out);
+        out << method << " ";
     }
    
     out << endl;
@@ -622,8 +602,8 @@ void CSCOObjectClass::Save(std::vector<BYTE> &output, SCOVersion version) const
         numNonDefaultProps = _properties.size() - numDefaultProps;
     }
 
-    push_word(output, (WORD)numNonDefaultProps);
-    push_word(output, (WORD)_methods.size());
+    push_word(output, (uint16_t)numNonDefaultProps);
+    push_word(output, (uint16_t)_methods.size());
     push_word(output, _wSpecies);
     push_word(output, _wSuperClass);
 
@@ -633,31 +613,7 @@ void CSCOObjectClass::Save(std::vector<BYTE> &output, SCOVersion version) const
         for_each(_properties.begin() + numDefaultProps, _properties.end(), FwdSave<CSCOObjectProperty>(output));
     }
     // Write the method selectors.
-    for_each(_methods.begin(), _methods.end(), FwdSave<CSCOMethod>(output));
-}
-
-
-bool CSCOMethod::operator==(const CSCOMethod& value) const
-{
-    return (_wSelector == value._wSelector);
-}
-bool CSCOMethod::operator!=(const CSCOMethod& value) const
-{
-    return !((*this) == value);
-}
-void CSCOMethod::Save(std::vector<BYTE> &output) const
-{
-    push_word(output, _wSelector);
-}
-void CSCOMethod::DebugOut(std::ostream &out) const
-{
-    out << _wSelector << endl;
-}
-bool CSCOMethod::Create(sci::istream &stream)
-{
-    // 1) selector
-    stream >> _wSelector;
-    return stream.good();
+    for_each(_methods.begin(), _methods.end(), [&output](uint16_t w) { push_word(output, w); });
 }
 
 void SaveSCOFile(const GameFolderHelper &helper, const CSCOFile &sco)
@@ -720,7 +676,7 @@ unique_ptr<CSCOFile> SCOFromScriptAndCompiledScript(const Script &script, const 
             newSCOObject.SetSuperClass(compiledObject->GetSuperClass());
 
             // Now the methods. All we care about are the selectors for the methods defined here.
-            vector<CSCOMethod> &methods = newSCOObject.GetMethods();
+            vector<uint16_t> &methods = newSCOObject.GetMethods();
             for (uint16_t methodSelector : compiledObject->GetMethods())
             {
                 methods.emplace_back(methodSelector);

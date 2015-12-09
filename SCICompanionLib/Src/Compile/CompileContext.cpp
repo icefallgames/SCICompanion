@@ -341,10 +341,9 @@ ResolvedToken CompileContext::LookupToken(const SyntaxNode *pNodeForError, const
         {
             // ResolvedToken::GlobalVariable
             // Keep going - check for global vars (script 0)
-            WORD w;
-            if (_scos[0].GetVariableIndex(str, wIndex, w)) // May not have a main - that's ok, this will create a dummy empty one.
+            if (_scos[0].GetVariableIndex(str, wIndex)) // May not have a main - that's ok, this will create a dummy empty one.
             {
-                dataType = w;
+                dataType = DataTypeAny;
                 tokenType = ResolvedToken::GlobalVariable;
             }
         }
@@ -522,7 +521,7 @@ vector<species_property> CompileContext::GetSpeciesProperties(const string &spec
                 const vector<CSCOObjectProperty> &properties = pClass->GetProperties();
 				for (auto &theProp : properties)
                 {
-                    species_property specProp = { theProp.GetSelector(), theProp.GetValue(), theProp.GetType(), false };
+                    species_property specProp = { theProp.GetSelector(), theProp.GetValue(), DataTypeAny, false };
                     propertiesRet.push_back(specProp);
                 }
                 break;
@@ -595,7 +594,6 @@ ProcedureType CompileContext::LookupProc(const string &str, WORD &wScript, WORD 
             // Also return the class owner for this procedure.
             classOwner = _localProcClassOwner[str];
             wIndex = c_TempIndex; // A temporary index
-            assert(_localProcs2.find(str) != _localProcs2.end());
         }
         else
         {
@@ -655,9 +653,9 @@ bool CompileContext::LookupSpeciesMethodOrProperty(SpeciesIndex wCallee, WORD wS
     CSCOObjectClass object;
     while (!fRet && _GetSCOObject(wCallee, object))
     {
-        for(const CSCOMethod &method : object.GetMethods())
+        for(uint16_t method : object.GetMethods())
         {
-            fRet = (method.GetSelector() == wSelector);
+            fRet = (method == wSelector);
             if (fRet)
             {
                 fMethod = true;
@@ -671,7 +669,7 @@ bool CompileContext::LookupSpeciesMethodOrProperty(SpeciesIndex wCallee, WORD wS
                 fRet = (property.GetSelector() == wSelector);
                 if (fRet)
                 {
-                    propertyType = property.GetType();
+                    propertyType = DataTypeAny;
                     break;
                 }
             }
@@ -1103,10 +1101,6 @@ void CompileContext::AddSCOPublics(CSCOPublicExport scoPublic)
 {
     assert(_wScriptNumber != InvalidResourceNumber);
     _scos[_wScriptNumber].AddPublic(scoPublic);
-}
-void CompileContext::AddFakeSCOPublic(CSCOPublicExport scoNotActuallyPublic)
-{
-    _localProcs2[scoNotActuallyPublic.GetName()] = scoNotActuallyPublic;
 }
 std::vector<CSCOObjectClass> &CompileContext::GetInstanceSCOs()
 {

@@ -363,22 +363,22 @@ void _WriteClassOrInstance(const CSCOObjectClass &object, bool fInstance, vector
     }
 
     // Method pointers
-    const vector<CSCOMethod> &methods = object.GetMethods();
+    const vector<uint16_t> &methods = object.GetMethods();
     // WORD: the number of methods
     push_word(output, (WORD)methods.size());
     // n*WORD: the method selectors
-    for (const CSCOMethod &scoMethod : methods)
+    for (uint16_t scoMethodSelector : methods)
     {
-        push_word(output, scoMethod.GetSelector());
+        push_word(output, scoMethodSelector);
     }
 
     // WORD: zero
     push_word(output, 0x0000);
     // n*WORD: the method function pointers
     string className = object.GetName();
-    for (const CSCOMethod &scoMethod : methods)
+    for (uint16_t scoMethod : methods)
     {
-        string methodName = pContext->LookupSelectorName(scoMethod.GetSelector());
+        string methodName = pContext->LookupSelectorName(scoMethod);
         assert(!methodName.empty()); // Means we have a bug.
         code_pos methodPos = pContext->GetLocalProcPos(className + "::" + methodName);
         // Then from the code_pos, we get the offset at which it was written.
@@ -889,16 +889,6 @@ void GenerateSCOPublics(CompileContext &context, const Script &script, bool allo
 
         wIndex++;
     }
-
-    // Also add a fake ones for non-public procs - we'll use this for function signature matching.
-    // These don't get saved.
-    uint16_t procIndex = 0;
-    for (const auto &pProc : procs)
-    {
-        CSCOPublicExport procExport(pProc->GetName(), procIndex);
-        context.AddFakeSCOPublic(procExport);
-        procIndex++;
-    }
 }
 
 //
@@ -920,7 +910,7 @@ void GenerateSCOVariables(CompileContext &context, const Script &script)
             context.ReportError(pVar.get(), "Unknown type for %s: %s.", pVar->GetName().c_str(), pVar->GetDataType().c_str());
         }
 
-        context.AddSCOVariable(CSCOLocalVariable(pVar->GetName(), wTypeSpecies.Type()));
+        context.AddSCOVariable(CSCOLocalVariable(pVar->GetName()));
         --wSize;
         // Fill up arrays with empty var names... this is important so the index remains correct
         for (WORD w = 0; w < wSize; w++)
@@ -1163,18 +1153,7 @@ void GenerateSCOObjects(CompileContext &context, const Script &script)
                 fTrackRelocation = overriddenIt->fTrackRelocation;
                 // We overrode it... class property syntax allows specifying a type.
             }
-
-            if (classDef->IsInstance())
-            {
-                // Don't care about type for instances
-                scoProperties.push_back(CSCOObjectProperty(speciesProp.wSelector, wValue, fTrackRelocation));
-            }
-            else
-            {
-                // For classes, make sure no type was specified.  BUT!!!! Re-use the type we know from
-                // the super class (just for convenience).
-                scoProperties.push_back(CSCOObjectProperty(speciesProp.wSelector, wValue, speciesProp.wType, fTrackRelocation));
-            }
+            scoProperties.push_back(CSCOObjectProperty(speciesProp.wSelector, wValue, fTrackRelocation));
             ++iIndex;
         }
         // Now scan the new props for any new properties!
@@ -1202,16 +1181,7 @@ void GenerateSCOObjects(CompileContext &context, const Script &script)
                     else
                     {
                         // This is a new property for this class.  The selector should have already been defined, if its new.
-                        // Also, this had better have a type.
-                        if (newProp.wType == DataTypeNone)
-                        {
-                            // Get some info for the error.
-                            string propName = context.LookupSelectorName(newProp.wSelector);
-                            ClassPropertyVector::const_iterator propIt = match_name(classDef->GetProperties().begin(), classDef->GetProperties().end(), propName);
-                            // propIt should always be valid.
-                            context.ReportError((*propIt).get(), "Property '%s' is not defined on the base class.  A data type must be supplied.", propName.c_str());
-                        }
-                        scoProperties.push_back(CSCOObjectProperty(newProp.wSelector, newProp.wValue, newProp.wType, newProp.fTrackRelocation));
+                        scoProperties.push_back(CSCOObjectProperty(newProp.wSelector, newProp.wValue, newProp.fTrackRelocation));
                     }
                 }
             }
@@ -1219,14 +1189,11 @@ void GenerateSCOObjects(CompileContext &context, const Script &script)
         sco.SetProperties(scoProperties);
 
         // Now methods
-        vector<CSCOMethod> methodsOut;
+        vector<uint16_t> methodsOut;
         for (auto &method : classDef->GetMethods())
         {
             const string &methodName = method->GetName();
-            CSCOMethod theMethod;
-            theMethod.SetSelector(context.LookupSelectorAndAdd(methodName)); // Add it if it doesn't exist.
-
-            methodsOut.push_back(theMethod);
+            methodsOut.push_back(context.LookupSelectorAndAdd(methodName)); // Add it if it doesn't exist.
         }
         sco.SetMethods(methodsOut);
         if (classDef->IsInstance())
@@ -1326,9 +1293,9 @@ void WriteMethodSelectors(const CSCOObjectClass &oClass, vector<uint8_t> &output
 {
     // Then the method selectors
     push_word(outputScr, (uint16_t)oClass.GetMethods().size());
-    for (auto &method : oClass.GetMethods())
+    for (uint16_t method : oClass.GetMethods())
     {
-        push_word(outputScr, method.GetSelector());
+        push_word(outputScr, method);
         trackMethodCodePointerOffsets.push_back((uint16_t)outputScr.size());
         push_word(outputScr, MethodCodeOffsetMarker);   // Something temporary for now
     }
@@ -1336,9 +1303,9 @@ void WriteMethodSelectors(const CSCOObjectClass &oClass, vector<uint8_t> &output
 
 void WriteMethodCodePointers(const CSCOObjectClass &oClass, vector<uint8_t> &outputScr, CompileContext &context, const vector<uint16_t> &trackMethodCodePointerOffsets, int &index)
 {
-    for (auto &method : oClass.GetMethods())
+    for (uint16_t method : oClass.GetMethods())
     {
-        string methodName = context.LookupSelectorName(method.GetSelector());
+        string methodName = context.LookupSelectorName(method);
         assert(!methodName.empty()); // Means we have a bug.
         code_pos methodPos = context.GetLocalProcPos(oClass.GetName() + "::" + methodName);
         // Then from the code_pos, we get the offset at which it was written.

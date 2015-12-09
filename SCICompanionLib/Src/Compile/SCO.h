@@ -55,9 +55,8 @@ private:
 class CSCOObjectProperty
 {
 public:
-    CSCOObjectProperty() : _wType(DataTypeAny) {}
-    CSCOObjectProperty(WORD wSelector, WORD wValue, bool fTrackRelocation = false) : _wNameIndex(wSelector), _wValue(wValue), _wType(DataTypeAny), _fNeedsReloc(fTrackRelocation) {}
-    CSCOObjectProperty(WORD wSelector, WORD wValue, WORD wType, bool fTrackRelocation = false) : _wNameIndex(wSelector), _wValue(wValue), _wType(wType), _fNeedsReloc(fTrackRelocation) {}
+    CSCOObjectProperty() {}
+    CSCOObjectProperty(WORD wSelector, WORD wValue, bool fTrackRelocation = false) : _wNameIndex(wSelector), _wValue(wValue), _fNeedsReloc(fTrackRelocation) {}
     bool operator==(const CSCOObjectProperty& value) const;
     bool operator!=(const CSCOObjectProperty& value) const;
     void Save(std::vector<BYTE> &output) const;
@@ -66,32 +65,12 @@ public:
     bool Create(sci::istream &stream);
     WORD GetSelector() const { return _wNameIndex; }
     WORD GetValue() const { return _wValue; }
-    WORD GetType() const { return _wType; }
     bool NeedsReloc() const { return _fNeedsReloc; }
 
 private:
     WORD _wNameIndex;
     WORD _wValue;
-    WORD _wType;    // Cpp only
     bool _fNeedsReloc;
-};
-
-class CSCOMethod
-{
-public:
-    CSCOMethod() {}
-    CSCOMethod(uint16_t selector) : _wSelector(selector) {}
-    bool operator==(const CSCOMethod& value) const;
-    bool operator!=(const CSCOMethod& value) const;
-    void Save(std::vector<BYTE> &output) const;
-    void DebugOut(std::ostream &out) const;
-    bool Create(sci::istream &stream);
-
-    void SetSelector(WORD wSelector) { _wSelector = wSelector; }
-    WORD GetSelector() const { return _wSelector; }
-    
-private:
-    WORD _wSelector;
 };
 
 class CSCOObjectClass
@@ -111,8 +90,8 @@ public:
 
     const std::string &GetName() const { return _strName; }
     bool Load(sci::istream &stream, SCOVersion version);
-    const std::vector<CSCOMethod> &GetMethods() const { return _methods; }
-    std::vector<CSCOMethod> &GetMethods() { return _methods; }
+    const std::vector<uint16_t> &GetMethods() const { return _methods; }
+    std::vector<uint16_t> &GetMethods() { return _methods; }
 
     // The properties include the default four properties (redundant, a bit)
     const std::vector<CSCOObjectProperty> &GetProperties() const { return _properties; }
@@ -123,14 +102,14 @@ public:
     WORD GetSpecies() const { return _wSpecies; }
     void SetSuperClass(WORD wSuper) { _wSuperClass = wSuper; }
     WORD GetSuperClass() const { return _wSuperClass; }
-    void SetMethods(const std::vector<CSCOMethod> &methods) { _methods = methods; }
+    void SetMethods(const std::vector<uint16_t> &methods) { _methods = methods; }
     void SetProperties(std::vector<CSCOObjectProperty> &properties) { _properties = properties; }
     void SetPublic(bool fPublic) { _fPublic = fPublic; }
     bool IsPublic() const { return _fPublic; }
  
 private:
     // Real data
-    std::vector<CSCOMethod> _methods;
+    std::vector<uint16_t> _methods;
     std::vector<CSCOObjectProperty> _properties;
     std::string _strName;
     WORD _wSpecies;
@@ -143,21 +122,18 @@ private:
 class CSCOLocalVariable
 {
 public:
-    CSCOLocalVariable() : _wType(DataTypeAny) {}
-    CSCOLocalVariable(const std::string &name) : _strName(name), _wType(DataTypeAny) {}
-    CSCOLocalVariable(const std::string &name, WORD wType) : _strName(name), _wType(wType) {}
+    CSCOLocalVariable() {}
+    CSCOLocalVariable(const std::string &name) : _strName(name) {}
     bool operator==(const CSCOLocalVariable& value) const;
     bool operator!=(const CSCOLocalVariable& value) const;
     void Save(std::vector<BYTE> &output) const;
     void DebugOut(std::ostream &out) const;
     const std::string &GetName() const { return _strName; }
-    const WORD GetType() const { return _wType; }
     bool Create(sci::istream &stream);
     void SetName(const std::string &name) { _strName = name; }
 
 private:
     std::string _strName;
-    WORD _wType;    // Cpp only
 };
 
 
@@ -189,7 +165,7 @@ public:
     std::string GetVariableName(WORD wIndex)  const;
     std::string GetExportName(WORD wIndex)  const;
     std::string GetClassName(WORD wIndex) const;
-    bool GetVariableIndex(const std::string &name, WORD &wIndex, WORD &wType) const;
+    bool GetVariableIndex(const std::string &name, WORD &wIndex) const;
     bool GetExportIndex(const std::string &name, WORD &wIndex) const;
     bool GetPublicExportByName(const std::string &exportName, CSCOPublicExport &theExport) const;
     bool GetClassIndex(std::string, WORD &wIndex) const;

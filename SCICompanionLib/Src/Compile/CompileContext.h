@@ -263,7 +263,6 @@ public:
     void ReplaceSCOClass(CSCOObjectClass scoClass);
     void AddSCOVariable(CSCOLocalVariable scoVar);
     void AddSCOPublics(CSCOPublicExport scoPublic);
-    void AddFakeSCOPublic(CSCOPublicExport scoNotActuallyPublic);
     std::vector<CSCOObjectClass> &GetInstanceSCOs();
     CSCOFile &GetScriptSCO();
     std::string LookupSelectorName(WORD wIndex) const;
@@ -302,8 +301,6 @@ private:
     std::vector<WORD> _publicInstances;
     // List of local procedures
     std::map<std::string, code_pos> _localProcs;
-    typedef std::map<std::string, CSCOPublicExport> LocalProcsMap;
-    LocalProcsMap _localProcs2;
     std::map<std::string, std::string> _localProcClassOwner;
     ref_multimap _localProcCalls;
     // MultiMap of instance/string/said references in code (string -> code_pos)
