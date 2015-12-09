@@ -1510,11 +1510,10 @@ CodeResult SendParam::OutputByteCode(CompileContext &context) const
         SpeciesIndex calleeSpecies = context.GetSendCalleeType();
         // Get the signatures for this method (or property)
 
-        std::vector<CSCOFunctionSignature> signatures;
         SpeciesIndex propertyType;
         bool fMethod;
 
-        if (context.LookupSpeciesMethodOrProperty(calleeSpecies, wSelector, signatures, propertyType, fMethod))
+        if (context.LookupSpeciesMethodOrProperty(calleeSpecies, wSelector, propertyType, fMethod))
         {
             if (fMethod)
             {

@@ -851,49 +851,6 @@ private:
     CompileContext &_context;
 };
 
-
-//
-// Given an array of FunctionSignatures, put them in the SCO function signature object.
-//
-void _CreateSCOFunctionSignature(CompileContext &context, std::vector<CSCOFunctionSignature> &scoSigs, const FunctionSignatureVector &signatures)
-{
-    for (auto &signature : signatures)
-    {
-        // Return type
-        CSCOFunctionSignature scoSig;
-        SpeciesIndex wReturnType = DataTypeAny;
-#if ENABLE_TYPED
-        SpeciesIndex wReturnType = 0;
-        if (!context.LookupTypeSpeciesIndex(signature->GetDataType(), wReturnType))
-        {
-            context.ReportError(signature.get(), "Unknown return type: %s.", signature->GetDataType().c_str());
-        }
-#endif
-        scoSig.SetReturnType(wReturnType.Type());
-
-        auto &params = signature->GetParams();
-        for_each(params.begin(), params.end(),
-            [&context, &scoSig, &signature](const unique_ptr<FunctionParameter> &param)
-        {
-            SpeciesIndex wParamType = DataTypeAny;
-#if ENABLE_TYPED
-            SpeciesIndex wParamType;
-            if (!context.LookupTypeSpeciesIndex(param->GetDataType(), wParamType))
-            {
-                context.ReportError(signature.get(), "Unknown type for parameter %s: %s.", param->GetName().c_str(), param->GetDataType().c_str());
-            }
-#endif
-            scoSig.AddParameterType(wParamType.Type());
-        }
-        );
-
-        scoSig.SetAdditionalParametersOk(signature->GetMoreParametersAllowed()); // Additional params
-        scoSig.SetRequiredParameterCount(static_cast<WORD>(signature->GetRequiredParameterCount()));
-        scoSigs.push_back(scoSig);
-    }
-}
-
-
 //
 // Adds the script's public instances and procedures to the sco file being compiled by the context
 //
@@ -912,10 +869,6 @@ void GenerateSCOPublics(CompileContext &context, const Script &script, bool allo
             {
                 auto pProc = static_cast<sci::ProcedureDefinition*>(exportTableInfo.SyntaxNodeWeak);
                 CSCOPublicExport procExport(pProc->GetName(), wIndex);
-                // Store the function signature(s).
-                std::vector<CSCOFunctionSignature> signatures;
-                _CreateSCOFunctionSignature(context, signatures, pProc->GetSignatures());
-                procExport.SetSignatures(signatures);
                 context.AddSCOPublics(procExport);
             }
                 break;
@@ -929,7 +882,6 @@ void GenerateSCOPublics(CompileContext &context, const Script &script, bool allo
                 {
                     context.ReportError(classDef, "Unknown superclass: %s.", classDef->GetSuperClass().c_str());
                 }
-                pe.SetInstanceSpecies(si);
                 context.AddSCOPublics(pe);
             }
                 break;
@@ -944,9 +896,6 @@ void GenerateSCOPublics(CompileContext &context, const Script &script, bool allo
     for (const auto &pProc : procs)
     {
         CSCOPublicExport procExport(pProc->GetName(), procIndex);
-        std::vector<CSCOFunctionSignature> signatures;
-        _CreateSCOFunctionSignature(context, signatures, pProc->GetSignatures());
-        procExport.SetSignatures(signatures);
         context.AddFakeSCOPublic(procExport);
         procIndex++;
     }
@@ -1276,11 +1225,6 @@ void GenerateSCOObjects(CompileContext &context, const Script &script)
             const string &methodName = method->GetName();
             CSCOMethod theMethod;
             theMethod.SetSelector(context.LookupSelectorAndAdd(methodName)); // Add it if it doesn't exist.
-
-            // Add the signatures:
-            std::vector<CSCOFunctionSignature> signatures;
-            _CreateSCOFunctionSignature(context, signatures, method->GetSignatures());
-            theMethod.SetSignatures(signatures);
 
             methodsOut.push_back(theMethod);
         }

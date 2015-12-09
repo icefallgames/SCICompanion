@@ -30,31 +30,6 @@ enum SCOVersion : uint8_t
 // Object model for .sco object files.
 //
 
-class CSCOFunctionSignature
-{
-public:
-    CSCOFunctionSignature() : _wReturnType(DataTypeAny), _wRequiredParameters(0), _fAdditionalParameters(true) {}
-    void Save(std::vector<BYTE> &output) const;
-    bool operator==(const CSCOFunctionSignature& value) const;
-    bool Create(sci::istream &stream);
-
-    SpeciesIndex GetReturnType() const { return _wReturnType; }
-    void SetReturnType(SpeciesIndex w) { _wReturnType = w; }
-    const std::vector<SpeciesIndex> &GetParameters() const { return _parameters; }
-    void AddParameterType(SpeciesIndex w) { _parameters.push_back(w); }
-    WORD GetParameterCount() const { return static_cast<WORD>(_parameters.size()); }
-    WORD GetRequiredParameterCount() const { return _wRequiredParameters; }
-    void SetRequiredParameterCount(WORD w) { _wRequiredParameters = w; ASSERT(w <= _parameters.size()); }
-    bool GetAdditionalParametersOk() const { return _fAdditionalParameters; }
-    void SetAdditionalParametersOk(bool b) { _fAdditionalParameters = b; }
-
-private:
-    SpeciesIndex _wReturnType;
-    std::vector<SpeciesIndex> _parameters;      // If none present, assume anything goes.
-    WORD _wRequiredParameters;                  // How many parameters are required
-    bool _fAdditionalParameters;                // Are additional unspecified parameters ok
-};
-
 //
 // Includes both public procedures and public instances
 //
@@ -72,24 +47,9 @@ public:
     bool operator!=(const CSCOPublicExport& value) const;
     void DebugOut(std::ostream &out) const;
 
-    // Procedures
-    const std::vector<CSCOFunctionSignature> &GetSignatures() const { return _signatures; }
-    void SetSignatures(const std::vector<CSCOFunctionSignature> &signatures) { _signatures = signatures; }
-
-    // Instances
-    void SetInstanceSpecies(SpeciesIndex si);
-    bool GetInstanceSpecies(SpeciesIndex &si) const;
-
 private:
     std::string _strName;   // Name
     WORD _wProcIndex;       // Index
-
-    // Cpp only - it's possible we can now remove this.
-    // Applies to procedures
-    // Also applies to instances.  In that case there is one signature whose return type is the instance species,
-    // and the function name is empty.
-    std::vector<CSCOFunctionSignature> _signatures;
-
 };
 
 class CSCOObjectProperty
@@ -129,13 +89,9 @@ public:
 
     void SetSelector(WORD wSelector) { _wSelector = wSelector; }
     WORD GetSelector() const { return _wSelector; }
-
-    const std::vector<CSCOFunctionSignature> &GetSignatures() const { return _signatures; }
-    void SetSignatures(const std::vector<CSCOFunctionSignature> &signatures) { _signatures = signatures; }
     
 private:
     WORD _wSelector;
-    std::vector<CSCOFunctionSignature> _signatures;
 };
 
 class CSCOObjectClass
@@ -236,7 +192,6 @@ public:
     bool GetVariableIndex(const std::string &name, WORD &wIndex, WORD &wType) const;
     bool GetExportIndex(const std::string &name, WORD &wIndex) const;
     bool GetPublicExportByName(const std::string &exportName, CSCOPublicExport &theExport) const;
-    std::vector<CSCOFunctionSignature> GetExportSignatures(WORD wIndex) const;
     bool GetClassIndex(std::string, WORD &wIndex) const;
     bool GetClass(std::string className, const CSCOObjectClass **ppClass) const;
     WORD GetScriptNumber() const { return _wScriptNumber; }

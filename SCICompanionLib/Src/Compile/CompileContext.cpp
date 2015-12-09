@@ -617,7 +617,6 @@ ProcedureType CompileContext::LookupProc(const string &str, WORD &wScript, WORD 
                         // Found it.
                         wScript = scoFile.GetScriptNumber();
                         type = ProcedureExternal;
-                        scoFile.GetExportSignatures(wIndex);
                     }
                 }
             }
@@ -648,7 +647,7 @@ bool CompileContext::_GetSCOObject(SpeciesIndex wSpecies, CSCOObjectClass &scoOb
     }
     return fRet;
 }
-bool CompileContext::LookupSpeciesMethodOrProperty(SpeciesIndex wCallee, WORD wSelector, std::vector<CSCOFunctionSignature> &signatures, SpeciesIndex &propertyType, bool &fMethod)
+bool CompileContext::LookupSpeciesMethodOrProperty(SpeciesIndex wCallee, WORD wSelector, SpeciesIndex &propertyType, bool &fMethod)
 {
     bool fRet = false;
     fMethod = false;
@@ -661,8 +660,6 @@ bool CompileContext::LookupSpeciesMethodOrProperty(SpeciesIndex wCallee, WORD wS
             fRet = (method.GetSelector() == wSelector);
             if (fRet)
             {
-                // Match. Return the signatures.
-                signatures = method.GetSignatures();
                 fMethod = true;
                 break;
             }

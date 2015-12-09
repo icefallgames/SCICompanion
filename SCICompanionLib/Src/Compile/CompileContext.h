@@ -177,7 +177,7 @@ public:
     ProcedureType LookupProc(const std::string &str, WORD &wScript, WORD &wIndex, std::string &classOwner);
     ProcedureType LookupProc(const std::string &str);
     bool _GetSCOObject(SpeciesIndex wSpecies, CSCOObjectClass &scoObject);
-    bool LookupSpeciesMethodOrProperty(SpeciesIndex wCallee, WORD wSelector, std::vector<CSCOFunctionSignature> &signatures, SpeciesIndex &propertyType, bool &fMethod);
+    bool LookupSpeciesMethodOrProperty(SpeciesIndex wCallee, WORD wSelector, SpeciesIndex &propertyType, bool &fMethod);
     void PushOutputContext(OutputContext outputContext);
     void PopOutputContext();
     bool HasMeaning();

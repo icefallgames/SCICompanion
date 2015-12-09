@@ -326,19 +326,6 @@ bool CSCOFile::GetPublicExportByName(const std::string &exportName, CSCOPublicEx
     return fRet;
 }
 
-std::vector<CSCOFunctionSignature> CSCOFile::GetExportSignatures(WORD wIndex) const
-{
-    for (auto &theExport : _publics)
-    {
-        if (theExport.GetIndex() == wIndex)
-        {
-            return theExport.GetSignatures();
-        }
-    }
-    assert(false);
-    return std::vector<CSCOFunctionSignature>();
-}
-
 bool CSCOFile::GetClassIndex(std::string className, WORD &wIndex) const
 {
     return GetItemIndex(_classes, className, wIndex);
@@ -452,24 +439,6 @@ bool CSCOPublicExport::Create(sci::istream &stream)
     stream >> _wProcIndex;
     stream.getRLE(_strName);
     return stream.good();
-}
-
-void CSCOPublicExport::SetInstanceSpecies(SpeciesIndex si)
-{
-    ASSERT(_signatures.empty());
-    CSCOFunctionSignature sig;
-    sig.SetReturnType(si);
-    _signatures.push_back(sig);
-}
-
-bool CSCOPublicExport::GetInstanceSpecies(SpeciesIndex &si) const
-{
-    if (_signatures.size() == 1) // REVIEW -> need a way to determine if this is an instance or procedure
-    {
-        si = _signatures[0].GetReturnType();
-        return true;
-    }
-    return false; // Not an instance.
 }
 
 bool CSCOPublicExport::operator==(const CSCOPublicExport& value) const
@@ -670,8 +639,7 @@ void CSCOObjectClass::Save(std::vector<BYTE> &output, SCOVersion version) const
 
 bool CSCOMethod::operator==(const CSCOMethod& value) const
 {
-    return (_wSelector == value._wSelector) &&
-           (_signatures == value._signatures);
+    return (_wSelector == value._wSelector);
 }
 bool CSCOMethod::operator!=(const CSCOMethod& value) const
 {
@@ -690,19 +658,6 @@ bool CSCOMethod::Create(sci::istream &stream)
     // 1) selector
     stream >> _wSelector;
     return stream.good();
-}
-
-bool CSCOFunctionSignature::operator==(const CSCOFunctionSignature& value) const
-{
-    return ((_wReturnType == value._wReturnType) &&
-            (_parameters == value._parameters));
-}
-void CSCOFunctionSignature::Save(std::vector<BYTE> &output) const
-{
-}
-bool CSCOFunctionSignature::Create(sci::istream &stream)
-{
-    return true;
 }
 
 void SaveSCOFile(const GameFolderHelper &helper, const CSCOFile &sco)
