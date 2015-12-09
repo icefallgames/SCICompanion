@@ -136,7 +136,7 @@ void GenerateDocsDialog::_GenerateDocHelper(_TFunc f)
     std::string docCommand = (PCSTR)strText;
 
     std::vector<std::string> generatedFiles;
-
+    
     std::string buildFolder = docGenFolder + "\\" + docSourceFolder;
 
     f(buildFolder, generatedFiles);

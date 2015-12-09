@@ -82,12 +82,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "IceFall Games"
             VALUE "FileDescription", "SCICompanion"
-            VALUE "FileVersion",     "3.0.0.1"
+            VALUE "FileVersion",     "3.0.1.1"
             VALUE "InternalName",    "SCICompanion.exe"
             VALUE "LegalCopyright", "(c) IceFall Games.  All rights reserved."
             VALUE "OriginalFilename","SCICompanion.exe"
             VALUE "ProductName", "SCI Companion 3"
-            VALUE "ProductVersion",  "3.0.0.1"
+            VALUE "ProductVersion",  "3.0.1.1"
         END
     END
     BLOCK "VarFileInfo"
