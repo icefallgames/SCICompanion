@@ -11,7 +11,7 @@
 	
 	PFollow is generally used as an argument for setMotion::
 
-		// Make the dog follow the ego at a distance of 20
+		; Make the dog follow the ego at a distance of 20
 		(aDog setMotion: PFollow gEgo 20)
 */
 (class PFollow of PolyPath

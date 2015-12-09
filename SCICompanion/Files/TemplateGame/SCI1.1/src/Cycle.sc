@@ -17,7 +17,7 @@
 	
 	Example usage::
 	
-		// Cycle the cels of myProp forward.
+		; Cycle the cels of myProp forward.
 		(myProp setCycle: Forward)
 */
 (class Cycle of Object
@@ -124,7 +124,7 @@
 	
 	Example usage::
 	
-		// Cycle the door forward to cel 4, then stop.
+		; Cycle the door forward to cel 4, then stop.
 		(door setCycle: CycleTo 4 cdFORWARD)
 */
 (class CycleTo of Cycle
@@ -202,7 +202,7 @@
 	
 	Example usage::
 	
-		// Tell the door to cycle to its last cel and notify us when done.
+		; Tell the door to cycle to its last cel and notify us when done.
 		(aDoor setCycle: EndLoop self)
 */
 (class EndLoop of CycleTo
@@ -375,7 +375,7 @@
 	
 	Example usage::
 
-		// Move a bird to (200, 37), then call the cue() method on us.	
+		; Move a bird to (200, 37), then call the cue() method on us.	
 		(bird setMotion: MoveTo 200 37 self)
 */
 (class MoveTo of Motion

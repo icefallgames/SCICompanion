@@ -11,10 +11,10 @@
 	
 	Example usage::
 	
-		// Defined at the top of the script:
+		; Defined at the top of the script:
 		(local [celList 5] = [3 6 2 1 $8000]) // $8000 indicates the end of the cel list.
 		
-		// Then in code:
+		; Then in code:
 		(aStar setCycle: MoveCycle celList) // cycle through 3, 6, 2, 1 then stop.
 
 */

@@ -19,10 +19,10 @@
 			(properties
 				view 900
 				loop 1
-				cursor 900			// Optional cursor when using this item.
-				message V_HAMMER	// Optional verb associated with the item.
+				cursor 900			; Optional cursor when using this item.
+				message V_HAMMER	; Optional verb associated with the item.
 				signal $0002
-				noun N_HAMMER		// noun from message resource 0
+				noun N_HAMMER		; noun from message resource 0
 			)
 		)
 */

@@ -28,7 +28,7 @@
 				view 113
 				loop 2
 				cel 1
-				signal ignAct	// Don't interact with Actors
+				signal ignAct	; Don't interact with Actors
 			)
 		)
 	
@@ -516,7 +516,7 @@
 
 		Example usage for setting an explicit scale::
 		
-			(gEgo setScale: 50) // 50 percent size.
+			(gEgo setScale: 50) ; 50 percent size.
 	
 		:param class class: A scaler class, such as Scaler.
 		:param heapPtr obj: An instance of a scaler class.

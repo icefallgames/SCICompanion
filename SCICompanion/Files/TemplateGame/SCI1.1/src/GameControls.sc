@@ -206,11 +206,11 @@
 			)
 		)
 
-		// then later...
+		; then later...
 	
-		(iconRestart:
-			theObj(gGame)
-			selector(#restart)
+		(iconRestart
+			theObj: gGame
+			selector: #restart
 		)
 
 */

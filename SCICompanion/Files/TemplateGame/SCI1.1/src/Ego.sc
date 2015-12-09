@@ -165,7 +165,7 @@
 		
 		Example usage::
 		
-			// Give the ego the crystal and the lizard tail.
+			; Give the ego the crystal and the lizard tail.
 			( gEgo get: INV_CRYSTAL INV_LIZARDTAIL)
 	*/
     (method (get invNumbers)
@@ -187,7 +187,7 @@
 		
 		Example usage::
 		
-			// The ego used lizard tail, so remove it from the inventory:
+			; The ego used lizard tail, so remove it from the inventory:
 			(gEgo put: INV_LIZARDTAIL)
 	*/
     (method (put invNumber newOwner)
@@ -222,7 +222,7 @@
 		Example usage::
 		
 			(if (gEgo has: INV_LIZARDTAIL)
-				// Do something...
+				; Do something...
 			)
 	*/
     (method (has invNumber)

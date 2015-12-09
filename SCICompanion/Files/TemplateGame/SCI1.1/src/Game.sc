@@ -640,8 +640,8 @@
 	
 	To make a region part of a room, put the following code in the room's init() method::
 	
-		(self:setRegions(MY_REGION))
-		// Where MY_REGION would be a script number for a script that contains a public Rgn instance.
+		(self setRegions: MY_REGION)
+		; Where MY_REGION would be a script number for a script that contains a public Rgn instance.
 */
 (class Region of Object
     (properties

@@ -127,10 +127,10 @@
 	
 		(switch (myChoiceNarrator whichSelect?)
 			(1
-				// Do something
+				; Do something
 			)
 			(2
-				// Do something else
+				; Do something else
 			)
 		)
 */
@@ -278,10 +278,10 @@
 	
 		(switch (myChoiceTalker whichSelect?)
 			(1
-				// Do something
+				; Do something
 			)
 			(2
-				// Do something else
+				; Do something else
 			)
 		)
 */

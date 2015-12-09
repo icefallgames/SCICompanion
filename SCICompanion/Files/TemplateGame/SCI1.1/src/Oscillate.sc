@@ -9,7 +9,7 @@
 	
 	Sample usage::
 	
-		// Make the star cycle its animation back and forth.
+		; Make the star cycle its animation back and forth.
 		(star setCycle: Oscillate -1)
 */
 (class Oscillate of Cycle
