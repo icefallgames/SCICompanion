@@ -673,7 +673,8 @@ void CMainFrame::OnRunPlugin(UINT nID)
     if (index < _pluginExes.size())
     {
         std::string exePath = _pluginExes[index];
-        ShellExecute(nullptr, "open", exePath.c_str(), appState->GetResourceMap().GetGameFolder().c_str(), "", SW_SHOWNORMAL);
+        std::string gameFolderQuoted = fmt::format("\"{}\"", appState->GetResourceMap().GetGameFolder());
+        ShellExecute(nullptr, "open", exePath.c_str(), gameFolderQuoted.c_str(), "", SW_SHOWNORMAL);
     }
 }
 
