@@ -232,11 +232,11 @@ SCIVersion sciVersion2 =
     KernelSet::SCI21,
 };
 
-bool SCIVersion::operator == (const SCIVersion &src)
+bool SCIVersion::operator == (const SCIVersion &src) const
 {
     return 0 == memcmp(this, &src, sizeof(*this));
 }
-bool SCIVersion::operator != (const SCIVersion &src)
+bool SCIVersion::operator != (const SCIVersion &src) const
 {
     return 0 != memcmp(this, &src, sizeof(*this));
 }

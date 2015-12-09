@@ -146,7 +146,7 @@ public:
     void DefineNewSelector(const std::string &str, WORD &wIndex);
     bool LookupDefine(const std::string &str, WORD &wValue);
     void AddDefine(sci::Define *pDefine);
-    SCIVersion GetVersion() { return _version; }
+    const SCIVersion &GetVersion() { return _version; }
     //
     // wIndex - index of the item.  Valid for all.
     // pwScript - script of the item.  Only valid for ResolvedToken::ExportInstance (wIndex and wScript)

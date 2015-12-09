@@ -576,8 +576,11 @@ void _Section2_Code(Script &script, CompileContext &context, vector<BYTE> &outpu
     context.FixupLocalCalls();
     context.FixupAsmLabelBranches();
 
-    WORD wCodeSize = context.code().calc_size() + 4;
-    bool fRoundUp = make_even(wCodeSize);
+    uint16_t codeSizeBase = context.code().calc_size();
+    bool fRoundUp = make_even(codeSizeBase);
+
+    WORD wCodeSize = codeSizeBase + 4;
+
     if (!separateHeapResources)
     {
         // Write the section header and size.
@@ -585,9 +588,15 @@ void _Section2_Code(Script &script, CompileContext &context, vector<BYTE> &outpu
         push_word(output, wCodeSize);
     }
 
-    wStartOfCode = (WORD)output.size(); // Store where the code begins
+    wStartOfCode = (uint16_t)output.size(); // Store where the code begins
     context.code().write_code(output);
     zero_pad(output, fRoundUp);
+
+    uint16_t after = (uint16_t)output.size();
+    if ((after - wStartOfCode) != codeSizeBase)
+    {
+        context.ReportError(&script, "There was an error generating the script resource. Calculated code size didn't match output code size.");
+    }
 }
 
 void _Section3_Synonyms(Script &script, CompileContext &context, vector<BYTE> &output)
