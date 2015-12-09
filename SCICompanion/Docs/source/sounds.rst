@@ -71,11 +71,11 @@ In Code
 You might reference a sound resource number when you tell the game to play some music::
 
     // Set the game's music to sound resource 101:
-    (send gMusic1:
-        number(101)
-        loop(1)
-        play()
-        hold()
+    (gMusic1:
+        number: 101
+        loop: 1
+        play:
+        hold:
     )
 
 Or to declare a sound effect in your room::
@@ -90,7 +90,7 @@ Or to declare a sound effect in your room::
 
     // Then elsewhere ...
 
-    (openDoorSound:play())
+    (openDoorSound play:)
 
 
 

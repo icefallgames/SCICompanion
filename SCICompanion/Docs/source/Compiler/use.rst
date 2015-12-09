@@ -1,9 +1,9 @@
-.. Use
+.. use
 
 .. include:: /includes/standard.rst
 
 ================
- Use
+ use
 ================
 
 The use keyword tells the compiler that the script being compiled "uses" the specified script's classes, procedures, and/or variables (if script.000).

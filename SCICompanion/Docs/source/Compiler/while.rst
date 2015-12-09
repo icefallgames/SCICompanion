@@ -1,9 +1,9 @@
-.. While statement
+.. while statement
 
 .. include:: /includes/standard.rst
 
 ================
- While statement
+ while statement
 ================
 
 Use while to implement a conditional loop.

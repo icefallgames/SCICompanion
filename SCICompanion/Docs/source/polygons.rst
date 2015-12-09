@@ -71,17 +71,17 @@ When you create a new room in |scicomp|, the .shp file will be included from the
 
 ::
 
-    AddPolygonsToRoom(@P_Default110)
+    (AddPolygonsToRoom @P_Default110)
 
 And if you look in 110.shp, you might see something like this:
 
 ::
 
-    // 110.shp -- Produced by SCI Companion
-    // This file should only be edited with the SCI Companion polygon editor
+    ; 110.shp -- Produced by SCI Companion
+    ; This file should only be edited with the SCI Companion polygon editor
 
     (local
-        P_Default110[15] = (1 PContainedAccess 21 171 137 180 137 179 128 113 136 23 142 3 149 )
+        [P_Default110 15] = [1 PContainedAccess 21 171 137 180 137 179 128 113 136 23 142 3 149]
     )
 
 The point being, after you have add or modified any default polygons in the pic, all you need to do is recompile the scripts that use the
@@ -99,22 +99,22 @@ in the .shp file:
 
 ::
 
-    // 110.shp -- Produced by SCI Companion
-    // This file should only be edited with the SCI Companion polygon editor
+    ; 110.shp -- Produced by SCI Companion
+    ; This file should only be edited with the SCI Companion polygon editor
 
     (local
-        P_Default110[15] = (1 PContainedAccess 21 171 137 180 137 179 128 113 136 23 142 3 149 )
-        P_Waterfall[13] = (1 PBarredAccess 5 163 145 181 46 193 27 226 21 230 146 )
-        P_Lake[19] = (1 PBarredAccess 8 310 152 313 161 254 172 128 169 35 160 36 152 94 148 157 147 )
+        [P_Default110 15] = [1 PContainedAccess 21 171 137 180 137 179 128 113 136 23 142 3 149]
+        [P_Waterfall 13] = [1 PBarredAccess 5 163 145 181 46 193 27 226 21 230 146]
+        [P_Lake 19] = [1 PBarredAccess 8 310 152 313 161 254 172 128 169 35 160 36 152 94 148 157 147]
     )
 
 In script, you can assign the polygon to a feature's "onMeCheck" like this:
 
 ::
 
-        (lake:
-            setOnMeCheck(omcPOLYGON CreateNewPolygon(@P_Lake))
-            init()
+        (lake
+            setOnMeCheck: omcPOLYGON (CreateNewPolygon @P_Lake)
+            init:
         )
 
 Note that any named polygons will *not* appear in the default polygons for that room.

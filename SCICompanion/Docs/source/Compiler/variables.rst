@@ -62,12 +62,12 @@ An example of declaring temporary variables::
 
 An example of declaring parameters::
 
-	// Procedure with three parameter variables:
+	; Procedure with three parameter variables:
 	(procedure (PrintingProc theString X Y) 
 		(Display theString dsCOORD X Y) 
 	)
 
-	// Calling the above procedure:
+	; Calling the above procedure:
 	(procedure (SomeProc)
 		(PrintingProc "Hello World" 60 80)
 	)

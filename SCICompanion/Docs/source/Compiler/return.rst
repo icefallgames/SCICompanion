@@ -1,9 +1,9 @@
-.. Return
+.. return
 
 .. include:: /includes/standard.rst
 
 ================
- Return
+ return
 ================
 
 Return exits from a method or procedure.

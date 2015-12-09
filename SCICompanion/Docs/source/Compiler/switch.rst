@@ -1,9 +1,9 @@
-.. Switch statement
+.. switch statement
 
 .. include:: /includes/standard.rst
 
 ==================
- Switch statement
+ switch statement
 ==================
 
 Use the switch statement to pass control to a case which matches the result of the switch_expression. If no case satisfies the condition, the default case is executed.

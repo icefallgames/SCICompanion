@@ -1,9 +1,9 @@
-.. Defines and enums
+.. defines and enums
 
 .. include:: /includes/standard.rst
 
 =================
- Define and enum
+ define and enum
 =================
 
 The **define** keyword allows you to assign new names to words. You can use the define keyword on nearly any word.

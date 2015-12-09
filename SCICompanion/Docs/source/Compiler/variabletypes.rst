@@ -16,10 +16,10 @@ A 16-bit number between -32768 and 32767.
 
 Example::
 
-	// An immediate 
+	; An immediate 
 	(Wait 1234)
 
-	// Assigned to a variable
+	; Assigned to a variable
 	= someNum 1234
 	(Wait someNum)
 

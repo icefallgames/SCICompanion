@@ -266,15 +266,15 @@ One place view resource numbers are used is when you declare :class`View`, :clas
 
 Or when you add an icon to dialog::
 
-    (Print:
-        // Show view 234 (loop 1 and cel 0) at (0, 0):
-        addIcon(234 1 3 0 0)
-        init()
+    (Print
+        ; Show view 234 (loop 1 and cel 0) at (0, 0):
+        addIcon: 234 1 3 0 0
+        init:
     )
 
 Or when setting up the ego::
 
-    // Tell the ego to use view 53, loop 3.
-    SetUpEgo(53 3)
+    ; Tell the ego to use view 53, loop 3.
+    (SetUpEgo 53 3)
 
 See also: :func:`DrawCel`, :func:`SetUpEgo`.

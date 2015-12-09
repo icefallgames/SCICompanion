@@ -49,7 +49,7 @@ To adjust the speed, you can set a different cycleSpeed on the object:
             priority 0
             approachX 130
             approachY 110
-            cycleSpeed 15   // Large numbers are slower.
+            cycleSpeed 15   ; Large numbers are slower.
         )
     )
 

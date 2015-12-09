@@ -70,7 +70,7 @@ That's not too difficult. There is a :class:`JumpTo` Motion that is useful for t
 
     (instance theBox of Actor
         (properties
-        // etc...
+        ; etc...
 
 Next, as we did once before, we'll replace the evilEgo's V_BOX handler with a call to set a script on the evil ego.
 

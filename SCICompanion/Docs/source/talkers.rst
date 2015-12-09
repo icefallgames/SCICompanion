@@ -91,12 +91,12 @@ Here's sample code for a Talker:
             textY 10
         )
 
-        (method (init param1)
-            = font gFont
-            // For talkers, we can optionally set a cycler on the eyes.
-            // If there is no cycler, the Blink cycler will be used.
-            (computerEyes:setCycle(Rev))
-            (super:init(computerBust computerEyes computerMouth rest param1))
+        (method (init)
+            (= font gFont)
+            ; For talkers, we can optionally set a cycler on the eyes.
+            ; If there is no cycler, the Blink cycler will be used.
+            (computerEyes setCycle: Reverse)
+            (super init: computerBust computerEyes computerMouth &rest)
         )
     )
 
@@ -132,11 +132,11 @@ Then add a talker number:
 Then in findTalker in Main.sc::
 
     (switch (talkerNumber)
-        (case NARRATOR
+        (NARRATOR
             gNarrator
         )
-        (case COMPUTER
-            ScriptID(210 1) // Script 210, export 1
+        (COMPUTER
+            (ScriptID 210 1) // Script 210, export 1
         )
         ...
     )

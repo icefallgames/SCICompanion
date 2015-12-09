@@ -1,9 +1,9 @@
-.. Said
+.. said strings
 
 .. include:: /includes/standard.rst
 
 ================
- Said
+ said strings
 ================
 
 .. IMPORTANT:: SCI0 only.
@@ -49,11 +49,11 @@ Often, you might want to enclose all your "look" handlers in one if statement, b
 			(Print "The floor is covered in dust.")
 		)
 		(if (Said '[/!*]')
-			// this will handle just "look" by itself
+			; this will handle just "look" by itself
 			(Print "You are in a room with a floor and a wall.")
 		)
 		(if (Said '/*')
-			// this will handle "look anyword"
+			; this will handle "look anyword"
 			(Print "You don't see anything interesting about it.")
 		)
 	)

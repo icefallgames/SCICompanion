@@ -1,9 +1,9 @@
-.. If statements
+.. if statements
 
 .. include:: /includes/standard.rst
 
 ================
- If statements
+ if statements
 ================
 
 Use if to implement a conditional statement.
@@ -49,7 +49,7 @@ Note that the if condition is *not* enclosed in parentheses unless it is itself 
 
  Example::
  
-	// Set myVar to 5 if we've opened the sewer. Otherwise set it to 10.
+	; Set myVar to 5 if we've opened the sewer. Otherwise set it to 10.
 	(= myVar
 		(if (Btest FLAG_OpenedSewer) 5 else 10)
 	)

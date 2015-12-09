@@ -78,12 +78,12 @@ values are treated as though they are in the range [0, 65535]::
 
     (= a 40000) ; This is -25536 when treated as a 16-bit signed number.
 
-    // Now ask if a is greater than zero
+    ; Now ask if a is greater than zero
     (if (> a 0)
         ; This branch is not taken, because a is treated as -25536.
     )
 
-    // Use an unsigned comparison to treat a as unsigned.
+    ; Use an unsigned comparison to treat a as unsigned.
     (if (u> a 0)
         ; This branch is taken, because 40000 is bigger than zero.
     )

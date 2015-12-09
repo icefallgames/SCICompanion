@@ -18,9 +18,8 @@ Clone (Kernel)
 	
 	Example::
 	
-		Event newEvent;
-		newEvent = Clone(Event); 	// create an instance of Event and stores the pointer into newEvent
-		GetEvent($7FFF newEvent); 	// use the instance
-		DisposeClone(Event) 		// dispose of the instance
+		(= newEvent (Clone Event)) 	; create an instance of Event and stores the pointer into newEvent
+		(GetEvent $7FFF newEvent) 	; use the instance
+		(DisposeClone newEvent) 	; dispose of the instance
 
 

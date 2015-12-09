@@ -24,18 +24,19 @@ Here's an example of a decompiled **nextCel** method from Space Quest 4's **Cycl
 ::
 
  (method (nextCel)
-        ++cycleCnt
-        return 
-            (if (<= cycleCnt (send client:cycleSpeed))
-                (send client:cel)
-            )(else
-                = cycleCnt 0
-                (if (& (send client:signal) $1000)
-                    (send client:cel)
-                )(else
-                    + (send client:cel) cycleDir
+        (++ cycleCnt)
+        (return 
+            (if (<= cycleCnt (client cycleSpeed?))
+                (client cel?)
+            else
+                (= cycleCnt 0)
+                (if (& (client signal?) $1000)
+                    (client cel?)
+                else
+                    (+ (client cel?) cycleDir)
                 )
             )
+        )
     )
 
 And then the same method simply disassembled:

@@ -15,7 +15,7 @@ Abs (Kernel)
 	
 	Example::
 	
-		Abs(100)    // returns 100
-		Abs(-100)   // returns 100
+		Abs(100)    ; returns 100
+		Abs(-100)   ; returns 100
 
 

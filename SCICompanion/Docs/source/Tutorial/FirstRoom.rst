@@ -148,7 +148,7 @@ more fine-grained time.
 
 In other tutorials we'll see other ways to trigger the next state (like when a certain game event happens), and you could also set a state directly using::
 
-    (RoomScript cue: 5) // Sets state 5
+    (RoomScript cue: 5) ; Sets state 5
 
 doit:
 --------

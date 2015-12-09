@@ -1,9 +1,9 @@
-.. Self and Super
+.. self and super
 
 .. include:: /includes/standard.rst
 
 ======================
- Self and Super
+ self and super
 ======================
 
 **self** and **super** are special keywords than can be used to call methods on the current object or the parent object without directly specifying the class name.

@@ -1,9 +1,9 @@
-.. Include
+.. include
 
 .. include:: /includes/standard.rst
 
 ================
- Include
+ include
 ================
 
 |scicomp| allows the include keyword to be used to include header files (file suffix .sh).

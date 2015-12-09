@@ -53,7 +53,7 @@ time, so it's zero-based index is just 0. We should assign a descriptive name to
 Open game.sh (via the *Quick links*, or by right clicking on (include "game.sh")) and opening it. **game.sh** contains all the game-specific defines. Go to the
 end and add a section for inventory, where you'll define your inventory item indices. For now, it should look like this::
 
-    // Inventory items
+    ; Inventory items
     (define INV_BOX					0)
 
 Finally, we are ready to give it to the player. Go back to your room (script 110) and find the *doVerb* method of *theBox*. Add a call to the *get* method on gEgo.
@@ -93,6 +93,6 @@ Note that for completeness, we'd want to modify the code in the room's init() so
 has already taken it. That way if we re-enter the room the box won't be shown. You can check if the player has an item by doing::
 
     (if (not (gEgo has: INV_BOX))
-        // initialize it here (if the player doesn't have it)
+        ; initialize it here (if the player doesn't have it)
     )
 

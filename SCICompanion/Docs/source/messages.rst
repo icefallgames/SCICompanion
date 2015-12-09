@@ -177,21 +177,21 @@ Of course, you may need to trigger messages as part of a series of game events i
     (instance mug of Prop)
         ...
 
-        (method (doVerb theVerb params)
+        (method (doVerb theVerb)
             (switch (theVerb)
-                (case V_TALK
+                (V_TALK
                     (if (< numberTimesTalked 3)
-                        // In this case, we'd have 3 messages for N_MUG/V_TALK, with cases 0 1 and 2.
-                        // Each time the player tried to talk to a mug, it would show a message with a successive case.
-                        (send gTestMessager:say(N_MUG V_TALK numberTimesTalked 1))
-                        (++numberTimesTalked)
-                    )(else
-                        // Until they talked to the mug too many times, they're crazy.
-                        Die(DEATH_REASON_CRAZY)
+                        ; In this case, we'd have 3 messages for N_MUG/V_TALK, with cases 0 1 and 2.
+                        ; Each time the player tried to talk to a mug, it would show a message with a successive case.
+                        (gMessager say: N_MUG V_TALK numberTimesTalked 1)
+                        (++ numberTimesTalked)
+                    else
+                        ; Until they talked to the mug too many times, they're crazy.
+                        (Die DEATH_REASON_CRAZY)
                     )
                 )
-                (default
-                    (super:doVerb(theVerb rest params))
+                (else
+                    (super doVerb: theVerb &rest)
                 )
             )
         )
@@ -202,12 +202,12 @@ Otherwise, only the one with the specified sequence number will be shown.
 
 The noun/verb/condition/sequence tuple is used in many other places in the game too. So for instance, to show a button in a dialog, you can do::
 
-    (Print:
-        // message N_MYDIALOG/V_LOOK/0/1, at (60, 0), from message resource 101.
-        addText(N_MYDIALOG V_LOOK 0 1 60 0 101)
-        // Button value 0, message N_MYDIALOG/V_LOOK/0/2, at (70, 35), from message resource 101.
-        addButton(0 N_MYDIALOG V_LOOK 0 2 70 35 101)
-        init()
+    (Print
+        ; message N_MYDIALOG/V_LOOK/0/1, at (60, 0), from message resource 101.
+        addText: N_MYDIALOG V_LOOK 0 1 60 0 101
+        ; Button value 0, message N_MYDIALOG/V_LOOK/0/2, at (70, 35), from message resource 101.
+        addButton: 0 N_MYDIALOG V_LOOK 0 2 70 35 101
+        init:
     )
 
 

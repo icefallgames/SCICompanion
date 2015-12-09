@@ -1,9 +1,9 @@
-.. For loop
+.. for loop
 
 .. include:: /includes/standard.rst
 
 ================
- For loop
+ for loop
 ================
 
 Use for to implement a conditional loop.
