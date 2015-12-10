@@ -109,8 +109,8 @@ private:
     ParserSCI entire_header;
 
     // Non-code parsers:
-	ParserSCI classdef_file;
-	ParserSCI class_def;
+    ParserSCI classdef_file;
+    ParserSCI class_def;
     ParserSCI class_def_internal;
     ParserSCI class_def_attributes;
     ParserSCI extern_entry;
