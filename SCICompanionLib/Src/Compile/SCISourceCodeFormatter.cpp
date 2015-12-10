@@ -741,7 +741,7 @@ private:
         }
     }
 
-    void _OutputVariableAndSizeSCI(sci::SourceCodeWriter &out, const std::string &type, const std::string &name, WORD wSize, const sci::SyntaxNodeVector &initValues)
+    void _OutputVariableAndSizeSCI(sci::SourceCodeWriter &out, const std::string &type, const std::string &name, WORD wSize, const sci::SyntaxNodeVector &initValues, const uint16_t *optionalSlot = nullptr)
     {
         if (wSize > 1)
         {
@@ -751,6 +751,11 @@ private:
         if (wSize > 1)
         {
             out.out << " " << wSize << "]"; // array
+        }
+
+        if (optionalSlot)
+        {
+            out.out << " " << *optionalSlot;
         }
 
         if (!initValues.empty())
@@ -781,6 +786,19 @@ private:
 
 
 public:
+
+    template<typename _T>
+    void ForwardOptionalSection(const char *sectionName, _T &things)
+    {
+        if (!things.empty())
+        {
+            _MaybeNewLineIndent();
+            out.out << "(" << sectionName;
+            _IndentAcceptChildren(things);
+            _MaybeNewLineIndent();
+            out.out << ")";
+        }
+    }
 
     void Visit(const Script &script) override
     {
@@ -827,34 +845,20 @@ public:
             _MaybeNewLineIndent();
         }
 
-        if (!script.GetExports().empty())
-        {
-            out.out << "(public";
-            _IndentAcceptChildren(script.GetExports());
-            _MaybeNewLineIndent();
-            out.out << ")";
-        }
-
-        if (!script.GetSynonyms().empty())
-        {
-            _MaybeNewLineIndent();
-            out.out << "(synonyms";
-            _IndentAcceptChildren(script.GetSynonyms());
-            _MaybeNewLineIndent();
-            out.out << ")";
-        }
+        ForwardOptionalSection("public", script.GetExports());
+        ForwardOptionalSection("synonyms", script.GetSynonyms());
 
         _AcceptChildren(script.GetDefines());
 
         _MaybeNewLineIndent();
 
-        if (!script.GetScriptVariables().empty())
-        {
-            out.out << "(local";
-            _IndentAcceptChildren(script.GetScriptVariables());
-            _MaybeNewLineIndent();
-            out.out << ")";
-        }
+        ForwardOptionalSection("local", script.GetScriptVariables());
+
+        //
+        ForwardOptionalSection("extern", script.Externs);
+        ForwardOptionalSection("selectors", script.Selectors);
+        ForwardOptionalSection("global", script.Globals);
+        _AcceptChildren(script.ClassDefs);
 
         // These are not supported. They aren't used by the SCI0 or SCI1.1 template games,
         // and only a few fan-made games declare them (but don't use them).
@@ -1799,6 +1803,77 @@ public:
     {
         _MaybeNewLineIndent();
         out.out << CleanTokenSCI(exportEntry.Name) << " " << exportEntry.Slot;
+    }
+
+    void Visit(const ClassDefDeclaration &classDef)
+    {
+        GO_MULTILINE;
+        _MaybeNewLineIndent();
+        out.out << "(classdef " << classDef.GetName();
+        {
+            INDENT_BLOCK;
+            _MaybeNewLineIndent();
+            out.out << "script# ";
+            _OutputNumber(out.out, classDef.ScriptNumber, false, true);
+            _MaybeNewLineIndent();
+            out.out << "class# ";
+            _OutputNumber(out.out, classDef.ClassNumber, false, true);
+            _MaybeNewLineIndent();
+            out.out << "super# ";
+            _OutputNumber(out.out, classDef.SuperNumber, false, true);
+            _MaybeNewLineIndent();
+            out.out << "file# " << "\"" << classDef.File << "\"";
+            _MaybeNewLineIndent();
+            _MaybeNewLineIndent();
+
+            out.out << "(properties";
+            {
+                INDENT_BLOCK;
+                for (auto &prop : classDef.Properties)
+                {
+                    _MaybeNewLineIndent();
+                    out.out << prop.first << " ";
+                    _OutputNumber(out.out, prop.second, false, true);
+                }
+            }
+            _MaybeNewLineIndent();
+            out.out << ")";
+
+            _MaybeNewLineIndent();
+            _MaybeNewLineIndent();
+            out.out << "(methods";
+            {
+                INDENT_BLOCK;
+                for (auto &method : classDef.Methods)
+                {
+                    _MaybeNewLineIndent();
+                    out.out << method;
+                }
+            }
+            _MaybeNewLineIndent();
+            out.out << ")";
+        }
+        _MaybeNewLineIndent();
+        out.out << ")";
+    }
+    void Visit(const GlobalDeclaration &global)
+    {
+        _MaybeNewLineIndent();
+        _OutputVariableAndSizeSCI(out, global.VarDecl.GetDataType(), global.VarDecl.GetName(), global.VarDecl.GetSize(), global.VarDecl.GetStatements(), &global.Index);
+    }
+    void Visit(const ExternDeclaration &theExtern)
+    {
+        _MaybeNewLineIndent();
+        out.out << theExtern.GetName();
+        GO_INLINE;
+        theExtern.ScriptNumber.Accept(*this);
+        _MaybeNewLineIndent();
+        out.out << theExtern.Index;
+    }
+    void Visit(const SelectorDeclaration &selector)
+    {
+        _MaybeNewLineIndent();
+        out.out << selector.GetName() << " " << selector.Index;
     }
 
 

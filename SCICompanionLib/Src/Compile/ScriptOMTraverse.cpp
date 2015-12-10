@@ -168,6 +168,13 @@ void WhileLoop::Traverse(IExploreNode &en)
 void Script::Traverse(IExploreNode &en)
 {
 	ExploreNodeBlock enb(en, *this);
+
+    //
+    ForwardTraverse2(Globals, en);
+    ForwardTraverse2(Externs, en);
+    ForwardTraverse2(ClassDefs, en);
+    ForwardTraverse2(Selectors, en);
+
     ForwardTraverse2(_procedures, en);
     ForwardTraverse2(_classes, en);
     ForwardTraverse2(_scriptVariables, en);
@@ -283,4 +290,22 @@ void AsmBlock::Traverse(IExploreNode &en)
 void WeakSyntaxNode::Traverse(IExploreNode &en)
 {
     assert(false);
+}
+void ClassDefDeclaration::Traverse(IExploreNode &en)
+{
+    ExploreNodeBlock enb(en, *this);
+}
+void SelectorDeclaration::Traverse(IExploreNode &en)
+{
+    ExploreNodeBlock enb(en, *this);
+}
+void GlobalDeclaration::Traverse(IExploreNode &en)
+{
+    ExploreNodeBlock enb(en, *this);
+    VarDecl.Traverse(en);
+}
+void ExternDeclaration::Traverse(IExploreNode &en)
+{
+    ExploreNodeBlock enb(en, *this);
+    ScriptNumber.Traverse(en);
 }

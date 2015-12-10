@@ -106,8 +106,19 @@ private:
     ParserSCI asm_arg;
     ParserSCI cond_statement;
 
-    // TODO:
     ParserSCI entire_header;
+
+    // Non-code parsers:
+	ParserSCI classdef_file;
+	ParserSCI class_def;
+    ParserSCI class_def_internal;
+    ParserSCI class_def_attributes;
+    ParserSCI extern_entry;
+    ParserSCI extern_section;
+    ParserSCI global_entry;
+    ParserSCI global_section;
+    ParserSCI selector_entry;
+    ParserSCI selector_section;
 
     // Utility
     static ParserSCI char_p(const char *psz);

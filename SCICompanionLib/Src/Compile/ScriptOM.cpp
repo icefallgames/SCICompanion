@@ -261,6 +261,7 @@ Script::Script(ScriptId script) : _scriptId(script), SyntaxVersion(1)
 Script::Script() : SyntaxVersion(1)
 {
 }
+Script::~Script() {}
 
 void Script::AddDefine(std::unique_ptr<Define> pDefine)
 {
@@ -647,3 +648,7 @@ void Asm::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visi
 void AsmBlock::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
 void ExportEntry::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
 void WeakSyntaxNode::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void ClassDefDeclaration::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void SelectorDeclaration::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void GlobalDeclaration::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }
+void ExternDeclaration::Accept(ISyntaxNodeVisitor &visitor) const { visitor.Enter(*this); visitor.Visit(*this); visitor.Leave(*this); }

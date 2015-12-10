@@ -587,10 +587,85 @@ namespace sci
     private:
         std::string _label;
 
-		Asm(const Asm &src) = delete;
-		Asm& operator=(const Asm &src) = delete;
+        Asm(const Asm &src) = delete;
+        Asm& operator=(const Asm &src) = delete;
 
     };
+
+    // classdefs in the classdef file
+    class ClassDefDeclaration : public SyntaxNode, public NamedNode
+    {
+        DECLARE_NODE_TYPE(NodeTypeClassDefDeclaration)
+    public:
+        ClassDefDeclaration() : NamedNode(), ScriptNumber(0xffff), ClassNumber(0xffff), SuperNumber(0xffff) {}
+
+        // IOutputByteCode
+        CodeResult OutputByteCode(CompileContext &context) const { return 0; }
+        void PreScan(CompileContext &context);
+        void Traverse(IExploreNode &en);
+
+        void Accept(ISyntaxNodeVisitor &visitor) const override;
+
+        uint16_t ScriptNumber;  // script#
+        uint16_t ClassNumber;   // class#
+        uint16_t SuperNumber;   // super#
+        std::string File;       // file#
+        std::vector<std::pair<std::string, uint16_t>> Properties;
+        std::vector<std::string> Methods;
+
+    private:
+
+        ClassDefDeclaration(const ClassDefDeclaration &src) = delete;
+        ClassDefDeclaration& operator=(const ClassDefDeclaration &src) = delete;
+    };
+
+    class SelectorDeclaration : public SyntaxNode, public NamedNode
+    {
+        DECLARE_NODE_TYPE(NodeTypeSelector)
+    public:
+        SelectorDeclaration() : NamedNode(), Index(0xffff) {}
+
+        // IOutputByteCode
+        CodeResult OutputByteCode(CompileContext &context) const { return 0; }
+        void PreScan(CompileContext &context);
+        void Traverse(IExploreNode &en);
+        void Accept(ISyntaxNodeVisitor &visitor) const override;
+
+        uint16_t Index;
+    };
+
+    class GlobalDeclaration : public SyntaxNode
+    {
+        DECLARE_NODE_TYPE(NodeTypeGlobal)
+    public:
+        GlobalDeclaration() : Index(0xffff) {}
+
+        // IOutputByteCode
+        CodeResult OutputByteCode(CompileContext &context) const { return 0; }
+        void PreScan(CompileContext &context);
+        void Traverse(IExploreNode &en);
+        void Accept(ISyntaxNodeVisitor &visitor) const override;
+
+        VariableDecl VarDecl;
+        uint16_t Index;
+    };
+
+    class ExternDeclaration : public SyntaxNode, public NamedNode
+    {
+        DECLARE_NODE_TYPE(NodeTypeExtern)
+    public:
+        ExternDeclaration() : NamedNode(), Index(0xffff) {}
+
+        // IOutputByteCode
+        CodeResult OutputByteCode(CompileContext &context) const { return 0; }
+        void PreScan(CompileContext &context);
+        void Traverse(IExploreNode &en);
+        void Accept(ISyntaxNodeVisitor &visitor) const override;
+
+        PropertyValue ScriptNumber;
+        uint16_t Index;
+    };
+
 }; //namespace sci
 
 void ConvertAndOrSequenceIntoTree(sci::SyntaxNodeVector &statements, std::vector<bool> andOrs);

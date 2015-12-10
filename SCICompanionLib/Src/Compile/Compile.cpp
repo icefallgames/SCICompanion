@@ -2787,6 +2787,18 @@ void VariableDecl::PreScan(CompileContext &context)
     ForwardPreScan2(_segments, context);
 }
 
+void ClassDefDeclaration::PreScan(CompileContext &context) {}
+void SelectorDeclaration::PreScan(CompileContext &context) {}
+
+void GlobalDeclaration::PreScan(CompileContext &context)
+{
+    VarDecl.PreScan(context);
+}
+void ExternDeclaration::PreScan(CompileContext &context)
+{
+    ScriptNumber.PreScan(context);
+}
+
 CodeResult VariableDecl::OutputByteCode(CompileContext &context) const
 {
     declare_conditional isCondition(context, false);
@@ -3421,6 +3433,12 @@ void Script::PreScan(CompileContext &context)
         }
     }
     ForwardPreScan2(_defines, context);
+
+    //
+    ForwardPreScan2(Globals, context);
+    ForwardPreScan2(Externs, context);
+    ForwardPreScan2(Selectors, context);
+    ForwardPreScan2(ClassDefs, context);
 
     std::set<int> slots;
     for (auto &theExport : _exports)

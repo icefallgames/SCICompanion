@@ -354,6 +354,10 @@ public:
     void Visit(const ExportEntry &exportEntry) override {}
     void Visit(const WeakSyntaxNode &weakNode) override {}
     void Visit(const NaryOp &weakNode) override {}
+    void Visit(const ClassDefDeclaration &classDef) override {}
+    void Visit(const SelectorDeclaration &selectorDef) override {}
+    void Visit(const GlobalDeclaration &globalDecl) override {}
+    void Visit(const ExternDeclaration &externDecl) override {}
 
     void Enter(const SyntaxNode &node) override {}
     void Leave(const SyntaxNode &node) override {}
@@ -457,6 +461,10 @@ public:
     void Visit(const ExportEntry &exportEntry) override {}
     void Visit(const WeakSyntaxNode &weakNode) override {}
     void Visit(const NaryOp &weakNode) override {}
+    void Visit(const ClassDefDeclaration &classDef) override {}
+    void Visit(const SelectorDeclaration &selectorDef) override {}
+    void Visit(const GlobalDeclaration &globalDecl) override {}
+    void Visit(const ExternDeclaration &externDecl) override {}
 
     void Enter(const SyntaxNode &node) override {}
     void Leave(const SyntaxNode &node) override {}

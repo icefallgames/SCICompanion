@@ -830,4 +830,5 @@ extern char const errThen[];
 extern char const errElse[];
 extern char const errNoKeywordOrSelector[];
 extern char const errVarName[];
+extern char const errFileNameString[];
 

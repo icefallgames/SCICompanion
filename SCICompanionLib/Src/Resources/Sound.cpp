@@ -448,8 +448,8 @@ uint16_t SoundComponent::_ReadMidiFileTrack(size_t nTrack, std::istream &midiFil
                             DWORD dwMSPerQN = (static_cast<DWORD>(_GetC(midiFile))) << 16;
                             dwMSPerQN |= (static_cast<DWORD>(_GetC(midiFile))) << 8;
                             dwMSPerQN |= _GetC(midiFile);
-                            //TempoEntry tempoEntry = { (totalTicksOut + event.wTimeDelta), ((60000000 / dwMSPerQN)) };
-                            //phil(); // what I changed it to:
+                            // TempoEntry tempoEntry = { (totalTicksOut + event.wTimeDelta), ((60000000 / dwMSPerQN)) };
+                            // REVIEW: what I changed it to:
                             TempoEntry tempoEntry = { (totalTicksOut), ((60000000 / dwMSPerQN)) };
                             if (tempoChanges.empty() && (tempoEntry.dwTicks != 0))
                             {

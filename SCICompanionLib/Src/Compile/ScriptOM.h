@@ -142,6 +142,10 @@ namespace sci
     class ExportEntry;
     class WeakSyntaxNode;
     class NaryOp;
+    class ClassDefDeclaration;
+    class SelectorDeclaration;
+    class GlobalDeclaration;
+    class ExternDeclaration;
 
     class ISyntaxNodeVisitor
     {
@@ -185,6 +189,10 @@ namespace sci
         virtual void Visit(const AsmBlock &asmBlock) = 0;
         virtual void Visit(const ExportEntry &exportEntry) = 0;
         virtual void Visit(const WeakSyntaxNode &weakNode) = 0;
+        virtual void Visit(const ClassDefDeclaration &classDef) = 0;
+        virtual void Visit(const SelectorDeclaration &selectorDef) = 0;
+        virtual void Visit(const GlobalDeclaration &globalDecl) = 0;
+        virtual void Visit(const ExternDeclaration &externDecl) = 0;
 
         virtual void Enter(const SyntaxNode &node) = 0;
         virtual void Leave(const SyntaxNode &node) = 0;
@@ -1126,6 +1134,7 @@ namespace sci
         Script(PCTSTR pszFilePath, PCTSTR pszFileName);
         Script(ScriptId script);
         Script();
+        ~Script();
 
         // Methods to retrieve information from a Loaded script:
         const ClassVector &GetClasses() const { return _classes; }
@@ -1179,6 +1188,12 @@ namespace sci
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 
         ScriptId GetScriptId() const { return _scriptId; }
+
+        //
+        std::vector<std::unique_ptr<GlobalDeclaration>> Globals;
+        std::vector<std::unique_ptr<ExternDeclaration>> Externs;
+        std::vector<std::unique_ptr<SelectorDeclaration>> Selectors;    // selector file
+        std::vector<std::unique_ptr<ClassDefDeclaration>> ClassDefs;    // classdef file
 
     private:
         void _PreScanStringDeclaration(CompileContext &context, VariableDecl &stringDecl);

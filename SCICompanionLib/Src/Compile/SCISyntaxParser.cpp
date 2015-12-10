@@ -546,6 +546,99 @@ void FinishSynA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pCo
     }
 }
 
+void SaveScratchStringA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->ScratchString2() = pContext->ScratchString();
+    }
+}
+void AddExternDeclA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        auto externDecl = make_unique<ExternDeclaration>();
+        externDecl->SetName(pContext->ScratchString2());
+        assert(pContext->PropertyValueWasSet);
+        externDecl->ScriptNumber = pContext->PropertyValue;
+        externDecl->Index = pContext->Integer;
+        externDecl->SetPosition(stream.GetPosition());
+        pContext->Script().Externs.push_back(move(externDecl));
+    }
+}
+void AddSelectorDeclA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        auto selectorDecl = make_unique<SelectorDeclaration>();
+        selectorDecl->SetName(pContext->ScratchString());
+        selectorDecl->Index = pContext->Integer;
+        selectorDecl->SetPosition(stream.GetPosition());
+        pContext->Script().Selectors.push_back(move(selectorDecl));
+    }
+}
+
+void AddClassDefDeclA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->Script().ClassDefs.push_back(pContext->StealSyntaxNode<ClassDefDeclaration>());
+    }
+}
+void SetScriptNumberA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->GetSyntaxNode<ClassDefDeclaration>()->ScriptNumber = pContext->Integer;
+    }
+    else
+    {
+        pContext->ReportError(errInteger, stream);
+    }
+}
+void SetClassNumberA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->GetSyntaxNode<ClassDefDeclaration>()->ClassNumber = pContext->Integer;
+    }
+    else
+    {
+        pContext->ReportError(errInteger, stream);
+    }
+}
+void SetSuperNumberA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->GetSyntaxNode<ClassDefDeclaration>()->SuperNumber = pContext->Integer;
+    }
+    else
+    {
+        pContext->ReportError(errInteger, stream);
+    }
+}
+void SetFileA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->GetSyntaxNode<ClassDefDeclaration>()->File = pContext->ScratchString();
+    }
+    else
+    {
+        pContext->ReportError(errFileNameString, stream);
+    }
+}
+void AddClassDefPropA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result()) { pContext->GetSyntaxNode<ClassDefDeclaration>()->Properties.push_back({ pContext->ScratchString(), pContext->Integer }); }
+}
+void AddClassDefMethodA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result()) { pContext->GetSyntaxNode<ClassDefDeclaration>()->Methods.push_back(pContext->ScratchString()); }
+}
+
+
 
 SCISyntaxParser::SCISyntaxParser() :
     oppar(char_p("(")),
@@ -919,6 +1012,45 @@ void SCISyntaxParser::Load()
 
     class_decl = keyword_p("class")[CreateClassA<false>] >> classbase_decl[ClassCloseA];
 
+    // Non-code items:
+    class_def =
+        keyword_p("classdef")[SetStatementA<ClassDefDeclaration>] >> alphanumNK_p[SetNameA<ClassDefDeclaration>]; // TODO
+
+    extern_entry =
+        general_token[SaveScratchStringA] >> immediateValue >> integer_p[AddExternDeclA];
+
+    extern_section =
+        keyword_p("extern") >> *extern_entry;
+
+    selector_entry =
+        general_token >> integer_p[AddSelectorDeclA];
+
+    selector_section =
+        keyword_p("selectors") >> *selector_entry;
+
+    class_def_attributes =
+        (keyword_p("script#") >> integer_p[SetScriptNumberA]) |
+        (keyword_p("class#") >> integer_p[SetClassNumberA]) |
+        (keyword_p("super#") >> integer_p[SetSuperNumberA]) |
+        (keyword_p("file#") >> quotedstring_p[SetFileA]);
+
+    class_def_internal = alphanumNK_p[SetStatementNameA<ClassDefDeclaration>] >>
+        *class_def_attributes >>
+        oppar[GeneralE] >> keyword_p("properties") >> *(alphanumNK_p >> integer_p)[AddClassDefPropA] >> clpar[GeneralE] >>
+        oppar[GeneralE] >> keyword_p("methods") >> *alphanumNK_p[AddClassDefMethodA] >> clpar[GeneralE];
+
+    class_def =
+        keyword_p("classdef") >> syntaxnode_d[class_def_internal[AddClassDefDeclA]];
+
+    // As yet unclear how arrays are expressed. We may be able to re-use var_decl and a slightly modified script_var
+    /*
+    global_entry =
+        general_token >> integer_p >> 
+
+    global_section =
+        keyword_p("global") >> *global_entry;
+        */
+
     entire_script = *(oppar[GeneralE]
         >> (include
         | use
@@ -930,6 +1062,14 @@ void SCISyntaxParser::Load()
         | synonyms
         | exports
         | scriptNum
+
+        // Temporary. class_def and selector_section will need to go in their own top-level parsers.
+        // extern and globals can be anywhere, technically.
+        /*
+        | extern_section
+        | selector_section
+        | class_def*/
+
         | script_var)[{IdentifierE, ParseAutoCompleteContext::TopLevelKeyword}]
         >> clpar[GeneralE]);
 

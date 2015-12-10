@@ -75,6 +75,11 @@ public:
 
         ForwardOptionalSection("string", script.GetScriptStringsDeclarations());
 
+        assert(script.Externs.empty());
+        assert(script.Globals.empty());
+        assert(script.ClassDefs.empty());
+        assert(script.Selectors.empty());
+
         Forward(script.GetProcedures());
         out.EnsureNewLine();
         Forward(script.GetClasses());
@@ -788,6 +793,11 @@ public:
         DebugLine exportLine(out);
         out.out << exportEntry.Slot << " " << CleanToken(exportEntry.Name);
     }
+
+    void Visit(const ClassDefDeclaration &classDef) override {} 
+    void Visit(const GlobalDeclaration &global) override {}
+    void Visit(const ExternDeclaration &theExtern) override {}
+    void Visit(const SelectorDeclaration &selector) override {}
 
     void Enter(const SyntaxNode &node) override {}
     void Leave(const SyntaxNode &node) override {}

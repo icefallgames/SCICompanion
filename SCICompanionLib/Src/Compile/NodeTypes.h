@@ -60,5 +60,10 @@ namespace sci
         NodeTypeExport,
         NodeTypeCond,
         NodeTypeWeak,
+
+        NodeTypeClassDefDeclaration,
+        NodeTypeGlobal,
+        NodeTypeExtern,
+        NodeTypeSelector
     };
 }
