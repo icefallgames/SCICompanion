@@ -19,9 +19,9 @@ TextFonts (Kernel)
 
 	Example::
 
-		// By default, render messages in font 1605.
-		// Render messages with the |f1| tag in font 900.
-		// Render messages with the |f2| tag in font 901.
-		TextColors(1605 900 901)
+		; By default, render messages in font 1605.
+		; Render messages with the |f1| tag in font 900.
+		; Render messages with the |f2| tag in font 901.
+		(TextColors 1605 900 901)
 
 

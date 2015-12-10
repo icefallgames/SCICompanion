@@ -15,9 +15,8 @@ Joystick (Kernel)
 	
 	Example::
 	
-		(var menuItem, joyState)
-		= joyState Joystick(jsCALL_DRIVER 30)
-		= menuItem MenuSelect(pEvent)
-		Joystick(jsCALL_DRIVER joyState)
+		(= joyState (Joystick jsCALL_DRIVER 30))
+		(= menuItem (MenuSelect pEvent))
+		(Joystick jsCALL_DRIVER joyState)
 
 

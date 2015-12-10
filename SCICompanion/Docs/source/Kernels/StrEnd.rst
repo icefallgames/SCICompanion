@@ -18,8 +18,10 @@ StrEnd (Kernel)
 	
 	Example::
 	
-		(var aString[20], strPtr)
-		StrCpy(aString "Hello World")
-		= strPtr StrEnd(@aString)
+		(procedure (SomeFunc &tmp [aString 20] strPtr)
+			(StrCpy aString "Hello World")
+			(= strPtr (StrEnd @aString))
+		)
+
 
 

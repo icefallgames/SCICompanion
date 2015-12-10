@@ -26,8 +26,8 @@ ShakeScreen (Kernel)
 	
 	Example::
 	
-		ShakeScreen(8);				// Does a left to right shake screen eight times
-		ShakeScreen(20 ssFULL_SHAKE); // Does a complete shake screen twenty times
+		(ShakeScreen 8)					; Does a left to right shake screen eight times
+		(ShakeScreen 20 ssFULL_SHAKE)	; Does a complete shake screen twenty times
 	
 
 

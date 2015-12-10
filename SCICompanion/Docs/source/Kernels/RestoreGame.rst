@@ -19,6 +19,6 @@ RestoreGame (Kernel)
 	
 	Example::
 	
-		RestoreGame("LSL3" 2 "1.002")
+		(RestoreGame "LSL3" 2 "1.002")
 
 

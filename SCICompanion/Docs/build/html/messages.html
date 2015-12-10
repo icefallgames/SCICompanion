@@ -312,21 +312,21 @@ be counted as stage directions.</p>
 <span class="p">(</span><span class="n">instance</span> <span class="n">mug</span> <span class="n">of</span> <span class="n">Prop</span><span class="p">)</span>
     <span class="o">...</span>
 
-    <span class="p">(</span><span class="n">method</span> <span class="p">(</span><span class="n">doVerb</span> <span class="n">theVerb</span> <span class="n">params</span><span class="p">)</span>
+    <span class="p">(</span><span class="n">method</span> <span class="p">(</span><span class="n">doVerb</span> <span class="n">theVerb</span><span class="p">)</span>
         <span class="p">(</span><span class="n">switch</span> <span class="p">(</span><span class="n">theVerb</span><span class="p">)</span>
-            <span class="p">(</span><span class="n">case</span> <span class="n">V_TALK</span>
+            <span class="p">(</span><span class="n">V_TALK</span>
                 <span class="p">(</span><span class="k">if</span> <span class="p">(</span><span class="o">&lt;</span> <span class="n">numberTimesTalked</span> <span class="mi">3</span><span class="p">)</span>
-                    <span class="o">//</span> <span class="n">In</span> <span class="n">this</span> <span class="n">case</span><span class="p">,</span> <span class="n">we</span><span class="s">&#39;d have 3 messages for N_MUG/V_TALK, with cases 0 1 and 2.</span>
-                    <span class="o">//</span> <span class="n">Each</span> <span class="n">time</span> <span class="n">the</span> <span class="n">player</span> <span class="n">tried</span> <span class="n">to</span> <span class="n">talk</span> <span class="n">to</span> <span class="n">a</span> <span class="n">mug</span><span class="p">,</span> <span class="n">it</span> <span class="n">would</span> <span class="n">show</span> <span class="n">a</span> <span class="n">message</span> <span class="k">with</span> <span class="n">a</span> <span class="n">successive</span> <span class="n">case</span><span class="o">.</span>
-<span class="hll">                    <span class="p">(</span><span class="n">send</span> <span class="n">gTestMessager</span><span class="p">:</span><span class="n">say</span><span class="p">(</span><span class="n">N_MUG</span> <span class="n">V_TALK</span> <span class="n">numberTimesTalked</span> <span class="mi">1</span><span class="p">))</span>
-</span>                    <span class="p">(</span><span class="o">++</span><span class="n">numberTimesTalked</span><span class="p">)</span>
-                <span class="p">)(</span><span class="k">else</span>
-                    <span class="o">//</span> <span class="n">Until</span> <span class="n">they</span> <span class="n">talked</span> <span class="n">to</span> <span class="n">the</span> <span class="n">mug</span> <span class="n">too</span> <span class="n">many</span> <span class="n">times</span><span class="p">,</span> <span class="n">they</span><span class="s">&#39;re crazy.</span>
-                    <span class="n">Die</span><span class="p">(</span><span class="n">DEATH_REASON_CRAZY</span><span class="p">)</span>
+                    <span class="p">;</span> <span class="n">In</span> <span class="n">this</span> <span class="n">case</span><span class="p">,</span> <span class="n">we</span><span class="s">&#39;d have 3 messages for N_MUG/V_TALK, with cases 0 1 and 2.</span>
+                    <span class="p">;</span> <span class="n">Each</span> <span class="n">time</span> <span class="n">the</span> <span class="n">player</span> <span class="n">tried</span> <span class="n">to</span> <span class="n">talk</span> <span class="n">to</span> <span class="n">a</span> <span class="n">mug</span><span class="p">,</span> <span class="n">it</span> <span class="n">would</span> <span class="n">show</span> <span class="n">a</span> <span class="n">message</span> <span class="k">with</span> <span class="n">a</span> <span class="n">successive</span> <span class="n">case</span><span class="o">.</span>
+<span class="hll">                    <span class="p">(</span><span class="n">gMessager</span> <span class="n">say</span><span class="p">:</span> <span class="n">N_MUG</span> <span class="n">V_TALK</span> <span class="n">numberTimesTalked</span> <span class="mi">1</span><span class="p">)</span>
+</span>                    <span class="p">(</span><span class="o">++</span> <span class="n">numberTimesTalked</span><span class="p">)</span>
+                <span class="k">else</span>
+                    <span class="p">;</span> <span class="n">Until</span> <span class="n">they</span> <span class="n">talked</span> <span class="n">to</span> <span class="n">the</span> <span class="n">mug</span> <span class="n">too</span> <span class="n">many</span> <span class="n">times</span><span class="p">,</span> <span class="n">they</span><span class="s">&#39;re crazy.</span>
+                    <span class="p">(</span><span class="n">Die</span> <span class="n">DEATH_REASON_CRAZY</span><span class="p">)</span>
                 <span class="p">)</span>
             <span class="p">)</span>
-            <span class="p">(</span><span class="n">default</span>
-                <span class="p">(</span><span class="nb">super</span><span class="p">:</span><span class="n">doVerb</span><span class="p">(</span><span class="n">theVerb</span> <span class="n">rest</span> <span class="n">params</span><span class="p">))</span>
+            <span class="p">(</span><span class="k">else</span>
+                <span class="p">(</span><span class="nb">super</span> <span class="n">doVerb</span><span class="p">:</span> <span class="n">theVerb</span> <span class="o">&amp;</span><span class="n">rest</span><span class="p">)</span>
             <span class="p">)</span>
         <span class="p">)</span>
     <span class="p">)</span>
@@ -336,12 +336,12 @@ be counted as stage directions.</p>
 <p>When using gTestMessager:say(noun verb condition sequence), if the sequence number is 0, then all messages with the noun/verb/condition tuple will be shown in sequence.
 Otherwise, only the one with the specified sequence number will be shown.</p>
 <p>The noun/verb/condition/sequence tuple is used in many other places in the game too. So for instance, to show a button in a dialog, you can do:</p>
-<div class="highlight-scheme"><div class="highlight"><pre><span class="p">(</span><span class="nf">Print:</span>
-    <span class="nv">//</span> <span class="nv">message</span> <span class="nv">N_MYDIALOG/V_LOOK/0/1,</span> <span class="nv">at</span> <span class="p">(</span><span class="mi">60</span><span class="o">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">,</span> <span class="nv">from</span> <span class="nv">message</span> <span class="nv">resource</span> <span class="mi">101</span><span class="o">.</span>
-    <span class="nv">addText</span><span class="p">(</span><span class="nf">N_MYDIALOG</span> <span class="nv">V_LOOK</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">60</span> <span class="mi">0</span> <span class="mi">101</span><span class="p">)</span>
-    <span class="nv">//</span> <span class="nv">Button</span> <span class="nv">value</span> <span class="mi">0</span><span class="o">,</span> <span class="nv">message</span> <span class="nv">N_MYDIALOG/V_LOOK/0/2,</span> <span class="nv">at</span> <span class="p">(</span><span class="mi">70</span><span class="o">,</span> <span class="mi">35</span><span class="p">)</span><span class="o">,</span> <span class="nv">from</span> <span class="nv">message</span> <span class="nv">resource</span> <span class="mi">101</span><span class="o">.</span>
-    <span class="nv">addButton</span><span class="p">(</span><span class="mi">0</span> <span class="nv">N_MYDIALOG</span> <span class="nv">V_LOOK</span> <span class="mi">0</span> <span class="mi">2</span> <span class="mi">70</span> <span class="mi">35</span> <span class="mi">101</span><span class="p">)</span>
-    <span class="nv">init</span><span class="p">()</span>
+<div class="highlight-scheme"><div class="highlight"><pre><span class="p">(</span><span class="nf">Print</span>
+    <span class="c1">; message N_MYDIALOG/V_LOOK/0/1, at (60, 0), from message resource 101.</span>
+    <span class="nv">addText:</span> <span class="nv">N_MYDIALOG</span> <span class="nv">V_LOOK</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">60</span> <span class="mi">0</span> <span class="mi">101</span>
+    <span class="c1">; Button value 0, message N_MYDIALOG/V_LOOK/0/2, at (70, 35), from message resource 101.</span>
+    <span class="nv">addButton:</span> <span class="mi">0</span> <span class="nv">N_MYDIALOG</span> <span class="nv">V_LOOK</span> <span class="mi">0</span> <span class="mi">2</span> <span class="mi">70</span> <span class="mi">35</span> <span class="mi">101</span>
+    <span class="nv">init:</span>
 <span class="p">)</span>
 </pre></div>
 </div>

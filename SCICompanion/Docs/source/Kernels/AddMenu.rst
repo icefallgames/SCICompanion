@@ -34,13 +34,9 @@ AddMenu (Kernel)
 	
 	Example::
 	
-		AddMenu(
+		(AddMenu
 			" File "
-			"Restart Game`#9:"+
-			"Save Game`#5:"+
-			"Restore Game`#7:"+
-			"--! :"+
-			"Quit`^q"
+			"Restart Game`#9:Save Game`#5:Restore Game`#7:--! :Quit`^q"
 		)
 
 

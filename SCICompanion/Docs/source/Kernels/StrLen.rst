@@ -18,10 +18,10 @@ StrLen (Kernel)
 	
 	Example::
 	
-		(var aString[40], strPtr)
-		StrCpy(aString "Hello World")
-		(if( < StrLen(aString) 100 )
-			Print("The string is less than 100 characters")
+		(procedure (SomeFunc &tmp [aString 40] strPtr)
+			(StrCpy aString "Hello World")
+			(if (< (StrLen aString) 100)
+				(Print "The string is less than 100 characters")
+			)
 		)
-
 

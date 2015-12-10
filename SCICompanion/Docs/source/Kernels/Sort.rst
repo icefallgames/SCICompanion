@@ -24,11 +24,11 @@ Sort (Kernel)
 		(instance sortByDistanceToEgo of Code
 			(properties)
 			(method (doit theObj)
-				return (send gEgo:distanceTotheObj))
+				(return (gEgo distanceTo: theObj))
 			)
 		)
 
-		// Then somewhere in the script:
-		Sort(myEventHandler myEventHandler sortByDistanceToEgo)	
+		; Then somewhere in the script:
+		(Sort myEventHandler myEventHandler sortByDistanceToEgo)	
 
 

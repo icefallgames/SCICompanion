@@ -30,8 +30,8 @@ ResCheck (Kernel)
 	Example::
 
 		// Do we have an audio resource for this message?
-		(if (ResCheck(rsAUDIO36 moduleNumber noun verb condition sequence))
-			DoAudio(audPLAY moduleNumber noun verb condition sequence)
+		(if (ResCheck rsAUDIO36 moduleNumber noun verb condition sequence)
+			(DoAudio audPLAY moduleNumber noun verb condition sequence)
 		)
 
 

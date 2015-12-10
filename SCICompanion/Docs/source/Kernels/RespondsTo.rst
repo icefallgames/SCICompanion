@@ -20,11 +20,11 @@ RespondsTo (Kernel)
 	
 	Example::
 	
-		(if(RespondsTo(someObject #doit))
-			(send someObject:doit())
+		(if (RespondsTo someObject #doit)
+			(someObject doit:)
 		)
-		(if(RespondsTo(someObject #text))
-			(send someObject:text("Hello world!"))
+		(if (RespondsTo someObject #text)
+			(someObject text: "Hello world!")
 		)
 
 

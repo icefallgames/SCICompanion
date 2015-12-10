@@ -18,10 +18,9 @@ IsObject (Kernel)
 	
 	Example::
 	
-		(var objPtr)
-		= objPtr (Event:new())
-		IsObject(objPtr) // returns TRUE
-		= objPtr 0
-		IsObject(objPtr) // returns FALSE
+		(= objPtr (Event new:))
+		(IsObject objPtr) ; returns TRUE
+		(= objPtr 0)
+		(IsObject objPtr) ; returns FALSE
 
 

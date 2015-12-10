@@ -22,7 +22,6 @@ GetDistance (Kernel)
 	
 	Example::
 	
-		(var aDistance)
-		= aDistance GetDistance(10 20 100 80)
+		(= aDistance (GetDistance 10 20 100 80))
 
 

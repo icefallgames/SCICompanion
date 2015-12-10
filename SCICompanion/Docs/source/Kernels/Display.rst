@@ -47,9 +47,9 @@ Display (Kernel)
 
 	Examples::
 
-		Display("Hello World");
+		(Display "Hello World")
 
-		Display(
+		(Display
 			"Hello World"
 			dsCOORD 60 80
 			dsCOLOUR clRED
@@ -57,7 +57,7 @@ Display (Kernel)
 			dsFONT 4
 			dsALIGN alCENTER
 			dsWIDTH 200
-		); 
+		)
 
 
 

@@ -20,7 +20,7 @@ StrCpy (Kernel)
 
 	Example::
 
-		(var aString[40], strPtr)
-		StrCpy(aString "Hello World")
-
+		(procedure (SomeFunc &tmp [aString 40])
+			(StrCpy aString "Hello World")
+		)
 

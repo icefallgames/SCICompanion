@@ -22,9 +22,10 @@ DeviceInfo (Kernel)
 		
 	Example::
 
-		char strBuf[3];
-		DeviceInfo(diGET_DEVICE "C:\scistudio" @strBuf)
-		Print(@strBuf); // Prints "C:"
+		(procedure (Foo &tmp [buffer 3])
+			(DeviceInfo diGET_DEVICE "C:\scistudio" @buffer)
+			(Print @strBuf) ; Prints "C:"
+		)
 	
 .. function:: DeviceInfo(diGET_CURRENT_DEVICE thePath outBuffer)
 	:noindex:
@@ -37,9 +38,10 @@ DeviceInfo (Kernel)
 		
 	Example::
 
-		char strBuf[3];
-		DeviceInfo(diGET_CURRENT_DEVICE @strBuf);
-		Print(@strBuf); // Prints "C:", "D:", or whatever the current drive is
+		(procedure (Foo &tmp [buffer 3])
+			(DeviceInfo diGET_CURRENT_DEVICE @buffer)
+			(Print @strBuf) ; Prints "C:", "D:", or whatever the current drive is
+		)
 
 .. function:: DeviceInfo(diPATHS_EQUAL path1 path2)
 	:noindex:
@@ -52,10 +54,9 @@ DeviceInfo (Kernel)
 
 	Example::
 
-		char aPath[100];
-		if (DeviceInfo(diPATHS_EQUAL @aPath "C:\scistudio"))
+		if (DeviceInfo diPATHS_EQUAL @aPath "C:\scistudio")
 		{
-			Print("The paths are equal");
+			(Print "The paths are equal")
 		} 
 	
 .. function:: DeviceInfo(diIS_FLOPPY thePath)
@@ -78,6 +79,6 @@ DeviceInfo (Kernel)
 
 	Example::
 
-		DeviceInfo(4);
+		(DeviceInfo 4)
 
 

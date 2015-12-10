@@ -15,6 +15,6 @@ DrawStatus (Kernel)
 	
 	Example::
 	
-		DrawStatus(" Score 0 of 100                   Awesome Quest ");
+		(DrawStatus " Score 0 of 100                   Awesome Quest ")
 
 

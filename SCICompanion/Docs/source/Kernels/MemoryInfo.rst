@@ -29,12 +29,12 @@ MemoryInfo (Kernel)
 	
 	Example::
 	
-		FormatPrint(
+		(FormatPrint
 			"Free Heap: %u Bytes\nLargest ptr: %u Bytes\nFreeHunk: %u KBytes\nLargest hunk: %u Bytes"
-			MemoryInfo(miFREEHEAP)
-			MemoryInfo(miLARGESTPTR)
-			(>> MemoryInfo(miFREEHUNK) 6)
-			MemoryInfo(miLARGESTHUNK)
+			(MemoryInfo miFREEHEAP)
+			(MemoryInfo miLARGESTPTR)
+			(>> (MemoryInfo miFREEHUNK) 6)
+			(MemoryInfo miLARGESTHUNK)
 		)
 
 

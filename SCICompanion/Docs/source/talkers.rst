@@ -35,7 +35,7 @@ To add a new Talker to your game, you'll need to complete the following steps:
 
 1. In the message editor (for any message resource), assign a new talker name to a new number in the *Global Talkers* pane. Once this is done, it will be in **Talkers.sh** and you will be able to create message entries with this Talker name.
 2. Choose a script in which to implement your Talker. If the Talker only ever appears in one room, you may as well just define it in that room. Otherwise, you can create a new empty script just for this Talker.
-3. In your chosen script, create the Talker (or Narrator) instance and customize as necessary. Then add the instance to the list of exports for that script (using the :doc:`exports <Compiler/version>` keyword).
+3. In your chosen script, create the Talker (or Narrator) instance and customize as necessary. Then add the instance to the list of exports for that script (using the :doc:`public <Compiler/public>` keyword).
 4. In the main.sc script, find the *findTalker* method in the *testMessager* instance, and insert a new case in the switch statement for *talkerNumber*. The case value should be the talker name you used in step 1. In this case statement, call ScriptID kernel with the script number you chose in step 2, and the export number you chose in step 3.
 5. Finally, *if* you chose a new script in step 2, you'll need to add this script number to the list of scripts to dispose on a room change in **dispose.sc**.
 

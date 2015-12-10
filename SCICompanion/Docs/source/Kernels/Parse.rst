@@ -21,11 +21,10 @@ Parse (Kernel)
 	
 	Example::
 	
-		(var hEvent)
-		= hEvent (Event:new())
-		(if (Parse("open door" hEvent))
-			(if(Said('open/door')
-				Display("The door is now open")
+		(= hEvent (Event new:))
+		(if (Parse "open door" hEvent)
+			(if (Said 'open/door')
+				(Display "The door is now open")
 			)
 		)
 

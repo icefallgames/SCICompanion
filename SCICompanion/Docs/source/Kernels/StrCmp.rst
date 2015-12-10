@@ -20,10 +20,11 @@ StrCmp (Kernel)
 
 	Example::
 
-		(var aString[40], strPtr)
-		StrCpy(aString "Hello World")
-		(if( == STRINGS_EQUAL StrCmp(aString "Hello World"))
-			Print("The string says Hello World")
+		(procedure (SomeFunc &tmp [aString 40] strPtr)
+			(StrCpy aString "Hello World")
+			(if (== STRINGS_EQUAL (StrCmp aString "Hello World"))
+				(Print "The string says Hello World")
+			)
 		)
 
 

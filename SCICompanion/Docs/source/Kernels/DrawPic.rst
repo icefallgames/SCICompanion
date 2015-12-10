@@ -78,6 +78,6 @@ DrawPic (Kernel)
 	
 	Example::
 	
-		DrawPic(100 dpCLOSEREOPEN_EDGECENTER dpCLEAR)
+		(DrawPic 100 dpCLOSEREOPEN_EDGECENTER dpCLEAR)
 
 

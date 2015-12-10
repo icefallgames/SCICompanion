@@ -38,4 +38,4 @@ This is because the code blocks may contain multiple statements. For example::
 	; i: 1, j: 2
 	; i: 0, j: 1
 
-See also: :doc:`if`, :doc:`while`, :doc:`do`, :doc:`break`.
+See also: :doc:`if`, :doc:`while`, :doc:`repeat`, :doc:`break`.

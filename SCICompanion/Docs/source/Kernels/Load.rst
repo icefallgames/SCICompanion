@@ -21,10 +21,9 @@ Load (Kernel)
 	
 	Example::
 	
-		(var hView, memPtr)
-		= hView Load(rsVIEW 100) // loads VIEW.100
-		= memPtr Load(rsMEMORY 1024) // allocates 1024 bytes of memory
-		UnLoad(rsVIEW 100) // unloads VIEW.000 from memory
-		UnLoad(rsMEMORY memPtr) // frees memPtr from
+		(= hView (Load rsVIEW 100))		; loads VIEW.100
+		(= memPtr (Load rsMEMORY 1024)) ; allocates 1024 bytes of memory
+		(UnLoad rsVIEW 100)				; unloads VIEW.000 from memory
+		(UnLoad rsMEMORY memPtr)		; frees memPtr from
 
 

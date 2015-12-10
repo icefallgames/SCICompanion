@@ -18,7 +18,7 @@ Wait (Kernel)
 	
 	Example::
 	
-		Wait(120) // Waits for two seconds
+		(Wait 120) ; Waits for two seconds
 	
 	See also: :func:`GetTime`.
 

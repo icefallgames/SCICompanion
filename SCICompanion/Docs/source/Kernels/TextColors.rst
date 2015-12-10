@@ -19,11 +19,11 @@ TextColors (Kernel)
 
 	Example::
 
-		// By default, render messages as color 0.
-		// Render messages with the |c1| tag as color 15.
-		// Render messages with the |c2| tag as color 52.
-		// Render messages with the |c3| tag as color 53.
-		TextColors(0 15 52 53)
+		; By default, render messages as color 0.
+		; Render messages with the |c1| tag as color 15.
+		; Render messages with the |c2| tag as color 52.
+		; Render messages with the |c3| tag as color 53.
+		(TextColors 0 15 52 53)
 
 
 

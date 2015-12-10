@@ -37,19 +37,19 @@ FOpen (Kernel)
 	
 	Example::
 	
-		(var hFile, buffer[41])
-		// Open the file and write to it
-		(if( <> NULL (= hFile FOpen("somefile.txt" fCREATE)) )
-			FPuts(hFile "Hello World!")
-			FClose(hFile)
-		)
+		(procedure (Foo &tmp hFile [buffer41])
+			; Open the file and write to it
+			(if (!= NULL (= hFile (FOpen "somefile.txt" fCREATE)))
+				(FPuts hFile "Hello World!")
+				(FClose hFile)
+			)
 	
-		// Open the file, read it's first string, and print it to the screen
-		(if( <> NULL (= hFile FOpen("somefile.txt" fOPENFAIL)) )
-			FGets(buffer 40 hFile)
-			FClose(hFile)
+			; Open the file, read it's first string, and print it to the screen
+			(if (!= NULL (= hFile (FOpen "somefile.txt" fOPENFAIL)))
+				(FGets buffer 40 hFile)
+				(FClose hFile)
 	
-			Print(buffer)
+				(Print buffer)
+			)
 		)
-
 

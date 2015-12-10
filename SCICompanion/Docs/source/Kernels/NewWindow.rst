@@ -37,10 +37,9 @@ NewWindow (Kernel)
 	
 	Example::
 	
-		(var hWnd, oldPort)
-		= oldPort GetPort()
-		// Draw a white window at 50, 20 with a width of 200 100, a title, and a black foreground.
-		= hWnd NewWindow(
+		(= oldPort (GetPort))
+		; Draw a white window at 50, 20 with a width of 200 100, a title, and a black foreground.
+		(= hWnd NewWindow
 			50 20 250 120
 			"Test Window"
 			nwTITLE
@@ -49,10 +48,10 @@ NewWindow (Kernel)
 			clWHITE
 		)
 	
-		SetPort(hWnd)
-		Display("Hello in the hWnd window!")
-		SetPort(oldPort)
-		Display("Hello in the oldPort!")
-		DisposeWindow(hWnd)
+		(SetPort hWnd)
+		(Display "Hello in the hWnd window!")
+		(SetPort oldPort)
+		(Display "Hello in the oldPort!")
+		(DisposeWindow hWnd)
 
 

@@ -38,8 +38,8 @@ Palette (Kernel)
 	Example::
 
 		(method (doit)
-			(super:doit())
-			Palette(palANIMATE 192 198 -9)
+			(super doit:)
+			(Palette palANIMATE 192 198 -9)
 		)
 
 .. function:: Palette(palSET_FROM_RESOURCE resourceNumber [force])
@@ -52,7 +52,7 @@ Palette (Kernel)
 
 	Example::
 
-		Palette(palSET_FROM_RESOURCE 999 2)
+		(Palette palSET_FROM_RESOURCE 999 2)
 
 .. function:: Palette(palSET_FLAG startIndex endIndex flag)
 	:noindex:
@@ -78,7 +78,7 @@ Palette (Kernel)
 
 	Example::
 
-		= gLowlightColor Palette(palFIND_COLOR 159 159 159)
+		(= gLowlightColor (Palette palFIND_COLOR 159 159 159))
 
 .. function:: Palette(palSAVE)
 	:noindex:

@@ -23,11 +23,10 @@ MergePoly (Kernel)
 
 	Example::
 
-		(var newPoints)
-		(= newPoints MergePoly(points (send obstacles:elements) (send obstacles:size)))
+		(= newPoints (MergePoly points (obstacles elements?) (obstacles size?)))
 		(if (newPoints)
-			// Do something with the new points, etc...
-			Memory(memFREE newPoints)
+			; Do something with the new points, etc.... Then,
+			(Memory memFREE newPoints)
 		)
 
 

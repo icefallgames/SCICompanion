@@ -22,10 +22,10 @@ SetSynonyms (Kernel)
 	Example::
 	
 		(synonyms
-		  'grab' = 'open'
+			(open grab peer)
 		)
 		...
 	
-		SetSynonyms(gRegions) // the global variable pointing to the list of rooms
+		(SetSynonyms gRegions) ; the global variable pointing to the list of rooms
 
 

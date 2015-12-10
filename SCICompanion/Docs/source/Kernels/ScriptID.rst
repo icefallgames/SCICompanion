@@ -15,8 +15,7 @@ ScriptID (Kernel)
 	
 	Example::
 	
-		(var heapPointer)
-		// gets the address in memory pointed to by entry 4 in the exports segment of SCRIPT.100.
-		= heapPointer ScriptID(100 4) 
+		; gets the address in memory pointed to by entry 4 in the exports segment of SCRIPT.100.
+		(= heapPointer (ScriptID 100 4))
 
 

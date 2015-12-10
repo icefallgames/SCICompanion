@@ -19,7 +19,6 @@ Random (Kernel)
 	
 	Example::
 	
-		(var aRandomNumber)
-		= aRandomNumber Random(1 10) // Generates a random number between 1 and 10
+		(= aRandomNumber (Random 1 10)) ; Generates a random number between 1 and 10
 
 

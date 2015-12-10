@@ -45,18 +45,17 @@ Said (Kernel)
 	
 	If a match is made, the words are "used up" until a fresh parse event happens. For example::
 	
-		if (Said('look'))
-		{
-		}
-		if (Said('look')) // This will return FALSE, even if the previous line returned TRUE.
-		{
-			// We can never get here.
-		}
+		(if (Said 'look')
+		)
+
+		(if (Said 'look') ; This will return FALSE, even if the previous line returned TRUE.
+			; We can never get here.
+		)
 	
 	Other examples::
 	
-		Said('look/car')         // Matches "look car", "look in car"
-		Said('look<in/car')      // Matches "look in car" only
-		Said('give/food/dog')    // Matches "give food to dog" and "give dog food"
+		(Said 'look/car')         ; Matches "look car", "look in car"
+		(Said 'look<in/car')      ; Matches "look in car" only
+		(Said 'give/food/dog')    ; Matches "give food to dog" and "give dog food"
 
 

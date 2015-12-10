@@ -25,7 +25,7 @@ PalVary (Kernel)
 
 	Example::
 
-		PalVary(pvINIT targetPalette 1 64 3)
+		(PalVary pvINIT targetPalette 1 64 3)
 
 .. function:: PalVary(pvUNINIT)
 	:noindex:
@@ -35,10 +35,10 @@ PalVary (Kernel)
 	Example::
 
 		(method (doit)
-			(super:doit())
-			(if (== 64 PalVary(pvGET_CURRENT_STEP))
-				PalVary(pvUNINIT)
-				// The transition is now done...
+			(super doit:)
+			(if (== 64 (PalVary pvGET_CURRENT_STEP))
+				(PalVary pvUNINIT)
+				; The transition is now done...
 			)
 		)
 

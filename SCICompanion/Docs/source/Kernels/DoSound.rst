@@ -19,7 +19,7 @@ DoSound (Kernel)
 
 	Example::
 
-		DoSound(sndINIT soundObj)
+		(DoSound sndINIT soundObj)
 
 .. function:: DoSound(sndPLAY soundObj)
 	:noindex:
@@ -45,9 +45,9 @@ DoSound (Kernel)
 
 	Example::
 
-		// If the sound system is not muted, mute it.
-		(if(DoSound(sndSET_SOUND))
-		  DoSound(sndSET_SOUND FALSE)
+		; If the sound system is not muted, mute it.
+		(if (DoSound sndSET_SOUND)
+			(DoSound sndSET_SOUND FALSE)
 		)
 
 .. function:: DoSound(sndSTOP soundObj)
@@ -123,8 +123,8 @@ DoSound (Kernel)
 
 	Example::
 
-		(if( not DoSound(sndCHECK_DRIVER) )
-			 Print("The sound driver is not installed!")
+		(if (not (DoSound sndCHECK_DRIVER))
+			 (Print "The sound driver is not installed!")
 		)
 
 .. function:: DoSound(sndSTOP_ALL)

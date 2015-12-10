@@ -34,7 +34,7 @@ DoAudio (Kernel)
 
 	Example::
 
-		DoAudio(audPLAY 107)
+		(DoAudio audPLAY 107)
 
 .. function:: DoAudio(audWPLAY resourceNumber)
 	:noindex:
@@ -60,7 +60,7 @@ DoAudio (Kernel)
 
 	Example::
 
-		(Timer:setTicks(self DoAudio(audWPLAY gRoomNumber noun verb condition seq)))
+		(Timer setTicks: self (DoAudio audWPLAY gRoomNumber noun verb condition seq))
 
 .. function:: DoAudio(audSTOP)
 	:noindex:

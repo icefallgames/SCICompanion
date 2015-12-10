@@ -15,8 +15,8 @@ StrCat (Kernel)
 	
 	Example::
 	
-		(var aString[40], strPtr)
-		StrCpy(aString "Hello World")
-		StrCat(aString ", How Are You?") // aString will be "Hello World, How Are You?"
-
+		(procedure (SomeFunc &tmp [aString 40] strPtr)
+			(StrCpy aString "Hello World")
+			(StrCat aString ", How Are You?") ; aString will be "Hello World, How Are You?"
+		)
 

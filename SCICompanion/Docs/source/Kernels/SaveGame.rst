@@ -20,6 +20,6 @@ SaveGame (Kernel)
 	
 	Example::
 	
-		SaveGame("LSL3" 2 "Some game saved in slot 2" "1.002")
+		(SaveGame "LSL3" 2 "Some game saved in slot 2" "1.002")
 
 

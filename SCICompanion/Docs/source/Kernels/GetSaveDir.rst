@@ -17,8 +17,7 @@ GetSaveDir (Kernel)
 	
 	Example::
 	
-		(var theString)
-		= theString GetSaveDir()
-		Print(theString)
+		(= theString (GetSaveDir))
+		(Print theString)
 
 

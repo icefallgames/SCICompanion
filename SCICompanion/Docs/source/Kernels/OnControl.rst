@@ -26,14 +26,14 @@ OnControl (Kernel)
 	
 	Example::
 	
-		// Using a point
-		(if (== ctlRED OnControl(ocSPECIAL 120 90)
-			Print("It is on a red control line!")
+		; Using a point
+		(if (== ctlRED (OnControl ocSPECIAL 120 90))
+			(Print "It is on a red control line!")
 		)
 	
-		// Using a rect, multiple colors may be returned, so you should use the & operator.
-		(if (& ctlBLUE OnControl(ocSPECIAL 50 20 100 40)
-			Print("It is on a blue control line!")
+		; Using a rect, multiple colors may be returned, so you should use the & operator.
+		(if (& ctlBLUE (OnControl ocSPECIAL 50 20 100 40)
+			(Print "It is on a blue control line!")
 		)
 	
 

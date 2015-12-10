@@ -18,8 +18,7 @@ ReadNumber (Kernel)
 	
 	Example::
 	
-		(var aNumber)
-		= aNumber ReadNumber("500")
-		= aNumber ReadNumber("$12AB")
+		(= aNumber (ReadNumber "500")
+		(= aNumber (ReadNumber "$12AB")
 
 

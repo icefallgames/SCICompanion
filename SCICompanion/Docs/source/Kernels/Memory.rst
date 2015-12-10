@@ -26,8 +26,8 @@ Memory (Kernel)
 	Example::
 
 		(method (setName theName)
-			= name Memory(memALLOC_CRIT (+ StrLen(theName) 1))
-			StrCpy(name theName)
+			(= name (Memory memALLOC_CRIT (+ (StrLen theName) 1)))
+			(StrCpy name theName)
 		)
 
 .. function:: Memory(memALLOC_NONCRIT byteCount)
@@ -40,8 +40,8 @@ Memory (Kernel)
 
 	Example::
 
-		(if (not (= text Memory(memALLOC_NONCRIT 20)))
-			TextPrint("Couldn't allocate memory.")
+		(if (not (= text (Memory memALLOC_NONCRIT 20)))
+			(Prints "Couldn't allocate memory.")
 		)
 
 	Free the memory with Memory(memFREE).
@@ -55,7 +55,7 @@ Memory (Kernel)
 
 	Example::
 
-		Memory(memFREE blah)
+		(Memory memFREE blah)
 
 .. function:: Memory(memCPY dest source byteCount)
 	:noindex:
@@ -77,7 +77,7 @@ Memory (Kernel)
 
 	Example::
 
-		(= point Memory(memPEEK (polyPointArray + (* 2 pointIndex))))
+		(= point (Memory memPEEK (polyPointArray + (* 2 pointIndex))))
 
 .. function:: Memory(memPOKE address value)
 	:noindex:
@@ -89,7 +89,7 @@ Memory (Kernel)
 
 	Example::
 
-		Memory(memPOKE (+ polyPointArray 2) 137)
+		(Memory memPOKE (+ polyPointArray 2) 137)
 
 
 

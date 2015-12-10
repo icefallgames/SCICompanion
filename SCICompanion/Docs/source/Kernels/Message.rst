@@ -27,8 +27,10 @@ Message (Kernel)
 
 	Example::
 
-		(var temp0[100])
-		Message(msgGET 0 12 0 0 1 @temp0)
+		(procedure (SomeFunc &tmp [buffer 100])
+			(Message msgGET 0 12 0 0 1 @buffer)
+			...
+		)
 
 .. function:: Message(msgNEXT textBuffer)
 	:noindex:
@@ -50,15 +52,16 @@ Message (Kernel)
 
 	Example::
 
-		(var buffer, modNum, noun, verb, condition, case)
-		= buffer Memory(memALLOC_CRIT 12)
-		Message(msgLAST_MESSAGE buffer)
-		= modNum GetValueAt(buffer 0)
-		= noun GetValueAt(buffer 1)
-		= verb GetValueAt(buffer 2)
-		= condition GetValueAt(buffer 3)
-		= case GetValueAt(buffer 4)
-		DoAudio(audPLAY modNum noun verb condition case)
+		(procedure (SomeFunc &tmp buffer modNum noun verb condition case)
+			(= buffer (Memory memALLOC_CRIT 12))
+			(Message msgLAST_MESSAGE buffer)
+			(= modNum (WordAt buffer 0))
+			(= noun (WordAt buffer 1))
+			(= verb (WordAt buffer 2))
+			(= condition (WordAt buffer 3))
+			(= case (WordAt buffer 4))
+			(DoAudio audPLAY modNum noun verb condition case)
+		)
 
 .. function:: Message(msgSIZE moduleNumber noun verb condition sequence)
 	:noindex:
@@ -74,11 +77,12 @@ Message (Kernel)
 
 	Example::
 
-		(var theSize, title)
-		= theSize Message(msgSIZE modNum noun verb condition seq)
-		(if (theSize)
-			= title Memory(memALLOC_CRIT theSize)
-			Message(msgGET modNum noun verb condition seq title)
+		(procedure (SomeFunc modNum noun verb condition seq &tmp theSize title)
+			(= theSize (Message msgSIZE modNum noun verb condition seq))
+			(if (theSize)
+				(= title (Memory memALLOC_CRIT theSize))
+				(Message msgGET modNum noun verb condition seq title)
+			)
 		)
 
 .. function:: Message(msgREF_NOUN moduleNumber noun verb condition sequence)

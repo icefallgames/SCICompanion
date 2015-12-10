@@ -20,8 +20,7 @@ GetAngle (Kernel)
 	
 	Example::
 	
-		(var anAngle)
-		// Get angle between (10, 20) and (100, 80)
-		= anAngle GetAngle(10 20 100 80)
+		; Get angle between (10, 20) and (100, 80)
+		(= anAngle (GetAngle 10 20 100 80))
 
 
