@@ -634,7 +634,7 @@ namespace sci
         uint16_t Index;
     };
 
-    class GlobalDeclaration : public SyntaxNode
+    class GlobalDeclaration : public SyntaxNode, public NamedNode
     {
         DECLARE_NODE_TYPE(NodeTypeGlobal)
     public:
@@ -646,7 +646,7 @@ namespace sci
         void Traverse(IExploreNode &en);
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 
-        VariableDecl VarDecl;
+        std::unique_ptr<PropertyValue> InitialValue;
         uint16_t Index;
     };
 

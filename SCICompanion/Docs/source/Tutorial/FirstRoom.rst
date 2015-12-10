@@ -26,7 +26,7 @@ Room 110 is already set up for you. Find *rm110.sc* in the Quick links in the sc
 When you run the game, your ego will appear on a blank white screen (pic 110). You can switch between the *walk*, *look*, *do* and *talk* cursors by right-clicking or
 using the icon bar at the top. To move the ego around, click with the *walk* cursor.
 
-The init() method
+The init: method
 ======================
 
 Let's go through each of the pieces of code in init()::

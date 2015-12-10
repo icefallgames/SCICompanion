@@ -1859,7 +1859,13 @@ public:
     void Visit(const GlobalDeclaration &global)
     {
         _MaybeNewLineIndent();
-        _OutputVariableAndSizeSCI(out, global.VarDecl.GetDataType(), global.VarDecl.GetName(), global.VarDecl.GetSize(), global.VarDecl.GetStatements(), &global.Index);
+        GO_INLINE;
+        out.out << global.GetName() << " " << global.Index;
+        if (global.InitialValue)
+        {
+            out.out << " =";
+            _MaybeIndentAccept(*global.InitialValue);
+        }
     }
     void Visit(const ExternDeclaration &theExtern)
     {

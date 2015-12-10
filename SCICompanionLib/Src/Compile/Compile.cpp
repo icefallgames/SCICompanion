@@ -2792,7 +2792,10 @@ void SelectorDeclaration::PreScan(CompileContext &context) {}
 
 void GlobalDeclaration::PreScan(CompileContext &context)
 {
-    VarDecl.PreScan(context);
+    if (InitialValue)
+    {
+        InitialValue->PreScan(context);
+    }
 }
 void ExternDeclaration::PreScan(CompileContext &context)
 {

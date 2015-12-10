@@ -1592,7 +1592,10 @@ bool SCIClassBrowser::GetPropertyValue(PCTSTR pszName, ISCIPropertyBag *pBag, co
 void SCIClassBrowser::ReportResult(const CompileResult &result)
 {
     std::lock_guard<std::mutex> lock(_mutexErrorReport);
-    _errors.push_back(result);
+    if (result.IsError())
+    {
+        _errors.push_back(result);
+    }
 }
 void SCIClassBrowser::ClearErrors()
 {

@@ -467,10 +467,35 @@ bool IsClassLevelKeyword(LangSyntax lang, const std::string &word)
     return binary_search(list.begin(), list.end(), word);
 }
 
+// Sorted:
+std::vector<std::string> unimplementedKeywordsSCI =
+{
+    "class#",
+    "classdef",
+    "extern",
+    "file#",
+    "global",
+    "methods",
+    "selectors",
+    "super#",
+};
+
+bool IsUnimplementedKeyword(LangSyntax lang, const std::string &word)
+{
+    if (lang == LangSyntaxSCI)
+    {
+        return binary_search(unimplementedKeywordsSCI.begin(), unimplementedKeywordsSCI.end(), word);
+    }
+    return false;
+}
+
 bool IsSCIKeyword(LangSyntax lang, const std::string &word)
 {
     return (IsValueKeyword(lang, word) || IsCodeLevelKeyword(lang, word) || IsTopLevelKeyword(lang, word) || IsClassLevelKeyword(lang, word) ||
+        IsUnimplementedKeyword(lang, word) ||
         ((lang == LangSyntaxSCI) && (word == "&tmp")));
+
+
 }
 
 const std::vector<std::string> &GetCodeLevelKeywords(LangSyntax lang)

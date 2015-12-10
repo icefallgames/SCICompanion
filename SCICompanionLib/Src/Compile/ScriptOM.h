@@ -963,6 +963,9 @@ namespace sci
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 
+        // Unimplemented (unneeded) Sierra syntax method forward decls
+        std::vector<std::string> MethodForwards;
+
     private:
         std::string _superClass;
         bool _fPublic;
@@ -1194,6 +1197,7 @@ namespace sci
         std::vector<std::unique_ptr<ExternDeclaration>> Externs;
         std::vector<std::unique_ptr<SelectorDeclaration>> Selectors;    // selector file
         std::vector<std::unique_ptr<ClassDefDeclaration>> ClassDefs;    // classdef file
+        std::vector<std::string> ProcedureForwards;
 
     private:
         void _PreScanStringDeclaration(CompileContext &context, VariableDecl &stringDecl);

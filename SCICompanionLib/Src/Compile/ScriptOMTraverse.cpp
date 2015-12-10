@@ -302,7 +302,10 @@ void SelectorDeclaration::Traverse(IExploreNode &en)
 void GlobalDeclaration::Traverse(IExploreNode &en)
 {
     ExploreNodeBlock enb(en, *this);
-    VarDecl.Traverse(en);
+    if (InitialValue)
+    {
+        InitialValue->Traverse(en);
+    }
 }
 void ExternDeclaration::Traverse(IExploreNode &en)
 {

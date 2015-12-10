@@ -119,6 +119,9 @@ private:
     ParserSCI global_section;
     ParserSCI selector_entry;
     ParserSCI selector_section;
+    // Other unsupported:
+    ParserSCI methods_fwd;
+    ParserSCI procedures_fwd;
 
     // Utility
     static ParserSCI char_p(const char *psz);

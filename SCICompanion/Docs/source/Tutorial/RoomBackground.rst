@@ -40,7 +40,7 @@ Notice that painting on the wall? We can offer some limited interaction with it 
 so, we'll first create a polygon for it.
 
 Using the polygon tool, draw a line around the painting. Then give the polygon a name. *Named* polygons won't be added to the room's obstacles
-in the init() method. Instead, we can assign them to individual features to define that feature's boundary. Also, note that the type (Barred, Contained, etc...) of the polygon
+in the init: method. Instead, we can assign them to individual features to define that feature's boundary. Also, note that the type (Barred, Contained, etc...) of the polygon
 doesn't matter when we're using it to define the click boundaries of a feature.
 
 .. image:: tutimages/PaintingPolygon.png

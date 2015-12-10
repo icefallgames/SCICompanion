@@ -113,6 +113,16 @@ vector<string> SCIKeywords =
     "&rest",
     "script#"
     // neg, send, case, do, default, export are also keywords, but for the Studio language.
+
+    // The following are original Sierra constructs that are not supported yet.
+    "extern"        // For linking public procedures
+    "selectors"     // For the selector list
+    "global"        // For global var declarations
+    "classdef"      //
+    "methods"       // Method forward declarations (also methods in classdef)
+    "class#"        // In classdef
+    "super#"        // In classdef
+    "file#"         // Procedure forward declarations
 };
 
 template<typename _It, typename _TContext>
@@ -553,6 +563,14 @@ void SaveScratchStringA(MatchResult &match, const ParserSCI *pParser, SyntaxCont
         pContext->ScratchString2() = pContext->ScratchString();
     }
 }
+void SaveGlobalVarIndexA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->Integer2 = pContext->Integer;
+        pContext->PropertyValueWasSet = false;  // Also reset this.
+    }
+}
 void AddExternDeclA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
     if (match.Result())
@@ -637,7 +655,34 @@ void AddClassDefMethodA(MatchResult &match, const ParserSCI *pParser, SyntaxCont
 {
     if (match.Result()) { pContext->GetSyntaxNode<ClassDefDeclaration>()->Methods.push_back(pContext->ScratchString()); }
 }
-
+void AddGlobalEntryA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        auto globalEntry = std::make_unique<GlobalDeclaration>();
+        globalEntry->Index = pContext->Integer2;
+        if (pContext->PropertyValueWasSet)
+        {
+            globalEntry->InitialValue = std::make_unique<PropertyValue>(pContext->PropertyValue);
+        }
+        globalEntry->SetName(pContext->ScratchString2());
+        pContext->Script().Globals.push_back(move(globalEntry));
+    }
+}
+void AddMethodFwdA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->ClassPtr->MethodForwards.push_back(pContext->ScratchString());
+    }
+}
+void AddProcedureFwdA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->Script().ProcedureForwards.push_back(pContext->ScratchString());
+    }
+}
 
 
 SCISyntaxParser::SCISyntaxParser() :
@@ -986,6 +1031,14 @@ void SCISyntaxParser::Load()
 
     procedure_decl = keyword_p("procedure")[CreateProcedureA] >> procedure_base[{FunctionCloseA, ParseAutoCompleteContext::Block}];
 
+    // Unsupported (unneeded) methods forward declaration
+    // (methods
+    //      m1
+    //      m2
+    //      m3
+    // )
+    methods_fwd = keyword_p("methods") >> *alphanumNK_p[AddMethodFwdA];
+
     // Very similar to procedure_base, but with some autocomplete differences:
     method_base = oppar
         >> alphanumNK_p[{FunctionNameA, ParseAutoCompleteContext::Selector}]
@@ -1005,7 +1058,9 @@ void SCISyntaxParser::Load()
         >> -((keyword_p("of")[GeneralE] | keyword_p("kindof")[GeneralE]) >> alphanumNK_p[{ClassSuperA, ParseAutoCompleteContext::SuperClass}])
         >> -properties_decl
         >> *(oppar[GeneralE] >> 
-            (method_decl[FinishClassMethodA] |
+            (
+            methods_fwd |
+            method_decl[FinishClassMethodA] |
             procedure_decl[FinishClassProcedureA]) >> clpar);
 
     instance_decl = keyword_p("instance")[CreateClassA<true>] >> classbase_decl[ClassCloseA];
@@ -1042,14 +1097,21 @@ void SCISyntaxParser::Load()
     class_def =
         keyword_p("classdef") >> syntaxnode_d[class_def_internal[AddClassDefDeclA]];
 
-    // As yet unclear how arrays are expressed. We may be able to re-use var_decl and a slightly modified script_var
-    /*
     global_entry =
-        general_token >> integer_p >> 
+        general_token[SaveScratchStringA] >> integer_p[SaveGlobalVarIndexA] >> -(equalSign[GeneralE] >> immediateValue);
 
     global_section =
-        keyword_p("global") >> *global_entry;
-        */
+        keyword_p("global") >> *global_entry[AddGlobalEntryA];
+
+    // Unsupported (unneeded) procedure fwd declaration. Same keyword as an actual procedure
+    // definition, but no opening paren after (so that's how we distinguish). In-class procs are also declared here.
+    // (procedure
+    //      GetStatus
+    //      SomeOtherProc
+    //      SaveFile
+    // )
+    procedures_fwd =
+        keyword_p("procedure") >> *alphanumNK_p[AddProcedureFwdA];
 
     entire_script = *(oppar[GeneralE]
         >> (include
@@ -1063,12 +1125,13 @@ void SCISyntaxParser::Load()
         | exports
         | scriptNum
 
-        // Temporary. class_def and selector_section will need to go in their own top-level parsers.
-        // extern and globals can be anywhere, technically.
-        /*
+        // The following are not yet supported, but we'll include them to possibly
+        // "reserve" for future use.
         | extern_section
+        | global_section
         | selector_section
-        | class_def*/
+        | class_def
+        | procedures_fwd
 
         | script_var)[{IdentifierE, ParseAutoCompleteContext::TopLevelKeyword}]
         >> clpar[GeneralE]);
@@ -1079,7 +1142,22 @@ void SCISyntaxParser::Load()
         (
         (keyword_p("#ifdef") >> alphanumNK_p[EvaluateIfDefA])
         | keyword_p("#endif")[EvaluateEndIfA]
-        | (oppar[GeneralE] >> (include | define[FinishDefineA] | enumStatement)[IdentifierE] >> clpar[GeneralE])
+        |
+        (oppar[GeneralE] >>
+        (include |
+        define[FinishDefineA] |
+        enumStatement
+
+        // The following are not yet supported, but we'll include them to possibly
+        // "reserve" for future use.
+        | extern_section
+        | global_section
+        | selector_section
+        | class_def
+        | procedures_fwd
+
+        )[IdentifierE] >>
+        clpar[GeneralE])
         );
 
 }
@@ -1132,7 +1210,10 @@ void PostProcessScript(ICompileLog *pLog, Script &script)
                 auto &clause = *it;
                 if (clause->IsDefault())
                 {
-                    pLog->ReportResult(CompileResult("The else clause must be the last clause in a cond.", script.GetScriptId(), clause->GetPosition().Line()));
+                    if (pLog)
+                    {
+                        pLog->ReportResult(CompileResult("The else clause must be the last clause in a cond.", script.GetScriptId(), clause->GetPosition().Line()));
+                    }
                     break;
                 }
                 std::unique_ptr<IfStatement> newIf = make_unique<IfStatement>();
@@ -1188,8 +1269,47 @@ void PostProcessScript(ICompileLog *pLog, Script &script)
         }
     }
         );
-}
 
+    // Report warnings if any un-implemented constructs are used.
+    std::vector<std::string> unimplementedWarnings;
+    if (!script.Externs.empty())
+    {
+        unimplementedWarnings.push_back("extern statements(s)");
+    }
+    if (!script.Globals.empty())
+    {
+        unimplementedWarnings.push_back("global statements(s)");
+    }
+    if (!script.ClassDefs.empty())
+    {
+        unimplementedWarnings.push_back("classdef statements(s)");
+    }
+    if (!script.Selectors.empty())
+    {
+        unimplementedWarnings.push_back("selectors statements(s)");
+    }
+    if (!script.ProcedureForwards.empty())
+    {
+        unimplementedWarnings.push_back("procedure fwd declaration(s)");
+    }
+    bool hasMethodFwdDeclarations = false;
+    for (auto &theClass : script.GetClasses())
+    {
+        hasMethodFwdDeclarations = hasMethodFwdDeclarations || !theClass->MethodForwards.empty();
+    }
+    if (hasMethodFwdDeclarations)
+    {
+        unimplementedWarnings.push_back("methods fwd declaration(s)");
+    }
+    if (pLog)
+    {
+        for (auto &warning : unimplementedWarnings)
+        {
+            std::string text = warning + "ignored - not implemented";
+            pLog->ReportResult(CompileResult(text, script.GetScriptId(), 1, 0, CompileResult::CompileResultType::CRT_Warning));
+        }
+    }
+}
 
 // For error reporting:
 template<typename _It>
