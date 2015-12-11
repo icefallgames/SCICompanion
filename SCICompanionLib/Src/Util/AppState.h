@@ -75,7 +75,6 @@ public:
     CMultiDocTemplate *GetMessageTemplate() { return _pMessageTemplate; }
     CMultiDocTemplate *GetPaletteTemplate() { return _pPaletteTemplate; }
     
-    
     void OpenScript(std::string strName, const ResourceBlob *pData = NULL, WORD wScriptNum = InvalidResourceNumber);
     void OpenScript(WORD w);
     void OpenScriptHeader(std::string strName);

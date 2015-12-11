@@ -780,6 +780,9 @@ std::vector<std::pair<int, std::string>> syntaxHighlightMapping =
     { CCrystalTextView::COLORINDEX_INTERNALSTRING, "InternalString" },
     { CCrystalTextView::COLORINDEX_SELECTORLITERAL, "SelectorLiteral" },
     { CCrystalTextView::COLORINDEX_SAID, "SaidString" },
+    { CCrystalTextView::COLORINDEX_PROCEDURE, "Procedure" },
+    { CCrystalTextView::COLORINDEX_CLASS, "Class" },
+    { CCrystalTextView::COLORINDEX_INSTANCE, "Instance" },
 };
 
 COLORREF CCrystalTextView::syntaxHighlightColors[COLORINDEX_MAX];
@@ -854,7 +857,12 @@ COLORREF CCrystalTextView::GetColor(int nColorIndex)
         return RGB(180, 80, 0);
     case COLORINDEX_INTERNALSTRING:
         return RGB(255, 0, 128);
-	}
+    case COLORINDEX_PROCEDURE:
+        return RGB(128, 64, 0);
+    case COLORINDEX_CLASS:
+    case COLORINDEX_INSTANCE:
+        return RGB(0, 128, 64);
+    }
 	return RGB(255, 0, 0);
 }
 
@@ -1538,7 +1546,7 @@ BOOL CCrystalTextView::GetItalic(int nColorIndex)
 
 BOOL CCrystalTextView::GetBold(int nColorIndex)
 {
-    if (nColorIndex == COLORINDEX_KEYWORD)
+    if ((nColorIndex == COLORINDEX_KEYWORD) || (nColorIndex == COLORINDEX_CLASS) || (nColorIndex == COLORINDEX_PROCEDURE))
     {
         return TRUE;
     }

@@ -138,7 +138,7 @@ END_MESSAGE_MAP()
 
 // CScriptView construction/destruction
 
-CScriptView::CScriptView()
+CScriptView::CScriptView() : _classBrowser(*appState->GetResourceMap().GetClassBrowser())
 {
     _fInOnChar = FALSE;
     _pwndToolTip = nullptr;
@@ -270,6 +270,45 @@ BOOL CScriptView::PreCreateWindow(CREATESTRUCT& cs)
 	//  the CREATESTRUCT cs
 
 	return __super::PreCreateWindow(cs);
+}
+
+void CScriptView::SyntaxHighlightScriptElements(const sci::Script &script)
+{
+    bool needRepaint = false;
+    if (_classesSyntaxHighlight.empty())
+    {
+        // First time
+        needRepaint = true;
+    }
+    _classesSyntaxHighlight.clear();
+    _procsSyntaxHighlight.clear();
+    _instancesSyntaxHighlight.clear();
+
+    // Collect procedures and instance names from the script
+    for (auto &theClass : script.GetClasses())
+    {
+        if (theClass->IsInstance())
+        {
+            _instancesSyntaxHighlight.insert(theClass->GetName());
+        }
+        else
+        {
+            _classesSyntaxHighlight.insert(theClass->GetName());
+        }
+    }
+    for (auto &theProc : script.GetProcedures())
+    {
+        _procsSyntaxHighlight.insert(theProc->GetName());
+    }
+
+    // And add in those from the class browser.
+    _classBrowser.GetSyntaxHighlightClasses(_classesSyntaxHighlight);
+    _classBrowser.GetSyntaxHighlightProcOrKernels(_procsSyntaxHighlight);
+
+    if (needRepaint)
+    {
+        Invalidate();
+    }
 }
 
 // CScriptView drawing
@@ -638,6 +677,46 @@ enum class HighlightState
     SelectorCall,
 };
 
+void  CScriptView::_ParseLineSCIHelper(TEXTBLOCK *pBuf, int &nActualItems, PCSTR pszChars, int nIdentBegin, int I, int nLength)
+{
+    if (IsSCISelectorCall(pszChars + nIdentBegin, I - nIdentBegin))
+    {
+        DEFINE_BLOCK(nIdentBegin, COLORINDEX_SELECTORCALL);
+    }
+    else if (IsSCIKeyword(LangSyntaxSCI, pszChars + nIdentBegin, I - nIdentBegin))
+    {
+        DEFINE_BLOCK(nIdentBegin, COLORINDEX_KEYWORD);
+    }
+    // REVIEW: We'll need more things, for back-quote
+    else if (IsSCINumber(pszChars + nIdentBegin, I - nIdentBegin))
+    {
+        DEFINE_BLOCK(nIdentBegin, COLORINDEX_NUMBER);
+    }
+    else if (IsSCISelectorLiteral(pszChars + nIdentBegin, I - nIdentBegin))
+    {
+        DEFINE_BLOCK(nIdentBegin, COLORINDEX_SELECTORLITERAL);
+    }
+    else
+    {
+        // REVIEW: These are somewhat expensive, because they take a lock.
+        // An alternative would be to make a copy just for ourselves whenever we complete
+        // some task, like the script combo box or something.
+        std::string text(pszChars + nIdentBegin, pszChars + I);
+        if (_procsSyntaxHighlight.find(text) != _procsSyntaxHighlight.end())
+        {
+            DEFINE_BLOCK(nIdentBegin, COLORINDEX_PROCEDURE);
+        }
+        else if (_classesSyntaxHighlight.find(text) != _classesSyntaxHighlight.end())
+        {
+            DEFINE_BLOCK(nIdentBegin, COLORINDEX_CLASS);
+        }
+        else if (_instancesSyntaxHighlight.find(text) != _instancesSyntaxHighlight.end())
+        {
+            DEFINE_BLOCK(nIdentBegin, COLORINDEX_INSTANCE);
+        }
+    }
+}
+
 DWORD CScriptView::_ParseLineSCI(DWORD dwCookie, int nLineIndex, TEXTBLOCK *pBuf, int &nActualItems)
 {
     HighlightState state = HighlightState::None;
@@ -874,23 +953,7 @@ DWORD CScriptView::_ParseLineSCI(DWORD dwCookie, int nLineIndex, TEXTBLOCK *pBuf
         {
             if (nIdentBegin >= 0)
             {
-                if (IsSCISelectorCall(pszChars + nIdentBegin, I - nIdentBegin))
-                {
-                    DEFINE_BLOCK(nIdentBegin, COLORINDEX_SELECTORCALL);
-                }
-                else if (IsSCIKeyword(LangSyntaxSCI, pszChars + nIdentBegin, I - nIdentBegin))
-                {
-                    DEFINE_BLOCK(nIdentBegin, COLORINDEX_KEYWORD);
-                }
-                // REVIEW: We'll need more things, for back-quote
-                else if (IsSCINumber(pszChars + nIdentBegin, I - nIdentBegin))
-                {
-                    DEFINE_BLOCK(nIdentBegin, COLORINDEX_NUMBER);
-                }
-                else if (IsSCISelectorLiteral(pszChars + nIdentBegin, I - nIdentBegin))
-                {
-                    DEFINE_BLOCK(nIdentBegin, COLORINDEX_SELECTORLITERAL);
-                }
+                _ParseLineSCIHelper(pBuf, nActualItems, pszChars, nIdentBegin, I, nLength);
                 bRedefineBlock = TRUE;
                 bDecIndex = TRUE;
                 nIdentBegin = -1;
@@ -901,23 +964,7 @@ DWORD CScriptView::_ParseLineSCI(DWORD dwCookie, int nLineIndex, TEXTBLOCK *pBuf
 
     if (nIdentBegin >= 0)
     {
-        if (IsSCISelectorCall(pszChars + nIdentBegin, I - nIdentBegin))
-        {
-            DEFINE_BLOCK(nIdentBegin, COLORINDEX_SELECTORCALL);
-        }
-        else if (IsSCIKeyword(LangSyntaxSCI, pszChars + nIdentBegin, I - nIdentBegin))
-        {
-            DEFINE_BLOCK(nIdentBegin, COLORINDEX_KEYWORD);
-        }
-        // REVIEW: We'll need more things, for back-quote
-        else if (IsSCINumber(pszChars + nIdentBegin, I - nIdentBegin))
-        {
-            DEFINE_BLOCK(nIdentBegin, COLORINDEX_NUMBER);
-        }
-        else if (IsSCISelectorLiteral(pszChars + nIdentBegin, I - nIdentBegin))
-        {
-            DEFINE_BLOCK(nIdentBegin, COLORINDEX_SELECTORLITERAL);
-        }
+        _ParseLineSCIHelper(pBuf, nActualItems, pszChars, nIdentBegin, I, nLength);
     }
 
     dwCookie &= ~COOKIE_COMMENT;

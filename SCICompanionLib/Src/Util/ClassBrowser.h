@@ -118,6 +118,9 @@ public:
 
     std::string GetRoomClassName();
 
+    void GetSyntaxHighlightClasses(std::unordered_set<std::string> &classes) const;
+    void GetSyntaxHighlightProcOrKernels(std::unordered_set<std::string> &procs) const;
+
 private:
 
     struct DefineValueCache
@@ -154,6 +157,11 @@ private:
 
     TokenDatabase _aclist;
     AutoCompleteSourceType _invalidAutoCompleteSources;
+
+    // Use a separate mutex for these, since potential for lock contention is low.
+    mutable std::mutex _mutexSyntaxHighlight;
+    std::unordered_set<std::string> _procsSyntaxHighlight;
+    std::unordered_set<std::string> _classesSyntaxHighlight;
 
     // This maps script numbers to arrays of instances within them.
     instance_map _instanceMap;

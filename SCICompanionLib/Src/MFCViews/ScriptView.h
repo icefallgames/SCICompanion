@@ -34,6 +34,7 @@ class AutoCompleteThread2;
 class CScriptDocument;
 class AvailableObjects;
 class AvailableMethods;
+class SCIClassBrowser;
 
 struct HoverTipPayload
 {
@@ -84,6 +85,8 @@ public:
     virtual void OnInitialUpdate();
     virtual CCrystalTextBuffer *LocateTextBuffer();
 
+    void SyntaxHighlightScriptElements(const sci::Script &script);
+
     // IAutoCompleteClient
     BOOL OnACDoubleClick();
 #if 0
@@ -103,6 +106,7 @@ protected:
     virtual DWORD ParseLine(DWORD dwCookie, int nLineIndex, TEXTBLOCK *pBuf, int &nActualItems);
     DWORD _ParseLineStudio(DWORD dwCookie, int nLineIndex, TEXTBLOCK *pBuf, int &nActualItems);
     DWORD _ParseLineSCI(DWORD dwCookie, int nLineIndex, TEXTBLOCK *pBuf, int &nActualItems);
+    void _ParseLineSCIHelper(TEXTBLOCK *pBuf, int &nActualItems, PCSTR pszChars, int nIdentBegin, int I, int nLength);
     virtual void UpdateCaret();
     virtual void ScrollPosChanged();
 
@@ -171,6 +175,10 @@ protected:
     CPoint _ptToolTipWord;
     CFont m_Font;
 
+    std::unordered_set<std::string> _procsSyntaxHighlight;
+    std::unordered_set<std::string> _classesSyntaxHighlight;
+    std::unordered_set<std::string> _instancesSyntaxHighlight;
+
     // For "goto definition"
     CString _gotoDefinitionText;
     ScriptId _gotoScript;
@@ -181,6 +189,9 @@ protected:
     // For "Insert object"
     std::unique_ptr<AvailableObjects> _availableObjects;
     std::unique_ptr<AvailableMethods> _availableMethods;
+
+
+    SCIClassBrowser &_classBrowser;
 };
 
 #ifndef _DEBUG  // debug version in SCICompilerView.cpp

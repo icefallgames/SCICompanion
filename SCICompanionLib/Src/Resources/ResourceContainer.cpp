@@ -125,6 +125,7 @@ sci::istream ResourceContainer::ResourceIterator::_GetResourceHeaderAndPackage(R
         rh.cbDecompressed = 0;
         rh.CompressionMethod = 0;
         rh.Version = appState->GetVersion();
+        rh.SourceFlags = ResourceSourceFlags::ResourceMap;
         //rh.Version = this->
     }
 

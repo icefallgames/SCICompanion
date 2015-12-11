@@ -306,6 +306,10 @@ public:
 		//	Expandable: custom elements are allowed.
         COLORINDEX_SAID,
 
+        COLORINDEX_PROCEDURE,
+        COLORINDEX_CLASS,
+        COLORINDEX_INSTANCE,
+
         COLORINDEX_MAX,
 	};
     static COLORREF syntaxHighlightColors[COLORINDEX_MAX];

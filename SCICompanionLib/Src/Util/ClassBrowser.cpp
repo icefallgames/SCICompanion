@@ -172,10 +172,16 @@ void SCIClassBrowser::ExitSchedulerAndReset()
         _scheduler->Exit();
     }
     
+    {
+        std::lock_guard<std::mutex> lock(_mutexSyntaxHighlight);
+        _procsSyntaxHighlight.clear();
+        _classesSyntaxHighlight.clear();
+    }
+
     std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser);
 
     _pLKGScript = nullptr;
-    _wLKG = 1000; // out of bounds
+    _wLKG = 65535; // out of bounds
 
     _scripts.clear();
 
@@ -795,6 +801,10 @@ void SCIClassBrowser::_MaybeGenerateAutoCompleteTree()
         CPrecisionTimer timer;
         timer.Start();
 
+        // Also use this time to update our syntax highlighting things.
+        unordered_set<string> procsSyntaxHighlight;
+        unordered_set<string> classesSyntaxHighlight;
+
         // REVIEW: If we find this takes too long, we can split things into different _acLists that are updated at different freqs
         std::vector<ACTreeLeaf> items;
         items.reserve(4000);
@@ -808,6 +818,7 @@ void SCIClassBrowser::_MaybeGenerateAutoCompleteTree()
         {
             // Updated when new classes created (rare)
             items.emplace_back(AutoCompleteSourceType::ClassName, aClass.first);
+            classesSyntaxHighlight.insert(aClass.first);
         }
         for (auto &selector : _selectorNames.GetNames())
         {
@@ -817,10 +828,12 @@ void SCIClassBrowser::_MaybeGenerateAutoCompleteTree()
         for (auto &kernelNames : _kernelNamesResource.GetNames())
         {
             items.emplace_back(AutoCompleteSourceType::Kernel, kernelNames);
+            procsSyntaxHighlight.insert(kernelNames);
         }
         for (auto &publicProc : _GetPublicProcedures())
         {
             items.emplace_back(AutoCompleteSourceType::Procedure, publicProc->GetName());
+            procsSyntaxHighlight.insert(publicProc->GetName());
         }
         for (auto &script : _scripts)
         {
@@ -842,6 +855,12 @@ void SCIClassBrowser::_MaybeGenerateAutoCompleteTree()
         _aclist.BuildDatabase(itemsSorted);
 
         _invalidAutoCompleteSources = AutoCompleteSourceType::None;
+
+        {
+            std::lock_guard<std::mutex> lock(_mutexSyntaxHighlight);
+            std::swap(procsSyntaxHighlight, _procsSyntaxHighlight);
+            std::swap(classesSyntaxHighlight, _classesSyntaxHighlight);
+        }
     }
 }
 
@@ -1291,6 +1310,18 @@ std::string SCIClassBrowser::GetRoomClassName()
     std::lock_guard<std::recursive_mutex> lock(_mutexClassBrowser);
     assert(_fCBLocked);
     return _roomClassName;
+}
+
+void SCIClassBrowser::GetSyntaxHighlightClasses(std::unordered_set<std::string> &classes) const
+{
+    std::lock_guard<std::mutex> lock(_mutexSyntaxHighlight);
+    std::copy(_classesSyntaxHighlight.begin(), _classesSyntaxHighlight.end(), std::inserter(classes, classes.end()));
+}
+
+void SCIClassBrowser::GetSyntaxHighlightProcOrKernels(std::unordered_set<std::string> &procs) const
+{
+    std::lock_guard<std::mutex> lock(_mutexSyntaxHighlight);
+    std::copy(_procsSyntaxHighlight.begin(), _procsSyntaxHighlight.end(), std::inserter(procs, procs.end()));
 }
 
 const Script *SCIClassBrowser::GetLKGScript(WORD wScriptNumber)

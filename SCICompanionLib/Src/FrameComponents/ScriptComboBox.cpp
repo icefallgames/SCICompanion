@@ -169,6 +169,7 @@ LRESULT CScriptComboBox::OnResponseReady(WPARAM wParam, LPARAM lParam)
                 {
                     CScriptView *pScriptView = static_cast<CScriptView*>(pView);
                     pt = pScriptView->GetCursorPos();
+                    pScriptView->SyntaxHighlightScriptElements(*_script);
                 }
             }
         }
