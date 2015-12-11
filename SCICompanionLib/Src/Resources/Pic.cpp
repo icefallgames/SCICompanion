@@ -1274,9 +1274,16 @@ ResourceTraits picResourceTraitsVGA2 =
     PicWritePolygons,
 };
 
+int g_PicIds = 0;
+
+bool IsSame(const PicComponent *one, const PicComponent *two)
+{
+    return one && two && (one->UniqueId == two->UniqueId);
+}
+
 PicComponent::PicComponent() : PicComponent(&picTraitsEGA) {}
 
-PicComponent::PicComponent(const PicTraits *traits) : Traits(traits), Size(size16(DEFAULT_PIC_WIDTH, DEFAULT_PIC_HEIGHT)) {}
+PicComponent::PicComponent(const PicTraits *traits) : Traits(traits), Size(size16(DEFAULT_PIC_WIDTH, DEFAULT_PIC_HEIGHT)), UniqueId(g_PicIds++)  {}
 
 ResourceEntity *CreatePicResource(SCIVersion version)
 {

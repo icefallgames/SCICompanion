@@ -361,14 +361,21 @@ public:
                     // we want to copy. The position is given by the mapentry offset, and the size is the cbCompressed plus the
                     // header size. Hmm, but we don't know the header size. I guess we could have another function that is
                     uint32_t totalResourceSize;
-                    sci::istream volumneReadStream = GetPositionedStreamAndResourceSizeIncludingHeader(entryExisting, totalResourceSize);
-                    // Now transfer this to the write stream
-                    transfer(volumneReadStream, volumeWriteStreams[rebuildPackageNumber], totalResourceSize);
+                    try
+                    {
+                        sci::istream volumneReadStream = GetPositionedStreamAndResourceSizeIncludingHeader(entryExisting, totalResourceSize);
+                        // Now transfer this to the write stream
+                        transfer(volumneReadStream, volumeWriteStreams[rebuildPackageNumber], totalResourceSize);
 
-                    // Then write this entry to the map, after modifying our map header's offset accordingly 
-                    entryExisting.Offset = newResourceOffset;
-                    entryExisting.PackageNumber = rebuildPackageNumber;
-                    WriteEntry(entryExisting, mapStreamWrite1, mapStreamWrite2, false);
+                        // Then write this entry to the map, after modifying our map header's offset accordingly 
+                        entryExisting.Offset = newResourceOffset;
+                        entryExisting.PackageNumber = rebuildPackageNumber;
+                        WriteEntry(entryExisting, mapStreamWrite1, mapStreamWrite2, false);
+                    }
+                    catch (std::exception)
+                    {
+                        // Corrupt resources (e.g. zero size, or invalid map entries) shouldn't prevent us from re-building.
+                    }
                 }
             }
         }

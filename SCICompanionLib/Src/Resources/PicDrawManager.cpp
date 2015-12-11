@@ -91,7 +91,7 @@ void PicDrawManager::SetPic(const PicComponent *pPic, const PaletteComponent *pP
 {
     _isVGA = (pPalette != nullptr);
     _isContinuousPri = pPic && pPic->Traits->ContinuousPriority;
-    if (pPic != _pPicWeak)
+    if (!IsSame(pPic, _pPicWeak))
     {
         _Reset();
     }

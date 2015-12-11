@@ -698,9 +698,8 @@ void  CScriptView::_ParseLineSCIHelper(TEXTBLOCK *pBuf, int &nActualItems, PCSTR
     }
     else
     {
-        // REVIEW: These are somewhat expensive, because they take a lock.
-        // An alternative would be to make a copy just for ourselves whenever we complete
-        // some task, like the script combo box or something.
+        // We get this from our combobox script tasks. A bit of a hack, but it's an
+        // easy way to get proc/class names.
         std::string text(pszChars + nIdentBegin, pszChars + I);
         if (_procsSyntaxHighlight.find(text) != _procsSyntaxHighlight.end())
         {

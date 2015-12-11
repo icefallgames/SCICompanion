@@ -44,9 +44,12 @@ struct PicComponent : ResourceComponent
 
     std::vector<PicCommand> commands;
     size16 Size;
-
     const PicTraits *Traits;
+
+    int UniqueId;
 };
+
+bool IsSame(const PicComponent *one, const PicComponent *two);
 
 template<typename TPoint>
 TPoint GameResolutionToScreenResolution(TPoint point, NativeResolution resolution)
