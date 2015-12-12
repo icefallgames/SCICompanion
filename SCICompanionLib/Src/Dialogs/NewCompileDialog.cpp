@@ -19,6 +19,10 @@
 #include "ScriptOM.h"
 #include "NewCompileDialog.h"
 #include "ScriptDocument.h"
+#include <filesystem>
+#include <regex>
+
+using namespace std::tr2::sys;
 
 #define UWM_STARTCOMPILE (WM_APP + 0)
 
@@ -148,9 +152,32 @@ BOOL CNewCompileDialog::OnInitDialog()
             );
         }
 
+        if (_scripts.empty())
+        {
+            if (IDYES == AfxMessageBox("Error finding scripts to compile.\nDo you want to try scanning the src folder for scripts?", MB_YESNO | MB_APPLMODAL | MB_ICONEXCLAMATION))
+            {
+                path enumPath = appState->GetResourceMap().Helper().GetSrcFolder();
+                std::vector<std::string> filenames;
+                auto matchRSTRegex = std::regex("(\\w+)\\.sc$");
+                for (auto it = directory_iterator(enumPath); it != directory_iterator(); ++it)
+                {
+                    const auto &file = it->path();
+                    std::smatch sm;
+                    std::string temp = file.filename();
+                    if (!is_directory(file) && std::regex_search(temp, sm, matchRSTRegex) && (sm.size() > 1))
+                    {
+                        _scripts.push_back(ScriptId(file.string()));
+                    }
+                }
+                if (_scripts.empty())
+                {
+                    AfxMessageBox("Could not find any .sc files.", MB_OK | MB_ICONERROR);
+                }
+            }
+        }
 
         _nScript = 0;
-        if (_scripts.size() > 0)
+        if (!_scripts.empty())
         {
             // Set the range of the progress control.
             m_wndProgress.SetRange32(0, (int)_scripts.size());
@@ -158,7 +185,9 @@ BOOL CNewCompileDialog::OnInitDialog()
         }
         else
         {
-            AfxMessageBox("Error finding scripts to compile.", MB_OK | MB_APPLMODAL | MB_ICONEXCLAMATION);
+            _fDone = true;
+            // Actually, just close ourselves
+            PostMessage(WM_CLOSE, 0, 0);
         }
     }
     catch (std::exception)
