@@ -62,6 +62,7 @@
 #include "ResourceBlob.h"
 #include "GenerateDocsDialog.h"
 #include "DependencyTracker.h"
+#include "MessageSource.h"
 #include <filesystem>
 #include <regex>
 
@@ -1983,8 +1984,40 @@ void CMainFrame::_FindInFilesOfType(ICompileLog &log, const std::string &srcFold
 
 const int TextRangeOutsideResultToShow = 35;
 
+std::unordered_set<uint8_t> _GetSetOfMatchingNumbers(const std::vector<MessageDefine> &defines, PCTSTR pszWhat, BOOL fMatchCase, BOOL fWholeWord)
+{
+    std::unordered_set<uint8_t> numbers;
+    for (auto &define : defines)
+    {
+        std::string text = define.first;
+        if (!fMatchCase)
+        {
+            ToUpper(text);
+            int pos = FindStringHelper(text.c_str(), pszWhat, fWholeWord);
+            if (pos != -1)
+            {
+                numbers.insert((uint8_t)define.second);
+            }
+        }
+    }
+    return numbers;
+}
+
 void CMainFrame::_FindInTexts(ICompileLog &log, PCTSTR pszWhat, BOOL fMatchCase, BOOL fWholeWord)
 {
+    std::unordered_set<uint8_t> matchingTalkerNumbers;
+    std::unordered_set<uint8_t> matchingVerbNumbers;
+    MessageSource *verbsMessageSource = appState->GetResourceMap().GetVerbsMessageSource(false);
+    if (verbsMessageSource)
+    {
+        matchingVerbNumbers = _GetSetOfMatchingNumbers(verbsMessageSource->GetDefines(), pszWhat, fMatchCase, fWholeWord);
+    }
+    MessageSource *talkers = appState->GetResourceMap().GetTalkersMessageSource();
+    if (talkers)
+    {
+        matchingTalkerNumbers = _GetSetOfMatchingNumbers(talkers->GetDefines(), pszWhat, fMatchCase, fWholeWord);
+    }
+
     auto container = appState->GetResourceMap().Resources(ResourceTypeFlags::Text | ResourceTypeFlags::Message, ResourceEnumFlags::MostRecentOnly);
     for (auto &blob : *container)
     {
@@ -1992,29 +2025,44 @@ void CMainFrame::_FindInTexts(ICompileLog &log, PCTSTR pszWhat, BOOL fMatchCase,
         TextComponent &textComponent = resource->GetComponent<TextComponent>();
         for (size_t i = 0; i < textComponent.Texts.size(); i++)
         {
-            std::string text = textComponent.Texts[i].Text;
+            auto &entry = textComponent.Texts[i];
+            std::string text = entry.Text;
             if (!fMatchCase)
             {
                 ToUpper(text);
             }
             int pos = FindStringHelper(text.c_str(), pszWhat, fWholeWord);
+            std::string resultText;
             if (pos != -1)
             {
                 text = textComponent.Texts[i].Text; // since we ToUpper'd it.
                 int rangeStart = max(0, pos - TextRangeOutsideResultToShow);
                 int rangeEnd = min(pos + TextRangeOutsideResultToShow + lstrlen(pszWhat), (int)text.size());
-                fmt::MemoryWriter writer;
-                writer << GetResourceInfo(blob->GetType()).pszTitleDefault << " (" << blob->GetNumber() << ", " << i << "): ";
-                if (rangeStart > 0)
+                resultText = fmt::format("{0}{1}{2}",
+                    (rangeStart > 0) ? "" : "...",
+                    text.substr(rangeStart, rangeEnd - rangeStart),
+                    (rangeEnd < (int)text.size()) ? "" : "..."
+                    );
+            }
+            else
+            {
+                if (entry.Talker && (matchingTalkerNumbers.find(entry.Talker) != matchingTalkerNumbers.end()))
                 {
-                    writer << "...";
+                    resultText = fmt::format("{0} - {1}...", talkers->ValueToName(entry.Talker), textComponent.Texts[i].Text.substr(0, TextRangeOutsideResultToShow));
                 }
-                writer << text.substr(rangeStart, rangeEnd - rangeStart);
-                if (rangeEnd < (int)text.size())
+                else if (entry.Verb && (matchingVerbNumbers.find(entry.Verb) != matchingVerbNumbers.end()))
                 {
-                    writer << "...";
+                    resultText = fmt::format("{0} - {1}...", verbsMessageSource->ValueToName(entry.Verb), textComponent.Texts[i].Text.substr(0, TextRangeOutsideResultToShow));
                 }
-                log.ReportResult(CompileResult(writer.str(), blob->GetType(), blob->GetNumber(), (int)i));
+            }
+            if (!resultText.empty())
+            {
+                std::string finalText = fmt::format("{0} ({1}, {2}): {3}",
+                    GetResourceInfo(blob->GetType()).pszTitleDefault,
+                    blob->GetNumber(),
+                    i,
+                    resultText);
+                log.ReportResult(CompileResult(finalText, blob->GetType(), blob->GetNumber(), (int)i));
             }
         }
     }

@@ -361,7 +361,7 @@ void TextPreviewer::SetResource(const ResourceBlob &blob)
 
     if (blob.GetType() == ResourceType::Message)
     {
-        m_wndTitle.SetWindowText("Message resources are used for displaying text in-game.");
+        m_wndTitle.SetWindowText("Message resources are used for displaying text and (optionally) lip-sync'd audio in-game.");
     }
     else
     {
