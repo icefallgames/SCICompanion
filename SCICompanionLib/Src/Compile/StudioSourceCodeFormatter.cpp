@@ -650,7 +650,7 @@ public:
             if (binaryOp.Operator == BinaryOperator::LogicalAnd || binaryOp.Operator == BinaryOperator::LogicalOr)
             {
                 binaryOp.GetStatement1()->Accept(*this);
-                out.out << name;
+                out.out << " " << name << " ";
                 binaryOp.GetStatement2()->Accept(*this);
             }
             else

@@ -422,7 +422,6 @@ std::vector<std::string> codeLevelKeywordsSCI =
     _T("return"),
     _T("scriptNumber"),
     _T("self"),
-    _T("send"),
     _T("super"),
     _T("switch"),
     _T("switchto"),

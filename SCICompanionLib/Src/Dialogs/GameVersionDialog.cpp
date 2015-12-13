@@ -60,7 +60,7 @@ void CGameVersionDialog::_Sync()
 
 SCIVersion CGameVersionDialog::_ReverseSync()
 {
-    SCIVersion version = { };
+    SCIVersion version = _version;  // Covers stuff we don't expose in the UI, like DefaultVolumeFile (we should, though)
     version.HasPalette = (_fHasPalette != 0);
     version.ViewFormat = (ViewFormat)_viewFormat;
     version.PicFormat = (PicFormat)_picFormat;
