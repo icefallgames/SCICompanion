@@ -1264,15 +1264,13 @@ std::string KernelTable::Lookup(uint16_t wName) const
 }
 bool KernelTable::ReverseLookup(std::string name, uint16_t &wIndex) const
 {
-    if (name == szMissingKernel)
+    bool result = __super::ReverseLookup(name, wIndex);
+    if (!result && (name == szMissingKernel))
     {
         wIndex = wMissingKernel;
-        return true;
+        result = true;
     }
-    else
-    {
-        return __super::ReverseLookup(name, wIndex);
-    }
+    return result;
 }
 
 

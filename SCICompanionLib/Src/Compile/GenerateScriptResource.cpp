@@ -1240,7 +1240,11 @@ bool GenerateScriptResource_SCI0(Script &script, PrecompiledHeaders &headers, Co
     // To figure out how many exports we have, let's look at the public procedures and public instances
     size_t offsetOfExports = 0;
     vector<ExportTableInfo> exportTableOrder = GetExportTableOrder(nullptr, script, false);
-    _Section7_Exports_Part1(script, context, output, exportTableOrder, offsetOfExports);
+    // Christmas Card Demo 1990 VGA will not work properly if we output empty exports tables.
+    if (!exportTableOrder.empty())
+    {
+        _Section7_Exports_Part1(script, context, output, exportTableOrder, offsetOfExports);
+    }
 
     // Generate SCO objects for the classes and instances in the script.  We want to do this before generating any code,
     // since some code relies on it.
@@ -1261,7 +1265,10 @@ bool GenerateScriptResource_SCI0(Script &script, PrecompiledHeaders &headers, Co
 
     _Section1And6_ClassesAndInstances(output, &context);
 
-    _Section7_Exports_Part2(context, output, wStartOfCode, exportTableOrder, offsetOfExports);
+    if (!exportTableOrder.empty())
+    {
+        _Section7_Exports_Part2(context, output, wStartOfCode, exportTableOrder, offsetOfExports);
+    }
 
     _ResolveLocalVariables(script, context, true);
     _Section10_LocalVariables(script, context, output, false);
