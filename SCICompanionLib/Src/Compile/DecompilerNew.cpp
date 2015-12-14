@@ -48,6 +48,7 @@ enum class ChunkType
     First,
     FirstNegated,
     Second,
+    SecondNegated,
     Invert,
     Switch,
     Case,
@@ -625,6 +626,12 @@ public:
             ControlFlowNode *thenNode, *elseNode;
             GetThenAndElseBranches(head, &thenNode, &elseNode);
             {
+                // Occasionally a compound condition's *then* node is the exit node.
+                // One case is Game::checkAni in QFG3, or Christmas Card 1990 VGA (and probably others)
+                // At this point though, we should have already handled by that swaping else/then and inverting the condition.
+                // So assert that the then is not an exit.
+                assert(thenNode->Type != CFGNodeType::Exit);
+
                 StructuredFrame structuredFrame(_context, ChunkType::LoopBody, loopNode);
                 _FollowForwardChain(thenNode, latch);
             }
@@ -732,6 +739,7 @@ public:
 
         ConditionType type = conditionNode.condition;
         bool isFirstTermNegated = conditionNode.isFirstTermNegated;
+        bool isSecondTermNegated = conditionNode.isSecondTermNegated;
 
         _context.PushStructured((type == ConditionType::And) ? ChunkType::And : ChunkType::Or, &conditionNode);
 
@@ -745,7 +753,7 @@ public:
         ControlFlowNode *second = conditionNode[SemId::Second];
         // Y
         {
-            StructuredFrame structuredFrame(_context, ChunkType::Second, conditionNode);
+            StructuredFrame structuredFrame(_context, isSecondTermNegated ? ChunkType::SecondNegated : ChunkType::Second, conditionNode);
             second->Accept(*this);
         }
 
@@ -927,8 +935,6 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode2(ConsumptionNode &node, Decomp
             if (node.GetChild(ChunkType::FirstNegated))
             {
                 g_negated++;
-
-
                 assert(node.GetChild(ChunkType::FirstNegated)->GetChildCount() == 1);
                 unique_ptr<UnaryOp> unaryOp = make_unique<UnaryOp>();
                 unaryOp->Operator = UnaryOperator::LogicalNot;
@@ -944,11 +950,23 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode2(ConsumptionNode &node, Decomp
                 _ApplySyntaxNodeToCodeNode1(*node.GetChild(ChunkType::First)->Child(0), *binaryOp, lookups);
             }
 
-            if (node.GetChild(ChunkType::Second)->GetChildCount() != 1)
+            if (node.GetChild(ChunkType::SecondNegated))
             {
-                throw ConsumptionNodeException(node.GetChild(ChunkType::Second), "Too many children for condition node.");
+                assert(node.GetChild(ChunkType::SecondNegated)->GetChildCount() == 1);
+                unique_ptr<UnaryOp> unaryOp = make_unique<UnaryOp>();
+                unaryOp->Operator = UnaryOperator::LogicalNot;
+                _ApplySyntaxNodeToCodeNode1(*node.GetChild(ChunkType::SecondNegated)->Child(0), *unaryOp, lookups);
+                binaryOp->SetStatement2(move(unaryOp));
             }
-            _ApplySyntaxNodeToCodeNode2(*node.GetChild(ChunkType::Second)->Child(0), *binaryOp, lookups);
+            else
+            {
+                if (node.GetChild(ChunkType::Second)->GetChildCount() != 1)
+                {
+                    throw ConsumptionNodeException(node.GetChild(ChunkType::Second), "Too many children for condition node.");
+                }
+                _ApplySyntaxNodeToCodeNode2(*node.GetChild(ChunkType::Second)->Child(0), *binaryOp, lookups);
+            }
+
             binaryOp->Operator = ((node._chunkType == ChunkType::And) ? BinaryOperator::LogicalAnd : BinaryOperator::LogicalOr);
             return unique_ptr<SyntaxNode>(move(binaryOp));
         }
@@ -2217,6 +2235,7 @@ bool _LiftOutFromConditionsWorker(ConsumptionNode *root, ConsumptionNode *chunk,
         case ChunkType::First:
         case ChunkType::Second:
         case ChunkType::FirstNegated:
+        case ChunkType::SecondNegated:
             if (chunk->GetChildCount() > 1)
             {
                 ConsumptionNode *child = chunk->Child(0);

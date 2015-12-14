@@ -294,11 +294,12 @@ enum class ConditionType { And, Or };
 
 struct CompoundConditionNode : public StructuredNode
 {
-    CompoundConditionNode(ConditionType condition) : condition(condition), thenBranch(0xffff), isFirstTermNegated(false), StructuredNode(CFGNodeType::CompoundCondition, { SemId::First, SemId::Second }) {}
+    CompoundConditionNode(ConditionType condition) : condition(condition), thenBranch(0xffff), isFirstTermNegated(false), isSecondTermNegated(false), StructuredNode(CFGNodeType::CompoundCondition, { SemId::First, SemId::Second }) {}
     void Accept(ICFGNodeVisitor &visitor) const { visitor.Visit(*this); }
 
     uint16_t thenBranch;
     bool isFirstTermNegated;
+    bool isSecondTermNegated;
     // First term is head, second term is tail.
 
     ConditionType condition;

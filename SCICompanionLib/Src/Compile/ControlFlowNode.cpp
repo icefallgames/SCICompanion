@@ -130,6 +130,19 @@ void GetThenAndElseBranches(ControlFlowNode *node, ControlFlowNode **thenNode, C
             *elseNode = one;
             *thenNode = two;
         }
+
+        // This didn't seem to work. i.e. the negation didn't work. CueObj is a good starting point.
+        if (((*thenNode)->Type == CFGNodeType::Exit) && ((*elseNode)->Type != CFGNodeType::Exit))
+        {
+            // Then is an exit node, but else is not. That's a problem for things like while loops. Swap them:
+            std::swap(*thenNode, *elseNode);
+            ccNode->thenBranch = (*thenNode)->GetStartingAddress();
+            // And then invert the condition by changing the operation and negating the terms (DeMorgan's law)
+            ccNode->condition = (ccNode->condition == ConditionType::And) ? ConditionType::Or : ConditionType::And;
+            // And negate the terms
+            ccNode->isFirstTermNegated = !ccNode->isFirstTermNegated;
+            ccNode->isSecondTermNegated = !ccNode->isSecondTermNegated;
+        }
     }
     else if (node->Type == CFGNodeType::RawCode)
     {
