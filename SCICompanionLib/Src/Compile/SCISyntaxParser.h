@@ -137,6 +137,7 @@ private:
     ParserSCI filename_p;
     ParserSCI asmInstruction_p;
     ParserSCI alphanumNK_p;
+    ParserSCI alphanumNK_p2;
     ParserSCI alphanumSendToken_p;
     ParserSCI alphanum_p;
     ParserSCI alwaysmatch_p;

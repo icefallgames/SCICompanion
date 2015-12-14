@@ -1144,12 +1144,15 @@ public:
     void Visit(const Comment &comment) override
     {
         // Generally handled elsewhere, but when constructing scripts "manually" we do put comments directly in code.
-        _MaybeNewLineIndent();
-        out.out << _GetCommentText(comment);
-        if (out.fInline)
+        if (comment.CommentType != CommentType::None)
         {
-            GO_MULTILINE;
             _MaybeNewLineIndent();
+            out.out << _GetCommentText(comment);
+            if (out.fInline)
+            {
+                GO_MULTILINE;
+                _MaybeNewLineIndent();
+            }
         }
     }
 
@@ -1179,7 +1182,6 @@ public:
         out.out << lValue.GetName();
         if (lValue.HasIndexer())
         {
-            out.out << " ";
             lValue.GetIndexer()->Accept(*this);
             out.out << "]";
         }

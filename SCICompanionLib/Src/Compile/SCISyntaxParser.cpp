@@ -146,6 +146,24 @@ bool AlphanumPNoKeywordOrTerm(const ParserSCI *pParser, _TContext *pContext, _It
     return fRet;
 }
 
+// Same as above, but ignores extra keywords.
+template<typename _It, typename _TContext>
+bool AlphanumPNoKeywordOrTerm2(const ParserSCI *pParser, _TContext *pContext, _It &stream)
+{
+    bool fRet = SelectorP(pParser, pContext, stream);
+    if (fRet)
+    {
+        char chTerm = *stream;
+        fRet = (chTerm != ':') && (chTerm != '?');
+        if (fRet)
+        {
+            std::string &str = pContext->ScratchString();
+            fRet = std::find(SCIKeywords.begin(), SCIKeywords.end(), str) == SCIKeywords.end();
+        }
+    }
+    return fRet;
+}
+
 template<typename _It, typename _TContext>
 bool AlphanumPSendTokenOrTerm(const ParserSCI *pParser, _TContext *pContext, _It &stream)
 {
@@ -702,6 +720,7 @@ SCISyntaxParser::SCISyntaxParser() :
     filename_p(FilenameP),
     asmInstruction_p(AsmInstructionP),
     alphanumNK_p(AlphanumPNoKeywordOrTerm),
+    alphanumNK_p2(AlphanumPNoKeywordOrTerm2),
     alphanumSendToken_p(AlphanumPSendTokenOrTerm),
     alphanum_p(AlphanumP),
     alwaysmatch_p(AlwaysMatchP),
@@ -764,7 +783,7 @@ void SCISyntaxParser::Load()
 
     // Matches #posn
     // Also matches #posn? or #posn: for backwards compatibility.
-    selector_literal = pound >> (alphanumNK_p[{nullptr, ParseAutoCompleteContext::Selector}] | selector_send_p);
+    selector_literal = pound >> (alphanumNK_p2[{nullptr, ParseAutoCompleteContext::Selector}] | selector_send_p);
 
     pointer = atsign;
 
