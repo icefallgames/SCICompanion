@@ -85,6 +85,7 @@ const char *chunkTypeNames[] =
     "First",
     "First_N",
     "Second",
+    "Second_N",
     "Invert",
     "Switch",
     "Case",
@@ -2292,6 +2293,27 @@ bool NoPreviousChildrenProduceAcc(ConsumptionNode *parent, ConsumptionNode *chil
     return success;
 }
 
+bool ContainsChunkType(ConsumptionNode &node, ChunkType type)
+{
+    bool contains = (node.GetType() == type);
+    for (size_t i = 0; !contains && (i < node.GetChildCount()); i++)
+    {
+        contains = ContainsChunkType(*node.Child(i), type);
+    }
+    return contains;
+}
+
+bool NoPreviousChildrenNeedAcc(ConsumptionNode *parent, ConsumptionNode *child, DecompileLookups &lookups)
+{
+    bool success = true;
+    for (int i = (int)child->GetMyIndex() - 1; success && (i >= 0); i--)
+    {
+        success = !ContainsChunkType(*parent->Child(i), ChunkType::NeedsAccumulator) && 
+            !ContainsChunkType(*parent->Child(i), ChunkType::NeedsAccumulatorSpecial);
+    }
+    return success;
+}
+
 bool CanLiftOut(ConsumptionNode *&child, ConsumptionNode *&parent, DecompileLookups &lookups)
 {
     bool canLifeOut = false;
@@ -2305,8 +2327,10 @@ bool CanLiftOut(ConsumptionNode *&child, ConsumptionNode *&parent, DecompileLook
         if (parent->GetType() == ChunkType::None)
         {
             // We can't lift it out here, but we can keep going up as long as all the children before child
-            // don't produce accumulators.
-            if (NoPreviousChildrenProduceAcc(parent, child, lookups))
+            // don't produce accumulators (REVIEW: Really?).
+            // And actually, if they need accumulator and don't have one, that's bad too, since we'll be inserting ourselves
+            // before the thing they need.
+            if (NoPreviousChildrenProduceAcc(parent, child, lookups) && NoPreviousChildrenNeedAcc(parent, child, lookups))
             {
                 parent = parent->_parentWeak;
                 child = child->_parentWeak;
@@ -2768,6 +2792,7 @@ bool OutputNewStructure(const std::string &messagePrefix, sci::FunctionBase &fun
         _ResolvePPrevs(debugTrackName, mainChunk.get(), mainChunk.get(), lookups);
         _ResolveNeededAcc(mainChunk.get(), mainChunk.get(), lookups);
         _RestructureCaseHeaders(mainChunk.get(), lookups);
+
         _ResolveDUPs(mainChunk.get(), mainChunk.get(), lookups);    // Must follow case restructure
 
         if (showFile)
