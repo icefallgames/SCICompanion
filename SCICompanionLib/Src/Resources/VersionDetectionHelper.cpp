@@ -410,9 +410,17 @@ ResourceMapFormat CResourceMap::_DetectMapFormat()
     return mapFormat;
 }
 
+enum LofsaType
+{
+    Unknown,
+    Absolute,
+    Relative
+};
+
 bool CResourceMap::_DetectLofsaFormat()
 {
-    bool lofsaAbsolute = true; // By default?
+    LofsaType lofsaType = LofsaType::Unknown;
+
     // Don't load exports, because loading the export table depends on lofsaAbsolute being correct (IsExportWide).
     GlobalCompiledScriptLookups scriptLookups;
 
@@ -428,7 +436,7 @@ bool CResourceMap::_DetectLofsaFormat()
                 &scriptLookups,
                 "",
                 "",
-                [&compiledScript, &lofsaAbsolute](Opcode opcode, const uint16_t *operands, uint16_t currentPCOffset)
+                [&compiledScript, &lofsaType](Opcode opcode, const uint16_t *operands, uint16_t currentPCOffset)
             {
                 if ((opcode == Opcode::LOFSA) || (opcode == Opcode::LOFSS))
                 {
@@ -438,7 +446,7 @@ bool CResourceMap::_DetectLofsaFormat()
                     if (absoluteOffset > (uint16_t)(compiledScript.GetRawBytes().size()))
                     {
                         // Out of bounds as an absolute offset, so it must be a relative signed offset.
-                        lofsaAbsolute = false;
+                        lofsaType = LofsaType::Relative;
                         return false;
                     }
                     else
@@ -446,7 +454,7 @@ bool CResourceMap::_DetectLofsaFormat()
                         if ((finalRelativeOffset < 0) || (finalRelativeOffset >= (int16_t)(compiledScript.GetRawBytes().size())))
                         {
                             // Interpreting it as a relative signed offset put us outside the script.
-                            lofsaAbsolute = true;
+                            lofsaType = LofsaType::Absolute;
                             return false;
                         }
                     }
@@ -455,6 +463,24 @@ bool CResourceMap::_DetectLofsaFormat()
             });
         }
     }
+
+    bool lofsaAbsolute;
+    if (lofsaType == LofsaType::Absolute)
+    {
+        lofsaAbsolute = true;
+    }
+    else if (lofsaType == LofsaType::Relative)
+    {
+        lofsaAbsolute = false;
+    }
+    else
+    {
+        // We couldn't figure it out. Guess.
+        // The 1990 Christmas Card demo needs this (since it has limited code). AFAIK, there are no
+        // other games that will hit this and force us to guess (or implement something more complicated).
+        lofsaAbsolute = false; 
+    }
+
     return lofsaAbsolute;
 }
 
