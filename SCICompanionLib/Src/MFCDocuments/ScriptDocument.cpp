@@ -327,6 +327,12 @@ std::unique_ptr<sci::Script> DecompileScript(const IDecompilerConfig *config, Gl
     decompileLookups.pszDebugFilter = pszDebugFilter;
     decompileLookups.DecompileAsm = decompileAsm;
     pScript.reset(Decompile(helper, compiledScript, decompileLookups, appState->GetResourceMap().GetVocab000()));
+
+    if (helper.Language == LangSyntaxSCI)
+    {
+        ConvertToSCISyntaxHelper(*pScript, &scriptLookups);
+    }
+
     return pScript;
 }
 
