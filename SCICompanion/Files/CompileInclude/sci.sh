@@ -355,6 +355,11 @@
 (define csFILTER $0004)
 (define csSELECTED $0008)
 
+// scale signal
+(define ssScalable $0001)
+(define ssAutoScale $0002)
+(define ssNotStepScale $0004)
+
 #endif  // SCI_1_1
 
 // Sound statuses
