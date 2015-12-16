@@ -826,6 +826,8 @@ extern char const errSwitchArg[];
 extern char const errSendObject[];
 extern char const errArgument[];
 extern char const errInteger[];
+extern char const errIntegerTooLarge[];
+extern char const errIntegerTooSmall[];
 extern char const errThen[];
 extern char const errElse[];
 extern char const errNoKeywordOrSelector[];

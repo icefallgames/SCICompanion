@@ -22,6 +22,7 @@
 #include "SyntaxContext.h"
 #include <stack>
 #include <deque>
+#include <numeric>
 
 template<typename _It>
 bool ExtractToken(std::string &str, _It &stream)
@@ -231,7 +232,7 @@ bool IntegerP(const ParserBase<_TContext, _It, _CommentPolicy> *pParser, _TConte
     {
         fHex = true;
         ++stream;
-        while (isxdigit(*stream))
+        while (isxdigit(*stream) && (i <= (std::numeric_limits<uint16_t>::max)()))
         {
             i *= 16;
             i += charToI(*stream);
@@ -246,7 +247,7 @@ bool IntegerP(const ParserBase<_TContext, _It, _CommentPolicy> *pParser, _TConte
             fNeg = true;
             ++stream;
         }
-        while (isdigit(*stream))
+        while (isdigit(*stream) && (i <= (std::numeric_limits<uint16_t>::max)()))
         {
             i *= 10;
             i += charToI(*stream);
@@ -265,6 +266,23 @@ bool IntegerP(const ParserBase<_TContext, _It, _CommentPolicy> *pParser, _TConte
     }
     if (fRet)
     {
+        if (fRet)
+        {
+            fRet = (i <= (std::numeric_limits<uint16_t>::max)());
+            if (!fRet)
+            {
+                pContext->ReportError(errIntegerTooLarge, stream);
+            }
+            else
+            {
+                fRet = (i >= (std::numeric_limits<int16_t>::min)());
+                if (!fRet)
+                {
+                    pContext->ReportError(errIntegerTooSmall, stream);
+                }
+            }
+        }
+
         // Let the context know so people can use it.
         pContext->SetInteger(i, fNeg, fHex, stream);
     }

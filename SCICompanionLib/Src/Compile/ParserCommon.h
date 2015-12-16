@@ -752,7 +752,7 @@ bool IntegerExpandedP(const ParserBase<_TContext, _It, _CommentPolicy> *pParser,
     {
         fHex = true;
         ++stream;
-        while (isxdigit(*stream))
+        while (isxdigit(*stream) && (i <= (std::numeric_limits<uint16_t>::max)()))
         {
             i *= 16;
             i += charToI(*stream);
@@ -766,7 +766,7 @@ bool IntegerExpandedP(const ParserBase<_TContext, _It, _CommentPolicy> *pParser,
         fHex = true; // Seems reasonable.
         ++stream;
         auto value = *stream;
-        while (value == '0' || value == '1')
+        while ((value == '0' || value == '1') && (i <= (std::numeric_limits<uint16_t>::max)()))
         {
             i *= 2;
             i += charToI(value);
@@ -830,7 +830,7 @@ bool IntegerExpandedP(const ParserBase<_TContext, _It, _CommentPolicy> *pParser,
             fNeg = true;
             ++stream;
         }
-        while (isdigit(*stream))
+        while (isdigit(*stream) && (i <= (std::numeric_limits<uint16_t>::max)()))
         {
             i *= 10;
             i += charToI(*stream);
@@ -849,6 +849,23 @@ bool IntegerExpandedP(const ParserBase<_TContext, _It, _CommentPolicy> *pParser,
     }
     if (fRet)
     {
+        if (fRet)
+        {
+            fRet = (i <= (std::numeric_limits<uint16_t>::max)());
+            if (!fRet)
+            {
+                pContext->ReportError(errIntegerTooLarge, stream);
+            }
+            else
+            {
+                fRet = (i >= (std::numeric_limits<int16_t>::min)());
+                if (!fRet)
+                {
+                    pContext->ReportError(errIntegerTooSmall, stream);
+                }
+            }
+        }
+
         // Let the context know so people can use it.
         pContext->SetInteger(i, fNeg, fHex, stream);
     }
