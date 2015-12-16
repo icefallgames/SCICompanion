@@ -44,6 +44,7 @@
         z 0					// z position. See posn().
         heading 0			// The angle direction the View faces.
         noun 0				// The noun for the View (for messages).
+        _case 0				// The optional case for the View (for messages).
         modNum -1			// Module number (for messages)
         nsTop 0				// "Now seen" rect. The visual bounds of the View.
         nsLeft 0
@@ -327,23 +328,30 @@
     (method (checkDetail)
     )
 
-	// Sets the scale of the View.
-    (method (setScale theScale)
+	/*
+	.. function:: setScale([theY])
+		
+		Sets the scale of the View. If no parameters are provided, the view
+		will be scaling, but not have auto-scaling.
+		
+		:param number theY: The y parameter corresponding to 100% size for auto-scaling. Passing 0 will disable scaling.
+	*/
+    (method (setScale theY)
         (var temp0, temp1, temp2, temp3[40])
         (if (not paramTotal)
-            = scaleSignal (| scaleSignal $0001)
-            = scaleSignal (& scaleSignal $fffd)
+            = scaleSignal (| scaleSignal ssScalable)
+            = scaleSignal (& scaleSignal (bnot ssAutoScale))
         )(else
-            (if (not theScale)
-                = scaleSignal (& scaleSignal $fffc)
+            (if (not theY)
+                = scaleSignal (& scaleSignal (bnot (| ssScalable ssAutoScale)))
             )(else
-                (if (< theScale (send gRoom:vanishingY))
+                (if (< theY (send gRoom:vanishingY))
                     Printf("<%s setScale:> y value less than vanishingY" name)
                 )(else
-                    = temp0 (- theScale (send gRoom:vanishingY))
-                    = temp1 (- 190 theScale)
+                    = temp0 (- theY (send gRoom:vanishingY))
+                    = temp1 (- 190 theY)
                     = temp2 (+ (/ (* temp1 100) temp0) 100)
-                    = scaleSignal (| scaleSignal $0003)
+                    = scaleSignal (| scaleSignal (| ssScalable ssAutoScale))
                     = maxScale (/ (* temp2 128) 100)
                 )
             )
@@ -388,6 +396,7 @@
         z 0								// z position. See posn().
         heading 0						// The angle direction the Prop faces.
         noun 0							// The noun for the Prop (for messages).
+        _case 0							// The optional case for the Prop (for messages).
         modNum -1						// Module number (for messages)
         nsTop 0							// "Now seen" rect. The visual bounds of the Prop.
         nsLeft 0
@@ -533,8 +542,8 @@
             (super:setScale())
         )(else
             (if (IsObject(param1))
-                = scaleSignal (| scaleSignal $0001)
-                = scaleSignal (& scaleSignal $fffd)
+                = scaleSignal (| scaleSignal ssScalable)
+                = scaleSignal (& scaleSignal (bnot ssAutoScale))
                 = scaler 
                     (if (& (send param1:{-info-}) $8000)
                         (send param1:new())
@@ -651,6 +660,7 @@
         z 0						// z position. See posn().
         heading 0				// The angle direction the Actor faces.
         noun 0					// The noun for the Actor (for messages).
+        _case 0					// The optional case for the Actor (for messages).
         modNum -1				// Module number (for messages)
         nsTop 0					// "Now seen" rect. The visual bounds of the Actor.
         nsLeft 0
@@ -732,7 +742,7 @@
             (send avoider:doit())
         )
         (if (mover)
-            (if ((& scaleSignal $0001) and not (& scaleSignal $0004))
+            (if ((& scaleSignal ssScalable) and not (& scaleSignal ssNotStepScale))
                 = temp5 (>> origStep $0008)
                 = temp6 (& origStep $00ff)
                 = temp7 (/ (* temp5 scaleX) 128)

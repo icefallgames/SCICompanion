@@ -20,6 +20,7 @@
         z 0
         heading 0
         noun 0
+        _case 0
         modNum -1
         nsTop 0
         nsLeft 0

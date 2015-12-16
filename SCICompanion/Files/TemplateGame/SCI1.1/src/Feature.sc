@@ -98,6 +98,7 @@
         z 0
         heading 0
         noun 0					// Message noun associated with the Feature.
+        _case 0					// Message case associated with the Feature.
         modNum -1
         nsTop 0
         nsLeft 0
@@ -206,8 +207,8 @@
         (if (== modNum -1)
             = modNum gRoomNumber
         )
-        (if (gMessageType and Message(msgGET modNum noun theVerb 0 1))
-            (send gMessager:say(noun theVerb 0 0 0 modNum))
+        (if (gMessageType and Message(msgGET modNum noun theVerb _case 1))
+            (send gMessager:say(noun theVerb _case 0 0 modNum))
         )(else
             (send temp0:doit(theVerb self))
         )

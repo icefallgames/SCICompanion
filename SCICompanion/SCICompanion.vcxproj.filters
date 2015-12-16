@@ -1035,7 +1035,6 @@
     <None Include="Files\TemplateGame\SCI1.1\VGA320BW.DRV" />
     <None Include="Files\TemplateGame\SCI1.1\src\AboutCode.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\AboutCode.sco" />
-    <None Include="Files\TemplateGame\SCI1.1\src\Actor.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\Actor.sco" />
     <None Include="Files\TemplateGame\SCI1.1\src\Approach.sc" />
     <None Include="Files\TemplateGame\SCI1.1\src\Approach.sco" />
@@ -1940,6 +1939,7 @@
     <None Include="Docs\source\Compiler\switchto.rst" />
     <None Include="Docs\source\Tutorial\Rooms.rst" />
     <None Include="Docs\source\Tutorial\Score.rst" />
+    <None Include="Files\TemplateGame\SCI1.1\src\Actor.sc" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />

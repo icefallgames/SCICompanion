@@ -21,6 +21,7 @@
         z 0
         heading 0
         noun N_EGO
+        _case 0
         modNum 0
         nsTop 0
         nsLeft 0

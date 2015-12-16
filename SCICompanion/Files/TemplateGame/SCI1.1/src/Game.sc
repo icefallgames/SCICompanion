@@ -650,6 +650,7 @@
         number 0
         modNum -1
         noun 0
+        _case 0
         timer 0
         keep 0
         initialized 0
@@ -726,8 +727,8 @@
         )
         
         return 
-            (if (Message(msgGET modNum noun theVerb 0 1))
-                (send gMessager:say(noun theVerb 0 0 0 modNum))
+            (if (Message(msgGET modNum noun theVerb _case 1))
+                (send gMessager:say(noun theVerb _case 0 0 modNum))
                 1
             )(else
                 0
@@ -776,6 +777,7 @@
         number 0
         modNum -1
         noun 0			// Noun associated with the room background.
+        _case 0			// Case associated with the room background.
         timer 0
         keep 0
         initialized 0
