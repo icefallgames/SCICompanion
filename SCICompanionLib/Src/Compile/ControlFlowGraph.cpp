@@ -177,8 +177,7 @@ ControlFlowNode *ControlFlowGraph::_EnsureExitNode(NodeSet &existingExitNodes, C
 
     if (!reuseExitNode)
     {
-        reuseExitNode = MakeNode<ExitNode>();
-        static_cast<ExitNode*>(reuseExitNode)->startingAddressForExit = exitAddress;
+        reuseExitNode = MakeNode<ExitNode>(exitAddress);
         existingExitNodes.insert(reuseExitNode);
     }
 
@@ -198,10 +197,8 @@ ControlFlowNode *ControlFlowGraph::_ReplaceIfStatementInWorkingSet(ControlFlowNo
     // At this point, we can probably assert that each node we encounter (other than the header) only has a
     // single successor. There shouldn't be any more branching at this point, other than the if statements
     // that we are collected. And we go from the most nested to the least.
-    ControlFlowNode *ifNode = MakeStructuredNode<IfNode>();
-    ExitNode *exitPoint = MakeNode<ExitNode>();
-    exitPoint->startingAddressForExit = ifFollowNode->GetStartingAddress();
-    (*ifNode)[SemId::Head] = ifHeader;
+    ControlFlowNode *ifNode = MakeStructuredNode<IfNode>(ifHeader);
+    ExitNode *exitPoint = MakeNode<ExitNode>(ifFollowNode->GetStartingAddress());
     // No tail for if node
     stack<ControlFlowNode*> toProcess;
     toProcess.push(ifHeader);
@@ -328,7 +325,9 @@ void ControlFlowGraph::_ReplaceNodeInWorkingSet(ControlFlowNode *parent, Control
         NodeSet nodesToBeRemoved;
         set_intersection(workingSetNode->Predecessors().begin(), workingSetNode->Predecessors().end(),
             newNode->Children().begin(), newNode->Children().end(),
-            inserter(nodesToBeRemoved, nodesToBeRemoved.begin()));
+            inserter(nodesToBeRemoved, nodesToBeRemoved.begin()),
+            std::less<ControlFlowNode*>()
+            );
         if (!nodesToBeRemoved.empty())
         {
             for (ControlFlowNode* eraseMe : nodesToBeRemoved)
@@ -445,8 +444,7 @@ void ControlFlowGraph::_IdentifySwitchCases(ControlFlowNode *switchNodeIn)
     NodeSet caseNodes;
     for (ControlFlowNode *caseHead : caseHeads)
     {
-        ControlFlowNode *newCaseNode = MakeStructuredNode<CaseNode>();
-        (*newCaseNode)[SemId::Head] = caseHead;
+        ControlFlowNode *newCaseNode = MakeStructuredNode<CaseNode>(caseHead);
 
         newCaseNode->InsertChild(caseHead);
         // Find a statement that will dominate all others in the case. For the default,
@@ -484,8 +482,7 @@ void ControlFlowGraph::_IdentifySwitchCases(ControlFlowNode *switchNodeIn)
         {
             // Multiple exit points, which is possible with the final or default case. So let's
             // add an exit point node
-            ExitNode *singleExitNode = MakeNode<ExitNode>();
-            singleExitNode->startingAddressForExit = toss->GetStartingAddress();
+            ExitNode *singleExitNode = MakeNode<ExitNode>(toss->GetStartingAddress());
             for (ControlFlowNode *exitPoint : exitPoints)
             {
                 singleExitNode->InsertPredecessor(exitPoint);
@@ -629,9 +626,8 @@ ControlFlowNode *ControlFlowGraph::_ProcessNaturalLoop(ControlFlowGraph &loopDet
 {
     loopDetection._decompilerResults.AddResult(DecompilerResultType::Update, fmt::format("{0} Loop:{1:04x}", loopDetection._statusMessagePrefix, backEdge.head->GetStartingAddress()));
 
-    LoopNode *loopNode = loopDetection.MakeStructuredNode<LoopNode>();
+    LoopNode *loopNode = loopDetection.MakeStructuredNode<LoopNode>(backEdge.head); // head: This is the start, or the branch
     loopNode->SetChildren(backEdge.body);
-    (*loopNode)[SemId::Head] = backEdge.head;           // This is the start, or the branch
     (*loopNode)[SemId::Latch] = backEdge.latch;         // This is the latch node... could be multiple ones though. REVIEW: I think we fixed that with CommonLatchNode
 
     ControlFlowNode *followNode = loopDetection._FindFollowNodeForStructure(loopNode);
@@ -661,9 +657,8 @@ ControlFlowNode *ControlFlowGraph::_ProcessSwitch(ControlFlowGraph &loopDetectio
     loopDetection._decompilerResults.AddResult(DecompilerResultType::Update, fmt::format("{0} Switch:{1:04x}", loopDetection._statusMessagePrefix, switchBlock.head->GetStartingAddress()));
 
     // Reconstruct the nodes in switchBlock into a switch statement, and replace it in the parent's children.
-    SwitchNode *switchNode = loopDetection.MakeStructuredNode<SwitchNode>();
+    SwitchNode *switchNode = loopDetection.MakeStructuredNode<SwitchNode>(switchBlock.head);
     (*switchNode)[SemId::Tail] = switchBlock.latch;    // Note: This is the tail, not actually a latch node.
-    (*switchNode)[SemId::Head] = switchBlock.head;
     switchNode->SetChildren(switchBlock.body);
 
     // Now, in the working set, replace the guys that are part of the switch with a single switch node:
@@ -1032,10 +1027,9 @@ void ControlFlowGraph::_DoLoopTransform(ControlFlowNode *loop)
                             uint16_t address1 = otherBranchDestination->GetStartingAddress();
                             uint16_t address2 = (*loop)[SemId::Follow]->GetStartingAddress();
                             assert(address1 == address2);
-                            ControlFlowNode *invert = MakeStructuredNode<InvertNode>();
+                            ControlFlowNode *invert = MakeStructuredNode<InvertNode>(branchNode);
                             invert->InsertChild(latch);
                             invert->InsertChild(branchNode);
-                            (*invert)[SemId::Head] = branchNode;    // We just need to invert this
                             _ReplaceNodeInWorkingSet(loop, invert);
                             _ReplaceNodeInFollowNodes(invert);
 
@@ -1133,7 +1127,7 @@ void ControlFlowGraph::_FindCompoundConditions(ControlFlowNode *structure)
                         {
                             throwException = (firstThenNode != branchNode);
                             // This is (X and Y)
-                            newConditionNode = MakeStructuredNode<CompoundConditionNode>(ConditionType::And);
+                            newConditionNode = MakeStructuredNode<CompoundConditionNode>(possibleStart, ConditionType::And);
                             newConditionNode->isFirstTermNegated = false;
                             newConditionNode->thenBranch = secondThenNode->GetStartingAddress();
                         }
@@ -1141,7 +1135,7 @@ void ControlFlowGraph::_FindCompoundConditions(ControlFlowNode *structure)
                         {
                             throwException = (firstElseNode != branchNode);
                             // This is (X or Y)
-                            newConditionNode = MakeStructuredNode<CompoundConditionNode>(ConditionType::Or);
+                            newConditionNode = MakeStructuredNode<CompoundConditionNode>(possibleStart, ConditionType::Or);
                             newConditionNode->isFirstTermNegated = false;
                             newConditionNode->thenBranch = firstThenNode->GetStartingAddress();
                         }
@@ -1149,7 +1143,7 @@ void ControlFlowGraph::_FindCompoundConditions(ControlFlowNode *structure)
                         {
                             throwException = (firstThenNode != branchNode);
                             // This is (!X or Y);
-                            newConditionNode = MakeStructuredNode<CompoundConditionNode>(ConditionType::Or);
+                            newConditionNode = MakeStructuredNode<CompoundConditionNode>(possibleStart, ConditionType::Or);
                             newConditionNode->isFirstTermNegated = true;
                             newConditionNode->thenBranch = secondThenNode->GetStartingAddress();
                         }
@@ -1157,7 +1151,7 @@ void ControlFlowGraph::_FindCompoundConditions(ControlFlowNode *structure)
                         {
                             throwException = (firstElseNode != branchNode);
                             // This is (!X and Y)
-                            newConditionNode = MakeStructuredNode<CompoundConditionNode>(ConditionType::And);
+                            newConditionNode = MakeStructuredNode<CompoundConditionNode>(possibleStart, ConditionType::And);
                             newConditionNode->isFirstTermNegated = true;
                             newConditionNode->thenBranch = secondThenNode->GetStartingAddress();
                         }
@@ -1167,7 +1161,6 @@ void ControlFlowGraph::_FindCompoundConditions(ControlFlowNode *structure)
                             throw ControlFlowException(possibleStart, "Unable to resolve compound condition");
                         }
 
-                        (*newConditionNode)[SemId::Head] = possibleStart;
                         (*newConditionNode)[SemId::First] = possibleStart;
                         (*newConditionNode)[SemId::Second] = branchNode;
                         newConditionNode->InsertChild(possibleStart);
@@ -1263,8 +1256,7 @@ bool _CheckForSameHeader(ControlFlowGraph &cfg, ControlFlowNode &parent, vector<
         {
             noChanges = false;
             // Create a common latch node. It will have our latch nodes as predecessors
-            CommonLatchNode *common = cfg.MakeNode<CommonLatchNode>();
-            parent.InsertChild(common);
+            CommonLatchNode *common = cfg.MakeNode<CommonLatchNode>(0);
             for (NodeBlock *block : blocksWithSameHeader)
             {
                 // The "starting address" of the common latch will be the max starting address of the original latches.
@@ -1275,6 +1267,8 @@ bool _CheckForSameHeader(ControlFlowGraph &cfg, ControlFlowNode &parent, vector<
                 common->InsertPredecessor(block->latch);
                 block->head->ErasePredecessor(block->latch);
             }
+            // Delay insertion until we have a tokenStartingAddress (for sorting)
+            parent.InsertChild(common);
             blocksWithSameHeader[0]->head->InsertPredecessor(common);
             break; // Only do one set of these at a time.
         }
@@ -1716,9 +1710,8 @@ ControlFlowNode *ControlFlowGraph::_PartitionCode(code_pos start, code_pos end)
     }
 
     // Make a node to encompass everything:
-    mainStructure = MakeStructuredNode<MainNode>();
+    mainStructure = MakeStructuredNode<MainNode>(headerNode);
     mainStructure->SetChildren(finalNodes);
-    (*mainStructure)[SemId::Head] = headerNode;
 #if SQ5_990_ISSUE
     ControlFlowNode *nodeWithLastCodePos = nullptr;
 #endif
@@ -1755,7 +1748,7 @@ ControlFlowNode *ControlFlowGraph::_PartitionCode(code_pos start, code_pos end)
     {
         throw ControlFlowException(mainStructure, "Code partition failure.");
     }
-    ExitNode *exitNode = MakeNode<ExitNode>();
+    ExitNode *exitNode = MakeNode<ExitNode>(0xffff);
     exitNode->InsertPredecessor(mainStructure);  // NOT main's tail
     (*mainStructure)[SemId::Follow] = exitNode;
 
@@ -1825,6 +1818,10 @@ bool ControlFlowGraph::Generate(code_pos start, code_pos end)
         {
             _FindAllStructuresOf(_FindBackEdges, _CheckForSameHeader, _ProcessNaturalLoop);
         }
+
+
+
+
         if (!_decompilerResults.IsAborted())
         {
             _FindAllStructuresOf(_FindSwitchBlocks, _DoNothing, _ProcessSwitch);
@@ -1847,11 +1844,11 @@ bool ControlFlowGraph::Generate(code_pos start, code_pos end)
             _ResolveBreaks();
         }
 
-
         if (showFile)
         {
             CFGVisualize(_contextName + "_loop", discoveredControlStructures);
         }
+
         if (!_decompilerResults.IsAborted())
         {
             _FindAllIfStatements();

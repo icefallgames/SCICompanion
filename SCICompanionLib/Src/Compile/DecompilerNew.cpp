@@ -686,7 +686,7 @@ public:
         vector<ControlFlowNode*> sortedCases;
         ControlFlowNode *switchHead = switchNode[SemId::Head];
         copy(switchHead->Successors().begin(), switchHead->Successors().end(), back_inserter(sortedCases));
-        sort(sortedCases.rbegin(), sortedCases.rend(), CompareCFGNodesByAddress()); // Sort in reverse
+        sort(sortedCases.rbegin(), sortedCases.rend(), std::less<ControlFlowNode*>()); // Sort in reverse
         for (ControlFlowNode *caseNode : sortedCases)
         {
             caseNode->Accept(*this);
@@ -2781,6 +2781,7 @@ bool OutputNewStructure(const std::string &messagePrefix, sci::FunctionBase &fun
 
         _StripOutUneededInstructions(mainChunk.get());
         _RemoveDoubleInverts(mainChunk.get());
+
         _RemoveTOSS(mainChunk.get());
         _FixupSwitches(mainChunk.get(), lookups);
         _FixupIfs(mainChunk.get(), mainChunk.get(), lookups);

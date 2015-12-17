@@ -40,7 +40,9 @@ void SomeFunction(DominatorMap &dominators, NodeSet &newDominators, ControlFlowN
                 NodeSet &temp = dominators[pred];
                 set_intersection(result.begin(), result.end(),
                     temp.begin(), temp.end(),
-                    inserter(resultTemp, resultTemp.begin()));
+                    inserter(resultTemp, resultTemp.begin()),
+                    std::less<ControlFlowNode*>()
+                    );
 
                 swap(resultTemp, result);
             }

@@ -76,11 +76,17 @@ public:
     virtual void Visit(const ControlFlowNode &node) = 0;
 };
 
-struct CompareCFGNodesByAddress {
-    bool operator() (const ControlFlowNode* lhs, const ControlFlowNode* rhs) const;
-};
-
 struct ControlFlowNode;
+
+
+namespace std
+{
+    template<>
+    struct std::less<ControlFlowNode*>
+    {
+        bool operator() (const ControlFlowNode* lhs, const ControlFlowNode* rhs) const;
+    };
+}
 
 // Using a sorted vector (instead of a set) provides about a 10x speed up in our scenario.
 // It comes with a few disadvantages, like iterators are invalidated when items are added/removed
@@ -105,13 +111,12 @@ struct NodeSet : public std::set < ControlFlowNode* >
 };
 #endif
 
-
 struct ControlFlowNode
 {
-    ControlFlowNode(CFGNodeType type, std::initializer_list<SemId> semanticChildrenIds) : Type(type), ArbitraryDebugIndex(0), dirty(true), postDirty(true)
+    ControlFlowNode(ControlFlowNode *head, CFGNodeType type, std::initializer_list<SemId> semanticChildrenIds) : Type(type), ArbitraryDebugIndex(0), dirty(true), postDirty(true)
     {
         // Everyone has a head (for now)
-        semanticChildren[SemId::Head] = nullptr;
+        semanticChildren[SemId::Head] = head;
 
         for (auto semId : semanticChildrenIds)
         {
@@ -278,7 +283,7 @@ public:
 
 struct ExitNode : public ControlFlowNode
 {
-    ExitNode() : ControlFlowNode(CFGNodeType::Exit, {}), startingAddressForExit(0xffff) {}
+    ExitNode(uint16_t address) : ControlFlowNode(nullptr, CFGNodeType::Exit, {}), startingAddressForExit(address) {}
     void Accept(ICFGNodeVisitor &visitor) const { visitor.Visit(*this); }
 
     uint16_t startingAddressForExit;
@@ -286,7 +291,7 @@ struct ExitNode : public ControlFlowNode
 
 struct StructuredNode : public ControlFlowNode
 {
-    StructuredNode(CFGNodeType type, std::initializer_list<SemId> semanticChildren) : ControlFlowNode(type, semanticChildren) {}
+    StructuredNode(ControlFlowNode *head, CFGNodeType type, std::initializer_list<SemId> semanticChildren) : ControlFlowNode(head, type, semanticChildren) {}
     // has children...
 };
 
@@ -294,7 +299,7 @@ enum class ConditionType { And, Or };
 
 struct CompoundConditionNode : public StructuredNode
 {
-    CompoundConditionNode(ConditionType condition) : condition(condition), thenBranch(0xffff), isFirstTermNegated(false), isSecondTermNegated(false), StructuredNode(CFGNodeType::CompoundCondition, { SemId::First, SemId::Second }) {}
+    CompoundConditionNode(ControlFlowNode *head, ConditionType condition) : condition(condition), thenBranch(0xffff), isFirstTermNegated(false), isSecondTermNegated(false), StructuredNode(head, CFGNodeType::CompoundCondition, { SemId::First, SemId::Second }) {}
     void Accept(ICFGNodeVisitor &visitor) const { visitor.Visit(*this); }
 
     uint16_t thenBranch;
@@ -307,13 +312,13 @@ struct CompoundConditionNode : public StructuredNode
 
 struct InvertNode : public StructuredNode
 {
-    InvertNode() : StructuredNode(CFGNodeType::Invert, { SemId::Tail }) {}
+    InvertNode(ControlFlowNode *head) : StructuredNode(head, CFGNodeType::Invert, { SemId::Tail }) {}
     void Accept(ICFGNodeVisitor &visitor) const { visitor.Visit(*this); }
 };
 
 struct CommonLatchNode : public ControlFlowNode
 {
-    CommonLatchNode() : ControlFlowNode(CFGNodeType::CommonLatch, {}), tokenStartingAddress(0) {}
+    CommonLatchNode(uint16_t tokenAddress) : ControlFlowNode(nullptr, CFGNodeType::CommonLatch, {}), tokenStartingAddress(tokenAddress) {}
     void Accept(ICFGNodeVisitor &visitor) const { visitor.Visit(*this); }
 
     uint16_t tokenStartingAddress;  // Don't use this for anything real?
@@ -321,33 +326,33 @@ struct CommonLatchNode : public ControlFlowNode
 
 struct FakeBreakNode : public ControlFlowNode
 {
-    FakeBreakNode() : ControlFlowNode(CFGNodeType::FakeBreak, {}) {}
+    FakeBreakNode() : ControlFlowNode(nullptr, CFGNodeType::FakeBreak, {}) {}
     void Accept(ICFGNodeVisitor &visitor) const { visitor.Visit(*this); }
 };
 
 struct IfNode : public StructuredNode
 {
-    IfNode() : StructuredNode(CFGNodeType::If, { SemId::Then, SemId::Else, SemId::Follow }) {}
+    IfNode(ControlFlowNode *head) : StructuredNode(head, CFGNodeType::If, { SemId::Then, SemId::Else, SemId::Follow }) {}
     void Accept(ICFGNodeVisitor &visitor) const { visitor.Visit(*this); }
 };
 struct LoopNode : public StructuredNode
 {
-    LoopNode() : StructuredNode(CFGNodeType::Loop, { SemId::Latch, SemId::Follow, SemId::Tail }) {}
+    LoopNode(ControlFlowNode *head) : StructuredNode(head, CFGNodeType::Loop, { SemId::Latch, SemId::Follow, SemId::Tail }) {}
     void Accept(ICFGNodeVisitor &visitor) const { visitor.Visit(*this); }
 };
 struct CaseNode : public StructuredNode
 {
-    CaseNode() : StructuredNode(CFGNodeType::Case, { SemId::Tail }) {}
+    CaseNode(ControlFlowNode *head) : StructuredNode(head, CFGNodeType::Case, { SemId::Tail }) {}
     void Accept(ICFGNodeVisitor &visitor) const { visitor.Visit(*this); }
 };
 struct SwitchNode : public StructuredNode
 {
-    SwitchNode() : StructuredNode(CFGNodeType::Switch, { SemId::Tail }) {}
+    SwitchNode(ControlFlowNode *head) : StructuredNode(head, CFGNodeType::Switch, { SemId::Tail }) {}
     void Accept(ICFGNodeVisitor &visitor) const { visitor.Visit(*this); }
 };
 struct MainNode : public StructuredNode
 {
-    MainNode() : StructuredNode(CFGNodeType::Main, { SemId::Tail, SemId::Follow }) {}
+    MainNode(ControlFlowNode *head) : StructuredNode(head, CFGNodeType::Main, { SemId::Tail, SemId::Follow }) {}
     void Accept(ICFGNodeVisitor &visitor) const { visitor.Visit(*this); }
 };
 struct RawCodeNode : public ControlFlowNode

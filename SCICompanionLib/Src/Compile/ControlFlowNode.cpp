@@ -205,18 +205,26 @@ void GetThenAndElseBranches(ControlFlowNode *node, ControlFlowNode **thenNode, C
     }
 }
 
-RawCodeNode::RawCodeNode(code_pos start) : ControlFlowNode(CFGNodeType::RawCode, {}), start(start)
+RawCodeNode::RawCodeNode(code_pos start) : ControlFlowNode(nullptr, CFGNodeType::RawCode, {}), start(start)
 {
     DebugId = fmt::format("{:04x}:{}", start->get_final_offset_dontcare(), OpcodeToName(start->get_opcode()));
 }
 
-bool CompareCFGNodesByAddress::operator() (const ControlFlowNode* lhs, const ControlFlowNode* rhs) const
+
+bool std::less<ControlFlowNode*>::operator() (const ControlFlowNode* lhs, const ControlFlowNode* rhs) const
 {
     uint16_t lAddress = lhs->GetStartingAddress();
     uint16_t rAddress = rhs->GetStartingAddress();
     if (lAddress == rAddress)
     {
-        return lhs < rhs;
+        if (lhs->Type == rhs->Type)
+        {
+            return lhs < rhs;
+        }
+        else
+        {
+            return lhs->Type < rhs->Type;
+        }
     }
     else
     {
