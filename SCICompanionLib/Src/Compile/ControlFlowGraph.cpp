@@ -1256,19 +1256,25 @@ bool _CheckForSameHeader(ControlFlowGraph &cfg, ControlFlowNode &parent, vector<
         {
             noChanges = false;
             // Create a common latch node. It will have our latch nodes as predecessors
-            CommonLatchNode *common = cfg.MakeNode<CommonLatchNode>(0);
+            // First we need to come up with a token address for this latch node.
+            uint16_t tokenAddress = 0;
             for (NodeBlock *block : blocksWithSameHeader)
             {
                 // The "starting address" of the common latch will be the max starting address of the original latches.
                 // This doesn't really make sense, but we need something.
                 // REVIEW: This causes problems (SQ5, 26, ScrollableInventory::retreat). It confuses if statement resolution
                 // because the 2 successors of branch may point to the same "starting address".
-                common->tokenStartingAddress = max(common->tokenStartingAddress, block->latch->GetStartingAddress());
+                tokenAddress = max(tokenAddress, block->latch->GetStartingAddress());
+            }
+            // The address is needed before insertion, as it is used to sort.
+            assert(tokenAddress != 0);
+            CommonLatchNode *common = cfg.MakeNode<CommonLatchNode>(tokenAddress);
+            parent.InsertChild(common);
+            for (NodeBlock *block : blocksWithSameHeader)
+            {
                 common->InsertPredecessor(block->latch);
                 block->head->ErasePredecessor(block->latch);
             }
-            // Delay insertion until we have a tokenStartingAddress (for sorting)
-            parent.InsertChild(common);
             blocksWithSameHeader[0]->head->InsertPredecessor(common);
             break; // Only do one set of these at a time.
         }
