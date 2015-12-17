@@ -1667,9 +1667,6 @@
     <ClInclude Include="Src\Compile\ParserActions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Compile\SyntaxContext.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Src\Compile\ParseAutoCompleteContext.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -1683,6 +1680,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Src\Compile\AutoCompleteSourceTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Compile\SyntaxContext.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
