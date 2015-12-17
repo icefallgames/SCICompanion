@@ -2086,6 +2086,7 @@ bool TryToStealOrCloneSomething(ConsumptionNode *originalChild, ConsumptionNode 
             switch (parent->GetType())
             {
                 case ChunkType::First:  // But not second
+                case ChunkType::FirstNegated:
                 case ChunkType::And:
                 case ChunkType::Or:
                 case ChunkType::None:
@@ -2778,13 +2779,6 @@ bool OutputNewStructure(const std::string &messagePrefix, sci::FunctionBase &fun
         EnumerateCodeChunks enumCodeChunks(context, lookups);
         enumCodeChunks.Visit(main);
 
-        if (showFile)
-        {
-            std::stringstream ss;
-            mainChunk->Print(ss, 0);
-            ShowTextFile(ss.str().c_str(), debugTrackName + "_chunks_raw.txt");
-        }
-
         _StripOutUneededInstructions(mainChunk.get());
         _RemoveDoubleInverts(mainChunk.get());
         _RemoveTOSS(mainChunk.get());
@@ -2796,6 +2790,14 @@ bool OutputNewStructure(const std::string &messagePrefix, sci::FunctionBase &fun
 #endif
 
         _ResolvePPrevs(debugTrackName, mainChunk.get(), mainChunk.get(), lookups);
+
+        if (showFile)
+        {
+            std::stringstream ss;
+            mainChunk->Print(ss, 0);
+            ShowTextFile(ss.str().c_str(), debugTrackName + "_chunks_raw.txt");
+        }
+
         _ResolveNeededAcc(mainChunk.get(), mainChunk.get(), lookups);
         _RestructureCaseHeaders(mainChunk.get(), lookups);
 
