@@ -22,6 +22,11 @@
 #include "PMachine.h"
 #include "Operators.h"
 
+// Lifting assignments out of condtionals still has some issues. It causes some decompilations to fail,
+// for instance Motion::init in the 1990 VGA Christmas Card Demo.
+// So for now, disabling it.
+// #define TRY_LIFT_ASSIGNMENTS 1
+
 using namespace std;
 using namespace sci;
 
@@ -2786,8 +2791,9 @@ bool OutputNewStructure(const std::string &messagePrefix, sci::FunctionBase &fun
         _FixupSwitches(mainChunk.get(), lookups);
         _FixupIfs(mainChunk.get(), mainChunk.get(), lookups);
         _LiftOutFromConditions(mainChunk.get(), mainChunk.get(), lookups);
-
+#ifdef TRY_LIFT_ASSIGNMENTS
         _LiftOutAssignments(mainChunk.get(), mainChunk.get(), lookups);
+#endif
 
         _ResolvePPrevs(debugTrackName, mainChunk.get(), mainChunk.get(), lookups);
         _ResolveNeededAcc(mainChunk.get(), mainChunk.get(), lookups);
