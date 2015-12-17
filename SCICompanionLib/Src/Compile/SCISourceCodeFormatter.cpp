@@ -1173,8 +1173,9 @@ public:
     void Visit(const LValue &lValue) override
     {
         // Going on a limb and saying this is always inline
-        GO_INLINE;
         _MaybeNewLineIndent();
+
+        GO_INLINE;
         if (lValue.HasIndexer())
         {
             out.out << "[";
