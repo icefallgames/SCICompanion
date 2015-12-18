@@ -39,8 +39,8 @@ struct KernelInfo
     const char *GetName() { return Name; }
 };
 
-const char *OpcodeToName(Opcode opcode);
-Opcode NameToOpcode(const std::string &opcodeName);
+const char *OpcodeToName(Opcode opcode, uint16_t firstOperand);
+Opcode NameToOpcode(const std::string &opcodeName, bool &usesAccIndex);
 
 enum OperandType : uint8_t
 {

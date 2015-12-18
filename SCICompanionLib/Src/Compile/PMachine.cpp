@@ -491,8 +491,12 @@ char *OpcodeNames[130]={
     "_line_",
 };
 
-const char *OpcodeToName(Opcode opcode)
+const char *OpcodeToName(Opcode opcode, uint16_t firstOperand)
 {
+    if ((opcode == Opcode::LEA) && ((firstOperand >> 1) & LEA_ACC_AS_INDEX_MOD))
+    {
+        return "leai";
+    }
     return OpcodeNames[(int)opcode];
 }
 
@@ -502,13 +506,20 @@ std::unordered_set<std::string> &GetOpcodeSet()
     if (opcodeSet.empty())
     {
         opcodeSet.insert(OpcodeNames, OpcodeNames + ARRAYSIZE(OpcodeNames));
+        opcodeSet.insert("leai");   // Special case
     }
     return opcodeSet;
 }
 
-Opcode NameToOpcode(const std::string &opcodeName)
+Opcode NameToOpcode(const std::string &opcodeName, bool &usesAccIndex)
 {
+    usesAccIndex = false;
     Opcode opcode = Opcode::INDETERMINATE;
+    if (opcodeName == "leai")
+    {
+        usesAccIndex = true;
+        return Opcode::LEA;
+    }
     for (int i = 0; i < ARRAYSIZE(OpcodeNames); i++)
     {
         if (OpcodeNames[i] == opcodeName)

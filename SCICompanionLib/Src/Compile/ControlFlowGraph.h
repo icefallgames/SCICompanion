@@ -29,7 +29,7 @@ struct NodeBlock
 class ControlFlowGraph
 {
 public:
-    ControlFlowGraph(const std::string &statusMessagePrefix, IDecompilerResults &decompilerResults, const std::string &contextName, bool debug, PCSTR pszDebugFilter) : _decompilerResults(decompilerResults), _contextName(contextName), _statusMessagePrefix(statusMessagePrefix), _debug(debug), _pszDebugFilter(pszDebugFilter) {}
+    ControlFlowGraph(const std::string &statusMessagePrefix, IDecompilerResults &decompilerResults, const std::string &contextName, bool allowContinues, bool debug, PCSTR pszDebugFilter) : _decompilerResults(decompilerResults), _contextName(contextName), _statusMessagePrefix(statusMessagePrefix), _debug(debug), _pszDebugFilter(pszDebugFilter), _allowContinues(allowContinues) {}
     ControlFlowGraph(const ControlFlowGraph &src) = delete;
     ControlFlowGraph& operator=(const ControlFlowGraph &src) = delete;
 
@@ -68,11 +68,11 @@ private:
     void _ReplaceNodeInWorkingSet(ControlFlowNode *parent, ControlFlowNode *newNode);
     void _IdentifySwitchCases(ControlFlowNode *switchNodeIn);
     void _FindAllCompoundConditions();
-    void _ResolveBreaks();
-    bool _ResolveBreak(uint16_t loopFollowAddress, ControlFlowNode *structure);
-    void _RestructureBreaks();
-    bool _RestructureBreak(uint16_t loopFollowAddress, ControlFlowNode *ignore, ControlFlowNode *structure);
-    void _ReconnectBreakNodeToSubsequentCode(ControlFlowNode *structure, ControlFlowNode *breakNode, code_pos subsequentcode);
+    void _ResolveBreaksOrContinues();
+    bool _ResolveBreakOrContinue(uint16_t loopFollowAddress, ControlFlowNode *structure, SemanticTags loopOrContinueTag, ControlFlowNode *latchToAvoid);
+    void _RestructureBreaksAndContinues();
+    bool _RestructureBreakOrContinue(uint16_t loopFollowOrHeadAddress, ControlFlowNode *ignore, ControlFlowNode *structure, bool isBreak);
+    void _ReconnectBreakNodeToSubsequentCode(ControlFlowNode *structure, ControlFlowNode *breakNode, code_pos subsequentcode, SemanticTags loopOrContinueTag);
     void _DoLoopTransforms();
     void _DoLoopTransform(ControlFlowNode *loop);
     void _FindCompoundConditions(ControlFlowNode *structure);
@@ -157,6 +157,7 @@ private:
     std::string _contextName;
     IDecompilerResults &_decompilerResults;
     std::string _statusMessagePrefix;
+    bool _allowContinues;
 
     bool _debug;
     PCSTR _pszDebugFilter;

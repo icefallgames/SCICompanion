@@ -2881,7 +2881,8 @@ CodeResult Asm::OutputByteCode(CompileContext &context) const
 {
     // TODO: Prescan needs to track label
     // Look up the instruction.
-    Opcode opcode = NameToOpcode(_innerName);
+    bool leaUsesAccIndex = false;
+    Opcode opcode = NameToOpcode(_innerName, leaUsesAccIndex);
 
     if (opcode == Opcode::INDETERMINATE)
     {
@@ -2993,7 +2994,19 @@ CodeResult Asm::OutputByteCode(CompileContext &context) const
                 {
                     ComplexPropertyValue *pValue = SafeSyntaxNode<ComplexPropertyValue>(_segments[0].get());
                     SpeciesIndex wType;
-                    LookupTokenAndPlacePtrInAccumulator(pValue->GetStringValue(), context, pValue->GetIndexer(), pValue, wType);
+                    sci::SyntaxNode *indexer = pValue->GetIndexer();
+                    if (indexer)
+                    {
+                        context.ReportError(this, "An indexer is not allowed.");
+                    }
+                    std::unique_ptr<Comment> noop;
+                    if (leaUsesAccIndex)
+                    {
+                        // This is an indexed LEA. Use a comment for the index, so that we detect that it's indexed,
+                        // but leave the previous value in the accumulator (i.e. don't write anything new to the acc)
+                        noop = std::make_unique<Comment>(CommentType::None);
+                    }
+                    LookupTokenAndPlacePtrInAccumulator(pValue->GetStringValue(), context, noop.get(), pValue, wType);
                 }
                 else
                 {

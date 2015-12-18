@@ -386,7 +386,7 @@ void DisassembleFallback(FunctionBase &func, code_pos start, code_pos end, Decom
                     break;
                 }
             }
-            asmStatement->SetName(OpcodeToName(opcode));  // Do if after the above, because we may have changed it.
+            asmStatement->SetName(OpcodeToName(opcode, cur->get_first_operand()));  // Do if after the above, because we may have changed it.
             callFrames.MaybeReportValue(cur, valueWeak);
             _AddSyntaxNode(statements, move(asmStatement));
         }

@@ -1416,10 +1416,9 @@ public:
         if (!_IsConditionalExpressionTRUE(*doLoop.GetCondition()))
         {
             INDENT_BLOCK;
-
+            _MaybeNewLineIndent();
             bool isConditionMultiline = _ShouldBeMultiline(doLoop.GetCondition().get());
             SET_MULTILINEMODE(isConditionMultiline);
-
             out.out << "(breakif";
 
             // We need to negate this condition. It's likely already negated though. So we can:

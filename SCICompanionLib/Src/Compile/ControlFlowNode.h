@@ -27,7 +27,7 @@ enum CFGNodeType
     If,
     Invert,
     CommonLatch,
-    FakeBreak,
+    FakeBreakOrContinue,
 };
 
 // Ways to classify certain nodes
@@ -48,6 +48,7 @@ enum class SemanticTags
     LoopBreak,
     DefaultCase,
     CaseCondition,
+    LoopContinue,
 };
 
 struct ControlFlowNode;
@@ -324,9 +325,9 @@ struct CommonLatchNode : public ControlFlowNode
     uint16_t tokenStartingAddress;  // Don't use this for anything real?
 };
 
-struct FakeBreakNode : public ControlFlowNode
+struct FakeBreakOrContinueNode : public ControlFlowNode
 {
-    FakeBreakNode() : ControlFlowNode(nullptr, CFGNodeType::FakeBreak, {}) {}
+    FakeBreakOrContinueNode() : ControlFlowNode(nullptr, CFGNodeType::FakeBreakOrContinue, {}) {}
     void Accept(ICFGNodeVisitor &visitor) const { visitor.Visit(*this); }
 };
 

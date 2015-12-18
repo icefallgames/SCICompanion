@@ -62,6 +62,7 @@ enum class ChunkType
     CaseBody,
     SwitchValue,
     Break,
+    Continue,
     NeedsAccumulator,
     NeedsAccumulatorSpecial,
     FailedToGetAccumulator,
@@ -201,7 +202,7 @@ struct ConsumptionNode
         os << _indent2(iIndent);
         if (_hasPos)
         {
-            os << OpcodeToName(pos->get_opcode()) << "  [" << setw(4) << setfill('0') << pos->get_final_offset_dontcare() << "]";
+            os << OpcodeToName(pos->get_opcode(), pos->get_first_operand()) << "  [" << setw(4) << setfill('0') << pos->get_final_offset_dontcare() << "]";
         }
         else
         {
@@ -805,6 +806,12 @@ public:
                 // be confident this is one without looking at its destination.
                 _context.AddStructured(ChunkType::Break);
             }
+            else if (current->ContainsTag(SemanticTags::LoopContinue))
+            {
+                // We've already identified break statements during control flow, so we can
+                // be confident this is one without looking at its destination.
+                _context.AddStructured(ChunkType::Continue);
+            }
             else
             {
                 current->Accept(*this);
@@ -913,6 +920,11 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode2(ConsumptionNode &node, Decomp
         case ChunkType::Break:
         {
             return unique_ptr<SyntaxNode>(new BreakStatement());
+        }
+
+        case ChunkType::Continue:
+        {
+            return unique_ptr<SyntaxNode>(new ContinueStatement());
         }
 
         case ChunkType::If:

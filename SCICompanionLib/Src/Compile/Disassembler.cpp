@@ -124,7 +124,7 @@ void DisassembleCode(SCIVersion version, std::ostream &out, ICompiledScriptLooku
                 Opcode bOpcode = RawToOpcode(version, bRawOpcode);
 
                 assert(bOpcode <= Opcode::LastOne);
-                const char *pszOpcode = OpcodeToName(bOpcode);
+                const char *pszOpcode = OpcodeToName(bOpcode, 0);   // Passing zero here is ok, since this code will never show an LEAI instruction.
                 bool bByte = (*pCur) & 1; // Is this a "byte" opcode or a "word" opcode.
                 bool fDone = false;
 

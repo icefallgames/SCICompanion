@@ -67,7 +67,7 @@ uint16_t ControlFlowNode::GetStartingAddress() const
     {
         address = (static_cast<const CommonLatchNode*>(this))->tokenStartingAddress;
     }
-    else if (Type == CFGNodeType::FakeBreak)
+    else if (Type == CFGNodeType::FakeBreakOrContinue)
     {
         address = 0;
     }
@@ -131,10 +131,9 @@ void GetThenAndElseBranches(ControlFlowNode *node, ControlFlowNode **thenNode, C
             *thenNode = two;
         }
 
-        // This didn't seem to work. i.e. the negation didn't work. CueObj is a good starting point.
         if (((*thenNode)->Type == CFGNodeType::Exit) && ((*elseNode)->Type != CFGNodeType::Exit))
         {
-            // Then is an exit node, but else is not. That's a problem for things like while loops. Swap them:
+            // *Then* is an exit node, but *else* is not. That's a problem for things like while loops. Swap them:
             std::swap(*thenNode, *elseNode);
             ccNode->thenBranch = (*thenNode)->GetStartingAddress();
             // And then invert the condition by changing the operation and negating the terms (DeMorgan's law)
@@ -207,7 +206,7 @@ void GetThenAndElseBranches(ControlFlowNode *node, ControlFlowNode **thenNode, C
 
 RawCodeNode::RawCodeNode(code_pos start) : ControlFlowNode(nullptr, CFGNodeType::RawCode, {}), start(start)
 {
-    DebugId = fmt::format("{:04x}:{}", start->get_final_offset_dontcare(), OpcodeToName(start->get_opcode()));
+    DebugId = fmt::format("{:04x}:{}", start->get_final_offset_dontcare(), OpcodeToName(start->get_opcode(), start->get_first_operand()));
 }
 
 

@@ -1085,6 +1085,8 @@ void _TrackExternalScriptUsage(std::list<scii> code, DecompileLookups &lookups)
 // pEnd can be teh end of script data. I have added autodetection support.
 void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBegin, const BYTE *pEnd, WORD wBaseOffset)
 {
+    bool allowContinues = func.GetOwnerScript()->GetScriptId().Language() == LangSyntaxSCI;
+
     lookups.EndowWithFunction(&func);
 
     // Take the raw data, and turn it into a list of scii instructions, and make sure the branch targets point to code_pos's
@@ -1114,7 +1116,7 @@ void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBe
             string messageDescription = fmt::format("{0} {1}::{2}: Analyzing control flow", func.GetOwnerScript()->GetName(), className, func.GetName());
             lookups.DecompileResults().AddResult(DecompilerResultType::Update, messageDescription);
 
-            ControlFlowGraph cfg(messageDescription, lookups.DecompileResults(), GetMethodTrackingName(func.GetOwnerClass(), func, true), lookups.DebugControlFlow, lookups.pszDebugFilter);
+            ControlFlowGraph cfg(messageDescription, lookups.DecompileResults(), GetMethodTrackingName(func.GetOwnerClass(), func, true), allowContinues, lookups.DebugControlFlow, lookups.pszDebugFilter);
             success = cfg.Generate(code.begin(), code.end());
             if (success && !lookups.DecompileResults().IsAborted())
             {

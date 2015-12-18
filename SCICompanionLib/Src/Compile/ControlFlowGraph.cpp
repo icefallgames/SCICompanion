@@ -733,11 +733,11 @@ void ControlFlowGraph::_FindAllCompoundConditions()
     }
 }
 
-    // We want to navigate down the hierarchy of loops (stopping at any loop)
-    // and look for nodes that end in unconditional jumps to the loop follow.
-    // Then, we'll mark them at "break", and reconnect them to the subsequent node in
-    // memory (that is a sibling of the current structure)
-void ControlFlowGraph::_ResolveBreaks()
+// We want to navigate down the hierarchy of loops (stopping at any loop)
+// and look for nodes that end in unconditional jumps to the loop follow.
+// Then, we'll mark them at "break", and reconnect them to the subsequent node in
+// memory (that is a sibling of the current structure)
+void ControlFlowGraph::_ResolveBreaksOrContinues()
 {
     bool changes = true;
     while (changes)
@@ -747,17 +747,25 @@ void ControlFlowGraph::_ResolveBreaks()
         {
             if (structure->Type == CFGNodeType::Loop)
             {
-                changes = _ResolveBreak((*structure)[SemId::Follow]->GetStartingAddress(), structure);
+                changes = _ResolveBreakOrContinue((*structure)[SemId::Follow]->GetStartingAddress(), structure, SemanticTags::LoopBreak, nullptr);
                 if (changes)
                 {
                     break;
+                }
+                if (_allowContinues)
+                {
+                    changes = _ResolveBreakOrContinue((*structure)[SemId::Head]->GetStartingAddress(), structure, SemanticTags::LoopContinue, (*structure)[SemId::Latch]);
+                    if (changes)
+                    {
+                        break;
+                    }
                 }
             }
         }
     }
 }
 
-void ControlFlowGraph::_RestructureBreaks()
+void ControlFlowGraph::_RestructureBreaksAndContinues()
 {
     bool changes = true;
     while (changes)
@@ -777,17 +785,26 @@ void ControlFlowGraph::_RestructureBreaks()
                 {
                     ignore = (*structure)[SemId::Latch];
                 }
-                changes = _RestructureBreak((*structure)[SemId::Follow]->GetStartingAddress(), ignore, structure);
+                changes = _RestructureBreakOrContinue((*structure)[SemId::Follow]->GetStartingAddress(), ignore, structure, true);
                 if (changes)
                 {
                     break;
                 }
+                /*
+                if (_allowContinues)
+                {
+                    changes = _RestructureBreakOrContinue((*structure)[SemId::Head]->GetStartingAddress(), ignore, structure, false);
+                    if (changes)
+                    {
+                        break;
+                    }
+                }*/
             }
         }
     }
 }
 
-bool ControlFlowGraph::_RestructureBreak(uint16_t loopFollowAddress, ControlFlowNode *ignore, ControlFlowNode *structure)
+bool ControlFlowGraph::_RestructureBreakOrContinue(uint16_t loopFollowOrHeadAddress, ControlFlowNode *ignore, ControlFlowNode *structure, bool isBreak)
 {
     bool changes = false;
     // In order to detect our if statements, we want breaks to be in the form of
@@ -808,7 +825,7 @@ bool ControlFlowGraph::_RestructureBreak(uint16_t loopFollowAddress, ControlFlow
             code_pos followingCode = (static_cast<RawCodeNode*>(node))->end;
             code_pos end = followingCode;
             --end;
-            if (end->get_branch_target()->get_final_offset() == loopFollowAddress)
+            if (end->get_branch_target()->get_final_offset() == loopFollowOrHeadAddress)
             {
                 changes = true;
 
@@ -820,8 +837,8 @@ bool ControlFlowGraph::_RestructureBreak(uint16_t loopFollowAddress, ControlFlow
                 end->set_branch_target(followingCode, true);    // And it now branches to the following code instead of exit
 
                 // Make a new node that will be the break
-                FakeBreakNode *newJmp = MakeNode<FakeBreakNode>();
-                newJmp->Tags.insert(SemanticTags::LoopBreak);
+                FakeBreakOrContinueNode *newJmp = MakeNode<FakeBreakOrContinueNode>();
+                newJmp->Tags.insert(isBreak ? SemanticTags::LoopBreak : SemanticTags::LoopContinue);
                 structure->InsertChild(newJmp);
 
                 exitNode->ErasePredecessor(node);
@@ -847,7 +864,7 @@ bool ControlFlowGraph::_RestructureBreak(uint16_t loopFollowAddress, ControlFlow
         {
             if ((child != ignore) && (child->Type != CFGNodeType::Loop))
             {
-                changes = _RestructureBreak(loopFollowAddress, nullptr, child);
+                changes = _RestructureBreakOrContinue(loopFollowOrHeadAddress, nullptr, child, isBreak);
                 if (changes)
                 {
                     break;
@@ -858,7 +875,13 @@ bool ControlFlowGraph::_RestructureBreak(uint16_t loopFollowAddress, ControlFlow
     return changes;
 }
 
-bool ControlFlowGraph::_ResolveBreak(uint16_t loopFollowAddress, ControlFlowNode *structure)
+bool _NodeSuccessorIsCommonLatchNode(ControlFlowNode *node)
+{
+    return (node->Successors().size() == 1) &&
+        (*node->Successors().begin())->Type == CFGNodeType::CommonLatch;
+}
+
+bool ControlFlowGraph::_ResolveBreakOrContinue(uint16_t loopFollowOrStartAddress, ControlFlowNode *structure, SemanticTags loopOrContinueTag, ControlFlowNode *latchToAvoid)
 {
     bool changes = false;
     // We're looking for nodes that end in an unconditional jump to the loop follow address
@@ -866,16 +889,19 @@ bool ControlFlowGraph::_ResolveBreak(uint16_t loopFollowAddress, ControlFlowNode
     {
         if (node->Type == CFGNodeType::RawCode)
         {
-            if (node->endsWith(Opcode::JMP) && !node->ContainsTag(SemanticTags::LoopBreak)) // Not already identified
+            if (node->endsWith(Opcode::JMP) &&
+                !node->ContainsTag(loopOrContinueTag) &&    // Not already identified
+                node != latchToAvoid &&                     // "continue" would be falsely identified if we don't check against latch.
+                !_NodeSuccessorIsCommonLatchNode(node))     // A jmp to a common latch node means we're already identifying this as part of a regular loop structure. So no break/continue.
             {
                 scii inst = node->getLastInstruction();
-                // Conveniently, end provides us with the address of the next instructino.
+                // Conveniently, end provides us with the address of the next instruction.
                 code_pos end = static_cast<RawCodeNode*>(node)->end;
-                if (inst.get_branch_target()->get_final_offset() == loopFollowAddress)
+                if (inst.get_branch_target()->get_final_offset() == loopFollowOrStartAddress)
                 {
                     // This jump goes to the loop follow address
-                    node->Tags.insert(SemanticTags::LoopBreak);
-                    _ReconnectBreakNodeToSubsequentCode(structure, node, end);
+                    node->Tags.insert(loopOrContinueTag);
+                    _ReconnectBreakNodeToSubsequentCode(structure, node, end, loopOrContinueTag);
                     changes = true;
                     break;
                 }
@@ -888,9 +914,9 @@ bool ControlFlowGraph::_ResolveBreak(uint16_t loopFollowAddress, ControlFlowNode
         // Now recurse, as long as its not another loop
         for (ControlFlowNode *child : structure->Children())
         {
-            if (child->Type != CFGNodeType::Loop)
+            if ((child != latchToAvoid) && (child->Type != CFGNodeType::Loop))
             {
-                changes = _ResolveBreak(loopFollowAddress, child);
+                changes = _ResolveBreakOrContinue(loopFollowOrStartAddress, child, loopOrContinueTag, latchToAvoid);
                 if (changes)
                 {
                     break;
@@ -901,7 +927,7 @@ bool ControlFlowGraph::_ResolveBreak(uint16_t loopFollowAddress, ControlFlowNode
     return changes;
 }
 
-void ControlFlowGraph::_ReconnectBreakNodeToSubsequentCode(ControlFlowNode *structure, ControlFlowNode *breakNode, code_pos subsequentcode)
+void ControlFlowGraph::_ReconnectBreakNodeToSubsequentCode(ControlFlowNode *structure, ControlFlowNode *breakNode, code_pos subsequentcode, SemanticTags loopOrContinueTag)
 {
     uint16_t subsequentInstructionAddress = subsequentcode->get_final_offset();
 
@@ -909,7 +935,7 @@ void ControlFlowGraph::_ReconnectBreakNodeToSubsequentCode(ControlFlowNode *stru
     ControlFlowNode *currentSuccessor = *breakNode->Successors().begin();
     currentSuccessor->ErasePredecessor(breakNode);
 
-    if (currentSuccessor->Predecessors().size() == 0)
+    if ((currentSuccessor->Predecessors().size() == 0) && (loopOrContinueTag == SemanticTags::LoopBreak))
     {
         assert(currentSuccessor->Type == CFGNodeType::Exit);
         // If we don't remove this guy from children, our dominator and postorder code will
@@ -965,7 +991,7 @@ void ControlFlowGraph::_ReconnectBreakNodeToSubsequentCode(ControlFlowNode *stru
         return;
     }
 
-    throw ControlFlowException(structure, "Unable to re-connect break statement. Need to add exit node to control structure?");
+    throw ControlFlowException(structure, "Unable to re-connect break/continue statement. Need to add exit node to control structure?");
 }
 
 void ControlFlowGraph::_DoLoopTransforms()
@@ -1843,11 +1869,11 @@ bool ControlFlowGraph::Generate(code_pos start, code_pos end)
         }
         if (!_decompilerResults.IsAborted())
         {
-            _RestructureBreaks();
+            _RestructureBreaksAndContinues();
         }
         if (!_decompilerResults.IsAborted())
         {
-            _ResolveBreaks();
+            _ResolveBreaksOrContinues();
         }
 
         if (showFile)

@@ -77,8 +77,8 @@ class GraphVisualizer
                 name = fmt::format("commonlatch_{}", node->ArbitraryDebugIndex);
                 break;
 
-            case CFGNodeType::FakeBreak:
-                name = fmt::format("fakebreak_{}", node->ArbitraryDebugIndex);
+            case CFGNodeType::FakeBreakOrContinue:
+                name = fmt::format("fakebreakorcont_{}", node->ArbitraryDebugIndex);
                 break;
 
             default:
@@ -103,7 +103,7 @@ class GraphVisualizer
                 while (cur != rawCodeNode->end)
                 {
                     Opcode opcode = cur->get_opcode();
-                    const char *pszOpcode = OpcodeToName(opcode);
+                    const char *pszOpcode = OpcodeToName(opcode, cur->get_first_operand());
                     ss << pszOpcode << "\\n";
                     ++cur;
                 }
@@ -140,9 +140,9 @@ class GraphVisualizer
             }
             break;
 
-            case CFGNodeType::FakeBreak:
+            case CFGNodeType::FakeBreakOrContinue:
             {
-                ss << "FakeBreak " << node->ArbitraryDebugIndex;
+                ss << "FakeBreakOrCont " << node->ArbitraryDebugIndex;
             }
             break;
 
