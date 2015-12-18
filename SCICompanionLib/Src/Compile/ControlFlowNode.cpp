@@ -131,6 +131,9 @@ void GetThenAndElseBranches(ControlFlowNode *node, ControlFlowNode **thenNode, C
             *thenNode = two;
         }
 
+#ifdef NO_GOOD
+        // This fixes the checkAni problem, but changes the value of some expressions, like that in canBeHere.
+        // So we can't apply this as a general solution.
         if (((*thenNode)->Type == CFGNodeType::Exit) && ((*elseNode)->Type != CFGNodeType::Exit))
         {
             // *Then* is an exit node, but *else* is not. That's a problem for things like while loops. Swap them:
@@ -142,6 +145,7 @@ void GetThenAndElseBranches(ControlFlowNode *node, ControlFlowNode **thenNode, C
             ccNode->isFirstTermNegated = !ccNode->isFirstTermNegated;
             ccNode->isSecondTermNegated = !ccNode->isSecondTermNegated;
         }
+#endif
     }
     else if (node->Type == CFGNodeType::RawCode)
     {

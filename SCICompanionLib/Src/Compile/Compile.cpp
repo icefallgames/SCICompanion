@@ -377,6 +377,21 @@ private:
     CompileContext &_context;
 };
 
+class declare_restframe
+{
+public:
+    declare_restframe(CompileContext &context) : _context(context)
+    {
+        _context.PushRestFrame();
+    }
+    ~declare_restframe()
+    {
+        _context.PopRestFrame();
+    }
+private:
+    CompileContext &_context;
+};
+
 //
 // RAII for telling the impending value that it is being modified (incremented or decremented)
 //
@@ -1189,6 +1204,8 @@ void _UpdateSecondOperand(code_pos instruction, WORD wValue)
 
 CodeResult SendCall::OutputByteCode(CompileContext &context) const
 {
+    context.NotifyProcOrSend();
+    declare_restframe restFrame(context);
     declare_conditional isCondition(context, false);
     if (_params.empty())
     {
@@ -1202,7 +1219,6 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
     // for the code that places the parameters on the stack.  The parameter code depends on the
     // results of the target object code, so it must be written out afterwards, even though it 
     // precedes the target object code.
-    //code_pos putParameterCodeBeforeHere = context.code().empty() ? context.code().get_beginning() : context.code().get_cur_pos();
     bool fFirstCode = context.code().empty();
     code_pos putParameterCodeBeforeHere;
     if (!fFirstCode)
@@ -1581,6 +1597,9 @@ CodeResult CodeBlock::OutputByteCode(CompileContext &context) const
 
 CodeResult ProcedureCall::OutputByteCode(CompileContext &context) const
 {
+    context.NotifyProcOrSend();
+    declare_restframe restFrame(context);
+
     declare_conditional isCondition(context, false);
     change_meaning meaning(context, true);
     // callb or callk or calle
@@ -3211,6 +3230,7 @@ CodeResult Asm::OutputByteCode(CompileContext &context) const
 
 CodeResult RestStatement::OutputByteCode(CompileContext &context) const
 {
+    context.ErrorIfRestBannedHere(this);
     declare_conditional isCondition(context, false);
     if (context.GetOutputContext() != OC_Stack)
     {

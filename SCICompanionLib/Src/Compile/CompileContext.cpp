@@ -692,6 +692,22 @@ void CompileContext::PopMeaning() { _meaning.pop(); }
 bool CompileContext::InConditional() { return _conditional.top(); }
 void CompileContext::PushConditional(bool fConditional) { _conditional.push(fConditional); }
 void CompileContext::PopConditional() { _conditional.pop(); }
+void CompileContext::PushRestFrame() { _restBanned.push(false); }
+void CompileContext::NotifyProcOrSend()
+{
+    if (!_restBanned.empty())
+    {
+        _restBanned.top() = true;
+    }
+}
+void CompileContext::ErrorIfRestBannedHere(const ISourceCodePosition *pos)
+{
+    if (!_restBanned.empty() && _restBanned.top())
+    {
+        ReportError(pos, "&rest cannot be used if the send target itself contains nested procedure calls or sends. Assign the result of the procedure call or send to a temporary variable and use that instead.");
+    }
+}
+void CompileContext::PopRestFrame() { _restBanned.pop(); }
 bool CompileContext::SupportTypeChecking()
 {
     // Used to be used for experimental cpp syntax.

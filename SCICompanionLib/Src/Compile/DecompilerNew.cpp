@@ -624,21 +624,26 @@ public:
             // It's a while. The condition is the head.
             // REVIEW: Do we need to do the same kind of thing we do in the do loop above, wrt inverting?
 
+            ControlFlowNode *thenNode, *elseNode;
+            GetThenAndElseBranches(head, &thenNode, &elseNode);
+            // Occasionally a compound condition's *then* node is the exit node.
+            // One case is Game::checkAni in QFG3, or Christmas Card 1990 VGA (and probably others)
             // Condition
+            if ((thenNode->Type == CFGNodeType::Exit) && (elseNode->Type != CFGNodeType::Exit))
+            {
+                std::swap(thenNode, elseNode);
+                // And we need to invert the condition.
+                StructuredFrame structuredFrame(_context, ChunkType::Condition, loopNode);
+                InvertNode invert(head);
+                invert.Accept(*this);
+            }
+            else
             {
                 StructuredFrame structuredFrame(_context, ChunkType::Condition, loopNode);
                 head->Accept(*this);
             }
 
-            ControlFlowNode *thenNode, *elseNode;
-            GetThenAndElseBranches(head, &thenNode, &elseNode);
             {
-                // Occasionally a compound condition's *then* node is the exit node.
-                // One case is Game::checkAni in QFG3, or Christmas Card 1990 VGA (and probably others)
-                // At this point though, we should have already handled by that swaping else/then and inverting the condition.
-                // So assert that the then is not an exit.
-                assert(thenNode->Type != CFGNodeType::Exit);
-
                 StructuredFrame structuredFrame(_context, ChunkType::LoopBody, loopNode);
                 _FollowForwardChain(thenNode, latch);
             }

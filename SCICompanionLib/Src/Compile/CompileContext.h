@@ -186,6 +186,10 @@ public:
     bool InConditional();
     void PushConditional(bool fConditional);
     void PopConditional();
+    void PushRestFrame();
+    void NotifyProcOrSend();
+    void PopRestFrame();
+    void ErrorIfRestBannedHere(const ISourceCodePosition *pos);
     bool SupportTypeChecking();
     bool LookupWord(const std::string word, WORD &wWordGroup);
     sci::Script *SetErrorContext(sci::Script *pScript);
@@ -285,6 +289,7 @@ private:
     std::stack<OutputContext> _oc;
     std::stack<bool> _meaning;
     std::stack<bool> _conditional;
+    std::stack<bool> _restBanned;
 
     // Local, script vars
     std::stack<const IVariableLookupContext *> _varContext;
