@@ -261,6 +261,12 @@ public:
 
     virtual void RemoveEntry(const ResourceMapEntryAgnostic &mapEntryToRemove) override
     {
+        // The stream might be in a failbit state (because someone enumerated and read off the end), so reset them before continuing.
+        // Otherwise, the enumeration will fail, and the resource map will get cleaned out.
+        _map = nullptr;
+        _mapStream = nullptr;
+        _volumeStreams.clear();
+
         std::unordered_map<int, sci::ostream> volumeStreamWrites;
 
         // Find the missing chunk in the volume stream.
@@ -317,12 +323,17 @@ public:
 
         assert(found);
 
-        // Combine the two write streams. Or rather, append stream 2 to the end of stream 1.
-        FinalizeMapStreams(mapStreamWrite1, mapStreamWrite2);
-        
-        // Now we have mapStreamWrite1 and volumeStreamWrite that have the needed data.
-        // Let's ask the _FileDescriptor to replace things.
-        this->WriteAndReplaceMapAndVolumes(mapStreamWrite1, volumeStreamWrites);
+        // If we didn't find the resource to remove, there might have been a problem with the enumeration. Don't write
+        // the possibly corrupt resource map/package..
+        if (found)
+        {
+            // Combine the two write streams. Or rather, append stream 2 to the end of stream 1.
+            FinalizeMapStreams(mapStreamWrite1, mapStreamWrite2);
+
+            // Now we have mapStreamWrite1 and volumeStreamWrite that have the needed data.
+            // Let's ask the _FileDescriptor to replace things.
+            this->WriteAndReplaceMapAndVolumes(mapStreamWrite1, volumeStreamWrites);
+        }
     }
 
     void RebuildResources(bool force) override

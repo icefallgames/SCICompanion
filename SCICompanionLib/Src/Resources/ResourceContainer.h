@@ -147,7 +147,6 @@ public:
         // We use a while loop, since it's possible some sections are of zero length.
         // And we can do a perf optimization to skip unneeded sections too
         while ((state.lookupTableIndex < (lookupPointers.size() - 1))  &&
-            
             ((mapStream.tellg() >= (uint32_t)lookupPointers[state.lookupTableIndex + 1].wOffset) ||
             !IsFlagSet(typeFlags, ResourceTypeToFlag((ResourceType)(lookupPointers[state.lookupTableIndex].bType & ~0x80)))))
         {
