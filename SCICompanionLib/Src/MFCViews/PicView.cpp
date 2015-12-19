@@ -1298,7 +1298,9 @@ void CPicView::OnPasteIntoPic()
             }
         }
 
-        bool defaultInsertAtCurrent = _GetEditPic()->Traits->AllowMultipleBitmaps;
+        // bool defaultInsertAtCurrent = _GetEditPic()->Traits->AllowMultipleBitmaps;
+        // It's best if "insert at current" is never the default, as it (potentially-confusingly) limits palette choices and such.
+        bool defaultInsertAtCurrent = true;
         CBitmapToVGADialog dialog(nullptr, backgroundCurrent, _GetPalette(), false, 256, _GetEditPic()->Traits->AllowMultipleBitmaps, _GetEditPic()->Size, 255, PaletteAlgorithm::Quantize, DefaultPaletteUsage::UnusedColors, nullptr, defaultInsertAtCurrent);
         if (IDOK == dialog.DoModal())
         {

@@ -86,7 +86,7 @@ namespace UnitTests
 
             Assert::AreEqual(count - 1, count2);
 
-            // Delete tenth guy
+            // Delete second guy
             appState->GetResourceMap().DeleteResource(second.get());
 
             // Count again, and this time retrieve the last item
