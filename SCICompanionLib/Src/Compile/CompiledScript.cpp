@@ -304,6 +304,71 @@ bool CompiledScript::_LoadSCI1_1(const GameFolderHelper &helper, int iScriptNumb
     return isSuccess;
 }
 
+bool CompiledScript::DetectIfExportsAreWide(const SCIVersion &version, sci::istream &byteStream)
+{
+    if (version.HasOldSCI0ScriptHeader)
+    {
+        // e.g. KQ4.
+        // There's no local vars section. Instead, they are initialized in code, and the first
+        // WORD of the script file says how many there are.
+        uint16_t localVarsCount;
+        byteStream >> localVarsCount;
+    }
+
+    int classIndex = 0;
+    bool fRet = byteStream.GetDataSize() > 0;
+    while (fRet)
+    {
+        DWORD dwSavePos = byteStream.tellg();
+        // Read the type and size.
+        uint16_t wType;
+        uint16_t wSectionSize;
+        byteStream >> wType;
+        if (wType != 0)
+        {
+            byteStream >> wSectionSize;
+            fRet = byteStream.good() && (wSectionSize >= 4);
+            if (fRet)
+            {
+                if (wType == 2)
+                {
+                    // Exports.
+                    if ((wSectionSize % 4) != 0)
+                    {
+                        // Not an even multiple of 4, so can't be wide
+                        return false;
+                    }
+                    int numWideExports = (wSectionSize - 4) / 4;
+                    for (int i = 0; i < numWideExports; i++)
+                    {
+                        uint32_t exportWide;
+                        byteStream >> exportWide;
+                        if ((exportWide & 0xffff0000) != 0)
+                        {
+                            // High bits set. Assuming script isn't over 64KB in size, this means that exports are not wide.
+                            return false;
+                        }
+                    }
+                    return true; // Probably wide
+                }
+
+                assert(wSectionSize > 0); // else we'll never get anywhere.
+                if (wSectionSize > 0)
+                {
+                    byteStream.seekg(dwSavePos + wSectionSize);
+                    fRet = byteStream.good();
+                }
+            }
+
+        }
+        else
+        {
+            break; // done.
+        }
+    }
+    return false;
+}
+
 bool CompiledScript::_LoadSCI0_SCI1(sci::istream &byteStream)
 {
     bool fRet = byteStream.GetDataSize() > 0;
@@ -772,7 +837,7 @@ bool CompiledScript::_ReadExports(sci::istream &stream)
         for (uint16_t i = 0; stream.good() && i < wNumExports; i++)
         {
             uint16_t offset;
-            if (_version.IsExportWide())
+            if (_version.IsExportWide)
             {
                 uint32_t offsetWide;
                 stream >> offsetWide;

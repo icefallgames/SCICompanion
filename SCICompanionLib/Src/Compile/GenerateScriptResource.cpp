@@ -723,7 +723,7 @@ void _Section5_Strings(CompileContext &context, vector<BYTE> &outputScr, vector<
 void _Section7_Exports_Part1(Script &script, CompileContext &context, vector<BYTE> &output, const vector<ExportTableInfo> &exportTableOrder, size_t &offsetOfExports)
 {
     push_word(output, 7); // 7 = exports
-    uint16_t exportWidth = context.GetVersion().IsExportWide() ? 4 : 2;
+    uint16_t exportWidth = context.GetVersion().IsExportWide ? 4 : 2;
     push_word(output, (uint16_t)(exportTableOrder.size() * exportWidth) + 4 + 2); // exports + header + exportCount.
     push_word(output, (uint16_t)exportTableOrder.size()); // the number of exports
     offsetOfExports = output.size(); // Store where the ptrs will go.
@@ -747,7 +747,7 @@ void _Exports_SCI11(Script &script, CompileContext &context, vector<BYTE> &outpu
         exportIndex++;
     }
 
-    assert(!context.GetVersion().IsExportWide());
+    assert(!context.GetVersion().IsExportWide);
 
     push_word(output, (WORD)exportTableOrder.size()); // the number of exports
     offsetOfExports = output.size(); // Store where the ptrs will go.
@@ -765,7 +765,7 @@ void _Section7_Exports_Part2(CompileContext &context, vector<BYTE> &output, WORD
     // In here, we write the offset from the begining of the resource to the beginning of the code or object.
     vector<code_pos> &procExports = context.GetExports();
     vector<WORD> &instanceOffsets = context.GetPublicInstanceOffsets();
-    uint16_t exportWidth = context.GetVersion().IsExportWide() ? 4 : 2;
+    uint16_t exportWidth = context.GetVersion().IsExportWide ? 4 : 2;
 
     // We already filled the thing with zeroes, so we can just write a uint16_t, and increment by 4.
     for (const auto &exportOrderEnty : exportTableOrder)

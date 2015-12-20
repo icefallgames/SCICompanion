@@ -474,7 +474,6 @@ LRESULT CALLBACK s_BrowseInfoStatusMouseHook(
                 {
                     hwndBrowseInfoStatus->OnLButtonDblClk();
                     callNext = false;
-                    OutputDebugString("dsouble click\n");
                 }
             }
         }

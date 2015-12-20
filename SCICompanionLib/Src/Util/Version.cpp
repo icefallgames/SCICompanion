@@ -46,6 +46,7 @@ SCIVersion sciVersion0 =
     false,
     NativeResolution::Res320x200,
     KernelSet::Provided,
+    false,
 };
 
 // e.g. QFG2 EGA. Not checked for accuracy yet. Only used in pic unit tests.
@@ -77,6 +78,7 @@ SCIVersion sciVersion1_EarlyEGA =
     false,
     NativeResolution::Res320x200,
     KernelSet::Provided,
+    false,
 };
 
 
@@ -108,6 +110,7 @@ SCIVersion sciVersion1_Early =
     false,
     NativeResolution::Res320x200,
     KernelSet::SCI0SCI1,
+    false,
 };
 
 // Not tested, but used for Longbow pics in unittests,
@@ -139,6 +142,7 @@ SCIVersion sciVersion1_Mid =
     false,
     NativeResolution::Res320x200,
     KernelSet::SCI0SCI1,
+    true,
 };
 
 // Note sure what game this is for (VGA1_1???)
@@ -170,6 +174,7 @@ SCIVersion sciVersion1_Late =
     false,
     NativeResolution::Res320x200,
     KernelSet::SCI0SCI1,
+    false,
 };
 
 SCIVersion sciVersion1_1 =
@@ -200,6 +205,7 @@ SCIVersion sciVersion1_1 =
     false,
     NativeResolution::Res320x200,
     KernelSet::SCI0SCI1,
+    false,
 };
 
 SCIVersion sciVersion2 =
@@ -230,6 +236,7 @@ SCIVersion sciVersion2 =
     false,
     NativeResolution::Res640x480,
     KernelSet::SCI21,
+    false,
 };
 
 bool SCIVersion::operator == (const SCIVersion &src) const

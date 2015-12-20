@@ -199,6 +199,8 @@ public:
     const std::vector<std::unique_ptr<CompiledObject>> &GetObjects() const { return _objects; }
     uint16_t GetScriptNumber() const { return _wScript; }
 
+    static bool DetectIfExportsAreWide(const SCIVersion &version, sci::istream &byteStream);
+
     // ICompiledScriptSpecificLookups
     bool LookupObjectName(uint16_t wOffset, ObjectType &type, std::string &name) const;
 

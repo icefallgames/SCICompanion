@@ -123,15 +123,10 @@ struct SCIVersion
     bool AudioIsWav;
     NativeResolution DefaultResolution;
     KernelSet Kernels;
+    bool IsExportWide;
 
     bool operator==(const SCIVersion &src) const;
     bool operator!=(const SCIVersion &src) const;
-
-    bool IsExportWide() const
-    {
-        // SCI1 games had 32bit exports instead of 16bit.
-        return lofsaOpcodeIsAbsolute && !SeparateHeapResources;
-    }
 
     bool IsMapAppend() const
     {

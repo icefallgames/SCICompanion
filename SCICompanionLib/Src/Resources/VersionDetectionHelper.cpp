@@ -484,6 +484,26 @@ bool CResourceMap::_DetectLofsaFormat()
     return lofsaAbsolute;
 }
 
+bool CResourceMap::_DetectIsExportWide()
+{
+    if (_gameFolderHelper.Version.MapFormat <= ResourceMapFormat::SCI0_LayoutSCI1)
+    {
+        return false;   // Not wide for SCI0
+    }
+    if (_gameFolderHelper.Version.SeparateHeapResources)
+    {
+        return false;   // Never for separate heap resource games
+    }
+    // Now we're left with the middle ones, which sometimes were 32-bit.
+    bool isWide = false;
+    auto blob = MostRecentResource(ResourceType::Script, 0, false);
+    if (blob)
+    {
+        sci::istream byteStream = blob->GetReadStream();
+        isWide = CompiledScript::DetectIfExportsAreWide(_gameFolderHelper.Version, byteStream);
+    }
+    return isWide;
+}
 
 void CResourceMap::_SniffSCIVersion()
 {
@@ -699,6 +719,8 @@ void CResourceMap::_SniffSCIVersion()
     {
         _gameFolderHelper.Version.lofsaOpcodeIsAbsolute = _DetectLofsaFormat();
     }
+
+    _gameFolderHelper.Version.IsExportWide = _DetectIsExportWide();
 
     // Which is the parser vocab? If resource 0 is present it's 0. Otherwise it's 900 (or none).
     _gameFolderHelper.Version.MainVocabResource = (MostRecentResource(ResourceType::Vocab, 0, false)) ? 0 : 900;

@@ -141,6 +141,7 @@ private:
     bool _HasEarlySCI0Scripts();
     bool _DetectLofsaFormat();
     void _SniffSCIVersion();
+    bool _DetectIsExportWide();
 
     void BeginDeferAppend();
     HRESULT EndDeferAppend();
