@@ -180,10 +180,16 @@ void _FixupReferencesHelper(SCIVersion version, CompileContext &context, vector<
             assert((instruction->get_opcode() == Opcode::LOFSA) || (instruction->get_opcode() == Opcode::LOFSS));
             context.AddHeapPointerOffset(instruction->get_final_offset() + 1);  // +1 to skip the opcode
 
+            // Where do we write it?  One byte after the start of the instruction (opcode is 1 byte)
+            WORD wWhere = instruction->get_final_offset() + 1;
+
             WORD wValue;
             if (version.lofsaOpcodeIsAbsolute)
             {
                 wValue = wPosInResource; // This is the number we write to the resource.
+                // The relocation table is used for SCI0-style resource (e.g. where the heap is not separate).
+                // If lofsa is absolute, this needs to be added to the relocation table.
+                context.TrackRelocation(wWhere);
             }
             else
             {
@@ -191,8 +197,6 @@ void _FixupReferencesHelper(SCIVersion version, CompileContext &context, vector<
                 wValue = wPosInResource - wFinalPostOp; // This is the number we write to the resource.
             }
             wValue += wIndex;                            // Oh, and the index too...
-            // Where do we write it?  One byte after the start of the instruction (opcode is 1 byte)
-            WORD wWhere = instruction->get_final_offset() + 1;
             write_word(output, wWhere, wValue);
         }
         ++refIt;
@@ -683,8 +687,6 @@ void _Section5_Strings(CompileContext &context, vector<BYTE> &outputScr, vector<
 
         // Now actually write the strings, and update the parts of the code with the absolute positions
         // of each string (not yet relative pos's).
-        // REVIEW: does this need to be a pointer?  References aren't allowed... does that mean it's already a ref?
-        // Can't get an algorithm to work for this.
 
         // First, do it for the in-code strings:
         {
@@ -791,14 +793,20 @@ void _Section7_Exports_Part2(CompileContext &context, vector<BYTE> &output, WORD
 
 void _Section8_RelocationTable(CompileContext &context, vector<BYTE> &output)
 {
-    const vector<WORD> &relocations = context.GetRelocations();
+    bool isEntryCount32bit = context.GetVersion().lofsaOpcodeIsAbsolute;
+    vector<WORD> relocations = context.GetRelocations();
     push_word(output, 8);
-    push_word(output, 6 + (WORD)relocations.size() * 2);  // section size
+    push_word(output, (isEntryCount32bit ? 8 : 6) + (WORD)relocations.size() * 2);  // section size
     push_word(output, (WORD)relocations.size());    // # of relocation entries
+    if (isEntryCount32bit)
+    {
+        // The "upper" 16 bits, 0:
+        push_word(output, 0);
+    }
+    // Not sure if sorting seems necessary, but Sierra has them sorted.
+    std::sort(relocations.begin(), relocations.end());
     for_each(relocations.begin(), relocations.end(), WordToByteThingy(output));
 }
-
-
 
 class FixCaseStatements : public IExploreNode
 {
