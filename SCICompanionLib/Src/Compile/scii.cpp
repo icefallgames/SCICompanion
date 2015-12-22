@@ -271,7 +271,6 @@ uint16_t scii::calc_size(code_pos self, int *pfNeedToRedo)
 
             for (int i = 0; !fDone && i < 3; i++)
             {
-                // Treat everything as signed...
                 switch (argTypes[i])
                 {
                 case otEMPTY:
@@ -285,7 +284,6 @@ uint16_t scii::calc_size(code_pos self, int *pfNeedToRedo)
                 case otSAID:
                 case otKERNEL:
                 case otPUBPROC:
-                case otINT:
                 case otUINT:
                     encounteredVariableSizeOperand = true;
                     // These are variable length parameters.  If we have a big one, we'll need to be a word.
@@ -295,6 +293,18 @@ uint16_t scii::calc_size(code_pos self, int *pfNeedToRedo)
                         opSizeCalculated = Word; // No way around it (unless we can optimize to 255 for some cases?)
                         fDone = true;
                     }
+                    break;
+
+                case otINT:
+                {
+                    encounteredVariableSizeOperand = true;
+                    int16_t signedOperand = (int16_t)_wOperands[i];
+                    if ((signedOperand > 127) || (signedOperand < -128))
+                    {
+                        opSizeCalculated = Word; // No way around it (unless we can optimize to 255 for some cases?)
+                        fDone = true;
+                    }
+                }
                     break;
 
                 case otOFFS:
@@ -449,6 +459,15 @@ void scii::output_code(std::vector<BYTE> &output)
             uint16_t wFrom = _wFinalOffset + _wSize; // post instruction PC
             wOperand = wTo - wFrom;
         }
+        else if (argTypes[i] == otINT)
+        {
+            int16_t signedOperand = (int16_t)wOperand;
+            assert(!bByte || ((signedOperand >= -128) && (signedOperand <= 127)));
+            if (bByte)
+            {
+                wOperand = (uint16_t)((int8_t)signedOperand);
+            }
+        }
 
         if (!fDone)
         {
@@ -456,7 +475,7 @@ void scii::output_code(std::vector<BYTE> &output)
             {
                 // Temporarily commented this out since we aren't resolving jmps properly yet.
                 //assert(_wOperands[i] < 128);
-                output.push_back((BYTE)wOperand);
+                output.push_back((uint8_t)wOperand);
             }
             else
             {
