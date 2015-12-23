@@ -43,6 +43,7 @@ void CGameVersionDialog::_Sync()
     _fSupportsMessages = _version.SupportsMessages ? 1 : 0;
     _fSupportsMessageAudio = _version.HasSyncResources ? 1 : 0;
     _fAudioIsWavFormat = _version.AudioIsWav ? 1 : 0;
+    _fWideExports = _version.IsExportWide ? 1 : 0;
 
     _resourceMapVersion = (int)_version.MapFormat;
     _resourcePackVersion = (int)_version.PackageFormat;
@@ -73,6 +74,7 @@ SCIVersion CGameVersionDialog::_ReverseSync()
     version.SupportsMessages = (_fSupportsMessages != 0);
     version.HasSyncResources = (_fSupportsMessageAudio != 0);
     version.AudioIsWav = (_fAudioIsWavFormat != 0);
+    version.IsExportWide = (_fWideExports != 0);
 
     version.MapFormat = (ResourceMapFormat)_resourceMapVersion;
     version.PackageFormat = (ResourcePackageFormat)_resourcePackVersion;
@@ -110,6 +112,7 @@ void CGameVersionDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_CHECK11, m_wndSupportsMessages);
     DDX_Control(pDX, IDC_CHECK12, m_wndSupportsMessageAudio);
     DDX_Control(pDX, IDC_CHECK13, m_wndAudioIsWavFormat);
+    DDX_Control(pDX, IDC_CHECK14, m_wndWideExports);
 
     DDX_Check(pDX, IDC_CHECK1, _fHasPalette);
     DDX_Check(pDX, IDC_CHECK4, _fGrayscaleCursors);
@@ -121,6 +124,7 @@ void CGameVersionDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Check(pDX, IDC_CHECK11, _fSupportsMessages);
     DDX_Check(pDX, IDC_CHECK12, _fSupportsMessageAudio);
     DDX_Check(pDX, IDC_CHECK13, _fAudioIsWavFormat);
+    DDX_Check(pDX, IDC_CHECK14, _fWideExports);
     
     DDX_Control(pDX, IDC_STATIC1, m_wndGroupResourceMap);
     DDX_Control(pDX, IDC_STATIC2, m_wndGroupSound);

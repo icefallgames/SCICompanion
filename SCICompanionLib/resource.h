@@ -596,6 +596,7 @@
 #define IDC_EXTRACT                     1230
 #define IDC_RADIOSCI11                  1230
 #define IDC_CHECKP2                     1231
+#define IDC_CHECK14                     1231
 #define IDC_CHECKC2                     1232
 #define IDC_CHECK_FOLLOWVIEW2           1233
 #define IDC_EDIT2                       1233

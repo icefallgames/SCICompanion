@@ -330,26 +330,21 @@ bool CompiledScript::DetectIfExportsAreWide(const SCIVersion &version, sci::istr
             fRet = byteStream.good() && (wSectionSize >= 4);
             if (fRet)
             {
-                if (wType == 2)
+                if (wType == 7)
                 {
                     // Exports.
-                    if ((wSectionSize % 4) != 0)
+                    uint16_t numExports;
+                    byteStream >> numExports;
+
+                    uint16_t dataRemaining = wSectionSize - 6;
+                    if (dataRemaining == (numExports * 2))
                     {
-                        // Not an even multiple of 4, so can't be wide
                         return false;
                     }
-                    int numWideExports = (wSectionSize - 4) / 4;
-                    for (int i = 0; i < numWideExports; i++)
+                    else if (dataRemaining == (numExports * 4))
                     {
-                        uint32_t exportWide;
-                        byteStream >> exportWide;
-                        if ((exportWide & 0xffff0000) != 0)
-                        {
-                            // High bits set. Assuming script isn't over 64KB in size, this means that exports are not wide.
-                            return false;
-                        }
+                        return true;
                     }
-                    return true; // Probably wide
                 }
 
                 assert(wSectionSize > 0); // else we'll never get anywhere.
