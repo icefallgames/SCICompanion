@@ -188,7 +188,7 @@ DEFINE_ENUM_FLAGS(CompiledScriptFlags, int)
 //
 // This represents all the information in a compiled script resources
 //
-class CompiledScript : /*public ILookupNames, */ public IPrivateSpeciesLookups, public ICompiledScriptSpecificLookups
+class CompiledScript : public IPrivateSpeciesLookups, public ICompiledScriptSpecificLookups
 {
 public:
     CompiledScript(const CompiledScript &src) = delete;

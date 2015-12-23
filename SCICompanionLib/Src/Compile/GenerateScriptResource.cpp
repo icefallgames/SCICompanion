@@ -1344,21 +1344,37 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
         CSCOFile &sco = context.GetScriptSCO();
         sco.SetVersion(SCOVersion::SeparateHeap);
 
+        // Script 21, KQ6-CD, ends up being a corrupt script resource (according to Sierra and SV.exe, although I can't
+        // determine why, other than it reads props/methods from the wrong offset in the scr resource)
+        // unless instances/objects are written out in the order they appear in the script file.
+        // To that end, we'll store our SCO objects in a map, and then enumerate them in the order that the corresponding
+        // class def appears in the script.
+        // I suspect there is still a bug somewhere that this is simply hiding, as there is no reason why the original
+        // way (classes then instances) shouldn't work.
+        std::unordered_map<std::string, const CSCOObjectClass*> orderedObjects;
+        for (const CSCOObjectClass &oClass : sco.GetObjects())
+        {
+            orderedObjects[oClass.GetName()] = &oClass;
+        }
+        for (const CSCOObjectClass &oClass : context.GetInstanceSCOs())
+        {
+            orderedObjects[oClass.GetName()] = &oClass;
+        }
+
         // We're write the objects' property and method selectors to the scr file first,
         // since the code will follow it, and we need to write the code early.
         uint16_t objectSelectorOffsetInScr = (uint16_t)outputScr.size();
-        for (const CSCOObjectClass &oClass : sco.GetObjects())
+        for (auto &classDef : script.GetClasses())
         {
-            // Classes have all their prop selectors written out (instances do not)
-            for (auto &prop : oClass.GetProperties()) // VERIFY THIS - this DOES include all 9 basic selectors (must match number we wrote to heap)
+            const CSCOObjectClass &oClass = *orderedObjects[classDef->GetName()];
+            if (!classDef->IsInstance())
             {
-                push_word(outputScr, prop.GetSelector());
+                // Classes have all their prop selectors written out (instances do not)
+                for (auto &prop : oClass.GetProperties()) // VERIFY THIS - this DOES include all 9 basic selectors (must match number we wrote to heap)
+                {
+                    push_word(outputScr, prop.GetSelector());
+                }
             }
-            WriteMethodSelectors(oClass, outputScr, trackMethodCodePointerOffsets);
-        }
-        // Now instances
-        for (const CSCOObjectClass &oClass : context.GetInstanceSCOs())
-        {
             WriteMethodSelectors(oClass, outputScr, trackMethodCodePointerOffsets);
         }
 
@@ -1371,13 +1387,9 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
 
         // Now we know where the method code is, so go back and write in those pointers
         int index = 0;
-        for (const CSCOObjectClass &oClass : sco.GetObjects())
+        for (auto &classDef : script.GetClasses())
         {
-            WriteMethodCodePointers(oClass, outputScr, context, trackMethodCodePointerOffsets, index);
-        }
-        for (const CSCOObjectClass &oClass : context.GetInstanceSCOs())
-        {
-            WriteMethodCodePointers(oClass, outputScr, context, trackMethodCodePointerOffsets, index);
+            WriteMethodCodePointers(*orderedObjects[classDef->GetName()], outputScr, context, trackMethodCodePointerOffsets, index);
         }
 
         // Now let's start writing the hep file
@@ -1385,16 +1397,10 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
         // Next come the local var values
         _Section10_LocalVariables(script, context, outputHeap, true);
 
-        for (const CSCOObjectClass &oClass : sco.GetObjects())
+        for (auto &classDef : script.GetClasses())
         {
-            // The class that inherits from Game is special, it goes in the export table too.
-            WriteClassToHeap(oClass, false, outputHeap, outputScr, context, objectSelectorOffsetInScr);
+            WriteClassToHeap(*orderedObjects[classDef->GetName()], classDef->IsInstance(), outputHeap, outputScr, context, objectSelectorOffsetInScr);
         }
-        for (const CSCOObjectClass &oClass : context.GetInstanceSCOs())
-        {
-            WriteClassToHeap(oClass, true, outputHeap, outputScr, context, objectSelectorOffsetInScr);
-        }
-
 
         // Now it appears there is a zero marker in the heap, after the objects
         push_word(outputHeap, 0);
