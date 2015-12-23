@@ -728,7 +728,6 @@ void WriteInstanceOrClass(CompileContext &context, ResolvedToken tokenType, WORD
     {
     case ResolvedToken::Instance:
         context.code().inst((oc == OC_Stack) ? Opcode::LOFSS : Opcode::LOFSA, wNumber);
-        context.TrackInstanceReference(name);
         break;
     case ResolvedToken::Class:
         // Load the class address into the accumulator
@@ -915,7 +914,7 @@ void PropertyValueBase::PreScan(CompileContext &context)
     {
     case ValueType::String:
     case ValueType::ResourceString:
-        context.PreScanString(_stringValue, this);
+        context.GetTempToken(ValueType::String, _stringValue);
         break;
     case ValueType::Said:
         SanitizeSaid(_stringValue);
@@ -1025,14 +1024,12 @@ CodeResult PropertyValueBase::OutputByteCode(CompileContext &context) const
         }
 
     case ValueType::String:
-        context.code().inst((oc == OC_Stack) ? Opcode::LOFSS : Opcode::LOFSA, context.GetStringTempOffset(_stringValue));
-        context.TrackStringReference(_stringValue);
+        context.code().inst((oc == OC_Stack) ? Opcode::LOFSS : Opcode::LOFSA, context.GetTempToken(ValueType::String, _stringValue));
         wType = DataTypeString;
         break;
 
     case ValueType::Said:
-        context.code().inst((oc == OC_Stack) ? Opcode::LOFSS : Opcode::LOFSA, context.GetSaidTempOffset(_stringValue));
-        context.TrackSaidReference(_stringValue);
+        context.code().inst((oc == OC_Stack) ? Opcode::LOFSS : Opcode::LOFSA, context.GetTempToken(ValueType::Said, _stringValue));
         wType = DataTypeSaidString;
         break;
 
@@ -1094,7 +1091,7 @@ CodeResult PropertyValueBase::OutputByteCode(CompileContext &context) const
                     break;
                 case ResolvedToken::ScriptString:
                     {
-                        context.code().inst((oc == OC_Stack) ? Opcode::LOFSS : Opcode::LOFSA, context.GetStringTokenTempOffset(_stringValue));
+                        context.code().inst((oc == OC_Stack) ? Opcode::LOFSS : Opcode::LOFSA, context.GetTempToken(ValueType::String, _stringValue));
                         WORD wImmediateIndex = 0;
                         if (GetIndexer())
                         {
@@ -1103,7 +1100,6 @@ CodeResult PropertyValueBase::OutputByteCode(CompileContext &context) const
                                 context.ReportError(GetIndexer(), "Expected an integer for the index.");
                             }
                         }
-                        context.TrackStringTokenReference(_stringValue, wImmediateIndex);
                     }
                     break;
                 case ResolvedToken::ClassProperty:
@@ -3035,10 +3031,6 @@ CodeResult Asm::OutputByteCode(CompileContext &context) const
 
             default:
             {
-                vector<string> saidRefs;
-                vector<string> stringRefs;
-                vector<string> isntanceRefs;
-                vector<pair<string, uint16_t>> stringTokenRefs;
                 uint16_t args[3] = {};
                 for (size_t i = 0; i < 3; i++)
                 {
@@ -3059,13 +3051,11 @@ CodeResult Asm::OutputByteCode(CompileContext &context) const
 
                                     case ValueType::String:
                                     case ValueType::ResourceString:
-                                        args[i] = context.GetStringTempOffset(pValue->GetStringValue());
-                                        stringRefs.push_back(pValue->GetStringValue());
+                                        args[i] = context.GetTempToken(ValueType::String, pValue->GetStringValue());
                                         break;
 
                                     case ValueType::Said:
-                                        args[i] = context.GetSaidTempOffset(pValue->GetStringValue());
-                                        saidRefs.push_back(pValue->GetStringValue());
+                                        args[i] = context.GetTempToken(ValueType::Said, pValue->GetStringValue());
                                         break;
 
                                     case ValueType::Selector:
@@ -3103,12 +3093,20 @@ CodeResult Asm::OutputByteCode(CompileContext &context) const
                                             case ResolvedToken::Instance:
                                             case ResolvedToken::Class:
                                                 args[i] = number;
-                                                isntanceRefs.push_back(pValue->GetStringValue());
+                                                if ((opcode == Opcode::LOFSA) || (opcode == Opcode::LOFSS))
+                                                {
+                                                    // A little confused here...
+                                                    args[i] = context.GetTempToken(ValueType::Token, pValue->GetStringValue());
+                                                }
+                                                else
+                                                {
+                                                   // assert(false);
+                                                }
                                                 break;
 
                                             case ResolvedToken::ScriptString:
                                             {
-                                                args[i] = context.GetStringTokenTempOffset(pValue->GetStringValue());
+                                                args[i] = context.GetTempToken(ValueType::String, pValue->GetStringValue());
                                                 WORD wImmediateIndex = 0;
                                                 if (pValue->GetIndexer())
                                                 {
@@ -3117,7 +3115,6 @@ CodeResult Asm::OutputByteCode(CompileContext &context) const
                                                         context.ReportError(pValue->GetIndexer(), "Expected an integer for the index.");
                                                     }
                                                 }
-                                                stringTokenRefs.emplace_back(pValue->GetStringValue(), wImmediateIndex);
                                             }
                                             break;
 
@@ -3198,23 +3195,6 @@ CodeResult Asm::OutputByteCode(CompileContext &context) const
                     }
                 }
                 context.code().inst(opcode, args[0], args[1], args[2]);
-
-                for (string saidRef : saidRefs)
-                {
-                    context.TrackSaidReference(saidRef);
-                }
-                for (string stringRef : stringRefs)
-                {
-                    context.TrackStringReference(stringRef);
-                }
-                for (string instanceRef : isntanceRefs)
-                {
-                    context.TrackInstanceReference(instanceRef);
-                }
-                for (pair<string, uint16_t> stringTokenRef : stringTokenRefs)
-                {
-                    context.TrackStringTokenReference(stringTokenRef.first, stringTokenRef.second);
-                }
             }
         }
     }
@@ -3265,8 +3245,8 @@ void ClassDefinition::PreScan(CompileContext &context)
         ReportKeywordError(context, this, _innerName, "procedure name");
     }
 
-    // Our name
-    context.PreScanString(_innerName, this);
+    // Notify about our name
+    context.GetTempToken(ValueType::String, _innerName);
 
     ForwardPreScan2(_properties, context);
     ForwardPreScan2(_methods, context);
@@ -3616,8 +3596,6 @@ void Script::_PreScanStringDeclaration(CompileContext &context, VariableDecl &st
         }
     }
     // else we're fine with whatever.
-
-    context.AddStringToken(stringDecl.GetName(), finalString);
 }
 
 void DoLoop::PreScan(CompileContext &context) 

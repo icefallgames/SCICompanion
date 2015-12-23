@@ -75,8 +75,8 @@ public:
 // Selector/value pair.
 struct species_property
 {
-    WORD wSelector;
-    WORD wValue;
+    uint16_t wSelector;
+    uint16_t wValue;
     SpeciesIndex wType; // DataTypeNone means no type was specified.
     bool fTrackRelocation;
 };

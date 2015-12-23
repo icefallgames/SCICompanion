@@ -408,7 +408,7 @@ void push_wordIt(std::vector<BYTE> &output, uint16_t w)
 // Note: SCI01+ games use a relative offset instead.
 // See SCIVersion::lofsaOpcodeIsAbsolute
 
-void scii::output_code(std::vector<BYTE> &output)
+void scii::output_code(ITrackCodeSink &trackCodeSink, std::vector<BYTE> &output)
 {
     _wFinalOffset = (uint16_t)output.size();
     assert(_bOpcode != Opcode::INDETERMINATE); // Any invalid instructions must be replaced before writing the code.
@@ -452,12 +452,7 @@ void scii::output_code(std::vector<BYTE> &output)
         uint16_t wOperand = _wOperands[i];
         if (argTypes[i] == otOFFS)
         {
-            // Turn the absolute offset into a relative offset.
-            assert(_opSize == Word); // For now...
-            // This will be an absolute index.  We need to turn it into a relative one.
-            uint16_t wTo = _wOperands[i];
-            uint16_t wFrom = _wFinalOffset + _wSize; // post instruction PC
-            wOperand = wTo - wFrom;
+            trackCodeSink.WroteCodeSink(wOperand, (uint16_t)output.size());
         }
         else if (argTypes[i] == otINT)
         {
@@ -542,31 +537,11 @@ uint16_t scicode::offset_of(code_pos target)
 }
 
 
-void scicode::write_code(std::vector<BYTE> &output)
+void scicode::write_code(ITrackCodeSink &trackCodeSink, std::vector<BYTE> &output)
 {
     for(scii &instruction : _code)
     {
-        instruction.output_code(output);
-    }
-}
-
-
-//
-// Go through the code, and for any LOFSS or LOFSA instruction, resolve its index.
-//
-void scicode::fixup_offsets(const std::unordered_map<uint16_t, uint16_t> &fixups)
-{
-    for(scii &instruction : _code)
-    {
-        Opcode bOpcode = instruction.get_opcode();
-        if ((bOpcode == Opcode::LOFSS) || (bOpcode == Opcode::LOFSA))
-        {
-            auto fixupIt = fixups.find(instruction.get_first_operand());
-            if (fixupIt != fixups.end())
-            {
-                instruction.update_first_operand(fixupIt->second);
-            }
-        }
+        instruction.output_code(trackCodeSink, output);
     }
 }
 

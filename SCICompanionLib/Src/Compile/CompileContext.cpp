@@ -28,6 +28,7 @@
 #include "ResourceEntity.h"
 #include "CCrystalTextBuffer.h"
 #include "CrystalScriptStream.h"
+#include "PMachine.h"
 
 using namespace sci;
 using namespace std;
@@ -153,6 +154,8 @@ void CompileContext::_LoadSCOIfNone(WORD wScript)
     }
 }
 
+const uint16_t TempTokenBase = 2345;
+
 CompileContext::CompileContext(SCIVersion version, Script &script, PrecompiledHeaders &headers, CompileTables &tables, ICompileLog &results) :
         _browser(*appState->GetResourceMap().GetClassBrowser()),
         _resourceMap(appState->GetResourceMap()),
@@ -161,7 +164,8 @@ CompileContext::CompileContext(SCIVersion version, Script &script, PrecompiledHe
         _headers(headers),
         _script(script),
         _version(version),
-        _code(_version)
+        _code(_version),
+        _nextTempToken(TempTokenBase)
 {
     _pErrorScript = &_script;
     _modifier = VM_None;
@@ -367,12 +371,12 @@ ResolvedToken CompileContext::LookupToken(const SyntaxNode *pNodeForError, const
         // ResolvedToken::Instance
         if (tokenType == ResolvedToken::Unknown)
         {
-			for (auto &classDef : _script.GetClasses())
+            for (auto &classDef : _script.GetClasses())
             {
-				if (classDef->IsInstance() && (str == classDef->GetName()))
+                if (classDef->IsInstance() && (str == classDef->GetName()))
                 {
                     // Return a temporary index.
-                    wIndex = c_TempIndex;
+                    wIndex = GetTempToken(ValueType::Token, classDef->GetName());
                     // Then, the caller should call TrackInstanceReference(name, code_pos), and we'll
                     // track his code_pos, and fix it up later when we write the code!
                     dataType = LookupTypeSpeciesIndex(classDef->GetSuperClass(), pNodeForError); // Data type of an instance is its super class. REVIEW: we could change this to be the instance itself.
@@ -410,7 +414,7 @@ bool CompileContext::LookupSpeciesIndex(const string &str, SpeciesIndex &wSpecie
 {
     // First, we'll need to check the scoFiles for this class
     // Then, we'll need to use the global class table to find the "class #"
-	for (WordSCOMap::value_type &p : _scos)
+    for (WordSCOMap::value_type &p : _scos)
     {
         CSCOFile &scoFile = p.second;
         WORD wClassIndexInScript;
@@ -511,7 +515,7 @@ vector<species_property> CompileContext::GetSpeciesProperties(const string &spec
     if (!speciesNames.empty())
     {
         // Find the scofile that contains this species.
-		for (WordSCOMap::value_type &p : _scos)
+        for (WordSCOMap::value_type &p : _scos)
         {
             CSCOFile &scoFile = p.second;
             const CSCOObjectClass *pClass = nullptr;
@@ -519,7 +523,7 @@ vector<species_property> CompileContext::GetSpeciesProperties(const string &spec
             {
                 // We have the class.
                 const vector<CSCOObjectProperty> &properties = pClass->GetProperties();
-				for (auto &theProp : properties)
+                for (auto &theProp : properties)
                 {
                     species_property specProp = { theProp.GetSelector(), theProp.GetValue(), DataTypeAny, false };
                     propertiesRet.push_back(specProp);
@@ -842,22 +846,7 @@ void CompileContext::TrackLocalProc(const string &name, code_pos where)
     assert(_localProcs.find(name) != _localProcs.end());
     _localProcs[name] = where;
 }
-void CompileContext::TrackInstanceReference(const string &name)
-{
-    _instanceReferences.insert(ref_and_index_multimap::value_type(name, call_pair(code().get_cur_pos(), 0)));
-}
-void CompileContext::TrackStringReference(const string &name)
-{
-    _stringReferences.insert(ref_and_index_multimap::value_type(name, call_pair(code().get_cur_pos(), 0)));
-}
-void CompileContext::TrackStringTokenReference(const string &tokenName, WORD wIndex)
-{
-    _stringTokenReferences.insert(ref_and_index_multimap::value_type(tokenName, call_pair(code().get_cur_pos(), wIndex)));
-}
-void CompileContext::TrackSaidReference(const string &name)
-{
-    _saidReferences.insert(ref_and_index_multimap::value_type(name, call_pair(code().get_cur_pos(), 0)));
-}
+
 void CompileContext::FixupAsmLabelBranches()
 {
     // Tell the branch instructions where they are going.
@@ -890,10 +879,6 @@ bool CompileContext::DoesLabelExist(const std::string &label)
 {
     return _labelNames.find(label) != _labelNames.end();
 }
-const ref_and_index_multimap &CompileContext::GetInstanceReferences() { return _instanceReferences; }
-const ref_and_index_multimap &CompileContext::GetStringReferences() { return _stringReferences; }
-const ref_and_index_multimap &CompileContext::GetStringTokenReferences() { return _stringTokenReferences; }
-const ref_and_index_multimap &CompileContext::GetSaidReferences() { return _saidReferences; }
 bool CompileContext::TrackMethod(const string &name, code_pos where)
 {
     if (_localProcs.find(name) == _localProcs.end())
@@ -916,12 +901,6 @@ code_pos CompileContext::GetLocalProcPos(const string &name)
     assert(_localProcs.find(name) != _localProcs.end());
     return _localProcs[name];
 }
-void CompileContext::TrackRelocation(WORD wOffset)
-{
-    // This is used for instance names and saids/strings that are property values.
-    // Their addresses are put into the relocation table for the script.
-    _relocations.push_back(wOffset);
-}
 void CompileContext::FixupLocalCalls()
 {
     // Tell all the calls where they're calling to.
@@ -934,79 +913,16 @@ void CompileContext::FixupLocalCalls()
         theCall++;
     }
 }
+void CompileContext::PreScanSaid(const std::string &theSaid, const ISourceCodePosition *pPos)
+{
+    ParseSaidString(*this, theSaid, nullptr, pPos);
+    GetTempToken(ValueType::Said, theSaid);
+}
 void CompileContext::TrackCallOffsetInstruction(WORD wProcIndex)
 {
     _calls.push_back(call_pair(_code.get_cur_pos(), wProcIndex));
 }
-void CompileContext::PreScanSaid(const string &theSaid, const ISourceCodePosition *pPos)
-{
-    _allSaids[theSaid] = pPos;
-}
-WORD CompileContext::GetSaidTempOffset(const string &theSaid)
-{
-    stringcode_map::iterator saidIt = _allSaids.find(theSaid);
-    assert(saidIt != _allSaids.end());
-    size_t index = distance(_allSaids.begin(), saidIt);
-    return (WORD)index;
-}
-void CompileContext::SpecifyFinalSaidOffset(const string &theString, WORD wFinalOffset)
-{
-    WORD wTempOffset = GetSaidTempOffset(theString);
-    _finalSaidOffsets[wTempOffset] = wFinalOffset;
-}
-void CompileContext::PreScanString(string &theString, const ISourceCodePosition *pPos)
-{
-    // Strings are unescaped during parsing.
-    _allInCodeStrings[theString] = pPos;
-}
-void CompileContext::AddStringToken(const string &token, const string &theString)
-{
-    // Note that these strings may contain invalid chars and nulls and stuff
-    _allScriptStringDecls[token] = theString;
-}
-WORD CompileContext::GetStringTempOffset(const string &theString)
-{
-    stringcode_map::iterator stringIt = _allInCodeStrings.find(theString);
-    assert(stringIt != _allInCodeStrings.end());
-    size_t index = distance(_allInCodeStrings.begin(), stringIt);
-    return ((WORD)index) + ImaginaryStringOffset; // Strings start at 0x8000 imaginary offset.
-}
-WORD CompileContext::GetStringTokenTempOffset(const string &theString)
-{
-    auto stringIt = _allScriptStringDecls.find(theString);
-    assert(stringIt != _allScriptStringDecls.end());
-    size_t index = distance(_allScriptStringDecls.begin(), stringIt);
-    // in code strings come first. So add the size of that to our index.
-    index += _allInCodeStrings.size();
-    return ((WORD)index) + ImaginaryStringOffset; // Strings start at 0x8000 imaginary offset.
-}
-void CompileContext::SpecifyFinalStringOffset(const string &theString, WORD wFinalOffset)
-{
-    WORD wTempOffset = GetStringTempOffset(theString);
-    _finalStringOffsets[wTempOffset] = wFinalOffset;
-}
-void CompileContext::SpecifyFinalStringTokenOffset(const string &theToken, WORD wFinalOffset)
-{
-    WORD wTempOffset = GetStringTokenTempOffset(theToken);
-    _finalStringOffsets[wTempOffset] = wFinalOffset;
-}
-WORD CompileContext::LookupFinalStringOrSaidOffset(WORD wTempOffset)
-{
-    if (wTempOffset >= ImaginaryStringOffset)
-    {
-        assert(!_finalStringOffsets.empty());
-        return _finalStringOffsets[wTempOffset];
-    }
-    else
-    {
-        assert(!_finalSaidOffsets.empty());
-        return _finalSaidOffsets[wTempOffset];
-    }
-}
-void CompileContext::SpecifyOffsetIndexResolvedValue(WORD wOffsetIndex, WORD wOffset)
-{
-    _offsetIndexToOffset[wOffsetIndex] = wOffset;    
-}
+
 void CompileContext::PushVariableLookupContext(const IVariableLookupContext *pVarContext)
 {
     _varContext.push(pVarContext);
@@ -1052,14 +968,7 @@ SpeciesIndex CompileContext::GetSendCalleeType()
 vector<call_pair> &CompileContext::GetCalls() { return _calls; }
 vector<code_pos> &CompileContext::GetExports() { return _exports; }
 vector<WORD> &CompileContext::GetPublicInstanceOffsets() { return _publicInstances; }
-stringcode_map &CompileContext::GetSaids() { return _allSaids; }
-stringcode_map &CompileContext::GetInCodeStrings() { return _allInCodeStrings; }
-std::map<std::string, std::string> &CompileContext::GetDeclaredStrings() { return _allScriptStringDecls; }
 
-const unordered_map<WORD, WORD> &CompileContext::GetOffsetFixups()
-{
-    return _offsetIndexToOffset;
-}
 void CompileContext::SetScriptNumber()
 {
     _wScriptNumber = _script.GetScriptNumber();
@@ -1131,11 +1040,23 @@ std::string CompileContext::LookupSelectorName(WORD wIndex) const
 {
     return _tables.Selectors().Lookup(wIndex);
 }
-const vector<WORD> &CompileContext::GetRelocations()
+vector<uint16_t> CompileContext::GetRelocations()
 {
+    vector<uint16_t> relocs;
+    for (auto &pair : _tokenToSinkOffsets)
+    {
+        // For codesinks in games where lofsa is relative, we don't want to add these to
+        // relocations.
+        if (_version.lofsaOpcodeIsAbsolute || (_codeSinks.find(pair.second) == _codeSinks.end()))
+        {
+            relocs.push_back(pair.second);
+        }
+    }
+    // Not sure if sorting seems necessary, but Sierra has them sorted.
+    std::sort(relocs.begin(), relocs.end());
     // This is used for instance names and saids/strings that are property values.
     // Their addresses are put into the relocation table for the script.
-    return _relocations;
+    return relocs;
 }
 
 PrecompiledHeaders::PrecompiledHeaders(CResourceMap &resourceMap) : _resourceMap(resourceMap), _fValid(false), _versionCompiled(resourceMap.Helper().Version) {}
@@ -1309,4 +1230,155 @@ void MergeScripts(sci::Script &mainScript, sci::Script &scriptToBeMerged)
     {
         mainScript.AddVariable(move(localVar));
     }
+}
+
+
+
+void CompileContext::WroteSink(uint16_t tempToken, uint16_t offset)
+{
+    assert((tempToken < _nextTempToken) && (tempToken >= TempTokenBase));
+    _tokenToSinkOffsets.insert(std::make_pair(tempToken, offset));
+}
+
+void CompileContext::WroteCodeSink(uint16_t tempToken, uint16_t offset)
+{
+    // Code sinks are automatically scr sinks:
+    WroteScrSink(tempToken, offset);
+    assert(_codeSinks.find(offset) == _codeSinks.end());
+    _codeSinks.insert(offset);
+}
+
+void CompileContext::WroteScrSink(uint16_t tempToken, uint16_t offset)
+{
+    WroteSink(tempToken, offset);
+    assert(_scrSinks.find(offset) == _scrSinks.end());
+    _scrSinks.insert(offset);
+}
+
+void CompileContext::WroteSource(uint16_t tempToken, uint16_t offset)
+{
+    assert((_tokenToSourceOffset.find(tempToken) == _tokenToSourceOffset.end()) && "There can only be one source.");
+    _tokenToSourceOffset[tempToken] = offset;
+}
+
+void CompileContext::WriteOutOffsetsOfHepPointersInScr(std::vector<uint8_t> &scrResource)
+{
+    push_word(scrResource, (uint16_t)_scrSinks.size());
+    for (uint16_t scrSinkOffsets : _scrSinks)
+    {
+        push_word(scrResource, scrSinkOffsets);
+    }
+}
+
+void CompileContext::WriteOutOffsetsOfHepPointersInHep(std::vector<uint8_t> &hepResource)
+{
+    uint16_t count = 0;
+    for (auto &pair : _tokenToSinkOffsets)
+    {
+        uint16_t offset = pair.second;
+        if (_scrSinks.find(offset) == _scrSinks.end())
+        {
+            count++;
+        }
+    }
+
+    push_word(hepResource, count);
+    for (auto &pair : _tokenToSinkOffsets)
+    {
+        uint16_t offset = pair.second;
+        if (_scrSinks.find(offset) == _scrSinks.end())
+        {
+            push_word(hepResource, offset);
+        }
+    }
+}
+
+void CompileContext::FixupSinksAndSources(std::vector<uint8_t> &scriptResource, std::vector<uint8_t> &heapOrScrResource)
+{
+    for (auto &pair : _tokenToSinkOffsets)
+    {
+        uint16_t sinkOffset = pair.second;
+        uint16_t token = pair.first;
+        auto itFind = _tokenToSourceOffset.find(token);
+        assert(itFind != _tokenToSourceOffset.end());
+        uint16_t sourceOffset = itFind->second;
+
+        bool isSinkInHeap = _scrSinks.find(sinkOffset) == _scrSinks.end(); // Not found in scr sinks, so it's a heap offset.
+        std::vector<uint8_t> &resourceToUse = isSinkInHeap ? heapOrScrResource : scriptResource;
+
+        if (!_version.lofsaOpcodeIsAbsolute && (_codeSinks.find(sinkOffset) != _codeSinks.end()))
+        {
+            // This needs to be a relative offset. This is an offset from the post-instruction
+            // counter, so we're assuming that there are no operands past this one (which is true for
+            // lofsa and lofss).
+#ifdef DEBUG
+            uint8_t rawOpcode = resourceToUse[sinkOffset - 1];
+            Opcode opcode = RawToOpcode(_version, rawOpcode);
+            assert((opcode == Opcode::LOFSA) || (opcode == Opcode::LOFSS));
+#endif
+            uint16_t from = sinkOffset + 2;
+            uint16_t relativeOffset = (uint16_t)((int16_t)sourceOffset - (int16_t)from);
+            write_word(resourceToUse, sinkOffset, relativeOffset);
+        }
+        else
+        {
+            write_word(resourceToUse, sinkOffset, sourceOffset);
+        }
+    }
+}
+
+std::map<std::string, uint16_t> *CompileContext::_GetTempTokenMap(ValueType type)
+{
+    std::map<std::string, uint16_t> *tempTokens = nullptr;
+    switch (type)
+    {
+        case ValueType::String:
+            tempTokens = &_stringTempTokens;
+            break;
+        case ValueType::Said:
+            tempTokens = &_saidTempTokens;
+            break;
+        case ValueType::Token:
+            tempTokens = &_instanceTempTokens;
+            break;
+        case ValueType::ResourceString:
+            tempTokens = &_stringTempTokens;
+            break;
+        default:
+            assert(false);
+    }
+    return tempTokens;
+}
+
+
+uint16_t CompileContext::GetTempToken(ValueType type, const std::string &text)
+{
+    std::map<std::string, uint16_t> *tempTokens = _GetTempTokenMap(type);
+ 
+    auto it = tempTokens->find(text);
+    if (it != tempTokens->end())
+    {
+        return it->second;
+    }
+    else
+    {
+        (*tempTokens)[text] = _nextTempToken++;
+        return (*tempTokens)[text];
+    }
+}
+
+std::vector<std::string> CompileContext::GetStrings()
+{
+    std::vector<std::string> strings;
+    std::transform(_stringTempTokens.begin(), _stringTempTokens.end(), std::back_inserter(strings), []
+        (const std::pair<std::string, uint16_t> &pair) { return pair.first; });
+    return strings;
+}
+
+std::vector<std::string> CompileContext::GetSaids()
+{
+    std::vector<std::string> said;
+    std::transform(_saidTempTokens.begin(), _saidTempTokens.end(), std::back_inserter(said), []
+        (const std::pair<std::string, uint16_t> &pair) { return pair.first; });
+    return said;
 }

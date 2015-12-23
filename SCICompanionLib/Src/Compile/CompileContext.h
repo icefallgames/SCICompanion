@@ -59,9 +59,7 @@ class CompileContext;
 
 typedef std::unordered_map<std::string, sci::Define*> defines_map;
 typedef std::multimap<std::string, code_pos> ref_multimap;
-typedef std::map<std::string, const ISourceCodePosition*> stringcode_map; // Strings and associated syntax nodes (for line #). Important that they have order.
 typedef std::pair<code_pos, WORD> call_pair;
-typedef std::multimap<std::string, call_pair> ref_and_index_multimap;
 
 //
 // Maintains a set of pre-compiled headers across compilations
@@ -100,7 +98,7 @@ private:
     SCIVersion _versionCompiled;
 };
 
-class CompileContext : public ICompileLog, public ILookupDefine
+class CompileContext : public ICompileLog, public ILookupDefine, public ITrackCodeSink
 {
 public:
     CompileContext(SCIVersion version, sci::Script &script, PrecompiledHeaders &headers, CompileTables &tables, ICompileLog &results);
@@ -108,7 +106,56 @@ public:
     CompileContext operator=(const CompileContext &src) = delete;
     ~CompileContext() = default;
 
+
+public:
+    // This is a slightly more generic way of writing out pointers to
+    // objects, strings and saids (without knowing their actual position yet) and being able to fix up
+    // the pointers later.
+
+    // Retrieves a temporary value that maps to a ValueType::String/ResourceString, ValueType::Said or ValueType::Token.
+    // This is used to link "sources" (where the actual data exists) with "sinks" (a reference to the data).
+    // You can call as many times as you want for a single type/text (it will return the same token)
+    uint16_t GetTempToken(sci::ValueType type, const std::string &text);
+
+    // Called to specify the position in the heap (or script) resource at which a string, said or object is written.
+    void WroteSource(uint16_t tempToken, uint16_t offset);      // Can only be one per token.
+
+    // Called to specify the position in the heap (or script) resource at which a string, said or object is referenced.
+    void WroteSink(uint16_t tempToken, uint16_t offset);        // Can be many per token. For sinks in hep resources (or scr in SCI0)
+    void WroteCodeSink(uint16_t tempToken, uint16_t offset);    // Can be many per token. These are lofsa/lofss, so they may be relative.
+    void WroteScrSink(uint16_t tempToken, uint16_t offset);     // Can be many per token. For sinks in scr resources.
+
+    // Does the heavy work of writing the final offsets into the token reference positions:
+    void FixupSinksAndSources(std::vector<uint8_t> &scrResource, std::vector<uint8_t> &heapOrScrResource);
+
+    // For SCI1.1 only:
+    void WriteOutOffsetsOfHepPointersInScr(std::vector<uint8_t> &scrResource);
+    void WriteOutOffsetsOfHepPointersInHep(std::vector<uint8_t> &hepResource);
+
+    // Returns all strings or saids that have been tracked via GetTempToken.
+    std::vector<std::string> GetStrings();
+    std::vector<std::string> GetSaids();
+
 private:
+    std::map<std::string, uint16_t> *_GetTempTokenMap(sci::ValueType type);
+
+    uint16_t _nextTempToken;
+    std::map<std::string, uint16_t> _stringTempTokens;
+    std::map<std::string, uint16_t> _saidTempTokens;
+    std::map<std::string, uint16_t> _instanceTempTokens;
+    // When it comes to game with separate heap resources, the following holds true:
+    // - All sources are .hep (instances, strings, saids, ...)
+    // - For sinks:
+    //  - Class property value sinks are .hep
+    //  - Local variable value sinks are .hep
+    //  - Code sinks (lofsa/lofss) are .scr
+    //  - Export table sinks are .scr
+    std::map<uint16_t, uint16_t> _tokenToSourceOffset;
+    std::multimap<uint16_t, uint16_t> _tokenToSinkOffsets;
+    std::set<uint16_t> _codeSinks;
+    std::set<uint16_t> _scrSinks;
+
+
     SCIClassBrowser &_browser;
     CResourceMap &_resourceMap;
     sci::Script &_script;       // Script being compiled
@@ -210,37 +257,19 @@ public:
     void TrackPublicInstance(WORD wOffset);
     bool PreScanLocalProc(const std::string &name, const std::string &ownerClass);
     void TrackLocalProc(const std::string &name, code_pos where);
-    void TrackInstanceReference(const std::string &name);
-    void TrackStringReference(const std::string &name);
-    void TrackStringTokenReference(const std::string &tokenName, WORD wIndex);
-    void TrackSaidReference(const std::string &name);
+
     void TrackAsmLabelReference(const std::string &label);
     void TrackAsmLabelLocation(const std::string &label);
     void ReportLabelName(ISourceCodePosition *position, const std::string &labelName);
     bool DoesLabelExist(const std::string &label);
-    const ref_and_index_multimap &GetInstanceReferences();
-    const ref_and_index_multimap &GetStringReferences();
-    const ref_and_index_multimap &GetStringTokenReferences();
-    const ref_and_index_multimap &GetSaidReferences();
     bool TrackMethod(const std::string &name, code_pos where);
 
     void TrackLocalProcCall(const std::string &name);
     code_pos GetLocalProcPos(const std::string &name);
-    void TrackRelocation(WORD wOffset);
     void FixupLocalCalls();
     void FixupAsmLabelBranches();
     void TrackCallOffsetInstruction(WORD wProcIndex);
     void PreScanSaid(const std::string &theSaid, const ISourceCodePosition *pPos);
-    WORD GetSaidTempOffset(const std::string &theSaid);
-    void SpecifyFinalSaidOffset(const std::string &theString, WORD wFinalOffset);
-    void PreScanString(std::string &theString, const ISourceCodePosition *pPos);
-    void AddStringToken(const std::string &token, const std::string &theString);
-    WORD GetStringTempOffset(const std::string &theString);
-    WORD GetStringTokenTempOffset(const std::string &theString);
-    void SpecifyFinalStringOffset(const std::string &theString, WORD wFinalOffset);
-    void SpecifyFinalStringTokenOffset(const std::string &theToken, WORD wFinalOffset);
-    WORD LookupFinalStringOrSaidOffset(WORD wTempOffset);
-    void SpecifyOffsetIndexResolvedValue(WORD wOffsetIndex, WORD wOffset);
     void PushVariableLookupContext(const IVariableLookupContext *pVarContext);
     void PopVariableLookupContext();
     void SetClassPropertyLookupContext(const IVariableLookupContext *pVarContext);
@@ -256,10 +285,6 @@ public:
     std::vector<call_pair> &GetCalls();
     std::vector<code_pos> &GetExports();
     std::vector<WORD> &GetPublicInstanceOffsets();
-    stringcode_map &GetSaids();
-    stringcode_map &GetInCodeStrings();
-    std::map<std::string, std::string> &GetDeclaredStrings();
-    const std::unordered_map<WORD, WORD> &GetOffsetFixups();
     void SetScriptNumber();
     WORD EnsureSpeciesTableEntry(WORD wIndexInScript);
     void LoadIncludes();
@@ -270,20 +295,11 @@ public:
     std::vector<CSCOObjectClass> &GetInstanceSCOs();
     CSCOFile &GetScriptSCO();
     std::string LookupSelectorName(WORD wIndex) const;
-    const std::vector<WORD> &GetRelocations();
-
-    // SCI1 (separate heap resources)
-    void AddHeapPointerOffset(uint16_t heapPtrOffset) { _heapPointerOffsets.push_back(heapPtrOffset); }
-    const std::vector<uint16_t> &GetHeapPointerOffsets() { return _heapPointerOffsets; }
-
-    std::set<const sci::PropertyValue*> ScriptVariableValueNeedsReloc;
+    std::vector<WORD> GetRelocations();
 
 private:
     // Our code
     scicode _code;
-
-    // For SCI1
-    std::vector<uint16_t> _heapPointerOffsets;
 
     // The current output context
     std::stack<OutputContext> _oc;
@@ -308,36 +324,14 @@ private:
     std::map<std::string, code_pos> _localProcs;
     std::map<std::string, std::string> _localProcClassOwner;
     ref_multimap _localProcCalls;
-    // MultiMap of instance/string/said references in code (string -> code_pos)
-    ref_and_index_multimap _instanceReferences;
-    ref_and_index_multimap _stringReferences;
-    ref_and_index_multimap _stringTokenReferences;
-    ref_and_index_multimap _saidReferences;
     ref_multimap _labelReferences;
     std::map<std::string, code_pos> _labelLocations;
     std::set<std::string> _labelNames;  // Pre-scan
-
-    const uint16_t ImaginaryStringOffset = 0x8000;
-
-    // These are a set of all the saids/strings in the resource.  We use the index of a particular
-    // said/string as a temporary value to write in code (not needed)
-    stringcode_map _allSaids;           // Indices start from 0
-    stringcode_map _allInCodeStrings;   // Indices start from ImaginaryStringOffset
-    // This must be an ordered map. Order matters.
-    std::map<std::string, std::string> _allScriptStringDecls;
-
-    // Mapping of our imaginary indices to actually offsets within the generated resource
-    std::unordered_map<WORD, WORD> _finalSaidOffsets;
-    std::unordered_map<WORD, WORD> _finalStringOffsets;
-
-    std::unordered_map<WORD, WORD> _offsetIndexToOffset;
 
     std::vector<call_pair> _calls;
 
     // List of resource strings we'll need to write to a text resource
     std::vector<std::string> _resourceStrings;
-
-    std::vector<WORD> _relocations;
 
     std::string _className;
     std::string _superClassName;
@@ -512,3 +506,4 @@ void ErrorHelper(CompileContext &context, const ISourceCodePosition *pPos, const
 bool NewCompileScript(CompileLog &log, CompileTables &tables, PrecompiledHeaders &headers, ScriptId &script);
 std::unique_ptr<sci::Script> SimpleCompile(CompileLog &log, ScriptId &scriptId, bool addCommentsToOM = false);
 void MergeScripts(sci::Script &mainScript, sci::Script &scriptToBeMerged);
+void ParseSaidString(CompileContext &context, const std::string &stringCode, std::vector<uint8_t> *output, const ISourceCodePosition *pos);

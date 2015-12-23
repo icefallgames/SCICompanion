@@ -138,18 +138,6 @@ struct MatchSelector : public std::binary_function<species_property, WORD, bool>
     }
 };
 
-string::size_type ComputeStringLengthFirst(string::size_type sumSoFar, const stringcode_map::value_type &thePair)
-{
-    // Return the length of the string, including a nullptr terminator
-    return sumSoFar + (thePair.first.size() + 1);
-}
-
-string::size_type ComputeStringLengthSecond(string::size_type sumSoFar, const std::map<std::string, std::string>::value_type &thePair)
-{
-    // Return the length of the string, including a nullptr terminator
-    return sumSoFar + (thePair.second.size() + 1);
-}
-
 class WordToByteThingy
 {
 public:
@@ -162,47 +150,6 @@ private:
     vector<BYTE> &_output;
 };
 
-//
-// Final fixups for saids, strings and instance references.
-//
-void _FixupReferencesHelper(SCIVersion version, CompileContext &context, vector<BYTE> &output, const ref_and_index_multimap &references, const string &name, WORD wPosInResource)
-{
-    // For all "name"s in references, ask the code_pos where its final position was, and get its post instruction
-    // position.  Calc the diff of the wPosInResource with that post instruction position, and, then change the value in output.
-    ref_and_index_multimap::const_iterator refIt = references.find(name);
-    while (refIt != references.end())
-    {
-        // It's a multimap, so there could be multiple keys of "name"
-        if (refIt->first == name)
-        {
-            const code_pos &instruction = refIt->second.first;
-            WORD wIndex = refIt->second.second;
-            assert((instruction->get_opcode() == Opcode::LOFSA) || (instruction->get_opcode() == Opcode::LOFSS));
-            context.AddHeapPointerOffset(instruction->get_final_offset() + 1);  // +1 to skip the opcode
-
-            // Where do we write it?  One byte after the start of the instruction (opcode is 1 byte)
-            WORD wWhere = instruction->get_final_offset() + 1;
-
-            WORD wValue;
-            if (version.lofsaOpcodeIsAbsolute)
-            {
-                wValue = wPosInResource; // This is the number we write to the resource.
-                // The relocation table is used for SCI0-style resource (e.g. where the heap is not separate).
-                // If lofsa is absolute, this needs to be added to the relocation table.
-                context.TrackRelocation(wWhere);
-            }
-            else
-            {
-                WORD wFinalPostOp = instruction->get_final_postop_offset();
-                wValue = wPosInResource - wFinalPostOp; // This is the number we write to the resource.
-            }
-            wValue += wIndex;                            // Oh, and the index too...
-            write_word(output, wWhere, wValue);
-        }
-        ++refIt;
-    }
-}
-
 // Procedure/class (true/false), index
 enum class ExportType
 {
@@ -214,10 +161,11 @@ enum class ExportType
 struct ExportTableInfo
 {
     ExportTableInfo() : Type(ExportType::Empty), ReferenceIndex(-1), SyntaxNodeWeak(nullptr) {}
-    ExportTableInfo(ExportType type, int refIndex, SyntaxNode *syntaxNode) : Type(type), ReferenceIndex(refIndex), SyntaxNodeWeak(syntaxNode) {}
+    ExportTableInfo(ExportType type, int refIndex, SyntaxNode *syntaxNode, const std::string &nameIfInstance) : Type(type), ReferenceIndex(refIndex), SyntaxNodeWeak(syntaxNode), NameIfInstance(nameIfInstance) {}
     ExportType Type;
     int ReferenceIndex;
     SyntaxNode *SyntaxNodeWeak;
+    std::string NameIfInstance;
 };
 
 void _AddToTable(vector<ExportTableInfo> &table, const ExportTableInfo &entry, const string &name, map<string, set<int>> nameToSlots, set<int> &freeSlots)
@@ -282,7 +230,7 @@ vector<ExportTableInfo> GetExportTableOrder(CompileContext *contextOptional, con
     {
         if (theClass->IsPublic() && (allowPublicClasses || theClass->IsInstance()))
         {
-            ExportTableInfo entry(ExportType::Object, classRefIndex, theClass.get());
+            ExportTableInfo entry(ExportType::Object, classRefIndex, theClass.get(), theClass->GetName());
             _AddToTable(table, entry, theClass->GetName(), nameToSlots, freeSlots);
             classRefIndex++;
         }
@@ -298,7 +246,7 @@ vector<ExportTableInfo> GetExportTableOrder(CompileContext *contextOptional, con
     {
         if (theProc->IsPublic())
         {
-            ExportTableInfo entry(ExportType::Procedure, procRefIndex, theProc.get());
+            ExportTableInfo entry(ExportType::Procedure, procRefIndex, theProc.get(), theProc->GetName());
             _AddToTable(table, entry, theProc->GetName(), nameToSlots, freeSlots);
             procRefIndex++;
         }
@@ -334,7 +282,7 @@ void _WriteClassOrInstance(const CSCOObjectClass &object, bool fInstance, vector
     if (fInstance)
     {
         // So tell that code to point here.
-        _FixupReferencesHelper(pContext->GetVersion(), *pContext, output, pContext->GetInstanceReferences(), object.GetName(), wObjectPointer);
+        pContext->WroteSource(pContext->GetTempToken(ValueType::Token, object.GetName()), wObjectPointer);
         if (object.IsPublic())
         {
             // If it's public, we need to put this in the export table.
@@ -348,10 +296,7 @@ void _WriteClassOrInstance(const CSCOObjectClass &object, bool fInstance, vector
         WORD wValue = objectProperty.GetValue();
         if (objectProperty.NeedsReloc())
         {
-            pContext->TrackRelocation((WORD)output.size());
-            // If it needs a relocation, it's an offset, for which we current only have a temp
-            // value.  Get the real value.
-            wValue = pContext->LookupFinalStringOrSaidOffset(wValue);
+            pContext->WroteSink(wValue, (uint16_t)output.size());
         }
         push_word(output, wValue);
     }
@@ -397,7 +342,7 @@ void _WriteClassOrInstance(const CSCOObjectClass &object, bool fInstance, vector
 //
 // Streams a said word to the output.
 //
-void ParseSaidWord(CompileContext *pContext, string &word, const stringcode_map::value_type &stringCode, vector<BYTE> &output)
+void ParseSaidWord(CompileContext &context, string &word, const std::string &stringCode, vector<uint8_t> *output, const ISourceCodePosition *pos)
 {
     size_t nLen = word.length();
     if (nLen > 0)
@@ -411,16 +356,26 @@ void ParseSaidWord(CompileContext *pContext, string &word, const stringcode_map:
     if (!word.empty())
     {
         WORD wWordGroup = 0;
-        if (pContext->LookupWord(word, wWordGroup))
+        if (context.LookupWord(word, wWordGroup))
         {
             assert((wWordGroup >> 8) < 0xf0); // Otherwise it's treated as a said token
-            // Note, we can't use push_word, because this must be in big-endian notation.
-            output.push_back(wWordGroup >> 8);
-            output.push_back(wWordGroup & 0xff);
+            if (output)
+            {
+                // Note, we can't use push_word, because this must be in big-endian notation.
+                output->push_back(wWordGroup >> 8);
+                output->push_back(wWordGroup & 0xff);
+            }
         }
         else
         {
-            pContext->ReportError(stringCode.second, "'%s' is not in the vocabulary.", word.c_str());
+            if (output)
+            {
+                assert(false && "Should have already validate said string.");
+            }
+            else
+            {
+                context.ReportError(pos, "'%s' is not in the vocabulary.", word.c_str());
+            }
         }
     }
     word.clear();
@@ -429,20 +384,23 @@ void ParseSaidWord(CompileContext *pContext, string &word, const stringcode_map:
 //
 // Streams said tokens described by stringCode, to the output.
 //
-void ParseSaidString(CompileContext *pContext, const stringcode_map::value_type &stringCode, vector<BYTE> &output)
+void ParseSaidString(CompileContext &context, const std::string &stringCode, vector<uint8_t> *output, const ISourceCodePosition *pos)
 {
     static string c_saidTokens = ",&/()[]#<>"; // 0xf0 to 0xf9
-    string::const_iterator saidIt = stringCode.first.begin();
+    string::const_iterator saidIt = stringCode.begin();
     string word; // We build up this word as we scan the string passed in.
-    while (saidIt != stringCode.first.end())
+    while (saidIt != stringCode.end())
     {
         size_t x = c_saidTokens.find(*saidIt);
         if (x < c_saidTokens.size())
         {
             // It was a token - if we've got a word ready, look it up now, and add its vocab index
-            ParseSaidWord(pContext, word, stringCode, output);
-            // Then add the token
-            output.push_back(0xf0 + (BYTE)x);
+            ParseSaidWord(context, word, stringCode, output, pos);
+            if (output)
+            {
+                // Then add the token
+                output->push_back(0xf0 + (BYTE)x);
+            }
         }
         else
         {
@@ -452,8 +410,11 @@ void ParseSaidString(CompileContext *pContext, const stringcode_map::value_type 
         saidIt++;
     }
     // In case we had something in "word", parse it now...
-    ParseSaidWord(pContext, word, stringCode, output);
-    output.push_back(0xff); // terminator
+    ParseSaidWord(context, word, stringCode, output, pos);
+    if (output)
+    {
+        output->push_back(0xff); // terminator
+    }
 }
 
 
@@ -476,32 +437,7 @@ void _Section1And6_ClassesAndInstances(vector<BYTE> &output, CompileContext *pCo
     }
 }
 
-void _ResolveLocalVariables(Script &script, CompileContext &context, bool resolveNow)
-{
-    for (auto &scriptVar : script.GetScriptVariables())
-    {
-        for (auto &segment : scriptVar->GetStatements())
-        {
-            PropertyValue *pValue = SafeSyntaxNode<PropertyValue>(segment.get());
-            if (pValue && ((pValue->GetType() == ValueType::String) || (pValue->GetType() == ValueType::ResourceString)))
-            {
-                uint16_t temp = context.GetStringTempOffset(pValue->GetStringValue());
-                if (resolveNow)
-                {
-                    uint16_t value = context.LookupFinalStringOrSaidOffset(temp);
-                    pValue->SetValue(value);
-                }
-                else
-                {
-                    pValue->SetValue(temp);
-                }
-                context.ScriptVariableValueNeedsReloc.insert(pValue);
-            }
-        }
-    }
-}
-
-void _Section10_LocalVariables(Script &script, CompileContext &context, vector<BYTE> &output, bool separateHeapResource, vector<uint16_t> *trackHeapStringOffsets = nullptr)
+void _Section10_LocalVariables(Script &script, CompileContext &context, vector<BYTE> &output, bool separateHeapResource)
 {
     const VariableDeclVector &scriptVars = script.GetScriptVariables();
     if (!scriptVars.empty())
@@ -521,14 +457,15 @@ void _Section10_LocalVariables(Script &script, CompileContext &context, vector<B
             {
                 const PropertyValue *pValue = SafeSyntaxNode<PropertyValue>(value.get());
                 assert(pValue); // Must be a property value.
-                if (context.ScriptVariableValueNeedsReloc.find(pValue) != context.ScriptVariableValueNeedsReloc.end())
+
+                switch (pValue->GetType())
                 {
-                    context.TrackRelocation((uint16_t)output.size());
-                    if (trackHeapStringOffsets)
-                    {
-                        // SCI1 uses a different mechanism to track these (need to differentiate heap vs scr relocations)
-                        trackHeapStringOffsets->push_back((uint16_t)output.size());
-                    }
+                    case ValueType::Said:
+                    case ValueType::String:
+                    case ValueType::ResourceString:
+                    case ValueType::Token: // pointer?
+                        context.WroteSink(context.GetTempToken(pValue->GetType(), pValue->GetStringValue()), (uint16_t)output.size());
+                        break;
                 }
                 push_word(output, pValue->GetNumberValue());
                 size++;
@@ -576,7 +513,6 @@ void _Section2_Code(Script &script, CompileContext &context, vector<BYTE> &outpu
     const ClassVector &classes = script.GetClasses();
     for_each(classes.begin(), classes.end(), GenericOutputByteCode2<ClassDefinition>(context));
     // Now some dirty work...
-    context.code().fixup_offsets(context.GetOffsetFixups());
     context.FixupLocalCalls();
     context.FixupAsmLabelBranches();
 
@@ -593,7 +529,7 @@ void _Section2_Code(Script &script, CompileContext &context, vector<BYTE> &outpu
     }
 
     wStartOfCode = (uint16_t)output.size(); // Store where the code begins
-    context.code().write_code(output);
+    context.code().write_code(context, output);
     zero_pad(output, fRoundUp);
 
     uint16_t after = (uint16_t)output.size();
@@ -633,25 +569,24 @@ void _Section3_Synonyms(Script &script, CompileContext &context, vector<BYTE> &o
 
 void _Section4_Saids(CompileContext &context, vector<BYTE> &output)
 {
-    stringcode_map &saids = context.GetSaids();
+    auto saids = context.GetSaids();
     if (!saids.empty())
     {
         push_word(output, 4);
         size_t saidSizeIndex = output.size();
         push_word(output, 0); // Temporary size...
         // Now actually write out the saids into the stream.
-        stringcode_map::iterator saidIt = saids.begin();
-        while (saidIt != saids.end())
+        for (auto &said : saids)
         {
             // a) Get the index to which we'll write the said stream.
-            WORD wAbsolute = (WORD)output.size();
-            context.SpecifyFinalSaidOffset(saidIt->first, wAbsolute);
-            _FixupReferencesHelper(context.GetVersion(), context, output, context.GetSaidReferences(), saidIt->first, wAbsolute);
+            uint16_t wAbsolute = (uint16_t)output.size();
+            context.WroteSource(context.GetTempToken(ValueType::Said, said), wAbsolute);
+
             // b) Parse the said stream
-            ParseSaidString(&context, *saidIt, output);
+            ParseSaidString(context, said, &output, nullptr);
             // c) update the offset...
-            ++saidIt;
         }
+
         // How much room did that take?
         WORD wSaidSectionSize = (WORD)(output.size() - saidSizeIndex) + 2;
         // Round it up to a WORD boundary and pad if necessary:
@@ -663,17 +598,12 @@ void _Section4_Saids(CompileContext &context, vector<BYTE> &output)
 
 void _Section5_Strings(CompileContext &context, vector<BYTE> &outputScr, vector<BYTE> &outputHeap, bool writeSCI0SectionHeader)
 {
-    // In code strings:
-    stringcode_map &inCodestrings = context.GetInCodeStrings();
-    // Declared strings:
-    map<string, string> &declaredTokenToString = context.GetDeclaredStrings();
-    const ref_and_index_multimap &declaredTokenToCodePos = context.GetStringTokenReferences();
-    if (!inCodestrings.empty() || !declaredTokenToString.empty())
+    // This requires all strings to have been pre-scanned up to this point.
+    auto strings = context.GetStrings();
+    if (!strings.empty())
     {
         // Compute the length of all the strings.
-        WORD wStringSectionSize = accumulate(inCodestrings.begin(), inCodestrings.end(), 0, ComputeStringLengthFirst);
-        // For declaredStrings, it's the second of the pair that we're concerned with.
-        wStringSectionSize += accumulate(declaredTokenToString.begin(), declaredTokenToString.end(), 0, ComputeStringLengthSecond);
+        WORD wStringSectionSize = accumulate(strings.begin(), strings.end(), 0, [](std::string::size_type sumSoFar, const std::string &theString) { return sumSoFar + theString.length() + 1; });
 
         // Round it up to a WORD boundary:
         bool fRoundUp = make_even(wStringSectionSize);
@@ -685,37 +615,13 @@ void _Section5_Strings(CompileContext &context, vector<BYTE> &outputScr, vector<
             push_word(outputHeap, wStringSectionSize + 4);
         }
 
-        // Now actually write the strings, and update the parts of the code with the absolute positions
-        // of each string (not yet relative pos's).
-
-        // First, do it for the in-code strings:
+        for (auto &theString : strings)
         {
-            stringcode_map::iterator stringIt = inCodestrings.begin();
-            while (stringIt != inCodestrings.end())
-            {
-                // Get the index to which we'll write the string.
-                WORD wAbsolute = (WORD)outputHeap.size();
-                context.SpecifyFinalStringOffset(stringIt->first, wAbsolute);
-                _FixupReferencesHelper(context.GetVersion(), context, outputScr, context.GetStringReferences(), stringIt->first, wAbsolute);
-                outputHeap.insert(outputHeap.end(), stringIt->first.begin(), stringIt->first.end());
-                outputHeap.push_back(0);
-                stringIt++;
-            }
-        }
-
-        // Finish off with the declared strings.
-        {
-            auto stringIt = declaredTokenToString.begin();
-            while (stringIt != declaredTokenToString.end())
-            {
-                // Get the index to which we'll write the string.
-                WORD wAbsolute = (WORD)outputHeap.size();
-                context.SpecifyFinalStringTokenOffset(stringIt->first, wAbsolute);
-                _FixupReferencesHelper(context.GetVersion(), context, outputScr, declaredTokenToCodePos, stringIt->first, wAbsolute);
-                outputHeap.insert(outputHeap.end(), stringIt->second.begin(), stringIt->second.end());
-                outputHeap.push_back(0);
-                stringIt++;
-            }
+            // Get the index to which we'll write the string.
+            uint16_t wAbsolute = (uint16_t)outputHeap.size();
+            context.WroteSource(context.GetTempToken(ValueType::String, theString), wAbsolute);
+            outputHeap.insert(outputHeap.end(), theString.begin(), theString.end());
+            outputHeap.push_back(0);
         }
 
         zero_pad(outputHeap, fRoundUp);
@@ -735,28 +641,22 @@ void _Section7_Exports_Part1(Script &script, CompileContext &context, vector<BYT
 
 const uint16_t ExportTempMarker = 0x5845;   // "EX" backwards
 
-void _Exports_SCI11(Script &script, CompileContext &context, vector<BYTE> &output, const vector<ExportTableInfo> &exportTableOrder, size_t &offsetOfExports)
+void _Exports_SCI11(Script &script, CompileContext &context, vector<BYTE> &outputScr, const vector<ExportTableInfo> &exportTableOrder, size_t &offsetOfExports)
 {
-    // Track heap pointers for the objects
-    int exportIndex = 0;
-    for (const auto &exportTableInfo : exportTableOrder)
-    {
-        if (exportTableInfo.Type == ExportType::Object)
-        {
-            // Track his heap pointer:
-            context.AddHeapPointerOffset(2 + (exportIndex * 2) + (uint16_t)output.size());
-        }
-        exportIndex++;
-    }
-
     assert(!context.GetVersion().IsExportWide);
 
-    push_word(output, (WORD)exportTableOrder.size()); // the number of exports
-    offsetOfExports = output.size(); // Store where the ptrs will go.
+    push_word(outputScr, (WORD)exportTableOrder.size()); // the number of exports
+    offsetOfExports = outputScr.size(); // Store where the ptrs will go.
     // Fill with dumb markers for now:
     for (size_t i = 0; i < exportTableOrder.size(); i++)
     {
-        push_word(output, ExportTempMarker);
+        uint16_t token = ExportTempMarker;
+        if (exportTableOrder[i].Type == ExportType::Object)
+        {
+            token = context.GetTempToken(ValueType::Token, exportTableOrder[i].NameIfInstance);
+            context.WroteScrSink(token, (uint16_t)outputScr.size());
+        }
+        push_word(outputScr, token);
     }
 }
 
@@ -803,8 +703,6 @@ void _Section8_RelocationTable(CompileContext &context, vector<BYTE> &output)
         // The "upper" 16 bits, 0:
         push_word(output, 0);
     }
-    // Not sure if sorting seems necessary, but Sierra has them sorted.
-    std::sort(relocations.begin(), relocations.end());
     for_each(relocations.begin(), relocations.end(), WordToByteThingy(output));
 }
 
@@ -972,11 +870,11 @@ std::vector<species_property> GetOverriddenProperties(CompileContext &context, c
                     break;
                 case ValueType::String: // For now, strings are ok in property lists
                 case ValueType::ResourceString: // For now, strings are ok in property lists
-                    wValue = context.GetStringTempOffset(value->GetStringValue());
+                    wValue = context.GetTempToken(ValueType::String, value->GetStringValue());
                     fTrackRelocation = true;
                     break;
                 case ValueType::Said:
-                    wValue = context.GetSaidTempOffset(value->GetStringValue());
+                    wValue = context.GetTempToken(ValueType::Said, value->GetStringValue());
                     fTrackRelocation = true;
                     break;
                 case ValueType::Selector:
@@ -1133,7 +1031,7 @@ void GenerateSCOObjects(CompileContext &context, const Script &script)
             speciesProps[5].wValue = sco.GetSpecies();
             speciesProps[6].wValue = wSuperClass; // superclass index
             speciesProps[7].wValue = classDef->IsInstance() ? 0x0000 : 0x8000; // --info--
-            speciesProps[8].wValue = context.GetStringTempOffset(classDef->GetName()); // name (can be overridden explicitly too)
+            speciesProps[8].wValue = context.GetTempToken(ValueType::String, classDef->GetName()); // name (can be overridden explicitly too)
             nameIndex = 8;
         }
         else
@@ -1142,7 +1040,7 @@ void GenerateSCOObjects(CompileContext &context, const Script &script)
             speciesProps[0].wValue = sco.GetSpecies();
             speciesProps[1].wValue = wSuperClass; // superclass index
             speciesProps[2].wValue = classDef->IsInstance() ? 0x0000 : 0x8000; // --info--
-            speciesProps[3].wValue = context.GetStringTempOffset(classDef->GetName()); // name (can be overridden explicitly too)
+            speciesProps[3].wValue = context.GetTempToken(ValueType::String, classDef->GetName()); // name (can be overridden explicitly too)
             nameIndex = 3;
         }
 
@@ -1267,18 +1165,19 @@ bool GenerateScriptResource_SCI0(Script &script, PrecompiledHeaders &headers, Co
     WORD wStartOfCode = 0;
     _Section2_Code(script, context, output, wStartOfCode, false);
 
-    _Section5_Strings(context, output, output, true);
+    //_Section5_Strings(context, output, output, true);
 
     _Section4_Saids(context, output);
 
     _Section1And6_ClassesAndInstances(output, &context);
+
+    _Section5_Strings(context, output, output, true);
 
     if (!exportTableOrder.empty())
     {
         _Section7_Exports_Part2(context, output, wStartOfCode, exportTableOrder, offsetOfExports);
     }
 
-    _ResolveLocalVariables(script, context, true);
     _Section10_LocalVariables(script, context, output, false);
 
     _Section8_RelocationTable(context, output);
@@ -1297,6 +1196,8 @@ bool GenerateScriptResource_SCI0(Script &script, PrecompiledHeaders &headers, Co
         entry.Text = text;
         results.GetTextComponent().Texts.push_back(entry);
     }
+
+    context.FixupSinksAndSources(output, output);
 
     return !context.HasErrors();
 }
@@ -1332,15 +1233,12 @@ void WriteMethodCodePointers(const CSCOObjectClass &oClass, vector<uint8_t> &out
 
 const uint16_t SpeciesSelector_SCI1 = 0x1005;
 
-void WriteClassToHeap(const CSCOObjectClass &oClass, bool isInstance, vector<uint8_t> &outputHeap, vector<uint8_t> &outputScr, CompileContext &context, vector<uint16_t> &trackHeapStringOffsets, uint16_t &objectSelectorOffsetInScr)
+void WriteClassToHeap(const CSCOObjectClass &oClass, bool isInstance, vector<uint8_t> &outputHeap, vector<uint8_t> &outputScr, CompileContext &context, uint16_t &objectSelectorOffsetInScr)
 {
     // This is where code that has offsets to this instance should point to
     WORD wObjectPointer = (WORD)outputHeap.size();
-    if (isInstance)
-    {
-        // So tell that code to point here.
-        _FixupReferencesHelper(context.GetVersion(), context, outputScr, context.GetInstanceReferences(), oClass.GetName(), wObjectPointer);
-    }
+    // Indicate where it is so anyone who needs to reference it can:
+    context.WroteSource(context.GetTempToken(ValueType::Token, oClass.GetName()), wObjectPointer);
 
     if (oClass.IsPublic())
     {
@@ -1385,12 +1283,8 @@ void WriteClassToHeap(const CSCOObjectClass &oClass, bool isInstance, vector<uin
 
         if (prop.NeedsReloc())
         {
-            context.TrackRelocation((uint16_t)outputHeap.size());
-            // We haven't written out strings yet, so we don't know the final value.
-            // value = context.LookupFinalStringOrSaidOffset(value);
-            // But add this to the string offsets we're tracking.
-            trackHeapStringOffsets.push_back((uint16_t)outputHeap.size());
-            // Afterwards, we will look at these places, suck out the value, and then replace with the final offset.
+            context.WroteSink(value, (uint16_t)outputHeap.size());
+            // Add this to the string offsets we're tracking.
         }
         push_word(outputHeap, value);
     }
@@ -1412,9 +1306,6 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
             }
         }
     }
-
-    // These contain the offsets in hep at which there are string pointers.
-    vector<uint16_t> trackHeapStringOffsets;
 
     // These track the offsets that store pointers to method code.
     vector<uint16_t> trackMethodCodePointerOffsets;
@@ -1492,17 +1383,16 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
         // Now let's start writing the hep file
         push_word(outputHeap, 0);   // This will point to "after strings" 
         // Next come the local var values
-        _ResolveLocalVariables(script, context, false);
-        _Section10_LocalVariables(script, context, outputHeap, true, &trackHeapStringOffsets);
+        _Section10_LocalVariables(script, context, outputHeap, true);
 
         for (const CSCOObjectClass &oClass : sco.GetObjects())
         {
             // The class that inherits from Game is special, it goes in the export table too.
-            WriteClassToHeap(oClass, false, outputHeap, outputScr, context, trackHeapStringOffsets, objectSelectorOffsetInScr);
+            WriteClassToHeap(oClass, false, outputHeap, outputScr, context, objectSelectorOffsetInScr);
         }
         for (const CSCOObjectClass &oClass : context.GetInstanceSCOs())
         {
-            WriteClassToHeap(oClass, true, outputHeap, outputScr, context, trackHeapStringOffsets, objectSelectorOffsetInScr);
+            WriteClassToHeap(oClass, true, outputHeap, outputScr, context, objectSelectorOffsetInScr);
         }
 
 
@@ -1516,32 +1406,23 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
         write_word(outputHeap, 0, (uint16_t)outputHeap.size());
 
         // Now write the string relocation table
-        // TODO: How do we know about in-code strings? Do we care?
-        push_word(outputHeap, (uint16_t)trackHeapStringOffsets.size());
-        for (uint16_t stringPointerOffset : trackHeapStringOffsets)
-        {
-            push_word(outputHeap, stringPointerOffset);
-            // We also need to fill in the values (which are temporaries) with actual pointers to the strings.
-            write_word(outputHeap, stringPointerOffset, context.LookupFinalStringOrSaidOffset(read_word(outputHeap, stringPointerOffset)));
-        }
+        context.WriteOutOffsetsOfHepPointersInHep(outputHeap);
         // The .hep file is done
 
         // Now back to the scr:
         // Now let's write the "after code" stuff. 
         // This is a list of offsets (in .scr) that pointer to offsets in .hep.
         // It will consist first of any exports that are classes/instances, then any lofsa/lofss offsets in the code
-        const vector<uint16_t> &heapPointerOffsets = context.GetHeapPointerOffsets();
-        push_word(outputScr, (uint16_t)heapPointerOffsets.size());
-        for (uint16_t heapPointerOffset : heapPointerOffsets)
-        {
-            push_word(outputScr, heapPointerOffset);
-        }
+        context.WriteOutOffsetsOfHepPointersInScr(outputScr);
         // We're now done with .scr
 
         // TODO: Write our prop relocs
         // TODO GenerateSCOObjects ... this is where CSCOpropertys are marked as needing relocation. name is hard-coded, we'll need others too. Like "up" and "down" in Gauge.sc
         // TODO: keep exports in sync with previous SCO file iteration
         _Section7_Exports_Part2(context, outputScr, wStartOfCode, exportTableOrder, offsetOfExports);
+
+        // Fixups time!
+        context.FixupSinksAndSources(outputScr, outputHeap);
 
         // Get the .sco file produced.
         results.GetSCO() = context.GetScriptSCO();
@@ -1555,6 +1436,7 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
             results.GetTextComponent().Texts.push_back(entry);
         }
     }
+
     return !context.HasErrors();
 }
 

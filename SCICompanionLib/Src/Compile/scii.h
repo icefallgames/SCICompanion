@@ -35,6 +35,12 @@ enum class BranchBlockIndex
     Continue = 5,    // block for continue statements
 };
 
+class ITrackCodeSink
+{
+public:
+    virtual void WroteCodeSink(uint16_t tempToken, uint16_t offset) = 0;
+};
+
 class scii
 {
 private:
@@ -63,7 +69,7 @@ public:
     uint16_t get_second_operand() const;
     uint16_t get_third_operand() const;
 
-    void output_code(std::vector<BYTE>&);
+    void output_code(ITrackCodeSink &trackCodeSink, std::vector<BYTE>&);
 
     Opcode get_opcode() const;
     Opcode set_opcode(Opcode opcode);
@@ -252,10 +258,9 @@ public:
 
     uint16_t calc_size();
     uint16_t offset_of(code_pos target);
-    void write_code(std::vector<BYTE> &output);
+    void write_code(ITrackCodeSink &trackCodeSink, std::vector<BYTE> &output);
     bool has_dangling_branches(bool &fAllBranchesAreReturns);
     bool empty() { return _code.empty(); }
-	void fixup_offsets(const std::unordered_map<uint16_t, uint16_t> &fixups);
     
     // Insert new instructions here, instead of at the end.
     void push_code_insertion_point(code_pos pos)
