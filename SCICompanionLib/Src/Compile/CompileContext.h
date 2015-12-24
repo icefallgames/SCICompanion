@@ -183,6 +183,7 @@ private:
     void _LoadSCOIfNone(WORD wScript);
 
 public:
+    std::string GetScriptStringFromToken(const std::string &stringToken);
     LangSyntax GetLanguage();
     OutputContext GetOutputContext();
     WORD GetScriptNumber();

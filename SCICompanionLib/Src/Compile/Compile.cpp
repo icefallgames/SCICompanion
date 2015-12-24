@@ -1091,7 +1091,7 @@ CodeResult PropertyValueBase::OutputByteCode(CompileContext &context) const
                     break;
                 case ResolvedToken::ScriptString:
                     {
-                        context.code().inst((oc == OC_Stack) ? Opcode::LOFSS : Opcode::LOFSA, context.GetTempToken(ValueType::String, _stringValue));
+                        context.code().inst((oc == OC_Stack) ? Opcode::LOFSS : Opcode::LOFSA, context.GetTempToken(ValueType::String, context.GetScriptStringFromToken(_stringValue)));
                         WORD wImmediateIndex = 0;
                         if (GetIndexer())
                         {
@@ -3106,7 +3106,7 @@ CodeResult Asm::OutputByteCode(CompileContext &context) const
 
                                             case ResolvedToken::ScriptString:
                                             {
-                                                args[i] = context.GetTempToken(ValueType::String, pValue->GetStringValue());
+                                                args[i] = context.GetTempToken(ValueType::String, context.GetScriptStringFromToken(pValue->GetStringValue()));
                                                 WORD wImmediateIndex = 0;
                                                 if (pValue->GetIndexer())
                                                 {
@@ -3596,6 +3596,10 @@ void Script::_PreScanStringDeclaration(CompileContext &context, VariableDecl &st
         }
     }
     // else we're fine with whatever.
+
+    // Replace the value in the initializer:
+    stringDecl.GetStatements().clear();
+    stringDecl.AddSimpleInitializer(PropertyValue(finalString, ValueType::String));
 }
 
 void DoLoop::PreScan(CompileContext &context) 

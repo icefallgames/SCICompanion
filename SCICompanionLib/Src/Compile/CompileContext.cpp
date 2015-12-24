@@ -1350,6 +1350,23 @@ std::map<std::string, uint16_t> *CompileContext::_GetTempTokenMap(ValueType type
     return tempTokens;
 }
 
+// SCI Studio compatibility
+// Assumes that token is already been resolved as ResolvedToken::ScriptString.
+std::string CompileContext::GetScriptStringFromToken(const std::string &stringToken)
+{
+    for (auto &stringDecl : _script.GetScriptStringsDeclarations())
+    {
+        if (stringDecl->GetName() == stringToken)
+        {
+            assert(stringDecl->GetInitializers().size() == 1);
+            PropertyValue *value = SafeSyntaxNode<PropertyValue>(stringDecl->GetInitializers()[0].get());
+            assert(value && "Should have already resolve string declaration during pre-scan");
+            return value->GetStringValue();
+        }
+    }
+    assert(false);
+    return "";
+}
 
 uint16_t CompileContext::GetTempToken(ValueType type, const std::string &text)
 {
