@@ -370,7 +370,7 @@ void ParseSaidWord(CompileContext &context, string &word, const std::string &str
         {
             if (output)
             {
-                assert(false && "Should have already validate said string.");
+                assert(context.HasErrors() && "Should have already validated said string and made an error.");
             }
             else
             {
