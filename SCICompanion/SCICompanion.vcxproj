@@ -105,7 +105,8 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Decompiler" "$(OutDir)Decompiler"
 
 xcopy /S /Y /I /D "$(ProjectDir)Files\Customization" "$(OutDir)Customization"
 xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
-xcopy /S /Y /I /D "$(ProjectDir)Files\Plugins" "$(OutDir)Plugins"</Command>
+xcopy /S /Y /I /D "$(ProjectDir)Files\Plugins" "$(OutDir)Plugins"
+xcopy /S /Y /I /D "$(ProjectDir)Tools" "$(OutDir)Tools"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DeadCodeAnalysis|Win32'">
@@ -148,7 +149,8 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Decompiler" "$(OutDir)Decompiler"
 
 xcopy /S /Y /I /D "$(ProjectDir)Files\Customization" "$(OutDir)Customization"
 xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
-xcopy /S /Y /I /D "$(ProjectDir)Files\Plugins" "$(OutDir)Plugins"</Command>
+xcopy /S /Y /I /D "$(ProjectDir)Files\Plugins" "$(OutDir)Plugins"
+xcopy /S /Y /I /D "$(ProjectDir)Tools" "$(OutDir)Tools"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -195,7 +197,8 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Decompiler" "$(OutDir)Decompiler"
 
 xcopy /S /Y /I /D "$(ProjectDir)Files\Customization" "$(OutDir)Customization"
 xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
-xcopy /S /Y /I /D "$(ProjectDir)Files\Plugins" "$(OutDir)Plugins"</Command>
+xcopy /S /Y /I /D "$(ProjectDir)Files\Plugins" "$(OutDir)Plugins"
+xcopy /S /Y /I /D "$(ProjectDir)Tools" "$(OutDir)Tools"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

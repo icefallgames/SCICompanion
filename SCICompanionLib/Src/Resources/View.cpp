@@ -81,6 +81,7 @@ void ReadImageDataWorker(sci::istream &byteStreamRLE, Cel &cel, bool isVGA, sci:
     cel.Data.allocate(max(1, dataSize));
     int cCount = 0;
     int cxRemainingForThisCommand = 0;
+
     while (byteStreamRLE.good() && (cBufferSizeRemaining > 0))
     {
         uint8_t b;
@@ -408,7 +409,7 @@ void AdvanceXY(const uint8_t *pData, int amount, int &x, int &y, int cx, uint8_t
 
 void WriteImageData(sci::ostream &byteStream, const Cel &cel, bool isVGA)
 {
-    WriteImageData(byteStream, cel, isVGA, byteStream, true);
+    WriteImageData(byteStream, cel, isVGA, byteStream, !isVGA);
 }
 
 void WriteImageData(sci::ostream &rleStream, const Cel &cel, bool isVGA, sci::ostream &literalStream, bool writeZero)
@@ -426,8 +427,8 @@ void WriteImageData(sci::ostream &rleStream, const Cel &cel, bool isVGA, sci::os
 
     // For some reason, image data always starts with a 0x00
     // REVIEW: With VGA1.1 it definitely does not. Still need to check VGA1.0
-    // REVIEW: SCI Viewer seems to expect something there though, and when it decodes the pic it is off by one.
-    //  (putting the zero in definitely makes SCI hang though)
+    // REVIEW: I can not find any circumstance in VGA where the image data starts with a zero. So it should always
+    // be off for VGA.
     if (writeZero)
     {
         rleStream.WriteByte(0);
