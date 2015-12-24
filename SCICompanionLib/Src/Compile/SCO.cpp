@@ -649,9 +649,13 @@ unique_ptr<CSCOFile> SCOFromScriptAndCompiledScript(const Script &script, const 
     std::vector<CSCOLocalVariable> &localVars = sco->GetVariables();
     for (auto &localVar : script.GetScriptVariables())
     {
-        CSCOLocalVariable scoLocalVar;
-        scoLocalVar.SetName(localVar->GetName());
-        localVars.push_back(scoLocalVar);
+        localVars.emplace_back(localVar->GetName());
+        uint16_t varSize = localVar->GetSize();
+        while (--varSize)
+        {
+            // unnamed local vars take the place of arrays
+            localVars.emplace_back();
+        }
     }
 
     // Classes

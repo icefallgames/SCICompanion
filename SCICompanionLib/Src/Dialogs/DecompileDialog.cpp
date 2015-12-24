@@ -274,13 +274,18 @@ void DecompileDialog::_PopulateSCOTree()
         index = 0;
         for (auto &variable : _sco->GetVariables())
         {
-            TVINSERTSTRUCT item = {};
-            item.hParent = hVarRoot;
-            item.hInsertAfter = hPrevious;
-            item.item.pszText = const_cast<PSTR>(variable.GetName().c_str());
-            item.item.mask = TVIF_TEXT | TVIF_PARAM;
-            item.item.lParam = _IndexToParam(true, index);
-            hPrevious = m_wndTreeSCO.InsertItem(&item);
+            // Empty variable names in the SCO file are used to indicate the previous one was an array
+            // (and its size)
+            if (!variable.GetName().empty())
+            {
+                TVINSERTSTRUCT item = {};
+                item.hParent = hVarRoot;
+                item.hInsertAfter = hPrevious;
+                item.item.pszText = const_cast<PSTR>(variable.GetName().c_str());
+                item.item.mask = TVIF_TEXT | TVIF_PARAM;
+                item.item.lParam = _IndexToParam(true, index);
+                hPrevious = m_wndTreeSCO.InsertItem(&item);
+            }
             index++;
         }
 

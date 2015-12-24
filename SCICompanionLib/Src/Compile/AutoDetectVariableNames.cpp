@@ -96,16 +96,19 @@ public:
             int index = 0;
             for (CSCOLocalVariable &localVar : scriptSCO->GetVariables())
             {
-                if (decompiledScriptVarIt != script.GetScriptVariables().end())
+                if (!localVar.GetName().empty()) // Empty ones are for padding arrays.
                 {
-                    string stdDecompiledName = (*decompiledScriptVarIt)->GetName();
-                    if (localVar.GetName() != stdDecompiledName)
+                    if (decompiledScriptVarIt != script.GetScriptVariables().end())
                     {
-                        // It must have been given a name, so use it.
-                        SetRenamed(nullptr, stdDecompiledName, localVar.GetName(), false);
+                        string stdDecompiledName = (*decompiledScriptVarIt)->GetName();
+                        if (localVar.GetName() != stdDecompiledName)
+                        {
+                            // It must have been given a name, so use it.
+                            SetRenamed(nullptr, stdDecompiledName, localVar.GetName(), false);
+                        }
+                        index += (*decompiledScriptVarIt)->GetSize();
+                        ++decompiledScriptVarIt;
                     }
-                    index += (*decompiledScriptVarIt)->GetSize();
-                    ++decompiledScriptVarIt;
                 }
             }
         }
