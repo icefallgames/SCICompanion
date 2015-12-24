@@ -93,12 +93,19 @@
     <PostBuildEvent>
       <Command>xcopy /S /Y /I /D "$(ProjectDir)Files\TemplateGame" "$(OutDir)TemplateGame"
 
+
 xcopy /S /Y /I /D "$(ProjectDir)Files\CompileInclude" "$(OutDir)include"
+
 xcopy /S /Y /I /D "$(ProjectDir)Docs\build\html" "$(OutDir)Help"
 
+
 xcopy /S /Y /I /D "$(ProjectDir)Files\Samples" "$(OutDir)Samples"
+
 xcopy /S /Y /I /D "$(ProjectDir)Files\Decompiler" "$(OutDir)Decompiler"
-xcopy /S /Y /I /D "$(ProjectDir)Files\Customization" "$(OutDir)Customization"</Command>
+
+xcopy /S /Y /I /D "$(ProjectDir)Files\Customization" "$(OutDir)Customization"
+xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
+xcopy /S /Y /I /D "$(ProjectDir)Files\Plugins" "$(OutDir)Plugins"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DeadCodeAnalysis|Win32'">
@@ -129,12 +136,19 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Customization" "$(OutDir)Customization"</C
     <PostBuildEvent>
       <Command>xcopy /S /Y /I /D "$(ProjectDir)Files\TemplateGame" "$(OutDir)TemplateGame"
 
+
 xcopy /S /Y /I /D "$(ProjectDir)Files\CompileInclude" "$(OutDir)include"
+
 xcopy /S /Y /I /D "$(ProjectDir)Docs\build\html" "$(OutDir)Help"
 
+
 xcopy /S /Y /I /D "$(ProjectDir)Files\Samples" "$(OutDir)Samples"
+
 xcopy /S /Y /I /D "$(ProjectDir)Files\Decompiler" "$(OutDir)Decompiler"
-xcopy /S /Y /I /D "$(ProjectDir)Files\Customization" "$(OutDir)Customization"</Command>
+
+xcopy /S /Y /I /D "$(ProjectDir)Files\Customization" "$(OutDir)Customization"
+xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
+xcopy /S /Y /I /D "$(ProjectDir)Files\Plugins" "$(OutDir)Plugins"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -169,12 +183,19 @@ xcopy /S /Y /I /D "$(ProjectDir)Files\Customization" "$(OutDir)Customization"</C
     <PostBuildEvent>
       <Command>xcopy /S /Y /I /D "$(ProjectDir)Files\TemplateGame" "$(OutDir)TemplateGame"
 
+
 xcopy /S /Y /I /D "$(ProjectDir)Files\CompileInclude" "$(OutDir)include"
+
 xcopy /S /Y /I /D "$(ProjectDir)Docs\build\html" "$(OutDir)Help"
 
+
 xcopy /S /Y /I /D "$(ProjectDir)Files\Samples" "$(OutDir)Samples"
+
 xcopy /S /Y /I /D "$(ProjectDir)Files\Decompiler" "$(OutDir)Decompiler"
-xcopy /S /Y /I /D "$(ProjectDir)Files\Customization" "$(OutDir)Customization"</Command>
+
+xcopy /S /Y /I /D "$(ProjectDir)Files\Customization" "$(OutDir)Customization"
+xcopy /S /Y /I /D "$(ProjectDir)Files\Objects" "$(OutDir)Objects"
+xcopy /S /Y /I /D "$(ProjectDir)Files\Plugins" "$(OutDir)Plugins"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
