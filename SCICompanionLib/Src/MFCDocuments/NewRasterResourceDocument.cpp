@@ -839,8 +839,16 @@ void CNewRasterResourceDocument::ExportAsGif()
         int colorCount;
         const RGBQUAD *colors;
         const uint8_t *paletteMapping;
-        _GetColors(raster, nullptr, &paletteMapping, &colorCount, &colors);
-
+        if (_currentPaletteComponent)
+        {
+            colorCount = ARRAYSIZE(_currentPaletteComponent->Colors);
+            colors = _currentPaletteComponent->Colors;
+            paletteMapping = _currentPaletteComponent->Mapping;
+        }
+        else
+        {
+            _GetColors(raster, nullptr, &paletteMapping, &colorCount, &colors);
+        }
         SaveCelsAndPaletteToGIFFile(strFileName, raster.Loops[_nLoop].Cels, colorCount, colors, paletteMapping, raster.Loops[_nLoop].Cels[0].TransparentColor);
     }
 }
