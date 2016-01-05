@@ -128,9 +128,7 @@ struct RESOURCEMAPENTRY_SCI0_SCI1LAYOUT : public RESOURCEMAPENTRY_SCI0_BASE<LAYO
 {
 };
 
-//DWORD iOffset : 28;       // Offset within the file resource.iPackageNumber
-//DWORD iPackageNumber : 4; // Specifies which resource.xxx to use.
-
+void ThrowExceptionIfOverflow(uint32_t sizeNeeded, uint32_t sizeAvailable, const char *name);
 
 // header for each entry in resource.xxx
 struct RESOURCEHEADER_SCI0
@@ -161,7 +159,9 @@ struct RESOURCEHEADER_SCI0
     {
         iType = (int)agnostic.Type;
         iNumber = agnostic.Number;
+        ThrowExceptionIfOverflow(agnostic.cbDecompressed, (std::numeric_limits<uint16_t>::max)(), "Size");
         cbDecompressed = (uint16_t)agnostic.cbDecompressed;
+        ThrowExceptionIfOverflow(agnostic.cbCompressed + 4, (std::numeric_limits<uint16_t>::max)(), "Compressed size");
         cbCompressed = (uint16_t)agnostic.cbCompressed + 4;
         iMethod = agnostic.CompressionMethod;
     }
@@ -282,8 +282,12 @@ struct RESOURCEHEADERBASE
     {
         bType = (uint8_t)agnostic.Type | TypeAdornment;
         iNumber = agnostic.Number;
-        cbDecompressed = (_TDataSizeSize)agnostic.cbDecompressed;
-        cbCompressed = (_TDataSizeSize)agnostic.cbCompressed + ((DoesPackageFormatIncludeHeaderInCompressedSize(agnostic.Version)) ? 4 : 0);
+        uint32_t cbDecompressedTemp = agnostic.cbDecompressed;
+        uint32_t cbCompressedTemp = agnostic.cbCompressed + ((DoesPackageFormatIncludeHeaderInCompressedSize(agnostic.Version)) ? 4 : 0);
+        ThrowExceptionIfOverflow(cbDecompressedTemp, (std::numeric_limits<_TDataSizeSize>::max)(), "Size");
+        ThrowExceptionIfOverflow(cbCompressed, (std::numeric_limits<_TDataSizeSize>::max)(), "Compressed size");
+        cbDecompressed = (_TDataSizeSize)cbDecompressedTemp;
+        cbCompressed = (_TDataSizeSize)cbCompressedTemp;
         iMethod = agnostic.CompressionMethod;
     }
 };

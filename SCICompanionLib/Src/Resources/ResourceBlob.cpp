@@ -20,6 +20,7 @@
 #include "crc.h"
 #include "ResourceBlob.h"
 #include <atomic>
+#include "format.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -703,4 +704,10 @@ bool operator==(const ResourceMapEntryAgnostic &one, const ResourceMapEntryAgnos
         one.Base36Number == two.Base36Number;
 }
 
-
+void ThrowExceptionIfOverflow(uint32_t sizeNeeded, uint32_t sizeAvailable, const char *name)
+{
+    if (sizeNeeded > sizeAvailable)
+    {
+        throw std::exception(fmt::format("{} ({} bytes) is too large for this version of SCI. Reduce the size to {} bytes or less.", name, sizeNeeded, sizeAvailable).c_str());
+    }
+}
