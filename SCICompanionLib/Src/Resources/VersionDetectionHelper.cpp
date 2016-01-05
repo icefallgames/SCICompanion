@@ -71,6 +71,12 @@ ViewFormat CResourceMap::_DetectViewVGAVersion()
 
 ResourcePackageFormat CResourceMap::_DetectPackageFormat()
 {
+    // Some early bailouts:
+    if (_gameFolderHelper.Version.MapFormat == ResourceMapFormat::SCI11)
+    {
+        return ResourcePackageFormat::SCI11;
+    }
+
     FileDescriptorResourceMap resourceMapFileDescriptor(_gameFolderHelper.GameFolder);
     
     ResourcePackageFormat packageFormat = ResourcePackageFormat::SCI0;
