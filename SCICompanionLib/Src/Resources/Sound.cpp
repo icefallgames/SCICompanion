@@ -1479,16 +1479,16 @@ void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream, const st
                         // Flag 0x1:    Channel offset start is 0 instead of 10 (?) (haven't encountered this yet)
                         // Flag 0x2:    Prevent re-mapping (commonly set on 9)
                         // Flag 0x4:    Start muted (?)
+
+                        // Now we're ready to read the channel data?
+                        int chanNum = channelInfo.Number;
+                        DWORD totalTicks;
+                        ReadChannel(channelStream, channelInfo.Events, totalTicks, sound, &chanNum);
+                        sound.TotalTicks = max(sound.TotalTicks, totalTicks);
                     }
 
                     assert((!encounteredChannel15 || (channelInfo.Number != 15)) && "Encountered two channel 15s");
                     encounteredChannel15 = (channelInfo.Number == 15);
-
-                    // Now we're ready to read the channel data?
-                    int chanNum = channelInfo.Number;
-                    DWORD totalTicks;
-                    ReadChannel(channelStream, channelInfo.Events, totalTicks, sound, &chanNum);
-                    sound.TotalTicks = max(sound.TotalTicks, totalTicks);
 
                     dataOffsetToChannelId[dataOffset] = channelInfo.Id;
                     dataOffsetToSize[dataOffset] = dataSize;
