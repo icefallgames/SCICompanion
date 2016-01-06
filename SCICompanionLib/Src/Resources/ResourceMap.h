@@ -14,7 +14,6 @@
 
 #pragma once
 #include "GameFolderHelper.h"
-#include "CompiledScript.h"
 #include "ResourceEntity.h"
 #include "TalkerToViewMap.h"
 

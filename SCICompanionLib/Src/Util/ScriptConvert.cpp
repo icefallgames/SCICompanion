@@ -22,6 +22,7 @@
 #include "CompileInterfaces.h"
 #include "GameFolderHelper.h"
 #include "ResourceMap.h"
+#include "CompiledScript.h"
 #include <regex>
 
 using namespace sci;

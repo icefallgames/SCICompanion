@@ -18,6 +18,7 @@ namespace sci
 {
     class ClassDefinition;
     class MethodDefinition;
+    class Script;
 }
 
 extern const char c_szUnnamedObject[];

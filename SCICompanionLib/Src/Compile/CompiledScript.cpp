@@ -22,6 +22,8 @@
 #include "PMachine.h"
 #include "ResourceBlob.h"
 
+const uint16_t KQ5CD_BadExport = 0xfffe;
+
 using namespace std;
 using namespace sci;
 
@@ -66,7 +68,8 @@ bool CompiledScript::IsExportAnObject(uint16_t wOffset) const
 }
 bool CompiledScript::IsExportAProcedure(uint16_t wOffset, int *exportIndex) const
 {
-    bool result = !IsExportAnObject(wOffset) && (wOffset != 0);
+    // KQ5-CD has scr patch files (e.g. 0.scr) that contain 0xfffe as offsets. Ignore them.
+    bool result = !IsExportAnObject(wOffset) && (wOffset != 0) && (wOffset != KQ5CD_BadExport);
     if (result && exportIndex)
     {
         *exportIndex = find(_exportsTO.begin(), _exportsTO.end(), wOffset) - _exportsTO.begin();

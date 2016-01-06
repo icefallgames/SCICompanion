@@ -185,6 +185,8 @@ enum class CompiledScriptFlags
 };
 DEFINE_ENUM_FLAGS(CompiledScriptFlags, int)
 
+extern const uint16_t KQ5CD_BadExport;
+
 //
 // This represents all the information in a compiled script resources
 //

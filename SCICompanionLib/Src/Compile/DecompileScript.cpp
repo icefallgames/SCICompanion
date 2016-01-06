@@ -455,7 +455,7 @@ Script *Decompile(const GameFolderHelper &helper, const CompiledScript &compiled
             DecompileFunction(compiledScript, *pProc, lookups, exportPointer, codePointersTO);
             pScript->AddProcedure(std::move(pProc));
         }
-        else if (exportPointer == 0)
+        else if ((exportPointer == 0) || (exportPointer == KQ5CD_BadExport))
         {
             // Valid.
         }
