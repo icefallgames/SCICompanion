@@ -861,11 +861,11 @@ bool KernelTable::Load(const GameFolderHelper &helper)
 
 bool GlobalClassTable::Load(const GameFolderHelper &helper)
 {
-    bool fRet = false;
-    unique_ptr<ResourceBlob> blob(_GetVocabData(helper, VocabClassTable));
-    if (blob)
+    SpeciesTable speciesTable;
+    bool fRet = speciesTable.Load(helper);
+    if (fRet)
     {
-        fRet = _Create(blob->GetReadStream());
+        fRet = _Create(speciesTable);
     }
     if (!fRet)
     {
@@ -874,7 +874,7 @@ bool GlobalClassTable::Load(const GameFolderHelper &helper)
     return fRet;
 }
 
-bool GlobalClassTable::_Create(sci::istream &byteStream)
+bool GlobalClassTable::_Create(const SpeciesTable &speciesTable)
 {
     // Collect the heap/script pairs first, since fetching the heap individually for each script is a performance issue.
     // Patch files win out.
@@ -926,9 +926,21 @@ bool GlobalClassTable::_Create(sci::istream &byteStream)
                     if (!compiledObject->IsInstance())
                     {
                         uint16_t species = compiledObject->GetSpecies();
-                        _nameToSpecies[compiledObject->GetName()] = species;
-                        _speciesToScriptNumber[species] = scriptNumber;
-                        _speciesToCompiledObjectWeak[species] = compiledObject.get(); // Owned by _scripts
+
+                        uint16_t statedScript, scriptPos;
+                        if (speciesTable.GetSpeciesLocation(species, statedScript, scriptPos) &&
+                            (statedScript == scriptNumber))
+                        {
+                            _nameToSpecies[compiledObject->GetName()] = species;
+                            _speciesToScriptNumber[species] = scriptNumber;
+                            _speciesToCompiledObjectWeak[species] = compiledObject.get(); // Owned by _scripts
+                        }
+                        else
+                        {
+                            // Some games have scripts with classed defined in them which aren't in the global class table.
+                            // These are probably leftovers that were never removed from the game (e.g. script 997 in KQ5CD)
+                            appState->LogInfo("Ignoring class %d since it's not in the class table.", compiledObject->GetName().c_str());
+                        }
                     }
                 }
             }

@@ -90,6 +90,7 @@ protected:
 
 // fwd decl
 class CompiledScript;
+class SpeciesTable;
 
 //
 // Given a "class #", returns the script that it is in.
@@ -116,7 +117,7 @@ public:
     bool GetSpeciesScriptNumber(uint16_t species, uint16_t &scriptNumber);
 
 private:
-    bool _Create(sci::istream &byteStream);
+    bool _Create(const SpeciesTable &speciesTable);
 
     std::unordered_map<std::string, uint16_t> _nameToSpecies;
     std::unordered_map<uint16_t, uint16_t> _speciesToScriptNumber;
