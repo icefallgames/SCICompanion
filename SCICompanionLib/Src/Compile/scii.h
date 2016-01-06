@@ -100,6 +100,7 @@ public:
     bool is_conditional_branch_instruction();
 
     static uint16_t GetInstructionSize(const SCIVersion &version, uint8_t rawOpcode);
+    static uint16_t GetInstructionArgumentSize(const SCIVersion &version, uint8_t rawOpcode);
 
 private:
     bool _is_label_instruction();

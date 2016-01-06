@@ -257,4 +257,4 @@ private:
 };
 
 int GetOperandSize(BYTE bOpcode, OperandType operandType, const uint8_t *pNext);
-uint16_t CalcOffset(uint16_t wOperandStart, uint16_t wRelOffset, bool bByte, BYTE bRawOpcode);
+uint16_t CalcOffset(const SCIVersion &version, uint16_t wOperandStart, uint16_t wRelOffset, bool bByte, BYTE bRawOpcode);

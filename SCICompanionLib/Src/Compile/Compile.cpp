@@ -1909,32 +1909,18 @@ CodeResult Assignment::OutputByteCode(CompileContext &context) const
             // Get rid of this... we'll just use the adjusted the index.
             pIndexer = nullptr;
         }
-        ocWhereWePutValue = (pIndexer != nullptr) ? OC_Stack : OC_Accumulator;
-        bool fValueOnStack = (ocWhereWePutValue == OC_Stack);
+        ocWhereWePutValue = OC_Accumulator; // Always the accumulator.
+        bool fValueWasOnStack;
         // Write the value
         {
-            // Scope the context
-            COutputContext accContext(context, ocWhereWePutValue);
+            // Scope the context. If we're indexed, we'll ask to put the value on the stack, since the
+            // accumulator will be used for the index.
+            fValueWasOnStack = (pIndexer != nullptr);
+            COutputContext accContext(context, fValueWasOnStack ? OC_Stack : OC_Accumulator);
             wValueType = _statement1->OutputByteCode(context).GetType();
         }
 
-        // If we put the value on the stack, we'll need to make a copy of it if it is used by the caller
-        // (since we'll use it up)
-        // We'll make an assumption that the caller wants it if the output context is the stack.
-        if (context.GetOutputContext() == OC_Stack) // This if had been commented out, causing this problem: http://sciprogramming.com/community/index.php?topic=1063.0
-        {
-            if (ocWhereWePutValue == OC_Stack)
-            {
-                WriteSimple(context, Opcode::DUP);
-            }
-        }
-        // REVIEW: So this won't work if the caller wants the value, but wants it on the accumulator.  That
-        // means this doesn't work:  (= foo (= myVar[send gEgo:x] 6))
-        // Rare scenario, but worth noting.
-
         // Now actually write the assignment
-        // We'll take the value either from the stack or accumulator.
-        BYTE bOpcodeMod = VO_STORE | (fValueOnStack ? VO_STACK : VO_ACC);
 
         // Now figure out the correct instruction to use and write it.
         // Get information about the variable descriptor
@@ -1944,10 +1930,17 @@ CodeResult Assignment::OutputByteCode(CompileContext &context) const
         case ResolvedToken::ScriptVariable:
         case ResolvedToken::Parameter:
         case ResolvedToken::TempVariable:
-            VariableOperand(context, wIndex, TokenTypeToVOType(tokenType) | bOpcodeMod, pIndexer);
+        {
+            // We always use the accumulator version of the store opcodes. The value being stored is still
+            // put on the stack in the increment case, even if VO_ACC is used. The difference is that in the indexed
+            // case, we want the value put on the accumulator after the accumulator is used for indexing. The
+            // stack versions of the store opcodes don't do that.
+            VariableOperand(context, wIndex, TokenTypeToVOType(tokenType) | VO_STORE | VO_ACC, pIndexer);
+        }
             break;
         case ResolvedToken::ClassProperty:
-            StoreProperty(context, wIndex, fValueOnStack);
+            assert(pIndexer == nullptr || context.HasErrors());
+            StoreProperty(context, wIndex, false);  // false -> accumulator
             break;
         }
 
@@ -1961,19 +1954,14 @@ CodeResult Assignment::OutputByteCode(CompileContext &context) const
     // We're almost done.  The value needs to be returned too.
     if (context.GetOutputContext() != ocWhereWePutValue)
     {
-        if (ocWhereWePutValue == OC_Stack)
-        {
-            // REVIEW:
-            // The value needs to be in the accumulator, but we don't really know if the caller
-            // actually needs the value.  It's rare that they do.  (= foo (= myVar[send gEgo:x] 6))
-        }
-        else if (ocWhereWePutValue == OC_Accumulator)
+        if (ocWhereWePutValue == OC_Accumulator)
         {
             // It's in the accumulator, but needs to be on the stack.
             WriteSimple(context, Opcode::PUSH);
         }
         else
         {
+            assert(ocWhereWePutValue != OC_Stack);
             // OC_Unknown.  A rare case, not worth getting to work.
         }
     }

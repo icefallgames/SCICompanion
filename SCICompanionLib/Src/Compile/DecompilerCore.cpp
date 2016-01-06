@@ -181,7 +181,7 @@ const BYTE *_ConvertToInstructions(DecompileLookups &lookups, std::list<scii> &c
         if ((bOpcode == Opcode::BNT) || (bOpcode == Opcode::BT) || (bOpcode == Opcode::JMP))
         {
             // +1 because its the operand start pos.
-            WORD wTarget = CalcOffset(wReferencePosition + 1, wOperands[0], bByte, bRawOpcode);
+            WORD wTarget = CalcOffset(lookups.GetVersion(), wReferencePosition + 1, wOperands[0], bByte, bRawOpcode);
             code.push_back(scii(sciVersion, bOpcode, undetermined, true));
             bool fForward = (wTarget > wReferencePosition);
             Fixup fixup = { get_cur_pos(code), wTarget, fForward };

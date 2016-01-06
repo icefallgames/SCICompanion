@@ -175,7 +175,7 @@ void DisassembleCode(SCIVersion version, std::ostream &out, ICompiledScriptLooku
                         // This is a branch instruction.  Figure out the offset.
                         // The relative offset is either a byte or word, and is calculated post instruction
                         // (hence we add 1 or 2 to our calculation)
-                        codeLabelOffsets.insert(CalcOffset(wOperandStart, (bByte ? ((uint16_t)*pCur) : (*((uint16_t*)pCur))), bByte, bRawOpcode));
+                        codeLabelOffsets.insert(CalcOffset(version, wOperandStart, (bByte ? ((uint16_t)*pCur) : (*((uint16_t*)pCur))), bByte, bRawOpcode));
                     }
                 }
 
@@ -224,7 +224,7 @@ void DisassembleCode(SCIVersion version, std::ostream &out, ICompiledScriptLooku
                             }
                             else
                             {
-                                wOperands[i] = CalcOffset(wOperandStart, wOperandsRaw[i], bByte, bRawOpcode);
+                                wOperands[i] = CalcOffset(version, wOperandStart, wOperandsRaw[i], bByte, bRawOpcode);
                             }
                             out << "$" << setw(4) << setfill('0') << wOperands[i];
                             break;
@@ -256,7 +256,7 @@ void DisassembleCode(SCIVersion version, std::ostream &out, ICompiledScriptLooku
 
                         case otLABEL:
                             // This is a relative position from the post pc
-                            out << ((bOpcode == Opcode::CALL) ? "proc" : "code") << "_" << setw(4) << setfill('0') << CalcOffset(wOperandStart, wOperands[i], bByte, bRawOpcode);
+                            out << ((bOpcode == Opcode::CALL) ? "proc" : "code") << "_" << setw(4) << setfill('0') << CalcOffset(version, wOperandStart, wOperands[i], bByte, bRawOpcode);
                             break;
 
                         case otDEBUGSTRING:

@@ -144,6 +144,11 @@ uint16_t scii::GetInstructionSize(const SCIVersion &version, uint8_t rawOpcode)
     return _get_instruction_size(version, opcode, (rawOpcode & 1) ? Byte : Word);
 }
 
+uint16_t scii::GetInstructionArgumentSize(const SCIVersion &version, uint8_t rawOpcode)
+{
+    return GetInstructionSize(version, rawOpcode) - 1;
+}
+
 uint16_t scii::_get_instruction_size(const SCIVersion &version, Opcode bOpcode, OPSIZE opSize)
 {
     assert(opSize != Undefined);

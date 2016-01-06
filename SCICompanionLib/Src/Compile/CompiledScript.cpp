@@ -928,18 +928,15 @@ bool CompiledScript::_ReadStrings(sci::istream &stream, uint16_t wDataSize)
     return stream.good();
 }
 
-uint8_t g_OpcodeArgByteCount[256];
-bool g_OpArgsInitialized = false;
-
 //
 // Calculate the offset wRelOffset from wHere, where wHere is the current location
 // of the last operand in an instruction.  1 or 2 will be added to it prior to
 // calculating the offset.
 //
-uint16_t CalcOffset(uint16_t wOperandStart, uint16_t wRelOffset, bool bByte, BYTE bRawOpcode)
+uint16_t CalcOffset(const SCIVersion &version, uint16_t wOperandStart, uint16_t wRelOffset, bool bByte, BYTE bRawOpcode)
 {
     // Move to the pc post instruction.
-    uint16_t wResult = wOperandStart + g_OpcodeArgByteCount[bRawOpcode];
+    uint16_t wResult = wOperandStart + scii::GetInstructionArgumentSize(version, bRawOpcode);
     if (bByte)
     {
         if (wRelOffset >= 0x0080)
@@ -973,17 +970,6 @@ void CompiledScript::PopulateSaidStrings(const ILookupNames *pWords) const
 //
 set<uint16_t> CompiledScript::FindInternalCallsTO() const
 {
-    if (!g_OpArgsInitialized)
-    {
-        for (int i = 0; i < 256; i++)
-        {
-            int argumentByteCount = scii::GetInstructionSize(_version, (uint8_t)i) - 1;
-            g_OpcodeArgByteCount[i] = (uint8_t)argumentByteCount;
-        }
-        g_OpArgsInitialized = true;
-    }
-
-
     set<uint16_t> wOffsets;
     for (size_t i = 0; i < _codeSections.size(); i++)
     {
@@ -1004,12 +990,13 @@ set<uint16_t> CompiledScript::FindInternalCallsTO() const
                 {
                     // This is one. The first operand is a word or byte
                     wRelOffset = (bByte ? ((uint16_t)*pCur) : (uint16_t)*pCur + (((uint16_t)*(pCur + 1)) << 8));
-                    uint16_t theOffset = CalcOffset(wCurrentOffsetTO, wRelOffset, bByte, bRawOpcode);
+                    uint16_t theOffset = CalcOffset(_version, wCurrentOffsetTO, wRelOffset, bByte, bRawOpcode);
                     wOffsets.insert(wOffsets.end(), theOffset);
                 }
                 // Skip past to the next instruction
-                pCur += g_OpcodeArgByteCount[bRawOpcode];
-                wCurrentOffsetTO += g_OpcodeArgByteCount[bRawOpcode];
+                uint16_t argumentByteCount = scii::GetInstructionArgumentSize(_version, bRawOpcode);
+                pCur += argumentByteCount;
+                wCurrentOffsetTO += argumentByteCount;
             }
         }
     }
