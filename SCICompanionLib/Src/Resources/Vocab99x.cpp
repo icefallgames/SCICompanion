@@ -1254,9 +1254,7 @@ std::string CVocabWithNames::Lookup(uint16_t wName) const
 
 std::string KernelTable::_GetMissingName(uint16_t wName) const
 {
-    char sz[100];
-    StringCchPrintf(sz, ARRAYSIZE(sz), "kernel[%d]", wName);
-    return sz;
+    return fmt::format("kernel_{0}", wName);
 }
 
 //

@@ -29,6 +29,7 @@
 #include "CCrystalTextBuffer.h"
 #include "CrystalScriptStream.h"
 #include "PMachine.h"
+#include "StringUtil.h"
 
 using namespace sci;
 using namespace std;
@@ -573,6 +574,8 @@ const ClassDefinition *CompileContext::LookupClassDefinition(const std::string &
 	return match_name(_script.GetClasses(), name);
 }
 
+const std::string UndeclaredKernelPrefix = "kernel_";
+
 // Look up a string and map it to a procedure.  Return the script and index of the procedure, where appropraite
 // Script are looked up in this order:
 // ProcedureKernel:     wIndex
@@ -624,6 +627,15 @@ ProcedureType CompileContext::LookupProc(const string &str, WORD &wScript, WORD 
             }
         }
     }
+
+    // One final thing... we'll allow kernel_nnn for undeclared kernels as an escape valve.
+    if ((type == ProcedureUnknown) && startsWith(str, UndeclaredKernelPrefix))
+    {
+        int valueFromString = StrToInt(str.substr(UndeclaredKernelPrefix.length()).c_str());
+        wIndex = (uint16_t)valueFromString;
+        type = ProcedureKernel;
+    }
+
     return type;
 }
 ProcedureType CompileContext::LookupProc(const std::string &str)

@@ -102,3 +102,5 @@ std::string Unindent(const std::string &in, int *minTabCountOut = nullptr)
 }
 
 std::string Indent(const std::string &in);
+
+bool startsWith(const std::string &text, const std::string &prefix);
