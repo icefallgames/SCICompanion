@@ -168,7 +168,7 @@ public:
 
             if (pushToMain && _IsUndeterminedGlobalScope(original))
             {
-                _PushToMain(original, suggestion);
+                _PushToMain(original, finalSuggestion);
             }
         }
     }
