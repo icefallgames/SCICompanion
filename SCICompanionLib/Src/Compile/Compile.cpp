@@ -2178,11 +2178,15 @@ CodeResult BinaryOp::OutputByteCode(CompileContext &context) const
             }
             else
             {
+                // There's no reason to prevent operations here. Everything is a number. KQ5CD decompilation hits
+                // this in script 55, when a number is multiplied with a boolean operation.
+#ifdef NOT_TRUE
                 // If this is not a boolean operation, then the types should match.
                 if (!DoesTypeMatch(context, wTypeLeft, wTypeRight, &Operator))
                 {
                     context.ReportTypeError(this, wTypeLeft, wTypeRight, "'%s' cannot be compared with '%s'.");
                 }
+#endif
             }
 
             WORD wBytesUsed = PushToStackIfAppropriate(context);

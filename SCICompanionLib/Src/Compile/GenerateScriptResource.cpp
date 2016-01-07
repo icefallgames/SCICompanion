@@ -279,10 +279,10 @@ void _WriteClassOrInstance(const CSCOObjectClass &object, bool fInstance, vector
 
     // This is where code that has offsets to this instance should point to (for some reason)
     WORD wObjectPointer = (WORD)output.size();
+    // So tell that code to point here.
+    pContext->WroteSource(pContext->GetTempToken(ValueType::Token, object.GetName()), wObjectPointer);
     if (fInstance)
     {
-        // So tell that code to point here.
-        pContext->WroteSource(pContext->GetTempToken(ValueType::Token, object.GetName()), wObjectPointer);
         if (object.IsPublic())
         {
             // If it's public, we need to put this in the export table.
