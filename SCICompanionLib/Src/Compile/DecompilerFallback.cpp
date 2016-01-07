@@ -309,7 +309,17 @@ void DisassembleFallback(FunctionBase &func, code_pos start, code_pos end, Decom
 
                 case Opcode::CLASS:
                 {
-                    _AddToken(*asmStatement, lookups.LookupClassName(cur->get_first_operand()));
+                    std::string className = lookups.LookupClassName(cur->get_first_operand());
+                    if (!className.empty())
+                    {
+                        _AddToken(*asmStatement, className);
+                    }
+                    else
+                    {
+                        // This may be "unused" code that refers to a class no longer in the game.
+                        // In that case, just use the class number.
+                        _AddNumber(*asmStatement, &valueWeak, cur->get_first_operand());
+                    }
                     break;
                 }
 
