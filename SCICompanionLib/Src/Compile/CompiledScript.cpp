@@ -1070,6 +1070,32 @@ bool CompiledScript::LookupObjectName(uint16_t wOffset, ObjectType &type, std::s
         }
     }
 
+    // Certain Sierra games (e.g. KQ5CD, SQ4, Xmas 1990 VGA to name a few) have offsets into the middle of strings in the string
+    // table. This is partially due to the way we read in the string table, and due to the way Sierra compilers wrote out the string table.
+    // We assume a series of null-terminated strings, but an empty string was different. For example, "ABC", "", and "DEF" would look like this:
+    // ABC\0\0\\?DEF
+    // That is, an empty string would be followed by one garbage character. Sierra's compiler apparently always output at least two bytes for a string
+    // even if it was empty.
+    // When we read in the string table, we instead see a garbage character preceding the next string.
+    // In the following example, there is a 'C' character in front of PrintD, following an empty string:
+    //
+    //    000014b0: 05 00 44 00 44 54 65 78 - 74 00 44 49 63 6f 6e 00  ..D.DText.DIcon.
+    //    000014c0 : 44 42 75 74 74 6f 6e 00 - 4d 00 44 45 64 69 74 00  DButton.M.DEdit.
+    //    000014d0 : 44 53 65 6c 65 63 74 6f - 72 00 44 69 61 6c 6f 67  DSelector.Dialog
+    //    000014e0 : 00 43 6f 6e 74 72 6f 6c - 73 00 00 43 50 72 69 6e.Controls..CPrin
+    //    000014f0 : 74 44 00 00 09 00 04 00 - 08 00 14 00 07 00 90 03  tD..............
+    //
+    // So in that case, let's see if the offset is equal to one of the string offsets plus one, and then use that substring
+    for (size_t i = 0; i < _stringsOffset.size(); i++)
+    {
+        if ((_stringsOffset[i] + 1) == wOffset)
+        {
+            type = ObjectTypeString;
+            name = _strings[i].substr(1);
+            return true;
+        }
+    }
+
     return false;
 }
 
