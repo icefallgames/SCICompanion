@@ -278,9 +278,11 @@ public:
     std::vector<SpeciesIndex> GetReturnValueTypes();
     void SetVariableModifier(VariableModifier modifier);
     VariableModifier GetVariableModifier();
-    void PushSendCallType(SpeciesIndex wType);
+    void PushSendCallType(SpeciesIndex wType, const std::string &typeName);
     void PopSendCallType();
-    SpeciesIndex GetSendCalleeType();
+    SpeciesIndex GetSendCalleeType(std::string &objectName);
+    bool DoesScriptObjectHaveMethod(const std::string &objectName, const std::string &selector);
+    void ScanObjectMethod(const std::string &objectName, const std::string &selector);
 
     // Other public functions
     std::vector<call_pair> &GetCalls();
@@ -314,6 +316,10 @@ private:
     const IVariableLookupContext *_pClassProperties;
     // Type of the target object of the current send call
     std::stack<SpeciesIndex> _sendCallType;
+    std::stack<std::string> _sendCallTypeName;
+
+    // For error-checking
+    std::unordered_map<std::string, std::unordered_set<std::string>> _objectMethods;
 
     std::vector<std::string> _errors;
 

@@ -951,17 +951,33 @@ VariableModifier CompileContext::GetVariableModifier()
 {
     return _modifier;
 }
-void CompileContext::PushSendCallType(SpeciesIndex wType)
+void CompileContext::PushSendCallType(SpeciesIndex wType, const std::string &typeName)
 {
     _sendCallType.push(wType);
+    _sendCallTypeName.push(typeName);
 }
 void CompileContext::PopSendCallType()
 {
     _sendCallType.pop();
+    _sendCallTypeName.pop();
 }
-SpeciesIndex CompileContext::GetSendCalleeType()
+SpeciesIndex CompileContext::GetSendCalleeType(std::string &objectName)
 {
+    objectName = _sendCallTypeName.top();
     return _sendCallType.top();
+}
+bool CompileContext::DoesScriptObjectHaveMethod(const std::string &objectName, const std::string &selector)
+{
+    auto itFind = _objectMethods.find(objectName);
+    if (itFind != _objectMethods.end())
+    {
+        return itFind->second.find(selector) != itFind->second.end();
+    }
+    return false;
+}
+void CompileContext::ScanObjectMethod(const std::string &objectName, const std::string &selector)
+{
+    _objectMethods[objectName].insert(selector);
 }
 
 // Other public functions

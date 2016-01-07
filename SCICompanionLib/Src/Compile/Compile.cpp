@@ -442,9 +442,9 @@ private:
 class SendTargetSpeciesIndex
 {
 public:
-    SendTargetSpeciesIndex(CompileContext &context, SpeciesIndex wSpecies) : _context(context)
+    SendTargetSpeciesIndex(CompileContext &context, SpeciesIndex wSpecies, const std::string &typeName) : _context(context)
     {
-        _context.PushSendCallType(wSpecies);
+        _context.PushSendCallType(wSpecies, typeName);
     }
     ~SendTargetSpeciesIndex()
     {
@@ -1399,7 +1399,9 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
         code_insertion_point insertionPoint(context, putParameterCodeBeforeHere);
 
         assert(wObjectSpecies != DataTypeInvalid);
-        SendTargetSpeciesIndex objectSpecies(context, wObjectSpecies); // Let the sendparams know whom they're calling.
+        // Let the sendparams know whom they're calling. However, use "DataTypeAny" in the case of self, because a call to self
+        // might be a call on a subclass of ourselves. In that case, we can't know which properties or methods it supports.
+        SendTargetSpeciesIndex objectSpecies(context, (bOpSend == Opcode::SELF) ? DataTypeAny : wObjectSpecies, GetTargetName());
         COutputContext stackContext(context, OC_Stack); // Ensure parameters are pushed on the stack.
 
         GenericOutputByteCode2<SendParam> gobcResult = for_each(_params.begin(), _params.end(), GenericOutputByteCode2<SendParam>(context));
@@ -1519,7 +1521,8 @@ CodeResult SendParam::OutputByteCode(CompileContext &context) const
 
     if (fApplyTypeChecking)
     {
-        SpeciesIndex calleeSpecies = context.GetSendCalleeType();
+        std::string typeName;
+        SpeciesIndex calleeSpecies = context.GetSendCalleeType(typeName);
         // Get the signatures for this method (or property)
 
         SpeciesIndex propertyType;
@@ -1563,8 +1566,14 @@ CodeResult SendParam::OutputByteCode(CompileContext &context) const
             // We need some way for code to call specific methods on something, so this will be it
             // (e.g. by casting to var).
             // REVIEW: a strongly-typed alternative would be support for interfaces.
-            std::string objectTypeString = context.SpeciesIndexToDataTypeString(calleeSpecies);
-            context.ReportError(this, "%s is not a property or method on type '%s'.", GetSelectorName().c_str(), objectTypeString.c_str());
+
+            // Before generating an error here, see if typeName is an instance in the current script. Instances can define
+            // their own methods.
+            if (!context.DoesScriptObjectHaveMethod(typeName, GetSelectorName()))
+            {
+                std::string objectTypeString = context.SpeciesIndexToDataTypeString(calleeSpecies);
+                context.ReportError(this, "%s is not a property or method on type '%s'.", GetSelectorName().c_str(), objectTypeString.c_str());
+            }
         }
     }
 
@@ -3242,6 +3251,12 @@ void ClassDefinition::PreScan(CompileContext &context)
 
     ForwardPreScan2(_properties, context);
     ForwardPreScan2(_methods, context);
+
+    // For error-checking.
+    for (auto &method : _methods)
+    {
+        context.ScanObjectMethod(GetName(), method->GetName());
+    }
 }
 
 CodeResult ClassDefinition::OutputByteCode(CompileContext &context) const
