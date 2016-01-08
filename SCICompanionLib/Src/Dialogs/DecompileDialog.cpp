@@ -36,10 +36,14 @@ using namespace std;
 DecompileDialog::DecompileDialog(CWnd* pParent /*=NULL*/)
     : CExtResizableDialog(DecompileDialog::IDD, pParent), previousSelection(-1), _inScriptListLabelEdit(false), _inSCOLabelEdit(false), initialized(false), _helper(appState->GetResourceMap().Helper())
 {
-    if (_helper.GetDefaultGameLanguage() == LangSyntaxUnknown)
+    // If we already have a game.ini, great, we'll honor that.
+    string gameIniFile = appState->GetResourceMap().Helper().GetGameIniFileName();
+    if (!PathFileExists(gameIniFile.c_str()))
     {
-        _helper.Language = LangSyntaxStudio;
+        // But if not, set the default language to Sierra syntax.
+        appState->GetResourceMap().SetGameLanguage(LangSyntaxSCI);
     }
+    _helper.Language = appState->GetResourceMap().Helper().Language;
 }
 
 BOOL DecompileDialog::OnInitDialog()

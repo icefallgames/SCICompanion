@@ -1128,6 +1128,11 @@ void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBe
             }
         }
     }
+    else
+    {
+        func.AddSignature(std::make_unique<FunctionSignature>());
+        func.AddStatement(std::make_unique<sci::PropertyValue>("CorruptFunction_CantDetermineCodeBounds", ValueType::Token));
+    }
     
     if (!success && !lookups.DecompileResults().IsAborted() && discoveredEnd)
     {
