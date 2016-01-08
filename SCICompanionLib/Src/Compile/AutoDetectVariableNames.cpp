@@ -44,9 +44,46 @@ bool _IsUndetermined(const std::string &suggestion)
         _IsUndeterminedFunctionScope(suggestion);
 }
 
-struct TwoWayMap
+class TwoWayMap
 {
+public:
+    void Set(const std::string &original, const std::string &finalSuggestion)
+    {
+        originalToRename[original] = finalSuggestion;
+        renameToOriginal[finalSuggestion] = original;
+    }
+    std::string Get(const std::string &original)
+    {
+        auto it = originalToRename.find(original);
+        if (it != originalToRename.end())
+        {
+            return it->second;
+        }
+        return original;
+    }
+
     unordered_map<string, string> originalToRename;
+    unordered_map<string, string> renameToOriginal;
+};
+
+class TwoWayMapHelper
+{
+public:
+    bool IsAlreadyRenamed(const std::string &original) const
+    {
+        auto it = originals.find(original);
+        return (it != originals.end());
+    }
+    bool IsAlreadyUsed(const std::string &finalSuggestion) const
+    {
+        return renameToOriginal.find(finalSuggestion) != renameToOriginal.end();
+    }
+    bool IsOriginalTheSame(const std::string &finalSuggestion, const std::string &original) const
+    {
+        return renameToOriginal.find(finalSuggestion)->second == original;
+    }
+
+    unordered_set<string> originals;
     unordered_map<string, string> renameToOriginal;
 };
 
@@ -138,9 +175,8 @@ public:
     void SetRenamed(FunctionBase *functionContext, const string &original, const string &suggestion, bool pushToMain = true)
     {
         TwoWayMap &twoWayMap = GetMap(functionContext, original);
-        // If this guy has already been renamed, use what we have already
-        auto it = twoWayMap.originalToRename.find(original);
-        if (it != twoWayMap.originalToRename.end())
+        const TwoWayMapHelper twoWayMapHelper = GetMapHelper(functionContext, original);
+        if (twoWayMapHelper.IsAlreadyRenamed(original))
         {
             return;
         }
@@ -149,10 +185,10 @@ public:
             // Otherwise, use the suggestion. Unless the suggestion has already been used for something else.
             int suffix = 2;
             string finalSuggestion = suggestion;
-            while (twoWayMap.renameToOriginal.find(finalSuggestion) != twoWayMap.renameToOriginal.end())
+            while (twoWayMapHelper.IsAlreadyUsed(finalSuggestion))
             {
                 // Someone has already suggested this. That's fine if it matches the original.
-                if (twoWayMap.renameToOriginal[finalSuggestion] == original)
+                if (twoWayMapHelper.IsOriginalTheSame(finalSuggestion, original))
                 {
                     return;
                 }
@@ -163,8 +199,7 @@ public:
 
             // First time this has been suggested.
             _dirty = true;
-            twoWayMap.originalToRename[original] = finalSuggestion;
-            twoWayMap.renameToOriginal[finalSuggestion] = original;
+            twoWayMap.Set(original, finalSuggestion);
 
             if (pushToMain && _IsUndeterminedGlobalScope(original))
             {
@@ -176,12 +211,7 @@ public:
     string GetRenamed(FunctionBase *functionContext, const string &original)
     {
         TwoWayMap &twoWayMap = GetMap(functionContext, original);
-        auto it = twoWayMap.originalToRename.find(original);
-        if (it != twoWayMap.originalToRename.end())
-        {
-            return it->second;
-        }
-        return original;
+        return twoWayMap.Get(original);
     }
 
     void ClearDirty() { _dirty = false;  }
@@ -199,6 +229,45 @@ private:
         {
             return localMap;
         }
+    }
+
+    const TwoWayMapHelper GetMapHelper(FunctionBase *functionContext, const string &original)
+    {
+        TwoWayMapHelper helper;
+        if (_IsUndeterminedFunctionScope(original))
+        {
+            assert(functionContext && "Function scope variable not in a function");
+            // A temp var needs to be checked against local and the current map
+            for (auto &oToNPair : functionMaps[functionContext].originalToRename)
+            {
+                helper.originals.insert(oToNPair.first);
+                helper.renameToOriginal[oToNPair.second] = oToNPair.first;
+            }
+            for (auto &oToNPair : localMap.originalToRename)
+            {
+                helper.originals.insert(oToNPair.first);
+                helper.renameToOriginal[oToNPair.second] = oToNPair.first;
+            }
+        }
+        else
+        {
+            // A local var. Needs to be checked against all maps
+            for (auto &functionMap : functionMaps)
+            {
+                for (auto &oToNPair : functionMap.second.originalToRename)
+                {
+                    helper.originals.insert(oToNPair.first);
+                    helper.renameToOriginal[oToNPair.second] = oToNPair.first;
+                }
+            }
+            // Including the local map of course...
+            for (auto &oToNPair : localMap.originalToRename)
+            {
+                helper.originals.insert(oToNPair.first);
+                helper.renameToOriginal[oToNPair.second] = oToNPair.first;
+            }
+        }
+        return helper;
     }
 
     void _PushToMain(const string &original, const string &suggestion)
