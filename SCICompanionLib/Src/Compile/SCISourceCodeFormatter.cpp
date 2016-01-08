@@ -185,7 +185,8 @@ std::string CleanTokenSCI(const std::string &src)
     std::string output;
     std::transform(src.begin(), src.end(), std::back_inserter(output), [](char ch)
     {
-        if (std::isspace(ch))
+        // Replace unwanted chars with underscores.
+        if (!std::isalnum(ch) && (ch != '-') && (ch != '_'))
         {
             ch = '_';
         }
