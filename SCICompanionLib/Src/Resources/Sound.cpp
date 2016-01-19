@@ -231,8 +231,22 @@ uint16_t SoundComponent::CalculateChannelMask(DeviceType device) const
 
 bool SoundComponent::DoesDeviceChannelIdOn(DeviceType device, int channelId) const
 {
-    const TrackInfo *track = GetTrackInfo(device);
-    return (track && find(track->ChannelIds.begin(), track->ChannelIds.end(), channelId) != track->ChannelIds.end());
+    if (device == DeviceType::Digital)
+    {
+        return channelId >= (int)_allChannels.size();
+    }
+    else
+    {
+        const TrackInfo *track = GetTrackInfo(device);
+        if (channelId >= (int)_allChannels.size())
+        {
+            return track && track->HasDigital;
+        }
+        else
+        {
+            return (track && find(track->ChannelIds.begin(), track->ChannelIds.end(), channelId) != track->ChannelIds.end());
+        }
+    }
 }
 
 SoundChangeHint SoundComponent::ToggleChannelId(DeviceType type, int channelId)
@@ -244,8 +258,11 @@ SoundChangeHint SoundComponent::ToggleChannelId(DeviceType type, int channelId)
 SoundChangeHint SoundComponent::SetChannelId(DeviceType type, int channelId, bool on)
 {
     SoundChangeHint hint = SoundChangeHint::None;
-    if (channelId < (int)_allChannels.size())
+
+    if (type != DeviceType::Digital)
     {
+        bool isDigital = (channelId >= (int)_allChannels.size());
+
         // Make a TrackInfo for this device, if none exists
         TrackInfo *track = nullptr;
         for (auto &temp : _tracks)
@@ -257,7 +274,7 @@ SoundChangeHint SoundComponent::SetChannelId(DeviceType type, int channelId, boo
             }
         }
 
-        int channelNumber = _allChannels[channelId].Number;
+        int channelNumber = isDigital ? -1 : _allChannels[channelId].Number;
 
         if (!track)
         {
@@ -279,42 +296,52 @@ SoundChangeHint SoundComponent::SetChannelId(DeviceType type, int channelId, boo
             }
         }
 
-        if (on)
+        if (isDigital)
         {
-            // If we're adding, we should fail if it already includes another channel with
-            // the same number.
-            bool canAdd = true;
-            for (int channelId : track->ChannelIds)
+            if (track->HasDigital != on)
             {
-                if (_allChannels[channelId].Number == channelNumber)
-                {
-                    // this channel is already on (possibly from another channelid)
-                    canAdd = false;
-                    break;
-                }
-            }
-            if (canAdd)
-            {
-                track->ChannelIds.push_back(channelId);
+                track->HasDigital = on;
                 hint |= SoundChangeHint::Changed;
             }
         }
         else
         {
-            // If we're removing, this is easy, just erase
-            for (size_t i = 0; i < track->ChannelIds.size(); i++)
+            if (on)
             {
-                if (track->ChannelIds[i] == channelId)
+                // If we're adding, we should fail if it already includes another channel with
+                // the same number.
+                bool canAdd = true;
+                for (int channelIdTemp : track->ChannelIds)
                 {
-                    track->ChannelIds.erase(track->ChannelIds.begin() + i);
+                    if (_allChannels[channelIdTemp].Number == channelNumber)
+                    {
+                        // this channel is already on (possibly from another channelid)
+                        canAdd = false;
+                        break;
+                    }
+                }
+                if (canAdd)
+                {
+                    track->ChannelIds.push_back(channelId);
                     hint |= SoundChangeHint::Changed;
-                    break;
+                }
+            }
+            else
+            {
+                // If we're removing, this is easy, just erase
+                for (size_t i = 0; i < track->ChannelIds.size(); i++)
+                {
+                    if (track->ChannelIds[i] == channelId)
+                    {
+                        track->ChannelIds.erase(track->ChannelIds.begin() + i);
+                        hint |= SoundChangeHint::Changed;
+                        break;
+                    }
                 }
             }
         }
+        AssertNoDuplicateTracks(*this);
     }
-    AssertNoDuplicateTracks(*this);
-
     return hint;
 }
 
@@ -1400,6 +1427,8 @@ void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream, const st
 
     bool encounteredChannel15 = false;
 
+    int digitalChannelsEncountered = 0;
+
     for (int trackNumber = 0; trackNumber < trackCount; trackNumber++)
     {
         sound._tracks.emplace_back();
@@ -1417,7 +1446,7 @@ void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream, const st
             channelCountStream >> marker;
         }
 
-        if (track.Type != 0xf0) // Digital track, not supported
+        if (track.Type != 0xf0) // Digital track, not supported (SCI0?)
         {
             int channelNumber = 0;
             while (channelCount)
@@ -1433,18 +1462,22 @@ void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream, const st
                     // We already processed this channel, just add the id to the track
                     assert(dataOffsetToSize[dataOffset] == dataSize);
                     track.ChannelIds.push_back(it->second);
+
                 }
                 else
                 {
-                    sound._allChannels.emplace_back();
-                    ChannelInfo &channelInfo = sound._allChannels.back();
-                    channelInfo.Id = (int)(sound._allChannels.size() - 1);
                     sci::istream channelStream = stream;
                     channelStream.seekg(dataOffset);
-                    channelStream >> channelInfo.Number;
-                    if (channelInfo.Number == 0xfe) // Digital channel
+                    uint8_t channelNumber;
+                    channelStream >> channelNumber;
+
+                    if (channelNumber == 0xfe) // Digital channel (different than digital track).
                     {
-                        resource.AddComponent(move(make_unique<AudioComponent>()));
+                        if (!resource.TryGetComponent<AudioComponent>())
+                        {
+                            resource.AddComponent(move(make_unique<AudioComponent>()));
+                        }
+
                         AudioComponent &audio = resource.GetComponent<AudioComponent>();
 
                         channelStream >> audio.Frequency;
@@ -1452,16 +1485,25 @@ void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream, const st
                         channelStream >> sampleSize;
                         channelStream >> offset;
                         channelStream >> end;
-                        // TODO: Somehow indicate a digital channel.
+                        track.HasDigital = true;
 
                         if (sampleSize)
                         {
                             audio.DigitalSamplePCM.assign(sampleSize, 0);
                             channelStream.read_data(&audio.DigitalSamplePCM[0], audio.DigitalSamplePCM.size());
+
                         }
+
+                        OutputDebugString(fmt::format("Digital at {0:4x}\n", offset).c_str());
+
+                        digitalChannelsEncountered++;
                     }
                     else
                     {
+                        sound._allChannels.emplace_back();
+                        ChannelInfo &channelInfo = sound._allChannels.back();
+                        channelInfo.Id = (int)(sound._allChannels.size() - 1);
+                        channelInfo.Number = channelNumber;
 
                         uint8_t polyAndPrio;
                         channelStream >> polyAndPrio;
@@ -1485,14 +1527,16 @@ void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream, const st
                         DWORD totalTicks;
                         ReadChannel(channelStream, channelInfo.Events, totalTicks, sound, &chanNum);
                         sound.TotalTicks = max(sound.TotalTicks, totalTicks);
+
+                        // stick this back out
+                        dataOffsetToChannelId[dataOffset] = channelInfo.Id;
+                        dataOffsetToSize[dataOffset] = dataSize;
+                        track.ChannelIds.push_back(channelInfo.Id);
+
+                        assert((!encounteredChannel15 || (channelInfo.Number != 15)) && "Encountered two channel 15s");
+                        encounteredChannel15 = (channelInfo.Number == 15);
                     }
 
-                    assert((!encounteredChannel15 || (channelInfo.Number != 15)) && "Encountered two channel 15s");
-                    encounteredChannel15 = (channelInfo.Number == 15);
-
-                    dataOffsetToChannelId[dataOffset] = channelInfo.Id;
-                    dataOffsetToSize[dataOffset] = dataSize;
-                    track.ChannelIds.push_back(channelInfo.Id);
                 }
                 channelCount--;
             }
@@ -1506,6 +1550,8 @@ void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream, const st
         }
         stream.skip(1); // Skip ff that closes channels list.
     }
+
+    OutputDebugString(fmt::format("{} d channels, {} tracks\n", digitalChannelsEncountered, trackCount).c_str());
 
     AssertNoDuplicateTracks(sound);
 }
@@ -1727,7 +1773,6 @@ ResourceTraits soundResTraits =
     nullptr
 };
 
-// REVIEW: We don't even know how to read SCI1 sounds yet.
 ResourceTraits soundResTraitsSCI1 =
 {
     ResourceType::Sound,

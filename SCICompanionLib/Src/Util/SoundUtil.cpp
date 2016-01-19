@@ -55,6 +55,7 @@ const DeviceAndName c_rgDeviceNamesSCI1[] =
     { DeviceType::SCI1_AmigaMac, "Amiga/Mac ($06)" },
     { DeviceType::SCI1_Unknown08, "Unknown ($08)" },
     { DeviceType::SCI1_Unkonwn0b, "Unknown ($0b)" },
+    { DeviceType::Digital, "Digital" },
 };
 
 void GetDeviceNames(SCIVersion version, const DeviceAndName* &deviceNames, size_t &size)

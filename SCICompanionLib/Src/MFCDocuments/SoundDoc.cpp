@@ -20,6 +20,8 @@
 #include "SoundDoc.h"
 #include "ResourceEntity.h"
 #include "SoundOperations.h"
+#include "SoundUtil.h"
+#include "Audio.h"
 
 using namespace std;
 
@@ -117,7 +119,55 @@ void CSoundDoc::SetChannelId(int channelId)
 
 BEGIN_MESSAGE_MAP(CSoundDoc, TCLASS_2(CUndoResource, CResourceDocument, ResourceEntity))
     ON_COMMAND(ID_IMPORT_MIDI, _OnImportMidi)
+    ON_COMMAND(ID_IMPORT_AUDIO, _OnImportWav)
+    ON_UPDATE_COMMAND_UI(ID_IMPORT_AUDIO, _OnUpdateImportWav)
 END_MESSAGE_MAP()
+
+void CSoundDoc::_OnImportWav()
+{
+    const ResourceEntity *resource = GetResource();
+    if (resource && (appState->GetVersion().SoundFormat == SoundFormat::SCI1))
+    {
+        CFileDialog fileDialog(TRUE, nullptr, nullptr, 0, "WAV files (*.wav)|*.wav|All Files|*.*|");
+        fileDialog.m_ofn.lpstrTitle = "Add wav to game";
+        if (IDOK == fileDialog.DoModal())
+        {
+            std::string filename = (PCSTR)fileDialog.GetPathName();
+            try
+            {
+                ScopedFile scopedFile(filename, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
+                sci::streamOwner owner(scopedFile.hFile);
+                std::unique_ptr<AudioComponent> audioComponent = std::make_unique<AudioComponent>();
+                AudioComponentFromWaveFile(owner.getReader(), *audioComponent);
+                ApplyChanges<SoundComponent>(
+                    [](SoundComponent &sound)
+                {
+                    for (auto &trackInfo : sound.GetTrackInfos())
+                    {
+                        trackInfo.HasDigital = true;
+                    }
+                    return WrapHint(SoundChangeHint::Changed);
+                },
+                    [&audioComponent](ResourceEntity &resource)
+                {
+                    resource.AddComponent<AudioComponent>(std::move(audioComponent));
+                }
+                    );
+            }
+            catch (std::exception &e)
+            {
+                AfxMessageBox(e.what(), MB_OK | MB_ICONWARNING);
+            }
+        }
+    }
+}
+
+void CSoundDoc::_OnUpdateImportWav(CCmdUI *cmdUI)
+{
+    const ResourceEntity *sound = GetResource();
+    cmdUI->Enable(sound && (appState->GetVersion().SoundFormat == SoundFormat::SCI1));
+}
+
 
 void CSoundDoc::_OnImportMidi()
 {

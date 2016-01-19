@@ -49,6 +49,8 @@ public:
 
 protected:
     void afx_msg _OnImportMidi();
+    void afx_msg _OnImportWav();
+    void afx_msg _OnUpdateImportWav(CCmdUI *cmdUI);
     virtual ResourceType _GetType() const { return ResourceType::Sound; }
 
 	DECLARE_MESSAGE_MAP()

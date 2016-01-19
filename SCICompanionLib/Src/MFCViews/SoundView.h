@@ -18,6 +18,7 @@
 
 class CSoundDoc;
 class CSoundView;
+struct AudioComponent;
 
 class DragEntry
 {
@@ -52,6 +53,7 @@ protected:
 public:
     CSoundDoc* GetDocument() const;
     const SoundComponent* GetSoundComponent() const;
+    const AudioComponent* GetAudioComponent() const;
     virtual void OnDraw(CDC *);
     virtual BOOL OnEraseBkgnd(CDC *pDC);
     void SetTempo(WORD wTempo, bool setModified);
@@ -95,6 +97,7 @@ private:
     void _UpdateMidiPlayer();
     void _RecalculateChannelData(const SoundComponent *pSound);
     void _RecalculateChannelBitmaps();
+    size_t _GetNumberOfChannelBitmaps();
     bool _PrepChannelBitmaps(int width, int height, size_t count);
     void _SetCursorPos();
     int _HitTestChannelHeader(CPoint pt, bool &hitHeader);

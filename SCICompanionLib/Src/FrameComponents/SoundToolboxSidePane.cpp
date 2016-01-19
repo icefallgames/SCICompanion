@@ -546,10 +546,11 @@ const std::vector<SoundEvent> &SoundToolboxSidePane::_GetCurrentChannelEvents()
     {
         const std::vector<SoundEvent> *events = &g_emptyEvents;
         int selectedChannelId = GetDocument()->GetChannelId();
-        if (selectedChannelId != -1)
+        if ((selectedChannelId != -1) && (selectedChannelId < pSound->GetChannelInfos().size()))
         {
             return pSound->GetChannelInfos()[selectedChannelId].Events;
         }
+        // else could be digital channel
     }
     return g_emptyEvents;
 }

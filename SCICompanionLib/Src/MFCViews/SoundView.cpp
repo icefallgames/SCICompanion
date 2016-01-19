@@ -19,6 +19,7 @@
 #include "SoundView.h"
 #include "SoundDoc.h"
 #include "MidiPlayer.h"
+#include "Audio.h"
 
 // CSoundView
 
@@ -245,7 +246,6 @@ void CSoundView::_OnButtonDown(CPoint point)
                 return WrapHint(sound.ToggleChannelId(pDoc->GetDevice(), channelId));
             }
             );
-
             _InvalidateChannelHeaders();
         }
         else
@@ -314,11 +314,8 @@ bool CSoundView::_CanEditChannelMask()
     CSoundDoc *pDoc = GetDocument();
     if (pDoc)
     {
-        const ResourceEntity *resource = pDoc->GetResource();
-        if (resource)
-        {
-            return resource->GetComponent<SoundComponent>().Traits.CanEditChannelMask;
-        }
+        // If digital is the selected device, it doesn't make sense to be able to turn on/off channels.
+        return pDoc->GetDevice() != DeviceType::Digital;
     }
     return false;
 }
@@ -442,6 +439,31 @@ void _NormalizeToTicks(DWORD dwTicks, vector<SoundEvent> &events, DWORD &dwTotal
     dwTotalTicks = dwLastTimeNew;
 }
 
+size_t CSoundView::_GetNumberOfChannelBitmaps()
+{
+    size_t count = 0;
+    CSoundDoc *pDoc = GetDocument();
+    if (pDoc)
+    {
+        const ResourceEntity *pResource = pDoc->GetResource();
+        if (pResource)
+        {
+            const SoundComponent *pSound = pResource->TryGetComponent<SoundComponent>();
+            if (pSound)
+            {
+                count += pSound->GetChannelInfos().size();
+            }
+            const AudioComponent *audio = pResource->TryGetComponent<AudioComponent>();
+            if (audio)
+            {
+                count++;
+            }
+        }
+    }
+    return count;
+}
+
+
 void CSoundView::_RecalculateChannelBitmaps()
 {
     const SoundComponent *pSound = GetSoundComponent();
@@ -467,7 +489,7 @@ void CSoundView::_RecalculateChannelBitmaps()
         DWORD dwTotalTicks = sound.GetTotalTicks();
 
         int height = (rect.Height() * 2 / 3) / max(pSound->GetChannelInfos().size(), 15);
-        if (_PrepChannelBitmaps(width, height, pSound->GetChannelInfos().size()))
+        if (_PrepChannelBitmaps(width, height, _GetNumberOfChannelBitmaps()))
         {
             std::vector<std::vector<BYTE>> channelValues;  // the data we'll eventually put in the bitmaps
             channelValues.resize(_channelBitmaps.size());
@@ -544,6 +566,7 @@ void CSoundView::_RecalculateChannelBitmaps()
                     }
                 }
             }
+            // TODO: Draw audio channel if available.
 
             CPen penEvent(PS_SOLID, 1, ColorTrackEvent);
 
@@ -556,8 +579,6 @@ void CSoundView::_RecalculateChannelBitmaps()
                 eventPoints.reserve(200);
                 pointCounts.reserve(100);
 
-                _channelNumbers[channelId] = sound.GetChannelInfos()[channelId].Number;
-
                 CDC *pDC = GetDC();
                 CDC dcMem;
                 if (dcMem.CreateCompatibleDC(pDC))
@@ -565,45 +586,56 @@ void CSoundView::_RecalculateChannelBitmaps()
                     HGDIOBJ hOld = dcMem.SelectObject(*_channelBitmaps[channelId]);
                     dcMem.FillSolidRect(0, 0, width, height, ColorTrackBackground);
 
-                    BYTE loudness = 0;
-                    for (size_t posStart = 0; posStart < channelValues[channelId].size();)
+                    if (channelId < sound.GetChannelInfos().size())
                     {
-                        loudness = channelValues[channelId][posStart];
-                        if (loudness == 255)
+                        // REVIEW: This seems like assigning data, and should not be part of drawing
+                        _channelNumbers[channelId] = sound.GetChannelInfos()[channelId].Number;
+
+                        BYTE loudness = 0;
+                        for (size_t posStart = 0; posStart < channelValues[channelId].size();)
                         {
-                            loudness = 0;
-                        }
-                        int cy = max(1, height * loudness / 128);
-                        size_t posEnd = posStart;
-                        while (posEnd < channelValues[channelId].size() &&
-                            (channelValues[channelId][posEnd] == 255 ||
-                            channelValues[channelId][posEnd] == loudness))
-                        {
-                            if (isEventAtPosition[channelId][posEnd])
+                            loudness = channelValues[channelId][posStart];
+                            if (loudness == 255)
                             {
-                                eventPoints.emplace_back(posEnd, height - cy);
-                                eventPoints.emplace_back(posEnd, height);
-                                pointCounts.push_back(2);
+                                loudness = 0;
                             }
+                            int cy = max(1, height * loudness / 128);
+                            size_t posEnd = posStart;
+                            while (posEnd < channelValues[channelId].size() &&
+                                (channelValues[channelId][posEnd] == 255 ||
+                                channelValues[channelId][posEnd] == loudness))
+                            {
+                                if (isEventAtPosition[channelId][posEnd])
+                                {
+                                    eventPoints.emplace_back(posEnd, height - cy);
+                                    eventPoints.emplace_back(posEnd, height);
+                                    pointCounts.push_back(2);
+                                }
 
-                            posEnd++;
+                                posEnd++;
+                            }
+                            // If we got here, it is time to draw.
+                            COLORREF  cr = (find(selectedTrackInfo.ChannelIds.begin(), selectedTrackInfo.ChannelIds.end(), channelId) == selectedTrackInfo.ChannelIds.end()) ?
+                            ColorSilentTrack :
+                                             ColorActiveTrack;
+                            dcMem.FillSolidRect((int)posStart, height - cy, (int)(posEnd - posStart), cy, cr);
+
+                            posStart = posEnd;
                         }
-                        // If we got here, it is time to draw.
-                        COLORREF  cr = (find(selectedTrackInfo.ChannelIds.begin(), selectedTrackInfo.ChannelIds.end(), channelId) == selectedTrackInfo.ChannelIds.end()) ?
-                                    ColorSilentTrack :
-                                    ColorActiveTrack;
-                        dcMem.FillSolidRect((int)posStart, height - cy, (int)(posEnd - posStart), cy, cr);
 
-                        posStart = posEnd;
+                        if (!pointCounts.empty())
+                        {
+                            HGDIOBJ hOld = dcMem.SelectObject(penEvent);
+                            dcMem.PolyPolyline(&eventPoints[0], &pointCounts[0], (int)pointCounts.size());
+                            dcMem.SelectObject(hOld);
+                        }
                     }
-
-                    if (!pointCounts.empty())
+                    else
                     {
-                        HGDIOBJ hOld = dcMem.SelectObject(penEvent);
-                        dcMem.PolyPolyline(&eventPoints[0], &pointCounts[0], (int)pointCounts.size());
-                        dcMem.SelectObject(hOld);
+                        // Digital track
+                        // REVIEW: This seems like assigning data, and should not be part of drawing
+                        _channelNumbers[channelId] = -1;
                     }
-
                     dcMem.SelectObject(hOld);
                 }
                 ReleaseDC(pDC);
@@ -730,6 +762,7 @@ WORD CSoundView::GetTempo() const
     return w;
 }
 
+const char szDigitalTrackHeader[] = "D";
 
 void CSoundView::_OnDrawTrackHeader(CDC *pDC, int channelId, int channel, bool fChannelOn)
 {
@@ -738,11 +771,10 @@ void CSoundView::_OnDrawTrackHeader(CDC *pDC, int channelId, int channel, bool f
     rect.top = _GetChannelY(channelId);
     rect.bottom = rect.top + _GetChannelHeight(channelId);
 
-    //bool canEditChannelMask = _CanEditChannelMask();
-    bool canEditChannelMask = true;
+    bool canEditChannelMask = _CanEditChannelMask();
 
     char sz[10];
-    StringCchPrintf(sz, ARRAYSIZE(sz), "%d", channel + 1);
+    StringCchPrintf(sz, ARRAYSIZE(sz), (channel == -1) ? szDigitalTrackHeader : "%d", channel + 1);
 
 	CExtPaintManager::PAINTCHECKRADIOBUTTONDATA _pmid(
 		this, // Sketchy
@@ -776,10 +808,6 @@ void CSoundView::OnDraw(CDC *pDC)
     GetClientRect(&rectClient);
 
     CBrush solidBrush(ColorSelectedTrackBackgroundMask);
-
-    
-    //CRgn clipRegion;
-    //clipRegion.CreateRectRgn(rectClient.left, rectClient.top, rectClient.right, rectClient.bottom);
 
     CRect rect = _GetTrackArea();
     for (int i = 0; i < (int)_channelBitmaps.size(); i++)
@@ -867,6 +895,20 @@ const SoundComponent* CSoundView::GetSoundComponent() const
         }
     }
     return pSound;
+}
+const AudioComponent* CSoundView::GetAudioComponent() const
+{
+    const AudioComponent *audio = nullptr;
+    CSoundDoc *pDoc = GetDocument();
+    if (pDoc)
+    {
+        const ResourceEntity *pResource = pDoc->GetResource();
+        if (pResource)
+        {
+            audio = pResource->TryGetComponent<AudioComponent>();
+        }
+    }
+    return audio;
 }
 
 void CSoundView::OnPlay()

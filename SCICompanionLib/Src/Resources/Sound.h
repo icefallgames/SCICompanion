@@ -50,6 +50,8 @@ enum class DeviceType
     SCI1_Unknown08 = 0x08,
     SCI1_Unkonwn0b = 0x0b,
 
+    // Not really a device
+    Digital = 0xff
 };
 
 DEFINE_ENUM_FLAGS(DeviceType, uint8_t)
@@ -157,8 +159,11 @@ struct ChannelInfo
 
 struct TrackInfo
 {
-    uint8_t Type;
+    TrackInfo() : HasDigital(false), Type(0) {}
+
+    uint8_t Type;                   // Device type
     std::vector<int> ChannelIds;
+    bool HasDigital;
 };
 
 
@@ -229,6 +234,7 @@ public:
     std::vector<ChannelInfo> &GetChannelInfos() { return _allChannels; }
     const std::vector<ChannelInfo> &GetChannelInfos() const  { return _allChannels; }
     const std::vector<TrackInfo> &GetTrackInfos() const  { return _tracks; }
+    std::vector<TrackInfo> &GetTrackInfos() { return _tracks; }
     const TrackInfo *GetTrackInfo(DeviceType device) const;
     const ChannelInfo *GetChannelInfo(DeviceType device, int channelNumber) const;
     bool DoesDeviceHaveTracks(DeviceType device) const;

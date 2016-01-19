@@ -374,6 +374,7 @@ BEGIN
     BUTTON      ID_PAUSE
     BUTTON      ID_STOP
     BUTTON      ID_IMPORT_MIDI
+    BUTTON      ID_IMPORT_AUDIO
 END
 
 IDR_TOOLBARSCREENS TOOLBAR 24, 24
@@ -3340,6 +3341,11 @@ STRINGTABLE
 BEGIN
     ID_MAIN_RELOADSYNTAXCOLORS "Reload colors from syntaxcolor.ini"
     ID_MAIN_TOGGLEBLOCKCOMMENT "Comment or uncomment a block of code"
+END
+
+STRINGTABLE
+BEGIN
+    ID_IMPORT_AUDIO         "Import a wav file\nImport wav"
 END
 
 #endif    // English (United States) resources

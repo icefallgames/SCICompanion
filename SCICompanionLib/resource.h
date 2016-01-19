@@ -1155,6 +1155,7 @@
 #define ID_PLUGINS_PLUGIN8              33309
 #define ID_PLUGINS_PLUGIN9              33310
 #define ID_PLUGINS_PLUGIN10             33311
+#define ID_IMPORT_AUDIO                 33312
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -1163,7 +1164,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        403
-#define _APS_NEXT_COMMAND_VALUE         33312
+#define _APS_NEXT_COMMAND_VALUE         33313
 #define _APS_NEXT_CONTROL_VALUE         1383
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

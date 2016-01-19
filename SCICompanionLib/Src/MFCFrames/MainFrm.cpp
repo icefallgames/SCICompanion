@@ -1333,6 +1333,7 @@ void CMainFrame::_PrepareSoundCommands()
         { ID_PLAY, IDI_PLAY },
         { ID_PAUSE, IDI_PAUSE },
         { ID_STOP, IDI_STOP },
+        { ID_IMPORT_AUDIO, IDI_AUDIO },
     };
     _AssignIcons(c_soundIcons, ARRAYSIZE(c_soundIcons));
 }
