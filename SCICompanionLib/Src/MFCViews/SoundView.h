@@ -19,6 +19,7 @@
 class CSoundDoc;
 class CSoundView;
 struct AudioComponent;
+class AudioPlayback;
 
 class DragEntry
 {
@@ -155,6 +156,8 @@ private:
     const static COLORREF ColorCursor = RGB(255, 0, 0);
 
     CColoredToolTip _toolTip;
+
+    std::unique_ptr<AudioPlayback> _playback;
 };
 
 #ifndef _DEBUG  // debug version in TextView.cpp

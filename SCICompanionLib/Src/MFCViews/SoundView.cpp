@@ -19,6 +19,7 @@
 #include "SoundView.h"
 #include "SoundDoc.h"
 #include "MidiPlayer.h"
+#include "AudioPlayback.h"
 #include "Audio.h"
 
 // CSoundView
@@ -586,7 +587,7 @@ void CSoundView::_RecalculateChannelBitmaps()
                     HGDIOBJ hOld = dcMem.SelectObject(*_channelBitmaps[channelId]);
                     dcMem.FillSolidRect(0, 0, width, height, ColorTrackBackground);
 
-                    if (channelId < sound.GetChannelInfos().size())
+                    if (channelId < (int)sound.GetChannelInfos().size())
                     {
                         // REVIEW: This seems like assigning data, and should not be part of drawing
                         _channelNumbers[channelId] = sound.GetChannelInfos()[channelId].Number;
@@ -913,11 +914,32 @@ const AudioComponent* CSoundView::GetAudioComponent() const
 
 void CSoundView::OnPlay()
 {
-    g_midiPlayer.Play();
+    if (GetDocument() && GetDocument()->GetDevice() == DeviceType::Digital)
+    {
+        // A bit of a hack to play audio
+        if (!_playback)
+        {
+            _playback = std::make_unique<AudioPlayback>();
+        }
+        const AudioComponent *audio = GetAudioComponent();
+        if (audio)
+        {
+            _playback->SetAudio(audio);
+            _playback->Play();
+        }
+    }
+    else
+    {
+        g_midiPlayer.Play();
+    }
     SetTimer(SOUND_TIMER, 100, NULL);
 }
 void CSoundView::OnStop()
 {
+    if (_playback && _playback->IsPlaying())
+    {
+        _playback->Stop();
+    }
     g_midiPlayer.Stop();
     _SetCursorPos();
     KillTimer(SOUND_TIMER);

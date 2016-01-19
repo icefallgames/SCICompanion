@@ -1473,6 +1473,9 @@ void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream, const st
 
                     if (channelNumber == 0xfe) // Digital channel (different than digital track).
                     {
+                        uint8_t channelPri;
+                        channelStream >> channelPri; // Not implemented.
+
                         if (!resource.TryGetComponent<AudioComponent>())
                         {
                             resource.AddComponent(move(make_unique<AudioComponent>()));
@@ -1489,6 +1492,7 @@ void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream, const st
 
                         if (sampleSize)
                         {
+                            channelStream.seekg(offset, std::ios_base::cur);
                             audio.DigitalSamplePCM.assign(sampleSize, 0);
                             channelStream.read_data(&audio.DigitalSamplePCM[0], audio.DigitalSamplePCM.size());
 
