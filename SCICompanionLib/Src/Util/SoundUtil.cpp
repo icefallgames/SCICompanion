@@ -173,7 +173,7 @@ uint32_t GetWaveFileSizeIncludingHeader(sci::istream &stream)
     return fileSize + sizeof(uint32_t) * 2;
 }
 
-void AudioComponentFromWaveFile(sci::istream &stream, AudioComponent &audio, AudioProcessingSettings *audioProcessingSettings)
+void AudioComponentFromWaveFile(sci::istream &stream, AudioComponent &audio, AudioProcessingSettings *audioProcessingSettings, int maxSampleRate, bool limitTo8Bit)
 {
     uint32_t riff, wave, fileSize, fmt, chunkSize, data, dataSize;
     stream >> riff;
@@ -259,9 +259,15 @@ void AudioComponentFromWaveFile(sci::istream &stream, AudioComponent &audio, Aud
         throw std::exception(fmt::format("{0} bits per sample: Only 8 or 16 bit sound supported", header.bitsPerSample).c_str());
     }
 
-    if (header.sampleRate > MaxSierraSampleRate)
+    if (limitTo8Bit && (convertedBitsPerSample != 8))
     {
-        conversionResults.emplace_back(fmt::format("Downsampling from {0}Hz to {1}Hz.", header.sampleRate, MaxSierraSampleRate));
+        convertedBitsPerSample = 8;
+        conversionResults.emplace_back("Reducing from 16 bits to 8 bits.");
+    }
+
+    if (header.sampleRate > maxSampleRate)
+    {
+        conversionResults.emplace_back(fmt::format("Downsampling from {0}Hz to {1}Hz.", header.sampleRate, maxSampleRate));
     }
 
     if (header.formatTag != WAVE_FORMAT_PCM)
@@ -325,11 +331,11 @@ void AudioComponentFromWaveFile(sci::istream &stream, AudioComponent &audio, Aud
     }
 
     // Sample rate conversion to 22Khz
-    if (header.sampleRate > MaxSierraSampleRate)
+    if (header.sampleRate > maxSampleRate)
     {
         int fpSampleCount = (int)fpData.size();
         // Convert to floating point.
-        unique_ptr<CDSPResampler24> resampler = make_unique<CDSPResampler24>(header.sampleRate, MaxSierraSampleRate, fpSampleCount);
+        unique_ptr<CDSPResampler24> resampler = make_unique<CDSPResampler24>(header.sampleRate, maxSampleRate, fpSampleCount);
         double *results;
         int samplesWritten = resampler->process(&fpData[0], fpSampleCount, results);
 
@@ -363,7 +369,7 @@ void AudioComponentFromWaveFile(sci::istream &stream, AudioComponent &audio, Aud
                 audio.DigitalSamplePCM[i * convertedSampleSize + k] = (uint8_t)(value >> (8 * k));
             }
         }
-        audio.Frequency = MaxSierraSampleRate;
+        audio.Frequency = maxSampleRate;
     }
     else
     {

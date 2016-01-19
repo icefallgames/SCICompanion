@@ -123,6 +123,8 @@ BEGIN_MESSAGE_MAP(CSoundDoc, TCLASS_2(CUndoResource, CResourceDocument, Resource
     ON_UPDATE_COMMAND_UI(ID_IMPORT_AUDIO, _OnUpdateImportWav)
 END_MESSAGE_MAP()
 
+const int MaxSCI1SampleRate = 11025;
+
 void CSoundDoc::_OnImportWav()
 {
     const ResourceEntity *resource = GetResource();
@@ -138,7 +140,7 @@ void CSoundDoc::_OnImportWav()
                 ScopedFile scopedFile(filename, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
                 sci::streamOwner owner(scopedFile.hFile);
                 std::unique_ptr<AudioComponent> audioComponent = std::make_unique<AudioComponent>();
-                AudioComponentFromWaveFile(owner.getReader(), *audioComponent);
+                AudioComponentFromWaveFile(owner.getReader(), *audioComponent, nullptr, MaxSCI1SampleRate, true);
                 ApplyChanges<SoundComponent>(
                     [](SoundComponent &sound)
                 {
