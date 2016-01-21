@@ -546,7 +546,7 @@ const std::vector<SoundEvent> &SoundToolboxSidePane::_GetCurrentChannelEvents()
     {
         const std::vector<SoundEvent> *events = &g_emptyEvents;
         int selectedChannelId = GetDocument()->GetChannelId();
-        if ((selectedChannelId != -1) && (selectedChannelId < pSound->GetChannelInfos().size()))
+        if ((selectedChannelId != -1) && (selectedChannelId < (int)pSound->GetChannelInfos().size()))
         {
             return pSound->GetChannelInfos()[selectedChannelId].Events;
         }

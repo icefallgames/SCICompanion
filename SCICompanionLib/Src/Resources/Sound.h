@@ -16,6 +16,7 @@
 #include "Components.h"
 
 class ResourceEntity;
+struct AudioComponent;
 enum class BlobKey;
 
 namespace sci
@@ -198,7 +199,7 @@ public:
 
     friend void SoundWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag);
     friend void SoundWriteToWorker(const SoundComponent &sound, sci::ostream &byteStream);
-    friend void SoundWriteToWorker_SCI1(const SoundComponent &sound, sci::ostream &byteStream);
+    friend void SoundWriteToWorker_SCI1(const SoundComponent &sound, const AudioComponent *audio, sci::ostream &byteStream);
     friend void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream, const std::map<BlobKey, uint32_t> &propertyBag);
     friend void SoundReadFrom_SCI0(ResourceEntity &resource, sci::istream &stream, const std::map<BlobKey, uint32_t> &propertyBag);
     friend SoundChangeHint InitializeFromMidi(SCIVersion version, std::vector<DeviceType> devices, SoundComponent &sound, const std::string &filename);

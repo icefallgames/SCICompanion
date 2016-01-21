@@ -861,7 +861,7 @@ void SoundComponent::_ProcessBeforeSaving()
 
     // SCI1 will hang if we put in tracks with no channels.
     _tracks.erase(remove_if(_tracks.begin(), _tracks.end(),
-        [](TrackInfo &track) { return track.ChannelIds.empty(); }
+        [](TrackInfo &track) { return track.ChannelIds.empty() && !track.HasDigital; }
     ), _tracks.end());
 }
 
@@ -1202,7 +1202,11 @@ void SoundWriteTo(const ResourceEntity &resource, sci::ostream &byteStream, std:
     SoundWriteToWorker(sound, byteStream);
 }
 
-void SoundWriteToWorker_SCI1(const SoundComponent &soundIn, sci::ostream &byteStream)
+// SCI1 seems to hang when playing a sound where the digital audio isn't at least offset 0x24 from the beginning of the
+// file.
+const size_t MinimumDigitalAudioOffset = 0x24;
+
+void SoundWriteToWorker_SCI1(const SoundComponent &soundIn, const AudioComponent *audio, sci::ostream &byteStream)
 {
     // Make a copy of ourselves.
     SoundComponent soundCopy = soundIn;
@@ -1215,6 +1219,20 @@ void SoundWriteToWorker_SCI1(const SoundComponent &soundIn, sci::ostream &byteSt
     }
 
     AssertNoDuplicateTracks(soundCopy);
+
+    // First, we need to know ahead of time how much space all the tracks will take up.
+    // It is:
+    uint16_t baseOffset = 1;    // For final track marker
+    for (auto &trackInfo : soundCopy.GetTrackInfos())
+    {
+        baseOffset += 2;                                            // For type, and last channel marker
+        int channelCount = trackInfo.ChannelIds.size();
+        if (trackInfo.HasDigital)
+        {
+            channelCount++;
+        }
+        baseOffset += (uint16_t)(channelCount * 6);  // 6 bytes per channel
+    }
 
     // Track [Type] 
     //  Channel Channel Channel  [unknown][dataOffset][dataSize]
@@ -1244,25 +1262,51 @@ void SoundWriteToWorker_SCI1(const SoundComponent &soundIn, sci::ostream &byteSt
         channelOffsetAndSize.emplace_back(offset, dataSize);
     }
 
-    // Do tracks. First, we need to know ahead of time how much space all the tracks will take up.
-    // It is:
-    uint16_t baseOffset = 1;    // For final track marker
-    for (auto &trackInfo : soundCopy.GetTrackInfos())
+    // The optional digital channel
+    if (audio && !audio->DigitalSamplePCM.empty())
     {
-        baseOffset += 2;                                            // For type, and last channel marker
-        baseOffset += (uint16_t)(trackInfo.ChannelIds.size() * 6);  // 6 bytes per channel
+        uint16_t offset = (uint16_t)channelStream.tellp();
+        if ((offset + baseOffset) < MinimumDigitalAudioOffset)
+        {
+            // Write some blanks
+            size_t fillZeroCount = MinimumDigitalAudioOffset - (offset + baseOffset);
+            channelStream.FillByte(0, fillZeroCount);
+            offset = (uint16_t)channelStream.tellp();
+        }
+
+        // Write the digital channel
+        channelStream.WriteByte(0xfe);  // Digital channel marker
+        channelStream.WriteByte(0);     // Priority (unimplemented)
+        channelStream.WriteWord(audio->Frequency);
+        channelStream.WriteWord(audio->DigitalSamplePCM.size());
+        channelStream.WriteWord(0);     // Offset (from end of header)
+        channelStream.WriteWord(audio->DigitalSamplePCM.size());    // end
+        channelStream.WriteBytes(&audio->DigitalSamplePCM[0], audio->DigitalSamplePCM.size());
+
+        // Keep track of offset and size.
+        uint16_t dataSize = (uint16_t)(channelStream.tellp() - offset);
+        channelOffsetAndSize.emplace_back(offset, dataSize);
     }
 
+
+    // The tracks
     const uint8_t endMarker = 0xff;
     for (auto &trackInfo : soundCopy.GetTrackInfos())
     {
         byteStream << trackInfo.Type;
+        uint16_t unknown = 0;
         for (int channelId : trackInfo.ChannelIds)
         {
-            uint16_t unknown = 0;
             byteStream << unknown;
             byteStream << (uint16_t)(channelOffsetAndSize[channelId].first + baseOffset);
             byteStream << channelOffsetAndSize[channelId].second;
+        }
+        if (trackInfo.HasDigital)
+        {
+            assert(audio);
+            byteStream << unknown;
+            byteStream << (uint16_t)(channelOffsetAndSize.back().first + baseOffset);
+            byteStream << channelOffsetAndSize.back().second;
         }
         byteStream << endMarker; // End of channels
     }
@@ -1277,7 +1321,7 @@ void SoundWriteToWorker_SCI1(const SoundComponent &soundIn, sci::ostream &byteSt
 void SoundWriteTo_SCI1(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag)
 {
     const SoundComponent &sound = resource.GetComponent<SoundComponent>();
-    SoundWriteToWorker_SCI1(sound, byteStream);
+    SoundWriteToWorker_SCI1(sound, resource.TryGetComponent<AudioComponent>(), byteStream);
 }
 
 void ReadChannel(sci::istream &stream, std::vector<SoundEvent> &events, DWORD &totalTicks, SoundComponent &sound, int *mustBeChannel)
@@ -1487,6 +1531,7 @@ void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream, const st
                         uint16_t sampleSize, offset, end;
                         channelStream >> sampleSize;
                         channelStream >> offset;
+                        assert(offset == 0);
                         channelStream >> end;
                         track.HasDigital = true;
 

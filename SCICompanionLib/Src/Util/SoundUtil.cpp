@@ -265,7 +265,7 @@ void AudioComponentFromWaveFile(sci::istream &stream, AudioComponent &audio, Aud
         conversionResults.emplace_back("Reducing from 16 bits to 8 bits.");
     }
 
-    if (header.sampleRate > maxSampleRate)
+    if ((int)header.sampleRate > maxSampleRate)
     {
         conversionResults.emplace_back(fmt::format("Downsampling from {0}Hz to {1}Hz.", header.sampleRate, maxSampleRate));
     }
@@ -331,7 +331,7 @@ void AudioComponentFromWaveFile(sci::istream &stream, AudioComponent &audio, Aud
     }
 
     // Sample rate conversion to 22Khz
-    if (header.sampleRate > maxSampleRate)
+    if ((int)header.sampleRate > maxSampleRate)
     {
         int fpSampleCount = (int)fpData.size();
         // Convert to floating point.
