@@ -52,6 +52,7 @@ protected:
 	CSoundView();           // protected constructor used by dynamic creation
 
 public:
+    ~CSoundView();
     CSoundDoc* GetDocument() const;
     const SoundComponent* GetSoundComponent() const;
     const AudioComponent* GetAudioComponent() const;
@@ -158,6 +159,7 @@ private:
     CColoredToolTip _toolTip;
 
     std::unique_ptr<AudioPlayback> _playback;
+    std::unique_ptr<AudioComponent> _playbackAudio;
 };
 
 #ifndef _DEBUG  // debug version in TextView.cpp

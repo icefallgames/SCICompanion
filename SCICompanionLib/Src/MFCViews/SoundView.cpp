@@ -192,6 +192,14 @@ CSoundView::CSoundView()
     _currentDragIndex = -1;
 }
 
+CSoundView::~CSoundView()
+{
+    if (_playback)
+    {
+        _playback->SetAudio(nullptr);
+    }
+}
+
 int CSoundView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
     if (__super::OnCreate(lpCreateStruct) == -1)
@@ -952,7 +960,9 @@ void CSoundView::OnPlay()
         const AudioComponent *audio = GetAudioComponent();
         if (audio)
         {
-            _playback->SetAudio(audio);
+            // Clone it just to avoid the possibility of ever having a dangling pointer in _playback
+            _playbackAudio = std::make_unique<AudioComponent>(*audio);
+            _playback->SetAudio(_playbackAudio.get());
             _playback->Play();
         }
     }
