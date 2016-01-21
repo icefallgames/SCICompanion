@@ -224,6 +224,11 @@ BEGIN_MESSAGE_MAP(CSoundView, CView)
     ON_UPDATE_COMMAND_UI(ID_TEMPOSLIDER, OnUpdateTempoSlider)
 END_MESSAGE_MAP()
 
+bool DoAnyTracksHaveDigital(const SoundComponent &sound)
+{
+    return std::any_of(sound.GetTrackInfos().begin(), sound.GetTrackInfos().end(), [](const TrackInfo &track) { return track.HasDigital; });
+}
+
 void CSoundView::_OnButtonDown(CPoint point)
 {
     ASSERT(_CurrentDrag() == NULL);
@@ -241,12 +246,35 @@ void CSoundView::_OnButtonDown(CPoint point)
         CSoundDoc *pDoc = GetDocument();
         if (hitHeader)
         {
+            bool maybeAskToRemoveAudio = false;
             pDoc->ApplyChanges<SoundComponent>(
-                [pDoc, channelId](SoundComponent &sound)
+                [&maybeAskToRemoveAudio, pDoc, channelId](SoundComponent &sound)
             {
-                return WrapHint(sound.ToggleChannelId(pDoc->GetDevice(), channelId));
+                bool hadDigital = DoAnyTracksHaveDigital(sound);
+                SoundChangeHint hint = sound.ToggleChannelId(pDoc->GetDevice(), channelId);
+                maybeAskToRemoveAudio = hadDigital && !DoAnyTracksHaveDigital(sound);
+                return WrapHint(hint);
             }
             );
+
+            if (maybeAskToRemoveAudio && GetAudioComponent())
+            {
+                if (IDYES == AfxMessageBox("Remove the digital channel completely?", MB_YESNO | MB_ICONEXCLAMATION))
+                {
+                    pDoc->ApplyChanges<SoundComponent>(
+                        [](SoundComponent &sound)
+                    {
+                        return WrapHint(SoundChangeHint::Changed);
+                    },
+                        [](ResourceEntity &resource)
+                    {
+                        resource.RemoveComponent<AudioComponent>();
+                    }
+                    );
+
+                }
+            }
+
             _InvalidateChannelHeaders();
         }
         else

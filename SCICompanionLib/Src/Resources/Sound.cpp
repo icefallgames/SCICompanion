@@ -1517,6 +1517,8 @@ void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream, const st
 
                     if (channelNumber == 0xfe) // Digital channel (different than digital track).
                     {
+                        OutputDebugString(fmt::format("Track type is {0:2x}\n", track.Type).c_str());
+
                         uint8_t channelPri;
                         channelStream >> channelPri; // Not implemented.
 
@@ -1531,7 +1533,8 @@ void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream, const st
                         uint16_t sampleSize, offset, end;
                         channelStream >> sampleSize;
                         channelStream >> offset;
-                        assert(offset == 0);
+                        // This triggers for sound 921 in Castle of Dr Brain. Seems corrupt?
+                        //assert(offset == 0);
                         channelStream >> end;
                         track.HasDigital = true;
 
@@ -1542,8 +1545,6 @@ void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream, const st
                             channelStream.read_data(&audio.DigitalSamplePCM[0], audio.DigitalSamplePCM.size());
 
                         }
-
-                        OutputDebugString(fmt::format("Digital at {0:4x}\n", offset).c_str());
 
                         digitalChannelsEncountered++;
                     }
@@ -1599,8 +1600,6 @@ void SoundReadFrom_SCI1(ResourceEntity &resource, sci::istream &stream, const st
         }
         stream.skip(1); // Skip ff that closes channels list.
     }
-
-    OutputDebugString(fmt::format("{} d channels, {} tracks\n", digitalChannelsEncountered, trackCount).c_str());
 
     AssertNoDuplicateTracks(sound);
 }

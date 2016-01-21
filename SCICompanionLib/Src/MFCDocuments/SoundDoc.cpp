@@ -125,6 +125,19 @@ END_MESSAGE_MAP()
 
 const int MaxSCI1SampleRate = 11025;
 
+const DeviceType DefaultSCI1DigitalTracks[] =
+{
+    DeviceType::SCI1_Adlib,
+    DeviceType::SCI1_GM,
+    DeviceType::SCI1_GameBlaster,
+    DeviceType::SCI1_RolandGM,
+    DeviceType::SCI1_PCSpeaker,
+    DeviceType::SCI1_Tandy,
+    DeviceType::SCI1_AmigaMac,
+    DeviceType::SCI1_Unknown08,
+    DeviceType::SCI1_Unkonwn0b,
+};
+
 void CSoundDoc::_OnImportWav()
 {
     const ResourceEntity *resource = GetResource();
@@ -144,9 +157,12 @@ void CSoundDoc::_OnImportWav()
                 ApplyChanges<SoundComponent>(
                     [](SoundComponent &sound)
                 {
-                    for (auto &trackInfo : sound.GetTrackInfos())
+                    auto &trackInfos = sound.GetTrackInfos();
+                    for (DeviceType defaultType : DefaultSCI1DigitalTracks)
                     {
-                        trackInfo.HasDigital = true;
+                        // Turn digital on for all...
+                        int digitalChannel = (int)sound.GetChannelInfos().size();
+                        sound.SetChannelId(defaultType, digitalChannel, true);
                     }
                     return WrapHint(SoundChangeHint::Changed);
                 },

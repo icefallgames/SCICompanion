@@ -58,6 +58,8 @@ const DeviceAndName c_rgDeviceNamesSCI1[] =
     { DeviceType::Digital, "Digital" },
 };
 
+
+
 void GetDeviceNames(SCIVersion version, const DeviceAndName* &deviceNames, size_t &size)
 {
     deviceNames = (version.SoundFormat == SoundFormat::SCI1) ? c_rgDeviceNamesSCI1 : c_rgDeviceNamesSCI0;
