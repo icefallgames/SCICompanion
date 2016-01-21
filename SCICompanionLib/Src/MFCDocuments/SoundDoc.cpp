@@ -183,7 +183,10 @@ void CSoundDoc::_OnImportWav()
 void CSoundDoc::_OnUpdateImportWav(CCmdUI *cmdUI)
 {
     const ResourceEntity *sound = GetResource();
-    cmdUI->Enable(sound && (appState->GetVersion().SoundFormat == SoundFormat::SCI1));
+    // Enabled if:
+    //  - sound format is SCI1
+    //  - there are no audio volumes (so digital fx need to be put into sound resources)
+    cmdUI->Enable(sound && (appState->GetVersion().SoundFormat == SoundFormat::SCI1) && (appState->GetVersion().AudioVolumeName == AudioVolumeName::None));
 }
 
 
