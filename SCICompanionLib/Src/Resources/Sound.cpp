@@ -1809,6 +1809,14 @@ bool ValidateSoundResource(const ResourceEntity &resource)
         }
     }
 
+    if (save && resource.TryGetComponent<AudioComponent>())
+    {
+        if (!std::any_of(sound.GetTrackInfos().begin(), sound.GetTrackInfos().end(), [](const TrackInfo &track) { return track.HasDigital; }))
+        {
+            save = (IDYES == AfxMessageBox("This sound has a digital channel but it is not used by any devices. It will be lost on saving. Save anyway?", MB_ICONWARNING | MB_YESNO));
+        }
+    }
+
     return save;
 }
 
