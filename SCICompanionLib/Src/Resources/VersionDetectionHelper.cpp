@@ -201,6 +201,72 @@ bool CResourceMap::_HasEarlySCI0Scripts()
     return hasEarly;
 }
 
+void CResourceMap::_DetectSoundType()
+{
+    // We'll mirror (a slightly simplified version of) what ScummVM does here, which
+    // is to look for certain kernel calls in sound::play
+    // First, we need to find where the Sound object lives.
+    try
+    {
+        GlobalCompiledScriptLookups scriptLookups;
+        if (scriptLookups.Load(_gameFolderHelper))
+        {
+            uint16_t species;
+            if (scriptLookups.GetGlobalClassTable().LookupSpeciesCompiledName("Sound", species))
+            {
+                uint16_t soundScript;
+                if (scriptLookups.GetGlobalClassTable().GetSpeciesScriptNumber(species, soundScript))
+                {
+                    std::vector<CompiledScript*> allScripts = scriptLookups.GetGlobalClassTable().GetAllScripts();
+                    for (auto compiledScript : allScripts)
+                    {
+                        if (compiledScript->GetScriptNumber() == soundScript)
+                        {
+                            SoundFormat soundFormat = SoundFormat::SCI0;
+                            uint16_t pushiParam = 0;
+                            bool foundTarget = false;
+                            InspectScriptCode(*compiledScript,
+                                &scriptLookups,
+                                "Sound",
+                                "play",
+                                [&pushiParam, &foundTarget, &soundFormat](Opcode opcode, const uint16_t *operands, uint16_t currentPCOffset)
+                            {
+                                if (opcode == Opcode::PUSHI)
+                                {
+                                    pushiParam = operands[0];
+                                }
+                                else if (opcode == Opcode::CALLK)
+                                {
+                                    uint16_t kernelIndex = operands[0];
+                                    if (kernelIndex == 45) // DoSound (SCI1)
+                                    {
+                                        if (pushiParam == 1)
+                                        {
+                                            soundFormat = SoundFormat::SCI0;
+                                        }
+                                        else
+                                        {
+                                            soundFormat = SoundFormat::SCI1;
+                                        }
+                                        return false; // Done
+                                    }
+                                }
+                                return true; // To keep going.
+                            }
+                            );
+                            _gameFolderHelper.Version.SoundFormat = soundFormat;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    catch (std::exception)
+    {
+    }
+}
+
 KernelSet CResourceMap::_DetectKernelSet()
 {
     KernelSet kernelSet = KernelSet::Provided;
@@ -667,6 +733,8 @@ void CResourceMap::_SniffSCIVersion()
         _gameFolderHelper.Version.PicFormat = PicFormat::VGA2;
     }
 
+    bool needSoundAutoDetect = true;
+
     // Let's get more specific on view formats.
     if (_gameFolderHelper.Version.ViewFormat != ViewFormat::EGA)
     {
@@ -681,8 +749,21 @@ void CResourceMap::_SniffSCIVersion()
             _gameFolderHelper.Version.ViewFormat = _DetectViewVGAVersion();
         }
 
-        // A terrible place to put this....
+        // ASSUMPTION: All VGA games uses SCI1 sound.
         _gameFolderHelper.Version.SoundFormat = SoundFormat::SCI1;
+        needSoundAutoDetect = false;
+    }
+    else
+    {
+        // The reverse is not true though. For instance, Hoyle is EGA and uses SCI1 sounds.
+        // We'll make another assumption for SCI0 though, just to ensure any fanmade games don't have improper version detection.
+        // If the resource map and package format are SCI0, we'll assume SCI0 sound.
+        if ((_gameFolderHelper.Version.MapFormat <= ResourceMapFormat::SCI0) &&
+            (_gameFolderHelper.Version.PackageFormat <= ResourcePackageFormat::SCI0))
+        {
+            _gameFolderHelper.Version.SoundFormat = SoundFormat::SCI0;
+            needSoundAutoDetect = false;
+        }
     }
 
     _gameFolderHelper.Version.GrayScaleCursors = (_gameFolderHelper.Version.ViewFormat == ViewFormat::EGA) ? false : true;
@@ -829,6 +910,11 @@ void CResourceMap::_SniffSCIVersion()
         {
 
         }
+    }
+
+    if (needSoundAutoDetect)
+    {
+        _DetectSoundType();
     }
 
     _gameFolderHelper.Version.Kernels = _DetectKernelSet();

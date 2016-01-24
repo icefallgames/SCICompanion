@@ -137,6 +137,7 @@ private:
     ResourcePackageFormat _DetectPackageFormat();
     ResourceMapFormat _DetectMapFormat();
     KernelSet _DetectKernelSet();
+    void _DetectSoundType();
     bool _HasEarlySCI0Scripts();
     bool _DetectLofsaFormat();
     void _SniffSCIVersion();
