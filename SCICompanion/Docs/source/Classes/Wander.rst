@@ -17,7 +17,7 @@ Wander (of :class:`Motion`)
 	
 	Example usage::
 	
-		// Make the man wander, up to a distance of 20 pixels from each place he stops.
+		; Make the man wander, up to a distance of 20 pixels from each place he stops.
 		(theMan setMotion: Wander 20)
 	
 	Note that this class won't intelligently direct an Actor around polygon obstacles.

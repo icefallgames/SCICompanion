@@ -18,7 +18,7 @@ Cycle (of :class:`Object`)
 	
 	Example usage::
 	
-		// Cycle the cels of myProp forward.
+		; Cycle the cels of myProp forward.
 		(myProp setCycle: Forward)
 
 

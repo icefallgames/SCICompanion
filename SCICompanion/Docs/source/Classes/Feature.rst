@@ -21,10 +21,10 @@ Feature (of :class:`Object`)
 	
 	Example usage::
 	
-		// Define a red plant that displays messages associated with the noun N_PLANT
-		// when the use clicks on the white control color on the pic background.
-		// The (x, y) coordinates are used to identify the "center of interest" of the feature,
-		// which determines the direction in which the ego should face when interacting with it.
+		; Define a red plant that displays messages associated with the noun N_PLANT
+		; when the use clicks on the white control color on the pic background.
+		; The (x, y) coordinates are used to identify the "center of interest" of the feature,
+		; which determines the direction in which the ego should face when interacting with it.
 		(instance redPlant of Feature
 			(properties
 				x 217
@@ -93,6 +93,7 @@ y
 z                                                                           
 heading                                                                     
 noun           Message noun associated with the Feature.                    
+_case          Message case associated with the Feature.                    
 modNum                                                                      
 nsTop                                                                       
 nsLeft                                                                      

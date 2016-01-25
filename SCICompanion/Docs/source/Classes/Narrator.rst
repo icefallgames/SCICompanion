@@ -60,6 +60,7 @@ y              -1 means center
 z                             
 heading                       
 noun                          
+_case                         
 modNum                        
 nsTop                         
 nsLeft                        
@@ -106,7 +107,6 @@ Defined in Narrator:
 =============== ===========
 Property        Description
 =============== ===========
-_case                      
 caller                     
 disposeWhenDone            
 ticks                      

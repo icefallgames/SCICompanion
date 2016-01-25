@@ -18,7 +18,7 @@ PolyPath (of :class:`Motion`)
 	
 	Example usage::
 	
-		// Make the thief move to (255, 146), then cue the current object when done.
+		; Make the thief move to (255, 146), then cue the current object when done.
 		(theThief setMotion: PolyPath 255 146 self)
 
 

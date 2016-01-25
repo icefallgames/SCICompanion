@@ -36,10 +36,10 @@ ChoiceNarrator (of :class:`Narrator`)
 	
 		(switch (myChoiceNarrator whichSelect?)
 			(1
-				// Do something
+				; Do something
 			)
 			(2
-				// Do something else
+				; Do something else
 			)
 		)
 

@@ -17,7 +17,7 @@ CycleTo (of :class:`Cycle`)
 	
 	Example usage::
 	
-		// Cycle the door forward to cel 4, then stop.
+		; Cycle the door forward to cel 4, then stop.
 		(door setCycle: CycleTo 4 cdFORWARD)
 
 

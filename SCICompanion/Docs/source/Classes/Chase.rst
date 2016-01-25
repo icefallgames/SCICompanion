@@ -17,7 +17,7 @@ Chase (of :class:`Motion`)
 	
 	Example usage::	
 	
-		// Make the dog get within 20 pixels of the ego.
+		; Make the dog get within 20 pixels of the ego.
 		(aDog setMotion: Chase gEgo 20)
 	
 	Note that this class doesn't intelligently move the Actor around polygon obstacles. For that, use :class:`PChase`.

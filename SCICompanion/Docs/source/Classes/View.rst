@@ -28,7 +28,7 @@ View (of :class:`Feature`)
 				view 113
 				loop 2
 				cel 1
-				signal ignAct	// Don't interact with Actors
+				signal ignAct	; Don't interact with Actors
 			)
 		)
 	
@@ -74,6 +74,7 @@ y              y position. See posn().
 z              z position. See posn().                                  
 heading        The angle direction the View faces.                      
 noun           The noun for the View (for messages).                    
+_case          The optional case for the View (for messages).           
 modNum         Module number (for messages)                             
 nsTop          "Now seen" rect. The visual bounds of the View.          
 nsLeft                                                                  
@@ -247,9 +248,14 @@ Methods
 
 
 
-.. function:: setScale(theScale)
+
+.. function:: setScale([theY])
 	:noindex:
 
-	Sets the scale of the View.
+	Sets the scale of the View. If no parameters are provided, the view
+	will be scaling, but not have auto-scaling.
+
+	:param number theY: The y parameter corresponding to 100% size for auto-scaling. Passing 0 will disable scaling.
+
 
 

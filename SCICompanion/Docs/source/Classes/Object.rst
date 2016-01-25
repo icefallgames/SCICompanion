@@ -100,7 +100,7 @@ Methods
 	Example usage::
 	
 		(if (gThing isMemberOf: MoveTo)
-			// Do something...
+			; Do something...
 		)
 	
 

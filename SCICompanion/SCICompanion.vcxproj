@@ -443,13 +443,16 @@ xcopy /S /Y /I /D "$(ProjectDir)Tools" "$(OutDir)Tools"</Command>
     <None Include="Docs\source\Classes\Actor.rst" />
     <None Include="Docs\source\Classes\AnimDialog.rst" />
     <None Include="Docs\source\Classes\Approach.rst" />
+    <None Include="Docs\source\Classes\BegLoop.rst" />
     <None Include="Docs\source\Classes\Blink.rst" />
+    <None Include="Docs\source\Classes\Block.rst" />
     <None Include="Docs\source\Classes\BorderWindow.rst" />
     <None Include="Docs\source\Classes\Cage.rst" />
     <None Include="Docs\source\Classes\Chase.rst" />
     <None Include="Docs\source\Classes\ChoiceNarrator.rst" />
     <None Include="Docs\source\Classes\ChoiceTalker.rst" />
     <None Include="Docs\source\Classes\Code.rst" />
+    <None Include="Docs\source\Classes\Collection.rst" />
     <None Include="Docs\source\Classes\Control.rst" />
     <None Include="Docs\source\Classes\ControlIcon.rst" />
     <None Include="Docs\source\Classes\ControlItem.rst" />
@@ -459,6 +462,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Tools" "$(OutDir)Tools"</Command>
     <None Include="Docs\source\Classes\CueObj.rst" />
     <None Include="Docs\source\Classes\Cursor.rst" />
     <None Include="Docs\source\Classes\Cycle.rst" />
+    <None Include="Docs\source\Classes\CycleTo.rst" />
     <None Include="Docs\source\Classes\DButton.rst" />
     <None Include="Docs\source\Classes\DCIcon.rst" />
     <None Include="Docs\source\Classes\DColorButton.rst" />
@@ -471,6 +475,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Tools" "$(OutDir)Tools"</Command>
     <None Include="Docs\source\Classes\DSelector.rst" />
     <None Include="Docs\source\Classes\DText.rst" />
     <None Include="Docs\source\Classes\Ego.rst" />
+    <None Include="Docs\source\Classes\EndLoop.rst" />
     <None Include="Docs\source\Classes\Event.rst" />
     <None Include="Docs\source\Classes\EventHandler.rst" />
     <None Include="Docs\source\Classes\Feature.rst" />
@@ -481,10 +486,14 @@ xcopy /S /Y /I /D "$(ProjectDir)Tools" "$(OutDir)Tools"</Command>
     <None Include="Docs\source\Classes\Flags.rst" />
     <None Include="Docs\source\Classes\FlickerCycler.rst" />
     <None Include="Docs\source\Classes\Follow.rst" />
+    <None Include="Docs\source\Classes\Forward.rst" />
     <None Include="Docs\source\Classes\ForwardCounter.rst" />
     <None Include="Docs\source\Classes\Game.rst" />
     <None Include="Docs\source\Classes\GameControls.rst" />
+    <None Include="Docs\source\Classes\GameEgo.rst" />
     <None Include="Docs\source\Classes\Gauge.rst" />
+    <None Include="Docs\source\Classes\GradualCycler.rst" />
+    <None Include="Docs\source\Classes\GradualLooper.rst" />
     <None Include="Docs\source\Classes\IconBar.rst" />
     <None Include="Docs\source\Classes\IconI.rst" />
     <None Include="Docs\source\Classes\IconItem.rst" />
@@ -502,11 +511,14 @@ xcopy /S /Y /I /D "$(ProjectDir)Tools" "$(OutDir)Tools"</Command>
     <None Include="Docs\source\Classes\Messager.rst" />
     <None Include="Docs\source\Classes\Motion.rst" />
     <None Include="Docs\source\Classes\MouthSync.rst" />
+    <None Include="Docs\source\Classes\MoveCycle.rst" />
     <None Include="Docs\source\Classes\MoveFwd.rst" />
     <None Include="Docs\source\Classes\MoveTo.rst" />
     <None Include="Docs\source\Classes\Narrator.rst" />
+    <None Include="Docs\source\Classes\Object.rst" />
     <None Include="Docs\source\Classes\OnMeAndLowY.rst" />
     <None Include="Docs\source\Classes\Orbit.rst" />
+    <None Include="Docs\source\Classes\Oscillate.rst" />
     <None Include="Docs\source\Classes\PAvoider.rst" />
     <None Include="Docs\source\Classes\PChase.rst" />
     <None Include="Docs\source\Classes\PFollow.rst" />
@@ -518,10 +530,15 @@ xcopy /S /Y /I /D "$(ProjectDir)Tools" "$(OutDir)Tools"</Command>
     <None Include="Docs\source\Classes\Prop.rst" />
     <None Include="Docs\source\Classes\PseudoMouse.rst" />
     <None Include="Docs\source\Classes\RandCycle.rst" />
+    <None Include="Docs\source\Classes\RangeOscillate.rst" />
+    <None Include="Docs\source\Classes\Region.rst" />
     <None Include="Docs\source\Classes\RegionPath.rst" />
     <None Include="Docs\source\Classes\RelDPath.rst" />
     <None Include="Docs\source\Classes\Restore.rst" />
+    <None Include="Docs\source\Classes\Reverse.rst" />
+    <None Include="Docs\source\Classes\Room.rst" />
     <None Include="Docs\source\Classes\Save.rst" />
+    <None Include="Docs\source\Classes\SaveRestoreDialog.rst" />
     <None Include="Docs\source\Classes\Scaler.rst" />
     <None Include="Docs\source\Classes\ScaleTo.rst" />
     <None Include="Docs\source\Classes\Script.rst" />
@@ -539,6 +556,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Tools" "$(OutDir)Tools"</Command>
     <None Include="Docs\source\Classes\Sync.rst" />
     <None Include="Docs\source\Classes\SysWindow.rst" />
     <None Include="Docs\source\Classes\Talker.rst" />
+    <None Include="Docs\source\Classes\TimeOut.rst" />
     <None Include="Docs\source\Classes\Timer.rst" />
     <None Include="Docs\source\Classes\Track.rst" />
     <None Include="Docs\source\Classes\User.rst" />
@@ -758,24 +776,36 @@ xcopy /S /Y /I /D "$(ProjectDir)Tools" "$(OutDir)Tools"</Command>
     <None Include="Docs\source\Procedures\Bclear.rst" />
     <None Include="Docs\source\Procedures\Bset.rst" />
     <None Include="Docs\source\Procedures\Btest.rst" />
+    <None Include="Docs\source\Procedures\CantBeSeen.rst" />
     <None Include="Docs\source\Procedures\ColorInit.rst" />
     <None Include="Docs\source\Procedures\CreateNewPolygon.rst" />
     <None Include="Docs\source\Procedures\DebugPrint.rst" />
     <None Include="Docs\source\Procedures\DebugRoomInit.rst" />
     <None Include="Docs\source\Procedures\Die.rst" />
     <None Include="Docs\source\Procedures\DisposeLoad.rst" />
+    <None Include="Docs\source\Procedures\Eval.rst" />
+    <None Include="Docs\source\Procedures\FindFormatLen.rst" />
     <None Include="Docs\source\Procedures\FlipFeature.rst" />
     <None Include="Docs\source\Procedures\FlipPolygons.rst" />
+    <None Include="Docs\source\Procedures\GetDirectory.rst" />
+    <None Include="Docs\source\Procedures\GetInput.rst" />
     <None Include="Docs\source\Procedures\GetNumber.rst" />
     <None Include="Docs\source\Procedures\HideStatus.rst" />
+    <None Include="Docs\source\Procedures\InRect.rst" />
     <None Include="Docs\source\Procedures\IsObjectOnControl.rst" />
     <None Include="Docs\source\Procedures\IsOneOf.rst" />
     <None Include="Docs\source\Procedures\IsOnScreen.rst" />
     <None Include="Docs\source\Procedures\Max.rst" />
     <None Include="Docs\source\Procedures\Min.rst" />
+    <None Include="Docs\source\Procedures\MouseStillDown.rst" />
+    <None Include="Docs\source\Procedures\Printf.rst" />
+    <None Include="Docs\source\Procedures\Prints.rst" />
     <None Include="Docs\source\Procedures\RestorePreviousHandsOn.rst" />
+    <None Include="Docs\source\Procedures\ScoreFlag.rst" />
     <None Include="Docs\source\Procedures\SetUpEgo.rst" />
     <None Include="Docs\source\Procedures\Sign.rst" />
+    <None Include="Docs\source\Procedures\UModulo.rst" />
+    <None Include="Docs\source\Procedures\WordAt.rst" />
     <None Include="Docs\source\rastertools.rst" />
     <None Include="Docs\source\recording.rst" />
     <None Include="Docs\source\sci11_classes.rst" />
@@ -787,11 +817,13 @@ xcopy /S /Y /I /D "$(ProjectDir)Tools" "$(OutDir)Tools"</Command>
     <None Include="Docs\source\scripts.rst" />
     <None Include="Docs\source\Scripts\Actor.rst" />
     <None Include="Docs\source\Scripts\Approach.rst" />
+    <None Include="Docs\source\Scripts\Block.rst" />
     <None Include="Docs\source\Scripts\BorderWindow.rst" />
     <None Include="Docs\source\Scripts\Chase.rst" />
     <None Include="Docs\source\Scripts\ChoiceTalker.rst" />
     <None Include="Docs\source\Scripts\ColorInit.rst" />
     <None Include="Docs\source\Scripts\Controls.rst" />
+    <None Include="Docs\source\Scripts\Conversation.rst" />
     <None Include="Docs\source\Scripts\Cycle.rst" />
     <None Include="Docs\source\Scripts\DCIcon.rst" />
     <None Include="Docs\source\Scripts\DColorButton.rst" />
@@ -813,6 +845,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Tools" "$(OutDir)Tools"</Command>
     <None Include="Docs\source\Scripts\ForwardCounter.rst" />
     <None Include="Docs\source\Scripts\Game.rst" />
     <None Include="Docs\source\Scripts\GameControls.rst" />
+    <None Include="Docs\source\Scripts\GameEgo.rst" />
     <None Include="Docs\source\Scripts\Gauge.rst" />
     <None Include="Docs\source\Scripts\Grooper.rst" />
     <None Include="Docs\source\Scripts\IconI.rst" />
@@ -824,8 +857,10 @@ xcopy /S /Y /I /D "$(ProjectDir)Tools" "$(OutDir)Tools"</Command>
     <None Include="Docs\source\Scripts\Jump.rst" />
     <None Include="Docs\source\Scripts\Main.rst" />
     <None Include="Docs\source\Scripts\Messager.rst" />
+    <None Include="Docs\source\Scripts\MoveCycle.rst" />
     <None Include="Docs\source\Scripts\MoveFwd.rst" />
     <None Include="Docs\source\Scripts\Orbit.rst" />
+    <None Include="Docs\source\Scripts\Oscillate.rst" />
     <None Include="Docs\source\Scripts\PAvoider.rst" />
     <None Include="Docs\source\Scripts\PChase.rst" />
     <None Include="Docs\source\Scripts\PFollow.rst" />
@@ -836,13 +871,17 @@ xcopy /S /Y /I /D "$(ProjectDir)Tools" "$(OutDir)Tools"</Command>
     <None Include="Docs\source\Scripts\PriorityTalker.rst" />
     <None Include="Docs\source\Scripts\PseudoMouse.rst" />
     <None Include="Docs\source\Scripts\RandCycle.rst" />
+    <None Include="Docs\source\Scripts\RangeOscillate.rst" />
     <None Include="Docs\source\Scripts\RegionPath.rst" />
     <None Include="Docs\source\Scripts\RelDPath.rst" />
+    <None Include="Docs\source\Scripts\Reverse.rst" />
+    <None Include="Docs\source\Scripts\SaveRestoreDialog.rst" />
     <None Include="Docs\source\Scripts\Scaler.rst" />
     <None Include="Docs\source\Scripts\ScaleTo.rst" />
     <None Include="Docs\source\Scripts\ScrollableInventory.rst" />
     <None Include="Docs\source\Scripts\ScrollInsetWindow.rst" />
     <None Include="Docs\source\Scripts\SettingsPane.rst" />
+    <None Include="Docs\source\Scripts\Sight.rst" />
     <None Include="Docs\source\Scripts\Slider.rst" />
     <None Include="Docs\source\Scripts\SmoothLooper.rst" />
     <None Include="Docs\source\Scripts\Smopper.rst" />
@@ -850,6 +889,7 @@ xcopy /S /Y /I /D "$(ProjectDir)Tools" "$(OutDir)Tools"</Command>
     <None Include="Docs\source\Scripts\SpeakWindow.rst" />
     <None Include="Docs\source\Scripts\StopWalk.rst" />
     <None Include="Docs\source\Scripts\Sync.rst" />
+    <None Include="Docs\source\Scripts\System.rst" />
     <None Include="Docs\source\Scripts\SysWindow.rst" />
     <None Include="Docs\source\Scripts\Talker.rst" />
     <None Include="Docs\source\Scripts\Timer.rst" />
@@ -1627,6 +1667,9 @@ xcopy /S /Y /I /D "$(ProjectDir)Tools" "$(OutDir)Tools"</Command>
   </ItemGroup>
   <ItemGroup>
     <Media Include="Files\Samples\PhonemeSentence.wav" />
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="Docs\source\fonts\Lato-Bold.ttf" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

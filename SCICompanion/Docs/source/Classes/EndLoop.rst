@@ -17,7 +17,7 @@ EndLoop (of :class:`CycleTo`)
 	
 	Example usage::
 	
-		// Tell the door to cycle to its last cel and notify us when done.
+		; Tell the door to cycle to its last cel and notify us when done.
 		(aDoor setCycle: EndLoop self)
 
 

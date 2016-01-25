@@ -79,6 +79,7 @@ y              y position. See posn().
 z              z position. See posn().                                  
 heading        The angle direction the Prop faces.                      
 noun           The noun for the Prop (for messages).                    
+_case          The optional case for the Prop (for messages).           
 modNum         Module number (for messages)                             
 nsTop          "Now seen" rect. The visual bounds of the Prop.          
 nsLeft                                                                  
@@ -178,7 +179,7 @@ Methods
 
 	Example usage for setting an explicit scale::
 
-		(gEgo setScale: 50) // 50 percent size.
+		(gEgo setScale: 50) ; 50 percent size.
 
 	:param class class: A scaler class, such as Scaler.
 	:param heapPtr obj: An instance of a scaler class.

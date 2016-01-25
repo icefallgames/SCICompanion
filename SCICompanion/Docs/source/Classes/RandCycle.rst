@@ -17,7 +17,7 @@ RandCycle (of :class:`Cycle`)
 	
 	Sample usage::
 	
-		// Make the star cycle between random cels 5 times.
+		; Make the star cycle between random cels 5 times.
 		(star setCycle: RandCycle 5)
 
 

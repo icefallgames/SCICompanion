@@ -18,8 +18,9 @@ The result (in the build folder) should then be copied into the Help folder, so 
 
 Automatically generating the SCI1.1 class hierarchy and kernels rst files from code comments:
 
-- Open SCI Companion, create a new template game, and press CTRL-SHIFT-D to bring up the documentation dialog.
+- Open a debug version of SCI Companion, create a new template game (use the SCI syntax, as the Sierra syntax doesn't quite yet support proper comment parsing)
+- press CTRL-SHIFT-D to bring up the documentation dialog.
 - Set the output directory to be the Docs subfolder of the SCI Companion project, with no trailing backslash
 - Select all files on the left, and click Generate. The scripts/classes/procedures rst files will be created and compiled.
-- click the Kernels button. The kernels rest files will be created and compiled.
+- (The Kernels button should no longer be used)
 

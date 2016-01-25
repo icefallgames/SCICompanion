@@ -1940,6 +1940,46 @@
     <None Include="Docs\source\Tutorial\Rooms.rst" />
     <None Include="Docs\source\Tutorial\Score.rst" />
     <None Include="Files\TemplateGame\SCI1.1\src\Actor.sc" />
+    <None Include="Docs\source\Procedures\CantBeSeen.rst" />
+    <None Include="Docs\source\Procedures\FindFormatLen.rst" />
+    <None Include="Docs\source\Procedures\Eval.rst" />
+    <None Include="Docs\source\Procedures\GetDirectory.rst" />
+    <None Include="Docs\source\Procedures\GetInput.rst" />
+    <None Include="Docs\source\Procedures\InRect.rst" />
+    <None Include="Docs\source\Procedures\MouseStillDown.rst" />
+    <None Include="Docs\source\Procedures\Printf.rst" />
+    <None Include="Docs\source\Procedures\Prints.rst" />
+    <None Include="Docs\source\Procedures\ScoreFlag.rst" />
+    <None Include="Docs\source\Procedures\UModulo.rst" />
+    <None Include="Docs\source\Procedures\WordAt.rst" />
+    <None Include="Docs\source\Classes\BegLoop.rst" />
+    <None Include="Docs\source\Classes\Block.rst" />
+    <None Include="Docs\source\Classes\Collection.rst" />
+    <None Include="Docs\source\Classes\CycleTo.rst" />
+    <None Include="Docs\source\Classes\EndLoop.rst" />
+    <None Include="Docs\source\Classes\Forward.rst" />
+    <None Include="Docs\source\Classes\GameEgo.rst" />
+    <None Include="Docs\source\Classes\GradualCycler.rst" />
+    <None Include="Docs\source\Classes\GradualLooper.rst" />
+    <None Include="Docs\source\Classes\MoveCycle.rst" />
+    <None Include="Docs\source\Classes\Object.rst" />
+    <None Include="Docs\source\Classes\Oscillate.rst" />
+    <None Include="Docs\source\Classes\RangeOscillate.rst" />
+    <None Include="Docs\source\Classes\Region.rst" />
+    <None Include="Docs\source\Classes\Reverse.rst" />
+    <None Include="Docs\source\Classes\Room.rst" />
+    <None Include="Docs\source\Classes\SaveRestoreDialog.rst" />
+    <None Include="Docs\source\Classes\TimeOut.rst" />
+    <None Include="Docs\source\Scripts\Block.rst" />
+    <None Include="Docs\source\Scripts\Conversation.rst" />
+    <None Include="Docs\source\Scripts\GameEgo.rst" />
+    <None Include="Docs\source\Scripts\MoveCycle.rst" />
+    <None Include="Docs\source\Scripts\Oscillate.rst" />
+    <None Include="Docs\source\Scripts\RangeOscillate.rst" />
+    <None Include="Docs\source\Scripts\Reverse.rst" />
+    <None Include="Docs\source\Scripts\SaveRestoreDialog.rst" />
+    <None Include="Docs\source\Scripts\Sight.rst" />
+    <None Include="Docs\source\Scripts\System.rst" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />
@@ -1948,5 +1988,8 @@
     <Media Include="Files\Samples\PhonemeSentence.wav">
       <Filter>Resource Files</Filter>
     </Media>
+  </ItemGroup>
+  <ItemGroup>
+    <Font Include="Docs\source\fonts\Lato-Bold.ttf" />
   </ItemGroup>
 </Project>

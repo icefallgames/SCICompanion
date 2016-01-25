@@ -107,6 +107,7 @@ cycler
 timer                     
 detailLevel               
 scaler                    
+_case                     
 name                      
 ============== ===========
 

@@ -17,9 +17,9 @@ DebugRoomInit (DebugRoomInit.sc)
 	
 	Example::
 	
-		(case 150 // The room number
-			// The ego must have the thing if he's in this room.
-			(send gEgo:set(INV_THETHING))
+		(150 ; The room number
+			; The ego must have the thing if he's in this room.
+			(gEgo set: INV_THETHING)
 		)
 	
 	See also: :doc:`/debugging`
