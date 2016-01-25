@@ -17,10 +17,12 @@
 #include "stdafx.h"
 #include "AppState.h"
 #include "NewGameDialog.h"
-//#include <shfolder.h>
 #include <shlobj.h>
 #include "atlimage.h"
 #include "GameFolderHelper.h"
+
+#include "ScriptConvert.h"
+#include "CompileContext.h"
 
 // NewGameDialog dialog
 
@@ -179,7 +181,6 @@ void NewGameDialog::OnBnClickedOk()
     if (fContinue)
     {
         // 2) Copy the files over
-        // TODO: Need to deal with language.
         std::string templateCoreFolder = appState->GetResourceMap().GetTemplateFolder();
         CString strText;
         m_wndComboTemplate.GetWindowTextA(strText);
@@ -198,6 +199,15 @@ void NewGameDialog::OnBnClickedOk()
         }
     }
 
+    // Language
+    // Set the game language.
+    int curSel = m_wndComboLanguage.GetCurSel();
+    LangSyntax lang = LangSyntaxUnknown;
+    if (curSel != CB_ERR)
+    {
+        lang = (LangSyntax)curSel;
+    }
+
     if (fContinue)
     {
         // 3) Set the name in the ini file
@@ -210,14 +220,9 @@ void NewGameDialog::OnBnClickedOk()
         if (fContinue)
         {
             // Set the game language.
-            int curSel = m_wndComboLanguage.GetCurSel();
-            if (curSel != CB_ERR)
-            {
-                LangSyntax lang = (LangSyntax)curSel;
-                GameFolderHelper helper;
-                helper.GameFolder = szPath;
-                helper.SetIniString(GameSection, LanguageKey, (lang == LangSyntaxSCI) ? LanguageValueSCI : LanguageValueStudio);
-            }
+            GameFolderHelper helper;
+            helper.GameFolder = szPath;
+            helper.SetIniString(GameSection, LanguageKey, (lang == LangSyntaxSCI) ? LanguageValueSCI : LanguageValueStudio);
         }
         if (!fContinue)
         {
@@ -233,6 +238,14 @@ void NewGameDialog::OnBnClickedOk()
     {
         // Open the new game, and then open the script editor to rm001 of the template game
         appState->OpenDocumentFile(szPath);
+
+        // If the game is not in Studio syntax, convert it now (the template games are in Studio syntax)
+        if (lang == LangSyntaxSCI)
+        {
+            CompileLog log;
+            ConvertGame(appState->GetResourceMap(), lang, log);
+        }
+
         appState->OpenScript(openToRoom);
         OnOK();
     }
