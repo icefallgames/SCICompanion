@@ -664,11 +664,13 @@ bool scicode::_areAllPriorInstructionsReturns(const fixup_todos &todos)
     for(code_pos pos : todos)
     {
         code_pos preceding = pos;
-        assert(pos != _code.begin()); // Otherwise we deref invalid memory (we should never start a fnc with a branch instruction)
-        --preceding;
-        if (preceding->get_opcode() != Opcode::RET)
+        if (pos != _code.begin()) // Otherwise we deref invalid memory (we should never start a fnc with a branch instruction). Can happen if there are script errors.
         {
-            return false;
+            --preceding;
+            if (preceding->get_opcode() != Opcode::RET)
+            {
+                return false;
+            }
         }
     }
     return fRet;
