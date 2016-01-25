@@ -74,7 +74,7 @@ y              y position. See posn().
 z              z position. See posn().                                  
 heading        The angle direction the View faces.                      
 noun           The noun for the View (for messages).                    
-_case          The optional case for the View (for messages).           
+case           The optional case for the View (for messages).           
 modNum         Module number (for messages)                             
 nsTop          "Now seen" rect. The visual bounds of the View.          
 nsLeft                                                                  

@@ -93,7 +93,7 @@ y
 z                                                                           
 heading                                                                     
 noun           Message noun associated with the Feature.                    
-_case          Message case associated with the Feature.                    
+case           Message case associated with the Feature.                    
 modNum                                                                      
 nsTop                                                                       
 nsLeft                                                                      

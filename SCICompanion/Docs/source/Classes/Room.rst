@@ -29,7 +29,7 @@ script      Room script, generally set with setScript in the init() method.
 number                                                                     
 modNum                                                                     
 noun        Noun associated with the room background.                      
-_case       Case associated with the room background.                      
+case        Case associated with the room background.                      
 timer                                                                      
 keep                                                                       
 initialized                                                                

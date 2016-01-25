@@ -79,7 +79,7 @@ y              y position. See posn().
 z              z position. See posn().                                  
 heading        The angle direction the Prop faces.                      
 noun           The noun for the Prop (for messages).                    
-_case          The optional case for the Prop (for messages).           
+case           The optional case for the Prop (for messages).           
 modNum         Module number (for messages)                             
 nsTop          "Now seen" rect. The visual bounds of the Prop.          
 nsLeft                                                                  

@@ -60,7 +60,7 @@ y              -1 means center
 z                             
 heading                       
 noun                          
-_case                         
+case                         
 modNum                        
 nsTop                         
 nsLeft                        

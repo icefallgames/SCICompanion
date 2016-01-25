@@ -24,3 +24,5 @@ Automatically generating the SCI1.1 class hierarchy and kernels rst files from c
 - Select all files on the left, and click Generate. The scripts/classes/procedures rst files will be created and compiled.
 - (The Kernels button should no longer be used)
 
+To binplace to generated help files, rebuild SCI Companion after this.
+

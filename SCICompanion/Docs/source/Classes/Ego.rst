@@ -56,7 +56,7 @@ y
 z                         
 heading                   
 noun                      
-_case                     
+case                     
 modNum                    
 nsTop                     
 nsLeft                    

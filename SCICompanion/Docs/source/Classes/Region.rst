@@ -44,7 +44,7 @@ script
 number                 
 modNum                 
 noun                   
-_case                  
+case                  
 timer                  
 keep                   
 initialized            
