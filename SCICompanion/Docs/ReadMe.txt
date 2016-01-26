@@ -11,7 +11,7 @@ make html
 
 ...should run the python script that generates the html documentation.
 
-The result (in the build folder) should then be copied into the Help folder, so that it is copied to the same location when SCICompanion.exe is built.
+When SCICompanion.exe is built, the built help files will then be copied to the Help folder next to SCICompanion.exe.
 
 
 

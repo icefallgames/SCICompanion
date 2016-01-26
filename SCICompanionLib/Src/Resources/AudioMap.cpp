@@ -176,6 +176,22 @@ AudioMapVersion _DetermineAudioMapVersion(int resourceNumber, int mainAudioMapRe
     throw std::exception("Unknown audio map format");
 }
 
+std::pair<AudioMapVersion, uint32_t> AudioMapVersionByteCounts[] =
+{
+    { AudioMapVersion::None, 0 },
+    { AudioMapVersion::FiveBytes, 5},
+    { AudioMapVersion::SixBytes, 6 },
+    { AudioMapVersion::EightBytes, 8 },
+    { AudioMapVersion::SyncMapEarly, 10 },
+    { AudioMapVersion::SyncMapLate, 11 },
+};
+
+uint32_t GetEntryByteCount(AudioMapVersion mapVersion)
+{
+    auto it = find_if(begin(AudioMapVersionByteCounts), end(AudioMapVersionByteCounts), [&mapVersion](pair<AudioMapVersion, uint32_t> &entry) { return mapVersion == entry.first; });
+    return it->second;
+}
+
 void AudioMapReadFrom(ResourceEntity &resource, sci::istream &stream, const std::map<BlobKey, uint32_t> &propertyBag)
 {
     AudioMapComponent &map = resource.GetComponent<AudioMapComponent>();
@@ -188,7 +204,7 @@ void AudioMapReadFrom(ResourceEntity &resource, sci::istream &stream, const std:
         stream >> cumOffset;
     }
 
-    while (stream.getBytesRemaining() > (uint32_t)map.Version)
+    while (stream.getBytesRemaining() > GetEntryByteCount(map.Version))
     {
         AudioMapEntry entry = { };
         switch (map.Version)

@@ -18,9 +18,14 @@
 enum class AudioMapVersion
 {
     None = 0,
+    // Main audio maps
     FiveBytes = 1,
     SixBytes = 2,
     EightBytes = 3,
+
+    // ^V don't change the order.
+
+    // Sync maps
     SyncMapEarly = 4,
     SyncMapLate = 5,
 };
