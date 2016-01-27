@@ -509,7 +509,7 @@ BEGIN
     POPUP "&View"
     BEGIN
         MENUITEM "&Import image sequence",      33001
-        MENUITEM "Image image",                 ID_IMPORT_IMAGE
+        MENUITEM "Import image",                ID_IMPORT_IMAGE
         MENUITEM SEPARATOR
         MENUITEM "Paste special\tCtrl+B",       ID_VIEW_PASTESPECIAL
         MENUITEM SEPARATOR
