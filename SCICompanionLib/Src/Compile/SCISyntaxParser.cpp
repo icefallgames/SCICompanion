@@ -931,6 +931,7 @@ void SCISyntaxParser::Load()
 
     // blarg    or   [blarg statement]
     lvalue = (opbracket >> general_token[{SetStatementNameA<LValue>, ParseAutoCompleteContext::LValue}] >> statement[LValueIndexerA] >> clbracket) |
+        keyword_p("argc")[SetStatementNameToParamTotalA<LValue>] |
         general_token[{SetStatementNameA<LValue>, ParseAutoCompleteContext::LValue}];
 
     rest_statement =

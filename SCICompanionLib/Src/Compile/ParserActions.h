@@ -487,6 +487,17 @@ void ComplexValueParamTotalA(MatchResult &match, const _TParser *pParser, Syntax
     }
 }
 
+// Set the name of a SyntaxNode
+template<typename _T, typename _TParser>
+void SetStatementNameToParamTotalA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->CreateSyntaxNode<_T>(stream);
+        pContext->GetSyntaxNode<_T>()->SetName("paramTotal");
+    }
+}
+
 template<typename _TParser>
 void ComplexValuePointerA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {
