@@ -3257,6 +3257,15 @@ void ClassDefinition::PreScan(CompileContext &context)
     {
         context.ScanObjectMethod(GetName(), method->GetName());
     }
+    std::set<std::string> propertyNames;
+    for (auto &prop : _properties)
+    {
+        if (propertyNames.find(prop->GetName()) != propertyNames.end())
+        {
+            context.ReportError(prop.get(), "Duplicate property name: %s", prop->GetName().c_str());
+        }
+        propertyNames.insert(prop->GetName());
+    }
 }
 
 CodeResult ClassDefinition::OutputByteCode(CompileContext &context) const
