@@ -802,7 +802,7 @@ bool KernelTable::Load(const GameFolderHelper &helper)
     unique_ptr<ResourceBlob> blob(_GetVocabData(helper, VocabKernelNames));
     if (blob)
     {
-        fRet = _Create(blob->GetReadStream());
+        fRet = _Create(blob->GetReadStream(), true);
         // KQ1 is stored differently... nullptr terminated strings.
         // if the normal kind of create fails, we will try that instead...
         if (!fRet)

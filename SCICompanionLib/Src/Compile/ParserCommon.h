@@ -204,6 +204,8 @@ public:
         {
             fDone = true;
             // Eat whitespace
+            // REVIEW: We need to audit all our uses of isspace, and cast char to unsigned char before passing to isspace.
+            // Otherwise, isspace asserts for chars over 127.
             while (isspace(*stream))
             {
                 fDone = false;
