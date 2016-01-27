@@ -524,13 +524,13 @@ ParserSCI SCISyntaxParser::generateSyntaxNodeD()
 template<typename _It, typename _TContext, typename _CommentPolicy>
 bool QuotedStringSCIP(const ParserBase<_TContext, _It, _CommentPolicy> *pParser, _TContext *pContext, _It &stream)
 {
-    return _ReadStringSCI<_TContext, _It, '"', '"'>(stream, pContext->ScratchString());
+    return _ReadStringSCI<_TContext, _It, '"', '"'>(pContext, stream, pContext->ScratchString());
 }
 
 template<typename _It, typename _TContext, typename _CommentPolicy>
 bool BraceStringSCIP(const ParserBase<_TContext, _It, _CommentPolicy> *pParser, _TContext *pContext, _It &stream)
 {
-    return _ReadStringSCI<_TContext, _It, '{', '}'>(stream, pContext->ScratchString());
+    return _ReadStringSCI<_TContext, _It, '{', '}'>(pContext, stream, pContext->ScratchString());
 }
 
 template<typename _It, typename _TContext, typename _CommentPolicy>

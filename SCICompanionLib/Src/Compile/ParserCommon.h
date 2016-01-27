@@ -254,6 +254,20 @@ public:
     }
 };
 
+template<typename _TContext>
+struct BlockAllACChannelsGuard
+{
+    BlockAllACChannelsGuard(_TContext *pContext) : _pContext(pContext)
+    {
+        if (_pContext) _pContext->PushParseAutoCompleteContext(BlockAllChannels);
+    }
+    ~BlockAllACChannelsGuard()
+    {
+        if (_pContext) _pContext->PopParseAutoCompleteContext();
+    }
+private:
+    _TContext *_pContext;
+};
 
 //
 // Optimized delimiter reader for SCI Script
@@ -264,11 +278,13 @@ public:
 // Underscores are indicated by \_
 //
 template<typename _TContext, typename _It, char Q1, char Q2>
-bool _ReadStringSCI(_It &stream, std::string &str)
+bool _ReadStringSCI(_TContext *pContext, _It &stream, std::string &str)
 {
     str.clear();
     if (Q1 == *stream)
     {
+        BlockAllACChannelsGuard<_TContext> blockGuard(pContext);
+
         char chPrev = 0;
         char ch;
         // Continue while no EOF, and while the character isn't the closing quote
@@ -372,11 +388,13 @@ bool _ReadStringSCI(_It &stream, std::string &str)
 // Optimized delimiter reader
 //
 template<typename _TContext, typename _CommentPolicy, typename _It, char Q1, char Q2>
-bool _ReadStringStudio(_It &stream, std::string &str)
+bool _ReadStringStudio(_TContext *pContext, _It &stream, std::string &str)
 {
     str.clear();
     while (Q1 == *stream)
     {
+        BlockAllACChannelsGuard<_TContext> blockGuard(pContext);
+
         char chPrev = 0;
         char ch;
         // Continue while no EOF, and while the character isn't the closing quote
@@ -717,9 +735,9 @@ public:
     }
 
     template<typename _TContext, typename _It, char Q1, char Q2>
-    bool ReadStringStudio(_It &stream, std::string &str) const
+    bool ReadStringStudio(_TContext *pContext, _It &stream, std::string &str) const
     {
-        return _ReadStringStudio<_TContext, _CommentPolicy, _It, Q1, Q2>(stream, str);
+        return _ReadStringStudio<_TContext, _CommentPolicy, _It, Q1, Q2>(pContext, stream, str);
     }
 
     std::unique_ptr<ParserBase> _pa;
