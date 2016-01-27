@@ -1181,7 +1181,7 @@ public:
         {
             out.out << "[";
         }
-        out.out << lValue.GetName();
+        out.out << CleanTokenSCI(lValue.GetName());
         if (lValue.HasIndexer())
         {
             lValue.GetIndexer()->Accept(*this);
