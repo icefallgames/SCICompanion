@@ -1056,7 +1056,7 @@ void SCISyntaxParser::Load()
     //      m2
     //      m3
     // )
-    methods_fwd = keyword_p("methods") >> *alphanumNK_p[AddMethodFwdA];
+    methods_fwd = keyword_p("methods")[{nullptr, ParseAutoCompleteContext::ClassLevelKeyword}] >> *alphanumNK_p[AddMethodFwdA];
 
     // Very similar to procedure_base, but with some autocomplete differences:
     method_base = oppar
