@@ -175,6 +175,7 @@ BOOL CResourceDocument::DoPreResourceSave(BOOL fSaveAs)
                         // Make sure we have a package and resource number.
                         int iResourceNumber = pResource->ResourceNumber;
                         int iPackageNumber = pResource->PackageNumber;
+                        std::string name;
                         if (fSaveAs || (iResourceNumber == -1) || (iPackageNumber == -1))
                         {
                             if (iResourceNumber == -1)
@@ -188,6 +189,7 @@ BOOL CResourceDocument::DoPreResourceSave(BOOL fSaveAs)
                             {
                                 iResourceNumber = srd.GetResourceNumber();
                                 iPackageNumber = srd.GetPackageNumber();
+                                name = srd.GetName();
                             }
                             else
                             {
@@ -198,7 +200,7 @@ BOOL CResourceDocument::DoPreResourceSave(BOOL fSaveAs)
                         if (!fCancelled && (iResourceNumber != -1) && (iPackageNumber != -1))
                         {
                             // We're good to go.
-                            fRet = _DoResourceSave(iPackageNumber, iResourceNumber);
+                            fRet = _DoResourceSave(iPackageNumber, iResourceNumber, name);
                             if (fRet)
                             {
                                 // We might have a new resource number, so update our title.
@@ -218,7 +220,7 @@ BOOL CResourceDocument::DoPreResourceSave(BOOL fSaveAs)
     return fRet;
 }
 
-BOOL CResourceDocument::_DoResourceSave(int iPackageNumber, int iResourceNumber)
+BOOL CResourceDocument::_DoResourceSave(int iPackageNumber, int iResourceNumber, const std::string &name)
 {
     // Ignore path name.
     const ResourceEntity *pResource = static_cast<const ResourceEntity *>(GetResource());
@@ -226,7 +228,7 @@ BOOL CResourceDocument::_DoResourceSave(int iPackageNumber, int iResourceNumber)
     int checksum = 0;
     if (pResource)
     {
-        saved = appState->GetResourceMap().AppendResource(*pResource, iPackageNumber, iResourceNumber, NoBase36, &checksum);
+        saved = appState->GetResourceMap().AppendResource(*pResource, iPackageNumber, iResourceNumber, name, NoBase36, &checksum);
     }
 
     if (saved)

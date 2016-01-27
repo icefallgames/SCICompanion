@@ -240,7 +240,7 @@ bool NewCompileScript(CompileLog &log, CompileTables &tables, PrecompiledHeaders
                 if (!results.GetTextComponent().Texts.empty())
                 {
                     assert(script.Language() != LangSyntaxStudio);
-                    appState->GetResourceMap().AppendResource(results.GetTextResource(), appState->GetVersion().DefaultVolumeFile, wNum);
+                    appState->GetResourceMap().AppendResource(results.GetTextResource(), appState->GetVersion().DefaultVolumeFile, wNum, "");
                 }
 
                 // Save the script resource

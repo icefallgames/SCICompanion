@@ -62,7 +62,7 @@ public:
     void AppendResourceAskForNumber(ResourceEntity &resource);
     void AppendResourceAskForNumber(ResourceEntity &resource, const std::string &name, bool warnOnOverwrite = false);
     bool AppendResource(const ResourceEntity &resource, int *pChecksum = nullptr);
-    bool AppendResource(const ResourceEntity &resource, int packageNumber, int resourceNumber, uint32_t base36Header = NoBase36, int *pChecksum = nullptr);
+    bool AppendResource(const ResourceEntity &resource, int packageNumber, int resourceNumber, const std::string &name, uint32_t base36Header = NoBase36, int *pChecksum = nullptr);
 
     int SuggestResourceNumber(ResourceType type);
     void AssignName(const ResourceBlob &resource);

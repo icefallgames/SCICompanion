@@ -564,10 +564,10 @@ HRESULT CResourceMap::AppendResource(const ResourceBlob &resource)
 
 bool CResourceMap::AppendResource(const ResourceEntity &resource, int *pChecksum)
 {
-    return AppendResource(resource, resource.PackageNumber, resource.ResourceNumber, resource.Base36Number, pChecksum);
+    return AppendResource(resource, resource.PackageNumber, resource.ResourceNumber, "", resource.Base36Number, pChecksum);
 }
 
-bool CResourceMap::AppendResource(const ResourceEntity &resource, int packageNumber, int resourceNumber, uint32_t base36Number, int *pChecksum)
+bool CResourceMap::AppendResource(const ResourceEntity &resource, int packageNumber, int resourceNumber, const std::string &name, uint32_t base36Number, int *pChecksum)
 {
     bool success = false;
     if (resource.PerformChecks())
@@ -579,6 +579,10 @@ bool CResourceMap::AppendResource(const ResourceEntity &resource, int packageNum
         {
             sci::istream readStream = istream_from_ostream(serial);
             data.CreateFromBits(nullptr, resource.GetType(), &readStream, packageNumber, resourceNumber, base36Number, _gameFolderHelper.Version, resource.SourceFlags);
+            if (!name.empty())
+            {
+                data.SetName(name.c_str());
+            }
             success = SUCCEEDED(AppendResource(data));
             if (pChecksum)
             {
