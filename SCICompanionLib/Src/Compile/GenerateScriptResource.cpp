@@ -544,8 +544,13 @@ void _Section3_Synonyms(Script &script, CompileContext &context, vector<BYTE> &o
     const SynonymVector &synonyms = script.GetSynonyms();
     if (!synonyms.empty())
     {
-        push_word(output, 3); // 3 = synonyms
-        push_word(output, (WORD)(synonyms.size() * 4) + 4); // 4 bytes per synonym entry
+        push_word(output, 3);           // 3 = synonyms
+        uint16_t totalSize = 4 + 2;     // header plus terminator
+        for (auto &synonymClause : synonyms)
+        {
+            totalSize += 4 * (uint16_t)synonymClause->Synonyms.size();  // 4 bytes per synonym entry
+        }
+        push_word(output, totalSize);
 
         for (auto &synonymClause : synonyms)
         {
@@ -564,6 +569,8 @@ void _Section3_Synonyms(Script &script, CompileContext &context, vector<BYTE> &o
                 push_word(output, wGroup);
             }
         }
+
+        push_word(output, 0xffff);
     }
 }
 

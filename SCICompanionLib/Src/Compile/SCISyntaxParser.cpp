@@ -548,6 +548,7 @@ void CreateSynA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pCo
     {
         pContext->CreateSynonym();
         pContext->SynonymPtr->MainWord = pContext->ScratchString();
+        pContext->SynonymPtr->SetPosition(stream.GetPosition());
     }
     else
     {
@@ -558,7 +559,6 @@ void AddSynA(MatchResult &match, const ParserSCI *pParser, SyntaxContext *pConte
 {
     if (match.Result())
     {
-        pContext->CreateSynonym();
         pContext->SynonymPtr->Synonyms.push_back(pContext->ScratchString());
     }
     else
@@ -790,7 +790,7 @@ void SCISyntaxParser::Load()
     export_entry = general_token[{nullptr, ParseAutoCompleteContext::Export}] >> integer_p[AddExportA];
     exports = keyword_p("public") >> *export_entry;
 
-    synonym_entry = alphanum_p[CreateSynA] >> *alphanum_p[AddSynA];
+    synonym_entry = oppar >> alphanum_p[CreateSynA] >> *alphanum_p[AddSynA] >> clpar;
     synonyms = keyword_p("synonyms") >> *synonym_entry[FinishSynA];
 
     rvalue_variable =

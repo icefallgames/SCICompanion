@@ -90,7 +90,7 @@ std::string _FindPreferredWord(const std::string &words)
 
 string SaidSequenceToString(vector<uint16_t> saidSequence, const ILookupNames *pWords)
 {
-    string strRet = "'";
+    string strRet = "";
     for (size_t i = 0; i < saidSequence.size(); i++)
     {
         uint16_t wOp = saidSequence[i];
@@ -106,7 +106,6 @@ string SaidSequenceToString(vector<uint16_t> saidSequence, const ILookupNames *p
             strRet += _FindPreferredWord(strWords);
         }
     }
-    strRet += "'";
     return strRet;
 }
 

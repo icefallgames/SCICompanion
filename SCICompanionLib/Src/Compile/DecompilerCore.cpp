@@ -48,7 +48,7 @@ ValueType _ScriptObjectTypeToPropertyValueType(ICompiledScriptSpecificLookups::O
     switch (type)
     {
     case ICompiledScriptSpecificLookups::ObjectTypeSaid:
-        return ValueType::Token; // since it already includes the ' '
+        return ValueType::Said;
         break;
     case ICompiledScriptSpecificLookups::ObjectTypeString:
         return ValueType::String;
