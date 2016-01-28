@@ -802,6 +802,11 @@ void CMainFrame::_EnumeratePlugins(CExtPopupMenuWnd &menu)
         }
 
         CExtCmdItem *pCmdItem = g_CmdManager->CmdGetPtr(appState->_pszCommandProfile, idToAdd);
+        // Allocate this command if not used yet.
+        if (pCmdItem == nullptr)
+        {
+            pCmdItem = g_CmdManager->CmdAllocPtr(appState->_pszCommandProfile, idToAdd);
+        }
         pCmdItem->m_sMenuText = description.c_str();
         menu.ItemInsert(idToAdd, index);
         index++;
@@ -858,6 +863,7 @@ LRESULT CMainFrame::OnExtMenuPrepare(WPARAM wParam, LPARAM)
             catch (std::exception) {}
 
             CExtCmdItem *pCmdItem = g_CmdManager->CmdGetPtr(appState->_pszCommandProfile, commandId);
+            assert(pCmdItem);
             pCmdItem->m_sMenuText = text.c_str();
             pPopup->ItemInsert(commandId, index);
             index++;

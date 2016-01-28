@@ -68,7 +68,7 @@ Let's go through another example of how something like the following scene from 
 
 If we inspect the decompiled code, we see that there are three palette cycling regions, 232-239, 240-247, and 248-254::
 
-    Palette(palANIMATE 232 239 -1 240 247 -1 248 254 -1)
+    (Palette palANIMATE 232 239 -1 240 247 -1 248 254 -1)
 
 These roughly correspond to the three different shades (light, medium, and dark) of the waterfall and lake. 
 Let's just briefly visualize the three ranges of indices that cycle separately. They are highlighted in red, yellow and blue in this image:
