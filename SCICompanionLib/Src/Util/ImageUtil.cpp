@@ -230,6 +230,27 @@ int CountActualUsedColors(const std::vector<const Cel*> &cels, bool *used)
     return std::count(used, used + 256, true);
 }
 
+
+// Our gifloader is much better at extracting palettes from gifs than gdi+, so try it first.
+// REVIEW: We could use this functionality to obtain palettes from multi-frame gifs for pic backgrounds.
+/*
+std::unique_ptr<Gdiplus::Bitmap> _MaybeCreateBitmapFromGIF(const std::string &filename)
+{
+    std::unique_ptr<Gdiplus::Bitmap> bitmap;
+    if (0 == lstrcmpi(".gif", PathFindExtension(filename.c_str())))
+    {
+        // Try our gif loader, which understands palettes better than gdip
+        std::vector<Cel> cels;
+        PaletteComponent palette;
+        if (GetCelsAndPaletteFromGIFFile(filename.c_str(), cels, palette))
+        {
+
+        }
+    }
+    return bitmap;
+}
+*/
+
 // Note that GDI+ doesn't support RLE bitmaps files.
 // By default, SV.exe exports RLE bitmaps, but you can tell it in Preferences to output
 // them uncompressed.

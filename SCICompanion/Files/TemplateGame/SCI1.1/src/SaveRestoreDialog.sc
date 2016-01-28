@@ -453,7 +453,7 @@ code_04aa:  lsl     local4
             pushi   2
             lsp     param1
             lat     temp2
-            lea     @temp3
+            leai    @temp3
             push    
             callk   StrCpy, 4
             push    
@@ -519,7 +519,7 @@ code_0540:  lsl     local1
             lsl     local1
             ldi     18
             mul     
-            lea     @temp3
+            leai    @temp3
             push    
             callk   StrCmp, 4
             sat     temp1
@@ -656,7 +656,7 @@ code_0646:  lsl     local1
             pushi   #write
             pushi   2
             lal     local1
-            lea     @temp364
+            leai    @temp364
             push    
             pushi   2
             lat     temp0
@@ -666,7 +666,7 @@ code_0646:  lsl     local1
             lsl     local1
             ldi     18
             mul     
-            lea     @temp3
+            leai    @temp3
             push    
             lat     temp0
             send    6
@@ -749,7 +749,7 @@ code_0706:  lsl     local4
             pushi   2
             lsp     param1
             lat     temp2
-            lea     @temp3
+            leai    @temp3
             push    
             callk   StrCpy, 4
             push    
