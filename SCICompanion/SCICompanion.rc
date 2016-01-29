@@ -64,8 +64,8 @@ END
 //
 
 VS_VERSION_INFO     VERSIONINFO
-FILEVERSION       3, 0, 1, 6
-PRODUCTVERSION    3, 0, 1, 6
+FILEVERSION       3, 0, 1, 7
+PRODUCTVERSION    3, 0, 1, 7
  FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
 #ifdef _DEBUG
  FILEFLAGS VS_FF_DEBUG
@@ -82,12 +82,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "IceFall Games"
             VALUE "FileDescription", "SCICompanion"
-            VALUE "FileVersion",     "3.0.1.6"
+            VALUE "FileVersion",     "3.0.1.7"
             VALUE "InternalName",    "SCICompanion.exe"
             VALUE "LegalCopyright", "(c) IceFall Games.  All rights reserved."
             VALUE "OriginalFilename","SCICompanion.exe"
             VALUE "ProductName", "SCI Companion 3"
-            VALUE "ProductVersion",  "3.0.1.6"
+            VALUE "ProductVersion",  "3.0.1.7"
         END
     END
     BLOCK "VarFileInfo"
