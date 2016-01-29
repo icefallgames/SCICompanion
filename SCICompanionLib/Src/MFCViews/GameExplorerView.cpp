@@ -667,6 +667,10 @@ void DropResourceFiles(CArray<CString, CString&> *pDropFiles)
                 {
                     data.SetName(resNameFromFilename.c_str());
                 }
+                else
+                {
+                    data.SetName(nullptr);
+                }
                 std::string existingName;
                 if (iNumber != -1)
                 {
