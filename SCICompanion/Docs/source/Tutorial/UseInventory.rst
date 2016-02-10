@@ -77,13 +77,13 @@ Next, as we did once before, we'll replace the evilEgo's V_BOX handler with a ca
 .. code-block:: python
     :emphasize-lines: 4
 
-    (method (doVerb theVerb params)
+    (method (doVerb theVerb)
         (switch (theVerb)
             (V_BOX
-                (self:setScript(throwBoxScript))
+                (self setScript: throwBoxScript)
             )
             (default 
-                (super:doVerb(theVerb rest params))
+                (super doVerb: theVerb &rest)
             )
         )
     )

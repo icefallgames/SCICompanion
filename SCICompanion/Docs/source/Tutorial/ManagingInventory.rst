@@ -36,7 +36,7 @@ out stub there in the template game:
 .. code-block:: python
     :emphasize-lines: 4
 
-        (self:
+        (self
         	; Add inventory items here.
             ; add: Money AThing AnotherThing
             add: BlueBox

@@ -26,7 +26,7 @@ init method requires::
 
 	(method (setMotion theMover))
 		...
-		= mover (theMover new:)
+		(= mover (theMover new:))
 		; Call the mover's init method with myself (the Actor), followed
 		; by whatever additional parameters were passed.
 		(send mover init: self &rest))
