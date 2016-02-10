@@ -20,7 +20,7 @@ in main.sc that allows you to print debug messages to |scicomp| :doc:`output pan
 
 ::
 
-    DebugPrint("Switching to room %d" newRoomNumber)
+    (DebugPrint "Switching to room %d" newRoomNumber)
 
 This debugging functionality requires that the game be able to write to arbitrary files in the same directory as the game
 executable. For this reason, it is not compatible with ScummVM. It does, however, work when the game is run in DOSBox. It should be noted that ScummVM comes with

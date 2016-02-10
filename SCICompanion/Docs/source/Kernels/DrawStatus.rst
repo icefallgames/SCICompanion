@@ -17,4 +17,8 @@ DrawStatus (Kernel)
 	
 		(DrawStatus " Score 0 of 100                   Awesome Quest ")
 
+	Note::
+
+		Font formatting codes (like |f3|) don't work in DrawStatus in ScummVM.
+
 

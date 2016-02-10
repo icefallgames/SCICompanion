@@ -14,8 +14,9 @@ address is used.
 
 Example::
 
-    (instance {Glowing Gem} of InventoryItem 
+    (instance Glowing_Gem of InventoryItem 
         (properties 
+			name "Glowing Gem"
             ; said will be a pointer to the said string
             said '~ gem [ AND glowing ] ~'
             ; description will be a pointer to the string
