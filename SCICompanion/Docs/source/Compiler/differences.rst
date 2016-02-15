@@ -115,7 +115,7 @@ In Sierra script these would both look the same::
 and/or operators are now prefix
 ===================================
 
-In SCI Studio syntax, **and** and **or** behaved differently than all other oeprators in that they were infix instead of prefix.
+In SCI Studio syntax, **and** and **or** behaved differently than all other operators in that they were infix instead of prefix.
 In Sierra Script, **and** and **or** are prefix. So if statements must be written like so::
 
     (if (and A B))
