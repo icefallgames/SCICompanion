@@ -805,6 +805,7 @@
     <Image Include="res\alphable.bmp" />
     <Image Include="res\animate.ico" />
     <Image Include="res\audio.ico" />
+    <Image Include="res\audiomap.ico" />
     <Image Include="res\bang.ico" />
     <Image Include="res\bitmap1.bmp" />
     <Image Include="res\bitmapcu.bmp" />

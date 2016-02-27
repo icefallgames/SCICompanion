@@ -539,6 +539,7 @@ c_ShowResourceCommands[] =
     { ID_SHOW_MESSAGES, ResourceType::Message, "Messages", "Show messages", "Show message resources", IDI_MESSAGE },
     { ID_SHOW_HEAPS, ResourceType::Heap, "Heaps", "Show heaps", "Show heap resources", IDI_SCRIPT },
     { ID_SHOW_AUDIO, ResourceType::Audio, "Audio", "Show audio", "Show audio resources", IDI_AUDIO },
+    { ID_SHOW_MAPS, ResourceType::AudioMap, "Maps", "Show maps", "Show audio maps", IDI_AUDIOMAP },
 };
 
 void _AssignIcons(const key_value_pair<UINT, int> *rg, size_t count)
@@ -660,6 +661,10 @@ void CMainFrame::RefreshExplorerTools()
         if (version.SeparateHeapResources)
         {
             m_wndExplorerTools.InsertButton(-1, ID_SHOW_HEAPS);
+        }
+        if (version.AudioVolumeName != AudioVolumeName::None)
+        {
+            m_wndExplorerTools.InsertButton(-1, ID_SHOW_MAPS);
         }
 
         m_wndExplorerTools.InitContentExpandButton(); // Overflow...

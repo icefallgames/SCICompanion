@@ -621,6 +621,14 @@ void CResourceListCtrl::OnDelete()
         }
     }
 
+    if (this->GetType() == ResourceType::AudioMap)
+    {
+        if (IDNO == AfxMessageBox("Audio map resources are closely tied to the digital audio resources, and are created and managed by SCI Companion automatically. Deleting them may result in corrupt audio or crashes.\nContinue with deleting the map resource anyway?", MB_ICONWARNING | MB_YESNO))
+        {
+            return;
+        }
+    }
+
     bool deleteCompanionAudio = false;
     if ((this->GetType() == ResourceType::Message) && appState->GetVersion().HasSyncResources)
     {

@@ -161,6 +161,7 @@ IDI_ICON5               ICON                    "res\\icon5.ico"
 IDI_EYEDROPPER          ICON                    "res\\Eyedropper.ico"
 IDI_TRANSPARENCY        ICON                    "res\\Transparent.ico"
 IDI_AUDIO               ICON                    "res\\audio.ico"
+IDI_AUDIOMAP            ICON                    "res\\audiomap.ico"
 IDI_POLYPATH            ICON                    "res\\PolyPath.ico"
 IDI_OPENGAMEFOLDER      ICON                    "res\\GameFolder.ico"
 IDI_DEBUG               ICON                    "res\\debug.ico"
@@ -2073,6 +2074,13 @@ BEGIN
     EDITTEXT        IDC_EDITX,74,8,68,14,ES_AUTOHSCROLL | ES_NUMBER
 END
 
+IDD_PREVIEWMAP DIALOGEX 0, 0, 153, 230
+STYLE DS_SETFONT | DS_FIXEDSYS | WS_CHILD | WS_CLIPCHILDREN | WS_SYSMENU
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
+BEGIN
+    LTEXT           "Audio map resources are used by the game to look up audio resources. They are managed automatically by SCI Companion and should not be modified or deleted.",IDC_STATICTITLE,7,7,139,74
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -2771,6 +2779,14 @@ BEGIN
         VERTGUIDE, 74
         TOPMARGIN, 7
         BOTTOMMARGIN, 80
+    END
+
+    IDD_PREVIEWMAP, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 146
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 223
     END
 END
 #endif    // APSTUDIO_INVOKED

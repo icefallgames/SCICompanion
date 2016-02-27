@@ -140,6 +140,23 @@ private:
 };
 
 
+class MapPreviewer : public ResourcePreviewer
+{
+public:
+    MapPreviewer() { }
+    virtual ~MapPreviewer();
+
+    UINT GetIDD() { return IDD_PREVIEWMAP; }
+    void SetResource(const ResourceBlob &blob);
+
+private:
+    virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+    DECLARE_MESSAGE_MAP()
+
+    CExtLabel m_wndTitle;
+};
+
+
 
 
 class VocabPreviewer : public ResourcePreviewer

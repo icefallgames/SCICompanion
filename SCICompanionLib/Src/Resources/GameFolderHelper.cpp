@@ -34,9 +34,7 @@ std::string default_reskey(int iNumber, uint32_t base36Number)
 {
     if (base36Number == NoBase36)
     {
-        stringstream ss;
-        ss << "n" << setfill('0') << setw(3) << iNumber;
-        return ss.str();
+        return fmt::format("n{0:0>3}", iNumber);
     }
     else
     {

@@ -400,6 +400,25 @@ void TextPreviewer::DoDataExchange(CDataExchange* pDX)
 
 
 
+
+//
+// Text previewer
+//
+BEGIN_MESSAGE_MAP(MapPreviewer, ResourcePreviewer)
+END_MESSAGE_MAP()
+
+MapPreviewer::~MapPreviewer() {}
+
+void MapPreviewer::SetResource(const ResourceBlob &blob) {}
+
+void MapPreviewer::DoDataExchange(CDataExchange* pDX)
+{
+    __super::DoDataExchange(pDX);
+    DDX_Control(pDX, IDC_STATICTITLE, m_wndTitle);
+}
+
+
+
 //
 // Vocab previewer
 //

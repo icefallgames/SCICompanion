@@ -91,6 +91,10 @@ ResourcePreviewer *CGameExplorerFrame::_GetPreviewer(ResourceType iType)
             case ResourceType::Palette:
                 pPreviewer = new PalettePreviewer;
                 break;
+
+            case ResourceType::AudioMap:
+                pPreviewer = new MapPreviewer;
+                break;
             }
             if (pPreviewer)
             {
@@ -137,6 +141,7 @@ BEGIN_MESSAGE_MAP(CGameExplorerFrame, CMDITabChildWnd)
     ON_COMMAND_EX(ID_SHOW_MESSAGES, OnShowResource)
     ON_COMMAND_EX(ID_SHOW_HEAPS, OnShowResource)
     ON_COMMAND_EX(ID_SHOW_AUDIO, OnShowResource)
+    ON_COMMAND_EX(ID_SHOW_MAPS, OnShowResource)
     ON_UPDATE_COMMAND_UI(ID_SHOW_VIEWS, OnUpdateResourceTypeCommand)
     ON_UPDATE_COMMAND_UI(ID_SHOW_PICS, OnUpdateResourceTypeCommand)
     ON_UPDATE_COMMAND_UI(ID_SHOW_SCRIPTS, OnUpdateResourceTypeCommand)
@@ -149,7 +154,7 @@ BEGIN_MESSAGE_MAP(CGameExplorerFrame, CMDITabChildWnd)
     ON_UPDATE_COMMAND_UI(ID_SHOW_PALETTES, OnUpdateResourceTypeCommand)
     ON_UPDATE_COMMAND_UI(ID_SHOW_MESSAGES, OnUpdateResourceTypeCommand)
     ON_UPDATE_COMMAND_UI(ID_SHOW_HEAPS, OnUpdateResourceTypeCommand)
-    ON_UPDATE_COMMAND_UI(ID_SHOW_AUDIO, OnUpdateResourceTypeCommand)
+    ON_UPDATE_COMMAND_UI(ID_SHOW_MAPS, OnUpdateResourceTypeCommand)
 
     ON_COMMAND_EX(ID_BAR_PREVIEW, OnBarCheck)
     ON_UPDATE_COMMAND_UI(ID_BAR_PREVIEW, OnUpdateControlBarMenu)
