@@ -230,12 +230,32 @@ void CResourceListCtrl::OnEndLabelEdit(NMHDR* pNMHDR, LRESULT* pResult)
             ResourceBlob *pData = _GetResourceForItemMetadataOnly(plvdi->item.iItem);
             assert(pData);
             // Put the name in game.ini
+            std::string oldName = pData->GetName();
             pData->SetName(plvdi->item.pszText);
             appState->GetResourceMap().AssignName(*pData);
 
             // Change the name in the view:
             *pResult = TRUE; // This doesn't seem to work.
             SetItemText(plvdi->item.iItem, 0, plvdi->item.pszText);
+
+            if (pData->GetType() == ResourceType::Script)
+            {
+                // Rename the actual things.
+                const GameFolderHelper &helper = appState->GetResourceMap().Helper();
+                
+                std::string oldScriptFilename = helper.GetScriptFileName(oldName);
+                std::string oldObjectFilename = helper.GetScriptObjectFileName(oldName);
+                try
+                {
+                    movefile(oldScriptFilename, helper.GetScriptFileName(plvdi->item.pszText));
+                    movefile(oldObjectFilename, helper.GetScriptObjectFileName(plvdi->item.pszText));
+                    // TODO: Indicate in output pane that script files were renamed?
+                }
+                catch (std::exception)
+                {
+                    // TODO: warn?
+                }
+            }
         }
         else
         {
