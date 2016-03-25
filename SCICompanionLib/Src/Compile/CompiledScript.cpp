@@ -42,6 +42,11 @@ static char THIS_FILE[] = __FILE__;
 const uint16_t InfoClassFlag = 0x8000;
 const uint16_t InfoCloneFlag = 0x0001;  // probably never used in the editor
 
+bool IsAnOffset(uint16_t value, const std::vector<uint16_t> &saidOffsets, const std::vector<uint16_t> &stringOffsets)
+{
+    return (find(saidOffsets.begin(), saidOffsets.end(), value) != saidOffsets.end()) ||
+        (find(stringOffsets.begin(), stringOffsets.end(), value) != stringOffsets.end());
+}
 
 std::string _GetProcNameFromScriptOffset(uint16_t wOffset)
 {
@@ -390,10 +395,64 @@ bool CompiledScript::_LoadSCI0_SCI1(sci::istream &byteStream)
             _localVars.assign(localVarsCount, { 0, false });
         }
 
+        DWORD dwSaveBeginning = byteStream.tellg();
+        // Read section 4 and 5 in first - those are the said/string sections, and we need to know beforehand
+        // which numbers are valid saids/strings.
+        while (fRet)
+        {
+            DWORD dwSavePos = byteStream.tellg();
+
+            // Read the type and size.
+            uint16_t wType;
+            uint16_t wSectionSize;
+            byteStream >> wType;
+            if (wType != 0)
+            {
+                byteStream >> wSectionSize;
+                fRet = byteStream.good() && (wSectionSize >= 4);
+                if (fRet)
+                {
+                    switch (wType)
+                    {
+                        case 4:
+                        {
+                            // Said specs
+                            fRet = _ReadSaids(byteStream, wSectionSize - 4);
+                        }
+                        break;
+
+                        case 5:
+                        {
+                            // Strings
+                            fRet = _ReadStrings(byteStream, wSectionSize - 4);
+                        }
+                        break;
+                    }
+                }
+            }
+            if (wType == 0)
+            {
+                break; // Done
+            }
+            if (fRet)
+            {
+                assert(wSectionSize > 0); // else we'll never get anywhere.
+                if (wSectionSize > 0)
+                {
+                    byteStream.seekg(dwSavePos + wSectionSize);
+                    fRet = byteStream.good();
+                }
+            }
+        }
+        byteStream.seekg(dwSaveBeginning);
+
+
+        // Now the rest of the stuff.
         int classIndex = 0;
         while (fRet)
         {
             DWORD dwSavePos = byteStream.tellg();
+
             // Read the type and size.
             uint16_t wType;
             uint16_t wSectionSize;
@@ -414,7 +473,7 @@ bool CompiledScript::_LoadSCI0_SCI1(sci::istream &byteStream)
                         // instance
                         unique_ptr<CompiledObject> pObject = make_unique<CompiledObject>();
                         uint16_t wInstanceOffsetTO;
-                        fRet = pObject->Create_SCI0(this->_wScript, _version, byteStream, FALSE, &wInstanceOffsetTO, classIndex);
+                        fRet = pObject->Create_SCI0(_saidsOffset, _stringsOffset, this->_wScript, _version, byteStream, FALSE, &wInstanceOffsetTO, classIndex);
                         if (fRet)
                         {
                             _objectsOffsetTO.push_back(wInstanceOffsetTO);
@@ -454,15 +513,13 @@ bool CompiledScript::_LoadSCI0_SCI1(sci::istream &byteStream)
 
                     case 4:
                     {
-                        // Said specs
-                        fRet = _ReadSaids(byteStream, wSectionSize - 4);
+                        // Said specs - done above
                     }
                     break;
 
                     case 5:
                     {
-                        // Strings
-                        fRet = _ReadStrings(byteStream, wSectionSize - 4);
+                        // Strings - done above
                     }
                     break;
 
@@ -471,7 +528,7 @@ bool CompiledScript::_LoadSCI0_SCI1(sci::istream &byteStream)
                         // class
                         unique_ptr<CompiledObject> pObject = make_unique<CompiledObject>();
                         uint16_t wClassOffset;
-                        fRet = pObject->Create_SCI0(this->_wScript, _version, byteStream, TRUE, &wClassOffset, classIndex);
+                        fRet = pObject->Create_SCI0(_saidsOffset, _stringsOffset, this->_wScript, _version, byteStream, TRUE, &wClassOffset, classIndex);
                         if (fRet)
                         {
                             _objectsOffsetTO.push_back(wClassOffset);
@@ -533,7 +590,7 @@ bool CompiledScript::_LoadSCI0_SCI1(sci::istream &byteStream)
                             uint16_t w;
                             byteStream >> w;
                             fRet = byteStream.good();
-                            _localVars.push_back({ w, false });
+                            _localVars.push_back({ w, IsAnOffset(w, _saidsOffset, _stringsOffset) });
                         }
                     }
                     break;
@@ -692,7 +749,7 @@ bool CompiledObject::Create_SCI1_1(const CompiledScript &compiledScript, SCIVers
     return true;
 }
 
-bool CompiledObject::Create_SCI0(uint16_t scriptNum, SCIVersion version, sci::istream &stream, BOOL fClass, uint16_t *pwOffset, int classIndex)
+bool CompiledObject::Create_SCI0(const std::vector<uint16_t> &saidOffsets, const std::vector<uint16_t> &stringOffsets, uint16_t scriptNum, SCIVersion version, sci::istream &stream, BOOL fClass, uint16_t *pwOffset, int classIndex)
 {
     _version = version;
     *pwOffset = static_cast<uint16_t>(stream.tellg());
@@ -722,7 +779,7 @@ bool CompiledObject::Create_SCI0(uint16_t scriptNum, SCIVersion version, sci::is
                 stream >> wValue;
                 if (stream.good())
                 {
-                    _propertyValues.push_back({ wValue, false });
+                    _propertyValues.push_back({ wValue, IsAnOffset(wValue, saidOffsets, stringOffsets) });
                 }
                 wNumVarValuesLeft--;
             }
