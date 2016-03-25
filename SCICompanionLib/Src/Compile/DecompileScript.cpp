@@ -64,49 +64,51 @@ void DecompileObject(const CompiledObject &object,
         assert(propertySelectorList.size() == speciesPropertyValueList.size());
         size_t size1 = propertySelectorList.size();
         size_t size2 = object.GetPropertyValues().size();
-        if (size1 == size2)
+        size_t numberOfProps = min(size1, size2);
+        if (size1 != size2)
         {
-            for (size_t i = object.GetNumberOfDefaultSelectors(); i < object.GetPropertyValues().size(); i++)
+            // TODO: Output a warning... mismatched prop sizes.
+        }
+        
+        for (size_t i = object.GetNumberOfDefaultSelectors(); i < numberOfProps; i++)
+        {
+            const CompiledVarValue &propValue = object.GetPropertyValues()[i];
+            // If this is an instance, look up the species values, and only
+            // include those that are different.
+            if (!object.IsInstance() || (propValue.value != speciesPropertyValueList[i].value))
             {
-                const CompiledVarValue &propValue = object.GetPropertyValues()[i];
-                // If this is an instance, look up the species values, and only
-                // include those that are different.
-                if (!object.IsInstance() || (propValue.value != speciesPropertyValueList[i].value))
+                unique_ptr<ClassProperty> prop = make_unique<ClassProperty>();
+                prop->SetName(lookups.LookupSelectorName(propertySelectorList[i]));
+                PropertyValue value;
+                ICompiledScriptSpecificLookups::ObjectType type;
+                std::string saidOrString;
+                if (!propValue.isObjectOrString || !lookups.LookupScriptThing(propValue.value, type, saidOrString))
                 {
-                    unique_ptr<ClassProperty> prop = make_unique<ClassProperty>();
-                    prop->SetName(lookups.LookupSelectorName(propertySelectorList[i]));
-                    PropertyValue value;
-                    ICompiledScriptSpecificLookups::ObjectType type;
-                    std::string saidOrString;
-                    if (!propValue.isObjectOrString || !lookups.LookupScriptThing(propValue.value, type, saidOrString))
-                    {
-                        assert(!propValue.isObjectOrString && "We should have resolved some token for this property value");
+                    assert(!propValue.isObjectOrString && "We should have resolved some token for this property value");
 
-                        // Just give it a number
-                        uint16_t number = propValue.value;
-                        value.SetValue(number);
-                        if (lookups.GetDecompilerConfig()->IsBitfieldProperty(prop->GetName()))
-                        {
-                            value._fHex = true;
-                        }
-                        else if (number >= 32768)
-                        {
-                            // A good bet that it's negative
-                            value.Negate();
-                        }
-                    }
-                    else
+                    // Just give it a number
+                    uint16_t number = propValue.value;
+                    value.SetValue(number);
+                    if (lookups.GetDecompilerConfig()->IsBitfieldProperty(prop->GetName()))
                     {
-                        // REVIEW: we could provide a hit here when we shouldn't... oh well.
-                        // Use ValueType::Token, since the ' or " is already provided in the string.
-                        value.SetValue(saidOrString, _ScriptObjectTypeToPropertyValueType(type));
+                        value._fHex = true;
                     }
-                    prop->SetValue(value);
-                    pClass->AddProperty(move(prop));
+                    else if (number >= 32768)
+                    {
+                        // A good bet that it's negative
+                        value.Negate();
+                    }
                 }
+                else
+                {
+                    // REVIEW: we could provide a hit here when we shouldn't... oh well.
+                    // Use ValueType::Token, since the ' or " is already provided in the string.
+                    value.SetValue(saidOrString, _ScriptObjectTypeToPropertyValueType(type));
+                }
+                prop->SetValue(value);
+                pClass->AddProperty(move(prop));
             }
         }
-        // else -> make ERROR by adding script comment.
     } // else make ERROR
 
     // Methods
