@@ -761,17 +761,24 @@ bool SCIClassBrowser::_AddFileName(std::string fullPath, bool fReplace)
                 WORD wScriptNumber = GetScriptNumberHelper(pScript.get());
                 _filenameToScriptNumber[fullPathLower] = wScriptNumber;
 
-                assert(wScriptNumber != InvalidResourceNumber); // Do something about this.
-                // Find matching script number and replace
-                for (auto &script : _scripts)
+                if (wScriptNumber != InvalidResourceNumber)
                 {
-                    if (GetScriptNumberHelper(script.get()) == wScriptNumber)
+                    // Find matching script number and replace
+                    for (auto &script : _scripts)
                     {
-                        _RemoveAllRelatedData(script.get());
-                        fAdded = true;
-                        // Replace
-                        script = std::move(pScript); // Take ownership.
+                        if (GetScriptNumberHelper(script.get()) == wScriptNumber)
+                        {
+                            _RemoveAllRelatedData(script.get());
+                            fAdded = true;
+                            // Replace
+                            script = std::move(pScript); // Take ownership.
+                        }
                     }
+                }
+                else
+                {
+                    // This can happen if the script number define can't be resolved
+                    fAdded = true;
                 }
             }
             else
@@ -791,7 +798,18 @@ bool SCIClassBrowser::_AddFileName(std::string fullPath, bool fReplace)
         }
         buffer.FreeAll();
     }
+
+    _AssertScriptsValid();
+
     return fRet;
+}
+
+void SCIClassBrowser::_AssertScriptsValid()
+{
+    for (auto &script : _scripts)
+    {
+        assert(script.get());
+    }
 }
 
 void SCIClassBrowser::_MaybeGenerateAutoCompleteTree()

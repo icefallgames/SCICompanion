@@ -137,6 +137,7 @@ private:
     typedef std::unordered_map<std::string, DefineValueCache> define_map;
     typedef std::unordered_map<std::string, WORD> word_map;
 
+    void _AssertScriptsValid();
     bool _CreateClassTree(ITaskStatus &task);
     void _AddToClassTree(sci::Script& script);
     bool _AddFileName(std::string fullPath, bool fReplace = false);

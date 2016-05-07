@@ -277,7 +277,7 @@ void _FigureOutParameters(SCIVersion sciVersion, FunctionBase &function, Functio
     for (code_pos pos = code.begin(); pos != code.end(); ++pos)
     {
         WORD wIndex;
-        if (_IsVariableUse(sciVersion, pos, VarScope::Param, wIndex)) // 3 -> param
+        if (_IsVariableUse(sciVersion, pos, VarScope::Param, wIndex))
         {
             wBiggest = max(wIndex, wBiggest);
         }
@@ -1322,6 +1322,19 @@ std::string DecompileLookups::LookupPropertyName(WORD wPropertyIndex)
     else
     {
         return "PROPERTY-ACCESS-IN-NON-METHOD";
+    }
+}
+bool DecompileLookups::LookupPropertyName(uint16_t wPropertyIndex, std::string &name)
+{
+    if (_pPropertyNames)
+    {
+        _requestedProperty = true;
+        name = _pPropertyNames->LookupPropertyName(this, wPropertyIndex);
+        return true;
+    }
+    else
+    {
+        return false;
     }
 }
 bool DecompileLookups::LookupScriptThing(WORD wName, ICompiledScriptSpecificLookups::ObjectType &type, std::string &name) const

@@ -111,6 +111,9 @@ public:
     // ILookupPropertyName
     std::string LookupPropertyName(uint16_t wPropertyIndex);
 
+    // Fails if no property context
+    bool LookupPropertyName(uint16_t wPropertyIndex, std::string &name);
+
     bool LookupScriptThing(uint16_t wName, ICompiledScriptSpecificLookups::ObjectType &type, std::string &name) const;
 
     std::string LookupParameterName(uint16_t wIndex); // 1-based

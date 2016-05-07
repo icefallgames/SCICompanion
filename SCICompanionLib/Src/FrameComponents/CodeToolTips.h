@@ -234,20 +234,26 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                         fFound = (methodIt != pMethods->end());
                         if (fFound)
                         {
-                            // Make a std::string like
-                            // species:method(param1 param2 param3)
-                            fFound = true;
-                            StringCchPrintf(szTip, ARRAYSIZE(szTip), TEXT("%s::"), (*methodIt)->GetOwnerClass()->GetName().c_str());
-                            TCHAR szTemp[200];
-                            _GetMethodInfoHelper(szTemp, ARRAYSIZE(szTemp), (*methodIt));
-                            StringCchCat(szTip, ARRAYSIZE(szTip), szTemp);
-                            result.strTip = szTip;
+                            // REVIEW: Haven't been able to track this down, but something GetOwnerScript is null.
+                            fFound = ((*methodIt)->GetOwnerScript() != nullptr);
+                            if (fFound)
+                            {
+                                // Make a std::string like
+                                // species:method(param1 param2 param3)
+                                fFound = true;
+                                StringCchPrintf(szTip, ARRAYSIZE(szTip), TEXT("%s::"), (*methodIt)->GetOwnerClass()->GetName().c_str());
+                                TCHAR szTemp[200];
+                                _GetMethodInfoHelper(szTemp, ARRAYSIZE(szTemp), (*methodIt));
+                                StringCchCat(szTip, ARRAYSIZE(szTip), szTemp);
+                                result.strTip = szTip;
 
-                            // "goto definition" info
-                            result.iLineNumber = (*methodIt)->GetLineNumber();
-                            result.scriptId = ScriptId((*methodIt)->GetOwnerScript()->GetPath().c_str());
-                            StringCchPrintf(szTemp, ARRAYSIZE(szTemp), TEXT("%s::%s"), (*methodIt)->GetOwnerClass()->GetName().c_str(), (*methodIt)->GetName().c_str());
-                            result.strBaseText = szTemp;
+                                // "goto definition" info
+                                result.iLineNumber = (*methodIt)->GetLineNumber();
+
+                                result.scriptId = ScriptId((*methodIt)->GetOwnerScript()->GetPath().c_str());
+                                StringCchPrintf(szTemp, ARRAYSIZE(szTemp), TEXT("%s::%s"), (*methodIt)->GetOwnerClass()->GetName().c_str(), (*methodIt)->GetName().c_str());
+                                result.strBaseText = szTemp;
+                            }
                         }
                         else
                         {

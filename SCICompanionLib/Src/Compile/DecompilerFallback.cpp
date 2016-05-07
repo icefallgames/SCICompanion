@@ -350,7 +350,20 @@ void DisassembleFallback(FunctionBase &func, code_pos start, code_pos end, Decom
                 case Opcode::IPTOS:   // Inc prop to stack
                 case Opcode::DPTOS:   // Dec prop to stack
                 {
-                    _AddToken(*asmStatement, lookups.LookupPropertyName(cur->get_first_operand()));
+                    std::string propertyName;
+                    uint16_t propIndex = cur->get_first_operand();
+                    if (lookups.LookupPropertyName(propIndex, propertyName))
+                    {
+                        _AddToken(*asmStatement, propertyName);
+                    }
+                    else
+                    {
+                        _AddNumber(*asmStatement, &valueWeak, propIndex);
+
+                        // Couldn't find a property context to convert the number to a name. Let's add a comment.
+                        string warningMessage = fmt::format("WARNING: Can't determine property name for index {}", propIndex);
+                        _AddSyntaxNode(statements, make_unique<Comment>(warningMessage, CommentType::Indented));
+                    }
                     break;
                 }
 
