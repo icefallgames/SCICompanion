@@ -23,9 +23,9 @@
 // CGamePropertiesDialog dialog
 
 CGamePropertiesDialog::CGamePropertiesDialog(RunLogic &runLogic, CWnd* pParent /*=NULL*/)
-    : CExtNCW<CExtResizableDialog>(CGamePropertiesDialog::IDD, pParent), _runLogic(runLogic), _initialized(false)
+    : CExtNCW<CExtResizableDialog>(CGamePropertiesDialog::IDD, pParent), _runLogic(runLogic), _initialized(false), _wasAspectRatioChanged(false)
 {
-    
+    _fAspectRatioStart = appState->GetResourceMap().Helper().GetUseSierraAspectRatio(!!appState->_fUseOriginalAspectRatioDefault);
 }
 
 CGamePropertiesDialog::~CGamePropertiesDialog()
@@ -55,6 +55,9 @@ void CGamePropertiesDialog::DoDataExchange(CDataExchange* pDX)
 
     DDX_Control(pDX, IDC_STATICPROFILE, m_wndStaticProfile);
     DDX_Control(pDX, IDC_COMBOPROFILE, m_wndComboProfile);
+
+    DDX_Control(pDX, IDC_CHECKASPECTRATIO, m_wndCheckAspectRatio);
+    m_wndCheckAspectRatio.SetCheck(_fAspectRatioStart ? BST_CHECKED : BST_UNCHECKED);
 
     if (!_initialized)
     {
@@ -113,7 +116,13 @@ BEGIN_MESSAGE_MAP(CGamePropertiesDialog, CExtNCW<CExtResizableDialog>)
     ON_EN_KILLFOCUS(IDC_EDITEXECUTABLE, &CGamePropertiesDialog::OnEnKillfocusEditexecutable)
     ON_EN_KILLFOCUS(IDC_EDITEXECUTABLEPARAMETERS, &CGamePropertiesDialog::OnEnKillfocusEditexecutableparameters)
     ON_CBN_SELCHANGE(IDC_COMBOPROFILE, &CGamePropertiesDialog::OnCbnSelchangeComboprofile)
+    ON_BN_CLICKED(IDC_CHECKASPECTRATIO, &CGamePropertiesDialog::OnAspectRatioClicked)
 END_MESSAGE_MAP()
+
+void CGamePropertiesDialog::OnAspectRatioClicked()
+{
+    _wasAspectRatioChanged = true;
+}
 
 void CGamePropertiesDialog::OnOK()
 {
@@ -132,6 +141,18 @@ void CGamePropertiesDialog::OnOK()
     {
         std::string option = _runLogic.GetExecutableProfiles()[sel];
         _runLogic.SetExecutableProfile(option);
+    }
+
+    bool useSierraAspectRatio = m_wndCheckAspectRatio.GetCheck() == BST_CHECKED;
+    if (_wasAspectRatioChanged)
+    {
+        // Set it
+        appState->GetResourceMap().Helper().SetUseSierraAspectRatio(useSierraAspectRatio);
+    }
+    appState->_fUseOriginalAspectRatioCached = useSierraAspectRatio;
+    if (_fAspectRatioStart != useSierraAspectRatio)
+    {
+        appState->NotifyChangeAspectRatio();
     }
 
     LangSyntax lang = appState->GetResourceMap().Helper().GetDefaultGameLanguage();

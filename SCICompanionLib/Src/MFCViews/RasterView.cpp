@@ -351,7 +351,7 @@ CRasterView::CRasterView()
 int CRasterView::_GetViewScreenHeight() const
 {
     int height = _cyViewZoom;
-    if (appState->_fUseOriginalAspectRatio)
+    if (appState->_fUseOriginalAspectRatioCached)
     {
         height = appState->AspectRatioY(height);
     }
@@ -361,7 +361,7 @@ int CRasterView::_GetViewScreenHeight() const
 int CRasterView::_GetDragScreenHeight() const
 {
     int height = _sizeNew.cy * _iZoomFactor;
-    if (appState->_fUseOriginalAspectRatio)
+    if (appState->_fUseOriginalAspectRatioCached)
     {
         height = appState->AspectRatioY(height);
     }

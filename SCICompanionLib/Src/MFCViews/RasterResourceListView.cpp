@@ -116,7 +116,7 @@ LRESULT CRasterResourceListCtrl::OnImageReady(WPARAM wParam, LPARAM lParam)
                 pWorkResult->hbmp = nullptr;    // Owned by CBitmap now
 
                 // Stretch the image if we're using the original aspect ratio.
-                if (appState->_fUseOriginalAspectRatio)
+                if (appState->_fUseOriginalAspectRatioCached)
                 {
                     bitmap.SetBitmapDimension(VIEW_IMAGE_SIZE, VIEW_IMAGE_SIZE);
                     _StretchForAspectRatio(this, bitmap);

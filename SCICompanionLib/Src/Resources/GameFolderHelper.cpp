@@ -28,6 +28,9 @@ const std::string GameSection = "Game";
 const std::string LanguageKey = "Language";
 const std::string LanguageValueStudio = "sc";
 const std::string LanguageValueSCI = "sci";
+const std::string AspectRatioKey = "UseSierraAspectRatio";
+const std::string TrueValue = "true";
+const std::string FalseValue = "false";
 
 // Returns "n004" for input of 4
 std::string default_reskey(int iNumber, uint32_t base36Number)
@@ -193,6 +196,17 @@ std::string GameFolderHelper::GetPolyFolder(const std::string *prefix) const
 ScriptId GameFolderHelper::GetScriptId(const std::string &name) const
 {
     return ScriptId(GetScriptFileName(name).c_str());
+}
+
+bool GameFolderHelper::GetUseSierraAspectRatio(bool defaultValue) const
+{
+    std::string value = GetIniString(GameSection, AspectRatioKey, defaultValue ? TrueValue.c_str() : FalseValue.c_str());
+    std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+    return value == TrueValue;
+}
+void GameFolderHelper::SetUseSierraAspectRatio(bool useSierra) const
+{
+    SetIniString(GameSection, AspectRatioKey, useSierra ? TrueValue : FalseValue);
 }
 
 

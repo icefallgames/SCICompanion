@@ -156,12 +156,16 @@ public:
     BOOL _fCodeCompletion;
     BOOL _fHoverTips;
     BOOL _fPlayCompileErrorSound;
-    BOOL _fUseOriginalAspectRatio;
+    BOOL _fUseOriginalAspectRatioDefault;
     BOOL _fShowTabs;
     BOOL _fShowToolTips;
     BOOL _fSaveScriptsBeforeRun;
     BOOL _fTrackHeaderFiles;
     BOOL _fCompileDirtyScriptsBeforeRun;
+
+    // This is a hack, but we're making this as a spot fix to allow
+    // for per-game aspect ratio.
+    bool _fUseOriginalAspectRatioCached;
 
     std::string _midiDeviceName;
     std::unique_ptr<AudioProcessingSettings> _audioProcessing;

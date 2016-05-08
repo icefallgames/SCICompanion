@@ -94,7 +94,8 @@ AppState::AppState(CWinApp *pApp) : _resourceMap(*this)
     _fCodeCompletion = TRUE;
     _fHoverTips = TRUE;
     _fPlayCompileErrorSound = TRUE;
-    _fUseOriginalAspectRatio = false;
+    _fUseOriginalAspectRatioDefault = FALSE;
+    _fUseOriginalAspectRatioCached = false;
     _fShowTabs = FALSE;
     _fShowToolTips = TRUE;
     _fSaveScriptsBeforeRun = TRUE;
@@ -166,7 +167,8 @@ AppState::AppState(CWinApp *pApp) : _resourceMap(*this)
 
 int AppState::AspectRatioY(int value) const
 {
-    if (_fUseOriginalAspectRatio && (GetVersion().DefaultResolution != NativeResolution::Res640x480))
+    // TODO: grab it from helper
+    if (_fUseOriginalAspectRatioCached && (GetVersion().DefaultResolution != NativeResolution::Res640x480))
     {
         // If using one of the 8:5 aspect ratios (320x200, 640x400), multiply by 1.2 to achieve original Sierra aspect ratio
         return value * 12 / 10;
@@ -179,7 +181,8 @@ int AppState::AspectRatioY(int value) const
 
 int AppState::InverseAspectRatioY(int value) const
 {
-    if (_fUseOriginalAspectRatio)
+    // TODO: grab it from helper
+    if (_fUseOriginalAspectRatioCached)
     {
         // Multiply by 1.2 to achieve original Sierra aspect ratio
         return value * 10 / 12;

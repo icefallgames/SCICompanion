@@ -55,6 +55,9 @@ public:
     std::unique_ptr<ResourceContainer> Resources(ResourceTypeFlags types, ResourceEnumFlags enumFlags, ResourceRecency *pRecency = nullptr, int mapContext = -1) const;
     std::unique_ptr<ResourceBlob> GameFolderHelper::MostRecentResource(ResourceType type, int number, ResourceEnumFlags flags, uint32_t base36Number = NoBase36, int mapContext = -1) const;
 
+    bool GetUseSierraAspectRatio(bool defaultValue) const;
+    void SetUseSierraAspectRatio(bool useSierra) const;
+
     // Members
     SCIVersion Version;
     std::string GameFolder;

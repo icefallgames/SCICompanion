@@ -465,7 +465,7 @@ int CPicView::_GetViewHeight()
 int CPicView::GetPicScreenHeight() const
 {
     int height = _cyPic;
-    if (appState->_fUseOriginalAspectRatio)
+    if (appState->_fUseOriginalAspectRatioCached)
     {
         height = appState->AspectRatioY(height);
     } 

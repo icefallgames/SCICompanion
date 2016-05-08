@@ -1278,6 +1278,7 @@ void CResourceMap::SetGameFolder(const string &gameFolder)
     _dependencyTracker->Clear();
     _runLogic->SetGameFolder(gameFolder);
     _gameFolderHelper.GameFolder = gameFolder;
+    appState->_fUseOriginalAspectRatioCached = _gameFolderHelper.GetUseSierraAspectRatio(!!appState->_fUseOriginalAspectRatioDefault);
     _talkerToView = TalkerToViewMap(Helper().GetLipSyncFolder());
     ClearVocab000();
     _pPalette999.reset(nullptr);                    // REVIEW: also do this if global palette is edited.

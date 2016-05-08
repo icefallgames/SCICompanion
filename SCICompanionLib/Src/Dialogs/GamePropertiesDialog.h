@@ -35,6 +35,7 @@ private:
     void _Update();
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
     afx_msg void OnBrowse();
+    afx_msg void OnAspectRatioClicked();
 	DECLARE_MESSAGE_MAP()
 
     CExtButton m_wndBrowse;
@@ -51,12 +52,16 @@ private:
     CExtEdit m_wndEditParams;
     CExtEdit m_wndEditExe;
     RunLogic &_runLogic;
+    CExtCheckBox m_wndCheckAspectRatio;
 
     std::unordered_map<std::string, std::string> _optionToExe;
     std::unordered_map<std::string, std::string> _optionToParams;
     std::unordered_set<std::string> _dirtyOptionsExe;
     std::unordered_set<std::string> _dirtyOptionsParams;
     bool _initialized;
+
+    bool _fAspectRatioStart;
+    bool _wasAspectRatioChanged;
 
 public:
     afx_msg void OnEnKillfocusEditexecutable();

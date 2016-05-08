@@ -24,7 +24,7 @@ CPreferencesDialog::CPreferencesDialog(CWnd* pParent /*=NULL*/)
 	: CExtResizableDialog(CPreferencesDialog::IDD, pParent)
 {
     _fBrowseInfoStart = appState->_fBrowseInfo;
-    _fAspectRatioStart = appState->_fUseOriginalAspectRatio;
+    _fAspectRatioStart = appState->_fUseOriginalAspectRatioDefault;
     _fShowTabsStart = appState->_fShowTabs;
 }
 
@@ -48,7 +48,7 @@ void CPreferencesDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Check(pDX, IDC_CODECOMPLETION, appState->_fCodeCompletion);
     DDX_Check(pDX, IDC_HOVERTIPS, appState->_fHoverTips);
     DDX_Check(pDX, IDC_COMPILEERRORSOUND, appState->_fPlayCompileErrorSound);
-    DDX_Check(pDX, IDC_CHECK_ASPECTRATIO, appState->_fUseOriginalAspectRatio);
+    DDX_Check(pDX, IDC_CHECK_ASPECTRATIO, appState->_fUseOriginalAspectRatioDefault);
     DDX_Check(pDX, IDC_CHECK_SHOWTABS, appState->_fShowTabs);
 
     DDX_Check(pDX, IDC_SAVESCRIPTS, appState->_fSaveScriptsBeforeRun);
@@ -119,9 +119,13 @@ void CPreferencesDialog::OnOK()
             appState->GenerateBrowseInfo();
         }
     }
-    if (_fAspectRatioStart != appState->_fUseOriginalAspectRatio)
+    if (_fAspectRatioStart != appState->_fUseOriginalAspectRatioDefault)
     {
-        appState->NotifyChangeAspectRatio();
+        // This flag now means that for games without it specified we will (or won't) use the
+        // Sierra aspect ratio.
+
+        // We *could* offer to change this game's aspect ratio here, in which case we'd want to notify:
+        //appState->NotifyChangeAspectRatio();
     }
     if (_fShowTabsStart != appState->_fShowTabs)
     {
