@@ -2505,7 +2505,7 @@ CodeResult SwitchStatement::OutputByteCode(CompileContext &context) const
                     {
                         if (caseValues.find(numberValue) != caseValues.end())
                         {
-                            context.ReportError(pCase, "Duplicate case values. Already encountered a case for '%d'", numberValue);
+                            context.ReportWarning(pCase, "Duplicate case values. Already encountered a case for '%d'", numberValue);
                         }
                         caseValues.insert(numberValue);
                     }

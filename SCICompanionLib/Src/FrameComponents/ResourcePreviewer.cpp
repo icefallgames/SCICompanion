@@ -301,7 +301,7 @@ void ScriptPreviewer::SetResource(const ResourceBlob &blob)
         }
         else
         {
-            m_wndHeader.SetWindowText("Language: C syntax");
+            m_wndHeader.SetWindowText("Language: Sierra");
         }
 
         std::string scriptText;
