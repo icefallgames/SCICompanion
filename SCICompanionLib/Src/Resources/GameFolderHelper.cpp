@@ -128,6 +128,11 @@ std::string GameFolderHelper::GetIniString(const std::string &sectionName, const
     }
     return strRet;
 }
+bool GameFolderHelper::DoesSectionExistWithEntries(const std::string &sectionName)
+{
+    char sz[200];
+    return (GetPrivateProfileSection(sectionName.c_str(), sz, (DWORD)ARRAYSIZE(sz), GetGameIniFileName().c_str()) > 0);
+}
 void GameFolderHelper::SetIniString(const std::string &sectionName, const std::string &keyName, const std::string &value) const
 {
     WritePrivateProfileString(sectionName.c_str(), keyName.c_str(), value.empty() ? nullptr : value.c_str(), GetGameIniFileName().c_str());

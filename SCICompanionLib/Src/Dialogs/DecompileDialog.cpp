@@ -38,6 +38,7 @@ DecompileDialog::DecompileDialog(CWnd* pParent /*=NULL*/)
 {
     // If we already have a game.ini, great, we'll honor that.
     string gameIniFile = appState->GetResourceMap().Helper().GetGameIniFileName();
+
     if (!PathFileExists(gameIniFile.c_str()))
     {
         // But if not, set the default language to Sierra syntax.
@@ -75,9 +76,9 @@ void DecompileDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_INSTRUCTIONS, m_wndSCOLabel);
 
     m_wndScript.SetWindowText(
-        "Start with \"Set filenames\" to give scripts meaningful names based upon their contents.\r\n"
+        "Start with \"Set filenames\" to give scripts meaningful names based upon their contents (or this will be done automatically upon first decompile if no script filenames have been set yet).\r\n"
         "\r\n"
-        "Select a script on the left to decompile it. You may rename scripts as you wish.\r\n"
+        "Select a script on the left to decompile it. You may rename scripts as you wish, although scripts dependent on that script will then need to be recompiled.\r\n"
         "\r\n"
         "Decompiling a script will also generate a .sco file. The .sco file tracks procedure and variable names which are not present in the compiled script. By default they are given names such as \"local4\"\r\n"
         "You may edit the names to make them more meaningful, and they will be picked up the next time you decompile the script.\r\n"
@@ -582,6 +583,13 @@ void DecompileDialog::OnBnClickedDecompile()
         _scriptNumbers.insert(scriptNumber);
     }
 
+    // If filenames have not been set, set them now. Do this *after* we get selection, since assigning filenames
+    // clears selection.
+    if (!_helper.DoesSectionExistWithEntries("Script"))
+    {
+        _AssignFilenames();
+    }
+
     if (!_scriptNumbers.empty())
     {
         if (!_future)
@@ -619,6 +627,11 @@ void DecompileDialog::_SyncButtonState()
 }
 
 void DecompileDialog::OnBnClickedAssignfilenames()
+{
+    _AssignFilenames();
+}
+
+void DecompileDialog::_AssignFilenames()
 {
     unordered_set<string> importantClasses = { "Game" }; // e.g. needed for KQ6, 994
 

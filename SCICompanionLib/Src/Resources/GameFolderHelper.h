@@ -46,6 +46,7 @@ public:
     std::string GameFolderHelper::GetPolyFolder(const std::string *prefix = nullptr) const;
     std::string GetGameIniFileName() const;
     std::string GetIniString(const std::string &sectionName, const std::string &keyName, PCSTR pszDefault = "") const;
+    bool DoesSectionExistWithEntries(const std::string &sectionName);
     std::string GetIncludeFolder() const;
     void SetIniString(const std::string &sectionName, const std::string &keyName, const std::string &value) const;
     LangSyntax GetDefaultGameLanguage() const { return Language; }

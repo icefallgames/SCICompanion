@@ -84,6 +84,7 @@ private:
     std::vector<int> _scoPublicProcIndices; // Since sco exports include both instances and procs, but we can only edit proc names.
     bool _inSCOLabelEdit;
     bool _inScriptListLabelEdit;
+    bool _needsSetFilenames;
 
     int previousSelection;
     bool initialized;
@@ -108,6 +109,7 @@ private:
     CString _debugFunctionMatch;
     std::unique_ptr<GlobalCompiledScriptLookups> _lookups;
     std::unique_ptr<IDecompilerConfig> _decompilerConfig;
+    void _AssignFilenames();
 public:
     afx_msg void OnLvnItemchangedListscripts(NMHDR *pNMHDR, LRESULT *pResult);
     afx_msg void OnTvnBeginlabeleditTreesco(NMHDR *pNMHDR, LRESULT *pResult);
