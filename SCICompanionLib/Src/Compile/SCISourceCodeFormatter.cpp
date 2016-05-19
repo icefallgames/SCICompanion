@@ -183,6 +183,17 @@ std::string CleanTokenSCI(const std::string &src)
         return "argc";
     }
     std::string output;
+
+    // If first char is a number, then prepend with _
+    if (!src.empty())
+    {
+        char ch = src[0];
+        if (std::isdigit(ch))
+        {
+            output = "_";
+        }
+    }
+
     std::transform(src.begin(), src.end(), std::back_inserter(output), [](char ch)
     {
         // Replace unwanted chars with underscores.
@@ -193,6 +204,7 @@ std::string CleanTokenSCI(const std::string &src)
         return ch;
     }
     );
+
     return output;
 }
 

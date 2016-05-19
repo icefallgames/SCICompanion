@@ -309,9 +309,17 @@ bool CSCOFile::GetPublicExportByName(const std::string &exportName, CSCOPublicEx
     return fRet;
 }
 
-bool CSCOFile::GetClassIndex(std::string className, WORD &wIndex) const
+bool CSCOFile::GetClassSpecies(std::string className, SpeciesIndex &species) const
 {
-    return GetItemIndex(_classes, className, wIndex);
+    for (const auto &theClass : _classes)
+    {
+        if (theClass.GetName() == className)
+        {
+            species = theClass.GetSpecies();
+            return true;
+        }
+    }
+    return false;
 }
 
 // A bit of a hack

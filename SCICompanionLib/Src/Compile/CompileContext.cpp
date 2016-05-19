@@ -413,18 +413,14 @@ ResolvedToken CompileContext::LookupToken(const SyntaxNode *pNodeForError, const
 }
 bool CompileContext::LookupSpeciesIndex(const string &str, SpeciesIndex &wSpeciesIndex)
 {
-    // First, we'll need to check the scoFiles for this class
-    // Then, we'll need to use the global class table to find the "class #"
+    // Check the scoFiles for this class. We used to check the index of the class in the sco file, then
+    // reference the global class table to find the species#. No need for that though.
     for (WordSCOMap::value_type &p : _scos)
     {
         CSCOFile &scoFile = p.second;
-        WORD wClassIndexInScript;
-        if (scoFile.GetClassIndex(str, wClassIndexInScript))
+        if (scoFile.GetClassSpecies(str, wSpeciesIndex))
         {
-            if (_tables.Species().GetSpeciesIndex(scoFile.GetScriptNumber(), wClassIndexInScript, wSpeciesIndex))
-            {
-                return true;
-            }
+            return true;
         }
     }
     return false;

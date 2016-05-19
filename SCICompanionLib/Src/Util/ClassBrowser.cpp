@@ -350,7 +350,7 @@ bool SCIClassBrowser::ReLoadFromSources(ITaskStatus &task)
     }
 }
 
-void LoadClassFromCompiled(sci::ClassDefinition *pClass, const CompiledScript &compiledScript, CompiledObject *pObject, SelectorTable *pNames, const std::unordered_map<uint16_t, std::string> &speciesToName)
+void LoadClassFromCompiled(sci::ClassDefinition *pClass, const CompiledScript &compiledScript, CompiledObject *pObject, SelectorTable *pNames, const std::unordered_map<uint16_t, std::string> &speciesToName, sci::Script *pScript)
 {
     pClass->SetInstance(pObject->IsInstance());
     pClass->SetName(pObject->GetName());
@@ -408,6 +408,7 @@ void LoadClassFromCompiled(sci::ClassDefinition *pClass, const CompiledScript &c
 		std::unique_ptr<sci::MethodDefinition> pMethod = std::make_unique<sci::MethodDefinition>();
         pMethod->SetName(pNames->Lookup(methods[i]));
         pMethod->SetOwnerClass(pClass);
+        pMethod->SetScript(pScript);
 		pClass->AddMethod(std::move(pMethod));
     }
 }
@@ -425,7 +426,7 @@ void LoadScriptFromCompiled(sci::Script *pScript, CompiledScript *pCompiledScrip
     {
         std::unique_ptr<sci::ClassDefinition> pClass = std::make_unique<ClassDefinition>();
         pClass->SetScript(pScript);
-        LoadClassFromCompiled(pClass.get(), *pCompiledScript, object.get(), pNames, speciesToName);
+        LoadClassFromCompiled(pClass.get(), *pCompiledScript, object.get(), pNames, speciesToName, pScript);
         pScript->AddClass(std::move(pClass));
     }
 }
