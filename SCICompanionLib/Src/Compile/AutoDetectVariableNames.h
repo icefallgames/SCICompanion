@@ -21,4 +21,4 @@ class CSCOFile;
 class IDecompilerConfig;
 
 // For the decompiler.
-void AutoDetectVariableNames(sci::Script &script, const IDecompilerConfig *config, CSCOFile *mainSCO, CSCOFile *scriptSCO, bool &mainDirty);
+void AutoDetectVariableNames(sci::Script &script, const IDecompilerConfig *config, CSCOFile *mainSCO, CSCOFile *scriptSCO, std::vector<std::pair<std::string, std::string>> &mainDirty);

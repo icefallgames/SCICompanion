@@ -32,6 +32,8 @@ Graph (Kernel)
 	Graph is a kernel with many sub functions. It should be noted that the order of the coordinates
 	(y, followed by x) is the opposite of most kernels.
 
+	Also note that most Graph functions require a follow-up call to grUPDATE_BOX to update the screen after drawing.
+
 	:param number y1: The top of the box.
 	:param number x1: The left side of the box.
 	:param number y2: The bottom of the box.

@@ -500,8 +500,8 @@ Script *Decompile(const GameFolderHelper &helper, const CompiledScript &compiled
         }
         unique_ptr<CSCOFile> oldScriptSCO = GetExistingSCOFromScriptNumber(helper, compiledScript.GetScriptNumber());
 
-        bool mainDirty = false;
-        AutoDetectVariableNames(*pScript, lookups.GetDecompilerConfig(), mainSCO.get(), oldScriptSCO.get(), mainDirty);
+        vector<pair<string, string>> mainDirtyRenames;
+        AutoDetectVariableNames(*pScript, lookups.GetDecompilerConfig(), mainSCO.get(), oldScriptSCO.get(), mainDirtyRenames);
 
         ResolvePublicProcedureCalls(helper, *pScript, compiledScript);
 
@@ -529,9 +529,10 @@ Script *Decompile(const GameFolderHelper &helper, const CompiledScript &compiled
         SaveSCOFile(helper, *scoFile);
 
         // We may have added some global info to main's SCO. Save that now.
-        if (mainDirty)
+        if (!mainDirtyRenames.empty())
         {
             lookups.DecompileResults().AddResult(DecompilerResultType::Important, "Updating global variables in script 0");
+            lookups.DecompileResults().SetGlobalVarsUpdated(mainDirtyRenames);
             SaveSCOFile(helper, *mainSCO);
         }
     }

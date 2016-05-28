@@ -23,12 +23,15 @@ class IDecompilerConfig;
 class DecompilerDialogResults : public IDecompilerResults
 {
 public:
-    DecompilerDialogResults(HWND hwnd) : _aborted(false), _hwnd(hwnd), _successCount(0), _fallbackCount(0), _successBytes(0), _fallbackBytes(0) {}
+    DecompilerDialogResults(HWND hwnd) : _aborted(false), _hwnd(hwnd), _successCount(0), _fallbackCount(0), _successBytes(0), _fallbackBytes(0), _globalsUpdated(false) {}
     void AddResult(DecompilerResultType type, const std::string &message) override;
     void InformStats(bool functionSuccessful, int byteCount) override;
     bool IsAborted() override { return _aborted; }
+    void SetGlobalVarsUpdated(const std::vector<std::pair<std::string, std::string>> &mainDirtyRenames) { _globalsUpdated = mainDirtyRenames; };
 
     void SetAborted() { _aborted = true; }
+
+    std::vector<std::pair<std::string, std::string>> GetUpdatedGlobalsList() { return _globalsUpdated; }
 
     // Stats
     int _successCount;
@@ -39,6 +42,7 @@ public:
 private:
     bool _aborted;
     HWND _hwnd;
+    std::vector<std::pair<std::string, std::string>> _globalsUpdated;
 };
 
 class DecompileDialog : public CExtResizableDialog

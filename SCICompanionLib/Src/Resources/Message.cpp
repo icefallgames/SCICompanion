@@ -77,9 +77,6 @@ void MessageReadFrom_4000(TextComponent &messageComponent, sci::istream &byteStr
 
     // "MysteryNumber" is a number that is roughly the number of messages, but sometimes a little more. Occasionally a lot more.
     // Sometimes its zero (KQ6, 95 and 916)
-    //string String = static_cast<ostringstream*>(&(ostringstream() << (someNumber - messageCount)))->str();
-    //String += "\n";
-    //OutputDebugString(String.c_str());
 
     for (int i = 0; i < messageCount; i++)
     {

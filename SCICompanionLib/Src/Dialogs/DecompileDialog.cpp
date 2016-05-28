@@ -545,6 +545,8 @@ void DecompileDialog::OnTimer(UINT_PTR nIDEvent)
     {
         if (_future && (future_status::ready == _future->wait_for(std::chrono::seconds(0))))
         {
+            vector<pair<string, string>> updatedGlobalsList = _decompileResults->GetUpdatedGlobalsList();
+
             _decompileResults.reset(nullptr);
             _SyncButtonState();
             _future.reset(nullptr); // Don't need this anymore
@@ -555,6 +557,26 @@ void DecompileDialog::OnTimer(UINT_PTR nIDEvent)
             for (uint16_t scriptNumber : _scriptNumbers)
             {
                 appState->ReopenScriptDocument(scriptNumber);
+            }
+
+            if (!updatedGlobalsList.empty())
+            {
+                string message = fmt::format("{0} global variable(s) had their name updated during this pass.\n{1} -> {2}, ...\n\nScripts that reference them need to be re-decompiled. Decompile all scripts again?",
+                    updatedGlobalsList.size(),
+                    updatedGlobalsList[0].first,
+                    updatedGlobalsList[0].second
+                    );
+
+                if (IDYES == AfxMessageBox(message.c_str(), MB_YESNO | MB_ICONINFORMATION))
+                {
+                    // Select everything and re-decompile
+                    int itemCount = m_wndListScripts.GetItemCount();
+                    for (int i = 0; i < itemCount; i++)
+                    {
+                        m_wndListScripts.SetItemState(i, LVIS_SELECTED, LVIS_SELECTED);
+                    }
+                    OnBnClickedDecompile();
+                }
             }
         }
     }

@@ -105,7 +105,7 @@ struct Suggestion
 class RenameContext
 {
 public:
-    RenameContext(Script &script, const IDecompilerConfig *config, CSCOFile *mainSCO, CSCOFile *scriptSCO) : _dirty(false), _mainDirty(false), _mainSCO(mainSCO)
+    RenameContext(Script &script, const IDecompilerConfig *config, CSCOFile *mainSCO, CSCOFile *scriptSCO) : _dirty(false), _mainSCO(mainSCO)
     {
         // Populate things from these SCOs. And store the main SCO in case we make mods
         CSCOFile *globalVarSCO = (mainSCO != nullptr) ? mainSCO : ((scriptSCO && scriptSCO->GetScriptNumber() == 0) ? scriptSCO : nullptr);
@@ -167,10 +167,10 @@ public:
             }
         }
 
-        _mainDirty = false;
+        _mainRenamesInfo.clear();
     }
 
-    bool IsMainDirty() { return _mainDirty; }
+    vector<pair<string, string>> IsMainDirty() { return _mainRenamesInfo; }
 
     void SetRenamed(FunctionBase *functionContext, const string &original, const string &suggestion, bool pushToMain = true)
     {
@@ -281,12 +281,12 @@ private:
             {
                 _mainSCO->GetVariables()[number].SetName(suggestion);
             }
-            _mainDirty = true;
+            _mainRenamesInfo.emplace_back(original, suggestion);
         }
     }
 
     bool _dirty;
-    bool _mainDirty;
+    std::vector<std::pair<std::string, std::string>> _mainRenamesInfo;
     TwoWayMap localMap;
     CSCOFile *_mainSCO;
     unordered_map<FunctionBase*, TwoWayMap> functionMaps;
@@ -698,7 +698,7 @@ private:
 };
 
 
-void AutoDetectVariableNames(Script &script, const IDecompilerConfig *config, CSCOFile *mainSCO, CSCOFile *scriptSCO, bool &mainDirty)
+void AutoDetectVariableNames(Script &script, const IDecompilerConfig *config, CSCOFile *mainSCO, CSCOFile *scriptSCO, vector<pair<string, string>> &mainDirtyRenames)
 {
     RenameContext renameContext(script, config, mainSCO, scriptSCO);
 
@@ -722,5 +722,5 @@ void AutoDetectVariableNames(Script &script, const IDecompilerConfig *config, CS
         script.Traverse(applyVarNames);
     } while (renameContext.IsDirty());
 
-    mainDirty = renameContext.IsMainDirty();
+    mainDirtyRenames = renameContext.IsMainDirty();
 }
