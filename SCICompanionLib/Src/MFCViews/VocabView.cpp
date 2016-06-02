@@ -266,7 +266,7 @@ void CVocabView::OnVocabCommand(UINT nID)
 {
     // Get the selected item's state and toggle it.
     int nItem = _GetSelectedItem();
-    if (nItem)
+    if (nItem != -1)
     {
         CListCtrl &listCtl = GetListCtrl();
         DWORD dwInfo = static_cast<DWORD>(listCtl.GetItemData(nItem));
@@ -308,7 +308,7 @@ void CVocabView::OnUpdateVocabCommand(CCmdUI *pCmdID)
 {
     // Get the selected item's state and toggle it.
     int nItem = _GetSelectedItem();
-    if (nItem)
+    if (nItem != -1)
     {
         CListCtrl &listCtl = GetListCtrl();
         DWORD dwInfo = static_cast<DWORD>(listCtl.GetItemData(nItem));
@@ -807,6 +807,7 @@ void CVocabView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
     if (IsFlagSet(hint, VocabChangeHint::Changed))
     {
         // Prepare the listview.
+        GetListCtrl().DeleteAllItems();
         _InitColumns();
         _ChangeView();
 

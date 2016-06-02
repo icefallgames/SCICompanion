@@ -731,7 +731,7 @@ BOOL GetDropFiles(COleDataObject *pDataObject, CArray<CString, CString&> *pFileL
                         fRet = TRUE;
                     }
                     strFile.ReleaseBuffer();
-                    pwsz += lstrlenW(pwsz);
+                    pwsz += lstrlenW(pwsz) + 1;
                 }
             }
             else
@@ -748,7 +748,7 @@ BOOL GetDropFiles(COleDataObject *pDataObject, CArray<CString, CString&> *pFileL
                         pFileList->Add(strFile);
                         fRet = TRUE;
                     }
-                    psz += lstrlen(psz);
+                    psz += lstrlen(psz) + 1;
                 }
             }
         }
