@@ -620,6 +620,13 @@ bool SelectorTable::_Create(sci::istream &byteStream)
             }
             byteStream.seekg(dwSavePos); // Go back
         }
+
+        // early KQ4 only has "even" selector values.
+        if (_version.HasOldSCI0ScriptHeader)
+        {
+            _indices.push_back(-1);
+            _names.push_back("INVALID-SELECTOR");
+        }
     }
 
     if (_firstInvalidSelector == 0xffff)
@@ -714,6 +721,15 @@ uint16_t SelectorTable::Add(const std::string &str)
     }
     _fDirty = true;
     _nameToValueCache[str] = selValue;
+
+    // early KQ4 only has "even" selector values.
+    if (_version.HasOldSCI0ScriptHeader)
+    {
+        _indices.push_back(-1);
+        _names.push_back("INVALID-SELECTOR");
+        _firstInvalidSelector++;
+    }
+
     return selValue;
 }
 
@@ -748,8 +764,16 @@ void SelectorTable::Save()
             }
             else
             {
-                assert(needBAD_SELECTOR);
-                push_word(output, badSelOffset);
+                if (_version.HasOldSCI0ScriptHeader)
+                {
+                    // This is normal operation - odd selectors are invalid in this case.
+                    // TODO: assert we're odd.
+                }
+                else
+                {
+                    assert(needBAD_SELECTOR);
+                    push_word(output, badSelOffset);
+                }
             }
         }
 
@@ -773,10 +797,6 @@ void SelectorTable::Save()
 
 string SelectorTable::Lookup(uint16_t wName) const
 {
-    if (_version.HasOldSCI0ScriptHeader)
-    {
-        wName >>= 1;
-    }
     std::string strRet;
     if ((size_t)wName < _indices.size())
     {

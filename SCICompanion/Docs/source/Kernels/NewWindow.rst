@@ -8,15 +8,15 @@
 NewWindow (Kernel)
 ==================
 
-.. function:: NewWindow(x y width height title flags priority forecolor backcolor)
+.. function:: NewWindow(y x bottom right title flags priority forecolor backcolor)
 
 	
-	Draws a new window on the screen with the specified properties and returns the structure's address.
+	Draws a new window on the screen with the specified properties and returns the structure's address. Note that the parameter order has x and y (and right and bottom) reversed from most API calls.
 	
-	:param number x: Left side of the window.
 	:param number y: Top of the window.
-	:param number width: Width of the window.
-	:param number height: Height of the window.
+	:param number x: Left side of the window.
+	:param number bottom: Bottom coordinate of the window.
+	:param number right: Right coordinate of the window.
 	:param number flags: Flags that specify how the window is to be drawn. See below.
 	:param number priority: Specifies if the window should be drawn above or below other windows. The higher the priority, the more visible it will be. With a priority of zero, it may be completely covered by other windows. To make sure your window is visible, you can use nwON_TOP as the priority.
 	:param number foreColor: Specifies the foreground color for the window. It is used for text, buttons, etc...
@@ -38,9 +38,9 @@ NewWindow (Kernel)
 	Example::
 	
 		(= oldPort (GetPort))
-		; Draw a white window at 50, 20 with a width of 200 100, a title, and a black foreground.
+		; Draw a white window at 50, 20 with a width of 200, a title, and a black foreground.
 		(= hWnd NewWindow
-			50 20 250 120
+			20 50 120 250
 			"Test Window"
 			nwTITLE
 			nwON_TOP

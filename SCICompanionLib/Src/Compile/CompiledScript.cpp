@@ -769,7 +769,7 @@ bool CompiledObject::Create_SCI0(const std::vector<uint16_t> &saidOffsets, const
         stream >> wFunctionSelectorOffset;
         uint16_t wNumVarSelectors;
         stream >> wNumVarSelectors;
-        ASSERT(wNumVarSelectors >= 3); // Really 4, but iceman only has 3
+        assert(wNumVarSelectors >= 3); // Really 4, but iceman only has 3
         if (stream.good())
         {
             uint16_t wNumVarValuesLeft = wNumVarSelectors;
