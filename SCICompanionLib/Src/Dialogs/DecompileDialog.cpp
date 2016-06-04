@@ -689,12 +689,15 @@ void DecompileDialog::_AssignFilenames()
             }
             if (!suggestedName.empty())
             {
+                std::string suggestedNameUpper = suggestedName;
+                ToUpper(suggestedNameUpper);
                 // Make it unique if we already named something this (this happens in LSL6)
-                if (usedNames.find(suggestedName) != usedNames.end())
+                // Ignore case, as Windows filenames are case insensitive.
+                if (usedNames.find(suggestedNameUpper) != usedNames.end())
                 {
                     suggestedName += fmt::format("_{0}", script->GetScriptNumber());
                 }
-                usedNames.insert(suggestedName);
+                usedNames.insert(suggestedNameUpper);
 
                 appState->GetResourceMap().AssignName(ResourceType::Script, script->GetScriptNumber(), NoBase36, suggestedName.c_str());
             }
