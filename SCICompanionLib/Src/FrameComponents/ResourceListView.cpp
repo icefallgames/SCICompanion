@@ -150,6 +150,16 @@ void CResourceListCtrl::OnItemClick(NMHDR* pNMHDR, LRESULT* pResult)
     }
 }
 
+
+static int compareCI(const char* s1, const char* s2, size_t n) {
+    while (n-- != 0) {
+        if (toupper(*s1) < toupper(*s2)) return -1;
+        if (toupper(*s1) > toupper(*s2)) return 1;
+        ++s1; ++s2;
+    }
+    return 0;
+}
+
 template<int Multiplier>
 int CALLBACK ColumnSort(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
 {
@@ -163,7 +173,7 @@ int CALLBACK ColumnSort(LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort)
     switch (iColumn)
     {
     case ColumnName:
-        iRet = (p1->GetName().compare(p2->GetName()));
+        iRet = compareCI(p1->GetName().c_str(), p2->GetName().c_str(), min(p1->GetName().length(), p2->GetName().length()));
         break;
     case ColumnNumber:
         iRet = p1->GetNumber() - p2->GetNumber();
