@@ -350,7 +350,6 @@ std::vector<std::string> topLevelKeywordsSCI =
     _T("define"),
     _T("enum"),
     _T("extern"),
-    _T("gentext"),
     _T("include"),
     _T("instance"),
     _T("local"),
@@ -359,6 +358,7 @@ std::vector<std::string> topLevelKeywordsSCI =
     _T("script#"),
     _T("string"),
     _T("synonyms"),
+    _T("text#"),
     _T("use"),
 };
 

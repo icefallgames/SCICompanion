@@ -108,7 +108,7 @@ vector<string> SCIKeywords =
     "of",
     // "scriptNumber",  // This is special, because it's a value. So don't count it as a banned keyword.
     "public",
-    "gentext",
+    "text#",
     "define",
     "&tmp",
     "&rest",
@@ -776,7 +776,7 @@ void SCISyntaxParser::Load()
     include = keyword_p("include") >> (quotedstring_p | filename_p)[{AddIncludeA, ParseAutoCompleteContext::Block}];
     use = keyword_p("use") >> (quotedstring_p | filename_p)[{AddUseA, ParseAutoCompleteContext::ScriptName}];
     scriptNum = keyword_p("script#") >> immediateValue[{ScriptNumberA, ParseAutoCompleteContext::DefineValue }];
-    genText = keyword_p("gentext") >> immediateValue[{GenTextA, ParseAutoCompleteContext::DefineValue }];
+    genText = keyword_p("text#") >> immediateValue[{GenTextA, ParseAutoCompleteContext::DefineValue }];
 
     define = keyword_p("define")[CreateDefineA] >> alphanumNK_p[DefineLabelA] >> integer_p[DefineValueA];
 

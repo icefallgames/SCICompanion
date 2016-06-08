@@ -850,7 +850,7 @@ public:
         const PropertyValue *genTextValue = script.GetGenText();
         if (genTextValue)
         {
-            out.out << "(gentext ";
+            out.out << "(text# ";
             genTextValue->Accept(*this);
             out.out << ")";
             _MaybeNewLineIndent();
