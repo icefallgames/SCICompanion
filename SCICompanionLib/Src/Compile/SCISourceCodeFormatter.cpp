@@ -847,6 +847,15 @@ public:
             }
         }
 
+        const PropertyValue *genTextValue = script.GetGenText();
+        if (genTextValue)
+        {
+            out.out << "(gentext ";
+            genTextValue->Accept(*this);
+            out.out << ")";
+            _MaybeNewLineIndent();
+        }
+
         for (const auto &include : script.GetIncludes())
         {
             out.out << "(include " << include << ")";

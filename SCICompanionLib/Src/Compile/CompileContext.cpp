@@ -166,7 +166,8 @@ CompileContext::CompileContext(SCIVersion version, Script &script, PrecompiledHe
         _script(script),
         _version(version),
         _code(_version),
-        _nextTempToken(TempTokenBase)
+        _nextTempToken(TempTokenBase),
+        _autoTextNumber(InvalidResourceNumber)
 {
     _pErrorScript = &_script;
     _modifier = VM_None;
@@ -776,6 +777,16 @@ void CompileContext::_ReportThing(bool fError, const ISourceCodePosition *pPos, 
 }
 bool CompileContext::HasErrors() { return _fErrors; }
 
+bool CompileContext::IsAutoText(uint16_t &number)
+{
+    number = _autoTextNumber;
+    return _autoTextNumber != InvalidResourceNumber;
+}
+void CompileContext::SetAutoText(uint16_t number)
+{
+    _autoTextNumber = number;
+}
+
 // Try to figure out which script, if any, this identifier is exported from.
 // This is just used for error reporting.
 string CompileContext::ScanForIdentifiersScriptName(const std::string &identifier)
@@ -992,6 +1003,11 @@ void CompileContext::ScanObjectMethod(const std::string &objectName, const std::
 vector<call_pair> &CompileContext::GetCalls() { return _calls; }
 vector<code_pos> &CompileContext::GetExports() { return _exports; }
 vector<WORD> &CompileContext::GetPublicInstanceOffsets() { return _publicInstances; }
+
+void CompileResults::SetAutoTextNumber(uint16_t autoTextNumber)
+{
+    _text->ResourceNumber = (int)autoTextNumber;
+}
 
 void CompileContext::SetScriptNumber()
 {

@@ -247,7 +247,8 @@ public:
     void ReportTypeError(const ISourceCodePosition *pPos, SpeciesIndex w1, SpeciesIndex w2, const char *pszFormat);
     void _ReportThing(bool fError, const ISourceCodePosition *pPos, const char *pszFormat, va_list argList);
     bool HasErrors();
-    bool IsAutoText() const { return false; } // Auto-gen text resources.
+    bool IsAutoText(uint16_t &number); // Auto-gen text resources.
+    void SetAutoText(uint16_t number);
 
     // Try to figure out which script, if any, this identifier is exported from.
     // This is just used for error reporting.
@@ -303,6 +304,8 @@ public:
 private:
     // Our code
     scicode _code;
+
+    uint16_t _autoTextNumber;
 
     // The current output context
     std::stack<OutputContext> _oc;
@@ -472,7 +475,8 @@ public:
     ICompileLog &GetLog() { return _log; }
     ResourceEntity &GetTextResource() { return *_text; }
     TextComponent &GetTextComponent();
-    
+    void SetAutoTextNumber(uint16_t autoTextNumber);
+
 private:
     std::vector<BYTE> _outputScr;
     std::vector<BYTE> _outputHep;

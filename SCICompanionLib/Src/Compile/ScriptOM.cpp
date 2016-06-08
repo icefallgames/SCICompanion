@@ -274,6 +274,12 @@ void Script::SetScriptNumber(WORD wNumber)
     _scriptId.SetResourceNumber(wNumber);
 }
 
+void Script::SetGenText(const sci::PropertyValue &propValue)
+{
+    _genTextValue = std::make_unique<PropertyValue>(propValue);
+}
+const PropertyValue *Script::GetGenText() const { return _genTextValue.get(); }
+
 ConditionalExpression::ConditionalExpression(std::unique_ptr<SyntaxNode> statement)
 {
     AddStatement(std::move(statement));

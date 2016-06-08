@@ -108,6 +108,7 @@ vector<string> SCIKeywords =
     "of",
     // "scriptNumber",  // This is special, because it's a value. So don't count it as a banned keyword.
     "public",
+    "gentext",
     "define",
     "&tmp",
     "&rest",
@@ -769,11 +770,13 @@ void SCISyntaxParser::Load()
     // An integer or plain alphanumeric token
     immediateValue = integer_p[PropValueIntA<errInteger>] | alphanumNK_p[PropValueStringA<ValueType::Token, errNoKeywordOrSelector>];
     string_immediateValue = integer_p[PropValueIntA<errInteger>] | alphanumNK_p[PropValueStringA<ValueType::Token, errNoKeywordOrSelector>] | quotedstring_p[{PropValueStringA<ValueType::ResourceString>, ParseAutoCompleteContext::Block}] | bracestring_p[PropValueStringA<ValueType::String>];
+    string_immediateValue_NoResourceString = integer_p[PropValueIntA<errInteger>] | alphanumNK_p[PropValueStringA<ValueType::Token, errNoKeywordOrSelector>] | quotedstring_p[{PropValueStringA<ValueType::String>, ParseAutoCompleteContext::Block}] | bracestring_p[PropValueStringA<ValueType::String>];
 
     // Top level constructs
     include = keyword_p("include") >> (quotedstring_p | filename_p)[{AddIncludeA, ParseAutoCompleteContext::Block}];
     use = keyword_p("use") >> (quotedstring_p | filename_p)[{AddUseA, ParseAutoCompleteContext::ScriptName}];
     scriptNum = keyword_p("script#") >> immediateValue[{ScriptNumberA, ParseAutoCompleteContext::DefineValue }];
+    genText = keyword_p("gentext") >> immediateValue[{GenTextA, ParseAutoCompleteContext::DefineValue }];
 
     define = keyword_p("define")[CreateDefineA] >> alphanumNK_p[DefineLabelA] >> integer_p[DefineValueA];
 
@@ -1024,7 +1027,7 @@ void SCISyntaxParser::Load()
 
 
     // An array initializer
-    array_init = opbracket >> *(string_immediateValue[ScriptVarInitAutoExpandA]) >> clbracket;  // [0 0 $4c VIEW_EGO]
+    array_init = opbracket >> *(string_immediateValue_NoResourceString[ScriptVarInitAutoExpandA]) >> clbracket;  // [0 0 $4c VIEW_EGO]
 
     // Variable declaration, with optional array size (array size must be numeric!)
     // A   or  [A 6]   or [A MY_ARRAY_SIZE]
@@ -1033,7 +1036,7 @@ void SCISyntaxParser::Load()
         alphanumNK_p[CreateVarDeclA];
 
     script_var = keyword_p("local")
-        >> *((var_decl[CreateScriptVarA] >> -(equalSign[GeneralE] >> (string_immediateValue[ScriptVarInitA] | array_init)))[FinishScriptVarA]);
+        >> *((var_decl[CreateScriptVarA] >> -(equalSign[GeneralE] >> (string_immediateValue_NoResourceString[ScriptVarInitA] | array_init)))[FinishScriptVarA]);
 
     // StartFunctionTempVarA is needed to reset "was initializer value set". There are no initializer values for function variables in this syntax.
     function_var_decl = keyword_p("&tmp")[{ StartFunctionTempVarA, ParseAutoCompleteContext::Temp }] >> ++(var_decl[FinishFunctionTempVarA]);
@@ -1144,6 +1147,7 @@ void SCISyntaxParser::Load()
         | synonyms
         | exports
         | scriptNum
+        | genText
 
         // The following are not yet supported, but we'll include them to possibly
         // "reserve" for future use.

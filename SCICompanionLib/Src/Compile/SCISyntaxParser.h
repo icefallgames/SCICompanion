@@ -30,6 +30,7 @@ private:
     // Basics
     ParserSCI immediateValue;
     ParserSCI string_immediateValue;
+    ParserSCI string_immediateValue_NoResourceString;
     ParserSCI string_immediateValue2;
     ParserSCI array_init;
     ParserSCI pointer;
@@ -40,6 +41,7 @@ private:
     ParserSCI include;
     ParserSCI use;
     ParserSCI scriptNum;
+    ParserSCI genText;
     ParserSCI define;
     ParserSCI enumStatement;
     ParserSCI var_decl;

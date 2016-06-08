@@ -1172,12 +1172,14 @@ bool GenerateScriptResource_SCI0(Script &script, PrecompiledHeaders &headers, Co
     WORD wStartOfCode = 0;
     _Section2_Code(script, context, output, wStartOfCode, false);
 
-    //_Section5_Strings(context, output, output, true);
-
     _Section4_Saids(context, output);
 
     _Section1And6_ClassesAndInstances(output, &context);
 
+    // NOTE: Strings must come after all strings have been pre-scaned. Note that we no longer
+    // pre-scan string property values by default - but only when they are actually used in code 
+    // (in order to support resource strings)
+    // The parser ensures that local vars (which follow) do not have ValueType::ResourceString.
     _Section5_Strings(context, output, output, true);
 
     if (!exportTableOrder.empty())
@@ -1196,12 +1198,16 @@ bool GenerateScriptResource_SCI0(Script &script, PrecompiledHeaders &headers, Co
     results.GetSCO() = context.GetScriptSCO();
 
     // Fill the text resource.
-    const vector<string> &resourceStrings = context.GetResourceStrings();
-    for (auto &text : resourceStrings)
+    uint16_t autoTextNumber;
+    if (context.IsAutoText(autoTextNumber))
     {
-        TextEntry entry = { 0 };
-        entry.Text = text;
-        results.GetTextComponent().Texts.push_back(entry);
+        for (auto &text : context.GetResourceStrings())
+        {
+            TextEntry entry = { 0 };
+            entry.Text = text;
+            results.GetTextComponent().Texts.push_back(entry);
+        }
+        results.SetAutoTextNumber(autoTextNumber);
     }
 
     context.FixupSinksAndSources(output, output);
@@ -1412,7 +1418,6 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
         // Now it appears there is a zero marker in the heap, after the objects
         push_word(outputHeap, 0);
 
-        // TODO: What about the isntance and class names? Are they tracked?
         _Section5_Strings(context, outputScr, outputHeap, false);
 
         // At the beginning of the file, write the offset to after string table:
@@ -1429,9 +1434,6 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
         context.WriteOutOffsetsOfHepPointersInScr(outputScr);
         // We're now done with .scr
 
-        // TODO: Write our prop relocs
-        // TODO GenerateSCOObjects ... this is where CSCOpropertys are marked as needing relocation. name is hard-coded, we'll need others too. Like "up" and "down" in Gauge.sc
-        // TODO: keep exports in sync with previous SCO file iteration
         _Section7_Exports_Part2(context, outputScr, wStartOfCode, exportTableOrder, offsetOfExports);
 
         // Fixups time!
@@ -1441,12 +1443,16 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
         results.GetSCO() = context.GetScriptSCO();
 
         // Fill the text resource.
-        const vector<string> &resourceStrings = context.GetResourceStrings();
-        for (auto &text : resourceStrings)
+        uint16_t autoTextNumber;
+        if (context.IsAutoText(autoTextNumber))
         {
-            TextEntry entry = { 0 };
-            entry.Text = text;
-            results.GetTextComponent().Texts.push_back(entry);
+            for (auto &text : context.GetResourceStrings())
+            {
+                TextEntry entry = { 0 };
+                entry.Text = text;
+                results.GetTextComponent().Texts.push_back(entry);
+            }
+            results.SetAutoTextNumber(autoTextNumber);
         }
     }
 

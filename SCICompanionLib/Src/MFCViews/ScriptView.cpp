@@ -348,6 +348,9 @@ std::vector<std::string> topLevelKeywordsSCI =
     // Keep this alphabetically sorted.
     _T("class"),
     _T("define"),
+    _T("enum"),
+    _T("extern"),
+    _T("gentext"),
     _T("include"),
     _T("instance"),
     _T("local"),
@@ -357,8 +360,6 @@ std::vector<std::string> topLevelKeywordsSCI =
     _T("string"),
     _T("synonyms"),
     _T("use"),
-    _T("enum"),
-    _T("extern"),
 };
 
 std::vector<std::string> topLevelKeywordsStudio =

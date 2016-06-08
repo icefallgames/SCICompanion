@@ -63,6 +63,15 @@ void ScriptNumberA(MatchResult &match, const _TParser *pParser, SyntaxContext *p
     }
 }
 
+template<typename _TParser>
+void GenTextA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        pContext->Script().SetGenText(pContext->PropertyValue);
+   }
+}
+
 template<char const* error = nullptr, typename _TParser>
 void PropValueIntA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
 {

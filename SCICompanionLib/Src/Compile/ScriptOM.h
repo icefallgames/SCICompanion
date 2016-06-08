@@ -1148,6 +1148,8 @@ namespace sci
         WORD GetScriptNumber() const { return _scriptId.GetResourceNumber(); }
         void SetScriptNumber(WORD wNumber);
         void SetScriptNumberDefine(const std::string &define) { _scriptDefine = define; }
+        void SetGenText(const sci::PropertyValue &propValue);
+        const sci::PropertyValue *GetGenText() const;
         const std::string &GetScriptNumberDefine() const { return _scriptDefine; }
         std::string GetTitle() const { return _scriptId.GetTitle(); }
         std::string GetName() const { return _scriptId.GetFileNameOrig(); }
@@ -1218,6 +1220,8 @@ namespace sci
         SynonymVector _synonyms;
         DefineVector _defines;
         ExportEntryVector _exports;
+
+        std::unique_ptr<PropertyValue> _genTextValue;
 
         // Since comments can be anywhere in the script, including the middle of statements,
         // we don't generally store comments as distinct nodes (though it is supported).

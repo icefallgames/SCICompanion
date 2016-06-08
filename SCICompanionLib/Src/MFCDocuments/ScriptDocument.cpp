@@ -240,7 +240,12 @@ bool NewCompileScript(CompileLog &log, CompileTables &tables, PrecompiledHeaders
                 if (!results.GetTextComponent().Texts.empty())
                 {
                     assert(script.Language() != LangSyntaxStudio);
-                    appState->GetResourceMap().AppendResource(results.GetTextResource(), appState->GetVersion().DefaultVolumeFile, wNum, "");
+                    const ResourceEntity &textResource = results.GetTextResource();
+                    appState->GetResourceMap().AppendResource(textResource, appState->GetVersion().DefaultVolumeFile, textResource.ResourceNumber, "");
+                    log.ReportResult(
+                        CompileResult(fmt::format("Added {0} entries to text resource {1}.", results.GetTextComponent().Texts.size(), textResource.ResourceNumber),
+                        CompileResult::CompileResultType::CRT_Message)
+                        );
                 }
 
                 // Save the script resource

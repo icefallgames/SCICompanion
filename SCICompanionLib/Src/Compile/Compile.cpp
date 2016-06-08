@@ -913,8 +913,16 @@ void PropertyValueBase::PreScan(CompileContext &context)
     switch(_type)
     {
     case ValueType::String:
-    case ValueType::ResourceString:
         context.GetTempToken(ValueType::String, _stringValue);
+        break;
+    case ValueType::ResourceString:
+        // Generating a token here means that the string will be added to the
+        // script. But we don't want that if it is used as a resource string only.
+        // In some contexts (e.g. script vars, class properties, assignments, comparisons, etc..),
+        // quoted resource strings are treated as regular strings. So any part of the script that does that
+        // needs to be output prior to the string section. Or, the parser needs to ensure that script part
+        // never has ValueType::ResourceString. This is a bit fragile, should think how to rework or enforce this.
+        //context.GetTempToken(ValueType::String, _stringValue);
         break;
     case ValueType::Said:
         SanitizeSaid(_stringValue);
@@ -996,24 +1004,16 @@ CodeResult PropertyValueBase::OutputByteCode(CompileContext &context) const
     case ValueType::ResourceString:
         // Not implemented yet.
         // TODO: We need to know we're in a procedure call. This isn't supported for selector calls (per Sierra compat)
-        //if (oc != OC_Accumulator)
-        if (context.IsAutoText())
+        uint16_t autoTextResourceNumber;
+        if ((oc != OC_Accumulator) && context.IsAutoText(autoTextResourceNumber))
         {
             // Add ourselves as a resource tuple, and get the number.
             wNumber = context.AddStringResourceTuple(_stringValue);
-            if (wNumber == InvalidResourceNumber)
-            {
-                assert(false); // Should never happen.
-                break;
-            }
-            else
-            {
-                // We have two number to put - script number and index
-                PushImmediate(context, context.GetScriptNumber());
-                PushImmediate(context, wNumber);
-                wNumSendParams++; // One more than normal.
-                wType = DataTypeResourceString;
-            }
+            // We have two number to put - script number and index
+            PushImmediate(context, autoTextResourceNumber);
+            PushImmediate(context, wNumber);
+            wNumSendParams++; // One more than normal.
+            wType = DataTypeResourceString;
             break;
         }
         else
@@ -3549,6 +3549,19 @@ void Script::PreScan(CompileContext &context)
     for (auto &stringDecl : _scriptStringDeclarations)
     {
         _PreScanStringDeclaration(context, *stringDecl);
+    }
+
+    if (_genTextValue)
+    {
+        _genTextValue->PreScan(context);
+        if (_genTextValue->GetType() == ValueType::Number)
+        {
+            context.SetAutoText(_genTextValue->GetNumberValue());
+        }
+        else
+        { 
+            context.ReportError(_genTextValue.get(), "Can't resolve '%s' to a number.", _genTextValue->GetStringValue().c_str());
+        }
     }
 }
 
