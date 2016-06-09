@@ -326,7 +326,10 @@ bool _ReadStringSCI(_TContext *pContext, _It &stream, std::string &str)
                         // \_ is an underscore.
                         str += "_";
                         break;
-                        // TODO: HExes
+                    case Q2:
+                        str += Q2;
+                        break;
+
                     default:
                         if (isxdigit(ch))
                         {
