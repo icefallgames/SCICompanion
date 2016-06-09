@@ -191,6 +191,26 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
             }
         }
 
+        if (IsFlagSet(sourceTypes, AutoCompleteSourceType::Procedure))
+        {
+            // non-public procedures in this script (public ones are already included in the global list)
+            ClassBrowserLock browserLock(browser);
+            browserLock.Lock();
+            const Script *thisScript = browser.GetLKGScript(scriptNumber);
+            if (thisScript)
+            {
+                std::vector<std::string> procNames;
+                for (auto &theProc : thisScript->GetProcedures())
+                {
+                    if (!theProc->IsPublic())
+                    {
+                        procNames.push_back(theProc->GetName());
+                    }
+                }
+                MergeResults(result->choices, prefix, AutoCompleteIconIndex::Procedure, procNames);
+            }
+        }
+
         if (IsFlagSet(sourceTypes, AutoCompleteSourceType::Instance))
         {
             // Instances in this script
