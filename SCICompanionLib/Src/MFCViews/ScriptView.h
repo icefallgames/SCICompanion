@@ -183,6 +183,7 @@ protected:
     CString _gotoDefinitionText;
     ScriptId _gotoScript;
     int _gotoLineNumber;
+    CString _helpUrl;
 
     CPoint _autoCompleteWordStartPosition;
 

@@ -1251,6 +1251,7 @@ void CScriptView::OnContextMenu(CWnd *pWnd, CPoint point)
     _contextMenuText = TEXT("");
     _gotoScriptText = TEXT("");
     _gotoDefinitionText = TEXT("");
+    _helpUrl = TEXT("");
 
     CMenu contextMenu; 
     contextMenu.LoadMenu(IDR_MENUSCRIPT); 
@@ -1315,6 +1316,7 @@ void CScriptView::OnContextMenu(CWnd *pWnd, CPoint point)
                 _gotoDefinitionText = result.strBaseText.c_str();
                 _gotoScript = result.scriptId;
                 _gotoLineNumber = result.iLineNumber;
+                _helpUrl = result.helpURL.c_str();
             }
         }
 
@@ -1689,9 +1691,17 @@ void CScriptView::OnGotoDefinition()
     CScriptDocument *pDoc = GetDocument();
     if (pDoc)
     {
-        // Ensure the script is open (might not be if we did a "compile all")
-        // +1 because line# in crystal-edit-speak starts at 1
-        appState->OpenScriptAtLine(_gotoScript.GetFullPath(), _gotoLineNumber + 1);
+        if (_helpUrl.IsEmpty())
+        {
+            // Ensure the script is open (might not be if we did a "compile all")
+            // +1 because line# in crystal-edit-speak starts at 1
+            appState->OpenScriptAtLine(_gotoScript.GetFullPath(), _gotoLineNumber + 1);
+        }
+        else
+        {
+            // Navigate to that help page.
+            ShellExecute(NULL, "open", _helpUrl, "", "", SW_SHOWNORMAL);
+        }
     }
 }
 

@@ -369,17 +369,16 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                     if (!fFound && isValue)
                     {
                         // 5. Kernel function?
-                        // TODO: Re-implement
-                        /*
-                        const auto &kProcs = GetKernelSignaturesScript(nullptr).GetProcedures();
-                        auto itProc = match_name(kProcs.begin(), kProcs.end(), strText);
+                        const auto &kProcs = browser.GetKernelNames();
+                        auto itProc = std::find(kProcs.begin(), kProcs.end(), strText);
                         if (itProc != kProcs.end())
                         {
-                            _GetMethodInfoHelper(szTip, ARRAYSIZE(szTip), (*itProc).get());
-                            result.strTip = szTip;
-                            // TODO: goto could bring us to documentation (or just open webpage)
+                            result.strTip = fmt::format("Kernel: {}", *itProc);
+                            // "goto definition" info - send to help
+                            result.strBaseText = *itProc;
+                            result.helpURL = fmt::format("{0}\\Kernels\\{1}.html", GameFolderHelper::GetHelpFolder(), *itProc);
                             fFound = true;
-                        }*/
+                        }
                     }
 
                     if (!fFound && isValue)

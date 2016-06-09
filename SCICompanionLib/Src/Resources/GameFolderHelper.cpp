@@ -99,7 +99,7 @@ std::string GameFolderHelper::GetScriptObjectFileName(WORD wScript) const
     return filename;
 }
 
-std::string GameFolderHelper::GetIncludeFolder() const
+std::string GameFolderHelper::GetIncludeFolder()
 {
     string includeFolder;
     // The normal case...
@@ -113,6 +113,21 @@ std::string GameFolderHelper::GetIncludeFolder() const
     includeFolder += "include";
     return includeFolder;
 }
+
+std::string GameFolderHelper::GetHelpFolder()
+{
+    string helpFolder;
+    TCHAR szPath[MAX_PATH];
+    if (GetModuleFileName(nullptr, szPath, ARRAYSIZE(szPath)))
+    {
+        PSTR pszFileName = PathFindFileName(szPath);
+        *pszFileName = 0; // null it
+        helpFolder += szPath;
+    }
+    helpFolder += "Help";
+    return helpFolder;
+}
+
 
 //
 // Returns an empty string (or pszDefault) if there is no key
