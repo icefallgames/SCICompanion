@@ -81,6 +81,7 @@ void CScriptComboBox::SetDocument(CDocument *pDoc)
     {
         // Clear combobox
         ResetContent();
+        _lastComboItemTexts.clear();
     }
 }
 
@@ -216,50 +217,106 @@ int CScriptComboBox::_AddItem(const std::string &str, sci::SyntaxNode *pPos)
     return iIndex;
 }
 
+struct NameAndNode
+{
+public:
+    NameAndNode(const std::string &name, sci::SyntaxNode *node) : Name(name), Node(node) {}
+    std::string Name;
+    sci::SyntaxNode *Node;
+};
+
 void CClassComboBox::_OnUpdateFromScript(const sci::Script *pScript, CPoint pt)
 {
-    SetRedraw(FALSE);
-    ResetContent();
-    int iSelection = -1;
+    // Accumulate a list of items first. That way we can avoid deleting and re-adding items
+    // to the combobox, which causes a significant performance impact and lack of UI responsiveness
+    // when we have more than a couple dozen items (possibly thanks to prof-uis).
+    std::vector<NameAndNode> comboItems;
+    comboItems.reserve(100);
+
+    ptrdiff_t iSelection = 0;
     if (pScript != nullptr)
     {
         // Add all the classes, and select the one that the point is in.
-		for (auto &classDef : pScript->GetClasses())
-		{
-			int iIndex = _AddItem(classDef->GetName(), classDef.get());
-			if (classDef->GetLineNumber() <= pt.y && classDef->GetEndLineNumber() >= pt.y)
-			{
-				iSelection = iIndex;
-			}
+        for (auto &classDef : pScript->GetClasses())
+        {
+            comboItems.emplace_back(classDef->GetName(), classDef.get());
+            if (classDef->GetLineNumber() <= pt.y && classDef->GetEndLineNumber() >= pt.y)
+            {
+                iSelection = comboItems.size();
+            }
 
-			// Put in the methods of this class too...
-			for (auto &method : classDef->GetMethods())
-			{
-				std::string name = GetMethodTrackingName(classDef.get(), *method);
-				int iIndex = _AddItem(name, method.get());
-				if (method->GetLineNumber() <= pt.y && method->GetEndLineNumber() >= pt.y)
-				{
-					iSelection = iIndex; // This might override the class selection, but that's ok
-				}
-			}
-		}
+            // Put in the methods of this class too...
+            for (auto &method : classDef->GetMethods())
+            {
+                std::string name = GetMethodTrackingName(classDef.get(), *method);
+                comboItems.emplace_back(name, method.get());
+                if (method->GetLineNumber() <= pt.y && method->GetEndLineNumber() >= pt.y)
+                {
+                    iSelection = comboItems.size(); // This might override the class selection, but that's ok
+                }
+            }
+        }
 
         // Add the procedures too
-		for (auto &procedure : pScript->GetProcedures())
-		{
-			int iIndex = _AddItem(procedure->GetName(), procedure.get());
-			if (procedure->GetLineNumber() <= pt.y && procedure->GetEndLineNumber() >= pt.y)
-			{
-				iSelection = iIndex;
-			}
-		}
+        for (auto &procedure : pScript->GetProcedures())
+        {
+            comboItems.emplace_back(procedure->GetName(), procedure.get());
+            if (procedure->GetLineNumber() <= pt.y && procedure->GetEndLineNumber() >= pt.y)
+            {
+                iSelection = comboItems.size();
+            }
+        }
 
+        iSelection--;
+
+        SetRedraw(FALSE);
+
+        // Is all the text the same?
+        bool everythingIsTheSame = (_lastComboItemTexts.size() == comboItems.size());
+        if (everythingIsTheSame)
+        {
+            for (size_t i = 0; everythingIsTheSame && (i < _lastComboItemTexts.size()); i++)
+            {
+                everythingIsTheSame = (comboItems[i].Name == _lastComboItemTexts[i]);
+            }
+        }
+
+        if (everythingIsTheSame)
+        {
+            for (size_t i = 0; i < comboItems.size(); i++)
+            {
+                // Just update the item pointers
+                SetItemData(i, reinterpret_cast<DWORD_PTR>(comboItems[i].Node));
+            }
+        }
+        else
+        {
+            // Clear everything out and add new stuff. Expensive.
+            ResetContent();
+            for (size_t i = 0; i < comboItems.size(); i++)
+            {
+                _AddItem(comboItems[i].Name, comboItems[i].Node);
+            }
+
+            // Keep this in sync
+            _lastComboItemTexts.clear();
+            for (auto &item : comboItems)
+            {
+                _lastComboItemTexts.push_back(item.Name);
+            }
+        }
+        
         if (iSelection != -1)
         {
             SetCurSel(iSelection);
         }
+        SetRedraw(TRUE);
     }
-    SetRedraw(TRUE);
+    else
+    {
+        ResetContent();
+    }
+
     Invalidate();
 }
 

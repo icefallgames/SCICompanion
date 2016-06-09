@@ -314,6 +314,9 @@ void CNewRoomDialog::_PrepareBuffer()
         pClass->SetPublic(true);
         pClass->SetSuperClass(roomName);
 
+        // Make sure to add an export for it
+        script.GetExports().push_back(std::make_unique<ExportEntry>(0, pClass->GetName()));
+
         // Export it, if we're using syntax version 2
         if (script.SyntaxVersion >= 2)
         {

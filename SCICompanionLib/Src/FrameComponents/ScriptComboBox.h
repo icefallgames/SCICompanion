@@ -69,8 +69,9 @@ protected:
     bool _fDroppedDown;
     bool _fIgnorePosChanged;
 
-    // Note: this object must be kept in sync with the itemdata in the combobox.
+    // Note: this object must be kept in sync with the itemdata in the combobox, as it "owns" the items in it.
     std::unique_ptr<sci::Script> _script;
+    std::vector<std::string> _lastComboItemTexts;
 
     std::unique_ptr<BackgroundScheduler<ParsePayload, sci::Script>> _scheduler;
     int _lastTaskId;
