@@ -8,7 +8,8 @@
 // Base Scripts
 (define MAIN_SCRIPT			  0)
 
-(define AVOID_SCRIPT          973)
+(define DEBUGOUT_SCRIPT     972)
+(define AVOID_SCRIPT        973)
 (define DOOR_SCRIPT		 	974)
 (define AUTODOOR_SCRIPT		975)
 (define INITROOMS_SCRIPT	976)

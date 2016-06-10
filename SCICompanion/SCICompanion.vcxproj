@@ -1041,6 +1041,8 @@ xcopy /S /Y /I /D "$(ProjectDir)Tools" "$(OutDir)Tools"</Command>
     <None Include="Files\TemplateGame\SCI0\src\cycle.sco" />
     <None Include="Files\TemplateGame\SCI0\src\DCIcon.sc" />
     <None Include="Files\TemplateGame\SCI0\src\dcicon.sco" />
+    <None Include="Files\TemplateGame\SCI0\src\DebugOut.sc" />
+    <None Include="Files\TemplateGame\SCI0\src\DebugOut.sco" />
     <None Include="Files\TemplateGame\SCI0\src\DisposeLoad.sc" />
     <None Include="Files\TemplateGame\SCI0\src\disposeload.sco" />
     <None Include="Files\TemplateGame\SCI0\src\door.sc" />

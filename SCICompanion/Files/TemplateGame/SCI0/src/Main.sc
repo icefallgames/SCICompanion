@@ -92,11 +92,15 @@
 	gTheMusic				/* points to the music class */
 	gTheSoundFX				/* points to the sound fx class */
 	gProgramControl 		/* states whether the program has control or the user */
+	
+	gDebugOut = 0			/* The support for SCI Companion debugging */
+	gDebugStartRoom = -1
 )
 /******************************************************************************/
 (instance public Template of Game
 	(properties)
 	(method (init)
+		(var theStartRoom, debugHandle)
         // Set up the base window
 		= gTheWindow theWindow
 		= gWndColor clBLACK
@@ -167,11 +171,26 @@
 		)
 			
 		// Start the room
-		(if(GameIsRestarting())
-	    	(self:newRoom(INITROOMS_SCRIPT))
-	    )(else
-	    	(self:newRoom(TITLESCREEN_SCRIPT))
+		(= theStartRoom TITLESCREEN_SCRIPT)
+		(= gDebugStartRoom -1)
+		
+		(if (not GameIsRestarting())
+			(if (= debugHandle FOpen("sdebug.txt" fOPENCREATE))
+				FClose(debugHandle) // we're just testing for existence - the SCI0 way
+				= gDebugOut ScriptID(DEBUGOUT_SCRIPT 0)
+				DebugPrint("Debugger enabled")
+				= gDebugStartRoom (send gDebugOut:init("sdebug.txt"))
+				(if (<> gDebugStartRoom -1)
+					(= theStartRoom INITROOMS_SCRIPT)
+					DebugPrint("Starting in room %d" theStartRoom)
+				)
+			)
 		)
+		(else
+			(= theStartRoom INITROOMS_SCRIPT)
+		)
+		
+		(self:newRoom(theStartRoom))
 	)
 	(method (doit)
 		(super:doit())
@@ -602,6 +621,13 @@
 	)(else
 		(send hInvI:owner(owner))
 	)
+)
+
+(procedure public (DebugPrint params)
+	(if (gDebugOut)
+		(send gDebugOut:debugPrint(rest params))
+	)
+
 )
 
 

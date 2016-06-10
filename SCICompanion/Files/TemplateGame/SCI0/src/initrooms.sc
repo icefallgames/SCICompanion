@@ -17,6 +17,29 @@
 (use "menubar")
 (use "cycle")
 /******************************************************************************/
+
+/*
+	Modify this function to set up inventory items or flags as necessary.
+	
+	:param number roomNumber: The room that the game is starting in when being debugged.
+	
+	Example::
+	
+		(150 ; The room number
+			; The ego must have the thing if he's in this room.
+			(gEgo get: INV_THETHING)
+		)
+	
+	See also: :doc:`/debugging`
+*/
+(procedure (DebugRoomInit roomNumber)
+	(switch (roomNumber)
+		//(100
+		//    (gEgo get:"INV_THETHING)
+		//)
+	)
+)
+
 (instance public InitRooms of Rm
 	(properties
 		script 0
@@ -65,7 +88,16 @@
 
 		(TheMenuBar:draw())
 		(SL:enable())
-		(send gRoom:newRoom(1))
+		
+		(if (<> -1 gDebugStartRoom)
+			DebugRoomInit(gDebugStartRoom)
+			// The debug start room
+			(send gRoom:newRoom(gDebugStartRoom))
+		)
+		(else
+			// The normal start room
+			(send gRoom:newRoom(1))
+		)
   )
 )
 /******************************************************************************/

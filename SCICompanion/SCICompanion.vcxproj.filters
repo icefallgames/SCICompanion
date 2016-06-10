@@ -1926,6 +1926,8 @@
     <None Include="Docs\source\Scripts\SaveRestoreDialog.rst" />
     <None Include="Docs\source\Scripts\Sight.rst" />
     <None Include="Docs\source\Scripts\System.rst" />
+    <None Include="Files\TemplateGame\SCI0\src\DebugOut.sc" />
+    <None Include="Files\TemplateGame\SCI0\src\DebugOut.sco" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />
