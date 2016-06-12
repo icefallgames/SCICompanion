@@ -2560,26 +2560,35 @@ void _ResolvePPrevs(const string &debugName, ConsumptionNode *root, ConsumptionN
                 if (lookingForPrev && consumption.cPrevGenerate)
                 {
                     lookingForPrev = false;
-
                     // Find the node that contains this code.
                     ConsumptionNode *theNode = _FindChunk(root, current);
                     assert(theNode);
-                    found = TryToStealOrCloneSomething(child, theNode, lookups, GeneratesAcc, CloneNode, AddAsOnlyChild);
-                    if (!found)
+
+                    // At this point, we know that one of the children should be an acc producer. So let's clone that child
+                    // and replace our pprev with it (or rather as child of pprev)
+                    if (theNode->GetChildCount() != 2)
                     {
-                        // Just go back along code
-                        code_pos start = current;
-                        --start;
-                        unique_ptr<ConsumptionNode> theClone = _LookBackwardsAndFindAndCloneAccGenerator(root, start, lookups);
-                        if (theClone)
-                        {
-                            // Now we want to replace the prev with a push, and then put the cloned thing
-                            // as the child of the push. Actually, let's not replace it. Let's just add
-                            // the clone as a child of it.
-                            assert(child->GetChildCount() == 0);
-                            child->PrependChild(move(theClone));
-                            found = true;
-                        }
+                        throw ConsumptionNodeException(theNode, "prev producer doesn't have two children");
+                    }
+                    ConsumptionNode *accGenerator = nullptr;
+                    if (_GetInstructionConsumption(*theNode->Child(0), lookups).cAccGenerate)
+                    {
+                        accGenerator = theNode->Child(0);
+                    }
+                    else if (_GetInstructionConsumption(*theNode->Child(1), lookups).cAccGenerate)
+                    {
+                        accGenerator = theNode->Child(1);
+                    }
+                    if (accGenerator)
+                    {
+                        unique_ptr<ConsumptionNode> theClone = CloneNode(accGenerator, lookups);
+                        assert(child->GetChildCount() == 0);
+                        child->PrependChild(move(theClone));
+                        found = true;
+                    }
+                    else
+                    {
+                        throw ConsumptionNodeException(theNode, "prev producer doesn't have an acc generator child");
                     }
                 }
                 --current;
@@ -3078,8 +3087,6 @@ bool OutputNewStructure(const std::string &messagePrefix, sci::FunctionBase &fun
         _LiftOutAssignments(mainChunk.get(), mainChunk.get(), lookups);
 #endif
 
-        _ResolvePPrevs(debugTrackName, mainChunk.get(), mainChunk.get(), lookups);
-
         if (showFile)
         {
             std::stringstream ss;
@@ -3087,7 +3094,10 @@ bool OutputNewStructure(const std::string &messagePrefix, sci::FunctionBase &fun
             ShowTextFile(ss.str().c_str(), debugTrackName + "_chunks_raw.txt");
         }
 
+        // Moving this before pprevs for now..
         _ResolveNeededAcc(mainChunk.get(), mainChunk.get(), lookups);
+
+        _ResolvePPrevs(debugTrackName, mainChunk.get(), mainChunk.get(), lookups);
 
         // Commented out for now - this is not a good solution.
         //_DetectAndRestructurePPrevs(mainChunk.get(), lookups);

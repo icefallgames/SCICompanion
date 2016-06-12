@@ -98,7 +98,7 @@
             = temp0 (- (send clientMover:finalX) (send client:x))
             = temp1 (- (send clientMover:finalY) (send client:y))
             = clientHeading (send client:heading)
-            (if ((<= 85 clientHeading) and (<= (= clientHeading (send client:heading)) 95))
+            (if ((<= 85 clientHeading) and (<= clientHeading 95))
                 = temp14 0
             )(else
                 (if ((<= 265 clientHeading) and (<= clientHeading 275))
