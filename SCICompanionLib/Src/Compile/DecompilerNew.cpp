@@ -185,6 +185,7 @@ struct ConsumptionNode
 
     void SetPos(code_pos pos) { this->pos = pos; _hasPos = true; }
     void SetType(ChunkType type) { this->_chunkType = type; _hasPos = false; }
+    void SetTypeDontClearPos(ChunkType type) { this->_chunkType = type; }
 
     ConsumptionNode *PrependChild()
     {
@@ -1255,17 +1256,43 @@ void MorphInstructionIntoShortCircuit(scii &inst)
     switch (inst.get_opcode())
     {
         case Opcode::SAG:
+        case Opcode::pAG:
+        case Opcode::nAG:
             inst.set_opcode(Opcode::LAG);
             break;
         case Opcode::SAP:
+        case Opcode::pAP:
+        case Opcode::nAP:
             inst.set_opcode(Opcode::LAP);
             break;
         case Opcode::SAT:
+        case Opcode::pAT:
+        case Opcode::nAT:
             inst.set_opcode(Opcode::LAT);
             break;
         case Opcode::SAL:
+        case Opcode::pAL:
+        case Opcode::nAL:
             inst.set_opcode(Opcode::LAL);
             break;
+
+        case Opcode::pSG:
+        case Opcode::nSG:
+            inst.set_opcode(Opcode::LSG);
+            break;
+        case Opcode::pSP:
+        case Opcode::nSP:
+            inst.set_opcode(Opcode::LSP);
+            break;
+        case Opcode::pST:
+        case Opcode::nST:
+            inst.set_opcode(Opcode::LST);
+            break;
+        case Opcode::pSL:
+        case Opcode::nSL:
+            inst.set_opcode(Opcode::LSL);
+            break;
+
         default:
             assert(false && "Unexpected short circuit");
     }
@@ -1972,10 +1999,28 @@ bool IsOpcodeWeCanShortCircuit(Opcode opcode)
 {
     switch (opcode)
     {
-        case Opcode::SAT:
+        case Opcode::SAT:   // Store acc in temp var (acc retains value)
         case Opcode::SAL:
         case Opcode::SAG:
         case Opcode::SAP:
+        case Opcode::pAT:   // increment var, load it in acc
+        case Opcode::pAL:
+        case Opcode::pAG:
+        case Opcode::pAP:
+        case Opcode::nAT:   // decrement var, load it in acc
+        case Opcode::nAL:
+        case Opcode::nAG:
+        case Opcode::nAP:
+
+        case Opcode::pST:   // increment var, push onto stack
+        case Opcode::pSL:
+        case Opcode::pSG:
+        case Opcode::pSP:
+        case Opcode::nST:   // decrement var, push onto stack
+        case Opcode::nSL:
+        case Opcode::nSG:
+        case Opcode::nSP:
+
             return true;
     }
     return false;
@@ -2002,7 +2047,12 @@ unique_ptr<ConsumptionNode> StealNodeOrReuseAcc(ConsumptionNode *nodeToSteal, De
 
 unique_ptr<ConsumptionNode> CloneNode(ConsumptionNode *nodeToSteal, DecompileLookups &lookups)
 {
-    return nodeToSteal->Clone();
+    unique_ptr<ConsumptionNode> theClone = nodeToSteal->Clone();
+    if (theClone->_hasPos && IsOpcodeWeCanShortCircuit(theClone->GetCode()->get_opcode()))
+    {
+        theClone->SetTypeDontClearPos(ChunkType::ShortCircuitInstruction);
+    }
+    return theClone;
 }
 
 void ReplaceNodeWithNode(ConsumptionNode *nodeToBeReplaced, unique_ptr<ConsumptionNode> stolen, DecompileLookups &lookups)
@@ -2064,6 +2114,16 @@ bool SkipGuaranteedExecutions(ConsumptionNode *&child, ConsumptionNode *&parent)
         child = child->_parentWeak->_parentWeak;
         return true;
     }
+    // This is true, but needs more work...
+    /*
+    else if ((parent->GetType() == ChunkType::LoopBody) && (parent->_parentWeak->GetType() == ChunkType::While))
+    {
+        // The condition of a while loop is guaranteed to execute prior to the LoopBody
+        parent = parent->_parentWeak->GetChild(ChunkType::Condition);
+        assert(parent->GetChildCount() == 1);
+        child = parent->Child(0);
+        return true;
+    }*/
     else
     {
         return false;
@@ -2121,6 +2181,17 @@ bool TryToStealOrCloneSomething(ConsumptionNode *originalChild, ConsumptionNode 
         {
             switch (parent->GetType())
             {
+                // This is true, but needs more work...
+                /*
+                case ChunkType::LoopBody:
+                    if (parent->_parentWeak->GetType() != ChunkType::While)
+                    {
+                        // From a loopBody, we can procede through the condition, if and only if it's a while loop (not a do)
+                        done = true;
+                        break;
+                    }
+                    // else fall through...
+                    */
                 case ChunkType::First:  // But not second
                 case ChunkType::FirstNegated:
                 case ChunkType::And:
@@ -2244,7 +2315,7 @@ void _ResolveDUPs(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookup
                 if (found)
                 {
                     // Found it. Replace our dup with this:
-                    unique_ptr<ConsumptionNode> clone = chunk->Child(j)->Clone();
+                    unique_ptr<ConsumptionNode> clone = CloneNode(chunk->Child(j), lookups);
                     chunk->ReplaceChild(i, move(clone));
                 }
             }
@@ -2459,7 +2530,7 @@ unique_ptr<ConsumptionNode> _LookBackwardsAndFindAndCloneAccGenerator(Consumptio
             assert(toClone);
             if (toClone)
             {
-                return toClone->Clone();
+                return CloneNode(toClone, lookups);
             }
             break;
         }
