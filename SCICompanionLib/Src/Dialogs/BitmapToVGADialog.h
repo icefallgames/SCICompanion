@@ -105,6 +105,7 @@ private:
     CExtCheckBox m_wndCheck1;
     CExtCheckBox m_wndCheckInsert;
     CExtCheckBox m_wndDither;
+    CExtCheckBox m_wndGamma;
     CExtLabel m_wndLabelDitherAlpha;
     CExtComboBox m_wndComboDitherAlpha;
     CExtLabel m_wndLabel1;
@@ -175,11 +176,13 @@ public:
     afx_msg void OnEnKillfocusEditalphathreshold();
     afx_msg void OnCbnSelchangeCombomatch();
     afx_msg void OnBnClickedCheckdontuseinpalette();
+    afx_msg void OnBnClickedGammacorrected();
 };
 
 std::unique_ptr<Cel> GdiPlusBitmapToCel(
     Gdiplus::Bitmap &bmpCurrent,
     bool performDither,
+    bool gammaCorrected,
     DitherAlgorithm alphaDither,
     ColorMatching colorMatching,
     uint8_t alphaThreshold,

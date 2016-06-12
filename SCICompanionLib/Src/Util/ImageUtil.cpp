@@ -637,7 +637,7 @@ std::unique_ptr<RGBQUAD[]> ConvertGdiplusToRaw(Gdiplus::Bitmap &bitmap)
 }
 
 // This assumes cutout alpha.
-void RGBToPalettized(ColorMatching colorMatching, uint8_t *sciData, const RGBQUAD *dataOrig, int cx, int cy, bool performDither, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *paletteColors, uint8_t transparentColor, bool excludeTransparentIndexFromMatch)
+void RGBToPalettized(ColorMatching colorMatching, uint8_t *sciData, const RGBQUAD *dataOrig, int cx, int cy, bool performDither, bool gammaCorrected, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *paletteColors, uint8_t transparentColor, bool excludeTransparentIndexFromMatch)
 {
     ErrorDiffusionDither<RGBQUAD, FloydSteinberg> dither(cx, cy);
     for (int y = 0; y < cy; y++)
@@ -646,7 +646,7 @@ void RGBToPalettized(ColorMatching colorMatching, uint8_t *sciData, const RGBQUA
         uint8_t *destRow = sciData + y * CX_ACTUAL(cx);
         for (int x = 0; x < cx; x++)
         {
-            RGBQUAD rgbOrig = origRow[x];
+            RGBQUAD rgbOrig = gammaCorrected ? _ToLinear(origRow[x]) : origRow[x];
             rgbOrig = dither.ApplyErrorAt(rgbOrig, x, y);
             if (rgbOrig.rgbReserved == 0xff)
             {

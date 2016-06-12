@@ -213,6 +213,8 @@ void CBitmapToVGADialog::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_CHECKOVERLAY, m_wndCheckOverlay);
         DDX_Control(pDX, IDC_CHECKDITHER, m_wndDither);
         m_wndDither.SetCheck(BST_UNCHECKED);
+        DDX_Control(pDX, IDC_GAMMACORRECTED, m_wndGamma);
+        m_wndGamma.SetCheck(BST_CHECKED);
         DDX_Control(pDX, IDC_STATICDITHERALPHA, m_wndLabelDitherAlpha);
         DDX_Control(pDX, IDC_COMBODITHERALPHA, m_wndComboDitherAlpha);
         m_wndComboDitherAlpha.SetCurSel((int)DitherAlgorithm::None);
@@ -531,6 +533,7 @@ void _Overlay(Cel &cel, const Cel *currentBackgroundOptional)
 std::unique_ptr<Cel> GdiPlusBitmapToCel(
     Gdiplus::Bitmap &bmpCurrent,
     bool performDither,
+    bool gammaCorrected,
     DitherAlgorithm alphaDither,
     ColorMatching colorMatching,
     uint8_t alphaThreshold,
@@ -563,11 +566,11 @@ std::unique_ptr<Cel> GdiPlusBitmapToCel(
         // rgbReserved must be 0x1 where there are usable colors and 0x0 elsewhere.
         for (int i = 0; i < paletteSize; i++)
         {
-            targetColors[i] = colors[i];
+            targetColors[i] = gammaCorrected ? _ToLinear(colors[i]) : colors[i];
             targetColors[i].rgbReserved = usableColors[i] ? 0x1 : 0x0;
         }
 
-        RGBToPalettized(colorMatching, &temp->Data[0], imageData.get(), cx, cy, performDither, paletteSize, mapping, targetColors, transparentColor, excludeTransparentColorFromPalette);
+        RGBToPalettized(colorMatching, &temp->Data[0], imageData.get(), cx, cy, performDither, gammaCorrected, paletteSize, mapping, targetColors, transparentColor, excludeTransparentColorFromPalette);
 
         finalResult = move(temp);
     }
@@ -576,6 +579,8 @@ std::unique_ptr<Cel> GdiPlusBitmapToCel(
 
 void CBitmapToVGADialog::_Update()
 {
+    bool gammaCorrected = m_wndGamma.GetCheck() == BST_CHECKED;;
+
     _finalResult.reset(nullptr);
     _finalResultPalette.reset(nullptr);
 
@@ -630,7 +635,7 @@ void CBitmapToVGADialog::_Update()
                         {
                             ditherRefPalette.Colors[i].rgbReserved = (referencePalette.Colors[i].rgbReserved == 0x0) ? 0x1: 0x0;
                         }
-                        RGBToPalettized(_colorMatching, sciBits.get(), imageData.get(), cx, cy, performDither, ARRAYSIZE(ditherRefPalette.Colors), ditherRefPalette.Mapping, ditherRefPalette.Colors, _transparentColor, excludeTransparentColorFromPalette);
+                        RGBToPalettized(_colorMatching, sciBits.get(), imageData.get(), cx, cy, performDither, gammaCorrected, ARRAYSIZE(ditherRefPalette.Colors), ditherRefPalette.Mapping, ditherRefPalette.Colors, _transparentColor, excludeTransparentColorFromPalette);
                     }
 
                     temp->Data.allocate(PaddedSize(temp->size));
@@ -652,6 +657,7 @@ void CBitmapToVGADialog::_Update()
             _finalResult = GdiPlusBitmapToCel(
                 *_pbmpCurrent,
                 performDither,
+                gammaCorrected,
                 alphaDither,
                 _colorMatching,
                 _alphaThreshold,
@@ -773,6 +779,7 @@ BEGIN_MESSAGE_MAP(CBitmapToVGADialog, CExtNCW<CExtResizableDialog>)
     ON_EN_KILLFOCUS(IDC_EDITALPHATHRESHOLD, &CBitmapToVGADialog::OnEnKillfocusEditalphathreshold)
     ON_CBN_SELCHANGE(IDC_COMBOMATCH, &CBitmapToVGADialog::OnCbnSelchangeCombomatch)
     ON_BN_CLICKED(IDC_CHECKDONTUSEINPALETTE, &CBitmapToVGADialog::OnBnClickedCheckdontuseinpalette)
+    ON_BN_CLICKED(IDC_GAMMACORRECTED, &CBitmapToVGADialog::OnBnClickedGammacorrected)
 END_MESSAGE_MAP()
 
 
@@ -983,6 +990,11 @@ void CBitmapToVGADialog::OnCbnSelchangeCombomatch()
 }
 
 void CBitmapToVGADialog::OnBnClickedCheckdontuseinpalette()
+{
+    _Update();
+}
+
+void CBitmapToVGADialog::OnBnClickedGammacorrected()
 {
     _Update();
 }

@@ -2252,6 +2252,7 @@ void CRasterView::_OnPaste(bool fTransparent, bool provideOptions)
                             GdiPlusBitmapToCel(
                             *pBitmap,
                             false,  // No dither
+                            true,   // gamma corrected
                             DitherAlgorithm::None,  // No alpha dither
                             ColorMatching::RGB,
                             128,    // alpha threshold
