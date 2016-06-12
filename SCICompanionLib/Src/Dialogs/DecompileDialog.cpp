@@ -596,6 +596,19 @@ void DecompileDialog::OnBnClickedDecompile()
     m_wndDebugFunctionMatch.GetWindowTextA(_debugFunctionMatch);
 
     // Get a list of scripts to decompile
+    if (m_wndListScripts.GetSelectedCount() == 0)
+    {
+        if (IDYES == AfxMessageBox("No scripts have been selected to decompile.\nDecompile all scripts?", MB_YESNO))
+        {
+            // Select all
+            m_wndListScripts.SetRedraw(FALSE);
+            for (UINT i = 0; i < m_wndListScripts.GetItemCount(); i++)
+            {
+                m_wndListScripts.SetItemState(i, LVIS_SELECTED, LVIS_SELECTED);
+            }
+            m_wndListScripts.SetRedraw(TRUE);
+        }
+    }
     _scriptNumbers.clear();
     POSITION pos = m_wndListScripts.GetFirstSelectedItemPosition();
     while (pos != nullptr)
