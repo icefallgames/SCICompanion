@@ -19,6 +19,7 @@
 #include "ColorButton.h"
 #include "format.h"
 #include "PicCommands.h"
+#include <math.h>
 
 CExtBitmap g_bitmapHighlight;
 CExtBitmap g_bitmapHighlightX;

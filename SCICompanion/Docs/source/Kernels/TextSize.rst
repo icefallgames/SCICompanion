@@ -12,13 +12,14 @@ TextSize (Kernel)
 
 	
 	Analyzes the given string with the specified font to determine how much space it will take up on the screen when it's printed.
-	maxWidth specifies how long each line can be. If it is not specified, then 192 is assumed.
+	maxWidth specifies how long each line can be. If it is not specified, then 192 is assumed. If it is -1, then the text is
+    assumed to be a single line.
 	It returns the bounds of the rectangle in sizeRect.
 	
 	:param heapPtr sizeRect: The rectangle into which the bounds are returns.
 	:param string text: The text.
 	:param number font: The font number to use.
-	:param number maxWidth: Optional maximum pixel width.
+	:param number maxWidth: Optional maximum pixel width (or -1 to indicate single line text)
 	
 	sizeRect should be an array of 4 values. Indices 2 and 3 represent the width and height of the text.
 	

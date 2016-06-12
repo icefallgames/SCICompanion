@@ -85,6 +85,8 @@ HSL RGB2HSL(COLORREF color)
 
 COLORREF g_rgColorCombos[256];  // EGACOLORS to COLORREFs - can be indexed by EGACOLOR_TO_BYTE
 HSL g_rgColorCombosHSL[256];
+COLORREF g_rgColorCombosGamma[256];  // EGACOLORS to COLORREFs - can be indexed by EGACOLOR_TO_BYTE
+HSL g_rgColorCombosHSLGamma[256];
 
 // Palettes:
 EGACOLOR g_rg136ToByte[136];    // The 136 unique EGACOLORS
@@ -95,6 +97,61 @@ int g_cSmoothEntries = 0;
 BOOL g_bFilledCOLORREFArray = FALSE;
 
 int GetNormalizedColorDistance(COLORREF color1, COLORREF color2);
+
+
+float g_AlphaSRGB = 0.055f;
+float g_SRGBExponent = 2.4f;
+
+BYTE _ToSRGB(BYTE channel)
+{
+    if (channel == 0)
+    {
+        // Really < 0.0031308, but that can't be represented in a BYTE
+        return 0;
+    }
+    float linear = (float)channel / 255.0f;
+    float srgb = (1.0f + g_AlphaSRGB) * powf(linear, 1.0f / g_SRGBExponent) - g_AlphaSRGB;
+    return (BYTE)(srgb * 255.0f);
+}
+
+RGBQUAD _ToSRGB(RGBQUAD color)
+{
+    color.rgbBlue = _ToSRGB(color.rgbBlue);
+    color.rgbRed = _ToSRGB(color.rgbRed);
+    color.rgbGreen = _ToSRGB(color.rgbGreen);
+    return color;
+}
+
+BYTE _ToLinear(BYTE channel)
+{
+    if (channel == 0)
+    {
+        return 0;
+    }
+    float srgb = (float)channel / 255.0f;
+    float linear = powf((srgb + g_AlphaSRGB) / (1.0f + g_AlphaSRGB), g_SRGBExponent);
+    return (BYTE)(linear * 255.0f);
+}
+
+RGBQUAD _ToLinear(RGBQUAD color)
+{
+    color.rgbBlue = _ToLinear(color.rgbBlue);
+    color.rgbRed = _ToLinear(color.rgbRed);
+    color.rgbGreen = _ToLinear(color.rgbGreen);
+    return color;
+}
+
+RGBQUAD _CombineGamma(RGBQUAD color1, RGBQUAD color2)
+{
+    color1 = _ToLinear(color1);
+    color2 = _ToLinear(color2);
+
+    RGBQUAD colorRet;
+    colorRet.rgbBlue = (BYTE)((((WORD)color1.rgbBlue) + ((WORD)color2.rgbBlue)) / 2);
+    colorRet.rgbRed = (BYTE)((((WORD)color1.rgbRed) + ((WORD)color2.rgbRed)) / 2);
+    colorRet.rgbGreen = (BYTE)((((WORD)color1.rgbGreen) + ((WORD)color2.rgbGreen)) / 2);
+    return _ToSRGB(colorRet);
+}
 
 //
 // Fills an array with all possible colour combinations of the dithered EGA colors
@@ -139,6 +196,12 @@ void FillCOLORREFArray()
             EGACOLOR egaColor = { i, j };
             g_rgColorCombos[EGACOLOR_TO_BYTE(egaColor)] = color; // the COLORREF color
             g_rgColorCombosHSL[EGACOLOR_TO_BYTE(egaColor)] = RGB2HSL(color);
+
+            RGBQUAD rgbqGamma = _CombineGamma(g_egaColors[i], g_egaColors[j]);
+            COLORREF colorGamma = RGB(rgbqGamma.rgbRed, rgbqGamma.rgbGreen, rgbqGamma.rgbBlue);
+            g_rgColorCombosGamma[EGACOLOR_TO_BYTE(egaColor)] = colorGamma; // the COLORREF color
+            g_rgColorCombosHSLGamma[EGACOLOR_TO_BYTE(egaColor)] = RGB2HSL(colorGamma);
+
         }
     }
     g_bFilledCOLORREFArray = TRUE;
@@ -247,13 +310,16 @@ int GetColorDistance5(HSL one, COLORREF color1, COLORREF color2)
 // Returns the closest matching EGACOLOR to color.
 // The EGACOLORs are chosen from rgColors
 //
-EGACOLOR GetClosestEGAColorFromSet(int iAlgorithm, COLORREF color, EGACOLOR *rgColors, int cColors)
+EGACOLOR GetClosestEGAColorFromSet(int iAlgorithm, bool gammaCorrected, COLORREF color, EGACOLOR *rgColors, int cColors)
 {
     if (!g_bFilledCOLORREFArray)
     {
         FillCOLORREFArray();
         ASSERT(g_bFilledCOLORREFArray);
     }
+
+    COLORREF *rgColorCombos = gammaCorrected ? g_rgColorCombosGamma : g_rgColorCombos;
+    HSL *rgColorCombosHSL = gammaCorrected ? g_rgColorCombosHSLGamma : g_rgColorCombosHSL;
 
     int closest = INT_MAX;
     int leastdithered = INT_MAX;
@@ -265,19 +331,19 @@ EGACOLOR GetClosestEGAColorFromSet(int iAlgorithm, COLORREF color, EGACOLOR *rgC
         switch (iAlgorithm)
         {
         case 1:
-            closeness = GetColorDistance(g_rgColorCombos[egaIndex], color);
+            closeness = GetColorDistance(rgColorCombos[egaIndex], color);
             break;
         case 2:
-            closeness = GetColorDistance2(g_rgColorCombosHSL[egaIndex], color);
+            closeness = GetColorDistance2(rgColorCombosHSL[egaIndex], color);
             break;
         case 3:
-            closeness = GetColorDistance3(g_rgColorCombos[egaIndex], color);
+            closeness = GetColorDistance3(rgColorCombos[egaIndex], color);
             break;
         case 4:
-            closeness = GetColorDistance4(g_rgColorCombos[egaIndex], color);
+            closeness = GetColorDistance4(rgColorCombos[egaIndex], color);
             break;
         case 5:
-            closeness = GetColorDistance5(g_rgColorCombosHSL[egaIndex], g_rgColorCombos[egaIndex], color);
+            closeness = GetColorDistance5(rgColorCombosHSL[egaIndex], rgColorCombos[egaIndex], color);
             break;
         default:
             ASSERT(FALSE);
@@ -313,7 +379,7 @@ EGACOLOR GetClosestEGAColorFromSet(int iAlgorithm, COLORREF color, EGACOLOR *rgC
     return egacolor;
 }
 
-EGACOLOR GetClosestEGAColor(int iAlgorithm, int iPalette, COLORREF color)
+EGACOLOR GetClosestEGAColor(int iAlgorithm, bool gammaCorrected, int iPalette, COLORREF color)
 {
     EGACOLOR *pPalette = NULL;
     int cEntries = 0;
@@ -334,7 +400,7 @@ EGACOLOR GetClosestEGAColor(int iAlgorithm, int iPalette, COLORREF color)
     default:
         ASSERT(FALSE);
     }
-    return GetClosestEGAColorFromSet(iAlgorithm, color, pPalette, cEntries);
+    return GetClosestEGAColorFromSet(iAlgorithm, gammaCorrected, color, pPalette, cEntries);
 }
 
 EGACOLOR EGAColorFromByte(BYTE b)

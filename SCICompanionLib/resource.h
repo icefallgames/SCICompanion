@@ -790,6 +790,7 @@
 #define IDC_EDITY                       1381
 #define IDC_EDITPRI                     1382
 #define IDC_CHECKASPECTRATIO            1383
+#define IDC_GAMMACORRECTED              1384
 #define ID_PENTOOL                      32771
 #define ID_ZOOM                         32773
 #define ID_HISTORY                      32775
@@ -1169,7 +1170,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        404
 #define _APS_NEXT_COMMAND_VALUE         33314
-#define _APS_NEXT_CONTROL_VALUE         1384
+#define _APS_NEXT_CONTROL_VALUE         1385
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
 #endif

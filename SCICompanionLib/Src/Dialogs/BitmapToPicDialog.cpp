@@ -32,6 +32,7 @@ int g_iAlgorithm = 1;   // RGB euclidian
 int g_iPalette = 3;     // Smooth half-tone
 int g_iScaleImage = 1;
 int g_iIgnoreWhite = 0;
+int g_iGammaCorrected = 1;
 int g_nColors = 10;
 
 struct THREADINFO
@@ -44,6 +45,7 @@ struct THREADINFO
     COLORREF *pCRBitmap;
     SIZE size;
     HANDLE hEvent;
+    bool gammaCorrected;
     EGACOLOR picPalette[40];
 };
 
@@ -71,7 +73,7 @@ void FreeThreadInfo(THREADINFO *pInfo)
     }
 }
 
-BOOL InitThreadInfo(THREADINFO *pInfo, HWND hwnd, bool fIgnoreWhite, int iAlgorithm, int iPalette, int nColors, CSize &size, const COLORREF *pCRBitmap, EGACOLOR *pPicPalette)
+BOOL InitThreadInfo(THREADINFO *pInfo, HWND hwnd, bool fIgnoreWhite, int iAlgorithm, bool gammaCorrected, int iPalette, int nColors, CSize &size, const COLORREF *pCRBitmap, EGACOLOR *pPicPalette)
 {
     BOOL fRet = FALSE;
     ZeroMemory(pInfo, sizeof(*pInfo));
@@ -82,6 +84,7 @@ BOOL InitThreadInfo(THREADINFO *pInfo, HWND hwnd, bool fIgnoreWhite, int iAlgori
     pInfo->pCRBitmap = new COLORREF[size.cx * size.cy];
     pInfo->size = size;
     pInfo->fIgnoreWhite = fIgnoreWhite;
+    pInfo->gammaCorrected = gammaCorrected;
     if (pInfo->pCRBitmap)
     {
         // Bitmap data
@@ -118,6 +121,8 @@ CBitmapToPicDialog::CBitmapToPicDialog(CWnd* pParent /*=nullptr*/)
     _iPalette = g_iPalette;
     _iScaleImage = g_iScaleImage;
     _iIgnoreWhite = g_iIgnoreWhite;
+    _iGammaCorrected = g_iGammaCorrected;
+
     _size.SetSize(0, 0);
 
     _hEvent = nullptr;
@@ -150,6 +155,7 @@ CBitmapToPicDialog::~CBitmapToPicDialog()
     g_iPalette = _iPalette;
     g_iScaleImage = _iScaleImage;
     g_iIgnoreWhite = _iIgnoreWhite;
+    g_iGammaCorrected = _iGammaCorrected;
 }
 
 void CBitmapToPicDialog::DoDataExchange(CDataExchange* pDX)
@@ -194,6 +200,7 @@ void CBitmapToPicDialog::DoDataExchange(CDataExchange* pDX)
         DDX_Control(pDX, IDC_RADIOSOLID, m_wndRadio7);
         DDX_Control(pDX, IDC_RADIOHALFTONESMOOTH, m_wndRadio8);
         DDX_Control(pDX, IDC_RADIOPICPALETTE, m_wndRadio9);
+        DDX_Control(pDX, IDC_GAMMACORRECTED, m_wndCheckGamma);
         DDX_Control(pDX, IDC_STATICGROUP1, m_wndGroup1);
         DDX_Control(pDX, IDC_STATICGROUP2, m_wndGroup2);
         DDX_Control(pDX, IDC_STATICGROUP3, m_wndGroup3);
@@ -217,6 +224,7 @@ void CBitmapToPicDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Check(pDX, IDC_CHECKSCALE, _iScaleImage);
 
     DDX_Check(pDX, IDC_CHECKIGNOREWHITE, _iIgnoreWhite);
+    DDX_Check(pDX, IDC_GAMMACORRECTED, _iGammaCorrected);
 
     // MinMaxSlider busted in MFC 7.0
     // DDV_MinMaxSlider(pDX, _nColors, 1, 40); 
@@ -401,6 +409,7 @@ UINT CBitmapToPicDialog::s_ThreadWorker(THREADINFO *pInfo)
     int cPixels = pInfo->size.cx * pInfo->size.cy;
     int iAlgorithm = pInfo->iAlgorithm;
     int iPalette = pInfo->iPalette;
+    bool gammaCorrected = pInfo->gammaCorrected;
     bool fIgnoreWhite = pInfo->fIgnoreWhite;
     EGACOLOR *pPicPalette = pInfo->picPalette;
     int cPicPalette = sizeof(pInfo->picPalette);
@@ -428,11 +437,11 @@ UINT CBitmapToPicDialog::s_ThreadWorker(THREADINFO *pInfo)
             if (iPalette == 4)
             {
                 // iPalette = 4 means that we use the current pic's palette.
-                curColor = GetClosestEGAColorFromSet(iAlgorithm, *(pCRBitmap + i), pPicPalette, cPicPalette);
+                curColor = GetClosestEGAColorFromSet(iAlgorithm, gammaCorrected, *(pCRBitmap + i), pPicPalette, cPicPalette);
             }
             else
             {
-                curColor = GetClosestEGAColor(iAlgorithm, iPalette, *(pCRBitmap + i));
+                curColor = GetClosestEGAColor(iAlgorithm, gammaCorrected, iPalette, *(pCRBitmap + i));
             }
 
             *(pegaTemp + i) = curColor;
@@ -514,7 +523,7 @@ UINT CBitmapToPicDialog::s_ThreadWorker(THREADINFO *pInfo)
                 if (!IsOneOf(*pegaTempI, rgMostCommonColors, cMostCommonColors))
                 {
                     // It wasn't one of our most common colors, so re-evaluate it.
-                    *pegaTempI = GetClosestEGAColorFromSet(iAlgorithm, *pcrTempI, rgMostCommonColors, cMostCommonColors);
+                    *pegaTempI = GetClosestEGAColorFromSet(iAlgorithm, gammaCorrected, *pcrTempI, rgMostCommonColors, cMostCommonColors);
                 }
 
                 if ((i % iInterval) == 0)
@@ -671,7 +680,7 @@ void CBitmapToPicDialog::OnConvert()
     COLORREF *pCRBitmap = _pCRBitmap;
 
     THREADINFO *pInfo = new THREADINFO; // Will be deleted by thread.
-    if (InitThreadInfo(pInfo, GetSafeHwnd(), (_iIgnoreWhite != 0), _iAlgorithm, _iPalette, _nColors, size, _pCRBitmap, _picPalette))
+    if (InitThreadInfo(pInfo, GetSafeHwnd(), (_iIgnoreWhite != 0), _iAlgorithm, (_iGammaCorrected != 0), _iPalette, _nColors, size, _pCRBitmap, _picPalette))
     {
         _fConverting = TRUE;
         _hEvent = pInfo->hEvent;

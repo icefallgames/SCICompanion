@@ -62,6 +62,7 @@ private:
     int _iAlgorithm;
     int _iPalette;
     int _iIgnoreWhite;
+    int _iGammaCorrected;
     int _nColors;
     CExtNoFlickerStatic m_wndPic;
     CExtButton m_wndFromClipboard;
@@ -88,6 +89,7 @@ private:
     CExtRadioButton m_wndRadio7;
     CExtRadioButton m_wndRadio8;
     CExtRadioButton m_wndRadio9;
+    CExtCheckBox m_wndCheckGamma;
     CExtGroupBox m_wndGroup1;
     CExtGroupBox m_wndGroup2;
     CExtGroupBox m_wndGroup3;

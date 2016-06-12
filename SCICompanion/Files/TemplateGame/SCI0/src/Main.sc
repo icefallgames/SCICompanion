@@ -182,7 +182,7 @@
 				= gDebugStartRoom (send gDebugOut:init("sdebug.txt"))
 				(if (<> gDebugStartRoom -1)
 					(= theStartRoom INITROOMS_SCRIPT)
-					DebugPrint("Starting in room %d" theStartRoom)
+					DebugPrint("Starting in room %d" gDebugStartRoom)
 				)
 			)
 		)
