@@ -73,6 +73,7 @@ enum class ChunkType
     ShortCircuitInstruction,
     FunctionBody,
     CaseDeleted,
+    Nary,
 };
 
 // For debugging purposes
@@ -100,6 +101,7 @@ const char *chunkTypeNames[] =
     "CaseBody",
     "SwitchValue",
     "Break",
+    "Continue",
     "NeedsAccumulator",
     "NeedsAccumulatorSpecial",
     "FailedToGetAccumulator",
@@ -110,6 +112,7 @@ const char *chunkTypeNames[] =
     "ShortCircuitInstruction",
     "FunctionBody",
     "CaseDeleted",
+    "Nary",
 };
 
 struct ConsumptionNode;
@@ -194,6 +197,11 @@ struct ConsumptionNode
     {
         chunk->_parentWeak = this;
         children.insert(children.begin(), move(chunk));
+    }
+    void AppendChild(std::unique_ptr<ConsumptionNode> chunk)
+    {
+        chunk->_parentWeak = this;
+        children.push_back(move(chunk));
     }
 
     void Print(std::ostream &os, int iIndent) const
@@ -993,6 +1001,16 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode2(ConsumptionNode &node, Decomp
             binaryOp->Operator = ((node._chunkType == ChunkType::And) ? BinaryOperator::LogicalAnd : BinaryOperator::LogicalOr);
             return unique_ptr<SyntaxNode>(move(binaryOp));
         }
+
+        case ChunkType::Nary:
+        {
+            // Should be one child:
+            ConsumptionNode *naryChild = node.Child(0);
+            unique_ptr<NaryOp> naryOp = make_unique<NaryOp>();
+            naryOp->Operator = GetBinaryOperatorForInstruction(naryChild->pos->get_opcode());
+            _ApplyChildren(*naryChild, *naryOp, lookups);
+            return unique_ptr<SyntaxNode>(move(naryOp));
+        }
         
         case ChunkType::Then:
         case ChunkType::Else:
@@ -1223,6 +1241,7 @@ Consumption _GetInstructionConsumption(ConsumptionNode &node, DecompileLookups &
         {
             case ChunkType::If:
             case ChunkType::Switch:
+            case ChunkType::Nary:       // Since we explicitly set things up like this...
                 // REVIEW: Add loops?
                 consumption.cAccGenerate = 1;
                 break;
@@ -2585,6 +2604,187 @@ void _ResolveNeededAcc(ConsumptionNode *root, ConsumptionNode *chunk, DecompileL
     } while (changes);
 }
 
+size_t GetIndexOfStackChild(ConsumptionNode *parent, DecompileLookups &lookups)
+{
+    for (size_t i = 0; i < parent->GetChildCount(); i++)
+    {
+        if (_GetInstructionConsumption(*parent->Child(i), lookups).cStackGenerate)
+        {
+            return i;
+        }
+    }
+    return 0; // TODO: throw exception
+}
+size_t GetIndexOfAccChild(ConsumptionNode *parent, DecompileLookups &lookups)
+{
+    for (size_t i = 0; i < parent->GetChildCount(); i++)
+    {
+        if (_GetInstructionConsumption(*parent->Child(i), lookups).cAccGenerate)
+        {
+            return i;
+        }
+    }
+    return 0; // TODO: throw exception
+}
+
+bool _DetectAndRestructurePPrevsWorker(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookups &lookups)
+{
+    bool changes = false;
+    for (size_t i = 0; !changes && (i < chunk->GetChildCount()); i++)
+    {
+        ConsumptionNode *child = chunk->Child(i);
+        Consumption consumption = _GetInstructionConsumption(*child, lookups);
+        if (consumption.cPrevConsume)
+        {
+            // We have a pprev. There are a couple of patterns we'll detect.
+            //
+
+            //[And]
+            //    [Second]
+            //        bnt
+            //            le ?
+            //              pprev
+            //              [C]
+            //    [First]
+            //        bnt
+            //            le ?
+            //                [A]
+            //                [B]
+
+            if (_GetInstructionConsumption(*chunk, lookups).cPrevGenerate)
+            {
+                // The le? (or whatever)
+                Opcode opcode = chunk->pos->get_opcode();
+                ConsumptionNode *nodeBNTOrThen = chunk->_parentWeak;
+                // Either bnt or bt works here. We've already incorporated that information into the structure of things.
+                if (nodeBNTOrThen->_hasPos && ((nodeBNTOrThen->pos->get_opcode() == Opcode::BNT) || (nodeBNTOrThen->pos->get_opcode() == Opcode::BT)))
+                {
+                    ConsumptionNode *nodeSecond = nodeBNTOrThen->_parentWeak;
+                    if (nodeSecond->GetType() == ChunkType::Second) // Or second negated????
+                    {
+                        ConsumptionNode *nodeAnd = nodeSecond->_parentWeak;
+                        if (nodeAnd->GetType() == ChunkType::And)
+                        {
+                            ConsumptionNode *nodeFirst = nodeAnd->GetChild(ChunkType::First);
+                            if (nodeFirst && (nodeFirst->GetChildCount() == 1))
+                            {
+                                ConsumptionNode *nodeBNT2 = nodeFirst->Child(0);
+                                if (nodeBNT2->_hasPos && (nodeBNT2->pos->get_opcode() == Opcode::BNT) && (nodeBNT2->GetChildCount() == 1))
+                                {
+                                    ConsumptionNode *nodeCompare = nodeBNT2->Child(0);
+                                    if (nodeCompare->_hasPos && (nodeCompare->pos->get_opcode() == opcode) && (nodeCompare->GetChildCount() == 2))
+                                    {
+                                        // It is satisfied. Let's assemble the three things to put in the nary.
+                                        unique_ptr<ConsumptionNode> nary = make_unique<ConsumptionNode>();
+                                        nary->SetType(ChunkType::Nary);
+
+                                        unique_ptr<ConsumptionNode> naryChild = make_unique<ConsumptionNode>();
+                                        naryChild->SetPos(chunk->pos);   // Use the opcode that generated a prev value.
+
+                                        // First child will be the stack guy.
+                                        naryChild->AppendChild(nodeCompare->StealChild(GetIndexOfStackChild(nodeCompare, lookups)));
+                                        // Then acc guy
+                                        naryChild->AppendChild(nodeCompare->StealChild(GetIndexOfAccChild(nodeCompare, lookups)));
+                                        // Then the acc guy that is a peer of the pprev.
+                                        naryChild->AppendChild(chunk->StealChild(GetIndexOfAccChild(chunk, lookups)));
+
+                                        nary->AppendChild(move(naryChild));
+
+                                        // Now let's replace the and
+                                        ConsumptionNode *andParent = nodeAnd->_parentWeak;
+                                        andParent->ReplaceChild(andParent->GetIndexOf(nodeAnd), move(nary));
+
+                                        changes = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                else if (nodeBNTOrThen->GetType() == ChunkType::Then)
+                {
+                    //[If]
+                    //    [Condition]
+                    //        bnt
+                    //           le ? (e.g.pprev gen)
+                    //            [A]
+                    //            [B]
+                    //    [Then]
+                    //        le ? (same pprev gen)
+                    //            pprev
+                    //            [C]
+                    //    [Else] -> optional, and can only have a ZeroNode as child.
+
+                    ConsumptionNode *nodeIf = nodeBNTOrThen->_parentWeak;
+                    if (nodeIf->GetType() == ChunkType::If)
+                    {
+                        ConsumptionNode *nodeElse = nodeIf->GetChild(ChunkType::Else);
+                        if (!nodeElse || ((nodeElse->GetChildCount() == 1) && (nodeElse->Child(0)->GetType() == ChunkType::ZeroNode)))
+                        {
+                            ConsumptionNode *nodeCondition = nodeIf->GetChild(ChunkType::Condition);
+                            if (nodeCondition && nodeCondition->GetChildCount() == 1)
+                            {
+                                ConsumptionNode *nodeBNT = nodeCondition->Child(0);
+                                if (nodeBNT->_hasPos && (nodeBNT->pos->get_opcode() == Opcode::BNT) && (nodeBNT->GetChildCount() == 1))
+                                {
+                                    ConsumptionNode *nodeCompare = nodeBNT->Child(0);
+                                    if (nodeCompare->_hasPos && (nodeCompare->pos->get_opcode() == opcode) && (nodeCompare->GetChildCount() == 2))
+                                    {
+                                        // It is satisfied. Let's assemble the three things to put in the nary.
+                                        unique_ptr<ConsumptionNode> nary = make_unique<ConsumptionNode>();
+                                        nary->SetType(ChunkType::Nary);
+
+                                        unique_ptr<ConsumptionNode> naryChild = make_unique<ConsumptionNode>();
+                                        naryChild->SetPos(chunk->pos);   // Use the opcode that generated a prev value.
+
+                                        // First child will be the stack guy.
+                                        naryChild->AppendChild(nodeCompare->StealChild(GetIndexOfStackChild(nodeCompare, lookups)));
+                                        // Then acc guy
+                                        naryChild->AppendChild(nodeCompare->StealChild(GetIndexOfAccChild(nodeCompare, lookups)));
+                                        // Then the acc guy that is a peer of the pprev.
+                                        naryChild->AppendChild(chunk->StealChild(GetIndexOfAccChild(chunk, lookups)));
+
+                                        nary->AppendChild(move(naryChild));
+
+                                        // Now let's replace the and
+                                        ConsumptionNode *ifParent = nodeIf->_parentWeak;
+                                        ifParent->ReplaceChild(ifParent->GetIndexOf(nodeIf), move(nary));
+
+                                        changes = true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (!changes)
+    {
+        for (auto &child : chunk->Children())
+        {
+            changes = _DetectAndRestructurePPrevsWorker(root, child.get(), lookups);
+            if (changes)
+            {
+                break;
+            }
+        }
+    }
+    return changes;
+}
+
+void _DetectAndRestructurePPrevs(ConsumptionNode *root, DecompileLookups &lookups)
+{
+    bool changes = false;
+    do
+    {
+        changes = _DetectAndRestructurePPrevsWorker(root, root, lookups);
+    } while (changes);
+}
+
+
 unique_ptr<ConsumptionNode> _FindAndStealSwitchValue(vector<pair<ConsumptionNode*, size_t>> &frames, DecompileLookups &lookups)
 {
     // Climb the stack and look for previous guy.
@@ -2817,6 +3017,10 @@ bool OutputNewStructure(const std::string &messagePrefix, sci::FunctionBase &fun
         }
 
         _ResolveNeededAcc(mainChunk.get(), mainChunk.get(), lookups);
+
+        // Commented out for now - this is not a good solution.
+        //_DetectAndRestructurePPrevs(mainChunk.get(), lookups);
+
         _RestructureCaseHeaders(mainChunk.get(), lookups);
 
         _ResolveDUPs(mainChunk.get(), mainChunk.get(), lookups);    // Must follow case restructure

@@ -103,7 +103,7 @@ private:
                 assert(structure->MaybeGet(SemId::Tail));
                 DominatorMap postDominators = GeneratePostDominators(structure, (*structure)[SemId::Tail]);
 
-                // 2) Find the toss nodes, and follow them back to a dominator, bounding the switch statement.
+                // 2) Find the head/tail of the constructs we're looking for (e.g. for switch: toss nodes, and follow them back to a dominator, bounding the switch statement).
                 blocks = findBlocks(dominators, postDominators, structure);
                 if (!blocks.empty())
                 {
@@ -116,7 +116,7 @@ private:
                         }
                         );
 
-                        // 3) Process all switch blocks that we can. Basically, the innermost ones that don't intersect. e,g, the ones that are "equal" to the innermost
+                        // 3) Process all constructs that we can. Basically, the innermost ones that don't intersect. e,g, the ones that are "equal" to the innermost
                         // Each one we process has to be disjoint from all the other previous ones. I'm afraid we don't have a stable sort though.
                         // We can have: A == B, A == C, but B < C.
                         for (size_t i = 0; i < blocks.size(); i++)
@@ -143,7 +143,7 @@ private:
                         }
                     }
                 }
-                // 4) Repeat until no new switches found
+                // 4) Repeat until no new constructs found
             } while (!blocks.empty() && !_decompilerResults.IsAborted());
         }
     }
