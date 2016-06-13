@@ -2510,7 +2510,10 @@ CodeResult SwitchStatement::OutputByteCode(CompileContext &context) const
                         caseValues.insert(numberValue);
                     }
 
-                    bool fCaseIsEmpty = pCase->GetCodeSegments().empty(); // Optimization for empty case statements.
+                    //bool fCaseIsEmpty = pCase->GetCodeSegments().empty(); // Optimization for empty case statements.
+                    // This is not an appropriate optimization. Skipping a case value that has side effects (e.g. LauraBow1, CB1:handleEvent) will
+                    // change the behavior.
+                    bool fCaseIsEmpty = false;
                     if (!fCaseIsEmpty)
                     {
                         // For each case statement, dupe the switch value so it can be used in the Opcode::EQ

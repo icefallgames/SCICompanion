@@ -370,7 +370,7 @@ void DisassembleObject(const CompiledScript &script,
 
     if (object.IsPublic)
     {
-        out << "public";
+        out << "public ";
     }
 
     // Header
