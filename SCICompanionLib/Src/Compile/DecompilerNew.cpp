@@ -2478,6 +2478,8 @@ bool _LiftOutAssignmentsWorker(ConsumptionNode *root, ConsumptionNode *chunk, De
         // See if we can pull this assignment out into an ordered instruction sequence.
         ConsumptionNode *parent = chunk->_parentWeak;
         ConsumptionNode *child = chunk;
+        // Lifting out an assignment is a risky operation, so we limit to cases when we *have* to, which is when there is a &rest
+        // instruction as a peer/descendent.
         if (!IsNodeStructureWithInstructionSequence2(parent) && CanLiftOut(child, parent, lookups))
         {
             assert(child->_parentWeak == parent);
@@ -2516,6 +2518,93 @@ void _LiftOutAssignments(ConsumptionNode *root, ConsumptionNode *chunk, Decompil
     } while (changes);
 }
 
+bool _IsCall(ConsumptionNode *chunk, bool recursive)
+{
+    if (chunk->_hasPos)
+    {
+        switch (chunk->pos->get_opcode())
+        {
+            case Opcode::SEND:
+            case Opcode::CALL:
+            case Opcode::CALLB:
+            case Opcode::CALLE:
+            case Opcode::CALLK:
+            case Opcode::SELF:
+            case Opcode::SUPER:
+                return true;
+        }
+    }
+    if (recursive)
+    {
+        for (size_t i = 0; i < chunk->GetChildCount(); i++)
+        {
+            if (_IsCall(chunk->Child(i), recursive))
+            {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+size_t GetIndexOfStackChild(ConsumptionNode *parent, DecompileLookups &lookups)
+{
+    for (size_t i = 0; i < parent->GetChildCount(); i++)
+    {
+        if (_GetInstructionConsumption(*parent->Child(i), lookups).cStackGenerate)
+        {
+            return i;
+        }
+    }
+    return 0; // TODO: throw exception
+}
+size_t GetIndexOfAccChild(ConsumptionNode *parent, DecompileLookups &lookups)
+{
+    for (size_t i = 0; i < parent->GetChildCount(); i++)
+    {
+        if (_GetInstructionConsumption(*parent->Child(i), lookups).cAccGenerate)
+        {
+            return i;
+        }
+    }
+    return 0; // TODO: throw exception
+}
+
+bool _LookForRestsAndMaybeLiftOutAssignmentsWorker(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookups &lookups)
+{
+    bool changes = false;
+
+    // Is this a rest?
+    if (chunk->_hasPos && (chunk->pos->get_opcode() == Opcode::REST))
+    {
+        // It's parent should be a call or send of some sort.
+        assert(_IsCall(chunk->_parentWeak, false));
+        // Find the child that is an acc generator. That should be the send target.
+        size_t accChildIndex = GetIndexOfAccChild(chunk->_parentWeak, lookups);
+        ConsumptionNode *sendTarget = chunk->_parentWeak->Child(accChildIndex);
+        // If this contains a call anywhere, we need to try to lift any assignments out, in the
+        // hopes that that will pull the call out.
+        changes = _LiftOutAssignmentsWorker(root, sendTarget, lookups);
+    }
+    if (!changes)
+    {
+        // Recurse.
+        for (size_t i = 0; !changes && (i < chunk->GetChildCount()); i++)
+        {
+            changes = _LookForRestsAndMaybeLiftOutAssignmentsWorker(root, chunk->Child(i), lookups);
+        }
+    }
+    return changes;
+}
+
+void _LookForRestsAndMaybeLiftOutAssignments(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookups &lookups)
+{
+    bool changes = false;
+    do
+    {
+        changes = _LookForRestsAndMaybeLiftOutAssignmentsWorker(root, chunk, lookups);
+    } while (changes);
+}
 
 unique_ptr<ConsumptionNode> _LookBackwardsAndFindAndCloneAccGenerator(ConsumptionNode *root, code_pos inclusiveStart, DecompileLookups &lookups)
 {
@@ -2684,28 +2773,7 @@ void _ResolveNeededAcc(ConsumptionNode *root, ConsumptionNode *chunk, DecompileL
     } while (changes);
 }
 
-size_t GetIndexOfStackChild(ConsumptionNode *parent, DecompileLookups &lookups)
-{
-    for (size_t i = 0; i < parent->GetChildCount(); i++)
-    {
-        if (_GetInstructionConsumption(*parent->Child(i), lookups).cStackGenerate)
-        {
-            return i;
-        }
-    }
-    return 0; // TODO: throw exception
-}
-size_t GetIndexOfAccChild(ConsumptionNode *parent, DecompileLookups &lookups)
-{
-    for (size_t i = 0; i < parent->GetChildCount(); i++)
-    {
-        if (_GetInstructionConsumption(*parent->Child(i), lookups).cAccGenerate)
-        {
-            return i;
-        }
-    }
-    return 0; // TODO: throw exception
-}
+#ifdef TRY_RESTRUCTURE_PPREVS
 
 bool _DetectAndRestructurePPrevsWorker(ConsumptionNode *root, ConsumptionNode *chunk, DecompileLookups &lookups)
 {
@@ -2863,7 +2931,7 @@ void _DetectAndRestructurePPrevs(ConsumptionNode *root, DecompileLookups &lookup
         changes = _DetectAndRestructurePPrevsWorker(root, root, lookups);
     } while (changes);
 }
-
+#endif
 
 unique_ptr<ConsumptionNode> _FindAndStealSwitchValue(vector<pair<ConsumptionNode*, size_t>> &frames, DecompileLookups &lookups)
 {
@@ -3094,13 +3162,17 @@ bool OutputNewStructure(const std::string &messagePrefix, sci::FunctionBase &fun
             ShowTextFile(ss.str().c_str(), debugTrackName + "_chunks_raw.txt");
         }
 
+        _LookForRestsAndMaybeLiftOutAssignments(mainChunk.get(), mainChunk.get(), lookups);
+
         // Moving this before pprevs for now..
         _ResolveNeededAcc(mainChunk.get(), mainChunk.get(), lookups);
 
         _ResolvePPrevs(debugTrackName, mainChunk.get(), mainChunk.get(), lookups);
 
         // Commented out for now - this is not a good solution.
-        //_DetectAndRestructurePPrevs(mainChunk.get(), lookups);
+#ifdef TRY_RESTRUCTURE_PPREVS
+        _DetectAndRestructurePPrevs(mainChunk.get(), lookups);
+#endif
 
         _RestructureCaseHeaders(mainChunk.get(), lookups);
 
