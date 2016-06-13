@@ -38,7 +38,7 @@ private:
 	CCrystalEditView *m_pBuddy;
 	BOOL m_bFound;
 	CPoint m_ptFoundAt;
-	BOOL DoHighlightText();
+    BOOL DoHighlightText(BOOL suppressUI = FALSE);
 
 // Construction
 public:

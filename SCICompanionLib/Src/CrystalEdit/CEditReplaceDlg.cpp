@@ -94,7 +94,7 @@ BOOL CEditReplaceDlg::OnInitDialog()
 	return TRUE;
 }
 
-BOOL CEditReplaceDlg::DoHighlightText()
+BOOL CEditReplaceDlg::DoHighlightText(BOOL suppressUI)
 {
 	ASSERT(m_pBuddy != NULL);
 	DWORD dwSearchFlags = 0;
@@ -108,19 +108,22 @@ BOOL CEditReplaceDlg::DoHighlightText()
 	{
 		//	Searching selection only
 		bFound = m_pBuddy->FindTextInBlock(m_sText, m_ptFoundAt, m_ptBlockBegin, m_ptBlockEnd,
-											dwSearchFlags, FALSE, &m_ptFoundAt);
+											dwSearchFlags, TRUE, &m_ptFoundAt);
 	}
 	else
 	{
 		//	Searching whole text
-		bFound = m_pBuddy->FindText(m_sText, m_ptFoundAt, dwSearchFlags, FALSE, &m_ptFoundAt);
+        bFound = m_pBuddy->FindText(m_sText, m_ptFoundAt, dwSearchFlags, TRUE, &m_ptFoundAt);
 	}
 
 	if (! bFound)
 	{
-		CString prompt;
-		prompt.Format(IDS_EDIT_TEXT_NOT_FOUND, m_sText);
-		AfxMessageBox(prompt);
+        if (!suppressUI)
+        {
+            CString prompt;
+            prompt.Format(IDS_EDIT_TEXT_NOT_FOUND, m_sText);
+            AfxMessageBox(prompt);
+        }
 		m_ptCurrentPos = m_nScope == 0 ? m_ptBlockBegin : CPoint(0, 0);
 		return FALSE;
 	}
@@ -137,12 +140,12 @@ void CEditReplaceDlg::OnEditSkip()
 	if (! m_bFound)
 	{
 		m_ptFoundAt = m_ptCurrentPos;
-		m_bFound = DoHighlightText();
+		m_bFound = DoHighlightText(TRUE);
 		return;
 	}
 
 	m_ptFoundAt.x += 1;
-	m_bFound = DoHighlightText();
+    m_bFound = DoHighlightText(TRUE);
 }
 
 void CEditReplaceDlg::OnEditReplace() 
@@ -189,6 +192,7 @@ void CEditReplaceDlg::OnEditReplaceAll()
 		m_bFound = DoHighlightText();
 	}
 
+    int count = 0;
 	while (m_bFound)
 	{
 		//	We have highlighted text
@@ -209,6 +213,14 @@ void CEditReplaceDlg::OnEditReplaceAll()
 			}
 		}
 		m_ptFoundAt.x += lstrlen(m_sNewText);
-		m_bFound = DoHighlightText();
+        m_bFound = DoHighlightText(count > 0);
+        count++;
 	}
+
+    if (count > 0)
+    {
+        CString prompt;
+        prompt.Format(IDS_OCCURENCES, count);
+        AfxMessageBox(prompt);
+    }
 }

@@ -135,5 +135,6 @@
 #define		IDS_EDITOP_DRAGDROP			8627
 #define		IDS_EDITOP_REPLACE			8628
 #define		IDS_EDITOP_AUTOINDENT		8629
+#define     IDS_OCCURENCES              8630
 
 #endif

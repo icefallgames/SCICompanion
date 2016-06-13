@@ -304,6 +304,7 @@ END
 STRINGTABLE 
 BEGIN
     IDS_EDIT_TEXT_NOT_FOUND "Cannot find string""%s"""
+    IDS_OCCURENCES          "Replaced %d occurences."
 END
 
 STRINGTABLE 
