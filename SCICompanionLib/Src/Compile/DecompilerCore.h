@@ -199,7 +199,7 @@ private:
     std::set<uint16_t> _usings;
 };
 
-void DecompileRaw(sci::FunctionBase &func, DecompileLookups &lookups, const BYTE *pBegin, const BYTE *pEnd, uint16_t wBaseOffset);
+void DecompileRaw(sci::FunctionBase &func, DecompileLookups &lookups, const BYTE *pBegin, const BYTE *pEnd, const BYTE *pScriptResourceEnd, uint16_t wBaseOffset);
 
 struct VariableRange
 {

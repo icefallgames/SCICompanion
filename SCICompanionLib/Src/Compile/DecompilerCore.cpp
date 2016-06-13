@@ -133,7 +133,8 @@ const BYTE *_ConvertToInstructions(DecompileLookups &lookups, std::list<scii> &c
 
     code_pos undetermined = code.end();
 
-    WORD wReferencePosition = 0;
+    uint16_t codeLength = (uint16_t)(pEnd - pBegin);
+    uint16_t wReferencePosition = 0;
     const BYTE *pCur = pBegin;
     while (pCur < pEnd)
     {
@@ -143,7 +144,7 @@ const BYTE *_ConvertToInstructions(DecompileLookups &lookups, std::list<scii> &c
         Opcode bOpcode = RawToOpcode(sciVersion, bRawOpcode);
         assert(bOpcode <= Opcode::LastOne);
         ++pCur; // Advance past opcode.
-        WORD wOperands[3];
+        uint16_t wOperands[3];
         ZeroMemory(wOperands, sizeof(wOperands));
         int cIncr = 0;
 
@@ -161,11 +162,11 @@ const BYTE *_ConvertToInstructions(DecompileLookups &lookups, std::list<scii> &c
                 }
                 else
                 {
-                    wOperands[i] = (WORD)*pCur;
+                    wOperands[i] = (uint16_t)*pCur;
                 }
                 break;
             case 2:
-                wOperands[i] = *((WORD*)pCur); // REVIEW
+                wOperands[i] = *((uint16_t*)pCur); // REVIEW
                 break;
             default:
                 break;
@@ -181,12 +182,24 @@ const BYTE *_ConvertToInstructions(DecompileLookups &lookups, std::list<scii> &c
         if ((bOpcode == Opcode::BNT) || (bOpcode == Opcode::BT) || (bOpcode == Opcode::JMP))
         {
             // +1 because its the operand start pos.
-            WORD wTarget = CalcOffset(lookups.GetVersion(), wReferencePosition + 1, wOperands[0], bByte, bRawOpcode);
-            code.push_back(scii(sciVersion, bOpcode, undetermined, true));
-            bool fForward = (wTarget > wReferencePosition);
-            Fixup fixup = { get_cur_pos(code), wTarget, fForward };
-            branchTargetsToFixup.push_back(fixup);
-            branchTargets.insert(wTarget);
+            uint16_t wTarget = CalcOffset(lookups.GetVersion(), wReferencePosition + 1, wOperands[0], bByte, bRawOpcode);
+
+            if (wTarget > codeLength)
+            {
+                // This goes out of bounds. Some code is corrupt, like SmoothLooper in script 968 in Hero's Quest.
+                // We can't intelligently reason about where the branch is supposed to point, so just replace it with a load operation.
+                // We need to make sure it's the same size though.
+                code.push_back(scii(sciVersion, Opcode::LDI, 0xbaad));
+                lookups.DecompileResults().AddResult(DecompilerResultType::Warning, fmt::format("Bad branch at 0x{0:4x}, replaced with -17747.", (wReferencePosition + wBaseOffset)));
+            }
+            else
+            {
+                code.push_back(scii(sciVersion, bOpcode, undetermined, true));
+                bool fForward = (wTarget > wReferencePosition);
+                Fixup fixup = { get_cur_pos(code), wTarget, fForward };
+                branchTargetsToFixup.push_back(fixup);
+                branchTargets.insert(wTarget);
+            }
         }
         else
         {
@@ -196,7 +209,7 @@ const BYTE *_ConvertToInstructions(DecompileLookups &lookups, std::list<scii> &c
         // Store the position of the instruction we just added:
         referenceToCodePos[wReferencePosition] = get_cur_pos(code);
         // Store the actual offset in the instruction itself:
-        WORD wSize = (WORD)(pCur - pThisInstruction);
+        uint16_t wSize = (uint16_t)(pCur - pThisInstruction);
         get_cur_pos(code)->set_offset_and_size(wReferencePosition + wBaseOffset, wSize);
 
         // Attempt to detect the end of the function. If we encounter a return staetment and it's equal to or beyond anything in branchTargetsToFixup,
@@ -1083,7 +1096,7 @@ void _TrackExternalScriptUsage(std::list<scii> code, DecompileLookups &lookups)
 }
 
 // pEnd can be teh end of script data. I have added autodetection support.
-void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBegin, const BYTE *pEnd, WORD wBaseOffset)
+void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBegin, const BYTE *pEstimatedMaxEnd, const BYTE *pScriptResourceEnd, WORD wBaseOffset)
 {
     bool allowContinues = func.GetOwnerScript()->GetScriptId().Language() == LangSyntaxSCI;
 
@@ -1091,7 +1104,15 @@ void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBe
 
     // Take the raw data, and turn it into a list of scii instructions, and make sure the branch targets point to code_pos's
     std::list<scii> code;
-    const BYTE *discoveredEnd = _ConvertToInstructions(lookups, code, pBegin, pEnd, wBaseOffset);
+    const BYTE *discoveredEnd = _ConvertToInstructions(lookups, code, pBegin, pScriptResourceEnd, wBaseOffset);
+    if (discoveredEnd == nullptr)
+    {
+        // If there were problems with that (say bogus branches that go somewhere incorrect), try a tighter bound.
+        // We don't want to try the tight bound right away, because it might have been determined using bogus
+        // exports in the export table (e.g. SQ5 does this in script 243).
+        code.clear();
+        discoveredEnd = _ConvertToInstructions(lookups, code, pBegin, pEstimatedMaxEnd, wBaseOffset);
+    }
 
     bool success = (discoveredEnd != nullptr);
     if (success)

@@ -119,7 +119,7 @@ DoSound (Kernel)
 
 	.. IMPORTANT:: SCI0 only.
 
-	Checks to see if the sound driver is installed. If it is, it returns TRUE, otherwise, it returns FALSE.
+	Returns the number of voices the sound hardware is capable of playing (0 if no sound driver is installed).
 
 	Example::
 

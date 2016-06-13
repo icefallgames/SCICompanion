@@ -1272,30 +1272,26 @@ std::string CVocabWithNames::Lookup(uint16_t wName) const
     return strRet;
 }
 
-std::string KernelTable::_GetMissingName(uint16_t wName) const
-{
-    return fmt::format("kernel_{0}", wName);
-}
-
 //
 // For some reason, SCI0 games are missing the "Joystick" kernel in the kernel
 // vocab resource (or rather, the name is garbage characters). Fix that here.
 //
-const char szMissingKernel[] = "Joystick";
+const std::string missingKernelName = "Joystick";
 uint16_t wMissingKernel = 113;
-std::string KernelTable::Lookup(uint16_t wName) const
+
+std::string KernelTable::_GetMissingName(uint16_t wName) const
 {
-    std::string result = __super::Lookup(wName);
-    if (result.empty() && (wName == wMissingKernel))
+    if (wName == wMissingKernel)
     {
-        result = szMissingKernel;
+        return missingKernelName;
     }
-    return result;
+    return fmt::format("kernel_{0}", wName);
 }
+
 bool KernelTable::ReverseLookup(std::string name, uint16_t &wIndex) const
 {
     bool result = __super::ReverseLookup(name, wIndex);
-    if (!result && (name == szMissingKernel))
+    if (!result && (name == missingKernelName))
     {
         wIndex = wMissingKernel;
         result = true;

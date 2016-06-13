@@ -121,15 +121,19 @@ void DecompileObject(const CompiledObject &object,
         set<uint16_t>::const_iterator functionIndex = find(codePointersTO.begin(), codePointersTO.end(), functionOffsetsTO[i]);
         if (functionIndex != codePointersTO.end())
         {
-            const BYTE *pStartCode = &scriptResource[*functionIndex];
-            const BYTE *pEndCode = &scriptResource[0] + scriptResource.size();
-
-            std::unique_ptr<MethodDefinition> pMethod = std::make_unique<MethodDefinition>();
-            pMethod->SetOwnerClass(pClass.get());
-            pMethod->SetScript(&script);
-            pMethod->SetName(lookups.LookupSelectorName(functionSelectors[i]));
-            DecompileRaw(*pMethod, lookups, pStartCode, pEndCode, functionOffsetsTO[i]);
-            pClass->AddMethod(std::move(pMethod));
+            CodeSection section;
+            if (FindStartEndCode(functionIndex, codePointersTO, codeSections, section))
+            {
+                const BYTE *pStartCode = &scriptResource[section.begin];
+                const BYTE *pEndCode = &scriptResource[section.end];
+                const BYTE *pEndScript = &scriptResource[0] + scriptResource.size();
+                std::unique_ptr<MethodDefinition> pMethod = std::make_unique<MethodDefinition>();
+                pMethod->SetOwnerClass(pClass.get());
+                pMethod->SetScript(&script);
+                pMethod->SetName(lookups.LookupSelectorName(functionSelectors[i]));
+                DecompileRaw(*pMethod, lookups, pStartCode, pEndCode, pEndScript, functionOffsetsTO[i]);
+                pClass->AddMethod(std::move(pMethod));
+            }
         }
     }
 
@@ -145,11 +149,13 @@ void DecompileFunction(const CompiledScript &compiledScript, ProcedureDefinition
     set<uint16_t>::const_iterator codeStartIt = sortedCodePointersTO.find(wCodeOffsetTO);
     assert(codeStartIt != sortedCodePointersTO.end());
     bool isValidFunctionPointer = (*codeStartIt < compiledScript.GetRawBytes().size()) && (*codeStartIt != BogusSQ5Export);
-    if (isValidFunctionPointer)
+    CodeSection section;
+    if (isValidFunctionPointer && FindStartEndCode(codeStartIt, sortedCodePointersTO, compiledScript._codeSections, section))
     {
-        const BYTE *pBegin = &compiledScript.GetRawBytes()[*codeStartIt];
-        const BYTE *pEnd = compiledScript.GetEndOfRawBytes();
-        DecompileRaw(func, lookups, pBegin, pEnd, wCodeOffsetTO);
+        const BYTE *pBegin = &compiledScript.GetRawBytes()[section.begin];
+        const BYTE *pEnd = &compiledScript.GetRawBytes()[section.end];
+        const BYTE *pEndScript = compiledScript.GetEndOfRawBytes();
+        DecompileRaw(func, lookups, pBegin, pEnd, pEndScript, wCodeOffsetTO);
         if (lookups.WasPropertyRequested() && lookups.GetPossiblePropertiesForProc(wCodeOffsetTO))
         {
             const CompiledObject *object = static_cast<const CompiledObject *>(lookups.GetPossiblePropertiesForProc(wCodeOffsetTO));

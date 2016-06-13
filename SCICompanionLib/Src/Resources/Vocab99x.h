@@ -81,7 +81,6 @@ class KernelTable : public CVocabWithNames
 {
 public:
     bool Load(const GameFolderHelper &helper);
-    virtual std::string Lookup(uint16_t wName) const;
     virtual bool ReverseLookup(std::string name, uint16_t &wIndex) const;
 
 protected:
