@@ -103,6 +103,7 @@ public:
     std::string LookupClassName(uint16_t wIndex);
     bool LookupSpeciesPropertyList(uint16_t wIndex, std::vector<uint16_t> &props);
     bool LookupSpeciesPropertyListAndValues(uint16_t wIndex, std::vector<uint16_t> &props, std::vector<CompiledVarValue> &values);
+    uint16_t GetNameSelector() const;
 
     // IObjectFileScriptLookups
     std::string ReverseLookupGlobalVariableName(uint16_t wIndex);

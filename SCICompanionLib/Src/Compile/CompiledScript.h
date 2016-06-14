@@ -141,8 +141,7 @@ public:
     uint16_t GetSpeciesIfClass() const { return _wSpeciesIfClass; }
     uint16_t GetInfo() const { return _wInfo; }
 
-    void AdjustName(const std::string &newCodeName) { _oldName = _strName; _strName = newCodeName; }
-    std::string GetOriginalName() const { return _oldName; }
+    void AdjustName(const std::string &newCodeName) { _strName = newCodeName; }
     const std::vector<uint16_t> &GetProperties() const { return _propertySelectors; }
     const std::vector<uint16_t> &GetMethods() const { return _functionSelectors; }
     const std::vector<CompiledVarValue> &GetPropertyValues() const{ return _propertyValues; }
@@ -153,7 +152,7 @@ public:
 
     uint16_t GetPosInResource() const { return _wPosInResource; }
 
-    int GetNumberOfDefaultSelectors() const { return _version.SeparateHeapResources ? 9 : 4; }
+    int GetNumberOfDefaultSelectors(uint16_t nameSelector = 0) const;
 
     SCIVersion GetVersion() const { return _version; }
 
@@ -163,7 +162,6 @@ private:
     uint16_t _wSpeciesIfClass;
     uint16_t _wSuperClass;
     std::string _strName;
-    std::string _oldName; // For decompiler
     uint16_t _wInfo;
     // These start from the 4th position (e.g. leave out species, superclass, --info-- and name)
     std::vector<uint16_t> _propertySelectors;

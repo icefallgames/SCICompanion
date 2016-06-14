@@ -1424,6 +1424,13 @@ bool DecompileLookups::IsPropertySelectorOnly(uint16_t selector) const
         (_methodSelectors.find(selector) == _methodSelectors.end());
 }
 
+uint16_t DecompileLookups::GetNameSelector() const
+{
+    uint16_t nameSelector = 0;
+    _pLookups->GetSelectorTable().ReverseLookup("name", nameSelector);
+    return nameSelector;
+}
+
 void DecompileLookups::SetPosition(sci::SyntaxNode *pNode)
 {
     pNode->SetPosition(_fakePosition);

@@ -1074,6 +1074,21 @@ set<uint16_t> CompiledScript::FindInternalCallsTO() const
     return wOffsets;
 }
 
+int CompiledObject::GetNumberOfDefaultSelectors(uint16_t nameSelector) const
+{
+    int count = _version.SeparateHeapResources ? 9 : 4;
+    // If name selector not found, reduce by one, as there is an important selector we're missing
+    // (e.g. script 86 in QFG2)
+    for (int i = 0; i < min(count, (int)_propertySelectors.size()); i++)
+    {
+        if (_propertySelectors[i] == nameSelector)
+        {
+            return count;
+        }
+    }
+    return count - 1;
+}
+
 std::string CompiledObject::LookupPropertyName(ICompiledScriptLookups *pLookup, uint16_t wPropertyIndex) const
 {
     // PERF: vector copy that is used frequently.
