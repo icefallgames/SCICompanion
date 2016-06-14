@@ -18,7 +18,7 @@
 #include "AppState.h"
 #include "OutputCodeHelper.h"
 #include "PMachine.h"
-
+#include "Vocab000.h"
 using namespace std;
 
 #define STATE_CALCBRANCHES 0
@@ -470,7 +470,7 @@ void DisassembleFunction(const CompiledScript &script, std::ostream &out, ICompi
     out << ')' << endl << endl;
 }
 
-void DisassembleScript(const CompiledScript &script, std::ostream &out, ICompiledScriptLookups *pLookups, IObjectFileScriptLookups *pOFLookups, const ILookupNames *pWords, const std::string *pMessage, AnalyzeInstructionPtr analyzeInstruction)
+void DisassembleScript(const CompiledScript &script, std::ostream &out, ICompiledScriptLookups *pLookups, IObjectFileScriptLookups *pOFLookups, const Vocab000 *pWords, const std::string *pMessage, AnalyzeInstructionPtr analyzeInstruction)
 {
     // (script x)
     if (pMessage)

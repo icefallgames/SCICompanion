@@ -19,6 +19,7 @@
 #include "CompileCommon.h"
 
 enum OperandType : uint8_t;
+struct Vocab000;
 
 namespace sci
 {
@@ -219,7 +220,7 @@ public:
     CompiledObject *GetObjectForExport(uint16_t exportPointer) const;
     std::set<uint16_t> FindInternalCallsTO() const;
 
-    void PopulateSaidStrings(const ILookupNames *pWords) const;
+    void PopulateSaidStrings(const Vocab000 *pWords) const;
 
     bool IsStringPointerSCI1_1(uint16_t) const;
     std::string GetStringOrSaidFromOffset(uint16_t, sci::ValueType &type) const;

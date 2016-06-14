@@ -194,7 +194,9 @@ void Vocab000::_ReadWord(sci::istream &byteStream, char *pszBuffer, size_t cchBu
             }
             else
             {
-                // TODO: Possibly warn the user?
+                // REVIEW: Possibly warn the user?
+                // No, but we will store this information for the decompiler to use.
+                _duplicateMapGroupToString[GetWordGroup(dwInfo)] = pszBuffer;
             }
         }
     }
@@ -319,6 +321,24 @@ std::string Vocab000::Lookup(uint16_t wIndex) const
     {
         return "--invalid--";
     }
+}
+
+std::string Vocab000::LookupIncludeDupes(uint16_t wIndex) const
+{
+    group2words_map::const_iterator it = _mapGroupToString.find((WordGroup)wIndex);
+    if (it != _mapGroupToString.end())
+    {
+        return it->second;
+    }
+    else
+    {
+        it = _duplicateMapGroupToString.find((WordGroup)wIndex);
+        if (it != _duplicateMapGroupToString.end())
+        {
+            return it->second;
+        }
+    }
+    return "--invalid--";
 }
 
 Vocab000::WordGroup Vocab000::_FindLargestEmptyGroup()

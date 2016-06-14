@@ -1026,7 +1026,7 @@ uint16_t CalcOffset(const SCIVersion &version, uint16_t wOperandStart, uint16_t 
     return wResult;
 }
 
-void CompiledScript::PopulateSaidStrings(const ILookupNames *pWords) const
+void CompiledScript::PopulateSaidStrings(const Vocab000 *pWords) const
 {
     // Get readable strings for them
     for (size_t i = 0; i < _saids.size(); i++)

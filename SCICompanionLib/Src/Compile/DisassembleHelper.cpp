@@ -15,7 +15,7 @@
 #include "DisassembleHelper.h"
 #include "interfaces.h"
 #include "PMachine.h"
-
+#include "Vocab000.h"
 using namespace std;
 
 
@@ -88,7 +88,7 @@ std::string _FindPreferredWord(const std::string &words)
     return word;
 }
 
-string SaidSequenceToString(vector<uint16_t> saidSequence, const ILookupNames *pWords)
+string SaidSequenceToString(vector<uint16_t> saidSequence, const Vocab000 *pWords)
 {
     string strRet = "";
     for (size_t i = 0; i < saidSequence.size(); i++)
@@ -101,7 +101,7 @@ string SaidSequenceToString(vector<uint16_t> saidSequence, const ILookupNames *p
         else
         {
             // Must be a word.
-            std::string strWords = pWords->Lookup(wOp);
+            std::string strWords = pWords->LookupIncludeDupes(wOp);
             // This is a little hokey -> this is " | " separated.  Let's just take the first word.
             strRet += _FindPreferredWord(strWords);
         }

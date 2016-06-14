@@ -22,6 +22,7 @@
 #include "DecompilerResults.h"
 #include "format.h"
 #include "DecompilerConfig.h"
+#include "Vocab000.h"
 
 using namespace sci;
 using namespace std;
@@ -369,7 +370,7 @@ private:
     const IDecompilerConfig &_config;
 };
 
-Script *Decompile(const GameFolderHelper &helper, const CompiledScript &compiledScript, DecompileLookups &lookups, const ILookupNames *pWords)
+Script *Decompile(const GameFolderHelper &helper, const CompiledScript &compiledScript, DecompileLookups &lookups, const Vocab000 *pWords)
 {
     unique_ptr<Script> pScript = std::make_unique<Script>();
     pScript->SyntaxVersion = 2;

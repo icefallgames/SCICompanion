@@ -91,6 +91,8 @@ public:
     // ILookupNames
     std::string Lookup(uint16_t wIndex) const;
 
+    std::string LookupIncludeDupes(uint16_t wIndex) const;
+
 private:
     static const uint16_t AlphaIndexLength = (26 * 2); // 26 letters, 2 bytes for each offset.
     static const uint16_t AlphaIndexLength_900 = (255 * 2);
@@ -105,6 +107,9 @@ private:
     group2words_map _mapGroupToString;
     group2class_map _mapGroupToClass;
     uint8_t _rgbGroups[0x1000]; // 4096 entries, one for each group.
+
+    // Duplicate words, which we don't handle - but are useful for the decompiler.
+    group2words_map _duplicateMapGroupToString;
 
     // This is just the raw vocab
     std::vector<std::string> _words;

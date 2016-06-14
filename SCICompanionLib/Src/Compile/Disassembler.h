@@ -32,4 +32,5 @@ void DisassembleObject(const CompiledScript &script,
     std::set<uint16_t> &codePointers,
     AnalyzeInstructionPtr analyzeInstruction = nullptr);
 
-void DisassembleScript(const CompiledScript &script, std::ostream &out, ICompiledScriptLookups *pLookups, IObjectFileScriptLookups *pOFLookups, const ILookupNames *pWords, const std::string *pMessage = nullptr, AnalyzeInstructionPtr analyzeInstruction = nullptr);
+struct Vocab000;
+void DisassembleScript(const CompiledScript &script, std::ostream &out, ICompiledScriptLookups *pLookups, IObjectFileScriptLookups *pOFLookups, const Vocab000 *pWords, const std::string *pMessage = nullptr, AnalyzeInstructionPtr analyzeInstruction = nullptr);
