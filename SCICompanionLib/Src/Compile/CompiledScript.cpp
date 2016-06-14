@@ -1036,7 +1036,6 @@ void CompiledScript::PopulateSaidStrings(const Vocab000 *pWords) const
     assert(_saidStrings.size() == _saidsOffset.size());
 }
 
-
 //
 // Scan all the code in the script, looking for call instructions
 //

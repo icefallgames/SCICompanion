@@ -323,6 +323,34 @@ void DecompileScript(const GameFolderHelper &helper, WORD wScript, IDecompilerRe
     }
 }
 
+void FixDuplicateObjectNames(CompiledScript &compiledScript, const SelectorTable &selectorTable)
+{
+    // Occasionally a script will have objects with duplicate names. Rather than a bug, this indicates that there were two separate objects that had
+    // their name property explicitly provided. An example is _MapInSection.sc in QFG2.
+    // There are a few ways to address it, but we'll try the following here:
+    //  Check for any name dupes in the objects.
+    //  If so, change their name to some unique name
+    //  Then add a name property with a value pointing to the original string.
+    unordered_map<string, int> countOfNames;
+    unordered_map<string, char> suffixes;
+    for (const auto &object : compiledScript.GetObjects())
+    {
+        countOfNames[object->GetName()]++;
+        suffixes[object->GetName()] = 'a';
+    }
+
+    for (auto &object : compiledScript.GetObjects())
+    {
+        int count = countOfNames[object->GetName()];
+        if (count > 1)
+        {
+            // This is a multiple named one.
+            std::string newName = fmt::format("{0}_{1}", object->GetName(), suffixes[object->GetName()]++);
+            object->AdjustName(newName); // This will track the old name so we can explicitly list it
+        }
+    }
+}
+
 std::unique_ptr<sci::Script> DecompileScript(const IDecompilerConfig *config, GlobalCompiledScriptLookups &scriptLookups, const GameFolderHelper &helper, WORD wScript, CompiledScript &compiledScript, IDecompilerResults &results, bool debugControlFlow, bool debugInstConsumption, PCSTR pszDebugFilter, bool decompileAsm)
 {
     unique_ptr<sci::Script> pScript;
@@ -334,6 +362,8 @@ std::unique_ptr<sci::Script> DecompileScript(const IDecompilerConfig *config, Gl
     {
         pText = textResource->TryGetComponent<TextComponent>();
     }
+
+    FixDuplicateObjectNames(compiledScript, config->GetSelectorTable());
 
     DecompileLookups decompileLookups(config, helper, wScript, &scriptLookups, &objectFileLookups, &compiledScript, pText, &compiledScript, results);
     decompileLookups.DebugControlFlow = debugControlFlow;

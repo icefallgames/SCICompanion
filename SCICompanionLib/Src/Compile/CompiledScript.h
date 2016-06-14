@@ -141,7 +141,8 @@ public:
     uint16_t GetSpeciesIfClass() const { return _wSpeciesIfClass; }
     uint16_t GetInfo() const { return _wInfo; }
 
-    void AdjustName(PCTSTR pszNewName) { ASSERT(!_fInstance); _strName = pszNewName; }
+    void AdjustName(const std::string &newCodeName) { _oldName = _strName; _strName = newCodeName; }
+    std::string GetOriginalName() const { return _oldName; }
     const std::vector<uint16_t> &GetProperties() const { return _propertySelectors; }
     const std::vector<uint16_t> &GetMethods() const { return _functionSelectors; }
     const std::vector<CompiledVarValue> &GetPropertyValues() const{ return _propertyValues; }
@@ -162,6 +163,7 @@ private:
     uint16_t _wSpeciesIfClass;
     uint16_t _wSuperClass;
     std::string _strName;
+    std::string _oldName; // For decompiler
     uint16_t _wInfo;
     // These start from the 4th position (e.g. leave out species, superclass, --info-- and name)
     std::vector<uint16_t> _propertySelectors;

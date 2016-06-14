@@ -71,6 +71,16 @@ void DecompileObject(const CompiledObject &object,
             // TODO: Output a warning... mismatched prop sizes.
         }
         
+        if (!object.GetOriginalName().empty())
+        {
+            // The object was renamed due to duplicate names. Supply it's original name here.
+            unique_ptr<ClassProperty> prop = make_unique<ClassProperty>();
+            prop->SetName("name");
+            PropertyValue value(object.GetOriginalName(), ValueType::String);
+            prop->SetValue(value);
+            pClass->AddProperty(move(prop));
+        }
+
         for (size_t i = object.GetNumberOfDefaultSelectors(); i < numberOfProps; i++)
         {
             const CompiledVarValue &propValue = object.GetPropertyValues()[i];
