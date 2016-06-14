@@ -1149,8 +1149,10 @@ void ControlFlowGraph::_FindCompoundConditions(ControlFlowNode *structure)
                         GetThenAndElseBranches(branchNode, &secondThenNode, &secondElseNode);
                         CompoundConditionNode *newConditionNode = nullptr;
                         bool throwException = false;
+                        bool goAheadWithIt = false;
                         if (firstElseNode == secondElseNode)
                         {
+                            goAheadWithIt = true;
                             throwException = (firstThenNode != branchNode);
                             // This is (X and Y)
                             newConditionNode = MakeStructuredNode<CompoundConditionNode>(possibleStart, ConditionType::And);
@@ -1159,6 +1161,7 @@ void ControlFlowGraph::_FindCompoundConditions(ControlFlowNode *structure)
                         }
                         else if (firstThenNode == secondThenNode)
                         {
+                            goAheadWithIt = true;
                             throwException = (firstElseNode != branchNode);
                             // This is (X or Y)
                             newConditionNode = MakeStructuredNode<CompoundConditionNode>(possibleStart, ConditionType::Or);
@@ -1167,19 +1170,24 @@ void ControlFlowGraph::_FindCompoundConditions(ControlFlowNode *structure)
                         }
                         else if (firstElseNode == secondThenNode)
                         {
+                            // If this value of this condition is used, then it will be wrong.
+                            /*
                             throwException = (firstThenNode != branchNode);
                             // This is (!X or Y);
                             newConditionNode = MakeStructuredNode<CompoundConditionNode>(possibleStart, ConditionType::Or);
                             newConditionNode->isFirstTermNegated = true;
                             newConditionNode->thenBranch = secondThenNode->GetStartingAddress();
+*/                        
                         }
                         else if (firstThenNode == secondElseNode)
                         {
+                            /*
                             throwException = (firstElseNode != branchNode);
                             // This is (!X and Y)
                             newConditionNode = MakeStructuredNode<CompoundConditionNode>(possibleStart, ConditionType::And);
                             newConditionNode->isFirstTermNegated = true;
                             newConditionNode->thenBranch = secondThenNode->GetStartingAddress();
+                        */
                         }
 
                         if (throwException)
@@ -1187,16 +1195,19 @@ void ControlFlowGraph::_FindCompoundConditions(ControlFlowNode *structure)
                             throw ControlFlowException(possibleStart, "Unable to resolve compound condition");
                         }
 
-                        (*newConditionNode)[SemId::First] = possibleStart;
-                        (*newConditionNode)[SemId::Second] = branchNode;
-                        newConditionNode->InsertChild(possibleStart);
-                        newConditionNode->InsertChild(branchNode);
+                        if (goAheadWithIt)
+                        {
+                            (*newConditionNode)[SemId::First] = possibleStart;
+                            (*newConditionNode)[SemId::Second] = branchNode;
+                            newConditionNode->InsertChild(possibleStart);
+                            newConditionNode->InsertChild(branchNode);
 
-                        // Now we want to remove possibleStart and branchNode from the tree, and replace with newConditionNode
-                        _ReplaceNodeInWorkingSet(structure, newConditionNode);
-                        _ReplaceNodeInFollowNodes(newConditionNode);
+                            // Now we want to remove possibleStart and branchNode from the tree, and replace with newConditionNode
+                            _ReplaceNodeInWorkingSet(structure, newConditionNode);
+                            _ReplaceNodeInFollowNodes(newConditionNode);
 
-                        changesMade = true;
+                            changesMade = true;
+                        }
                         break;  // Restart anew
                     }
                 }

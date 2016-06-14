@@ -826,10 +826,7 @@ public:
                 // be confident this is one without looking at its destination.
                 _context.AddStructured(ChunkType::Continue);
             }
-            else
-            {
-                current->Accept(*this);
-            }
+            current->Accept(*this);
         }
     }
 
@@ -3149,12 +3146,14 @@ bool OutputNewStructure(const std::string &messagePrefix, sci::FunctionBase &fun
 
         _RemoveTOSS(mainChunk.get());
         _FixupSwitches(mainChunk.get(), lookups);
+
+
         _FixupIfs(mainChunk.get(), mainChunk.get(), lookups);
+
         _LiftOutFromConditions(mainChunk.get(), mainChunk.get(), lookups);
 #ifdef TRY_LIFT_ASSIGNMENTS
         _LiftOutAssignments(mainChunk.get(), mainChunk.get(), lookups);
 #endif
-
         if (showFile)
         {
             std::stringstream ss;

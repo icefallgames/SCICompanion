@@ -1928,6 +1928,7 @@
     <None Include="Docs\source\Scripts\System.rst" />
     <None Include="Files\TemplateGame\SCI0\src\DebugOut.sc" />
     <None Include="Files\TemplateGame\SCI0\src\DebugOut.sco" />
+    <None Include="Files\TemplateGame\SCI0\src\Avoid.sco" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="res\SCICompanion.manifest" />
