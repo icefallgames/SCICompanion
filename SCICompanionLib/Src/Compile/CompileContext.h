@@ -98,6 +98,12 @@ private:
     SCIVersion _versionCompiled;
 };
 
+struct CompileQuery
+{
+    CompileQuery() : SendOrProcCallWasOutput(false) {}
+    bool SendOrProcCallWasOutput;
+};
+
 class CompileContext : public ICompileLog, public ILookupDefine, public ITrackCodeSink
 {
 public:
@@ -234,10 +240,9 @@ public:
     bool InConditional();
     void PushConditional(bool fConditional);
     void PopConditional();
-    void PushRestFrame();
-    void NotifyProcOrSend();
-    void PopRestFrame();
-    void ErrorIfRestBannedHere(const ISourceCodePosition *pos);
+    void PushQuery(CompileQuery *query);
+    void NotifySendOrProcCall();
+    void PopQuery();
     bool SupportTypeChecking();
     bool LookupWord(const std::string word, WORD &wWordGroup);
     sci::Script *SetErrorContext(sci::Script *pScript);
@@ -311,7 +316,7 @@ private:
     std::stack<OutputContext> _oc;
     std::stack<bool> _meaning;
     std::stack<bool> _conditional;
-    std::stack<bool> _restBanned;
+    std::vector<CompileQuery*> _queries;
 
     // Local, script vars
     std::stack<const IVariableLookupContext *> _varContext;

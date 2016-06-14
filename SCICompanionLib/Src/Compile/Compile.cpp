@@ -377,17 +377,20 @@ private:
     CompileContext &_context;
 };
 
-class declare_restframe
+class declare_compileQuery
 {
 public:
-    declare_restframe(CompileContext &context) : _context(context)
+    declare_compileQuery(CompileContext &context) : _context(context)
     {
-        _context.PushRestFrame();
+        _context.PushQuery(&query);
     }
-    ~declare_restframe()
+    ~declare_compileQuery()
     {
-        _context.PopRestFrame();
+        _context.PopQuery();
     }
+
+    CompileQuery query;
+
 private:
     CompileContext &_context;
 };
@@ -1204,8 +1207,7 @@ void _UpdateSecondOperand(code_pos instruction, WORD wValue)
 
 CodeResult SendCall::OutputByteCode(CompileContext &context) const
 {
-    context.NotifyProcOrSend();
-    declare_restframe restFrame(context);
+    context.NotifySendOrProcCall();
     declare_conditional isCondition(context, false);
     if (_params.empty())
     {
@@ -1260,6 +1262,8 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
     code_pos sendPushInstruction = context.code().get_undetermined();
 
     {
+        declare_compileQuery queryWrap(context);
+
         // Imbue meaning from here on out
         change_meaning meaning(context, true);
         // If this is a true send (as opposed to a self or super), then we need to load the object
@@ -1384,6 +1388,22 @@ CodeResult SendCall::OutputByteCode(CompileContext &context) const
             sendPushInstruction = context.code().get_cur_pos();
             updateOperand = _UpdateFirstOperand;
         }
+
+        if (queryWrap.query.SendOrProcCallWasOutput)
+        {
+            for (const auto &param : _params)
+            {
+                if (param->ContainsRest())
+                {
+                    // If the target made a proc or send call, then we can't use &rest in our params, since it would affect the target's code
+                    // (which is executed after the params are pushed to the stack)
+                    // REVIEW: Maybe I could just output put &rest after? I dunno.
+                    // REVIEW: We probably also need to guard against multi-sends using rest in multiple places.
+                    context.ReportError(param.get(), "&rest cannot be used if the send target itself contains nested procedure calls or sends. Assign the result of the procedure call or send to a temporary variable and use that instead.");
+                    break;
+                }
+            }
+        }
     }
 
     WORD wSendPushes = 0;
@@ -1436,6 +1456,18 @@ CodeResult Cast::OutputByteCode(CompileContext &context) const
     CodeResult result = _statement1->OutputByteCode(context);
     SpeciesIndex si = context.LookupTypeSpeciesIndex(_innerType, this);
     return CodeResult(result.GetBytes(), si);
+}
+
+bool SendParam::ContainsRest() const
+{
+    for (const auto &param : _segments)
+    {
+        if (param->GetNodeType() == sci::NodeType::NodeTypeRest)
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 void SendParam::PreScan(CompileContext &context) 
@@ -1564,7 +1596,7 @@ CodeResult SendParam::OutputByteCode(CompileContext &context) const
                 }
             }
         }
-        else if (calleeSpecies != DataTypeAny)
+        else if ((calleeSpecies != DataTypeAny) && (calleeSpecies != DataTypeNone))
         {
             // We'll make a decision not to generate an error if the callee is of type 'var'.
             // We need some way for code to call specific methods on something, so this will be it
@@ -1606,8 +1638,7 @@ CodeResult CodeBlock::OutputByteCode(CompileContext &context) const
 
 CodeResult ProcedureCall::OutputByteCode(CompileContext &context) const
 {
-    context.NotifyProcOrSend();
-    declare_restframe restFrame(context);
+    context.NotifySendOrProcCall();
 
     declare_conditional isCondition(context, false);
     change_meaning meaning(context, true);
@@ -3218,7 +3249,6 @@ CodeResult Asm::OutputByteCode(CompileContext &context) const
 
 CodeResult RestStatement::OutputByteCode(CompileContext &context) const
 {
-    context.ErrorIfRestBannedHere(this);
     declare_conditional isCondition(context, false);
     if (context.GetOutputContext() != OC_Stack)
     {

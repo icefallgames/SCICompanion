@@ -53,6 +53,8 @@ namespace sci
         void PreScan(CompileContext &context);
         void Traverse(IExploreNode &en);
 
+        bool ContainsRest() const;
+
         void Accept(ISyntaxNodeVisitor &visitor) const override;
 
     private:
