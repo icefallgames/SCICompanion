@@ -1086,6 +1086,10 @@ CodeResult PropertyValueBase::OutputByteCode(CompileContext &context) const
                     {
                         fVarModifierError = false;
                         bOpcodeMod |= GetVarOpcodeModifier(context.GetVariableModifier());
+                        // Set the modifier (-- or ++) to none now, since we just used it, and we don't want it applying to the indexer.
+                        // This properly handles codes like this:
+                        // (-- [global5 temp0]) ; decrement "global5 indexed by temp0"
+                        context.SetVariableModifier(VM_None);
                         VariableOperand(context, wNumber, TokenTypeToVOType(tokenType) | bOpcodeMod, GetIndexer());
                     }
                     break;
