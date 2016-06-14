@@ -610,7 +610,9 @@ void AddSimpleSendParamA(MatchResult &match, const _TParser *pParser, SyntaxCont
 {
     if (match.Result())
     {
-        pContext->GetSyntaxNode<SendCall>()->AddSendParam(std::make_unique<SendParam>(pContext->ScratchString(), false));
+        std::unique_ptr<SendParam> sendParam = std::make_unique<SendParam>(pContext->ScratchString(), false);
+        sendParam->SetPosition(stream.GetPosition());
+        pContext->GetSyntaxNode<SendCall>()->AddSendParam(std::move(sendParam));
     }
 }
 
@@ -621,6 +623,7 @@ void SetStatementNameA(MatchResult &match, const _TParser *pParser, SyntaxContex
     if (match.Result())
     {
         pContext->CreateSyntaxNode<_T>(stream);
+        pContext->GetSyntaxNode<_T>()->SetPosition(stream.GetPosition());
         pContext->GetSyntaxNode<_T>()->SetName(pContext->ScratchString());
     }
 }
@@ -630,6 +633,7 @@ void SetSelectorNameA(MatchResult &match, const _TParser *pParser, SyntaxContext
     if (match.Result())
     {
         pContext->CreateSyntaxNode<_T>(stream);
+        pContext->GetSyntaxNode<_T>()->SetPosition(stream.GetPosition());
         pContext->GetSyntaxNode<_T>()->SetName(pContext->ScratchString());
     }
 }

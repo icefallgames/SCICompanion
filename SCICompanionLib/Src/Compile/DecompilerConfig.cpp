@@ -81,6 +81,8 @@ public:
         }
     }
 
+    const SelectorTable &GetSelectorTable() const { return _selectorTable; }
+
     std::vector<std::string> GetParameterNamesFor(sci::ClassDefinition *classDef, const std::string &methodName) const
     {
         vector<string> paramsOut;

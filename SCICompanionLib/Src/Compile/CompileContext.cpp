@@ -765,8 +765,9 @@ void CompileContext::_ReportThing(bool fError, const ISourceCodePosition *pPos, 
     char sz[300];
     // Add one to line number, since they are reported from a 0-base (parser), but displayed from a 1-base (script editor)
     int line = pPos->GetLineNumber() + 1;
-    StringCchPrintf(sz, ARRAYSIZE(sz), "  [%s]: %s  Line: %d, col: %d", fError ? "Error" : "Warning", szMessage, line, pPos->GetColumnNumber());
-    _results.ReportResult(CompileResult(sz, ScriptId(_pErrorScript->GetPath().c_str()), line, pPos->GetColumnNumber(), fError ? CompileResult::CRT_Error : CompileResult::CRT_Warning));
+    ScriptId scriptIdThing(_pErrorScript->GetPath().c_str());
+    StringCchPrintf(sz, ARRAYSIZE(sz), "%s: (%s) %s  Line: %d, col: %d", fError ? "Error" : "Warning", scriptIdThing.GetFileNameOrig().c_str(), szMessage, line, pPos->GetColumnNumber());
+    _results.ReportResult(CompileResult(sz, scriptIdThing, line, pPos->GetColumnNumber(), fError ? CompileResult::CRT_Error : CompileResult::CRT_Warning));
 }
 bool CompileContext::HasErrors() { return _fErrors; }
 

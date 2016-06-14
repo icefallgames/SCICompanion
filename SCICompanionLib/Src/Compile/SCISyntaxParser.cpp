@@ -1368,7 +1368,7 @@ bool SCISyntaxParser::Parse(Script &script, streamIt &stream, std::unordered_set
     {
         // With regards to syntax errors - there can really only be one, because we can't
         // recover afterwards.
-        std::string strError = "  [Error]: ";
+        std::string strError = "Error: (" + script.GetScriptId().GetFileNameOrig() + ") ";
         strError += context.GetErrorText();
         streamIt errorPos = context.GetErrorPosition();
 

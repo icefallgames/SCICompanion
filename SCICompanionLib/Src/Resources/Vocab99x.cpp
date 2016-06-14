@@ -658,6 +658,12 @@ std::string SelectorTable::_GetMissingName(uint16_t wName) const
     return fmt::format("sel_{0}", wName);
 }
 
+bool SelectorTable::IsSelectorName(const std::string &name) const
+{
+    assert(!_nameToValueCache.empty());
+    return (_nameToValueCache.find(name) != _nameToValueCache.end());
+}
+
 bool SelectorTable::ReverseLookup(std::string name, uint16_t &wIndex)
 {
     if (_nameToValueCache.empty())

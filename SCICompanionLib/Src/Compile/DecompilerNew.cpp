@@ -1441,108 +1441,123 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
                 sendCall->SetName("super");
             }
             Consumption cons = _GetInstructionConsumption(inst, &lookups);
-            WORD cStackPushesLeft = cons.cStackConsume;
-            WORD cAccLeft = (bOpcode == Opcode::SEND) ? 1 : 0;
-            size_t i = 0;
-            WORD cParamsLeft = 0;
-            bool fLookingForSelector = true;
-            unique_ptr<SendParam> sendParam;
 
-            while ((cAccLeft || cStackPushesLeft) && (i < node.GetChildCount()))
+            if (cons.cStackConsume == 0)
             {
-                ConsumptionNode *pPreviousChild = i ? node.Child(i - 1) : nullptr;
-                if (cAccLeft)
-                {
-                    Consumption consAcc = _GetInstructionConsumption(*node.Child(i), lookups);
-                    if (consAcc.cAccGenerate)
-                    {
-                        // We want an LValue instead of a property value. Tell _CodeNodeToSyntaxNode this.
-                        PreferLValue preferLValue(lookups, true);
-                        unique_ptr<SyntaxNode> pSendObject = _CodeNodeToSyntaxNode(*node.Child(i), lookups);
-                        const LValue *pValue = SafeSyntaxNode<LValue>(pSendObject.get());
-                        if (pValue)
-                        {
-                            unique_ptr<LValue> lValue(static_cast<LValue*>(pSendObject.release()));
-                            sendCall->SetLValue(move(lValue));
-                        }
-                        else
-                        {
-                            sendCall->SetStatement1(move(pSendObject));
-                        }
-                        --cAccLeft;
-                    }
-                }
+                // This is a zero send. They happen sometimes, presumably where Sierra programmers enclosed stuff
+                // in extra parentheses.
+                assert(cons.cAccConsume == 1);
+                assert(node.GetChildCount() == 1);
+                return _CodeNodeToSyntaxNode(*node.Child(0), lookups);
+                // In this case, we can just ignore the send, and forward to the acc generator.
+            }
+            else
+            {
 
-                if (cStackPushesLeft)
+
+                WORD cStackPushesLeft = cons.cStackConsume;
+                WORD cAccLeft = (bOpcode == Opcode::SEND) ? 1 : 0;
+                size_t i = 0;
+                WORD cParamsLeft = 0;
+                bool fLookingForSelector = true;
+                unique_ptr<SendParam> sendParam;
+
+                while ((cAccLeft || cStackPushesLeft) && (i < node.GetChildCount()))
                 {
-                    Consumption consAcc = _GetInstructionConsumption(*node.Child(i), lookups);
-                    if (consAcc.cStackGenerate)
+                    ConsumptionNode *pPreviousChild = i ? node.Child(i - 1) : nullptr;
+                    if (cAccLeft)
                     {
-                        if (fLookingForSelector)
+                        Consumption consAcc = _GetInstructionConsumption(*node.Child(i), lookups);
+                        if (consAcc.cAccGenerate)
                         {
-                            sendParam.reset(new SendParam);
-                            fLookingForSelector = false;
-                            bool found;
-                            WORD wValue = _GetImmediateFromCodeNode(*node.Child(i), pPreviousChild, false, &found);
-                            if (!found)
+                            // We want an LValue instead of a property value. Tell _CodeNodeToSyntaxNode this.
+                            PreferLValue preferLValue(lookups, true);
+                            unique_ptr<SyntaxNode> pSendObject = _CodeNodeToSyntaxNode(*node.Child(i), lookups);
+                            const LValue *pValue = SafeSyntaxNode<LValue>(pSendObject.get());
+                            if (pValue)
                             {
-                                // Occasionally selectors can be variables.
-                                std::unique_ptr<SyntaxNode> syntaxNode = _CodeNodeToSyntaxNode(*node.Child(i), lookups);
-                                const LValue *pLValue = SafeSyntaxNode<LValue>(syntaxNode.get());
-                                if (pLValue)
+                                unique_ptr<LValue> lValue(static_cast<LValue*>(pSendObject.release()));
+                                sendCall->SetLValue(move(lValue));
+                            }
+                            else
+                            {
+                                sendCall->SetStatement1(move(pSendObject));
+                            }
+                            --cAccLeft;
+                        }
+                    }
+
+                    if (cStackPushesLeft)
+                    {
+                        Consumption consAcc = _GetInstructionConsumption(*node.Child(i), lookups);
+                        if (consAcc.cStackGenerate)
+                        {
+                            if (fLookingForSelector)
+                            {
+                                sendParam.reset(new SendParam);
+                                fLookingForSelector = false;
+                                bool found;
+                                WORD wValue = _GetImmediateFromCodeNode(*node.Child(i), pPreviousChild, false, &found);
+                                if (!found)
                                 {
-                                    sendParam->SetName(pLValue->GetName());
+                                    // Occasionally selectors can be variables.
+                                    std::unique_ptr<SyntaxNode> syntaxNode = _CodeNodeToSyntaxNode(*node.Child(i), lookups);
+                                    const LValue *pLValue = SafeSyntaxNode<LValue>(syntaxNode.get());
+                                    if (pLValue)
+                                    {
+                                        sendParam->SetName(pLValue->GetName());
+                                    }
+                                    else
+                                    {
+                                        throw ConsumptionNodeException(node.Child(i), "Expected selector.");
+                                    }
                                 }
                                 else
                                 {
-                                    throw ConsumptionNodeException(node.Child(i), "Expected selector.");
+                                    sendParam->SetName(lookups.LookupSelectorName(wValue));
+                                    sendParam->SetIsMethod(!lookups.IsPropertySelectorOnly(wValue));
+                                }
+                            }
+                            else if (cParamsLeft)
+                            {
+                                --cParamsLeft;
+                                _ApplySyntaxNodeToCodeNode(*node.Child(i), *sendParam, lookups); // Hmm, we were passing the wrong previous node here before... will that matter?
+                                if (cParamsLeft == 0)
+                                {
+                                    if (_MaybeConsumeRestInstruction(sendParam.get(), i + 1, node, lookups))
+                                    {
+                                        i++;
+                                    }
+                                    sendCall->AddSendParam(std::move(sendParam));
+                                    fLookingForSelector = true;
                                 }
                             }
                             else
                             {
-                                sendParam->SetName(lookups.LookupSelectorName(wValue));
-                                sendParam->SetIsMethod(!lookups.IsPropertySelectorOnly(wValue));
-                            }
-                        }
-                        else if (cParamsLeft)
-                        {
-                            --cParamsLeft;
-                            _ApplySyntaxNodeToCodeNode(*node.Child(i), *sendParam, lookups); // Hmm, we were passing the wrong previous node here before... will that matter?
-                            if (cParamsLeft == 0)
-                            {
-                                if (_MaybeConsumeRestInstruction(sendParam.get(), i + 1, node, lookups))
+                                // Must be a param count
+                                cParamsLeft = _GetImmediateFromCodeNode(*node.Child(i), pPreviousChild);
+                                if (cParamsLeft == 0)
                                 {
-                                    i++;
+                                    if (_MaybeConsumeRestInstruction(sendParam.get(), i + 1, node, lookups))
+                                    {
+                                        i++;
+                                    }
+                                    sendCall->AddSendParam(std::move(sendParam));
+                                    fLookingForSelector = true;
                                 }
-                                sendCall->AddSendParam(std::move(sendParam));
-                                fLookingForSelector = true;
                             }
+                            --cStackPushesLeft;
                         }
-                        else
-                        {
-                            // Must be a param count
-                            cParamsLeft = _GetImmediateFromCodeNode(*node.Child(i), pPreviousChild);
-                            if (cParamsLeft == 0)
-                            {
-                                if (_MaybeConsumeRestInstruction(sendParam.get(), i + 1, node, lookups))
-                                {
-                                    i++;
-                                }
-                                sendCall->AddSendParam(std::move(sendParam));
-                                fLookingForSelector = true;
-                            }
-                        }
-                        --cStackPushesLeft;
                     }
+
+                    ++i; // Always increment i
+                    // TODO: warn if we didn't do anything in this loop?  Unused instruction???
                 }
 
-                ++i; // Always increment i
-                // TODO: warn if we didn't do anything in this loop?  Unused instruction???
+                assert((!sendCall->GetObjectA().empty() || sendCall->GetStatement1()) && "Send call with no object");
+                sendCall->SimplifySendObject();
+                return unique_ptr<SyntaxNode>(move(sendCall));
             }
-
-            assert((!sendCall->GetObjectA().empty() || sendCall->GetStatement1()) && "Send call with no object");
-            sendCall->SimplifySendObject();
-            return unique_ptr<SyntaxNode>(move(sendCall));
         }
         break;
 

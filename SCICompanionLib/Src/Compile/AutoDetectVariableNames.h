@@ -19,6 +19,7 @@ namespace sci
 }
 class CSCOFile;
 class IDecompilerConfig;
+class SelectorTable;
 
 // For the decompiler.
 void AutoDetectVariableNames(sci::Script &script, const IDecompilerConfig *config, CSCOFile *mainSCO, CSCOFile *scriptSCO, std::vector<std::pair<std::string, std::string>> &mainDirty);

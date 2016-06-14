@@ -17,7 +17,7 @@
 #include "format.h"
 #include "DisassembleHelper.h"
 #include "DecompilerConfig.h"
-
+#include "Vocab99x.h"
 using namespace sci;
 using namespace std;
 using namespace fmt;
@@ -394,6 +394,7 @@ public:
     void Visit(const ConditionalExpression &conditinoal) override {}
     void Visit(const Comment &comment) override {}
     void Visit(const SendParam &sendParam) override {}
+
     void Visit(const LValue &lValue) override
     {
         if (_IsUndetermined(lValue.GetName()))
@@ -624,7 +625,7 @@ private:
 class ApplyVariableNames : public IExploreNode
 {
 public:
-    ApplyVariableNames(RenameContext &renameContext) : _renameContext(renameContext) {  }
+    ApplyVariableNames(RenameContext &renameContext, const SelectorTable &selectorTable) : _renameContext(renameContext), _selectorTable(selectorTable) {  }
 
     void ExploreNode(SyntaxNode &node, ExploreNodeState state) override
     {
@@ -675,6 +676,17 @@ public:
                     VariableDecl &varDecl = static_cast<VariableDecl&>(node);
                     varDecl.SetName(_renameContext.GetRenamed(_functionContext, varDecl.GetName()));
                 }
+
+                case NodeTypeSendParam:
+                {
+                    // Selectors can be variable names too.
+                    SendParam &sendParam = static_cast<SendParam&>(node);
+                    if (!_selectorTable.IsSelectorName(sendParam.GetName()))
+                    {
+                        sendParam.SetName(_renameContext.GetRenamed(_functionContext, sendParam.GetName()));
+                    }
+                }
+
                 break;
             }
         }
@@ -695,6 +707,7 @@ public:
 private:
     FunctionBase *_functionContext;
     RenameContext &_renameContext;
+    const SelectorTable &_selectorTable;
 };
 
 
@@ -718,7 +731,7 @@ void AutoDetectVariableNames(Script &script, const IDecompilerConfig *config, CS
         renameContext.ClearDirty();
         DetectVariableNames detectVarNames(renameContext);
         script.Traverse(detectVarNames);
-        ApplyVariableNames applyVarNames(renameContext);
+        ApplyVariableNames applyVarNames(renameContext, config->GetSelectorTable());
         script.Traverse(applyVarNames);
     } while (renameContext.IsDirty());
 

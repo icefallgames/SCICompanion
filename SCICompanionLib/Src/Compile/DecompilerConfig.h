@@ -25,6 +25,7 @@ namespace sci
     class ClassDefinition;
     class SendParam;
 }
+class SelectorTable;
 
 class IDecompilerConfig
 {
@@ -35,6 +36,7 @@ public:
     virtual void ResolveSwitchStatementValues(sci::SwitchStatement &switchStatement) const = 0;
     virtual void ResolveBinaryOpValues(sci::BinaryOp &binaryOp) const = 0;
     virtual bool IsBitfieldProperty(const std::string &propertyName) const = 0;
+    virtual const SelectorTable &GetSelectorTable() const = 0;
     virtual ~IDecompilerConfig() {}
 
     std::string error;

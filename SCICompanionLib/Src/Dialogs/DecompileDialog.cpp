@@ -602,7 +602,7 @@ void DecompileDialog::OnBnClickedDecompile()
         {
             // Select all
             m_wndListScripts.SetRedraw(FALSE);
-            for (UINT i = 0; i < m_wndListScripts.GetItemCount(); i++)
+            for (int i = 0; i < m_wndListScripts.GetItemCount(); i++)
             {
                 m_wndListScripts.SetItemState(i, LVIS_SELECTED, LVIS_SELECTED);
             }
@@ -744,6 +744,10 @@ void DecompileDialog::s_DecompileThreadWorker(DecompileDialog *pThis)
             pThis->_lookups->Load(helper);
             pThis->_decompileResults->AddResult(DecompilerResultType::Update, "Loading decompiler.ini...");
         }
+
+        // Prime the selector table (it's const to all our callees, and it needs to cache selector names)
+        uint16_t wDummy;
+        pThis->_lookups->GetSelectorTable().ReverseLookup("", wDummy);
 
         // Redo this one each time
         pThis->_decompilerConfig = CreateDecompilerConfig(helper, pThis->_lookups->GetSelectorTable());

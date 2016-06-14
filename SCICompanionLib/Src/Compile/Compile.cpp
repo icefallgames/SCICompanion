@@ -2362,8 +2362,10 @@ CodeResult WhileLoop::OutputByteCode(CompileContext &context) const
 {
     declare_conditional isCondition(context, false);
     change_meaning meaning(context, false);
+
     // Store the code pos of the beginning of the loop - we'll increment it to the first instruction later
-    code_pos whileStart = context.code().get_cur_pos();
+    code_pos whileStart = context.code().get_cur_pos_dangerous();
+    bool wasEmpty = context.code().empty();
 
     branch_block blockSuccess(context, BranchBlockIndex::Success);
     branch_block blockFailure(context, BranchBlockIndex::Failure);
@@ -2375,7 +2377,16 @@ CodeResult WhileLoop::OutputByteCode(CompileContext &context) const
     }
 
     // Increment this so it points to the first instruction
-    whileStart++;
+    if (wasEmpty)
+    {
+        // It was empty before, but now there should be a body...
+        whileStart = context.code().get_beginning();
+    }
+    else
+    {
+        ++whileStart;
+    }
+
     assert(whileStart != context.code().get_undetermined()); // Make sure Condition wrote something!
     continue_frame_guard continueFrame(context, whileStart); // This is where continues will jump
 
@@ -3387,11 +3398,17 @@ void FunctionSignature::PreScan(CompileContext &context)
     }
 }
 
+// Some decompiled scripts (e.g. QFG1) have "use" as a method name. Let's allow this.
+std::vector<std::string> keywordException =
+{
+    "use"
+};
+
 void FunctionBase::PreScan(CompileContext &context)
 {
-    if (IsSCIKeyword(context.GetLanguage(), GetName()))
+    if (IsSCIKeyword(context.GetLanguage(), GetName()) && (std::find(keywordException.begin(), keywordException.end(), GetName()) == keywordException.end()))
     {
-        // Can't use keywords as procedure names.
+        // Can't use keywords as procedure names. Top level names are ok.
         ReportKeywordError(context, this, GetName(), "function name");
     }
 
