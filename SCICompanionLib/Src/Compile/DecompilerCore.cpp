@@ -123,7 +123,7 @@ code_pos get_cur_pos(std::list<scii> &code)
 // code        - (out) list of sci instructions.
 //
 // Returns the end.
-const BYTE *_ConvertToInstructions(DecompileLookups &lookups, std::list<scii> &code, const BYTE *pBegin, const BYTE *pEnd, WORD wBaseOffset)
+const BYTE *_ConvertToInstructions(DecompileLookups &lookups, std::list<scii> &code, const BYTE *pBegin, const BYTE *pEnd, WORD wBaseOffset, bool abortOnError)
 {
     std::unordered_map<WORD, code_pos> referenceToCodePos;
     std::vector<Fixup> branchTargetsToFixup;
@@ -186,11 +186,18 @@ const BYTE *_ConvertToInstructions(DecompileLookups &lookups, std::list<scii> &c
 
             if (wTarget > codeLength)
             {
-                // This goes out of bounds. Some code is corrupt, like SmoothLooper in script 968 in Hero's Quest.
-                // We can't intelligently reason about where the branch is supposed to point, so just replace it with a load operation.
-                // We need to make sure it's the same size though.
-                code.push_back(scii(sciVersion, Opcode::LDI, 0xbaad));
-                lookups.DecompileResults().AddResult(DecompilerResultType::Warning, fmt::format("Bad branch at 0x{0:4x}, replaced with -17747.", (wReferencePosition + wBaseOffset)));
+                if (abortOnError)
+                {
+                    return nullptr;
+                }
+                else
+                {
+                    // This goes out of bounds. Some code is corrupt, like SmoothLooper in script 968 in Hero's Quest.
+                    // We can't intelligently reason about where the branch is supposed to point, so just replace it with a load operation.
+                    // We need to make sure it's the same size though.
+                    code.push_back(scii(sciVersion, Opcode::LDI, 0xbaad));
+                    lookups.DecompileResults().AddResult(DecompilerResultType::Warning, fmt::format("Bad branch at 0x{0:4x}, replaced with -17747.", (wReferencePosition + wBaseOffset)));
+                }
             }
             else
             {
@@ -1104,14 +1111,14 @@ void DecompileRaw(FunctionBase &func, DecompileLookups &lookups, const BYTE *pBe
 
     // Take the raw data, and turn it into a list of scii instructions, and make sure the branch targets point to code_pos's
     std::list<scii> code;
-    const BYTE *discoveredEnd = _ConvertToInstructions(lookups, code, pBegin, pScriptResourceEnd, wBaseOffset);
+    const BYTE *discoveredEnd = _ConvertToInstructions(lookups, code, pBegin, pScriptResourceEnd, wBaseOffset, true);
     if (discoveredEnd == nullptr)
     {
         // If there were problems with that (say bogus branches that go somewhere incorrect), try a tighter bound.
         // We don't want to try the tight bound right away, because it might have been determined using bogus
         // exports in the export table (e.g. SQ5 does this in script 243).
         code.clear();
-        discoveredEnd = _ConvertToInstructions(lookups, code, pBegin, pEstimatedMaxEnd, wBaseOffset);
+        discoveredEnd = _ConvertToInstructions(lookups, code, pBegin, pEstimatedMaxEnd, wBaseOffset, false);
     }
 
     bool success = (discoveredEnd != nullptr);

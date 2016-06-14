@@ -165,7 +165,7 @@ void Vocab000::_ReadWord(sci::istream &byteStream, char *pszBuffer, size_t cchBu
         {
             dwInfo |= b;
 
-            // Some vocabs have duplicate words (KQ1SCI). Our Vocab resource format doesn't handle this properly, so ignore
+            // Some vocabs have duplicate words (KQ1SCI, QFG2). Our Vocab resource format doesn't handle this properly, so ignore
             // this word if that's the case.
             if (_mapWordToGroup.find(pszBuffer) == _mapWordToGroup.end())
             {
