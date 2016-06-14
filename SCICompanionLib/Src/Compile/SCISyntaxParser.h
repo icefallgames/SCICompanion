@@ -29,7 +29,6 @@ private:
 
     // Basics
     ParserSCI immediateValue;
-    ParserSCI string_immediateValue;
     ParserSCI string_immediateValue_NoResourceString;
     ParserSCI string_immediateValue2;
     ParserSCI array_init;

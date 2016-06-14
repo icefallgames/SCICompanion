@@ -22,7 +22,8 @@ enum OperandType : uint8_t;
 
 namespace sci
 {
-	class Script;
+    enum class ValueType : uint32_t;
+    class Script;
 	class FunctionBase;
 }
 class DecompileLookups;
@@ -221,7 +222,7 @@ public:
     void PopulateSaidStrings(const ILookupNames *pWords) const;
 
     bool IsStringPointerSCI1_1(uint16_t) const;
-    std::string GetStringFromOffset(uint16_t) const;
+    std::string GetStringOrSaidFromOffset(uint16_t, sci::ValueType &type) const;
 
     // TODO: Make these have public names
     std::vector<CompiledVarValue> _localVars;

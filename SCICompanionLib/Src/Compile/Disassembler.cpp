@@ -393,7 +393,16 @@ void DisassembleObject(const CompiledScript &script,
             out << "        " << pLookups->LookupSelectorName(propertySelectorList[i]);
             if (propertyValues[i].isObjectOrString)
             {
-                out << script.GetStringFromOffset(propertyValues[i].value);
+                sci::ValueType typeSaidOrString;
+                std::string theString = script.GetStringOrSaidFromOffset(propertyValues[i].value, typeSaidOrString);
+                if (typeSaidOrString == sci::ValueType::Said)
+                {
+                    out << "'" << theString << "'";
+                }
+                else
+                {
+                    out << "\"" << theString << "\"";
+                }
             }
             else
             {

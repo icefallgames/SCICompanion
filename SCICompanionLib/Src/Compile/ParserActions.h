@@ -17,7 +17,7 @@
 
 namespace sci
 {
-    enum class ValueType;
+    enum class ValueType : uint32_t;
 }
 
 template<typename _TParser>

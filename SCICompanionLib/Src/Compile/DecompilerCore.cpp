@@ -1675,7 +1675,9 @@ void AddLocalVariablesToScript(sci::Script &script, const CompiledScript &compil
             uint16_t propValue = localVarValues[w].value;
             if (localVarValues[w].isObjectOrString)
             {
-                value.SetValue(compiledScript.GetStringFromOffset(propValue), ValueType::String);
+                ValueType typeStringOrSaid;
+                std::string theString = compiledScript.GetStringOrSaidFromOffset(propValue, typeStringOrSaid);
+                value.SetValue(theString, typeStringOrSaid);
             }
             else
             {

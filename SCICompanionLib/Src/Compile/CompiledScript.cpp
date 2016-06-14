@@ -146,14 +146,26 @@ bool CompiledScript::IsStringPointerSCI1_1(uint16_t value) const
     return find(_stringPointerOffsetsSCI1_1.begin(), _stringPointerOffsetsSCI1_1.end(), value) != _stringPointerOffsetsSCI1_1.end();
 }
 
-std::string CompiledScript::GetStringFromOffset(uint16_t value) const
+std::string CompiledScript::GetStringOrSaidFromOffset(uint16_t value, ValueType &type) const
 {
+    type = ValueType::None;
     string stringValue;
     size_t index = find(_stringsOffset.begin(), _stringsOffset.end(), value) - _stringsOffset.begin();
     if (index < _strings.size())
     {
+        type = ValueType::String;
         stringValue = _strings[index];
     }
+    else
+    {
+        index = find(_saidsOffset.begin(), _saidsOffset.end(), value) - _saidsOffset.begin();
+        if (index < _saidStrings.size())
+        {
+            type = ValueType::Said;
+            stringValue = _saidStrings[index];
+        }
+    }
+
     return stringValue;
 }
 

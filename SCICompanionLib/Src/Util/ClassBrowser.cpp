@@ -379,7 +379,8 @@ void LoadClassFromCompiled(sci::ClassDefinition *pClass, const CompiledScript &c
         {
             if (propertyValues[i].isObjectOrString)
             {
-                pClass->AddProperty(make_unique<ClassProperty>(TEXT("Unknown"), compiledScript.GetStringFromOffset(propertyValues[i].value)));
+                ValueType typeSaidOrString;
+                pClass->AddProperty(make_unique<ClassProperty>(TEXT("Unknown"), compiledScript.GetStringOrSaidFromOffset(propertyValues[i].value, typeSaidOrString)));
             }
             else
             {
@@ -393,7 +394,8 @@ void LoadClassFromCompiled(sci::ClassDefinition *pClass, const CompiledScript &c
         {
             if (propertyValues[i].isObjectOrString)
             {
-                pClass->AddProperty(make_unique<ClassProperty>(pNames->Lookup(properties[i]), compiledScript.GetStringFromOffset(propertyValues[i].value)));
+                ValueType typeSaidOrString;
+                pClass->AddProperty(make_unique<ClassProperty>(pNames->Lookup(properties[i]), compiledScript.GetStringOrSaidFromOffset(propertyValues[i].value, typeSaidOrString)));
             }
             else
             {

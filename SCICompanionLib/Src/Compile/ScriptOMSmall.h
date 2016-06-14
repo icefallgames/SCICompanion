@@ -30,7 +30,7 @@ private:
 
 namespace sci
 {
-	enum class ValueType
+	enum class ValueType : uint32_t
 	{
 		String = 0x00000000,
 		Said = 0x00000001,
