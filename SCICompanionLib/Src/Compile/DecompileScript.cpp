@@ -181,7 +181,7 @@ void InsertHeaders(Script &script)
 
 void DetermineAndInsertUsings(const GameFolderHelper &helper, Script &script, DecompileLookups &lookups)
 {
-    for (uint16_t usingScript : lookups.GetUsings())
+    for (uint16_t usingScript : lookups.GetValidUsings())
     {
         script.AddUse(helper.FigureOutName(ResourceType::Script, usingScript, NoBase36));
     }

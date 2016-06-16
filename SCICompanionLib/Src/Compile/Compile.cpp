@@ -957,7 +957,10 @@ CodeResult PropertyValueBase::OutputByteCode(CompileContext &context) const
         //     (= gEgo 1)
         //     "hello"
         // )
-        context.ReportWarning(this, "'%s' has no effect on code.", ToString().c_str());
+        // context.ReportWarning(this, "'%s' has no effect on code.", ToString().c_str());
+        // REVIEW: Got rid of this warning because
+        // 1) it's not a big source of errors
+        // 2) official Sierra (e.g. decompiler) scripts often do this for perf
     }
 
     BYTE wNumSendParams = 1;

@@ -71,19 +71,24 @@ void DecompileDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_CHECKCONTROLFLOW, m_wndDebugControlFlow);
     DDX_Control(pDX, IDC_CHECKINSTRUCTIONCONSUMPTION, m_wndDebugInstConsumption);
     DDX_Control(pDX, IDC_CHECKASM, m_wndAsm);
+    DDX_Control(pDX, IDC_CHECKSELECTALL, m_wndSelectAll);
+    DDX_Control(pDX, IDC_CHECKREDECOMPILE, m_wndRedecompile);
+    m_wndRedecompile.SetCheck(BST_CHECKED);
     DDX_Control(pDX, IDC_EDITDEBUGMATCH, m_wndDebugFunctionMatch);
+    DDX_Control(pDX, IDC_GROUPOPTIONS, m_wndGroupOptions);
+    DDX_Control(pDX, IDC_GROUPDEBUG, m_wndGroupDebug);
     m_wndDebugFunctionMatch.SetWindowTextA("*");
     DDX_Control(pDX, IDC_INSTRUCTIONS, m_wndSCOLabel);
 
     m_wndScript.SetWindowText(
-        "Start with \"Set filenames\" to give scripts meaningful names based upon their contents (or this will be done automatically upon first decompile if no script filenames have been set yet).\r\n"
+        "Start with \"Reset filenames\" to give scripts meaningful names based upon their contents (or this will be done automatically upon first decompile if no script filenames have been set yet).\r\n"
         "\r\n"
         "Select a script on the left to decompile it. You may rename scripts as you wish, although scripts dependent on that script will then need to be recompiled.\r\n"
         "\r\n"
         "Decompiling a script will also generate a .sco file. The .sco file tracks procedure and variable names which are not present in the compiled script. By default they are given names such as \"local4\"\r\n"
         "You may edit the names to make them more meaningful, and they will be picked up the next time you decompile the script.\r\n"
         "\r\n"
-        "You may delete the .sco file if you wish to clear out the names you have given."
+        "You may delete the .sco file if you wish to clear out the variable and procedure names you have given."
         );
     
     DDX_Control(pDX, IDC_PROGRESS1, m_wndProgress);
@@ -388,6 +393,7 @@ BEGIN_MESSAGE_MAP(DecompileDialog, CExtResizableDialog)
     ON_WM_TIMER()
     ON_MESSAGE(UWM_UPDATESTATUS, UpdateStatus)
     ON_BN_CLICKED(IDC_CLEARSCO, &DecompileDialog::OnBnClickedClearsco)
+    ON_BN_CLICKED(IDC_CHECKSELECTALL, &DecompileDialog::OnBnClickedCheckselectall)
 END_MESSAGE_MAP()
 
 // All this to handle the user pressing enter on a listview item.
@@ -561,20 +567,20 @@ void DecompileDialog::OnTimer(UINT_PTR nIDEvent)
 
             if (!updatedGlobalsList.empty())
             {
-                string message = fmt::format("{0} global variable(s) had their name updated during this pass.\n{1} -> {2}, ...\n\nScripts that reference them need to be re-decompiled. Decompile all scripts again?",
-                    updatedGlobalsList.size(),
-                    updatedGlobalsList[0].first,
-                    updatedGlobalsList[0].second
-                    );
-
-                if (IDYES == AfxMessageBox(message.c_str(), MB_YESNO | MB_ICONINFORMATION))
+                bool redecompile = (m_wndRedecompile.GetCheck() == BST_CHECKED);
+                if (!redecompile)
                 {
-                    // Select everything and re-decompile
-                    int itemCount = m_wndListScripts.GetItemCount();
-                    for (int i = 0; i < itemCount; i++)
-                    {
-                        m_wndListScripts.SetItemState(i, LVIS_SELECTED, LVIS_SELECTED);
-                    }
+                    string message = fmt::format("{0} global variable(s) had their name updated during this pass.\n{1} -> {2}, ...\n\nScripts that reference them need to be re-decompiled. Decompile all scripts again?",
+                        updatedGlobalsList.size(),
+                        updatedGlobalsList[0].first,
+                        updatedGlobalsList[0].second
+                        );
+
+                    redecompile = (IDYES == AfxMessageBox(message.c_str(), MB_YESNO | MB_ICONINFORMATION));
+                }
+                if (redecompile)
+                {
+                    _SelectAll(true);
                     OnBnClickedDecompile();
                 }
             }
@@ -762,15 +768,11 @@ void DecompileDialog::s_DecompileThreadWorker(DecompileDialog *pThis)
         {
             for (uint16_t scriptNum : scriptNumbers)
             {
-                pThis->_decompileResults->AddResult(DecompilerResultType::Important, fmt::format("Decompiling script {0}", scriptNum));
-                CompiledScript compiledScript(0);
-                if (compiledScript.Load(helper, helper.Version, scriptNum, false))
+                if (!pThis->_decompileResults->IsAborted())
                 {
-                    if (pThis->_decompileResults->IsAborted())
-                    {
-                        pThis->_decompileResults->AddResult(DecompilerResultType::Warning, "Operation aborted");
-                    }
-                    else
+                    pThis->_decompileResults->AddResult(DecompilerResultType::Important, fmt::format("Decompiling script {0}", scriptNum));
+                    CompiledScript compiledScript(0);
+                    if (compiledScript.Load(helper, helper.Version, scriptNum, false))
                     {
                         unique_ptr<sci::Script> pScript = DecompileScript(pThis->_decompilerConfig.get(), *pThis->_lookups, helper, scriptNum, compiledScript, *pThis->_decompileResults, pThis->_debugControlFlow, pThis->_debugInstConsumption, (PCSTR)pThis->_debugFunctionMatch, pThis->_debugAsm);
                         // Dump it to the .sc file
@@ -783,6 +785,10 @@ void DecompileDialog::s_DecompileThreadWorker(DecompileDialog *pThis)
                         pThis->_decompileResults->AddResult(DecompilerResultType::Important, fmt::format("Generated {0}", sourceFilename));
                     }
                 }
+            }
+            if (pThis->_decompileResults->IsAborted())
+            {
+                pThis->_decompileResults->AddResult(DecompilerResultType::Warning, "Decompile aborted");
             }
         }
     }
@@ -906,4 +912,20 @@ void DecompileDialog::OnBnClickedClearsco()
         _SyncSelection(true);
     }
     _UpdateScripts(scriptsToUpdate);
+}
+
+void DecompileDialog::_SelectAll(bool select)
+{
+    m_wndListScripts.SetRedraw(FALSE);
+    int itemCount = m_wndListScripts.GetItemCount();
+    for (int i = 0; i < itemCount; i++)
+    {
+        m_wndListScripts.SetItemState(i, select ? LVIS_SELECTED : 0, LVIS_SELECTED);
+    }
+    m_wndListScripts.SetRedraw(TRUE);
+}
+
+void DecompileDialog::OnBnClickedCheckselectall()
+{
+    _SelectAll(m_wndSelectAll.GetCheck() == BST_CHECKED);
 }

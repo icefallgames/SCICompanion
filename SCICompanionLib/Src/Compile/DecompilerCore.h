@@ -89,11 +89,16 @@ class IDecompilerConfig;
 class DecompileLookups : public ICompiledScriptLookups
 {
 public:
-    DecompileLookups(const IDecompilerConfig *config, const GameFolderHelper &helper, uint16_t wScript, GlobalCompiledScriptLookups *pLookups, IObjectFileScriptLookups *pOFLookups, ICompiledScriptSpecificLookups *pScriptThings, ILookupNames *pTextResource, IPrivateSpeciesLookups *pPrivateSpecies, IDecompilerResults &results) :
-        _wScript(wScript), _pLookups(pLookups), _pOFLookups(pOFLookups), _pScriptThings(pScriptThings), _pTextResource(pTextResource), _pPrivateSpecies(pPrivateSpecies), PreferLValue(false), _results(results), Helper(helper), DebugControlFlow(false), DebugInstructionConsumption(false), _config(config)
-    {
-        _CategorizeSelectors();
-    }
+    DecompileLookups(
+        const IDecompilerConfig *config,
+        const GameFolderHelper &helper,
+        uint16_t wScript,
+        GlobalCompiledScriptLookups *pLookups,
+        IObjectFileScriptLookups *pOFLookups,
+        ICompiledScriptSpecificLookups *pScriptThings,
+        ILookupNames *pTextResource,
+        IPrivateSpeciesLookups *pPrivateSpecies,
+        IDecompilerResults &results);
 
     const SCIVersion &GetVersion();
 
@@ -142,7 +147,7 @@ public:
     bool WasPropertyRequested() { return _requestedProperty; }
 
     void TrackUsingScript(uint16_t scriptNumber) { if (_wScript != scriptNumber) _usings.insert(scriptNumber); }
-    const std::set<uint16_t> &GetUsings() { return _usings; }
+    std::set<uint16_t> GetValidUsings();
 
     FunctionDecompileHints FunctionDecompileHints;
 
@@ -156,6 +161,8 @@ public:
     IDecompilerResults &DecompileResults() { return _results; }
 
     const IDecompilerConfig *GetDecompilerConfig() { return _config; }
+
+    bool DoesExportExist(uint16_t script, uint16_t theExport) const;
 
     const GameFolderHelper &Helper;
 
@@ -181,6 +188,7 @@ private:
 	std::string _functionTrackingName;
     LineCol _fakePosition;
     IDecompilerResults &_results;
+    std::unordered_map<uint16_t, int> _numExportsPerScript;
 
 	// Variable usage
 	// Need to use map here, because they have to be in order.

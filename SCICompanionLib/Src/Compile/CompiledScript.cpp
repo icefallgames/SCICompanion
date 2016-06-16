@@ -82,6 +82,9 @@ bool CompiledScript::IsExportAProcedure(uint16_t wOffset, int *exportIndex) cons
     }
     return result;
 }
+int CompiledScript::GetNumberOfExports() const {
+    return (int)_exportsTO.size();
+}
 
 CompiledObject *CompiledScript::GetObjectForExport(uint16_t exportPointer) const
 {
@@ -1241,6 +1244,7 @@ bool GlobalCompiledScriptLookups::Load(const GameFolderHelper &helper)
     bool classesOk = _classes.Load(helper);
     return selOk && kernelOk && classesOk;
 }
+
 std::string GlobalCompiledScriptLookups::LookupSelectorName(uint16_t wIndex)
 {
     std::string str = _selectors.Lookup(wIndex);

@@ -80,6 +80,11 @@ private:
 
     CExtCheckBox m_wndAsm;
 
+    CExtCheckBox m_wndSelectAll;
+    CExtCheckBox m_wndRedecompile;
+    CExtGroupBox m_wndGroupOptions;
+    CExtGroupBox m_wndGroupDebug;
+
     // Our own copy of this
     GameFolderHelper _helper;
 
@@ -93,6 +98,7 @@ private:
     int previousSelection;
     bool initialized;
 
+    void _SelectAll(bool select);
     void _PopulateScripts();
     void _UpdateScripts(std::set<uint16_t> updatedScripts);
     void _PopulateSCOTree();
@@ -124,4 +130,5 @@ public:
     afx_msg void OnBnClickedAssignfilenames();
     afx_msg void OnBnClickedDecompilecancel();
     afx_msg void OnBnClickedClearsco();
+    afx_msg void OnBnClickedCheckselectall();
 };

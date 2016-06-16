@@ -1295,6 +1295,13 @@ void MorphInstructionIntoShortCircuit(scii &inst)
     }
 }
 
+std::string _GetPossiblyMissingPublicProcedureName(DecompileLookups &lookups, uint16_t script, uint16_t theExport)
+{
+    std::string name = lookups.DoesExportExist(script, theExport) ? "" : "__";
+    name += _GetPublicProcedureName(script, theExport);
+    return name;
+}
+
 std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, DecompileLookups &lookups)
 {
     bool preferLValue = lookups.PreferLValue;
@@ -1372,7 +1379,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
                     ss << _GetBaseProcedureName(inst.get_first_operand());
                     break;
                 case Opcode::CALLE:
-                    ss << _GetPublicProcedureName(inst.get_first_operand(), inst.get_second_operand());
+                    ss << _GetPossiblyMissingPublicProcedureName(lookups, inst.get_first_operand(), inst.get_second_operand());
                     break;
                 case Opcode::CALL:
                     ss << _GetProcNameFromScriptOffset(inst.get_final_postop_offset() + inst.get_first_operand());

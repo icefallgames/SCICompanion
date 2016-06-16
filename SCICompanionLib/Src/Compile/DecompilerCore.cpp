@@ -1256,6 +1256,16 @@ std::string _GetVariableNameFromCodePos(const scii &inst, DecompileLookups &look
     return name;
 }
 
+DecompileLookups::DecompileLookups(const IDecompilerConfig *config, const GameFolderHelper &helper, uint16_t wScript, GlobalCompiledScriptLookups *pLookups, IObjectFileScriptLookups *pOFLookups, ICompiledScriptSpecificLookups *pScriptThings, ILookupNames *pTextResource, IPrivateSpeciesLookups *pPrivateSpecies, IDecompilerResults &results) :
+_wScript(wScript), _pLookups(pLookups), _pOFLookups(pOFLookups), _pScriptThings(pScriptThings), _pTextResource(pTextResource), _pPrivateSpecies(pPrivateSpecies), PreferLValue(false), _results(results), Helper(helper), DebugControlFlow(false), DebugInstructionConsumption(false), _config(config)
+{
+    _CategorizeSelectors();
+    for (CompiledScript *script : _pLookups->GetGlobalClassTable().GetAllScripts())
+    {
+        _numExportsPerScript[script->GetScriptNumber()] = script->GetNumberOfExports();
+    }
+}
+
 std::string DecompileLookups::LookupSelectorName(WORD wIndex)
 {
     return _pLookups->LookupSelectorName(wIndex);
@@ -1424,6 +1434,16 @@ bool DecompileLookups::IsPropertySelectorOnly(uint16_t selector) const
         (_methodSelectors.find(selector) == _methodSelectors.end());
 }
 
+bool DecompileLookups::DoesExportExist(uint16_t script, uint16_t theExport) const
+{
+    auto it = _numExportsPerScript.find(script);
+    if (it == _numExportsPerScript.end())
+    {
+        return false; // Missing script
+    }
+    return (theExport < (uint16_t)it->second); // Ensure within range
+}
+
 uint16_t DecompileLookups::GetNameSelector() const
 {
     uint16_t nameSelector = 0;
@@ -1435,6 +1455,20 @@ void DecompileLookups::SetPosition(sci::SyntaxNode *pNode)
 {
     pNode->SetPosition(_fakePosition);
     _fakePosition = LineCol(_fakePosition.Line() + 1, 0);
+}
+
+std::set<uint16_t> DecompileLookups::GetValidUsings()
+{
+    // Only return usings for scripts that actually exist.
+    std::set<uint16_t> results;
+    for (uint16_t script : _usings)
+    {
+        if (_numExportsPerScript.find(script) != _numExportsPerScript.end())
+        {
+            results.insert(script);
+        }
+    }
+    return results;
 }
 
 const ILookupPropertyName *DecompileLookups::GetPossiblePropertiesForProc(uint16_t localProcOffset)

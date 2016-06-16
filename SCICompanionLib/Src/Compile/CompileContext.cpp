@@ -572,6 +572,7 @@ const ClassDefinition *CompileContext::LookupClassDefinition(const std::string &
 }
 
 const std::string UndeclaredKernelPrefix = "kernel_";
+const std::string NonExistantExportPrefix = "__proc";
 
 // Look up a string and map it to a procedure.  Return the script and index of the procedure, where appropraite
 // Script are looked up in this order:
@@ -626,11 +627,28 @@ ProcedureType CompileContext::LookupProc(const string &str, WORD &wScript, WORD 
     }
 
     // One final thing... we'll allow kernel_nnn for undeclared kernels as an escape valve.
-    if ((type == ProcedureUnknown) && startsWith(str, UndeclaredKernelPrefix))
+    if (type == ProcedureUnknown)
     {
-        int valueFromString = StrToInt(str.substr(UndeclaredKernelPrefix.length()).c_str());
-        wIndex = (uint16_t)valueFromString;
-        type = ProcedureKernel;
+        if (startsWith(str, UndeclaredKernelPrefix))
+        {
+            int valueFromString = StrToInt(str.substr(UndeclaredKernelPrefix.length()).c_str());
+            wIndex = (uint16_t)valueFromString;
+            type = ProcedureKernel;
+        }
+        else if (startsWith(str, NonExistantExportPrefix))
+        {
+            // Important for the decompiler - calls to non-existant exports
+            std::string meat = str.substr(NonExistantExportPrefix.length());
+            size_t splitter = str.find_first_of('_');
+            if (splitter != std::string::npos)
+            {
+                int scriptNumber = StrToInt(meat.substr(0, splitter).c_str());
+                int exportNumber = StrToInt(meat.substr(splitter + 1).c_str());
+                type = ProcedureExternal;
+                wIndex = (uint16_t)exportNumber;
+                wScript = (uint16_t)scriptNumber;
+            }
+        }
     }
 
     return type;
