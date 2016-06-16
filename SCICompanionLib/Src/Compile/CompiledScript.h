@@ -218,7 +218,7 @@ public:
     const uint8_t *GetEndOfRawBytes() const { return &_scriptResource[0] + _scriptResource.size(); }
     bool IsExportAnObject(uint16_t wOffset) const;
     bool IsExportAProcedure(uint16_t wOffset, int *exportIndex = nullptr) const;
-    int GetNumberOfExports() const;
+    std::vector<uint16_t> GetExports() const;
     CompiledObject *GetObjectForExport(uint16_t exportPointer) const;
     std::set<uint16_t> FindInternalCallsTO() const;
 

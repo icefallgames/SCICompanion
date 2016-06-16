@@ -188,7 +188,8 @@ private:
 	std::string _functionTrackingName;
     LineCol _fakePosition;
     IDecompilerResults &_results;
-    std::unordered_map<uint16_t, int> _numExportsPerScript;
+    std::unordered_set<uint32_t> _scriptExportExistance;
+    std::unordered_set<uint16_t> _scriptExistance;
 
 	// Variable usage
 	// Need to use map here, because they have to be in order.

@@ -331,7 +331,7 @@ bool _ReadStringSCI(_TContext *pContext, _It &stream, std::string &str)
                         break;
 
                     default:
-                        if (isxdigit(ch))
+                        if (isxdigit((uint8_t)ch))
                         {
                             chHex = charToI(ch);
                             lookingForSecondHex = true;
@@ -346,7 +346,7 @@ bool _ReadStringSCI(_TContext *pContext, _It &stream, std::string &str)
             fEscape = false;
             if (processCharNormally)
             {
-                if (isspace(ch))
+                if (isspace((uint8_t)ch))
                 {
                     // Add one space for all continguous whitespace
                     if (!addedSpace)

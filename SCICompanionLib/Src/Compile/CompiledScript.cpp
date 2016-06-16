@@ -82,8 +82,8 @@ bool CompiledScript::IsExportAProcedure(uint16_t wOffset, int *exportIndex) cons
     }
     return result;
 }
-int CompiledScript::GetNumberOfExports() const {
-    return (int)_exportsTO.size();
+std::vector<uint16_t> CompiledScript::GetExports() const {
+    return _exportsTO;
 }
 
 CompiledObject *CompiledScript::GetObjectForExport(uint16_t exportPointer) const

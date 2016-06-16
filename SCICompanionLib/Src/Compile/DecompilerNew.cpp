@@ -1376,7 +1376,7 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
                     ss << lookups.LookupKernelName(inst.get_first_operand());
                     break;
                 case Opcode::CALLB:
-                    ss << _GetBaseProcedureName(inst.get_first_operand());
+                    ss << _GetPossiblyMissingPublicProcedureName(lookups, 0, inst.get_first_operand());
                     break;
                 case Opcode::CALLE:
                     ss << _GetPossiblyMissingPublicProcedureName(lookups, inst.get_first_operand(), inst.get_second_operand());

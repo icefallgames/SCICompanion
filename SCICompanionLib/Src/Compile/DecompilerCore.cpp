@@ -1260,9 +1260,23 @@ DecompileLookups::DecompileLookups(const IDecompilerConfig *config, const GameFo
 _wScript(wScript), _pLookups(pLookups), _pOFLookups(pOFLookups), _pScriptThings(pScriptThings), _pTextResource(pTextResource), _pPrivateSpecies(pPrivateSpecies), PreferLValue(false), _results(results), Helper(helper), DebugControlFlow(false), DebugInstructionConsumption(false), _config(config)
 {
     _CategorizeSelectors();
+
+    // Track all the valid script/export combos, so we know when someone is calling an invalid one.
     for (CompiledScript *script : _pLookups->GetGlobalClassTable().GetAllScripts())
     {
-        _numExportsPerScript[script->GetScriptNumber()] = script->GetNumberOfExports();
+        _scriptExistance.insert(script->GetScriptNumber());
+        uint32_t scriptNumber = script->GetScriptNumber();
+        // In the high word we'll put the script number.
+        uint32_t index = 0;
+        for (uint16_t theExport : script->GetExports())
+        {
+            if (theExport != 0)
+            {
+                uint32_t scriptAndExport = (scriptNumber << 16) | index;
+                _scriptExportExistance.insert(scriptAndExport);
+            }
+            index++;
+        }
     }
 }
 
@@ -1436,12 +1450,9 @@ bool DecompileLookups::IsPropertySelectorOnly(uint16_t selector) const
 
 bool DecompileLookups::DoesExportExist(uint16_t script, uint16_t theExport) const
 {
-    auto it = _numExportsPerScript.find(script);
-    if (it == _numExportsPerScript.end())
-    {
-        return false; // Missing script
-    }
-    return (theExport < (uint16_t)it->second); // Ensure within range
+    uint32_t scriptAndExport = (((uint32_t)script) << 16) | theExport;
+    auto it = _scriptExportExistance.find(scriptAndExport);
+    return (it != _scriptExportExistance.end());
 }
 
 uint16_t DecompileLookups::GetNameSelector() const
@@ -1463,7 +1474,7 @@ std::set<uint16_t> DecompileLookups::GetValidUsings()
     std::set<uint16_t> results;
     for (uint16_t script : _usings)
     {
-        if (_numExportsPerScript.find(script) != _numExportsPerScript.end())
+        if (_scriptExistance.find(script) != _scriptExistance.end())
         {
             results.insert(script);
         }
