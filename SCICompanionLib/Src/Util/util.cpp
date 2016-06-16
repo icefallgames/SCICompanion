@@ -837,7 +837,7 @@ void ScriptId::_DetermineLanguage()
         else
         {
             // This can happen if the file doesn't exist.
-            _language = LangSyntaxStudio; // For compat reasons.
+            langSniff = LangSyntaxSCI;
         }
         _language = langSniff;
     }

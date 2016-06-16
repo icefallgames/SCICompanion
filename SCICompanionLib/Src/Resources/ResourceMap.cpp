@@ -752,11 +752,11 @@ std::string CResourceMap::GetGameFolder() const
     return _gameFolderHelper.GameFolder;
 }
 
-void CResourceMap::_SetGameLanguage()
+void CResourceMap::_SniffGameLanguage()
 {
     if (_gameFolderHelper.Language == LangSyntaxUnknown)
     {
-        std::string languageValue = _gameFolderHelper.GetIniString(GameSection, LanguageKey, LanguageValueStudio.c_str());
+        std::string languageValue = _gameFolderHelper.GetIniString(GameSection, LanguageKey);
         if (languageValue == "scp")
         {
             // We have left this turd in from old game.inis. We don't support cpp as a default game language,
@@ -767,9 +767,26 @@ void CResourceMap::_SetGameLanguage()
         {
             _gameFolderHelper.Language = LangSyntaxSCI;
         }
-        else
+        else if (languageValue == LanguageValueStudio)
         {
             _gameFolderHelper.Language = LangSyntaxStudio;
+        }
+        else
+        {
+            // Nothing specified. This could be an old fan game from Studio, or the first time someone
+            // has opened this game in Companion. Let's look for a script to see if there is one with
+            // Studio language. If so, we'll use that. Otherwise, we'll use SCI.
+            // We'll explicitly set the language, so this doesn't happen again.
+            std::string scriptZeroFilename = _gameFolderHelper.GetScriptFileName(0);
+            ScriptId testScript(scriptZeroFilename);
+            if (testScript.Language() == LangSyntaxStudio)
+            {
+                SetGameLanguage(LangSyntaxStudio);
+            }
+            else if (testScript.Language() == LangSyntaxSCI)
+            {
+                SetGameLanguage(LangSyntaxSCI);
+            }
         }
     }
 }
@@ -1290,7 +1307,7 @@ void CResourceMap::SetGameFolder(const string &gameFolder)
     {
         try
         {
-            _SetGameLanguage();
+            _SniffGameLanguage();
 
             // We get here when we close documents.
             _SniffSCIVersion();
@@ -1406,5 +1423,5 @@ void CResourceMap::SetGameLanguage(LangSyntax lang)
 {
     Helper().SetIniString(GameSection, LanguageKey, (lang == LangSyntaxSCI) ? LanguageValueSCI : LanguageValueStudio);
     _gameFolderHelper.Language = lang;
-    _SetGameLanguage();
+    _SniffGameLanguage();
 }

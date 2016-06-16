@@ -132,7 +132,7 @@ public:
     DependencyTracker &GetDependencyTracker();
 
 private:
-    void _SetGameLanguage();
+    void _SniffGameLanguage();
     ViewFormat _DetectViewVGAVersion();
     ResourcePackageFormat _DetectPackageFormat();
     ResourceMapFormat _DetectMapFormat();
