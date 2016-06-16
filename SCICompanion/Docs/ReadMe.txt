@@ -16,7 +16,7 @@ When SCICompanion.exe is built, the built help files will then be copied to the 
 
 
 
-Automatically generating the SCI1.1 class hierarchy and kernels rst files from code comments:
+Automatically generating the SCI1.1 class hierarchy rst files from code comments:
 
 - Open a debug version of SCI Companion, create a new template game (use the SCI syntax, as the Sierra syntax doesn't quite yet support proper comment parsing)
 - press CTRL-SHIFT-D to bring up the documentation dialog.
