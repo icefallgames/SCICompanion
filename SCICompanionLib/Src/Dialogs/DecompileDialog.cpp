@@ -462,7 +462,7 @@ void DecompileDialog::OnLvnItemchangedListscripts(NMHDR *pNMHDR, LRESULT *pResul
 void DecompileDialog::OnTvnBeginlabeleditTreesco(NMHDR *pNMHDR, LRESULT *pResult)
 {
     LPNMTVDISPINFO pTVDispInfo = reinterpret_cast<LPNMTVDISPINFO>(pNMHDR);
-    if (m_wndTreeSCO.GetParentItem(pTVDispInfo->item.hItem) != TVI_ROOT)
+    if (m_wndTreeSCO.GetParentItem(pTVDispInfo->item.hItem) != nullptr)
     {
         _inSCOLabelEdit = true;
     }
@@ -771,7 +771,7 @@ void DecompileDialog::s_DecompileThreadWorker(DecompileDialog *pThis)
                 if (!pThis->_decompileResults->IsAborted())
                 {
                     pThis->_decompileResults->AddResult(DecompilerResultType::Important, fmt::format("Decompiling script {0}", scriptNum));
-                    CompiledScript compiledScript(0);
+                    CompiledScript compiledScript(0, CompiledScriptFlags::RemoveBadExports);
                     if (compiledScript.Load(helper, helper.Version, scriptNum, false))
                     {
                         unique_ptr<sci::Script> pScript = DecompileScript(pThis->_decompilerConfig.get(), *pThis->_lookups, helper, scriptNum, compiledScript, *pThis->_decompileResults, pThis->_debugControlFlow, pThis->_debugInstConsumption, (PCSTR)pThis->_debugFunctionMatch, pThis->_debugAsm);

@@ -185,6 +185,34 @@ void _ReadHeapPointerOffsets(sci::istream scriptStream, uint16_t heapPointerList
     }
 }
 
+// Known bad exports in various Sierra games
+struct BadExport
+{
+    uint16_t ScriptNumber;
+    size_t Index;
+    uint16_t Offset;
+};
+
+BadExport badExports[] =
+{
+    { 11, 1, 0x386 },   // KQ6 
+    { 11, 1, 0x2a3 }    // KQ6 CD
+};
+
+bool _IsBadExport(uint16_t script, size_t index, uint16_t exportOffset)
+{
+    for (const BadExport &badExport : badExports)
+    {
+        if ((badExport.ScriptNumber == script) &&
+            (badExport.Index == index) &&
+            (badExport.Offset == exportOffset))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool CompiledScript::_LoadSCI1_1(const GameFolderHelper &helper, int iScriptNumber, sci::istream &scriptStream, sci::istream *heapStream)
 {
     bool isSuccess = false;
@@ -233,6 +261,13 @@ bool CompiledScript::_LoadSCI1_1(const GameFolderHelper &helper, int iScriptNumb
                 bool isHeapPointer = heapPointerList.find((uint16_t)scriptStream.tellg()) != heapPointerList.end();
                 uint16_t exportOffset;
                 scriptStream >> exportOffset;
+
+                if (((_flags & CompiledScriptFlags::RemoveBadExports) == CompiledScriptFlags::RemoveBadExports) &&
+                    _IsBadExport(_wScript, i, exportOffset))
+                {
+                    exportOffset = 0;
+                }
+
                 _exportsTO.push_back(exportOffset);
                 if (isHeapPointer)
                 {
@@ -897,7 +932,6 @@ bool CompiledObject::Create_SCI0(const std::vector<uint16_t> &saidOffsets, const
     return stream.good();
 }
 
-
 bool CompiledScript::_ReadExports(sci::istream &stream)
 {
     uint16_t wNumExports;
@@ -921,6 +955,19 @@ bool CompiledScript::_ReadExports(sci::istream &stream)
             if (stream.good())
             {
                 _exportsTO.push_back(offset + TEST_OFFSET);
+            }
+        }
+    }
+
+    // Remove any known bad exports. To reduce the risk of this affecting fan-made games, only do
+    // this when requested (i.e. by the decompiler)
+    if ((_flags & CompiledScriptFlags::RemoveBadExports) == CompiledScriptFlags::RemoveBadExports)
+    {
+        for (size_t i = 0; i < _exportsTO.size(); i++)
+        {
+            if (_IsBadExport(_wScript, i, _exportsTO[i]))
+            {
+                _exportsTO[i] = 0;
             }
         }
     }

@@ -184,7 +184,8 @@ struct ScriptSection
 enum class CompiledScriptFlags
 {
     None = 0,
-    DontLoadExports = 0x00000001
+    DontLoadExports = 0x00000001,
+    RemoveBadExports = 0x00000002,
 };
 DEFINE_ENUM_FLAGS(CompiledScriptFlags, int)
 

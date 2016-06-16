@@ -252,6 +252,6 @@ call the correct kernel, so no worries.
     (__proc0_7)
 
 The word 'proc' preceded by two underscores indicates a call to an export that doesn't exist. The double underscore tells |scicomp|'s compiler to just generate 
-an export call to the specied export (The 7th export in script 0 in the case above). Normally |scicomp| would try a symbol lookup, but that would fail because
+an export call to the specified export (The 7th export in script 0 in the case above). Normally |scicomp| would try a symbol lookup, but that would fail because
 the export doesn't exist. This was commonly used for debug code that was used only during development. The source code still has calls to this code, but
 the actual was removed from the final build.
