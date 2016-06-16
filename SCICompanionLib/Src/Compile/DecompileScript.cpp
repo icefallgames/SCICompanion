@@ -71,7 +71,7 @@ void DecompileObject(const CompiledObject &object,
             // TODO: Output a warning... mismatched prop sizes.
         }
         
-        for (size_t i = object.GetNumberOfDefaultSelectors(lookups.GetNameSelector()); i < numberOfProps; i++)
+        for (size_t i = object.GetNumberOfDefaultSelectors(propertySelectorList, lookups.GetNameSelector()); i < numberOfProps; i++)
         {
             const CompiledVarValue &propValue = object.GetPropertyValues()[i];
             // If this is an instance, look up the species values, and only

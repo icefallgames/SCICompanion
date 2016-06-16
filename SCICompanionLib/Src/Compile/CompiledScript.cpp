@@ -1077,14 +1077,19 @@ set<uint16_t> CompiledScript::FindInternalCallsTO() const
     return wOffsets;
 }
 
-int CompiledObject::GetNumberOfDefaultSelectors(uint16_t nameSelector) const
+int CompiledObject::GetNumberOfDefaultSelectors() const
+{
+    return _version.SeparateHeapResources ? 9 : 4;
+}
+
+int CompiledObject::GetNumberOfDefaultSelectors(const std::vector<uint16_t> &propSelectorsToExamine, uint16_t nameSelector) const
 {
     int count = _version.SeparateHeapResources ? 9 : 4;
     // If name selector not found, reduce by one, as there is an important selector we're missing
     // (e.g. script 86 in QFG2)
-    for (int i = 0; i < min(count, (int)_propertySelectors.size()); i++)
+    for (int i = 0; i < min(count, (int)propSelectorsToExamine.size()); i++)
     {
-        if (_propertySelectors[i] == nameSelector)
+        if (propSelectorsToExamine[i] == nameSelector)
         {
             return count;
         }

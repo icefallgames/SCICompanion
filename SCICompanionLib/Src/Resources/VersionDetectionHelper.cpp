@@ -558,7 +558,8 @@ bool CResourceMap::_DetectLofsaFormat()
 
 bool CResourceMap::_DetectIsExportWide()
 {
-    if (_gameFolderHelper.Version.MapFormat <= ResourceMapFormat::SCI0_LayoutSCI1)
+    // This use to be SCI0_LayoutSCI1, but LSL1-VGA was incorrectly detected as non-wide exports.
+    if (_gameFolderHelper.Version.MapFormat <= ResourceMapFormat::SCI0)
     {
         return false;   // Not wide for SCI0
     }

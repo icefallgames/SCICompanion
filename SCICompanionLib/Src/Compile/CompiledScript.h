@@ -152,7 +152,8 @@ public:
 
     uint16_t GetPosInResource() const { return _wPosInResource; }
 
-    int GetNumberOfDefaultSelectors(uint16_t nameSelector = 0) const;
+    int GetNumberOfDefaultSelectors(const std::vector<uint16_t> &propSelectorsToExamine, uint16_t nameSelector) const;
+    int GetNumberOfDefaultSelectors() const;
 
     SCIVersion GetVersion() const { return _version; }
 
