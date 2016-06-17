@@ -1252,6 +1252,7 @@ void CScriptView::OnContextMenu(CWnd *pWnd, CPoint point)
     _gotoScriptText = TEXT("");
     _gotoDefinitionText = TEXT("");
     _helpUrl = TEXT("");
+    _vocabWordInfo = 0xffffffff;
 
     CMenu contextMenu; 
     contextMenu.LoadMenu(IDR_MENUSCRIPT); 
@@ -1317,6 +1318,7 @@ void CScriptView::OnContextMenu(CWnd *pWnd, CPoint point)
                 _gotoScript = result.scriptId;
                 _gotoLineNumber = result.iLineNumber;
                 _helpUrl = result.helpURL.c_str();
+                _vocabWordInfo = result.vocabWordInfo;
             }
         }
 
@@ -1691,16 +1693,21 @@ void CScriptView::OnGotoDefinition()
     CScriptDocument *pDoc = GetDocument();
     if (pDoc)
     {
-        if (_helpUrl.IsEmpty())
+        if (!_helpUrl.IsEmpty())
+        {
+            // Navigate to that help page.
+            ShellExecute(NULL, "open", _helpUrl, "", "", SW_SHOWNORMAL);
+        }
+        else if (_vocabWordInfo != 0xffffffff)
+        {
+            // Open the vocab to the word requested
+            appState->OpenMostRecentResourceAt(ResourceType::Vocab, appState->GetVersion().MainVocabResource, _vocabWordInfo);
+        }
+        else
         {
             // Ensure the script is open (might not be if we did a "compile all")
             // +1 because line# in crystal-edit-speak starts at 1
             appState->OpenScriptAtLine(_gotoScript.GetFullPath(), _gotoLineNumber + 1);
-        }
-        else
-        {
-            // Navigate to that help page.
-            ShellExecute(NULL, "open", _helpUrl, "", "", SW_SHOWNORMAL);
         }
     }
 }

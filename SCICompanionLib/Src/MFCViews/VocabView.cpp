@@ -21,6 +21,7 @@
 #include "Vocab000.h"
 #include "resource.h"
 #include "FindWordDialog.h"
+#include "format.h"
 
 const static int TIMER_MATCHTEXT = 1234;
 
@@ -30,17 +31,7 @@ IMPLEMENT_DYNCREATE(CVocabView, CListView)
 
 static const UINT _uFindDialogMessage = ::RegisterWindowMessage(FINDMSGSTRING);
 
-CVocabView::CVocabView()
-{
-    _iView = LVS_REPORT;
-    _bInLabelEdit = false;
-    _bEditingNewItem = false;
-    _pFindDialog = NULL;
-}
-
-CVocabView::~CVocabView()
-{
-}
+CVocabView::CVocabView() : _addedColumns(false), _iView(LVS_REPORT), _bInLabelEdit(false), _bEditingNewItem(false), _pFindDialog(nullptr) {}
 
 const key_value_pair<WordClass, UINT> _cClassToCommand[] =
 {
@@ -82,8 +73,8 @@ BEGIN_MESSAGE_MAP(CVocabView, CListView)
 END_MESSAGE_MAP()
 
 #define COL_WORDS 0
-#define COL_GROUP 1
-#define COL_CLASS 2
+#define COL_GROUP 2
+#define COL_CLASS 1
 
 
 const struct
@@ -94,12 +85,17 @@ const struct
 c_VocabColumnInfo [] =
 {
     { TEXT("Words"), 350 },
+    { TEXT("Class"), 200 },
     { TEXT("Group"), 50 },
-    { TEXT("Class"), 300 },
 };
 
 void CVocabView::_InitColumns()
 {
+    if (_addedColumns)
+    {
+        return;
+    }
+    _addedColumns = true;
     CListCtrl& listCtl = GetListCtrl();
     for (int i = 0; i < ARRAYSIZE(c_VocabColumnInfo); i++)
     {
@@ -124,62 +120,46 @@ void CVocabView::_ChangeView()
     SetWindowLongPtr(listCtl.m_hWnd, GWL_STYLE, (LONG)dwStyle);
 }
 
-void _GetClassString(PTSTR pszBuf, size_t cch, WordClass dwClass)
+std::string _GetGroupString(Vocab000::WordGroup dwGroup)
 {
-    std::string str;
-    GetWordClassString(dwClass, str);
-    StringCchCopy(pszBuf, cch, str.c_str());
-}
-
-void _GetGroupString(PTSTR pszBuf, size_t cch, Vocab000::WordGroup dwGroup)
-{
-    StringCchPrintf(pszBuf, cch, TEXT("%4x"), dwGroup);
-}
-
-
-void CVocabView::_UpdateItemInfo(int nItem, DWORD dwInfo)
-{
-    CListCtrl& listCtl = GetListCtrl();
-    listCtl.SetItemData(nItem, dwInfo);
-    TCHAR szBuf[100];
-    _GetClassString(szBuf, ARRAYSIZE(szBuf), GetWordClass(dwInfo));
-    listCtl.SetItemText(nItem, COL_CLASS, szBuf);
-    _GetGroupString(szBuf, ARRAYSIZE(szBuf), GetWordGroup(dwInfo));
-    listCtl.SetItemText(nItem, COL_GROUP, szBuf);
+    return fmt::format("{0:4x}", (DWORD)dwGroup);
 }
 
 void CVocabView::_InsertItem(int iItem, Vocab000::WordGroup dwGroup, WordClass dwClass, const std::string &strWords)
 {
     CListCtrl& listCtl = GetListCtrl();
-
-    TCHAR szBuf[100];
-    StringCchPrintf(szBuf, ARRAYSIZE(szBuf), TEXT("%s"), strWords.c_str());
     LVITEM item = { 0 };
     item.mask = LVIF_TEXT | LVIF_PARAM;
     item.iItem = iItem;
     item.iSubItem = 0;
-    item.pszText = szBuf;
-    item.lParam = InfoFromClassAndGroup(dwClass, dwGroup);
+    item.pszText = const_cast<PSTR>(strWords.c_str());
+    item.lParam = dwGroup;
     listCtl.InsertItem(&item);
 
+    _SetItem(iItem, dwGroup, dwClass);
+}
+
+void CVocabView::_SetItem(int iItem, Vocab000::WordGroup dwGroup, WordClass dwClass)
+{
     // Now the columns
     for (int iSub = 1; iSub < ARRAYSIZE(c_VocabColumnInfo); iSub++)
     {
+        std::string theString;
         LVITEM item = { 0 };
         item.mask = LVIF_TEXT;
         item.iItem = iItem;
         item.iSubItem = iSub;
-        item.pszText = szBuf;
         switch (iSub)
         {
-        case COL_CLASS:
-            _GetClassString(szBuf, ARRAYSIZE(szBuf), dwClass);
-            break;
-        case COL_GROUP:
-            _GetGroupString(szBuf, ARRAYSIZE(szBuf), dwGroup);
-            break;
+            case COL_CLASS:
+                theString = GetWordClassString(dwClass);
+                break;
+            case COL_GROUP:
+                theString = _GetGroupString(dwGroup);
+                break;
         }
-        listCtl.SetItem(&item);
+        item.pszText = const_cast<PSTR>(theString.c_str());
+        GetListCtrl().SetItem(&item);
     }
 }
 
@@ -214,7 +194,6 @@ BOOL CVocabView::PreTranslateMessage(MSG *pMsg)
     }
     return __super::PreTranslateMessage(pMsg);
 }
-
 
 void CVocabView::OnContextMenu(CWnd *pWnd, CPoint point)
 {
@@ -262,22 +241,27 @@ void CVocabView::OnContextMenu(CWnd *pWnd, CPoint point)
     __super::OnContextMenu(pWnd, point);
 }
 
+Vocab000::WordGroup CVocabView::_GetItemGroup(int item)
+{
+    return static_cast<Vocab000::WordGroup>(GetListCtrl().GetItemData(item));
+}
+
 void CVocabView::OnVocabCommand(UINT nID)
 {
     // Get the selected item's state and toggle it.
     int nItem = _GetSelectedItem();
     if (nItem != -1)
     {
-        CListCtrl &listCtl = GetListCtrl();
-        DWORD dwInfo = static_cast<DWORD>(listCtl.GetItemData(nItem));
-        WordClass dwClass = GetWordClass(dwInfo);
+        Vocab000::WordGroup group = _GetItemGroup(nItem);
+
+        WordClass dwClass;
+        GetVocab()->GetGroupClass(group, &dwClass);
         WordClass dwClassFlag;
         if (_CommandIDToVocabClass(nID, dwClassFlag))
         {
             if (IsFlagSet(dwClass, dwClassFlag))
             {
                 // The bit is on - remove it.
-                //dwClass &= ~static_cast<int>(dwClassFlag);
                 ClearFlag(dwClass, dwClassFlag);
             }
             else
@@ -287,18 +271,16 @@ void CVocabView::OnVocabCommand(UINT nID)
             }
 
             // Change the class of the group!
-            Vocab000 *pVocab = GetVocab();
-            if (pVocab)
+            CVocabDoc *pDoc = GetDocument();
+            if (pDoc)
             {
-                if (SUCCEEDED(pVocab->SetGroupClass(GetWordGroup(dwInfo), dwClass)))
+                pDoc->ApplyChanges<Vocab000>(
+                    [&](Vocab000 &vocab)
                 {
-                    CDocument *pDoc = GetDocument();
-                    if (pDoc)
-                    {
-                        pDoc->SetModifiedFlag();
-                    }
-                    _UpdateItemInfo(nItem, InfoFromClassAndGroup(dwClass, GetWordGroup(dwInfo)));
+                    VocabChangeHint hint = vocab.SetGroupClass(group, dwClass);
+                    return WrapHint(hint);
                 }
+                );
             }
         }
     }
@@ -310,13 +292,17 @@ void CVocabView::OnUpdateVocabCommand(CCmdUI *pCmdID)
     int nItem = _GetSelectedItem();
     if (nItem != -1)
     {
-        CListCtrl &listCtl = GetListCtrl();
-        DWORD dwInfo = static_cast<DWORD>(listCtl.GetItemData(nItem));
-        WordClass dwClass = GetWordClass(dwInfo);
-        WordClass dwClassFlag;
-        if (_CommandIDToVocabClass(pCmdID->m_nID, dwClassFlag))
+        const Vocab000 *pVocab = GetVocab();
+        if (pVocab)
         {
-            pCmdID->SetCheck(IsFlagSet(dwClass, dwClassFlag) ? 1 : 0);
+            Vocab000::WordGroup group = _GetItemGroup(nItem);
+            WordClass wordClass = WordClass::Unknown;
+            pVocab->GetGroupClass(group, &wordClass);
+            WordClass dwClassFlag;
+            if (_CommandIDToVocabClass(pCmdID->m_nID, dwClassFlag))
+            {
+                pCmdID->SetCheck(IsFlagSet(wordClass, dwClassFlag) ? 1 : 0);
+            }
         }
     }
 }
@@ -338,20 +324,23 @@ BOOL _FindString(CArray<CString, PCTSTR> &words, PCTSTR pszWord)
 void CVocabView::_OnEndEditingNewItem(PCTSTR pszNewWords, NMLVDISPINFO *plvdi)
 {
     CListCtrl& listCtl = GetListCtrl();
-    bool error = true;
     CArray<CString, PCTSTR> newWords;    
+
+    // Always delete, because we'll go through the standard update mechanism.
+    listCtl.DeleteItem(plvdi->item.iItem);
+
     if (SUCCEEDED(_ParseViewString(pszNewWords, newWords)))
     {
         CVocabDoc *pDoc = GetDocument();
         if (pDoc)
         {
-            error = false;
             pDoc->ApplyChanges<Vocab000>(
                 [&](Vocab000 &vocab)
                 {
                     // Add any new words.
                     CString strFirstNewWord;
-                    VocabChangeHint hint;
+                    VocabChangeHint hint = VocabChangeHint::None;
+                    bool error = false;
                     for (INT_PTR i = 0; !error && (i <= newWords.GetUpperBound()); i++)
                     {
                         CString strNewWord = newWords.GetAt(i);
@@ -375,35 +364,15 @@ void CVocabView::_OnEndEditingNewItem(PCTSTR pszNewWords, NMLVDISPINFO *plvdi)
                             }
                         }
                     }
-
-                    if (!error && !strFirstNewWord.IsEmpty())
-                    {
-                        GetDocument()->SetModifiedFlag();
-
-                        // Figure out which group it belongs to.
-                        Vocab000::WordGroup dwGroup = vocab.GroupFromString(strFirstNewWord);
-                        std::string strWordsInView = vocab.GetGroupWordString(dwGroup);
-
-                        // Set the 1) official word string, and the 2) group
-                        listCtl.SetItemText(plvdi->item.iItem, COL_WORDS, strWordsInView.c_str());
-                        _UpdateItemInfo(plvdi->item.iItem, InfoFromClassAndGroup(WordClass::Unknown, dwGroup));
-                    }
-
                     return WrapHint(hint);
                 }
                 );
         }
     }
-
-    if (error)
-    {
-        listCtl.DeleteItem(plvdi->item.iItem);
-    }
 }
 
 void CVocabView::OnEndLabelEdit(NMHDR* pNMHDR, LRESULT* pResult)
 {
-    CListCtrl& listCtl = GetListCtrl();
     *pResult = FALSE;
     NMLVDISPINFO *plvdi = (NMLVDISPINFO *)pNMHDR;
     if (plvdi->item.pszText && _bInLabelEdit)
@@ -421,64 +390,53 @@ void CVocabView::OnEndLabelEdit(NMHDR* pNMHDR, LRESULT* pResult)
             CArray<CString, PCTSTR> postEditWords;
             if (SUCCEEDED(_ParseViewString(strLower, postEditWords)))
             {
-                Vocab000 *pVocab = GetVocab();
-                if (pVocab)
+                CVocabDoc *pDoc = GetDocument();
+                if (pDoc)
                 {
-                    // Now compare the two, and remove words or add words, based on that.
-                    DWORD dwInfo = static_cast<DWORD>(listCtl.GetItemData(plvdi->item.iItem));
-                    BOOL fBail = FALSE;
-
-                    // Add any new words.
-                    for (INT_PTR i = 0; i <= postEditWords.GetUpperBound(); i++)
+                    pDoc->ApplyChanges<Vocab000>(
+                        [&](Vocab000 &vocab)
                     {
-                        CString strNewWord = postEditWords.GetAt(i);
-                        if (!_FindString(_preEditWords, strNewWord))
+                        VocabChangeHint hint = VocabChangeHint::None;
+
+                        // Now compare the two, and remove words or add words, based on that.
+                        Vocab000::WordGroup group = _GetItemGroup(plvdi->item.iItem);
+                        bool bail = false;
+
+                        // Add any new words.
+                        for (INT_PTR i = 0; i <= postEditWords.GetUpperBound(); i++)
                         {
-                            if (IsValidVocabString(strNewWord, TRUE))
+                            CString strNewWord = postEditWords.GetAt(i);
+                            if (!_FindString(_preEditWords, strNewWord))
                             {
-                                // This is a new word.
-                                if (SUCCEEDED(pVocab->AddWord(strNewWord, dwInfo, TRUE)))
+                                if (IsValidVocabString(strNewWord, true))
                                 {
-                                    // Note: If this failed, it will bring up UI indicating the reason.
-                                    GetDocument()->SetModifiedFlag();
+                                    // This is a new word.
+                                    hint |= vocab.AddWordToGroup(strNewWord, group, true);
+                                }
+                                else
+                                {
+                                    // If this error occured, then just don't do any changes.
+                                    bail = true;
                                 }
                             }
-                            else
-                            {
-                                // If this error occured, then just don't do any changes.
-                                fBail = TRUE;
-                            }
                         }
-                    }
 
-                    if (!fBail)
-                    {
-                        // Do the reverse, remove any old words:
-                        for (INT_PTR i = 0; i <= _preEditWords.GetUpperBound(); i++)
+                        if (!bail)
                         {
-                            if (!_FindString(postEditWords, _preEditWords.GetAt(i)))
+                            // Do the reverse, remove any old words:
+                            for (INT_PTR i = 0; i <= _preEditWords.GetUpperBound(); i++)
                             {
-                                // This word needs to be removed.
-                                pVocab->RemoveWord(_preEditWords.GetAt(i));
-                                GetDocument()->SetModifiedFlag();
+                                if (!_FindString(postEditWords, _preEditWords.GetAt(i)))
+                                {
+                                    // This word needs to be removed.
+                                    hint |= vocab.RemoveWord(_preEditWords.GetAt(i));
+                                }
                             }
                         }
 
-                        // Ok we're done.  We should be able to get a new string.
-                        std::string strWords = pVocab->GetGroupWordString(GetWordGroup(dwInfo));
-                        
-                        if (strWords.empty())
-                        {
-                            // If the string is empty, then no words are left for this group.
-                            // Remove it.
-                            listCtl.DeleteItem(plvdi->item.iItem);
-                        }
-                        else
-                        {
-                            // Update the name in the view:
-                            listCtl.SetItemText(plvdi->item.iItem, 0, strWords.c_str());
-                        }
+                        return WrapHint(hint);
                     }
+                    );
                 }
             }
         }
@@ -486,7 +444,7 @@ void CVocabView::OnEndLabelEdit(NMHDR* pNMHDR, LRESULT* pResult)
     else if ((plvdi->item.pszText == NULL) && (_bEditingNewItem))
     {
         // The user cancelled out of a new item.  Let's delete this new item.
-        listCtl.DeleteItem(plvdi->item.iItem);
+        GetListCtrl().DeleteItem(plvdi->item.iItem);
         _bEditingNewItem = false;
     }
     _bInLabelEdit = false;
@@ -632,9 +590,7 @@ LRESULT CVocabView::OnFindDialogMessage(WPARAM wParam, LPARAM lParam)
             Vocab000::WordGroup dwGroup;
             if (pVocab->LookupWord((PCSTR)strWord, dwGroup))
             {
-                WordClass dwClass;
-                pVocab->GetGroupClass(dwGroup, &dwClass);
-                SelectGroup(InfoFromClassAndGroup(dwClass, dwGroup));
+                SelectGroup(dwGroup);
                 _pFindDialog->SetStatus(TEXT(""));
             }
             else
@@ -674,12 +630,9 @@ void CVocabView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
         const Vocab000 *pVocab = GetVocab();
         if (pVocab)
         {
-            _strMatchText.AppendChar(nChar);
-            Vocab000::WordGroup dwGroup = pVocab->GroupFromString(_strMatchText);
             // Select this group.
-            WordClass dwClass;
-            pVocab->GetGroupClass(dwGroup, &dwClass);
-            SelectGroup(InfoFromClassAndGroup(dwClass, dwGroup));
+            _strMatchText.AppendChar(nChar);
+            SelectGroup(pVocab->GroupFromString(_strMatchText));
 
             SetTimer(TIMER_MATCHTEXT, 1000, NULL);
         }
@@ -739,18 +692,7 @@ void CVocabView::OnDelete()
                         for (INT_PTR i = 0; i <= words.GetUpperBound(); i++)
                         {
                             hint |= vocab.RemoveWord(words.GetAt(i));
-                            assert(IsFlagSet(hint, VocabChangeHint::Changed)); // Else we're not in sync
                         }
-
-                        // Delete the item from view. Do this in here before we return anything, as that will cause an update.
-                        listCtl.DeleteItem(nItem);
-
-                        // Select the next item in the view.
-                        if (!listCtl.SetItemState(nItem, LVIS_SELECTED, LVIS_SELECTED) && (nItem > 0))
-                        {
-                            listCtl.SetItemState(nItem - 1, LVIS_SELECTED, LVIS_SELECTED);
-                        }
-
                         return WrapHint(hint);
                     }
                     );
@@ -774,24 +716,30 @@ int CVocabView::_GetSelectedItem()
     return nItem;
 }
 
+int CVocabView::_FindItemByGroup(Vocab000::WordGroup group)
+{
+    LVFINDINFO findInfo = { 0 };
+    findInfo.flags = LVFI_PARAM;
+    findInfo.lParam = (LPARAM)group;
+    return GetListCtrl().FindItem(&findInfo);
+}
+
 //
 // Select a group and scroll in to view.
 //
-void CVocabView::SelectGroup(DWORD dwInfo)
+void CVocabView::SelectGroup(Vocab000::WordGroup group)
 {
-    CListCtrl& listCtl = GetListCtrl();
-    LVFINDINFO findInfo = { 0 };
-    findInfo.flags = LVFI_PARAM;
-    findInfo.lParam = (LPARAM)dwInfo;
-    int iItem = listCtl.FindItem(&findInfo);
+    int iItem = _FindItemByGroup(group);
     if (iItem != -1)
     {
+        CListCtrl& listCtl = GetListCtrl();
         // Select and scroll into view.
         listCtl.SetItemState(iItem, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
         listCtl.EnsureVisible(iItem, FALSE);
     }
 }
 
+#ifdef SORT_BY_GROUP
 //
 // Sorting based on group, which contains the resource number.
 //
@@ -799,56 +747,111 @@ int CALLBACK CVocabView::s_SortListByGroup(LPARAM lpOne, LPARAM lpTwo, LPARAM lp
 {
     return ((int)lpOne - (int)lpTwo);
 }
-
+#endif
 
 void CVocabView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
 {
     VocabChangeHint hint = GetHint<VocabChangeHint>(pHint);
-    if (IsFlagSet(hint, VocabChangeHint::Changed))
-    {
-        // Prepare the listview.
-        GetListCtrl().DeleteAllItems();
-        _InitColumns();
-        _ChangeView();
+    Vocab000::WordGroup group = (Vocab000::WordGroup)(((DWORD)hint & 0xffff0000) >> 16);
 
-        CVocabDoc *pDoc = GetDocument();
-        if (pDoc)
+    CVocabDoc *pDoc = GetDocument();
+    if (pDoc)
+    {
+        const Vocab000 *pVocab = pDoc->GetVocab();
+        if (pVocab)
         {
-            const Vocab000 *pVocab = pDoc->GetVocab();
-            if (pVocab)
+            int previouslySelectedItem = _GetSelectedItem();
+            Vocab000::WordGroup previouslySelectedGroup = 0;
+            if (previouslySelectedItem != -1)
             {
+                previouslySelectedGroup = _GetItemGroup(previouslySelectedItem);
+            }
+
+            if (IsFlagSet(hint, VocabChangeHint::Changed))
+            {
+                // Prepare the listview.
+                GetListCtrl().SetRedraw(FALSE);
+                GetListCtrl().DeleteAllItems();
+                _InitColumns();
+                _ChangeView();
+
                 int iItem = 0;
-                Vocab000::groups_iterator position = pVocab->GroupsBegin();
-                while (position != pVocab->GroupsEnd())
+
+                // Copy to a vector so we can sort. Sorting in listview is slow.
+                std::vector<Vocab000::WordGroup> allGroups;
+                allGroups.reserve(pVocab->GetNumberOfGroups());
+                std::transform(pVocab->GroupsBegin(), pVocab->GroupsEnd(), std::back_inserter(allGroups),
+                    [](const Vocab000::groups_iterator::value_type &pair) { return pair.first; }
+                    );
+
+                std::sort(allGroups.begin(), allGroups.end());
+                for (Vocab000::WordGroup group : allGroups)
                 {
-                    Vocab000::WordGroup dwGroup;
-                    WordClass dwClass;
-                    std::string strWords;
-                    pVocab->EnumGroups(position, dwGroup, dwClass, strWords);
-                    _InsertItem(iItem, dwGroup, dwClass, strWords);
+                    WordClass wordClass;
+                    pVocab->GetGroupClass(group, &wordClass);
+                    _InsertItem(iItem, group, wordClass, pVocab->GetGroupWordString(group));
                     iItem++;
                 }
+ 
+                GetListCtrl().SetRedraw(TRUE);
 
-                // Sort
-                GetListCtrl().SortItems(CVocabView::s_SortListByGroup, NULL);
+                if (previouslySelectedItem != -1)
+                {
+                    SelectGroup(previouslySelectedGroup);
+                }
+            }
+            else if (IsFlagSet(hint, VocabChangeHint::AddWordGroup))
+            {
+                // Insert at end, since that's where we were editing it.
+                int count = GetListCtrl().GetItemCount();
+                WordClass wordClass;
+                if (pVocab->GetGroupClass(group, &wordClass))
+                {
+                    _InsertItem(count, group, wordClass, pVocab->GetGroupWordString(group));
+                }
+                SelectGroup(group);
+            }
+            else if (IsFlagSet(hint, VocabChangeHint::DeleteWordGroup))
+            {
+                int index = _FindItemByGroup(group);
+                if (index != -1)
+                {
+                    GetListCtrl().DeleteItem(index);
+                    if ((previouslySelectedItem != -1) && (previouslySelectedItem < GetListCtrl().GetItemCount()))
+                    {
+                        // Select the same index again (e.g. the next item)
+                        GetListCtrl().SetItemState(previouslySelectedItem, LVIS_SELECTED, LVIS_SELECTED);
+                    }
+                }
+            }
+            else if (IsFlagSet(hint, VocabChangeHint::EditWordGroup))
+            {
+                int index = _FindItemByGroup(group);
+                if (index != -1)
+                {
+                    // Update it
+                    WordClass wordClass;
+                    if (pVocab->GetGroupClass(group, &wordClass))
+                    {
+                        _SetItem(index, group, wordClass);
+                        GetListCtrl().SetItemText(index, COL_WORDS, pVocab->GetGroupWordString(group).c_str());
+                    }
+                }
             }
         }
     }
 }
 
-
-Vocab000* CVocabView::GetVocab() const
+const Vocab000* CVocabView::GetVocab() const
 {
-    Vocab000 *pVocab = NULL;
+    const Vocab000 *pVocab = NULL;
     CVocabDoc *pDoc = GetDocument();
     if (pDoc)
     {
-        // REVIEW: We need to clean this up and go through the proper channels for GetVocab()
-        pVocab = const_cast<Vocab000*>(pDoc->GetVocab());
+        pVocab = pDoc->GetVocab();
     }
     return pVocab;
 }
-
 
 
 // CVocabView diagnostics

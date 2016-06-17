@@ -389,12 +389,29 @@ bool _ReadStringSCI(_TContext *pContext, _It &stream, std::string &str)
     return false;
 }
 
+template<typename _TContext>
+class IndicateStringType
+{
+public:
+    IndicateStringType(_TContext *pContext, char c) : _pContext(pContext)
+    {
+        if (_pContext) _pContext->CurrentStringType = c;
+    }
+    ~IndicateStringType()
+    {
+        if (_pContext) _pContext->CurrentStringType = 0;
+    }
+private:
+    _TContext *_pContext;
+};
+
 //
 // Optimized delimiter reader
 //
 template<typename _TContext, typename _CommentPolicy, typename _It, char Q1, char Q2>
 bool _ReadStringStudio(_TContext *pContext, _It &stream, std::string &str)
 {
+    IndicateStringType<_TContext> indicateStringType(pContext, Q1);
     str.clear();
     while (Q1 == *stream)
     {

@@ -27,7 +27,12 @@ enum class VocabChangeHint
 {
     None = 0,
     // Vocab is ready
-    Changed = 0x00000100,
+    Changed = 0x00000100,           // Refresh all
+    EditWordGroup = 0x00000200,     // Word group was editing
+    DeleteWordGroup = 0x00000400,   // Word group deleted
+    AddWordGroup = 0x00000800,      // Word group added
+
+    // The upper 16 bits contain the word group involved.
 };
 
 DEFINE_ENUM_FLAGS(VocabChangeHint, uint32_t)
@@ -70,9 +75,9 @@ public:
         return new Vocab000(*this);
     }
 
-    VocabChangeHint AddNewWord(PCTSTR pszWord, WordClass dwClass, BOOL fShowUI);
+    VocabChangeHint AddNewWord(PCTSTR pszWord, WordClass dwClass, bool fShowUI);
     VocabChangeHint AddSynonym(PCTSTR pszWord, PCTSTR pszOriginal);
-    VocabChangeHint AddWord(PCTSTR pszWord, DWORD dwInfo, BOOL fShowUI);
+    VocabChangeHint AddWordToGroup(PCTSTR pszWord, WordGroup group, bool fShowUI);
     VocabChangeHint SetGroupClass(WordGroup dwGroup, WordClass dwClass);
     bool GetGroupClass(WordGroup dwGroup, WordClass *pdwClass) const;
     VocabChangeHint RemoveWord(PCTSTR pszWord);
@@ -87,6 +92,7 @@ public:
     std::vector<std::string> &GetWords() { return _words; }
     bool LookupWord(const std::string &word, WordGroup &dwGroup) const;
     WordGroup GroupFromString(PCTSTR pszString) const;
+    size_t GetNumberOfGroups() const;
 
     // ILookupNames
     std::string Lookup(uint16_t wIndex) const;
@@ -118,7 +124,7 @@ private:
 bool IsValidVocabString(PCTSTR pszWord, bool fShowUI);
 bool IsValidVocabChar(TCHAR ch);
 PCTSTR FindValidVocabStringFromRight(PCTSTR pszWord);
-void GetWordClassString(WordClass dwClass, std::string &str);
+std::string GetWordClassString(WordClass dwClass);
 WordClass GetWordClass(DWORD dwInfo);
 Vocab000::WordGroup GetWordGroup(DWORD dwInfo);
 DWORD InfoFromClassAndGroup(WordClass dwClass, Vocab000::WordGroup dwGroup);

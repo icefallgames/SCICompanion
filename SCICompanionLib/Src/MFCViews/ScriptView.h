@@ -184,6 +184,7 @@ protected:
     ScriptId _gotoScript;
     int _gotoLineNumber;
     CString _helpUrl;
+    DWORD _vocabWordInfo;
 
     CPoint _autoCompleteWordStartPosition;
 

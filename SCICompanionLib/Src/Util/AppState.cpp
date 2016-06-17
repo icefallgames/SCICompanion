@@ -467,7 +467,7 @@ void AppState::OpenMostRecentResourceAt(ResourceType type, uint16_t number, int 
         {
             if (pView->IsKindOf(RUNTIME_CLASS(CVocabView)))
             {
-                ((CVocabView*)pView)->SelectGroup(index);
+                ((CVocabView*)pView)->SelectGroup((Vocab000::WordGroup)index);
             }
             else if (pView->IsKindOf(RUNTIME_CLASS(CListView)))
             {

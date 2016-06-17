@@ -30,7 +30,7 @@ enum class IfDefDefineState
 class SyntaxContext
 {
 public:
-    SyntaxContext(streamIt beginning, sci::Script &script, std::unordered_set<std::string> preProcessorDefines, bool addCommentsDirectly, bool collectComments) : _beginning(beginning), _script(script), extraKeywords(nullptr), ifDefDefineState(IfDefDefineState::None), _preProcessorDefines(preProcessorDefines), _addCommentsToOM(addCommentsDirectly), _collectComments(collectComments)
+    SyntaxContext(streamIt beginning, sci::Script &script, std::unordered_set<std::string> preProcessorDefines, bool addCommentsDirectly, bool collectComments) : _beginning(beginning), _script(script), extraKeywords(nullptr), ifDefDefineState(IfDefDefineState::None), _preProcessorDefines(preProcessorDefines), _addCommentsToOM(addCommentsDirectly), _collectComments(collectComments), CurrentStringType(0)
 #ifdef PARSE_DEBUG
         , ParseDebug(false), ParseDebugIndent(0)
 #endif
@@ -50,6 +50,8 @@ public:
     {
         return _beginning;
     }
+
+    char CurrentStringType;
 
     void PushParseAutoCompleteContext(ParseACChannels pacc)
     {

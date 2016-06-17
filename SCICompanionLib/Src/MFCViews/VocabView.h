@@ -25,11 +25,10 @@ class CVocabView : public CListView
 
 protected:
 	CVocabView();           // protected constructor used by dynamic creation
-	virtual ~CVocabView();
 
 public:
     CVocabDoc* GetDocument() const;
-    Vocab000* GetVocab() const;
+    const Vocab000* GetVocab() const;
 
 public:
 #ifdef _DEBUG
@@ -41,7 +40,7 @@ public:
     virtual void OnInitialUpdate();
     BOOL PreTranslateMessage(MSG *pMsg);
 
-    void SelectGroup(DWORD dwInfo);
+    void SelectGroup(Vocab000::WordGroup group);
 
 protected:
     void OnEndLabelEdit(NMHDR* pNMHDR, LRESULT* pResult);
@@ -72,6 +71,9 @@ protected:
     int _GetSelectedItem();
     HRESULT _ParseViewString(PCTSTR pszString, CArray<CString, PCTSTR> &words);
     void _OnEndEditingNewItem(PCTSTR pszNewWords, NMLVDISPINFO *plvdi);
+    int _FindItemByGroup(Vocab000::WordGroup group);
+    void _SetItem(int iItem, Vocab000::WordGroup dwGroup, WordClass dwClass);
+    Vocab000::WordGroup _GetItemGroup(int item);
 
     int _iView;
     bool _bInLabelEdit;
@@ -80,6 +82,7 @@ protected:
     CArray<CString, PCTSTR> _preEditWords;
 
     CFindWordDialog *_pFindDialog;
+    bool _addedColumns;
 };
 
 

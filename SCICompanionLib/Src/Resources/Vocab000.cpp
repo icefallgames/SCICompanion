@@ -88,8 +88,9 @@ const TCHAR *g_rgszWordClasses[] =
     { TEXT("Imperative Verb") },
 };
 
-void GetWordClassString(WordClass dwClass, std::string &str)
+std::string GetWordClassString(WordClass dwClass)
 {
+    std::string str;
     for (int i = 0; i < ARRAYSIZE(g_rgszWordClasses); i++)
     {
         if ((int)dwClass & (0x1 << i))
@@ -101,6 +102,7 @@ void GetWordClassString(WordClass dwClass, std::string &str)
             str += g_rgszWordClasses[i];
         }
     }
+    return str;
 }
 
 Vocab000::Vocab000()
@@ -247,6 +249,11 @@ bool Vocab000::LookupWord(const std::string &word, WordGroup &dwGroup) const
     }
 }
 
+size_t Vocab000::GetNumberOfGroups() const
+{
+    return _mapGroupToClass.size();
+}
+
 Vocab000::WordGroup Vocab000::GroupFromString(PCTSTR pszString) const
 {
     std::string strLower = pszString;
@@ -356,7 +363,7 @@ Vocab000::WordGroup Vocab000::_FindLargestEmptyGroup()
     return dwGroup;
 }
 
-VocabChangeHint Vocab000::AddNewWord(PCTSTR pszWordIn, WordClass dwClass, BOOL fShowUI)
+VocabChangeHint Vocab000::AddNewWord(PCTSTR pszWordIn, WordClass dwClass, bool fShowUI)
 {
     std::string strLower = pszWordIn;
     transform(strLower.begin(), strLower.end(), strLower.begin(), tolower);
@@ -367,13 +374,15 @@ VocabChangeHint Vocab000::AddNewWord(PCTSTR pszWordIn, WordClass dwClass, BOOL f
     WordGroup dwGroupCurrent;
     if (!LookupWord(strLower, dwGroupCurrent))
     {
-        hint = VocabChangeHint::Changed;
+        hint = VocabChangeHint::AddWordGroup;
         Vocab000::WordGroup dwGroup = _FindLargestEmptyGroup();
         DWORD dwInfo = InfoFromClassAndGroup(dwClass, dwGroup);
         _rgbGroups[dwGroup] = 0xff;
         _InsertWord(strLower.c_str(), dwGroup);
         _mapGroupToClass[dwGroup] = dwClass;
         _FixupGroupToString(dwGroup);
+
+        hint |= (VocabChangeHint)((DWORD)dwGroup << 16);
     }
     else
     {
@@ -410,11 +419,11 @@ VocabChangeHint Vocab000::AddSynonym(PCTSTR pszWordIn, PCTSTR pszOriginal)
 {
     std::string strLower = pszWordIn;
     transform(strLower.begin(), strLower.end(), strLower.begin(), tolower);
-    VocabChangeHint hint = VocabChangeHint::None;
+    VocabChangeHint hint = VocabChangeHint::EditWordGroup;
     WordGroup dwGroup;
     if (LookupWord(pszOriginal, dwGroup))
     {
-        hint = VocabChangeHint::Changed;
+        hint = VocabChangeHint::EditWordGroup | (VocabChangeHint)((DWORD)dwGroup << 16);
         _InsertWord(pszWordIn, dwGroup);
         _FixupGroupToString(dwGroup);
     }
@@ -425,7 +434,7 @@ VocabChangeHint Vocab000::AddSynonym(PCTSTR pszWordIn, PCTSTR pszOriginal)
 // Similar to AddSynonym, but takes a group (and class) instead of a word.
 // Fails if the word is already there.
 //
-VocabChangeHint Vocab000::AddWord(PCTSTR pszWord, DWORD dwInfo, BOOL fShowUI)
+VocabChangeHint Vocab000::AddWordToGroup(PCTSTR pszWord, WordGroup group, bool fShowUI)
 {
     std::string strLower = pszWord;
     transform(strLower.begin(), strLower.end(), strLower.begin(), tolower);
@@ -433,10 +442,13 @@ VocabChangeHint Vocab000::AddWord(PCTSTR pszWord, DWORD dwInfo, BOOL fShowUI)
     WordGroup dwGroupDummy;
     if (!LookupWord(strLower, dwGroupDummy))
     {
-        hint = VocabChangeHint::Changed;
-        _InsertWord(strLower.c_str(), GetWordGroup(dwInfo));
-        _mapGroupToClass[GetWordGroup(dwInfo)] = GetWordClass(dwInfo);
-        _FixupGroupToString(GetWordGroup(dwInfo));
+        WordClass wordClass;
+        GetGroupClass(group, &wordClass);
+        hint = VocabChangeHint::EditWordGroup | (VocabChangeHint)((DWORD)group << 16);
+        _InsertWord(strLower.c_str(), group);
+        // This is for adding words, not setting wordclass - so don't touch this.
+        assert(_mapGroupToClass.find(group) != _mapGroupToClass.end());
+        _FixupGroupToString(group);
     }
     else if (fShowUI)
     {
@@ -453,7 +465,7 @@ VocabChangeHint Vocab000::SetGroupClass(WordGroup dwGroup, WordClass dwClass)
     if (_mapGroupToClass.find(dwGroup) != _mapGroupToClass.end())
     {
         // Make sure it exists before setting it.
-        hint = VocabChangeHint::Changed;
+        hint = VocabChangeHint::EditWordGroup | (VocabChangeHint)((DWORD)dwGroup << 16);
         _mapGroupToClass[dwGroup] = dwClass;
     }
     return hint;
@@ -523,7 +535,7 @@ VocabChangeHint Vocab000::RemoveWord(PCTSTR pszWord)
     WordGroup dwGroup;
     if (LookupWord(strLower, dwGroup))
     {
-        hint = VocabChangeHint::Changed;
+        hint = VocabChangeHint::DeleteWordGroup | (VocabChangeHint)((DWORD)dwGroup << 16);
         // Found it.  Remove from word array.
         bool fFound = false;
         vector<string>::iterator wordIt = _words.begin();

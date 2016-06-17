@@ -508,35 +508,35 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                     }
                     if (!fFound)
                     {
-                        // TODO - look up saids - could probably do this by having the
-                        // various parses set a bit indicating what kind of parsing they're doing (singleq, doubleq, etc...)
-                        // And checking if there is a pContext->PropertyValue, or a ComplexPropertyValue statement.
-                        /*
-                        PCTSTR pszWord = FindValidVocabStringFromRight(_strValueTurd.c_str());
-                        if (pszWord)
+                        if (pContext->CurrentStringType == '\'')
                         {
-                        // Part of a Said std::string?
-                        Vocab000 *pVocab000 = appState->GetResourceMap().GetVocab000();
-                        if (pVocab000)
-                        {
-                        Vocab000::WordGroup dwGroup;
-                        if (pVocab000->LookupWord(pszWord, dwGroup))
-                        {
-                        WordClass dwClass;
-                        if (pVocab000->GetGroupClass(dwGroup, &dwClass))
-                        {
-                        std::string strWordClass;
-                        GetWordClassString(dwClass, strWordClass);
-                        StringCchPrintf(szTip, ARRAYSIZE(szTip), TEXT("%s: %s"), pszWord, strWordClass.c_str());
+                            std::string saidString = pContext->ScratchString();
+                            std::string saidWord = FindValidVocabStringFromRight(saidString.c_str());
+                            if (!saidWord.empty())
+                            {
+                                const Vocab000 *pVocab000 = appState->GetResourceMap().GetVocab000();
+                                if (pVocab000)
+                                {
+                                    Vocab000::WordGroup dwGroup;
+                                    fFound = true;
+                                    if (pVocab000->LookupWord(saidWord, dwGroup))
+                                    {
+                                        WordClass dwClass = WordClass::Unknown;
+                                        pVocab000->GetGroupClass(dwGroup, &dwClass);
+                                        std::string strWordClass = GetWordClassString(dwClass);
+                                        std::string wordAndSyns = pVocab000->GetGroupWordString(dwGroup);
+                                        result.strTip = fmt::format("{}: {}", strWordClass, wordAndSyns);
+                                        result.vocabWordInfo = dwGroup;
+                                        result.strBaseText = saidWord;
+                                    }
+                                    else
+                                    {
+                                        result.strTip = fmt::format("{}: unknown word", saidWord);
+                                    }
+                                }
+                            }
                         }
-                        }
-                        else
-                        {
-                        StringCchPrintf(szTip, ARRAYSIZE(szTip), TEXT("%s - not found"), pszWord);
-                        }
-                        }
-                        }
-                        */
+
                     }
                 }
             }
