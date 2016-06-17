@@ -33,8 +33,13 @@ using namespace std;
 #define UWM_UPDATESTATUS (WM_APP + 1)
 #define CHEKCDONE_TIMER 3456
 
+// Because only get individual item state changes from listview (instead of a "selection is done"),
+// multiselect can result in tons of state changes. Instead of updating on that, we'll update after
+// a certain amount of time.
+#define SELECTION_TIMER 4567     
+
 DecompileDialog::DecompileDialog(CWnd* pParent /*=NULL*/)
-    : CExtResizableDialog(DecompileDialog::IDD, pParent), previousSelection(-1), _inScriptListLabelEdit(false), _inSCOLabelEdit(false), initialized(false), _helper(appState->GetResourceMap().Helper())
+    : CExtResizableDialog(DecompileDialog::IDD, pParent), previousSelection(-1), _inScriptListLabelEdit(false), _inSCOLabelEdit(false), initialized(false), _helper(appState->GetResourceMap().Helper()), _syncSelection(false)
 {
     // If we already have a game.ini, great, we'll honor that.
     string gameIniFile = appState->GetResourceMap().Helper().GetGameIniFileName();
@@ -52,6 +57,7 @@ BOOL DecompileDialog::OnInitDialog()
     BOOL fRet = __super::OnInitDialog();
     //ShowSizeGrip(FALSE);
     SetTimer(CHEKCDONE_TIMER, 100, nullptr);
+    SetTimer(SELECTION_TIMER, 30, nullptr);
 
     return fRet;
 }
@@ -307,7 +313,7 @@ void DecompileDialog::_PopulateSCOTree()
 void DecompileDialog::_SyncSelection(bool force)
 {
     UINT selectedCount = m_wndListScripts.GetSelectedCount();
-    bool selected = (selectedCount > 0);
+    bool selected = (selectedCount == 1);
 
     _SyncButtonState();
 
@@ -396,6 +402,8 @@ BEGIN_MESSAGE_MAP(DecompileDialog, CExtResizableDialog)
     ON_BN_CLICKED(IDC_CHECKSELECTALL, &DecompileDialog::OnBnClickedCheckselectall)
 END_MESSAGE_MAP()
 
+#define VK_A        65
+
 // All this to handle the user pressing enter on a listview item.
 BOOL DecompileDialog::PreTranslateMessage(MSG* pMsg)
 {
@@ -420,25 +428,34 @@ BOOL DecompileDialog::PreTranslateMessage(MSG* pMsg)
     }
     else
     {
-        if (WM_KEYDOWN == pMsg->message &&
-            (VK_F2 == pMsg->wParam))
+        if (WM_KEYDOWN == pMsg->message)
         {
-            if (GetFocus()->GetSafeHwnd() == m_wndListScripts.GetSafeHwnd())
+            if (VK_F2 == pMsg->wParam)
             {
-                int selectedItem = m_wndListScripts.GetSelectionMark();
-                if (selectedItem != -1)
+                if (GetFocus()->GetSafeHwnd() == m_wndListScripts.GetSafeHwnd())
                 {
-                    m_wndListScripts.EditLabel(selectedItem);
+                    int selectedItem = m_wndListScripts.GetSelectionMark();
+                    if (selectedItem != -1)
+                    {
+                        m_wndListScripts.EditLabel(selectedItem);
+                    }
+                    return TRUE;
                 }
-                return TRUE;
+                else if (GetFocus()->GetSafeHwnd() == m_wndTreeSCO.GetSafeHwnd())
+                {
+                    HTREEITEM hTreeItem = m_wndTreeSCO.GetSelectedItem();
+                    if (hTreeItem != nullptr)
+                    {
+                        m_wndTreeSCO.EditLabel(hTreeItem);
+                    }
+                    return TRUE;
+                }
             }
-            else if (GetFocus()->GetSafeHwnd() == m_wndTreeSCO.GetSafeHwnd())
+            else if ((VK_A == pMsg->wParam) && (GetKeyState(VK_CONTROL) & 0x8000))
             {
-                HTREEITEM hTreeItem = m_wndTreeSCO.GetSelectedItem();
-                if (hTreeItem != nullptr)
-                {
-                    m_wndTreeSCO.EditLabel(hTreeItem);
-                }
+                // REVIEW: Check if focus is in scripts list?
+                _SelectAll(true);
+                m_wndSelectAll.SetCheck(BST_CHECKED);
                 return TRUE;
             }
         }
@@ -451,9 +468,9 @@ void DecompileDialog::OnLvnItemchangedListscripts(NMHDR *pNMHDR, LRESULT *pResul
     LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
     BOOL bSelectedNow = (pNMLV->uNewState  & LVIS_SELECTED);
     BOOL bSelectedBefore = (pNMLV->uOldState  & LVIS_SELECTED);
-    if (bSelectedNow && (bSelectedNow != bSelectedBefore))
+    if (bSelectedNow != bSelectedBefore)
     {
-        _SyncSelection();
+        _syncSelection = true;
     }
     *pResult = 0;
 }
@@ -547,7 +564,15 @@ void DecompileDialog::OnLvnEndlabeleditListscripts(NMHDR *pNMHDR, LRESULT *pResu
 
 void DecompileDialog::OnTimer(UINT_PTR nIDEvent)
 {
-    if (nIDEvent == CHEKCDONE_TIMER)
+    if (nIDEvent == SELECTION_TIMER)
+    {
+        if (_syncSelection)
+        {
+            _SyncSelection();
+            _syncSelection = false;
+        }
+    }
+    else if (nIDEvent == CHEKCDONE_TIMER)
     {
         if (_future && (future_status::ready == _future->wait_for(std::chrono::seconds(0))))
         {

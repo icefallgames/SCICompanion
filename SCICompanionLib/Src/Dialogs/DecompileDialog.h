@@ -120,6 +120,9 @@ private:
     std::unique_ptr<GlobalCompiledScriptLookups> _lookups;
     std::unique_ptr<IDecompilerConfig> _decompilerConfig;
     void _AssignFilenames();
+
+    bool _syncSelection;
+
 public:
     afx_msg void OnLvnItemchangedListscripts(NMHDR *pNMHDR, LRESULT *pResult);
     afx_msg void OnTvnBeginlabeleditTreesco(NMHDR *pNMHDR, LRESULT *pResult);
