@@ -43,6 +43,7 @@
 #include "format.h"
 #include "ResourceMapEvents.h"
 #include "DebuggerThread.h"
+#include "PostBuildThread.h"
 #include "RunLogic.h"
 #include "ResourceBlob.h"
 #include "DependencyTracker.h"
@@ -395,6 +396,21 @@ bool CResourceMap::IsResourceCompatible(const ResourceBlob &resource)
     return true; // I guess?
 }
 
+void CResourceMap::StartPostBuildThread()
+{
+    AbortPostBuildThread();
+    _postBuildThread = CreatePostBuildThread(Helper().GameFolder);
+}
+
+void CResourceMap::AbortPostBuildThread()
+{
+    if (_postBuildThread)
+    {
+        _postBuildThread->Abort();
+        _postBuildThread.reset();
+    }
+}
+
 void CResourceMap::StartDebuggerThread(int optionalResourceNumber)
 {
     AbortDebuggerThread();
@@ -650,6 +666,8 @@ void CResourceMap::PurgeUnnecessaryResources()
     HRESULT hr = RebuildResources<RESOURCEMAPENTRY_SCI0, RESOURCEHEADER_SCI0>(_gameFolderHelper.Version, TRUE);
     if (SUCCEEDED(hr))
     {
+        StartPostBuildThread();
+
         // Refresh everything.
         for_each(_syncs.begin(), _syncs.end(), bind2nd(mem_fun(&IResourceMapEvents::OnResourceMapReloaded), false));
     }

@@ -457,6 +457,7 @@ void CTextView::OnUpdate(CView *pSender, LPARAM lHint, CObject *pHint)
                 if (iSelected != -1)
                 {
                     GetListCtrl().SetItemState(iSelected, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+                    GetListCtrl().EnsureVisible(iSelected, FALSE);
                 }
                 GetListCtrl().SetRedraw(TRUE);
             }

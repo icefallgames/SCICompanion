@@ -19,6 +19,7 @@
 
 class RunLogic;
 class DebuggerThread;
+class PostBuildThread;
 struct Vocab000;
 struct AudioMapComponent;
 struct PaletteComponent;
@@ -127,6 +128,9 @@ public:
     void StartDebuggerThread(int optionalResourceNumber);
     void AbortDebuggerThread();
 
+    void StartPostBuildThread();
+    void AbortPostBuildThread();
+
     void RepackageAudio(bool force = false);
 
     DependencyTracker &GetDependencyTracker();
@@ -180,6 +184,7 @@ private:
     std::string _includeFolderOverride;             // For unit-testing
 
     std::shared_ptr<DebuggerThread> _debuggerThread;
+    std::shared_ptr<PostBuildThread> _postBuildThread;
 
     std::unique_ptr<RunLogic> _runLogic;
 

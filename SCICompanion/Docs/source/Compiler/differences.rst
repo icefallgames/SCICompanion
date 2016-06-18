@@ -186,10 +186,10 @@ Strings
 
 In SCI Studio, strings are enclosed in double-quotes. In Sierra Script, they can be enclosed in curly braces or double-quotes. In the original Script
 used by Sierra, double-quoted strings were automatically placed into a text resource and converted into a resource number/entry tuple, while brace-enclosed strings
-were not. |scicomp| does not support this feature yet, so currently curly braces strings and double-quote strings are treated the same::
+were not. |scicomp| supports this feature when using the Sierra Script syntax, if a (text#) clause is included in the file.::
 
 	Print("Hello there")		// SCI Studio
 
 	(Print {Hello there})		; Sierra Script
-	(Print "Hello there")		; Sierra Script
+	(Print "Hello there")		; Sierra Script - identical as above, unless text# clause is present.
 
