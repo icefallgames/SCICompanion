@@ -339,6 +339,10 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
         {
             MergeResults(result->choices, prefix, AutoCompleteIconIndex::Keyword, { "else" });
         }
+        if (containsV(acContexts, ParseAutoCompleteContext::DefineValue))
+        {
+            MergeResults(result->choices, prefix, AutoCompleteIconIndex::Keyword, { "scriptNumber" });
+        }
 
         LangSyntax lang = context.Script().Language();
         if (containsV(acContexts, ParseAutoCompleteContext::TopLevelKeyword))
