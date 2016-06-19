@@ -684,7 +684,7 @@ void DecompileDialog::_SyncButtonState()
     bool decompiling = (_decompileResults != nullptr);
 
     m_wndCancel.EnableWindow(!decompiling);
-    m_wndDecompile.EnableWindow(!decompiling && selected);
+    m_wndDecompile.EnableWindow(!decompiling);
     m_wndClearSCO.EnableWindow(!decompiling && selected);
     m_wndSetFilenames.EnableWindow(!decompiling);
     m_wndDecomileCancel.EnableWindow(decompiling);
