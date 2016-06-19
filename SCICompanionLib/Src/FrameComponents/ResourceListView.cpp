@@ -259,11 +259,14 @@ void CResourceListCtrl::OnEndLabelEdit(NMHDR* pNMHDR, LRESULT* pResult)
                 {
                     movefile(oldScriptFilename, helper.GetScriptFileName(plvdi->item.pszText));
                     movefile(oldObjectFilename, helper.GetScriptObjectFileName(plvdi->item.pszText));
-                    // TODO: Indicate in output pane that script files were renamed?
+                    std::vector<CompileResult> messages;
+                    messages.emplace_back(fmt::format("Renamed {0} to {1}", oldScriptFilename, helper.GetScriptFileName(plvdi->item.pszText)));
+                    messages.emplace_back(fmt::format("Renamed {0} to {1}", oldObjectFilename, helper.GetScriptObjectFileName(plvdi->item.pszText)));
+                    appState->OutputResults(OutputPaneType::Compile, messages);
                 }
-                catch (std::exception)
+                catch (std::exception e)
                 {
-                    // TODO: warn?
+                    AfxMessageBox(e.what(), MB_ICONWARNING | MB_OK);
                 }
             }
         }
