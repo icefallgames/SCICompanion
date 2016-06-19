@@ -2276,6 +2276,7 @@ UnaryOperator GetUnaryOperatorForInstruction(Opcode opcode)
 
 CodeResult UnaryOp::OutputByteCode(CompileContext &context) const
 {
+    declare_conditional isCondition(context, false);
     CodeResult result;
     if (Operator == UnaryOperator::Increment)
     {
