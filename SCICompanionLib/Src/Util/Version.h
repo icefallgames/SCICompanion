@@ -138,7 +138,11 @@ struct SCIVersion
     int GetMaximumResourceNumber() const
     {
         // REVIEW: Not sure about these numbers.
-        return SeparateHeapResources ? 16384 : 999;
+        // Basically:
+        //  SCI0    999
+        //  SCI1+   16384
+        //  SCI2    64999   (guessed)
+        return SeparateHeapResources ? ((PackageFormat >= ResourcePackageFormat::SCI2) ? 64999 : 16384) : 999;
     }
 };
 

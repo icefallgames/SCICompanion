@@ -526,7 +526,7 @@ bool CSCOObjectClass::Load(sci::istream &stream, SCOVersion version)
             _properties.push_back(CSCOObjectProperty(4101, _wSpecies));     // -script- (but seems to be species)
             _properties.push_back(CSCOObjectProperty(4102, _wSuperClass));  // -super-
             _properties.push_back(CSCOObjectProperty(4103, 0x8000));        // -info-
-            _properties.push_back(CSCOObjectProperty(20, 0));               // Name
+            _properties.push_back(CSCOObjectProperty(0x20, 0));               // Name
         }
         if (wNumPropsExcludingCore != 0xffff)   // In case there are less props than the core. Some SCI1 are missing name.
         {

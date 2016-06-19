@@ -20,7 +20,7 @@ void DoNothing(ResourceEntity &resource);
 
 //
 // Modifications to resource documents should be done via ApplyChanges. The functions passed to
-// ApplyChanges are give components from a clone of the resource. This means that undo functionality
+// ApplyChanges are given components from a clone of the resource. This means that undo functionality
 // is taken care of automatically.
 //
 class ResourceEntityDocument : public CUndoResource<CResourceDocument, ResourceEntity>
