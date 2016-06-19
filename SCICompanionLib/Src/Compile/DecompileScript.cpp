@@ -23,6 +23,7 @@
 #include "format.h"
 #include "DecompilerConfig.h"
 #include "Vocab000.h"
+#include "AppState.h"
 
 using namespace sci;
 using namespace std;
@@ -234,7 +235,8 @@ bool _IsUndeterminedPublicProc(const CompiledScript &compiledScript, const std::
 class ResolveProcedureCalls : public IExploreNode
 {
 public:
-    ResolveProcedureCalls(const GameFolderHelper &helper, const CompiledScript &compiledScript, unordered_map<int, unique_ptr<CSCOFile>> &scoMap) : _scoMap(scoMap), _compiledScript(compiledScript), _helper(helper) {}
+    ResolveProcedureCalls(const GameFolderHelper &helper, DecompileLookups &lookups, const CompiledScript &compiledScript, unordered_map<int, unique_ptr<CSCOFile>> &scoMap) :
+        _scoMap(scoMap), _compiledScript(compiledScript), _helper(helper), _lookups(lookups) {}
 
     void ExploreNode(SyntaxNode &node, ExploreNodeState state) override
     {
@@ -303,21 +305,22 @@ private:
     {
         if (_scoMap.find(script) == _scoMap.end())
         {
-            _scoMap[script] = move(GetExistingSCOFromScriptNumber(_helper, script));
+            _scoMap[script] = move(GetExistingSCOFromScriptNumber(_helper, script, _lookups.GetSelectorTable()));
         }
         return _scoMap.at(script).get();
     }
         
+    DecompileLookups &_lookups;
     const GameFolderHelper &_helper;
     unordered_map<int, unique_ptr<CSCOFile>> &_scoMap;
     const CompiledScript &_compiledScript;
 };
 
 // This pulls in the required .sco files to find the public procedure names
-void ResolvePublicProcedureCalls(const GameFolderHelper &helper, Script &script, const CompiledScript &compiledScript)
+void ResolvePublicProcedureCalls(DecompileLookups &lookups, const GameFolderHelper &helper, Script &script, const CompiledScript &compiledScript)
 {
     unordered_map<int, unique_ptr<CSCOFile>> scoMap;
-    scoMap[script.GetScriptNumber()] = move(GetExistingSCOFromScriptNumber(helper, script.GetScriptNumber()));
+    scoMap[script.GetScriptNumber()] = move(GetExistingSCOFromScriptNumber(helper, script.GetScriptNumber(), lookups.GetSelectorTable()));
 
     // First let's resolve the exports
     CSCOFile *thisSCO = scoMap.at(script.GetScriptNumber()).get();
@@ -340,7 +343,7 @@ void ResolvePublicProcedureCalls(const GameFolderHelper &helper, Script &script,
     }
 
     // Now the actual calls, which could be to any script
-    ResolveProcedureCalls resolveProcCalls(helper, compiledScript, scoMap);
+    ResolveProcedureCalls resolveProcCalls(helper, lookups, compiledScript, scoMap);
     script.Traverse(resolveProcCalls);
 }
 
@@ -503,14 +506,14 @@ Script *Decompile(const GameFolderHelper &helper, const CompiledScript &compiled
         unique_ptr<CSCOFile> mainSCO;
         if (compiledScript.GetScriptNumber() != 0)
         {
-            mainSCO = GetExistingSCOFromScriptNumber(helper, 0);
+            mainSCO = GetExistingSCOFromScriptNumber(helper, 0, lookups.GetSelectorTable());
         }
-        unique_ptr<CSCOFile> oldScriptSCO = GetExistingSCOFromScriptNumber(helper, compiledScript.GetScriptNumber());
+        unique_ptr<CSCOFile> oldScriptSCO = GetExistingSCOFromScriptNumber(helper, compiledScript.GetScriptNumber(), lookups.GetSelectorTable());
 
         vector<pair<string, string>> mainDirtyRenames;
         AutoDetectVariableNames(*pScript, lookups.GetDecompilerConfig(), mainSCO.get(), oldScriptSCO.get(), mainDirtyRenames);
 
-        ResolvePublicProcedureCalls(helper, *pScript, compiledScript);
+        ResolvePublicProcedureCalls(lookups, helper, *pScript, compiledScript);
 
         MassageProcedureCalls(lookups, *pScript);
 

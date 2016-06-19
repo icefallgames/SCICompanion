@@ -1448,6 +1448,11 @@ bool DecompileLookups::IsPropertySelectorOnly(uint16_t selector) const
         (_methodSelectors.find(selector) == _methodSelectors.end());
 }
 
+const SelectorTable& DecompileLookups::GetSelectorTable() const
+{
+    return _pLookups->GetSelectorTable();
+}
+
 bool DecompileLookups::DoesExportExist(uint16_t script, uint16_t theExport) const
 {
     uint32_t scriptAndExport = (((uint32_t)script) << 16) | theExport;

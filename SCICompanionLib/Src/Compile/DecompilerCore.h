@@ -171,6 +171,8 @@ public:
     bool DecompileAsm;
     PCSTR pszDebugFilter;
 
+    const SelectorTable& GetSelectorTable() const;
+
     void ResetOnFailure();
 
 private:

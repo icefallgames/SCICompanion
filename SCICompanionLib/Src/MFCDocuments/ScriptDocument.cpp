@@ -290,7 +290,7 @@ void DisassembleScript(WORD wScript)
     {
         // Write some crap.
         GlobalCompiledScriptLookups scriptLookups;
-        ObjectFileScriptLookups objectFileLookups(appState->GetResourceMap().Helper());
+        ObjectFileScriptLookups objectFileLookups(appState->GetResourceMap().Helper(), appState->GetResourceMap().GetCompiledScriptLookups()->GetSelectorTable());
         if (scriptLookups.Load(appState->GetResourceMap().Helper()))
         {
             std::stringstream out;
@@ -354,7 +354,7 @@ void FixDuplicateObjectNames(CompiledScript &compiledScript, const SelectorTable
 std::unique_ptr<sci::Script> DecompileScript(const IDecompilerConfig *config, GlobalCompiledScriptLookups &scriptLookups, const GameFolderHelper &helper, WORD wScript, CompiledScript &compiledScript, IDecompilerResults &results, bool debugControlFlow, bool debugInstConsumption, PCSTR pszDebugFilter, bool decompileAsm)
 {
     unique_ptr<sci::Script> pScript;
-    ObjectFileScriptLookups objectFileLookups(helper);
+    ObjectFileScriptLookups objectFileLookups(helper, scriptLookups.GetSelectorTable());
     // Ok if pText fails (and is NULL)
     unique_ptr<ResourceEntity> textResource = appState->GetResourceMap().CreateResourceFromNumber(ResourceType::Text, wScript);
     TextComponent *pText = nullptr;
@@ -393,7 +393,9 @@ void CScriptDocument::OnViewObjectFile()
             {
                 sci::streamOwner streamOwner(hFile);
                 CSCOFile scoFile;
-                if (scoFile.Load(streamOwner.getReader()))
+                SelectorTable selectorTable;
+                selectorTable.Load(appState->GetResourceMap().Helper());
+                if (scoFile.Load(streamOwner.getReader(), selectorTable))
                 {
                     stringstream out;
                     scoFile.DebugOut(out);

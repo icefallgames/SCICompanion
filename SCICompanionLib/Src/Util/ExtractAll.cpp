@@ -40,7 +40,7 @@ void ExtractAllResources(SCIVersion version, const std::string &destinationFolde
         destinationFolder += "\\";
     }
 
-    ObjectFileScriptLookups objectFileLookups(appState->GetResourceMap().Helper());
+    ObjectFileScriptLookups objectFileLookups(appState->GetResourceMap().Helper(), appState->GetResourceMap().GetCompiledScriptLookups()->GetSelectorTable());
     GlobalCompiledScriptLookups scriptLookups;
     if (disassembleScripts)
     {

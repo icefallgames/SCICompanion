@@ -29,6 +29,7 @@ namespace sci
 }
 class DecompileLookups;
 class GameFolderHelper;
+class SelectorTable;
 
 //
 // Information gleaned from the actual script resources.
@@ -89,6 +90,7 @@ public:
     bool LookupSpeciesPropertyListAndValues(uint16_t wIndex, std::vector<uint16_t> &props, std::vector<CompiledVarValue> &values);
 
     SelectorTable &GetSelectorTable() { return _selectors; }
+    const SelectorTable &GetSelectorTable() const { return _selectors; }
     GlobalClassTable &GetGlobalClassTable() { return _classes; }
 
 private:
@@ -100,7 +102,7 @@ private:
 class ObjectFileScriptLookups : public IObjectFileScriptLookups
 {
 public:
-    ObjectFileScriptLookups(const GameFolderHelper &helper) : _helper(helper){}
+    ObjectFileScriptLookups(const GameFolderHelper &helper, const SelectorTable &selectors) : _helper(helper), _selectors(selectors) {}
     std::string ReverseLookupGlobalVariableName(uint16_t wIndex);
     std::string ReverseLookupPublicExportName(uint16_t wScript, uint16_t wIndex);
 
@@ -110,6 +112,7 @@ private:
 	std::unordered_map<uint16_t, CSCOFile> _mapScriptToObject;
 
     const GameFolderHelper &_helper;
+    const SelectorTable &_selectors;
 };
 
 class ILookupPropertyName

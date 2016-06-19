@@ -345,7 +345,7 @@ void DecompileDialog::_SyncSelection(bool force)
             // Load the .sco file
             _sco.reset(nullptr);
             _scoPublicProcIndices.clear();
-            _sco = GetExistingSCOFromScriptNumber(_helper, (uint16_t)param);
+            _sco = GetExistingSCOFromScriptNumber(_helper, (uint16_t)param, appState->GetResourceMap().GetCompiledScriptLookups()->GetSelectorTable());
             if (_sco)
             {
                 // Detect which exports are not procedures by seeing if its name

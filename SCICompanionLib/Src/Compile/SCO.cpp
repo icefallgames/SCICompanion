@@ -73,7 +73,7 @@ private:
 };
 
 
-bool CSCOFile::Load(sci::istream &stream)
+bool CSCOFile::Load(sci::istream &stream, const SelectorTable &selectors)
 {
     stream.seekg(stream.tellg() + 3);
     stream >> _bMajorVersion;
@@ -82,6 +82,12 @@ bool CSCOFile::Load(sci::istream &stream)
     stream >> _bSCIVersion;
     stream >> _bAlignment;
     stream >> _wScriptNumber;
+
+    uint16_t nameSelector;
+    if (!selectors.ReverseLookup("name", nameSelector))
+    {
+        nameSelector = (_bSCIVersion == SCOVersion::SCI0) ? 23 : 20; // Defaults for template games, at least.
+    }
 
     if (stream.good())
     {
@@ -128,7 +134,7 @@ bool CSCOFile::Load(sci::istream &stream)
                         for (WORD i = 0; fRet && i < wTotalClasses; i++)
                         {
                             CSCOObjectClass objectClass;
-                            fRet = objectClass.Load(stream, _bSCIVersion);
+                            fRet = objectClass.Load(stream, _bSCIVersion, nameSelector);
                             if (fRet)
                             {
                                 _classes.push_back(objectClass);
@@ -493,7 +499,7 @@ void CSCOObjectProperty::Save(std::vector<BYTE> &output) const
 }
 
 
-bool CSCOObjectClass::Load(sci::istream &stream, SCOVersion version)
+bool CSCOObjectClass::Load(sci::istream &stream, SCOVersion version, uint16_t nameSelector)
 {
     stream.getRLE(_strName);
 
@@ -512,7 +518,7 @@ bool CSCOObjectClass::Load(sci::istream &stream, SCOVersion version)
             _properties.push_back(CSCOObjectProperty(0, _wSpecies));        // 0) species
             _properties.push_back(CSCOObjectProperty(1, _wSuperClass));     // 1) superclass
             _properties.push_back(CSCOObjectProperty(2, 0x8000));           // 2) -info- always 0x8000 for classes
-            _properties.push_back(CSCOObjectProperty(23, 0));               // 3) Name - meaningless here
+            _properties.push_back(CSCOObjectProperty(nameSelector, 0));     // 3) name - meaningless here
             // TODO: look up the name selector?
         }
         else
@@ -526,7 +532,7 @@ bool CSCOObjectClass::Load(sci::istream &stream, SCOVersion version)
             _properties.push_back(CSCOObjectProperty(4101, _wSpecies));     // -script- (but seems to be species)
             _properties.push_back(CSCOObjectProperty(4102, _wSuperClass));  // -super-
             _properties.push_back(CSCOObjectProperty(4103, 0x8000));        // -info-
-            _properties.push_back(CSCOObjectProperty(0x20, 0));               // Name
+            _properties.push_back(CSCOObjectProperty(nameSelector, 0));     // name
         }
         if (wNumPropsExcludingCore != 0xffff)   // In case there are less props than the core. Some SCI1 are missing name.
         {
@@ -759,7 +765,7 @@ unique_ptr<CSCOFile> SCOFromScriptAndCompiledScript(const Script &script, const 
 
 }
 
-unique_ptr<CSCOFile> GetExistingSCOFromScriptNumber(const GameFolderHelper &helper, uint16_t number)
+unique_ptr<CSCOFile> GetExistingSCOFromScriptNumber(const GameFolderHelper &helper, uint16_t number, const SelectorTable &selectors)
 {
     unique_ptr<CSCOFile> sco;
     string objectFilename = helper.GetScriptObjectFileName(number);
@@ -768,7 +774,7 @@ unique_ptr<CSCOFile> GetExistingSCOFromScriptNumber(const GameFolderHelper &help
         ScopedFile scoped(objectFilename, GENERIC_READ, FILE_SHARE_READ, OPEN_EXISTING);
         sci::streamOwner streamOwner(scoped.hFile);
         sco = make_unique<CSCOFile>();
-        sco->Load(streamOwner.getReader());
+        sco->Load(streamOwner.getReader(), selectors);
     }
     return sco;
 }

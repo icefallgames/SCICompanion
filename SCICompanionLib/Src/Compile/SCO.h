@@ -26,6 +26,8 @@ enum SCOVersion : uint8_t
     SeparateHeap = 1,
 };
 
+class SelectorTable;
+
 //
 // Object model for .sco object files.
 //
@@ -89,7 +91,7 @@ public:
     void DebugOut(std::ostream &out) const;
 
     const std::string &GetName() const { return _strName; }
-    bool Load(sci::istream &stream, SCOVersion version);
+    bool Load(sci::istream &stream, SCOVersion version, uint16_t nameSelector);
     const std::vector<uint16_t> &GetMethods() const { return _methods; }
     std::vector<uint16_t> &GetMethods() { return _methods; }
 
@@ -160,7 +162,7 @@ public:
     void DebugOut(std::ostream &out) const;
     void Save(std::vector<BYTE> &output) const;
 
-    bool Load(sci::istream &stream);
+    bool Load(sci::istream &stream, const SelectorTable &selectors);
     void SetVersion(SCOVersion version) { _bSCIVersion = version; }
     std::string GetVariableName(WORD wIndex)  const;
     std::string GetExportName(WORD wIndex)  const;
@@ -216,4 +218,4 @@ void SaveSCOFile(const GameFolderHelper &helper, const CSCOFile &sco);
 
 class CompiledScript;
 std::unique_ptr<CSCOFile> SCOFromScriptAndCompiledScript(const sci::Script &script, const CompiledScript &compiledScript);
-std::unique_ptr<CSCOFile> GetExistingSCOFromScriptNumber(const GameFolderHelper &helper, uint16_t number);
+std::unique_ptr<CSCOFile> GetExistingSCOFromScriptNumber(const GameFolderHelper &helper, uint16_t number, const SelectorTable &selectors);

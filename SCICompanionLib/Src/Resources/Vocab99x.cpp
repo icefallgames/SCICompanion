@@ -664,20 +664,8 @@ bool SelectorTable::IsSelectorName(const std::string &name) const
     return (_nameToValueCache.find(name) != _nameToValueCache.end());
 }
 
-bool SelectorTable::ReverseLookup(std::string name, uint16_t &wIndex)
+bool SelectorTable::ReverseLookup(std::string name, uint16_t &wIndex) const
 {
-    if (_nameToValueCache.empty())
-    {
-        for (size_t i = 0; i < _indices.size(); i++)
-        {
-            if (_indices[i] != -1)
-            {
-                const string &name = _names[_indices[i]];
-                _nameToValueCache[name] = (uint16_t)i;
-            }
-        }
-    }
-
     auto it = _nameToValueCache.find(name);
     if (it != _nameToValueCache.end())
     {
@@ -695,6 +683,18 @@ bool SelectorTable::Load(const GameFolderHelper &helper)
     if (blob)
     {
         fRet = _Create(blob->GetReadStream());
+        if (fRet)
+        {
+            // Populate reverse lookup
+            for (size_t i = 0; i < _indices.size(); i++)
+            {
+                if (_indices[i] != -1)
+                {
+                    const string &name = _names[_indices[i]];
+                    _nameToValueCache[name] = (uint16_t)i;
+                }
+            }
+        }
     }
     if (!fRet)
     {

@@ -52,7 +52,7 @@ public:
     SelectorTable() : _firstInvalidSelector(0), _fDirty(false) {}
     std::string Lookup(uint16_t wName) const override;
     std::vector<std::string> GetNamesForDisplay() const;
-    bool ReverseLookup(std::string name, uint16_t &wIndex);
+    bool ReverseLookup(std::string name, uint16_t &wIndex) const;
     bool IsSelectorName(const std::string &name) const;
     const std::vector<std::string> &GetNames() const { return _names; }
 
