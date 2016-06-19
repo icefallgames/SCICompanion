@@ -105,7 +105,7 @@ private:
 
     void _InsertWord(PCTSTR pszWord, WordGroup dwGroup);
     WordGroup _FindLargestEmptyGroup();
-    void _FixupGroupToString(WordGroup dwGroup);
+    VocabChangeHint _FixupGroupToString(WordGroup dwGroup);
     void _ReadWord(sci::istream &byteStream, char *pszBuffer, size_t cchBuffer, bool is900);
 
     // Map from word to class

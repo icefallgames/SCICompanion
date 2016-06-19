@@ -488,7 +488,7 @@ bool Vocab000::GetGroupClass(WordGroup dwGroup, WordClass *pdwClass) const
 // Ensures there is an entry for the group dwGroup
 // This should be called after adding/removing items.
 //
-void Vocab000::_FixupGroupToString(WordGroup dwGroup)
+VocabChangeHint Vocab000::_FixupGroupToString(WordGroup dwGroup)
 {
     assert(dwGroup < ARRAYSIZE(_rgbGroups));
     std::string strGroup;
@@ -519,10 +519,12 @@ void Vocab000::_FixupGroupToString(WordGroup dwGroup)
         // There are no more words from this group.  Remove the group.
         _rgbGroups[dwGroup] = 0;
         _mapGroupToString.erase(_mapGroupToString.find(dwGroup));
+        return VocabChangeHint::DeleteWordGroup;
     }
     else
     {
         _mapGroupToString[dwGroup] = strGroup;
+        return VocabChangeHint::EditWordGroup;
     }
 }
 
@@ -535,7 +537,7 @@ VocabChangeHint Vocab000::RemoveWord(PCTSTR pszWord)
     WordGroup dwGroup;
     if (LookupWord(strLower, dwGroup))
     {
-        hint = VocabChangeHint::DeleteWordGroup | (VocabChangeHint)((DWORD)dwGroup << 16);
+        hint = (VocabChangeHint)((DWORD)dwGroup << 16);
         // Found it.  Remove from word array.
         bool fFound = false;
         vector<string>::iterator wordIt = _words.begin();
@@ -543,7 +545,7 @@ VocabChangeHint Vocab000::RemoveWord(PCTSTR pszWord)
         {
             if (strLower == *wordIt)
             {
-                // We're done.  Insert it here.
+                // We're done.  Remove it here.
                 fFound = true;
                 break;
             }
@@ -554,7 +556,7 @@ VocabChangeHint Vocab000::RemoveWord(PCTSTR pszWord)
         // Remove it from the lookup table.
         _mapWordToGroup.erase(_mapWordToGroup.lower_bound(strLower));
 
-        _FixupGroupToString(dwGroup);
+        hint |= _FixupGroupToString(dwGroup);
     }
     return hint;
 }
