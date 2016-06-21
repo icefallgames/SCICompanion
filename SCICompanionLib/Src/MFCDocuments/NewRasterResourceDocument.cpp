@@ -859,6 +859,11 @@ void CNewRasterResourceDocument::MakeFont()
     if (IDOK == fontDialog.DoModal())
     {
         LOGFONT *pLogFont = fontDialog.m_cf.lpLogFont;
+
+        // Trying this
+        pLogFont->lfQuality = PROOF_QUALITY;
+        pLogFont->lfOutPrecision = OUT_RASTER_PRECIS;
+
         if (pLogFont)
         {
             ApplyChanges<RasterComponent, FontComponent>(

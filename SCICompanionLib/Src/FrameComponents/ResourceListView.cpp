@@ -829,7 +829,7 @@ void CResourceListCtrl::_DeleteItem(const ResourceBlob *pData)
     DeleteItem(iIndex);
 }
 
-void CResourceListCtrl::_InsertItem(std::unique_ptr<ResourceBlob> pData)
+LPARAM CResourceListCtrl::_InsertItem(std::unique_ptr<ResourceBlob> pData)
 {
     ResourceBlob *blob = pData.get();
     auto wrapper = std::make_unique<ResourceBlobWrapper>(std::move(pData));
@@ -939,6 +939,7 @@ void CResourceListCtrl::_InsertItem(std::unique_ptr<ResourceBlob> pData)
         }
         SetItem(&item);
     }
+    return item.lParam;
 }
 
 void CResourceListCtrl::_UpdateStatusIfFlagsChanged(const ResourceBlob &data, ResourceLoadStatusFlags originalFlags, int nItem)
@@ -1013,10 +1014,22 @@ void CResourceListCtrl::OnUpdate(LPARAM lHint, CObject *pHint)
         // Make our own copy, since we're storing this away.
         auto pDataClone = std::make_unique<ResourceBlob>(*pData);
         ResourceBlob *pTemp = pDataClone.get();
-        _InsertItem(std::move(pDataClone));
+        LPARAM itemData = _InsertItem(std::move(pDataClone));
         _ReevaluateRecency(pTemp);
         // Sort
         _SortItemsHelper(_iSortColumn, false);
+
+        // Select the item that was just added
+        LVFINDINFO findInfo = { 0 };
+        findInfo.flags = LVFI_PARAM;
+        findInfo.lParam = itemData;
+        int itemAddedIndex = FindItem(&findInfo);
+        if (itemAddedIndex != -1)
+        {
+            // Select and scroll into view.
+            SetItemState(itemAddedIndex, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+            EnsureVisible(itemAddedIndex, FALSE);
+        }
     }
     else if (IsFlagSet(hint, ResourceMapChangeHint::Deleted))
     {

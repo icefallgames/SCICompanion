@@ -34,6 +34,12 @@ bool IsLineEmpty(const BYTE *pBits, int cCount)
 
 void RenderLetter(RasterComponent &raster, int nCel, CDC *pDC, char ch, bool fCalc, uint16_t *pwMaxCharHeight, int *piAbove, int *piBelow)
 {
+    if (fCalc)
+    {
+        *piAbove = 127; // We'll work down from here.
+        *piBelow = 127;
+    }
+
     bool writingFont = false;
     CRect rect(0, 0, 0, 0);
     if (pDC->DrawText(&ch, 1, &rect, DT_CALCRECT | DT_NOPREFIX | DT_SINGLELINE))

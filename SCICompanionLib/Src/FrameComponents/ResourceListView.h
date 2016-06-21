@@ -87,7 +87,7 @@ protected:
     void _SortItemsHelper(int sortColumn, bool toggle);
     void _UpdateStatusIfFlagsChanged(const ResourceBlob &data, ResourceLoadStatusFlags originalFlags, int item);
     void _InitColumns();
-    void _InsertItem(std::unique_ptr<ResourceBlob> pData);
+    LPARAM _InsertItem(std::unique_ptr<ResourceBlob> pData);
     void _DeleteItem(const ResourceBlob *pData);
     virtual void _RegenerateImages() {}
     virtual void _PrepareLVITEM(LVITEM *pItem);
