@@ -271,39 +271,32 @@ void CClassComboBox::_OnUpdateFromScript(const sci::Script *pScript, CPoint pt)
 
         SetRedraw(FALSE);
 
-        // Is all the text the same?
-        bool everythingIsTheSame = (_lastComboItemTexts.size() == comboItems.size());
-        if (everythingIsTheSame)
+        // With prof-uis, adding and removing items from the combobox is extremely expensive (due to some bug)
+        // So do this minimally
+
+        // Remove items:
+        for (size_t i = comboItems.size(); i < _lastComboItemTexts.size(); i++)
         {
-            for (size_t i = 0; everythingIsTheSame && (i < _lastComboItemTexts.size()); i++)
-            {
-                everythingIsTheSame = (comboItems[i].Name == _lastComboItemTexts[i]);
-            }
+            DeleteString((int)comboItems.size());
         }
 
-        if (everythingIsTheSame)
+        // Add more items
+        for (size_t i = _lastComboItemTexts.size(); i < comboItems.size(); i++)
         {
-            for (size_t i = 0; i < comboItems.size(); i++)
-            {
-                // Just update the item pointers
-                SetItemData(i, reinterpret_cast<DWORD_PTR>(comboItems[i].Node));
-            }
+            _AddItem("", comboItems[i].Node);
         }
-        else
-        {
-            // Clear everything out and add new stuff. Expensive.
-            ResetContent();
-            for (size_t i = 0; i < comboItems.size(); i++)
-            {
-                _AddItem(comboItems[i].Name, comboItems[i].Node);
-            }
 
-            // Keep this in sync
-            _lastComboItemTexts.clear();
-            for (auto &item : comboItems)
-            {
-                _lastComboItemTexts.push_back(item.Name);
-            }
+        // Modify existing items
+        for (size_t i = 0; i < comboItems.size(); i++)
+        {
+            SetItemData(i, reinterpret_cast<DWORD_PTR>(comboItems[i].Node));
+        }
+
+        // Keep this in sync
+        _lastComboItemTexts.clear();
+        for (auto &item : comboItems)
+        {
+            _lastComboItemTexts.push_back(item.Name);
         }
         
         if (iSelection != -1)
@@ -392,8 +385,10 @@ void CScriptComboBox::DrawItem(LPDRAWITEMSTRUCT pDrawItemStruct)
         COLORREF crOldBkColor = dc.GetBkColor();
         int iMode = dc.GetBkMode();
 
-        CString str;
-        GetLBText(pDrawItemStruct->itemID, str);
+        const std::string &str = _lastComboItemTexts[pDrawItemStruct->itemID];
+        //GetLBText(pDrawItemStruct->itemID, str);
+         
+
         CRect rc = pDrawItemStruct->rcItem;
 
         sci::SyntaxNode *pNode = reinterpret_cast<sci::SyntaxNode*>(GetItemData(pDrawItemStruct->itemID));
@@ -417,7 +412,7 @@ void CScriptComboBox::DrawItem(LPDRAWITEMSTRUCT pDrawItemStruct)
         }
 
         rc.left += 3; // Offset a little more.
-        dc.DrawText(str, &rc, DT_SINGLELINE);
+        dc.DrawText(str.c_str(), &rc, DT_SINGLELINE);
 
         dc.SetTextColor(crOldTextColor);
         dc.SetBkColor(crOldBkColor);

@@ -90,12 +90,14 @@ void _MassagePrint(ProcedureCall &proc, DecompileLookups &lookups)
             if (!text.empty())
             {
                 unique_ptr<PropertyValue> pNewValue = std::make_unique<PropertyValue>();
-                pNewValue->SetValue(text, ValueType::String);
-                SyntaxNodeVector parameters;
-                parameters.push_back(std::move(pNewValue));
-                proc.StealParams(parameters); // Do the swap
+                pNewValue->SetValue(text, ValueType::ResourceString);
+
+                auto &parameters = proc.GetStatements();
+                // Erase the second parameter
+                parameters.erase(parameters.begin() + 1);
+                // Replace the first one with our new string
+                parameters[0] = std::move(pNewValue);
             }
-            parameterIndex++;
         }
     }
 
