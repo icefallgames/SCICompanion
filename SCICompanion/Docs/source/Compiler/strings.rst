@@ -61,6 +61,8 @@ Auto-generation of text resources
 Strings take up memory in the interpreter's heap. For that reason, it can be beneficial to use text resources instead: :doc:`/texts`. Text resources
 are stored in the interpreter's hunk space, which is larger than the heap.
 
+Text resources are also useful if you are translating your game into another language, as the translator can just work on the text resources and not touch the scripts.
+
 In script, text resources are represented by a text resource/number pair. For instance, to print the 10th entry in text resource 700, in SCI0
 you could do::
 

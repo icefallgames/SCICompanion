@@ -272,6 +272,7 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                 bool isValue = containsV(acContexts, ParseAutoCompleteContext::StudioValue) || containsV(acContexts, ParseAutoCompleteContext::LValue) || containsV(acContexts, ParseAutoCompleteContext::PureValue);
                 bool isDefineOnly = containsV(acContexts, ParseAutoCompleteContext::DefineValue);
                 bool isExport = containsV(acContexts, ParseAutoCompleteContext::Export);
+                bool isSelector = containsV(acContexts, ParseAutoCompleteContext::Selector);
                 if (!fFound)
                 {
                     // 3. Is it a define?
@@ -326,6 +327,16 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                             result.strBaseText = (*defineIt)->GetLabel().c_str();
                             result.iLineNumber = (*defineIt)->GetLineNumber();
                             result.scriptId = ScriptId((*defineIt)->GetOwnerScript()->GetPath().c_str());
+                        }
+                    }
+
+                    if (!fFound && isSelector)
+                    {
+                        uint16_t selectorIndex;
+                        if (browser.GetSelectorNames().ReverseLookup(strText, selectorIndex))
+                        {
+                            fFound = true;
+                            result.strTip = fmt::format("#{0}: {1})", strText, selectorIndex);
                         }
                     }
 
