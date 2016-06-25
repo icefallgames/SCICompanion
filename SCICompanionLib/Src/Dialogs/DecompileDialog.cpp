@@ -80,6 +80,8 @@ void DecompileDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_CHECKSELECTALL, m_wndSelectAll);
     DDX_Control(pDX, IDC_CHECKREDECOMPILE, m_wndRedecompile);
     m_wndRedecompile.SetCheck(BST_CHECKED);
+    DDX_Control(pDX, IDC_CHECKTEXTTUPLES, m_wndTextTuples);
+    m_wndTextTuples.SetCheck(BST_UNCHECKED);
     DDX_Control(pDX, IDC_EDITDEBUGMATCH, m_wndDebugFunctionMatch);
     DDX_Control(pDX, IDC_GROUPOPTIONS, m_wndGroupOptions);
     DDX_Control(pDX, IDC_GROUPDEBUG, m_wndGroupDebug);
@@ -624,6 +626,7 @@ void DecompileDialog::OnBnClickedDecompile()
     _debugControlFlow = m_wndDebugControlFlow.GetCheck() != 0;
     _debugInstConsumption = m_wndDebugInstConsumption.GetCheck() != 0;
     _debugAsm = m_wndAsm.GetCheck() != 0;
+    _substituteTextTuples = m_wndTextTuples.GetCheck() != 0;
     m_wndDebugFunctionMatch.GetWindowTextA(_debugFunctionMatch);
 
     // Get a list of scripts to decompile
@@ -799,7 +802,7 @@ void DecompileDialog::s_DecompileThreadWorker(DecompileDialog *pThis)
                     CompiledScript compiledScript(0, CompiledScriptFlags::RemoveBadExports);
                     if (compiledScript.Load(helper, helper.Version, scriptNum, false))
                     {
-                        unique_ptr<sci::Script> pScript = DecompileScript(pThis->_decompilerConfig.get(), *pThis->_lookups, helper, scriptNum, compiledScript, *pThis->_decompileResults, pThis->_debugControlFlow, pThis->_debugInstConsumption, (PCSTR)pThis->_debugFunctionMatch, pThis->_debugAsm);
+                        unique_ptr<sci::Script> pScript = DecompileScript(pThis->_decompilerConfig.get(), *pThis->_lookups, helper, scriptNum, compiledScript, *pThis->_decompileResults, pThis->_debugControlFlow, pThis->_debugInstConsumption, (PCSTR)pThis->_debugFunctionMatch, pThis->_debugAsm, pThis->_substituteTextTuples);
                         // Dump it to the .sc file
                         // TODO: If it already exists, we might want to ask for confirmation.
                         std::stringstream ss;

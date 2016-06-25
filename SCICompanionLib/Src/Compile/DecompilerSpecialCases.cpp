@@ -14,6 +14,7 @@
 #include "stdafx.h" 
 #include "ScriptOMAll.h"
 #include "DecompilerCore.h" 
+#include "DecompilerConfig.h" 
 #include <format.h>
 
 using namespace std;
@@ -71,34 +72,53 @@ PrintParamInfo c_PrintParams[] =
     { "window", 1 },
 };
 
-void _MassagePrint(ProcedureCall &proc, DecompileLookups &lookups)
+bool _DoesProcedureStartWithTextTuple(ProcedureCall &proc, DecompileLookups &lookups, bool replace, std::string &text)
 {
-    const SyntaxNode *pOne = proc.GetParameter(0);
-    const SyntaxNode *pTwo = proc.GetParameter(1);
-    WORD wOne;
-    WORD wTwo;
-    size_t parameterIndex = 1;
-
-    if (pOne && IsStatementImmediateValue(*pOne, wOne) &&
-        pTwo && IsStatementImmediateValue(*pTwo, wTwo))
+    bool isTextTuple = false;
+    if (proc.GetStatements().size() >= 2)
     {
-        // If the first two parameters are immediates, and the first one matches the current
-        // script number, then assume it's a text resource.
-        if (wOne == lookups.GetScriptNumber())
-        {
-            std::string text = lookups.LookupTextResource(wTwo);
-            if (!text.empty())
-            {
-                unique_ptr<PropertyValue> pNewValue = std::make_unique<PropertyValue>();
-                pNewValue->SetValue(text, ValueType::ResourceString);
+        const SyntaxNode *pOne = proc.GetParameter(0);
+        const SyntaxNode *pTwo = proc.GetParameter(1);
+        WORD wOne;
+        WORD wTwo;
+        size_t parameterIndex = 1;
 
-                auto &parameters = proc.GetStatements();
-                // Erase the second parameter
-                parameters.erase(parameters.begin() + 1);
-                // Replace the first one with our new string
-                parameters[0] = std::move(pNewValue);
+        if (pOne && IsStatementImmediateValue(*pOne, wOne) &&
+            pTwo && IsStatementImmediateValue(*pTwo, wTwo))
+        {
+            // If the first two parameters are immediates, and the first one matches the current
+            // script number, then assume it's a text resource.
+            if (wOne == lookups.GetScriptNumber())
+            {
+                text = lookups.LookupTextResource(wTwo);
+                if (!text.empty())
+                {
+                    isTextTuple = true;
+                    if (replace)
+                    {
+                        unique_ptr<PropertyValue> pNewValue = std::make_unique<PropertyValue>();
+                        pNewValue->SetValue(text, ValueType::ResourceString);
+
+                        auto &parameters = proc.GetStatements();
+                        // Erase the second parameter
+                        parameters.erase(parameters.begin() + 1);
+                        // Replace the first one with our new string
+                        parameters[0] = std::move(pNewValue);
+                    }
+                }
             }
         }
+    }
+    return isTextTuple;
+}
+
+void _MassagePrint(ProcedureCall &proc, DecompileLookups &lookups)
+{
+    size_t parameterIndex = 1;
+    std::string dummy;
+    if (_DoesProcedureStartWithTextTuple(proc, lookups, false, dummy))
+    {
+        parameterIndex++;
     }
 
     // Now go through and look for immediate values that we can turn into selectors
@@ -146,6 +166,15 @@ void _MassagePrint(ProcedureCall &proc, DecompileLookups &lookups)
     }
 }
 
+// Print(100 44) becomes Print("Hello there")
+void _SubstituteTextTuples(ProcedureCall &proc, DecompileLookups &lookups, std::string &text, bool replace)
+{
+    if (lookups.GetDecompilerConfig()->IsTextResourceTupleProcedure(proc.GetName()))
+    {
+        _DoesProcedureStartWithTextTuple(proc, lookups, replace, text);
+    }
+}
+
 //
 // Try to massage the parameters so that it makes more sense to the user.
 //
@@ -169,12 +198,59 @@ public:
             ProcedureCall *procCall = SafeSyntaxNode<ProcedureCall>(&node);
             if (procCall)
             {
+                std::string text;
+                _SubstituteTextTuples(*procCall, _lookups, text, _lookups.SubstituteTextTuples);
+                if (!text.empty() && !_lookups.SubstituteTextTuples)
+                {
+                    // Add a comment after the Print (or whatever) statement
+                    // (Assuming no nested ones, so only need to track one at a time)
+                    _nextToPutInComment = text;
+                }
                 _MassageProcedureCall(*procCall, _lookups);
             }
+
+            _callStack.push_back(&node);
+        }
+        else if (state == ExploreNodeState::Post)
+        {
+            if (!_nextToPutInComment.empty())
+            {
+                // Stick in the next statements node we find.
+                // Sucks that I have to do it this way. I'd rather to be able to just
+                // cast directly to a StatementsNode.
+                StatementsNode *statements = nullptr;
+                switch (_callStack.back()->GetNodeType())
+                {
+                    case NodeTypeFunction:
+                        statements = static_cast<FunctionBase*>(_callStack.back());
+                        break;
+                    case NodeTypeWhileLoop:
+                        statements = static_cast<WhileLoop*>(_callStack.back());
+                        break;
+                    case NodeTypeDoLoop:
+                        statements = static_cast<DoLoop*>(_callStack.back());
+                        break;
+                    case NodeTypeCodeBlock:
+                        statements = static_cast<CodeBlock*>(_callStack.back());
+                        break;
+                    case NodeTypeForLoop:
+                        statements = static_cast<ForLoop*>(_callStack.back());
+                        break;
+                }
+                if (statements)
+                {
+                    statements->GetStatements().push_back(std::make_unique<Comment>(_nextToPutInComment, CommentType::Indented));
+                    _nextToPutInComment.clear();
+                }
+            }
+
+            _callStack.pop_back();
         }
     }
 
 private:
+    std::string _nextToPutInComment;
+    std::vector<SyntaxNode*> _callStack;
     DecompileLookups &_lookups;
 };
 

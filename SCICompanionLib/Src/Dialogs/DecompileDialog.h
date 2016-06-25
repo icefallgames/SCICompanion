@@ -82,6 +82,7 @@ private:
 
     CExtCheckBox m_wndSelectAll;
     CExtCheckBox m_wndRedecompile;
+    CExtCheckBox m_wndTextTuples;
     CExtGroupBox m_wndGroupOptions;
     CExtGroupBox m_wndGroupDebug;
 
@@ -116,6 +117,7 @@ private:
     bool _debugControlFlow;
     bool _debugInstConsumption;
     bool _debugAsm;
+    bool _substituteTextTuples;
     CString _debugFunctionMatch;
     std::unique_ptr<GlobalCompiledScriptLookups> _lookups;
     std::unique_ptr<IDecompilerConfig> _decompilerConfig;

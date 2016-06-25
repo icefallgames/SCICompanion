@@ -351,7 +351,7 @@ void FixDuplicateObjectNames(CompiledScript &compiledScript, const SelectorTable
     }
 }
 
-std::unique_ptr<sci::Script> DecompileScript(const IDecompilerConfig *config, GlobalCompiledScriptLookups &scriptLookups, const GameFolderHelper &helper, WORD wScript, CompiledScript &compiledScript, IDecompilerResults &results, bool debugControlFlow, bool debugInstConsumption, PCSTR pszDebugFilter, bool decompileAsm)
+std::unique_ptr<sci::Script> DecompileScript(const IDecompilerConfig *config, GlobalCompiledScriptLookups &scriptLookups, const GameFolderHelper &helper, WORD wScript, CompiledScript &compiledScript, IDecompilerResults &results, bool debugControlFlow, bool debugInstConsumption, PCSTR pszDebugFilter, bool decompileAsm, bool substituteTextTuples)
 {
     unique_ptr<sci::Script> pScript;
     ObjectFileScriptLookups objectFileLookups(helper, scriptLookups.GetSelectorTable());
@@ -370,6 +370,7 @@ std::unique_ptr<sci::Script> DecompileScript(const IDecompilerConfig *config, Gl
     decompileLookups.DebugInstructionConsumption = debugInstConsumption;
     decompileLookups.pszDebugFilter = pszDebugFilter;
     decompileLookups.DecompileAsm = decompileAsm;
+    decompileLookups.SubstituteTextTuples = substituteTextTuples;
     pScript.reset(Decompile(helper, compiledScript, decompileLookups, appState->GetResourceMap().GetVocab000()));
 
     if (helper.Language == LangSyntaxSCI)

@@ -70,6 +70,7 @@ public:
                 _methodParameterNames = _table->get_table("methodParameterNames");
             }
             _CacheBitfieldProps();
+            _CacheTextResourceTupleProcedures();
             _CacheEnums({ definesScript.get(), keysScript.get() });
             _CacheMethodCallParamTypes();
             _CacheKernelCallParamTypes();
@@ -134,6 +135,11 @@ public:
     bool IsBitfieldProperty(const std::string &propertyName) const
     {
         return _bitfieldProperties.find(propertyName) != _bitfieldProperties.end();
+    }
+
+    bool IsTextResourceTupleProcedure(const std::string &procName) const
+    {
+        return _textResourceTupleProcedures.find(procName) != _textResourceTupleProcedures.end();
     }
 
     void ResolveSwitchStatementValues(sci::SwitchStatement &switchStatement) const
@@ -252,6 +258,18 @@ private:
         }
     }
 
+    void _CacheTextResourceTupleProcedures()
+    {
+        if (_table->contains_qualified("textResourceTuples.textResourceTuples"))
+        {
+            auto textResourceProcs = _table->get_array_qualified("textResourceTuples.textResourceTuples");
+            for (auto prop : textResourceProcs->get())
+            {
+                _textResourceTupleProcedures.insert(prop->as<string>()->get());
+            }
+        }
+    }
+
     void _CacheEnums(vector<Script*> scripts)
     {
         map<string, uint16_t> defines;
@@ -353,6 +371,8 @@ private:
     std::unordered_map<string, string> _switchValueTypes;
 
     std::unordered_set<string> _bitfieldProperties;
+
+    std::unordered_set<string> _textResourceTupleProcedures;
 
     std::unique_ptr<cpptoml::table> _table;
     std::shared_ptr<cpptoml::table> _methodParameterNames;
