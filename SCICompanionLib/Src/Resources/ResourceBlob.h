@@ -19,6 +19,7 @@
 #include <limits>
 
 enum class BlobKey;
+enum class ResourceSaveLocation : uint16_t;
 
 bool IsValidResourceName(PCTSTR pszName);
 void DisplayInvalidResourceNameMessage(PCTSTR pszName);
@@ -324,8 +325,8 @@ public:
     ResourceBlob(PCTSTR pszName, ResourceType iType, const std::vector<uint8_t> &data, int iPackageHint, int iNumberHint, uint32_t base36Number, SCIVersion version, ResourceSourceFlags sourceFlags);
 
     HRESULT CreateFromBits(PCTSTR pszName, ResourceType iType, sci::istream *pStream, int iPackageHint, int iNumberHint, uint32_t base36Number, SCIVersion version, ResourceSourceFlags sourceFlags);
-    HRESULT CreateFromHandle(PCTSTR pszName, HANDLE hFile, int iPackageHint, SCIVersion version);
-    HRESULT CreateFromFile(PCTSTR pszName, std::string strFileName, SCIVersion version, int iPackage, int iNumber = -1);
+    HRESULT CreateFromHandle(PCTSTR pszName, HANDLE hFile, int iPackageHint, SCIVersion version, ResourceSaveLocation saveLocation);
+    HRESULT CreateFromFile(PCTSTR pszName, std::string strFileName, SCIVersion version, ResourceSaveLocation saveLocation, int iPackage, int iNumber = -1);
     void CreateFromPackageBits(const std::string &name, const ResourceHeaderAgnostic &prh, sci::istream &byteStream, bool delay = false);
 
     // In case we delayed decompression

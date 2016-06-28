@@ -763,6 +763,13 @@ void SCICompanionApp::OnGameProperties()
     if (IDOK == dialog.DoModal())
     {
         appState->SetGameName(dialog._strGameName);
+        if (dialog.NeedsReload())
+        {
+            // Close and re-open the game
+            std::string gameFolder = appState->GetResourceMap().GetGameFolder();
+            OnCloseGame();
+            OpenDocumentFile(gameFolder.c_str());
+        }
     }
 }
 

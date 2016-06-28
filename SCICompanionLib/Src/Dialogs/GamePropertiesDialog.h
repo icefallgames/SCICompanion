@@ -28,6 +28,8 @@ public:
 
     CString _strGameName;
 
+    bool NeedsReload() const { return _gameNeedsReload; }
+
 protected:
     void OnOK() override;
 
@@ -53,6 +55,7 @@ private:
     CExtEdit m_wndEditExe;
     RunLogic &_runLogic;
     CExtCheckBox m_wndCheckAspectRatio;
+    CExtCheckBox m_wndCheckPatchFiles;
 
     std::unordered_map<std::string, std::string> _optionToExe;
     std::unordered_map<std::string, std::string> _optionToParams;
@@ -61,7 +64,10 @@ private:
     bool _initialized;
 
     bool _fAspectRatioStart;
+    bool _fPatchFileStart;
     bool _wasAspectRatioChanged;
+
+    bool _gameNeedsReload;
 
 public:
     afx_msg void OnEnKillfocusEditexecutable();

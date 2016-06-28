@@ -1457,7 +1457,7 @@ void CMainFrame::OnFileNewPic()
                     // No global palette, use the default one
                     std::string palettePath = appState->GetResourceMap().GetSamplesFolder() + c_szDefaultPaletteSample;
                     ResourceBlob blob;
-                    if (SUCCEEDED(blob.CreateFromFile(nullptr, palettePath.c_str(), appState->GetVersion(), -1, -1)))
+                    if (SUCCEEDED(blob.CreateFromFile(nullptr, palettePath.c_str(), appState->GetVersion(), appState->GetResourceMap().GetDefaultResourceSaveLocation(), - 1, -1)))
                     {
                         unique_ptr<ResourceEntity> paletteEntity = CreateResourceFromResourceData(blob);
                         if (paletteEntity)
@@ -1527,7 +1527,7 @@ void CMainFrame::OnFileNewPalette()
     // A little bit different. We need interesting data to populate the default palette, so use a sample.
     std::string palettePath = appState->GetResourceMap().GetSamplesFolder() + c_szDefaultPaletteSample;
     ResourceBlob blob;
-    if (SUCCEEDED(blob.CreateFromFile(nullptr, palettePath.c_str(), appState->GetVersion(), -1, -1)))
+    if (SUCCEEDED(blob.CreateFromFile(nullptr, palettePath.c_str(), appState->GetVersion(), appState->GetResourceMap().GetDefaultResourceSaveLocation(), - 1, -1)))
     {
         OpenResource(&blob, true);
     }
@@ -1536,7 +1536,7 @@ void CMainFrame::OnFileNewPalette()
 void CMainFrame::OnFileNewMessage()
 {
     // Grok the current messages to figure out a message version.
-    auto messageContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Message, ResourceEnumFlags::ExcludePatchFiles);
+    auto messageContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Message, ResourceEnumFlags::AddInDefaultEnumFlags);
     uint16_t maxMessageVersion = 0;
     vector<int> existingResources;
     for (auto &messageBlob : *messageContainer)
@@ -1638,7 +1638,7 @@ void CMainFrame::OnFileOpenResource()
     {
 		CString strFileName = fileDialog.GetPathName();
         ResourceBlob data;
-        HRESULT hr = data.CreateFromFile(nullptr, (PCSTR)strFileName, appState->GetVersion(), appState->GetVersion().DefaultVolumeFile);
+        HRESULT hr = data.CreateFromFile(nullptr, (PCSTR)strFileName, appState->GetVersion(), appState->GetResourceMap().GetDefaultResourceSaveLocation(), appState->GetVersion().DefaultVolumeFile);
         if (SUCCEEDED(hr))
         {
             OpenResource(&data);
@@ -1695,7 +1695,7 @@ void CMainFrame::OnFileAddResource()
             int iResourceNumber = srd.GetResourceNumber();
             int iPackageNumber = srd.GetPackageNumber();
             ResourceBlob data;
-            HRESULT hr = data.CreateFromFile(nullptr, (PCSTR)strFileName, appState->GetVersion(), iPackageNumber, iResourceNumber);
+            HRESULT hr = data.CreateFromFile(nullptr, (PCSTR)strFileName, appState->GetVersion(), appState->GetResourceMap().GetDefaultResourceSaveLocation(), iPackageNumber, iResourceNumber);
             if (!srd.GetName().empty())
             {
                 data.SetName(srd.GetName().c_str());
@@ -2029,7 +2029,7 @@ void CMainFrame::_FindInTexts(ICompileLog &log, PCTSTR pszWhat, BOOL fMatchCase,
         matchingTalkerNumbers = _GetSetOfMatchingNumbers(talkers->GetDefines(), pszWhat, fMatchCase, fWholeWord);
     }
 
-    auto container = appState->GetResourceMap().Resources(ResourceTypeFlags::Text | ResourceTypeFlags::Message, ResourceEnumFlags::MostRecentOnly);
+    auto container = appState->GetResourceMap().Resources(ResourceTypeFlags::Text | ResourceTypeFlags::Message, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::AddInDefaultEnumFlags);
     for (auto &blob : *container)
     {
         auto resource = CreateResourceFromResourceData(*blob);

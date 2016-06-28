@@ -19,13 +19,16 @@
 #include "GamePropertiesDialog.h"
 #include "ScriptConvert.h"
 #include "CompileContext.h"
+#include "ExtractAll.h"
+#include "ResourceContainer.h"
 
 // CGamePropertiesDialog dialog
 
 CGamePropertiesDialog::CGamePropertiesDialog(RunLogic &runLogic, CWnd* pParent /*=NULL*/)
-    : CExtNCW<CExtResizableDialog>(CGamePropertiesDialog::IDD, pParent), _runLogic(runLogic), _initialized(false), _wasAspectRatioChanged(false)
+    : CExtNCW<CExtResizableDialog>(CGamePropertiesDialog::IDD, pParent), _runLogic(runLogic), _initialized(false), _wasAspectRatioChanged(false), _gameNeedsReload(false)
 {
     _fAspectRatioStart = appState->GetResourceMap().Helper().GetUseSierraAspectRatio(!!appState->_fUseOriginalAspectRatioDefault);
+    _fPatchFileStart = appState->GetResourceMap().Helper().GetResourceSaveLocation(ResourceSaveLocation::Default) == ResourceSaveLocation::Patch;
 }
 
 CGamePropertiesDialog::~CGamePropertiesDialog()
@@ -58,6 +61,9 @@ void CGamePropertiesDialog::DoDataExchange(CDataExchange* pDX)
 
     DDX_Control(pDX, IDC_CHECKASPECTRATIO, m_wndCheckAspectRatio);
     m_wndCheckAspectRatio.SetCheck(_fAspectRatioStart ? BST_CHECKED : BST_UNCHECKED);
+
+    DDX_Control(pDX, IDC_CHECKPATCHFILES, m_wndCheckPatchFiles);
+    m_wndCheckPatchFiles.SetCheck(_fPatchFileStart ? BST_CHECKED : BST_UNCHECKED);
 
     if (!_initialized)
     {
@@ -173,6 +179,48 @@ void CGamePropertiesDialog::OnOK()
                     appState->OutputResults(OutputPaneType::Compile, log.Results());
                 }
             }
+        }
+    }
+
+    bool usePatchFiles = m_wndCheckPatchFiles.GetCheck() == BST_CHECKED;
+    if (usePatchFiles != _fPatchFileStart)
+    {
+        std::string message = usePatchFiles ?
+            "Switching to patch files for resource management. All resources in the resource package will be extracted to patch files in the game directory.\nIt is recommended that you backup your game.\nContinue?" :
+            "Switching to resource packages for resource management. All patch files will be built into the resource package and then deleted.\nIt is recommended that you backup your game.\nContinue?";
+
+        if (IDYES == AfxMessageBox(message.c_str(), MB_ICONWARNING | MB_YESNO))
+        {
+            if (usePatchFiles)
+            {
+                // Extract all resources
+                ExtractAllResources(appState->GetVersion(), appState->GetResourceMap().GetGameFolder(), true, false, false, false, false, false, nullptr);
+            }
+            else
+            {
+                // Put everything into resource.map, resource.001, etc...
+                appState->GetResourceMap().PurgeUnnecessaryResources();
+                // Now delete...
+                auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::All, ResourceEnumFlags::ExcludePackagedFiles);
+                std::vector<std::unique_ptr<ResourceBlob>> itemsToDelete;
+                for (auto &blob : *resourceContainer)
+                {
+                    itemsToDelete.push_back(move(blob));
+                }
+                for (auto &blob : itemsToDelete)
+                {
+                    appState->GetResourceMap().DeleteResource(blob.get());
+                }
+            }
+
+            // Set it
+            appState->GetResourceMap().Helper().SetResourceSaveLocation(usePatchFiles ? ResourceSaveLocation::Patch : ResourceSaveLocation::Package);
+
+            _gameNeedsReload = true;
+        }
+        else
+        {
+            AfxMessageBox("No changed made.", MB_OK);
         }
     }
 

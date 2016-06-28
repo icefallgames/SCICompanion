@@ -108,10 +108,10 @@ public:
 
     virtual bool ReadNextEntry(ResourceTypeFlags typeFlags, IteratorState &state, ResourceMapEntryAgnostic &entry, std::vector<uint8_t> *optionalRawData = nullptr) = 0;
     virtual sci::istream GetHeaderAndPositionedStream(const ResourceMapEntryAgnostic &mapEntry, ResourceHeaderAgnostic &headerEntry) = 0;
-    virtual sci::istream GetPositionedStreamAndResourceSizeIncludingHeader(const ResourceMapEntryAgnostic &mapEntry, uint32_t &size) = 0;
+    virtual sci::istream GetPositionedStreamAndResourceSizeIncludingHeader(const ResourceMapEntryAgnostic &mapEntry, uint32_t &size, bool &includesHeader) = 0;
 
     virtual void RemoveEntry(const ResourceMapEntryAgnostic &mapEntry) = 0;
-    virtual void RebuildResources(bool force) = 0;
+    virtual void RebuildResources(bool force, ResourceSource &source) = 0;
     virtual AppendBehavior AppendResources(const std::vector<const ResourceBlob*> &blobs) = 0;
 };
 
@@ -243,8 +243,9 @@ public:
         return packageByteStream;
     }
 
-    virtual sci::istream GetPositionedStreamAndResourceSizeIncludingHeader(const ResourceMapEntryAgnostic &mapEntry, uint32_t &size) override
+    virtual sci::istream GetPositionedStreamAndResourceSizeIncludingHeader(const ResourceMapEntryAgnostic &mapEntry, uint32_t &size, bool &includesHeader) override
     {
+        includesHeader = true;
         sci::istream packageByteStream = _GetVolumeStream(mapEntry.PackageNumber);
         if (!packageByteStream.good())
         {
@@ -336,7 +337,7 @@ public:
         }
     }
 
-    void RebuildResources(bool force) override
+    void RebuildResources(bool force, ResourceSource &source) override
     {
         IteratorState iteratorState;
 
@@ -353,7 +354,7 @@ public:
         sci::ostream mapStreamWrite2;
 
         ResourceMapEntryAgnostic entryExisting;
-        while (ReadNextEntry(ResourceTypeFlags::All, iteratorState, entryExisting, nullptr))
+        while (source.ReadNextEntry(ResourceTypeFlags::All, iteratorState, entryExisting, nullptr))
         {
             int type = (int)entryExisting.Type;
             if (type < ARRAYSIZE(encounteredResources))
@@ -374,7 +375,25 @@ public:
                     uint32_t totalResourceSize;
                     try
                     {
-                        sci::istream volumneReadStream = GetPositionedStreamAndResourceSizeIncludingHeader(entryExisting, totalResourceSize);
+                        bool includesHeader;
+                        sci::istream volumneReadStream = source.GetPositionedStreamAndResourceSizeIncludingHeader(entryExisting, totalResourceSize, includesHeader);
+
+                        if (!includesHeader)
+                        {
+                            // This is the case for when we put patch files into the resource map.
+                            ResourceHeaderAgnostic header;
+                            header.cbCompressed = totalResourceSize;
+                            header.cbDecompressed = totalResourceSize;
+                            header.Base36Number = entryExisting.Base36Number;
+                            header.Number = entryExisting.Number;
+                            header.PackageHint = entryExisting.PackageNumber;
+                            header.Type = entryExisting.Type;
+                            header.Version = this->_version;
+                            header.CompressionMethod = 0;
+                            (*_headerReadWrite.writer)(volumeWriteStreams[rebuildPackageNumber], header);
+                        }
+                        // else the data we're copying already includes the header.
+
                         // Now transfer this to the write stream
                         transfer(volumneReadStream, volumeWriteStreams[rebuildPackageNumber], totalResourceSize);
 

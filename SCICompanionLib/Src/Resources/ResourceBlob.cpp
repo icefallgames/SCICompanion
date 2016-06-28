@@ -185,13 +185,13 @@ HRESULT ResourceBlob::CreateFromBits(PCTSTR pszName, ResourceType iType, sci::is
 // These resources are not prepended with a header.  Instead, they have a WORD that is 0x80 | type,
 // where type is the resource type.
 //
-HRESULT ResourceBlob::CreateFromFile(PCTSTR pszName, std::string strFileName, SCIVersion version, int iPackage, int iNumber)
+HRESULT ResourceBlob::CreateFromFile(PCTSTR pszName, std::string strFileName, SCIVersion version, ResourceSaveLocation saveLocation, int iPackage, int iNumber)
 {
     HRESULT hr;
     HANDLE hFile = CreateFile(strFileName.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
     if (hFile != INVALID_HANDLE_VALUE)
     {
-        hr = CreateFromHandle(pszName, hFile, -1, version);
+        hr = CreateFromHandle(pszName, hFile, -1, version, saveLocation);
         if (SUCCEEDED(hr))
         {
             if (iNumber == -1)
@@ -420,7 +420,7 @@ uint32_t GetResourceOffsetInFile(uint8_t secondHeaderByte)
     return secondHeaderByte;
 }
 
-void _AssignDefaultResourceSourceFlags(ResourceBlob &blob)
+void _AssignDefaultResourceSourceFlags(ResourceBlob &blob, ResourceSaveLocation saveLocation)
 {
     switch (blob.GetType())
     {
@@ -444,7 +444,7 @@ void _AssignDefaultResourceSourceFlags(ResourceBlob &blob)
             break;
 
         default:
-            blob.GetHeader().SourceFlags = ResourceSourceFlags::ResourceMap;
+            blob.GetHeader().SourceFlags = (saveLocation == ResourceSaveLocation::Patch) ? ResourceSourceFlags::PatchFile : ResourceSourceFlags::ResourceMap;
             break;
     }
 }
@@ -452,7 +452,7 @@ void _AssignDefaultResourceSourceFlags(ResourceBlob &blob)
 //
 // hFile is assumed to be offset to the beginning of a resource header.
 //
-HRESULT ResourceBlob::CreateFromHandle(PCTSTR pszName, HANDLE hFile, int iPackageHint, SCIVersion version)
+HRESULT ResourceBlob::CreateFromHandle(PCTSTR pszName, HANDLE hFile, int iPackageHint, SCIVersion version, ResourceSaveLocation saveLocation)
 {
     header.PackageHint = (uint16_t)iPackageHint;
     HRESULT hr = E_FAIL;
@@ -517,7 +517,7 @@ HRESULT ResourceBlob::CreateFromHandle(PCTSTR pszName, HANDLE hFile, int iPackag
         // We're already at the end of the header, so just start reading.
         sci::streamOwner streamOwner(hFile, header.cbCompressed);
         _DecompressFromBits(streamOwner.getReader(), false);
-        _AssignDefaultResourceSourceFlags(*this);
+        _AssignDefaultResourceSourceFlags(*this, saveLocation);
     }    
     return hr;
 }

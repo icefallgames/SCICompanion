@@ -15,6 +15,8 @@
 
 class ResourceContainer;
 enum class ResourceEnumFlags : uint16_t;
+enum class ResourceSaveLocation : uint16_t;
+enum class ResourceSourceFlags : int;
 
 // Encapsulates operations that only depend on gamefolder and SCI version.
 // We can carry this to a background thread, for instace, and not have to
@@ -27,6 +29,13 @@ extern const std::string GameSection;
 extern const std::string LanguageKey;
 extern const std::string LanguageValueStudio;
 extern const std::string LanguageValueSCI;
+
+enum class ResourceSaveLocation : uint16_t
+{
+    Default,
+    Package,
+    Patch,
+};
 
 class GameFolderHelper
 {
@@ -58,6 +67,11 @@ public:
 
     bool GetUseSierraAspectRatio(bool defaultValue) const;
     void SetUseSierraAspectRatio(bool useSierra) const;
+
+    ResourceSaveLocation GetResourceSaveLocation(ResourceSaveLocation location) const;
+    void SetResourceSaveLocation(ResourceSaveLocation location) const;
+    ResourceEnumFlags GetDefaultEnumFlags() const;
+    ResourceSourceFlags GetDefaultSaveSourceFlags() const;
 
     // Members
     SCIVersion Version;

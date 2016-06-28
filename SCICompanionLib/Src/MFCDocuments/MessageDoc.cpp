@@ -85,7 +85,7 @@ void CMessageDoc::_PreloadAudio()
 
         // Get all the resources from the audio map
         int mapResourceNumber = GetResource()->ResourceNumber;
-        auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Audio, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::IncludeCacheFiles, mapResourceNumber);
+        auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Audio, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::IncludeCacheFiles | ResourceEnumFlags::AddInDefaultEnumFlags, mapResourceNumber);
         for (auto resource : *resourceContainer)
         {
             // Again, as mentioned above, we only want to take our audio resources from a single source: the cache files, or the actual game resources.

@@ -48,7 +48,7 @@ public:
     bool ReadNextEntry(ResourceTypeFlags typeFlags, IteratorState &state, ResourceMapEntryAgnostic &entry, std::vector<uint8_t> *optionalRawData = nullptr) override;
     sci::istream GetHeaderAndPositionedStream(const ResourceMapEntryAgnostic &mapEntry, ResourceHeaderAgnostic &headerEntry) override;
 
-    sci::istream GetPositionedStreamAndResourceSizeIncludingHeader(const ResourceMapEntryAgnostic &mapEntry, uint32_t &size) override
+    sci::istream GetPositionedStreamAndResourceSizeIncludingHeader(const ResourceMapEntryAgnostic &mapEntry, uint32_t &size, bool &includesHeader) override
     {
         assert(false && "Not implemented");
         return sci::istream(nullptr, 0);
@@ -56,7 +56,7 @@ public:
 
     void RemoveEntry(const ResourceMapEntryAgnostic &mapEntry) override;
     AppendBehavior AppendResources(const std::vector<const ResourceBlob*> &blobs) override;
-    void RebuildResources(bool force) override;
+    void RebuildResources(bool force, ResourceSource &source) override;
 
     // A way to call RemoveEntry directly, for more efficiency.
     void RemoveEntries(int number, const std::vector<uint32_t> tuples);

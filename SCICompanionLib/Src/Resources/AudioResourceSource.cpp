@@ -31,7 +31,7 @@ void AudioResourceSource::_EnsureAudioMaps()
     {
         _mapContext = _version.AudioMapResourceNumber;
     }
-    auto resourceContainer = _helper.Resources(ResourceTypeFlags::AudioMap, ResourceEnumFlags::MostRecentOnly);
+    auto resourceContainer = _helper.Resources(ResourceTypeFlags::AudioMap, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::AddInDefaultEnumFlags);
     for (auto &blob : *resourceContainer)
     {
         if ((_mapContext == -1) || (blob->GetNumber() == _mapContext))

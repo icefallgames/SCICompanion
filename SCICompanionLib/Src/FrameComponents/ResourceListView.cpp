@@ -719,7 +719,7 @@ void CResourceListCtrl::OnDelete()
     {
         std::vector<std::unique_ptr<ResourceBlob>> audioResourcesToDelete;
         {
-            auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::AudioMap, ResourceEnumFlags::IncludeCacheFiles);
+            auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::AudioMap, ResourceEnumFlags::IncludeCacheFiles | ResourceEnumFlags::AddInDefaultEnumFlags);
             for (auto &blob : *resourceContainer)
             {
                 if (deletedResourceNumbers.find(blob->GetNumber()) != deletedResourceNumbers.end())
@@ -811,12 +811,13 @@ void CResourceListCtrl::_OnInitListView(int cItems)
 
 void CResourceListCtrl::_DeleteMatchingItems(int resourceNumber, int packageNumber, ResourceSourceFlags sourceFlags)
 {
+    bool matchAgainstPackage = (sourceFlags & ResourceSourceFlags::ResourceMap) == ResourceSourceFlags::ResourceMap;
     int cItems = GetItemCount();
     // Go backwards so that 
     for (int i = cItems - 1; (i >= 0); i--)
     {
         const ResourceBlob *pData = _GetResourceForItemMetadataOnly(i);
-        if ((pData->GetNumber() == resourceNumber) && (pData->GetPackageHint() == packageNumber) && (pData->GetSourceFlags() == sourceFlags))
+        if ((pData->GetNumber() == resourceNumber) && (!matchAgainstPackage || (pData->GetPackageHint() == packageNumber)) && (pData->GetSourceFlags() == sourceFlags))
         {
             DeleteItem(i);
         }
@@ -1091,7 +1092,7 @@ HRESULT CResourceListCtrl::_UpdateEntries()
                 // And we don't need to bother calculating recency.
                 // enumFlags &= ~ResourceEnumFlags::CalculateRecency;
             }
-            auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeToFlag(GetType()), enumFlags);
+            auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeToFlag(GetType()), enumFlags | ResourceEnumFlags::AddInDefaultEnumFlags);
             // Copy the ResourceBlobs into resources, but delay decompression (for performance)
             // REVIEW: We might want to have a wrapper.
             for (auto it = resourceContainer->begin(); it != resourceContainer->end(); ++it)

@@ -106,6 +106,15 @@ sci::istream PatchFilesResourceSource::GetHeaderAndPositionedStream(const Resour
     return sci::istream(nullptr, 0); // Empty stream....
 }
 
+sci::istream PatchFilesResourceSource::GetPositionedStreamAndResourceSizeIncludingHeader(const ResourceMapEntryAgnostic &mapEntry, uint32_t &size, bool &includesHeader)
+{
+    includesHeader = false;
+    ResourceHeaderAgnostic header;
+    sci::istream stream = GetHeaderAndPositionedStream(mapEntry, header);
+    size = header.cbCompressed;
+    return stream;
+}
+
 void PatchFilesResourceSource::RemoveEntry(const ResourceMapEntryAgnostic &mapEntry)
 {
     std::string filename = GetFileNameFor(mapEntry.Type, mapEntry.Number, mapEntry.Base36Number, _version);

@@ -259,12 +259,13 @@ bool NewCompileScript(CompileLog &log, CompileTables &tables, PrecompiledHeaders
 
                 // Save the script resource
                 std::vector<BYTE> &output = results.GetScriptResource();
-                appState->GetResourceMap().AppendResource(ResourceBlob(nullptr, ResourceType::Script, output, appState->GetVersion().DefaultVolumeFile, wNum, NoBase36, appState->GetVersion(), ResourceSourceFlags::ResourceMap));
+                const GameFolderHelper &helper = appState->GetResourceMap().Helper();
+                appState->GetResourceMap().AppendResource(ResourceBlob(nullptr, ResourceType::Script, output, helper.Version.DefaultVolumeFile, wNum, NoBase36, helper.Version, helper.GetDefaultSaveSourceFlags()));
 
                 std::vector<BYTE> &outputHep = results.GetHeapResource();
                 if (!outputHep.empty())
                 {
-                    appState->GetResourceMap().AppendResource(ResourceBlob(nullptr, ResourceType::Heap, outputHep, appState->GetVersion().DefaultVolumeFile, wNum, NoBase36, appState->GetVersion(), ResourceSourceFlags::ResourceMap));
+                    appState->GetResourceMap().AppendResource(ResourceBlob(nullptr, ResourceType::Heap, outputHep, helper.Version.DefaultVolumeFile, wNum, NoBase36, helper.Version, helper.GetDefaultSaveSourceFlags()));
                 }
 
                 appState->GetResourceMap().GetDependencyTracker().ClearScript(pScript->GetScriptId());

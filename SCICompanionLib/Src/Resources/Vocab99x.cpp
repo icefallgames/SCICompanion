@@ -905,7 +905,7 @@ bool GlobalClassTable::_Create(const SpeciesTable &speciesTable)
     // Collect the heap/script pairs first, since fetching the heap individually for each script is a performance issue.
     // Patch files win out.
     unordered_map<uint16_t, pair<unique_ptr<ResourceBlob>, unique_ptr<ResourceBlob>>> heapScriptPairs;
-    auto scriptContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Script | ResourceTypeFlags::Heap, ResourceEnumFlags::MostRecentOnly);
+    auto scriptContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Script | ResourceTypeFlags::Heap, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::AddInDefaultEnumFlags);
     for (auto &scriptResource : *scriptContainer)
     {
         uint16_t scriptNumber = (uint16_t)scriptResource->GetNumber();

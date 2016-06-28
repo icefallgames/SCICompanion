@@ -47,7 +47,7 @@ GenerateDocsDialog::~GenerateDocsDialog()
 void GenerateDocsDialog::_PopulateScripts()
 {
     m_wndScripts.SetRedraw(FALSE);
-    auto scriptResources = _helper.Resources(ResourceTypeFlags::Script, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::NameLookups);
+    auto scriptResources = _helper.Resources(ResourceTypeFlags::Script, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::NameLookups | ResourceEnumFlags::AddInDefaultEnumFlags);
     int itemNumber = 0;
     for (auto &blob : *scriptResources)
     {

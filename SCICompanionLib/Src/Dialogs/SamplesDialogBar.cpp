@@ -113,7 +113,7 @@ void CSamplesDialogBar::_PrepareSamples()
                     // Use the filename minus the .bin:
                     TCHAR *pszExt = PathFindExtension(findData.cFileName);
                     *pszExt = 0; // Get rid of it.
-                    if (SUCCEEDED(blob->CreateFromFile(findData.cFileName, fileName.c_str(), sampleVersion, -1, -1)))
+                    if (SUCCEEDED(blob->CreateFromFile(findData.cFileName, fileName.c_str(), sampleVersion, appState->GetResourceMap().GetDefaultResourceSaveLocation(), - 1, -1)))
                     {
                         if (blob->GetType() == type)
                         {

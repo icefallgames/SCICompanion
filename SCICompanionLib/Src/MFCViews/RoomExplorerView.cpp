@@ -566,7 +566,7 @@ void CRoomExplorerView::CRoomExplorerGrid::AddRoom(GlobalCompiledScriptLookups &
 
 void CRoomExplorerView::CRoomExplorerGrid::LoadResources()
 {
-    auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Pic | ResourceTypeFlags::View, ResourceEnumFlags::MostRecentOnly);
+    auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Pic | ResourceTypeFlags::View, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::AddInDefaultEnumFlags);
     for (auto &pBlob : *resourceContainer)
     {
         if (pBlob->GetType() == ResourceType::Pic)
@@ -1304,7 +1304,7 @@ void CRoomExplorerView::_RecalcHeight()
             }
 
             // We found the pre-requisites, now look for scripts with room instances.
-            auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Script, ResourceEnumFlags::MostRecentOnly);
+            auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Script, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::AddInDefaultEnumFlags);
             for (auto &blob : *resourceContainer)
             {
                 sci::istream byteStream = blob->GetReadStream();

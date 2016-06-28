@@ -791,6 +791,8 @@
 #define IDC_EDITPRI                     1382
 #define IDC_CHECKASPECTRATIO            1383
 #define IDC_GAMMACORRECTED              1384
+#define IDC_CHECKASPECTRATIO2           1384
+#define IDC_CHECKPATCHFILES             1384
 #define IDC_CHECKSELECTALL              1386
 #define IDC_CHECKREDECOMPILE            1387
 #define IDC_GROUPOPTIONS                1388

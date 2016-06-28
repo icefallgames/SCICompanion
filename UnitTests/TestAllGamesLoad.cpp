@@ -118,7 +118,7 @@ namespace UnitTests
             ResourceTypeFlags flags = ResourceTypeFlags::AllCreatable;
             flags &= ~ResourceTypeFlags::Sound;     // Leave sounds out for now, we still don't load SCI10 sounds properly.
             flags &= ~ResourceTypeFlags::Vocab;     // Vocabs can't just be "created", we need to follow more specific logic. TODO
-            auto container = appState->GetResourceMap().Resources(flags, ResourceEnumFlags::None);
+            auto container = appState->GetResourceMap().Resources(flags, ResourceEnumFlags::None | ResourceEnumFlags::AddInDefaultEnumFlags);
             int count = 0;
             for (auto &blob : *container)
             {

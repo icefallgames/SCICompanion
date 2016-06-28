@@ -233,7 +233,7 @@ void ExtractLipSyncDialog::_SyncViewLoop()
             // Fallback to sample view when we want it, or when we couldn't load it.
             std::string mouthSampleFilename = appState->GetResourceMap().GetSamplesFolder() + "\\views\\MouthShapes.bin";
             ResourceBlob blob;
-            if (SUCCEEDED(blob.CreateFromFile("it's a mouth", mouthSampleFilename, sciVersion1_1, -1, -1)))
+            if (SUCCEEDED(blob.CreateFromFile("it's a mouth", mouthSampleFilename, sciVersion1_1, appState->GetResourceMap().GetDefaultResourceSaveLocation(), -1, -1)))
             {
                 _viewResource = CreateResourceFromResourceData(blob);
                 _actuallyUsingSample = true;

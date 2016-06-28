@@ -35,7 +35,8 @@ ResourceEntity::ResourceEntity(const ResourceTraits &traits) :
 Traits(traits),
 ResourceNumber(-1),
 PackageNumber(-1),
-Base36Number(NoBase36)
+Base36Number(NoBase36),
+SourceFlags(ResourceSourceFlags::Invalid)
 {
 }
 

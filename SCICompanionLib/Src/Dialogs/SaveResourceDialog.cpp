@@ -99,9 +99,12 @@ BOOL SaveResourceDialog::_ValidateData()
     }
     else if ((_iPackageNumber < appState->GetVersion().DefaultVolumeFile) || (_iPackageNumber > 63))
     {
-        AfxMessageBox(TEXT("Please specify a package number between 1 and 63.  Unless this is being distributed on floppy disks, use 1."),
-                      MB_OK | MB_APPLMODAL | MB_ICONSTOP);
-        fRet = FALSE;
+        if (appState->GetResourceMap().GetDefaultResourceSaveLocation() == ResourceSaveLocation::Package)
+        {
+            AfxMessageBox(TEXT("Please specify a package number between 1 and 63.  Unless this is being distributed on floppy disks, use 1."),
+                MB_OK | MB_APPLMODAL | MB_ICONSTOP);
+            fRet = FALSE;
+        }
     }
 
     if (fRet && _warnOnOverwrite)

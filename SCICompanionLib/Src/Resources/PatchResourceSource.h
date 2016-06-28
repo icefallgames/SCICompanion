@@ -32,16 +32,11 @@ public:
 
     bool ReadNextEntry(ResourceTypeFlags typeFlags, IteratorState &state, ResourceMapEntryAgnostic &entry, std::vector<uint8_t> *optionalRawData = nullptr) override;
     sci::istream GetHeaderAndPositionedStream(const ResourceMapEntryAgnostic &mapEntry, ResourceHeaderAgnostic &headerEntry) override;
-
-    sci::istream GetPositionedStreamAndResourceSizeIncludingHeader(const ResourceMapEntryAgnostic &mapEntry, uint32_t &size) override
-    {
-        assert(false && "Not implemented");
-        return sci::istream(nullptr, 0);
-    }
+    sci::istream GetPositionedStreamAndResourceSizeIncludingHeader(const ResourceMapEntryAgnostic &mapEntry, uint32_t &size, bool &includesHeader) override;
 
     void RemoveEntry(const ResourceMapEntryAgnostic &mapEntry) override;
     AppendBehavior AppendResources(const std::vector<const ResourceBlob*> &blobs) override;
-    void RebuildResources(bool force) override {} // Nothing to do here.
+    void RebuildResources(bool force, ResourceSource &source) override {} // Nothing to do here.
 
 private:
     HANDLE _hFind;

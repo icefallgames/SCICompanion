@@ -55,7 +55,7 @@ namespace UnitTests
 
         void _DoIt()
         {
-            auto container = appState->GetResourceMap().Resources(ResourceTypeFlags::View, ResourceEnumFlags::MostRecentOnly);
+            auto container = appState->GetResourceMap().Resources(ResourceTypeFlags::View, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::AddInDefaultEnumFlags);
             for (auto &blob : *container)
             {
                 try

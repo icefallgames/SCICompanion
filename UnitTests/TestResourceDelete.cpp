@@ -59,7 +59,7 @@ namespace UnitTests
             std::unique_ptr<ResourceBlob> retrieve;
             count = 0;
             // Only include a subset of resource types, since things like audio/sync are dealt with differently.
-            auto resourceContainer1 = appState->GetResourceMap().Resources(ResourceTypeFlags::View | ResourceTypeFlags::Pic | ResourceTypeFlags::Sound, ResourceEnumFlags::None);
+            auto resourceContainer1 = appState->GetResourceMap().Resources(ResourceTypeFlags::View | ResourceTypeFlags::Pic | ResourceTypeFlags::Sound, ResourceEnumFlags::None | ResourceEnumFlags::AddInDefaultEnumFlags);
             for (auto &blob : *resourceContainer1)
             {
                 if ((count == retrieveNth) || (retrieveNth == -1))

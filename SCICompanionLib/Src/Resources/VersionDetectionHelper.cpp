@@ -329,7 +329,7 @@ KernelSet CResourceMap::_DetectKernelSet()
     }
     else
     {
-        if (DoesResourceExist(ResourceType::Vocab, VocabKernelNames))
+        if (DoesResourceExist(ResourceType::Vocab, VocabKernelNames, nullptr, ResourceSaveLocation::Package))
         {
             // The kernels are listed in a vocab resource (typical for SCI0).
             kernelSet = KernelSet::Provided;
@@ -812,7 +812,7 @@ void CResourceMap::_SniffSCIVersion()
 
     // Which is the parser vocab? If resource 0 is present it's 0. Otherwise it's 900 (or none).
     _gameFolderHelper.Version.MainVocabResource = (MostRecentResource(ResourceType::Vocab, 0, false)) ? 0 : 900;
-    _gameFolderHelper.Version.HasSaidVocab = DoesResourceExist(ResourceType::Vocab, _gameFolderHelper.Version.MainVocabResource);
+    _gameFolderHelper.Version.HasSaidVocab = DoesResourceExist(ResourceType::Vocab, _gameFolderHelper.Version.MainVocabResource, nullptr, ResourceSaveLocation::Package);
 
     if (_gameFolderHelper.Version.MapFormat == ResourceMapFormat::SCI0)
     {

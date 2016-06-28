@@ -15,14 +15,15 @@
 
 enum class ResourceSourceFlags
 {
-    ResourceMap = 0,
+    Invalid = 0,
     MessageMap = 0x0001,
     PatchFile = 0x0002,
     Aud = 0x0004,
     Sfx = 0x0008,
     AudioCache = 0x0010,    // Our special audio folder
     AudioMapCache = 0x0020, // 
-    AltMap = 0x0040
+    AltMap = 0x0040,
+    ResourceMap = 0x0080,
 };
 
 enum class ResourceLoadStatusFlags : uint8_t

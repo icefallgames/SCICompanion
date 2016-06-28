@@ -475,7 +475,7 @@ void SCIClassBrowser::ReLoadFromCompiled(ITaskStatus &task)
     }
 
     unordered_map<int, pair<unique_ptr<ResourceBlob>, unique_ptr<ResourceBlob>>> heapScriptPairs;
-    auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Script | ResourceTypeFlags::Heap, ResourceEnumFlags::MostRecentOnly);
+    auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Script | ResourceTypeFlags::Heap, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::AddInDefaultEnumFlags);
     for (auto &scriptBlob : *resourceContainer)
     {
         pair<unique_ptr<ResourceBlob>, unique_ptr<ResourceBlob>> &entry = heapScriptPairs[scriptBlob->GetNumber()];

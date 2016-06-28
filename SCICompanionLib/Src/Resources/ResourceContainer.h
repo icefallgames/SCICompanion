@@ -27,6 +27,10 @@ enum class ResourceEnumFlags : uint16_t
     MostRecentOnly  = 0x0004,
     ExcludePatchFiles = 0x0008,
     IncludeCacheFiles = 0x0010,
+    ExcludePackagedFiles = 0x0020,
+
+    //
+    AddInDefaultEnumFlags = 0x8000
 };
 
 std::string GetGameIniFileName(const std::string &gameFolder);

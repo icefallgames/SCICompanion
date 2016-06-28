@@ -659,7 +659,7 @@ void DropResourceFiles(CArray<CString, CString&> *pDropFiles)
         else if (IsResourceFileName(PathFindFileName(pDropFiles->GetAt(i)), &iNumber, resNameFromFilename))
         {
             ResourceBlob data;
-            if (SUCCEEDED(data.CreateFromFile(nullptr, (PCSTR)pDropFiles->GetAt(i), appState->GetVersion(), appState->GetVersion().DefaultVolumeFile, iNumber)))
+            if (SUCCEEDED(data.CreateFromFile(nullptr, (PCSTR)pDropFiles->GetAt(i), appState->GetVersion(), appState->GetResourceMap().GetDefaultResourceSaveLocation(), appState->GetVersion().DefaultVolumeFile, iNumber)))
             {
                 // Before adding it, check to see if this resource number already exists.
                 bool askForNumber = (iNumber == -1);

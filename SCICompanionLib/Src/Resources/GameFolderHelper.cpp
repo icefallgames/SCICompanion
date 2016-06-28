@@ -29,6 +29,7 @@ const std::string LanguageKey = "Language";
 const std::string LanguageValueStudio = "sc";
 const std::string LanguageValueSCI = "sci";
 const std::string AspectRatioKey = "UseSierraAspectRatio";
+const std::string PatchFileKey = "SaveToPatchFiles";
 const std::string TrueValue = "true";
 const std::string FalseValue = "false";
 
@@ -224,6 +225,33 @@ void GameFolderHelper::SetUseSierraAspectRatio(bool useSierra) const
     SetIniString(GameSection, AspectRatioKey, useSierra ? TrueValue : FalseValue);
 }
 
+ResourceSaveLocation GameFolderHelper::GetResourceSaveLocation(ResourceSaveLocation location) const
+{
+    if (location == ResourceSaveLocation::Default)
+    {
+        std::string value = GetIniString(GameSection, PatchFileKey, FalseValue.c_str());
+        std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+        return (value == TrueValue) ? ResourceSaveLocation::Patch : ResourceSaveLocation::Package;
+    }
+    return location;
+}
+
+void GameFolderHelper::SetResourceSaveLocation(ResourceSaveLocation location) const
+{
+    SetIniString(GameSection, PatchFileKey, (location == ResourceSaveLocation::Patch) ? TrueValue : FalseValue);
+}
+
+ResourceEnumFlags GameFolderHelper::GetDefaultEnumFlags() const
+{
+    ResourceSaveLocation saveLocation = GetResourceSaveLocation(ResourceSaveLocation::Default);
+    return (saveLocation == ResourceSaveLocation::Patch) ? ResourceEnumFlags::ExcludePackagedFiles : ResourceEnumFlags::None;
+}
+
+ResourceSourceFlags GameFolderHelper::GetDefaultSaveSourceFlags() const
+{
+    ResourceSaveLocation saveLocation = GetResourceSaveLocation(ResourceSaveLocation::Default);
+    return (saveLocation == ResourceSaveLocation::Patch) ? ResourceSourceFlags::PatchFile : ResourceSourceFlags::ResourceMap;
+}
 
 //
 // Perf: we're opening and closing the file each time.  We could do this once.
@@ -241,6 +269,11 @@ std::string GameFolderHelper::FigureOutName(ResourceType type, int iNumber, uint
 
 std::unique_ptr<ResourceContainer> GameFolderHelper::Resources(ResourceTypeFlags types, ResourceEnumFlags enumFlags, ResourceRecency *pRecency, int mapContext) const
 {
+    if (IsFlagSet(enumFlags, ResourceEnumFlags::AddInDefaultEnumFlags))
+    {
+        enumFlags |= GetDefaultEnumFlags();
+    }
+
     // If audio or sync resources are requested, we can't also have maps.
     if (IsFlagSet(types, ResourceTypeFlags::Audio))
     {
@@ -274,7 +307,7 @@ std::unique_ptr<ResourceContainer> GameFolderHelper::Resources(ResourceTypeFlags
         }
 
         // Add readers for message map files, if requested
-        if (IsFlagSet(types, ResourceTypeFlags::Message) && (mapContext == -1))
+        if (IsFlagSet(types, ResourceTypeFlags::Message) && !IsFlagSet(enumFlags, ResourceEnumFlags::ExcludePackagedFiles) && (mapContext == -1))
         {
             FileDescriptorBase *fd = nullptr;
             FileDescriptorMessageMap messageMap(GameFolder);
@@ -293,13 +326,13 @@ std::unique_ptr<ResourceContainer> GameFolderHelper::Resources(ResourceTypeFlags
             }
         }
         
-        if (IsFlagSet(types, ResourceTypeFlags::Audio))
+        if (IsFlagSet(types, ResourceTypeFlags::Audio) && !IsFlagSet(enumFlags, ResourceEnumFlags::ExcludePackagedFiles))
         {
             mapAndVolumes->push_back(move(make_unique<AudioResourceSource>(*this, mapContext, ResourceSourceAccessFlags::Read)));
         }
 
         // Now the standard resource maps
-        if (mapContext == -1)
+        if (!IsFlagSet(enumFlags, ResourceEnumFlags::ExcludePackagedFiles) && (mapContext == -1))
         {
             mapAndVolumes->push_back(move(CreateResourceSource(*this, ResourceSourceFlags::ResourceMap)));
         }

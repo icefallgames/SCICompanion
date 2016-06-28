@@ -36,6 +36,7 @@ class ResourceRecency;
 class ResourceEntity;
 class GlobalCompiledScriptLookups;
 class IResourceMapEvents;
+enum class ResourceSaveLocation : uint16_t;
 
 std::string GetIniString(const std::string &iniFileName, std::string &sectionName, const std::string &keyName, PCSTR pszDefault);
 HRESULT RebuildResources(BOOL fShowUI);
@@ -69,10 +70,12 @@ public:
     void AssignName(const ResourceBlob &resource);
     void AssignName(ResourceType iType, int iResourceNumber, uint32_t base36Number, PCTSTR pszName);
 
+    ResourceSaveLocation GetDefaultResourceSaveLocation();
+
     // The main functions for enumerating resources.
     std::unique_ptr<ResourceContainer> Resources(ResourceTypeFlags types, ResourceEnumFlags flags, int mapContext = -1);
     std::unique_ptr<ResourceBlob> MostRecentResource(ResourceType type, int number, bool getName, uint32_t base36Number = NoBase36, int mapContext = -1);
-    bool DoesResourceExist(ResourceType type, int number, std::string *retrieveName = nullptr);
+    bool DoesResourceExist(ResourceType type, int number, std::string *retrieveName = nullptr, ResourceSaveLocation location = ResourceSaveLocation::Default);
 
     void PurgeUnnecessaryResources();
 

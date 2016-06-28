@@ -364,7 +364,7 @@ bool MessageEditPane::_UpdateAudio(const TextEntry &messageEntry)
         {
             std::string mouthSampleFilename = appState->GetResourceMap().GetSamplesFolder() + "\\views\\MouthShapes.bin";
             ResourceBlob blob;
-            if (SUCCEEDED(blob.CreateFromFile("it's a mouth", mouthSampleFilename, sciVersion1_1, -1, -1)))
+            if (SUCCEEDED(blob.CreateFromFile("it's a mouth", mouthSampleFilename, sciVersion1_1, appState->GetResourceMap().GetDefaultResourceSaveLocation(), - 1, -1)))
             {
                 _mouthView = CreateResourceFromResourceData(blob);
             }
