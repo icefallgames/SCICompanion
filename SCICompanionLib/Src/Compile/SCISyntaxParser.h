@@ -106,7 +106,7 @@ private:
     ParserSCI asm_label;
     ParserSCI asm_arg;
     ParserSCI cond_statement;
-
+    ParserSCI size_of;
     ParserSCI entire_header;
 
     // Non-code parsers:

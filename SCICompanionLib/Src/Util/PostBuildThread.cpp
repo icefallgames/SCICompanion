@@ -135,7 +135,7 @@ void PostBuildThread::_Main()
             TRUE,       // inherit handles
             0,          // creation flags,
             nullptr,    // use parent's environment
-            nullptr,    // use parent's current directory
+            _gameFolder.c_str(),    // current directory (not set on bg thread, so need to specify?)
             &startInfo,
             &procInfo)
             )

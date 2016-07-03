@@ -112,6 +112,7 @@ vector<string> SCIKeywords =
     "define",
     "&tmp",
     "&rest",
+    "&sizeof",
     "script#"
     // neg, send, case, do, default, export are also keywords, but for the Studio language.
 
@@ -787,6 +788,8 @@ void SCISyntaxParser::Load()
     // Also matches #posn? or #posn: for backwards compatibility.
     selector_literal = pound >> (alphanumNK_p2[{nullptr, ParseAutoCompleteContext::Selector}] | selector_send_p);
 
+    size_of = keyword_p("&sizeof") >> alphanumNK_p[{nullptr, ParseAutoCompleteContext::PureValue}];
+
     pointer = atsign;
 
     export_entry = general_token[{nullptr, ParseAutoCompleteContext::Export}] >> integer_p[AddExportA];
@@ -807,7 +810,8 @@ void SCISyntaxParser::Load()
         | squotedstring_p[{ComplexValueStringA<ValueType::Said>, ParseAutoCompleteContext::Block}]
         | bracestring_p[{ComplexValueStringA<ValueType::String>, ParseAutoCompleteContext::Block}]
         | (-pointer[ComplexValuePointerA] >> rvalue_variable)
-        | selector_literal[ComplexValueStringA<ValueType::Selector>]);
+        | selector_literal[ComplexValueStringA<ValueType::Selector>]
+        | size_of[ComplexValueStringA<ValueType::ArraySize>]);
 
     repeat_statement =
         keyword_p("repeat")[SetRepeatStatementA]

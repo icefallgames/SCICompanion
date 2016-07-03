@@ -30,16 +30,16 @@ private:
 
 namespace sci
 {
-	enum class ValueType : uint32_t
-	{
-		String = 0x00000000,
-		Said = 0x00000001,
-		Number = 0x00000002,
-		Token = 0x00000003,
-		Selector = 0x00000004,
-		Pointer = 0x00000005,
-		None = 0x00000006,
-		ResourceString = 0x00000007, // Not available in SCIStudio syntax
-	};
-
+    enum class ValueType : uint32_t
+    {
+        String = 0x00000000,
+        Said = 0x00000001,
+        Number = 0x00000002,
+        Token = 0x00000003,
+        Selector = 0x00000004,
+        Pointer = 0x00000005,
+        None = 0x00000006,
+        ResourceString = 0x00000007,    // Not available in SCIStudio syntax
+        ArraySize = 0x00000008,         // e.g. &sizeof MyArray - should get converted in prescan
+    };
 }

@@ -938,6 +938,44 @@ void PropertyValueBase::PreScan(CompileContext &context)
             _type = ValueType::Number;
         }
         break;
+
+    case ValueType::ArraySize:
+        {
+            uint16_t arraySize = 1;
+            auto it = context.ScriptArraySizes.find(_stringValue);
+            if (it == context.ScriptArraySizes.end())
+            {
+                // Maybe it's a temp var.
+                bool found = false;
+                if (context.FunctionBaseForPrescan)
+                {
+                    for (const auto &var : context.FunctionBaseForPrescan->GetVariables())
+                    {
+                        found = (var->GetName() == _stringValue);
+                        if (found)
+                        {
+                            // Temp vars must have specified size
+                            assert(!var->IsUnspecifiedSize());
+                            arraySize = var->GetSize();
+                            break;
+                        }
+                    }
+                }
+
+                if (!found)
+                {
+                    context.ReportError(this, "Unknown array: '%s'.", _stringValue.c_str());
+                }
+            }
+            else
+            {
+                arraySize = it->second;
+            }
+            // It's now a number...
+            _type = ValueType::Number;
+            _numberValue = arraySize;
+    }
+        break;
     }
     // Also pre-scan the indexer
     if (GetIndexer())
@@ -3416,6 +3454,8 @@ void FunctionBase::PreScan(CompileContext &context)
         ReportKeywordError(context, this, GetName(), "function name");
     }
 
+    context.FunctionBaseForPrescan = this;
+
     std::set<std::string> parameterCollection; // Collect parameters
     for (auto &signature : _signatures)
     {
@@ -3449,6 +3489,7 @@ void FunctionBase::PreScan(CompileContext &context)
     ForwardPreScan2(_signatures, context);
 
     // TODO: emit warning when a local variable hides a class member.
+    context.FunctionBaseForPrescan = nullptr;
 }
 void CodeBlock::PreScan(CompileContext &context)
 {
@@ -3764,4 +3805,23 @@ void ConvertAndOrSequenceIntoTree(sci::SyntaxNodeVector &statements, std::vector
 
     assert(statements.size() == 1);
     assert(andOrs.empty());
+}
+
+void TrackArraySizes(CompileContext &context, sci::Script &script)
+{
+    for (auto &varDecl : script.GetScriptVariables())
+    {
+        if (varDecl->IsUnspecifiedSize())
+        {
+            // It's pretty straightforward... the size is the number of initializers
+            uint16_t size = (uint16_t)varDecl->GetInitializers().size();
+            // And at least one.
+            size = max(1, size);
+            context.ScriptArraySizes[varDecl->GetName()] = size;
+        }
+        else
+        {
+            context.ScriptArraySizes[varDecl->GetName()] = varDecl->GetSize();
+        }
+    }
 }

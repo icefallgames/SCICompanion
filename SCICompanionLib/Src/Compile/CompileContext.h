@@ -48,6 +48,7 @@ namespace sci
 	class Script;
     class PropertyValue;
     class VariableDecl;
+    class FunctionBase;
 }
 class CResourceMap;
 class IOutputByteCode;
@@ -141,6 +142,9 @@ public:
     // Returns all strings or saids that have been tracked via GetTempToken.
     std::vector<std::string> GetStrings();
     std::vector<std::string> GetSaids();
+
+    std::map<std::string, uint16_t> ScriptArraySizes;
+    const sci::FunctionBase *FunctionBaseForPrescan;
 
 private:
     std::map<std::string, uint16_t> *_GetTempTokenMap(sci::ValueType type);
@@ -523,3 +527,4 @@ bool NewCompileScript(CompileLog &log, CompileTables &tables, PrecompiledHeaders
 std::unique_ptr<sci::Script> SimpleCompile(CompileLog &log, ScriptId &scriptId, bool addCommentsToOM = false);
 void MergeScripts(sci::Script &mainScript, sci::Script &scriptToBeMerged);
 void ParseSaidString(CompileContext &context, const std::string &stringCode, std::vector<uint8_t> *output, const ISourceCodePosition *pos);
+void TrackArraySizes(CompileContext &context, sci::Script &script);

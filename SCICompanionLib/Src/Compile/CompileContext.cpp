@@ -167,7 +167,8 @@ CompileContext::CompileContext(SCIVersion version, Script &script, PrecompiledHe
         _version(version),
         _code(_version),
         _nextTempToken(TempTokenBase),
-        _autoTextNumber(InvalidResourceNumber)
+        _autoTextNumber(InvalidResourceNumber),
+        FunctionBaseForPrescan(nullptr)
 {
     _pErrorScript = &_script;
     _modifier = VM_None;

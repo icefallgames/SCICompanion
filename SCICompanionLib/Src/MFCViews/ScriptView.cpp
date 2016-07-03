@@ -402,6 +402,7 @@ std::vector<std::string> codeLevelKeywordsSCI =
 {
     // Sorted
     _T("&rest"),
+    _T("&sizeof"),
     // _T("&tmp"),   // This is special
     _T("and"),
     _T("argc"),

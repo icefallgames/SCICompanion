@@ -162,6 +162,9 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
         // Grab variables and defines from included headers
         if (IsFlagSet(sourceTypes, AutoCompleteSourceType::Variable | AutoCompleteSourceType::Define))
         {
+            // Let's through sizeof in here too...
+            MergeResults(result->choices, prefix, AutoCompleteIconIndex::Keyword, { "&sizeof" });
+
             ClassBrowserLock browserLock(browser);
             browserLock.Lock();
             for (const std::string &headerName : parsedCustomHeaders)
