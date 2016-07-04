@@ -20,9 +20,10 @@
 #include "PaletteDefinitionDialog.h"
 #include "ChooseColorAdvancedDialog.h"
 #include "PicCommands.h"
+#include "ColorAdjustDialog.h"
 
-volatile int g_fChecked = 0;
-volatile int g_fPreview = 0;
+volatile int g_fChecked = 1; // write entire palette by default
+volatile int g_fPreview = 1; // Should be on by default
 
 CPaletteDefinitionDialog::CPaletteDefinitionDialog(IEGAPaletteDefinitionCallback &callback, PicComponent &pic, ptrdiff_t pos, uint8_t paletteNumber, CWnd* pParent /*=NULL*/)
     : CExtResizableDialog(CPaletteDefinitionDialog::IDD, pParent), _callback(callback), _pic(pic), _position(pos), _changed(false), _copy(pic), _viewport(paletteNumber)
@@ -83,6 +84,7 @@ void CPaletteDefinitionDialog::DoDataExchange(CDataExchange* pDX)
 
     DDX_Control(pDX, IDC_CHECK1, m_wndCheck);
     DDX_Control(pDX, IDC_CHECK2, m_wndPreview);
+    DDX_Control(pDX, IDC_BUTTONADJUST, m_wndAdjust);
 
     m_wndCheck.SetCheck(g_fChecked);
     m_wndPreview.SetCheck(g_fPreview);
@@ -109,6 +111,7 @@ BEGIN_MESSAGE_MAP(CPaletteDefinitionDialog, CExtResizableDialog)
     ON_BN_CLICKED(IDC_CHECK1, OnCheckClick)
     ON_BN_CLICKED(IDC_CHECK2, OnPreviewToggle)
     ON_BN_CLICKED(IDC_BUTTONADVANCED, OnAdvancedClick)
+    ON_BN_CLICKED(IDC_BUTTONADJUST, &CPaletteDefinitionDialog::OnBnClickedButtonadjust)
 END_MESSAGE_MAP()
 
 void CPaletteDefinitionDialog::OnTabChange(NMHDR *pnmhdr, LRESULT *ples)
@@ -239,4 +242,57 @@ bool _GetPaletteFilename(bool open, const std::string &dialogTitle, std::string 
         return true;
     }
     return false;
+}
+
+
+void CPaletteDefinitionDialog::OnBnClickedButtonadjust()
+{
+    // Keep a copy of the palette
+    EGACOLOR paletteBackup[4 * 40];
+    std::copy(std::begin(_palette), std::end(_palette), paletteBackup);
+
+    // Pretend we're a VGA palette
+    bool multipleSelection[256] = {};
+    // The selected colors will be those from the current palette:
+    for (int i = 0; i < 40; i++)
+    {
+        multipleSelection[_iCurPalette * 40 + i] = true;
+    }
+    // Now, convert to RGB:
+    paletteComponentEGA = std::make_unique<PaletteComponent>();
+    std::transform(std::begin(_palette), std::end(_palette), paletteComponentEGA->Colors,
+        [](EGACOLOR ega)
+    {
+        return EgaColorToRGBQuad(ega);
+    }
+        );
+
+    ColorAdjustDialog dialog(*paletteComponentEGA, this, multipleSelection, this);
+    if (IDOK == dialog.DoModal())
+    {
+        // We're good
+    }
+    else
+    {
+        // Restore original
+        std::copy(std::begin(paletteBackup), std::end(paletteBackup), _palette);
+    }
+}
+
+// Possible improvements:
+//  Offer choice of matching algorithms
+//  Offer subselection of colors
+
+void CPaletteDefinitionDialog::OnVGAPaletteChanged()
+{
+    // Just update all 40 colors
+    for (int i = 0; i < 40; i++)
+    {
+        COLORREF color = _ColorRefFromRGBQuad(paletteComponentEGA->Colors[_iCurPalette * 40 + i]);
+        // 1: general matching, true: gamma-correct, 1: all 136 colors. 3 would be only smooth ones.
+        _palette[_iCurPalette * 40 + i] = GetClosestEGAColor(1, true, 1, color);
+    }
+
+    m_wndStaticPalette.OnPaletteUpdated();
+    ApplyPreview();
 }

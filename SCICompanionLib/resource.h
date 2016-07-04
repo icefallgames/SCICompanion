@@ -321,6 +321,8 @@
 #define IDC_BUTTONBROWSE                1004
 #define IDC_BUTTONMOVE                  1004
 #define IDC_BUTTONBG                    1004
+#define IDC_BUTTONADVANCED2             1004
+#define IDC_BUTTONADJUST                1004
 #define IDC_BUTTON3                     1005
 #define IDC_SETPENSTYLE                 1005
 #define IDC_BUTTON_ADDCELAFTER          1005
@@ -791,7 +793,6 @@
 #define IDC_EDITPRI                     1382
 #define IDC_CHECKASPECTRATIO            1383
 #define IDC_GAMMACORRECTED              1384
-#define IDC_CHECKASPECTRATIO2           1384
 #define IDC_CHECKPATCHFILES             1384
 #define IDC_CHECKSELECTALL              1386
 #define IDC_CHECKREDECOMPILE            1387

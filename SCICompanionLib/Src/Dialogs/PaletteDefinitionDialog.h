@@ -21,11 +21,12 @@
 #include "PicDoc.h"
 
 struct PicComponent;
+struct PaletteComponent;
 
 extern volatile int g_fChecked;
 extern volatile int g_fPreview;
 
-class CPaletteDefinitionDialog : public CExtResizableDialog, public IColorDialogCallback
+class CPaletteDefinitionDialog : public CExtResizableDialog, public IColorDialogCallback, public IVGAPaletteDefinitionCallback
 {
 public:
     CPaletteDefinitionDialog(IEGAPaletteDefinitionCallback &callback, PicComponent &pic, ptrdiff_t pos, uint8_t paletteNumber, CWnd* pParent = nullptr);  // standard constructor
@@ -33,6 +34,9 @@ public:
     // IColorDialogCallback
     void OnColorClick(BYTE bIndex, int nID, BOOL fLeftClick);
     void OnColorHover(BYTE bIndex) {};
+
+    // IVGAPaletteDefinitionCallback
+    void OnVGAPaletteChanged() override;
 
 	virtual ~CPaletteDefinitionDialog();
 
@@ -60,6 +64,7 @@ protected:
     CTabCtrl m_wndTab;
     CExtCheckBox m_wndCheck;
     CExtCheckBox m_wndPreview;
+    CExtButton m_wndAdjust;
 
     // Visuals
     CExtButton m_wndAdvanced;
@@ -77,4 +82,9 @@ protected:
     ptrdiff_t _position;
     ViewPort _viewport;
     bool _changed;
+
+    std::unique_ptr<PaletteComponent> paletteComponentEGA;
+
+public:
+    afx_msg void OnBnClickedButtonadjust();
 };

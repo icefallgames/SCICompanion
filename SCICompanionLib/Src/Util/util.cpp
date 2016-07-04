@@ -304,7 +304,31 @@ int GetColorDistance5(HSL one, COLORREF color1, COLORREF color2)
     return GetColorDistance(color1, color2) + GetColorDistance2(one, color2);
 }
 
+RGBQUAD _RGBQuadFromColorRef(COLORREF color)
+{
+    RGBQUAD rgb = {};
+    rgb.rgbRed = GetRValue(color);
+    rgb.rgbGreen = GetGValue(color);
+    rgb.rgbBlue = GetBValue(color);
+    return rgb;
+}
 
+COLORREF _ColorRefFromRGBQuad(RGBQUAD color)
+{
+    return RGB(color.rgbRed, color.rgbGreen, color.rgbBlue);
+}
+
+
+RGBQUAD EgaColorToRGBQuad(EGACOLOR ega)
+{
+    if (!g_bFilledCOLORREFArray)
+    {
+        FillCOLORREFArray();
+        assert(g_bFilledCOLORREFArray);
+    }
+
+    return _RGBQuadFromColorRef(g_rgColorCombosGamma[EGACOLOR_TO_BYTE(ega)]);
+}
 
 //
 // Returns the closest matching EGACOLOR to color.
