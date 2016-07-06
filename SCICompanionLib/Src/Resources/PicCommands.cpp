@@ -602,7 +602,7 @@ ViewPort::ViewPort() :ViewPort(static_cast<uint8_t>(0))
 
 void ViewPort::Reset(uint8_t bPaletteToUse)
 {
-    dwDrawEnable = PicScreenFlags::None;
+    dwDrawEnable = PicScreenFlags::Visual;
     bPriorityValue = 0;
     bControlValue = 0;
     egaColor.color1 = 0;
