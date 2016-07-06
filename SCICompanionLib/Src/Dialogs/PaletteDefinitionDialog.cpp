@@ -293,6 +293,7 @@ void CPaletteDefinitionDialog::OnVGAPaletteChanged()
         _palette[_iCurPalette * 40 + i] = GetClosestEGAColor(1, true, 1, color);
     }
 
+    m_wndStaticPalette.SetPalette(5, 8, GetCurrentPalettePtr(), ARRAYSIZE(g_egaColors), g_egaColors);
     m_wndStaticPalette.OnPaletteUpdated();
     ApplyPreview();
 }

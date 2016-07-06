@@ -169,10 +169,16 @@ void FillCOLORREFArray()
             // Calculate the 136 unique colours
             ASSERT(iIndex < ARRAYSIZE(g_rg136ToByte));
             RGBQUAD rgbq = _Combine(g_egaColors[i], g_egaColors[j]);
+
+            // Darker color in top left - might look better side-by-side
+            int a = g_egaColors[i].rgbRed + g_egaColors[i].rgbGreen + g_egaColors[i].rgbBlue;
+            int b = g_egaColors[j].rgbRed + g_egaColors[j].rgbGreen + g_egaColors[j].rgbBlue;
+            bool swap = (a > b);
+
             COLORREF color = RGB(rgbq.rgbRed, rgbq.rgbGreen, rgbq.rgbBlue);
             // And the BYTE/EGACOLOR it maps to:
-            g_rg136ToByte[iIndex].color1 = i;
-            g_rg136ToByte[iIndex].color2 = j;
+            g_rg136ToByte[iIndex].color1 = swap ? j : i;
+            g_rg136ToByte[iIndex].color2 = swap ? i : j;
             if (i == j)
             {
                 g_rg16ToByte[iIndex16].color1 = i;
@@ -182,8 +188,8 @@ void FillCOLORREFArray()
             // See if this is a "smooth" colour
             if (200 > GetNormalizedColorDistance(g_egaColorsCR[i], g_egaColorsCR[j]))
             {
-                g_rgSmoothToByte[g_cSmoothEntries].color1 = i;
-                g_rgSmoothToByte[g_cSmoothEntries].color2 = j;
+                g_rgSmoothToByte[g_cSmoothEntries].color1 = swap ? j : i;
+                g_rgSmoothToByte[g_cSmoothEntries].color2 = swap ? i : j;
                 g_cSmoothEntries++;
             }
             iIndex++;
@@ -742,14 +748,15 @@ void ScriptId::_Init(PCTSTR pszFullFileName, WORD wScriptNum)
     _wScriptNum = wScriptNum;
     if (pszFullFileName)
     {
-        path fullPath(pszFullFileName);
-        _strFileName = fullPath.filename();
-        _strFolder = fullPath.parent_path();
-        /*
+        //path fullPath(pszFullFileName);
+        //_strFileName = fullPath.filename();
+        //_strFolder = fullPath.parent_path();
+        // Sigh Microsoft... std::tr2::sys doesn't work with UNC shares...
         CString str = pszFullFileName;
         int iIndexBS = str.ReverseFind('\\');
         _strFolder = str.Left(iIndexBS);
-        _strFileName = str.Right(str.GetLength() - iIndexBS - 1);*/
+        _strFileName = str.Right(str.GetLength() - iIndexBS - 1);
+
         _strFileNameOrig = _strFileName;
         _MakeLower();
         _DetermineLanguage();
