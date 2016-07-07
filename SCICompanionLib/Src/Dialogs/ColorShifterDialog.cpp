@@ -20,8 +20,10 @@
 
 using namespace std;
 
+ShiftExtent g_lastShiftExtent = ShiftExtent::Cel; // Remember last choice.
+
 ColorShifterDialog::ColorShifterDialog(const PaletteComponent &palette, int colorCount, RasterComponent &raster, CelIndex celIndex, IColorShiftCallback &callback, CWnd* pParent /*=NULL*/)
-    : CExtResizableDialog(ColorShifterDialog::IDD, pParent), _palette(palette), _rasterActual(raster), _shiftExtent(ShiftExtent::Cel), _celIndex(celIndex), _callback(callback)
+    : CExtResizableDialog(ColorShifterDialog::IDD, pParent), _palette(palette), _rasterActual(raster), _shiftExtent(g_lastShiftExtent), _celIndex(celIndex), _callback(callback)
 {
     // This is the path used for dialog-based guys.
     // CountActualUsedColors(cels, _actualUsedColors);
@@ -79,9 +81,11 @@ void ColorShifterDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_BUTTONRIGHT, m_wndRight);
 
     DDX_Control(pDX, IDC_RADIOCEL, m_wndCel);
-    m_wndCel.SetCheck(BST_CHECKED);
+    m_wndCel.SetCheck(_shiftExtent ==  ShiftExtent::Cel);
     DDX_Control(pDX, IDC_RADIOLOOP, m_wndLoop);
+    m_wndLoop.SetCheck(_shiftExtent == ShiftExtent::Loop);
     DDX_Control(pDX, IDC_RADIOVIEW, m_wndView);
+    m_wndView.SetCheck(_shiftExtent == ShiftExtent::View);
 
     DDX_Control(pDX, IDC_STATICGROUP, m_wndGroup);
 
@@ -282,4 +286,10 @@ void ColorShifterDialog::OnBnClickedRadioview()
 {
     _shiftExtent = ShiftExtent::View;
     _UpdateView();
+}
+
+void ColorShifterDialog::OnOK()
+{
+    g_lastShiftExtent = _shiftExtent;
+    __super::OnOK();
 }

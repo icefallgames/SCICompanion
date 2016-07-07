@@ -40,6 +40,7 @@ public:
 
     void OnColorClick(BYTE bIndex, int nID, BOOL fLeft) override;
     void OnColorHover(BYTE bIndex) override {}
+    void OnOK() override;
 
 private:
     void DoDataExchange(CDataExchange* pDX) override;    // DDX/DDV support
