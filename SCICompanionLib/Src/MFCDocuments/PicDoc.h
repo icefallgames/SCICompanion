@@ -124,6 +124,7 @@ public:
 
 // Overrides
 public:
+    ptrdiff_t v_GetExtra() override;
     BOOL OnNewDocument() override;
     void OnCloseDocument() override;
 

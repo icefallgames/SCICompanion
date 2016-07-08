@@ -17,6 +17,7 @@
 // A generic undo for sci resources.
 // _TBase is the baseclass of the MFC document object to which you want to add this functionality
 // _TItem is the resource type
+// ptrdiff_t is any extra info (like cursor position) you wish to include with the undo snapshot
 //
 
 #define MAX_UNDO 100
@@ -25,23 +26,41 @@
 template <class _TBase, class _TItem>
 class CUndoResource : public _TBase
 {
+private:
+    struct UndoData
+    {
+        UndoData(std::unique_ptr<_TItem>&& theItem, ptrdiff_t theExtra)
+        {
+            item = std::move(theItem);
+            extra = theExtra;
+        }
+
+        std::unique_ptr<_TItem> item;
+        ptrdiff_t extra;
+    };
+
+protected:
+    // Implementors can override to attach extra data to a resource in the undo stack
+    virtual ptrdiff_t v_GetExtra() { return 0; }
+
 public:
-    typedef std::list<std::unique_ptr<_TItem>> _MyListType;
+
+    typedef std::list<UndoData> _MyListType;
 
     CUndoResource()
     {
         _pos = _undo.end();
     }
 
-    void AddFirstResource(std::unique_ptr<_TItem> pResource)
+    void AddFirstResource(std::unique_ptr<_TItem> pResource, ptrdiff_t extra = 0)
     {
         ASSERT(_pos == _undo.end());
         _pLastSaved = pResource.get();
-        _undo.push_back(std::move(pResource));
+        _undo.emplace_back(std::move(pResource), extra);
         _pos = _GetLastUndoFrame();
     }
 
-	void AddNewResourceToUndo(std::unique_ptr<_TItem> pResourceNew)
+	void AddNewResourceToUndo(std::unique_ptr<_TItem> pResourceNew, ptrdiff_t extra = 0)
 	{
 		// Delete all resources after the current one.
         _MyListType::iterator pos = _pos;
@@ -56,12 +75,20 @@ public:
 		}
 
 		// Insert after the current pos (which is now the end), and make this our new pos.
-		_undo.push_back(std::move(pResourceNew));	// TODO
+        _undo.emplace_back(std::move(pResourceNew), extra);
 		_pos = _GetLastUndoFrame();
 
 		// Make sure we don't grow infinitely.
 		_TrimUndoStack();
 	}
+
+    void SetExtra(ptrdiff_t extra)
+    {
+        if (_pos != _undo.end())
+        {
+            _pos->extra = extra;
+        }
+    }
 
     void SetLastSaved(const _TItem *pResource)
     {
@@ -71,7 +98,13 @@ public:
     // Gets the resource at the current location
     const _TItem *GetResource() const
     {
-        return (_pos != _undo.end()) ? (*_pos).get() : nullptr;
+        return (_pos != _undo.end()) ? (*_pos).item.get() : nullptr;
+    }
+
+    // Gets the extra data associated with the resource at the current location
+    ptrdiff_t GetExtra() const
+    {
+        return (_pos != _undo.end()) ? (*_pos).extra : 0;
     }
 
     bool HasUndos()
@@ -87,7 +120,7 @@ protected:
         {
             --_pos;
             _OnUndoRedo();
-            SetModifiedFlag((*_pos).get() != _pLastSaved);
+            SetModifiedFlag((*_pos).item.get() != _pLastSaved);
         }
     }
 
@@ -97,7 +130,7 @@ protected:
         {
             ++_pos;
             _OnUndoRedo();
-            SetModifiedFlag((*_pos).get() != _pLastSaved);
+            SetModifiedFlag((*_pos).item.get() != _pLastSaved);
         }
     }
 
@@ -175,7 +208,6 @@ private:
 
     const _TItem *_pLastSaved; // Weak ref
 };
-
 
 BEGIN_TEMPLATE_MESSAGE_MAP_2(CUndoResource, _TBase, _TItem, _TBase)
     ON_COMMAND(ID_EDIT_UNDO, OnUndo)

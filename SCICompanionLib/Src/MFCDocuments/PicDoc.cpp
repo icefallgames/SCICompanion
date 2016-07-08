@@ -211,6 +211,12 @@ void CPicDoc::OnToolbarDropDown(NMTOOLBAR *pnmtb)
     }
 }
 
+// So that we store the pic pos in the undo stack:
+ptrdiff_t CPicDoc::v_GetExtra()
+{
+    return _pdm.GetPos();
+}
+
 BOOL CPicDoc::OnNewDocument()
 {
     if (!__super::OnNewDocument())
@@ -255,7 +261,7 @@ void CPicDoc::SetEditPic(DependencyTracker &tracker, std::unique_ptr<ResourceEnt
         _lastPoly = std::make_unique<PolygonComponent>(pEditPic->GetComponent<PolygonComponent>());
     }
 
-    AddFirstResource(move(pEditPic));
+    AddFirstResource(move(pEditPic), -1);
     RefreshPaletteOptions();
 
     UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::NewPic));
@@ -300,6 +306,7 @@ void CPicDoc::SeekToPos(INT_PTR iPos, bool fNotify)
 {
     if (_pdm.SeekToPos(iPos))
     {
+        SetExtra(_pdm.GetPos());
         if (fNotify)
         {
             UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::EditPicPos));
@@ -460,7 +467,8 @@ void CPicDoc::SetShowPolygons(bool showPolygons)
 void CPicDoc::v_OnUndoRedo()
 {
     PostApplyChanges(&WrapHint(PicChangeHint::NewPic));
-    UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::EditPicInvalid));
+    SeekToPos(GetExtra(), false); // Restore the position associated with this thing.
+    UpdateAllViewsAndNonViews(nullptr, 0, &WrapHint(PicChangeHint::EditPicInvalid | PicChangeHint::EditPicPos));
 }
 
 void CPicDoc::PostApplyChanges(CObject *pObj)

@@ -101,6 +101,12 @@ public:
                 }
 
                 postf(*temp);
+
+                if (!preview)
+                {
+                    SetExtra(v_GetExtra());
+                }
+
                 // This needs to happen before we update views:
                 PostApplyChanges(&updateHint);
 
