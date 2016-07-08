@@ -8912,6 +8912,8 @@ COLORREF CExtBitmap::stat_HLS_Adjust(
 double H = 0.0, L = 0.0, S = 0.0;
 	stat_RGBtoHSL( clr, &H, &S, &L );
 
+    // Not sure what kind of hack job this prof-uis code was:
+    /*
     if( percentH > 0.0 )
         H =
 			H +
@@ -8920,10 +8922,22 @@ double H = 0.0, L = 0.0, S = 0.0;
     else if ( percentH < 0.0 )
         H =
 			H * (1.0 + percentH);
+
 	if( H < 0.0 )
 		H = 0.0;
 	else if( H > 1.0 )
-		H = 1.0;
+		H = 1.0;*/
+    // This is the correct implementation for hue adjustment:
+    H += (percentH * 0.5);
+    if (H < 0.0)
+    {
+        H += 1.0;
+    }
+    if (H > 1.0)
+    {
+        H -= 1.0;
+    }
+
 
     if( percentL > 0.0 )
         L =
