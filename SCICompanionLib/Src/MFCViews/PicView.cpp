@@ -605,9 +605,19 @@ void CPicView::OnCopyFakeEgoAttributes()
     {
         _fakeEgoAttributes.View = GetDocument()->GetFakeEgo();
 
-        sci::ostream stream;
-        stream << _fakeEgoAttributes;
-        OpenAndSetClipboardDataFromStream(this, appState->ViewAttributesClipboardFormat, stream);
+        auto fakeEgo = _GetFakeEgo();
+        if (fakeEgo)
+        {
+            RasterComponent &raster = fakeEgo->GetComponent<RasterComponent>();
+            // Ensure loop/cel is valid
+            _fakeEgoAttributes.Loop = max(0, min(raster.LoopCount() - 1, _fakeEgoAttributes.Loop));
+            const Loop &loop = raster.Loops[_fakeEgoAttributes.Loop];
+            _fakeEgoAttributes.Cel = max(0, min((int)loop.Cels.size() - 1, _fakeEgoAttributes.Cel));
+
+            sci::ostream stream;
+            stream << _fakeEgoAttributes;
+            OpenAndSetClipboardDataFromStream(this, appState->ViewAttributesClipboardFormat, stream);
+        }
     }
 }
 

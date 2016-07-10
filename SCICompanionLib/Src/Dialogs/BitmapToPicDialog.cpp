@@ -536,7 +536,7 @@ UINT CBitmapToPicDialog::s_ThreadWorker(THREADINFO *pInfo)
         if (!fAbort)
         {
             // 4 == use pic's palette
-            fAbort = s_ConvertToPic(hwnd, pInfo->hEvent, *pcommands, pegaTemp, size, fIgnoreWhite, rgMostCommonColors, cMostCommonColors, (iPalette == 4));
+            fAbort = s_ConvertToPic(hwnd, pInfo->hEvent, *pcommands, pegaTemp, size, fIgnoreWhite, rgMostCommonColors, cMostCommonColors);
         }
 
         if (!fAbort)
@@ -571,6 +571,14 @@ UINT CBitmapToPicDialog::s_ThreadWorker(THREADINFO *pInfo)
                 THREADRESPONSE *pResponse = new THREADRESPONSE;
                 if (pResponse)
                 {
+                    if (iPalette == 4)
+                    {
+                        // This means we used the current pic's palette. We had to add it in s_ConvertToPic in order
+                        // to get a representative bitmap. But we don't want to add it to the final list of commands.
+                        assert(pcommands->begin()->type == PicCommand::CommandType::SetPalette);
+                        pcommands->erase(pcommands->begin());
+                    }
+
                     pResponse->hbm = hbm;
                     pResponse->pcommands = move(pcommands);
                     pResponse->fTooBig = fTooBig;
@@ -769,24 +777,21 @@ BYTE GetPaletteIndexOf(EGACOLOR color, EGACOLOR *rgColor, int cColors)
 // Does the meat of the conversion
 // Returns TRUE if it was aborted.
 //
-BOOL CBitmapToPicDialog::s_ConvertToPic(HWND hwnd, HANDLE hEvent, std::vector<PicCommand> &commands, EGACOLOR *pegaTemp, CSize &size, bool fIgnoreWhite, EGACOLOR *rgColors, int cColors, bool fDontSetPalette)
+BOOL CBitmapToPicDialog::s_ConvertToPic(HWND hwnd, HANDLE hEvent, std::vector<PicCommand> &commands, EGACOLOR *pegaTemp, CSize &size, bool fIgnoreWhite, EGACOLOR *rgColors, int cColors)
 {
     BOOL fAbort = FALSE;
     // Clean out the commands array.
     commands.clear();
 
-    if (!fDontSetPalette)
+    // Prepare our palette
+    EGACOLOR palette[40];
+    ZeroMemory(palette, sizeof(palette));
+    ASSERT(cColors <= PALETTE_SIZE);
+    for (int paletteColor = 0; paletteColor < cColors; paletteColor++)
     {
-        // Prepare our palette
-        EGACOLOR palette[40];
-        ZeroMemory(palette, sizeof(palette));
-        ASSERT(cColors <= PALETTE_SIZE);
-        for (int paletteColor = 0; paletteColor < cColors; paletteColor++)
-        {
-            palette[paletteColor] = rgColors[paletteColor];
-        }
-        commands.push_back(PicCommand::CreateSetPalette(0, palette));
+        palette[paletteColor] = rgColors[paletteColor];
     }
+    commands.push_back(PicCommand::CreateSetPalette(0, palette));
 
     // An array of EGACOLOR arrays, each of which is cColors long
     EGACOLOR *rgOrderedColorsPerLine[190];

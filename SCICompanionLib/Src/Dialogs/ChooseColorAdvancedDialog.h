@@ -39,7 +39,6 @@ protected:
 	DECLARE_MESSAGE_MAP()
 
     CChooseColorStatic m_wndStatic;
-    EGACOLOR _allColorsPalette[256];
     BYTE _bChoice;
 
     // Visuals

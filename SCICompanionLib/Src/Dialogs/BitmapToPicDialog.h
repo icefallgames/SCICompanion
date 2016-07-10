@@ -40,7 +40,7 @@ private:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
     virtual void OnCancel();
     virtual void OnOK();
-    static BOOL s_ConvertToPic(HWND hwnd, HANDLE hEvent, std::vector<PicCommand> &commands, EGACOLOR *pegaTemp, CSize &size, bool fIgnoreWhite, EGACOLOR *rgColors, int cColors, bool fDontSetPalette);
+    static BOOL s_ConvertToPic(HWND hwnd, HANDLE hEvent, std::vector<PicCommand> &commands, EGACOLOR *pegaTemp, CSize &size, bool fIgnoreWhite, EGACOLOR *rgColors, int cColors);
     void _AddToEdit(PCTSTR pszText);
     static UINT s_ThreadWorker(THREADINFO *pInfo);
     afx_msg void OnConvert();
