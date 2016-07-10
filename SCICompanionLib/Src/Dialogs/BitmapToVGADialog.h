@@ -18,7 +18,7 @@
 #include "ChooseColorStatic.h"
 
 enum class DitherAlgorithm;
-
+enum class BitmapConvertStatus : uint32_t;
 struct Cel;
 
 enum class PaletteAlgorithm
@@ -191,5 +191,6 @@ std::unique_ptr<Cel> GdiPlusBitmapToCel(
     int paletteSize,
     const bool *usableColors,
     const RGBQUAD *colors,
-    const uint8_t *mapping
+    const uint8_t *mapping,
+    BitmapConvertStatus &convertStatus
     );

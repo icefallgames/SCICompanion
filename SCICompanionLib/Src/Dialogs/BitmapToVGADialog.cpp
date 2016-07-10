@@ -32,6 +32,7 @@ using namespace Gdiplus;
 const int MaxPaletteColors = 256;
 
 int g_iScaleImageVGA = 0;   // Don't scale by default
+int g_excludeTransparentColorFromPalette = 1;
 
 // The end result of this dialog is image data (a Cel) and possibly a palette
 
@@ -229,7 +230,7 @@ void CBitmapToVGADialog::DoDataExchange(CDataExchange* pDX)
         SetDlgItemInt(IDC_EDITALPHATHRESHOLD, _alphaThreshold, FALSE);
         DDX_Control(pDX, IDC_STATICALPHALABEL, m_wndLabel5);
         DDX_Control(pDX, IDC_CHECKDONTUSEINPALETTE, m_wndCheckDontUseInPalette);
-        m_wndCheckDontUseInPalette.SetCheck(1);
+        m_wndCheckDontUseInPalette.SetCheck(g_excludeTransparentColorFromPalette);
         
         DDX_Control(pDX, IDC_BUTTONREFRESH, m_wndRefresh);
         m_wndRefresh.EnableWindow(FALSE);
@@ -542,7 +543,8 @@ std::unique_ptr<Cel> GdiPlusBitmapToCel(
     int paletteSize,
     const bool *usableColors,
     const RGBQUAD *colors,
-    const uint8_t *mapping
+    const uint8_t *mapping,
+    BitmapConvertStatus &convertStatus
     )
 {
     std::unique_ptr<Cel> finalResult;
@@ -570,7 +572,7 @@ std::unique_ptr<Cel> GdiPlusBitmapToCel(
             targetColors[i].rgbReserved = usableColors[i] ? 0x1 : 0x0;
         }
 
-        RGBToPalettized(colorMatching, &temp->Data[0], imageData.get(), cx, cy, performDither, gammaCorrected, paletteSize, mapping, targetColors, transparentColor, excludeTransparentColorFromPalette);
+        RGBToPalettized(colorMatching, &temp->Data[0], imageData.get(), cx, cy, performDither, gammaCorrected, paletteSize, mapping, targetColors, transparentColor, excludeTransparentColorFromPalette, convertStatus);
 
         finalResult = move(temp);
     }
@@ -635,7 +637,8 @@ void CBitmapToVGADialog::_Update()
                         {
                             ditherRefPalette.Colors[i].rgbReserved = (referencePalette.Colors[i].rgbReserved == 0x0) ? 0x1: 0x0;
                         }
-                        RGBToPalettized(_colorMatching, sciBits.get(), imageData.get(), cx, cy, performDither, gammaCorrected, ARRAYSIZE(ditherRefPalette.Colors), ditherRefPalette.Mapping, ditherRefPalette.Colors, _transparentColor, excludeTransparentColorFromPalette);
+                        BitmapConvertStatus convertStatus;
+                        RGBToPalettized(_colorMatching, sciBits.get(), imageData.get(), cx, cy, performDither, gammaCorrected, ARRAYSIZE(ditherRefPalette.Colors), ditherRefPalette.Mapping, ditherRefPalette.Colors, _transparentColor, excludeTransparentColorFromPalette, convertStatus);
                     }
 
                     temp->Data.allocate(PaddedSize(temp->size));
@@ -654,6 +657,7 @@ void CBitmapToVGADialog::_Update()
             bool usableColors[MaxPaletteColors];
             m_wndPalette.GetMultipleSelection(usableColors);
 
+            BitmapConvertStatus convertStatus = BitmapConvertStatus::None;
             _finalResult = GdiPlusBitmapToCel(
                 *_pbmpCurrent,
                 performDither,
@@ -666,7 +670,8 @@ void CBitmapToVGADialog::_Update()
                 _paletteSize,
                 usableColors,
                 _targetCurrentPalette->Colors,
-                _targetCurrentPalette->Mapping
+                _targetCurrentPalette->Mapping,
+                convertStatus
                 );
 
             if (_finalResult)
@@ -756,6 +761,7 @@ void CBitmapToVGADialog::OnOK()
     BOOL fClose = TRUE;
     if (fClose)
     {
+        g_excludeTransparentColorFromPalette = m_wndCheckDontUseInPalette.GetCheck();
         __super::OnOK();
     }
 }

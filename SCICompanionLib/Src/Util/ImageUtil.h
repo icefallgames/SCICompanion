@@ -41,6 +41,13 @@ enum class DitherAlgorithm
 RGBQUAD _ToSRGB(RGBQUAD color);
 RGBQUAD _ToLinear(RGBQUAD color);
 
+enum class BitmapConvertStatus : uint32_t
+{
+    None = 0,
+    MappedToTransparentColor = 0x0001,
+};
+DEFINE_ENUM_FLAGS(BitmapConvertStatus, uint32_t)
+
 CRect GetCelRect(const Cel &cel);
 bool Save8BitBmpGdiP(const char *filename, const Cel &cel, const PaletteComponent &palette, bool squishPalette = true);
 std::unique_ptr<Gdiplus::Bitmap> CelAndPaletteToBitmap(const Cel &cel, const PaletteComponent &palette, bool squishPalette);
@@ -55,7 +62,7 @@ bool GetCelsAndPaletteFromGdiplus(Gdiplus::Bitmap &bitmap, uint8_t transparentCo
 bool DoPalettesMatch(const PaletteComponent &paletteA, const PaletteComponent &paletteB);
 void ConvertCelToNewPalette(Cel &cel, const PaletteComponent &currentPalette, uint8_t transparentColor, bool ditherImages, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *colors);
 std::unique_ptr<RGBQUAD[]> ConvertGdiplusToRaw(Gdiplus::Bitmap &bitmap);
-void RGBToPalettized(ColorMatching colorMatching, uint8_t *sciData, const RGBQUAD *dataOrig, int cx, int cy, bool performDither, bool gammaCorrected, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *paletteColors, uint8_t transparentColor, bool excludeTransparentIndexFromMatch);
+void RGBToPalettized(ColorMatching colorMatching, uint8_t *sciData, const RGBQUAD *dataOrig, int cx, int cy, bool performDither, bool gammaCorrected, int colorCount, const uint8_t *paletteMapping, const RGBQUAD *paletteColors, uint8_t transparentColor, bool excludeTransparentIndexFromMatch, BitmapConvertStatus &convertStatus);
 void CutoutAlpha(DitherAlgorithm ditherAlgorithm, RGBQUAD *data, int cx, int cy, uint8_t alphaThreshold);
 std::string GetGdiplusStatusString(Gdiplus::Status status);
 HBITMAP Create32bbpBitmap(const Cel &cel, const RGBQUAD *palette, int paletteSize);

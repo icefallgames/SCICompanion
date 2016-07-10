@@ -32,6 +32,9 @@
 #include "BitmapToVGADialog.h"
 #include "ImageUtil.h"
 #include "ClipboardUtil.h"
+#include "CustomMessageBox.h"
+
+using namespace std;
 
 // Thickness of the sizers around the image:
 #define SIZER_SIZE 6
@@ -2248,6 +2251,15 @@ void CRasterView::_OnPaste(bool fTransparent, bool provideOptions)
                             usableColors[i] = (_palette[i].rgbReserved != 0);
                         }
 
+                        // Pasted images from external source will not have any transparency. The question is:
+                        // do we include the view cel's current transparent color in the colors we map to?
+                        // If we do, then it breaks people trying to paste from a color key VGA editor.
+                        // If we don't, then people paste from other sources might get surprise transparent areas in their images, and
+                        // they'll need to search for another color to use as a Tx color.
+                        // Here's what we'll do:
+                        //  - first try it without excluding the Tx color.
+                        //  - if nothing mapped to the Tx color, we're done. If something did, then ask if they want to try again.
+                        BitmapConvertStatus convertStatus = BitmapConvertStatus::None;
                         std::unique_ptr<Cel> finalResult =
                             GdiPlusBitmapToCel(
                             *pBitmap,
@@ -2257,12 +2269,39 @@ void CRasterView::_OnPaste(bool fTransparent, bool provideOptions)
                             ColorMatching::RGB,
                             128,    // alpha threshold
                             _celData[_iMainIndex].GetTransparentColor(),
-                            true,   // Exclude transparent color from conversion
+                            false,   // Allow the transparent color.
                             _paletteCount,
                             usableColors,
                             _palette,
-                            g_vgaPaletteMapping
+                            g_vgaPaletteMapping,
+                            convertStatus
                             );
+                        if (IsFlagSet(convertStatus, BitmapConvertStatus::MappedToTransparentColor))
+                        {
+                            vector<pair<int, string>> buttons = { { MessageBoxCustomization::Yes, "Try again" }, { MessageBoxCustomization::No, "This is expected"} };
+                            MessageBoxCustomization custom(buttons);
+                            string message = fmt::format("Some of the pasted image's colors mapped to the current view cel's transparent color ({0}). These areas will appears as transparent.\nTry again without mapping to the transparent color?", (uint32_t)_celData[_iMainIndex].GetTransparentColor());
+                            if (IDYES == AfxMessageBox(message.c_str(), MB_YESNO))
+                            {
+                                finalResult =
+                                    GdiPlusBitmapToCel(
+                                    *pBitmap,
+                                    false,  // No dither
+                                    true,   // gamma corrected
+                                    DitherAlgorithm::None,  // No alpha dither
+                                    ColorMatching::RGB,
+                                    128,    // alpha threshold
+                                    _celData[_iMainIndex].GetTransparentColor(),
+                                    true,   // Now exclude the Tx color
+                                    _paletteCount,
+                                    usableColors,
+                                    _palette,
+                                    g_vgaPaletteMapping,
+                                    convertStatus
+                                    );
+                            }
+
+                        }
 
                         if (finalResult)
                         {
