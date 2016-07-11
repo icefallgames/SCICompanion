@@ -770,7 +770,8 @@ void SCISyntaxParser::Load()
 
     // An integer or plain alphanumeric token
     immediateValue = integer_p[PropValueIntA<errInteger>] | alphanumNK_p[PropValueStringA<ValueType::Token, errNoKeywordOrSelector>];
-    string_immediateValue_NoResourceString = integer_p[PropValueIntA<errInteger>] | alphanumNK_p[PropValueStringA<ValueType::Token, errNoKeywordOrSelector>] | quotedstring_p[{PropValueStringA<ValueType::String>, ParseAutoCompleteContext::Block}] | bracestring_p[PropValueStringA<ValueType::String>] | squotedstring_p[{PropValueStringA<ValueType::Said>, ParseAutoCompleteContext::Block}];
+
+    string_immediateValue_NoResourceString = integer_p[PropValueIntA<errInteger>] | alphanumNK_p[PropValueStringA<ValueType::Token, errNoKeywordOrSelector>] | quotedstring_p[{PropValueStringA<ValueType::String>, ParseAutoCompleteContext::Block}] | bracestring_p[PropValueStringA<ValueType::String>] | squotedstring_p[{PropValueStringA<ValueType::Said>, ParseAutoCompleteContext::Block}] | size_of[PropValueStringA<ValueType::ArraySize>];
 
     // Top level constructs
     include = keyword_p("include") >> (quotedstring_p | filename_p)[{AddIncludeA, ParseAutoCompleteContext::Block}];

@@ -528,3 +528,4 @@ std::unique_ptr<sci::Script> SimpleCompile(CompileLog &log, ScriptId &scriptId, 
 void MergeScripts(sci::Script &mainScript, sci::Script &scriptToBeMerged);
 void ParseSaidString(CompileContext &context, const std::string &stringCode, std::vector<uint8_t> *output, const ISourceCodePosition *pos);
 void TrackArraySizes(CompileContext &context, sci::Script &script);
+void EvaluateConstantExpressions(CompileContext &context, sci::Script &script);

@@ -1132,6 +1132,7 @@ void CommonScriptPrep(Script &script, CompileContext &context, CompileResults &r
     TrackArraySizes(context, script);
     // Do some prescans (script number must already be set!)
     script.PreScan(context);
+    EvaluateConstantExpressions(context, script);
     // Ok, now we should have been told about all the saids and strings.
     if (script.Language() == LangSyntaxStudio)
     {

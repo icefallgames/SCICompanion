@@ -3825,3 +3825,62 @@ void TrackArraySizes(CompileContext &context, sci::Script &script)
         }
     }
 }
+
+void MaybeSubstituteWithSimpleValue(CompileContext &context, std::unique_ptr<SyntaxNode> &node)
+{
+    if (!node || (node->GetNodeType() == NodeTypeValue) || (node->GetNodeType() == NodeTypeComplexValue))
+    {
+        // These are already just values...
+        return;
+    }
+    uint16_t result;
+    if (node->Evaluate(context, result, nullptr))
+    {
+        node = std::make_unique<PropertyValue>(result);
+    }
+}
+
+class EvaluateConstantExpressionsHelper : public sci::IExploreNode
+{
+public:
+    EvaluateConstantExpressionsHelper(CompileContext &context) : _context(context) {}
+
+private:
+    void ExploreNode(sci::SyntaxNode &node, sci::ExploreNodeState state)
+    {
+        if (state == sci::ExploreNodeState::Pre)
+        {
+            StatementsNode *statements = dynamic_cast<StatementsNode*>(&node);
+            if (statements)
+            {
+                for (std::unique_ptr<SyntaxNode> &statement : statements->GetStatements())
+                {
+                    MaybeSubstituteWithSimpleValue(_context, statement);
+                }
+            }
+
+            OneStatementNode *oneStatement = dynamic_cast<OneStatementNode*>(&node);
+            if (oneStatement)
+            {
+                MaybeSubstituteWithSimpleValue(_context, oneStatement->GetStatement1Internal());
+            }
+
+            TwoStatementNode *twoStatement = dynamic_cast<TwoStatementNode*>(&node);
+            if (twoStatement)
+            {
+                MaybeSubstituteWithSimpleValue(_context, twoStatement->GetStatement2Internal());
+            }
+
+        }
+    }
+
+    CompileContext &_context;
+};
+
+void EvaluateConstantExpressions(CompileContext &context, sci::Script &script)
+{
+    // Replace any constant expressions with their evaluated form.
+    // REVIEW: This could cause problems if we provided weakptrs to certain objects to the compile context.
+    EvaluateConstantExpressionsHelper evaluate(context);
+    script.Traverse(evaluate);
+}

@@ -270,10 +270,12 @@ void CPaletteDefinitionDialog::OnBnClickedButtonadjust()
 
     // Pretend we're a VGA palette
     bool multipleSelection[256] = {};
-    // The selected colors will be those from the current palette:
+    bool multiplePaletteSelection[40];
+    m_wndStaticPalette.GetMultipleSelection(multiplePaletteSelection);
+    // The selected colors will be the selected colors from the current palette:
     for (int i = 0; i < 40; i++)
     {
-        multipleSelection[_iCurPalette * 40 + i] = true;
+        multipleSelection[_iCurPalette * 40 + i] = multiplePaletteSelection[i];
     }
     // Now, convert to RGB:
     paletteComponentEGA = std::make_unique<PaletteComponent>();
