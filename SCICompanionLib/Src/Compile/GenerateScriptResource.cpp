@@ -1164,7 +1164,7 @@ bool GenerateScriptResource_SCI0(Script &script, PrecompiledHeaders &headers, Co
     // Generate SCO objects for the classes and instances in the script.  We want to do this before generating any code,
     // since some code relies on it.
     GenerateSCOObjects(context, script);
-    GenerateSCOPublics(context, script, false);
+    GenerateSCOPublics(context, script, appState->GetVersion().GetAllowPublicClasses());
     GenerateSCOVariables(context, script);
 
     // It would be nice to put the code right after the saids and strings,

@@ -144,6 +144,14 @@ struct SCIVersion
         //  SCI2    64999   (guessed)
         return SeparateHeapResources ? ((PackageFormat >= ResourcePackageFormat::SCI2) ? 64999 : 16384) : 999;
     }
+
+    bool GetAllowPublicClasses() const
+    {
+        // Not sure about this. Definitely this is true for SeparateHeapResources.
+        // But games like SQ1 VGA require this (not SeparateHeapResources, but lofsaOpcodeIsAbsolute)
+        // SCI0 definitely does not support it (will crash when doing a ScriptID for these)
+        return lofsaOpcodeIsAbsolute || SeparateHeapResources;
+    }
 };
 
 // Detection possibilities:
