@@ -2278,7 +2278,7 @@ void CRasterView::_OnPaste(bool fTransparent, bool provideOptions)
                             );
                         if (IsFlagSet(convertStatus, BitmapConvertStatus::MappedToTransparentColor))
                         {
-                            vector<pair<int, string>> buttons = { { MessageBoxCustomization::Yes, "Try again" }, { MessageBoxCustomization::No, "This is expected"} };
+                            vector<pair<int, string>> buttons = { { MessageBoxCustomization::Yes, "Try again" }, { MessageBoxCustomization::No, "This is OK"} };
                             MessageBoxCustomization custom(buttons);
                             string message = fmt::format("Some of the pasted image's colors mapped to the current view cel's transparent color ({0}). These areas will appears as transparent.\nTry again without mapping to the transparent color?", (uint32_t)_celData[_iMainIndex].GetTransparentColor());
                             if (IDYES == AfxMessageBox(message.c_str(), MB_YESNO))

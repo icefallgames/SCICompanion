@@ -21,6 +21,8 @@
 #include "ChooseColorAdvancedDialog.h"
 #include "PicCommands.h"
 #include "ColorAdjustDialog.h"
+#include "ClipboardUtil.h"
+#include "AppState.h"
 
 volatile int g_fChecked = 1; // write entire palette by default
 volatile int g_fPreview = 1; // Should be on by default
@@ -28,6 +30,11 @@ volatile int g_fPreview = 1; // Should be on by default
 CPaletteDefinitionDialog::CPaletteDefinitionDialog(IEGAPaletteDefinitionCallback &callback, PicComponent &pic, ptrdiff_t pos, uint8_t paletteNumber, CWnd* pParent /*=NULL*/)
     : CExtResizableDialog(CPaletteDefinitionDialog::IDD, pParent), _callback(callback), _pic(pic), _position(pos), _changed(false), _copy(pic), _viewport(paletteNumber)
 {
+    HINSTANCE hInst = AfxFindResourceHandle(MAKEINTRESOURCE(IDR_ACCELERATORPALETTE), RT_ACCELERATOR);
+    _hAccel = ::LoadAccelerators(hInst, MAKEINTRESOURCE(IDR_ACCELERATORPALETTE));
+
+    std::fill(std::begin(_multiSelection), std::end(_multiSelection), false);
+
     // Store the current palette state by processing all pallet commands up to position.
     for (ptrdiff_t i = 0; i < _position; i++)
     {
@@ -45,11 +52,13 @@ CPaletteDefinitionDialog::CPaletteDefinitionDialog(IEGAPaletteDefinitionCallback
     memcpy(_palette, _viewport.pPalettes, sizeof(_palette));
 
     _bSelection = 0;
+    _multiSelection[0] = true;
     _iCurPalette = 0;
 
     // 40 things here.
     m_wndStaticPalette.ShowSelection(TRUE);
-    m_wndStaticPalette.SetSelection(_bSelection); // Just always start with zero.
+    m_wndStaticPalette.SetAutoHandleSelection(true);
+    m_wndStaticPalette.SetSelection(_multiSelection); // Just always start with zero.
     m_wndStaticPalette.SetPalette(5, 8, _palette, ARRAYSIZE(g_egaColors), g_egaColors); // In which someone will copy something.
 
     // Just 16 here.
@@ -112,7 +121,16 @@ BEGIN_MESSAGE_MAP(CPaletteDefinitionDialog, CExtResizableDialog)
     ON_BN_CLICKED(IDC_CHECK2, OnPreviewToggle)
     ON_BN_CLICKED(IDC_BUTTONADVANCED, OnAdvancedClick)
     ON_BN_CLICKED(IDC_BUTTONADJUST, &CPaletteDefinitionDialog::OnBnClickedButtonadjust)
+    ON_COMMAND(ID_EDIT_COPY, OnCopy)
+    ON_COMMAND(ID_EDIT_PASTE, OnPaste)
+    ON_UPDATE_COMMAND_UI(ID_EDIT_PASTE, OnUpdateCopyPaste)
+    ON_UPDATE_COMMAND_UI(ID_EDIT_COPY, OnUpdateCopyPaste)
 END_MESSAGE_MAP()
+
+void CPaletteDefinitionDialog::OnUpdateCopyPaste(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(TRUE);
+}
 
 void CPaletteDefinitionDialog::OnTabChange(NMHDR *pnmhdr, LRESULT *ples)
 {
@@ -202,7 +220,6 @@ void CPaletteDefinitionDialog::OnColorClick(BYTE bIndex, int nID, BOOL fLeftClic
         if (_bSelection < 40)
         {
             _bSelection = bIndex;
-            m_wndStaticPalette.SetSelection(_bSelection);
 
             m_wndStaticColors.SetSelection(GetCurrentPalettePtr()[_bSelection].color1);
             m_wndStaticColors.SetAuxSelection(GetCurrentPalettePtr()[_bSelection].color2);
@@ -283,6 +300,7 @@ void CPaletteDefinitionDialog::OnBnClickedButtonadjust()
 //  Offer choice of matching algorithms
 //  Offer subselection of colors
 
+// This is for our "advanced" color dialog
 void CPaletteDefinitionDialog::OnVGAPaletteChanged()
 {
     // Just update all 40 colors
@@ -296,4 +314,65 @@ void CPaletteDefinitionDialog::OnVGAPaletteChanged()
     m_wndStaticPalette.SetPalette(5, 8, GetCurrentPalettePtr(), ARRAYSIZE(g_egaColors), g_egaColors);
     m_wndStaticPalette.OnPaletteUpdated();
     ApplyPreview();
+}
+
+BOOL CPaletteDefinitionDialog::PreTranslateMessage(MSG* pMsg)
+{
+    BOOL fRet = FALSE;
+    if (_hAccel && (pMsg->message >= WM_KEYFIRST && pMsg->message <= WM_KEYLAST))
+    {
+        fRet = ::TranslateAccelerator(GetSafeHwnd(), _hAccel, pMsg);
+    }
+    if (!fRet)
+    {
+        fRet = __super::PreTranslateMessage(pMsg);
+    }
+    return fRet;
+}
+
+void CPaletteDefinitionDialog::OnCopy()
+{
+    sci::ostream stream;
+    bool multipleSelection[40];
+    m_wndStaticPalette.GetMultipleSelection(multipleSelection);
+    stream << multipleSelection;
+    for (int i = 0; i < ARRAYSIZE(multipleSelection); i++)
+    {
+        stream << _palette[_iCurPalette * 40 + i];
+    }
+    OpenAndSetClipboardDataFromStream(this, appState->EGAPaletteColorsClipboardFormat, stream);
+}
+
+void CPaletteDefinitionDialog::OnPaste()
+{
+    int startIndex = _bSelection;
+
+    ProcessClipboardDataIfAvailable(appState->EGAPaletteColorsClipboardFormat, this,
+        [this, startIndex](sci::istream &stream)
+    {
+        bool multipleSelection[40];
+        stream >> multipleSelection;
+        EGACOLOR colors[ARRAYSIZE(multipleSelection)];
+        stream >> colors;
+
+        // Start pasting from our main selection, starting with the first selected guy.
+        auto it = find(begin(multipleSelection), end(multipleSelection), true);
+        int firstSelected = it - begin(multipleSelection);
+
+        for (int i = 0; i < 40; i++)
+        {
+            if (((i + startIndex) >= 40) || ((i + firstSelected) >= 40))
+            {
+                break;
+            }
+            if (multipleSelection[i + firstSelected])
+            {
+                _palette[_iCurPalette * 40 + i + startIndex] = colors[i + firstSelected];
+            }
+        }
+
+        m_wndStaticPalette.SetPalette(5, 8, GetCurrentPalettePtr(), ARRAYSIZE(g_egaColors), g_egaColors);
+        m_wndStaticPalette.OnPaletteUpdated();
+    }
+    );
 }

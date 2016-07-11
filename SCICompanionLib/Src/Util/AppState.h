@@ -192,6 +192,7 @@ public:
     UINT CelDataClipboardFormat;
     UINT ViewAttributesClipboardFormat;
     UINT PaletteColorsClipboardFormat;
+    UINT EGAPaletteColorsClipboardFormat;
 
 public: // TODO for now
     HRESULT _GetGameStringProperty(PCTSTR pszProp, PTSTR pszValue, size_t cchValue);

@@ -423,9 +423,9 @@ void CChooseColorStatic::_DrawMultiSelection(CDC *pDC)
             for (int x = 0; x < _cColumns; x++)
             {
                 bool aboveSelected = (y > 0) ? (_multipleSelection[x + (y - 1) * _cColumns]) : false;
-                bool belowSelected = (y < (_cColumns - 1)) ? (_multipleSelection[x + (y + 1) * _cColumns]) : false;
+                bool belowSelected = (y < (_cRows - 1)) ? (_multipleSelection[x + (y + 1) * _cColumns]) : false;
                 bool leftSelected = (x > 0) ? (_multipleSelection[x - 1 + y * _cColumns]) : false;
-                bool rightSelected = (x < (_cRows - 1)) ? (_multipleSelection[x + 1 + y * _cColumns]) : false;
+                bool rightSelected = (x < (_cColumns - 1)) ? (_multipleSelection[x + 1 + y * _cColumns]) : false;
                 int index = x + (y * _cColumns);
                 if (_multipleSelection[index])
                 {
@@ -682,7 +682,10 @@ void CChooseColorStatic::SetSelection(bool *multipleSelection)
 {
     _allowMultipleSelection = true;
     memcpy(_multipleSelection, multipleSelection, sizeof(bool) * (_cRows * _cColumns));
-    Invalidate(FALSE);
+    if (m_hWnd)
+    {
+        Invalidate(FALSE);
+    }
 }
 
 void CChooseColorStatic::GetMultipleSelection(bool *multipleSelection)

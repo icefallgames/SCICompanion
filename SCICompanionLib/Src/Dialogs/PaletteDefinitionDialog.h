@@ -45,7 +45,14 @@ public:
 // Dialog Data
 	enum { IDD = IDD_DEFINEPALETTE2 };
 
+    BOOL PreTranslateMessage(MSG* pMsg) override;
+
 protected:
+    // Support copy-paste colors among palettes:
+    void OnUpdateCopyPaste(CCmdUI* pCmdUI);
+    void OnPaste();
+    void OnCopy();
+
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
     void OnTabChange(NMHDR *pnmhdr, LRESULT *ples);
     void OnCheckClick();
@@ -73,6 +80,8 @@ protected:
 
     EGACOLOR _palette[4 * 40];
 
+    bool _multiSelection[40];
+
     int _iCurPalette; // from 0 to 3
     BOOL _bSelection;
 
@@ -84,6 +93,8 @@ protected:
     bool _changed;
 
     std::unique_ptr<PaletteComponent> paletteComponentEGA;
+
+    HACCEL _hAccel;
 
 public:
     afx_msg void OnBnClickedButtonadjust();
