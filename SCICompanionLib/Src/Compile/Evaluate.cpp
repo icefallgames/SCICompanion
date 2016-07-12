@@ -19,6 +19,7 @@
 #include "format.h"
 
 Opcode GetInstructionForBinaryOperator(BinaryOperator op);
+Opcode GetInstructionForUnaryOperator(UnaryOperator op);
 
 // For evaluating compile time constants
 
@@ -52,6 +53,32 @@ bool ComplexPropertyValue::Evaluate(ILookupDefine &context, uint16_t &result, Co
         isSimpleValue = __super::Evaluate(context, result, reportError);
     }
     return isSimpleValue;
+}
+
+bool EvalUnaryOp(Opcode opcode, uint16_t aUnsigned, uint16_t &result)
+{
+    bool success = true;
+    int16_t a = (int16_t)aUnsigned;
+
+    switch (opcode)
+    {
+        case Opcode::BNOT:
+            result = ~aUnsigned;
+            break;
+
+        case Opcode::NOT:
+            result = aUnsigned ? 0 : 1;
+            break;
+
+        case Opcode::NEG:
+            result = (uint16_t)-a;
+            break;
+
+        default:
+            success = false;
+            break;
+    }
+    return success;
 }
 
 bool EvalBinaryOp(Opcode opcode, uint16_t aUnsigned, uint16_t bUnsigned, uint16_t &result)
@@ -142,6 +169,17 @@ bool BinaryOp::Evaluate(ILookupDefine &context, uint16_t &result, CompileContext
         {
             good = EvalBinaryOp(GetInstructionForBinaryOperator(Operator), valueA, valueB, result);
         }
+    }
+    return good;
+}
+
+bool UnaryOp::Evaluate(ILookupDefine &context, uint16_t &result, CompileContext *reportError) const
+{
+    uint16_t valueA;
+    bool good = _statement1->Evaluate(context, valueA, reportError);
+    if (good)
+    {
+        good = EvalUnaryOp(GetInstructionForUnaryOperator(Operator), valueA, result);
     }
     return good;
 }
