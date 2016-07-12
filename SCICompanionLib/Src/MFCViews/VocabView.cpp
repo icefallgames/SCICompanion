@@ -44,6 +44,9 @@ const key_value_pair<WordClass, UINT> _cClassToCommand[] =
     { WordClass::IndicativeVerb,        ID_VOCAB_INDICATIVEVERB },
     { WordClass::Adverb,                ID_VOCAB_ADVERB },
     { WordClass::ImperativeVerb,        ID_VOCAB_IMPERATIVEVERB },
+    { WordClass::Conjunction,           ID_VOCAB_CONJUNCTION },
+    { WordClass::Association,           ID_VOCAB_ASSOCIATION },
+    { WordClass::Punctuation,           ID_VOCAB_PUNCTUATION },
 };
 
 BOOL _CommandIDToVocabClass(UINT nID, WordClass &dwClass)
@@ -64,11 +67,11 @@ BEGIN_MESSAGE_MAP(CVocabView, CListView)
     ON_UPDATE_COMMAND_UI(ID_EDIT_RENAME, OnUpdateIfSelection)
     ON_WM_CONTEXTMENU()
     ON_COMMAND(ID_EDIT_DELETE, OnDelete)
-    ON_COMMAND_RANGE(ID_VOCAB_NUMBER, ID_VOCAB_IMPERATIVEVERB, OnVocabCommand)
+    ON_COMMAND_RANGE(ID_VOCAB_NUMBER, ID_VOCAB_PUNCTUATION, OnVocabCommand)
     ON_COMMAND(ID_VOCAB_NEWWORD, OnNewWord)
     ON_COMMAND(ID_EDIT_RENAME, OnRename)
     ON_COMMAND(ID_EDIT_FIND, OnFind)
-    ON_UPDATE_COMMAND_UI_RANGE(ID_VOCAB_NUMBER, ID_VOCAB_IMPERATIVEVERB, OnUpdateVocabCommand)
+    ON_UPDATE_COMMAND_UI_RANGE(ID_VOCAB_NUMBER, ID_VOCAB_PUNCTUATION, OnUpdateVocabCommand)
     ON_REGISTERED_MESSAGE(_uFindDialogMessage, OnFindDialogMessage)
 END_MESSAGE_MAP()
 

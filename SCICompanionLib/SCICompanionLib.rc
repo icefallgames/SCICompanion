@@ -633,6 +633,9 @@ BEGIN
         MENUITEM "Indicative Verb",             ID_VOCAB_INDICATIVEVERB
         MENUITEM "Adverb",                      ID_VOCAB_ADVERB
         MENUITEM "Imperative Verb",             ID_VOCAB_IMPERATIVEVERB
+        MENUITEM "Conjunction",                 ID_VOCAB_CONJUNCTION
+        MENUITEM "Association",                 ID_VOCAB_ASSOCIATION
+        MENUITEM "Punctuation",                 ID_VOCAB_PUNCTUATION
         MENUITEM SEPARATOR
         MENUITEM "Edit\tF2",                    ID_EDIT_RENAME
         MENUITEM "Delete\tDel",                 ID_EDIT_DELETE
@@ -3210,7 +3213,12 @@ END
 
 STRINGTABLE
 BEGIN
+    ID_IMPORT_AUDIO         "Import a wav file\nImport wav"
     ID_VOCAB_NEWWORD        "Add a new word.\nNew word"
+END
+
+STRINGTABLE
+BEGIN
     ID_EDIT_RENAME          "Rename this item.\nRename"
     ID_DRAWRECT             "Draw a hollow rectangle. (right-click to center)\nRectangle"
 END
@@ -3371,11 +3379,6 @@ STRINGTABLE
 BEGIN
     ID_MAIN_RELOADSYNTAXCOLORS "Reload colors from syntaxcolor.ini"
     ID_MAIN_TOGGLEBLOCKCOMMENT "Comment or uncomment a block of code"
-END
-
-STRINGTABLE
-BEGIN
-    ID_IMPORT_AUDIO         "Import a wav file\nImport wav"
 END
 
 #endif    // English (United States) resources

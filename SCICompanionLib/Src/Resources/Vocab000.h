@@ -41,7 +41,7 @@ enum class WordClass : uint16_t
 {
     Unknown = 0x000,
     Number = 0x001,
-    Special1 = 0x002,
+    Punctuation = 0x002,
     Conjunction = 0x004,
     Association = 0x008,
     Proposition = 0x010,

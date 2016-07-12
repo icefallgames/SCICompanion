@@ -864,7 +864,9 @@
 #define ID_VOCAB_INDICATIVEVERB         32888
 #define ID_VOCAB_ADVERB                 32889
 #define ID_VOCAB_IMPERATIVEVERB         32890
-#define ID_VOCAB_NEWWORD                32893
+#define ID_VOCAB_CONJUNCTION            32891
+#define ID_VOCAB_ASSOCIATION            32892
+#define ID_VOCAB_PUNCTUATION            32893
 #define ID_EDIT_RENAME                  32894
 #define ID_DRAWRECT                     32895
 #define ID_DRAWRECTSOLID                32896
@@ -1169,6 +1171,10 @@
 #define ID_PLUGINS_PLUGIN10             33311
 #define ID_IMPORT_AUDIO                 33312
 #define ID_SHOW_MAPS                    33313
+#define ID_VOCAB_NEWWORD                33314
+#define ID_Menu33315                    33315
+#define ID_VOCAB_ASSOCIATION33316       33316
+#define ID_VOCAB_PUNCTUATIONOOPS        33318
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -1177,7 +1183,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        404
-#define _APS_NEXT_COMMAND_VALUE         33314
+#define _APS_NEXT_COMMAND_VALUE         33319
 #define _APS_NEXT_CONTROL_VALUE         1391
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

@@ -75,7 +75,7 @@ DWORD InfoFromClassAndGroup(WordClass dwClass, Vocab000::WordGroup dwGroup) { re
 const TCHAR *g_rgszWordClasses[] =
 {
     { TEXT("Number") },
-    { TEXT("Special") },
+    { TEXT("Punctuation") },
     { TEXT("Conjunction") },
     { TEXT("Association") },
     { TEXT("Preposition") },
