@@ -327,6 +327,7 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
                             result.strBaseText = (*defineIt)->GetLabel().c_str();
                             result.iLineNumber = (*defineIt)->GetLineNumber();
                             result.scriptId = ScriptId((*defineIt)->GetOwnerScript()->GetPath().c_str());
+                            result.possibleResourceNumber = (*defineIt)->GetValue();
                         }
                     }
 

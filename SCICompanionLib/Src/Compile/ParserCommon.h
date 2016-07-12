@@ -777,12 +777,8 @@ public:
 
 extern const int AltKeys[26];
 
-
-//
-// Handles negation, hex, binary, character literals, etc...
-//
-template<typename _It, typename _TContext, typename _CommentPolicy>
-bool IntegerExpandedP(const ParserBase<_TContext, _It, _CommentPolicy> *pParser, _TContext *pContext, _It &stream)
+template<typename _It, typename _TContext>
+bool IntegerExpandedPWorker(_TContext *pContext, _It &stream)
 {
     int i = 0;
     bool fNeg = false;
@@ -910,4 +906,14 @@ bool IntegerExpandedP(const ParserBase<_TContext, _It, _CommentPolicy> *pParser,
         pContext->SetInteger(i, fNeg, fHex, stream);
     }
     return fRet;
+}
+
+
+//
+// Handles negation, hex, binary, character literals, etc...
+//
+template<typename _It, typename _TContext, typename _CommentPolicy>
+bool IntegerExpandedP(const ParserBase<_TContext, _It, _CommentPolicy> *pParser, _TContext *pContext, _It &stream)
+{
+    return IntegerExpandedPWorker(pContext, stream);
 }

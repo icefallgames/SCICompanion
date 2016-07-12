@@ -133,12 +133,14 @@ protected:
     afx_msg void OnGotoScriptHeader();
     afx_msg void OnReloadSyntaxColors();
     afx_msg void OnGotoDefinition();
+    afx_msg void OnOpenView();
     afx_msg void OnIntellisense();
     afx_msg void OnGoto();
     afx_msg void OnToggleComment();
     afx_msg void OnUpdateAddAs(CCmdUI *pCmdUI);
     afx_msg void OnUpdateIsSCI(CCmdUI *pCmdUI);
     afx_msg void OnUpdateGotoScriptHeader(CCmdUI *pCmdUI);
+    afx_msg void OnUpdateOpenView(CCmdUI *pCmdUI);
     afx_msg void OnUpdateGotoDefinition(CCmdUI *pCmdUI);
     afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
     afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
@@ -181,6 +183,7 @@ protected:
 
     // For "goto definition"
     CString _gotoDefinitionText;
+    uint16_t _gotoView;
     ScriptId _gotoScript;
     int _gotoLineNumber;
     CString _helpUrl;

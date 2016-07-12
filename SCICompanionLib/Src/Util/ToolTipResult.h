@@ -15,7 +15,7 @@
 
 struct ToolTipResult
 {
-    ToolTipResult() : vocabWordInfo(0xffffffff) {}
+    ToolTipResult() : vocabWordInfo(0xffffffff), possibleResourceNumber(0xffff) {}
 
     // Is the tooltip empty (e.g. no result)
     bool empty() { return strTip.empty(); }
@@ -29,6 +29,7 @@ struct ToolTipResult
     std::string strBaseText;
     std::string helpURL; // For kernels
     DWORD vocabWordInfo; // For saids
+    uint16_t possibleResourceNumber;
 
     std::string OriginalText;
 };

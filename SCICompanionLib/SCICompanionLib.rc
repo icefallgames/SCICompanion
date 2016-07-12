@@ -613,6 +613,7 @@ BEGIN
         END
         MENUITEM "Go to definition",            33021
         MENUITEM SEPARATOR
+        MENUITEM "Open view",                   ID_SCRIPT_OPENVIEW
         MENUITEM "Goto",                        ID_GOTOSCRIPT
         MENUITEM SEPARATOR
         MENUITEM "Toggle block comment",        ID_MAIN_TOGGLEBLOCKCOMMENT

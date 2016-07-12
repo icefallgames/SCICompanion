@@ -42,6 +42,8 @@
 #include "ResourceEntity.h"
 #include "Task.h"
 #include "SyntaxContext.h"
+#include "ParserCommon.h"
+#include "ParserActions.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -116,6 +118,7 @@ BEGIN_MESSAGE_MAP(CScriptView, CCrystalEditView)
     ON_COMMAND(ID_MAIN_RELOADSYNTAXCOLORS, OnReloadSyntaxColors)
     ON_COMMAND(ID_EDIT_GOTO, OnGoto)
     ON_COMMAND(ID_SCRIPT_GOTODEFINITION, OnGotoDefinition)
+    ON_COMMAND(ID_SCRIPT_OPENVIEW, OnOpenView)
     ON_COMMAND(ID_INTELLISENSE, OnIntellisense)
     ON_UPDATE_COMMAND_UI(ID_ADDAS_NOUN, OnUpdateAddAs)
     ON_UPDATE_COMMAND_UI(ID_ADDAS_IMPERATIVEVERB, OnUpdateAddAs)
@@ -127,6 +130,7 @@ BEGIN_MESSAGE_MAP(CScriptView, CCrystalEditView)
     ON_UPDATE_COMMAND_UI(ID_ADDAS_ADVERB, OnUpdateAddAs)
     ON_UPDATE_COMMAND_UI(ID_ADDAS_ARTICLE, OnUpdateAddAs)
     ON_UPDATE_COMMAND_UI(ID_GOTOSCRIPT, OnUpdateGotoScriptHeader)
+    ON_UPDATE_COMMAND_UI(ID_SCRIPT_OPENVIEW, OnUpdateOpenView)
     ON_UPDATE_COMMAND_UI(ID_SCRIPT_GOTODEFINITION, OnUpdateGotoDefinition)
     // ON_COMMAND(ID_VISUALSCRIPT, OnVisualScript)
     ON_MESSAGE(UWM_AUTOCOMPLETEREADY, OnAutoCompleteReady)
@@ -1253,6 +1257,7 @@ void CScriptView::OnContextMenu(CWnd *pWnd, CPoint point)
     _gotoScriptText = TEXT("");
     _gotoDefinitionText = TEXT("");
     _helpUrl = TEXT("");
+    _gotoView = 0xffff;
     _vocabWordInfo = 0xffffffff;
 
     CMenu contextMenu; 
@@ -1320,6 +1325,42 @@ void CScriptView::OnContextMenu(CWnd *pWnd, CPoint point)
                 _gotoLineNumber = result.iLineNumber;
                 _helpUrl = result.helpURL.c_str();
                 _vocabWordInfo = result.vocabWordInfo;
+
+                if (result.possibleResourceNumber == 0xffff)
+                {
+                    // The parser won't set this for raw integers (too much work to get it to work), so we'll
+                    // just try a conversion right here.
+                    CPoint ptRight = WordToRight(ptText);
+                    CPoint ptLeft = WordToLeft(ptText);
+                    CString strMaybeNumber;
+                    GetText(ptLeft, ptRight, strMaybeNumber);
+                    std::string maybeNumber = strMaybeNumber;
+
+                    // A little hokey, but this lets us re-use the parser code to get an integer.
+                    struct DummyContext
+                    {
+                        void ReportError(PCSTR psz, PCSTR &) {}
+                        void SetInteger(int value, bool neg, bool hex, PCSTR &)
+                        {
+                            this->value = value;
+                        }
+                        int value;
+                    };
+                    DummyContext dummyContext;
+                    const char *pszTemp = maybeNumber.c_str();
+                    if (IntegerExpandedPWorker(&dummyContext, pszTemp))
+                    {
+                        result.possibleResourceNumber = dummyContext.value;
+                    }
+                }
+
+                if ((int)result.possibleResourceNumber < appState->GetVersion().GetMaximumResourceNumber())
+                {
+                    if (appState->GetResourceMap().DoesResourceExist(ResourceType::View, (int)result.possibleResourceNumber))
+                    {
+                        _gotoView = result.possibleResourceNumber;
+                    }
+                }
             }
         }
 
@@ -1689,6 +1730,12 @@ void CScriptView::OnGotoScriptHeader()
     appState->OpenScriptHeader((PCSTR)_gotoScriptText);
 }
 
+
+void CScriptView::OnOpenView()
+{
+    appState->OpenMostRecentResource(ResourceType::View, _gotoView);
+}
+
 void CScriptView::OnGotoDefinition()
 {
     CScriptDocument *pDoc = GetDocument();
@@ -1949,6 +1996,19 @@ void CScriptView::OnUpdateGotoScriptHeader(CCmdUI *pCmdUI)
         TCHAR szBuffer[MAX_PATH];
         StringCchPrintf(szBuffer, ARRAYSIZE(szBuffer), TEXT("Open %s"), (PCTSTR)_gotoScriptText);
         pCmdUI->SetText(szBuffer);
+    }
+}
+
+void CScriptView::OnUpdateOpenView(CCmdUI *pCmdUI)
+{
+    if (_gotoView == 0xffff)
+    {
+        pCmdUI->Enable(FALSE);
+    }
+    else
+    {
+        pCmdUI->Enable(TRUE);
+        pCmdUI->SetText(fmt::format("Open view {0}", _gotoView).c_str());
     }
 }
 
