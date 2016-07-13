@@ -469,38 +469,35 @@ bool IsCodeLevelKeyword(LangSyntax lang, const std::string &word)
     return binary_search(list.begin(), list.end(), word);
 }
 
-LPTSTR s_apszSCIValueKeywordList[] =
+// Keep in alphabetical order
+std::vector<std::string> valueKeywordsSCI =
 {
-    _T("objectFunctionArea"),
-    _T("objectInfo"),
-    _T("objectLocal"),
-    _T("objectName"),
-    _T("objectSize"),
-    _T("objectSpecies"),
-    _T("objectSuperclass"),
-    _T("objectTotalProperties"),
-    _T("objectType"),
-    _T("self"),
-    _T("super"),
-	nullptr
+    "argc",
+    "objectFunctionArea",
+    "objectInfo",
+    "objectLocal",
+    "objectName",
+    "objectSize",
+    "objectSpecies",
+    "objectSuperclass",
+    "objectTotalProperties",
+    "objectType",
+    "scriptNumber",
+    "self",
 };
-std::vector<std::string> g_ValueKeywords;
+
+// Keep in alphabetical order
+std::vector<std::string> valueKeywordsStudio =
+{
+    "paramTotal",
+    "scriptNumber",
+    "self",
+};
+
 bool IsValueKeyword(LangSyntax lang, const std::string &word)
 {
-    // -1 since it ends with nullptr.
-    bool isKeyword = _IsKeyword(word, g_ValueKeywords, s_apszSCIValueKeywordList, ARRAYSIZE(s_apszSCIValueKeywordList) - 1);
-    if (!isKeyword)
-    {
-        if (lang == LangSyntaxSCI)
-        {
-            isKeyword = (word == "argc");
-        }
-        else
-        {
-            isKeyword = (word == "paramTotal");
-        }
-    }
-    return isKeyword;
+    auto &list = GetValueKeywords(lang);
+    return binary_search(list.begin(), list.end(), word);
 }
 
 std::vector<std::string> classLevelKeywordsStudio = {  "method", "properties" };
@@ -540,6 +537,18 @@ bool IsSCIKeyword(LangSyntax lang, const std::string &word)
         ((lang == LangSyntaxSCI) && (word == "&tmp")));
 
 
+}
+
+const std::vector<std::string> &GetValueKeywords(LangSyntax lang)
+{
+    switch (lang)
+    {
+        case LangSyntaxSCI:
+            return valueKeywordsSCI;
+        case LangSyntaxStudio:
+            return valueKeywordsStudio;
+    }
+    return emptyList;
 }
 
 const std::vector<std::string> &GetCodeLevelKeywords(LangSyntax lang)

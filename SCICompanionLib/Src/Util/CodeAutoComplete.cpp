@@ -364,6 +364,10 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
         {
             MergeResults(result->choices, prefix, AutoCompleteIconIndex::Keyword, GetCodeLevelKeywords(lang));
         }
+        if (containsV(acContexts, ParseAutoCompleteContext::PureValue))
+        {
+            MergeResults(result->choices, prefix, AutoCompleteIconIndex::Keyword, GetValueKeywords(lang));
+        }
 
         // Possible de-dupe
         // vec.erase(unique(vec.begin(), vec.end()), vec.end());

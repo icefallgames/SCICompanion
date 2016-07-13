@@ -191,7 +191,7 @@ void _AddToTable(vector<ExportTableInfo> &table, const ExportTableInfo &entry, c
 }
 
 // See EnsurePublicsInExports 
-vector<ExportTableInfo> GetExportTableOrder(CompileContext *contextOptional, const Script &script, bool allowPublicClasses)
+vector<ExportTableInfo> GetExportTableOrder(CompileContext *contextOptional, const Script &script)
 {
     // There are two types of exports:
     // 1) public procedures (common)
@@ -228,16 +228,11 @@ vector<ExportTableInfo> GetExportTableOrder(CompileContext *contextOptional, con
     int classRefIndex = 0;
     for (const auto &theClass : script.GetClasses())
     {
-        if (theClass->IsPublic() && (allowPublicClasses || theClass->IsInstance()))
+        if (theClass->IsPublic())
         {
             ExportTableInfo entry(ExportType::Object, classRefIndex, theClass.get(), theClass->GetName());
             _AddToTable(table, entry, theClass->GetName(), nameToSlots, freeSlots);
             classRefIndex++;
-        }
-
-        if (contextOptional && theClass->IsPublic() && !theClass->IsInstance() && !allowPublicClasses)
-        {
-            contextOptional->ReportWarning(theClass.get(), "Ignoring public class for export: %s.", theClass->GetName().c_str());
         }
     }
 
@@ -281,13 +276,10 @@ void _WriteClassOrInstance(const CSCOObjectClass &object, bool fInstance, vector
     WORD wObjectPointer = (WORD)output.size();
     // So tell that code to point here.
     pContext->WroteSource(pContext->GetTempToken(ValueType::Token, object.GetName()), wObjectPointer);
-    if (fInstance)
+    if (object.IsPublic())
     {
-        if (object.IsPublic())
-        {
-            // If it's public, we need to put this in the export table.
-            pContext->TrackPublicInstance(wObjectPointer);
-        }
+        // If it's public, we need to put this in the export table.
+        pContext->TrackPublicInstance(wObjectPointer);
     }
 
     // Property selectors and values
@@ -767,9 +759,9 @@ private:
 //
 // Adds the script's public instances and procedures to the sco file being compiled by the context
 //
-void GenerateSCOPublics(CompileContext &context, const Script &script, bool allowPublicClasses)
+void GenerateSCOPublics(CompileContext &context, const Script &script)
 {
-    vector<ExportTableInfo> exportTableOrder = GetExportTableOrder(&context, script, allowPublicClasses);
+    vector<ExportTableInfo> exportTableOrder = GetExportTableOrder(&context, script);
     const ClassVector &classes = script.GetClasses();
     const ProcedureVector &procs = script.GetProcedures();
 
@@ -1155,7 +1147,7 @@ bool GenerateScriptResource_SCI0(Script &script, PrecompiledHeaders &headers, Co
 
     // To figure out how many exports we have, let's look at the public procedures and public instances
     size_t offsetOfExports = 0;
-    vector<ExportTableInfo> exportTableOrder = GetExportTableOrder(nullptr, script, false);
+    vector<ExportTableInfo> exportTableOrder = GetExportTableOrder(nullptr, script);
     // Christmas Card Demo 1990 VGA will not work properly if we output empty exports tables.
     if (!exportTableOrder.empty())
     {
@@ -1165,7 +1157,7 @@ bool GenerateScriptResource_SCI0(Script &script, PrecompiledHeaders &headers, Co
     // Generate SCO objects for the classes and instances in the script.  We want to do this before generating any code,
     // since some code relies on it.
     GenerateSCOObjects(context, script);
-    GenerateSCOPublics(context, script, appState->GetVersion().GetAllowPublicClasses());
+    GenerateSCOPublics(context, script);
     GenerateSCOVariables(context, script);
 
     // It would be nice to put the code right after the saids and strings,
@@ -1343,13 +1335,13 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
         // TODO: Retain gaps from old SCO file? If we don't all other files will need to recompile.
         size_t numExports = 0;
         size_t offsetOfExports = 0;
-        vector<ExportTableInfo> exportTableOrder = GetExportTableOrder(nullptr, script, true);
+        vector<ExportTableInfo> exportTableOrder = GetExportTableOrder(nullptr, script);
         _Exports_SCI11(script, context, outputScr, exportTableOrder, offsetOfExports);
 
         // Generate SCO objects for the classes and instances in the script.  We want to do this before generating any code,
         // since some code relies on it.
         GenerateSCOObjects(context, script);
-        GenerateSCOPublics(context, script, true);
+        GenerateSCOPublics(context, script);
         GenerateSCOVariables(context, script);
 
         // Next, we write out the objects. They consist of parts in both .hep and .scr
