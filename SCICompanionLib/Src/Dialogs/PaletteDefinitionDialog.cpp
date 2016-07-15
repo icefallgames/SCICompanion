@@ -208,6 +208,8 @@ void CPaletteDefinitionDialog::OnAdvancedClick()
 
         m_wndStaticPalette.SetPalette(5, 8, GetCurrentPalettePtr(), ARRAYSIZE(g_egaColors), g_egaColors);
         m_wndStaticPalette.OnPaletteUpdated();
+
+        ApplyPreview();
     }
 }
 
