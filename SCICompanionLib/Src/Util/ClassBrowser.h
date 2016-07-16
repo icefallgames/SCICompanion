@@ -96,7 +96,7 @@ public:
     void ResolveValue(WORD wScript, const sci::PropertyValue &In, sci::PropertyValue &Out);
     bool ResolveValue(const sci::Script *pScript, const std::string &strValue, sci::PropertyValue &Out) const;
     WORD GetScriptNumberHelper(sci::Script *pScript) const;
-    WORD GetScriptNumberHelperConst(const sci::Script *pScript) const;
+    WORD GetScriptNumberHelperConst(const sci::Script *pScript, bool tryResolve = true) const;
     bool GetPropertyValue(PCTSTR pszName, const sci::ClassDefinition *pClass, WORD *pw);
     bool GetProperty(PCTSTR pszName, const sci::ClassDefinition *pClass, sci::PropertyValue &Out);
     bool GetPropertyValue(PCTSTR pszName, ISCIPropertyBag *pBag, const sci::ClassDefinition *pClass, WORD *pw);

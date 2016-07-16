@@ -1532,13 +1532,13 @@ WORD SCIClassBrowser::GetScriptNumberHelper(Script *pScript) const
     return w;
 }
 
-WORD SCIClassBrowser::GetScriptNumberHelperConst(const Script *pScript) const
+WORD SCIClassBrowser::GetScriptNumberHelperConst(const Script *pScript, bool tryResolve) const
 {
     WORD w = pScript->GetScriptNumber();
     if (w == InvalidResourceNumber)
     {
         const std::string &strDefine = pScript->GetScriptNumberDefine();
-        if (!strDefine.empty())
+        if (!strDefine.empty() && tryResolve)
         {
             // Look it up.
             PropertyValue Value;
@@ -1684,7 +1684,7 @@ bool SCIClassBrowser::ResolveValue(const Script *pScript, const std::string &str
         // One special case
         if (strValue == "scriptNumber")
         {
-            Out.SetValue(GetScriptNumberHelperConst(pScript));
+            Out.SetValue(GetScriptNumberHelperConst(pScript, false));
             fFound = true;
         }
         else
