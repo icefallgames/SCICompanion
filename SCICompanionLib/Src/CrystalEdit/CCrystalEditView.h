@@ -52,6 +52,9 @@ private:
 
 	BOOL   DeleteCurrentSelection();
 
+	// pfortier, added this for undo.
+	CPoint  m_ptLastTypedPosition;
+
 protected:
 	CEditDropTargetImpl *m_pDropTarget;
 	virtual DROPEFFECT GetDropEffect();

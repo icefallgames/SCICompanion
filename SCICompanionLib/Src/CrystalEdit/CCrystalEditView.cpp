@@ -398,10 +398,17 @@ void CCrystalEditView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 	{
 		if (QueryEditable() && m_pTextBuffer != NULL)
 		{
-			m_pTextBuffer->BeginUndoGroup(nChar != _T(' '));
-
 			CPoint ptSelStart, ptSelEnd;
 			GetSelection(ptSelStart, ptSelEnd);
+
+			// pfortier: CrystalEdit has an undo bug where even after moving the cursor around, subsequent text will be
+			// merged with the current undo group.
+			// If the text isn't being inserted at the previous character position, then we definitely don't want to merge with
+			// the current undo group.
+			// This probably isn't a catch-all, but it seems to be a low-risk way to detect most cases.
+			BOOL mergeWithPrevious = (nChar != _T(' ')) && (m_ptLastTypedPosition == ptSelEnd);
+			m_pTextBuffer->BeginUndoGroup(mergeWithPrevious);
+
 			CPoint ptCursorPos;
 			if (ptSelStart != ptSelEnd)
 			{
@@ -431,6 +438,7 @@ void CCrystalEditView::OnChar(UINT nChar, UINT nRepCnt, UINT nFlags)
 			SetAnchor(ptCursorPos);
 			SetCursorPos(ptCursorPos);
 			EnsureVisible(ptCursorPos);
+			m_ptLastTypedPosition = ptCursorPos;
 
 			m_pTextBuffer->FlushUndoGroup(this);
             
