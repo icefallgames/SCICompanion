@@ -1007,9 +1007,15 @@ bool CompileContext::DoesScriptObjectHaveMethod(const std::string &objectName, c
     }
     return false;
 }
-void CompileContext::ScanObjectMethod(const std::string &objectName, const std::string &selector)
+bool CompileContext::ScanObjectMethod(const std::string &objectName, const std::string &selector)
 {
-    _objectMethods[objectName].insert(selector);
+    auto &objectMethods = _objectMethods[objectName];
+    if (objectMethods.find(selector) != objectMethods.end())
+    {
+        return false; // already defined
+    }
+    objectMethods.insert(selector);
+    return true;
 }
 
 // Other public functions

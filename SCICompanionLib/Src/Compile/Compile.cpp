@@ -3332,7 +3332,7 @@ void ClassDefinition::PreScan(CompileContext &context)
 {
     if (IsSCIKeyword(context.GetLanguage(), _innerName))
     {
-        // Can't use keywords as procedure names.
+        // Can't use keywords as class names.
         ReportKeywordError(context, this, _innerName, "procedure name");
     }
 
@@ -3345,8 +3345,12 @@ void ClassDefinition::PreScan(CompileContext &context)
     // For error-checking.
     for (auto &method : _methods)
     {
-        context.ScanObjectMethod(GetName(), method->GetName());
+        if (!context.ScanObjectMethod(GetName(), method->GetName()))
+        {
+            context.ReportWarning(method.get(), "'%s' is already defined on '%s'.", method->GetName().c_str(), GetName().c_str());
+        }
     }
+
     std::set<std::string> propertyNames;
     for (auto &prop : _properties)
     {

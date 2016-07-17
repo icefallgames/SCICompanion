@@ -292,7 +292,7 @@ public:
     void PopSendCallType();
     SpeciesIndex GetSendCalleeType(std::string &objectName);
     bool DoesScriptObjectHaveMethod(const std::string &objectName, const std::string &selector);
-    void ScanObjectMethod(const std::string &objectName, const std::string &selector);
+    bool ScanObjectMethod(const std::string &objectName, const std::string &selector);
 
     // Other public functions
     std::vector<call_pair> &GetCalls();
