@@ -1177,6 +1177,8 @@
 #define ID_VOCAB_PUNCTUATIONOOPS        33318
 #define ID_MAIN_OPENVIEW                33319
 #define ID_SCRIPT_OPENVIEW              33320
+#define ID_MAIN_CUTLINE                 33321
+#define ID_PIC_CUTLINE                  33322
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -1185,7 +1187,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        404
-#define _APS_NEXT_COMMAND_VALUE         33321
+#define _APS_NEXT_COMMAND_VALUE         33323
 #define _APS_NEXT_CONTROL_VALUE         1391
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

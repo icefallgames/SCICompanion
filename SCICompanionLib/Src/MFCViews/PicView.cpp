@@ -102,6 +102,7 @@ struct CommandModifier
     void Reset();
     void GetTransformCoord(const PicComponent &pic, int &x, int &y);
     void Delete(PicComponent &pic);
+    void CutLine(PicComponent &pic);
 };
 
 
@@ -181,6 +182,7 @@ void CommandModifier::Delete(PicComponent &pic)
     }
     else if (type == PicCommand::CommandType::Line)
     {
+        // This joins the two lines, which is not what we usually want.
         if (original.type != PicCommand::CommandType::None)
         {
             uint16_t x = pic.commands[index].drawLine.xTo;
@@ -195,6 +197,23 @@ void CommandModifier::Delete(PicComponent &pic)
         }
     }
 }
+
+void CommandModifier::CutLine(PicComponent &pic)
+{
+    if (type == PicCommand::CommandType::Line)
+    {
+        if (original.type != PicCommand::CommandType::None)
+        {
+            pic.commands.erase(pic.commands.begin() + index - 1);
+            pic.commands.erase(pic.commands.begin() + index - 1);
+        }
+        else
+        {
+            pic.commands.erase(pic.commands.begin() + (index - 1));
+        }
+    }
+}
+
 
 void CommandModifier::GetTransformCoord(const PicComponent &pic, int &x, int &y)
 {
@@ -322,6 +341,7 @@ BEGIN_MESSAGE_MAP(CPicView, CScrollingThing<CView>)
     ON_COMMAND(ID_PIC_EXPORT8, CPicView::OnExportPalettizedBitmap)
     ON_COMMAND(ID_PIC_EDITPALETTE, CPicView::EditVGAPalette)
     ON_COMMAND(ID_PIC_DELETEPOINT, CPicView::OnDeletePoint)
+    ON_COMMAND(ID_PIC_CUTLINE, CPicView::OnCutLine)
     ON_COMMAND(ID_PIC_CHANGEDIMENSIONS, CPicView::ChangeDimensions)
     ON_COMMAND(ID_PIC_REMOVESETVISUAL, CPicView::RemoveSetVisual)
     ON_COMMAND(ID_PIC_EDITCELDATA, CPicView::EditCelData)
@@ -338,6 +358,7 @@ BEGIN_MESSAGE_MAP(CPicView, CScrollingThing<CView>)
     ON_UPDATE_COMMAND_UI(ID_TRACEBITMAP, CPicView::OnUpdateIsGDIPAvailable)
     ON_UPDATE_COMMAND_UI(ID_SHOWTRACEIMAGE, CPicView::OnUpdateShowTraceImage)
     ON_UPDATE_COMMAND_UI(ID_ALPHASLIDER, OnUpdateAlphaSlider)
+    ON_UPDATE_COMMAND_UI(ID_PIC_CUTLINE, OnUpdateCutLine)
     ON_UPDATE_COMMAND_UI(ID_SETPRIORITY, CPicView::OnCommandUIAlwaysValid)
     ON_UPDATE_COMMAND_UI(ID_INDICATOR_COORDS, CPicView::OnCommandUIStatus)
     ON_UPDATE_COMMAND_UI(ID_INDICATOR_PRI, CPicView::OnCommandUIStatus)
@@ -373,6 +394,7 @@ BEGIN_MESSAGE_MAP(CPicView, CScrollingThing<CView>)
     ON_UPDATE_COMMAND_UI(ID_PIC_EDITPALETTE, CPicView::OnUpdateIsVGA)
     ON_UPDATE_COMMAND_UI(ID_PIC_CHANGEDIMENSIONS, CPicView::OnUpdateIsVGA)
     ON_UPDATE_COMMAND_UI(ID_PIC_DELETEPOINT, CPicView::OnCommandUIAlwaysValid)  // Since it's in a context menu we only bring up when it's available.
+    ON_UPDATE_COMMAND_UI(ID_PIC_CUTLINE, CPicView::OnCommandUIAlwaysValid)  // Since it's in a context menu we only bring up when it's available.
     ON_UPDATE_COMMAND_UI(ID_PIC_SPLITEDGE, CPicView::OnCommandUIAlwaysValid)  // Since it's in a context menu we only bring up when it's available.
     ON_UPDATE_COMMAND_UI(ID_FAKEEGONUMBER, CPicView::OnCommandUIAlwaysValid)
     ON_UPDATE_COMMAND_UI(ID_PIC_EDITCELDATA, CPicView::OnUpdateEditCelData)
@@ -632,6 +654,19 @@ void CPicView::OnDeletePoint()
     );
     _transformCommandMod->Reset();
 }
+
+void CPicView::OnCutLine()
+{
+    GetDocument()->ApplyChanges<PicComponent>(
+        [this](PicComponent &pic)
+    {
+        _transformCommandMod->CutLine(pic);
+        return WrapHint(PicChangeHint::EditPicInvalid);
+    }
+    );
+    _transformCommandMod->Reset();
+}
+
 
 void CPicView::OnEnableFakeEgoCustom()
 {
@@ -1464,6 +1499,11 @@ void CPicView::OnUpdateAlphaSlider(CCmdUI *pCmdUI)
 {
     pCmdUI->Enable(_fHaveTraceImage);
     g_pPicAlphaSlider->SetView(this);
+}
+
+void CPicView::OnUpdateCutLine(CCmdUI *pCmdUI)
+{
+    pCmdUI->Enable(_transformCommandMod->original.type == PicCommand::CommandType::Line);
 }
 
 void CPicView::SetOpacity(int iOpacity)

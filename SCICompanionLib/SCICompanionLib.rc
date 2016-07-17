@@ -724,6 +724,7 @@ BEGIN
     POPUP "main"
     BEGIN
         MENUITEM "Delete point",                ID_PIC_DELETEPOINT
+        MENUITEM "Cut line",                    ID_PIC_CUTLINE
     END
 END
 

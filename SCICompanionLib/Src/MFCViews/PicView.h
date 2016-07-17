@@ -247,11 +247,13 @@ protected:
     afx_msg void ChangeDimensions();
     afx_msg void OnEnableFakeEgoCustom();
     afx_msg void OnDeletePoint();
+    afx_msg void OnCutLine();
     afx_msg void RemoveSetVisual();
     afx_msg void EditCelData();
     afx_msg void OnUpdateAllPicCommands(CCmdUI *pCmdUI);
     afx_msg void OnUpdateShowTraceImage(CCmdUI *pCmdUI);
     afx_msg void OnUpdateAlphaSlider(CCmdUI *pCmdUI);
+    afx_msg void OnUpdateCutLine(CCmdUI *pCmdUI);
     afx_msg void OnCommandUIAlwaysValid(CCmdUI *pCmdUI) { pCmdUI->Enable(TRUE); }
     afx_msg void OnUpdateEditCelData(CCmdUI *pCmdUI);
     afx_msg void OnCommandUIStatus(CCmdUI *pCmdUI);
