@@ -56,6 +56,8 @@ using namespace std;
 static char THIS_FILE[] = __FILE__;
 #endif
 
+std::string ResourceDisplayNameFromType(ResourceType type);
+
 HRESULT copyfile(const string &destination, const string &source)
 {
     return CopyFile(destination.c_str(), source.c_str(), FALSE) ? S_OK : ResultFromLastError();
@@ -161,7 +163,7 @@ ResourceType ResourceFlagToType(ResourceTypeFlags dwFlags)
     return (ResourceType)iShifts;
 }
 
-HRESULT RebuildResources(SCIVersion version, BOOL fShowUI, ResourceSaveLocation saveLocation)
+HRESULT RebuildResources(SCIVersion version, BOOL fShowUI, ResourceSaveLocation saveLocation, std::map<ResourceType, RebuildStats> &stats)
 {
     try
     {
@@ -170,7 +172,7 @@ HRESULT RebuildResources(SCIVersion version, BOOL fShowUI, ResourceSaveLocation 
         if (version.AudioVolumeName != AudioVolumeName::None)
         {
             std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(appState->GetResourceMap().Helper(), ResourceSourceFlags::AudioCache);
-            resourceSource->RebuildResources(true, *resourceSource);
+            resourceSource->RebuildResources(true, *resourceSource, stats);
         }
 
         // Enumerate resources and write the ones we have not already encountered.
@@ -183,13 +185,13 @@ HRESULT RebuildResources(SCIVersion version, BOOL fShowUI, ResourceSaveLocation 
             patchFileSource = CreateResourceSource(appState->GetResourceMap().Helper(), ResourceSourceFlags::PatchFile);
             theActualSource = patchFileSource.get();
         }
-        resourceSource->RebuildResources(true, *theActualSource);
+        resourceSource->RebuildResources(true, *theActualSource, stats);
 
         if (version.MessageMapSource != MessageMapSource::Included)
         {
             ResourceSourceFlags sourceFlags = (version.MessageMapSource == MessageMapSource::MessageMap) ? ResourceSourceFlags::MessageMap : ResourceSourceFlags::AltMap;
             std::unique_ptr<ResourceSource> messageSource = CreateResourceSource(appState->GetResourceMap().Helper(), ResourceSourceFlags::MessageMap);
-            messageSource->RebuildResources(true, *messageSource);
+            messageSource->RebuildResources(true, *messageSource, stats);
         }
     }
     catch (std::exception &e)
@@ -431,8 +433,9 @@ void CResourceMap::RepackageAudio(bool force)
     // TODO: This could be slow, so provide some kind of UI feedback?
     if (GetSCIVersion().AudioVolumeName != AudioVolumeName::None)
     {
+        std::map<ResourceType, RebuildStats> stats;
         std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(Helper(), ResourceSourceFlags::AudioCache);
-        resourceSource->RebuildResources(force, *resourceSource);    // false -> don't force.
+        resourceSource->RebuildResources(force, *resourceSource, stats);
     }
 }
 
@@ -684,9 +687,30 @@ std::unique_ptr<ResourceBlob> CResourceMap::MostRecentResource(ResourceType type
 
 void CResourceMap::PurgeUnnecessaryResources()
 {
-    HRESULT hr = RebuildResources(_gameFolderHelper.Version, TRUE, Helper().GetResourceSaveLocation(ResourceSaveLocation::Default));
+    std::map<ResourceType, RebuildStats> stats;
+    HRESULT hr = RebuildResources(_gameFolderHelper.Version, TRUE, Helper().GetResourceSaveLocation(ResourceSaveLocation::Default), stats);
     if (SUCCEEDED(hr))
     {
+        size_t totalSize = 0;
+        for (const auto &stat : stats)
+        {
+            totalSize += stat.second.TotalSize;
+        }
+        vector<CompileResult> statResults;
+        statResults.emplace_back(fmt::format("Total package size: {0:5}KB", totalSize / 1024), CompileResult::CompileResultType::CRT_Message);
+
+        for (const auto &stat : stats)
+        {
+            std::string result = fmt::format("{0:3} {1:>10}: Total size: {2:4}KB ({3:4.2f}% of total)",
+                stat.second.ItemCount,
+                ResourceDisplayNameFromType(stat.first),
+                stat.second.TotalSize / 1024,
+                ((float)stat.second.TotalSize / (float)totalSize) * 100.0f
+                );
+            statResults.emplace_back(result, CompileResult::CompileResultType::CRT_Message);
+        }
+        appState->OutputResults(OutputPaneType::Compile, statResults);
+
         StartPostBuildThread();
 
         // Refresh everything.

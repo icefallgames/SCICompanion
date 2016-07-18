@@ -668,7 +668,7 @@ std::ostream *_ChooseBakOutputStream(SCIVersion version, const std::string &game
     return toUse;
 }
 
-void AudioCacheResourceSource::RebuildResources(bool force, ResourceSource &source)
+void AudioCacheResourceSource::RebuildResources(bool force, ResourceSource &source, std::map<ResourceType, RebuildStats> &stats)
 {
     UpToDateResources upToDate(_cacheFolder);
 

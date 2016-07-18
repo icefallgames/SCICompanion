@@ -542,6 +542,18 @@ c_ShowResourceCommands[] =
     { ID_SHOW_MAPS, ResourceType::AudioMap, "Maps", "Show maps", "Show audio maps", IDI_AUDIOMAP },
 };
 
+std::string ResourceDisplayNameFromType(ResourceType type)
+{
+    for (const auto &typeInfo : c_ShowResourceCommands)
+    {
+        if (typeInfo.iType == type)
+        {
+            return typeInfo.pszShortText;
+        }
+    }
+    return "";
+}
+
 void _AssignIcons(const key_value_pair<UINT, int> *rg, size_t count)
 {
     for (size_t i = 0; i < count; ++i)

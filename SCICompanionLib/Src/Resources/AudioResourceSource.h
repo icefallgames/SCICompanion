@@ -49,7 +49,7 @@ public:
 
     void RemoveEntry(const ResourceMapEntryAgnostic &mapEntry) override;
     AppendBehavior AppendResources(const std::vector<const ResourceBlob*> &blobs) override;
-    void RebuildResources(bool force, ResourceSource &source) override {}
+    void RebuildResources(bool force, ResourceSource &source, std::map<ResourceType, RebuildStats> &stats) override {}
 
 private:
     void _EnsureAudioMaps();

@@ -35,6 +35,12 @@ enum class ResourceSourceAccessFlags
 };
 DEFINE_ENUM_FLAGS(ResourceSourceAccessFlags, uint32_t)
 
+struct RebuildStats
+{
+    size_t ItemCount;
+    size_t TotalSize;
+};
+
 typedef ResourceHeaderAgnostic(*ReadResourceHeaderFunc)(sci::istream &byteStream, SCIVersion version, ResourceSourceFlags sourceFlags, uint16_t packageHint);
 typedef void(*WriteResourceHeaderFunc)(sci::ostream &byteStream, const ResourceHeaderAgnostic &header);
 
@@ -111,7 +117,7 @@ public:
     virtual sci::istream GetPositionedStreamAndResourceSizeIncludingHeader(const ResourceMapEntryAgnostic &mapEntry, uint32_t &size, bool &includesHeader) = 0;
 
     virtual void RemoveEntry(const ResourceMapEntryAgnostic &mapEntry) = 0;
-    virtual void RebuildResources(bool force, ResourceSource &source) = 0;
+    virtual void RebuildResources(bool force, ResourceSource &source, std::map<ResourceType, RebuildStats> &stats) = 0;
     virtual AppendBehavior AppendResources(const std::vector<const ResourceBlob*> &blobs) = 0;
 };
 
@@ -337,7 +343,7 @@ public:
         }
     }
 
-    void RebuildResources(bool force, ResourceSource &source) override
+    void RebuildResources(bool force, ResourceSource &source, std::map<ResourceType, RebuildStats> &stats) override
     {
         IteratorState iteratorState;
 
@@ -401,6 +407,10 @@ public:
                         entryExisting.Offset = newResourceOffset;
                         entryExisting.PackageNumber = rebuildPackageNumber;
                         WriteEntry(entryExisting, mapStreamWrite1, mapStreamWrite2, false);
+
+                        auto &statsForType = stats[entryExisting.Type];
+                        statsForType.ItemCount++;
+                        statsForType.TotalSize += totalResourceSize;
                     }
                     catch (std::exception)
                     {
