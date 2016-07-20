@@ -126,11 +126,7 @@ sci::istream ResourceContainer::ResourceIterator::_GetResourceHeaderAndPackage(R
         rh.CompressionMethod = 0;
         rh.Version = appState->GetVersion();
         rh.SourceFlags = ResourceSourceFlags::ResourceMap;
-        //rh.Version = this->
     }
-
- //   assert((uint16_t)rh.Number == _currentEntry.Number && "Corrupt resource map");
-  //  assert(rh.PackageHint == _currentEntry.PackageNumber && "Corrupt resource map");
 
     // By setting these to those in the resource map (instead of the header), we can ensure that the ResourceBlob matches
     // the resource map information. This ensures that we can delete resources in the case of a corrupt resource map/package.

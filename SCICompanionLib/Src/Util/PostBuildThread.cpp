@@ -55,10 +55,6 @@ void PostBuildThread::_Start(std::shared_ptr<PostBuildThread> myself)
         _hAbort.hFile = CreateEvent(nullptr, FALSE, FALSE, nullptr);
         _myself = myself;
 
-        // REVIEW: Might want to move this further up the chain.
-        appState->OutputClearResults(OutputPaneType::Compile);
-        appState->ShowOutputPane(OutputPaneType::Compile);
-
         try
         {
             std::thread ourThread = std::thread(s_PostBuildThreadWorker, this);
