@@ -3825,6 +3825,8 @@ void TrackArraySizes(CompileContext &context, sci::Script &script)
         }
         else
         {
+            // Need to pre-scan varDecl first, in case it has a define that needs to be resolved.
+            varDecl->PreScan(context);
             context.ScriptArraySizes[varDecl->GetName()] = varDecl->GetSize();
         }
     }

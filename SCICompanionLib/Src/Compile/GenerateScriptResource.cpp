@@ -1120,10 +1120,14 @@ void CommonScriptPrep(Script &script, CompileContext &context, CompileResults &r
     // Set the script number now (might have relied on defines)
     context.SetScriptNumber();
     results.SetScriptNumber(context.GetScriptNumber());
+
     // Some stuff needs to be done even before this
+    // Note: TrackArraySizes has to do some PreScan too, since an array could use
+    // a define as its size.
     TrackArraySizes(context, script);
     // Do some prescans (script number must already be set!)
     script.PreScan(context);
+
     EvaluateConstantExpressions(context, script);
     // Ok, now we should have been told about all the saids and strings.
     if (script.Language() == LangSyntaxStudio)
