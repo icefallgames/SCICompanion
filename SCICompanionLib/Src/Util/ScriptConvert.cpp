@@ -64,7 +64,7 @@ bool ConvertScript(SCIVersion version, LangSyntax targetLanguage, ScriptId &scri
                 if (makeBak)
                 {
                     bakPath = scriptId.GetFullPath() + ".bak";
-                    copy_file(path(scriptId.GetFullPath()), path(bakPath), copy_option::overwrite_if_exists);
+                    copy_file(path(scriptId.GetFullPath()), path(bakPath), copy_options::overwrite_existing);
                 }
 
                 // Now save it
@@ -115,7 +115,7 @@ void EnumScriptIds(vector<ScriptId> &scripts, const std::string &folder, const s
     {
         const auto &file = it->path();
         std::smatch sm;
-        std::string temp = file.filename();
+        std::string temp = file.filename().string();
         if (!is_directory(file) && std::regex_search(temp, sm, matchRSTRegex) && (sm.size() > 1))
         {
             scripts.push_back(ScriptId(file.string()));

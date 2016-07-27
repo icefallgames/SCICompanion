@@ -784,7 +784,7 @@ void CMainFrame::_EnumeratePlugins(CExtPopupMenuWnd &menu)
         {
             const auto &file = it->path();
             std::smatch sm;
-            std::string temp = file.filename();
+            std::string temp = file.filename().string();
             if (!is_directory(file) && std::regex_search(temp, sm, matchEXERegex) && (sm.size() > 1))
             {
                 _pluginExes.push_back(file.string());
@@ -806,7 +806,7 @@ void CMainFrame::_EnumeratePlugins(CExtPopupMenuWnd &menu)
     for (path exePath : _pluginExes)
     {
         // Default to the exe name
-        std::string description = exePath.stem();
+        std::string description = exePath.stem().string();
         // But try to get a better one:
         DWORD size = GetFileVersionInfoSize(exePath.string().c_str(), nullptr);
         if (size)

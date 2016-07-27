@@ -3555,18 +3555,6 @@ void ExportEntry::PreScan(CompileContext &context) {}
 
 void Script::PreScan(CompileContext &context)
 {
-    for (auto &theDefine : _defines)
-    {
-        const string &defineName = theDefine->GetName();
-        if (IsSCIKeyword(context.GetLanguage(), defineName))
-        {
-            ReportKeywordError(context, theDefine.get(), defineName, "define");
-        }
-        else
-        {
-            context.AddDefine(theDefine.get());
-        }
-    }
     ForwardPreScan2(_defines, context);
 
     //

@@ -580,7 +580,7 @@ void OutputIndexRSTHelper(const std::string &rstFolder, const std::string &pream
     {
         const auto &file = it->path();
         std::smatch sm;
-        std::string temp = file.filename();
+        std::string temp = file.filename().string();
         if (!is_directory(file) && std::regex_search(temp, sm, matchRSTRegex) && (sm.size() > 1))
         {
             std::string coreFilename = sm[1].str();

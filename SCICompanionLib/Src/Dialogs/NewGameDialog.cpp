@@ -58,7 +58,8 @@ void NewGameDialog::_PopulateTemplates()
             else
             {
                 PCSTR pszExt = PathFindExtension(findData.cFileName);
-                std::string key(findData.cFileName, pszExt);
+				PCSTR pszBegin = findData.cFileName; // For some reason this needs to be assign to a temp before passed to std::string's init list.
+                std::string key(pszBegin, pszExt);
                 if (0 == strncmp(pszExt, ".txt", 4))
                 {
                     std::ifstream descriptionFile(templateFolder + findData.cFileName);

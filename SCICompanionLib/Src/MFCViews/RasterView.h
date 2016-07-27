@@ -180,7 +180,7 @@ private:
         {
             return _size;
         }
-        const CSize &GetCSize() const
+        const CSize GetCSize() const
         {
             return SizeToCSize(_size);
         }

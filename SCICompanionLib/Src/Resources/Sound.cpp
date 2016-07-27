@@ -384,6 +384,16 @@ DWORD ReadVarLen(std::istream &midiFile)
     return value;
 }
 
+std::string ReadStringAndAdvance(DWORD cb, std::istream &midiFile)
+{
+    std::string s = "";
+    while (cb)
+    {
+        s += (char)_GetC(midiFile);
+        --cb;
+    }
+    return s;
+}
 
 //
 // Reads a midi file into the sound resource, and returns a uint16_t that is the channel mask
@@ -461,7 +471,7 @@ uint16_t SoundComponent::_ReadMidiFileTrack(size_t nTrack, std::istream &midiFil
                     // Non-midi event (instrument, tempo, time sig, etc..)
                     uint8_t bType = _GetC(midiFile);
                     DWORD cbBytes = ReadVarLen(midiFile);
-                    ASSERT(cbBytes < 0x0000ffff); // debug sanity check
+                    assert(cbBytes < 0x0000ffff); // debug sanity check
                     // Skip it... (we may eventually use it, not sure yet)
                     if ((bType == 0x51) && (cbBytes == 3))
                     {
@@ -488,6 +498,31 @@ uint16_t SoundComponent::_ReadMidiFileTrack(size_t nTrack, std::istream &midiFil
                         }
                         fSkip = true;
                     }
+                    else if (bType == 0x07)
+                    {
+                        // Cue point
+                        // REVIEW: We'll need to adjust the ticks for these when we process tempo changes (or do we)
+                        // Easiest thing should be to make sound events out of them.
+                        // REVIEW: loop and cuepoints don't end up getting saved/....
+                        std::string cueName = ReadStringAndAdvance(cbBytes, midiFile);
+                        if (cueName == "loop")
+                        {
+                            LoopPoint = totalTicksOut;
+                        }
+                        else if (cueName.length() > 0)
+                        {
+                            uint8_t value = 0;
+                            if (cueName[0] == '+')
+                            {
+                                Cues.push_back(CuePoint(CuePoint::Type::Cumulative, totalTicksOut, value));
+                            }
+                            else
+                            {
+                                Cues.push_back(CuePoint(CuePoint::Type::NonCumulative, totalTicksOut, value));
+                            }
+                        }
+                        fSkip = true;
+                    }
                     else
                     {
                         midiFile.seekg(cbBytes, std::ios_base::cur);
@@ -496,9 +531,9 @@ uint16_t SoundComponent::_ReadMidiFileTrack(size_t nTrack, std::istream &midiFil
                 }
                 else
                 {
-                    ASSERT((bStatus == 0xF0) || (bStatus == 0xF7));
+                    assert((bStatus == 0xF0) || (bStatus == 0xF7));
                     DWORD cbBytes = ReadVarLen(midiFile);
-                    ASSERT(cbBytes < 0x0000ffff); // debug sanity check
+                    assert(cbBytes < 0x0000ffff); // debug sanity check
                     // Skip the data.  We don't handle these (other than using the timedelta)
                     midiFile.seekg(cbBytes, std::ios_base::cur);
                 }
@@ -1278,9 +1313,9 @@ void SoundWriteToWorker_SCI1(const SoundComponent &soundIn, const AudioComponent
         channelStream.WriteByte(0xfe);  // Digital channel marker
         channelStream.WriteByte(0);     // Priority (unimplemented)
         channelStream.WriteWord(audio->Frequency);
-        channelStream.WriteWord(audio->DigitalSamplePCM.size());
+        channelStream.WriteWord(static_cast<uint16_t>(audio->DigitalSamplePCM.size()));
         channelStream.WriteWord(0);     // Offset (from end of header)
-        channelStream.WriteWord(audio->DigitalSamplePCM.size());    // end
+        channelStream.WriteWord(static_cast<uint16_t>(audio->DigitalSamplePCM.size()));    // end
         channelStream.WriteBytes(&audio->DigitalSamplePCM[0], audio->DigitalSamplePCM.size());
 
         // Keep track of offset and size.
@@ -1792,12 +1827,20 @@ bool ValidateSoundResource(const ResourceEntity &resource)
     bool save = true;
     const SoundComponent &sound = resource.GetComponent<SoundComponent>();
     
-    for (const auto &cuePoint : sound.GetCuePoints())
+    if (!sound.GetCuePoints().empty() && (sound.GetLoopPoint() != SoundComponent::LoopPointNone))
     {
-        if ((cuePoint.GetTickPos() != 0) && (cuePoint.GetValue() == 0))
+        save = (IDYES == AfxMessageBox("Sound contains a loop point and at least one cue. Cues won't do anything if a loop point is specified. Save anyway?", MB_ICONWARNING | MB_YESNO));
+    }
+
+    if (save)
+    {
+        for (const auto &cuePoint : sound.GetCuePoints())
         {
-            save = (IDYES == AfxMessageBox("Sound contains a cumulative cue with a zero value after time 0. This won't trigger anything. Save anyway?", MB_ICONWARNING | MB_YESNO));
-            break;
+            if ((cuePoint.GetTickPos() != 0) && (cuePoint.GetValue() == 0))
+            {
+                save = (IDYES == AfxMessageBox("Sound contains a cumulative cue with a zero value after time 0. This won't trigger anything. Save anyway?", MB_ICONWARNING | MB_YESNO));
+                break;
+            }
         }
     }
 

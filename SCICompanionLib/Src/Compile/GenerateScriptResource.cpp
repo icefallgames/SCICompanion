@@ -24,6 +24,8 @@
 using namespace std;
 using namespace sci;
 
+void ReportKeywordError(CompileContext &context, const ISourceCodePosition *pPos, const string &text, const string &use);
+
 // Ensure w is an even number.  Return true if it rounded up.
 bool make_even(WORD &w)
 {
@@ -1120,6 +1122,20 @@ void CommonScriptPrep(Script &script, CompileContext &context, CompileResults &r
     // Set the script number now (might have relied on defines)
     context.SetScriptNumber();
     results.SetScriptNumber(context.GetScriptNumber());
+
+	// Process the defines before doing a TrackArraySizes and PreScane
+	for (auto &theDefine : script.GetDefines())
+	{
+		const string &defineName = theDefine->GetName();
+		if (IsSCIKeyword(context.GetLanguage(), defineName))
+		{
+			ReportKeywordError(context, theDefine.get(), defineName, "define");
+		}
+		else
+		{
+			context.AddDefine(theDefine.get());
+		}
+	}
 
     // Some stuff needs to be done even before this
     // Note: TrackArraySizes has to do some PreScan too, since an array could use

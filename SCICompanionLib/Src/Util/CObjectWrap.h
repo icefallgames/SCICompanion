@@ -18,6 +18,7 @@ class CHint : public CObject
 {
 public:
     CHint(uint32_t thing) : Hint(thing) {}
+	CHint(const CHint &hint) { Hint = hint.Hint; }
     uint32_t Hint;
 };
 
