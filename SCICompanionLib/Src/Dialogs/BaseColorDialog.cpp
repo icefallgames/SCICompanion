@@ -82,32 +82,39 @@ void CBaseColorDialog::_SetPosition()
         RECT rcCtrl;
         GetClientRect(&rcCtrl);
 
+		RECT rcScreen;
+		rcScreen.left = GetSystemMetrics(SM_XVIRTUALSCREEN);
+		rcScreen.top = GetSystemMetrics(SM_YVIRTUALSCREEN);
+		rcScreen.right = rcScreen.left + GetSystemMetrics(SM_CXVIRTUALSCREEN);
+		rcScreen.bottom = rcScreen.top + GetSystemMetrics(SM_CYVIRTUALSCREEN);
+
         // Alignment at right if necessary
-        if (pt.x + RECTWIDTH(rcCtrl) > ::GetSystemMetrics (SM_CXVIRTUALSCREEN))
+        if (pt.x + RECTWIDTH(rcCtrl) > rcScreen.right)
         {
             pt.x = _rcTrack.right - RECTWIDTH(rcCtrl);
         }
         // Alignment at top if necessary
-        if (pt.y + RECTHEIGHT(rcCtrl) > ::GetSystemMetrics(SM_CYVIRTUALSCREEN))
+        if (pt.y + RECTHEIGHT(rcCtrl) > rcScreen.bottom)
         {
             pt.y = _rcTrack.top - RECTHEIGHT(rcCtrl);
         }
+
         // Adjustments to keep control into screen
-        if (pt.x + RECTWIDTH(rcCtrl) > ::GetSystemMetrics(SM_CXVIRTUALSCREEN))
+        if (pt.x + RECTWIDTH(rcCtrl) > rcScreen.right)
         {
-            pt.x = ::GetSystemMetrics (SM_CXSCREEN) - RECTWIDTH(rcCtrl);
+            pt.x = rcScreen.right - RECTWIDTH(rcCtrl);
         }
-        if (pt.y + RECTHEIGHT(rcCtrl) > ::GetSystemMetrics(SM_CYVIRTUALSCREEN))
+        if (pt.y + RECTHEIGHT(rcCtrl) > rcScreen.bottom)
         {
-            pt.y = ::GetSystemMetrics (SM_CYSCREEN)- RECTHEIGHT(rcCtrl);
+            pt.y = rcScreen.bottom - RECTHEIGHT(rcCtrl);
         }
-        if (pt.x < 0)
+        if (pt.x < rcScreen.left)
         {
-            pt.x = 0;
+            pt.x = rcScreen.left;
         }
-        if (pt.y < 0)
+        if (pt.y < rcScreen.top)
         {
-            pt.y = 0;
+            pt.y = rcScreen.top;
         }
 
         RECT rcNew = { pt.x, pt.y, pt.x + RECTWIDTH(rcCtrl), pt.y + RECTHEIGHT(rcCtrl) };
