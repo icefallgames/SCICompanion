@@ -2771,7 +2771,7 @@ CRect CPicView::_DrawShowingEgoWorker(const ViewPort &viewPort, uint8_t *pdataVi
         if (!appState->_fUseBoxEgo && _GetFakeEgo())
         {
             // Draw a view.
-            rc = DrawViewWithPriority(_GetPicSize(), pdataVisual, pdataPriority, bEgoPriority, (uint16_t)_fakeEgoAttributes.Location.x, (uint16_t)_fakeEgoAttributes.Location.y, _GetFakeEgo(), _fakeEgoAttributes.Loop, _fakeEgoAttributes.Cel, _HitTestFakeEgo(_ptCurrentHover));
+            rc = DrawViewWithPriority(_GetPicSize(), pdataVisual, pdataPriority, bEgoPriority, (uint16_t)_fakeEgoAttributes.Location.x, (uint16_t)_fakeEgoAttributes.Location.y, _GetFakeEgo(), _fakeEgoAttributes.Loop, _fakeEgoAttributes.Cel, _HitTestFakeEgo(_ptCurrentHover), GetDocument()->IsUndithered());
         }
         else
         {

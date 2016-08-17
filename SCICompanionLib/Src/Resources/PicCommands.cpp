@@ -1284,7 +1284,7 @@ bool HitTestEgoBox(int16_t xCursor, int16_t yCursor, int16_t xEgo, int16_t yEgo,
     return TRUE;
 }
 
-void DrawImageWithPriority(size16 displaySize, uint8_t *pdataDisplay, const uint8_t *pdataPriority, uint8_t *pdataPriorityWrite, uint8_t bEgoPriority, int xLeft, int yTop, uint16_t cx, uint16_t cy, uint16_t cxStride, const uint8_t *pImageData, uint8_t transparent, bool fShowOutline)
+void DrawImageWithPriority(size16 displaySize, uint8_t *pdataDisplay, const uint8_t *pdataPriority, uint8_t *pdataPriorityWrite, uint8_t bEgoPriority, int xLeft, int yTop, uint16_t cx, uint16_t cy, uint16_t cxStride, const uint8_t *pImageData, uint8_t transparent, bool fShowOutline, bool isEGAUndithered)
 {
     int xRight = xLeft + cx;
     int yBottom = yTop + cy;
@@ -1320,6 +1320,11 @@ void DrawImageWithPriority(size16 displaySize, uint8_t *pdataDisplay, const uint
                     if (fShowing)
                     {
                         // Copy a pixel!
+						if (isEGAUndithered)
+						{
+							// Duplicate the color into the other slot if undithered.
+							bView |= (bView << 4);
+						}
                         *(pdataDisplay + pPicOffset) = bView;
                         xLastPixel = -1;
 
@@ -1362,7 +1367,7 @@ void DrawImageWithPriority(size16 displaySize, uint8_t *pdataDisplay, const uint
 //
 // Draws a view (represented by pvr) onto a pic (represented by pdataDisplay and pdataPriority)
 //
-CRect DrawViewWithPriority(size16 displaySize, uint8_t *pdataDisplay, const uint8_t *pdataPriority, uint8_t bEgoPriority, int16_t xIn, int16_t yIn, const ResourceEntity *pvr, int nLoop, int nCel, bool fShowOutline)
+CRect DrawViewWithPriority(size16 displaySize, uint8_t *pdataDisplay, const uint8_t *pdataPriority, uint8_t bEgoPriority, int16_t xIn, int16_t yIn, const ResourceEntity *pvr, int nLoop, int nCel, bool fShowOutline, bool isEGAUndithered)
 {
     const Cel &cel = GetCel(pvr, nLoop, nCel);
     uint8_t bTransparent = cel.TransparentColor;
@@ -1376,7 +1381,7 @@ CRect DrawViewWithPriority(size16 displaySize, uint8_t *pdataDisplay, const uint
     std::unique_ptr<uint8_t[]> data = std::make_unique<uint8_t[]>(CX_ACTUAL(cel.size.cx) * cel.size.cy);
     CopyBitmapData(pvr->GetComponent<RasterComponent>(), CelIndex(nLoop, nCel), data.get(), cel.size);
 
-    DrawImageWithPriority(displaySize, pdataDisplay, pdataPriority, nullptr, bEgoPriority, xLeft, yTop, cel.size.cx, cel.size.cy, cel.GetStride(), &data[0], bTransparent, fShowOutline);
+    DrawImageWithPriority(displaySize, pdataDisplay, pdataPriority, nullptr, bEgoPriority, xLeft, yTop, cel.size.cx, cel.size.cy, cel.GetStride(), &data[0], bTransparent, fShowOutline, isEGAUndithered);
 
     CRect rc(xLeft, yTop, xLeft + cel.size.cx, yTop + cel.size.cy);
     if (fShowOutline)
@@ -2389,7 +2394,8 @@ void DrawVisualBitmap_Draw(const PicCommand *pCommand, PicData *pData, ViewPort 
                 cel.GetStride(),
                 &cel.Data[0],
                 cel.TransparentColor,
-                false);
+                false,
+				false);
         }
 
         // Fill in the aux thing (otherwise stuff like LSL6, pic 320 is wrong).
