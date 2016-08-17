@@ -63,115 +63,227 @@ END
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
 IDR_MAINFRAME           ICON                    "res\\1_216.ico"
+
 IDR_SCIPicEditorTYPE    ICON                    "res\\SCICompanionDoc.ico"
+
 IDI_ICONCONVERT         ICON                    "res\\icon1.ico"
+
 IDI_APPICON             ICON                    "res\\icon2.ico"
+
 IDI_BANG                ICON                    "res\\bang.ico"
+
 IDI_ICONTEST            ICON                    "res\\icon3.ico"
+
 IDI_ICONMAINTEXT        ICON                    "res\\SCIText.ico"
+
 IDI_COMPILEALL          ICON                    "res\\script_compileall.ico"
+
 IDI_BRUSH               ICON                    "res\\draw_brush.ico"
+
 IDI_REPLACECOLOUR       ICON                    "res\\draw_replace.ico"
+
 IDI_ZOOM                ICON                    "res\\draw_zoom.ico"
+
 IDI_EDIT_COPY           ICON                    "res\\edit.ico"
+
 IDI_EDIT_CUT            ICON                    "res\\edit_cut.ico"
+
 IDI_EDIT_PASTE          ICON                    "res\\edit_paste.ico"
+
 IDI_FILE_OPEN           ICON                    "res\\file_open.ico"
+
 IDI_FILE_SAVE           ICON                    "res\\file_save.ico"
+
 IDI_REBUILDRESOURCES    ICON                    "res\\main_rebuild.ico"
+
 IDI_CD                  ICON                    "res\\CD.ico"
+
 IDI_RUNGAME             ICON                    "res\\main_run.ico"
+
 IDI_HISTORY             ICON                    "res\\pic_history.ico"
+
 IDI_COMPILE             ICON                    "res\\script_compile.ico"
+
 IDI_SOUND               ICON                    "res\\sound.ico"
+
 IDI_BACK                ICON                    "res\\main_back.ico"
+
 IDI_FORWARD             ICON                    "res\\main_forward.ico"
+
 IDI_GAMEPROPERTIES      ICON                    "res\\main_properties.ico"
+
 IDI_NEWSOUND            ICON                    "res\\newsound.ico"
+
 IDI_PATCH               ICON                    "res\\patch.ico"
+
 IDI_FONT                ICON                    "res\\font.ico"
+
 IDI_NEWFONT             ICON                    "res\\newfont.ico"
+
 IDI_NEWPIC              ICON                    "res\\newpic.ico"
+
 IDI_NEWSCRIPT           ICON                    "res\\newscript.ico"
+
 IDI_NEWVIEW             ICON                    "res\\newview.ico"
+
 IDI_SCRIPT              ICON                    "res\\script.ico"
+
 IDI_VIEW                ICON                    "res\\view.ico"
+
 IDI_VOCAB               ICON                    "res\\Vocab.ico"
+
 IDI_NEWTEXT             ICON                    "res\\newtext.ico"
+
 IDI_NEWMESSAGE          ICON                    "res\\newmessage.ico"
+
 IDI_NEWMESSAGEENTRY     ICON                    "res\\newmessageentry.ico"
+
 IDI_NEWMESSAGESEQ       ICON                    "res\\newmessagesequence.ico"
+
 IDI_CLONEMESSAGEENTRY   ICON                    "res\\clonemessageentry.ico"
+
 IDI_NEWPALETTE          ICON                    "res\\newpalette.ico"
+
 IDI_TEXT                ICON                    "res\\text.ico"
+
 IDI_MESSAGE             ICON                    "res\\message.ico"
+
 IDI_PREFERENCES         ICON                    "res\\preferences.ico"
+
 IDI_NEWCURSOR           ICON                    "res\\newcursor.ico"
+
 IDI_CURSOR              ICON                    "res\\cursor.ico"
+
 IDI_PIC                 ICON                    "res\\pic.ico"
+
 IDI_SHOWTRACEIMAGE      ICON                    "res\\showtrace.ico"
+
+IDI_UNDITHERPIC         ICON                    "res\\unditherpic.ico"
+
 IDI_LOADTRACEIMAGE      ICON                    "res\\loadtrace.ico"
+
 IDI_DELETE              ICON                    "res\\delete.ico"
+
 IDI_RECORD              ICON                    "res\\record.ico"
+
 IDI_MONITOR             ICON                    "res\\headphones.ico"
+
 IDI_EDIT_FIND           ICON                    "res\\find.ico"
+
 IDI_EDITPALETTE         ICON                    "res\\editpalette.ico"
+
 IDI_ANIMATE             ICON                    "res\\animate.ico"
+
 IDI_PALETTE             ICON                    "res\\palette.ico"
+
 IDI_IMAGESEQUENCE       ICON                    "res\\image_sequence.ico"
+
 IDI_IMAGE               ICON                    "res\\image.ico"
+
 IDI_VIEWDETAILS         ICON                    "res\\view_details.ico"
+
 IDI_VIEWICONS           ICON                    "res\\view_icons.ico"
+
 IDI_SCRIPT_CONVERT      ICON                    "res\\script_convert.ico"
+
 IDI_SCRIPT_INSERT_OBJECT ICON                    "res\\script_insert_object.ico"
+
 IDI_NEWROOM             ICON                    "res\\newroom.ico"
+
 IDI_NEWWORD             ICON                    "res\\newword.ico"
+
 IDI_MOVEUP              ICON                    "res\\moveup.ico"
+
 IDI_MOVEDOWN            ICON                    "res\\movedown.ico"
+
 IDI_STOP                ICON                    "res\\stop.ico"
+
 IDI_PLAY                ICON                    "res\\play.ico"
+
 IDI_PAUSE               ICON                    "res\\pause.ico"
+
 IDI_RECT                ICON                    "res\\rect.ico"
+
 IDI_ROUNDEDRECT_SOLID   ICON                    "res\\roundedrect_solid.ico"
+
 IDI_ROUNDEDRECT         ICON                    "res\\roundedrect.ico"
+
 IDI_ELLIPSE_SOLID       ICON                    "res\\ellipse_solid.ico"
+
 IDI_ELLIPSE             ICON                    "res\\ellipse.ico"
+
 IDI_RECT_SOLID          ICON                    "res\\rect_solid.ico"
+
 IDI_LINE                ICON                    "res\\line.ico"
+
 IDI_FLIPHORZ            ICON                    "res\\fliphorz.ico"
+
 IDI_FLIPVERT            ICON                    "res\\flipvert.ico"
+
 IDI_INVERT              ICON                    "res\\invert.ico"
+
 IDI_GREYSCALE           ICON                    "res\\greyscale.ico"
+
 IDI_LIGHTUP             ICON                    "res\\lightup.ico"
+
 IDI_PLACEMENT           ICON                    "res\\placement.ico"
+
 IDI_DITHER              ICON                    "res\\dither.ico"
+
 IDI_FAKEEGO             ICON                    "res\\fakeego.ico"
+
 IDI_PRIORITYLINES       ICON                    "res\\prioritylines.ico"
+
 IDI_PALETTE0            ICON                    "res\\palette0.ico"
+
 IDI_PALETTE3            ICON                    "res\\palette3.ico"
+
 IDI_PALETTE1            ICON                    "res\\palette1.ico"
+
 IDI_PALETTE2            ICON                    "res\\palette2.ico"
+
 IDI_SCREENCONTROL       ICON                    "res\\screencontrol.ico"
+
 IDI_SCREENVISUAL        ICON                    "res\\screenvisual.ico"
+
 IDI_SCREENPRIORITY      ICON                    "res\\screenpri.ico"
+
 IDI_FLOODFILL           ICON                    "res\\floodfill.ico"
+
 IDI_PALETTEVGA          ICON                    "res\\palette.ico"
+
 IDI_ICON3               ICON                    "res\\ico00001.ico"
+
 IDI_ICON5               ICON                    "res\\icon5.ico"
+
 IDI_EYEDROPPER          ICON                    "res\\Eyedropper.ico"
+
 IDI_TRANSPARENCY        ICON                    "res\\Transparent.ico"
+
 IDI_AUDIO               ICON                    "res\\audio.ico"
+
 IDI_AUDIOMAP            ICON                    "res\\audiomap.ico"
+
 IDI_POLYPATH            ICON                    "res\\PolyPath.ico"
+
 IDI_OPENGAMEFOLDER      ICON                    "res\\GameFolder.ico"
+
 IDI_DEBUG               ICON                    "res\\debug.ico"
+
 IDI_DEBUGROOM           ICON                    "res\\debug_room.ico"
+
 IDI_STOPDEBUG           ICON                    "res\\stopdebug.ico"
+
 IDI_UPLOAD              ICON                    "res\\Upload.ico"
+
 IDI_REFRESH             ICON                    "res\\refresh.ico"
+
 IDI_RIGHT_ARROW         ICON                    "res\\RightArrow.ico"
+
 IDI_WAVEFORM            ICON                    "res\\waveform.ico"
+
 IDI_CONVERT             ICON                    "res\\convert.ico"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -179,47 +291,89 @@ IDI_CONVERT             ICON                    "res\\convert.ico"
 //
 
 IDR_MAINFRAME           BITMAP                  "res\\Toolbar.bmp"
+
 IDR_TOOLBARPIC          BITMAP                  "res\\bmp00001.bmp"
+
 IDR_TOOLBARVIEWS        BITMAP                  "res\\bmp00003.bmp"
+
 IDR_TOOLBARCOMMANDVIEW  BITMAP                  "res\\bmp00004.bmp"
+
 IDR_TOOLBARSCRIPT       BITMAP                  "res\\bmp00002.bmp"
+
 IDR_TOOLBARDRAWVIEW     BITMAP                  "res\\toolbard.bmp"
+
 IDR_TOOLBARVOCAB        BITMAP                  "res\\bmp00006.bmp"
+
 IDB_BITMAPUP            BITMAP                  "res\\Up.bmp"
+
 IDB_BITMAPDOWN          BITMAP                  "res\\Down.bmp"
+
 IDB_BITMAPLEFT          BITMAP                  "res\\Left.bmp"
+
 IDB_BITMAPRIGHT         BITMAP                  "res\\Right.bmp"
+
 IDB_BITMAPTEST          BITMAP                  "res\\bitmap1.bmp"
+
 IDB_OVERLAYOLD          BITMAP                  "res\\bmp00007.bmp"
+
 IDB_OVERLAYOLD40        BITMAP                  "res\\bmp00008.bmp"
+
 IDB_CORRUPTRESOURCE     BITMAP                  "res\\bmp00009.bmp"
+
 IDR_TOOLBARFONT         BITMAP                  "res\\bmp00010.bmp"
+
 IDR_TOOLBARTEXT         BITMAP                  "res\\bmp00011.bmp"
+
 IDB_BITMAPCONVERT       BITMAP                  "res\\bmp00012.bmp"
+
 IDB_CLASSBROWSER        BITMAP                  "res\\bmp00013.bmp"
+
 IDB_ALPHABLEND          BITMAP                  "res\\bmp00014.bmp"
+
 IDB_ALPHABLENDWHITE     BITMAP                  "res\\alphable.bmp"
+
 IDB_BITMAPOBJECTTREE    BITMAP                  "res\\bmp00015.bmp"
+
 IDR_TOOLBAR_PICSLIDER   BITMAP                  "res\\bmp00016.bmp"
+
 IDR_TOOLBARPALETTES     BITMAP                  "res\\bmp00017.bmp"
+
 IDB_RESOURCETYPES       BITMAP                  "res\\bmp00018.bmp"
+
 IDB_BITMAPNOPIC         BITMAP                  "res\\bmp00005.bmp"
+
 IDB_BITMAPNULL          BITMAP                  "res\\bmp00019.bmp"
+
 IDR_TOOLBARSOUND        BITMAP                  "res\\toolbart.bmp"
+
 IDB_BITMAPLOOP          BITMAP                  "res\\bitmapup.bmp"
+
 IDB_BITMAPCUE           BITMAP                  "res\\bitmaplo.bmp"
+
 IDB_BITMAPAFFECTALL     BITMAP                  "res\\AffectAll.bmp"
+
 IDB_BITMAPCUEACTIVE     BITMAP                  "res\\bitmapcu.bmp"
+
 IDB_TABPIC              BITMAP                  "res\\TabPic.bmp"
+
 IDB_TABPICNS            BITMAP                  "res\\TabPicNS.bmp"
+
 IDB_VPCHIGHLIGHT        BITMAP                  "res\\vpc_highlight.bmp"
+
 IDB_VPCHIGHLIGHTX       BITMAP                  "res\\vpc_highlightx.bmp"
+
 IDR_TOOLBARSCREENS      BITMAP                  "res\\bmp00020.bmp"
+
 IDB_PICTHUMB_HIGHLIGHT  BITMAP                  "res\\picthumb_highlight.bmp"
+
 IDB_CLOSE_ACTIVE        BITMAP                  "res\\CloseActive.bmp"
+
 IDB_CLOSE_INACTIVE      BITMAP                  "res\\CloseInactive.bmp"
+
 IDR_TOOLBARMESSAGE      BITMAP                  "res\\bmp00021.bmp"
+
 IDB_MESSAGEAUDIOICONS   BITMAP                  "res\\bitmapob.bmp"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -283,6 +437,7 @@ BEGIN
     BUTTON      ID_SHOWPALETTE1
     BUTTON      ID_SHOWPALETTE2
     BUTTON      ID_SHOWPALETTE3
+    BUTTON      ID_UNDITHERPIC
 END
 
 IDR_TOOLBARVIEWS TOOLBAR 24, 24
@@ -1171,9 +1326,11 @@ BEGIN
     LTEXT           "Active &profile:",IDC_STATICPROFILE,15,61,51,8,0,WS_EX_RIGHT
     COMBOBOX        IDC_COMBOPROFILE,74,59,76,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     CONTROL         "Use original Sierra aspect ratio (4x3)",IDC_CHECKASPECTRATIO,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,74,79,208,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,74,75,208,10
     CONTROL         "Manage resources as patch files (good for source control)",IDC_CHECKPATCHFILES,
-                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,74,96,208,10
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,74,88,208,10
+    CONTROL         "Undither EGA pics by default",IDC_CHECKUNDITHEREGA,
+                    "Button",BS_AUTOCHECKBOX | WS_TABSTOP,74,101,208,10
     LTEXT           "&Executable:",IDC_STATICEXE,26,118,40,8,0,WS_EX_RIGHT
     EDITTEXT        IDC_EDITEXECUTABLE,74,115,208,14,ES_AUTOHSCROLL
     LTEXT           "Exe params:",IDC_STATICEXEPARAM,25,139,41,8,0,WS_EX_RIGHT
@@ -2817,30 +2974,55 @@ END
 //
 
 IDC_CURSORPEN           CURSOR                  "res\\cursor1.cur"
+
 IDC_CURSORHISTORY       CURSOR                  "res\\cur00001.cur"
+
 IDC_CURSORLINE          CURSOR                  "res\\cur00002.cur"
+
 IDC_CURSORZOOM          CURSOR                  "res\\cur00003.cur"
+
 IDC_CURSORFILL          CURSOR                  "res\\cursor2.cur"
+
 IDC_CURSORPASTE         CURSOR                  "res\\cur00004.cur"
+
 IDC_CURSORPLACEMENT     CURSOR                  "res\\cursorli.cur"
+
 IDC_CURSORPOLYGON       CURSOR                  "res\\cur00005.cur"
+
 IDC_CURSORRESIZENS_BR   CURSOR                  "res\\cur00006.cur"
+
 IDC_CURSORRESIZENS_TL   CURSOR                  "res\\cursorre.cur"
+
 IDC_CURSORRESIZENS_STRETCH CURSOR                  "res\\cur00007.cur"
+
 IDC_CURSORRESIZEWE_BR   CURSOR                  "res\\cur00008.cur"
+
 IDC_CURSORRESIZEWE_TL   CURSOR                  "res\\cur00009.cur"
+
 IDC_CURSORRESIZEWE_STRETCH CURSOR                  "res\\cur00010.cur"
+
 IDC_CURSORRESIZENSWE_BR CURSOR                  "res\\cur00011.cur"
+
 IDC_CURSORRESIZENSWE_STRETCH CURSOR                  "res\\cur00012.cur"
+
 IDC_CURSORRESIZENSWE_TL CURSOR                  "res\\cur00013.cur"
+
 IDC_CURSORROTATE        CURSOR                  "res\\cur00014.cur"
+
 IDC_CURSORUP            CURSOR                  "res\\cur00015.cur"
+
 IDC_CURSORDOWN          CURSOR                  "res\\cursorup.cur"
+
 IDC_CURSORRIGHT         CURSOR                  "res\\cursordo.cur"
+
 IDC_CURSORLEFT          CURSOR                  "res\\cur00016.cur"
+
 IDC_CURSORCIRCLE        CURSOR                  "res\\cur00017.cur"
+
 IDC_CURSOREYEDROPPER    CURSOR                  "res\\eyedropper.cur"
+
 IDC_CURSORSHAPE         CURSOR                  "res\\cursorsh.cur"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -3005,6 +3187,17 @@ BEGIN
 0x6953, 0x7265, 0x6172, 0x5320, 0x7263, 0x7069, 0x0074, 
     IDC_COMBOLANGUAGE, 0x403, 11, 0
 0x4353, 0x2049, 0x7453, 0x6475, 0x6f69, "\000" 
+    0
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_GAMEPROPERTIESDIALOG AFX_DIALOG_LAYOUT
+BEGIN
     0
 END
 
@@ -3217,6 +3410,7 @@ STRINGTABLE
 BEGIN
     ID_IMPORT_AUDIO         "Import a wav file\nImport wav"
     ID_VOCAB_NEWWORD        "Add a new word.\nNew word"
+    ID_UNDITHERPIC          "Dither\nShow EGA pics as dithered"
 END
 
 STRINGTABLE

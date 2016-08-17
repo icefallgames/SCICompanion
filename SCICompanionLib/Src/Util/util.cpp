@@ -199,7 +199,7 @@ void FillCOLORREFArray()
             // This is a mapping of EGACOLORs to COLORREFs
             RGBQUAD rgbq = _Combine(g_egaColors[i], g_egaColors[j]);
             COLORREF color = RGB(rgbq.rgbRed, rgbq.rgbGreen, rgbq.rgbBlue);
-            EGACOLOR egaColor = { i, j };
+            EGACOLOR egaColor = { (uint8_t)i, (uint8_t)j };
             g_rgColorCombos[EGACOLOR_TO_BYTE(egaColor)] = color; // the COLORREF color
             g_rgColorCombosHSL[EGACOLOR_TO_BYTE(egaColor)] = RGB2HSL(color);
 
@@ -435,7 +435,7 @@ EGACOLOR GetClosestEGAColor(int iAlgorithm, bool gammaCorrected, int iPalette, C
 
 EGACOLOR EGAColorFromByte(BYTE b)
 {
-    EGACOLOR color = { b & 0xf, (b & 0xf0) >> 4 };
+    EGACOLOR color = { (uint8_t)(b & 0xf), (uint8_t)((b & 0xf0) >> 4) };
     return color;
 }
 

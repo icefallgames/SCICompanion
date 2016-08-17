@@ -55,6 +55,7 @@
 #include "AudioProcessingSettings.h"
 #include "ResourceBlob.h"
 #include "SyntaxParser.h"
+#include "ImageUtil.h"
 
 // The one and only
 extern AppState *appState;
@@ -143,6 +144,14 @@ AppState::AppState(CWinApp *pApp) : _resourceMap(*this)
     }
     // Fake EGA palette for when it's needed.
     memcpy(g_egaDummyPalette.Colors, g_egaColors, sizeof(g_egaColors));
+
+	// Gamma-corrected mixed ega colors
+	for (int i = 0; i < 256; i++)
+	{
+		int iA = i / 16;
+		int iB = i % 16;
+		g_egaColorsMixed[i] = _CombineGamma(g_egaColors[iA], g_egaColors[iB]);
+	}
 
     // Prepare g_vgaPaletteMapping
     for (int i = 0; i < 256; i++)

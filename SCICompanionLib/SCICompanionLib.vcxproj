@@ -947,6 +947,7 @@
     <Image Include="res\toolbard.bmp" />
     <Image Include="res\toolbart.bmp" />
     <Image Include="res\Transparent.ico" />
+    <Image Include="res\unditherpic.ico" />
     <Image Include="res\Up.bmp" />
     <Image Include="res\Upload.ico" />
     <Image Include="res\view.ico" />

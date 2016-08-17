@@ -221,7 +221,8 @@ TCHAR g_szGdiplusFilter[];
 
 extern RGBQUAD g_egaColors[16];
 extern RGBQUAD g_egaColorsPlusOne[17];
-extern RGBQUAD g_egaColorsExtended[256];   // 256, 16 repeated 16 times.
+extern RGBQUAD g_egaColorsExtended[256];	// 256, 16 repeated 16 times.
+extern RGBQUAD g_egaColorsMixed[256];		// 256, 16x16 mixed (136 unique colors)
 extern RGBQUAD g_continuousPriorityColors[256];
 extern COLORREF g_egaColorsCR[16];
 #define EGA_TO_RGBQUAD(x)  g_egaColors[(x)]

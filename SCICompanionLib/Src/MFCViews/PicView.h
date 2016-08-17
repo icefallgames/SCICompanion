@@ -220,6 +220,7 @@ protected:
     afx_msg void OnMouseMove(UINT nFlags, CPoint point);
     afx_msg void OnTraceBitmap();
     afx_msg void OnShowTraceImage();
+	afx_msg void OnUnditherPic();
     afx_msg void OnToggleVisual();
     afx_msg void OnTogglePriority();
     afx_msg void OnToggleGridLines();
@@ -252,6 +253,7 @@ protected:
     afx_msg void EditCelData();
     afx_msg void OnUpdateAllPicCommands(CCmdUI *pCmdUI);
     afx_msg void OnUpdateShowTraceImage(CCmdUI *pCmdUI);
+	afx_msg void OnUpdateUnditherPic(CCmdUI *pCmdUI);
     afx_msg void OnUpdateAlphaSlider(CCmdUI *pCmdUI);
     afx_msg void OnUpdateCutLine(CCmdUI *pCmdUI);
     afx_msg void OnCommandUIAlwaysValid(CCmdUI *pCmdUI) { pCmdUI->Enable(TRUE); }

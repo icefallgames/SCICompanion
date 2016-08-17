@@ -67,6 +67,8 @@ public:
 
     bool GetUseSierraAspectRatio(bool defaultValue) const;
     void SetUseSierraAspectRatio(bool useSierra) const;
+	bool GetUndither() const;
+	void SetUndither(bool undither) const;
 
     ResourceSaveLocation GetResourceSaveLocation(ResourceSaveLocation location) const;
     void SetResourceSaveLocation(ResourceSaveLocation location) const;

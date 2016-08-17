@@ -56,6 +56,7 @@ private:
     RunLogic &_runLogic;
     CExtCheckBox m_wndCheckAspectRatio;
     CExtCheckBox m_wndCheckPatchFiles;
+	CExtCheckBox m_wndCheckUnditherEGA;
 
     std::unordered_map<std::string, std::string> _optionToExe;
     std::unordered_map<std::string, std::string> _optionToParams;
@@ -66,6 +67,7 @@ private:
     bool _fAspectRatioStart;
     bool _fPatchFileStart;
     bool _wasAspectRatioChanged;
+	bool _fUnditherStart;
 
     bool _gameNeedsReload;
 

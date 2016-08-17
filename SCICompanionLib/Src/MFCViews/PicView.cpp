@@ -313,6 +313,7 @@ BEGIN_MESSAGE_MAP(CPicView, CScrollingThing<CView>)
     ON_COMMAND(ID_DRAWOFF, CPicView::OnDrawOff)
     ON_COMMAND(ID_TRACEBITMAP, CPicView::OnTraceBitmap)
     ON_COMMAND(ID_SHOWTRACEIMAGE, CPicView::OnShowTraceImage)
+	ON_COMMAND(ID_UNDITHERPIC, CPicView::OnUnditherPic)
     ON_COMMAND(IDC_TOGGLEVISUAL, CPicView::OnToggleVisual)
     ON_COMMAND(IDC_TOGGLEPRIORITY, CPicView::OnTogglePriority)
     ON_COMMAND(ID_TOGGLEGRIDLINES, CPicView::OnToggleGridLines)
@@ -357,6 +358,7 @@ BEGIN_MESSAGE_MAP(CPicView, CScrollingThing<CView>)
     ON_UPDATE_COMMAND_UI(ID_HISTORY, CPicView::OnUpdateAllPicCommands)
     ON_UPDATE_COMMAND_UI(ID_TRACEBITMAP, CPicView::OnUpdateIsGDIPAvailable)
     ON_UPDATE_COMMAND_UI(ID_SHOWTRACEIMAGE, CPicView::OnUpdateShowTraceImage)
+	ON_UPDATE_COMMAND_UI(ID_UNDITHERPIC, CPicView::OnUpdateUnditherPic)
     ON_UPDATE_COMMAND_UI(ID_ALPHASLIDER, OnUpdateAlphaSlider)
     ON_UPDATE_COMMAND_UI(ID_PIC_CUTLINE, OnUpdateCutLine)
     ON_UPDATE_COMMAND_UI(ID_SETPRIORITY, CPicView::OnCommandUIAlwaysValid)
@@ -865,6 +867,17 @@ void CPicView::OnShowTraceImage()
     }
 }
 
+void CPicView::OnUnditherPic()
+{
+	CPicDoc *doc = GetDocument();
+	if (doc)
+	{
+		doc->SetIsUndithered(!doc->IsUndithered());
+		// Invalidate everything - we need to redraw from scratch.
+		_GetDrawManager().Invalidate();
+		InvalidateOurselvesImmediately();
+	}
+}
 
 void CPicView::OnToggleVisual()
 {
@@ -1485,6 +1498,14 @@ LRESULT CPicView::OnMouseLeave(WPARAM wParam, LPARAM lParam)
         InvalidateOurselves();
     }
     return 0;
+}
+
+void CPicView::OnUpdateUnditherPic(CCmdUI *pCmdUI)
+{
+	// Actually, "on" means its dithered.
+	pCmdUI->SetCheck(!GetDocument()->IsUndithered());
+	// Disabled if VGA
+	pCmdUI->Enable(!_GetEditPic()->Traits->IsVGA);
 }
 
 void CPicView::OnUpdateShowTraceImage(CCmdUI *pCmdUI)
@@ -2755,7 +2776,7 @@ CRect CPicView::_DrawShowingEgoWorker(const ViewPort &viewPort, uint8_t *pdataVi
         else
         {
             // Just draw a box.
-            DrawBoxWithPriority(_GetPicSize(), pdataVisual, pdataPriority, bEgoPriority, (uint16_t)_fakeEgoAttributes.Location.x, (uint16_t)_fakeEgoAttributes.Location.y, appState->_cxFakeEgo, appState->_cyFakeEgo);
+            DrawBoxWithPriority(_GetPicSize(), pdataVisual, pdataPriority, bEgoPriority, (uint16_t)_fakeEgoAttributes.Location.x, (uint16_t)_fakeEgoAttributes.Location.y, appState->_cxFakeEgo, appState->_cyFakeEgo, !GetDocument()->IsUndithered());
         }
     }
     return rc;

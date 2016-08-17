@@ -109,6 +109,7 @@ RGBQUAD g_egaColorsPlusOne[17] = { { 0x00, 0x00, 0x00, 0x01 },
 };
 
 RGBQUAD g_egaColorsExtended[256];
+RGBQUAD g_egaColorsMixed[256];
 
 RGBQUAD g_continuousPriorityColors[256];
 

@@ -29,6 +29,7 @@ CGamePropertiesDialog::CGamePropertiesDialog(RunLogic &runLogic, CWnd* pParent /
 {
     _fAspectRatioStart = appState->GetResourceMap().Helper().GetUseSierraAspectRatio(!!appState->_fUseOriginalAspectRatioDefault);
     _fPatchFileStart = appState->GetResourceMap().Helper().GetResourceSaveLocation(ResourceSaveLocation::Default) == ResourceSaveLocation::Patch;
+	_fUnditherStart = appState->GetResourceMap().Helper().GetUndither();
 }
 
 CGamePropertiesDialog::~CGamePropertiesDialog()
@@ -65,7 +66,15 @@ void CGamePropertiesDialog::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_CHECKPATCHFILES, m_wndCheckPatchFiles);
     m_wndCheckPatchFiles.SetCheck(_fPatchFileStart ? BST_CHECKED : BST_UNCHECKED);
 
-    if (!_initialized)
+	DDX_Control(pDX, IDC_CHECKUNDITHEREGA, m_wndCheckUnditherEGA);
+	m_wndCheckUnditherEGA.SetCheck(_fUnditherStart ? BST_CHECKED : BST_UNCHECKED);
+	if (appState->GetResourceMap().GetSCIVersion().PicFormat != PicFormat::EGA)
+	{
+		// Not an option for VGA
+		m_wndCheckUnditherEGA.EnableWindow(FALSE);
+	}
+
+	if (!_initialized)
     {
         _initialized = true;
 
@@ -181,6 +190,12 @@ void CGamePropertiesDialog::OnOK()
             }
         }
     }
+
+	bool unditherEGA = m_wndCheckUnditherEGA.GetCheck() == BST_CHECKED;
+	if (unditherEGA != _fUnditherStart)
+	{
+		appState->GetResourceMap().Helper().SetUndither(unditherEGA);
+	}
 
     bool usePatchFiles = m_wndCheckPatchFiles.GetCheck() == BST_CHECKED;
     if (usePatchFiles != _fPatchFileStart)

@@ -65,7 +65,8 @@ void PicDrawManager::_EnsureBufferPool(size16 size)
 
 RGBQUAD *PicDrawManager::_GetPalette()
 {
-    return (_isVGA ? _paletteVGA : nullptr);
+    return (_isVGA ? _paletteVGA :
+		_isUndithered ? g_egaColorsMixed : nullptr);
 }
 
 void PicDrawManager::_ApplyVGAPalette(const PaletteComponent *pPalette)
@@ -87,8 +88,9 @@ void PicDrawManager::_Reset()
     _iInsertPos = -1;
 }
 
-void PicDrawManager::SetPic(const PicComponent *pPic, const PaletteComponent *pPalette)
+void PicDrawManager::SetPic(const PicComponent *pPic, const PaletteComponent *pPalette, bool isEGAUndithered)
 {
+	_isUndithered = isEGAUndithered;
     _isVGA = (pPalette != nullptr);
     _isContinuousPri = pPic && pPic->Traits->ContinuousPriority;
     if (!IsSame(pPic, _pPicWeak))
@@ -332,7 +334,7 @@ void PicDrawManager::_RedrawBuffers(ViewPort *pState, PicScreenFlags screenFlags
         }
         if (IsFlagSet(screenFlags, PicScreenFlags::Visual))
         {
-            memset(GetScreenData(PicScreen::Visual, PicPosition::PrePlugin), _isVGA ? 0xff : 0x0f, _bufferPool->GetSize());
+            memset(GetScreenData(PicScreen::Visual, PicPosition::PrePlugin), (_isVGA || _isUndithered) ? 0xff : 0x0f, _bufferPool->GetSize());
         }
         memset(GetScreenData(PicScreen::Aux, PicPosition::PrePlugin), 0x00, _bufferPool->GetSize());
 
@@ -344,6 +346,7 @@ void PicDrawManager::_RedrawBuffers(ViewPort *pState, PicScreenFlags screenFlags
             GetScreenData(PicScreen::Control, PicPosition::PrePlugin),
             GetScreenData(PicScreen::Aux, PicPosition::PrePlugin),
             _isVGA,
+			_isUndithered,
             _GetPicSize(),
             _isContinuousPri
         };
@@ -376,6 +379,7 @@ void PicDrawManager::_RedrawBuffers(ViewPort *pState, PicScreenFlags screenFlags
                 GetScreenData(PicScreen::Control, PicPosition::PostPlugin),
                 GetScreenData(PicScreen::Aux, PicPosition::PostPlugin),
                 _isVGA,
+				_isUndithered,
                 _GetPicSize(),
                 _isContinuousPri
             };
@@ -419,6 +423,7 @@ void PicDrawManager::_RedrawBuffers(ViewPort *pState, PicScreenFlags screenFlags
                 GetScreenData(PicScreen::Control, PicPosition::Final),
                 GetScreenData(PicScreen::Aux, PicPosition::Final),
                 _isVGA,
+				_isUndithered,
                 _GetPicSize(),
                 _isContinuousPri
             };
@@ -688,6 +693,7 @@ ptrdiff_t PicDrawManager::PosFromPoint(int x, int y, ptrdiff_t iStart)
         nullptr,
         &pdataAux[0], // Aux always needs to be provided (for fill)
         _isVGA,
+		_isUndithered,
         _GetPicSize(),
         _isContinuousPri
     };

@@ -54,7 +54,7 @@ class PicDrawManager
 {
 public:
     PicDrawManager(const PicComponent *pPic = nullptr, const PaletteComponent *pPalette = nullptr);
-    void SetPic(const PicComponent *pPic, const PaletteComponent *pPalette);
+    void SetPic(const PicComponent *pPic, const PaletteComponent *pPalette, bool isEGAUndithered);
     const PicComponent *GetPic() const { return _pPicWeak; }
 
     // Use these to get the pic image:
@@ -129,5 +129,6 @@ private:
     std::vector<IPicDrawPlugin*> _plugins;
 
     bool _isVGA;
+	bool _isUndithered;
     bool _isContinuousPri;
 };

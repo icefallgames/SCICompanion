@@ -650,7 +650,9 @@ struct PlotEGA
         return ((x^y) & 1) ? color.color1 : color.color2;
     }
 
-    static bool IsWhite(PixelType pixel) { return pixel.color1 == White && pixel.color2 == White; }
+    static bool IsColorWhite(PixelType pixel) { return pixel.color1 == White && pixel.color2 == White; }
+
+	static bool IsPixelWhite(uint8_t pixel, int16_t x, int16_t y) { return pixel == 0x0f; }
 
     // Guard against someone doing a fill with pure white, since this algorithm will hang in that case.
     // Hero's quest does this, when some pictures are drawn with some palettes.
@@ -667,6 +669,30 @@ struct PlotEGA
     static const uint8_t White = 0xf;
 };
 
+struct PlotEGAUndithered
+{
+	typedef EGACOLOR PixelType;
+
+	static uint8_t Plot(int16_t x, int16_t y, EGACOLOR color)
+	{
+		return color.ToByte();
+	}
+
+	static bool IsColorWhite(PixelType pixel) { return pixel.color1 == White && pixel.color2 == White; }
+
+	static bool IsPixelWhite(uint8_t pixel, int16_t x, int16_t y)
+	{
+		// Even though we render undithered, in a color that is a mix with white, every odd pixel is actually considered white for fill purposes.
+		return ((x^y) & 1) ? ((pixel & 0xf0) == 0xf0) : ((pixel & 0x0f) == 0x0f);
+	}
+
+	static bool EarlyBail(PicScreenFlags dwDrawEnable, EGACOLOR color, uint8_t priValue, uint8_t controlValue)
+	{
+		return (IsFlagSet(dwDrawEnable, PicScreenFlags::Visual) && ((color.color1 == 0xf) && (color.color2 == 0xf)));
+	}
+	static const uint8_t White = 0xff;
+};
+
 struct PlotVGA
 {
     typedef uint8_t PixelType;
@@ -676,7 +702,9 @@ struct PlotVGA
         return color;
     }
 
-    static bool IsWhite(PixelType pixel) { return pixel == White; }
+    static bool IsColorWhite(PixelType pixel) { return pixel == White; }
+
+	static bool IsPixelWhite(uint8_t pixel, int16_t x, int16_t y) { return pixel == White; }
 
     static bool EarlyBail(PicScreenFlags dwDrawEnable, uint8_t color, uint8_t priValue, uint8_t controlValue)
     {
@@ -716,7 +744,7 @@ template<typename _TFormat>
 PicScreenFlags _GetAuxSet(typename  _TFormat::PixelType color, uint8_t bPriorityValue, uint8_t bControlValue, PicScreenFlags dwDrawEnable)
 {
     PicScreenFlags auxSet = dwDrawEnable;
-    if (_TFormat::IsWhite(color))
+    if (_TFormat::IsColorWhite(color))
     {
         ClearFlag(auxSet, PicScreenFlags::Visual);
     }
@@ -966,6 +994,7 @@ bool CreatePatternBitmap(CBitmap &bitmapOut, uint8_t patternSize, uint8_t patter
         nullptr,
         aux.get(),
         true,
+		false, // REVIEW: check this
         size16(actualSize, actualSize),
         false
     };
@@ -1362,7 +1391,7 @@ CRect DrawViewWithPriority(size16 displaySize, uint8_t *pdataDisplay, const uint
 }
 
 
-void DrawBoxWithPriority(size16 picSize, uint8_t *pdataDisplay, const uint8_t *pdataPriority, uint8_t bEgoPriority, int16_t xIn, int16_t yIn, uint16_t cx, uint16_t cy)
+void DrawBoxWithPriority(size16 picSize, uint8_t *pdataDisplay, const uint8_t *pdataPriority, uint8_t bEgoPriority, int16_t xIn, int16_t yIn, uint16_t cx, uint16_t cy, bool isDithered)
 {
     int xMax = picSize.cx - 1;
     int yMax = picSize.cy - 1;
@@ -1398,6 +1427,13 @@ void DrawBoxWithPriority(size16 picSize, uint8_t *pdataDisplay, const uint8_t *p
         ySafeTop = yIn - cy;
     }
 
+	uint8_t whiteValue = isDithered ? 0x0f : 0xff;
+	uint8_t priDisplayValue = bEgoPriority;
+	if (!isDithered)
+	{
+		priDisplayValue |= (priDisplayValue >> 4);
+	}
+
     for (int16_t x = xLeft; x <= xRight; x++)
     {
         for (int16_t y = ySafeTop; y <= yBottom; y++)
@@ -1408,11 +1444,11 @@ void DrawBoxWithPriority(size16 picSize, uint8_t *pdataDisplay, const uint8_t *p
                 // Then draw it.  Avoid using _PlotPix, since we need an aux map for that.
                 if ( ((x - xLeft) < 2) || ((xRight - x) < 2) || ((y - ySafeTop) < 2) || ((yBottom - y) < 2))
                 {
-                    pdataDisplay[p] = 0x0f; // White
+                    pdataDisplay[p] = whiteValue;
                 }
                 else
                 {
-                    pdataDisplay[p] = bEgoPriority; // the priority colour
+                    pdataDisplay[p] = priDisplayValue; // the priority colour
                 }
 
             }
@@ -1440,8 +1476,8 @@ sPOINT g_pEmpty={EMPTY,EMPTY};
 // Questionable whether we need to fix this or not, it only affects really large areas.
 //
 
-#define FILL_BOUNDS(cx, cy, fx, fy, white) ((((uint8_t)dwDrawEnable) & GET_PIX_AUX((cx), (cy), (fx), (fy))) && \
-                  !(IsFlagSet(dwDrawEnable, PicScreenFlags::Visual) && (GET_PIX_VISUAL((cx), (cy), (fx), (fy))==(white))))
+#define FILL_BOUNDS(cx, cy, fx, fy, TFormat) ((((uint8_t)dwDrawEnable) & GET_PIX_AUX((cx), (cy), (fx), (fy))) && \
+                  !(IsFlagSet(dwDrawEnable, PicScreenFlags::Visual) && (TFormat::IsPixelWhite(GET_PIX_VISUAL((cx), (cy), (fx), (fy)), fx, fy))))
 
 
 inline bool qstore(int displayByteSize, __int16 x,__int16 y, __int32 *prpos)
@@ -1468,7 +1504,7 @@ inline sPOINT qretrieve(__int32 *prpos)
 }
 
 
-#define OK_TO_FILL(cx, cy, x,y,white) ( CHECK_RECT((cx), (cy), (x),(y)) && !FILL_BOUNDS((cx), (cy), (x),(y),(white)) )
+#define OK_TO_FILL(cx, cy, x,y,TFormat) ( CHECK_RECT((cx), (cy), (x),(y)) && !FILL_BOUNDS((cx), (cy), (x),(y),TFormat) )
 
 int g_commands = 0;
 
@@ -1517,7 +1553,7 @@ void _DitherFill(PicData *pdata, int16_t x, int16_t y, typename  _TFormat::Pixel
         return;
     }
 
-    if (FILL_BOUNDS(cx, cy, x, y, _TFormat::White))
+    if (FILL_BOUNDS(cx, cy, x, y, _TFormat))
     {
         return;
     }
@@ -1543,26 +1579,25 @@ void _DitherFill(PicData *pdata, int16_t x, int16_t y, typename  _TFormat::Pixel
         }
         else
         {
-            if (OK_TO_FILL(cx, cy, x1, y1, _TFormat::White))
+            if (OK_TO_FILL(cx, cy, x1, y1, _TFormat))
             {
-                // PERF: maybe inline this call?
                 _PlotPix<_TFormat>(pdata, (int16_t)x1, (int16_t)y1, dwDrawEnable, auxSet, color, bPriorityValue, bControlValue);
 
                 // PERF: Tried removing OK_TO_FILL here, but it made it worse
                 // (It's technically uncessary)
-                if ((y1 != 0) && OK_TO_FILL(cx, cy, x1, y1 - 1, _TFormat::White))
+                if ((y1 != 0) && OK_TO_FILL(cx, cy, x1, y1 - 1, _TFormat))
                 {
                     if (!qstore(displayByteSize, x1, y1 - 1, &rpos)) break;
                 }
-                if ((x1 != 0) && OK_TO_FILL(cx, cy, x1 - 1, y1, _TFormat::White))
+                if ((x1 != 0) && OK_TO_FILL(cx, cy, x1 - 1, y1, _TFormat))
                 {  
                     if (!qstore(displayByteSize, x1 - 1, y1, &rpos)) break;
                 }
-                if ((x1 != xMax) && OK_TO_FILL(cx, cy, x1 + 1, y1, _TFormat::White))
+                if ((x1 != xMax) && OK_TO_FILL(cx, cy, x1 + 1, y1, _TFormat))
                 { 
                     if (!qstore(displayByteSize, x1 + 1, y1, &rpos)) break;;
                 }
-                if ((y1 != yMax) && OK_TO_FILL(cx, cy, x1, y1 + 1, _TFormat::White))
+                if ((y1 != yMax) && OK_TO_FILL(cx, cy, x1, y1 + 1, _TFormat))
                 {
                     if (!qstore(displayByteSize, x1, y1 + 1, &rpos)) break;;
                 }
@@ -1606,7 +1641,13 @@ void LineCommand_DrawOnly(const PicCommand *pCommand, PicData *pData, const View
             pCommand->drawLine.xFrom, pCommand->drawLine.yFrom, pCommand->drawLine.xTo, pCommand->drawLine.yTo,
             pState->bPaletteOffset, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable);
     }
-    else
+	else if (pData->isUndithered)
+	{
+		_DitherLine<PlotEGAUndithered>(pData,
+			pCommand->drawLine.xFrom, pCommand->drawLine.yFrom, pCommand->drawLine.xTo, pCommand->drawLine.yTo,
+			pState->egaColor, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable);
+	}
+	else
     {
         _DitherLine<PlotEGA>(pData,
             pCommand->drawLine.xFrom, pCommand->drawLine.yFrom, pCommand->drawLine.xTo, pCommand->drawLine.yTo,
@@ -1730,6 +1771,16 @@ void PatternCommand_Draw_DrawOnly(const PicCommand *pCommand, PicData *pData, co
             pCommand->drawPattern.bPatternNR,
             (pCommand->drawPattern.wFlags & PATTERN_FLAG_RECTANGLE) != 0);
     }
+	else if (pData->isUndithered)
+	{
+		_DrawPattern<PlotEGAUndithered>(pData,
+			pCommand->drawPattern.x, pCommand->drawPattern.y,
+			pState->egaColor, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable,
+			(pCommand->drawPattern.wFlags & PATTERN_FLAG_USE_PATTERN) != 0,
+			pCommand->drawPattern.bPatternSize,
+			pCommand->drawPattern.bPatternNR,
+			(pCommand->drawPattern.wFlags & PATTERN_FLAG_RECTANGLE) != 0);
+	}
     else
     {
         _DrawPattern<PlotEGA>(pData,
@@ -1868,6 +1919,10 @@ void FillCommand_Draw(const PicCommand *pCommand, PicData *pData, ViewPort *pSta
     {
         _DitherFill<PlotVGA>(pData, pCommand->fill.x, pCommand->fill.y, pState->bPaletteOffset, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable);
     }
+	else if (pData->isUndithered)
+	{
+		_DitherFill<PlotEGAUndithered>(pData, pCommand->fill.x, pCommand->fill.y, pState->egaColor, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable);
+	}
     else
     {
         _DitherFill<PlotEGA>(pData, pCommand->fill.x, pCommand->fill.y, pState->egaColor, pState->bPriorityValue, pState->bControlValue, pState->dwDrawEnable);

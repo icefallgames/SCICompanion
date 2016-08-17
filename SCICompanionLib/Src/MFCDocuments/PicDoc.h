@@ -146,6 +146,10 @@ public:
 
     void PostSuccessfulSave(const ResourceEntity *pResource) override;
 
+	bool IsUndithered() const { return _isUndithered; }
+	void SetIsUndithered(bool undithered) { _isUndithered = undithered; }
+
+
 protected:
     virtual ResourceType _GetType() const { return ResourceType::Pic; }
 
@@ -183,6 +187,8 @@ private:
     // For resources with PolygonComponent
     int _currentPolyIndex;
     bool _showPolygons;
+
+	bool _isUndithered;
 
     DependencyTracker *_dependencyTracker;
     std::unique_ptr<PolygonComponent> _lastPoly;

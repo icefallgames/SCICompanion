@@ -50,7 +50,7 @@ END_MESSAGE_MAP()
 
 // CPicDoc construction/destruction
 
-CPicDoc::CPicDoc() : _previewPalette(nullptr), _showPolygons(false), _currentPolyIndex(-1), _fakeEgoResourceNumber(-1), _dependencyTracker(nullptr)
+CPicDoc::CPicDoc() : _previewPalette(nullptr), _showPolygons(false), _currentPolyIndex(-1), _fakeEgoResourceNumber(-1), _dependencyTracker(nullptr), _isUndithered(false)
 {
     // Add ourselves as a sync
     CResourceMap &map = appState->GetResourceMap();
@@ -100,7 +100,7 @@ const char *c_rgControlColourNames[16] =
 
 void CPicDoc::InvokeDialog(UINT nID, RECT *prcButton)
 {
-    _pdm.SetPic(_GetPic(), GetCurrentPaletteComponent());
+    _pdm.SetPic(_GetPic(), GetCurrentPaletteComponent(), _isUndithered);
     switch (nID)
     {
     case IDC_SETVISUAL:
@@ -251,6 +251,8 @@ void CPicDoc::OnResourceAdded(const ResourceBlob *pData, AppendBehavior appendBe
 
 void CPicDoc::SetEditPic(DependencyTracker &tracker, std::unique_ptr<ResourceEntity> pEditPic, int id)
 {
+	_isUndithered = appState->GetResourceMap().Helper().GetUndither();
+
     _dependencyTracker = &tracker;
     _checksum = id;
 
@@ -525,7 +527,7 @@ const PicComponent *CPicDoc::_GetPic() const
 
 PicDrawManager &CPicDoc::GetDrawManager()
 {
-    _pdm.SetPic(_GetPic(), _previewPalette ? _previewPalette : GetCurrentPaletteComponent());
+    _pdm.SetPic(_GetPic(), _previewPalette ? _previewPalette : GetCurrentPaletteComponent(), _isUndithered);
     return _pdm;
 };
 

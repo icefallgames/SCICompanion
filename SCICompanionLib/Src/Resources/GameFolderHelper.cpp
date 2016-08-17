@@ -29,6 +29,7 @@ const std::string LanguageKey = "Language";
 const std::string LanguageValueStudio = "sc";
 const std::string LanguageValueSCI = "sci";
 const std::string AspectRatioKey = "UseSierraAspectRatio";
+const std::string UnditherKey = "UnditherEGA";
 const std::string PatchFileKey = "SaveToPatchFiles";
 const std::string TrueValue = "true";
 const std::string FalseValue = "false";
@@ -223,6 +224,16 @@ bool GameFolderHelper::GetUseSierraAspectRatio(bool defaultValue) const
 void GameFolderHelper::SetUseSierraAspectRatio(bool useSierra) const
 {
     SetIniString(GameSection, AspectRatioKey, useSierra ? TrueValue : FalseValue);
+}
+bool GameFolderHelper::GetUndither() const
+{
+	std::string value = GetIniString(GameSection, UnditherKey, FalseValue.c_str()); // False by default
+	std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+	return value == TrueValue;
+}
+void GameFolderHelper::SetUndither(bool undither) const
+{
+	SetIniString(GameSection, UnditherKey, undither ? TrueValue : FalseValue);
 }
 
 ResourceSaveLocation GameFolderHelper::GetResourceSaveLocation(ResourceSaveLocation location) const
