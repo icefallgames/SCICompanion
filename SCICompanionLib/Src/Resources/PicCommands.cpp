@@ -111,22 +111,23 @@ uint8_t OpcodeFromCommandTypeAndSize(uint8_t bType, DRAWSIZE size)
     return PIC_END;
 }
 
-DRAWSIZE DrawSizeFromCoords(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2)
+DRAWSIZE DrawSizeFromCoords(int16_t x1, int16_t y1, int16_t x2, int16_t y2)
 {
     DRAWSIZE dsReturn = DS_LARGE;
-    __int16 dx = abs(((__int16)x1) - (__int16)x2);
-    __int16 dy = abs(((__int16)y1) - (__int16)y2);
 
-    if ((dx <= 6) && (dy <= 7))  // This keeps the byte below 0xf0
-    {
-        // Each coord is within 6 or 7 pixels of the previous
-        dsReturn = DS_SMALL;
-    }
-    else if ((dx <= 0x7f) && (dy <= 0x6f))
-    {
-        // x is within 127 pixels (128 is ok for +ve, but who cares) and y is within 111
-        dsReturn = DS_MEDIUM;
-    }
+	__int16 dx = abs(x1 - x2);
+	__int16 dy = abs(y1 - y2);
+
+	if ((dx <= 6) && (dy <= 7))  // This keeps the byte below 0xf0
+	{
+		// Each coord is within 6 or 7 pixels of the previous
+		dsReturn = DS_SMALL;
+	}
+	else if ((dx <= 0x7f) && (dy <= 0x6f))
+	{
+		// x is within 127 pixels (128 is ok for +ve, but who cares) and y is within 111
+		dsReturn = DS_MEDIUM;
+	}
     return dsReturn;
 }
 

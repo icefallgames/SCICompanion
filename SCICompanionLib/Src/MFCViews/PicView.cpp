@@ -262,6 +262,9 @@ void CommandModifier::ApplyDifference(PicComponent &pic, int dx, int dy)
             PicCommand command = original;
             command.drawLine.xFrom += dx;
             command.drawLine.yFrom += dy;
+			// Negative coordinates mess us up.
+			command.drawLine.xFrom = max(command.drawLine.xFrom, 0);
+			command.drawLine.yFrom = max(command.drawLine.yFrom, 0);
             pic.commands[index] = command;
         }
         if (originalAlt.type != PicCommand::CommandType::None)
@@ -269,7 +272,9 @@ void CommandModifier::ApplyDifference(PicComponent &pic, int dx, int dy)
             PicCommand command = originalAlt;
             command.drawLine.xTo += dx;
             command.drawLine.yTo += dy;
-            pic.commands[index - 1] = command;
+			command.drawLine.xTo = max(command.drawLine.xTo, 0);
+			command.drawLine.yTo = max(command.drawLine.yTo, 0);
+			pic.commands[index - 1] = command;
         }
     }
     else if (type == PicCommand::CommandType::Circle)
@@ -279,11 +284,15 @@ void CommandModifier::ApplyDifference(PicComponent &pic, int dx, int dy)
         {
             command.circle.xFrom += dx;
             command.circle.yFrom += dy;
-        }
+			command.circle.xFrom = max(command.circle.xFrom, 0);
+			command.circle.yFrom = max(command.circle.yFrom, 0);
+		}
         else
         {
             command.circle.xTo += dx;
             command.circle.yTo += dy;
+			command.circle.xTo = max(command.circle.xTo, 0);
+			command.circle.yTo = max(command.circle.yTo, 0);
         }
         pic.commands[index] = command;
     }
@@ -294,6 +303,8 @@ void CommandModifier::ApplyDifference(PicComponent &pic, int dx, int dy)
         // Use fill... it'll work for pen too.
         command.fill.x += dx;
         command.fill.y += dy;
+		command.fill.x = max(command.fill.x, 0);
+		command.fill.y = max(command.fill.y, 0);
         pic.commands[index] = command;
     }
 }
