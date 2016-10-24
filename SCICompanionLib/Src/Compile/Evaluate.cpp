@@ -187,7 +187,8 @@ bool UnaryOp::Evaluate(ILookupDefine &context, uint16_t &result, CompileContext 
 bool CodeBlock::Evaluate(ILookupDefine &context, uint16_t &result, CompileContext *reportError) const
 {
     bool good = false;
-    if (!GetStatements().empty())
+	// A code block can only evaluate to something if there is a single statement in it.
+    if (GetStatements().size() == 1)
     {
         good = GetStatements().back()->Evaluate(context, result, reportError);
     }
