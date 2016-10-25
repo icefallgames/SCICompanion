@@ -1073,8 +1073,21 @@ ResourceBlob *CResourceListCtrl::_GetResourceForItemRealized(int nItem)
 HRESULT CResourceListCtrl::_UpdateEntries()
 {
     HRESULT hr = E_FAIL;
-    // Clear out old items.
-    DeleteAllItems();
+
+	// Get the resource number of the selected item so we can potentially restore selection.
+	int selectedResourceNumber = -1;
+	uint32_t selectedBase36 = -1;
+	int selectedItem = GetSelectedItem();
+	if (selectedItem != -1)
+	{
+		auto blob = _GetResourceForItemMetadataOnly(selectedItem);
+		assert(blob);
+		selectedResourceNumber = blob->GetNumber();
+		selectedBase36 = blob->GetBase36();
+	}
+
+	// Clear out old items.
+	DeleteAllItems();
 
     try
     {
@@ -1123,6 +1136,23 @@ HRESULT CResourceListCtrl::_UpdateEntries()
                 // Sort
                 _iSortColumn = ColumnNumber;
                 _SortItemsHelper(_iSortColumn, false);
+
+				// Try to reselect the old resource
+				if (selectedResourceNumber != -1)
+				{
+					int cItems = GetItemCount();
+					for (int i = 0; i < cItems; i++)
+					{
+						auto blob = _GetResourceForItemMetadataOnly(i);
+						if ((blob->GetNumber() == selectedResourceNumber) && (blob->GetBase36() == selectedBase36))
+						{
+							SetItemState(i, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+							EnsureVisible(i, FALSE);
+							break;
+						}
+					}
+				}
+
                 SetRedraw(TRUE);
                 hr = S_OK;
             }
