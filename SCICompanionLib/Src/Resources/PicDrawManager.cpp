@@ -33,11 +33,12 @@ PicPositionFlags PicPositionToFlags(PicPosition pos)
     return (PicPositionFlags)(0x1 << (int)pos);
 }
 
-PicDrawManager::PicDrawManager(const PicComponent *pPic, const PaletteComponent *pPalette)
+PicDrawManager::PicDrawManager(const PicComponent *pPic, const PaletteComponent *pPalette, bool isEGAUndithered)
     : _pPicWeak(pPic),
     _paletteVGA{},
     _isVGA(pPalette != nullptr),
     _isContinuousPri(pPic && pPic->Traits->ContinuousPriority),
+	_isUndithered(isEGAUndithered),
     _screenBuffers{}
 {
     _viewPorts = std::make_unique<ViewPort[]>(3);

@@ -53,7 +53,7 @@ public:
 class PicDrawManager
 {
 public:
-    PicDrawManager(const PicComponent *pPic = nullptr, const PaletteComponent *pPalette = nullptr);
+    PicDrawManager(const PicComponent *pPic = nullptr, const PaletteComponent *pPalette = nullptr, bool isEGAUndithered = false);
     void SetPic(const PicComponent *pPic, const PaletteComponent *pPalette, bool isEGAUndithered);
     const PicComponent *GetPic() const { return _pPicWeak; }
 
