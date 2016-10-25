@@ -74,7 +74,8 @@ bool CompiledScript::IsExportAnObject(uint16_t wOffset) const
 bool CompiledScript::IsExportAProcedure(uint16_t wOffset, int *exportIndex) const
 {
     // KQ5-CD has scr patch files (e.g. 0.scr) that contain 0xfffe as offsets. Ignore them.
-    bool result = !IsExportAnObject(wOffset) && (wOffset != 0) && (wOffset != KQ5CD_BadExport);
+	// TODO SCI32...
+    bool result = !IsExportAnObject(wOffset) && ((wOffset != 0) || _version.IsZeroExportValid) && (wOffset != KQ5CD_BadExport);
     if (result && exportIndex)
     {
         *exportIndex = find(_exportsTO.begin(), _exportsTO.end(), wOffset) - _exportsTO.begin();
@@ -349,13 +350,26 @@ bool CompiledScript::_LoadSCI1_1(const GameFolderHelper &helper, int iScriptNumb
             // So far, I'm assuming everything is in one code section in the script resource.
             // We have two hints to where the code begins: The object methods and export (which have explicit
             // pointers to look at), and the end of the last object in the script resource.
-            assert(addressAfterLastObject <= earliestMethodCodeOffset);
+            assert((addressAfterLastObject <= earliestMethodCodeOffset) || _version.IsZeroExportValid);
             if (addressAfterLastObject < heapPointerListOffset)
             {
                 CodeSection all;
                 all.begin = addressAfterLastObject;
                 all.end = heapPointerListOffset;
                 _codeSections.push_back(all);
+
+				if (_version.IsZeroExportValid) // SCI2, etc...
+				{
+					// A zero export in this case is actually supposed to point to the start of the code section, not the start of the script resource.
+					// So adjust that offset.
+					for (size_t i = 0; i < _exportsTO.size(); i++)
+					{
+						if (_exportsTO[i] == 0)
+						{
+							_exportsTO[i] = addressAfterLastObject;
+						}
+					}
+				}
             }
         }
     }

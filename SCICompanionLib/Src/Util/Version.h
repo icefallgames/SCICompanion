@@ -124,6 +124,7 @@ struct SCIVersion
     NativeResolution DefaultResolution;
     KernelSet Kernels;
     bool IsExportWide;
+	bool IsZeroExportValid;
 
     bool operator==(const SCIVersion &src) const;
     bool operator!=(const SCIVersion &src) const;

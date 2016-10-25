@@ -637,6 +637,12 @@ void CResourceMap::_SniffSCIVersion()
 
     _gameFolderHelper.Version.PackageFormat = _DetectPackageFormat();
 
+	if (_gameFolderHelper.Version.PackageFormat >= ResourcePackageFormat::SCI2)
+	{
+		// In SCI2, zero offsets are valid (i.e. they actually point to code). In earlier versions, they were simply empty export slots.
+		_gameFolderHelper.Version.IsZeroExportValid = true;
+	}
+
     // Use resource.000 as the default package file, or resource.001 if no resource.000 found.
     FileDescriptorResourceMap resourceMapFileDescriptor(_gameFolderHelper.GameFolder);
     _gameFolderHelper.Version.DefaultVolumeFile = resourceMapFileDescriptor.DoesVolumeExist(0) ? 0 : 1;
