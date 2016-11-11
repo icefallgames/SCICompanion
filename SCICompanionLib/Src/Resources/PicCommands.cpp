@@ -887,7 +887,7 @@ void _DrawPattern(PicData *pData, int16_t x, int16_t y, typename _TFormat::Pixel
     PicScreenFlags auxSet = _GetAuxSet<_TFormat>(color, bPriorityValue, bControlValue, dwDrawEnable);
 
     int16_t xMax = pData->size.cx - 1;
-    int16_t ýMax = pData->size.cy - 1;
+    int16_t yMax = pData->size.cy - 1;
 
     // Fix up x and y
     if (x < wSize)
@@ -902,9 +902,9 @@ void _DrawPattern(PicData *pData, int16_t x, int16_t y, typename _TFormat::Pixel
     {
         y = wSize;
     }
-    if ((y + wSize) > ýMax)
+    if ((y + wSize) > yMax)
     {
-        y = ýMax - wSize;
+        y = yMax - wSize;
     }
 
     if (bPatternNR < ARRAYSIZE(junqindex))
