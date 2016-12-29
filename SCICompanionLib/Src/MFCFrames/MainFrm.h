@@ -226,6 +226,7 @@ private:
     afx_msg void OnRunPlugin(UINT nID);
     afx_msg void OnValidateAllSaids();
     afx_msg void OnUpdateValidateAllSaids(CCmdUI *pCmdUI);
+    afx_msg void ExtractAllScriptStrings();
 
 #ifdef DOCSUPPORT
     afx_msg void OnGenerateDocs();

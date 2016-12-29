@@ -710,6 +710,7 @@ BEGIN
         MENUITEM "Class hierarchy",             33015
         MENUITEM "Manage decompilation",        ID_SCRIPT_MANAGEDECOMPILATION
         MENUITEM "Validate all Saids",          ID_SCRIPT_VALIDATEALLSAIDS
+        MENUITEM "Extract all script strings",  ID_SCRIPT_EXTRACTALLSCRIPTSTRINGS
     END
     POPUP "&Help"
     BEGIN

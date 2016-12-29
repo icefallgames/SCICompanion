@@ -64,6 +64,7 @@
 #include "DependencyTracker.h"
 #include "MessageSource.h"
 #include "ValidateSaid.h"
+#include "OutputScriptStrings.h"
 #include <filesystem>
 #include <regex>
 
@@ -398,6 +399,8 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
 
     ON_COMMAND(ID_SCRIPT_VALIDATEALLSAIDS, OnValidateAllSaids)
     ON_UPDATE_COMMAND_UI(ID_SCRIPT_VALIDATEALLSAIDS, OnUpdateValidateAllSaids)
+
+    ON_COMMAND(ID_SCRIPT_EXTRACTALLSCRIPTSTRINGS, ExtractAllScriptStrings)
 
     // ON_COMMAND(ID_SELFTEST, OnSelfTest)
     // ON_WM_TIMER()
@@ -2635,6 +2638,26 @@ void CMainFrame::OnValidateAllSaids()
         ValidateSaids(appState->GetResourceMap().Helper(), *vocab, results);
         appState->OutputResults(OutputPaneType::Compile, results);
     }
+}
+
+void CMainFrame::ExtractAllScriptStrings()
+{
+    std::vector<ScriptId> scripts;
+    appState->GetResourceMap().GetAllScripts(scripts);
+    CompileLog log;
+    std::vector<std::string> allStrings;
+    for (ScriptId &script : scripts)
+    {
+        ExtractScriptStrings(log, script, allStrings);
+    }
+    // TODO: show compile errors
+    std::stringstream ss;
+    for (const std::string &line : allStrings)
+    {
+        ss << line;
+        ss << "\n";
+    }
+    ShowTextFile(ss.str().c_str(), "Script strings.txt");
 }
 
 /*

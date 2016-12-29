@@ -205,6 +205,7 @@
     <ClCompile Include="Src\Compile\DecompilerConfig.cpp" />
     <ClCompile Include="Src\Compile\OperatorTables.cpp" />
     <ClCompile Include="Src\Compile\OutputCodeHelper.cpp" />
+    <ClCompile Include="Src\Compile\OutputScriptStrings.cpp" />
     <ClCompile Include="Src\Compile\ParseAutoCompleteContext.cpp" />
     <ClCompile Include="Src\Compile\SCISourceCodeFormatter.cpp" />
     <ClCompile Include="Src\Compile\StudioSourceCodeFormatter.cpp" />
@@ -298,6 +299,7 @@
     <ClInclude Include="Src\Compile\NodeTypes.h" />
     <ClInclude Include="Src\Compile\Operators.h" />
     <ClInclude Include="Src\Compile\OperatorTables.h" />
+    <ClInclude Include="Src\Compile\OutputScriptStrings.h" />
     <ClInclude Include="Src\Compile\ParseAutoCompleteContext.h" />
     <ClInclude Include="Src\Compile\ParserActions.h" />
     <ClInclude Include="Src\Compile\SCISyntaxParser.h" />

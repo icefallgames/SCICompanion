@@ -1183,6 +1183,7 @@
 #define ID_PIC_CUTLINE                  33322
 #define ID_UNDITHERPIC                  33323
 #define ID_SCRIPT_VALIDATEALLSAIDS      33324
+#define ID_SCRIPT_EXTRACTALLSCRIPTSTRINGS 33325
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -1191,7 +1192,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        405
-#define _APS_NEXT_COMMAND_VALUE         33325
+#define _APS_NEXT_COMMAND_VALUE         33326
 #define _APS_NEXT_CONTROL_VALUE         1391
 #define _APS_NEXT_SYMED_VALUE           105
 #endif
