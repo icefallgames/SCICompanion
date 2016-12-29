@@ -63,6 +63,7 @@
 #include "GenerateDocsDialog.h"
 #include "DependencyTracker.h"
 #include "MessageSource.h"
+#include "ValidateSaid.h"
 #include <filesystem>
 #include <regex>
 
@@ -394,6 +395,10 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_UPDATE_COMMAND_UI(ID_SCRIPT_MANAGEDECOMPILATION, OnUpdateShowIfGameLoaded)
     ON_COMMAND(ID_STOPDEBUG, OnStopDebugging)
     ON_UPDATE_COMMAND_UI(ID_STOPDEBUG, OnUpdateStopDebugging)
+
+	ON_COMMAND(ID_SCRIPT_VALIDATEALLSAIDS, OnValidateAllSaids)
+	ON_UPDATE_COMMAND_UI(ID_SCRIPT_VALIDATEALLSAIDS, OnUpdateValidateAllSaids)
+
     // ON_COMMAND(ID_SELFTEST, OnSelfTest)
     // ON_WM_TIMER()
 
@@ -2614,6 +2619,22 @@ void CMainFrame::OnUpdateClassBrowser(CCmdUI *pCmdUI)
     {
         pCmdUI->Enable(FALSE);
     }
+}
+
+void CMainFrame::OnUpdateValidateAllSaids(CCmdUI *pCmdUI)
+{
+	pCmdUI->Enable(appState->GetVersion().HasSaidVocab);
+}
+
+void CMainFrame::OnValidateAllSaids()
+{
+	const Vocab000 *vocab = appState->GetResourceMap().GetVocab000();
+	if (vocab)
+	{
+		std::vector<CompileResult> results;
+		ValidateSaids(appState->GetResourceMap().Helper(), *vocab, results);
+		appState->OutputResults(OutputPaneType::Compile, results);
+	}
 }
 
 /*

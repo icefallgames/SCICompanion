@@ -82,8 +82,6 @@ public:
     bool GetGroupClass(WordGroup dwGroup, WordClass *pdwClass) const;
     VocabChangeHint RemoveWord(PCTSTR pszWord);
 
-    HRESULT QuickSave();
-
     typedef group2words_map::const_iterator groups_iterator;
     void EnumGroups(groups_iterator &position, WordGroup &dwGroup, WordClass &dwClass, std::string &strWords) const;
     std::string GetGroupWordString(WordGroup dwGroup) const;

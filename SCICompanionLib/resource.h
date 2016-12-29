@@ -307,7 +307,7 @@
 #define IDD_PREVIEWMAP                  400
 #define IDR_ACCELERATORPALETTE          401
 #define IDI_AUDIOMAP                    402
-#define IDI_UNDITHERPIC					403
+#define IDI_UNDITHERPIC                 403
 #define IDC_CHOOSECOLORSTATIC           1001
 #define IDC_BUTTON1                     1003
 #define IDC_BUTTONDOWN                  1003
@@ -1182,6 +1182,7 @@
 #define ID_MAIN_CUTLINE                 33321
 #define ID_PIC_CUTLINE                  33322
 #define ID_UNDITHERPIC                  33323
+#define ID_SCRIPT_VALIDATEALLSAIDS      33324
 #define ID_INDICATOR_PRI                59138
 #define ID_INDICATOR_COORDS             59142
 
@@ -1190,7 +1191,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        405
-#define _APS_NEXT_COMMAND_VALUE         33324
+#define _APS_NEXT_COMMAND_VALUE         33325
 #define _APS_NEXT_CONTROL_VALUE         1391
 #define _APS_NEXT_SYMED_VALUE           105
 #endif

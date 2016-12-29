@@ -202,7 +202,7 @@ class CompiledScript : public IPrivateSpeciesLookups, public ICompiledScriptSpec
 public:
     CompiledScript(const CompiledScript &src) = delete;
     CompiledScript(uint16_t wScript, CompiledScriptFlags flags = CompiledScriptFlags::None) { _wScript = wScript; _flags = flags; }
-    bool Load(const GameFolderHelper &helper, SCIVersion version, int iScriptNumber, bool quick);
+    bool Load(const GameFolderHelper &helper, SCIVersion version, int iScriptNumber);
     bool Load(const GameFolderHelper &helper, SCIVersion version, int iScriptNumber, sci::istream &byteStream, sci::istream *heapStream = nullptr);
     std::vector<std::unique_ptr<CompiledObject>> &GetObjects() { return _objects; }
     const std::vector<std::unique_ptr<CompiledObject>> &GetObjects() const { return _objects; }
@@ -230,6 +230,9 @@ public:
 
     bool IsStringPointerSCI1_1(uint16_t) const;
     std::string GetStringOrSaidFromOffset(uint16_t, sci::ValueType &type) const;
+
+	std::vector<std::vector<uint16_t>> GetSaids() const;
+	std::unordered_map<uint16_t, std::vector<uint16_t>> GetSynonyms() const;
 
     // TODO: Make these have public names
     std::vector<CompiledVarValue> _localVars;

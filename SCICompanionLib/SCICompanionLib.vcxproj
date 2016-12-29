@@ -212,6 +212,7 @@
     <ClCompile Include="Src\Compile\ScriptMakerHelper.cpp" />
     <ClCompile Include="Src\Compile\SummarizeScript.cpp" />
     <ClCompile Include="Src\Compile\TarjanAlgorithm.cpp" />
+    <ClCompile Include="Src\Compile\ValidateSaid.cpp" />
     <ClCompile Include="Src\Dialogs\AudioEditDialog.cpp" />
     <ClCompile Include="Src\Dialogs\AudioPreferencesDialog.cpp" />
     <ClCompile Include="Src\Dialogs\BitmapToVGADialog.cpp" />
@@ -301,6 +302,7 @@
     <ClInclude Include="Src\Compile\ParserActions.h" />
     <ClInclude Include="Src\Compile\SCISyntaxParser.h" />
     <ClInclude Include="Src\Compile\SyntaxContext.h" />
+    <ClInclude Include="Src\Compile\ValidateSaid.h" />
     <ClInclude Include="Src\cpptoml\cpptoml.h" />
     <ClInclude Include="Src\Dialogs\AudioEditDialog.h" />
     <ClInclude Include="Src\Dialogs\AudioPreferencesDialog.h" />

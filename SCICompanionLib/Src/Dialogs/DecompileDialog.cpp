@@ -353,7 +353,7 @@ void DecompileDialog::_SyncSelection(bool force)
                 // Detect which exports are not procedures by seeing if its name
                 // matches a public instance in the compiled script (which should be sync'd with the SCO)
                 CompiledScript compiledScript((uint16_t)param);
-                compiledScript.Load(_helper, _helper.Version, param, true);
+                compiledScript.Load(_helper, _helper.Version, param);
                 int exportIndex = 0;
                 for (auto &publicExport : _sco->GetExports())
                 {
@@ -800,7 +800,7 @@ void DecompileDialog::s_DecompileThreadWorker(DecompileDialog *pThis)
                 {
                     pThis->_decompileResults->AddResult(DecompilerResultType::Important, fmt::format("Decompiling script {0}", scriptNum));
                     CompiledScript compiledScript(0, CompiledScriptFlags::RemoveBadExports);
-                    if (compiledScript.Load(helper, helper.Version, scriptNum, false))
+                    if (compiledScript.Load(helper, helper.Version, scriptNum))
                     {
                         unique_ptr<sci::Script> pScript = DecompileScript(pThis->_decompilerConfig.get(), *pThis->_lookups, helper, scriptNum, compiledScript, *pThis->_decompileResults, pThis->_debugControlFlow, pThis->_debugInstConsumption, (PCSTR)pThis->_debugFunctionMatch, pThis->_debugAsm, pThis->_substituteTextTuples);
                         // Dump it to the .sc file

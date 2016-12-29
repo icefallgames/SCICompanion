@@ -53,7 +53,7 @@ std::string _GetProcNameFromScriptOffset(uint16_t wOffset)
     return fmt::format("localproc_{:04x}", wOffset);
 }
 
-bool CompiledScript::Load(const GameFolderHelper &helper, SCIVersion version, int iScriptNumber, bool quick)
+bool CompiledScript::Load(const GameFolderHelper &helper, SCIVersion version, int iScriptNumber)
 {
     _version = version;
     _wScript = (uint16_t)iScriptNumber;
@@ -148,6 +148,15 @@ void CompiledScript::_LoadStringOffsetsSCI1_1(uint16_t offset, sci::istream heap
 bool CompiledScript::IsStringPointerSCI1_1(uint16_t value) const
 {
     return find(_stringPointerOffsetsSCI1_1.begin(), _stringPointerOffsetsSCI1_1.end(), value) != _stringPointerOffsetsSCI1_1.end();
+}
+
+std::vector<std::vector<uint16_t>> CompiledScript::GetSaids() const
+{
+	return _saids; // A copy...
+}
+std::unordered_map<uint16_t, std::vector<uint16_t>> CompiledScript::GetSynonyms() const
+{
+	return _synonyms;
 }
 
 std::string CompiledScript::GetStringOrSaidFromOffset(uint16_t value, ValueType &type) const

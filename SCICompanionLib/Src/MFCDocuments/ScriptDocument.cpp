@@ -287,7 +287,7 @@ bool NewCompileScript(CompileLog &log, CompileTables &tables, PrecompiledHeaders
 void DisassembleScript(WORD wScript)
 {
     CompiledScript compiledScript(0);
-    if (compiledScript.Load(appState->GetResourceMap().Helper(), appState->GetVersion(), wScript, false))
+    if (compiledScript.Load(appState->GetResourceMap().Helper(), appState->GetVersion(), wScript))
     {
         // Write some crap.
         GlobalCompiledScriptLookups scriptLookups;
@@ -314,7 +314,7 @@ void CScriptDocument::OnDisassemble()
 void DecompileScript(const GameFolderHelper &helper, WORD wScript, IDecompilerResults &results)
 {
     CompiledScript compiledScript(0);
-    if (compiledScript.Load(helper, appState->GetVersion(), wScript, false))
+    if (compiledScript.Load(helper, appState->GetVersion(), wScript))
     {
         unique_ptr<sci::Script> pScript = DecompileScript(nullptr, *appState->GetResourceMap().GetCompiledScriptLookups(), helper, wScript, compiledScript, results);
         std::stringstream ss;
@@ -419,7 +419,7 @@ void CScriptDocument::OnViewScriptResource()
         if (SUCCEEDED(appState->GetResourceMap().GetScriptNumber(_scriptId, wScript)))
         {
             CompiledScript compiledScript(0);
-            if (compiledScript.Load(appState->GetResourceMap().Helper(), appState->GetVersion(), wScript, false))
+            if (compiledScript.Load(appState->GetResourceMap().Helper(), appState->GetVersion(), wScript))
             {
                 // Write some crap.
                 std::stringstream out;
