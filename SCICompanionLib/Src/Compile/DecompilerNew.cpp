@@ -1908,7 +1908,10 @@ std::unique_ptr<SyntaxNode> _CodeNodeToSyntaxNode(ConsumptionNode &node, Decompi
                     pAssignment->SetVariable(move(lValue));
 
                     // Is assigned our child:
-                    ASSERT(node.GetChildCount() >= 1);
+					if (node.GetChildCount() < 1)
+					{
+						throw ConsumptionNodeException(&node, "Assignment RValue did not exist.");
+					}
                     for (size_t i = 0; i < node.GetChildCount(); i++)
                     {
                         Consumption cons = _GetInstructionConsumption(*node.Child(i), lookups);
