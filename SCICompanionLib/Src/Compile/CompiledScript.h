@@ -231,8 +231,8 @@ public:
     bool IsStringPointerSCI1_1(uint16_t) const;
     std::string GetStringOrSaidFromOffset(uint16_t, sci::ValueType &type) const;
 
-	std::vector<std::vector<uint16_t>> GetSaids() const;
-	std::unordered_map<uint16_t, std::vector<uint16_t>> GetSynonyms() const;
+    std::vector<std::vector<uint16_t>> GetSaids() const;
+    std::unordered_map<uint16_t, std::vector<uint16_t>> GetSynonyms() const;
 
     // TODO: Make these have public names
     std::vector<CompiledVarValue> _localVars;

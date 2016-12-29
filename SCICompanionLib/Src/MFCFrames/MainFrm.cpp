@@ -80,219 +80,219 @@ using namespace std::tr2::sys;
 // We copy the entire chunk of CExtMenuControlBar::_UpdateMenuBar, and adjust to our needs.
 //
 #if( !defined __EXTMINIDOCKFRAMEWND_H)
-	#include "ExtMiniDockFrameWnd.h"
+    #include "ExtMiniDockFrameWnd.h"
 #endif
 
 BOOL CExtMenuControlBarHideShow::_UpdateMenuBar(
-	BOOL bDoRecalcLayout // = TRUE
-	)
+    BOOL bDoRecalcLayout // = TRUE
+    )
 {
-	SetButtons(); // remove all buttons
+    SetButtons(); // remove all buttons
 
-	VERIFY(
-		g_CmdManager->CmdRemoveByMask(
-			g_CmdManager->ProfileNameFromWnd( GetSafeHwnd() ),
-			(DWORD)CExtCmdItem::STATE_MENUBAR_TMP
-			)
-		);
+    VERIFY(
+        g_CmdManager->CmdRemoveByMask(
+            g_CmdManager->ProfileNameFromWnd( GetSafeHwnd() ),
+            (DWORD)CExtCmdItem::STATE_MENUBAR_TMP
+            )
+        );
 
 #if (!defined __EXT_MFC_NO_CUSTOMIZE)
-	MenuInfoUpdate();
+    MenuInfoUpdate();
 CExtCustomizeSite::CCmdMenuInfo * pMenuInfo = MenuInfoGet();
-	if( pMenuInfo != nullptr )
-	{
-		ASSERT_VALID( pMenuInfo->GetNode() );
-		SetButtons( pMenuInfo->GetNode() );
-	} // if( pMenuInfo != nullptr )
-	else
+    if( pMenuInfo != nullptr )
+    {
+        ASSERT_VALID( pMenuInfo->GetNode() );
+        SetButtons( pMenuInfo->GetNode() );
+    } // if( pMenuInfo != nullptr )
+    else
 #endif // (!defined __EXT_MFC_NO_CUSTOMIZE)
-	{
-		CMenu * pMenu = GetMenu();
-		if( pMenu != nullptr && pMenu->GetSafeHmenu() != nullptr )
-		{
-			ASSERT( ::IsMenu(pMenu->GetSafeHmenu()) );
-			bool bRevertRTL = OnQueryRevertRTL();
-			UINT nMenuItemCount = pMenu->GetMenuItemCount();
+    {
+        CMenu * pMenu = GetMenu();
+        if( pMenu != nullptr && pMenu->GetSafeHmenu() != nullptr )
+        {
+            ASSERT( ::IsMenu(pMenu->GetSafeHmenu()) );
+            bool bRevertRTL = OnQueryRevertRTL();
+            UINT nMenuItemCount = pMenu->GetMenuItemCount();
             UINT nMenuItemInsertIndex = 0;
-			for( UINT nMenuItemIndex = 0; nMenuItemIndex < nMenuItemCount; nMenuItemIndex++ )
-			{
-				UINT nInsertButtonLocation =
-					bRevertRTL
-						? 0
-						: nMenuItemInsertIndex
-						;
-				MENUITEMINFO mii;
-				::memset( &mii, 0, sizeof(MENUITEMINFO) );
-				mii.cbSize = sizeof(MENUITEMINFO);
-				mii.fMask =
-					MIIM_CHECKMARKS
-					|MIIM_DATA
-					|MIIM_ID
-					|MIIM_STATE
-					|MIIM_SUBMENU
-					|MIIM_TYPE
-					;
-				mii.cch = __MAX_UI_ITEM_TEXT;
-				CExtSafeString sText;
-				mii.dwTypeData =
-					sText.GetBuffer( __MAX_UI_ITEM_TEXT );
-				ASSERT( mii.dwTypeData != nullptr );
-				if( mii.dwTypeData == nullptr )
-				{
-					ASSERT( FALSE );
-					return FALSE;
-				}
-				if( ! pMenu->GetMenuItemInfo(
-						nMenuItemIndex,
-						&mii,
-						TRUE
-						)
-					)
-				{
-					sText.ReleaseBuffer();
-					ASSERT( FALSE );
-					return false;
-				}
-				sText.ReleaseBuffer();
+            for( UINT nMenuItemIndex = 0; nMenuItemIndex < nMenuItemCount; nMenuItemIndex++ )
+            {
+                UINT nInsertButtonLocation =
+                    bRevertRTL
+                        ? 0
+                        : nMenuItemInsertIndex
+                        ;
+                MENUITEMINFO mii;
+                ::memset( &mii, 0, sizeof(MENUITEMINFO) );
+                mii.cbSize = sizeof(MENUITEMINFO);
+                mii.fMask =
+                    MIIM_CHECKMARKS
+                    |MIIM_DATA
+                    |MIIM_ID
+                    |MIIM_STATE
+                    |MIIM_SUBMENU
+                    |MIIM_TYPE
+                    ;
+                mii.cch = __MAX_UI_ITEM_TEXT;
+                CExtSafeString sText;
+                mii.dwTypeData =
+                    sText.GetBuffer( __MAX_UI_ITEM_TEXT );
+                ASSERT( mii.dwTypeData != nullptr );
+                if( mii.dwTypeData == nullptr )
+                {
+                    ASSERT( FALSE );
+                    return FALSE;
+                }
+                if( ! pMenu->GetMenuItemInfo(
+                        nMenuItemIndex,
+                        &mii,
+                        TRUE
+                        )
+                    )
+                {
+                    sText.ReleaseBuffer();
+                    ASSERT( FALSE );
+                    return false;
+                }
+                sText.ReleaseBuffer();
 
-				BOOL bAppendMdiWindowsMenu = FALSE;
-				UINT nCmdID = 0;
-				CExtCmdItem * pCmdItem = nullptr;
-				if( mii.hSubMenu == nullptr )
-				{
-					nCmdID = mii.wID;
-					if( nCmdID == ID_SEPARATOR )
-					{
-						if( ! InsertButton(
-								nInsertButtonLocation,
-								nCmdID,
-								FALSE
-								)
-							)
-						{
-							ASSERT( FALSE );
-							return FALSE;
-						}
-						continue;
-					} // if( nCmdID == ID_SEPARATOR )
-					ASSERT( CExtCmdManager::IsCommand(nCmdID) );
-					pCmdItem =
-						g_CmdManager->CmdGetPtr(
-							g_CmdManager->ProfileNameFromWnd( GetSafeHwnd() ),
-							nCmdID
-							);
-					ASSERT( pCmdItem != nullptr );
-				} // if( mii.hSubMenu == nullptr )
-				else
-				{
-					pCmdItem =
-						g_CmdManager->CmdAllocPtr(
-							g_CmdManager->ProfileNameFromWnd( GetSafeHwnd() )
-							);
-					if( pCmdItem == nullptr )
-					{
-						ASSERT( FALSE );
-						return FALSE;
-					} // if( pCmdItem == nullptr )
-					nCmdID = pCmdItem->m_nCmdID;
-					ASSERT( CExtCmdManager::IsCommand(nCmdID) );
-					pCmdItem->StateSetMenubarTemp();
-					pCmdItem->StateSetBasic();
+                BOOL bAppendMdiWindowsMenu = FALSE;
+                UINT nCmdID = 0;
+                CExtCmdItem * pCmdItem = nullptr;
+                if( mii.hSubMenu == nullptr )
+                {
+                    nCmdID = mii.wID;
+                    if( nCmdID == ID_SEPARATOR )
+                    {
+                        if( ! InsertButton(
+                                nInsertButtonLocation,
+                                nCmdID,
+                                FALSE
+                                )
+                            )
+                        {
+                            ASSERT( FALSE );
+                            return FALSE;
+                        }
+                        continue;
+                    } // if( nCmdID == ID_SEPARATOR )
+                    ASSERT( CExtCmdManager::IsCommand(nCmdID) );
+                    pCmdItem =
+                        g_CmdManager->CmdGetPtr(
+                            g_CmdManager->ProfileNameFromWnd( GetSafeHwnd() ),
+                            nCmdID
+                            );
+                    ASSERT( pCmdItem != nullptr );
+                } // if( mii.hSubMenu == nullptr )
+                else
+                {
+                    pCmdItem =
+                        g_CmdManager->CmdAllocPtr(
+                            g_CmdManager->ProfileNameFromWnd( GetSafeHwnd() )
+                            );
+                    if( pCmdItem == nullptr )
+                    {
+                        ASSERT( FALSE );
+                        return FALSE;
+                    } // if( pCmdItem == nullptr )
+                    nCmdID = pCmdItem->m_nCmdID;
+                    ASSERT( CExtCmdManager::IsCommand(nCmdID) );
+                    pCmdItem->StateSetMenubarTemp();
+                    pCmdItem->StateSetBasic();
 
-					if( _IsMdiApp() && (! m_sMdiWindowPopupName.IsEmpty() ) )
-					{
-						CExtSafeString _sText(sText);
-						_sText.TrimLeft();
-						_sText.TrimRight();
-						while( _sText.Replace(_T("&"),_T("")) > 0 )
-						{
-							_sText.TrimLeft();
-							_sText.TrimRight();
-						} // while( _sText.Replace(_T("&"),_T("")) > 0 )
-						if( _sText == m_sMdiWindowPopupName )
-							bAppendMdiWindowsMenu = TRUE;
-					} // if( _IsMdiApp() && (! m_sMdiWindowPopupName.IsEmpty() ) )
-				} // else from if( mii.hSubMenu == nullptr )
-				ASSERT( pCmdItem != nullptr );
-				if( pCmdItem->m_sToolbarText.IsEmpty() )
-					pCmdItem->m_sToolbarText = sText;
-				if( pCmdItem->m_sMenuText.IsEmpty() )
-					pCmdItem->m_sMenuText = sText;
+                    if( _IsMdiApp() && (! m_sMdiWindowPopupName.IsEmpty() ) )
+                    {
+                        CExtSafeString _sText(sText);
+                        _sText.TrimLeft();
+                        _sText.TrimRight();
+                        while( _sText.Replace(_T("&"),_T("")) > 0 )
+                        {
+                            _sText.TrimLeft();
+                            _sText.TrimRight();
+                        } // while( _sText.Replace(_T("&"),_T("")) > 0 )
+                        if( _sText == m_sMdiWindowPopupName )
+                            bAppendMdiWindowsMenu = TRUE;
+                    } // if( _IsMdiApp() && (! m_sMdiWindowPopupName.IsEmpty() ) )
+                } // else from if( mii.hSubMenu == nullptr )
+                ASSERT( pCmdItem != nullptr );
+                if( pCmdItem->m_sToolbarText.IsEmpty() )
+                    pCmdItem->m_sToolbarText = sText;
+                if( pCmdItem->m_sMenuText.IsEmpty() )
+                    pCmdItem->m_sMenuText = sText;
 
                 if (!_ExcludeMenu(sText))
                 {
-				    if( ! InsertButton(
-						    nInsertButtonLocation,
-						    nCmdID,
-						    FALSE
-						    )
-					    )
-				    {
-					    ASSERT( FALSE );
-					    return FALSE;
-				    }
+                    if( ! InsertButton(
+                            nInsertButtonLocation,
+                            nCmdID,
+                            FALSE
+                            )
+                        )
+                    {
+                        ASSERT( FALSE );
+                        return FALSE;
+                    }
                     nMenuItemInsertIndex++;
-				    if( mii.hSubMenu != nullptr )
-				    {
-					    ASSERT( ::IsMenu(mii.hSubMenu) );
-					    SetButtonMenu(
-						    nInsertButtonLocation,
-						    mii.hSubMenu,
-						    FALSE,
-						    FALSE,
-						    FALSE
-						    );
-				    } // if( mii.hSubMenu != nullptr )
-				    if( bAppendMdiWindowsMenu )
-				    {
-					    VERIFY(
-						    MarkButtonAsMdiWindowsMenu(
-							    nInsertButtonLocation,
-							    TRUE
-							    )
-						    );
-				    } // if( bAppendMdiWindowsMenu )
+                    if( mii.hSubMenu != nullptr )
+                    {
+                        ASSERT( ::IsMenu(mii.hSubMenu) );
+                        SetButtonMenu(
+                            nInsertButtonLocation,
+                            mii.hSubMenu,
+                            FALSE,
+                            FALSE,
+                            FALSE
+                            );
+                    } // if( mii.hSubMenu != nullptr )
+                    if( bAppendMdiWindowsMenu )
+                    {
+                        VERIFY(
+                            MarkButtonAsMdiWindowsMenu(
+                                nInsertButtonLocation,
+                                TRUE
+                                )
+                            );
+                    } // if( bAppendMdiWindowsMenu )
                 } // if (!_ExcludeMenu)
-			} // for( UINT nMenuItemIndex = 0; nMenuItemIndex < nMenuItemCount; nMenuItemIndex++ )
+            } // for( UINT nMenuItemIndex = 0; nMenuItemIndex < nMenuItemCount; nMenuItemIndex++ )
 
-			ASSERT( m_pRightBtn == nullptr );
-			m_pRightBtn = OnCreateBarRightBtn();
-			if( m_pRightBtn != nullptr )
-			{
-				ASSERT_VALID( m_pRightBtn );
-				ASSERT_KINDOF( CExtBarContentExpandButton, m_pRightBtn );
-				m_buttons.Add( m_pRightBtn );
-			} // if( m_pRightBtn != nullptr )
-		} // if( pMenu != nullptr && pMenu->GetSafeHmenu() != nullptr )
-	} // else from if( pMenuInfo != nullptr )
+            ASSERT( m_pRightBtn == nullptr );
+            m_pRightBtn = OnCreateBarRightBtn();
+            if( m_pRightBtn != nullptr )
+            {
+                ASSERT_VALID( m_pRightBtn );
+                ASSERT_KINDOF( CExtBarContentExpandButton, m_pRightBtn );
+                m_buttons.Add( m_pRightBtn );
+            } // if( m_pRightBtn != nullptr )
+        } // if( pMenu != nullptr && pMenu->GetSafeHmenu() != nullptr )
+    } // else from if( pMenuInfo != nullptr )
 
-	if( _IsMdiApp() )
-	{
-		if( !IsOleIpObjActive() )
-			if( _InstallMdiDocButtons( FALSE ) )
-				bDoRecalcLayout = TRUE;
-		VERIFY( _SyncActiveMdiChild() );
-	}
-	
-	if( bDoRecalcLayout )
-	{
-		Invalidate();
-		_RecalcLayoutImpl();
-		UpdateWindow();
-		if( m_pDockSite != nullptr )
-		{
-			CFrameWnd * pFrame = GetParentFrame();
-			ASSERT_VALID( pFrame );
-			if( pFrame->IsKindOf(RUNTIME_CLASS(CExtMiniDockFrameWnd)) )
-				pFrame->SetWindowPos(
-					nullptr, 0, 0, 0, 0,
-					SWP_NOACTIVATE|SWP_NOMOVE|SWP_NOSIZE
-						|SWP_NOZORDER|SWP_NOOWNERZORDER
-						|SWP_FRAMECHANGED
-					);
-		} // if( m_pDockSite != nullptr )
-	} // if( bDoRecalcLayout )
-	return TRUE;
+    if( _IsMdiApp() )
+    {
+        if( !IsOleIpObjActive() )
+            if( _InstallMdiDocButtons( FALSE ) )
+                bDoRecalcLayout = TRUE;
+        VERIFY( _SyncActiveMdiChild() );
+    }
+    
+    if( bDoRecalcLayout )
+    {
+        Invalidate();
+        _RecalcLayoutImpl();
+        UpdateWindow();
+        if( m_pDockSite != nullptr )
+        {
+            CFrameWnd * pFrame = GetParentFrame();
+            ASSERT_VALID( pFrame );
+            if( pFrame->IsKindOf(RUNTIME_CLASS(CExtMiniDockFrameWnd)) )
+                pFrame->SetWindowPos(
+                    nullptr, 0, 0, 0, 0,
+                    SWP_NOACTIVATE|SWP_NOMOVE|SWP_NOSIZE
+                        |SWP_NOZORDER|SWP_NOOWNERZORDER
+                        |SWP_FRAMECHANGED
+                    );
+        } // if( m_pDockSite != nullptr )
+    } // if( bDoRecalcLayout )
+    return TRUE;
 }
 // End prof-uis stuff...
 
@@ -396,8 +396,8 @@ BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
     ON_COMMAND(ID_STOPDEBUG, OnStopDebugging)
     ON_UPDATE_COMMAND_UI(ID_STOPDEBUG, OnUpdateStopDebugging)
 
-	ON_COMMAND(ID_SCRIPT_VALIDATEALLSAIDS, OnValidateAllSaids)
-	ON_UPDATE_COMMAND_UI(ID_SCRIPT_VALIDATEALLSAIDS, OnUpdateValidateAllSaids)
+    ON_COMMAND(ID_SCRIPT_VALIDATEALLSAIDS, OnValidateAllSaids)
+    ON_UPDATE_COMMAND_UI(ID_SCRIPT_VALIDATEALLSAIDS, OnUpdateValidateAllSaids)
 
     // ON_COMMAND(ID_SELFTEST, OnSelfTest)
     // ON_WM_TIMER()
@@ -440,7 +440,7 @@ CMainFrame::CMainFrame() : m_dlgForPanelDialogPic(false), m_dlgForPanelDialogPic
     ::memset( &m_dataFrameWP, 0, sizeof(WINDOWPLACEMENT) );
     m_dataFrameWP.length = sizeof(WINDOWPLACEMENT);
     m_dataFrameWP.showCmd = SW_HIDE;
-	g_ResourceManager->SetLangLayout( LAYOUT_LTR );
+    g_ResourceManager->SetLangLayout( LAYOUT_LTR );
 }
 
 void CMainFrame::ActivateFrame(int nCmdShow) 
@@ -591,30 +591,30 @@ void RegisterCommands()
     _AssignIcons(c_screenIcons, ARRAYSIZE(c_screenIcons));
 
     // Zoom slider
-	pCmdItem = g_CmdManager->CmdAllocPtr(appState->_pszCommandProfile, ID_ZOOMSLIDER);
-	pCmdItem->m_sToolbarText = "Zoom:";
-	pCmdItem->m_sMenuText = "Zoom slider";
-	pCmdItem->m_sTipTool = pCmdItem->m_sTipStatus = "Zoom slider";
+    pCmdItem = g_CmdManager->CmdAllocPtr(appState->_pszCommandProfile, ID_ZOOMSLIDER);
+    pCmdItem->m_sToolbarText = "Zoom:";
+    pCmdItem->m_sMenuText = "Zoom slider";
+    pCmdItem->m_sTipTool = pCmdItem->m_sTipStatus = "Zoom slider";
 
     // Alpha slider
-	pCmdItem = g_CmdManager->CmdAllocPtr(appState->_pszCommandProfile, ID_ALPHASLIDER);
-	pCmdItem->m_sToolbarText = "Opacity:";
-	pCmdItem->m_sMenuText = "Trace opacity";
-	pCmdItem->m_sTipTool = pCmdItem->m_sTipStatus = "Trace image opacity";
+    pCmdItem = g_CmdManager->CmdAllocPtr(appState->_pszCommandProfile, ID_ALPHASLIDER);
+    pCmdItem->m_sToolbarText = "Opacity:";
+    pCmdItem->m_sMenuText = "Trace opacity";
+    pCmdItem->m_sTipTool = pCmdItem->m_sTipStatus = "Trace image opacity";
 
     // Tempo slider
-	pCmdItem = g_CmdManager->CmdAllocPtr(appState->_pszCommandProfile, ID_TEMPOSLIDER);
-	pCmdItem->m_sToolbarText = "Speed:";
-	pCmdItem->m_sMenuText = "Speed";
-	pCmdItem->m_sTipTool = pCmdItem->m_sTipStatus = "Speed (bpm)";
+    pCmdItem = g_CmdManager->CmdAllocPtr(appState->_pszCommandProfile, ID_TEMPOSLIDER);
+    pCmdItem->m_sToolbarText = "Speed:";
+    pCmdItem->m_sMenuText = "Speed";
+    pCmdItem->m_sTipTool = pCmdItem->m_sTipStatus = "Speed (bpm)";
 
     // The generic "show resources" commands.
     for (int i = 0; i < ARRAYSIZE(c_ShowResourceCommands); i++)
     {
         pCmdItem = g_CmdManager->CmdAllocPtr(appState->_pszCommandProfile, c_ShowResourceCommands[i].nCommandId);
         pCmdItem->m_sToolbarText = c_ShowResourceCommands[i].pszShortText;
-	    pCmdItem->m_sMenuText = c_ShowResourceCommands[i].pszLongText;
-	    pCmdItem->m_sTipTool = pCmdItem->m_sTipStatus = c_ShowResourceCommands[i].pszTipText;
+        pCmdItem->m_sMenuText = c_ShowResourceCommands[i].pszLongText;
+        pCmdItem->m_sTipTool = pCmdItem->m_sTipStatus = c_ShowResourceCommands[i].pszTipText;
         HICON hicon = (HICON)LoadImage(AfxGetInstanceHandle(), MAKEINTRESOURCE(c_ShowResourceCommands[i].iconResource), IMAGE_ICON, 24, 24, LR_DEFAULTCOLOR);
         g_CmdManager->CmdSetIcon(appState->_pszCommandProfile,
             c_ShowResourceCommands[i].nCommandId,
@@ -948,12 +948,12 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
         return -1;
     }
     m_ThemeSwitcher.m_bAppearInDockSiteControlBarPopupMenu = false; // Don't show in prof-uis menus
-	ASSERT( m_ThemeSwitcher.GetSafeHwnd() != nullptr );
-	if(	! m_ThemeSwitcher.ThemeSwitcherInit() )
-	{
-		ASSERT( FALSE );
-		return -1;
-	}
+    ASSERT( m_ThemeSwitcher.GetSafeHwnd() != nullptr );
+    if(	! m_ThemeSwitcher.ThemeSwitcherInit() )
+    {
+        ASSERT( FALSE );
+        return -1;
+    }
     m_ThemeSwitcher.ShowWindow(SW_HIDE);
 
     // These are just placeholders...
@@ -980,13 +980,13 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
         TRACE0("Failed to add browse status pane\n");
         return -1;
     }
-	int nIndex = m_wndStatusBar.CommandToIndex(ID_BROWSEINFOPANE);
+    int nIndex = m_wndStatusBar.CommandToIndex(ID_BROWSEINFOPANE);
     if (nIndex != -1)
     {
-	    m_wndStatusBar.SetPaneWidth(nIndex, 170);
-	    m_wndStatusBar.SetPaneControl(&m_BrowseInfoStatus, ID_BROWSEINFOPANE, true);
+        m_wndStatusBar.SetPaneWidth(nIndex, 170);
+        m_wndStatusBar.SetPaneControl(&m_BrowseInfoStatus, ID_BROWSEINFOPANE, true);
     }
-	SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser();
+    SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser();
     {
         ClassBrowserLock lock(browser);
         lock.Lock();
@@ -1000,34 +1000,34 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     m_wndResizableBarGeneral.SetInitDesiredSizeVertical(CSize(180, 100));
     if (!m_wndResizableBarGeneral.Create("Toolbox", this, ID_BAR_TOOLBOX))
     {
-	    TRACE0("Failed to create m_wndResizableBar_View\n");
-	    return -1;		// fail to create
+        TRACE0("Failed to create m_wndResizableBar_View\n");
+        return -1;		// fail to create
     }
 
     if (!m_dlgEmpty.Create(CBarContainerDialog::IDD, &m_wndResizableBarGeneral))
     {
-	    TRACE0("Failed to create empty dialog\n");
-	    return -1;		// fail to create
+        TRACE0("Failed to create empty dialog\n");
+        return -1;		// fail to create
     }
     if (!m_dlgForPanelDialogFont.Create(IDD_DIALOGCELFONT2, &m_dlgEmpty))
     {
-	    TRACE0("Failed to create m_wndResizableBar_View\n");
-	    return -1;		// fail to create
+        TRACE0("Failed to create m_wndResizableBar_View\n");
+        return -1;		// fail to create
     }
     if (!m_dlgForPanelDialogView.Create(IDD_DIALOGCELVIEW2, &m_dlgEmpty))
     {
-	    TRACE0("Failed to create m_wndResizableBar_View\n");
-	    return -1;		// fail to create
+        TRACE0("Failed to create m_wndResizableBar_View\n");
+        return -1;		// fail to create
     }
     if (!m_dlgForPanelDialogCursor.Create(IDD_DIALOGCELCURSOR2, &m_dlgEmpty))
     {
-	    TRACE0("Failed to create m_wndResizableBar_Cursor\n");
-	    return -1;		// fail to create
+        TRACE0("Failed to create m_wndResizableBar_Cursor\n");
+        return -1;		// fail to create
     }
     if (!m_dlgForPanelDialogPic.Create(IDD_PICCOMMANDS, &m_dlgEmpty))
     {
-	    TRACE0("Failed to create m_wndResizableBar_Pic\n");
-	    return -1;		// fail to create
+        TRACE0("Failed to create m_wndResizableBar_Pic\n");
+        return -1;		// fail to create
     }
     if (!m_dlgForPanelDialogPicVGA.Create(IDD_PICCOMMANDS_VGA1, &m_dlgEmpty))
     {
@@ -1036,18 +1036,18 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     }
     if (!m_dlgForPanelDialogScript.Create(IDD_QUICKSCRIPTS, &m_dlgEmpty))
     {
-	    TRACE0("Failed to create m_dlgForPanelDialogScript\n");
-	    return -1;		// fail to create
+        TRACE0("Failed to create m_dlgForPanelDialogScript\n");
+        return -1;		// fail to create
     }
     if (!m_dlgForPanelDialogGame.Create(IDD_SAMPLES, &m_dlgEmpty))
     {
-	    TRACE0("Failed to create m_dlgForPanelDialogGame\n");
-	    return -1;		// fail to create
+        TRACE0("Failed to create m_dlgForPanelDialogGame\n");
+        return -1;		// fail to create
     }
     if (!m_dlgForPanelDialogSound.Create(IDD_SOUNDTOOLBOX, &m_dlgEmpty))
     {
-	    TRACE0("Failed to create m_dlgForPanelDialogSound\n");
-	    return -1;		// fail to create
+        TRACE0("Failed to create m_dlgForPanelDialogSound\n");
+        return -1;		// fail to create
     }
     if (!m_dlgForPanelDialogMessage.Create(IDD_MESSAGETOOLBOX, &m_dlgEmpty))
     {
@@ -1060,8 +1060,8 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     // The output area at the bottom (which only appears when necessary)
     if (!m_wndResizableBarOutput.Create("Output", this, ID_BAR_OUTPUT))
     {
-	    TRACE0("Failed to create m_wndResizableBarOutput\n");
-	    return -1;		// fail to create
+        TRACE0("Failed to create m_wndResizableBarOutput\n");
+        return -1;		// fail to create
     }
 
     m_wndNewOutput.Create(NewOutputPane::IDD, &m_wndResizableBarOutput);
@@ -1101,8 +1101,8 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     _PreparePicCommands();
     ShowControlBar(&m_wndPicTools, FALSE, FALSE);
     ASSERT(g_pPicAlphaSlider == nullptr);
-	g_pPicAlphaSlider = new CExtAlphaSlider(&m_wndPicTools, ID_ALPHASLIDER);
-	VERIFY(m_wndPicTools.InsertSpecButton(-1, g_pPicAlphaSlider, FALSE));
+    g_pPicAlphaSlider = new CExtAlphaSlider(&m_wndPicTools, ID_ALPHASLIDER);
+    VERIFY(m_wndPicTools.InsertSpecButton(-1, g_pPicAlphaSlider, FALSE));
 
 
     // Scripts
@@ -1137,12 +1137,12 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
         TRACE0("Failed to create script class combo");
         return -1;
     }
-	m_wndScriptTools.InsertButton(-1, ID_SCRIPT_CLASSCOMBO);
-	VERIFY(m_wndScriptTools.SetButtonCtrl(m_wndScriptTools.CommandToIndex(ID_SCRIPT_CLASSCOMBO), &m_wndScriptToolComboBoxClass));
-	m_wndScriptToolComboBoxClass.SetFont(CFont::FromHandle((HFONT)::GetStockObject(DEFAULT_GUI_FONT)));
+    m_wndScriptTools.InsertButton(-1, ID_SCRIPT_CLASSCOMBO);
+    VERIFY(m_wndScriptTools.SetButtonCtrl(m_wndScriptTools.CommandToIndex(ID_SCRIPT_CLASSCOMBO), &m_wndScriptToolComboBoxClass));
+    m_wndScriptToolComboBoxClass.SetFont(CFont::FromHandle((HFONT)::GetStockObject(DEFAULT_GUI_FONT)));
 
-	m_wndScriptToolComboBoxClass.AddString("test class");
-	m_wndScriptToolComboBoxClass.SetCurSel( 0 );
+    m_wndScriptToolComboBoxClass.AddString("test class");
+    m_wndScriptToolComboBoxClass.SetCurSel( 0 );
 
     /*
     // Function combo
@@ -1156,8 +1156,8 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
         TRACE0("Failed to create script function combo");
         return -1;
     }
-	m_wndScriptTools.InsertButton(-1, ID_SCRIPT_FUNCTIONCOMBO);
-	VERIFY(m_wndScriptTools.SetButtonCtrl(m_wndScriptTools.CommandToIndex(ID_SCRIPT_FUNCTIONCOMBO), &m_wndScriptToolComboBoxFunction));
+    m_wndScriptTools.InsertButton(-1, ID_SCRIPT_FUNCTIONCOMBO);
+    VERIFY(m_wndScriptTools.SetButtonCtrl(m_wndScriptTools.CommandToIndex(ID_SCRIPT_FUNCTIONCOMBO), &m_wndScriptToolComboBoxFunction));
     m_wndScriptToolComboBoxFunction.SetFont(CFont::FromHandle((HFONT)::GetStockObject(DEFAULT_GUI_FONT)));
 */
 
@@ -1191,8 +1191,8 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     _PrepareSoundCommands();
     ShowControlBar(&m_wndSoundTools, FALSE, FALSE);
     ASSERT(g_pSoundTempoSlider == nullptr);
-	g_pSoundTempoSlider = new CExtTempoSlider(&m_wndSoundTools, ID_TEMPOSLIDER);
-	VERIFY(m_wndSoundTools.InsertSpecButton(-1, g_pSoundTempoSlider, FALSE));
+    g_pSoundTempoSlider = new CExtTempoSlider(&m_wndSoundTools, ID_TEMPOSLIDER);
+    VERIFY(m_wndSoundTools.InsertSpecButton(-1, g_pSoundTempoSlider, FALSE));
 
 
     // Vocab
@@ -1227,7 +1227,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     // REVIEW: crash in Prof-UIS when trying to restore state.
     if (TRUE)
     {
-	    m_wndResizableBarGeneral.EnableDocking(CBRS_ALIGN_LEFT | CBRS_ALIGN_RIGHT);
+        m_wndResizableBarGeneral.EnableDocking(CBRS_ALIGN_LEFT | CBRS_ALIGN_RIGHT);
         m_wndResizableBarOutput.EnableDocking(CBRS_ALIGN_TOP | CBRS_ALIGN_BOTTOM);
 
         EnableDocking(CBRS_ALIGN_ANY);
@@ -1295,7 +1295,7 @@ void CMainFrame::_PreparePicCommands()
     {
         { ID_HISTORY, IDI_HISTORY },
         { ID_SHOWTRACEIMAGE, IDI_SHOWTRACEIMAGE },
-		{ ID_UNDITHERPIC, IDI_UNDITHERPIC },
+        { ID_UNDITHERPIC, IDI_UNDITHERPIC },
         { ID_TRACEBITMAP, IDI_LOADTRACEIMAGE },
         { ID_DEFINEPALETTES, IDI_PALETTE },
         { ID_CIRCLE, IDI_ELLIPSE },
@@ -1654,7 +1654,7 @@ void CMainFrame::OnFileOpenResource()
     CFileDialog fileDialog(TRUE, nullptr, nullptr, OFN_HIDEREADONLY | OFN_NOCHANGEDIR, g_szResourceFilter);
     if (IDOK == fileDialog.DoModal())
     {
-		CString strFileName = fileDialog.GetPathName();
+        CString strFileName = fileDialog.GetPathName();
         ResourceBlob data;
         HRESULT hr = data.CreateFromFile(nullptr, (PCSTR)strFileName, appState->GetVersion(), appState->GetResourceMap().GetDefaultResourceSaveLocation(), appState->GetVersion().DefaultVolumeFile);
         if (SUCCEEDED(hr))
@@ -1699,7 +1699,7 @@ void CMainFrame::OnFileAddResource()
     CFileDialog fileDialog(TRUE, nullptr, nullptr, OFN_HIDEREADONLY | OFN_NOCHANGEDIR, g_szResourceFilter);
     if (IDOK == fileDialog.DoModal())
     {
-		CString strFileName = fileDialog.GetPathName();
+        CString strFileName = fileDialog.GetPathName();
 
         int number = -1;
         std::string resNameFromFilename;
@@ -1959,21 +1959,21 @@ void CMainFrame::_AddFindResults(vector<char> &dummyBuffer, ICompileLog &log, PC
                 CString strWhat = pszWhat;
 
                 PTSTR pszLine = buffer.GetLineChars(nLine);
-				CString line;
-				lstrcpyn(line.GetBuffer(nLineLength + 1), pszLine, nLineLength + 1);
-				line.ReleaseBuffer();
-				if (!fMatchCase)
+                CString line;
+                lstrcpyn(line.GetBuffer(nLineLength + 1), pszLine, nLineLength + 1);
+                line.ReleaseBuffer();
+                if (!fMatchCase)
                 {
-				    line.MakeUpper();
+                    line.MakeUpper();
                     strWhat.MakeUpper();
                 }
                 int nPos = FindStringHelper((LPCTSTR)line, (LPCTSTR)strWhat, fWholeWord);
-				if (nPos >= 0)
+                if (nPos >= 0)
                 {
                     // Remove tabs from the line (they don't look good in a listbox)
-				    CString lineCleansed;
-				    lstrcpyn(lineCleansed.GetBuffer(nLineLength + 1), pszLine, nLineLength + 1);
-				    lineCleansed.ReleaseBuffer();
+                    CString lineCleansed;
+                    lstrcpyn(lineCleansed.GetBuffer(nLineLength + 1), pszLine, nLineLength + 1);
+                    lineCleansed.ReleaseBuffer();
                     lineCleansed.Remove(TEXT('\t'));
 
                     TCHAR szDescription[MAX_PATH];
@@ -2608,7 +2608,7 @@ void CMainFrame::OnManageDecompilation()
 
 void CMainFrame::OnUpdateClassBrowser(CCmdUI *pCmdUI)
 {
-	SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser();
+    SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser();
     ClassBrowserLock lock(browser);
     if (lock.TryLock())
     {
@@ -2623,18 +2623,18 @@ void CMainFrame::OnUpdateClassBrowser(CCmdUI *pCmdUI)
 
 void CMainFrame::OnUpdateValidateAllSaids(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(appState->GetVersion().HasSaidVocab);
+    pCmdUI->Enable(appState->GetVersion().HasSaidVocab);
 }
 
 void CMainFrame::OnValidateAllSaids()
 {
-	const Vocab000 *vocab = appState->GetResourceMap().GetVocab000();
-	if (vocab)
-	{
-		std::vector<CompileResult> results;
-		ValidateSaids(appState->GetResourceMap().Helper(), *vocab, results);
-		appState->OutputResults(OutputPaneType::Compile, results);
-	}
+    const Vocab000 *vocab = appState->GetResourceMap().GetVocab000();
+    if (vocab)
+    {
+        std::vector<CompileResult> results;
+        ValidateSaids(appState->GetResourceMap().Helper(), *vocab, results);
+        appState->OutputResults(OutputPaneType::Compile, results);
+    }
 }
 
 /*
@@ -2739,7 +2739,7 @@ void CBrowseInfoStatusPane::OnLButtonDblClk()
 {
     if (_status == Errors)
     {
-		SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser();
+        SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser();
         appState->OutputResults(OutputPaneType::Compile, browser.GetErrors());
     }
 }

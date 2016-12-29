@@ -152,11 +152,11 @@ bool CompiledScript::IsStringPointerSCI1_1(uint16_t value) const
 
 std::vector<std::vector<uint16_t>> CompiledScript::GetSaids() const
 {
-	return _saids; // A copy...
+    return _saids; // A copy...
 }
 std::unordered_map<uint16_t, std::vector<uint16_t>> CompiledScript::GetSynonyms() const
 {
-	return _synonyms;
+    return _synonyms;
 }
 
 std::string CompiledScript::GetStringOrSaidFromOffset(uint16_t value, ValueType &type) const

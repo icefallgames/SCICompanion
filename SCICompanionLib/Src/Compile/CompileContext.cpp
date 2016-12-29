@@ -747,7 +747,7 @@ bool CompileContext::LookupWord(const string word, WORD &wWordGroup)
 }
 bool CompileContext::LookupWordGroupClass(uint16_t group, WordClass *wordClass)
 {
-	return _tables.Vocab()->GetGroupClass(group, wordClass);
+    return _tables.Vocab()->GetGroupClass(group, wordClass);
 }
 sci::Script *CompileContext::SetErrorContext(sci::Script *pScript)
 {

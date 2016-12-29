@@ -249,7 +249,7 @@ public:
     void PopQuery();
     bool SupportTypeChecking();
     bool LookupWord(const std::string word, WORD &wWordGroup);
-	bool LookupWordGroupClass(uint16_t group, WordClass *wordClass);
+    bool LookupWordGroupClass(uint16_t group, WordClass *wordClass);
     sci::Script *SetErrorContext(sci::Script *pScript);
     void ReportResult(const CompileResult &result);
     void ReportWarning(const ISourceCodePosition *pPos, const char *pszFormat, ...);
