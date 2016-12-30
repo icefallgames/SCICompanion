@@ -20,6 +20,7 @@
 #include "ScriptOMSmall.h"
 
 class ResourceEntity;
+class ILookupSaids;
 struct TextComponent;
 
 //
@@ -105,7 +106,7 @@ struct CompileQuery
     bool SendOrProcCallWasOutput;
 };
 
-class CompileContext : public ICompileLog, public ILookupDefine, public ITrackCodeSink
+class CompileContext : public ICompileLog, public ILookupDefine, public ITrackCodeSink, public ILookupSaids
 {
 public:
     CompileContext(SCIVersion version, sci::Script &script, PrecompiledHeaders &headers, CompileTables &tables, ICompileLog &results);
@@ -248,7 +249,7 @@ public:
     void NotifySendOrProcCall();
     void PopQuery();
     bool SupportTypeChecking();
-    bool LookupWord(const std::string word, WORD &wWordGroup);
+    bool LookupWord(const std::string &word, WORD &wWordGroup);
     bool LookupWordGroupClass(uint16_t group, WordClass *wordClass);
     sci::Script *SetErrorContext(sci::Script *pScript);
     void ReportResult(const CompileResult &result);
@@ -527,6 +528,6 @@ void ErrorHelper(CompileContext &context, const ISourceCodePosition *pPos, const
 bool NewCompileScript(CompileLog &log, CompileTables &tables, PrecompiledHeaders &headers, ScriptId &script);
 std::unique_ptr<sci::Script> SimpleCompile(CompileLog &log, ScriptId &scriptId, bool addCommentsToOM = false);
 void MergeScripts(sci::Script &mainScript, sci::Script &scriptToBeMerged);
-void ParseSaidString(CompileContext &context, const std::string &stringCode, std::vector<uint8_t> *output, const ISourceCodePosition *pos);
+void ParseSaidString(CompileContext *contextOpt, ILookupSaids &context, const std::string &stringCode, std::vector<uint8_t> *output, const ISourceCodePosition *pos, std::vector<std::string> *wordsOptional = nullptr);
 void TrackArraySizes(CompileContext &context, sci::Script &script);
 void EvaluateConstantExpressions(CompileContext &context, sci::Script &script);

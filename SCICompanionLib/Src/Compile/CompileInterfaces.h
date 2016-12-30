@@ -176,6 +176,12 @@ public:
     virtual void SummarizeAndReportErrors() {}; // Optional to implement
 };
 
+class ILookupSaids
+{
+public:
+    virtual bool LookupWord(const std::string &word, uint16_t &wordGroup) = 0;
+};
+
 class ILookupDefine
 {
 public:

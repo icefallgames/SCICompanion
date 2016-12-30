@@ -2634,9 +2634,9 @@ void CMainFrame::OnValidateAllSaids()
     const Vocab000 *vocab = appState->GetResourceMap().GetVocab000();
     if (vocab)
     {
-        std::vector<CompileResult> results;
-        ValidateSaids(appState->GetResourceMap().Helper(), *vocab, results);
-        appState->OutputResults(OutputPaneType::Compile, results);
+        CompileLog log;
+        ValidateSaids(log, *vocab);
+        appState->OutputResults(OutputPaneType::Compile, log.Results());
     }
 }
 

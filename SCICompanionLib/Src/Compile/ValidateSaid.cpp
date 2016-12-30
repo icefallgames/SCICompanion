@@ -5,7 +5,25 @@
 #include "CompileInterfaces.h"
 #include "ResourceContainer.h"
 #include "Vocab000.h"
+#include "CompileContext.h"
+#include "AppState.h"
+#include "ScriptOM.h"
 #include <format.h>
+
+// This contains code to warn about situations where a synonym statement will replace word A with B in the player's input,
+// but word A is used in a Said string. This will cause word A not to match, which is a possible said/parsing bug.
+// e.g.
+// (synonyms
+//     (man boy)
+// )
+//
+// (if (Said 'look/boy')
+//     ; this will never match, since 'boy' will be replaced with 'man' in the player's input.
+// )
+
+
+using namespace sci;
+using namespace std;
 
 void FindAllSaidTokens(CompiledScript &script, std::set<uint16_t> &tokens)
 {
@@ -22,65 +40,189 @@ CompileResult ProduceError(const Vocab000 &vocab000, int scriptNumber, uint16_t 
     return CompileResult(fmt::format("Script {0}: '{1}' is a synonym {2} and will be converted to '{3}' when evaluated.", scriptNumber, vocab000.GetGroupWordString(wordGroup), message, vocab000.GetGroupWordString(mainWordGroup)), CompileResult::CompileResultType::CRT_Error);
 }
 
-void ValidateSaids(const GameFolderHelper &helper, const Vocab000 &vocab000, std::vector<CompileResult> &results)
+class ExtractSaids : public IExploreNode, public ILookupSaids
 {
-    CompiledScript mainScript(0);
-    if (mainScript.Load(helper, helper.Version, 0))
+public:
+    ExtractSaids(ScriptId scriptId, CompileLog &log, const Vocab000 &vocab000) : _scriptId(scriptId), _log(log), _vocab000(vocab000) {}
+
+    void ExploreNode(SyntaxNode &node, ExploreNodeState state) override
     {
-        // Find all the tokens used in saids in main
-        std::set<uint16_t> mainSaidTokens;
-        FindAllSaidTokens(mainScript, mainSaidTokens);
-
-        // Now go through each script and ensure that for any synonyms, they aren't used in that script or in main.
-        auto resourceContainer = helper.Resources(ResourceTypeFlags::Script, ResourceEnumFlags::AddInDefaultEnumFlags);
-        for (auto &blob : *resourceContainer)
+        if (state == ExploreNodeState::Pre)
         {
-            if (blob->GetNumber() != 0) // skip main
+            switch (node.GetNodeType())
             {
-                CompiledScript roomScript(blob->GetNumber()); // Maybe not a room, but we don't care.
-                if (roomScript.Load(helper, helper.Version, blob->GetNumber(), blob->GetReadStream())) // Don't need to worry about heap stream, since this is only SCI0
-                {
-                    auto roomSynonyms = roomScript.GetSynonyms();
-                    if (!roomSynonyms.empty())
-                    {
-                        std::set<uint16_t> roomSaidTokens;
-                        FindAllSaidTokens(roomScript, roomSaidTokens);
+            case NodeTypeValue:
+            {
+                _Extract(static_cast<PropertyValue&>(node));
+            }
+            break;
 
-                        for (const auto &synonyms : roomSynonyms)
+            case NodeTypeComplexValue:
+            {
+                _Extract(static_cast<ComplexPropertyValue&>(node));
+            }
+            break;
+            }
+        }
+    }
+
+    bool LookupWord(const std::string &word, uint16_t &wordGroup) override
+    {
+        DWORD dwWordGroup;
+        bool result = _vocab000.LookupWord(word, dwWordGroup);
+        wordGroup = (uint16_t)dwWordGroup;
+        return result;
+    }
+
+    void ValidateAgainst(ScriptId synonymScript, const SynonymVector &synonymsSource, bool validateSynonymClause)
+    {
+        // Convert to word groups first, exactly matching synonymsSource
+        // Basically we'll compile a map of all synonyms, and which word they convert to.
+        unordered_map<uint16_t, Synonym*> synonymToSource;
+        for (const auto &synonymsSource : synonymsSource)
+        {
+            uint16_t mainWordGroup;
+            if (LookupWord(synonymsSource->MainWord, mainWordGroup))
+            {
+                vector<uint16_t> synonynms;
+                for (const string &synonymSource : synonymsSource->Synonyms)
+                {
+                    uint16_t wordGroup = 0;
+                    if (LookupWord(synonymSource, wordGroup))
+                    {
+                        if (wordGroup == mainWordGroup)
                         {
-                            for (uint16_t synonym : synonyms.second)
+                            // It's a synonym of itself. Don't add it though, because it can't cause any issues.
+                            // But maybe notify the user
+                            if (validateSynonymClause)
                             {
-                                if (synonym != synonyms.first)
-                                {
-                                    // These are the words that will be mapped to others. If someone references them in a script, it's probably a bug since the
-                                    // Said statement will never match. 
-                                    if (contains(mainSaidTokens, synonym))
-                                    {
-                                        results.push_back(ProduceError(vocab000, blob->GetNumber(), synonym, synonyms.first, "referenced in a Said string in Main"));
-                                    }
-                                    if (contains(roomSaidTokens, synonym))
-                                    {
-                                        results.push_back(ProduceError(vocab000, blob->GetNumber(), synonym, synonyms.first, "referenced in a Said string in this script"));
-                                    }
-                                }
-                                else
-                                {
-                                    // In this case, we have something like
-                                    // (apple apple fruit)
-                                    // Where apple is listed as a synonym of apple. This is commonplace in Sierra games, and doesn't cause any issues.
-                                }
+                                std::string errorMessage = fmt::format(
+                                    "{0}: '{1}' is already a synonym of '{2}': '{3}'",
+                                    synonymScript.GetFileName(),
+                                    synonymSource,
+                                    synonymsSource->MainWord,
+                                    _vocab000.GetGroupWordString(wordGroup)
+                                );
+                                _log.ReportResult(CompileResult(
+                                    errorMessage,
+                                    _scriptId,
+                                    synonymsSource->GetLineNumber() + 1,
+                                    synonymsSource->GetColumnNumber(),
+                                    CompileResult::CompileResultType::CRT_Warning
+                                ));
+
                             }
                         }
+                        else
+                        {
+                            synonymToSource[wordGroup] = synonymsSource.get();
+                        }
                     }
-                }
-                else
-                {
-                    results.push_back(CompileResult(fmt::format("Couldn't load script {0}", blob->GetNumber()), CompileResult::CompileResultType::CRT_Error));
                 }
             }
         }
 
-        results.push_back(CompileResult(fmt::format("{0} potential issues found.", results.size()), CompileResult::CompileResultType::CRT_Message));
+        for (const auto &pair : _allSaids)
+        {
+            // Go through each token
+            for (auto saidTokenPair : pair.second)
+            {
+                uint16_t saidToken = saidTokenPair.first;
+                auto itFind = synonymToSource.find(saidToken);
+                if (itFind != synonymToSource.end())
+                {
+                    // This is a synonym, so it's likely that this will produce unintended effects, since it will never match the said involved.
+                    std::string errorMessage = fmt::format(
+                        "{0}: '{1}' will be replaced with '{2}' in the player's input when synonyms from {3} are applied. This may cause '{4}' not to match.",
+                        _scriptId.GetFileName(),
+                        saidTokenPair.second,
+                        itFind->second->MainWord,
+                        synonymScript.GetFileName(),
+                        pair.first->GetStringValue()
+                    );
+
+                    _log.ReportResult(CompileResult(
+                        errorMessage,
+                        _scriptId,
+                        pair.first->GetLineNumber() + 1,
+                        pair.first->GetColumnNumber(),
+                        CompileResult::CompileResultType::CRT_Error
+                    ));
+                }
+            }
+        }
     }
 
+private:
+
+    void _Extract(PropertyValueBase &value)
+    {
+        if (value.GetType() == ValueType::Said)
+        {
+            string stringCode = value.GetStringValue();
+            vector<uint8_t> output;
+            vector<string> words;
+            ParseSaidString(nullptr, *this, stringCode, &output, &value, &words);
+            std::vector<pair<uint16_t, string>> wordGroups;
+            int wordIndex = 0;
+            for (size_t i = 0; i < output.size(); i++)
+            {
+                uint8_t token = output[i];
+                if (((token < 0xf0) || (token > 0xf9)) && (token != 0xff))
+                {
+                    // It's a word
+                    uint16_t wordGroup = (uint16_t)token << 8;
+                    wordGroup |= output[++i];
+                    wordGroups.emplace_back(wordGroup, words[wordIndex]);
+                    wordIndex++;
+                }
+            }
+            _allSaids[&value] = wordGroups;
+        }
+    }
+
+    CompileLog &_log;
+    const Vocab000 &_vocab000;
+    ScriptId _scriptId;
+    std::unordered_map<PropertyValueBase*, std::vector<pair<uint16_t, std::string>>> _allSaids;
+};
+
+void ValidateSaids(CompileLog &log, const Vocab000 &vocab000)
+{
+    std::vector<ScriptId> scripts;
+    appState->GetResourceMap().GetAllScripts(scripts);
+    std::unique_ptr<Script> mainScript;
+    std::unique_ptr<ExtractSaids> mainSaids;
+    for (ScriptId script : scripts)
+    {
+        if (script.GetResourceNumber() == 0)
+        {
+            // Main
+            mainScript = SimpleCompile(log, script);
+            mainSaids = std::make_unique<ExtractSaids>(script, log, vocab000);
+            mainScript->Traverse(*mainSaids);
+            break;
+        }
+    }
+
+    if (mainScript)
+    {
+        for (ScriptId scriptId : scripts)
+        {
+            if (scriptId.GetResourceNumber() != 0)
+            {
+                std::unique_ptr<Script> script = SimpleCompile(log, scriptId);
+                if (!script->GetSynonyms().empty())
+                {
+                    // This script declares synonyms - so we'll validate against itself and main.
+                    ExtractSaids scriptSaids(scriptId, log, vocab000);
+                    script->Traverse(scriptSaids);
+                    scriptSaids.ValidateAgainst(scriptId, script->GetSynonyms(), true);
+
+                    // Then against main
+                    mainSaids->ValidateAgainst(scriptId, script->GetSynonyms(), false);
+                }
+            }
+        }
+    }
 }

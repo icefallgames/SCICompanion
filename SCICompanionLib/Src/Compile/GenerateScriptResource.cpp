@@ -336,7 +336,7 @@ void _WriteClassOrInstance(const CSCOObjectClass &object, bool fInstance, vector
 //
 // Streams a said word to the output.
 //
-void ParseSaidWord(CompileContext &context, string &word, const std::string &stringCode, vector<uint8_t> *output, const ISourceCodePosition *pos)
+void ParseSaidWord(CompileContext *contextOpt, ILookupSaids &context, string &word, const std::string &stringCode, vector<uint8_t> *output, const ISourceCodePosition *pos, std::vector<string> *wordsOptional)
 {
     size_t nLen = word.length();
     if (nLen > 0)
@@ -362,14 +362,21 @@ void ParseSaidWord(CompileContext &context, string &word, const std::string &str
         }
         else
         {
-            if (output)
+            if (contextOpt)
             {
-                assert(context.HasErrors() && "Should have already validated said string and made an error.");
+                if (output)
+                {
+                    assert(contextOpt->HasErrors() && "Should have already validated said string and made an error.");
+                }
+                else
+                {
+                    contextOpt->ReportError(pos, "'%s' is not in the vocabulary.", word.c_str());
+                }
             }
-            else
-            {
-                context.ReportError(pos, "'%s' is not in the vocabulary.", word.c_str());
-            }
+        }
+        if (wordsOptional)
+        {
+            wordsOptional->push_back(word);
         }
     }
     word.clear();
@@ -378,7 +385,7 @@ void ParseSaidWord(CompileContext &context, string &word, const std::string &str
 //
 // Streams said tokens described by stringCode, to the output.
 //
-void ParseSaidString(CompileContext &context, const std::string &stringCode, vector<uint8_t> *output, const ISourceCodePosition *pos)
+void ParseSaidString(CompileContext *contextOpt, ILookupSaids &context, const std::string &stringCode, vector<uint8_t> *output, const ISourceCodePosition *pos, std::vector<string> *wordsOptional)
 {
     static string c_saidTokens = ",&/()[]#<>"; // 0xf0 to 0xf9
     string::const_iterator saidIt = stringCode.begin();
@@ -389,7 +396,7 @@ void ParseSaidString(CompileContext &context, const std::string &stringCode, vec
         if (x < c_saidTokens.size())
         {
             // It was a token - if we've got a word ready, look it up now, and add its vocab index
-            ParseSaidWord(context, word, stringCode, output, pos);
+            ParseSaidWord(contextOpt, context, word, stringCode, output, pos, wordsOptional);
             if (output)
             {
                 // Then add the token
@@ -404,7 +411,7 @@ void ParseSaidString(CompileContext &context, const std::string &stringCode, vec
         saidIt++;
     }
     // In case we had something in "word", parse it now...
-    ParseSaidWord(context, word, stringCode, output, pos);
+    ParseSaidWord(contextOpt, context, word, stringCode, output, pos, wordsOptional);
     if (output)
     {
         output->push_back(0xff); // terminator
@@ -584,7 +591,7 @@ void _Section4_Saids(CompileContext &context, vector<BYTE> &output)
             context.WroteSource(context.GetTempToken(ValueType::Said, said), wAbsolute);
 
             // b) Parse the said stream
-            ParseSaidString(context, said, &output, nullptr);
+            ParseSaidString(&context, context, said, &output, nullptr);
             // c) update the offset...
         }
 

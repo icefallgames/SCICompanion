@@ -738,10 +738,10 @@ bool CompileContext::SupportTypeChecking()
     // Used to be used for experimental cpp syntax.
     return false;
 }
-bool CompileContext::LookupWord(const string word, WORD &wWordGroup)
+bool CompileContext::LookupWord(const string &word, WORD &wWordGroup)
 {
     Vocab000::WordGroup group;
-    bool fRet = _tables.Vocab()->LookupWord(word.c_str(), group);
+    bool fRet = _tables.Vocab()->LookupWord(word, group);
     wWordGroup = (WORD)group;
     return fRet;
 }
@@ -951,7 +951,7 @@ void CompileContext::FixupLocalCalls()
 }
 void CompileContext::PreScanSaid(const std::string &theSaid, const ISourceCodePosition *pPos)
 {
-    ParseSaidString(*this, theSaid, nullptr, pPos);
+    ParseSaidString(this, *this, theSaid, nullptr, pPos);
     GetTempToken(ValueType::Said, theSaid);
 }
 void CompileContext::TrackCallOffsetInstruction(WORD wProcIndex)
