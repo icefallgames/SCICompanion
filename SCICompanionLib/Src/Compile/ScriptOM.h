@@ -986,6 +986,7 @@ namespace sci
         std::vector<std::string> Synonyms;
 
         void Accept(ISyntaxNodeVisitor &visitor) const override;
+        void Traverse(IExploreNode &en) override;
     };
 
     typedef Synonym* SynonymPtr;

@@ -62,6 +62,16 @@ public:
                 _Extract(static_cast<ComplexPropertyValue&>(node));
             }
             break;
+
+            case NodeTypeSynonym:
+            {
+                Synonym &synClause = static_cast<Synonym&>(node);
+                for (const auto &syn : synClause.Synonyms)
+                {
+                    _allWordGroups.insert((uint16_t)_vocab000.GroupFromString(syn.c_str()));
+                }
+            }
+            break;
             }
         }
     }

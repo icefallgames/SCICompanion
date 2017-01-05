@@ -179,6 +179,7 @@ void Script::Traverse(IExploreNode &en)
     ForwardTraverse2(_classes, en);
     ForwardTraverse2(_scriptVariables, en);
     ForwardTraverse2(_scriptStringDeclarations, en);
+    ForwardTraverse2(_synonyms, en);
 }
 
 void VariableDecl::Traverse(IExploreNode &en)
@@ -264,6 +265,10 @@ void ComplexPropertyValue::Traverse(IExploreNode &en)
 void PropertyValue::Traverse(IExploreNode &en)
 {
 	ExploreNodeBlock enb(en, *this);
+}
+void Synonym::Traverse(IExploreNode &en)
+{
+    ExploreNodeBlock enb(en, *this);
 }
 void BreakStatement::Traverse(IExploreNode &en)
 {
