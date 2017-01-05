@@ -1029,9 +1029,9 @@ void SCISyntaxParser::Load()
         | value)[{ValueErrorE, acJustAValue }]
         )[FinishStatementA];
 
-
+    // TODO: we could change this to allow for constant expressions here (that can be evaluated)
     // An array initializer
-    array_init = opbracket >> *(string_immediateValue_NoResourceString[ScriptVarInitAutoExpandA]) >> clbracket;  // [0 0 $4c VIEW_EGO]
+    array_init = opbracket >> *(statement[ScriptVarInitAutoExpandA]) >> clbracket;  // [0 0 $4c VIEW_EGO]
 
     // Variable declaration, with optional array size (array size must be numeric!)
     // A   or  [A 6]   or [A MY_ARRAY_SIZE]
@@ -1040,7 +1040,7 @@ void SCISyntaxParser::Load()
         alphanumNK_p[CreateVarDeclA];
 
     script_var = keyword_p("local")
-        >> *((var_decl[CreateScriptVarA] >> -(equalSign[GeneralE] >> (string_immediateValue_NoResourceString[ScriptVarInitA] | array_init)))[FinishScriptVarA]);
+        >> *((var_decl[CreateScriptVarA] >> -(equalSign[GeneralE] >> (statement[ScriptVarInitA] | array_init)))[FinishScriptVarA]);
 
     // StartFunctionTempVarA is needed to reset "was initializer value set". There are no initializer values for function variables in this syntax.
     function_var_decl = keyword_p("&tmp")[{ StartFunctionTempVarA, ParseAutoCompleteContext::Temp }] >> ++(var_decl[FinishFunctionTempVarA]);

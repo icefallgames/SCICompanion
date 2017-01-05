@@ -188,7 +188,7 @@ void ScriptVarInitA(MatchResult &match, const _TParser *pParser, SyntaxContext *
     if (match.Result())
     {
         // Add a value to the script variable.
-        pContext->VariableDeclPtr->AddSimpleInitializer(pContext->PropertyValue);
+        pContext->VariableDeclPtr->AddStatement(move(pContext->StatementPtrReturn));
     }
     else
     {
@@ -202,10 +202,10 @@ void ScriptVarInitAutoExpandA(MatchResult &match, const _TParser *pParser, Synta
     if (match.Result())
     {
         // Add a value to the script variable.
-        pContext->VariableDeclPtr->AddSimpleInitializer(pContext->PropertyValue);
+        pContext->VariableDeclPtr->AddStatement(move(pContext->StatementPtrReturn));
         if (pContext->VariableDeclPtr->IsUnspecifiedSize())
         {
-            pContext->VariableDeclPtr->SetSize(pContext->VariableDeclPtr->GetInitializers().size());
+            pContext->VariableDeclPtr->SetSize(static_cast<uint16_t>(pContext->VariableDeclPtr->GetInitializers().size()));
             pContext->VariableDeclPtr->SetIsUnspecifiedSize(true); // Since the above reset it.
         }
     }

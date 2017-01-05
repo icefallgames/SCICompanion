@@ -456,7 +456,12 @@ void _Section10_LocalVariables(Script &script, CompileContext &context, vector<B
             int size = 0;
             for (auto &value : var->GetStatements())
             {
-                const PropertyValue *pValue = SafeSyntaxNode<PropertyValue>(value.get());
+                const PropertyValueBase *pValue = SafeSyntaxNode<PropertyValue>(value.get());
+                if (!pValue)
+                {
+                    pValue = SafeSyntaxNode<ComplexPropertyValue>(value.get());
+                    assert(SafeSyntaxNode<ComplexPropertyValue>(value.get())->GetIndexer() == nullptr);
+                }
                 assert(pValue); // Must be a property value.
 
                 switch (pValue->GetType())
