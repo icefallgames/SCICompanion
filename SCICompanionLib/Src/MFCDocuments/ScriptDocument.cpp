@@ -143,7 +143,8 @@ void CScriptDocument::OnCompile()
         CompileTables tables;
         tables.Load(appState->GetVersion());
         PrecompiledHeaders headers(appState->GetResourceMap());
-        bool fSuccess = NewCompileScript(log, tables, headers, _scriptId);
+        CompileResults results(log);
+        bool fSuccess = NewCompileScript(results, log, tables, headers, _scriptId);
         if (fSuccess)
         {
             tables.Save();
@@ -165,6 +166,16 @@ void CScriptDocument::OnCompile()
         str << (fSuccess ? " succeeded." : " failed.");
         log.ReportResult(CompileResult(c_szLine));
         log.ReportResult(CompileResult(str.str()));
+
+        string info = fmt::format(
+            "Object data: {0} bytes   Code: {1} bytes   Script vars: {2} bytes   Strings: {3} bytes    Saids: {4} bytes",
+            results.Stats.Objects,
+            results.Stats.Code,
+            results.Stats.Locals,
+            results.Stats.Strings,
+            results.Stats.Saids
+        );
+        log.ReportResult(CompileResult(info));
 
         HRESULT hr = defer.Commit();
         if (FAILED(hr))
@@ -204,7 +215,7 @@ std::unique_ptr<sci::Script> SimpleCompile(CompileLog &log, ScriptId &scriptId, 
     return script;
 }
 
-bool NewCompileScript(CompileLog &log, CompileTables &tables, PrecompiledHeaders &headers, ScriptId &script)
+bool NewCompileScript(CompileResults &results, CompileLog &log, CompileTables &tables, PrecompiledHeaders &headers, ScriptId &script)
 {
     bool fRet = false;
 	ClassBrowserLock lock(*appState->GetResourceMap().GetClassBrowser());
@@ -230,7 +241,6 @@ bool NewCompileScript(CompileLog &log, CompileTables &tables, PrecompiledHeaders
 
             // Compile and save script resource.
             // Compile our own script!
-            CompileResults results(log);
             if (GenerateScriptResource(appState->GetVersion(), *pScript, headers, tables, results))
             {
                 WORD wNum = results.GetScriptNumber();

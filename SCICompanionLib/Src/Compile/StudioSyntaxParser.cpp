@@ -460,6 +460,40 @@ char const errFileNameString[] = "Expected file name string.";
 char const errElse[] = "Expected else clause.";
 char const errNoKeywordOrSelector[] = "No keyword or selector permitted here.";
 
+template<typename _TParser>
+void StudioScriptVarInitA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        // Add a value to the script variable.
+        pContext->VariableDeclPtr->AddSimpleInitializer(pContext->PropertyValue);
+    }
+    else
+    {
+        pContext->ReportError("Script variables cannot be initialized with this type of value.", stream);
+    }
+}
+
+template<typename _TParser>
+void StudioScriptVarInitAutoExpandA(MatchResult &match, const _TParser *pParser, SyntaxContext *pContext, const streamIt &stream)
+{
+    if (match.Result())
+    {
+        // Add a value to the script variable.
+        pContext->VariableDeclPtr->AddSimpleInitializer(pContext->PropertyValue);
+        if (pContext->VariableDeclPtr->IsUnspecifiedSize())
+        {
+            pContext->VariableDeclPtr->SetSize(pContext->VariableDeclPtr->GetInitializers().size());
+            pContext->VariableDeclPtr->SetIsUnspecifiedSize(true); // Since the above reset it.
+        }
+    }
+    else
+    {
+        pContext->ReportError("Script variables cannot be initialized with this type of value.", stream);
+    }
+}
+
+
 //
 // The constructor sets up the parse tree
 //
@@ -517,7 +551,7 @@ void StudioSyntaxParser::Load()
     properties_decl = oppar >> keyword_p("properties")[{nullptr, ParseAutoCompleteContext::ClassLevelKeyword}] >> *property_decl >> clpar;
 
     // An array initializer
-    array_init = oppar >> *(string_immediateValue2[ScriptVarInitA]) >> clpar;  // (0 0 $4c VIEW_EGO)
+    array_init = oppar >> *(string_immediateValue2[StudioScriptVarInitA]) >> clpar;  // (0 0 $4c VIEW_EGO)
 
     // Array initializer for script strings
     string_array_init = oppar >> *(string_immediateValue[ScriptStringInitA]) >> clpar;  // (0 0 "Hello" $20 FALSE)
@@ -802,7 +836,7 @@ void StudioSyntaxParser::Load()
     synonyms = keyword_p("synonyms") >> *(squotedstring_p[CreateSynonymA] >> equalSign[GeneralE] >> squotedstring_p[FinishSynonymA]);
 
     script_var = keyword_p("local")
-        >> *((var_decl[CreateScriptVarA] >> -(equalSign[GeneralE] >> (string_immediateValue2[ScriptVarInitA] | array_init)))[FinishScriptVarA]);
+        >> *((var_decl[CreateScriptVarA] >> -(equalSign[GeneralE] >> (string_immediateValue2[StudioScriptVarInitA] | array_init)))[FinishScriptVarA]);
 
     script_string = keyword_p("string") >> *((var_decl[CreateScriptVarA] >> -(equalSign[GeneralE] >> (string_immediateValue[ScriptStringInitA] | string_array_init)))[FinishScriptStringA]);
   

@@ -61,9 +61,10 @@ namespace UnitTests
             CompileTables tables;
             tables.Load(appState->GetVersion());
             PrecompiledHeaders headers(appState->GetResourceMap());
+            CompileResults results(log);
             for (auto &script : scripts)
             {
-                NewCompileScript(log, tables, headers, script);
+                NewCompileScript(results, log, tables, headers, script);
             }
             Assert::IsFalse(log.HasErrors());
         }

@@ -423,23 +423,28 @@ void ParseSaidString(CompileContext *contextOpt, ILookupSaids &context, const st
 //
 // Write all class and instance sections to the script resource output stream
 //
-void _Section1And6_ClassesAndInstances(vector<BYTE> &output, CompileContext *pContext)
+void _Section1And6_ClassesAndInstances(vector<BYTE> &output, CompileContext &context, CompileResults &results)
 {
-    CSCOFile &sco = pContext->GetScriptSCO();
+    size_t beginning = output.size();
+    CSCOFile &sco = context.GetScriptSCO();
     for (CSCOObjectClass &oClass : sco.GetObjects())
     {
-        _WriteClassOrInstance(oClass, false, output, pContext);
+        _WriteClassOrInstance(oClass, false, output, &context);
     }
 
     // Instances
-    for (CSCOObjectClass &iClass : pContext->GetInstanceSCOs())
+    for (CSCOObjectClass &iClass : context.GetInstanceSCOs())
     {
-        _WriteClassOrInstance(iClass, true, output, pContext);
+        _WriteClassOrInstance(iClass, true, output, &context);
     }
+
+    results.Stats.Objects += (int)(output.size() - beginning);
 }
 
-void _Section10_LocalVariables(Script &script, CompileContext &context, vector<BYTE> &output, bool separateHeapResource)
+void _Section10_LocalVariables(Script &script, CompileContext &context, vector<BYTE> &output, bool separateHeapResource, CompileResults &results)
 {
+    size_t beginning = output.size();
+
     const VariableDeclVector &scriptVars = script.GetScriptVariables();
     if (!scriptVars.empty())
     {
@@ -508,10 +513,14 @@ void _Section10_LocalVariables(Script &script, CompileContext &context, vector<B
             push_word(output, 0);
         }
     }
+
+    results.Stats.Locals += (int)(output.size() - beginning);
 }
 
-void _Section2_Code(Script &script, CompileContext &context, vector<BYTE> &output, WORD &wStartOfCode, bool separateHeapResources)
+void _Section2_Code(Script &script, CompileContext &context, vector<BYTE> &output, WORD &wStartOfCode, bool separateHeapResources, CompileResults &results)
 {
+    size_t beginning = output.size();
+
     context.PushVariableLookupContext(&script); // Don't really need to pop this, ever.
     const ProcedureVector &procs = script.GetProcedures();
     for_each(procs.begin(), procs.end(), GenericOutputByteCode2<ProcedureDefinition>(context));
@@ -543,10 +552,14 @@ void _Section2_Code(Script &script, CompileContext &context, vector<BYTE> &outpu
     {
         context.ReportError(&script, "There was an error generating the script resource. Calculated code size didn't match output code size.");
     }
+
+    results.Stats.Code += (int)(output.size() - beginning);
 }
 
-void _Section3_Synonyms(Script &script, CompileContext &context, vector<BYTE> &output)
+void _Section3_Synonyms(Script &script, CompileContext &context, vector<BYTE> &output, CompileResults &results)
 {
+    size_t beginning = output.size();
+
     const SynonymVector &synonyms = script.GetSynonyms();
     if (!synonyms.empty())
     {
@@ -578,10 +591,14 @@ void _Section3_Synonyms(Script &script, CompileContext &context, vector<BYTE> &o
 
         push_word(output, 0xffff);
     }
+
+    results.Stats.Saids += (int)(output.size() - beginning);
 }
 
-void _Section4_Saids(CompileContext &context, vector<BYTE> &output)
+void _Section4_Saids(CompileContext &context, vector<BYTE> &output, CompileResults &results)
 {
+    size_t beginning = output.size();
+
     auto saids = context.GetSaids();
     if (!saids.empty())
     {
@@ -607,10 +624,14 @@ void _Section4_Saids(CompileContext &context, vector<BYTE> &output)
         // Go back and write the size.
         write_word(output, saidSizeIndex, wSaidSectionSize);
     }
+
+    results.Stats.Saids += (int)(output.size() - beginning);
 }
 
-void _Section5_Strings(CompileContext &context, vector<BYTE> &outputScr, vector<BYTE> &outputHeap, bool writeSCI0SectionHeader)
+void _Section5_Strings(CompileContext &context, vector<BYTE> &outputScr, vector<BYTE> &outputHeap, bool writeSCI0SectionHeader, CompileResults &results)
 {
+    size_t beginning = outputHeap.size();
+
     // This requires all strings to have been pre-scanned up to this point.
     auto strings = context.GetStrings();
     if (!strings.empty())
@@ -639,6 +660,8 @@ void _Section5_Strings(CompileContext &context, vector<BYTE> &outputScr, vector<
 
         zero_pad(outputHeap, fRoundUp);
     }
+
+    results.Stats.Strings += (int)(outputHeap.size() - beginning);
 }
 
 void _Section7_Exports_Part1(Script &script, CompileContext &context, vector<BYTE> &output, const vector<ExportTableInfo> &exportTableOrder, size_t &offsetOfExports)
@@ -1173,7 +1196,7 @@ bool GenerateScriptResource_SCI0(Script &script, PrecompiledHeaders &headers, Co
     // Create our "CompileContext", which holds state during the compilation.
     CompileContext context(appState->GetVersion(), script, headers, tables, results.GetLog());
 
-    _Section3_Synonyms(script, context, output);
+    _Section3_Synonyms(script, context, output, results);
 
     CommonScriptPrep(script, context, results);
 
@@ -1197,24 +1220,24 @@ bool GenerateScriptResource_SCI0(Script &script, PrecompiledHeaders &headers, Co
     // turns out it's easier to put them after, with the instances.  It makes it easier to fix up
     // the references to saids, strings and instances that are in the code.
     WORD wStartOfCode = 0;
-    _Section2_Code(script, context, output, wStartOfCode, false);
+    _Section2_Code(script, context, output, wStartOfCode, false, results);
 
-    _Section4_Saids(context, output);
+    _Section4_Saids(context, output, results);
 
-    _Section1And6_ClassesAndInstances(output, &context);
+    _Section1And6_ClassesAndInstances(output, context, results);
 
     // NOTE: Strings must come after all strings have been pre-scaned. Note that we no longer
     // pre-scan string property values by default - but only when they are actually used in code 
     // (in order to support resource strings)
     // The parser ensures that local vars (which follow) do not have ValueType::ResourceString.
-    _Section5_Strings(context, output, output, true);
+    _Section5_Strings(context, output, output, true, results);
 
     if (!exportTableOrder.empty())
     {
         _Section7_Exports_Part2(context, output, wStartOfCode, exportTableOrder, offsetOfExports);
     }
 
-    _Section10_LocalVariables(script, context, output, false);
+    _Section10_LocalVariables(script, context, output, false, results);
 
     _Section8_RelocationTable(context, output);
 
@@ -1406,6 +1429,8 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
         uint16_t objectSelectorOffsetInScr = (uint16_t)outputScr.size();
         for (auto &classDef : script.GetClasses())
         {
+            size_t beginning = outputScr.size();
+
             const CSCOObjectClass &oClass = *orderedObjects[classDef->GetName()];
             if (!classDef->IsInstance())
             {
@@ -1416,11 +1441,13 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
                 }
             }
             WriteMethodSelectors(oClass, outputScr, trackMethodCodePointerOffsets);
+
+            results.Stats.Objects += (int)(outputScr.size() - beginning);
         }
 
         // Now comes the code:
         WORD wStartOfCode = 0;
-        _Section2_Code(script, context, outputScr, wStartOfCode, true);
+        _Section2_Code(script, context, outputScr, wStartOfCode, true, results);
         // Now we know how much code was written, so let's write the offset to that.
         assert(outputScr.size() < 0xffff);
         write_word(outputScr, OffsetToAfterCodePointer, (uint16_t)outputScr.size());
@@ -1435,17 +1462,19 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
         // Now let's start writing the hep file
         push_word(outputHeap, 0);   // This will point to "after strings" 
         // Next come the local var values
-        _Section10_LocalVariables(script, context, outputHeap, true);
+        _Section10_LocalVariables(script, context, outputHeap, true, results);
 
         for (auto &classDef : script.GetClasses())
         {
+            size_t beginning = outputHeap.size();
             WriteClassToHeap(*orderedObjects[classDef->GetName()], classDef->IsInstance(), outputHeap, outputScr, context, objectSelectorOffsetInScr);
+            results.Stats.Objects += (int)(outputHeap.size() - beginning);
         }
 
         // Now it appears there is a zero marker in the heap, after the objects
         push_word(outputHeap, 0);
 
-        _Section5_Strings(context, outputScr, outputHeap, false);
+        _Section5_Strings(context, outputScr, outputHeap, false, results);
 
         // At the beginning of the file, write the offset to after string table:
         write_word(outputHeap, 0, (uint16_t)outputHeap.size());
@@ -1485,7 +1514,6 @@ bool GenerateScriptResource_SCI11(Script &script, PrecompiledHeaders &headers, C
 
     return !context.HasErrors();
 }
-
 
 bool GenerateScriptResource(SCIVersion version, sci::Script &script, PrecompiledHeaders &headers, CompileTables &tables, CompileResults &results)
 {

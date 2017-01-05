@@ -106,6 +106,18 @@ struct CompileQuery
     bool SendOrProcCallWasOutput;
 };
 
+// Size in bytes of generated script
+struct CompileStats
+{
+    CompileStats() : Objects(0), Locals(0), Code(0), Strings(0), Saids(0) {}
+
+    int Objects;
+    int Locals;
+    int Code;
+    int Strings;
+    int Saids;
+};
+
 class CompileContext : public ICompileLog, public ILookupDefine, public ITrackCodeSink, public ILookupSaids
 {
 public:
@@ -487,6 +499,7 @@ public:
     ResourceEntity &GetTextResource() { return *_text; }
     TextComponent &GetTextComponent();
     void SetAutoTextNumber(uint16_t autoTextNumber);
+    CompileStats Stats;
 
 private:
     std::vector<BYTE> _outputScr;
@@ -525,7 +538,7 @@ private:
 //
 bool GenerateScriptResource(SCIVersion version, sci::Script &script, PrecompiledHeaders &headers, CompileTables &tables, CompileResults &results);
 void ErrorHelper(CompileContext &context, const ISourceCodePosition *pPos, const std::string &text, const std::string &identifier, bool checkUse = true);
-bool NewCompileScript(CompileLog &log, CompileTables &tables, PrecompiledHeaders &headers, ScriptId &script);
+bool NewCompileScript(CompileResults &results, CompileLog &log, CompileTables &tables, PrecompiledHeaders &headers, ScriptId &script);
 std::unique_ptr<sci::Script> SimpleCompile(CompileLog &log, ScriptId &scriptId, bool addCommentsToOM = false);
 void MergeScripts(sci::Script &mainScript, sci::Script &scriptToBeMerged);
 void ParseSaidString(CompileContext *contextOpt, ILookupSaids &context, const std::string &stringCode, std::vector<uint8_t> *output, const ISourceCodePosition *pos, std::vector<std::string> *wordsOptional = nullptr);
