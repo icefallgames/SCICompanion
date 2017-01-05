@@ -633,7 +633,7 @@ void _Section5_Strings(CompileContext &context, vector<BYTE> &outputScr, vector<
     size_t beginning = outputHeap.size();
 
     // This requires all strings to have been pre-scanned up to this point.
-    auto strings = context.GetStrings();
+    auto strings = context.GetStringsThatWereWritten();
     if (!strings.empty())
     {
         // Compute the length of all the strings.
@@ -1226,18 +1226,20 @@ bool GenerateScriptResource_SCI0(Script &script, PrecompiledHeaders &headers, Co
 
     _Section1And6_ClassesAndInstances(output, context, results);
 
-    // NOTE: Strings must come after all strings have been pre-scaned. Note that we no longer
-    // pre-scan string property values by default - but only when they are actually used in code 
-    // (in order to support resource strings)
-    // The parser ensures that local vars (which follow) do not have ValueType::ResourceString.
-    _Section5_Strings(context, output, output, true, results);
-
     if (!exportTableOrder.empty())
     {
         _Section7_Exports_Part2(context, output, wStartOfCode, exportTableOrder, offsetOfExports);
     }
 
     _Section10_LocalVariables(script, context, output, false, results);
+
+    // NOTE: Strings must come after all strings have been pre-scaned. Note that we no longer
+    // pre-scan string property values by default - but only when they are actually used in code 
+    // (in order to support resource strings)
+    // The parser ensures that local vars (which follow) do not have ValueType::ResourceString.
+    // Also note: The strings section should come after all sinks have been written - because we
+    // won't bother writing a string if it isn't referenced by anyone.
+    _Section5_Strings(context, output, output, true, results);
 
     _Section8_RelocationTable(context, output);
 

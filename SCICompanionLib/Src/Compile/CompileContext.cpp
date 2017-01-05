@@ -1302,6 +1302,10 @@ void CompileContext::WroteSink(uint16_t tempToken, uint16_t offset)
     assert((tempToken < _nextTempToken) && (tempToken >= TempTokenBase));
     _tokenToSinkOffsets.insert(std::make_pair(tempToken, offset));
 }
+bool CompileContext::_WasSinkWritten(uint16_t tempToken)
+{
+    return _tokenToSinkOffsets.find(tempToken) != _tokenToSinkOffsets.end();
+}
 
 void CompileContext::WroteCodeSink(uint16_t tempToken, uint16_t offset)
 {
@@ -1447,11 +1451,16 @@ uint16_t CompileContext::GetTempToken(ValueType type, const std::string &text)
     }
 }
 
-std::vector<std::string> CompileContext::GetStrings()
+std::vector<std::string> CompileContext::GetStringsThatWereWritten()
 {
     std::vector<std::string> strings;
-    std::transform(_stringTempTokens.begin(), _stringTempTokens.end(), std::back_inserter(strings), []
-        (const std::pair<std::string, uint16_t> &pair) { return pair.first; });
+    for (const auto &pair : _stringTempTokens)
+    {
+        if (_WasSinkWritten(pair.second))
+        {
+            strings.push_back(pair.first);
+        }
+    }
     return strings;
 }
 

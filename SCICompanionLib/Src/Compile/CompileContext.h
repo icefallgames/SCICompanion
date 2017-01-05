@@ -153,7 +153,7 @@ public:
     void WriteOutOffsetsOfHepPointersInHep(std::vector<uint8_t> &hepResource);
 
     // Returns all strings or saids that have been tracked via GetTempToken.
-    std::vector<std::string> GetStrings();
+    std::vector<std::string> GetStringsThatWereWritten();
     std::vector<std::string> GetSaids();
 
     std::map<std::string, uint16_t> ScriptArraySizes;
@@ -204,6 +204,8 @@ private:
     // Loads an SCOFile if we don't already have one for this script.
     // Doesn't produce an error if we can't get one.  (Maybe it should?)
     void _LoadSCOIfNone(WORD wScript);
+
+    bool _WasSinkWritten(uint16_t tempToken);
 
 public:
     std::string GetScriptStringFromToken(const std::string &stringToken);
