@@ -153,6 +153,11 @@ public:
         }
     }
 
+    void GrabWordGroups(std::set<uint16_t> &allSaidsInScripts)
+    {
+        std::copy(_allWordGroups.begin(), _allWordGroups.end(), std::inserter(allSaidsInScripts, allSaidsInScripts.begin()));
+    }
+
 private:
 
     void _Extract(PropertyValueBase &value)
@@ -162,6 +167,7 @@ private:
             string stringCode = value.GetStringValue();
             vector<uint8_t> output;
             vector<string> words;
+
             ParseSaidString(nullptr, *this, stringCode, &output, &value, &words);
             std::vector<pair<uint16_t, string>> wordGroups;
             int wordIndex = 0;
@@ -175,6 +181,7 @@ private:
                     wordGroup |= output[++i];
                     wordGroups.emplace_back(wordGroup, words[wordIndex]);
                     wordIndex++;
+                    _allWordGroups.insert(wordGroup);
                 }
             }
             _allSaids[&value] = wordGroups;
@@ -185,10 +192,47 @@ private:
     const Vocab000 &_vocab000;
     ScriptId _scriptId;
     std::unordered_map<PropertyValueBase*, std::vector<pair<uint16_t, std::string>>> _allSaids;
+    std::set<uint16_t> _allWordGroups;
 };
+
+void ListUnusedOfType(CompileLog &log, const Vocab000 &vocab000, WordClass wordClass, const std::set<uint16_t> &saidsUsedInScripts)
+{
+    std::string wordClassName = GetWordClassString(wordClass);
+
+    // Now we can list which word groups are never used
+    Vocab000::groups_iterator position = vocab000.GroupsBegin();
+    while (position != vocab000.GroupsEnd())
+    {
+        Vocab000::WordGroup dwGroup;
+        WordClass dwClass;
+        std::string strWords;
+        vocab000.EnumGroups(position, dwGroup, dwClass, strWords);
+        if (dwClass == wordClass)
+        {
+            if (saidsUsedInScripts.find((uint16_t)dwGroup) == saidsUsedInScripts.end())
+            {
+                std::string errorMessage = fmt::format(
+                    "Unused {0}: {1}",
+                    wordClassName,
+                    strWords
+                );
+                log.ReportResult(CompileResult(
+                    errorMessage,
+                    ResourceType::Vocab,
+                    appState->GetVersion().MainVocabResource,
+                    (int)dwGroup
+                ));
+            }
+        }
+    }
+
+
+}
 
 void ValidateSaids(CompileLog &log, const Vocab000 &vocab000)
 {
+    std::set<uint16_t> saidsUsedInScripts;
+
     std::vector<ScriptId> scripts;
     appState->GetResourceMap().GetAllScripts(scripts);
     std::unique_ptr<Script> mainScript;
@@ -201,10 +245,11 @@ void ValidateSaids(CompileLog &log, const Vocab000 &vocab000)
             mainScript = SimpleCompile(log, script);
             mainSaids = std::make_unique<ExtractSaids>(script, log, vocab000);
             mainScript->Traverse(*mainSaids);
+            mainSaids->GrabWordGroups(saidsUsedInScripts);
             break;
         }
     }
-
+    
     if (mainScript)
     {
         for (ScriptId scriptId : scripts)
@@ -212,11 +257,12 @@ void ValidateSaids(CompileLog &log, const Vocab000 &vocab000)
             if (scriptId.GetResourceNumber() != 0)
             {
                 std::unique_ptr<Script> script = SimpleCompile(log, scriptId);
+                ExtractSaids scriptSaids(scriptId, log, vocab000);
+                script->Traverse(scriptSaids);
+                scriptSaids.GrabWordGroups(saidsUsedInScripts);
                 if (!script->GetSynonyms().empty())
                 {
                     // This script declares synonyms - so we'll validate against itself and main.
-                    ExtractSaids scriptSaids(scriptId, log, vocab000);
-                    script->Traverse(scriptSaids);
                     scriptSaids.ValidateAgainst(scriptId, script->GetSynonyms(), true);
 
                     // Then against main
@@ -225,4 +271,12 @@ void ValidateSaids(CompileLog &log, const Vocab000 &vocab000)
             }
         }
     }
+
+    uint16_t wordClass = (uint16_t)WordClass::ImperativeVerb;
+    while (wordClass)
+    {
+        ListUnusedOfType(log, vocab000, (WordClass)wordClass, saidsUsedInScripts);
+        wordClass >>= 1;
+    }
+
 }
