@@ -768,6 +768,11 @@ void ValidateVariableDeclaration(CompileContext &context, const ISourceCodePosit
     {
         context.ReportError(pPos, "'%s' is a keyword and cannot be used as a variable name.", name.c_str());
     }
+    uint16_t dummy;
+    if (context.LookupDefine(name, dummy))
+    {
+        context.ReportError(pPos, "'%s' is a define and cannot be used as a variable name.", name.c_str());
+    }
 }
 
 //
