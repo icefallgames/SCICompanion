@@ -126,10 +126,10 @@ private:
         {
             this->_point1 = data._point1;
             this->_point2 = data._point2;
-            size_t cbSize = CX_ACTUAL(data._size.cx) & _size.cy;
+            size_t cbSize = CX_ACTUAL(data._size.cx) * data._size.cy;
             if (data._pData)
             {
-                this->_pData.reset(new BYTE[cbSize]);
+                this->_pData.reset(new uint8_t[cbSize]);
                 memcpy(this->_pData.get(), data._pData.get(), cbSize);
             }
             this->_size = data._size;
@@ -143,10 +143,10 @@ private:
             {
                 this->_point1 = data._point1;
                 this->_point2 = data._point2;
-                size_t cbSize = CX_ACTUAL(data._size.cx) & _size.cy;
+                size_t cbSize = CX_ACTUAL(data._size.cx) * data._size.cy;
                 if (data._pData)
                 {
-                    this->_pData.reset(new BYTE[cbSize]);
+                    this->_pData.reset(new uint8_t[cbSize]);
                     memcpy(this->_pData.get(), data._pData.get(), cbSize);
                 }
                 this->_size = data._size;
@@ -204,7 +204,7 @@ private:
         {
             return (uint16_t)_size.cy;
         }
-        BYTE *GetDataPtr()
+        uint8_t *GetDataPtr()
         {
             return _pData.get();
         }
@@ -224,7 +224,7 @@ private:
         size16 _size;        // The size of this cel
         CelIndex _index;    // In index in the resource object of this cel
         point16 _ptPlacement;
-        BYTE _bTransparent; // Transparent color
+        uint8_t _bTransparent; // Transparent color
     };
 
     //
@@ -282,12 +282,17 @@ private:
     afx_msg void OnFlipHorz();
     afx_msg void OnFlipVert();
     afx_msg void OnInvert();
+    afx_msg void OnShiftLeft();
+    afx_msg void OnShiftRight();
+    afx_msg void OnShiftUp();
+    afx_msg void OnShiftDown();
     afx_msg void OnGreyScale();
     afx_msg void EditVGAPalette();
     afx_msg void RemoveVGAPalette();
     afx_msg void RemapPalette();
     afx_msg void ShiftColors();
 
+    void _OnShift(int x, int y);
     void _EnsureCelsLargeEnoughForPaste(size16 size);
     void _OnDrawCommand(ViewToolType type);
     void _OnDraw(CDC* pDC);

@@ -177,7 +177,7 @@ void CRasterView::SelectionManager::LiftSelection(CRect rectSelection, int iMain
                 BYTE *pSrc = celData[i].GetDataPtr() + xLeft + CX_ACTUAL(celData[i].GetSize().cx) * y;
                 if (fGrabBits)
                 {
-                    CopyMemory(_selectionBits[i].get() + iOffsetTemp, pSrc, cxLine);
+                    memcpy(_selectionBits[i].get() + iOffsetTemp, pSrc, cxLine);
                     iOffsetTemp += cxLine;
                 }
 
@@ -282,7 +282,7 @@ void CRasterView::SelectionManager::DrawSelection(CRect rectSelection, int iInde
             else
             {
                 // easy
-                CopyMemory(pDest, pSrc, cxLine);
+                memcpy(pDest, pSrc, cxLine);
             }
         }
     }
@@ -411,6 +411,10 @@ BEGIN_MESSAGE_MAP(CRasterView, CScrollingThing<CView>)
     ON_COMMAND(ID_DITHER, OnDither)
     ON_COMMAND(ID_FLIPHORZ, OnFlipHorz)
     ON_COMMAND(ID_FLIPVERT, OnFlipVert)
+    ON_COMMAND(ID_SHIFTPIXELS_LEFT, OnShiftLeft)
+    ON_COMMAND(ID_SHIFTPIXELS_RIGHT, OnShiftRight)
+    ON_COMMAND(ID_SHIFTPIXELS_UP, OnShiftUp)
+    ON_COMMAND(ID_SHIFTPIXELS_DOWN, OnShiftDown)
     ON_COMMAND(ID_INVERT, OnInvert)
     ON_COMMAND(ID_GREYSCALE, OnGreyScale)
     ON_COMMAND(ID_VIEW_ZOOMIN, _OnZoomLClick)
@@ -2594,6 +2598,73 @@ void CRasterView::OnFlipHorz()
     _CommitSourceData();
 }
 
+void CRasterView::OnShiftLeft()
+{
+    _OnShift(-1, 0);
+}
+
+void CRasterView::OnShiftRight()
+{
+    _OnShift(1, 0);
+}
+
+void CRasterView::OnShiftUp()
+{
+    _OnShift(0, -1);
+}
+
+void CRasterView::OnShiftDown()
+{
+    _OnShift(0, 1);
+}
+
+
+void CRasterView::_OnShift(int dx, int dy)
+{
+    _GrabSourceData();
+    for (int i = 0; i < _cWorkingCels; i++)
+    {
+        CRect rectEffect = _GetEffectArea(i);
+        CSize sizeView = _celData[i].GetCSize();
+
+        // Copy into a temp buffer
+        CelData tempData(_celData[i]);
+        int cx = _celData[i].Width();
+        int cy = _celData[i].Height();
+        for (int y = rectEffect.top; y < rectEffect.bottom; y++)
+        {
+            for (int x = rectEffect.left; x < rectEffect.right; x++)
+            {
+                int xDest = x + dx;
+                if (xDest >= rectEffect.right)
+                {
+                    xDest -= rectEffect.Width();
+                }
+                if (xDest < rectEffect.left)
+                {
+                    xDest += rectEffect.Width();
+                }
+                int yDest = y + dy;
+                if (yDest >= rectEffect.bottom)
+                {
+                    yDest -= rectEffect.Height();
+                }
+                if (yDest < rectEffect.top)
+                {
+                    yDest += rectEffect.Height();
+                }
+                uint8_t *dest = tempData.GetDataPtr() + CX_ACTUAL(cx) * (cy - yDest - 1) + xDest;
+                uint8_t *source = _celData[i].GetDataPtr() + CX_ACTUAL(cx) * (cy - y - 1) + x;
+                *dest = *source;
+            }
+        }
+        // Copy back
+        _celData[i] = tempData;
+    }
+    _CommitSourceData();
+
+}
+
 void CRasterView::OnFlipVert()
 {
     _GrabSourceData();
@@ -2608,12 +2679,12 @@ void CRasterView::OnFlipVert()
             int yTop = sizeView.cy - y - 1;
             int yBottom = sizeView.cy - (rectEffect.bottom - (y - rectEffect.top) - 1) - 1;
 
-            ASSERT(yBottom < sizeView.cy);
-            ASSERT(y < sizeView.cy);
+            assert(yBottom < sizeView.cy);
+            assert(y < sizeView.cy);
 
-            CopyMemory(pTemp.get(), _ViewOffset(i, yTop) + rectEffect.left, rectEffect.Width());
-            CopyMemory(_ViewOffset(i, yTop) + rectEffect.left, _ViewOffset(i, yBottom) + rectEffect.left, rectEffect.Width());
-            CopyMemory(_ViewOffset(i, yBottom) + rectEffect.left, pTemp.get(), rectEffect.Width());
+            memcpy(pTemp.get(), _ViewOffset(i, yTop) + rectEffect.left, rectEffect.Width());
+            memcpy(_ViewOffset(i, yTop) + rectEffect.left, _ViewOffset(i, yBottom) + rectEffect.left, rectEffect.Width());
+            memcpy(_ViewOffset(i, yBottom) + rectEffect.left, pTemp.get(), rectEffect.Width());
         }
     }
     _CommitSourceData();
