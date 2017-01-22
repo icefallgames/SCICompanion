@@ -258,7 +258,7 @@ void GenerateDocsDialog::OnBnClickedGeneratedoc()
                     {
                         DocScript docScript(*script);
                         OutputScriptRST(docScript, buildFolder, generatedFiles);
-                        OutputClassRST(*appState->GetResourceMap().GetClassBrowser(), docScript, buildFolder, generatedFiles);
+                        OutputClassRST(appState->GetClassBrowser(), docScript, buildFolder, generatedFiles);
                         OutputProceduresRST(docScript, buildFolder, generatedFiles);
                     }
                     catch (std::exception &e)

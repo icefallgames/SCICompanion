@@ -142,7 +142,7 @@ END_MESSAGE_MAP()
 
 // CScriptView construction/destruction
 
-CScriptView::CScriptView() : _classBrowser(*appState->GetResourceMap().GetClassBrowser())
+CScriptView::CScriptView() : _classBrowser(appState->GetClassBrowser())
 {
     _fInOnChar = FALSE;
     _pwndToolTip = nullptr;
@@ -1983,7 +1983,7 @@ void CScriptView::OnToggleComment()
 #if 0
 void CScriptView::OnVisualScript()
 {
-	SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser();
+	SCIClassBrowser &browser = appState->GetClassBrowser();
     ClassBrowserLock lock(browser);
     lock.Lock();
     std::string fullPath = GetDocument()->GetScriptId().GetFullPath();

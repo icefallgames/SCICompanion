@@ -21,6 +21,7 @@
 #include "CompileContext.h"
 #include "ExtractAll.h"
 #include "ResourceContainer.h"
+#include "MainFrm.h"
 
 // CGamePropertiesDialog dialog
 
@@ -214,7 +215,7 @@ void CGamePropertiesDialog::OnOK()
             else
             {
                 // Put everything into resource.map, resource.001, etc...
-                appState->GetResourceMap().PurgeUnnecessaryResources();
+                PurgeUnnecessaryResources();
                 // Now delete...
                 auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::All, ResourceEnumFlags::ExcludePackagedFiles);
                 std::vector<std::unique_ptr<ResourceBlob>> itemsToDelete;

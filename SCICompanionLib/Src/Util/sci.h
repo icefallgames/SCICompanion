@@ -286,8 +286,6 @@ BYTE PriorityFromY(WORD y, const ViewPort &picState);
 // The actual width of a cel, used in the bitmaps (multiple of 32 bits)
 #define CX_ACTUAL(cx) (((cx) + 3) / 4 * 4)
 
-BOOL CreateDCCompatiblePattern(RGBQUAD color1, RGBQUAD color2, int width, int height, CDC *pDC, CBitmap *pbm);
-void *_GetBitsPtrFromBITMAPINFO(const BITMAPINFO *pbmi);
 inline HRESULT ResultFromLastError() { return HRESULT_FROM_WIN32(GetLastError()); }
 
 void DisplayFileError(HRESULT hr, BOOL fOpen, LPCTSTR pszFileName);
@@ -378,38 +376,6 @@ struct GlobalLockGuard
     }
 
     _T Object;
-};
-
-class OpenClipboardGuard
-{
-public:
-    OpenClipboardGuard(HWND hwnd)
-    {
-        _open = OpenClipboard(hwnd);
-    }
-    OpenClipboardGuard(CWnd *pWnd)
-    {
-        _open = pWnd->OpenClipboard();
-    }
-
-    BOOL IsOpen() { return _open; }
-
-    ~OpenClipboardGuard()
-    {
-        Close();
-    }
-
-    void Close()
-    {
-        if (_open)
-        {
-            CloseClipboard();
-            _open = FALSE;
-        }
-    }
-
-private:
-    BOOL _open;
 };
 
 
@@ -509,7 +475,7 @@ bool operator<(const ScriptId& script1, const ScriptId& script2);
 //
 // Hash function for ScriptId
 //
-template<> UINT AFXAPI HashKey<ScriptId&>( ScriptId& key );
+//template<> UINT AFXAPI HashKey<ScriptId&>( ScriptId& key );
 
 #define PACKVERSION(major,minor) MAKELONG(minor,major)
 DWORD GetDllVersion(LPCTSTR lpszDllName);
@@ -543,12 +509,9 @@ const std::string MakeFile(PCSTR pszContent, const std::string &filename);
 void ShowTextFile(PCSTR pszContent, const std::string &filename);
 void ShowFile(const std::string &actualPath);
 std::string MakeTextFile(PCSTR pszContent, const std::string &filename);
-bool Save8BitBmp(const std::string &filename, const BITMAPINFO &info, BYTE *pBits, DWORD id = 0);
 std::string GetBinaryDataVisualization(const uint8_t *data, size_t length, int columns = 16);
 
 #define RGB_TO_COLORREF(x) RGB(x.rgbRed, x.rgbGreen, x.rgbBlue)
-
-BOOL _GetMenuItem(PCTSTR pszText, CMenu *pMenu, UINT *pnID);
 
 void throw_if(bool value, const char *message);
 
@@ -646,8 +609,6 @@ struct size16
 };
 
 int PaddedSize(size16 size);
-size16 CSizeToSize(CSize size);
-CSize SizeToCSize(size16 size);
 
 struct point16
 {
@@ -675,6 +636,3 @@ struct point16
     }
 };
 
-point16 CPointToPoint(CPoint pt);
-CPoint PointToCPoint(point16 pt);
-point16 CPointToPointClamp(CPoint pt);

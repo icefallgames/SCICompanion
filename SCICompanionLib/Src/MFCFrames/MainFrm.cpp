@@ -989,7 +989,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
         m_wndStatusBar.SetPaneWidth(nIndex, 170);
         m_wndStatusBar.SetPaneControl(&m_BrowseInfoStatus, ID_BROWSEINFOPANE, true);
     }
-    SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser();
+    SCIClassBrowser &browser = appState->GetClassBrowser();
     {
         ClassBrowserLock lock(browser);
         lock.Lock();
@@ -1490,7 +1490,7 @@ void CMainFrame::OnFileNewPic()
                 }
             }
 
-            pDocument->SetEditPic(appState->GetResourceMap().GetDependencyTracker(), move(pEditPic));
+            pDocument->SetEditPic(appState->GetDependencyTracker(), move(pEditPic));
             pDocument->SetModifiedFlag(TRUE);
         }
     }
@@ -1807,9 +1807,43 @@ void CMainFrame::OnShowAudioPreferences()
     }
 }
 
+HRESULT RebuildResources(const GameFolderHelper &helper, SCIVersion version, BOOL fShowUI, ResourceSaveLocation saveLocation, std::map<ResourceType, RebuildStats> &stats);
+
+void PurgeUnnecessaryResources()
+{
+    std::map<ResourceType, RebuildStats> stats;
+    const GameFolderHelper &helper = appState->GetResourceMap().Helper();
+    HRESULT hr = RebuildResources(helper, helper.Version, TRUE, helper.GetResourceSaveLocation(ResourceSaveLocation::Default), stats);
+    if (SUCCEEDED(hr))
+    {
+        size_t totalSize = 0;
+        for (const auto &stat : stats)
+        {
+            totalSize += stat.second.TotalSize;
+        }
+        vector<CompileResult> statResults;
+        statResults.emplace_back(fmt::format("Total package size: {0:5}KB", totalSize / 1024), CompileResult::CompileResultType::CRT_Message);
+
+        for (const auto &stat : stats)
+        {
+            std::string result = fmt::format("{0:3} {1:>10}: Total size: {2:4}KB ({3:4.2f}% of total)",
+                stat.second.ItemCount,
+                ResourceDisplayNameFromType(stat.first),
+                stat.second.TotalSize / 1024,
+                ((float)stat.second.TotalSize / (float)totalSize) * 100.0f
+            );
+            statResults.emplace_back(result, CompileResult::CompileResultType::CRT_Message);
+        }
+        appState->OutputResults(OutputPaneType::Compile, statResults);
+
+        appState->GetResourceMap().StartPostBuildThread();
+        appState->GetResourceMap().PokeResourceMapReloaded();
+    }
+}
+
 void CMainFrame::OnRebuildResources()
 {
-    appState->GetResourceMap().PurgeUnnecessaryResources();
+    PurgeUnnecessaryResources();
 }
 
 void CMainFrame::OnRepackageAudio()
@@ -1847,7 +1881,7 @@ void CMainFrame::_OnNewScriptDialog(CNewScriptDialog &dialog)
             CScriptDocument *pDoc = static_cast<CScriptDocument*>(pScriptTemplate->OpenDocumentFile(nullptr));
             if (pDoc)
             {
-                pDoc->SetDependencyTracker(appState->GetResourceMap().GetDependencyTracker());
+                pDoc->SetDependencyTracker(appState->GetDependencyTracker());
                 pDoc->SetNameAndContent(script, dialog.GetNumber(), strBuffer);
                 // Compile it so it is added to the resource map.
                 pDoc->Compile();
@@ -2589,7 +2623,7 @@ void CMainFrame::OnDeactivateTab(CFrameWnd *pWnd)
 
 void CMainFrame::OnClassBrowser()
 {
-    CClassBrowserDialog dialog(appState->GetResourceMap().GetClassBrowser());
+    CClassBrowserDialog dialog(&appState->GetClassBrowser());
     dialog.DoModal();
 }
 
@@ -2611,7 +2645,7 @@ void CMainFrame::OnManageDecompilation()
 
 void CMainFrame::OnUpdateClassBrowser(CCmdUI *pCmdUI)
 {
-    SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser();
+    SCIClassBrowser &browser = appState->GetClassBrowser();
     ClassBrowserLock lock(browser);
     if (lock.TryLock())
     {
@@ -2762,7 +2796,7 @@ void CBrowseInfoStatusPane::OnLButtonDblClk()
 {
     if (_status == Errors)
     {
-        SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser();
+        SCIClassBrowser &browser = appState->GetClassBrowser();
         appState->OutputResults(OutputPaneType::Compile, browser.GetErrors());
     }
 }

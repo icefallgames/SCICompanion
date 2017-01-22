@@ -543,7 +543,7 @@ void _PopulateSpeciesCombo(CWnd *pWnd)
 {
     CComboBox *pCombo = static_cast<CComboBox*>(pWnd);
     // We need to find all species that are subclasses of View.
-	SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser();
+	SCIClassBrowser &browser = appState->GetClassBrowser();
     std::unique_ptr<std::vector<std::string> > pArray = browser.CreateSubSpeciesArray("View");
     for (size_t i = 0; i < pArray->size(); i++)
     {

@@ -13,7 +13,6 @@
 ***************************************************************************/
 #include "stdafx.h"
 #include "ResourceContainer.h"
-#include "AppState.h"
 #include "ResourceMap.h"
 #include "ResourceBlob.h"
 
@@ -124,7 +123,7 @@ sci::istream ResourceContainer::ResourceIterator::_GetResourceHeaderAndPackage(R
         rh.cbCompressed = 0;
         rh.cbDecompressed = 0;
         rh.CompressionMethod = 0;
-        rh.Version = appState->GetVersion();
+        rh.Version = sciVersion0;
         rh.SourceFlags = ResourceSourceFlags::ResourceMap;
     }
 

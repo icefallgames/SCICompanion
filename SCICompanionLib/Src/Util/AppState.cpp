@@ -56,6 +56,7 @@
 #include "ResourceBlob.h"
 #include "SyntaxParser.h"
 #include "ImageUtil.h"
+#include "DependencyTracker.h"
 
 // The one and only
 extern AppState *appState;
@@ -76,8 +77,12 @@ void CMultiDocTemplateWithNonViews::InitialUpdateFrame(CFrameWnd *pFrame, CDocum
     __super::InitialUpdateFrame(pFrame, pDoc, bMakeVisible);
 }
 
-AppState::AppState(CWinApp *pApp) : _resourceMap(*this)
+AppState::AppState(CWinApp *pApp) : _resourceMap(this, &_resourceRecency)
 {
+    _dependencyTracker = std::make_unique<DependencyTracker>(_fTrackHeaderFiles);
+    // This is a pointer because we don't want a dependency on it in the header file.
+    _classBrowser = std::make_unique<SCIClassBrowser>(*_dependencyTracker);
+
     _pApp = pApp;
     _audioProcessing = std::make_unique<AudioProcessingSettings>();
     // Place all significant initialization in InitInstance
@@ -172,6 +177,15 @@ AppState::AppState(CWinApp *pApp) : _resourceMap(*this)
     LoadSyntaxHighlightingColors();
 
     InitializeSyntaxParsers();
+}
+
+DependencyTracker &AppState::GetDependencyTracker()
+{
+    return *_dependencyTracker;
+}
+SCIClassBrowser &AppState::GetClassBrowser()
+{
+    return *_classBrowser;
 }
 
 int AppState::AspectRatioY(int value) const
@@ -294,7 +308,7 @@ void AppState::OpenScriptHeader(std::string strName)
                 {
                     pDocument->SetTitle(scriptId.GetFileNameOrig().c_str());
                     // Initialize the document somehow.
-                    pDocument->SetDependencyTracker(GetResourceMap().GetDependencyTracker());
+                    pDocument->SetDependencyTracker(GetDependencyTracker());
                 }
             }
         }
@@ -360,7 +374,7 @@ void AppState::OpenScript(std::string strName, const ResourceBlob *pData, WORD w
                     if (pDocument)
                     {
                         pDocument->SetTitle(scriptId.GetFileNameOrig().c_str());
-                        pDocument->SetDependencyTracker(GetResourceMap().GetDependencyTracker());
+                        pDocument->SetDependencyTracker(GetDependencyTracker());
                         // We lost context...
                         pDocument->SetScriptNumber(scriptId.GetResourceNumber());
                     }
@@ -405,7 +419,7 @@ void AppState::OpenScriptAtLine(ScriptId script, int iLine)
         if (pDoc)
         {
             pDoc->SetTitle(script.GetFileNameOrig().c_str());
-            pDoc->SetDependencyTracker(GetResourceMap().GetDependencyTracker());
+            pDoc->SetDependencyTracker(GetDependencyTracker());
         }
     }
     if (pDoc)
@@ -557,12 +571,12 @@ ResourceType AppState::GetShownResourceType()
 
 void AppState::GenerateBrowseInfo()
 {
-    GetResourceMap().GetClassBrowser()->OnOpenGame(GetVersion());
+    GetClassBrowser().OnOpenGame(GetVersion());
 }
 
 void AppState::ResetClassBrowser()
 {
-    GetResourceMap().GetClassBrowser()->ExitSchedulerAndReset();
+    GetClassBrowser().ExitSchedulerAndReset();
 }
 
 BOOL CALLBACK InvalidateChildProc(HWND hwnd, LPARAM lParam)
@@ -667,12 +681,6 @@ int AppState::ExitInstance()
     return 0;
 }
 
-DWORD g_dwID = 0;
-DWORD AppState::CreateUniqueRuntimeID()
-{
-    return g_dwID++;
-}
-
 //
 // Game properties
 //
@@ -698,7 +706,7 @@ void AppState::RunGame(bool debug, int optionalResourceNumber)
         bool goAhead = true;
         if (_fCompileDirtyScriptsBeforeRun)
         {
-            if (!CompileABunchOfScripts(this, &GetResourceMap().GetDependencyTracker()))
+            if (!CompileABunchOfScripts(this, &GetDependencyTracker()))
             {
                 goAhead = (IDYES == AfxMessageBox("There were errors compiling the scripts. Run game anyway?", MB_ICONWARNING | MB_YESNO));
             }

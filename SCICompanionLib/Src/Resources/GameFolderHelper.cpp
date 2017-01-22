@@ -21,6 +21,7 @@
 #include "AudioResourceSource.h"
 #include "AudioCacheResourceSource.h"
 #include "PatchResourceSource.h"
+#include "AppState.h"
 
 using namespace std;
 
@@ -301,7 +302,7 @@ std::unique_ptr<ResourceContainer> GameFolderHelper::Resources(ResourceTypeFlags
             // Our audio cache files take precedence
             if (IsFlagSet(types, ResourceTypeFlags::Audio))
             {
-                mapAndVolumes->push_back(move(make_unique<AudioCacheResourceSource>(*this, mapContext, ResourceSourceAccessFlags::Read)));
+                mapAndVolumes->push_back(move(make_unique<AudioCacheResourceSource>(&appState->GetResourceMap(), *this, mapContext, ResourceSourceAccessFlags::Read)));
             }
 
             // Audiomaps can come from the cache files folder too... but we can re-use PatchFilesResourceSource for this
@@ -377,3 +378,34 @@ std::unique_ptr<ResourceBlob> GameFolderHelper::MostRecentResource(ResourceType 
     return returnBlob;
 }
 
+bool GameFolderHelper::DoesResourceExist(ResourceType type, int number, std::string *retrieveName, ResourceSaveLocation location) const
+{
+    ResourceEnumFlags enumFlags = (GetResourceSaveLocation(location) == ResourceSaveLocation::Package) ?
+        ResourceEnumFlags::ExcludePatchFiles :
+        ResourceEnumFlags::ExcludePackagedFiles;
+
+    if (retrieveName)
+    {
+        enumFlags |= ResourceEnumFlags::NameLookups;
+    }
+    auto &resourceContainer = Resources(ResourceTypeToFlag(type), enumFlags);
+    for (auto &blobIt = resourceContainer->begin(); blobIt != resourceContainer->end(); ++blobIt)
+    {
+        if (blobIt.GetResourceNumber() == number)
+        {
+            if (retrieveName)
+            {
+                *retrieveName = (*blobIt)->GetName();
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+
+
+bool GameFolderHelper::IsResourceCompatible(const ResourceBlob &resource) const
+{
+    return ::IsResourceCompatible(this->Version, resource);
+}

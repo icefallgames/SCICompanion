@@ -248,6 +248,7 @@
     <ClCompile Include="Src\FrameComponents\NewOutputPane.cpp" />
     <ClCompile Include="Src\FrameComponents\PhonemeEditor.cpp" />
     <ClCompile Include="Src\FrameComponents\PicHelperPane.cpp" />
+    <ClCompile Include="Src\FrameComponents\SoundUIUtil.cpp" />
     <ClCompile Include="Src\FrameComponents\ViewUIElement.cpp" />
     <ClCompile Include="Src\GIFLIB\egif_lib.cpp" />
     <ClCompile Include="Src\LipSync\phone_estimate.cpp" />
@@ -338,6 +339,7 @@
     <ClInclude Include="Src\FrameComponents\MessageSource.h" />
     <ClInclude Include="Src\FrameComponents\NewOutputPane.h" />
     <ClInclude Include="Src\FrameComponents\PhonemeEditor.h" />
+    <ClInclude Include="Src\FrameComponents\SoundUIUtil.h" />
     <ClInclude Include="Src\FrameComponents\ViewUIElement.h" />
     <ClInclude Include="Src\LipSync\phone_estimate.h" />
     <ClInclude Include="Src\LipSync\sapi_lipsync.h" />
@@ -378,6 +380,7 @@
     <ClInclude Include="Src\Resources\ResourceMapEvents.h" />
     <ClInclude Include="Src\Resources\ResourceSourceFlags.h" />
     <ClInclude Include="Src\Resources\Sync.h" />
+    <ClInclude Include="Src\Resources\VersionDetectionHelper.h" />
     <ClInclude Include="Src\Resources\View.h" />
     <ClInclude Include="Src\Util\AudioProcessing.h" />
     <ClInclude Include="Src\Util\AudioProcessingSettings.h" />
@@ -601,6 +604,7 @@
     <ClInclude Include="Src\Util\PostBuildThread.h" />
     <ClInclude Include="Src\Util\RGBOctree.h" />
     <ClInclude Include="Src\Util\RunLogic.h" />
+    <ClInclude Include="Src\Util\sciwin.h" />
     <ClInclude Include="Src\Util\SortedVector.h" />
     <ClInclude Include="Src\Util\SoundUtil.h" />
     <ClInclude Include="Src\Compile\CompileContext.h" />

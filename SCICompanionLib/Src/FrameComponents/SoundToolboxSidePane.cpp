@@ -20,6 +20,7 @@
 #include "SoundToolboxSidePane.h"
 #include "SoundDoc.h"
 #include "SoundUtil.h"
+#include "SoundUIUtil.h"
 
 std::vector<SoundEvent> g_emptyEvents;
 

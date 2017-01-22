@@ -106,7 +106,7 @@ void AudioPreferencesDialog::OnBnClickedButtonClearAudioCache()
 {
     if (IDYES == AfxMessageBox("This will remove any audio working files. If audio files have not been repackaged into the game, you may lose data. Continue?", MB_YESNO | MB_ICONWARNING))
     {
-        std::unique_ptr<AudioCacheResourceSource> cache = std::make_unique<AudioCacheResourceSource>(appState->GetResourceMap().Helper(), -1, ResourceSourceAccessFlags::ReadWrite);
+        std::unique_ptr<AudioCacheResourceSource> cache = std::make_unique<AudioCacheResourceSource>(&appState->GetResourceMap(), appState->GetResourceMap().Helper(), -1, ResourceSourceAccessFlags::ReadWrite);
         cache->Clear();
     }
 }

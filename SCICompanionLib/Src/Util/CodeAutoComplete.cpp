@@ -140,7 +140,7 @@ std::unique_ptr<AutoCompleteResult> GetAutoCompleteResult(const std::string &pre
         }
 
         // Get things from the big global list
-        SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser();
+        SCIClassBrowser &browser = appState->GetClassBrowser();
         if (sourceTypes != AutoCompleteSourceType::None)
         {
             browser.GetAutoCompleteChoices(prefix, sourceTypes, result->choices);

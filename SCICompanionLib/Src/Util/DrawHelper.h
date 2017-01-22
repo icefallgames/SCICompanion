@@ -15,6 +15,7 @@
 #pragma once
 
 #include "Components.h"
+#include "sciwin.h"
 
 //
 // Provides an easy way to use GDI drawing commands directly on

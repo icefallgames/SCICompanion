@@ -214,7 +214,7 @@ struct FileDescriptorAltMap : public FileDescriptorBase
     FileDescriptorAltMap(const std::string &gameFolder) : FileDescriptorBase(gameFolder, altMapSourceTraits, ResourceSourceFlags::AltMap) {}
 };
 
-bool IsResourceCompatible(const ResourceBlob &blob);
+bool IsResourceCompatible(const SCIVersion &version, const ResourceBlob &blob);
 
 // Use for resource.map, alt.map, message.map and such.
 template<typename _TNavigator, typename _FileDescriptor>
@@ -441,7 +441,7 @@ public:
         // then we can write the raw data.
         for (const ResourceBlob *blob : blobs)
         {
-            assert(IsResourceCompatible(*blob));
+            assert(IsResourceCompatible(_version, *blob));
             ResourceHeaderAgnostic header = blob->GetHeader();
 
             // Possibly copy over a new volume, if we haven't written to it yet

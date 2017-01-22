@@ -392,7 +392,7 @@ void MessageEditorListCtrl::_Commit()
 
         // Notify the class browser. I'd rather have this functionality here than in the MessageSource.
         // An even better way would be to have a thread that is monitoring certain files.
-        SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser();
+        SCIClassBrowser &browser = appState->GetClassBrowser();
         browser.TriggerReloadScript(source->GetBackingFile().c_str());
     }
 }

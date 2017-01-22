@@ -124,7 +124,7 @@ ToolTipResult GetToolTipResult(_TContext *pContext)
     bool fFound = false;
     ToolTipResult result;
     result.OriginalText = pContext->ScratchString();
-    SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser();
+    SCIClassBrowser &browser = appState->GetClassBrowser();
 
     // Trigger any custom header compiles
     for (const string &include : pContext->Script().GetIncludes())

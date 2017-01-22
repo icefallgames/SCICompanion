@@ -145,6 +145,7 @@ struct delete_map_value
 
 // Commonly included or large header files:
 #include "sci.h"
+#include "sciwin.h"
 #include "Version.h"
 #include "Stream.h"
 #include "StlUtil.h"

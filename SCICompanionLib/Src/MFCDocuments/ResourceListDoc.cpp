@@ -21,6 +21,7 @@
 #include "CObjectWrap.h"
 #include "ResourceContainer.h"
 #include "ResourceBlob.h"
+#include "DependencyTracker.h"
 
 // ResourceListDoc
 
@@ -53,6 +54,7 @@ BOOL CResourceListDoc::OnNewDocument()
 void CResourceListDoc::OnCloseDocument()
 {
     std::string strEmpty;
+    appState->GetDependencyTracker().Clear();
     appState->GetResourceMap().SetGameFolder(strEmpty);
 
     // Remove ourselves as a sync
@@ -123,6 +125,19 @@ void CResourceListDoc::OnImagesInvalidated()
     UpdateAllViews(nullptr, 0, &WrapHint(ResourceMapChangeHint::Image));
 }
 
+//
+// This class is just a CObject class that wraps a resource type number
+//
+class CResourceTypeWrap : public CObject
+{
+public:
+    CResourceTypeWrap(ResourceType iType) { _iType = iType; }
+    ResourceType GetType() { return _iType; }
+
+private:
+    ResourceType _iType;
+};
+
 void CResourceListDoc::ShowResourceType(ResourceType iType)
 {
     if (iType != _shownResourceType)
@@ -171,7 +186,9 @@ void CResourceListDoc::Serialize(CArchive& ar)
 
             // Set this folder as our new game folder
             CResourceMap &map = appState->GetResourceMap();
+            appState->GetDependencyTracker().Clear();
             map.SetGameFolder((PCSTR)path);
+            appState->_fUseOriginalAspectRatioCached = map.Helper().GetUseSierraAspectRatio(!!appState->_fUseOriginalAspectRatioDefault);
 
             appState->LogInfo(TEXT("Open game: %s"), (PCTSTR)path);
 

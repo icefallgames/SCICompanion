@@ -55,7 +55,7 @@ namespace UnitTests
 
         void _DoIt()
         {
-            SCIClassBrowser *browser = appState->GetResourceMap().GetClassBrowser();
+            SCIClassBrowser &browser = appState->GetClassBrowser();
 
             class TaskStatus : public ITaskStatus
             {
@@ -81,10 +81,10 @@ namespace UnitTests
             ClassBrowserEvents events(ok);;
 
             Assert::IsTrue(appState->IsBrowseInfoEnabled());
-            browser->SetClassBrowserEvents(&events);
+            browser.SetClassBrowserEvents(&events);
 
             TaskStatus taskStatus;
-            browser->ReLoadFromSources(taskStatus);
+            browser.ReLoadFromSources(taskStatus);
             Assert::IsTrue(ok);
 
             // TODO: Now make some queries.

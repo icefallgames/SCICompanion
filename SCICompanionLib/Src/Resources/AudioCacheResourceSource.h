@@ -19,6 +19,7 @@
 struct AudioMapComponent;
 class ResourceEntity;
 class ResourceBlob;
+class CResourceMap;
 
 extern const char *pszAudioCacheFolder;
 
@@ -40,7 +41,7 @@ extern const char *pszAudioCacheFolder;
 class AudioCacheResourceSource : public ResourceSource
 {
 public:
-    AudioCacheResourceSource(const GameFolderHelper &helper, int mapContext, ResourceSourceAccessFlags access);
+    AudioCacheResourceSource(CResourceMap *resourceMap, const GameFolderHelper &helper, int mapContext, ResourceSourceAccessFlags access);
     ~AudioCacheResourceSource();
 
     AudioCacheResourceSource& operator=(AudioCacheResourceSource &src) = delete;
@@ -91,6 +92,9 @@ private:
     // We go through this as much as possible. We create our own,
     // because we may be enumerated on the background thread.
     GameFolderHelper _helper;
+
+    // But we do need this sometimes...
+    CResourceMap *_resourceMap;
 };
 
 void SaveAudioBlobToFiles(const ResourceBlob &blob, const std::string &cacheSubFolder);

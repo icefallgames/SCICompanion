@@ -428,7 +428,7 @@ void QuickScriptsSidePane::_ResetUI()
 
     // Update the bitmap.
     // Get the script object for this script.
-	SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser();
+	SCIClassBrowser &browser = appState->GetClassBrowser();
     ClassBrowserLock lock(browser);
     if (lock.TryLock()) // Don't hang UI... if we can't get the lock, just skip it.
     {

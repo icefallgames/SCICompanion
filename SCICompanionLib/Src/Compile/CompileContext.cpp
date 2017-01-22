@@ -158,7 +158,7 @@ void CompileContext::_LoadSCOIfNone(WORD wScript)
 const uint16_t TempTokenBase = 2345;
 
 CompileContext::CompileContext(SCIVersion version, Script &script, PrecompiledHeaders &headers, CompileTables &tables, ICompileLog &results) :
-        _browser(*appState->GetResourceMap().GetClassBrowser()),
+        _browser(appState->GetClassBrowser()),
         _resourceMap(appState->GetResourceMap()),
         _results(results),
         _tables(tables),

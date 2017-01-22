@@ -17,7 +17,6 @@
 #include "ResourceUtil.h"
 #include "Message.h"
 #include "ResourceEntity.h"
-#include "AppState.h"
 #include "ResourceContainer.h"
 #include "AudioMap.h"
 #include "AudioNegative.h"
@@ -25,6 +24,7 @@
 #include <filesystem>
 #include "PerfTimer.h"
 #include "ResourceBlob.h"
+#include "ResourceMap.h"
 
 using namespace std::tr2;
 
@@ -131,14 +131,19 @@ bool ExtractTupleFromFilename(const char *pszFilename, uint32_t &tuple)
 
 const char *pszAudioCacheFolder = "\\audiocache";
 
-AudioCacheResourceSource::AudioCacheResourceSource(const GameFolderHelper &helper, int mapContext, ResourceSourceAccessFlags access) :
+AudioCacheResourceSource::AudioCacheResourceSource(
+    CResourceMap *resourceMap,
+    const GameFolderHelper &helper,
+    int mapContext,
+    ResourceSourceAccessFlags access) :
     _gameFolder(helper.GameFolder),
     _cacheFolder(helper.GameFolder + pszAudioCacheFolder),
     _version(helper.Version),
     _mapContext(mapContext),
     _enumInitialized(false),
     _access(access),
-    _helper(helper)
+    _helper(helper),
+    _resourceMap(resourceMap)
 {
     _cacheSubFolderForEnum = _cacheFolder + fmt::format("\\{0}", (mapContext == -1) ? _version.AudioMapResourceNumber : mapContext);
     if (IsFlagSet(access, ResourceSourceAccessFlags::ReadWrite))
@@ -166,7 +171,7 @@ void AudioCacheResourceSource::_EnsureEnumInitialized()
         std::string mapFilename = _cacheFolder + "\\";
         mapFilename += mapName;
         ResourceBlob blob;
-        if (SUCCEEDED(blob.CreateFromFile(mapFilename.c_str(), mapFilename, _version, appState->GetResourceMap().GetDefaultResourceSaveLocation(), 0, mapNumber)))
+        if (SUCCEEDED(blob.CreateFromFile(mapFilename.c_str(), mapFilename, _version, _helper.GetResourceSaveLocation(ResourceSaveLocation::Default), 0, mapNumber)))
         {
             _audioMap = CreateResourceFromResourceData(blob);
 
@@ -497,7 +502,7 @@ void AudioCacheResourceSource::RemoveEntries(int number, const std::vector<uint3
         if (audioMapModified)
         {
             assert(IsFlagSet(audioMap->SourceFlags, ResourceSourceFlags::AudioMapCache));
-            appState->GetResourceMap().AppendResource(*audioMap);
+            _resourceMap->AppendResource(*audioMap);
 
             // This is no longer up-to-date.
             UpToDateResources upToDate(_cacheFolder);
@@ -541,7 +546,7 @@ AppendBehavior AudioCacheResourceSource::AppendResources(const std::vector<const
         // And finally, serialize the audiomap and save it. We *should* just be able to go through the resource map again,
         // and it should route it to the "patch files" resource source, under the audiocache folder.
         assert(IsFlagSet(audioMap->SourceFlags, ResourceSourceFlags::AudioMapCache));
-        appState->GetResourceMap().AppendResource(*audioMap);
+        _resourceMap->AppendResource(*audioMap);
 
         // This is no longer up-to-date.
         UpToDateResources upToDate(_cacheFolder);
@@ -677,7 +682,7 @@ void AudioCacheResourceSource::RebuildResources(bool force, ResourceSource &sour
     std::set<int> audioMapNumbers;
     audioMapNumbers.insert(_version.AudioMapResourceNumber); // The default audio map.
     {
-        auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::Message, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::AddInDefaultEnumFlags);
+        auto resourceContainer = _helper.Resources(ResourceTypeFlags::Message, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::AddInDefaultEnumFlags);
         // Use iterator directly so we don't instantiate the blobs
         for (auto it = resourceContainer->begin(); it != resourceContainer->end(); ++it)
         {
@@ -692,7 +697,7 @@ void AudioCacheResourceSource::RebuildResources(bool force, ResourceSource &sour
     bool allCacheFilesUpToDate = true;
     std::map<int, std::unique_ptr<ResourceEntity>> audioMaps;
     {   
-        auto resourceContainer = appState->GetResourceMap().Resources(ResourceTypeFlags::AudioMap, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::IncludeCacheFiles | ResourceEnumFlags::AddInDefaultEnumFlags);
+        auto resourceContainer = _helper.Resources(ResourceTypeFlags::AudioMap, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::IncludeCacheFiles | ResourceEnumFlags::AddInDefaultEnumFlags);
         for (auto &blob : *resourceContainer)
         {
             // If this audio map is sourced from the cache, then if it's out of date we definitely need to rebuild.
@@ -755,11 +760,11 @@ void AudioCacheResourceSource::RebuildResources(bool force, ResourceSource &sour
 
         // 5) If that's good, then save the audio maps *TO THE RESOURCE MAP*
         {
-            DeferResourceAppend defer(appState->GetResourceMap());
+            DeferResourceAppend defer(*_resourceMap);
             for (auto &audioMap : audioMaps)
             {
                 audioMap.second->SourceFlags = ResourceSourceFlags::ResourceMap;
-                appState->GetResourceMap().AppendResource(*audioMap.second);
+                _resourceMap->AppendResource(*audioMap.second);
             }
             defer.Commit();
         }

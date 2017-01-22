@@ -35,6 +35,8 @@ class CScriptDoc;
 class ResourceEntity;
 class CResourceListDoc;
 class AppState;
+class SCIClassBrowser;
+class DependencyTracker;
 struct AudioProcessingSettings;
 
 template<typename _TPayload, typename _TResponse>
@@ -50,7 +52,7 @@ public:
     virtual void InitialUpdateFrame(CFrameWnd *pFrame, CDocument *pDoc, BOOL bMakeVisible);
 };
 
-class AppState
+class AppState : public ISCIAppServices
 {
 public:
     AppState(CWinApp *pApp = nullptr);
@@ -83,7 +85,6 @@ public:
     void ReopenScriptDocument(uint16_t wNum);
     void OpenMostRecentResourceAt(ResourceType type, uint16_t number, int index);
     void SetScriptFrame(CFrameWnd *pScriptFrame) { _pScriptFrame = pScriptFrame; }
-    DWORD CreateUniqueRuntimeID();
     CResourceMap &GetResourceMap() { return _resourceMap; }
     const SCIVersion &GetVersion() const { return _resourceMap.GetSCIVersion(); }
     UINT GetCommandClipboardFormat() { return _uClipboardFormat; }
@@ -104,7 +105,6 @@ public:
     void NotifyChangeAspectRatio();
     void NotifyChangeShowTabs();
     void TellScriptsToSave();
-    void SetRecentlyInteractedView(int resourceNumber);
 
     void TerminateDebuggedProcess();
     bool IsProcessBeingDebugged();
@@ -130,13 +130,18 @@ public:
     ResourceType GetShownResourceType();
     void SetExplorerFrame(CFrameWnd *pFrame) { _pExplorerFrame = pFrame; }
 
+    DependencyTracker &GetDependencyTracker();
+    SCIClassBrowser &GetClassBrowser();
+
     // Game properties
     std::string GetGameName();
     void SetGameName(PCTSTR pszName);
 
     void RunGame(bool debug, int optionalResourceNumber);
 
-    void OnGameFolderUpdate();
+    // ISCIAppServices
+    void OnGameFolderUpdate() override;
+    void SetRecentlyInteractedView(int resourceNumber) override;
 
     void LogInfo(const TCHAR *pszFormat, ...);
 
@@ -241,6 +246,9 @@ public: // TODO for now
     ScopedHandle _hProcessDebugged;
 
     RunLogic _runLogic;
+
+    std::unique_ptr<DependencyTracker> _dependencyTracker;
+    std::unique_ptr<SCIClassBrowser> _classBrowser;
 };
 
 extern AppState *appState;

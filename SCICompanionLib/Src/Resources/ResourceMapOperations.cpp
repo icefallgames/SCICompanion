@@ -22,6 +22,7 @@
 #include "resource.h"
 #include "RemoveScriptDialog.h"
 #include "ResourceContainer.h"
+#include "AppState.h"
 
 template<typename _TFileDescriptor>
 std::unique_ptr<ResourceSource> _CreateResourceSource(const std::string &gameFolder, SCIVersion version, ResourceSourceFlags source)
@@ -80,7 +81,8 @@ std::unique_ptr<ResourceSource> CreateResourceSource(const GameFolderHelper &hel
     }
     else if (source == ResourceSourceFlags::AudioCache)
     {
-        return std::make_unique<AudioCacheResourceSource>(helper, mapContext, access);
+        // phil, passing null
+        return std::make_unique<AudioCacheResourceSource>(&appState->GetResourceMap(), helper, mapContext, access);
     }
     else if (source == ResourceSourceFlags::AudioMapCache)
     {

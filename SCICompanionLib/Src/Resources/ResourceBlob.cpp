@@ -15,10 +15,10 @@
 #include "stdafx.h"
 #include "Codec.h"
 #include "CodecAlt.h"
-#include "AppState.h"
 #include <errno.h>
 #include "crc.h"
 #include "ResourceBlob.h"
+#include "GameFolderHelper.h"
 #include <atomic>
 #include "format.h"
 
@@ -65,35 +65,26 @@ bool IsValidResourceName(PCTSTR pszName)
     return true;
 }
 
-void DisplayInvalidResourceNameMessage(PCTSTR pszName)
+bool IsValidResourceSize(const SCIVersion &version, DWORD cb, ResourceType type)
 {
-    TCHAR szBuffer[MAX_PATH];
-    StringCchPrintf(szBuffer, ARRAYSIZE(szBuffer), TEXT("Invalid resource name: %s.\nNames must consist of letters, numbers, spaces, '_', or '-'."), pszName);
-    AfxMessageBox(szBuffer, MB_ERRORFLAGS);
-}
-
-bool ValidateResourceSize(const SCIVersion &version,DWORD cb, ResourceType type)
-{
-    // The maximum resource size increases with SCI versions, as the map and resource package header size/offset bit widths increased.
-    // Audio is special, because it was stored with a custom map format.
-    // There are probably actual values that are correct, but we'll use 64K for earlier SCI versions,
-    // and a much larger value for later SCI versions. If we wanted to be "perfect", we could base it off the
-    // bit-width of the map offsets/package resource size fields.
     bool fRet = true;
     if (cb > ((type == ResourceType::Audio) ? MaxResourceSizeLarge : ((version.MapFormat >= ResourceMapFormat::SCI1) ? MaxResourceSizeLarge : MaxResourceSize)))
     {
-        TCHAR szBuffer[MAX_PATH];
-        StringCchPrintf(szBuffer, ARRAYSIZE(szBuffer), TEXT("Resources can't be bigger than %d bytes.  This resource is %d bytes."), MaxResourceSize, cb);
-        AfxMessageBox(szBuffer, MB_ERRORFLAGS);
         fRet = false;
     }
     return fRet;
 }
 
+int g_dwID = 0;
+int CreateUniqueRuntimeID()
+{
+    return g_dwID++;
+}
+
 ResourceBlob::ResourceBlob()
 {
     header.Version = sciVersion0; // Just something by default;
-    _id = (int)appState->CreateUniqueRuntimeID();
+    _id = CreateUniqueRuntimeID();
     header.CompressionMethod = 0;
     header.Number = -1;
     header.Type = ResourceType::None;
@@ -103,7 +94,7 @@ ResourceBlob::ResourceBlob()
     _hasNumber = false;
 }
 
-ResourceBlob::ResourceBlob(PCTSTR pszName, ResourceType iType, const std::vector<BYTE> &data, int iPackageHint, int iNumber, uint32_t base36Number, SCIVersion version, ResourceSourceFlags sourceFlags)
+ResourceBlob::ResourceBlob(const GameFolderHelper &helper, PCTSTR pszName, ResourceType iType, const std::vector<BYTE> &data, int iPackageHint, int iNumber, uint32_t base36Number, SCIVersion version, ResourceSourceFlags sourceFlags)
 {
     _resourceLoadStatus = ResourceLoadStatusFlags::None;
 
@@ -128,7 +119,7 @@ ResourceBlob::ResourceBlob(PCTSTR pszName, ResourceType iType, const std::vector
     header.PackageHint = iPackageHint;
     if (!pszName || (*pszName == 0))
     {
-        _strName = appState->GetResourceMap().Helper().FigureOutName(iType, iNumber, base36Number);
+        _strName = helper.FigureOutName(iType, iNumber, base36Number);
     }
     else
     {
@@ -145,7 +136,7 @@ int ResourceBlob::GetLengthOnDisk() const
     return headerSize + header.cbCompressed;
 }
 
-HRESULT ResourceBlob::CreateFromBits(PCTSTR pszName, ResourceType iType, sci::istream *pStream, int iPackageHint, int iNumber, uint32_t base36Number, SCIVersion version, ResourceSourceFlags sourceFlags)
+HRESULT ResourceBlob::CreateFromBits(const GameFolderHelper &helper, PCTSTR pszName, ResourceType iType, sci::istream *pStream, int iPackageHint, int iNumber, uint32_t base36Number, SCIVersion version, ResourceSourceFlags sourceFlags)
 {
     HRESULT hr = E_FAIL;
     if (pStream)
@@ -170,7 +161,7 @@ HRESULT ResourceBlob::CreateFromBits(PCTSTR pszName, ResourceType iType, sci::is
 
         if (!pszName || (*pszName == 0))
         {
-            _strName = appState->GetResourceMap().Helper().FigureOutName(iType, iNumber, base36Number);
+            _strName = helper.FigureOutName(iType, iNumber, base36Number);
         }
         else
         {
@@ -261,7 +252,7 @@ bool ResourceBlob::GetKeyValue(BlobKey key, uint32_t &value) const
 
 std::string ResourceBlob::GetEncodingString() const
 {
-    switch (VersionAndCompressionNumberToAlgorithm(appState->GetVersion(), header.CompressionMethod))
+    switch (VersionAndCompressionNumberToAlgorithm(this->GetVersion(), header.CompressionMethod))
     {
     case DecompressionAlgorithm::None:
         return "None";
@@ -295,7 +286,7 @@ void ResourceBlob::_EnsureDecompressed()
         uint32_t cbCompressedRemaining = _pDataCompressed.size();
         ClearFlag(_resourceLoadStatus, ResourceLoadStatusFlags::Delayed);
         int iResult = SCI_ERROR_UNKNOWN_COMPRESSION;
-        DecompressionAlgorithm algorithm = VersionAndCompressionNumberToAlgorithm(appState->GetVersion(), header.CompressionMethod);
+        DecompressionAlgorithm algorithm = VersionAndCompressionNumberToAlgorithm(this->GetVersion(), header.CompressionMethod);
         switch (algorithm)
         {
             case DecompressionAlgorithm::Huffman:
@@ -309,7 +300,7 @@ void ResourceBlob::_EnsureDecompressed()
                 break;
             case DecompressionAlgorithm::LZW_View:
             {
-                std::unique_ptr<uint8_t[]> pTemp(new uint8_t[header.cbDecompressed]);
+                std::unique_ptr<uint8_t[]> pTemp = std::make_unique<uint8_t[]>(header.cbDecompressed);
                 iResult = decompressLZW_1(&pTemp[0], &_pDataCompressed[0], header.cbDecompressed, cbCompressedRemaining);
                 if (iResult == 0)
                 {
@@ -320,7 +311,7 @@ void ResourceBlob::_EnsureDecompressed()
             break;
             case DecompressionAlgorithm::LZW_Pic:
             {
-                std::unique_ptr<uint8_t[]> pTemp(new uint8_t[header.cbDecompressed]);
+                std::unique_ptr<uint8_t[]> pTemp = std::make_unique<uint8_t[]>(header.cbDecompressed);
                 iResult = decompressLZW_1(&pTemp[0], &_pDataCompressed[0], header.cbDecompressed, cbCompressedRemaining);
                 if (iResult == 0)
                 {
@@ -582,7 +573,7 @@ HRESULT ResourceBlob::SaveToHandle(HANDLE hFile, bool fNoHeader, DWORD *pcbWritt
     BOOL fWrote = FALSE;
     bool fWriteCompressedIfPossible;
     DWORD checkSize = max(header.cbCompressed, header.cbDecompressed);
-    if (!ValidateResourceSize(header.Version, checkSize, header.Type))
+    if (!IsValidResourceSize(header.Version, checkSize, header.Type))
     {
         SetLastError(ERROR_OUTOFMEMORY);  // Not the best, but it will do.
     }

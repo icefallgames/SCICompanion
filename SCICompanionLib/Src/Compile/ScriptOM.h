@@ -638,7 +638,7 @@ namespace sci
 		StatementsNode() {} 
         StatementsNode(SyntaxNodeVector statements);
 		StatementsNode(const StatementsNode &src) = delete;
-		StatementsNode& operator=(StatementsNode& src) = delete;
+		StatementsNode& operator=(const StatementsNode& src) = delete;
 
 		void AddStatement(std::unique_ptr<SyntaxNode> pStatement) { _segments.push_back(std::move(pStatement)); }
         const SyntaxNodeVector &GetStatements() const { return _segments; }
@@ -655,7 +655,7 @@ namespace sci
     public:
 		OneStatementNode() {}
 		OneStatementNode(const OneStatementNode &src) = delete;
-		OneStatementNode& operator=(OneStatementNode& src) = delete;
+		OneStatementNode& operator=(const OneStatementNode& src) = delete;
 
 		void SetStatement1(std::unique_ptr<SyntaxNode> statement) { _statement1 = std::move(statement); }
         const SyntaxNode* GetStatement1() const { return _statement1.get(); }
@@ -674,7 +674,7 @@ namespace sci
     public:
 		TwoStatementNode() {}
 		TwoStatementNode(const TwoStatementNode &src) = delete;
-		TwoStatementNode& operator=(TwoStatementNode& src) = delete;
+		TwoStatementNode& operator=(const TwoStatementNode& src) = delete;
 
 		void SetStatement2(std::unique_ptr<SyntaxNode> statement) { _statement2 = std::move(statement); }
         const SyntaxNode* GetStatement2() const { return _statement2.get(); }

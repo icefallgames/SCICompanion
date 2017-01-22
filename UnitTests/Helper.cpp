@@ -52,7 +52,7 @@ std::string SetUpGame(const std::string &name)
 
 void CleanUpGame(const std::string &gameFolder)
 {
-    appState->GetResourceMap().GetClassBrowser()->SetClassBrowserEvents(nullptr);
+    appState->GetClassBrowser().SetClassBrowserEvents(nullptr);
 
     appState->ResetClassBrowser();
     delete appState;

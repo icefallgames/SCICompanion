@@ -36,6 +36,8 @@ class DependencyTracker;
 // wparam is the type, lparam is a vector<CompileResults> that needs to be deleted.
 #define UWM_RESULTS (WM_APP + 2)
 
+void PurgeUnnecessaryResources();
+
 class CExtMenuControlBarHideShow : public CExtMenuControlBar
 {
 protected:

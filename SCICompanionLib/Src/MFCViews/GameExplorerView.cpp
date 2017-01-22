@@ -157,7 +157,7 @@ CDocument* g_OpenPic(const ResourceBlob *pData)
         if (pDocument)
         {
             unique_ptr<ResourceEntity> resource = CreateResourceFromResourceData(*pData);
-            pDocument->SetEditPic(appState->GetResourceMap().GetDependencyTracker(), move(resource), pData->GetChecksum());
+            pDocument->SetEditPic(appState->GetDependencyTracker(), move(resource), pData->GetChecksum());
             return pDocument;
         }
     }
@@ -630,7 +630,7 @@ void DropResourceFiles(CArray<CString, CString&> *pDropFiles)
         if (_IsBitmapFile(pDropFiles->GetAt(i)))
         {
             // It's a bmp file... it might have a resource encoded in it.
-            std::unique_ptr<ResourceBlob> data = Load8BitBmp(appState->GetVersion(), (PCSTR)pDropFiles->GetAt(i));
+            std::unique_ptr<ResourceBlob> data = Load8BitBmp(appState->GetResourceMap().Helper(), appState->GetVersion(), (PCSTR)pDropFiles->GetAt(i));
             if (data)
             {
                 char szName[MAX_PATH];

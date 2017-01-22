@@ -119,8 +119,6 @@ private:
     ResourceRecency *_pResourceRecency;
 };
 
-std::unique_ptr<ResourceContainer> CreateResourceContainerSCI0(SCIVersion version, const std::string &gameFolder, std::unique_ptr<ResourceSourceArray> mapAndVolumes, ResourceTypeFlags types, ResourceEnumFlags enumFlags, ResourceRecency *pRecency);
-
 #ifdef LSL6_FIX
 #define EXTRA_SPACE 4
 #else

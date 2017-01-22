@@ -13,7 +13,6 @@
 ***************************************************************************/
 #include "stdafx.h"
 #include "ResourceSources.h"
-#include "AppState.h"
 #include "format.h"
 #include "ResourceEntity.h"
 #include "ResourceContainer.h"
@@ -58,7 +57,43 @@ std::string FileDescriptorBase::_GetVolumeFilenameBak(int volume) const
     return fmt::format(folderFileFormatBak, _gameFolder, fmt::format(_traits.VolumeFormat, volume));
 }
 
-bool IsResourceCompatible(const ResourceBlob &blob)
+bool IsResourceCompatible(const SCIVersion &usVersion, const SCIVersion &resourceVersion, ResourceType type)
 {
-    return appState->GetResourceMap().IsResourceCompatible(blob);
+    if (resourceVersion == usVersion)
+    {
+        return true;
+    }
+
+    if (type == ResourceType::View)
+    {
+        return resourceVersion.ViewFormat == usVersion.ViewFormat;
+    }
+
+    if (type == ResourceType::Pic)
+    {
+        return resourceVersion.PicFormat == usVersion.PicFormat;
+    }
+
+    if (type == ResourceType::Palette)
+    {
+        return usVersion.HasPalette;
+    }
+
+    if (type == ResourceType::Sound)
+    {
+        return resourceVersion.SoundFormat == usVersion.SoundFormat;
+    }
+
+    if (type == ResourceType::Script)
+    {
+        return resourceVersion.lofsaOpcodeIsAbsolute == usVersion.lofsaOpcodeIsAbsolute;
+    }
+
+    return true; // I guess?
 }
+
+bool IsResourceCompatible(const SCIVersion &version, const ResourceBlob &blob)
+{
+    return IsResourceCompatible(version, blob.GetVersion(), blob.GetType());
+}
+

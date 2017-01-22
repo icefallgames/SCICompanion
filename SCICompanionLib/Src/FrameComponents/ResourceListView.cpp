@@ -226,6 +226,13 @@ void CResourceListCtrl::_SortItemsHelper(int sortColumn, bool toggle)
     SortItems(_sortOrder[sortColumn] ? ColumnSort<1> : ColumnSort<-1>, sortColumn);
 }
 
+void DisplayInvalidResourceNameMessage(PCTSTR pszName)
+{
+    TCHAR szBuffer[MAX_PATH];
+    StringCchPrintf(szBuffer, ARRAYSIZE(szBuffer), TEXT("Invalid resource name: %s.\nNames must consist of letters, numbers, spaces, '_', or '-'."), pszName);
+    AfxMessageBox(szBuffer, MB_ERRORFLAGS);
+}
+
 void CResourceListCtrl::OnEndLabelEdit(NMHDR* pNMHDR, LRESULT* pResult)
 {
     *pResult = FALSE;

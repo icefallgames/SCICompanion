@@ -26,14 +26,14 @@
 
 using namespace std;
 
-ViewFormat CResourceMap::_DetectViewVGAVersion()
+ViewFormat _DetectViewVGAVersion(GameFolderHelper &helper)
 {
-    ViewFormat viewFormat = _gameFolderHelper.Version.ViewFormat;
+    ViewFormat viewFormat = helper.Version.ViewFormat;
     // Enclose this in a try/catch block, as we need to be robust here.
     try
     {
         int remainingToCheck = 5;
-        auto viewContainer = Resources(ResourceTypeFlags::View, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
+        auto viewContainer = helper.Resources(ResourceTypeFlags::View, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
         for (auto &blob : *viewContainer)
         {
             sci::istream stream = blob->GetReadStream();
@@ -69,15 +69,15 @@ ViewFormat CResourceMap::_DetectViewVGAVersion()
     return viewFormat;
 }
 
-ResourcePackageFormat CResourceMap::_DetectPackageFormat()
+ResourcePackageFormat _DetectPackageFormat(GameFolderHelper &helper)
 {
     // Some early bailouts:
-    if (_gameFolderHelper.Version.MapFormat == ResourceMapFormat::SCI11)
+    if (helper.Version.MapFormat == ResourceMapFormat::SCI11)
     {
         return ResourcePackageFormat::SCI11;
     }
 
-    FileDescriptorResourceMap resourceMapFileDescriptor(_gameFolderHelper.GameFolder);
+    FileDescriptorResourceMap resourceMapFileDescriptor(helper.GameFolder);
     
     ResourcePackageFormat packageFormat = ResourcePackageFormat::SCI0;
     // Assume there is always a resource.000 or resource.001
@@ -128,7 +128,7 @@ ResourcePackageFormat CResourceMap::_DetectPackageFormat()
                 }
                 else
                 {
-                    if (_gameFolderHelper.Version.MapFormat != ResourceMapFormat::SCI0)
+                    if (helper.Version.MapFormat != ResourceMapFormat::SCI0)
                     {
                         // Even though this is not supported yet...
                         packageFormat = ResourcePackageFormat::SCI2;
@@ -160,11 +160,11 @@ ResourcePackageFormat CResourceMap::_DetectPackageFormat()
     return packageFormat;
 }
 
-bool CResourceMap::_HasEarlySCI0Scripts()
+bool _HasEarlySCI0Scripts(GameFolderHelper &helper)
 {
     bool hasEarly = false;
     // Look at script 0
-    std::unique_ptr<ResourceBlob> data = MostRecentResource(ResourceType::Script, 0, false);
+    std::unique_ptr<ResourceBlob> data = helper.MostRecentResource(ResourceType::Script, 0, ResourceEnumFlags::AddInDefaultEnumFlags);
     if (data)
     {
         sci::istream byteStream = data->GetReadStream();
@@ -201,7 +201,7 @@ bool CResourceMap::_HasEarlySCI0Scripts()
     return hasEarly;
 }
 
-void CResourceMap::_DetectSoundType()
+void _DetectSoundType(GameFolderHelper &helper)
 {
     // We'll mirror (a slightly simplified version of) what ScummVM does here, which
     // is to look for certain kernel calls in sound::play
@@ -209,7 +209,7 @@ void CResourceMap::_DetectSoundType()
     try
     {
         GlobalCompiledScriptLookups scriptLookups;
-        if (scriptLookups.Load(_gameFolderHelper))
+        if (scriptLookups.Load(helper))
         {
             uint16_t species;
             if (scriptLookups.GetGlobalClassTable().LookupSpeciesCompiledName("Sound", species))
@@ -254,7 +254,7 @@ void CResourceMap::_DetectSoundType()
                                 return true; // To keep going.
                             }
                             );
-                            _gameFolderHelper.Version.SoundFormat = soundFormat;
+                            helper.Version.SoundFormat = soundFormat;
                             break;
                         }
                     }
@@ -267,10 +267,10 @@ void CResourceMap::_DetectSoundType()
     }
 }
 
-KernelSet CResourceMap::_DetectKernelSet()
+KernelSet _DetectKernelSet(GameFolderHelper &helper)
 {
     KernelSet kernelSet = KernelSet::Provided;
-    if (_gameFolderHelper.Version.PackageFormat >= ResourcePackageFormat::SCI2)
+    if (helper.Version.PackageFormat >= ResourcePackageFormat::SCI2)
     {
         // Set it to something reasonable in case something goes wrong.
         kernelSet = KernelSet::SCI2;
@@ -281,7 +281,7 @@ KernelSet CResourceMap::_DetectKernelSet()
         try
         {
             GlobalCompiledScriptLookups scriptLookups;
-            if (scriptLookups.Load(_gameFolderHelper))
+            if (scriptLookups.Load(helper))
             {
                 uint16_t species;
                 if (scriptLookups.GetGlobalClassTable().LookupSpeciesCompiledName("Sound", species))
@@ -329,7 +329,7 @@ KernelSet CResourceMap::_DetectKernelSet()
     }
     else
     {
-        if (DoesResourceExist(ResourceType::Vocab, VocabKernelNames, nullptr, ResourceSaveLocation::Package))
+        if (helper.DoesResourceExist(ResourceType::Vocab, VocabKernelNames, nullptr, ResourceSaveLocation::Package))
         {
             // The kernels are listed in a vocab resource (typical for SCI0).
             kernelSet = KernelSet::Provided;
@@ -344,11 +344,11 @@ KernelSet CResourceMap::_DetectKernelSet()
     return kernelSet;
 }
 
-ResourceMapFormat CResourceMap::_DetectMapFormat()
+ResourceMapFormat _DetectMapFormat(GameFolderHelper &helper)
 {
     ResourceMapFormat mapFormat = ResourceMapFormat::SCI0;
 
-    FileDescriptorResourceMap resourceMapFileDescriptor(_gameFolderHelper.GameFolder);
+    FileDescriptorResourceMap resourceMapFileDescriptor(helper.GameFolder);
     std::unique_ptr<sci::streamOwner> streamHolder = resourceMapFileDescriptor.OpenMap();
     sci::istream byteStream = streamHolder->getReader();
 
@@ -450,7 +450,7 @@ ResourceMapFormat CResourceMap::_DetectMapFormat()
             bool probablyNotSCI0 = false;
             for (int volume : volumesSCI0)
             {
-                FileDescriptorResourceMap resourceMapFileDescriptor(_gameFolderHelper.GameFolder);
+                FileDescriptorResourceMap resourceMapFileDescriptor(helper.GameFolder);
                 if (!PathFileExists(resourceMapFileDescriptor._GetVolumeFilename(volume).c_str()))
                 {
                     probablyNotSCI0 = true;
@@ -463,7 +463,7 @@ ResourceMapFormat CResourceMap::_DetectMapFormat()
             {
                 for (int volume : volumesSCI1)
                 {
-                    FileDescriptorResourceMap resourceMapFileDescriptor(_gameFolderHelper.GameFolder);
+                    FileDescriptorResourceMap resourceMapFileDescriptor(helper.GameFolder);
                     if (!PathFileExists(resourceMapFileDescriptor._GetVolumeFilename(volume).c_str()))
                     {
                         // Game is corrupt...
@@ -489,19 +489,19 @@ enum LofsaType
     Relative
 };
 
-bool CResourceMap::_DetectLofsaFormat()
+bool _DetectLofsaFormat(GameFolderHelper &helper)
 {
     LofsaType lofsaType = LofsaType::Unknown;
 
     // Don't load exports, because loading the export table depends on lofsaAbsolute being correct (IsExportWide).
     GlobalCompiledScriptLookups scriptLookups;
 
-    auto scriptContainer = Resources(ResourceTypeFlags::Script, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
+    auto scriptContainer = helper.Resources(ResourceTypeFlags::Script, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
     bool continueSearch = true;
     for (auto &blobIt = scriptContainer->begin(); continueSearch && (blobIt != scriptContainer->end()); ++blobIt)
     {
         CompiledScript compiledScript(blobIt.GetResourceNumber(), CompiledScriptFlags::DontLoadExports);
-        if (compiledScript.Load(Helper(), _gameFolderHelper.Version, blobIt.GetResourceNumber(), (*blobIt)->GetReadStream()))
+        if (compiledScript.Load(helper, helper.Version, blobIt.GetResourceNumber(), (*blobIt)->GetReadStream()))
         {
             continueSearch = InspectScriptCode(
                 compiledScript,
@@ -556,121 +556,115 @@ bool CResourceMap::_DetectLofsaFormat()
     return lofsaAbsolute;
 }
 
-bool CResourceMap::_DetectIsExportWide()
+bool _DetectIsExportWide(GameFolderHelper &helper)
 {
     // This use to be SCI0_LayoutSCI1, but LSL1-VGA was incorrectly detected as non-wide exports.
-    if (_gameFolderHelper.Version.MapFormat <= ResourceMapFormat::SCI0)
+    if (helper.Version.MapFormat <= ResourceMapFormat::SCI0)
     {
         return false;   // Not wide for SCI0
     }
-    if (_gameFolderHelper.Version.SeparateHeapResources)
+    if (helper.Version.SeparateHeapResources)
     {
         return false;   // Never for separate heap resource games
     }
     // Now we're left with the middle ones, which sometimes were 32-bit.
     bool isWide = false;
-    auto blob = MostRecentResource(ResourceType::Script, 0, false);
+    auto blob = helper.MostRecentResource(ResourceType::Script, 0, ResourceEnumFlags::AddInDefaultEnumFlags);
     if (blob)
     {
         sci::istream byteStream = blob->GetReadStream();
-        isWide = CompiledScript::DetectIfExportsAreWide(_gameFolderHelper.Version, byteStream);
+        isWide = CompiledScript::DetectIfExportsAreWide(helper.Version, byteStream);
     }
     return isWide;
 }
 
-void CResourceMap::_SniffSCIVersion()
+void SniffSCIVersion(GameFolderHelper &helper)
 {
-    if (_skipVersionSniffOnce)
-    {
-        _skipVersionSniffOnce = false;
-        return;
-    }
-
     // Just as a start...
-    _gameFolderHelper.Version = sciVersion0;
+    helper.Version = sciVersion0;
 
     // Audio volume name is easy
-    std::string fullPathAud = _gameFolderHelper.GameFolder + "\\" + "resource.aud";
-    std::string fullPathSFX = _gameFolderHelper.GameFolder + "\\" + "resource.sfx";
-    _gameFolderHelper.Version.AudioVolumeName = AudioVolumeName::None;
+    std::string fullPathAud = helper.GameFolder + "\\" + "resource.aud";
+    std::string fullPathSFX = helper.GameFolder + "\\" + "resource.sfx";
+    helper.Version.AudioVolumeName = AudioVolumeName::None;
     if (PathFileExists(fullPathAud.c_str()))
     {
-        _gameFolderHelper.Version.AudioVolumeName = AudioVolumeName::Aud;
+        helper.Version.AudioVolumeName = AudioVolumeName::Aud;
     }
 
     if (PathFileExists(fullPathSFX.c_str()))
     {
-        if (_gameFolderHelper.Version.AudioVolumeName == AudioVolumeName::Aud)
+        if (helper.Version.AudioVolumeName == AudioVolumeName::Aud)
         {
-            _gameFolderHelper.Version.AudioVolumeName = AudioVolumeName::Both;
+            helper.Version.AudioVolumeName = AudioVolumeName::Both;
         }
         else
         {
-            _gameFolderHelper.Version.AudioVolumeName = AudioVolumeName::Sfx;
+            helper.Version.AudioVolumeName = AudioVolumeName::Sfx;
         }
     }
     // Some games (e.g. SQ6) have wave files as the audio format
-    if (_gameFolderHelper.Version.AudioVolumeName != AudioVolumeName::None)
+    if (helper.Version.AudioVolumeName != AudioVolumeName::None)
     {
-        AudioVolumeName volNameMain = GetVolumeToUse(_gameFolderHelper.Version, NoBase36);
-        std::string mainAudioVolumePath = GetAudioVolumePath(_gameFolderHelper.GameFolder, false, volNameMain);
+        AudioVolumeName volNameMain = GetVolumeToUse(helper.Version, NoBase36);
+        std::string mainAudioVolumePath = GetAudioVolumePath(helper.GameFolder, false, volNameMain);
         if (HasWaveHeader(mainAudioVolumePath))
         {
-            _gameFolderHelper.Version.AudioIsWav = true;
+            helper.Version.AudioIsWav = true;
         }
     }
 
     // Is there a message file?
-    std::string fullPathMessageMap = _gameFolderHelper.GameFolder + "\\" + "message.map";
-    std::string fullPathAltMap = _gameFolderHelper.GameFolder + "\\" + "altres.map";
-    _gameFolderHelper.Version.MessageMapSource = MessageMapSource::Included;
+    std::string fullPathMessageMap = helper.GameFolder + "\\" + "message.map";
+    std::string fullPathAltMap = helper.GameFolder + "\\" + "altres.map";
+    helper.Version.MessageMapSource = MessageMapSource::Included;
     if (PathFileExists(fullPathMessageMap.c_str()))
     {
-        _gameFolderHelper.Version.MessageMapSource = MessageMapSource::MessageMap;
+        helper.Version.MessageMapSource = MessageMapSource::MessageMap;
     }
     else if (PathFileExists(fullPathAltMap.c_str()))
     {
-        _gameFolderHelper.Version.MessageMapSource = MessageMapSource::AltResMap;
+        helper.Version.MessageMapSource = MessageMapSource::AltResMap;
     }
 
-    _gameFolderHelper.Version.MapFormat = _DetectMapFormat();
+    helper.Version.MapFormat = _DetectMapFormat(helper);
 
-    _gameFolderHelper.Version.PackageFormat = _DetectPackageFormat();
+    helper.Version.PackageFormat = _DetectPackageFormat(helper);
 
-	if (_gameFolderHelper.Version.PackageFormat >= ResourcePackageFormat::SCI2)
+	if (helper.Version.PackageFormat >= ResourcePackageFormat::SCI2)
 	{
 		// In SCI2, zero offsets are valid (i.e. they actually point to code). In earlier versions, they were simply empty export slots.
-		_gameFolderHelper.Version.IsZeroExportValid = true;
+		helper.Version.IsZeroExportValid = true;
 	}
 
     // Use resource.000 as the default package file, or resource.001 if no resource.000 found.
-    FileDescriptorResourceMap resourceMapFileDescriptor(_gameFolderHelper.GameFolder);
-    _gameFolderHelper.Version.DefaultVolumeFile = resourceMapFileDescriptor.DoesVolumeExist(0) ? 0 : 1;
+    FileDescriptorResourceMap resourceMapFileDescriptor(helper.GameFolder);
+    helper.Version.DefaultVolumeFile = resourceMapFileDescriptor.DoesVolumeExist(0) ? 0 : 1;
 
     // See if this is a version that uses hep files
     // (this may always correspond to ResourceMapFormat::SCI11, but I'm not positive)
     // Nope! PQ1-VGA is ResourceMapFormat::SCI1, but has separate heap resources.
-    if (_gameFolderHelper.Version.MapFormat >= ResourceMapFormat::SCI1)
+    if (helper.Version.MapFormat >= ResourceMapFormat::SCI1)
     {
-        auto hepContainer = Resources(ResourceTypeFlags::Heap, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
+        auto hepContainer = helper.Resources(ResourceTypeFlags::Heap, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
         for (auto &blobIt = hepContainer->begin(); blobIt != hepContainer->end(); ++blobIt)
         {
-            _gameFolderHelper.Version.SeparateHeapResources = true;
+            helper.Version.SeparateHeapResources = true;
             break;
         }
     }
 
     // More about messages...
-    _gameFolderHelper.Version.SupportsMessages = (_gameFolderHelper.Version.MessageMapSource != MessageMapSource::Included) || _gameFolderHelper.Version.SeparateHeapResources;
-    if (_gameFolderHelper.Version.MessageMapSource == MessageMapSource::Included)
+    helper.Version.SupportsMessages = (helper.Version.MessageMapSource != MessageMapSource::Included) || helper.Version.SeparateHeapResources;
+    if (helper.Version.MessageMapSource == MessageMapSource::Included)
     {
         // Still might support messages... PQ1VGA... well actually, that has a separate message.map file. But... still possible.
-        if (_gameFolderHelper.Version.MapFormat >= ResourceMapFormat::SCI1)
+        if (helper.Version.MapFormat >= ResourceMapFormat::SCI1)
         {
-            auto msgContainer = Resources(ResourceTypeFlags::Message, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
+            auto msgContainer = helper.Resources(ResourceTypeFlags::Message, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
             for (auto &blobIt = msgContainer->begin(); blobIt != msgContainer->end(); ++blobIt)
             {
-                _gameFolderHelper.Version.SupportsMessages = true;
+                helper.Version.SupportsMessages = true;
                 break;
             }
         }
@@ -680,13 +674,13 @@ void CResourceMap::_SniffSCIVersion()
 
     // Now that we've determined a resource map format, we can iterate through them.
     // Now see if we can load a palette. If so, then we'll assume we have VGA pics and views
-    auto paletteContainer = Resources(ResourceTypeFlags::Palette, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
+    auto paletteContainer = helper.Resources(ResourceTypeFlags::Palette, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
     // I use a for loop (instead of ranged for), because I don't want to dereference the iterator until needed
     // Dereferencing the iterator will decompress the resource, which we don't want yet (since we're not sure
     // of our decompression)
     for (auto &blobIt = paletteContainer->begin(); blobIt != paletteContainer->end(); ++blobIt)
     {
-        _gameFolderHelper.Version.HasPalette = true;
+        helper.Version.HasPalette = true;
         break;
     }
 
@@ -694,14 +688,14 @@ void CResourceMap::_SniffSCIVersion()
     // we know this is not SCI0 compression formats.
     // If any of them are huffman, this is probably an "early SCI1" EGA game but which uses the newer compression formats.
     int remainingToCheck = 10;
-    auto viewContainer = Resources(ResourceTypeFlags::View, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
+    auto viewContainer = helper.Resources(ResourceTypeFlags::View, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
     for (auto &blobIt = viewContainer->begin(); remainingToCheck && (blobIt != viewContainer->end()); ++blobIt)
     {
         if (blobIt.GetResourceHeader().CompressionMethod >= 2)
         {
             // Though 2 is a valid compression method for CompressionFormat::SCI0, it is apparently not
             // used with views.
-            _gameFolderHelper.Version.CompressionFormat = CompressionFormat::SCI1;
+            helper.Version.CompressionFormat = CompressionFormat::SCI1;
             break;
         }
         remainingToCheck--;
@@ -710,12 +704,12 @@ void CResourceMap::_SniffSCIVersion()
     // Prescence of a palette does not necessarily indicate a VGA game. Some SCI1 EGA games have palettes left in them from their conversion from VGA.
     // So instead, we'll check the 2nd byte of a view resource, which for early SCI1 games will be 0x80 if it's VGA.
     // Note that this needs to come *after* the compression format detection above.
-    if (_gameFolderHelper.Version.HasPalette)
+    if (helper.Version.HasPalette)
     {
-        bool mustBeVGA = (_gameFolderHelper.Version.MapFormat >= ResourceMapFormat::SCI11) || _gameFolderHelper.Version.SeparateHeapResources;
+        bool mustBeVGA = (helper.Version.MapFormat >= ResourceMapFormat::SCI11) || helper.Version.SeparateHeapResources;
         if (!mustBeVGA)
         {
-            auto viewContainer = Resources(ResourceTypeFlags::View, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
+            auto viewContainer = helper.Resources(ResourceTypeFlags::View, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
             for (auto &view : *viewContainer)
             {
                 if (view->GetDecompressedLength() >= 2)
@@ -730,34 +724,34 @@ void CResourceMap::_SniffSCIVersion()
 
         if (mustBeVGA)
         {
-            _gameFolderHelper.Version.PicFormat = PicFormat::VGA1;
-            _gameFolderHelper.Version.ViewFormat = ViewFormat::VGA1; // We'll get more specific on this later.
+            helper.Version.PicFormat = PicFormat::VGA1;
+            helper.Version.ViewFormat = ViewFormat::VGA1; // We'll get more specific on this later.
         }
     }
 
-    if (_gameFolderHelper.Version.PackageFormat == ResourcePackageFormat::SCI2)
+    if (helper.Version.PackageFormat == ResourcePackageFormat::SCI2)
     {
-        _gameFolderHelper.Version.PicFormat = PicFormat::VGA2;
+        helper.Version.PicFormat = PicFormat::VGA2;
     }
 
     bool needSoundAutoDetect = true;
 
     // Let's get more specific on view formats.
-    if (_gameFolderHelper.Version.ViewFormat != ViewFormat::EGA)
+    if (helper.Version.ViewFormat != ViewFormat::EGA)
     {
-        if (_gameFolderHelper.Version.PackageFormat == ResourcePackageFormat::SCI2)
+        if (helper.Version.PackageFormat == ResourcePackageFormat::SCI2)
         {
             // If we have an SCI2 package format, that's a good indication we have VGA2 views
             // They are close to VGA1_1, but not quite.
-            _gameFolderHelper.Version.ViewFormat = ViewFormat::VGA2; 
+            helper.Version.ViewFormat = ViewFormat::VGA2; 
         }
         else
         {
-            _gameFolderHelper.Version.ViewFormat = _DetectViewVGAVersion();
+            helper.Version.ViewFormat = _DetectViewVGAVersion(helper);
         }
 
         // ASSUMPTION: All VGA games uses SCI1 sound.
-        _gameFolderHelper.Version.SoundFormat = SoundFormat::SCI1;
+        helper.Version.SoundFormat = SoundFormat::SCI1;
         needSoundAutoDetect = false;
     }
     else
@@ -765,20 +759,20 @@ void CResourceMap::_SniffSCIVersion()
         // The reverse is not true though. For instance, Hoyle is EGA and uses SCI1 sounds.
         // We'll make another assumption for SCI0 though, just to ensure any fanmade games don't have improper version detection.
         // If the resource map and package format are SCI0, we'll assume SCI0 sound.
-        if ((_gameFolderHelper.Version.MapFormat <= ResourceMapFormat::SCI0) &&
-            (_gameFolderHelper.Version.PackageFormat <= ResourcePackageFormat::SCI0))
+        if ((helper.Version.MapFormat <= ResourceMapFormat::SCI0) &&
+            (helper.Version.PackageFormat <= ResourcePackageFormat::SCI0))
         {
-            _gameFolderHelper.Version.SoundFormat = SoundFormat::SCI0;
+            helper.Version.SoundFormat = SoundFormat::SCI0;
             needSoundAutoDetect = false;
         }
     }
 
-    _gameFolderHelper.Version.GrayScaleCursors = (_gameFolderHelper.Version.ViewFormat == ViewFormat::EGA) ? false : true;
+    helper.Version.GrayScaleCursors = (helper.Version.ViewFormat == ViewFormat::EGA) ? false : true;
 
     // As long as not EGA, detect picture format. Look at the first picture and see if it starts with 0x0026 (header size)
-    if (_gameFolderHelper.Version.PicFormat != PicFormat::EGA)
+    if (helper.Version.PicFormat != PicFormat::EGA)
     {
-        auto picContainer = Resources(ResourceTypeFlags::Pic, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
+        auto picContainer = helper.Resources(ResourceTypeFlags::Pic, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
         for (auto &pic : *picContainer)
         {
             sci::istream stream = pic->GetReadStream();
@@ -786,7 +780,7 @@ void CResourceMap::_SniffSCIVersion()
             stream >> headerSize;
             if (headerSize == 0x26)
             {
-                _gameFolderHelper.Version.PicFormat = PicFormat::VGA1_1;
+                helper.Version.PicFormat = PicFormat::VGA1_1;
             }
             break;
         }
@@ -800,48 +794,48 @@ void CResourceMap::_SniffSCIVersion()
     // We can short circuit if ResourceMapFormat is SCI11 or higher. Or if it's SCI0 and not VGA?
     // Otherwise, load up script 0, and start poking through the opcodes of the Game subclass.
     // TODO
-    if ((_gameFolderHelper.Version.MapFormat <= ResourceMapFormat::SCI0) && (_gameFolderHelper.Version.ViewFormat == ViewFormat::EGA))
+    if ((helper.Version.MapFormat <= ResourceMapFormat::SCI0) && (helper.Version.ViewFormat == ViewFormat::EGA))
     {
         // "early" SCI0
-        _gameFolderHelper.Version.lofsaOpcodeIsAbsolute = false;
+        helper.Version.lofsaOpcodeIsAbsolute = false;
     }
-    else if (_gameFolderHelper.Version.MapFormat >= ResourceMapFormat::SCI11)
+    else if (helper.Version.MapFormat >= ResourceMapFormat::SCI11)
     {
-        _gameFolderHelper.Version.lofsaOpcodeIsAbsolute = true;
+        helper.Version.lofsaOpcodeIsAbsolute = true;
     }
     else
     {
-        _gameFolderHelper.Version.lofsaOpcodeIsAbsolute = _DetectLofsaFormat();
+        helper.Version.lofsaOpcodeIsAbsolute = _DetectLofsaFormat(helper);
     }
 
-    _gameFolderHelper.Version.IsExportWide = _DetectIsExportWide();
+    helper.Version.IsExportWide = _DetectIsExportWide(helper);
 
     // Which is the parser vocab? If resource 0 is present it's 0. Otherwise it's 900 (or none).
-    _gameFolderHelper.Version.MainVocabResource = (MostRecentResource(ResourceType::Vocab, 0, false)) ? 0 : 900;
-    _gameFolderHelper.Version.HasSaidVocab = DoesResourceExist(ResourceType::Vocab, _gameFolderHelper.Version.MainVocabResource, nullptr, ResourceSaveLocation::Package);
+    helper.Version.MainVocabResource = (helper.MostRecentResource(ResourceType::Vocab, 0, ResourceEnumFlags::AddInDefaultEnumFlags)) ? 0 : 900;
+    helper.Version.HasSaidVocab = helper.DoesResourceExist(ResourceType::Vocab, helper.Version.MainVocabResource, nullptr, ResourceSaveLocation::Package);
 
-    if (_gameFolderHelper.Version.MapFormat == ResourceMapFormat::SCI0)
+    if (helper.Version.MapFormat == ResourceMapFormat::SCI0)
     {
-        _gameFolderHelper.Version.HasOldSCI0ScriptHeader = _HasEarlySCI0Scripts();
+        helper.Version.HasOldSCI0ScriptHeader = _HasEarlySCI0Scripts(helper);
     }
 
     // Not sure about this, but it seems reasonable. Another clue, I think, is if there is more than just one global palette.
-    _gameFolderHelper.Version.sci11Palettes = (_gameFolderHelper.Version.ViewFormat == ViewFormat::VGA1_1);
+    helper.Version.sci11Palettes = (helper.Version.ViewFormat == ViewFormat::VGA1_1);
 
     // ASSUMPTION: VGA views means fonts can have extended chars. I don't know this for sure,
     // we might need some other detection mechanism.
-    _gameFolderHelper.Version.FontExtendedChars = _gameFolderHelper.Version.ViewFormat != ViewFormat::EGA;
+    helper.Version.FontExtendedChars = helper.Version.ViewFormat != ViewFormat::EGA;
 
     // If we find a map resource that isn't number 65535, then assume that this game has seq resources
-    _gameFolderHelper.Version.HasSyncResources = false;
-    if (_gameFolderHelper.Version.AudioVolumeName != AudioVolumeName::None)
+    helper.Version.HasSyncResources = false;
+    if (helper.Version.AudioVolumeName != AudioVolumeName::None)
     {
         std::unique_ptr<ResourceBlob> audioMap65535, audioMap0, audioMapOther;
         std::unique_ptr<ResourceBlob> audioMapMain, audioMapBase36;
         // Usually the audio is map 65535. Sometimes (LB2, non-CD version) it is 0.
         bool found65535 = false;
         bool found0 = false;
-		auto audContainer = Resources(ResourceTypeFlags::AudioMap, ResourceEnumFlags::MostRecentOnly);
+		auto audContainer = helper.Resources(ResourceTypeFlags::AudioMap, ResourceEnumFlags::MostRecentOnly);
         for (auto &blobIt = audContainer->begin(); blobIt != audContainer->end(); ++blobIt)
         {
             if (blobIt.GetResourceNumber() == 65535)
@@ -857,21 +851,21 @@ void CResourceMap::_SniffSCIVersion()
             else
             {
                 // We found something *other* than 0 or 65535
-                _gameFolderHelper.Version.HasSyncResources = true;
+                helper.Version.HasSyncResources = true;
                 audioMapOther = std::move(*blobIt);
             }
         }
         // Now, if we didn't find either 65535 or 0, that's fine. 65535 may be a patch file.
         if (found65535 || !found0)
         {
-            _gameFolderHelper.Version.AudioMapResourceNumber = 65535;
+            helper.Version.AudioMapResourceNumber = 65535;
             audioMapMain = std::move(audioMap65535);
             audioMapBase36 = audioMapOther ? std::move(audioMapOther) : std::move(audioMap0);
         }
         else
         {
             // AFAIK, 0 will never be a patch file (but I could be wrong?)
-            _gameFolderHelper.Version.AudioMapResourceNumber = 0;
+            helper.Version.AudioMapResourceNumber = 0;
             audioMapMain = std::move(audioMap0);
             audioMapBase36 = audioMapOther ? std::move(audioMapOther) : std::move(audioMap65535);
         }
@@ -882,12 +876,12 @@ void CResourceMap::_SniffSCIVersion()
             if (audioMapMain)
             {
                 std::unique_ptr<ResourceEntity> audioMap = CreateResourceFromResourceData(*audioMapMain, false);
-                _gameFolderHelper.Version.MainAudioMapVersion = audioMap->GetComponent<AudioMapComponent>().Version;
+                helper.Version.MainAudioMapVersion = audioMap->GetComponent<AudioMapComponent>().Version;
             }
             if (audioMapBase36)
             {
                 std::unique_ptr<ResourceEntity> audioMap = CreateResourceFromResourceData(*audioMapBase36, false);
-                _gameFolderHelper.Version.Base36AudioMapVersion = audioMap->GetComponent<AudioMapComponent>().Version;
+                helper.Version.Base36AudioMapVersion = audioMap->GetComponent<AudioMapComponent>().Version;
             }
         }
         catch (...)
@@ -897,19 +891,19 @@ void CResourceMap::_SniffSCIVersion()
     }
 
     // Detect resolution (SCI2 and above only... this is an expensive test, since we need to decompress views)
-    if (_gameFolderHelper.Version.PackageFormat >= ResourcePackageFormat::SCI2)
+    if (helper.Version.PackageFormat >= ResourcePackageFormat::SCI2)
     {
         // For SCI2 and above package formats.
         try
         {
-            auto viewContainer = Resources(ResourceTypeFlags::View, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
+            auto viewContainer = helper.Resources(ResourceTypeFlags::View, ResourceEnumFlags::MostRecentOnly | ResourceEnumFlags::ExcludePatchFiles);
             for (auto &viewBlob : *viewContainer)
             {
                 // REVIEW: Could test a few instead of just one. The 2nd one from KQ7 would show 320x200, so if the first one were deleted
                 // we'd get the wrong result
                 std::unique_ptr<ResourceEntity> view = CreateResourceFromResourceData(*viewBlob, false);
                 RasterComponent &raster = view->GetComponent<RasterComponent>();
-                _gameFolderHelper.Version.DefaultResolution = raster.Resolution;
+                helper.Version.DefaultResolution = raster.Resolution;
                 break;
             }
         }
@@ -921,8 +915,8 @@ void CResourceMap::_SniffSCIVersion()
 
     if (needSoundAutoDetect)
     {
-        _DetectSoundType();
+        _DetectSoundType(helper);
     }
 
-    _gameFolderHelper.Version.Kernels = _DetectKernelSet();
+    helper.Version.Kernels = _DetectKernelSet(helper);
 }

@@ -16,6 +16,7 @@
 struct PaletteComponent;
 struct Cel;
 class ResourceBlob;
+class GameFolderHelper;
 
 namespace Gdiplus
 {
@@ -70,5 +71,5 @@ HBITMAP Create32bbpBitmap(const uint8_t *pData, int cxStride, int cx, int cy, ui
 
 // Methods for encoding an SCI resource inside a windows .bmp file.
 bool EncodeResourceInBitmap(const ResourceBlob &blob, const BITMAPINFO &info, uint8_t *pBits);
-std::unique_ptr<ResourceBlob> Load8BitBmp(SCIVersion version, const std::string &filename);
+std::unique_ptr<ResourceBlob> Load8BitBmp(const GameFolderHelper &helper, SCIVersion version, const std::string &filename);
 RGBQUAD _CombineGamma(RGBQUAD color1, RGBQUAD color2);

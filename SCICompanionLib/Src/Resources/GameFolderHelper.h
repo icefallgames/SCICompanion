@@ -45,9 +45,9 @@ public:
     GameFolderHelper &operator=(const GameFolderHelper &other) = default;
 
     std::string GetScriptFileName(const std::string &name) const;
-    std::string GetScriptFileName(WORD wScript) const;
+    std::string GetScriptFileName(uint16_t wScript) const;
     std::string GetScriptObjectFileName(const std::string &title) const;
-    std::string GetScriptObjectFileName(WORD wScript) const;
+    std::string GetScriptObjectFileName(uint16_t wScript) const;
     std::string GameFolderHelper::GetSrcFolder(const std::string *prefix = nullptr) const;
     std::string GameFolderHelper::GetMsgFolder(const std::string *prefix = nullptr) const;
     std::string GameFolderHelper::GetSubFolder(const std::string &subFolder) const;
@@ -64,6 +64,7 @@ public:
     std::string FigureOutName(ResourceType type, int iResourceNum, uint32_t base36Number) const;
     std::unique_ptr<ResourceContainer> Resources(ResourceTypeFlags types, ResourceEnumFlags enumFlags, ResourceRecency *pRecency = nullptr, int mapContext = -1) const;
     std::unique_ptr<ResourceBlob> GameFolderHelper::MostRecentResource(ResourceType type, int number, ResourceEnumFlags flags, uint32_t base36Number = NoBase36, int mapContext = -1) const;
+    bool DoesResourceExist(ResourceType type, int number, std::string *retrieveName, ResourceSaveLocation location) const;
 
     bool GetUseSierraAspectRatio(bool defaultValue) const;
     void SetUseSierraAspectRatio(bool useSierra) const;
@@ -74,6 +75,8 @@ public:
     void SetResourceSaveLocation(ResourceSaveLocation location) const;
     ResourceEnumFlags GetDefaultEnumFlags() const;
     ResourceSourceFlags GetDefaultSaveSourceFlags() const;
+
+    bool IsResourceCompatible(const ResourceBlob &resource) const;
 
     // Members
     SCIVersion Version;

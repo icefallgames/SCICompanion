@@ -19,6 +19,7 @@
 #include "VGADither.h"
 #include "RGBOctree.h"
 #include "ResourceBlob.h"
+#include "GameFolderHelper.h"
 
 using namespace Gdiplus;
 
@@ -894,7 +895,7 @@ const BYTE *_DecodeByteInHighNibble(const BYTE *pBits, BYTE *pByte, DWORD cbToRe
 //
 // Try to load a resource from a bitmap
 // 
-std::unique_ptr<ResourceBlob> Load8BitBmp(SCIVersion version, const std::string &filename)
+std::unique_ptr<ResourceBlob> Load8BitBmp(const GameFolderHelper &helper, SCIVersion version, const std::string &filename)
 {
     std::unique_ptr<ResourceBlob> pBlob;
     std::ifstream bmpFile(filename.c_str(), std::ios::in | std::ios::binary);
@@ -936,7 +937,7 @@ std::unique_ptr<ResourceBlob> Load8BitBmp(SCIVersion version, const std::string 
                     {
                         sci::istream stream(extractedData.get(), header.wSize);
                         pBlob = std::make_unique<ResourceBlob>();
-                        if (FAILED(pBlob->CreateFromBits(nullptr, type, &stream, -1, -1, NoBase36, version, ResourceSourceFlags::ResourceMap)))
+                        if (FAILED(pBlob->CreateFromBits(helper, nullptr, type, &stream, -1, -1, NoBase36, version, ResourceSourceFlags::ResourceMap)))
                         {
                             pBlob.reset(nullptr);
                         }

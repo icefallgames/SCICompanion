@@ -27,6 +27,7 @@
 #include "RasterOperations.h"
 #include "PaletteOperations.h"
 #include "SoundUtil.h"
+#include "SoundUIUtil.h"
 #include "MidiPlayer.h"
 #include "AudioPlayback.h"
 #include "ResourceEntity.h"

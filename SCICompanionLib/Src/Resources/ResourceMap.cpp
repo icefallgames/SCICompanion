@@ -15,11 +15,9 @@
 #include "stdafx.h"
 #include "ResourceContainer.h"
 #include "ResourceMap.h"
-#include "AppState.h"
 #include "ResourceRecency.h"
 #include "SaveResourceDialog.h"
 #include "RemoveScriptDialog.h"
-#include "ClassBrowser.h"
 #include "View.h"
 #include "Cursor.h"
 #include "Font.h"
@@ -47,6 +45,7 @@
 #include "RunLogic.h"
 #include "ResourceBlob.h"
 #include "DependencyTracker.h"
+#include "VersionDetectionHelper.h"
 
 using namespace std;
 
@@ -163,7 +162,7 @@ ResourceType ResourceFlagToType(ResourceTypeFlags dwFlags)
     return (ResourceType)iShifts;
 }
 
-HRESULT RebuildResources(SCIVersion version, BOOL fShowUI, ResourceSaveLocation saveLocation, std::map<ResourceType, RebuildStats> &stats)
+HRESULT RebuildResources(const GameFolderHelper &helper, SCIVersion version, BOOL fShowUI, ResourceSaveLocation saveLocation, std::map<ResourceType, RebuildStats> &stats)
 {
     try
     {
@@ -171,18 +170,18 @@ HRESULT RebuildResources(SCIVersion version, BOOL fShowUI, ResourceSaveLocation 
         // (and RebuildResource should clean out the old ones)
         if (version.AudioVolumeName != AudioVolumeName::None)
         {
-            std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(appState->GetResourceMap().Helper(), ResourceSourceFlags::AudioCache);
+            std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(helper, ResourceSourceFlags::AudioCache);
             resourceSource->RebuildResources(true, *resourceSource, stats);
         }
 
         // Enumerate resources and write the ones we have not already encountered.
-        std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(appState->GetResourceMap().Helper(), ResourceSourceFlags::ResourceMap);
+        std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(helper, ResourceSourceFlags::ResourceMap);
         ResourceSource *theActualSource = resourceSource.get();
         std::unique_ptr<ResourceSource> patchFileSource;
         if (saveLocation == ResourceSaveLocation::Patch)
         {
             // If this project saves to patch files by default, then we should use patch files as the source for rebuilding the resource package.
-            patchFileSource = CreateResourceSource(appState->GetResourceMap().Helper(), ResourceSourceFlags::PatchFile);
+            patchFileSource = CreateResourceSource(helper, ResourceSourceFlags::PatchFile);
             theActualSource = patchFileSource.get();
         }
         resourceSource->RebuildResources(true, *theActualSource, stats);
@@ -190,7 +189,7 @@ HRESULT RebuildResources(SCIVersion version, BOOL fShowUI, ResourceSaveLocation 
         if (version.MessageMapSource != MessageMapSource::Included)
         {
             ResourceSourceFlags sourceFlags = (version.MessageMapSource == MessageMapSource::MessageMap) ? ResourceSourceFlags::MessageMap : ResourceSourceFlags::AltMap;
-            std::unique_ptr<ResourceSource> messageSource = CreateResourceSource(appState->GetResourceMap().Helper(), ResourceSourceFlags::MessageMap);
+            std::unique_ptr<ResourceSource> messageSource = CreateResourceSource(helper, ResourceSourceFlags::MessageMap);
             messageSource->RebuildResources(true, *messageSource, stats);
         }
     }
@@ -205,7 +204,7 @@ HRESULT RebuildResources(SCIVersion version, BOOL fShowUI, ResourceSaveLocation 
 // CResourceMap
 // Helper class for managing resources.
 //
-CResourceMap::CResourceMap(AppState &appState) : _appState(appState)
+CResourceMap::CResourceMap(ISCIAppServices *appServices, ResourceRecency *resourceRecency) : _appServices(appServices), _resourceRecency(resourceRecency)
 {
     _runLogic = std::make_unique<RunLogic>();
     _paletteListNeedsUpdate = true;
@@ -214,9 +213,6 @@ CResourceMap::CResourceMap(AppState &appState) : _appState(appState)
     _cDeferAppend = 0;
     _gameFolderHelper.Language = LangSyntaxUnknown;
     _gameFolderHelper.Version = sciVersion0;    // By default
-    _dependencyTracker = std::make_unique<DependencyTracker>(_appState._fTrackHeaderFiles);
-	// This is a pointer because we don't want a dependency on it in the header file.
-	_classBrowser = std::make_unique<SCIClassBrowser>(*_dependencyTracker);
     _deferredResources.reserve(300);            // So we don't need to resize much it when adding
     _emptyPalette = std::make_unique<PaletteComponent>();
     memset(_emptyPalette->Colors, 0, sizeof(_emptyPalette->Colors));
@@ -371,39 +367,7 @@ int CResourceMap::SuggestResourceNumber(ResourceType type)
 
 bool CResourceMap::IsResourceCompatible(const ResourceBlob &resource)
 {
-    SCIVersion resourceVersion = resource.GetVersion();
-    SCIVersion usVersion = GetSCIVersion();
-    if (resourceVersion == usVersion)
-    {
-        return true;
-    }
-
-    if (resource.GetType() == ResourceType::View)
-    {
-        return resourceVersion.ViewFormat == usVersion.ViewFormat;
-    }
-
-    if (resource.GetType() == ResourceType::Pic)
-    {
-        return resourceVersion.PicFormat == usVersion.PicFormat;
-    }
-
-    if (resource.GetType() == ResourceType::Palette)
-    {
-        return usVersion.HasPalette;
-    }
-
-    if (resource.GetType() == ResourceType::Sound)
-    {
-        return resourceVersion.SoundFormat == usVersion.SoundFormat;
-    }
-
-    if (resource.GetType() == ResourceType::Script)
-    {
-        return resourceVersion.lofsaOpcodeIsAbsolute == usVersion.lofsaOpcodeIsAbsolute;
-    }
-
-    return true; // I guess?
+    return Helper().IsResourceCompatible(resource);
 }
 
 void CResourceMap::StartPostBuildThread()
@@ -419,6 +383,12 @@ void CResourceMap::AbortPostBuildThread()
         _postBuildThread->Abort();
         _postBuildThread.reset();
     }
+}
+
+void CResourceMap::PokeResourceMapReloaded()
+{
+    // Refresh everything.
+    for_each(_syncs.begin(), _syncs.end(), bind2nd(mem_fun(&IResourceMapEvents::OnResourceMapReloaded), false));
 }
 
 void CResourceMap::StartDebuggerThread(int optionalResourceNumber)
@@ -437,11 +407,6 @@ void CResourceMap::RepackageAudio(bool force)
         std::unique_ptr<ResourceSource> resourceSource = CreateResourceSource(Helper(), ResourceSourceFlags::AudioCache);
         resourceSource->RebuildResources(force, *resourceSource, stats);
     }
-}
-
-DependencyTracker &CResourceMap::GetDependencyTracker()
-{
-    return *_dependencyTracker;
 }
 
 void CResourceMap::AbortDebuggerThread()
@@ -524,9 +489,9 @@ HRESULT CResourceMap::AppendResource(const ResourceBlob &resource)
     }
     else
     {
-        if (resource.GetType() == ResourceType::View)
+        if (_appServices && (resource.GetType() == ResourceType::View))
         {
-            _appState.SetRecentlyInteractedView(resource.GetNumber());
+            _appServices->SetRecentlyInteractedView(resource.GetNumber());
         }
 
         // Enumerate resources and write the ones we have not already encountered.
@@ -599,6 +564,24 @@ bool CResourceMap::AppendResource(const ResourceEntity &resource, int *pChecksum
     return AppendResource(resource, resource.PackageNumber, resource.ResourceNumber, "", resource.Base36Number, pChecksum);
 }
 
+bool ValidateResourceSize(const SCIVersion &version, DWORD cb, ResourceType type)
+{
+    // The maximum resource size increases with SCI versions, as the map and resource package header size/offset bit widths increased.
+    // Audio is special, because it was stored with a custom map format.
+    // There are probably actual values that are correct, but we'll use 64K for earlier SCI versions,
+    // and a much larger value for later SCI versions. If we wanted to be "perfect", we could base it off the
+    // bit-width of the map offsets/package resource size fields.
+    bool fRet = IsValidResourceSize(version, cb, type);
+    if (!fRet)
+    {
+        TCHAR szBuffer[MAX_PATH];
+        StringCchPrintf(szBuffer, ARRAYSIZE(szBuffer), TEXT("Resources can't be bigger than %d bytes.  This resource is %d bytes."), MaxResourceSize, cb);
+        AfxMessageBox(szBuffer, MB_ERRORFLAGS);
+        fRet = false;
+    }
+    return fRet;
+}
+
 bool CResourceMap::AppendResource(const ResourceEntity &resource, int packageNumber, int resourceNumber, const std::string &name, uint32_t base36Number, int *pChecksum)
 {
     bool success = false;
@@ -616,7 +599,7 @@ bool CResourceMap::AppendResource(const ResourceEntity &resource, int packageNum
                 sourceFlags = (GetDefaultResourceSaveLocation() == ResourceSaveLocation::Patch) ? ResourceSourceFlags::PatchFile : ResourceSourceFlags::ResourceMap;
             }
 
-            data.CreateFromBits(nullptr, resource.GetType(), &readStream, packageNumber, resourceNumber, base36Number, _gameFolderHelper.Version, sourceFlags);
+            data.CreateFromBits(Helper(), nullptr, resource.GetType(), &readStream, packageNumber, resourceNumber, base36Number, _gameFolderHelper.Version, sourceFlags);
             if (!name.empty())
             {
                 data.SetName(name.c_str());
@@ -634,9 +617,9 @@ bool CResourceMap::AppendResource(const ResourceEntity &resource, int packageNum
 std::unique_ptr<ResourceContainer> CResourceMap::Resources(ResourceTypeFlags types, ResourceEnumFlags enumFlags, int mapContext)
 {
     ResourceRecency *pRecency = nullptr;
-    if ((enumFlags & ResourceEnumFlags::CalculateRecency) != ResourceEnumFlags::None)
+    if (_resourceRecency && ((enumFlags & ResourceEnumFlags::CalculateRecency) != ResourceEnumFlags::None))
     {
-        pRecency = &_appState._resourceRecency;
+        pRecency = _resourceRecency;
         for (int i = 0; i < NumResourceTypes; i++)
         {
             if ((int)types & (1 << i))
@@ -650,29 +633,9 @@ std::unique_ptr<ResourceContainer> CResourceMap::Resources(ResourceTypeFlags typ
     return Helper().Resources(types, enumFlags, pRecency, mapContext);
 }
 
-bool CResourceMap::DoesResourceExist(ResourceType type, int number, std::string *retrieveName, ResourceSaveLocation location)
+bool CResourceMap::DoesResourceExist(ResourceType type, int number, std::string *retrieveName, ResourceSaveLocation location) const
 {
-    ResourceEnumFlags enumFlags = (Helper().GetResourceSaveLocation(location) == ResourceSaveLocation::Package) ?
-        ResourceEnumFlags::ExcludePatchFiles :
-        ResourceEnumFlags::ExcludePackagedFiles;
-
-    if (retrieveName)
-    {
-        enumFlags |= ResourceEnumFlags::NameLookups;
-    }
-    auto &resourceContainer = Resources(ResourceTypeToFlag(type), enumFlags);
-    for (auto &blobIt = resourceContainer->begin(); blobIt != resourceContainer->end(); ++blobIt)
-    {
-        if (blobIt.GetResourceNumber() == number)
-        {
-            if (retrieveName)
-            {
-                *retrieveName = (*blobIt)->GetName();
-            }
-            return true;
-        }
-    }
-    return false;
+    return Helper().DoesResourceExist(type, number, retrieveName, location);
 }
 
 std::unique_ptr<ResourceBlob> CResourceMap::MostRecentResource(ResourceType type, int number, bool getName, uint32_t base36Number, int mapContext)
@@ -685,37 +648,15 @@ std::unique_ptr<ResourceBlob> CResourceMap::MostRecentResource(ResourceType type
     return Helper().MostRecentResource(type, number, flags, base36Number, mapContext);
 }
 
-void CResourceMap::PurgeUnnecessaryResources()
+void CResourceMap::_SniffSCIVersion()
 {
-    std::map<ResourceType, RebuildStats> stats;
-    HRESULT hr = RebuildResources(_gameFolderHelper.Version, TRUE, Helper().GetResourceSaveLocation(ResourceSaveLocation::Default), stats);
-    if (SUCCEEDED(hr))
+    if (_skipVersionSniffOnce)
     {
-        size_t totalSize = 0;
-        for (const auto &stat : stats)
-        {
-            totalSize += stat.second.TotalSize;
-        }
-        vector<CompileResult> statResults;
-        statResults.emplace_back(fmt::format("Total package size: {0:5}KB", totalSize / 1024), CompileResult::CompileResultType::CRT_Message);
-
-        for (const auto &stat : stats)
-        {
-            std::string result = fmt::format("{0:3} {1:>10}: Total size: {2:4}KB ({3:4.2f}% of total)",
-                stat.second.ItemCount,
-                ResourceDisplayNameFromType(stat.first),
-                stat.second.TotalSize / 1024,
-                ((float)stat.second.TotalSize / (float)totalSize) * 100.0f
-                );
-            statResults.emplace_back(result, CompileResult::CompileResultType::CRT_Message);
-        }
-        appState->OutputResults(OutputPaneType::Compile, statResults);
-
-        StartPostBuildThread();
-
-        // Refresh everything.
-        for_each(_syncs.begin(), _syncs.end(), bind2nd(mem_fun(&IResourceMapEvents::OnResourceMapReloaded), false));
+        _skipVersionSniffOnce = false;
+        return;
     }
+
+    SniffSCIVersion(_gameFolderHelper);
 }
 
 void CResourceMap::NotifyToRegenerateImages()
@@ -1210,43 +1151,6 @@ HRESULT GetFilePositionHelper(HANDLE hFile, DWORD *pdwPos)
     return hr;
 }
 
-HRESULT GetResourceMapType(HANDLE hFile, DWORD *pdwType)
-{
-    HRESULT hr = S_OK;
-    *pdwType = RESOURCEMAPTYPE_SCI0;
-    if (hFile != INVALID_HANDLE_VALUE)
-    {
-        DWORD dwOldPos;
-        hr = GetFilePositionHelper(hFile, &dwOldPos);
-        if (SUCCEEDED(hr))
-        {
-            // Set to beginning
-            hr = SetFilePositionHelper(hFile, 0);
-        }
-
-        if (SUCCEEDED(hr))
-        {
-            BYTE byte;
-            DWORD dwRead;
-            if (ReadFile(hFile, &byte, 1, &dwRead, nullptr) && dwRead == sizeof(byte))
-            {
-                if (byte == 0x80)
-                {
-                    // SCI1 resource.
-                    *pdwType = RESOURCEMAPTYPE_SCI1;
-                }
-                // Restore file position
-                hr = SetFilePositionHelper(hFile, dwOldPos);
-            }
-            else
-            {
-                hr = ResultFromLastError();
-            }
-        }
-    }
-    return hr;
-}
-
 void CResourceMap::GetAllScripts(std::vector<ScriptId> &scripts)
 {
     TCHAR szIniFile[MAX_PATH];
@@ -1328,7 +1232,7 @@ MessageSource *CResourceMap::GetVerbsMessageSource(bool reload)
     if (!_verbsHeaderFile || reload)
     {
         string messageFilename = "Verbs.sh";
-        string messageFilePath = fmt::format("{0}\\{1}", _appState.GetResourceMap().Helper().GetSrcFolder(), messageFilename);
+        string messageFilePath = fmt::format("{0}\\{1}", Helper().GetSrcFolder(), messageFilename);
         _verbsHeaderFile = make_unique<MessageHeaderFile>(messageFilePath, messageFilename, initializer_list<string>({ "VERBS" }));
     }
     return _verbsHeaderFile->GetMessageSource();
@@ -1339,7 +1243,7 @@ MessageSource *CResourceMap::GetTalkersMessageSource(bool reload)
     if (!_talkersHeaderFile || reload)
     {
         string messageFilename = "Talkers.sh";
-        string messageFilePath = fmt::format("{0}\\{1}", _appState.GetResourceMap().Helper().GetSrcFolder(), messageFilename);
+        string messageFilePath = fmt::format("{0}\\{1}", Helper().GetSrcFolder(), messageFilename);
         _talkersHeaderFile = make_unique<MessageHeaderFile>(messageFilePath, messageFilename, initializer_list<string>({}));
     }
     return _talkersHeaderFile->GetMessageSource();
@@ -1355,10 +1259,8 @@ RunLogic &CResourceMap::GetRunLogic()
 //
 void CResourceMap::SetGameFolder(const string &gameFolder)
 {
-    _dependencyTracker->Clear();
     _runLogic->SetGameFolder(gameFolder);
     _gameFolderHelper.GameFolder = gameFolder;
-    appState->_fUseOriginalAspectRatioCached = _gameFolderHelper.GetUseSierraAspectRatio(!!appState->_fUseOriginalAspectRatioDefault);
     _talkerToView = TalkerToViewMap(Helper().GetLipSyncFolder());
     ClearVocab000();
     _pPalette999.reset(nullptr);                    // REVIEW: also do this if global palette is edited.
@@ -1390,7 +1292,10 @@ void CResourceMap::SetGameFolder(const string &gameFolder)
 
     AbortDebuggerThread();
 
-    _appState.OnGameFolderUpdate();
+    if (_appServices)
+    {
+        _appServices->OnGameFolderUpdate();
+    }
 }
 
 TalkerToViewMap &CResourceMap::GetTalkerToViewMap()
@@ -1425,8 +1330,7 @@ std::unique_ptr<ResourceEntity> CreateResourceHelper(const ResourceBlob &data, T
         {
             throw;
         }
-        // Just create the default one 
-        appState->LogInfo(theException.what());
+
         data.AddStatusFlags(ResourceLoadStatusFlags::ResourceCreationFailed);
         pResourceReturn.reset(fallbackFunc(data.GetVersion()));
         pResourceReturn->ResourceNumber = data.GetNumber();

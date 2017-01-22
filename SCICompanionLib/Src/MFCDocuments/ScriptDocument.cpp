@@ -218,7 +218,7 @@ std::unique_ptr<sci::Script> SimpleCompile(CompileLog &log, ScriptId &scriptId, 
 bool NewCompileScript(CompileResults &results, CompileLog &log, CompileTables &tables, PrecompiledHeaders &headers, ScriptId &script)
 {
     bool fRet = false;
-	ClassBrowserLock lock(*appState->GetResourceMap().GetClassBrowser());
+	ClassBrowserLock lock(appState->GetClassBrowser());
     lock.Lock();
 
     // Make a new buffer.
@@ -270,15 +270,15 @@ bool NewCompileScript(CompileResults &results, CompileLog &log, CompileTables &t
                 // Save the script resource
                 std::vector<BYTE> &output = results.GetScriptResource();
                 const GameFolderHelper &helper = appState->GetResourceMap().Helper();
-                appState->GetResourceMap().AppendResource(ResourceBlob(nullptr, ResourceType::Script, output, helper.Version.DefaultVolumeFile, wNum, NoBase36, helper.Version, helper.GetDefaultSaveSourceFlags()));
+                appState->GetResourceMap().AppendResource(ResourceBlob(helper, nullptr, ResourceType::Script, output, helper.Version.DefaultVolumeFile, wNum, NoBase36, helper.Version, helper.GetDefaultSaveSourceFlags()));
 
                 std::vector<BYTE> &outputHep = results.GetHeapResource();
                 if (!outputHep.empty())
                 {
-                    appState->GetResourceMap().AppendResource(ResourceBlob(nullptr, ResourceType::Heap, outputHep, helper.Version.DefaultVolumeFile, wNum, NoBase36, helper.Version, helper.GetDefaultSaveSourceFlags()));
+                    appState->GetResourceMap().AppendResource(ResourceBlob(helper, nullptr, ResourceType::Heap, outputHep, helper.Version.DefaultVolumeFile, wNum, NoBase36, helper.Version, helper.GetDefaultSaveSourceFlags()));
                 }
 
-                appState->GetResourceMap().GetDependencyTracker().ClearScript(pScript->GetScriptId());
+                appState->GetDependencyTracker().ClearScript(pScript->GetScriptId());
 
                 // Save the corresponding sco file.
                 CSCOFile &sco = results.GetSCO();
@@ -468,7 +468,7 @@ void CScriptDocument::OnViewSyntaxTree()
     // 3) Reload
     CScriptStreamLimiter limiter(&_buffer);
     CCrystalScriptStream stream(&limiter);
-    //SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser(); 
+    //SCIClassBrowser &browser = appState->GetClassBrowser(); 
     //browser.Lock();
     // 1)
     sci::Script script(_scriptId);
@@ -673,7 +673,7 @@ void CScriptDocument::OnFileSave()
     // Get the current active script, and save it.
     _buffer.SaveToFile(path.c_str());
     // Update the classbrowser...
-	SCIClassBrowser &browser = *appState->GetResourceMap().GetClassBrowser();
+	SCIClassBrowser &browser = appState->GetClassBrowser();
     browser.TriggerReloadScript(path.c_str());
 
     if (_dependencyTracker)

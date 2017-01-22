@@ -14,7 +14,6 @@
 #include "stdafx.h"
 #include "ResourceEntity.h"
 #include "RasterOperations.h"
-#include "AppState.h"
 #include "ResourceBlob.h"
 
 bool NoValidationFunc(const ResourceEntity &resource)
