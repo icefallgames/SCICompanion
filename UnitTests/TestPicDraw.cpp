@@ -30,6 +30,7 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 #include "ResourceSourceFlags.h"
 #include "format.h"
 #include "Helper.h"
+#include "GameFolderHelper.h"
 
 std::unique_ptr<Cel> CelFromBitmapFile(const std::string &filename)
 {
@@ -100,7 +101,21 @@ void VerifyPic(PicDrawManager &pdm, PicScreen screen, const std::string &fileNam
     }
 }
 
-void VerifyFilesInFolder(SCIVersion version, const std::string &folder)
+void VerifyFileWorker(ResourceEntity &resource, const std::string &filenameRaw)
+{
+    PicDrawManager pdm(resource.TryGetComponent<PicComponent>(), resource.TryGetComponent<PaletteComponent>());
+
+    VerifyPic(pdm, PicScreen::Visual, filenameRaw + "-vis.bmp");
+    VerifyPic(pdm, PicScreen::Priority, filenameRaw + "-pri.bmp");
+    std::string filenameCtl = filenameRaw + "-ctl.bmp";
+    // SCI2 doesn't have ctl, so check first.
+    if (PathFileExists(filenameCtl.c_str()))
+    {
+        VerifyPic(pdm, PicScreen::Control, filenameCtl);
+    }
+}
+
+void VerifyFilesInFolder(bool saveAndReload, SCIVersion version, const std::string &folder)
 {
     std::unique_ptr<ResourceSourceArray> mapAndVolumes = std::make_unique<ResourceSourceArray>();
     mapAndVolumes->push_back(std::make_unique<PatchFilesResourceSource>(version, folder, ResourceSourceFlags::PatchFile));
@@ -118,16 +133,25 @@ void VerifyFilesInFolder(SCIVersion version, const std::string &folder)
     {
         foundSome = true;
         std::unique_ptr<ResourceEntity> resource = CreateResourceFromResourceData(*blob);
-        PicDrawManager pdm(resource->TryGetComponent<PicComponent>(), resource->TryGetComponent<PaletteComponent>());
-
         std::string filenameRaw = folder + "\\" + GetFileNameFor(*blob);
-        VerifyPic(pdm, PicScreen::Visual, filenameRaw + "-vis.bmp");
-        VerifyPic(pdm, PicScreen::Priority, filenameRaw + "-pri.bmp");
-        std::string filenameCtl = filenameRaw + "-ctl.bmp";
-        // SCI2 doesn't have ctl, so check first.
-        if (PathFileExists(filenameCtl.c_str()))
+        if (saveAndReload)
         {
-            VerifyPic(pdm, PicScreen::Control, filenameCtl);
+            // Save it to a stream
+            sci::ostream savedStream;
+            std::map<BlobKey, uint32_t> propertyBag;
+            resource->WriteTo(savedStream, true, resource->ResourceNumber, propertyBag);
+            // Load it back
+            sci::istream loadStream(savedStream.GetInternalPointer(), savedStream.GetDataSize());
+            ResourceBlob blob;
+            GameFolderHelper dummyHelper;
+            blob.CreateFromBits(dummyHelper, "whatever", resource->GetType(), &loadStream, resource->PackageNumber, resource->ResourceNumber, resource->Base36Number, version, ResourceSourceFlags::PatchFile);
+            std::unique_ptr<ResourceEntity> resourceReloaded = CreateResourceFromResourceData(blob, false);
+            // Veirfy
+            VerifyFileWorker(*resourceReloaded, filenameRaw);
+        }
+        else
+        {
+            VerifyFileWorker(*resource, filenameRaw);
         }
     }
     if (!foundSome)
@@ -135,6 +159,22 @@ void VerifyFilesInFolder(SCIVersion version, const std::string &folder)
         std::wstring message = fmt::format(L"Found no test files in {0}", folder);
         Logger::WriteMessage(message.c_str());
         Assert::IsTrue(foundSome);
+    }
+}
+
+void TestPicsHelper(bool saveAndReload)
+{
+    std::string folder = GetTestFileDirectory("Pics");
+    VerifyFilesInFolder(saveAndReload, sciVersion0, folder + "\\SCI0");
+    VerifyFilesInFolder(saveAndReload, sciVersion1_EarlyEGA, folder + "\\SCI1.0\\EGA");
+    VerifyFilesInFolder(saveAndReload, sciVersion1_Early, folder + "\\SCI1.0\\Early");
+    VerifyFilesInFolder(saveAndReload, sciVersion1_Mid, folder + "\\SCI1.0\\Mid");
+    VerifyFilesInFolder(saveAndReload, sciVersion1_1, folder + "\\SCI1.1");
+
+    // SCI2 saving is not completely supported.
+    if (!saveAndReload)
+    {
+        VerifyFilesInFolder(saveAndReload, sciVersion2, folder + "\\SCI2");
     }
 }
 
@@ -158,13 +198,12 @@ namespace UnitTests
 
         TEST_METHOD(TestPics)
         {
-            std::string folder = GetTestFileDirectory("Pics");
-            VerifyFilesInFolder(sciVersion0, folder + "\\SCI0");
-            VerifyFilesInFolder(sciVersion1_EarlyEGA, folder + "\\SCI1.0\\EGA");
-            VerifyFilesInFolder(sciVersion1_Early, folder + "\\SCI1.0\\Early");
-            VerifyFilesInFolder(sciVersion1_Mid, folder + "\\SCI1.0\\Mid");
-            VerifyFilesInFolder(sciVersion1_1, folder + "\\SCI1.1");
-            VerifyFilesInFolder(sciVersion2, folder + "\\SCI2");
+            TestPicsHelper(true);
+        }
+
+        TEST_METHOD(TestPicsSaveReload)
+        {
+            TestPicsHelper(false);
         }
 
     private:

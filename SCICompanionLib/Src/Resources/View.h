@@ -20,7 +20,7 @@ class ResourceEntity;
 // rawDataStream is used if the image bits are stored separately from the RLE encoding opcodes.
 void ReadImageData(sci::istream &byteStream, Cel &cel, bool isVGA);
 void ReadImageData(sci::istream &byteStreamRLE, Cel &cel, bool isVGA, sci::istream &byteStreamLiteral);
-void WriteImageData(sci::ostream &byteStream, const Cel &cel, bool isVGA);
+void WriteImageData(sci::ostream &byteStream, const Cel &cel, bool isVGA, bool isEmbeddedView);
 void WriteImageData(sci::ostream &rleStream, const Cel &cel, bool isVGA, sci::ostream &literalStream, bool writeZero);
 void ReadCelFromVGA11(sci::istream &byteStream, Cel &cel, bool isPic);
 

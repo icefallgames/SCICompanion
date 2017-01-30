@@ -32,7 +32,7 @@ static char THIS_FILE[] = __FILE__;
     ( x < cx && y < cy )
 
 #define BYTE_FROM_PALETTE_AND_OFFSET(num, offset)   ((uint8_t) (((num) * PALETTE_SIZE) + (offset)))
-#define BYTE_FROM_EGACOLOR(color)                   ((uint8_t) ((color).color1 + ((color).color2 << 4)))
+#define BYTE_FROM_EGACOLOR(color)                   ((uint8_t) ((color).color2 + ((color).color1 << 4)))
 
 #define GET_PALETTE(palettes, number) ((palettes) + (number) * PALETTE_SIZE)
 
@@ -1816,10 +1816,16 @@ void PatternCommand_Draw(const PicCommand *pCommand, PicData *pData, ViewPort *p
 
 void PatternCommand_GetName(const PicCommand *pCommand, TCHAR *pszBuf, size_t cchBuf)
 {
-    StringCchPrintf(pszBuf, cchBuf, "Pen: %dx%d %s-%s(%d)", pCommand->drawPattern.x, pCommand->drawPattern.y,
+    char szPatternNumber[10] = {};
+    if (pCommand->drawPattern.wFlags & PATTERN_FLAG_USE_PATTERN)
+    {
+        StringCchPrintf(szPatternNumber, ARRAYSIZE(szPatternNumber), "-%02x", (int)pCommand->drawPattern.bPatternNR);
+    }
+    StringCchPrintf(pszBuf, cchBuf, "Pen: %dx%d %s-%s(%d%s)", pCommand->drawPattern.x, pCommand->drawPattern.y,
                     pCommand->drawPattern.wFlags & PATTERN_FLAG_USE_PATTERN ? TEXT("Pat") : TEXT("Sld"),
-                    pCommand->drawPattern.wFlags & PATTERN_FLAG_RECTANGLE ? TEXT("Rect") : TEXT("Circ"),    
-                    pCommand->drawPattern.bPatternSize);
+                    pCommand->drawPattern.wFlags & PATTERN_FLAG_RECTANGLE ? TEXT("R") : TEXT("C"),
+                    pCommand->drawPattern.bPatternSize,
+                    szPatternNumber);
 }
 
 void PatternCommand_Serialize(sci::ostream *pSerial, const PicCommand *pCommand, const PicCommand *pCommandPrev, const PicCommand *pCommandNext, DRAWSIZE dsPrev, DRAWSIZE *pds, SerializedPicState *pState)
@@ -1883,7 +1889,7 @@ void PatternCommand_Serialize(sci::ostream *pSerial, const PicCommand *pCommand,
         if (pCommand->drawPattern.wFlags & PATTERN_FLAG_USE_PATTERN)
         {
             // Write the NR byte
-            pSerial->WriteByte(pCommand->drawPattern.bPatternNR);
+            pSerial->WriteByte(pCommand->drawPattern.bPatternNR << 1);
         }
 
         *pds = dsThis;
@@ -1897,7 +1903,7 @@ void PatternCommand_Serialize(sci::ostream *pSerial, const PicCommand *pCommand,
         if (pCommand->drawPattern.wFlags & PATTERN_FLAG_USE_PATTERN)
         {
             // Write the NR byte
-            pSerial->WriteByte(pCommand->drawPattern.bPatternNR);
+            pSerial->WriteByte(pCommand->drawPattern.bPatternNR << 1);
         }
 
         _WriteCoordinate(pSerial, dsPrev, pCommandPrev->drawPattern.x, pCommandPrev->drawPattern.y,
@@ -2439,7 +2445,7 @@ void DrawVisualBitmap_Serialize(sci::ostream *pSerial, const PicCommand *pComman
     pSerial->WriteWord(pCel->size.cy);
     pSerial->WriteWord(0);  // Skip 2 (unknown)
     pSerial->WriteByte(pCel->TransparentColor);
-    WriteImageData(*pSerial, *pCel, pCommand->drawVisualBitmap.isVGA);
+    WriteImageData(*pSerial, *pCel, pCommand->drawVisualBitmap.isVGA, true);
     // Write the size back at the beginning.
     uint32_t finalSize = pSerial->tellp() - currentOffset - sizeof(uint16_t);
     //if (finalSize > (std::numeric_limits<uint16_t>::max()))

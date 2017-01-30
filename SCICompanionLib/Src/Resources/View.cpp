@@ -407,9 +407,9 @@ void AdvanceXY(const uint8_t *pData, int amount, int &x, int &y, int cx, uint8_t
     assert((y >= 0) || ((y == -1) && (x == 0)));
 }
 
-void WriteImageData(sci::ostream &byteStream, const Cel &cel, bool isVGA)
+void WriteImageData(sci::ostream &byteStream, const Cel &cel, bool isVGA, bool isEmbeddedView)
 {
-    WriteImageData(byteStream, cel, isVGA, byteStream, !isVGA);
+    WriteImageData(byteStream, cel, isVGA, byteStream, !isVGA || isEmbeddedView);
 }
 
 void WriteImageData(sci::ostream &rleStream, const Cel &cel, bool isVGA, sci::ostream &literalStream, bool writeZero)
@@ -530,7 +530,7 @@ void WriteCelTo(const ResourceEntity &resource, sci::ostream &byteStream, const 
         byteStream.WriteByte(0); // Mystery byte in VGA
     }
 
-    WriteImageData(byteStream, cel, isVGA);
+    WriteImageData(byteStream, cel, isVGA, false);
 }
 
 void WriteLoopTo(const ResourceEntity &resource, sci::ostream &byteStream, const Loop &loop, bool isVGA)
