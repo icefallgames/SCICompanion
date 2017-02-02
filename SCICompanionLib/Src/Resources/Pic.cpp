@@ -663,16 +663,17 @@ void PicReadFromVGA(ResourceEntity &resource, sci::istream &byteStream, const st
 struct PicHeader_VGA11
 {
     uint16_t headerSize;
-    uint8_t unknown1;
+    uint8_t numPriorities;
     uint8_t priBandCount;
-    uint8_t hasCel;
+    uint8_t celCount;
     uint8_t unknown2;
-    uint16_t unkonwn3;
-    uint32_t unknown4;
+    uint16_t xVanish;
+    uint16_t yVanish;
+    uint16_t viewAngle;
     uint32_t vectorDataSize;
     uint32_t vectorDataOffset;
-    uint32_t unknown6;
-    uint32_t unknown7;
+    uint32_t priCelOffset;
+    uint32_t ctlCelOffset;
     uint32_t paletteOffset;
     uint32_t celHeaderOffset;
     uint32_t unknown8;
@@ -702,14 +703,13 @@ struct PicCelHeader_VGA2
     point16 placement;
     uint8_t transparentColor;
     uint8_t compressed;
-    uint16_t unknown1;
+    uint16_t dataFlags;
     uint32_t totalDataSize;
-    uint32_t rleDataSize;
-    uint32_t unknown4;
-    uint32_t offsetRLE;
-    uint32_t offsetLiteral;
-    uint16_t offsetMysteryData;
-    uint16_t unknown6;
+    uint32_t controlDataSize;
+    uint32_t paletteOffset;
+    uint32_t controlOffset;
+    uint32_t colorOffset;
+    uint32_t rowTableOffset;
     int16_t priority;
     point16 relativePlacement;
 };
@@ -723,7 +723,12 @@ struct Temp
 };
 
 
+
 #include <poppack.h>
+
+const uint16_t DefaultViewAngle = 70;
+const uint16_t DefaultXVanish = 160;
+const uint16_t DefaultYVanish = 55536;
 
 void PicReadFromVGA11(ResourceEntity &resource, sci::istream &byteStream, const std::map<BlobKey, uint32_t> &propertyBag)
 {
@@ -735,12 +740,13 @@ void PicReadFromVGA11(ResourceEntity &resource, sci::istream &byteStream, const 
     static_assert(sizeof(PicHeader_VGA11) == 0x28, "PicHeader wrong size");
 
     // Let's learn stuff:
-    assert(header.unknown1 == 0x10);
+    assert(header.numPriorities == 16);
     assert(header.unknown2 == 0x0);
-    assert(header.unkonwn3 == 0x00a0);
-    assert(header.unknown4 == 0x0046D8F0);  // Some kind of version marker?
-    assert(header.unknown6 == 0x0);
-    assert(header.unknown7 == 0x0);
+    assert(header.xVanish == DefaultXVanish);
+    assert(header.yVanish == DefaultYVanish);
+    assert(header.viewAngle == DefaultViewAngle);
+    assert(header.priCelOffset == 0x0);
+    assert(header.ctlCelOffset == 0x0);
     assert(header.unknown8 == 0x0);
 
     // Priority bands are at offset 40.
@@ -755,8 +761,9 @@ void PicReadFromVGA11(ResourceEntity &resource, sci::istream &byteStream, const 
         ReadPalette(resource.GetComponent<PaletteComponent>(), byteStream);
     }
 
-    if (header.hasCel)
+    if (header.celCount)
     {
+        assert(header.celCount == 1);
         assert(header.paletteOffset != 0);
         Cel celTemp;
         byteStream.seekg(header.celHeaderOffset);
@@ -775,7 +782,6 @@ void PicReadFromVGA11(ResourceEntity &resource, sci::istream &byteStream, const 
     PicReadFromSCI0_SCI1(resource, byteStream, true);
 }
 
-
 void PicWriteToVGA11(const ResourceEntity &resource, sci::ostream &byteStream, std::map<BlobKey, uint32_t> &propertyBag)
 {
     const PicComponent &pic = resource.GetComponent<PicComponent>();
@@ -783,9 +789,10 @@ void PicWriteToVGA11(const ResourceEntity &resource, sci::ostream &byteStream, s
 
     PicHeader_VGA11 header = {};
     header.headerSize = sizeof(PicHeader_VGA11) - sizeof(header.headerSize);
-    header.unknown1 = 0x10;
-    header.unkonwn3 = 0x00a0;
-    header.unknown4 = 0x0046D8F0;
+    header.numPriorities = 16;
+    header.xVanish = DefaultXVanish;
+    header.yVanish = DefaultYVanish;
+    header.viewAngle = DefaultViewAngle;
 
     // Our file is generally organized like this:
     // [header]
@@ -814,12 +821,12 @@ void PicWriteToVGA11(const ResourceEntity &resource, sci::ostream &byteStream, s
 
     assert(found);  // We should have prevented pic saving if there wasn't a set pri bars command.
 
-    header.hasCel = 0;
+    header.celCount = 0;
     for (const PicCommand &command : pic.commands)
     {
         if (command.type == PicCommand::CommandType::DrawBitmap)
         {
-            header.hasCel = 0x1;
+            header.celCount = 1;
             header.celHeaderOffset = byteStream.tellp();
             const Cel &cel = *command.drawVisualBitmap.pCel;
             sci::ostream celRLEData;
@@ -877,6 +884,7 @@ void PicWriteToVGA11(const ResourceEntity &resource, sci::ostream &byteStream, s
 
 int gMAxPri = 0;
 
+// Note: KQ7 pics 100 and 14000 are busted. Appears to be a problem with the resources themselves, and they are not used in-game.
 void ReadPicCelFromVGA2(sci::istream &byteStream, Cel &cel, int16_t &priority, bool is640)
 {
     PicCelHeader_VGA2 celHeader;
@@ -885,11 +893,10 @@ void ReadPicCelFromVGA2(sci::istream &byteStream, Cel &cel, int16_t &priority, b
     assert(celHeader.transparentColor == 255);
     assert(celHeader.placement == point16(0, 0));
     assert(celHeader.compressed == 0 ||
-        (celHeader.compressed == 138 && celHeader.offsetLiteral != 0));
-    assert(celHeader.unknown1 == 0);
-    assert(celHeader.unknown4 == 0);
-    assert(celHeader.offsetMysteryData == 0 || (celHeader.offsetLiteral != 0));
-    assert(celHeader.unknown6 == 0);
+        (celHeader.compressed == 138 && celHeader.colorOffset != 0));
+    assert(celHeader.dataFlags == 0);
+    assert(celHeader.paletteOffset == 0);
+    assert(celHeader.rowTableOffset == 0 || (celHeader.colorOffset != 0));
 
     cel.size = celHeader.size;
 
@@ -915,8 +922,8 @@ void ReadPicCelFromVGA2(sci::istream &byteStream, Cel &cel, int16_t &priority, b
         gMAxPri = max(priority, gMAxPri);
     }
 
-    byteStream.seekg(celHeader.offsetRLE);
-    if ((celHeader.offsetLiteral == 0) || (celHeader.compressed == 0))
+    byteStream.seekg(celHeader.controlOffset);
+    if ((celHeader.colorOffset == 0) || (celHeader.compressed == 0))
     {
         size_t dataSize = celHeader.size.cx * celHeader.size.cy; // Not sure if padding happens?
         cel.Data.allocate(max(1, dataSize));
@@ -926,7 +933,7 @@ void ReadPicCelFromVGA2(sci::istream &byteStream, Cel &cel, int16_t &priority, b
     }
     else
     {
-        ReadImageData(byteStream, cel, true, sci::istream(byteStream, celHeader.offsetLiteral));
+        ReadImageData(byteStream, cel, true, sci::istream(byteStream, celHeader.colorOffset));
         cel.Stride32 = true;
     }
 }
@@ -1058,11 +1065,12 @@ void PicWriteToVGA2(const ResourceEntity &resource, sci::ostream &byteStream, st
             celHeader.size = pCel->size;
             celHeader.relativePlacement = pCel->placement;
 
-            // TODO: Need to adjust by resolution properly.
+            // Need to adjust by resolution properly.
             if (is640)
             {
                 celHeader.relativePlacement.x /= 2;
-                celHeader.relativePlacement.y = (int16_t)((int)celHeader.relativePlacement.y * 5 / 12);
+                int placementY = (int)round((float)(int)celHeader.relativePlacement.y * 5.0f / 12.0f);
+                celHeader.relativePlacement.y = (int16_t)placementY;
             }
 
             celHeader.priority = command.drawVisualBitmap.priority;
@@ -1071,18 +1079,18 @@ void PicWriteToVGA2(const ResourceEntity &resource, sci::ostream &byteStream, st
 
             if (compressed)
             {
-                celHeader.offsetLiteral = celLiteralData.tellp();   // This will need to be adjusted later
-                celHeader.offsetRLE = byteStream.tellp();
-                celHeader.offsetMysteryData = 0;                    // ? Do we need to write this?
+                celHeader.colorOffset = celLiteralData.tellp();   // This will need to be adjusted later
+                celHeader.controlOffset = byteStream.tellp();
+                celHeader.rowTableOffset = 0;                    // ? Do we need to write this?
                 WriteImageData(byteStream, *pCel, true, celLiteralData, false);
-                celHeader.rleDataSize = byteStream.tellp() - celHeader.offsetRLE;
-                celHeader.totalDataSize = celHeader.rleDataSize + (celLiteralData.tellp() - celHeader.offsetLiteral);
+                celHeader.controlDataSize = byteStream.tellp() - celHeader.controlOffset;
+                celHeader.totalDataSize = celHeader.controlDataSize + (celLiteralData.tellp() - celHeader.colorOffset);
             }
             else
             {
-                celHeader.offsetRLE = byteStream.tellp();
+                celHeader.controlOffset = byteStream.tellp();
                 celHeader.totalDataSize = celHeader.size.cx * celHeader.size.cy;
-                celHeader.rleDataSize = UncompressedTag;
+                celHeader.controlDataSize = UncompressedTag;
                 // The image is flipped, and without any kind of padding (e.g. stride = size.cx).
                 for (int y = celHeader.size.cy - 1; y >= 0; y--)
                 {
@@ -1093,14 +1101,14 @@ void PicWriteToVGA2(const ResourceEntity &resource, sci::ostream &byteStream, st
         }
     }
 
-    // Offset the offsetLiteral to make it an absolute value
+    // Offset the colorOffset to make it an absolute value
     uint32_t baseOffsetForLiteral = byteStream.tellp();
     byteStream.seekp(offsetOfCelHeaders);
     for (auto &celHeader : celHeaders)
     {
         if (compressed)
         {
-            celHeader.offsetLiteral += baseOffsetForLiteral;
+            celHeader.colorOffset += baseOffsetForLiteral;
         }
         byteStream << celHeader;
     }

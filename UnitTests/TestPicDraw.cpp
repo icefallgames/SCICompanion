@@ -170,12 +170,7 @@ void TestPicsHelper(bool saveAndReload)
     VerifyFilesInFolder(saveAndReload, sciVersion1_Early, folder + "\\SCI1.0\\Early");
     VerifyFilesInFolder(saveAndReload, sciVersion1_Mid, folder + "\\SCI1.0\\Mid");
     VerifyFilesInFolder(saveAndReload, sciVersion1_1, folder + "\\SCI1.1");
-
-    // SCI2 saving is not completely supported.
-    if (!saveAndReload)
-    {
-        VerifyFilesInFolder(saveAndReload, sciVersion2, folder + "\\SCI2");
-    }
+    VerifyFilesInFolder(saveAndReload, sciVersion2, folder + "\\SCI2");
 }
 
 namespace UnitTests

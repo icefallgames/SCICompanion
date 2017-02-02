@@ -476,7 +476,7 @@ HRESULT ResourceBlob::CreateFromHandle(PCTSTR pszName, HANDLE hFile, int iPackag
                 SetFilePointer(hFile, gapUntilData, nullptr, FILE_CURRENT);
                 dwSize -= gapUntilData;
 
-                header.cbDecompressed = (WORD)dwSize - sizeof(w);
+                header.cbDecompressed = dwSize - sizeof(w);
                 // Fake this value up for consistency:
                 header.cbCompressed = header.cbDecompressed;
                 // No compression:
